@@ -127,5 +127,7 @@
     }
   },
   "custom-domain": "Özel alan",
-  "security": "Güvenlik"
+  "security": "Güvenlik",
+  "ai-generated-content-disclaimer": "Gösteri için AI tarafından oluşturulan içerik. \nGerçek bir kişiden veya şirketten değil.",
+  "secure-links": "Güvenli Bağlantılar"
 }

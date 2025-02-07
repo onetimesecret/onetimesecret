@@ -52,7 +52,8 @@
       "word_cancel": "Anuluj",
       "feedback_text": "Masz pytanie lub komentarz?",
       "button_send_feedback": "Wyślij Opinię",
-      "verification_sent_to": "Wysłano potwierdzenie na"
+      "verification_sent_to": "Wysłano potwierdzenie na",
+      "processing": "Przetwarzanie"
     },
     "homepage": {
       "tagline1": "Umieść hasło, tajną wiadomość lub prywatny link poniżej.",
@@ -106,6 +107,13 @@
       "incoming_ticket_number_hint": "Znajdziesz go w Twoim e-mailu (np. 123456)",
       "incoming_recipient_address": "Odbiorca pomocy technicznej",
       "incoming_success_message": "Twój e-mail został wysłany"
+    },
+    "security": {
+      "details": "Bliższe dane"
+    },
+    "secrets": {
+      "privacyOptions": "Opcje prywatności",
+      "expiresIn": "Wygasa w {czas trwania}"
     }
   },
   "email": {
@@ -131,5 +139,6 @@
   "security": "Bezpieczeństwo",
   "secure-links": "Bezpieczne linki",
   "enter-a-passphrase": "Wprowadź hasło",
-  "email-address": "Adres e -mail"
+  "email-address": "Adres e -mail",
+  "ai-generated-content-disclaimer": "Treść generowana przez AI do demonstracji. \nNie od rzeczywistej osoby lub firmy."
 }

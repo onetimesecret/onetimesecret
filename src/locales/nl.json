@@ -71,7 +71,8 @@
       "confirm_burn": "Yes, burn this secret",
       "burn_security_notice": "Burning a secret will delete it before it has been received.",
       "share_link_securely": "For security, share this link separately from other details.",
-      "copied_to_clipboard": "Copied to clipboard"
+      "copied_to_clipboard": "Copied to clipboard",
+      "processing": "Verwerking"
     },
     "LABELS": {
       "view_toggle": {
@@ -245,5 +246,6 @@
   "security": "Beveiliging",
   "secure-links": "Veilige links",
   "enter-a-passphrase": "Voer een wachtwoordzin in",
-  "email-address": "E -mailadres"
+  "email-address": "E -mailadres",
+  "ai-generated-content-disclaimer": "AI-gegenereerde inhoud voor demonstratie. \nNiet van een echte persoon of bedrijf."
 }

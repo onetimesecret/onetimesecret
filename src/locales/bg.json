@@ -52,7 +52,8 @@
       "word_cancel": "Откажи",
       "feedback_text": "Имаш въпрос или коментар?",
       "button_send_feedback": "Обратна връзка",
-      "verification_sent_to": "Информация за потвърждаване беше изпратена до"
+      "verification_sent_to": "Информация за потвърждаване беше изпратена до",
+      "processing": "Обработка"
     },
     "homepage": {
       "tagline1": "Поставете парола, тайно съобщение или лична връзка долу.",
@@ -106,6 +107,13 @@
       "incoming_ticket_number_hint": "Може да намерите това от и-мейл си (например: 123456)",
       "incoming_recipient_address": "Получател",
       "incoming_success_message": "Вашият и-мейл беше изпратен"
+    },
+    "security": {
+      "details": "Подробности"
+    },
+    "secrets": {
+      "privacyOptions": "Опции за поверителност",
+      "expiresIn": "Изтича в {продължителност}"
     }
   },
   "email": {
@@ -128,5 +136,9 @@
   "postscript2": "Ако не сте създали този акаунт, изтрийте съобщението и ние няма да Ви безпокоим повече.",
   "custom-domain": "Персонализиран домейн",
   "enter-a-passphrase": "Въведете парола",
-  "email-address": "Имейл адрес"
+  "email-address": "Имейл адрес",
+  "api-key": "API ключ",
+  "ai-generated-content-disclaimer": "AI генерирано съдържание за демонстрация. \nНе от действително лице или компания.",
+  "secure-links": "Сигурни връзки",
+  "security": "Сигурност"
 }

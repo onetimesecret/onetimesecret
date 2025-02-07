@@ -1,3 +1,7 @@
+
+Example of the kind of structure for our locale files that we are hoping to work towards.
+
+```json
 {
   "status": {
     "active": "",
@@ -160,3 +164,4 @@
     }
   }
 }
+```

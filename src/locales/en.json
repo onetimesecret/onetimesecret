@@ -376,6 +376,12 @@
         "feedback_hint": "If you have any questions, there is a feedback form at the bottom of (almost) every page.",
         "signature": "Happy sharing,\n{name}"
       }
+    },
+    "meta": {
+      "were-making-onetime-secret-available-in-multiple": "We're making {onetime-secret} available in multiple languages. Since this is a new feature, you may encounter translation errors or awkward phrasing. Your feedback helps us improve - if you spot any issues, please {send-feedback}",
+      "translations-are-new-spotted-an-error": "Translations are new. Spotted an error? {send-feedback}",
+      "we-recently-added-translations": "We recently added translations. Spotted an error? {send-feedback}",
+      "privacy-and-security-should-be-accessible": "Privacy and security should be accessible to everyone, regardless of language. We're adding translations to help both our users and their message recipients better understand how to safely use and access secure messages and links. Since this is a new feature, you might encounter some translation errors or unclear instructions. To help us improve the clarity and accuracy of our translations, especially for critical security-related content, please {send-feedback} if you spot any issues"
     }
   },
   "email": {
@@ -396,7 +402,6 @@
       "postscript2": "If you did not make this request, you can safely ignore this email."
     }
   },
-
   "your-feedback": "Your feedback",
   "link-preview": "Link Preview",
   "please-enter-a-domain-name": "Please enter a {0} domain name",
@@ -466,8 +471,10 @@
   "signup-individual-and-business-plans": "Signup - Individual and Business plans",
   "main-navigation": "Main navigation",
   "recipient-delivery-is-optional": "Recipient delivery is optional",
-  "signed-sealed": "Signed. Sealed.",
+  "tagline-signed": "Signed",
+  "tagline-sealed": "Sealed",
   "onetime-secret": "Onetime Secret",
+  "onetime-secret-literal": "Onetime Secret",
   "regions": "Regions",
   "onetime-secret-homepage": "Onetime Secret Homepage",
   "send-sensitive-information-that-can-only-be-viewed-once": "Send sensitive information that can only be viewed once",
@@ -640,7 +647,6 @@
   "please-enter-your-new-password-below-make-sure-i": "Please enter your new password below. Make sure it's at least 8 characters long and includes a mix of letters, numbers, and symbols.",
   "choose-a-new-password": "Choose a new password",
   "request-reset": "Request Reset",
-  "e-g-tom-myspace-com": "e.g. tom@myspace.com",
   "enter-your-email-address-below-and-well-send-you": "Enter your email address below, and we'll send you instructions to reset your password.",
   "request-password-reset": "Request password reset",
   "forgot-password": "Forgot Password",
@@ -812,8 +818,6 @@
   "next": "Next",
   "passwords-do-not-match": "Passwords do not match",
   "password-strength": "Password Strength:",
-  "text-red-500-dark-text-red-400": "text-red-500 dark:text-red-400",
-  "text-green-500-dark-text-green-400": "text-green-500 dark:text-green-400",
   "great": "Great",
   "pretty-good": "Pretty good",
   "fair": "Fair",

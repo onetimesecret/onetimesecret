@@ -4,7 +4,7 @@
       "broadcast": "",
       "button_generate_secret_short": "Passwort generieren",
       "generate_password_disabled": "Passwort generieren ist deaktiviert, wenn das Formular gültig ist",
-      "email_placeholder": "z.B. tom{'@'}myspace.com",
+      "email_placeholder": "z.B. kontakt{'@'}musterfirma.at",
       "password_placeholder": "Geben Sie Ihr Passwort ein",
       "custom_domains_title": "Benutzerdefinierte Domains",
       "custom_domains_description": "Stärken Sie Verbindungen und schaffen Sie Vertrauen mit Ihren eigenen geheimen Links.",
@@ -92,7 +92,7 @@
       "no_passphrase": "Keine Passphrase erforderlich",
       "secret_link": "Geheime Verbindung",
       "security_details": "Details zur Sicherheit",
-      "recipients_count": "{Anzahl} Empfänger",
+      "recipients_count": "{count} Empfänger",
       "views": "Ansichten",
       "times_viewed": "mal angesehen",
       "view_progress": "Fortschritte anzeigen",
@@ -145,10 +145,10 @@
         },
         "noOptionsAvailable": "---"
       },
-      "limited_views": "{Anzahl} Ansichtsgrenze",
-      "days_remaining": "{Zahl} Verbleibende Tage",
-      "hours_remaining": "{Zahl} Verbleibende Stunden",
-      "minutes_remaining": "{Zahl} Verbleibende Minuten"
+      "limited_views": "{count} Ansichtsgrenze",
+      "days_remaining": "{count} Verbleibende Tage",
+      "hours_remaining": "{count} Verbleibende Stunden",
+      "minutes_remaining": "{count} Verbleibende Minuten"
     },
     "INSTRUCTION": {
       "sharing_instructions": "Anweisungen zum Teilen",
@@ -159,7 +159,7 @@
     "secrets": {
       "privacyOptions": "Datenschutz-Optionen",
       "selectDuration": "Dauer auswählen",
-      "expiresIn": "Läuft ab in {Laufzeit}"
+      "expiresIn": "Läuft ab in {duration}"
     },
     "homepage": {
       "tagline1": "Fügen Sie unten ein Passwort, eine geheime Nachricht oder einen privaten Link ein.",
@@ -334,6 +334,48 @@
     },
     "site": {
       "website-version": "Website-Version"
+    },
+    "about": {
+      "title": "Über uns",
+      "faq": {
+        "trust_points": [
+          "Wir können nicht auf Ihre Daten zugreifen, selbst wenn wir es wollten (was wir nicht tun). Wenn Sie zum Beispiel ein Passwort weitergeben, kennen wir weder den Benutzernamen noch die Anwendung, für die es bestimmt ist.",
+          "Wenn Sie eine Passphrase verwenden (verfügbar unter \"Datenschutzoptionen\"), wird diese in den Verschlüsselungsschlüssel für das Geheimnis aufgenommen. Wir speichern nur einen bcrypt-Hash der Passphrase, so dass es für uns unmöglich ist, Ihr Geheimnis zu entschlüsseln, sobald es gespeichert ist.",
+          "Unser Code ist {openSourceLink}. Sie können ihn selbst überprüfen oder sogar Ihre eigene Instanz ausführen, wenn Sie dies wünschen.",
+          "Wir verwenden branchenübliche Sicherheitspraktiken, einschließlich HTTPS für alle Verbindungen und Verschlüsselung im Ruhezustand für gespeicherte Daten."
+        ],
+        "passphrase_points": [
+          "Wir speichern niemals das unverschlüsselte Geheimnis oder die Passphrase.",
+          "Der bcrypt-Hash kann nicht zur Entschlüsselung des Geheimnisses verwendet werden.",
+          "Ohne die ursprüngliche Passphrase kann das verschlüsselte Geheimnis nicht entschlüsselt werden, auch nicht von uns.",
+          "Das heißt, selbst wenn unsere Server kompromittiert würden, bliebe Ihr Geheimnis sicher, solange die Passphrase unbekannt bleibt."
+        ],
+        "why_use_title": "Warum sollte ich das verwenden?",
+        "why_use_description": "Wenn Sie Passwörter und private Links per E-Mail oder Chat an andere Personen senden, werden Kopien dieser Informationen an vielen Orten gespeichert. Wenn Sie stattdessen einen Onetime-Link verwenden, werden die Informationen nur einmal angezeigt, so dass sie später nicht mehr von anderen Personen gelesen werden können. Auf diese Weise können Sie vertrauliche Informationen auf sichere Weise versenden und wissen, dass sie nur von einer Person gesehen werden. Stellen Sie sich das wie eine sich selbst zerstörende Nachricht vor.",
+        "file_limitation_title": "Warum kann ich keine Bilder oder andere Dateien senden?",
+        "file_limitation_description": "Unser Dienst ist speziell für textbasierte Geheimnisse konzipiert, um maximale Sicherheit und Einfachheit zu gewährleisten. Dateien, insbesondere Bilder, können Metadaten enthalten, die ungewollt Informationen über den Absender oder Empfänger preisgeben könnten. Da wir uns auf Text konzentrieren, können wir garantieren, dass keine zusätzlichen Daten über das hinaus, was Sie ausdrücklich eingeben, übertragen werden. Wenn Sie eine Datei auf sichere Weise weitergeben möchten, empfehlen wir Ihnen die Verwendung eines speziellen sicheren Dateiübertragungsdienstes. Möglicherweise werden wir in Zukunft die Unterstützung von Dateien hinzufügen, wenn es zwingende Anwendungsfälle dafür gibt.",
+        "text_copy_title": "Aber ich kann den geheimen Text kopieren. Worin liegt der Unterschied?",
+        "text_copy_description": "Stimmt, aber Sie haben nur Text. Bilder und andere Dateitypen können Metadaten und andere potenziell aufschlussreiche Informationen über den Absender oder Empfänger enthalten. Auch hier geht es nur darum, sicherzustellen, dass keine privaten Informationen außerhalb des vorgesehenen Empfängers weitergegeben werden.",
+        "secret_retrieval_title": "Kann ich ein Geheimnis abrufen, das bereits weitergegeben wurde?",
+        "secret_retrieval_description": "Nein. Wir zeigen sie einmal an und löschen sie dann. Danach ist es für immer verschwunden.",
+        "account_difference_title": "Was ist der Unterschied zwischen anonymer Nutzung und einem kostenlosen Konto?",
+        "account_difference_description": "Anonyme Benutzer können Geheimnisse erstellen, die bis zu {anonymousTtlDays} Tage dauern und eine maximale Größe von {anonymousSizeKB} KB HABEN. Inhaber eines kostenlosen Kontos erhalten erweiterte Vorteile: Geheimnisse können bis zu {defaultTtlDays} Tage dauern und bis zu {defaultSizeKB} KB groß sein. Kontoinhaber erhalten außerdem Zugriff auf zusätzliche Funktionen wie die \"Brennen-vor-Lesen\"-Option, die es Absendern ermöglicht, Geheimnisse zu löschen, bevor sie sie erhalten.",
+        "law_enforcement_title": "Wie gehen Sie mit Datenanfragen von Strafverfolgungsbehörden oder anderen Dritten um?",
+        "law_enforcement_description": "Wir haben unser System unter Berücksichtigung des Datenschutzes entwickelt. Wir speichern keine Geheimnisse, nachdem sie angesehen wurden, und wir führen keine Zugriffsprotokolle, die über das erforderliche Minimum hinausgehen. Das bedeutet, dass wir in den meisten Fällen einfach keine Daten haben, die wir als Antwort auf solche Anfragen zur Verfügung stellen können. Weitere Einzelheiten finden Sie in unserer {privacyPolicyLink}.",
+        "trust_title": "Warum sollte ich Ihnen vertrauen?",
+        "trust_description": "Wir haben unser System so konzipiert, dass Datenschutz und Sicherheit oberste Priorität haben. Hier ist der Grund, warum Sie uns vertrauen können:",
+        "passphrase_title": "Wie funktioniert die Passphrase-Option?",
+        "passphrase_description": "Wenn Sie eine Passphrase verwenden, verschlüsseln wir Ihr Geheimnis auf unseren Servern mit der von Ihnen angegebenen Passphrase. Wir speichern nicht die Passphrase selbst, sondern nur einen bcrypt-Hash davon. Dieser Hash wird verwendet, um die Passphrase zu verifizieren, wenn der Empfänger sie eingibt. Dies ist der Grund, warum dies sicher ist:",
+        "passphrase_final_note": "Denken Sie daran, dass die Sicherheit Ihres Geheimnisses davon abhängt, wie stark Ihre Passphrase ist und wie sicher Sie sie dem Empfänger mitteilen."
+      },
+      "intro": {
+        "paragraph1": "Hallo, ich bin {name}, der Erfinder von Onetime Secret. Was 2012 als einfache, sichere Möglichkeit zum Austausch vertraulicher Informationen begann, hat unsere kühnsten Erwartungen übertroffen. Mehr als ein Jahrzehnt später ermöglichen wir den sicheren Austausch von Millionen von Geheimnissen pro Monat, mit Anwendungsfällen, die wir uns nie vorstellen konnten.",
+        "paragraph2": "Die erste Hälfte des Jahres 2024 war unsere bisher arbeitsreichste Zeit. Wir sind dankbar, dass die Menschen unser Produkt seit mehr als einem Jahrzehnt nutzen und weitergeben. Wir arbeiten derzeit an Verbesserungen, die den Dienst noch nützlicher machen werden - wir werden bald weitere Details bekannt geben.",
+        "paragraph3": "Getreu unseren Wurzeln, {githubLink} auf GitHub. Wir navigieren durch die sich entwickelnde Landschaft des digitalen Datenschutzes und der Sicherheit und haben uns zu Transparenz und kontinuierlicher Verbesserung verpflichtet.",
+        "paragraph4": "Danke, dass Sie Teil unserer Reise waren. Auf ein weiteres Jahrzehnt des sicheren, flüchtigen Austauschs.",
+        "feedback_hint": "Wenn Sie Fragen haben, finden Sie am Ende (fast) jeder Seite ein Feedback-Formular.",
+        "signature": "Fröhliches Teilen,\n{name}"
+      }
     }
   },
   "email": {
@@ -352,48 +394,6 @@
       "please_verify": "Bitte verifizieren Sie Ihr Konto:",
       "postscript1": "Diese E-Mail wurde gesendet an",
       "postscript2": "Wenn Sie diesen Antrag nicht gestellt haben, können Sie diese E-Mail getrost ignorieren."
-    }
-  },
-  "about": {
-    "title": "Über uns",
-    "faq": {
-      "trust_points": [
-        "Wir können nicht auf Ihre Daten zugreifen, selbst wenn wir es wollten (was wir nicht tun). Wenn Sie zum Beispiel ein Passwort weitergeben, kennen wir weder den Benutzernamen noch die Anwendung, für die es bestimmt ist.",
-        "Wenn Sie eine Passphrase verwenden (verfügbar unter \"Datenschutzoptionen\"), wird diese in den Verschlüsselungsschlüssel für das Geheimnis aufgenommen. Wir speichern nur einen bcrypt-Hash der Passphrase, so dass es für uns unmöglich ist, Ihr Geheimnis zu entschlüsseln, sobald es gespeichert ist.",
-        "Unser Code ist {openSourceLink}. Sie können ihn selbst überprüfen oder sogar Ihre eigene Instanz ausführen, wenn Sie dies wünschen.",
-        "Wir verwenden branchenübliche Sicherheitspraktiken, einschließlich HTTPS für alle Verbindungen und Verschlüsselung im Ruhezustand für gespeicherte Daten."
-      ],
-      "passphrase_points": [
-        "Wir speichern niemals das unverschlüsselte Geheimnis oder die Passphrase.",
-        "Der bcrypt-Hash kann nicht zur Entschlüsselung des Geheimnisses verwendet werden.",
-        "Ohne die ursprüngliche Passphrase kann das verschlüsselte Geheimnis nicht entschlüsselt werden, auch nicht von uns.",
-        "Das heißt, selbst wenn unsere Server kompromittiert würden, bliebe Ihr Geheimnis sicher, solange die Passphrase unbekannt bleibt."
-      ],
-      "why_use_title": "Warum sollte ich das verwenden?",
-      "why_use_description": "Wenn Sie Passwörter und private Links per E-Mail oder Chat an andere Personen senden, werden Kopien dieser Informationen an vielen Orten gespeichert. Wenn Sie stattdessen einen Onetime-Link verwenden, werden die Informationen nur einmal angezeigt, so dass sie später nicht mehr von anderen Personen gelesen werden können. Auf diese Weise können Sie vertrauliche Informationen auf sichere Weise versenden und wissen, dass sie nur von einer Person gesehen werden. Stellen Sie sich das wie eine sich selbst zerstörende Nachricht vor.",
-      "file_limitation_title": "Warum kann ich keine Bilder oder andere Dateien senden?",
-      "file_limitation_description": "Unser Dienst ist speziell für textbasierte Geheimnisse konzipiert, um maximale Sicherheit und Einfachheit zu gewährleisten. Dateien, insbesondere Bilder, können Metadaten enthalten, die ungewollt Informationen über den Absender oder Empfänger preisgeben könnten. Da wir uns auf Text konzentrieren, können wir garantieren, dass keine zusätzlichen Daten über das hinaus, was Sie ausdrücklich eingeben, übertragen werden. Wenn Sie eine Datei auf sichere Weise weitergeben möchten, empfehlen wir Ihnen die Verwendung eines speziellen sicheren Dateiübertragungsdienstes. Möglicherweise werden wir in Zukunft die Unterstützung von Dateien hinzufügen, wenn es zwingende Anwendungsfälle dafür gibt.",
-      "text_copy_title": "Aber ich kann den geheimen Text kopieren. Worin liegt der Unterschied?",
-      "text_copy_description": "Stimmt, aber Sie haben nur Text. Bilder und andere Dateitypen können Metadaten und andere potenziell aufschlussreiche Informationen über den Absender oder Empfänger enthalten. Auch hier geht es nur darum, sicherzustellen, dass keine privaten Informationen außerhalb des vorgesehenen Empfängers weitergegeben werden.",
-      "secret_retrieval_title": "Kann ich ein Geheimnis abrufen, das bereits weitergegeben wurde?",
-      "secret_retrieval_description": "Nein. Wir zeigen sie einmal an und löschen sie dann. Danach ist es für immer verschwunden.",
-      "account_difference_title": "Was ist der Unterschied zwischen anonymer Nutzung und einem kostenlosen Konto?",
-      "account_difference_description": "Anonyme Benutzer können Geheimnisse erstellen, die bis zu {anonymousTtlDays} Tage dauern und eine maximale Größe von {anonymousSizeKB} KB HABEN. Inhaber eines kostenlosen Kontos erhalten erweiterte Vorteile: Geheimnisse können bis zu {defaultTtlDays} Tage dauern und bis zu {defaultSizeKB} KB groß sein. Kontoinhaber erhalten außerdem Zugriff auf zusätzliche Funktionen wie die \"Brennen-vor-Lesen\"-Option, die es Absendern ermöglicht, Geheimnisse zu löschen, bevor sie sie erhalten.",
-      "law_enforcement_title": "Wie gehen Sie mit Datenanfragen von Strafverfolgungsbehörden oder anderen Dritten um?",
-      "law_enforcement_description": "Wir haben unser System unter Berücksichtigung des Datenschutzes entwickelt. Wir speichern keine Geheimnisse, nachdem sie angesehen wurden, und wir führen keine Zugriffsprotokolle, die über das erforderliche Minimum hinausgehen. Das bedeutet, dass wir in den meisten Fällen einfach keine Daten haben, die wir als Antwort auf solche Anfragen zur Verfügung stellen können. Weitere Einzelheiten finden Sie in unserer {privacyPolicyLink}.",
-      "trust_title": "Warum sollte ich Ihnen vertrauen?",
-      "trust_description": "Wir haben unser System so konzipiert, dass Datenschutz und Sicherheit oberste Priorität haben. Hier ist der Grund, warum Sie uns vertrauen können:",
-      "passphrase_title": "Wie funktioniert die Passphrase-Option?",
-      "passphrase_description": "Wenn Sie eine Passphrase verwenden, verschlüsseln wir Ihr Geheimnis auf unseren Servern mit der von Ihnen angegebenen Passphrase. Wir speichern nicht die Passphrase selbst, sondern nur einen bcrypt-Hash davon. Dieser Hash wird verwendet, um die Passphrase zu verifizieren, wenn der Empfänger sie eingibt. Dies ist der Grund, warum dies sicher ist:",
-      "passphrase_final_note": "Denken Sie daran, dass die Sicherheit Ihres Geheimnisses davon abhängt, wie stark Ihre Passphrase ist und wie sicher Sie sie dem Empfänger mitteilen."
-    },
-    "intro": {
-      "paragraph1": "Hallo, ich bin {Name}, der Erfinder von Onetime Secret. Was 2012 als einfache, sichere Möglichkeit zum Austausch vertraulicher Informationen begann, hat unsere kühnsten Erwartungen übertroffen. Mehr als ein Jahrzehnt später ermöglichen wir den sicheren Austausch von Millionen von Geheimnissen pro Monat, mit Anwendungsfällen, die wir uns nie vorstellen konnten.",
-      "paragraph2": "Die erste Hälfte des Jahres 2024 war unsere bisher arbeitsreichste Zeit. Wir sind dankbar, dass die Menschen unser Produkt seit mehr als einem Jahrzehnt nutzen und weitergeben. Wir arbeiten derzeit an Verbesserungen, die den Dienst noch nützlicher machen werden - wir werden bald weitere Details bekannt geben.",
-      "paragraph3": "Getreu unseren Wurzeln, {githubLink} auf GitHub. Wir navigieren durch die sich entwickelnde Landschaft des digitalen Datenschutzes und der Sicherheit und haben uns zu Transparenz und kontinuierlicher Verbesserung verpflichtet.",
-      "paragraph4": "Danke, dass Sie Teil unserer Reise waren. Auf ein weiteres Jahrzehnt des sicheren, flüchtigen Austauschs.",
-      "feedback_hint": "Wenn Sie Fragen haben, finden Sie am Ende (fast) jeder Seite ein Feedback-Formular.",
-      "signature": "Fröhliches Teilen,\n{Name}"
     }
   },
   "your-feedback": "Ihr Feedback",
@@ -465,8 +465,10 @@
   "signup-individual-and-business-plans": "Anmeldung - Individuelle und geschäftliche Pläne",
   "main-navigation": "Hauptnavigation",
   "recipient-delivery-is-optional": "Die Zustellung an den Empfänger ist fakultativ",
-  "signed-sealed": "Unterschrieben. Versiegelt.",
-  "onetime-secret": "Einstiges Geheimnis",
+  "tagline-signed": "Unterschrieben",
+  "tagline-sealed": "Versiegelt",
+  "onetime-secret": "Onetime Secret",
+  "onetime-secret-literal": "Einstiges Geheimnis",
   "regions": "Regionen",
   "onetime-secret-homepage": "Einst geheime Homepage",
   "send-sensitive-information-that-can-only-be-viewed-once": "Senden Sie sensible Informationen, die nur einmal eingesehen werden können",
@@ -639,7 +641,6 @@
   "please-enter-your-new-password-below-make-sure-i": "Bitte geben Sie unten Ihr neues Passwort ein. Achten Sie darauf, dass es mindestens 8 Zeichen lang ist und eine Mischung aus Buchstaben, Zahlen und Symbolen enthält.",
   "choose-a-new-password": "Wählen Sie ein neues Passwort",
   "request-reset": "Reset anfordern",
-  "e-g-tom-myspace-com": "z.B. tom@myspace.com",
   "enter-your-email-address-below-and-well-send-you": "Geben Sie unten Ihre E-Mail-Adresse ein, damit wir Ihnen Anweisungen zum Zurücksetzen Ihres Passworts zusenden können.",
   "request-password-reset": "Passwort zurücksetzen anfordern",
   "forgot-password": "Passwort vergessen",
@@ -811,8 +812,6 @@
   "next": "Weiter",
   "passwords-do-not-match": "Passwörter stimmen nicht überein",
   "password-strength": "Passwortstärke:",
-  "text-red-500-dark-text-red-400": "",
-  "text-green-500-dark-text-green-400": "",
   "great": "Großartig",
   "pretty-good": "Ziemlich gut",
   "fair": "Messe",

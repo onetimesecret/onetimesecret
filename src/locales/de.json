@@ -240,5 +240,8 @@
       "postscript2": "Wenn du diesen Account nicht erstellt hast, entferne diese Nachricht und wir werden dich nicht noch einmal kontaktieren."
     }
   },
-  "security": "Sicherheit"
+  "security": "Sicherheit",
+  "api-key": "API -Schlüssel",
+  "ai-generated-content-disclaimer": "AI-generierte Inhalte zur Demonstration. \nNicht von einer tatsächlichen Person oder Firma.",
+  "secure-links": "Sichere Links"
 }
