@@ -145,10 +145,10 @@
         },
         "noOptionsAvailable": "---"
       },
-      "limited_views": "{Anzahl} Ansichtsgrenze",
-      "days_remaining": "{Zahl} Verbleibende Tage",
-      "hours_remaining": "{Zahl} Verbleibende Stunden",
-      "minutes_remaining": "{Zahl} Verbleibende Minuten"
+      "limited_views": "{count} Ansichtsgrenze",
+      "days_remaining": "{count} Verbleibende Tage",
+      "hours_remaining": "{count} Verbleibende Stunden",
+      "minutes_remaining": "{count} Verbleibende Minuten"
     },
     "INSTRUCTION": {
       "sharing_instructions": "Anweisungen zum Teilen",
