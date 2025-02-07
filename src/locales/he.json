@@ -40,7 +40,6 @@
       "sent_to": "שליחה אל: ",
       "field_email": "מייל",
       "field_password": "סיסמה",
-      "field_password": "סיסמה",
       "field_password2": "אימות סיסמה",
       "button_create_account": "יצירת חשבון",
       "share_a_secret": "שיתוף סוד",
@@ -126,5 +125,6 @@
       "postscript1": "מייל זה נשלח ל",
       "postscript2": "אם לא יצרתם את החשבון, מחקו את ההודעה ולא ניצור עמכם קשר שוב."
     }
-  }
+  },
+  "email-address": "כתובת דוא\"ל"
 }

@@ -125,5 +125,11 @@
       "postscript1": "Email này đã được gởi tới",
       "postscript2": "Nếu bạn không tạo tài khoản này, vui lòng xóa tin nhắn này đi, chúng tôi sẽ không làm phiền bạn nữa."
     }
-  }
+  },
+  "api-key": "Khóa API",
+  "custom-domain": "Miền tùy chỉnh",
+  "security": "Bảo vệ",
+  "secure-links": "Liên kết an toàn",
+  "enter-a-passphrase": "Nhập một cụm mật khẩu",
+  "email-address": "Địa chỉ email"
 }

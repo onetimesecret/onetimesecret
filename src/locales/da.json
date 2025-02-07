@@ -239,5 +239,11 @@
       "postscript1": "This email was sent to",
       "postscript2": "If you did not make this request, you can safely ignore this email."
     }
-  }
+  },
+  "api-key": "API -nøgle",
+  "custom-domain": "Brugerdefineret domæne",
+  "security": "Sikkerhed",
+  "secure-links": "Sikre links",
+  "enter-a-passphrase": "Gå ind i en adgangssætning",
+  "email-address": "E -mail -adresse"
 }

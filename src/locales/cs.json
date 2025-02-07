@@ -40,7 +40,6 @@
       "sent_to": "Poslat komu: ",
       "field_email": "Email",
       "field_password": "Heslo",
-      "field_password": "Heslo",
       "field_password2": "Potvrdit heslo",
       "button_create_account": "Vytvořit účet",
       "share_a_secret": "Sdílet tajemství",
@@ -126,5 +125,6 @@
       "postscript1": "Tento email byl odeslán",
       "postscript2": "Pokud jste nevytvořili tento účet, smažte tuto zprávu a my vás už nebudeme znovu kontaktovat."
     }
-  }
+  },
+  "security": "Zabezpečení"
 }

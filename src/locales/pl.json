@@ -40,7 +40,6 @@
       "sent_to": "Wyślij do: ",
       "field_email": "E-mail",
       "field_password": "Hasło",
-      "field_password": "Hasło",
       "field_password2": "Potwierdź Hasło",
       "button_create_account": "Utwórz Konto",
       "share_a_secret": "Udostępnij poufną wiadomość",
@@ -126,5 +125,11 @@
       "postscript1": "Twój e-mail został wysłany do",
       "postscript2": "Jeśli nie założyłeś tego konta, usuń tę wiadomość i nie skontaktujemy się z Tobą ponownie."
     }
-  }
+  },
+  "api-key": "Klucz API",
+  "custom-domain": "Domena niestandardowa",
+  "security": "Bezpieczeństwo",
+  "secure-links": "Bezpieczne linki",
+  "enter-a-passphrase": "Wprowadź hasło",
+  "email-address": "Adres e -mail"
 }
