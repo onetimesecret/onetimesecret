@@ -84,7 +84,11 @@ export const useLanguageStore = defineStore('language', () => {
     const normalizedLocale = validateAndNormalizeLocale(locale);
     if (supportedLocales.value.includes(normalizedLocale)) {
       currentLocale.value = normalizedLocale;
-      sessionStorage.setItem(getStorageKey.value, normalizedLocale);
+      try {
+        sessionStorage.setItem(getStorageKey.value, normalizedLocale);
+      } catch (error) {
+        console.error('Failed to save locale to session storage:', error);
+      }
     }
   }
 

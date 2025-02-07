@@ -21,8 +21,13 @@
   }>();
 
   const { t } = useI18n();
-  const { currentLocale, supportedLocales, updateLanguage, saveLanguage, initializeLanguage } =
-    useLanguage();
+  const {
+    currentLocale,
+    supportedLocales,
+    updateLanguage,
+    saveLanguage,
+    initializeLanguage
+  } = useLanguage();
   const dropdownRef = ref<InstanceType<typeof DropdownToggle> | null>(null);
   const cust = WindowService.get('cust');
 
@@ -30,13 +35,20 @@
     const liveRegion = document.createElement('div');
     liveRegion.setAttribute('role', 'status');
     liveRegion.setAttribute('aria-live', 'polite');
+    liveRegion.setAttribute('aria-atomic', 'true');
     liveRegion.className = 'sr-only';
     liveRegion.textContent = t('language-changed-to-newlocale', [locale]);
     document.body.appendChild(liveRegion);
-    setTimeout(() => document.body.removeChild(liveRegion), 1000);
+    setTimeout(() => {
+      if (document.body.contains(liveRegion)) {
+        document.body.removeChild(liveRegion);
+      }
+    }, 1000);
   };
 
   const changeLocale = async (newLocale: string) => {
+    if (newLocale === currentLocale.value) return;
+
     try {
       await updateLanguage(newLocale);
       if (cust?.locale) {
@@ -55,7 +67,7 @@
     initializeLanguage();
   });
 
-  const ariaLabel = computed(() => t('current-language-is-currentlocal', [currentLocale]));
+  const ariaLabel = computed(() => t('current-language-is-currentlocal', [currentLocale.value]));
   const dropdownMode = computed(() => (props.compact ? 'icon' : 'dropdown'));
 </script>
 
@@ -79,7 +91,7 @@
           fill="none"
           viewBox="0 0 24 24"
           stroke="currentColor"
-          role="img">
+          aria-hidden="true">
           <path
             stroke-linecap="round"
             stroke-linejoin="round"
@@ -91,30 +103,31 @@
     </template>
 
     <template #menu-items>
-      <a
+      <button
         v-for="locale in supportedLocales"
         :key="locale"
-        href="#"
-        @click.prevent="changeLocale(locale)"
+        @click="changeLocale(locale)"
         :class="[
-          'flex items-center justify-between gap-2 font-brand',
+          'flex w-full items-center justify-between gap-2 font-brand',
           'px-4 py-2 text-base transition-colors',
           'text-gray-900 dark:text-gray-100',
           'hover:bg-gray-200 dark:hover:bg-gray-700',
           locale === currentLocale
             ? 'bg-gray-100 font-medium text-brand-600 dark:bg-gray-800 dark:text-brand-400'
-            : ''
+            : '',
         ]"
-        role="menuitem"
         :aria-current="locale === currentLocale ? 'true' : undefined"
+        :aria-selected="locale === currentLocale"
+        role="menuitem"
         :lang="locale">
         <span>{{ locale }}</span>
         <OIcon
           v-if="locale === currentLocale"
           collection="heroicons"
           name="check-20-solid"
-          class="size-5 " />
-      </a>
+          class="size-5"
+          aria-hidden="true" />
+      </button>
     </template>
   </DropdownToggle>
 </template>

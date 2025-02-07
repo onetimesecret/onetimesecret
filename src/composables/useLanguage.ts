@@ -1,6 +1,6 @@
 // src/composables/useLanguage.ts
 
-import { ref, inject, reactive } from 'vue';
+import { ref, inject, reactive, computed } from 'vue';
 import type { AxiosInstance } from 'axios';
 import { useLanguageStore } from '@/stores/languageStore';
 import { setLanguage } from '@/i18n';
@@ -82,14 +82,15 @@ export function useLanguage(options?: AsyncHandlerOptions) {
     });
 
   return {
-    state,
-    currentLocale: languageStore.getCurrentLocale,
-    supportedLocales: languageStore.getSupportedLocales,
-    isInitialized,
-    initializeLanguage,
-    onLanguageChange,
+    // Expose store values through composable
+    currentLocale: computed(() => languageStore.getCurrentLocale),
+    supportedLocales: computed(() => languageStore.getSupportedLocales),
+
+    // Encapsulate business logic and side effects
     updateLanguage,
     saveLanguage,
-    clearLanguageListeners: () => languageListeners.clear(),
+    initializeLanguage,
+    onLanguageChange,
+    state,
   };
 }
