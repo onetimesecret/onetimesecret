@@ -369,12 +369,12 @@
         "passphrase_final_note": "Denken Sie daran, dass die Sicherheit Ihres Geheimnisses davon abhängt, wie stark Ihre Passphrase ist und wie sicher Sie sie dem Empfänger mitteilen."
       },
       "intro": {
-        "paragraph1": "Hallo, ich bin {Name}, der Erfinder von Onetime Secret. Was 2012 als einfache, sichere Möglichkeit zum Austausch vertraulicher Informationen begann, hat unsere kühnsten Erwartungen übertroffen. Mehr als ein Jahrzehnt später ermöglichen wir den sicheren Austausch von Millionen von Geheimnissen pro Monat, mit Anwendungsfällen, die wir uns nie vorstellen konnten.",
+        "paragraph1": "Hallo, ich bin {name}, der Erfinder von Onetime Secret. Was 2012 als einfache, sichere Möglichkeit zum Austausch vertraulicher Informationen begann, hat unsere kühnsten Erwartungen übertroffen. Mehr als ein Jahrzehnt später ermöglichen wir den sicheren Austausch von Millionen von Geheimnissen pro Monat, mit Anwendungsfällen, die wir uns nie vorstellen konnten.",
         "paragraph2": "Die erste Hälfte des Jahres 2024 war unsere bisher arbeitsreichste Zeit. Wir sind dankbar, dass die Menschen unser Produkt seit mehr als einem Jahrzehnt nutzen und weitergeben. Wir arbeiten derzeit an Verbesserungen, die den Dienst noch nützlicher machen werden - wir werden bald weitere Details bekannt geben.",
         "paragraph3": "Getreu unseren Wurzeln, {githubLink} auf GitHub. Wir navigieren durch die sich entwickelnde Landschaft des digitalen Datenschutzes und der Sicherheit und haben uns zu Transparenz und kontinuierlicher Verbesserung verpflichtet.",
         "paragraph4": "Danke, dass Sie Teil unserer Reise waren. Auf ein weiteres Jahrzehnt des sicheren, flüchtigen Austauschs.",
         "feedback_hint": "Wenn Sie Fragen haben, finden Sie am Ende (fast) jeder Seite ein Feedback-Formular.",
-        "signature": "Fröhliches Teilen,\n{Name}"
+        "signature": "Fröhliches Teilen,\n{name}"
       }
     }
   },
