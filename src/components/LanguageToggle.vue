@@ -1,60 +1,62 @@
 <!-- src/components/LanguageToggle.vue -->
 
 <script setup lang="ts">
-import { computed, onMounted, ref } from 'vue';
-import { useI18n } from 'vue-i18n';
-import { WindowService } from '@/services/window.service';
-import { useLanguage } from '@/composables/useLanguage';
-import DropdownToggle from './DropdownToggle.vue';
+  import { computed, onMounted, ref } from 'vue';
+  import { useI18n } from 'vue-i18n';
+  import { WindowService } from '@/services/window.service';
+  import { useLanguage } from '@/composables/useLanguage';
+  import DropdownToggle from './DropdownToggle.vue';
+  import OIcon from './icons/OIcon.vue';
 
-interface Props {
-  compact?: boolean;
-}
-
-const props = withDefaults(defineProps<Props>(), {
-  compact: false,
-});
-
-const emit = defineEmits<{
-  (e: 'localeChanged', locale: string): void;
-}>();
-
-const { t } = useI18n();
-const { currentLocale, supportedLocales, updateLanguage, saveLanguage, initializeLanguage } = useLanguage();
-const dropdownRef = ref<InstanceType<typeof DropdownToggle> | null>(null);
-const cust = WindowService.get('cust');
-
-const announceLanguageChange = (locale: string) => {
-  const liveRegion = document.createElement('div');
-  liveRegion.setAttribute('role', 'status');
-  liveRegion.setAttribute('aria-live', 'polite');
-  liveRegion.className = 'sr-only';
-  liveRegion.textContent = t('language-changed-to-newlocale', [locale]);
-  document.body.appendChild(liveRegion);
-  setTimeout(() => document.body.removeChild(liveRegion), 1000);
-};
-
-const changeLocale = async (newLocale: string) => {
-  try {
-    await updateLanguage(newLocale);
-    if (cust?.locale) {
-      await saveLanguage(newLocale);
-    }
-    emit('localeChanged', newLocale);
-    announceLanguageChange(newLocale);
-  } catch (err) {
-    console.error('Failed to update language:', err);
-  } finally {
-    dropdownRef.value?.closeMenu();
+  interface Props {
+    compact?: boolean;
   }
-};
 
-onMounted(() => {
-  initializeLanguage();
-});
+  const props = withDefaults(defineProps<Props>(), {
+    compact: false,
+  });
 
-const ariaLabel = computed(() => t('current-language-is-currentlocal', [currentLocale]));
-const dropdownMode = computed(() => props.compact ? 'icon' : 'dropdown');
+  const emit = defineEmits<{
+    (e: 'localeChanged', locale: string): void;
+  }>();
+
+  const { t } = useI18n();
+  const { currentLocale, supportedLocales, updateLanguage, saveLanguage, initializeLanguage } =
+    useLanguage();
+  const dropdownRef = ref<InstanceType<typeof DropdownToggle> | null>(null);
+  const cust = WindowService.get('cust');
+
+  const announceLanguageChange = (locale: string) => {
+    const liveRegion = document.createElement('div');
+    liveRegion.setAttribute('role', 'status');
+    liveRegion.setAttribute('aria-live', 'polite');
+    liveRegion.className = 'sr-only';
+    liveRegion.textContent = t('language-changed-to-newlocale', [locale]);
+    document.body.appendChild(liveRegion);
+    setTimeout(() => document.body.removeChild(liveRegion), 1000);
+  };
+
+  const changeLocale = async (newLocale: string) => {
+    try {
+      await updateLanguage(newLocale);
+      if (cust?.locale) {
+        await saveLanguage(newLocale);
+      }
+      emit('localeChanged', newLocale);
+      announceLanguageChange(newLocale);
+    } catch (err) {
+      console.error('Failed to update language:', err);
+    } finally {
+      dropdownRef.value?.closeMenu();
+    }
+  };
+
+  onMounted(() => {
+    initializeLanguage();
+  });
+
+  const ariaLabel = computed(() => t('current-language-is-currentlocal', [currentLocale]));
+  const dropdownMode = computed(() => (props.compact ? 'icon' : 'dropdown'));
 </script>
 
 <template>
@@ -105,7 +107,7 @@ const dropdownMode = computed(() => props.compact ? 'icon' : 'dropdown');
         href="#"
         @click.prevent="changeLocale(locale)"
         :class="[
-          'block px-4 py-2 text-sm transition-colors duration-200',
+          'flex items-center justify-between gap-2 px-4 py-2 text-sm transition-colors duration-200',
           'hover:bg-gray-100 hover:text-gray-900',
           'dark:hover:bg-gray-700 dark:hover:text-gray-100',
           locale === currentLocale
@@ -115,7 +117,12 @@ const dropdownMode = computed(() => props.compact ? 'icon' : 'dropdown');
         role="menuitem"
         :aria-current="locale === currentLocale ? 'true' : undefined"
         :lang="locale">
-        {{ locale }}
+        <span>{{ locale }}</span>
+        <OIcon
+          v-if="locale === currentLocale"
+          collection="heroicons"
+          name="check-20-solid"
+          class="size-5 text-brand-600 dark:text-brand-400" />
       </a>
     </template>
   </DropdownToggle>
