@@ -80,7 +80,7 @@
 <template>
   <DropdownToggle
     ref="dropdownRef"
-    class="text-gray-700"
+    class="text-gray-700 dark:text-gray-300"
     open-direction="up"
     :aria-label="ariaLabel"
     :mode="dropdownMode">
@@ -104,7 +104,7 @@
       <template v-else>
         <svg
           xmlns="http://www.w3.org/2000/svg"
-          class="mr-2 size-5"
+          class="mr-2 size-5 text-gray-600 dark:text-gray-400"
           fill="none"
           viewBox="0 0 24 24"
           stroke="currentColor">
@@ -117,6 +117,7 @@
         {{ currentLocale }}
       </template>
     </template>
+
     <template #menu-items>
       <a
         v-for="locale in supportedLocales"
@@ -124,9 +125,11 @@
         href="#"
         @click.prevent="changeLocale(locale)"
         :class="[
-          'block px-4 py-2 text-sm hover:bg-gray-100 hover:text-gray-900 dark:hover:bg-gray-700 dark:hover:text-gray-100',
+          'block px-4 py-2 text-sm transition-colors duration-200',
+          'hover:bg-gray-100 hover:text-gray-900',
+          'dark:hover:bg-gray-700 dark:hover:text-gray-100',
           locale === currentLocale
-            ? 'bg-gray-100 font-bold text-indigo-600 dark:bg-gray-700 dark:text-indigo-400'
+            ? 'bg-gray-100 font-medium text-brandcomdim-600 dark:bg-gray-700 dark:text-brandcomdim-400'
             : 'text-gray-700 dark:text-gray-300',
         ]"
         role="menuitem"
