@@ -40,7 +40,7 @@
 
 <template>
   <AuthView
-    heading="Create your account"
+    :heading="$t('web.signup.create-your-account')"
     heading-id="signup-heading"
     :with-subheading="true">
     <template #form>
