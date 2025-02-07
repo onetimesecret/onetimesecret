@@ -87,7 +87,7 @@ const dropdownId = `dropdown-${Math.random().toString(36).slice(2, 11)}`;
       type="button"
       :class="[
         'inline-flex items-center justify-center rounded-md transition-colors',
-        'focus:outline-none focus:ring-2 focus:ring-brand-600 dark:focus:ring-brand-500',
+        'focus:outline-none focus:ring-2 focus:ring-brand-600 dark:focus:ring-brand-400',
         'focus:ring-offset-2 focus:ring-offset-white dark:ring-offset-gray-900',
         mode === 'icon' ? [
           'size-10 p-1',
@@ -129,7 +129,7 @@ const dropdownId = `dropdown-${Math.random().toString(36).slice(2, 11)}`;
       v-if="isMenuOpen"
       :class="[
         'absolute right-0 w-56 rounded-md bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none dark:bg-gray-800 dark:ring-white dark:ring-opacity-20',
-        openDirection === 'up' ? 'bottom-full z-[1000] mb-2' : 'top-full z-[100] mt-2'
+        openDirection === 'up' ? 'bottom-full z-[49] mb-2' : 'top-full z-[9] mt-2'
       ]"
       role="menu"
       aria-orientation="vertical"

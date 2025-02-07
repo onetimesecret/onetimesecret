@@ -56,17 +56,17 @@ const getIconName = (jurisdiction: Jurisdiction | null): string => {
   <div v-if="currentJurisdiction"
        ref="dropdownRef"
        class="relative inline-flex items-center space-x-2 rounded-full transition-colors
-                bg-gray-100 dark:bg-gray-800
+                bg-gray-200 dark:bg-gray-700 hover:bg-gray-200
                 text-gray-700 dark:text-gray-400
-                hover:bg-gray-200 dark:hover:bg-gray-700
+                hover:text-gray-900 dark:hover:text-gray-300
                 shadow-sm hover:shadow-md
-                px-3 py-1 text-base font-medium">
+                px-3 py-1 text-base font-medium
+                focus-within:ring-2 focus-within:ring-brand-500
+                focus-within:ring-offset-2 focus-within:ring-offset-white
+                dark:focus-within:ring-brand-400 dark:focus-within:ring-offset-gray-900">
     <span class="sr-only">{{ $t('current-jurisdiction') }}</span>
     <button @click="toggleDropdown"
-    class="flex items-center space-x-2
-            focus:outline-none focus:ring-2 focus:ring-brand-500
-            focus:ring-offset-2 focus:ring-offset-white dark:ring-offset-gray-900
-            dark:focus:ring-brand-400 dark:focus:ring-offset-gray-900"
+    class="flex items-center space-x-2 focus:outline-none"
             :aria-expanded="isOpen"
             aria-haspopup="listbox">
       <OIcon :collection="getIconCollection(currentJurisdiction)"
@@ -94,7 +94,7 @@ const getIconName = (jurisdiction: Jurisdiction | null): string => {
                 leave-from-class="transform opacity-100 scale-100"
                 leave-to-class="transform opacity-0 scale-95">
       <ul v-if="isOpen"
-          class="absolute bottom-full left-0 z-10 mb-1 max-h-60 w-full overflow-auto rounded-md
+          class="absolute bottom-full left-0 z-50 mb-1 max-h-60 w-full overflow-auto rounded-md
                bg-white py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5
                focus:outline-none dark:bg-gray-700 sm:text-sm"
           tabindex="-1"
