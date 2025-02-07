@@ -128,12 +128,11 @@ const getIconName = (jurisdiction: Jurisdiction | null): string => {
             </span>
 
             <span v-if="currentJurisdiction?.identifier === jurisdiction.identifier"
-                  class="absolute inset-y-0 right-0 flex items-center pr-4 text-brand-600
-                     dark:text-brand-400">
+                  class="absolute inset-y-0 right-0 flex items-center pr-4">
               <OIcon
                 collection="heroicons"
                 name="check-20-solid"
-                class="size-5 text-brand-600 dark:text-brand-400" />
+                class="size-5 text-brand-600" />
             </span>
           </a>
         </li>

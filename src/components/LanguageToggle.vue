@@ -96,8 +96,19 @@
       </template>
     </template>
 
+    <template #selected-item>
+      <div class="flex items-center justify-between font-bold text-gray-700 dark:text-gray-100">
+        {{ currentLocale }}
+        <OIcon
+          collection="heroicons"
+          name="check-20-solid"
+          class="size-5 text-brand-500"
+          aria-hidden="true" />
+      </div>
+    </template>
+
     <template #menu-items>
-      <button
+    <button
         v-for="locale in supportedLocales"
         :key="locale"
         @click="changeLocale(locale)"
@@ -115,12 +126,6 @@
         role="menuitem"
         :lang="locale">
         <span>{{ locale }}</span>
-        <OIcon
-          v-if="locale === currentLocale"
-          collection="heroicons"
-          name="check-20-solid"
-          class="size-5"
-          aria-hidden="true" />
       </button>
     </template>
   </DropdownToggle>

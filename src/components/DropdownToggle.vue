@@ -129,7 +129,7 @@ const dropdownId = `dropdown-${Math.random().toString(36).slice(2, 11)}`;
       v-if="isMenuOpen"
       :class="[
         'absolute right-0 w-56 rounded-md bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none dark:bg-gray-800 dark:ring-white dark:ring-opacity-20',
-        openDirection === 'up' ? 'bottom-full z-[49] mb-2' : 'top-full z-[9] mt-2'
+        openDirection === 'up' ? 'bottom-full z-[49] mb-2' : 'top-full z-[9] mt-2',
       ]"
       role="menu"
       aria-orientation="vertical"
@@ -140,6 +140,11 @@ const dropdownId = `dropdown-${Math.random().toString(36).slice(2, 11)}`;
         id="dropdownId"
         class="max-h-60 overflow-y-auto py-1"
         role="none">
+        <div
+          class="border-b border-gray-200 px-4 py-2 text-sm font-medium text-gray-500 dark:border-gray-700 dark:text-gray-400"
+          role="presentation">
+          <slot name="selected-item"></slot>
+        </div>
         <slot name="menu-items"></slot>
       </div>
     </div>
