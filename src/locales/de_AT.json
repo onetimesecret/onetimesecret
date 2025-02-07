@@ -510,7 +510,6 @@
   "sample-secret-content": "Beispiel für geheimen Inhalt",
   "logo-controls": "Logo-Kontrollen",
   "click-to-upload-a-logo-recommended-size-128x128-pixels-maximum-file-size-1mb-supported-formats-png-jpg-svg": "Klicken Sie, um ein Logo hochzuladen. Empfohlene Größe: 128x128 Pixel. Maximale Dateigröße: 1MB. Unterstützte Formate: PNG, JPG, SVG",
-  "logoimage-filename-or-or-brand-logo": "+LogoImage?.filename || `Markenlogo",
   "upload-logo": "Logo hochladen",
   "loading-preview": "Vorschau laden...",
   "preview-how-recipients-will-see-your-secrets-by-testing-the-view-secret-button": "Zeigen Sie in einer Vorschau an, wie die Empfänger Ihre Geheimnisse sehen werden, indem Sie die Schaltfläche \"Geheimnis anzeigen\" testen",
