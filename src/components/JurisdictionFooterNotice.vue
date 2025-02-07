@@ -55,15 +55,18 @@ const getIconName = (jurisdiction: Jurisdiction | null): string => {
 <template>
   <div v-if="currentJurisdiction"
        ref="dropdownRef"
-       class="relative inline-flex items-center space-x-2 rounded-full bg-gray-100 px-3
-           py-1 text-base font-medium text-gray-500
-           shadow-sm transition-all duration-100
-           ease-in-out hover:shadow-md dark:bg-gray-800 dark:text-gray-400">
+       class="relative inline-flex items-center space-x-2 rounded-full transition-colors
+                bg-gray-100 dark:bg-gray-800
+                text-gray-700 dark:text-gray-400
+                hover:bg-gray-200 dark:hover:bg-gray-700
+                shadow-sm hover:shadow-md
+                px-3 py-1 text-base font-medium">
     <span class="sr-only">{{ $t('current-jurisdiction') }}</span>
     <button @click="toggleDropdown"
-            class="flex items-center space-x-2
-             focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2
-             dark:focus:ring-brand-400"
+    class="flex items-center space-x-2
+            focus:outline-none focus:ring-2 focus:ring-brand-500
+            focus:ring-offset-2 focus:ring-offset-white dark:ring-offset-gray-900
+            dark:focus:ring-brand-400 dark:focus:ring-offset-gray-900"
             :aria-expanded="isOpen"
             aria-haspopup="listbox">
       <OIcon :collection="getIconCollection(currentJurisdiction)"

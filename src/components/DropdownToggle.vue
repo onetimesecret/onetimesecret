@@ -86,17 +86,20 @@ const dropdownId = `dropdown-${Math.random().toString(36).slice(2, 11)}`;
     <button
       type="button"
       :class="[
-          'inline-flex items-center justify-center rounded-md shadow-sm',
-          'focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-100',
-          'dark:focus:ring-offset-gray-900',
-          mode === 'icon' ? [
-            'size-10 p-1',
-            'border-transparent hover:bg-gray-200 dark:hover:bg-gray-700' // Updated hover color
-          ] : [
-            'w-full px-4 py-2',
-            'border border-gray-300 bg-white hover:bg-gray-200 dark:border-gray-600 dark:bg-gray-800 dark:hover:bg-gray-700'
-          ]
-        ]"
+        'inline-flex items-center justify-center rounded-md transition-colors',
+        'focus:outline-none focus:ring-2 focus:ring-brand-600 dark:focus:ring-brand-500',
+        'focus:ring-offset-2 focus:ring-offset-white dark:ring-offset-gray-900',
+        mode === 'icon' ? [
+          'size-10 p-1',
+          'text-gray-900 dark:text-gray-100',
+          'hover:bg-gray-200 dark:hover:bg-gray-700'
+        ] : [
+          'w-full px-4 py-2',
+          'bg-gray-100 dark:bg-gray-800',
+          'text-gray-900 dark:text-gray-100',
+          'hover:bg-gray-200 dark:hover:bg-gray-700'
+        ]
+      ]"
       :aria-expanded="isMenuOpen"
       aria-haspopup="true"
       @click="toggleMenu"

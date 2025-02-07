@@ -62,34 +62,24 @@
 <template>
   <DropdownToggle
     ref="dropdownRef"
-    class="text-gray-700 dark:text-gray-300"
     open-direction="up"
     :aria-label="ariaLabel"
     :mode="dropdownMode">
     <template #button-content>
       <template v-if="compact">
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          class="size-5 text-gray-600 dark:text-gray-400"
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
-          aria-hidden="true"
-          role="img">
-          <path
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            stroke-width="2"
-            d="M3 5h12M9 3v2m1.048 9.5A18.022 18.022 0 016.412 9m6.088 9h7M11 21l5-10 5 10M12.751 5C11.783 10.77 8.07 15.61 3 18.129" />
-        </svg>
+        <OIcon
+          class="size-5"
+          collection="heroicons"
+          name="language" />
       </template>
       <template v-else>
         <svg
           xmlns="http://www.w3.org/2000/svg"
-          class="mr-2 size-5 text-gray-600 dark:text-gray-400"
+          class="mr-2 size-5"
           fill="none"
           viewBox="0 0 24 24"
-          stroke="currentColor">
+          stroke="currentColor"
+          role="img">
           <path
             stroke-linecap="round"
             stroke-linejoin="round"
@@ -108,12 +98,12 @@
         @click.prevent="changeLocale(locale)"
         :class="[
           'flex items-center justify-between gap-2 font-brand',
-          'px-4 py-2 text-base transition-colors duration-200',
-          'hover:bg-gray-100 hover:text-gray-900',
-          'dark:hover:bg-gray-700 dark:hover:text-gray-100',
+          'px-4 py-2 text-base transition-colors',
+          'text-gray-900 dark:text-gray-100',
+          'hover:bg-gray-200 dark:hover:bg-gray-700',
           locale === currentLocale
-            ? 'bg-gray-100 font-medium text-brandcomdim-600 dark:bg-gray-700 dark:text-brandcomdim-400'
-            : 'text-gray-700 dark:text-gray-300',
+            ? 'bg-gray-100 font-medium text-brand-600 dark:bg-gray-800 dark:text-brand-400'
+            : ''
         ]"
         role="menuitem"
         :aria-current="locale === currentLocale ? 'true' : undefined"
@@ -123,7 +113,7 @@
           v-if="locale === currentLocale"
           collection="heroicons"
           name="check-20-solid"
-          class="size-5 text-brand-600 dark:text-brand-400" />
+          class="size-5 " />
       </a>
     </template>
   </DropdownToggle>
