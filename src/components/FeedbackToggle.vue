@@ -23,15 +23,15 @@
   <div class="relative">
     <button
       @click="toggleFeedbackModal"
-      class="group flex items-center space-x-2 rounded-md transition-colors
-               bg-gray-200 dark:bg-gray-700
-               text-gray-700 dark:text-gray-400
-               hover:bg-gray-200 dark:hover:bg-gray-700
-               hover:text-gray-900 dark:hover:text-gray-300
-               focus:outline-none focus:ring-2 focus:ring-brand-500
-               focus:ring-offset-2 focus:ring-offset-white dark:ring-offset-gray-900
-               dark:focus:ring-brand-400 dark:focus:ring-offset-gray-900
-               px-3 py-1.5 text-sm font-medium"
+      class="group inline-flex flex-nowrap items-center space-x-2 rounded-md transition-colors
+                 bg-gray-200 dark:bg-gray-700
+                 text-gray-700 dark:text-gray-400
+                 hover:bg-gray-200 dark:hover:bg-gray-700
+                 hover:text-gray-900 dark:hover:text-gray-300
+                 focus:outline-none focus:ring-2 focus:ring-brand-500
+                 focus:ring-offset-2 focus:ring-offset-white dark:ring-offset-gray-900
+                 dark:focus:ring-brand-400 dark:focus:ring-offset-gray-900
+                 px-3 py-1.5 text-sm font-medium whitespace-nowrap"
       aria-label="$t('open-feedback-form')">
       <span class="inline">{{ t('feedback') }}</span>
       <OIcon
