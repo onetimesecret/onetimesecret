@@ -55,20 +55,20 @@ const getIconName = (jurisdiction: Jurisdiction | null): string => {
 </script>
 
 <template>
-  <div v-if="currentJurisdiction"
+<div v-if="currentJurisdiction"
        ref="dropdownRef"
-       class="relative inline-flex items-center space-x-2 rounded-full transition-colors
-                bg-gray-200 dark:bg-gray-700 hover:bg-gray-200
-                text-gray-700 dark:text-gray-400
-                hover:text-gray-900 dark:hover:text-gray-300
-                shadow-sm hover:shadow-md
-                px-3 py-1 text-sm font-medium
-                focus-within:ring-2 focus-within:ring-brand-500
-                focus-within:ring-offset-2 focus-within:ring-offset-white
-                dark:focus-within:ring-brand-400 dark:focus-within:ring-offset-gray-900">
-    <span class="sr-only">{{ $t('current-jurisdiction') }}</span>
+       class="relative inline-flex">
     <button @click="toggleDropdown"
-    class="flex items-center space-x-2 focus:outline-none"
+            class="inline-flex items-center space-x-2 rounded-full
+                   bg-gray-200 dark:bg-gray-700
+                   px-3 py-1 text-sm font-medium
+                   text-gray-700 dark:text-gray-400
+                   hover:bg-gray-300 dark:hover:bg-gray-600
+                   hover:text-gray-900 dark:hover:text-gray-300
+                   shadow-sm hover:shadow-md
+                   focus:outline-none focus:ring-2 focus:ring-brand-500
+                   focus:ring-offset-2 focus:ring-offset-white
+                   dark:focus:ring-brand-400 dark:focus:ring-offset-gray-900"
             :aria-expanded="isOpen"
             aria-haspopup="listbox">
       <OIcon :collection="getIconCollection(currentJurisdiction)"
@@ -76,7 +76,7 @@ const getIconName = (jurisdiction: Jurisdiction | null): string => {
              class="size-5"
              aria-hidden="true" />
 
-      <span>{{ currentJurisdiction.display_name }}</span>
+             <span class="whitespace-nowrap">{{ currentJurisdiction.display_name }}</span>
 
       <svg xmlns="http://www.w3.org/2000/svg"
            class="size-4 -rotate-90"

@@ -65,28 +65,21 @@ const companyName = ref('OnetimeSecret.com');
         </div>
 
         <div v-if="displayToggles"
-             class="
-          flex w-full
-          flex-wrap items-center justify-center
-          space-x-4 md:w-auto
-          md:justify-end">
-
+             class="flex w-full flex-row items-center justify-center gap-4 sm:w-auto sm:justify-end">
           <JurisdictionToggle v-if="windowProps.regions_enabled && windowProps.regions" />
 
-          <ThemeToggle class="
-            text-gray-500 transition-colors
-            duration-200 hover:text-gray-800
-            dark:text-gray-400 dark:hover:text-gray-100"
-                       :aria-label="$t('toggle-dark-mode')" />
+          <ThemeToggle
+            class="text-gray-500 transition-colors duration-200 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-100"
+            :aria-label="$t('toggle-dark-mode')"
+          />
 
           <LanguageToggle :compact="true" />
 
-          <FeedbackToggle v-if="displayFeedback && windowProps.authentication?.enabled"
-                          class="
-            text-gray-500 transition-colors
-            duration-200 hover:text-gray-800
-            dark:text-gray-400 dark:hover:text-gray-100"
-                          :aria-label="$t('provide-feedback')" />
+          <FeedbackToggle
+            v-if="displayFeedback && windowProps.authentication?.enabled"
+            class="text-gray-500 transition-colors duration-200 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-100"
+            :aria-label="$t('provide-feedback')"
+          />
         </div>
       </div>
     </div>
