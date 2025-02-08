@@ -15,6 +15,8 @@ QUIET=${QUIET:-0}
 FILENAME_ONLY=${FILENAME_ONLY:-0}
 VERBOSE=${VERBOSE:-0}
 COPY_VALUES=${COPY_VALUES:-0}
+BASELOCALE=${BASELOCALE:-"en"}
+BASEPATH=${BASEPATH:-"src/locales/${BASELOCALE}.json"}
 
 while getopts ":qfvc" opt; do
   case $opt in
@@ -103,7 +105,7 @@ def walk($base; $target_root):
 $target[0] | walk($base[0]; $target[0])
 '
 
-if ! jq -n --slurpfile base src/locales/en.json --slurpfile target "$LOCALE" "$jq_script" > "$OUTPUT"; then
+if ! jq -n --slurpfile base "$BASEPATH" --slurpfile target "$LOCALE" "$jq_script" > "$OUTPUT"; then
   [ $FILENAME_ONLY -eq 1 ] && echo "$LOCALE" && exit 1
   [ $QUIET -eq 1 ] && exit 1
   [ $VERBOSE -eq 1 ] && echo "Failed repairing $LOCALE"
