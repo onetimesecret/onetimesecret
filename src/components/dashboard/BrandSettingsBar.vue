@@ -91,7 +91,17 @@
             <button
               type="submit"
               :disabled="isLoading"
-              class="flex-shrink-0 inline-flex h-11 items-center justify-center rounded-lg border border-transparent bg-brand-600 px-4 text-base font-medium text-white shadow-sm hover:bg-brand-700 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto sm:text-sm">
+              class="flex-shrink-0 inline-flex h-11 items-center justify-center
+                       rounded-lg border border-transparent
+                       bg-brand-600 px-4
+                       text-base font-medium text-white
+                       shadow-sm
+                       hover:bg-brand-700
+                       focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2
+                       dark:focus:ring-brand-400 dark:focus:ring-offset-0
+                       disabled:cursor-not-allowed disabled:opacity-50
+                       transition-all duration-200
+                       sm:w-auto sm:text-sm">
               <OIcon
                 v-if="isLoading"
                 collection="mdi"

@@ -51,12 +51,14 @@ const cycleValue = () => {
 <template>
   <button type="button"
           @click="cycleValue"
-          class="focus:ring-primary-500 group relative inline-flex h-10 items-center gap-2 rounded-lg
-                   bg-white px-4 shadow-sm ring-1
-                   ring-gray-200 transition-all duration-200 ease-in-out
-                   hover:bg-gray-50 focus:outline-none focus:ring-2
-                   focus:ring-offset-2 dark:bg-gray-800 dark:ring-gray-700 dark:hover:bg-gray-700
-                   dark:focus:ring-offset-gray-900"
+          class="group relative inline-flex h-11 items-center gap-2
+                 rounded-lg bg-white px-4
+                 ring-1 ring-gray-200 shadow-sm
+                 hover:bg-gray-50
+                 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2
+                 dark:bg-gray-800 dark:ring-gray-700 dark:hover:bg-gray-700
+                 dark:focus:ring-brand-400 dark:focus:ring-offset-0
+                 transition-all duration-200"
           :aria-label="$t('current-label-modelvalue-click-to-cycle-through-options', [label, modelValue])">
     <!-- Icon for current value -->
     <div class="relative size-5 text-gray-700 dark:text-gray-200">
