@@ -2,8 +2,6 @@
 import { CustomDomain } from '@/schemas/models';
 import OIcon from '@/components/icons/OIcon.vue';
 import { useDomainStatus } from '@/composables/useDomainStatus';
-//import StatusLabel from './StatusLabel.vue';
-//import StatusLabelRow from './StatusLabelRow.vue';
 import { useI18n } from 'vue-i18n';
 const { t } = useI18n();
 
@@ -41,7 +39,7 @@ const { statusIcon, statusColor, isActive, isWarning, isError } = useDomainStatu
     <RouterLink v-if="mode === 'icon'"
                 :to="`/domains/${domain?.display_domain}/verify`"
                 class="tooltip inline-flex"
-                data-tooltip="View domain verification status">
+                :data-tooltip="$t('web.domains.view-domain-verification-status')">
       <OIcon collection="mdi"
              :name="statusIcon"
              class="opacity-75"

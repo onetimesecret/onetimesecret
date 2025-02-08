@@ -14,7 +14,7 @@
       "header_settings": "Settings",
       "submit_with": "Submit",
       "submitting": "Submitting...",
-      "processing": "Processing",
+      "processing": "Processing...",
       "description": "Keep sensitive information out of your chat logs and email. Share a secret link that is available only one time.",
       "keywords": "secret,password generator,share a secret,onetime",
       "button_create_secret": "Create a secret link",
@@ -384,6 +384,10 @@
       "translations-are-new-spotted-an-error": "Translations are new. Spotted an error? {send-feedback}",
       "we-recently-added-translations": "We recently added translations. Spotted an error? {send-feedback}",
       "privacy-and-security-should-be-accessible": "Privacy and security should be accessible to everyone, regardless of language. We're adding translations to help both our users and their message recipients better understand how to safely use and access secure messages and links. Since this is a new feature, you might encounter some translation errors or unclear instructions. To help us improve the clarity and accuracy of our translations, especially for critical security-related content, please {send-feedback} if you spot any issues"
+    },
+    "domains": {
+      "learn-more-dns": "Learn more about DNS configuration",
+      "view-domain-verification-status": "View domain verification status"
     }
   },
   "email": {
@@ -543,8 +547,8 @@
   "and-remove-any-other-a-aaaa-or-cname-records-for": "and remove any other A, AAAA, or CNAME records for that exact address.",
   "youll-need-to-complete-these-steps": ", you'll need to complete these steps.",
   "before-we-can-activate-links-for": "Before we can activate links for",
-  "verify-your-domain": "Verify your domain",
   "please-note-that-for-apex-domains": "Please note that for apex domains (e.g.,",
+  "verify-your-domain": "Verify your domain",
   "important": "Important",
   "create-a-secret": "Create a Secret",
   "welcomes-contributors-for-both-existing-and-new-": "welcomes contributors for both existing and new languages.",

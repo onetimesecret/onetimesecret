@@ -32,6 +32,7 @@ const { t } = useI18n();
 const success = ref<string | null>(null);
 const buttonDisabledDelay = ref(false);
 const isButtonDisabled = computed(() => isLoading.value || buttonDisabledDelay.value);
+const buttonText = computed(() => isLoading.value ? t('web.COMMON.processing') : t('verify-domain'));
 
 const verify = async () => {
   console.info('Refreshing DNS verification details...');
@@ -78,7 +79,7 @@ const verify = async () => {
           text-white transition
           duration-100
           ease-in-out hover:bg-brand-600 disabled:cursor-not-allowed disabled:bg-gray-400">
-        <span>{{ isLoading ? 'Verifying...' : 'Verify Domain' }}</span>
+        <span>{{ buttonText }}</span>
         <OIcon
           collection="mdi"
           :name="isLoading ? 'loading' : 'check-circle'"
