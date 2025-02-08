@@ -50,22 +50,26 @@
   <div v-if="!isLoading || isInitialized">
     <div
       class="border-b border-gray-200 bg-white/80 backdrop-blur-sm dark:border-gray-700 dark:bg-gray-800/80">
-      <div class="mx-auto w-fit px-4 py-3">
+      <div class="mx-auto w-fit px-2 py-3">
         <form
           @submit.prevent="handleSubmit"
-          class="flex items-center gap-4">
-          <div class="flex items-center gap-4 flex-grow-0">
+          class="flex items-center gap-4 min-w-0">
+
+          <!-- Left section - wrap in flex container -->
+          <div class="flex items-center gap-4 flex-shrink min-w-0">
 
             <!-- Color Picker -->
-            <ColorPicker
-              :model-value="modelValue.primary_color"
-              @update:model-value="(value) => updateBrandSetting('primary_color', value)"
-              name="brand[primary_color]"
-              label="$t('brand-color')"
-              id="brand-color" />
+            <div class="flex items-center gap-4 flex-shrink min-w-0">
+              <ColorPicker
+                :model-value="modelValue.primary_color"
+                @update:model-value="(value) => updateBrandSetting('primary_color', value)"
+                name="brand[primary_color]"
+                label="$t('brand-color')"
+                id="brand-color" />
+            </div>
 
-              <div class="flex items-center gap-2">
-              <!-- Corner Style -->
+            <!-- Controls -->
+            <div class="flex items-center gap-2 flex-shrink-0">
               <CycleButton
                 :model-value="modelValue.corner_style"
                 @update:model-value="(value) => updateBrandSetting('corner_style', value)"
@@ -74,8 +78,6 @@
                 label="$t('corner-style')"
                 :display-map="cornerStyleDisplayMap"
                 :icon-map="cornerStyleIconMap" />
-
-              <!-- Font Family -->
               <CycleButton
                 :model-value="modelValue.font_family"
                 @update:model-value="(value) => updateBrandSetting('font_family', value)"
@@ -86,13 +88,14 @@
                 :icon-map="fontIconMap" />
             </div>
 
-            <!-- Instructions Field -->
-
-            <slot name="instructions-button"></slot>
+            <!-- Instructions -->
+            <div class="flex-shrink-0">
+              <slot name="instructions-button"></slot>
+            </div>
           </div>
 
           <!-- Save Button -->
-          <div class="ml-auto">
+          <div class="ml-auto flex-shrink-0">
             <button
               type="submit"
               :disabled="isLoading"
