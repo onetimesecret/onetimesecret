@@ -176,7 +176,8 @@
       "cta_feature3": "Steigern Sie das Vertrauen und das Engagement Ihrer Kunden",
       "explore_premium_plans": "Mit benutzerdefinierten Domains",
       "need_free_account": "Sie haben gerade erst angefangen? Versenden Sie E-Mails mit einem kostenlosen Konto.",
-      "sign_up_free": "Kostenlose Anmeldung"
+      "sign_up_free": "Kostenlose Anmeldung",
+      "visit-onetime-secret-home": ""
     },
     "private": {
       "pretext": "Teilen Sie diesen Link:",
@@ -377,7 +378,14 @@
         "feedback_hint": "Wenn Sie Fragen haben, finden Sie am Ende (fast) jeder Seite ein Feedback-Formular.",
         "signature": "Fröhliches Teilen,\n{name}"
       }
-    }
+    },
+    "meta": {
+      "were-making-onetime-secret-available-in-multiple": "",
+      "translations-are-new-spotted-an-error": "",
+      "we-recently-added-translations": "",
+      "privacy-and-security-should-be-accessible": ""
+    },
+    "domains": "Domains"
   },
   "email": {
     "incomingsupport": {
@@ -530,18 +538,14 @@
   "get-started-by-adding-a-custom-domain": "Beginnen Sie mit dem Hinzufügen einer benutzerdefinierten Domain.",
   "no-domains-found": "Keine Domänen gefunden.",
   "loading-domain-information": "Laden der Domäneninformationen...",
+  "in-order-to-connect-your-domain-youll-need-to-ha": "Um Ihre Domain zu verbinden, benötigen Sie einen CNAME-Eintrag in Ihrem DNS, der auf",
+  "if-you-already-have-a-cname-record-for-that-addr": "Wenn Sie bereits einen CNAME-Eintrag für diese Adresse haben, ändern Sie ihn bitte so, dass er auf",
   "a-cname-record-is-not-allowed-instead-youll-need": "), ist ein CNAME-Eintrag nicht zulässig. Stattdessen müssen Sie einen A-Eintrag erstellen. Einzelheiten dazu finden Sie weiter unten auf der Seite.",
   "and-remove-any-other-a-aaaa-or-cname-records-for": "und entfernen Sie alle anderen A-, AAAA- oder CNAME-Einträge für genau diese Adresse.",
-  "if-you-already-have-a-cname-record-for-that-addr": "Wenn Sie bereits einen CNAME-Eintrag für diese Adresse haben, ändern Sie ihn bitte so, dass er auf",
-  "in-order-to-connect-your-domain-youll-need-to-ha": "Um Ihre Domain zu verbinden, benötigen Sie einen CNAME-Eintrag in Ihrem DNS, der auf",
   "youll-need-to-complete-these-steps": "müssen Sie die folgenden Schritte ausführen.",
   "before-we-can-activate-links-for": "Bevor wir Links aktivieren können für",
-  "verify-your-domain": "Überprüfen Sie Ihre Domain",
-  "a-cname-record-is-not-allowed-instead-youll-need-0": "), ist ein CNAME-Eintrag nicht zulässig. Stattdessen müssen Sie einen A-Eintrag erstellen. Einzelheiten dazu finden Sie weiter unten auf der Seite.",
-  "if-you-already-have-a-cname-record-for-that-addr-0": ". Wenn Sie bereits einen CNAME-Eintrag für diese Adresse haben, ändern Sie ihn bitte so, dass er auf",
-  "in-order-to-connect-your-domain-youll-need-to-ha-0": "Um Ihre Domain zu verbinden, benötigen Sie einen CNAME-Eintrag in Ihrem DNS, der auf",
-  "a-cname-record-is-not-allowed-instead-youll-need-1": "), ist ein CNAME-Eintrag nicht zulässig. Stattdessen müssen Sie einen A-Eintrag erstellen. Einzelheiten dazu finden Sie weiter unten auf der Seite.",
   "please-note-that-for-apex-domains": "Bitte beachten Sie, dass bei Apex-Domänen (z. B.,",
+  "verify-your-domain": "Überprüfen Sie Ihre Domain",
   "important": "Wichtig",
   "create-a-secret": "Ein Geheimnis schaffen",
   "welcomes-contributors-for-both-existing-and-new-": "begrüßt Beiträge sowohl für bestehende als auch für neue Sprachen.",
