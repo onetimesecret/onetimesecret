@@ -104,7 +104,6 @@ onUnmounted(() => {
 <template>
   <div
     class="relative flex items-center"
-    :class="{ 'opacity-60 hover:opacity-100': !isMenuOpen }"
     :aria-haspopup="true"
     :aria-controls="dropdownId"
     :aria-expanded="isMenuOpen">
@@ -117,13 +116,13 @@ onUnmounted(() => {
         dropdownMode === 'icon'
           ? [
               'size-10 p-1',
-              'text-gray-900 dark:text-gray-100',
+              'text-gray-700 dark:text-gray-400',
               'hover:bg-gray-200 dark:hover:bg-gray-700',
             ]
           : [
               'w-full px-4 py-2',
               'bg-gray-100 dark:bg-gray-800',
-              'text-gray-900 dark:text-gray-100',
+              'text-gray-700 dark:text-gray-400',
               'hover:bg-gray-200 dark:hover:bg-gray-700',
             ],
       ]"
