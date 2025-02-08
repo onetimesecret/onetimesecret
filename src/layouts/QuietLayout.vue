@@ -10,11 +10,12 @@
 
 <template>
   <!-- Router View Structure:
-           - Named views allow multiple <router-view> components in a single layout.
-           - The unnamed <router-view> is the default view for each route.
-           - Named views ("header" and "footer") can display different components
-             based on the current route configuration.
-           - layoutProps are passed to each view for consistent styling and behavior. -->
+    - Named views allow multiple <router-view> components in a single layout.
+    - The unnamed <router-view> is the default view for each route.
+    - Named views ("header" and "footer") can display different components
+      based on the current route configuration.
+    - layoutProps are passed to each view for consistent styling and behavior.
+  -->
   <BaseLayout v-bind="props">
     <template #header>
       <router-view
@@ -41,8 +42,8 @@
           :href="`https://${sitHost}`"
           class="text-[0.7rem] text-gray-300 transition-colors duration-200 hover:text-gray-400 dark:text-gray-600 dark:hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2"
           rel="noopener noreferrer"
-          aria-label="Visit Onetime Secret homepage">
-          Powered by Onetime Secret
+          :aria-label="$t('web.homepage.visit-onetime-secret-home')">
+          {{$t('powered-by-onetime-secret')}}
         </a>
       </div>
     </template>
