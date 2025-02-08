@@ -108,7 +108,7 @@ onBeforeRouteLeave((to, from, next) => {
               name="palette-outline"
                     class="size-5"
                     aria-label="$t('customization-icon')" />
-              {{ $t('use-the-controls-above-to-customize-brand-color-styles-and-recipient-instructions') }}
+              {{ $t('use-the-controls-above-to-customize-brand-details') }}
             </li>
 
             <li class="flex items-center gap-2">
@@ -116,7 +116,7 @@ onBeforeRouteLeave((to, from, next) => {
               name="image-outline"
                     class="size-5"
                     aria-label="$t('image-icon')" />
-              {{ $t('click-the-preview-image-below-to-update-your-logo-minimum-128x128-pixels-recommended-1mb-max') }}
+              {{ $t('click-the-preview-image-below-to-update-your-logo') }}
             </li>
 
             <li class="flex items-center gap-2">

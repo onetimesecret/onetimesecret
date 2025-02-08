@@ -169,7 +169,7 @@ watch(isOpen, (newValue) => {
                         text-xs text-white
                         shadow-lg
                         dark:bg-gray-700">
-              {{ $t('these-instructions-will-be-shown-to-recipients-before-they-reveal-the-secret-content') }}
+              {{ $t('these-instructions-will-be-shown-to-recipients-before') }}
             </div>
           </label>
           <textarea

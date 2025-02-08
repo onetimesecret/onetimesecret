@@ -124,7 +124,7 @@ const fontFamilyClass = computed(() => {
         <div
           id="logoHelp"
           class="sr-only">
-          {{ $t('click-to-upload-a-logo-recommended-size-128x128-pixels-maximum-file-size-1mb-supported-formats-png-jpg-svg') }}
+          {{ $t('click-to-upload-a-logo-with-recommendation') }}
         </div>
 
         <input
