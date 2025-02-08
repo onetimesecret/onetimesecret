@@ -1,7 +1,7 @@
 <script setup lang="ts">
   import { WindowService } from '@/services/window.service';
   import { FocusTrap } from 'focus-trap-vue';
-  import { nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue';
+  import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue';
   import { useI18n } from 'vue-i18n';
 
   import GeneralTab from './settings/GeneralTab.vue';
@@ -26,7 +26,17 @@
 
   let previouslyFocusedElement: HTMLElement | null = null;
 
-  const tabs = ref<Tab[]>([{ id: 'general', label: t('general') }]);
+  const tabs = computed<Tab[]>(() => {
+    const tabsList = [
+      { id: 'general', label: t('general') }
+    ];
+
+    if (regionsEnabled) {
+      tabsList.push({ id: 'data-region', label: t('data-region') });
+    }
+
+    return tabsList;
+  });
 
   if (regionsEnabled) {
     tabs.value.push({ id: 'data-region', label: t('data-region') });
