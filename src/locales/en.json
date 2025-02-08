@@ -435,7 +435,7 @@
   "escape": "Escape",
   "active": "Active",
   "theyll-appear-here-once-youve-shared-them": "They'll appear here once you've shared them.",
-  "copy_to_clipboard": "Copy to clipboard",
+  "copy-to-clipboard": "Copy to clipboard",
   "copied": "Copied",
   "pricing": "Pricing",
   "meets-and-exceeds-compliance-standards": "Meets and exceeds compliance standards",
@@ -843,5 +843,6 @@
   "click-to-continue": "Click to continue",
   "an-error-occurred": "An error occurred",
   "copy-secret-to-clipboard": "Copy secret to clipboard",
-  "secret-copied-to-clipboard": "Secret copied to clipboard"
+  "secret-copied-to-clipboard": "Secret copied to clipboard",
+  "Double check that passphrase": "Double check that passphrase"
 }

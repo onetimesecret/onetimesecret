@@ -840,5 +840,6 @@
   "click-to-continue": "Zum Fortfahren klicken",
   "an-error-occurred": "Es ist ein Fehler aufgetreten",
   "copy-secret-to-clipboard": "Geheimnis in die Zwischenablage kopieren",
-  "secret-copied-to-clipboard": "Geheimnis in die Zwischenablage kopiert"
+  "secret-copied-to-clipboard": "Geheimnis in die Zwischenablage kopiert",
+  "Double check that passphrase": "Überprüfen Sie die Passphrase doppelt"
 }
