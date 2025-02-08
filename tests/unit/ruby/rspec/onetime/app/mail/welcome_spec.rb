@@ -4,12 +4,14 @@ require_relative '../../../spec_helper'
 
 RSpec.describe Onetime::App::Mail::Welcome do
   include_context "mail_test_context"
+  it_behaves_like "mail delivery behavior"
 
-  subject(:welcome_email) do
-    described_class.new(mail_customer, 'en', mail_secret).tap do |mail|
-      mail.instance_variable_set(:@emailer, mail_emailer)
+    subject(:welcome_email) do
+      described_class.new(mail_customer, 'en', mail_secret).tap do |mail|
+        mail.instance_variable_set(:@emailer, mail_emailer)
+      end
     end
-  end
+
 
   describe '#initialize' do
     it 'sets up email with correct attributes' do
