@@ -176,7 +176,7 @@
             <OIcon
               class="size-5"
               collection="material-symbols"
-              name="settings" />
+              name="settings-outline" />
           </button>
 
           <SettingsModal
