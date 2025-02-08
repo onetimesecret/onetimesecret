@@ -9,9 +9,9 @@ We provide security updates for the following versions of our project:
 ```markdown
 | Version   | Supported          | Support Level                 |
 | -------   | ------------------ | ----------------------------- |
-| 0.19.x+   | :white_check_mark: | Full support                  |
-| 0.18.x    | :white_check_mark: | Security updates only         |
-| <= 0.17.x | :x:                | End of life (not supported)   |
+| 0.20.x+   | :white_check_mark: | Full support                  |
+| 0.19.x    | :white_check_mark: | Security updates only         |
+| <= 0.18.x | :x:                | End of life (not supported)   |
 ```
 
 
