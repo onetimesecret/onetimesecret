@@ -45,7 +45,7 @@
     class="mb-6 overflow-x-auto bg-gray-50/50 px-4 py-2 dark:bg-gray-800/50">
     <!-- Shadow approach -->
     <ul
-      class="mx-auto flex min-w-max max-w-7xl items-center justify-between font-brand"
+      class="mx-auto flex min-w-max max-w-7xl items-center justify-between gap-x-2 font-brand"
       role="menubar">
       <!-- Home -->
       <li
@@ -112,7 +112,7 @@
               {{ t('web.COMMON.title_recent_secrets') }}
             </span>
             <span
-              class="flex-shrink-0 rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-600 dark:bg-gray-800 dark:text-gray-400"
+              class="flex-shrink-0 rounded-full bg-gray-100 py-0.5 text-xs font-medium text-gray-600 dark:bg-gray-800 dark:text-gray-400"
               :aria-label="t('recent-secrets-count')">
               {{ counts.metadata }}
             </span>
@@ -137,9 +137,7 @@
           <!-- heroicons/outline/globe -->
           <svg
             aria-hidden="true"
-            class="mr-2"
-            width="20"
-            height="20"
+            class="size-5"
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24">
@@ -149,19 +147,14 @@
               stroke-width="2"
               d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9" />
           </svg>
-          <div class="flex min-w-0 items-center gap-x-2">
-            <span class="block truncate sm:hidden">
-              {{ t('domains') }}
-            </span>
-            <span class="hidden truncate sm:block">
-              {{ t('web.COMMON.custom_domains_title') }}
-            </span>
-            <span
-              class="flex-shrink-0 rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-600 dark:bg-gray-800 dark:text-gray-400"
-              :aria-label="t('custom-domains-count')">
-              {{ counts.domains }}
-            </span>
-          </div>
+          <!-- Simplified nesting structure -->
+          <span class="block truncate sm:hidden">{{ t('domains') }}</span>
+          <span class="hidden truncate sm:block">{{ t('web.COMMON.custom_domains_title') }}</span>
+          <span
+            class="flex-shrink-0 rounded-full bg-gray-100 py-0.5 text-xs font-medium text-gray-600 dark:bg-gray-800 dark:text-gray-400"
+            :aria-label="t('custom-domains-count')">
+            {{ counts.domains }}
+          </span>
         </router-link>
       </li>
     </ul>
