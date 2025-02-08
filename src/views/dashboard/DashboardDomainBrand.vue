@@ -1,3 +1,5 @@
+<!-- src/views/dashboard/DashboardDomainBrand.vue -->
+
 <script setup lang="ts">
 import LoadingOverlay from '@/components/common/LoadingOverlay.vue';
 import BrandSettingsBar from '@/components/dashboard/BrandSettingsBar.vue';
