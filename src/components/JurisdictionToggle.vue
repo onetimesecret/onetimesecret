@@ -1,3 +1,5 @@
+<!-- src/components/JurisdictionToggle.vue -->
+
 <script setup lang="ts">
 import { useClickOutside } from '@/composables/useClickOutside';
 import { useJurisdictionStore } from '@/stores/jurisdictionStore';
