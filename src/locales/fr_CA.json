@@ -183,10 +183,10 @@
       "visit-onetime-secret-home": ""
     },
     "private": {
-      "pretext": "Partager ce lien :",
-      "requires_passphrase": "Demande un mot de de passe.",
-      "this_msg_is_encrypted": "Ce message est chiffré avec votre mot de passe.",
-      "only_see_once": "ne sera lisible qu'une seule fois.",
+      "pretext": "Partager ce lien :",
+      "requires_passphrase": "Nécessite une phrase de passe.",
+      "this_msg_is_encrypted": "Ce message est chiffré avec votre phrase de passe.",
+      "only_see_once": "vous ne le verrez qu'une seule fois.",
       "created_success": "Secret created successfully!",
       "created_success_key": "Secret {shortKey} created successfully!",
       "created_securely": "Your secret has been created securely",
