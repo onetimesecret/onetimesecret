@@ -61,15 +61,15 @@
 
     <MoreInfoText text-color="text-brandcomp-800 dark:text-gray-100"
                   bg-color="bg-white dark:bg-gray-800">
-      <div class="prose p-6">
-        <div class="max-w-xl text-base text-gray-600 dark:text-gray-300">
+                  <div class="prose max-w-none">
+                      <div class="text-base text-gray-600 dark:text-gray-300">
           <p>
-            {{ $t('in-order-to-connect-your-domain-youll-need-to-ha-0') }}
+            {{ $t('in-order-to-connect-your-domain-youll-need-to-ha') }}
             <span
                   class="bg-white px-2 font-bold text-brand-600 dark:bg-gray-800 dark:text-brand-400">{{ domain?.display_domain }}</span>
             at
             <span :title="cluster?.cluster_name ?? ''"
-                  class="bg-white px-2 dark:bg-gray-800">{{ cluster?.cluster_host }}</span>{{ $t('if-you-already-have-a-cname-record-for-that-addr-0') }}
+                  class="bg-white px-2 dark:bg-gray-800">{{ cluster?.cluster_host }}</span>{{ $t('if-you-already-have-a-cname-record-for-that-addr') }}
             <span :title="cluster?.cluster_name ?? ''"
                   class="bg-white px-2 dark:bg-gray-800">{{ cluster?.cluster_host }}</span>
             {{ $t('and-remove-any-other-a-aaaa-or-cname-records-for') }}
@@ -79,7 +79,7 @@
             <!-- Disclaimer for apex domains -->
             <strong>{{ $t('important') }}:</strong> {{ $t('please-note-that-for-apex-domains') }}
             <span
-                  class="bg-white px-2 font-bold text-brand-600 dark:bg-gray-800 dark:text-brand-400">{{ domain?.display_domain }}</span>{{ $t('a-cname-record-is-not-allowed-instead-youll-need-1') }}
+                  class="bg-white px-2 font-bold text-brand-600 dark:bg-gray-800 dark:text-brand-400">{{ domain?.display_domain }}</span>{{ $t('a-cname-record-is-not-allowed-instead-youll-need') }}
           </p>
         </div>
         <div class="mt-4 text-sm">

@@ -64,34 +64,34 @@ const { statusIcon, statusColor, isActive, isWarning, isError } = useDomainStatu
              class="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <div class="flex flex-col">
             <span class="text-sm font-medium text-gray-500 dark:text-gray-400">{{ $t('domain') }}</span>
-            <span class="text-lg text-gray-900 dark:text-white">{{ domain?.vhost?.incoming_address }}</span>
+            <span class="text-base text-gray-900 dark:text-white">{{ domain?.vhost?.incoming_address }}</span>
           </div>
 
           <div class="flex flex-col">
             <span class="text-sm font-medium text-gray-500 dark:text-gray-400">{{ $t('status') }}</span>
             <span :class="statusColor"
-                  class="text-lg">{{ domain?.vhost?.status_message }}</span>
+                  class="text-base">{{ domain?.vhost?.status_message }}</span>
           </div>
 
           <div class="flex flex-col">
             <span class="text-sm font-medium text-gray-500 dark:text-gray-400">{{ $t('target-address') }}</span>
-            <span class="text-lg text-gray-900 dark:text-white">{{ domain?.vhost?.target_address }}</span>
+            <span class="text-base text-gray-900 dark:text-white">{{ domain?.vhost?.target_address }}</span>
           </div>
 
           <div class="flex flex-col">
             <span class="text-sm font-medium text-gray-500 dark:text-gray-400">{{ $t('dns-record') }}</span>
-            <span class="text-lg text-gray-900 dark:text-white">{{ domain?.vhost?.dns_pointed_at }}</span>
+            <span class="text-base text-gray-900 dark:text-white">{{ domain?.vhost?.dns_pointed_at }}</span>
           </div>
 
           <div class="flex flex-col">
             <span class="text-sm font-medium text-gray-500 dark:text-gray-400">{{ $t('ssl-renews') }}</span>
-            <span class="text-lg text-gray-900 dark:text-white"><span
+            <span class="text-base text-gray-900 dark:text-white"><span
                     v-if="domain?.vhost.ssl_active_until">{{ domain?.vhost.ssl_active_until }}</span></span>
           </div>
 
           <div class="flex flex-col">
             <span class="text-sm font-medium text-gray-500 dark:text-gray-400">{{ $t('ssl-status') }}</span>
-            <span class="text-lg"
+            <span class="text-base"
                   :class="domain?.vhost?.has_ssl ? 'text-green-600' : 'text-red-600'">
               {{ domain?.vhost?.has_ssl ? t('active') : t('inactive') }}
             </span>
@@ -99,7 +99,7 @@ const { statusIcon, statusColor, isActive, isWarning, isError } = useDomainStatu
 
           <div class="flex flex-col">
             <span class="text-sm font-medium text-gray-500 dark:text-gray-400">{{ $t('last-monitored') }}</span>
-            <span class="text-lg text-gray-900 dark:text-white">{{ domain?.vhost?.last_monitored_humanized }}</span>
+            <span class="text-base text-gray-900 dark:text-white">{{ domain?.vhost?.last_monitored_humanized }}</span>
           </div>
         </div>
       </div>

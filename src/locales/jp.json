@@ -34,8 +34,6 @@
   "blog": "ブログ",
   "check-our-service-status": "サービス ステータスを確認",
   "close-feedback-modal": "フィードバック モーダルを閉じる",
-  "cluster-cluster_name": "`+ クラスター?.cluster_name ?? `",
-  "cluster-cluster_name-0": "`+ クラスター?.cluster_name ?? `",
   "confirm-account-deletion": "アカウント削除の確認",
   "confirm-password": "パスワードを確認",
   "confirm-with-your-password": "パスワードで確認",
