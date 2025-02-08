@@ -39,7 +39,6 @@ onBeforeUnmount(() => {
 });
 </script>
 
-
 <template>
   <div class="relative inline-block">
     <button
@@ -80,7 +79,7 @@ onBeforeUnmount(() => {
     <div
       v-if="showTooltip"
       class="absolute bottom-full left-1/2 z-10 -translate-x-1/2 -translate-y-2 rounded-md bg-gray-900 px-2 py-1 text-sm text-white">
-      {{ copied ? 'Copied!' : 'Copy to clipboard' }}
+      {{ ariaLabel }}
     </div>
   </div>
 </template>
