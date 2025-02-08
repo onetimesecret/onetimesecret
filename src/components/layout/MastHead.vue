@@ -85,13 +85,13 @@
                     class="absolute -right-0.5 -bottom-0.5 rounded px-0.5 py-0 text-[0.6em]
                            font-brand font-medium bg-brand-500 text-brand-100
                            border border-brand-100 dark:border-slate-800
-                           dark:bg-slate-800 dark:text-slate-100">
+                           dark:bg-slate-800 dark:text-slate-100 z-10">
                     {{ currentJurisdiction?.identifier }}
                   </button>
 
                   <div
                     v-show="tooltipVisible"
-                    class="absolute z-10 mt-1 w-max min-w-[200px]
+                    class="absolute z-50 mt-1 w-max min-w-[200px]
                            rounded-lg bg-white dark:bg-gray-800 px-2 py-1 text-xs
                            shadow-lg ring-1 ring-black ring-opacity-5
                            divide-y divide-gray-200 dark:divide-gray-700">
