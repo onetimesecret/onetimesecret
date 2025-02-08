@@ -124,7 +124,7 @@ onBeforeRouteLeave((to, from, next) => {
               name="eye-outline"
                     class="size-5"
                     aria-label="$t('eye-icon')" />
-              {{ $t('preview-how-recipients-will-see-your-secrets-by-testing-the-view-secret-button') }}
+              {{ $t('preview-how-recipients-will-see-your-secrets') }}
             </li>
           </ul>
 

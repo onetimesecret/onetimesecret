@@ -3,6 +3,8 @@
 <script setup lang="ts">
   import OIcon from '@/components/icons/OIcon.vue';
   import type { BrandSettings } from '@/schemas/models';
+  import ColorPicker from '../common/ColorPicker.vue';
+  import CycleButton from '../common/CycleButton.vue';
   import {
     CornerStyle,
     cornerStyleDisplayMap,
@@ -13,9 +15,9 @@
     fontIconMap,
     fontOptions,
   } from '@/schemas/models/domain/brand';
-
-  import ColorPicker from '../common/ColorPicker.vue';
-  import CycleButton from '../common/CycleButton.vue';
+  import { useI18n } from 'vue-i18n';
+  const { t } = useI18n();
+  import { computed } from 'vue';
 
   const props = defineProps<{
     modelValue: BrandSettings;
@@ -38,6 +40,9 @@
     });
   };
 
+  const buttonText = computed(() => {
+    return props.isLoading ? t('web.LABELS.saving') : t('web.LABELS.save');
+  });
   const handleSubmit = () => emit('submit');
 </script>
 
@@ -112,7 +117,7 @@
                 collection="mdi"
                 name="content-save"
                 class="-ml-1 mr-2 size-4" />
-              {{ isLoading ? 'Save' : 'Save' }}
+              {{ buttonText }}
             </button>
           </div>
         </form>
