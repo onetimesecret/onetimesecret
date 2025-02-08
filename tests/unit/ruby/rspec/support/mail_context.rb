@@ -91,3 +91,52 @@ RSpec.shared_context "mail_test_context" do
     allow(Onetime::EmailReceipt).to receive(:create)
   end
 end
+
+RSpec.shared_examples "mail delivery behavior" do
+  describe "common mail functionality" do
+    it "initializes with correct mode and locale" do
+      expect(subject.mode).to eq(:smtp)
+      expect(subject.locale).to eq('en')
+    end
+
+    it "loads correct locale data" do
+      expect(subject.i18n[:locale]).to eq('en')
+      expect(subject.i18n[:COMMON]).to include(
+        description: 'Test Description',
+        keywords: 'test,keywords'
+      )
+    end
+
+    describe "delivery handling" do
+      it "handles socket errors with logging" do
+        allow(mail_emailer).to receive(:send_email)
+          .and_raise(SocketError.new('Connection failed'))
+
+        expect(OT).to receive(:le).with(/Cannot send mail/)
+
+        expect {
+          subject.deliver_email
+        }.to raise_error(OT::Problem, /Your message wasn't sent/)
+      end
+
+      it "creates receipt after failed delivery" do
+        allow(mail_emailer).to receive(:send_email)
+          .and_raise(SocketError.new('Connection failed'))
+
+        expect {
+          subject.deliver_email
+        }.to raise_error(OT::Problem)
+
+        expect(Onetime::EmailReceipt).to have_received(:create)
+          .with(mail_customer.identifier, anything, include('Connection failed'))
+      end
+
+      it "skips delivery with token present" do
+        subject.deliver_email('skip_token')
+
+        expect(mail_emailer).not_to have_received(:send_email)
+        expect(Onetime::EmailReceipt).not_to have_received(:create)
+      end
+    end
+  end
+end
