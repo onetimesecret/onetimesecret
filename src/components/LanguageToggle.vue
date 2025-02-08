@@ -1,104 +1,104 @@
 <script setup lang="ts">
-import { computed, onMounted, onUnmounted, ref } from 'vue';
-import { useI18n } from 'vue-i18n';
-import { useLanguage } from '@/composables/useLanguage';
-import OIcon from './icons/OIcon.vue';
+  import { computed, onMounted, onUnmounted, ref } from 'vue';
+  import { useI18n } from 'vue-i18n';
+  import { useLanguage } from '@/composables/useLanguage';
+  import OIcon from './icons/OIcon.vue';
 
-interface Props {
-  compact?: boolean;
-}
+  interface Props {
+    compact?: boolean;
+  }
 
-const props = withDefaults(defineProps<Props>(), {
-  compact: false,
-});
+  const props = withDefaults(defineProps<Props>(), {
+    compact: false,
+  });
 
-const emit = defineEmits<{
-  (e: 'localeChanged', locale: string): void;
-}>();
+  const emit = defineEmits<{
+    (e: 'localeChanged', locale: string): void;
+  }>();
 
-const { t } = useI18n();
-const { currentLocale, supportedLocales, updateLanguage, initializeLanguage } = useLanguage();
+  const { t } = useI18n();
+  const { currentLocale, supportedLocales, updateLanguage, initializeLanguage } = useLanguage();
 
-const isMenuOpen = ref(false);
-const menuItems = ref<HTMLElement[]>([]);
+  const isMenuOpen = ref(false);
+  const menuItems = ref<HTMLElement[]>([]);
 
-const ariaLabel = computed(() => t('current-language-is-currentlocal', [currentLocale.value]));
-const dropdownMode = computed(() => (props.compact ? 'icon' : 'dropdown'));
-const dropdownId = `lang-dropdown-${Math.random().toString(36).slice(2, 11)}`;
+  const ariaLabel = computed(() => t('current-language-is-currentlocal', [currentLocale.value]));
+  const dropdownMode = computed(() => (props.compact ? 'icon' : 'dropdown'));
+  const dropdownId = `lang-dropdown-${Math.random().toString(36).slice(2, 11)}`;
 
-const toggleMenu = () => {
-  isMenuOpen.value = !isMenuOpen.value;
-};
+  const toggleMenu = () => {
+    isMenuOpen.value = !isMenuOpen.value;
+  };
 
-const closeMenu = () => {
-  isMenuOpen.value = false;
-};
+  const closeMenu = () => {
+    isMenuOpen.value = false;
+  };
 
-const focusNextItem = () => {
-  const currentIndex = menuItems.value.indexOf(document.activeElement as HTMLElement);
-  const nextIndex = (currentIndex + 1) % menuItems.value.length;
-  menuItems.value[nextIndex].focus();
-};
+  const focusNextItem = () => {
+    const currentIndex = menuItems.value.indexOf(document.activeElement as HTMLElement);
+    const nextIndex = (currentIndex + 1) % menuItems.value.length;
+    menuItems.value[nextIndex].focus();
+  };
 
-const focusPreviousItem = () => {
-  const currentIndex = menuItems.value.indexOf(document.activeElement as HTMLElement);
-  const previousIndex = (currentIndex - 1 + menuItems.value.length) % menuItems.value.length;
-  menuItems.value[previousIndex].focus();
-};
+  const focusPreviousItem = () => {
+    const currentIndex = menuItems.value.indexOf(document.activeElement as HTMLElement);
+    const previousIndex = (currentIndex - 1 + menuItems.value.length) % menuItems.value.length;
+    menuItems.value[previousIndex].focus();
+  };
 
-const announceLanguageChange = (locale: string) => {
-  const liveRegion = document.createElement('div');
-  liveRegion.setAttribute('role', 'status');
-  liveRegion.setAttribute('aria-live', 'polite');
-  liveRegion.setAttribute('aria-atomic', 'true');
-  liveRegion.className = 'sr-only';
-  liveRegion.textContent = t('language-changed-to-newlocale', [locale]);
-  document.body.appendChild(liveRegion);
-  setTimeout(() => {
-    if (document.body.contains(liveRegion)) {
-      document.body.removeChild(liveRegion);
+  const announceLanguageChange = (locale: string) => {
+    const liveRegion = document.createElement('div');
+    liveRegion.setAttribute('role', 'status');
+    liveRegion.setAttribute('aria-live', 'polite');
+    liveRegion.setAttribute('aria-atomic', 'true');
+    liveRegion.className = 'sr-only';
+    liveRegion.textContent = t('language-changed-to-newlocale', [locale]);
+    document.body.appendChild(liveRegion);
+    setTimeout(() => {
+      if (document.body.contains(liveRegion)) {
+        document.body.removeChild(liveRegion);
+      }
+    }, 1000);
+  };
+
+  const changeLocale = async (newLocale: string) => {
+    if (newLocale === currentLocale.value) return;
+
+    try {
+      await updateLanguage(newLocale);
+      emit('localeChanged', newLocale);
+      announceLanguageChange(newLocale);
+    } catch (err) {
+      console.error('Failed to update language:', err);
+    } finally {
+      closeMenu();
     }
-  }, 1000);
-};
+  };
 
-const changeLocale = async (newLocale: string) => {
-  if (newLocale === currentLocale.value) return;
+  const handleClickOutside = (event: MouseEvent) => {
+    const target = event.target as HTMLElement;
+    if (!target.closest('.relative')) {
+      closeMenu();
+    }
+  };
 
-  try {
-    await updateLanguage(newLocale);
-    emit('localeChanged', newLocale);
-    announceLanguageChange(newLocale);
-  } catch (err) {
-    console.error('Failed to update language:', err);
-  } finally {
-    closeMenu();
-  }
-};
+  const handleEscapeKey = (event: KeyboardEvent) => {
+    if (event.key === 'Escape') {
+      closeMenu();
+    }
+  };
 
-const handleClickOutside = (event: MouseEvent) => {
-  const target = event.target as HTMLElement;
-  if (!target.closest('.relative')) {
-    closeMenu();
-  }
-};
+  onMounted(() => {
+    initializeLanguage();
+    menuItems.value = Array.from(document.querySelectorAll('[role="menuitem"]')) as HTMLElement[];
+    document.addEventListener('click', handleClickOutside);
+    document.addEventListener('keydown', handleEscapeKey);
+  });
 
-const handleEscapeKey = (event: KeyboardEvent) => {
-  if (event.key === 'Escape') {
-    closeMenu();
-  }
-};
-
-onMounted(() => {
-  initializeLanguage();
-  menuItems.value = Array.from(document.querySelectorAll('[role="menuitem"]')) as HTMLElement[];
-  document.addEventListener('click', handleClickOutside);
-  document.addEventListener('keydown', handleEscapeKey);
-});
-
-onUnmounted(() => {
-  document.removeEventListener('click', handleClickOutside);
-  document.removeEventListener('keydown', handleEscapeKey);
-});
+  onUnmounted(() => {
+    document.removeEventListener('click', handleClickOutside);
+    document.removeEventListener('keydown', handleEscapeKey);
+  });
 </script>
 
 <template>
@@ -113,18 +113,11 @@ onUnmounted(() => {
         'inline-flex items-center justify-center rounded-md transition-colors',
         'focus:outline-none focus:ring-2 focus:ring-brand-600 dark:focus:ring-brand-400',
         'focus:ring-offset-2 focus:ring-offset-white dark:ring-offset-gray-900',
+        'text-gray-700 dark:text-gray-400',
+        'hover:bg-gray-200 hover:text-gray-900 dark:hover:text-gray-200 dark:hover:bg-gray-700',
         dropdownMode === 'icon'
-          ? [
-              'size-10 p-1',
-              'text-gray-700 dark:text-gray-400',
-              'hover:bg-gray-200 dark:hover:bg-gray-700',
-            ]
-          : [
-              'w-full px-4 py-2',
-              'bg-gray-100 dark:bg-gray-800',
-              'text-gray-700 dark:text-gray-400',
-              'hover:bg-gray-200 dark:hover:bg-gray-700',
-            ],
+          ? ['size-10 p-1']
+          : ['w-full px-4 py-2', 'bg-gray-100 dark:bg-gray-800'],
       ]"
       :aria-label="ariaLabel"
       :aria-expanded="isMenuOpen"

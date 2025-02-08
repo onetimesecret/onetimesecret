@@ -1,57 +1,57 @@
 <!-- src/components/JurisdictionToggle.vue -->
 
 <script setup lang="ts">
-import { useClickOutside } from '@/composables/useClickOutside';
-import { useJurisdictionStore } from '@/stores/jurisdictionStore';
-import OIcon from '@/components/icons/OIcon.vue';
-import { computed, ref } from 'vue';
-import type { Jurisdiction } from '@/schemas/models/jurisdiction';
+  import { useClickOutside } from '@/composables/useClickOutside';
+  import { useJurisdictionStore } from '@/stores/jurisdictionStore';
+  import OIcon from '@/components/icons/OIcon.vue';
+  import { computed, ref } from 'vue';
+  import type { Jurisdiction } from '@/schemas/models/jurisdiction';
 
-/* Vue 3 Reactivity Guide: Rules for Store Access
- * ─────────────────────────────────────────
- * ❌ Destructuring breaks reactivity chain:
- *    const { getCurrentJurisdiction } = jurisdictionStore
- *    <template>{{ getCurrentJurisdiction }}</template> => undefined
- *
- * ✓ Computed preserves reactive reference:
- *    const currentJurisdiction = computed(() => jurisdictionStore.getCurrentJurisdiction)
- *    <template>{{ currentJurisdiction }}</template> => {...}
- *
- * ✓ Direct store access maintains reactivity:
- *    const jurisdictionStore = useJurisdictionStore()
- *    <template>{{ jurisdictionStore.currentJurisdiction }}</template> => {...}
- */
-const jurisdictionStore = useJurisdictionStore();
+  /* Vue 3 Reactivity Guide: Rules for Store Access
+  * ─────────────────────────────────────────
+  * ❌ Destructuring breaks reactivity chain:
+  *    const { getCurrentJurisdiction } = jurisdictionStore
+  *    <template>{{ getCurrentJurisdiction }}</template> => undefined
+  *
+  * ✓ Computed preserves reactive reference:
+  *    const currentJurisdiction = computed(() => jurisdictionStore.getCurrentJurisdiction)
+  *    <template>{{ currentJurisdiction }}</template> => {...}
+  *
+  * ✓ Direct store access maintains reactivity:
+  *    const jurisdictionStore = useJurisdictionStore()
+  *    <template>{{ jurisdictionStore.currentJurisdiction }}</template> => {...}
+  */
+  const jurisdictionStore = useJurisdictionStore();
 
-// Computed properties with null checks
-const currentJurisdiction = computed<Jurisdiction | null>(
-  () => jurisdictionStore.getCurrentJurisdiction
-);
-const jurisdictions = computed<Jurisdiction[]>(
-  () => jurisdictionStore.getAllJurisdictions
-);
+  // Computed properties with null checks
+  const currentJurisdiction = computed<Jurisdiction | null>(
+    () => jurisdictionStore.getCurrentJurisdiction
+  );
+  const jurisdictions = computed<Jurisdiction[]>(
+    () => jurisdictionStore.getAllJurisdictions
+  );
 
-const isOpen = ref(false);
-const dropdownRef = ref<HTMLElement | null>(null);
+  const isOpen = ref(false);
+  const dropdownRef = ref<HTMLElement | null>(null);
 
-const toggleDropdown = () => {
-  isOpen.value = !isOpen.value;
-};
+  const toggleDropdown = () => {
+    isOpen.value = !isOpen.value;
+  };
 
-const closeDropdown = () => {
-  isOpen.value = false;
-};
+  const closeDropdown = () => {
+    isOpen.value = false;
+  };
 
-useClickOutside(dropdownRef, closeDropdown);
+  useClickOutside(dropdownRef, closeDropdown);
 
-// Safety functions for icon props
-const getIconCollection = (jurisdiction: Jurisdiction | null): string => {
-  return jurisdiction?.icon?.collection || 'fa6-solid';
-};
+  // Safety functions for icon props
+  const getIconCollection = (jurisdiction: Jurisdiction | null): string => {
+    return jurisdiction?.icon?.collection || 'fa6-solid';
+  };
 
-const getIconName = (jurisdiction: Jurisdiction | null): string => {
-  return jurisdiction?.icon?.name || 'globe';
-};
+  const getIconName = (jurisdiction: Jurisdiction | null): string => {
+    return jurisdiction?.icon?.name || 'globe';
+  };
 </script>
 
 <template>
@@ -60,7 +60,7 @@ const getIconName = (jurisdiction: Jurisdiction | null): string => {
        class="relative inline-flex">
     <button @click="toggleDropdown"
             class="group inline-flex items-center space-x-2 rounded-full
-                   bg-gray-100 dark:bg-gray-800
+                  bg-inherit
                    px-3 py-1 text-sm font-medium
                    text-gray-700 dark:text-gray-400
                    hover:bg-gray-200 dark:hover:bg-gray-700

@@ -4,7 +4,7 @@
   import { onMounted, onUnmounted } from 'vue';
   import { useTheme } from '@/composables/useTheme';
   import { useI18n } from 'vue-i18n';
-import OIcon from './icons/OIcon.vue';
+  import OIcon from './icons/OIcon.vue';
 
   const { t } = useI18n();
 
@@ -43,7 +43,7 @@ import OIcon from './icons/OIcon.vue';
     class="inline-flex items-center justify-center
           size-10 p-1 rounded-md transition-colors
           text-gray-700 dark:text-gray-100
-          bg-gray-100 dark:bg-gray-800
+          bg-inherit
           hover:bg-gray-200 hover:text-gray-900 dark:hover:bg-gray-700
           focus:outline-none focus:ring-2 focus:ring-brand-500
           focus:ring-offset-2 focus:ring-offset-white dark:ring-offset-gray-900
