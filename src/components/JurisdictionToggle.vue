@@ -59,11 +59,11 @@ const getIconName = (jurisdiction: Jurisdiction | null): string => {
        ref="dropdownRef"
        class="relative inline-flex">
     <button @click="toggleDropdown"
-            class="inline-flex items-center space-x-2 rounded-full
-                   bg-gray-200 dark:bg-gray-700
+            class="group inline-flex items-center space-x-2 rounded-full
+                   bg-gray-100 dark:bg-gray-800
                    px-3 py-1 text-sm font-medium
                    text-gray-700 dark:text-gray-400
-                   hover:bg-gray-300 dark:hover:bg-gray-600
+                   hover:bg-gray-200 dark:hover:bg-gray-700
                    hover:text-gray-900 dark:hover:text-gray-300
                    shadow-sm hover:shadow-md
                    focus:outline-none focus:ring-2 focus:ring-brand-500
@@ -73,7 +73,7 @@ const getIconName = (jurisdiction: Jurisdiction | null): string => {
             aria-haspopup="listbox">
       <OIcon :collection="getIconCollection(currentJurisdiction)"
              :name="getIconName(currentJurisdiction)"
-             class="size-5"
+             class="size-5 group-hover:text-brand-500 dark:group-hover:text-brand-400"
              aria-hidden="true" />
 
              <span class="whitespace-nowrap">{{ currentJurisdiction.display_name }}</span>
