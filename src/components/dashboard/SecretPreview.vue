@@ -62,18 +62,21 @@ const toggleReveal = () => {
   isRevealed.value = !isRevealed.value;
 };
 
-const cornerClass = computed(() =>
-  cornerStyleClasses[props.domainBranding.corner_style ?? CornerStyle.ROUNDED]
-);
+const cornerClass = computed(() => {
+  const style = props.domainBranding?.corner_style as CornerStyle | undefined;
+  return cornerStyleClasses[style ?? CornerStyle.ROUNDED];
+});
 
-const fontFamilyClass = computed(() =>
-  fontFamilyClasses[props.domainBranding.font_family ?? FontFamily.SANS]
-);
+const fontFamilyClass = computed(() => {
+  const font = props.domainBranding?.font_family as FontFamily | undefined;
+  return fontFamilyClasses[font ?? FontFamily.SANS];
+});
 
 </script>
 
 <template>
-<BaseSecretDisplay
+  <!-- Updated -->
+  <BaseSecretDisplay
     :default-title="$t('you-have-a-message')"
     :domain-branding="domainBranding"
     :instructions="instructions"
