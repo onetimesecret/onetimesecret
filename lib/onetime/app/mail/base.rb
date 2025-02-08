@@ -39,10 +39,6 @@ module Onetime::App
         init(*args) if respond_to? :init
       end
 
-      def subject
-        i18n[:email][:subject]
-      end
-
       def i18n
         locale = self.locale || 'en'
         pagename = self.class.name.split('::').last.downcase.to_sym
