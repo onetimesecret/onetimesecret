@@ -76,7 +76,7 @@
   const handleImageError = () => {
     hasImageError.value = true;
   };
-  const isCopiedText = computed(() => isCopied ? t('copied') : t('copy_to_clipboard') );
+  const isCopiedText = computed(() => isCopied ? t('copied') : t('copy-to-clipboard') );
 
   // Prepare the standardized path to the logo image.
   // Note that the file extension needs to be present but is otherwise not used.
@@ -233,7 +233,7 @@
             stroke-width="2"
             d="M5 13l4 4L19 7" />
         </svg>
-        <span>{{ isCopied ? $t('copied') : $t('copy_to_clipboard') }}</span>
+        <span>{{ isCopied ? $t('copied') : $t('copy-to-clipboard') }}</span>
       </button>
     </template>
   </BaseSecretDisplay>
