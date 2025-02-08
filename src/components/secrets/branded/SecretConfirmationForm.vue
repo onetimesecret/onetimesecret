@@ -1,5 +1,11 @@
 <script setup lang="ts">
 import { Secret, SecretDetails, brandSettingschema } from '@/schemas/models';
+import {
+  CornerStyle,
+  FontFamily,
+  cornerStyleClasses,
+  fontFamilyClasses
+} from '@/schemas/models/domain/brand';
 import { useProductIdentity } from '@/stores/identityStore';
 import { ref, computed } from 'vue';
 import BaseSecretDisplay from './BaseSecretDisplay.vue';
@@ -34,6 +40,16 @@ const safeBrandSettings = computed(() =>
   brandSettings ? brandSettingschema.parse(brandSettings) : defaultBranding
 );
 
+const cornerClass = computed(() => {
+  const style = safeBrandSettings.value?.corner_style as CornerStyle | undefined;
+  return cornerStyleClasses[style ?? CornerStyle.ROUNDED];
+});
+
+const fontFamilyClass = computed(() => {
+  const font = safeBrandSettings.value?.font_family as FontFamily | undefined;
+  return fontFamilyClasses[font ?? FontFamily.SANS];
+});
+
 const hasImageError = ref(false);
 
 const cornerStyle = computed(() => {
@@ -60,6 +76,8 @@ const logoImage = ref<string>(`/imagine/${props.domainId}/logo.png`);
 <template>
   <BaseSecretDisplay :default-title="$t('you-have-a-message')"
                      :domain-branding="safeBrandSettings"
+                     :corner-class="cornerClass"
+                     :font-class="fontFamilyClass"
                      :instructions="brandSettings?.instructions_pre_reveal">
     <template #logo>
       <div class="relative mx-auto sm:mx-0">
@@ -134,12 +152,10 @@ const logoImage = ref<string>(`/imagine/${props.domainId}/logo.png`);
                  :id="'passphrase-' + secretKey"
                  type="password"
                  name="passphrase"
-                 :class="{
-              'rounded-lg': brandSettings?.corner_style === 'rounded',
-              'rounded-2xl': brandSettings?.corner_style === 'pill',
-              'rounded-none': brandSettings?.corner_style === 'square',
-              'w-full border border-gray-300 px-4 py-2 focus:outline-none focus:ring-2 focus:ring-offset-2 dark:border-gray-600 dark:bg-gray-700 dark:text-white': true
-            }"
+                 :class="[
+                   cornerClass,
+                   'w-full border border-gray-300 px-4 py-2 focus:outline-none focus:ring-2 focus:ring-offset-2 dark:border-gray-600 dark:bg-gray-700 dark:text-white',
+                 ]"
                  autocomplete="current-password"
                  :aria-label="$t('web.COMMON.enter_passphrase_here')"
                  :placeholder="$t('web.COMMON.enter_passphrase_here')"
@@ -149,13 +165,11 @@ const logoImage = ref<string>(`/imagine/${props.domainId}/logo.png`);
         <!-- Submit Button -->
         <button type="submit"
                 :disabled="isSubmitting"
-                :class="{
-            'rounded-lg': brandSettings?.corner_style === 'rounded',
-            'rounded-full': brandSettings?.corner_style === 'pill',
-            'rounded-none': brandSettings?.corner_style === 'square',
-            [`font-${brandSettings?.font_family}`]: true,
-            'w-full py-3 text-base font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-50 sm:text-lg': true
-          }"
+                :class="[
+                  cornerClass,
+                  fontFamilyClass,
+                  'w-full py-3 text-base font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-50 sm:text-lg',
+                ]"
                 :style="{
             backgroundColor: brandSettings?.primary_color ?? '#dc4a22',
             color: (brandSettings?.button_text_light ?? true) ? '#ffffff' : '#222222',

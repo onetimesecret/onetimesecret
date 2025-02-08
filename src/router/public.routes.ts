@@ -1,7 +1,5 @@
 // src/router/public.routes.ts
 
-// import DefaultFooter from '@/components/layout/DefaultFooter.vue';
-// import DefaultHeader from '@/components/layout/DefaultHeader.vue';
 import QuietFooter from '@/components/layout/QuietFooter.vue';
 import QuietHeader from '@/components/layout/QuietHeader.vue';
 import DefaultLayout from '@/layouts/DefaultLayout.vue';

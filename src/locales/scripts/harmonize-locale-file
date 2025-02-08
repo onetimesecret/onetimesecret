@@ -4,7 +4,7 @@
 # Preserves existing translations while moving/adding keys. To put it another
 # way, the `keys` move but the existing values are preserved.
 #
-# Usage: ./repair-locale-file [-q] [-f] [-v] [-c] LOCALE_FILE
+# Usage: ./harmonize-locale-file [-q] [-f] [-v] [-c] LOCALE_FILE
 # -q: quiet mode
 # -f: filename only output
 # -v: verbose output

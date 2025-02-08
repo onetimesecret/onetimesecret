@@ -1,7 +1,7 @@
 <script setup lang="ts">
   import { WindowService } from '@/services/window.service';
   import { FocusTrap } from 'focus-trap-vue';
-  import { nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue';
+  import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue';
   import { useI18n } from 'vue-i18n';
 
   import GeneralTab from './settings/GeneralTab.vue';
@@ -26,11 +26,18 @@
 
   let previouslyFocusedElement: HTMLElement | null = null;
 
-  const tabs = ref<Tab[]>([{ id: 'general', label: t('general') }]);
+  const tabs = computed<Tab[]>(() => {
+    const tabsList = [
+      { id: 'general', label: t('general') }
+    ];
 
-  if (regionsEnabled) {
-    tabs.value.push({ id: 'data-region', label: t('data-region') });
-  }
+    if (regionsEnabled) {
+      tabsList.push({ id: 'data-region', label: t('data-region') });
+    }
+
+    return tabsList;
+  });
+
   const handleKeydown = (e: KeyboardEvent) => {
     if (e.key === t('escape')) {
       closeModal();
@@ -129,11 +136,11 @@
             class="flex shrink-0 items-center justify-between bg-gray-50 p-4 dark:bg-gray-700">
             <h2
               id="settings-modal"
-              class="text-2xl font-bold text-gray-900 dark:text-white">
+              class="text-2xl font-bold text-gray-900 dark:text-white mb-0">
               {{ $t('web.COMMON.header_settings') }}
             </h2>
             <div
-              class="flex shrink-0 gap-2 overflow-x-auto px-6 py-2"
+              class="flex gap-2 "
               role="tablist"
               @keydown="handleTabKeydown"
               aria-label="$t('settings-sections')">
@@ -159,7 +166,7 @@
 
           <!-- Tabs -->
           <div
-            class="flex shrink-0 gap-2 overflow-x-auto px-6 py-2"
+            class="flex shrink-0 gap-2 overflow-x-auto px-6 py-2 dark:bg-gray-800"
             role="tablist"
             aria-label="$t('settings-sections-0')">
             <button
@@ -171,10 +178,10 @@
               role="tab"
               :id="`tab-button-${tab.id}`"
               :tabindex="activeTab === tab.id ? 0 : -1"
-              class="rounded-md px-3 py-2 text-sm font-medium text-gray-700 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-brandcomp-500 focus:ring-offset-2 dark:text-gray-300"
+              class="rounded-md px-3 py-2 text-sm font-medium text-gray-700 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-brandcomp-500 focus:ring-offset-2 dark:text-gray-200"
               :class="{
-                'bg-brandcomp-100 dark:bg-brandcomp-700': activeTab === tab.id,
-                'hover:bg-gray-200 dark:hover:bg-gray-600': activeTab !== tab.id,
+                'bg-brandcomp-100 dark:bg-brandcomp-900/50 dark:text-brandcomp-100': activeTab === tab.id,
+                'hover:bg-gray-200 dark:hover:bg-gray-700': activeTab !== tab.id,
               }">
               {{ tab.label }}
             </button>

@@ -56,7 +56,7 @@ const handleUpgrade = () => {
         </div>
 
         <p class="max-w-xl text-gray-600 dark:text-gray-300">
-          {{ $t('secure-your-brand-build-customer-trust-with-links-from-your-domain') }}
+          {{ $t('secure-your-brand-build-customer-trust-etc') }}
         </p>
 
         <ul class="space-y-3">

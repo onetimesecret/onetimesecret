@@ -1,20 +1,23 @@
+<!-- src/components/FeedbackToggle.vue -->
+
 <script setup lang="ts">
-import { ref } from 'vue';
+  import { ref } from 'vue';
+  import { useI18n } from 'vue-i18n';
+  const { t } = useI18n();
 
-import FeedbackModal from './modals/FeedbackModal.vue';
-import OIcon from './icons/OIcon.vue';
+  import FeedbackModal from './modals/FeedbackModal.vue';
+  import OIcon from './icons/OIcon.vue';
 
-const isFeedbackModalOpen = ref(false);
+  const isFeedbackModalOpen = ref(false);
 
-const toggleFeedbackModal = () => {
-  isFeedbackModalOpen.value = true;
-};
+  const toggleFeedbackModal = () => {
+    isFeedbackModalOpen.value = true;
+  };
 
-const closeFeedbackModal = () => {
-  isFeedbackModalOpen.value = false;
-};
+  const closeFeedbackModal = () => {
+    isFeedbackModalOpen.value = false;
+  };
 </script>
-
 
 <template>
   <div class="relative">
@@ -30,7 +33,7 @@ const closeFeedbackModal = () => {
                dark:focus:ring-brand-400 dark:focus:ring-offset-gray-900
                px-3 py-1.5 text-sm font-medium"
       aria-label="$t('open-feedback-form')">
-      <span class="inline">{{ $t('feedback') }}</span>
+      <span class="inline">{{ t('feedback') }}</span>
       <OIcon
       class="size-5 text-gray-500 dark:text-gray-400
              group-hover:text-brand-500 dark:group-hover:text-brand-400

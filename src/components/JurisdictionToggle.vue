@@ -1,82 +1,82 @@
 <!-- src/components/JurisdictionToggle.vue -->
 
 <script setup lang="ts">
-import { useClickOutside } from '@/composables/useClickOutside';
-import { useJurisdictionStore } from '@/stores/jurisdictionStore';
-import OIcon from '@/components/icons/OIcon.vue';
-import { computed, ref } from 'vue';
-import type { Jurisdiction } from '@/schemas/models/jurisdiction';
+  import { useClickOutside } from '@/composables/useClickOutside';
+  import { useJurisdictionStore } from '@/stores/jurisdictionStore';
+  import OIcon from '@/components/icons/OIcon.vue';
+  import { computed, ref } from 'vue';
+  import type { Jurisdiction } from '@/schemas/models/jurisdiction';
 
-/* Vue 3 Reactivity Guide: Rules for Store Access
- * ─────────────────────────────────────────
- * ❌ Destructuring breaks reactivity chain:
- *    const { getCurrentJurisdiction } = jurisdictionStore
- *    <template>{{ getCurrentJurisdiction }}</template> => undefined
- *
- * ✓ Computed preserves reactive reference:
- *    const currentJurisdiction = computed(() => jurisdictionStore.getCurrentJurisdiction)
- *    <template>{{ currentJurisdiction }}</template> => {...}
- *
- * ✓ Direct store access maintains reactivity:
- *    const jurisdictionStore = useJurisdictionStore()
- *    <template>{{ jurisdictionStore.currentJurisdiction }}</template> => {...}
- */
-const jurisdictionStore = useJurisdictionStore();
+  /* Vue 3 Reactivity Guide: Rules for Store Access
+  * ─────────────────────────────────────────
+  * ❌ Destructuring breaks reactivity chain:
+  *    const { getCurrentJurisdiction } = jurisdictionStore
+  *    <template>{{ getCurrentJurisdiction }}</template> => undefined
+  *
+  * ✓ Computed preserves reactive reference:
+  *    const currentJurisdiction = computed(() => jurisdictionStore.getCurrentJurisdiction)
+  *    <template>{{ currentJurisdiction }}</template> => {...}
+  *
+  * ✓ Direct store access maintains reactivity:
+  *    const jurisdictionStore = useJurisdictionStore()
+  *    <template>{{ jurisdictionStore.currentJurisdiction }}</template> => {...}
+  */
+  const jurisdictionStore = useJurisdictionStore();
 
-// Computed properties with null checks
-const currentJurisdiction = computed<Jurisdiction | null>(
-  () => jurisdictionStore.getCurrentJurisdiction
-);
-const jurisdictions = computed<Jurisdiction[]>(
-  () => jurisdictionStore.getAllJurisdictions
-);
+  // Computed properties with null checks
+  const currentJurisdiction = computed<Jurisdiction | null>(
+    () => jurisdictionStore.getCurrentJurisdiction
+  );
+  const jurisdictions = computed<Jurisdiction[]>(
+    () => jurisdictionStore.getAllJurisdictions
+  );
 
-const isOpen = ref(false);
-const dropdownRef = ref<HTMLElement | null>(null);
+  const isOpen = ref(false);
+  const dropdownRef = ref<HTMLElement | null>(null);
 
-const toggleDropdown = () => {
-  isOpen.value = !isOpen.value;
-};
+  const toggleDropdown = () => {
+    isOpen.value = !isOpen.value;
+  };
 
-const closeDropdown = () => {
-  isOpen.value = false;
-};
+  const closeDropdown = () => {
+    isOpen.value = false;
+  };
 
-useClickOutside(dropdownRef, closeDropdown);
+  useClickOutside(dropdownRef, closeDropdown);
 
-// Safety functions for icon props
-const getIconCollection = (jurisdiction: Jurisdiction | null): string => {
-  return jurisdiction?.icon?.collection || 'fa6-solid';
-};
+  // Safety functions for icon props
+  const getIconCollection = (jurisdiction: Jurisdiction | null): string => {
+    return jurisdiction?.icon?.collection || 'fa6-solid';
+  };
 
-const getIconName = (jurisdiction: Jurisdiction | null): string => {
-  return jurisdiction?.icon?.name || 'globe';
-};
+  const getIconName = (jurisdiction: Jurisdiction | null): string => {
+    return jurisdiction?.icon?.name || 'globe';
+  };
 </script>
 
 <template>
-  <div v-if="currentJurisdiction"
+<div v-if="currentJurisdiction"
        ref="dropdownRef"
-       class="relative inline-flex items-center space-x-2 rounded-full transition-colors
-                bg-gray-200 dark:bg-gray-700 hover:bg-gray-200
-                text-gray-700 dark:text-gray-400
-                hover:text-gray-900 dark:hover:text-gray-300
-                shadow-sm hover:shadow-md
-                px-3 py-1 text-base font-medium
-                focus-within:ring-2 focus-within:ring-brand-500
-                focus-within:ring-offset-2 focus-within:ring-offset-white
-                dark:focus-within:ring-brand-400 dark:focus-within:ring-offset-gray-900">
-    <span class="sr-only">{{ $t('current-jurisdiction') }}</span>
+       class="relative inline-flex">
     <button @click="toggleDropdown"
-    class="flex items-center space-x-2 focus:outline-none"
+            class="group inline-flex items-center space-x-2 rounded-full
+                  bg-inherit
+                   px-3 py-1 text-sm font-medium
+                   text-gray-700 dark:text-gray-400
+                   hover:bg-gray-200 dark:hover:bg-gray-700
+                   hover:text-gray-900 dark:hover:text-gray-300
+                   shadow-sm hover:shadow-md
+                   focus:outline-none focus:ring-2 focus:ring-brand-500
+                   focus:ring-offset-2 focus:ring-offset-white
+                   dark:focus:ring-brand-400 dark:focus:ring-offset-gray-900"
             :aria-expanded="isOpen"
             aria-haspopup="listbox">
       <OIcon :collection="getIconCollection(currentJurisdiction)"
              :name="getIconName(currentJurisdiction)"
-             class="size-5"
+             class="size-5 group-hover:text-brand-500 dark:group-hover:text-brand-400"
              aria-hidden="true" />
 
-      <span>{{ currentJurisdiction.display_name }}</span>
+             <span class="whitespace-nowrap">{{ currentJurisdiction.display_name }}</span>
 
       <svg xmlns="http://www.w3.org/2000/svg"
            class="size-4 -rotate-90"
@@ -96,9 +96,10 @@ const getIconName = (jurisdiction: Jurisdiction | null): string => {
                 leave-from-class="transform opacity-100 scale-100"
                 leave-to-class="transform opacity-0 scale-95">
       <ul v-if="isOpen"
-          class="absolute bottom-full left-0 z-50 mb-1 max-h-60 w-full overflow-auto rounded-md
-               bg-white py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5
-               focus:outline-none dark:bg-gray-700 sm:text-sm"
+      class="absolute bottom-full left-0 z-50 mb-1 max-h-60 min-w-[200px] w-max max-w-xs
+                 overflow-auto rounded-md bg-white py-1 text-base shadow-lg
+                 ring-1 ring-black ring-opacity-5 focus:outline-none
+                 dark:bg-gray-700 sm:text-sm"
           tabindex="-1"
           role="listbox"
           aria-labelledby="listbox-label">

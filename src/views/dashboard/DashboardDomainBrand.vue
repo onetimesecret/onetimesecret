@@ -1,3 +1,5 @@
+<!-- src/views/dashboard/DashboardDomainBrand.vue -->
+
 <script setup lang="ts">
 import LoadingOverlay from '@/components/common/LoadingOverlay.vue';
 import BrandSettingsBar from '@/components/dashboard/BrandSettingsBar.vue';
@@ -106,7 +108,7 @@ onBeforeRouteLeave((to, from, next) => {
               name="palette-outline"
                     class="size-5"
                     aria-label="$t('customization-icon')" />
-              {{ $t('use-the-controls-above-to-customize-brand-color-styles-and-recipient-instructions') }}
+              {{ $t('use-the-controls-above-to-customize-brand-details') }}
             </li>
 
             <li class="flex items-center gap-2">
@@ -114,7 +116,7 @@ onBeforeRouteLeave((to, from, next) => {
               name="image-outline"
                     class="size-5"
                     aria-label="$t('image-icon')" />
-              {{ $t('click-the-preview-image-below-to-update-your-logo-minimum-128x128-pixels-recommended-1mb-max') }}
+              {{ $t('click-the-preview-image-below-to-update-your-logo') }}
             </li>
 
             <li class="flex items-center gap-2">
@@ -122,7 +124,7 @@ onBeforeRouteLeave((to, from, next) => {
               name="eye-outline"
                     class="size-5"
                     aria-label="$t('eye-icon')" />
-              {{ $t('preview-how-recipients-will-see-your-secrets-by-testing-the-view-secret-button') }}
+              {{ $t('preview-how-recipients-will-see-your-secrets') }}
             </li>
           </ul>
 

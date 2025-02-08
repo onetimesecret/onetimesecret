@@ -112,7 +112,7 @@ const submitWithCheck = async (event?: Event) => {
   await submitForm(event);
 };
 
-const buttonText = computed(() => isSubmitting ? t('web.LABELS.sending-ellipses') : t('web.COMMON.button_send_feedback'))
+const buttonText = computed(() => isSubmitting.value ? t('web.LABELS.sending-ellipses') : t('web.COMMON.button_send_feedback'))
 </script>
 
 <template>
@@ -160,7 +160,7 @@ const buttonText = computed(() => isSubmitting ? t('web.LABELS.sending-ellipses'
              :value="ot_version" />
 
       <button type="submit"
-              :disabled="isSubmitting"
+              :disabled="isSubmitting || feedbackMessage == ''"
               class="w-full
                     rounded-md bg-red-600
                     px-4
@@ -175,7 +175,7 @@ const buttonText = computed(() => isSubmitting ? t('web.LABELS.sending-ellipses'
         {{ buttonText }}
       </button>
 
-      <AltchaChallenge v-if="!cust" />
+      <AltchaChallenge v-if="!cust || cust.identifier == 'anon'" :is-floating="true" />
     </form>
 
     <div class="h-6">

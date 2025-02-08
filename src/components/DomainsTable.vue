@@ -102,7 +102,7 @@
                       class="invisible absolute z-10 -ml-24 mt-2 w-48 rounded-md bg-white p-2 text-xs text-gray-900 shadow-lg ring-1 ring-black/5 transition-opacity duration-200 group-hover:visible dark:bg-gray-800 dark:text-gray-100 dark:shadow-gray-900/50 dark:ring-white/10">
                       {{
                         $t(
-                          'control-whether-users-can-create-secret-links-from-your-domains-homepage'
+                          'control-whether-users-can-create-secret-links'
                         )
                       }}
                     </div>

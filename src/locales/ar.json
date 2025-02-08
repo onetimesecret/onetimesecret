@@ -114,6 +114,10 @@
     "secrets": {
       "privacyOptions": "خيارات الخصوصية",
       "expiresIn": "تنتهي في {المدة}"
+    },
+    "signup": {
+      "create-your-account": "قم بإنشاء حسابك",
+      "have_an_account": "أو تسجيل الدخول إلى حسابك"
     }
   },
   "email": {

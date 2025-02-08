@@ -114,6 +114,9 @@
     "secrets": {
       "privacyOptions": "Opcje prywatności",
       "expiresIn": "Wygasa w {czas trwania}"
+    },
+    "signup": {
+      "create-your-account": "Utwórz swoje konto"
     }
   },
   "email": {

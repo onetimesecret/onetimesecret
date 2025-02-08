@@ -40,7 +40,7 @@ const routes: Array<RouteRecordRaw> = [
         displayNavigation: true,
         displayLinks: true,
         displayFeedback: true,
-        displayPoweredBy: true,
+        displayPoweredBy: false,
         displayVersion: true,
       },
     },
@@ -89,6 +89,7 @@ const routes: Array<RouteRecordRaw> = [
     },
     meta: {
       requiresAuth: true,
+      displayPoweredBy: false,
     },
     props: true,
   },
@@ -102,6 +103,7 @@ const routes: Array<RouteRecordRaw> = [
     },
     meta: {
       requiresAuth: true,
+      displayPoweredBy: false,
     },
     props: true,
   },

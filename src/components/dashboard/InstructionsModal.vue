@@ -57,6 +57,10 @@ const handleKeydown = (e: KeyboardEvent) => {
     close();
   }
 };
+
+const placeholderExample = computed(() =>
+  `${t('e-g-example')} ${t('use-your-phone-to-scan-the-qr-code')}`);
+
 onMounted(() => {
   document.addEventListener('keydown', handleEscPress);
 });
@@ -98,17 +102,14 @@ watch(isOpen, (newValue) => {
     <button
       type="button"
       @click="toggleOpen"
-      class="focus:ring-primary-500 inline-flex
-                   h-11 items-center rounded-lg
-                   border border-gray-200 bg-white px-4
-                   py-2.5 text-sm
-                   text-gray-700
-                   shadow-sm transition-all duration-200
-                   ease-in-out
-                   hover:bg-gray-50
-                   focus:outline-none focus:ring-2 focus:ring-offset-2
-                   dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-800
-                 dark:focus:ring-offset-gray-900"
+      class="group relative inline-flex h-11 items-center gap-2
+             rounded-lg bg-white px-4
+             ring-1 ring-gray-200 shadow-sm
+             hover:bg-gray-50
+             focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2
+             dark:bg-gray-800 dark:ring-gray-700 dark:hover:bg-gray-700
+             dark:focus:ring-brand-400 dark:focus:ring-offset-0
+             transition-all duration-200"
       :aria-expanded="isOpen"
       aria-haspopup="true">
       <OIcon
@@ -165,7 +166,7 @@ watch(isOpen, (newValue) => {
                         text-xs text-white
                         shadow-lg
                         dark:bg-gray-700">
-              {{ $t('these-instructions-will-be-shown-to-recipients-before-they-reveal-the-secret-content') }}
+              {{ $t('these-instructions-will-be-shown-to-recipients-before') }}
             </div>
           </label>
           <textarea
@@ -174,13 +175,15 @@ watch(isOpen, (newValue) => {
             @keydown="handleKeydown"
             ref="textareaRef"
             rows="3"
-            class="w-full
-                           rounded-lg
-                           border-gray-300 text-sm
-                           shadow-sm
-                           focus:border-brand-300 focus:ring focus:ring-brand-200
-                           focus:ring-opacity-50 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
-            :placeholder="`$t('e-g-example') ('use-your-phone-to-scan-the-qr-code')`"
+            class="w-full rounded-lg text-sm
+                   ring-1 ring-gray-200 shadow-sm
+                   border-0
+                   outline-none
+                   focus:ring-2 focus:ring-brand-500 focus:ring-offset-2
+                   dark:ring-gray-700 dark:bg-gray-700 dark:text-white
+                   dark:focus:ring-brand-400 dark:focus:ring-offset-0
+                   transition-all duration-200"
+            :placeholder="placeholderExample"
             @keydown.esc="close"></textarea>
 
           <div

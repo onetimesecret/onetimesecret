@@ -109,6 +109,9 @@
     },
     "secrets": {
       "privacyOptions": "Adatvédelmi lehetőségek"
+    },
+    "signup": {
+      "create-your-account": "Hozzon létre fiókját"
     }
   },
   "email": {

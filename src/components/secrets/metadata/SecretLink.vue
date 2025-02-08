@@ -3,7 +3,9 @@
 <script setup lang="ts">
   import type { Metadata, MetadataDetails } from '@/schemas/models';
   import OIcon from '@/components/icons/OIcon.vue';
-  import { ref } from 'vue';
+  import { ref, computed } from 'vue';
+  import { useI18n } from 'vue-i18n';
+  const { t } = useI18n();
 
   interface Props {
     record: Metadata;
@@ -16,6 +18,7 @@
   const copied = ref(false);
   const showToast = ref(false);
   const linkInput = ref<HTMLInputElement>();
+  const buttonText = computed(() => copied.value ? t('copied') : t('copy-to-clipboard') );
 
   const copyToClipboard = async () => {
     if (!linkInput.value) return;
@@ -120,7 +123,7 @@
               collection="material-symbols"
               :name="copied ? 'check' : 'content-copy-outline'"
               class="w-5 h-5" />
-            <span class="sr-only">{{ copied ? 'Copied!' : 'Copy to clipboard' }}</span>
+            <span class="sr-only">{{ buttonText }}</span>
           </button>
         </div>
       </div>

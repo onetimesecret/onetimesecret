@@ -207,7 +207,8 @@
       "remember_me": "Rembember me"
     },
     "signup": {
-      "have_an_account": "Or, sign in to your account"
+      "have_an_account": "Or, sign in to your account",
+      "create-your-account": "Erstellen Sie Ihr Konto"
     },
     "incoming": {
       "tagline1": "Füge ein Passwort, eine geheime Nachricht oder einen privaten Link unten ein.",

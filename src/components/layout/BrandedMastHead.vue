@@ -20,7 +20,7 @@
     displayMasthead: true,
     displayNavigation: true,
     headertext: 'secure-links',
-    subtext: 'a-trusted-way-to-share-sensitive-information-that-self-destructs-after-being-viewed',
+    subtext: 'a-trusted-way-to-share-sensitive-information-etc',
   });
 </script>
 

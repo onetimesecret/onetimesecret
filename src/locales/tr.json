@@ -106,6 +106,9 @@
       "incoming_ticket_number_hint": "Bunu e-postanda bulabilirsin (örn. 123456)",
       "incoming_recipient_address": "Destek alıcısı",
       "incoming_success_message": "E-postan gönderildi"
+    },
+    "signup": {
+      "create-your-account": "Hesabınızı Oluşturun"
     }
   },
   "email": {

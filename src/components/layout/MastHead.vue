@@ -85,13 +85,13 @@
                     class="absolute -right-0.5 -bottom-0.5 rounded px-0.5 py-0 text-[0.6em]
                            font-brand font-medium bg-brand-500 text-brand-100
                            border border-brand-100 dark:border-slate-800
-                           dark:bg-slate-800 dark:text-slate-100">
+                           dark:bg-slate-800 dark:text-slate-100 z-10">
                     {{ currentJurisdiction?.identifier }}
                   </button>
 
                   <div
                     v-show="tooltipVisible"
-                    class="absolute z-10 mt-1 w-max min-w-[200px]
+                    class="absolute z-50 mt-1 w-max min-w-[200px]
                            rounded-lg bg-white dark:bg-gray-800 px-2 py-1 text-xs
                            shadow-lg ring-1 ring-black ring-opacity-5
                            divide-y divide-gray-200 dark:divide-gray-700">
@@ -144,7 +144,7 @@
             </span>
             <span class="text-xs text-gray-500 dark:text-gray-400">
               {{ $t('tagline-signed') }}.
-              <em>{{ $t('tagline-sealed') }}.</em>
+              <em>{{ $t('tagline-sealed') }}. </em>
               <span class="group/tooltip relative inline-block">
                 {{ $t('web.STATUS.delivered') }}.<sup class="text-[0.7em] text-gray-500 dark:text-gray-400 [animation:pulse_4s_ease-in-out_infinite] group-hover/tooltip:[animation:none]">*</sup>
                 <span class="absolute left-full top-0 ml-1 hidden group-hover/tooltip:block
@@ -176,7 +176,7 @@
             <OIcon
               class="size-5"
               collection="material-symbols"
-              name="settings" />
+              name="settings-outline" />
           </button>
 
           <SettingsModal

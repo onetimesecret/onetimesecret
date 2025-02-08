@@ -29,7 +29,8 @@
       "header_sign_in": "Eintragen",
       "header_dashboard": "Konto",
       "header_logout": "Abmeldung",
-      "secret": "Geheimnis",
+      "secret": "Geheimnis | Geheimnisse",
+      "recent": "Jüngste | Jüngste",
       "received": "Empfangen",
       "burned": "Verbrannt",
       "expires_in": "Läuft ab in",
@@ -84,6 +85,9 @@
       "close": "Schließen Sie",
       "loading": "Laden...",
       "cancel": "Abbrechen",
+      "saving": "Retten...",
+      "saved": "Gerettet",
+      "save": "Speichern",
       "encrypted": "Verschlüsselt",
       "secret_status": "Geheimstatus",
       "need_help": "Brauchen Sie Hilfe?",
@@ -175,7 +179,8 @@
       "cta_feature3": "Steigern Sie das Vertrauen und das Engagement Ihrer Kunden",
       "explore_premium_plans": "Mit benutzerdefinierten Domains",
       "need_free_account": "Sie haben gerade erst angefangen? Versenden Sie E-Mails mit einem kostenlosen Konto.",
-      "sign_up_free": "Kostenlose Anmeldung"
+      "sign_up_free": "Kostenlose Anmeldung",
+      "visit-onetime-secret-home": ""
     },
     "private": {
       "pretext": "Teilen Sie diesen Link:",
@@ -237,6 +242,7 @@
       "remember_me": "Erinnern Sie sich an mich"
     },
     "signup": {
+      "create-your-account": "Erstellen Sie Ihr Konto",
       "have_an_account": "Oder melden Sie sich bei Ihrem Konto an"
     },
     "incoming": {
@@ -376,7 +382,14 @@
         "feedback_hint": "Wenn Sie Fragen haben, finden Sie am Ende (fast) jeder Seite ein Feedback-Formular.",
         "signature": "Fröhliches Teilen,\n{name}"
       }
-    }
+    },
+    "meta": {
+      "were-making-onetime-secret-available-in-multiple": "",
+      "translations-are-new-spotted-an-error": "",
+      "we-recently-added-translations": "",
+      "privacy-and-security-should-be-accessible": ""
+    },
+    "domains": "Domains"
   },
   "email": {
     "incomingsupport": {
@@ -405,7 +418,7 @@
   "back": "Zurück",
   "e-g-example": "z.B..",
   "domain-name": "Domänenname",
-  "control-whether-users-can-create-secret-links-from-your-domains-homepage": "Kontrollieren Sie, ob Benutzer geheime Links von der Homepage Ihrer Domain erstellen können",
+  "control-whether-users-can-create-secret-links": "Kontrollieren Sie, ob Benutzer geheime Links von der Homepage Ihrer Domain erstellen können",
   "homepage-access": "Homepage Zugang",
   "and-status": "&amp; Status",
   "domain": "Bereich",
@@ -422,7 +435,7 @@
   "escape": "Flucht",
   "active": "Aktiv",
   "theyll-appear-here-once-youve-shared-them": "Sie werden hier erscheinen, sobald Sie sie geteilt haben.",
-  "copy_to_clipboard": "In die Zwischenablage kopieren",
+  "copy-to-clipboard": "In die Zwischenablage kopieren",
   "copied": "Kopiert",
   "pricing": "Preisgestaltung",
   "meets-and-exceeds-compliance-standards": "Erfüllt und übertrifft die Konformitätsstandards",
@@ -431,7 +444,7 @@
   "per-month": "pro Monat",
   "full-api-access": "Vollständiger API-Zugang",
   "privacy-first-design": "Datenschutz als oberstes Gebot",
-  "secure-your-brand-build-customer-trust-with-links-from-your-domain": "Sichern Sie Ihre Marke, bauen Sie das Vertrauen Ihrer Kunden mit Links von Ihrer Domain auf.",
+  "secure-your-brand-build-customer-trust-etc": "Sichern Sie Ihre Marke, bauen Sie das Vertrauen Ihrer Kunden mit Links von Ihrer Domain auf.",
   "identity-plus": "Identität Plus",
   "security": "Sicherheit",
   "learn-about-our-security-measures": "Erfahren Sie mehr über unsere Sicherheitsmaßnahmen",
@@ -457,7 +470,7 @@
   "provide-feedback": "Feedback geben",
   "company-logo": "Firmenlogo",
   "brand-logo": "Markenlogo",
-  "a-trusted-way-to-share-sensitive-information-that-self-destructs-after-being-viewed": "Ein vertrauenswürdiger Weg zur Weitergabe vertraulicher Informationen, die sich nach dem Ansehen selbst zerstören.",
+  "a-trusted-way-to-share-sensitive-information-etc": "Ein vertrauenswürdiger Weg zur Weitergabe vertraulicher Informationen, die sich nach dem Ansehen selbst zerstören.",
   "secure-links": "Sichere Links",
   "about-onetime-secret-0": "Über Onetime Secret",
   "log-in-to-onetime-secret": "Anmelden bei Onetime Secret",
@@ -502,7 +515,7 @@
   "press-esc-to-close": "Zum Schließen ESC drücken",
   "charactercount-500-characters": "{0}/500 Zeichen",
   "use-your-phone-to-scan-the-qr-code": "Scannen Sie mit Ihrem Handy den QR-Code",
-  "these-instructions-will-be-shown-to-recipients-before-they-reveal-the-secret-content": "Diese Anweisungen werden den Empfängern angezeigt, bevor sie den geheimen Inhalt preisgeben",
+  "these-instructions-will-be-shown-to-recipients-before": "Diese Anweisungen werden den Empfängern angezeigt, bevor sie den geheimen Inhalt preisgeben",
   "pre-reveal-instructions": "Anweisungen vor der Enthüllung",
   "instructions": "Anweisungen",
   "enter": "Eingabe",
@@ -511,14 +524,14 @@
   "sample-secret-content-this-could-be-sensitive-data": "Beispiel für geheimen Inhalt Dies könnten sensible Daten sein oder eine mehrzeilige Nachricht",
   "sample-secret-content": "Beispiel für geheimen Inhalt",
   "logo-controls": "Logo-Kontrollen",
-  "click-to-upload-a-logo-recommended-size-128x128-pixels-maximum-file-size-1mb-supported-formats-png-jpg-svg": "Klicken Sie, um ein Logo hochzuladen. Empfohlene Größe: 128x128 Pixel. Maximale Dateigröße: 1MB. Unterstützte Formate: PNG, JPG, SVG",
+  "click-to-upload-a-logo-with-recommendation": "Klicken Sie, um ein Logo hochzuladen. Empfohlene Größe: 128x128 Pixel. Maximale Dateigröße: 1MB. Unterstützte Formate: PNG, JPG, SVG",
   "upload-logo": "Logo hochladen",
   "loading-preview": "Vorschau laden...",
-  "preview-how-recipients-will-see-your-secrets-by-testing-the-view-secret-button": "Zeigen Sie in einer Vorschau an, wie die Empfänger Ihre Geheimnisse sehen werden, indem Sie die Schaltfläche \"Geheimnis anzeigen\" testen",
+  "preview-how-recipients-will-see-your-secrets": "Zeigen Sie in einer Vorschau an, wie die Empfänger Ihre Geheimnisse sehen werden, indem Sie die Schaltfläche \"Geheimnis anzeigen\" testen",
   "eye-icon": "Augen-Symbol",
-  "click-the-preview-image-below-to-update-your-logo-minimum-128x128-pixels-recommended-1mb-max": "Klicken Sie auf das Vorschaubild unten, um Ihr Logo zu aktualisieren (mindestens 128x128 Pixel empfohlen, maximal 1 MB)",
+  "click-the-preview-image-below-to-update-your-logo": "Klicken Sie auf das Vorschaubild unten, um Ihr Logo zu aktualisieren (mindestens 128x128 Pixel empfohlen, maximal 1 MB)",
   "image-icon": "Bild-Symbol",
-  "use-the-controls-above-to-customize-brand-color-styles-and-recipient-instructions": "Verwenden Sie die Steuerelemente oben, um Markenfarben, Stile und Empfängeranweisungen anzupassen",
+  "use-the-controls-above-to-customize-brand-details": "Verwenden Sie die Steuerelemente oben, um Markenfarben, Stile und Empfängeranweisungen anzupassen",
   "customization-icon": "Anpassungssymbol",
   "and-customize": "&amp; Anpassen",
   "you-have-unsaved-changes-are-you-sure": "Sie haben ungespeicherte Änderungen. Sind Sie sicher?",
@@ -529,20 +542,14 @@
   "get-started-by-adding-a-custom-domain": "Beginnen Sie mit dem Hinzufügen einer benutzerdefinierten Domain.",
   "no-domains-found": "Keine Domänen gefunden.",
   "loading-domain-information": "Laden der Domäneninformationen...",
+  "in-order-to-connect-your-domain-youll-need-to-ha": "Um Ihre Domain zu verbinden, benötigen Sie einen CNAME-Eintrag in Ihrem DNS, der auf",
+  "if-you-already-have-a-cname-record-for-that-addr": "Wenn Sie bereits einen CNAME-Eintrag für diese Adresse haben, ändern Sie ihn bitte so, dass er auf",
   "a-cname-record-is-not-allowed-instead-youll-need": "), ist ein CNAME-Eintrag nicht zulässig. Stattdessen müssen Sie einen A-Eintrag erstellen. Einzelheiten dazu finden Sie weiter unten auf der Seite.",
   "and-remove-any-other-a-aaaa-or-cname-records-for": "und entfernen Sie alle anderen A-, AAAA- oder CNAME-Einträge für genau diese Adresse.",
-  "cluster-cluster_name-0": "cluster-Name\": \"+Cluster `",
-  "if-you-already-have-a-cname-record-for-that-addr": ". Wenn Sie bereits einen CNAME-Eintrag für diese Adresse haben, ändern Sie ihn bitte so, dass er auf",
-  "cluster-cluster_name": "cluster-Name\": \"+Cluster `",
-  "in-order-to-connect-your-domain-youll-need-to-ha": "Um Ihre Domain zu verbinden, benötigen Sie einen CNAME-Eintrag in Ihrem DNS, der auf",
   "youll-need-to-complete-these-steps": "müssen Sie die folgenden Schritte ausführen.",
   "before-we-can-activate-links-for": "Bevor wir Links aktivieren können für",
-  "verify-your-domain": "Überprüfen Sie Ihre Domain",
-  "a-cname-record-is-not-allowed-instead-youll-need-0": "), ist ein CNAME-Eintrag nicht zulässig. Stattdessen müssen Sie einen A-Eintrag erstellen. Einzelheiten dazu finden Sie weiter unten auf der Seite.",
-  "if-you-already-have-a-cname-record-for-that-addr-0": ". Wenn Sie bereits einen CNAME-Eintrag für diese Adresse haben, ändern Sie ihn bitte so, dass er auf",
-  "in-order-to-connect-your-domain-youll-need-to-ha-0": "Um Ihre Domain zu verbinden, benötigen Sie einen CNAME-Eintrag in Ihrem DNS, der auf",
-  "a-cname-record-is-not-allowed-instead-youll-need-1": "), ist ein CNAME-Eintrag nicht zulässig. Stattdessen müssen Sie einen A-Eintrag erstellen. Einzelheiten dazu finden Sie weiter unten auf der Seite.",
   "please-note-that-for-apex-domains": "Bitte beachten Sie, dass bei Apex-Domänen (z. B.,",
+  "verify-your-domain": "Überprüfen Sie Ihre Domain",
   "important": "Wichtig",
   "create-a-secret": "Ein Geheimnis schaffen",
   "welcomes-contributors-for-both-existing-and-new-": "begrüßt Beiträge sowohl für bestehende als auch für neue Sprachen.",
@@ -836,5 +843,6 @@
   "click-to-continue": "Zum Fortfahren klicken",
   "an-error-occurred": "Es ist ein Fehler aufgetreten",
   "copy-secret-to-clipboard": "Geheimnis in die Zwischenablage kopieren",
-  "secret-copied-to-clipboard": "Geheimnis in die Zwischenablage kopiert"
+  "secret-copied-to-clipboard": "Geheimnis in die Zwischenablage kopiert",
+  "Double check that passphrase": "Überprüfen Sie die Passphrase doppelt"
 }

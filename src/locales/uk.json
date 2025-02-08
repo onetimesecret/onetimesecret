@@ -106,6 +106,9 @@
       "incoming_ticket_number_hint": "Ви можете знайти це у своїй електронній пошті (наприклад, 123456)",
       "incoming_recipient_address": "Отримувач підтримки",
       "incoming_success_message": "Ваш електронний лист надіслано"
+    },
+    "signup": {
+      "create-your-account": "Створіть свій рахунок"
     }
   },
   "email": {

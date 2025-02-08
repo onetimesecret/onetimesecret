@@ -7,7 +7,7 @@ import SignInForm from '@/components/auth/SignInForm.vue';
 
 <template>
   <AuthView
-    heading="Sign in to your account"
+    :heading="$t('sign-in-to-your-account')"
     heading-id="signin-heading"
     :with-subheading="true">
     <template #form>

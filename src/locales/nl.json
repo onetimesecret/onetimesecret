@@ -208,7 +208,8 @@
       "remember_me": "Rembember me"
     },
     "signup": {
-      "have_an_account": "Or, sign in to your account"
+      "have_an_account": "Or, sign in to your account",
+      "create-your-account": "Maak uw account aan"
     },
     "incoming": {
       "tagline1": "Plak het wachtwoord, geheime bericht of privé link beneden",

@@ -60,6 +60,16 @@
       v-else
       class="container mx-auto max-w-2xl px-4">
       <div class="flex flex-col items-center justify-center space-y-4">
+        <!-- Theme Toggle -->
+        <div
+          v-if="displayToggles"
+          class="flex items-center space-x-2">
+          <ThemeToggle
+            class="text-gray-500 transition-colors duration-200 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-100"
+            :aria-label="$t('toggle-dark-mode')" />
+          <LanguageToggle :compact="true" />
+        </div>
+
         <!-- Links Section -->
         <div class="text-sm text-gray-500 dark:text-gray-400">
           <router-link
@@ -69,24 +79,12 @@
           </router-link>
           <span
             class="mx-2 select-none"
-            aria-hidden="true"
-            >·</span
-          >
+            aria-hidden="true">·</span>
           <router-link
             to="/info/privacy"
             class="transition-colors duration-200 hover:text-gray-800 dark:hover:text-gray-100 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2">
             {{ $t('privacy') }}
           </router-link>
-        </div>
-
-        <!-- Theme Toggle -->
-        <div
-          v-if="displayToggles"
-          class="flex items-center space-x-2">
-          <ThemeToggle
-            class="text-gray-500 transition-colors duration-200 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-100"
-            :aria-label="$t('toggle-dark-mode')" />
-          <LanguageToggle :compact="true" />
         </div>
       </div>
     </div>
