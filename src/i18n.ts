@@ -1,7 +1,7 @@
 import en from '@/locales/en.json';
 import { WindowService } from '@/services/window.service';
-import { createI18n } from 'vue-i18n';
-
+import { createI18n, type Composer } from 'vue-i18n';
+import { type Locale } from '@/schemas/i18n/locale';
 /**
  * Configures internationalization with key behaviors:
  *
@@ -15,14 +15,15 @@ import { createI18n } from 'vue-i18n';
 
 const supportedLocales = WindowService.get('supported_locales') || [];
 
-export type MessageSchema = typeof en;
-export type SupportedLocale = (typeof supportedLocales)[number];
+type MessageSchema = typeof en;
+type GlobalComposer = Composer<{}, {}, {}, Locale>;
 
 // First supported locale is assumed to be the default
 const locale = supportedLocales[0] || 'en';
 
-const i18n = createI18n<{ message: typeof en }, SupportedLocale>({
-  // legacy: false,  // TODO: https://vue-i18n.intlify.dev/guide/advanced/composition
+const i18n = createI18n<false>({
+  legacy: false,
+  globalInjection: true, // allows $t to be used globally
   locale: locale,
   fallbackLocale: 'en',
   messages: {
@@ -46,23 +47,20 @@ async function loadLocaleMessages(locale: string): Promise<MessageSchema | null>
 }
 
 export async function setLanguage(lang: string): Promise<void> {
-  if (i18n.global.locale === lang) {
-    console.debug(`Language is already set to ${lang}. No change needed.`);
+  const composer = i18n.global as GlobalComposer;
+
+  if (composer.locale.value === lang) {
+    console.debug(`Language already set to ${lang}`);
     return;
   }
 
-  if (lang === 'en') {
-    i18n.global.locale = 'en';
-    console.debug(`Language set to: ${lang}`);
-    return;
-  }
   const messages = await loadLocaleMessages(lang);
   if (messages) {
-    i18n.global.setLocaleMessage(lang, messages);
-    i18n.global.locale = lang;
+    composer.setLocaleMessage(lang, messages);
+    composer.locale.value = lang;
     console.debug(`Language set to: ${lang}`);
   } else {
-    console.log(`Failed to set language to: ${lang}. Falling back to default.`);
+    console.warn(`Failed to set language to: ${lang}. Falling back to default.`);
   }
 }
 
