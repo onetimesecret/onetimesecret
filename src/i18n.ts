@@ -29,8 +29,15 @@ const locale = supportedLocales[0] || 'en'; // assume the first is the default
 const i18n = createI18n<false>({
   legacy: false,
   globalInjection: true, // allows $t to be used globally
+  missingWarn: true, // these are removed for prod
+  fallbackWarn: true, // ditto
   locale: locale,
-  fallbackLocale: 'en',
+  fallbackLocale: {
+    'fr-CA': ['fr_CA', 'fr_FR', 'en'],
+    fr: ['fr_FR', 'fr_CA', 'en'],
+    'fr-*': ['fr_FR', 'en'],
+    default: ['en'],
+  },
   messages: {
     en,
   },
