@@ -42,7 +42,7 @@
 
         <div
           v-if="displayToggles"
-          class="flex w-full flex-wrap items-center justify-center space-x-4 md:w-auto md:justify-end">
+          class="flex items-center justify-center gap-4 md:w-auto md:justify-end">
           <JurisdictionToggle v-if="windowProps.regions_enabled && windowProps.regions" />
 
           <ThemeToggle
@@ -63,7 +63,7 @@
         <!-- Theme Toggle -->
         <div
           v-if="displayToggles"
-          class="flex items-center space-x-2">
+          class="flex w-full flex-nowrap items-center justify-center space-x-4 md:w-auto md:justify-end">
           <ThemeToggle
             class="text-gray-500 transition-colors duration-200 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-100"
             :aria-label="$t('toggle-dark-mode')" />

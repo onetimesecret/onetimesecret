@@ -483,6 +483,7 @@
   "recipient-delivery-is-optional": "Recipient delivery is optional",
   "tagline-signed": "Signed",
   "tagline-sealed": "Sealed",
+  "tagline-delivered": "Delivered",
   "onetime-secret": "Onetime Secret",
   "onetime-secret-literal": "Onetime Secret",
   "regions": "Regions",
