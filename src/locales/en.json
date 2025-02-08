@@ -29,7 +29,8 @@
       "header_sign_in": "Sign In",
       "header_dashboard": "Account",
       "header_logout": "Logout",
-      "secret": "Secret",
+      "secret": "Secret | Secrets",
+      "recent": "Recent",
       "received": "Received",
       "burned": "Burned",
       "expires_in": "Expires in",
@@ -175,7 +176,8 @@
       "cta_feature3": "Increase customer trust and engagement",
       "explore_premium_plans": "With Custom Domains",
       "need_free_account": "Just getting started? Send emails with a free account.",
-      "sign_up_free": "Free Sign-up"
+      "sign_up_free": "Free Sign-up",
+      "visit-onetime-secret-home": "Visit Onetime Secret homepage"
     },
     "private": {
       "pretext": "Share this link:",
