@@ -288,6 +288,9 @@
           "second": "秒 | 秒"
         }
       }
+    },
+    "signup": {
+      "create-your-account": "Create Your Account"
     }
   },
   "weve-built-this-tool-to-help-you-share-sensitive": "私たちは、このツールを作成して、機密情報を安全に共有できるようにしました。皆さんの実際の経験は、私たちの取り組みを集中させるために非常に重要です。次に何に取り組むべきか、そしてサービスをどのように改善すればよいかを把握するのに役立ちます。",

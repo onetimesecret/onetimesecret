@@ -114,6 +114,10 @@
     "secrets": {
       "privacyOptions": "Опции за поверителност",
       "expiresIn": "Изтича в {продължителност}"
+    },
+    "signup": {
+      "create-your-account": "Създайте вашия акаунт",
+      "have_an_account": "Или влезте в акаунта си"
     }
   },
   "email": {

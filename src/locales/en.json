@@ -239,6 +239,7 @@
       "remember_me": "Rembember me"
     },
     "signup": {
+      "create-your-account": "Create Your Account",
       "have_an_account": "Or, sign in to your account"
     },
     "incoming": {
@@ -780,7 +781,7 @@
   "account-deleted-successfully": "Account deleted successfully.",
   "secret-viewing-page": "Secret viewing page",
   "serving-you-from-the": "Serving you from the",
-  "create-account": "Create account",
+  "create-account": "Create Account",
   "i-agree-to-the": "I agree to the",
   "it-may-take-a-few-minutes-for-your-ssl-certifica": "It may take a few minutes for your SSL certificate to take effect.",
   "dns-changes-can-take-as-little-as-60-seconds-or-": "DNS changes can take as little as 60 seconds -- or up to 24 hours -- to take effect.",

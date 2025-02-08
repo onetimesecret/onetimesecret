@@ -106,6 +106,9 @@
       "incoming_ticket_number_hint": "Вы можете найти его в своём письме (например, 123456)",
       "incoming_recipient_address": "Получатель поддержки",
       "incoming_success_message": "Ваше письмо было отправлено"
+    },
+    "signup": {
+      "create-your-account": "Создайте свою учетную запись"
     }
   },
   "email": {

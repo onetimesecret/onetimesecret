@@ -110,6 +110,9 @@
     "secrets": {
       "privacyOptions": "Opciones de privacidad",
       "expiresIn": "Expira en {duración}"
+    },
+    "signup": {
+      "create-your-account": "Crea tu cuenta"
     }
   },
   "email": {
