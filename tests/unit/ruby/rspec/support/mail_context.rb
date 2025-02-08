@@ -29,6 +29,11 @@ RSpec.shared_context "mail_test_context" do
             subject: 'Welcome to OnetimeSecret',
             body: 'Welcome email body with {{ verify_uri }}',
             footer: 'Email footer text'
+          },
+          secretlink: {
+            subject: '%s sent you a secret',
+            body: 'Secret link email body',
+            footer: 'Secret link footer'
           }
         },
         web: {
