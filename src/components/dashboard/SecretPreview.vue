@@ -1,7 +1,14 @@
-<!-- SecretPreview.vue -->
+<!-- src/components/dashboard/SecretPreview.vue -->
+
 <script setup lang="ts">
 import BaseSecretDisplay from '@/components/secrets/branded/BaseSecretDisplay.vue';
 import { BrandSettings, ImageProps } from '@/schemas/models';
+import {
+  CornerStyle,
+  FontFamily,
+  cornerStyleClasses,
+  fontFamilyClasses
+} from '@/schemas/models/domain/brand';
 import OIcon from '@/components/icons/OIcon.vue';
 import { computed, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
@@ -55,53 +62,35 @@ const toggleReveal = () => {
   isRevealed.value = !isRevealed.value;
 };
 
-const cornerClass = computed(() => {
-  switch (props.domainBranding.corner_style) {
-    case 'rounded':
-      return 'rounded-md'; // Updated to match BaseSecretDisplay
-    case 'pill':
-      return 'rounded-xl'; // Updated to match BaseSecretDisplay
-    case 'square':
-      return 'rounded-none';
-    default:
-      return '';
-  }
-});
+const cornerClass = computed(() =>
+  cornerStyleClasses[props.domainBranding.corner_style ?? CornerStyle.ROUNDED]
+);
 
-const fontFamilyClass = computed(() => {
-  switch (props.domainBranding.font_family) {
-    case 'sans':
-      return 'font-sans';
-    case 'serif':
-      return 'font-serif';
-    case 'mono':
-      return 'font-mono';
-    default:
-      return '';
-  }
-});
+const fontFamilyClass = computed(() =>
+  fontFamilyClasses[props.domainBranding.font_family ?? FontFamily.SANS]
+);
 
 </script>
 
 <template>
-  <BaseSecretDisplay
+<BaseSecretDisplay
     :default-title="$t('you-have-a-message')"
     :domain-branding="domainBranding"
-    :instructions="instructions">
+    :instructions="instructions"
+    :corner-class="cornerClass"
+    :font-class="fontFamilyClass">
+
+    <!-- Logo Upload Area -->
     <template #logo>
-      <!-- Logo Upload Area -->
       <div class="group relative mx-auto sm:mx-0">
         <label
           class="block cursor-pointer"
           for="logo-upload"
-          role="button"
-          aria-label="$t('upload-logo')"
-          aria-describedby="logoHelp">
+          role="button">
           <div
-            :class="{
-              [cornerClass]: true,
+            :class="[cornerClass, {
               'animate-wiggle': !isValidLogo
-            }"
+            }]"
             class="hover:ring-primary-500 flex size-14 items-center justify-center overflow-hidden bg-gray-100 hover:ring-2 hover:ring-offset-2 dark:bg-gray-700 sm:size-16">
             <img
               v-if="isValidLogo"
@@ -167,23 +156,21 @@ const fontFamilyClass = computed(() => {
     </template>
 
     <template #content>
-      <textarea
-        v-if="isRevealed"
-        readonly
-        class="w-full resize-none border-0 bg-transparent font-mono text-xs text-gray-700 focus:ring-0 dark:text-gray-300 sm:text-sm"
-        :class="{
-          [cornerClass]: true
-        }"
-        rows="3"
-        :aria-label="$t('sample-secret-content')"
-        v-model="textareaPlaceholder"></textarea>
+    <textarea
+            v-if="isRevealed"
+            readonly
+            :class="[cornerClass]"
+            class="w-full resize-none border-0 bg-transparent
+            font-mono text-xs text-gray-700
+            focus:ring-0 dark:text-gray-300 sm:text-base"
+            rows="3"
+            :aria-label="$t('sample-secret-content')"
+            v-model="textareaPlaceholder"></textarea>
 
       <div
         v-else
         class="flex items-center text-gray-400 dark:text-gray-500"
-        :class="{
-          [cornerClass]: true,
-        }">
+        :class="[cornerClass, fontFamilyClass]">
         <OIcon
           collection="mdi"
           name="eye-off"
@@ -197,10 +184,7 @@ const fontFamilyClass = computed(() => {
       <!-- Action Button -->
       <button
         class="w-full py-3 text-base font-medium transition-colors sm:text-lg"
-        :class="{
-          [cornerClass]: true,
-          [fontFamilyClass]: true,
-        }"
+        :class="[cornerClass, fontFamilyClass]"
         :style="{
           backgroundColor: domainBranding.primary_color ??' #dc4a22',
           color: (domainBranding.button_text_light ?? true) ? '#ffffff' : '#000000',
