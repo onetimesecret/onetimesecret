@@ -144,7 +144,7 @@
             </span>
             <span class="text-xs text-gray-500 dark:text-gray-400">
               {{ $t('tagline-signed') }}.
-              <em>{{ $t('tagline-sealed') }}.</em>
+              <em>{{ $t('tagline-sealed') }}. </em>
               <span class="group/tooltip relative inline-block">
                 {{ $t('web.STATUS.delivered') }}.<sup class="text-[0.7em] text-gray-500 dark:text-gray-400 [animation:pulse_4s_ease-in-out_infinite] group-hover/tooltip:[animation:none]">*</sup>
                 <span class="absolute left-full top-0 ml-1 hidden group-hover/tooltip:block
