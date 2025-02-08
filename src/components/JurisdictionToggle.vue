@@ -1,3 +1,5 @@
+<!-- src/components/JurisdictionToggle.vue -->
+
 <script setup lang="ts">
 import { useClickOutside } from '@/composables/useClickOutside';
 import { useJurisdictionStore } from '@/stores/jurisdictionStore';
@@ -55,15 +57,18 @@ const getIconName = (jurisdiction: Jurisdiction | null): string => {
 <template>
   <div v-if="currentJurisdiction"
        ref="dropdownRef"
-       class="relative inline-flex items-center space-x-2 rounded-full bg-gray-100 px-3
-           py-1 text-base font-medium text-gray-500
-           shadow-sm transition-all duration-100
-           ease-in-out hover:shadow-md dark:bg-gray-800 dark:text-gray-400">
+       class="relative inline-flex items-center space-x-2 rounded-full transition-colors
+                bg-gray-200 dark:bg-gray-700 hover:bg-gray-200
+                text-gray-700 dark:text-gray-400
+                hover:text-gray-900 dark:hover:text-gray-300
+                shadow-sm hover:shadow-md
+                px-3 py-1 text-base font-medium
+                focus-within:ring-2 focus-within:ring-brand-500
+                focus-within:ring-offset-2 focus-within:ring-offset-white
+                dark:focus-within:ring-brand-400 dark:focus-within:ring-offset-gray-900">
     <span class="sr-only">{{ $t('current-jurisdiction') }}</span>
     <button @click="toggleDropdown"
-            class="flex items-center space-x-2
-             focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2
-             dark:focus:ring-brand-400"
+    class="flex items-center space-x-2 focus:outline-none"
             :aria-expanded="isOpen"
             aria-haspopup="listbox">
       <OIcon :collection="getIconCollection(currentJurisdiction)"
@@ -91,7 +96,7 @@ const getIconName = (jurisdiction: Jurisdiction | null): string => {
                 leave-from-class="transform opacity-100 scale-100"
                 leave-to-class="transform opacity-0 scale-95">
       <ul v-if="isOpen"
-          class="absolute bottom-full left-0 z-10 mb-1 max-h-60 w-full overflow-auto rounded-md
+          class="absolute bottom-full left-0 z-50 mb-1 max-h-60 w-full overflow-auto rounded-md
                bg-white py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5
                focus:outline-none dark:bg-gray-700 sm:text-sm"
           tabindex="-1"
@@ -125,17 +130,11 @@ const getIconName = (jurisdiction: Jurisdiction | null): string => {
             </span>
 
             <span v-if="currentJurisdiction?.identifier === jurisdiction.identifier"
-                  class="absolute inset-y-0 right-0 flex items-center pr-4 text-brand-600
-                     dark:text-brand-400">
-              <svg class="size-5"
-                   xmlns="http://www.w3.org/2000/svg"
-                   viewBox="0 0 20 20"
-                   fill="currentColor"
-                   aria-hidden="true">
-                <path fill-rule="evenodd"
-                      d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-                      clip-rule="evenodd" />
-              </svg>
+                  class="absolute inset-y-0 right-0 flex items-center pr-4">
+              <OIcon
+                collection="heroicons"
+                name="check-20-solid"
+                class="size-5 text-brand-600" />
             </span>
           </a>
         </li>

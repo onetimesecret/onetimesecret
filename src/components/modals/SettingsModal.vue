@@ -63,10 +63,7 @@
     previouslyFocusedElement = null;
   });
 
-
-
   onMounted(() => {
-
   });
 
   const handleTabKeydown = (e: KeyboardEvent) => {

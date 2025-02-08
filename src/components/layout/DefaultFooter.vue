@@ -2,7 +2,7 @@
 
 <script setup lang="ts">
 import FeedbackToggle from '@/components/FeedbackToggle.vue';
-import JurisdictionFooterNotice from '@/components/JurisdictionFooterNotice.vue';
+import JurisdictionToggle from '@/components/JurisdictionToggle.vue';
 import FooterLinkLists from '@/components/layout/FooterLinkLists.vue';
 import ThemeToggle from '@/components/ThemeToggle.vue';
 import { WindowService } from '@/services/window.service';
@@ -71,7 +71,7 @@ const companyName = ref('OnetimeSecret.com');
           space-x-4 md:w-auto
           md:justify-end">
 
-          <JurisdictionFooterNotice v-if="windowProps.regions_enabled && windowProps.regions" />
+          <JurisdictionToggle v-if="windowProps.regions_enabled && windowProps.regions" />
 
           <ThemeToggle class="
             text-gray-500 transition-colors

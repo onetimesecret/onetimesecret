@@ -3,7 +3,7 @@
 <script setup lang="ts">
   import FooterLinkLists from '@/components/layout/FooterLinkLists.vue';
   import FeedbackToggle from '@/components/FeedbackToggle.vue';
-  import JurisdictionFooterNotice from '@/components/JurisdictionFooterNotice.vue';
+  import JurisdictionToggle from '@/components/JurisdictionToggle.vue';
   import ThemeToggle from '@/components/ThemeToggle.vue';
   import { useProductIdentity } from '@/stores/identityStore';
   import type { LayoutProps } from '@/types/ui/layouts';
@@ -43,7 +43,7 @@
         <div
           v-if="displayToggles"
           class="flex w-full flex-wrap items-center justify-center space-x-4 md:w-auto md:justify-end">
-          <JurisdictionFooterNotice v-if="windowProps.regions_enabled && windowProps.regions" />
+          <JurisdictionToggle v-if="windowProps.regions_enabled && windowProps.regions" />
 
           <ThemeToggle
             class="text-gray-500 transition-colors duration-200 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-100"

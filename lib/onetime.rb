@@ -243,12 +243,18 @@ module Onetime
       confs = locales.collect do |locale|
         path = File.join(Onetime::HOME, 'src', 'locales', "#{locale}.json")
         OT.ld "Loading locale #{locale}: #{File.exist?(path)}"
-        conf = JSON.parse(File.read(path), symbolize_names: true)
+        begin
+          contents = File.read(path)
+        rescue Errno::ENOENT => e
+          OT.le "Missing locale file: #{path}"
+          next
+        end
+        conf = JSON.parse(contents, symbolize_names: true)
         [locale, conf]
       end
 
       # Convert the zipped array to a hash
-      locales = confs.to_h
+      locales = confs.compact.to_h
       # Make sure the default locale is first
       default_locale = locales[OT.conf[:locales].first]
       # Here we overlay each locale on top of the default just

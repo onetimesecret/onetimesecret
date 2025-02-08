@@ -518,7 +518,6 @@
   "sample-secret-content": "Sample secret content",
   "logo-controls": "Logo controls",
   "click-to-upload-a-logo-recommended-size-128x128-pixels-maximum-file-size-1mb-supported-formats-png-jpg-svg": "Click to upload a logo. Recommended size: 128x128 pixels. Maximum file size: 1MB. Supported formats: PNG, JPG, SVG",
-  "logoimage-filename-or-or-brand-logo": "`+logoImage?.filename || `Brand logo",
   "upload-logo": "Upload logo",
   "loading-preview": "Loading preview...",
   "preview-how-recipients-will-see-your-secrets-by-testing-the-view-secret-button": "Preview how recipients will see your secrets by testing the \"View Secret\" button",

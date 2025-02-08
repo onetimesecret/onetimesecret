@@ -106,7 +106,7 @@ const fontFamilyClass = computed(() => {
             <img
               v-if="isValidLogo"
               :src="logoSrc"
-              :alt="$t('logoimage-filename-or-or-brand-logo')"
+              :alt="logoImage?.filename || $t('brand-logo')"
               class="size-16 object-contain"
               :class="{
                 [cornerClass]: true,
