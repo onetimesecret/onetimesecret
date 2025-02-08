@@ -1,26 +1,31 @@
+// src/i18n.ts
+
 import en from '@/locales/en.json';
 import { WindowService } from '@/services/window.service';
 import { createI18n, type Composer } from 'vue-i18n';
 import { type Locale } from '@/schemas/i18n/locale';
-/**
- * Configures internationalization with key behaviors:
- *
- * Loads English translations as default.
- * Sets English as fallback locale.
- * Detects browser locale, attempts
- * matching translation import.
- * Sets active locale if file loads.
- * Falls back to English if load fails.
- **/
 
-const supportedLocales = WindowService.get('supported_locales') || [];
+/**
+ * Internationalization configuration and utilities.
+ * Sets up Vue i18n instance with locale management and message loading.
+ */
 
 type MessageSchema = typeof en;
 type GlobalComposer = Composer<{}, {}, {}, Locale>;
 
-// First supported locale is assumed to be the default
-const locale = supportedLocales[0] || 'en';
+/**
+ * The list of supported locales comes directly from etc/config.yaml.
+ */
+const supportedLocales = WindowService.get('supported_locales') || [];
+const locale = supportedLocales[0] || 'en'; // assume the first is the default
 
+/**
+ * Core i18n instance configuration:
+ * - Uses Composition API (legacy: false)
+ * - Enables global injection of $t
+ * - Sets default and fallback locales
+ * - Loads initial English messages
+ */
 const i18n = createI18n<false>({
   legacy: false,
   globalInjection: true, // allows $t to be used globally
@@ -34,6 +39,11 @@ const i18n = createI18n<false>({
 
 export default i18n;
 
+/**
+ * Dynamically imports locale message files.
+ * @param locale - Locale code to load (e.g. 'en', 'es')
+ * @returns Loaded messages or null if failed
+ */
 async function loadLocaleMessages(locale: string): Promise<MessageSchema | null> {
   console.debug(`Attempting to load locale: ${locale}`);
   try {
@@ -46,6 +56,12 @@ async function loadLocaleMessages(locale: string): Promise<MessageSchema | null>
   }
 }
 
+/**
+ * Changes active application language.
+ * Loads messages file and updates i18n instance if successful.
+ * Falls back to default locale on failure.
+ * @param lang - Target locale code
+ */
 export async function setLanguage(lang: string): Promise<void> {
   const composer = i18n.global as GlobalComposer;
 
@@ -65,18 +81,19 @@ export async function setLanguage(lang: string): Promise<void> {
 }
 
 /**
- * Creates a compatibility layer for i18n message structure migration
- * Maintains both flat and nested key access patterns for backwards compatibility
- * @param messages - Source message object with nested structure
- * @returns Flattened message object with both original and nested key paths
+ * Flattens nested message structure while maintaining backwards compatibility.
+ * Supports both flat and dot-notation key access.
+ * @param messages - Nested message object
+ * @returns Flattened messages with preserved key paths
  */
 export function createCompatibilityLayer(messages: Record<string, any>): Record<string, string> {
-  const flat: Record<string, string> = {}; /**
-   * Recursively flattens nested object structure into dot notation
-   * @param obj - Object to flatten
-   * @param prefix - Current key path prefix
-   */
+  const flat: Record<string, string> = {};
 
+  /**
+   * Recursively flattens object into dot notation paths.
+   * @param obj - Source object
+   * @param prefix - Current key path
+   */
   function flattenKeys(obj: Record<string, unknown>, prefix = ''): void {
     Object.entries(obj).forEach(([key, value]) => {
       if (value && typeof value === 'object') {
