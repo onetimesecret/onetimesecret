@@ -8,6 +8,7 @@ require 'simplecov'
 
 require_relative 'support/rack_context'
 require_relative 'support/view_context'
+require_relative 'support/mail_context'
 
 # Starts SimpleCov for code coverage analysis if the COVERAGE environment variable is set.
 SimpleCov.start if ENV['COVERAGE']
