@@ -62,7 +62,7 @@ const getIconName = (jurisdiction: Jurisdiction | null): string => {
                 text-gray-700 dark:text-gray-400
                 hover:text-gray-900 dark:hover:text-gray-300
                 shadow-sm hover:shadow-md
-                px-3 py-1 text-base font-medium
+                px-3 py-1 text-sm font-medium
                 focus-within:ring-2 focus-within:ring-brand-500
                 focus-within:ring-offset-2 focus-within:ring-offset-white
                 dark:focus-within:ring-brand-400 dark:focus-within:ring-offset-gray-900">
@@ -96,9 +96,10 @@ const getIconName = (jurisdiction: Jurisdiction | null): string => {
                 leave-from-class="transform opacity-100 scale-100"
                 leave-to-class="transform opacity-0 scale-95">
       <ul v-if="isOpen"
-          class="absolute bottom-full left-0 z-50 mb-1 max-h-60 w-full overflow-auto rounded-md
-               bg-white py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5
-               focus:outline-none dark:bg-gray-700 sm:text-sm"
+      class="absolute bottom-full left-0 z-50 mb-1 max-h-60 min-w-[200px] w-max max-w-xs
+                 overflow-auto rounded-md bg-white py-1 text-base shadow-lg
+                 ring-1 ring-black ring-opacity-5 focus:outline-none
+                 dark:bg-gray-700 sm:text-sm"
           tabindex="-1"
           role="listbox"
           aria-labelledby="listbox-label">
