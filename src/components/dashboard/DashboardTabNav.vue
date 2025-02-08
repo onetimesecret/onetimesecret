@@ -45,7 +45,7 @@
     class="mb-6 overflow-x-auto bg-gray-50/50 px-4 py-2 dark:bg-gray-800/50">
     <!-- Shadow approach -->
     <ul
-      class="mx-auto flex min-w-max max-w-7xl items-center gap-x-6 font-brand"
+      class="mx-auto flex min-w-max max-w-7xl items-center justify-between font-brand"
       role="menubar">
       <!-- Home -->
       <li
