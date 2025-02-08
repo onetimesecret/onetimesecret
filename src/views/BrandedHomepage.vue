@@ -19,7 +19,7 @@
     <!--
       BrandedHomepage.vue
 
-      Purpose: Landing page for private, white-labeled secure message service instances.
+      Purpose: Landing page for custom domains, secure message service instances.
 
       This page serves two key functions:
       1. Shows the current availability status of the secure messaging service
