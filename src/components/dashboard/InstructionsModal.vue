@@ -57,6 +57,10 @@ const handleKeydown = (e: KeyboardEvent) => {
     close();
   }
 };
+
+const placeholderExample = computed(() =>
+  `${t('e-g-example')} ${t('use-your-phone-to-scan-the-qr-code')}`);
+
 onMounted(() => {
   document.addEventListener('keydown', handleEscPress);
 });
@@ -180,7 +184,7 @@ watch(isOpen, (newValue) => {
                            shadow-sm
                            focus:border-brand-300 focus:ring focus:ring-brand-200
                            focus:ring-opacity-50 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
-            :placeholder="`$t('e-g-example') ('use-your-phone-to-scan-the-qr-code')`"
+            :placeholder="placeholderExample"
             @keydown.esc="close"></textarea>
 
           <div
