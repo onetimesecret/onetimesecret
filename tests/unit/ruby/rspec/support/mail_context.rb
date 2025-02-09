@@ -1,5 +1,16 @@
 # tests/unit/ruby/rspec/support/mail_context.rb
 
+def with_emailer(mail)
+  mail.tap { |m| m.instance_variable_set(:@emailer, mail_emailer) }
+end
+
+def resolve_template_path(template_name)
+  # Start from project root (where the tests directory is)
+  project_root = File.expand_path('../../../../../', __FILE__)
+  File.join(project_root, 'templates', 'mail', "#{template_name}.html")
+end
+
+
 RSpec.shared_context "mail_test_context" do
   let(:mail_config) do
     {
@@ -49,6 +60,11 @@ RSpec.shared_context "mail_test_context" do
             subject: 'Bienvenue à OnetimeSecret',
             body: 'Corps du message avec {{ verify_uri }}',
             footer: 'Pied de page'
+          },
+          secretlink: {
+            subject: '%s vous a envoyé un secret',
+            body: 'Corps du message secret',
+            footer: 'Pied de page secret'
           }
         },
         web: {
@@ -141,6 +157,101 @@ RSpec.shared_examples "mail delivery behavior" do
 
         expect(mail_emailer).not_to have_received(:send_email)
         expect(Onetime::EmailReceipt).not_to have_received(:create)
+      end
+    end
+  end
+end
+
+RSpec.shared_examples "mustache template behavior" do |template_name|
+  # Requires let(:subject) to be defined in including context
+  # Requires let(:expected_content) to be defined as hash of expected key/value pairs
+
+  describe "template rendering" do
+    let(:template_path) { resolve_template_path(template_name) }
+    let(:rendered_content) { subject.render }
+
+    it "has accessible template file" do
+      expect(File.exist?(template_path)).to be true,
+        "Expected template file not found at: #{template_path}"
+      expect(File.readable?(template_path)).to be true,
+        "Template file exists but is not readable: #{template_path}"
+    end
+
+    it "uses correct template configuration" do
+      expected_path = File.join(File.dirname(template_path), '') # normalize with trailing slash
+      actual_path = File.join(described_class.template_path, '') # normalize with trailing slash
+
+      expect(actual_path).to eq(expected_path),
+        "Template path mismatch:\nExpected: #{expected_path}\nActual: #{actual_path}"
+      expect(described_class.view_namespace).to eq(Onetime::App::Mail)
+    end
+
+    it "uses configured template path" do
+      # Instead of checking file existence, verify the class is configured for templates
+      expect(described_class.template_path).not_to be_nil
+      expect(described_class.view_namespace).to eq(Onetime::App::Mail)
+    end
+
+    it "can render template" do
+      template_content = File.read(template_path)
+      expect(template_content).to include('{{') # Verify it's actually a mustache template
+
+      expect { rendered_content }.not_to raise_error
+      expect(rendered_content).to be_a(String)
+      expect(rendered_content).not_to be_empty
+    end
+
+    it "produces valid HTML email" do
+      expect(rendered_content).to include('<!DOCTYPE html')
+      expect(rendered_content).to include('</html>')
+      expect(rendered_content).to match(/<body[^>]*>.*<\/body>/m)
+    end
+
+    it "includes critical business content" do
+      if subject.respond_to?(:uri_path)
+        expect(rendered_content).to include(subject.uri_path)
+      end
+
+      if subject.respond_to?(:display_domain)
+        expect(rendered_content).to include(subject.display_domain)
+      end
+    end
+  end
+end
+
+RSpec.shared_examples "localized email template" do |template_key|
+  describe "localization" do
+    # Make dependencies explicit
+    let(:customer) { mail_customer }
+    let(:locale) { 'en' }
+
+    subject { described_class.new(customer, locale, *init_args) }
+
+    context "with default locale" do
+      it "uses correct subject template" do
+        expect(subject.subject).to eq(
+          mail_locales['en'][:email][template_key][:subject]
+        )
+      end
+    end
+
+    context "with alternative locale" do
+      let(:locale) { 'fr' }
+
+      it "uses localized subject" do
+        expect(subject.subject).to eq(
+          mail_locales['fr'][:email][template_key][:subject]
+        )
+      end
+    end
+
+    context "with invalid locale" do
+      let(:locale) { 'xx' }
+
+      it "falls back to English" do
+        expect(subject.subject).to eq(
+          mail_locales['en'][:email][template_key][:subject]
+        )
       end
     end
   end

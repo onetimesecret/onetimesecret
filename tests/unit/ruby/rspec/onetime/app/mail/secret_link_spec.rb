@@ -6,14 +6,40 @@ RSpec.describe Onetime::App::Mail::SecretLink do
   include_context "mail_test_context"
   it_behaves_like "mail delivery behavior"
 
+  it_behaves_like "localized email template", :secretlink
+
   subject(:secret_link) do
-    described_class.new(mail_customer, 'en', mail_secret, 'recipient@example.com').tap do |mail|
-      mail.instance_variable_set(:@emailer, mail_emailer)
-    end
+    with_emailer(described_class.new(mail_customer, 'en', mail_secret, 'recipient@example.com'))
   end
 
+  let(:init_args) { [mail_secret, 'recipient@example.com'] }
   let(:locale) { 'en' }
   let(:recipient) { 'recipient@example.com' }
+  let(:expected_content) do
+    {
+      secret: mail_secret,
+      email_address: 'recipient@example.com',
+      custid: mail_customer.custid,
+      from: mail_config[:emailer][:from],
+      from_name: mail_config[:emailer][:fromname],
+      signature_link: 'https://onetimesecret.com/'
+    }
+  end
+
+  it_behaves_like "mustache template behavior", "secret_link" do
+    let(:expected_content) do
+      {
+        secret: mail_secret,
+        email_address: recipient,
+        custid: mail_customer.custid,
+        from: mail_config[:emailer][:from],
+        from_name: mail_config[:emailer][:fromname],
+        signature_link: 'https://onetimesecret.com/',
+        display_domain: 'https://example.com',
+        uri_path: '/secret/testkey123'
+      }
+    end
+  end
 
   describe 'initialization' do
     it 'configures required attributes' do
@@ -25,23 +51,23 @@ RSpec.describe Onetime::App::Mail::SecretLink do
       expect(secret_link[:signature_link]).to eq('https://onetimesecret.com/')
     end
 
-#    it 'sets emailer from name' do
-#      expect(mail_emailer).to have_received(:fromname=).with('Onetime Secret')
-#    end
-#
-#    context 'with missing customer' do
-#      let(:mail_customer) { nil }
-#      it 'raises error' do
-#        expect { secret_link }.to raise_error(ArgumentError, /customer required/i)
-#      end
-#    end
-#
-#    context 'with missing recipient' do
-#      let(:recipient) { nil }
-#      it 'raises error' do
-#        expect { secret_link }.to raise_error(ArgumentError, /recipient required/i)
-#      end
-#    end
+    it 'sets emailer from name' do
+      expect(mail_emailer).to have_received(:fromname=).with('Onetime Secret')
+    end
+
+    context 'with missing customer' do
+      let(:mail_customer) { nil }
+      it 'raises error' do
+        expect { secret_link }.to raise_error(ArgumentError, /customer required/i)
+      end
+    end
+
+    context 'with missing recipient' do
+      let(:recipient) { nil }
+      it 'raises error' do
+        expect { secret_link }.to raise_error(ArgumentError, /recipient required/i)
+      end
+    end
   end
 
   describe '#subject' do
@@ -58,7 +84,6 @@ RSpec.describe Onetime::App::Mail::SecretLink do
       end
     end
   end
-
 
   describe '#display_domain' do
     context 'with default configuration' do
@@ -117,21 +142,44 @@ RSpec.describe Onetime::App::Mail::SecretLink do
   end
 
   describe '#deliver_email' do
-  it 'sends email with required content' do
-    secret_link.deliver_email
+    it 'sends email with required content' do
+      secret_link.deliver_email
 
-    expect(mail_emailer).to have_received(:send_email).with(
-      recipient,
-      secret_link.subject,
-      satisfy { |content|
-        # Test for critical content presence rather than structure
-        content.include?(secret_link.display_domain) &&
-        content.include?(secret_link.uri_path) &&
-        content.include?(mail_customer.custid) &&
-        content.include?('<!DOCTYPE html') # Verify it's HTML
-      }
-    )
+      expect(mail_emailer).to have_received(:send_email).with(
+        recipient,
+        secret_link.subject,
+        satisfy { |content|
+          # Test for critical content presence rather than structure
+          content.include?(secret_link.display_domain) &&
+          content.include?(secret_link.uri_path) &&
+          content.include?(mail_customer.custid) &&
+          content.include?('<!DOCTYPE html') # Verify it's HTML
+        }
+      )
+    end
   end
 
+  describe '#render and delivery' do
+    let(:rendered_content) { secret_link.render }
+
+    it 'renders email with required content' do
+      expect(rendered_content).to include(secret_link.display_domain)
+      expect(rendered_content).to include(secret_link.uri_path)
+      expect(rendered_content).to include(mail_customer.custid)
+      expect(rendered_content).to include('<!DOCTYPE html')
+    end
+
+    it 'delivers email with rendered content' do
+      secret_link.deliver_email
+
+      expect(mail_emailer).to have_received(:send_email).with(
+        recipient,
+        secret_link.subject,
+        rendered_content
+      )
+    end
   end
+
+
+
 end

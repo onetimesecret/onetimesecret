@@ -12,6 +12,16 @@ RSpec.describe Onetime::App::Mail::Welcome do
     end
   end
 
+  let(:expected_content) do
+    {
+      secret: mail_secret,
+      email_address: mail_customer.email,
+      verify_uri: welcome.verify_uri
+    }
+  end
+
+  it_behaves_like "mustache template behavior", "welcome"
+
   describe '#initialize' do
     it 'sets up email with correct attributes' do
       expect(welcome_email[:secret]).to eq(mail_secret)
