@@ -46,7 +46,7 @@ module Onetime
 
   # d9s: diagnostics is a boolean flag. If true, it will enable Sentry
   module ClassMethods
-    attr_accessor :mode, :env, :d9s_enabled, :i18n_enabled
+    attr_accessor :mode, :env, :d9s_enabled, :i18n_enabled, :enabled_locales
     attr_reader :conf, :locales, :instance, :sysinfo, :emailer, :global_secret, :global_banner
     attr_writer :debug
 
@@ -243,10 +243,10 @@ module Onetime
     def load_locales(enabled_locales = nil)
       i18n = OT.conf.fetch(:internationalization, {})
       @i18n_enabled = i18n.fetch(:enabled, false)
-      enabled_locales ||= i18n.fetch(:locales, nil) || OT.conf.fetch(:locales, nil) || ['en']
-      default_locale_code = enabled_locales.first
+      @enabled_locales ||= i18n.fetch(:locales, nil) || OT.conf.fetch(:locales, nil) || ['en']
+      default_locale_code = @enabled_locales.first
 
-      confs = enabled_locales.collect do |isocode|
+      confs = @enabled_locales.collect do |isocode|
         path = File.join(Onetime::HOME, 'src', 'locales', "#{isocode}.json")
         OT.ld "Loading #{isocode}: #{File.exist?(path)}"
         begin
@@ -295,6 +295,7 @@ end
 # Sets the SIGINT handler for a graceful shutdown and prevents Sentry from
 # trying to send events over the network when we're shutting down via ctrl-c.
 trap("SIGINT") do
+  OT.li "Shutting down gracefully..."
   begin
     Sentry.close(timeout: 2)  # Attempt graceful shutdown with a short timeout
   rescue StandardError => ex

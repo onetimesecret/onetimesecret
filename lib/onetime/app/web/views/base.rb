@@ -22,10 +22,10 @@ module Onetime
 
       def initialize req, sess=nil, cust=nil, locale=nil, *args # rubocop:disable Metrics/MethodLength
         @req, @sess, @cust, @locale = req, sess, cust, locale
-        @locale ||= req.env['ots.locale'] || OT.locales.first.to_s || 'en' unless req.nil?
+        @locale ||= req.env['ots.locale'] || OT.enabled_locales.first.to_s || 'en' unless req.nil?
         @messages ||= []
         site = OT.conf.fetch(:site, {})
-        is_default_locale = OT.locales.first.to_s == locale
+        is_default_locale = OT.enabled_locales.first.to_s == locale
         supported_locales = OT.conf.fetch(:locales, []).map(&:to_s)
 
         @canonical_domain = Onetime::DomainStrategy.canonical_domain
@@ -173,8 +173,8 @@ module Onetime
         self[:jsvars][:is_paid] = jsvar(@is_paid)
         self[:jsvars][:default_planid] = jsvar('basic')
 
-        # So the list of template vars shows up sorted variable name
-        # self[:jsvars] = self[:jsvars].sort
+        # Serialize the jsvars hash to JSON and this is the final window
+        # object that will be passed to the frontend.
         self[:window] = self[:jsvars].to_json
 
         init(*args) if respond_to? :init
@@ -184,7 +184,7 @@ module Onetime
         self.class.pagename ||= self.class.name.split('::').last.downcase.to_sym
         @i18n ||= {
           locale: self.locale,
-          default: OT.locales.first.to_s,
+          default: OT.enabled_locales.first.to_s,
           page: OT.locales[self.locale][:web][self.class.pagename],
           COMMON: OT.locales[self.locale][:web][:COMMON]
         }
