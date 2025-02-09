@@ -44,7 +44,7 @@ module Onetime::Logic
       end
 
       def valid_locale?(locale)
-        supported_locales = OT.conf.fetch(:locales, []).map(&:to_s)
+        supported_locales = OT.enabled_locales.map(&:to_s)
         supported_locales.include?(locale)
       end
 

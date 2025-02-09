@@ -53,7 +53,7 @@ module Onetime::App
 
     def get_supported_locales
       publically do
-        supported_locales = OT.conf.fetch(:locales, []).map(&:to_s)
+        supported_locales = OT.enabled_locales.map(&:to_s)
         default_locale = supported_locales.first
         json locales: supported_locales, default_locale: default_locale, locale: locale
       end
