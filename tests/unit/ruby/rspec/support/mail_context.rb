@@ -178,7 +178,7 @@ RSpec.shared_examples "mail delivery behavior" do
   end
 end
 
-RSpec.shared_examples "mustache template behavior (in practice)" do |template_name|
+RSpec.shared_examples "mustache template behavior" do |template_name, options = {}|
   # Requires let(:subject) to be defined in including context
   # Requires let(:expected_content) to be defined as hash of expected key/value pairs
 
@@ -186,93 +186,61 @@ RSpec.shared_examples "mustache template behavior (in practice)" do |template_na
     let(:template_path) { resolve_template_path(template_name) }
     let(:rendered_content) { subject.render }
 
-    it "has accessible template file" do
-      expect(File).to exist(template_path),
-        "Template file not found at: #{template_path}"
-
-      expect(File.readable?(template_path)).to be(true),
-        "Template file not readable at: #{template_path}"
-    end
-
-    it "uses correct template configuration" do
-      expected_path = File.join(File.dirname(template_path), '') # normalize with trailing slash
-      actual_path = File.join(described_class.template_path, '') # normalize with trailing slash
-
-      expect(actual_path).to eq(expected_path),
-        "Template path mismatch:\nExpected: #{expected_path}\nActual: #{actual_path}"
-      expect(described_class.view_namespace).to eq(Onetime::App::Mail)
-    end
-
-    it "uses configured template path" do
-      # Instead of checking file existence, verify the class is configured for templates
+    it "has correct template configuration" do
       expect(described_class.template_path).not_to be_nil
       expect(described_class.view_namespace).to eq(Onetime::App::Mail)
     end
 
-    it "can render template" do
-      template_content = File.read(template_path)
-      expect(template_content).to include('{{') # Verify it's actually a mustache template
+    # Only run filesystem checks if templates exist
+    if options[:check_filesystem]
+      it "has accessible template file" do
+        expect(File).to exist(template_path),
+          "Template file not found at: #{template_path}"
 
-      expect { rendered_content }.not_to raise_error
-      expect(rendered_content).to be_a(String)
-      expect(rendered_content).not_to be_empty
-    end
-
-    it "produces valid HTML email" do
-      expect(rendered_content).to include('<!DOCTYPE html')
-      expect(rendered_content).to include('</html>')
-      expect(rendered_content).to match(/<body[^>]*>.*<\/body>/m)
-    end
-
-    it "includes critical business content" do
-      if subject.respond_to?(:uri_path)
-        expect(rendered_content).to include(subject.uri_path)
+        expect(File.readable?(template_path)).to be(true),
+          "Template file not readable at: #{template_path}"
       end
 
-      if subject.respond_to?(:display_domain)
-        expect(rendered_content).to include(subject.display_domain)
+      it "uses correct template path" do
+        expected_path = File.join(File.dirname(template_path), '')
+        actual_path = File.join(described_class.template_path, '')
+
+        expect(actual_path).to eq(expected_path),
+          "Template path mismatch:\nExpected: #{expected_path}\nActual: #{actual_path}"
+      end
+
+      it "contains valid mustache syntax" do
+        template_content = File.read(template_path)
+        expect(template_content).to include('{{')
+      end
+    end
+
+    describe "rendering behavior" do
+      it "renders without errors" do
+        expect { rendered_content }.not_to raise_error
+        expect(rendered_content).to be_a(String)
+        expect(rendered_content).not_to be_empty
+      end
+
+      it "produces valid HTML email" do
+        expect(rendered_content).to include('<!DOCTYPE html')
+        expect(rendered_content).to include('</html>')
+        expect(rendered_content).to match(/<body[^>]*>.*<\/body>/m)
+      end
+
+      it "includes critical business content" do
+        if subject.respond_to?(:uri_path)
+          expect(rendered_content).to include(subject.uri_path)
+        end
+
+        if subject.respond_to?(:display_domain)
+          expect(rendered_content).to include(subject.display_domain)
+        end
       end
     end
   end
 end
 
-RSpec.shared_examples "mustache template behavior (in theory)" do |template_name|
-  # Requires let(:subject) to be defined in including context
-  # Requires let(:expected_content) to be defined as hash of expected key/value pairs
-
-  describe "template rendering" do
-    let(:rendered_content) { subject.render }
-
-    it "uses configured template path" do
-      # Instead of checking file existence, verify the class is configured for templates
-      expect(described_class.template_path).not_to be_nil
-      expect(described_class.view_namespace).to eq(Onetime::App::Mail)
-    end
-
-    it "can render template" do
-      # Test that rendering works without throwing errors
-      expect { rendered_content }.not_to raise_error
-      expect(rendered_content).to be_a(String)
-      expect(rendered_content).not_to be_empty
-    end
-
-    it "produces valid HTML email" do
-      expect(rendered_content).to include('<!DOCTYPE html')
-      expect(rendered_content).to include('</html>')
-      expect(rendered_content).to match(/<body[^>]*>.*<\/body>/m)
-    end
-
-    it "includes critical business content" do
-      if subject.respond_to?(:uri_path)
-        expect(rendered_content).to include(subject.uri_path)
-      end
-
-      if subject.respond_to?(:display_domain)
-        expect(rendered_content).to include(subject.display_domain)
-      end
-    end
-  end
-end
 
 RSpec.shared_examples "localized email template" do |template_key|
   describe "localization" do

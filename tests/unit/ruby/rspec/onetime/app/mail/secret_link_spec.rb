@@ -61,7 +61,7 @@ RSpec.describe Onetime::App::Mail::SecretLink do
     end
   end
 
-  it_behaves_like "mustache template behavior (in theory)", "secret_link" do
+  it_behaves_like "mustache template behavior", "secret_link", check_filesystem: true do
     let(:expected_content) do
       {
         secret: mail_secret,
@@ -75,22 +75,6 @@ RSpec.describe Onetime::App::Mail::SecretLink do
       }
     end
   end
-
-  it_behaves_like "mustache template behavior (in practice)", "secret_link" do
-    let(:expected_content) do
-      {
-        secret: mail_secret,
-        email_address: recipient,
-        custid: mail_customer.custid,
-        from: mail_config[:emailer][:from],
-        from_name: mail_config[:emailer][:fromname],
-        signature_link: 'https://onetimesecret.com/',
-        display_domain: 'https://example.com',
-        uri_path: '/secret/testkey123'
-      }
-    end
-  end
-
 
   describe 'initialization' do
     it 'configures required attributes' do

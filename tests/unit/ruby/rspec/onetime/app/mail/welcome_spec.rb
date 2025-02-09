@@ -20,7 +20,7 @@ RSpec.describe Onetime::App::Mail::Welcome do
     }
   end
 
-  it_behaves_like "mustache template behavior", "welcome"
+  it_behaves_like "mustache template behavior", "secret_link"
 
   describe '#initialize' do
     it 'sets up email with correct attributes' do
