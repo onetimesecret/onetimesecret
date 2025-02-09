@@ -46,7 +46,7 @@ module Onetime
 
   # d9s: diagnostics is a boolean flag. If true, it will enable Sentry
   module ClassMethods
-    attr_accessor :mode, :env, :d9s_enabled
+    attr_accessor :mode, :env, :d9s_enabled, :i18n_enabled
     attr_reader :conf, :locales, :instance, :sysinfo, :emailer, :global_secret, :global_banner
     attr_writer :debug
 
@@ -169,6 +169,7 @@ module Onetime
       OT.li "redis: #{redis_info['redis_version']} (#{Familia.uri.serverid})"
       OT.li "familia: v#{Familia::VERSION}"
       OT.li "colonels: #{OT.conf[:colonels].join(', ')}"
+      OT.li "i18n: #{OT.i18n_enabled}"
       OT.li "diagnotics: #{OT.d9s_enabled}"
       if OT.conf[:site].key?(:authentication)
         OT.li "auth: #{OT.conf[:site][:authentication].map { |k,v| "#{k}=#{v}" }.join(', ')}"
@@ -239,10 +240,15 @@ module Onetime
       end
     end
 
-    def load_locales(locales = OT.conf[:locales] || ['en'])
-      confs = locales.collect do |locale|
-        path = File.join(Onetime::HOME, 'src', 'locales', "#{locale}.json")
-        OT.ld "Loading locale #{locale}: #{File.exist?(path)}"
+    def load_locales(enabled_locales = nil)
+      i18n = OT.conf.fetch(:internationalization, {})
+      @i18n_enabled = i18n.fetch(:enabled, false)
+      enabled_locales ||= i18n.fetch(:locales, nil) || OT.conf.fetch(:locales, nil) || ['en']
+      default_locale_code = enabled_locales.first
+
+      confs = enabled_locales.collect do |isocode|
+        path = File.join(Onetime::HOME, 'src', 'locales', "#{isocode}.json")
+        OT.ld "Loading #{isocode}: #{File.exist?(path)}"
         begin
           contents = File.read(path)
         rescue Errno::ENOENT => e
@@ -250,13 +256,13 @@ module Onetime
           next
         end
         conf = JSON.parse(contents, symbolize_names: true)
-        [locale, conf]
+        [isocode, conf]
       end
 
       # Convert the zipped array to a hash
       locales = confs.compact.to_h
       # Make sure the default locale is first
-      default_locale = locales[OT.conf[:locales].first]
+      default_locale = locales[default_locale_code]
       # Here we overlay each locale on top of the default just
       # in case there are keys that haven't been translated.
       # That way, at least the default language will display.

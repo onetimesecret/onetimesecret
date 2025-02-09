@@ -195,42 +195,45 @@
       :tracking_event: :error
       :stdout: true
       # log_absolute_path: '/home/app/log/truemail.log'
-:locales:
+:internationalization:
+  :enabled: true
+  :default_locale: en
+  :fallback_locale: en
   # A list of ISO language codes (e.g., 'en' for English, 'es'
-  # for Spanish, etc.). There is a corresponding file in etc/locales
+  # for Spanish, etc.). There is a corresponding file in src/locales
   # with the same name containing the translated text. If it's not
   # selected automatically, users are able to select their preferred
-  # language by using the links on the translations page.
-  #
-  # NOTE: The default locale is the first item.
-  - en
-  - ar
-  - bg
-  - ca_ES
-  - cs
-  - da_DK
-  - de
-  - de_AT
-  - el_GR
-  - en
-  - es
-  - fr_CA
-  - fr_FR
-  - he
-  - hu
-  - it_IT
-  - ja
-  - nl
-  - pl
-  - pt_BR
-  - pt_PT
-  - ru
-  - sl_SI
-  - sv_SE
-  - tr
-  - uk
-  - vi
-  - zh
+  # language by using the toggle in the footer or in the settings
+  # modal if they're logged in.
+  :locales:
+    - de_AT
+    - en
+    - fr_CA
+    - fr_FR
+  :incomplete:
+    - ar
+    - bg
+    - ca_ES
+    - cs
+    - da_DK
+    - de
+    - el_GR
+    - es
+    - he
+    - hu
+    - it_IT
+    - ja
+    - nl
+    - pl
+    - pt_BR
+    - pt_PT
+    - ru
+    - sl_SI
+    - sv_SE
+    - tr
+    - uk
+    - vi
+    - zh
 :diagnostics:
   # If this is false, the rest of the settings are ignored
   :enabled: <%= ENV['DIAGNOSTICS_ENABLED'] == 'true' || false %>
