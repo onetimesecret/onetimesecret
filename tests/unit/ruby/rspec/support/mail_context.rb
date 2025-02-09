@@ -4,9 +4,10 @@ def with_emailer(mail)
   mail.tap { |m| m.instance_variable_set(:@emailer, mail_emailer) }
 end
 
+
 def resolve_template_path(template_name)
   # Start from project root (where the tests directory is)
-  project_root = File.expand_path('../../../../../', __FILE__)
+  project_root = Onetime::HOME
   File.join(project_root, 'templates', 'mail', "#{template_name}.html")
 end
 
@@ -98,9 +99,12 @@ RSpec.shared_context "mail_test_context" do
   end
 
   let(:mail_emailer) do
-    instance_double('SMTPMailer',
-      send_email: { status: 'sent', message_id: 'test123' }
-    )
+    instance_double('SMTPMailer').tap do |emailer|
+      allow(emailer).to receive(:send_email)
+        .and_return({ status: 'sent', message_id: 'test123' })
+      # Expect this to be called during initialization
+      allow(emailer).to receive(:fromname=).with('Onetime Secret')
+    end
   end
 
   before do
@@ -110,6 +114,18 @@ RSpec.shared_context "mail_test_context" do
     allow(OT).to receive(:ld)
     allow(OT).to receive(:le)
     allow(Onetime::EmailReceipt).to receive(:create)
+
+    # Mock the emailer creation instead of trying to replace it after
+    mailer = mail_emailer
+    allow(OT::App::Mail::SMTPMailer).to receive(:new)
+      .with(mail_config[:emailer][:from])
+      .and_return(mailer)
+
+    allow(OT::App::Mail::SendGridMailer).to receive(:new)
+      .with(mail_config[:emailer][:from], mail_config[:emailer][:fromname])
+      .and_return(mailer)
+
+    allow_any_instance_of(Onetime::App::Mail::Base).to receive(:emailer).and_return(mailer)
   end
 end
 
@@ -162,7 +178,7 @@ RSpec.shared_examples "mail delivery behavior" do
   end
 end
 
-RSpec.shared_examples "mustache template behavior" do |template_name|
+RSpec.shared_examples "mustache template behavior (in practice)" do |template_name|
   # Requires let(:subject) to be defined in including context
   # Requires let(:expected_content) to be defined as hash of expected key/value pairs
 
@@ -171,10 +187,11 @@ RSpec.shared_examples "mustache template behavior" do |template_name|
     let(:rendered_content) { subject.render }
 
     it "has accessible template file" do
-      expect(File.exist?(template_path)).to be true,
-        "Expected template file not found at: #{template_path}"
-      expect(File.readable?(template_path)).to be true,
-        "Template file exists but is not readable: #{template_path}"
+      expect(File).to exist(template_path),
+        "Template file not found at: #{template_path}"
+
+      expect(File.readable?(template_path)).to be(true),
+        "Template file not readable at: #{template_path}"
     end
 
     it "uses correct template configuration" do
@@ -219,18 +236,58 @@ RSpec.shared_examples "mustache template behavior" do |template_name|
   end
 end
 
+RSpec.shared_examples "mustache template behavior (in theory)" do |template_name|
+  # Requires let(:subject) to be defined in including context
+  # Requires let(:expected_content) to be defined as hash of expected key/value pairs
+
+  describe "template rendering" do
+    let(:rendered_content) { subject.render }
+
+    it "uses configured template path" do
+      # Instead of checking file existence, verify the class is configured for templates
+      expect(described_class.template_path).not_to be_nil
+      expect(described_class.view_namespace).to eq(Onetime::App::Mail)
+    end
+
+    it "can render template" do
+      # Test that rendering works without throwing errors
+      expect { rendered_content }.not_to raise_error
+      expect(rendered_content).to be_a(String)
+      expect(rendered_content).not_to be_empty
+    end
+
+    it "produces valid HTML email" do
+      expect(rendered_content).to include('<!DOCTYPE html')
+      expect(rendered_content).to include('</html>')
+      expect(rendered_content).to match(/<body[^>]*>.*<\/body>/m)
+    end
+
+    it "includes critical business content" do
+      if subject.respond_to?(:uri_path)
+        expect(rendered_content).to include(subject.uri_path)
+      end
+
+      if subject.respond_to?(:display_domain)
+        expect(rendered_content).to include(subject.display_domain)
+      end
+    end
+  end
+end
+
 RSpec.shared_examples "localized email template" do |template_key|
   describe "localization" do
-    # Make dependencies explicit
+    # Let's make dependencies explicit
     let(:customer) { mail_customer }
     let(:locale) { 'en' }
+    let(:init_args) { [mail_secret, 'recipient@example.com'] }
 
     subject { described_class.new(customer, locale, *init_args) }
 
     context "with default locale" do
-      it "uses correct subject template" do
+      it "uses correct subject template and interpolation" do
+        subject_template = mail_locales['en'][:email][template_key][:subject]
         expect(subject.subject).to eq(
-          mail_locales['en'][:email][template_key][:subject]
+          subject_template % [customer.custid]
         )
       end
     end
@@ -238,9 +295,10 @@ RSpec.shared_examples "localized email template" do |template_key|
     context "with alternative locale" do
       let(:locale) { 'fr' }
 
-      it "uses localized subject" do
+      it "uses localized subject with interpolation" do
+        subject_template = mail_locales['fr'][:email][template_key][:subject]
         expect(subject.subject).to eq(
-          mail_locales['fr'][:email][template_key][:subject]
+          subject_template % [customer.custid]
         )
       end
     end
@@ -248,9 +306,10 @@ RSpec.shared_examples "localized email template" do |template_key|
     context "with invalid locale" do
       let(:locale) { 'xx' }
 
-      it "falls back to English" do
+      it "falls back to English with interpolation" do
+        subject_template = mail_locales['en'][:email][template_key][:subject]
         expect(subject.subject).to eq(
-          mail_locales['en'][:email][template_key][:subject]
+          subject_template % [customer.custid]
         )
       end
     end

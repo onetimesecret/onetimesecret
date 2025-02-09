@@ -6,11 +6,17 @@ RSpec.describe Onetime::App::Mail::SecretLink do
   include_context "mail_test_context"
   it_behaves_like "mail delivery behavior"
 
-  it_behaves_like "localized email template", :secretlink
 
   subject(:secret_link) do
-    with_emailer(described_class.new(mail_customer, 'en', mail_secret, 'recipient@example.com'))
+    # Use helper that properly handles emailer injection
+    with_emailer(
+      described_class.new(mail_customer, 'en', mail_secret, recipient)
+    )
   end
+
+  it_behaves_like "localized email template", :secretlink
+
+
 
   let(:init_args) { [mail_secret, 'recipient@example.com'] }
   let(:locale) { 'en' }
@@ -26,7 +32,36 @@ RSpec.describe Onetime::App::Mail::SecretLink do
     }
   end
 
-  it_behaves_like "mustache template behavior", "secret_link" do
+  describe 'initialization order' do
+    it 'sets up emailer before calling init' do
+      initialization_order = []
+
+      # Track order of operations
+      allow(mail_emailer).to receive(:fromname=) do |name|
+        initialization_order << [:set_fromname, name]
+      end
+
+      secret_link
+
+      expect(initialization_order).to eq([
+        [:set_fromname, 'Onetime Secret']
+      ])
+    end
+  end
+
+  describe 'email sender name' do
+    it 'sends emails with correct from name' do
+      secret_link.deliver_email
+
+      expect(mail_emailer).to have_received(:send_email).with(
+        recipient,
+        anything,
+        include('Onetime Secret') # Verify name appears in content
+      )
+    end
+  end
+
+  it_behaves_like "mustache template behavior (in theory)", "secret_link" do
     let(:expected_content) do
       {
         secret: mail_secret,
@@ -41,6 +76,22 @@ RSpec.describe Onetime::App::Mail::SecretLink do
     end
   end
 
+  it_behaves_like "mustache template behavior (in practice)", "secret_link" do
+    let(:expected_content) do
+      {
+        secret: mail_secret,
+        email_address: recipient,
+        custid: mail_customer.custid,
+        from: mail_config[:emailer][:from],
+        from_name: mail_config[:emailer][:fromname],
+        signature_link: 'https://onetimesecret.com/',
+        display_domain: 'https://example.com',
+        uri_path: '/secret/testkey123'
+      }
+    end
+  end
+
+
   describe 'initialization' do
     it 'configures required attributes' do
       expect(secret_link[:secret]).to eq(mail_secret)
@@ -51,7 +102,8 @@ RSpec.describe Onetime::App::Mail::SecretLink do
       expect(secret_link[:signature_link]).to eq('https://onetimesecret.com/')
     end
 
-    it 'sets emailer from name' do
+    it 'sets emailer from name after initialization' do
+      secret_link # Force initialization
       expect(mail_emailer).to have_received(:fromname=).with('Onetime Secret')
     end
 
