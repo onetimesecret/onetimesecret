@@ -22,10 +22,10 @@ module Onetime
 
       def initialize req, sess=nil, cust=nil, locale=nil, *args # rubocop:disable Metrics/MethodLength
         @req, @sess, @cust, @locale = req, sess, cust, locale
-        @locale ||= req.env['ots.locale'] || OT.conf[:locales].first.to_s || 'en' unless req.nil?
+        @locale ||= req.env['ots.locale'] || OT.locales.first.to_s || 'en' unless req.nil?
         @messages ||= []
         site = OT.conf.fetch(:site, {})
-        is_default_locale = OT.conf[:locales].first.to_s == locale
+        is_default_locale = OT.locales.first.to_s == locale
         supported_locales = OT.conf.fetch(:locales, []).map(&:to_s)
 
         @canonical_domain = Onetime::DomainStrategy.canonical_domain
@@ -184,7 +184,7 @@ module Onetime
         self.class.pagename ||= self.class.name.split('::').last.downcase.to_sym
         @i18n ||= {
           locale: self.locale,
-          default: OT.conf[:locales].first.to_s,
+          default: OT.locales.first.to_s,
           page: OT.locales[self.locale][:web][self.class.pagename],
           COMMON: OT.locales[self.locale][:web][:COMMON]
         }

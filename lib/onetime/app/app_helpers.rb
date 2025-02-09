@@ -180,7 +180,7 @@ module Onetime::App
       if locale && OT.locales.has_key?(locale)
         req.env['ots.locale'] = locale
       else
-        req.env['ots.locale'] = OT.conf[:locales].first
+        req.env['ots.locale'] = OT.locales.first
       end
     end
 

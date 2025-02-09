@@ -134,7 +134,7 @@ module Onetime::App
         locales << cust.locale if cust&.locale?
 
         # Ensure at least one configured locale is available
-        locales << OT.conf[:locales].first
+        locales << OT.locales.first
 
         # Filter and clean up locales
         locales = locales.uniq.reject { |l| !OT.locales.key?(l) }.compact
