@@ -85,9 +85,8 @@
               <th
                 scope="col"
                 class="px-6 py-3 text-left text-xs font-medium tracking-wider text-gray-500 dark:text-gray-400">
-                <span class="uppercase">{{ $t('domain') }} {{ $t('and-status') }}</span>
+                <span class="uppercase">{{ $t('domain') }} &amp; {{ $t('status') }}</span>
               </th>
-
               <th
                 scope="col"
                 class="px-6 py-3 text-center text-xs font-medium tracking-wider text-gray-500 dark:text-gray-400">
@@ -100,11 +99,7 @@
                       class="size-4 text-gray-400 transition-colors duration-200 hover:text-gray-500 dark:text-gray-400 dark:hover:text-gray-300" />
                     <div
                       class="invisible absolute z-10 -ml-24 mt-2 w-48 rounded-md bg-white p-2 text-xs text-gray-900 shadow-lg ring-1 ring-black/5 transition-opacity duration-200 group-hover:visible dark:bg-gray-800 dark:text-gray-100 dark:shadow-gray-900/50 dark:ring-white/10">
-                      {{
-                        $t(
-                          'control-whether-users-can-create-secret-links'
-                        )
-                      }}
+                      {{ $t('control-whether-users-can-create-secret-links') }}
                     </div>
                   </div>
                 </div>
@@ -123,6 +118,7 @@
               v-for="domain in domains"
               :key="domain.identifier"
               class="transition-colors duration-150 hover:bg-gray-50 dark:hover:bg-gray-800">
+
               <!-- Domain & Status -->
               <td class="px-6 py-4">
                 <DomainsTableDomainCell :domain="domain" />

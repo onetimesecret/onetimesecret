@@ -36,22 +36,24 @@ const { statusIcon, statusColor, isActive, isWarning, isError } = useDomainStatu
 
 <template>
   <div>
-    <RouterLink v-if="mode === 'icon'"
-                :to="`/domains/${domain?.display_domain}/verify`"
-                class="tooltip inline-flex"
-                :data-tooltip="$t('web.domains.view-domain-verification-status')">
-      <OIcon collection="mdi"
-             :name="statusIcon"
-             class="opacity-75"
-             :class="[
-          'size-5 transition-opacity hover:opacity-80',
-          {
-            'text-emerald-600 dark:text-emerald-400': isActive,
-            'text-amber-500 dark:text-amber-400': isWarning,
-            'text-rose-600 dark:text-rose-500': isError,
-          }
-        ]" />
-    </RouterLink>
+  <RouterLink
+        v-if="mode === 'icon'"
+        :to="`/domains/${domain?.display_domain}/verify`"
+        class="tooltip inline-flex items-center"
+        :data-tooltip="$t('web.domains.view-domain-verification-status')">
+        <OIcon
+          collection="mdi"
+          :name="statusIcon"
+          class="opacity-75"
+          :class="[
+            'size-4 transition-opacity hover:opacity-80', // Reduced from size-5 to size-4
+            {
+              'text-emerald-600 dark:text-emerald-400': isActive,
+              'text-amber-500 dark:text-amber-400': isWarning,
+              'text-rose-600 dark:text-rose-500': isError,
+            }
+          ]" />
+      </RouterLink>
     <div v-else
          class="my-8 rounded-lg bg-white p-6 shadow-md dark:bg-gray-800">
       <h2 class="mb-4 text-2xl font-bold text-gray-900 dark:text-white">
