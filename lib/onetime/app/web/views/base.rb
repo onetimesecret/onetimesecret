@@ -28,8 +28,8 @@ module Onetime
         is_default_locale = OT.default_locale == @locale
 
         @canonical_domain = Onetime::DomainStrategy.canonical_domain
-        @domain_strategy = req.env['onetime.domain_strategy'] # never nil
-        @display_domain = req.env['onetime.display_domain'] # can be nil
+        @domain_strategy = req.env.fetch('onetime.domain_strategy', :default) # never null
+        @display_domain = req.env.fetch('onetime.display_domain', nil) # can be nil
         if @domain_strategy == :custom
           @custom_domain = OT::CustomDomain.from_display_domain(@display_domain)
           @domain_id = custom_domain&.domainid
@@ -37,9 +37,6 @@ module Onetime
           @domain_logo = (custom_domain&.logo&.hgetall || {}).to_h # ditto
         end
 
-        # TODO: Make better use of fetch/dig to avoid nil checks. Esp important
-        # across release versions where the config may change and existing
-        # installs may not have had a chance to update theirs yet.
         secret_options = site.fetch(:secret_options, {})
         domains = site.fetch(:domains, {})
         regions = site.fetch(:regions, {})
@@ -139,6 +136,8 @@ module Onetime
         self[:jsvars][:plans_enabled] = jsvar(site.dig(:plans, :enabled) || false)
         self[:jsvars][:locale] = jsvar(@locale)
         self[:jsvars][:is_default_locale] = jsvar(is_default_locale)
+        self[:jsvars][:default_locale] = jsvar(OT.default_locale)
+        self[:jsvars][:fallback_locale] = jsvar(OT.fallback_locale)
         self[:jsvars][:supported_locales] = jsvar(OT.supported_locales)
 
         self[:jsvars][:incoming_recipient] = jsvar(incoming_recipient)
