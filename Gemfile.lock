@@ -1,6 +1,6 @@
 GIT
   remote: https://github.com/rspec/rspec
-  revision: 5946b3c9aa61279bf52363bfde4d850810daaa3a
+  revision: a80119c703d38f993c414490abe8c992154cf5d1
   specs:
     rspec (3.14.0.pre)
       rspec-core (= 3.14.0.pre)
