@@ -27,10 +27,10 @@ const locale = supportedLocales[0] || 'en'; // assume the first is the default
  * - Loads initial English messages
  */
 const i18n = createI18n<false>({
-  legacy: false,
-  globalInjection: true, // allows $t to be used globally
-  missingWarn: true, // these are removed for prod
-  fallbackWarn: true, // ditto
+  legacy: false, // Enable composition API.
+  globalInjection: true, // allows $t to be used globally.
+  missingWarn: true, // these enable browser console logging
+  fallbackWarn: true, // and are removed from prod builds.
   locale: locale,
   fallbackLocale: {
     'fr-CA': ['fr_CA', 'fr_FR', 'en'],

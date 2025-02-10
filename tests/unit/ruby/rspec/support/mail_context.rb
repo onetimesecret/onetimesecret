@@ -241,7 +241,6 @@ RSpec.shared_examples "mustache template behavior" do |template_name, options = 
   end
 end
 
-
 RSpec.shared_examples "localized email template" do |template_key|
   describe "localization" do
     # Let's make dependencies explicit
