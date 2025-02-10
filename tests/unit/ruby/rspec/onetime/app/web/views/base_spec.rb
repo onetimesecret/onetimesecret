@@ -117,9 +117,7 @@ RSpec.describe Onetime::App::View do
   context 'security headers' do
     let(:rack_request) do
       super().tap do |req|
-        allow(req.env).to receive(:fetch)
-          .with('ots.nonce', nil)
-          .and_return('test-nonce-123')
+        req.env['ots.nonce'] = 'test-nonce-123'
       end
     end
 
@@ -228,6 +226,97 @@ RSpec.describe Onetime::App::View do
           expect(vars[key]).to be_nil,
             "Expected #{key} to be nil for anonymous user"
         end
+      end
+    end
+  end
+
+  context 'locale configuration' do
+    let(:default_config) do
+      {
+        internationalization: {
+          enabled: true,
+          default_locale: 'en',
+          fallback_locale: {
+            'fr-CA': ['fr_CA', 'fr_FR', 'en'],
+            'fr': ['fr_FR', 'fr_CA', 'en'],
+            'fr-*': ['fr_FR', 'en'],
+            default: ['en']
+          },
+          locales: ['en', 'fr_CA', 'fr_FR']
+        }
+      }
+    end
+
+    # Test various locale scenarios
+    shared_examples "locale initialization" do |locale, expected|
+      let(:rack_request) do
+        env = {
+          'REMOTE_ADDR' => '127.0.0.1',
+          'HTTP_HOST' => 'example.com',
+          'rack.session' => {},
+          'HTTP_ACCEPT' => 'application/json',
+          'onetime.domain_strategy' => :default,
+          'ots.locale' => locale
+        }
+        instance_double('Rack::Request', env: env)
+      end
+
+      let(:config) { super().merge(default_config) }
+
+      before do
+        allow(OT).to receive(:default_locale).and_return('en')
+        allow(OT).to receive(:fallback_locale).and_return('en')
+        allow(OT).to receive(:supported_locales).and_return(['en', 'fr_CA', 'fr_FR'])
+      end
+
+      it 'sets correct locale variables' do
+        vars = subject[:jsvars]
+        expect(vars[:locale]).to eq(expected[:locale])
+        expect(vars[:is_default_locale]).to eq(expected[:is_default])
+        expect(vars[:default_locale]).to eq('en')
+        expect(vars[:fallback_locale]).to eq('en')
+        expect(vars[:supported_locales]).to eq(['en', 'fr_CA', 'fr_FR'])
+      end
+    end
+
+    context 'with default locale' do
+      include_examples "locale initialization", 'en', {
+        locale: 'en',
+        is_default: true
+      }
+    end
+
+    context 'with Canadian French locale' do
+      include_examples "locale initialization", 'fr_CA', {
+        locale: 'fr_CA',
+        is_default: false
+      }
+    end
+
+    context 'with French locale' do
+      include_examples "locale initialization", 'fr_FR', {
+        locale: 'fr_FR',
+        is_default: false
+      }
+    end
+
+    context 'with unsupported locale' do
+      include_examples "locale initialization", 'es', {
+        locale: 'es',
+        is_default: false
+      }
+    end
+
+    context 'with nil locale' do
+      let(:rack_request) do
+        env = {'ots.locale' => nil}
+        instance_double('Rack::Request', env: env)
+      end
+
+      it 'falls back to default locale' do
+        vars = subject[:jsvars]
+        expect(vars[:locale]).to eq('en')
+        expect(vars[:is_default_locale]).to be true
       end
     end
   end

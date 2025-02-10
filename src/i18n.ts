@@ -17,7 +17,9 @@ type GlobalComposer = Composer<{}, {}, {}, Locale>;
  * The list of supported locales comes directly from etc/config.yaml.
  */
 const supportedLocales = WindowService.get('supported_locales') || [];
-const locale = supportedLocales[0] || 'en'; // assume the first is the default
+const fallbackLocale = WindowService.get('fallback_locale') || {};
+const defaultLocale = WindowService.get('default_locale') || 'en';
+const locale = defaultLocale;
 
 /**
  * Core i18n instance configuration:
@@ -32,12 +34,7 @@ const i18n = createI18n<false>({
   missingWarn: true, // these enable browser console logging
   fallbackWarn: true, // and are removed from prod builds.
   locale: locale,
-  fallbackLocale: {
-    'fr-CA': ['fr_CA', 'fr_FR', 'en'],
-    fr: ['fr_FR', 'fr_CA', 'en'],
-    'fr-*': ['fr_FR', 'en'],
-    default: ['en'],
-  },
+  fallbackLocale: fallbackLocale,
   messages: {
     en,
   },
