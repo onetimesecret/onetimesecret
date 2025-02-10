@@ -25,8 +25,7 @@ module Onetime
         @locale ||= req.env['ots.locale'] || OT.default_locale || 'en' unless req.nil?
         @messages ||= []
         site = OT.conf.fetch(:site, {})
-        is_default_locale = OT.default_locale == locale
-
+        is_default_locale = OT.default_locale == @locale
 
         @canonical_domain = Onetime::DomainStrategy.canonical_domain
         @domain_strategy = req.env['onetime.domain_strategy'] # never nil
