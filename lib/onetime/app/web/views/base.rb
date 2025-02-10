@@ -22,10 +22,10 @@ module Onetime
 
       def initialize req, sess=nil, cust=nil, locale=nil, *args # rubocop:disable Metrics/MethodLength
         @req, @sess, @cust, @locale = req, sess, cust, locale
-        @locale ||= req.env['ots.locale'] || OT.enabled_locales.first.to_s || 'en' unless req.nil?
+        @locale ||= req.env['ots.locale'] || OT.supported_locales.first.to_s || 'en' unless req.nil?
         @messages ||= []
         site = OT.conf.fetch(:site, {})
-        is_default_locale = OT.enabled_locales.first.to_s == locale
+        is_default_locale = OT.supported_locales.first.to_s == locale
         supported_locales = OT.conf.fetch(:locales, []).map(&:to_s)
 
         @canonical_domain = Onetime::DomainStrategy.canonical_domain
@@ -181,12 +181,26 @@ module Onetime
       end
 
       def i18n
-        self.class.pagename ||= self.class.name.split('::').last.downcase.to_sym
+        pagename = self.class.pagename
+        messages = OT.locales.fetch(self.locale, {})
+
+        # If we don't have translations for the requested locale, fall back.
+        if messages.empty?
+          translated_locales = OT.locales.keys
+          OT.le "%{name} %{loc} not found in %{avail} (%{supp})" % {
+            name: "[#{pagename}.i18n]",
+            loc: self.locale,
+            avail: translated_locales,
+            supp: OT.supported_locales
+          }
+          messages = OT.locales.fetch(OT.default_locale, {})
+        end
+
         @i18n ||= {
           locale: self.locale,
-          default: OT.enabled_locales.first.to_s,
-          page: OT.locales[self.locale][:web][self.class.pagename],
-          COMMON: OT.locales[self.locale][:web][:COMMON]
+          default: OT.default_locale,
+          page: messages[:web].fetch(pagename, {}),
+          COMMON: messages[:web][:COMMON],
         }
       end
 
@@ -209,7 +223,9 @@ module Onetime
         # pagename must stay here while we use i18n method above. It populates
         # the i18n[:web][:pagename] hash with the locale translations, provided
         # the view being used has a matching name in the locales file.
-        attr_accessor :pagename
+        def pagename
+          @pagename ||= self.name.split('::').last.downcase.to_sym
+        end
       end
 
     end

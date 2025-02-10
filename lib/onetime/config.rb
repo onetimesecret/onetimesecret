@@ -200,12 +200,33 @@ module Onetime
         end
 
         OT.li "[sentry-init] Status: #{Sentry.initialized? ? 'OK' : 'Failed'}"
-
       end
 
+      i18n = OT.conf.fetch(:internationalization, {})
+      OT.i18n_enabled = i18n[:enabled] || false
+
+      if OT.i18n_enabled
+        OT.ld "Setting up i18n..."
+
+        # Load the locales from the config in both the current and
+        # legacy locations. If the locales are not set in the config,
+        # we fallback to english.
+        locales = i18n.fetch(:locales, nil) || OT.conf.fetch(:locales, ['en'])
+
+        OT.supported_locales = locales
+        OT.default_locale = i18n.fetch(:default_locale, 'en')
+        OT.fallback_locale = i18n.fetch(:fallback_locale, nil)
+
+        unless locales.include?(OT.default_locale)
+          OT.le "Default locale #{OT.default_locale} not in locales #{locales}"
+          OT.i18n_enabled = false
+        end
+      end
+
+      # Make sure these are set
       development = conf[:development]
       development[:enabled] ||= false
-      development[:frontend_host] ||= ''  # make sure this is set
+      development[:frontend_host] ||= ''
 
     end
 

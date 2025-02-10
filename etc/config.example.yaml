@@ -198,7 +198,10 @@
 :internationalization:
   :enabled: true
   :default_locale: en
-  :fallback_locale: en
+  :fallback_locale:
+    fr-CA: [fr_CA, fr_FR, en]
+    fr: [fr_FR, fr_CA, en]
+    default: [en]
   # A list of ISO language codes (e.g., 'en' for English, 'es'
   # for Spanish, etc.). There is a corresponding file in src/locales
   # with the same name containing the translated text. If it's not
