@@ -3,8 +3,11 @@ module Onetime
     extend self
     attr_writer :path
 
-    SERVICE_PATHS = %w[/etc/onetime ./etc].freeze
-    UTILITY_PATHS = %w[~/.onetime /etc/onetime ./etc].freeze
+    unless defined?(SERVICE_PATHS)
+      SERVICE_PATHS = %w[/etc/onetime ./etc].freeze
+      UTILITY_PATHS = %w[~/.onetime /etc/onetime ./etc].freeze
+    end
+
     attr_reader :env, :base, :bootstrap
 
     # Load a YAML configuration file, allowing for ERB templating within the file.
@@ -211,10 +214,12 @@ module Onetime
         # Load the locales from the config in both the current and
         # legacy locations. If the locales are not set in the config,
         # we fallback to english.
-        locales = i18n.fetch(:locales, nil) || OT.conf.fetch(:locales, ['en'])
+        locales = i18n.fetch(:locales, nil) || OT.conf.fetch(:locales, ['en']).map(&:to_s)
 
+         # First look for the default locale in the i18n config, then
+         # legacy the locales config approach of using the first one.
         OT.supported_locales = locales
-        OT.default_locale = i18n.fetch(:default_locale, 'en')
+        OT.default_locale = i18n.fetch(:default_locale, locales.first) || 'en'
         OT.fallback_locale = i18n.fetch(:fallback_locale, nil)
 
         unless locales.include?(OT.default_locale)
@@ -227,7 +232,6 @@ module Onetime
       development = conf[:development]
       development[:enabled] ||= false
       development[:frontend_host] ||= ''
-
     end
 
     def exists?

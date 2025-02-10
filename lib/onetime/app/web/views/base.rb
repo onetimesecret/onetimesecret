@@ -22,11 +22,11 @@ module Onetime
 
       def initialize req, sess=nil, cust=nil, locale=nil, *args # rubocop:disable Metrics/MethodLength
         @req, @sess, @cust, @locale = req, sess, cust, locale
-        @locale ||= req.env['ots.locale'] || OT.supported_locales.first.to_s || 'en' unless req.nil?
+        @locale ||= req.env['ots.locale'] || OT.default_locale || 'en' unless req.nil?
         @messages ||= []
         site = OT.conf.fetch(:site, {})
-        is_default_locale = OT.supported_locales.first.to_s == locale
-        supported_locales = OT.conf.fetch(:locales, []).map(&:to_s)
+        is_default_locale = OT.default_locale == locale
+
 
         @canonical_domain = Onetime::DomainStrategy.canonical_domain
         @domain_strategy = req.env['onetime.domain_strategy'] # never nil
@@ -140,7 +140,7 @@ module Onetime
         self[:jsvars][:plans_enabled] = jsvar(site.dig(:plans, :enabled) || false)
         self[:jsvars][:locale] = jsvar(@locale)
         self[:jsvars][:is_default_locale] = jsvar(is_default_locale)
-        self[:jsvars][:supported_locales] = jsvar(supported_locales)
+        self[:jsvars][:supported_locales] = jsvar(OT.supported_locales)
 
         self[:jsvars][:incoming_recipient] = jsvar(incoming_recipient)
         self[:jsvars][:support_host] = jsvar(support_host)
