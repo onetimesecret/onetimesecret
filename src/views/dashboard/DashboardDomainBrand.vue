@@ -91,7 +91,7 @@ onBeforeRouteLeave((to, from, next) => {
         <div class="relative mb-6 sm:mb-12">
           <h2 id="previewHeading"
               class="mb-6 text-xl font-semibold text-gray-900 dark:text-gray-100">
-            {{ $t('preview-0') }} {{ $t('and-customize') }}
+            {{ $t('preview-and-customize') }}
           </h2>
 
           <!-- Instructions for screen readers -->
