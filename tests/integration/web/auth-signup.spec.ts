@@ -82,7 +82,7 @@ test.describe('Sign up and verify account', () => {
         await page.getByPlaceholder('e.g. tom@myspace.com').press('Tab');
         await page.getByPlaceholder('Enter your password').fill(passwordVal);
 
-await page.getByLabel('Rembember me').check();
+await page.getByLabel('Remember me').check();
 await page.getByRole('button', { name: 'Sign In' }).click();
 await expect(page.getByRole('list')).toContainText('Recent Secrets');
 //
