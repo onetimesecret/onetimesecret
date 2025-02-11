@@ -18,6 +18,7 @@
   import { useI18n } from 'vue-i18n';
   const { t } = useI18n();
   import { computed } from 'vue';
+  import LanguageSelector from '../common/LanguageSelector.vue';
 
   const props = defineProps<{
     modelValue: BrandSettings;
@@ -88,11 +89,20 @@
                 :icon-map="fontIconMap" />
             </div>
 
+            <div class="flex-shrink-0">
+              <LanguageSelector
+                  :model-value="modelValue.locale"
+                  :label="t('language')"
+                  @update:model-value="(value) => updateBrandSetting('locale', value)"
+                />
+            </div>
+
             <!-- Instructions -->
             <div class="flex-shrink-0">
               <slot name="instructions-button"></slot>
             </div>
           </div>
+
 
           <!-- Save Button -->
           <div class="ml-auto flex-shrink-0">

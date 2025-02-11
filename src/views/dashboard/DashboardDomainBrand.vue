@@ -24,6 +24,7 @@ const {
   brandSettings,
   logoImage,
   primaryColor,
+  brandI18n,
   hasUnsavedChanges,
   isInitialized,
   initialize,
@@ -91,13 +92,13 @@ onBeforeRouteLeave((to, from, next) => {
         <div class="relative mb-6 sm:mb-12">
           <h2 id="previewHeading"
               class="mb-6 text-xl font-semibold text-gray-900 dark:text-gray-100">
-            {{ $t('preview-and-customize') }}
+            {{ t('preview-and-customize') }}
           </h2>
 
           <!-- Instructions for screen readers -->
           <div class="sr-only"
               role="note">
-            {{ $t('this-is-an-interactive-preview-of-how-recipients') }}
+            {{ t('this-is-an-interactive-preview-of-how-recipients') }}
           </div>
 
           <!-- Visual instructions -->
@@ -107,24 +108,24 @@ onBeforeRouteLeave((to, from, next) => {
               <OIcon collection="mdi"
               name="palette-outline"
                     class="size-5"
-                    aria-label="$t('customization-icon')" />
-              {{ $t('use-the-controls-above-to-customize-brand-details') }}
+                    aria-label="t('customization-icon')" />
+              {{ t('use-the-controls-above-to-customize-brand-details') }}
             </li>
 
             <li class="flex items-center gap-2">
               <OIcon collection="mdi"
               name="image-outline"
                     class="size-5"
-                    aria-label="$t('image-icon')" />
-              {{ $t('click-the-preview-image-below-to-update-your-logo') }}
+                    aria-label="t('image-icon')" />
+              {{ t('click-the-preview-image-below-to-update-your-logo') }}
             </li>
 
             <li class="flex items-center gap-2">
               <OIcon collection="mdi"
               name="eye-outline"
                     class="size-5"
-                    aria-label="$t('eye-icon')" />
-              {{ $t('preview-how-recipients-will-see-your-secrets') }}
+                    aria-label="t('eye-icon')" />
+              {{ t('preview-how-recipients-will-see-your-secrets') }}
             </li>
           </ul>
 
@@ -141,6 +142,7 @@ onBeforeRouteLeave((to, from, next) => {
                           :logo-image="logoImage"
                           :on-logo-upload="handleLogoUpload"
                           :on-logo-remove="removeLogo"
+                          :brandI18n="brandI18n"
                           secret-key="abcd"
                           class="max-w-full transition-all duration-200 hover:scale-[1.02]" />
           </BrowserPreviewFrame>
@@ -149,7 +151,7 @@ onBeforeRouteLeave((to, from, next) => {
           <div v-if="isLoading"
               role="status"
               class="py-8 text-center">
-            <span class="sr-only">{{ $t('loading-preview') }}</span>
+            <span class="sr-only">{{ t('loading-preview') }}</span>
             <!-- Add isLoading spinner -->
           </div>
 
