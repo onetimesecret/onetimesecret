@@ -145,7 +145,7 @@
   "the-page-youre-looking-for-doesnt-exist-or-has-b": "お探しのページは存在しないか、移動された可能性があります。心配しないでください、誰にでも起こることです！",
   "these-instructions-will-be-shown-to-recipients-before": "これらの指示は、受信者が秘密の内容を明らかにする前に表示されます",
   "this-is-an-interactive-preview-o": "これは、受信者があなたのセキュアメッセージをどのように見るかのインタラクティブプレビューです。次のことができます：- 上のコントロールを使用して色とフォントをカスタマイズする - ロゴをアップロードする（最小 128x128 ピクセル推奨、最大 1MB） - \"View Secret\" ボタンを使用してプレビューをテストする",
-  "this-is-an-interactive-preview-of-how-recipients-will-see-your-secure-messages-you-can-customize-colors-and-fonts-using-the-controls-above-upload-a-logo-minimum-128x128-pixels-recommended-1mb-max-test-the-preview-using-the-view-secret-button": "これは、受信者があなたのセキュアメッセージをどのように見るかのインタラクティブプレビューです。次のことができます：- 上のコントロールを使用して色とフォントをカスタマイズする - ロゴをアップロードする（最小 128x128 ピクセル推奨、最大 1MB） - \"View Secret\" ボタンを使用してプレビューをテストする",
+  "this-is-an-interactive-preview-of-how-recipients": "これは、受信者があなたのセキュアメッセージをどのように見るかのインタラクティブプレビューです。次のことができます：- 上のコントロールを使用して色とフォントをカスタマイズする - ロゴをアップロードする（最小 128x128 ピクセル推奨、最大 1MB） - \"View Secret\" ボタンを使用してプレビューをテストする",
   "this-quote-was-generated-by": "この見積もりは によって生成されました",
   "token-generated": "トークンが生成されました。",
   "translations": "翻訳",

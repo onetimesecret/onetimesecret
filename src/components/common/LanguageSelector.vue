@@ -6,7 +6,7 @@ import { useEventListener } from '@vueuse/core';
 import { ref, watch, nextTick, onMounted, onUnmounted } from 'vue';
 import { useI18n } from 'vue-i18n';
 
-const { t, availableLocales } = useI18n();
+const { t } = useI18n();
 
 withDefaults(defineProps<{
   modelValue?: string;
@@ -67,8 +67,6 @@ watch(isOpen, (newValue) => {
     });
   }
 });
-
-
 </script>
 
 <template>
@@ -124,7 +122,7 @@ watch(isOpen, (newValue) => {
         <div class="py-1">
         <button
           type="button"
-            v-for="locale in availableLocales"
+            v-for="locale in supportedLocales"
             :key="locale"
             role="option"
             :aria-selected="modelValue === locale"

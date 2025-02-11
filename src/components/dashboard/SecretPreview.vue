@@ -1,17 +1,17 @@
 <!-- src/components/dashboard/SecretPreview.vue -->
 
 <script setup lang="ts">
+import OIcon from '@/components/icons/OIcon.vue';
 import BaseSecretDisplay from '@/components/secrets/branded/BaseSecretDisplay.vue';
 import { BrandSettings, ImageProps } from '@/schemas/models';
 import {
-  CornerStyle,
-  FontFamily,
-  cornerStyleClasses,
-  fontFamilyClasses
+CornerStyle,
+FontFamily,
+cornerStyleClasses,
+fontFamilyClasses
 } from '@/schemas/models/domain/brand';
-import OIcon from '@/components/icons/OIcon.vue';
 import { computed, ref } from 'vue';
-import { useI18n } from 'vue-i18n';
+import { Composer, useI18n } from 'vue-i18n';
 const { t } = useI18n();
 
 const props = defineProps<{
@@ -20,6 +20,7 @@ const props = defineProps<{
   onLogoUpload: (file: File) => Promise<void>;
   onLogoRemove: () => Promise<void>;
   secretKey: string;
+  previewI18n: Composer;
 }>();
 
 // Computed property to validate logo data

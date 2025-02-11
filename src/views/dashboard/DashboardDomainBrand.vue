@@ -24,7 +24,7 @@ const {
   brandSettings,
   logoImage,
   primaryColor,
-  brandI18n,
+  previewI18n,
   hasUnsavedChanges,
   isInitialized,
   initialize,
@@ -140,9 +140,9 @@ onBeforeRouteLeave((to, from, next) => {
                           ref="secretPreview"
                           :domain-branding="brandSettings"
                           :logo-image="logoImage"
+                          :previewI18n="previewI18n"
                           :on-logo-upload="handleLogoUpload"
                           :on-logo-remove="removeLogo"
-                          :brandI18n="brandI18n"
                           secret-key="abcd"
                           class="max-w-full transition-all duration-200 hover:scale-[1.02]" />
           </BrowserPreviewFrame>

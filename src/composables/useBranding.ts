@@ -4,12 +4,9 @@ import { useBrandStore } from '@/stores/brandStore';
 import { shouldUseLightText } from '@/utils';
 import { computed, ref, watch } from 'vue';
 import { useRouter } from 'vue-router';
+import { createI18nInstance } from '@/i18n';
 
-import {
-  AsyncHandlerOptions,
-  useAsyncHandler,
-  createError,
-} from './useAsyncHandler';
+import { AsyncHandlerOptions, useAsyncHandler, createError } from './useAsyncHandler';
 import { ApplicationError } from '@/schemas';
 import { AxiosError } from 'axios';
 
@@ -35,6 +32,7 @@ export function useBranding(domainId?: string) {
   const isLoading = ref(false);
   const isInitialized = ref(false);
   const error = ref<ApplicationError | null>(null);
+  const { composer, setLocale } = createI18nInstance();
 
   const brandSettings = ref<BrandSettings>(store.getSettings(domainId || ''));
   const originalSettings = ref<BrandSettings | null>(null);
@@ -85,15 +83,14 @@ export function useBranding(domainId?: string) {
       isInitialized.value = true;
     });
   };
-
+  const displayLocale = computed(() => brandSettings.value.locale);
   const primaryColor = computed(() =>
     isInitialized.value ? brandSettings.value.primary_color : undefined
   );
   const hasUnsavedChanges = computed(() => {
     if (!originalSettings.value) return false;
     return !Object.entries(brandSettings.value).every(
-      ([key, value]) =>
-        originalSettings.value?.[key as keyof BrandSettings] === value
+      ([key, value]) => originalSettings.value?.[key as keyof BrandSettings] === value
     );
   });
 
@@ -103,6 +100,14 @@ export function useBranding(domainId?: string) {
       if (newColor) {
         brandSettings.value.button_text_light = shouldUseLightText(newColor);
       }
+    }
+  );
+
+  watch(
+    () => brandSettings.value?.locale,
+    async (newLocale) => {
+      if (!newLocale) return;
+      await setLocale(newLocale); // Updates only preview
     }
   );
 
@@ -117,12 +122,7 @@ export function useBranding(domainId?: string) {
 
   const handleLogoUpload = async (file: File) =>
     wrap(async () => {
-      if (!domainId)
-        throw createError(
-          'Domain ID is required to upload logo',
-          'human',
-          'error'
-        );
+      if (!domainId) throw createError('Domain ID is required to upload logo', 'human', 'error');
       const uploadedLogo = await store.uploadLogo(domainId, file);
       // Update local state with new logo
       logoImage.value = uploadedLogo;
@@ -130,12 +130,7 @@ export function useBranding(domainId?: string) {
 
   const removeLogo = async () =>
     wrap(async () => {
-      if (!domainId)
-        throw createError(
-          'Domain ID is required to remove logo',
-          'human',
-          'error'
-        );
+      if (!domainId) throw createError('Domain ID is required to remove logo', 'human', 'error');
       await store.removeLogo(domainId);
       // Clear local logo state
       logoImage.value = null;
@@ -146,6 +141,8 @@ export function useBranding(domainId?: string) {
     error,
     brandSettings,
     logoImage,
+    previewI18n: composer,
+    displayLocale,
     primaryColor,
     hasUnsavedChanges,
     isInitialized,

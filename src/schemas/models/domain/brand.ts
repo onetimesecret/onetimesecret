@@ -1,4 +1,6 @@
 // src/schemas/models/domain/brand.ts
+
+import { localeSchema } from '@/schemas/i18n/locale';
 import { transforms } from '@/schemas/transforms';
 import { z } from 'zod';
 
@@ -85,6 +87,7 @@ export const brandSettingschema = z
     allow_public_api: transforms.fromString.boolean.default(false),
     font_family: z.enum(fontOptions).default(FontFamily.SANS),
     corner_style: z.enum(cornerStyleOptions).default(CornerStyle.ROUNDED),
+    locale: localeSchema.default('en'),
   })
   .partial(); // Makes all fields optional;
 

@@ -69,7 +69,7 @@
                 id="brand-color" />
             </div>
 
-            <!-- Controls -->
+            <!-- UI Elements -->
             <div class="flex items-center gap-2 flex-shrink-0">
               <CycleButton
                 :model-value="modelValue.corner_style"
@@ -89,17 +89,18 @@
                 :icon-map="fontIconMap" />
             </div>
 
+            <!-- Instructions -->
+            <div class="flex-shrink-0">
+              <slot name="instructions-button"></slot>
+            </div>
+
+            <!-- Language -->
             <div class="flex-shrink-0">
               <LanguageSelector
                   :model-value="modelValue.locale"
                   :label="t('language')"
                   @update:model-value="(value) => updateBrandSetting('locale', value)"
                 />
-            </div>
-
-            <!-- Instructions -->
-            <div class="flex-shrink-0">
-              <slot name="instructions-button"></slot>
             </div>
           </div>
 

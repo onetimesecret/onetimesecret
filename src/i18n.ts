@@ -19,29 +19,88 @@ type GlobalComposer = Composer<{}, {}, {}, Locale>;
 const supportedLocales = WindowService.get('supported_locales') || [];
 const fallbackLocale = WindowService.get('fallback_locale') || {};
 const defaultLocale = WindowService.get('default_locale') || 'en';
-const locale = defaultLocale;
 
 /**
- * Core i18n instance configuration:
- * - Uses Composition API (legacy: false)
- * - Enables global injection of $t
- * - Sets default and fallback locales
- * - Loads initial English messages
+ * Creates a completely independent i18n instance with its own locale state and message
+ * store. We eat this dogfood below to create the global i18n instance as well.
+ *
+ * This differs from useI18n({ useScope: 'local' }) which only provides component-level
+ * message isolation within the global instance. Local scope - still uses global
+ * instance but with component-isolated messages. When the global locale changes, the
+ * local scope will update accordingly.
+ *
+ * Use createI18nInstance when you need:
+ *
+ * - A fully isolated instance that won't affect or be affected by the global app locale
+ * - Independent message loading and locale switching
+ * - Preview/sandbox functionality that should remain separate from the main app
+ * - Testing scenarios where global state isolation is required
+ *
+ * @param initialLocale - Initial locale to use for this instance
+ * @returns Object containing:
+ *   - instance (I18n): The raw i18n instance.
+ *   - composer (Composer): The composer for accessing translations.
+ *   - setLocale (Locale): Function to change locale for this instance only.
  */
-const i18n = createI18n<false>({
-  legacy: false, // Enable composition API.
-  globalInjection: true, // allows $t to be used globally.
-  missingWarn: true, // these enable browser console logging
-  fallbackWarn: true, // and are removed from prod builds.
-  locale: locale,
-  fallbackLocale: fallbackLocale,
-  messages: {
-    en,
-  },
-  availableLocales: supportedLocales,
-});
+export function createI18nInstance(initialLocale: string = defaultLocale) {
+  const instance = createI18n<false>({
+    legacy: false, // Enable composition API.
+    locale: initialLocale,
+    fallbackLocale: fallbackLocale,
+    globalInjection: true, // allows $t to be used globally.
+    missingWarn: true, // these enable browser console logging
+    fallbackWarn: true, // and are removed from prod builds.
+    messages: {
+      en, // Always include default messages
+    },
+    availableLocales: supportedLocales,
+  });
 
+  /**
+   * Access the root Composer for this i18n instance.
+   *
+   * Vue I18n has a hierarchical structure:
+   * - instance.global: The root Composer handling translations at instance level
+   * - useI18n(): Component-level Composer that inherits from instance.global
+   * - useI18n({ useScope: 'local' }): Isolated component-level Composer
+   *
+   * Even for non-global instances (like preview instances), we still access
+   * the root Composer via .global since it represents the root scope of that
+   * specific instance.
+   *
+   * @see https://vue-i18n.intlify.dev/guide/advanced/scope.html
+   */
+  const composer = instance.global as GlobalComposer;
+
+  /**
+   * Updates locale for this instance only
+   * @param locale - Target locale to set
+   */
+  const setLocale = async (locale: string) => {
+    if (!composer.availableLocales.includes(locale)) {
+      const messages = await loadLocaleMessages(locale);
+      if (messages) {
+        composer.setLocaleMessage(locale, messages);
+      }
+    }
+    composer.locale.value = locale;
+  };
+
+  return {
+    instance,
+    composer,
+    setLocale,
+  };
+}
+
+/** Create and export the global instance */
+const {
+  instance: i18n,
+  composer: globalComposer,
+  setLocale: setGlobalLocale,
+} = createI18nInstance();
 export default i18n;
+export { globalComposer, setGlobalLocale };
 
 /**
  * Dynamically imports locale message files.
