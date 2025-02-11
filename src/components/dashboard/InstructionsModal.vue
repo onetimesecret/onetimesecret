@@ -1,5 +1,5 @@
 <script setup lang="ts">
-
+import HoverTooltip from '../common/HoverTooltip.vue';
 import OIcon from '@/components/icons/OIcon.vue';
 import { useEventListener } from '@vueuse/core';
 import { ref, computed, watch, nextTick, onMounted, onUnmounted } from 'vue';
@@ -96,9 +96,9 @@ watch(isOpen, (newValue) => {
 });
 </script>
 
-
 <template>
-  <div class="relative">
+  <div class="relative group">
+    <HoverTooltip>{{ t('instructions') }}</HoverTooltip>
     <button
       type="button"
       @click="toggleOpen"
@@ -111,18 +111,19 @@ watch(isOpen, (newValue) => {
              dark:focus:ring-brand-400 dark:focus:ring-offset-0
              transition-all duration-200"
       :aria-expanded="isOpen"
+      :aria-label="t('instructions')"
       aria-haspopup="true">
       <OIcon
         collection="mdi"
         name="text-box-edit"
-        class="mr-2 size-5"
+        class="size-5"
         aria-hidden="true"
       />
-      {{ $t('instructions') }}
+
       <OIcon
         collection="mdi"
         :name="isOpen ? 'chevron-up' : 'chevron-down'"
-        class="ml-2 size-5"
+        class="size-5"
         aria-hidden="true"
       />
     </button>
