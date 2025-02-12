@@ -131,7 +131,10 @@
       "orphaned_description": "Secret has been orphaned and will be destroyed soon",
       "expired_description": "Secret has expired before being viewed",
       "success": "Success",
-      "delivered": "Delivered"
+      "delivered": "Delivered",
+      "dns-incorrect": "DNS Incorrect",
+      "active": "Active",
+      "inactive": "Inactive"
     },
     "FEATURES": {
       "unlimited_views": "Unlimited Views",
