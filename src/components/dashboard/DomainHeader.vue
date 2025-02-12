@@ -22,7 +22,7 @@
         <RouterLink
           to="/domains"
           class="inline-flex items-center text-sm text-gray-600 transition-colors hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-100"
-          aria-label="$t('return-to-domains-list')">
+          :aria-label="$t('return-to-domains-list')">
           <svg
             class="mr-2 size-5"
             fill="none"

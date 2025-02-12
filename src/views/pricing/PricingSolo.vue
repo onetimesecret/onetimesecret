@@ -51,7 +51,7 @@
 
       <!-- Pricing Toggle -->
       <div class="mt-16 flex justify-center font-serif">
-        <fieldset aria-label="$t('payment-frequency')">
+        <fieldset :aria-label="$t('payment-frequency')">
           <RadioGroup
             v-model="frequency"
             class="grid grid-cols-2 gap-x-1 rounded-full bg-white/5 p-1 text-center text-xs font-semibold leading-5 text-white">

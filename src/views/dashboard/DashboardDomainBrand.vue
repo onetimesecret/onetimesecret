@@ -119,7 +119,7 @@ onBeforeRouteLeave((to, from, next) => {
               <OIcon collection="mdi"
               name="palette-outline"
                     class="size-5"
-                    aria-label="t('customization-icon')" />
+                    :aria-label="t('customization-icon')" />
               {{ t('use-the-controls-above-to-customize-brand-details') }}
             </li>
 
@@ -127,7 +127,7 @@ onBeforeRouteLeave((to, from, next) => {
               <OIcon collection="mdi"
               name="image-outline"
                     class="size-5"
-                    aria-label="t('image-icon')" />
+                    :aria-label="t('image-icon')" />
               {{ t('click-the-preview-image-below-to-update-your-logo') }}
             </li>
 
@@ -135,7 +135,7 @@ onBeforeRouteLeave((to, from, next) => {
               <OIcon collection="mdi"
               name="eye-outline"
                     class="size-5"
-                    aria-label="t('eye-icon')" />
+                    :aria-label="t('eye-icon')" />
               {{ t('preview-how-recipients-will-see-your-secrets') }}
             </li>
           </ul>

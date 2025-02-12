@@ -29,7 +29,7 @@ defineEmits<{
         <button
           @click="$emit('toggle-browser')"
           class="size-3 rounded-full bg-[#FF5F57] transition-colors hover:bg-[#E04940]"
-          aria-label="$t('switch-to-edge-browser-view')">
+          :aria-label="$t('switch-to-edge-browser-view')">
           <svg
             class="m-auto size-2 opacity-0 transition-opacity group-hover/controls:opacity-100"
             viewBox="0 0 8 8"
@@ -43,7 +43,7 @@ defineEmits<{
         <!-- Minimize button -->
         <button
           class="size-3 rounded-full bg-[#FFBD2E] transition-colors hover:bg-[#E0A323]"
-          aria-label="$t('minimize-window')">
+          :aria-label="$t('minimize-window')">
           <svg
             class="m-auto size-2 opacity-0 transition-opacity group-hover/controls:opacity-100"
             viewBox="0 0 8 8"
@@ -57,7 +57,7 @@ defineEmits<{
         <!-- Maximize button -->
         <button
           class="size-3 rounded-full bg-[#28C840] transition-colors hover:bg-[#1FA833]"
-          aria-label="$t('maximize-window')">
+          :aria-label="$t('maximize-window')">
           <svg
             class="m-auto size-2 opacity-0 transition-opacity group-hover/controls:opacity-100"
             viewBox="0 0 8 8"
@@ -150,7 +150,7 @@ defineEmits<{
           <button
             @click="$emit('toggle-browser')"
             class="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
-            aria-label="$t('switch-to-safari-browser-view')">
+            :aria-label="$t('switch-to-safari-browser-view')">
             <svg
               class="size-4"
               fill="currentColor"

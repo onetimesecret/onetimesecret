@@ -143,11 +143,11 @@
               class="flex gap-2 "
               role="tablist"
               @keydown="handleTabKeydown"
-              aria-label="$t('settings-sections')">
+              :aria-label="$t('settings-sections')">
               <button
                 @click="closeModal"
                 class="rounded-md p-2 text-gray-500 transition-colors duration-200 hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 dark:text-gray-300 dark:hover:bg-gray-600"
-                aria-label="$t('close-settings')">
+                :aria-label="$t('close-settings')">
                 <svg
                   class="size-5"
                   fill="none"
@@ -168,7 +168,7 @@
           <div
             class="flex shrink-0 gap-2 overflow-x-auto px-6 py-2 dark:bg-gray-800"
             role="tablist"
-            aria-label="$t('settings-sections-0')">
+            :aria-label="$t('settings-sections-0')">
             <button
               v-for="tab in tabs"
               :key="tab.id"

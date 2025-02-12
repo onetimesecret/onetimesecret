@@ -41,7 +41,7 @@
 <template>
   <nav
     v-if="authenticated"
-    aria-label="$t('dashboard-navigation')"
+    :aria-label="$t('dashboard-navigation')"
     class="mb-6 overflow-x-auto bg-gray-50/50 px-4 py-2 dark:bg-gray-800/50">
     <!-- Shadow approach -->
     <ul

@@ -108,7 +108,7 @@ const closeTruncatedWarning = (event: Event) => {
                   readonly
                   :rows="details?.display_lines ?? 4"
                   :value="record?.secret_value"
-                  aria-label="$t('secret-content')"></textarea>
+                  :aria-label="$t('secret-content')"></textarea>
         <div v-else
              class="text-red-500 dark:text-red-400"
              role="alert">
