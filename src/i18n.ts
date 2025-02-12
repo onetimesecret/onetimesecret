@@ -22,6 +22,7 @@ type GlobalComposer = Composer<{}, {}, {}, Locale>;
 const supportedLocales = WindowService.get('supported_locales') || [];
 const fallbackLocale = WindowService.get('fallback_locale') || {};
 const defaultLocale = WindowService.get('default_locale') || 'en';
+const displayLocale = WindowService.get('locale');
 
 /**
  * Creates a completely independent i18n instance with its own locale state and message
@@ -104,7 +105,7 @@ const {
   instance: i18n,
   composer: globalComposer,
   setLocale: setGlobalLocale,
-} = createI18nInstance();
+} = createI18nInstance(displayLocale);
 export default i18n;
 export { globalComposer, setGlobalLocale };
 
@@ -122,30 +123,6 @@ async function loadLocaleMessages(locale: string): Promise<MessageSchema | null>
   } catch (error) {
     console.error(`Failed to load locale: ${locale}`, error);
     return null;
-  }
-}
-
-/**
- * Changes active application language.
- * Loads messages file and updates i18n instance if successful.
- * Falls back to default locale on failure.
- * @param lang - Target locale code
- */
-export async function setLanguage(lang: string): Promise<void> {
-  const composer = i18n.global as GlobalComposer;
-
-  if (composer.locale.value === lang) {
-    console.debug(`Language already set to ${lang}`);
-    return;
-  }
-
-  const messages = await loadLocaleMessages(lang);
-  if (messages) {
-    composer.setLocaleMessage(lang, messages);
-    composer.locale.value = lang;
-    console.debug(`Language set to: ${lang}`);
-  } else {
-    console.warn(`Failed to set language to: ${lang}. Falling back to default.`);
   }
 }
 
