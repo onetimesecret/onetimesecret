@@ -40,6 +40,12 @@ const logoSrc = computed(() => {
 const isRevealed = ref(false);
 const textareaPlaceholder = props.previewI18n.t('sample-secret-content-this-could-be-sensitive-data');
 
+const ariaLabelText = computed(() =>
+  isRevealed.value
+    ? t('hide-secret-message')
+    : t('view-secret-message')
+)
+
 // Computed property for instructions text
 const instructions = computed(() => {
   if (isRevealed.value) {
@@ -197,7 +203,7 @@ const fontFamilyClass = computed(() => {
         @click="toggleReveal"
         :aria-expanded="isRevealed"
         aria-controls="secretContent"
-        :aria-label="t('isrevealed-hide-secret-message-view-secret-message')">
+        :aria-label="ariaLabelText">
         {{ isRevealed ? t('hide-secret') : previewI18n.t('web.COMMON.click_to_continue') }}
       </button>
     </template>
