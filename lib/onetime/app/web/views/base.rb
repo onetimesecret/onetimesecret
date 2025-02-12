@@ -25,7 +25,7 @@ module Onetime
         @locale ||= req.env['ots.locale'] || OT.default_locale || 'en' unless req.nil?
         @messages ||= []
         site = OT.conf.fetch(:site, {})
-        is_default_locale = OT.default_locale == @locale
+        display_locale = nil
 
         @canonical_domain = Onetime::DomainStrategy.canonical_domain
         @domain_strategy = req.env.fetch('onetime.domain_strategy', :default) # never null
@@ -35,7 +35,13 @@ module Onetime
           @domain_id = custom_domain&.domainid
           @domain_branding = (custom_domain&.brand&.hgetall || {}).to_h # bools are strings
           @domain_logo = (custom_domain&.logo&.hgetall || {}).to_h # ditto
+
+          domain_locale = domain_branding.fetch('locale', nil)
+          display_locale = domain_locale
         end
+
+        display_locale ||= @locale
+        is_default_locale = display_locale == @locale
 
         secret_options = site.fetch(:secret_options, {})
         domains = site.fetch(:domains, {})
@@ -136,7 +142,7 @@ module Onetime
         self[:jsvars][:plans_enabled] = jsvar(site.dig(:plans, :enabled) || false)
         self[:jsvars][:locale] = jsvar(@locale)
         self[:jsvars][:is_default_locale] = jsvar(is_default_locale)
-        self[:jsvars][:default_locale] = jsvar(OT.default_locale)
+        self[:jsvars][:default_locale] = jsvar(display_locale)
         self[:jsvars][:fallback_locale] = jsvar(OT.fallback_locale)
         self[:jsvars][:supported_locales] = jsvar(OT.supported_locales)
 
