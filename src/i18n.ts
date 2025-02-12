@@ -1,6 +1,9 @@
 // src/i18n.ts
 
 import en from '@/locales/en.json';
+import fr_CA from '@/locales/fr_CA.json';
+import fr_FR from '@/locales/fr_FR.json';
+import de_AT from '@/locales/de_AT.json';
 import { WindowService } from '@/services/window.service';
 import { createI18n, type Composer } from 'vue-i18n';
 import { type Locale } from '@/schemas/i18n/locale';
@@ -52,6 +55,9 @@ export function createI18nInstance(initialLocale: string = defaultLocale) {
     fallbackWarn: true, // and are removed from prod builds.
     messages: {
       en, // Always include default messages
+      fr_FR,
+      fr_CA,
+      de_AT,
     },
     availableLocales: supportedLocales,
   });
