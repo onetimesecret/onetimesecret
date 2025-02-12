@@ -68,49 +68,35 @@ defineEmits<{
           </svg>
         </button>
       </div>
+
       <!-- Safari/Edge Address Bar -->
       <div class="mx-2 flex-1 sm:mx-4">
-        <div
-          class="flex items-center justify-between rounded-md bg-white px-2 py-1.5 text-sm text-gray-600 dark:bg-gray-700 dark:text-gray-300 sm:px-3">
-          <!-- Make URL text responsive -->
-          <div class="flex items-center overflow-hidden">
-            <svg
-              class="mr-2 size-4 text-gray-400"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24">
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
-              />
-            </svg>
-            <span class="shrink-0 text-green-400">https://</span>
-            <span class="truncate font-bold">{{ domain }}</span>
-            <span class="hidden opacity-50 sm:inline">/secret/abcd1234</span>
+        <div class="relative flex items-center rounded-md bg-white px-2 py-1.5 text-sm text-gray-600 dark:bg-gray-700 dark:text-gray-300 sm:px-3">
+          <!-- Scrollable container -->
+          <div class="flex items-center overflow-x-auto [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+          <svg
+            class="mr-2 size-4 text-gray-400"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24">
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
+            />
+          </svg>
+            <span class="flex-shrink-0 text-green-400">https://</span>
+            <span class="whitespace-nowrap font-bold">{{ domain }}</span>
+            <span class="hidden whitespace-nowrap opacity-50 sm:inline truncate">/secret/abcd1234</span>
           </div>
-          <!-- Preview Badge - Safari -->
-          <span
-            class="ml-3 inline-flex items-center rounded bg-brandcomp-100 px-2 py-0.5 text-xs font-medium text-brand-800 dark:bg-brandcomp-900 dark:text-brandcomp-200">
-            <svg
-              class="mr-1 size-3"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24">
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
-              />
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
-              />
-            </svg>
+
+          <!-- Fixed position preview badge -->
+          <span class="ml-3 flex-shrink-0 inline-flex items-center rounded bg-brandcomp-100 px-2 py-0.5 text-xs font-medium text-brand-800 dark:bg-brandcomp-900 dark:text-brandcomp-200">
+            <OIcon
+              collection="mdi"
+              name="eye"
+              class="mr-1 size-3" />
             {{ $t('preview') }}
           </span>
         </div>
