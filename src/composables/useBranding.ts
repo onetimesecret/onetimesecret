@@ -67,6 +67,12 @@ export function useBranding(domainId?: string) {
         return router.push('NotFound');
       }
 
+      // Set locale immediately after getting settings
+      if (settings.locale) {
+        console.debug('[useBranding] Setting locale:', settings.locale, settings);
+        await setLocale(settings.locale);
+      }
+
       // Quietly handle 404 errors for logo fetch
       try {
         const logo = await store.fetchLogo(domainId); // Assuming this is async
@@ -107,8 +113,9 @@ export function useBranding(domainId?: string) {
     () => brandSettings.value?.locale,
     async (newLocale) => {
       if (!newLocale) return;
-      await setLocale(newLocale); // Updates only preview
-    }
+      await setLocale(newLocale); // This updates the preview i18n instance
+    },
+    { immediate: true } // Add immediate to handle initial locale
   );
 
   const saveBranding = (updates: Partial<BrandSettings>) =>

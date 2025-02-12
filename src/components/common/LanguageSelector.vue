@@ -5,6 +5,7 @@ import OIcon from '../icons/OIcon.vue';
 import { useEventListener } from '@vueuse/core';
 import { ref, watch, nextTick, onMounted, onUnmounted } from 'vue';
 import { useI18n } from 'vue-i18n';
+import { useLanguage } from '@/composables/useLanguage';
 
 const { t } = useI18n();
 
@@ -17,6 +18,8 @@ withDefaults(defineProps<{
 const emit = defineEmits<{
   (e: 'update:modelValue', value: string): void;
 }>();
+
+const { supportedLocales } = useLanguage();
 
 const isOpen = ref(false);
 

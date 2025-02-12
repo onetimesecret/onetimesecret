@@ -3,14 +3,15 @@ import HoverTooltip from '../common/HoverTooltip.vue';
 import OIcon from '@/components/icons/OIcon.vue';
 import { useEventListener } from '@vueuse/core';
 import { ref, computed, watch, nextTick, onMounted, onUnmounted } from 'vue';
-import { useI18n } from 'vue-i18n';
+import { useI18n, Composer } from 'vue-i18n';
 
 const { t } = useI18n();
 
 const props = withDefaults(defineProps<{
+  previewI18n: Composer;
   modelValue?: string;
 }>(), {
-  modelValue: ''
+  modelValue: '',
 });
 
 
@@ -59,7 +60,7 @@ const handleKeydown = (e: KeyboardEvent) => {
 };
 
 const placeholderExample = computed(() =>
-  `${t('e-g-example')} ${t('use-your-phone-to-scan-the-qr-code')}`);
+  `${props.previewI18n.t('e-g-example')} ${props.previewI18n.t('use-your-phone-to-scan-the-qr-code')}`);
 
 onMounted(() => {
   document.addEventListener('keydown', handleEscPress);

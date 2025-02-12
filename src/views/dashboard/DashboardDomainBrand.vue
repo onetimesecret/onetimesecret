@@ -74,12 +74,14 @@ onBeforeRouteLeave((to, from, next) => {
 
         <BrandSettingsBar
           v-model="brandSettings"
+          :previewI18n="previewI18n"
           :is-loading="isLoading"
           :is-initialized="isInitialized"
           @submit="() => saveBranding(brandSettings)">
           <template #instructions-button>
             <InstructionsModal
               v-model="brandSettings.instructions_pre_reveal"
+              :previewI18n="previewI18n"
               @update:model-value="(value) => brandSettings.instructions_pre_reveal = value"
             />
           </template>
@@ -129,6 +131,7 @@ onBeforeRouteLeave((to, from, next) => {
             </li>
           </ul>
 
+          <!-- Recipient Preview -->
           <BrowserPreviewFrame class="mx-auto w-full max-w-3xl overflow-hidden"
                               :domain="displayDomain"
                               :browser-type="browserType"

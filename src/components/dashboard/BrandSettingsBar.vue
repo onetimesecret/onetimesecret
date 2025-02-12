@@ -15,7 +15,7 @@
     fontIconMap,
     fontOptions,
   } from '@/schemas/models/domain/brand';
-  import { useI18n } from 'vue-i18n';
+  import { Composer, useI18n } from 'vue-i18n';
   const { t } = useI18n();
   import { computed } from 'vue';
   import LanguageSelector from '../common/LanguageSelector.vue';
@@ -24,6 +24,7 @@
     modelValue: BrandSettings;
     isLoading: boolean;
     isInitialized: boolean;
+    previewI18n: Composer;
   }>();
 
   const emit = defineEmits<{

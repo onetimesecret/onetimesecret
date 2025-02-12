@@ -19,19 +19,24 @@
   import { BrandSettings } from '@/schemas/models';
   import OIcon from '@/components/icons/OIcon.vue';
   import { computed, nextTick, onMounted, onUnmounted, ref } from 'vue';
+  import { Composer, useI18n } from 'vue-i18n';
+  const { t } = useI18n();
 
-  defineProps<{
+  const props = defineProps<{
     domainBranding: BrandSettings;
     cornerClass: string;
     fontClass: string;
     defaultTitle?: string;
     instructions?: string;
+    previewI18n?: Composer;
   }>();
 
   // Text expansion logic
   const textRef = ref<HTMLElement | null>(null);
   const isExpanded = ref(false);
   const isLongText = ref(false);
+
+  const displayComposer = props.previewI18n || t;
 
   // Reusable computed properties
   const textClasses = computed(() => ({
@@ -86,7 +91,7 @@
             <p ref="textRef"
                :class="[textClasses, cornerClass, fontClass]"
                class="pb-4">
-              {{ instructions || $t('web.shared.pre_reveal_default') }}
+              {{ instructions || displayComposer.t('web.shared.pre_reveal_default') }}
             </p>
 
             <button
@@ -128,7 +133,7 @@
             name="information"
             class="mr-1 size-4"
           />
-          {{ $t('web.COMMON.careful_only_see_once') }}
+          {{ displayComposer.t('web.COMMON.careful_only_see_once') }}
         </p>
       </slot>
     </div>
