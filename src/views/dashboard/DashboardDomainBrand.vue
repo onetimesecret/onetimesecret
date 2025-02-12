@@ -9,10 +9,11 @@ import InstructionsModal from '@/components/dashboard/InstructionsModal.vue';
 import SecretPreview from '@/components/dashboard/SecretPreview.vue';
 import OIcon from '@/components/icons/OIcon.vue';
 import { useBranding } from '@/composables/useBranding';
+import { useDomain } from '@/composables/useDomain';
 import { createError } from '@/schemas/errors';
 import { detectPlatform } from '@/utils';
 import { computed, onMounted, ref, watch } from 'vue';
-import { onBeforeRouteLeave, useRoute } from 'vue-router';
+import { onBeforeRouteLeave } from 'vue-router';
 import { useI18n } from 'vue-i18n';
 
 const { t } = useI18n();
@@ -27,14 +28,19 @@ const {
   previewI18n,
   hasUnsavedChanges,
   isInitialized,
-  initialize,
+  initialize: initializeBrand,
   saveBranding,
   handleLogoUpload,
   removeLogo,
 } = useBranding(props.domain);
 
-const route = useRoute();
-const displayDomain = computed(() => props.domain || route.params.domain as string);
+const {
+  domain: customDomainRecord,
+  isLoading: domainLoading,
+  initialize: initializeDomain,
+} = useDomain(props.domain);
+
+const displayDomain = computed(() => props.domain);
 
 const color = computed(() => primaryColor.value);
 const browserType = ref<'safari' | 'edge'>(detectPlatform());
@@ -50,7 +56,10 @@ watch(() => isLoading.value, (loading) => {
   }
 });
 
-onMounted(initialize);
+onMounted(() => {
+  initializeBrand();
+  initializeDomain();
+});
 
 onBeforeRouteLeave((to, from, next) => {
   if (hasUnsavedChanges.value) {
@@ -70,7 +79,7 @@ onBeforeRouteLeave((to, from, next) => {
 
       <!-- Header Section -->
       <div class="sticky top-0 z-30">
-        <DomainHeader :display-domain="displayDomain" />
+        <DomainHeader v-if="!domainLoading" :domain="customDomainRecord" />
 
         <BrandSettingsBar
           v-model="brandSettings"

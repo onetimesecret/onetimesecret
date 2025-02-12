@@ -1,5 +1,5 @@
 // src/stores/domainsStore.ts
-//
+
 import { PiniaPluginOptions } from '@/plugins/pinia';
 import { UpdateDomainBrandRequest } from '@/schemas/api';
 import { responseSchemas } from '@/schemas/api/responses';
@@ -51,10 +51,7 @@ export type DomainsStore = {
     domain: string,
     brandUpdate: UpdateDomainBrandRequest
   ) => Promise<CustomDomain>;
-  updateBrandSettings: (
-    domain: string,
-    settings: Partial<BrandSettings>
-  ) => Promise<BrandSettings>;
+  updateBrandSettings: (domain: string, settings: Partial<BrandSettings>) => Promise<BrandSettings>;
 
   reset: () => void;
 } & PiniaCustomProperties;
@@ -111,10 +108,7 @@ export const useDomainsStore = defineStore('domains', () => {
   async function getDomain(domainName: string) {
     const response = await $api.get(`/api/v2/domains/${domainName}`);
     const validated = responseSchemas.customDomain.parse(response.data);
-    return {
-      record: validated.record,
-      details: validated.details,
-    };
+    return validated;
   }
 
   async function verifyDomain(domainName: string) {
@@ -168,9 +162,7 @@ export const useDomainsStore = defineStore('domains', () => {
   async function deleteDomain(domainName: string) {
     await $api.post(`/api/v2/domains/${domainName}/remove`);
     if (!records.value) return;
-    records.value = records.value.filter(
-      (domain) => domain.display_domain !== domainName
-    );
+    records.value = records.value.filter((domain) => domain.display_domain !== domainName);
   }
 
   /**
@@ -196,10 +188,7 @@ export const useDomainsStore = defineStore('domains', () => {
   /**
    * Update brand settings for a domain
    */
-  async function updateDomainBrand(
-    domain: string,
-    brandUpdate: UpdateDomainBrandRequest
-  ) {
+  async function updateDomainBrand(domain: string, brandUpdate: UpdateDomainBrandRequest) {
     const response = await $api.put(`/api/v2/domains/${domain}/brand`, brandUpdate);
     const validated = responseSchemas.customDomain.parse(response.data);
     if (!records.value) return validated.record;
@@ -219,9 +208,7 @@ export const useDomainsStore = defineStore('domains', () => {
     const validated = responseSchemas.customDomain.parse(response.data);
 
     if (!records.value) records.value = [];
-    const domainIndex = records.value.findIndex(
-      (d) => d.display_domain === domain.display_domain
-    );
+    const domainIndex = records.value.findIndex((d) => d.display_domain === domain.display_domain);
 
     if (domainIndex !== -1) {
       records.value[domainIndex] = validated.record;
