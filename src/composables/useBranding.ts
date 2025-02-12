@@ -1,3 +1,5 @@
+// src/composables/useBranding.ts
+
 import { ImageProps, type BrandSettings } from '@/schemas/models';
 import { useNotificationsStore } from '@/stores';
 import { useBrandStore } from '@/stores/brandStore';
