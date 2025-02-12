@@ -140,9 +140,9 @@ module Onetime
 
         # Link to the pricing page can be seen regardless of authentication status
         self[:jsvars][:plans_enabled] = jsvar(site.dig(:plans, :enabled) || false)
-        self[:jsvars][:locale] = jsvar(@locale)
+        self[:jsvars][:locale] = jsvar(display_locale) # the locale the user sees
         self[:jsvars][:is_default_locale] = jsvar(is_default_locale)
-        self[:jsvars][:default_locale] = jsvar(display_locale)
+        self[:jsvars][:default_locale] = jsvar(OT.default_locale) # the application default
         self[:jsvars][:fallback_locale] = jsvar(OT.fallback_locale)
         self[:jsvars][:supported_locales] = jsvar(OT.supported_locales)
 
