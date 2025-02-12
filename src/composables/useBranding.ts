@@ -34,8 +34,8 @@ export function useBranding(domainId?: string) {
   const isLoading = ref(false);
   const isInitialized = ref(false);
   const error = ref<ApplicationError | null>(null);
-  const { composer, setLocale } = createI18nInstance();
 
+  const { composer, setLocale } = createI18nInstance();
   const brandSettings = ref<BrandSettings>(store.getSettings(domainId || ''));
   const originalSettings = ref<BrandSettings | null>(null);
   const logoImage = ref<ImageProps | null>(null);
