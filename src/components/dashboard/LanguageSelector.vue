@@ -1,15 +1,16 @@
 <!-- src/components/common/LanguageSelector.vue -->
 <script setup lang="ts">
-import HoverTooltip from './HoverTooltip.vue';
-import OIcon from '../icons/OIcon.vue';
+import HoverTooltip from '@/components/common/HoverTooltip.vue';
+import OIcon from '@/components/icons/OIcon.vue';
 import { useEventListener } from '@vueuse/core';
 import { ref, watch, nextTick, onMounted, onUnmounted } from 'vue';
-import { useI18n } from 'vue-i18n';
+import { useI18n, Composer } from 'vue-i18n';
 import { useLanguage } from '@/composables/useLanguage';
 
 const { t } = useI18n();
 
 withDefaults(defineProps<{
+  previewI18n: Composer;
   modelValue?: string;
 }>(), {
   modelValue: ''

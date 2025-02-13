@@ -7,6 +7,7 @@
   const { t } = useI18n();
   const props = defineProps<{
     domain: CustomDomain;
+    hasUnsavedChanges: boolean;
   }>();
 
   const { statusIcon, isActive, isWarning, isError, displayStatus } = useDomainStatus(
@@ -51,6 +52,7 @@
               <a
                 :href="`https://${domain.display_domain}`"
                 target="_blank"
+                v-show="!hasUnsavedChanges"
                 rel="noopener noreferrer"
                 class="ml-1 text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300"
                 :title="$t('open-domain-in-new-tab')">

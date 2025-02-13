@@ -18,13 +18,13 @@
   import { Composer, useI18n } from 'vue-i18n';
   const { t } = useI18n();
   import { computed } from 'vue';
-  import LanguageSelector from '../common/LanguageSelector.vue';
 
   const props = defineProps<{
     modelValue: BrandSettings;
     isLoading: boolean;
     isInitialized: boolean;
     previewI18n: Composer;
+    hasUnsavedChanges: boolean;
   }>();
 
   const emit = defineEmits<{
@@ -41,6 +41,10 @@
       [key]: value,
     });
   };
+
+  const isDisabled = computed(() => {
+    return props.isLoading || !props.hasUnsavedChanges;
+  });
 
   const buttonText = computed(() => {
     return props.isLoading ? t('web.LABELS.saving') : t('web.LABELS.save');
@@ -97,11 +101,7 @@
 
             <!-- Language -->
             <div class="flex-shrink-0">
-              <LanguageSelector
-                  :model-value="modelValue.locale"
-                  :label="t('language')"
-                  @update:model-value="(value) => updateBrandSetting('locale', value)"
-                />
+              <slot name="language-button"></slot>
             </div>
           </div>
 
@@ -110,7 +110,7 @@
           <div class="ml-auto flex-shrink-0">
             <button
               type="submit"
-              :disabled="isLoading"
+              :disabled="isDisabled"
               class="flex-shrink-0 inline-flex h-11 items-center justify-center
                        rounded-lg border border-transparent
                        bg-brand-600 px-4
