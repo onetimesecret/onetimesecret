@@ -119,6 +119,7 @@ interface Props {
   withDomainDropdown?: boolean;
   maxLength?: number;
   initialContent?: string;
+  cornerClass?: string;
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -226,6 +227,7 @@ onUnmounted(() => {
       v-model="content"
       @input="checkContentLength"
       :maxlength="maxLength"
+      :class="[cornerClass]"
       class="max-h-[400px] min-h-24 w-full resize-none overflow-y-auto rounded-md border-gray-300 bg-white
             p-4 font-mono text-base
             leading-[1.2] tracking-wide

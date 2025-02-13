@@ -94,6 +94,7 @@ onMounted(() => {
                               :initial-domain="selectedDomain"
                               :with-domain-dropdown="domainsEnabled"
                               :disabled="isSubmitting"
+                              :corner-class="productIdentity.cornerClass"
                               @update:selected-domain="updateSelectedDomain"
                               @update:content="(content) => operations.updateField('secret', content)" />
 
@@ -107,6 +108,7 @@ onMounted(() => {
                                 :with-passphrase="true"
                                 :validation="validation"
                                 :operations="operations"
+                                :corner-class="productIdentity.cornerClass"
                                 :disabled="isSubmitting" />
 
       <div class="mb-4 flex w-full space-x-2">
@@ -118,6 +120,7 @@ onMounted(() => {
         <ConcealButton :disabled="!hasContent || isSubmitting"
                        :with-asterisk="withAsterisk"
                        :primary-color="productIdentity.primaryColor"
+                       :corner-class="productIdentity.cornerClass"
                        @click="handleConceal" />
       </div>
     </form>

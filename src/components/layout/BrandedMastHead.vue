@@ -66,8 +66,10 @@
         <!-- Content Section -->
         <div
           class="text-center space-y-3"
-          :class="productIdentity.fontFamilyClass"
-          >
+          :class="[
+            productIdentity.fontFamilyClass,
+            productIdentity.cornerClass,
+          ]">
           <h1
             class="text-2xl sm:text-3xl font-medium text-gray-900 dark:text-gray-100"
             :class="productIdentity.fontFamilyClass">
