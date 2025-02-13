@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import HoverTooltip from './HoverTooltip.vue';
 import { computed } from 'vue';
 import { useI18n } from 'vue-i18n';
 const { t } = useI18n();
@@ -44,7 +45,8 @@ const updateColor = (event: Event, isText = false) => {
 </script>
 
 <template>
-  <div class="relative">
+  <div class="relative group">
+    <HoverTooltip>{{ label }}</HoverTooltip>
     <label
       :id="id + '-label'"
       class="sr-only">{{ label }}</label>

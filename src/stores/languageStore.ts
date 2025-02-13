@@ -1,6 +1,6 @@
 // src/stores/languageStore.ts
 
-import { setLanguage } from '@/i18n';
+import { setGlobalLocale } from '@/i18n';
 import type { PiniaPluginOptions } from '@/plugins/pinia/types';
 import { localeSchema } from '@/schemas/i18n/locale';
 import { WindowService } from '@/services/window.service';
@@ -49,7 +49,7 @@ export const useLanguageStore = defineStore('language', () => {
       () => currentLocale.value,
       async (newLocale) => {
         if (newLocale) {
-          await setLanguage(newLocale);
+          await setGlobalLocale(newLocale);
         }
       }
     );
@@ -105,7 +105,7 @@ export const useLanguageStore = defineStore('language', () => {
       throw new Error(`Unsupported locale: ${validatedLocale}`);
     }
 
-    await setLanguage(validatedLocale); // via i18n
+    await setGlobalLocale(validatedLocale); // via i18n
     setCurrentLocale(validatedLocale); // save to session storage
     await $api.post('/api/v2/account/update-locale', { locale: validatedLocale });
     return validatedLocale;

@@ -131,7 +131,10 @@
       "orphaned_description": "Secret has been orphaned and will be destroyed soon",
       "expired_description": "Secret has expired before being viewed",
       "success": "Success",
-      "delivered": "Delivered"
+      "delivered": "Delivered",
+      "dns-incorrect": "DNS Incorrect",
+      "active": "Active",
+      "inactive": "Inactive"
     },
     "FEATURES": {
       "unlimited_views": "Unlimited Views",
@@ -498,7 +501,7 @@
   "corner-style": "Corner Style",
   "brand-color": "Brand Color",
   "preview-of-the-secret-link-page-for-recipients": "Preview of the secret link page for recipients",
-  "preview-0": "Preview",
+  "preview-and-customize": "Preview & Customize",
   "switch-to-safari-browser-view": "Switch to Safari browser view",
   "microsoft-edge": "Microsoft Edge",
   "preview": "Preview",
@@ -523,7 +526,8 @@
   "pre-reveal-instructions": "Pre-reveal Instructions",
   "instructions": "Instructions",
   "enter": "Enter",
-  "isrevealed-hide-secret-message-view-secret-message": "`+isRevealed ? `Hide secret message` : `View secret message",
+  "hide-secret-message": "Hide secret message",
+  "view-secret-message": "View secret message",
   "content-hidden": "Content hidden",
   "sample-secret-content-this-could-be-sensitive-data": "Sample secret content This could be sensitive data Or a multi-line message",
   "sample-secret-content": "Sample secret content",
@@ -537,7 +541,6 @@
   "image-icon": "Image icon",
   "use-the-controls-above-to-customize-brand-details": "Use the controls above to customize brand color, styles, and recipient instructions",
   "customization-icon": "Customization icon",
-  "and-customize": "& Customize",
   "you-have-unsaved-changes-are-you-sure": "You have unsaved changes. Are you sure?",
   "failed-to-load-brand-settings": "Failed to load brand settings",
   "this-is-an-interactive-preview-o": "This is an interactive preview of how recipients will see your secure messages. You can: - Customize colors and fonts using the controls above - Upload a logo (minimum 128x128 pixels recommended, 1MB max) - Test the preview using the \"View Secret\" button",

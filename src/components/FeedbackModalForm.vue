@@ -146,7 +146,7 @@ const buttonText = computed(() => isSubmitting.value ? t('web.LABELS.sending-ell
                   required
                   @keydown="handleKeydown"
                   :placeholder="$t('web.COMMON.feedback_text')"
-                  aria-label="$t('enter-your-feedback')"></textarea>
+                  :aria-label="$t('enter-your-feedback')"></textarea>
         <div class="mt-2 flex justify-end text-gray-500 dark:text-gray-400">
           <span v-if="isDesktop">{{ submitWithText }}</span>
         </div>

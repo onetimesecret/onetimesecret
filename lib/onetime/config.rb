@@ -3,8 +3,11 @@ module Onetime
     extend self
     attr_writer :path
 
-    SERVICE_PATHS = %w[/etc/onetime ./etc].freeze
-    UTILITY_PATHS = %w[~/.onetime /etc/onetime ./etc].freeze
+    unless defined?(SERVICE_PATHS)
+      SERVICE_PATHS = %w[/etc/onetime ./etc].freeze
+      UTILITY_PATHS = %w[~/.onetime /etc/onetime ./etc].freeze
+    end
+
     attr_reader :env, :base, :bootstrap
 
     # Load a YAML configuration file, allowing for ERB templating within the file.
@@ -200,13 +203,35 @@ module Onetime
         end
 
         OT.li "[sentry-init] Status: #{Sentry.initialized? ? 'OK' : 'Failed'}"
-
       end
 
+      i18n = OT.conf.fetch(:internationalization, {})
+      OT.i18n_enabled = i18n[:enabled] || false
+
+      if OT.i18n_enabled
+        OT.ld "Setting up i18n..."
+
+        # Load the locales from the config in both the current and
+        # legacy locations. If the locales are not set in the config,
+        # we fallback to english.
+        locales = i18n.fetch(:locales, nil) || OT.conf.fetch(:locales, ['en']).map(&:to_s)
+
+         # First look for the default locale in the i18n config, then
+         # legacy the locales config approach of using the first one.
+        OT.supported_locales = locales
+        OT.default_locale = i18n.fetch(:default_locale, locales.first) || 'en'
+        OT.fallback_locale = i18n.fetch(:fallback_locale, nil)
+
+        unless locales.include?(OT.default_locale)
+          OT.le "Default locale #{OT.default_locale} not in locales #{locales}"
+          OT.i18n_enabled = false
+        end
+      end
+
+      # Make sure these are set
       development = conf[:development]
       development[:enabled] ||= false
-      development[:frontend_host] ||= ''  # make sure this is set
-
+      development[:frontend_host] ||= ''
     end
 
     def exists?

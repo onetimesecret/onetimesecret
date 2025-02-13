@@ -22,25 +22,27 @@ module Onetime
 
       def initialize req, sess=nil, cust=nil, locale=nil, *args # rubocop:disable Metrics/MethodLength
         @req, @sess, @cust, @locale = req, sess, cust, locale
-        @locale ||= req.env['ots.locale'] || OT.conf[:locales].first.to_s || 'en' unless req.nil?
+        @locale ||= req.env['ots.locale'] || OT.default_locale || 'en' unless req.nil?
         @messages ||= []
         site = OT.conf.fetch(:site, {})
-        is_default_locale = OT.conf[:locales].first.to_s == locale
-        supported_locales = OT.conf.fetch(:locales, []).map(&:to_s)
+        display_locale = nil
 
         @canonical_domain = Onetime::DomainStrategy.canonical_domain
-        @domain_strategy = req.env['onetime.domain_strategy'] # never nil
-        @display_domain = req.env['onetime.display_domain'] # can be nil
+        @domain_strategy = req.env.fetch('onetime.domain_strategy', :default) # never null
+        @display_domain = req.env.fetch('onetime.display_domain', nil) # can be nil
         if @domain_strategy == :custom
           @custom_domain = OT::CustomDomain.from_display_domain(@display_domain)
           @domain_id = custom_domain&.domainid
           @domain_branding = (custom_domain&.brand&.hgetall || {}).to_h # bools are strings
           @domain_logo = (custom_domain&.logo&.hgetall || {}).to_h # ditto
+
+          domain_locale = domain_branding.fetch('locale', nil)
+          display_locale = domain_locale
         end
 
-        # TODO: Make better use of fetch/dig to avoid nil checks. Esp important
-        # across release versions where the config may change and existing
-        # installs may not have had a chance to update theirs yet.
+        display_locale ||= @locale
+        is_default_locale = display_locale == @locale
+
         secret_options = site.fetch(:secret_options, {})
         domains = site.fetch(:domains, {})
         regions = site.fetch(:regions, {})
@@ -138,9 +140,11 @@ module Onetime
 
         # Link to the pricing page can be seen regardless of authentication status
         self[:jsvars][:plans_enabled] = jsvar(site.dig(:plans, :enabled) || false)
-        self[:jsvars][:locale] = jsvar(@locale)
+        self[:jsvars][:locale] = jsvar(display_locale) # the locale the user sees
         self[:jsvars][:is_default_locale] = jsvar(is_default_locale)
-        self[:jsvars][:supported_locales] = jsvar(supported_locales)
+        self[:jsvars][:default_locale] = jsvar(OT.default_locale) # the application default
+        self[:jsvars][:fallback_locale] = jsvar(OT.fallback_locale)
+        self[:jsvars][:supported_locales] = jsvar(OT.supported_locales)
 
         self[:jsvars][:incoming_recipient] = jsvar(incoming_recipient)
         self[:jsvars][:support_host] = jsvar(support_host)
@@ -173,20 +177,34 @@ module Onetime
         self[:jsvars][:is_paid] = jsvar(@is_paid)
         self[:jsvars][:default_planid] = jsvar('basic')
 
-        # So the list of template vars shows up sorted variable name
-        # self[:jsvars] = self[:jsvars].sort
+        # Serialize the jsvars hash to JSON and this is the final window
+        # object that will be passed to the frontend.
         self[:window] = self[:jsvars].to_json
 
         init(*args) if respond_to? :init
       end
 
       def i18n
-        self.class.pagename ||= self.class.name.split('::').last.downcase.to_sym
+        pagename = self.class.pagename
+        messages = OT.locales.fetch(self.locale, {})
+
+        # If we don't have translations for the requested locale, fall back.
+        if messages.empty?
+          translated_locales = OT.locales.keys
+          OT.le "%{name} %{loc} not found in %{avail} (%{supp})" % {
+            name: "[#{pagename}.i18n]",
+            loc: self.locale,
+            avail: translated_locales,
+            supp: OT.supported_locales
+          }
+          messages = OT.locales.fetch(OT.default_locale, {})
+        end
+
         @i18n ||= {
           locale: self.locale,
-          default: OT.conf[:locales].first.to_s,
-          page: OT.locales[self.locale][:web][self.class.pagename],
-          COMMON: OT.locales[self.locale][:web][:COMMON]
+          default: OT.default_locale,
+          page: messages[:web].fetch(pagename, {}),
+          COMMON: messages[:web][:COMMON],
         }
       end
 
@@ -209,7 +227,9 @@ module Onetime
         # pagename must stay here while we use i18n method above. It populates
         # the i18n[:web][:pagename] hash with the locale translations, provided
         # the view being used has a matching name in the locales file.
-        attr_accessor :pagename
+        def pagename
+          @pagename ||= self.name.split('::').last.downcase.to_sym
+        end
       end
 
     end

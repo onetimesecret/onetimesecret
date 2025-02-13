@@ -11,7 +11,7 @@ RSpec.shared_context "rack_test_context" do
         'REMOTE_ADDR' => '127.0.0.1',
         'HTTP_HOST' => 'example.com',
         'rack.session' => {},
-        'HTTP_ACCEPT' => 'application/json'
+        'HTTP_ACCEPT' => 'application/json',
       },
       cookies: {},
       session: {},

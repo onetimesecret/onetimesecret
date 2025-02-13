@@ -25,7 +25,8 @@
   }
 
   const props = defineProps<Props>();
-  const { t } = useI18n();
+  const i18n = useI18n();
+  const { t } = i18n;
 
   const productIdentity = useProductIdentity();
   const brandSettings = productIdentity.brand; // Not reactive
@@ -87,6 +88,7 @@
   <!-- Updated -->
   <BaseSecretDisplay
     :default-title="$t('you-have-a-message')"
+    :previewI18n="i18n"
     :domain-branding="safeBrandSettings"
     :corner-class="cornerClass"
     :font-class="fontFamilyClass"

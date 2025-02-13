@@ -67,7 +67,7 @@
         <router-link
           to="/"
           class="group flex items-center"
-          aria-label="$t('onetime-secret-homepage')">
+          :aria-label="$t('onetime-secret-homepage')">
           <div class="relative">
             <img
               id="logo"
@@ -162,7 +162,7 @@
       <nav
         v-if="displayNavigation"
         role="navigation"
-        aria-label="$t('main-navigation')"
+        :aria-label="$t('main-navigation')"
         class="flex flex-wrap items-center justify-center gap-4 font-brand text-sm sm:justify-end sm:text-base">
         <template v-if="windowProps.authenticated && windowProps.cust">
           <HeaderUserNav
@@ -172,7 +172,7 @@
           <button
             @click="openSettingsModal"
             class="text-xl text-gray-600 transition-colors duration-200 hover:text-gray-800 dark:text-gray-300 dark:hover:text-white"
-            aria-label="$t('web.COMMON.header_settings')">
+            :aria-label="$t('web.COMMON.header_settings')">
             <OIcon
               class="size-5"
               collection="material-symbols"

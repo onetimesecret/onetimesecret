@@ -134,7 +134,7 @@ module Onetime::App
         locales << cust.locale if cust&.locale?
 
         # Ensure at least one configured locale is available
-        locales << OT.conf[:locales].first
+        locales << OT.default_locale
 
         # Filter and clean up locales
         locales = locales.uniq.reject { |l| !OT.locales.key?(l) }.compact
@@ -146,7 +146,6 @@ module Onetime::App
         req.env['ots.locale'] = @locale = locale
         req.env['ots.locales'] = locales
       end
-
 
       def json hsh
         res.header['Content-Type'] = "application/json; charset=utf-8"

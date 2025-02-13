@@ -172,16 +172,21 @@ module Onetime::App
     # @return [void]
     def check_locale!(locale = nil)
       locale ||= req.params[:locale]
-      locale ||= cust.locale if cust && cust.locale
+      locale ||= cust.locale if cust&.locale
       locale ||= req.env['rack.locale']
+
+      have_translations = locale && OT.locales.has_key?(locale)
+      OT.ld format(
+        '[check_locale!] locale=%s cust=%s req=%s t=%s',
+        locale,
+        cust&.locale,
+        req.params.keys,
+        have_translations
+      )
 
       # Set the locale in the request environment if it is
       # valid, otherwise use the default locale.
-      if locale && OT.locales.has_key?(locale)
-        req.env['ots.locale'] = locale
-      else
-        req.env['ots.locale'] = OT.conf[:locales].first
-      end
+      req.env['ots.locale'] = have_translations ? locale : OT.default_locale
     end
 
     # Check CSRF value submitted with POST requests (aka shrimp)

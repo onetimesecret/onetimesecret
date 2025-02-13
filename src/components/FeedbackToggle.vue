@@ -32,7 +32,7 @@
                  focus:ring-offset-2 focus:ring-offset-white dark:ring-offset-gray-900
                  dark:focus:ring-brand-400 dark:focus:ring-offset-gray-900
                  px-3 py-1.5 text-sm font-medium whitespace-nowrap"
-      aria-label="$t('open-feedback-form')">
+      :aria-label="$t('open-feedback-form')">
       <span class="inline">{{ t('feedback') }}</span>
       <OIcon
       class="size-5 text-gray-500 dark:text-gray-400

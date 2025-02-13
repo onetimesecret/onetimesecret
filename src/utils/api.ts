@@ -3,6 +3,7 @@ import {
   requestInterceptor,
   responseInterceptor,
 } from '@/plugins/axios/interceptors';
+import { Locale } from '@/schemas/i18n';
 import axios, { type AxiosInstance } from 'axios';
 
 // NOTE: Import createApi directly from '@/utils/api' in new code.
@@ -36,6 +37,11 @@ interface ApiConfig {
    * @throws {Error} If the URL is invalid or uses an unsupported protocol
    */
   domain?: string;
+  /**
+   * Locale to use for API requests. This will be sent as the 'Accept-Language' header.
+   * If not specified, the user's browser locale will be used by default.
+   */
+  locale?: Locale;
 }
 
 /**
@@ -100,11 +106,17 @@ const createApi = (config: ApiConfig = {}): AxiosInstance => {
     },
   });
 
+  // Only set locale if specified. Seems obvious and it is, but it
+  // also means we don't mess with the browser's default locale.
+  if (config.locale) api.defaults.headers['Accept-Language'] = config.locale;
+
   api.interceptors.request.use(requestInterceptor);
   api.interceptors.response.use(responseInterceptor, errorInterceptor);
 
   return api;
 };
+
+export { createApi };
 
 /**
  * Default API instance.
@@ -124,6 +136,4 @@ const createApi = (config: ApiConfig = {}): AxiosInstance => {
  * const response = api.get('/items');
  */
 const defaultApi = createApi();
-
-export { createApi };
 export default defaultApi;

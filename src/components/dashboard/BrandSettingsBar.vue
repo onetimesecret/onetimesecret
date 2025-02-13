@@ -15,7 +15,7 @@
     fontIconMap,
     fontOptions,
   } from '@/schemas/models/domain/brand';
-  import { useI18n } from 'vue-i18n';
+  import { Composer, useI18n } from 'vue-i18n';
   const { t } = useI18n();
   import { computed } from 'vue';
 
@@ -23,6 +23,8 @@
     modelValue: BrandSettings;
     isLoading: boolean;
     isInitialized: boolean;
+    previewI18n: Composer;
+    hasUnsavedChanges: boolean;
   }>();
 
   const emit = defineEmits<{
@@ -39,6 +41,10 @@
       [key]: value,
     });
   };
+
+  const isDisabled = computed(() => {
+    return props.isLoading || !props.hasUnsavedChanges;
+  });
 
   const buttonText = computed(() => {
     return props.isLoading ? t('web.LABELS.saving') : t('web.LABELS.save');
@@ -64,18 +70,18 @@
                 :model-value="modelValue.primary_color"
                 @update:model-value="(value) => updateBrandSetting('primary_color', value)"
                 name="brand[primary_color]"
-                label="$t('brand-color')"
+                :label="t('brand-color')"
                 id="brand-color" />
             </div>
 
-            <!-- Controls -->
+            <!-- UI Elements -->
             <div class="flex items-center gap-2 flex-shrink-0">
               <CycleButton
                 :model-value="modelValue.corner_style"
                 @update:model-value="(value) => updateBrandSetting('corner_style', value)"
                 :default-value="CornerStyle.ROUNDED"
                 :options="cornerStyleOptions"
-                label="$t('corner-style')"
+                :label="t('corner-style')"
                 :display-map="cornerStyleDisplayMap"
                 :icon-map="cornerStyleIconMap" />
               <CycleButton
@@ -83,7 +89,7 @@
                 @update:model-value="(value) => updateBrandSetting('font_family', value)"
                 :default-value="FontFamily.SANS"
                 :options="fontOptions"
-                label="$t('font-family')"
+                :label="t('font-family')"
                 :display-map="fontDisplayMap"
                 :icon-map="fontIconMap" />
             </div>
@@ -92,13 +98,19 @@
             <div class="flex-shrink-0">
               <slot name="instructions-button"></slot>
             </div>
+
+            <!-- Language -->
+            <div class="flex-shrink-0">
+              <slot name="language-button"></slot>
+            </div>
           </div>
+
 
           <!-- Save Button -->
           <div class="ml-auto flex-shrink-0">
             <button
               type="submit"
-              :disabled="isLoading"
+              :disabled="isDisabled"
               class="flex-shrink-0 inline-flex h-11 items-center justify-center
                        rounded-lg border border-transparent
                        bg-brand-600 px-4

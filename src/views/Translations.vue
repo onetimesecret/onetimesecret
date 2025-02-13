@@ -2,7 +2,6 @@
 import EmailObfuscator from '@/components/EmailObfuscator.vue';
 import GithubCorner from '@/components/GithubCorner.vue';
 import { WindowService } from '@/services/window.service';
-import { setLanguage } from '@/i18n';
 import translations from '@/sources/translations.json';
 import { useLanguageStore } from '@/stores/languageStore';
 
@@ -16,7 +15,7 @@ const changeLocale = async (newLocale: string) => {
         cust.locale = newLocale;
       }
       await languageStore.updateLanguage(newLocale);
-      await setLanguage(newLocale);
+
     } catch (err) {
       console.error('Failed to update language:', err);
     }

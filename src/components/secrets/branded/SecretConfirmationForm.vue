@@ -23,7 +23,8 @@ interface Props {
 
 const props = defineProps<Props>();
 
-const { t } = useI18n();
+const i18n = useI18n();
+const { t } = i18n;
 
 const emit = defineEmits(['user-confirmed']);
 // const useSecret = useSecret();
@@ -75,6 +76,7 @@ const logoImage = ref<string>(`/imagine/${props.domainId}/logo.png`);
 
 <template>
   <BaseSecretDisplay :default-title="$t('you-have-a-message')"
+                     :previewI18n="i18n"
                      :domain-branding="safeBrandSettings"
                      :corner-class="cornerClass"
                      :font-class="fontFamilyClass"
@@ -116,7 +118,7 @@ const logoImage = ref<string>(`/imagine/${props.domainId}/logo.png`);
     <template #content>
       <div class="flex items-center text-gray-400 dark:text-gray-500"
            role="status"
-           aria-label="$t('content-status')">
+           :aria-label="$t('content-status')">
         <svg class="mr-2 size-5"
              viewBox="0 0 24 24"
              fill="none"
@@ -133,7 +135,7 @@ const logoImage = ref<string>(`/imagine/${props.domainId}/logo.png`);
 
     <template #action-button>
       <form @submit.prevent="submitForm"
-            aria-label="$t('secret-access-form')">
+            :aria-label="$t('secret-access-form')">
         <!-- Error Message -->
         <div v-if="error"
              class="mb-4 rounded-md bg-red-50 p-4 text-sm text-red-700 dark:bg-red-900/50 dark:text-red-200"

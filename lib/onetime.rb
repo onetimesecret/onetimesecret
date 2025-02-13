@@ -47,6 +47,7 @@ module Onetime
   # d9s: diagnostics is a boolean flag. If true, it will enable Sentry
   module ClassMethods
     attr_accessor :mode, :env, :d9s_enabled
+    attr_accessor :i18n_enabled, :supported_locales, :default_locale, :fallback_locale
     attr_reader :conf, :locales, :instance, :sysinfo, :emailer, :global_secret, :global_banner
     attr_writer :debug
 
@@ -169,6 +170,8 @@ module Onetime
       OT.li "redis: #{redis_info['redis_version']} (#{Familia.uri.serverid})"
       OT.li "familia: v#{Familia::VERSION}"
       OT.li "colonels: #{OT.conf[:colonels].join(', ')}"
+      OT.li "i18n: #{OT.i18n_enabled}"
+      OT.li "locales: #{@locales.keys.join(', ')}" if OT.i18n_enabled
       OT.li "diagnotics: #{OT.d9s_enabled}"
       if OT.conf[:site].key?(:authentication)
         OT.li "auth: #{OT.conf[:site][:authentication].map { |k,v| "#{k}=#{v}" }.join(', ')}"
@@ -196,7 +199,6 @@ module Onetime
       if OT.conf.fetch(:experimental, false)
         OT.li "experimental: #{OT.conf[:experimental].map { |k,v| "#{k}=#{v}" }.join(', ')}"
       end
-      OT.li "locales: #{@locales.keys.join(', ')}"
       OT.li "secret options: #{OT.conf.dig(:site, :secret_options)}"
       OT.li "rate limits: #{OT::RateLimit.events.map { |k,v| "#{k}=#{v}" }.join(', ')}"
     end
@@ -239,10 +241,12 @@ module Onetime
       end
     end
 
-    def load_locales(locales = OT.conf[:locales] || ['en'])
-      confs = locales.collect do |locale|
-        path = File.join(Onetime::HOME, 'src', 'locales', "#{locale}.json")
-        OT.ld "Loading locale #{locale}: #{File.exist?(path)}"
+    def load_locales
+      return unless OT.i18n_enabled
+
+      confs = OT.supported_locales.collect do |loc|
+        path = File.join(Onetime::HOME, 'src', 'locales', "#{loc}.json")
+        OT.ld "Loading #{loc}: #{File.exist?(path)}"
         begin
           contents = File.read(path)
         rescue Errno::ENOENT => e
@@ -250,19 +254,22 @@ module Onetime
           next
         end
         conf = JSON.parse(contents, symbolize_names: true)
-        [locale, conf]
+        [loc, conf]
       end
 
       # Convert the zipped array to a hash
       locales = confs.compact.to_h
-      # Make sure the default locale is first
-      default_locale = locales[OT.conf[:locales].first]
+
+      default_locale_def = locales.fetch(OT.default_locale, {})
+
       # Here we overlay each locale on top of the default just
       # in case there are keys that haven't been translated.
       # That way, at least the default language will display.
       locales.each do |key, locale|
-        locales[key] = OT::Utils.deep_merge(default_locale, locale) if default_locale != locale
+        next if OT.default_locale == locale
+        locales[key] = OT::Utils.deep_merge(default_locale_def, locale)
       end
+
       @locales = locales
     end
 
@@ -289,6 +296,7 @@ end
 # Sets the SIGINT handler for a graceful shutdown and prevents Sentry from
 # trying to send events over the network when we're shutting down via ctrl-c.
 trap("SIGINT") do
+  OT.li "Shutting down gracefully..."
   begin
     Sentry.close(timeout: 2)  # Attempt graceful shutdown with a short timeout
   rescue StandardError => ex
