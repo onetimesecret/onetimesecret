@@ -80,6 +80,7 @@
       class="space-y-8 bg-gradient-to-b from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-950 rounded-lg p-6">
       <!-- Secret Link Header -->
       <section
+        v-if="!details.show_recipients"
         class="animate-fade-in relative"
         aria-labelledby="secret-header">
 
@@ -90,6 +91,15 @@
           :isInitialView="!record.is_viewed"
           class="focus-within:ring-2 focus-within:ring-brand-500 rounded-lg" />
       </section>
+
+      <!-- Recipients Section -->
+      <div
+        v-if="details.show_recipients"
+        class="border-t border-slate-100 py-4 dark:border-slate-800">
+        <h3 class="text-lg font-semibold text-slate-800 dark:text-slate-200">
+          {{ $t('web.COMMON.sent_to') }} {{ record.recipients }}
+        </h3>
+      </div>
 
       <!-- Secret Value -->
       <section
@@ -172,15 +182,6 @@
           {{ $t('create-another-secret') }}
         </router-link>
       </section>
-
-      <!-- Recipients Section -->
-      <div
-        v-if="details.show_recipients"
-        class="border-t border-slate-100 py-4 dark:border-slate-800">
-        <h3 class="text-lg font-semibold text-slate-800 dark:text-slate-200">
-          {{ $t('web.COMMON.sent_to') }} {{ record.recipients }}
-        </h3>
-      </div>
 
       <!-- Help Section -->
       <section
