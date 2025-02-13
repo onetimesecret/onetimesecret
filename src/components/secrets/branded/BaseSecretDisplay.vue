@@ -20,7 +20,8 @@
   import OIcon from '@/components/icons/OIcon.vue';
   import { computed, nextTick, onMounted, onUnmounted, ref } from 'vue';
   import { Composer, useI18n } from 'vue-i18n';
-  const { t } = useI18n();
+  const i18n = useI18n();
+
 
   const props = defineProps<{
     domainBranding: BrandSettings;
@@ -36,7 +37,7 @@
   const isExpanded = ref(false);
   const isLongText = ref(false);
 
-  const displayComposer = props.previewI18n || t;
+  const displayComposer = props.previewI18n || i18n;
 
   // Reusable computed properties
   const textClasses = computed(() => ({
