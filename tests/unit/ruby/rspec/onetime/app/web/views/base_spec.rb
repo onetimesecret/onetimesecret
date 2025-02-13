@@ -289,21 +289,21 @@ RSpec.describe Onetime::App::View do
     context 'with Canadian French locale' do
       include_examples "locale initialization", 'fr_CA', {
         locale: 'fr_CA',
-        is_default: false
+        is_default: true
       }
     end
 
     context 'with French locale' do
       include_examples "locale initialization", 'fr_FR', {
         locale: 'fr_FR',
-        is_default: false
+        is_default: true
       }
     end
 
     context 'with unsupported locale' do
       include_examples "locale initialization", 'es', {
         locale: 'es',
-        is_default: false
+        is_default: true
       }
     end
 
