@@ -43,7 +43,7 @@ jobs:
           head -4 .commit_hash.txt package.json
 
       - name: Set up QEMU
-        uses: docker/setup-qemu-action@v3.3.0
+        uses: docker/setup-qemu-action@v3.4.0
         with:
           platforms: arm64
 
