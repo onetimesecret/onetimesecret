@@ -6,7 +6,7 @@ import {
 import { Locale } from '@/schemas/i18n';
 import axios, { type AxiosInstance } from 'axios';
 
-// NOTE: Import createApi directly from '@/utils/api' in new code.
+// NOTE: Import createApi directly from '@/api' in new code.
 
 /**
  * BACKWARDS COMPATIBILITY NOTICE:
@@ -127,11 +127,11 @@ export { createApi };
  *
  * @example
  * // Legacy pattern:
- * import api from '@/utils/api';
+ * import api from '@/api';
  * const response = api.get('/items');
  *
  * // Modern pattern:
- * import { createApi } from '@/utils/api';
+ * import { createApi } from '@/api';
  * const api = createApi();
  * const response = api.get('/items');
  */
