@@ -1,7 +1,7 @@
 // tests/unit/vue/stores/authStore.spec.ts
 import { Customer, Plan } from '@/schemas/models';
 import { AUTH_CHECK_CONFIG, useAuthStore } from '@/stores/authStore';
-import { createApi } from '@/utils/api';
+import { createApi } from '@/api';
 import AxiosMockAdapter from 'axios-mock-adapter';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { setupTestPinia } from '../setup';

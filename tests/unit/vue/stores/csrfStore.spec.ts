@@ -1,5 +1,5 @@
 import { useCsrfStore } from '@/stores/csrfStore';
-import { createApi } from '@/utils/api';
+import { createApi } from '@/api';
 import { createTestingPinia } from '@pinia/testing';
 import AxiosMockAdapter from 'axios-mock-adapter';
 import { setActivePinia } from 'pinia';

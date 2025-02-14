@@ -1,7 +1,7 @@
 // src/stores/languageStore.spec.ts
 import { ApplicationError } from '@/schemas';
 import { SESSION_STORAGE_KEY, useLanguageStore } from '@/stores/languageStore';
-import { createApi } from '@/utils/api';
+import { createApi } from '@/api';
 import AxiosMockAdapter from 'axios-mock-adapter';
 import { createPinia, setActivePinia } from 'pinia';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
@@ -55,9 +55,7 @@ describe('Language Store', () => {
       store.init(undefined, {
         deviceLocale: 'es-ES',
       });
-      const setupAsyncHandlerSpy = vi
-        .spyOn(sessionStorage, 'getItem')
-        .mockReturnValueOnce(null);
+      const setupAsyncHandlerSpy = vi.spyOn(sessionStorage, 'getItem').mockReturnValueOnce(null);
       expect(store.currentLocale).toBe('es');
       // expect(setupAsyncHandlerSpy).toBeCalledTimes(0);
     });
@@ -71,9 +69,7 @@ describe('Language Store', () => {
     });
 
     it('initializes with stored locale', () => {
-      const setupAsyncHandlerSpy = vi
-        .spyOn(sessionStorage, 'getItem')
-        .mockReturnValueOnce('fr');
+      const setupAsyncHandlerSpy = vi.spyOn(sessionStorage, 'getItem').mockReturnValueOnce('fr');
       const store = useLanguageStore();
       store.init();
       expect(store.currentLocale).toBe('fr');
@@ -230,10 +226,7 @@ describe('Language Store', () => {
 
         // Verify the error contains validation details
         const errorData = JSON.parse(caughtError.message);
-        expect(errorData).toMatchObject([
-          { code: 'too_big' },
-          { code: 'invalid_string' },
-        ]);
+        expect(errorData).toMatchObject([{ code: 'too_big' }, { code: 'invalid_string' }]);
       });
     });
   });
