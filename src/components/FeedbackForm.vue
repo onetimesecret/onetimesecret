@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import AltchaChallenge from '@/components/AltchaChallenge.vue';
-import { useExceptionReporting } from '@/composables/useExceptionReporting';
 import { useFormSubmission } from '@/composables/useFormSubmission';
 import { WindowService } from '@/services/window.service';
 import { useCsrfStore } from '@/stores/csrfStore';
@@ -32,7 +31,6 @@ onMounted(() => {
   userTimezone.value = Intl.DateTimeFormat().resolvedOptions().timeZone;
 });
 
-
 // We use this to determine whether to include the authenticity check
 const windowProps = WindowService.getMultiple({
   cust: null,
@@ -41,34 +39,9 @@ const windowProps = WindowService.getMultiple({
 
 const emit = defineEmits(['feedback-sent']);
 
-const { reportException } = useExceptionReporting();
-
-const handleSpecialMessages = (message: string) => {
-  console.log(`Checking for special message: ${message}`)
-  if (message.startsWith('#ex')) {
-    const error = new Error(t('test-error-triggered-via-feedback'));
-    reportException({
-      message: `Test exception: ${message.substring(11)}`,
-      type: 'TestFeedbackError',
-      stack: error.stack || '',
-      url: window.location.href,
-      line: 0,
-      column: 0,
-      environment: 'production',
-      release: windowProps.ot_version || 'unknown'
-    });
-    return true;
-  }
-  return false;
-};
-
 const submitWithCheck = async (event?: Event) => {
   console.debug('Submitting exception form');
 
-  if (handleSpecialMessages(feedbackMessage.value)) {
-    // Special message handled, don't submit form
-    return;
-  }
   await submitForm(event);
 };
 
