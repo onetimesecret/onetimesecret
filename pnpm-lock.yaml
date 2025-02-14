@@ -200,7 +200,7 @@ importers:
         version: 8.14.0(eslint@9.15.0(jiti@2.4.0))(typescript@5.6.3)
       unplugin-vue-markdown:
         specifier: ^28.0.0
-        version: 28.0.0(rollup@4.24.4)(vite@5.4.11(@types/node@22.9.0)(terser@5.36.0))
+        version: 28.3.0(rollup@4.24.4)(vite@5.4.11(@types/node@22.9.0)(terser@5.36.0))
       vite:
         specifier: ^5.4.11
         version: 5.4.11(@types/node@22.9.0)(terser@5.36.0)
@@ -2485,8 +2485,8 @@ packages:
   make-error@1.3.6:
     resolution: {integrity: sha512-s8UhlNe7vPKomQhC1qFelMokr/Sc3AgNbso3n74mVPA5LTZwkB9NlXf4XPamLxJE8h0gh73rM94xvwRT2CVInw==}
 
-  markdown-it-async@0.1.3:
-    resolution: {integrity: sha512-R0oC5NCrGhAZGZXQ923+RUNbv6vAFCyHebC2SA9Q2TR7yYBowAboLhrsRJrfB9s9cL3epF+JaHrg5WSeoh+CRA==}
+  markdown-it-async@2.0.0:
+    resolution: {integrity: sha512-jBthmQR5MwXR9Y8Y0teRoZAenaKQMdjuTfpbNARqMBSRPvyzyXCVduHZHakyyhL3ugIacCobXJrO07t277sIjw==}
 
   markdown-it@14.1.0:
     resolution: {integrity: sha512-a54IwgWPaeBCAAsv13YgmALOF1elABB08FxO9i+r4VFk5Vl4pKokRPeX8u5TCgSsPi6ec1otfLjdOpVcgbpshg==}
@@ -3209,8 +3209,8 @@ packages:
     resolution: {integrity: sha512-gptHNQghINnc/vTGIk0SOFGFNXw7JVrlRUtConJRlvaw6DuX0wO5Jeko9sWrMBhh+PsYAZ7oXAiOnf/UKogyiw==}
     engines: {node: '>= 10.0.0'}
 
-  unplugin-vue-markdown@28.0.0:
-    resolution: {integrity: sha512-8UsgvTpe/0om4qAE1YOMfDB/R5W/L3G5fTkBQ9cShjqKsklnbkizVZe7B/CepIreVolJZNQBzc5ZQqA5PCSCmQ==}
+  unplugin-vue-markdown@28.3.0:
+    resolution: {integrity: sha512-N84cKGjyzGYIxuew+Oxnf7SulbNZjbdh0mJt1i2tuUMvplPGYIyafHueTMIi+nu47DBn+BV+CwjBkVbHh0L4Ug==}
     peerDependencies:
       vite: ^2.0.0 || ^3.0.0-0 || ^4.0.0-0 || ^5.0.0-0 || ^6.0.0
 
@@ -5918,7 +5918,7 @@ snapshots:
 
   make-error@1.3.6: {}
 
-  markdown-it-async@0.1.3:
+  markdown-it-async@2.0.0:
     dependencies:
       '@types/markdown-it': 14.1.2
       markdown-it: 14.1.0
@@ -6645,7 +6645,7 @@ snapshots:
 
   universalify@2.0.1: {}
 
-  unplugin-vue-markdown@28.0.0(rollup@4.24.4)(vite@5.4.11(@types/node@22.9.0)(terser@5.36.0)):
+  unplugin-vue-markdown@28.3.0(rollup@4.24.4)(vite@5.4.11(@types/node@22.9.0)(terser@5.36.0)):
     dependencies:
       '@mdit-vue/plugin-component': 2.1.3
       '@mdit-vue/plugin-frontmatter': 2.1.3
@@ -6653,7 +6653,7 @@ snapshots:
       '@rollup/pluginutils': 5.1.4(rollup@4.24.4)
       '@types/markdown-it': 14.1.2
       markdown-it: 14.1.0
-      markdown-it-async: 0.1.3
+      markdown-it-async: 2.0.0
       unplugin: 2.1.2
       vite: 5.4.11(@types/node@22.9.0)(terser@5.36.0)
     transitivePeerDependencies:
