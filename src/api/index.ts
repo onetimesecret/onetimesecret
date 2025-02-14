@@ -117,23 +117,3 @@ const createApi = (config: ApiConfig = {}): AxiosInstance => {
 };
 
 export { createApi };
-
-/**
- * Default API instance.
- *
- * @deprecated Use createApi() for new code.
- * The default export is kept for compatibility.
- * No new options will be added.
- *
- * @example
- * // Legacy pattern:
- * import api from '@/api';
- * const response = api.get('/items');
- *
- * // Modern pattern:
- * import { createApi } from '@/api';
- * const api = createApi();
- * const response = api.get('/items');
- */
-const defaultApi = createApi();
-export default defaultApi;
