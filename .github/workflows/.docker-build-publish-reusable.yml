@@ -48,7 +48,7 @@ jobs:
           platforms: arm64
 
       - name: Setup Docker buildx
-        uses: docker/setup-buildx-action@v3.8.0
+        uses: docker/setup-buildx-action@v3.9.0
         with:
           platforms: linux/amd64,linux/arm64
 
