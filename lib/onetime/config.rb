@@ -112,7 +112,7 @@ module Onetime
         klass.vhost_target = cluster[:vhost_target]
         OT.ld "Domains config: #{cluster}"
         unless klass.api_key
-          raise OT::Problem.new "No `site.domains.cluster` api key (#{klass.api_key})"
+          raise OT::Problem.new "No `site.domains.cluster` api key (#{klass.api_key})" # TODO: Add comma?
         end
       end
 
