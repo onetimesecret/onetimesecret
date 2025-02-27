@@ -131,7 +131,10 @@
       "orphaned_description": "Le secret est orphelin et sera bientôt détruit",
       "expired_description": "Le secret a expiré avant d'être consulté",
       "success": "Succès",
-      "delivered": "Livré"
+      "delivered": "Livré",
+      "dns-incorrect": "DNS Incorrect",
+      "active": "Actif",
+      "inactive": "Inactif"
     },
     "FEATURES": {
       "unlimited_views": "Consultations illimitées",
