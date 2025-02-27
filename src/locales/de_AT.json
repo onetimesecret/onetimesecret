@@ -131,7 +131,10 @@
       "orphaned_description": "Das Geheimnis ist verwaist und wird bald zerstört werden",
       "expired_description": "Das Geheimnis ist abgelaufen, bevor es angezeigt wurde",
       "success": "Erfolg",
-      "delivered": "Geliefert"
+      "delivered": "Geliefert",
+      "dns-incorrect": "DNS Incorrect",
+      "active": "Aktiv",
+      "inactive": "Inaktiv"
     },
     "FEATURES": {
       "unlimited_views": "Unbegrenzte Ansichten",
