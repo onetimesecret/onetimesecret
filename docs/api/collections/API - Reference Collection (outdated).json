@@ -1,7 +1,7 @@
 {
 	"info": {
 		"_postman_id": "38072473-c31d-4c66-abd6-7f3bab87eef5",
-		"name": "Onetime Secret - API Definition",
+		"name": "API - Reference Collection (outdated)",
 		"description": "The Onetime Secret API allows you to securely share secrets. This API provides endpoints to create, retrieve, and manage secrets. You can use this API to generate a secret URL that can be shared with others, ensuring that the secret is only accessible once. The API supports various operations such as creating a new secret, retrieving a secret, and deleting a secret. It is designed to be simple and secure, making it easy to integrate into your applications.",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
 		"_uid": "38849719-38072473-c31d-4c66-abd6-7f3bab87eef5"
@@ -2404,955 +2404,6 @@
 			"id": "701461dd-c5af-4345-9cb9-282b7fb8a7a0"
 		},
 		{
-			"name": "v1",
-			"item": [
-				{
-					"name": "private",
-					"item": [
-						{
-							"name": "/v1/private/:metadata_key",
-							"id": "fd037e1e-3b05-44e3-9e3b-29a474de2e60",
-							"protocolProfileBehavior": {
-								"disableBodyPruning": true
-							},
-							"request": {
-								"method": "POST",
-								"header": [],
-								"url": {
-									"raw": "{{baseUrl}}/v1/private/:metadata_key",
-									"host": [
-										"{{baseUrl}}"
-									],
-									"path": [
-										"v1",
-										"private",
-										":metadata_key"
-									],
-									"variable": [
-										{
-											"key": "metadata_key",
-											"value": "<string>",
-											"description": "(Required) "
-										}
-									]
-								}
-							},
-							"response": [
-								{
-									"id": "d7e7fedc-fb15-44af-9a70-8d6e9744e864",
-									"name": "Successful response",
-									"originalRequest": {
-										"method": "POST",
-										"header": [
-											{
-												"description": "Added as a part of security scheme: basic",
-												"key": "Authorization",
-												"value": "Basic <credentials>"
-											}
-										],
-										"url": {
-											"raw": "{{baseUrl}}/v1/private/:metadata_key",
-											"host": [
-												"{{baseUrl}}"
-											],
-											"path": [
-												"v1",
-												"private",
-												":metadata_key"
-											],
-											"variable": [
-												{
-													"key": "metadata_key"
-												}
-											]
-										}
-									},
-									"status": "OK",
-									"code": 200,
-									"_postman_previewlanguage": "text",
-									"header": [],
-									"cookie": []
-								}
-							]
-						},
-						{
-							"name": "/v1/private/:metadata_key/burn",
-							"id": "0f02cb6c-cfec-4d4b-9bad-703511fde4fd",
-							"protocolProfileBehavior": {
-								"disableBodyPruning": true
-							},
-							"request": {
-								"method": "POST",
-								"header": [],
-								"url": {
-									"raw": "{{baseUrl}}/v1/private/:metadata_key/burn",
-									"host": [
-										"{{baseUrl}}"
-									],
-									"path": [
-										"v1",
-										"private",
-										":metadata_key",
-										"burn"
-									],
-									"variable": [
-										{
-											"key": "metadata_key",
-											"value": "<string>",
-											"description": "(Required) "
-										}
-									]
-								}
-							},
-							"response": [
-								{
-									"id": "5121a279-a166-4174-b677-c4e73f12eb34",
-									"name": "Successful response",
-									"originalRequest": {
-										"method": "POST",
-										"header": [
-											{
-												"description": "Added as a part of security scheme: basic",
-												"key": "Authorization",
-												"value": "Basic <credentials>"
-											}
-										],
-										"url": {
-											"raw": "{{baseUrl}}/v1/private/:metadata_key/burn",
-											"host": [
-												"{{baseUrl}}"
-											],
-											"path": [
-												"v1",
-												"private",
-												":metadata_key",
-												"burn"
-											],
-											"variable": [
-												{
-													"key": "metadata_key"
-												}
-											]
-										}
-									},
-									"status": "OK",
-									"code": 200,
-									"_postman_previewlanguage": "text",
-									"header": [],
-									"cookie": []
-								}
-							]
-						},
-						{
-							"name": "/v1/private/recent",
-							"id": "deae81af-a9ef-4ea8-9792-792a2f6158c6",
-							"protocolProfileBehavior": {
-								"disableBodyPruning": true
-							},
-							"request": {
-								"method": "GET",
-								"header": [],
-								"url": {
-									"raw": "{{baseUrl}}/v1/private/recent",
-									"host": [
-										"{{baseUrl}}"
-									],
-									"path": [
-										"v1",
-										"private",
-										"recent"
-									]
-								}
-							},
-							"response": [
-								{
-									"id": "e3adf8fb-0c50-4c74-8db6-00fa3a1684b4",
-									"name": "Successful response",
-									"originalRequest": {
-										"method": "GET",
-										"header": [
-											{
-												"description": "Added as a part of security scheme: basic",
-												"key": "Authorization",
-												"value": "Basic <credentials>"
-											}
-										],
-										"url": {
-											"raw": "{{baseUrl}}/v1/private/recent",
-											"host": [
-												"{{baseUrl}}"
-											],
-											"path": [
-												"v1",
-												"private",
-												"recent"
-											]
-										}
-									},
-									"status": "OK",
-									"code": 200,
-									"_postman_previewlanguage": "text",
-									"header": [],
-									"cookie": []
-								}
-							]
-						}
-					],
-					"id": "7c96206c-0a5f-4e35-bd52-7321155e36f4"
-				},
-				{
-					"name": "secret",
-					"item": [
-						{
-							"name": "/v1/secret/:secret_key",
-							"id": "333a915d-9a75-4eb8-a6eb-4a47c209d4fa",
-							"protocolProfileBehavior": {
-								"disableBodyPruning": true
-							},
-							"request": {
-								"method": "POST",
-								"header": [
-									{
-										"key": "Accept",
-										"value": "application/json"
-									}
-								],
-								"url": {
-									"raw": "{{baseUrl}}/v1/secret/:secret_key",
-									"host": [
-										"{{baseUrl}}"
-									],
-									"path": [
-										"v1",
-										"secret",
-										":secret_key"
-									],
-									"variable": [
-										{
-											"key": "secret_key",
-											"value": "<string>",
-											"description": "(Required) "
-										}
-									]
-								}
-							},
-							"response": [
-								{
-									"id": "104f96db-a7a9-41d7-bfaa-c1fb16e209d8",
-									"name": "Successful response",
-									"originalRequest": {
-										"method": "POST",
-										"header": [
-											{
-												"key": "Accept",
-												"value": "application/json"
-											},
-											{
-												"description": "Added as a part of security scheme: basic",
-												"key": "Authorization",
-												"value": "Basic <credentials>"
-											}
-										],
-										"url": {
-											"raw": "{{baseUrl}}/v1/secret/:secret_key",
-											"host": [
-												"{{baseUrl}}"
-											],
-											"path": [
-												"v1",
-												"secret",
-												":secret_key"
-											],
-											"variable": [
-												{
-													"key": "secret_key"
-												}
-											]
-										}
-									},
-									"status": "OK",
-									"code": 200,
-									"_postman_previewlanguage": "json",
-									"header": [
-										{
-											"key": "Content-Type",
-											"value": "application/json"
-										}
-									],
-									"cookie": [],
-									"body": "{\n  \"value\": \"reference #/components/schemas/SecretDataApiResponse not found in the OpenAPI spec\",\n  \"success\": \"<boolean>\",\n  \"record\": {\n    \"created\": \"<string>\",\n    \"custid\": \"<string>\",\n    \"has_passphrase\": \"<boolean>\",\n    \"identifier\": \"<string>\",\n    \"is_owner\": \"<boolean>\",\n    \"is_truncated\": \"<boolean>\",\n    \"lifespan\": \"<number>\",\n    \"metadata_key\": \"<string>\",\n    \"original_size\": \"<number>\",\n    \"share_domain\": \"<string>\",\n    \"state\": \"<string>\",\n    \"updated\": \"<string>\",\n    \"value\": \"<string>\",\n    \"value_checksum\": \"<string>\",\n    \"value_encryption\": \"<string>\",\n    \"verification\": \"<string>\",\n    \"secret_value\": \"<string>\",\n    \"details\": {\n      \"continue\": \"<boolean>\",\n      \"show_secret\": \"<boolean>\",\n      \"correct_passphrase\": \"<boolean>\",\n      \"display_lines\": \"<number>\",\n      \"one_liner\": \"<boolean>\"\n    }\n  }\n}"
-								}
-							]
-						}
-					],
-					"id": "7ca3f31f-1ae6-468a-84be-0e2d2a76fa59"
-				},
-				{
-					"name": "/v1/generate",
-					"id": "8a909120-bc43-43e8-b919-3b9a25d680bc",
-					"protocolProfileBehavior": {
-						"disableBodyPruning": true
-					},
-					"request": {
-						"method": "POST",
-						"header": [
-							{
-								"key": "Content-Type",
-								"value": "application/x-www-form-urlencoded"
-							},
-							{
-								"key": "Accept",
-								"value": "application/json"
-							}
-						],
-						"url": {
-							"raw": "{{baseUrl}}/v1/generate",
-							"host": [
-								"{{baseUrl}}"
-							],
-							"path": [
-								"v1",
-								"generate"
-							]
-						}
-					},
-					"response": [
-						{
-							"id": "b29cb459-6f8a-4b48-969e-d52854f28d2a",
-							"name": "Successful response",
-							"originalRequest": {
-								"method": "POST",
-								"header": [
-									{
-										"key": "Accept",
-										"value": "application/json"
-									},
-									{
-										"description": "Added as a part of security scheme: basic",
-										"key": "Authorization",
-										"value": "Basic <credentials>"
-									}
-								],
-								"url": {
-									"raw": "{{baseUrl}}/v1/generate",
-									"host": [
-										"{{baseUrl}}"
-									],
-									"path": [
-										"v1",
-										"generate"
-									]
-								}
-							},
-							"status": "OK",
-							"code": 200,
-							"_postman_previewlanguage": "json",
-							"header": [
-								{
-									"key": "Content-Type",
-									"value": "application/json"
-								}
-							],
-							"cookie": [],
-							"body": "{\n  \"value\": \"reference #/components/schemas/ConcealDataApiResponse not found in the OpenAPI spec\",\n  \"success\": \"<boolean>\",\n  \"record\": {\n    \"metadata\": {\n      \"burn_path\": \"<string>\",\n      \"burn_url\": \"<string>\",\n      \"created\": \"<string>\",\n      \"expiration\": \"<string>\",\n      \"expiration_in_seconds\": \"<string>\",\n      \"identifier\": \"<string>\",\n      \"key\": \"<string>\",\n      \"metadata_path\": \"<string>\",\n      \"metadata_url\": \"<string>\",\n      \"natural_expiration\": \"<string>\",\n      \"recipients\": [\n        \"<string>\",\n        \"<string>\"\n      ],\n      \"secret_key\": \"<string>\",\n      \"secret_shortkey\": \"<string>\",\n      \"share_domain\": \"<string>\",\n      \"share_path\": \"<string>\",\n      \"share_url\": \"<string>\",\n      \"shortkey\": \"<string>\",\n      \"updated\": \"<string>\",\n      \"created_date\": \"<string>\",\n      \"details\": {\n        \"body_class\": \"<string>\",\n        \"can_decrypt\": \"<boolean>\",\n        \"display_feedback\": \"<boolean>\",\n        \"display_lines\": \"<number>\",\n        \"has_maxviews\": \"<boolean>\",\n        \"has_passphrase\": \"<boolean>\",\n        \"is_burned\": \"<boolean>\",\n        \"is_destroyed\": \"<boolean>\",\n        \"is_received\": \"<boolean>\",\n        \"maxviews\": \"<number>\",\n        \"no_cache\": \"<boolean>\",\n        \"show_metadata_link\": \"<boolean>\",\n        \"show_metadata\": \"<boolean>\",\n        \"show_recipients\": \"<boolean>\",\n        \"show_secret_link\": \"<boolean>\",\n        \"show_secret\": \"<boolean>\",\n        \"title\": \"<string>\",\n        \"view_count\": \"<number>\"\n      }\n    },\n    \"secret\": {\n      \"created\": \"<string>\",\n      \"custid\": \"<string>\",\n      \"has_passphrase\": \"<boolean>\",\n      \"identifier\": \"<string>\",\n      \"is_owner\": \"<boolean>\",\n      \"is_truncated\": \"<boolean>\",\n      \"lifespan\": \"<number>\",\n      \"metadata_key\": \"<string>\",\n      \"original_size\": \"<number>\",\n      \"share_domain\": \"<string>\",\n      \"state\": \"<string>\",\n      \"updated\": \"<string>\",\n      \"value\": \"<string>\",\n      \"value_checksum\": \"<string>\",\n      \"value_encryption\": \"<string>\",\n      \"verification\": \"<string>\",\n      \"secret_value\": \"<string>\",\n      \"details\": {\n        \"continue\": \"<boolean>\",\n        \"show_secret\": \"<boolean>\",\n        \"correct_passphrase\": \"<boolean>\",\n        \"display_lines\": \"<number>\",\n        \"one_liner\": \"<boolean>\"\n      }\n    },\n    \"share_domain\": \"<string>\"\n  }\n}"
-						}
-					]
-				},
-				{
-					"name": "/v1/share",
-					"id": "1df1c349-850f-46ee-82cb-318e14d31914",
-					"protocolProfileBehavior": {
-						"disableBodyPruning": true
-					},
-					"request": {
-						"method": "POST",
-						"header": [
-							{
-								"key": "Content-Type",
-								"value": "application/x-www-form-urlencoded"
-							},
-							{
-								"key": "Accept",
-								"value": "application/json"
-							}
-						],
-						"body": {
-							"mode": "urlencoded",
-							"urlencoded": [
-								{
-									"key": "share_domain",
-									"value": "<string>",
-									"disabled": true
-								},
-								{
-									"description": "(Required) ",
-									"key": "secret",
-									"value": "<string>"
-								},
-								{
-									"key": "ttl",
-									"value": "86400"
-								},
-								{
-									"key": "passphrase",
-									"value": "<string>"
-								},
-								{
-									"key": "recipient",
-									"value": "<string>"
-								},
-								{
-									"key": "kind",
-									"value": "<string>"
-								}
-							]
-						},
-						"url": {
-							"raw": "{{baseUrl}}/v1/share",
-							"host": [
-								"{{baseUrl}}"
-							],
-							"path": [
-								"v1",
-								"share"
-							]
-						}
-					},
-					"response": [
-						{
-							"id": "12199804-9529-48c0-bff7-dbbbdaefed9f",
-							"name": "Invalid request parameters",
-							"originalRequest": {
-								"method": "POST",
-								"header": [
-									{
-										"description": "Added as a part of security scheme: basic",
-										"key": "Authorization",
-										"value": "Basic <credentials>"
-									}
-								],
-								"body": {
-									"mode": "urlencoded",
-									"urlencoded": [
-										{
-											"description": "(Required) ",
-											"key": "secret",
-											"value": "<string>"
-										},
-										{
-											"key": "ttl",
-											"value": "<string>"
-										},
-										{
-											"key": "passphrase",
-											"value": "<string>"
-										},
-										{
-											"key": "recipient",
-											"value": "<string>"
-										},
-										{
-											"key": "kind",
-											"value": "<string>"
-										},
-										{
-											"key": "share_domain",
-											"value": "<string>"
-										}
-									]
-								},
-								"url": {
-									"raw": "{{baseUrl}}/v1/share",
-									"host": [
-										"{{baseUrl}}"
-									],
-									"path": [
-										"v1",
-										"share"
-									]
-								}
-							},
-							"status": "Bad Request",
-							"code": 400,
-							"_postman_previewlanguage": "text",
-							"header": [],
-							"cookie": []
-						},
-						{
-							"id": "8a9bca3c-60b7-4923-8242-e7c52c9346b2",
-							"name": "Unauthorized request",
-							"originalRequest": {
-								"method": "POST",
-								"header": [
-									{
-										"description": "Added as a part of security scheme: basic",
-										"key": "Authorization",
-										"value": "Basic <credentials>"
-									}
-								],
-								"body": {
-									"mode": "urlencoded",
-									"urlencoded": [
-										{
-											"description": "(Required) ",
-											"key": "secret",
-											"value": "<string>"
-										},
-										{
-											"key": "ttl",
-											"value": "<string>"
-										},
-										{
-											"key": "passphrase",
-											"value": "<string>"
-										},
-										{
-											"key": "recipient",
-											"value": "<string>"
-										},
-										{
-											"key": "kind",
-											"value": "<string>"
-										},
-										{
-											"key": "share_domain",
-											"value": "<string>"
-										}
-									]
-								},
-								"url": {
-									"raw": "{{baseUrl}}/v1/share",
-									"host": [
-										"{{baseUrl}}"
-									],
-									"path": [
-										"v1",
-										"share"
-									]
-								}
-							},
-							"status": "Unauthorized",
-							"code": 401,
-							"_postman_previewlanguage": "text",
-							"header": [],
-							"cookie": []
-						},
-						{
-							"id": "655a14fa-f057-4388-81bc-c5e1205a812b",
-							"name": "Too many requests",
-							"originalRequest": {
-								"method": "POST",
-								"header": [
-									{
-										"description": "Added as a part of security scheme: basic",
-										"key": "Authorization",
-										"value": "Basic <credentials>"
-									}
-								],
-								"body": {
-									"mode": "urlencoded",
-									"urlencoded": [
-										{
-											"description": "(Required) ",
-											"key": "secret",
-											"value": "<string>"
-										},
-										{
-											"key": "ttl",
-											"value": "<string>"
-										},
-										{
-											"key": "passphrase",
-											"value": "<string>"
-										},
-										{
-											"key": "recipient",
-											"value": "<string>"
-										},
-										{
-											"key": "kind",
-											"value": "<string>"
-										},
-										{
-											"key": "share_domain",
-											"value": "<string>"
-										}
-									]
-								},
-								"url": {
-									"raw": "{{baseUrl}}/v1/share",
-									"host": [
-										"{{baseUrl}}"
-									],
-									"path": [
-										"v1",
-										"share"
-									]
-								}
-							},
-							"status": "Too Many Requests",
-							"code": 429,
-							"_postman_previewlanguage": "text",
-							"header": [],
-							"cookie": []
-						},
-						{
-							"id": "fd3aff78-9e4e-43b7-a792-aad3d75a8222",
-							"name": "Secret created successfully",
-							"originalRequest": {
-								"method": "POST",
-								"header": [
-									{
-										"description": "Added as a part of security scheme: basic",
-										"key": "Authorization",
-										"value": "Basic <credentials>"
-									}
-								],
-								"body": {
-									"mode": "urlencoded",
-									"urlencoded": [
-										{
-											"key": "share_domain",
-											"value": "<string>",
-											"disabled": true
-										},
-										{
-											"description": "(Required) ",
-											"key": "secret",
-											"value": "<string>"
-										},
-										{
-											"key": "ttl",
-											"value": "86400"
-										},
-										{
-											"key": "passphrase",
-											"value": "<string>"
-										},
-										{
-											"key": "recipient",
-											"value": "<string>"
-										},
-										{
-											"key": "kind",
-											"value": "<string>"
-										}
-									]
-								},
-								"url": {
-									"raw": "{{baseUrl}}/v1/share",
-									"host": [
-										"{{baseUrl}}"
-									],
-									"path": [
-										"v1",
-										"share"
-									]
-								}
-							},
-							"status": "OK",
-							"code": 200,
-							"_postman_previewlanguage": "text",
-							"header": [],
-							"cookie": []
-						}
-					]
-				},
-				{
-					"name": "/v1/status",
-					"id": "3c668506-7f5a-4346-b66c-b55e6772e1ab",
-					"protocolProfileBehavior": {
-						"disableBodyPruning": true
-					},
-					"request": {
-						"method": "GET",
-						"header": [
-							{
-								"key": "Accept",
-								"value": "application/json"
-							}
-						],
-						"url": {
-							"raw": "{{baseUrl}}/v1/status",
-							"host": [
-								"{{baseUrl}}"
-							],
-							"path": [
-								"v1",
-								"status"
-							]
-						}
-					},
-					"response": [
-						{
-							"id": "6a5ccb31-4c7c-4886-b9d7-c5d0bbfb92e7",
-							"name": "Successful response",
-							"originalRequest": {
-								"method": "GET",
-								"header": [
-									{
-										"key": "Accept",
-										"value": "application/json"
-									},
-									{
-										"description": "Added as a part of security scheme: basic",
-										"key": "Authorization",
-										"value": "Basic <credentials>"
-									}
-								],
-								"url": {
-									"raw": "{{baseUrl}}/v1/status",
-									"host": [
-										"{{baseUrl}}"
-									],
-									"path": [
-										"v1",
-										"status"
-									]
-								}
-							},
-							"status": "OK",
-							"code": 200,
-							"_postman_previewlanguage": "json",
-							"header": [
-								{
-									"key": "Content-Type",
-									"value": "application/json"
-								}
-							],
-							"cookie": [],
-							"body": "{\n  \"success\": \"<boolean>\"\n}"
-						}
-					]
-				},
-				{
-					"name": "/v1/status",
-					"id": "82d41b6c-aa60-4d2b-b73e-6e413ae916da",
-					"protocolProfileBehavior": {
-						"disableBodyPruning": true
-					},
-					"request": {
-						"method": "HEAD",
-						"header": [],
-						"url": {
-							"raw": "{{baseUrl}}/v1/status",
-							"host": [
-								"{{baseUrl}}"
-							],
-							"path": [
-								"v1",
-								"status"
-							]
-						}
-					},
-					"response": [
-						{
-							"id": "688c459c-50c5-4ee6-859c-d0f4f27dc2df",
-							"name": "Successful response",
-							"originalRequest": {
-								"method": "HEAD",
-								"header": [
-									{
-										"description": "Added as a part of security scheme: basic",
-										"key": "Authorization",
-										"value": "Basic <credentials>"
-									}
-								],
-								"url": {
-									"raw": "{{baseUrl}}/v1/status",
-									"host": [
-										"{{baseUrl}}"
-									],
-									"path": [
-										"v1",
-										"status"
-									]
-								}
-							},
-							"status": "OK",
-							"code": 200,
-							"_postman_previewlanguage": "text",
-							"header": [],
-							"cookie": []
-						}
-					]
-				}
-			],
-			"id": "80334c15-6b9d-4a71-a4e2-8f78debc591d"
-		},
-		{
-			"name": "webhooks",
-			"item": [
-				{
-					"name": "/welcome/stripe/webhook",
-					"id": "e5a3dd7a-5eaa-4942-a8fb-38ab41a7908a",
-					"protocolProfileBehavior": {
-						"disableBodyPruning": true
-					},
-					"request": {
-						"method": "POST",
-						"header": [
-							{
-								"key": "Stripe-Signature",
-								"value": "<string>",
-								"description": "(Required) Stripe webhook signature"
-							},
-							{
-								"key": "Content-Type",
-								"value": "application/json"
-							},
-							{
-								"key": "Accept",
-								"value": "application/json"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n  \"payload\": {}\n}",
-							"options": {
-								"raw": {
-									"headerFamily": "json",
-									"language": "json"
-								}
-							}
-						},
-						"url": {
-							"raw": "{{baseUrl}}/welcome/stripe/webhook",
-							"host": [
-								"{{baseUrl}}"
-							],
-							"path": [
-								"welcome",
-								"stripe",
-								"webhook"
-							]
-						}
-					},
-					"response": [
-						{
-							"id": "f2186f34-755a-4254-ad2f-90c2e0e566e8",
-							"name": "Successful response",
-							"originalRequest": {
-								"method": "POST",
-								"header": [
-									{
-										"description": "(Required) Stripe webhook signature",
-										"key": "Stripe-Signature",
-										"value": "<string>"
-									},
-									{
-										"key": "Content-Type",
-										"value": "application/json"
-									},
-									{
-										"key": "Accept",
-										"value": "application/json"
-									},
-									{
-										"description": "Added as a part of security scheme: basic",
-										"key": "Authorization",
-										"value": "Basic <credentials>"
-									}
-								],
-								"body": {
-									"mode": "raw",
-									"raw": "{\n  \"payload\": {}\n}",
-									"options": {
-										"raw": {
-											"headerFamily": "json",
-											"language": "json"
-										}
-									}
-								},
-								"url": {
-									"raw": "{{baseUrl}}/welcome/stripe/webhook",
-									"host": [
-										"{{baseUrl}}"
-									],
-									"path": [
-										"welcome",
-										"stripe",
-										"webhook"
-									]
-								}
-							},
-							"status": "OK",
-							"code": 200,
-							"_postman_previewlanguage": "json",
-							"header": [
-								{
-									"key": "Content-Type",
-									"value": "application/json"
-								}
-							],
-							"cookie": [],
-							"body": "{\n  \"welcome\": \"<string>\"\n}"
-						},
-						{
-							"id": "89269ceb-0837-4712-8baf-83f5664ef09e",
-							"name": "Bad request",
-							"originalRequest": {
-								"method": "POST",
-								"header": [
-									{
-										"description": "(Required) Stripe webhook signature",
-										"key": "Stripe-Signature",
-										"value": "<string>"
-									},
-									{
-										"key": "Content-Type",
-										"value": "application/json"
-									},
-									{
-										"key": "Accept",
-										"value": "application/json"
-									},
-									{
-										"description": "Added as a part of security scheme: basic",
-										"key": "Authorization",
-										"value": "Basic <credentials>"
-									}
-								],
-								"body": {
-									"mode": "raw",
-									"raw": "{\n  \"payload\": {}\n}",
-									"options": {
-										"raw": {
-											"headerFamily": "json",
-											"language": "json"
-										}
-									}
-								},
-								"url": {
-									"raw": "{{baseUrl}}/welcome/stripe/webhook",
-									"host": [
-										"{{baseUrl}}"
-									],
-									"path": [
-										"welcome",
-										"stripe",
-										"webhook"
-									]
-								}
-							},
-							"status": "Bad Request",
-							"code": 400,
-							"_postman_previewlanguage": "json",
-							"header": [
-								{
-									"key": "Content-Type",
-									"value": "application/json"
-								}
-							],
-							"cookie": [],
-							"body": "{\n  \"message\": \"<string>\",\n  \"success\": true,\n  \"status\": 2675097.8813069463,\n  \"code\": \"<number>\",\n  \"record\": {\n    \"identifier\": \"cupidatat amet eu minim ad\",\n    \"created\": \"Ut ea exercitation amet veniam\",\n    \"updated\": \"ad culpa dolor nulla\"\n  },\n  \"details\": {}\n}"
-						}
-					]
-				}
-			],
-			"id": "2e985879-401f-4f93-b889-48cb2318bb82"
-		},
-		{
 			"name": "pages",
 			"item": [
 				{
@@ -4399,6 +3450,178 @@
 			"id": "80334c15-6b9d-4a71-a4e2-8f78debc591d"
 		},
 		{
+			"name": "webhooks",
+			"item": [
+				{
+					"name": "/welcome/stripe/webhook",
+					"id": "e5a3dd7a-5eaa-4942-a8fb-38ab41a7908a",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Stripe-Signature",
+								"value": "<string>",
+								"description": "(Required) Stripe webhook signature"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"payload\": {}\n}",
+							"options": {
+								"raw": {
+									"headerFamily": "json",
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/welcome/stripe/webhook",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"welcome",
+								"stripe",
+								"webhook"
+							]
+						}
+					},
+					"response": [
+						{
+							"id": "f2186f34-755a-4254-ad2f-90c2e0e566e8",
+							"name": "Successful response",
+							"originalRequest": {
+								"method": "POST",
+								"header": [
+									{
+										"description": "(Required) Stripe webhook signature",
+										"key": "Stripe-Signature",
+										"value": "<string>"
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									},
+									{
+										"key": "Accept",
+										"value": "application/json"
+									},
+									{
+										"description": "Added as a part of security scheme: basic",
+										"key": "Authorization",
+										"value": "Basic <credentials>"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"payload\": {}\n}",
+									"options": {
+										"raw": {
+											"headerFamily": "json",
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{baseUrl}}/welcome/stripe/webhook",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"welcome",
+										"stripe",
+										"webhook"
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								}
+							],
+							"cookie": [],
+							"body": "{\n  \"welcome\": \"<string>\"\n}"
+						},
+						{
+							"id": "89269ceb-0837-4712-8baf-83f5664ef09e",
+							"name": "Bad request",
+							"originalRequest": {
+								"method": "POST",
+								"header": [
+									{
+										"description": "(Required) Stripe webhook signature",
+										"key": "Stripe-Signature",
+										"value": "<string>"
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									},
+									{
+										"key": "Accept",
+										"value": "application/json"
+									},
+									{
+										"description": "Added as a part of security scheme: basic",
+										"key": "Authorization",
+										"value": "Basic <credentials>"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"payload\": {}\n}",
+									"options": {
+										"raw": {
+											"headerFamily": "json",
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{baseUrl}}/welcome/stripe/webhook",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"welcome",
+										"stripe",
+										"webhook"
+									]
+								}
+							},
+							"status": "Bad Request",
+							"code": 400,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								}
+							],
+							"cookie": [],
+							"body": "{\n  \"message\": \"<string>\",\n  \"success\": true,\n  \"status\": 2675097.8813069463,\n  \"code\": \"<number>\",\n  \"record\": {\n    \"identifier\": \"cupidatat amet eu minim ad\",\n    \"created\": \"Ut ea exercitation amet veniam\",\n    \"updated\": \"ad culpa dolor nulla\"\n  },\n  \"details\": {}\n}"
+						}
+					]
+				}
+			],
+			"id": "2e985879-401f-4f93-b889-48cb2318bb82"
+		},
+		{
 			"name": "/incoming",
 			"id": "797f11ac-de49-4b44-8cd5-2cfd6d7ad9e3",
 			"protocolProfileBehavior": {
@@ -4584,7 +3807,7 @@
 						}
 					],
 					"cookie": [],
-					"body": "{\n  \"value\": \"reference #/components/schemas/ErrorResponse not found in the OpenAPI spec\"\n}"
+					"body": "{\n  \"value\": \"reference #/components/schemas/ErrorResponse not found in the OpenAPI spec\",\n  \"message\": \"<string>\",\n  \"success\": \"<boolean>\"\n}"
 				}
 			]
 		},
@@ -4789,7 +4012,7 @@
 						}
 					],
 					"cookie": [],
-					"body": "{\n  \"value\": \"reference #/components/schemas/ErrorResponse not found in the OpenAPI spec\"\n}"
+					"body": "{\n  \"value\": \"reference #/components/schemas/ErrorResponse not found in the OpenAPI spec\",\n  \"message\": \"<string>\",\n  \"success\": \"<boolean>\"\n}"
 				}
 			]
 		},
@@ -4949,7 +4172,7 @@
 						}
 					],
 					"cookie": [],
-					"body": "{\n  \"value\": \"reference #/components/schemas/ErrorResponse not found in the OpenAPI spec\"\n}"
+					"body": "{\n  \"value\": \"reference #/components/schemas/ErrorResponse not found in the OpenAPI spec\",\n  \"message\": \"<string>\",\n  \"success\": \"<boolean>\"\n}"
 				}
 			]
 		},
@@ -5115,7 +4338,7 @@
 						}
 					],
 					"cookie": [],
-					"body": "{\n  \"value\": \"reference #/components/schemas/ErrorResponse not found in the OpenAPI spec\"\n}"
+					"body": "{\n  \"value\": \"reference #/components/schemas/ErrorResponse not found in the OpenAPI spec\",\n  \"message\": \"<string>\",\n  \"success\": \"<boolean>\"\n}"
 				}
 			]
 		},
@@ -5275,7 +4498,7 @@
 						}
 					],
 					"cookie": [],
-					"body": "{\n  \"value\": \"reference #/components/schemas/ErrorResponse not found in the OpenAPI spec\"\n}"
+					"body": "{\n  \"value\": \"reference #/components/schemas/ErrorResponse not found in the OpenAPI spec\",\n  \"message\": \"<string>\",\n  \"success\": \"<boolean>\"\n}"
 				}
 			]
 		},
@@ -5420,7 +4643,7 @@
 						}
 					],
 					"cookie": [],
-					"body": "{\n  \"value\": \"reference #/components/schemas/ErrorResponse not found in the OpenAPI spec\"\n}"
+					"body": "{\n  \"value\": \"reference #/components/schemas/ErrorResponse not found in the OpenAPI spec\",\n  \"message\": \"<string>\",\n  \"success\": \"<boolean>\"\n}"
 				}
 			]
 		},
@@ -5600,7 +4823,807 @@
 						}
 					],
 					"cookie": [],
-					"body": "{\n  \"value\": \"reference #/components/schemas/ErrorResponse not found in the OpenAPI spec\"\n}"
+					"body": "{\n  \"value\": \"reference #/components/schemas/ErrorResponse not found in the OpenAPI spec\",\n  \"message\": \"<string>\",\n  \"success\": \"<boolean>\"\n}"
+				}
+			]
+		},
+		{
+			"name": "/v1/private/:metadata_key/burn",
+			"id": "5ffb6cf6-d1e6-48ba-9102-e1783304b68d",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "POST",
+				"header": [],
+				"url": {
+					"raw": "{{baseUrl}}/v1/private/:metadata_key/burn",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"v1",
+						"private",
+						":metadata_key",
+						"burn"
+					],
+					"variable": [
+						{
+							"key": "metadata_key",
+							"value": "<string>",
+							"description": "(Required) "
+						}
+					]
+				}
+			},
+			"response": [
+				{
+					"id": "ad279801-b89e-448f-a8de-356981dc6a39",
+					"name": "Successful response",
+					"originalRequest": {
+						"method": "POST",
+						"header": [
+							{
+								"description": "Added as a part of security scheme: basic",
+								"key": "Authorization",
+								"value": "Basic <credentials>"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/v1/private/:metadata_key/burn",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"v1",
+								"private",
+								":metadata_key",
+								"burn"
+							],
+							"variable": [
+								{
+									"key": "metadata_key"
+								}
+							]
+						}
+					},
+					"status": "OK",
+					"code": 200,
+					"_postman_previewlanguage": "text",
+					"header": [],
+					"cookie": []
+				}
+			]
+		},
+		{
+			"name": "/v1/private/:metadata_key",
+			"id": "83b04be2-6858-420a-8ebc-9df585472613",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "POST",
+				"header": [],
+				"url": {
+					"raw": "{{baseUrl}}/v1/private/:metadata_key",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"v1",
+						"private",
+						":metadata_key"
+					],
+					"variable": [
+						{
+							"key": "metadata_key",
+							"value": "<string>",
+							"description": "(Required) "
+						}
+					]
+				}
+			},
+			"response": [
+				{
+					"id": "128bc4c8-d0ef-4fc6-b199-23bc4b22b3b5",
+					"name": "Successful response",
+					"originalRequest": {
+						"method": "POST",
+						"header": [
+							{
+								"description": "Added as a part of security scheme: basic",
+								"key": "Authorization",
+								"value": "Basic <credentials>"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/v1/private/:metadata_key",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"v1",
+								"private",
+								":metadata_key"
+							],
+							"variable": [
+								{
+									"key": "metadata_key"
+								}
+							]
+						}
+					},
+					"status": "OK",
+					"code": 200,
+					"_postman_previewlanguage": "text",
+					"header": [],
+					"cookie": []
+				}
+			]
+		},
+		{
+			"name": "/v1/private/recent",
+			"id": "2883471a-e7ba-4fcc-abfd-a4743f4ce0c8",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{baseUrl}}/v1/private/recent",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"v1",
+						"private",
+						"recent"
+					]
+				}
+			},
+			"response": [
+				{
+					"id": "51bd29ff-3290-4536-8dbd-38cb6edc3697",
+					"name": "Successful response",
+					"originalRequest": {
+						"method": "GET",
+						"header": [
+							{
+								"description": "Added as a part of security scheme: basic",
+								"key": "Authorization",
+								"value": "Basic <credentials>"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/v1/private/recent",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"v1",
+								"private",
+								"recent"
+							]
+						}
+					},
+					"status": "OK",
+					"code": 200,
+					"_postman_previewlanguage": "text",
+					"header": [],
+					"cookie": []
+				}
+			]
+		},
+		{
+			"name": "/v1/share",
+			"id": "ad93d046-f116-45da-95b5-efe0bcbeaca9",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/x-www-form-urlencoded"
+					}
+				],
+				"body": {
+					"mode": "urlencoded",
+					"urlencoded": [
+						{
+							"key": "kind",
+							"value": "generate"
+						},
+						{
+							"key": "secret",
+							"value": "<string>"
+						},
+						{
+							"key": "ttl",
+							"value": "86400"
+						},
+						{
+							"key": "passphrase",
+							"value": "V{3PpJE[V9T,2qA|<NSk~13BMY8M*r?"
+						},
+						{
+							"key": "recipient",
+							"value": "<email>"
+						}
+					]
+				},
+				"url": {
+					"raw": "{{baseUrl}}/v1/share",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"v1",
+						"share"
+					]
+				},
+				"description": "Creates an encrypted secret and returns a link that can be viewed only once. TTL is limited to 7 days (anonymous), 14 days (basic free plan), and 30 days (premium plan)."
+			},
+			"response": [
+				{
+					"id": "75578188-cc07-426d-8616-f6816e6d67ec",
+					"name": "Secret created successfully",
+					"originalRequest": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/x-www-form-urlencoded"
+							},
+							{
+								"description": "Added as a part of security scheme: basic",
+								"key": "Authorization",
+								"value": "Basic <credentials>"
+							}
+						],
+						"body": {
+							"mode": "urlencoded",
+							"urlencoded": [
+								{
+									"key": "kind",
+									"value": "generate"
+								},
+								{
+									"key": "secret",
+									"value": "<string>"
+								},
+								{
+									"key": "ttl",
+									"value": "86400"
+								},
+								{
+									"key": "passphrase",
+									"value": "V{3PpJE[V9T,2qA|<NSk~13BMY8M*r?"
+								},
+								{
+									"key": "recipient",
+									"value": "<email>"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{baseUrl}}/v1/share",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"v1",
+								"share"
+							]
+						}
+					},
+					"status": "OK",
+					"code": 200,
+					"_postman_previewlanguage": "text",
+					"header": [],
+					"cookie": []
+				},
+				{
+					"id": "72cad3ae-ca47-403d-a1d5-110d8cd7da64",
+					"name": "Invalid request parameters",
+					"originalRequest": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/x-www-form-urlencoded"
+							},
+							{
+								"description": "Added as a part of security scheme: basic",
+								"key": "Authorization",
+								"value": "Basic <credentials>"
+							}
+						],
+						"body": {
+							"mode": "urlencoded",
+							"urlencoded": [
+								{
+									"key": "kind",
+									"value": "generate"
+								},
+								{
+									"key": "secret",
+									"value": "<string>"
+								},
+								{
+									"key": "ttl",
+									"value": "86400"
+								},
+								{
+									"key": "passphrase",
+									"value": "V{3PpJE[V9T,2qA|<NSk~13BMY8M*r?"
+								},
+								{
+									"key": "recipient",
+									"value": "<email>"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{baseUrl}}/v1/share",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"v1",
+								"share"
+							]
+						}
+					},
+					"status": "Bad Request",
+					"code": 400,
+					"_postman_previewlanguage": "text",
+					"header": [],
+					"cookie": []
+				},
+				{
+					"id": "9bb879b9-6146-43f5-9e9d-b4c8ae86b98a",
+					"name": "Unauthorized request",
+					"originalRequest": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/x-www-form-urlencoded"
+							},
+							{
+								"description": "Added as a part of security scheme: basic",
+								"key": "Authorization",
+								"value": "Basic <credentials>"
+							}
+						],
+						"body": {
+							"mode": "urlencoded",
+							"urlencoded": [
+								{
+									"key": "kind",
+									"value": "generate"
+								},
+								{
+									"key": "secret",
+									"value": "<string>"
+								},
+								{
+									"key": "ttl",
+									"value": "86400"
+								},
+								{
+									"key": "passphrase",
+									"value": "V{3PpJE[V9T,2qA|<NSk~13BMY8M*r?"
+								},
+								{
+									"key": "recipient",
+									"value": "<email>"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{baseUrl}}/v1/share",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"v1",
+								"share"
+							]
+						}
+					},
+					"status": "Unauthorized",
+					"code": 401,
+					"_postman_previewlanguage": "text",
+					"header": [],
+					"cookie": []
+				},
+				{
+					"id": "60aefe5d-a5be-4913-a0b4-4f50b36d20bd",
+					"name": "Too many requests",
+					"originalRequest": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/x-www-form-urlencoded"
+							},
+							{
+								"description": "Added as a part of security scheme: basic",
+								"key": "Authorization",
+								"value": "Basic <credentials>"
+							}
+						],
+						"body": {
+							"mode": "urlencoded",
+							"urlencoded": [
+								{
+									"key": "kind",
+									"value": "generate"
+								},
+								{
+									"key": "secret",
+									"value": "<string>"
+								},
+								{
+									"key": "ttl",
+									"value": "86400"
+								},
+								{
+									"key": "passphrase",
+									"value": "V{3PpJE[V9T,2qA|<NSk~13BMY8M*r?"
+								},
+								{
+									"key": "recipient",
+									"value": "<email>"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{baseUrl}}/v1/share",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"v1",
+								"share"
+							]
+						}
+					},
+					"status": "Too Many Requests",
+					"code": 429,
+					"_postman_previewlanguage": "text",
+					"header": [],
+					"cookie": []
+				}
+			]
+		},
+		{
+			"name": "/v1/generate",
+			"id": "49773557-2cc2-460c-b788-eff33fbdea5e",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/x-www-form-urlencoded"
+					},
+					{
+						"key": "Accept",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "urlencoded",
+					"urlencoded": [
+						{
+							"description": "(Required) ",
+							"key": "kind",
+							"value": "generate"
+						},
+						{
+							"description": "Time-to-live in seconds. Maximum varies by authentication:\n* Anonymous: 604800 (7 days)\n* Basic free plan: 1209600 (14 days)\n* Premium plan: 2592000 (30 days)",
+							"key": "ttl",
+							"value": "86400"
+						},
+						{
+							"description": "Optional password protection. Must be 8-64 characters",
+							"key": "passphrase",
+							"value": "^Pmk2d@pZD<6zPvA5mvS3D9zJ4r{Kh#wX(LckAek&d(4'S/g\"<J`yQ2"
+						},
+						{
+							"description": "Email address of intended recipient. Triggers notification when specified",
+							"key": "recipient",
+							"value": "<email>"
+						}
+					]
+				},
+				"url": {
+					"raw": "{{baseUrl}}/v1/generate",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"v1",
+						"generate"
+					]
+				},
+				"description": "Generates a random password and returns a link that can be viewed only once. TTL is limited to 7 days (anonymous), 14 days (basic free plan), and 30 days (identity plan)."
+			},
+			"response": [
+				{
+					"id": "242486da-0e0b-479d-b4ab-8ac61bfdfd04",
+					"name": "Successful response",
+					"originalRequest": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/x-www-form-urlencoded"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"description": "Added as a part of security scheme: basic",
+								"key": "Authorization",
+								"value": "Basic <credentials>"
+							}
+						],
+						"body": {
+							"mode": "urlencoded",
+							"urlencoded": [
+								{
+									"description": "(Required) ",
+									"key": "kind",
+									"value": "generate"
+								},
+								{
+									"description": "Time-to-live in seconds. Maximum varies by authentication:\n* Anonymous: 604800 (7 days)\n* Basic free plan: 1209600 (14 days)\n* Premium plan: 2592000 (30 days)",
+									"key": "ttl",
+									"value": "86400"
+								},
+								{
+									"description": "Optional password protection. Must be 8-64 characters",
+									"key": "passphrase",
+									"value": "^Pmk2d@pZD<6zPvA5mvS3D9zJ4r{Kh#wX(LckAek&d(4'S/g\"<J`yQ2"
+								},
+								{
+									"description": "Email address of intended recipient. Triggers notification when specified",
+									"key": "recipient",
+									"value": "<email>"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{baseUrl}}/v1/generate",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"v1",
+								"generate"
+							]
+						}
+					},
+					"status": "OK",
+					"code": 200,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Content-Type",
+							"value": "application/json"
+						}
+					],
+					"cookie": [],
+					"body": "{\n  \"success\": true,\n  \"record\": {\n    \"metadata\": {\n      \"burn_path\": \"elit c\",\n      \"burn_url\": \"exercitation commodo\",\n      \"created\": -82410861.0625454,\n      \"expiration\": \"do quis in\",\n      \"expiration_in_seconds\": \"cupidatat velit\",\n      \"identifier\": \"Duis adipisicing\",\n      \"key\": \"labore proident pariatur irure est\",\n      \"metadata_path\": \"officia ex ea commodo Lorem\",\n      \"metadata_url\": \"dolor\",\n      \"natural_expiration\": \"et cillum veniam\",\n      \"recipients\": [\n        \"sed laborum ut\",\n        \"eiusmod laboris\"\n      ],\n      \"secret_key\": \"iru\",\n      \"secret_shortkey\": \"pariatur aliqua enim eu\",\n      \"share_domain\": \"irure pariatur mollit\",\n      \"share_path\": \"ullamco dolor velit\",\n      \"share_url\": \"eu commodo dolor\",\n      \"shortkey\": \"magna nisi mollit dolor\",\n      \"updated\": -27683381.624058828,\n      \"created_date\": \"aliquip eiusmod\",\n      \"details\": {\n        \"body_class\": \"anim Excepteur sunt tempor\",\n        \"can_decrypt\": false,\n        \"display_feedback\": false,\n        \"display_lines\": -62425845.312577136,\n        \"has_maxviews\": false,\n        \"has_passphrase\": false,\n        \"is_burned\": true,\n        \"is_destroyed\": true,\n        \"is_received\": false,\n        \"maxviews\": -74400293.34540394,\n        \"no_cache\": false,\n        \"show_metadata_link\": true,\n        \"show_metadata\": true,\n        \"show_recipients\": false,\n        \"show_secret_link\": true,\n        \"show_secret\": true,\n        \"title\": \"do\",\n        \"view_count\": 48512126.23148954\n      }\n    },\n    \"secret\": {\n      \"created\": -52817161.14313366,\n      \"custid\": \"velit enim exercitation\",\n      \"has_passphrase\": true,\n      \"identifier\": \"eu tempor ullamco ipsum eiu\",\n      \"is_owner\": false,\n      \"is_truncated\": false,\n      \"lifespan\": -79657583.95236966,\n      \"metadata_key\": \"sed cupidatat fugiat labore\",\n      \"original_size\": -36091361.16079843,\n      \"share_domain\": \"laboris ea cillum culpa proident\",\n      \"state\": \"eu mollit aute Duis\",\n      \"updated\": 6555346.780356735,\n      \"value\": \"ut\",\n      \"value_checksum\": \"exercitation reprehenderit o\",\n      \"value_encryption\": \"minim ipsum aute tempor\",\n      \"verification\": \"laborum dolor\",\n      \"secret_value\": \"eu magna\",\n      \"details\": {\n        \"continue\": true,\n        \"show_secret\": false,\n        \"correct_passphrase\": true,\n        \"display_lines\": 84095860.18821472,\n        \"one_liner\": false\n      }\n    },\n    \"share_domain\": \"commodo Lorem adipisicing anim\"\n  }\n}"
+				}
+			]
+		},
+		{
+			"name": "/v1/secret/:secret_key",
+			"id": "650edab9-3552-4003-a78e-fa8dc51ddd4b",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json"
+					}
+				],
+				"url": {
+					"raw": "{{baseUrl}}/v1/secret/:secret_key",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"v1",
+						"secret",
+						":secret_key"
+					],
+					"variable": [
+						{
+							"key": "secret_key",
+							"value": "<string>",
+							"description": "(Required) "
+						}
+					]
+				}
+			},
+			"response": [
+				{
+					"id": "b26b0d65-df8c-4e0a-8ba7-0d102542b776",
+					"name": "Successful response",
+					"originalRequest": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"description": "Added as a part of security scheme: basic",
+								"key": "Authorization",
+								"value": "Basic <credentials>"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/v1/secret/:secret_key",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"v1",
+								"secret",
+								":secret_key"
+							],
+							"variable": [
+								{
+									"key": "secret_key"
+								}
+							]
+						}
+					},
+					"status": "OK",
+					"code": 200,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Content-Type",
+							"value": "application/json"
+						}
+					],
+					"cookie": [],
+					"body": "{\n  \"success\": true,\n  \"record\": {\n    \"created\": \"labore eu sun\",\n    \"custid\": \"dolore ea do eu Lorem\",\n    \"has_passphrase\": false,\n    \"identifier\": \"am\",\n    \"is_owner\": false,\n    \"is_truncated\": false,\n    \"lifespan\": 49169444.030445844,\n    \"metadata_key\": \"esse mollit in consectetur\",\n    \"original_size\": -59662625.49395593,\n    \"share_domain\": \"nulla dolore consequat eu labore\",\n    \"state\": \"Ut amet ullamco\",\n    \"updated\": 4782983.761692837,\n    \"value\": \"irure sit consectetur\",\n    \"value_checksum\": \"officia\",\n    \"value_encryption\": \"voluptate velit id\",\n    \"verification\": \"dolore\",\n    \"secret_value\": \"aliqua qui quis\",\n    \"details\": {\n      \"continue\": false,\n      \"show_secret\": true,\n      \"correct_passphrase\": true,\n      \"display_lines\": -73451896.20435733,\n      \"one_liner\": true\n    }\n  },\n  \"details\": {\n    \"continue\": false,\n    \"show_secret\": false,\n    \"correct_passphrase\": true,\n    \"display_lines\": -6041954.007850409,\n    \"one_liner\": false\n  }\n}"
+				}
+			]
+		},
+		{
+			"name": "/v1/status",
+			"id": "14c732b8-2306-4f79-aa7a-7334c78eb8ef",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json"
+					}
+				],
+				"url": {
+					"raw": "{{baseUrl}}/v1/status",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"v1",
+						"status"
+					]
+				}
+			},
+			"response": [
+				{
+					"id": "a997f251-6386-478a-8eda-37164a14dee0",
+					"name": "Successful response",
+					"originalRequest": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"description": "Added as a part of security scheme: basic",
+								"key": "Authorization",
+								"value": "Basic <credentials>"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/v1/status",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"v1",
+								"status"
+							]
+						}
+					},
+					"status": "OK",
+					"code": 200,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Content-Type",
+							"value": "application/json"
+						}
+					],
+					"cookie": [],
+					"body": "{\n  \"success\": true,\n  \"status\": -81825544.27966604\n}"
+				}
+			]
+		},
+		{
+			"name": "/v1/status",
+			"id": "bc238514-ee3f-46c6-8bfa-ea05f277e6b7",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "HEAD",
+				"header": [],
+				"url": {
+					"raw": "{{baseUrl}}/v1/status",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"v1",
+						"status"
+					]
+				}
+			},
+			"response": [
+				{
+					"id": "585ed066-65e5-4a58-ab18-da0b3de2e2c8",
+					"name": "Successful response",
+					"originalRequest": {
+						"method": "HEAD",
+						"header": [
+							{
+								"description": "Added as a part of security scheme: basic",
+								"key": "Authorization",
+								"value": "Basic <credentials>"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/v1/status",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"v1",
+								"status"
+							]
+						}
+					},
+					"status": "OK",
+					"code": 200,
+					"_postman_previewlanguage": "text",
+					"header": [],
+					"cookie": []
 				}
 			]
 		}
@@ -5656,7 +5679,7 @@
 		{
 			"id": "d49cdef6-aaff-485e-84c0-214f9b69b0a3",
 			"key": "baseUrl",
-			"value": "https://onetimesecret.com/api",
+			"value": "https://dev.onetime.dev/api",
 			"type": "string"
 		},
 		{
