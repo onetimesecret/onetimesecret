@@ -6,7 +6,7 @@ import {
 import { Locale } from '@/schemas/i18n';
 import axios, { type AxiosInstance } from 'axios';
 
-// NOTE: Import createApi directly from '@/utils/api' in new code.
+// NOTE: Import createApi directly from '@/api' in new code.
 
 /**
  * BACKWARDS COMPATIBILITY NOTICE:
@@ -117,23 +117,3 @@ const createApi = (config: ApiConfig = {}): AxiosInstance => {
 };
 
 export { createApi };
-
-/**
- * Default API instance.
- *
- * @deprecated Use createApi() for new code.
- * The default export is kept for compatibility.
- * No new options will be added.
- *
- * @example
- * // Legacy pattern:
- * import api from '@/utils/api';
- * const response = api.get('/items');
- *
- * // Modern pattern:
- * import { createApi } from '@/utils/api';
- * const api = createApi();
- * const response = api.get('/items');
- */
-const defaultApi = createApi();
-export default defaultApi;

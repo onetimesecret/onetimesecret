@@ -72,17 +72,6 @@ module Onetime
 
         self[:jsvars] = {}
 
-        # Diagnostics
-        sentry = OT.conf.dig(:diagnostics, :sentry) || {}
-        self[:jsvars][:d9s_enabled] = jsvar(OT.d9s_enabled) # pass global flag
-        Onetime.with_diagnostics do
-          config = sentry.fetch(:frontend, {})
-          self[:jsvars][:diagnostics] = {
-            # e.g. {dsn: "https://...", ...}
-            sentry: jsvar(config)
-          }
-        end
-
         # Add the nonce to the jsvars hash if it exists. See `carefully`.
         self[:nonce] = req.env.fetch('ots.nonce', nil)
 
@@ -140,11 +129,25 @@ module Onetime
 
         # Link to the pricing page can be seen regardless of authentication status
         self[:jsvars][:plans_enabled] = jsvar(site.dig(:plans, :enabled) || false)
+
+        # Internationalization
         self[:jsvars][:locale] = jsvar(display_locale) # the locale the user sees
         self[:jsvars][:is_default_locale] = jsvar(is_default_locale)
         self[:jsvars][:default_locale] = jsvar(OT.default_locale) # the application default
         self[:jsvars][:fallback_locale] = jsvar(OT.fallback_locale)
         self[:jsvars][:supported_locales] = jsvar(OT.supported_locales)
+        self[:jsvars][:i18n_enabled] = jsvar(OT.i18n_enabled)
+
+        # Diagnostics
+        sentry = OT.conf.dig(:diagnostics, :sentry) || {}
+        self[:jsvars][:d9s_enabled] = jsvar(OT.d9s_enabled) # pass global flag
+        Onetime.with_diagnostics do
+          config = sentry.fetch(:frontend, {})
+          self[:jsvars][:diagnostics] = {
+            # e.g. {dsn: "https://...", ...}
+            sentry: jsvar(config)
+          }
+        end
 
         self[:jsvars][:incoming_recipient] = jsvar(incoming_recipient)
         self[:jsvars][:support_host] = jsvar(support_host)

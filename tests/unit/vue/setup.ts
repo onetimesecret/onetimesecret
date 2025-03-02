@@ -1,7 +1,7 @@
 // tests/unit/vue/setup.ts
 /* global global */
 import { autoInitPlugin } from '@/plugins/pinia/autoInitPlugin';
-import { createApi } from '@/utils/api';
+import { createApi } from '@/api';
 import { createI18n } from 'vue-i18n';
 import { createTestingPinia } from '@pinia/testing';
 import { vi } from 'vitest';
@@ -80,9 +80,7 @@ export async function setupTestPinia(options = { stubActions: false }) {
   return { pinia, api, app };
 }
 
-export async function mountComponent<
-  C extends ComponentPublicInstance
->(
+export async function mountComponent<C extends ComponentPublicInstance>(
   component: any,
   options: MountingOptions<any> = {},
   state: OnetimeWindow = stateFixture

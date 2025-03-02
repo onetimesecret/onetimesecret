@@ -196,8 +196,8 @@
       :stdout: true
       # log_absolute_path: '/home/app/log/truemail.log'
 :internationalization:
-  :enabled: true
-  :default_locale: en
+  :enabled:  <%= ENV['I18N_ENABLED'] || false %>
+  :default_locale: <%= ENV['I18N_DEFAULT_LOCALE'] || 'en' %>
   :fallback_locale:
     fr-CA: [fr_CA, fr_FR, en]
     fr: [fr_FR, fr_CA, en]
@@ -250,9 +250,9 @@
     # `logErrors` - Whether to log errors to console
     :defaults:
       :dsn: <%= ENV['SENTRY_DSN'] || nil %>
-      :sampleRate: 0.11
-      :maxBreadcrumbs: 22
-      :logErrors: true
+      :sampleRate: <%= ENV['SENTRY_SAMPLE_RATE'] || '0.10' %>
+      :maxBreadcrumbs: <%= ENV['SENTRY_MAX_BREADCRUMBS'] || 5 %>
+      :logErrors: <%= ENV['SENTRY_LOG_ERRORS'] != 'false' %>
     # Ruby backend-specific Sentry configuration
     #
     # `dsn` - Backend-specific Sentry DSN
@@ -268,7 +268,7 @@
     # `trackComponents` - Enable automatic instrumentation of Vue components
     :frontend:
       :dsn: <%= ENV['SENTRY_DSN_FRONTEND'] || nil %>
-      :trackComponents: true
+      :trackComponents: <%= ENV['SENTRY_VUE_TRACK_COMPONENTS'] != 'false' %>
 :limits:
   # This section defines rate limits for various events per user
   # per a rolling 20 minute period. Each key is an event name
@@ -319,9 +319,9 @@
   #   $ pnpm run dev
   #   VITE v5.3.4  ready in 38 ms
   #
-  #   ➜  Local:   http://localhost:5173/dist/
-  #   ➜  Network: use --host to expose
-  #   ➜  press h + enter to show help
+  #   -> Local:   http://localhost:5173/dist/
+  #   -> Network: use --host to expose
+  #   -> press h + enter to show help
   #
   # When disabled (or in production), the application serves pre-built assets
   # from public/web/dist instead.

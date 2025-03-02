@@ -4,7 +4,7 @@ import i18n from '@/i18n';
 import { createAppRouter } from '@/router';
 import { loggingService } from '@/services/logging.service';
 import { WindowService } from '@/services/window.service';
-import { createApi } from '@/utils/api';
+import { createApi } from '@/api';
 import { AxiosInstance } from 'axios';
 import { createPinia } from 'pinia';
 import { App, Plugin } from 'vue';
