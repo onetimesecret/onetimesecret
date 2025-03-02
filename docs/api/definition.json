@@ -2,7 +2,7 @@
   "openapi": "3.0.3",
   "info": {
     "version": "2.2.0",
-    "title": "Onetime Secret API [2025-01-24]",
+    "title": "Onetime Secret API [2025-02-13]",
     "description": "The Onetime Secret API allows you to securely share secrets. This API provides endpoints to create, retrieve, and manage secrets. You can use this API to generate a secret URL that can be shared with others, ensuring that the secret is only accessible once. The API supports various operations such as creating a new secret, retrieving a secret, and deleting a secret. It is designed to be simple and secure, making it easy to integrate into your applications."
   },
   "servers": [
@@ -34,1339 +34,6 @@
   ],
   "tags": [],
   "paths": {
-    "/incoming": {
-      "post": {
-        "summary": "Create Incoming Secret",
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/x-www-form-urlencoded": {
-              "schema": {
-                "type": "object",
-                "properties": {
-                  "secret": {
-                    "type": "string",
-                    "description": "The secret value to be stored"
-                  },
-                  "ticketno": {
-                    "type": "string",
-                    "description": "A valid ticket number"
-                  },
-                  "recipient": {
-                    "type": "array",
-                    "items": {
-                      "type": "string",
-                      "format": "email"
-                    },
-                    "description": "Email addresses of recipients"
-                  }
-                },
-                "required": [
-                  "secret",
-                  "ticketno"
-                ]
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Successful response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/BaseApiResponse"
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Bad request",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiErrorResponse"
-                }
-              }
-            }
-          }
-        },
-        "tags": [
-          "incoming"
-        ]
-      }
-    },
-    "/signup": {
-      "post": {
-        "summary": "Create Account",
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "properties": {
-                  "u": {
-                    "type": "string",
-                    "format": "email",
-                    "description": "User's email address (used as username)"
-                  },
-                  "p": {
-                    "type": "string",
-                    "description": "User's password"
-                  },
-                  "p2": {
-                    "type": "string",
-                    "description": "Password confirmation"
-                  },
-                  "planid": {
-                    "type": "string",
-                    "description": "ID of the selected plan"
-                  },
-                  "skill": {
-                    "type": "string",
-                    "description": "Hidden field for bot detection (should be empty)"
-                  }
-                },
-                "required": [
-                  "u",
-                  "p",
-                  "p2",
-                  "planid"
-                ]
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Successful response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/BaseApiResponse"
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Bad request",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiErrorResponse"
-                }
-              }
-            }
-          }
-        },
-        "tags": [
-          "accounts"
-        ]
-      }
-    },
-    "/signin": {
-      "post": {
-        "summary": "Authenticate User",
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "properties": {
-                  "u": {
-                    "type": "string",
-                    "format": "email",
-                    "description": "User's email address"
-                  },
-                  "p": {
-                    "type": "string",
-                    "description": "User's password"
-                  }
-                },
-                "required": [
-                  "u",
-                  "p"
-                ]
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Successful response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/BaseApiResponse"
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Bad request",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiErrorResponse"
-                }
-              }
-            }
-          }
-        },
-        "tags": [
-          "authentication"
-        ]
-      }
-    },
-    "/welcome/stripe/webhook": {
-      "post": {
-        "summary": "Handle Stripe Webhook",
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "properties": {
-                  "payload": {
-                    "type": "object",
-                    "description": "Stripe event payload"
-                  }
-                },
-                "required": [
-                  "payload"
-                ]
-              }
-            }
-          }
-        },
-        "parameters": [
-          {
-            "in": "header",
-            "name": "Stripe-Signature",
-            "schema": {
-              "type": "string"
-            },
-            "required": true,
-            "description": "Stripe webhook signature"
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Successful response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "welcome": {
-                      "type": "string"
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Bad request",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiErrorResponse"
-                }
-              }
-            }
-          }
-        },
-        "tags": [
-          "webhooks",
-          "stripe"
-        ]
-      }
-    },
-    "/feedback": {
-      "post": {
-        "summary": "Submit Feedback",
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "properties": {
-                  "msg": {
-                    "type": "string",
-                    "maxLength": 999,
-                    "description": "Feedback message"
-                  },
-                  "authenticity_payload": {
-                    "type": "string",
-                    "maxLength": 999,
-                    "description": "Authenticity payload for spam prevention"
-                  }
-                },
-                "required": [
-                  "msg"
-                ]
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Successful response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/BaseApiResponse"
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Bad request",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiErrorResponse"
-                }
-              }
-            }
-          }
-        },
-        "tags": [
-          "feedback"
-        ]
-      }
-    },
-    "/forgot": {
-      "post": {
-        "summary": "Request Password Reset",
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "properties": {
-                  "u": {
-                    "type": "string",
-                    "format": "email",
-                    "description": "User's email address"
-                  }
-                },
-                "required": [
-                  "u"
-                ]
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Successful response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/BaseApiResponse"
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Bad request",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiErrorResponse"
-                }
-              }
-            }
-          }
-        },
-        "tags": [
-          "authentication"
-        ]
-      }
-    },
-    "/forgot/{key}": {
-      "post": {
-        "summary": "Reset Password",
-        "parameters": [
-          {
-            "name": "key",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            },
-            "description": "Reset password key"
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "properties": {
-                  "newp": {
-                    "type": "string",
-                    "description": "New password"
-                  },
-                  "newp2": {
-                    "type": "string",
-                    "description": "New password confirmation"
-                  }
-                },
-                "required": [
-                  "newp",
-                  "newp2"
-                ]
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Successful response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/BaseApiResponse"
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Bad request",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiErrorResponse"
-                }
-              }
-            }
-          }
-        },
-        "tags": [
-          "authentication"
-        ]
-      }
-    },
-    "/v2/domains/add": {
-      "post": {
-        "summary": "Add Domain",
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "properties": {
-                  "domain": {
-                    "type": "string"
-                  }
-                },
-                "required": [
-                  "domain"
-                ]
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Successful response"
-          }
-        },
-        "tags": [
-          "v2",
-          "accounts",
-          "domains"
-        ]
-      }
-    },
-    "/v2/domains/{domain}": {
-      "get": {
-        "summary": "Get Domain",
-        "parameters": [
-          {
-            "name": "domain",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Successful response",
-            "content": {},
-            "headers": {},
-            "links": {}
-          }
-        },
-        "tags": [
-          "v2",
-          "accounts",
-          "domains"
-        ]
-      }
-    },
-    "/v2/domains": {
-      "get": {
-        "summary": "List Domains",
-        "responses": {
-          "200": {
-            "description": "Successful response"
-          }
-        },
-        "tags": [
-          "v2",
-          "accounts",
-          "domains"
-        ]
-      }
-    },
-    "/v2/domains/{domain}/remove": {
-      "post": {
-        "summary": "Remove Domain",
-        "parameters": [
-          {
-            "name": "domain",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Successful response"
-          }
-        },
-        "tags": [
-          "v2",
-          "accounts",
-          "domains"
-        ]
-      }
-    },
-    "/v2/domains/{domain}/verify": {
-      "post": {
-        "summary": "Verify Domain",
-        "parameters": [
-          {
-            "name": "domain",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Successful response"
-          }
-        },
-        "tags": [
-          "v2",
-          "accounts",
-          "domains"
-        ]
-      }
-    },
-    "/v2/account/change-password": {
-      "post": {
-        "summary": "Change Password",
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "properties": {
-                  "currentp": {
-                    "type": "string"
-                  },
-                  "newp": {
-                    "type": "string"
-                  },
-                  "newp2": {
-                    "type": "string"
-                  }
-                },
-                "required": [
-                  "currentp",
-                  "newp",
-                  "newp2"
-                ]
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Successful response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/BaseApiResponse"
-                }
-              }
-            }
-          }
-        },
-        "tags": [
-          "v2",
-          "accounts",
-          "danger"
-        ]
-      }
-    },
-    "/v2/account/destroy": {
-      "post": {
-        "summary": "Destroy Account",
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "properties": {
-                  "confirmation": {
-                    "type": "string"
-                  }
-                },
-                "required": [
-                  "confirmation"
-                ]
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Successful response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/BaseApiResponse"
-                }
-              }
-            }
-          }
-        },
-        "tags": [
-          "v2",
-          "accounts",
-          "danger"
-        ]
-      }
-    },
-    "/v2/account/apitoken": {
-      "post": {
-        "summary": "Generate API Key",
-        "responses": {
-          "200": {
-            "description": "Successful response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiTokenResponse"
-                }
-              }
-            }
-          }
-        },
-        "tags": [
-          "v2",
-          "accounts",
-          "danger"
-        ]
-      }
-    },
-    "/v2/account": {
-      "get": {
-        "summary": "Get Account",
-        "responses": {
-          "200": {
-            "description": "Successful response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/AccountResponse"
-                }
-              }
-            }
-          }
-        },
-        "tags": [
-          "v2",
-          "accounts"
-        ]
-      }
-    },
-    "/v2/account/update-locale": {
-      "post": {
-        "summary": "Update Account Locale",
-        "responses": {
-          "200": {
-            "description": "Successful response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/BaseApiResponse"
-                }
-              }
-            }
-          }
-        },
-        "tags": [
-          "v2",
-          "accounts"
-        ]
-      }
-    },
-    "/v2/private/recent": {
-      "get": {
-        "summary": "List Recent Metadata",
-        "responses": {
-          "200": {
-            "description": "Successful response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiRecordsResponse"
-                }
-              }
-            }
-          }
-        },
-        "tags": [
-          "v2",
-          "secrets",
-          "metadata",
-          "readonly"
-        ]
-      }
-    },
-    "/v2/private/{key}/burn": {
-      "post": {
-        "summary": "Burn Secret",
-        "parameters": [
-          {
-            "name": "key",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Successful response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/BaseApiResponse"
-                }
-              }
-            }
-          }
-        },
-        "tags": [
-          "v2",
-          "secrets",
-          "danger"
-        ]
-      }
-    },
-    "/v2/private/{key}": {
-      "get": {
-        "summary": "Get Metadata",
-        "parameters": [
-          {
-            "name": "key",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Successful response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/MetadataResponse"
-                }
-              }
-            }
-          }
-        },
-        "tags": [
-          "v2",
-          "secrets",
-          "metadata"
-        ]
-      }
-    },
-    "/v2/secret/{key}": {
-      "get": {
-        "summary": "Get Secret",
-        "parameters": [
-          {
-            "name": "key",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Successful response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/SecretResponse"
-                }
-              }
-            }
-          }
-        },
-        "tags": [
-          "v2",
-          "secrets"
-        ]
-      },
-      "post": {
-        "summary": "Reveal Secret",
-        "parameters": [
-          {
-            "name": "key",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Successful response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/SecretResponse"
-                }
-              }
-            }
-          }
-        },
-        "tags": [
-          "v2",
-          "secrets",
-          "danger"
-        ]
-      }
-    },
-    "/v2/secret/generate": {
-      "post": {
-        "security": [
-          {},
-          {
-            "BasicAuth": []
-          }
-        ],
-        "description": "Generates a password and returns a link that can be viewed only once. This is the v2 API version od the /v1/share endpoint. TTL is limited to 7 days (anonymous), 14 days (basic free plan), and 30 days (premium plan).",
-        "summary": "Generate Secret",
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/GeneratePayload"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Successful response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ConcealDataResponse"
-                }
-              }
-            }
-          }
-        },
-        "tags": [
-          "v2",
-          "secrets",
-          "generate"
-        ]
-      }
-    },
-    "/v2/secret/conceal": {
-      "post": {
-        "security": [
-          {},
-          {
-            "BasicAuth": []
-          }
-        ],
-        "description": "Creates an encrypted secret and returns a link that can be viewed only once. This is the v2 API version od the /v1/share endpoint. TTL is limited to 7 days (anonymous), 14 days (basic free plan), and 30 days (premium plan).",
-        "summary": "Conceal Secret",
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/ConcealPayload"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Successful response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ConcealDataResponse"
-                }
-              }
-            }
-          }
-        },
-        "tags": [
-          "v2",
-          "secrets",
-          "create"
-        ]
-      }
-    },
-    "/v2/authcheck": {
-      "get": {
-        "security": [
-          {
-            "CookieAuth": []
-          },
-          {
-            "BasicAuth": []
-          }
-        ],
-        "summary": "Auth Check",
-        "responses": {
-          "200": {
-            "description": "Successful response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/CheckAuthResponse"
-                }
-              }
-            }
-          }
-        },
-        "tags": [
-          "v2",
-          "accounts"
-        ]
-      }
-    },
-    "/v2/validate-shrimp": {
-      "post": {
-        "security": [
-          {
-            "CookieAuth": []
-          },
-          {
-            "BasicAuth": []
-          }
-        ],
-        "summary": "Validate Shrimp",
-        "responses": {
-          "200": {
-            "description": "Successful response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/BaseApiResponse"
-                }
-              }
-            }
-          }
-        },
-        "tags": [
-          "v2",
-          "system"
-        ]
-      }
-    },
-    "/v2/supported-locales": {
-      "get": {
-        "summary": "Get Supported Locales",
-        "responses": {
-          "200": {
-            "description": "Successful response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiRecordsResponse"
-                }
-              }
-            }
-          }
-        },
-        "tags": [
-          "v2",
-          "localization"
-        ]
-      }
-    },
-    "/v2/version": {
-      "get": {
-        "summary": "Get Version",
-        "responses": {
-          "200": {
-            "description": "Successful response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/BaseApiResponse"
-                }
-              }
-            }
-          }
-        },
-        "tags": [
-          "v2",
-          "system"
-        ]
-      }
-    },
-    "/v2/status": {
-      "get": {
-        "summary": "Get system status",
-        "responses": {
-          "200": {
-            "description": "Successful response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/BaseApiResponse"
-                }
-              }
-            }
-          }
-        },
-        "tags": [
-          "v2",
-          "readonly"
-        ]
-      },
-      "head": {
-        "summary": "Head system status",
-        "responses": {
-          "200": {
-            "description": "Successful response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/BaseApiResponse"
-                }
-              }
-            }
-          }
-        },
-        "tags": [
-          "v2",
-          "readonly"
-        ]
-      }
-    },
-    "/v2/altcha/challenge": {
-      "get": {
-        "summary": "Get Altcha Challenge",
-        "responses": {
-          "200": {
-            "description": "Successful response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/BaseApiResponse"
-                }
-              }
-            }
-          }
-        },
-        "tags": [
-          "v2",
-          "challenges"
-        ]
-      }
-    },
-    "/v2/altcha/verify": {
-      "post": {
-        "summary": "Verify Altcha",
-        "responses": {
-          "200": {
-            "description": "Successful response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/BaseApiResponse"
-                }
-              }
-            }
-          }
-        },
-        "tags": [
-          "v2",
-          "challenges"
-        ]
-      }
-    },
-    "/v2/altcha/verify-spam": {
-      "post": {
-        "summary": "Verify Altcha Spam",
-        "responses": {
-          "200": {
-            "description": "Successful response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/BaseApiResponse"
-                }
-              }
-            }
-          }
-        },
-        "tags": [
-          "v2",
-          "challenges"
-        ]
-      }
-    },
-    "/v2/colonel": {
-      "get": {
-        "summary": "Get Colonel Index",
-        "responses": {
-          "200": {
-            "description": "Successful response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ColonelResponse"
-                }
-              }
-            }
-          }
-        },
-        "tags": [
-          "v2",
-          "colonel"
-        ]
-      }
-    },
-    "/v2/domains/{domain}/brand": {
-      "post": {
-        "summary": "Update domain brand settings",
-        "parameters": [
-          {
-            "name": "domain",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/brandSettingsSchema"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Successful response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiRecordResponse"
-                }
-              }
-            }
-          }
-        },
-        "tags": [
-          "v2",
-          "domains",
-          "branding"
-        ]
-      }
-    },
-    "/v2/domains/{domain}/brand/image": {
-      "post": {
-        "summary": "Upload domain brand image",
-        "parameters": [
-          {
-            "name": "domain",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "multipart/form-data": {
-              "schema": {
-                "$ref": "#/components/schemas/imagePropsSchema"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Successful response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiRecordResponse"
-                }
-              }
-            }
-          }
-        },
-        "tags": [
-          "v2",
-          "domains",
-          "branding"
-        ]
-      }
-    },
-    "/v2/domains/{domain}/brand/remove-image": {
-      "post": {
-        "summary": "Remove domain brand image",
-        "parameters": [
-          {
-            "name": "domain",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Successful response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiRecordResponse"
-                }
-              }
-            }
-          }
-        },
-        "tags": [
-          "v2",
-          "domains",
-          "branding"
-        ]
-      }
-    },
-    "/v1/private/{metadata_key}/burn": {
-      "post": {
-        "summary": "Burn a secret",
-        "parameters": [
-          {
-            "name": "metadata_key",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Successful response"
-          }
-        },
-        "tags": [
-          "v1",
-          "secrets",
-          "metadata",
-          "danger"
-        ]
-      }
-    },
-    "/v1/private/{metadata_key}": {
-      "post": {
-        "summary": "Retrieve metadata",
-        "parameters": [
-          {
-            "name": "metadata_key",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Successful response"
-          }
-        },
-        "tags": [
-          "v1",
-          "secrets",
-          "metadata"
-        ]
-      }
-    },
-    "/v1/private/recent": {
-      "get": {
-        "summary": "Retrieve recent metadata",
-        "responses": {
-          "200": {
-            "description": "Successful response"
-          }
-        },
-        "tags": [
-          "v1",
-          "secrets",
-          "metadata",
-          "readonly"
-        ]
-      }
-    },
     "/v1/share": {
       "post": {
         "security": [
@@ -1397,15 +64,10 @@
                       },
                       "kind": {
                         "type": "string",
-                        "enum": [
-                          "share"
-                        ]
+                        "enum": ["share"]
                       }
                     },
-                    "required": [
-                      "secret",
-                      "kind"
-                    ]
+                    "required": ["secret", "kind"]
                   }
                 ]
               }
@@ -1426,11 +88,7 @@
             "description": "Too many requests"
           }
         },
-        "tags": [
-          "v1",
-          "secrets",
-          "create"
-        ]
+        "tags": ["v1", "secrets", "create"]
       }
     },
     "/v1/generate": {
@@ -1480,14 +138,10 @@
                   },
                   "kind": {
                     "type": "string",
-                    "enum": [
-                      "generate"
-                    ]
+                    "enum": ["generate"]
                   }
                 },
-                "required": [
-                  "kind"
-                ]
+                "required": ["kind"]
               }
             }
           }
@@ -1504,11 +158,7 @@
             }
           }
         },
-        "tags": [
-          "v1",
-          "secrets",
-          "create"
-        ]
+        "tags": ["v1", "secrets", "create"]
       }
     },
     "/v1/secret/{secret_key}": {
@@ -1536,12 +186,60 @@
             }
           }
         },
-        "tags": [
-          "v1",
-          "secrets",
-          "reveal",
-          "danger"
-        ]
+        "tags": ["v1", "secrets", "reveal", "danger"]
+      }
+    },
+    "/v1/private/{metadata_key}/burn": {
+      "post": {
+        "summary": "Burn a secret",
+        "parameters": [
+          {
+            "name": "metadata_key",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response"
+          }
+        },
+        "tags": ["v1", "secrets", "metadata", "danger"]
+      }
+    },
+    "/v1/private/{metadata_key}": {
+      "post": {
+        "summary": "Retrieve metadata",
+        "parameters": [
+          {
+            "name": "metadata_key",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response"
+          }
+        },
+        "tags": ["v1", "secrets", "metadata"]
+      }
+    },
+    "/v1/private/recent": {
+      "get": {
+        "summary": "Retrieve recent metadata",
+        "responses": {
+          "200": {
+            "description": "Successful response"
+          }
+        },
+        "tags": ["v1", "secrets", "metadata", "readonly"]
       }
     },
     "/v1/status": {
@@ -1559,10 +257,7 @@
             }
           }
         },
-        "tags": [
-          "v1",
-          "readonly"
-        ]
+        "tags": ["v1", "readonly", "system"]
       },
       "head": {
         "summary": "Head system status",
@@ -1571,10 +266,1122 @@
             "description": "Successful response"
           }
         },
-        "tags": [
-          "v1",
-          "readonly"
-        ]
+        "tags": ["v1", "readonly", "system"]
+      }
+    },
+    "/v2/private/recent": {
+      "get": {
+        "summary": "List Recent Metadata",
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiRecordsResponse"
+                }
+              }
+            }
+          }
+        },
+        "tags": ["v2", "secrets", "metadata", "readonly"]
+      }
+    },
+    "/v2/private/{key}/burn": {
+      "post": {
+        "summary": "Burn Secret",
+        "parameters": [
+          {
+            "name": "key",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BaseApiResponse"
+                }
+              }
+            }
+          }
+        },
+        "tags": ["v2", "secrets", "danger"]
+      }
+    },
+    "/v2/private/{key}": {
+      "get": {
+        "summary": "Get Metadata",
+        "parameters": [
+          {
+            "name": "key",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MetadataResponse"
+                }
+              }
+            }
+          }
+        },
+        "tags": ["v2", "secrets", "metadata"]
+      }
+    },
+    "/v2/secret/{key}": {
+      "get": {
+        "summary": "Get Secret",
+        "parameters": [
+          {
+            "name": "key",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SecretResponse"
+                }
+              }
+            }
+          }
+        },
+        "tags": ["v2", "secrets"]
+      },
+      "post": {
+        "summary": "Reveal Secret",
+        "parameters": [
+          {
+            "name": "key",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SecretResponse"
+                }
+              }
+            }
+          }
+        },
+        "tags": ["v2", "secrets", "danger"]
+      }
+    },
+    "/v2/secret/generate": {
+      "post": {
+        "security": [
+          {},
+          {
+            "BasicAuth": []
+          }
+        ],
+        "description": "Generates a password and returns a link that can be viewed only once. This is the v2 API version od the /v1/share endpoint. TTL is limited to 7 days (anonymous), 14 days (basic free plan), and 30 days (premium plan).",
+        "summary": "Generate Secret",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GeneratePayload"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConcealDataResponse"
+                }
+              }
+            }
+          }
+        },
+        "tags": ["v2", "secrets", "generate"]
+      }
+    },
+    "/v2/secret/conceal": {
+      "post": {
+        "security": [
+          {},
+          {
+            "BasicAuth": []
+          }
+        ],
+        "description": "Creates an encrypted secret and returns a link that can be viewed only once. This is the v2 API version od the /v1/share endpoint. TTL is limited to 7 days (anonymous), 14 days (basic free plan), and 30 days (premium plan).",
+        "summary": "Conceal Secret",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ConcealPayload"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConcealDataResponse"
+                }
+              }
+            }
+          }
+        },
+        "tags": ["v2", "secrets", "create"]
+      }
+    },
+    "/v2/supported-locales": {
+      "get": {
+        "summary": "Get Supported Locales",
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiRecordsResponse"
+                }
+              }
+            }
+          }
+        },
+        "tags": ["v2", "readonly", "system", "localization"]
+      }
+    },
+    "/v2/version": {
+      "get": {
+        "summary": "Get Version",
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BaseApiResponse"
+                }
+              }
+            }
+          }
+        },
+        "tags": ["v2", "system"]
+      }
+    },
+    "/v2/status": {
+      "get": {
+        "summary": "Get system status",
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BaseApiResponse"
+                }
+              }
+            }
+          }
+        },
+        "tags": ["v2", "readonly", "system"]
+      },
+      "head": {
+        "summary": "Head system status",
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BaseApiResponse"
+                }
+              }
+            }
+          }
+        },
+        "tags": ["v2", "readonly", "system"]
+      }
+    },
+    "/v2/authcheck": {
+      "get": {
+        "security": [
+          {
+            "CookieAuth": []
+          },
+          {
+            "BasicAuth": []
+          }
+        ],
+        "summary": "Auth Check",
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CheckAuthResponse"
+                }
+              }
+            }
+          }
+        },
+        "tags": ["v2", "accounts"]
+      }
+    },
+    "/v2/validate-shrimp": {
+      "post": {
+        "security": [
+          {
+            "CookieAuth": []
+          },
+          {
+            "BasicAuth": []
+          }
+        ],
+        "summary": "Validate Shrimp",
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BaseApiResponse"
+                }
+              }
+            }
+          }
+        },
+        "tags": ["v2", "system"]
+      }
+    },
+    "/v2/altcha/challenge": {
+      "get": {
+        "summary": "Get Altcha Challenge",
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BaseApiResponse"
+                }
+              }
+            }
+          }
+        },
+        "tags": ["v2", "challenges"]
+      }
+    },
+    "/v2/altcha/verify": {
+      "post": {
+        "summary": "Verify Altcha",
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BaseApiResponse"
+                }
+              }
+            }
+          }
+        },
+        "tags": ["v2", "challenges"]
+      }
+    },
+    "/v2/altcha/verify-spam": {
+      "post": {
+        "summary": "Verify Altcha Spam",
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BaseApiResponse"
+                }
+              }
+            }
+          }
+        },
+        "tags": ["v2", "challenges"]
+      }
+    },
+    "/v2/colonel": {
+      "get": {
+        "summary": "Get Colonel Index",
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ColonelResponse"
+                }
+              }
+            }
+          }
+        },
+        "tags": ["v2", "colonel"]
+      }
+    },
+    "/signup": {
+      "post": {
+        "summary": "Create Account",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "u": {
+                    "type": "string",
+                    "format": "email",
+                    "description": "User's email address (used as username)"
+                  },
+                  "p": {
+                    "type": "string",
+                    "description": "User's password"
+                  },
+                  "p2": {
+                    "type": "string",
+                    "description": "Password confirmation"
+                  },
+                  "planid": {
+                    "type": "string",
+                    "description": "ID of the selected plan"
+                  },
+                  "skill": {
+                    "type": "string",
+                    "description": "Hidden field for bot detection (should be empty)"
+                  }
+                },
+                "required": ["u", "p", "p2", "planid"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BaseApiResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "tags": ["accounts"]
+      }
+    },
+    "/signin": {
+      "post": {
+        "summary": "Authenticate User",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "u": {
+                    "type": "string",
+                    "format": "email",
+                    "description": "User's email address"
+                  },
+                  "p": {
+                    "type": "string",
+                    "description": "User's password"
+                  }
+                },
+                "required": ["u", "p"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BaseApiResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "tags": ["authentication"]
+      }
+    },
+    "/welcome/stripe/webhook": {
+      "post": {
+        "summary": "Handle Stripe Webhook",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "payload": {
+                    "type": "object",
+                    "description": "Stripe event payload"
+                  }
+                },
+                "required": ["payload"]
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "in": "header",
+            "name": "Stripe-Signature",
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "description": "Stripe webhook signature"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "welcome": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "tags": ["webhooks", "stripe"]
+      }
+    },
+    "/incoming": {
+      "post": {
+        "summary": "Create Incoming Secret",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "secret": {
+                    "type": "string",
+                    "description": "The secret value to be stored"
+                  },
+                  "ticketno": {
+                    "type": "string",
+                    "description": "A valid ticket number"
+                  },
+                  "recipient": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "format": "email"
+                    },
+                    "description": "Email addresses of recipients"
+                  }
+                },
+                "required": ["secret", "ticketno"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BaseApiResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "tags": ["incoming"]
+      }
+    },
+    "/feedback": {
+      "post": {
+        "summary": "Submit Feedback",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "msg": {
+                    "type": "string",
+                    "maxLength": 999,
+                    "description": "Feedback message"
+                  },
+                  "authenticity_payload": {
+                    "type": "string",
+                    "maxLength": 999,
+                    "description": "Authenticity payload for spam prevention"
+                  }
+                },
+                "required": ["msg"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BaseApiResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "tags": ["feedback"]
+      }
+    },
+    "/forgot": {
+      "post": {
+        "summary": "Request Password Reset",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "u": {
+                    "type": "string",
+                    "format": "email",
+                    "description": "User's email address"
+                  }
+                },
+                "required": ["u"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BaseApiResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "tags": ["authentication"]
+      }
+    },
+    "/forgot/{key}": {
+      "post": {
+        "summary": "Reset Password",
+        "parameters": [
+          {
+            "name": "key",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Reset password key"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "newp": {
+                    "type": "string",
+                    "description": "New password"
+                  },
+                  "newp2": {
+                    "type": "string",
+                    "description": "New password confirmation"
+                  }
+                },
+                "required": ["newp", "newp2"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BaseApiResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "tags": ["authentication"]
+      }
+    },
+    "/v2/account/change-password": {
+      "post": {
+        "summary": "Change Password",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "currentp": {
+                    "type": "string"
+                  },
+                  "newp": {
+                    "type": "string"
+                  },
+                  "newp2": {
+                    "type": "string"
+                  }
+                },
+                "required": ["currentp", "newp", "newp2"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BaseApiResponse"
+                }
+              }
+            }
+          }
+        },
+        "tags": ["v2", "accounts", "danger"]
+      }
+    },
+    "/v2/account/destroy": {
+      "post": {
+        "summary": "Destroy Account",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "confirmation": {
+                    "type": "string"
+                  }
+                },
+                "required": ["confirmation"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BaseApiResponse"
+                }
+              }
+            }
+          }
+        },
+        "tags": ["v2", "accounts", "danger"]
+      }
+    },
+    "/v2/account/apitoken": {
+      "post": {
+        "summary": "Generate API Key",
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiTokenResponse"
+                }
+              }
+            }
+          }
+        },
+        "tags": ["v2", "accounts", "danger"]
+      }
+    },
+    "/v2/account": {
+      "get": {
+        "summary": "Get Account",
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AccountResponse"
+                }
+              }
+            }
+          }
+        },
+        "tags": ["v2", "accounts"]
+      }
+    },
+    "/v2/account/update-locale": {
+      "post": {
+        "summary": "Update Account Locale",
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BaseApiResponse"
+                }
+              }
+            }
+          }
+        },
+        "tags": ["v2", "accounts"]
+      }
+    },
+    "/v2/domains/add": {
+      "post": {
+        "summary": "Add Domain",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "domain": {
+                    "type": "string"
+                  }
+                },
+                "required": ["domain"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful response"
+          }
+        },
+        "tags": ["v2", "accounts", "domains"]
+      }
+    },
+    "/v2/domains/{domain}": {
+      "get": {
+        "summary": "Get Domain",
+        "parameters": [
+          {
+            "name": "domain",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {},
+            "headers": {},
+            "links": {}
+          }
+        },
+        "tags": ["v2", "accounts", "domains"]
+      }
+    },
+    "/v2/domains": {
+      "get": {
+        "summary": "List Domains",
+        "responses": {
+          "200": {
+            "description": "Successful response"
+          }
+        },
+        "tags": ["v2", "accounts", "domains"]
+      }
+    },
+    "/v2/domains/{domain}/remove": {
+      "post": {
+        "summary": "Remove Domain",
+        "parameters": [
+          {
+            "name": "domain",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response"
+          }
+        },
+        "tags": ["v2", "accounts", "domains"]
+      }
+    },
+    "/v2/domains/{domain}/verify": {
+      "post": {
+        "summary": "Verify Domain",
+        "parameters": [
+          {
+            "name": "domain",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response"
+          }
+        },
+        "tags": ["v2", "accounts", "domains"]
+      }
+    },
+    "/v2/domains/{domain}/brand": {
+      "post": {
+        "summary": "Update domain brand settings",
+        "parameters": [
+          {
+            "name": "domain",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/brandSettingsSchema"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiRecordResponse"
+                }
+              }
+            }
+          }
+        },
+        "tags": ["v2", "domains", "branding"]
+      }
+    },
+    "/v2/domains/{domain}/brand/image": {
+      "post": {
+        "summary": "Upload domain brand image",
+        "parameters": [
+          {
+            "name": "domain",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/imagePropsSchema"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiRecordResponse"
+                }
+              }
+            }
+          }
+        },
+        "tags": ["v2", "domains", "branding"]
+      }
+    },
+    "/v2/domains/{domain}/brand/remove-image": {
+      "post": {
+        "summary": "Remove domain brand image",
+        "parameters": [
+          {
+            "name": "domain",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiRecordResponse"
+                }
+              }
+            }
+          }
+        },
+        "tags": ["v2", "domains", "branding"]
       }
     }
   },
@@ -1582,22 +1389,15 @@
     "schemas": {
       "ConcealPayload": {
         "type": "object",
-        "required": [
-          "secret"
-        ],
+        "required": ["secret"],
         "properties": {
           "secret": {
             "type": "object",
-            "required": [
-              "kind",
-              "secret"
-            ],
+            "required": ["kind", "secret"],
             "properties": {
               "kind": {
                 "type": "string",
-                "enum": [
-                  "conceal"
-                ]
+                "enum": ["conceal"]
               },
               "secret": {
                 "type": "string",
@@ -1646,21 +1446,15 @@
       },
       "GeneratePayload": {
         "type": "object",
-        "required": [
-          "secret"
-        ],
+        "required": ["secret"],
         "properties": {
           "secret": {
             "type": "object",
-            "required": [
-              "kind"
-            ],
+            "required": ["kind"],
             "properties": {
               "kind": {
                 "type": "string",
-                "enum": [
-                  "generate"
-                ]
+                "enum": ["generate"]
               },
               "share_domain": {
                 "type": "string"
@@ -1792,9 +1586,7 @@
         "properties": {
           "type": {
             "type": "string",
-            "enum": [
-              "list"
-            ]
+            "enum": ["list"]
           },
           "since": {
             "type": "number"
@@ -2010,39 +1802,22 @@
       },
       "ApplicationError": {
         "type": "object",
-        "required": [
-          "name",
-          "message",
-          "type",
-          "severity"
-        ],
+        "required": ["name", "message", "type", "severity"],
         "properties": {
           "name": {
             "type": "string",
-            "enum": [
-              "ApplicationError"
-            ]
+            "enum": ["ApplicationError"]
           },
           "message": {
             "type": "string"
           },
           "type": {
             "type": "string",
-            "enum": [
-              "api",
-              "validation",
-              "auth",
-              "network",
-              "unknown"
-            ]
+            "enum": ["api", "validation", "auth", "network", "unknown"]
           },
           "severity": {
             "type": "string",
-            "enum": [
-              "error",
-              "warning",
-              "info"
-            ]
+            "enum": ["error", "warning", "info"]
           },
           "code": {
             "anyOf": [
@@ -2065,20 +1840,14 @@
       },
       "ApiTokenResponse": {
         "type": "object",
-        "required": [
-          "success",
-          "record"
-        ],
+        "required": ["success", "record"],
         "properties": {
           "success": {
             "type": "boolean"
           },
           "record": {
             "type": "object",
-            "required": [
-              "apitoken",
-              "active"
-            ],
+            "required": ["apitoken", "active"],
             "properties": {
               "apitoken": {
                 "type": "string"
@@ -2092,21 +1861,14 @@
       },
       "AccountResponse": {
         "type": "object",
-        "required": [
-          "success",
-          "record"
-        ],
+        "required": ["success", "record"],
         "properties": {
           "success": {
             "type": "boolean"
           },
           "record": {
             "type": "object",
-            "required": [
-              "cust",
-              "stripe_customer",
-              "stripe_subscriptions"
-            ],
+            "required": ["cust", "stripe_customer", "stripe_subscriptions"],
             "properties": {
               "cust": {
                 "$ref": "#/components/schemas/Customer"
@@ -2131,11 +1893,7 @@
       },
       "MetadataListResponse": {
         "type": "object",
-        "required": [
-          "success",
-          "records",
-          "count"
-        ],
+        "required": ["success", "records", "count"],
         "properties": {
           "success": {
             "type": "boolean"
@@ -2159,10 +1917,7 @@
       },
       "MetadataResponse": {
         "type": "object",
-        "required": [
-          "success",
-          "record"
-        ],
+        "required": ["success", "record"],
         "properties": {
           "success": {
             "type": "boolean"
@@ -2177,11 +1932,7 @@
       },
       "SecretListResponse": {
         "type": "object",
-        "required": [
-          "success",
-          "records",
-          "count"
-        ],
+        "required": ["success", "records", "count"],
         "properties": {
           "success": {
             "type": "boolean"
@@ -2202,10 +1953,7 @@
       },
       "SecretResponse": {
         "type": "object",
-        "required": [
-          "success",
-          "record"
-        ],
+        "required": ["success", "record"],
         "properties": {
           "success": {
             "type": "boolean"
@@ -2220,10 +1968,7 @@
       },
       "ColonelResponse": {
         "type": "object",
-        "required": [
-          "success",
-          "details"
-        ],
+        "required": ["success", "details"],
         "properties": {
           "success": {
             "type": "boolean"
@@ -2238,21 +1983,14 @@
       },
       "ConcealDataResponse": {
         "type": "object",
-        "required": [
-          "success",
-          "record"
-        ],
+        "required": ["success", "record"],
         "properties": {
           "success": {
             "type": "boolean"
           },
           "record": {
             "type": "object",
-            "required": [
-              "metadata",
-              "secret",
-              "share_domain"
-            ],
+            "required": ["metadata", "secret", "share_domain"],
             "properties": {
               "metadata": {
                 "$ref": "#/components/schemas/Metadata"
@@ -2269,10 +2007,7 @@
       },
       "CheckAuthResponse": {
         "type": "object",
-        "required": [
-          "success",
-          "record"
-        ],
+        "required": ["success", "record"],
         "properties": {
           "success": {
             "type": "boolean"
@@ -2282,9 +2017,7 @@
           },
           "details": {
             "type": "object",
-            "required": [
-              "authenticated"
-            ],
+            "required": ["authenticated"],
             "properties": {
               "authenticated": {
                 "type": "boolean"
@@ -2295,11 +2028,7 @@
       },
       "ShareV1ApiResponse": {
         "type": "object",
-        "required": [
-          "success",
-          "secret_key",
-          "metadata_key"
-        ],
+        "required": ["success", "secret_key", "metadata_key"],
         "properties": {
           "success": {
             "type": "boolean"
@@ -2341,11 +2070,7 @@
             "description": "UTC timestamp in seconds"
           }
         },
-        "required": [
-          "identifier",
-          "created",
-          "updated"
-        ]
+        "required": ["identifier", "created", "updated"]
       },
       "BaseCustomer": {
         "type": "object",
@@ -2542,10 +2267,7 @@
                 "oneOf": [
                   {
                     "type": "string",
-                    "enum": [
-                      "true",
-                      "false"
-                    ]
+                    "enum": ["true", "false"]
                   },
                   {
                     "type": "boolean"
@@ -2556,10 +2278,7 @@
                 "oneOf": [
                   {
                     "type": "string",
-                    "enum": [
-                      "true",
-                      "false"
-                    ]
+                    "enum": ["true", "false"]
                   },
                   {
                     "type": "boolean"
@@ -2570,10 +2289,7 @@
                 "oneOf": [
                   {
                     "type": "string",
-                    "enum": [
-                      "true",
-                      "false"
-                    ]
+                    "enum": ["true", "false"]
                   },
                   {
                     "type": "boolean"
@@ -2658,13 +2374,7 @@
                 }
               }
             },
-            "required": [
-              "custid",
-              "role",
-              "verified",
-              "active",
-              "locale"
-            ]
+            "required": ["custid", "role", "verified", "active", "locale"]
           }
         ]
       },
@@ -2689,12 +2399,7 @@
                 "type": "string"
               }
             },
-            "required": [
-              "colonel",
-              "secrets_shared",
-              "emails_sent",
-              "stamp"
-            ]
+            "required": ["colonel", "secrets_shared", "emails_sent", "stamp"]
           }
         ]
       },
@@ -2722,11 +2427,7 @@
                 }
               }
             },
-            "required": [
-              "cust",
-              "stripe_customer",
-              "stripe_subscriptions"
-            ]
+            "required": ["cust", "stripe_customer", "stripe_subscriptions"]
           }
         ]
       },
@@ -2794,12 +2495,7 @@
                 "$ref": "#/components/schemas/PlanOptions"
               }
             },
-            "required": [
-              "planid",
-              "price",
-              "discount",
-              "options"
-            ]
+            "required": ["planid", "price", "discount", "options"]
           }
         ]
       },
@@ -2950,12 +2646,7 @@
                 "type": "string"
               }
             },
-            "required": [
-              "type",
-              "cluster_ip",
-              "cluster_name",
-              "vhost_target"
-            ]
+            "required": ["type", "cluster_ip", "cluster_name", "vhost_target"]
           }
         ]
       },
@@ -3117,10 +2808,7 @@
                 }
               }
             },
-            "required": [
-              "is_owner",
-              "has_passphrase"
-            ]
+            "required": ["is_owner", "has_passphrase"]
           }
         ]
       },
@@ -3149,18 +2837,10 @@
                 "type": "string"
               }
             },
-            "required": [
-              "kind",
-              "recipient",
-              "recipient_safe"
-            ]
+            "required": ["kind", "recipient", "recipient_safe"]
           }
         },
-        "required": [
-          "metadata",
-          "secret",
-          "share_domain"
-        ]
+        "required": ["metadata", "secret", "share_domain"]
       },
       "BaseApiResponse": {
         "type": "object",
@@ -3172,9 +2852,7 @@
             "type": "boolean"
           }
         },
-        "required": [
-          "success"
-        ]
+        "required": ["success"]
       },
       "ApiErrorResponse": {
         "allOf": [
@@ -3197,9 +2875,7 @@
                 "type": "object"
               }
             },
-            "required": [
-              "message"
-            ]
+            "required": ["message"]
           }
         ]
       },
@@ -3227,11 +2903,7 @@
                 "type": "object"
               }
             },
-            "required": [
-              "custid",
-              "records",
-              "count"
-            ]
+            "required": ["custid", "records", "count"]
           }
         ]
       },
@@ -3255,10 +2927,7 @@
             "additionalProperties": true
           }
         },
-        "required": [
-          "success",
-          "record"
-        ]
+        "required": ["success", "record"]
       },
       "AuthenticationSettings": {
         "type": "object",
@@ -3276,12 +2945,7 @@
             "type": "boolean"
           }
         },
-        "required": [
-          "enabled",
-          "signup",
-          "signin",
-          "autoverify"
-        ]
+        "required": ["enabled", "signup", "signin", "autoverify"]
       },
       "ApiToken": {
         "allOf": [
@@ -3298,10 +2962,7 @@
                 "type": "boolean"
               }
             },
-            "required": [
-              "apitoken",
-              "active"
-            ]
+            "required": ["apitoken", "active"]
           }
         ]
       },
@@ -3421,9 +3082,7 @@
             "type": "boolean"
           }
         },
-        "required": [
-          "authorized"
-        ]
+        "required": ["authorized"]
       },
       "Feedback": {
         "type": "object",
@@ -3435,10 +3094,7 @@
             "type": "string"
           }
         },
-        "required": [
-          "msg",
-          "stamp"
-        ]
+        "required": ["msg", "stamp"]
       },
       "brandSettingsSchema": {
         "type": "object",
@@ -3466,17 +3122,10 @@
           },
           "type": {
             "type": "string",
-            "enum": [
-              "logo",
-              "favicon",
-              "og_image"
-            ]
+            "enum": ["logo", "favicon", "og_image"]
           }
         },
-        "required": [
-          "file",
-          "type"
-        ]
+        "required": ["file", "type"]
       },
       "concealDataSchema": {
         "type": "object",
@@ -3499,9 +3148,7 @@
             "format": "email"
           }
         },
-        "required": [
-          "secret"
-        ]
+        "required": ["secret"]
       },
       "metadataDetailsSchema": {
         "type": "object",
@@ -3554,9 +3201,7 @@
             "format": "email"
           }
         },
-        "required": [
-          "message"
-        ]
+        "required": ["message"]
       }
     },
     "securitySchemes": {
