@@ -7,7 +7,7 @@ import { useDocumentVisibility } from '@vueuse/core';
 import { defineStore, PiniaCustomProperties } from 'pinia';
 import { handleError, inject, ref, watch } from 'vue';
 
-const DEFAULT_PERIODIC_INTERVAL_MS = 60000 * 10; // Check every 10 minutes
+const DEFAULT_PERIODIC_INTERVAL_MS = 60000 * 15; // Check every 15 minutes
 
 interface StoreOptions extends PiniaPluginOptions {
   shrimp?: string;
@@ -27,7 +27,7 @@ interface StoreOptions extends PiniaPluginOptions {
  * const csrfStore = useCsrfStore();
  *
  * // Start periodic validation
- * csrfStore.startPeriodicCheck(60000); // Check every minute
+ * csrfStore.startPeriodicCheck(60000); // Check every minute (?!)
  *
  * // Stop validation when no longer needed
  * csrfStore.stopPeriodicCheck();
