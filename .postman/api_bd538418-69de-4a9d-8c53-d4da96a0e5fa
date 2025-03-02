@@ -9,8 +9,6 @@ id = bd538418-69de-4a9d-8c53-d4da96a0e5fa
 
 [config.relations.collections]
 rootDirectory = docs/api/collections
-files[] = {"id":"38849719-38072473-c31d-4c66-abd6-7f3bab87eef5","path":"API - Reference Collection (outdated).json","metaData":{}}
-files[] = {"id":"38849719-7478248d-a8ab-47ba-b00b-22a3a59b373d","path":"API - Reference Collection.json","metaData":{}}
 
 [config.relations.collections.metaData]
 
