@@ -1395,12 +1395,8 @@
         "properties": {
           "secret": {
             "type": "object",
-            "required": ["kind", "secret"],
+            "required": ["secret"],
             "properties": {
-              "kind": {
-                "type": "string",
-                "enum": ["conceal"]
-              },
               "secret": {
                 "type": "string",
                 "minLength": 1,
@@ -1448,16 +1444,10 @@
       },
       "GeneratePayload": {
         "type": "object",
-        "required": ["secret"],
         "properties": {
           "secret": {
             "type": "object",
-            "required": ["kind"],
             "properties": {
-              "kind": {
-                "type": "string",
-                "enum": ["generate"]
-              },
               "share_domain": {
                 "type": "string"
               },
