@@ -560,7 +560,7 @@
             }
           }
         },
-        "tags": ["v2", "accounts"]
+        "tags": ["v2", "readonly", "accounts", "auth", "internal"]
       }
     },
     "/v2/validate-shrimp": {
@@ -586,7 +586,7 @@
             }
           }
         },
-        "tags": ["v2", "system"]
+        "tags": ["v2", "auth", "internal"]
       }
     },
     "/v2/altcha/challenge": {
