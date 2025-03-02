@@ -65,19 +65,26 @@ export async function setupTestPinia(options = { stubActions: false }) {
   const api = createApi();
   const { app } = createVueWrapper();
 
+  // Required for dependency injection that the stores rely on.
+  app.provide('api', api);
+
   const pinia = createTestingPinia({
     ...options,
-    plugins: [autoInitPlugin({ api })],
+    plugins: [autoInitPlugin()],
   });
 
   app.use(pinia);
-  // app.provide('api', api);
+
+  // Create a div to mount to
+  const el = document.createElement('div');
+  // Mount with a minimal default component
+  const appInstance = app.mount(el);
 
   // Wait for both microtasks and macrotasks to complete
   await Promise.resolve();
   await new Promise((resolve) => setTimeout(resolve, 0));
 
-  return { pinia, api, app };
+  return { pinia, api, app, appInstance };
 }
 
 export async function mountComponent<C extends ComponentPublicInstance>(
