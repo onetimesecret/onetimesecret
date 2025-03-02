@@ -1,31 +1,44 @@
+// tests/unit/vue/stores/csrfStore.spec.ts
+
 import { useCsrfStore } from '@/stores/csrfStore';
-import { createApi } from '@/api';
-import { createTestingPinia } from '@pinia/testing';
-import AxiosMockAdapter from 'axios-mock-adapter';
-import { setActivePinia } from 'pinia';
+import { setupTestPinia } from '../setup';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { createApp } from 'vue';
+import { ref } from 'vue';
+import type { ComponentPublicInstance } from 'vue';
+import type AxiosMockAdapter from 'axios-mock-adapter';
+import type { AxiosInstance } from 'axios';
 
 describe('CSRF Store', () => {
-  let axiosMock: AxiosMockAdapter;
-  let axiosInstance: ReturnType<typeof createApi>;
+  let axiosMock: AxiosMockAdapter | null;
+  let api: AxiosInstance;
   let store: ReturnType<typeof useCsrfStore>;
+  let appInstance: ComponentPublicInstance | null;
+
+  beforeEach(async () => {
+    // Setup testing environment with all needed components
+    const setup = await setupTestPinia();
+    axiosMock = setup.axiosMock;
+    api = setup.api;
+    appInstance = setup.appInstance;
+
+    // Initialize the store
+    store = useCsrfStore();
+    store.init();
+
+    // Setup additional test-specific mocks
+    vi.useFakeTimers();
+    vi.spyOn(window, 'setInterval');
+    vi.spyOn(window, 'clearInterval');
+    vi.spyOn(console, 'error').mockImplementation(() => {});
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
+    vi.useRealTimers();
+    if (axiosMock) axiosMock.reset();
+  });
 
   describe('CSRF Store initialization', () => {
-    beforeEach(() => {
-      const app = createApp({});
-      const pinia = createTestingPinia({ stubActions: false });
-      app.use(pinia);
-      setActivePinia(pinia);
-
-      axiosInstance = createApi();
-      axiosMock = new AxiosMockAdapter(axiosInstance);
-    });
-
-    afterEach(() => {
-      vi.unstubAllGlobals();
-    });
-
     it('initializes with empty shrimp when window.shrimp is not available', () => {
       // Explicitly ensure window.shrimp is undefined
       vi.stubGlobal('window', { shrimp: undefined });
@@ -74,35 +87,7 @@ describe('CSRF Store', () => {
     });
   });
 
-  describe('Original tests', () => {
-    beforeEach(() => {
-      const app = createApp({});
-      // `createTestingPinia()` creates a testing version of Pinia that mocks all
-      // actions by default. Use `createTestingPinia({ stubActions: false })` if
-      // you want to test actions. Otherwise they don't actually get called.
-      const pinia = createTestingPinia({ stubActions: false });
-      app.use(pinia);
-      setActivePinia(pinia);
-
-      // Create a fresh axios instance and mock adapter for testing
-      axiosInstance = createApi();
-      axiosMock = new AxiosMockAdapter(axiosInstance);
-
-      store = useCsrfStore();
-      store.init();
-
-      vi.useFakeTimers();
-      vi.spyOn(window, 'setInterval');
-      vi.spyOn(window, 'clearInterval');
-      vi.spyOn(console, 'error').mockImplementation(() => {});
-    });
-
-    afterEach(() => {
-      vi.restoreAllMocks();
-      vi.useRealTimers();
-      axiosMock.restore();
-    });
-
+  describe('General coverage', () => {
     it('initializes with correct values', () => {
       expect(store.shrimp).toBe('');
       expect(store.isValid).toBe(false);
@@ -276,6 +261,66 @@ describe('CSRF Store', () => {
       store.startPeriodicCheck();
 
       expect(window.setInterval).toHaveBeenCalledWith(expect.any(Function), 60000);
+    });
+  });
+
+  describe('Refreshing', () => {
+    it('refreshes token when document becomes visible', async () => {
+      // Setup initial state
+      store.shrimp = 'initial-shrimp';
+
+      // Mock visibility API
+      const mockVisibility = ref('hidden');
+      vi.mock('@vueuse/core', () => ({
+        useDocumentVisibility: () => mockVisibility,
+      }));
+
+      // Mock successful validation response
+      axiosMock.onPost('/api/v2/validate-shrimp').reply(200, {
+        isValid: true,
+        shrimp: 'refreshed-token',
+      });
+
+      // Initialize visibility checking
+      store.initVisibilityCheck();
+
+      // Simulate document becoming visible
+      mockVisibility.value = 'visible';
+
+      // Wait for async operations
+      await vi.waitFor(() => {
+        expect(axiosMock.history.post.length).toBe(1);
+      });
+
+      // Verify token was refreshed
+      expect(store.shrimp).toBe('refreshed-token');
+      expect(store.isValid).toBe(true);
+    });
+
+    it('starts periodic check on initialization', () => {
+      // Reset store to ensure we test initialization
+      store.$reset();
+
+      // Spy on startPeriodicCheck
+      const startPeriodicCheckSpy = vi.spyOn(store, 'startPeriodicCheck');
+
+      // Initialize store
+      store.init();
+
+      // Verify periodic check was started
+      expect(startPeriodicCheckSpy).toHaveBeenCalled();
+    });
+
+    it('uses the default interval for periodic checks', () => {
+      store.startPeriodicCheck();
+
+      // 15 minutes in milliseconds
+      const expectedDefaultInterval = 60000 * 15;
+
+      expect(window.setInterval).toHaveBeenCalledWith(
+        expect.any(Function),
+        expectedDefaultInterval
+      );
     });
   });
 });

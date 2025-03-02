@@ -1,7 +1,7 @@
 // tests/unit/vue/stores/secretStore.spec.ts
 import { useSecretStore } from '@/stores/secretStore';
 import AxiosMockAdapter from 'axios-mock-adapter';
-import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { App, ComponentPublicInstance } from 'vue';
 
 import { AxiosInstance } from 'axios';
@@ -9,18 +9,18 @@ import { mockSecretRecord, mockSecretResponse } from '../fixtures/metadata.fixtu
 import { setupTestPinia } from '../setup';
 
 describe('secretStore', () => {
-  let axiosMock: AxiosMockAdapter;
+  let axiosMock: AxiosMockAdapter | null;
   let api: AxiosInstance;
   let app: App<Element>;
-  let appInstance: ComponentPublicInstance;
+  let appInstance: ComponentPublicInstance | null;
   let store: ReturnType<typeof useSecretStore>;
 
   beforeEach(async () => {
     // Use the utility function
-    const testSetup = await setupTestPinia({ stubActions: false });
-    api = testSetup.api;
-    app = testSetup.app;
-    appInstance = testSetup.appInstance;
+    const setup = await setupTestPinia();
+    axiosMock = setup.axiosMock;
+    api = setup.api;
+    appInstance = setup.appInstance;
 
     // Create mock adapter
     axiosMock = new AxiosMockAdapter(api);
@@ -30,7 +30,9 @@ describe('secretStore', () => {
   });
 
   afterEach(() => {
-    axiosMock.reset();
+    vi.restoreAllMocks();
+    vi.useRealTimers();
+    if (axiosMock) axiosMock.reset();
   });
 
   describe('Initialization', () => {

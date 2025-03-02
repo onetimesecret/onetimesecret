@@ -11,6 +11,8 @@ import { mount } from '@vue/test-utils';
 import type { ComponentPublicInstance } from 'vue';
 import type { MountingOptions, VueWrapper } from '@vue/test-utils';
 import type { OnetimeWindow } from '@/types/declarations/window';
+import { AxiosInstance } from 'axios';
+import AxiosMockAdapter from 'axios-mock-adapter';
 
 // Mock global objects that JSDOM doesn't support
 global.fetch = vi.fn();
@@ -61,30 +63,111 @@ export function createVueWrapper() {
   return { app };
 }
 
-export async function setupTestPinia(options = { stubActions: false }) {
-  const api = createApi();
-  const { app } = createVueWrapper();
+/**
+ * Setup options for test Pinia instance
+ */
+export interface SetupTestPiniaOptions {
+  /** Whether to stub Pinia actions (default: false) */
+  stubActions?: boolean;
+  /** Whether to create an axios mock adapter (default: true) */
+  mockAxios?: boolean;
+  /** Whether to mount the app to activate Vue context (default: true) */
+  mountApp?: boolean;
+  /** Initial window state (default: stateFixture) */
+  windowState?: OnetimeWindow;
+}
 
-  // Required for dependency injection that the stores rely on.
-  app.provide('api', api);
+/**
+ * Result of setupTestPinia with all created test objects
+ */
+export interface TestPiniaSetup {
+  /** The Pinia instance */
+  pinia: ReturnType<typeof createTestingPinia>;
+  /** The API instance (axios) */
+  api: AxiosInstance;
+  /** The axios mock adapter (if mockAxios is true) */
+  axiosMock: AxiosMockAdapter | null;
+  /** The Vue app instance */
+  app: ReturnType<typeof createApp>;
+  /** The mounted app instance (if mountApp is true) */
+  appInstance: ComponentPublicInstance | null;
+}
 
-  const pinia = createTestingPinia({
-    ...options,
-    plugins: [autoInitPlugin()],
-  });
+/**
+ * Creates a test environment with Pinia store support, API mocking, and proper Vue context.
+ *
+ * @example
+ * ```ts
+ * // Basic usage
+ * const { store, axiosMock } = await setupTestPinia();
+ *
+ * // With options
+ * const { store, axiosMock } = await setupTestPinia({
+ *   stubActions: true,
+ *   mockAxios: true
+ * });
+ *
+ * // Access the store
+ * const store = useMyStore();
+ * ```
+ */
+export async function setupTestPinia(options: SetupTestPiniaOptions = {}): Promise<TestPiniaSetup> {
+  const {
+    stubActions = false,
+    mockAxios = true,
+    mountApp = true,
+    windowState = stateFixture,
+  } = options;
 
-  app.use(pinia);
+  // Set up window state
+  const revertWindow = setupWindowState(windowState);
 
-  // Create a div to mount to
-  const el = document.createElement('div');
-  // Mount with a minimal default component
-  const appInstance = app.mount(el);
+  try {
+    // Create API and mock if requested
+    const api = createApi();
+    const axiosMock = mockAxios ? new AxiosMockAdapter(api) : null;
 
-  // Wait for both microtasks and macrotasks to complete
-  await Promise.resolve();
-  await new Promise((resolve) => setTimeout(resolve, 0));
+    // Create Vue app context
+    const { app } = createVueWrapper();
 
-  return { pinia, api, app, appInstance };
+    // Provide API to Vue context (critical for dependency injection)
+    app.provide('api', api);
+
+    // Create and register Pinia
+    //
+    // `createTestingPinia()` creates a testing version of Pinia that mocks all
+    // actions by default. Use `createTestingPinia({ stubActions: false })` if
+    // you want to test actions. Otherwise they don't actually get called.
+    const pinia = createTestingPinia({
+      stubActions,
+      plugins: [autoInitPlugin()],
+    });
+
+    app.use(pinia);
+
+    // Optionally mount the app to activate full Vue context
+    let appInstance = null;
+    if (mountApp) {
+      const el = document.createElement('div');
+      appInstance = app.mount(el);
+    }
+
+    // Allow async operations to complete
+    await Promise.resolve();
+    await new Promise((resolve) => setTimeout(resolve, 0));
+
+    return {
+      pinia,
+      api,
+      axiosMock,
+      app,
+      appInstance,
+    };
+  } catch (error) {
+    // Ensure window state is reverted even on error
+    revertWindow();
+    throw error;
+  }
 }
 
 export async function mountComponent<C extends ComponentPublicInstance>(
