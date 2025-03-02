@@ -369,7 +369,9 @@
           }
         },
         "tags": ["v2", "secrets"]
-      },
+      }
+    },
+    "/v2/secret/{key}/reveal": {
       "post": {
         "summary": "Reveal Secret",
         "parameters": [
@@ -1861,20 +1863,23 @@
       },
       "AccountResponse": {
         "type": "object",
-        "required": ["success", "record"],
+        "required": ["success", "custid", "record", "details"],
         "properties": {
           "success": {
             "type": "boolean"
           },
+          "custid": {
+            "type": "string"
+          },
           "record": {
             "type": "object",
-            "required": ["cust", "stripe_customer", "stripe_subscriptions"],
+            "required": ["apitoken", "cust", "stripe_customer", "stripe_subscriptions"],
             "properties": {
-              "cust": {
-                "$ref": "#/components/schemas/Customer"
-              },
               "apitoken": {
                 "type": "string"
+              },
+              "cust": {
+                "$ref": "#/components/schemas/Customer"
               },
               "stripe_customer": {
                 "type": "object",
@@ -1888,6 +1893,9 @@
                 "nullable": true
               }
             }
+          },
+          "details": {
+            "type": "object"
           }
         }
       },

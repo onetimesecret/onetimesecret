@@ -9,7 +9,7 @@ id = bd538418-69de-4a9d-8c53-d4da96a0e5fa
 
 [config.relations.collections]
 rootDirectory = docs/api/collections
-files[] = {"id":"38849719-e7a36be4-e46b-46ab-a024-5456812f37c6","path":"API Reference (2025-02-13).json","metaData":{"generateCollectionPreferences":"{\"requestNameSource\":\"URL\",\"indentCharacter\":\"Space\",\"parametersResolution\":\"Schema\",\"folderStrategy\":\"Tags\",\"includeAuthInfoInExample\":true,\"enableOptionalParameters\":true,\"keepImplicitHeaders\":true,\"includeDeprecated\":true,\"alwaysInheritAuthentication\":true,\"updateCollectionSync\":true,\"requestParametersResolution\":\"Schema\",\"exampleParametersResolution\":\"Schema\"}"}}
+files[] = {"id":"38849719-b79f6d3b-d72e-4c50-9d71-088ae4d12c2a","path":"API Reference (2025-02-13).json","metaData":{"generateCollectionPreferences":"{\"requestNameSource\":\"URL\",\"indentCharacter\":\"Space\",\"parametersResolution\":\"Schema\",\"folderStrategy\":\"Tags\",\"includeAuthInfoInExample\":true,\"enableOptionalParameters\":true,\"keepImplicitHeaders\":true,\"includeDeprecated\":true,\"alwaysInheritAuthentication\":true,\"updateCollectionSync\":true,\"requestParametersResolution\":\"Schema\",\"exampleParametersResolution\":\"Schema\"}"}}
 
 [config.relations.collections.metaData]
 
