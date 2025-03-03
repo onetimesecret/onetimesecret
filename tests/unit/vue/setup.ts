@@ -35,12 +35,19 @@ window.matchMedia = vi.fn().mockImplementation((query) => ({
   dispatchEvent: vi.fn(),
 }));
 
+export const windowMock = {
+  // Preserve any existing window properties you need
+  location: window.location,
+  document: window.document,
+};
+
 export function setupWindowState(state = stateFixture) {
-  const originalState = window.__ONETIME_STATE__;
-  window.__ONETIME_STATE__ = state;
-  return () => {
-    window.__ONETIME_STATE__ = originalState;
+  const windowMockWithState = {
+    ...window,
+    __ONETIME_STATE__: state,
   };
+
+  return windowMockWithState;
 }
 
 export function createVueWrapper() {
@@ -116,7 +123,7 @@ export async function setupTestPinia(options: SetupTestPiniaOptions = {}): Promi
     stubActions = false,
     mockAxios = true,
     mountApp = true,
-    windowState = stateFixture,
+    windowState = {}, // allow test cases to provide their own state
   } = options;
 
   // Set up window state
