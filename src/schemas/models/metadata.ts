@@ -40,9 +40,7 @@ export const MetadataState = {
 export type MetadataState = (typeof MetadataState)[keyof typeof MetadataState];
 
 // Create a reusable schema for the state
-export const metadataStateSchema = z.enum(
-  Object.values(MetadataState) as [string, ...string[]]
-);
+export const metadataStateSchema = z.enum(Object.values(MetadataState) as [string, ...string[]]);
 
 // Common base schema for all metadata records
 export const metadataBaseSchema = createModelSchema({
@@ -51,6 +49,9 @@ export const metadataBaseSchema = createModelSchema({
   secret_shortkey: z.string().optional(),
   recipients: z.array(z.string()).or(z.string()).optional(),
   share_domain: z.string().nullable().optional(),
+  secret_ttl: z.number().min(0).optional(),
+  metadata_ttl: z.number().min(0).optional(),
+  lifespan: z.number().min(0).optional(),
   state: metadataStateSchema,
   received: transforms.fromString.dateNullable.optional(),
   burned: transforms.fromString.dateNullable.optional(),
