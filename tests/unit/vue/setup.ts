@@ -6,10 +6,7 @@ import { createI18n } from 'vue-i18n';
 import { createTestingPinia } from '@pinia/testing';
 import { vi } from 'vitest';
 import { createApp, h } from 'vue';
-import { stateFixture } from './fixtures/window.fixture';
-import { mount } from '@vue/test-utils';
 import type { ComponentPublicInstance } from 'vue';
-import type { MountingOptions, VueWrapper } from '@vue/test-utils';
 import type { OnetimeWindow } from '@/types/declarations/window';
 import { AxiosInstance } from 'axios';
 import AxiosMockAdapter from 'axios-mock-adapter';
@@ -23,32 +20,6 @@ global.Response = {
   redirect: vi.fn(),
   prototype: Response.prototype,
 } as unknown as typeof Response;
-
-window.matchMedia = vi.fn().mockImplementation((query) => ({
-  matches: query === '(prefers-color-scheme: dark)', // we start dark
-  media: query,
-  onchange: null,
-  addListener: vi.fn(), // deprecated
-  removeListener: vi.fn(), // deprecated
-  addEventListener: vi.fn(),
-  removeEventListener: vi.fn(),
-  dispatchEvent: vi.fn(),
-}));
-
-export const windowMock = {
-  // Preserve any existing window properties you need
-  location: window.location,
-  document: window.document,
-};
-
-export function setupWindowState(state = stateFixture) {
-  const windowMockWithState = {
-    ...window,
-    __ONETIME_STATE__: state,
-  };
-
-  return windowMockWithState;
-}
 
 export function createVueWrapper() {
   const app = createApp({
@@ -126,9 +97,6 @@ export async function setupTestPinia(options: SetupTestPiniaOptions = {}): Promi
     windowState = {}, // allow test cases to provide their own state
   } = options;
 
-  // Set up window state
-  const revertWindow = setupWindowState(windowState);
-
   try {
     // Create API and mock if requested
     const api = createApi();
@@ -171,8 +139,9 @@ export async function setupTestPinia(options: SetupTestPiniaOptions = {}): Promi
       appInstance,
     };
   } catch (error) {
-    // Ensure window state is reverted even on error
-    revertWindow();
+    // We used to revert window state on error here but now we don't need to
+    // becasue we don't muck with window object directly. We stub it instead.
+
     throw error;
   }
 }
