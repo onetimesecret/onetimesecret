@@ -1,4 +1,4 @@
-//  vitest.config.ts
+// vitest.config.ts
 
 import vue from '@vitejs/plugin-vue';
 import { resolve } from 'path';
@@ -47,9 +47,7 @@ export default defineConfig({
       hooks: 'list', // runs beforeEachand afterEach in the order defined
     },
     typecheck: {
-      enabled: true,
-      tsconfig: './tsconfig.test.json', // Point to test-specific tsconfig
-      include: ['tests/**/*.{ts,tsx,vue}'],
+      tsconfig: './tsconfig.json',
     },
   },
   resolve: {
