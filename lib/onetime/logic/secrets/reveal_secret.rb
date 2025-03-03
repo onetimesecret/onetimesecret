@@ -26,15 +26,16 @@ module Onetime::Logic
       end
 
       def process
-        @correct_passphrase = secret.has_passphrase? && secret.passphrase?(passphrase)
+        @correct_passphrase = secret.passphrase?(passphrase)
         @show_secret = secret.viewable? && (correct_passphrase || !secret.has_passphrase?) && continue
         @verification = secret.verification.to_s == "true"
         @secret_key = @secret.key
         @secret_shortkey = @secret.shortkey
 
+        OT.ld "[reveal_secret] secret=#{secret.shortkey} viewable=#{secret.viewable?} correct_passphrase=#{correct_passphrase} continue=#{continue}"
+
         owner = secret.load_customer
         if show_secret
-          OT.ld "[reveal_secret] secret=#{secret.shortkey} viewable=#{secret.viewable?} correct_passphrase=#{correct_passphrase} continue=#{continue}"
 
           # If we can't decrypt that's great! We just set secret_value to
           # the encrypted string.

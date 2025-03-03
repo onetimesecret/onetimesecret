@@ -16,6 +16,7 @@ module Onetime
     field :secret_key
     field :secret_shortkey
     field :secret_ttl
+    field :lifespan
     field :share_domain
     field :passphrase
     field :viewed
@@ -43,6 +44,8 @@ module Onetime
       :state,
       :secret_shortkey,
       :secret_ttl,
+      { :metadata_ttl => ->(m) { m.lifespan } },
+      :lifespan,
       :share_domain,
       :created,
       :updated,
