@@ -17,7 +17,7 @@ export const WindowService = {
    */
   get<K extends keyof OnetimeWindow>(key: K): OnetimeWindow[K] {
     if (!window.__ONETIME_STATE__) {
-      throw `window.__ONETIME_STATE__ is not set (${key})`;
+      throw `[WindowService] State is not set (${key})`;
     }
     return (window.__ONETIME_STATE__ as OnetimeWindow)[key];
   },
@@ -47,17 +47,11 @@ export const WindowService = {
     input: K[] | Partial<Record<K, OnetimeWindow[K]>>
   ): Pick<OnetimeWindow, K> {
     if (Array.isArray(input)) {
-      return Object.fromEntries(input.map((key) => [key, this.get(key)])) as Pick<
-        OnetimeWindow,
-        K
-      >;
+      return Object.fromEntries(input.map((key) => [key, this.get(key)])) as Pick<OnetimeWindow, K>;
     }
 
     return Object.fromEntries(
-      Object.entries(input).map(([key, defaultValue]) => [
-        key,
-        this.get(key as K) ?? defaultValue,
-      ])
+      Object.entries(input).map(([key, defaultValue]) => [key, this.get(key as K) ?? defaultValue])
     ) as Pick<OnetimeWindow, K>;
   },
 };

@@ -6,11 +6,10 @@ import { createI18n } from 'vue-i18n';
 import { createTestingPinia } from '@pinia/testing';
 import { vi } from 'vitest';
 import { createApp, h } from 'vue';
-import { stateFixture } from './fixtures/window.fixture';
-import { mount } from '@vue/test-utils';
 import type { ComponentPublicInstance } from 'vue';
-import type { MountingOptions, VueWrapper } from '@vue/test-utils';
 import type { OnetimeWindow } from '@/types/declarations/window';
+import { AxiosInstance } from 'axios';
+import AxiosMockAdapter from 'axios-mock-adapter';
 
 // Mock global objects that JSDOM doesn't support
 global.fetch = vi.fn();
@@ -21,25 +20,6 @@ global.Response = {
   redirect: vi.fn(),
   prototype: Response.prototype,
 } as unknown as typeof Response;
-
-window.matchMedia = vi.fn().mockImplementation((query) => ({
-  matches: query === '(prefers-color-scheme: dark)', // we start dark
-  media: query,
-  onchange: null,
-  addListener: vi.fn(), // deprecated
-  removeListener: vi.fn(), // deprecated
-  addEventListener: vi.fn(),
-  removeEventListener: vi.fn(),
-  dispatchEvent: vi.fn(),
-}));
-
-export function setupWindowState(state = stateFixture) {
-  const originalState = window.__ONETIME_STATE__;
-  window.__ONETIME_STATE__ = state;
-  return () => {
-    window.__ONETIME_STATE__ = originalState;
-  };
-}
 
 export function createVueWrapper() {
   const app = createApp({
@@ -61,42 +41,107 @@ export function createVueWrapper() {
   return { app };
 }
 
-export async function setupTestPinia(options = { stubActions: false }) {
-  const api = createApi();
-  const { app } = createVueWrapper();
-
-  const pinia = createTestingPinia({
-    ...options,
-    plugins: [autoInitPlugin({ api })],
-  });
-
-  app.use(pinia);
-  // app.provide('api', api);
-
-  // Wait for both microtasks and macrotasks to complete
-  await Promise.resolve();
-  await new Promise((resolve) => setTimeout(resolve, 0));
-
-  return { pinia, api, app };
+/**
+ * Setup options for test Pinia instance
+ */
+export interface SetupTestPiniaOptions {
+  /** Whether to stub Pinia actions (default: false) */
+  stubActions?: boolean;
+  /** Whether to create an axios mock adapter (default: true) */
+  mockAxios?: boolean;
+  /** Whether to mount the app to activate Vue context (default: true) */
+  mountApp?: boolean;
+  /** Initial window state (default: stateFixture) */
+  windowState?: OnetimeWindow;
 }
 
-export async function mountComponent<C extends ComponentPublicInstance>(
-  component: any,
-  options: MountingOptions<any> = {},
-  state: OnetimeWindow = stateFixture
-): Promise<VueWrapper<C>> {
-  const revert = setupWindowState(state);
+/**
+ * Result of setupTestPinia with all created test objects
+ */
+export interface TestPiniaSetup {
+  /** The Pinia instance */
+  pinia: ReturnType<typeof createTestingPinia>;
+  /** The API instance (axios) */
+  api: AxiosInstance;
+  /** The axios mock adapter (if mockAxios is true) */
+  axiosMock: AxiosMockAdapter | null;
+  /** The Vue app instance */
+  app: ReturnType<typeof createApp>;
+  /** The mounted app instance (if mountApp is true) */
+  appInstance: ComponentPublicInstance | null;
+}
+
+/**
+ * Creates a test environment with Pinia store support, API mocking, and proper Vue context.
+ *
+ * @example
+ * ```ts
+ * // Basic usage
+ * const { store, axiosMock } = await setupTestPinia();
+ *
+ * // With options
+ * const { store, axiosMock } = await setupTestPinia({
+ *   stubActions: true,
+ *   mockAxios: true
+ * });
+ *
+ * // Access the store
+ * const store = useMyStore();
+ * ```
+ */
+export async function setupTestPinia(options: SetupTestPiniaOptions = {}): Promise<TestPiniaSetup> {
+  const {
+    stubActions = false,
+    mockAxios = true,
+    mountApp = true,
+    windowState = {}, // allow test cases to provide their own state
+  } = options;
+
   try {
-    const { pinia, api, app } = await setupTestPinia();
-    return mount(component, {
-      global: {
-        plugins: [pinia],
-        mocks: { api },
-        ...(options.global || {}),
-      },
-      ...options,
-    }) as VueWrapper<C>;
-  } finally {
-    revert();
+    // Create API and mock if requested
+    const api = createApi();
+    const axiosMock = mockAxios ? new AxiosMockAdapter(api) : null;
+
+    // Create Vue app context
+    const { app } = createVueWrapper();
+
+    // Provide API to Vue context (critical for dependency injection)
+    app.provide('api', api);
+
+    // Create and register Pinia
+    //
+    // `createTestingPinia()` creates a testing version of Pinia that mocks all
+    // actions by default. Use `createTestingPinia({ stubActions: false })` if
+    // you want to test actions. Otherwise they don't actually get called.
+    const pinia = createTestingPinia({
+      stubActions,
+      plugins: [autoInitPlugin()],
+    });
+
+    app.use(pinia);
+
+    // Optionally mount the app to activate full Vue context
+    let appInstance = null;
+    if (mountApp) {
+      const el = document.createElement('div');
+      appInstance = app.mount(el);
+    }
+
+    // Allow async operations to complete
+    await Promise.resolve();
+    await new Promise((resolve) => setTimeout(resolve, 0));
+
+    return {
+      pinia,
+      api,
+      axiosMock,
+      app,
+      appInstance,
+    };
+  } catch (error) {
+    // We used to revert window state on error here but now we don't need to
+    // becasue we don't muck with window object directly. We stub it instead.
+
+    throw error;
   }
 }
