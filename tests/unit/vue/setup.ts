@@ -169,24 +169,3 @@ export async function setupTestPinia(options: SetupTestPiniaOptions = {}): Promi
     throw error;
   }
 }
-
-export async function mountComponent<C extends ComponentPublicInstance>(
-  component: any,
-  options: MountingOptions<any> = {},
-  state: OnetimeWindow = stateFixture
-): Promise<VueWrapper<C>> {
-  const revert = setupWindowState(state);
-  try {
-    const { pinia, api, app } = await setupTestPinia();
-    return mount(component, {
-      global: {
-        plugins: [pinia],
-        mocks: { api },
-        ...(options.global || {}),
-      },
-      ...options,
-    }) as VueWrapper<C>;
-  } finally {
-    revert();
-  }
-}
