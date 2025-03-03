@@ -154,9 +154,11 @@ module Onetime::Logic
       def save_secret
         secret.encrypt_value secret_value, :size => plan.options[:size]
         metadata.ttl, secret.ttl = ttl*2, ttl
+        metadata.lifespan = metadata.ttl.to_i
+        metadata.secret_ttl = secret.ttl.to_i
         metadata.secret_shortkey = secret.shortkey
-        metadata.secret_ttl = secret.ttl
         metadata.share_domain = share_domain
+        secret.lifespan = secret.ttl.to_i
         secret.share_domain = share_domain
         secret.save
         metadata.save
