@@ -21,9 +21,7 @@ export const SecretState = {
 export type SecretState = (typeof SecretState)[keyof typeof SecretState];
 
 // Create reusable schema for the state
-export const secretStateSchema = z.enum(
-  Object.values(SecretState) as [string, ...string[]]
-);
+export const secretStateSchema = z.enum(Object.values(SecretState) as [string, ...string[]]);
 
 // Base schema for core fields
 const secretBaseSchema = z.object({
@@ -33,7 +31,7 @@ const secretBaseSchema = z.object({
   is_truncated: transforms.fromString.boolean,
   has_passphrase: transforms.fromString.boolean,
   verification: transforms.fromString.boolean,
-  secret_value: z.string().optional(),
+  secret_value: z.string().optional(), // optional for preview/confirmation page
 });
 
 // List view schema (stripped down version)
@@ -42,8 +40,8 @@ export const secretListSchema = createModelSchema(secretBaseSchema.shape).strip(
 // Full secret schema with all fields
 export const secretSchema = createModelSchema({
   ...secretBaseSchema.shape,
-  secret_ttl: transforms.fromString.number.nullable(),
-  lifespan: z.string().nullable(), // see update 2024-12-31
+  secret_ttl: transforms.fromString.number,
+  lifespan: transforms.fromString.number,
   original_size: z.string(),
 }).strip();
 
@@ -65,6 +63,19 @@ export type SecretList = z.infer<typeof secretListSchema>;
 /**
  * CHANGELOG
  * ═══════════════════════
+ *
+ * [2025-03-03] CHANGE
+ * ────────────────────────
+ * secret_ttl: number | null → number
+ * lifespan: string | null → number
+ *
+ * transform:
+ *   transforms.fromString.number.nullable() → transforms.fromString.number
+ *   z.string().nullable() → transforms.fromString.number
+ *
+ * why: Removed nullable handling for consistent numeric
+ *      operations. Standardized TTL and lifespan to
+ *      numeric format.
  *
  * [2024-12-31] BREAKING
  * ────────────────────────
