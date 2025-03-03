@@ -30,7 +30,7 @@
     "podman:run": "podman run --rm -it onetimesecret",
     "preview:local": "vite preview --config vite.config.local.ts",
     "preview": "vite preview",
-    "test:base": "vitest  --typecheck",
+    "test:base": "vitest --typecheck",
     "test:coverage": "pnpm test:base run --coverage",
     "test:watch:coverage": "pnpm test:base --coverage",
     "test:watch:ui": "pnpm test:base --ui --open",

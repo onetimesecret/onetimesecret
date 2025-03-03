@@ -63,10 +63,13 @@ function initializeApp(app: App, options: AppInitializerOptions = {}) {
     // notify: notifications.add,
   });
 
-  // Register auto-init plugin before creating stores
+  // Register auto-init plugin before creating stores. We pass the api client
+  // to the plugin so it can be used by stores.
   pinia.use(autoInitPlugin(options));
 
   // Make API client available to Vue app (and pinia stores)
+  // NOTE: In our unit tests we need to explicitly provide an API client
+  // for stores to use. See plugins/README.md.
   app.provide('api', api);
 
   app.use(pinia);

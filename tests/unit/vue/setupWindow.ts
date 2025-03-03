@@ -1,10 +1,32 @@
-import { afterAll } from 'vitest';
+// tests/unit/vue/setupWindow.ts
+
+import { vi } from 'vitest';
 import { stateFixture } from './fixtures/window.fixture';
 
-// Initialize window state before any tests run
-window.__ONETIME_STATE__ = stateFixture;
+export const windowMock = {
+  // Preserve any existing window properties you need
+  location: window.location,
+  document: window.document,
+};
 
-// Clean up after all tests
-afterAll(() => {
-  window.__ONETIME_STATE__ = undefined;
-});
+export function setupWindowState(state = stateFixture) {
+  const windowMockWithState = {
+    ...window,
+    __ONETIME_STATE__: state,
+  };
+
+  return windowMockWithState;
+}
+
+export function setupWindowMedia(query = '(prefers-color-scheme: dark)') {
+  window.matchMedia = vi.fn().mockImplementation((query) => ({
+    matches: query === '(prefers-color-scheme: dark)', // we start dark
+    media: query,
+    onchange: null,
+    addListener: vi.fn(), // deprecated
+    removeListener: vi.fn(), // deprecated
+    addEventListener: vi.fn(),
+    removeEventListener: vi.fn(),
+    dispatchEvent: vi.fn(),
+  }));
+}
