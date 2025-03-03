@@ -1,10 +1,12 @@
 // tests/unit/vue/stores/csrfStore.spec.ts
 
-import { useCsrfStore } from '@/stores/csrfStore';
 import { setupTestPinia } from '../setup';
+import { mockVisibility } from '../setupDocument';
 import { setupWindowState } from '../setupWindow';
+
+import { useCsrfStore } from '@/stores/csrfStore';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { ref } from 'vue';
+import { nextTick, ref } from 'vue';
 import type { ComponentPublicInstance } from 'vue';
 import type AxiosMockAdapter from 'axios-mock-adapter';
 import type { AxiosInstance } from 'axios';
@@ -22,8 +24,9 @@ describe('CSRF Store', () => {
     api = setup.api;
     appInstance = setup.appInstance;
 
-    // Setup additional test-specific mocks
     vi.useFakeTimers();
+
+    // Setup additional test-specific mocks
     vi.spyOn(window, 'setInterval');
     vi.spyOn(window, 'clearInterval');
     vi.spyOn(console, 'error').mockImplementation(() => {});
@@ -253,66 +256,6 @@ describe('CSRF Store', () => {
 
       // 15 minutes in milliseconds
       const expectedDefaultInterval = 60000 * 15; // 900000ms
-
-      expect(window.setInterval).toHaveBeenCalledWith(
-        expect.any(Function),
-        expectedDefaultInterval
-      );
-    });
-  });
-
-  describe.skip('Refreshing', () => {
-    it('refreshes token when document becomes visible', async () => {
-      // Setup initial state
-      store.shrimp = 'initial-shrimp';
-
-      // Mock visibility API
-      const mockVisibility = ref('hidden');
-      vi.mock('@vueuse/core', () => ({
-        useDocumentVisibility: () => mockVisibility,
-      }));
-
-      // Mock successful validation response
-      axiosMock.onPost('/api/v2/validate-shrimp').reply(200, {
-        isValid: true,
-        shrimp: 'refreshed-token',
-      });
-
-      // Initialize visibility checking
-      store.initVisibilityCheck();
-
-      // Simulate document becoming visible
-      mockVisibility.value = 'visible';
-
-      // Wait for async operations
-      await vi.waitFor(() => {
-        expect(axiosMock.history.post.length).toBe(1);
-      });
-
-      // Verify token was refreshed
-      expect(store.shrimp).toBe('refreshed-token');
-      expect(store.isValid).toBe(true);
-    });
-
-    it('starts periodic check on initialization', () => {
-      // Reset store to ensure we test initialization
-      store.$reset();
-
-      // Spy on startPeriodicCheck
-      const startPeriodicCheckSpy = vi.spyOn(store, 'startPeriodicCheck');
-
-      // Initialize store
-      store.init();
-
-      // Verify periodic check was started
-      expect(startPeriodicCheckSpy).toHaveBeenCalled();
-    });
-
-    it('uses the default interval for periodic checks', () => {
-      store.startPeriodicCheck();
-
-      // 15 minutes in milliseconds
-      const expectedDefaultInterval = 60000 * 15;
 
       expect(window.setInterval).toHaveBeenCalledWith(
         expect.any(Function),
