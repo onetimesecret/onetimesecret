@@ -7,6 +7,7 @@ import { App, ComponentPublicInstance } from 'vue';
 import { AxiosInstance } from 'axios';
 import { mockSecretRecord, mockSecretResponse } from '../fixtures/metadata.fixture';
 import { setupTestPinia } from '../setup';
+import { setupWindowState } from '../setupWindow';
 
 describe('secretStore', () => {
   let axiosMock: AxiosMockAdapter | null;
@@ -25,6 +26,9 @@ describe('secretStore', () => {
     // Create mock adapter
     axiosMock = new AxiosMockAdapter(api);
 
+    const windowMock = setupWindowState({ shrimp: undefined });
+    vi.stubGlobal('window', windowMock);
+
     // Initialize store
     store = useSecretStore();
   });
@@ -32,6 +36,7 @@ describe('secretStore', () => {
   afterEach(() => {
     vi.restoreAllMocks();
     vi.useRealTimers();
+    vi.unstubAllGlobals();
     if (axiosMock) axiosMock.reset();
   });
 
