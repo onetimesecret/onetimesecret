@@ -4,42 +4,8 @@
   import OIcon from '@/components/icons/OIcon.vue';
   import { ref } from 'vue';
 
-  const tiers = [
-    {
-      name: 'Hobby',
-      id: 'tier-hobby',
-      href: '#',
-      priceMonthly: '$15',
-      description:
-        'Modi dolorem expedita deleniti. Corporis iste qui inventore pariatur adipisci vitae.',
-      features: [
-        '5 products',
-        'Up to 1,000 subscribers',
-        'Basic analytics',
-        '48-hour support response time',
-      ],
-    },
-    {
-      name: 'Team',
-      id: 'tier-team',
-      href: '#',
-      priceMonthly: '$75',
-      description:
-        'Explicabo quo fugit vel facere ullam corrupti non dolores. Expedita eius sit sequi.',
-      features: [
-        'Unlimited products',
-        'Unlimited subscribers',
-        'Advanced analytics',
-        '1-hour, dedicated support response time',
-        'Marketing automations',
-      ],
-    },
-  ];
+  import { paymentFrequencies as frequencies, productTiers as tiers } from '@/sources/productTiers';
 
-  const frequencies = [
-    { value: 'monthly', label: 'Monthly', priceSuffix: '/month' },
-    { value: 'annually', label: 'Annually', priceSuffix: '/year' },
-  ];
   const frequency = ref(frequencies[0]);
 </script>
 
