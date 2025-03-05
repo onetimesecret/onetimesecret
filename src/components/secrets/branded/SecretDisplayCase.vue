@@ -1,15 +1,23 @@
+<!-- src/components/secrets/branded/SecretDisplayCase.vue -->
+
 <script setup lang="ts">
   import BaseSecretDisplay from '@/components/secrets/branded/BaseSecretDisplay.vue';
   import { useClipboard } from '@/composables/useClipboard';
   import { useProductIdentity } from '@/stores/identityStore';
   import { Secret, SecretDetails, brandSettingschema } from '@/schemas/models';
+  import {
+    CornerStyle,
+    FontFamily,
+    cornerStyleClasses,
+    fontFamilyClasses
+  } from '@/schemas/models/domain/brand';
   import { ref, computed } from 'vue';
+  import { useI18n } from 'vue-i18n';
 
   interface Props {
     record: Secret | null;
     details: SecretDetails | null;
     domainId: string;
-    displayPoweredBy: boolean;
     submissionStatus?: {
       status: 'idle' | 'submitting' | 'success' | 'error';
       message?: string;
@@ -17,7 +25,8 @@
   }
 
   const props = defineProps<Props>();
-
+  const i18n = useI18n();
+  const { t } = i18n;
 
   const productIdentity = useProductIdentity();
   const brandSettings = productIdentity.brand; // Not reactive
@@ -25,13 +34,15 @@
   const safeBrandSettings = computed(() =>
     brandSettings ? brandSettingschema.parse(brandSettings) : defaultBranding
   );
-  const cornerStyle = computed(() => {
-    switch (brandSettings?.corner_style) {
-      case 'rounded': return 'rounded-lg';
-      case 'pill': return 'rounded-2xl'; // Changed from rounded-full for textarea
-      case 'square': return 'rounded-none';
-      default: return 'rounded-lg';
-    }
+
+  const cornerClass = computed(() => {
+    const style = safeBrandSettings.value?.corner_style as CornerStyle | undefined;
+    return cornerStyleClasses[style ?? CornerStyle.ROUNDED];
+  });
+
+  const fontFamilyClass = computed(() => {
+    const font = safeBrandSettings.value?.font_family as FontFamily | undefined;
+    return fontFamilyClasses[font ?? FontFamily.SANS];
   });
 
   const alertClasses = computed(() => ({
@@ -43,10 +54,10 @@
   }));
 
 
-
   const hasImageError = ref(false);
   const { isCopied, copyToClipboard } = useClipboard();
 
+  const logoAriaLabel = hasImageError.value ? t('default-logo-icon') : t('brand-logo')
   const copySecretContent = async () => {
     if (props.record?.secret_value === undefined) {
       return;
@@ -58,7 +69,7 @@
     const announcement = document.createElement('div');
     announcement.setAttribute('role', 'status');
     announcement.setAttribute('aria-live', 'polite');
-    announcement.textContent = 'Secret content copied to clipboard';
+    announcement.textContent = t('secret-content-copied-to-clipboard');
     document.body.appendChild(announcement);
     setTimeout(() => announcement.remove(), 1000);
   };
@@ -66,6 +77,7 @@
   const handleImageError = () => {
     hasImageError.value = true;
   };
+  const isCopiedText = computed(() => isCopied ? t('copied') : t('copy-to-clipboard') );
 
   // Prepare the standardized path to the logo image.
   // Note that the file extension needs to be present but is otherwise not used.
@@ -73,10 +85,14 @@
 </script>
 
 <template>
+  <!-- Updated -->
   <BaseSecretDisplay
-    default-title="You have a message"
-    :instructions="brandSettings?.instructions_pre_reveal"
-    :domain-branding="safeBrandSettings">
+    :default-title="$t('you-have-a-message')"
+    :previewI18n="i18n"
+    :domain-branding="safeBrandSettings"
+    :corner-class="cornerClass"
+    :font-class="fontFamilyClass"
+    :instructions="brandSettings?.instructions_pre_reveal">
     <!-- Alert display -->
     <div
       v-if="
@@ -114,7 +130,7 @@
           <p class="text-sm">
             {{
               submissionStatus.message ||
-              (submissionStatus.status === 'error' ? 'An error occurred' : 'Success')
+              (submissionStatus.status === 'error' ? $t('an-error-occurred') : $t('web.STATUS.success'))
             }}
           </p>
         </div>
@@ -126,14 +142,10 @@
       <div class="relative mx-auto sm:mx-0">
         <router-link to="/">
           <div
-            :class="{
-              'rounded-lg': brandSettings?.corner_style === 'rounded',
-              'rounded-full': brandSettings?.corner_style === 'pill',
-              'rounded-none': brandSettings?.corner_style === 'square',
-            }"
+            :class="[cornerClass]"
             class="flex size-14 items-center justify-center bg-gray-100 dark:bg-gray-700 sm:size-16"
             role="img"
-            :aria-label="hasImageError ? 'Default lock icon' : 'Brand logo'">
+            :aria-label="logoAriaLabel">
             <!-- Default lock icon -->
             <svg
               v-if="!logoImage || hasImageError"
@@ -153,13 +165,9 @@
             <img
               v-if="logoImage && !hasImageError"
               :src="logoImage"
-              alt="Brand logo"
+              :alt="$t('brand-logo')"
               class="size-16 object-contain"
-              :class="{
-                'rounded-lg': brandSettings?.corner_style === 'rounded',
-                'rounded-full': brandSettings?.corner_style === 'pill',
-                'rounded-none': brandSettings?.corner_style === 'square',
-              }"
+              :class="[cornerClass]"
               @error="handleImageError" />
           </div>
         </router-link>
@@ -168,11 +176,11 @@
 
     <template #content>
       <div class="relative size-full p-0">
-        <div :class="[cornerStyle, 'size-full overflow-hidden bg-gray-100 dark:bg-gray-800 border border-gray-300 dark:border-gray-600']">
+        <div :class="[cornerClass, 'size-full overflow-hidden bg-gray-100 dark:bg-gray-800 border border-gray-300 dark:border-gray-600']">
           <label
             :for="'secret-content-' + record?.identifier"
             class="sr-only">
-            Secret content
+            {{ $t('secret-content') }}
           </label>
           <textarea
             :id="'secret-content-' + record?.identifier"
@@ -180,7 +188,7 @@
             readonly
             :rows="details?.display_lines ?? 4"
             :value="record?.secret_value"
-            aria-label="Secret content"
+            :aria-label="$t('secret-content')"
             ref="secretContent"></textarea>
         </div>
       </div>
@@ -189,21 +197,15 @@
     <template #action-button>
       <button
         @click="copySecretContent"
-        :title="isCopied ? 'Copied!' : 'Copy to clipboard'"
+        :title="isCopiedText"
         class="inline-flex items-center justify-center rounded-md px-4 py-2.5 text-sm font-medium text-brand-700 shadow-sm transition-colors duration-150 ease-in-out hover:shadow focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 dark:text-brand-100"
-        :class="[
-          {
-            'font-sans': brandSettings?.font_family === 'sans',
-            'font-serif': brandSettings?.font_family === 'serif',
-            'font-mono': brandSettings?.font_family === 'mono'
-          }
-        ]"
+        :class="[fontFamilyClass, cornerClass]"
         :style="{
-          backgroundColor: brandSettings?.primary_color || 'var(--tw-color-brand-500)',
-          color: brandSettings?.button_text_light ? '#ffffff' : '#000000'
+          backgroundColor: brandSettings?.primary_color ??' #dc4a22',
+          color: (brandSettings?.button_text_light ?? true) ? '#ffffff' : '#000000'
         }"
         aria-live="polite"
-        :aria-label="isCopied ? 'Secret copied to clipboard' : 'Copy secret to clipboard'"
+        :aria-label="isCopied ? $t('secret-copied-to-clipboard') : $t('copy-secret-to-clipboard')"
         :aria-pressed="isCopied">
         <svg
           v-if="!isCopied"
@@ -233,7 +235,7 @@
             stroke-width="2"
             d="M5 13l4 4L19 7" />
         </svg>
-        <span>{{ isCopied ? 'Copied!' : 'Copy to clipboard' }}</span>
+        <span>{{ isCopied ? $t('copied') : $t('copy-to-clipboard') }}</span>
       </button>
     </template>
   </BaseSecretDisplay>

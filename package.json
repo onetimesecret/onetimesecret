@@ -1,6 +1,6 @@
 {
   "name": "onetimesecret",
-  "version": "0.19.1",
+  "version": "0.20.0",
   "description": "",
   "type": "module",
   "scripts": {
@@ -49,7 +49,9 @@
     "@headlessui/vue": "^1.7.23",
     "@intlify/core": "^11.0.1",
     "@prettier/plugin-ruby": "^4.0.4",
-    "@types/dompurify": "^3.0.5",
+    "@sentry/browser": "^8.54.0",
+    "@sentry/core": "^8.54.0",
+    "@sentry/vue": "^8.54.0",
     "@types/jsdom": "^21.1.7",
     "@vueuse/integrations": "^12.4.0",
     "altcha": "^1.1.0",
@@ -74,6 +76,7 @@
     "@intlify/eslint-plugin-vue-i18n": "^3.0.0",
     "@pinia/testing": "^0.1.7",
     "@playwright/test": "^1.48.2",
+    "@sentry/vite-plugin": "^3.1.2",
     "@tailwindcss/forms": "^0.5.9",
     "@tailwindcss/typography": "^0.5.15",
     "@tsconfig/node22": "^22.0.0",
@@ -117,5 +120,15 @@
     "vue-router-mock": "^1.1.0",
     "vue-tsc": "^2.1.10"
   },
-  "signature": "4pSP4pST4pSz4pST4pSP4pST4pSP4pSz4pST4pSz4pSz4pSz4pST4pSP4pSTCuKUg+KUg+KUg+KUg+KUoyAg4pSDIOKUg+KUg+KUg+KUg+KUowrilJfilJvilJvilJfilJfilJsg4pS7IOKUu+KUmyDilJfilJfilJsKCg=="
+  "signature": "4pSP4pST4pSz4pST4pSP4pST4pSP4pSz4pST4pSz4pSz4pSz4pST4pSP4pSTCuKUg+KUg+KUg+KUg+KUoyAg4pSDIOKUg+KUg+KUg+KUg+KUowrilJfilJvilJvilJfilJfilJsg4pS7IOKUu+KUmyDilJfilJfilJsKCg==",
+  "pnpm": {
+    "ignoredBuiltDependencies": [
+      "vue-demi"
+    ],
+    "onlyBuiltDependencies": [
+      "@sentry/cli",
+      "altcha",
+      "esbuild"
+    ]
+  }
 }

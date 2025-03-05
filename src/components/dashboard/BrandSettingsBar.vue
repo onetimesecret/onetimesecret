@@ -1,6 +1,10 @@
+<!-- src/components/dashboard/BrandSettingsBar.vue -->
+
 <script setup lang="ts">
   import OIcon from '@/components/icons/OIcon.vue';
   import type { BrandSettings } from '@/schemas/models';
+  import ColorPicker from '../common/ColorPicker.vue';
+  import CycleButton from '../common/CycleButton.vue';
   import {
     CornerStyle,
     cornerStyleDisplayMap,
@@ -11,14 +15,16 @@
     fontIconMap,
     fontOptions,
   } from '@/schemas/models/domain/brand';
-
-  import ColorPicker from '../common/ColorPicker.vue';
-  import CycleButton from '../common/CycleButton.vue';
+  import { Composer, useI18n } from 'vue-i18n';
+  const { t } = useI18n();
+  import { computed } from 'vue';
 
   const props = defineProps<{
     modelValue: BrandSettings;
     isLoading: boolean;
     isInitialized: boolean;
+    previewI18n: Composer;
+    hasUnsavedChanges: boolean;
   }>();
 
   const emit = defineEmits<{
@@ -36,6 +42,13 @@
     });
   };
 
+  const isDisabled = computed(() => {
+    return props.isLoading || !props.hasUnsavedChanges;
+  });
+
+  const buttonText = computed(() => {
+    return props.isLoading ? t('web.LABELS.saving') : t('web.LABELS.save');
+  });
   const handleSubmit = () => emit('submit');
 </script>
 
@@ -43,64 +56,85 @@
   <div v-if="!isLoading || isInitialized">
     <div
       class="border-b border-gray-200 bg-white/80 backdrop-blur-sm dark:border-gray-700 dark:bg-gray-800/80">
-      <div class="mx-auto max-w-7xl px-4 py-3 sm:px-6 lg:px-8">
+      <div class="mx-auto w-fit px-2 py-3">
         <form
           @submit.prevent="handleSubmit"
-          class="flex flex-wrap items-center gap-4">
-          <!-- Color Picker -->
-          <ColorPicker
-            :model-value="modelValue.primary_color"
-            @update:model-value="(value) => updateBrandSetting('primary_color', value)"
-            name="brand[primary_color]"
-            label="Brand Color"
-            id="brand-color" />
+          class="flex items-center gap-4 min-w-0">
 
-          <div class="inline-flex items-center gap-2">
-            <!-- Corner Style -->
-            <CycleButton
-              :model-value="modelValue.corner_style"
-              @update:model-value="(value) => updateBrandSetting('corner_style', value)"
-              :default-value="CornerStyle.ROUNDED"
-              :options="cornerStyleOptions"
-              label="Corner Style"
-              :display-map="cornerStyleDisplayMap"
-              :icon-map="cornerStyleIconMap" />
+          <!-- Left section - wrap in flex container -->
+          <div class="flex items-center gap-4 flex-shrink min-w-0">
 
-            <!-- Font Family -->
-            <CycleButton
-              :model-value="modelValue.font_family"
-              @update:model-value="(value) => updateBrandSetting('font_family', value)"
-              :default-value="FontFamily.SANS"
-              :options="fontOptions"
-              label="Font Family"
-              :display-map="fontDisplayMap"
-              :icon-map="fontIconMap" />
+            <!-- Color Picker -->
+            <div class="flex items-center gap-4 flex-shrink min-w-0">
+              <ColorPicker
+                :model-value="modelValue.primary_color"
+                @update:model-value="(value) => updateBrandSetting('primary_color', value)"
+                name="brand[primary_color]"
+                :label="t('brand-color')"
+                id="brand-color" />
+            </div>
+
+            <!-- UI Elements -->
+            <div class="flex items-center gap-2 flex-shrink-0">
+              <CycleButton
+                :model-value="modelValue.corner_style"
+                @update:model-value="(value) => updateBrandSetting('corner_style', value)"
+                :default-value="CornerStyle.ROUNDED"
+                :options="cornerStyleOptions"
+                :label="t('corner-style')"
+                :display-map="cornerStyleDisplayMap"
+                :icon-map="cornerStyleIconMap" />
+              <CycleButton
+                :model-value="modelValue.font_family"
+                @update:model-value="(value) => updateBrandSetting('font_family', value)"
+                :default-value="FontFamily.SANS"
+                :options="fontOptions"
+                :label="t('font-family')"
+                :display-map="fontDisplayMap"
+                :icon-map="fontIconMap" />
+            </div>
+
+            <!-- Instructions -->
+            <div class="flex-shrink-0">
+              <slot name="instructions-button"></slot>
+            </div>
+
+            <!-- Language -->
+            <div class="flex-shrink-0">
+              <slot name="language-button"></slot>
+            </div>
           </div>
 
-          <!-- Instructions Field -->
-
-          <slot name="instructions-button"></slot>
-
-          <!-- Spacer -->
-          <div class="flex-1"></div>
 
           <!-- Save Button -->
-          <button
-            type="submit"
-            :disabled="isLoading"
-            class="inline-flex h-11 w-full items-center justify-center rounded-lg border border-transparent bg-brand-600 px-4 text-base font-medium text-white shadow-sm hover:bg-brand-700 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto sm:text-sm">
-            <OIcon
-              v-if="isLoading"
-              collection="mdi"
-              name="loading"
-              class="-ml-1 mr-2 size-4 animate-spin" />
-            <OIcon
-              v-else
-              collection="mdi"
-              name="content-save"
-              class="-ml-1 mr-2 size-4" />
-            {{ isLoading ? 'Save' : 'Save' }}
-          </button>
+          <div class="ml-auto flex-shrink-0">
+            <button
+              type="submit"
+              :disabled="isDisabled"
+              class="flex-shrink-0 inline-flex h-11 items-center justify-center
+                       rounded-lg border border-transparent
+                       bg-brand-600 px-4
+                       text-base font-medium text-white
+                       shadow-sm
+                       hover:bg-brand-700
+                       focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2
+                       dark:focus:ring-brand-400 dark:focus:ring-offset-0
+                       disabled:cursor-not-allowed disabled:opacity-50
+                       transition-all duration-200
+                       sm:w-auto sm:text-sm">
+              <OIcon
+                v-if="isLoading"
+                collection="mdi"
+                name="loading"
+                class="-ml-1 mr-2 size-4 animate-spin" />
+              <OIcon
+                v-else
+                collection="mdi"
+                name="content-save"
+                class="-ml-1 mr-2 size-4" />
+              {{ buttonText }}
+            </button>
+          </div>
         </form>
       </div>
     </div>

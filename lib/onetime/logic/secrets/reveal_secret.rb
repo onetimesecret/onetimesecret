@@ -80,7 +80,7 @@ module Onetime::Logic
           end
 
         elsif secret.has_passphrase? && !correct_passphrase
-          OT.le "[reveal_secret] Failed passphrase attempt for secret #{secret.shortkey} #{session.short_identifier} #{session.ipaddress}"
+          OT.le "[reveal_secret] Failed passphrase attempt for secret #{secret.shortkey} #{sess.short_identifier} #{sess.ipaddress}"
           limit_action :failed_passphrase if secret.has_passphrase?
           message = OT.locales.dig(locale, :web, :COMMON, :error_passphrase) || 'Incorrect passphrase'
           raise_form_error message

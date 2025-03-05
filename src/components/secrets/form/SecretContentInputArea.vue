@@ -119,6 +119,7 @@ interface Props {
   withDomainDropdown?: boolean;
   maxLength?: number;
   initialContent?: string;
+  cornerClass?: string;
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -226,6 +227,7 @@ onUnmounted(() => {
       v-model="content"
       @input="checkContentLength"
       :maxlength="maxLength"
+      :class="[cornerClass]"
       class="max-h-[400px] min-h-24 w-full resize-none overflow-y-auto rounded-md border-gray-300 bg-white
             p-4 font-mono text-base
             leading-[1.2] tracking-wide
@@ -236,7 +238,7 @@ onUnmounted(() => {
       autofocus
       autocomplete="off"
       :placeholder="$t('web.COMMON.secret_placeholder')"
-      aria-label="Enter the secret content to share here">
+      :aria-label="$t('enter-the-secret-content-to-share-here')">
     </textarea>
 
     <!--
@@ -253,7 +255,7 @@ onUnmounted(() => {
             shadow-sm
             transition-colors duration-200
             dark:bg-gray-800 dark:text-gray-500">
-      {{ formattedCharCount }} / {{ formattedMaxLength }} chars
+      {{ $t('formattedcharcount-formattedmaxlength-chars', [formattedCharCount, formattedMaxLength]) }}
     </div>
 
     <div

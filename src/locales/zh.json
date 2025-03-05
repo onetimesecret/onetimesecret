@@ -40,7 +40,6 @@
       "sent_to": "发送至: ",
       "field_email": "电子邮箱",
       "field_password": "密码",
-      "field_password": "密码",
       "field_password2": "确认密码",
       "button_create_account": "创建账户",
       "share_a_secret": "分享密文",
@@ -53,7 +52,8 @@
       "word_cancel": "取消",
       "feedback_text": "有疑问或建议？",
       "button_send_feedback": "发送反馈",
-      "verification_sent_to": "验证消息已送至"
+      "verification_sent_to": "验证消息已送至",
+      "processing": "加工"
     },
     "homepage": {
       "tagline1": "在下方窗格输入您想要加密的内容。",
@@ -107,6 +107,13 @@
       "incoming_ticket_number_hint": "您将在您的电子邮件中找到它（例：123456）",
       "incoming_recipient_address": "接受地址",
       "incoming_success_message": "邮件已发出"
+    },
+    "secrets": {
+      "privacyOptions": "隐私选项",
+      "expiresIn": "在{持续时间}中到期"
+    },
+    "signup": {
+      "create-your-account": "创建您的帐户"
     }
   },
   "email": {
@@ -126,5 +133,12 @@
       "postscript1": "这封电子邮件被送至",
       "postscript2": "如果您并未创建此帐户，请您删除此邮件。我们将不会再和您联系。"
     }
-  }
+  },
+  "api-key": "API键",
+  "custom-domain": "自定义域",
+  "security": "安全",
+  "secure-links": "安全链接",
+  "enter-a-passphrase": "输入密码",
+  "email-address": "电子邮件",
+  "ai-generated-content-disclaimer": "AI生成的内容用于演示。\n不是来自实际的人或公司。"
 }

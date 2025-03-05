@@ -5,135 +5,119 @@ import EmailObfuscator from '@/components/EmailObfuscator.vue';
 <template>
   <article class="prose dark:prose-invert">
     <h2 class="mb-4 text-2xl font-bold dark:text-white">
-      Security Policy
+      {{ $t('web.security.security-policy') }}
     </h2>
     <p class="mb-4 dark:text-gray-300">
-      We take the security of this project seriously and appreciate your efforts
-      to responsibly disclose vulnerabilities. This document outlines our security
-      policy and provides guidelines on how to report vulnerabilities.
+      {{ $t('web.security.we-take-the-security-of-this-project-seriously-a') }}
     </p>
     <h3 class="mb-2 text-xl font-semibold dark:text-white">
-      Supported Versions
+      {{ $t('web.security.supported-versions') }}
     </h3>
     <p class="mb-4 dark:text-gray-300">
-      We provide security updates for the following versions of our project:
+      {{ $t('web.security.we-provide-security-updates-for-the-following-ve') }}
     </p>
     <table class="mb-4 w-full">
       <thead>
         <tr class="bg-gray-100 dark:bg-gray-700">
           <th class="p-2 text-left dark:text-white">
-            Version
+            {{ $t('version') }}
           </th>
           <th class="p-2 text-left dark:text-white">
-            Supported
+            {{ $t('supported') }}
           </th>
         </tr>
       </thead>
       <tbody>
         <tr class="border-b dark:border-gray-600">
           <td class="p-2 dark:text-gray-300">
-            0.19.x+
+            0.20.x+
           </td>
           <td class="p-2 dark:text-gray-300">
-            ✅
+            {{ $t('emoji-checkmark') }}
           </td>
         </tr>
         <tr class="border-b dark:border-gray-600">
           <td class="p-2 dark:text-gray-300">
-            0.18.x
+            0.19.x
           </td>
           <td class="p-2 dark:text-gray-300">
-            ✅
+            {{ $t('emoji-checkmark') }}
           </td>
         </tr>
         <tr>
           <td class="p-2 dark:text-gray-300">
-            &lt;= 0.17.x
+            &lt; 0.18.x
           </td>
           <td class="p-2 dark:text-gray-300">
-            ❌
+            {{ $t('emoji-x') }}
           </td>
         </tr>
       </tbody>
     </table>
     <p class="mb-4 dark:text-gray-300">
-      If you are using an unsupported version, we strongly recommend upgrading to
-      one of the supported versions to ensure you receive the latest security
-      updates.
+      {{ $t('web.security.if-you-are-using-an-unsupported-version-we-stron') }}
     </p>
     <h3 class="mb-2 text-xl font-semibold dark:text-white">
-      Reporting a Vulnerability
+      {{ $t('web.security.reporting-a-vulnerability') }}
     </h3>
     <p class="mb-4 dark:text-gray-300">
-      If you discover a security vulnerability within this project, we encourage
-      you to report it as soon as possible. Here's how you can do it:
+      {{ $t('web.security.if-you-discover-a-security-vulnerability-within-') }}
     </p>
     <h4 class="mb-2 text-lg font-semibold dark:text-white">
-      How to Report
+      {{ $t('web.security.how-to-report') }}
     </h4>
     <ol class="mb-4 list-decimal pl-6 dark:text-gray-300">
       <li class="mb-2">
-        <strong>Email</strong>: Send an email to
+        <strong>{{ $t('web.COMMON.field_email') }}</strong>{{ $t('web.security.send-an-email-to') }}
         <EmailObfuscator
           email="security@onetimesecret.com"
           subject="Vulnerability Report: [Brief Description]"
         />
-        with the subject line "Vulnerability Report: [Brief Description]".
+        {{ $t('web.security.with-the-subject-line-vulnerability-report-brief') }}
       </li>
       <li>
-        <strong>Details</strong>: Include as much information as possible about
-        the vulnerability. This should include:
+        <strong>{{ $t('web.security.details') }}</strong>{{ $t('web.security.include-as-much-information-as-possible-about-th') }}
         <ul class="mt-2 list-disc pl-6">
-          <li>A detailed description of the vulnerability.</li>
-          <li>Steps to reproduce the issue.</li>
-          <li>Any potential impact.</li>
-          <li>Your contact information for follow-up questions.</li>
+          <li>{{ $t('web.security.a-detailed-description-of-the-vulnerability') }}</li>
+          <li>{{ $t('web.security.steps-to-reproduce-the-issue') }}</li>
+          <li>{{ $t('web.security.any-potential-impact') }}</li>
+          <li>{{ $t('web.security.your-contact-information-for-follow-up-questions') }}</li>
         </ul>
       </li>
     </ol>
     <h4 class="mb-2 text-lg font-semibold dark:text-white">
-      What to Expect
+      {{ $t('web.security.what-to-expect') }}
     </h4>
     <ol class="dark:text-gray-300">
       <li>
-        <strong>Acknowledgment</strong>: You will receive an acknowledgment of
-        your report within 5 business days.
+        <strong>{{ $t('web.security.acknowledgment') }}</strong>{{ $t('web.security.you-will-receive-an-acknowledgment-of-your-repor') }}
       </li>
       <li>
-        <strong>Initial Assessment</strong>: We will conduct an initial assessment
-        of the vulnerability within 14 business days.
+        <strong>{{ $t('web.security.initial-assessment') }}</strong>{{ $t('web.security.we-will-conduct-an-initial-assessment-of-the-vul') }}
       </li>
       <li>
-        <strong>Updates</strong>: You can expect to receive updates on the status
-        of your report at least once every 7 days until the issue is resolved or a
-        decision is made.
+        <strong>{{ $t('web.security.updates') }}</strong>{{ $t('web.security.you-can-expect-to-receive-updates-on-the-status-') }}
       </li>
     </ol>
     <h4 class="mb-2 text-lg font-semibold dark:text-white">
-      Resolution Process
+      {{ $t('web.security.resolution-process') }}
     </h4>
     <ol class="dark:text-gray-300">
       <li>
-        <strong>Accepted Vulnerabilities</strong>: If the vulnerability is
-        accepted, we will work on a fix and aim to release it as soon as possible.
-        You will be notified once the fix is deployed.
+        <strong>{{ $t('web.security.accepted-vulnerabilities') }}</strong>{{ $t('web.security.if-the-vulnerability-is-accepted-we-will-work-on') }}
       </li>
       <li>
-        <strong>Declined Vulnerabilities</strong>: If the vulnerability is
-        declined, we will provide a detailed explanation as to why it was not
-        accepted.
+        <strong>{{ $t('web.security.declined-vulnerabilities') }}</strong>{{ $t('web.security.if-the-vulnerability-is-declined-we-will-provide') }}
       </li>
     </ol>
     <h4 class="mb-2 text-lg font-semibold dark:text-white">
-      Confidentiality
+      {{ $t('web.security.confidentiality') }}
     </h4>
     <p class="prose dark:text-gray-300">
-      We take your privacy seriously. All reports will be kept confidential, and
-      we will work with you to ensure that any details of the vulnerability are
-      not disclosed until a fix is in place.
+      {{ $t('web.security.we-take-your-privacy-seriously-all-reports-will-') }}
     </p>
     <p class="prose dark:text-gray-300">
-      Thank you for helping us keep Onetime Secret secure and excellent!
+      {{ $t('web.security.thank-you-for-helping-us-keep-onetime-secret-sec') }}
     </p>
   </article>
 </template>

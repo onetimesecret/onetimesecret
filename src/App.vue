@@ -23,7 +23,7 @@ const defaultProps: LayoutProps = {
   displayLinks: true,
   displayFeedback: true,
   displayVersion: true,
-  displayPoweredBy: true,
+  displayPoweredBy: false, // used in only a few places
   displayToggles: true,
 };
 

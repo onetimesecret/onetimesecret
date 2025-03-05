@@ -32,17 +32,17 @@ onMounted(accountStore.fetch);
     <DashboardTabNav />
 
     <h1 class="mb-6 text-3xl font-bold dark:text-white">
-      Your Account
+      {{ $t('your-account') }}
     </h1>
     <p class="mb-4 text-lg dark:text-gray-300">
-      Account type: {{ windowProps.plan?.options?.name }}
+      {{ $t('account-type-windowprops-plan-options-name', [windowProps.plan?.options?.name]) }}
     </p>
 
     <!-- API KEY -->
     <div class="mb-6 rounded-lg bg-white p-6 shadow dark:bg-gray-800">
       <h2 class="mb-4 flex items-center text-xl font-semibold dark:text-white">
         <i class="fas fa-exclamation-triangle mr-2 text-red-500"></i>
-        <span class="flex-1">API Key</span>
+        <span class="flex-1">{{ $t('api-key') }}</span>
       </h2>
       <div class="pl-3">
         <APIKeyForm :apitoken="account?.apitoken" />
@@ -59,7 +59,7 @@ onMounted(accountStore.fetch);
     <!-- PASSWORD CHANGE -->
     <div class="mb-6 rounded-lg bg-white p-6 shadow dark:bg-gray-800">
       <h2 class="mb-4 flex items-center text-xl font-semibold dark:text-white">
-        <i class="fas fa-lock mr-2"></i> Update Password
+        <i class="fas fa-lock mr-2"></i> {{ $t('web.account.changePassword.updatePassword') }}
       </h2>
       <div class="pl-3">
         <AccountChangePasswordForm />
@@ -69,7 +69,7 @@ onMounted(accountStore.fetch);
     <div class="rounded-lg bg-white p-6 shadow dark:bg-gray-800">
       <h2 class="mb-4 flex items-center text-xl font-semibold dark:text-white">
         <i class="fas fa-exclamation-triangle mr-2 text-red-500"></i>
-        <span class="flex-1">Delete Account</span>
+        <span class="flex-1">{{ $t('delete-account') }}</span>
       </h2>
       <div class="pl-3">
         <!-- Added padding-left to align with the title text -->
@@ -83,7 +83,7 @@ onMounted(accountStore.fetch);
     </div>
 
     <p class="mt-6 text-sm text-gray-600 dark:text-gray-400">
-      Created {{ windowProps.cust?.secrets_created }} secrets since {{ windowProps.customer_since }}.
+      {{ $t('created-windowprops-cust-secrets_created-secrets', [windowProps.cust?.secrets_created, windowProps.customer_since]) }}
     </p>
   </div>
 </template>

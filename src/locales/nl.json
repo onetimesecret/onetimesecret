@@ -2,6 +2,18 @@
   "web": {
     "COMMON": {
       "broadcast": "",
+      "button_generate_secret_short": "Generate Password",
+      "generate_password_disabled": "Generate Password is disabled when the form is valid",
+      "email_placeholder": "e.g. tom{'@'}myspace.com",
+      "password_placeholder": "Enter your password",
+      "custom_domains_title": "Custom Domains",
+      "custom_domains_description": "Strengthen connections and build trust with your own branded secret links.",
+      "get_started_button": "Get Started",
+      "confirm_password_placeholder": "Confirm your password",
+      "skill_placeholder": "",
+      "header_settings": "Settings",
+      "submit_with": "Submit",
+      "submitting": "Processing",
       "description": "Zorg ervoor dat geheime informatie buiten chat logs en E-mail blijft. Deel een geheime link welke maar één keer beschikbaar is.",
       "keywords": "geheim,wachtwoord generator,deel geheim,een keer",
       "button_create_secret": "Creëer een geheime link",
@@ -40,7 +52,6 @@
       "sent_to": "Vertuur naar: ",
       "field_email": "E-mail",
       "field_password": "Wachtwoord",
-      "field_password": "Wachtwoord",
       "field_password2": "Bevestig wachtwoord",
       "button_create_account": "Creëer Account",
       "share_a_secret": "Deel een geheim",
@@ -53,7 +64,97 @@
       "word_cancel": "Annuleer",
       "feedback_text": "Heeft u een vraag of opmerking?",
       "button_send_feedback": "Stuur Feedback",
-      "verification_sent_to": "Een verificatie is verstuurd naar"
+      "verification_sent_to": "Een verificatie is verstuurd naar",
+      "burn_this_secret_aria": "Burn this secret permanently",
+      "burn_confirmation_title": "Please Confirm",
+      "burn_confirmation_message": "Are you sure you want to burn this secret? This action cannot be undone.",
+      "confirm_burn": "Yes, burn this secret",
+      "burn_security_notice": "Burning a secret will delete it before it has been received.",
+      "share_link_securely": "For security, share this link separately from other details.",
+      "copied_to_clipboard": "Copied to clipboard",
+      "processing": "Verwerking"
+    },
+    "LABELS": {
+      "view_toggle": {
+        "show": "Show",
+        "hide": "Hide"
+      },
+      "timeline": "Timeline",
+      "close": "Close",
+      "loading": "Loading...",
+      "cancel": "Cancel",
+      "encrypted": "Encrypted",
+      "secret_status": "Secret Status",
+      "need_help": "Need help?",
+      "create_new_secret": "Create New Secret",
+      "actions": "Actions",
+      "no_passphrase": "No Passphrase Required",
+      "secret_link": "Secret Link",
+      "security_details": "Security Details",
+      "recipients_count": "{count} Recipients",
+      "views": "Views",
+      "times_viewed": "times viewed",
+      "view_progress": "View Progress",
+      "help_section": "Help Section",
+      "passphrase_protected": "Protected with passphrase"
+    },
+    "STATUS": {
+      "new": "New",
+      "unread": "Unread",
+      "viewed": "Link opened",
+      "received": "Received",
+      "burned": "Burned",
+      "destroyed": "Destroyed",
+      "expiring_soon": "Expiring Soon",
+      "created": "Created",
+      "created_description": "",
+      "expires": "Expires",
+      "expired": "Expired",
+      "orphaned": "Orphaned",
+      "secured": "Secured",
+      "securing": "Securing",
+      "time_remaining": "Time Remaining",
+      "new_description": "Secret link has been created and not yet viewed",
+      "unread_description": "Secret link has been created and has not been viewed",
+      "viewed_description": "Secret link has been opened and ready to be viewed",
+      "received_description": "Secret has been revealed to the recipient",
+      "burned_description": "Secret was manually burned before being viewed",
+      "destroyed_description": "Secret has been permanently destroyed",
+      "expiring_soon_description": "Secret will expire soon",
+      "orphaned_description": "Secret has been orphaned and will be destroyed soon",
+      "expired_description": "Secret has expired before being viewed"
+    },
+    "FEATURES": {
+      "unlimited_views": "Unlimited Views",
+      "custom_domain_protected": "Trusted domain branding",
+      "encrypted_in_transit": "Encrypted in transit and at rest"
+    },
+    "UNITS": {
+      "ttl": {
+        "duration": "{count} {unit}",
+        "time": {
+          "day": "day | days",
+          "hour": "hour | hours",
+          "minute": "minute | minutes",
+          "second": "second | seconds"
+        },
+        "noOptionsAvailable": "---"
+      },
+      "limited_views": "{count} view limit",
+      "days_remaining": "{count} Days Left",
+      "hours_remaining": "{count} Hours Left",
+      "minutes_remaining": "{count} Minutes Left"
+    },
+    "INSTRUCTION": {
+      "sharing_instructions": "Sharing Instructions",
+      "share_link_instruction": "Share the link with the intended recipient",
+      "share_passphrase_instruction": "Share the passphrase separately through a secure channel",
+      "secure_channel_instruction": "Use a different secure channel to share sensitive information"
+    },
+    "secrets": {
+      "privacyOptions": "Privacy Options",
+      "selectDuration": "Select duration",
+      "expiresIn": "Expires in {duration}"
     },
     "homepage": {
       "tagline1": "Plak het wachtwoord, geheime bericht of privé link beneden",
@@ -75,7 +176,14 @@
       "pretext": "Deel een link:",
       "requires_passphrase": "Wachtwoordzin verplicht.",
       "this_msg_is_encrypted": "Dit bericht is versleuteld met uw wachtwoordzin.",
-      "only_see_once": "Je zult dit maar één keer zien."
+      "only_see_once": "Je zult dit maar één keer zien.",
+      "created_success": "Secret created successfully!",
+      "created_success_key": "Secret {shortKey} created successfully!",
+      "created_securely": "Your secret has been created securely",
+      "burned_ago": "Burned {time}",
+      "viewed_ago": "This secret was viewed {time}",
+      "encrypted_message": "This message is encrypted",
+      "destroyed_ago": "Destroyed {time}"
     },
     "shared": {
       "requires_passphrase": "Een wachtwoord zin is verplicht voor dit bericht:",
@@ -83,7 +191,9 @@
       "you_created_this_secret": "Je heb een geheim gemaakt. Als je het bekijkt de ontvanger kan het niet meer lezen.",
       "your_secret_message": "Uw geheime bericht:",
       "this_message_for_you": "Dit bericht is voor u:",
-      "reply_with_secret": "Beantwoord met een ander geheim"
+      "reply_with_secret": "Beantwoord met een ander geheim",
+      "pre_reveal_default": "Click the button below to reveal your secure message.",
+      "post_reveal_default": "Your secure message is shown below."
     },
     "dashboard": {
       "title_received": "Ontvangen",
@@ -94,7 +204,12 @@
       "need_an_account": "Een account nodig?",
       "forgot_your_password": "Wachtwoord vergeten?",
       "button_sign_in": "Log in",
-      "enter_your_credentials": "Vul je inloggegevens in"
+      "enter_your_credentials": "Vul je inloggegevens in",
+      "remember_me": "Remember me"
+    },
+    "signup": {
+      "have_an_account": "Or, sign in to your account",
+      "create-your-account": "Maak uw account aan"
     },
     "incoming": {
       "tagline1": "Plak het wachtwoord, geheime bericht of privé link beneden",
@@ -126,5 +241,12 @@
       "postscript1": "Deze E-mail is verstuurd naar",
       "postscript2": "Als u dit account niet heeft aangemaakt negeer dit bericht, we zullen u niet meer lastig vallen."
     }
-  }
+  },
+  "api-key": "API-sleutel",
+  "custom-domain": "Aangepast domein",
+  "security": "Beveiliging",
+  "secure-links": "Veilige links",
+  "enter-a-passphrase": "Voer een wachtwoordzin in",
+  "email-address": "E -mailadres",
+  "ai-generated-content-disclaimer": "AI-gegenereerde inhoud voor demonstratie. \nNiet van een echte persoon of bedrijf."
 }

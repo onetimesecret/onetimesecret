@@ -3,9 +3,12 @@ import { paymentFrequencies, productTiers, type ProductTier } from '@/sources/pr
 import type { Testimonial } from '@/sources/testimonials';
 import { testimonials } from '@/sources/testimonials';
 import { onMounted, onUnmounted, ref, watch } from 'vue';
+import { useI18n } from 'vue-i18n';
 
+const { t } = useI18n();
 const selectedTier = ref<ProductTier>(productTiers[0])
 const selectedFrequency = ref(paymentFrequencies[0].value)
+
 // Props
 const props = defineProps<{
   isOpen: boolean;
@@ -33,7 +36,7 @@ const getRandomTestimonial = () => {
 
 // Handle ESC key press
 const handleEscKey = (event: KeyboardEvent) => {
-  if (event.key === 'Escape' && props.isOpen) {
+  if (event.key === t('escape') && props.isOpen) {
     closeModal();
   }
 };
@@ -94,7 +97,7 @@ onUnmounted(() => {
               <h3
                 class="text-lg font-medium leading-6 text-gray-900 dark:text-white"
                 id="modal-title">
-                Upgrade to {{ selectedTier.name }}
+                {{ $t('upgrade-to') }} {{ selectedTier.name }}
               </h3>
               <div class="mt-2">
                 <p class="text-sm text-gray-500 dark:text-gray-400">
@@ -162,7 +165,7 @@ onUnmounted(() => {
           <button
             type="button"
             class="mt-3 inline-flex w-full justify-center rounded-md border border-gray-300 bg-white px-4 py-2 text-base font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:border-gray-600 dark:bg-gray-800 dark:text-white dark:hover:bg-gray-700 sm:ml-3 sm:mt-0 sm:w-auto sm:text-sm">
-            Cancel
+            {{ $t('web.COMMON.word_cancel') }}
           </button>
         </div>
       </div>

@@ -31,7 +31,7 @@ test.describe('Sign in and check account', () => {
     await expect(page.getByPlaceholder('e.g. tom@myspace.com')).toBeVisible();
     await expect(page.getByRole('button', { name: 'Sign In' })).toBeVisible();
     await expect(page.getByLabel('Sign In')).toContainText('Enter your credentials');
-    await expect(page.getByRole('group')).toContainText('Rembember me');
+    await expect(page.getByRole('group')).toContainText('Remember me');
     await expect(page.getByLabel('Sign Up')).toContainText('Need an account?');
     await expect(page.getByLabel('Forgot Password')).toContainText('Forgot your password?');
     await page.getByPlaceholder('e.g. tom@myspace.com').click();

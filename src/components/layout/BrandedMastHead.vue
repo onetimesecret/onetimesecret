@@ -19,9 +19,8 @@
   withDefaults(defineProps<Props>(), {
     displayMasthead: true,
     displayNavigation: true,
-    headertext: 'Secure Links',
-    subtext:
-      'A trusted way to share sensitive information that self-destructs after being viewed.',
+    headertext: 'secure-links',
+    subtext: 'a-trusted-way-to-share-sensitive-information-etc',
   });
 </script>
 
@@ -33,7 +32,7 @@
         <div
           class="relative"
           role="region"
-          aria-label="Brand logo">
+          :aria-label="$t('brand-logo')">
           <router-link to="/">
             <div
               :class="[
@@ -43,7 +42,7 @@
               <img
                 v-if="productIdentity.logoUri && !imageError"
                 :src="productIdentity.logoUri"
-                alt="Company logo"
+                alt="$t('company-logo')"
                 class="size-16 object-contain"
                 :class="productIdentity.cornerClass"
                 @error="handleImageError" />
@@ -67,16 +66,18 @@
         <!-- Content Section -->
         <div
           class="text-center space-y-3"
-          :class="productIdentity.fontFamilyClass"
-          >
+          :class="[
+            productIdentity.fontFamilyClass,
+            productIdentity.cornerClass,
+          ]">
           <h1
             class="text-2xl sm:text-3xl font-medium text-gray-900 dark:text-gray-100"
             :class="productIdentity.fontFamilyClass">
-            {{ headertext }}
+            {{ $t(headertext) }}
           </h1>
           <p
             class="text-sm sm:text-base text-gray-600 dark:text-gray-300 max-w-md mx-auto">
-            {{ subtext }}
+            {{ $t(subtext) }}
           </p>
         </div>
       </div>

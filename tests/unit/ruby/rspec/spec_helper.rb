@@ -7,6 +7,8 @@ require 'rspec'
 require 'simplecov'
 
 require_relative 'support/rack_context'
+require_relative 'support/view_context'
+require_relative 'support/mail_context'
 
 # Starts SimpleCov for code coverage analysis if the COVERAGE environment variable is set.
 SimpleCov.start if ENV['COVERAGE']
@@ -47,6 +49,19 @@ module OT
   end
 end
 
+# We fail fast if templates aren't where we expec
+# Should run after other setup code but before RSpec.configure
+def verify_template_structure
+  template_dir = File.expand_path("#{Onetime::HOME}/templates/mail", __FILE__)
+  unless Dir.exist?(template_dir)
+    puts "ERROR: Template directory not found at: #{template_dir}"
+    puts "Current directory: #{Dir.pwd}"
+    puts "Directory contents: #{Dir.entries('..')}"
+    raise "Template directory missing - check project structure"
+  end
+end
+verify_template_structure
+
 # Configures RSpec with desired settings to tailor the testing environment.
 RSpec.configure do |config|
   # Configures RSpec to include chain clauses in custom matcher descriptions for better readability.
@@ -75,6 +90,7 @@ RSpec.configure do |config|
 
   # Shared Context
   config.include_context "rack_test_context", type: :request
+  config.include_context "view_test_context", type: :view
 
   config.before(:each, type: :request) do
     allow(Rack::Request).to receive(:new).and_return(rack_request)

@@ -4,6 +4,7 @@ import { CustomDomainResponse } from '@/schemas/api/responses';
 import { CustomDomain, CustomDomainCluster } from '@/schemas/models/domain';
 import OIcon from '@/components/icons/OIcon.vue';
 import { computed, ref } from 'vue';
+import { useI18n } from 'vue-i18n';
 
 import BasicFormAlerts from './BasicFormAlerts.vue';
 import DetailField from './DetailField.vue';
@@ -26,10 +27,12 @@ const emit = defineEmits<{
 }>();
 
 const { verifyDomain, isLoading, error } = useDomainsManager();
+const { t } = useI18n();
 
 const success = ref<string | null>(null);
 const buttonDisabledDelay = ref(false);
 const isButtonDisabled = computed(() => isLoading.value || buttonDisabledDelay.value);
+const buttonText = computed(() => isLoading.value ? t('web.COMMON.processing') : t('verify-domain'));
 
 const verify = async () => {
   console.info('Refreshing DNS verification details...');
@@ -37,7 +40,7 @@ const verify = async () => {
   try {
     const result = await verifyDomain(props.domain.display_domain);
     if (result) {
-      success.value = "Domain verification initiated successfully."
+      success.value = t('domain-verification-initiated-successfully')
       emit('domainVerify', result);
 
       buttonDisabledDelay.value = true;
@@ -55,11 +58,10 @@ const verify = async () => {
 <template>
   <div class="mx-auto max-w-2xl rounded-xl bg-white p-6 shadow-lg dark:bg-gray-800">
     <h2 class="mb-4 text-2xl font-bold text-gray-800 dark:text-white">
-      Domain Verification Steps
+      {{ $t('domain-verification-steps') }}
     </h2>
     <p class="mb-6 text-lg text-gray-600 dark:text-gray-300">
-      Follow these steps to verify domain ownership and elevate
-      your online presence:
+      {{ $t('follow-these-steps-to-verify-domain-ownership-an') }}
     </p>
 
     <BasicFormAlerts
@@ -77,7 +79,7 @@ const verify = async () => {
           text-white transition
           duration-100
           ease-in-out hover:bg-brand-600 disabled:cursor-not-allowed disabled:bg-gray-400">
-        <span>{{ isLoading ? 'Verifying...' : 'Verify Domain' }}</span>
+        <span>{{ buttonText }}</span>
         <OIcon
           collection="mdi"
           :name="isLoading ? 'loading' : 'check-circle'"
@@ -88,28 +90,27 @@ const verify = async () => {
       </button>
     </div>
 
-
     <ol class="mb-8 space-y-6">
       <li class="rounded-lg bg-gray-50 p-4 dark:bg-gray-700">
         <h3 class="mb-2 text-lg font-semibold text-gray-800 dark:text-white">
-          1. Create a TXT record
+          {{ $t('1-create-a-txt-record') }}
         </h3>
         <p class="mb-2 text-gray-600 dark:text-gray-300">
-          Add this hostname to your DNS configuration:
+          {{ $t('add-this-hostname-to-your-dns-configuration') }}
         </p>
 
-        <div class="space-y-2">
+        <div class="rounded-lg border border-gray-200 divide-y divide-gray-200 bg-white dark:bg-gray-600 dark:border-gray-700 dark:divide-gray-700">
           <DetailField
-            label="Type"
+            :label="$t('type')"
             value="TXT"
           />
           <DetailField
-            label="Host"
+            :label="$t('host')"
             :value="domain.txt_validation_host"
             :appendix="`.${domain.base_domain}`"
           />
           <DetailField
-            label="Value"
+            :label="$t('value')"
             :value="domain.txt_validation_value"
           />
         </div>
@@ -118,21 +119,21 @@ const verify = async () => {
         v-if="domain?.is_apex"
         class="rounded-lg bg-gray-50 p-4 dark:bg-gray-700">
         <h3 class="mb-2 text-lg font-semibold text-gray-800 dark:text-white">
-          2. Create the A record
+          {{ $t('2-create-the-a-record') }}
         </h3>
 
-        <div class="space-y-2">
+        <div class="rounded-lg border border-gray-200 divide-y divide-gray-200 bg-white dark:bg-gray-600 dark:border-gray-700 dark:divide-gray-700">
           <DetailField
-            label="Type"
+            :label="$t('type-0')"
             value="A"
           />
           <DetailField
-            label="Host"
+            :label="$t('host')"
             :value="domain?.trd ? domain.trd : '@'"
-            :appendix="`.${domain?.base_domain}`"
+            :appendix="domain?.base_domain"
           />
           <DetailField
-            label="Value"
+            :label="$t('value')"
             :value="cluster?.cluster_ip ?? ''"
           />
         </div>
@@ -141,45 +142,43 @@ const verify = async () => {
         v-else
         class="rounded-lg bg-gray-50 p-4 dark:bg-gray-700">
         <h3 class="mb-2 text-lg font-semibold text-gray-800 dark:text-white">
-          2. Create the CNAME record
+          {{ $t('2-create-the-cname-record') }}
         </h3>
 
-        <div class="space-y-2">
+        <div class="rounded-lg border border-gray-200 divide-y divide-gray-200 bg-white dark:bg-gray-600 dark:border-gray-700 dark:divide-gray-700">
           <DetailField
             v-if="domain?.is_apex"
-            label="Type"
+            :label="$t('type')"
             value="A"
           />
           <DetailField
             v-else
-            label="Type"
+            :label="$t('type')"
             value="CNAME"
           />
-
           <DetailField
-            label="Host"
+            :label="$t('host')"
             :value="domain?.trd ? domain.trd : '@'"
             :appendix="`.${domain?.base_domain}`"
           />
           <DetailField
             v-if="domain?.is_apex"
-            label="Value"
+            :label="$t('value')"
             :value="cluster?.cluster_ip ?? ''"
           />
           <DetailField
             v-else
-            label="Value"
+            :label="$t('value')"
             :value="cluster?.cluster_host ?? ''"
           />
         </div>
       </li>
       <li class="rounded-lg bg-gray-50 p-4 dark:bg-gray-700">
         <h3 class="mb-2 text-lg font-semibold text-gray-800 dark:text-white">
-          3. Wait for propagation
+          {{ $t('3-wait-for-propagation') }}
         </h3>
         <p class="text-gray-600 dark:text-gray-300">
-          DNS changes can take as little as 60 seconds -- or up to 24 hours --
-          to take effect.
+          {{ $t('dns-changes-can-take-as-little-as-60-seconds-or-') }}
         </p>
       </li>
     </ol>
@@ -192,7 +191,7 @@ const verify = async () => {
         aria-hidden="true"
       />
       <p class="text-sm text-gray-500 dark:text-gray-400">
-        It may take a few minutes for your SSL certificate to take effect.
+        {{ $t('it-may-take-a-few-minutes-for-your-ssl-certifica') }}
       </p>
     </div>
   </div>

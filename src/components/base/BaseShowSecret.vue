@@ -22,10 +22,10 @@
 
   export interface Props {
     secretKey: string;
+    siteHost: string;
     domainStrategy?: string;
     displayDomain?: string;
     domainId?: string | null;
-    siteHost?: string;
     branded?: boolean;
   }
 
@@ -49,16 +49,22 @@
 
 <template>
   <main
-    class="min-h-screen"
+    class="min-h-screen grid grid-rows-[auto_minmax(0,max-content)_auto] gap-4"
     role="main"
-    aria-label="Secret viewing page">
-    <div class="w-full max-w-4xl mx-auto">
-      <!-- Header slot for branding/title -->
-      <slot
-        name="header"
-        :record="record"
-        :details="details"></slot>
+    :aria-label="$t('secret-viewing-page')">
+    <header
+      v-if="$slots.header"
+      class="w-full bg-white dark:bg-gray-900">
+      <div class="w-full max-w-4xl mx-auto px-4">
+        <slot
+          name="header"
+          :record="record"
+          :details="details"></slot>
+      </div>
+    </header>
 
+    <!-- Content wrapper  -->
+    <div class="w-full max-w-4xl mx-auto px-4">
       <!-- Global Loading State -->
       <div
         v-if="state.isLoading"
@@ -67,9 +73,10 @@
       </div>
 
       <!-- Initial Loading - Prevent UnknownSecret flash -->
-      <div v-else-if="!state.isLoading && !record && !state.error"
-           class="animate-pulse space-y-6 p-4">
-           <SecretSkeleton />
+      <div
+        v-else-if="!state.isLoading && !record && !state.error"
+        class="animate-pulse space-y-6 p-4">
+        <SecretSkeleton />
       </div>
 
       <!-- Unknown Secret State -->
@@ -125,13 +132,20 @@
             :details="details"></slot>
         </template>
       </div>
-
-      <!-- Footer slot -->
-      <slot
-        name="footer"
-        :record="record"
-        :details="details"></slot>
     </div>
+
+    <!-- Footer wrapper -->
+    <footer
+      v-if="$slots.footer"
+      class="w-full bg-white dark:bg-gray-900">
+      <div class="w-full max-w-4xl mx-auto px-4">
+        <slot
+          name="footer"
+          :record="record"
+          :details="details"
+          :siteHost="props.siteHost"></slot>
+      </div>
+    </footer>
   </main>
 </template>
 

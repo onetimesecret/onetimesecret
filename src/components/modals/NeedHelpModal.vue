@@ -81,7 +81,7 @@
 
                 <!-- Content -->
                 <slot name="content">
-                  Help content goes here.
+                  {{ $t('help-content-goes-here') }}
                 </slot>
 
                 <!-- Footer with close button -->

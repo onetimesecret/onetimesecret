@@ -2,7 +2,7 @@
   "web": {
     "COMMON": {
       "broadcast": "",
-      "description": "Mantén la información confidencial fuera de tus chats y correos electrónicos. Comparte enlaces secretos que estarán disponibles sólo una vez.",
+      "description": "Mantén información confidencial fuera de tus chats y correos electrónicos. Comparte enlaces secretos que estarán disponibles sólo una vez.",
       "keywords": "secreto,generador de contraseñas,comparte un secreto,solo una vez",
       "button_create_secret": "Crear un enlace secreto",
       "button_generate_secret": "O generar una contraseña al azar",
@@ -24,40 +24,40 @@
       "burn_this_secret_hint": "Destruir un secreto lo borrará antes de que haya sido leído (clic para confirmar)",
       "burn_this_secret_confirm_hint": "La destrucción de un secreto es permanente y no se puede deshacer",
       "msg_check_email": "Consulte su correo electrónico",
-      "click_to_continue": "Clic para continuar →",
+      "click_to_continue": "Clic para revelar →",
       "click_to_verify": "Continúe para verificar su cuenta:",
       "error_secret": "Usted no proporcionó nada para compartir",
       "error_passphrase": "Vuelva a comprobar la frase de contraseña",
       "enter_passphrase_here": "Escriba la frase de contraseña",
       "view_secret": "Ver secreto",
-      "careful_only_see_once": "cuidado: Solo la mostraremos una vez.",
+      "careful_only_see_once": "cuidado: Solo lo mostraremos una vez.",
       "warning": "Atención",
       "oops": "Error!",
       "error": "Error",
-      "secret_was_truncated": "El mensaje se truncó porque tenía más de",
+      "secret_was_truncated": "El mensaje se truncó porque era demasiado largo",
       "signup_for_more": "Regístrese para recibir más",
       "login_to_your_account": "Accede a tu cuenta",
       "sent_to": "Enviar a: ",
       "field_email": "Email",
       "field_password": "Contraseña",
-      "field_password2": "Confirmar Contraseñ",
+      "field_password2": "Confirmar Contraseña",
       "button_create_account": "Crear Cuenta",
-      "share_a_secret": "Compartir un secreto",
+      "share_a_secret": "Comparte un secreto",
       "title_home": "Inicio",
       "title_recent_secrets": "Secretos Recientes",
       "word_none": "Ninguno",
       "word_burned": "destruido",
       "word_received": "recibido",
       "word_confirm": "Confirmar",
-      "word_cancel": "Annuler",
+      "word_cancel": "Cancelar",
       "feedback_text": "¿Tiene alguna pregunta o comentario?",
       "button_send_feedback": "Envíanos tus comentarios!",
       "verification_sent_to": "Una verificación fue enviada a",
       "button_create_incoming": "Send to Support Staff"
     },
     "homepage": {
-      "tagline1": "Pegue una contraseña, mensaje secreto o enlace privado a continuación.",
-      "tagline2": "Mantener la información confidencial fuera de tus chats y correos electrónicos",
+      "tagline1": "Pega una contraseña, secreto, o enlace privado abajo.",
+      "tagline2": "Mantén información confidencial fuera de tus chats y correos electrónicos.",
       "secret_hint": "* El enlace secreto sólo funciona una vez y luego desaparece para siempre.",
       "secret_form_more_text1": "Regístrese para obtener",
       "secret_form_more_text2": "una cuenta gratuita",
@@ -106,6 +106,13 @@
       "incoming_ticket_number_hint": "You can find this in your email (e.g. 123456)",
       "incoming_recipient_address": "Support recipient",
       "incoming_success_message": "Your email has been sent"
+    },
+    "secrets": {
+      "privacyOptions": "Opciones de privacidad",
+      "expiresIn": "Expira en {duración}"
+    },
+    "signup": {
+      "create-your-account": "Crea tu cuenta"
     }
   },
   "email": {
@@ -125,5 +132,8 @@
       "postscript1": "Este email se le envio a",
       "postscript2": "Si usted no ha creado esta cuenta, borre este mensaje y no lo contactaremos de nuevo."
     }
-  }
+  },
+  "ai-generated-content-disclaimer": "Contenido generado por IA para la demostración. \nNo de una persona o empresa real.",
+  "secure-links": "Enlaces seguros",
+  "security": "Seguridad"
 }

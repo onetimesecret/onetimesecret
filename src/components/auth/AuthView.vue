@@ -6,6 +6,7 @@ import OIcon from '@/components/icons/OIcon.vue';
 import { Jurisdiction } from '@/schemas/models';
 import { storeToRefs } from 'pinia';
 import { computed } from 'vue';
+import { useI18n } from 'vue-i18n';
 
 interface IconConfig {
   collection: string;
@@ -32,14 +33,16 @@ const props = withDefaults(defineProps<Props>(), {
   })
 });
 
+const { t } = useI18n();
+
 // Initialize jurisdiction store
 const jurisdictionStore = useJurisdictionStore();
 const { getCurrentJurisdiction } = storeToRefs(jurisdictionStore);
 
 // Compute the current jurisdiction or default to unknown
 const currentJurisdiction = computed((): Jurisdiction => getCurrentJurisdiction.value || {
-  identifier: 'Unknown Jurisdiction',
-  display_name: 'Unknown Jurisdiction',
+  identifier: t('unknown-jurisdiction'),
+  display_name: t('unknown-jurisdiction'),
   domain: '',
   icon: {
     collection: 'mdi',
@@ -126,7 +129,7 @@ const iconToShow = computed((): IconConfig => {
           <span
             v-if="jurisdictionStore.enabled"
             class="mr-1">
-            Serving you from the <span lang="en">{{ currentJurisdiction.identifier }}</span>
+            {{ $t('serving-you-from-the') }} <span lang="en">{{ currentJurisdiction.identifier }}</span>
           </span>
         </p>
       </div>

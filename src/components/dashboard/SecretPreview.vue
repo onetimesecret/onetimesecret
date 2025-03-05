@@ -1,10 +1,17 @@
-<!-- SecretPreview.vue -->
+<!-- src/components/dashboard/SecretPreview.vue -->
+
 <script setup lang="ts">
+import OIcon from '@/components/icons/OIcon.vue';
 import BaseSecretDisplay from '@/components/secrets/branded/BaseSecretDisplay.vue';
 import { BrandSettings, ImageProps } from '@/schemas/models';
-import OIcon from '@/components/icons/OIcon.vue';
+import {
+CornerStyle,
+FontFamily,
+cornerStyleClasses,
+fontFamilyClasses
+} from '@/schemas/models/domain/brand';
 import { computed, ref } from 'vue';
-import { useI18n } from 'vue-i18n';
+import { Composer, useI18n } from 'vue-i18n';
 const { t } = useI18n();
 
 const props = defineProps<{
@@ -13,6 +20,7 @@ const props = defineProps<{
   onLogoUpload: (file: File) => Promise<void>;
   onLogoRemove: () => Promise<void>;
   secretKey: string;
+  previewI18n: Composer;
 }>();
 
 // Computed property to validate logo data
@@ -30,15 +38,22 @@ const logoSrc = computed(() => {
 });
 
 const isRevealed = ref(false);
+const textareaPlaceholder = props.previewI18n.t('sample-secret-content-this-could-be-sensitive-data');
+
+const ariaLabelText = computed(() =>
+  isRevealed.value
+    ? t('hide-secret-message')
+    : t('view-secret-message')
+)
 
 // Computed property for instructions text
 const instructions = computed(() => {
   if (isRevealed.value) {
     return props.domainBranding.instructions_post_reveal?.trim() ||
-      t('web.shared.post_reveal_default');
+      props.previewI18n.t('web.shared.post_reveal_default');
   }
   return props.domainBranding.instructions_pre_reveal?.trim() ||
-    t('web.shared.pre_reveal_default');
+    props.previewI18n.t('web.shared.pre_reveal_default');
 });
 
 const handleLogoChange = (event: Event) => {
@@ -55,57 +70,43 @@ const toggleReveal = () => {
 };
 
 const cornerClass = computed(() => {
-  switch (props.domainBranding.corner_style) {
-    case 'rounded':
-      return 'rounded-md'; // Updated to match BaseSecretDisplay
-    case 'pill':
-      return 'rounded-xl'; // Updated to match BaseSecretDisplay
-    case 'square':
-      return 'rounded-none';
-    default:
-      return '';
-  }
+  const style = props.domainBranding?.corner_style as CornerStyle | undefined;
+  return cornerStyleClasses[style ?? CornerStyle.ROUNDED];
 });
 
 const fontFamilyClass = computed(() => {
-  switch (props.domainBranding.font_family) {
-    case 'sans':
-      return 'font-sans';
-    case 'serif':
-      return 'font-serif';
-    case 'mono':
-      return 'font-mono';
-    default:
-      return '';
-  }
+  const font = props.domainBranding?.font_family as FontFamily | undefined;
+  return fontFamilyClasses[font ?? FontFamily.SANS];
 });
 
 </script>
 
 <template>
+  <!-- Updated -->
   <BaseSecretDisplay
-    default-title="You have a message"
+    :default-title="previewI18n.t('you-have-a-message')"
     :domain-branding="domainBranding"
-    :instructions="instructions">
+    :previewI18n="previewI18n"
+    :instructions="instructions"
+    :corner-class="cornerClass"
+    :font-class="fontFamilyClass">
+
+    <!-- Logo Upload Area -->
     <template #logo>
-      <!-- Logo Upload Area -->
       <div class="group relative mx-auto sm:mx-0">
         <label
           class="block cursor-pointer"
           for="logo-upload"
-          role="button"
-          aria-label="Upload logo"
-          aria-describedby="logoHelp">
+          role="button">
           <div
-            :class="{
-              [cornerClass]: true,
+            :class="[cornerClass, {
               'animate-wiggle': !isValidLogo
-            }"
+            }]"
             class="hover:ring-primary-500 flex size-14 items-center justify-center overflow-hidden bg-gray-100 hover:ring-2 hover:ring-offset-2 dark:bg-gray-700 sm:size-16">
             <img
               v-if="isValidLogo"
               :src="logoSrc"
-              :alt="logoImage?.filename || 'Brand logo'"
+              :alt="logoImage?.filename || t('brand-logo')"
               class="size-16 object-contain"
               :class="{
                 [cornerClass]: true,
@@ -131,8 +132,7 @@ const fontFamilyClass = computed(() => {
         <div
           id="logoHelp"
           class="sr-only">
-          Click to upload a logo. Recommended size: 128x128 pixels. Maximum file size: 1MB. Supported formats: PNG, JPG,
-          SVG
+          {{ t('click-to-upload-a-logo-with-recommendation') }}
         </div>
 
         <input
@@ -149,7 +149,7 @@ const fontFamilyClass = computed(() => {
           v-if="isValidLogo"
           class="absolute inset-0 flex items-center justify-center rounded-lg bg-black/70 opacity-0 transition-opacity focus-within:opacity-100 group-hover:opacity-100"
           role="group"
-          aria-label="Logo controls">
+          aria-label="t('logo-controls')">
           <button
             @click.stop="onLogoRemove"
             class="rounded-md bg-red-600 px-3 py-1 text-xs text-white hover:bg-red-700 focus:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2">
@@ -159,7 +159,7 @@ const fontFamilyClass = computed(() => {
                 name="trash-can"
                 class="size-4"
               />
-              Remove
+              {{ t('remove') }}
             </span>
           </button>
         </div>
@@ -168,29 +168,26 @@ const fontFamilyClass = computed(() => {
 
     <template #content>
       <textarea
-        v-if="isRevealed"
-        readonly
-        class="w-full resize-none border-0 bg-transparent font-mono text-xs text-gray-700 focus:ring-0 dark:text-gray-300 sm:text-sm"
-        :class="{
-          [cornerClass]: true
-        }"
-        rows="3"
-        aria-label="Sample secret content">Sample secret content
-This could be sensitive data
-Or a multi-line message</textarea>
+            v-if="isRevealed"
+            readonly
+            :class="[cornerClass]"
+            class="w-full resize-none border-0 bg-transparent
+            font-mono text-xs text-gray-700
+            focus:ring-0 dark:text-gray-300 sm:text-base"
+            rows="3"
+            :aria-label="t('sample-secret-content')"
+            v-model="textareaPlaceholder"></textarea>
 
       <div
         v-else
         class="flex items-center text-gray-400 dark:text-gray-500"
-        :class="{
-          [cornerClass]: true,
-        }">
+        :class="[cornerClass, fontFamilyClass]">
         <OIcon
           collection="mdi"
           name="eye-off"
           class="mr-2 size-5"
         />
-        <span class="text-sm">Content hidden</span>
+        <span class="text-sm">{{ previewI18n.t('content-hidden') }}</span>
       </div>
     </template>
 
@@ -198,10 +195,7 @@ Or a multi-line message</textarea>
       <!-- Action Button -->
       <button
         class="w-full py-3 text-base font-medium transition-colors sm:text-lg"
-        :class="{
-          [cornerClass]: true,
-          [fontFamilyClass]: true,
-        }"
+        :class="[cornerClass, fontFamilyClass]"
         :style="{
           backgroundColor: domainBranding.primary_color ??' #dc4a22',
           color: (domainBranding.button_text_light ?? true) ? '#ffffff' : '#000000',
@@ -209,8 +203,8 @@ Or a multi-line message</textarea>
         @click="toggleReveal"
         :aria-expanded="isRevealed"
         aria-controls="secretContent"
-        :aria-label="isRevealed ? 'Hide secret message' : 'View secret message'">
-        {{ isRevealed ? 'Hide Secret' : $t('web.COMMON.click_to_continue') }}
+        :aria-label="ariaLabelText">
+        {{ isRevealed ? t('hide-secret') : previewI18n.t('web.COMMON.click_to_continue') }}
       </button>
     </template>
   </BaseSecretDisplay>

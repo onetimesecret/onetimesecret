@@ -42,6 +42,7 @@ module Onetime::App
       def i18n
         locale = self.locale || 'en'
         pagename = self.class.name.split('::').last.downcase.to_sym
+        locale = 'en' unless OT.locales.key?(locale)
         @i18n ||= {
           locale: locale,
           email: OT.locales[locale][:email][pagename],

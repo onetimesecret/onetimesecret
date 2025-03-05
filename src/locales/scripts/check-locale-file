@@ -1,0 +1,48 @@
+#!/bin/bash
+
+# Validates i18n locale file maintain consistent key structure with base en.json
+# Flags structural differences in translation keys without comparing values
+# Usage: ./check-locale-file [-q] [-f] [-v] LOCALE_FILE
+# Exit: 0 if structures match, 1 if differences found
+
+QUIET=${QUIET:-0}
+FILENAME_ONLY=${FILENAME_ONLY:-0}
+VERBOSE=${VERBOSE:-0}
+
+while getopts ":qfv" opt; do
+  case $opt in
+    q) QUIET=1 ;;
+    f) FILENAME_ONLY=1 ;;
+    v) VERBOSE=1 ;;
+    \?) echo "Invalid option: -$OPTARG" >&2; exit 1 ;;
+  esac
+done
+shift $((OPTIND -1))
+
+LOCALE="$1"
+[ -z "$LOCALE" ] && echo "Usage: $0 [-q] [-f] [-v] LOCALE_FILE" >&2 && exit 1
+[ ! -f "$LOCALE" ] && echo "File not found: $LOCALE" >&2 && exit 1
+
+LOCALE_NAME=$(basename "$LOCALE" .json)
+
+# Extract and compare keys
+jq -r 'paths | join(".")' src/locales/en.json > "$TMPDIR/en_keys.txt"
+jq -r 'paths | join(".")' "$LOCALE" > "$TMPDIR/locale_keys.txt"
+
+if ! diff --unified "$TMPDIR/en_keys.txt" "$TMPDIR/locale_keys.txt" > "$TMPDIR/diff.txt"; then
+  [ $FILENAME_ONLY -eq 1 ] && echo "$LOCALE" && exit 1
+  [ $QUIET -eq 1 ] && exit 1
+
+  if [ $VERBOSE -eq 1 ]; then
+    echo "Checking $LOCALE..."
+    sed "s/^/$LOCALE_NAME: /" "$TMPDIR/diff.txt"
+    echo "$LOCALE_NAME: ❌ Key structure mismatch"
+  else
+    echo "Checking $LOCALE_NAME locale..."
+    cat "$TMPDIR/diff.txt"
+    echo "❌ Key structure mismatch in $LOCALE_NAME"
+  fi
+  exit 1
+fi
+
+exit 0

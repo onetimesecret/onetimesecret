@@ -48,6 +48,10 @@ const props = defineProps({
   collapsedBg: {
     type: String,
     default: 'bg-gray-50 dark:bg-gray-700'
+  },
+  cornerClass: {
+    type: String,
+    default: ''
   }
 });
 
@@ -86,6 +90,7 @@ const collapsedBgClass = computed(() => props.collapsedBg);
   <div
     :class="[
       'rounded-lg transition-all duration-200 ease-in-out',
+      cornerClass,
       borderClass,
       isExpanded
         ? `mb-3 p-3 ${expandedBgClass}`

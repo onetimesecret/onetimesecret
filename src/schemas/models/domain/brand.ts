@@ -1,4 +1,6 @@
 // src/schemas/models/domain/brand.ts
+
+import { localeSchema } from '@/schemas/i18n/locale';
 import { transforms } from '@/schemas/transforms';
 import { z } from 'zod';
 
@@ -38,6 +40,18 @@ const fontDisplayMap: Record<FontFamily, string> = {
   [FontFamily.MONO]: 'Monospace',
 };
 
+export const fontFamilyClasses: Record<FontFamily, string> = {
+  [FontFamily.SANS]: 'font-sans',
+  [FontFamily.SERIF]: 'font-serif',
+  [FontFamily.MONO]: 'font-mono',
+};
+
+export const cornerStyleClasses: Record<CornerStyle, string> = {
+  [CornerStyle.ROUNDED]: 'rounded-md',
+  [CornerStyle.PILL]: 'rounded-xl',
+  [CornerStyle.SQUARE]: 'rounded-none',
+};
+
 const cornerStyleDisplayMap: Record<CornerStyle, string> = {
   [CornerStyle.ROUNDED]: 'Rounded',
   [CornerStyle.PILL]: 'Pill Shape',
@@ -71,8 +85,9 @@ export const brandSettingschema = z
     button_text_light: transforms.fromString.boolean.default(false),
     allow_public_homepage: transforms.fromString.boolean.default(false),
     allow_public_api: transforms.fromString.boolean.default(false),
-    font_family: z.enum(fontOptions).optional(),
-    corner_style: z.enum(cornerStyleOptions).optional(),
+    font_family: z.enum(fontOptions).default(FontFamily.SANS),
+    corner_style: z.enum(cornerStyleOptions).default(CornerStyle.ROUNDED),
+    locale: localeSchema.default('en'),
   })
   .partial(); // Makes all fields optional;
 

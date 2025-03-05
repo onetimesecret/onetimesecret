@@ -1,4 +1,4 @@
-// src/components/secrets/form/SecretFormPrivacyOptions.vue
+<!-- src/components/secrets/form/SecretFormPrivacyOptions.vue -->
 
 <script setup lang="ts">
 import OIcon from '@/components/icons/OIcon.vue';
@@ -19,6 +19,7 @@ interface Props {
   withRecipient?: boolean;
   withPassphrase?: boolean;
   withExpiry?: boolean;
+  cornerClass?: string;
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -43,7 +44,9 @@ const getError = (field: keyof SecretFormData) => props.validation.errors.get(fi
 </script>
 
 <template>
-  <SecretFormDrawer title="Privacy Options">
+  <SecretFormDrawer
+    :title="$t('web.secrets.privacyOptions')"
+    :corner-class="cornerClass">
     <div class="mt-4 space-y-6">
       <div class="flex flex-col space-y-6 md:flex-row md:space-x-4 md:space-y-0">
         <!-- Passphrase Field -->
@@ -61,9 +64,10 @@ const getError = (field: keyof SecretFormData) => props.validation.errors.get(fi
                    id="passphrase"
                    name="passphrase"
                    autocomplete="unique-passphrase"
-                   placeholder="Enter a passphrase"
-                   aria-label="Passphrase"
+                   :placeholder="$t('enter-a-passphrase')"
+                   :aria-label="$t('web.COMMON.secret_passphrase')"
                    class="w-full rounded-md border border-gray-300 px-4 py-2 transition-colors duration-200 focus:border-brandcomp-500 focus:ring-brandcomp-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+                   :class="[cornerClass]"
                    @input="(e) => updatePassphrase((e.target as HTMLInputElement).value)" />
             <button type="button"
                     :disabled="disabled"
@@ -92,6 +96,7 @@ const getError = (field: keyof SecretFormData) => props.validation.errors.get(fi
                   id="lifetime"
                   tabindex="4"
                   name="ttl"
+                  :class="[cornerClass]"
                   class="w-full rounded-md border border-gray-300 px-4 py-2 transition-colors duration-200 focus:border-brandcomp-500 focus:ring-brandcomp-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
                   @change="(e) => updateTtl(Number((e.target as HTMLSelectElement).value))">
             <option value=""
@@ -123,7 +128,7 @@ const getError = (field: keyof SecretFormData) => props.validation.errors.get(fi
            class="flex flex-col">
         <label for="recipient"
                class="mb-2 block font-brand text-sm font-medium text-gray-500 transition-colors duration-200 dark:text-gray-300">
-          Recipient Address
+          {{ $t('web.COMMON.secret_recipient_address') }}
         </label>
         <input :value="form.recipient"
                :disabled="disabled"
@@ -134,6 +139,7 @@ const getError = (field: keyof SecretFormData) => props.validation.errors.get(fi
                id="recipient"
                name="recipient[]"
                placeholder="tom@myspace.com"
+               :class="[cornerClass]"
                class="w-full rounded-md border border-gray-300 px-4 py-2 transition-colors duration-200 focus:border-brandcomp-500 focus:ring-brandcomp-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
                @input="(e) => updateRecipient((e.target as HTMLInputElement).value)" />
         <span v-if="getError('recipient')"

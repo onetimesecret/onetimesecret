@@ -3,8 +3,11 @@ module Onetime
     extend self
     attr_writer :path
 
-    SERVICE_PATHS = %w[/etc/onetime ./etc].freeze
-    UTILITY_PATHS = %w[~/.onetime /etc/onetime ./etc].freeze
+    unless defined?(SERVICE_PATHS)
+      SERVICE_PATHS = %w[/etc/onetime ./etc].freeze
+      UTILITY_PATHS = %w[~/.onetime /etc/onetime ./etc].freeze
+    end
+
     attr_reader :env, :base, :bootstrap
 
     # Load a YAML configuration file, allowing for ERB templating within the file.
@@ -109,10 +112,11 @@ module Onetime
         klass.vhost_target = cluster[:vhost_target]
         OT.ld "Domains config: #{cluster}"
         unless klass.api_key
-          raise OT::Problem.new "No `site.domains.cluster` api key (#{klass.api_key})"
+          raise OT::Problem.new, "No `site.domains.cluster` api key (#{klass.api_key})"
         end
       end
 
+      site_host = OT.conf.dig(:site, :host)
       ttl_options = OT.conf.dig(:site, :secret_options, :ttl_options)
       default_ttl = OT.conf.dig(:site, :secret_options, :default_ttl)
 
@@ -157,26 +161,38 @@ module Onetime
         end
       end
 
-      development = conf[:development]
-      development[:enabled] ||= false
-      development[:frontend_host] ||= ''  # make sure this is set
+      diagnostics = OT.conf.fetch(:diagnostics, {})
+      OT.d9s_enabled = diagnostics[:enabled] || false
 
-      sentry = conf[:services][:sentry]
+      # Apply the defaults to sentry backend and frontend configs
+      # and update the config with the merged values.
+      merged = apply_defaults(diagnostics[:sentry])
+      OT.conf[:diagnostics] = {
+        enabled: OT.d9s_enabled,
+        sentry: merged
+      }
 
-      if sentry&.dig(:enabled)
+      sentry = merged[:backend]
+      dsn = sentry.fetch(:dsn, nil)
+
+      if OT.d9s_enabled && !dsn.nil?
         OT.ld "Setting up Sentry #{sentry}..."
-        dsn = sentry&.dig(:dsn)
 
-        unless dsn
-          OT.le "No DSN"
-        end
-
+        # Require only if we have a DSN
         require 'sentry-ruby'
         require 'stackprof'
 
         OT.li "[sentry-init] Initializing with DSN: #{dsn[0..10]}..."
         Sentry.init do |config|
-          config.dsn = sentry[:dsn]
+          config.dsn = dsn
+          config.environment = "#{site_host} (#{OT.env})"
+          config.release = OT::VERSION.inspect
+
+          # Configure breadcrumbs logger for detailed error tracking.
+          # Uses sentry_logger to capture progression of events leading
+          # to errors, providing context for debugging.
+          config.breadcrumbs_logger = [:sentry_logger]
+
           # Set traces_sample_rate to capture 10% of
           # transactions for performance monitoring.
           config.traces_sample_rate = 0.1
@@ -185,8 +201,37 @@ module Onetime
           # of sampled transactions.
           config.profiles_sample_rate = 0.1
         end
+
+        OT.li "[sentry-init] Status: #{Sentry.initialized? ? 'OK' : 'Failed'}"
       end
 
+      i18n = OT.conf.fetch(:internationalization, {})
+      OT.i18n_enabled = i18n[:enabled] || false
+
+      if OT.i18n_enabled
+        OT.ld "Setting up i18n..."
+
+        # Load the locales from the config in both the current and
+        # legacy locations. If the locales are not set in the config,
+        # we fallback to english.
+        locales = i18n.fetch(:locales, nil) || OT.conf.fetch(:locales, ['en']).map(&:to_s)
+
+         # First look for the default locale in the i18n config, then
+         # legacy the locales config approach of using the first one.
+        OT.supported_locales = locales
+        OT.default_locale = i18n.fetch(:default_locale, locales.first) || 'en'
+        OT.fallback_locale = i18n.fetch(:fallback_locale, nil)
+
+        unless locales.include?(OT.default_locale)
+          OT.le "Default locale #{OT.default_locale} not in locales #{locales}"
+          OT.i18n_enabled = false
+        end
+      end
+
+      # Make sure these are set
+      development = conf[:development]
+      development[:enabled] ||= false
+      development[:frontend_host] ||= ''
     end
 
     def exists?
@@ -205,6 +250,51 @@ module Onetime
       # `key` is a symbol. Returns a symbol.
       # If the key is not in the KEY_MAP, return the key itself.
       KEY_MAP[key] || key
+    end
+
+    # Merges section configurations with defaults
+    #
+    # @param config [Hash] Raw configuration with :defaults and named sections
+    # @return [Hash] Processed sections with defaults applied
+    #
+    # @example Basic usage
+    #   config = {
+    #     defaults: { timeout: 5, enabled: true },
+    #     api: { timeout: 10 },
+    #     web: {}
+    #   }
+    #   apply_defaults(config)
+    #   # => {
+    #   #   api: { timeout: 10, enabled: true },
+    #   #   web: { timeout: 5, enabled: true }
+    #   # }
+    #
+    # @example With nil config
+    #   apply_defaults(nil) #=> {}
+    #
+    # @example Real world config
+    #   service_config = {
+    #     defaults: { dsn: ENV['DSN'] },
+    #     backend: { path: '/api' },
+    #     frontend: { path: '/web' }
+    #   }
+    #   sections = apply_defaults(service_config)
+    #   sections[:backend][:dsn] #=> ENV['DSN']
+    def apply_defaults(config)
+      return {} if config.nil? || config.empty?
+
+      defaults = config[:defaults] || {}
+      return {} unless defaults.is_a?(Hash)
+
+      config.each_with_object({}) do |(section, values), result|
+        next if section == :defaults
+        next unless values.is_a?(Hash)
+
+        # Deep merge defaults with section values, preserving nil values only for explicitly set keys
+        result[section] = defaults.merge(values) do |_key, default_val, section_val|
+          section_val.nil? ? default_val : section_val
+        end
+      end
     end
 
     def find_configs(filename = nil)

@@ -1,8 +1,15 @@
 <script setup lang="ts">
 import { Secret, SecretDetails, brandSettingschema } from '@/schemas/models';
+import {
+  CornerStyle,
+  FontFamily,
+  cornerStyleClasses,
+  fontFamilyClasses
+} from '@/schemas/models/domain/brand';
 import { useProductIdentity } from '@/stores/identityStore';
 import { ref, computed } from 'vue';
 import BaseSecretDisplay from './BaseSecretDisplay.vue';
+import { useI18n } from 'vue-i18n';
 
 
 interface Props {
@@ -15,6 +22,9 @@ interface Props {
 }
 
 const props = defineProps<Props>();
+
+const i18n = useI18n();
+const { t } = i18n;
 
 const emit = defineEmits(['user-confirmed']);
 // const useSecret = useSecret();
@@ -31,6 +41,16 @@ const safeBrandSettings = computed(() =>
   brandSettings ? brandSettingschema.parse(brandSettings) : defaultBranding
 );
 
+const cornerClass = computed(() => {
+  const style = safeBrandSettings.value?.corner_style as CornerStyle | undefined;
+  return cornerStyleClasses[style ?? CornerStyle.ROUNDED];
+});
+
+const fontFamilyClass = computed(() => {
+  const font = safeBrandSettings.value?.font_family as FontFamily | undefined;
+  return fontFamilyClasses[font ?? FontFamily.SANS];
+});
+
 const hasImageError = ref(false);
 
 const cornerStyle = computed(() => {
@@ -46,14 +66,20 @@ const handleImageError = () => {
   hasImageError.value = true;
 };
 
+const buttonText = computed(() => {
+  return props.isSubmitting ? t('web.COMMON.submitting') : t('click-to-continue')
+})
 // Prepare the standardized path to the logo image.
 // Note that the file extension needs to be present but is otherwise not used.
 const logoImage = ref<string>(`/imagine/${props.domainId}/logo.png`);
 </script>
 
 <template>
-  <BaseSecretDisplay default-title="You have a message"
+  <BaseSecretDisplay :default-title="$t('you-have-a-message')"
+                     :previewI18n="i18n"
                      :domain-branding="safeBrandSettings"
+                     :corner-class="cornerClass"
+                     :font-class="fontFamilyClass"
                      :instructions="brandSettings?.instructions_pre_reveal">
     <template #logo>
       <div class="relative mx-auto sm:mx-0">
@@ -81,7 +107,7 @@ const logoImage = ref<string>(`/imagine/${props.domainId}/logo.png`);
           <!-- Logo -->
           <img v-if="logoImage && !hasImageError"
                :src="logoImage"
-               alt="Brand logo"
+               alt="$t('brand-logo')"
                class="size-full object-contain"
                :class="cornerStyle"
                @error="handleImageError" />
@@ -92,7 +118,7 @@ const logoImage = ref<string>(`/imagine/${props.domainId}/logo.png`);
     <template #content>
       <div class="flex items-center text-gray-400 dark:text-gray-500"
            role="status"
-           aria-label="Content status">
+           :aria-label="$t('content-status')">
         <svg class="mr-2 size-5"
              viewBox="0 0 24 24"
              fill="none"
@@ -103,13 +129,13 @@ const logoImage = ref<string>(`/imagine/${props.domainId}/logo.png`);
                 stroke-width="2"
                 d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7A9.97 9.97 0 014.02 8.971m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" />
         </svg>
-        <span class="text-sm">Content hidden</span>
+        <span class="text-sm">{{ $t('content-hidden') }}</span>
       </div>
     </template>
 
     <template #action-button>
       <form @submit.prevent="submitForm"
-            aria-label="Secret access form">
+            :aria-label="$t('secret-access-form')">
         <!-- Error Message -->
         <div v-if="error"
              class="mb-4 rounded-md bg-red-50 p-4 text-sm text-red-700 dark:bg-red-900/50 dark:text-red-200"
@@ -128,12 +154,10 @@ const logoImage = ref<string>(`/imagine/${props.domainId}/logo.png`);
                  :id="'passphrase-' + secretKey"
                  type="password"
                  name="passphrase"
-                 :class="{
-              'rounded-lg': brandSettings?.corner_style === 'rounded',
-              'rounded-2xl': brandSettings?.corner_style === 'pill',
-              'rounded-none': brandSettings?.corner_style === 'square',
-              'w-full border border-gray-300 px-4 py-2 focus:outline-none focus:ring-2 focus:ring-offset-2 dark:border-gray-600 dark:bg-gray-700 dark:text-white': true
-            }"
+                 :class="[
+                   cornerClass,
+                   'w-full border border-gray-300 px-4 py-2 focus:outline-none focus:ring-2 focus:ring-offset-2 dark:border-gray-600 dark:bg-gray-700 dark:text-white',
+                 ]"
                  autocomplete="current-password"
                  :aria-label="$t('web.COMMON.enter_passphrase_here')"
                  :placeholder="$t('web.COMMON.enter_passphrase_here')"
@@ -143,20 +167,18 @@ const logoImage = ref<string>(`/imagine/${props.domainId}/logo.png`);
         <!-- Submit Button -->
         <button type="submit"
                 :disabled="isSubmitting"
-                :class="{
-            'rounded-lg': brandSettings?.corner_style === 'rounded',
-            'rounded-full': brandSettings?.corner_style === 'pill',
-            'rounded-none': brandSettings?.corner_style === 'square',
-            [`font-${brandSettings?.font_family}`]: true,
-            'w-full py-3 text-base font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-50 sm:text-lg': true
-          }"
+                :class="[
+                  cornerClass,
+                  fontFamilyClass,
+                  'w-full py-3 text-base font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-50 sm:text-lg',
+                ]"
                 :style="{
             backgroundColor: brandSettings?.primary_color ?? '#dc4a22',
-            color: brandSettings?.button_text_light ? '#ffffff' : '#222222',
+            color: (brandSettings?.button_text_light ?? true) ? '#ffffff' : '#222222',
           }"
                 class="focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2"
                 aria-live="polite">
-          <span class="sr-only">{{ isSubmitting ? 'Submitting...' : 'Click to continue' }}</span>
+          <span class="sr-only">{{ buttonText }}</span>
           {{ isSubmitting ? $t('web.COMMON.submitting') : $t('web.COMMON.click_to_continue') }}
         </button>
       </form>

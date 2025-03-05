@@ -3,7 +3,7 @@
 
   import { useProductIdentity } from '@/stores/identityStore';
 
-  const { allowPublicHomepage, primaryColor } = useProductIdentity();
+  const { allowPublicHomepage, primaryColor, cornerClass } = useProductIdentity();
 </script>
 
 <template>
@@ -19,7 +19,7 @@
     <!--
       BrandedHomepage.vue
 
-      Purpose: Landing page for private, white-labeled secure message service instances.
+      Purpose: Landing page for custom domains, secure message service instances.
 
       This page serves two key functions:
       1. Shows the current availability status of the secure messaging service
@@ -54,8 +54,10 @@
       </div> -->
 
       <!-- Main Content Area -->
-      <div class="px-6 py-8 bg-white dark:bg-gray-800">
-        <!-- Service Status Banner -->
+      <div
+        :class="[cornerClass]"
+        class="px-6 py-8 bg-white dark:bg-gray-800">
+
         <div
           class="mb-6 rounded-lg border"
           :style="{
@@ -81,8 +83,7 @@
               <div class="ml-3">
                 <p
                   class="text-sm">
-                  This is a private instance. Only authorized
-                  team members can generate new secure links.
+                  {{ $t('this-is-a-private-instance-only-authorized-team-') }}
                 </p>
               </div>
             </div>
@@ -107,7 +108,7 @@
                     d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z" />
                 </svg>
                 <p class="text-sm text-gray-600 dark:text-gray-300">
-                Secure, encrypted storage
+                {{ $t('secure-encrypted-storage') }}
                 </p>
               </div>
             </div>
@@ -126,7 +127,7 @@
                     d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
                 <p class="text-sm text-gray-600 dark:text-gray-300">
-                  Auto-expire after viewing
+                  {{ $t('auto-expire-after-viewing') }}
                 </p>
               </div>
             </div>

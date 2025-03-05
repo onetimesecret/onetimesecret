@@ -40,7 +40,6 @@
       "sent_to": " :تم الارسال الى",
       "field_email": "البريد الالكتروني",
       "field_password": "كلمة المرور",
-      "field_password": "كلمة المرور",
       "field_password2": "قم بتأكيد كلمة المرور",
       "button_create_account": "انشأ حساباً",
       "share_a_secret": "شارك سراً",
@@ -53,7 +52,8 @@
       "word_cancel": "الغاء",
       "feedback_text": "هل لديك استفسار او تعليق؟",
       "button_send_feedback": "ارسل",
-      "verification_sent_to": "تم ارسال التفعيل الى"
+      "verification_sent_to": "تم ارسال التفعيل الى",
+      "processing": "يعالج"
     },
     "homepage": {
       "tagline1": ".ضع كلمة مرور، رسالة سرية او رابطاً خاصاً أدناه",
@@ -107,6 +107,17 @@
       "incoming_ticket_number_hint": "(ستجد هذا في بريدك الالكتروني (12345 مثلاً",
       "incoming_recipient_address": "بريد المرسل",
       "incoming_success_message": "تم ارسال الرسالة"
+    },
+    "security": {
+      "details": "تفاصيل"
+    },
+    "secrets": {
+      "privacyOptions": "خيارات الخصوصية",
+      "expiresIn": "تنتهي في {المدة}"
+    },
+    "signup": {
+      "create-your-account": "قم بإنشاء حسابك",
+      "have_an_account": "أو تسجيل الدخول إلى حسابك"
     }
   },
   "email": {
@@ -126,5 +137,10 @@
       "postscript1": "هذا البريد قد تم ارساله الى",
       "postscript2": ".ان لم تقم انت بإنشاء هذا الحساب، احذف هذه الرسالة ولن نراسلك مرة اخرى"
     }
-  }
+  },
+  "custom-domain": "مجال مخصص",
+  "api-key": "مفتاح API",
+  "ai-generated-content-disclaimer": "محتوى من الذكاء الاصطناعى من أجل العرض التوضيحي. \nليس من شخص أو شركة فعلية.",
+  "secure-links": "روابط آمنة",
+  "security": "حماية"
 }

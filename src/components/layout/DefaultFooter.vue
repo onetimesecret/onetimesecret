@@ -2,12 +2,13 @@
 
 <script setup lang="ts">
 import FeedbackToggle from '@/components/FeedbackToggle.vue';
-import JurisdictionFooterNotice from '@/components/JurisdictionFooterNotice.vue';
+import JurisdictionToggle from '@/components/JurisdictionToggle.vue';
 import FooterLinkLists from '@/components/layout/FooterLinkLists.vue';
 import ThemeToggle from '@/components/ThemeToggle.vue';
 import { WindowService } from '@/services/window.service';
 import type { LayoutProps } from '@/types/ui/layouts';
 import { ref } from 'vue';
+import LanguageToggle from '@/components/LanguageToggle.vue';
 
 withDefaults(defineProps<LayoutProps>(), {
   displayFeedback: true,
@@ -30,7 +31,7 @@ const companyName = ref('OnetimeSecret.com');
     bg-gray-100
     py-16 transition-all
     duration-300 dark:bg-gray-800"
-          aria-label="Site footer">
+          :aria-label="$t('site-footer')">
     <div class="container mx-auto max-w-2xl px-4">
       <FooterLinkLists v-if="displayLinks"
                        v-bind="$props" />
@@ -53,37 +54,32 @@ const companyName = ref('OnetimeSecret.com');
                class="text-inherit">
             <router-link to="/info/terms"
                          class="transition-colors duration-200 hover:text-gray-800 dark:hover:text-gray-100">
-              Terms
+              {{ $t('terms') }}
             </router-link>
             <span class="mx-2">·</span>
             <router-link to="/info/privacy"
                          class="transition-colors duration-200 hover:text-gray-800 dark:hover:text-gray-100">
-              Privacy
+              {{ $t('privacy') }}
             </router-link>
           </div>
         </div>
 
         <div v-if="displayToggles"
-             class="
-          flex w-full
-          flex-wrap items-center justify-center
-          space-x-4 md:w-auto
-          md:justify-end">
+             class="flex w-full flex-row items-center justify-center gap-4 sm:w-auto sm:justify-end">
+          <JurisdictionToggle v-if="windowProps.regions_enabled && windowProps.regions" />
 
-          <JurisdictionFooterNotice v-if="windowProps.regions_enabled && windowProps.regions" />
+          <ThemeToggle
+            class="text-gray-500 transition-colors duration-200 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-100"
+            :aria-label="$t('toggle-dark-mode')"
+          />
 
-          <ThemeToggle class="
-            text-gray-500 transition-colors
-            duration-200 hover:text-gray-800
-            dark:text-gray-400 dark:hover:text-gray-100"
-                       aria-label="Toggle dark mode" />
+          <LanguageToggle :compact="true" />
 
-          <FeedbackToggle v-if="displayFeedback && windowProps.authentication?.enabled"
-                          class="
-            text-gray-500 transition-colors
-            duration-200 hover:text-gray-800
-            dark:text-gray-400 dark:hover:text-gray-100"
-                          aria-label="Provide feedback" />
+          <FeedbackToggle
+            v-if="displayFeedback && windowProps.authentication?.enabled"
+            class="text-gray-500 transition-colors duration-200 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-100"
+            :aria-label="$t('provide-feedback')"
+          />
         </div>
       </div>
     </div>

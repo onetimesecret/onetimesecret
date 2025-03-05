@@ -106,6 +106,9 @@
       "incoming_ticket_number_hint": "Bunu e-postanda bulabilirsin (örn. 123456)",
       "incoming_recipient_address": "Destek alıcısı",
       "incoming_success_message": "E-postan gönderildi"
+    },
+    "signup": {
+      "create-your-account": "Hesabınızı Oluşturun"
     }
   },
   "email": {
@@ -125,5 +128,9 @@
       "postscript1": "Bu e-posta şu adrese yolandı",
       "postscript2": "Eğer bu hesabı siz oluşturmadıysanız, bu mesajı silin ve sizi bir daha rahatsız etmeyeceğiz."
     }
-  }
+  },
+  "custom-domain": "Özel alan",
+  "security": "Güvenlik",
+  "ai-generated-content-disclaimer": "Gösteri için AI tarafından oluşturulan içerik. \nGerçek bir kişiden veya şirketten değil.",
+  "secure-links": "Güvenli Bağlantılar"
 }

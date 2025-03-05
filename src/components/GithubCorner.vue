@@ -3,7 +3,7 @@
   <a
     href="https://github.com/onetimesecret/onetimesecret"
     class="github-corner"
-    aria-label="View source on GitHub">
+    :aria-label="$t('view-source-on-github')">
     <svg
       width="80"
       height="80"

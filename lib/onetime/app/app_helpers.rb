@@ -23,6 +23,10 @@ module Onetime::App
       @plan
     end
 
+    # `carefully` is a wrapper around the main web application logic. We
+    # handle errors, redirects, and other exceptions here to ensure that
+    # we respond consistently to all requests. That's why we integrate
+    # Sentry here rather than app specific logic.
     def carefully(redirect=nil, content_type=nil, app: :web) # rubocop:disable Metrics/MethodLength
       redirect ||= req.request_path unless app == :api
       content_type ||= 'text/html; charset=utf-8'
@@ -75,6 +79,13 @@ module Onetime::App
 
     rescue OT::FormError => ex
       OT.ld "[carefully] FormError: #{ex.message} (#{req.path}) redirect:#{redirect || 'n/a'}"
+
+      # Track form errors in Sentry. They can indicate bugs that would
+      # not surface any other way. We track as messages though since
+      # they are not exceptions in the diagnostic sense. We pass only
+      # the message and not fields to limit the amount of data sent.
+      capture_message ex.message, :error
+
       if redirect
         handle_form_error ex, redirect
       else
@@ -92,12 +103,19 @@ module Onetime::App
       not_found_response ex.message, shrimp: sess.add_shrimp
 
     rescue OT::LimitExceeded => ex
-      OT.le "[limit-exceeded] #{obscured} (#{sess.ipaddress}): #{ex.event}(#{ex.count}) #{sess.identifier.shorten(10)} (#{req.current_absolute_uri})"
+      msg = "#{ex.event}(#{ex.count}) #{sess.identifier.shorten(10)}"
+      OT.le "[limit-exceeded] #{obscured} (#{sess.ipaddress}): #{msg} (#{req.current_absolute_uri})"
+
+      # Track rate limiting as a warning message
+      capture_message "#{ex.message}: #{msg}", :warning
 
       throttle_response "Cripes! You have been rate limited."
 
     rescue Familia::HighRiskFactor => ex
       OT.le "[attempt-saving-non-string-to-redis] #{obscured} (#{sess.ipaddress}): #{sess.identifier.shorten(10)} (#{req.current_absolute_uri})"
+
+      # Track attempts to save non-string data to Redis as a warning error
+      capture_error ex, :warning
 
       # Include fresh shrimp so they can try again 🦐
       error_response "We're sorry, but we can't process your request at this time.", shrimp: sess.add_shrimp
@@ -106,12 +124,18 @@ module Onetime::App
       OT.le "#{ex.class}: #{ex.message}"
       OT.le ex.backtrace
 
+      # Track Familia errors as regular exceptions
+      capture_error ex
+
       # Include fresh shrimp so they can try again 🦐
       error_response "An error occurred :[", shrimp: sess ? sess.add_shrimp : nil
 
     rescue Errno::ECONNREFUSED => ex
       OT.le ex.message
       OT.le ex.backtrace
+
+      # Track DB connection errors as fatal errors
+      capture_error ex, :fatal
 
       error_response "We'll be back shortly!", shrimp: sess ? sess.add_shrimp : nil
 
@@ -120,6 +144,9 @@ module Onetime::App
       sessid = sess&.short_identifier || '<notset>'
       OT.le "#{ex.class}: #{ex.message} -- #{req.current_absolute_uri} -- #{req.client_ipaddress} #{custid} #{sessid} #{locale} #{content_type} #{redirect} "
       OT.le ex.backtrace.join("\n")
+
+      # Track the unexected errors
+      capture_error ex
 
       error_response "An unexpected error occurred :[", shrimp: sess ? sess.add_shrimp : nil
 
@@ -145,16 +172,21 @@ module Onetime::App
     # @return [void]
     def check_locale!(locale = nil)
       locale ||= req.params[:locale]
-      locale ||= cust.locale if cust && cust.locale
+      locale ||= cust.locale if cust&.locale
       locale ||= req.env['rack.locale']
+
+      have_translations = locale && OT.locales.has_key?(locale)
+      OT.ld format(
+        '[check_locale!] locale=%s cust=%s req=%s t=%s',
+        locale,
+        cust&.locale,
+        req.params.keys,
+        have_translations
+      )
 
       # Set the locale in the request environment if it is
       # valid, otherwise use the default locale.
-      if locale && OT.locales.has_key?(locale)
-        req.env['ots.locale'] = locale
-      else
-        req.env['ots.locale'] = OT.conf[:locales].first
-      end
+      req.env['ots.locale'] = have_translations ? locale : OT.default_locale
     end
 
     # Check CSRF value submitted with POST requests (aka shrimp)
@@ -383,6 +415,31 @@ module Onetime::App
 
       # Convert the details array to a string for logging
       details.join('; ')
+    end
+
+    # Sentry terminology:
+    #   - An event is one instance of sending data to Sentry. Generally, this
+    #   data is an error or exception.
+    #   - An issue is a grouping of similar events.
+    #   - Capturing is the act of reporting an event.
+    #
+    # Available levels are :fatal, :error, :warning, :log, :info,
+    # and :debug. The Sentry default, if not specified, is :error.
+    #
+    def capture_error(error, level=:error, &block)
+      return unless OT.d9s_enabled # diagnostics are disabled by default
+      Sentry.capture_exception(error, level: level, &block)
+    rescue StandardError => ex
+      OT.le "[capture_error] #{ex.class}: #{ex.message}"
+      OT.ld ex.backtrace.join("\n")
+    end
+
+    def capture_message(message, level=:log, &block)
+      return unless OT.d9s_enabled # diagnostics are disabled by default
+      Sentry.capture_message(message, level: level, &block)
+    rescue StandardError => ex
+      OT.le "[capture_message] #{ex.class}: #{ex.message}"
+      OT.ld ex.backtrace.join("\n")
     end
 
     # Collects and formats specific HTTP header details from the given

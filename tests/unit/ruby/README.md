@@ -1,14 +1,45 @@
-# Running Ruby Tryouts
+# Ruby Test Documentation
 
-If these are not run in the same directory as the `try` directory, we need to navigate to the directory that does and set the ruby lib path to make sure the onetime lib is required correcty.
+## Running Tests
+
+### Tryouts
+
+Navigate to the project root directory to ensure correct lib path resolution.
 
 ```bash
-  $ bundle exec try -v tests/unit/ruby/try/10_utils_try.rb
-  $ bundle exec try -v tests/unit/ruby/try/**/*_try.rb
+bundle exec try -v tests/unit/ruby/try/10_utils_try.rb
+bundle exec try -v tests/unit/ruby/try/**/*_try.rb
 ```
 
+### RSpec
 
-## Example tryout
+Execute RSpec tests from project root:
+
+```bash
+bundle exec rspec tests/unit/ruby/rspec/**/*_spec.rb
+bundle exec rspec tests/unit/ruby/rspec/onetime/config_spec.rb --format documentation
+COVERAGE=1 bundle exec rspec tests/unit/ruby/rspec/**/*_spec.rb
+```
+
+Key test configurations:
+- SimpleCov coverage reporting enabled via COVERAGE env var
+- Random test execution order
+- Shared Rack test context for request specs
+- Mocked logging in test environment
+- Custom refinements for Hash operations
+
+Test suite components:
+- Config validation specs
+- Rack refinements specs
+- Utils module specs
+
+Test files location: `tests/unit/ruby/rspec/`
+Config file: `tests/unit/ruby/config.test.yaml`
+
+## Examples
+
+
+### Example tryout
 
 In `./try/10_utils_try.rb`:
 

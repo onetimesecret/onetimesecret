@@ -2,6 +2,8 @@
 import { useNotificationsStore } from '@/stores/notificationsStore';
 import OIcon from '@/components/icons/OIcon.vue';
 import { computed } from 'vue';
+import { useI18n } from 'vue-i18n';
+const { t } = useI18n();
 
 interface Props {
   autoDismiss?: boolean;
@@ -23,6 +25,10 @@ const notifications = useNotificationsStore();
 const effectivePosition = computed(() => {
   // Store position takes precedence if it exists
   return notifications.position || props.position;
+});
+
+const translatedMessage = computed(() => {
+  return t(notifications.message);
 });
 
 const getStatusConfig = (type: string | null) => ({
@@ -136,7 +142,11 @@ const statusConfig = computed(() => {
           <span
             class="text-sm font-medium transition-all duration-200"
             :class="statusConfig?.textClasses">
-            {{ notifications.message }}
+            <!-- Doesn't hurt to pass the whole message through. Worst case -->
+            <!-- the UI just shows the text verbatim anyway, but it allows  -->
+            <!-- us the opporunity to translate messages coming from the  -->
+            <!-- server if we want to. -->
+            {{ translatedMessage }}
           </span>
         </div>
 
@@ -146,7 +156,7 @@ const statusConfig = computed(() => {
             type="button"
             class="ml-4 text-gray-400 hover:text-gray-500 dark:hover:text-gray-300"
             @click="notifications.hide">
-            <span class="sr-only">Dismiss</span>
+            <span class="sr-only">{{ $t('dismiss') }}</span>
             <OIcon
               collection="mdi"
               name="close"

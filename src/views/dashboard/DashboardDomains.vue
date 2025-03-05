@@ -14,7 +14,6 @@ const plan = ref<Plan>(WindowService.get('plan'));
 
 const {
   isLoading,
-  deleteDomain,
   records,
   recordCount,
   error,
@@ -55,7 +54,6 @@ onMounted(() => {
         v-if="recordCount > 0"
         :domains="domains"
         :is-loading="isLoading"
-        @delete="deleteDomain"
       />
 
       <EmptyState
@@ -63,10 +61,10 @@ onMounted(() => {
         actionRoute="/domains/add"
         actionText="Add a Domain">
         <template #title>
-          No domains found.
+          {{ $t('no-domains-found') }}
         </template>
         <template #description>
-        Get started by adding a custom domain.
+        {{ $t('get-started-by-adding-a-custom-domain') }}
         </template>
       </EmptyState>
     </div>

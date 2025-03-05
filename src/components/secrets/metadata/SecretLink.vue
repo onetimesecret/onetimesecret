@@ -3,7 +3,9 @@
 <script setup lang="ts">
   import type { Metadata, MetadataDetails } from '@/schemas/models';
   import OIcon from '@/components/icons/OIcon.vue';
-  import { ref } from 'vue';
+  import { ref, computed } from 'vue';
+  import { useI18n } from 'vue-i18n';
+  const { t } = useI18n();
 
   interface Props {
     record: Metadata;
@@ -16,6 +18,7 @@
   const copied = ref(false);
   const showToast = ref(false);
   const linkInput = ref<HTMLInputElement>();
+  const buttonText = computed(() => copied.value ? t('copied') : t('copy-to-clipboard') );
 
   const copyToClipboard = async () => {
     if (!linkInput.value) return;
@@ -108,7 +111,7 @@
             readonly
             :value="record.share_url"
             class="w-full bg-transparent border-0 text-gray-900 font-mono text-sm sm:text-base dark:text-gray-100 focus:ring-0 resize-none pt-1"
-            aria-label="Secret link"></textarea>
+            :aria-label="$t('secret-link')"></textarea>
         </div>
 
         <div class="flex-shrink-0 ml-4">
@@ -120,7 +123,7 @@
               collection="material-symbols"
               :name="copied ? 'check' : 'content-copy-outline'"
               class="w-5 h-5" />
-            <span class="sr-only">{{ copied ? 'Copied!' : 'Copy to clipboard' }}</span>
+            <span class="sr-only">{{ buttonText }}</span>
           </button>
         </div>
       </div>

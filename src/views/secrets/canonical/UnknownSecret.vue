@@ -34,19 +34,16 @@
 
         <h1
           class="mb-6 text-3xl font-bold text-gray-800 dark:text-white"
-          aria-label="Information no longer available">
-          That information is no longer available.
+          :aria-label="$t('information-no-longer-available')">
+          {{ $t('that-information-is-no-longer-available') }}
         </h1>
       </div>
     </template>
 
     <template #message="{}">
       <div class="bg-white dark:bg-gray-800 shadow-md rounded-lg py-8 text-lg">
-        <em>Welcome to Onetime Secret.</em>
-        Information shared through our service can only be accessed once. Once viewed, the
-        content is permanently deleted from our servers to ensure confidentiality. This
-        approach helps protect your sensitive data by limiting its exposure and preventing
-        unauthorized access.
+        <em>{{ $t('welcome-to-onetime-secret') }}</em>
+        {{ $t('information-shared-through-our-service-can-only-') }}
       </div>
     </template>
 
@@ -58,8 +55,7 @@
           branded ? 'p-4' : 'mb-8 p-5',
         ]">
         <p :class="['text-brandcomp-700 dark:text-brandcomp-200', 'text-lg font-medium']">
-          If you're unsure what to do next, please follow up with the person who sent you
-          this link for more information.
+          {{ $t('if-youre-unsure-what-to-do-next-please-follow-up') }}
         </p>
       </div>
     </template>
@@ -80,8 +76,8 @@
           color: 'var(--color-brand-500)',
           borderColor: 'var(--color-brand-500)',
         }"
-        aria-label="Return to home page">
-        Return to Home
+        :aria-label="$t('return-to-home-page')">
+        {{ $t('return-to-home') }}
       </router-link>
     </template>
   </BaseUnknownSecret>

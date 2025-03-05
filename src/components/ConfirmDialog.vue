@@ -8,8 +8,8 @@ withDefaults(defineProps<{
   cancelText?: string;
   type?: 'danger' | 'default';
 }>(), {
-  confirmText: 'Confirm',
-  cancelText: 'Cancel',
+  confirmText: 'web.COMMON.word_confirm',
+  cancelText: 'web.COMMON.word_cancel',
   type: 'default'
 });
 
@@ -51,7 +51,7 @@ const cancel = () => {
         <button
           @click="cancel"
           class="rounded px-4 py-2 text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700">
-          {{ cancelText }}
+          {{ $t(cancelText) }}
         </button>
         <button
           @click="confirm"
@@ -61,7 +61,7 @@ const cancel = () => {
               ? 'bg-red-500 text-white hover:bg-red-600 dark:bg-red-600 dark:hover:bg-red-700'
               : 'bg-blue-500 text-white hover:bg-blue-600 dark:bg-blue-600 dark:hover:bg-blue-700'
           ]">
-          <span class="font-bold">{{ confirmText }}</span>
+          <span class="font-bold">{{ $t(confirmText) }}</span>
         </button>
       </div>
     </div>

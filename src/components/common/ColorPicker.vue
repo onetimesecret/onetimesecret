@@ -1,5 +1,8 @@
 <script setup lang="ts">
+import HoverTooltip from './HoverTooltip.vue';
 import { computed } from 'vue';
+import { useI18n } from 'vue-i18n';
+const { t } = useI18n();
 
 const props = withDefaults(defineProps<{
   modelValue?: string;
@@ -16,7 +19,7 @@ const emit = defineEmits<{
 }>();
 
 // Provide default props
-const label = computed(() => props.label || 'Color Picker');
+const label = computed(() => props.label || t('color-picker'));
 const id = computed(() => props.id || 'color-picker');
 const name = computed(() => props.name || 'color');
 const currentColor = computed(() => props.modelValue || '#dc4a22');
@@ -42,7 +45,8 @@ const updateColor = (event: Event, isText = false) => {
 </script>
 
 <template>
-  <div class="relative">
+  <div class="relative group">
+    <HoverTooltip>{{ label }}</HoverTooltip>
     <label
       :id="id + '-label'"
       class="sr-only">{{ label }}</label>
@@ -50,12 +54,12 @@ const updateColor = (event: Event, isText = false) => {
       class="group
             flex h-11 items-center
             gap-3 rounded-lg
-            border
-            border-gray-200 bg-white
-            px-3
-            shadow-sm
-            dark:border-gray-600
-            dark:bg-gray-800">
+            border border-gray-200 bg-white
+            px-3 shadow-sm
+            focus-within:ring-2 focus-within:ring-brand-500 focus-within:ring-offset-2
+            dark:border-gray-600 dark:bg-gray-800
+            dark:focus-within:ring-brand-400 dark:focus-within:ring-offset-0
+            transition-all duration-200">
       <!-- Color Preview Circle -->
       <div class="relative flex items-center">
         <div

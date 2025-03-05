@@ -14,7 +14,8 @@ module Onetime
     end
 
     def self.inspect
-      build = @version[:BUILD].to_s
+      load_config
+      build = (@version || {}).fetch(:BUILD, nil).to_s
       build.empty? ? to_s : "#{to_s} (#{build})"
     end
 

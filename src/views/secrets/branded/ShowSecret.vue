@@ -1,48 +1,51 @@
 <!-- src/views/secrets/branded/ShowSecret.vue -->
 <script setup lang="ts">
-/**
- * Branded secret display implementation that maintains consistent UI between confirmation
- * and reveal states by leveraging BaseSecretDisplay for both.
- *
- * This component handles secrets for custom domains, ensuring brand consistency by:
- * 1. Using identical layouts for both confirmation and reveal states
- * 2. Applying domain-specific styling (colors, fonts, corner styles)
- * 3. Displaying branded logos when available
- *
- * @see SecretConfirmationForm - Handles passphrase entry using BaseSecretDisplay
- * @see SecretDisplayCase - Displays revealed content using BaseSecretDisplay
- */
+  /**
+   * Branded secret display implementation that maintains consistent UI between confirmation
+   * and reveal states by leveraging BaseSecretDisplay for both.
+   *
+   * This component handles secrets for custom domains, ensuring brand consistency by:
+   * 1. Using identical layouts for both confirmation and reveal states
+   * 2. Applying domain-specific styling (colors, fonts, corner styles)
+   * 3. Displaying branded logos when available
+   *
+   * @see SecretConfirmationForm - Handles passphrase entry using BaseSecretDisplay
+   * @see SecretDisplayCase - Displays revealed content using BaseSecretDisplay
+   */
 
- import BaseShowSecret from '@/components/base/BaseShowSecret.vue';
- import SecretConfirmationForm from '@/components/secrets/branded/SecretConfirmationForm.vue';
- import SecretDisplayCase from '@/components/secrets/branded/SecretDisplayCase.vue';
- import ThemeToggle from '@/components/ThemeToggle.vue';
- import { useProductIdentity } from '@/stores/identityStore';
- import UnknownSecret from './UnknownSecret.vue';
+  import BaseShowSecret from '@/components/base/BaseShowSecret.vue';
+  import SecretConfirmationForm from '@/components/secrets/branded/SecretConfirmationForm.vue';
+  import SecretDisplayCase from '@/components/secrets/branded/SecretDisplayCase.vue';
+  import { useProductIdentity } from '@/stores/identityStore';
+  import FooterControls from '@/components/layout/SecretFooterControls.vue';
+  import FooterAttribution from '@/components/layout/SecretFooterAttribution.vue';
 
- interface Props {
-   secretKey: string;
-   domainId: string;
-   displayDomain: string;
-   siteHost: string;
- }
+  import UnknownSecret from './UnknownSecret.vue';
 
- const productIdentity = useProductIdentity();
- const brandSettings = productIdentity.brand; // Not reactive
+  interface Props {
+    secretKey: string;
+    domainId: string;
+    displayDomain: string;
+    siteHost: string;
+  }
 
- defineProps<Props>();
- </script>
+  const productIdentity = useProductIdentity();
+  const brandSettings = productIdentity.brand; // Not reactive
+
+  defineProps<Props>();
+</script>
 
 <template>
-  <BaseShowSecret :secret-key="secretKey"
-                  :branded="true"
-                  class="container mx-auto mt-24 px-4">
-
+  <BaseShowSecret
+    :secret-key="secretKey"
+    :branded="true"
+    :site-host="siteHost"
+    class="container mx-auto mt-24 px-4">
     <!-- Loading slot -->
     <template #loading="{}">
       <div class="flex justify-center">
-        <div class="size-32 animate-spin
-          rounded-full border-4 border-brand-500 border-t-transparent"></div>
+        <div
+          class="size-32 animate-spin rounded-full border-4 border-brand-500 border-t-transparent"></div>
       </div>
     </template>
 
@@ -61,82 +64,55 @@
           'rounded-2xl': brandSettings?.corner_style === 'pill',
           'rounded-none': brandSettings?.corner_style === 'square',
           'mx-auto max-w-2xl space-y-20': true,
-        }"
-        >
-        <SecretConfirmationForm :secret-key="secretKey"
-                                :record="record"
-                                :details="details"
-                                :domain-id="domainId"
-                                :error="error"
-                                :is-submitting="isLoading"
-                                :display-powered-by="true"
-                                @user-confirmed="onConfirm" />
+        }">
+        <SecretConfirmationForm
+          :secret-key="secretKey"
+          :record="record"
+          :details="details"
+          :domain-id="domainId"
+          :error="error"
+          :is-submitting="isLoading"
+          @user-confirmed="onConfirm" />
       </div>
     </template>
 
     <!-- Reveal slot -->
     <template #reveal="{ record, details }">
       <div class="mx-auto max-w-2xl w-full">
-
-        <SecretDisplayCase aria-labelledby="secret-heading"
-                           :secret-key="secretKey"
-                           :record="record"
-                           :details="details"
-                           :domain-id="domainId"
-                           :display-powered-by="true"
-                           class="w-full" />
+        <SecretDisplayCase
+          aria-labelledby="secret-heading"
+          :secret-key="secretKey"
+          :record="record"
+          :details="details"
+          :domain-id="domainId"
+          class="w-full" />
       </div>
     </template>
 
     <!-- Unknown secret slot -->
-    <template #unknown="{ }">
+    <template #unknown="{}">
       <div class="mx-auto max-w-2xl">
-        <UnknownSecret :branded="true"
-                       :brand-settings="brandSettings ?? undefined" />
+        <UnknownSecret
+          :branded="true"
+          :brand-settings="brandSettings ?? undefined" />
       </div>
     </template>
 
     <!-- Footer slot -->
-    <template #footer>
-      <div class="mx-auto max-w-2xl">
-        <footer class="pt-20 text-center text-xs text-gray-400 dark:text-gray-600"
-                role="contentinfo">
-          <nav class="space-x-2"
-               aria-label="Footer navigation">
-            <a :href="`https://${siteHost}`"
-               class="hover:underline
-                focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2"
-               rel="noopener noreferrer"
-               aria-label="Visit Onetime Secret homepage">
-              Powered by Onetime Secret
-            </a>
-            <span aria-hidden="true">·</span>
-            <router-link to="/info/terms"
-                         class="hover:underline
-                focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2"
-                         aria-label="View Terms of Service">
-              Terms
-            </router-link>
-            <span aria-hidden="true">·</span>
-            <router-link to="/info/privacy"
-                         class="hover:underline
-                focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2"
-                         aria-label="View Privacy Policy">
-              Privacy
-            </router-link>
-          </nav>
-        </footer>
-
-        <div class="flex justify-center pt-16">
-          <ThemeToggle />
-        </div>
+    <template #footer="{ siteHost }">
+      <div class="flex flex-col items-center space-y-8 py-8">
+        <FooterControls :show-language="true" />
+        <FooterAttribution
+          :site-host="siteHost"
+          :show-nav="true"
+          :show-terms="true" />
       </div>
     </template>
   </BaseShowSecret>
 </template>
 
 <style scoped>
-.logo-container {
+  .logo-container {
   transition: all 0.3s ease;
 }
 

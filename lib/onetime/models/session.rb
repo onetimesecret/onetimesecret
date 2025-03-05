@@ -1,3 +1,4 @@
+# lib/onetime/models/session.rb
 
 require_relative 'mixins/session_messages'
 

@@ -1,15 +1,14 @@
+// src/composables/useBranding.ts
+
 import { ImageProps, type BrandSettings } from '@/schemas/models';
 import { useNotificationsStore } from '@/stores';
 import { useBrandStore } from '@/stores/brandStore';
 import { shouldUseLightText } from '@/utils';
 import { computed, ref, watch } from 'vue';
 import { useRouter } from 'vue-router';
+import { createI18nInstance } from '@/i18n';
 
-import {
-  AsyncHandlerOptions,
-  useAsyncHandler,
-  createError,
-} from './useAsyncHandler';
+import { AsyncHandlerOptions, useAsyncHandler, createError } from './useAsyncHandler';
 import { ApplicationError } from '@/schemas';
 import { AxiosError } from 'axios';
 
@@ -36,6 +35,7 @@ export function useBranding(domainId?: string) {
   const isInitialized = ref(false);
   const error = ref<ApplicationError | null>(null);
 
+  const { composer, setLocale } = createI18nInstance();
   const brandSettings = ref<BrandSettings>(store.getSettings(domainId || ''));
   const originalSettings = ref<BrandSettings | null>(null);
   const logoImage = ref<ImageProps | null>(null);
@@ -69,6 +69,12 @@ export function useBranding(domainId?: string) {
         return router.push('NotFound');
       }
 
+      // Set locale immediately after getting settings
+      if (settings.locale) {
+        console.debug('[useBranding] Setting locale:', settings.locale, settings);
+        await setLocale(settings.locale);
+      }
+
       // Quietly handle 404 errors for logo fetch
       try {
         const logo = await store.fetchLogo(domainId); // Assuming this is async
@@ -85,15 +91,14 @@ export function useBranding(domainId?: string) {
       isInitialized.value = true;
     });
   };
-
+  const displayLocale = computed(() => brandSettings.value.locale);
   const primaryColor = computed(() =>
     isInitialized.value ? brandSettings.value.primary_color : undefined
   );
   const hasUnsavedChanges = computed(() => {
     if (!originalSettings.value) return false;
     return !Object.entries(brandSettings.value).every(
-      ([key, value]) =>
-        originalSettings.value?.[key as keyof BrandSettings] === value
+      ([key, value]) => originalSettings.value?.[key as keyof BrandSettings] === value
     );
   });
 
@@ -104,6 +109,15 @@ export function useBranding(domainId?: string) {
         brandSettings.value.button_text_light = shouldUseLightText(newColor);
       }
     }
+  );
+
+  watch(
+    () => brandSettings.value?.locale,
+    async (newLocale) => {
+      if (!newLocale) return;
+      await setLocale(newLocale); // This updates the preview i18n instance
+    },
+    { immediate: true } // Add immediate to handle initial locale
   );
 
   const saveBranding = (updates: Partial<BrandSettings>) =>
@@ -117,12 +131,7 @@ export function useBranding(domainId?: string) {
 
   const handleLogoUpload = async (file: File) =>
     wrap(async () => {
-      if (!domainId)
-        throw createError(
-          'Domain ID is required to upload logo',
-          'human',
-          'error'
-        );
+      if (!domainId) throw createError('Domain ID is required to upload logo', 'human', 'error');
       const uploadedLogo = await store.uploadLogo(domainId, file);
       // Update local state with new logo
       logoImage.value = uploadedLogo;
@@ -130,12 +139,7 @@ export function useBranding(domainId?: string) {
 
   const removeLogo = async () =>
     wrap(async () => {
-      if (!domainId)
-        throw createError(
-          'Domain ID is required to remove logo',
-          'human',
-          'error'
-        );
+      if (!domainId) throw createError('Domain ID is required to remove logo', 'human', 'error');
       await store.removeLogo(domainId);
       // Clear local logo state
       logoImage.value = null;
@@ -146,6 +150,8 @@ export function useBranding(domainId?: string) {
     error,
     brandSettings,
     logoImage,
+    previewI18n: composer,
+    displayLocale,
     primaryColor,
     hasUnsavedChanges,
     isInitialized,

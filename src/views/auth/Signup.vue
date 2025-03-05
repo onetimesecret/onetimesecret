@@ -8,6 +8,8 @@
   import { useJurisdictionStore } from '@/stores/jurisdictionStore';
   import { storeToRefs } from 'pinia';
   import { ref, computed } from 'vue';
+  import { useI18n } from 'vue-i18n';
+  const { t } = useI18n();
 
   const jurisdictionStore = useJurisdictionStore();
   const { getCurrentJurisdiction } = storeToRefs(jurisdictionStore);
@@ -19,8 +21,8 @@
   const currentJurisdiction = computed(
     () =>
       getCurrentJurisdiction.value || {
-        identifier: 'Unknown Jurisdiction',
-        display_name: 'Unknown Jurisdiction',
+        identifier: t('unknown-jurisdiction'),
+        display_name: t('unknown-jurisdiction-0'),
         domain: '',
         icon: {
           collection: 'mdi',
@@ -31,14 +33,14 @@
   );
 
   const alternateProviders = [
-    { name: 'Google', icon: 'mdi-google' },
+    { name: t('google'), icon: 'mdi-google' },
     { name: 'GitHub', icon: 'mdi-github' },
   ];
 </script>
 
 <template>
   <AuthView
-    heading="Create your account"
+    :heading="$t('web.signup.create-your-account')"
     heading-id="signup-heading"
     :with-subheading="true">
     <template #form>

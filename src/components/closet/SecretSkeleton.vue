@@ -1,4 +1,4 @@
-// src/components/closet/SecretSkeleton.vue
+<!-- src/components/closet/SecretSkeleton.vue -->
 
 <script setup lang="ts">
 

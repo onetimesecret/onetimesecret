@@ -13,6 +13,7 @@ const routes: Array<RouteRecordRaw> = [
     },
     meta: {
       requiresAuth: true,
+      displayPoweredBy: false,
     },
   },
   {
@@ -26,6 +27,7 @@ const routes: Array<RouteRecordRaw> = [
     meta: {
       isAdmin: true,
       requiresAuth: true,
+      displayPoweredBy: false,
     },
     props: true,
   },

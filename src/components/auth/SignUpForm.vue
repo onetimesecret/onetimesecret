@@ -57,7 +57,7 @@ const togglePasswordVisibility = () => {
       <div>
         <label
           for="email-address"
-          class="sr-only">Email address</label>
+          class="sr-only">{{ $t('email-address') }}</label>
         <input
           id="email-address"
           name="u"
@@ -74,7 +74,7 @@ const togglePasswordVisibility = () => {
                       focus:z-10 focus:border-brand-500 focus:outline-none focus:ring-brand-500
                       dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder:text-gray-400
                       dark:focus:border-brand-500 dark:focus:ring-brand-500"
-          placeholder="Email address"
+          :placeholder="$t('web.COMMON.email_placeholder')"
           v-model="email"
         />
       </div>
@@ -83,7 +83,7 @@ const togglePasswordVisibility = () => {
       <div class="relative">
         <label
           for="password"
-          class="sr-only">Password</label>
+          class="sr-only">{{ $t('web.COMMON.field_password') }}</label>
         <input
           id="password"
           :type="showPassword ? 'text' : 'password'"
@@ -99,7 +99,7 @@ const togglePasswordVisibility = () => {
                  focus:z-10 focus:border-brand-500 focus:outline-none focus:ring-brand-500
                  dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder:text-gray-400
                  dark:focus:border-brand-500 dark:focus:ring-brand-500"
-          placeholder="Password"
+          :placeholder="$t('web.COMMON.password_placeholder')"
           v-model="password"
         />
         <button
@@ -151,19 +151,19 @@ const togglePasswordVisibility = () => {
         <label
           for="terms-agreement"
           class="ml-2 block text-sm text-gray-900 dark:text-gray-300">
-          I agree to the
+          {{ $t('i-agree-to-the') }}
           <router-link
             to="/info/terms"
             class="font-medium text-brand-600 hover:text-brand-500
                      dark:text-brand-500 dark:hover:text-brand-400">
-            Terms of Service
+            {{ $t('terms-of-service') }}
           </router-link>
           and
           <router-link
             to="/info/privacy"
             class="font-medium text-brand-600 hover:text-brand-500
                      dark:text-brand-500 dark:hover:text-brand-400">
-            Privacy Policy
+            {{ $t('privacy-policy') }}
           </router-link>
         </label>
       </div>
@@ -181,7 +181,7 @@ const togglePasswordVisibility = () => {
                      text-white hover:bg-brand-700
                      focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2
                      dark:bg-brand-600 dark:hover:bg-brand-700 dark:focus:ring-offset-gray-800">
-        Create account
+        {{ $t('create-account') }}
       </button>
     </div>
   </form>

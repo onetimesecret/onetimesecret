@@ -80,6 +80,7 @@
       class="space-y-8 bg-gradient-to-b from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-950 rounded-lg p-6">
       <!-- Secret Link Header -->
       <section
+        v-if="!details.show_recipients"
         class="animate-fade-in relative"
         aria-labelledby="secret-header">
 
@@ -90,6 +91,15 @@
           :isInitialView="!record.is_viewed"
           class="focus-within:ring-2 focus-within:ring-brand-500 rounded-lg" />
       </section>
+
+      <!-- Recipients Section -->
+      <div
+        v-if="details.show_recipients"
+        class="border-t border-slate-100 py-4 dark:border-slate-800">
+        <h3 class="text-lg font-semibold text-slate-800 dark:text-slate-200">
+          {{ $t('web.COMMON.sent_to') }} {{ record.recipients }}
+        </h3>
+      </div>
 
       <!-- Secret Value -->
       <section
@@ -125,7 +135,7 @@
         <div
           class="flex items-center justify-between font-mono text-slate-400 dark:text-slate-500">
           <span>•••••••••••••••••••</span>
-          <span class="text-xs font-medium">Encrypted</span>
+          <span class="text-xs font-medium">{{ $t('web.LABELS.encrypted') }}</span>
         </div>
       </section>
 
@@ -169,18 +179,9 @@
           type="button"
           to="/"
           class="inline-flex items-center justify-center px-4 py-2 text-sm font-brand text-slate-700 bg-white border border-slate-300 rounded-md dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-500 dark:text-slate-200 dark:border-slate-600 dark:focus:ring-offset-slate-900">
-          Create another secret
+          {{ $t('create-another-secret') }}
         </router-link>
       </section>
-
-      <!-- Recipients Section -->
-      <div
-        v-if="details.show_recipients"
-        class="border-t border-slate-100 py-4 dark:border-slate-800">
-        <h3 class="text-lg font-semibold text-slate-800 dark:text-slate-200">
-          {{ $t('web.COMMON.sent_to') }} {{ record.recipients }}
-        </h3>
-      </div>
 
       <!-- Help Section -->
       <section

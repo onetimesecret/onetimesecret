@@ -39,12 +39,12 @@
         </svg>
         <p class="text-base font-medium text-red-800 dark:text-red-200">
           <template v-if="record?.is_received">
-            Viewed on {{ record?.received }}
+            {{ $t('viewed-on-record-received', [record?.received]) }}
           </template>
           <template v-else-if="record?.is_burned">
-            Deleted on {{ record?.burned }}
+            {{ $t('deleted-on-record-burned', [record?.burned]) }}
           </template>
-          <template v-else> Permanently deleted </template>
+          <template v-else> {{ $t('permanently-deleted') }} </template>
         </p>
       </div>
 
@@ -53,11 +53,11 @@
         <a v-if="record?.metadata_path"
            :href="record.metadata_path"
            class="flex-1 rounded-lg bg-white px-4 py-2.5 text-center font-brand font-medium text-gray-700 shadow-sm transition hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-red-500 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700">
-          Back to Details
+          {{ $t('back-to-details') }}
         </a>
         <router-link to="/"
                      class="flex-1 rounded-lg bg-red-600 px-4 py-2.5 text-center font-brand font-medium text-white shadow-sm transition hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 dark:bg-red-700 dark:hover:bg-red-600">
-          Create New Secret
+          {{ $t('web.LABELS.create_new_secret') }}
         </router-link>
       </div>
     </div>
@@ -80,7 +80,7 @@
                  v-model="passphrase"
                  id="passField"
                  class="w-full rounded-md border border-gray-300 bg-white px-3 py-2 focus:outline-none focus:ring-2 focus:ring-brand-500 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200"
-                 placeholder="Enter the passphrase here" />
+                 placeholder="$t('web.COMMON.enter_passphrase_here')" />
         </div>
         <button type="submit"
                 :disabled="isLoading"

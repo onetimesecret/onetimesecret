@@ -23,6 +23,10 @@ module Onetime::App
 
     class SecretLink < OT::App::Mail::Base
       def init secret, recipient
+        raise ArgumentError, "Customer required" unless cust
+        raise ArgumentError, "Recipient required" unless recipient
+        raise ArgumentError, "Secret required" unless secret
+
         self[:secret] = secret
         self[:custid] = cust.custid
         self[:email_address] = recipient
@@ -38,6 +42,7 @@ module Onetime::App
         secret_display_domain self[:secret]
       end
       def uri_path
+        raise ArgumentError, "Invalid secret key" unless self[:secret]&.key
         secret_uri self[:secret]
       end
     end

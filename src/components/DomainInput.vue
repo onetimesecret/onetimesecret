@@ -27,7 +27,7 @@ const onInput = (event: Event) => {
       for="domain"
       class="hidden bg-inherit text-xl font-medium leading-6 text-gray-900 dark:text-gray-100"
       aria-hidden="false">
-      Domain name
+      {{ $t('domain-name') }}
     </label>
     <div class="relative mt-2 rounded-md shadow-sm">
       <input

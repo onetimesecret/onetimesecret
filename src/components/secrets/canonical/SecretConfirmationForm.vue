@@ -1,3 +1,5 @@
+<!-- src/components/secrets/canonical/SecretConfirmationForm.vue -->
+
 <script setup lang="ts">
 import { Secret, SecretDetails } from '@/schemas/models';
 import { ref } from 'vue';
@@ -28,7 +30,7 @@ const submitForm = async () => {
       'rounded-lg bg-white p-8 dark:bg-gray-800'
     ]"
     role="region"
-    aria-label="Secret confirmation">
+    :aria-label="$t('secret-confirmation')">
     <p
       v-if="record?.verification && !record?.has_passphrase"
       class="text-base text-gray-600 dark:text-gray-400"

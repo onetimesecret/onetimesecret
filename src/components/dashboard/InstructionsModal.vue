@@ -1,14 +1,17 @@
 <script setup lang="ts">
-
+import HoverTooltip from '../common/HoverTooltip.vue';
 import OIcon from '@/components/icons/OIcon.vue';
 import { useEventListener } from '@vueuse/core';
 import { ref, computed, watch, nextTick, onMounted, onUnmounted } from 'vue';
+import { useI18n, Composer } from 'vue-i18n';
 
+const { t } = useI18n();
 
 const props = withDefaults(defineProps<{
+  previewI18n: Composer;
   modelValue?: string;
 }>(), {
-  modelValue: ''
+  modelValue: '',
 });
 
 
@@ -38,23 +41,27 @@ const close = () => {
 
 // Handle ESC key press globally
 const handleEscPress = (e: KeyboardEvent) => {
-  if (e.key === 'Escape' && isOpen.value) {
+  if (e.key === t('escape') && isOpen.value) {
     close();
   }
 };
 const handleKeydown = (e: KeyboardEvent) => {
   // Close on escape
-  if (e.key === 'Escape') {
+  if (e.key === t('escape')) {
     close();
     return;
   }
 
   // Save on Cmd+Enter (Mac) or Ctrl+Enter (Windows)
-  if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) {
+  if (e.key === t('enter') && (e.metaKey || e.ctrlKey)) {
     emit('save');
     close();
   }
 };
+
+const placeholderExample = computed(() =>
+  `${props.previewI18n.t('e-g-example')} ${props.previewI18n.t('use-your-phone-to-scan-the-qr-code')}`);
+
 onMounted(() => {
   document.addEventListener('keydown', handleEscPress);
 });
@@ -90,36 +97,34 @@ watch(isOpen, (newValue) => {
 });
 </script>
 
-
 <template>
-  <div class="relative">
+  <div class="relative group">
+    <HoverTooltip>{{ t('instructions') }}</HoverTooltip>
     <button
       type="button"
       @click="toggleOpen"
-      class="focus:ring-primary-500 inline-flex
-                   h-11 items-center rounded-lg
-                   border border-gray-200 bg-white px-4
-                   py-2.5 text-sm
-                   text-gray-700
-                   shadow-sm transition-all duration-200
-                   ease-in-out
-                   hover:bg-gray-50
-                   focus:outline-none focus:ring-2 focus:ring-offset-2
-                   dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-800
-                 dark:focus:ring-offset-gray-900"
+      class="group relative inline-flex h-11 items-center gap-2
+             rounded-lg bg-white px-4
+             ring-1 ring-gray-200 shadow-sm
+             hover:bg-gray-50
+             focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2
+             dark:bg-gray-800 dark:ring-gray-700 dark:hover:bg-gray-700
+             dark:focus:ring-brand-400 dark:focus:ring-offset-0
+             transition-all duration-200"
       :aria-expanded="isOpen"
+      :aria-label="t('instructions')"
       aria-haspopup="true">
       <OIcon
         collection="mdi"
         name="text-box-edit"
-        class="mr-2 size-5"
+        class="size-5"
         aria-hidden="true"
       />
-      Instructions
+
       <OIcon
         collection="mdi"
         :name="isOpen ? 'chevron-up' : 'chevron-down'"
-        class="ml-2 size-5"
+        class="size-5"
         aria-hidden="true"
       />
     </button>
@@ -145,7 +150,7 @@ watch(isOpen, (newValue) => {
                        block
                        text-sm font-medium text-gray-700
                        dark:text-gray-200">
-            Pre-reveal Instructions
+            {{ $t('pre-reveal-instructions') }}
             <OIcon
               collection="mdi"
               name="help-circle"
@@ -163,7 +168,7 @@ watch(isOpen, (newValue) => {
                         text-xs text-white
                         shadow-lg
                         dark:bg-gray-700">
-              These instructions will be shown to recipients before they reveal the secret content
+              {{ $t('these-instructions-will-be-shown-to-recipients-before') }}
             </div>
           </label>
           <textarea
@@ -172,13 +177,15 @@ watch(isOpen, (newValue) => {
             @keydown="handleKeydown"
             ref="textareaRef"
             rows="3"
-            class="w-full
-                           rounded-lg
-                           border-gray-300 text-sm
-                           shadow-sm
-                           focus:border-brand-300 focus:ring focus:ring-brand-200
-                           focus:ring-opacity-50 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
-            placeholder="e.g. Use your phone to scan the QR code"
+            class="w-full rounded-lg text-sm
+                   ring-1 ring-gray-200 shadow-sm
+                   border-0
+                   outline-none
+                   focus:ring-2 focus:ring-brand-500 focus:ring-offset-2
+                   dark:ring-gray-700 dark:bg-gray-700 dark:text-white
+                   dark:focus:ring-brand-400 dark:focus:ring-offset-0
+                   transition-all duration-200"
+            :placeholder="placeholderExample"
             @keydown.esc="close"></textarea>
 
           <div
@@ -186,8 +193,8 @@ watch(isOpen, (newValue) => {
                       justify-between
                       text-xs text-gray-500
                       dark:text-gray-400">
-            <span>{{ characterCount }}/500 characters</span>
-            <span>Press ESC to close</span>
+            <span>{{ $t('charactercount-500-characters', [characterCount]) }}</span>
+            <span>{{ $t('press-esc-to-close') }}</span>
           </div>
         </div>
       </div>

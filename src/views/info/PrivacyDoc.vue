@@ -5,7 +5,7 @@ import Privacy from '@/content/info/privacy.md';
 <template>
   <article class="prose">
     <h1 class="intro dark:text-gray-300">
-      Privacy Policy
+      {{ $t('privacy-policy') }}
     </h1>
 
     <Privacy class="prose prose-sm max-w-none dark:prose-invert sm:prose-base lg:prose-lg dark:text-gray-300" />
