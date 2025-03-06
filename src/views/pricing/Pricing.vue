@@ -92,7 +92,7 @@
                 <div class="mt-4 flex items-baseline gap-x-2">
                   <span
                     class="font-brand text-5xl font-bold tracking-tight text-gray-900 dark:text-white"
-                    >{{ tier.priceMonthly }}</span
+                    >{{ tier.price.monthly }}</span
                   >
                   <span
                     class="font-brand text-base font-semibold leading-7 text-gray-600 dark:text-gray-400"
