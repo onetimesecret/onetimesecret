@@ -209,10 +209,11 @@
   # language by using the toggle in the footer or in the settings
   # modal if they're logged in.
   :locales:
-    - de_AT
     - en
+    - de_AT
     - fr_CA
     - fr_FR
+    - nl
   :incomplete:
     - ar
     - bg
@@ -226,7 +227,6 @@
     - hu
     - it_IT
     - ja
-    - nl
     - pl
     - pt_BR
     - pt_PT
