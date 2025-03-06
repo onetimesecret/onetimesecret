@@ -5,6 +5,7 @@
   import MovingGlobules from '@/components/MovingGlobules.vue';
   import QuoteSection from '@/components/QuoteSection.vue';
   import type { PaymentFrequency } from '@/sources/productTiers';
+  import { useJurisdictionStore } from '@/stores';
   import { paymentFrequencies as frequencies, productTiers as tiers } from '@/sources/productTiers';
   import { testimonials as testimonialsData } from '@/sources/testimonials';
   import { useI18n } from 'vue-i18n';
@@ -14,6 +15,8 @@
 
   const testimonials = ref(testimonialsData);
   const randomTestimonial = ref(testimonials.value[0]);
+
+  const { getJurisdictionIdentifiers: jurisdictions } = useJurisdictionStore();
 
   onMounted(() => {
     const randomIndex = Math.floor(Math.random() * testimonials.value.length);
@@ -129,11 +132,11 @@
             :href="`${tier.href}${frequency.priceSuffix}`"
             :aria-describedby="tier.id"
             :class="[
-              tier.featured
-                ? 'bg-brandcomp-800 text-white hover:bg-brandcomp-900 focus-visible:outline-brandcomp-400'
-                : 'bg-brand-600 text-white shadow-sm hover:bg-brand-500 focus-visible:outline-brand-600',
-              'mt-6 block rounded-md px-3 py-2 text-center text-lg font-semibold focus-visible:outline-2 focus-visible:outline-offset-2 transition-colors',
-            ]">
+                tier.featured
+                  ? 'bg-brandcomp-800 dark:bg-brand-600 text-white hover:bg-brandcomp-900 dark:hover:bg-brand-700 focus-visible:outline-brandcomp-500'
+                  : 'bg-brand-600 dark:bg-brandcomp-800 text-white hover:bg-brand-500 dark:hover:bg-brandcomp-700 focus-visible:outline-brand-500',
+                'mt-6 block rounded-md px-3 py-2 text-center text-lg font-semibold focus-visible:outline-2 focus-visible:outline-offset-2 transition-colors',
+              ]">
             {{ tier.cta }}
           </a>
           <!-- Features -->
@@ -167,7 +170,7 @@
 
       <!-- Additional content unchanged -->
       <p class="mt-10 text-center text-sm text-gray-600 dark:text-gray-400">
-        {{ t('includes-all-data-locality-options') }}
+      {{ t('includes-all-data-locality-options', [jurisdictions.join(', ')]) }}
       </p>
     </div>
 

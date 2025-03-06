@@ -723,7 +723,7 @@
   "visit-onetime-secret-homepage": "Visit Onetime Secret homepage",
   "footer-navigation": "Footer navigation",
   "includes-all-features-and-unlimited-sharing-capa": "All plans include privacy features and unlimited sharing capacity",
-  "includes-all-data-locality-options": "All plans include choice of data locality: EU, US, or CA regions",
+  "includes-all-data-locality-options": "All plans include choice of data locality: {0} regions",
   "get-started": "Get started",
   "frequency-value-annually-annual-monthly-subscrip": "{0} subscription",
   "features": "Features",
