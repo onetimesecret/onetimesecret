@@ -131,7 +131,10 @@
       "orphaned_description": "Das Geheimnis ist verwaist und wird bald zerstört werden",
       "expired_description": "Das Geheimnis ist abgelaufen, bevor es angezeigt wurde",
       "success": "Erfolg",
-      "delivered": "Geliefert"
+      "delivered": "Geliefert",
+      "dns-incorrect": "Namensserver ist nicht korrekt",
+      "active": "Aktiv",
+      "inactive": "Inaktiv"
     },
     "FEATURES": {
       "unlimited_views": "Unbegrenzte Ansichten",
@@ -717,6 +720,7 @@
   "visit-onetime-secret-homepage": "Besuchen Sie die Homepage von Onetime Secret",
   "footer-navigation": "Navigation in der Fußzeile",
   "includes-all-features-and-unlimited-sharing-capa": "Enthält alle Funktionen und unbegrenzte Freigabekapazität",
+  "includes-all-data-locality-options": "Alle Pläne beinhalten die Wahl des Datenstandorts: {0} Regionen",
   "get-started": "Los geht's",
   "frequency-value-annually-annual-monthly-subscrip": "{0} Abonnement",
   "features": "Eigenschaften",
