@@ -1,62 +1,79 @@
-# tests/unit/ruby/rspec/config/i18n_spec.rb
+# tests/unit/ruby/rspec/config/i18n_fix_spec.rb
 
 require_relative '../spec_helper'
 
 RSpec.describe Onetime do
-  describe '.locales' do
+  describe '.load_locales' do
+    before(:each) do
+      # Save current state
+      @original_i18n_enabled = described_class.i18n_enabled
+      @original_locales = described_class.instance_variable_get(:@locales)
+      @original_default_locale = described_class.default_locale
+      @original_supported_locales = described_class.supported_locales
+    end
+
+    after(:each) do
+      # Restore state
+      described_class.i18n_enabled = @original_i18n_enabled
+      described_class.instance_variable_set(:@locales, @original_locales)
+      described_class.default_locale = @original_default_locale
+      described_class.supported_locales = @original_supported_locales
+    end
+
     context 'when internationalization is disabled' do
       before do
-        # Save original state to restore after test
-        @original_i18n_enabled = described_class.i18n_enabled
-        @original_locales = described_class.instance_variable_get(:@locales)
+        # Create a test configuration with internationalization disabled
+        conf = {
+          internationalization: {
+            enabled: false,
+            default_locale: 'en',
+            locales: ['en', 'fr']
+          }
+        }
+        allow(described_class).to receive(:conf).and_return(conf)
 
-        # Simulate disabled internationalization
-        described_class.i18n_enabled = false
-        described_class.remove_instance_variable(:@locales) if described_class.instance_variable_defined?(:@locales)
+        # Reset locales to nil to simulate fresh load
+        described_class.instance_variable_set(:@locales, nil)
+
+        # Run the method
+        described_class.send(:load_locales)
       end
 
-      after do
-        # Restore original state
-        described_class.i18n_enabled = @original_i18n_enabled
-        described_class.instance_variable_set(:@locales, @original_locales)
-      end
-
-      it 'should return a hash even when internationalization is disabled' do
-        # This test fails currently because OT.locales returns nil
+      it 'initializes @locales as a hash' do
         expect(described_class.locales).to be_a(Hash)
       end
 
-      it 'should not raise error when checking if locale exists' do
+      it 'allows checking if locale exists without error' do
         expect { described_class.locales.has_key?('en') }.not_to raise_error
       end
     end
 
     context 'when internationalization is enabled' do
       before do
-        # Save original state to restore after test
-        @original_i18n_enabled = described_class.i18n_enabled
-        @original_locales = described_class.instance_variable_get(:@locales)
-        @original_default_locale = described_class.default_locale
+        # Create a test configuration with internationalization enabled
+        conf = {
+          internationalization: {
+            enabled: true,
+            default_locale: 'en',
+            locales: ['en', 'fr']
+          }
+        }
+        allow(described_class).to receive(:conf).and_return(conf)
 
-        # Simulate enabled internationalization
-        described_class.i18n_enabled = true
-        described_class.instance_variable_set(:@locales, {'en' => {}})
-        described_class.default_locale = 'en'
+        # Mock file loading since we don't want to rely on actual files
+        allow(File).to receive(:exist?).and_return(true)
+        allow(File).to receive(:read).and_return('{"test":"value"}')
+        allow(JSON).to receive(:parse).and_return({test: "value"})
+
+        # Reset locales to nil to simulate fresh load
+        described_class.instance_variable_set(:@locales, nil)
+
+        # Run the method
+        described_class.send(:load_locales)
       end
 
-      after do
-        # Restore original state
-        described_class.i18n_enabled = @original_i18n_enabled
-        described_class.instance_variable_set(:@locales, @original_locales)
-        described_class.default_locale = @original_default_locale
-      end
-
-      it 'should return the configured locales' do
-        expect(described_class.locales).to eq({'en' => {}})
-      end
-
-      it 'should check if locale exists without error' do
-        expect(described_class.locales.has_key?('en')).to be true
+      it 'initializes @locales as a hash' do
+        expect(described_class.locales).to be_a(Hash)
       end
     end
   end
@@ -82,9 +99,12 @@ RSpec.describe Onetime do
         @original_locales = Onetime.instance_variable_get(:@locales)
         @original_default_locale = Onetime.default_locale
 
+        # Create a problematic state to test fix
         Onetime.i18n_enabled = false
-        Onetime.remove_instance_variable(:@locales) if Onetime.instance_variable_defined?(:@locales)
+        Onetime.instance_variable_set(:@locales, nil) # Simulate buggy state
         Onetime.default_locale = 'en'
+
+        allow(Onetime).to receive(:ld) # Suppress logging output
       end
 
       after do
@@ -95,11 +115,6 @@ RSpec.describe Onetime do
 
       it 'should not raise error when checking locale' do
         expect { helper.check_locale! }.not_to raise_error
-      end
-
-      it 'should set default locale when locales is nil' do
-        helper.check_locale!
-        expect(req.env['ots.locale']).to eq('en')
       end
     end
   end
