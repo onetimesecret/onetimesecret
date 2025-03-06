@@ -34,6 +34,7 @@ export type JurisdictionStore = {
   // Getters
   getCurrentJurisdiction: Jurisdiction | null;
   getAllJurisdictions: Jurisdiction[];
+  getJurisdictionIdentifiers: string[];
 
   // Actions
   init: () => void;
@@ -92,6 +93,10 @@ export const useJurisdictionStore = defineStore('jurisdiction', () => {
     _initialized.value = true;
   }
 
+  const getJurisdictionIdentifiers = computed((): string[] =>
+    jurisdictions.value.map((j) => j.identifier)
+  );
+
   /**
    * Find a jurisdiction by its identifier.
    * @throws ApplicationError if no jurisdiction is found with the given identifier.
@@ -126,6 +131,7 @@ export const useJurisdictionStore = defineStore('jurisdiction', () => {
     // Getters
     getCurrentJurisdiction,
     getAllJurisdictions,
+    getJurisdictionIdentifiers,
 
     // Actions
     init,
