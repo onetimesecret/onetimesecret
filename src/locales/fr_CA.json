@@ -131,7 +131,10 @@
       "orphaned_description": "Le secret est orphelin et sera bientôt détruit",
       "expired_description": "Le secret a expiré avant d'être consulté",
       "success": "Succès",
-      "delivered": "Livré"
+      "delivered": "Livré",
+      "dns-incorrect": "Système DNS incorrect",
+      "active": "Actif",
+      "inactive": "Inactif"
     },
     "FEATURES": {
       "unlimited_views": "Vues illimitées",
@@ -717,6 +720,7 @@
   "visit-onetime-secret-homepage": "Visitez la page d'accueil de Onetime Secret",
   "footer-navigation": "Navigation en bas de page",
   "includes-all-features-and-unlimited-sharing-capa": "Comprend toutes les fonctionnalités et une capacité de partage illimitée",
+  "includes-all-data-locality-options": "Tous les forfaits incluent le choix de l'emplacement des données : régions {0}",
   "get-started": "Commencer",
   "frequency-value-annually-annual-monthly-subscrip": "{0} souscription",
   "features": "Caractéristiques",
