@@ -67,19 +67,18 @@ export const productTiers: Array<ProductTier> = [
     id: 'tier-dedicated',
     name: 'Global Elite',
     href: '/plans/dedicated',
-    cta: 'Reserve a spot',
+    cta: 'Reserve your spot',
     price: {
       monthly: '$125',
       annually: '$1150',
     },
     description:
-      'Exclusive dedicated infrastructure with enterprise compliance features. Limited availability.',
+      'Exclusive dedicated infrastructure with enterprise compliance features. Limited availability. Delivery within 5-7 business days.',
     features: [
       'Private cloud environment',
       'Fully customizable',
       'Professionally managed',
-      'Meet and exceed compliance requirements',
-      'Scheduled delivery within 5-7 business days',
+      'Helps meet and exceed compliance requirements',
     ],
 
     featured: true,
