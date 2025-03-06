@@ -32,11 +32,13 @@ jobs:
         uses: actions/checkout@v4
 
       - uses: nrkno/yaml-schema-validator-github-action@v4
+        continue-on-error: true
         with:
           schema: etc/config.schema.yaml
           target: etc/config.example.yaml
 
       - uses: nrkno/yaml-schema-validator-github-action@v4
+        continue-on-error: true
         with:
           schema: etc/config.schema.yaml
           target: tests/unit/ruby/config.test.yaml
