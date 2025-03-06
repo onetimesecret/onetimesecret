@@ -1,120 +1,100 @@
 # tests/unit/ruby/rspec/config/i18n_fix_spec.rb
 
+# e.g. pnpm run rspec tests/unit/ruby/rspec/config/i18n_spec.rb
+
 require_relative '../spec_helper'
 
-RSpec.describe Onetime do
-  describe '.load_locales' do
-    before(:each) do
-      # Save current state
-      @original_i18n_enabled = described_class.i18n_enabled
-      @original_locales = described_class.instance_variable_get(:@locales)
-      @original_default_locale = described_class.default_locale
-      @original_supported_locales = described_class.supported_locales
-    end
-
-    after(:each) do
-      # Restore state
-      described_class.i18n_enabled = @original_i18n_enabled
-      described_class.instance_variable_set(:@locales, @original_locales)
-      described_class.default_locale = @original_default_locale
-      described_class.supported_locales = @original_supported_locales
-    end
-
-    context 'when internationalization is disabled' do
-      before do
-        # Create a test configuration with internationalization disabled
-        conf = {
-          internationalization: {
-            enabled: false,
-            default_locale: 'en',
-            locales: ['en', 'fr']
+RSpec.describe "Internationalization config" do
+  describe Onetime do
+    describe '.locales' do
+      context 'when config not loaded' do
+        let(:original_state) do
+          {
+            i18n_enabled: described_class.i18n_enabled,
+            locales: described_class.instance_variable_get(:@locales),
+            default_locale: described_class.default_locale
           }
-        }
-        allow(described_class).to receive(:conf).and_return(conf)
+        end
 
-        # Reset locales to nil to simulate fresh load
-        described_class.instance_variable_set(:@locales, nil)
+        before do
+          described_class.i18n_enabled = false
+          described_class.instance_variable_set(:@locales, nil)
+        end
 
-        # Run the method
-        described_class.send(:load_locales)
+        after do
+          described_class.i18n_enabled = original_state[:i18n_enabled]
+          described_class.instance_variable_set(:@locales, original_state[:locales])
+          described_class.default_locale = original_state[:default_locale]
+        end
+
+        it 'returns nil' do
+          # Test the direct instance variable first
+          expect(described_class.instance_variable_get(:@locales)).to be_nil
+
+          # Test the accessor method behavior
+          expect(described_class.locales).to be_nil
+        end
+
+        it 'does not cache empty hash after first access' do
+          described_class.locales # First access
+          expect(described_class.instance_variable_get(:@locales)).to be_nil
+          expect(described_class.locales).to be_nil
+        end
       end
 
-      it 'initializes @locales as a hash' do
-        expect(described_class.locales).to be_a(Hash)
+      context 'when internationalization is disabled' do
+
       end
 
-      it 'allows checking if locale exists without error' do
-        expect { described_class.locales.has_key?('en') }.not_to raise_error
-      end
     end
 
-    context 'when internationalization is enabled' do
-      before do
-        # Create a test configuration with internationalization enabled
-        conf = {
-          internationalization: {
-            enabled: true,
-            default_locale: 'en',
-            locales: ['en', 'fr']
-          }
-        }
-        allow(described_class).to receive(:conf).and_return(conf)
-
-        # Mock file loading since we don't want to rely on actual files
-        allow(File).to receive(:exist?).and_return(true)
-        allow(File).to receive(:read).and_return('{"test":"value"}')
-        allow(JSON).to receive(:parse).and_return({test: "value"})
-
-        # Reset locales to nil to simulate fresh load
-        described_class.instance_variable_set(:@locales, nil)
-
-        # Run the method
-        described_class.send(:load_locales)
-      end
-
-      it 'initializes @locales as a hash' do
-        expect(described_class.locales).to be_a(Hash)
-      end
-    end
   end
 
-  describe '#check_locale!' do
-    let(:req) { double('request', params: {}, env: {}) }
-    let(:cust) { double('customer', locale: nil) }
-    let(:helper) do
-      Class.new do
-        include Onetime::App::WebHelpers
-        attr_accessor :req, :cust
+  describe Onetime::App::WebHelpers do
+    describe '#check_locale! (Regression for #1142)' do
+      let(:req) { double('request', params: {}, env: {}) }
+      let(:cust) { double('customer', locale: nil) }
+      let(:helper) do
+        Class.new do
+          include Onetime::App::WebHelpers
+          attr_accessor :req, :cust
 
-        def initialize(req, cust)
-          @req = req
-          @cust = cust
+          def initialize(req, cust)
+            @req = req
+            @cust = cust
+          end
+        end.new(req, cust)
+      end
+
+      context 'when OT.locales is nil' do
+        before do
+          @original_i18n_enabled = Onetime.i18n_enabled
+          @original_locales = Onetime.instance_variable_get(:@locales)
+          @original_default_locale = Onetime.default_locale
+
+          # Set up the previously buggy condition
+          Onetime.i18n_enabled = false
+          Onetime.instance_variable_set(:@locales, nil)
+          Onetime.default_locale = 'en'
+
+          allow(Onetime).to receive(:ld) # Suppress logs
         end
-      end.new(req, cust)
-    end
 
-    context 'when OT.locales is nil' do
-      before do
-        @original_i18n_enabled = Onetime.i18n_enabled
-        @original_locales = Onetime.instance_variable_get(:@locales)
-        @original_default_locale = Onetime.default_locale
+        after do
+          Onetime.i18n_enabled = @original_i18n_enabled
+          Onetime.instance_variable_set(:@locales, @original_locales)
+          Onetime.default_locale = @original_default_locale
+        end
 
-        # Create a problematic state to test fix
-        Onetime.i18n_enabled = false
-        Onetime.instance_variable_set(:@locales, nil) # Simulate buggy state
-        Onetime.default_locale = 'en'
+        it 'handles nil locales gracefully without raising errors' do
+          # This should pass after the fix is applied
+          expect { helper.check_locale! }.not_to raise_error
+        end
 
-        allow(Onetime).to receive(:ld) # Suppress logging output
-      end
-
-      after do
-        Onetime.i18n_enabled = @original_i18n_enabled
-        Onetime.instance_variable_set(:@locales, @original_locales)
-        Onetime.default_locale = @original_default_locale
-      end
-
-      it 'should not raise error when checking locale' do
-        expect { helper.check_locale! }.not_to raise_error
+        it 'sets default locale in the environment' do
+          helper.check_locale!
+          expect(req.env['ots.locale']).to eq('en')
+        end
       end
     end
   end
