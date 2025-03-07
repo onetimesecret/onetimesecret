@@ -19,7 +19,7 @@ withDefaults(defineProps<LayoutProps>(), {
 });
 
 const windowProps = WindowService.getMultiple([
-  'regions_enabled', 'regions', 'authentication'
+  'regions_enabled', 'regions', 'authentication', 'i18n_enabled',
 ]);
 
 const companyName = ref('OnetimeSecret.com');
@@ -73,7 +73,7 @@ const companyName = ref('OnetimeSecret.com');
             :aria-label="$t('toggle-dark-mode')"
           />
 
-          <LanguageToggle :compact="true" />
+          <LanguageToggle v-if="windowProps.i18n_enabled" :compact="true" />
 
           <FeedbackToggle
             v-if="displayFeedback && windowProps.authentication?.enabled"

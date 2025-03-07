@@ -16,7 +16,9 @@
 
   withDefaults(defineProps<LayoutProps>(), {});
 
-  const windowProps = WindowService.getMultiple(['regions_enabled', 'regions', 'authentication']);
+  const windowProps = WindowService.getMultiple([
+    'regions_enabled', 'regions', 'authentication', 'i18n_enabled',
+  ]);
 
   const companyName = ref('OnetimeSecret.com');
 </script>
@@ -48,7 +50,7 @@
           <ThemeToggle
             class="text-gray-500 transition-colors duration-200 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-100"
             :aria-label="$t('toggle-dark-mode')" />
-          <LanguageToggle :compact="true" />
+          <LanguageToggle v-if="windowProps.i18n_enabled" :compact="true" />
           <FeedbackToggle
             v-if="displayFeedback && windowProps.authentication?.enabled"
             class="text-gray-500 transition-colors duration-200 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-100"
@@ -67,7 +69,7 @@
           <ThemeToggle
             class="text-gray-500 transition-colors duration-200 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-100"
             :aria-label="$t('toggle-dark-mode')" />
-          <LanguageToggle :compact="true" />
+          <LanguageToggle v-if="windowProps.i18n_enabled" :compact="true" />
         </div>
 
         <!-- Links Section -->

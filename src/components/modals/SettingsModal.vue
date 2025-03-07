@@ -7,7 +7,9 @@
   import GeneralTab from './settings/GeneralTab.vue';
   import JurisdictionTab from './settings/JurisdictionTab.vue';
 
-  const regionsEnabled = WindowService.get('regions_enabled');
+  const windowProps = WindowService.getMultiple([
+    'regions_enabled', 'i18n_enabled',
+  ]);
 
   interface Tab {
     id: string;
@@ -31,7 +33,7 @@
       { id: 'general', label: t('general') }
     ];
 
-    if (regionsEnabled) {
+    if (windowProps.regions_enabled) {
       tabsList.push({ id: 'data-region', label: t('data-region') });
     }
 
@@ -210,7 +212,7 @@
                   :aria-labelledby="'tab-button-data-region'"
                   tabindex="0"
                   class="space-y-8">
-                  <JurisdictionTab v-if="regionsEnabled" />
+                  <JurisdictionTab v-if="windowProps.regions_enabled" />
                 </div>
               </template>
 

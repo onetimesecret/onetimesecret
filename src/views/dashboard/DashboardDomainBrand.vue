@@ -16,6 +16,7 @@ import { detectPlatform } from '@/utils';
 import { computed, onMounted, ref, watch } from 'vue';
 import { onBeforeRouteLeave } from 'vue-router';
 import { useI18n } from 'vue-i18n';
+import { WindowService } from '@/services/window.service';
 
 const { t } = useI18n();
 
@@ -49,6 +50,8 @@ const browserType = ref<'safari' | 'edge'>(detectPlatform());
 const toggleBrowser = () => {
   browserType.value = browserType.value === 'safari' ? 'edge' : 'safari';
 };
+
+const windowProps = WindowService.getMultiple(['i18n_enabled']);
 
 // Add loading guard
 watch(() => isLoading.value, (loading) => {
@@ -98,7 +101,8 @@ onBeforeRouteLeave((to, from, next) => {
           </template>
 
           <template #language-button>
-            <LanguageSelector v-model="brandSettings.locale"
+            <LanguageSelector v-if="windowProps.i18n_enabled"
+                              v-model="brandSettings.locale"
                               :previewI18n="previewI18n"
                               @update:model-value="(value) => brandSettings.locale = value" />
           </template>
