@@ -6,6 +6,7 @@
   import SignUpForm from '@/components/auth/SignUpForm.vue';
   import { WindowService } from '@/services/window.service';
   import { useJurisdictionStore } from '@/stores/jurisdictionStore';
+  import { useLanguageStore } from '@/stores/languageStore';
   import { storeToRefs } from 'pinia';
   import { ref, computed } from 'vue';
   import { useI18n } from 'vue-i18n';
@@ -15,6 +16,8 @@
   const { getCurrentJurisdiction } = storeToRefs(jurisdictionStore);
 
   const default_planid = WindowService.get('default_planid') ?? 'basic';
+
+  const languageStore = useLanguageStore();
 
   const currentPlanId = ref(default_planid);
 
@@ -46,6 +49,7 @@
     <template #form>
       <SignUpForm
         :planid="currentPlanId"
+        :locale="languageStore.currentLocale ?? ''"
         :jurisdiction="currentJurisdiction" />
       <AlternateSignUpMethods
         :alternate-providers="alternateProviders"
