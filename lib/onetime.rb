@@ -295,7 +295,7 @@ module Onetime
       # in case there are keys that haven't been translated.
       # That way, at least the default language will display.
       locales_defs.each do |key, locale|
-        next if OT.default_locale == locale
+        next if OT.default_locale == key
         locales_defs[key] = OT::Utils.deep_merge(default_locale_def, locale)
       end
 
