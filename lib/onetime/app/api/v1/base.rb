@@ -142,7 +142,8 @@ module Onetime::App
         # Set default locale if the current one is not supported
         locale = locales.first unless OT.locales.key?(locale)
 
-        # Set locale in the request environment
+        # Set locale in the request environment. This behaviour is different
+        # than v2 API which checks if we have the translation before setting.
         req.env['ots.locale'] = @locale = locale
         req.env['ots.locales'] = locales
       end
