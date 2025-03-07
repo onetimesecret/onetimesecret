@@ -35,7 +35,7 @@
     "test:watch:coverage": "pnpm test:base --coverage",
     "test:watch:ui": "pnpm test:base --ui --open",
     "test:watch": "pnpm test:base --ui --no-open",
-    "test": "pnpm test:base run",
+    "test": "pnpm test:base run --printConsoleTrace",
     "test:chrome:inspect": "pnpm test:base --inspect-brk --no-file-parallelism",
     "type-check:base": "vue-tsc --noEmit",
     "type-check": "pnpm run type-check:base",
