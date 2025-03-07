@@ -18,6 +18,12 @@ export function setupWindowState(state = stateFixture) {
   return windowMockWithState;
 }
 
+export function setupEmptyWindowState() {
+  const windowMockWithState = setupWindowState({});
+  console.debug('setupEmptyWindowState', windowMockWithState);
+  Object.defineProperties(window, Object.getOwnPropertyDescriptors(windowMockWithState));
+}
+
 export function setupWindowMedia(query = '(prefers-color-scheme: dark)') {
   window.matchMedia = vi.fn().mockImplementation((query) => ({
     matches: query === '(prefers-color-scheme: dark)', // we start dark

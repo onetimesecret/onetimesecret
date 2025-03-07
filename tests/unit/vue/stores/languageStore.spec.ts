@@ -1,10 +1,19 @@
-// src/stores/languageStore.spec.ts
+// tests/unit/vue/stores/languageStore.spec.ts
 import { ApplicationError } from '@/schemas';
 import { SESSION_STORAGE_KEY, useLanguageStore } from '@/stores/languageStore';
 import { createApi } from '@/api';
 import AxiosMockAdapter from 'axios-mock-adapter';
+import { WindowService } from '@/services/window.service';
 import { createPinia, setActivePinia } from 'pinia';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+
+// vi.spyOn(WindowService, 'getState').mockImplementation(
+//   () =>
+//     ({
+//       authenticated: true,
+//       locale: 'en',
+//     }) as any
+// );
 
 describe('Language Store', () => {
   beforeEach(() => {
@@ -228,6 +237,44 @@ describe('Language Store', () => {
         const errorData = JSON.parse(caughtError.message);
         expect(errorData).toMatchObject([{ code: 'too_big' }, { code: 'invalid_string' }]);
       });
+    });
+  });
+
+  describe('Language Headers', () => {
+    let store: ReturnType<typeof useLanguageStore>;
+
+    beforeEach(() => {
+      store = useLanguageStore();
+      store.init();
+    });
+
+    it('should return array of unique languages', () => {
+      vi.spyOn(navigator, 'language', 'get').mockReturnValue('uk-UA');
+      store.setCurrentLocale('en');
+      expect(store.acceptLanguages).toEqual(['en']);
+
+      store.setCurrentLocale('fr');
+      expect(store.acceptLanguages).toEqual(['fr', 'uk-UA']);
+    });
+
+    it('should handle matching browser and selected languages', () => {
+      vi.spyOn(navigator, 'language', 'get').mockReturnValue('fr');
+      store.setCurrentLocale('fr');
+      expect(store.acceptLanguages).toEqual(['fr']);
+    });
+
+    it('should format header string correctly', () => {
+      vi.spyOn(navigator, 'language', 'get').mockReturnValue('uk-UA');
+      store.setCurrentLocale('fr');
+      expect(store.acceptLanguageHeader).toBe('fr,uk-UA');
+    });
+
+    it('should maintain selected language as primary', () => {
+      vi.spyOn(navigator, 'language', 'get').mockReturnValue('de-DE');
+      store.setCurrentLocale('es');
+      const languages = store.acceptLanguages;
+      expect(languages[0]).toBe('es');
+      expect(languages).toContain('de-DE');
     });
   });
 });

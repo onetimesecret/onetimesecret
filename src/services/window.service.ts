@@ -1,6 +1,8 @@
 // src/services/window.service.ts
 import type { OnetimeWindow } from '@/types/declarations/window';
 
+const STATE_KEY = '__ONETIME_STATE__';
+
 /**
  * Service for accessing typed window properties defined in window.d.ts.
  * Provides type-safe access to server-injected window properties with
@@ -16,10 +18,20 @@ export const WindowService = {
    * @returns The typed window property value
    */
   get<K extends keyof OnetimeWindow>(key: K): OnetimeWindow[K] {
-    if (!window.__ONETIME_STATE__) {
-      throw `[WindowService] State is not set (${key})`;
+    const state = this.getState();
+    return state[key];
+  },
+
+  getState(): OnetimeWindow {
+    if (typeof window === 'undefined') {
+      throw new Error('[WindowService] Window is not defined');
     }
-    return (window.__ONETIME_STATE__ as OnetimeWindow)[key];
+
+    if (!window[STATE_KEY]) {
+      throw new Error('[WindowService] State is not set');
+    }
+
+    return window[STATE_KEY] as OnetimeWindow;
   },
 
   /**

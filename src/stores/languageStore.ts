@@ -34,6 +34,9 @@ export const useLanguageStore = defineStore('language', () => {
   const getStorageKey = computed(() => storageKey.value ?? SESSION_STORAGE_KEY);
   const getSupportedLocales = computed(() => supportedLocales.value);
 
+  const acceptLanguages = computed(() => getBrowserAcceptLanguage(getCurrentLocale.value));
+  const acceptLanguageHeader = computed(() => acceptLanguages.value.join(','));
+
   // Actions
   function init(options?: StoreOptions) {
     if (_initialized.value) return getCurrentLocale.value;
@@ -97,6 +100,11 @@ export const useLanguageStore = defineStore('language', () => {
         console.error('Failed to save locale to session storage:', error);
       }
     }
+  }
+
+  function getBrowserAcceptLanguage(selectedLocale: string): Array<string> {
+    // Use a Set to remove duplicates
+    return [...new Set([selectedLocale, navigator.language])];
   }
 
   async function updateLanguage(newLocale: string) {
@@ -175,6 +183,8 @@ export const useLanguageStore = defineStore('language', () => {
     determineLocale,
     updateLanguage,
     setCurrentLocale,
+    acceptLanguages,
+    acceptLanguageHeader,
 
     $reset,
   };
