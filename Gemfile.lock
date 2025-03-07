@@ -265,7 +265,7 @@ DEPENDENCIES
   pry-byebug
   psych (~> 5.2.3)
   public_suffix
-  rack (>= 2.2, < 3.0)
+  rack (>= 2.2.12, < 3.0)
   rack-contrib (~> 2.5)
   rack-proxy
   rdoc

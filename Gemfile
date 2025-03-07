@@ -19,7 +19,7 @@ gem 'truemail'
 
 gem 'addressable'
 
-gem 'rack', '>= 2.2', '< 3.0'
+gem 'rack', '>= 2.2.12', '< 3.0'
 gem 'rack-contrib', '~> 2.5'
 
 gem 'dotenv'
