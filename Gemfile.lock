@@ -134,7 +134,7 @@ GEM
       stringio
     public_suffix (6.0.1)
     racc (1.8.1)
-    rack (2.2.10)
+    rack (2.2.12)
     rack-contrib (2.5.0)
       rack (< 4)
     rack-proxy (0.7.7)
