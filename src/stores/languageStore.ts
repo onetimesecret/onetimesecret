@@ -1,6 +1,6 @@
 // src/stores/languageStore.ts
 
-import { setGlobalLocale } from '@/i18n';
+import { getSetGlobalLocale } from '@/i18n';
 import type { PiniaPluginOptions } from '@/plugins/pinia/types';
 import { localeSchema } from '@/schemas/i18n/locale';
 import { WindowService } from '@/services/window.service';
@@ -34,6 +34,9 @@ export const useLanguageStore = defineStore('language', () => {
   const getStorageKey = computed(() => storageKey.value ?? SESSION_STORAGE_KEY);
   const getSupportedLocales = computed(() => supportedLocales.value);
 
+  const acceptLanguages = computed(() => getBrowserAcceptLanguage(getCurrentLocale.value));
+  const acceptLanguageHeader = computed(() => acceptLanguages.value.join(','));
+
   // Actions
   function init(options?: StoreOptions) {
     if (_initialized.value) return getCurrentLocale.value;
@@ -49,7 +52,7 @@ export const useLanguageStore = defineStore('language', () => {
       () => currentLocale.value,
       async (newLocale) => {
         if (newLocale) {
-          await setGlobalLocale(newLocale);
+          await getSetGlobalLocale()(newLocale);
         }
       }
     );
@@ -99,12 +102,18 @@ export const useLanguageStore = defineStore('language', () => {
     }
   }
 
+  function getBrowserAcceptLanguage(selectedLocale: string): Array<string> {
+    // Use a Set to remove duplicates
+    return [...new Set([selectedLocale, navigator.language])];
+  }
+
   async function updateLanguage(newLocale: string) {
     const validatedLocale = validateAndNormalizeLocale(newLocale);
     if (!supportedLocales.value.includes(validatedLocale)) {
       throw new Error(`Unsupported locale: ${validatedLocale}`);
     }
 
+    const setGlobalLocale = getSetGlobalLocale();
     await setGlobalLocale(validatedLocale); // via i18n
     setCurrentLocale(validatedLocale); // save to session storage
     await $api.post('/api/v2/account/update-locale', { locale: validatedLocale });
@@ -175,6 +184,8 @@ export const useLanguageStore = defineStore('language', () => {
     determineLocale,
     updateLanguage,
     setCurrentLocale,
+    acceptLanguages,
+    acceptLanguageHeader,
 
     $reset,
   };
