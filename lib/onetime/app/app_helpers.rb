@@ -177,7 +177,8 @@ module Onetime::App
 
       have_translations = locale && OT.locales.has_key?(locale)
       OT.ld format(
-        '[check_locale!] locale=%s cust=%s req=%s t=%s',
+        '[check_locale!] class=%s locale=%s cust=%s req=%s t=%s',
+        self.class.name,
         locale,
         cust&.locale,
         req.params.keys,
