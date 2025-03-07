@@ -1,5 +1,7 @@
 # tests/unit/ruby/rspec/onetime/app/web/views/base_spec.rb
 
+# e.g. pnpm run rspec tests/unit/ruby/rspec/onetime/app/web/views/base_spec.rb
+
 require_relative '../../../../spec_helper'
 
 RSpec.describe Onetime::App::View do

@@ -206,8 +206,8 @@ module Onetime
         @i18n ||= {
           locale: self.locale,
           default: OT.default_locale,
-          page: messages[:web].fetch(pagename, {}),
-          COMMON: messages[:web][:COMMON],
+          page: messages.dig(:web, pagename),
+          COMMON: messages.dig(:web, :COMMON),
         }
       end
 
