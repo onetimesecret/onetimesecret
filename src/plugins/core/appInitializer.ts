@@ -1,6 +1,6 @@
 // src/plugins/core/appInitializer.ts
 
-import i18n from '@/i18n';
+import { getI18n } from '@/i18n';
 import { createAppRouter } from '@/router';
 import { loggingService } from '@/services/logging.service';
 import { WindowService } from '@/services/window.service';
@@ -39,6 +39,7 @@ export const AppInitializer: Plugin<AppInitializerOptions> = {
  * We separate this from the main plugin to interface for testing purposes.
  */
 function initializeApp(app: App, options: AppInitializerOptions = {}) {
+  const i18n = getI18n();
   const diagnostics = WindowService.get('diagnostics');
   const d9sEnabled = WindowService.get('d9s_enabled');
   const displayDomain = WindowService.get('display_domain');
