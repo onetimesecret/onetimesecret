@@ -10,11 +10,13 @@ export interface Props {
   enabled?: boolean;
   planid?: string;
   jurisdiction?: Jurisdiction
+  locale?: string;
 }
 
 withDefaults(defineProps<Props>(), {
   enabled: true,
   planid: 'basic',
+  locale: 'en',
 })
 
 const email = ref('');
@@ -36,6 +38,11 @@ const togglePasswordVisibility = () => {
       type="hidden"
       name="utf8"
       value="✓"
+    />
+    <input
+      type="hidden"
+      name="locale"
+      :value="locale"
     />
     <input
       type="text"

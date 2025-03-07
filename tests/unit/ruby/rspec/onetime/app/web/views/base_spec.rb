@@ -8,6 +8,19 @@ RSpec.describe Onetime::App::View do
   include_context "rack_test_context"
   include_context "view_test_context"
 
+  before(:each) do
+    allow(OT).to receive(:locales).and_return({
+      'en' => {
+        web: {
+          COMMON: {
+            description: 'Test Description',
+            keywords: 'test,keywords'
+          }
+        }
+      }
+    })
+  end
+
   subject { described_class.new(rack_request, session, customer) }
 
   describe '#initialize' do

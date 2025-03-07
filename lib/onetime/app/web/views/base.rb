@@ -188,6 +188,8 @@ module Onetime
       end
 
       def i18n
+        return @i18n if defined?(@i18n)
+
         pagename = self.class.pagename
         messages = OT.locales.fetch(self.locale, {})
 
@@ -203,11 +205,16 @@ module Onetime
           messages = OT.locales.fetch(OT.default_locale, {})
         end
 
-        @i18n ||= {
+        # Ensure we have at least empty hashes for the necessary keys
+        web_messages = messages.fetch(:web, {})
+        common_messages = web_messages.fetch(:COMMON, {})
+        page_messages = web_messages.fetch(pagename, {})
+
+        @i18n = {
           locale: self.locale,
           default: OT.default_locale,
-          page: messages.dig(:web, pagename),
-          COMMON: messages.dig(:web, :COMMON),
+          page: page_messages,
+          COMMON: common_messages,
         }
       end
 
