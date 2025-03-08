@@ -75,7 +75,7 @@ const privacyPolicyLink = `<router-link to="/info/privacy">privacy policy</route
     <p style="margin-left: 40%; margin-right: 40%">
       <a
         href="https://delanotes.com/"
-        title="$t('delano-mandelbaum')"><img
+        :title="$t('delano-mandelbaum')"><img
           src="@/assets/img/delano-g.png"
           width="95"
           height="120"

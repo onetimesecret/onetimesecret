@@ -207,7 +207,7 @@
             <router-link
               v-if="windowProps.authentication.signup"
               to="/signup"
-              title="$t('signup-individual-and-business-plans')"
+              :title="$t('signup-individual-and-business-plans')"
               class="font-bold text-gray-600 transition-colors duration-200 hover:text-gray-800 dark:text-gray-300 dark:hover:text-white">
               {{ $t('web.COMMON.header_create_account') }}
             </router-link>
@@ -219,7 +219,7 @@
             </span>
             <router-link
               to="/about"
-              title="$t('about-onetime-secret')"
+              :title="$t('about-onetime-secret')"
               class="text-gray-600 transition-colors duration-200 hover:text-gray-800 dark:text-gray-300 dark:hover:text-white">
               {{ $t('web.COMMON.header_about') }}
             </router-link>
@@ -232,7 +232,7 @@
             <router-link
               v-if="windowProps.authentication.signin"
               to="/signin"
-              title="$t('log-in-to-onetime-secret')"
+              :title="$t('log-in-to-onetime-secret')"
               class="text-gray-600 transition-colors duration-200 hover:text-gray-800 dark:text-gray-300 dark:hover:text-white">
               {{ $t('web.COMMON.header_sign_in') }}
             </router-link>
@@ -241,7 +241,7 @@
           <router-link
             v-else
             to="/about"
-            title="$t('about-onetime-secret-0')"
+            :title="$t('about-onetime-secret-0')"
             class="text-gray-600 transition-colors duration-200 hover:text-gray-800 dark:text-gray-300 dark:hover:text-white">
             {{ $t('web.COMMON.header_about') }}
           </router-link>
