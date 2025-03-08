@@ -47,7 +47,7 @@ withDefaults(defineProps<Props>(), {
             required
             class="focus:shadow-outline w-full appearance-none rounded border px-3 py-2 leading-tight text-gray-700 shadow focus:outline-none dark:bg-gray-700 dark:text-gray-300"
             value=""
-            placeholder="$t('web.COMMON.email_placeholder')"
+            :laceholder="$t('web.COMMON.email_placeholder')"
           />
         </div>
         <div class="mb-6"></div>
