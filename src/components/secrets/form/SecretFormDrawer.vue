@@ -88,6 +88,7 @@ const collapsedBgClass = computed(() => props.collapsedBg);
 
 <template>
   <div
+    tabindex="0"
     :class="[
       'rounded-lg transition-all duration-200 ease-in-out',
       cornerClass,
