@@ -29,7 +29,7 @@
         <div class="flex w-full font-brand sm:w-auto">
           <router-link
             to="/pricing"
-            class="animate-throb inline-flex w-full items-center justify-center rounded-md border border-brand-500 bg-white
+            class="inline-flex w-full items-center justify-center rounded-md border border-brand-500 bg-white
               px-6 py-4 text-xl font-semibold text-brand-500 transition duration-150
               hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2
               dark:bg-brand-500 dark:text-white dark:hover:bg-brand-600 sm:w-auto sm:py-2 sm:text-base
@@ -72,7 +72,4 @@
 
 }
 
-.animate-throb {
-  animation: throb 2s ease-in-out infinite;
-}
 </style>
