@@ -57,19 +57,3 @@
     </div>
   </div>
 </template>
-
-<style scoped>
-@keyframes throb {
-
-  0%,
-  100% {
-    transform: scale(1);
-  }
-
-  50% {
-    transform: scale(1.05);
-  }
-
-}
-
-</style>
