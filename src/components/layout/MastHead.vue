@@ -222,25 +222,27 @@
             </div>
           </div>
         </div>
-        <div class="ml-3 flex flex-col">
-          <span class="font-brand text-xl font-bold tracking-tight text-gray-900 dark:text-white">
-            {{ $t('onetime-secret-literal') }}
-          </span>
-          <span class="text-xs text-gray-500 dark:text-gray-400">
-            {{ $t('tagline-signed') }}.
-            <em>{{ $t('tagline-sealed') }}. </em>
-            <span class="group/tooltip relative inline-block">
-              {{ $t('tagline-delivered') }}.<sup
-                   class="text-[0.7em] text-gray-500 dark:text-gray-400 [animation:pulse_4s_ease-in-out_infinite] group-hover/tooltip:[animation:none]">*</sup>
-              <span class="absolute left-full top-0 ml-1 hidden group-hover/tooltip:block
-                             bg-gray-200/80 dark:bg-gray-800/80 text-gray-500 dark:text-gray-400
-                             text-xs rounded py-1 px-2 w-max">
-                <sup class="text-[0.7em] text-gray-500 dark:text-gray-400">*</sup>
-                {{ $t('recipient-delivery-is-optional') }}
+        <router-link to="/" aria-hidden="true">
+          <div class="ml-3 flex flex-col">
+            <span class="font-brand text-xl font-bold tracking-tight text-gray-900 dark:text-white">
+              {{ $t('onetime-secret-literal') }}
+            </span>
+            <span class="text-xs text-gray-500 dark:text-gray-400">
+              {{ $t('tagline-signed') }}.
+              <em>{{ $t('tagline-sealed') }}. </em>
+              <span class="group/tooltip relative inline-block">
+                {{ $t('tagline-delivered') }}.<sup
+                    class="text-[0.7em] text-gray-500 dark:text-gray-400 [animation:pulse_4s_ease-in-out_infinite] group-hover/tooltip:[animation:none]">*</sup>
+                <span class="absolute left-full top-0 ml-1 hidden group-hover/tooltip:block
+                              bg-gray-200/80 dark:bg-gray-800/80 text-gray-500 dark:text-gray-400
+                              text-xs rounded py-1 px-2 w-max">
+                  <sup class="text-[0.7em] text-gray-500 dark:text-gray-400">*</sup>
+                  {{ $t('recipient-delivery-is-optional') }}
+                </span>
               </span>
             </span>
-          </span>
-        </div>
+          </div>
+        </router-link>
 
       </div>
 
