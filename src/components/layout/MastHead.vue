@@ -9,7 +9,8 @@
   import { WindowService } from '@/services/window.service';
   import { useJurisdictionStore } from '@/stores/jurisdictionStore';
   import type { LayoutProps } from '@/types/ui/layouts';
-  import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue';
+  import { computed, nextTick, ref, watch } from 'vue';
+
   withDefaults(defineProps<LayoutProps>(), {
     displayMasthead: true,
     displayNavigation: true,
@@ -24,9 +25,7 @@
     'cust',
   ]);
 
-  const colonel = computed(() => windowProps.cust?.role === 'colonel');
-
-
+  const isColonel = computed(() => windowProps.cust?.role === 'colonel');
 
   // Reactive state
   const isSettingsModalOpen = ref(false);
@@ -110,26 +109,6 @@
     }
   });
 
-  // Handle clicks outside to close menu
-  onMounted(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      const menu = document.getElementById('jurisdiction-menu');
-      const button = document.getElementById('jurisdiction-button');
-      if (tooltipVisible.value &&
-          menu &&
-          button &&
-          !menu.contains(event.target as Node) &&
-          !button.contains(event.target as Node)) {
-        tooltipVisible.value = false;
-      }
-    };
-
-    document.addEventListener('mousedown', handleClickOutside);
-
-    onUnmounted(() => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    });
-  });
 </script>
 
 <template>
@@ -252,7 +231,7 @@
            class="flex flex-wrap items-center justify-center gap-4 font-brand text-sm sm:justify-end sm:text-base">
         <template v-if="windowProps.authenticated && windowProps.cust">
           <HeaderUserNav :cust="windowProps.cust"
-                         :colonel="colonel" />
+                         :colonel="isColonel" />
 
           <button @click="openSettingsModal"
                   class="text-xl text-gray-600 transition-colors duration-200 hover:text-gray-800 dark:text-gray-300 dark:hover:text-white"
