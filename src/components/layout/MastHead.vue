@@ -222,7 +222,7 @@
             </div>
           </div>
         </div>
-        <router-link to="/" aria-hidden="true">
+        <router-link to="/">
           <div class="ml-3 flex flex-col">
             <span class="font-brand text-xl font-bold tracking-tight text-gray-900 dark:text-white">
               {{ $t('onetime-secret-literal') }}
