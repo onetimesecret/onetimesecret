@@ -2,7 +2,7 @@
 import { productTiers, paymentFrequencies } from '@/sources/productTiers'
 import type { Testimonial } from '@/sources/testimonials';
 import { testimonials } from '@/sources/testimonials';
-import { onMounted, onUnmounted, ref, watch } from 'vue';
+import { onMounted, onUnmounted, ref, watch, computed } from 'vue';
 import { useI18n } from 'vue-i18n';
 const { t } = useI18n();
 
@@ -22,6 +22,11 @@ const emit = defineEmits<{
 const randomTestimonial = ref<Testimonial | null>(null);
 
 const frequency = ref('monthly')
+
+// Get Identity Plus tier by ID instead of fixed index to ensure correct tier even if order changes
+const identityTier = computed(() =>
+  productTiers.find(tier => tier.id === 'tier-identity') || productTiers[0]
+)
 
 const toggleFrequency = (newFrequency: string) => {
   frequency.value = newFrequency
@@ -62,7 +67,7 @@ const handleEscKey = (event: KeyboardEvent) => {
 };
 
 // Watch for changes in isOpen prop
-watch(() => props.isOpen, (newValue) => {
+watch(() => props.isOpen, (newValue: boolean) => {
   if (newValue) {
     getRandomTestimonial();
   }
@@ -119,7 +124,7 @@ onUnmounted(() => {
                 {{ $t('upgrade-to-identity-plus') }}
               </h3>
               <p class="mt-2 text-sm text-gray-500 dark:text-gray-300">
-                {{ productTiers[0].description }}
+                {{ identityTier.description }}
               </p>
             </div>
           </div>
@@ -145,7 +150,7 @@ onUnmounted(() => {
           <!-- Pricing -->
           <div class="mt-4 pb-5 text-center">
             <p class="font-brand text-4xl font-bold text-gray-900 dark:text-white">
-              {{ productTiers[0].price[frequency] }}
+              {{ identityTier.price[frequency] }}
               <span class="text-lg font-normal text-gray-500 dark:text-gray-400">
                 {{ getPriceSuffix(frequency) }}
               </span>
@@ -160,7 +165,7 @@ onUnmounted(() => {
             </h4>
             <ul class="mt-3 space-y-2 text-sm text-gray-600 dark:text-gray-300">
               <li
-                v-for="feature in productTiers[0].features"
+                v-for="feature in identityTier.features"
                 :key="feature"
                 class="flex items-center space-x-2">
                 <svg
@@ -226,7 +231,7 @@ onUnmounted(() => {
             </button>
 
             <a
-              :href="`${productTiers[0].href}${getPriceSuffix(frequency)}`"
+              :href="`${identityTier.href}${getPriceSuffix(frequency)}`"
               @click.stop="upgradeNow"
               class="inline-flex items-center justify-center rounded-md border border-transparent bg-brand-600
                px-4 py-2 font-brand text-lg font-bold text-white shadow-sm
@@ -235,7 +240,7 @@ onUnmounted(() => {
                dark:hover:bg-brand-600 sm:w-auto"
               type="button"
               :aria-label="$t('upgrade-account')">
-              {{ productTiers[0].cta }}
+              {{ identityTier.cta }}
             </a>
           </div>
 
