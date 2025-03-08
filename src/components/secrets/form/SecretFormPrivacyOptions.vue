@@ -69,13 +69,17 @@ const getError = (field: keyof SecretFormData) => props.validation.errors.get(fi
                    class="w-full rounded-md border border-gray-300 px-4 py-2 transition-colors duration-200 focus:border-brandcomp-500 focus:ring-brandcomp-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
                    :class="[cornerClass]"
                    @input="(e) => updatePassphrase((e.target as HTMLInputElement).value)" />
-            <button type="button"
-                    :disabled="disabled"
-                    @click="togglePassphraseVisibility"
+                   <button type="button"
+                           :disabled="disabled"
+                           @click="togglePassphraseVisibility"
+                           @keydown.enter="togglePassphraseVisibility"
+                           aria-label="Toggle password visibility"
+                           tabindex="0"
                     class="absolute inset-y-0 right-0 flex items-center px-3 text-gray-500 transition-colors duration-200 dark:text-gray-300">
-              <OIcon collection="mdi"
-                     :name="state.passphraseVisibility ? 'eye' : 'eye-off'"
-                     class="size-5" />
+                    <OIcon collection="mdi"
+                           :name="state.passphraseVisibility ? 'eye' : 'eye-off'"
+                           aria-hidden="true"
+                           class="size-5" />
             </button>
           </div>
           <span v-if="getError('passphrase')"
