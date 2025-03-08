@@ -72,7 +72,7 @@ const togglePasswordVisibility = () => {
           autocomplete="email"
           required
           focus
-          tabindex="1"
+          tabindex="0"
           class="relative block w-full appearance-none rounded-none rounded-t-md
                       border
                       border-gray-300 px-3
@@ -97,7 +97,7 @@ const togglePasswordVisibility = () => {
           name="p"
           autocomplete="new-password"
           required
-          tabindex="2"
+          tabindex="0"
           class="relative block w-full appearance-none rounded-none rounded-b-md
                  border
                  border-gray-300 px-3
@@ -125,7 +125,7 @@ const togglePasswordVisibility = () => {
           </svg>
 
           <svg
-            tabindex="3"
+            tabindex="0"
             class="size-5 text-gray-400"
             :class="{ 'block': showPassword, 'hidden': !showPassword }"
             xmlns="http://www.w3.org/2000/svg"
@@ -147,7 +147,7 @@ const togglePasswordVisibility = () => {
           name="agree"
           type="checkbox"
           required
-          tabindex="4"
+          tabindex="0"
           class="size-4 rounded border-gray-300
                       text-brand-600
                       focus:ring-brand-500

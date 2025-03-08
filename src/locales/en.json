@@ -82,6 +82,7 @@
         "hide": "Hide"
       },
       "timeline": "Timeline",
+      "expiration_time": "Expiration Time",
       "close": "Close",
       "loading": "Loading...",
       "cancel": "Cancel",

@@ -82,6 +82,7 @@
         "hide": "Verbergen"
       },
       "timeline": "Tijdlijn",
+      "expiration_time": "Vervaltijd",
       "close": "Sluiten",
       "loading": "Laden...",
       "cancel": "Annuleren",

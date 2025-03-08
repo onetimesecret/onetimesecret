@@ -6,6 +6,7 @@ import { useI18n } from 'vue-i18n';
 import { usePrivacyOptions } from '@/composables/usePrivacyOptions';
 import SecretFormDrawer from './SecretFormDrawer.vue';
 import type { SecretFormData } from '@/composables/useSecretForm';
+import { computed } from 'vue';
 
 interface Props {
   form: SecretFormData;
@@ -41,60 +42,78 @@ const {
 } = usePrivacyOptions(props.operations);
 
 const getError = (field: keyof SecretFormData) => props.validation.errors.get(field);
+
+// Generate unique IDs for form fields to ensure proper label associations
+const uniqueId = computed(() => `privacy-options-${Math.random().toString(36).substring(2, 9)}`);
+const passphraseId = computed(() => `passphrase-${uniqueId.value}`);
+const passphraseErrorId = computed(() => `passphrase-error-${uniqueId.value}`);
+const lifetimeId = computed(() => `lifetime-${uniqueId.value}`);
+const lifetimeErrorId = computed(() => `lifetime-error-${uniqueId.value}`);
+const recipientId = computed(() => `recipient-${uniqueId.value}`);
+const recipientErrorId = computed(() => `recipient-error-${uniqueId.value}`);
 </script>
 
 <template>
-  <SecretFormDrawer
-    :title="$t('web.secrets.privacyOptions')"
-    :corner-class="cornerClass">
-    <div class="mt-4 space-y-6">
+  <SecretFormDrawer :title="$t('web.secrets.privacyOptions')"
+                    :corner-class="cornerClass">
+    <div class="mt-4 space-y-6"
+         role="group"
+         aria-labelledby="privacy-options-heading">
+      <div id="privacy-options-heading"
+           class="sr-only">{{ $t('web.secrets.privacyOptions') }} Form</div>
+
       <div class="flex flex-col space-y-6 md:flex-row md:space-x-4 md:space-y-0">
         <!-- Passphrase Field -->
         <div v-if="withPassphrase"
              class="flex-1">
-          <label for="passphrase"
-                 class="sr-only">Passphrase:</label>
+          <label :for="passphraseId"
+                 class="mb-2 block font-brand text-sm font-medium text-gray-500 transition-colors duration-200 dark:text-gray-300">
+            {{ $t('web.COMMON.secret_passphrase') }}
+          </label>
           <div class="relative">
             <input :type="state.passphraseVisibility ? 'text' : 'password'"
                    :value="form.passphrase"
                    :disabled="disabled"
                    :aria-invalid="!!getError('passphrase')"
-                   :aria-errormessage="getError('passphrase')"
-                   tabindex="3"
-                   id="passphrase"
+                   :aria-errormessage="getError('passphrase') ? passphraseErrorId : undefined"
+                   :id="passphraseId"
                    name="passphrase"
-                   autocomplete="unique-passphrase"
+                   autocomplete="off"
                    :placeholder="$t('enter-a-passphrase')"
-                   :aria-label="$t('web.COMMON.secret_passphrase')"
                    class="w-full rounded-md border border-gray-300 px-4 py-2 transition-colors duration-200 focus:border-brandcomp-500 focus:ring-brandcomp-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
                    :class="[cornerClass]"
                    @input="(e) => updatePassphrase((e.target as HTMLInputElement).value)" />
             <button type="button"
                     :disabled="disabled"
                     @click="togglePassphraseVisibility"
+                    aria-label="Toggle password visibility"
                     class="absolute inset-y-0 right-0 flex items-center px-3 text-gray-500 transition-colors duration-200 dark:text-gray-300">
               <OIcon collection="mdi"
                      :name="state.passphraseVisibility ? 'eye' : 'eye-off'"
+                     aria-hidden="true"
                      class="size-5" />
             </button>
           </div>
-          <span v-if="getError('passphrase')"
-                class="text-sm text-red-500">
+          <div v-if="getError('passphrase')"
+               :id="passphraseErrorId"
+               role="alert"
+               class="mt-1 text-sm text-red-500">
             {{ getError('passphrase') }}
-          </span>
+          </div>
         </div>
 
         <!-- Lifetime Field -->
         <div v-if="withExpiry"
              class="flex-1">
-          <label for="lifetime"
-                 class="sr-only">Lifetime:</label>
+          <label :for="lifetimeId"
+                 class="mb-2 block font-brand text-sm font-medium text-gray-500 transition-colors duration-200 dark:text-gray-300">
+            {{ t('web.LABELS.expiration_time') }}
+          </label>
           <select :value="form.ttl"
                   :disabled="disabled"
                   :aria-invalid="!!getError('ttl')"
-                  :aria-errormessage="getError('ttl')"
-                  id="lifetime"
-                  tabindex="4"
+                  :aria-errormessage="getError('ttl') ? lifetimeErrorId : undefined"
+                  :id="lifetimeId"
                   name="ttl"
                   :class="[cornerClass]"
                   class="w-full rounded-md border border-gray-300 px-4 py-2 transition-colors duration-200 focus:border-brandcomp-500 focus:ring-brandcomp-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
@@ -116,36 +135,39 @@ const getError = (field: keyof SecretFormData) => props.validation.errors.get(fi
               {{ $t('web.UNITS.ttl.noOptionsAvailable') }}
             </option>
           </select>
-          <span v-if="getError('ttl')"
-                class="text-sm text-red-500">
+          <div v-if="getError('ttl')"
+               :id="lifetimeErrorId"
+               role="alert"
+               class="mt-1 text-sm text-red-500">
             {{ getError('ttl') }}
-          </span>
+          </div>
         </div>
       </div>
 
       <!-- Recipient Field -->
       <div v-if="withRecipient"
            class="flex flex-col">
-        <label for="recipient"
+        <label :for="recipientId"
                class="mb-2 block font-brand text-sm font-medium text-gray-500 transition-colors duration-200 dark:text-gray-300">
           {{ $t('web.COMMON.secret_recipient_address') }}
         </label>
         <input :value="form.recipient"
                :disabled="disabled"
                :aria-invalid="!!getError('recipient')"
-               :aria-errormessage="getError('recipient')"
+               :aria-errormessage="getError('recipient') ? recipientErrorId : undefined"
                type="email"
-               tabindex="5"
-               id="recipient"
+               :id="recipientId"
                name="recipient[]"
                placeholder="tom@myspace.com"
                :class="[cornerClass]"
                class="w-full rounded-md border border-gray-300 px-4 py-2 transition-colors duration-200 focus:border-brandcomp-500 focus:ring-brandcomp-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
                @input="(e) => updateRecipient((e.target as HTMLInputElement).value)" />
-        <span v-if="getError('recipient')"
-              class="text-sm text-red-500">
+        <div v-if="getError('recipient')"
+             :id="recipientErrorId"
+             role="alert"
+             class="mt-1 text-sm text-red-500">
           {{ getError('recipient') }}
-        </span>
+        </div>
       </div>
     </div>
   </SecretFormDrawer>

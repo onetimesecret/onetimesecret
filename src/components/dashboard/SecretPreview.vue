@@ -149,7 +149,7 @@ const fontFamilyClass = computed(() => {
           v-if="isValidLogo"
           class="absolute inset-0 flex items-center justify-center rounded-lg bg-black/70 opacity-0 transition-opacity focus-within:opacity-100 group-hover:opacity-100"
           role="group"
-          aria-label="t('logo-controls')">
+          :aria-label="t('logo-controls')">
           <button
             @click.stop="onLogoRemove"
             class="rounded-md bg-red-600 px-3 py-1 text-xs text-white hover:bg-red-700 focus:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2">
