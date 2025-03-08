@@ -1,15 +1,15 @@
 <!-- src/components/layout/Masthead.vue -->
 
 <script setup lang="ts">
+  import OIcon from '@/components/icons/OIcon.vue';
   import HeaderUserNav from '@/components/layout/HeaderUserNav.vue';
   import SettingsModal from '@/components/modals/SettingsModal.vue';
-  import { WindowService } from '@/services/window.service';
-  import type { LayoutProps } from '@/types/ui/layouts';
-  import OIcon from '@/components/icons/OIcon.vue';
-  import { computed, ref } from 'vue';
-  import { useJurisdictionStore } from '@/stores/jurisdictionStore';
+  import { useEventListener, onKeyStroke } from '@vueuse/core';
   import type { Jurisdiction } from '@/schemas/models/jurisdiction';
-
+  import { WindowService } from '@/services/window.service';
+  import { useJurisdictionStore } from '@/stores/jurisdictionStore';
+  import type { LayoutProps } from '@/types/ui/layouts';
+  import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue';
   withDefaults(defineProps<LayoutProps>(), {
     displayMasthead: true,
     displayNavigation: true,
@@ -25,6 +25,8 @@
   ]);
 
   const colonel = computed(() => windowProps.cust?.role === 'colonel');
+
+
 
   // Reactive state
   const isSettingsModalOpen = ref(false);
@@ -55,6 +57,79 @@
   const navigateToJurisdiction = (domain: string) => {
     window.location.href = `https://${domain}/`;
   };
+  const toggleJurisdictionMenu = () => {
+    tooltipVisible.value = !tooltipVisible.value;
+  };
+
+  const handleJurisdictionKeydown = (event: KeyboardEvent) => {
+    if (event.key === 'Enter' || event.key === ' ') {
+      event.preventDefault();
+      toggleJurisdictionMenu();
+    } else if (event.key === 'Escape' && tooltipVisible.value) {
+      event.preventDefault();
+      tooltipVisible.value = false;
+    }
+  };
+
+  // Enhanced keyboard handling using VueUse
+  onKeyStroke('Escape', (e) => {
+    if (tooltipVisible.value) {
+      e.preventDefault();
+      closeJurisdictionMenu();
+    }
+  });
+
+  // Focus management for dropdown
+  const closeJurisdictionMenu = () => {
+    tooltipVisible.value = false;
+    document.getElementById('jurisdiction-button')?.focus();
+  };
+
+  // We can also simplify the click outside handling with VueUse
+  const menuRef = ref<HTMLElement | null>(null);
+  const buttonRef = ref<HTMLElement | null>(null);
+
+  useEventListener(document, 'mousedown', (event) => {
+    if (tooltipVisible.value &&
+        menuRef.value &&
+        buttonRef.value &&
+        !menuRef.value.contains(event.target as Node) &&
+        !buttonRef.value.contains(event.target as Node)) {
+      tooltipVisible.value = false;
+    }
+  });
+
+  // Add keyboard navigation within dropdown
+  watch(tooltipVisible, (newValue) => {
+    if (newValue) {
+      // Focus first option when menu opens
+      nextTick(() => {
+        const firstOption = document.getElementById('jurisdiction-option-0');
+        if (firstOption) firstOption.focus();
+      });
+    }
+  });
+
+  // Handle clicks outside to close menu
+  onMounted(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      const menu = document.getElementById('jurisdiction-menu');
+      const button = document.getElementById('jurisdiction-button');
+      if (tooltipVisible.value &&
+          menu &&
+          button &&
+          !menu.contains(event.target as Node) &&
+          !button.contains(event.target as Node)) {
+        tooltipVisible.value = false;
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+
+    onUnmounted(() => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    });
+  });
 </script>
 
 <template>
@@ -76,21 +151,31 @@
               height="64"
               width="64"
               alt="" />
-              <div
+              <!-- Jurisdiction selector section -->
+                <div
                   v-if="jurisdictionStore.enabled"
-                  class="relative"
-                  @mouseenter="tooltipVisible = true"
-                  @mouseleave="tooltipVisible = false">
+                  class="relative">
                   <button
+                    id="jurisdiction-button"
+                    ref="buttonRef"
+                    aria-haspopup="listbox"
+                    :aria-expanded="tooltipVisible"
+                    aria-controls="jurisdiction-menu"
                     class="absolute -right-0.5 -bottom-0.5 rounded px-0.5 py-0 text-[0.6em]
                            font-brand font-medium bg-brand-500 text-brand-100
                            border border-brand-100 dark:border-slate-800
-                           dark:bg-slate-800 dark:text-slate-100 z-10">
+                           dark:bg-slate-800 dark:text-slate-100 z-10"
+                    @click="toggleJurisdictionMenu"
+                    @keydown="handleJurisdictionKeydown">
                     {{ currentJurisdiction?.identifier }}
                   </button>
-
                   <div
                     v-show="tooltipVisible"
+                    id="jurisdiction-menu"
+                    ref="menuRef"
+                    role="listbox"
+                    :aria-labelledby="'jurisdiction-button'"
+                    tabindex="-1"
                     class="absolute z-50 mt-1 w-max min-w-[200px]
                            rounded-lg bg-white dark:bg-gray-800 px-2 py-1 text-xs
                            shadow-lg ring-1 ring-black ring-opacity-5
@@ -101,13 +186,19 @@
                         {{ $t('regions') }}
                       </div>
                       <div
-                        v-for="jurisdiction in jurisdictionStore.jurisdictions"
+                        v-for="(jurisdiction, index) in jurisdictionStore.jurisdictions"
                         :key="jurisdiction.identifier"
+                        :id="`jurisdiction-option-${index}`"
+                        role="option"
+                        :aria-selected="currentJurisdiction?.identifier === jurisdiction.identifier"
+                        tabindex="0"
                         class="group flex w-full items-center rounded-md px-2 py-2 text-sm
                                hover:bg-gray-100 dark:hover:bg-gray-700
                                text-gray-700 dark:text-gray-300
                                cursor-pointer"
-                        @click="navigateToJurisdiction(jurisdiction.domain)">
+                        @click="navigateToJurisdiction(jurisdiction.domain)"
+                        @keydown.enter="navigateToJurisdiction(jurisdiction.domain)"
+                        @keydown.space.prevent="navigateToJurisdiction(jurisdiction.domain)">
                         <span class="flex items-center font-brand">
                           <OIcon
                             :collection="getIconCollection(jurisdiction)"
@@ -183,12 +274,11 @@
             :is-open="isSettingsModalOpen"
             @close="closeSettingsModal" />
 
-          <span
-            class="text-gray-400"
-            aria-hidden="true"
-            role="separator">
-            |
-          </span>
+            <span
+                class="text-gray-400"
+                role="separator">
+                |
+              </span>
 
           <router-link
             to="/logout"
