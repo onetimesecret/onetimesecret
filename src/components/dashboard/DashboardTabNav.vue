@@ -12,6 +12,16 @@ const router = useRouter();
 const authenticated = WindowService.get('authenticated');
 const domainsEnabled = WindowService.get('domains_enabled');
 
+interface TabItem {
+  id: string;
+  path: string;
+  label: string;
+  icon: string;
+  count?: number | null;
+  countLabel?: string;
+  shortLabel?: string;
+}
+
 const route = useRoute();
 
 // Store instances
@@ -39,8 +49,8 @@ onMounted(() => {
 const isActiveRoute = (path: string) => route.path.startsWith(path);
 
 // Tab items definition
-const tabs = computed(() => {
-  const baseItems = [
+const tabs = computed((): TabItem[] => {
+  const baseItems: TabItem[] = [
     {
       id: 'dashboard',
       path: '/dashboard',
@@ -75,7 +85,7 @@ const tabs = computed(() => {
 /**
  * Handles keyboard navigation between tabs
  */
-const handleKeyDown = (event, tabIndex) => {
+const handleKeyDown = (event: KeyboardEvent, tabIndex: number) => {
   if (event.key === 'ArrowRight' || event.key === 'ArrowLeft') {
     event.preventDefault();
 
@@ -89,7 +99,7 @@ const handleKeyDown = (event, tabIndex) => {
     setTimeout(() => {
       const tabElements = document.querySelectorAll('[role="tab"]');
       if (tabElements[newIndex]) {
-        tabElements[newIndex].focus();
+        (tabElements[newIndex] as HTMLElement).focus();
       }
     }, 50);
   }
@@ -120,7 +130,7 @@ const handleKeyDown = (event, tabIndex) => {
               ? 'border-b-2 border-brand-500 font-semibold text-brand-500'
               : 'text-gray-700 hover:text-brand-500 dark:text-gray-300 dark:hover:text-brand-500',
           ]"
-          @keydown="e => handleKeyDown(e, index)">
+          @keydown="(e: KeyboardEvent) => handleKeyDown(e, index)">
           <!-- Home tab icon -->
           <svg
             v-if="tab.icon === 'home'"
