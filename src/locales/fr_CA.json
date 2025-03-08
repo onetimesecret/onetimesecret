@@ -82,6 +82,7 @@
         "hide": "Masquer"
       },
       "timeline": "Chronologie",
+      "expiration_time": "Délai d'expiration",
       "close": "Fermer",
       "loading": "Chargement...",
       "cancel": "Annuler",
