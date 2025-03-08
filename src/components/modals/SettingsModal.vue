@@ -1,3 +1,5 @@
+<!-- src/components/modals/SettingsModal.vue -->
+
 <script setup lang="ts">
   import { WindowService } from '@/services/window.service';
   import { FocusTrap } from 'focus-trap-vue';
@@ -40,11 +42,13 @@
     return tabsList;
   });
 
+  // Use key codes rather than translation strings for keyboard handling
   const handleKeydown = (e: KeyboardEvent) => {
-    if (e.key === t('escape')) {
+    if (e.key === 'Escape') {
       closeModal();
     }
   };
+
   const activeTab = ref<Tab['id']>(tabs.value[0].id);
 
   const closeModal = () => {
@@ -72,9 +76,7 @@
     previouslyFocusedElement = null;
   });
 
-  onMounted(() => {
-  });
-
+  // Tab keyboard navigation
   const handleTabKeydown = (e: KeyboardEvent) => {
     const tabButtons = tabs.value.map((tab) => tab.id);
     const currentIndex = tabButtons.indexOf(activeTab.value);
@@ -84,39 +86,72 @@
       case 'ArrowDown':
         e.preventDefault();
         activeTab.value = tabButtons[(currentIndex + 1) % tabButtons.length];
+        // Focus the newly selected tab button
+        nextTick(() => {
+          document.getElementById(`tab-button-${activeTab.value}`)?.focus();
+        });
         break;
       case 'ArrowLeft':
       case 'ArrowUp':
         e.preventDefault();
         activeTab.value =
           tabButtons[(currentIndex - 1 + tabButtons.length) % tabButtons.length];
+        // Focus the newly selected tab button
+        nextTick(() => {
+          document.getElementById(`tab-button-${activeTab.value}`)?.focus();
+        });
         break;
-      case t('web.COMMON.title_home'):
+      case 'Home':
         e.preventDefault();
         activeTab.value = tabButtons[0];
+        // Focus the first tab button
+        nextTick(() => {
+          document.getElementById(`tab-button-${activeTab.value}`)?.focus();
+        });
         break;
-      case t('end'):
+      case 'End':
         e.preventDefault();
         activeTab.value = tabButtons[tabButtons.length - 1];
+        // Focus the last tab button
+        nextTick(() => {
+          document.getElementById(`tab-button-${activeTab.value}`)?.focus();
+        });
         break;
     }
   };
+
+  // Ensure keydown events are properly captured (e.g. if the modal is open
+  // but hasn't been focused yet).
+  const handleRootKeydown = (e: KeyboardEvent) => {
+    if (e.key === 'Escape') {
+      closeModal();
+    }
+  };
+
+  onMounted(() => {
+    document.addEventListener('keydown', handleRootKeydown);
+  });
+
+  onBeforeUnmount(() => {
+    document.removeEventListener('keydown', handleRootKeydown);
+    previouslyFocusedElement = null;
+  });
 </script>
 
 <template>
-  <!-- Using v-if instead of v-show for modal dialogs is preferred for accessibility:
-       - Completely removes content from DOM and accessibility tree when closed
-       - Ensures cleaner navigation for screen reader users
-       - Prevents focus trapping issues since hidden content cannot receive focus
-       - Follows ARIA best practices for modal dialogs
-       Performance impact of DOM removal/recreation is negligible for modals -->
+<!-- Using v-if instead of v-show for modal dialogs is preferred for accessibility:
+     - Completely removes content from DOM and accessibility tree when closed
+     - Ensures cleaner navigation for screen reader users
+     - Prevents focus trapping issues since hidden content cannot receive focus
+     - Follows ARIA best practices for modal dialogs
+     Performance impact of DOM removal/recreation is negligible for modals -->
   <div
     v-if="isOpen"
     @keydown="handleKeydown"
     @click.self="closeModal"
     class="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-black/50 backdrop-blur-sm motion-safe:transition-all motion-safe:duration-300"
     :class="{ 'opacity-0': !isOpen }"
-    aria-labelledby="settings-modal"
+    aria-labelledby="settings-modal-title"
     aria-describedby="settings-modal-description"
     role="dialog"
     aria-modal="true">
@@ -137,46 +172,42 @@
           <div
             class="flex shrink-0 items-center justify-between bg-gray-50 p-4 dark:bg-gray-700">
             <h2
-              id="settings-modal"
+              id="settings-modal-title"
               class="text-2xl font-bold text-gray-900 dark:text-white mb-0">
               {{ $t('web.COMMON.header_settings') }}
             </h2>
-            <div
-              class="flex gap-2 "
-              role="tablist"
-              @keydown="handleTabKeydown"
-              :aria-label="$t('settings-sections')">
-              <button
-                @click="closeModal"
-                class="rounded-md p-2 text-gray-500 transition-colors duration-200 hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 dark:text-gray-300 dark:hover:bg-gray-600"
-                :aria-label="$t('close-settings')">
-                <svg
-                  class="size-5"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                  aria-hidden="true">
-                  <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    stroke-width="2"
-                    d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              </button>
-            </div>
+            <button
+              @click="closeModal"
+              class="rounded-md p-2 text-gray-500 transition-colors duration-200 hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 dark:text-gray-300 dark:hover:bg-gray-600"
+              :aria-label="$t('close-settings')">
+              <svg
+                class="size-5"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                aria-hidden="true">
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
           </div>
 
           <!-- Tabs -->
           <div
             class="flex shrink-0 gap-2 overflow-x-auto px-6 py-2 dark:bg-gray-800"
             role="tablist"
-            :aria-label="$t('settings-sections-0')">
+            aria-orientation="horizontal"
+            @keydown="handleTabKeydown"
+            :aria-label="$t('settings-sections')">
             <button
               v-for="tab in tabs"
               :key="tab.id"
               @click="activeTab = tab.id"
               :aria-selected="activeTab === tab.id"
-              :aria-controls="`tab-${tab.id}`"
+              :aria-controls="`tab-panel-${tab.id}`"
               role="tab"
               :id="`tab-button-${tab.id}`"
               :tabindex="activeTab === tab.id ? 0 : -1"
@@ -196,7 +227,7 @@
                 <!-- General Tab -->
                 <div
                   v-if="activeTab === 'general'"
-                  id="tab-general"
+                  id="tab-panel-general"
                   role="tabpanel"
                   :aria-labelledby="'tab-button-general'"
                   tabindex="0"
@@ -207,7 +238,7 @@
                 <!-- Data Region Tab -->
                 <div
                   v-else-if="activeTab === 'data-region'"
-                  id="tab-data-region"
+                  id="tab-panel-data-region"
                   role="tabpanel"
                   :aria-labelledby="'tab-button-data-region'"
                   tabindex="0"
@@ -217,7 +248,9 @@
               </template>
 
               <template #fallback>
-                <div class="flex h-full items-center justify-center">
+                <div
+                  class="flex h-full items-center justify-center"
+                  aria-live="polite">
                   <div
                     class="size-8 animate-spin rounded-full border-y-2 border-brand-600"
                     role="status">
