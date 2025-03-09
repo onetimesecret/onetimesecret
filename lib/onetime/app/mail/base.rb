@@ -27,6 +27,7 @@ module Onetime::App
         @emailer = OT.emailer.new(
           emailer_conf.fetch(:from, nil),
           emailer_conf.fetch(:fromname, nil),
+          cust.custid, # reply_to
         )
 
         safe_mail_config = {

@@ -1,17 +1,14 @@
 
 module Onetime::App
   module Mail
-    MAIL_ERROR = """
-    We're experiencing an email delivery issues. You can
-    <a href='mailto:problems@onetimesecret.com'>let us know.</a>
 
-    """
     class BaseMailer
-      attr_accessor :from, :fromname
+      attr_accessor :from, :fromname, :reply_to
 
-      def initialize(from, fromname)
+      def initialize(from, fromname, reply_to=nil)
         @from = from
         @fromname = fromname
+        @reply_to = reply_to
       end
 
       def send_email(to_address, subject, html_content, text_content)
