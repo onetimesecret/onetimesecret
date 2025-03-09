@@ -7,7 +7,7 @@ module Onetime::App
     class SendGridMailer < BaseMailer
       include SendGrid
 
-      def send_email(to_address, subject, content)
+      def send_email(to_address, subject, content, test_mode=false)
         OT.info '[email-send-start]'
         mailer_response = nil
 
@@ -37,10 +37,18 @@ module Onetime::App
           mailer = SendGrid::Mail.new(from_email, subject, to_email, plain_content)
           mailer.add_content(html_content)
 
+          # Enable sandbox mode for testing
+          if test_mode
+            mail_settings = SendGrid::MailSettings.new
+            sandbox_mode = SendGrid::SandBoxMode.new(enable: true)
+            mail_settings.sandbox_mode = sandbox_mode
+            mailer.mail_settings = mail_settings
+          end
+
           OT.ld mailer
 
           mailer_response = self.class.sendgrid_api.client.mail._('send').post(request_body: mailer.to_json)
-          OT.info "> [send-success] Email sent successfully to #{obscured_address}"
+          OT.info "> [send-#{test_mode ? 'test' : 'success'}] Email #{test_mode ? 'validated' : 'sent'} to #{obscured_address}"
           OT.ld mailer_response.status_code
           OT.ld mailer_response.body
           OT.ld mailer_response.headers
