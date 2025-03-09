@@ -1,6 +1,6 @@
-# tests/unit/ruby/rspec/onetime/app/mail/welcome_spec.rb
+# tests/unit/ruby/rspec/onetime/app/mail/views/welcome_spec.rb
 
-require_relative '../../../spec_helper'
+require_relative '../../../../spec_helper'
 
 RSpec.describe Onetime::App::Mail::Welcome do
   include_context "mail_test_context"
@@ -80,6 +80,7 @@ RSpec.describe Onetime::App::Mail::Welcome do
           'test@example.com',
           'Welcome to OnetimeSecret',
           match(/<!DOCTYPE html.*#{mail_secret.key}.*<\/html>/m),
+          match(/.*#{mail_secret.key}.*/m)
         )
 
       expect(Onetime::EmailReceipt).to have_received(:create)

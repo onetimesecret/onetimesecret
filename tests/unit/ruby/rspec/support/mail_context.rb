@@ -118,7 +118,7 @@ RSpec.shared_context "mail_test_context" do
     # Mock the emailer creation instead of trying to replace it after
     mailer = mail_emailer
     allow(OT::App::Mail::SMTPMailer).to receive(:new)
-      .with(mail_config[:emailer][:from])
+      .with(mail_config[:emailer][:from], mail_config[:emailer][:fromname])
       .and_return(mailer)
 
     allow(OT::App::Mail::SendGridMailer).to receive(:new)
