@@ -4,17 +4,19 @@ require_relative '../web/views/view_helpers'
 module Onetime::App
   module Mail
 
-    class Base < Mustache
+    class Base < Chimera
       include Onetime::App::Views::ViewHelpers
 
       self.template_path = './templates/mail'
       self.view_namespace = Onetime::App::Mail
       self.view_path = './onetime/email'
+
       attr_reader :cust, :locale, :emailer, :mode, :from, :to
-      attr_accessor :token
+      attr_accessor :token, :text_template
 
       def initialize cust, locale, *args
-        @cust, @locale = cust, locale
+        @cust = cust
+        @locale = locale
         OT.ld "#{self.class} locale is: #{locale.to_s}"
 
         emailer_conf = OT.conf.fetch(:emailer, {})
@@ -72,7 +74,7 @@ module Onetime::App
           # flag that when set to any truthy value will skip over this delivery.
           # See Onetime::App::API#create
           unless token
-            emailer.send_email self[:email_address], subject, render
+            emailer.send_email self[:email_address], subject, render_html, render_text
           end
 
         rescue SocketError => ex
@@ -98,6 +100,23 @@ module Onetime::App
 
         OT.info "[email-sent] to #{email_address_obscured} #{self[:cust].identifier} #{message_identifier}"
         mailer_response
+      end
+
+      def render_html
+        render
+      end
+
+      def render_text
+        clone = self.clone
+        # Create a new options hash if none exists, or duplicate the existing one
+        opts = clone.instance_variable_get(:@options)
+        opts = opts ? opts.dup : {}
+        # Set template extension
+        opts[:template_extension] = 'txt'
+        # Update the options in the cloned instance
+        clone.instance_variable_set(:@options, opts)
+        # require 'pry-byebug'; binding.pry
+        clone.render
       end
 
       def private_uri(obj)
