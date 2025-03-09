@@ -9,6 +9,11 @@ RSpec.describe Onetime::App::View do
   include_context "view_test_context"
 
   before(:each) do
+    allow(OT).to receive(:default_locale).and_return('en')
+    allow(OT).to receive(:fallback_locale).and_return('en')
+    allow(OT).to receive(:supported_locales).and_return(['en'])
+    allow(OT).to receive(:i18n_enabled).and_return(true)
+
     allow(OT).to receive(:locales).and_return({
       'en' => {
         web: {
