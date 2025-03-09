@@ -107,6 +107,8 @@ RSpec.shared_context "mail_test_context" do
     end
   end
 
+
+  # Update the before block to properly stub the mailer initialization
   before do
     allow(OT).to receive(:conf).and_return(mail_config)
     allow(OT).to receive(:locales).and_return(mail_locales)
@@ -117,13 +119,26 @@ RSpec.shared_context "mail_test_context" do
 
     # Mock the emailer creation instead of trying to replace it after
     mailer = mail_emailer
+
+    # Update these stubs to accept the third reply_to parameter
     allow(OT::App::Mail::SMTPMailer).to receive(:new)
-      .with(mail_config[:emailer][:from], mail_config[:emailer][:fromname])
+      .with(
+        mail_config[:emailer][:from],
+        mail_config[:emailer][:fromname],
+        anything  # This allows any third parameter for reply_to
+      )
       .and_return(mailer)
 
     allow(OT::App::Mail::SendGridMailer).to receive(:new)
-      .with(mail_config[:emailer][:from], mail_config[:emailer][:fromname])
+      .with(
+        mail_config[:emailer][:from],
+        mail_config[:emailer][:fromname],
+        anything  # This allows any third parameter for reply_to
+      )
       .and_return(mailer)
+
+    # Setup OT.emailer to return the correct mailer class
+    allow(OT).to receive(:emailer).and_return(OT::App::Mail::SMTPMailer)
 
     allow_any_instance_of(Onetime::App::Mail::Base).to receive(:emailer).and_return(mailer)
   end
