@@ -7,7 +7,7 @@ module Onetime::App
 
     class AmazonSESMailer < BaseMailer
 
-      def send_email(to_address, subject, content)
+      def send_email(to_address, subject, html_content, text_content)
         OT.info '[email-send-start]'
         mailer_response = nil
 
@@ -32,11 +32,11 @@ module Onetime::App
                 },
                 body: {
                   html: {
-                    data: content,
+                    data: html_content,
                     charset: 'UTF-8'
                   },
                   text: {
-                    data: content.gsub(/<\/?[^>]*>/, ''), # Simple HTML to text conversion
+                    data: text_content,
                     charset: 'UTF-8'
                   }
                 }

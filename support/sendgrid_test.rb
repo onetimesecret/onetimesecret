@@ -17,7 +17,8 @@ mailer.fromname = "Test Sender"
 response = mailer.send_email(
   "recipient@example.com",
   "Test Email Subject",
-  "<p>This is a test email content.</p>",
+  "<p>This is a test html content.</p>",
+  "This is a test text content.",
   true # Enable sandbox mode
 )
 

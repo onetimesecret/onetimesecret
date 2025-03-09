@@ -7,7 +7,7 @@ module Onetime::App
     class SendGridMailer < BaseMailer
       include SendGrid
 
-      def send_email(to_address, subject, content, test_mode=false)
+      def send_email(to_address, subject, html, text_content, test_mode=false)
         OT.info '[email-send-start]'
         mailer_response = nil
 
@@ -26,12 +26,12 @@ module Onetime::App
 
           html_content = SendGrid::Content.new(
             type: 'text/html',
-            value: content,
+            value: html_content,
           )
 
           plain_content = SendGrid::Content.new(
             type: 'text/plain',
-            value: content.gsub(/<\/?[^>]*>/, ''),
+            value: text_content,
           )
 
           mailer = SendGrid::Mail.new(from_email, subject, to_email, plain_content)

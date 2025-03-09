@@ -8,12 +8,14 @@ module Onetime::App
     """
     class BaseMailer
       attr_accessor :from, :fromname
-      def initialize from, fromname=nil
-        @from, @fromname = from, fromname
+
+      def initialize(from, fromname)
+        @from = from
+        @fromname = fromname
       end
 
-      def send_email to_address, subject, content
-        raise NotImplementedError
+      def send_email(to_address, subject, html_content, text_content)
+        raise NotImplementedError, "Subclasses must implement send_email"
       end
 
       def self.setup

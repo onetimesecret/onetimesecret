@@ -8,14 +8,12 @@ module Onetime::App
 
     class SMTPMailer < BaseMailer
 
-      def send_email to_address, subject, content # rubocop:disable Metrics/MethodLength
+      def send_email(to_address, subject, html_content, text_content) # rubocop:disable Metrics/MethodLength
         mailer_response = nil
 
         obscured_address = OT::Utils.obscure_email to_address
         from_email = "#{fromname} <#{self.from}>"
         to_email = to_address
-
-        #OT.ld "[send-from] #{from_email}: #{fromname} #{from}"
 
         if from_email.nil? || from_email.empty?
           OT.info "> [send-exception] No from address #{obscured_address}"
@@ -46,12 +44,12 @@ module Onetime::App
             # really get back around to adding text template as well.
             text_part do
               content_type 'text/plain; charset=UTF-8'
-              body         content
+              body         html_content
             end
 
             html_part do
               content_type 'text/html; charset=UTF-8'
-              body         content
+              body         text_content
             end
           end
 
