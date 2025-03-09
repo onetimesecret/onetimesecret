@@ -19,11 +19,11 @@ module Onetime::App
 
         # Return early if there is no system email address to send from
         if self.from.to_s.empty?
-          OT.le "> [send-exception] No from address #{sender_email} #{obscured_address}"
+          OT.le "> [send-exception] No from address [to: #{obscured_address}]"
           return
         end
 
-        OT.li "> [send-start] #{obscured_address}"
+        OT.li "> [send-start] [to: #{obscured_address}]"
 
         begin
           # Prepare the email parameters
@@ -56,18 +56,22 @@ module Onetime::App
           # Send the email
           mailer_response = self.class.ses_client.send_email(email_params)
 
-          OT.info '[email-sent]'
-          OT.ld mailer_response.message_id
-          # Remove the context and http_response references that don't exist in the actual SDK
-          OT.ld "Email sent successfully"
-
         rescue Aws::SESV2::Errors::ServiceError => ex
-          OT.info "> [send-exception-ses-error] #{obscured_address} #{ex.class} #{ex.message}"
+          OT.le "> [send-exception-ses-error] #{ex.message} [to: #{obscured_address}]"
           OT.ld "#{ex.backtrace}"
+
         rescue => ex
-          OT.info "> [send-exception-sending] #{obscured_address} #{ex.class} #{ex.message}"
-          OT.ld "#{ex.backtrace}"
+          OT.le "> [send-exception-sending] #{ex.class} #{ex.message} [to: #{obscured_address}]"
+          OT.ld ex.backtrace
         end
+
+        return unless mailer_response
+
+        OT.info "> [send-success] Email sent successfully [to: #{obscured_address}]"
+
+        OT.ld mailer_response.message_id
+        OT.ld mailer_response.body
+        OT.ld mailer_response.headers
 
         mailer_response
       end

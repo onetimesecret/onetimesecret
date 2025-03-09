@@ -19,11 +19,11 @@ module Onetime::App
 
         # Return early if there is no system email address to send from
         if self.from.to_s.empty?
-          OT.le "> [send-exception] No from address #{sender_email} #{obscured_address}"
+          OT.le "> [send-exception] No from address [to: #{obscured_address}]"
           return
         end
 
-        OT.li "> [send-start] #{obscured_address}"
+        OT.li "> [send-start] [to: #{obscured_address}]"
 
         begin
           sg_content_html = SendGrid::Content.new(
@@ -53,15 +53,21 @@ module Onetime::App
           OT.ld mail
 
           mailer_response = self.class.sendgrid_api.client.mail._('send').post(request_body: mail.to_json)
-          OT.info "> [send-#{test_mode ? 'test' : 'success'}] Email #{test_mode ? 'validated' : 'sent'} to #{obscured_address}"
-          OT.ld mailer_response.status_code
-          OT.ld mailer_response.body
-          OT.ld mailer_response.headers
 
+          # NOTE: There doesn't seem to be a SendGrid specific error class. All
+          # the examples use the generic Exception class.
         rescue => ex
-          OT.info "> [send-exception-sending] #{obscured_address} #{ex.class} #{ex.message}"
-          OT.ld "#{ex.backtrace}"
+          OT.le "> [send-exception-sending] #{ex.class} #{ex.message} [to: #{obscured_address}]"
+          OT.ld ex.backtrace
         end
+
+        return unless mailer_response
+
+        OT.info "> [send-success] Email sent successfully [to: #{obscured_address}] (test mode: #{test_mode})"
+
+        OT.ld mailer_response.status_code
+        OT.ld mailer_response.body
+        OT.ld mailer_response.headers
 
         mailer_response
       end
