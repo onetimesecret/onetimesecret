@@ -19,11 +19,11 @@ module Onetime::App
 
         # Return early if there is no system email address to send from
         if self.from.to_s.empty?
-          OT.le "> [send-exception] No from address #{sender_email} #{obscured_address}"
+          OT.le "> [send-exception] No from address [to: #{obscured_address}]"
           return
         end
 
-        OT.li "> [send-start] #{obscured_address}"
+        OT.li "> [send-start] [to: #{obscured_address}]"
 
         begin
           mailer_response = ::Mail.deliver do
@@ -57,21 +57,21 @@ module Onetime::App
           end
 
         rescue Net::SMTPFatalError => ex
-          OT.info "> [send-exception-smtperror] #{obscured_address}"
+          OT.le "> [send-exception-smtperror] #{ex.message} [to: #{obscured_address}]"
           OT.ld "#{ex.class} #{ex.message}\n#{ex.backtrace}"
 
         rescue => ex
-          OT.info "> [send-exception-sending] #{obscured_address} #{ex.class} #{ex.message}"
-          OT.ld "#{ex.backtrace}"
+          OT.le "> [send-exception-sending] #{ex.class} #{ex.message} [to: #{obscured_address}]"
+          OT.ld ex.backtrace
         end
 
         return unless mailer_response
 
-        OT.info "> [send-success] Email sent successfully to #{obscured_address}"
+        OT.info "> [send-success] Email sent successfully [to: #{obscured_address}]"
 
         # Log the details
         OT.ld "From: #{mailer_response.from}"
-        OT.ld "To: #{mailer_response.to}"
+        OT.ld "To: #{obscured_address}"
         OT.ld "Subject: #{mailer_response.subject}"
         OT.ld "Body: #{mailer_response.body.decoded}"
 
