@@ -1,26 +1,29 @@
+# lib/onetime/app/mail/smtp_mailer.rb
+
 require 'mail'  # gem 'mail', here referred to as ::Mail
-
 require_relative 'base_mailer'
-
 
 module Onetime::App
   module Mail
-
     class SMTPMailer < BaseMailer
 
+
       def send_email(to_address, subject, html_content, text_content) # rubocop:disable Metrics/MethodLength
+        OT.ld '[email-send-start]'
         mailer_response = nil
 
         obscured_address = OT::Utils.obscure_email to_address
-        from_email = "#{fromname} <#{self.from}>"
+        sender_email = "#{fromname} <#{self.from}>"
         to_email = to_address
+        reply_to = self.reply_to
 
-        if from_email.nil? || from_email.empty?
-          OT.info "> [send-exception] No from address #{obscured_address}"
+        # Return early if there is no system email address to send from
+        if self.from.to_s.empty?
+          OT.le "> [send-exception] No from address #{sender_email} #{obscured_address}"
           return
         end
 
-        OT.info "> [send-start] #{obscured_address}"
+        OT.li "> [send-start] #{obscured_address}"
 
         begin
           mailer_response = ::Mail.deliver do
@@ -28,12 +31,12 @@ module Onetime::App
             # is important for delivery reliability and some service
             # providers like Amazon SES require it. They'll return
             # "554 Message rejected" response otherwise.
-            from      OT.conf[:emailer][:from]
+            from      sender_email
 
             # But set the reply to address as the customer's so that
             # when people reply to the mail (even though it came from
             # our address), it'll go to the intended recipient.
-            reply_to  from_email
+            reply_to  reply_to
 
             to        to_email
             subject   subject
@@ -65,6 +68,7 @@ module Onetime::App
         return unless mailer_response
 
         OT.info "> [send-success] Email sent successfully to #{obscured_address}"
+
         # Log the details
         OT.ld "From: #{mailer_response.from}"
         OT.ld "To: #{mailer_response.to}"

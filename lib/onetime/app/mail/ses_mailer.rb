@@ -1,24 +1,31 @@
-require 'aws-sdk-sesv2'
+# lib/onetime/app/mail/ses_mailer.rb
 
+require 'aws-sdk-sesv2'
 require_relative 'base_mailer'
 
 module Onetime::App
   module Mail
-
     class AmazonSESMailer < BaseMailer
 
+
       def send_email(to_address, subject, html_content, text_content)
-        OT.info '[email-send-start]'
+        OT.ld '[email-send-start]'
         mailer_response = nil
 
+        obscured_address = OT::Utils.obscure_email(to_address)
+        sender_email = "#{fromname} <#{self.from}>"
+        to_email = to_address
+        reply_to = self.reply_to
+
+        # Return early if there is no system email address to send from
+        if self.from.to_s.empty?
+          OT.le "> [send-exception] No from address #{sender_email} #{obscured_address}"
+          return
+        end
+
+        OT.li "> [send-start] #{obscured_address}"
+
         begin
-          obscured_address = OT::Utils.obscure_email(to_address)
-          from_email = OT.conf[:emailer][:from]
-          reply_to = "#{fromname} <#{self.from}>"
-          to_email = to_address
-
-          OT.ld "> [send-start] #{obscured_address}"
-
           # Prepare the email parameters
           email_params = {
             destination: {
@@ -42,8 +49,8 @@ module Onetime::App
                 }
               }
             },
-            from_email_address: from_email,
-            reply_to_addresses: [reply_to]
+            from_email_address: sender_email,
+            reply_to_addresses: [reply_to],
           }
 
           # Send the email
