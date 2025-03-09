@@ -71,6 +71,7 @@ gem 'rdoc'     # IRB
 gem 'reline'
 
 # Third-party services
+gem 'aws-sdk-sesv2', '~> 1.7'
 gem 'sendgrid-ruby'
 gem "sentry-ruby", require: false
 gem 'stripe', require: false
