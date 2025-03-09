@@ -1,84 +1,97 @@
 require_relative '../../../spec_helper'
-require 'onetime/app/mail/smtp_mailer'
+require 'onetime/app/mail/sendgrid_mailer'
 
-RSpec.describe Onetime::App::Mail::SMTPMailer do
+RSpec.describe Onetime::App::Mail::SendGridMailer do
   let(:from_email) { 'sender@example.com' }
   let(:from_name) { 'Test Sender' }
   let(:to_address) { 'recipient@example.com' }
   let(:subject) { 'Test Email Subject' }
   let(:content) { '<p>This is test content</p>' }
-  let(:smtp_mailer) { described_class.new(from_email, from_name) }
-  let(:mail_double) { instance_double(Mail::Message, from: [from_email], to: [to_address], subject: subject, body: double(decoded: content)) }
+  let(:sendgrid_mailer) { described_class.new(from_email, from_name) }
+  let(:sendgrid_api_double) { instance_double(SendGrid::API) }
+  let(:client_double) { double('client') }
+  let(:mail_endpoint_double) { double('mail') }
+  let(:send_endpoint_double) { double('send') }
+  let(:response_double) { instance_double('SendGrid::Response', status_code: 202, body: '{"message":"success"}', headers: {}) }
+  let(:mail_double) { double('mail', to_json: '{}') }
 
   before do
+    # Configure class variable before instantiating mailer
     allow(OT).to receive(:conf).and_return({
-      emailer: { from: 'system@example.com', host: 'smtp.example.com', port: 587, user: 'user', pass: 'password', auth: 'plain', tls: 'true' },
+      emailer: { pass: 'SG.test_key' },
       site: { domain: 'example.com' }
     })
+
+    # Setup mocks for SendGrid API
+    allow(SendGrid::API).to receive(:new).and_return(sendgrid_api_double)
+    allow(sendgrid_api_double).to receive(:client).and_return(client_double)
+    allow(client_double).to receive(:mail).and_return(mail_endpoint_double)
+    allow(mail_endpoint_double).to receive(:_).with('send').and_return(send_endpoint_double)
+    allow(send_endpoint_double).to receive(:post).and_return(response_double)
+
+    # Setup the class
+    described_class.setup
+
+    # Logging mocks
     allow(OT).to receive(:info)
     allow(OT).to receive(:ld)
     allow(OT::Utils).to receive(:obscure_email).with(to_address).and_return('r********@example.com')
+
+    # SendGrid object mocks
+    allow(SendGrid::Email).to receive(:new).and_return(double('email'))
+    allow(SendGrid::Content).to receive(:new).and_return(double('content'))
+    allow(SendGrid::Mail).to receive(:new).and_return(mail_double)
+    allow(mail_double).to receive(:add_content)
   end
 
   describe '#send_email' do
     it 'sends an email with correct parameters and logs success' do
-      mail_message = mail_double
+      # Expectations for SendGrid objects
+      expect(SendGrid::Email).to receive(:new).with(email: to_address)
+      expect(SendGrid::Email).to receive(:new).with(email: from_email, name: from_name)
+      expect(SendGrid::Content).to receive(:new).with(type: 'text/html', value: content)
+      expect(SendGrid::Content).to receive(:new).with(type: 'text/plain', value: content.gsub(/<\/?[^>]*>/, ''))
+      expect(SendGrid::Mail).to receive(:new).and_return(mail_double)
 
-      allow(mail_message).to receive(:text_part)
-      allow(mail_message).to receive(:html_part)
-      allow(mail_message).to receive(:header).and_return(double(fields: []))
-      allow(mail_message).to receive(:delivery_method).and_return(double(response_code: '250 OK'))
-
-      expect(::Mail).to receive(:deliver).and_return(mail_message)
-
-      expect(OT).to receive(:info).with("> [send-start] r********@example.com")
+      # Logging expectations
+      expect(OT).to receive(:info).with('[email-send-start]')
+      expect(OT).to receive(:ld).with("> [send-start] r********@example.com")
       expect(OT).to receive(:info).with("> [send-success] Email sent successfully to r********@example.com")
 
-      result = smtp_mailer.send_email(to_address, subject, content)
-      expect(result).to eq(mail_message)
+      result = sendgrid_mailer.send_email(to_address, subject, content)
+      expect(result).to eq(response_double)
     end
 
-    context 'when an SMTP error occurs' do
+    context 'when a SendGrid error occurs' do
       before do
-        allow(::Mail).to receive(:deliver).and_raise(Net::SMTPFatalError.new('SMTP Error'))
+        allow(send_endpoint_double).to receive(:post).and_raise(StandardError.new('SendGrid Error'))
       end
 
       it 'logs the error and returns nil' do
-        expect(OT).to receive(:info).with("> [send-exception-smtperror] r********@example.com")
+        expect(OT).to receive(:info).with('[email-send-start]')
+        expect(OT).to receive(:info).with("> [send-exception-sending] r********@example.com StandardError SendGrid Error")
 
-        result = smtp_mailer.send_email(to_address, subject, content)
+        result = sendgrid_mailer.send_email(to_address, subject, content)
         expect(result).to be_nil
       end
     end
 
-    context.skip 'when from_email is empty' do
+    context 'when from_email is empty' do
+      let(:from_email) { nil }
+
       it 'logs an error and returns nil' do
-        # Look at the code: the check is against the formatted from_email
-        # which is "#{fromname} <#{self.from}>"
-        # So we need to ensure this string is empty or nil
-
-        # Create a spy to ensure Mail.deliver is not called
-        mail_spy = spy('Mail')
-        allow(::Mail).to receive(:deliver).and_return(mail_spy)
-
-        # Completely stub 'from_email' calculation in the code
-        empty_mailer = described_class.new(nil, nil)
-        # The key issue: we need to make sure line 23 in smtp_mailer.rb evaluates to empty
-        allow(empty_mailer).to receive(:from).and_return(nil)
-        allow(empty_mailer).to receive(:fromname).and_return(nil)
-
+        expect(OT).to receive(:info).with('[email-send-start]')
         expect(OT).to receive(:info).with("> [send-exception] No from address r********@example.com")
-        expect(mail_spy).not_to receive(:from)
 
-        result = empty_mailer.send_email(to_address, subject, content)
+        result = sendgrid_mailer.send_email(to_address, subject, content)
         expect(result).to be_nil
       end
     end
   end
 
   describe '.setup' do
-    it 'configures Mail with SMTP settings from OT.conf' do
-      expect(::Mail).to receive(:defaults)
+    it 'configures SendGrid with API key from OT.conf' do
+      expect(SendGrid::API).to receive(:new).with(api_key: 'SG.test_key')
       described_class.setup
     end
   end
