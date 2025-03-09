@@ -16,24 +16,27 @@ module Onetime::App
       def initialize cust, locale, *args
         @cust, @locale = cust, locale
         OT.ld "#{self.class} locale is: #{locale.to_s}"
-        @mode = OT.conf[:emailer][:mode]
 
-        if @mode == :sendgrid
-          OT.ld "[mail-sendgrid-from] #{OT.conf[:emailer][:from]}"
-          @emailer = OT::App::Mail::SendGridMailer.new OT.conf[:emailer][:from], OT.conf[:emailer][:fromname]
-        else
-          OT.ld "[mail-smtp-from] #{OT.conf[:emailer][:from]}"
-          @emailer = OT::App::Mail::SMTPMailer.new OT.conf[:emailer][:from]
-        end
+        emailer_conf = OT.conf.fetch(:emailer, {})
+
+        @mode = emailer_conf.fetch(:mode, 'smtp').to_s.to_sym
+
+        # Create a new instance of the configured mailer class for this request
+        @emailer = OT.emailer.new(
+          emailer_conf.fetch(:from, nil),
+          emailer_conf.fetch(:fromname, nil),
+        )
 
         safe_mail_config = {
-          from: OT.conf[:emailer][:from],
-          fromname: OT.conf[:emailer][:fromname],
-          host: OT.conf[:emailer][:host],
-          port: OT.conf[:emailer][:port],
-          user: OT.conf[:emailer][:user],
-          tls: OT.conf[:emailer][:tls],
-          auth: OT.conf[:emailer][:auth],
+          from: emailer_conf.fetch(:from, nil),
+          fromname: emailer_conf.fetch(:fromname, nil),
+          host: emailer_conf.fetch(:host, nil),
+          port: emailer_conf.fetch(:port, nil),
+          user: emailer_conf.fetch(:user, nil),
+          tls: emailer_conf.fetch(:tls, nil),
+          auth: emailer_conf.fetch(:auth, nil),
+          region: emailer_conf.fetch(:region, nil),
+          pass: "#{emailer_conf.fetch(:pass, nil).to_s.length} chars"
         }
         OT.info "[mailer] #{mode} #{safe_mail_config.to_json}"
         init(*args) if respond_to? :init

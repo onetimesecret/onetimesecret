@@ -138,8 +138,22 @@ module Onetime
     private
 
     def prepare_emailers
-      @emailer = Onetime::App::Mail::SMTPMailer
-      @emailer.setup
+      mail_mode = OT.conf[:emailer][:mode].to_s.to_sym
+
+      mailer_class = case mail_mode
+      when :sendgrid
+        Onetime::App::Mail::SendGridMailer
+      when :ses
+        Onetime::App::Mail::AmazonSESMailer
+      when :smtp
+        Onetime::App::Mail::SMTPMailer
+      else
+        OT.le "Unsupported mail mode: #{mail_mode}, falling back to SMTP"
+        Onetime::App::Mail::SMTPMailer
+      end
+
+      mailer_class.setup
+      @emailer = mailer_class
     end
 
     def set_global_secret
@@ -170,6 +184,7 @@ module Onetime
       OT.li "redis: #{redis_info['redis_version']} (#{Familia.uri.serverid})"
       OT.li "familia: v#{Familia::VERSION}"
       OT.li "colonels: #{OT.conf[:colonels].join(', ')}"
+      OT.li "mailer: #{@emailer}"
       OT.li "i18n: #{OT.i18n_enabled}"
       OT.li "locales: #{@locales.keys.join(', ')}" if OT.i18n_enabled
       OT.li "diagnotics: #{OT.d9s_enabled}"

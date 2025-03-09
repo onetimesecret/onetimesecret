@@ -13,12 +13,15 @@ module Onetime::App
 
         begin
           obscured_address = OT::Utils.obscure_email(to_address)
+          from_email = "#{fromname} <#{self.from}>"
+          to_email = to_address
+
           OT.ld "> [send-start] #{obscured_address}"
 
           # Prepare the email parameters
           email_params = {
             destination: {
-              to_addresses: [to_address]
+              to_addresses: [to_email]
             },
             content: {
               simple: {
@@ -38,7 +41,7 @@ module Onetime::App
                 }
               }
             },
-            from_email_address: "#{self.fromname} <#{self.from}>",
+            from_email_address: from_email,
             reply_to_addresses: [self.from]
           }
 
@@ -64,10 +67,10 @@ module Onetime::App
       def self.setup
         # Configure AWS SES client
         @@ses_client = Aws::SESV2::Client.new(
-          region: OT.conf[:emailer][:region] || 'us-east-1',
+          region: OT.conf[:emailer][:region] || raise("Region not configured"),
           credentials: Aws::Credentials.new(
-            OT.conf[:emailer][:access_key_id],
-            OT.conf[:emailer][:secret_access_key]
+            OT.conf[:emailer][:user],
+            OT.conf[:emailer][:pass]
           )
         )
       end
