@@ -13,7 +13,8 @@ module Onetime::App
 
         begin
           obscured_address = OT::Utils.obscure_email(to_address)
-          from_email = "#{fromname} <#{self.from}>"
+          from_email = OT.conf[:emailer][:from]
+          reply_to = "#{fromname} <#{self.from}>"
           to_email = to_address
 
           OT.ld "> [send-start] #{obscured_address}"
@@ -42,7 +43,7 @@ module Onetime::App
               }
             },
             from_email_address: from_email,
-            reply_to_addresses: [self.from]
+            reply_to_addresses: [reply_to]
           }
 
           # Send the email
