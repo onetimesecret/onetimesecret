@@ -12,8 +12,6 @@ module Onetime::App
         mailer_response = nil
 
         obscured_address = OT::Utils.obscure_email to_address
-        OT.info "> [send-start] #{obscured_address}"
-
         from_email = "#{fromname} <#{self.from}>"
         to_email = to_address
 
@@ -23,6 +21,8 @@ module Onetime::App
           OT.info "> [send-exception] No from address #{obscured_address}"
           return
         end
+
+        OT.info "> [send-start] #{obscured_address}"
 
         begin
           mailer_response = ::Mail.deliver do
@@ -88,15 +88,15 @@ module Onetime::App
 
       def self.setup
         ::Mail.defaults do
-          opts = { :address   => OT.conf[:emailer][:host] || 'localhost',
-                  :port      => OT.conf[:emailer][:port] || 587,
-                  :domain    => OT.conf[:site][:domain],
-                  :user_name => OT.conf[:emailer][:user],
-                  :password  => OT.conf[:emailer][:pass],
-                  :authentication => OT.conf[:emailer][:auth],
-                  :enable_starttls_auto => OT.conf[:emailer][:tls].to_s == 'true'
+          delivery_method :smtp, {
+            :address   => OT.conf[:emailer][:host] || 'localhost',
+            :port      => OT.conf[:emailer][:port] || 587,
+            :domain    => OT.conf[:site][:domain],
+            :user_name => OT.conf[:emailer][:user],
+            :password  => OT.conf[:emailer][:pass],
+            :authentication => OT.conf[:emailer][:auth],
+            :enable_starttls_auto => OT.conf[:emailer][:tls].to_s == 'true'
           }
-          delivery_method :smtp, opts
         end
       end
     end
