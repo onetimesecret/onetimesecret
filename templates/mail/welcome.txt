@@ -1,0 +1,11 @@
+
+{{i18n.email.body1}}
+
+{{i18n.email.please_verify}}
+
+{{baseuri}}{{verify_uri}}
+
+Delano
+{{baseuri}}
+
+P.S. {{i18n.email.postscript1}} {{email_address}}. {{i18n.email.postscript2}}

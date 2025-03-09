@@ -1,0 +1,4 @@
+
+{{i18n.email.body1}} {{from}}:
+
+{{baseuri}}{{verify_uri}}
