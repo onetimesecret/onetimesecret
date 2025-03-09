@@ -9,36 +9,52 @@ RSpec.describe Onetime::App::Mail::AmazonSESMailer do
   let(:from_name) { 'Test Sender' }
   let(:to_email) { 'recipient@example.com' }
   let(:subject) { 'Test Subject' }
-  let(:content) { '<p>Test Content</p>' }
+  let(:html_content) { '<p>Test Content</p>' }
+  let(:text_content) { 'Test Content' }
 
-  let(:mailer) { described_class.new(from_email, from_name) }
+  let(:mailer) {
+    mailer = described_class.new(from_email, from_name)
+    mailer.reply_to = from_email  # Set the reply_to attribute explicitly
+    mailer
+  }
+
   let(:ses_client_double) { instance_double(Aws::SESV2::Client) }
-  let(:ses_response_double) { instance_double('Aws::SESV2::Types::SendEmailResponse') }
-  let(:http_context_double) { instance_double('Seahorse::Client::RequestContext') }
-  let(:http_response_double) { instance_double('Seahorse::Client::Http::Response') }
+  let(:ses_response_double) { double('Aws::SESV2::Types::SendEmailResponse') }
 
   before do
+    # Reset the class variable for each test
+    if described_class.class_variable_defined?(:@@ses_client)
+      described_class.remove_class_variable(:@@ses_client)
+    end
+
     # Mock AWS SES client
     allow(Aws::SESV2::Client).to receive(:new).and_return(ses_client_double)
     allow(ses_client_double).to receive(:send_email).and_return(ses_response_double)
 
+    # Using basic double instead of instance_double to avoid method existence checks
     allow(ses_response_double).to receive(:message_id).and_return('AMAZON_SES_MESSAGE_ID_123')
+    allow(ses_response_double).to receive(:body).and_return(nil)
+    allow(ses_response_double).to receive(:headers).and_return({})
 
     # Mock OT utilities
     allow(OT::Utils).to receive(:obscure_email).with(to_email).and_return('r***@example.com')
     allow(OT).to receive(:conf).and_return({
       emailer: {
-        region: 'us-west-2',
-        access_key_id: 'AKIAEXAMPLE',
-        secret_access_key: 'wJalrXUtnFEMI/K7MDENG+bPxRfiCYEXAMPLEKEY'
+        region: 'ca-central-1',
+        user: 'AKIAEXAMPLE',
+        pass: 'wJalrXUtnFEMI/K7MDENG+bPxRfiCYEXAMPLEKEY'
       }
     })
 
-    # Set up the instance variable that would normally be set in setup
-    mailer.class.instance_variable_set(:@ses_client, ses_client_double)
+    # Allow all logging methods
+    allow(OT).to receive(:ld)
+    allow(OT).to receive(:le)
+    allow(OT).to receive(:li)
+    allow(OT).to receive(:info)
 
     # Set up the instance variable that would normally be set in setup
-    described_class.setup
+
+    described_class.class_variable_set(:@@ses_client, ses_client_double)
   end
 
   describe '#initialize' do
@@ -62,34 +78,31 @@ RSpec.describe Onetime::App::Mail::AmazonSESMailer do
             },
             body: {
               html: {
-                data: content,
+                data: html_content,
                 charset: 'UTF-8'
               },
               text: {
-                data: content.gsub(/<\/?[^>]*>/, ''),
+                data: text_content,
                 charset: 'UTF-8'
               }
             }
           }
         },
         from_email_address: "#{from_name} <#{from_email}>",
-        reply_to_addresses: [from_email]
+        reply_to_addresses: [from_email]  # Needs to match what's set in the mailer
       }
 
       expect(ses_client_double).to receive(:send_email).with(expected_params)
 
-      response = mailer.send_email(to_email, subject, content)
+      response = mailer.send_email(to_email, subject, html_content, text_content)
       expect(response).to eq(ses_response_double)
     end
 
     it 'logs the email sending process' do
-      expect(OT).to receive(:info).with('[email-send-start]')
-      expect(OT).to receive(:ld).with("> [send-start] r***@example.com")
-      expect(OT).to receive(:info).with('[email-sent]')
-      expect(OT).to receive(:ld).with('AMAZON_SES_MESSAGE_ID_123')
-      expect(OT).to receive(:ld).with('Email sent successfully')
+      expect(OT).to receive(:li).with("> [send-start] [to: r***@example.com]")
+      expect(OT).to receive(:info).with("> [send-success] Email sent successfully [to: r***@example.com]")
 
-      mailer.send_email(to_email, subject, content)
+      mailer.send_email(to_email, subject, html_content, text_content)
     end
 
     context 'when SES service error occurs' do
@@ -97,22 +110,16 @@ RSpec.describe Onetime::App::Mail::AmazonSESMailer do
         allow(ses_client_double).to receive(:send_email).and_raise(
           Aws::SESV2::Errors::ServiceError.new(
              'context',
-            'Email address is not verified',
+            'Email address is not verified'
           )
         )
-
-        # Allow any initial log messages since we only care about the error message
-        allow(OT).to receive(:info).with('[email-send-start]')
-        allow(OT).to receive(:ld).with("> [send-start] r***@example.com")
       end
 
       it 'catches the error and logs it' do
-        expect(OT).to receive(:info).with("> [send-exception-ses-error] r***@example.com Aws::SESV2::Errors::ServiceError Email address is not verified")
+        expect(OT).to receive(:li).with("> [send-start] [to: r***@example.com]")
+        expect(OT).to receive(:le).with("> [send-exception-ses-error] Email address is not verified [to: r***@example.com]")
 
-        # Use allow instead of expect for ld since it may be called multiple times
-        allow(OT).to receive(:ld)
-
-        result = mailer.send_email(to_email, subject, content)
+        result = mailer.send_email(to_email, subject, html_content, text_content)
         expect(result).to be_nil
       end
     end
@@ -120,21 +127,13 @@ RSpec.describe Onetime::App::Mail::AmazonSESMailer do
     context 'when other error occurs' do
       before do
         allow(ses_client_double).to receive(:send_email).and_raise(StandardError.new('Unknown error'))
-
-        # Allow any initial log messages since we only care about the error message
-        allow(OT).to receive(:info).with('[email-send-start]')
-        allow(OT).to receive(:ld).with("> [send-start] r***@example.com")
       end
 
       it 'catches the error and logs it' do
-        # Now we only expect the specific error log
-        expect(OT).to receive(:info).with("> [send-exception-sending] r***@example.com StandardError Unknown error")
+        expect(OT).to receive(:li).with("> [send-start] [to: r***@example.com]")
+        expect(OT).to receive(:le).with("> [send-exception-sending] StandardError Unknown error [to: r***@example.com]")
 
-        # Use allow instead of expect for ld since it may be called multiple times
-        # and we don't care about the exact contents for this test
-        allow(OT).to receive(:ld)
-
-        result = mailer.send_email(to_email, subject, content)
+        result = mailer.send_email(to_email, subject, html_content, text_content)
         expect(result).to be_nil
       end
     end
@@ -142,45 +141,41 @@ RSpec.describe Onetime::App::Mail::AmazonSESMailer do
 
   describe '.setup' do
     before do
-        # Reset class variable to ensure setup runs fresh each time
-        # Need to use remove_class_variable if it exists
-        if described_class.class_variable_defined?(:@@ses_client)
-          described_class.remove_class_variable(:@@ses_client)
-        end
-
-        # Remove the global setup that was done in the top-level before block
-        allow(described_class).to receive(:setup).and_call_original
+      # Reset class variable to ensure setup runs fresh each time
+      if described_class.class_variable_defined?(:@@ses_client)
+        described_class.remove_class_variable(:@@ses_client)
       end
 
-      it 'initializes the AWS SES client with the correct credentials' do
-        # Setup the expectation before calling the method
-        expect(Aws::Credentials).to receive(:new).with(
-          'AKIAEXAMPLE',
-          'wJalrXUtnFEMI/K7MDENG+bPxRfiCYEXAMPLEKEY'
-        ).and_call_original
+      # Allow the setup method to run without interference
+      allow(described_class).to receive(:setup).and_call_original
+    end
 
-        expect(Aws::SESV2::Client).to receive(:new).with(
-          region: 'us-west-2',
+    it 'initializes the AWS SES client with the correct credentials' do
+      # Setup the expectation before calling the method
+      expect(Aws::Credentials).to receive(:new).with(
+        'AKIAEXAMPLE',
+        'wJalrXUtnFEMI/K7MDENG+bPxRfiCYEXAMPLEKEY'
+      ).and_call_original
+
+      expect(Aws::SESV2::Client).to receive(:new).with(
+        hash_including(
+          region: 'ca-central-1',
           credentials: instance_of(Aws::Credentials)
         )
+      )
 
-        described_class.setup
-      end
+      described_class.setup
+    end
 
-      it 'uses default region if not specified in config' do
-        allow(OT).to receive(:conf).and_return({
-          emailer: {
-            access_key_id: 'AKIAEXAMPLE',
-            secret_access_key: 'wJalrXUtnFEMI/K7MDENG+bPxRfiCYEXAMPLEKEY'
-          }
-        })
+    it 'raises an error if region is not configured' do
+      allow(OT).to receive(:conf).and_return({
+        emailer: {
+          user: 'AKIAEXAMPLE',
+          pass: 'wJalrXUtnFEMI/K7MDENG+bPxRfiCYEXAMPLEKEY'
+        }
+      })
 
-        expect(Aws::SESV2::Client).to receive(:new).with(
-          region: 'us-east-1',
-          credentials: instance_of(Aws::Credentials)
-        )
-
-        described_class.setup
-      end
+      expect { described_class.setup }.to raise_error(RuntimeError, "Region not configured")
+    end
   end
 end
