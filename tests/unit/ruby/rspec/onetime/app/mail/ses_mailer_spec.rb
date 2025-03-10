@@ -88,7 +88,7 @@ RSpec.describe Onetime::App::Mail::AmazonSESMailer do
             }
           }
         },
-        from_email_address: "#{from_name} <#{from_email}>",
+        from_email_address: from_email,
         reply_to_addresses: [from_email]  # Needs to match what's set in the mailer
       }
 
