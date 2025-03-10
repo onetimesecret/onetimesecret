@@ -5,7 +5,7 @@ import { loggingService } from '@/services/logging.service';
 import type {} from '@/stores/notificationsStore';
 import type { NotificationSeverity } from '@/types/ui/notifications';
 import { inject } from 'vue';
-import { SENTRY_KEY, SentryInstance } from '@/plugins/core/enableDiagnotics';
+import { SENTRY_KEY, SentryInstance } from '@/plugins/core/enableDiagnostics';
 
 export interface AsyncHandlerOptions {
   /**
