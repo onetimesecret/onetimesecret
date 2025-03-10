@@ -1,4 +1,4 @@
-// src/plugins/core/enableDiagnotics.ts
+// src/plugins/core/enableDiagnostics.ts
 
 import type { DiagnosticsConfig } from '@/types/diagnostics';
 import { DEBUG } from '@/utils/debug';
