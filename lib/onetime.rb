@@ -177,18 +177,21 @@ module Onetime
     end
 
     def print_log_banner
+      site_config = OT.conf.fetch(:site) # if :site is missing we got real problems
       redis_info = Familia.redis.info
       OT.li "---  ONETIME #{OT.mode} v#{OT::VERSION.inspect}  #{'---' * 3}"
       OT.li "system: #{@sysinfo.platform} (ruby #{RUBY_VERSION})"
       OT.li "config: #{OT::Config.path}"
       OT.li "redis: #{redis_info['redis_version']} (#{Familia.uri.serverid})"
       OT.li "familia: v#{Familia::VERSION}"
-      OT.li "colonels: #{OT.conf[:colonels].join(', ')}"
+
       OT.li "i18n: #{OT.i18n_enabled}"
       OT.li "locales: #{@locales.keys.join(', ')}" if OT.i18n_enabled
       OT.li "diagnotics: #{OT.d9s_enabled}"
-      if OT.conf[:site].key?(:authentication)
-        OT.li "auth: #{OT.conf[:site][:authentication].map { |k,v| "#{k}=#{v}" }.join(', ')}"
+      if site_config.key?(:authentication)
+        OT.li
+        OT.li "auth: #{site_config[:authentication].map { |k,v| "#{k}=#{v}" }.join(', ')}"
+        OT.li
       end
       if OT.conf[:emailer]
         email_config = OT.conf[:emailer]
@@ -204,11 +207,11 @@ module Onetime
         OT.li "mailer: #{@emailer}"
         OT.li "mail: #{mail_settings}"
       end
-      if OT.conf[:site].key?(:domains)
-        OT.li "domains: #{OT.conf[:site][:domains].map { |k,v| "#{k}=#{v}" }.join(', ')}"
+      if site_config.key?(:domains)
+        OT.li "domains: #{site_config[:domains].map { |k,v| "#{k}=#{v}" }.join(', ')}"
       end
-      if OT.conf[:site].key?(:regions)
-        OT.li "regions: #{OT.conf[:site][:regions].map { |k,v| "#{k}=#{v}" }.join(', ')}"
+      if site_config.key?(:regions)
+        OT.li "regions: #{site_config[:regions].map { |k,v| "#{k}=#{v}" }.join(', ')}"
       end
       if OT.conf.fetch(:development, false)
         OT.li "development: #{OT.conf[:development].map { |k,v| "#{k}=#{v}" }.join(', ')}"

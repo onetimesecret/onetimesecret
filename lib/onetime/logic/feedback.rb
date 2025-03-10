@@ -51,7 +51,7 @@ module Onetime::Logic
 
 
         begin
-          configured_colonels = OT.conf[:colonels] || []
+          configured_colonels = OT.conf[:authentication][:colonels] || []
 
           first_colonel = nil
           configured_colonels.each do |colonel_email|

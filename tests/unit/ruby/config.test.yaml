@@ -1,16 +1,6 @@
 ---
 :site:
   :host: '127.0.0.1:3000'
-  :domains:
-    :enabled: false
-    # The default domain used for link URLs. When not set or empty,
-    # site.host is used.
-    :default: <%= ENV['DEFAULT_DOMAIN'] || nil %>
-    # The cluster type determines how the application will support
-    # multiple domains. The default is nil which means that the
-    # application itself is responsible for handling multiple domains.
-    :cluster:
-      :type: <%= ENV['CLUSTER_TYPE'] || nil %>
   # Turns https/http on or off when generating links
   :ssl: true
   :secret: SuP0r_53cRU7
@@ -33,6 +23,8 @@
     # an instance for your team or company, you can disable this feature
     # to make it easier for users to sign in.
     :autoverify: false
+    :colonels:
+      - 'CHANGEME@EXAMPLE.com'
   :authenticity:
     :type: <%= ENV['AUTHENTICITY_TYPE'] || 'altcha' %>
     :secret_key: <%= ENV['AUTHENTICITY_SECRET_KEY'] || 'your-secret-key' %>
@@ -69,8 +61,6 @@
     :feedback: 11
     :rate_limit: 2
     :exception_info: 12
-:colonels:
-  - 'CHANGEME@EXAMPLE.com'
 :emailer:
   :mode: <%= ENV['EMAILER_MODE'] || 'smtp' %>
   :from: <%= ENV['FROM_EMAIL'] || ENV['FROM_EMAIL'] || 'tests@example.com' %>
@@ -149,6 +139,16 @@
       tracking_event: :unrecognized_error
       stdout: true
       # log_absolute_path: '/home/app/log/truemail.log'
+:domains:
+  :enabled: false
+  # The default domain used for link URLs. When not set or empty,
+  # site.host is used.
+  :default: <%= ENV['DEFAULT_DOMAIN'] || nil %>
+  # The cluster type determines how the application will support
+  # multiple domains. The default is nil which means that the
+  # application itself is responsible for handling multiple domains.
+  :cluster:
+    :type: <%= ENV['CLUSTER_TYPE'] || nil %>
 :internationalization:
   :enabled: true
   :default_locale: en

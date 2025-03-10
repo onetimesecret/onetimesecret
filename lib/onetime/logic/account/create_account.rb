@@ -50,7 +50,7 @@ module Onetime::Logic
         sess.custid = cust.custid
         sess.save
 
-        @customer_role = if OT.conf[:colonels].member?(cust.custid)
+        @customer_role = if OT.conf[:authentication][:colonels].member?(cust.custid)
                            'colonel'
                          else
                            'customer'
