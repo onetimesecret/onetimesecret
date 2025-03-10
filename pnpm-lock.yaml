@@ -13,7 +13,7 @@ importers:
         version: 1.7.23(vue@3.5.13(typescript@5.6.3))
       '@intlify/core':
         specifier: ^11.0.1
-        version: 11.0.1
+        version: 11.1.2
       '@prettier/plugin-ruby':
         specifier: ^4.0.4
         version: 4.0.4(prettier@3.4.2)
@@ -708,8 +708,8 @@ packages:
     resolution: {integrity: sha512-DZyQ4Hk22sC81MP4qiCDuU+LdaYW91A6lCjq8AWPvY3+mGMzhGDfOCzvyR6YBQxtlPjFqMoFk9ylnNYRAQwXtQ==}
     engines: {node: '>= 16'}
 
-  '@intlify/core@11.0.1':
-    resolution: {integrity: sha512-QBmit2KbVo+9mDiMTula7ZEBzxqd6j9cttHvH8tSiY16tymIN3eJBagAEes9Q1ZGUgypq8PiT966qHvn6Fzwug==}
+  '@intlify/core@11.1.2':
+    resolution: {integrity: sha512-OnBHcGRJbaeGrmBJV4YuK2E0xR7p1nKy1BeVqUqAFv9PQtYuY17cmdEoA3XjwN8HpuE2AsKwWyTmQ3nvFwx+yw==}
     engines: {node: '>= 16'}
 
   '@intlify/devtools-types@11.0.1':
@@ -4017,10 +4017,10 @@ snapshots:
       '@intlify/message-compiler': 9.14.2
       '@intlify/shared': 9.14.2
 
-  '@intlify/core@11.0.1':
+  '@intlify/core@11.1.2':
     dependencies:
-      '@intlify/core-base': 11.0.1
-      '@intlify/shared': 11.0.1
+      '@intlify/core-base': 11.1.2
+      '@intlify/shared': 11.1.2
 
   '@intlify/devtools-types@11.0.1':
     dependencies:
