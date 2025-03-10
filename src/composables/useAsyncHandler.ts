@@ -88,7 +88,7 @@ export { createError, errorGuards, wrapError }; // Re-export for convenience
  * ```
  */
 export function useAsyncHandler(options: AsyncHandlerOptions = {}) {
-  const sentry = inject(SENTRY_KEY) as SentryInstance;
+  const sentry = inject(SENTRY_KEY, null) as SentryInstance | null;
 
   // Default implementations that will be used if no options provided
   const handlers = {
