@@ -9,13 +9,13 @@ module Onetime::App
       include SendGrid
 
       def send_email(to_address, subject, html_content, text_content, test_mode=false)
-        OT.ld '[email-send-start]'
         mailer_response = nil
-
         obscured_address = OT::Utils.obscure_email(to_address)
         sender_email = SendGrid::Email.new(email: self.from, name: self.fromname)
         to_email = SendGrid::Email.new(email: to_address)
         reply_to = SendGrid::Email.new(email: self.reply_to)
+
+        OT.ld "[email-send-start] sender:#{sender_email}; reply-to:#{reply_to}"
 
         # Return early if there is no system email address to send from
         if self.from.to_s.empty?

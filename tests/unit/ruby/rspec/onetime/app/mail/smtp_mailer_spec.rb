@@ -146,7 +146,7 @@ RSpec.describe Onetime::App::Mail::SMTPMailer do
           # Let's configure our test to match this behavior
 
           # Ensure the fromname is also nil to trigger the condition
-          mailer.fromname = nil
+          mailer.instance_variable_set(:@fromname, nil)
 
           # Now set the proper expectation
           expect(OT).to receive(:le).with("> [send-exception] No from address [to: r***@example.com]")

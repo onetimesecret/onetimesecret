@@ -10,8 +10,7 @@ Onetime.boot! :app
 Onetime::App::Mail::SendGridMailer.setup
 
 # Initialize mailer
-mailer = Onetime::App::Mail::SendGridMailer.new "sender@example.com"
-mailer.fromname = "Test Sender"
+mailer = Onetime::App::Mail::SendGridMailer.new "sender@example.com", "Test Sender"
 
 # Send test email with sandbox mode enabled
 response = mailer.send_email(

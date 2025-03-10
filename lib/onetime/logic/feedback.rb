@@ -96,8 +96,6 @@ module Onetime::Logic
 
       def send_feedback cust, message
         view = OT::App::Mail::FeedbackEmail.new cust, locale
-        view.emailer.from = OT.conf[:emailer][:from]
-        view.emailer.fromname = OT.conf[:emailer][:fromname]
         view.display_domain = self.display_domain
         view.domain_strategy = self.domain_strategy
         view.message = message

@@ -196,6 +196,7 @@ module Onetime
           mode: email_config[:mode],
           from: "'#{email_config[:fromname]} <#{email_config[:from]}>'",
           host: "#{email_config[:host]}:#{email_config[:port]}",
+          region: email_config[:region],
           user: email_config[:user],
           tls: email_config[:tls],
           auth: email_config[:auth], # this is an smtp feature and not credentials

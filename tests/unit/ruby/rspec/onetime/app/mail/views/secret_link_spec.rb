@@ -27,11 +27,6 @@ RSpec.describe Onetime::App::Mail::SecretLink do
       expect(secret_link[:signature_link]).to eq('https://onetimesecret.com/')
     end
 
-    it 'sets emailer from name after initialization' do
-      secret_link # Force initialization
-      expect(mail_emailer).to have_received(:fromname=).with('Onetime Secret')
-    end
-
     context 'with missing customer' do
       let(:mail_customer) { nil }
       it 'raises error' do

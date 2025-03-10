@@ -30,7 +30,7 @@ module Onetime::App
           cust&.email, # use for the reply-to field
         )
 
-        safe_mail_config = {
+        logsafe_config = {
           from: emailer_conf.fetch(:from, nil),
           fromname: emailer_conf.fetch(:fromname, nil),
           host: emailer_conf.fetch(:host, nil),
@@ -41,7 +41,7 @@ module Onetime::App
           region: emailer_conf.fetch(:region, nil),
           pass: "#{emailer_conf.fetch(:pass, nil).to_s.length} chars"
         }
-        OT.info "[mailer] #{mode} #{safe_mail_config.to_json}"
+        OT.info "[mailer] #{mode} #{logsafe_config.to_json}"
         init(*args) if respond_to? :init
       end
 
