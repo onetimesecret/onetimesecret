@@ -115,8 +115,6 @@ module Onetime::Logic
         cust.reset_secret = secret.key  # as a standalone rediskey, writes immediately
 
         view = OT::App::Mail::PasswordRequest.new cust, locale, secret
-        view.emailer.from = OT.conf[:emailer][:from]
-        view.emailer.fromname = OT.conf[:emailer][:fromname]
 
         OT.ld "Calling deliver_email with token=(#{self.token})"
 

@@ -161,8 +161,7 @@ module Onetime
       eaddrs.each do |email_address|
         view = template.new cust, locale, secret, email_address
         view.ticketno = ticketno if (ticketno)
-        view.emailer.from = cust.custid
-        view.emailer.fromname = ''
+        view.emailer.reply_to = cust.custid
         view.deliver_email self.token  # pass the token from spawn_pair through
         break # force just a single recipient
       end

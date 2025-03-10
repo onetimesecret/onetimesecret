@@ -3,9 +3,11 @@ module Onetime::App
   module Mail
 
     class BaseMailer
-      attr_accessor :from, :fromname, :reply_to
+      attr_accessor :reply_to
+      attr_reader :from, :fromname
 
       def initialize(from, fromname, reply_to=nil)
+        OT.ld "[mail-init] from:#{from}, fromname:#{fromname}, reply-to:#{reply_to}"
         @from = from
         @fromname = fromname
         @reply_to = reply_to

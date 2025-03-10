@@ -102,7 +102,7 @@
   # Web UI: http://localhost:8025
   #
   #  :mode: smtp                      # Use SMTP mode for local testing
-  #  :from: support@onetimesecret.com # Sender address
+  #  :from: secure@onetimesecret.com # Sender address
   #  :fromname: OTS Support          # Sender name
   #  :host: 127.0.0.1                # Mailpit host
   #  :port: 1025                     # Mailpit default SMTP port
