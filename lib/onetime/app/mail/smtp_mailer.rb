@@ -13,7 +13,7 @@ module Onetime::App
         mailer_response = nil
 
         obscured_address = OT::Utils.obscure_email to_address
-        sender_email = "#{fromname} <#{self.from}>"
+        sender_email = self.from # just the email address, not with the name
         to_email = to_address
         reply_to = self.reply_to
 

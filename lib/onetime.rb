@@ -184,12 +184,24 @@ module Onetime
       OT.li "redis: #{redis_info['redis_version']} (#{Familia.uri.serverid})"
       OT.li "familia: v#{Familia::VERSION}"
       OT.li "colonels: #{OT.conf[:colonels].join(', ')}"
-      OT.li "mailer: #{@emailer}"
       OT.li "i18n: #{OT.i18n_enabled}"
       OT.li "locales: #{@locales.keys.join(', ')}" if OT.i18n_enabled
       OT.li "diagnotics: #{OT.d9s_enabled}"
       if OT.conf[:site].key?(:authentication)
         OT.li "auth: #{OT.conf[:site][:authentication].map { |k,v| "#{k}=#{v}" }.join(', ')}"
+      end
+      if OT.conf[:emailer]
+        email_config = OT.conf[:emailer]
+        mail_settings = {
+          mode: email_config[:mode],
+          from: "'#{email_config[:fromname]} <#{email_config[:from]}>'",
+          host: "#{email_config[:host]}:#{email_config[:port]}",
+          user: email_config[:user],
+          tls: email_config[:tls],
+          auth: email_config[:auth], # this is an smtp feature and not credentials
+        }.map { |k,v| "#{k}=#{v}" }.join(', ')
+        OT.li "mailer: #{@emailer}"
+        OT.li "mail: #{mail_settings}"
       end
       if OT.conf[:site].key?(:domains)
         OT.li "domains: #{OT.conf[:site][:domains].map { |k,v| "#{k}=#{v}" }.join(', ')}"
@@ -199,17 +211,6 @@ module Onetime
       end
       if OT.conf.fetch(:development, false)
         OT.li "development: #{OT.conf[:development].map { |k,v| "#{k}=#{v}" }.join(', ')}"
-      end
-      if OT.conf[:emailer]
-        email_config = OT.conf[:emailer]
-        mail_settings = {
-          smtp: "#{email_config[:host]}:#{email_config[:port]}",
-          from: email_config[:from],
-          mode: email_config[:mode],
-          tls: email_config[:tls],
-          auth: email_config[:auth], # this is an smtp feature and not credentials
-        }.map { |k,v| "#{k}=#{v}" }.join(', ')
-        OT.li "mail: #{mail_settings}"
       end
       if OT.conf.fetch(:experimental, false)
         OT.li "experimental: #{OT.conf[:experimental].map { |k,v| "#{k}=#{v}" }.join(', ')}"
