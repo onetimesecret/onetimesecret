@@ -25,7 +25,6 @@ describe('metadataListStore', () => {
     axiosMock = new AxiosMockAdapter(axiosInstance);
 
     store = useMetadataListStore();
-    store.setupAsyncHandler(axiosInstance);
   });
 
   afterEach(() => {
@@ -218,20 +217,19 @@ describe('metadataListStore', () => {
       });
 
       store = useMetadataListStore();
-      store.setupAsyncHandler(axiosInstance);
     });
     describe('error propagation and classification', () => {
       it('propagates human-facing errors to UI', async () => {
         store = useMetadataListStore();
-        store.setupAsyncHandler(axiosInstance, { notify: notifySpy });
+        // store.setupAsyncHandler(axiosInstance, { notify: notifySpy });
       });
 
       it('handles technical errors without user notification', async () => {
         store = useMetadataListStore();
-        store.setupAsyncHandler(axiosInstance, {
-          notify: notifySpy,
-          log: logSpy,
-        });
+        // store.setupAsyncHandler(axiosInstance, {
+        //   notify: notifySpy,
+        //   log: logSpy,
+        // });
       });
 
       it('classifies schema validation errors as technical errors', async () => {
