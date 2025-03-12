@@ -70,11 +70,29 @@ module Onetime::Logic
 
       def process_ttl
         @ttl = payload.fetch(:ttl, nil)
-        @ttl = 7.days if ttl.nil?
+
+        # Get configuration options. We can rely on these values existing
+        # because that are guaranteed by OT::Config.after_load.
+        secret_options = OT.conf[:site][:secret_options]
+        default_ttl = secret_options[:default_ttl]
+        ttl_options = secret_options[:ttl_options]
+
+        # Get min/max values safely
+        min_ttl = ttl_options.min || 1.minute      # Fallback to 1 minute
+        max_ttl = plan.options[:ttl] || ttl_options.max || 7.days  # Fallback to 7 days
+
+        # Apply default if nil
+        @ttl = default_ttl || 7.days if ttl.nil?
+
+        # Convert to integer
         @ttl = ttl.to_i
+
+        # Apply plan constraints
         @ttl = plan.options[:ttl] if ttl && ttl >= plan.options[:ttl]
-        @ttl = 7.days if @ttl <= 0
-        @ttl = 1.minute if @ttl < 1.minute # minimum ttl, was 5m prior to 2025-01-12
+
+        # Enforce bounds
+        @ttl = min_ttl if ttl < min_ttl
+        @ttl = max_ttl if ttl > max_ttl
       end
 
       def process_secret

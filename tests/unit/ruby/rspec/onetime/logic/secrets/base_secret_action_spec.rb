@@ -40,19 +40,19 @@ RSpec.describe Onetime::Logic::Secrets::BaseSecretAction do
     it 'sets default TTL when none provided' do
       subject.instance_variable_set(:@payload, {})
       subject.send(:process_ttl)
-      expect(subject.ttl).to eq(7.days)
+      expect(subject.ttl).to eq(12.hours)
     end
 
     it 'enforces minimum TTL' do
       subject.instance_variable_set(:@payload, {ttl: '30'}) # 30 seconds
       subject.send(:process_ttl)
-      expect(subject.ttl).to eq(1.minute)
+      expect(subject.ttl).to eq(30.minutes)
     end
 
     it 'enforces minimum TTL' do
       subject.instance_variable_set(:@payload, {'ttl' => '30'}) # 30 seconds
       subject.send(:process_ttl)
-      expect(subject.ttl).to eq(1.minute)
+      expect(subject.ttl).to eq(30.minutes) # See config.test.yaml
     end
   end
 
