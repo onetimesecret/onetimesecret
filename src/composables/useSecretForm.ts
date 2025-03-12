@@ -2,6 +2,7 @@
 
 import { transforms } from '@/schemas/transforms';
 import { reactive } from 'vue';
+import { WindowService } from '@/services/window.service';
 import { z } from 'zod';
 
 export interface SecretFormState {
@@ -11,10 +12,7 @@ export interface SecretFormState {
     validate: () => boolean;
   };
   operations: {
-    updateField: <K extends keyof SecretFormData>(
-      field: K,
-      value: SecretFormData[K]
-    ) => void;
+    updateField: <K extends keyof SecretFormData>(field: K, value: SecretFormData[K]) => void;
     reset: () => void;
   };
 }
@@ -39,9 +37,12 @@ export type SecretFormData = z.infer<typeof formSchema>;
  * Creates default form state
  */
 function getDefaultFormState(): SecretFormData {
+  // Get system configuration for default TTL
+  const secretOptions = WindowService.get('secret_options');
+
   return {
     secret: '',
-    ttl: 3600 * 24 * 7,
+    ttl: secretOptions.default_ttl ?? 3600 * 24 * 7,
     passphrase: '',
     recipient: '',
     share_domain: '',
@@ -68,10 +69,7 @@ export function useSecretForm() {
   const errors = reactive(new Map<keyof SecretFormData, string>());
 
   const operations = {
-    updateField: <K extends keyof SecretFormData>(
-      field: K,
-      value: SecretFormData[K]
-    ) => {
+    updateField: <K extends keyof SecretFormData>(field: K, value: SecretFormData[K]) => {
       form[field] = value;
     },
     reset: () => Object.assign(form, getDefaultFormState()),
