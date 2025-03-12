@@ -64,9 +64,9 @@ describe('Language Store', () => {
       store.init(undefined, {
         deviceLocale: 'es-ES',
       });
-      const setupAsyncHandlerSpy = vi.spyOn(sessionStorage, 'getItem').mockReturnValueOnce(null);
+      const sessionGetItemSpy = vi.spyOn(sessionStorage, 'getItem').mockReturnValueOnce(null);
       expect(store.currentLocale).toBe('es');
-      // expect(setupAsyncHandlerSpy).toBeCalledTimes(0);
+      // expect(sessionGetItemSpy).toBeCalledTimes(0);
     });
 
     it('initializes with deviceLocale (de)', () => {
@@ -78,11 +78,11 @@ describe('Language Store', () => {
     });
 
     it('initializes with stored locale', () => {
-      const setupAsyncHandlerSpy = vi.spyOn(sessionStorage, 'getItem').mockReturnValueOnce('fr');
+      const sessionGetItemSpy = vi.spyOn(sessionStorage, 'getItem').mockReturnValueOnce('fr');
       const store = useLanguageStore();
       store.init();
       expect(store.currentLocale).toBe('fr');
-      expect(setupAsyncHandlerSpy).toBeCalled();
+      expect(sessionGetItemSpy).toBeCalled();
     });
   });
 
@@ -95,7 +95,7 @@ describe('Language Store', () => {
       axiosInstance = createApi();
       axiosMock = new AxiosMockAdapter(axiosInstance);
       store = useLanguageStore();
-      store.setupAsyncHandler(axiosInstance);
+
       store.supportedLocales = ['en', 'fr'];
     });
 

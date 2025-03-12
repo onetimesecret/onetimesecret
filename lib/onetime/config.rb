@@ -91,7 +91,6 @@ module Onetime
         2.weeks,        # 1209600
         30.days,        # 2592000
       ]
-
       # Disable all authentication sub-features when main feature is off for
       # consistency, security, and to prevent unexpected behavior. Ensures clean
       # config state.
@@ -162,7 +161,6 @@ module Onetime
       end
 
       diagnostics = OT.conf.fetch(:diagnostics, {})
-      OT.d9s_enabled = diagnostics[:enabled] || false
 
       # Apply the defaults to sentry backend and frontend configs
       # and update the config with the merged values.
@@ -175,10 +173,12 @@ module Onetime
       sentry = merged[:backend]
       dsn = sentry.fetch(:dsn, nil)
 
-      if OT.d9s_enabled && !dsn.nil?
+      # Only require Sentry if we have a DSN
+      OT.d9s_enabled = (diagnostics[:enabled] || false) && !dsn.nil?
+
+      if OT.d9s_enabled
         OT.ld "Setting up Sentry #{sentry}..."
 
-        # Require only if we have a DSN
         require 'sentry-ruby'
         require 'stackprof'
 

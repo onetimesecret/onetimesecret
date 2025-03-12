@@ -16,10 +16,14 @@ export const stateFixture: OnetimeWindow = {
   domains_enabled: false,
   email: 'test@example.com',
   frontend_host: 'https://dev.onetimesecret.com',
-  locale: 'en',
+
   is_default_locale: false,
+  fallback_locale: 'en',
+  default_locale: 'en',
+  locale: 'en',
   supported_locales: ['en', 'es', 'fr'],
-  ot_version: '0.19.0 (a5ccaf82)',
+
+  ot_version: '0.20.0 (abcd)',
   plans_enabled: true,
   regions_enabled: true,
   ruby_version: 'ruby-335',

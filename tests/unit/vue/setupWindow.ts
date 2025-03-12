@@ -10,18 +10,26 @@ export const windowMock = {
 };
 
 export function setupWindowState(state = stateFixture) {
-  const windowMockWithState = {
-    ...window,
-    __ONETIME_STATE__: state,
+  // Keep any existing window state and override with new state
+  window.__ONETIME_STATE__ = {
+    ...(window.__ONETIME_STATE__ || {}),
+    ...state,
   };
-
-  return windowMockWithState;
+  return window;
 }
 
 export function setupEmptyWindowState() {
-  const windowMockWithState = setupWindowState({});
-  console.debug('setupEmptyWindowState', windowMockWithState);
-  Object.defineProperties(window, Object.getOwnPropertyDescriptors(windowMockWithState));
+  // Don't use empty object - provide required i18n fields
+  const minimalState = {
+    supported_locales: ['en', 'fr', 'es'],
+    fallback_locale: 'en',
+    default_locale: 'en',
+    locale: 'en',
+  };
+
+  window.__ONETIME_STATE__ = minimalState;
+  console.debug('setupEmptyWindowState', window.__ONETIME_STATE__);
+  return window;
 }
 
 export function setupWindowMedia(query = '(prefers-color-scheme: dark)') {
