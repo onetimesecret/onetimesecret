@@ -36,19 +36,13 @@ interface PrivacyOptionsState {
  */
 /* eslint-disable max-lines-per-function */
 export function usePrivacyOptions(formOperations?: {
-  updateField: <K extends keyof SecretFormData>(
-    field: K,
-    value: SecretFormData[K]
-  ) => void;
+  updateField: <K extends keyof SecretFormData>(field: K, value: SecretFormData[K]) => void;
 }) {
   const { t } = useI18n();
 
   const config: PrivacyConfig = {
     plan: WindowService.get('plan') ?? null,
-    secretOptions: WindowService.get('secret_options') ?? {
-      default_ttl: 7200,
-      ttl_options: [7200],
-    },
+    secretOptions: WindowService.get('secret_options'),
   };
 
   // UI State

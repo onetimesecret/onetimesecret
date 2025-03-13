@@ -203,7 +203,7 @@
       :trackComponents: true
 :limits:
   :create_secret: 250
-  :create_account: 10
+  :create_account: 100
   :update_account: 10
   :email_recipient: 50
   :send_feedback: 10

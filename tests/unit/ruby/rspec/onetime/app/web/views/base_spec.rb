@@ -124,8 +124,17 @@ RSpec.describe Onetime::App::View do
       ))
     end
 
-    it 'sets diagnostic variables when enabled' do
-      expect(subject[:jsvars][:d9s_enabled]).to be true
+    it 'sets diagnostic variables when enabled and DSN provided' do
+      expect(subject[:jsvars][:diagnostics]).to eq({
+        sentry: {
+          dsn: 'https://test-dsn@sentry.example.com/1',
+        }
+      })
+      expect(subject[:jsvars][:d9s_enabled]).to be OT.d9s_enabled
+    end
+
+    it 'sets diagnostic to disabled when DSN not provided' do
+      expect(subject[:jsvars][:d9s_enabled]).to be false
       expect(subject[:jsvars][:diagnostics]).to eq({
         sentry: {
           dsn: 'https://test-dsn@sentry.example.com/1',
