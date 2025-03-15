@@ -6,7 +6,7 @@ require_relative 'vite_helpers'
 module Onetime
   module App
 
-    class View < Mustache
+    class View < Chimera
       include Onetime::App::Views::ViewHelpers
       include Onetime::App::Views::ViteHelpers
       include Onetime::TimeUtils
@@ -188,6 +188,8 @@ module Onetime
       end
 
       def i18n
+        return @i18n if defined?(@i18n)
+
         pagename = self.class.pagename
         messages = OT.locales.fetch(self.locale, {})
 
@@ -203,11 +205,16 @@ module Onetime
           messages = OT.locales.fetch(OT.default_locale, {})
         end
 
-        @i18n ||= {
+        # Ensure we have at least empty hashes for the necessary keys
+        web_messages = messages.fetch(:web, {})
+        common_messages = web_messages.fetch(:COMMON, {})
+        page_messages = web_messages.fetch(pagename, {})
+
+        @i18n = {
           locale: self.locale,
           default: OT.default_locale,
-          page: messages.dig(:web, pagename),
-          COMMON: messages.dig(:web, :COMMON),
+          page: page_messages,
+          COMMON: common_messages,
         }
       end
 
@@ -226,13 +233,20 @@ module Onetime
         add_message(msg, 'error')
       end
 
-      class << self
-        # pagename must stay here while we use i18n method above. It populates
-        # the i18n[:web][:pagename] hash with the locale translations, provided
-        # the view being used has a matching name in the locales file.
-        def pagename
-          @pagename ||= self.name.split('::').last.downcase.to_sym
-        end
+      # NOTE: There's some speculation that setting a class instance variable
+      # inside the class method could present a race condition in between the
+      # check for nil and running the expression to set it. It's possible but
+      # every thread will produce the same result. Winning by technicality is
+      # one thing but the reality of software development is another. Process
+      # is more important than clever design. Instead, a safer practice is to
+      # set the class instance variable here in the class definition.
+      @pagename = self.name.split('::').last.downcase.to_sym
+
+      # pagename must stay here while we use i18n method above. It populates
+      # the i18n[:web][:pagename] hash with the locale translations, provided
+      # the view being used has a matching name in the locales file.
+      def self.pagename
+        @pagename
       end
 
     end

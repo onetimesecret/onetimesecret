@@ -138,8 +138,22 @@ module Onetime
     private
 
     def prepare_emailers
-      @emailer = Onetime::App::Mail::SMTPMailer
-      @emailer.setup
+      mail_mode = OT.conf[:emailer][:mode].to_s.to_sym
+
+      mailer_class = case mail_mode
+      when :sendgrid
+        Onetime::App::Mail::SendGridMailer
+      when :ses
+        Onetime::App::Mail::AmazonSESMailer
+      when :smtp
+        Onetime::App::Mail::SMTPMailer
+      else
+        OT.le "Unsupported mail mode: #{mail_mode}, falling back to SMTP"
+        Onetime::App::Mail::SMTPMailer
+      end
+
+      mailer_class.setup
+      @emailer = mailer_class
     end
 
     def set_global_secret
@@ -176,6 +190,20 @@ module Onetime
       if OT.conf[:site].key?(:authentication)
         OT.li "auth: #{OT.conf[:site][:authentication].map { |k,v| "#{k}=#{v}" }.join(', ')}"
       end
+      if OT.conf[:emailer]
+        email_config = OT.conf[:emailer]
+        mail_settings = {
+          mode: email_config[:mode],
+          from: "'#{email_config[:fromname]} <#{email_config[:from]}>'",
+          host: "#{email_config[:host]}:#{email_config[:port]}",
+          region: email_config[:region],
+          user: email_config[:user],
+          tls: email_config[:tls],
+          auth: email_config[:auth], # this is an smtp feature and not credentials
+        }.map { |k,v| "#{k}=#{v}" }.join(', ')
+        OT.li "mailer: #{@emailer}"
+        OT.li "mail: #{mail_settings}"
+      end
       if OT.conf[:site].key?(:domains)
         OT.li "domains: #{OT.conf[:site][:domains].map { |k,v| "#{k}=#{v}" }.join(', ')}"
       end
@@ -184,17 +212,6 @@ module Onetime
       end
       if OT.conf.fetch(:development, false)
         OT.li "development: #{OT.conf[:development].map { |k,v| "#{k}=#{v}" }.join(', ')}"
-      end
-      if OT.conf[:emailer]
-        email_config = OT.conf[:emailer]
-        mail_settings = {
-          smtp: "#{email_config[:host]}:#{email_config[:port]}",
-          from: email_config[:from],
-          mode: email_config[:mode],
-          tls: email_config[:tls],
-          auth: email_config[:auth], # this is an smtp feature and not credentials
-        }.map { |k,v| "#{k}=#{v}" }.join(', ')
-        OT.li "mail: #{mail_settings}"
       end
       if OT.conf.fetch(:experimental, false)
         OT.li "experimental: #{OT.conf[:experimental].map { |k,v| "#{k}=#{v}" }.join(', ')}"

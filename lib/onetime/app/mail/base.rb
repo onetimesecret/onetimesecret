@@ -4,38 +4,44 @@ require_relative '../web/views/view_helpers'
 module Onetime::App
   module Mail
 
-    class Base < Mustache
+    class Base < Chimera
       include Onetime::App::Views::ViewHelpers
 
       self.template_path = './templates/mail'
       self.view_namespace = Onetime::App::Mail
       self.view_path = './onetime/email'
+
       attr_reader :cust, :locale, :emailer, :mode, :from, :to
-      attr_accessor :token
+      attr_accessor :token, :text_template
 
       def initialize cust, locale, *args
-        @cust, @locale = cust, locale
+        @cust = cust
+        @locale = locale
         OT.ld "#{self.class} locale is: #{locale.to_s}"
-        @mode = OT.conf[:emailer][:mode]
 
-        if @mode == :sendgrid
-          OT.ld "[mail-sendgrid-from] #{OT.conf[:emailer][:from]}"
-          @emailer = OT::App::Mail::SendGridMailer.new OT.conf[:emailer][:from], OT.conf[:emailer][:fromname]
-        else
-          OT.ld "[mail-smtp-from] #{OT.conf[:emailer][:from]}"
-          @emailer = OT::App::Mail::SMTPMailer.new OT.conf[:emailer][:from]
-        end
+        emailer_conf = OT.conf.fetch(:emailer, {})
 
-        safe_mail_config = {
-          from: OT.conf[:emailer][:from],
-          fromname: OT.conf[:emailer][:fromname],
-          host: OT.conf[:emailer][:host],
-          port: OT.conf[:emailer][:port],
-          user: OT.conf[:emailer][:user],
-          tls: OT.conf[:emailer][:tls],
-          auth: OT.conf[:emailer][:auth],
+        @mode = emailer_conf.fetch(:mode, 'smtp').to_s.to_sym
+
+        # Create a new instance of the configured mailer class for this request
+        @emailer = OT.emailer.new(
+          emailer_conf.fetch(:from, nil),
+          emailer_conf.fetch(:fromname, nil),
+          cust&.email, # use for the reply-to field
+        )
+
+        logsafe_config = {
+          from: emailer_conf.fetch(:from, nil),
+          fromname: emailer_conf.fetch(:fromname, nil),
+          host: emailer_conf.fetch(:host, nil),
+          port: emailer_conf.fetch(:port, nil),
+          user: emailer_conf.fetch(:user, nil),
+          tls: emailer_conf.fetch(:tls, nil),
+          auth: emailer_conf.fetch(:auth, nil),
+          region: emailer_conf.fetch(:region, nil),
+          pass: "#{emailer_conf.fetch(:pass, nil).to_s.length} chars"
         }
-        OT.info "[mailer] #{mode} #{safe_mail_config.to_json}"
+        OT.info "[mailer] #{mode} #{logsafe_config.to_json}"
         init(*args) if respond_to? :init
       end
 
@@ -69,7 +75,7 @@ module Onetime::App
           # flag that when set to any truthy value will skip over this delivery.
           # See Onetime::App::API#create
           unless token
-            emailer.send_email self[:email_address], subject, render
+            emailer.send_email self[:email_address], subject, render_html, render_text
           end
 
         rescue SocketError => ex
@@ -95,6 +101,23 @@ module Onetime::App
 
         OT.info "[email-sent] to #{email_address_obscured} #{self[:cust].identifier} #{message_identifier}"
         mailer_response
+      end
+
+      def render_html
+        render
+      end
+
+      def render_text
+        clone = self.clone
+        # Create a new options hash if none exists, or duplicate the existing one
+        opts = clone.instance_variable_get(:@options)
+        opts = opts ? opts.dup : {}
+        # Set template extension
+        opts[:template_extension] = 'txt'
+        # Update the options in the cloned instance
+        clone.instance_variable_set(:@options, opts)
+        # require 'pry-byebug'; binding.pry
+        clone.render
       end
 
       def private_uri(obj)

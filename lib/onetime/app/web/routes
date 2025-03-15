@@ -6,7 +6,6 @@ GET   /robots.txt                                Onetime::App::Page#robots_txt
 
 POST  /incoming                                  Onetime::App::Data#create_incoming
 
-POST  /signup                                    Onetime::App::Data#create_account
 GET   /plans/:tier                               Onetime::App::Data#plan_redirect
 GET   /plans/:tier/:billing_cycle                Onetime::App::Data#plan_redirect
 GET   /welcome                                   Onetime::App::Data#welcome
@@ -16,6 +15,7 @@ GET   /private/*                                 Onetime::App::Page#index
 GET   /secret/*                                  Onetime::App::Page#index
 
 POST  /signin                                    Onetime::App::Data#authenticate
+POST  /signup                                    Onetime::App::Data#create_account
 
 GET   /about                                     Onetime::App::Page#index
 GET   /translations                              Onetime::App::Page#index

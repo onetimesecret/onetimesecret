@@ -33,7 +33,6 @@ module Onetime::App
         self[:from_name] = OT.conf[:emailer][:fromname]
         self[:from] = OT.conf[:emailer][:from]
         self[:signature_link] = 'https://onetimesecret.com/'
-        emailer.fromname = 'Onetime Secret'
       end
       def subject
         i18n[:email][:subject] % [self[:custid]] # e.g. "ABC" sent you a secret
@@ -56,7 +55,6 @@ module Onetime::App
         self[:from_name] = from_name
         self[:from] = OT.conf[:emailer][:from]
         self[:signature_link] = baseuri
-        emailer.fromname = from_name
       end
 
       def special_fortune

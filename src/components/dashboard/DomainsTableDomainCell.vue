@@ -37,7 +37,7 @@
         target="_blank"
         rel="noopener noreferrer"
         class="inline-flex items-center text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300"
-        title="$t('open-domain-in-new-tab')">
+        :title="$t('open-domain-in-new-tab')">
         <svg
           xmlns="http://www.w3.org/2000/svg"
           class="h-4 w-4"

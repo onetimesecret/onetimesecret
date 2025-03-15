@@ -1,11 +1,13 @@
-# frozen_string_literal: true
-
-# warn_indent: true
+# lib/onetime/app/web/views.rb
 
 require 'mustache'
 
-class Mustache
+class Chimera < Mustache
   self.template_extension = 'html'
+
+  def options
+    @options
+  end
 
   def self.partial(name)
     path = "#{template_path}/#{name}.#{template_extension}"
@@ -18,6 +20,7 @@ class Mustache
     end
   end
 end
+
 
 module Onetime
   module App

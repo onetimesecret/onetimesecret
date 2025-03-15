@@ -45,7 +45,7 @@ MAIL
 mailer = Net::SMTP.new(smtp_host, smtp_port)
 mailer.enable_starttls
 
-puts "Using account #{smtp_username} on host #{smtp_host}"
+puts "Using account #{smtp_username} on host #{smtp_host} (destination: #{to_email})"
 
 begin
   mailer.start(smtp_host, smtp_username, smtp_password, :login) do |smtp|

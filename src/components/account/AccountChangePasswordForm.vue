@@ -36,7 +36,7 @@ const { formState, isValid, handleSubmit, togglePassword } = usePasswordChange(e
                id="currentPassword"
                v-model="formState.currentPassword"
                required
-               tabindex="1"
+               tabindex="0"
                autocomplete="current-password"
                :aria-label="$t('web.account.changePassword.currentPassword')"
                aria-labelledby="currentPasswordLabel"
@@ -64,7 +64,7 @@ const { formState, isValid, handleSubmit, togglePassword } = usePasswordChange(e
                id="newPassword"
                v-model="formState.newPassword"
                required
-               tabindex="2"
+               tabindex="0"
                autocomplete="new-password"
                :aria-label="$t('web.account.changePassword.newPassword')"
                aria-labelledby="newPasswordLabel"
@@ -92,7 +92,7 @@ const { formState, isValid, handleSubmit, togglePassword } = usePasswordChange(e
                id="confirmPassword"
                v-model="formState.confirmPassword"
                required
-               tabindex="3"
+               tabindex="0"
                autocomplete="confirm-password"
                :aria-label="$t('web.account.changePassword.newPassword')"
                aria-labelledby="confirmPasswordLabel"

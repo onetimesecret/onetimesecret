@@ -8,6 +8,24 @@ RSpec.describe Onetime::App::View do
   include_context "rack_test_context"
   include_context "view_test_context"
 
+  before(:each) do
+    allow(OT).to receive(:default_locale).and_return('en')
+    allow(OT).to receive(:fallback_locale).and_return('en')
+    allow(OT).to receive(:supported_locales).and_return(['en'])
+    allow(OT).to receive(:i18n_enabled).and_return(true)
+
+    allow(OT).to receive(:locales).and_return({
+      'en' => {
+        web: {
+          COMMON: {
+            description: 'Test Description',
+            keywords: 'test,keywords'
+          }
+        }
+      }
+    })
+  end
+
   subject { described_class.new(rack_request, session, customer) }
 
   describe '#initialize' do
@@ -106,8 +124,17 @@ RSpec.describe Onetime::App::View do
       ))
     end
 
-    it 'sets diagnostic variables when enabled' do
-      expect(subject[:jsvars][:d9s_enabled]).to be true
+    it 'sets diagnostic variables when enabled and DSN provided' do
+      expect(subject[:jsvars][:diagnostics]).to eq({
+        sentry: {
+          dsn: 'https://test-dsn@sentry.example.com/1',
+        }
+      })
+      expect(subject[:jsvars][:d9s_enabled]).to be OT.d9s_enabled
+    end
+
+    it 'sets diagnostic to disabled when DSN not provided' do
+      expect(subject[:jsvars][:d9s_enabled]).to be false
       expect(subject[:jsvars][:diagnostics]).to eq({
         sentry: {
           dsn: 'https://test-dsn@sentry.example.com/1',

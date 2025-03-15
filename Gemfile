@@ -19,7 +19,7 @@ gem 'truemail'
 
 gem 'addressable'
 
-gem 'rack', '>= 2.2', '< 3.0'
+gem 'rack', '>= 2.2.12', '< 3.0'
 gem 'rack-contrib', '~> 2.5'
 
 gem 'dotenv'
@@ -71,6 +71,7 @@ gem 'rdoc'     # IRB
 gem 'reline'
 
 # Third-party services
+gem 'aws-sdk-sesv2', '~> 1.7'
 gem 'sendgrid-ruby'
 gem "sentry-ruby", require: false
 gem 'stripe', require: false
