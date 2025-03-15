@@ -31,7 +31,7 @@ importers:
         version: 21.1.7
       '@vueuse/integrations':
         specifier: ^12.4.0
-        version: 12.4.0(axios@1.8.2)(focus-trap@7.6.0)(typescript@5.6.3)
+        version: 12.4.0(axios@1.8.2)(focus-trap@7.6.4)(typescript@5.6.3)
       altcha:
         specifier: ^1.1.0
         version: 1.1.0
@@ -52,10 +52,10 @@ importers:
         version: 3.2.4
       focus-trap:
         specifier: ^7.6.0
-        version: 7.6.0
+        version: 7.6.4
       focus-trap-vue:
         specifier: ^4.0.3
-        version: 4.0.3(focus-trap@7.6.0)(vue@3.5.13(typescript@5.6.3))
+        version: 4.0.3(focus-trap@7.6.4)(vue@3.5.13(typescript@5.6.3))
       pinia:
         specifier: ^2.2.6
         version: 2.2.6(typescript@5.6.3)(vue@3.5.13(typescript@5.6.3))
@@ -2073,8 +2073,8 @@ packages:
       focus-trap: ^7.0.0
       vue: ^3.0.0
 
-  focus-trap@7.6.0:
-    resolution: {integrity: sha512-1td0l3pMkWJLFipobUcGaf+5DTY4PLDDrcqoSaKP8ediO/CoWCCYk/fT/Y2A4e6TNB+Sh6clRJCjOPPnKoNHnQ==}
+  focus-trap@7.6.4:
+    resolution: {integrity: sha512-xx560wGBk7seZ6y933idtjJQc1l+ck+pI3sKvhKozdBV1dRZoKhkW5xoCaFv9tQiX5RH1xfSxjuNu6g+lmN/gw==}
 
   follow-redirects@1.15.9:
     resolution: {integrity: sha512-gew4GsXizNgdoRyqmyfMHyAmXsZDk6mHkSxZFCzW9gwlbtOW44CDtYavM+y+72qD/Vq2l550kMF52DT8fOLJqQ==}
@@ -4768,14 +4768,14 @@ snapshots:
     transitivePeerDependencies:
       - typescript
 
-  '@vueuse/integrations@12.4.0(axios@1.8.2)(focus-trap@7.6.0)(typescript@5.6.3)':
+  '@vueuse/integrations@12.4.0(axios@1.8.2)(focus-trap@7.6.4)(typescript@5.6.3)':
     dependencies:
       '@vueuse/core': 12.4.0(typescript@5.6.3)
       '@vueuse/shared': 12.4.0(typescript@5.6.3)
       vue: 3.5.13(typescript@5.6.3)
     optionalDependencies:
       axios: 1.8.2
-      focus-trap: 7.6.0
+      focus-trap: 7.6.4
     transitivePeerDependencies:
       - typescript
 
@@ -5622,12 +5622,12 @@ snapshots:
 
   flatted@3.3.2: {}
 
-  focus-trap-vue@4.0.3(focus-trap@7.6.0)(vue@3.5.13(typescript@5.6.3)):
+  focus-trap-vue@4.0.3(focus-trap@7.6.4)(vue@3.5.13(typescript@5.6.3)):
     dependencies:
-      focus-trap: 7.6.0
+      focus-trap: 7.6.4
       vue: 3.5.13(typescript@5.6.3)
 
-  focus-trap@7.6.0:
+  focus-trap@7.6.4:
     dependencies:
       tabbable: 6.2.0
 
