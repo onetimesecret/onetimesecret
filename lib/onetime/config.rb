@@ -69,8 +69,16 @@ module Onetime
         raise OT::Problem, "No `mail` config found in #{path}"
       end
 
+      mtc = conf[:mail][:truemail]
+      OT.ld "Setting TrueMail config from #{path}"
+      raise OT::Problem, "No TrueMail config found" unless mtc
+
       unless conf[:site]&.key?(:authentication)
         raise OT::Problem, "No `site.authentication` config found in #{path}"
+      end
+
+      unless conf.dig(:site, :authentication)&.key?(:colonels)
+        conf[:site][:authentication][:colonels] = conf[:colonels] || []
       end
 
       unless conf[:site]&.key?(:domains)
@@ -114,7 +122,7 @@ module Onetime
       # Make sure colonels are in their proper location since previously
       # it was at the root level
       colonels = conf.fetch(:colonels, nil)
-      if colonels
+      if colonels && !conf.dig(:site, :authentication)&.key?(:colonels)
         conf[:site][:authentication] ||= {}
         conf[:site][:authentication][:colonels] = colonels
       end
@@ -171,10 +179,6 @@ module Onetime
         Stripe.api_key = stripe_key
       end
 
-      mtc = conf[:mail][:truemail]
-      OT.ld "Setting TrueMail config from #{path}"
-      raise OT::Problem, "No TrueMail config found" unless mtc
-
       # Iterate over the keys in the mail/truemail config
       # and set the corresponding key in the Truemail config.
       Truemail.configure do |config|
@@ -198,7 +202,7 @@ module Onetime
         sentry: merged
       }
 
-      sentry = merged[:backend]
+      sentry = merged[:backend] || {}
       dsn = sentry.fetch(:dsn, nil)
 
       # Only require Sentry if we have a DSN
