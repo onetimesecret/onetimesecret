@@ -51,8 +51,12 @@
     :autoverify: <%= ENV['AUTH_AUTOVERIFY'] == 'true' || false %>
     # Email addresses listed below will be granted automatic
     # administrative privileges upon account creation. These
-    # accounts will have full control over the system.
-    # Explanation: colonel is pronounced "kernel"
+    # accounts have access to a page that show basic system stats.
+    # The term "colonel" is used instead of "admin". "Colonel" (which
+    # is pronounced "kernel") references both the protected core of a
+    # Linux system and a military rank, symbolizing high-level access
+    # permissions. This naming helps avoid basic, automated attacks
+    # that target common admin URLs or role names.
     :colonels:
       - <%= ENV['COLONEL'] || 'CHANGEME@example.com' %>
   # Links to documentation. For onetimesecret.com, this is
