@@ -76,7 +76,13 @@ module Onetime
       OT.env = ENV['RACK_ENV'] || 'production'
       OT.d9s_enabled = false # diagnostics are disabled by default
 
-      @conf = OT::Config.load # load config before anything else.
+      # Normalize environment variables prior to loading the YAML config
+      OT::Config.before_load
+
+      # Loads the configuration and renders all value templates (ERB)
+      @conf = OT::Config.load
+
+      # Normalize OT.conf
       OT::Config.after_load(@conf)
 
       Familia.uri = OT.conf[:redis][:uri]

@@ -160,4 +160,63 @@ RSpec.describe Onetime::Config do
       expect(service_config[:defaults]).to eq(original_defaults)
     end
   end
+
+  describe '#before_load' do
+    before do
+      # Store original environment variables
+      @original_env = ENV.to_hash
+    end
+
+    after do
+      # Restore original environment variables
+      ENV.clear
+      @original_env.each { |k, v| ENV[k] = v }
+    end
+
+    context 'backwards compatability in v0.20.6' do
+      context 'when REGIONS_ENABLED is set' do
+        it 'keeps the REGIONS_ENABLED value' do
+          ENV['REGIONS_ENABLED'] = 'TESTA'
+          ENV.delete('REGIONS_ENABLE')
+
+          described_class.before_load
+
+          expect(ENV['REGIONS_ENABLED']).to eq('TESTA')
+        end
+      end
+
+      context 'when REGIONS_ENABLE is set but REGIONS_ENABLED is not' do
+        it 'copies REGIONS_ENABLE value to REGIONS_ENABLED' do
+          ENV.delete('REGIONS_ENABLED')
+          ENV['REGIONS_ENABLE'] = 'TESTB'
+
+          described_class.before_load
+
+          expect(ENV['REGIONS_ENABLED']).to eq('TESTB')
+        end
+      end
+
+      context 'when both REGIONS_ENABLED and REGIONS_ENABLE are set' do
+        it 'prioritizes REGIONS_ENABLED' do
+          ENV['REGIONS_ENABLED'] = 'TESTA'
+          ENV['REGIONS_ENABLE'] = 'TESTB'
+
+          described_class.before_load
+
+          expect(ENV['REGIONS_ENABLED']).to eq('TESTA')
+        end
+      end
+
+      context 'when neither REGIONS_ENABLED nor REGIONS_ENABLE are set' do
+        it 'sets REGIONS_ENABLED to false' do
+          ENV.delete('REGIONS_ENABLED')
+          ENV.delete('REGIONS_ENABLE')
+
+          described_class.before_load
+
+          expect(ENV['REGIONS_ENABLED']).to eq('false')
+        end
+      end
+    end
+  end
 end

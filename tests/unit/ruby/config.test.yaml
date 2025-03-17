@@ -45,7 +45,7 @@
   :plans:
     :enabled: false
   :regions:
-    :enabled: <%= ENV['REGIONS_ENABLE'] || false %>
+    :enabled: <%= ENV['REGIONS_ENABLED'] || false %>
     :current_jurisdiction: <%= ENV['JURISDICTION'] || 'EU' %>
     :jurisdictions:
       - :identifier: AT

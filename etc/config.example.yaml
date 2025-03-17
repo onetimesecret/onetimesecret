@@ -63,7 +63,7 @@
     :enabled: <%= ENV['PLANS_ENABLED'] == 'true' || false %>
     :stripe_key: <%= ENV['STRIPE_KEY'] || nil %>
   :regions:
-    :enabled: <%= ENV['REGIONS_ENABLE'] == 'true' || false %>
+    :enabled: <%= ENV['REGIONS_ENABLED'] == 'true' || false %>
     :current_jurisdiction: <%= ENV['JURISDICTION'] || nil %>
   :domains:
     :enabled: <%= ENV['DOMAINS_ENABLED'] == 'true' || false %>

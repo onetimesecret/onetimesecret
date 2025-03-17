@@ -1,7 +1,6 @@
 module Onetime
   module Config
     extend self
-    attr_writer :path
 
     unless defined?(SERVICE_PATHS)
       SERVICE_PATHS = %w[/etc/onetime ./etc].freeze
@@ -9,6 +8,17 @@ module Onetime
     end
 
     attr_reader :env, :base, :bootstrap
+    attr_writer :path
+
+    # Normalizes environment variables prior to loading and rendering the YAML
+    # configuration. In some cases, this might include setting default values
+    # and ensuring necessary environment variables are present.
+    def before_load
+
+      # In v0.20.6, REGIONS_ENABLE was renamed to REGIONS_ENABLED for
+      # consistency. We ensure both are considered for compatability.
+      ENV['REGIONS_ENABLED'] = ENV.values_at('REGIONS_ENABLED', 'REGIONS_ENABLE').compact.first || 'false'
+    end
 
     # Load a YAML configuration file, allowing for ERB templating within the file.
     # This reads the file at the given path, processes any embedded Ruby (ERB) code,
@@ -93,15 +103,13 @@ module Onetime
       ]
 
       # Make sure there is an interface config (for installs running off
-      # of an older config file.)
-      conf[:site][:interface] ||= {
-        ui: {
-          enabled: true,
-        },
-        api: {
-          enabled: true,
-        },
-      }
+      # of an older config file).
+      conf[:site][:interface] ||= {}
+
+      conf[:site][:interface] = {
+        ui: { enabled: true },
+        api: { enabled: true },
+      }.merge(conf[:site][:interface])
 
       # Make sure colonels are in their proper location since previously
       # it was at the root level
@@ -110,6 +118,7 @@ module Onetime
         conf[:site][:authentication] ||= {}
         conf[:site][:authentication][:colonels] = colonels
       end
+
       # Disable all authentication sub-features when main feature is off for
       # consistency, security, and to prevent unexpected behavior. Ensures clean
       # config state.
