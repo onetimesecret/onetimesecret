@@ -84,6 +84,7 @@ group :development do
   gem 'pry', require: false
   gem 'pry-byebug', require: false
   gem 'rack-proxy', require: false
+  gem 'rack-test', require: false
   gem 'rubocop', require: false
   gem 'rubocop-performance', require: false
   gem 'rubocop-thread_safety', require: false
