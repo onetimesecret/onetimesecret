@@ -8,6 +8,19 @@
   # location. Changing the secret can lead to unforeseen issues
   # like not being able to decrypt existing secrets.
   :secret: <%= ENV['SECRET'] || 'CHANGEME' %>
+  # API and UI Configuration
+  :interface:
+    # Controls whether the web user interface is available. When disabled, the
+    # homepage becomes a basic, readonly page with the logo and a brief
+    # explanation of the site and how it works. This is helpful for link
+    # recipients who may do some light investigation to see if the site is
+    # legit as opposed a blank page or 404.
+    :ui:
+      :enabled: <%= ENV['UI_ENABLED'] != 'false' %>
+    # Controls whether the API endpoints are available. When disabled, the API
+    # is compltely disabled. Requests to /api/* will return 404.
+    :api:
+      :enabled: <%= ENV['API_ENABLED'] != 'false' %>
   # Configuration options for secret management
   :secret_options:
     # Default Time-To-Live (TTL) for secrets in seconds
