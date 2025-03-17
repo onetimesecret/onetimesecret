@@ -4,6 +4,9 @@
   # Turns https/http on or off when generating links
   :ssl: true
   :secret: SuP0r_53cRU7
+  :secret_options:
+    :default_ttl: 43200 # 12 hours in seconds
+    :ttl_options: '1800 43200 604800' # 30m, 12h, 7d
   # Registration and Authentication settings
   :authentication:
     # Can be disabled altogether, including API authentication.
@@ -42,10 +45,6 @@
         :domain: ce.example.com
   :support:
     :host: <%= ENV['SUPPORT_HOST'] || nil %>
-  :secret_options:
-    :default_ttl: <%= ENV['DEFAULT_TTL'] || '43200' %> # 12 hours in seconds
-    # Default: 5 minutes, 30 minutes, 1 hour, 4 hours, 12 hours, 1 day, 3 days, 1 week, 2 weeks
-    :ttl_options: <%= (ENV['TTL_OPTIONS'] || '1800 43200 604800') %>
 :redis:
   :uri: 'redis://CHANGEME@127.0.0.1:6379/0'
   :config: ./try/redis.conf
