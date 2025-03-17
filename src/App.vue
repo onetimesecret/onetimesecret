@@ -39,7 +39,7 @@ const layoutProps = computed(() => ({
  * Root application component managing layouts and routing.
  *
  * Security Note:
- * - No keep-alive to prevent caching of sensitive data
+ * - No Vue keep-alive components to prevent caching of sensitive data
  * - Components force re-creation via :key binding
  * - Each route gets fresh component instance
  *
