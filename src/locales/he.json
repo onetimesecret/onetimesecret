@@ -40,7 +40,6 @@
       "sent_to": "שליחה אל: ",
       "field_email": "מייל",
       "field_password": "סיסמה",
-      "field_password": "סיסמה",
       "field_password2": "אימות סיסמה",
       "button_create_account": "יצירת חשבון",
       "share_a_secret": "שיתוף סוד",
@@ -107,6 +106,9 @@
       "incoming_ticket_number_hint": "תוכלו למצוא אותו במייל (לדוגמה 123456)",
       "incoming_recipient_address": "נמען תמיכה",
       "incoming_success_message": "המייל נשלח"
+    },
+    "signup": {
+      "create-your-account": "צור את חשבונך"
     }
   },
   "email": {
@@ -126,5 +128,8 @@
       "postscript1": "מייל זה נשלח ל",
       "postscript2": "אם לא יצרתם את החשבון, מחקו את ההודעה ולא ניצור עמכם קשר שוב."
     }
-  }
+  },
+  "email-address": "כתובת דוא\"ל",
+  "ai-generated-content-disclaimer": "תוכן שנוצר על ידי AI להפגנה. \nלא מאדם או חברה בפועל.",
+  "secure-links": "קישורים מאובטחים"
 }

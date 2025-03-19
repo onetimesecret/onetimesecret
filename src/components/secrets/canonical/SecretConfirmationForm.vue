@@ -1,3 +1,5 @@
+<!-- src/components/secrets/canonical/SecretConfirmationForm.vue -->
+
 <script setup lang="ts">
 import { Secret, SecretDetails } from '@/schemas/models';
 import { ref } from 'vue';

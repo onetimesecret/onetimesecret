@@ -3,15 +3,19 @@
 <script setup lang="ts">
 import AuthView from '@/components/auth/AuthView.vue';
 import SignInForm from '@/components/auth/SignInForm.vue';
+import { useLanguageStore } from '@/stores/languageStore';
+
+const languageStore = useLanguageStore();
 </script>
 
 <template>
   <AuthView
-    heading="Sign in to your account"
+    :heading="$t('sign-in-to-your-account')"
     heading-id="signin-heading"
     :with-subheading="true">
     <template #form>
-      <SignInForm />
+      <SignInForm
+        :locale="languageStore.currentLocale ?? ''" />
       <div class="mt-6 text-center">
         <ul class="space-y-2">
           <li>

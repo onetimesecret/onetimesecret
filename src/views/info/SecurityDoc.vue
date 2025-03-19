@@ -30,7 +30,7 @@ import EmailObfuscator from '@/components/EmailObfuscator.vue';
       <tbody>
         <tr class="border-b dark:border-gray-600">
           <td class="p-2 dark:text-gray-300">
-            0.19.x+
+            0.20.x+
           </td>
           <td class="p-2 dark:text-gray-300">
             {{ $t('emoji-checkmark') }}
@@ -38,7 +38,7 @@ import EmailObfuscator from '@/components/EmailObfuscator.vue';
         </tr>
         <tr class="border-b dark:border-gray-600">
           <td class="p-2 dark:text-gray-300">
-            0.18.x
+            0.19.x
           </td>
           <td class="p-2 dark:text-gray-300">
             {{ $t('emoji-checkmark') }}
@@ -46,7 +46,7 @@ import EmailObfuscator from '@/components/EmailObfuscator.vue';
         </tr>
         <tr>
           <td class="p-2 dark:text-gray-300">
-            &lt; 0.17.x
+            &lt; 0.18.x
           </td>
           <td class="p-2 dark:text-gray-300">
             {{ $t('emoji-x') }}

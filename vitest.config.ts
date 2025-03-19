@@ -1,3 +1,5 @@
+// vitest.config.ts
+
 import vue from '@vitejs/plugin-vue';
 import { resolve } from 'path';
 import { defineConfig } from 'vitest/config';
@@ -37,6 +39,7 @@ export default defineConfig({
       '**/.{idea,git,cache,output,temp}/**',
     ],
     setupFiles: [
+      'tests/unit/vue/setup-env.ts',
       'tests/unit/vue/setup.ts',
       'tests/unit/vue/setupWindow.ts',
       'tests/unit/vue/setupRouter.ts',

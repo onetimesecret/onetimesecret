@@ -47,35 +47,35 @@ const privacyPolicyLink = `<router-link to="/info/privacy">privacy policy</route
 <template>
   <article class="prose dark:prose-invert md:prose-lg lg:prose-xl">
     <h2 class="intro">
-      {{ $t('about.title') }}
+      {{ $t('web.about.title') }}
     </h2>
 
     <p class="">
-      {{ $t('about.intro.paragraph1', { name: 'Delano' }) }}
+      {{ $t('web.about.intro.paragraph1', { name: 'Delano' }) }}
     </p>
 
     <p>
-      {{ $t('about.intro.paragraph2') }}
+      {{ $t('web.about.intro.paragraph2') }}
     </p>
 
-    <p v-html="$t('about.intro.paragraph3', { githubLink })"></p>
+    <p v-html="$t('web.about.intro.paragraph3', { githubLink })"></p>
 
     <p>
-      {{ $t('about.intro.paragraph4') }}
+      {{ $t('web.about.intro.paragraph4') }}
     </p>
 
     <p class="">
-      {{ $t('about.intro.feedback_hint') }}
+      {{ $t('web.about.intro.feedback_hint') }}
     </p>
 
     <p class="">
-      {{ $t('about.intro.signature', { name: 'Delano' }) }}
+      {{ $t('web.about.intro.signature', { name: 'Delano' }) }}
     </p>
 
     <p style="margin-left: 40%; margin-right: 40%">
       <a
         href="https://delanotes.com/"
-        title="$t('delano-mandelbaum')"><img
+        :title="$t('delano-mandelbaum')"><img
           src="@/assets/img/delano-g.png"
           width="95"
           height="120"
@@ -85,28 +85,28 @@ const privacyPolicyLink = `<router-link to="/info/privacy">privacy policy</route
 
     <h3>F.A.Q.</h3>
 
-    <h4>{{ $t('about.faq.why_use_title') }}</h4>
+    <h4>{{ $t('web.about.faq.why_use_title') }}</h4>
     <p>
-      {{ $t('about.faq.why_use_description') }}
+      {{ $t('web.about.faq.why_use_description') }}
     </p>
 
-    <h4>{{ $t('about.faq.file_limitation_title') }}</h4>
+    <h4>{{ $t('web.about.faq.file_limitation_title') }}</h4>
     <p>
-      {{ $t('about.faq.file_limitation_description') }}
+      {{ $t('web.about.faq.file_limitation_description') }}
     </p>
 
-    <h4>{{ $t('about.faq.text_copy_title') }}</h4>
+    <h4>{{ $t('web.about.faq.text_copy_title') }}</h4>
     <p>
-      {{ $t('about.faq.text_copy_description') }}
+      {{ $t('web.about.faq.text_copy_description') }}
     </p>
 
-    <h4>{{ $t('about.faq.secret_retrieval_title') }}</h4>
-    <p>{{ $t('about.faq.secret_retrieval_description') }}</p>
+    <h4>{{ $t('web.about.faq.secret_retrieval_title') }}</h4>
+    <p>{{ $t('web.about.faq.secret_retrieval_description') }}</p>
 
     <span v-if="anonymousPlan && defaultPlan">
-      <h4>{{ $t('about.faq.account_difference_title') }}</h4>
+      <h4>{{ $t('web.about.faq.account_difference_title') }}</h4>
       <p>
-        {{ $t('about.faq.account_difference_description', {
+        {{ $t('web.about.faq.account_difference_description', {
           anonymousTtlDays,
           anonymousSizeKB,
           defaultTtlDays,
@@ -115,33 +115,33 @@ const privacyPolicyLink = `<router-link to="/info/privacy">privacy policy</route
       </p>
     </span>
 
-    <h4>{{ $t('about.faq.law_enforcement_title') }}</h4>
-    <p v-html="$t('about.intro.paragraph3', { githubLink })"></p>
-    <p v-html="$t('about.faq.law_enforcement_description', { privacyPolicyLink: privacyPolicyLink })"></p>
+    <h4>{{ $t('web.about.faq.law_enforcement_title') }}</h4>
+    <p v-html="$t('web.about.intro.paragraph3', { githubLink })"></p>
+    <p v-html="$t('web.about.faq.law_enforcement_description', { privacyPolicyLink: privacyPolicyLink })"></p>
 
-    <h4>{{ $t('about.faq.trust_title') }}</h4>
+    <h4>{{ $t('web.about.faq.trust_title') }}</h4>
     <p>
-      {{ $t('about.faq.trust_description') }}
+      {{ $t('web.about.faq.trust_description') }}
     </p>
     <ul>
-      <li>{{ $t('about.faq.trust_points.0') }}</li>
-      <li>{{ $t('about.faq.trust_points.1') }}</li>
-      <li>{{ $t('about.faq.trust_points.2') }}</li>
-      <li>{{ $t('about.faq.trust_points.3') }}</li>
+      <li>{{ $t('web.about.faq.trust_points.0') }}</li>
+      <li>{{ $t('web.about.faq.trust_points.1') }}</li>
+      <li>{{ $t('web.about.faq.trust_points.2') }}</li>
+      <li>{{ $t('web.about.faq.trust_points.3') }}</li>
     </ul>
 
-    <h4>{{ $t('about.faq.passphrase_title') }}</h4>
+    <h4>{{ $t('web.about.faq.passphrase_title') }}</h4>
     <p>
-      {{ $t('about.faq.passphrase_description') }}
+      {{ $t('web.about.faq.passphrase_description') }}
     </p>
     <ul>
-      <li>{{ $t('about.faq.passphrase_points.0') }}</li>
-      <li>{{ $t('about.faq.passphrase_points.1') }}</li>
-      <li>{{ $t('about.faq.passphrase_points.2') }}</li>
-      <li>{{ $t('about.faq.passphrase_points.3') }}</li>
+      <li>{{ $t('web.about.faq.passphrase_points.0') }}</li>
+      <li>{{ $t('web.about.faq.passphrase_points.1') }}</li>
+      <li>{{ $t('web.about.faq.passphrase_points.2') }}</li>
+      <li>{{ $t('web.about.faq.passphrase_points.3') }}</li>
     </ul>
     <p>
-      {{ $t('about.faq.passphrase_final_note') }}
+      {{ $t('web.about.faq.passphrase_final_note') }}
     </p>
   </article>
 </template>

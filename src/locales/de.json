@@ -204,10 +204,11 @@
       "forgot_your_password": "Passwort vergessen?",
       "button_sign_in": "Einloggen",
       "enter_your_credentials": "Gib deine Anmeldedaten ein",
-      "remember_me": "Rembember me"
+      "remember_me": "Remember me"
     },
     "signup": {
-      "have_an_account": "Or, sign in to your account"
+      "have_an_account": "Or, sign in to your account",
+      "create-your-account": "Erstellen Sie Ihr Konto"
     },
     "incoming": {
       "tagline1": "Füge ein Passwort, eine geheime Nachricht oder einen privaten Link unten ein.",
@@ -239,5 +240,9 @@
       "postscript1": "Diese E-Mail wurde gesendet an:",
       "postscript2": "Wenn du diesen Account nicht erstellt hast, entferne diese Nachricht und wir werden dich nicht noch einmal kontaktieren."
     }
-  }
+  },
+  "security": "Sicherheit",
+  "api-key": "API -Schlüssel",
+  "ai-generated-content-disclaimer": "AI-generierte Inhalte zur Demonstration. \nNicht von einer tatsächlichen Person oder Firma.",
+  "secure-links": "Sichere Links"
 }

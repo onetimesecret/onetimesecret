@@ -51,7 +51,7 @@
 
       <!-- Pricing Toggle -->
       <div class="mt-16 flex justify-center font-serif">
-        <fieldset aria-label="$t('payment-frequency')">
+        <fieldset :aria-label="$t('payment-frequency')">
           <RadioGroup
             v-model="frequency"
             class="grid grid-cols-2 gap-x-1 rounded-full bg-white/5 p-1 text-center text-xs font-semibold leading-5 text-white">
@@ -79,31 +79,35 @@
       <div
         class="mx-auto mt-16 max-w-2xl rounded-3xl bg-white dark:bg-gray-800 ring-1 ring-gray-200 dark:ring-gray-700 sm:mt-20 lg:mx-0 lg:flex lg:max-w-none">
         <div class="p-8 sm:p-10 lg:flex-auto">
-          <h3 class="text-2xl font-semibold tracking-tight text-gray-900 dark:text-white">{{ $t('identity-plus') }}</h3>
+          <h3 class="text-2xl font-semibold tracking-tight text-gray-900 dark:text-white">{{
+            $t('identity-plus')
+          }}</h3>
           <p class="mt-6 text-base leading-7 text-gray-600 dark:text-gray-300">
             {{ $t('elevate-your-secure-sharing-with-custom-domains-') }}
           </p>
 
           <div class="mt-10 flex items-center gap-x-4">
-            <h4 class="flex-none text-sm font-semibold text-brand-600 dark:text-brand-400">{{ $t('features') }}</h4>
+            <h4 class="flex-none text-sm font-semibold text-brand-600 dark:text-brand-400">{{
+              $t('features')
+            }}</h4>
             <div class="h-px flex-auto bg-gray-100 dark:bg-gray-700"></div>
           </div>
 
           <ul
-              role="list"
-              class="mt-8 grid grid-cols-1 gap-4 text-sm text-gray-600 dark:text-gray-300 sm:grid-cols-2">
-              <li
-                v-for="feature in identityTier.features"
-                :key="feature"
-                class="flex gap-x-3">
-                <OIcon
-                  collection="heroicons"
-                  name="check-16-solid"
-                  class="h-6 w-5 flex-none text-brand-600 dark:text-brand-400"
-                  aria-hidden="true" />
-                {{ feature }}
-              </li>
-            </ul>
+            role="list"
+            class="mt-8 grid grid-cols-1 gap-4 text-sm text-gray-600 dark:text-gray-300 sm:grid-cols-2">
+            <li
+              v-for="feature in identityTier.features"
+              :key="feature"
+              class="flex gap-x-3">
+              <OIcon
+                collection="heroicons"
+                name="check-16-solid"
+                class="h-6 w-5 flex-none text-brand-600 dark:text-brand-400"
+                aria-hidden="true" />
+              {{ feature }}
+            </li>
+          </ul>
         </div>
 
         <div class="-mt-2 p-2 lg:mt-0 lg:w-full lg:max-w-md lg:flex-shrink-0">
@@ -111,7 +115,11 @@
             class="rounded-2xl bg-gray-50 py-10 text-center ring-1 ring-inset ring-gray-900/5 dark:bg-gray-800 dark:ring-gray-700 lg:flex lg:flex-col lg:justify-center lg:py-16">
             <div class="mx-auto max-w-xs px-8">
               <p class="text-base font-semibold text-gray-600 dark:text-gray-300">
-                {{ $t('frequency-value-annually-annual-monthly-subscrip', [frequency.value === 'annually' ? 'Annual' : 'Monthly']) }}
+                {{
+                  $t('frequency-value-annually-annual-monthly-subscrip', [
+                    frequency.value === 'annually' ? 'Annual' : 'Monthly',
+                  ])
+                }}
               </p>
               <p class="mt-6 flex items-baseline justify-center gap-x-2">
                 <span class="text-5xl font-bold tracking-tight text-gray-900 dark:text-white">
@@ -123,8 +131,7 @@
               </p>
               <a
                 :href="`/plans/identity${frequency.priceSuffix}`"
-                class="mt-10 block w-full rounded-md bg-brand-600 px-4 py-3 text-center text-base font-semibold text-white shadow-lg hover:bg-brand-500 hover:shadow-xl focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600 light:bg-brand-500 light:hover:bg-brand-400"
-              >
+                class="mt-10 block w-full rounded-md bg-brand-600 px-4 py-3 text-center text-base font-semibold text-white shadow-lg hover:bg-brand-500 hover:shadow-xl focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600 light:bg-brand-500 light:hover:bg-brand-400">
                 {{ $t('get-started') }}
               </a>
               <p class="mt-6 text-xs text-gray-600 dark:text-gray-400">

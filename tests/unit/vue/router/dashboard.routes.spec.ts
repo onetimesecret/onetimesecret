@@ -2,16 +2,10 @@ import dashboardRoutes from '@/router/dashboard.routes';
 import { describe, expect, it } from 'vitest';
 import { RouteRecordRaw } from 'vue-router';
 
-// vi.mock('@/api/secrets', () => ({
-//   fetchInitialSecret: vi.fn(),
-// }))
-
 describe('Dashboard Routes', () => {
   describe('Dashboard Route', () => {
     it('should define dashboard route correctly', () => {
-      const route = dashboardRoutes.find(
-        (route: RouteRecordRaw) => route.path === '/dashboard'
-      );
+      const route = dashboardRoutes.find((route: RouteRecordRaw) => route.path === '/dashboard');
       expect(route).toBeDefined();
       expect(route?.meta?.requiresAuth).toBe(true);
       expect(typeof route?.components?.default).toBe('object'); // Check for object type
@@ -22,9 +16,7 @@ describe('Dashboard Routes', () => {
 
   describe('Recents Route', () => {
     it('should define recents route correctly', () => {
-      const route = dashboardRoutes.find(
-        (route: RouteRecordRaw) => route.path === '/recent'
-      );
+      const route = dashboardRoutes.find((route: RouteRecordRaw) => route.path === '/recent');
       expect(route).toBeDefined();
       expect(route?.meta?.requiresAuth).toBe(true);
       expect(typeof route?.components?.default).toBe('object'); // Check for object type

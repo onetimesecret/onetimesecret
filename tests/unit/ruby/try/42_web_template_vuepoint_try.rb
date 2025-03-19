@@ -41,6 +41,9 @@ class MockSession
   def add_shrimp
     "mock_shrimp"
   end
+  def get_messages
+    []
+  end
   def get_error_messages
     []
   end

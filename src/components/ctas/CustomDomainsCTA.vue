@@ -56,7 +56,7 @@ const handleUpgrade = () => {
         </div>
 
         <p class="max-w-xl text-gray-600 dark:text-gray-300">
-          {{ $t('secure-your-brand-build-customer-trust-with-links-from-your-domain') }}
+          {{ $t('secure-your-brand-build-customer-trust-etc') }}
         </p>
 
         <ul class="space-y-3">
@@ -124,7 +124,7 @@ const handleUpgrade = () => {
             bg-brand-600 px-6 py-3 text-base font-medium text-white
             transition-colors duration-200
             hover:bg-brand-700 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2"
-          aria-label="$t('start-today-with-identity-plus')">
+          :aria-label="$t('start-today-with-identity-plus')">
           <span>{{ $t('start-today') }}</span>
           <svg
             class="-mr-1 ml-2 size-5"

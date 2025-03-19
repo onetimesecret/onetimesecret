@@ -35,7 +35,7 @@ module Onetime
       { identifier: ->(obj) { obj.identifier } },
       :key,
       :state,
-      :secret_ttl,
+      { secret_ttl: ->(m) { m.lifespan } },
       :lifespan,
       :original_size,
       { shortkey: ->(m) { m.key.slice(0, 8) } },

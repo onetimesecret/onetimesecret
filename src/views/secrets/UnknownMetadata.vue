@@ -18,7 +18,7 @@
         aria-hidden="true" />
       <h1
         class="mb-6 text-3xl font-bold text-gray-800 dark:text-white text-center"
-        aria-label="$t('information-no-longer-available')">
+        :aria-label="$t('information-no-longer-available')">
         {{ $t('that-information-is-no-longer-available') }}
       </h1>
     </div>
@@ -40,7 +40,7 @@
             color: 'var(--color-brand-500)',
             borderColor: 'var(--color-brand-500)',
           }"
-          aria-label="$t('return-to-home-page')">
+          :aria-label="$t('return-to-home-page')">
           {{ $t('return-to-home') }}
         </router-link>
       </div>

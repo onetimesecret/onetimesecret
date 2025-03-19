@@ -4,11 +4,14 @@ import { WindowService } from '@/services/window.service';
 import { useAuthStore } from '@/stores/authStore';
 import { useLanguageStore } from '@/stores/languageStore';
 import { RouteLocationNormalized, Router } from 'vue-router';
+import { processQueryParams } from './queryParams.handler';
 
 export async function setupRouterGuards(router: Router): Promise<void> {
   router.beforeEach(async (to: RouteLocationNormalized) => {
     const authStore = useAuthStore();
     const languageStore = useLanguageStore();
+
+    processQueryParams(to.query as Record<string, string>);
 
     if (to.name === 'NotFound') {
       return true;

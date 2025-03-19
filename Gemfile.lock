@@ -1,15 +1,6 @@
 GIT
   remote: https://github.com/rspec/rspec
   revision: 5946b3c9aa61279bf52363bfde4d850810daaa3a
-  specs:
-    rspec (3.14.0.pre)
-      rspec-core (= 3.14.0.pre)
-      rspec-expectations (= 3.14.0.pre)
-      rspec-mocks (= 3.14.0.pre)
-
-GIT
-  remote: https://github.com/rspec/rspec
-  revision: 5946b3c9aa61279bf52363bfde4d850810daaa3a
   glob: rspec-core/rspec-core.gemspec
   specs:
     rspec-core (3.14.0.pre)
@@ -40,6 +31,15 @@ GIT
   specs:
     rspec-support (3.14.0.pre)
 
+GIT
+  remote: https://github.com/rspec/rspec
+  revision: a80119c703d38f993c414490abe8c992154cf5d1
+  specs:
+    rspec (3.14.0.pre)
+      rspec-core (= 3.14.0.pre)
+      rspec-expectations (= 3.14.0.pre)
+      rspec-mocks (= 3.14.0.pre)
+
 GEM
   remote: https://rubygems.org/
   specs:
@@ -48,32 +48,46 @@ GEM
     ast (2.4.2)
     attic (1.0.1)
       rake (~> 13.0.6)
+    aws-eventstream (1.3.2)
+    aws-partitions (1.1063.0)
+    aws-sdk-core (3.220.1)
+      aws-eventstream (~> 1, >= 1.3.0)
+      aws-partitions (~> 1, >= 1.992.0)
+      aws-sigv4 (~> 1.9)
+      base64
+      jmespath (~> 1, >= 1.6.1)
+    aws-sdk-sesv2 (1.72.0)
+      aws-sdk-core (~> 3, >= 3.216.0)
+      aws-sigv4 (~> 1.5)
+    aws-sigv4 (1.11.0)
+      aws-eventstream (~> 1, >= 1.0.2)
     base64 (0.2.0)
     bcrypt (3.1.20)
-    bigdecimal (3.1.8)
+    benchmark (0.4.0)
+    bigdecimal (3.1.9)
     byebug (11.1.3)
     byebug-dap (0.1.4)
       byebug (~> 11.1)
       ruby-dap (~> 0.1.2)
     coderay (1.1.3)
-    concurrent-ruby (1.3.4)
+    concurrent-ruby (1.3.5)
     connection_pool (2.4.1)
     csv (3.3.0)
     daemons (1.4.1)
-    date (3.4.0)
+    date (3.4.1)
     diff-lcs (1.5.1)
     docile (1.4.1)
     dotenv (3.1.7)
     drydock (0.6.9)
     encryptor (1.1.3)
-    erubi (1.13.0)
+    erubi (1.13.1)
     eventmachine (1.2.7)
     familia (1.1.0.pre.rc1)
       redis (>= 4.8.1, < 6.0)
       stringio (~> 3.1.1)
       uri-redis (~> 1.3)
-    fastimage (2.3.1)
-    fiddle (1.1.2)
+    fastimage (2.4.0)
+    fiddle (1.1.6)
     gibbler (1.0.0)
       attic (~> 1.0)
       rake (~> 13.0)
@@ -81,9 +95,16 @@ GEM
       csv
       mini_mime (>= 1.0.0)
       multi_xml (>= 0.5.2)
-    json (2.8.2)
-    language_server-protocol (3.17.0.3)
-    logger (1.6.5)
+    io-console (0.8.0)
+    irb (1.15.1)
+      pp (>= 0.6.0)
+      rdoc (>= 4.0.0)
+      reline (>= 0.4.2)
+    jmespath (1.6.2)
+    json (2.10.2)
+    language_server-protocol (3.17.0.4)
+    lint_roller (1.1.0)
+    logger (1.6.6)
     mail (2.8.1)
       mini_mime (>= 0.1.1)
       net-imap
@@ -95,7 +116,7 @@ GEM
     multi_xml (0.7.1)
       bigdecimal (~> 3.1)
     mustache (1.1.1)
-    net-imap (0.5.1)
+    net-imap (0.5.6)
       date
       net-protocol
     net-pop (0.1.2)
@@ -111,54 +132,64 @@ GEM
       rack (~> 2.2, < 3.0)
       rexml (>= 3.3.6)
     parallel (1.26.3)
-    parser (3.3.6.0)
+    parser (3.3.7.1)
       ast (~> 2.4.1)
       racc
-    prism (1.2.0)
+    pp (0.6.2)
+      prettyprint
+    prettyprint (0.2.0)
+    prism (1.3.0)
     pry (0.14.2)
       coderay (~> 1.1)
       method_source (~> 1.0)
     pry-byebug (3.10.1)
       byebug (~> 11.0)
       pry (>= 0.13, < 0.15)
-    psych (5.2.2)
+    psych (5.2.3)
       date
       stringio
     public_suffix (6.0.1)
     racc (1.8.1)
-    rack (2.2.10)
+    rack (2.2.13)
     rack-contrib (2.5.0)
       rack (< 4)
     rack-proxy (0.7.7)
       rack
     rainbow (3.1.1)
     rake (13.0.6)
-    rbi (0.2.1)
+    rbi (0.3.1)
       prism (~> 1.0)
+      rbs (>= 3.4.4)
       sorbet-runtime (>= 0.5.9204)
-    rdoc (6.10.0)
+    rbs (3.8.1)
+      logger
+    rdoc (6.12.0)
       psych (>= 4.0.0)
     redis (5.3.0)
       redis-client (>= 0.22.0)
     redis-client (0.22.2)
       connection_pool
-    regexp_parser (2.9.2)
+    regexp_parser (2.10.0)
+    reline (0.6.0)
+      io-console (~> 0.5)
     rexml (3.3.9)
-    rubocop (1.68.0)
+    rubocop (1.73.2)
       json (~> 2.3)
-      language_server-protocol (>= 3.17.0)
+      language_server-protocol (~> 3.17.0.2)
+      lint_roller (~> 1.1.0)
       parallel (~> 1.10)
       parser (>= 3.3.0.2)
       rainbow (>= 2.2.2, < 4.0)
-      regexp_parser (>= 2.4, < 3.0)
-      rubocop-ast (>= 1.32.2, < 2.0)
+      regexp_parser (>= 2.9.3, < 3.0)
+      rubocop-ast (>= 1.38.0, < 2.0)
       ruby-progressbar (~> 1.7)
-      unicode-display_width (>= 2.4.0, < 3.0)
-    rubocop-ast (1.36.1)
+      unicode-display_width (>= 2.4.0, < 4.0)
+    rubocop-ast (1.38.1)
       parser (>= 3.3.1.0)
-    rubocop-performance (1.23.0)
-      rubocop (>= 1.48.1, < 2.0)
-      rubocop-ast (>= 1.31.1, < 2.0)
+    rubocop-performance (1.24.0)
+      lint_roller (~> 1.1)
+      rubocop (>= 1.72.1, < 2.0)
+      rubocop-ast (>= 1.38.0, < 2.0)
     rubocop-thread_safety (0.6.0)
       rubocop (>= 1.48.1)
     ruby-dap (0.1.3)
@@ -166,7 +197,7 @@ GEM
     ruby_http_client (3.5.5)
     sendgrid-ruby (6.7.0)
       ruby_http_client (~> 3.4)
-    sentry-ruby (5.21.0)
+    sentry-ruby (5.22.4)
       bigdecimal
       concurrent-ruby (~> 1.0, >= 1.0.2)
     simplecov (0.22.0)
@@ -176,29 +207,31 @@ GEM
     simplecov-html (0.13.1)
     simplecov_json_formatter (0.1.4)
     simpleidn (0.2.3)
-    sorbet (0.5.11781)
-      sorbet-static (= 0.5.11781)
-    sorbet-runtime (0.5.11781)
-    sorbet-static (0.5.11781-aarch64-linux)
-    sorbet-static (0.5.11781-universal-darwin)
-    sorbet-static (0.5.11781-x86_64-linux)
-    sorbet-static-and-runtime (0.5.11781)
-      sorbet (= 0.5.11781)
-      sorbet-runtime (= 0.5.11781)
-    spoom (1.5.1)
+    sorbet (0.5.11934)
+      sorbet-static (= 0.5.11934)
+    sorbet-runtime (0.5.11934)
+    sorbet-static (0.5.11934-aarch64-linux)
+    sorbet-static (0.5.11934-universal-darwin)
+    sorbet-static (0.5.11934-x86_64-linux)
+    sorbet-static-and-runtime (0.5.11934)
+      sorbet (= 0.5.11934)
+      sorbet-runtime (= 0.5.11934)
+    spoom (1.6.1)
       erubi (>= 1.10.0)
       prism (>= 0.28.0)
+      rbi (>= 0.2.3)
       sorbet-static-and-runtime (>= 0.5.10187)
       thor (>= 0.19.2)
     stackprof (0.2.27)
     storable (0.10.0)
-    stringio (3.1.2)
+    stringio (3.1.5)
     stripe (13.3.0)
     sysinfo (0.10.0)
       drydock (< 1.0)
       storable (~> 0.10)
     syslog (0.2.0)
-    tapioca (0.16.4)
+    tapioca (0.16.11)
+      benchmark
       bundler (>= 2.2.25)
       netrc (>= 0.11.0)
       parallel (>= 1.21.0)
@@ -212,12 +245,14 @@ GEM
       eventmachine (~> 1.0, >= 1.0.4)
       rack (>= 1, < 3)
     thor (1.3.2)
-    timeout (0.4.2)
+    timeout (0.4.3)
     truemail (3.3.1)
       simpleidn (~> 0.2.1)
     tryouts (2.4.1)
       sysinfo (~> 0.10)
-    unicode-display_width (2.6.0)
+    unicode-display_width (3.1.4)
+      unicode-emoji (~> 4.0, >= 4.0.4)
+    unicode-emoji (4.0.4)
     uri-redis (1.3.0)
     yard (0.9.37)
     yard-sorbet (0.9.0)
@@ -231,6 +266,7 @@ PLATFORMS
 
 DEPENDENCIES
   addressable
+  aws-sdk-sesv2 (~> 1.7)
   base64
   bcrypt
   byebug
@@ -239,10 +275,11 @@ DEPENDENCIES
   drydock
   encryptor (= 1.1.3)
   familia (~> 1.1.0.pre.rc1)
-  fastimage (~> 2.3)
+  fastimage (~> 2.4)
   fiddle
   gibbler
   httparty
+  irb
   logger
   mail
   multi_json
@@ -251,13 +288,14 @@ DEPENDENCIES
   otto (~> 1.1.0.pre.alpha4)
   pry
   pry-byebug
-  psych (~> 5.2.2)
+  psych (~> 5.2.3)
   public_suffix
-  rack (>= 2.2, < 3.0)
+  rack (>= 2.2.12, < 3.0)
   rack-contrib (~> 2.5)
   rack-proxy
   rdoc
   redis (~> 5.3.0)
+  reline
   rspec!
   rspec-core!
   rspec-expectations!
@@ -274,7 +312,7 @@ DEPENDENCIES
   spoom
   stackprof
   storable
-  stringio (~> 3.1.1)
+  stringio (~> 3.1.5)
   stripe
   sysinfo
   syslog (~> 0.2.0)

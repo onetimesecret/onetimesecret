@@ -25,7 +25,7 @@ const alertClasses = computed(() => ({
 }));
 
 const { isCopied, copyToClipboard } = useClipboard();
-const isCopiedText = computed(() => isCopied ? t('copied') : t('copy_to_clipboard') );
+const isCopiedText = computed(() => isCopied ? t('copied') : t('copy-to-clipboard') );
 const copySecretContent = async () => {
   if (props.record?.secret_value === undefined) {
     return;
@@ -108,7 +108,7 @@ const closeTruncatedWarning = (event: Event) => {
                   readonly
                   :rows="details?.display_lines ?? 4"
                   :value="record?.secret_value"
-                  aria-label="$t('secret-content')"></textarea>
+                  :aria-label="$t('secret-content')"></textarea>
         <div v-else
              class="text-red-500 dark:text-red-400"
              role="alert">
@@ -182,7 +182,7 @@ const closeTruncatedWarning = (event: Event) => {
                   stroke-width="2"
                   d="M5 13l4 4L19 7" />
           </svg>
-          <span>{{ isCopied ? 'Copied!' : 'Copy to clipboard' }}</span>
+          <span>{{ isCopiedText }}</span>
         </button>
 
         <!-- Navigation -->

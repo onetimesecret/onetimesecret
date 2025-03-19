@@ -47,7 +47,7 @@ import ThemeToggle from '@/components/ThemeToggle.vue';
               duration-300 ease-in-out hover:bg-gray-100
               dark:border-brand-400
               dark:bg-gray-700 dark:text-brand-400 dark:hover:bg-gray-600"
-              aria-label="$t('return-to-home-page')">
+              :aria-label="$t('return-to-home-page')">
               {{ $t('return-home') }}
             </router-link>
           </div>

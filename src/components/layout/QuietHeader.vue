@@ -20,7 +20,7 @@
   const subtext = computed(() => {
     return productIdentity.allowPublicHomepage
       ? t('send-sensitive-information-that-can-only-be-viewed-once')
-      : t('a-trusted-way-to-share-sensitive-information-that-self-destructs-after-being-viewed');
+      : t('a-trusted-way-to-share-sensitive-information-etc');
   });
 </script>
 

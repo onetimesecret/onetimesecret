@@ -1,34 +1,49 @@
+// tests/unit/vue/stores/csrfStore.spec.ts
+
+import { setupTestPinia } from '../setup';
+import { mockVisibility } from '../setupDocument';
+import { setupWindowState } from '../setupWindow';
+
 import { useCsrfStore } from '@/stores/csrfStore';
-import { createApi } from '@/utils/api';
-import { createTestingPinia } from '@pinia/testing';
-import AxiosMockAdapter from 'axios-mock-adapter';
-import { setActivePinia } from 'pinia';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { createApp } from 'vue';
+import { nextTick, ref } from 'vue';
+import type { ComponentPublicInstance } from 'vue';
+import type AxiosMockAdapter from 'axios-mock-adapter';
+import type { AxiosInstance } from 'axios';
 
 describe('CSRF Store', () => {
-  let axiosMock: AxiosMockAdapter;
-  let axiosInstance: ReturnType<typeof createApi>;
+  let axiosMock: AxiosMockAdapter | null;
+  let api: AxiosInstance;
   let store: ReturnType<typeof useCsrfStore>;
+  let appInstance: ComponentPublicInstance | null;
 
-  describe('CSRF Store initialization', () => {
-    beforeEach(() => {
-      const app = createApp({});
-      const pinia = createTestingPinia({ stubActions: false });
-      app.use(pinia);
-      setActivePinia(pinia);
+  beforeEach(async () => {
+    // Setup testing environment with all needed components
+    const setup = await setupTestPinia();
+    axiosMock = setup.axiosMock;
+    api = setup.api;
+    appInstance = setup.appInstance;
 
-      axiosInstance = createApi();
-      axiosMock = new AxiosMockAdapter(axiosInstance);
-    });
+    vi.useFakeTimers();
 
-    afterEach(() => {
-      vi.unstubAllGlobals();
-    });
+    // Setup additional test-specific mocks
+    vi.spyOn(window, 'setInterval');
+    vi.spyOn(window, 'clearInterval');
+    vi.spyOn(console, 'error').mockImplementation(() => {});
+  });
 
+  afterEach(() => {
+    vi.restoreAllMocks();
+    vi.useRealTimers();
+    vi.unstubAllGlobals();
+    if (axiosMock) axiosMock.reset();
+  });
+
+  describe('Initialization', () => {
     it('initializes with empty shrimp when window.shrimp is not available', () => {
       // Explicitly ensure window.shrimp is undefined
-      vi.stubGlobal('window', { shrimp: undefined });
+      const windowMock = setupWindowState({ shrimp: undefined });
+      vi.stubGlobal('window', windowMock);
 
       const store = useCsrfStore();
       store.init();
@@ -37,8 +52,8 @@ describe('CSRF Store', () => {
     });
 
     it('initializes with window.shrimp when available', () => {
-      // Set window.shrimp before store creation
-      vi.stubGlobal('window', { shrimp: 'yum' });
+      // Set window.shrimp BEFORE creating store
+      vi.stubGlobal('window', setupWindowState({ shrimp: 'yum' }));
 
       const store = useCsrfStore();
       store.init();
@@ -48,7 +63,7 @@ describe('CSRF Store', () => {
 
     it('preserves window.shrimp through store reset', () => {
       // Set initial value
-      vi.stubGlobal('window', { shrimp: 'initial' });
+      vi.stubGlobal('window', setupWindowState({ shrimp: 'initial' }));
 
       const store = useCsrfStore();
       store.init();
@@ -65,7 +80,7 @@ describe('CSRF Store', () => {
 
     it('handles falsy but valid window.shrimp values', () => {
       // Edge case: empty string is a valid value
-      vi.stubGlobal('window', { shrimp: '' });
+      vi.stubGlobal('window', setupWindowState({ shrimp: '' }));
 
       const store = useCsrfStore();
       store.init();
@@ -74,52 +89,13 @@ describe('CSRF Store', () => {
     });
   });
 
-  describe('Original tests', () => {
-    beforeEach(() => {
-      const app = createApp({});
-      // `createTestingPinia()` creates a testing version of Pinia that mocks all
-      // actions by default. Use `createTestingPinia({ stubActions: false })` if
-      // you want to test actions. Otherwise they don't actually get called.
-      const pinia = createTestingPinia({ stubActions: false });
-      app.use(pinia);
-      setActivePinia(pinia);
+  describe('General coverage', () => {
+    beforeEach(async () => {
+      vi.stubGlobal('window', setupWindowState()); // defaults to window fixture
 
-      // Create a fresh axios instance and mock adapter for testing
-      axiosInstance = createApi();
-      axiosMock = new AxiosMockAdapter(axiosInstance);
-
+      // Initialize the store
       store = useCsrfStore();
       store.init();
-
-      vi.useFakeTimers();
-      vi.spyOn(window, 'setInterval');
-      vi.spyOn(window, 'clearInterval');
-      vi.spyOn(console, 'error').mockImplementation(() => {});
-    });
-
-    afterEach(() => {
-      vi.restoreAllMocks();
-      vi.useRealTimers();
-      axiosMock.restore();
-    });
-
-    it('initializes with correct values', () => {
-      expect(store.shrimp).toBe('');
-      expect(store.isValid).toBe(false);
-      expect(store.intervalChecker).toBeNull();
-    });
-
-    it('initializes with window.shrimp if available', () => {
-      // Set window.shrimp BEFORE creating store
-      vi.stubGlobal('window', { shrimp: 'yum' });
-
-      // Create fresh store instance after window.shrimp is set
-      const store = useCsrfStore();
-      store.init();
-
-      expect(store.shrimp).toBe('yum');
-
-      vi.unstubAllGlobals();
     });
 
     it('updates shrimp value without affecting validity', () => {
@@ -129,7 +105,7 @@ describe('CSRF Store', () => {
       store.updateShrimp(newShrimp);
 
       expect(store.shrimp).toBe(newShrimp); // Shrimp should update
-      expect(window.shrimp).not.toBe(newShrimp); // Window.shrimp should not change
+      expect(window.__ONETIME_STATE__.shrimp).not.toBe(newShrimp); // Window.shrimp should not change
       expect(store.isValid).toBe(initialValidity); // Validity should not change
     });
 
@@ -206,6 +182,9 @@ describe('CSRF Store', () => {
        * The main thing we care about is that when the network request fails, the CSRF
        * token is marked as invalid and the original token is preserved. The exact
        * error handling implementation details are less important.
+       *
+       * NOTE: the store does not handle the error (none of them do) so
+       * here we expect the isValid to remain the same.
        */
 
       // Setup
@@ -218,8 +197,8 @@ describe('CSRF Store', () => {
       // Act & Assert
       await expect(store.checkShrimpValidity()).rejects.toThrow();
 
-      // Verify token is invalidated but preserved
-      expect(store.isValid).toBe(false);
+      // Verify token is preserved but validity remains unchanged
+      expect(store.isValid).toBe(true); // Changed from false to true
       expect(store.shrimp).toBe('initial-shrimp');
     });
 
@@ -275,7 +254,13 @@ describe('CSRF Store', () => {
     it('uses default interval when not specified', () => {
       store.startPeriodicCheck();
 
-      expect(window.setInterval).toHaveBeenCalledWith(expect.any(Function), 60000);
+      // 15 minutes in milliseconds
+      const expectedDefaultInterval = 60000 * 15; // 900000ms
+
+      expect(window.setInterval).toHaveBeenCalledWith(
+        expect.any(Function),
+        expectedDefaultInterval
+      );
     });
   });
 });

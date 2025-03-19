@@ -85,9 +85,7 @@ export default [
         ...globals.browser,
         process: true, // Allow process global for environment variables
       },
-      parser: ['.ts', '.tsx'].includes(path.extname(import.meta.url))
-        ? parserTs
-        : undefined,
+      parser: ['.ts', '.tsx'].includes(path.extname(import.meta.url)) ? parserTs : undefined,
       parserOptions: {
         ecmaVersion: 'latest',
         sourceType: 'module',
@@ -445,10 +443,11 @@ export default [
   {
     files: ['tests/**/*.spec.{ts,vue,d.ts}', 'tests/**/*.{vue,d.ts}'],
     languageOptions: {
+      parser: parserTs,
       parserOptions: {
         ecmaVersion: 'latest',
         sourceType: 'module',
-        project: './tsconfig.json',
+        project: ['./tsconfig.json', './tsconfig.test.json'],
         extraFileExtensions: ['.vue'],
       },
       globals: {

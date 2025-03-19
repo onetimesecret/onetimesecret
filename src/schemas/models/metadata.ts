@@ -40,9 +40,7 @@ export const MetadataState = {
 export type MetadataState = (typeof MetadataState)[keyof typeof MetadataState];
 
 // Create a reusable schema for the state
-export const metadataStateSchema = z.enum(
-  Object.values(MetadataState) as [string, ...string[]]
-);
+export const metadataStateSchema = z.enum(Object.values(MetadataState) as [string, ...string[]]);
 
 // Common base schema for all metadata records
 export const metadataBaseSchema = createModelSchema({
@@ -51,6 +49,9 @@ export const metadataBaseSchema = createModelSchema({
   secret_shortkey: z.string().optional(),
   recipients: z.array(z.string()).or(z.string()).optional(),
   share_domain: z.string().nullable().optional(),
+  secret_ttl: transforms.fromString.number,
+  metadata_ttl: transforms.fromString.number,
+  lifespan: transforms.fromString.number,
   state: metadataStateSchema,
   received: transforms.fromString.dateNullable.optional(),
   burned: transforms.fromString.dateNullable.optional(),
@@ -117,3 +118,20 @@ export type MetadataDetails = z.infer<typeof metadataDetailsSchema>;
 export function isValidMetadataState(state: string): state is MetadataState {
   return Object.values(MetadataState).includes(state as MetadataState);
 }
+
+/**
+ * CHANGELOG
+ * ═══════════════════════
+ *
+ * [2025-03-03] FEATURE
+ * ────────────────────────
+ * Added new fields:
+ * - secret_ttl: number
+ * - metadata_ttl: number
+ * - lifespan: number
+ *
+ * transform:
+ *   All use transforms.fromString.number
+ *
+ * why: Added TTL and lifespan tracking to metadata records for consistent time-based operations
+ */

@@ -394,10 +394,10 @@ describe('metadataStore', () => {
 
         // Setup store with custom error handlers
         const store = useMetadataStore();
-        store.setupAsyncHandler(mockAxios, {
-          notify: mockNotify,
-          log: mockLog,
-        });
+        // store.setupAsyncHandler(mockAxios, {
+        //   notify: mockNotify,
+        //   log: mockLog,
+        // });
 
         // Mock API to return a 404 error with error response data
         axiosMock = new AxiosMockAdapter(mockAxios);
@@ -416,10 +416,7 @@ describe('metadataStore', () => {
         });
 
         // Verify error handlers were called with appropriate args
-        expect(mockNotify).toHaveBeenCalledWith(
-          'Request failed with status code 404',
-          'error'
-        );
+        expect(mockNotify).toHaveBeenCalledWith('Request failed with status code 404', 'error');
 
         expect(mockLog).toHaveBeenCalledWith(
           expect.objectContaining({
@@ -529,11 +526,7 @@ describe('metadataStore', () => {
         });
 
         // Trigger multiple simultaneous requests
-        const fetchPromises = [
-          store.fetch(testKey),
-          store.fetch(testKey),
-          store.fetch(testKey),
-        ];
+        const fetchPromises = [store.fetch(testKey), store.fetch(testKey), store.fetch(testKey)];
 
         const results = await Promise.allSettled(fetchPromises);
 

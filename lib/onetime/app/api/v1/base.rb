@@ -134,7 +134,7 @@ module Onetime::App
         locales << cust.locale if cust&.locale?
 
         # Ensure at least one configured locale is available
-        locales << OT.conf[:locales].first
+        locales << OT.default_locale
 
         # Filter and clean up locales
         locales = locales.uniq.reject { |l| !OT.locales.key?(l) }.compact
@@ -142,11 +142,11 @@ module Onetime::App
         # Set default locale if the current one is not supported
         locale = locales.first unless OT.locales.key?(locale)
 
-        # Set locale in the request environment
+        # Set locale in the request environment. This behaviour is different
+        # than v2 API which checks if we have the translation before setting.
         req.env['ots.locale'] = @locale = locale
         req.env['ots.locales'] = locales
       end
-
 
       def json hsh
         res.header['Content-Type'] = "application/json; charset=utf-8"

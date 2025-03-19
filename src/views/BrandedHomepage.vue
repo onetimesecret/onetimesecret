@@ -3,7 +3,7 @@
 
   import { useProductIdentity } from '@/stores/identityStore';
 
-  const { allowPublicHomepage, primaryColor } = useProductIdentity();
+  const { allowPublicHomepage, primaryColor, cornerClass } = useProductIdentity();
 </script>
 
 <template>
@@ -19,7 +19,7 @@
     <!--
       BrandedHomepage.vue
 
-      Purpose: Landing page for private, white-labeled secure message service instances.
+      Purpose: Landing page for custom domains, secure message service instances.
 
       This page serves two key functions:
       1. Shows the current availability status of the secure messaging service
@@ -54,8 +54,10 @@
       </div> -->
 
       <!-- Main Content Area -->
-      <div class="px-6 py-8 bg-white dark:bg-gray-800">
-        <!-- Service Status Banner -->
+      <div
+        :class="[cornerClass]"
+        class="px-6 py-8 bg-white dark:bg-gray-800">
+
         <div
           class="mb-6 rounded-lg border"
           :style="{

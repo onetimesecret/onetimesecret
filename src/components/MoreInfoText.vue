@@ -1,3 +1,5 @@
+<!-- src/components/MoreInfoText.vue -->
+
 <script setup lang="ts">
 import OIcon from '@/components/icons/OIcon.vue';
 import { ref } from 'vue';
@@ -20,7 +22,7 @@ const props = withDefaults(defineProps<Props>(), {
 </script>
 
 <template>
-  <div :class="`mb-4 ${props.bgColor} shadow sm:rounded-lg relative`">
+  <div :class="`mb-4 ${props.bgColor} shadow sm:rounded-lg`">
     <div class="px-4 py-5 sm:p-4">
       <button
         @click="toggleExpand"
@@ -32,12 +34,12 @@ const props = withDefaults(defineProps<Props>(), {
         />
         {{ isExpanded ? 'Hide details' : 'Expand for more info' }}
       </button>
-
       <div
         v-show="isExpanded"
-        class="absolute inset-x-4 z-10 mt-2 overflow-hidden rounded-lg border border-gray-200 bg-gray-50 shadow-lg transition-all duration-300 ease-in-out dark:border-gray-600 dark:bg-gray-700"
-        :class="{ 'max-h-0': !isExpanded, 'max-h-[500px]': isExpanded }">
-        <slot></slot>
+        class="relative mt-2 overflow-hidden rounded-lg border border-gray-200 bg-gray-50 shadow-lg transition-all duration-300 ease-in-out dark:border-gray-600 dark:bg-gray-700">
+        <div class="min-w-0 p-4">
+          <slot></slot>
+        </div>
       </div>
     </div>
   </div>

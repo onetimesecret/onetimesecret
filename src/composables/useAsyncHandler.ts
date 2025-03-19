@@ -1,14 +1,11 @@
 // src/composables/useAsyncHandler.ts
 import type { ApplicationError } from '@/schemas/errors';
-import {
-  classifyError,
-  createError,
-  errorGuards,
-  wrapError,
-} from '@/schemas/errors';
+import { classifyError, createError, errorGuards, wrapError } from '@/schemas/errors';
 import { loggingService } from '@/services/logging.service';
 import type {} from '@/stores/notificationsStore';
 import type { NotificationSeverity } from '@/types/ui/notifications';
+import { inject } from 'vue';
+import { SENTRY_KEY, SentryInstance } from '@/plugins/core/enableDiagnotics';
 
 export interface AsyncHandlerOptions {
   /**
@@ -19,6 +16,10 @@ export interface AsyncHandlerOptions {
    * Optional error logging implementation
    */
   log?: ((error: ApplicationError) => void) | false;
+  /**
+   * Optional Sentry error tracking client
+   */
+  sentry?: SentryInstance;
   /**
    * Optional loading state handler
    */
@@ -87,6 +88,8 @@ export { createError, errorGuards, wrapError }; // Re-export for convenience
  * ```
  */
 export function useAsyncHandler(options: AsyncHandlerOptions = {}) {
+  const sentry = inject(SENTRY_KEY, null) as SentryInstance | null;
+
   // Default implementations that will be used if no options provided
   const handlers = {
     notify:
@@ -150,6 +153,10 @@ export function useAsyncHandler(options: AsyncHandlerOptions = {}) {
       // Only log technical and security errors
       if (!errorGuards.isOfHumanInterest(classifiedError)) {
         handlers.log?.(classifiedError);
+
+        if (sentry) {
+          sentry.scope.captureException(error);
+        }
       }
 
       // Notify for human-facing errors, but don't log

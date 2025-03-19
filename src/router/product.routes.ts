@@ -5,7 +5,7 @@ const routes: Array<RouteRecordRaw> = [
   {
     path: '/pricing',
     name: 'Pricing',
-    component: () => import('@/views/pricing/PricingSolo.vue'),
+    component: () => import('@/views/pricing/PricingTrio.vue'),
     meta: {
       requiresAuth: false,
       layout: WideLayout,

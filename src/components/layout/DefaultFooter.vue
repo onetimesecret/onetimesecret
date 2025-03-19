@@ -2,12 +2,13 @@
 
 <script setup lang="ts">
 import FeedbackToggle from '@/components/FeedbackToggle.vue';
-import JurisdictionFooterNotice from '@/components/JurisdictionFooterNotice.vue';
+import JurisdictionToggle from '@/components/JurisdictionToggle.vue';
 import FooterLinkLists from '@/components/layout/FooterLinkLists.vue';
 import ThemeToggle from '@/components/ThemeToggle.vue';
 import { WindowService } from '@/services/window.service';
 import type { LayoutProps } from '@/types/ui/layouts';
 import { ref } from 'vue';
+import LanguageToggle from '@/components/LanguageToggle.vue';
 
 withDefaults(defineProps<LayoutProps>(), {
   displayFeedback: true,
@@ -18,7 +19,7 @@ withDefaults(defineProps<LayoutProps>(), {
 });
 
 const windowProps = WindowService.getMultiple([
-  'regions_enabled', 'regions', 'authentication'
+  'regions_enabled', 'regions', 'authentication', 'i18n_enabled',
 ]);
 
 const companyName = ref('OnetimeSecret.com');
@@ -64,26 +65,21 @@ const companyName = ref('OnetimeSecret.com');
         </div>
 
         <div v-if="displayToggles"
-             class="
-          flex w-full
-          flex-wrap items-center justify-center
-          space-x-4 md:w-auto
-          md:justify-end">
+             class="flex w-full flex-row items-center justify-center gap-4 sm:w-auto sm:justify-end">
+          <JurisdictionToggle v-if="windowProps.regions_enabled && windowProps.regions" />
 
-          <JurisdictionFooterNotice v-if="windowProps.regions_enabled && windowProps.regions" />
+          <ThemeToggle
+            class="text-gray-500 transition-colors duration-200 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-100"
+            :aria-label="$t('toggle-dark-mode')"
+          />
 
-          <ThemeToggle class="
-            text-gray-500 transition-colors
-            duration-200 hover:text-gray-800
-            dark:text-gray-400 dark:hover:text-gray-100"
-                       :aria-label="$t('toggle-dark-mode')" />
+          <LanguageToggle v-if="windowProps.i18n_enabled" :compact="true" />
 
-          <FeedbackToggle v-if="displayFeedback && windowProps.authentication?.enabled"
-                          class="
-            text-gray-500 transition-colors
-            duration-200 hover:text-gray-800
-            dark:text-gray-400 dark:hover:text-gray-100"
-                          :aria-label="$t('provide-feedback')" />
+          <FeedbackToggle
+            v-if="displayFeedback && windowProps.authentication?.enabled"
+            class="text-gray-500 transition-colors duration-200 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-100"
+            :aria-label="$t('provide-feedback')"
+          />
         </div>
       </div>
     </div>

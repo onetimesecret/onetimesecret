@@ -20,7 +20,7 @@
     displayMasthead: true,
     displayNavigation: true,
     headertext: 'secure-links',
-    subtext: 'a-trusted-way-to-share-sensitive-information-that-self-destructs-after-being-viewed',
+    subtext: 'a-trusted-way-to-share-sensitive-information-etc',
   });
 </script>
 
@@ -32,7 +32,7 @@
         <div
           class="relative"
           role="region"
-          aria-label="$t('brand-logo')">
+          :aria-label="$t('brand-logo')">
           <router-link to="/">
             <div
               :class="[
@@ -66,8 +66,10 @@
         <!-- Content Section -->
         <div
           class="text-center space-y-3"
-          :class="productIdentity.fontFamilyClass"
-          >
+          :class="[
+            productIdentity.fontFamilyClass,
+            productIdentity.cornerClass,
+          ]">
           <h1
             class="text-2xl sm:text-3xl font-medium text-gray-900 dark:text-gray-100"
             :class="productIdentity.fontFamilyClass">

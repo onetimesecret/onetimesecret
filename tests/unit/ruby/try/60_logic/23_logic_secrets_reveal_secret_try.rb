@@ -46,6 +46,12 @@ class MockSession
   def authenticated?
     true
   end
+  def short_identifier
+    "mock_short_identifier"
+  end
+  def ipaddress
+    "mock_ipaddress"
+  end
   def add_shrimp
     "mock_shrimp"
   end

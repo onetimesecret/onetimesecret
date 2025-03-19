@@ -44,8 +44,10 @@ module Onetime
   end
   @mode = :app
 
+  # d9s: diagnostics is a boolean flag. If true, it will enable Sentry
   module ClassMethods
-    attr_accessor :mode
+    attr_accessor :mode, :env, :d9s_enabled
+    attr_accessor :i18n_enabled, :supported_locales, :default_locale, :fallback_locale
     attr_reader :conf, :locales, :instance, :sysinfo, :emailer, :global_secret, :global_banner
     attr_writer :debug
 
@@ -71,6 +73,9 @@ module Onetime
 
     def boot!(mode = nil)
       OT.mode = mode unless mode.nil?
+      OT.env = ENV['RACK_ENV'] || 'production'
+      OT.d9s_enabled = false # diagnostics are disabled by default
+
       @conf = OT::Config.load # load config before anything else.
       OT::Config.after_load(@conf)
 
@@ -99,6 +104,7 @@ module Onetime
       exit 10
     rescue StandardError => e
       OT.le "Unexpected error `#{e}` (#{e.class})"
+      OT.ld e.backtrace.join("\n")
       exit 99
     end
 
@@ -124,11 +130,30 @@ module Onetime
       stderr("D", msg)
     end
 
+    def with_diagnostics &block
+      return unless Onetime.d9s_enabled
+      yield # call the block in its own context
+    end
+
     private
 
     def prepare_emailers
-      @emailer = Onetime::App::Mail::SMTPMailer
-      @emailer.setup
+      mail_mode = OT.conf[:emailer][:mode].to_s.to_sym
+
+      mailer_class = case mail_mode
+      when :sendgrid
+        Onetime::App::Mail::SendGridMailer
+      when :ses
+        Onetime::App::Mail::AmazonSESMailer
+      when :smtp
+        Onetime::App::Mail::SMTPMailer
+      else
+        OT.le "Unsupported mail mode: #{mail_mode}, falling back to SMTP"
+        Onetime::App::Mail::SMTPMailer
+      end
+
+      mailer_class.setup
+      @emailer = mailer_class
     end
 
     def set_global_secret
@@ -159,8 +184,25 @@ module Onetime
       OT.li "redis: #{redis_info['redis_version']} (#{Familia.uri.serverid})"
       OT.li "familia: v#{Familia::VERSION}"
       OT.li "colonels: #{OT.conf[:colonels].join(', ')}"
+      OT.li "i18n: #{OT.i18n_enabled}"
+      OT.li "locales: #{@locales.keys.join(', ')}" if OT.i18n_enabled
+      OT.li "diagnotics: #{OT.d9s_enabled}"
       if OT.conf[:site].key?(:authentication)
         OT.li "auth: #{OT.conf[:site][:authentication].map { |k,v| "#{k}=#{v}" }.join(', ')}"
+      end
+      if OT.conf[:emailer]
+        email_config = OT.conf[:emailer]
+        mail_settings = {
+          mode: email_config[:mode],
+          from: "'#{email_config[:fromname]} <#{email_config[:from]}>'",
+          host: "#{email_config[:host]}:#{email_config[:port]}",
+          region: email_config[:region],
+          user: email_config[:user],
+          tls: email_config[:tls],
+          auth: email_config[:auth], # this is an smtp feature and not credentials
+        }.map { |k,v| "#{k}=#{v}" }.join(', ')
+        OT.li "mailer: #{@emailer}"
+        OT.li "mail: #{mail_settings}"
       end
       if OT.conf[:site].key?(:domains)
         OT.li "domains: #{OT.conf[:site][:domains].map { |k,v| "#{k}=#{v}" }.join(', ')}"
@@ -171,21 +213,9 @@ module Onetime
       if OT.conf.fetch(:development, false)
         OT.li "development: #{OT.conf[:development].map { |k,v| "#{k}=#{v}" }.join(', ')}"
       end
-      if OT.conf[:emailer]
-        email_config = OT.conf[:emailer]
-        mail_settings = {
-          smtp: "#{email_config[:host]}:#{email_config[:port]}",
-          from: email_config[:from],
-          mode: email_config[:mode],
-          tls: email_config[:tls],
-          auth: email_config[:auth], # this is an smtp feature and not credentials
-        }.map { |k,v| "#{k}=#{v}" }.join(', ')
-        OT.li "mail: #{mail_settings}"
-      end
       if OT.conf.fetch(:experimental, false)
         OT.li "experimental: #{OT.conf[:experimental].map { |k,v| "#{k}=#{v}" }.join(', ')}"
       end
-      OT.li "locales: #{@locales.keys.join(', ')}"
       OT.li "secret options: #{OT.conf.dig(:site, :secret_options)}"
       OT.li "rate limits: #{OT::RateLimit.events.map { |k,v| "#{k}=#{v}" }.join(', ')}"
     end
@@ -228,25 +258,66 @@ module Onetime
       end
     end
 
-    def load_locales(locales = OT.conf[:locales] || ['en'])
-      confs = locales.collect do |locale|
-        path = File.join(Onetime::HOME, 'src', 'locales', "#{locale}.json")
-        OT.ld "Loading locale #{locale}: #{File.exist?(path)}"
-        conf = JSON.parse(File.read(path), symbolize_names: true)
-        [locale, conf]
+    # We always load locales regardless of whether internationalization
+    # is enabled. When it's disabled, we just limit the locales to
+    # english. Otherwise we would have to text strings to use.
+    def load_locales
+      i18n = OT.conf.fetch(:internationalization, {})
+      OT.i18n_enabled = i18n[:enabled] || false
+
+      OT.ld "Parsing through i18n locales..."
+
+      # Load the locales from the config in both the current and
+      # legacy locations. If the locales are not set in the config,
+      # we fallback to english.
+      locales_list = i18n.fetch(:locales, nil) || OT.conf.fetch(:locales, ['en']).map(&:to_s)
+
+      if OT.i18n_enabled
+        # First look for the default locale in the i18n config, then
+        # legacy the locales config approach of using the first one.
+        OT.supported_locales = locales_list
+        OT.default_locale = i18n.fetch(:default_locale, locales_list.first) || 'en'
+        OT.fallback_locale = i18n.fetch(:fallback_locale, nil)
+
+        unless locales_list.include?(OT.default_locale)
+          OT.le "Default locale #{OT.default_locale} not in locales_list #{locales_list}"
+          OT.i18n_enabled = false
+        end
+      else
+        OT.default_locale = 'en'
+        OT.supported_locales = [OT.default_locale]
+        OT.fallback_locale = nil
+      end
+
+      # Iterate over the list of supported locales, to load their JSON
+      confs = OT.supported_locales.collect do |loc|
+        path = File.join(Onetime::HOME, 'src', 'locales', "#{loc}.json")
+        OT.ld "Loading #{loc}: #{File.exist?(path)}"
+        begin
+          contents = File.read(path)
+        rescue Errno::ENOENT => e
+          OT.le "Missing locale file: #{path}"
+          next
+        end
+        conf = JSON.parse(contents, symbolize_names: true)
+        [loc, conf]
       end
 
       # Convert the zipped array to a hash
-      locales = confs.to_h
-      # Make sure the default locale is first
-      default_locale = locales[OT.conf[:locales].first]
+      locales_defs = confs.compact.to_h
+
+      default_locale_def = locales_defs.fetch(OT.default_locale, {})
+
       # Here we overlay each locale on top of the default just
       # in case there are keys that haven't been translated.
       # That way, at least the default language will display.
-      locales.each do |key, locale|
-        locales[key] = OT::Utils.deep_merge(default_locale, locale) if default_locale != locale
+      locales_defs.each do |key, locale|
+        next if OT.default_locale == key
+        locales_defs[key] = OT::Utils.deep_merge(default_locale_def, locale)
       end
-      @locales = locales
+
+      @locales = locales_defs || {}
+
     end
 
     def stdout(prefix, msg)
@@ -267,6 +338,19 @@ module Onetime
   end
 
   extend ClassMethods
+end
+
+# Sets the SIGINT handler for a graceful shutdown and prevents Sentry from
+# trying to send events over the network when we're shutting down via ctrl-c.
+trap("SIGINT") do
+  OT.li "Shutting down gracefully..."
+  begin
+    Sentry.close(timeout: 2)  # Attempt graceful shutdown with a short timeout
+  rescue StandardError => ex
+    # Ignore Sentry errors during shutdown
+    OT.le "Error during shutdown: #{ex}"
+  end
+  exit
 end
 
 require_relative 'onetime/errors'

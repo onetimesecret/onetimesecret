@@ -1,35 +1,6 @@
-<!--
-
-  USAGE EXAMPLE:
-
-    <SecretFormDrawer
-      title="Privacy Options"
-      border="dashed"
-      expandedBg="bg-blue-50 dark:bg-blue-900"
-      collapsedBg="bg-gray-100 dark:bg-gray-800">
-      ...
-    </SecretFormDrawer>
-
-  About the click Behaviour:
-
-  * The @click="toggleExpanded" is on the header div that contains the
-    title and chevron icon.
-  * The div that contains the slot content has @click.stop to prevent
-    click events within the slot from propagating up to parent elements.
-  * The cursor-pointer class is on the header div.
-  * These details ensure that:
-
-  * The drawer can be collapsed by clicking on the header area (title or chevron icon).
-  * Interactions with elements inside the expanded content (slot) won't cause the drawer to
-    collapse.
-  * The cursor changes to a pointer only when hovering over the header, indicating that only
-    this area is clickable for expanding/collapsing.
-  * This solution maintains the desired functionality while fixing the encountered bug.
-
--->
 <script setup lang="ts">
 import OIcon from '@/components/icons/OIcon.vue';
-import { ref, watch, computed } from 'vue';
+import { ref, watch, computed, onMounted } from 'vue';
 
 const props = defineProps({
   title: {
@@ -48,18 +19,39 @@ const props = defineProps({
   collapsedBg: {
     type: String,
     default: 'bg-gray-50 dark:bg-gray-700'
+  },
+  cornerClass: {
+    type: String,
+    default: ''
+  },
+  id: {
+    type: String,
+    default: ''
   }
 });
 
 const isExpanded = ref(false);
+const headerId = computed(() => `${uniqueId.value}-header`);
+const contentId = computed(() => `${uniqueId.value}-content`);
+const uniqueId = computed(() => props.id || `drawer-${props.title.replace(/\s+/g, '-').toLowerCase()}`);
 
 const toggleExpanded = () => {
   isExpanded.value = !isExpanded.value;
   localStorage.setItem(`${props.title}Expanded`, isExpanded.value.toString());
 };
 
-// Load the expanded state from localStorage
-isExpanded.value = localStorage.getItem(`${props.title}Expanded`) === 'true';
+// Handle keyboard events
+const handleKeyDown = (event: KeyboardEvent) => {
+  if (event.key === 'Enter' || event.key === ' ') {
+    event.preventDefault();
+    toggleExpanded();
+  }
+};
+
+onMounted(() => {
+  // Load the expanded state from localStorage
+  isExpanded.value = localStorage.getItem(`${props.title}Expanded`) === 'true';
+});
 
 // Watch for changes in isExpanded and save to localStorage
 watch(isExpanded, (newValue) => {
@@ -79,34 +71,39 @@ const borderClass = computed(() => {
 
 const expandedBgClass = computed(() => props.expandedBg);
 const collapsedBgClass = computed(() => props.collapsedBg);
-
 </script>
 
 <template>
-  <div
-    :class="[
+  <div :class="[
       'rounded-lg transition-all duration-200 ease-in-out',
+      cornerClass,
       borderClass,
       isExpanded
         ? `mb-3 p-3 ${expandedBgClass}`
         : `mb-2 p-2 ${collapsedBgClass}`
     ]">
-    <div
-      @click="toggleExpanded"
-      class="flex cursor-pointer items-center justify-between">
+    <div :id="headerId"
+         role="button"
+         tabindex="0"
+         :aria-expanded="isExpanded"
+         :aria-controls="contentId"
+         @click="toggleExpanded"
+         @keydown="handleKeyDown"
+         class="flex cursor-pointer items-center justify-between">
       <p class="font-brand text-base font-medium text-gray-700 dark:text-gray-300">
         {{ title }}
       </p>
-      <OIcon
-        collection="mdi"
-        :name="isExpanded ? 'chevron-up' : 'chevron-down'"
-        class="size-5 text-gray-500 dark:text-gray-400"
-      />
+      <OIcon collection="mdi"
+             :name="isExpanded ? 'chevron-up' : 'chevron-down'"
+             class="size-5 text-gray-500 dark:text-gray-400"
+             aria-hidden="true" />
     </div>
-    <div
-      v-if="isExpanded"
-      class="mt-2"
-      @click.stop>
+    <div v-if="isExpanded"
+         :id="contentId"
+         role="region"
+         :aria-labelledby="headerId"
+         class="mt-2"
+         @click.stop>
       <slot></slot>
     </div>
   </div>

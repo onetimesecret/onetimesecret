@@ -6,30 +6,98 @@
       <svg>
         <use href="#heroicons-outline-eye-off"></use>
       </svg>
-
 -->
 <template>
   <svg style="display: block">
   <defs>
-    <symbol viewBox="0 0 20 20" id="heroicons-solid-ellipsis-horizontal"><path fill="currentColor" d="M3 10a1.5 1.5 0 1 1 3 0a1.5 1.5 0 0 1-3 0Zm5.5 0a1.5 1.5 0 1 1 3 0a1.5 1.5 0 0 1-3 0Zm7-1.5a1.5 1.5 0 1 0 0 3a1.5 1.5 0 0 0 0-3Z"/></symbol>
-    <symbol viewBox="0 0 20 20" id="heroicons-solid-ellipsis-vertical"><path fill="currentColor" d="M10 3a1.5 1.5 0 1 1 0 3a1.5 1.5 0 0 1 0-3Zm0 5.5a1.5 1.5 0 1 1 0 3a1.5 1.5 0 0 1 0-3Zm1.5 7a1.5 1.5 0 1 0-3 0a1.5 1.5 0 0 0 3 0Z"/></symbol>
-    <symbol viewBox="0 0 20 20" id="heroicons-solid-eye"><g fill="currentColor"><path d="M10 12a2 2 0 1 0 0-4a2 2 0 0 0 0 4"/><path fill-rule="evenodd"
-d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10M14 10a4 4 0 1 1-8 0a4 4 0 0 1 8 0"
-clip-rule="evenodd"/></g></symbol>
-    <symbol viewBox="0 0 24 24" id="heroicons-outline-eye-off"><path fill="none"
-stroke="currentColor"
-stroke-linecap="round"
-stroke-linejoin="round"
-stroke-width="2"
-d="M13.875 18.825A10 10 0 0 1 12 19c-4.478 0-8.268-2.943-9.543-7A10 10 0 0 1 4.02 8.971m5.858.908a3 3 0 1 1 4.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88L6.59 6.59m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.95 9.95 0 0 1 12 5c4.478 0 8.268 2.943 9.543 7a10.03 10.03 0 0 1-4.132 5.411m0 0L21 21"/></symbol>
-    <symbol viewBox="0 0 16 16" id="heroicons-arrow-right-start-on-rectangle-16-solid"><path fill="currentColor"
-fill-rule="evenodd"
-d="M2 4.75A2.75 2.75 0 0 1 4.75 2h3a2.75 2.75 0 0 1 2.75 2.75v.5a.75.75 0 0 1-1.5 0v-.5c0-.69-.56-1.25-1.25-1.25h-3c-.69 0-1.25.56-1.25 1.25v6.5c0 .69.56 1.25 1.25 1.25h3c.69 0 1.25-.56 1.25-1.25v-.5a.75.75 0 0 1 1.5 0v.5A2.75 2.75 0 0 1 7.75 14h-3A2.75 2.75 0 0 1 2 11.25zm9.47.47a.75.75 0 0 1 1.06 0l2.25 2.25a.75.75 0 0 1 0 1.06l-2.25 2.25a.75.75 0 1 1-1.06-1.06l.97-.97H5.25a.75.75 0 0 1 0-1.5h7.19l-.97-.97a.75.75 0 0 1 0-1.06"
-clip-rule="evenodd"/></symbol>
-    <symbol viewBox="0 0 16 16" id="heroicons-check-16-solid"><path fill="currentColor"
-fill-rule="evenodd"
-d="M12.416 3.376a.75.75 0 0 1 .208 1.04l-5 7.5a.75.75 0 0 1-1.154.114l-3-3a.75.75 0 0 1 1.06-1.06l2.353 2.353l4.493-6.74a.75.75 0 0 1 1.04-.207"
-clip-rule="evenodd"/></symbol>
+    <symbol
+        viewBox="0 0 24 24"
+        id="heroicons-chat-bubble-bottom-center-text">
+        <path
+          fill="none"
+          stroke="currentColor"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="1.5"
+          d="M7.5 8.25h9m-9 3H12m-9.75 1.51c0 1.6 1.123 2.994 2.707 3.227q1.694.25 3.423.379c.35.026.67.21.865.501L12 21l2.755-4.132a1.14 1.14 0 0 1 .865-.502a48 48 0 0 0 3.423-.379c1.584-.233 2.707-1.626 2.707-3.228V6.741c0-1.602-1.123-2.995-2.707-3.228A48.4 48.4 0 0 0 12 3c-2.392 0-4.744.175-7.043.513C3.373 3.746 2.25 5.14 2.25 6.741z" />
+      </symbol>
+      <symbol
+        viewBox="0 0 24 24"
+        id="heroicons-language">
+        <path
+          fill="none"
+          stroke="currentColor"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="1.5"
+          d="m10.5 21l5.25-11.25L21 21m-9-3h7.5M3 5.621a49 49 0 0 1 6-.371m0 0q1.681 0 3.334.114M9 5.25V3m3.334 2.364C11.176 10.658 7.69 15.08 3 17.502m9.334-12.138q1.344.092 2.666.257m-4.589 8.495a18 18 0 0 1-3.827-5.802" />
+      </symbol>
+      <symbol
+        viewBox="0 0 20 20"
+        id="heroicons-language-20-solid">
+        <g fill="currentColor">
+          <path
+            d="M7.75 2.75a.75.75 0 0 0-1.5 0v1.258a33 33 0 0 0-3.599.278a.75.75 0 1 0 .198 1.487A31.6 31.6 0 0 1 8.7 5.545A19.4 19.4 0 0 1 7 9.56a19 19 0 0 1-1.002-2.05a.75.75 0 0 0-1.384.577a21 21 0 0 0 1.492 2.91a19.6 19.6 0 0 1-3.828 4.154a.75.75 0 1 0 .945 1.164A21 21 0 0 0 7 12.331q.143.198.29.391a.75.75 0 0 0 1.194-.91q-.306-.4-.59-.815a21 21 0 0 0 2.333-5.332q.465.047.924.108a.75.75 0 0 0 .198-1.487a33 33 0 0 0-3.599-.278z" />
+          <path
+            fill-rule="evenodd"
+            d="M13 8a.75.75 0 0 1 .671.415l4.25 8.5a.75.75 0 1 1-1.342.67L15.787 16h-5.573l-.793 1.585a.75.75 0 1 1-1.342-.67l4.25-8.5A.75.75 0 0 1 13 8m2.037 6.5L13 10.427L10.964 14.5z"
+            clip-rule="evenodd" />
+        </g>
+      </symbol>
+      <symbol
+        viewBox="0 0 20 20"
+        id="heroicons-solid-ellipsis-horizontal">
+        <path
+          fill="currentColor"
+          d="M3 10a1.5 1.5 0 1 1 3 0a1.5 1.5 0 0 1-3 0Zm5.5 0a1.5 1.5 0 1 1 3 0a1.5 1.5 0 0 1-3 0Zm7-1.5a1.5 1.5 0 1 0 0 3a1.5 1.5 0 0 0 0-3Z" />
+      </symbol>
+      <symbol
+        viewBox="0 0 20 20"
+        id="heroicons-solid-ellipsis-vertical">
+        <path
+          fill="currentColor"
+          d="M10 3a1.5 1.5 0 1 1 0 3a1.5 1.5 0 0 1 0-3Zm0 5.5a1.5 1.5 0 1 1 0 3a1.5 1.5 0 0 1 0-3Zm1.5 7a1.5 1.5 0 1 0-3 0a1.5 1.5 0 0 0 3 0Z" />
+      </symbol>
+      <symbol
+        viewBox="0 0 20 20"
+        id="heroicons-solid-eye">
+        <g fill="currentColor">
+          <path d="M10 12a2 2 0 1 0 0-4a2 2 0 0 0 0 4" />
+          <path
+            fill-rule="evenodd"
+            d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10M14 10a4 4 0 1 1-8 0a4 4 0 0 1 8 0"
+            clip-rule="evenodd" />
+        </g>
+      </symbol>
+      <symbol
+        viewBox="0 0 24 24"
+        id="heroicons-outline-eye-off">
+        <path
+          fill="none"
+          stroke="currentColor"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="2"
+          d="M13.875 18.825A10 10 0 0 1 12 19c-4.478 0-8.268-2.943-9.543-7A10 10 0 0 1 4.02 8.971m5.858.908a3 3 0 1 1 4.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88L6.59 6.59m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.95 9.95 0 0 1 12 5c4.478 0 8.268 2.943 9.543 7a10.03 10.03 0 0 1-4.132 5.411m0 0L21 21" />
+      </symbol>
+      <symbol
+        viewBox="0 0 16 16"
+        id="heroicons-arrow-right-start-on-rectangle-16-solid">
+        <path
+          fill="currentColor"
+          fill-rule="evenodd"
+          d="M2 4.75A2.75 2.75 0 0 1 4.75 2h3a2.75 2.75 0 0 1 2.75 2.75v.5a.75.75 0 0 1-1.5 0v-.5c0-.69-.56-1.25-1.25-1.25h-3c-.69 0-1.25.56-1.25 1.25v6.5c0 .69.56 1.25 1.25 1.25h3c.69 0 1.25-.56 1.25-1.25v-.5a.75.75 0 0 1 1.5 0v.5A2.75 2.75 0 0 1 7.75 14h-3A2.75 2.75 0 0 1 2 11.25zm9.47.47a.75.75 0 0 1 1.06 0l2.25 2.25a.75.75 0 0 1 0 1.06l-2.25 2.25a.75.75 0 1 1-1.06-1.06l.97-.97H5.25a.75.75 0 0 1 0-1.5h7.19l-.97-.97a.75.75 0 0 1 0-1.06"
+          clip-rule="evenodd" />
+      </symbol>
+      <symbol
+        viewBox="0 0 16 16"
+        id="heroicons-check-16-solid">
+        <path
+          fill="currentColor"
+          fill-rule="evenodd"
+          d="M12.416 3.376a.75.75 0 0 1 .208 1.04l-5 7.5a.75.75 0 0 1-1.154.114l-3-3a.75.75 0 0 1 1.06-1.06l2.353 2.353l4.493-6.74a.75.75 0 0 1 1.04-.207"
+          clip-rule="evenodd" />
+      </symbol>
     <symbol viewBox="0 0 16 16" id="heroicons-check-badge-16-solid"><path fill="currentColor"
 fill-rule="evenodd"
 d="M15 8c0 .982-.472 1.854-1.202 2.402a3 3 0 0 1-.848 2.547a3 3 0 0 1-2.548.849A3 3 0 0 1 8 15a3 3 0 0 1-2.402-1.202a3 3 0 0 1-2.547-.848a3 3 0 0 1-.849-2.548A3 3 0 0 1 1 8c0-.982.472-1.854 1.202-2.402a3 3 0 0 1 .848-2.547a3 3 0 0 1 2.548-.849A3 3 0 0 1 8 1c.982 0 1.854.472 2.402 1.202a3 3 0 0 1 2.547.848c.695.695.978 1.645.849 2.548A3 3 0 0 1 15 8m-3.291-2.843a.75.75 0 0 1 .135 1.052l-4.25 5.5a.75.75 0 0 1-1.151.043l-2.25-2.5a.75.75 0 1 1 1.114-1.004l1.65 1.832l3.7-4.789a.75.75 0 0 1 1.052-.134"

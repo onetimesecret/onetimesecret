@@ -1,1 +1,3 @@
-export { GlobalErrorBoundary } from './core/globalErrorBoundary';
+// src/plugins/index.ts
+
+export * from './core';

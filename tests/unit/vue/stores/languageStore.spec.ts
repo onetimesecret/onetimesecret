@@ -1,10 +1,19 @@
-// src/stores/languageStore.spec.ts
+// tests/unit/vue/stores/languageStore.spec.ts
 import { ApplicationError } from '@/schemas';
 import { SESSION_STORAGE_KEY, useLanguageStore } from '@/stores/languageStore';
-import { createApi } from '@/utils/api';
+import { createApi } from '@/api';
 import AxiosMockAdapter from 'axios-mock-adapter';
+import { WindowService } from '@/services/window.service';
 import { createPinia, setActivePinia } from 'pinia';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+
+// vi.spyOn(WindowService, 'getState').mockImplementation(
+//   () =>
+//     ({
+//       authenticated: true,
+//       locale: 'en',
+//     }) as any
+// );
 
 describe('Language Store', () => {
   beforeEach(() => {
@@ -55,11 +64,9 @@ describe('Language Store', () => {
       store.init(undefined, {
         deviceLocale: 'es-ES',
       });
-      const setupAsyncHandlerSpy = vi
-        .spyOn(sessionStorage, 'getItem')
-        .mockReturnValueOnce(null);
+      const sessionGetItemSpy = vi.spyOn(sessionStorage, 'getItem').mockReturnValueOnce(null);
       expect(store.currentLocale).toBe('es');
-      // expect(setupAsyncHandlerSpy).toBeCalledTimes(0);
+      // expect(sessionGetItemSpy).toBeCalledTimes(0);
     });
 
     it('initializes with deviceLocale (de)', () => {
@@ -71,13 +78,11 @@ describe('Language Store', () => {
     });
 
     it('initializes with stored locale', () => {
-      const setupAsyncHandlerSpy = vi
-        .spyOn(sessionStorage, 'getItem')
-        .mockReturnValueOnce('fr');
+      const sessionGetItemSpy = vi.spyOn(sessionStorage, 'getItem').mockReturnValueOnce('fr');
       const store = useLanguageStore();
       store.init();
       expect(store.currentLocale).toBe('fr');
-      expect(setupAsyncHandlerSpy).toBeCalled();
+      expect(sessionGetItemSpy).toBeCalled();
     });
   });
 
@@ -90,7 +95,7 @@ describe('Language Store', () => {
       axiosInstance = createApi();
       axiosMock = new AxiosMockAdapter(axiosInstance);
       store = useLanguageStore();
-      store.setupAsyncHandler(axiosInstance);
+
       store.supportedLocales = ['en', 'fr'];
     });
 
@@ -230,11 +235,46 @@ describe('Language Store', () => {
 
         // Verify the error contains validation details
         const errorData = JSON.parse(caughtError.message);
-        expect(errorData).toMatchObject([
-          { code: 'too_big' },
-          { code: 'invalid_string' },
-        ]);
+        expect(errorData).toMatchObject([{ code: 'too_big' }, { code: 'invalid_string' }]);
       });
+    });
+  });
+
+  describe('Language Headers', () => {
+    let store: ReturnType<typeof useLanguageStore>;
+
+    beforeEach(() => {
+      store = useLanguageStore();
+      store.init();
+    });
+
+    it('should return array of unique languages', () => {
+      vi.spyOn(navigator, 'language', 'get').mockReturnValue('uk-UA');
+      store.setCurrentLocale('en');
+      expect(store.acceptLanguages).toEqual(['en']);
+
+      store.setCurrentLocale('fr');
+      expect(store.acceptLanguages).toEqual(['fr', 'uk-UA']);
+    });
+
+    it('should handle matching browser and selected languages', () => {
+      vi.spyOn(navigator, 'language', 'get').mockReturnValue('fr');
+      store.setCurrentLocale('fr');
+      expect(store.acceptLanguages).toEqual(['fr']);
+    });
+
+    it('should format header string correctly', () => {
+      vi.spyOn(navigator, 'language', 'get').mockReturnValue('uk-UA');
+      store.setCurrentLocale('fr');
+      expect(store.acceptLanguageHeader).toBe('fr,uk-UA');
+    });
+
+    it('should maintain selected language as primary', () => {
+      vi.spyOn(navigator, 'language', 'get').mockReturnValue('de-DE');
+      store.setCurrentLocale('es');
+      const languages = store.acceptLanguages;
+      expect(languages[0]).toBe('es');
+      expect(languages).toContain('de-DE');
     });
   });
 });

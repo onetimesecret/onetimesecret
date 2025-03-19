@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import AltchaChallenge from '@/components/AltchaChallenge.vue';
-import { useExceptionReporting } from '@/composables/useExceptionReporting';
 import { useFormSubmission } from '@/composables/useFormSubmission';
 import { WindowService } from '@/services/window.service';
 import { useCsrfStore } from '@/stores/csrfStore';
@@ -80,39 +79,13 @@ const submitWithText = computed(() => {
  */
 const isDesktop = useMediaQuery(t('min-width-1024px'));
 
-// UseExceptionReporting integration
-const { reportException } = useExceptionReporting();
-
-const handleSpecialMessages = (message: string) => {
-  console.log(`Checking for special message: ${message}`)
-  if (message.startsWith('#ex')) {
-    const error = new Error(t('test-error-triggered-via-feedback'));
-    reportException({
-      message: t('test-exception-message-substring-11', [message.substring(11)]),
-      type: 'TestFeedbackError',
-      stack: error.stack || '',
-      url: window.location.href,
-      line: 0,
-      column: 0,
-      environment: 'production',
-      release: ot_version || 'unknown'
-    });
-    return true;
-  }
-  return false;
-};
-
 const submitWithCheck = async (event?: Event) => {
   console.debug('Submitting exception form');
 
-  if (handleSpecialMessages(feedbackMessage.value)) {
-    // Special message handled, don't submit form
-    return;
-  }
   await submitForm(event);
 };
 
-const buttonText = computed(() => isSubmitting ? t('web.LABELS.sending-ellipses') : t('web.COMMON.button_send_feedback'))
+const buttonText = computed(() => isSubmitting.value ? t('web.LABELS.sending-ellipses') : t('web.COMMON.button_send_feedback'))
 </script>
 
 <template>
@@ -146,7 +119,7 @@ const buttonText = computed(() => isSubmitting ? t('web.LABELS.sending-ellipses'
                   required
                   @keydown="handleKeydown"
                   :placeholder="$t('web.COMMON.feedback_text')"
-                  aria-label="$t('enter-your-feedback')"></textarea>
+                  :aria-label="$t('enter-your-feedback')"></textarea>
         <div class="mt-2 flex justify-end text-gray-500 dark:text-gray-400">
           <span v-if="isDesktop">{{ submitWithText }}</span>
         </div>
@@ -160,7 +133,7 @@ const buttonText = computed(() => isSubmitting ? t('web.LABELS.sending-ellipses'
              :value="ot_version" />
 
       <button type="submit"
-              :disabled="isSubmitting"
+              :disabled="isSubmitting || feedbackMessage == ''"
               class="w-full
                     rounded-md bg-red-600
                     px-4
@@ -175,7 +148,7 @@ const buttonText = computed(() => isSubmitting ? t('web.LABELS.sending-ellipses'
         {{ buttonText }}
       </button>
 
-      <AltchaChallenge v-if="!cust" />
+      <AltchaChallenge v-if="!cust || cust.identifier == 'anon'" :is-floating="true" />
     </form>
 
     <div class="h-6">

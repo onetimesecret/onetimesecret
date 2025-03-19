@@ -1,0 +1,46 @@
+# https://github.com/nrkno/yaml-schema-validator-github-action
+
+name: Validate YAML config
+on:
+  push:
+    branches:
+      - 'main'
+      - 'fix/*'
+      - 'feature/*'
+      - 'rel/*'
+
+  pull_request:
+    branches:
+      - main
+      - develop
+      - feature/*
+
+  # Manual trigger option for debugging
+  workflow_dispatch:
+    inputs:
+      debug_enabled:
+        type: boolean
+        description: 'Enable tmate debugging for secure troubleshooting'
+        required: false
+        default: false
+
+jobs:
+  yaml-schema-validation:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - uses: nrkno/yaml-schema-validator-github-action@v4
+        continue-on-error: true
+        with:
+          schema: etc/config.schema.yaml
+          target: etc/config.example.yaml
+
+      - uses: nrkno/yaml-schema-validator-github-action@v4
+        continue-on-error: true
+        with:
+          schema: etc/config.schema.yaml
+          target: tests/unit/ruby/config.test.yaml
+          # Disable strict checks for test config
+          no-strict: true

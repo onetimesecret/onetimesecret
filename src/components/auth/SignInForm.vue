@@ -8,10 +8,12 @@ const csrfStore = useCsrfStore();
 
 export interface Props {
   enabled?: boolean;
+  locale?: string;
 }
 
 withDefaults(defineProps<Props>(), {
   enabled: true,
+  locale: 'en',
 })
 
 const email = ref('');
@@ -36,6 +38,11 @@ const togglePasswordVisibility = () => {
     />
     <input
       type="hidden"
+      name="locale"
+      :value="locale"
+    />
+    <input
+      type="hidden"
       name="shrimp"
       :value="csrfStore.shrimp"
     />
@@ -45,7 +52,7 @@ const togglePasswordVisibility = () => {
       <div>
         <label
           for="email-address"
-          class="sr-only">{{ $t('web.COMMON.field_email') }}</label>
+          class="sr-only">{{ $t('email-address') }}</label>
         <input
           id="email-address"
           name="u"
@@ -60,7 +67,7 @@ const togglePasswordVisibility = () => {
                       focus:z-10 focus:border-brand-500 focus:outline-none focus:ring-brand-500
                       dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder:text-gray-400
                       dark:focus:border-brand-500 dark:focus:ring-brand-500"
-          :placeholder="$t('web.COMMON.email_placeholder')"
+          :placeholder="$t('email-address')"
           v-model="email"
         />
       </div>
@@ -84,7 +91,7 @@ const togglePasswordVisibility = () => {
                  focus:z-10 focus:border-brand-500 focus:outline-none focus:ring-brand-500
                  dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder:text-gray-400
                  dark:focus:border-brand-500 dark:focus:ring-brand-500"
-          :placeholder="$t('web.COMMON.password_placeholder')"
+          :placeholder="$t('web.COMMON.field_password')"
           v-model="password"
         />
         <button

@@ -1,0 +1,55 @@
+#!/bin/bash
+
+# Search Key Usage Script
+# Reads in keys.json, looks for references in source files for each locale
+# key, and updates keys.json with the list of files where the key is used.
+#
+# Usage:
+#   ./search-key-usage                     # Run with defaults
+#   INCLUDE_EXTENSIONS="*.{vue,ts,js}" \
+#   EXCLUDE_DIRS="node_modules,dist" \
+#   ./search-key-usage                     # Run with custom patterns
+#
+# Required:
+#   - ripgrep (rg)
+#   - jq
+#   - Source files in ./src
+#   - keys.json in current directory
+#
+# Environment Variables:
+#   INCLUDE_EXTENSIONS  Glob pattern for files to search (default: *.{vue,ts})
+#   EXCLUDE_DIRS       Comma-separated dirs to exclude (default: node_modules,dist,coverage,tmp)
+#
+# Output:
+#   Updates keys.json with 'files' array for each key showing where it's used
+
+KEYS_FILE="keys.json"
+SRC_DIR="src"
+TEMP_FILE="keys_with_files.json"
+
+# File extensions to search
+INCLUDE_EXTENSIONS="${INCLUDE_EXTENSIONS:=*.{vue,ts}}"
+
+# Directories to exclude
+EXCLUDE_DIRS="${EXCLUDE_DIRS:=node_modules,dist,coverage,tmp}"
+
+jq -r '.keys[].oldkey' "$KEYS_FILE" | while read -r key; do
+  escaped_key=$(echo "$key" | sed 's/\./\\./g')
+
+  files=$(rg -l \
+    -g "$INCLUDE_EXTENSIONS" \
+    -g "!{$EXCLUDE_DIRS}/**" \
+    "$escaped_key" "$SRC_DIR" | jq -R -s 'split("\n")[:-1]')
+
+  jq --arg k "$key" --argjson files "$files" '
+    .keys |= map(
+      if .oldkey == $k then
+        .files = $files
+      else
+        .
+      end
+    )
+  ' "$KEYS_FILE" > "$TEMP_FILE"
+
+  mv "$TEMP_FILE" "$KEYS_FILE"
+done

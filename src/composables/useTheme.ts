@@ -7,7 +7,6 @@ const themeListeners = new Set<(isDark: boolean) => void>();
 const isInitialized = ref(false);
 
 export function useTheme() {
-
   const initializeTheme = () => {
     if (isInitialized.value) return;
     const hasLocalStorage = typeof localStorage !== 'undefined';
@@ -35,12 +34,18 @@ export function useTheme() {
     }
     isDarkMode.value = !isDarkMode.value;
     updateDarkMode();
-    themeListeners.forEach(listener => listener(isDarkMode.value));
+    themeListeners.forEach((listener) => listener(isDarkMode.value));
   };
 
   const updateDarkMode = () => {
     localStorage.setItem('restMode', isDarkMode.value.toString());
     document.documentElement.classList.toggle('dark', isDarkMode.value);
+  };
+
+  const setTheme = (themeName: string) => {
+    isDarkMode.value = themeName === 'dark';
+    updateDarkMode();
+    themeListeners.forEach((listener) => listener(isDarkMode.value));
   };
 
   function getThemeListenersSize() {
@@ -54,6 +59,7 @@ export function useTheme() {
     toggleDarkMode,
     initializeTheme,
     onThemeChange,
+    setTheme,
     isInitialized,
     getThemeListenersSize,
     clearThemeListeners: () => themeListeners.clear(),
