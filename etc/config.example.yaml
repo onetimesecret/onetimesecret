@@ -59,6 +59,11 @@
     # that target common admin URLs or role names.
     :colonels:
       - <%= ENV['COLONEL'] || 'CHANGEME@example.com' %>
+  # A captcha-like feature that protects the feedback form
+  # from bots and other tomfoolery.
+  :authenticity:
+    :type: <%= ENV['AUTHENTICITY_TYPE'] || 'altcha' %>
+    :secret_key: <%= ENV['AUTHENTICITY_SECRET_KEY'] || '<REPLACE_WITH_STRONG_HMAC_KEY>' %>
   # Links to documentation. For onetimesecret.com, this is
   # docs.onetimesecet.com
   :support:
@@ -213,11 +218,6 @@
       :tracking_event: :error
       :stdout: true
       # log_absolute_path: '/home/app/log/truemail.log'
-# A captcha-like feature that protects the feedback form
-# from bots and other tomfoolery.
-:authenticity:
-  :type: <%= ENV['AUTHENTICITY_TYPE'] || 'altcha' %>
-  :secret_key: <%= ENV['AUTHENTICITY_SECRET_KEY'] || '<REPLACE_WITH_STRONG_HMAC_KEY>' %>
 :internationalization:
   :enabled: <%= ENV['I18N_ENABLED'] == 'true' || false %>
   :default_locale: <%= ENV['I18N_DEFAULT_LOCALE'] || 'en' %>
