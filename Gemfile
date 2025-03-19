@@ -51,7 +51,7 @@ gem 'mail'
 gem "fastimage", "~> 2.4"
 
 gem 'psych', '~> 5.2.3'
-gem 'stringio', '~> 3.1.1'
+gem 'stringio', '~> 3.1.5'
 
 # As of Ruby 3.4, these are no longer in the standard library
 #
