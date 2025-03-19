@@ -13,15 +13,15 @@
 #
 
 :site: include(':site')
-:redis: include(':redis')
 :incoming: include(':incoming')
+:redis: include(':redis')
 :emailer: include(':emailer')
 :mail: include(':mail')
-:experimental: include(':experimental')
 :internationalization: include(':internationalization')
 :diagnostics: include(':diagnostics')
 :limits: include(':limits')
 :development: include(':development')
+:experimental: include(':experimental')
 
 ---
 :site:
@@ -71,6 +71,7 @@
   :enabled: bool()
   :email: str()
   :passphrase: str()
+  :regex: str(required=False)
 
 :redis:
   :uri: str()
@@ -78,6 +79,7 @@
 
 :emailer:
   :mode: str()
+  :region: str(required=False)
   :from: str()
   :fromname: str()
   :host: str()
@@ -109,10 +111,7 @@
     :not_rfc_mx_lookup_flow: bool()
     :email_pattern: str(required=False)
     :smtp_error_body_pattern: str(required=False)
-    :logger:
-      :tracking_event: str()
-      :stdout: bool()
-      :log_absolute_path: str(required=False)
+    :logger: map()
 
 :internationalization:
   :enabled: any(str(), bool())
@@ -159,6 +158,8 @@
   :verify_domain: int()
   :report_exception: int()
   :attempt_secret_access: int()
+  :check_status: int()
+  :update_branding: int()
 
 :development:
   :enabled: any()
@@ -177,4 +178,6 @@
   :identifier: str()
   :display_name: str()
   :domain: str()
-  :icon: str()
+  :icon:
+    :collection: str()
+    :name: str()

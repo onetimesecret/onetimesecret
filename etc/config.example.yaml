@@ -213,8 +213,7 @@
     # write access to the log file. The log file will be created if it
     # does not exist. Log file rotation is not handled by the app.
     :logger:
-      # One of: :error (default), :unrecognized_error,
-      # :recognized_error, :all.
+      # One of: :error (default), :unrecognized_error, :recognized_error, :all.
       :tracking_event: :error
       :stdout: true
       # log_absolute_path: '/home/app/log/truemail.log'
@@ -297,6 +296,7 @@
   # per a rolling 20 minute period. Each key is an event name
   # and the value is the max count allowed. Changes require
   # restart of the app.
+  :check_status: 10000
   :create_secret: 1000
   :create_account: 10
   :update_account: 10
@@ -320,6 +320,7 @@
   :verify_domain: 25
   :report_exception: 50
   :attempt_secret_access: 10
+  :update_branding: 50
 :development:
   # Development Mode Configuration
   #
