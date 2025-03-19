@@ -103,7 +103,13 @@ module Rack
 
     def initialize(app, io: $stderr)
       @app = app
-      @logger = ::Logger.new(io, level: ::Logger::INFO)
+      log_level = ::Logger::INFO
+      # Override with DEBUG level only when conditions are met
+      if defined?(OT) && OT.respond_to?(:debug?) && OT.debug?
+        log_level = ::Logger::DEBUG
+      end
+      @logger = ::Logger.new(io, level: log_level)
+      logger.info("[DetectHost] Initialized with level #{log_level}")
     end
 
     def call(env)
