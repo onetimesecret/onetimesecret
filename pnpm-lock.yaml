@@ -13,7 +13,7 @@ importers:
         version: 1.7.23(vue@3.5.13(typescript@5.6.3))
       '@intlify/core':
         specifier: ^11.0.1
-        version: 11.0.1
+        version: 11.1.2
       '@prettier/plugin-ruby':
         specifier: ^4.0.4
         version: 4.0.4(prettier@3.4.2)
@@ -31,7 +31,7 @@ importers:
         version: 21.1.7
       '@vueuse/integrations':
         specifier: ^12.4.0
-        version: 12.4.0(axios@1.8.2)(focus-trap@7.6.0)(typescript@5.6.3)
+        version: 12.4.0(axios@1.8.2)(focus-trap@7.6.4)(typescript@5.6.3)
       altcha:
         specifier: ^1.1.0
         version: 1.1.0
@@ -52,10 +52,10 @@ importers:
         version: 3.2.4
       focus-trap:
         specifier: ^7.6.0
-        version: 7.6.0
+        version: 7.6.4
       focus-trap-vue:
         specifier: ^4.0.3
-        version: 4.0.3(focus-trap@7.6.0)(vue@3.5.13(typescript@5.6.3))
+        version: 4.0.3(focus-trap@7.6.4)(vue@3.5.13(typescript@5.6.3))
       pinia:
         specifier: ^2.2.6
         version: 2.2.6(typescript@5.6.3)(vue@3.5.13(typescript@5.6.3))
@@ -98,7 +98,7 @@ importers:
         version: 3.1.2
       '@tailwindcss/forms':
         specifier: ^0.5.9
-        version: 0.5.9(tailwindcss@3.4.17(ts-node@10.9.2(@types/node@22.9.0)(typescript@5.6.3)))
+        version: 0.5.10(tailwindcss@3.4.17(ts-node@10.9.2(@types/node@22.9.0)(typescript@5.6.3)))
       '@tailwindcss/typography':
         specifier: ^0.5.15
         version: 0.5.16(tailwindcss@3.4.17(ts-node@10.9.2(@types/node@22.9.0)(typescript@5.6.3)))
@@ -125,7 +125,7 @@ importers:
         version: 2.1.8(vitest@2.1.9)
       '@vue/runtime-core':
         specifier: ^3.5.12
-        version: 3.5.12
+        version: 3.5.13
       '@vue/test-utils':
         specifier: ^2.4.6
         version: 2.4.6
@@ -708,8 +708,8 @@ packages:
     resolution: {integrity: sha512-DZyQ4Hk22sC81MP4qiCDuU+LdaYW91A6lCjq8AWPvY3+mGMzhGDfOCzvyR6YBQxtlPjFqMoFk9ylnNYRAQwXtQ==}
     engines: {node: '>= 16'}
 
-  '@intlify/core@11.0.1':
-    resolution: {integrity: sha512-QBmit2KbVo+9mDiMTula7ZEBzxqd6j9cttHvH8tSiY16tymIN3eJBagAEes9Q1ZGUgypq8PiT966qHvn6Fzwug==}
+  '@intlify/core@11.1.2':
+    resolution: {integrity: sha512-OnBHcGRJbaeGrmBJV4YuK2E0xR7p1nKy1BeVqUqAFv9PQtYuY17cmdEoA3XjwN8HpuE2AsKwWyTmQ3nvFwx+yw==}
     engines: {node: '>= 16'}
 
   '@intlify/devtools-types@11.0.1':
@@ -1039,10 +1039,10 @@ packages:
       pinia:
         optional: true
 
-  '@tailwindcss/forms@0.5.9':
-    resolution: {integrity: sha512-tM4XVr2+UVTxXJzey9Twx48c1gcxFStqn1pQz0tRsX8o3DvxhN5oY5pvyAbUx7VTaZxpej4Zzvc6h+1RJBzpIg==}
+  '@tailwindcss/forms@0.5.10':
+    resolution: {integrity: sha512-utI1ONF6uf/pPNO68kmN1b8rEwNXv3czukalo8VtJH8ksIkZXr3Q3VYudZLkCsDd4Wku120uF02hYK25XGPorw==}
     peerDependencies:
-      tailwindcss: '>=3.0.0 || >= 3.0.0-alpha.1 || >= 4.0.0-alpha.20'
+      tailwindcss: '>=3.0.0 || >= 3.0.0-alpha.1 || >= 4.0.0-alpha.20 || >= 4.0.0-beta.1'
 
   '@tailwindcss/typography@0.5.16':
     resolution: {integrity: sha512-0wDLwCVF5V3x3b1SGXPCDcdsbDHMBe+lkFzBRaHeLvNi+nrrnZ1lA18u+OTWO8iSWU2GxUOCvlXtDuqftc1oiA==}
@@ -1299,14 +1299,8 @@ packages:
       typescript:
         optional: true
 
-  '@vue/reactivity@3.5.12':
-    resolution: {integrity: sha512-UzaN3Da7xnJXdz4Okb/BGbAaomRHc3RdoWqTzlvd9+WBR5m3J39J1fGcHes7U3za0ruYn/iYy/a1euhMEHvTAg==}
-
   '@vue/reactivity@3.5.13':
     resolution: {integrity: sha512-NaCwtw8o48B9I6L1zl2p41OHo/2Z4wqYGGIK1Khu5T7yxrn+ATOixn/Udn2m+6kZKB/J7cuT9DbWWhRxqixACg==}
-
-  '@vue/runtime-core@3.5.12':
-    resolution: {integrity: sha512-hrMUYV6tpocr3TL3Ad8DqxOdpDe4zuQY4HPY3X/VRh+L2myQO8MFXPAMarIOSGNu0bFAjh1yBkMPXZBqCk62Uw==}
 
   '@vue/runtime-core@3.5.13':
     resolution: {integrity: sha512-Fj4YRQ3Az0WTZw1sFe+QDb0aXCerigEpw418pw1HBUKFtnQHWzwojaukAs2X/c9DQz4MQ4bsXTGlcpGxU/RCIw==}
@@ -2073,8 +2067,8 @@ packages:
       focus-trap: ^7.0.0
       vue: ^3.0.0
 
-  focus-trap@7.6.0:
-    resolution: {integrity: sha512-1td0l3pMkWJLFipobUcGaf+5DTY4PLDDrcqoSaKP8ediO/CoWCCYk/fT/Y2A4e6TNB+Sh6clRJCjOPPnKoNHnQ==}
+  focus-trap@7.6.4:
+    resolution: {integrity: sha512-xx560wGBk7seZ6y933idtjJQc1l+ck+pI3sKvhKozdBV1dRZoKhkW5xoCaFv9tQiX5RH1xfSxjuNu6g+lmN/gw==}
 
   follow-redirects@1.15.9:
     resolution: {integrity: sha512-gew4GsXizNgdoRyqmyfMHyAmXsZDk6mHkSxZFCzW9gwlbtOW44CDtYavM+y+72qD/Vq2l550kMF52DT8fOLJqQ==}
@@ -4017,10 +4011,10 @@ snapshots:
       '@intlify/message-compiler': 9.14.2
       '@intlify/shared': 9.14.2
 
-  '@intlify/core@11.0.1':
+  '@intlify/core@11.1.2':
     dependencies:
-      '@intlify/core-base': 11.0.1
-      '@intlify/shared': 11.0.1
+      '@intlify/core-base': 11.1.2
+      '@intlify/shared': 11.1.2
 
   '@intlify/devtools-types@11.0.1':
     dependencies:
@@ -4342,7 +4336,7 @@ snapshots:
     optionalDependencies:
       pinia: 2.2.6(typescript@5.6.3)(vue@3.5.13(typescript@5.6.3))
 
-  '@tailwindcss/forms@0.5.9(tailwindcss@3.4.17(ts-node@10.9.2(@types/node@22.9.0)(typescript@5.6.3)))':
+  '@tailwindcss/forms@0.5.10(tailwindcss@3.4.17(ts-node@10.9.2(@types/node@22.9.0)(typescript@5.6.3)))':
     dependencies:
       mini-svg-data-uri: 1.4.4
       tailwindcss: 3.4.17(ts-node@10.9.2(@types/node@22.9.0)(typescript@5.6.3))
@@ -4701,7 +4695,7 @@ snapshots:
       '@volar/language-core': 2.4.9
       '@vue/compiler-dom': 3.5.12
       '@vue/compiler-vue2': 2.7.16
-      '@vue/shared': 3.5.12
+      '@vue/shared': 3.5.13
       alien-signals: 0.2.0
       minimatch: 9.0.5
       muggle-string: 0.4.1
@@ -4709,18 +4703,9 @@ snapshots:
     optionalDependencies:
       typescript: 5.6.3
 
-  '@vue/reactivity@3.5.12':
-    dependencies:
-      '@vue/shared': 3.5.12
-
   '@vue/reactivity@3.5.13':
     dependencies:
       '@vue/shared': 3.5.13
-
-  '@vue/runtime-core@3.5.12':
-    dependencies:
-      '@vue/reactivity': 3.5.12
-      '@vue/shared': 3.5.12
 
   '@vue/runtime-core@3.5.13':
     dependencies:
@@ -4768,14 +4753,14 @@ snapshots:
     transitivePeerDependencies:
       - typescript
 
-  '@vueuse/integrations@12.4.0(axios@1.8.2)(focus-trap@7.6.0)(typescript@5.6.3)':
+  '@vueuse/integrations@12.4.0(axios@1.8.2)(focus-trap@7.6.4)(typescript@5.6.3)':
     dependencies:
       '@vueuse/core': 12.4.0(typescript@5.6.3)
       '@vueuse/shared': 12.4.0(typescript@5.6.3)
       vue: 3.5.13(typescript@5.6.3)
     optionalDependencies:
       axios: 1.8.2
-      focus-trap: 7.6.0
+      focus-trap: 7.6.4
     transitivePeerDependencies:
       - typescript
 
@@ -5622,12 +5607,12 @@ snapshots:
 
   flatted@3.3.2: {}
 
-  focus-trap-vue@4.0.3(focus-trap@7.6.0)(vue@3.5.13(typescript@5.6.3)):
+  focus-trap-vue@4.0.3(focus-trap@7.6.4)(vue@3.5.13(typescript@5.6.3)):
     dependencies:
-      focus-trap: 7.6.0
+      focus-trap: 7.6.4
       vue: 3.5.13(typescript@5.6.3)
 
-  focus-trap@7.6.0:
+  focus-trap@7.6.4:
     dependencies:
       tabbable: 6.2.0
 
