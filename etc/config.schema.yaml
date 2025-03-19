@@ -13,7 +13,7 @@
 #
 
 :site: include(':site')
-:incoming: include(':incoming')
+:features: include(':features')
 :redis: include(':redis')
 :emailer: include(':emailer')
 :mail: include(':mail')
@@ -67,11 +67,13 @@
       :cluster_name: str()
       :vhost_target: str()
 
-:incoming:
-  :enabled: bool()
-  :email: str()
-  :passphrase: str()
-  :regex: str(required=False)
+:features:
+  :incoming:
+    :enabled: bool()
+    :email: str()
+    :passphrase: str()
+    :regex: str(required=False)
+  :stathat: map(required=False)
 
 :redis:
   :uri: str()

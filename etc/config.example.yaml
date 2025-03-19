@@ -89,6 +89,11 @@
       :cluster_host: <%= ENV['APPROXIMATED_PROXY_CLUSTER_HOST'] || '<CLUSTER_HOST>' %>
       :cluster_name: <%= ENV['APPROXIMATED_PROXY_CLUSTER_NAME'] || '<CLUSTER_NAME>' %>
       :vhost_target: <%= ENV['APPROXIMATED_PROXY_VHOST_TARGET'] || '<VHOST_TARGET>' %>
+:features:
+  :incoming:
+    :enabled: false
+    :email: CHANGEME@example.com
+    :passphrase: abacus
 # Redis Configuration
 :redis:
   # Main Redis connection URI - Specify full connection string including auth
@@ -145,10 +150,6 @@
   :pass: <%= ENV['SMTP_PASSWORD'] %>
   :auth: <%= ENV['SMTP_AUTH'] || 'login' %>
   :tls: <%= ENV['SMTP_TLS'] %>
-:incoming:
-  :enabled: false
-  :email: CHANGEME@example.com
-  :passphrase: abacus
 :mail:
   :truemail:
     # Available validation types: :regex, :mx, :mx_blacklist, :smtp
