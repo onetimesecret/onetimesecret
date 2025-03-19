@@ -77,6 +77,7 @@ module Rack
     unless defined?(HEADER_PRECEDENCE)
       HEADER_PRECEDENCE = [
         'X-Forwarded-Host',   # Common proxy header (AWS ALB, nginx)
+        'Apx-Incoming-Host',  # Check Approximated (if it exists)
         'X-Original-Host',    # Various proxy services
         'Forwarded',          # RFC 7239 standard (host parameter)
         'Host',               # Default HTTP host header
