@@ -47,6 +47,7 @@
   "author": "",
   "license": "MIT",
   "dependencies": {
+    "@babel/helpers": "^7.26.10",
     "@headlessui/vue": "^1.7.23",
     "@intlify/core": "^11.0.1",
     "@prettier/plugin-ruby": "^4.0.4",
