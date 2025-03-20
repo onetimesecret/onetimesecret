@@ -1,8 +1,81 @@
 ---
 :site:
   :host: <%= ENV['HOST'] || 'localhost:3000' %>
+  # Turns https/http on or off when generating links
+  :ssl: <%= ENV['SSL'] == 'true' || false %>
+  # IMPORTANT: After setting the secret, it should not be changed.
+  # Be sure to create and store a backup in a secure offsite
+  # location. Changing the secret can lead to unforeseen issues
+  # like not being able to decrypt existing secrets.
+  :secret: <%= ENV['SECRET'] || 'CHANGEME' %>
+  # API and UI Configuration
+  :interface:
+    # Controls whether the web user interface is available. When disabled, the
+    # homepage becomes a basic, readonly page with the logo and a brief
+    # explanation of the site and how it works. This is helpful for link
+    # recipients who may do some light investigation to see if the site is
+    # legit as opposed a blank page or 404.
+    :ui:
+      :enabled: <%= ENV['UI_ENABLED'] != 'false' %>
+    # Controls whether the API endpoints are available. When disabled, the API
+    # is completely disabled. Requests to /api/* will return 404.
+    :api:
+      :enabled: <%= ENV['API_ENABLED'] != 'false' %>
+  # Configuration options for secret management
+  :secret_options:
+    # Default Time-To-Live (TTL) for secrets in seconds
+    # This value is used if no specific TTL is provided when creating a secret
+    :default_ttl: <%= ENV['DEFAULT_TTL'] || nil %>
+    # Available TTL options for secret creation (in seconds)
+    # These options will be presented to users when they create a new secret
+    # Format: String of integers representing seconds
+    :ttl_options: <%= (ENV['TTL_OPTIONS'] || nil) %>
+  # Registration and Authentication settings
+  :authentication:
+    # Can be disabled altogether, including API authentication.
+    :enabled: <%= ENV['AUTH_ENABLED'] != 'false' %>
+    # Allow users to create accounts. This can be disabled if you plan
+    # to create accounts manually or enable during setup when accounts
+    # can be created and then disabled to prevent any new users from
+    # creating accounts.
+    :signup: <%= ENV['AUTH_SIGNUP'] != 'false' %>
+    # Generally if you allow registration, you allow signin. But there
+    # are circumstances where it's helpful to turn off authentication
+    # temporarily.
+    :signin: <%= ENV['AUTH_SIGNIN'] != 'false' %>
+    # By default, new accounts need to verify their email address before
+    # they can sign in. This is a security measure to prevent spamming
+    # and abuse of the system. If you're running a private instance or
+    # an instance for your team or company, you can disable this feature
+    # to make it easier for users to sign in.
+    :autoverify: <%= ENV['AUTH_AUTOVERIFY'] == 'true' || false %>
+    # Email addresses listed below will be granted automatic
+    # administrative privileges upon account creation. These
+    # accounts have access to a page that show basic system stats.
+    # The term "colonel" is used instead of "admin". "Colonel" (which
+    # is pronounced "kernel") references both the protected core of a
+    # Linux system and a military rank, symbolizing high-level access
+    # permissions. This naming helps avoid basic, automated attacks
+    # that target common admin URLs or role names.
+    :colonels:
+      - <%= ENV['COLONEL'] || 'CHANGEME@example.com' %>
+  # A captcha-like feature that protects the feedback form
+  # from bots and other tomfoolery.
+  :authenticity:
+    :type: <%= ENV['AUTHENTICITY_TYPE'] || 'altcha' %>
+    :secret_key: <%= ENV['AUTHENTICITY_SECRET_KEY'] || '<REPLACE_WITH_STRONG_HMAC_KEY>' %>
+  # Links to documentation. For onetimesecret.com, this is
+  # docs.onetimesecret.com.
+  :support:
+    :host: <%= ENV['SUPPORT_HOST'] || nil %>
+  :plans:
+    :enabled: <%= ENV['PLANS_ENABLED'] == 'true' || false %>
+    :stripe_key: <%= ENV['STRIPE_KEY'] || nil %>
+  :regions:
+    :enabled: <%= ENV['REGIONS_ENABLED'] == 'true' || false %>
+    :current_jurisdiction: <%= ENV['JURISDICTION'] || nil %>
   :domains:
-    :enabled: <%= ENV['DOMAINS_ENABLED'] || false %>
+    :enabled: <%= ENV['DOMAINS_ENABLED'] == 'true' || false %>
     # The default domain used for link URLs. When not set or empty,
     # site.host is used.
     :default: <%= ENV['DEFAULT_DOMAIN'] || nil %>
@@ -16,52 +89,11 @@
       :cluster_host: <%= ENV['APPROXIMATED_PROXY_CLUSTER_HOST'] || '<CLUSTER_HOST>' %>
       :cluster_name: <%= ENV['APPROXIMATED_PROXY_CLUSTER_NAME'] || '<CLUSTER_NAME>' %>
       :vhost_target: <%= ENV['APPROXIMATED_PROXY_VHOST_TARGET'] || '<VHOST_TARGET>' %>
-  # Turns https/http on or off when generating links
-  :ssl: <%= ENV['SSL'] == 'true' %>
-  # IMPORTANT: After setting the secret, it should not be changed.
-  # Be sure to create and store a backup in a secure offsite
-  # location. Changing the secret can lead to unforeseen issues
-  # like not being able to decrypt existing secrets.
-  :secret: <%= ENV['SECRET'] || 'CHANGEME' %>
-  # Registration and Authentication settings
-  :authentication:
-    # Can be disabled altogether, including API authentication.
-    :enabled: <%= ENV['AUTH_ENABLED'] || true %>
-    # Allow users to create accounts. This can be disabled if you plan
-    # to create accounts manually or enable during setup when accounts
-    # can be created and then disabled to prevent any new users from
-    # creating accounts.
-    :signup: <%= ENV['AUTH_SIGNUP'] || true %>
-    # Generally if you allow registration, you allow signin. But there
-    # are circumstances where it's helpful to turn off authentication
-    # temporarily.
-    :signin: <%= ENV['AUTH_SIGNIN'] || true %>
-    # By default, new accounts need to verify their email address before
-    # they can sign in. This is a security measure to prevent spamming
-    # and abuse of the system. If you're running a private instance or
-    # an instance for your team or company, you can disable this feature
-    # to make it easier for users to sign in.
-    :autoverify: <%= ENV['AUTH_AUTOVERIFY'] || false %>
-  :authenticity:
-    :type: <%= ENV['AUTHENTICITY_TYPE'] || 'altcha' %>
-    :secret_key: <%= ENV['AUTHENTICITY_SECRET_KEY'] || '<REPLACE_WITH_STRONG_HMAC_KEY>' %>
-  :plans:
-    :enabled: <%= ENV['PLANS_ENABLED'] || false %>
-    :stripe_key: <%= ENV['STRIPE_KEY'] || nil %>
-  :support:
-    :host: <%= ENV['SUPPORT_HOST'] || nil %>
-  :regions:
-    :enabled: <%= ENV['REGIONS_ENABLE'] || false %>
-    :current_jurisdiction: <%= ENV['JURISDICTION'] || nil %>
-  # Configuration options for secret management
-  :secret_options:
-    # Default Time-To-Live (TTL) for secrets in seconds
-    # This value is used if no specific TTL is provided when creating a secret
-    :default_ttl: <%= ENV['DEFAULT_TTL'] || nil %>
-    # Available TTL options for secret creation (in seconds)
-    # These options will be presented to users when they create a new secret
-    # Format: String of integers representing seconds
-    :ttl_options: <%= (ENV['TTL_OPTIONS'] || nil) %>
+:features:
+  :incoming:
+    :enabled: false
+    :email: CHANGEME@example.com
+    :passphrase: abacus
 # Redis Configuration
 :redis:
   # Main Redis connection URI - Specify full connection string including auth
@@ -88,11 +120,7 @@
     :rate_limit: <%= ENV['REDIS_DBS_RATE_LIMIT'] || 2 %>
     :feedback: <%= ENV['REDIS_DBS_FEEDBACK'] || 11 %>
     :exception_info: <%= ENV['REDIS_DBS_EXCEPTION_INFO'] || 12 %>
-:colonels:
-  # Email addresses listed below will be granted automatic
-  # administrative privileges upon account creation. These
-  # accounts will have full control over the system.
-  - <%= ENV['COLONEL'] || 'CHANGEME@example.com' %>
+# Sending Emails
 :emailer:
   # Local Development with Mailpit
   # -----------------------------
@@ -122,10 +150,6 @@
   :pass: <%= ENV['SMTP_PASSWORD'] %>
   :auth: <%= ENV['SMTP_AUTH'] || 'login' %>
   :tls: <%= ENV['SMTP_TLS'] %>
-:incoming:
-  :enabled: false
-  :email: CHANGEME@example.com
-  :passphrase: abacus
 :mail:
   :truemail:
     # Available validation types: :regex, :mx, :mx_blacklist, :smtp
@@ -190,13 +214,12 @@
     # write access to the log file. The log file will be created if it
     # does not exist. Log file rotation is not handled by the app.
     :logger:
-      # One of: :error (default), :unrecognized_error,
-      # :recognized_error, :all.
+      # One of: :error (default), :unrecognized_error, :recognized_error, :all.
       :tracking_event: :error
       :stdout: true
       # log_absolute_path: '/home/app/log/truemail.log'
 :internationalization:
-  :enabled:  <%= ENV['I18N_ENABLED'] || false %>
+  :enabled: <%= ENV['I18N_ENABLED'] == 'true' || false %>
   :default_locale: <%= ENV['I18N_DEFAULT_LOCALE'] || 'en' %>
   :fallback_locale:
     fr-CA: [fr_CA, fr_FR, en]
@@ -274,6 +297,7 @@
   # per a rolling 20 minute period. Each key is an event name
   # and the value is the max count allowed. Changes require
   # restart of the app.
+  :check_status: 10000
   :create_secret: 1000
   :create_account: 10
   :update_account: 10
@@ -297,6 +321,7 @@
   :verify_domain: 25
   :report_exception: 50
   :attempt_secret_access: 10
+  :update_branding: 50
 :development:
   # Development Mode Configuration
   #
@@ -358,4 +383,4 @@
   # the none if you're adding new script or style dependencies.
   # When disabled, no csp headers are included in any environment.
   :csp:
-    :enabled: <%= ENV['CSP_ENABLED'] == 'true' %>
+    :enabled: <%= ENV['CSP_ENABLED'] == 'true' || false %>

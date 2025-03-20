@@ -112,7 +112,7 @@
 </script>
 
 <template>
-  <div v-if="displayMasthead"
+  <div
        class="w-full">
     <div class="flex flex-col items-center justify-between sm:flex-row">
 

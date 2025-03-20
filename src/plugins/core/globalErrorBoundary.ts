@@ -5,7 +5,7 @@ import { classifyError, errorGuards } from '@/schemas/errors';
 import { loggingService } from '@/services/logging.service';
 import type { App, Plugin } from 'vue';
 import { inject } from 'vue';
-import { SENTRY_KEY, SentryInstance } from './enableDiagnotics';
+import { SENTRY_KEY, SentryInstance } from './enableDiagnostics';
 
 interface ErrorBoundaryOptions extends AsyncHandlerOptions {
   debug?: boolean;

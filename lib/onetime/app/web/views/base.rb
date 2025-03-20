@@ -43,6 +43,7 @@ module Onetime
         display_locale ||= @locale
         is_default_locale = display_locale == @locale
 
+        interface = site.fetch(:interface, {})
         secret_options = site.fetch(:secret_options, {})
         domains = site.fetch(:domains, {})
         regions = site.fetch(:regions, {})
@@ -62,13 +63,13 @@ module Onetime
         domains_enabled = domains[:enabled] || false
         regions_enabled = regions[:enabled] || false
 
-        # Regular template vars used one
+        # Regular template vars used by head.html
         self[:description] = i18n[:COMMON][:description]
         self[:keywords] = i18n[:COMMON][:keywords]
         self[:page_title] = "Onetime Secret"
+        self[:no_cache] = false
         self[:frontend_host] = frontend_host
         self[:frontend_development] = frontend_development
-        self[:no_cache] = false
 
         self[:jsvars] = {}
 
@@ -77,6 +78,9 @@ module Onetime
 
         # Add the global site banner if there is one
         self[:jsvars][:global_banner] = jsvar(OT.global_banner) if OT.global_banner
+
+        # Add UI settings
+        self[:jsvars][:ui] = jsvar(interface[:ui])
 
         # Pass the authentication flag settings to the frontends.
         self[:jsvars][:authentication] = jsvar(authentication) # nil is okay

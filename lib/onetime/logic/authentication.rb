@@ -61,7 +61,8 @@ module Onetime::Logic
           sess.save
           cust.save
 
-          if OT.conf[:colonels].member?(cust.custid)
+          colonels = OT.conf.dig(:authentication, :colonels) || []
+          if colonels.member?(cust.custid)
             cust.role = :colonel
           else
             cust.role = :customer unless cust.role?(:customer)
