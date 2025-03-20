@@ -115,21 +115,23 @@ module Onetime
         api: { enabled: true },
       }.merge(conf[:site][:interface])
 
-      # Disable all authentication sub-features when main feature is off for
-      # consistency, security, and to prevent unexpected behavior. Ensures clean
-      # config state.
-      if conf.dig(:site, :authentication, :enabled) != true
-        conf[:site][:authentication].each_key do |key|
-          conf[:site][:authentication][key] = false
-        end
-      end
-
       # Make sure colonels are in their proper location since previously
       # it was at the root level
       colonels = conf.fetch(:colonels, nil)
       if colonels && !conf.dig(:site, :authentication)&.key?(:colonels)
         conf[:site][:authentication] ||= {}
         conf[:site][:authentication][:colonels] = colonels
+      end
+      conf[:site][:authentication][:colonels] ||= [] # make sure it exists
+
+      # Disable all authentication sub-features when main feature is off for
+      # consistency, security, and to prevent unexpected behavior. Ensures clean
+      # config state.
+      # NOTE: Needs to run after other site.authentication logic
+      if conf.dig(:site, :authentication, :enabled) != true
+        conf[:site][:authentication].each_key do |key|
+          conf[:site][:authentication][key] = false
+        end
       end
 
       if conf.dig(:site, :domains, :enabled).to_s == "true"

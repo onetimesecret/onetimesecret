@@ -49,9 +49,8 @@ module Onetime::Logic
         @msg = format_feedback_message
         OT.ld [:receive_feedback, msg].inspect
 
-
         begin
-          configured_colonels = OT.conf[:authentication][:colonels] || []
+          configured_colonels = OT.conf.dig(:site, :authentication, :colonels) || []
 
           first_colonel = nil
           configured_colonels.each do |colonel_email|
