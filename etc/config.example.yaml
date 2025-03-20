@@ -18,7 +18,7 @@
     :ui:
       :enabled: <%= ENV['UI_ENABLED'] != 'false' %>
     # Controls whether the API endpoints are available. When disabled, the API
-    # is compltely disabled. Requests to /api/* will return 404.
+    # is completely disabled. Requests to /api/* will return 404.
     :api:
       :enabled: <%= ENV['API_ENABLED'] != 'false' %>
   # Configuration options for secret management
@@ -65,7 +65,7 @@
     :type: <%= ENV['AUTHENTICITY_TYPE'] || 'altcha' %>
     :secret_key: <%= ENV['AUTHENTICITY_SECRET_KEY'] || '<REPLACE_WITH_STRONG_HMAC_KEY>' %>
   # Links to documentation. For onetimesecret.com, this is
-  # docs.onetimesecet.com
+  # docs.onetimesecret.com.
   :support:
     :host: <%= ENV['SUPPORT_HOST'] || nil %>
   :plans:
