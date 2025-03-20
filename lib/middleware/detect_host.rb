@@ -77,6 +77,7 @@ module Rack
     unless defined?(HEADER_PRECEDENCE)
       HEADER_PRECEDENCE = [
         'X-Forwarded-Host',   # Common proxy header (AWS ALB, nginx)
+        'Apx-Incoming-Host',  # Check Approximated (if it exists)
         'X-Original-Host',    # Various proxy services
         'Forwarded',          # RFC 7239 standard (host parameter)
         'Host',               # Default HTTP host header
@@ -103,7 +104,13 @@ module Rack
 
     def initialize(app, io: $stderr)
       @app = app
-      @logger = ::Logger.new(io, level: ::Logger::INFO)
+      log_level = ::Logger::INFO
+      # Override with DEBUG level only when conditions are met
+      if defined?(OT) && OT.respond_to?(:debug?) && OT.debug?
+        log_level = ::Logger::DEBUG
+      end
+      @logger = ::Logger.new(io, level: log_level)
+      logger.info("[DetectHost] Initialized with level #{log_level}")
     end
 
     def call(env)

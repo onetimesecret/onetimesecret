@@ -1,7 +1,6 @@
 module Onetime
   module Config
     extend self
-    attr_writer :path
 
     unless defined?(SERVICE_PATHS)
       SERVICE_PATHS = %w[/etc/onetime ./etc].freeze
@@ -9,6 +8,17 @@ module Onetime
     end
 
     attr_reader :env, :base, :bootstrap
+    attr_writer :path
+
+    # Normalizes environment variables prior to loading and rendering the YAML
+    # configuration. In some cases, this might include setting default values
+    # and ensuring necessary environment variables are present.
+    def before_load
+
+      # In v0.20.6, REGIONS_ENABLE was renamed to REGIONS_ENABLED for
+      # consistency. We ensure both are considered for compatability.
+      ENV['REGIONS_ENABLED'] = ENV.values_at('REGIONS_ENABLED', 'REGIONS_ENABLE').compact.first || 'false'
+    end
 
     # Load a YAML configuration file, allowing for ERB templating within the file.
     # This reads the file at the given path, processes any embedded Ruby (ERB) code,
@@ -59,6 +69,10 @@ module Onetime
         raise OT::Problem, "No `mail` config found in #{path}"
       end
 
+      mtc = conf[:mail][:truemail]
+      OT.ld "Setting TrueMail config from #{path}"
+      raise OT::Problem, "No TrueMail config found" unless mtc
+
       unless conf[:site]&.key?(:authentication)
         raise OT::Problem, "No `site.authentication` config found in #{path}"
       end
@@ -91,16 +105,36 @@ module Onetime
         2.weeks,        # 1209600
         30.days,        # 2592000
       ]
+
+      # Make sure there is an interface config (for installs running off
+      # of an older config file).
+      conf[:site][:interface] ||= {}
+
+      conf[:site][:interface] = {
+        ui: { enabled: true },
+        api: { enabled: true },
+      }.merge(conf[:site][:interface])
+
+      # Make sure colonels are in their proper location since previously
+      # it was at the root level
+      colonels = conf.fetch(:colonels, nil)
+      if colonels && !conf.dig(:site, :authentication)&.key?(:colonels)
+        conf[:site][:authentication] ||= {}
+        conf[:site][:authentication][:colonels] = colonels
+      end
+      conf[:site][:authentication][:colonels] ||= [] # make sure it exists
+
       # Disable all authentication sub-features when main feature is off for
       # consistency, security, and to prevent unexpected behavior. Ensures clean
       # config state.
-      if OT.conf.dig(:site, :authentication, :enabled) != true
-        OT.conf[:site][:authentication].each_key do |key|
+      # NOTE: Needs to run after other site.authentication logic
+      if conf.dig(:site, :authentication, :enabled) != true
+        conf[:site][:authentication].each_key do |key|
           conf[:site][:authentication][key] = false
         end
       end
 
-      if OT.conf.dig(:site, :domains, :enabled).to_s == "true"
+      if conf.dig(:site, :domains, :enabled).to_s == "true"
         cluster = conf.dig(:site, :domains, :cluster)
         OT.ld "Setting OT::Cluster::Features #{cluster}"
         klass = OT::Cluster::Features
@@ -115,16 +149,16 @@ module Onetime
         end
       end
 
-      site_host = OT.conf.dig(:site, :host)
-      ttl_options = OT.conf.dig(:site, :secret_options, :ttl_options)
-      default_ttl = OT.conf.dig(:site, :secret_options, :default_ttl)
+      site_host = conf.dig(:site, :host)
+      ttl_options = conf.dig(:site, :secret_options, :ttl_options)
+      default_ttl = conf.dig(:site, :secret_options, :default_ttl)
 
       # if the ttl_options setting is a string, we want to split it into an
       # array of integers.
       if ttl_options.is_a?(String)
         conf[:site][:secret_options][:ttl_options] = ttl_options.split(/\s+/)
       end
-      ttl_options = OT.conf.dig(:site, :secret_options, :ttl_options)
+      ttl_options = conf.dig(:site, :secret_options, :ttl_options)
       if ttl_options.is_a?(Array)
         conf[:site][:secret_options][:ttl_options] = ttl_options.map(&:to_i)
       end
@@ -133,7 +167,7 @@ module Onetime
         conf[:site][:secret_options][:default_ttl] = default_ttl.to_i
       end
 
-      if OT.conf.dig(:site, :plans, :enabled).to_s == "true"
+      if conf.dig(:site, :plans, :enabled).to_s == "true"
         stripe_key = conf.dig(:site, :plans, :stripe_key)
         unless stripe_key
           raise OT::Problem, "No `site.plans.stripe_key` found in #{path}"
@@ -142,10 +176,6 @@ module Onetime
         require 'stripe'
         Stripe.api_key = stripe_key
       end
-
-      mtc = conf[:mail][:truemail]
-      OT.ld "Setting TrueMail config from #{path}"
-      raise OT::Problem, "No TrueMail config found" unless mtc
 
       # Iterate over the keys in the mail/truemail config
       # and set the corresponding key in the Truemail config.
@@ -160,17 +190,17 @@ module Onetime
         end
       end
 
-      diagnostics = OT.conf.fetch(:diagnostics, {})
+      diagnostics = conf.fetch(:diagnostics, {})
 
       # Apply the defaults to sentry backend and frontend configs
       # and update the config with the merged values.
       merged = apply_defaults(diagnostics[:sentry])
-      OT.conf[:diagnostics] = {
+      conf[:diagnostics] = {
         enabled: OT.d9s_enabled,
         sentry: merged
       }
 
-      sentry = merged[:backend]
+      sentry = merged[:backend] || {}
       dsn = sentry.fetch(:dsn, nil)
 
       # Only require Sentry if we have a DSN

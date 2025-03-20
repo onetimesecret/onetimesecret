@@ -10,7 +10,7 @@ import { createPinia } from 'pinia';
 import { App, Plugin } from 'vue';
 import { autoInitPlugin } from '../pinia/autoInitPlugin';
 
-import { createDiagnostics } from './enableDiagnotics';
+import { createDiagnostics } from './enableDiagnostics';
 import { createErrorBoundary } from './globalErrorBoundary';
 
 interface AppInitializerOptions {
