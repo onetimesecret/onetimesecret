@@ -1,44 +1,44 @@
 
-GET   /                                          Onetime::App::Page#index
-GET   /404                                       Onetime::App::Page#not_found
-GET   /500                                       Onetime::App::Page#server_error
-GET   /robots.txt                                Onetime::App::Page#robots_txt
+GET   /                                          Core::Controller::Page#index
+GET   /404                                       Core::Controller::Page#not_found
+GET   /500                                       Core::Controller::Page#server_error
+GET   /robots.txt                                Core::Controller::Page#robots_txt
 
-POST  /incoming                                  Onetime::App::Data#create_incoming
+POST  /incoming                                  Core::Controller::Data#create_incoming
 
-GET   /plans/:tier                               Onetime::App::Data#plan_redirect
-GET   /plans/:tier/:billing_cycle                Onetime::App::Data#plan_redirect
-GET   /welcome                                   Onetime::App::Data#welcome
-POST  /welcome/stripe/webhook                    Onetime::App::Data#welcome_webhook
+GET   /plans/:tier                               Core::Controller::Account#plan_redirect
+GET   /plans/:tier/:billing_cycle                Core::Controller::Account#plan_redirect
+GET   /welcome                                   Core::Controller::Account#welcome
+POST  /welcome/stripe/webhook                    Core::Controller::Account#welcome_webhook
 
-GET   /private/*                                 Onetime::App::Page#index
-GET   /secret/*                                  Onetime::App::Page#index
+GET   /private/*                                 Core::Controller::Page#index
+GET   /secret/*                                  Core::Controller::Page#index
 
-POST  /signin                                    Onetime::App::Data#authenticate
-POST  /signup                                    Onetime::App::Data#create_account
+POST  /signin                                    Core::Controller::Account#authenticate
+POST  /signup                                    Core::Controller::Account#create_account
 
-GET   /about                                     Onetime::App::Page#index
-GET   /translations                              Onetime::App::Page#index
-GET   /info/*                                    Onetime::App::Page#index
-GET   /pricing                                   Onetime::App::Page#index
-GET   /signin                                    Onetime::App::Page#index
-GET   /signup                                    Onetime::App::Page#index
-GET   /signup/*                                  Onetime::App::Page#index
-GET   /logout                                    Onetime::App::Data#logout
+GET   /about                                     Core::Controller::Page#index
+GET   /translations                              Core::Controller::Page#index
+GET   /info/*                                    Core::Controller::Page#index
+GET   /pricing                                   Core::Controller::Page#index
+GET   /signin                                    Core::Controller::Page#index
+GET   /signup                                    Core::Controller::Page#index
+GET   /signup/*                                  Core::Controller::Page#index
+GET   /logout                                    Core::Controller::Account#logout
 
-GET   /forgot                                    Onetime::App::Page#index
-GET   /forgot/:key                               Onetime::App::Page#index
-POST  /forgot                                    Onetime::App::Data#request_reset
-POST  /forgot/:key                               Onetime::App::Data#request_reset
+GET   /forgot                                    Core::Controller::Page#index
+GET   /forgot/:key                               Core::Controller::Page#index
+POST  /forgot                                    Core::Controller::Account#request_reset
+POST  /forgot/:key                               Core::Controller::Account#request_reset
 
-GET   /dashboard                                 Onetime::App::Page#customers_only
-GET   /recent                                    Onetime::App::Page#customers_only
-GET   /domains/*                                 Onetime::App::Page#customers_only
-GET   /domains                                   Onetime::App::Page#customers_only
-GET   /account/*                                 Onetime::App::Page#customers_only
-GET   /account                                   Onetime::App::Page#customers_only
-GET   /account/billing_portal                    Onetime::App::Data#customer_portal_redirect
+GET   /dashboard                                 Core::Controller::Page#customers_only
+GET   /recent                                    Core::Controller::Page#customers_only
+GET   /domains/*                                 Core::Controller::Page#customers_only
+GET   /domains                                   Core::Controller::Page#customers_only
+GET   /account/*                                 Core::Controller::Page#customers_only
+GET   /account                                   Core::Controller::Page#customers_only
+GET   /account/billing_portal                    Core::Controller::Account#customer_portal_redirect
 
-GET   /colonel                                   Onetime::App::Page#colonels_only
+GET   /colonel                                   Core::Controller::Page#colonels_only
 
-GET   /imagine/:custom_domain_id/:image_type.:image_ext  Onetime::App::Page#imagine
+GET   /imagine/:custom_domain_id/:image_type.:image_ext  Core::Controller::Page#imagine

@@ -1,6 +1,6 @@
 # apps/web/core/views/base.rb
 
-require 'lib/chimera'
+require 'chimera'
 
 require_relative 'view_helpers'
 require_relative 'vite_helpers'
@@ -13,7 +13,7 @@ module Core
 
     self.template_path = './templates/web'
     self.template_extension = 'html'
-    self.view_namespace = Onetime::App::Views
+    self.view_namespace = Core::Views
     self.view_path = './app/web/views'
 
     attr_reader :req, :plan, :is_paid, :canonical_domain, :display_domain, :domain_strategy
