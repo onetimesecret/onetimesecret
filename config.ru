@@ -72,6 +72,14 @@ Dir.glob(File.join(APP_DIR, '**/application.rb')).each { |f| require f }
 use Rack::CommonLogger
 use Rack::ContentLength
 
+# If Sentry is not successfully enabled, the `Sentry` client is not
+# available and this block is not executed.
+Onetime.with_diagnostics do
+  OT.ld "[config.ru] Sentry enabled"
+  # Put Sentry middleware first to catch exceptions as early as possible
+  use Sentry::Rack::CaptureExceptions
+end
+
 # Support development without code reloading in production-like environments
 if defined?(OT) && OT.conf.dig(:experimental, :freeze_app)
   OT.li "[experimental] Freezing app by request (env: #{ENV['RACK_ENV']})"
@@ -80,6 +88,10 @@ end
 
 # Enable local frontend development server proxy
 if ENV['RACK_ENV'] =~ /\A(dev|development)\z/
+
+# Validate Rack compliance
+  use Rack::Lint
+
   # Frontend development proxy configuration
   def run_frontend_proxy
     return unless defined?(OT)

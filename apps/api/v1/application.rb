@@ -52,20 +52,14 @@ module V1
           Onetime.li "API V1 warmup completed"
         end
 
-        # Core middleware stack
-        use Rack::Lint
-        use Rack::CommonLogger
-        use Rack::ContentLength
+        # Common middleware stack
         use Rack::HandleInvalidUTF8
         use Rack::HandleInvalidPercentEncoding
-
-        # Application-specific middleware
         use Rack::ClearSessionMessages
         use Rack::DetectHost
-        use Onetime::DomainStrategy
 
-        # Conditional middleware
-        use Sentry::Rack::CaptureExceptions if defined?(Sentry::Rack::CaptureExceptions)
+        # Applications middleware stack
+        use Onetime::DomainStrategy
 
         # Application router
         run router_instance
