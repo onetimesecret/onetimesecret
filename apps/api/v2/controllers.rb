@@ -94,8 +94,8 @@ module V2
 end
 
 # Requires at the end to avoid circular dependency
-require_relative 'account'
-require_relative 'challenges'
-require_relative 'colonel'
-require_relative 'domains'
-require_relative 'secrets'
+require_relative 'controllers/account'
+require_relative 'controllers/challenges'
+require_relative 'controllers/colonel'
+require_relative 'controllers/domains'
+require_relative 'controllers/secrets'

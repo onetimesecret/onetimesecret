@@ -4,7 +4,7 @@ require_relative 'base'
 require_relative 'settings'
 
 module Core
-  class Controller::Page
+  class Controllers::Page
     include ControllerSettings
     include ControllerBase
 

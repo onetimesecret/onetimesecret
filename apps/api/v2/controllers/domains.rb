@@ -1,13 +1,13 @@
 # apps/api/v2/domains.rb
 
 require_relative 'base'
-require_relative '../../app_settings'
-require_relative '../../../logic/domains'
+require_relative 'settings'
+require_relative '../logic/domains'
 
-class V2
+module V2
   class Domains
-    include Onetime::App::AppSettings
-    include V2::Base
+    include V2::ControllerSettings
+    include V2::ControllerBase
 
     @check_utf8 = true
     @check_uri_encoding = true

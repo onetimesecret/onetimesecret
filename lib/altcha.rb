@@ -1,4 +1,4 @@
-# frozen_string_literal: true
+# lib/altcha.rb
 
 # Based on from: https://github.com/altcha-org/altcha-lib-rb
 #

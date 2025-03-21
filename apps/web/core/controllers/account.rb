@@ -1,7 +1,7 @@
 # apps/web/core/controllers/account.rb
 
 module Core
-  module Controller
+  module Controllers
     class Account
 
       # Redirects users to the appropriate Stripe Payment Link based on selected plan

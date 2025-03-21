@@ -1,12 +1,12 @@
 # apps/api/v2/colonel.rb
 
 require_relative 'base'
-require_relative '../../app_settings'
+require_relative 'settings'
 
-class V2
+module V2
   class Colonel
-    include Onetime::App::AppSettings
-    include V2::Base
+    include V2::ControllerSettings
+    include V2::ControllerBase
 
     @check_utf8 = true
     @check_uri_encoding = true

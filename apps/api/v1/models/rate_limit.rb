@@ -14,7 +14,7 @@ require 'forwardable'
 # The Redis key format is: "limiter:#{identifier}:#{event}:#{timestamp}"
 #
 # Example:
-#   limiter = OT::RateLimit.new("1.2.3.4", :create_secret)
+#   limiter = V1::RateLimit.new("1.2.3.4", :create_secret)
 #   begin
 #     limiter.incr!
 #   rescue OT::LimitExceeded => ex
@@ -25,7 +25,7 @@ class V1::RateLimit < Familia::Horreum
   extend Forwardable
 
   # Default limit for events that haven't been explicitly configured
-  DEFAULT_LIMIT = 25 unless defined?(OT::RateLimit::DEFAULT_LIMIT)
+  DEFAULT_LIMIT = 25 unless defined?(V1::RateLimit::DEFAULT_LIMIT)
 
   feature :expiration
   feature :quantization

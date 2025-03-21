@@ -47,7 +47,9 @@ module V1
       Rack::Builder.new do
 
         warmup do
-          # Expensive initialization tasks
+          V1::RateLimit.register_events OT.conf[:limits]
+          OT.li "rate limits: #{V1::RateLimit.events.map { |k,v| "#{k}=#{v}" }.join(', ')}"
+
           # Log warmup completion
           Onetime.li "API V1 warmup completed"
         end

@@ -1,4 +1,3 @@
-# typed: false
 # lib/onetime.rb
 
 require 'bundler/setup'
@@ -94,7 +93,6 @@ module Onetime
       load_locales
       set_global_secret
       prepare_emailers
-      prepare_rate_limits
       load_fortunes
       load_plans
       connect_databases
@@ -171,10 +169,6 @@ module Onetime
       end
     end
 
-    def prepare_rate_limits
-      OT::RateLimit.register_events OT.conf[:limits]
-    end
-
     def load_fortunes
       OT::Utils.fortunes ||= File.readlines(File.join(Onetime::HOME, 'etc', 'fortunes'))
     end
@@ -232,7 +226,6 @@ module Onetime
       end
 
       OT.li "secret options: #{OT.conf.dig(:site, :secret_options)}"
-      OT.li "rate limits: #{OT::RateLimit.events.map { |k,v| "#{k}=#{v}" }.join(', ')}"
     end
 
     def load_plans
@@ -371,9 +364,7 @@ end
 require_relative 'onetime/errors'
 require_relative 'onetime/utils'
 require_relative 'onetime/version'
+require_relative 'onetime/cluster'
 require_relative 'onetime/config'
 require_relative 'onetime/plan'
 require_relative 'onetime/alias'
-require_relative 'onetime/models'
-require_relative 'onetime/logic'
-# require_relative 'onetime/app'
