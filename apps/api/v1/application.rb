@@ -27,7 +27,7 @@ module V1
 
     def build_router
       routes_path = File.join(ENV['APP_ROOT'], 'apps/api/v1/routes')
-      p Otto.debug = true
+
       router = Otto.new(routes_path)
 
       # Default error responses
