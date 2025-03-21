@@ -3,8 +3,8 @@
 require 'stathat'
 require 'timeout'
 
+require 'onetime/refinements/rack_refinements'
 require_relative 'helpers'
-require_relative '../refinements/rack_refinements'
 
 module V2
   module Logic

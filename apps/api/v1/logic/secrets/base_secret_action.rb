@@ -1,5 +1,7 @@
 # apps/api/v1/logic/secrets/base_secret_action.rb
 
+require 'onetime/refinements/rack_refinements'
+
 module V1::Logic
   module Secrets
 

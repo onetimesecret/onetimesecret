@@ -5,10 +5,10 @@ require 'otto'
 require 'json'
 
 require_relative 'controllers'
-# require_relative 'models'
-# require_relative 'logic'
+require_relative 'models'
+require_relative 'logic'
 
-module Core
+module V2
   class Application
     attr_reader :options, :router, :rack_app
 
@@ -61,9 +61,8 @@ module Core
       end.to_app
     end
 
+    # Registering with AppRegistry during load makes this application
+    # available to the main config.ru file.
+    AppRegistry.register('/api/v2', self) # i.e. V2::Application
   end
 end
-
-# Registering with AppRegistry during load makes this application
-# available to the main config.ru file.
-AppRegistry.register('/api/v2', V2::Application)

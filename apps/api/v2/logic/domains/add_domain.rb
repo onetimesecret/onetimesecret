@@ -2,8 +2,8 @@ require 'public_suffix'
 
 # Tryouts: tests/unit/ruby/try/60_logic/41_logic_domains_add_try.rb
 
+require 'onetime/cluster'
 require_relative '../base'
-require_relative '../../cluster'
 
 module V2::Logic
   module Domains

@@ -260,6 +260,6 @@ module V2
 
     # See Customer model for explanation about why
     # we include extra fields at the end here.
-    include Onetime::Models::Passphrase
+    include V1::Mixins::Passphrase
   end
 end

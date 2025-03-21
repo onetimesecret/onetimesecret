@@ -1,7 +1,7 @@
 # apps/api/v1/logic/colonel.rb
 
 require_relative 'base'
-require_relative '../refinements/stripe_refinements'
+require 'onetime/refinements/stripe_refinements'
 
 module V1::Logic
   module Colonel

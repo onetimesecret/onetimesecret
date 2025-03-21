@@ -1,5 +1,5 @@
+require 'onetime/cluster'
 require_relative 'get_domain'
-require_relative '../../cluster'
 
 module V2::Logic
   module Domains

@@ -1,6 +1,4 @@
-# rubocop:disable
-
-# lives in lib/onetime/refinements
+# lib/onetime/refinements/stripe_refinements.rb
 
 require 'stripe' # ensures Stripe namespace is loaded
 

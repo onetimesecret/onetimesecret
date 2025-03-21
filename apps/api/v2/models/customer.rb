@@ -468,6 +468,6 @@ class V2::Customer < Familia::Horreum
   # first field defined in this file), this email address would get
   # written to the (automatically inserted) passphrase field.
   #
-  include Onetime::Models::Passphrase
+  include V1::Mixins::Passphrase
   extend ClassMethods
 end

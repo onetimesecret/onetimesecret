@@ -2,9 +2,9 @@
 
 require 'public_suffix'
 
-require_relative 'base'
-require_relative '../cluster'
+require 'onetime/cluster'
 
+require_relative 'base'
 require_relative 'domains/add_domain'
 require_relative 'domains/remove_domain'
 require_relative 'domains/list_domains'

@@ -1,8 +1,8 @@
 require 'base64'
 require 'fastimage'
 
+require 'onetime/cluster'
 require_relative '../base'
-require_relative '../../cluster'
 
 module V2::Logic
   module Domains

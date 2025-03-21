@@ -1,5 +1,4 @@
 # lib/onetime/refinements/rack_refinements.rb
-# rubocop:disable
 
 module Onetime
   module RackRefinements
