@@ -42,7 +42,7 @@ module V1
           return disabled_response(req.path) unless authentication_enabled?
 
           OT.ld "[authorized] Attempt for '#{custid}' via #{req.client_ipaddress} (basic auth)"
-          possible = OT::Customer.load custid
+          possible = V1::Customer.load custid
           raise OT::Unauthorized, "No such customer" if possible.nil?
 
           @cust = possible if possible.apitoken?(apitoken)
@@ -90,7 +90,7 @@ module V1
             raise OT::Unauthorized, "No session or credentials"
           end
 
-          @cust = OT::Customer.anonymous
+          @cust = V1::Customer.anonymous
           @sess = OT::Session.new req.client_ipaddress, cust.custid
 
           if OT.debug?

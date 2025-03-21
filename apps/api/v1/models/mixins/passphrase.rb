@@ -1,6 +1,7 @@
 # lib/onetime/models/mixins/passphrase.rb
 
-module Onetime::Models
+module V1::Mixins
+
   module Passphrase
     def self.included(base)
       base.field :passphrase
@@ -41,6 +42,7 @@ module Onetime::Models
       end
     end
   end
+
 end
 
 __END__

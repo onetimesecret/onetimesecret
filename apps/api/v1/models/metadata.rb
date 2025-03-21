@@ -1,5 +1,6 @@
+# apps/api/v1/models/metadata.rb
 
-module Onetime
+module V1
   class Metadata < Familia::Horreum
     include Gibbler::Complex
 
@@ -134,7 +135,7 @@ module Onetime
     end
 
     def owner? cust
-      !anonymous? && (cust.is_a?(OT::Customer) ? cust.custid : cust).to_s == custid.to_s
+      !anonymous? && (cust.is_a?(V1::Customer) ? cust.custid : cust).to_s == custid.to_s
     end
 
     def valid?

@@ -1,8 +1,8 @@
-# frozen_string_literal: true
+# apps/api/v1/models/mixins/session_messages.rb
 
 require 'json'
 
-module Onetime::Models
+module V1::Mixins
 
   # Provides session-based messaging and form state persistence functionality
   #

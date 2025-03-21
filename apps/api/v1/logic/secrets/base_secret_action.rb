@@ -195,7 +195,7 @@ module V1::Logic
           cust.add_metadata metadata
           cust.increment_field :secrets_created
         end
-        OT::Customer.global.increment_field :secrets_created
+        V1::Customer.global.increment_field :secrets_created
         V1::Logic.stathat_count("Secrets", 1)
       end
 

@@ -1,9 +1,9 @@
-# lib/onetime/models/session.rb
+# apps/api/v1/models/session.rb
 
 require_relative 'mixins/session_messages'
 
-class Onetime::Session < Familia::Horreum
-  include Onetime::Models::RateLimited
+class V1::Session < Familia::Horreum
+  include V1::Mixins::RateLimited
 
   feature :safe_dump
   feature :expiration
@@ -170,9 +170,9 @@ class Onetime::Session < Familia::Horreum
   end
 
   def load_customer
-    return OT::Customer.anonymous if anonymous?
-    cust = OT::Customer.load custid
-    cust.nil? ? OT::Customer.anonymous : cust
+    return V1::Customer.anonymous if anonymous?
+    cust = V1::Customer.load custid
+    cust.nil? ? V1::Customer.anonymous : cust
   end
 
   module ClassMethods
@@ -220,7 +220,7 @@ class Onetime::Session < Familia::Horreum
   # 1. Its additional fields appear at the end of the field list.
   # 2. These fields don't unexpectedly consume positional arguments in Session.new.
   #
-  include Onetime::Models::SessionMessages
+  include V1::Mixins::SessionMessages
 
   extend ClassMethods
 end

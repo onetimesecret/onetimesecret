@@ -1,4 +1,4 @@
-# frozen_string_literal: true
+# apps/api/v1/models/rate_limit.rb
 
 require 'forwardable'
 
@@ -21,7 +21,7 @@ require 'forwardable'
 #     puts "Rate limit exceeded for #{ex.event}"
 #   end
 #
-class Onetime::RateLimit < Familia::Horreum
+class V1::RateLimit < Familia::Horreum
   extend Forwardable
 
   # Default limit for events that haven't been explicitly configured
@@ -50,7 +50,7 @@ class Onetime::RateLimit < Familia::Horreum
   # Initialize a new rate limiter
   # @param identifier [String] unique identifier for the limited entity
   # @param event [Symbol] the type of event being limited
-  # @return [Onetime::RateLimit]
+  # @return [V1::RateLimit]
   def init
     redis.setnx(rediskey, 0) # nx = set if not exists
     update_expiration

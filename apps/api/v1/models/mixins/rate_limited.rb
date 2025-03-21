@@ -1,19 +1,20 @@
 # frozen_string_literal: true
 
-module Onetime::Models
+module V1::Mixins
+
   module RateLimited
     def event_incr! event
       # Uses the external identifier of the implementing class to keep
       # track of the event count. e.g. sess.external_identifier.
-      OT::RateLimit.incr! external_identifier, event
+      V1::RateLimit.incr! external_identifier, event
     end
 
     def event_get event
-      OT::RateLimit.get external_identifier, event
+      V1::RateLimit.get external_identifier, event
     end
 
     def event_clear! event
-      OT::RateLimit.clear! external_identifier, event
+      V1::RateLimit.clear! external_identifier, event
     end
 
     def external_identifier
@@ -21,4 +22,5 @@ module Onetime::Models
       raise RuntimeError, "TODO: Implement #{self.class}.external_identifier"
     end
   end
+
 end

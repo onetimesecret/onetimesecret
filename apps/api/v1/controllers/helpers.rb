@@ -145,7 +145,7 @@ module V1
 
     ensure
       @sess ||= OT::Session.new 'failover', 'anon'
-      @cust ||= OT::Customer.anonymous
+      @cust ||= V1::Customer.anonymous
     end
 
     # Sets the locale for the request based on various sources.
@@ -287,7 +287,7 @@ module V1
       res.send_cookie :sess, sess.sessid, sess.ttl, is_secure
 
       # Re-hydrate the customer object
-      @cust = sess.load_customer || OT::Customer.anonymous
+      @cust = sess.load_customer || V1::Customer.anonymous
 
       # We also force the session to be unauthenticated based on
       # the customer object.

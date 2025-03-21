@@ -1,4 +1,6 @@
-module Onetime
+# apps/api/v1/models/secret.rb
+
+module V1
   class Secret < Familia::Horreum
     include Gibbler::Complex
 
@@ -160,8 +162,8 @@ module Onetime
     end
 
     def load_customer
-      cust = OT::Customer.load custid
-      cust.nil? ? OT::Customer.anonymous : cust # TODO: Probably should simply return nil (see defensive "fix" in 23c152)
+      cust = V1::Customer.load custid
+      cust.nil? ? V1::Customer.anonymous : cust # TODO: Probably should simply return nil (see defensive "fix" in 23c152)
     end
 
     def state? guess
@@ -177,7 +179,7 @@ module Onetime
     end
 
     def owner? cust
-      !anonymous? && (cust.is_a?(OT::Customer) ? cust.custid : cust).to_s == custid.to_s
+      !anonymous? && (cust.is_a?(V1::Customer) ? cust.custid : cust).to_s == custid.to_s
     end
 
     def viewable?
@@ -258,6 +260,6 @@ module Onetime
 
     # See Customer model for explanation about why
     # we include extra fields at the end here.
-    include Onetime::Models::Passphrase
+    include V1::Mixins::Passphrase
   end
 end

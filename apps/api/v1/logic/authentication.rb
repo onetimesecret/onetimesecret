@@ -16,7 +16,7 @@ module V1::Logic
         @stay = true # Keep sessions alive by default
         @session_ttl = (stay ? 30.days : 20.minutes).to_i
 
-        if (potential = OT::Customer.load(@potential_custid))
+        if (potential = V1::Customer.load(@potential_custid))
           @cust = potential if potential.passphrase?(@passwd)
           @custid = @cust.custid if @cust
         end
@@ -25,7 +25,7 @@ module V1::Logic
       def raise_concerns
         limit_action :authenticate_session
         if @cust.nil?
-          @cust ||= OT::Customer.anonymous
+          @cust ||= V1::Customer.anonymous
           raise_form_error "Try again"
         end
       end
@@ -95,11 +95,11 @@ module V1::Logic
         limit_action :forgot_password_request # limit requests
 
         raise_form_error "Not a valid email address" unless valid_email?(@custid)
-        raise_form_error "No account found" unless OT::Customer.exists?(@custid)
+        raise_form_error "No account found" unless V1::Customer.exists?(@custid)
       end
 
       def process
-        cust = OT::Customer.load @custid
+        cust = V1::Customer.load @custid
 
         if cust.pending?
           OT.li "[ResetPasswordRequest] Resending verification email to #{cust.custid}"

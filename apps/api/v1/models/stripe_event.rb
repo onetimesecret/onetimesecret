@@ -1,5 +1,5 @@
 
-class Onetime::StripeEvent < Familia::Horreum
+class V1::StripeEvent < Familia::Horreum
 
   feature :safe_dump
   feature :expiration

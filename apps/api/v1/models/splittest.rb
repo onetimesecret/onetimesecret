@@ -1,5 +1,4 @@
-
-
+# apps/api/v1/models/splittest.rb
 
 # An example of a session method to create groups.
 #
@@ -7,7 +6,7 @@
 #    sessid.to_i(16) % groups.to_i
 #  end
 
-class Onetime::SplitTest < Familia::Horreum
+class V1::SplitTest < Familia::Horreum
 
   feature :safe_dump
   feature :expiration
@@ -65,7 +64,7 @@ class Onetime::SplitTest < Familia::Horreum
     end
 
     def test_running? testname
-      OT::SplitTest.tests.has_key?(testname.to_s)
+      V1::SplitTest.tests.has_key?(testname.to_s)
     end
 
     def method_missing meth, *args

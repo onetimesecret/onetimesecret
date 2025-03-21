@@ -55,7 +55,7 @@ module V1::Logic
       private :process_feedback_for_period
 
       def process_customers
-        @recent_customers = OT::Customer.recent.collect do |this_cust|
+        @recent_customers = V1::Customer.recent.collect do |this_cust|
           next if this_cust.nil?
           {
             custid: this_cust.custid,
@@ -69,7 +69,7 @@ module V1::Logic
           }
         end.compact.reverse
 
-        @customer_count = OT::Customer.values.size
+        @customer_count = V1::Customer.values.size
         @recent_customer_count = @recent_customers.size
       end
       private :process_customers
@@ -77,9 +77,9 @@ module V1::Logic
       def process_statistics
         @metadata_count = OT::Metadata.new.redis.keys('metadata*:object').count
         @secret_count = OT::Secret.new.redis.keys('secret*:object').count
-        @secrets_created = OT::Customer.global.secrets_created.to_s
-        @secrets_shared = OT::Customer.global.secrets_shared.to_s
-        @emails_sent = OT::Customer.global.emails_sent.to_s
+        @secrets_created = V1::Customer.global.secrets_created.to_s
+        @secrets_shared = V1::Customer.global.secrets_shared.to_s
+        @emails_sent = V1::Customer.global.emails_sent.to_s
       end
       private :process_statistics
 

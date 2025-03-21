@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-module Onetime::Models
+module V1::Mixins
 
   # Module containing helper methods for session-related functionality
   module SessionHelpers
