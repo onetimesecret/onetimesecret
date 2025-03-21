@@ -1,5 +1,9 @@
 # apps/app_registry.rb
 
+apps_root = File.expand_path(__dir__).freeze
+$LOAD_PATH.unshift(File.join(apps_root, 'api'))
+$LOAD_PATH.unshift(File.join(apps_root, 'web'))
+
 module AppRegistry
   # Simple hash to store mount paths
   @mounts = {}

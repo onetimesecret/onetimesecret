@@ -8,7 +8,6 @@ require_relative 'controller'
 require_relative 'models'
 require_relative 'logic'
 
-
 module V1
   class Application
     attr_reader :options, :router, :rack_app
@@ -47,6 +46,9 @@ module V1
       Rack::Builder.new do
 
         warmup do
+          require_relative 'logic'
+          require_relative 'models'
+
           V1::RateLimit.register_events OT.conf[:limits]
           OT.li "rate limits: #{V1::RateLimit.events.map { |k,v| "#{k}=#{v}" }.join(', ')}"
 

@@ -42,7 +42,7 @@ unless defined?(PUBLIC_DIR)
   APP_DIR = File.join(app_root, '/apps').freeze
 end
 
-# Load Paths
+# Add main Onetime libs to the load path
 $LOAD_PATH.unshift(File.join(app_root, 'lib'))
 
 # Freshly installed operating systems don't always have their locale settings

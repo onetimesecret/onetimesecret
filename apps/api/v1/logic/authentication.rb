@@ -32,10 +32,7 @@ module V1::Logic
       end
 
       def process
-
-
         if success?
-
           if cust.pending?
             OT.info "[login-pending-customer] #{sess.short_identifier} #{cust.custid} #{cust.role} (pending)"
             OT.li "[ResetPasswordRequest] Resending verification email to #{cust.custid}"
