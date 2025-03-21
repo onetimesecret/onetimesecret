@@ -1,0 +1,21 @@
+
+## API v1
+GET    /status                               V1::API#status
+GET    /authcheck                            V1::API#authcheck
+
+POST   /share                                V1::API#share
+POST   /generate                             V1::API#generate
+
+POST   /create                               V1::API#create
+
+POST   /secret/:key                          V1::API#show_secret
+
+GET    /private/recent                       V1::API#show_metadata_recent
+GET    /metadata/recent                      V1::API#show_metadata_recent
+
+GET    /private/:key                         V1::API#show_metadata
+POST   /private/:key                         V1::API#show_metadata
+GET    /metadata/:key                        V1::API#show_metadata
+POST   /metadata/:key                        V1::API#show_metadata
+
+POST   /private/:key/burn                    V1::API#burn_secret
