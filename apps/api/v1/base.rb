@@ -2,8 +2,8 @@
 require_relative 'app_helpers'
 
 
-module V1
-  class API
+module API
+  module V1
 
     module Base
       include V1::WebHelpers
