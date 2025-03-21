@@ -1,10 +1,10 @@
-# lib/onetime/app/mail/ses_mailer.rb
+# lib/onetime/mail/mailer/ses_mailer.rb
 
 require 'aws-sdk-sesv2'
 require_relative 'base_mailer'
 
-module Onetime::App
-  module Mail
+module Onetime::Mail
+  module Mailer
     class AmazonSESMailer < BaseMailer
 
 

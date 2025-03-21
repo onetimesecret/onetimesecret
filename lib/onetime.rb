@@ -21,6 +21,7 @@ require 'familia'
 require 'storable'
 require 'sysinfo'
 
+require_relative 'onetime/mail/choose'
 require_relative 'onetime/core_ext'
 require_relative 'onetime/refinements/horreum_refinements'
 
@@ -149,14 +150,14 @@ module Onetime
 
       mailer_class = case mail_mode
       when :sendgrid
-        Onetime::App::Mail::SendGridMailer
+        Onetime::Mail::Mailer::SendGridMailer
       when :ses
-        Onetime::App::Mail::AmazonSESMailer
+        Onetime::Mail::Mailer::AmazonSESMailer
       when :smtp
-        Onetime::App::Mail::SMTPMailer
+        Onetime::Mail::Mailer::SMTPMailer
       else
         OT.le "Unsupported mail mode: #{mail_mode}, falling back to SMTP"
-        Onetime::App::Mail::SMTPMailer
+        Onetime::Mail::Mailer::SMTPMailer
       end
 
       mailer_class.setup

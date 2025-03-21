@@ -1,6 +1,7 @@
+# apps/mail/mailer/base_mailer.rb
 
-module Onetime::App
-  module Mail
+module Onetime::Mail
+  module Mailer
 
     class BaseMailer
       attr_accessor :reply_to

@@ -1,10 +1,10 @@
-# lib/onetime/app/mail/sendgrid_mailer.rb
+# apps/mail/mailer/sendgrid_mailer.rb
 
 require 'sendgrid-ruby'
 require_relative 'base_mailer'
 
-module Onetime::App
-  module Mail
+module Onetime::Mail
+  module Mailer
     class SendGridMailer < BaseMailer
       include SendGrid
 

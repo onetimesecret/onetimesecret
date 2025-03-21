@@ -1,11 +1,13 @@
+# apps/mail/views/base.rb
 
-require_relative '../web/views/view_helpers'
+require 'lib/chimera'
+require_relative '../../web/core/views/view_helpers'
 
-module Onetime::App
-  module Mail
+module Mail
+  module Views
 
     class Base < Chimera
-      include Onetime::App::Views::ViewHelpers
+      include Mail::Views::ViewHelpers
 
       self.template_path = './templates/mail'
       self.view_namespace = Onetime::App::Mail

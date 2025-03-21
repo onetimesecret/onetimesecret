@@ -6,7 +6,7 @@ module Onetime::App
 
     require_relative 'base'
 
-    class Welcome < OT::App::Mail::Base
+    class Welcome < Mail::Views::Base
       def init secret
         self[:secret] = secret
         self[:email_address] = cust.email
@@ -21,7 +21,7 @@ module Onetime::App
       end
     end
 
-    class SecretLink < OT::App::Mail::Base
+    class SecretLink < Mail::Views::Base
       def init secret, recipient
         raise ArgumentError, "Customer required" unless cust
         raise ArgumentError, "Recipient required" unless recipient
@@ -46,7 +46,7 @@ module Onetime::App
       end
     end
 
-    class SupportMessage < OT::App::Mail::Base
+    class SupportMessage < Mail::Views::Base
       attr_reader :subject
       def init from_name, subject
         @subject = subject
@@ -62,7 +62,7 @@ module Onetime::App
       end
     end
 
-    class PasswordRequest < OT::App::Mail::Base
+    class PasswordRequest < Mail::Views::Base
       def init secret
         self[:secret] = secret
         self[:email_address] = cust.email
@@ -75,7 +75,7 @@ module Onetime::App
       end
     end
 
-    class IncomingSupport < OT::App::Mail::Base
+    class IncomingSupport < Mail::Views::Base
       attr_accessor :ticketno
       def init secret, recipient
         self[:secret] = secret
@@ -90,7 +90,7 @@ module Onetime::App
       end
     end
 
-    class TestEmail < OT::App::Mail::Base
+    class TestEmail < Mail::Views::Base
       def init
         self[:email_address] = cust.email
       end
@@ -102,7 +102,7 @@ module Onetime::App
       end
     end
 
-    class FeedbackEmail < OT::App::Mail::Base
+    class FeedbackEmail < Mail::Views::Base
       attr_accessor :message, :display_domain, :domain_strategy
       def init
         self[:email_address] = cust.email

@@ -1,5 +1,7 @@
 # lib/chimera.rb
 
+require 'mustache'
+
 class Chimera < Mustache
   self.template_extension = 'html'
 

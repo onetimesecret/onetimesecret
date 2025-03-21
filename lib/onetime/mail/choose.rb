@@ -1,10 +1,10 @@
-require_relative 'mail/base_mailer'
-require_relative 'mail/smtp_mailer'
-require_relative 'mail/sendgrid_mailer'
-require_relative 'mail/ses_mailer'
+require_relative 'mailer/base_mailer'
+require_relative 'mailer/smtp_mailer'
+require_relative 'mailer/sendgrid_mailer'
+require_relative 'mailer/ses_mailer'
 
-module Onetime::App
-  module Mail
+module Onetime::Mail
+  module Choose
 
     # Returns the configured mailer instance
     def self.mailer

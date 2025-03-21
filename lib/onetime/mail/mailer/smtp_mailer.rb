@@ -1,10 +1,10 @@
-# lib/onetime/app/mail/smtp_mailer.rb
+# apps/mail/mailer/smtp_mailer.rb
 
 require 'mail'  # gem 'mail', here referred to as ::Mail
 require_relative 'base_mailer'
 
-module Onetime::App
-  module Mail
+module Onetime::Mail
+  module Mailer
     class SMTPMailer < BaseMailer
 
 
