@@ -97,8 +97,8 @@ module V2
       end
 
       def plan
-        @plan = V2::Plan.plan(cust.planid) unless cust.nil?
-        @plan ||= V2::Plan.plan('anonymous')
+        @plan = Onetime::Plan.plan(cust.planid) unless cust.nil?
+        @plan ||= Onetime::Plan.plan('anonymous')
         @plan
       end
 

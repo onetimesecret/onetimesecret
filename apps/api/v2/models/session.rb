@@ -3,7 +3,7 @@
 require_relative 'mixins/session_messages'
 
 class V2::Session < Familia::Horreum
-  include Onetime::Models::RateLimited
+  include V2::Mixins::RateLimited
 
   feature :safe_dump
   feature :expiration
@@ -220,7 +220,7 @@ class V2::Session < Familia::Horreum
   # 1. Its additional fields appear at the end of the field list.
   # 2. These fields don't unexpectedly consume positional arguments in Session.new.
   #
-  include Onetime::Models::SessionMessages
+  include V1::Mixins::SessionMessages
 
   extend ClassMethods
 end

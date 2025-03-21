@@ -1,21 +1,14 @@
+# apps/api/v2/controllers/helpers.rb
 
-module Core
+module V2
 
-  unless defined?(Core::BADAGENTS)
+  unless defined?(Onetime::App::BADAGENTS)
     BADAGENTS = [:facebook, :google, :yahoo, :bing, :stella, :baidu, :bot, :curl, :wget]
     LOCAL_HOSTS = ['localhost', '127.0.0.1'].freeze  # TODO: Add config
     HEADER_PREFIX = ENV.fetch('HEADER_PREFIX', 'X_SECRET_').upcase
   end
 
   module ControllerHelpers
-
-    attr_reader :req, :res
-    attr_reader :sess, :cust, :locale
-    attr_reader :ignoreshrimp
-
-    def initialize req, res
-      @req, @res = req, res
-    end
 
     def plan
       @plan = Onetime::Plan.plan(cust.planid) unless cust.nil?
@@ -31,7 +24,7 @@ module Core
       redirect ||= req.request_path unless app == :api
       content_type ||= 'text/html; charset=utf-8'
 
-      cust ||= OT::Customer.anonymous
+      cust ||= V1::Customer.anonymous
 
       # Prevent infinite redirect loops by checking if the request is a GET request.
       # Pages redirecting from a POST request can use the same page once.
@@ -68,7 +61,7 @@ module Core
       OT.info ex.message
       not_authorized_error
 
-    rescue V2::BadShrimp => ex
+    rescue V1::BadShrimp => ex
       # If it's a json response, no need to set an error message on the session
       if res.header['Content-Type'] == 'application/json'
         error_response 'Please refresh the page and try again', reason: "Bad shrimp 🍤"
@@ -152,7 +145,7 @@ module Core
 
     ensure
       @sess ||= OT::Session.new 'failover', 'anon'
-      @cust ||= OT::Customer.anonymous
+      @cust ||= V1::Customer.anonymous
     end
 
     # Sets the locale for the request based on various sources.
@@ -237,7 +230,7 @@ module Core
         ### JUST SUBMIT A FORM WITHOUT ANY SHRIMP WHATSOEVER
         ### AND THAT'S NO WAY TO TREAT A GUEST.
         shrimp = (sess.shrimp || '[noshrimp]').clone
-        ex = V2::BadShrimp.new(req.path, cust.custid, attempted_shrimp, shrimp)
+        ex = V1::BadShrimp.new(req.path, cust.custid, attempted_shrimp, shrimp)
         OT.ld "BAD SHRIMP for #{cust.custid}@#{req.path}: #{log_value}"
         sess.replace_shrimp! if replace && !shrimp_is_empty
         raise ex
@@ -294,7 +287,7 @@ module Core
       res.send_cookie :sess, sess.sessid, sess.ttl, is_secure
 
       # Re-hydrate the customer object
-      @cust = sess.load_customer || OT::Customer.anonymous
+      @cust = sess.load_customer || V1::Customer.anonymous
 
       # We also force the session to be unauthenticated based on
       # the customer object.
@@ -433,17 +426,17 @@ module Core
     # Available levels are :fatal, :error, :warning, :log, :info,
     # and :debug. The Sentry default, if not specified, is :error.
     #
-    def capture_error(error, level=:error, &block)
+    def capture_error(error, level=:error, &)
       return unless OT.d9s_enabled # diagnostics are disabled by default
-      Sentry.capture_exception(error, level: level, &block)
+      Sentry.capture_exception(error, level: level, &)
     rescue StandardError => ex
       OT.le "[capture_error] #{ex.class}: #{ex.message}"
       OT.ld ex.backtrace.join("\n")
     end
 
-    def capture_message(message, level=:log, &block)
+    def capture_message(message, level=:log, &)
       return unless OT.d9s_enabled # diagnostics are disabled by default
-      Sentry.capture_message(message, level: level, &block)
+      Sentry.capture_message(message, level: level, &)
     rescue StandardError => ex
       OT.le "[capture_message] #{ex.class}: #{ex.message}"
       OT.ld ex.backtrace.join("\n")

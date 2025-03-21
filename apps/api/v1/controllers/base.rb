@@ -2,8 +2,6 @@
 
 require_relative 'helpers'
 
-
-
 module V1
 
   module ControllerBase

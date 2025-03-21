@@ -3,13 +3,13 @@
 require 'json'
 require 'base64'
 
-require_relative 'base'
-require_relative '../../app_settings'
+require_relative 'controllers/base'
+require_relative 'controllers/settings'
 
-module V2::App
-  class APIV2
-    include AppSettings
-    include V2::Base
+module V2
+  class Controller
+    include ControllerBase
+    include ControllerSettings
 
     def status
       publically do

@@ -31,7 +31,7 @@ module V2::Logic
         raise_form_error "Is that a valid email address?" unless valid_email?(custid)
         raise_form_error "Password is too short" unless password.size >= 6
 
-        unless V2::Plan.plan?(planid)
+        unless Onetime::Plan.plan?(planid)
           @planid = 'basic'
         end
 
@@ -43,7 +43,7 @@ module V2::Logic
 
       def process
 
-        @plan = V2::Plan.plan(planid)
+        @plan = Onetime::Plan.plan(planid)
         @cust = V2::Customer.create custid
 
         cust.update_passphrase password

@@ -119,7 +119,7 @@ class V2::Customer < Familia::Horreum
   end
 
   def load_plan
-    V2::Plan.plan(planid) || {:planid => planid, :source => 'parts_unknown'}
+    Onetime::Plan.plan(planid) || {:planid => planid, :source => 'parts_unknown'}
   end
 
   def get_stripe_customer
