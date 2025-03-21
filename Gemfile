@@ -88,10 +88,6 @@ group :development do
   gem 'rubocop', require: false
   gem 'rubocop-performance', require: false
   gem 'rubocop-thread_safety', require: false
-  gem 'sorbet', require: false
-  gem 'sorbet-runtime', require: false
-  gem 'spoom', require: false
-  gem 'tapioca', require: false
   gem 'tryouts', require: false
 end
 
