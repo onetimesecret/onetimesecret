@@ -1,5 +1,5 @@
-require_relative 'base'
-require_relative 'app_settings'
+require_relative 'controllers/base'
+require_relative 'controllers/settings'
 
 module API
   module V1
