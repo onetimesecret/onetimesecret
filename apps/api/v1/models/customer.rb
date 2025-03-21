@@ -1,4 +1,4 @@
-# lib/onetime/models/customer.rb
+# apps/api/v1/models/customer.rb
 
 require 'rack/utils'
 

@@ -1,3 +1,19 @@
+# lib/onetime/console.rb
+
+ENV['RACK_ENV'] ||= 'production'
+ENV['APP_ROOT'] = File.expand_path(File.join(__dir__, '..', '..')).freeze
+app_root = ENV['APP_ROOT']
+
+# Directory Constants
+unless defined?(PUBLIC_DIR)
+  PUBLIC_DIR = File.join(app_root, '/public/web').freeze
+  APP_DIR = File.join(app_root, '/apps').freeze
+end
+
+# Load Paths
+$LOAD_PATH.unshift(File.join(APP_DIR, 'api'))
+$LOAD_PATH.unshift(File.join(APP_DIR, 'web'))
+
 require_relative '../onetime'
 
 Onetime.info 'Calling Onetime.boot!...'

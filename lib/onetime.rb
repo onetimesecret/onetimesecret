@@ -20,7 +20,6 @@ require 'familia'
 require 'storable'
 require 'sysinfo'
 
-require_relative 'onetime/mail/choose'
 require_relative 'onetime/core_ext'
 require_relative 'onetime/refinements/horreum_refinements'
 
@@ -361,6 +360,7 @@ trap("SIGINT") do
   exit
 end
 
+require_relative 'onetime/mail/choose'
 require_relative 'onetime/errors'
 require_relative 'onetime/utils'
 require_relative 'onetime/version'

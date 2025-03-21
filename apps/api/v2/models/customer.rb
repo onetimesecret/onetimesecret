@@ -1,16 +1,17 @@
-# lib/onetime/models/customer.rb
+# apps/api/v2/models/customer.rb
 
 require 'rack/utils'
 
 class V2::Customer < Familia::Horreum
   include Gibbler::Complex
 
+  @global = nil
+
   feature :safe_dump
   feature :expiration
 
   prefix :customer
 
-  @global = nil
 
   class_sorted_set :values, key: 'onetime:customer'
   class_hashkey :domains, key: 'onetime:customers:domain'
