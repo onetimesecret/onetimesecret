@@ -30,9 +30,9 @@ module Core
       router = Otto.new(routes_path)
 
       # Default error responses
-      headers = { 'Content-Type' => 'application/json' }
-      router.not_found = [404, headers, [{ error: 'Not Found' }.to_json]]
-      router.server_error = [500, headers, [{ error: 'Internal Server Error' }.to_json]]
+      headers = { 'Content-Type' => 'text/html' }
+      router.not_found = [404, headers, ['Not Found']]
+      router.server_error = [500, headers, ['Internal Server Error']]
 
       router
     end
