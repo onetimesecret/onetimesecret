@@ -9,7 +9,7 @@ require_relative '../refinements/rack_refinements'
 module V1
   module Logic
     class Base
-      include Helpers
+      include LogicHelpers
 
       attr_reader :sess, :cust, :params, :locale, :processed_params, :plan
       attr_reader :site, :authentication, :domains_enabled
