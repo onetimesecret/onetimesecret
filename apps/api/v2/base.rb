@@ -1,3 +1,5 @@
+
+
 require_relative '../../app_helpers'
 require_relative '../../../../altcha'
 
@@ -81,7 +83,7 @@ module V2
       # @return [void]
       #
       # @example
-      #   process_action(OT::Logic::GenerateAPIToken, "API Token generated successfully.", "API Token could not be generated.") do |logic|
+      #   process_action(V2::Logic::GenerateAPIToken, "API Token generated successfully.", "API Token could not be generated.") do |logic|
       #     json_success(custid: cust.custid, apitoken: logic.apitoken)
       #   end
       #

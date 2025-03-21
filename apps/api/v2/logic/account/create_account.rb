@@ -1,9 +1,9 @@
 
 
-module Onetime::Logic
+module V2::Logic
   module Account
 
-    class CreateAccount < OT::Logic::Base
+    class CreateAccount < V2::Logic::Base
       attr_reader :cust, :plan, :autoverify, :customer_role
       attr_reader :planid, :custid, :password, :skill
       attr_accessor :token
@@ -26,25 +26,25 @@ module Onetime::Logic
 
       def raise_concerns
         limit_action :create_account
-        raise OT::FormError, "You're already signed up" if sess.authenticated?
-        raise_form_error "Please try another email address" if OT::Customer.exists?(custid)
+        raise V2::FormError, "You're already signed up" if sess.authenticated?
+        raise_form_error "Please try another email address" if V2::Customer.exists?(custid)
         raise_form_error "Is that a valid email address?" unless valid_email?(custid)
         raise_form_error "Password is too short" unless password.size >= 6
 
-        unless OT::Plan.plan?(planid)
+        unless V2::Plan.plan?(planid)
           @planid = 'basic'
         end
 
         # Quietly redirect suspected bots to the home page.
         unless skill.empty?
-          raise OT::Redirect.new('/?s=1') # the query string is arbitrary, for log filtering
+          raise V2::Redirect.new('/?s=1') # the query string is arbitrary, for log filtering
         end
       end
 
       def process
 
-        @plan = OT::Plan.plan(planid)
-        @cust = OT::Customer.create custid
+        @plan = V2::Plan.plan(planid)
+        @cust = V2::Customer.create custid
 
         cust.update_passphrase password
         sess.custid = cust.custid
@@ -63,7 +63,7 @@ module Onetime::Logic
         cust.save
 
         OT.info "[new-customer] #{cust.custid} #{cust.role} #{sess.ipaddress} #{plan.planid} #{sess.short_identifier}"
-        OT::Logic.stathat_count("New Customers (OTS)", 1)
+        V2::Logic.stathat_count("New Customers (OTS)", 1)
 
 
         success_message = if autoverify

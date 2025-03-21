@@ -7,7 +7,7 @@
 #    sessid.to_i(16) % groups.to_i
 #  end
 
-class Onetime::SplitTest < Familia::Horreum
+class V2::SplitTest < Familia::Horreum
 
   feature :safe_dump
   feature :expiration
@@ -65,7 +65,7 @@ class Onetime::SplitTest < Familia::Horreum
     end
 
     def test_running? testname
-      OT::SplitTest.tests.has_key?(testname.to_s)
+      V2::SplitTest.tests.has_key?(testname.to_s)
     end
 
     def method_missing meth, *args

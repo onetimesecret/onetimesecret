@@ -1,3 +1,4 @@
+# apps/api/v2/challenges.rb
 
 require 'json'
 require 'base64'
@@ -6,10 +7,10 @@ require_relative 'base'
 require_relative '../../app_settings'
 
 
-class Onetime::App::APIV2
+class V2
   class Challenges
     include Onetime::App::AppSettings
-    include Onetime::App::APIV2::Base
+    include V2::Base
 
     # NOTE: Based on https://github.com/altcha-org/altcha-starter-rb
     #

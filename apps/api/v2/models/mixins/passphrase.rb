@@ -1,6 +1,6 @@
-# lib/onetime/models/mixins/passphrase.rb
+# apps/api/v2/models/mixins/passphrase.rb
 
-module Onetime::Models
+module V2::Models
   module Passphrase
     def self.included(base)
       base.field :passphrase

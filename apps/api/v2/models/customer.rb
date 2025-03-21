@@ -2,7 +2,7 @@
 
 require 'rack/utils'
 
-class Onetime::Customer < Familia::Horreum
+class V2::Customer < Familia::Horreum
   include Gibbler::Complex
 
   feature :safe_dump
@@ -119,7 +119,7 @@ class Onetime::Customer < Familia::Horreum
   end
 
   def load_plan
-    Onetime::Plan.plan(planid) || {:planid => planid, :source => 'parts_unknown'}
+    V2::Plan.plan(planid) || {:planid => planid, :source => 'parts_unknown'}
   end
 
   def get_stripe_customer
@@ -204,7 +204,7 @@ class Onetime::Customer < Familia::Horreum
 
   def external_identifier
     if anonymous?
-      raise OT::Problem, "Anonymous customer has no external identifier"
+      raise V2::Problem, "Anonymous customer has no external identifier"
     end
     # Changing the type, order or value of the elements in this array will
     # change the external identifier. This is used to identify customers
@@ -274,13 +274,13 @@ class Onetime::Customer < Familia::Horreum
   # Loads an existing session or creates a new one if it doesn't exist.
   #
   # @param [String] ip_address The IP address of the customer.
-  # @raise [OT::Problem] if the customer is anonymous.
-  # @return [OT::Session] The loaded or newly created session.
+  # @raise [V2::Problem] if the customer is anonymous.
+  # @return [V2::Session] The loaded or newly created session.
   def load_or_create_session(ip_address)
-    raise OT::Problem, "Customer is anonymous" if anonymous?
-    @sess = OT::Session.load(sessid) unless sessid.to_s.empty?
+    raise V2::Problem, "Customer is anonymous" if anonymous?
+    @sess = V2::Session.load(sessid) unless sessid.to_s.empty?
     if @sess.nil?
-      @sess = OT::Session.create(ip_address, custid)
+      @sess = V2::Session.create(ip_address, custid)
       sessid = @sess.identifier
       OT.info "[load_or_create_session] adding sess #{sessid} to #{obscure_email}"
       self.sessid!(sessid)
@@ -290,8 +290,8 @@ class Onetime::Customer < Familia::Horreum
 
   def metadata_list
     metadata.revmembers.collect do |key|
-      obj = OT::Metadata.load(key)
-    rescue OT::RecordNotFound => e
+      obj = V2::Metadata.load(key)
+    rescue V2::RecordNotFound => e
       OT.le "[metadata_list] Error: #{e.message} (#{key} / #{self.custid})"
     end.compact
   end
@@ -302,8 +302,8 @@ class Onetime::Customer < Familia::Horreum
 
   def custom_domains_list
     custom_domains.revmembers.collect do |domain|
-      OT::CustomDomain.load domain, self.custid
-    rescue OT::RecordNotFound => e
+      V2::CustomDomain.load domain, self.custid
+    rescue V2::RecordNotFound => e
       OT.le "[custom_domains_list] Error: #{e.message} (#{domain} / #{self.custid})"
     end.compact
   end
@@ -318,7 +318,7 @@ class Onetime::Customer < Familia::Horreum
   end
 
   def encryption_key
-    OT::Secret.encryption_key OT.global_secret, custid
+    V2::Secret.encryption_key OT.global_secret, custid
   end
 
   # Marks the customer account as requested for destruction.
@@ -358,13 +358,13 @@ class Onetime::Customer < Familia::Horreum
 
   # Saves the customer object to the database.
   #
-  # @raise [OT::Problem] If attempting to save an anonymous customer.
+  # @raise [V2::Problem] If attempting to save an anonymous customer.
   # @return [Boolean] Returns true if the save was successful.
   #
   # This method overrides the default save behavior to prevent
   # anonymous customers from being persisted to the database.
   def save **kwargs
-    raise OT::Problem, "Anonymous cannot be saved #{self.class} #{rediskey}" if anonymous?
+    raise V2::Problem, "Anonymous cannot be saved #{self.class} #{rediskey}" if anonymous?
     super(**kwargs)
   end
 
@@ -416,8 +416,8 @@ class Onetime::Customer < Familia::Horreum
     end
 
     def create custid, email=nil
-      raise OT::Problem, "custid is required" if custid.to_s.empty?
-      raise OT::Problem, "Customer exists" if exists?(custid)
+      raise V2::Problem, "custid is required" if custid.to_s.empty?
+      raise V2::Problem, "Customer exists" if exists?(custid)
       cust = new custid: custid, email: email || custid, role: 'customer'
       cust.save
       add cust

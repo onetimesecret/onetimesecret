@@ -6,18 +6,18 @@ require_relative '../../../logic/account'
 module V2::API
   class Account
     include Onetime::App::AppSettings
-    include Onetime::App::APIV2::Base
+    include V2::Base
 
     @check_utf8 = true
     @check_uri_encoding = true
 
     def get_account
-      retrieve_records(OT::Logic::Account::GetAccount)
+      retrieve_records(V2::Logic::Account::GetAccount)
     end
 
     def generate_apitoken
       process_action(
-        OT::Logic::Account::GenerateAPIToken,
+        V2::Logic::Account::GenerateAPIToken,
         "API Key generated successfully.",
         "API Key could not be generated."
       )
@@ -25,7 +25,7 @@ module V2::API
 
     def change_account_password
       process_action(
-        OT::Logic::Account::UpdatePassword,
+        V2::Logic::Account::UpdatePassword,
         "Password changed successfully.",
         "Password could not be changed."
       )
@@ -33,7 +33,7 @@ module V2::API
 
     def update_locale
       process_action(
-        OT::Logic::Account::UpdateLocale,
+        V2::Logic::Account::UpdateLocale,
         "Locale updated successfully.",
         "Locale could not be updated."
       )
@@ -41,7 +41,7 @@ module V2::API
 
     def destroy_account
       process_action(
-        OT::Logic::Account::DestroyAccount,
+        V2::Logic::Account::DestroyAccount,
         "Account destroyed successfully.",
         "Account could not be destroyed."
       )

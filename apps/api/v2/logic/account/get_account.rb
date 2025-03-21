@@ -1,10 +1,10 @@
 
 require_relative '../../../onetime/refinements/stripe_refinements'
 
-module Onetime::Logic
+module V2::Logic
   module Account
 
-    class GetAccount < OT::Logic::Base
+    class GetAccount < V2::Logic::Base
       attr_accessor :plans_enabled
       attr_reader :stripe_subscription, :stripe_customer
       using Onetime::StripeRefinements

@@ -1,9 +1,9 @@
 
 
-module Onetime::Logic
+module V2::Logic
   module Account
 
-    class DestroyAccount < OT::Logic::Base
+    class DestroyAccount < V2::Logic::Base
       attr_reader :raised_concerns_was_called, :greenlighted
 
       def process_params

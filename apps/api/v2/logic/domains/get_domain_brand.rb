@@ -1,9 +1,9 @@
 require_relative '../base'
 require_relative '../../cluster'
 
-module Onetime::Logic
+module V2::Logic
   module Domains
-    class GetDomainBrand < OT::Logic::Base
+    class GetDomainBrand < V2::Logic::Base
       attr_reader :brand_settings, :display_domain, :custom_domain
 
       def process_params
@@ -12,11 +12,11 @@ module Onetime::Logic
 
       def raise_concerns
         raise_form_error "Please enter a domain" if @domain_input.empty?
-        raise_form_error "Not a valid public domain" unless OT::CustomDomain.valid?(@domain_input)
+        raise_form_error "Not a valid public domain" unless V2::CustomDomain.valid?(@domain_input)
 
         limit_action :get_domain_brand
 
-        @custom_domain = OT::CustomDomain.load(@domain_input, @cust.custid)
+        @custom_domain = V2::CustomDomain.load(@domain_input, @cust.custid)
 
         raise_form_error "Domain not found" unless @custom_domain
       end

@@ -1,19 +1,19 @@
-# frozen_string_literal: true
+# apps/api/v2/models/mixins/rate_limited.rb
 
-module Onetime::Models
+module V2::Models
   module RateLimited
     def event_incr! event
       # Uses the external identifier of the implementing class to keep
       # track of the event count. e.g. sess.external_identifier.
-      OT::RateLimit.incr! external_identifier, event
+      V2::RateLimit.incr! external_identifier, event
     end
 
     def event_get event
-      OT::RateLimit.get external_identifier, event
+      V2::RateLimit.get external_identifier, event
     end
 
     def event_clear! event
-      OT::RateLimit.clear! external_identifier, event
+      V2::RateLimit.clear! external_identifier, event
     end
 
     def external_identifier

@@ -1,4 +1,4 @@
-# frozen_string_literal: true
+# apps/api/v2/models.rb
 
 require_relative 'models/mixins'
 require_relative 'models/metadata'

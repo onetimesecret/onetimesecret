@@ -1,6 +1,6 @@
-# frozen_string_literal: true
+# apps/api/v2/models/feedback.rb
 
-module Onetime
+module V2
   class Feedback < Familia::Horreum
     include Gibbler::Complex
 

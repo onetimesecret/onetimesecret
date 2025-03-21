@@ -1,3 +1,4 @@
+# apps/api/v2/endpoints.rb
 
 require 'json'
 require 'base64'
@@ -5,11 +6,10 @@ require 'base64'
 require_relative 'base'
 require_relative '../../app_settings'
 
-
-module Onetime::App
+module V2::App
   class APIV2
     include AppSettings
-    include Onetime::App::APIV2::Base
+    include V2::Base
 
     def status
       publically do
@@ -35,7 +35,7 @@ module Onetime::App
 
     def receive_feedback
       process_action(
-        OT::Logic::Misc::ReceiveFeedback,
+        V2::Logic::Misc::ReceiveFeedback,
         "Feedback received. Send as much as you like.",
         "Sorry we were not able to receive your feedback (it's us, not you).",
         allow_anonymous: true,
@@ -44,7 +44,7 @@ module Onetime::App
 
     def receive_exception
       process_action(
-        OT::Logic::Misc::ReceiveException,
+        V2::Logic::Misc::ReceiveException,
         "Exception received. No offense taken.",
         "Sorry we were not able to receive your exception (it's us, not you).",
         allow_anonymous: true
@@ -73,7 +73,7 @@ module Onetime::App
           begin
             # Attempt to validate the shrimp
             is_valid = validate_shrimp(shrimp, replace=false)
-          rescue OT::BadShrimp => e
+          rescue V2::BadShrimp => e
             # If a BadShrimp exception is raised, log it and set is_valid to false
             OT.ld "BadShrimp exception: #{e.message}"
             is_valid = false

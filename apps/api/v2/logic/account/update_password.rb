@@ -1,4 +1,4 @@
-module Onetime::Logic
+module V2::Logic
   module Account
     class UpdatePassword < UpdateAccountField
       def process_params

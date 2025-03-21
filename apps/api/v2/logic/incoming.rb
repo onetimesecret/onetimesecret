@@ -1,10 +1,11 @@
+# apps/api/v2/logic/incoming.rb
 
 require_relative 'base'
 
-module Onetime::Logic
+module V2::Logic
   module Incoming
 
-    class CreateIncoming < OT::Logic::Base
+    class CreateIncoming < V2::Logic::Base
       attr_reader :passphrase, :secret_value, :ticketno
       attr_reader :metadata, :secret, :recipient, :ttl
       attr_accessor :token
@@ -33,7 +34,7 @@ module Onetime::Logic
         end
       end
       def process
-        @metadata, @secret = Onetime::Secret.spawn_pair cust.custid, token
+        @metadata, @secret = V2::Secret.spawn_pair cust.custid, token
         if !passphrase.empty?
           secret.update_passphrase passphrase
           metadata.passphrase = secret.passphrase
@@ -48,11 +49,11 @@ module Onetime::Logic
             cust.add_metadata metadata
             cust.increment :secrets_created
           end
-          OT::Customer.global.increment :secrets_created
+          V2::Customer.global.increment :secrets_created
           unless recipient.nil? || recipient.empty?
-            metadata.deliver_by_email cust, locale, secret, recipient.first, OT::App::Mail::IncomingSupport, ticketno
+            metadata.deliver_by_email cust, locale, secret, recipient.first, V2::App::Mail::IncomingSupport, ticketno
           end
-          OT::Logic.stathat_count("Secrets", 1)
+          V2::Logic.stathat_count("Secrets", 1)
         else
           raise_form_error "Could not store your secret"
         end

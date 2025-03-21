@@ -1,20 +1,22 @@
-module Onetime::Logic
+# apps/api/v2/logic/secrets/burn_secret.rb
+
+module V2::Logic
   module Secrets
 
-    class BurnSecret < OT::Logic::Base
+    class BurnSecret < V2::Logic::Base
       attr_reader :key, :passphrase, :continue
       attr_reader :metadata, :secret, :correct_passphrase, :greenlighted
 
       def process_params
         @key = params[:key].to_s
-        @metadata = Onetime::Metadata.load key
+        @metadata = V2::Metadata.load key
         @passphrase = params[:passphrase].to_s
         @continue = params[:continue] == true || params[:continue] == 'true'
       end
 
       def raise_concerns
         limit_action :burn_secret
-        raise OT::MissingSecret if metadata.nil?
+        raise V2::MissingSecret if metadata.nil?
       end
 
       def process
@@ -34,8 +36,8 @@ module Onetime::Logic
             owner = secret.load_customer
             secret.burned!
             owner.increment_field :secrets_burned unless owner.anonymous?
-            OT::Customer.global.increment_field :secrets_burned
-            OT::Logic.stathat_count('Burned Secrets', 1)
+            V2::Customer.global.increment_field :secrets_burned
+            V2::Logic.stathat_count('Burned Secrets', 1)
 
           elsif !correct_passphrase
             limit_action :failed_passphrase if potential_secret.has_passphrase?

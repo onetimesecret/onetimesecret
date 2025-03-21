@@ -1,12 +1,11 @@
+# apps/api/v2/logic/secrets/reveal_secret.rb
 
-
-
-module Onetime::Logic
+module V2::Logic
   module Secrets
 
     # Very similar logic to ShowSecret, but with a few key differences
     # as required by the v2 API. The v1 API uses the original ShowSecret.
-    class RevealSecret < OT::Logic::Base
+    class RevealSecret < V2::Logic::Base
       attr_reader :key, :passphrase, :continue, :share_domain
       attr_reader :secret, :show_secret, :secret_value, :is_truncated,
                   :original_size, :verification, :correct_passphrase,
@@ -15,14 +14,14 @@ module Onetime::Logic
 
       def process_params
         @key = params[:key].to_s
-        @secret = Onetime::Secret.load key
+        @secret = V2::Secret.load key
         @passphrase = params[:passphrase].to_s
         @continue = params[:continue].to_s == 'true'
       end
 
       def raise_concerns
         limit_action :show_secret
-        raise OT::MissingSecret if secret.nil? || !secret.viewable?
+        raise V2::MissingSecret if secret.nil? || !secret.viewable?
       end
 
       def process
@@ -62,7 +61,7 @@ module Onetime::Logic
           else
             OT.li "[reveal_secret] #{secret.key} viewed successfully"
             owner.increment_field :secrets_shared unless owner.anonymous?
-            OT::Customer.global.increment_field :secrets_shared
+            V2::Customer.global.increment_field :secrets_shared
 
             # Immediately mark the secret as viewed, so that it
             # can't be shown again. If there's a network failure
@@ -77,7 +76,7 @@ module Onetime::Logic
             # pluck out of the secret object before this is called.
             secret.received!
 
-            OT::Logic.stathat_count("Viewed Secrets", 1)
+            V2::Logic.stathat_count("Viewed Secrets", 1)
           end
 
         elsif secret.has_passphrase? && !correct_passphrase

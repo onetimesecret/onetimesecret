@@ -1,10 +1,11 @@
+# apps/api/v2/logic/authentication.rb
 
 require_relative 'base'
 
-module Onetime::Logic
+module V2::Logic
   module Authentication
 
-    class AuthenticateSession < OT::Logic::Base
+    class AuthenticateSession < V2::Logic::Base
       attr_reader :custid, :stay, :greenlighted
       attr_reader :session_ttl, :potential_custid
 
@@ -16,7 +17,7 @@ module Onetime::Logic
         @stay = true # Keep sessions alive by default
         @session_ttl = (stay ? 30.days : 20.minutes).to_i
 
-        if (potential = OT::Customer.load(@potential_custid))
+        if (potential = V2::Customer.load(@potential_custid))
           @cust = potential if potential.passphrase?(@passwd)
           @custid = @cust.custid if @cust
         end
@@ -25,7 +26,7 @@ module Onetime::Logic
       def raise_concerns
         limit_action :authenticate_session
         if @cust.nil?
-          @cust ||= OT::Customer.anonymous
+          @cust ||= V2::Customer.anonymous
           raise_form_error "Try again"
         end
       end
@@ -84,7 +85,7 @@ module Onetime::Logic
       end
     end
 
-    class ResetPasswordRequest < OT::Logic::Base
+    class ResetPasswordRequest < V2::Logic::Base
       attr_reader :custid
       attr_accessor :token
       def process_params
@@ -95,11 +96,11 @@ module Onetime::Logic
         limit_action :forgot_password_request # limit requests
 
         raise_form_error "Not a valid email address" unless valid_email?(@custid)
-        raise_form_error "No account found" unless OT::Customer.exists?(@custid)
+        raise_form_error "No account found" unless V2::Customer.exists?(@custid)
       end
 
       def process
-        cust = OT::Customer.load @custid
+        cust = V2::Customer.load @custid
 
         if cust.pending?
           OT.li "[ResetPasswordRequest] Resending verification email to #{cust.custid}"
@@ -108,14 +109,14 @@ module Onetime::Logic
           return sess.set_info_message msg
         end
 
-        secret = OT::Secret.create @custid, [@custid]
+        secret = V2::Secret.create @custid, [@custid]
         secret.ttl = 24.hours
         secret.verification = "true"
         secret.save
 
         cust.reset_secret = secret.key  # as a standalone rediskey, writes immediately
 
-        view = OT::App::Mail::PasswordRequest.new cust, locale, secret
+        view = V2::App::Mail::PasswordRequest.new cust, locale, secret
 
         OT.ld "Calling deliver_email with token=(#{self.token})"
 
@@ -138,18 +139,18 @@ module Onetime::Logic
       end
     end
 
-    class ResetPassword < OT::Logic::Base
+    class ResetPassword < V2::Logic::Base
       attr_reader :secret, :is_confirmed
       def process_params
-        @secret = OT::Secret.load params[:key].to_s
+        @secret = V2::Secret.load params[:key].to_s
         @newp = self.class.normalize_password(params[:newp])
         @newp2 = self.class.normalize_password(params[:newp2])
         @is_confirmed = Rack::Utils.secure_compare(@newp, @newp2)
       end
 
       def raise_concerns
-        raise OT::MissingSecret if secret.nil?
-        raise OT::MissingSecret if secret.custid.to_s == 'anon'
+        raise V2::MissingSecret if secret.nil?
+        raise V2::MissingSecret if secret.custid.to_s == 'anon'
 
         limit_action :forgot_password_reset # limit reset attempts
 
@@ -205,7 +206,7 @@ module Onetime::Logic
     end
 
 
-    class DestroySession < OT::Logic::Base
+    class DestroySession < V2::Logic::Base
       def process_params
       end
       def raise_concerns

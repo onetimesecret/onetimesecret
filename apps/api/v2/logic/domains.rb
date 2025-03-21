@@ -1,3 +1,4 @@
+# apps/api/v2/logic/domains.rb
 
 require 'public_suffix'
 
@@ -16,7 +17,7 @@ require_relative 'domains/get_domain_image'
 require_relative 'domains/update_domain_image'
 require_relative 'domains/remove_domain_image'
 
-module Onetime::Logic
+module V2::Logic
   module Domains
     # This file now serves as a namespace and requires all the individual domain-related files
   end

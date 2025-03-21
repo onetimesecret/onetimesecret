@@ -1,6 +1,6 @@
-# frozen_string_literal: true
+# apps/api/v2/models/mixins/session_helpers.rb
 
-module Onetime::Models
+module V2::Models
 
   # Module containing helper methods for session-related functionality
   module SessionHelpers

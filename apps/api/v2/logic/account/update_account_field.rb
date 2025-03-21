@@ -1,7 +1,7 @@
-module Onetime::Logic
+module V2::Logic
   module Account
     # Base class for updating specific account fields
-    class UpdateAccountField < OT::Logic::Base
+    class UpdateAccountField < V2::Logic::Base
       attr_reader :modified, :greenlighted
 
       def initialize(*args)

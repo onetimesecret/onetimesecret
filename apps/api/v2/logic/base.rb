@@ -1,12 +1,12 @@
-# frozen_string_literal: true
+# apps/api/v2/logic/base.rb
 
 require 'stathat'
 require 'timeout'
 
-require_relative 'logic_helpers'
+require_relative 'helpers'
 require_relative '../refinements/rack_refinements'
 
-module Onetime
+module V2
   module Logic
     class Base
       include LogicHelpers
@@ -84,21 +84,21 @@ module Onetime
       end
 
       def raise_not_found(msg)
-        ex = OT::RecordNotFound.new
+        ex = V2::RecordNotFound.new
         ex.message = msg
         raise ex
       end
 
       def raise_form_error(msg)
-        ex = OT::FormError.new
+        ex = V2::FormError.new
         ex.message = msg
         ex.form_fields = form_fields if respond_to?(:form_fields)
         raise ex
       end
 
       def plan
-        @plan = Onetime::Plan.plan(cust.planid) unless cust.nil?
-        @plan ||= Onetime::Plan.plan('anonymous')
+        @plan = V2::Plan.plan(cust.planid) unless cust.nil?
+        @plan ||= V2::Plan.plan('anonymous')
         @plan
       end
 
@@ -114,7 +114,7 @@ module Onetime
 
       # Requires the implementing class to have cust and session fields
       def send_verification_email token=nil
-        _, secret = Onetime::Secret.spawn_pair cust.custid, token
+        _, secret = V2::Secret.spawn_pair cust.custid, token
 
         msg = "Thanks for verifying your account. We got you a secret fortune cookie!\n\n\"%s\"" % OT::Utils.random_fortune
 
@@ -125,7 +125,7 @@ module Onetime
 
         cust.reset_secret = secret.key # as a standalone rediskey, writes immediately
 
-        view = OT::App::Mail::Welcome.new cust, locale, secret
+        view = V2::App::Mail::Welcome.new cust, locale, secret
 
         begin
           view.deliver_email token

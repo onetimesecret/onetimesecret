@@ -1,9 +1,9 @@
 require_relative '../base'
 require_relative '../../cluster'
 
-module Onetime::Logic
+module V2::Logic
   module Domains
-    class RemoveDomainImage < OT::Logic::Base
+    class RemoveDomainImage < V2::Logic::Base
       attr_reader :greenlighted, :display_domain, :custom_domain
 
       @field = nil
@@ -22,7 +22,7 @@ module Onetime::Logic
 
         raise_form_error "Domain is required" if @domain_input.empty?
 
-        @custom_domain = OT::CustomDomain.load(@domain_input, @cust.custid)
+        @custom_domain = V2::CustomDomain.load(@domain_input, @cust.custid)
         raise_form_error "Invalid Domain" unless @custom_domain
 
         @display_domain = @domain_input

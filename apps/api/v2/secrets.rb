@@ -4,17 +4,17 @@ require_relative 'base'
 require_relative '../../app_settings'
 require_relative '../../../logic/secrets'
 
-class Onetime::App::APIV2
+class V2
   class Secrets
     include Onetime::App::AppSettings
-    include Onetime::App::APIV2::Base
+    include V2::Base
 
     @check_utf8 = true
     @check_uri_encoding = true
 
     def conceal_secret
       process_action(
-        OT::Logic::Secrets::ConcealSecret,
+        V2::Logic::Secrets::ConcealSecret,
         "Secret concealed successfully.",
         "Secret could not be concealed.",
         allow_anonymous: true,
@@ -23,7 +23,7 @@ class Onetime::App::APIV2
 
     def generate_secret
       process_action(
-        OT::Logic::Secrets::GenerateSecret,
+        V2::Logic::Secrets::GenerateSecret,
         "Secret generate successfully.",
         "Secret could not be generated.",
         allow_anonymous: true,
@@ -32,7 +32,7 @@ class Onetime::App::APIV2
 
     def burn_secret
       process_action(
-        OT::Logic::Secrets::BurnSecret,
+        V2::Logic::Secrets::BurnSecret,
         "Secret burned successfully.",
         "Secret could not be burned.",
         allow_anonymous: true,
@@ -40,19 +40,19 @@ class Onetime::App::APIV2
     end
 
     def get_metadata
-      retrieve_records(OT::Logic::Secrets::ShowMetadata, allow_anonymous: true)
+      retrieve_records(V2::Logic::Secrets::ShowMetadata, allow_anonymous: true)
     end
 
     def get_secret
-      retrieve_records(OT::Logic::Secrets::ShowSecret, allow_anonymous: true)
+      retrieve_records(V2::Logic::Secrets::ShowSecret, allow_anonymous: true)
     end
 
     def reveal_secret
-      retrieve_records(OT::Logic::Secrets::RevealSecret, allow_anonymous: true)
+      retrieve_records(V2::Logic::Secrets::RevealSecret, allow_anonymous: true)
     end
 
     def list_metadata
-      retrieve_records(OT::Logic::Secrets::ShowMetadataList)
+      retrieve_records(V2::Logic::Secrets::ShowMetadataList)
     end
 
   end

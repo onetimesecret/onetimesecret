@@ -1,11 +1,11 @@
-# frozen_string_literal: true
+# apps/api/v2/logic/exceptions.rb
 
 require_relative 'base'
 
-module Onetime::Logic
+module V2::Logic
   module Misc
     # Handles incoming exception reports similar to Sentry's basic functionality
-    class ReceiveException < OT::Logic::Base
+    class ReceiveException < V2::Logic::Base
 
       attr_reader :exception_data, :environment, :release, :greenlighted, :exception, :exception_key
 
@@ -41,13 +41,13 @@ module Onetime::Logic
 
         # Create new exception record
         OT.ld("[Exception] Creating new exception record")
-        @exception = OT::ExceptionInfo.new
+        @exception = V2::ExceptionInfo.new
         OT.ld("[Exception] Applying exception data", @exception_data)
         exception.apply_fields(**@exception_data)
         exception.save
 
         # Add to sortable index
-        OT::ExceptionInfo.add(exception)
+        V2::ExceptionInfo.add(exception)
 
         # Log critical errors
         if @exception_data[:type]&.include?('Error')

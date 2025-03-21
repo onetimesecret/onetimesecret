@@ -1,9 +1,9 @@
 require_relative '../base'
 require_relative '../../cluster'
 
-module Onetime::Logic
+module V2::Logic
   module Domains
-    class RemoveDomain < OT::Logic::Base
+    class RemoveDomain < V2::Logic::Base
       attr_reader :greenlighted, :domain_input, :display_domain
       def process_params
         @domain_input = params[:domain].to_s.strip
@@ -11,11 +11,11 @@ module Onetime::Logic
 
       def raise_concerns
         raise_form_error "Please enter a domain" if @domain_input.empty?
-        raise_form_error "Not a valid public domain" unless OT::CustomDomain.valid?(@domain_input)
+        raise_form_error "Not a valid public domain" unless V2::CustomDomain.valid?(@domain_input)
 
         limit_action :remove_domain
 
-        @custom_domain = OT::CustomDomain.load(@domain_input, @cust.custid)
+        @custom_domain = V2::CustomDomain.load(@domain_input, @cust.custid)
         raise_form_error "Domain not found" unless @custom_domain
       end
 
@@ -32,11 +32,11 @@ module Onetime::Logic
       end
 
       def delete_vhost
-        api_key = OT::Cluster::Features.api_key
+        api_key = V2::Cluster::Features.api_key
         if api_key.to_s.empty?
           return OT.info "[RemoveDomain.delete_vhost] Approximated API key not set"
         end
-        res = OT::Cluster::Approximated.delete_vhost(api_key, @display_domain)
+        res = V2::Cluster::Approximated.delete_vhost(api_key, @display_domain)
         payload = res.parsed_response
         OT.info "[RemoveDomain.delete_vhost] %s" % payload
       rescue HTTParty::ResponseError => e

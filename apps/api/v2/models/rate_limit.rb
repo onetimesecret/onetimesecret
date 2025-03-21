@@ -14,18 +14,18 @@ require 'forwardable'
 # The Redis key format is: "limiter:#{identifier}:#{event}:#{timestamp}"
 #
 # Example:
-#   limiter = OT::RateLimit.new("1.2.3.4", :create_secret)
+#   limiter = V2::RateLimit.new("1.2.3.4", :create_secret)
 #   begin
 #     limiter.incr!
-#   rescue OT::LimitExceeded => ex
+#   rescue V2::LimitExceeded => ex
 #     puts "Rate limit exceeded for #{ex.event}"
 #   end
 #
-class Onetime::RateLimit < Familia::Horreum
+class V2::RateLimit < Familia::Horreum
   extend Forwardable
 
   # Default limit for events that haven't been explicitly configured
-  DEFAULT_LIMIT = 25 unless defined?(OT::RateLimit::DEFAULT_LIMIT)
+  DEFAULT_LIMIT = 25 unless defined?(V2::RateLimit::DEFAULT_LIMIT)
 
   feature :expiration
   feature :quantization
@@ -82,16 +82,16 @@ class Onetime::RateLimit < Familia::Horreum
     get
   end
 
-  # Increment the counter and raise OT::LimitExceeded if limit is exceeded
+  # Increment the counter and raise V2::LimitExceeded if limit is exceeded
   # @return [Integer] the new count
-  # @raise [OT::LimitExceeded] if the limit is exceeded
+  # @raise [V2::LimitExceeded] if the limit is exceeded
   def incr!
     count = redis.incr(rediskey)
     update_expiration
     limit = self.class.event_limit(event)
     OT.ld "[OT] #{external_identifier} #{event} #{count}/#{limit}"
     if self.class.exceeded?(event, count)
-      raise OT::LimitExceeded.new(external_identifier, event, count)
+      raise V2::LimitExceeded.new(external_identifier, event, count)
     end
     count
   end
@@ -116,7 +116,7 @@ class Onetime::RateLimit < Familia::Horreum
     # @param identifier [String] unique identifier for the limited entity
     # @param event [Symbol] the type of event being limited
     # @return [Integer] the new count
-    # @raise [OT::LimitExceeded] if the limit is exceeded
+    # @raise [V2::LimitExceeded] if the limit is exceeded
     def incr! identifier, event
       lmtr = new identifier, event
       count = lmtr.incr!
@@ -124,7 +124,7 @@ class Onetime::RateLimit < Familia::Horreum
       OT.ld ['RateLimit.incr!', event, identifier, count, event_limit(event)].inspect
 
       if exceeded?(event, count)
-        raise OT::LimitExceeded.new(identifier, event, count)
+        raise V2::LimitExceeded.new(identifier, event, count)
       end
 
       count

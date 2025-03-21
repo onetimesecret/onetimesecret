@@ -1,7 +1,8 @@
-# lib/onetime/logic/secrets/generate_secret.rb
+# apps/api/v2/logic/secrets/generate_secret.rb
+
 require_relative './base_secret_action'
 
-module Onetime::Logic
+module V2::Logic
   module Secrets
     class GenerateSecret < BaseSecretAction
 

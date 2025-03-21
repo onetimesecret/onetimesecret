@@ -1,7 +1,7 @@
 
 require_relative '../base'
 
-module Onetime::Logic
+module V2::Logic
   module Domains
 
     # Get an image from a custom domain
@@ -15,7 +15,7 @@ module Onetime::Logic
     # e.g.
     #   /imagine/b79b17281be7264f778c/logo.png
     #
-    class GetImage < OT::Logic::Base
+    class GetImage < V2::Logic::Base
       attr_reader :custom_domain_id, :filename, :custom_domain, :image_type, :image_ext
       attr_reader :content_type, :content_length, :image_data, :encoded_content
 
@@ -40,7 +40,7 @@ module Onetime::Logic
 
         raise_not_found "Missing domain ID" if custom_domain_id.empty?
 
-        tmp_custom_domain = OT::CustomDomain.from_identifier custom_domain_id
+        tmp_custom_domain = V2::CustomDomain.from_identifier custom_domain_id
         raise_not_found "Domain not found" unless tmp_custom_domain
         @custom_domain = tmp_custom_domain # make it available after all concerns
 

@@ -5,9 +5,9 @@ require 'public_suffix'
 require_relative '../base'
 require_relative '../../cluster'
 
-module Onetime::Logic
+module V2::Logic
   module Domains
-    class AddDomain < OT::Logic::Base
+    class AddDomain < V2::Logic::Base
       attr_reader :greenlighted, :custom_domain, :domain_input, :display_domain
 
       def process_params
@@ -20,11 +20,11 @@ module Onetime::Logic
         OT.ld "[AddDomain] Raising any concerns about #{@domain_input}"
         # TODO: Consider returning all applicable errors (plural) at once
         raise_form_error "Please enter a domain" if @domain_input.empty?
-        raise_form_error "Not a valid public domain" unless OT::CustomDomain.valid?(@domain_input)
+        raise_form_error "Not a valid public domain" unless V2::CustomDomain.valid?(@domain_input)
 
         limit_action :add_domain
         # Only store a valid, parsed input value to @domain
-        @parsed_domain = OT::CustomDomain.parse(@domain_input, @cust.custid)
+        @parsed_domain = V2::CustomDomain.parse(@domain_input, @cust.custid)
         @display_domain = @parsed_domain.display_domain
 
         OT.ld "[AddDomain] Display: #{@display_domain}, Identifier: #{@parsed_domain.identifier}, Exists?: #{@parsed_domain.exists?}"
@@ -34,7 +34,7 @@ module Onetime::Logic
       def process
         @greenlighted = true
         OT.ld "[AddDomain] Processing #{@display_domain}"
-        @custom_domain = OT::CustomDomain.create(@display_domain, @cust.custid)
+        @custom_domain = V2::CustomDomain.create(@display_domain, @cust.custid)
 
         begin
           # Create the approximated vhost for this domain. Approximated provides a
@@ -48,14 +48,14 @@ module Onetime::Logic
       end
 
       def create_vhost
-        api_key = OT::Cluster::Features.api_key
-        vhost_target = OT::Cluster::Features.vhost_target
+        api_key = V2::Cluster::Features.api_key
+        vhost_target = V2::Cluster::Features.vhost_target
 
         if api_key.to_s.empty?
           return OT.info "[AddDomain.create_vhost] Approximated API key not set"
         end
 
-        res = OT::Cluster::Approximated.create_vhost(api_key, @display_domain, vhost_target, '443')
+        res = V2::Cluster::Approximated.create_vhost(api_key, @display_domain, vhost_target, '443')
         payload = res.parsed_response
 
         OT.info "[AddDomain.create_vhost] %s" % payload
@@ -69,7 +69,7 @@ module Onetime::Logic
           custid: @cust.custid,
           record: @custom_domain.safe_dump,
           details: {
-            cluster: OT::Cluster::Features.cluster_safe_dump
+            cluster: V2::Cluster::Features.cluster_safe_dump
           }
         }
       end

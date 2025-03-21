@@ -1,8 +1,8 @@
 require_relative '../base'
 
-module Onetime::Logic
+module V2::Logic
   module Domains
-    class ListDomains < OT::Logic::Base
+    class ListDomains < V2::Logic::Base
       attr_reader :custom_domains, :with_brand
 
       def process_params
@@ -28,7 +28,7 @@ module Onetime::Logic
           records: @custom_domains,
           count: @custom_domains.length,
           details: {
-            cluster: OT::Cluster::Features.cluster_safe_dump
+            cluster: V2::Cluster::Features.cluster_safe_dump
           }
         }
       end

@@ -9,7 +9,7 @@
 # The customer subdomain is distinct from CustomDomain (plural)
 # which is a list of domains that are managed by the customer.
 #
-class Onetime::Subdomain < Familia::Horreum
+class V2::Subdomain < Familia::Horreum
 
   feature :safe_dump
 
@@ -41,16 +41,16 @@ class Onetime::Subdomain < Familia::Horreum
   end
 
   def update_cname cname
-    @cname = self.cname = OT::Subdomain.normalize_cname(cname)
+    @cname = self.cname = V2::Subdomain.normalize_cname(cname)
   end
 
   def owner? cust
-    (cust.is_a?(OT::Customer) ? cust.custid : cust).to_s == custid.to_s
+    (cust.is_a?(V2::Customer) ? cust.custid : cust).to_s == custid.to_s
   end
 
   def destroy! *args
     ret = super
-    OT::Subdomain.values.remove identifier
+    V2::Subdomain.values.remove identifier
     ret
   end
 

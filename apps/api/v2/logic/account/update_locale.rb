@@ -1,5 +1,5 @@
 
-module Onetime::Logic
+module V2::Logic
   module Account
     class UpdateLocale < UpdateAccountField
       attr_reader :new_locale, :old_locale

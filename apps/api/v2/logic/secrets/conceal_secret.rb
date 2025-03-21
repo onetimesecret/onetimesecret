@@ -1,8 +1,8 @@
-# lib/onetime/logic/secrets/conceal_secret.rb
+# apps/api/v2/logic/secrets/conceal_secret.rb
 
 require_relative './base_secret_action'
 
-module Onetime::Logic
+module V2::Logic
   module Secrets
     class ConcealSecret < BaseSecretAction
 

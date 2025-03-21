@@ -1,7 +1,9 @@
-# lib/onetime/logic/secrets/base_secret_action.rb
-module Onetime::Logic
+# apps/api/v2/logic/secrets/base_secret_action.rb
+
+module V2::Logic
   module Secrets
-    class BaseSecretAction < OT::Logic::Base
+
+    class BaseSecretAction < V2::Logic::Base
       attr_reader :passphrase, :secret_value, :kind, :ttl, :recipient, :recipient_safe, :greenlighted
       attr_reader :metadata, :secret, :share_domain, :custom_domain, :payload
       attr_accessor :token
@@ -72,7 +74,7 @@ module Onetime::Logic
         @ttl = payload.fetch(:ttl, nil)
 
         # Get configuration options. We can rely on these values existing
-        # because that are guaranteed by OT::Config.after_load.
+        # because that are guaranteed by V2::Config.after_load.
         secret_options = OT.conf[:site][:secret_options]
         default_ttl = secret_options[:default_ttl]
         ttl_options = secret_options[:ttl_options]
@@ -123,13 +125,13 @@ module Onetime::Logic
         potential_domain = payload[:share_domain].to_s
         return if potential_domain.empty?
 
-        unless OT::CustomDomain.valid?(potential_domain)
+        unless V2::CustomDomain.valid?(potential_domain)
           return OT.info "[BaseSecretAction] Invalid share domain #{potential_domain}"
         end
 
         # If the given domain is the same as the site's host domain, then
         # we simply skip the share domain stuff altogether.
-        if OT::CustomDomain.default_domain?(potential_domain)
+        if V2::CustomDomain.default_domain?(potential_domain)
           return OT.info "[BaseSecretAction] Ignoring default share domain: #{potential_domain}"
         end
 
@@ -160,7 +162,7 @@ module Onetime::Logic
       private
 
       def create_secret_pair
-        @metadata, @secret = Onetime::Secret.spawn_pair cust.custid, token
+        @metadata, @secret = V2::Secret.spawn_pair cust.custid, token
       end
 
       def handle_passphrase
@@ -194,13 +196,13 @@ module Onetime::Logic
           cust.add_metadata metadata
           cust.increment_field :secrets_created
         end
-        OT::Customer.global.increment_field :secrets_created
-        OT::Logic.stathat_count("Secrets", 1)
+        V2::Customer.global.increment_field :secrets_created
+        V2::Logic.stathat_count("Secrets", 1)
       end
 
       def send_email_notification
         return if recipient.nil? || recipient.empty?
-        klass = OT::App::Mail::SecretLink
+        klass = V2::App::Mail::SecretLink
         metadata.deliver_by_email cust, locale, secret, recipient.first, klass
       end
 
@@ -222,7 +224,7 @@ module Onetime::Logic
 
         # e.g. rediskey -> customdomain:display_domains -> hash -> key: value
         # where key is the domain and value is the domainid
-        domain_record = OT::CustomDomain.from_display_domain(domain)
+        domain_record = V2::CustomDomain.from_display_domain(domain)
         raise_form_error "Unknown domain: #{domain}" if domain_record.nil?
 
         OT.ld <<~DEBUG

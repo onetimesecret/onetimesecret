@@ -1,9 +1,9 @@
 require_relative '../base'
 require_relative '../../cluster'
 
-module Onetime::Logic
+module V2::Logic
   module Domains
-    class GetDomain < OT::Logic::Base
+    class GetDomain < V2::Logic::Base
       attr_reader :greenlighted, :display_domain, :custom_domain
 
       def process_params
@@ -12,7 +12,7 @@ module Onetime::Logic
 
       def raise_concerns
         raise_form_error "Please enter a domain" if @domain_input.empty?
-        raise_form_error "Not a valid public domain" unless OT::CustomDomain.valid?(@domain_input)
+        raise_form_error "Not a valid public domain" unless V2::CustomDomain.valid?(@domain_input)
 
         limit_action :get_domain
 
@@ -20,7 +20,7 @@ module Onetime::Logic
         # the display_domain). That way we need to combine with the custid
         # in order to find it. It's a way of proving ownership. Vs passing the
         # domainid in the URL path which gives up the goods.
-        @custom_domain = OT::CustomDomain.load(@domain_input, @cust.custid)
+        @custom_domain = V2::CustomDomain.load(@domain_input, @cust.custid)
 
         raise_form_error "Domain not found" unless @custom_domain
       end
@@ -36,7 +36,7 @@ module Onetime::Logic
           custid: @cust.custid,
           record: custom_domain.safe_dump,
           details: {
-            cluster: OT::Cluster::Features.cluster_safe_dump
+            cluster: V2::Cluster::Features.cluster_safe_dump
           }
         }
       end

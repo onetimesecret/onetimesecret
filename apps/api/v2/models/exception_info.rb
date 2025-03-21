@@ -1,7 +1,7 @@
 require 'logger'
 
 
-class Onetime::ExceptionInfo < Familia::Horreum
+class V2::ExceptionInfo < Familia::Horreum
   include Gibbler::Complex
 
   feature :safe_dump

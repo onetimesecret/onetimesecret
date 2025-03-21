@@ -1,17 +1,18 @@
+# apps/api/v2/colonel.rb
 
 require_relative 'base'
 require_relative '../../app_settings'
 
-class Onetime::App::APIV2
+class V2
   class Colonel
     include Onetime::App::AppSettings
-    include Onetime::App::APIV2::Base
+    include V2::Base
 
     @check_utf8 = true
     @check_uri_encoding = true
 
     def get_index
-      retrieve_records(OT::Logic::Colonel::GetColonel, auth_type: :colonels)
+      retrieve_records(V2::Logic::Colonel::GetColonel, auth_type: :colonels)
     end
 
   end

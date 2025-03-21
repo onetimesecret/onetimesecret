@@ -1,3 +1,5 @@
+# apps/api/v2/models/custom_domain.rb
+
 require 'public_suffix'
 
 # Tryouts:
@@ -29,7 +31,7 @@ require 'public_suffix'
 # the hostname and the domain name, and include the top-level domain, the
 # format looks like [hostname].[domain].[tld]. for ex. [www].[mozilla].[org].
 #
-class Onetime::CustomDomain < Familia::Horreum
+class V2::CustomDomain < Familia::Horreum
   include Gibbler::Complex
 
   unless defined?(MAX_SUBDOMAIN_DEPTH)
@@ -134,17 +136,17 @@ class Onetime::CustomDomain < Familia::Horreum
   # @return [String] A shortened hash of the domain name and custid.
   def derive_id
     if @display_domain.to_s.empty? || @custid.to_s.empty?
-      raise OT::Problem, 'Cannot generate identifier with emptiness'
+      raise V2::Problem, 'Cannot generate identifier with emptiness'
     end
     [@display_domain, @custid].gibbler.shorten
   end
 
   # Check if the given customer is the owner of this domain
   #
-  # @param cust [OT::Customer, String] The customer object or customer ID to check
+  # @param cust [V2::Customer, String] The customer object or customer ID to check
   # @return [Boolean] true if the customer is the owner, false otherwise
   def owner?(cust)
-    (cust.is_a?(OT::Customer) ? cust.custid : cust).eql?(custid)
+    (cust.is_a?(V2::Customer) ? cust.custid : cust).eql?(custid)
   end
 
   # Destroy the custom domain record
@@ -155,7 +157,7 @@ class Onetime::CustomDomain < Familia::Horreum
   # @param args [Array] Additional arguments to pass to the superclass destroy method
   # @return [Object] The result of the superclass destroy method
   def delete!(*args)
-    OT::CustomDomain.rem self
+    V2::CustomDomain.rem self
     super # we may prefer to call self.clear here instead
   end
 
@@ -201,7 +203,7 @@ class Onetime::CustomDomain < Familia::Horreum
   # - The main Redis key for the custom domain (`self.rediskey`)
   # - Redis keys of all related objects specified in `self.class.redis_types`
   #
-  # @param customer [OT::Customer, nil] The customer to remove the domain from
+  # @param customer [V2::Customer, nil] The customer to remove the domain from
   # @return [void]
   def destroy!(customer = nil)
     keys_to_delete = [rediskey]
@@ -223,9 +225,9 @@ class Onetime::CustomDomain < Familia::Horreum
     redis.multi do |multi|
       multi.del(self.rediskey)
       # Also remove from the class-level values, :display_domains, :owners
-      multi.zrem(OT::CustomDomain.values.rediskey, identifier)
-      multi.hdel(OT::CustomDomain.display_domains.rediskey, display_domain)
-      multi.hdel(OT::CustomDomain.owners.rediskey, display_domain)
+      multi.zrem(V2::CustomDomain.values.rediskey, identifier)
+      multi.hdel(V2::CustomDomain.display_domains.rediskey, display_domain)
+      multi.hdel(V2::CustomDomain.owners.rediskey, display_domain)
       multi.del(self.brand.rediskey)
       multi.del(self.logo.rediskey)
       multi.del(self.icon.rediskey)
@@ -235,7 +237,7 @@ class Onetime::CustomDomain < Familia::Horreum
     end
   rescue Redis::BaseError => e
     OT.le "[CustomDomain.destroy!] Redis error: #{e.message}"
-    raise OT::Problem, "Unable to delete custom domain"
+    raise V2::Problem, "Unable to delete custom domain"
   end
 
   # Checks if the domain is an apex domain.
@@ -273,15 +275,15 @@ class Onetime::CustomDomain < Familia::Horreum
   # The host must be alphanumeric with dots, underscores, or hyphens only.
   # The value must be a 32-character hexadecimal string.
   #
-  # @raise [OT::Problem] If the TXT record host or value format is invalid
+  # @raise [V2::Problem] If the TXT record host or value format is invalid
   # @return [void]
   def validate_txt_record!
     unless txt_validation_host.to_s.match?(/\A[a-zA-Z0-9._-]+\z/)
-      raise OT::Problem, "TXT record hostname can only contain letters, numbers, dots, underscores, and hyphens"
+      raise V2::Problem, "TXT record hostname can only contain letters, numbers, dots, underscores, and hyphens"
     end
 
     unless txt_validation_value.to_s.match?(/\A[a-f0-9]{32}\z/)
-      raise OT::Problem, "TXT record value must be a 32-character hexadecimal string"
+      raise V2::Problem, "TXT record value must be a 32-character hexadecimal string"
     end
   end
 
@@ -295,7 +297,7 @@ class Onetime::CustomDomain < Familia::Horreum
   # - A 32-char random hex value
   #
   # @return [Array<String, String>] The TXT record host and value
-  # @raise [OT::Problem] If the generated record is invalid
+  # @raise [V2::Problem] If the generated record is invalid
   #
   # Examples:
   #   _onetime-challenge-domainid -> 7709715a6411631ce1d447428d8a70
@@ -385,8 +387,8 @@ class Onetime::CustomDomain < Familia::Horreum
     #
     # @param input [String] The domain name to create
     # @param custid [String] The customer ID to associate with
-    # @return [OT::CustomDomain] The created custom domain
-    # @raise [OT::Problem] If domain is invalid or already exists
+    # @return [V2::CustomDomain] The created custom domain
+    # @raise [V2::Problem] If domain is invalid or already exists
     #
     # More Info:
     # We need a minimum of a domain and customer id to create a custom
@@ -407,14 +409,14 @@ class Onetime::CustomDomain < Familia::Horreum
       redis.watch(obj.rediskey) do
         if obj.exists?
           redis.unwatch
-          raise OT::Problem, "Duplicate domain for customer"
+          raise V2::Problem, "Duplicate domain for customer"
         end
 
         redis.multi do |multi|
           obj.generate_txt_validation_record
           obj.save
           # Create minimal customer instance for Redis key
-          cust = OT::Customer.new(custid: custid)
+          cust = V2::Customer.new(custid: custid)
           cust.add_custom_domain(obj)
           # Add to global values set
           self.add(obj)
@@ -424,15 +426,15 @@ class Onetime::CustomDomain < Familia::Horreum
       obj  # Return the created object
     rescue Redis::BaseError => e
       OT.le "[CustomDomain.create] Redis error: #{e.message}"
-      raise OT::Problem, "Unable to create custom domain"
+      raise V2::Problem, "Unable to create custom domain"
     end
 
-    # Returns a new Onetime::CustomDomain object (without saving it).
+    # Returns a new V2::CustomDomain object (without saving it).
     #
     # @param input [String] The domain name to parse
     # @param custid [String] Customer ID associated with the domain
     #
-    # @return [Onetime::CustomDomain]
+    # @return [V2::CustomDomain]
     #
     # @raise [PublicSuffix::DomainInvalid] If domain is invalid
     # @raise [PublicSuffix::DomainNotAllowed] If domain is not allowed
@@ -440,17 +442,17 @@ class Onetime::CustomDomain < Familia::Horreum
     # @raise [Onetime::Problem] If domain exceeds MAX_SUBDOMAIN_DEPTH or MAX_TOTAL_LENGTH
     #
     def parse(input, custid)
-      raise OT::Problem, "Customer ID required" if custid.to_s.empty?
+      raise V2::Problem, "Customer ID required" if custid.to_s.empty?
 
       segments = input.to_s.split('.').reject(&:empty?)
-      raise OT::Problem, "Invalid domain format" if segments.empty?
+      raise V2::Problem, "Invalid domain format" if segments.empty?
 
       if segments.length > MAX_SUBDOMAIN_DEPTH
-        raise OT::Problem, "Domain too deep (max: #{MAX_SUBDOMAIN_DEPTH})"
+        raise V2::Problem, "Domain too deep (max: #{MAX_SUBDOMAIN_DEPTH})"
       end
 
       if input.length > MAX_TOTAL_LENGTH
-        raise OT::Problem, "Domain too long (max: #{MAX_TOTAL_LENGTH})"
+        raise V2::Problem, "Domain too long (max: #{MAX_TOTAL_LENGTH})"
       end
 
       display_domain = self.display_domain(input)
@@ -504,7 +506,7 @@ class Onetime::CustomDomain < Familia::Horreum
     end
 
     def default_domain? input
-      display_domain = OT::CustomDomain.display_domain(input)
+      display_domain = V2::CustomDomain.display_domain(input)
       site_host = OT.conf.dig(:site, :host)
       OT.ld "[CustomDomain.default_domain?] #{display_domain} == #{site_host}"
       display_domain.eql?(site_host)
@@ -523,7 +525,7 @@ class Onetime::CustomDomain < Familia::Horreum
       OT.ld "[CustomDomain.exists?] Got #{obj.identifier} #{obj.display_domain} #{obj.custid}"
       obj.exists?
 
-    rescue OT::Problem => e
+    rescue V2::Problem => e
       OT.le "[CustomDomain.exists?] #{e.message}"
       false
     end
@@ -557,7 +559,7 @@ class Onetime::CustomDomain < Familia::Horreum
 
       custom_domain = parse(display_domain, custid).tap do |obj|
         OT.ld "[CustomDomain.load] Got #{obj.identifier} #{obj.display_domain} #{obj.custid}"
-        raise OT::RecordNotFound, "Domain not found #{obj.display_domain}" unless obj.exists?
+        raise V2::RecordNotFound, "Domain not found #{obj.display_domain}" unless obj.exists?
       end
 
       # Continue with the built-in `load` from Familia.
@@ -568,7 +570,7 @@ class Onetime::CustomDomain < Familia::Horreum
     # after determining the domain strategy is :custom.
     #
     # @param display_domain [String] The display domain to load
-    # @return [Onetime::CustomDomain, nil] The custom domain record or nil if not found
+    # @return [V2::CustomDomain, nil] The custom domain record or nil if not found
     def from_display_domain display_domain
       # Get the domain ID from the display_domains hash
       domain_id = self.display_domains.get(display_domain)
@@ -577,7 +579,7 @@ class Onetime::CustomDomain < Familia::Horreum
       # Load the record using the domain ID
       begin
         from_identifier(domain_id)
-      rescue OT::RecordNotFound
+      rescue V2::RecordNotFound
         nil
       end
     end

@@ -1,11 +1,12 @@
+# apps/api/v2/logic/feedback.rb
 
 require_relative '../../altcha'
 require_relative 'base'
 
-module Onetime::Logic
+module V2::Logic
   module Misc
 
-    class ReceiveFeedback < OT::Logic::Base
+    class ReceiveFeedback < V2::Logic::Base
       attr_reader :msg, :authenticity_payload, :verified, :verification_data, :greenlighted, :tz, :version
 
       def process_params
@@ -55,7 +56,7 @@ module Onetime::Logic
           first_colonel = nil
           configured_colonels.each do |colonel_email|
             OT.ld "Colonel: #{colonel_email}"
-            first_colonel = OT::Customer.find colonel_email
+            first_colonel = V2::Customer.find colonel_email
             if first_colonel
               OT.ld "[receive_feedback] Sending feedback to colonel: #{colonel_email} #{first_colonel}"
               send_feedback first_colonel, msg
@@ -69,7 +70,7 @@ module Onetime::Logic
           OT.le "Error sending feedback email to first colonel: #{ex.message}", ex.backtrace
         end
 
-        OT::Feedback.add @msg
+        V2::Feedback.add @msg
       end
 
       def format_feedback_message
@@ -94,7 +95,7 @@ module Onetime::Logic
       end
 
       def send_feedback cust, message
-        view = OT::App::Mail::FeedbackEmail.new cust, locale
+        view = V2::App::Mail::FeedbackEmail.new cust, locale
         view.display_domain = self.display_domain
         view.domain_strategy = self.domain_strategy
         view.message = message

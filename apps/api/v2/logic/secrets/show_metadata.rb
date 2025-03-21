@@ -1,9 +1,9 @@
+# apps/api/v2/logic/secrets/show_metadata.rb
 
-
-module Onetime::Logic
+module V2::Logic
   module Secrets
 
-    class ShowMetadata < OT::Logic::Base
+    class ShowMetadata < V2::Logic::Base
       # Working variables
       attr_reader :key, :metadata, :secret
       # Template variables
@@ -19,12 +19,12 @@ module Onetime::Logic
 
       def process_params
         @key = params[:key].to_s
-        @metadata = Onetime::Metadata.load key
+        @metadata = V2::Metadata.load key
       end
 
       def raise_concerns
         limit_action :show_metadata
-        raise OT::MissingSecret if metadata.nil?
+        raise V2::MissingSecret if metadata.nil?
       end
 
       def process

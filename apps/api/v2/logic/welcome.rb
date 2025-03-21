@@ -1,10 +1,11 @@
+# apps/api/v2/logic/welcome.rb
 
 require_relative 'base'
 
-module Onetime::Logic
+module V2::Logic
   module Welcome
 
-    class FromStripePaymentLink < OT::Logic::Base
+    class FromStripePaymentLink < V2::Logic::Base
       attr_reader :checkout_session_id, :checkout_session, :checkout_email, :update_customer_fields
 
       def process_params
@@ -50,7 +51,7 @@ module Onetime::Logic
           # If the user is not authenticated, check if the email address is already
           # associated with an account. If not, we can create a new account for them
           # using the email address from the checkout session.
-          cust = OT::Customer.load(checkout_email)
+          cust = V2::Customer.load(checkout_email)
 
           if cust
             # If the email address is already associated with an account, we can
@@ -61,11 +62,11 @@ module Onetime::Logic
 
             cust.apply_fields(**update_customer_fields).commit_fields
 
-            raise OT::Redirect.new('/signin')
+            raise V2::Redirect.new('/signin')
           else
             OT.info "[FromStripePaymentLink] Associating checkout #{checkout_session_id} with new user #{checkout_email}"
 
-            cust = OT::Customer.create(checkout_email)
+            cust = V2::Customer.create(checkout_email)
             cust.planid = "identity"
             cust.verified = "true"
             cust.role = "customer"
@@ -90,7 +91,7 @@ module Onetime::Logic
       end
     end
 
-    class StripeWebhook < OT::Logic::Base
+    class StripeWebhook < V2::Logic::Base
       attr_reader :event
       attr_accessor :payload, :stripe_signature
 

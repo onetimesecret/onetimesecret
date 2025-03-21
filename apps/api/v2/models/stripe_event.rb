@@ -1,5 +1,5 @@
 
-class Onetime::StripeEvent < Familia::Horreum
+class V2::StripeEvent < Familia::Horreum
 
   feature :safe_dump
   feature :expiration
@@ -40,7 +40,7 @@ class Onetime::StripeEvent < Familia::Horreum
 
   def destroy! *args
     ret = super
-    OT::StripeEvent.values.remove identifier
+    V2::StripeEvent.values.remove identifier
     ret
   end
 

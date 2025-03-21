@@ -1,5 +1,5 @@
 
-class Onetime::EmailReceipt < Familia::Horreum
+class V2::EmailReceipt < Familia::Horreum
   include Gibbler::Complex
 
   feature :safe_dump
@@ -45,7 +45,7 @@ class Onetime::EmailReceipt < Familia::Horreum
 
   def destroy! *args
     ret = super
-    OT::EmailReceipt.values.remove identifier
+    V2::EmailReceipt.values.remove identifier
     ret
   end
 

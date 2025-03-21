@@ -1,9 +1,9 @@
 require_relative '../base'
 require_relative '../../cluster'
 
-module Onetime::Logic
+module V2::Logic
   module Domains
-    class UpdateDomainBrand < OT::Logic::Base
+    class UpdateDomainBrand < V2::Logic::Base
       attr_reader :greenlighted, :brand_settings, :display_domain, :custom_domain
 
       def process_params
@@ -94,7 +94,7 @@ module Onetime::Logic
           raise_form_error "Please provide a domain ID"
         end
 
-        @custom_domain = OT::CustomDomain.load(@domain_id, @cust.custid)
+        @custom_domain = V2::CustomDomain.load(@domain_id, @cust.custid)
         unless custom_domain&.exists?
           OT.ld "[UpdateDomainBrand] Error: Domain #{@domain_id} not found for customer #{@cust.custid}"
           raise_form_error "Domain not found"

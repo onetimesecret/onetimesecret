@@ -1,5 +1,6 @@
+# apps/api/v2/models/metadata.rb
 
-module Onetime
+module V2
   class Metadata < Familia::Horreum
     include Gibbler::Complex
 
@@ -134,7 +135,7 @@ module Onetime
     end
 
     def owner? cust
-      !anonymous? && (cust.is_a?(OT::Customer) ? cust.custid : cust).to_s == custid.to_s
+      !anonymous? && (cust.is_a?(V2::Customer) ? cust.custid : cust).to_s == custid.to_s
     end
 
     def valid?
@@ -142,7 +143,7 @@ module Onetime
     end
 
     def deliver_by_email cust, locale, secret, eaddrs, template=nil, ticketno=nil
-      template ||= OT::Email::SecretLink
+      template ||= V2::Email::SecretLink
 
       if eaddrs.nil? || eaddrs.empty?
         OT.info "[deliver-by-email] #{cust.obscure_email} #{secret.key} No addresses specified"
@@ -244,7 +245,7 @@ module Onetime
     end
 
     def load_secret
-      OT::Secret.load secret_key
+      V2::Secret.load secret_key
     end
   end
 end

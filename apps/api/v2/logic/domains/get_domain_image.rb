@@ -1,8 +1,8 @@
 require 'base64'
 
-module Onetime::Logic
+module V2::Logic
   module Domains
-    class GetDomainImage < OT::Logic::Base
+    class GetDomainImage < V2::Logic::Base
       attr_reader :display_domain, :image_field, :image, :custom_domain
 
       @field = nil
@@ -18,14 +18,14 @@ module Onetime::Logic
       def raise_concerns
         raise_form_error "Please enter a domain" if @domain_input.empty?
 
-        unless OT::CustomDomain.valid?(@domain_input)
+        unless V2::CustomDomain.valid?(@domain_input)
           raise_form_error "Not a valid public domain"
         end
 
         # Add rate limiting after basic value validation, before data access
         limit_action :get_domain_logo
 
-        @custom_domain = OT::CustomDomain.load(@domain_input, @cust.custid)
+        @custom_domain = V2::CustomDomain.load(@domain_input, @cust.custid)
         raise_form_error "Domain not found" unless custom_domain
 
         @display_domain = @domain_input # Only after it's known to be a good value

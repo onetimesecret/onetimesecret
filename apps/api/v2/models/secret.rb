@@ -1,4 +1,6 @@
-module Onetime
+# apps/api/v2/models/secret.rb
+
+module V2
   class Secret < Familia::Horreum
     include Gibbler::Complex
 
@@ -152,16 +154,16 @@ module Onetime
     end
 
     def encryption_key_v1 *ignored
-      OT::Secret.encryption_key self.key, self.passphrase_temp
+      V2::Secret.encryption_key self.key, self.passphrase_temp
     end
 
     def encryption_key_v2 *ignored
-      OT::Secret.encryption_key OT.global_secret, self.key, self.passphrase_temp
+      V2::Secret.encryption_key OT.global_secret, self.key, self.passphrase_temp
     end
 
     def load_customer
-      cust = OT::Customer.load custid
-      cust.nil? ? OT::Customer.anonymous : cust # TODO: Probably should simply return nil (see defensive "fix" in 23c152)
+      cust = V2::Customer.load custid
+      cust.nil? ? V2::Customer.anonymous : cust # TODO: Probably should simply return nil (see defensive "fix" in 23c152)
     end
 
     def state? guess
@@ -169,7 +171,7 @@ module Onetime
     end
 
     def load_metadata
-      OT::Metadata.load metadata_key
+      V2::Metadata.load metadata_key
     end
 
     def anonymous?
@@ -177,7 +179,7 @@ module Onetime
     end
 
     def owner? cust
-      !anonymous? && (cust.is_a?(OT::Customer) ? cust.custid : cust).to_s == custid.to_s
+      !anonymous? && (cust.is_a?(V2::Customer) ? cust.custid : cust).to_s == custid.to_s
     end
 
     def viewable?
@@ -237,8 +239,8 @@ module Onetime
     class << self
 
       def spawn_pair custid, token=nil
-        secret = OT::Secret.create(custid: custid, token: token)
-        metadata = OT::Metadata.create(custid: custid, token: token)
+        secret = V2::Secret.create(custid: custid, token: token)
+        metadata = V2::Metadata.create(custid: custid, token: token)
 
         # TODO: Use Familia transaction
         metadata.secret_key = secret.key

@@ -1,11 +1,12 @@
+# apps/api/v2/logic/colonel.rb
 
 require_relative 'base'
 require_relative '../refinements/stripe_refinements'
 
-module Onetime::Logic
+module V2::Logic
   module Colonel
 
-    class GetColonel < OT::Logic::Base
+    class GetColonel < V2::Logic::Base
       attr_reader :plans_enabled, :title, :stathat_chart, :session_count,
                   :today_feedback, :yesterday_feedback, :older_feedback, :feedback_count,
                   :today_feedback_count, :yesterday_feedback_count, :older_feedback_count,
@@ -25,7 +26,7 @@ module Onetime::Logic
       def process
         @title = "Home"
         @stathat_chart = OT.conf[:stathat][:default_chart] if OT.conf[:stathat]
-        @session_count = OT::Session.recent(5.minutes).size
+        @session_count = V2::Session.recent(5.minutes).size
 
         process_feedback
         process_customers
@@ -40,7 +41,7 @@ module Onetime::Logic
         @yesterday_feedback = process_feedback_for_period(48.hours, now - 24.hours)
         @older_feedback = process_feedback_for_period(14.days, now - 48.hours)
 
-        @feedback_count = OT::Feedback.values.size
+        @feedback_count = V2::Feedback.values.size
         @today_feedback_count = @today_feedback.size
         @yesterday_feedback_count = @yesterday_feedback.size
         @older_feedback_count = @older_feedback.size
@@ -48,14 +49,14 @@ module Onetime::Logic
       private :process_feedback
 
       def process_feedback_for_period(period, end_time)
-        OT::Feedback.recent(period, end_time).collect do |k, v|
+        V2::Feedback.recent(period, end_time).collect do |k, v|
           { msg: k, stamp: natural_time(v) }
         end.reverse
       end
       private :process_feedback_for_period
 
       def process_customers
-        @recent_customers = OT::Customer.recent.collect do |this_cust|
+        @recent_customers = V2::Customer.recent.collect do |this_cust|
           next if this_cust.nil?
           {
             custid: this_cust.custid,
@@ -69,17 +70,17 @@ module Onetime::Logic
           }
         end.compact.reverse
 
-        @customer_count = OT::Customer.values.size
+        @customer_count = V2::Customer.values.size
         @recent_customer_count = @recent_customers.size
       end
       private :process_customers
 
       def process_statistics
-        @metadata_count = OT::Metadata.new.redis.keys('metadata*:object').count
-        @secret_count = OT::Secret.new.redis.keys('secret*:object').count
-        @secrets_created = OT::Customer.global.secrets_created.to_s
-        @secrets_shared = OT::Customer.global.secrets_shared.to_s
-        @emails_sent = OT::Customer.global.emails_sent.to_s
+        @metadata_count = V2::Metadata.new.redis.keys('metadata*:object').count
+        @secret_count = V2::Secret.new.redis.keys('secret*:object').count
+        @secrets_created = V2::Customer.global.secrets_created.to_s
+        @secrets_shared = V2::Customer.global.secrets_shared.to_s
+        @emails_sent = V2::Customer.global.emails_sent.to_s
       end
       private :process_statistics
 

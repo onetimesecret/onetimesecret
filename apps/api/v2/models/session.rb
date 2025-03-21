@@ -2,7 +2,7 @@
 
 require_relative 'mixins/session_messages'
 
-class Onetime::Session < Familia::Horreum
+class V2::Session < Familia::Horreum
   include Onetime::Models::RateLimited
 
   feature :safe_dump
@@ -170,9 +170,9 @@ class Onetime::Session < Familia::Horreum
   end
 
   def load_customer
-    return OT::Customer.anonymous if anonymous?
-    cust = OT::Customer.load custid
-    cust.nil? ? OT::Customer.anonymous : cust
+    return V2::Customer.anonymous if anonymous?
+    cust = V2::Customer.load custid
+    cust.nil? ? V2::Customer.anonymous : cust
   end
 
   module ClassMethods
