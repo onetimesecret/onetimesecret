@@ -69,6 +69,5 @@ module V1
   end
 end
 
-
 # Register with AppRegistry during load
 AppRegistry.register('/api/v1', V1::Application)

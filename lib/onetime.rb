@@ -1,4 +1,5 @@
 # typed: false
+# lib/onetime.rb
 
 require 'bundler/setup'
 require 'securerandom'
@@ -374,4 +375,4 @@ require_relative 'onetime/plan'
 require_relative 'onetime/alias'
 require_relative 'onetime/models'
 require_relative 'onetime/logic'
-require_relative 'onetime/app'
+# require_relative 'onetime/app'
