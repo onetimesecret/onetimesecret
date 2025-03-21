@@ -1,4 +1,4 @@
-# lib/onetime/logic/secrets/show_secret.rb
+# apps/api/v1/logic/secrets/show_secret.rb
 
 module V1::Logic
   module Secrets

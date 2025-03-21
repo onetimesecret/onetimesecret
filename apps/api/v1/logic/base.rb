@@ -1,9 +1,9 @@
-# frozen_string_literal: true
+# apps/api/v1/logic/base.rb
 
 require 'stathat'
 require 'timeout'
 
-require_relative 'logic_helpers'
+require_relative 'helpers'
 require_relative '../refinements/rack_refinements'
 
 module V1

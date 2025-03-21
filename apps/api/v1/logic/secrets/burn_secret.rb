@@ -1,3 +1,5 @@
+# apps/api/v1/logic/secrets/burn_secret.rb
+
 module V1::Logic
   module Secrets
 

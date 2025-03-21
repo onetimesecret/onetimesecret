@@ -1,4 +1,4 @@
-
+# apps/api/v1/logic/secrets/show_metadata.rb
 
 module V1::Logic
   module Secrets

@@ -1,4 +1,4 @@
-# frozen_string_literal: true
+# apps/api/v1/models/mixins/rate_limited.rb
 
 module V1::Mixins
 

@@ -1,4 +1,4 @@
-# lib/onetime/logic/secrets/conceal_secret.rb
+# apps/api/v1/logic/secrets/conceal_secret.rb
 
 require_relative './base_secret_action'
 

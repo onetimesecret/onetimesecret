@@ -1,3 +1,5 @@
+# apps/api/v1/logic/secrets/show_metadata_list.rb
+
 require 'time'
 
 module V1::Logic

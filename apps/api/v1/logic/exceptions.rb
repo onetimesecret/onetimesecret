@@ -1,4 +1,4 @@
-# frozen_string_literal: true
+# apps/api/v1/logic/exceptions.rb
 
 require_relative 'base'
 
