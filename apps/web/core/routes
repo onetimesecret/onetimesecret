@@ -1,3 +1,4 @@
+# apps/web/core/routes
 
 GET   /                                          Core::Controllers::Page#index
 GET   /404                                       Core::Controllers::Page#not_found

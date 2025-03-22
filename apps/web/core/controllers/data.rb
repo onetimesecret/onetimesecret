@@ -4,8 +4,7 @@ require_relative 'base'
 require_relative 'settings'
 
 module Core
-
-  module Controller
+  module Controllers
     class Data
       include ControllerSettings
       include ControllerBase

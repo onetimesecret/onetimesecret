@@ -45,6 +45,9 @@ module V2
 
       Rack::Builder.new do
         warmup do
+          require_relative 'logic'
+          require_relative 'models'
+
           # Log warmup completion
           Onetime.li "V2 app warmup completed"
         end
