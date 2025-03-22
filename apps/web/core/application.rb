@@ -5,8 +5,6 @@ require 'otto'
 require 'json'
 
 require_relative 'controllers'
-# require_relative 'models'
-# require_relative 'logic'
 
 module Core
   class Application

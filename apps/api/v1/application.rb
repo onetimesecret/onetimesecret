@@ -4,9 +4,9 @@ require 'rack'
 require 'otto'
 require 'json'
 
-require_relative 'controller'
 require_relative 'models'
 require_relative 'logic'
+require_relative 'controllers'
 
 module V1
   class Application

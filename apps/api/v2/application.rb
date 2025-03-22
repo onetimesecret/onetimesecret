@@ -1,12 +1,12 @@
-# apps/web/core/application.rb
+# apps/api/v2/application.rb
 
 require 'rack'
 require 'otto'
 require 'json'
 
-require_relative 'controllers'
 require_relative 'models'
 require_relative 'logic'
+require_relative 'controllers'
 
 module V2
   class Application
