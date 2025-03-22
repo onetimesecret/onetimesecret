@@ -108,53 +108,6 @@ module V1
       end
     end
 
-    # Determine and set the locale for the current request.
-    #
-    # This method prioritizes locales in the following order:
-    # 1. Query parameter 'locale'
-    # 2. Provided 'locale' argument
-    # 3. Rack environment's 'rack.locale'
-    # 4. Customer's locale (if available)
-    # 5. First configured locale
-    #
-    # The method also ensures that only supported locales are used.
-    #
-    # @param locale [String, nil] Optional locale to use (overridden by query parameter)
-    # @return [void]
-    def check_locale!(locale = nil)
-      # Check for locale in query parameters
-      unless req.params[:locale].to_s.empty?
-        locale = req.params[:locale]
-        # Set locale cookie if query parameter is present
-        is_secure = Onetime.conf.dig(:site, :ssl)
-        res.send_cookie :locale, locale, 30.days, is_secure
-      end
-
-      # Initialize locales array
-      locales = req.env['rack.locale'] || []  # Requested list from Rack
-
-      # Add provided locale to the beginning of the list
-      # Support both en and en-US
-      locales.unshift(locale.split('-').first) if locale.is_a?(String)
-
-      # Add customer's locale if available
-      locales << cust.locale if cust&.locale?
-
-      # Ensure at least one configured locale is available
-      locales << OT.default_locale
-
-      # Filter and clean up locales
-      locales = locales.uniq.reject { |l| !OT.locales.key?(l) }.compact
-
-      # Set default locale if the current one is not supported
-      locale = locales.first unless OT.locales.key?(locale)
-
-      # Set locale in the request environment. This behaviour is different
-      # than v2 API which checks if we have the translation before setting.
-      req.env['ots.locale'] = @locale = locale
-      req.env['ots.locales'] = locales
-    end
-
     def json hsh
       res.header['Content-Type'] = "application/json; charset=utf-8"
       res.body = hsh.to_json
