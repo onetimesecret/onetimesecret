@@ -233,6 +233,14 @@ module V2
       json hsh
     end
 
+    def secret_not_found_response
+      not_found_response "Unknown secret", :secret_key => req.params[:key]
+    end
+
+    def disabled_response path
+      not_found_response "#{path} is not available"
+    end
+
     def not_found_response msg, hsh={}
       hsh[:message] = msg
       res.status = 404
