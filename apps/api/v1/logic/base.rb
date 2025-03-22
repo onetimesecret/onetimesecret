@@ -26,7 +26,7 @@ module V1
 
         if cust.is_a?(String)
           OT.li "[#{self.class}] Friendly reminder to pass in a Customer instance instead of a custid"
-          @cust = Customer.load(cust)
+          @cust = V1::Customer.load(cust)
         end
 
         # Won't run if params aren't passed in
@@ -104,7 +104,7 @@ module V1
 
       def limit_action(event)
         return if plan && plan.paid?
-
+        raise OT::Problem, "No session to limit" unless sess
         sess.event_incr! event
       end
 

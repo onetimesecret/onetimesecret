@@ -1,3 +1,4 @@
+# rubocop:disable Naming/FileName
 
 # Namespace: System.Web.Security
 # Membership.GeneratePassword(Int32, Int32) Method

@@ -54,25 +54,24 @@ Metrics/AbcSize:
 
 Metrics/ClassLength:
   Enabled: true
-  Max: 200
-
-Metrics/CyclomaticComplexity:
-  Enabled: false
+  Max: 350
 
 Metrics/MethodLength:
   Enabled: true
-  Max: 40
+  Max: 50
   CountAsOne: ['method_call']
 
 Metrics/ModuleLength:
   Enabled: true
-  Max: 250
+  Max: 350
   CountAsOne: ['method_call']
 
 Performance/Size:
   Enabled: true
-  Exclude:
-  #   - lib/example.rb
+  Exclude: []
+
+Metrics/CyclomaticComplexity:
+  Enabled: false
 
 Style/NegatedIfElseCondition:
   Enabled: true

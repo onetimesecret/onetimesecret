@@ -19,6 +19,6 @@ require_relative 'domains/remove_domain_image'
 
 module V2::Logic
   module Domains
-    # This file now serves as a namespace and requires all the individual domain-related files
+    # This file serves as a namespace and requires all domain-related files
   end
 end

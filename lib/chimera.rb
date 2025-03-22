@@ -5,39 +5,44 @@ require 'mustache'
 class Chimera < Mustache
   self.template_extension = 'html'
 
-  # Cache control - enabled by default for performance
-  @@partial_caching_enabled = true
-  @@partial_cache = {}
+    # Class instance variables with class << self
+    class << self
+      attr_reader :partial_caching_enabled, :partial_cache
 
-  # Cache control methods
-  def self.enable_partial_caching
-    @@partial_caching_enabled = true
-  end
+      def enable_partial_caching
+        @partial_caching_enabled = true
+      end
 
-  def self.disable_partial_caching
-    clear_partial_cache
-    @@partial_caching_enabled = false
-  end
+      def disable_partial_caching
+        clear_partial_cache
+        @partial_caching_enabled = false
+      end
 
-  def self.clear_partial_cache
-    @@partial_cache = {}
-  end
+      def clear_partial_cache
+        @partial_cache = {}
+      end
 
-  def self.partial_caching_enabled?
-    @@partial_caching_enabled
-  end
+      def partial_caching_enabled?
+        @partial_caching_enabled.nil? || @partial_caching_enabled
+      end
 
-  attr_reader :options
+      def partial(name)
+        path = "#{template_path}/#{name}.#{template_extension}"
 
-  def self.partial(name)
-    path = "#{template_path}/#{name}.#{template_extension}"
-
-    if @@template_cache.key?(path)
-      @@partial_cache[path]
-    else
-      content = File.read(path)
-      @@partial_cache[path] = content if partial_caching_enabled?
-      content
+        if @partial_cache&.key?(path)
+          @partial_cache[path]
+        else
+          content = File.read(path)
+          @partial_cache ||= {}
+          @partial_cache[path] = content if partial_caching_enabled?
+          content
+        end
+      end
     end
+
+    # Initialize class instance variables
+    @partial_caching_enabled = true
+    @partial_cache = {}
+
+    attr_reader :options
   end
-end

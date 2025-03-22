@@ -1,3 +1,5 @@
+# apps/api/v2/logic/domains/verify_domain.rb
+
 require 'onetime/cluster'
 require_relative 'get_domain'
 

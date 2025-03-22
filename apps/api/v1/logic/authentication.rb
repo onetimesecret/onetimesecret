@@ -6,7 +6,9 @@ require_relative 'authentication/reset_password_request'
 require_relative 'authentication/reset_password'
 require_relative 'authentication/destroy_session'
 
-module V1::Logic
-  module Authentication
+module V1
+  module Logic
+    module Authentication
+    end
   end
 end
