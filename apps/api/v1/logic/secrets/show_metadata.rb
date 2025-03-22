@@ -19,7 +19,7 @@ module V1::Logic
 
       def process_params
         @key = params[:key].to_s
-        @metadata = Onetime::Metadata.load key
+        @metadata = V1::Metadata.load key
       end
 
       def raise_concerns

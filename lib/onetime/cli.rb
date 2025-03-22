@@ -3,7 +3,9 @@ require 'onetime'
 require 'familia/tools'
 require 'onetime/migration'
 
-class OT::CLI < Drydock::Command
+require 'v2/models'
+
+class Onetime::CLI < Drydock::Command
   def init
     OT.boot! :cli
   end
@@ -14,13 +16,13 @@ class OT::CLI < Drydock::Command
     unless migration_file
       puts "Usage: ots migrate MIGRATION_SCRIPT"
       puts "\nAvailable migrations:"
-      Dir[File.join(OT::HOME, 'migrate', '*.rb')].sort.each do |file|
+      Dir[File.join(Onetime::HOME, 'migrate', '*.rb')].sort.each do |file|
         puts "  - #{File.basename(file)}"
       end
       return
     end
 
-    migration_path = File.join(OT::HOME, 'migrate', migration_file)
+    migration_path = File.join(Onetime::HOME, 'migrate', migration_file)
     unless File.exist?(migration_path)
       puts "Migration script not found: #{migration_file}"
       return
@@ -64,10 +66,10 @@ class OT::CLI < Drydock::Command
   end
 
   def customers
-    puts '%d customers' % OT::Customer.values.size
+    puts '%d customers' % V2::Customer.values.size
     if option.list
-      all_customers = OT::Customer.values.all.map do |custid|
-        OT::Customer.load(custid)
+      all_customers = V2::Customer.values.all.map do |custid|
+        V2::Customer.load(custid)
       end
 
       # Choose the field to group by
@@ -87,8 +89,8 @@ class OT::CLI < Drydock::Command
       end
 
     elsif option.check
-      all_customers = OT::Customer.values.all.map do |custid|
-        OT::Customer.load(custid)
+      all_customers = V2::Customer.values.all.map do |custid|
+        V2::Customer.load(custid)
       end
 
       mismatched_customers = all_customers.select do |cust|
@@ -110,11 +112,11 @@ class OT::CLI < Drydock::Command
   end
 
   def domains
-    puts '%d custom domains' % OT::CustomDomain.values.size
+    puts '%d custom domains' % V2::CustomDomain.values.size
     if option.list
-      literally_all_domain_ids = OT::CustomDomain.values.all
+      literally_all_domain_ids = V2::CustomDomain.values.all
       all_domains = literally_all_domain_ids.map do |did|
-        OT::CustomDomain.from_identifier(did)
+        V2::CustomDomain.from_identifier(did)
       end
 
       # Group domains by display_domain
@@ -144,27 +146,27 @@ class OT::CLI < Drydock::Command
     domains_to_process = if option.domain && option.custid
       # Specific domain for a customer
       begin
-        domain = OT::CustomDomain.load(option.domain, option.custid)
+        domain = V2::CustomDomain.load(option.domain, option.custid)
         [domain]
-      rescue OT::RecordNotFound
+      rescue Onetime::RecordNotFound
         puts "Domain #{option.domain} not found for customer #{option.custid}"
         return
       end
     elsif option.custid
       # All domains for a customer
-      customer = OT::Customer.load(option.custid)
+      customer = V2::Customer.load(option.custid)
       raise "Customer #{option.custid} not found" unless customer
       begin
         customer.custom_domains.members.map do |domain_name|
-          OT::CustomDomain.load(domain_name, option.custid)
+          V2::CustomDomain.load(domain_name, option.custid)
         end
-      rescue OT::RecordNotFound
+      rescue Onetime::RecordNotFound
         puts "Customer #{option.custid} not found"
         return
       end
     elsif option.domain
       # All instances of the domain across customers
-      matching_domains = OT::CustomDomain.all.select do |domain|
+      matching_domains = V2::CustomDomain.all.select do |domain|
         domain.display_domain == option.domain
       end
       if matching_domains.empty?
@@ -175,7 +177,7 @@ class OT::CLI < Drydock::Command
       end
     else
       # All domains
-      OT::CustomDomain.all
+      V2::CustomDomain.all
     end
 
     total = domains_to_process.size

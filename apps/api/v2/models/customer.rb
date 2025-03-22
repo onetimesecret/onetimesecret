@@ -205,7 +205,7 @@ class V2::Customer < Familia::Horreum
 
   def external_identifier
     if anonymous?
-      raise V2::Problem, "Anonymous customer has no external identifier"
+      raise Onetime::Problem, "Anonymous customer has no external identifier"
     end
     # Changing the type, order or value of the elements in this array will
     # change the external identifier. This is used to identify customers
@@ -275,10 +275,10 @@ class V2::Customer < Familia::Horreum
   # Loads an existing session or creates a new one if it doesn't exist.
   #
   # @param [String] ip_address The IP address of the customer.
-  # @raise [V2::Problem] if the customer is anonymous.
+  # @raise [Onetime::Problem] if the customer is anonymous.
   # @return [V2::Session] The loaded or newly created session.
   def load_or_create_session(ip_address)
-    raise V2::Problem, "Customer is anonymous" if anonymous?
+    raise Onetime::Problem, "Customer is anonymous" if anonymous?
     @sess = V2::Session.load(sessid) unless sessid.to_s.empty?
     if @sess.nil?
       @sess = V2::Session.create(ip_address, custid)
@@ -292,7 +292,7 @@ class V2::Customer < Familia::Horreum
   def metadata_list
     metadata.revmembers.collect do |key|
       obj = V2::Metadata.load(key)
-    rescue V2::RecordNotFound => e
+    rescue Onetime::RecordNotFound => e
       OT.le "[metadata_list] Error: #{e.message} (#{key} / #{self.custid})"
     end.compact
   end
@@ -304,7 +304,7 @@ class V2::Customer < Familia::Horreum
   def custom_domains_list
     custom_domains.revmembers.collect do |domain|
       V2::CustomDomain.load domain, self.custid
-    rescue V2::RecordNotFound => e
+    rescue Onetime::RecordNotFound => e
       OT.le "[custom_domains_list] Error: #{e.message} (#{domain} / #{self.custid})"
     end.compact
   end
@@ -359,13 +359,13 @@ class V2::Customer < Familia::Horreum
 
   # Saves the customer object to the database.
   #
-  # @raise [V2::Problem] If attempting to save an anonymous customer.
+  # @raise [Onetime::Problem] If attempting to save an anonymous customer.
   # @return [Boolean] Returns true if the save was successful.
   #
   # This method overrides the default save behavior to prevent
   # anonymous customers from being persisted to the database.
   def save **kwargs
-    raise V2::Problem, "Anonymous cannot be saved #{self.class} #{rediskey}" if anonymous?
+    raise Onetime::Problem, "Anonymous cannot be saved #{self.class} #{rediskey}" if anonymous?
     super(**kwargs)
   end
 
@@ -417,8 +417,8 @@ class V2::Customer < Familia::Horreum
     end
 
     def create custid, email=nil
-      raise V2::Problem, "custid is required" if custid.to_s.empty?
-      raise V2::Problem, "Customer exists" if exists?(custid)
+      raise Onetime::Problem, "custid is required" if custid.to_s.empty?
+      raise Onetime::Problem, "Customer exists" if exists?(custid)
       cust = new custid: custid, email: email || custid, role: 'customer'
       cust.save
       add cust

@@ -1,7 +1,6 @@
 #  apps/web/core/controllers/data.rb
 
 require_relative 'base'
-
 require_relative 'settings'
 
 module Core

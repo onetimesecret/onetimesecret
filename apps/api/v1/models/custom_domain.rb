@@ -158,7 +158,7 @@ module V1
     # @param args [Array] Additional arguments to pass to the superclass destroy method
     # @return [Object] The result of the superclass destroy method
     def delete!(*args)
-      OT::CustomDomain.rem self
+      V1::CustomDomain.rem self
       super # we may prefer to call self.clear here instead
     end
 
@@ -226,9 +226,9 @@ module V1
       redis.multi do |multi|
         multi.del(self.rediskey)
         # Also remove from the class-level values, :display_domains, :owners
-        multi.zrem(OT::CustomDomain.values.rediskey, identifier)
-        multi.hdel(OT::CustomDomain.display_domains.rediskey, display_domain)
-        multi.hdel(OT::CustomDomain.owners.rediskey, display_domain)
+        multi.zrem(V1::CustomDomain.values.rediskey, identifier)
+        multi.hdel(V1::CustomDomain.display_domains.rediskey, display_domain)
+        multi.hdel(V1::CustomDomain.owners.rediskey, display_domain)
         multi.del(self.brand.rediskey)
         multi.del(self.logo.rediskey)
         multi.del(self.icon.rediskey)
@@ -388,7 +388,7 @@ module V1
       #
       # @param input [String] The domain name to create
       # @param custid [String] The customer ID to associate with
-      # @return [OT::CustomDomain] The created custom domain
+      # @return [V1::CustomDomain] The created custom domain
       # @raise [OT::Problem] If domain is invalid or already exists
       #
       # More Info:
@@ -497,7 +497,7 @@ module V1
 
       rescue PublicSuffix::Error => e
         OT.le "[CustomDomain.parse] #{e.message} for `#{input}`"
-        raise V1::Problem, e.message
+        raise OT::Problem, e.message
       end
 
       # Returns boolean, whether the domain is a valid public suffix
@@ -507,7 +507,7 @@ module V1
       end
 
       def default_domain? input
-        display_domain = OT::CustomDomain.display_domain(input)
+        display_domain = V1::CustomDomain.display_domain(input)
         site_host = OT.conf.dig(:site, :host)
         OT.ld "[CustomDomain.default_domain?] #{display_domain} == #{site_host}"
         display_domain.eql?(site_host)

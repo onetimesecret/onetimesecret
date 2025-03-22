@@ -84,13 +84,13 @@ module V1
       end
 
       def raise_not_found(msg)
-        ex = V2::RecordNotFound.new
+        ex = Onetime::RecordNotFound.new
         ex.message = msg
         raise ex
       end
 
       def raise_form_error(msg)
-        ex = V2::FormError.new
+        ex = OT::FormError.new
         ex.message = msg
         ex.form_fields = form_fields if respond_to?(:form_fields)
         raise ex

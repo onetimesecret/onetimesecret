@@ -66,7 +66,7 @@ module V1
           # Only attempt to load the customer object if the session has
           # already been authenticated. Otherwise this is an anonymous session.
           @cust = sess.load_customer if sess.authenticated?
-          @cust ||= Customer.anonymous if allow_anonymous
+          @cust ||= V1::Customer.anonymous if allow_anonymous
 
           raise OT::Unauthorized, "Invalid credentials" if cust.nil? # wrong token
 
@@ -89,7 +89,7 @@ module V1
           end
 
           @cust = V1::Customer.anonymous
-          @sess = OT::Session.new req.client_ipaddress, cust.custid
+          @sess = V1::Session.new req.client_ipaddress, cust.custid
 
           if OT.debug?
             ip_address = req.client_ipaddress.to_s

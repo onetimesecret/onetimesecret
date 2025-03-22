@@ -11,7 +11,7 @@ module Familia
       #   # In onetime.rb
       #   def connect_databases
       #     # Config has db numbers like: db_session: 0, db_secret: 1
-      #     Onetime::Session.db = OT.conf["db_#{Onetime::Session.to_sym}"]
+      #     V2::Session.db = OT.conf["db_#{V2::Session.to_sym}"]
       #     # => looks up 'db_session' in config
       #   end
       #

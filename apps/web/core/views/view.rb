@@ -31,7 +31,7 @@ module Core
       @domain_strategy = req.env.fetch('onetime.domain_strategy', :default) # never null
       @display_domain = req.env.fetch('onetime.display_domain', nil) # can be nil
       if @domain_strategy == :custom
-        @custom_domain = OT::CustomDomain.from_display_domain(@display_domain)
+        @custom_domain = V2::CustomDomain.from_display_domain(@display_domain)
         @domain_id = custom_domain&.domainid
         @domain_branding = (custom_domain&.brand&.hgetall || {}).to_h # bools are strings
         @domain_logo = (custom_domain&.logo&.hgetall || {}).to_h # ditto
@@ -57,7 +57,7 @@ module Core
       frontend_development = development[:enabled] || false
       frontend_host = development[:frontend_host] || ''
 
-      cust ||= OT::Customer.anonymous
+      cust ||= V2::Customer.anonymous
       authenticated = sess && sess.authenticated? && ! cust.anonymous?
 
       domains_enabled = domains[:enabled] || false

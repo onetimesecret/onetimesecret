@@ -22,7 +22,7 @@ OT.boot! :test
 @cust = OT::Customer.new @email
 @cust.save
 @domain_input = 'test.example.com'
-@custom_domain = OT::CustomDomain.create @domain_input, @cust.custid
+@custom_domain = V2::CustomDomain.create @domain_input, @cust.custid
 @cust.add_custom_domain @custom_domain
 
 # ListDomains Tests

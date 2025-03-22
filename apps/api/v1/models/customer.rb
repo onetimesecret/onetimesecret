@@ -277,12 +277,12 @@ module V1
     #
     # @param [String] ip_address The IP address of the customer.
     # @raise [OT::Problem] if the customer is anonymous.
-    # @return [OT::Session] The loaded or newly created session.
+    # @return [V1::Session] The loaded or newly created session.
     def load_or_create_session(ip_address)
       raise OT::Problem, "Customer is anonymous" if anonymous?
-      @sess = OT::Session.load(sessid) unless sessid.to_s.empty?
+      @sess = V1::Session.load(sessid) unless sessid.to_s.empty?
       if @sess.nil?
-        @sess = OT::Session.create(ip_address, custid)
+        @sess = V1::Session.create(ip_address, custid)
         sessid = @sess.identifier
         OT.info "[load_or_create_session] adding sess #{sessid} to #{obscure_email}"
         self.sessid!(sessid)
@@ -292,8 +292,8 @@ module V1
 
     def metadata_list
       metadata.revmembers.collect do |key|
-        obj = OT::Metadata.load(key)
-      rescue OT::RecordNotFound => e
+        obj = V1::Metadata.load(key)
+      rescue V1::RecordNotFound => e
         OT.le "[metadata_list] Error: #{e.message} (#{key} / #{self.custid})"
       end.compact
     end
@@ -304,7 +304,7 @@ module V1
 
     def custom_domains_list
       custom_domains.revmembers.collect do |domain|
-        OT::CustomDomain.load domain, self.custid
+        V1::CustomDomain.load domain, self.custid
       rescue OT::RecordNotFound => e
         OT.le "[custom_domains_list] Error: #{e.message} (#{domain} / #{self.custid})"
       end.compact
@@ -320,7 +320,7 @@ module V1
     end
 
     def encryption_key
-      OT::Secret.encryption_key OT.global_secret, custid
+      V1::Secret.encryption_key OT.global_secret, custid
     end
 
     # Marks the customer account as requested for destruction.

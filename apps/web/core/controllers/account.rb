@@ -1,8 +1,13 @@
 # apps/web/core/controllers/account.rb
 
+require_relative 'base'
+require_relative 'settings'
+
 module Core
   module Controllers
     class Account
+      include ControllerSettings
+      include ControllerBase
 
       # Redirects users to the appropriate Stripe Payment Link based on selected plan
       #
@@ -46,7 +51,7 @@ module Core
 
           unless validated_url
             OT.le "[plan_redirect] Unknown #{tierid}/#{billing_cycle}. Sending to /signup"
-            raise OT::Redirect.new('/signup')
+            raise V2::Redirect.new('/signup')
           end
 
           OT.info "[plan_redirect] Clicked #{tierid} per #{billing_cycle} (redirecting to #{validated_url})"
@@ -90,7 +95,7 @@ module Core
       #
       # @return [HTTP 302] Redirects to the user's account page upon successful processing
       #
-      # @see OT::Logic::Welcome::FromStripePaymentLink For the business logic implementation
+      # @see V2::Logic::Welcome::FromStripePaymentLink For the business logic implementation
       #
       # @note This endpoint is publicly accessible and sets a secure session cookie
       #       if the site is configured to use SSL
@@ -99,7 +104,7 @@ module Core
       #
       def welcome
         publically do
-          logic = OT::Logic::Welcome::FromStripePaymentLink.new sess, cust, req.params, locale
+          logic = V2::Logic::Welcome::FromStripePaymentLink.new sess, cust, req.params, locale
           logic.raise_concerns
           logic.process
 
@@ -125,7 +130,7 @@ module Core
         # We ignore CSRF shrimp since it's a calling coming from outside the house
         # but we do verify the Stripe webhook signature in StripeWebhook#raise_concerns.
         publically do
-          logic = OT::Logic::Welcome::StripeWebhook.new sess, cust, req.params, locale
+          logic = V2::Logic::Welcome::StripeWebhook.new sess, cust, req.params, locale
           logic.stripe_signature = req.env['HTTP_STRIPE_SIGNATURE']
           logic.payload = req.body.read
           logic.raise_concerns
@@ -192,7 +197,7 @@ module Core
             return disabled_response(req.path)
           end
           deny_agents!
-          logic = OT::Logic::Account::CreateAccount.new sess, cust, req.params, locale
+          logic = V2::Logic::Account::CreateAccount.new sess, cust, req.params, locale
           logic.raise_concerns
           logic.process
           res.redirect '/'
@@ -208,7 +213,7 @@ module Core
           # allow the browser to refresh and re-submit the form with the login
           # credentials.
           no_cache!
-          logic = OT::Logic::Authentication::AuthenticateSession.new sess, cust, req.params, locale
+          logic = V2::Logic::Authentication::AuthenticateSession.new sess, cust, req.params, locale
           if sess.authenticated?
             sess.set_info_message "You are already logged in."
             res.redirect '/'
@@ -232,7 +237,7 @@ module Core
 
       def logout
         authenticated do
-          logic = OT::Logic::Authentication::DestroySession.new sess, cust, req.params, locale
+          logic = V2::Logic::Authentication::DestroySession.new sess, cust, req.params, locale
           logic.raise_concerns
           logic.process
           res.redirect app_path('/')
@@ -242,12 +247,12 @@ module Core
       def request_reset
         publically do
           if req.params[:key]
-            logic = OT::Logic::Authentication::ResetPassword.new sess, cust, req.params, locale
+            logic = V2::Logic::Authentication::ResetPassword.new sess, cust, req.params, locale
             logic.raise_concerns
             logic.process
             res.redirect '/signin'
           else
-            logic = OT::Logic::Authentication::ResetPasswordRequest.new sess, cust, req.params, locale
+            logic = V2::Logic::Authentication::ResetPasswordRequest.new sess, cust, req.params, locale
             logic.raise_concerns
             logic.process
             res.redirect '/'

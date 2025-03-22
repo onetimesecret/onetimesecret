@@ -17,7 +17,7 @@ require 'forwardable'
 #   limiter = V2::RateLimit.new("1.2.3.4", :create_secret)
 #   begin
 #     limiter.incr!
-#   rescue V2::LimitExceeded => ex
+#   rescue Onetime::LimitExceeded => ex
 #     puts "Rate limit exceeded for #{ex.event}"
 #   end
 #
@@ -82,16 +82,16 @@ class V2::RateLimit < Familia::Horreum
     get
   end
 
-  # Increment the counter and raise V2::LimitExceeded if limit is exceeded
+  # Increment the counter and raise Onetime::LimitExceeded if limit is exceeded
   # @return [Integer] the new count
-  # @raise [V2::LimitExceeded] if the limit is exceeded
+  # @raise [Onetime::LimitExceeded] if the limit is exceeded
   def incr!
     count = redis.incr(rediskey)
     update_expiration
     limit = self.class.event_limit(event)
     OT.ld "[OT] #{external_identifier} #{event} #{count}/#{limit}"
     if self.class.exceeded?(event, count)
-      raise V2::LimitExceeded.new(external_identifier, event, count)
+      raise Onetime::LimitExceeded.new(external_identifier, event, count)
     end
     count
   end
@@ -116,7 +116,7 @@ class V2::RateLimit < Familia::Horreum
     # @param identifier [String] unique identifier for the limited entity
     # @param event [Symbol] the type of event being limited
     # @return [Integer] the new count
-    # @raise [V2::LimitExceeded] if the limit is exceeded
+    # @raise [Onetime::LimitExceeded] if the limit is exceeded
     def incr! identifier, event
       lmtr = new identifier, event
       count = lmtr.incr!
@@ -124,7 +124,7 @@ class V2::RateLimit < Familia::Horreum
       OT.ld ['RateLimit.incr!', event, identifier, count, event_limit(event)].inspect
 
       if exceeded?(event, count)
-        raise V2::LimitExceeded.new(identifier, event, count)
+        raise Onetime::LimitExceeded.new(identifier, event, count)
       end
 
       count

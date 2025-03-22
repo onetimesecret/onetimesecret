@@ -26,7 +26,7 @@ module V1::Logic
       def process
         @title = "Home"
         @stathat_chart = OT.conf[:stathat][:default_chart] if OT.conf[:stathat]
-        @session_count = OT::Session.recent(5.minutes).size
+        @session_count = V1::Session.recent(5.minutes).size
 
         process_feedback
         process_customers
@@ -41,7 +41,7 @@ module V1::Logic
         @yesterday_feedback = process_feedback_for_period(48.hours, now - 24.hours)
         @older_feedback = process_feedback_for_period(14.days, now - 48.hours)
 
-        @feedback_count = OT::Feedback.values.size
+        @feedback_count = V1::Feedback.values.size
         @today_feedback_count = @today_feedback.size
         @yesterday_feedback_count = @yesterday_feedback.size
         @older_feedback_count = @older_feedback.size
@@ -49,7 +49,7 @@ module V1::Logic
       private :process_feedback
 
       def process_feedback_for_period(period, end_time)
-        OT::Feedback.recent(period, end_time).collect do |k, v|
+        V1::Feedback.recent(period, end_time).collect do |k, v|
           { msg: k, stamp: natural_time(v) }
         end.reverse
       end
@@ -76,8 +76,8 @@ module V1::Logic
       private :process_customers
 
       def process_statistics
-        @metadata_count = OT::Metadata.new.redis.keys('metadata*:object').count
-        @secret_count = OT::Secret.new.redis.keys('secret*:object').count
+        @metadata_count = V1::Metadata.new.redis.keys('metadata*:object').count
+        @secret_count = V1::Secret.new.redis.keys('secret*:object').count
         @secrets_created = V1::Customer.global.secrets_created.to_s
         @secrets_shared = V1::Customer.global.secrets_shared.to_s
         @emails_sent = V1::Customer.global.emails_sent.to_s

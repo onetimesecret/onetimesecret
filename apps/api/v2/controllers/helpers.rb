@@ -24,7 +24,7 @@ module V2
       redirect ||= req.request_path unless app == :api
       content_type ||= 'text/html; charset=utf-8'
 
-      cust ||= V1::Customer.anonymous
+      cust ||= V2::Customer.anonymous
 
       # Prevent infinite redirect loops by checking if the request is a GET request.
       # Pages redirecting from a POST request can use the same page once.
@@ -144,8 +144,8 @@ module V2
       error_response "An unexpected error occurred :[", shrimp: sess ? sess.add_shrimp : nil
 
     ensure
-      @sess ||= OT::Session.new 'failover', 'anon'
-      @cust ||= V1::Customer.anonymous
+      @sess ||= V2::Session.new 'failover', 'anon'
+      @cust ||= V2::Customer.anonymous
     end
 
     # Sets the locale for the request based on various sources.
@@ -243,10 +243,10 @@ module V2
       @check_session_ran = true
 
       # Load from redis or create the session
-      if req.cookie?(:sess) && OT::Session.exists?(req.cookie(:sess))
-        @sess = OT::Session.load req.cookie(:sess)
+      if req.cookie?(:sess) && V2::Session.exists?(req.cookie(:sess))
+        @sess = V2::Session.load req.cookie(:sess)
       else
-        @sess = OT::Session.create req.client_ipaddress, "anon", req.user_agent
+        @sess = V2::Session.create req.client_ipaddress, "anon", req.user_agent
       end
 
       # Set the session to rack.session
@@ -287,7 +287,7 @@ module V2
       res.send_cookie :sess, sess.sessid, sess.ttl, is_secure
 
       # Re-hydrate the customer object
-      @cust = sess.load_customer || V1::Customer.anonymous
+      @cust = sess.load_customer || V2::Customer.anonymous
 
       # We also force the session to be unauthenticated based on
       # the customer object.

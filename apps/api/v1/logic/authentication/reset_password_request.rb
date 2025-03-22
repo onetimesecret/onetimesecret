@@ -26,7 +26,7 @@ module V1::Logic
           return sess.set_info_message msg
         end
 
-        secret = OT::Secret.create @custid, [@custid]
+        secret = V1::Secret.create @custid, [@custid]
         secret.ttl = 24.hours
         secret.verification = "true"
         secret.save

@@ -245,7 +245,7 @@ module V1
     end
 
     def load_secret
-      OT::Secret.load secret_key
+      V1::Secret.load secret_key
     end
   end
 end

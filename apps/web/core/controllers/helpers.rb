@@ -31,7 +31,7 @@ module Core
       redirect ||= req.request_path unless app == :api
       content_type ||= 'text/html; charset=utf-8'
 
-      cust ||= OT::Customer.anonymous
+      cust ||= V2::Customer.anonymous
 
       # Prevent infinite redirect loops by checking if the request is a GET request.
       # Pages redirecting from a POST request can use the same page once.
@@ -55,7 +55,7 @@ module Core
       obscured = if cust.anonymous?
         'anonymous'
       else
-        OT::Utils.obscure_email(cust.custid)
+        Onetime::Utils.obscure_email(cust.custid)
       end
 
       return_value
@@ -68,7 +68,7 @@ module Core
       OT.info ex.message
       not_authorized_error
 
-    rescue V2::BadShrimp => ex
+    rescue OT::BadShrimp => ex
       # If it's a json response, no need to set an error message on the session
       if res.header['Content-Type'] == 'application/json'
         error_response 'Please refresh the page and try again', reason: "Bad shrimp 🍤"
@@ -151,8 +151,8 @@ module Core
       error_response "An unexpected error occurred :[", shrimp: sess ? sess.add_shrimp : nil
 
     ensure
-      @sess ||= OT::Session.new 'failover', 'anon'
-      @cust ||= OT::Customer.anonymous
+      @sess ||= V2::Session.new 'failover', 'anon'
+      @cust ||= V2::Customer.anonymous
     end
 
     # Sets the locale for the request based on various sources.
@@ -237,7 +237,7 @@ module Core
         ### JUST SUBMIT A FORM WITHOUT ANY SHRIMP WHATSOEVER
         ### AND THAT'S NO WAY TO TREAT A GUEST.
         shrimp = (sess.shrimp || '[noshrimp]').clone
-        ex = V2::BadShrimp.new(req.path, cust.custid, attempted_shrimp, shrimp)
+        ex = OT::BadShrimp.new(req.path, cust.custid, attempted_shrimp, shrimp)
         OT.ld "BAD SHRIMP for #{cust.custid}@#{req.path}: #{log_value}"
         sess.replace_shrimp! if replace && !shrimp_is_empty
         raise ex
@@ -250,10 +250,10 @@ module Core
       @check_session_ran = true
 
       # Load from redis or create the session
-      if req.cookie?(:sess) && OT::Session.exists?(req.cookie(:sess))
-        @sess = OT::Session.load req.cookie(:sess)
+      if req.cookie?(:sess) && V2::Session.exists?(req.cookie(:sess))
+        @sess = V2::Session.load req.cookie(:sess)
       else
-        @sess = OT::Session.create req.client_ipaddress, "anon", req.user_agent
+        @sess = V2::Session.create req.client_ipaddress, "anon", req.user_agent
       end
 
       # Set the session to rack.session
@@ -294,7 +294,7 @@ module Core
       res.send_cookie :sess, sess.sessid, sess.ttl, is_secure
 
       # Re-hydrate the customer object
-      @cust = sess.load_customer || OT::Customer.anonymous
+      @cust = sess.load_customer || V2::Customer.anonymous
 
       # We also force the session to be unauthenticated based on
       # the customer object.

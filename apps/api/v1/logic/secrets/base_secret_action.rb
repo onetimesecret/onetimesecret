@@ -127,13 +127,13 @@ module V1::Logic
         potential_domain = payload[:share_domain].to_s
         return if potential_domain.empty?
 
-        unless OT::CustomDomain.valid?(potential_domain)
+        unless V1::CustomDomain.valid?(potential_domain)
           return OT.info "[BaseSecretAction] Invalid share domain #{potential_domain}"
         end
 
         # If the given domain is the same as the site's host domain, then
         # we simply skip the share domain stuff altogether.
-        if OT::CustomDomain.default_domain?(potential_domain)
+        if V1::CustomDomain.default_domain?(potential_domain)
           return OT.info "[BaseSecretAction] Ignoring default share domain: #{potential_domain}"
         end
 
@@ -226,7 +226,7 @@ module V1::Logic
 
         # e.g. rediskey -> customdomain:display_domains -> hash -> key: value
         # where key is the domain and value is the domainid
-        domain_record = OT::CustomDomain.from_display_domain(domain)
+        domain_record = V1::CustomDomain.from_display_domain(domain)
         raise_form_error "Unknown domain: #{domain}" if domain_record.nil?
 
         OT.ld <<~DEBUG

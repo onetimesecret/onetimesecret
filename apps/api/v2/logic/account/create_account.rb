@@ -26,7 +26,7 @@ module V2::Logic
 
       def raise_concerns
         limit_action :create_account
-        raise V2::FormError, "You're already signed up" if sess.authenticated?
+        raise OT::FormError, "You're already signed up" if sess.authenticated?
         raise_form_error "Please try another email address" if V2::Customer.exists?(custid)
         raise_form_error "Is that a valid email address?" unless valid_email?(custid)
         raise_form_error "Password is too short" unless password.size >= 6

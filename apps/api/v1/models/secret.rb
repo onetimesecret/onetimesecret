@@ -154,11 +154,11 @@ module V1
     end
 
     def encryption_key_v1 *ignored
-      OT::Secret.encryption_key self.key, self.passphrase_temp
+      V1::Secret.encryption_key self.key, self.passphrase_temp
     end
 
     def encryption_key_v2 *ignored
-      OT::Secret.encryption_key OT.global_secret, self.key, self.passphrase_temp
+      V1::Secret.encryption_key OT.global_secret, self.key, self.passphrase_temp
     end
 
     def load_customer
@@ -171,7 +171,7 @@ module V1
     end
 
     def load_metadata
-      OT::Metadata.load metadata_key
+      V1::Metadata.load metadata_key
     end
 
     def anonymous?
@@ -239,8 +239,8 @@ module V1
     class << self
 
       def spawn_pair custid, token=nil
-        secret = OT::Secret.create(custid: custid, token: token)
-        metadata = OT::Metadata.create(custid: custid, token: token)
+        secret = V1::Secret.create(custid: custid, token: token)
+        metadata = V1::Metadata.create(custid: custid, token: token)
 
         # TODO: Use Familia transaction
         metadata.secret_key = secret.key

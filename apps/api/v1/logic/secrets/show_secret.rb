@@ -12,7 +12,7 @@ module V1::Logic
 
       def process_params
         @key = params[:key].to_s
-        @secret = Onetime::Secret.load key
+        @secret = V1::Secret.load key
         @passphrase = params[:passphrase].to_s
         @continue = params[:continue].to_s == 'true'
       end

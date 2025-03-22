@@ -41,13 +41,13 @@ module V1::Logic
 
         # Create new exception record
         OT.ld("[Exception] Creating new exception record")
-        @exception = OT::ExceptionInfo.new
+        @exception = V1::ExceptionInfo.new
         OT.ld("[Exception] Applying exception data", @exception_data)
         exception.apply_fields(**@exception_data)
         exception.save
 
         # Add to sortable index
-        OT::ExceptionInfo.add(exception)
+        V1::ExceptionInfo.add(exception)
 
         # Log critical errors
         if @exception_data[:type]&.include?('Error')

@@ -136,7 +136,7 @@ class V2::CustomDomain < Familia::Horreum
   # @return [String] A shortened hash of the domain name and custid.
   def derive_id
     if @display_domain.to_s.empty? || @custid.to_s.empty?
-      raise V2::Problem, 'Cannot generate identifier with emptiness'
+      raise Onetime::Problem, 'Cannot generate identifier with emptiness'
     end
     [@display_domain, @custid].gibbler.shorten
   end
@@ -237,7 +237,7 @@ class V2::CustomDomain < Familia::Horreum
     end
   rescue Redis::BaseError => e
     OT.le "[CustomDomain.destroy!] Redis error: #{e.message}"
-    raise V2::Problem, "Unable to delete custom domain"
+    raise Onetime::Problem, "Unable to delete custom domain"
   end
 
   # Checks if the domain is an apex domain.
@@ -275,15 +275,15 @@ class V2::CustomDomain < Familia::Horreum
   # The host must be alphanumeric with dots, underscores, or hyphens only.
   # The value must be a 32-character hexadecimal string.
   #
-  # @raise [V2::Problem] If the TXT record host or value format is invalid
+  # @raise [Onetime::Problem] If the TXT record host or value format is invalid
   # @return [void]
   def validate_txt_record!
     unless txt_validation_host.to_s.match?(/\A[a-zA-Z0-9._-]+\z/)
-      raise V2::Problem, "TXT record hostname can only contain letters, numbers, dots, underscores, and hyphens"
+      raise Onetime::Problem, "TXT record hostname can only contain letters, numbers, dots, underscores, and hyphens"
     end
 
     unless txt_validation_value.to_s.match?(/\A[a-f0-9]{32}\z/)
-      raise V2::Problem, "TXT record value must be a 32-character hexadecimal string"
+      raise Onetime::Problem, "TXT record value must be a 32-character hexadecimal string"
     end
   end
 
@@ -297,7 +297,7 @@ class V2::CustomDomain < Familia::Horreum
   # - A 32-char random hex value
   #
   # @return [Array<String, String>] The TXT record host and value
-  # @raise [V2::Problem] If the generated record is invalid
+  # @raise [Onetime::Problem] If the generated record is invalid
   #
   # Examples:
   #   _onetime-challenge-domainid -> 7709715a6411631ce1d447428d8a70
@@ -388,7 +388,7 @@ class V2::CustomDomain < Familia::Horreum
     # @param input [String] The domain name to create
     # @param custid [String] The customer ID to associate with
     # @return [V2::CustomDomain] The created custom domain
-    # @raise [V2::Problem] If domain is invalid or already exists
+    # @raise [Onetime::Problem] If domain is invalid or already exists
     #
     # More Info:
     # We need a minimum of a domain and customer id to create a custom
@@ -409,7 +409,7 @@ class V2::CustomDomain < Familia::Horreum
       redis.watch(obj.rediskey) do
         if obj.exists?
           redis.unwatch
-          raise V2::Problem, "Duplicate domain for customer"
+          raise Onetime::Problem, "Duplicate domain for customer"
         end
 
         redis.multi do |multi|
@@ -426,7 +426,7 @@ class V2::CustomDomain < Familia::Horreum
       obj  # Return the created object
     rescue Redis::BaseError => e
       OT.le "[CustomDomain.create] Redis error: #{e.message}"
-      raise V2::Problem, "Unable to create custom domain"
+      raise Onetime::Problem, "Unable to create custom domain"
     end
 
     # Returns a new V2::CustomDomain object (without saving it).
@@ -442,17 +442,17 @@ class V2::CustomDomain < Familia::Horreum
     # @raise [Onetime::Problem] If domain exceeds MAX_SUBDOMAIN_DEPTH or MAX_TOTAL_LENGTH
     #
     def parse(input, custid)
-      raise V2::Problem, "Customer ID required" if custid.to_s.empty?
+      raise Onetime::Problem, "Customer ID required" if custid.to_s.empty?
 
       segments = input.to_s.split('.').reject(&:empty?)
-      raise V2::Problem, "Invalid domain format" if segments.empty?
+      raise Onetime::Problem, "Invalid domain format" if segments.empty?
 
       if segments.length > MAX_SUBDOMAIN_DEPTH
-        raise V2::Problem, "Domain too deep (max: #{MAX_SUBDOMAIN_DEPTH})"
+        raise Onetime::Problem, "Domain too deep (max: #{MAX_SUBDOMAIN_DEPTH})"
       end
 
       if input.length > MAX_TOTAL_LENGTH
-        raise V2::Problem, "Domain too long (max: #{MAX_TOTAL_LENGTH})"
+        raise Onetime::Problem, "Domain too long (max: #{MAX_TOTAL_LENGTH})"
       end
 
       display_domain = self.display_domain(input)
@@ -525,7 +525,7 @@ class V2::CustomDomain < Familia::Horreum
       OT.ld "[CustomDomain.exists?] Got #{obj.identifier} #{obj.display_domain} #{obj.custid}"
       obj.exists?
 
-    rescue V2::Problem => e
+    rescue Onetime::Problem => e
       OT.le "[CustomDomain.exists?] #{e.message}"
       false
     end
@@ -559,7 +559,7 @@ class V2::CustomDomain < Familia::Horreum
 
       custom_domain = parse(display_domain, custid).tap do |obj|
         OT.ld "[CustomDomain.load] Got #{obj.identifier} #{obj.display_domain} #{obj.custid}"
-        raise V2::RecordNotFound, "Domain not found #{obj.display_domain}" unless obj.exists?
+        raise Onetime::RecordNotFound, "Domain not found #{obj.display_domain}" unless obj.exists?
       end
 
       # Continue with the built-in `load` from Familia.
@@ -579,7 +579,7 @@ class V2::CustomDomain < Familia::Horreum
       # Load the record using the domain ID
       begin
         from_identifier(domain_id)
-      rescue V2::RecordNotFound
+      rescue Onetime::RecordNotFound
         nil
       end
     end

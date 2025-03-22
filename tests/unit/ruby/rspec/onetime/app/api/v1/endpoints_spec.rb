@@ -13,7 +13,7 @@ RSpec.describe Onetime::App::API, type: :request do
   let(:ip_address) { '127.0.0.1' }
 
   let(:session) do
-    instance_double(Onetime::Session,
+    instance_double(V1::Session,
       sessid: session_id,
       event_incr!: true,
       authenticated?: true,

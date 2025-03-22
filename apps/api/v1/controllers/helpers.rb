@@ -144,7 +144,7 @@ module V1
       error_response "An unexpected error occurred :[", shrimp: sess ? sess.add_shrimp : nil
 
     ensure
-      @sess ||= OT::Session.new 'failover', 'anon'
+      @sess ||= V1::Session.new 'failover', 'anon'
       @cust ||= V1::Customer.anonymous
     end
 
@@ -243,10 +243,10 @@ module V1
       @check_session_ran = true
 
       # Load from redis or create the session
-      if req.cookie?(:sess) && OT::Session.exists?(req.cookie(:sess))
-        @sess = OT::Session.load req.cookie(:sess)
+      if req.cookie?(:sess) && V1::Session.exists?(req.cookie(:sess))
+        @sess = V1::Session.load req.cookie(:sess)
       else
-        @sess = OT::Session.create req.client_ipaddress, "anon", req.user_agent
+        @sess = V1::Session.create req.client_ipaddress, "anon", req.user_agent
       end
 
       # Set the session to rack.session

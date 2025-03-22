@@ -24,7 +24,7 @@ OT.boot! :test
 @cust.save
 @domain_input = 'test.example.com'
 @domain_input2 = 'test2.example.com'
-@custom_domain = OT::CustomDomain.create @domain_input, @cust.custid
+@custom_domain = V2::CustomDomain.create @domain_input, @cust.custid
 @cust.add_custom_domain @custom_domain
 
 # AddDomain Tests

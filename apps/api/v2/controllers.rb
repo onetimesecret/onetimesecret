@@ -73,7 +73,7 @@ module V2
           begin
             # Attempt to validate the shrimp
             is_valid = validate_shrimp(shrimp, replace=false)
-          rescue V2::BadShrimp => e
+          rescue OT::BadShrimp => e
             # If a BadShrimp exception is raised, log it and set is_valid to false
             OT.ld "BadShrimp exception: #{e.message}"
             is_valid = false
