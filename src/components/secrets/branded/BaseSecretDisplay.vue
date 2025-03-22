@@ -6,7 +6,7 @@
  *
  * This component is specifically designed for custom branded deployments where
  * maintaining brand consistency is prioritized over marketing opportunities.
- * For the core OneTimeSecret implementation, see the canonical SecretDisplayCase.
+ * For the core Onetime Secret implementation, see the canonical SecretDisplayCase.
  *
  * @prop defaultTitle - Fallback title when branding is unavailable
  * @prop instructions - Optional pre-reveal instructions from domain branding

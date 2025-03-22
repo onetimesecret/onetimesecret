@@ -1,7 +1,7 @@
 
-# OneTimeSecret Test Suite
+# Onetime Secret Test Suite
 
-This directory contains the test suite for the OneTimeSecret project. The structure is organized as follows:
+This directory contains the test suite for the Onetime Secret project. The structure is organized as follows:
 
 ```plaintext
 tests/

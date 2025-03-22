@@ -1,7 +1,7 @@
 <!-- ShowSecret.vue -->
 <script setup lang="ts">
   /**
-   * Core OneTimeSecret implementation that uses distinct layouts for confirmation
+   * Core Onetime Secret implementation that uses distinct layouts for confirmation
    * and reveal states to optimize for marketing and user acquisition.
    *
    * This component deliberately uses different UIs:
