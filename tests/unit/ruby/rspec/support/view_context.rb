@@ -1,15 +1,14 @@
 # tests/unit/ruby/rspec/support/view_context.rb
 
 RSpec.shared_context "view_test_context" do
-
   let(:config) do
     {
       locales: ['en'],
       site: {
         host: 'test.domain.com',
         secret_options: {
-          default_ttl: 86400,
-          ttl_options: [3600, 86400]
+          default_ttl: 86_400,
+          ttl_options: [3600, 86_400]
         },
         authentication: {
           enabled: true,
@@ -27,8 +26,7 @@ RSpec.shared_context "view_test_context" do
     instance_double('Session',
       authenticated?: true,
       add_shrimp: 'test_shrimp',
-      get_messages: []
-    )
+      get_messages: [])
   end
 
   let(:customer) do
@@ -41,8 +39,7 @@ RSpec.shared_context "view_test_context" do
       safe_dump: {
         'identifier' => 'test@example.com',
         'role' => 'customer'
-      }
-    )
+      })
   end
 
 
