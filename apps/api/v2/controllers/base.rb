@@ -213,6 +213,14 @@ module V2
       res.body = hsh.to_json
     end
 
+    def json_success hsh
+      # A convenience method that returns JSON success and adds a
+      # fresh shrimp to the response body. The fresh shrimp is
+      # helpful for parts of the Vue UI that get a successful
+      # response and don't need to refresh the entire page.
+      json success: true, shrimp: sess.add_shrimp, **hsh
+    end
+
     # We don't get here from a form error unless the shrimp for this
     # request was good. Pass a delicious fresh shrimp to the client
     # so they can try again with a new one (without refreshing the
