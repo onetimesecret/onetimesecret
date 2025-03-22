@@ -1,10 +1,10 @@
-# tests/unit/ruby/rspec/onetime/app/mail/ses_mailer_spec.rb
+# tests/unit/ruby/rspec/onetime/mail/ses_mailer_spec.rb
 
 require_relative '../../../spec_helper'
 require 'aws-sdk-sesv2'
-require 'onetime/app/mail/ses_mailer'
+require 'onetime/mail/mailer/ses_mailer'
 
-RSpec.describe Onetime::Mail::AmazonSESMailer do
+RSpec.describe Onetime::Mail::Mailer::SESMailer do
   let(:from_email) { 'sender@example.com' }
   let(:from_name) { 'Test Sender' }
   let(:to_email) { 'recipient@example.com' }
@@ -23,13 +23,17 @@ RSpec.describe Onetime::Mail::AmazonSESMailer do
 
   before do
     # Reset the class variable for each test
-    if described_class.class_variable_defined?(:@@ses_client)
-      described_class.remove_class_variable(:@@ses_client)
-    end
+    described_class.instance_variable_set(:@ses_client, nil)
 
     # Mock AWS SES client
     allow(Aws::SESV2::Client).to receive(:new).and_return(ses_client_double)
     allow(ses_client_double).to receive(:send_email).and_return(ses_response_double)
+
+    # Important: Set the accessor method correctly
+    described_class.instance_variable_set(:@ses_client, ses_client_double)
+
+    # Verify the accessor works as expected
+    expect(described_class.ses_client).to eq(ses_client_double)
 
     # Using basic double instead of instance_double to avoid method existence checks
     allow(ses_response_double).to receive(:message_id).and_return('AMAZON_SES_MESSAGE_ID_123')

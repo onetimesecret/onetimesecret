@@ -152,7 +152,7 @@ module Onetime
       when :sendgrid
         Onetime::Mail::Mailer::SendGridMailer
       when :ses
-        Onetime::Mail::Mailer::AmazonSESMailer
+        Onetime::Mail::Mailer::SESMailer
       when :smtp
         Onetime::Mail::Mailer::SMTPMailer
       else

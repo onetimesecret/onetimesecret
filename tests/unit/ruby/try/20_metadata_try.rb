@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-# These tryouts test the Onetime::Metadata class functionality.
+# These tryouts test the V2::Metadata class functionality.
 # The Metadata class is responsible for managing metadata associated
 # with secrets in the Onetime application.
 #
@@ -24,22 +24,22 @@ OT.boot! :test
 @iterations = 1000
 
 ## Can create a Metadata
-m = Onetime::Metadata.new :private
+m = V2::Metadata.new :private
 [m.class, m.redis.connection[:db], m.secret_key]
-#=> [Onetime::Metadata, 7, nil]
+#=> [V2::Metadata, 7, nil]
 
 ## Can explicitly set the secret key
-m = Onetime::Metadata.new :private
+m = V2::Metadata.new :private
 m.secret_key = 'hihi'
 [m.class, m.redis.connection[:db], m.secret_key]
-#=> [Onetime::Metadata, 7, 'hihi']
+#=> [V2::Metadata, 7, 'hihi']
 
 ## Keys are always unique for Metadata
 ## NOTE: Prior to Familia v1.0.0.pre.rc1 upgrade the metadata key
 ## here was `ivfn09cpriklqii1zagw6fc96suh8bp` (1 of 2)
 unique_values = Set.new
 @iterations.times do
-  s = Onetime::Metadata.new state: :metadata
+  s = V2::Metadata.new state: :metadata
   unique_values.add(s.rediskey)
 end
 unique_values.size
@@ -50,14 +50,14 @@ unique_values.size
 ## here was `ivfn09cpriklqii1zagw6fc96suh8bp` (2 of 2)
 unique_values = Set.new
 @iterations.times do
-  s = Onetime::Metadata.new state: %i[some fixed values]
+  s = V2::Metadata.new state: %i[some fixed values]
   unique_values.add(s.rediskey)
 end
 unique_values.size
 #=> @iterations
 
 ## Doesn't exist yet
-@metadata = Onetime::Metadata.new :metadata, [OT.instance, Time.now.to_f, OT.entropy]
+@metadata = V2::Metadata.new :metadata, [OT.instance, Time.now.to_f, OT.entropy]
 @metadata.exists?
 #=> false
 

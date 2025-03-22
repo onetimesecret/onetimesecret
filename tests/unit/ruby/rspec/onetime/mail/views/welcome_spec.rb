@@ -1,4 +1,4 @@
-# tests/unit/ruby/rspec/onetime/app/mail/views/welcome_spec.rb
+# tests/unit/ruby/rspec/onetime/mail/views/welcome_spec.rb
 
 require_relative '../../../../spec_helper'
 

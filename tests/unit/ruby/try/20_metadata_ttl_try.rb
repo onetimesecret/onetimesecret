@@ -21,8 +21,8 @@ OT::Config.path = File.join(Onetime::HOME, 'tests', 'unit', 'ruby', 'config.test
 OT.boot! :test
 
 # Setup
-@metadata, @secret = Onetime::Secret.spawn_pair 'anon'
-# metadata, secret = Onetime::Secret.spawn_pair 'anon'
+@metadata, @secret = V2::Secret.spawn_pair 'anon'
+# metadata, secret = V2::Secret.spawn_pair 'anon'
 @metadata.save
 @secret.save
 
@@ -140,7 +140,7 @@ result[:ttl]
 #=> nil
 
 ## Handling nil realttl
-class Onetime::Metadata
+class V2::Metadata
   def realttl; nil; end
 end
 result = V2::Controller.metadata_hsh(@metadata)

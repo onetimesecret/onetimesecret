@@ -1,4 +1,4 @@
-# tests/unit/ruby/rspec/onetime/app/api/v1/endpoints_spec.rb
+# tests/unit/ruby/rspec/apps/api/v1/endpoints_spec.rb
 
 require_relative '../../../../spec_helper'
 
@@ -23,7 +23,7 @@ RSpec.describe V1::API, type: :request do
   end
 
   let(:customer) do
-    instance_double(Onetime::Customer,
+    instance_double(V2::Customer,
       custid: customer_id,
       anonymous?: false,
       active?: true,

@@ -27,31 +27,31 @@ OT.conf[:site] = {
 
 
 ## Creates custom domain with base domain
-custom_domain = Onetime::CustomDomain.create('example.com', @customer_id)
+custom_domain = V2::CustomDomain.create('example.com', @customer_id)
 @delete_domains << custom_domain
 @chooser.choose_strategy(custom_domain.display_domain, @canonical_domain)
 #=> :custom
 
 ## Creates custom domain with subdomain
-custom_domain = Onetime::CustomDomain.create('app.example.com', @customer_id)
+custom_domain = V2::CustomDomain.create('app.example.com', @customer_id)
 @delete_domains << custom_domain
 @chooser.choose_strategy(custom_domain.display_domain, @canonical_domain)
 #=> :custom
 
 ## Creates custom domain with multiple subdomains
-custom_domain = Onetime::CustomDomain.create('dev.app.example.com', @customer_id)
+custom_domain = V2::CustomDomain.create('dev.app.example.com', @customer_id)
 @delete_domains << custom_domain
 @chooser.choose_strategy(custom_domain.display_domain, @canonical_domain)
 #=> :custom
 
 ## Creates custom domain that matches canonical domain
-custom_domain = Onetime::CustomDomain.create(@canonical_domain, @customer_id)
+custom_domain = V2::CustomDomain.create(@canonical_domain, @customer_id)
 @delete_domains << custom_domain
 @chooser.choose_strategy(custom_domain.display_domain, @canonical_domain)
 #=> :canonical
 
 ## parent_of? matches parent to child relationship (configured onetimesecret.com)
-custom_domain = Onetime::CustomDomain.create('fr.example.com', @customer_id)
+custom_domain = V2::CustomDomain.create('fr.example.com', @customer_id)
 @delete_domains << custom_domain
 @chooser.known_custom_domain?(custom_domain.display_domain)
 #=> true

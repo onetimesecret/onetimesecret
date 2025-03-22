@@ -5,8 +5,7 @@ require_relative 'base_mailer'
 
 module Onetime::Mail
   module Mailer
-    class AmazonSESMailer < BaseMailer
-
+    class SESMailer < BaseMailer
 
       def send_email(to_address, subject, html_content, text_content)
         mailer_response = nil
@@ -83,6 +82,10 @@ module Onetime::Mail
             OT.conf[:emailer][:pass],
           ),
         )
+      end
+
+      def self.clear
+        @ses_client = nil
       end
 
       class << self

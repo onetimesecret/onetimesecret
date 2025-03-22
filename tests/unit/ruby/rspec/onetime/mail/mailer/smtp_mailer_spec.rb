@@ -1,9 +1,9 @@
-# tests/unit/ruby/rspec/onetime/app/mail/smtp_mailer_spec.rb
+# tests/unit/ruby/rspec/onetime/mail/mailer/smtp_mailer_spec.rb
 
 require_relative '../../../spec_helper'
-require 'onetime/app/mail/smtp_mailer'
+require 'onetime/mail/mailer/smtp_mailer'
 
-RSpec.describe Onetime::Mail::SMTPMailer do
+RSpec.describe Onetime::Mail::Mailer::SMTPMailer do
   let(:from_email) { 'system@example.com' }
   let(:from_name) { 'System Sender' }
   let(:reply_to) { 'sender@example.com' }

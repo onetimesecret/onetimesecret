@@ -1,7 +1,7 @@
-# tests/unit/ruby/rspec/onetime/app/mail/mail_module_spec.rb
+# tests/unit/ruby/rspec/onetime/mail/mail_module_spec.rb
 
 require_relative '../../../spec_helper'
-require 'onetime/app/mail'
+require 'onetime/mail'
 
 RSpec.describe Onetime::Mail do
   before do
@@ -17,21 +17,21 @@ RSpec.describe Onetime::Mail do
     })
 
     # Mock the mailer setup methods
-    allow(Onetime::Mail::SMTPMailer).to receive(:setup)
-    allow(Onetime::Mail::SendGridMailer).to receive(:setup)
-    allow(Onetime::Mail::AmazonSESMailer).to receive(:setup)
+    allow(Onetime::Mail::Mailer::SMTPMailer).to receive(:setup)
+    allow(Onetime::Mail::Mailer::SendGridMailer).to receive(:setup)
+    allow(Onetime::Mail::Mailer::SESMailer).to receive(:setup)
 
     # Mock the mailer initialization
-    allow(Onetime::Mail::SMTPMailer).to receive(:new).and_return(double('smtp_mailer'))
-    allow(Onetime::Mail::SendGridMailer).to receive(:new).and_return(double('sendgrid_mailer'))
-    allow(Onetime::Mail::AmazonSESMailer).to receive(:new).and_return(double('amazon_ses_mailer'))
+    allow(Onetime::Mail::Mailer::SMTPMailer).to receive(:new).and_return(double('smtp_mailer'))
+    allow(Onetime::Mail::Mailer::SendGridMailer).to receive(:new).and_return(double('sendgrid_mailer'))
+    allow(Onetime::Mail::Mailer::SESMailer).to receive(:new).and_return(double('amazon_ses_mailer'))
   end
 
   describe '.mailer' do
     context 'with default configuration' do
       it 'returns an SMTP mailer' do
-        expect(Onetime::Mail::SMTPMailer).to receive(:setup)
-        expect(Onetime::Mail::SMTPMailer).to receive(:new).with('test@example.com', 'Test Sender')
+        expect(Onetime::Mail::Mailer::SMTPMailer).to receive(:setup)
+        expect(Onetime::Mail::Mailer::SMTPMailer).to receive(:new).with('test@example.com', 'Test Sender')
 
         mailer = described_class.mailer
         expect(mailer).to be_a_kind_of(RSpec::Mocks::Double)
@@ -50,8 +50,8 @@ RSpec.describe Onetime::Mail do
       end
 
       it 'returns a SendGrid mailer' do
-        expect(Onetime::Mail::SendGridMailer).to receive(:setup)
-        expect(Onetime::Mail::SendGridMailer).to receive(:new).with('test@example.com', 'Test Sender')
+        expect(Onetime::Mail::Mailer::SendGridMailer).to receive(:setup)
+        expect(Onetime::Mail::Mailer::SendGridMailer).to receive(:new).with('test@example.com', 'Test Sender')
 
         mailer = described_class.mailer
         expect(mailer).to be_a_kind_of(RSpec::Mocks::Double)
@@ -70,8 +70,8 @@ RSpec.describe Onetime::Mail do
       end
 
       it 'returns an Amazon SES mailer' do
-        expect(Onetime::Mail::AmazonSESMailer).to receive(:setup)
-        expect(Onetime::Mail::AmazonSESMailer).to receive(:new).with('test@example.com', 'Test Sender')
+        expect(Onetime::Mail::Mailer::SESMailer).to receive(:setup)
+        expect(Onetime::Mail::Mailer::SESMailer).to receive(:new).with('test@example.com', 'Test Sender')
 
         mailer = described_class.mailer
         expect(mailer).to be_a_kind_of(RSpec::Mocks::Double)
@@ -90,8 +90,8 @@ RSpec.describe Onetime::Mail do
       end
 
       it 'handles case-insensitive provider names' do
-        expect(Onetime::Mail::AmazonSESMailer).to receive(:setup)
-        expect(Onetime::Mail::AmazonSESMailer).to receive(:new).with('test@example.com', 'Test Sender')
+        expect(Onetime::Mail::Mailer::SESMailer).to receive(:setup)
+        expect(Onetime::Mail::Mailer::SESMailer).to receive(:new).with('test@example.com', 'Test Sender')
 
         mailer = described_class.mailer
         expect(mailer).to be_a_kind_of(RSpec::Mocks::Double)
@@ -110,8 +110,8 @@ RSpec.describe Onetime::Mail do
       end
 
       it 'defaults to SMTP mailer for unknown providers' do
-        expect(Onetime::Mail::SMTPMailer).to receive(:setup)
-        expect(Onetime::Mail::SMTPMailer).to receive(:new).with('test@example.com', 'Test Sender')
+        expect(Onetime::Mail::Mailer::SMTPMailer).to receive(:setup)
+        expect(Onetime::Mail::Mailer::SMTPMailer).to receive(:new).with('test@example.com', 'Test Sender')
 
         mailer = described_class.mailer
         expect(mailer).to be_a_kind_of(RSpec::Mocks::Double)
@@ -128,8 +128,8 @@ RSpec.describe Onetime::Mail do
       described_class.reset_mailer
 
       # Should create a new mailer
-      expect(Onetime::Mail::SMTPMailer).to receive(:setup)
-      expect(Onetime::Mail::SMTPMailer).to receive(:new).with('test@example.com', 'Test Sender')
+      expect(Onetime::Mail::Mailer::SMTPMailer).to receive(:setup)
+      expect(Onetime::Mail::Mailer::SMTPMailer).to receive(:new).with('test@example.com', 'Test Sender')
 
       second_mailer = described_class.mailer
       expect(second_mailer).not_to be(first_mailer)

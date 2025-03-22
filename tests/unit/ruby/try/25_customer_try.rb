@@ -74,7 +74,7 @@ begin
 rescue OT::Problem => e
   [e.class, e.message]
 end
-#=> [Onetime::Problem, "Anonymous cannot be saved Onetime::Customer customer:anon:object"]
+#=> [Onetime::Problem, "Anonymous cannot be saved V2::Customer customer:anon:object"]
 
 ## Object name and rediskey are no longer equivalent.
 ## This is a reference back to Familia v0.10.2 era which

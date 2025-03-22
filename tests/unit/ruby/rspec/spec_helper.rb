@@ -13,20 +13,30 @@ require_relative 'support/mail_context'
 # Starts SimpleCov for code coverage analysis if the COVERAGE environment variable is set.
 SimpleCov.start if ENV['COVERAGE']
 
-# Adds the 'lib' directory to the load path to ensure that the Onetime library can be required.
-# Add lib directory to load path
-lib_path = File.expand_path('../../../../lib', __FILE__)
-$LOAD_PATH.unshift(lib_path) unless $LOAD_PATH.include?(lib_path)
+base_path = File.expand_path('../../../../..', __FILE__)
+apps_root = File.join(base_path, 'apps').freeze
+
+# Add the apps dirs to the load path. This allows us
+# to require 'v2/logic' naturally.
+$LOAD_PATH.unshift(File.join(apps_root, 'api'))
+$LOAD_PATH.unshift(File.join(apps_root, 'web'))
+
+# Adds the 'lib' directory to the load path to ensure that the Onetime
+# library can be required.
+$LOAD_PATH.unshift File.join(base_path, 'lib')
 
 # Add spec directory to load path
 spec_path = File.expand_path('../..', __FILE__)
-$LOAD_PATH.unshift(spec_path) unless $LOAD_PATH.include?(spec_path)
+$LOAD_PATH.unshift(spec_path)
 
 begin
   require 'onetime'
   require 'onetime/alias' # OT
   require 'onetime/refinements/rack_refinements'
-  require 'onetime/logic/secrets/show_secret'
+  require 'v1/logic'
+  require 'v2/logic'
+  require 'v1/models'
+  require 'v2/models'
 rescue LoadError => e
   puts "Failed to load refinements: #{e.message}"
   puts "Current directory: #{Dir.pwd}"

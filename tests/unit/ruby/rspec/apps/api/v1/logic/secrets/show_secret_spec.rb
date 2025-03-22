@@ -27,7 +27,7 @@ RSpec.describe Onetime::Logic::Secrets::ShowSecret do
   subject { described_class.new(session, customer, base_params) }
 
   before do
-    allow(Onetime::Secret).to receive(:load).with('secret123').and_return(secret)
+    allow(V2::Secret).to receive(:load).with('secret123').and_return(secret)
     allow(secret).to receive(:load_customer).and_return(owner)
     allow(OT::Customer).to receive(:global).and_return(double('Global', increment_field: true))
     allow(OT::Logic).to receive(:stathat_count)

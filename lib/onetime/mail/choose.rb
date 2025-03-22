@@ -21,8 +21,8 @@ module Onetime
             SendGridMailer.setup
             SendGridMailer.new(from, fromname)
           when 'amazon_ses'
-            AmazonSESMailer.setup
-            AmazonSESMailer.new(from, fromname)
+            SESMailer.setup
+            SESMailer.new(from, fromname)
           else # default to smtp
             SMTPMailer.setup
             SMTPMailer.new(from, fromname)

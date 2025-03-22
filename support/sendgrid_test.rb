@@ -3,14 +3,14 @@
 $LOAD_PATH.unshift(File.expand_path("../../lib", __FILE__))
 
 require 'onetime'
-require 'onetime/app/mail/sendgrid_mailer'
+require 'onetime/mail/mailer/sendgrid_mailer'
 
 Onetime.boot! :app
 
-Onetime::Mail::SendGridMailer.setup
+Onetime::Mail::Mailer::SendGridMailer.setup
 
 # Initialize mailer
-mailer = Onetime::Mail::SendGridMailer.new "sender@example.com", "Test Sender"
+mailer = Onetime::Mail::Mailer::SendGridMailer.new "sender@example.com", "Test Sender"
 
 # Send test email with sandbox mode enabled
 response = mailer.send_email(
