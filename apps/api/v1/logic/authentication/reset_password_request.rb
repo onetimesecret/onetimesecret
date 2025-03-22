@@ -33,7 +33,7 @@ module V1::Logic
 
         cust.reset_secret = secret.key  # as a standalone rediskey, writes immediately
 
-        view = OT::App::Mail::PasswordRequest.new cust, locale, secret
+        view = OT::Mail::PasswordRequest.new cust, locale, secret
 
         OT.ld "Calling deliver_email with token=(#{self.token})"
 

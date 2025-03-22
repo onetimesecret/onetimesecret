@@ -1,7 +1,6 @@
 # apps/web/core/views/views.rb
 
 module Core
-
   module Views
 
     ##

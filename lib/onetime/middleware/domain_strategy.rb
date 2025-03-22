@@ -80,7 +80,7 @@ module Onetime
 
       if domains_enabled?
         display_domain = env[Rack::DetectHost.result_field_name]
-        OT.ld "[DomainStrategy]: detected_host=#{display_domain.inspect} result_field_name=#{Rack::DetectHost.result_field_name}"
+        # OT.ld "[DomainStrategy]: detected_host=#{display_domain.inspect} result_field_name=#{Rack::DetectHost.result_field_name}"
         domain_strategy = Chooserator.choose_strategy(display_domain, canonical_domain_parsed)
       end
 

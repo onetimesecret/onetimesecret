@@ -1,6 +1,6 @@
-# frozen_string_literal: true
+# tests/unit/ruby/try/23_app_settings_try.rb
 
-# These tryouts test the functionality of the AppSettings module in the Onetime::App class.
+# These tryouts test the functionality of the AppSettings module in the Core::View class.
 # The AppSettings module provides configuration options for UTF-8 and URI encoding
 # middleware checks.
 #
@@ -25,7 +25,7 @@ OT::Config.path = File.join(Onetime::HOME, 'tests', 'unit', 'ruby', 'config.test
 OT.boot! :test
 
 class TestApp
-  include Onetime::App::AppSettings
+  include Core::ControllerSettings
 end
 
 ## Default values for check_utf8 and check_uri_encoding are nil
@@ -47,7 +47,7 @@ TestApp.check_uri_encoding
 
 ## Settings are independent for different classes
 class AnotherTestApp
-  include Onetime::App::AppSettings
+  include Core::ControllerSettings
 end
 
 AnotherTestApp.check_utf8

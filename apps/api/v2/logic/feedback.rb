@@ -95,7 +95,7 @@ module V2::Logic
       end
 
       def send_feedback cust, message
-        view = V2::App::Mail::FeedbackEmail.new cust, locale
+        view = Onetime::Mail::FeedbackEmail.new cust, locale
         view.display_domain = self.display_domain
         view.domain_strategy = self.domain_strategy
         view.message = message

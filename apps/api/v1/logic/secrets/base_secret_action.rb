@@ -204,7 +204,7 @@ module V1::Logic
 
       def send_email_notification
         return if recipient.nil? || recipient.empty?
-        klass = OT::App::Mail::SecretLink
+        klass = OT::Mail::SecretLink
         metadata.deliver_by_email cust, locale, secret, recipient.first, klass
       end
 

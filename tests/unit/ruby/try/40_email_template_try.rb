@@ -24,44 +24,44 @@ OT.boot! :test
 @recipient = 'tryouts+recipient@onetimesecret.com'
 
 ## Can create a view for SecretLink without share_domain
-view = OT::App::Mail::SecretLink.new @cust, @locale, @secret, @recipient
+view = OT::Mail::SecretLink.new @cust, @locale, @secret, @recipient
 [view.uri_path, view[:secret].identifier, view[:email_address]]
 #=> ["/secret/#{@secret.identifier}", @secret.identifier, @recipient]
 
 ## Renders correct subject for SecretLink without share_domain (English)
-view = OT::App::Mail::SecretLink.new @cust, 'en', @secret, @recipient
+view = OT::Mail::SecretLink.new @cust, 'en', @secret, @recipient
 view.subject
 #=> "#{@email} sent you a secret"
 
 ## Renders correct subject for SecretLink without share_domain (Spanish)
-view = OT::App::Mail::SecretLink.new @cust, 'es', @secret, @recipient
+view = OT::Mail::SecretLink.new @cust, 'es', @secret, @recipient
 view.subject
 #=> "#{@email} le ha enviado un secreto"
 
 ## Can create a view for SecretLink with share_domain
 @secret.share_domain = 'example.com'
 @secret.save
-view = OT::App::Mail::SecretLink.new @cust, @locale, @secret, @recipient
+view = OT::Mail::SecretLink.new @cust, @locale, @secret, @recipient
 [view.uri_path, view[:secret].identifier, view[:email_address], view[:secret].share_domain]
 #=> ["/secret/#{@secret.identifier}", @secret.identifier, @recipient, 'example.com']
 
 ## Renders correct subject for SecretLink with share_domain (English)
-view = OT::App::Mail::SecretLink.new @cust, 'en', @secret, @recipient
+view = OT::Mail::SecretLink.new @cust, 'en', @secret, @recipient
 view.subject
 #=> "#{@email} sent you a secret"
 
 ## Renders correct subject for SecretLink with share_domain (Spanish)
-view = OT::App::Mail::SecretLink.new @cust, 'es', @secret, @recipient
+view = OT::Mail::SecretLink.new @cust, 'es', @secret, @recipient
 view.subject
 #=> "#{@email} le ha enviado un secreto"
 
 ## Includes share_domain in email body (English)
-view = OT::App::Mail::SecretLink.new @cust, 'en', @secret, @recipient
+view = OT::Mail::SecretLink.new @cust, 'en', @secret, @recipient
 view.render.include?("https://example.com/secret/#{@secret.key}")
 #=> true
 
 ## Includes share_domain in email body (Spanish)
-view = OT::App::Mail::SecretLink.new @cust, 'es', @secret, @recipient
+view = OT::Mail::SecretLink.new @cust, 'es', @secret, @recipient
 view.render.include?("https://example.com/secret/#{@secret.key}")
 #=> true
 

@@ -1,7 +1,6 @@
 # apps/web/core/views/view_helpers.rb
 
 module Core
-
   module ViewHelpers # rubocop:disable Style/Documentation
 
     def jsvar(value)

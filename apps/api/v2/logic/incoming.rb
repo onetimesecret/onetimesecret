@@ -51,7 +51,7 @@ module V2::Logic
           end
           V2::Customer.global.increment :secrets_created
           unless recipient.nil? || recipient.empty?
-            metadata.deliver_by_email cust, locale, secret, recipient.first, V2::App::Mail::IncomingSupport, ticketno
+            metadata.deliver_by_email cust, locale, secret, recipient.first, Onetime::Mail::IncomingSupport, ticketno
           end
           V2::Logic.stathat_count("Secrets", 1)
         else

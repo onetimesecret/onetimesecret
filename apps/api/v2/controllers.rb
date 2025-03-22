@@ -90,6 +90,8 @@ module V2
       end
     end
 
+    require 'v1/controllers/class_methods'
+    extend V1::Controllers::ClassMethods
   end
 end
 

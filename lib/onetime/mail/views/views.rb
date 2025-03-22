@@ -1,7 +1,8 @@
+# lib/onetime/mail/views/views.rb
 
 require 'mustache'
 
-module Onetime::App
+module Onetime
   module Mail
 
     require_relative 'base'

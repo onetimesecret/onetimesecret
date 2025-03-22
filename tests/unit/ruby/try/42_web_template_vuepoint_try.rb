@@ -59,17 +59,17 @@ end
 @sess = MockSession.new
 
 ## Can create a VuePoint view with all arguments
-view = OT::App::Views::VuePoint.new(@req, @sess, @cust, 'en', @metadata)
+view = Core::Views::VuePoint.new(@req, @sess, @cust, 'en', @metadata)
 [view.req, view.sess, view.cust, view.locale]
 #=> [@req, @sess, @cust, 'en']
 
 ## Correctly sets basic properties
-view = OT::App::Views::VuePoint.new(@req, @sess, @cust, 'en', @metadata)
+view = Core::Views::VuePoint.new(@req, @sess, @cust, 'en', @metadata)
 [view[:page_title], view[:frontend_host], view[:frontend_development], view[:no_cache]]
 #=> ["Onetime Secret", "http://localhost:5173", false, false]
 
 ## Sets authentication status correctly
-view = OT::App::Views::VuePoint.new(@req, @sess, @cust, 'en', @metadata)
+view = Core::Views::VuePoint.new(@req, @sess, @cust, 'en', @metadata)
 authenticated_value = view[:jsvars][:authenticated]
 authenticated_value
 #=> true
@@ -77,18 +77,18 @@ authenticated_value
 ## Handles unauthenticated user correctly
 unauthenticated_sess = MockSession.new
 def unauthenticated_sess.authenticated?; false; end
-view = OT::App::Views::VuePoint.new(@req, unauthenticated_sess, OT::Customer.anonymous, 'en', @metadata)
+view = Core::Views::VuePoint.new(@req, unauthenticated_sess, OT::Customer.anonymous, 'en', @metadata)
 authenticated_value = view[:jsvars][:authenticated]
 authenticated_value
 #=> false
 
 ## Sets locale correctly
-view = OT::App::Views::VuePoint.new(@req, @sess, @cust, 'es', @metadata)
+view = Core::Views::VuePoint.new(@req, @sess, @cust, 'es', @metadata)
 view.locale
 #=> 'es'
 
 ## Falls back to default locale if not provided
-view = OT::App::Views::VuePoint.new(@req, @sess, @cust, nil, @metadata)
+view = Core::Views::VuePoint.new(@req, @sess, @cust, nil, @metadata)
 view.locale
 #=> 'en'
 

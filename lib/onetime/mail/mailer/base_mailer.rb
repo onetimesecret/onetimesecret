@@ -1,4 +1,4 @@
-# apps/mail/mailer/base_mailer.rb
+# lib/onetime/mail/mailer/base_mailer.rb
 
 module Onetime::Mail
   module Mailer

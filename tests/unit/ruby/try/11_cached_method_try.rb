@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-# These tryouts test the functionality of the cached_method in the Onetime::App::Views::ViewHelpers module.
+# These tryouts test the functionality of the cached_method in the Core::ViewHelpers module.
 # The cached_method provides a caching mechanism for method results using Redis.
 #
 # We're testing various aspects of the cached_method, including:

@@ -155,6 +155,6 @@ module V1
     end
 
     require_relative 'controllers/class_methods'
-    extend ClassMethods
+    extend V1::Controllers::ClassMethods
   end
 end

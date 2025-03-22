@@ -121,7 +121,7 @@ RSpec.shared_context "mail_test_context" do
     mailer = mail_emailer
 
     # Update these stubs to accept the third reply_to parameter
-    allow(OT::App::Mail::SMTPMailer).to receive(:new)
+    allow(OT::Mail::SMTPMailer).to receive(:new)
       .with(
         mail_config[:emailer][:from],
         mail_config[:emailer][:fromname],
@@ -129,7 +129,7 @@ RSpec.shared_context "mail_test_context" do
       )
       .and_return(mailer)
 
-    allow(OT::App::Mail::SendGridMailer).to receive(:new)
+    allow(OT::Mail::SendGridMailer).to receive(:new)
       .with(
         mail_config[:emailer][:from],
         mail_config[:emailer][:fromname],
@@ -138,7 +138,7 @@ RSpec.shared_context "mail_test_context" do
       .and_return(mailer)
 
     # Setup OT.emailer to return the correct mailer class
-    allow(OT).to receive(:emailer).and_return(OT::App::Mail::SMTPMailer)
+    allow(OT).to receive(:emailer).and_return(OT::Mail::SMTPMailer)
 
     allow_any_instance_of(Onetime::Mail::Base).to receive(:emailer).and_return(mailer)
   end

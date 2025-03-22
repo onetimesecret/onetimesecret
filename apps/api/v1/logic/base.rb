@@ -125,7 +125,7 @@ module V1
 
         cust.reset_secret = secret.key # as a standalone rediskey, writes immediately
 
-        view = V2::App::Mail::Welcome.new cust, locale, secret
+        view = Onetime::Mail::Welcome.new cust, locale, secret
 
         begin
           view.deliver_email token

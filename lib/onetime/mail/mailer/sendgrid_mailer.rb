@@ -1,4 +1,4 @@
-# apps/mail/mailer/sendgrid_mailer.rb
+# lib/onetime/mail/mailer/sendgrid_mailer.rb
 
 require 'sendgrid-ruby'
 require_relative 'base_mailer'

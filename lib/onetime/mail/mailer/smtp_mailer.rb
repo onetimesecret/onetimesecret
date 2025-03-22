@@ -1,4 +1,4 @@
-# apps/mail/mailer/smtp_mailer.rb
+# lib/onetime/mail/mailer/smtp_mailer.rb
 
 require 'mail'  # gem 'mail', here referred to as ::Mail
 require_relative 'base_mailer'

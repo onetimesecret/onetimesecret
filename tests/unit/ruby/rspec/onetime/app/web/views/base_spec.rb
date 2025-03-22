@@ -4,7 +4,7 @@
 
 require_relative '../../../../spec_helper'
 
-RSpec.describe Onetime::App::View do
+RSpec.describe Core::View do
   include_context "rack_test_context"
   include_context "view_test_context"
 
