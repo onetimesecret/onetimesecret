@@ -33,10 +33,10 @@ GET    /supported-locales                         V2::Controllers::Domains#get_s
 GET    /status                                    V2::Controllers::Domains#status
 GET    /authcheck                                 V2::Controllers::Domains#authcheck
 GET    /version                                   V2::Controllers::Domains#version
-POST   /validate-shrimp                           V2::Controllers#get_validate_shrimp
+POST   /validate-shrimp                           V2::Controllers::Meta#get_validate_shrimp
 
-POST   /feedback                                  V2::Controllers#receive_feedback
-POST   /exception                                 V2::Controllers#receive_exception
+POST   /feedback                                  V2::Controllers::Meta#receive_feedback
+POST   /exception                                 V2::Controllers::Meta#receive_exception
 
 GET    /altcha/challenge                          V2::Controllers::Challenges#altcha_challenge
 POST   /altcha/verify                             V2::Controllers::Challenges#altcha_verify

@@ -9,14 +9,6 @@ module Core
 
   module ControllerHelpers
 
-    attr_reader :req, :res
-    attr_reader :sess, :cust, :locale
-    attr_reader :ignoreshrimp
-
-    def initialize req, res
-      @req, @res = req, res
-    end
-
     def plan
       @plan = Onetime::Plan.plan(cust.planid) unless cust.nil?
       @plan ||= Onetime::Plan.plan('anonymous')

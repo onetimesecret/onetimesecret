@@ -1,4 +1,4 @@
-# apps/api/v2/challenges.rb
+# apps/api/v2/controllers/challenges.rb
 
 require 'json'
 require 'base64'

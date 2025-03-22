@@ -1,4 +1,4 @@
-# apps/api/v2/colonel.rb
+# apps/api/v2/controllers/colonel.rb
 
 require_relative 'base'
 require_relative 'settings'

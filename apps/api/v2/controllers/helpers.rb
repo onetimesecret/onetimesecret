@@ -61,7 +61,7 @@ module V2
       OT.info ex.message
       not_authorized_error
 
-    rescue V1::BadShrimp => ex
+    rescue Onetime::BadShrimp => ex
       # If it's a json response, no need to set an error message on the session
       if res.header['Content-Type'] == 'application/json'
         error_response 'Please refresh the page and try again', reason: "Bad shrimp 🍤"
@@ -230,7 +230,7 @@ module V2
         ### JUST SUBMIT A FORM WITHOUT ANY SHRIMP WHATSOEVER
         ### AND THAT'S NO WAY TO TREAT A GUEST.
         shrimp = (sess.shrimp || '[noshrimp]').clone
-        ex = V1::BadShrimp.new(req.path, cust.custid, attempted_shrimp, shrimp)
+        ex = Onetime::BadShrimp.new(req.path, cust.custid, attempted_shrimp, shrimp)
         OT.ld "BAD SHRIMP for #{cust.custid}@#{req.path}: #{log_value}"
         sess.replace_shrimp! if replace && !shrimp_is_empty
         raise ex

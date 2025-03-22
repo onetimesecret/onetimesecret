@@ -7,6 +7,14 @@ module Core
   module ControllerBase
     include Core::ControllerHelpers
 
+    attr_reader :req, :res
+    attr_reader :sess, :cust, :locale
+    attr_reader :ignoreshrimp
+
+    def initialize req, res
+      @req, @res = req, res
+    end
+
     def publically redirect=nil
       carefully(redirect) do
         check_session!     # 1. Load or create the session, load customer (or anon)

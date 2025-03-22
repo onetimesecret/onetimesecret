@@ -5,12 +5,105 @@ require 'altcha' # lib/altcha
 
 module V2
   module ControllerBase
-    include ControllerHelpers
+    include V2::ControllerHelpers
+
+    attr_reader :req, :res
+    attr_reader :sess, :cust, :locale
+    attr_reader :ignoreshrimp
+
+    def initialize req, res
+      @req, @res = req, res
+    end
 
     def publically
       carefully do
         check_session!
         check_locale!
+        yield
+      end
+    end
+
+    def authorized allow_anonymous=false
+      carefully(redirect=nil, content_type='application/json', app: :api) do
+        check_locale!
+
+        req.env['otto.auth'] ||= Rack::Auth::Basic::Request.new(req.env)
+        auth = req.env['otto.auth']
+
+        # First line, check for basic auth
+        if auth.provided?
+          raise OT::Unauthorized unless auth.basic?
+
+          custid, apitoken = *(auth.credentials || [])
+          raise OT::Unauthorized if custid.to_s.empty? || apitoken.to_s.empty?
+
+          return disabled_response(req.path) unless authentication_enabled?
+
+          OT.ld "[authorized] Attempt for '#{custid}' via #{req.client_ipaddress} (basic auth)"
+          possible = V2::Customer.load custid
+          raise OT::Unauthorized, "No such customer" if possible.nil?
+
+          @cust = possible if possible.apitoken?(apitoken)
+          raise OT::Unauthorized, "Invalid credentials" if cust.nil? # wrong token
+
+          @sess = cust.load_or_create_session req.client_ipaddress
+
+          # Set the session as authenticated for this request
+          sess.authenticated = true
+
+          OT.ld "[authorized] '#{custid}' via #{req.client_ipaddress} (#{sess.authenticated?})"
+
+        # Second line, check for session cookie. We allow this in certain cases
+        # like API requests coming from hybrid Vue components.
+        elsif req.cookie?(:sess)
+
+          check_session!
+
+          unless sess.authenticated? || allow_anonymous
+            raise OT::Unauthorized, "Session not authenticated"
+          end
+
+          # Only attempt to load the customer object if the session has
+          # already been authenticated. Otherwise this is an anonymous session.
+          @cust = sess.load_customer if sess.authenticated?
+          @cust ||= V2::Customer.anonymous if allow_anonymous
+
+          raise OT::Unauthorized, "Invalid credentials" if cust.nil? # wrong token
+
+          custid = @cust.custid unless @cust.nil?
+          OT.ld "[authorized] '#{custid}' via #{req.client_ipaddress} (cookie)"
+
+          # Anytime we allow session cookies, we must also check shrimp. This will
+          # run only for POST etc requests (i.e. not GET) and it's important to
+          # check the shrimp after checking auth. Otherwise we'll chrun through
+          # shrimp even though weren't going to complete the request anyway.
+          check_shrimp!
+
+        # Otherwise, we have no credentials, so we must be anonymous. Only
+        # methods that opt-in to allow anonymous sessions will be allowed to
+        # proceed.
+        else
+
+          unless allow_anonymous
+            raise OT::Unauthorized, "No session or credentials"
+          end
+
+          @cust = V2::Customer.anonymous
+          @sess = V2::Session.new req.client_ipaddress, cust.custid
+
+          if OT.debug?
+            ip_address = req.client_ipaddress.to_s
+            session_id = sess.sessid.to_s
+            message = "[authorized] Anonymous session via #{ip_address} (new session #{session_id})"
+            OT.ld message
+          end
+
+        end
+
+        if cust.nil? || sess.nil?
+          raise OT::Unauthorized, "[bad-cust] '#{custid}' via #{req.client_ipaddress}"
+        end
+
         yield
       end
     end

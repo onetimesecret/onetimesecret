@@ -1,4 +1,4 @@
-# apps/api/v2/domains.rb
+# apps/api/v2/controllers/domains.rb
 
 require_relative 'base'
 require_relative 'settings'
