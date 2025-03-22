@@ -78,14 +78,14 @@ gem 'stripe', require: false
 
 gem 'stackprof', require: false
 
+gem 'rubocop', require: false
+
 group :development do
   gem 'byebug', require: false
   gem 'byebug-dap', require: false
   gem 'pry', require: false
   gem 'pry-byebug', require: false
   gem 'rack-proxy', require: false
-  gem 'rack-test', require: false
-  gem 'rubocop', require: false
   gem 'rubocop-performance', require: false
   gem 'rubocop-thread_safety', require: false
   gem 'tryouts', require: false
@@ -97,4 +97,5 @@ group :test do
   %w[rspec-core rspec-expectations rspec-mocks rspec-support].each do |lib|
     gem lib, git: "https://github.com/rspec/rspec", glob: "#{lib}/#{lib}.gemspec"
   end
+  gem 'rack-test', require: false
 end
