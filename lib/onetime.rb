@@ -71,6 +71,9 @@ module Onetime
       SecureRandom.hex
     end
 
+    # Boot initializes core services and connects models to databases. Must
+    # be called after applications are loaded so Familia.members contains
+    # all model classes that need database connections.
     def boot!(mode = nil)
       OT.mode = mode unless mode.nil?
       OT.env = ENV['RACK_ENV'] || 'production'
@@ -251,6 +254,12 @@ module Onetime
       dbs = OT.conf.dig(:redis, :dbs)
 
       OT.ld "[connect_databases] dbs: #{dbs}"
+      OT.ld "[connect_databases] models: #{Familia.members.map(&:to_s)}"
+
+      # Validate that models have been loaded before attempting to connect
+      if Familia.members.empty?
+        raise Onetime::Problem, "No known Familia members. Models need to load before calling boot!"
+      end
 
       # Map model classes to their database numbers
       Familia.members.each do |model_class|

@@ -62,11 +62,12 @@ require_relative 'apps/app_registry'
 require_relative 'lib/middleware'
 require_relative 'lib/onetime'
 
-# Boot Application
-Onetime.boot! :app
-
 # Load all applications
 Dir.glob(File.join(APP_DIR, '**/application.rb')).each { |f| require f }
+
+# Applications must be loaded before boot to ensure Familia models are registered.
+# This allows proper database connection setup for all model classes.
+Onetime.boot! :app
 
 # Common middleware for all applications
 use Rack::CommonLogger

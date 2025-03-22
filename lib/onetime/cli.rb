@@ -8,6 +8,7 @@ require 'v2/logic'
 
 class Onetime::CLI < Drydock::Command
   def init
+    # Make sure all the models are loaded before calling boot
     OT.boot! :cli
   end
 
