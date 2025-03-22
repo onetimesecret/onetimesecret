@@ -87,8 +87,14 @@ class V2::ExceptionInfo < Familia::Horreum
     self.updated ||= Time.now.to_i
   end
 
+  # Generates and memoizes a unique identifier
+  #
+  # For historical reasons, we also make sure @key gets set here since
+  # Familia::Horreum uses key internally.
   def generate_id
-    @key ||= Familia.generate_id.slice(0, 31)
+    return @generate_id if defined?(@generate_id)
+    @key = Familia.generate_id.slice(0, 31)
+    @generate_id = @key
   end
 
   # Query methods for exception data
