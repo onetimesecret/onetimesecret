@@ -4,6 +4,7 @@ require 'familia/tools'
 require 'onetime/migration'
 
 require 'v2/models'
+require 'v2/logic'
 
 class Onetime::CLI < Drydock::Command
   def init
@@ -140,83 +141,109 @@ class Onetime::CLI < Drydock::Command
   end
 
   def revalidate_domains
-    batch_size = 10  # Process 10 domains at a time
-    throttle_seconds = 4  # wait (in seconds) between batches
-
-    domains_to_process = if option.domain && option.custid
-      # Specific domain for a customer
-      begin
-        domain = V2::CustomDomain.load(option.domain, option.custid)
-        [domain]
-      rescue Onetime::RecordNotFound
-        puts "Domain #{option.domain} not found for customer #{option.custid}"
-        return
-      end
-    elsif option.custid
-      # All domains for a customer
-      customer = V2::Customer.load(option.custid)
-      raise "Customer #{option.custid} not found" unless customer
-      begin
-        customer.custom_domains.members.map do |domain_name|
-          V2::CustomDomain.load(domain_name, option.custid)
-        end
-      rescue Onetime::RecordNotFound
-        puts "Customer #{option.custid} not found"
-        return
-      end
-    elsif option.domain
-      # All instances of the domain across customers
-      matching_domains = V2::CustomDomain.all.select do |domain|
-        domain.display_domain == option.domain
-      end
-      if matching_domains.empty?
-        puts "Domain #{option.domain} not found"
-        return
-      else
-        matching_domains
-      end
-    else
-      # All domains
-      V2::CustomDomain.all
-    end
+    domains_to_process = get_domains_to_process
+    return unless domains_to_process
 
     total = domains_to_process.size
     puts "Processing #{total} domain#{total == 1 ? '' : 's'}"
 
-    domains_to_process.each_slice(batch_size).with_index do |batch, batch_idx|
-      puts "\nProcessing batch #{batch_idx + 1}..."
-
-      batch.each do |domain|
-        print "Revalidating #{domain.display_domain}... "
-        begin
-          params = {
-            domain: domain.display_domain
-          }
-          verifier = OT::Logic::Domains::VerifyDomain.new(nil, domain.custid, params)
-          verifier.raise_concerns
-          verifier.process
-          status = domain.verification_state
-          resolving_status = domain.resolving == 'true' ? 'resolving' : 'not resolving'
-          puts "#{status} (#{resolving_status})"
-        rescue => e
-          puts "error: #{e.message}"
-          $stderr.puts e.backtrace
-        end
-      end
-
-      sleep 0.25 # maintain a sane maximum of 4 requests per second
-
-      # Throttle between batches
-      if batch_idx < (domains_to_process.size.to_f / batch_size).ceil - 1
-        puts "\nWaiting #{throttle_seconds} seconds before next batch..."
-        sleep throttle_seconds
-      end
-    end
+    process_domains_in_batches(domains_to_process)
 
     puts "\nRevalidation complete"
   end
 
   private
+
+  def get_domains_to_process
+    if option.domain && option.custid
+      get_specific_domain
+    elsif option.custid
+      get_customer_domains
+    elsif option.domain
+      get_domains_by_name
+    else
+      V2::CustomDomain.all
+    end
+  end
+
+  def get_specific_domain
+    begin
+      domain = V2::CustomDomain.load(option.domain, option.custid)
+      [domain]
+    rescue Onetime::RecordNotFound
+      puts "Domain #{option.domain} not found for customer #{option.custid}"
+      nil
+    end
+  end
+
+  def get_customer_domains
+    customer = V2::Customer.load(option.custid)
+    unless customer
+      puts "Customer #{option.custid} not found"
+      return nil
+    end
+
+    begin
+      customer.custom_domains.members.map do |domain_name|
+        V2::CustomDomain.load(domain_name, option.custid)
+      end
+    rescue Onetime::RecordNotFound
+      puts "Customer #{option.custid} not found"
+      nil
+    end
+  end
+
+  def get_domains_by_name
+    matching_domains = V2::CustomDomain.all.select do |domain|
+      domain.display_domain == option.domain
+    end
+
+    if matching_domains.empty?
+      puts "Domain #{option.domain} not found"
+      nil
+    else
+      matching_domains
+    end
+  end
+
+  def process_domains_in_batches(domains)
+    batch_size = 10
+    throttle_seconds = 4
+
+    domains.each_slice(batch_size).with_index do |batch, batch_idx|
+      puts "\nProcessing batch #{batch_idx + 1}..."
+      process_batch(batch)
+
+      # Throttle between batches
+      if batch_idx < (domains.size.to_f / batch_size).ceil - 1
+        puts "\nWaiting #{throttle_seconds} seconds before next batch..."
+        sleep throttle_seconds
+      end
+    end
+  end
+
+  def process_batch(batch)
+    batch.each do |domain|
+      print "Revalidating #{domain.display_domain}... "
+      revalidate_domain(domain)
+    end
+    sleep 0.25 # maintain a sane maximum of 4 requests per second
+  end
+
+  def revalidate_domain(domain)
+    begin
+      params = { domain: domain.display_domain }
+      verifier = V2::Logic::Domains::VerifyDomain.new(nil, domain.custid, params)
+      verifier.raise_concerns
+      verifier.process
+      status = domain.verification_state
+      resolving_status = domain.resolving == 'true' ? 'resolving' : 'not resolving'
+      puts "#{status} (#{resolving_status})"
+    rescue => e
+      puts "error: #{e.message}"
+      $stderr.puts e.backtrace
+    end
+  end
 
   def require_sudo
     return if Process.uid.zero?

@@ -1,7 +1,11 @@
 #!/usr/bin/env ruby
 
 base_path = File.expand_path File.join(File.dirname(__FILE__), '..')
-$:.unshift File.join(base_path, 'lib')
+$LOAD_PATH.unshift File.join(base_path, 'lib')
+
+apps_root = File.join(base_path, 'apps').freeze
+$LOAD_PATH.unshift(File.join(apps_root, 'api'))
+$LOAD_PATH.unshift(File.join(apps_root, 'web'))
 
 # TODO: Replace with bundle install --standalone (Bundler v1.1)
 ENV['BUNDLE_GEMFILE'] ||= File.join(base_path, 'Gemfile')
@@ -26,6 +30,10 @@ class OT::CLI::Definition
 
   global :D, :debug do
     OT.debug = true
+  end
+
+  command :load_path, 'Add a path to the load path' do
+    puts $LOAD_PATH[0...5]
   end
 
   about 'Ruby irb with Onetime preloaded'
