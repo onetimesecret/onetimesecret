@@ -1,6 +1,6 @@
 # lib/onetime/models/session.rb
 
-require_relative '../../v1/models/mixins/session_messages'
+require 'v1/models/mixins/session_messages'
 
 class V2::Session < Familia::Horreum
   include V1::Mixins::RateLimited

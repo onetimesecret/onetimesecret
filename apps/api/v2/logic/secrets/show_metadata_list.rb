@@ -2,6 +2,8 @@
 
 require 'time'
 
+require 'v1/logic/secrets/show_metadata_list'
+
 module V2::Logic
   module Secrets
 

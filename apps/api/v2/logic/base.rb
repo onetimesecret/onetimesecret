@@ -4,6 +4,7 @@ require 'stathat'
 require 'timeout'
 
 require 'onetime/refinements/rack_refinements'
+require 'onetime/refinements/stripe_refinements'
 require 'v1/logic/base'
 
 module V2

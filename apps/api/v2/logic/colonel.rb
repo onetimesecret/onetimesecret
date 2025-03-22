@@ -1,5 +1,7 @@
 # apps/api/v2/logic/colonel.rb
 
+require 'v1/logic/colonel'
+
 require 'onetime/refinements/stripe_refinements'
 require_relative 'base'
 
