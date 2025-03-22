@@ -45,7 +45,7 @@ module Core
         warmup do
           # Expensive initialization tasks
           # Log warmup completion
-          Onetime.li "Core web app warmup completed"
+          Onetime.li "Core warmup completed"
         end
 
         # Common middleware stack

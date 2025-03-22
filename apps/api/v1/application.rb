@@ -52,7 +52,7 @@ module V1
           OT.li "rate limits: #{V1::RateLimit.events.map { |k,v| "#{k}=#{v}" }.join(', ')}"
 
           # Log warmup completion
-          Onetime.li "API V1 warmup completed"
+          Onetime.li "V1 warmup completed"
         end
 
         # Common middleware stack

@@ -49,7 +49,7 @@ module V2
           require_relative 'models'
 
           # Log warmup completion
-          Onetime.li "V2 app warmup completed"
+          Onetime.li "V2 warmup completed"
         end
 
         # Common middleware stack
