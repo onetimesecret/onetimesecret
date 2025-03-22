@@ -30,6 +30,9 @@ AllCops:
     - 'tests/unit/ruby/rspec/**/*'
     - 'vendor/**/*'
 
+Layout/MultilineMethodCallIndentation:
+  EnforcedStyle: indented
+
 Gemspec/DeprecatedAttributeAssignment:
   Enabled: true
 

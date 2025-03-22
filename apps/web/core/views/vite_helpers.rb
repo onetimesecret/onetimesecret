@@ -68,8 +68,8 @@ module Core
 
     def build_font_preloads(manifest, nonce)
       manifest.values
-              .select { |entry| entry['file'] =~ /\.(woff2?|ttf|otf|eot)$/ }
-              .map do |font|
+        .select { |entry| entry['file'] =~ /\.(woff2?|ttf|otf|eot)$/ }
+        .map do |font|
           ext = File.extname(font['file']).delete('.')
           %(    <link rel="preload" nonce="#{nonce}" href="/dist/#{font['file']}" as="font" type="font/#{ext}" crossorigin>)
       end

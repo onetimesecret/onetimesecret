@@ -111,8 +111,8 @@ module Altcha
 
   # Class for verifying server signatures, containing various data points.
   ServerSignatureVerificationData = Struct.new(:classification, :country, :detected_language, :email, :expire, :fields, :fields_hash, :ip_address, :reasons, :score, :time, :verified)
-    #attr_accessor :classification, :country, :detected_language, :email, :expire, :fields, :fields_hash,
-    #:ip_address, :reasons, :score, :time, :verified
+  #attr_accessor :classification, :country, :detected_language, :email, :expire, :fields, :fields_hash,
+  #:ip_address, :reasons, :score, :time, :verified
 
   # Class representing the solution to a challenge.
   class Solution

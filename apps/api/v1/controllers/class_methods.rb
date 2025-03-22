@@ -76,10 +76,10 @@ module V1
         metadata_realttl = md.realttl&.to_i
 
         recipient = [hsh['recipients']]
-                    .flatten
-                    .compact
-                    .reject(&:empty?)
-                    .uniq
+          .flatten
+          .compact
+          .reject(&:empty?)
+          .uniq
 
         ret = {
           :custid => hsh['custid'],
