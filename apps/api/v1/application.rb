@@ -44,7 +44,6 @@ module V1
       router_instance = router
 
       Rack::Builder.new do
-
         warmup do
           require_relative 'logic'
           require_relative 'models'

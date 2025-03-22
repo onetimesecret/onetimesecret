@@ -10,29 +10,31 @@ RSpec.describe Onetime::Logic::Secrets::BaseSecretAction do
   end
 
   let(:session) { double('Session', event_incr!: nil) }
-  let(:customer) { double('Customer',
+  let(:customer) {
+    double('Customer',
     anonymous?: false,
     custid: 'cust123',
-    planid: 'anonymous'
-  ) }
+    planid: 'anonymous')
+  }
 
-  let(:base_params) {{
+  let(:base_params) {
+     {
     secret: {
       ttl: '7',
       recipient: ['test@example.com'],
       share_domain: 'example.com'
     }
-  }}
+  }
+  }
 
   subject { TestSecretAction.new(session, customer, base_params) }
 
   before do
     allow(Onetime::Plan).to receive(:plan).and_return(double('Plan',
       paid?: false,
-      options: {size: 1024, ttl: 7.days}
-    ))
+      options: {size: 1024, ttl: 7.days}))
     allow(Truemail).to receive(:validate).and_return(
-      double('Validator', result: double('Result', valid?: true), as_json: '{}')
+      double('Validator', result: double('Result', valid?: true), as_json: '{}'),
     )
   end
 

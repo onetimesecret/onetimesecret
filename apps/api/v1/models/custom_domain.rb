@@ -219,7 +219,7 @@ module V1
           related_names.filter_map do |name|
             relation = send(name)
             relation.rediskey # e.g, self.brand.rediskey
-          end
+          end,
         )
       end
 

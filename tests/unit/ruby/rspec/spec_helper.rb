@@ -73,7 +73,7 @@ RSpec.configure do |config|
   config.mock_with :rspec
 
   # Applies shared context metadata to host groups, enhancing test organization.
-  # Will be default in RSpec 4       
+  # Will be default in RSpec 4
   config.shared_context_metadata_behavior = :apply_to_host_groups
 
   # Disables RSpec's monkey patching to encourage the use of the RSpec DSL.

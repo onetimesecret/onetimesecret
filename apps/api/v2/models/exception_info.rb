@@ -51,7 +51,7 @@ class V2::ExceptionInfo < Familia::Horreum
     { is_critical: ->(obj) { obj.type&.match?(/Fatal|Critical|Emergency/i) } },
 
     # Browser/context info
-    { browser_info: ->(obj) {
+    { browser_info: lambda { |obj|
       agent = obj.user_agent.to_s
       {
         browser: agent.split('/')[0],
@@ -61,7 +61,7 @@ class V2::ExceptionInfo < Familia::Horreum
     }},
 
     # Location info
-    { location: ->(obj) {
+    { location: lambda { |obj|
       return unless obj.url
       uri = URI.parse(obj.url)
       {
@@ -72,12 +72,12 @@ class V2::ExceptionInfo < Familia::Horreum
     }},
 
     # Stack trace processing
-    { stack_preview: ->(obj) {
+    { stack_preview: lambda { |obj|
       obj.stack.to_s.split("\n").first(3).join("\n") if obj.stack
     }},
-    { stack_length: ->(obj) {
+    { stack_length: lambda { |obj|
       obj.stack.to_s.split("\n").length if obj.stack
-    }}
+    }},
   ]
 
   def init

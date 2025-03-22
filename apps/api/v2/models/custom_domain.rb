@@ -218,7 +218,7 @@ class V2::CustomDomain < Familia::Horreum
         related_names.filter_map do |name|
           relation = send(name)
           relation.rediskey # e.g, self.brand.rediskey
-        end
+        end,
       )
     end
 

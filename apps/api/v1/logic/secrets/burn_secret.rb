@@ -11,7 +11,7 @@ module V1::Logic
         @key = params[:key].to_s
         @metadata = V1::Metadata.load key
         @passphrase = params[:passphrase].to_s
-        @continue = params[:continue] == true || params[:continue] == 'true'
+        @continue = [true, 'true'].include?(params[:continue])
       end
 
       def raise_concerns
@@ -86,7 +86,7 @@ module V1::Logic
             show_metadata_link: false,
             show_metadata: true,
             show_recipients: !metadata.recipients.to_s.empty?,
-            is_orphaned: false,
+            is_orphaned: false
           }
         }
       end

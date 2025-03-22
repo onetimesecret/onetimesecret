@@ -1,6 +1,6 @@
 # tests/unit/ruby/rspec/onetime/refinements/rack_refinements_spec.rb
 
-require_relative '../../spec_helper.rb'
+require_relative '../../spec_helper'
 
 require 'onetime/refinements/rack_refinements'
 
@@ -8,8 +8,8 @@ RSpec.describe Onetime::RackRefinements do
   module RefineTest
     using Onetime::RackRefinements
 
-    def self.fetch_with_refinements(hash, key, *args, &block)
-      hash.fetch(key, *args, &block)
+    def self.fetch_with_refinements(hash, key, ...)
+      hash.fetch(key, ...)
     end
 
     def self.dig_with_refinements(hash, *keys)
@@ -37,8 +37,8 @@ RSpec.describe Onetime::RackRefinements do
 
   describe "#fetch" do
     context "with refinements" do
-      def fetch(hash, *args, &block)
-        RefineTest.fetch_with_refinements(hash, *args, &block)
+      def fetch(hash, ...)
+        RefineTest.fetch_with_refinements(hash, ...)
       end
 
       it "retrieves string keys" do
@@ -89,8 +89,8 @@ RSpec.describe Onetime::RackRefinements do
 
   describe '#dig' do
     let(:nested_hash) { {'a' => {'b' => {'c' => 1}}} }
-    def dig(hash, *args, &block)
-      RefineTest.dig_with_refinements(hash, *args, &block)
+    def dig(hash, ...)
+      RefineTest.dig_with_refinements(hash, ...)
     end
 
     it 'retrieves nested values' do
@@ -105,6 +105,5 @@ RSpec.describe Onetime::RackRefinements do
     it 'returns nil for missing nested keys' do
       expect(dig(nested_hash, 'a', 'missing', 'c')).to be_nil
     end
-
   end
 end

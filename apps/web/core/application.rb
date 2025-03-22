@@ -44,7 +44,6 @@ module Core
       router_instance = router
 
       Rack::Builder.new do
-
         warmup do
           # Expensive initialization tasks
           # Log warmup completion

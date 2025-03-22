@@ -16,7 +16,7 @@ class Onetime::CLI < Drydock::Command
     unless migration_file
       puts "Usage: ots migrate MIGRATION_SCRIPT"
       puts "\nAvailable migrations:"
-      Dir[File.join(Onetime::HOME, 'migrate', '*.rb')].sort.each do |file|
+      Dir[File.join(Onetime::HOME, 'migrate', '*.rb')].each do |file|
         puts "  - #{File.basename(file)}"
       end
       return

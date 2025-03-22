@@ -112,7 +112,7 @@ module Onetime
 
       conf[:site][:interface] = {
         ui: { enabled: true },
-        api: { enabled: true },
+        api: { enabled: true }
       }.merge(conf[:site][:interface])
 
       # Make sure colonels are in their proper location since previously

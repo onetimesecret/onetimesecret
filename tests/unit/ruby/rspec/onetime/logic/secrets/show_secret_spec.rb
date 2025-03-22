@@ -1,6 +1,6 @@
 # tests/unit/ruby/rspec/onetime/refinements/logic/secrets/show_secret_spec.rb
 
-require_relative '../../../spec_helper.rb'
+require_relative '../../../spec_helper'
 
 
 RSpec.describe Onetime::Logic::Secrets::ShowSecret do
@@ -13,8 +13,7 @@ RSpec.describe Onetime::Logic::Secrets::ShowSecret do
       verification: 'false',
       key: 'secret123',
       state?: true,
-      owner?: false
-    )
+      owner?: false)
   end
 
   let(:base_params) do

@@ -116,11 +116,9 @@ module Onetime
           case request_domain
           when ->(d) { equal_to?(d, canonical_domain) }    then :canonical
           when ->(d) { peer_of?(d, canonical_domain) }     then :canonical
-          when ->(d) { parent_of?(d, canonical_domain)}    then :canonical
-          when ->(d) { subdomain_of?(d, canonical_domain)} then :subdomain
-          when ->(d) { known_custom_domain?(d.name)}       then :custom
-          else
-            nil
+          when ->(d) { parent_of?(d, canonical_domain) }    then :canonical
+          when ->(d) { subdomain_of?(d, canonical_domain) } then :subdomain
+          when ->(d) { known_custom_domain?(d.name) }       then :custom
           end
 
         rescue PublicSuffix::DomainInvalid => e

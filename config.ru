@@ -89,13 +89,13 @@ end
 # Enable local frontend development server proxy
 if ENV['RACK_ENV'] =~ /\A(dev|development)\z/
 
-# Validate Rack compliance
+  # Validate Rack compliance
   use Rack::Lint
 
   # Frontend development proxy configuration
   def run_frontend_proxy
     return unless defined?(OT)
-    config = OT.conf.dig(:development)
+    config = OT.conf.fetch(:development, {})
 
     case config
     in {enabled: true, frontend_host: String => frontend_host}

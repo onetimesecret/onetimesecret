@@ -68,7 +68,7 @@ module V2
             req.params,
             verification_data.fields,
             verification_data.fields_hash,
-            'SHA-256'
+            'SHA-256',
           )
 
           if fields_verified

@@ -8,7 +8,7 @@ RSpec.describe Onetime::Mail::Welcome do
 
   subject(:welcome_email) do
     with_emailer(
-      described_class.new(mail_customer, 'en', mail_secret)
+      described_class.new(mail_customer, 'en', mail_secret),
     )
   end
 
@@ -30,14 +30,14 @@ RSpec.describe Onetime::Mail::Welcome do
 
     it 'handles different locales' do
       french_email = with_emailer(
-        described_class.new(mail_customer, 'fr', mail_secret)
+        described_class.new(mail_customer, 'fr', mail_secret),
       )
       expect(french_email.subject).to eq('Bienvenue à OnetimeSecret')
     end
 
     it 'falls back to English for unsupported locale' do
       unsupported_email = with_emailer(
-        described_class.new(mail_customer, 'es', mail_secret)
+        described_class.new(mail_customer, 'es', mail_secret),
       )
       expect(unsupported_email.subject).to eq('Welcome to OnetimeSecret')
     end
@@ -68,7 +68,7 @@ RSpec.describe Onetime::Mail::Welcome do
         'test@example.com',
         'Welcome to OnetimeSecret',
         satisfy { |content| content.is_a?(String) && !content.empty? },
-        satisfy { |content| content.is_a?(String) && !content.empty? }
+        satisfy { |content| content.is_a?(String) && !content.empty? },
       )
 
       expect(Onetime::EmailReceipt).to have_received(:create)

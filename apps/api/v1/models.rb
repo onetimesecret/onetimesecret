@@ -32,5 +32,5 @@ DATABASE_IDS = {
   email_receipt: 8,
   secret: 8,
   feedback: 11,
-  exceptions: 12,
+  exceptions: 12
 }

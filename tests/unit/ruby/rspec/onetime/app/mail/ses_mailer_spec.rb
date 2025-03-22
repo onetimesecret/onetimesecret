@@ -109,9 +109,9 @@ RSpec.describe Onetime::Mail::AmazonSESMailer do
       before do
         allow(ses_client_double).to receive(:send_email).and_raise(
           Aws::SESV2::Errors::ServiceError.new(
-             'context',
-            'Email address is not verified'
-          )
+            'context',
+            'Email address is not verified',
+          ),
         )
       end
 
@@ -154,14 +154,14 @@ RSpec.describe Onetime::Mail::AmazonSESMailer do
       # Setup the expectation before calling the method
       expect(Aws::Credentials).to receive(:new).with(
         'AKIAEXAMPLE',
-        'wJalrXUtnFEMI/K7MDENG+bPxRfiCYEXAMPLEKEY'
+        'wJalrXUtnFEMI/K7MDENG+bPxRfiCYEXAMPLEKEY',
       ).and_call_original
 
       expect(Aws::SESV2::Client).to receive(:new).with(
         hash_including(
           region: 'ca-central-1',
-          credentials: instance_of(Aws::Credentials)
-        )
+          credentials: instance_of(Aws::Credentials),
+        ),
       )
 
       described_class.setup

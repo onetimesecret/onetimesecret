@@ -221,7 +221,7 @@ module Core
         locale: self.locale,
         default: OT.default_locale,
         page: page_messages,
-        COMMON: common_messages,
+        COMMON: common_messages
       }
     end
 
@@ -252,8 +252,8 @@ module Core
     # pagename must stay here while we use i18n method above. It populates
     # the i18n[:web][:pagename] hash with the locale translations, provided
     # the view being used has a matching name in the locales file.
-    def self.pagename
-      @pagename
+    class << self
+      attr_reader :pagename
     end
 
   end

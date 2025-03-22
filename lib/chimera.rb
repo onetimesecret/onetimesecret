@@ -27,9 +27,7 @@ class Chimera < Mustache
     @@partial_caching_enabled
   end
 
-  def options
-    @options
-  end
+  attr_reader :options
 
   def self.partial(name)
     path = "#{template_path}/#{name}.#{template_extension}"

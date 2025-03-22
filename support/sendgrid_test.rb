@@ -18,7 +18,7 @@ response = mailer.send_email(
   "Test Email Subject",
   "<p>This is a test html content.</p>",
   "This is a test text content.",
-  true # Enable sandbox mode
+  true, # Enable sandbox mode
 )
 
 if response&.status_code == "200"

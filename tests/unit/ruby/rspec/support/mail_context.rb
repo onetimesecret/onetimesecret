@@ -84,8 +84,7 @@ RSpec.shared_context "mail_test_context" do
       email: 'test@example.com',
       custid: 'test@example.com',
       anonymous?: false,
-      verified?: false
-    )
+      verified?: false)
   end
 
   let(:mail_secret) do
@@ -94,8 +93,7 @@ RSpec.shared_context "mail_test_context" do
       key: 'testkey123',
       share_domain: nil,
       ttl: 7200,
-      state: 'pending'
-    )
+      state: 'pending')
   end
 
   let(:mail_emailer) do
@@ -125,7 +123,7 @@ RSpec.shared_context "mail_test_context" do
       .with(
         mail_config[:emailer][:from],
         mail_config[:emailer][:fromname],
-        anything  # This allows any third parameter for reply_to
+        anything,  # This allows any third parameter for reply_to
       )
       .and_return(mailer)
 
@@ -133,7 +131,7 @@ RSpec.shared_context "mail_test_context" do
       .with(
         mail_config[:emailer][:from],
         mail_config[:emailer][:fromname],
-        anything  # This allows any third parameter for reply_to
+        anything,  # This allows any third parameter for reply_to
       )
       .and_return(mailer)
 
@@ -155,7 +153,7 @@ RSpec.shared_examples "mail delivery behavior" do
       expect(subject.i18n[:locale]).to eq('en')
       expect(subject.i18n[:COMMON]).to include(
         description: 'Test Description',
-        keywords: 'test,keywords'
+        keywords: 'test,keywords',
       )
     end
 
@@ -269,7 +267,7 @@ RSpec.shared_examples "localized email template" do |template_key|
       it "uses correct subject template and interpolation" do
         subject_template = mail_locales['en'][:email][template_key][:subject]
         expect(subject.subject).to eq(
-          subject_template % [customer.custid]
+          subject_template % [customer.custid],
         )
       end
     end
@@ -280,7 +278,7 @@ RSpec.shared_examples "localized email template" do |template_key|
       it "uses localized subject with interpolation" do
         subject_template = mail_locales['fr'][:email][template_key][:subject]
         expect(subject.subject).to eq(
-          subject_template % [customer.custid]
+          subject_template % [customer.custid],
         )
       end
     end
@@ -291,7 +289,7 @@ RSpec.shared_examples "localized email template" do |template_key|
       it "falls back to English with interpolation" do
         subject_template = mail_locales['en'][:email][template_key][:subject]
         expect(subject.subject).to eq(
-          subject_template % [customer.custid]
+          subject_template % [customer.custid],
         )
       end
     end

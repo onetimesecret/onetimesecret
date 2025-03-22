@@ -47,7 +47,7 @@ module Onetime::StripeRefinements
           interval: sub.plan.interval,
           interval_count: sub.plan.interval_count
         } : nil
-      }}
+      }},
     ]
   end
 
@@ -102,7 +102,7 @@ module Onetime::StripeRefinements
         # Only include safe metadata fields
         safe_metadata_keys = [:public_note, :preferred_language]
         cust.metadata_list.select { |k, _| safe_metadata_keys.include?(k.to_sym) }
-      }}
+      }},
     ]
   end
 end

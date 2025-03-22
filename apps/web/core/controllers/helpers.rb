@@ -433,17 +433,17 @@ module Core
     # Available levels are :fatal, :error, :warning, :log, :info,
     # and :debug. The Sentry default, if not specified, is :error.
     #
-    def capture_error(error, level=:error, &block)
+    def capture_error(error, level=:error, &)
       return unless OT.d9s_enabled # diagnostics are disabled by default
-      Sentry.capture_exception(error, level: level, &block)
+      Sentry.capture_exception(error, level: level, &)
     rescue StandardError => ex
       OT.le "[capture_error] #{ex.class}: #{ex.message}"
       OT.ld ex.backtrace.join("\n")
     end
 
-    def capture_message(message, level=:log, &block)
+    def capture_message(message, level=:log, &)
       return unless OT.d9s_enabled # diagnostics are disabled by default
-      Sentry.capture_message(message, level: level, &block)
+      Sentry.capture_message(message, level: level, &)
     rescue StandardError => ex
       OT.le "[capture_message] #{ex.class}: #{ex.message}"
       OT.ld ex.backtrace.join("\n")

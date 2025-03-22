@@ -32,7 +32,7 @@ module V1::Logic
 
         @has_items = records.any?
         @received, @notreceived = *records.partition{ |m| m[:is_destroyed] }
-        received.sort!{ |a,b| a[:updated] <=> b[:updated] }
+        received.sort_by! { |a| a[:updated] }
         notreceived.sort!{ |a,b| b[:updated] <=> a[:updated] }
       end
 

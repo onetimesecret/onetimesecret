@@ -13,11 +13,10 @@
 #
 inherit_from: .rubocop_todo.yml
 
-require:
-  - rubocop-thread_safety
-
 plugins:
+  - rubocop-thread_safety
   - rubocop-performance
+  - rubocop-rspec
 
 AllCops:
   NewCops: enable
@@ -25,8 +24,10 @@ AllCops:
   MaxFilesInCache: 100
   TargetRubyVersion: 3.1
   Exclude:
-    - 'migrate/**/*.rb'
+    - 'migrate/**/*'
+    - 'node_modules/**/*'
     - 'tests/unit/ruby/try/**/*'
+    - 'tests/unit/ruby/rspec/**/*'
     - 'vendor/**/*'
 
 Gemspec/DeprecatedAttributeAssignment:

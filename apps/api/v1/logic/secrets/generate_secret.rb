@@ -1,6 +1,6 @@
 # apps/api/v1/logic/secrets/generate_secret.rb
 
-require_relative './base_secret_action'
+require_relative 'base_secret_action'
 
 module V1::Logic
   module Secrets

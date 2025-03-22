@@ -29,7 +29,7 @@ module V2::Logic
       def success_data
         {
           custid: @cust.custid,
-          record: @custom_domain.safe_dump.fetch(:brand, {}),
+          record: @custom_domain.safe_dump.fetch(:brand, {})
         }
       end
 

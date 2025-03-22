@@ -50,7 +50,7 @@ module Onetime::Mail
               }
             },
             from_email_address: sender_email,
-            reply_to_addresses: [reply_to],
+            reply_to_addresses: [reply_to]
           }
 
           # Send the email
@@ -80,8 +80,8 @@ module Onetime::Mail
           region: OT.conf[:emailer][:region] || raise("Region not configured"),
           credentials: Aws::Credentials.new(
             OT.conf[:emailer][:user],
-            OT.conf[:emailer][:pass]
-          )
+            OT.conf[:emailer][:pass],
+          ),
         )
       end
 

@@ -11,13 +11,12 @@ RSpec.shared_context "rack_test_context" do
         'REMOTE_ADDR' => '127.0.0.1',
         'HTTP_HOST' => 'example.com',
         'rack.session' => {},
-        'HTTP_ACCEPT' => 'application/json',
+        'HTTP_ACCEPT' => 'application/json'
       },
       cookies: {},
       session: {},
       script_name: '',
-      body: StringIO.new,
-    )
+      body: StringIO.new)
   end
 
   let(:rack_response) do
@@ -28,8 +27,7 @@ RSpec.shared_context "rack_test_context" do
       body: [],
       set_cookie: nil,
       finish: [200, {}, []],
-      write: nil,
-    ).tap do |resp|
+      write: nil).tap do |resp|
       allow(resp).to receive(:[]=) { |k,v| resp.headers[k] = v }
       allow(resp).to receive(:[]) { |k| resp.headers[k] }
       allow(resp).to receive(:header).and_return(resp.headers)

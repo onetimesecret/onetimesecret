@@ -9,7 +9,7 @@ RSpec.describe Onetime::Mail::SecretLink do
   subject(:secret_link) do
     # Use helper that properly handles emailer injection
     with_emailer(
-      described_class.new(mail_customer, 'en', mail_secret, recipient)
+      described_class.new(mail_customer, 'en', mail_secret, recipient),
     )
   end
 
@@ -60,8 +60,7 @@ RSpec.describe Onetime::Mail::SecretLink do
           key: 'testkey123',
           share_domain: 'custom.example.com',
           ttl: 7200,
-          state: 'pending'
-        )
+          state: 'pending')
       end
 
       it 'uses custom domain' do
@@ -92,8 +91,7 @@ RSpec.describe Onetime::Mail::SecretLink do
           key: nil,
           share_domain: nil,
           ttl: 7200,
-          state: 'pending'
-        )
+          state: 'pending')
       end
 
       it 'raises error' do
@@ -134,7 +132,7 @@ RSpec.describe Onetime::Mail::SecretLink do
         satisfy { |content|
           # Test for critical content presence rather than structure
           content.is_a?(String) && !content.empty?
-        }
+        },
       )
     end
   end

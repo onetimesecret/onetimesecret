@@ -87,14 +87,14 @@ group :development do
   gem 'pry-byebug', require: false
   gem 'rack-proxy', require: false
   gem 'rubocop-performance', require: false
-  gem 'rubocop-thread_safety', require: false
   gem 'rubocop-rspec', require: false
+  gem 'rubocop-thread_safety', require: false
   gem 'tryouts', require: false
 end
 
 group :test do
-  gem 'simplecov', require: false
   gem 'rspec', git: "https://github.com/rspec/rspec"
+  gem 'simplecov', require: false
   %w[rspec-core rspec-expectations rspec-mocks rspec-support].each do |lib|
     gem lib, git: "https://github.com/rspec/rspec", glob: "#{lib}/#{lib}.gemspec"
   end

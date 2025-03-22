@@ -16,7 +16,7 @@ mailer = Onetime::Mail::AmazonSESMailer.new "sender@onetimesecret.com", "Test Se
 response = mailer.send_email(
   "recipient@example.com",
   "AWS SES Test Email",
-  "<p>This is a test email sent via Amazon SES.</p>"
+  "<p>This is a test email sent via Amazon SES.</p>",
 )
 
 if response&.message_id

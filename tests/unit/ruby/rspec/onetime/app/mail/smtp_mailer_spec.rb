@@ -188,7 +188,7 @@ RSpec.describe Onetime::Mail::SMTPMailer do
           expect(result).to be_nil
         end
       end
-    end
+  end
 
     describe '.setup' do
       it 'configures Mail defaults with correct SMTP settings' do
@@ -218,4 +218,4 @@ RSpec.describe Onetime::Mail::SMTPMailer do
         described_class.setup
       end
     end
-  end
+end

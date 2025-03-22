@@ -1,6 +1,6 @@
 # tests/unit/ruby/rspec/onetime/app/api/v1/endpoints_spec.rb
 
-require_relative '../../../../spec_helper.rb'
+require_relative '../../../../spec_helper'
 
 RSpec.describe V1::API, type: :request do
   let(:request) { rack_request }
@@ -19,8 +19,7 @@ RSpec.describe V1::API, type: :request do
       authenticated?: true,
       anonymous?: false,
       ipaddress: ip_address,
-      external_identifier: 'ext123'
-    )
+      external_identifier: 'ext123')
   end
 
   let(:customer) do
@@ -31,8 +30,7 @@ RSpec.describe V1::API, type: :request do
       verified?: true,
       role: 'customer',
       increment_field: nil,
-      email: 'test@example.com'
-    )
+      email: 'test@example.com')
   end
 
 
@@ -73,7 +71,7 @@ RSpec.describe V1::API, type: :request do
         expect(app).to receive(:json).with(
           value: secret_value,
           secret_key: secret_key,
-          share_domain: share_domain
+          share_domain: share_domain,
         )
         app.show_secret
       end
@@ -98,14 +96,12 @@ RSpec.describe V1::API, type: :request do
       double('Secret',
         realttl: 3600,
         has_passphrase?: false,
-        key: 'secret_key_123'
-      )
+        key: 'secret_key_123')
     end
     let(:metadata) do
       double('Metadata',
         key: 'metadata_key_123',
-        viewed!: nil
-      )
+        viewed!: nil)
     end
 
     before do
@@ -128,8 +124,8 @@ RSpec.describe V1::API, type: :request do
         hash_including(
           key: 'metadata_key_123',
           secret_ttl: 3600,
-          passphrase_required: false
-        )
+          passphrase_required: false,
+        ),
       )
       app.share
     end
@@ -151,7 +147,7 @@ RSpec.describe V1::API, type: :request do
     it 'returns system status' do
       expect(app).to receive(:json).with(
         status: :nominal,
-        locale: 'en'
+        locale: 'en',
       )
       app.status
     end
@@ -166,7 +162,7 @@ RSpec.describe V1::API, type: :request do
     it 'returns status without requiring authorization' do
       expect(app).to receive(:json).with(
         status: :nominal,
-        locale: 'en'
+        locale: 'en',
       )
       app.authcheck
     end

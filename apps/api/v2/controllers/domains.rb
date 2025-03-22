@@ -17,7 +17,7 @@ module V2
       process_action(
         V2::Logic::Domains::AddDomain,
         "Domain added successfully.",
-        "Domain could not be added."
+        "Domain could not be added.",
       )
     end
 
@@ -25,7 +25,7 @@ module V2
       process_action(
         V2::Logic::Domains::VerifyDomain,
         "Domain verified.",
-        "Domain could not be verified."
+        "Domain could not be verified.",
       )
     end
 
@@ -33,7 +33,7 @@ module V2
       process_action(
         V2::Logic::Domains::RemoveDomain,
         "Domain removed successfully.",
-        "Domain could not be removed."
+        "Domain could not be removed.",
       )
     end
 
@@ -57,7 +57,7 @@ module V2
       process_action(
         V2::Logic::Domains::UpdateDomainBrand,
         "Brand settings saved successfully.",
-        "Brand settings could not be saved."
+        "Brand settings could not be saved.",
       )
     end
 
@@ -71,7 +71,7 @@ module V2
         process_action(
           V2::Logic::Domains.const_get("RemoveDomain#{type.capitalize}"),
           "#{type.capitalize} removed.",
-          "#{type.capitalize} could not be removed."
+          "#{type.capitalize} could not be removed.",
         )
       end
 
@@ -79,7 +79,7 @@ module V2
         process_action(
           V2::Logic::Domains.const_get("UpdateDomain#{type.capitalize}"),
           "#{type.capitalize} saved successfully.",
-          "#{type.capitalize} could not be saved."
+          "#{type.capitalize} could not be saved.",
         )
       end
     end

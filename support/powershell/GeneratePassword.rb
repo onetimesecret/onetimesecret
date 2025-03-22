@@ -28,7 +28,7 @@ class PasswordGenerator
       LOWER_CASE.sample,
       UPPER_CASE.sample,
       NUMBERS.sample,
-      SPECIAL_CHARS.sample
+      SPECIAL_CHARS.sample,
     ]
 
     # Fill the rest with random characters

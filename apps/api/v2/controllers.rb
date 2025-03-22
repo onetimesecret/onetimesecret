@@ -47,7 +47,7 @@ module V2
         V2::Logic::Misc::ReceiveException,
         "Exception received. No offense taken.",
         "Sorry we were not able to receive your exception (it's us, not you).",
-        allow_anonymous: true
+        allow_anonymous: true,
       )
     end
 

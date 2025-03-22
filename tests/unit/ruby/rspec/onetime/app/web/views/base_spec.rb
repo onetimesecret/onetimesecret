@@ -52,8 +52,8 @@ RSpec.describe Core::View do
 
     it 'includes secret options' do
       expect(subject[:jsvars][:secret_options]).to eq({
-        default_ttl: 86400,
-        ttl_options: [3600, 86400]
+        default_ttl: 86_400,
+        ttl_options: [3600, 86_400]
       })
     end
 
@@ -63,7 +63,7 @@ RSpec.describe Core::View do
           development: {
             enabled: true,
             frontend_host: 'http://localhost:5173'
-          }
+          },
         )
       end
 
@@ -78,8 +78,7 @@ RSpec.describe Core::View do
         instance_double('Customer',
           anonymous?: true,
           planid: 'anonymous',
-          custid: nil
-        )
+          custid: nil)
       end
 
       it 'sets appropriate anonymous state' do
@@ -114,20 +113,20 @@ RSpec.describe Core::View do
       allow(Onetime).to receive(:with_diagnostics).and_yield
       allow(OT).to receive(:d9s).and_return(true)
       allow(OT).to receive(:conf).and_return(config.merge(
-        diagnostics: {
-          sentry: {
-            frontend: {
-              dsn: 'https://test-dsn@sentry.example.com/1'
-            }
-          }
-        }
-      ))
+                                               diagnostics: {
+                                                 sentry: {
+                                                   frontend: {
+                                                     dsn: 'https://test-dsn@sentry.example.com/1'
+                                                   }
+                                                 }
+                                               },
+                                             ))
     end
 
     it 'sets diagnostic variables when enabled and DSN provided' do
       expect(subject[:jsvars][:diagnostics]).to eq({
         sentry: {
-          dsn: 'https://test-dsn@sentry.example.com/1',
+          dsn: 'https://test-dsn@sentry.example.com/1'
         }
       })
       expect(subject[:jsvars][:d9s_enabled]).to be OT.d9s_enabled
@@ -137,7 +136,7 @@ RSpec.describe Core::View do
       expect(subject[:jsvars][:d9s_enabled]).to be false
       expect(subject[:jsvars][:diagnostics]).to eq({
         sentry: {
-          dsn: 'https://test-dsn@sentry.example.com/1',
+          dsn: 'https://test-dsn@sentry.example.com/1'
         }
       })
     end
@@ -183,10 +182,10 @@ RSpec.describe Core::View do
                 identifier: 'EU',
                 display_name: 'European Union',
                 domain: 'eu.example.com'
-              }
+              },
             ]
-          }
-        )
+          },
+        ),
       )
     end
 
@@ -194,7 +193,7 @@ RSpec.describe Core::View do
       expect(subject[:jsvars][:regions_enabled]).to be true
       expect(subject[:jsvars][:regions]).to include(
         enabled: true,
-        current_jurisdiction: 'EU'
+        current_jurisdiction: 'EU',
       )
     end
 
@@ -202,8 +201,8 @@ RSpec.describe Core::View do
       let(:config) do
         super().merge(
           site: super()[:site].merge(
-            regions: { enabled: false }
-          )
+            regions: { enabled: false },
+          ),
         )
       end
 
@@ -237,16 +236,14 @@ RSpec.describe Core::View do
           safe_dump: nil,
           verified?: false,
           active?: false,
-          role: 'anonymous'
-        )
+          role: 'anonymous')
       end
 
       let(:session) do
         instance_double('Session',
           authenticated?: false,
           add_shrimp: nil,
-          get_messages: []
-        )
+          get_messages: [])
       end
 
       it 'sets required keys to nil for anonymous users' do
@@ -266,12 +263,12 @@ RSpec.describe Core::View do
           enabled: true,
           default_locale: 'en',
           fallback_locale: {
-            'fr-CA': ['fr_CA', 'fr_FR', 'en'],
-            'fr': ['fr_FR', 'fr_CA', 'en'],
+            'fr-CA': %w[fr_CA fr_FR en],
+            fr: %w[fr_FR fr_CA en],
             'fr-*': ['fr_FR', 'en'],
             default: ['en']
           },
-          locales: ['en', 'fr_CA', 'fr_FR']
+          locales: %w[en fr_CA fr_FR]
         }
       }
     end
@@ -295,7 +292,7 @@ RSpec.describe Core::View do
       before do
         allow(OT).to receive(:default_locale).and_return('en')
         allow(OT).to receive(:fallback_locale).and_return('en')
-        allow(OT).to receive(:supported_locales).and_return(['en', 'fr_CA', 'fr_FR'])
+        allow(OT).to receive(:supported_locales).and_return(%w[en fr_CA fr_FR])
       end
 
       it 'sets correct locale variables' do
@@ -304,7 +301,7 @@ RSpec.describe Core::View do
         expect(vars[:is_default_locale]).to eq(expected[:is_default])
         expect(vars[:default_locale]).to eq('en')
         expect(vars[:fallback_locale]).to eq('en')
-        expect(vars[:supported_locales]).to eq(['en', 'fr_CA', 'fr_FR'])
+        expect(vars[:supported_locales]).to eq(%w[en fr_CA fr_FR])
       end
     end
 

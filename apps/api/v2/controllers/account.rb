@@ -21,7 +21,7 @@ module V2
         process_action(
           V2::Logic::Account::GenerateAPIToken,
           "API Key generated successfully.",
-          "API Key could not be generated."
+          "API Key could not be generated.",
         )
       end
 
@@ -29,7 +29,7 @@ module V2
         process_action(
           V2::Logic::Account::UpdatePassword,
           "Password changed successfully.",
-          "Password could not be changed."
+          "Password could not be changed.",
         )
       end
 
@@ -37,7 +37,7 @@ module V2
         process_action(
           V2::Logic::Account::UpdateLocale,
           "Locale updated successfully.",
-          "Locale could not be updated."
+          "Locale could not be updated.",
         )
       end
 
@@ -45,7 +45,7 @@ module V2
         process_action(
           V2::Logic::Account::DestroyAccount,
           "Account destroyed successfully.",
-          "Account could not be destroyed."
+          "Account could not be destroyed.",
         )
       end
 

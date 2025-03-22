@@ -110,7 +110,7 @@ module V2::Logic
           @event = Stripe::Webhook.construct_event(
             payload,
             stripe_signature,
-            @endpoint_secret
+            @endpoint_secret,
           )
 
         rescue JSON::ParserError => e

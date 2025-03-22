@@ -39,7 +39,7 @@ module V2::Logic
           params,
           verification_data.fields,
           verification_data.fields_hash,
-          'SHA-256'
+          'SHA-256',
         )
 
         verified && fields_verified
@@ -57,11 +57,10 @@ module V2::Logic
           configured_colonels.each do |colonel_email|
             OT.ld "Colonel: #{colonel_email}"
             first_colonel = V2::Customer.find colonel_email
-            if first_colonel
-              OT.ld "[receive_feedback] Sending feedback to colonel: #{colonel_email} #{first_colonel}"
-              send_feedback first_colonel, msg
-              break
-            end
+            next unless first_colonel
+            OT.ld "[receive_feedback] Sending feedback to colonel: #{colonel_email} #{first_colonel}"
+            send_feedback first_colonel, msg
+            break
           end
 
         rescue StandardError => ex
