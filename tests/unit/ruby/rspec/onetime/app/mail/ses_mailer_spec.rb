@@ -4,7 +4,7 @@ require_relative '../../../spec_helper'
 require 'aws-sdk-sesv2'
 require 'onetime/app/mail/ses_mailer'
 
-RSpec.describe Onetime::App::Mail::AmazonSESMailer do
+RSpec.describe Onetime::Mail::AmazonSESMailer do
   let(:from_email) { 'sender@example.com' }
   let(:from_name) { 'Test Sender' }
   let(:to_email) { 'recipient@example.com' }

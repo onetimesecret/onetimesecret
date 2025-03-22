@@ -125,9 +125,9 @@ end
 cust = OT::Customer.anonymous
 sess = OT::Session.new 'id123', cust, "tryouts"
 sess.event_clear! :send_feedback
-challenge = Onetime::App::APIV2::Challenges.generate_authenticity_challenge(5000) # very low
-solution = Onetime::App::APIV2::Challenges.solve_authenticity_challenge(challenge.challenge, challenge.salt, challenge.algorithm, challenge.maxnumber, 0)
-payload = Onetime::App::APIV2::Challenges._authenticity_challenge_payload(challenge, solution.number)
+challenge = V1::APIV2::Challenges.generate_authenticity_challenge(5000) # very low
+solution = V1::APIV2::Challenges.solve_authenticity_challenge(challenge.challenge, challenge.salt, challenge.algorithm, challenge.maxnumber, 0)
+payload = V1::APIV2::Challenges._authenticity_challenge_payload(challenge, solution.number)
 payload_encoded = Base64.encode64(payload.to_json)
 p [:challenge, challenge]
 p [:solution, solution]

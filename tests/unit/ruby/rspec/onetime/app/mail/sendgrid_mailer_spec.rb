@@ -1,7 +1,7 @@
 require_relative '../../../spec_helper'
 require 'onetime/app/mail/sendgrid_mailer'
 
-RSpec.describe Onetime::App::Mail::SendGridMailer do
+RSpec.describe Onetime::Mail::SendGridMailer do
   let(:from_email) { 'sender@example.com' }
   let(:from_name) { 'Test Sender' }
   let(:to_address) { 'recipient@example.com' }

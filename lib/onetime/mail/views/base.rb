@@ -1,16 +1,16 @@
 # apps/mail/views/base.rb
 
 require 'lib/chimera'
-require_relative '../../web/core/views/view_helpers'
+require_relative 'view_helpers'
 
 module Mail
   module Views
 
     class Base < Chimera
-      include Mail::Views::ViewHelpers
+      include Mail::ViewHelpers
 
       self.template_path = './templates/mail'
-      self.view_namespace = Onetime::App::Mail
+      self.view_namespace = Onetime::Mail
       self.view_path = './onetime/email'
 
       attr_reader :cust, :locale, :emailer, :mode, :from, :to
@@ -75,7 +75,7 @@ module Mail
           # codepath that has a token set. Just keep in mind that this is not an
           # authentication token or any kind of unique value. It's just a simple
           # flag that when set to any truthy value will skip over this delivery.
-          # See Onetime::App::API#create
+          # See V1::API#create
           unless token
             emailer.send_email self[:email_address], subject, render_html, render_text
           end

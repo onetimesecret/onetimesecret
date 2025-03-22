@@ -26,7 +26,7 @@ OT.boot! :test
 @num = rand(1000)
 
 class TestHelper
-  include Onetime::App::Views::ViewHelpers
+  include Core::ViewHelpers
   attr_reader :num
 
   def initialize(num)

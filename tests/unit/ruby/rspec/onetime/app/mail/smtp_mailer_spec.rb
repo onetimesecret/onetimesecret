@@ -3,7 +3,7 @@
 require_relative '../../../spec_helper'
 require 'onetime/app/mail/smtp_mailer'
 
-RSpec.describe Onetime::App::Mail::SMTPMailer do
+RSpec.describe Onetime::Mail::SMTPMailer do
   let(:from_email) { 'system@example.com' }
   let(:from_name) { 'System Sender' }
   let(:reply_to) { 'sender@example.com' }

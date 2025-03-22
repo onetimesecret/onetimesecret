@@ -151,13 +151,13 @@ RSpec.describe "Internationalization config" do
     end
   end
 
-  describe Onetime::App::WebHelpers do
+  describe V2::ControllerHelpers do
     describe '#check_locale! (Regression for #1142)' do
       let(:req) { double('request', params: {}, env: {}) }
       let(:cust) { double('customer', locale: nil) }
       let(:helper) do
         Class.new do
-          include Onetime::App::WebHelpers
+          include V2::ControllerHelpers
           attr_accessor :req, :cust
 
           def initialize(req, cust)

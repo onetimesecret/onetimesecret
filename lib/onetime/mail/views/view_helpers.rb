@@ -1,6 +1,6 @@
-# apps/web/core/views/view_helpers.rb
+# lib/onetime/mail/views/view_helpers.rb
 
-module Core
+module Mail
 
   module ViewHelpers # rubocop:disable Style/Documentation
 

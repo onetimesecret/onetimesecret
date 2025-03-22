@@ -10,7 +10,7 @@ module Core
     # JavaScript variables from the backend to the frontend.
     #
     # Example usage:
-    #   view = Onetime::App::Views::VuePoint.new
+    #   view = Core::Views::VuePoint.new
     #
     class VuePoint < Core::View
       self.template_name = 'index'

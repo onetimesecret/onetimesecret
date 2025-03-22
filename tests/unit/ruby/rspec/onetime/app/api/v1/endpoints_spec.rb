@@ -2,7 +2,7 @@
 
 require_relative '../../../../spec_helper.rb'
 
-RSpec.describe Onetime::App::API, type: :request do
+RSpec.describe V1::API, type: :request do
   let(:request) { rack_request }
   let(:response) { rack_response }
 

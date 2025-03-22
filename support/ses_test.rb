@@ -7,10 +7,10 @@ require 'onetime/app/mail/ses_mailer'
 
 Onetime.boot! :app
 
-Onetime::App::Mail::AmazonSESMailer.setup
+Onetime::Mail::AmazonSESMailer.setup
 
 # Initialize mailer
-mailer = Onetime::App::Mail::AmazonSESMailer.new "sender@onetimesecret.com", "Test Sender"
+mailer = Onetime::Mail::AmazonSESMailer.new "sender@onetimesecret.com", "Test Sender"
 
 # Send test email
 response = mailer.send_email(

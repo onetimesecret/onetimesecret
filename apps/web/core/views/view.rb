@@ -7,13 +7,13 @@ require_relative 'vite_helpers'
 
 module Core
   class View < Chimera
-    include Core::Views::ViewHelpers
-    include Core::Views::ViteHelpers
+    include Core::ViewHelpers
+    include Core::ViteHelpers
     include Onetime::TimeUtils
 
     self.template_path = './templates/web'
     self.template_extension = 'html'
-    self.view_namespace = Core::Views
+    self.view_namespace = Core::View
     self.view_path = './app/web/views'
 
     attr_reader :req, :plan, :is_paid, :canonical_domain, :display_domain, :domain_strategy

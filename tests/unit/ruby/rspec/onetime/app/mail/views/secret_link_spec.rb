@@ -2,7 +2,7 @@
 
 require_relative '../../../../spec_helper'
 
-RSpec.describe Onetime::App::Mail::SecretLink do
+RSpec.describe Onetime::Mail::SecretLink do
   include_context "mail_test_context"
   it_behaves_like "mail delivery behavior"
 

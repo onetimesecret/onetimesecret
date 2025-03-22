@@ -5,7 +5,7 @@ module V2
   # ControllerSettings module provides configuration options for UTF-8 and URI
   # encoding middleware checks.
   #
-  # This module is designed to be included in Onetime::App subclasses.
+  # This module is designed to be included in V2 controller subclasses.
   #
   module ControllerSettings
     # Default settings for UTF-8 and URI encoding checks

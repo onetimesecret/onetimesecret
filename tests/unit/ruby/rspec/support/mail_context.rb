@@ -140,7 +140,7 @@ RSpec.shared_context "mail_test_context" do
     # Setup OT.emailer to return the correct mailer class
     allow(OT).to receive(:emailer).and_return(OT::App::Mail::SMTPMailer)
 
-    allow_any_instance_of(Onetime::App::Mail::Base).to receive(:emailer).and_return(mailer)
+    allow_any_instance_of(Onetime::Mail::Base).to receive(:emailer).and_return(mailer)
   end
 end
 
@@ -203,7 +203,7 @@ RSpec.shared_examples "mustache template behavior" do |template_name, options = 
 
     it "has correct template configuration" do
       expect(described_class.template_path).not_to be_nil
-      expect(described_class.view_namespace).to eq(Onetime::App::Mail)
+      expect(described_class.view_namespace).to eq(Onetime::Mail)
     end
 
     # Only run filesystem checks if templates exist
