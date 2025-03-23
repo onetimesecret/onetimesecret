@@ -215,12 +215,14 @@ module V1
       if self.class.has_relations?
         related_names = self.class.redis_types.keys
         OT.ld "[destroy!] #{self.class} has relations: #{related_names}"
-        keys_to_delete.concat(
-          related_names.filter_map do |name|
-            relation = send(name)
-            relation.rediskey # e.g, self.brand.rediskey
-          end,
-        )
+
+        related_keys = related_names.filter_map do |name|generate_txt_validation_record
+          relation = send(name) # e.g. self.brand
+          relation.rediskey
+        end
+
+        # Append related Redis keys to the deletion list.
+        keys_to_delete.concat(related_keys)
       end
 
       redis.multi do |multi|
