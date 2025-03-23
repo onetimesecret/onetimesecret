@@ -2,7 +2,7 @@
 
 # e.g. pnpm run rspec tests/unit/ruby/rspec/apps/web/views/base_spec.rb
 
-require_relative '../../../../spec_helper'
+require_relative '../../../spec_helper'
 
 RSpec.describe Core::View do
   include_context "rack_test_context"

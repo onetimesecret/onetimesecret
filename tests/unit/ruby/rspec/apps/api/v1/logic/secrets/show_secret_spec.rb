@@ -1,9 +1,8 @@
-# tests/unit/ruby/rspec/onetime/refinements/logic/secrets/show_secret_spec.rb
+# tests/unit/ruby/rspec/apps/api/v1/logic/secrets/show_secret_spec.rb
 
-require_relative '../../../spec_helper'
+require_relative '../../../../../spec_helper' # correct depth - Mar 22
 
-
-RSpec.describe Onetime::Logic::Secrets::ShowSecret do
+RSpec.describe V2::Logic::Secrets::ShowSecret do
   let(:session) { double('Session') }
   let(:customer) { double('Customer', anonymous?: false, custid: 'cust123', increment_field: nil ) }
   let(:owner) { double('Owner', custid: 'owner123', verified?: false, anonymous?: false, increment_field: nil ) }
@@ -29,8 +28,8 @@ RSpec.describe Onetime::Logic::Secrets::ShowSecret do
   before do
     allow(V2::Secret).to receive(:load).with('secret123').and_return(secret)
     allow(secret).to receive(:load_customer).and_return(owner)
-    allow(OT::Customer).to receive(:global).and_return(double('Global', increment_field: true))
-    allow(OT::Logic).to receive(:stathat_count)
+    allow(V2::Customer).to receive(:global).and_return(double('Global', increment_field: true))
+    allow(V2::Logic).to receive(:stathat_count)
   end
 
   describe '#process' do
