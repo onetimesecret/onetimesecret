@@ -1,6 +1,6 @@
 # tests/unit/ruby/rspec/onetime/logic/secrets/base_secret_action_spec.rb
 
-RSpec.describe V2::Logic::Secrets::BaseSecretAction do
+RSpec.describe V1::Logic::Secrets::BaseSecretAction do
   # Create test implementation class
   class TestSecretAction < Onetime::Logic::Secrets::BaseSecretAction
     def process_secret

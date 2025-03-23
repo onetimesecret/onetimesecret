@@ -23,7 +23,7 @@ RSpec.describe V1, type: :request do
   end
 
   let(:customer) do
-    instance_double(V2::Customer,
+    instance_double(V1::Customer,
       custid: customer_id,
       anonymous?: false,
       active?: true,
