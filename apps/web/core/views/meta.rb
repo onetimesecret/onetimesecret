@@ -1,4 +1,6 @@
-# apps/web/core/views/views.rb
+# apps/web/core/views/meta.rb
+
+require_relative 'base'
 
 module Core
   module Views
@@ -11,25 +13,25 @@ module Core
     # Example usage:
     #   view = Core::Views::VuePoint.new
     #
-    class VuePoint < Core::View
+    class VuePoint < Core::Views::BaseView
       self.template_name = 'index'
       def init *args
       end
     end
 
-    class Error < Core::View
+    class Error < Core::Views::BaseView
       def init *args
         self[:title] = "I'm afraid there's been an error"
       end
     end
 
     # The robots.txt file
-    class RobotsTxt < Core::View
+    class RobotsTxt < Core::Views::BaseView
       self.template_name = 'robots'
       self.template_extension = 'txt'
     end
 
-    class UnknownSecret < Core::View
+    class UnknownSecret < Core::Views::BaseView
       self.template_name = :index
     end
 

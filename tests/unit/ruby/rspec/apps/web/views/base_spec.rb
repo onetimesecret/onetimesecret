@@ -4,7 +4,7 @@
 
 require_relative '../../../spec_helper'
 
-RSpec.describe Core::View do
+RSpec.describe Core::Views::BaseView do
   include_context "rack_test_context"
   include_context "view_test_context"
 

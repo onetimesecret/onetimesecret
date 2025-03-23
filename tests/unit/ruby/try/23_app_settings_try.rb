@@ -1,6 +1,6 @@
 # tests/unit/ruby/try/23_app_settings_try.rb
 
-# These tryouts test the functionality of the AppSettings module in the Core::View class.
+# These tryouts test the functionality of the AppSettings module in the Core::Views::BaseView class.
 # The AppSettings module provides configuration options for UTF-8 and URI encoding
 # middleware checks.
 #
