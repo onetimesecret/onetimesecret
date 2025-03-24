@@ -2,4 +2,3 @@
 
 require 'v1/models'
 require 'v2/models'
-require 'core/models'
