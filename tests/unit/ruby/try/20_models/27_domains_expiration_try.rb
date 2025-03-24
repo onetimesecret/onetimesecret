@@ -8,7 +8,7 @@ require 'securerandom'
 # Load the app
 OT.boot! :test, false
 
-@customer = OT::Customer.create "Tryouts+27+#{SecureRandom.uuid}@onetimesecret.com"
+@customer = V1::Customer.create "Tryouts+27+#{SecureRandom.uuid}@onetimesecret.com"
 @domain = 'example.com'
 
 ## Base update_expiration accepts ttl parameter without error

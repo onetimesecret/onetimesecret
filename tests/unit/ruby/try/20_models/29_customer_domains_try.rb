@@ -11,7 +11,7 @@ OT.boot! :test, false
 # Setup some variables for these tryouts
 @now = Time.now
 @email_address = "tryouts29+#{@now.to_i}@onetimesecret.com"
-@cust = OT::Customer.new @email_address
+@cust = V1::Customer.new @email_address
 
 @valid_domain = 'another.subdomain.onetimesecret.com'
 @valid_domain2 = 'another2.subdomain.onetimesecret.com'
@@ -76,7 +76,7 @@ custom_domain.owner?('anothercustomer@onetimesecret.com')
 #=> false
 
 ## A custom domain has an owner (via different customer)
-cust = OT::Customer.create("anothercustome+#{@now.to_i}r@onetimesecret.com")
+cust = V1::Customer.create("anothercustome+#{@now.to_i}r@onetimesecret.com")
 custom_domain = V2::CustomDomain.new(@valid_domain, @cust.custid)
 custom_domain.owner?(cust)
 #=> false

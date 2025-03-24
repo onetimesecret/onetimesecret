@@ -11,8 +11,8 @@ module V1
   module ControllerHelpers
 
     def plan
-      @plan = V1::Plan.plan(cust.planid) unless cust.nil?
-      @plan ||= V1::Plan.plan('anonymous')
+      @plan = Onetime::Plan.plan(cust.planid) unless cust.nil?
+      @plan ||= Onetime::Plan.plan('anonymous')
       @plan
     end
 

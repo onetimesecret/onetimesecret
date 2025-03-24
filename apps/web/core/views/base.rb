@@ -2,6 +2,8 @@
 
 require 'chimera'
 
+require 'onetime/middleware/domain_strategy'
+
 require_relative 'view_helpers'
 require_relative 'vite_helpers'
 

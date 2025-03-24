@@ -13,20 +13,21 @@
 
 require_relative './test_helpers'
 require 'onetime/models'
+
 # Load the app
 OT.boot! :test, false
 
 # Setup some variables for these tryouts
 @now = Time.now.strftime("%Y%m%d%H%M%S")
 @email_address = "tryouts+#{@now}@onetimesecret.com"
-@cust = OT::Customer.new @email_address
+@cust = V2::Customer.new @email_address
 
 # TRYOUTS
 #
 
 # Setup for EmailReceipt tryouts
 @secretid = "secret#{@now}"
-@email_receipt = OT::EmailReceipt.new(secretid: @secretid, custid: @email_address)
+@email_receipt = V2::EmailReceipt.new(secretid: @secretid, custid: @email_address)
 
 ## EmailReceipt has the correct prefix (method is in Familia v1.1.0-rc1+)
 @email_receipt.prefix
@@ -45,9 +46,9 @@ OT.boot! :test, false
 #=> "secret:#{@secretid}:email"
 
 ## Can create a new EmailReceipt
-@new_receipt = OT::EmailReceipt.create(@email_address, @secretid, "Test message")
+@new_receipt = V2::EmailReceipt.create(@email_address, @secretid, "Test message")
 @new_receipt.class
-#=> OT::EmailReceipt
+#=> V2::EmailReceipt
 
 ## New EmailReceipt has correct custid
 @new_receipt.custid
@@ -66,15 +67,15 @@ OT.boot! :test, false
 #=> true
 
 ## Can retrieve all EmailReceipts
-OT::EmailReceipt.all.class
+V2::EmailReceipt.all.class
 #=> Array
 
 ## Can retrieve recent EmailReceipts
-OT::EmailReceipt.recent.class
+V2::EmailReceipt.recent.class
 #=> Array
 
 ## EmailReceipt is added to values sorted set
-OT::EmailReceipt.values.member?(@new_receipt.identifier)
+V2::EmailReceipt.values.member?(@new_receipt.identifier)
 #=> true
 
 ## Can destroy EmailReceipt
@@ -83,5 +84,5 @@ OT::EmailReceipt.values.member?(@new_receipt.identifier)
 #=> false
 
 ## Destroyed EmailReceipt is removed from values sorted set
-OT::EmailReceipt.values.member?(@new_receipt.identifier)
+V2::EmailReceipt.values.member?(@new_receipt.identifier)
 #=> false

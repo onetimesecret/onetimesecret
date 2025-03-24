@@ -6,8 +6,8 @@ require 'securerandom'
 # Load the app
 OT.boot! :test, false
 
-@customer = OT::Customer.create "Tryouts+27+#{SecureRandom.uuid}@onetimesecret.com"
-@alt_customer = OT::Customer.create "Tryouts+27+#{SecureRandom.uuid}@onetimesecret.com"
+@customer = V1::Customer.create "Tryouts+27+#{SecureRandom.uuid}@onetimesecret.com"
+@alt_customer = V1::Customer.create "Tryouts+27+#{SecureRandom.uuid}@onetimesecret.com"
 @apex_domain = 'example.com'
 @subdomain = 'sub.example.com'
 @nested_subdomain = 'nested.sub.example.com'

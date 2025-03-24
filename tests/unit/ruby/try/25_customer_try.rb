@@ -9,10 +9,10 @@
 # 4. Timestamp handling (created, updated, last_login)
 # 5. Customer destruction process
 #
-# These tests aim to verify the correct behavior of the OT::Customer class,
+# These tests aim to verify the correct behavior of the V2::Customer class,
 # which is essential for managing user accounts in the application.
 #
-# The tryouts simulate different customer scenarios and test the OT::Customer class's
+# The tryouts simulate different customer scenarios and test the V2::Customer class's
 # behavior without needing to run the full application, allowing for targeted testing
 # of these specific scenarios.
 
@@ -27,7 +27,7 @@ OT.boot! :test, false
 # Setup some variables for these tryouts
 @now = Time.now.strftime("%Y%m%d%H%M%S")
 @email_address = "tryouts+#{@now}@onetimesecret.com"
-@cust = OT::Customer.new @email_address
+@cust = V2::Customer.new @email_address
 
 # TRYOUTS
 
@@ -46,13 +46,13 @@ p [:email, @email_address]
 #=> "customer:#{@email_address}:object"
 
 ## Can "create" an anonymous user (more like simulate)
-@anonymous = OT::Customer.anonymous
+@anonymous = V2::Customer.anonymous
 @anonymous.custid
 #=> 'anon'
 
 ## Anonymous is a Customer class
 @anonymous.class
-#=> OT::Customer
+#=> V2::Customer
 
 ## Anonymous knows it's anonymous
 @anonymous.anonymous?
@@ -144,17 +144,17 @@ ttl = @cust.ttl
 #=> false
 
 ## Customer.values has the correct rediskey
-OT::Customer.values.rediskey
+V2::Customer.values.rediskey
 #=> "onetime:customer"
 
 ## Customer.domains has the correct rediskey
-OT::Customer.domains.rediskey
+V2::Customer.domains.rediskey
 #=> "onetime:customers:domain"
 
 ## Customer.values is a Familia::SortedSet
-OT::Customer.values.class
+V2::Customer.values.class
 #=> Familia::SortedSet
 
 ## Customer.domains is a Familia::HashKey
-OT::Customer.domains.class
+V2::Customer.domains.class
 #=> Familia::HashKey

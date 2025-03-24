@@ -19,8 +19,8 @@ OT.boot! :test, false
 # Setup common test variables
 @now = DateTime.now
 @email = 'test@onetimesecret.com'
-@sess = OT::Session.new '255.255.255.255', 'anon'
-@cust = OT::Customer.new @email
+@sess = V2::Session.new '255.255.255.255', 'anon'
+@cust = V1::Customer.new @email
 @params = { test: 'value' }
 @locale = 'en'
 

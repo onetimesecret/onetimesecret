@@ -36,7 +36,7 @@ module V2
 
       def receive_feedback
         process_action(
-          V2::Logic::Misc::ReceiveFeedback,
+          V2::Logic::ReceiveFeedback,
           "Feedback received. Send as much as you like.",
           "Sorry we were not able to receive your feedback (it's us, not you).",
           allow_anonymous: true,
@@ -45,7 +45,7 @@ module V2
 
       def receive_exception
         process_action(
-          V2::Logic::Misc::ReceiveException,
+          V2::Logic::ReceiveException,
           "Exception received. No offense taken.",
           "Sorry we were not able to receive your exception (it's us, not you).",
           allow_anonymous: true,

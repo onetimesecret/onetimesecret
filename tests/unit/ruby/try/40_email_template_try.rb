@@ -16,9 +16,9 @@ require 'onetime/models'
 # Use the default config file for tests
 OT.boot! :test, false
 
-@email = 'tryouts+40@onetimesecret.com'
-@cust = OT::Customer.create @email
-@secret = OT::Secret.create
+@email = "tryouts+40+#{Time.now.to_i}@onetimesecret.com"
+@cust = V1::Customer.create @email
+@secret = V1::Secret.create
 @locale = 'en'
 @recipient = 'tryouts+recipient@onetimesecret.com'
 

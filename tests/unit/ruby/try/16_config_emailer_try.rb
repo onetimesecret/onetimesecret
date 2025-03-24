@@ -40,8 +40,14 @@ OT.conf[:emailer][:auth]
 OT.conf[:emailer][:tls]
 #=> true
 
+## Emailer raises an exception when the mode is not valid
+ENV['EMAILER_MODE'] = 'bogus'
+Onetime::Config.load
+OT.boot! :test, false
+##=> ''
+
 ## Emailer values can be set via environment variables
-ENV['EMAILER_MODE'] = 'sendmail'
+ENV['EMAILER_MODE'] = 'sendgrid'
 ENV['FROM'] = 'tests@example.com'
 ENV['FROMNAME'] = 'Test User'
 ENV['SMTP_HOST'] = 'smtp.example.com'
@@ -65,7 +71,7 @@ OT.boot! :test, false
   OT.conf[:emailer][:auth],
   OT.conf[:emailer][:tls]
 ]
-#=> ["sendmail", "tests@example.com", "Test User", "smtp.example.com", 465, "testuser", "testpass", "plain", false]
+#=> ["sendgrid", "tests@example.com", "Test User", "smtp.example.com", 465, "testuser", "testpass", "plain", false]
 
 ## Clearing environment variables restores default values
 ENV.delete('EMAILER_MODE')

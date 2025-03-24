@@ -18,9 +18,9 @@ require 'onetime/models'
 # Use the default config file for tests
 OT.boot! :test, false
 
-@email = 'tryouts+40@onetimesecret.com'
-@cust = OT::Customer.new custid: @email # wrong, use spawn instead
-@secret = OT::Secret.new # wrong and does generate secret key
+@email = "tryouts+40+#{Time.now.to_i}@onetimesecret.com"
+@cust = V1::Customer.new custid: @email # wrong, use spawn instead
+@secret = V1::Secret.new # wrong and does generate secret key
 @locale = 'es'
 
 ## Can create a view

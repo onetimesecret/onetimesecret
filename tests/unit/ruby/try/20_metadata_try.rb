@@ -14,7 +14,7 @@
 # stored, and managed, which is crucial for maintaining information
 # about secrets in the application.
 
-require_relative '../test_helpers'
+require_relative './test_helpers'
 
 require 'onetime/models'
 

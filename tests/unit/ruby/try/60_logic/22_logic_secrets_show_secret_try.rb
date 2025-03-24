@@ -18,7 +18,7 @@ require_relative '../test_helpers'
 OT.boot! :test, false
 
 @email = "tryouts+#{Time.now.to_i}@onetimesecret.com"
-@cust = OT::Customer.create @email
+@cust = V1::Customer.create @email
 
 # Define a lambda to create and return a new metadata instance
 @create_metadata = lambda {

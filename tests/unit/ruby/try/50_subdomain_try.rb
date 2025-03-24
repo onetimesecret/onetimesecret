@@ -16,8 +16,8 @@
 # of these specific features.
 
 
-require_relative '../test_helpers'
-require 'onetime/models/subdomain'
+require_relative './test_helpers'
+require 'v1/models/subdomain'
 
 # Use the default config file for tests
 OT.boot! :test, false
@@ -28,11 +28,11 @@ s.class
 #=> V1::Subdomain
 
 ## Normalize cname #1
-OT::Subdomain.normalize_cname 'BIGNAMECO'
+V1::Subdomain.normalize_cname 'BIGNAMECO'
 #=> 'bignameco'
 
 ## Normalize cname #2
-OT::Subdomain.normalize_cname './*&^%$#@!BignAMECO.'
+V1::Subdomain.normalize_cname './*&^%$#@!BignAMECO.'
 #=> 'bignameco'
 
 ## Subdomain has an identifier
@@ -54,15 +54,15 @@ V1::Subdomain.exists? 'tryouts@onetimesecret.com'
 #=> true
 
 ## Has a mapping to custid
-OT::Subdomain.map 'bignameco'
+V1::Subdomain.map 'bignameco'
 ##=> 'tryouts@onetimesecret.com'
 
 ## Knows it's mapped
-OT::Subdomain.mapped? 'bignameco'
+V1::Subdomain.mapped? 'bignameco'
 ##=> true
 
 ## Mapping knows the owner
-OT::Subdomain.owned_by? 'bignameco', 'tryouts@onetimesecret.com'
+V1::Subdomain.owned_by? 'bignameco', 'tryouts@onetimesecret.com'
 ##=> true
 
 ## Destroy subdomain

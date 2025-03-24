@@ -28,7 +28,7 @@ OT.boot! :test, false
 
 # Create a test class that includes RateLimited
 class TestRateLimited
-  include V1::Models::RateLimited
+  include V1::Mixins::RateLimited
   attr_accessor :id
   def initialize(id)
     @id = id

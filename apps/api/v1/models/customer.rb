@@ -121,7 +121,7 @@ module V1
     end
 
     def load_plan
-      V1::Plan.plan(planid) || {:planid => planid, :source => 'parts_unknown'}
+      Onetime::Plan.plan(planid) || {:planid => planid, :source => 'parts_unknown'}
     end
 
     def get_stripe_customer

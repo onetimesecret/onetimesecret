@@ -25,12 +25,12 @@ OT.boot! :test, false
 @now = DateTime.now
 @from_address = OT.conf.dig(:emailer, :from)
 @email_address = 'tryouts@onetimesecret.com'
-@sess = OT::Session.new '255.255.255.255', 'anon'
-@cust = OT::Customer.new @email_address
+@sess = V2::Session.new '255.255.255.255', 'anon'
+@cust = V1::Customer.new @email_address
 @sess.event_clear! :send_feedback
 @params = {}
 @locale = 'en'
-@obj = OT::Logic::Account::CreateAccount.new @sess, @cust
+@obj = V1::Logic::Account::CreateAccount.new @sess, @cust
 
 # A generator for valid params for creating an account
 @valid_params = lambda do
@@ -73,19 +73,19 @@ end
 #=> true
 
 ## Can create account and it's not verified by default.
-sess = OT::Session.create '255.255.255.255', 'anon'
-cust = OT::Customer.new
-logic = OT::Logic::Account::CreateAccount.new sess, cust, @valid_params.call, 'en'
+sess = V2::Session.create '255.255.255.255', 'anon'
+cust = V1::Customer.new
+logic = V1::Logic::Account::CreateAccount.new sess, cust, @valid_params.call, 'en'
 logic.raise_concerns
 logic.process
 [logic.autoverify, logic.cust.verified, OT.conf.dig(:site, :authentication, :autoverify)]
 #=> [false, 'false', false]
 
 ## Can create account and have it auto-verified.
-sess = OT::Session.create '255.255.255.255', 'anon'
-cust = OT::Customer.new
+sess = V2::Session.create '255.255.255.255', 'anon'
+cust = V1::Customer.new
 OT.conf[:site][:authentication][:autoverify] = true # force the config to be true
-logic = OT::Logic::Account::CreateAccount.new sess, cust, @valid_params.call, 'en'
+logic = V1::Logic::Account::CreateAccount.new sess, cust, @valid_params.call, 'en'
 logic.raise_concerns
 logic.process
 [logic.autoverify, logic.cust.verified, OT.conf.dig(:site, :authentication, :autoverify)]

@@ -17,8 +17,8 @@ OT.boot! :test, false
 # Setup common test variables
 @now = DateTime.now
 @email = "test+#{Time.now.to_i}@onetimesecret.com"
-@sess = OT::Session.new '255.255.255.255', 'anon'
-@cust = OT::Customer.new @email
+@sess = V2::Session.new '255.255.255.255', 'anon'
+@cust = V1::Customer.new @email
 @cust.save
 @domain_input = 'test.example.com'
 @custom_domain = V2::CustomDomain.create @domain_input, @cust.custid
@@ -30,7 +30,7 @@ OT.boot! :test, false
 @cust.add_custom_domain(@custom_domain)
 
 # Test domain listing
-logic = OT::Logic::Domains::ListDomains.new @sess, @cust
+logic = V1::Logic::Domains::ListDomains.new @sess, @cust
 logic.raise_concerns
 logic.define_singleton_method(:create_vhost) {} # prevent calling 3rd party API for this test
 logic.process
@@ -44,7 +44,7 @@ logic.process
 # GetDomain Tests
 
 ## Test domain retrieval
-logic = OT::Logic::Domains::GetDomain.new @sess, @cust, { domain: @domain_input }
+logic = V1::Logic::Domains::GetDomain.new @sess, @cust, { domain: @domain_input }
 [
   logic.instance_variables.include?(:@cust),
   logic.instance_variables.include?(:@params)
@@ -55,7 +55,7 @@ logic = OT::Logic::Domains::GetDomain.new @sess, @cust, { domain: @domain_input 
 
 ## Test domain removal
 @remove_params = { domain: @domain_input }
-logic = OT::Logic::Domains::RemoveDomain.new @sess, @cust, @remove_params
+logic = V1::Logic::Domains::RemoveDomain.new @sess, @cust, @remove_params
 logic.raise_concerns
 logic.define_singleton_method(:create_vhost) {} # prevent calling 3rd party API for this test
 logic.process

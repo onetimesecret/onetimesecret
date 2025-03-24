@@ -18,8 +18,8 @@ require 'onetime/models'
 # Use the default config file for tests
 OT.boot! :test, false
 
-@email = "tryouts+#{Time.now.to_i}@onetimesecret.com"
-@cust = OT::Customer.create @email
+@email = "tryouts+42+#{Time.now.to_i}@onetimesecret.com"
+@cust = V1::Customer.create @email
 @metadata = V2::Metadata.create
 @secret = V2::Secret.create value: "This is a secret message"
 @metadata.secret_key = @secret.key
@@ -77,7 +77,7 @@ authenticated_value
 ## Handles unauthenticated user correctly
 unauthenticated_sess = MockSession.new
 def unauthenticated_sess.authenticated?; false; end
-view = Core::Views::VuePoint.new(@req, unauthenticated_sess, OT::Customer.anonymous, 'en', @metadata)
+view = Core::Views::VuePoint.new(@req, unauthenticated_sess, V1::Customer.anonymous, 'en', @metadata)
 authenticated_value = view[:jsvars][:authenticated]
 authenticated_value
 #=> false

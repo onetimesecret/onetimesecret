@@ -11,4 +11,4 @@ $:.unshift(::File.join(ENV['APP_ROOT'], 'lib'))
 
 require 'onetime'
 require 'json'
-y OT::Secret.redis.info
+y V1::Secret.redis.info

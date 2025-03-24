@@ -3,8 +3,8 @@
 require 'altcha'
 require_relative 'base'
 
-module V2::Logic
-  module Misc
+module V2
+  module Logic
 
     class ReceiveFeedback < V2::Logic::Base
       attr_reader :msg, :authenticity_payload, :verified, :verification_data, :greenlighted, :tz, :version

@@ -11,7 +11,7 @@ OT.boot! :test, false
 
 @email = "Tryouts+27+#{Time.now.to_i}@onetimesecret.com"
 @email2 = "Tryouts+27b+#{Time.now.to_i}@onetimesecret.com"
-@customer = OT::Customer.create @email
+@customer = V1::Customer.create @email
 @valid_domain = 'another.subdomain.onetimesecret.com'
 @input_domains = [
   'example.com',
