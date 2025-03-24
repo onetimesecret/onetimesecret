@@ -1,4 +1,4 @@
-# frozen_string_literal: true
+# tests/unit/ruby/try/11_cached_method_try.rb
 
 # These tryouts test the functionality of the cached_method in the Core::ViewHelpers module.
 # The cached_method provides a caching mechanism for method results using Redis.
@@ -17,10 +17,12 @@
 
 require_relative './test_helpers'
 
+require 'core/views'
+
 # Familia.debug = true
 
 # Use the default config file for tests
-OT.boot! :test
+OT.boot! :test, false
 
 @num = rand(1000)
 

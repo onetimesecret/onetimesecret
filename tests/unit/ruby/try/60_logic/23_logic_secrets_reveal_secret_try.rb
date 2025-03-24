@@ -1,4 +1,4 @@
-# frozen_string_literal: true
+# tests/unit/ruby/try/60_logic/23_logic_secrets_reveal_secret_try.rb
 
 # These tryouts test the RevealSecret logic functionality in the OneTime application,
 # with a focus on the initialization process and its arguments.

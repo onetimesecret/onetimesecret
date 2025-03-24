@@ -1,4 +1,4 @@
-# frozen_string_literal: true
+# tests/unit/ruby/try/60_logic/04_logic_account_try.rb
 
 # These tests cover the Account logic classes which handle
 # account management functionality.

@@ -1,4 +1,4 @@
-# frozen_string_literal: true
+# tests/unit/ruby/try/60_logic/02_logic_base_try.rb
 
 # These tryouts test the base logic of the Onetime application,
 # specifically focusing on the CreateAccount functionality.

@@ -1,4 +1,4 @@
-# frozen_string_literal: true
+# tests/unit/ruby/try/60_logic/01_logic_base_try.rb
 
 # These tests cover the core functionality of the Onetime::Logic::Base class,
 # which serves as the foundation for all logic classes in the application.

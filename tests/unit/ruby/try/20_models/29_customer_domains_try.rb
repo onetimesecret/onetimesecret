@@ -1,4 +1,4 @@
-# frozen_string_literal: true
+# tests/unit/ruby/try/20_models/29_customer_domains_try.rb
 
 # These tryouts test the customer custom domain relations
 

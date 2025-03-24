@@ -1,4 +1,4 @@
-# frozen_string_literal: true
+# tests/unit/ruby/try/10_utils_try.rb
 
 # These tryouts test the functionality of the Onetime::Utils module.
 # The Utils module provides various utility functions used throughout

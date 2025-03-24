@@ -1,4 +1,4 @@
-# frozen_string_literal: true
+# tests/unit/ruby/try/15_config_try.rb
 
 # These tryouts test the configuration functionality of the Onetime application.
 # The Config module is responsible for loading and managing application settings.

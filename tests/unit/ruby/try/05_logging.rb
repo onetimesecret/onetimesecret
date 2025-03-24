@@ -1,4 +1,4 @@
-# frozen_string_literal: true
+# tests/unit/ruby/try/05_logging.rb
 
 #
 # Capture STDOUT and STDERR for testing

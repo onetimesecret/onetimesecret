@@ -1,4 +1,4 @@
-# tests/unit/ruby/rspec/config/i18n_fix_spec.rb
+# tests/unit/ruby/rspec/config/i18n_spec.rb
 
 # e.g. pnpm run rspec tests/unit/ruby/rspec/config/i18n_spec.rb
 

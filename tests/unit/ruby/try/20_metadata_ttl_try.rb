@@ -1,4 +1,4 @@
-# frozen_string_literal: true
+# tests/unit/ruby/try/20_metadata_ttl_try.rb
 
 # These tryouts test the V2::Controller.metadata_hsh method functionality.
 # The metadata_hsh method is responsible for transforming metadata

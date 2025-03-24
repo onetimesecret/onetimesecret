@@ -1,4 +1,4 @@
-# frozen_string_literal: true
+# tests/unit/ruby/try/40_email_template_try.rb
 
 # These tryouts test the email template functionality in the OneTime application,
 # specifically for secret link emails with and without share_domain.

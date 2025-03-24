@@ -1,4 +1,4 @@
-# tests/unit/ruby/rspec/onetime/logic/secrets/base_secret_action_spec.rb
+# tests/unit/ruby/rspec/apps/api/v1/logic/secrets/base_secret_action_spec.rb
 
 RSpec.describe V1::Logic::Secrets::BaseSecretAction do
   # Create test implementation class

@@ -1,4 +1,4 @@
-# frozen_string_literal: true
+# tests/unit/ruby/try/25_customer_try.rb
 
 # These tryouts test the customer model functionality in the OneTime application.
 # They cover various aspects of customer management, including:

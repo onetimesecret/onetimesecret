@@ -1,4 +1,4 @@
-# frozen_string_literal: true
+# tests/unit/ruby/try/91_authentication_routes_try.rb
 
 # These tryouts test the authentication-related routes
 # and how they respond based on the authentication

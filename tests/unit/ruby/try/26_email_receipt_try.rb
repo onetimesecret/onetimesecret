@@ -1,4 +1,4 @@
-# frozen_string_literal: true
+# tests/unit/ruby/try/26_email_receipt_try.rb
 
 # These tryouts cover various aspects of the EmailReceipt model, including:
 #

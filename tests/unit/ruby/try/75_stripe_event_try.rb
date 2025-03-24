@@ -1,4 +1,4 @@
-# File: 26_stripe_event_try.rb
+# tests/unit/ruby/try/75_stripe_event_try.rb
 
 # frozen_string_literal: true
 

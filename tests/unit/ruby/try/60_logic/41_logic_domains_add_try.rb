@@ -1,4 +1,4 @@
-# frozen_string_literal: true
+# tests/unit/ruby/try/60_logic/41_logic_domains_add_try.rb
 
 # These tests cover the Domains logic classes which handle
 # custom domain management functionality.

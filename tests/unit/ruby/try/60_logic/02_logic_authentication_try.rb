@@ -1,4 +1,4 @@
-# frozen_string_literal: true
+# tests/unit/ruby/try/60_logic/02_logic_authentication_try.rb
 
 # These tests cover the Authentication logic classes which handle
 # session management, password resets, and user authentication.

@@ -1,4 +1,4 @@
-# frozen_string_literal: true
+# tests/unit/ruby/try/20_models/27_domains_methods_try.rb
 
 require_relative '../test_helpers'
 require 'securerandom'

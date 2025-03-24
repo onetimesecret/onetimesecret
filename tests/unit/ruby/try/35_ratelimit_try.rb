@@ -1,4 +1,4 @@
-# frozen_string_literal: true
+# tests/unit/ruby/try/35_ratelimit_try.rb
 
 # These tryouts test the rate limiting functionality in the OneTime application.
 # They cover various aspects of rate limiting, including:

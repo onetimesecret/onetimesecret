@@ -1,4 +1,4 @@
-# frozen_string_literal: true
+# tests/unit/ruby/try/23_passphrase_try.rb
 
 # These tryouts test the functionality of passphrase handling in the OneTime application.
 # Specifically, they focus on:

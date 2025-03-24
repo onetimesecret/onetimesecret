@@ -1,4 +1,4 @@
-# frozen_string_literal: true
+# tests/unit/ruby/try/50_subdomain_try.rb
 
 # These tryouts test the subdomain functionality in the OneTime application.
 # They cover various aspects of subdomain management, including:

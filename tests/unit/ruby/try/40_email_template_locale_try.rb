@@ -1,4 +1,4 @@
-# frozen_string_literal: true
+# tests/unit/ruby/try/40_email_template_locale_try.rb
 
 # These tryouts test the email template functionality in the OneTime application.
 # They cover various aspects of email template handling, including:

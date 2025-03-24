@@ -1,4 +1,4 @@
-# frozen_string_literal: true
+# tests/unit/ruby/try/30_session_try.rb
 
 # These tryouts test the session management functionality in the OneTime application.
 # They cover various aspects of session handling, including:
