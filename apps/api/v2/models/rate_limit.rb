@@ -1,4 +1,4 @@
-# frozen_string_literal: true
+# apps/api/v2/models/rate_limit.rb
 
 require 'forwardable'
 

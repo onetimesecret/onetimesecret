@@ -1,4 +1,4 @@
-# lib/onetime/models/session.rb
+# apps/api/v2/models/session.rb
 
 require 'v1/models/mixins/session_messages'
 

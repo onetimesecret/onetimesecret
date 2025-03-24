@@ -1,4 +1,4 @@
-# lib/onetime/models/mixins/passphrase.rb
+# apps/api/v1/models/mixins/passphrase.rb
 
 module V1
   module Mixins
