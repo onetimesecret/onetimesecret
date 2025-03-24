@@ -28,11 +28,11 @@ POST   /secret/:key/reveal                        V2::Controllers::Secrets#revea
 POST   /secret/generate                           V2::Controllers::Secrets#generate_secret
 POST   /secret/conceal                            V2::Controllers::Secrets#conceal_secret
 
-GET    /supported-locales                         V2::Controllers::Domains#get_supported_locales
+GET    /supported-locales                         V2::Controllers::Meta#get_supported_locales
 
-GET    /status                                    V2::Controllers::Domains#status
-GET    /authcheck                                 V2::Controllers::Domains#authcheck
-GET    /version                                   V2::Controllers::Domains#version
+GET    /status                                    V2::Controllers::Meta#status
+GET    /authcheck                                 V2::Controllers::Meta#authcheck
+GET    /version                                   V2::Controllers::Meta#version
 POST   /validate-shrimp                           V2::Controllers::Meta#get_validate_shrimp
 
 POST   /feedback                                  V2::Controllers::Meta#receive_feedback

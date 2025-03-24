@@ -17,15 +17,18 @@
 
 require_relative './test_helpers'
 require 'onetime/models'
+require 'v2/logic/feedback'
+require 'v2/controllers/challenges'
 
 # Load the app
 OT.boot! :test, true
+V1::RateLimit.register_events OT.conf[:limits]
 
 # Setup some variables for these tryouts
 @now = DateTime.now
 @model_class = V2::Feedback
 @email_address = "tryouts+#{@now}@onetimesecret.com"
-@sess = V2::Session.new '255.255.255.255', 'anon'
+@sess = V1::Session.new '255.255.255.255', 'anon'
 @cust = V1::Customer.new @email_address
 @sess.event_clear! :send_feedback
 @params = {
@@ -125,9 +128,9 @@ end
 cust = V1::Customer.anonymous
 sess = V2::Session.new 'id123', cust, "tryouts"
 sess.event_clear! :send_feedback
-challenge = V1::APIV2::Challenges.generate_authenticity_challenge(5000) # very low
-solution = V1::APIV2::Challenges.solve_authenticity_challenge(challenge.challenge, challenge.salt, challenge.algorithm, challenge.maxnumber, 0)
-payload = V1::APIV2::Challenges._authenticity_challenge_payload(challenge, solution.number)
+challenge = V2::Controllers::Challenges.generate_authenticity_challenge(5000) # very low
+solution = V2::Controllers::Challenges.solve_authenticity_challenge(challenge.challenge, challenge.salt, challenge.algorithm, challenge.maxnumber, 0)
+payload = V2::Controllers::Challenges._authenticity_challenge_payload(challenge, solution.number)
 payload_encoded = Base64.encode64(payload.to_json)
 p [:challenge, challenge]
 p [:solution, solution]
