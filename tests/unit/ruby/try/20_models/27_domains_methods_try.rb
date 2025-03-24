@@ -4,7 +4,7 @@ require_relative '../test_helpers'
 require 'securerandom'
 
 # Load the app
-OT.boot! :test
+OT.boot! :test, false
 
 @customer = OT::Customer.create "Tryouts+27+#{SecureRandom.uuid}@onetimesecret.com"
 @alt_customer = OT::Customer.create "Tryouts+27+#{SecureRandom.uuid}@onetimesecret.com"

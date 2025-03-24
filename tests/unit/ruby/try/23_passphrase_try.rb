@@ -14,10 +14,13 @@
 
 
 require_relative './test_helpers'
+require 'onetime/models'
+require 'core/controllers/settings'
+
 #Familia.debug = false
 
 # Use the default config file for tests
-OT.boot! :test
+OT.boot! :test, false
 
 ## Can store a passphrase
 s = V2::Secret.new :shared

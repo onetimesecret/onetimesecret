@@ -2,7 +2,7 @@
 require_relative './test_helpers'
 
 # Use the default config file for tests
-OT.boot! :test
+OT.boot! :test, false
 
 ## Default emailer mode is :smtp
 OT.conf[:emailer][:mode]
@@ -42,7 +42,7 @@ OT.conf[:emailer][:tls]
 
 ## Emailer values can be set via environment variables
 ENV['EMAILER_MODE'] = 'sendmail'
-ENV['FROM'] = 'test@example.com'
+ENV['FROM'] = 'tests@example.com'
 ENV['FROMNAME'] = 'Test User'
 ENV['SMTP_HOST'] = 'smtp.example.com'
 ENV['SMTP_PORT'] = '465'
@@ -52,7 +52,7 @@ ENV['SMTP_AUTH'] = 'plain'
 ENV['SMTP_TLS'] = 'false'
 
 Onetime::Config.load
-OT.boot! :test
+OT.boot! :test, false
 
 [
   OT.conf[:emailer][:mode],
@@ -65,7 +65,7 @@ OT.boot! :test
   OT.conf[:emailer][:auth],
   OT.conf[:emailer][:tls]
 ]
-#=> ["sendmail", "test@example.com", "Test User", "smtp.example.com", 465, "testuser", "testpass", "plain", false]
+#=> ["sendmail", "tests@example.com", "Test User", "smtp.example.com", 465, "testuser", "testpass", "plain", false]
 
 ## Clearing environment variables restores default values
 ENV.delete('EMAILER_MODE')
@@ -79,7 +79,7 @@ ENV.delete('SMTP_AUTH')
 ENV.delete('SMTP_TLS')
 
 Onetime::Config.load
-OT.boot! :test
+OT.boot! :test, false
 
 [
   OT.conf[:emailer][:mode],

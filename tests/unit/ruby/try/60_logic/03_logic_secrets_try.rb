@@ -12,7 +12,7 @@
 require_relative '../test_helpers'
 
 # Load the app with test configuration
-OT.boot! :test
+OT.boot! :test, false
 
 # Setup common test variables
 @now = DateTime.now
@@ -20,9 +20,9 @@ OT.boot! :test
 @sess = OT::Session.new '255.255.255.255', 'anon'
 @cust = OT::Customer.new @email
 @cust.save
-@secret = OT::Secret.new
+@secret = V2::Secret.new
 @secret.generate_id
-@metadata = OT::Metadata.new
+@metadata = V2::Metadata.new
 @metadata.generate_id
 
 # ConcealSecret Tests

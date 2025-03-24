@@ -7,7 +7,7 @@ require 'public_suffix'
 require_relative '../test_helpers'
 
 # Load the app
-OT.boot! :test
+OT.boot! :test, false
 
 @email = "Tryouts+27+#{Time.now.to_i}@onetimesecret.com"
 @email2 = "Tryouts+27b+#{Time.now.to_i}@onetimesecret.com"

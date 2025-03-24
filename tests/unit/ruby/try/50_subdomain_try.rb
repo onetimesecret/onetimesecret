@@ -8,10 +8,10 @@
 # 3. Mapping subdomains to customer IDs
 # 4. Destroying subdomains
 #
-# These tests aim to verify the correct behavior of the Onetime::Subdomain class,
+# These tests aim to verify the correct behavior of the V1::Subdomain class,
 # which is essential for managing custom subdomains in the application.
 #
-# The tryouts simulate different subdomain scenarios and test the Onetime::Subdomain class's
+# The tryouts simulate different subdomain scenarios and test the V1::Subdomain class's
 # behavior without needing to interact with actual DNS, allowing for targeted testing
 # of these specific features.
 
@@ -20,12 +20,12 @@ require_relative '../test_helpers'
 require 'onetime/models/subdomain'
 
 # Use the default config file for tests
-OT.boot! :test
+OT.boot! :test, false
 
 ## Can create Subdomain instance
-s = Onetime::Subdomain.new custid: 'tryouts@onetimesecret.com', cname: 'testcname'
+s = V1::Subdomain.new custid: 'tryouts@onetimesecret.com', cname: 'testcname'
 s.class
-#=> Onetime::Subdomain
+#=> V1::Subdomain
 
 ## Normalize cname #1
 OT::Subdomain.normalize_cname 'BIGNAMECO'
@@ -36,21 +36,21 @@ OT::Subdomain.normalize_cname './*&^%$#@!BignAMECO.'
 #=> 'bignameco'
 
 ## Subdomain has an identifier
-s = Onetime::Subdomain.new custid: 'tryouts@onetimesecret.com', cname: 'bignameco'
+s = V1::Subdomain.new custid: 'tryouts@onetimesecret.com', cname: 'bignameco'
 [s.identifier, s.cname, s.rediskey]
 #=> ['tryouts@onetimesecret.com', 'bignameco', 'customer:tryouts@onetimesecret.com:subdomain']
 
 ## Subdomain knows if it doesn't exists
-Onetime::Subdomain.exists? 'tryouts@onetimesecret.com'
+V1::Subdomain.exists? 'tryouts@onetimesecret.com'
 #=> false
 
 ## Create subdomain
-@subdomain = Onetime::Subdomain.create('bignameco', 'tryouts@onetimesecret.com')
+@subdomain = V1::Subdomain.create('bignameco', 'tryouts@onetimesecret.com')
 @subdomain.exists?
 #=> true
 
 ## Subdomain knows if it exists
-Onetime::Subdomain.exists? 'tryouts@onetimesecret.com'
+V1::Subdomain.exists? 'tryouts@onetimesecret.com'
 #=> true
 
 ## Has a mapping to custid

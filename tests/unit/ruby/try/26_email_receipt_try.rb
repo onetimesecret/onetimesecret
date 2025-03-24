@@ -12,9 +12,9 @@
 # 8. Testing the destruction process
 
 require_relative './test_helpers'
-
+require 'onetime/models'
 # Load the app
-OT.boot! :test
+OT.boot! :test, false
 
 # Setup some variables for these tryouts
 @now = Time.now.strftime("%Y%m%d%H%M%S")

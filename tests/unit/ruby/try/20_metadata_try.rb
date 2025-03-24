@@ -15,10 +15,13 @@
 # about secrets in the application.
 
 require_relative '../test_helpers'
+
+require 'onetime/models'
+
 #Familia.debug = true
 
 # Use the default config file for tests
-OT.boot! :test
+OT.boot! :test, true
 
 @iterations = 1000
 

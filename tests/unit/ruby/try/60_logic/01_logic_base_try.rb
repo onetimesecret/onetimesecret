@@ -1,6 +1,6 @@
 # tests/unit/ruby/try/60_logic/01_logic_base_try.rb
 
-# These tests cover the core functionality of the Onetime::Logic::Base class,
+# These tests cover the core functionality of the V2::Logic::Base class,
 # which serves as the foundation for all logic classes in the application.
 #
 # We test:
@@ -14,7 +14,7 @@
 require_relative '../test_helpers'
 
 # Load the app with test configuration
-OT.boot! :test
+OT.boot! :test, false
 
 # Setup common test variables
 @now = DateTime.now
@@ -25,7 +25,7 @@ OT.boot! :test
 @locale = 'en'
 
 # Create a concrete test class since Base is abstract
-class TestLogic < Onetime::Logic::Base
+class TestLogic < V2::Logic::Base
   def process_params
     @processed_params[:test] = params[:test]
   end
@@ -63,9 +63,9 @@ end
 
 ## Password normalization handles various cases
 [
-  Onetime::Logic::Base.normalize_password('  password  '),
-  Onetime::Logic::Base.normalize_password('a' * 200),
-  Onetime::Logic::Base.normalize_password(nil)
+  V2::Logic::Base.normalize_password('  password  '),
+  V2::Logic::Base.normalize_password('a' * 200),
+  V2::Logic::Base.normalize_password(nil)
 ]
 #=> ['password', 'a' * 128, '']
 
@@ -93,8 +93,8 @@ end
 
 ## StatHat integration respects enabled setting
 [
-  Onetime::Logic.stathat_count('test', 1),
-  Onetime::Logic.stathat_value('test', 100)
+  V2::Logic.stathat_count('test', 1),
+  V2::Logic.stathat_value('test', 100)
 ]
 #=> [false, false]
 

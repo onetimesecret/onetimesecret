@@ -10,7 +10,7 @@
 require_relative './test_helpers'
 
 # Use the default config file for tests
-OT.boot! :test
+OT.boot! :test, false
 
 ## Config has secret_options
 OT.conf[:site].key? :secret_options
@@ -26,25 +26,25 @@ OT.conf[:site][:secret_options].key? :ttl_options
 
 ## Default TTL is 604800 (7 days) when ENV['DEFAULT_TTL'] is not set
 ENV['DEFAULT_TTL'] = nil
-OT.boot! :test
+OT.boot! :test, false
 OT.conf[:site][:secret_options][:default_ttl]
 #=> 43200
 
 ## Default TTL is updated when ENV['DEFAULT_TTL'] is provided
 ENV['DEFAULT_TTL'] = '3600'
-OT.boot! :test
+OT.boot! :test, false
 OT.conf[:site][:secret_options][:default_ttl]
 #=> 3600
 
 ## TTL options are an array of integers when ENV['TTL_OPTIONS'] is not set
 ENV['TTL_OPTIONS'] = nil
-OT.boot! :test
+OT.boot! :test, false
 OT.conf[:site][:secret_options][:ttl_options]
 #=> [1800, 43200, 604800]
 
 ## TTL options are updated when ENV['TTL_OPTIONS'] is provided
 ENV['TTL_OPTIONS'] = '300 3600 86400'
-OT.boot! :test
+OT.boot! :test, false
 OT.conf[:site][:secret_options][:ttl_options]
 #=> [300, 3600, 86400]
 

@@ -14,9 +14,9 @@
 # The tryouts use the OT::Email classes
 
 require_relative './test_helpers'
-
+require 'onetime/models'
 # Use the default config file for tests
-OT.boot! :test
+OT.boot! :test, false
 
 @email = 'tryouts+40@onetimesecret.com'
 @cust = OT::Customer.new custid: @email # wrong, use spawn instead

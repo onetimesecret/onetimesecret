@@ -13,7 +13,7 @@ require_relative '../test_helpers'
 require 'securerandom'
 
 # Load the app with test configuration
-OT.boot! :test
+OT.boot! :test, false
 
 # Setup common test variables
 @now = DateTime.now

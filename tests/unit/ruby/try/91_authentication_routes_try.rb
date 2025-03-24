@@ -13,9 +13,9 @@ require 'rack'
 require 'rack/mock'
 
 require_relative './test_helpers'
-
+require 'onetime/models'
 # Use the default config file for tests
-OT.boot! :test
+OT.boot! :test, false
 
 # Initialize the Rack application and create a mock request
 @app = Rack::Builder.parse_file('config.ru').first

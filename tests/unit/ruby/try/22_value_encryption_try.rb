@@ -19,9 +19,9 @@
 # targeted testing of this specific functionality.
 
 require_relative './test_helpers'
-
+require 'onetime/models'
 # Use the default config file for tests
-OT.boot! :test
+OT.boot! :test, false
 
 ## Can store a value
 s = V2::Secret.new :shared

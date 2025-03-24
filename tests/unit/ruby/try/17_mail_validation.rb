@@ -25,7 +25,7 @@ Dotenv.load('.env')
 # e.g. Make sure to set these in your .env file:
 
 require_relative './test_helpers'
-OT.boot! :test
+OT.boot! :test, false
 
 @now = DateTime.now
 @unique_random_inbox = Digest::SHA2.hexdigest(@now.to_s)

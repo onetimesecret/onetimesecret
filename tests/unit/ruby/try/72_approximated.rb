@@ -18,10 +18,10 @@ require 'dotenv'
 Dotenv.load('.env')
 
 require_relative './test_helpers'
-require_relative './test_helpers'
+require 'onetime/models'
 
 # Use the default config file for tests
-OT.boot! :test
+OT.boot! :test, false
 
 @api_key = ENV.fetch('APPROXIMATED_API_KEY', '')
 @dns_records = [

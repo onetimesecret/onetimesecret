@@ -12,9 +12,9 @@
 # and that the share_domain feature is properly handled in the email content.
 
 require_relative './test_helpers'
-
+require 'onetime/models'
 # Use the default config file for tests
-OT.boot! :test
+OT.boot! :test, false
 
 @email = 'tryouts+40@onetimesecret.com'
 @cust = OT::Customer.create @email

@@ -15,7 +15,7 @@
 require_relative './test_helpers'
 
 # Use the default config file for tests
-OT.boot! :test
+OT.boot! :test, false
 
 @email_address = OT.conf[:emailer][:from]
 
@@ -33,8 +33,7 @@ OT.boot! :test
 [@config[:site].class, @config[:redis].class]
 #=> [Hash, Hash]
 
-## OT.boot! :test
-OT.boot! :test
+OT.boot! :test, false
 [OT.mode, OT.conf.class]
 #=> [:test, Hash]
 

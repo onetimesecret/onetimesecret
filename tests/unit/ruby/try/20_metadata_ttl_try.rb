@@ -17,7 +17,7 @@
 require_relative '../test_helpers'
 
 # Use the default config file for tests
-OT.boot! :test
+OT.boot! :test, false
 
 # Setup
 @metadata, @secret = V2::Secret.spawn_pair 'anon'
@@ -139,8 +139,10 @@ result[:ttl]
 #=> nil
 
 ## Handling nil realttl
-class V2::Metadata
-  def realttl; nil; end
+module V2
+  class Metadata
+    def realttl; nil; end
+  end
 end
 result = V2::Controller.metadata_hsh(@metadata)
 result[:metadata_ttl]

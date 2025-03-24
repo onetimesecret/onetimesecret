@@ -6,7 +6,7 @@
 require_relative '../test_helpers'
 
 # Load the app
-OT.boot! :test
+OT.boot! :test, false
 
 # Setup some variables for these tryouts
 @now = Time.now

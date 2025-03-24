@@ -7,7 +7,7 @@ require_relative '../test_helpers'
 require 'securerandom'
 
 # Load the app
-OT.boot! :test
+OT.boot! :test, false
 
 @now = Time.now
 @customer_email = "tryouts28+#{@now.to_i}@onetimesecret.com"

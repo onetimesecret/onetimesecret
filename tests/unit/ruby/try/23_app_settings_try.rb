@@ -19,9 +19,11 @@
 # of this specific functionality.
 
 require_relative './test_helpers'
+require 'onetime/models'
+require 'core/controllers/settings'
 
 # Use the default config file for tests
-OT.boot! :test
+OT.boot! :test, false
 
 class TestApp
   include Core::ControllerSettings

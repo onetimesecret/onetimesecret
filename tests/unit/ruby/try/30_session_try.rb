@@ -17,9 +17,9 @@
 # of these specific features.
 
 require_relative './test_helpers'
-
+require 'onetime/models'
 # Use the default config file for tests
-OT.boot! :test
+OT.boot! :test, false
 
 @ipaddress = '10.0.0.254' # A private IP address
 @useragent = 'Mozilla/4.0 (compatible; MSIE 5.5; Windows NT 5.0)'

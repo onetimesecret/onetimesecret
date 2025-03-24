@@ -4,7 +4,7 @@ require_relative '../test_helpers'
 require 'securerandom'
 
 # Setup
-OT.boot! :test
+OT.boot! :test, false
 
 @now = DateTime.now
 @email = "test#{SecureRandom.uuid}@onetimesecret.com"

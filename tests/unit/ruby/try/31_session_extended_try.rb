@@ -3,9 +3,9 @@
 require 'benchmark'
 
 require_relative './test_helpers'
-
+require 'onetime/models'
 # Use the default config file for tests
-OT.boot! :test
+OT.boot! :test, false
 
 @ipaddress = '10.0.0.254'
 @useragent = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_2_5) AppleWebKit/237.36 (KHTML, like Gecko) Chrome/10.0.95 Safari/237.36'

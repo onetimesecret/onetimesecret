@@ -7,7 +7,7 @@ require_relative '../test_helpers'
 require 'middleware/detect_host'
 require 'onetime/middleware/domain_strategy'
 
-OT.boot! :test
+OT.boot! :test, false
 
 # In test setup
 OT.conf[:site] = {

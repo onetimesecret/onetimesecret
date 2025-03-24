@@ -7,7 +7,7 @@ require 'public_suffix'
 require_relative '../test_helpers'
 
 # Load the app
-OT.boot! :test
+OT.boot! :test, false
 
 # Setup
 @public_suffix_list = PublicSuffix::List.default

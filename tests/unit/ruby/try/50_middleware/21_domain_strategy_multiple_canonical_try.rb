@@ -3,7 +3,7 @@ require 'middleware/detect_host'
 require 'onetime/middleware/domain_strategy'
 
 # Setup
-OT.boot! :test
+OT.boot! :test, false
 
 @canonical_domain = 'eu.example.com'
 @parser = Onetime::DomainStrategy::Parser

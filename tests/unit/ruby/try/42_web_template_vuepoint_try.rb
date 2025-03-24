@@ -13,14 +13,15 @@
 # and properly initializes based on the provided arguments.
 
 require_relative './test_helpers'
+require 'onetime/models'
 
 # Use the default config file for tests
-OT.boot! :test
+OT.boot! :test, false
 
 @email = "tryouts+#{Time.now.to_i}@onetimesecret.com"
 @cust = OT::Customer.create @email
-@metadata = OT::Metadata.create
-@secret = OT::Secret.create value: "This is a secret message"
+@metadata = V2::Metadata.create
+@secret = V2::Secret.create value: "This is a secret message"
 @metadata.secret_key = @secret.key
 @metadata.save
 

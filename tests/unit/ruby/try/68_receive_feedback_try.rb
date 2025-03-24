@@ -16,9 +16,10 @@
 # scenarios, allowing for targeted testing of this feature without affecting the actual feedback database.
 
 require_relative './test_helpers'
+require 'onetime/models'
 
 # Load the app
-OT.boot! :test
+OT.boot! :test, true
 
 # Setup some variables for these tryouts
 @now = DateTime.now
@@ -37,7 +38,7 @@ OT.boot! :test
 ## Can create ReceiveFeedback instance
 obj = OT::Logic::Misc::ReceiveFeedback.new @sess, @cust
 obj.class
-#=> Onetime::Logic::Misc::ReceiveFeedback
+#=> V2::Logic::Misc::ReceiveFeedback
 
 ## Can create ReceiveFeedback instance w/ params
 obj = OT::Logic::Misc::ReceiveFeedback.new @sess, @cust, @params

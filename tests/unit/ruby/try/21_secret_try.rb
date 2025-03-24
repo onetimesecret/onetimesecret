@@ -17,10 +17,11 @@
 require 'set'
 
 require_relative './test_helpers'
+require 'onetime/models'
 
 # Use the default config file for tests
 @iterations = 1000
-OT.boot! :test
+OT.boot! :test, true
 
 ## Can create Secret
 s = V2::Secret.new :private
@@ -62,7 +63,7 @@ p [@secret.key, @metadata.secret_key]
 
 ## Kinds are correct
 [@metadata.class, @secret.class]
-#=> [OT::Metadata, OT::Secret]
+#=> [V2::Metadata, V2::Secret]
 
 ## Can save a secret
 @metadata.save

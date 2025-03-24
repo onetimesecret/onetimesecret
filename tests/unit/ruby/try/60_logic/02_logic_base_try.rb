@@ -19,7 +19,7 @@
 require_relative '../test_helpers'
 
 # Load the app
-OT.boot! :test
+OT.boot! :test, false
 
 # Setup some variables for these tryouts
 @now = DateTime.now
@@ -53,7 +53,7 @@ end
 
 ## Can create CreateAccount instance
 @obj.class
-#=> Onetime::Logic::Account::CreateAccount
+#=> V2::Logic::Account::CreateAccount
 
 ## Knows an invalid address
 @obj.valid_email?('bogusjourney')

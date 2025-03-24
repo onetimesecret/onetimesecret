@@ -17,9 +17,9 @@
 # fair usage of the application.
 
 require_relative './test_helpers'
-
+require 'onetime/models'
 # Use the default config file for tests
-OT.boot! :test
+OT.boot! :test, false
 
 # Setup section - define instance variables accessible across all tryouts
 @stamp = V1::RateLimit.eventstamp
@@ -28,7 +28,7 @@ OT.boot! :test
 
 # Create a test class that includes RateLimited
 class TestRateLimited
-  include Onetime::Models::RateLimited
+  include V1::Models::RateLimited
   attr_accessor :id
   def initialize(id)
     @id = id
@@ -59,7 +59,7 @@ V1::RateLimit.event_limit(:unknown_event)
 
 ## Creates limiter with proper Redis key format
 [@limiter.class, @limiter.rediskey]
-#=> [Onetime::RateLimit, "limiter:#{@identifier}:test_limit:#{@stamp}:counter"]
+#=> [V1::RateLimit, "limiter:#{@identifier}:test_limit:#{@stamp}:counter"]
 
 ## Can get the external identifier of the limiter
 pp [:identifier, @limiter.identifier, @identifier]

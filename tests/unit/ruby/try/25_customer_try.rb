@@ -18,11 +18,11 @@
 
 #ENV['FAMILIA_TRACE'] = '1'
 require_relative './test_helpers'
-
+require 'onetime/models'
 #Familia.debug = true
 
 # Load the app
-OT.boot! :test
+OT.boot! :test, false
 
 # Setup some variables for these tryouts
 @now = Time.now.strftime("%Y%m%d%H%M%S")
