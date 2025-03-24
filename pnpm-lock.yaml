@@ -24,8 +24,8 @@ importers:
         specifier: ^8.54.0
         version: 8.54.0
       '@sentry/core':
-        specifier: ^8.54.0
-        version: 8.54.0
+        specifier: ^9.8.0
+        version: 9.8.0
       '@sentry/vue':
         specifier: ^8.54.0
         version: 8.54.0(pinia@2.2.6(typescript@5.6.3)(vue@3.5.13(typescript@5.6.3)))(vue@3.5.13(typescript@5.6.3))
@@ -1037,6 +1037,10 @@ packages:
   '@sentry/core@8.54.0':
     resolution: {integrity: sha512-03bWf+D1j28unOocY/5FDB6bUHtYlm6m6ollVejhg45ZmK9iPjdtxNWbrLsjT1WRym0Tjzowu+A3p+eebYEv0Q==}
     engines: {node: '>=14.18'}
+
+  '@sentry/core@9.8.0':
+    resolution: {integrity: sha512-EnN2yLWCbWjooWBPzwlXdZoJG/Bqn3ymbuXX++DUJuBGjSmtixQeTf/hKeVzj4zbib3BbbYsNBasRVjq8Rk5ng==}
+    engines: {node: '>=18'}
 
   '@sentry/vite-plugin@3.1.2':
     resolution: {integrity: sha512-a927sabQKviA4PAs9cM3rFONHiVdfEHHkypmub+hFwJNL0sbeg/8uht0WyqDT5WjVT5pbyvLaKLDjGdwrRBY6Q==}
@@ -4327,6 +4331,8 @@ snapshots:
       - supports-color
 
   '@sentry/core@8.54.0': {}
+
+  '@sentry/core@9.8.0': {}
 
   '@sentry/vite-plugin@3.1.2':
     dependencies:
