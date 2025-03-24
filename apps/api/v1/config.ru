@@ -3,8 +3,8 @@ require_relative 'application'
 
 # Environment Variables
 ENV['RACK_ENV'] ||= 'production'
-ENV['APP_ROOT'] = File.expand_path(__dir__).freeze
-app_root = ENV['APP_ROOT']
+ENV['ONETIME_HOME'] = File.expand_path(__dir__).freeze
+app_root = ENV['ONETIME_HOME']
 
 # Directory Constants
 unless defined?(PUBLIC_DIR)

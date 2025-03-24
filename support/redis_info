@@ -6,8 +6,8 @@
 #
 #
 
-ENV['APP_ROOT'] = ::File.expand_path(::File.join(::File.dirname(__FILE__), '..'))
-$:.unshift(::File.join(ENV['APP_ROOT'], 'lib'))
+ENV['ONETIME_HOME'] = ::File.expand_path(::File.join(::File.dirname(__FILE__), '..'))
+$:.unshift(::File.join(ENV['ONETIME_HOME'], 'lib'))
 
 require 'onetime'
 require 'json'

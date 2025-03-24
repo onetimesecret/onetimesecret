@@ -25,7 +25,7 @@ module V1
     private
 
     def build_router
-      routes_path = File.join(ENV['APP_ROOT'], 'apps/api/v1/routes')
+      routes_path = File.join(ENV['ONETIME_HOME'], 'apps/api/v1/routes')
 
       router = Otto.new(routes_path)
 

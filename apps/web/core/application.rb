@@ -23,7 +23,7 @@ module Core
     private
 
     def build_router
-      routes_path = File.join(ENV['APP_ROOT'], 'apps/web/core/routes')
+      routes_path = File.join(ENV['ONETIME_HOME'], 'apps/web/core/routes')
 
       router = Otto.new(routes_path)
 
