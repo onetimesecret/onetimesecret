@@ -20,7 +20,7 @@ module Onetime
           when 'sendgrid'
             SendGridMailer.setup
             SendGridMailer.new(from, fromname)
-          when 'amazon_ses'
+          when 'ses'
             SESMailer.setup
             SESMailer.new(from, fromname)
           else # default to smtp
@@ -40,6 +40,6 @@ module Onetime
 
   # Load all email templates
   Dir.glob(File.join(File.dirname(__FILE__), 'mail', '*.rb')).each do |file|
-    require file unless file =~ /\/(base|smtp|sendgrid|amazon_ses)_mailer\.rb$/
+    require file unless file =~ /\/(base|smtp|sendgrid|ses)_mailer\.rb$/
   end
 end

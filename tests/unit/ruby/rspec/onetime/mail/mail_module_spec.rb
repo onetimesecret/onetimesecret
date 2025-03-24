@@ -24,7 +24,7 @@ RSpec.describe Onetime::Mail do
     # Mock the mailer initialization
     allow(Onetime::Mail::Mailer::SMTPMailer).to receive(:new).and_return(double('smtp_mailer'))
     allow(Onetime::Mail::Mailer::SendGridMailer).to receive(:new).and_return(double('sendgrid_mailer'))
-    allow(Onetime::Mail::Mailer::SESMailer).to receive(:new).and_return(double('amazon_ses_mailer'))
+    allow(Onetime::Mail::Mailer::SESMailer).to receive(:new).and_return(double('ses_mailer'))
   end
 
   describe '.mailer' do
@@ -62,7 +62,7 @@ RSpec.describe Onetime::Mail do
       before do
         allow(OT).to receive(:conf).and_return({
           emailer: {
-            provider: 'amazon_ses',
+            provider: 'ses',
             from: 'test@example.com',
             fromname: 'Test Sender'
           }
