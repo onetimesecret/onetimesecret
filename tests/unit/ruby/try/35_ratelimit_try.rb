@@ -18,12 +18,13 @@
 
 require_relative './test_helpers'
 require 'onetime/models'
+
 # Use the default config file for tests
-OT.boot! :test, false
+OT.boot! :test, true
 
 # Setup section - define instance variables accessible across all tryouts
 @stamp = V1::RateLimit.eventstamp
-@identifier = "tryouts-#{OT.entropy[0,8]}"
+@identifier = "tryouts-35+#{OT.entropy[0,8]}"
 @limiter = V1::RateLimit.new @identifier, :test_limit
 
 # Create a test class that includes RateLimited
@@ -40,7 +41,13 @@ end
 
 @test_obj = TestRateLimited.new("abc123")
 
+
+## Has no events defined before loading them from config
+V1::RateLimit.events
+#=> nil
+
 ## Has events defined
+V1::RateLimit.register_events(OT.conf[:limits])
 V1::RateLimit.events.class
 #=> Hash
 
@@ -57,6 +64,16 @@ V1::RateLimit.register_events(bulk_limit: 5, api_limit: 10)
 V1::RateLimit.event_limit(:unknown_event)
 #=> 25
 
+## Redis key is created on instantiation
+obj = V1::RateLimit.new @identifier, :definitely_unique_key
+obj.exists?
+#=> true
+
+## Redis key is created on instantiation
+obj = V1::RateLimit.new @identifier, :definitely_unique_key
+obj.get
+#=> 0
+
 ## Creates limiter with proper Redis key format
 [@limiter.class, @limiter.rediskey]
 #=> [V1::RateLimit, "limiter:#{@identifier}:test_limit:#{@stamp}:counter"]
@@ -69,10 +86,6 @@ pp [:identifier, @limiter.identifier, @identifier]
 ## Can extract event from Redis key
 @limiter.event
 #=> :test_limit
-
-## Redis key does not exist initially
-@limiter.exists?
-#=> false
 
 ## Redis key is created after first increment
 p @limiter.incr!

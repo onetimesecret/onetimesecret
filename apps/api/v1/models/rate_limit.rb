@@ -48,7 +48,11 @@ module V1
 
     # Fixed in Familia v1.0.0-rev8 - updates, created fields removed
 
-    # Initialize a new rate limiter
+    # Initialize a new rate limiter with a value of zero.
+    #
+    # We do this to avoid calling the redis incr command which now
+    # complains if the key does not exist.
+    #
     # @param identifier [String] unique identifier for the limited entity
     # @param event [Symbol] the type of event being limited
     # @return [V1::RateLimit]
