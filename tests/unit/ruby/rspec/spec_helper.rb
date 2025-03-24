@@ -33,12 +33,10 @@ begin
   require 'onetime'
   require 'onetime/alias' # OT
   require 'onetime/refinements/rack_refinements'
-  require 'v1/logic'
-  require 'v2/logic'
-  require 'v1/models'
-  require 'v2/models'
-  require 'core/views'
-  require 'core/views'
+  require 'onetime/logic'
+  require 'onetime/models'
+  require 'onetime/controllers'
+  require 'onetime/views'
 rescue LoadError => e
   puts "Failed to load refinements: #{e.message}"
   puts "Current directory: #{Dir.pwd}"

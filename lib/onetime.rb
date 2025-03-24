@@ -74,6 +74,14 @@ module Onetime
     # Boot initializes core services and connects models to databases. Must
     # be called after applications are loaded so Familia.members contains
     # all model classes that need database connections.
+    #
+    # `mode` is a symbol, one of: :app, :cli, :test. It's used for logging
+    # but otherwise doesn't do anything special.
+    #
+    # When `db` is false, the database connections won't be initialized. This
+    # is useful for testing or when you want to run code without necessary
+    # loading all or any of the models.
+    #
     def boot!(mode = nil, db = true)
       OT.mode = mode unless mode.nil?
       OT.env = ENV['RACK_ENV'] || 'production'
