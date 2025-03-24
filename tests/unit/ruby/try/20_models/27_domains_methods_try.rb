@@ -1,10 +1,9 @@
 # frozen_string_literal: true
 
-require 'onetime'
+require_relative '../test_helpers'
 require 'securerandom'
 
 # Load the app
-OT::Config.path = File.join(Onetime::HOME, 'tests', 'unit', 'ruby', 'config.test.yaml')
 OT.boot! :test
 
 @customer = OT::Customer.create "Tryouts+27+#{SecureRandom.uuid}@onetimesecret.com"

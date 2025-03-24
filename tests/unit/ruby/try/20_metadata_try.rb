@@ -14,11 +14,10 @@
 # stored, and managed, which is crucial for maintaining information
 # about secrets in the application.
 
-require 'onetime'
+require_relative '../test_helpers'
 #Familia.debug = true
 
 # Use the default config file for tests
-OT::Config.path = File.join(Onetime::HOME, 'tests', 'unit', 'ruby', 'config.test.yaml')
 OT.boot! :test
 
 @iterations = 1000

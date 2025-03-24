@@ -16,10 +16,9 @@
 # and RateLimited mixin, which are essential for preventing abuse and ensuring
 # fair usage of the application.
 
-require 'onetime'
+require_relative './test_helpers'
 
 # Use the default config file for tests
-OT::Config.path = File.join(Onetime::HOME, 'tests', 'unit', 'ruby', 'config.test.yaml')
 OT.boot! :test
 
 # Setup section - define instance variables accessible across all tryouts

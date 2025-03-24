@@ -3,11 +3,10 @@
 
 # These tryouts test the validation and verification status functionality of custom domains
 
-require 'onetime'
+require_relative '../test_helpers'
 require 'securerandom'
 
 # Load the app
-OT::Config.path = File.join(Onetime::HOME, 'tests', 'unit', 'ruby', 'config.test.yaml')
 OT.boot! :test
 
 @now = Time.now

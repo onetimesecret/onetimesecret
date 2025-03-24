@@ -15,10 +15,9 @@
 # The tryouts use the OT::Logic::Misc::ReceiveFeedback class to simulate different feedback submission
 # scenarios, allowing for targeted testing of this feature without affecting the actual feedback database.
 
-require 'onetime'
+require_relative './test_helpers'
 
 # Load the app
-OT::Config.path = File.join(Onetime::HOME, 'tests', 'unit', 'ruby', 'config.test.yaml')
 OT.boot! :test
 
 # Setup some variables for these tryouts

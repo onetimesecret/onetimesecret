@@ -17,12 +17,11 @@
 # of these specific scenarios.
 
 #ENV['FAMILIA_TRACE'] = '1'
-require 'onetime'
+require_relative './test_helpers'
 
 #Familia.debug = true
 
 # Load the app
-OT::Config.path = File.join(Onetime::HOME, 'tests', 'unit', 'ruby', 'config.test.yaml')
 OT.boot! :test
 
 # Setup some variables for these tryouts

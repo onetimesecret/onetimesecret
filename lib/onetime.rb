@@ -74,7 +74,7 @@ module Onetime
     # Boot initializes core services and connects models to databases. Must
     # be called after applications are loaded so Familia.members contains
     # all model classes that need database connections.
-    def boot!(mode = nil)
+    def boot!(mode = nil, db = true)
       OT.mode = mode unless mode.nil?
       OT.env = ENV['RACK_ENV'] || 'production'
       OT.d9s_enabled = false # diagnostics are disabled by default
@@ -97,7 +97,7 @@ module Onetime
       prepare_emailers
       load_fortunes
       load_plans
-      connect_databases
+      connect_databases if db
       check_global_banner
       print_log_banner unless mode?(:test)
 

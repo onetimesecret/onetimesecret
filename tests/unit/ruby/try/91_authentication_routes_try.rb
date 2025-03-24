@@ -12,10 +12,9 @@
 require 'rack'
 require 'rack/mock'
 
-require 'onetime'
+require_relative './test_helpers'
 
 # Use the default config file for tests
-OT::Config.path = File.join(Onetime::HOME, 'tests', 'unit', 'ruby', 'config.test.yaml')
 OT.boot! :test
 
 # Initialize the Rack application and create a mock request

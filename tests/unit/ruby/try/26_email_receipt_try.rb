@@ -11,10 +11,9 @@
 # 7. Checking if the EmailReceipt is added to the values sorted set
 # 8. Testing the destruction process
 
-require 'onetime'
+require_relative './test_helpers'
 
 # Load the app
-OT::Config.path = File.join(Onetime::HOME, 'tests', 'unit', 'ruby', 'config.test.yaml')
 OT.boot! :test
 
 # Setup some variables for these tryouts

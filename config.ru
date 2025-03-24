@@ -33,17 +33,17 @@
 
 # Environment Variables
 ENV['RACK_ENV'] ||= 'production'
-ENV['APP_ROOT'] = File.expand_path(__dir__).freeze
-app_root = ENV['APP_ROOT']
+ENV['ONETIME_HOME'] ||= File.expand_path(__dir__).freeze
+project_root = ENV['ONETIME_HOME']
+app_root = File.join(project_root, '/apps').freeze
 
 # Directory Constants
 unless defined?(PUBLIC_DIR)
-  PUBLIC_DIR = File.join(app_root, '/public/web').freeze
-  APP_DIR = File.join(app_root, '/apps').freeze
+  PUBLIC_DIR = File.join(project_root, '/public/web').freeze
 end
 
 # Add main Onetime libs to the load path
-$LOAD_PATH.unshift(File.join(app_root, 'lib'))
+$LOAD_PATH.unshift(File.join(project_root, 'lib'))
 
 # Freshly installed operating systems don't always have their locale settings
 # figured out. By setting this to UTF-8, we ensure that:
@@ -63,7 +63,7 @@ require_relative 'lib/middleware'
 require_relative 'lib/onetime'
 
 # Load all applications
-Dir.glob(File.join(APP_DIR, '**/application.rb')).each { |f| require f }
+Dir.glob(File.join(app_root, '**/application.rb')).each { |f| require f }
 
 # Applications must be loaded before boot to ensure Familia models are registered.
 # This allows proper database connection setup for all model classes.

@@ -18,10 +18,9 @@
 # without needing to run the full application, allowing for targeted testing
 # of this specific functionality.
 
-require 'onetime'
+require_relative './test_helpers'
 
 # Use the default config file for tests
-OT::Config.path = File.join(Onetime::HOME, 'tests', 'unit', 'ruby', 'config.test.yaml')
 OT.boot! :test
 
 class TestApp

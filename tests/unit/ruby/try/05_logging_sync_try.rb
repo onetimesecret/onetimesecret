@@ -9,7 +9,7 @@
 # demonstration and debugging purposes.
 #
 
-require 'onetime'
+require_relative './test_helpers'
 
 
 @original_env = ENV.to_h

@@ -3,11 +3,10 @@
 # These tryouts test the DomainStrategy middleware class that handles
 # domain strategy determination and validation using a state machine
 
-require 'onetime'
+require_relative '../test_helpers'
 require 'middleware/detect_host'
 require 'onetime/middleware/domain_strategy'
 
-OT::Config.path = File.join(Onetime::HOME, 'tests', 'unit', 'ruby', 'config.test.yaml')
 OT.boot! :test
 
 # In test setup

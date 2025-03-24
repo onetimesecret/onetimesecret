@@ -15,10 +15,9 @@
 # The tryouts use the OT::Logic::Account::DestroyAccount class to simulate different account destruction
 # scenarios, allowing for targeted testing of this critical functionality without affecting real user accounts.
 
-require 'onetime'
+require_relative '../test_helpers'
 
 # Load the app
-OT::Config.path = File.join(Onetime::HOME, 'tests', 'unit', 'ruby', 'config.test.yaml')
 OT.boot! :test
 
 # Setup some variables for these tryouts

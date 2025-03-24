@@ -7,10 +7,9 @@
 # 3. Checking specific configuration options (e.g., default_ttl, ttl_options)
 # 4. Testing the behavior with different environment variable settings
 
-require 'onetime'
+require_relative './test_helpers'
 
 # Use the default config file for tests
-OT::Config.path = File.join(Onetime::HOME, 'tests', 'unit', 'ruby', 'config.test.yaml')
 OT.boot! :test
 
 ## Config has secret_options

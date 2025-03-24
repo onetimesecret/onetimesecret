@@ -16,10 +16,9 @@
 # behavior without needing to run the full application, allowing for targeted testing
 # of these specific features.
 
-require 'onetime'
+require_relative './test_helpers'
 
 # Use the default config file for tests
-OT::Config.path = File.join(Onetime::HOME, 'tests', 'unit', 'ruby', 'config.test.yaml')
 OT.boot! :test
 
 @ipaddress = '10.0.0.254' # A private IP address

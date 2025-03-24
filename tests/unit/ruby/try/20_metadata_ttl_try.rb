@@ -14,10 +14,9 @@
 # processes metadata objects and produces the expected structured
 # hash output for the API response.
 
-require 'onetime'
+require_relative '../test_helpers'
 
 # Use the default config file for tests
-OT::Config.path = File.join(Onetime::HOME, 'tests', 'unit', 'ruby', 'config.test.yaml')
 OT.boot! :test
 
 # Setup

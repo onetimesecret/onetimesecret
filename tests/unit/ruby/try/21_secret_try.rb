@@ -16,11 +16,10 @@
 
 require 'set'
 
-require 'onetime'
+require_relative './test_helpers'
 
 # Use the default config file for tests
 @iterations = 1000
-OT::Config.path = File.join(Onetime::HOME, 'tests', 'unit', 'ruby', 'config.test.yaml')
 OT.boot! :test
 
 ## Can create Secret

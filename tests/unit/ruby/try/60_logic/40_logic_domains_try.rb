@@ -9,10 +9,9 @@
 # 3. Domain listing
 # 4. Domain retrieval
 
-require 'onetime'
+require_relative '../test_helpers'
 
 # Load the app with test configuration
-OT::Config.path = File.join(Onetime::HOME, 'tests', 'unit', 'ruby', 'config.test.yaml')
 OT.boot! :test
 
 # Setup common test variables

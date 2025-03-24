@@ -9,10 +9,9 @@
 # 3. Secret metadata (ShowMetadata, ShowMetadataList)
 # 4. Secret deletion (BurnSecret)
 
-require 'onetime'
+require_relative '../test_helpers'
 
 # Load the app with test configuration
-OT::Config.path = File.join(Onetime::HOME, 'tests', 'unit', 'ruby', 'config.test.yaml')
 OT.boot! :test
 
 # Setup common test variables

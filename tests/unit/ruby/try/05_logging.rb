@@ -9,7 +9,7 @@
 # demonstration and debugging purposes.
 #
 
-require 'onetime'
+require_relative './test_helpers'
 
 SYSLOG = Syslog.open('onetime') unless defined?(SYSLOG)
 

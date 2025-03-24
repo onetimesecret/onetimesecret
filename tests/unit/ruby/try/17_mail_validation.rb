@@ -24,8 +24,7 @@ Dotenv.load('.env')
 #
 # e.g. Make sure to set these in your .env file:
 
-require 'onetime'
-OT::Config.path = File.join(Onetime::HOME, 'tests', 'unit', 'ruby', 'config.test.yaml')
+require_relative './test_helpers'
 OT.boot! :test
 
 @now = DateTime.now

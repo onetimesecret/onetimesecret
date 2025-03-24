@@ -12,10 +12,9 @@
 # These tests aim to ensure that the application can correctly load and use
 # its configuration, which is crucial for proper operation and customization.
 
-require 'onetime'
+require_relative './test_helpers'
 
 # Use the default config file for tests
-OT::Config.path = File.join(Onetime::HOME, 'tests', 'unit', 'ruby', 'config.test.yaml')
 OT.boot! :test
 
 @email_address = OT.conf[:emailer][:from]

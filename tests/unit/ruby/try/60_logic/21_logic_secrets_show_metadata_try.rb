@@ -12,10 +12,9 @@
 # These tests ensure that the ShowMetadata logic correctly handles different scenarios
 # and properly initializes based on the provided arguments.
 
-require 'onetime'
+require_relative '../test_helpers'
 
 # Use the default config file for tests
-OT::Config.path = File.join(Onetime::HOME, 'tests', 'unit', 'ruby', 'config.test.yaml')
 OT.boot! :test
 
 @email = "tryouts+#{Time.now.to_i}@onetimesecret.com"

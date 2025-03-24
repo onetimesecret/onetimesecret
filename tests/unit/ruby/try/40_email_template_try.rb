@@ -11,10 +11,9 @@
 # These tests ensure that email templates are correctly generated and localized,
 # and that the share_domain feature is properly handled in the email content.
 
-require 'onetime'
+require_relative './test_helpers'
 
 # Use the default config file for tests
-OT::Config.path = File.join(Onetime::HOME, 'tests', 'unit', 'ruby', 'config.test.yaml')
 OT.boot! :test
 
 @email = 'tryouts+40@onetimesecret.com'

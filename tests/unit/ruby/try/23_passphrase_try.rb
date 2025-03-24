@@ -13,11 +13,10 @@
 # allowing for targeted testing of these specific scenarios without needing to run the full application.
 
 
-require 'onetime'
+require_relative './test_helpers'
 #Familia.debug = false
 
 # Use the default config file for tests
-OT::Config.path = File.join(Onetime::HOME, 'tests', 'unit', 'ruby', 'config.test.yaml')
 OT.boot! :test
 
 ## Can store a passphrase

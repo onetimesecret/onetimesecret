@@ -1,7 +1,8 @@
 # These tryouts verify whether Rack instantiates a new middleware instance per
 # request or reuses the same instance across requests using real Rack requests.
 
-require 'onetime'
+require_relative '../test_helpers'
+
 require 'stringio'
 require 'middleware/detect_host'
 

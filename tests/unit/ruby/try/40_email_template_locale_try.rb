@@ -13,10 +13,9 @@
 #
 # The tryouts use the OT::Email classes
 
-require 'onetime'
+require_relative './test_helpers'
 
 # Use the default config file for tests
-OT::Config.path = File.join(Onetime::HOME, 'tests', 'unit', 'ruby', 'config.test.yaml')
 OT.boot! :test
 
 @email = 'tryouts+40@onetimesecret.com'

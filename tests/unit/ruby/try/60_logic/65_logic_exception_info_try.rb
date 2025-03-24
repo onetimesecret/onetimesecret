@@ -1,10 +1,9 @@
 # frozen_string_literal: true
 
-require 'onetime'
+require_relative '../test_helpers'
 require 'securerandom'
 
 # Setup
-OT::Config.path = File.join(Onetime::HOME, 'tests', 'unit', 'ruby', 'config.test.yaml')
 OT.boot! :test
 
 @now = DateTime.now

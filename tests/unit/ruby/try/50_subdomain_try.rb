@@ -16,11 +16,10 @@
 # of these specific features.
 
 
-require 'onetime'
+require_relative '../test_helpers'
 require 'onetime/models/subdomain'
 
 # Use the default config file for tests
-OT::Config.path = File.join(Onetime::HOME, 'tests', 'unit', 'ruby', 'config.test.yaml')
 OT.boot! :test
 
 ## Can create Subdomain instance

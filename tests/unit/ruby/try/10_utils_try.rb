@@ -21,13 +21,14 @@
 # $ RUBYLIB=./lib bundle exec try -v ./try/10_utils_try.rb
 #
 
-require 'onetime'
+require_relative './test_helpers'
 
 # Familia.debug = true
+# require 'onetime/models'
 
 # Use the default config file for tests
-OT::Config.path = File.join(Onetime::HOME, 'tests', 'unit', 'ruby', 'config.test.yaml')
-OT.boot! :test
+
+OT.boot! :test, false
 
 ## Create a strand
 Onetime::Utils.strand.class

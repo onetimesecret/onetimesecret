@@ -10,11 +10,10 @@
 # 4. Account retrieval
 # 5. Account deletion
 
-require 'onetime'
+require_relative '../test_helpers'
 require 'securerandom'
 
 # Load the app with test configuration
-OT::Config.path = File.join(Onetime::HOME, 'tests', 'unit', 'ruby', 'config.test.yaml')
 OT.boot! :test
 
 # Setup common test variables

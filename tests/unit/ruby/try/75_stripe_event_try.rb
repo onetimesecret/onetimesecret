@@ -14,11 +14,10 @@
 # These tests aim to verify the correct behavior of the OT::StripeEvent class,
 # which is essential for managing Stripe-related events in the application.
 
-require 'onetime'
+require_relative './test_helpers'
 require 'onetime/models/stripe_event'
 
 # Load the app
-OT::Config.path = File.join(Onetime::HOME, 'tests', 'unit', 'ruby', 'config.test.yaml')
 OT.boot! :test
 
 # Setup

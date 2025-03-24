@@ -16,10 +16,9 @@
 # targeted testing of this specific functionality.
 
 
-require 'onetime'
+require_relative '../test_helpers'
 
 # Load the app
-OT::Config.path = File.join(Onetime::HOME, 'tests', 'unit', 'ruby', 'config.test.yaml')
 OT.boot! :test
 
 # Setup some variables for these tryouts
