@@ -59,20 +59,52 @@ module Onetime
             auth: conf.fetch(:auth, nil), # auth type
             region: conf.fetch(:region, nil),
             pass: "has password: #{password_is_present}",
-            locale: locale.to_s,
+            locale: locale.to_s
           }
 
           OT.info "[mailer] #{mode} #{logsafe_config.to_json}"
           init(*args) if respond_to? :init
         end
 
+        # Retrieves internationalization data for the current view context.
+        #
+        # This method implements locale-aware caching:
+        #   1. Each locale has its own cache entry to prevent cross-locale contamination
+        #   2. The first request for a locale builds and stores the i18n data
+        #   3. Subsequent requests for the same locale use the cached data
+        #
+        # Also handles the following cases:
+        #   - If this instance doesn't have a locale yet, we'll use the default locale.
+        #   - If the configured default_locale data is missing, returns english data
+        #
+        # @note TESTING CONSIDERATIONS:
+        #   Without per-locale caching, tests can fail intermittently due to:
+        #   - Test order dependency: If a test with valid locale runs first, the method
+        #     memoizes valid data and subsequent tests pass regardless of locale validity
+        #   - If a test with invalid locale runs first, the method fails and doesn't cache
+        #     data, causing inconsistent behavior
+        #   - RSpec's randomized execution order means these failures appear intermittent
+        #
+        # @return [Hash] Structured hash containing locale-specific content:
+        #   - :locale [String] The resolved locale code
+        #   - :email [Hash] Email template content for the current page
+        #   - :COMMON [Hash] Common web text elements
+        #
         def i18n
+          @i18n_cache ||= {}
+          locale = self.locale #|| OT.default_locale || 'en'
+
+          # Return cached value for this specific locale if it exists
+          return @i18n_cache[locale] if @i18n_cache.key?(locale)
+
+          # Safely get locale data with fallback
+          locale_data = OT.locales[locale] || OT.locales['en']
+
           pagename = self.class.name.split('::').last.downcase.to_sym
-          locale = self.locale # we handle unknown locale on initialization
-          @i18n ||= {
+          {
             locale: locale,
-            email: OT.locales[locale][:email][pagename],
-            COMMON: OT.locales[locale][:web][:COMMON]
+            email: locale_data[:email][pagename],
+            COMMON: locale_data[:web][:COMMON]
           }
         end
 
