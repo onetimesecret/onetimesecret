@@ -8,6 +8,8 @@
 
 require_relative './test_helpers'
 
+require 'v1/application'
+
 # Load the app
 OT.boot! :test, false
 
@@ -15,9 +17,10 @@ require 'rack'
 require 'rack/mock'
 
 # Initialize the Rack application and create a mock request
-@app = Rack::Builder.parse_file('config.ru').first
-p [:PLAOP_APP, @app]
-@mock_request = Rack::MockRequest.new(@app)
+builder = Rack::Builder.parse_file('config.ru')
+@app = builder.first
+mapped = Rack::URLMap.new(AppRegistry.build)
+@mock_request = Rack::MockRequest.new(mapped)
 
 # NOTE: Careful when flushing the Redis database, as it will remove
 # all data. Since we organize data types by database number, we can
@@ -78,20 +81,25 @@ content = JSON.parse(response.body)
 [response.status, content["custid"]]
 #=> [200, 'anon']
 
-## Can access the API share endpoint
-response = @mock_request.post('/api/v2/secret/create')
+## Can access the V2 API conceal endpoint
+response = @mock_request.post('/api/v2/secret/conceal')
 content = JSON.parse(response.body) rescue {}
-has_msg = content.slice('message').eql?({'message' => 'Not Found'})
+has_msg = content.slice('message').eql?({'message' => 'You did not provide anything to share'})
 [response.status, has_msg, content.keys.sort]
-#=> [404, true, ['message']]
+#=> [422, true, ['message', 'shrimp', 'success']]
 
-## Can access the API generate endpoint
+## Can access the V2 API generate endpoint
 response = @mock_request.post('/api/v2/secret/generate')
 content = JSON.parse(response.body)
-p [:plop, content]
 [response.status, content["custid"]]
 #=> [200, 'anon']
 
+## Behaviour when requesting a known non-existent endpoint
+response = @mock_request.post('/api/v2/humphrey/bogus')
+content = JSON.parse(response.body)
+has_msg = content.slice('error').eql?({'error' => 'Not Found'})
+[response.status, has_msg, content.keys.sort]
+#=> [404, true, ['error']]
 
 # API v2 Routes
 
