@@ -23,14 +23,14 @@ RSpec.shared_context "view_test_context" do
   end
 
   let(:session) do
-    instance_double('Session',
+    instance_double('V1::Session',
       authenticated?: true,
       add_shrimp: 'test_shrimp',
       get_messages: [])
   end
 
   let(:customer) do
-    instance_double('Customer',
+    instance_double('V1::Customer',
       custid: 'test@example.com',
       email: 'test@example.com',
       anonymous?: false,

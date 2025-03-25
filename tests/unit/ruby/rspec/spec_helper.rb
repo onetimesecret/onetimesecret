@@ -38,7 +38,7 @@ begin
   require 'onetime/controllers'
   require 'onetime/views'
 rescue LoadError => e
-  puts "Failed to load refinements: #{e.message}"
+  puts "Failed to load onetime module: #{e.message}"
   puts "Current directory: #{Dir.pwd}"
   puts "Load path: #{$LOAD_PATH}"
   exit

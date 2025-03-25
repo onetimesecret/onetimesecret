@@ -1,6 +1,6 @@
 # tests/unit/ruby/rspec/onetime/mail/views/welcome_spec.rb
 
-require_relative '../../../../spec_helper'
+require_relative '../../../spec_helper'
 
 RSpec.describe Onetime::Mail::Welcome do
   include_context "mail_test_context"
@@ -71,7 +71,7 @@ RSpec.describe Onetime::Mail::Welcome do
         satisfy { |content| content.is_a?(String) && !content.empty? },
       )
 
-      expect(Onetime::EmailReceipt).to have_received(:create)
+      expect(V1::EmailReceipt).to have_received(:create)
         .with('test@example.com', 'secret123', anything)
 
       expect(response).to include(
@@ -91,7 +91,7 @@ RSpec.describe Onetime::Mail::Welcome do
           welcome_email.deliver_email
         }.to raise_error(OT::Problem, /Your message wasn't sent/)
 
-        expect(Onetime::EmailReceipt).to have_received(:create)
+        expect(V1::EmailReceipt).to have_received(:create)
           .with('test@example.com', 'secret123', include('Connection failed'))
       end
     end
@@ -101,7 +101,7 @@ RSpec.describe Onetime::Mail::Welcome do
         welcome_email.deliver_email('skip_token')
 
         expect(mail_emailer).not_to have_received(:send_email)
-        expect(Onetime::EmailReceipt).not_to have_received(:create)
+        expect(V1::EmailReceipt).not_to have_received(:create)
       end
     end
   end

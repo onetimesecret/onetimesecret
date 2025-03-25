@@ -4,7 +4,6 @@ def with_emailer(mail)
   mail.tap { |m| m.instance_variable_set(:@emailer, mail_emailer) }
 end
 
-
 def resolve_template_path(template_name)
   # Start from project root (where the tests directory is)
   project_root = Onetime::HOME
@@ -79,7 +78,7 @@ RSpec.shared_context "mail_test_context" do
   end
 
   let(:mail_customer) do
-    instance_double('Customer',
+    instance_double(V1::Customer,
       identifier: 'test@example.com',
       email: 'test@example.com',
       custid: 'test@example.com',
@@ -88,7 +87,7 @@ RSpec.shared_context "mail_test_context" do
   end
 
   let(:mail_secret) do
-    instance_double('Secret',
+    instance_double(V1::Secret,
       identifier: 'secret123',
       key: 'testkey123',
       share_domain: nil,
@@ -113,13 +112,13 @@ RSpec.shared_context "mail_test_context" do
     allow(OT).to receive(:info)
     allow(OT).to receive(:ld)
     allow(OT).to receive(:le)
-    allow(Onetime::EmailReceipt).to receive(:create)
+    allow(V1::EmailReceipt).to receive(:create)
 
     # Mock the emailer creation instead of trying to replace it after
     mailer = mail_emailer
 
     # Update these stubs to accept the third reply_to parameter
-    allow(OT::Mail::SMTPMailer).to receive(:new)
+    allow(OT::Mail::Mailer::SMTPMailer).to receive(:new)
       .with(
         mail_config[:emailer][:from],
         mail_config[:emailer][:fromname],
@@ -127,7 +126,7 @@ RSpec.shared_context "mail_test_context" do
       )
       .and_return(mailer)
 
-    allow(OT::Mail::SendGridMailer).to receive(:new)
+    allow(OT::Mail::Mailer::SendGridMailer).to receive(:new)
       .with(
         mail_config[:emailer][:from],
         mail_config[:emailer][:fromname],
@@ -136,9 +135,9 @@ RSpec.shared_context "mail_test_context" do
       .and_return(mailer)
 
     # Setup OT.emailer to return the correct mailer class
-    allow(OT).to receive(:emailer).and_return(OT::Mail::SMTPMailer)
+    allow(OT).to receive(:emailer).and_return(OT::Mail::Mailer::SMTPMailer)
 
-    allow_any_instance_of(Onetime::Mail::Base).to receive(:emailer).and_return(mailer)
+    allow_any_instance_of(Onetime::Mail::Mailer::BaseMailer).to receive(:emailer).and_return(mailer)
   end
 end
 
@@ -177,7 +176,7 @@ RSpec.shared_examples "mail delivery behavior" do
           subject.deliver_email
         }.to raise_error(OT::Problem)
 
-        expect(Onetime::EmailReceipt).to have_received(:create)
+        expect(V1::EmailReceipt).to have_received(:create)
           .with(mail_customer.identifier, anything, include('Connection failed'))
       end
 
@@ -185,7 +184,7 @@ RSpec.shared_examples "mail delivery behavior" do
         subject.deliver_email('skip_token')
 
         expect(mail_emailer).not_to have_received(:send_email)
-        expect(Onetime::EmailReceipt).not_to have_received(:create)
+        expect(V1::EmailReceipt).not_to have_received(:create)
       end
     end
   end

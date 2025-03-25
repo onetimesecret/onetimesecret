@@ -1,8 +1,9 @@
-# tests/unit/ruby/rspec/apps/api/v1/endpoints_spec.rb
+# tests/unit/ruby/rspec/apps/api/v1/controllers/index_spec.rb
 
 require_relative '../../../../spec_helper'
+require 'v2/controllers'
 
-RSpec.describe V1, type: :request do
+RSpec.describe V1::Controllers::Index, type: :request do
   let(:request) { rack_request }
   let(:response) { rack_response }
 
@@ -45,12 +46,12 @@ RSpec.describe V1, type: :request do
 
   describe '#show_secret' do
     let(:secret_key) { 'test_secret_key' }
-    let(:logic) { instance_double(OT::Logic::Secrets::ShowSecret) }
+    let(:logic) { instance_double(V1::Logic::Secrets::ShowSecret) }
     let(:secret_params) { {key: secret_key, continue: 'true'} }
 
     before do
       allow(request).to receive(:params).and_return(secret_params)
-      allow(OT::Logic::Secrets::ShowSecret).to receive(:new)
+      allow(V1::Logic::Secrets::ShowSecret).to receive(:new)
         .with(session, customer, secret_params, 'en')
         .and_return(logic)
       allow(logic).to receive(:raise_concerns)
@@ -91,21 +92,21 @@ RSpec.describe V1, type: :request do
   end
 
   describe '#share' do
-    let(:logic) { instance_double(OT::Logic::Secrets::ConcealSecret) }
+    let(:logic) { instance_double(V1::Logic::Secrets::ConcealSecret) }
     let(:secret) do
-      double('Secret',
+      double('V1::Secret',
         realttl: 3600,
         has_passphrase?: false,
         key: 'secret_key_123')
     end
     let(:metadata) do
-      double('Metadata',
+      double('V1::Metadata',
         key: 'metadata_key_123',
         viewed!: nil)
     end
 
     before do
-      allow(OT::Logic::Secrets::ConcealSecret).to receive(:new)
+      allow(V1::Logic::Secrets::ConcealSecret).to receive(:new)
         .with(session, customer, {secret: request.params}, 'en')
         .and_return(logic)
       allow(logic).to receive(:raise_concerns)

@@ -1,8 +1,8 @@
 # tests/unit/ruby/rspec/onetime/mail/views/secret_link_spec.rb
 
-require_relative '../../../../spec_helper'
+require_relative '../../../spec_helper'
 
-RSpec.describe Onetime::Mail::Mailer::SecretLink do
+RSpec.describe Onetime::Mail::SecretLink do
   include_context "mail_test_context"
   it_behaves_like "mail delivery behavior"
 
@@ -55,7 +55,7 @@ RSpec.describe Onetime::Mail::Mailer::SecretLink do
 
     context 'with custom share domain' do
       let(:mail_secret) do
-        instance_double('Secret',
+        instance_double('V1::Secret',
           identifier: 'secret123',
           key: 'testkey123',
           share_domain: 'custom.example.com',
@@ -86,7 +86,7 @@ RSpec.describe Onetime::Mail::Mailer::SecretLink do
 
     context 'with nil secret key' do
       let(:mail_secret) do
-        instance_double('Secret',
+        instance_double('V1::Secret',
           identifier: 'secret123',
           key: nil,
           share_domain: nil,

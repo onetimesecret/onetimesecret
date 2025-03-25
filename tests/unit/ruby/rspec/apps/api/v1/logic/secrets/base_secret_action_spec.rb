@@ -2,14 +2,14 @@
 
 RSpec.describe V1::Logic::Secrets::BaseSecretAction do
   # Create test implementation class
-  class TestSecretAction < Onetime::Logic::Secrets::BaseSecretAction
+  class TestSecretAction < V1::Logic::Secrets::BaseSecretAction
     def process_secret
       @kind = :test
       @secret_value = "test_secret"
     end
   end
 
-  let(:session) { double('Session', event_incr!: nil) }
+  let(:session) { double('V1::Session', event_incr!: nil) }
   let(:customer) {
     double('Customer',
     anonymous?: false,

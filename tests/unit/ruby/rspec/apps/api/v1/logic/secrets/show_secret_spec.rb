@@ -3,12 +3,12 @@
 require_relative '../../../../../spec_helper' # correct depth - Mar 22
 
 RSpec.describe V1::Logic::Secrets::ShowSecret do
-  let(:session) { double('Session') }
-  let(:customer) { double('Customer', anonymous?: false, custid: 'cust123', increment_field: nil ) }
+  let(:session) { double('V1::Session') }
+  let(:customer) { double('V1::Customer', anonymous?: false, custid: 'cust123', increment_field: nil ) }
   let(:owner) { double('Owner', custid: 'owner123', verified?: false, anonymous?: false, increment_field: nil ) }
 
   let(:secret) do
-    double('Secret',
+    double('V1::Secret',
       verification: 'false',
       key: 'secret123',
       state?: true,

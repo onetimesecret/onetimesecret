@@ -1,9 +1,9 @@
 # tests/unit/ruby/rspec/onetime/mail/mail_module_spec.rb
 
-require_relative '../../../spec_helper'
+require_relative '../../spec_helper'
 require 'onetime/mail'
 
-RSpec.describe Onetime::Mail do
+RSpec.describe Onetime::Mail::Mailer do
   before do
     # Reset the mailer before each test
     described_class.reset_mailer
