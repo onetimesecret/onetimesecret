@@ -16,7 +16,7 @@ require_relative './test_helpers'
 require 'onetime/models'
 
 # Reference current API version for consistent model access across tests
-TestVersion = Onetime::CURRENT_VERSION
+TestVersion = Onetime::CURRENT_API_VERSION
 
 # Map commonly used models to top-level constants for cleaner test code
 Customer = TestVersion::Customer
@@ -27,3 +27,4 @@ Secret = TestVersion::Secret
 EmailReceipt = TestVersion::EmailReceipt
 Feedback = TestVersion::Feedback
 ExceptionInfo = TestVersion::ExceptionInfo
+RateLimit = TestVersion::RateLimit

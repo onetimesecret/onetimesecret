@@ -10,7 +10,7 @@
 # 4. Account retrieval
 # 5. Account deletion
 
-require_relative '../test_helpers'
+require_relative '../test_logic'
 require 'securerandom'
 
 # Load the app with test configuration
@@ -23,11 +23,11 @@ OT.boot! :test, false
 
 # Assign the unique email address
 @email = @unique_email.call
-@sess = V2::Session.new '255.255.255.254', 'anon'
+@sess = Session.new '255.255.255.254', 'anon'
 
 
 # Create a customer for update tests
-@cust = V1::Customer.new @email
+@cust = Customer.new @email
 @cust.save
 
 
@@ -41,7 +41,7 @@ OT.boot! :test, false
   planid: 'anonymous',
   skill: '' # honeypot field should be empty
 }
-logic = V1::Logic::Account::CreateAccount.new @sess, nil, @create_params
+logic = Logic::Account::CreateAccount.new @sess, nil, @create_params
 logic.raise_concerns
 logic.process
 [
@@ -50,7 +50,7 @@ logic.process
   logic.autoverify,
   logic.customer_role
 ]
-#=> [V1::Customer, 'anonymous', false, 'customer']
+#=> [Customer, 'anonymous', false, 'customer']
 
 # UpdatePassword Tests
 
@@ -60,7 +60,7 @@ logic.process
   p1: 'newpass123',
   p2: 'newpass123'
 }
-logic = V1::Logic::Account::UpdatePassword.new @sess, @cust, @update_params
+logic = Logic::Account::UpdatePassword.new @sess, @cust, @update_params
 logic.instance_variables.include?(:@modified)
 #=> true
 
@@ -68,19 +68,19 @@ logic.instance_variables.include?(:@modified)
 
 ## Test locale update
 @locale_params = { locale: 'es', u: @email }
-logic = V1::Logic::Account::UpdateLocale.new @sess, @cust, @locale_params
+logic = Logic::Account::UpdateLocale.new @sess, @cust, @locale_params
 logic.instance_variables.include?(:@modified)
 #=> true
 
 # GenerateAPIToken Tests
 
 ## Test API token generation, but nothing happens without calling process
-logic = V1::Logic::Account::GenerateAPIToken.new @sess, @cust
+logic = Logic::Account::GenerateAPIToken.new @sess, @cust
 [logic.apitoken.nil?, logic.greenlighted]
 #=> [true, nil]
 
 ## Test API token generation
-logic = V1::Logic::Account::GenerateAPIToken.new @sess, @cust
+logic = Logic::Account::GenerateAPIToken.new @sess, @cust
 #logic.raise_concerns
 logic.process
 [logic.apitoken.nil?, logic.greenlighted]
@@ -89,14 +89,14 @@ logic.process
 # GetAccount Tests
 
 ## Test account retrieval
-logic = V1::Logic::Account::GetAccount.new @sess, @cust, {}
+logic = Logic::Account::GetAccount.new @sess, @cust, {}
 [logic.plans_enabled, logic.stripe_customer, logic.stripe_subscription]
 #=> [false, nil, nil]
 
 # DestroyAccount Tests
 
 ## Test account deletion
-logic = V1::Logic::Account::DestroyAccount.new @sess, @cust
+logic = Logic::Account::DestroyAccount.new @sess, @cust
 [
   logic.raised_concerns_was_called,
   logic.greenlighted,

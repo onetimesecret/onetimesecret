@@ -9,7 +9,7 @@
 # 3. Password reset confirmation
 # 4. Session destruction
 
-require_relative '../test_helpers'
+require_relative '../test_logic'
 
 # Load the app with test configuration
 OT.boot! :test, false
@@ -18,8 +18,8 @@ OT.boot! :test, false
 @now = DateTime.now
 @email = 'test@onetimesecret.com'
 @testpass = 'testpass123'
-@sess = V2::Session.new '255.255.255.255', 'anon'
-@cust = V1::Customer.new @email
+@sess = Session.new '255.255.255.255', 'anon'
+@cust = Customer.new @email
 @cust.update_passphrase @testpass
 @cust.save
 @auth_params = {
@@ -31,13 +31,13 @@ OT.boot! :test, false
 # AuthenticateSession Tests
 
 ## Test authentication with nil customer
-@auth = V1::Logic::Authentication::AuthenticateSession.new @sess, nil, {}
+@auth = Logic::Authentication::AuthenticateSession.new @sess, nil, {}
 [@auth.potential_custid, @auth.custid, @auth.stay]
 #=> ['', nil, true]
 
 ## Test authentication with valid credentials
 
-@auth = V1::Logic::Authentication::AuthenticateSession.new @sess, nil, @auth_params
+@auth = Logic::Authentication::AuthenticateSession.new @sess, nil, @auth_params
 [@auth.potential_custid, @auth.custid, @auth.stay]
 #=> [@email, @email, true]
 
@@ -46,12 +46,12 @@ OT.boot! :test, false
   u: @email,
   p: 'bogus',
 }
-@auth = V1::Logic::Authentication::AuthenticateSession.new @sess, nil, @auth_params
+@auth = Logic::Authentication::AuthenticateSession.new @sess, nil, @auth_params
 [@auth.potential_custid, @auth.custid, @auth.stay]
 #=> [@email, nil, true]
 
 ## Test authentication with remember me option
-@auth = V1::Logic::Authentication::AuthenticateSession.new @sess, nil, @auth_params.merge('stay' => 'false')
+@auth = Logic::Authentication::AuthenticateSession.new @sess, nil, @auth_params.merge('stay' => 'false')
 @auth.stay # currently hardcoded to stay true
 #=> true
 
@@ -59,20 +59,20 @@ OT.boot! :test, false
 
 ## Test password reset request
 @reset_params = { u: @email }
-@reset = V1::Logic::Authentication::ResetPasswordRequest.new @sess, nil, @reset_params
+@reset = Logic::Authentication::ResetPasswordRequest.new @sess, nil, @reset_params
 @reset.custid
 #=> @email
 
 ## Test invalid email handling
 @reset_params = { u: 'invalid@email' }
-@reset = V1::Logic::Authentication::ResetPasswordRequest.new @sess, nil, @reset_params
+@reset = Logic::Authentication::ResetPasswordRequest.new @sess, nil, @reset_params
 @reset.valid_email?(@reset.custid)
 #=> false
 
 # ResetPassword Tests
 
 ## Test password reset confirmation
-@secret = V1::Secret.new
+@secret = Secret.new
 @secret.custid = @email
 @secret.save
 @reset_params = {
@@ -81,14 +81,21 @@ OT.boot! :test, false
   newp: 'newpass123',
   newp2: 'newpass123'
 }
-@reset = V1::Logic::Authentication::ResetPassword.new @sess, @cust, @reset_params
+@reset = Logic::Authentication::ResetPassword.new @sess, @cust, @reset_params
+# NOTE: Most V2 logic is directly subclassed from V1. See note in ResetPassword
+# about whether we can drop the V1 prefix inside the apps/api/v1. That would
+# allow us to simply use Customer and Ruby will resolve to the nearest class
+# (in theory -- it's possible this only works in tests when we're explicitly
+# defining ::Customer).
+#
+# Intentionally V1::Secret here.
 [@reset.secret.class, @reset.is_confirmed]
 #=> [V1::Secret, true]
 
 # DestroySession Tests
 
 ## Test session destruction
-@destroy = V1::Logic::Authentication::DestroySession.new @sess, @cust
+@destroy = Logic::Authentication::DestroySession.new @sess, @cust
 @destroy.processed_params
 #=> {}
 

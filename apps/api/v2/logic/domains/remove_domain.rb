@@ -32,11 +32,11 @@ module V2::Logic
       end
 
       def delete_vhost
-        api_key = V2::Cluster::Features.api_key
+        api_key = Onetime::Cluster::Features.api_key
         if api_key.to_s.empty?
           return OT.info "[RemoveDomain.delete_vhost] Approximated API key not set"
         end
-        res = V2::Cluster::Approximated.delete_vhost(api_key, @display_domain)
+        res = Onetime::Cluster::Approximated.delete_vhost(api_key, @display_domain)
         payload = res.parsed_response
         OT.info "[RemoveDomain.delete_vhost] %s" % payload
       rescue HTTParty::ResponseError => e
