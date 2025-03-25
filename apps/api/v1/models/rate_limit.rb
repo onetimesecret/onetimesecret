@@ -24,6 +24,7 @@ require 'forwardable'
 module V1
   class RateLimit < Familia::Horreum
     extend Forwardable
+    @events = {}
 
     # Default limit for events that haven't been explicitly configured
     DEFAULT_LIMIT = 25 unless defined?(V1::RateLimit::DEFAULT_LIMIT)
@@ -94,7 +95,7 @@ module V1
       count = redis.incr(rediskey)
       update_expiration
       limit = self.class.event_limit(event)
-      OT.ld "[OT] #{external_identifier} #{event} #{count}/#{limit}"
+      OT.ld "[OT] #{external_identifier} #{event} #{count}/#{limit}" if OT.debug?
       if self.class.exceeded?(event, count)
         raise OT::LimitExceeded.new(external_identifier, event, count)
       end
@@ -160,7 +161,7 @@ module V1
       # @param event [Symbol] the event to get the limit for
       # @return [Integer] the configured limit or DEFAULT_LIMIT
       def event_limit event
-        events[event] || DEFAULT_LIMIT
+        events[event] || DEFAULT_LIMIT # Float::INFINITY-1
       end
 
       # Check if a count exceeds the limit for an event
@@ -176,14 +177,16 @@ module V1
       # @param count [Integer] the maximum allowed count
       # @return [Integer] the registered limit
       def register_event event, count
-        (@events ||= {})[event] = count
+        OT.ld "[register_event] #{event.inspect} #{count.inspect}"
+        events[event] = count
       end
 
       # Register multiple events with their limits
       # @param events [Hash] map of event names to limits
       # @return [Hash] the updated events hash
       def register_events events
-        (@events ||= {}).merge! events
+        OT.ld "[register_events] #{events.inspect}"
+        events.merge! events
       end
 
       # Get the current time window stamp
