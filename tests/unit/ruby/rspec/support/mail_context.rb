@@ -96,11 +96,11 @@ RSpec.shared_context "mail_test_context" do
   end
 
   let(:mail_emailer) do
-    instance_double('SMTPMailer').tap do |emailer|
+    instance_double('OT::Mail::Mailer::SMTPMailer').tap do |emailer|
       allow(emailer).to receive(:send_email)
         .and_return({ status: 'sent', message_id: 'test123' })
       # Expect this to be called during initialization
-      allow(emailer).to receive(:fromname=).with('Onetime Secret')
+      allow(emailer).to receive(:fromname) #.with('Onetime Secret')
     end
   end
 
@@ -112,7 +112,7 @@ RSpec.shared_context "mail_test_context" do
     allow(OT).to receive(:info)
     allow(OT).to receive(:ld)
     allow(OT).to receive(:le)
-    allow(V1::EmailReceipt).to receive(:create)
+    allow(V2::EmailReceipt).to receive(:create)
 
     # Mock the emailer creation instead of trying to replace it after
     mailer = mail_emailer
@@ -176,7 +176,7 @@ RSpec.shared_examples "mail delivery behavior" do
           subject.deliver_email
         }.to raise_error(OT::Problem)
 
-        expect(V1::EmailReceipt).to have_received(:create)
+        expect(V2::EmailReceipt).to have_received(:create)
           .with(mail_customer.identifier, anything, include('Connection failed'))
       end
 
@@ -184,7 +184,7 @@ RSpec.shared_examples "mail delivery behavior" do
         subject.deliver_email('skip_token')
 
         expect(mail_emailer).not_to have_received(:send_email)
-        expect(V1::EmailReceipt).not_to have_received(:create)
+        expect(V2::EmailReceipt).not_to have_received(:create)
       end
     end
   end

@@ -7,7 +7,6 @@ module Onetime::Mail
   module Mailer
     class SMTPMailer < BaseMailer
 
-
       def send_email(to_address, subject, html_content, text_content) # rubocop:disable Metrics/MethodLength
         mailer_response = nil
         obscured_address = OT::Utils.obscure_email(to_address)

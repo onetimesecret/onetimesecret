@@ -20,14 +20,14 @@ module Onetime
 
         case provider.to_s.downcase
         when 'sendgrid'
-          SendGridMailer.setup
-          SendGridMailer.new(from, fromname)
+          Mailer::SendGridMailer.setup
+          Mailer::SendGridMailer.new(from, fromname)
         when 'ses'
-          SESMailer.setup
-          SESMailer.new(from, fromname)
+          Mailer::SESMailer.setup
+          Mailer::SESMailer.new(from, fromname)
         else # default to smtp
-          SMTPMailer.setup
-          SMTPMailer.new(from, fromname)
+          Mailer::SMTPMailer.setup
+          Mailer::SMTPMailer.new(from, fromname)
         end
       end
     end

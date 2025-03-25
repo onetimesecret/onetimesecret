@@ -47,7 +47,7 @@ module V1
 
     def destroy! *args
       ret = super
-      OT::EmailReceipt.values.remove identifier
+      V1::EmailReceipt.values.remove identifier
       ret
     end
 
