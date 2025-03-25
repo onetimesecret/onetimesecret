@@ -1,26 +1,14 @@
 # apps/api/v1/application.rb
 
-require 'rack'
-require 'otto'
-require 'json'
+require_relative '../../app_base'
 
 require_relative 'models'
 require_relative 'logic'
 require_relative 'controllers'
 
 module V1
-  class Application
-    attr_reader :options, :router, :rack_app
-
-    def initialize(options = {})
-      @options = options
-      @router = build_router
-      @rack_app = build_rack_app
-    end
-
-    def call(env)
-      rack_app.call(env)
-    end
+  class Application < ::BaseApplication
+    @prefix = '/api/v1'
 
     private
 
@@ -69,9 +57,5 @@ module V1
       end.to_app
     end
 
-
-    # Register with AppRegistry during load
-    require_relative '../../app_registry'
-    AppRegistry.register('/api/v1', self)
   end
 end
