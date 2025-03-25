@@ -76,7 +76,8 @@ module Onetime
     # all model classes that need database connections.
     #
     # `mode` is a symbol, one of: :app, :cli, :test. It's used for logging
-    # but otherwise doesn't do anything special.
+    # but otherwise doesn't do anything special (other than allow :cli to
+    # continue even when it's cloudy with a chance of boot errors).
     #
     # When `db` is false, the database connections won't be initialized. This
     # is useful for testing or when you want to run code without necessary
@@ -114,14 +115,14 @@ module Onetime
     rescue OT::Problem => e
       OT.le "Problem booting: #{e}"
       OT.ld e.backtrace.join("\n")
-      exit 1
+      exit 1 unless mode?(:cli) # allows for debugging in the console
     rescue Redis::CannotConnectError => e
       OT.le "Cannot connect to redis #{Familia.uri} (#{e.class})"
-      exit 10
+      exit 10 unless mode?(:cli)
     rescue StandardError => e
       OT.le "Unexpected error `#{e}` (#{e.class})"
       OT.ld e.backtrace.join("\n")
-      exit 99
+      exit 99 unless mode?(:cli)
     end
 
     def info(*msgs)
