@@ -211,7 +211,8 @@ GEM
     sysinfo (0.10.0)
       drydock (< 1.0)
       storable (~> 0.10)
-    syslog (0.2.0)
+    syslog (0.3.0)
+      logger
     thin (1.8.2)
       daemons (~> 1.0, >= 1.0.9)
       eventmachine (~> 1.0, >= 1.0.4)
@@ -282,7 +283,7 @@ DEPENDENCIES
   stringio (~> 3.1.5)
   stripe
   sysinfo
-  syslog (~> 0.2.0)
+  syslog (~> 0.3.0)
   thin
   truemail
   tryouts
