@@ -9,7 +9,8 @@ require_relative 'helpers'
 module V1
   module Logic
     class Base
-      include V1::LogicHelpers
+      include V1::Logic::I18nHelpers
+      include V1::Logic::UriHelpers
 
       attr_reader :sess, :cust, :params, :locale, :processed_params, :plan
       attr_reader :site, :authentication, :domains_enabled
@@ -61,15 +62,6 @@ module V1
 
       def success_data
         raise NotImplementedError
-      end
-
-      def i18n
-        locale = self.locale || 'en'
-        @i18n ||= {
-          locale: locale,
-          email: OT.locales[locale][:email],
-          web: OT.locales[locale][:web]
-        }
       end
 
       protected
