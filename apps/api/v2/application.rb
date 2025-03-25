@@ -64,6 +64,8 @@ module V2
       end.to_app
     end
 
+    require_relative '../../app_registry'
+
     # Registering with AppRegistry during load makes this application
     # available to the main config.ru file.
     AppRegistry.register('/api/v2', self) # i.e. V2::Application

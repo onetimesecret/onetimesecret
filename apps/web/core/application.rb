@@ -60,9 +60,8 @@ module Core
       end.to_app
     end
 
+    # Register with AppRegistry during load
+    require_relative '../../app_registry'
+    AppRegistry.register('/', self)
   end
 end
-
-
-# Register with AppRegistry during load
-AppRegistry.register('/', Core::Application)

@@ -69,8 +69,9 @@ module V1
       end.to_app
     end
 
+
+    # Register with AppRegistry during load
+    require_relative '../../app_registry'
+    AppRegistry.register('/api/v1', self)
   end
 end
-
-# Register with AppRegistry during load
-AppRegistry.register('/api/v1', V1::Application)
