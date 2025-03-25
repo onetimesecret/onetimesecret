@@ -1,7 +1,9 @@
 # tests/unit/ruby/try/20_models/27_domains_expiration_try.rb
 
-require_relative '../test_helpers'
 require 'securerandom'
+
+require_relative '../test_helpers'
+require 'onetime/models'
 
 #Familia.debug = true
 

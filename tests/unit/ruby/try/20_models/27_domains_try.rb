@@ -5,6 +5,7 @@
 require 'public_suffix'
 
 require_relative '../test_helpers'
+require 'onetime/models'
 
 # Load the app
 OT.boot! :test, false
