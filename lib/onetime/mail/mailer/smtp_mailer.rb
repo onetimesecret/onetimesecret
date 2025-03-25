@@ -100,6 +100,11 @@ module Onetime::Mail
           }
         end
       end
+
+      def self.clear
+        # No instance variables to clear, so this is intentionally a nullop.
+      end
+
     end
 
   end

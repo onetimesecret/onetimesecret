@@ -16,7 +16,11 @@ module Onetime
         end
 
         def send_email(to_address, subject, html_content, text_content)
-          raise NotImplementedError, "Subclasses must implement send_email"
+          raise NotImplementedError
+        end
+
+        def self.clear
+          raise NotImplementedError
         end
 
         def self.setup
