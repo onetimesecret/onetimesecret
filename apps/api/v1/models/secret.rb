@@ -27,6 +27,9 @@ module V1
     field :truncated # boolean
     field :maxviews # always 1 (here for backwards compat)
 
+    # See note on V2::Secret
+    field :key
+
     counter :view_count, ttl: 14.days # out lives the secret itself
 
     # NOTE: this field is a nullop. It's only populated if a value was entered

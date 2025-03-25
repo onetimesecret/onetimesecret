@@ -27,6 +27,12 @@ module V2
     field :truncated # boolean
     field :maxviews # always 1 (here for backwards compat)
 
+    # The key field is added automatically by Familia::Horreum and works
+    # just fine except for rspec mocks that use `instance_double`. Mocking
+    # a secret that includes a value for `key` will trigger an error (since
+    # instance_double considers the real class). See spec_helpers.rb
+    field :key
+
     counter :view_count, ttl: 14.days # out lives the secret itself
 
     # NOTE: this field is a nullop. It's only populated if a value was entered

@@ -31,12 +31,23 @@ $LOAD_PATH.unshift(spec_path)
 
 begin
   require 'onetime'
-  require 'onetime/alias' # OT
+  require 'onetime/alias' # allows using OT::Mail
   require 'onetime/refinements/rack_refinements'
   require 'onetime/logic'
   require 'onetime/models'
   require 'onetime/controllers'
   require 'onetime/views'
+
+  # Due to how Familia::Horreum defines model classes we need to create
+  # an instance of each model class to ensure that they are loaded and
+  # available for testing. Part of ##1185.
+  #
+  # From Horreum#initialize:
+  #   "Automatically add a 'key' field if it's not already defined."
+  #
+  # V1::Secret.new
+  # V2::Secret.new
+
 rescue LoadError => e
   puts "Failed to load onetime module: #{e.message}"
   puts "Current directory: #{Dir.pwd}"
