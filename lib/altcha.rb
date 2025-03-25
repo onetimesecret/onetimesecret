@@ -1,4 +1,4 @@
-# frozen_string_literal: true
+# lib/altcha.rb
 
 # Based on from: https://github.com/altcha-org/altcha-lib-rb
 #
@@ -59,7 +59,7 @@ module Altcha
   end
 
   # Class representing the payload of a challenge.
-  class Payload < Struct.new(:algorithm, :challenge, :number, :salt, :signature, :took)
+  Payload = Struct.new(:algorithm, :challenge, :number, :salt, :signature, :took) do
     #attr_accessor :algorithm, :challenge, :number, :salt, :signature
 
     # Converts the Payload object to a JSON string.
@@ -85,7 +85,7 @@ module Altcha
   end
 
   # Class representing the payload for server signatures.
-  class ServerSignaturePayload < Struct.new(:algorithm, :verification_data, :signature, :verified, :challenge, :number, :salt, :took)
+  ServerSignaturePayload = Struct.new(:algorithm, :verification_data, :signature, :verified, :challenge, :number, :salt, :took) do
     #attr_accessor :algorithm, :verification_data, :signature, :verified
 
     # Converts the ServerSignaturePayload object to a JSON string.
@@ -110,10 +110,9 @@ module Altcha
   end
 
   # Class for verifying server signatures, containing various data points.
-  class ServerSignatureVerificationData < Struct.new(:classification, :country, :detected_language, :email, :expire, :fields, :fields_hash, :ip_address, :reasons, :score, :time, :verified)
-    #attr_accessor :classification, :country, :detected_language, :email, :expire, :fields, :fields_hash,
-    #:ip_address, :reasons, :score, :time, :verified
-  end
+  ServerSignatureVerificationData = Struct.new(:classification, :country, :detected_language, :email, :expire, :fields, :fields_hash, :ip_address, :reasons, :score, :time, :verified)
+  #attr_accessor :classification, :country, :detected_language, :email, :expire, :fields, :fields_hash,
+  #:ip_address, :reasons, :score, :time, :verified
 
   # Class representing the solution to a challenge.
   class Solution

@@ -6,6 +6,7 @@ module Onetime
     attr_accessor :message
 
     def initialize(message = nil)
+      super(message)
       @message = message
     end
   end

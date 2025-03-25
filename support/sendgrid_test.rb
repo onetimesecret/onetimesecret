@@ -3,14 +3,14 @@
 $LOAD_PATH.unshift(File.expand_path("../../lib", __FILE__))
 
 require 'onetime'
-require 'onetime/app/mail/sendgrid_mailer'
+require 'onetime/mail/mailer/sendgrid_mailer'
 
 Onetime.boot! :app
 
-Onetime::App::Mail::SendGridMailer.setup
+Onetime::Mail::Mailer::SendGridMailer.setup
 
 # Initialize mailer
-mailer = Onetime::App::Mail::SendGridMailer.new "sender@example.com", "Test Sender"
+mailer = Onetime::Mail::Mailer::SendGridMailer.new "sender@example.com", "Test Sender"
 
 # Send test email with sandbox mode enabled
 response = mailer.send_email(
@@ -18,7 +18,7 @@ response = mailer.send_email(
   "Test Email Subject",
   "<p>This is a test html content.</p>",
   "This is a test text content.",
-  true # Enable sandbox mode
+  true, # Enable sandbox mode
 )
 
 if response&.status_code == "200"

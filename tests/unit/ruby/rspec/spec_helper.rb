@@ -13,22 +13,43 @@ require_relative 'support/mail_context'
 # Starts SimpleCov for code coverage analysis if the COVERAGE environment variable is set.
 SimpleCov.start if ENV['COVERAGE']
 
-# Adds the 'lib' directory to the load path to ensure that the Onetime library can be required.
-# Add lib directory to load path
-lib_path = File.expand_path('../../../../lib', __FILE__)
-$LOAD_PATH.unshift(lib_path) unless $LOAD_PATH.include?(lib_path)
+base_path = File.expand_path('../../../../..', __FILE__)
+apps_root = File.join(base_path, 'apps').freeze
+
+# Add the apps dirs to the load path. This allows us
+# to require 'v2/logic' naturally.
+$LOAD_PATH.unshift(File.join(apps_root, 'api'))
+$LOAD_PATH.unshift(File.join(apps_root, 'web'))
+
+# Adds the 'lib' directory to the load path to ensure that the Onetime
+# library can be required.
+$LOAD_PATH.unshift File.join(base_path, 'lib')
 
 # Add spec directory to load path
 spec_path = File.expand_path('../..', __FILE__)
-$LOAD_PATH.unshift(spec_path) unless $LOAD_PATH.include?(spec_path)
+$LOAD_PATH.unshift(spec_path)
 
 begin
   require 'onetime'
-  require 'onetime/alias' # OT
+  require 'onetime/alias' # allows using OT::Mail
   require 'onetime/refinements/rack_refinements'
-  require 'onetime/logic/secrets/show_secret'
+  require 'onetime/logic'
+  require 'onetime/models'
+  require 'onetime/controllers'
+  require 'onetime/views'
+
+  # Due to how Familia::Horreum defines model classes we need to create
+  # an instance of each model class to ensure that they are loaded and
+  # available for testing. Part of ##1185.
+  #
+  # From Horreum#initialize:
+  #   "Automatically add a 'key' field if it's not already defined."
+  #
+  # V1::Secret.new
+  # V2::Secret.new
+
 rescue LoadError => e
-  puts "Failed to load refinements: #{e.message}"
+  puts "Failed to load onetime module: #{e.message}"
   puts "Current directory: #{Dir.pwd}"
   puts "Load path: #{$LOAD_PATH}"
   exit
@@ -73,7 +94,7 @@ RSpec.configure do |config|
   config.mock_with :rspec
 
   # Applies shared context metadata to host groups, enhancing test organization.
-  # Will be default in RSpec 4       
+  # Will be default in RSpec 4
   config.shared_context_metadata_behavior = :apply_to_host_groups
 
   # Disables RSpec's monkey patching to encourage the use of the RSpec DSL.

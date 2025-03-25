@@ -79,8 +79,7 @@ class Rack::HandleInvalidPercentEncoding
     return true if @check_enabled
     return false unless defined?(Otto) && app.is_a?(Otto)
     name, route = app.route_definitions.first
-    has_settings = route.klass.include?(Onetime::App::AppSettings)
-    setting_enabled = has_settings && route.klass.check_uri_encoding
+    setting_enabled = route.klass.respond_to?(:check_uri_encoding) && route.klass.check_uri_encoding
     logger.debug "[handle-invalid-uri-encoding] #{name} has settings: #{has_settings}, enabled: #{setting_enabled}"
     return setting_enabled
   end

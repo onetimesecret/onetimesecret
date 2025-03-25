@@ -1,4 +1,4 @@
-# frozen_string_literal: true
+# lib/middleware.rb
 
 require 'logger'
 require_relative 'middleware/clear_session_messages'

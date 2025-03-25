@@ -1,4 +1,4 @@
-
+# lib/onetime/refinements/horreum_refinements.rb
 
 module Familia
   module HorreumRefinements
@@ -11,17 +11,17 @@ module Familia
       #   # In onetime.rb
       #   def connect_databases
       #     # Config has db numbers like: db_session: 0, db_secret: 1
-      #     Onetime::Session.db = OT.conf["db_#{Onetime::Session.to_sym}"]
+      #     V2::Session.db = OT.conf["db_#{V2::Session.to_sym}"]
       #     # => looks up 'db_session' in config
       #   end
       #
       # @return [Symbol] The underscored class name as a symbol
       def to_sym
         name.split('::').last
-            .gsub(/([A-Z]+)([A-Z][a-z])/, '\1_\2')
-            .gsub(/([a-z\d])([A-Z])/, '\1_\2')
-            .downcase
-            .to_sym
+          .gsub(/([A-Z]+)([A-Z][a-z])/, '\1_\2')
+          .gsub(/([a-z\d])([A-Z])/, '\1_\2')
+          .downcase
+          .to_sym
       end
     end
   end

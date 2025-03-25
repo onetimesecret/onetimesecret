@@ -1,17 +1,16 @@
-# frozen_string_literal: true
+# tests/unit/ruby/try/60_logic/65_logic_exception_info_try.rb
 
-require 'onetime'
+require_relative '../test_helpers'
 require 'securerandom'
 
 # Setup
-OT::Config.path = File.join(Onetime::HOME, 'tests', 'unit', 'ruby', 'config.test.yaml')
-OT.boot! :test
+OT.boot! :test, false
 
 @now = DateTime.now
 @email = "test#{SecureRandom.uuid}@onetimesecret.com"
-@sess = OT::Session.new '255.255.255.255', 'anon'
+@sess = V2::Session.new '255.255.255.255', 'anon'
 @environment = 'test'
-@cust = OT::Customer.new @email
+@cust = V1::Customer.new @email
 @cust.save
 
 ## Basic Exception Logging
@@ -27,7 +26,7 @@ OT.boot! :test
   environment: @environment,
   release: '1.0.0'
 }
-logic = OT::Logic::Misc::ReceiveException.new @sess, @cust, @exception_params
+logic = V1::Logic::ReceiveException.new @sess, @cust, @exception_params
 logic.process
 [
   logic.greenlighted,
@@ -50,7 +49,7 @@ params = {
   environment: @environment,
   release: "1.0.0"
 }
-logic = OT::Logic::Misc::ReceiveException.new @sess, @cust, params
+logic = V1::Logic::ReceiveException.new @sess, @cust, params
 logic.process_params
 logic.process
 [
@@ -69,7 +68,7 @@ long_params = {
   stack: "z" * 20000,
   url: "u" * 2000
 }
-logic = OT::Logic::Misc::ReceiveException.new @sess, @cust, long_params
+logic = V1::Logic::ReceiveException.new @sess, @cust, long_params
 logic.process_params
 data = logic.instance_variable_get(:@exception_data)
 [
@@ -87,7 +86,7 @@ params = { message: "Test", type: "Error", url: "https://status.onetime.co" }
 begin
   # Submit multiple exceptions quickly
   10.times do
-    logic = OT::Logic::Misc::ReceiveException.new @sess, @cust, params
+    logic = V1::Logic::ReceiveException.new @sess, @cust, params
     logic.process_params
     logic.raise_concerns
   end
@@ -101,7 +100,7 @@ end
 # Prevent empty exception message
 begin
   empty_params = @exception_params.merge(message: '')
-  logic = OT::Logic::Misc::ReceiveException.new @sess, @cust, empty_params
+  logic = V1::Logic::ReceiveException.new @sess, @cust, empty_params
   logic.raise_concerns
 rescue OT::FormError => e
   [e.class.name, e.message]

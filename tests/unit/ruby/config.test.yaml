@@ -16,8 +16,8 @@
     :api:
       :enabled: true
   :secret_options:
-    :default_ttl: 43200 # 12 hours in seconds
-    :ttl_options: '1800 43200 604800' # 30m, 12h, 7d
+    :default_ttl: <%= ENV['DEFAULT_TTL'] || '43200' %> # 12 hours in seconds
+    :ttl_options: <%= (ENV['TTL_OPTIONS'] || '1800 43200 604800') %> # 30m, 12h, 7d
   # Registration and Authentication settings
   :authentication:
     # Can be disabled altogether, including API authentication.

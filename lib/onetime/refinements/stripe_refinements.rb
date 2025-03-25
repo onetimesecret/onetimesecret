@@ -1,6 +1,4 @@
-# rubocop:disable
-
-# lives in lib/onetime/refinements
+# lib/onetime/refinements/stripe_refinements.rb
 
 require 'stripe' # ensures Stripe namespace is loaded
 
@@ -49,7 +47,7 @@ module Onetime::StripeRefinements
           interval: sub.plan.interval,
           interval_count: sub.plan.interval_count
         } : nil
-      }}
+      }},
     ]
   end
 
@@ -104,7 +102,7 @@ module Onetime::StripeRefinements
         # Only include safe metadata fields
         safe_metadata_keys = [:public_note, :preferred_language]
         cust.metadata_list.select { |k, _| safe_metadata_keys.include?(k.to_sym) }
-      }}
+      }},
     ]
   end
 end

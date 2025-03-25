@@ -4,7 +4,6 @@ def with_emailer(mail)
   mail.tap { |m| m.instance_variable_set(:@emailer, mail_emailer) }
 end
 
-
 def resolve_template_path(template_name)
   # Start from project root (where the tests directory is)
   project_root = Onetime::HOME
@@ -79,31 +78,29 @@ RSpec.shared_context "mail_test_context" do
   end
 
   let(:mail_customer) do
-    instance_double('Customer',
+    instance_double(V1::Customer,
       identifier: 'test@example.com',
       email: 'test@example.com',
       custid: 'test@example.com',
       anonymous?: false,
-      verified?: false
-    )
+      verified?: false)
   end
 
   let(:mail_secret) do
-    instance_double('Secret',
+    instance_double(V1::Secret,
       identifier: 'secret123',
       key: 'testkey123',
       share_domain: nil,
       ttl: 7200,
-      state: 'pending'
-    )
+      state: 'pending')
   end
 
   let(:mail_emailer) do
-    instance_double('SMTPMailer').tap do |emailer|
+    instance_double('OT::Mail::Mailer::SMTPMailer').tap do |emailer|
       allow(emailer).to receive(:send_email)
         .and_return({ status: 'sent', message_id: 'test123' })
       # Expect this to be called during initialization
-      allow(emailer).to receive(:fromname=).with('Onetime Secret')
+      allow(emailer).to receive(:fromname) #.with('Onetime Secret')
     end
   end
 
@@ -115,32 +112,32 @@ RSpec.shared_context "mail_test_context" do
     allow(OT).to receive(:info)
     allow(OT).to receive(:ld)
     allow(OT).to receive(:le)
-    allow(Onetime::EmailReceipt).to receive(:create)
+    allow(V2::EmailReceipt).to receive(:create)
 
     # Mock the emailer creation instead of trying to replace it after
     mailer = mail_emailer
 
     # Update these stubs to accept the third reply_to parameter
-    allow(OT::App::Mail::SMTPMailer).to receive(:new)
+    allow(OT::Mail::Mailer::SMTPMailer).to receive(:new)
       .with(
         mail_config[:emailer][:from],
         mail_config[:emailer][:fromname],
-        anything  # This allows any third parameter for reply_to
+        anything,  # This allows any third parameter for reply_to
       )
       .and_return(mailer)
 
-    allow(OT::App::Mail::SendGridMailer).to receive(:new)
+    allow(OT::Mail::Mailer::SendGridMailer).to receive(:new)
       .with(
         mail_config[:emailer][:from],
         mail_config[:emailer][:fromname],
-        anything  # This allows any third parameter for reply_to
+        anything,  # This allows any third parameter for reply_to
       )
       .and_return(mailer)
 
     # Setup OT.emailer to return the correct mailer class
-    allow(OT).to receive(:emailer).and_return(OT::App::Mail::SMTPMailer)
+    allow(OT).to receive(:emailer).and_return(OT::Mail::Mailer::SMTPMailer)
 
-    allow_any_instance_of(Onetime::App::Mail::Base).to receive(:emailer).and_return(mailer)
+    allow_any_instance_of(Onetime::Mail::Mailer::BaseMailer).to receive(:emailer).and_return(mailer)
   end
 end
 
@@ -155,7 +152,7 @@ RSpec.shared_examples "mail delivery behavior" do
       expect(subject.i18n[:locale]).to eq('en')
       expect(subject.i18n[:COMMON]).to include(
         description: 'Test Description',
-        keywords: 'test,keywords'
+        keywords: 'test,keywords',
       )
     end
 
@@ -179,7 +176,7 @@ RSpec.shared_examples "mail delivery behavior" do
           subject.deliver_email
         }.to raise_error(OT::Problem)
 
-        expect(Onetime::EmailReceipt).to have_received(:create)
+        expect(V2::EmailReceipt).to have_received(:create)
           .with(mail_customer.identifier, anything, include('Connection failed'))
       end
 
@@ -187,7 +184,7 @@ RSpec.shared_examples "mail delivery behavior" do
         subject.deliver_email('skip_token')
 
         expect(mail_emailer).not_to have_received(:send_email)
-        expect(Onetime::EmailReceipt).not_to have_received(:create)
+        expect(V2::EmailReceipt).not_to have_received(:create)
       end
     end
   end
@@ -203,7 +200,7 @@ RSpec.shared_examples "mustache template behavior" do |template_name, options = 
 
     it "has correct template configuration" do
       expect(described_class.template_path).not_to be_nil
-      expect(described_class.view_namespace).to eq(Onetime::App::Mail)
+      expect(described_class.view_namespace).to eq(Onetime::Mail)
     end
 
     # Only run filesystem checks if templates exist
@@ -269,7 +266,7 @@ RSpec.shared_examples "localized email template" do |template_key|
       it "uses correct subject template and interpolation" do
         subject_template = mail_locales['en'][:email][template_key][:subject]
         expect(subject.subject).to eq(
-          subject_template % [customer.custid]
+          subject_template % [customer.custid],
         )
       end
     end
@@ -280,7 +277,7 @@ RSpec.shared_examples "localized email template" do |template_key|
       it "uses localized subject with interpolation" do
         subject_template = mail_locales['fr'][:email][template_key][:subject]
         expect(subject.subject).to eq(
-          subject_template % [customer.custid]
+          subject_template % [customer.custid],
         )
       end
     end
@@ -291,7 +288,7 @@ RSpec.shared_examples "localized email template" do |template_key|
       it "falls back to English with interpolation" do
         subject_template = mail_locales['en'][:email][template_key][:subject]
         expect(subject.subject).to eq(
-          subject_template % [customer.custid]
+          subject_template % [customer.custid],
         )
       end
     end

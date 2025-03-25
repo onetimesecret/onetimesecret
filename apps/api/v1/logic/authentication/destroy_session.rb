@@ -1,0 +1,17 @@
+require_relative '../base'
+
+module V1::Logic
+  module Authentication
+    class DestroySession < V1::Logic::Base
+      def process_params
+      end
+      def raise_concerns
+        limit_action :destroy_session
+        OT.info "[destroy-session] #{@custid} #{@sess.ipaddress}"
+      end
+      def process
+        sess.destroy!
+      end
+    end
+  end
+end

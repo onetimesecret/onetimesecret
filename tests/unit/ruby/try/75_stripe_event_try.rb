@@ -1,4 +1,4 @@
-# File: 26_stripe_event_try.rb
+# tests/unit/ruby/try/75_stripe_event_try.rb
 
 # frozen_string_literal: true
 
@@ -11,15 +11,14 @@
 # 4. Class methods for retrieving and managing events
 # 5. Destruction process
 #
-# These tests aim to verify the correct behavior of the OT::StripeEvent class,
+# These tests aim to verify the correct behavior of the V2::StripeEvent class,
 # which is essential for managing Stripe-related events in the application.
 
-require 'onetime'
-require 'onetime/models/stripe_event'
+require_relative './test_helpers'
+require 'v2/models/stripe_event'
 
 # Load the app
-OT::Config.path = File.join(Onetime::HOME, 'tests', 'unit', 'ruby', 'config.test.yaml')
-OT.boot! :test
+OT.boot! :test, false
 
 # Setup
 def setup
@@ -28,7 +27,7 @@ def setup
   @eventid = "evt_#{@now}"
 
   @message_response = "Test message response"
-  @stripe_event = OT::StripeEvent.new(eventid: @eventid, custid: @custid, message_response: @message_response)
+  @stripe_event = V2::StripeEvent.new(eventid: @eventid, custid: @custid, message_response: @message_response)
 end
 
 # Teardown
@@ -66,9 +65,9 @@ setup
 
 ## Can create a new StripeEvent
 p [@eventid, @custid, @message_response]
-@new_event = OT::StripeEvent.new(eventid: @eventid, custid: @custid, message_response: @message_response)
+@new_event = V2::StripeEvent.new(eventid: @eventid, custid: @custid, message_response: @message_response)
 @new_event.class
-#=> OT::StripeEvent
+#=> V2::StripeEvent
 
 ## New StripeEvent doesn't exist in Redis yet
 @new_event.exists?
@@ -80,20 +79,20 @@ p [@eventid, @custid, @message_response]
 #=> true
 
 ## Can retrieve all StripeEvents
-OT::StripeEvent.all.class
+V2::StripeEvent.all.class
 #=> Array
 
 ## Can retrieve recent StripeEvents
-OT::StripeEvent.recent.class
+V2::StripeEvent.recent.class
 #=> Array
 
 ## StripeEvent is not added to values sorted set automatically (when created using new + save)
-OT::StripeEvent.values.member?(@new_event.identifier)
+V2::StripeEvent.values.member?(@new_event.identifier)
 #=> false
 
 ## StripeEvent is added to values sorted set
-OT::StripeEvent.add @new_event
-OT::StripeEvent.values.member?(@new_event.identifier)
+V2::StripeEvent.add @new_event
+V2::StripeEvent.values.member?(@new_event.identifier)
 #=> true
 
 ## Can destroy StripeEvent
@@ -102,7 +101,7 @@ OT::StripeEvent.values.member?(@new_event.identifier)
 #=> false
 
 ## Destroyed StripeEvent is removed from values sorted set
-OT::StripeEvent.values.member?(@new_event.identifier)
+V2::StripeEvent.values.member?(@new_event.identifier)
 #=> false
 
 teardown

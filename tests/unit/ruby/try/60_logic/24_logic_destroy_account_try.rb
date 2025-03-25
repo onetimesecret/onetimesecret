@@ -1,4 +1,4 @@
-# frozen_string_literal: true
+# tests/unit/ruby/try/60_logic/24_logic_destroy_account_try.rb
 
 # These tryouts test the account destruction functionality in the OneTime application.
 # They cover various aspects of the account destruction process, including:
@@ -12,21 +12,20 @@
 # These tests aim to ensure that the account destruction process is secure, properly validated,
 # and correctly updates the user's account state.
 #
-# The tryouts use the OT::Logic::Account::DestroyAccount class to simulate different account destruction
+# The tryouts use the V1::Logic::Account::DestroyAccount class to simulate different account destruction
 # scenarios, allowing for targeted testing of this critical functionality without affecting real user accounts.
 
-require 'onetime'
+require_relative '../test_helpers'
 
 # Load the app
-OT::Config.path = File.join(Onetime::HOME, 'tests', 'unit', 'ruby', 'config.test.yaml')
-OT.boot! :test
+OT.boot! :test, false
 
 # Setup some variables for these tryouts
 @email_address = 'changeme@example.com'
 @now = DateTime.now
-@sess = OT::Session.new '255.255.255.255', 'anon'
+@sess = V2::Session.new '255.255.255.255', 'anon'
 @sess.event_clear! :destroy_account
-@cust = OT::Customer.new @email_address
+@cust = V1::Customer.new @email_address
 @sess.event_clear! :send_feedback
 @params = {
   confirmation: 'pa55w0rd'
@@ -44,20 +43,20 @@ end
 # TRYOUTS
 
 ## Can create DestroyAccount instance
-obj = OT::Logic::Account::DestroyAccount.new @sess, @cust, @params
+obj = V1::Logic::Account::DestroyAccount.new @sess, @cust, @params
 obj.params[:confirmation]
 #=> @params[:confirmation]
 
 ## Processing params removes leading and trailing whitespace
 ## from current password, but not in the middle.
 password_guess = '   padded p455   '
-obj = OT::Logic::Account::DestroyAccount.new @sess, @cust, confirmation: password_guess
+obj = V1::Logic::Account::DestroyAccount.new @sess, @cust, confirmation: password_guess
 obj.process_params
 #=> 'padded p455'
 
 
 ## Raises an error if no params are passed at all
-obj = OT::Logic::Account::DestroyAccount.new @sess, @cust
+obj = V1::Logic::Account::DestroyAccount.new @sess, @cust
 begin
   obj.raise_concerns
 rescue => e
@@ -68,7 +67,7 @@ end
 
 
 ## Raises an error if the current password is nil
-obj = OT::Logic::Account::DestroyAccount.new @sess, @cust, confirmation: nil
+obj = V1::Logic::Account::DestroyAccount.new @sess, @cust, confirmation: nil
 begin
   obj.raise_concerns
 rescue => e
@@ -78,7 +77,7 @@ end
 
 
 ## Raises an error if the current password is empty
-obj = OT::Logic::Account::DestroyAccount.new @sess, @cust, confirmation: ''
+obj = V1::Logic::Account::DestroyAccount.new @sess, @cust, confirmation: ''
 begin
   obj.raise_concerns
 rescue => e
@@ -88,8 +87,8 @@ end
 
 
 ## Raises an error if the password is incorrect
-cust = OT::Customer.new generate_random_email
-obj = OT::Logic::Account::DestroyAccount.new @sess, cust, @params
+cust = V1::Customer.new generate_random_email
+obj = V1::Logic::Account::DestroyAccount.new @sess, cust, @params
 cust.update_passphrase 'wrong password'
 begin
   obj.raise_concerns
@@ -100,18 +99,18 @@ end
 
 
 ## No errors are raised as long as the password is correct
-cust = OT::Customer.new generate_random_email
+cust = V1::Customer.new generate_random_email
 password_guess = @params[:confirmation]
-obj = OT::Logic::Account::DestroyAccount.new @sess, cust, @params
+obj = V1::Logic::Account::DestroyAccount.new @sess, cust, @params
 cust.update_passphrase password_guess # update the password to be correct
 obj.raise_concerns
 #=> nil
 
 
 ## Too many attempts is throttled by rate limiting
-cust = OT::Customer.new generate_random_email
+cust = V1::Customer.new generate_random_email
 password_guess = @params[:confirmation]
-obj = OT::Logic::Account::DestroyAccount.new @sess, cust, @params
+obj = V1::Logic::Account::DestroyAccount.new @sess, cust, @params
 cust.update_passphrase password_guess
 
 # Make sure we start from 0
@@ -131,7 +130,7 @@ last_error
 
 ## Attempt to process the request without calling raise_concerns first
 password_guess = @params[:confirmation]
-obj = OT::Logic::Account::DestroyAccount.new @sess, @cust, @params
+obj = V1::Logic::Account::DestroyAccount.new @sess, @cust, @params
 begin
   obj.process
 rescue => e
@@ -140,8 +139,8 @@ end
 #=> [Onetime::FormError, "We have concerns about that request."]
 
 ## Process the request and destroy the account
-cust = OT::Customer.new generate_random_email
-obj = OT::Logic::Account::DestroyAccount.new @sess, cust, @params
+cust = V1::Customer.new generate_random_email
+obj = V1::Logic::Account::DestroyAccount.new @sess, cust, @params
 cust.update_passphrase @params[:confirmation] # set the passphrase
 obj.raise_concerns
 obj.process
@@ -160,9 +159,9 @@ puts [cust.role, cust.verified, post_destroy_passphrase]
 #=> ['user_deleted_self', 'false', '']
 
 ## Destroyed account gets a new api key
-cust = OT::Customer.new generate_random_email
+cust = V1::Customer.new generate_random_email
 first_token = cust.regenerate_apitoken  # first we need to set an api key
-obj = OT::Logic::Account::DestroyAccount.new @sess, cust, @params
+obj = V1::Logic::Account::DestroyAccount.new @sess, cust, @params
 cust.update_passphrase @params[:confirmation]
 obj.raise_concerns
 obj.process

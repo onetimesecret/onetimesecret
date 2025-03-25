@@ -88,7 +88,7 @@ RSpec.describe Onetime::Config do
           expect(sentry_config[:defaults]).to eq(original)
         end
       end
-    end
+  end
 
   describe '#apply_defaults' do
     let(:config_with_defaults) do

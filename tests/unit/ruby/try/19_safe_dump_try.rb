@@ -1,12 +1,12 @@
-# frozen_string_literal: true
+# tests/unit/ruby/try/19_safe_dump_try.rb
 
 # These tryouts test the safe dumping functionality.
 
-require 'onetime'
+require_relative './test_helpers'
+require 'onetime/models'
 
 # Use the default config file for tests
-OT::Config.path = File.join(Onetime::HOME, 'tests', 'unit', 'ruby', 'config.test.yaml')
-OT.boot! :test
+OT.boot! :test, true
 
 @email = 'tryouts-19@onetimesecret.com'
 
@@ -16,17 +16,17 @@ Familia::Features::SafeDump.safe_dump_fields
 #=> []
 
 ## Implementing models like Customer can define safe dump fields
-Onetime::Customer.safe_dump_fields
+V2::Customer.safe_dump_fields
 #=> [:identifier, :custid, :role, :verified, :last_login, :locale, :updated, :created, :stripe_customer_id, :stripe_subscription_id, :stripe_checkout_email, :plan, :secrets_created, :secrets_burned, :secrets_shared, :emails_sent, :active]
 
 ## Implementing models like Customer can safely dump their fields
-cust = Onetime::Customer.new
+cust = V2::Customer.new
 cust.safe_dump
 #=> {:identifier=>"anon", :custid=>"anon", :role=>"customer", :verified=>nil, :last_login=>nil, :locale=>"", :updated=>nil, :created=>nil, :stripe_customer_id=>nil, :stripe_subscription_id=>nil, :stripe_checkout_email=>nil, :plan=>{:planid=>nil, :source=>"parts_unknown"}, :secrets_created=>"0", :secrets_burned=>"0", :secrets_shared=>"0", :emails_sent=>"0", :active=>false}
 
 ## Implementing models like Customer do have other fields
 ## that are by default considered not safe to dump.
-cust = Onetime::Customer.new(name: 'Lucy', custid: @email)
+cust = V2::Customer.new(name: 'Lucy', custid: @email)
 
 all_non_safe_fields = cust.instance_variables.map { |el|
   el.to_s[1..-1].to_sym # slice off the leading @
@@ -35,11 +35,11 @@ all_non_safe_fields = cust.instance_variables.map { |el|
 p [cust.respond_to?(:suffix), cust.respond_to?(:db), cust.respond_to?(:ttl)]
 
 all_non_safe_fields.sort
-#=> [:custid, :custom_domains, :emails_sent, :feature_flags, :locale, :metadata, :role, :secrets_burned, :secrets_created, :secrets_shared]
+#=> [:custid, :custom_domains, :emails_sent, :feature_flags, :locale, :metadata, :reset_secret, :role, :secrets_burned, :secrets_created, :secrets_shared]
 
 ## Implementing models like Customer can rest assured knowing
 ## any other field not in the safe list will not be dumped.
-cust = Onetime::Customer.new
+cust = V2::Customer.new
 cust.instance_variable_set(:"@haircut", "coupe de longueuil")
 
 all_safe_fields = cust.safe_dump.keys.sort

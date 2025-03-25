@@ -3,20 +3,20 @@
 $LOAD_PATH.unshift(File.expand_path("../../lib", __FILE__))
 
 require 'onetime'
-require 'onetime/app/mail/ses_mailer'
+require 'onetime/mail/mailer/ses_mailer'
 
 Onetime.boot! :app
 
-Onetime::App::Mail::AmazonSESMailer.setup
+Onetime::Mail::Mailer::SESMailer.setup
 
 # Initialize mailer
-mailer = Onetime::App::Mail::AmazonSESMailer.new "sender@onetimesecret.com", "Test Sender"
+mailer = Onetime::Mail::Mailer::SESMailer.new "sender@onetimesecret.com", "Test Sender"
 
 # Send test email
 response = mailer.send_email(
   "recipient@example.com",
   "AWS SES Test Email",
-  "<p>This is a test email sent via Amazon SES.</p>"
+  "<p>This is a test email sent via Amazon SES.</p>",
 )
 
 if response&.message_id

@@ -100,9 +100,9 @@ module Onetime
       # Escapes certain special characters and script tags.
       def to_sanitized_json(data)
         data.to_json
-            .gsub(%r{</script}i, '<\/script')
-            .gsub(/[\u0000-\u001F]/, '')
-            .gsub(/[^\x20-\x7E]/) { |c| "\\u#{c.ord.to_s(16).rjust(4, '0')}" }
+          .gsub(%r{</script}i, '<\/script')
+          .gsub(/[\u0000-\u001F]/, '')
+          .gsub(/[^\x20-\x7E]/) { |c| "\\u#{c.ord.to_s(16).rjust(4, '0')}" }
       end
 
       def is_https?(str)

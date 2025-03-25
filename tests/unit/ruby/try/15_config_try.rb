@@ -1,4 +1,4 @@
-# frozen_string_literal: true
+# tests/unit/ruby/try/15_config_try.rb
 
 # These tryouts test the configuration functionality of the Onetime application.
 # The Config module is responsible for loading and managing application settings.
@@ -12,11 +12,10 @@
 # These tests aim to ensure that the application can correctly load and use
 # its configuration, which is crucial for proper operation and customization.
 
-require 'onetime'
+require_relative './test_helpers'
 
 # Use the default config file for tests
-OT::Config.path = File.join(Onetime::HOME, 'tests', 'unit', 'ruby', 'config.test.yaml')
-OT.boot! :test
+OT.boot! :test, false
 
 @email_address = OT.conf[:emailer][:from]
 
@@ -34,8 +33,7 @@ OT.boot! :test
 [@config[:site].class, @config[:redis].class]
 #=> [Hash, Hash]
 
-## OT.boot! :test
-OT.boot! :test
+OT.boot! :test, false
 [OT.mode, OT.conf.class]
 #=> [:test, Hash]
 

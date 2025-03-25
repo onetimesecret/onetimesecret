@@ -1,4 +1,4 @@
-# frozen_string_literal: true
+# config.ru
 
 # Rackup Configuration
 #
@@ -6,20 +6,44 @@
 #
 #     $ thin -e dev -R config.ru -p 3000 start
 #
+#
+# Directory structure expectations:
+# ```
+# /
+# ├── config.ru               # Main config file
+# ├── lib/
+# │   ├── app_registry.rb     # Registry implementation
+# │   └── onetime.rb          # Core library
+# └── apps/
+#     ├── api/
+#     │   ├── v1/
+#     │   │   ├── config.ru   # V1 API registration
+#     │   │   └── application.rb
+#     │   ├── v2/
+#     │   │   ├── config.ru   # V2 API registration
+#     │   │   └── application.rb
+#     │   └── v3/
+#     │       ├── config.ru   # Roda app registration
+#     │       └── roda_app.rb
+#     └── web/
+#         ├── config.ru       # Web app registration
+#         └── application.rb
+# ```
+#
 
 # Environment Variables
 ENV['RACK_ENV'] ||= 'production'
-ENV['APP_ROOT'] = File.expand_path(__dir__).freeze
-app_root = ENV['APP_ROOT']
+ENV['ONETIME_HOME'] ||= File.expand_path(__dir__).freeze
+project_root = ENV['ONETIME_HOME']
+app_root = File.join(project_root, '/apps').freeze
 
 # Directory Constants
 unless defined?(PUBLIC_DIR)
-  PUBLIC_DIR = File.join(app_root, '/public/web').freeze
-  APP_DIR = File.join(app_root, '/lib/onetime/app').freeze
+  PUBLIC_DIR = File.join(project_root, '/public/web').freeze
 end
 
-# Load Paths
-$LOAD_PATH.unshift(File.join(app_root, 'lib'))
+# Add main Onetime libs to the load path
+$LOAD_PATH.unshift(File.join(project_root, 'lib'))
 
 # Freshly installed operating systems don't always have their locale settings
 # figured out. By setting this to UTF-8, we ensure that:
@@ -33,81 +57,46 @@ Encoding.default_external = Encoding::UTF_8
 # Required Libraries
 require 'rack/content_length'
 require 'rack/contrib'
+
+require_relative 'apps/app_registry'
 require_relative 'lib/middleware'
 require_relative 'lib/onetime'
 
+# Load all applications
+Dir.glob(File.join(app_root, '**/application.rb')).each { |f| require f }
 
-# Boot Application
+# Applications must be loaded before boot to ensure Familia models are registered.
+# This allows proper database connection setup for all model classes.
 Onetime.boot! :app
 
-# Rack Applications Configuration
-apps = {
-  '/api/v1' => '/api/v1/routes',
-  '/api/v2' => '/api/v2/routes',
-  '/'       => '/web/routes'
-}.transform_values { |path| Otto.new(File.join(APP_DIR, path)) }
+# Common middleware for all applications
+use Rack::CommonLogger
+use Rack::ContentLength
 
-# JSON Response Headers
-headers = { 'Content-Type' => 'application/json' }
-
-# API Error Responses
-apps["/api/v1"].not_found = [404, headers, [{ error: 'Not Found' }.to_json]]
-apps["/api/v1"].server_error = [500, headers, [{ error: 'Internal Server Error' }.to_json]]
-apps["/api/v2"].not_found = [404, headers, [{ message: 'Not Found' }.to_json]]
-apps["/api/v2"].server_error = [500, headers, [{ message: 'Internal Server Error' }.to_json]]
-
-# Public Directory for Root Endpoint
-apps['/'].option[:public] = PUBLIC_DIR
-
-# Common Middleware
-common_middleware = [
-  Rack::Lint,
-  Rack::CommonLogger,
-  Rack::ClearSessionMessages,
-  Rack::HandleInvalidUTF8,
-  Rack::HandleInvalidPercentEncoding,
-  Rack::ContentLength,
-  Rack::DetectHost,    # Must come before DomainStrategy
-  Onetime::DomainStrategy,  # Added after DetectHost
-]
-
-# If Sentry is not successfully enabled, there will be
-# no `Sentry::Rack::CaptureExceptions` constant available.
+# If Sentry is not successfully enabled, the `Sentry` client is not
+# available and this block is not executed.
 Onetime.with_diagnostics do
   OT.ld "[config.ru] Sentry enabled"
   # Put Sentry middleware first to catch exceptions as early as possible
-  common_middleware.unshift(Sentry::Rack::CaptureExceptions)
+  use Sentry::Rack::CaptureExceptions
 end
 
-# Apply common middleware to all apps
-common_middleware.each { |middleware|
-  OT.li "[config.ru] Using #{middleware}"
-  use middleware
-}
-
 # Support development without code reloading in production-like environments
-if OT.conf.dig(:experimental, :freeze_app)
+if defined?(OT) && OT.conf.dig(:experimental, :freeze_app)
   OT.li "[experimental] Freezing app by request (env: #{ENV['RACK_ENV']})"
   freeze_app
 end
 
 # Enable local frontend development server proxy
-# Supports running Vite dev server separately from the Ruby backend
-# Configure via config.yml:
-#   development:
-#     enabled: true
-#     frontend_host: 'http://localhost:5173'
-if Otto.env?(:dev) || Otto.env?(:development)
+if ENV['RACK_ENV'] =~ /\A(dev|development)\z/
 
-  OT.li "[config.ru] Development environment detected"
-  # Rack::Reloader monitors Ruby files for changes and automatically reloads them
-  # This allows code changes to take effect without manually restarting the server
-  # The argument '1' means check for changes on every request, with 1s cooldown.
-  # NOTE: This middleware should only be used in development, never in production
-  use Rack::Reloader, 1
+  # Validate Rack compliance
+  use Rack::Lint
 
+  # Frontend development proxy configuration
   def run_frontend_proxy
-    config = OT.conf.dig(:development)
+    return unless defined?(OT)
+    config = OT.conf.fetch(:development, {})
 
     case config
     in {enabled: true, frontend_host: String => frontend_host}
@@ -116,8 +105,7 @@ if Otto.env?(:dev) || Otto.env?(:development)
       OT.li "[config.ru] Using frontend proxy for /dist to #{frontend_host}"
       require 'rack/proxy'
 
-      # Proxy requests to the Vite dev server while preserving path structure
-      # Only forwards /dist/* requests to maintain compatibility with production
+      # Proxy requests to the Vite dev server
       proxy_klass = Class.new(Rack::Proxy) do
         define_method(:perform_request) do |env|
           case env['PATH_INFO']
@@ -132,20 +120,11 @@ if Otto.env?(:dev) || Otto.env?(:development)
       OT.ld "[config.ru] Not running frontend proxy"
     end
   end
+
+  # Add development middleware
+  use Rack::Reloader, 1
   run_frontend_proxy
-
 end
 
-# Mount Applications
-map '/api/v2' do
-  use Rack::JSONBodyParser
-  run apps['/api/v2']
-end
-
-map '/api/v1' do
-  run apps['/api/v1']
-end
-
-map '/' do
-  run apps['/']
-end
+# Mount all applications
+run Rack::URLMap.new(AppRegistry.build)

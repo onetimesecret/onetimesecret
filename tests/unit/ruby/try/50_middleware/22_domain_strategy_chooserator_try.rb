@@ -1,6 +1,6 @@
 # tests/unit/ruby/try/50_middleware/22_domain_strategy_chooserator_try.rb
 
-require 'onetime'
+require_relative '../test_helpers'
 require 'middleware/detect_host'
 require 'onetime/middleware/domain_strategy'
 

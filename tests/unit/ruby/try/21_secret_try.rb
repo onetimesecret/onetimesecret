@@ -1,6 +1,6 @@
-# frozen_string_literal: true
+# tests/unit/ruby/try/21_secret_try.rb
 
-# These tryouts test the Onetime::Secret class functionality.
+# These tryouts test the V2::Secret class functionality.
 # The Secret class is responsible for managing secrets in the
 # Onetime application.
 #
@@ -16,22 +16,22 @@
 
 require 'set'
 
-require 'onetime'
+require_relative './test_helpers'
+require 'onetime/models'
 
 # Use the default config file for tests
 @iterations = 1000
-OT::Config.path = File.join(Onetime::HOME, 'tests', 'unit', 'ruby', 'config.test.yaml')
-OT.boot! :test
+OT.boot! :test, true
 
 ## Can create Secret
-s = Onetime::Secret.new :private
+s = V2::Secret.new :private
 [s.class, s.redis.connection[:db], s.metadata_key]
-#=> [Onetime::Secret, 8, nil]
+#=> [V2::Secret, 8, nil]
 
 ## Keys are always unique for Secrets
 unique_values = Set.new
 @iterations.times do
-  s = Onetime::Secret.new state: :shared
+  s = V2::Secret.new state: :shared
   unique_values.add(s.rediskey)
 end
 unique_values.size
@@ -40,14 +40,14 @@ unique_values.size
 ## And are not effected (or affected) by arguments
 unique_values = Set.new
 @iterations.times do
-  s = Onetime::Secret.new state: %i[some fixed values]
+  s = V2::Secret.new state: %i[some fixed values]
   unique_values.add(s.rediskey)
 end
 unique_values.size
 #=> @iterations
 
 ## Generate a pair
-@metadata, @secret = Onetime::Secret.spawn_pair 'anon', :tryouts
+@metadata, @secret = V2::Secret.spawn_pair 'anon', :tryouts
 [@metadata.nil?, @secret.nil?]
 #=> [false, false]
 
@@ -63,7 +63,7 @@ p [@secret.key, @metadata.secret_key]
 
 ## Kinds are correct
 [@metadata.class, @secret.class]
-#=> [OT::Metadata, OT::Secret]
+#=> [V2::Metadata, V2::Secret]
 
 ## Can save a secret
 @metadata.save
@@ -78,13 +78,13 @@ p [@secret.key, @metadata.secret_key]
 #=> true
 
 ## Can set private secret to viewed state
-metadata, secret = Onetime::Secret.spawn_pair 'anon', :tryouts
+metadata, secret = V2::Secret.spawn_pair 'anon', :tryouts
 metadata.viewed!
 [metadata.viewed, metadata.state]
 #=> [Time.now.utc.to_i, 'viewed']
 
 ## Can set shared secret to viewed state
-metadata, secret = Onetime::Secret.spawn_pair 'anon', :tryouts
+metadata, secret = V2::Secret.spawn_pair 'anon', :tryouts
 metadata.save && secret.save
 secret.received!
 # NOTE: The secret no longer keeps a reference to the metadata
@@ -93,7 +93,7 @@ secret.received!
 ##=> [Time.now.utc.to_i, 'shared', Time.now.utc.to_i, 'received']
 
 ## Secrets have a counter for views
-@secret_with_counter = Onetime::Secret.new state: :shared
+@secret_with_counter = V2::Secret.new state: :shared
 @secret_with_counter.view_count.to_i
 #=> 0
 

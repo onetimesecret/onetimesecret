@@ -1,5 +1,4 @@
-# encoding: utf-8
-# frozen_string_literal: true
+# tests/unit/ruby/try/00_middleware/22_handle_invalid_utf8_try.rb
 
 # These tryouts test the Rack::HandleInvalidUTF8 middleware,
 # focusing on scenarios involving invalid UTF-8 characters in

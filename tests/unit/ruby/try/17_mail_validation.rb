@@ -1,4 +1,4 @@
-# frozen_string_literal: true
+# tests/unit/ruby/try/17_mail_validation.rb
 
 # These tryouts test the email validation functionality using the Truemail gem.
 # Email validation is crucial for ensuring that user-provided email addresses
@@ -24,9 +24,8 @@ Dotenv.load('.env')
 #
 # e.g. Make sure to set these in your .env file:
 
-require 'onetime'
-OT::Config.path = File.join(Onetime::HOME, 'tests', 'unit', 'ruby', 'config.test.yaml')
-OT.boot! :test
+require_relative './test_helpers'
+OT.boot! :test, false
 
 @now = DateTime.now
 @unique_random_inbox = Digest::SHA2.hexdigest(@now.to_s)

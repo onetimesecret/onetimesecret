@@ -1,4 +1,4 @@
-# frozen_string_literal: true
+# tests/unit/ruby/try/91_authentication_routes_try.rb
 
 # These tryouts test the authentication-related routes
 # and how they respond based on the authentication
@@ -12,11 +12,10 @@
 require 'rack'
 require 'rack/mock'
 
-require 'onetime'
-
+require_relative './test_helpers'
+require 'onetime/models'
 # Use the default config file for tests
-OT::Config.path = File.join(Onetime::HOME, 'tests', 'unit', 'ruby', 'config.test.yaml')
-OT.boot! :test
+OT.boot! :test, false
 
 # Initialize the Rack application and create a mock request
 @app = Rack::Builder.parse_file('config.ru').first
@@ -133,7 +132,7 @@ message = content.delete('message')
 ## Can post to a bogus endpoint and get a 404
 response = @mock_request.post('/api/v2/generate2')
 content = JSON.parse(response.body)
-[response.status, content["success"], content["message"]]
+[response.status, content["success"], content["error"]]
 #=> [404, nil, 'Not Found']
 
 ## Can post to a bogus endpoint and get a 404

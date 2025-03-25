@@ -110,7 +110,6 @@ module Rack
         log_level = ::Logger::DEBUG
       end
       @logger = ::Logger.new(io, level: log_level)
-      logger.info("[DetectHost] Initialized with level #{log_level}")
     end
 
     def call(env)
@@ -125,10 +124,10 @@ module Rack
 
         if self.class.valid_host?(host)
           detected_host = host
-          logger.debug("[DetectHost] #{host} via #{header_key}")
+          logger.info("[DetectHost] #{host} via #{header_key}")
           break # stop on first valid host
         else
-          logger.debug("[DetectHost] Invalid host detected from #{header_key}: #{host}")
+          logger.warn("[DetectHost] Invalid host detected from #{header_key}: #{host}")
         end
       end
 

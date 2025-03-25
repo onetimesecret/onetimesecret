@@ -1,4 +1,4 @@
-# frozen_string_literal: true
+# tests/unit/ruby/try/60_logic/04_logic_account_try.rb
 
 # These tests cover the Account logic classes which handle
 # account management functionality.
@@ -10,12 +10,11 @@
 # 4. Account retrieval
 # 5. Account deletion
 
-require 'onetime'
+require_relative '../test_helpers'
 require 'securerandom'
 
 # Load the app with test configuration
-OT::Config.path = File.join(Onetime::HOME, 'tests', 'unit', 'ruby', 'config.test.yaml')
-OT.boot! :test
+OT.boot! :test, false
 
 # Setup common test variables
 @now = DateTime.now
@@ -24,11 +23,11 @@ OT.boot! :test
 
 # Assign the unique email address
 @email = @unique_email.call
-@sess = OT::Session.new '255.255.255.254', 'anon'
+@sess = V2::Session.new '255.255.255.254', 'anon'
 
 
 # Create a customer for update tests
-@cust = OT::Customer.new @email
+@cust = V1::Customer.new @email
 @cust.save
 
 
@@ -42,7 +41,7 @@ OT.boot! :test
   planid: 'anonymous',
   skill: '' # honeypot field should be empty
 }
-logic = OT::Logic::Account::CreateAccount.new @sess, nil, @create_params
+logic = V1::Logic::Account::CreateAccount.new @sess, nil, @create_params
 logic.raise_concerns
 logic.process
 [
@@ -51,7 +50,7 @@ logic.process
   logic.autoverify,
   logic.customer_role
 ]
-#=> [OT::Customer, 'anonymous', false, 'customer']
+#=> [V1::Customer, 'anonymous', false, 'customer']
 
 # UpdatePassword Tests
 
@@ -61,7 +60,7 @@ logic.process
   p1: 'newpass123',
   p2: 'newpass123'
 }
-logic = OT::Logic::Account::UpdatePassword.new @sess, @cust, @update_params
+logic = V1::Logic::Account::UpdatePassword.new @sess, @cust, @update_params
 logic.instance_variables.include?(:@modified)
 #=> true
 
@@ -69,19 +68,19 @@ logic.instance_variables.include?(:@modified)
 
 ## Test locale update
 @locale_params = { locale: 'es', u: @email }
-logic = OT::Logic::Account::UpdateLocale.new @sess, @cust, @locale_params
+logic = V1::Logic::Account::UpdateLocale.new @sess, @cust, @locale_params
 logic.instance_variables.include?(:@modified)
 #=> true
 
 # GenerateAPIToken Tests
 
 ## Test API token generation, but nothing happens without calling process
-logic = OT::Logic::Account::GenerateAPIToken.new @sess, @cust
+logic = V1::Logic::Account::GenerateAPIToken.new @sess, @cust
 [logic.apitoken.nil?, logic.greenlighted]
 #=> [true, nil]
 
 ## Test API token generation
-logic = OT::Logic::Account::GenerateAPIToken.new @sess, @cust
+logic = V1::Logic::Account::GenerateAPIToken.new @sess, @cust
 #logic.raise_concerns
 logic.process
 [logic.apitoken.nil?, logic.greenlighted]
@@ -90,14 +89,14 @@ logic.process
 # GetAccount Tests
 
 ## Test account retrieval
-logic = OT::Logic::Account::GetAccount.new @sess, @cust, {}
+logic = V1::Logic::Account::GetAccount.new @sess, @cust, {}
 [logic.plans_enabled, logic.stripe_customer, logic.stripe_subscription]
 #=> [false, nil, nil]
 
 # DestroyAccount Tests
 
 ## Test account deletion
-logic = OT::Logic::Account::DestroyAccount.new @sess, @cust
+logic = V1::Logic::Account::DestroyAccount.new @sess, @cust
 [
   logic.raised_concerns_was_called,
   logic.greenlighted,

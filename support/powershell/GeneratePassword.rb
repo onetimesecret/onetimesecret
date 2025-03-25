@@ -1,3 +1,4 @@
+# rubocop:disable Naming/FileName
 
 # Namespace: System.Web.Security
 # Membership.GeneratePassword(Int32, Int32) Method
@@ -28,7 +29,7 @@ class PasswordGenerator
       LOWER_CASE.sample,
       UPPER_CASE.sample,
       NUMBERS.sample,
-      SPECIAL_CHARS.sample
+      SPECIAL_CHARS.sample,
     ]
 
     # Fill the rest with random characters

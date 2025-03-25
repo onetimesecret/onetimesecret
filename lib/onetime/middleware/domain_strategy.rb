@@ -80,7 +80,7 @@ module Onetime
 
       if domains_enabled?
         display_domain = env[Rack::DetectHost.result_field_name]
-        OT.ld "[DomainStrategy]: detected_host=#{display_domain.inspect} result_field_name=#{Rack::DetectHost.result_field_name}"
+        # OT.ld "[DomainStrategy]: detected_host=#{display_domain.inspect} result_field_name=#{Rack::DetectHost.result_field_name}"
         domain_strategy = Chooserator.choose_strategy(display_domain, canonical_domain_parsed)
       end
 
@@ -116,11 +116,9 @@ module Onetime
           case request_domain
           when ->(d) { equal_to?(d, canonical_domain) }    then :canonical
           when ->(d) { peer_of?(d, canonical_domain) }     then :canonical
-          when ->(d) { parent_of?(d, canonical_domain)}    then :canonical
-          when ->(d) { subdomain_of?(d, canonical_domain)} then :subdomain
-          when ->(d) { known_custom_domain?(d.name)}       then :custom
-          else
-            nil
+          when ->(d) { parent_of?(d, canonical_domain) }    then :canonical
+          when ->(d) { subdomain_of?(d, canonical_domain) } then :subdomain
+          when ->(d) { known_custom_domain?(d.name) }       then :custom
           end
 
         rescue PublicSuffix::DomainInvalid => e
@@ -176,7 +174,10 @@ module Onetime
 
         # Checks data in redis
         def known_custom_domain?(potential_custom_domain)
-          !OT::CustomDomain.from_display_domain(potential_custom_domain).nil?
+          # This will load the model if it hasn't been loaded yet
+          # and avoid circular references between lib and v2.
+          require 'v2/models/custom_domain'
+          !V2::CustomDomain.from_display_domain(potential_custom_domain).nil?
         end
 
       end

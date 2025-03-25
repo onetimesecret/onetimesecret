@@ -1,4 +1,4 @@
-# frozen_string_literal: true
+# tests/unit/ruby/try/50_subdomain_try.rb
 
 # These tryouts test the subdomain functionality in the OneTime application.
 # They cover various aspects of subdomain management, including:
@@ -8,62 +8,61 @@
 # 3. Mapping subdomains to customer IDs
 # 4. Destroying subdomains
 #
-# These tests aim to verify the correct behavior of the Onetime::Subdomain class,
+# These tests aim to verify the correct behavior of the V1::Subdomain class,
 # which is essential for managing custom subdomains in the application.
 #
-# The tryouts simulate different subdomain scenarios and test the Onetime::Subdomain class's
+# The tryouts simulate different subdomain scenarios and test the V1::Subdomain class's
 # behavior without needing to interact with actual DNS, allowing for targeted testing
 # of these specific features.
 
 
-require 'onetime'
-require 'onetime/models/subdomain'
+require_relative './test_helpers'
+require 'v1/models/subdomain'
 
 # Use the default config file for tests
-OT::Config.path = File.join(Onetime::HOME, 'tests', 'unit', 'ruby', 'config.test.yaml')
-OT.boot! :test
+OT.boot! :test, false
 
 ## Can create Subdomain instance
-s = Onetime::Subdomain.new custid: 'tryouts@onetimesecret.com', cname: 'testcname'
+s = V1::Subdomain.new custid: 'tryouts@onetimesecret.com', cname: 'testcname'
 s.class
-#=> Onetime::Subdomain
+#=> V1::Subdomain
 
 ## Normalize cname #1
-OT::Subdomain.normalize_cname 'BIGNAMECO'
+V1::Subdomain.normalize_cname 'BIGNAMECO'
 #=> 'bignameco'
 
 ## Normalize cname #2
-OT::Subdomain.normalize_cname './*&^%$#@!BignAMECO.'
+V1::Subdomain.normalize_cname './*&^%$#@!BignAMECO.'
 #=> 'bignameco'
 
 ## Subdomain has an identifier
-s = Onetime::Subdomain.new custid: 'tryouts@onetimesecret.com', cname: 'bignameco'
+s = V1::Subdomain.new custid: 'tryouts@onetimesecret.com', cname: 'bignameco'
 [s.identifier, s.cname, s.rediskey]
 #=> ['tryouts@onetimesecret.com', 'bignameco', 'customer:tryouts@onetimesecret.com:subdomain']
 
 ## Subdomain knows if it doesn't exists
-Onetime::Subdomain.exists? 'tryouts@onetimesecret.com'
+V1::Subdomain.exists? 'tryouts@onetimesecret.com'
 #=> false
 
 ## Create subdomain
-@subdomain = Onetime::Subdomain.create('bignameco', 'tryouts@onetimesecret.com')
+@subdomain = V1::Subdomain.create('bignameco', 'tryouts@onetimesecret.com')
 @subdomain.exists?
 #=> true
 
 ## Subdomain knows if it exists
-Onetime::Subdomain.exists? 'tryouts@onetimesecret.com'
+V1::Subdomain.exists? 'tryouts@onetimesecret.com'
 #=> true
 
 ## Has a mapping to custid
-OT::Subdomain.map 'bignameco'
+V1::Subdomain.map 'bignameco'
 ##=> 'tryouts@onetimesecret.com'
 
 ## Knows it's mapped
-OT::Subdomain.mapped? 'bignameco'
+V1::Subdomain.mapped? 'bignameco'
 ##=> true
 
 ## Mapping knows the owner
-OT::Subdomain.owned_by? 'bignameco', 'tryouts@onetimesecret.com'
+V1::Subdomain.owned_by? 'bignameco', 'tryouts@onetimesecret.com'
 ##=> true
 
 ## Destroy subdomain

@@ -1,4 +1,4 @@
-# typed: false
+# lib/onetime.rb
 
 require 'bundler/setup'
 require 'securerandom'
@@ -71,7 +71,19 @@ module Onetime
       SecureRandom.hex
     end
 
-    def boot!(mode = nil)
+    # Boot initializes core services and connects models to databases. Must
+    # be called after applications are loaded so Familia.members contains
+    # all model classes that need database connections.
+    #
+    # `mode` is a symbol, one of: :app, :cli, :test. It's used for logging
+    # but otherwise doesn't do anything special (other than allow :cli to
+    # continue even when it's cloudy with a chance of boot errors).
+    #
+    # When `db` is false, the database connections won't be initialized. This
+    # is useful for testing or when you want to run code without necessary
+    # loading all or any of the models.
+    #
+    def boot!(mode = nil, db = true)
       OT.mode = mode unless mode.nil?
       OT.env = ENV['RACK_ENV'] || 'production'
       OT.d9s_enabled = false # diagnostics are disabled by default
@@ -92,10 +104,9 @@ module Onetime
       load_locales
       set_global_secret
       prepare_emailers
-      prepare_rate_limits
       load_fortunes
       load_plans
-      connect_databases
+      connect_databases if db
       check_global_banner
       print_log_banner unless mode?(:test)
 
@@ -104,14 +115,14 @@ module Onetime
     rescue OT::Problem => e
       OT.le "Problem booting: #{e}"
       OT.ld e.backtrace.join("\n")
-      exit 1
+      exit 1 unless mode?(:cli) # allows for debugging in the console
     rescue Redis::CannotConnectError => e
       OT.le "Cannot connect to redis #{Familia.uri} (#{e.class})"
-      exit 10
+      exit 10 unless mode?(:cli)
     rescue StandardError => e
       OT.le "Unexpected error `#{e}` (#{e.class})"
       OT.ld e.backtrace.join("\n")
-      exit 99
+      exit 99 unless mode?(:cli)
     end
 
     def info(*msgs)
@@ -136,7 +147,7 @@ module Onetime
       stderr("D", msg)
     end
 
-    def with_diagnostics &block
+    def with_diagnostics(&)
       return unless Onetime.d9s_enabled
       yield # call the block in its own context
     end
@@ -148,14 +159,14 @@ module Onetime
 
       mailer_class = case mail_mode
       when :sendgrid
-        Onetime::App::Mail::SendGridMailer
+        Onetime::Mail::Mailer::SendGridMailer
       when :ses
-        Onetime::App::Mail::AmazonSESMailer
+        Onetime::Mail::Mailer::SESMailer
       when :smtp
-        Onetime::App::Mail::SMTPMailer
+        Onetime::Mail::Mailer::SMTPMailer
       else
         OT.le "Unsupported mail mode: #{mail_mode}, falling back to SMTP"
-        Onetime::App::Mail::SMTPMailer
+        Onetime::Mail::Mailer::SMTPMailer
       end
 
       mailer_class.setup
@@ -167,10 +178,6 @@ module Onetime
       unless Gibbler.secret && Gibbler.secret.frozen?
         Gibbler.secret = global_secret.freeze
       end
-    end
-
-    def prepare_rate_limits
-      OT::RateLimit.register_events OT.conf[:limits]
     end
 
     def load_fortunes
@@ -210,7 +217,7 @@ module Onetime
           region: email_config[:region],
           user: email_config[:user],
           tls: email_config[:tls],
-          auth: email_config[:auth], # this is an smtp feature and not credentials
+          auth: email_config[:auth] # this is an smtp feature and not credentials
         }.map { |k,v| "#{k}=#{v}" }.join(', ')
         OT.li "mailer: #{@emailer}"
         OT.li "mail: #{mail_settings}"
@@ -230,7 +237,6 @@ module Onetime
       end
 
       OT.li "secret options: #{OT.conf.dig(:site, :secret_options)}"
-      OT.li "rate limits: #{OT::RateLimit.events.map { |k,v| "#{k}=#{v}" }.join(', ')}"
     end
 
     def load_plans
@@ -257,6 +263,12 @@ module Onetime
       dbs = OT.conf.dig(:redis, :dbs)
 
       OT.ld "[connect_databases] dbs: #{dbs}"
+      OT.ld "[connect_databases] models: #{Familia.members.map(&:to_s)}"
+
+      # Validate that models have been loaded before attempting to connect
+      if Familia.members.empty?
+        raise Onetime::Problem, "No known Familia members. Models need to load before calling boot!"
+      end
 
       # Map model classes to their database numbers
       Familia.members.each do |model_class|
@@ -369,9 +381,8 @@ end
 require_relative 'onetime/errors'
 require_relative 'onetime/utils'
 require_relative 'onetime/version'
+require_relative 'onetime/cluster'
 require_relative 'onetime/config'
 require_relative 'onetime/plan'
+require_relative 'onetime/mail'
 require_relative 'onetime/alias'
-require_relative 'onetime/models'
-require_relative 'onetime/logic'
-require_relative 'onetime/app'

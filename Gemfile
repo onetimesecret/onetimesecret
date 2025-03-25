@@ -1,4 +1,4 @@
-# frozen_string_literal: true
+# Gemfile
 # typed: false
 
 #
@@ -63,11 +63,12 @@ gem 'base64'
 gem 'syslog', '~> 0.2.0'
 
 # As of Ruby 3.5, these are no longer in the standard library
-gem 'fiddle'   # Fiddle library for handling dynamic libraries (required by reline)
-gem 'irb'      # IRB
-gem 'logger'   # Logger library for logging messages (required by truemail)
-gem 'ostruct'  # OpenStruct library for creating data objects (required by json)
-gem 'rdoc'     # IRB
+gem 'fiddle'    # Fiddle library for handling dynamic libraries (required by reline)
+gem 'irb'       # IRB
+gem 'logger'    # Logger library for logging messages (required by truemail)
+gem 'ostruct'   # OpenStruct library for creating data objects (required by json)
+gem 'rdoc'      # IRB
+gem 'benchmark' # Used in tests
 gem 'reline'
 
 # Third-party services
@@ -78,23 +79,25 @@ gem 'stripe', require: false
 
 gem 'stackprof', require: false
 
+gem 'rubocop', require: false
+
 group :development do
   gem 'byebug', require: false
   gem 'byebug-dap', require: false
   gem 'pry', require: false
   gem 'pry-byebug', require: false
   gem 'rack-proxy', require: false
-  gem 'rack-test', require: false
-  gem 'rubocop', require: false
   gem 'rubocop-performance', require: false
+  gem 'rubocop-rspec', require: false
   gem 'rubocop-thread_safety', require: false
   gem 'tryouts', require: false
 end
 
 group :test do
-  gem 'simplecov', require: false
   gem 'rspec', git: "https://github.com/rspec/rspec"
+  gem 'simplecov', require: false
   %w[rspec-core rspec-expectations rspec-mocks rspec-support].each do |lib|
     gem lib, git: "https://github.com/rspec/rspec", glob: "#{lib}/#{lib}.gemspec"
   end
+  gem 'rack-test', require: false
 end

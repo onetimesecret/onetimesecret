@@ -1,7 +1,7 @@
-# frozen_string_literal: true
+# tests/unit/ruby/try/22_value_encryption_try.rb
 
 # These tryouts test the encryption and decryption functionality
-# of the Onetime::Secret class.
+# of the V2::Secret class.
 #
 # We're testing various aspects of secret handling, including:
 # 1. Storing a value
@@ -18,39 +18,38 @@
 # without needing to run the full application, allowing for
 # targeted testing of this specific functionality.
 
-require 'onetime'
-
+require_relative './test_helpers'
+require 'onetime/models'
 # Use the default config file for tests
-OT::Config.path = File.join(Onetime::HOME, 'tests', 'unit', 'ruby', 'config.test.yaml')
-OT.boot! :test
+OT.boot! :test, false
 
 ## Can store a value
-s = Onetime::Secret.new :shared
+s = V2::Secret.new :shared
 s.value = 'poop'
 s.value
 #=> 'poop'
 
 ## Can encrypt a value
-s = Onetime::Secret.new :shared
+s = V2::Secret.new :shared
 s.encrypt_value 'poop', key: 'tryouts'
 puts "The value checksum is the gibbled value after being truncated (if needed)"
 s.value_checksum
 #=> 'cffab3469f0aec11d52c4b24882fb6f77149b7b7'
 
 ## Can decrypt a value
-s = Onetime::Secret.new :shared
+s = V2::Secret.new :shared
 s.encrypt_value 'poop', key: 'tryouts'
 s.decrypted_value
 #=> 'poop'
 
 ## Decrypt does nothing if encrypt_value wasn't called
-s = Onetime::Secret.new :shared2
+s = V2::Secret.new :shared2
 s.value = 'poop'
 s.decrypted_value
 #=> 'poop'
 
 ## Cannot decrypt after changing global secret
-s = Onetime::Secret.new :shared
+s = V2::Secret.new :shared
 s.encrypt_value 'poop', key: 'tryouts'
 Onetime.instance_variable_set(:@global_secret, 'NEWVALUE')
 begin
@@ -60,4 +59,4 @@ rescue StandardError => e
 end
 #=> OpenSSL::Cipher::CipherError
 
-Onetime::Secret.new(:shared).destroy!
+V2::Secret.new(:shared).destroy!

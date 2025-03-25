@@ -1,4 +1,4 @@
-# tests/unit/ruby/rspec/config/i18n_fix_spec.rb
+# tests/unit/ruby/rspec/config/i18n_spec.rb
 
 # e.g. pnpm run rspec tests/unit/ruby/rspec/config/i18n_spec.rb
 
@@ -50,7 +50,7 @@ RSpec.describe "Internationalization config" do
              default_locale: described_class.default_locale,
              supported_locales: described_class.supported_locales
            }
-         end
+        end
 
          before do
            # Setup disabled internationalization state
@@ -59,7 +59,7 @@ RSpec.describe "Internationalization config" do
            described_class.supported_locales = ['en']
 
            # Simulate loading only English locale
-           en_locale = {'greeting': 'Hello'}
+           en_locale = {greeting: 'Hello'}
            described_class.instance_variable_set(:@locales, {'en' => en_locale})
          end
 
@@ -104,8 +104,8 @@ RSpec.describe "Internationalization config" do
           # Setup enabled internationalization state
           described_class.i18n_enabled = true
           described_class.default_locale = 'fr_FR'
-          described_class.supported_locales = ['en', 'fr_FR', 'de_AT']
-          described_class.fallback_locale = {'fr-CA': ['fr_CA', 'fr_FR', 'en'], 'default': ['en']}
+          described_class.supported_locales = %w[en fr_FR de_AT]
+          described_class.fallback_locale = {'fr-CA': %w[fr_CA fr_FR en], default: ['en']}
 
           # Simulate loading multiple locales
           test_locales = {
@@ -134,7 +134,7 @@ RSpec.describe "Internationalization config" do
         end
 
         it 'includes all locales in supported locales' do
-          expect(described_class.supported_locales).to eq(['en', 'fr_FR', 'de_AT'])
+          expect(described_class.supported_locales).to eq(%w[en fr_FR de_AT])
         end
 
         it 'accesses specific locale content correctly' do
@@ -143,21 +143,20 @@ RSpec.describe "Internationalization config" do
         end
 
         it 'respects configured fallback locales' do
-          expect(described_class.fallback_locale[:'fr-CA']).to eq(['fr_CA', 'fr_FR', 'en'])
+          expect(described_class.fallback_locale[:'fr-CA']).to eq(%w[fr_CA fr_FR en])
           expect(described_class.fallback_locale[:default]).to eq(['en'])
         end
       end
-
     end
   end
 
-  describe Onetime::App::WebHelpers do
+  describe V2::ControllerHelpers do
     describe '#check_locale! (Regression for #1142)' do
       let(:req) { double('request', params: {}, env: {}) }
       let(:cust) { double('customer', locale: nil) }
       let(:helper) do
         Class.new do
-          include Onetime::App::WebHelpers
+          include V2::ControllerHelpers
           attr_accessor :req, :cust
 
           def initialize(req, cust)
