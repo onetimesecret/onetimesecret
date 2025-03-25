@@ -1,11 +1,11 @@
-# lib/onetime/mail/views/views.rb
+# lib/onetime/mail/views/common.rb
 
 require 'mustache'
 
+require_relative 'base'
+
 module Onetime
   module Mail
-
-    require_relative 'base'
 
     class Welcome < Mail::Views::Base
       def init secret
