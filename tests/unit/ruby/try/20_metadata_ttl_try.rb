@@ -14,8 +14,8 @@
 # processes metadata objects and produces the expected structured
 # hash output for the API response.
 
-require_relative './test_helpers'
-require 'onetime/models'
+require_relative './test_models'
+
 require 'onetime/controllers'
 
 # Use the default config file for tests

@@ -24,7 +24,6 @@
 require_relative './test_helpers'
 
 # Familia.debug = true
-# require 'onetime/models'
 
 # Use the default config file for tests
 

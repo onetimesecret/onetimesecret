@@ -28,7 +28,7 @@ module V2::Logic
           records: @custom_domains,
           count: @custom_domains.length,
           details: {
-            cluster: V2::Cluster::Features.cluster_safe_dump
+            cluster: Onetime::Cluster::Features.cluster_safe_dump
           }
         }
       end

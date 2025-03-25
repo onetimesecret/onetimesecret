@@ -4,10 +4,8 @@
   "description": "",
   "type": "module",
   "scripts": {
-    "build-only:local": "vite build --config vite.config.local.ts",
-    "build-only": "vite build --config vite.config.ts",
-    "build:local": "pnpm run type-check && pnpm run build-only:local",
-    "build": "pnpm run type-check && pnpm run build-only",
+    "build:local": "vite build --config vite.config.local.ts",
+    "build": "vite build --config vite.config.ts",
     "clean": "rimraf public/web/dist",
     "dev:local": "vite --config vite.config.local.ts --host",
     "dev": "vite --host",

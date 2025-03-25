@@ -12,7 +12,7 @@ module V2::Logic
         # sense running the get logic more than we need to.
         limit_action :verify_domain
 
-        if V2::Cluster::Features.api_key.to_s.empty?
+        if Onetime::Cluster::Features.api_key.to_s.empty?
           OT.le "[VerifyDomain.raise_concerns] Approximated API key not set"
           raise_form_error "Communications error"
         end
@@ -28,9 +28,9 @@ module V2::Logic
       end
 
       def refresh_vhost
-        api_key = V2::Cluster::Features.api_key
+        api_key = Onetime::Cluster::Features.api_key
 
-        res = V2::Cluster::Approximated.get_vhost_by_incoming_address(api_key, display_domain)
+        res = Onetime::Cluster::Approximated.get_vhost_by_incoming_address(api_key, display_domain)
         if res.code == 200
           payload = res.parsed_response
           OT.info "[VerifyDomain.refresh_vhost] %s" % payload
@@ -46,14 +46,14 @@ module V2::Logic
       end
 
       def refresh_txt_record_status
-        api_key = V2::Cluster::Features.api_key
+        api_key = Onetime::Cluster::Features.api_key
         records = [{
           type: 'TXT',
           address: custom_domain.validation_record,
           match_against: custom_domain.txt_validation_value
         }]
         OT.info "[VerifyDomain.refresh_txt_record_status] %s" % records
-        res = V2::Cluster::Approximated.check_records_match_exactly(api_key, records)
+        res = Onetime::Cluster::Approximated.check_records_match_exactly(api_key, records)
         if res.code == 200
           payload = res.parsed_response
           match_records = payload['records']

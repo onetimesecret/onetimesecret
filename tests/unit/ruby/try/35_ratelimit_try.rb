@@ -12,20 +12,19 @@
 # 7. Familia::String inheritance behavior
 # 8. Time window management
 #
-# These tests aim to verify the correct behavior of the V1::RateLimit class
+# These tests aim to verify the correct behavior of the RateLimit class
 # and RateLimited mixin, which are essential for preventing abuse and ensuring
 # fair usage of the application.
 
-require_relative './test_helpers'
-require 'onetime/models'
+require_relative './test_models'
 
 # Use the default config file for tests
 OT.boot! :test, true
 
 # Setup section - define instance variables accessible across all tryouts
-@stamp = V1::RateLimit.eventstamp
+@stamp = RateLimit.eventstamp
 @identifier = "tryouts-35+#{OT.entropy[0,8]}"
-@limiter = V1::RateLimit.new @identifier, :test_limit
+@limiter = RateLimit.new @identifier, :test_limit
 
 # Create a test class that includes RateLimited
 class TestRateLimited
@@ -43,40 +42,42 @@ end
 
 
 ## Has no events defined before loading them from config
-V1::RateLimit.events
-#=> nil
+RateLimit.events
+#=> {}
 
 ## Has events defined
-V1::RateLimit.register_events(OT.conf[:limits])
-V1::RateLimit.events.class
+RateLimit.register_events(OT.conf[:limits])
+RateLimit.events.class
 #=> Hash
 
 ## Can register a new event
-V1::RateLimit.register_event :test_limit, 3
+RateLimit.register_event :test_limit, 3
 #=> 3
 
 ## Can register multiple events at once
 V1::RateLimit.register_events(bulk_limit: 5, api_limit: 10)
-[V1::RateLimit.events[:bulk_limit], V1::RateLimit.events[:api_limit]]
+V2::RateLimit.register_events(bulk_limit: 5, api_limit: 10)
+p [:PLOPPLOP, RateLimit.events]
+[RateLimit.events[:bulk_limit], RateLimit.events[:api_limit]]
 #=> [5, 10]
 
 ## Uses default limit for unregistered events
-V1::RateLimit.event_limit(:unknown_event)
+RateLimit.event_limit(:unknown_event)
 #=> 25
 
 ## Redis key is created on instantiation
-obj = V1::RateLimit.new @identifier, :definitely_unique_key
+obj = RateLimit.new @identifier, :definitely_unique_key
 obj.exists?
 #=> true
 
 ## Redis key is created on instantiation
-obj = V1::RateLimit.new @identifier, :definitely_unique_key
+obj = RateLimit.new @identifier, :definitely_unique_key
 obj.get
 #=> 0
 
 ## Creates limiter with proper Redis key format
 [@limiter.class, @limiter.rediskey]
-#=> [V1::RateLimit, "limiter:#{@identifier}:test_limit:#{@stamp}:counter"]
+#=> [RateLimit, "limiter:#{@identifier}:test_limit:#{@stamp}:counter"]
 
 ## Can get the external identifier of the limiter
 pp [:identifier, @limiter.identifier, @identifier]
@@ -132,7 +133,7 @@ end
 
 ## RateLimited objects can increment events
 @test_obj.event_incr! :test_limit
-V1::RateLimit.load(@test_obj.external_identifier, :test_limit).value
+RateLimit.load(@test_obj.external_identifier, :test_limit).value
 #=> 1
 
 ## RateLimited objects can get event counts
@@ -145,14 +146,14 @@ V1::RateLimit.load(@test_obj.external_identifier, :test_limit).value
 #=> 0
 
 ## Different events use different Redis keys
-limiter1 = V1::RateLimit.new @identifier, :test_limit
-limiter2 = V1::RateLimit.new @identifier, :other_limit
+limiter1 = RateLimit.new @identifier, :test_limit
+limiter2 = RateLimit.new @identifier, :other_limit
 [limiter1.rediskey == limiter2.rediskey, limiter1.rediskey.include?("test_limit"), limiter2.rediskey.include?("other_limit")]
 #=> [false, true, true]
 
 ## Different identifiers use different Redis keys
-limiter1 = V1::RateLimit.new "id1", :test_limit
-limiter2 = V1::RateLimit.new "id2", :test_limit
+limiter1 = RateLimit.new "id1", :test_limit
+limiter2 = RateLimit.new "id2", :test_limit
 [limiter1.rediskey == limiter2.rediskey, limiter1.rediskey.include?("id1"), limiter2.rediskey.include?("id2")]
 #=> [false, true, true]
 
@@ -160,14 +161,14 @@ limiter2 = V1::RateLimit.new "id2", :test_limit
 now = Time.now.utc
 rounded = now - (now.to_i % (20 * 60)) # 20 minutes in seconds
 expected = rounded.strftime('%H%M')
-#=> V1::RateLimit.eventstamp
+#=> RateLimit.eventstamp
 
 ## Time windows round properly at edges
 now = Time.now.utc
 window_size = 20 * 60 # 20 minutes in seconds
 rounded = now - (now.to_i % window_size)
 edge = Time.at(rounded.to_i + 1).utc # 1 second after window start
-V1::RateLimit.eventstamp == rounded.strftime('%H%M')
+RateLimit.eventstamp == rounded.strftime('%H%M')
 #=> true
 
 ## Time windows round properly near boundaries
@@ -175,12 +176,12 @@ now = Time.now.utc
 window_size = 20 * 60 # 20 minutes in seconds
 rounded = now - (now.to_i % window_size)
 near_edge = Time.at(rounded.to_i + window_size - 1).utc # 1 second before next window
-V1::RateLimit.eventstamp == rounded.strftime('%H%M')
+RateLimit.eventstamp == rounded.strftime('%H%M')
 #=> true
 
 ## Different time windows use different Redis keys
 @limiter.clear
-window1_stamp = V1::RateLimit.eventstamp
+window1_stamp = RateLimit.eventstamp
 @limiter.incr!
 # Create key for next time window (20 minutes later)
 next_window = Time.now.utc + (20 * 60)
@@ -199,8 +200,8 @@ current_key = @limiter.rediskey
 #=> 3
 
 ## Cleanup: clear all test data
-[@limiter, V1::RateLimit.new("id1", :test_limit), V1::RateLimit.new("id2", :test_limit)].each(&:clear)
-V1::RateLimit.clear! @test_obj.external_identifier, :test_limit
+[@limiter, RateLimit.new("id1", :test_limit), RateLimit.new("id2", :test_limit)].each(&:clear)
+RateLimit.clear! @test_obj.external_identifier, :test_limit
 [:test_limit, :bulk_limit, :api_limit].each do |event|
-  V1::RateLimit.clear! @identifier, event
+  RateLimit.clear! @identifier, event
 end

@@ -36,7 +36,7 @@ module V2::Logic
           custid: @cust.custid,
           record: custom_domain.safe_dump,
           details: {
-            cluster: V2::Cluster::Features.cluster_safe_dump
+            cluster: Onetime::Cluster::Features.cluster_safe_dump
           }
         }
       end

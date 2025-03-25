@@ -45,7 +45,8 @@ module V2::Logic
 
           # Process the customer's request to destroy their account.
           # TODO: Limit to dev as well
-          if Onetime.debug
+          if Onetime.debug?
+            cust.destroy_requested # not saved
             OT.ld "[destroy-account] Simulated account destruction #{cust.custid} #{cust.role} #{sess.ipaddress}"
 
             # Since we intentionally don't call Customer#destroy_requested!

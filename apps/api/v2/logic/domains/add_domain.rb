@@ -48,14 +48,14 @@ module V2::Logic
       end
 
       def create_vhost
-        api_key = V2::Cluster::Features.api_key
-        vhost_target = V2::Cluster::Features.vhost_target
+        api_key = Onetime::Cluster::Features.api_key
+        vhost_target = Onetime::Cluster::Features.vhost_target
 
         if api_key.to_s.empty?
           return OT.info "[AddDomain.create_vhost] Approximated API key not set"
         end
 
-        res = V2::Cluster::Approximated.create_vhost(api_key, @display_domain, vhost_target, '443')
+        res = Onetime::Cluster::Approximated.create_vhost(api_key, @display_domain, vhost_target, '443')
         payload = res.parsed_response
 
         OT.info "[AddDomain.create_vhost] %s" % payload
@@ -69,7 +69,7 @@ module V2::Logic
           custid: @cust.custid,
           record: @custom_domain.safe_dump,
           details: {
-            cluster: V2::Cluster::Features.cluster_safe_dump
+            cluster: Onetime::Cluster::Features.cluster_safe_dump
           }
         }
       end

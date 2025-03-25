@@ -1,6 +1,6 @@
 # tests/unit/ruby/try/60_logic/01_logic_base_try.rb
 
-# These tests cover the core functionality of the V2::Logic::Base class,
+# These tests cover the core functionality of the Logic::Base class,
 # which serves as the foundation for all logic classes in the application.
 #
 # We test:
@@ -11,7 +11,7 @@
 # 5. Password normalization
 # 6. StatHat integration
 
-require_relative '../test_helpers'
+require_relative '../test_logic'
 
 # Load the app with test configuration
 OT.boot! :test, false
@@ -19,13 +19,13 @@ OT.boot! :test, false
 # Setup common test variables
 @now = DateTime.now
 @email = 'test@onetimesecret.com'
-@sess = V2::Session.new '255.255.255.255', 'anon'
-@cust = V1::Customer.new @email
+@sess = Session.new '255.255.255.255', 'anon'
+@cust = Customer.new @email
 @params = { test: 'value' }
 @locale = 'en'
 
 # Create a concrete test class since Base is abstract
-class TestLogic < V2::Logic::Base
+class TestLogic < Logic::Base
   def process_params
     @processed_params[:test] = params[:test]
   end
@@ -63,9 +63,9 @@ end
 
 ## Password normalization handles various cases
 [
-  V2::Logic::Base.normalize_password('  password  '),
-  V2::Logic::Base.normalize_password('a' * 200),
-  V2::Logic::Base.normalize_password(nil)
+  Logic::Base.normalize_password('  password  '),
+  Logic::Base.normalize_password('a' * 200),
+  Logic::Base.normalize_password(nil)
 ]
 #=> ['password', 'a' * 128, '']
 
@@ -93,8 +93,8 @@ end
 
 ## StatHat integration respects enabled setting
 [
-  V2::Logic.stathat_count('test', 1),
-  V2::Logic.stathat_value('test', 100)
+  Logic.stathat_count('test', 1),
+  Logic.stathat_value('test', 100)
 ]
 #=> [false, false]
 
