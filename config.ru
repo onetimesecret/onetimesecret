@@ -89,7 +89,6 @@ end
 
 # Enable local frontend development server proxy
 if ENV['RACK_ENV'] =~ /\A(dev|development)\z/
-
   # Validate Rack compliance
   use Rack::Lint
 
@@ -100,7 +99,10 @@ if ENV['RACK_ENV'] =~ /\A(dev|development)\z/
 
     case config
     in {enabled: true, frontend_host: String => frontend_host}
-      return if frontend_host.strip.empty?
+      if frontend_host.strip.empty?
+        OT.ld "[config.ru] No frontend host configured to proxy"
+        return
+      end
 
       OT.li "[config.ru] Using frontend proxy for /dist to #{frontend_host}"
       require 'rack/proxy'
@@ -117,7 +119,7 @@ if ENV['RACK_ENV'] =~ /\A(dev|development)\z/
 
       use proxy_klass, backend: frontend_host
     else
-      OT.ld "[config.ru] Not running frontend proxy"
+      OT.ld "[config.ru] Frontend proxy disabled"
     end
   end
 
