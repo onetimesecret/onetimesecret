@@ -52,7 +52,7 @@
     "@intlify/core": "^11.0.1",
     "@prettier/plugin-ruby": "^4.0.4",
     "@sentry/browser": "^8.54.0",
-    "@sentry/core": "^8.54.0",
+    "@sentry/core": "^9.8.0",
     "@sentry/vue": "^8.54.0",
     "@types/jsdom": "^21.1.7",
     "@vueuse/integrations": "^12.4.0",
