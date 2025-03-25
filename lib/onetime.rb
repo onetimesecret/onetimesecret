@@ -377,7 +377,6 @@ trap("SIGINT") do
   exit
 end
 
-require_relative 'onetime/mail/choose'
 require_relative 'onetime/errors'
 require_relative 'onetime/utils'
 require_relative 'onetime/version'

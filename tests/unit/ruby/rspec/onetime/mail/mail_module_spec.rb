@@ -3,7 +3,7 @@
 require_relative '../../spec_helper'
 require 'onetime/mail'
 
-RSpec.describe Onetime::Mail::Mailer do
+RSpec.describe Onetime::Mail do
   before do
     # Reset the mailer before each test
     described_class.reset_mailer
