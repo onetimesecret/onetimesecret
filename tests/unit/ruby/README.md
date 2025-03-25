@@ -36,6 +36,33 @@ Test suite components:
 Test files location: `tests/unit/ruby/rspec/`
 Config file: `tests/unit/ruby/config.test.yaml`
 
+#### Mocking in rspec
+
+
+| Feature | `instance_double` | `double` |
+|---------|-------------------|----------|
+| Type verification | Verifies methods exist on real class | No verification |
+| Method constraints | Only allows mocking of existing methods | Allows mocking any method |
+| Argument validation | Can verify method signature compatibility | No argument validation |
+| Implementation | `allow(double).to receive(:method)` must match real class | Can receive any method without restriction |
+
+1. **Development Feedback:**
+   - `instance_double` fails fast when interfaces change, alerting you to broken dependencies
+   - `double` won't detect API changes, potentially allowing tests to pass while code fails in production
+
+2. **Test Maintenance:**
+   - `instance_double` tests need updates when the real class changes
+   - `double` tests remain stable during refactoring but may hide integration issues
+
+3. **Performance:**
+   - `instance_double` has slightly higher overhead due to verification
+   - `double` is marginally faster due to lack of verification
+
+4. **Usage Context:**
+   - `instance_double` is ideal for strict unit tests verifying correct collaboration
+   - `double` works better for isolated tests focused on behavior rather than implementation
+
+
 ## Examples
 
 
