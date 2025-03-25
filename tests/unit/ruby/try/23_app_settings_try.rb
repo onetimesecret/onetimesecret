@@ -18,8 +18,7 @@
 # without needing to run the full application, allowing for targeted testing
 # of this specific functionality.
 
-require_relative './test_helpers'
-require 'onetime/models'
+require_relative './test_models'
 require 'core/controllers/settings'
 
 # Use the default config file for tests

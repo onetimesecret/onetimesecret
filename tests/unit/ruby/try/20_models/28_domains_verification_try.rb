@@ -5,8 +5,7 @@
 
 require 'securerandom'
 
-require_relative '../test_helpers'
-require 'onetime/models'
+require_relative '../test_models'
 
 # Load the app
 OT.boot! :test, false

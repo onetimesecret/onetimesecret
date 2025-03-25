@@ -11,8 +11,7 @@
 # 7. Checking if the EmailReceipt is added to the values sorted set
 # 8. Testing the destruction process
 
-require_relative './test_helpers'
-require 'onetime/models'
+require_relative './test_models'
 
 # Load the app
 OT.boot! :test, false

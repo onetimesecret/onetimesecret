@@ -19,7 +19,7 @@ require 'onetime/models'
 TestVersion = Onetime::CURRENT_API_VERSION
 
 # Map commonly used models to top-level constants for cleaner test code
-Customer = TestVersion::Customer
+Customer = TestVersion::Customer # e.g. V2::Customer
 CustomDomain = TestVersion::CustomDomain
 Session = TestVersion::Session
 Metadata = TestVersion::Metadata

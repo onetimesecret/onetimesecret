@@ -13,8 +13,7 @@
 # allowing for targeted testing of these specific scenarios without needing to run the full application.
 
 
-require_relative './test_helpers'
-require 'onetime/models'
+require_relative './test_models'
 require 'core/controllers/settings'
 
 #Familia.debug = false
