@@ -194,7 +194,7 @@ GEM
     ruby_http_client (3.5.5)
     sendgrid-ruby (6.7.0)
       ruby_http_client (~> 3.4)
-    sentry-ruby (5.22.4)
+    sentry-ruby (5.23.0)
       bigdecimal
       concurrent-ruby (~> 1.0, >= 1.0.2)
     simplecov (0.22.0)
