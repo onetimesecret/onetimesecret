@@ -11,7 +11,10 @@
 # These tests aim to ensure that email templates are correctly generated and localized,
 # which is crucial for effective communication with users in the application.
 #
-# The tryouts use the OT::Email classes
+# The tryouts use the Onetime::Mail classes
+#
+# NOTE: Only locales that are configured in test config.test.yaml are
+# available for use in testing. See the humphreybogus example below.
 
 require_relative './test_helpers'
 require 'onetime/models'
@@ -38,7 +41,17 @@ view = OT::Mail::SecretLink.new @cust, 'en', @secret, 'tryouts+recipient@onetime
 view.subject
 #=> "#{@email} sent you a secret"
 
+## Can quietly continue with the default locale when given some bad ham
+view = OT::Mail::SecretLink.new @cust, 'humphreybogus', '', ''
+view.locale
+#=> 'en'
+
+## Can receive and keep track of a locale
+view = OT::Mail::SecretLink.new @cust, 'fr_CA', '', ''
+view.locale
+#=> 'fr_CA'
+
 ## Understands locale in spanish
-view = OT::Mail::SecretLink.new @cust, 'es', @secret, 'tryouts+recipient@onetimesecret.com'
+view = OT::Mail::SecretLink.new @cust, 'fr_CA', @secret, 'tryouts+recipient@onetimesecret.com'
 view.subject
-#=> "#{@email} le ha enviado un secreto"
+#=> "#{@email} vous a envoyé un secret"

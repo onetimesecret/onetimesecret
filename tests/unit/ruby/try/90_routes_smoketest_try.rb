@@ -6,11 +6,17 @@
 # The tryouts use Rack::MockRequest to simulate HTTP requests to the application
 # and verify that the routes exist and return appropriate status codes.
 
+require_relative './test_helpers'
+
+# Load the app
+OT.boot! :test, false
+
 require 'rack'
 require 'rack/mock'
 
 # Initialize the Rack application and create a mock request
 @app = Rack::Builder.parse_file('config.ru').first
+p [:PLAOP_APP, @app]
 @mock_request = Rack::MockRequest.new(@app)
 
 # NOTE: Careful when flushing the Redis database, as it will remove

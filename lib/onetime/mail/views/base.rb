@@ -20,38 +20,55 @@ module Onetime
         def initialize cust, locale, *args
           @cust = cust
           @locale = locale
+
+          # We quietly continue if we're given an unknown locale and continue
+          # with the default. This avoids erroring out when sending an email
+          # for example which we don't have a proper UX to handle letting the
+          # user know that the email was not sent yet (and then having a way
+          # to retry sending the email).
+          if OT.locales.key?(locale)
+            OT.li "Initializing #{self.class} with locale: #{locale.to_s}"
+          else
+            default_value = OT.default_locale
+            @locale = default_value
+            available = OT.supported_locales
+            OT.le "[views.i18n] Locale not found: #{locale} (continuing with #{default_value} / #{available})"
+          end
+
           OT.ld "#{self.class} locale is: #{locale.to_s}"
 
-          emailer_conf = OT.conf.fetch(:emailer, {})
+          conf = OT.conf.fetch(:emailer, {})
 
-          @mode = emailer_conf.fetch(:mode, 'smtp').to_s.to_sym
+          @mode = conf.fetch(:mode, 'smtp').to_s.to_sym
 
           # Create a new instance of the configured mailer class for this request
           @emailer = OT.emailer.new(
-            emailer_conf.fetch(:from, nil),
-            emailer_conf.fetch(:fromname, nil),
+            conf.fetch(:from, nil),
+            conf.fetch(:fromname, nil),
             cust&.email, # use for the reply-to field
           )
 
+          password_is_present = conf.fetch(:pass, nil).to_s.length.positive?
           logsafe_config = {
-            from: emailer_conf.fetch(:from, nil),
-            fromname: emailer_conf.fetch(:fromname, nil),
-            host: emailer_conf.fetch(:host, nil),
-            port: emailer_conf.fetch(:port, nil),
-            user: emailer_conf.fetch(:user, nil),
-            tls: emailer_conf.fetch(:tls, nil),
-            auth: emailer_conf.fetch(:auth, nil),
-            region: emailer_conf.fetch(:region, nil),
-            pass: "#{emailer_conf.fetch(:pass, nil).to_s.length} chars"
+            from: conf.fetch(:from, nil),
+            fromname: conf.fetch(:fromname, nil),
+            host: conf.fetch(:host, nil),
+            port: conf.fetch(:port, nil),
+            user: conf.fetch(:user, nil),
+            tls: conf.fetch(:tls, nil),
+            auth: conf.fetch(:auth, nil), # auth type
+            region: conf.fetch(:region, nil),
+            pass: "has password: #{password_is_present}",
+            locale: locale.to_s,
           }
+
           OT.info "[mailer] #{mode} #{logsafe_config.to_json}"
           init(*args) if respond_to? :init
         end
 
         def i18n
-          locale = self.locale || 'en'
           pagename = self.class.name.split('::').last.downcase.to_sym
-          locale = 'en' unless OT.locales.key?(locale)
+          locale = self.locale # we handle unknown locale on initialization
           @i18n ||= {
             locale: locale,
             email: OT.locales[locale][:email][pagename],
