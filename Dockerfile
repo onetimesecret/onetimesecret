@@ -176,8 +176,7 @@ COPY package.json pnpm-lock.yaml tsconfig.json vite.config.ts postcss.config.mjs
 
 # Remove pnpm after use
 RUN set -eux \
-  && pnpm run type-check \
-  && pnpm run build-only \
+  && pnpm run build \
   && pnpm prune --prod \
   && rm -rf node_modules \
   && npm uninstall -g pnpm
