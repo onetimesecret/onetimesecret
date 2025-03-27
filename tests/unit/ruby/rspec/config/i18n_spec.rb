@@ -174,7 +174,7 @@ RSpec.describe "Internationalization config" do
 
           # Set up the previously buggy condition
           Onetime.instance_variable_set(:@i18n_enabled, false)
-          Onetime.instance_variable_set(:@i18n_enabled, nil)
+          Onetime.instance_variable_set(:@locales, nil)
           Onetime.instance_variable_set(:@default_locale, 'en')
 
           allow(Onetime).to receive(:ld) # Suppress logs
