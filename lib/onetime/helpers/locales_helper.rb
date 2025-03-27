@@ -6,8 +6,7 @@ module Onetime
   module LocalesHelper
     @i18n_enabled = false
 
-    attr_accessor :default_locale, :fallback_locale
-    attr_reader :i18n_enabled, :locales, :supported_locales
+    attr_reader :i18n_enabled, :locales, :supported_locales, :default_locale, :fallback_locale
 
     # We always load locales regardless of whether internationalization
     # is enabled. When it's disabled, we just limit the locales to

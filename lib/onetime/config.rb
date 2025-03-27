@@ -232,7 +232,7 @@ module Onetime
           config.profiles_sample_rate = 0.1
         end
 
-        OT.li "[sentry-init] Status: #{Sentry.initialized? ? 'OK' : 'Failed'}"
+        OT.ld "[sentry-init] Status: #{Sentry.initialized? ? 'OK' : 'Failed'}"
       end
 
       # Make sure these are set
