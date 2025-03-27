@@ -192,35 +192,51 @@ module Core
         init(*args) if respond_to? :init
       end
 
+      # Retrieves localized content for the view, implementing fallback behavior
+      # when translations aren't available for the requested locale.
+      #
+      # @note PRODUCTION VS TESTING IMPACT:
+      #   This implementation memoizes based on the instance variable being defined,
+      #   without considering locale changes. In production, views are instantiated
+      #   per-request, so locale remains consistent. In testing, reusing the same view
+      #   instance with different locales will return cached data from the original locale.
+      #
+      #   The method correctly implements fallback to default locale and safe access
+      #   patterns, but doesn't handle locale switching within the same instance.
+      #
+      # @return [Hash] Localized content with keys:
+      #   - :locale [String] The current locale code
+      #   - :default [String] The default locale code
+      #   - :page [Hash] Page-specific translations
+      #   - :COMMON [Hash] Shared translations across pages
       def i18n
-        return @i18n if defined?(@i18n)
+        locale = self.locale
+        @i18n_cache ||= {}
+
+        return @i18n_cache[locale] if @i18n_cache.key?(locale)
 
         pagename = self.class.pagename
-        messages = OT.locales.fetch(self.locale, {})
+        messages = OT.locales.fetch(locale, {})
 
-        # If we don't have translations for the requested locale, fall back.
+        # Fall back to default locale if translations not available
         if messages.empty?
-          translated_locales = OT.locales.keys
-          OT.le "%{name} %{loc} not found in %{avail} (%{supp})" % {
-            name: "[#{pagename}.i18n]",
-            loc: self.locale,
-            avail: translated_locales,
-            supp: OT.supported_locales
-          }
+          OT.le "[#{pagename}.i18n] #{locale} not found in #{OT.locales.keys} (#{OT.supported_locales})"
           messages = OT.locales.fetch(OT.default_locale, {})
         end
 
-        # Ensure we have at least empty hashes for the necessary keys
+        # Safe access to nested hash structure
         web_messages = messages.fetch(:web, {})
         common_messages = web_messages.fetch(:COMMON, {})
         page_messages = web_messages.fetch(pagename, {})
 
-        @i18n = {
-          locale: self.locale,
+        result = {
+          locale: locale,
           default: OT.default_locale,
           page: page_messages,
           COMMON: common_messages
         }
+
+        @i18n_cache[locale] = result
       end
 
       # Add notification message to be displayed in StatusBar component
