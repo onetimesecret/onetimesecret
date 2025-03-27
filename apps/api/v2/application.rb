@@ -1,26 +1,14 @@
 # apps/api/v2/application.rb
 
-require 'rack'
-require 'otto'
-require 'json'
+require_relative '../../app_base'
 
 require_relative 'models'
 require_relative 'logic'
 require_relative 'controllers'
 
 module V2
-  class Application
-    attr_reader :options, :router, :rack_app
-
-    def initialize(options = {})
-      @options = options
-      @router = build_router
-      @rack_app = build_rack_app
-    end
-
-    def call(env)
-      rack_app.call(env)
-    end
+  class Application < ::BaseApplication
+    @prefix = '/api/v2'
 
     private
 
@@ -64,10 +52,5 @@ module V2
       end.to_app
     end
 
-    require_relative '../../app_registry'
-
-    # Registering with AppRegistry during load makes this application
-    # available to the main config.ru file.
-    AppRegistry.register('/api/v2', self) # i.e. V2::Application
   end
 end
