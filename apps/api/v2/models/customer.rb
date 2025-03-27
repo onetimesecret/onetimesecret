@@ -340,6 +340,11 @@ module V2
     #
     # @return [void]
     def destroy_requested!
+      self.destroy_requested
+      save
+    end
+
+    def destroy_requested
       # NOTE: we don't use cust.destroy! here since we want to keep the
       # customer record around for a grace period to take care of any
       # remaining business to do with the account.

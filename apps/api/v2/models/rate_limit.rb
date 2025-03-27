@@ -24,6 +24,7 @@ require 'forwardable'
 module V2
   class RateLimit < Familia::Horreum
     extend Forwardable
+    @events = {}
 
     # Default limit for events that haven't been explicitly configured
     DEFAULT_LIMIT = 25 unless defined?(V2::RateLimit::DEFAULT_LIMIT)
@@ -160,7 +161,7 @@ module V2
       # @param event [Symbol] the event to get the limit for
       # @return [Integer] the configured limit or DEFAULT_LIMIT
       def event_limit event
-        events[event] || DEFAULT_LIMIT
+        events[event] || DEFAULT_LIMIT # Float::INFINITY-1
       end
 
       # Check if a count exceeds the limit for an event
@@ -175,15 +176,15 @@ module V2
       # @param event [Symbol] the event to register
       # @param count [Integer] the maximum allowed count
       # @return [Integer] the registered limit
-      def register_event event, count
-        (@events ||= {})[event] = count
+      def register_event single_event, count
+        events[single_event] = count
       end
 
       # Register multiple events with their limits
       # @param events [Hash] map of event names to limits
       # @return [Hash] the updated events hash
-      def register_events events
-        (@events ||= {}).merge! events
+      def register_events multiple_events
+        events.merge! multiple_events
       end
 
       # Get the current time window stamp

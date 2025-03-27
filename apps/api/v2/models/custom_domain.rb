@@ -147,7 +147,8 @@ module V2
     # @param cust [V2::Customer, String] The customer object or customer ID to check
     # @return [Boolean] true if the customer is the owner, false otherwise
     def owner?(cust)
-      (cust.is_a?(V2::Customer) ? cust.custid : cust).eql?(custid)
+      matching_class = cust.is_a?(V2::Customer)
+      (matching_class ? cust.email : cust).eql?(custid)
     end
 
     # Destroy the custom domain record

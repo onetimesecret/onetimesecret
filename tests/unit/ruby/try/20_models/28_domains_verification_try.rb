@@ -3,8 +3,9 @@
 
 # These tryouts test the validation and verification status functionality of custom domains
 
-require_relative '../test_helpers'
 require 'securerandom'
+
+require_relative '../test_models'
 
 # Load the app
 OT.boot! :test, false

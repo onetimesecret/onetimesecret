@@ -17,8 +17,7 @@
 # of these specific scenarios.
 
 #ENV['FAMILIA_TRACE'] = '1'
-require_relative './test_helpers'
-require 'onetime/models'
+require_relative './test_models'
 #Familia.debug = true
 
 # Load the app

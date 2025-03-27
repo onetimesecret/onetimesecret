@@ -16,8 +16,7 @@
 # behavior without needing to run the full application, allowing for targeted testing
 # of these specific features.
 
-require_relative './test_helpers'
-require 'onetime/models'
+require_relative './test_models'
 # Use the default config file for tests
 OT.boot! :test, false
 
