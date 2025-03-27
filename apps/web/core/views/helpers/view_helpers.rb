@@ -1,4 +1,4 @@
-# apps/web/core/views/view_helpers.rb
+# apps/web/core/views/helpers/view_helpers.rb
 
 module Core
   module ViewHelpers # rubocop:disable Style/Documentation

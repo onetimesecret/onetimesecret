@@ -1,9 +1,9 @@
-# apps/web/core/views/vite_helpers.rb
+# apps/web/core/views/helpers/vite_helpers.rb
 
 module Core
 
   ##
-  # ViteHelpers - Asset Management for Multiple Vite Configurations
+  # ViteManifest - Asset Management for Multiple Vite Configurations
   #
   # Supports two Vite build configurations:
   # 1. Default (vite.config.ts) - Consolidated assets with separate style entry
@@ -18,7 +18,7 @@ module Core
   # @see vite.config.ts
   # @see vite.config.local.ts
   #
-  module ViteHelpers # rubocop:disable Style/Documentation
+  module ViteManifest # rubocop:disable Style/Documentation
 
     def vite_assets(nonce: nil)
       nonce ||= self[:nonce] # we allow overriding the nonce for testing

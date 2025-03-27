@@ -2,16 +2,14 @@
 
 require 'chimera'
 
-require 'onetime/middleware/domain_strategy'
-
-require_relative 'view_helpers'
-require_relative 'vite_helpers'
+require_relative 'helpers/view_helpers'
+require_relative 'helpers/vite_helpers'
 
 module Core
   module Views
     class BaseView < Chimera
       include Core::ViewHelpers
-      include Core::ViteHelpers
+      include Core::ViteManifest
       include Onetime::TimeUtils
 
       self.template_path = './templates/web'
