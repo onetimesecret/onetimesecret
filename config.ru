@@ -63,7 +63,8 @@ require_relative 'lib/middleware'
 require_relative 'lib/onetime'
 
 # Load all applications
-Dir.glob(File.join(app_root, '**/application.rb')).each { |f| require f }
+AppRegistry.load_applications
+BaseApplication.register_applications
 
 # Applications must be loaded before boot to ensure Familia models are registered.
 # This allows proper database connection setup for all model classes.
