@@ -14,7 +14,6 @@ module Onetime
     # configuration. In some cases, this might include setting default values
     # and ensuring necessary environment variables are present.
     def before_load
-
       # In v0.20.6, REGIONS_ENABLE was renamed to REGIONS_ENABLED for
       # consistency. We ensure both are considered for compatability.
       ENV['REGIONS_ENABLED'] = ENV.values_at('REGIONS_ENABLED', 'REGIONS_ENABLE').compact.first || 'false'
@@ -232,7 +231,7 @@ module Onetime
           config.profiles_sample_rate = 0.1
         end
 
-        OT.li "[sentry-init] Status: #{Sentry.initialized? ? 'OK' : 'Failed'}"
+        OT.ld "[sentry-init] Status: #{Sentry.initialized? ? 'OK' : 'Failed'}"
       end
 
       # Make sure these are set
