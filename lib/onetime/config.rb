@@ -14,7 +14,6 @@ module Onetime
     # configuration. In some cases, this might include setting default values
     # and ensuring necessary environment variables are present.
     def before_load
-
       # In v0.20.6, REGIONS_ENABLE was renamed to REGIONS_ENABLED for
       # consistency. We ensure both are considered for compatability.
       ENV['REGIONS_ENABLED'] = ENV.values_at('REGIONS_ENABLED', 'REGIONS_ENABLE').compact.first || 'false'
