@@ -1,8 +1,8 @@
 # apps/app_registry.rb
 
-apps_root = File.expand_path(__dir__).freeze
-$LOAD_PATH.unshift(File.join(apps_root, 'api'))
-$LOAD_PATH.unshift(File.join(apps_root, 'web'))
+APPS_ROOT = File.expand_path(__dir__).freeze
+$LOAD_PATH.unshift(File.join(APPS_ROOT, 'api'))
+$LOAD_PATH.unshift(File.join(APPS_ROOT, 'web'))
 
 module AppRegistry
   # Simple hash to store mount paths
@@ -10,6 +10,12 @@ module AppRegistry
 
   class << self
     attr_reader :mounts
+
+    def load_applications
+      paths = Dir.glob(File.join(APPS_ROOT, '**/application.rb'))
+      OT.ld "[app_registry] Found #{paths.join(', ')}"
+      paths.each { |f| require f }
+    end
 
     # Register an application with its mount path
     def register(path, app_class)

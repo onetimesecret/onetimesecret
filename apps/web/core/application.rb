@@ -1,24 +1,12 @@
 # apps/web/core/application.rb
 
-require 'rack'
-require 'otto'
-require 'json'
+require_relative '../../app_base'
 
 require_relative 'controllers'
 
 module Core
-  class Application
-    attr_reader :options, :router, :rack_app
-
-    def initialize(options = {})
-      @options = options
-      @router = build_router
-      @rack_app = build_rack_app
-    end
-
-    def call(env)
-      rack_app.call(env)
-    end
+  class Application < ::BaseApplication
+    @prefix = '/'
 
     private
 
@@ -60,8 +48,5 @@ module Core
       end.to_app
     end
 
-    # Register with AppRegistry during load
-    require_relative '../../app_registry'
-    AppRegistry.register('/', self)
   end
 end
