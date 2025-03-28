@@ -49,8 +49,10 @@ class OT::CLI::Definition
   end
   alias_command :build, :version
 
-  usage 'ots migrate MIGRATION_SCRIPT'
+  # In OT::CLI::Definition in bin/ots
+  usage 'ots migrate MIGRATION_SCRIPT [--run]'
   about 'Run a migration script from the migrate/ directory'
+  option :r, :run, "Actually apply changes (default is dry run mode)"
   command migrate: OT::CLI
 
   usage 'ots move-keys SOURCEDB TARGETDB [filter]'
