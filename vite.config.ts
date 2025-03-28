@@ -270,12 +270,26 @@ export default defineConfig({
    */
   server: {
     origin: viteBaseUrl,
-    allowedHosts: [
-      viteAdditionalServerAllowedHosts ? viteAdditionalServerAllowedHosts : '',
-      __viteAdditionalServerAllowedHosts ? __viteAdditionalServerAllowedHosts : '',
-      'localhost',
-      '127.0.0.1',
-    ],
+    allowedHosts: (() => {
+      // NOTE: This is an Immediately Invoked Function Expression (IIFE)
+      // that executes exactly once during config load/parsing time.
+      // The returned array becomes the value of allowedHosts. We do
+      // this to avoid adding empty strings to the array.
+      //
+      // Start with default allowed hosts
+      const hosts = ['localhost', '127.0.0.1'];
+
+      // Add additional hosts from environment variables if defined
+      if (viteAdditionalServerAllowedHosts) {
+        hosts.push(viteAdditionalServerAllowedHosts);
+      }
+
+      if (__viteAdditionalServerAllowedHosts) {
+        hosts.push(__viteAdditionalServerAllowedHosts);
+      }
+
+      return hosts;
+    })(),
   },
 
   // Add this section to explicitly include dependencies for pre-bundling
