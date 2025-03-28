@@ -4,13 +4,11 @@ require 'chimera'
 
 require 'onetime/middleware'
 
-require_relative 'helpers/jsvars'
-require_relative 'helpers/i18n'
-require_relative 'helpers/vite_manifest'
+require_relative 'helpers'
 
 #
-# - **Serializers**: Transform internal state for frontend consumption
 # - **Helpers**: Provide utility methods for internal use
+# - **Serializers**: Transform internal state for frontend consumption
 #
 module Core
   module Views
@@ -18,6 +16,7 @@ module Core
       include Core::Views::JSVarsHelpers
       include Core::Views::I18nHelpers
       include Core::Views::ViteManifest
+      include Core::Views::InitializeVarsHelpers
       include Onetime::TimeUtils
 
       self.template_path = './templates/web'
@@ -33,52 +32,28 @@ module Core
         @req, @sess, @cust, @locale = req, sess, cust, locale
         @locale ||= req.env['ots.locale'] || OT.default_locale || 'en' unless req.nil?
         @messages ||= []
-        site = OT.conf.fetch(:site, {})
-        display_locale = nil
 
-        @canonical_domain = Onetime::DomainStrategy.canonical_domain
-        @domain_strategy = req.env.fetch('onetime.domain_strategy', :default) # never null
-        @display_domain = req.env.fetch('onetime.display_domain', nil) # can be nil
-        if @domain_strategy == :custom
-          @custom_domain = V2::CustomDomain.from_display_domain(@display_domain)
-          @domain_id = custom_domain&.domainid
-          @domain_branding = (custom_domain&.brand&.hgetall || {}).to_h # bools are strings
-          @domain_logo = (custom_domain&.logo&.hgetall || {}).to_h # ditto
+        # Use the refactored helper method
+        vars = initialize_core_vars(req, sess, cust, @locale)
 
-          domain_locale = domain_branding.fetch('locale', nil)
-          display_locale = domain_locale
-        end
-
-        display_locale ||= @locale
-        is_default_locale = display_locale == @locale
-
-        interface = site.fetch(:interface, {})
-        secret_options = site.fetch(:secret_options, {})
-        domains = site.fetch(:domains, {})
-        regions = site.fetch(:regions, {})
-        authentication = site.fetch(:authentication, {})
-        support_host = site.dig(:support, :host) # defaults to nil
-        incoming_recipient = OT.conf.dig(:incoming, :email)
-
-        # If not set, the frontend_host is the same as the site_host and
-        # we can leave the absolute path empty as-is without a host.
-        development = OT.conf.fetch(:development, {})
-        frontend_development = development[:enabled] || false
-        frontend_host = development[:frontend_host] || ''
-
-        cust ||= V2::Customer.anonymous
-        authenticated = sess && sess.authenticated? && ! cust.anonymous?
-
-        domains_enabled = domains[:enabled] || false
-        regions_enabled = regions[:enabled] || false
+        # Assign instance variables from returned hash
+        @canonical_domain = vars[:canonical_domain]
+        @domain_strategy = vars[:domain_strategy]
+        @display_domain = vars[:display_domain]
+        @domain_id = vars[:domain_id]
+        @domain_branding = vars[:domain_branding]
+        @domain_logo = vars[:domain_logo]
+        @custom_domain = vars[:custom_domain]
+        @frontend_host = vars[:frontend_host]
+        @frontend_development = vars[:frontend_development]
 
         # Regular template vars used by head.html
         self[:description] = i18n[:COMMON][:description]
         self[:keywords] = i18n[:COMMON][:keywords]
         self[:page_title] = "Onetime Secret"
         self[:no_cache] = false
-        self[:frontend_host] = frontend_host
-        self[:frontend_development] = frontend_development
+        self[:frontend_host] = @frontend_host
+        self[:frontend_development] = @frontend_development
 
         self[:jsvars] = {}
 
