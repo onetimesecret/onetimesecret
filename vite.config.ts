@@ -14,7 +14,18 @@ import { addTrailingNewline } from './src/build/plugins/addTrailingNewline';
 // Remember, for security reasons, only variables prefixed with VITE_ are
 // available here to prevent accidental exposure of sensitive
 // environment variables to the client-side code.
-const apiBaseUrl = process.env.VITE_API_BASE_URL;
+const viteBaseUrl = process.env.VITE_BASE_URL;
+
+// According to the documentation, we should be able to set the allowed hosts
+// via __VITE_ADDITIONAL_SERVER_ALLOWED_HOSTS but as of 5.4.15m that is not
+// working as expected. So here we capture the value of that env var with
+// and without the __ prefix and if they're defined, add them to
+// server.allowedHosts below. -- Delano (2025-03-28)
+//
+// https://vite.dev/config/server-options.html#server-allowedhosts
+// https://github.com/vitejs/vite/security/advisories/GHSA-vg6x-rcgg-rjx6
+const viteAdditionalServerAllowedHosts = process.env.VITE_ADDITIONAL_SERVER_ALLOWED_HOSTS;
+const __viteAdditionalServerAllowedHosts = process.env.__VITE_ADDITIONAL_SERVER_ALLOWED_HOSTS;
 
 /**
  * Vite Configuration - Consolidated Assets
@@ -239,8 +250,32 @@ export default defineConfig({
     devSourcemap: true,
   },
 
+  /**
+   * Server Security Configuration: allowedHosts
+   * ------------------------------------------
+   * This security feature was added in Vite 5.4.12 to address vulnerability GHSA-vg6x-rcgg-rjx6,
+   * which allowed unauthorized websites to send requests to the Vite dev server.
+   *
+   * By default, Vite only allows requests from 'localhost' and '127.0.0.1'.
+   * For specific domains (like 'dev.onetime.dev'), they must be explicitly allowed.
+   *
+   * We handle both env vars with and without "__" prefix since the documentation
+   * references different formats, and this implementation ensures future compatibility.
+   *
+   * Security note: Never set allowedHosts: true in production as this allows any origin
+   * to access your dev server.
+   *
+   * @see https://vitejs.dev/config/server-options.html#server-allowedhosts
+   * @see https://github.com/vitejs/vite/security/advisories/GHSA-vg6x-rcgg-rjx6
+   */
   server: {
-    origin: apiBaseUrl,
+    origin: viteBaseUrl,
+    allowedHosts: [
+      viteAdditionalServerAllowedHosts ? viteAdditionalServerAllowedHosts : '',
+      __viteAdditionalServerAllowedHosts ? __viteAdditionalServerAllowedHosts : '',
+      'localhost',
+      '127.0.0.1',
+    ],
   },
 
   // Add this section to explicitly include dependencies for pre-bundling
@@ -255,7 +290,10 @@ export default defineConfig({
   },
 
   define: {
-    'process.env.API_BASE_URL': JSON.stringify(apiBaseUrl),
+    'process.env.VITE_BASE_URL': JSON.stringify(viteBaseUrl),
+    'process.env.VITE_ADDITIONAL_SERVER_ALLOWED_HOSTS': JSON.stringify(
+      viteAdditionalServerAllowedHosts
+    ),
     __VUE_PROD_DEVTOOLS__: DEBUG,
   },
 });
