@@ -13,10 +13,8 @@ VALID_PLANS = ['anonymous', 'basic', 'identity'].freeze
 module Onetime
   class Migration < BaseMigration
     def migrate
-      deprecated_count = 0
-      empty_count = 0
-      total_keys_count = 0
-      loops_count = 0
+      run_mode_banner
+
       deprecated_customers = []
       empty_planid_customers = []
       unique_deprecated_plans = Hash.new(0) # Track count of each deprecated plan
@@ -25,34 +23,42 @@ module Onetime
       cursor = "0"
       pattern = "customer:*:object"
       batch_size = 1000
-      redis = Familia.redis(6)
+      redis_client = redis
 
-      OT.li "Starting scan of customer records..."
+      info "Starting scan of customer records..."
 
       loop do
-        loops_count += 1
+        track_stat(:loops)
 
-        cursor, keys = redis.scan(cursor, match: pattern, count: batch_size)
+        cursor, keys = redis_client.scan(cursor, match: pattern, count: batch_size)
 
         keys.each do |key|
-          total_keys_count += 1
+          track_stat(:total_keys)
 
           # Extract customer ID from key
           custid = key.split(':')[1] rescue nil
           next unless custid
 
-          keytype = redis.type(key)
-          OT.ld "Customer ID: #{custid} (#{key})"
-          OT.ld "Key type: #{keytype}"
+          keytype = redis_client.type(key)
+          debug "Customer ID: #{custid} (#{key})"
+          debug "Key type: #{keytype}"
 
           # Get planid directly from Redis hash
-          planid = redis.hget(key, 'planid')
+          planid = redis_client.hget(key, 'planid')
 
           # Handle empty planid case
           if planid.nil? || planid.strip.empty?
-            empty_count += 1
+            track_stat(:empty_count)
             empty_planid_customers << { custid: custid }
-            OT.ld "Customer #{custid} has empty planid"
+            debug "Customer #{custid} has empty planid"
+
+            # Fix empty planid by setting to 'basic' if in actual run mode
+            execute_if_actual_run do
+              redis_client.hset(key, 'planid', 'basic')
+              track_stat(:changed_customers)
+              debug "Updated customer #{custid} to 'basic' plan"
+            end
+
             next
           end
 
@@ -60,12 +66,19 @@ module Onetime
 
           # Check if plan is deprecated
           unless VALID_PLANS.include?(normalized_planid)
-            deprecated_count += 1
+            track_stat(:deprecated_count)
             deprecated_customers << { custid: custid, planid: planid }
             unique_deprecated_plans[normalized_planid] += 1
 
+            # Fix deprecated plan by updating to 'basic' if in actual run mode
+            execute_if_actual_run do
+              redis_client.hset(key, 'planid', 'basic')
+              track_stat(:changed_customers)
+              debug "Updated customer #{custid} from '#{planid}' to 'basic' plan"
+            end
+
             # Print progress for large datasets
-            OT.li "Found #{deprecated_count} deprecated plans..." if deprecated_count % batch_size == 0
+            progress(stats[:deprecated_count], stats[:total_keys], "Found deprecated plans", batch_size)
           end
         end
 
@@ -73,37 +86,49 @@ module Onetime
         break if cursor == "0"
       end
 
-      OT.li "Total keys scanned: #{total_keys_count} in #{loops_count} loops"
+      info "Total keys scanned: #{stats[:total_keys]} in #{stats[:loops]} loops"
 
       # Report empty planid customers
       if empty_planid_customers.empty?
-        OT.li "No customers found with empty plan IDs."
+        info "No customers found with empty plan IDs."
       else
-        OT.li "Found #{empty_count} customers with empty plan IDs"
+        info "Found #{stats[:empty_count]} customers with empty plan IDs"
         empty_planid_customers.each do |customer|
-          OT.ld "Customer ID: #{customer[:custid]}"
+          debug "Customer ID: #{customer[:custid]}"
         end
       end
 
       # Report unique deprecated plans
       if unique_deprecated_plans.empty?
-        OT.li "No deprecated plan types found."
+        info "No deprecated plan types found."
       else
-        OT.li "Found #{unique_deprecated_plans.size} unique deprecated plan types:"
+        info "Found #{unique_deprecated_plans.size} unique deprecated plan types:"
         unique_deprecated_plans.sort_by { |_, count| -count }.each do |plan_id, count|
-          OT.li "  Plan ID: #{plan_id} - #{count} customers"
+          info "  Plan ID: #{plan_id} - #{count} customers"
         end
       end
 
       # Report deprecated plan customers
       if deprecated_customers.empty?
-        OT.li "No customers found on deprecated plans."
+        info "No customers found on deprecated plans."
       else
-        OT.li "Found #{deprecated_count} customers on deprecated plans:"
+        info "Found #{stats[:deprecated_count]} customers on deprecated plans:"
         deprecated_customers.each do |customer|
-          OT.ld "Customer ID: #{customer[:custid]}, Plan ID: #{customer[:planid]}"
+          debug "Customer ID: #{customer[:custid]}, Plan ID: #{customer[:planid]}"
         end
       end
+
+      # Print summary based on run mode
+      print_summary do
+        if dry_run?
+          # Make this message very visible
+          info("Would update #{stats[:deprecated_count] + stats[:empty_count]} customers to 'basic' plan")
+        else
+          info("Updated #{stats[:changed_customers]} customers to 'basic' plan")
+        end
+      end
+
+      true # Return success
     end
   end
 end
@@ -111,5 +136,5 @@ end
 # If this script is run directly
 if __FILE__ == $0
   OT.boot! :cli
-  exit(Onetime::Migration.run ? 0 : 1)
+  exit(Onetime::Migration.run(run: ARGV.include?('--run')) ? 0 : 1)
 end

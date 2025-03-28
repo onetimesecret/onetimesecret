@@ -38,11 +38,8 @@ module Onetime
         # Load the migration script
         require_relative "../../migrate/#{migration_file}"
 
-        # Run the migration
-        migration = Onetime::Migration.new
-        # Pass options to the migration
-        migration.options[:run] = option.run
-        success = migration.migrate
+        # Run the migration with options
+        success = Onetime::Migration.run(run: option.run)
         puts success ? "\nMigration completed successfully" : "\nMigration failed"
         exit(success ? 0 : 1)
       rescue LoadError => e
