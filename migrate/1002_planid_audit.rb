@@ -19,6 +19,7 @@ module Onetime
       loops_count = 0
       deprecated_customers = []
       empty_planid_customers = []
+      unique_deprecated_plans = Hash.new(0) # Track count of each deprecated plan
 
       # Use Redis scan for non-blocking iteration over customer keys
       cursor = "0"
@@ -55,10 +56,13 @@ module Onetime
             next
           end
 
+          normalized_planid = Onetime::Plan.normalize(planid)
+
           # Check if plan is deprecated
-          unless VALID_PLANS.include?(Onetime::Plan.normalize(planid))
+          unless VALID_PLANS.include?(normalized_planid)
             deprecated_count += 1
             deprecated_customers << { custid: custid, planid: planid }
+            unique_deprecated_plans[normalized_planid] += 1
 
             # Print progress for large datasets
             OT.li "Found #{deprecated_count} deprecated plans..." if deprecated_count % batch_size == 0
@@ -78,6 +82,16 @@ module Onetime
         OT.li "Found #{empty_count} customers with empty plan IDs"
         empty_planid_customers.each do |customer|
           OT.ld "Customer ID: #{customer[:custid]}"
+        end
+      end
+
+      # Report unique deprecated plans
+      if unique_deprecated_plans.empty?
+        OT.li "No deprecated plan types found."
+      else
+        OT.li "Found #{unique_deprecated_plans.size} unique deprecated plan types:"
+        unique_deprecated_plans.sort_by { |_, count| -count }.each do |plan_id, count|
+          OT.li "  Plan ID: #{plan_id} - #{count} customers"
         end
       end
 
