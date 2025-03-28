@@ -6,6 +6,7 @@ GET   /500                                       Core::Controllers::Page#server_
 GET   /robots.txt                                Core::Controllers::Page#robots_txt
 
 POST  /incoming                                  Core::Controllers::Data#create_incoming
+GET   /window                                    Core::Controllers::Data#export_window
 
 GET   /plans/:tier                               Core::Controllers::Account#plan_redirect
 GET   /plans/:tier/:billing_cycle                Core::Controllers::Account#plan_redirect

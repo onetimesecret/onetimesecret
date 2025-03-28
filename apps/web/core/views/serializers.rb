@@ -1,5 +1,8 @@
 # apps/web/core/views/serializer_registry.rb
 
+#
+# ComponentRegistry.register(self, [DomainManager])
+# j
 module Core
   module Views
     class SerializerRegistry

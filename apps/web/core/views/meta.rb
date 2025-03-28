@@ -35,5 +35,8 @@ module Core
       self.template_name = :index
     end
 
+    class ExportWindow < Core::Views::BaseView
+      self.template_name = nil
+    end
   end
 end
