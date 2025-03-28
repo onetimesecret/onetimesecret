@@ -215,20 +215,20 @@ module Core
         add_message(msg, 'error')
       end
 
-      # NOTE: There's some speculation that setting a class instance variable
-      # inside the class method could present a race condition in between the
-      # check for nil and running the expression to set it. It's possible but
-      # every thread will produce the same result. Winning by technicality is
-      # one thing but the reality of software development is another. Process
-      # is more important than clever design. Instead, a safer practice is to
-      # set the class instance variable here in the class definition.
-      @pagename = self.name.split('::').last.downcase.to_sym
-
-      # pagename must stay here while we use i18n method above. It populates
-      # the i18n[:web][:pagename] hash with the locale translations, provided
-      # the view being used has a matching name in the locales file.
       class << self
-        attr_reader :pagename
+        # pagename is used in the i18n[:web][:pagename] hash which (if present)
+        # provides the locale strings specifically for this view. For that to
+        # work, the view being used has a matching name in the locales file.
+        def pagename
+          # NOTE: There's some speculation that setting a class instance variable
+          # inside the class method could present a race condition in between the
+          # check for nil and running the expression to set it. It's possible but
+          # every thread will produce the same result. Winning by technicality is
+          # one thing but the reality of software development is another. Process
+          # is more important than clever design. Instead, a safer practice is to
+          # set the class instance variable here in the class definition.
+          @pagename ||= self.name.split('::').last.downcase.to_sym
+        end
       end
 
     end
