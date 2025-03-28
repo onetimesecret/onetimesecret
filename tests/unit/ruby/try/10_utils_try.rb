@@ -16,11 +16,6 @@
 # without needing to run the full application, allowing for targeted
 # testing of these specific functionalities.
 
-# Running:
-#
-# $ RUBYLIB=./lib bundle exec try -v ./try/10_utils_try.rb
-#
-
 require_relative './test_helpers'
 
 # Familia.debug = true
@@ -60,3 +55,33 @@ Onetime::Utils.obscure_email('r@onetimesecret.com')
 ## Obscure email address (Long)
 Onetime::Utils.obscure_email('readyreadyreadyready@onetimesecretonetimesecretonetimesecret.com')
 #=> 're*****@o*****.com'
+
+## random_fortune returns a string
+# Create a mock fortunes collection
+mock_fortunes = ["Fortune favors the bold.", "The early bird gets the worm."]
+def mock_fortunes.random
+  self[rand(size)]
+end
+Onetime::Utils.fortunes = mock_fortunes
+Onetime::Utils.random_fortune.class
+#=> String
+
+## random_fortune returns a trimmed fortune
+# Test with trailing whitespace
+mock_fortunes = ["Fortune with trailing space   "]
+def mock_fortunes.random
+  self[0]
+end
+Onetime::Utils.fortunes = mock_fortunes
+Onetime::Utils.random_fortune
+#=> "Fortune with trailing space"
+
+## random_fortune handles errors gracefully
+# Create object that will raise error when random is called
+error_fortunes = Object.new
+def error_fortunes.random
+  raise StandardError, "Test error"
+end
+Onetime::Utils.fortunes = error_fortunes
+Onetime::Utils.random_fortune
+#=> "A house is full of games and puzzles."
