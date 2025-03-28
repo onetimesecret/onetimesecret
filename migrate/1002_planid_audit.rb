@@ -56,7 +56,7 @@ module Onetime
             execute_if_actual_run do
               redis_client.hset(key, 'planid', 'basic')
               track_stat(:changed_customers)
-              debug "Updated customer #{custid} to 'basic' plan"
+              info "Updated customer #{custid} to 'basic' plan"
             end
 
             next
@@ -74,7 +74,7 @@ module Onetime
             execute_if_actual_run do
               redis_client.hset(key, 'planid', 'basic')
               track_stat(:changed_customers)
-              debug "Updated customer #{custid} from '#{planid}' to 'basic' plan"
+              info "Updated customer #{custid} from '#{planid}' to 'basic' plan"
             end
 
             # Print progress for large datasets
