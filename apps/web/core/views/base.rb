@@ -2,6 +2,8 @@
 
 require 'chimera'
 
+require 'onetime/middleware'
+
 require_relative 'helpers/jsvars'
 require_relative 'helpers/i18n'
 require_relative 'helpers/vite_manifest'
