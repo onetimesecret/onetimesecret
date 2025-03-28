@@ -1,6 +1,14 @@
+# lib/onetime/migration.rb
+
 module Onetime
   # Base class for all migrations
   class BaseMigration
+    attr_accessor :options
+
+    def initialize
+      @options = {}
+    end
+
     def self.run
       new.migrate
     end

@@ -19,7 +19,8 @@ module Onetime
       migration_file = argv.first
 
       unless migration_file
-        puts "Usage: ots migrate MIGRATION_SCRIPT"
+        puts "Usage: ots migrate MIGRATION_SCRIPT [--run]"
+        puts "  --run    Actually apply changes (default is dry run mode)"
         puts "\nAvailable migrations:"
         Dir[File.join(Onetime::HOME, 'migrate', '*.rb')].each do |file|
           puts "  - #{File.basename(file)}"
@@ -38,7 +39,10 @@ module Onetime
         require_relative "../../migrate/#{migration_file}"
 
         # Run the migration
-        success = Onetime::Migration.run
+        migration = Onetime::Migration.new
+        # Pass options to the migration
+        migration.options[:run] = option.run
+        success = migration.migrate
         puts success ? "\nMigration completed successfully" : "\nMigration failed"
         exit(success ? 0 : 1)
       rescue LoadError => e
