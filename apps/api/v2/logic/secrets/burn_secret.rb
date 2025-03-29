@@ -9,7 +9,7 @@ module V2::Logic
 
       def process_params
         @key = params[:key].to_s
-        @metadata = V1::Metadata.load key
+        @metadata = V2::Metadata.load key
         @passphrase = params[:passphrase].to_s
         @continue = [true, 'true'].include?(params[:continue])
       end
@@ -36,8 +36,8 @@ module V2::Logic
             owner = secret.load_customer
             secret.burned!
             owner.increment_field :secrets_burned unless owner.anonymous?
-            V1::Customer.global.increment_field :secrets_burned
-            V1::Logic.stathat_count('Burned Secrets', 1)
+            V2::Customer.global.increment_field :secrets_burned
+            V2::Logic.stathat_count('Burned Secrets', 1)
 
           elsif !correct_passphrase
             limit_action :failed_passphrase if potential_secret.has_passphrase?

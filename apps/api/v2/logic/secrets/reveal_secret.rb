@@ -14,7 +14,7 @@ module V2::Logic
 
       def process_params
         @key = params[:key].to_s
-        @secret = V1::Secret.load key
+        @secret = V2::Secret.load key
         @passphrase = params[:passphrase].to_s
         @continue = params[:continue].to_s == 'true'
       end
@@ -61,7 +61,7 @@ module V2::Logic
           else
             OT.li "[reveal_secret] #{secret.key} viewed successfully"
             owner.increment_field :secrets_shared unless owner.anonymous?
-            V1::Customer.global.increment_field :secrets_shared
+            V2::Customer.global.increment_field :secrets_shared
 
             # Immediately mark the secret as viewed, so that it
             # can't be shown again. If there's a network failure
@@ -76,7 +76,7 @@ module V2::Logic
             # pluck out of the secret object before this is called.
             secret.received!
 
-            V1::Logic.stathat_count("Viewed Secrets", 1)
+            V2::Logic.stathat_count("Viewed Secrets", 1)
           end
 
         elsif secret.has_passphrase? && !correct_passphrase

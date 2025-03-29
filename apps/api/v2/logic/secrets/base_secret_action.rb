@@ -2,7 +2,7 @@
 
 require 'onetime/refinements/rack_refinements'
 
-module V1::Logic
+module V2::Logic
   module Secrets
 
     class BaseSecretAction < V2::Logic::Base
@@ -127,13 +127,13 @@ module V1::Logic
         potential_domain = payload[:share_domain].to_s
         return if potential_domain.empty?
 
-        unless V1::CustomDomain.valid?(potential_domain)
+        unless V2::CustomDomain.valid?(potential_domain)
           return OT.info "[BaseSecretAction] Invalid share domain #{potential_domain}"
         end
 
         # If the given domain is the same as the site's host domain, then
         # we simply skip the share domain stuff altogether.
-        if V1::CustomDomain.default_domain?(potential_domain)
+        if V2::CustomDomain.default_domain?(potential_domain)
           return OT.info "[BaseSecretAction] Ignoring default share domain: #{potential_domain}"
         end
 
@@ -164,7 +164,7 @@ module V1::Logic
       private
 
       def create_secret_pair
-        @metadata, @secret = V1::Secret.spawn_pair cust.custid, token
+        @metadata, @secret = V2::Secret.spawn_pair cust.custid, token
       end
 
       def handle_passphrase
@@ -198,8 +198,8 @@ module V1::Logic
           cust.add_metadata metadata
           cust.increment_field :secrets_created
         end
-        V1::Customer.global.increment_field :secrets_created
-        V1::Logic.stathat_count("Secrets", 1)
+        V2::Customer.global.increment_field :secrets_created
+        V2::Logic.stathat_count("Secrets", 1)
       end
 
       def send_email_notification
@@ -226,7 +226,7 @@ module V1::Logic
 
         # e.g. rediskey -> customdomain:display_domains -> hash -> key: value
         # where key is the domain and value is the domainid
-        domain_record = V1::CustomDomain.from_display_domain(domain)
+        domain_record = V2::CustomDomain.from_display_domain(domain)
         raise_form_error "Unknown domain: #{domain}" if domain_record.nil?
 
         OT.ld <<~DEBUG
