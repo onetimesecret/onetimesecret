@@ -1,4 +1,3 @@
-require 'v1/logic/authentication/reset_password'
 
 module V2::Logic
   module Authentication

@@ -1,10 +1,10 @@
 # apps/api/v2/models/session.rb
 
-require 'v1/models/mixins/session_messages'
+require_relative 'mixins/session_messages'
 
 module V2
   class Session < Familia::Horreum
-  include V1::Mixins::RateLimited
+  include V2::Mixins::RateLimited
 
     feature :safe_dump
     feature :expiration
@@ -221,7 +221,7 @@ module V2
     # 1. Its additional fields appear at the end of the field list.
     # 2. These fields don't unexpectedly consume positional arguments in Session.new.
     #
-    include V1::Mixins::SessionMessages
+    include V2::Mixins::SessionMessages
 
     extend ClassMethods
   end

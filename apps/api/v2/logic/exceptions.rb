@@ -1,7 +1,5 @@
 # apps/api/v2/logic/exceptions.rb
 
-require 'v1/logic/exceptions'
-
 require_relative 'base'
 
 module V2::Logic
@@ -42,13 +40,13 @@ module V2::Logic
 
       # Create new exception record
       OT.ld("[Exception] Creating new exception record")
-      @exception = V1::ExceptionInfo.new
+      @exception = V2::ExceptionInfo.new
       OT.ld("[Exception] Applying exception data", @exception_data)
       exception.apply_fields(**@exception_data)
       exception.save
 
       # Add to sortable index
-      V1::ExceptionInfo.add(exception)
+      V2::ExceptionInfo.add(exception)
 
       # Log critical errors
       if @exception_data[:type]&.include?('Error')

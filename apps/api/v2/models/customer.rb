@@ -475,7 +475,7 @@ module V2
     # first field defined in this file), this email address would get
     # written to the (automatically inserted) passphrase field.
     #
-    include V1::Mixins::Passphrase
+    include V2::Mixins::Passphrase
     extend ClassMethods
   end
 end
