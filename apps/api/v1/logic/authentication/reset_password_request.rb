@@ -1,3 +1,5 @@
+# apps/api/v1/logic/authentication/reset_password_request.rb
+
 require_relative '../base'
 
 module V1::Logic
