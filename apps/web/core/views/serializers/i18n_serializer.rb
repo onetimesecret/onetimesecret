@@ -4,20 +4,26 @@ module Core
   module Views
     module I18nSerializer
         # - i18n_enabled, locale, is_default_locale, supported_locales, fallback_locale, default_locale
-      def self.serialize(vars, i18n)
-        self[:jsvars][:locale] = jsvar(display_locale) # the locale the user sees
-        self[:jsvars][:is_default_locale] = jsvar(is_default_locale)
-        self[:jsvars][:default_locale] = jsvar(OT.default_locale) # the application default
-        self[:jsvars][:fallback_locale] = jsvar(OT.fallback_locale)
-        self[:jsvars][:supported_locales] = jsvar(OT.supported_locales)
-        self[:jsvars][:i18n_enabled] = jsvar(OT.i18n_enabled)
+      def self.serialize(view_vars, i18n)
+        output = self.output_template
 
+        output[:locale] = view_vars[:locale]
+        output[:default_locale] = OT.default_locale # the application default
+        output[:fallback_locale] = OT.fallback_locale
+        output[:supported_locales] = OT.supported_locales
+        output[:i18n_enabled] = OT.i18n_enabled
       end
 
       private
 
       def self.output_template
-        {}
+        {
+          locale: nil,
+          default_locale: nil,
+          fallback_locale: nil,
+          supported_locales: [],
+          i18n_enabled: nil,
+        }
       end
 
     end

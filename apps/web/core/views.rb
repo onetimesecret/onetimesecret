@@ -16,7 +16,16 @@ module Core
     class VuePoint < Core::Views::BaseView
       self.template_name = 'index'
 
-      use_serializers HTMLTagsSerializer, ConfigSerializer
+      use_serializers(
+        HTMLTagsSerializer,
+        ConfigSerializer,
+        AuthenticationSerializer,
+        DomainSerializer,
+        I18nSerializer,
+        MessagesSerializer,
+        PlanSerializer,
+        SystemSerializer,
+      )
 
       def init *args
       end
@@ -25,7 +34,15 @@ module Core
     class ExportWindow < Core::Views::BaseView
       self.template_name = nil
 
-      use_serializers ConfigSerializer
+      use_serializers(
+        ConfigSerializer,
+        AuthenticationSerializer,
+        DomainSerializer,
+        I18nSerializer,
+        MessagesSerializer,
+        PlanSerializer,
+        SystemSerializer,
+      )
     end
 
     class Error < Core::Views::BaseView

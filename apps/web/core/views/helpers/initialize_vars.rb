@@ -3,89 +3,56 @@
 module Core
   module Views
     module InitializeVarsHelpers
-      # Initialize core variables used throughout view rendering
+      # Initialize core variables used throughout view rendering. These values
+      # are the source of truth for te values that they represent. Any other
+      # values that the serializers want can be derived from here.
+      #
       # @param req [Rack::Request] Current request object
       # @param sess [Session] Current session
       # @param cust [Customer] Current customer
       # @param locale [String] Current locale
       # @return [Hash] Collection of initialized variables
-      def initialize_core_vars(req, sess, cust, locale)
+      def initialize_vars(req, sess, cust, locale)
+
+        # Extract the top-level keys from the YAML configuration
         site = OT.conf.fetch(:site, {})
+        incoming = OT.conf.fetch(:incoming, {})
+        development = OT.conf.fetch(:development, {})
+        diagnostics = OT.conf.fetch(:diagnostics, {})
 
+        # Extract values from session
         messages = sess.nil? ? [] : sess.get_messages
+        shrimp = sess.nil? ? nil : sess.add_shrimp
+        authenticated = sess && sess.authenticated? && !cust.anonymous?
 
-        # Domain configuration
-        canonical_domain = Onetime::DomainStrategy.canonical_domain
+        # Extract values from rack request object
+        nonce = req.env.fetch('ots.nonce', nil) # TODO: Rename to onetime.nonce
         domain_strategy = req.env.fetch('onetime.domain_strategy', :default)
         display_domain = req.env.fetch('onetime.display_domain', nil)
 
-        # Custom domain handling
-        domain_id = nil
-        domain_branding = {}
-        domain_logo = {}
-        custom_domain = nil
-        display_locale = nil
-
-        if domain_strategy == :custom
-          custom_domain = V2::CustomDomain.from_display_domain(display_domain)
-          domain_id = custom_domain&.domainid
-          domain_branding = (custom_domain&.brand&.hgetall || {}).to_h
-          domain_logo = (custom_domain&.logo&.hgetall || {}).to_h
-
-          domain_locale = domain_branding.fetch('locale', nil)
-          display_locale = domain_locale
-        end
-
-        display_locale ||= locale
-        is_default_locale = display_locale == locale
-
-        # Site configuration values
-        interface = site.fetch(:interface, {})
-        secret_options = site.fetch(:secret_options, {})
-        domains = site.fetch(:domains, {})
-        regions = site.fetch(:regions, {})
-        authentication = site.fetch(:authentication, {})
-        support_host = site.dig(:support, :host)
-        incoming_recipient = OT.conf.dig(:incoming, :email)
-
-        # Frontend configuration
-        development = OT.conf.fetch(:development, {})
-        frontend_development = development[:enabled] || false
-        frontend_host = development[:frontend_host] || ''
-
-        # User state
-        cust ||= V2::Customer.anonymous
-        authenticated = sess && sess.authenticated? && !cust.anonymous?
-
-        # Feature flags
-        domains_enabled = domains[:enabled] || false
-        regions_enabled = regions[:enabled] || false
-
         # Return all variables as a hash
         {
-          canonical_domain: canonical_domain,
-          domain_strategy: domain_strategy,
-          display_domain: display_domain,
-          domain_id: domain_id,
-          domain_branding: domain_branding,
-          domain_logo: domain_logo,
-          custom_domain: custom_domain,
-          display_locale: display_locale,
-          is_default_locale: is_default_locale,
-          interface: interface,
-          secret_options: secret_options,
-          domains: domains,
-          regions: regions,
-          authentication: authentication,
-          support_host: support_host,
-          incoming_recipient: incoming_recipient,
-          frontend_development: frontend_development,
-          frontend_host: frontend_host,
-          cust: cust,
-          messages: messages,
           authenticated: authenticated,
-          domains_enabled: domains_enabled,
-          regions_enabled: regions_enabled
+          # authentication: authentication,
+          cust: cust,
+          development: development,
+          display_domain: display_domain,
+          # domains: domains,
+          # domains_enabled: domains_enabled,
+          # frontend_development: frontend_development,
+          # frontend_host: frontend_host,
+          incoming: incoming,
+          # interface: interface,
+          locale: locale,
+          messages: messages,
+          nonce: nonce,
+          # regions: regions,
+          # regions_enabled: regions_enabled,
+          # secret_options: secret_options,
+          diagnostics: diagnostics,
+          shrimp: shrimp,
+          site: site,
+          # support_host: support_host,
         }
       end
     end

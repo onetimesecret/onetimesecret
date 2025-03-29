@@ -4,6 +4,8 @@ require 'chimera'
 
 require 'onetime/middleware'
 
+require 'v2/models/customer'
+
 require_relative 'helpers'
 require_relative 'serializers'
 #
@@ -30,12 +32,15 @@ module Core
       attr_reader :plan, :is_paid, :canonical_domain, :display_domain, :domain_strategy
       attr_reader :domain_id, :domain_branding, :domain_logo, :custom_domain
 
-      def initialize req, sess=nil, cust=nil, locale=nil, *args # rubocop:disable Metrics/MethodLength
-        @req, @sess, @cust, @locale = req, sess, cust, locale
-        @locale ||= req.env['ots.locale'] || OT.default_locale || 'en' unless req.nil?
+      def initialize req, sess=nil, cust=nil, locale=nil, *args
+        @req = req
+        @sess = sess
+        @cust = cust || V2::Customer.anonymous
+        @locale = locale || (req.nil? ? OT.default_locale : req.env['ots.locale'])
+        @messages = []
 
         # Use the refactored helper method
-        @global_vars = initialize_core_vars(req, sess, cust, @locale)
+        @global_vars = initialize_vars(req, sess, cust, @locale)
         @i18n_instance = self.i18n
 
         # Run serializers and apply to view
@@ -51,8 +56,6 @@ module Core
             self[key] = value
           end
         end
-
-        # Rest of initialization...
 
         init(*args) if respond_to?(:init)
 

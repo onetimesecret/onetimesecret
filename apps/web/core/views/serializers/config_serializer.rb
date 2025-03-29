@@ -7,26 +7,71 @@ module Core
       # - regions_enabled, regions
       # - support_host, incoming_recipient
       def self.serialize(view_vars, i18n)
+        output = self.output_template
 
-        # Add UI settings
-        self[:jsvars][:ui] = jsvar(interface[:ui])
+        site = view_vars[:site]
+        incoming = view_vars[:incoming] # TODO: Update to features.incoming
+        development = view_vars[:development]
+        diagnostics = view_vars[:diagnostics]
 
-        self[:jsvars][:incoming_recipient] = jsvar(incoming_recipient)
-        self[:jsvars][:support_host] = jsvar(support_host)
-        self[:jsvars][:secret_options] = jsvar(secret_options)
-        self[:jsvars][:frontend_host] = jsvar(frontend_host)
+        # Everything in site is safe to share with the
+        # frontend, except for these two keys.
+        site.delete(:secret)
+        site.delete(:authenticity)
 
-        self[:jsvars][:site_host] = jsvar(site[:host])
+        output[:ui] = site.dig(:interface, :ui)
+        output[:authentication] = site.fetch(authentication, nil)
+        output[:support_host] = site.dig(:support, :host)
+        output[:secret_options] = site[:secret_options]
+        output[:site_host] = site[:host]
+        regions = site[:regions]
+        domains = site[:domains]
 
         # Only send the regions config when the feature is enabled.
-        self[:jsvars][:regions_enabled] = jsvar(regions_enabled)
-        self[:jsvars][:regions] = jsvar(regions) if regions_enabled
+        output[:regions_enabled] = regions.fetch(:enabled, false)
+        output[:regions] = regions if output[:regions_enabled]
+
+        output[:domains_enabled] = domains.fetch(:enabled, false)
+        output[:domains] = domains if output[:domains_enabled]
+
+        output[:incoming_recipient] = incoming.fetch(:email, nil)
+
+        # Link to the pricing page can be seen regardless of authentication status
+        output[:plans_enabled] = site.dig(:plans, :enabled) || false
+
+        output[:frontend_development] = development[:enabled] || false
+        output[:frontend_host] = development[:frontend_host] || ''
+
+        sentry = diagnostics.fetch(:sentry, {})
+        output[:d9s_enabled] = Onetime.d9s_enabled
+        Onetime.with_diagnostics do
+          output[:diagnostics] = {
+            # e.g. {dsn: "https://...", ...}
+            sentry: sentry.fetch(:frontend, {})
+          }
+        end
       end
 
       private
 
       def self.output_template
-        {}
+        {
+          authentication: nil,
+          d9s_enabled: nil,
+          diagnostics: nil,
+          domains: nil,
+          domains_enabled: nil,
+          frontend_development: nil,
+          frontend_host: nil,
+          incoming_recipient: nil,
+          plans_enabled: nil,
+          regions: nil,
+          regions_enabled: nil,
+          secret_options: nil,
+          site_host: nil,
+          support_host: nil,
+          ui: nil,
+        }
       end
 
     end

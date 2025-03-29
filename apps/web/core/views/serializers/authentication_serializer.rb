@@ -1,18 +1,22 @@
 # apps/web/core/views/serializers/authentication_serializer.rb
 
+require 'onetime/utils'
+
 module Core
   module Views
     module AuthenticationSerializer
-      # authenticated, cust, custid, email, customer_since, shrimp
+      # authenticated, cust, custid, email, customer_since
       def self.serialize(view_vars, i18n)
-        self[:jsvars][:authentication] = jsvar(authentication) # nil is okay
-        self[:jsvars][:shrimp] = jsvar(sess.add_shrimp) if sess
+        output = self.output_template
+
+        authenticated = view_vars[:authenticated]
+        cust = view_vars[:cust]
 
         if authenticated && cust
-          self[:jsvars][:custid] = jsvar(cust.custid)
-          self[:jsvars][:cust] = jsvar(cust.safe_dump)
-          self[:jsvars][:email] = jsvar(cust.email)
-          self[:jsvars][:customer_since] = jsvar(epochdom(cust.created))
+          output[:custid] = cust.custid
+          output[:cust] = cust.safe_dump
+          output[:email] = cust.email
+          output[:customer_since] = OT::TimeUtils.epochdom(cust.created)
 
           if domains_enabled
             custom_domains = cust.custom_domains_list.filter_map do |obj|
@@ -27,7 +31,7 @@ module Core
 
               obj.display_domain
             end
-            self[:jsvars][:custom_domains] = jsvar(custom_domains.sort)
+            output[:custom_domains] = custom_domains.sort
           end
         end
 
