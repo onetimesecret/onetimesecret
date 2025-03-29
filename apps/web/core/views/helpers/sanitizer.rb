@@ -1,11 +1,11 @@
-# apps/web/core/views/helpers/jsvars.rb
+# apps/web/core/views/helpers/sanitizer.rb
 
 module Core
   module Views
-    module JSVarsHelpers # rubocop:disable Style/Documentation
+    module SanitizerHelpers # rubocop:disable Style/Documentation
 
-      def jsvar(value)
-        Onetime::Utils::Sanitation.jsvar(value)
+      def normalize_value(value)
+        Onetime::Utils::Sanitation.normalize_value(value)
       end
 
       def jsvars_to_script

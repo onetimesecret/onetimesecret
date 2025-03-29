@@ -64,7 +64,7 @@ module Onetime
 
       # Converts a Ruby value into a JavaScript-friendly string or JSON.
       # This ensures special characters are properly escaped or converted to JSON.
-      def jsvar(value)
+      def normalize_value(value)
         case value.class.to_s
         when 'String', 'Gibbler::Digest', 'Symbol', 'Integer', 'Float'
           if is_https?(value)
