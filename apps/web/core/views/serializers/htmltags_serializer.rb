@@ -2,7 +2,8 @@
 
 module Core
   module Views
-    module HTMLTags
+    module HTMLTagsSerializer
+
       def self.serialize(vars, i18n)
         output = self.output_template
 
@@ -11,8 +12,8 @@ module Core
         output[:keywords] = i18n[:COMMON][:keywords]
         output[:page_title] = "Onetime Secret"
         output[:no_cache] = false
-        output[:frontend_host] = @frontend_host
-        output[:frontend_development] = @frontend_development
+        output[:frontend_host] = vars[:frontend_host]
+        output[:frontend_development] = vars[:frontend_development]
         output
       end
 

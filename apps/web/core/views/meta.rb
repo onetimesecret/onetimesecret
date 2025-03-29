@@ -1,7 +1,6 @@
 # apps/web/core/views/meta.rb
 
 require_relative 'base'
-require_relative 'serializers/htmltags_serializer'
 
 module Core
   module Views
@@ -17,10 +16,16 @@ module Core
     class VuePoint < Core::Views::BaseView
       self.template_name = 'index'
 
-      use_serializers HTMLTags, JavaScriptVars
+      use_serializers HTMLTagsSerializer, JavaScriptVars
 
       def init *args
       end
+    end
+
+    class ExportWindow < Core::Views::BaseView
+      self.template_name = nil
+
+      use_serializers JavaScriptVars
     end
 
     class Error < Core::Views::BaseView
@@ -37,12 +42,6 @@ module Core
 
     class UnknownSecret < Core::Views::BaseView
       self.template_name = :index
-    end
-
-    class ExportWindow < Core::Views::BaseView
-      self.template_name = nil
-
-      use_serializers JavaScriptVars
     end
   end
 end
