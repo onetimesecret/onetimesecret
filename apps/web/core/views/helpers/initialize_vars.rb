@@ -12,6 +12,8 @@ module Core
       def initialize_core_vars(req, sess, cust, locale)
         site = OT.conf.fetch(:site, {})
 
+        messages = sess.nil? ? [] : sess.get_messages
+
         # Domain configuration
         canonical_domain = Onetime::DomainStrategy.canonical_domain
         domain_strategy = req.env.fetch('onetime.domain_strategy', :default)
@@ -80,6 +82,7 @@ module Core
           frontend_development: frontend_development,
           frontend_host: frontend_host,
           cust: cust,
+          messages: messages,
           authenticated: authenticated,
           domains_enabled: domains_enabled,
           regions_enabled: regions_enabled
