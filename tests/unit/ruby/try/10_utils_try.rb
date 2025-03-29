@@ -57,27 +57,21 @@ Onetime::Utils.obscure_email('readyreadyreadyready@onetimesecretonetimesecretone
 #=> 're*****@o*****.com'
 
 ## random_fortune returns a string
-# Create a mock fortunes collection
+## Create a mock fortunes collection
 mock_fortunes = ["Fortune favors the bold.", "The early bird gets the worm."]
-def mock_fortunes.random
-  self[rand(size)]
-end
 Onetime::Utils.fortunes = mock_fortunes
 Onetime::Utils.random_fortune.class
 #=> String
 
 ## random_fortune returns a trimmed fortune
-# Test with trailing whitespace
+## Test with trailing whitespace
 mock_fortunes = ["Fortune with trailing space   "]
-def mock_fortunes.random
-  self[0]
-end
 Onetime::Utils.fortunes = mock_fortunes
 Onetime::Utils.random_fortune
 #=> "Fortune with trailing space"
 
 ## random_fortune handles errors gracefully
-# Create object that will raise error when random is called
+## Create object that will raise error when random is called
 error_fortunes = Object.new
 def error_fortunes.random
   raise StandardError, "Test error"

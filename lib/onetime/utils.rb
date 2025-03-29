@@ -14,6 +14,7 @@ module Onetime
     attr_accessor :fortunes
 
     def self.random_fortune
+      raise "No fortunes" if fortunes.nil? || fortunes.empty?
       fortune = fortunes.sample.to_s.strip
       raise "No fortune found" if fortune.empty?
       fortune
