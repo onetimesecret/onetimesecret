@@ -2,6 +2,6 @@
 
 require_relative 'logic/base'
 require_relative 'logic/authentication'
-require_relative 'logic/colonel'
+# NOTE: v1 does not have colonel logic
 require_relative 'logic/secrets'
 require_relative 'logic/exceptions'
