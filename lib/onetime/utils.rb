@@ -14,12 +14,15 @@ module Onetime
     attr_accessor :fortunes
 
     def self.random_fortune
-      raise "No fortunes" if fortunes.nil? || fortunes.empty?
+      raise OT::Problem, "No fortunes" if fortunes.nil?
       fortune = fortunes.sample.to_s.strip
-      raise "No fortune found" if fortune.empty?
+      raise OT::Problem, "No fortune found" if fortune.empty?
       fortune
-    rescue StandardError => e
+    rescue OT::Problem => e
       OT.le "#{e.message}"
+      'Unexpected outcomes bring valuable lessons.'
+    rescue StandardError => e
+      OT.le "#{e.message} (#{fortunes.class})"
       OT.ld "#{e.backtrace.join("\n")}"
       'A house is full of games and puzzles.'
     end
