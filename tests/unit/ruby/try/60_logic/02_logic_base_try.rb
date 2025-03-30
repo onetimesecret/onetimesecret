@@ -15,7 +15,6 @@
 # logic without needing to run the full application, allowing for
 # targeted testing of this specific functionality.
 
-
 require_relative '../test_logic'
 
 # Load the app
@@ -30,7 +29,7 @@ OT.boot! :test, false
 @sess.event_clear! :send_feedback
 @params = {}
 @locale = 'en'
-@obj = Logic::Account::CreateAccount.new @sess, @cust
+@obj = V2::Logic::Account::CreateAccount.new @sess, @cust
 
 # A generator for valid params for creating an account
 @valid_params = lambda do
@@ -53,7 +52,7 @@ end
 
 ## Can create CreateAccount instance
 @obj.class
-#=> Logic::Account::CreateAccount
+#=> V2::Logic::Account::CreateAccount
 
 ## Knows an invalid address
 @obj.valid_email?('bogusjourney')
@@ -75,7 +74,7 @@ end
 ## Can create account and it's not verified by default.
 sess = Session.create '255.255.255.255', 'anon'
 cust = Customer.new
-logic = Logic::Account::CreateAccount.new sess, cust, @valid_params.call, 'en'
+logic = V2::Logic::Account::CreateAccount.new sess, cust, @valid_params.call, 'en'
 logic.raise_concerns
 logic.process
 [logic.autoverify, logic.cust.verified, OT.conf.dig(:site, :authentication, :autoverify)]
@@ -85,7 +84,7 @@ logic.process
 sess = Session.create '255.255.255.255', 'anon'
 cust = Customer.new
 OT.conf[:site][:authentication][:autoverify] = true # force the config to be true
-logic = Logic::Account::CreateAccount.new sess, cust, @valid_params.call, 'en'
+logic = V2::Logic::Account::CreateAccount.new sess, cust, @valid_params.call, 'en'
 logic.raise_concerns
 logic.process
 [logic.autoverify, logic.cust.verified, OT.conf.dig(:site, :authentication, :autoverify)]

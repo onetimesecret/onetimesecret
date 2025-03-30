@@ -1,10 +1,15 @@
 # apps/api/v2/logic/secrets/generate_secret.rb
 
-require 'v1/logic/secrets/generate_secret'
+require_relative 'base_secret_action'
 
 module V2::Logic
   module Secrets
-    class GenerateSecret < V1::Logic::Secrets::GenerateSecret
+    class GenerateSecret < BaseSecretAction
+
+      def process_secret
+        @kind = :generate
+        @secret_value = Onetime::Utils.strand(12)
+      end
 
     end
   end

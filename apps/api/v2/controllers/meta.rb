@@ -4,6 +4,7 @@ require 'json'
 require 'base64'
 
 require_relative 'base'
+require_relative 'class_methods'
 require_relative 'settings'
 
 module V2
@@ -91,8 +92,7 @@ module V2
         end
       end
 
-      require 'v1/controllers/class_methods'
-      extend V1::Controllers::ClassMethods
+      extend V2::Controllers::ClassMethods
     end
   end
 end

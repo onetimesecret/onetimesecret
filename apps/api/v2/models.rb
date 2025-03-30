@@ -1,7 +1,6 @@
 # apps/api/v2/models.rb
 
-require 'v1/models/mixins' # v2 uses the v1 mixins
-
+require_relative 'models/mixins'
 require_relative 'models/metadata'
 require_relative 'models/secret'
 require_relative 'models/session'

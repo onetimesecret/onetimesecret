@@ -3,6 +3,8 @@
 require_relative '../test_logic'
 require 'securerandom'
 
+# NOTE: ReceiveException is only in V2
+
 # Setup
 OT.boot! :test, false
 
@@ -26,7 +28,7 @@ OT.boot! :test, false
   environment: @environment,
   release: '1.0.0'
 }
-logic = Logic::ReceiveException.new @sess, @cust, @exception_params
+logic = V2::Logic::ReceiveException.new @sess, @cust, @exception_params
 logic.process
 [
   logic.greenlighted,
@@ -49,7 +51,7 @@ params = {
   environment: @environment,
   release: "1.0.0"
 }
-logic = Logic::ReceiveException.new @sess, @cust, params
+logic = V2::Logic::ReceiveException.new @sess, @cust, params
 logic.process_params
 logic.process
 [
@@ -68,7 +70,7 @@ long_params = {
   stack: "z" * 20000,
   url: "u" * 2000
 }
-logic = Logic::ReceiveException.new @sess, @cust, long_params
+logic = V2::Logic::ReceiveException.new @sess, @cust, long_params
 logic.process_params
 data = logic.instance_variable_get(:@exception_data)
 [
@@ -86,7 +88,7 @@ params = { message: "Test", type: "Error", url: "https://status.onetime.co" }
 begin
   # Submit multiple exceptions quickly
   4.times do
-    logic = Logic::ReceiveException.new @sess, @cust, params
+    logic = V2::Logic::ReceiveException.new @sess, @cust, params
     logic.process_params
     logic.raise_concerns
   end
@@ -100,7 +102,7 @@ end
 # Prevent empty exception message
 begin
   empty_params = @exception_params.merge(message: '')
-  logic = Logic::ReceiveException.new @sess, @cust, empty_params
+  logic = V2::Logic::ReceiveException.new @sess, @cust, empty_params
   logic.raise_concerns
 rescue OT::FormError => e
   [e.class.name, e.message]
@@ -110,7 +112,7 @@ end
 ## Exception Model Serialization
 
 # Verify ExceptionInfo safe dump fields
-exception = ExceptionInfo.new
+exception = V2::ExceptionInfo.new
 exception.apply_fields(**@exception_params)
 exception.save
 
@@ -127,7 +129,7 @@ p [:keys, dumped_data.keys]
 ## Exception Querying
 
 # Query recent exceptions
-ret = ExceptionInfo.recent(1.minute)
+ret = V2::ExceptionInfo.recent(1.minute)
 ret.any?
 #=> true
 

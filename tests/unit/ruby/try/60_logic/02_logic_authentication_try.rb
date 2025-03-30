@@ -90,7 +90,7 @@ OT.boot! :test, false
 #
 # Intentionally V1::Secret here.
 [@reset.secret.class, @reset.is_confirmed]
-#=> [V1::Secret, true]
+#=> [TestVersion::Secret, true]
 
 # DestroySession Tests
 
