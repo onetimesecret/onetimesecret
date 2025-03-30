@@ -20,6 +20,12 @@ module Core
         development = OT.conf.fetch(:development, {})
         diagnostics = OT.conf.fetch(:diagnostics, {})
 
+        # Everything in site is safe to share with the
+        # frontend, except for these two keys.
+        site.delete(:secret)
+        site.delete(:authenticity)
+        site.fetch(:authentication, {}).delete(:colonels)
+
         # Extract values from session
         messages = sess.nil? ? [] : sess.get_messages
         shrimp = sess.nil? ? nil : sess.add_shrimp

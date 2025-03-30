@@ -18,7 +18,7 @@ module Core
           output[:email] = cust.email
           output[:customer_since] = OT::TimeUtils.epochdom(cust.created)
 
-          if domains_enabled
+          if view_vars[:domains_enabled]
             custom_domains = cust.custom_domains_list.filter_map do |obj|
               # Only verified domains that resolve
               unless obj.ready?

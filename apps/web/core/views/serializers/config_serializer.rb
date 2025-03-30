@@ -3,6 +3,7 @@
 module Core
   module Views
     module ConfigSerializer
+
       # - secret_options, authentication
       # - regions_enabled, regions
       # - support_host, incoming_recipient
@@ -14,13 +15,8 @@ module Core
         development = view_vars[:development]
         diagnostics = view_vars[:diagnostics]
 
-        # Everything in site is safe to share with the
-        # frontend, except for these two keys.
-        site.delete(:secret)
-        site.delete(:authenticity)
-
         output[:ui] = site.dig(:interface, :ui)
-        output[:authentication] = site.fetch(authentication, nil)
+        output[:authentication] = site.fetch(:authentication, nil)
         output[:support_host] = site.dig(:support, :host)
         output[:secret_options] = site[:secret_options]
         output[:site_host] = site[:host]
