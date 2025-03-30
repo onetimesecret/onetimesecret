@@ -1,10 +1,8 @@
 # apps/web/core/views/serializers.rb
 
 require_relative 'serializers/registry'
-require_relative 'serializers/htmltags_serializer'
 require_relative 'serializers/authentication_serializer'
 require_relative 'serializers/config_serializer'
-# require_relative 'serializers/diagnostics_serializer'
 require_relative 'serializers/domain_serializer'
 require_relative 'serializers/i18n_serializer'
 require_relative 'serializers/messages_serializer'

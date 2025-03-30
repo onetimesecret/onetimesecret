@@ -17,7 +17,6 @@ module Core
       self.template_name = 'index'
 
       use_serializers(
-        HTMLTagsSerializer,
         ConfigSerializer,
         AuthenticationSerializer,
         DomainSerializer,
@@ -28,6 +27,7 @@ module Core
       )
 
       def init *args
+
       end
     end
 

@@ -36,29 +36,34 @@ module Core
         domain_strategy = req.env.fetch('onetime.domain_strategy', :default)
         display_domain = req.env.fetch('onetime.display_domain', nil)
 
-        # Return all variables as a hash
+        description = i18n_instance[:COMMON][:description]
+        keywords = i18n_instance[:COMMON][:keywords]
+        page_title = "Onetime Secret" # TODO: Implement as config setting
+        no_cache = false
+        frontend_host = development[:frontend_host]
+        frontend_development = development[:enabled]
+        script_element_id = 'onetime-state'
+
+        # Return all view variables as a hash
         {
           authenticated: authenticated,
-          # authentication: authentication,
           cust: cust,
+          description: description,
           development: development,
+          diagnostics: diagnostics,
           display_domain: display_domain,
-          # domains: domains,
-          # domains_enabled: domains_enabled,
-          # frontend_development: frontend_development,
-          # frontend_host: frontend_host,
+          frontend_development: frontend_development,
+          frontend_host: frontend_host,
           incoming: incoming,
-          # interface: interface,
+          keywords: keywords,
           locale: locale,
           messages: messages,
+          no_cache: no_cache,
           nonce: nonce,
-          # regions: regions,
-          # regions_enabled: regions_enabled,
-          # secret_options: secret_options,
-          diagnostics: diagnostics,
+          page_title: page_title,
+          script_element_id: script_element_id,
           shrimp: shrimp,
           site: site,
-          # support_host: support_host,
         }
       end
     end
