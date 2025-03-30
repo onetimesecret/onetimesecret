@@ -34,6 +34,21 @@ module Core
           dependencies[serializer] = Array(depends_on)
         end
 
+        # Run specified serializers in dependency order
+        def run(serializer_list, vars, i18n)
+          # Get serializers in dependency order, filtering to requested ones
+          ordered = sorted_serializers.select { |s| serializer_list.include?(s) }
+
+          # Execute each serializer and merge results
+          ordered.reduce({}) do |result, serializer|
+            output = serializer.serialize(vars, i18n)
+            next if output.nil?
+            OT.ld "[SerializerRegistry] Executing serializer: #{serializer}"
+            result.merge(output)
+          end
+        end
+
+
         def sorted_serializers
           tsort
         end
@@ -45,13 +60,6 @@ module Core
 
         def tsort_each_child(node, &block)
           dependencies.fetch(node, []).each(&block)
-        end
-
-        # Simple flat merge of component serializers
-        def reconcile(serializers)
-          serializers.reduce({}) do |result, export_data|
-            result.merge(export_data)
-          end
         end
       end
 
