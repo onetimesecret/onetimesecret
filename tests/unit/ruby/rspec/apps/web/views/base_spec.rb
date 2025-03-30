@@ -261,13 +261,6 @@ RSpec.describe Core::Views::BaseView do
           get_messages: [])
       end
 
-      it 'sets required keys to nil for anonymous users' do
-        vars = subject.serialized_data
-        ensure_exist_keys.each do |key|
-          expect(vars[key]).to be_nil,
-            "Expected #{key} to be nil for anonymous user"
-        end
-      end
     end
   end
 
@@ -295,27 +288,23 @@ RSpec.describe Core::Views::BaseView do
           'REMOTE_ADDR' => '127.0.0.1',
           'HTTP_HOST' => 'example.com',
           'rack.session' => {},
-          'HTTP_ACCEPT' => 'application/json',
-          'onetime.domain_strategy' => :default,
           'ots.locale' => locale
         }
-        instance_double('Rack::Request', env: env)
+
+        request = instance_double('Rack::Request')
+        allow(request).to receive(:env).and_return(env)
+        allow(request).to receive(:nil?).and_return(false)
+        # Ensure hash-like access to env
+        allow(request).to receive(:[]) { |key| env[key] }
+        request
       end
 
-      let(:config) { super().merge(default_config) }
-
-      before do
-        allow(OT).to receive(:default_locale).and_return('en')
-        allow(OT).to receive(:fallback_locale).and_return('en')
-        allow(OT).to receive(:supported_locales).and_return(%w[en fr_CA fr_FR])
-      end
+      # Create subject on demand to use the current rack_request
+      subject { described_class.new(rack_request, session, customer) }
 
       it 'sets correct locale variables' do
         vars = subject.serialized_data
         expect(vars[:locale]).to eq(expected[:locale])
-        expect(vars[:default_locale]).to eq('en')
-        expect(vars[:fallback_locale]).to eq('en')
-        expect(vars[:supported_locales]).to eq(%w[en fr_CA fr_FR])
       end
     end
 

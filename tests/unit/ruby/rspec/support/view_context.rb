@@ -79,27 +79,3 @@ RSpec.shared_context "view_test_context" do
     })
   end
 end
-# For the locale initialization tests, update the specific rack_request
-# implementation to explicitly pass the locale to BaseView constructor:
-shared_examples "locale initialization" do |locale, expected|
-  let(:rack_request) do
-    env = {
-      'REMOTE_ADDR' => '127.0.0.1',
-      'HTTP_HOST' => 'example.com',
-      'rack.session' => {},
-      'HTTP_ACCEPT' => 'application/json',
-      'onetime.domain_strategy' => :default,
-      'ots.locale' => locale
-    }
-
-    request = instance_double('Rack::Request')
-    allow(request).to receive(:env).and_return(env)
-    allow(request).to receive(:nil?).and_return(false)
-    request
-  end
-
-  # Create subject with explicit locale parameter
-  subject { described_class.new(rack_request, session, customer, locale) }
-
-  # Rest of the test...
-end
