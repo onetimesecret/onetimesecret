@@ -62,6 +62,7 @@ module Core
           development: development,
           diagnostics: diagnostics,
           display_domain: display_domain,
+          domain_strategy: domain_strategy,
           frontend_development: frontend_development,
           frontend_host: frontend_host,
           incoming: incoming,

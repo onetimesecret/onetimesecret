@@ -58,10 +58,10 @@ module Core
           canonical_domain: nil,
           custom_domains: nil,
           display_domain: nil,
-          domain_branding: {},
+          domain_branding: nil,
           domain_id: nil,
           domain_locale: nil,
-          domain_logo: {},
+          domain_logo: nil,
           domain_strategy: nil,
           # Were in original implementation, now removed:
           # display_locale: nil,
