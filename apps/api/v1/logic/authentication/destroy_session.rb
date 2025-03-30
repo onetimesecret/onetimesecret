@@ -1,3 +1,5 @@
+# apps/api/v1/logic/authentication/destroy_session.rb
+
 require_relative '../base'
 
 module V1::Logic

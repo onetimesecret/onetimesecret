@@ -176,17 +176,17 @@ module V1
       # @param event [Symbol] the event to register
       # @param count [Integer] the maximum allowed count
       # @return [Integer] the registered limit
-      def register_event event, count
-        OT.ld "[register_event] #{event.inspect} #{count.inspect}"
-        events[event] = count
+      def register_event single_event, count
+        OT.ld "[register_event] #{single_event.inspect} #{count}"
+        events[single_event] = count
       end
 
       # Register multiple events with their limits
       # @param events [Hash] map of event names to limits
       # @return [Hash] the updated events hash
-      def register_events events
-        OT.ld "[register_events] #{events.inspect}"
-        events.merge! events
+      def register_events multiple_events
+        OT.ld "[register_events] #{multiple_events.inspect}"
+        events.merge! multiple_events
       end
 
       # Get the current time window stamp

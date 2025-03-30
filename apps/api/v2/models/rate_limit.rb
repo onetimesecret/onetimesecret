@@ -177,6 +177,7 @@ module V2
       # @param count [Integer] the maximum allowed count
       # @return [Integer] the registered limit
       def register_event single_event, count
+        OT.ld "[register_event] #{single_event.inspect} #{count}"
         events[single_event] = count
       end
 
@@ -184,6 +185,7 @@ module V2
       # @param events [Hash] map of event names to limits
       # @return [Hash] the updated events hash
       def register_events multiple_events
+        OT.ld "[register_events] #{multiple_events.inspect}"
         events.merge! multiple_events
       end
 

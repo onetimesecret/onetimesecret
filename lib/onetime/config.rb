@@ -93,6 +93,7 @@ module Onetime
       end
       conf[:site][:secret_options][:default_ttl] ||= 7.days
       conf[:site][:secret_options][:ttl_options] ||= [
+        60.seconds,     # 60 seconds (was missing from v0.20.5)
         5.minutes,      # 300 seconds
         30.minutes,     # 1800
         1.hour,         # 3600

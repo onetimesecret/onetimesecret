@@ -74,7 +74,7 @@ logic = Logic::Secrets::ShowSecret.new @sess, @cust, @view_params
 # RevealSecret Tests
 
 ## Test secret revealing (v2 API)
-logic = Logic::Secrets::RevealSecret.new @sess, @cust, @view_params
+logic = V2::Logic::Secrets::RevealSecret.new @sess, @cust, @view_params
 [logic.key, logic.passphrase]
 #=> [@secret.key, 'testpass123']
 

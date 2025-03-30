@@ -2,7 +2,6 @@
 
 require 'rack/utils'
 
-
 module V1
   class Customer < Familia::Horreum
     include Gibbler::Complex

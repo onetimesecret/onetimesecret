@@ -266,6 +266,6 @@ module V2
 
     # See Customer model for explanation about why
     # we include extra fields at the end here.
-    include V1::Mixins::Passphrase
+    include V2::Mixins::Passphrase
   end
 end
