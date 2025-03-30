@@ -11,6 +11,10 @@ module Core
       def self.serialize(view_vars, i18n)
         output = self.output_template
 
+        is_authenticated = view_vars[:authenticated]
+        domains = view_vars[:site].fetch(:domains, [])
+        cust = view_vars[:cust]
+
         output[:domain_strategy] = view_vars[:domain_strategy]
 
         output[:canonical_domain] = Onetime::DomainStrategy.canonical_domain
@@ -19,12 +23,29 @@ module Core
         # Custom domain handling
         if output[:domain_strategy] == :custom
           # Load the CustomDomain object
-          output[:custom_domain] = V2::CustomDomain.from_display_domain(output[:display_domain])
+          custom_domain = V2::CustomDomain.from_display_domain(output[:display_domain])
           output[:domain_id] = custom_domain&.domainid
           output[:domain_branding] = (custom_domain&.brand&.hgetall || {}).to_h
           output[:domain_logo] = (custom_domain&.logo&.hgetall || {}).to_h
 
-          domain_locale = domain_branding.fetch('locale', nil)
+          domain_locale = output[:domain_branding].fetch('locale', nil)
+        end
+
+        # There's no custom domain list when the feature is disabled.
+        if is_authenticated && domains[:enabled]
+          custom_domains = cust.custom_domains_list.filter_map do |obj|
+            # Only verified domains that resolve
+            unless obj.ready?
+              # For now just log until we can reliably re-attempt verification and
+              # have some visibility which customers this will affect. We've made
+              # the verification more stringent so currently many existing domains
+              # would return obj.ready? == false.
+              OT.li "[custom_domains] Allowing unverified domain: #{obj.display_domain} (#{obj.verified}/#{obj.resolving})"
+            end
+
+            obj.display_domain
+          end
+          output[:custom_domains] = custom_domains.sort
         end
 
         output
@@ -35,7 +56,7 @@ module Core
       def self.output_template
         {
           canonical_domain: nil,
-          custom_domain: nil,
+          custom_domains: nil,
           display_domain: nil,
           domain_branding: {},
           domain_id: nil,
