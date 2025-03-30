@@ -27,9 +27,10 @@ module Core
         diagnostics = OT.conf.fetch(:diagnostics, {})
 
         # Everything in site is safe to share with the
-        # frontend, except for these two keys.
+        # frontend, except for these keys.
         site.delete(:secret)
         site.delete(:authenticity)
+        site.fetch(:domains, {}).delete(:cluster)
         site.fetch(:authentication, {}).delete(:colonels)
 
         # Extract values from session
