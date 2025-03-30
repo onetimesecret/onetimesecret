@@ -9,7 +9,8 @@ module Core
       end
 
       def jsvars_to_script
-        Onetime::Utils::Sanitation.serialize_to_script(self[:jsvars], id: 'onetime-state', nonce: self[:nonce])
+        nonce = self[:window][:nonce]
+        Onetime::Utils::Sanitation.serialize_to_script(self[:window], id: 'onetime-state', nonce: nonce)
       end
 
       # Caches the result of a method call for a specified duration.

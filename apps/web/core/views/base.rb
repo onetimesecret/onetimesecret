@@ -15,7 +15,7 @@ require_relative 'serializers'
 module Core
   module Views
     class BaseView < Chimera
-      include Core::Views::HTMLTagsSerializer
+      include Core::Views::SanitizerHelpers
       include Core::Views::I18nHelpers
       include Core::Views::ViteManifest
       include Core::Views::InitializeVarsHelpers
@@ -43,6 +43,8 @@ module Core
         @global_vars = initialize_vars(req, sess, cust, @locale)
         @i18n_instance = self.i18n
 
+        init(*args) if respond_to?(:init)
+
         # Run serializers and apply to view
         serializer_data = self.run_serializers
 
@@ -50,8 +52,6 @@ module Core
         serializer_data.each do |key, value|
           self[key] = value
         end
-
-        init(*args) if respond_to?(:init)
       end
 
       # Add notification message to be displayed in StatusBar component
