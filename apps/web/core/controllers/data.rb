@@ -16,7 +16,7 @@ module Core
           sess.event_incr! :get_page
 
           res.header['Content-Type'] = "application/json; charset=utf-8"
-          res.body = view[:jsvars].to_json
+          res.body = view.serialized_data.to_json
         end
       end
 

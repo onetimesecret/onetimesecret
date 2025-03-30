@@ -8,9 +8,29 @@ module Core
         Onetime::Utils::Sanitation.normalize_value(value)
       end
 
-      def jsvars_to_script
-        nonce = self[:window][:nonce]
-        Onetime::Utils::Sanitation.serialize_to_script(self[:window], id: 'onetime-state', nonce: nonce)
+      def serialized_to_script
+        data = serialized_data
+        nonce = global_vars[:nonce]
+        to_json_script(data, id: 'onetime-state', nonce: nonce)
+      end
+
+      # Collects data and returns a script tag for embedding.
+      def to_json_script(data, id: nil, nonce: nil)
+        sanitized_json = to_sanitized_json(data)
+        attributes = ['type="application/json"']
+        attributes << %{id="#{Rack::Utils.escape_html(id)}"} if id
+        attributes << %{nonce="#{nonce}"} if nonce
+
+        "<script #{attributes.join(' ')}>#{sanitized_json}</script>"
+      end
+
+      # Converts data to JSON and sanitizes it to reduce risk of injection attacks.
+      # Escapes certain special characters and script tags.
+      def to_sanitized_json(data)
+        data.to_json
+          .gsub(%r{</script}i, '<\/script')
+          .gsub(/[\u0000-\u001F]/, '')
+          .gsub(/[^\x20-\x7E]/) { |c| "\\u#{c.ord.to_s(16).rjust(4, '0')}" }
       end
 
       # Caches the result of a method call for a specified duration.

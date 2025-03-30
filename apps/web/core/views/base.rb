@@ -27,10 +27,7 @@ module Core
       self.view_path = './app/web/views'
 
       attr_accessor :req, :sess, :cust, :locale, :messages, :form_fields, :pagename
-      attr_reader :global_vars, :i18n_instance
-
-      attr_reader :plan, :is_paid, :canonical_domain, :display_domain, :domain_strategy
-      attr_reader :domain_id, :domain_branding, :domain_logo, :custom_domain
+      attr_reader :global_vars, :i18n_instance, :serialized_data
 
       def initialize req, sess=nil, cust=nil, locale=nil, *args
         @req = req
@@ -46,10 +43,10 @@ module Core
         init(*args) if respond_to?(:init)
 
         # Run serializers and apply to view
-        serializer_data = self.run_serializers
+        @serialized_data = self.run_serializers
 
-        # Apply serialized data to view variables
-        serializer_data.each do |key, value|
+        # Make the serialized data available to the view and HTML template
+        @serialized_data.each do |key, value|
           self[key] = value
         end
       end
