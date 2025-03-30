@@ -28,7 +28,7 @@ OT.boot! :test, true
 
 # Create a test class that includes RateLimited
 class TestRateLimited
-  include V1::Mixins::RateLimited
+  include TestVersion::Mixins::RateLimited
   attr_accessor :id
   def initialize(id)
     @id = id
@@ -55,9 +55,7 @@ RateLimit.register_event :test_limit, 3
 #=> 3
 
 ## Can register multiple events at once
-V1::RateLimit.register_events(bulk_limit: 5, api_limit: 10)
-V2::RateLimit.register_events(bulk_limit: 5, api_limit: 10)
-p [:PLOPPLOP, RateLimit.events]
+RateLimit.register_events(bulk_limit: 5, api_limit: 10)
 [RateLimit.events[:bulk_limit], RateLimit.events[:api_limit]]
 #=> [5, 10]
 

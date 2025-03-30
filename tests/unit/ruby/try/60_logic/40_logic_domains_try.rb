@@ -1,5 +1,8 @@
 # tests/unit/ruby/try/60_logic/40_logic_domains_try.rb
 
+# NOTE: Domain logic is only in V2. V1 includes domains that are related
+# to secrets but otherwise does not have domains funtionality.
+
 # These tests cover the Domains logic classes which handle
 # custom domain management functionality.
 #
@@ -17,8 +20,8 @@ OT.boot! :test, false
 # Setup common test variables
 @now = DateTime.now
 @email = "test+#{Time.now.to_i}@onetimesecret.com"
-@sess = Session.new '255.255.255.255', 'anon'
-@cust = Customer.new @email
+@sess = V2::Session.new '255.255.255.255', 'anon'
+@cust = V2::Customer.new @email
 @cust.save
 @domain_input = 'test.example.com'
 @custom_domain = CustomDomain.create @domain_input, @cust.custid
@@ -30,7 +33,7 @@ OT.boot! :test, false
 @cust.add_custom_domain(@custom_domain)
 
 # Test domain listing
-logic = Logic::Domains::ListDomains.new @sess, @cust
+logic = V2::Logic::Domains::ListDomains.new @sess, @cust
 logic.raise_concerns
 logic.define_singleton_method(:create_vhost) {} # prevent calling 3rd party API for this test
 logic.process
@@ -44,7 +47,7 @@ logic.process
 # GetDomain Tests
 
 ## Test domain retrieval
-logic = Logic::Domains::GetDomain.new @sess, @cust, { domain: @domain_input }
+logic = V2::Logic::Domains::GetDomain.new @sess, @cust, { domain: @domain_input }
 [
   logic.instance_variables.include?(:@cust),
   logic.instance_variables.include?(:@params)
@@ -55,7 +58,7 @@ logic = Logic::Domains::GetDomain.new @sess, @cust, { domain: @domain_input }
 
 ## Test domain removal
 @remove_params = { domain: @domain_input }
-logic = Logic::Domains::RemoveDomain.new @sess, @cust, @remove_params
+logic = V2::Logic::Domains::RemoveDomain.new @sess, @cust, @remove_params
 logic.raise_concerns
 logic.define_singleton_method(:create_vhost) {} # prevent calling 3rd party API for this test
 logic.process

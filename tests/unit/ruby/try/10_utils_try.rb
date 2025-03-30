@@ -23,6 +23,7 @@ require_relative './test_helpers'
 # Use the default config file for tests
 
 OT.boot! :test, false
+@original_fortunes = Onetime::Utils.instance_variable_get(:@fortunes)
 
 ## Create a strand
 Onetime::Utils.strand.class
@@ -79,3 +80,5 @@ end
 Onetime::Utils.fortunes = error_fortunes
 Onetime::Utils.random_fortune
 #=> "A house is full of games and puzzles."
+
+Onetime::Utils.instance_variable_set(:@fortunes, @original_fortunes)
