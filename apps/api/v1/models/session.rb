@@ -101,9 +101,9 @@ module V1
       # This is a very busy method so we can avoid generating and logging this
       # string only for it to be dropped when not in debug mode by simply only
       # generating and logging it when we're in debug mode.
-      if Onetime.debug
-        OT.ld "[Session.external_identifier] sess identifier input: #{elements.inspect} (result: #{@external_identifier})"
-      end
+      # if Onetime.debug
+      #   OT.ld "[Session.external_identifier] sess identifier input: #{elements.inspect} (result: #{@external_identifier})"
+      # end
 
       @external_identifier
     end
