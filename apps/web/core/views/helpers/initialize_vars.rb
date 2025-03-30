@@ -2,7 +2,12 @@
 
 module Core
   module Views
-    module InitializeVarsHelpers
+    # InitializeViewVars
+    #
+    # This module is meant to be extended and not included. That's why
+    # initialize_vars takes the arguments it does instead of relying on
+    # instance variables and their attr_reader methods.
+    module InitializeViewVars
       # Initialize core variables used throughout view rendering. These values
       # are the source of truth for te values that they represent. Any other
       # values that the serializers want can be derived from here.
@@ -11,8 +16,9 @@ module Core
       # @param sess [Session] Current session
       # @param cust [Customer] Current customer
       # @param locale [String] Current locale
+      # @param i18n_instance [I18n] Current I18n instance
       # @return [Hash] Collection of initialized variables
-      def initialize_vars(req, sess, cust, locale)
+      def initialize_vars(req, sess, cust, locale, i18n_instance)
 
         # Extract the top-level keys from the YAML configuration
         site = OT.conf.fetch(:site, {})
@@ -36,6 +42,9 @@ module Core
         domain_strategy = req.env.fetch('onetime.domain_strategy', :default)
         display_domain = req.env.fetch('onetime.display_domain', nil)
 
+        # HTML Tag vars. These are meant for the view templates themselves
+        # and not the onetime state window data passed on to the Vue app (
+        # although a serializer could still choose to include any of them).
         description = i18n_instance[:COMMON][:description]
         keywords = i18n_instance[:COMMON][:keywords]
         page_title = "Onetime Secret" # TODO: Implement as config setting

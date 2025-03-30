@@ -43,7 +43,7 @@ module Core
           ordered.reduce({}) do |result, serializer|
             output = serializer.serialize(vars, i18n)
             next if output.nil?
-            OT.ld "[SerializerRegistry] Executing serializer: #{serializer}"
+            # OT.ld "[SerializerRegistry] Executing serializer: #{serializer}"
             result.merge(output)
           end
         end

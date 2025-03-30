@@ -15,10 +15,10 @@ require_relative 'serializers'
 module Core
   module Views
     class BaseView < Chimera
+      extend Core::Views::InitializeViewVars
       include Core::Views::SanitizerHelpers
       include Core::Views::I18nHelpers
       include Core::Views::ViteManifest
-      include Core::Views::InitializeVarsHelpers
       include Onetime::TimeUtils
 
       self.template_path = './templates/web'
@@ -27,7 +27,7 @@ module Core
       self.view_path = './app/web/views'
 
       attr_accessor :req, :sess, :cust, :locale, :messages, :form_fields, :pagename
-      attr_reader :global_vars, :i18n_instance, :serialized_data
+      attr_reader :view_vars, :i18n_instance, :serialized_data
 
       def initialize req, sess=nil, cust=nil, locale=nil, *args
         @req = req
@@ -36,19 +36,18 @@ module Core
         @locale = locale || (req.nil? ? OT.default_locale : req.env['ots.locale'])
         @messages = []
 
-        # Use the refactored helper method
-        @global_vars = initialize_vars(req, sess, cust, @locale)
         @i18n_instance = self.i18n
+        @view_vars = self.class.initialize_vars(req, sess, cust, locale, i18n_instance)
+
+        # Make the view-relevant variables available to the view and HTML template
+        @view_vars.each do |key, value|
+          self[key] = value
+        end
 
         init(*args) if respond_to?(:init)
 
         # Run serializers and apply to view
         @serialized_data = self.run_serializers
-
-        # Make the serialized data available to the view and HTML template
-        @serialized_data.each do |key, value|
-          self[key] = value
-        end
       end
 
       # Add notification message to be displayed in StatusBar component
@@ -67,7 +66,7 @@ module Core
       end
 
       def run_serializers
-        SerializerRegistry.run(self.class.serializers, global_vars, i18n_instance)
+        SerializerRegistry.run(self.class.serializers, view_vars, i18n_instance)
       end
 
       class << self

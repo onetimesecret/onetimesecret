@@ -44,7 +44,7 @@
 
 {{! <!-- Hydrating here vs in main.ts is more reliable --> }}
 <script lang="javascript" nonce="{{ nonce }}">
-  var initialData = document.getElementById('onetime-state')?.textContent;
+  var initialData = document.getElementById('{{ script_element_id }}')?.textContent;
   window.__ONETIME_STATE__ = (initialData) ? JSON.parse(initialData) : [];
 </script>
 

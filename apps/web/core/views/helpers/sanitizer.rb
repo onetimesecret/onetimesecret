@@ -10,8 +10,9 @@ module Core
 
       def serialized_to_script
         data = serialized_data
-        nonce = global_vars[:nonce]
-        to_json_script(data, id: 'onetime-state', nonce: nonce)
+        nonce = view_vars[:nonce]
+        element_id = view_vars[:script_element_id]
+        to_json_script(data, id: element_id, nonce: nonce)
       end
 
       # Collects data and returns a script tag for embedding.
