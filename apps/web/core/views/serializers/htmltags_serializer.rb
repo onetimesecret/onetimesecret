@@ -17,6 +17,8 @@ module Core
         output[:frontend_development] = view_vars[:frontend_development]
         output[:nonce] = view_vars[:nonce]
 
+        p [:PLOPPLOP, self, output.class]
+
         output
       end
 
@@ -33,6 +35,8 @@ module Core
           nonce: nil,
         }
       end
+
+      SerializerRegistry.register(self)
     end
   end
 end

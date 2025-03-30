@@ -11,6 +11,7 @@ module Core
         output[:ruby_version] = "#{OT.sysinfo.vm}-#{OT.sysinfo.ruby.join}"
 
         output[:shrimp] = view_vars[:shrimp]
+        output[:nonce] = view_vars[:nonce]
         output
       end
 
@@ -20,6 +21,7 @@ module Core
         {}
       end
 
+      SerializerRegistry.register(self)
     end
   end
 end

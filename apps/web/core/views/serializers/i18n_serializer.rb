@@ -12,6 +12,8 @@ module Core
         output[:fallback_locale] = OT.fallback_locale
         output[:supported_locales] = OT.supported_locales
         output[:i18n_enabled] = OT.i18n_enabled
+
+        output
       end
 
       private
@@ -26,6 +28,7 @@ module Core
         }
       end
 
+      SerializerRegistry.register(self)
     end
   end
 end

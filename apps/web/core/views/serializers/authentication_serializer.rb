@@ -35,14 +35,23 @@ module Core
           end
         end
 
+        output
       end
 
       private
 
       def self.output_template
-        {}
+        {
+          authenticated: false,
+          custid: nil,
+          cust: nil,
+          email: nil,
+          customer_since: nil,
+          custom_domains: nil,
+        }
       end
 
+      SerializerRegistry.register(self)
     end
   end
 end

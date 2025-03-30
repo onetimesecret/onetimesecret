@@ -27,6 +27,7 @@ module Core
           domain_locale = domain_branding.fetch('locale', nil)
         end
 
+        output
       end
 
       private
@@ -47,6 +48,7 @@ module Core
         }
       end
 
+      SerializerRegistry.register(self, ['ConfigSerializer'])
     end
   end
 end

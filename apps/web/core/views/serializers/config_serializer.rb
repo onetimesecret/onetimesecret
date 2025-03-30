@@ -46,6 +46,8 @@ module Core
             sentry: sentry.fetch(:frontend, {})
           }
         end
+
+        output
       end
 
       private
@@ -70,6 +72,7 @@ module Core
         }
       end
 
+      SerializerRegistry.register(self)
     end
   end
 end

@@ -7,8 +7,10 @@ module Core
       def self.serialize(view_vars, i18n)
         output = self.output_template
 
-        output[:messages] = self[:messages]
+        output[:messages] = view_vars[:messages]
         output[:global_banner] = OT.global_banner if OT.global_banner
+
+        output
       end
 
       private
@@ -20,6 +22,7 @@ module Core
         }
       end
 
+      SerializerRegistry.register(self)
     end
   end
 end

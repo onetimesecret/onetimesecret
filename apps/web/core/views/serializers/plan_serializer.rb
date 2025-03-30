@@ -7,6 +7,8 @@ module Core
       def self.serialize(view_vars, i18n)
         output = self.output_template
 
+        cust = view_vars[:cust]
+
         output[:available_plans] = Onetime::Plan.plans.transform_values do |plan|
           plan.safe_dump
         end
@@ -17,6 +19,8 @@ module Core
         output[:plan] = plan.safe_dump
         output[:is_paid] = plan.paid?
         output[:default_planid] = 'basic'
+
+        output
       end
 
       private
@@ -25,6 +29,7 @@ module Core
         {}
       end
 
+      SerializerRegistry.register(self)
     end
   end
 end
