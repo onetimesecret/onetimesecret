@@ -2,13 +2,28 @@
 
 # e.g. pnpm run rspec tests/unit/ruby/rspec/apps/web/views/base_spec.rb
 
+require 'core/views/base'
+require 'core/views/serializers'
 require_relative '../../../spec_helper'
 
 RSpec.describe Core::Views::BaseView do
   include_context "rack_test_context"
   include_context "view_test_context"
 
+  before(:all) do
+    described_class.use_serializers(
+      Core::Views::ConfigSerializer,
+      Core::Views::AuthenticationSerializer,
+      Core::Views::DomainSerializer,
+      Core::Views::I18nSerializer,
+      Core::Views::MessagesSerializer,
+      Core::Views::PlanSerializer,
+      Core::Views::SystemSerializer,
+    )
+  end
+
   before(:each) do
+
     allow(OT).to receive(:default_locale).and_return('en')
     allow(OT).to receive(:fallback_locale).and_return('en')
     allow(OT).to receive(:supported_locales).and_return(['en'])
@@ -36,7 +51,7 @@ RSpec.describe Core::Views::BaseView do
     end
 
     it 'initializes JavaScript variables' do
-      vars = subject[:jsvars]
+      vars = subject.serialized_data
       expect(vars[:authenticated]).to be true
       expect(vars[:custid]).to eq('test@example.com')
       expect(vars[:email]).to eq('test@example.com')
@@ -44,14 +59,14 @@ RSpec.describe Core::Views::BaseView do
     end
 
     it 'includes authentication configuration' do
-      expect(subject[:jsvars][:authentication]).to eq({
+      expect(subject.serialized_data[:authentication]).to eq({
         enabled: true,
         signup: true
       })
     end
 
     it 'includes secret options' do
-      expect(subject[:jsvars][:secret_options]).to eq({
+      expect(subject.serialized_data[:secret_options]).to eq({
         default_ttl: 86_400,
         ttl_options: [3600, 86_400]
       })
@@ -82,7 +97,7 @@ RSpec.describe Core::Views::BaseView do
       end
 
       it 'sets appropriate anonymous state' do
-        vars = subject[:jsvars]
+        vars = subject.serialized_data
         expect(vars[:authenticated]).to be false
         expect(vars[:custid]).to be_nil
         expect(vars[:email]).to be_nil
@@ -124,17 +139,17 @@ RSpec.describe Core::Views::BaseView do
     end
 
     it 'sets diagnostic variables when enabled and DSN provided' do
-      expect(subject[:jsvars][:diagnostics]).to eq({
+      expect(subject.serialized_data[:diagnostics]).to eq({
         sentry: {
           dsn: 'https://test-dsn@sentry.example.com/1'
         }
       })
-      expect(subject[:jsvars][:d9s_enabled]).to be OT.d9s_enabled
+      expect(subject.serialized_data[:d9s_enabled]).to be OT.d9s_enabled
     end
 
     it 'sets diagnostic to disabled when DSN not provided' do
-      expect(subject[:jsvars][:d9s_enabled]).to be false
-      expect(subject[:jsvars][:diagnostics]).to eq({
+      expect(subject.serialized_data[:d9s_enabled]).to be false
+      expect(subject.serialized_data[:diagnostics]).to eq({
         sentry: {
           dsn: 'https://test-dsn@sentry.example.com/1'
         }
@@ -163,7 +178,7 @@ RSpec.describe Core::Views::BaseView do
     end
 
     it 'includes global banner when present' do
-      expect(subject[:jsvars][:global_banner]).to eq({
+      expect(subject.serialized_data[:global_banner]).to eq({
         type: 'info',
         message: 'System maintenance scheduled'
       })
@@ -190,8 +205,8 @@ RSpec.describe Core::Views::BaseView do
     end
 
     it 'includes regions config when enabled' do
-      expect(subject[:jsvars][:regions_enabled]).to be true
-      expect(subject[:jsvars][:regions]).to include(
+      expect(subject.serialized_data[:regions_enabled]).to be true
+      expect(subject.serialized_data[:regions]).to include(
         enabled: true,
         current_jurisdiction: 'EU',
       )
@@ -207,21 +222,21 @@ RSpec.describe Core::Views::BaseView do
       end
 
       it 'excludes regions data when disabled' do
-        expect(subject[:jsvars][:regions_enabled]).to be false
-        expect(subject[:jsvars][:regions]).to be_nil
+        expect(subject.serialized_data[:regions_enabled]).to be false
+        expect(subject.serialized_data[:regions]).to be_nil
       end
     end
   end
 
-  context 'required jsvars keys' do
+  context 'required serialized_data keys' do
     let(:ensure_exist_keys) do
       [:domains_enabled, :custid, :cust, :email, :customer_since]
     end
 
     it 'includes all required keys' do
       ensure_exist_keys.each do |key|
-        expect(subject[:jsvars]).to have_key(key),
-          "Expected jsvars to include #{key}"
+        expect(subject.serialized_data).to have_key(key),
+          "Expected serialized_data to include #{key}"
       end
     end
 
@@ -247,7 +262,7 @@ RSpec.describe Core::Views::BaseView do
       end
 
       it 'sets required keys to nil for anonymous users' do
-        vars = subject[:jsvars]
+        vars = subject.serialized_data
         ensure_exist_keys.each do |key|
           expect(vars[key]).to be_nil,
             "Expected #{key} to be nil for anonymous user"
@@ -296,9 +311,8 @@ RSpec.describe Core::Views::BaseView do
       end
 
       it 'sets correct locale variables' do
-        vars = subject[:jsvars]
+        vars = subject.serialized_data
         expect(vars[:locale]).to eq(expected[:locale])
-        expect(vars[:is_default_locale]).to eq(expected[:is_default])
         expect(vars[:default_locale]).to eq('en')
         expect(vars[:fallback_locale]).to eq('en')
         expect(vars[:supported_locales]).to eq(%w[en fr_CA fr_FR])
@@ -340,10 +354,14 @@ RSpec.describe Core::Views::BaseView do
       end
 
       it 'falls back to default locale' do
-        vars = subject[:jsvars]
+        vars = subject.serialized_data
         expect(vars[:locale]).to eq('en')
-        expect(vars[:is_default_locale]).to be true
       end
+    end
+
+    it "runs I18nSerializer" do
+      serialized = subject.serialized_data
+      expect(serialized).to include(:locale, :default_locale, :supported_locales)
     end
   end
 end

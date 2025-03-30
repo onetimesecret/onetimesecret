@@ -12,7 +12,7 @@ module Core
         output = self.output_template
 
         is_authenticated = view_vars[:authenticated]
-        domains = view_vars[:site].fetch(:domains, [])
+        domains = view_vars[:site].fetch(:domains, {})
         cust = view_vars[:cust]
 
         output[:domain_strategy] = view_vars[:domain_strategy]
@@ -64,8 +64,7 @@ module Core
           domain_logo: nil,
           domain_strategy: nil,
           # Were in original implementation, now removed:
-          # display_locale: nil,
-          # is_default_locale: nil,
+          # display_locale: nil,\
         }
       end
 

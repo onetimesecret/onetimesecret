@@ -1,40 +1,14 @@
 {
-  "ui": { "enabled": false },
-  "authentication": {
-    "enabled": true,
-    "signup": true,
-    "signin": true,
-    "autoverify": false,
-    "colonels": ["example@onetime.dev"]
-  },
-  "shrimp": "616l5ew9dhz3bra7q9rooqz3dwu3i7wqz46bqy54ttxskvtf4v",
-  "regions_enabled": true,
-  "regions": {
-    "enabled": true,
-    "current_jurisdiction": "EU",
-    "jurisdictions": [
-      {
-        "identifier": "AT",
-        "display_name": "Atat Region",
-        "domain": "at.example.com"
-      },
-      {
-        "identifier": "CE",
-        "display_name": "CECE Region",
-        "domain": "ce.example.com"
-      }
-    ]
-  },
-  "domains_enabled": true,
+  "authenticated": true,
   "custid": "example@onetime.dev",
   "cust": {
     "identifier": "example@onetime.dev",
     "custid": "example@onetime.dev",
-    "role": "colonel",
+    "role": "customer",
     "verified": "true",
     "last_login": "",
     "locale": "en",
-    "updated": "1743192459",
+    "updated": "1743304412",
     "created": "1736271223",
     "stripe_customer_id": "cus_plop",
     "stripe_subscription_id": "",
@@ -58,14 +32,54 @@
     "secrets_burned": "24",
     "secrets_shared": "34",
     "emails_sent": "0",
-    "active": false
+    "active": true
   },
   "email": "example@onetime.dev",
   "customer_since": "Jan 07, 2025",
   "custom_domains": ["another.subdomain.onetimesecret.com", "secrets.onetime.dev"],
+  "authentication": { "enabled": true, "signup": true, "signin": true, "autoverify": false },
+  "d9s_enabled": false,
+  "diagnostics": null,
+  "domains": { "enabled": true, "default": null },
+  "domains_enabled": true,
+  "frontend_development": true,
+  "frontend_host": "http://localhost:5173",
+  "incoming_recipient": null,
   "plans_enabled": true,
+  "regions": {
+    "enabled": true,
+    "current_jurisdiction": "EU",
+    "jurisdictions": [
+      {
+        "identifier": "EU",
+        "display_name": "European Union",
+        "domain": "eu.onetimesecret.com",
+        "icon": { "collection": "fa6-solid", "name": "earth-europe" }
+      },
+      {
+        "identifier": "CA",
+        "display_name": "Canada",
+        "domain": "ca.onetimesecret.com",
+        "icon": { "collection": "fa6-solid", "name": "earth-oceania" }
+      }
+    ]
+  },
+  "regions_enabled": true,
+  "secret_options": {
+    "default_ttl": 604800.0,
+    "ttl_options": [60, 300, 1800, 3600, 14400, 43200, 86400, 259200, 604800, 1209600, 2592000]
+  },
+  "site_host": "dev.onetime.dev",
+  "support_host": "https://docs.onetime.dev",
+  "ui": { "enabled": false },
+  "canonical_domain": "dev.onetime.dev",
+  "display_domain": "dev.onetime.dev",
+  "domain_branding": null,
+  "domain_id": null,
+  "domain_locale": null,
+  "domain_logo": null,
+  "domain_strategy": "canonical",
   "locale": "en",
-  "is_default_locale": true,
   "default_locale": "en",
   "fallback_locale": {
     "fr-CA": ["fr_CA", "fr_FR", "en"],
@@ -74,25 +88,8 @@
   },
   "supported_locales": ["de_AT", "en", "fr_CA", "fr_FR", "nl"],
   "i18n_enabled": true,
-  "d9s_enabled": false,
-  "incoming_recipient": null,
-  "support_host": "https://docs.onetime.dev",
-  "secret_options": {
-    "default_ttl": 604800.0,
-    "ttl_options": [300, 1800, 3600, 14400, 43200, 86400, 259200, 604800, 1209600, 2592000]
-  },
-  "frontend_host": "http:&#x2F;&#x2F;localhost:5173",
-  "authenticated": true,
-  "site_host": "dev.onetime.dev",
-  "canonical_domain": "dev.onetime.dev",
-  "domain_strategy": "canonical",
-  "domain_id": null,
-  "domain_branding": null,
-  "domain_logo": null,
-  "display_domain": "dev.onetime.dev",
-  "ot_version": "0.20.4 (plop)",
-  "ruby_version": "ruby-341",
   "messages": [],
+  "global_banner": null,
   "available_plans": {
     "anonymous": {
       "identifier": "anonymous",
@@ -185,5 +182,9 @@
     }
   },
   "is_paid": true,
-  "default_planid": "basic"
+  "default_planid": "basic",
+  "ot_version": "0.20.4 (5764d1f7)",
+  "ruby_version": "ruby-341",
+  "shrimp": "176lwmw114hjfaet7853ljtirsppyucwxyl9507xu2g3hi3nz9",
+  "nonce": "9MF5TiCu4ZbkKOiAmnhjJg=="
 }

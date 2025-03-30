@@ -38,7 +38,6 @@ export interface OnetimeWindow {
 
   i18n_enabled: boolean;
   locale: string;
-  is_default_locale: boolean;
   supported_locales: Locale[];
   fallback_locale: FallbackLocale;
   default_locale: Locale;

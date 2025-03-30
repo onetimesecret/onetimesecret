@@ -3,7 +3,7 @@
 module Core
   module Views
     module I18nSerializer
-        # - i18n_enabled, locale, is_default_locale, supported_locales, fallback_locale, default_locale
+        # - i18n_enabled, locale, supported_locales, fallback_locale, default_locale
       def self.serialize(view_vars, i18n)
         output = self.output_template
 

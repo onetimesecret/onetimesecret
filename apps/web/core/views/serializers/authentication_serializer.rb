@@ -14,10 +14,10 @@ module Core
 
         if authenticated && cust
           output[:authenticated] = authenticated
-          output[:custid] = cust.custid
-          output[:cust] = cust.safe_dump
-          output[:email] = cust.email
-          output[:customer_since] = OT::TimeUtils.epochdom(cust.created)
+          output[:custid] = authenticated ? cust.custid : nil
+          output[:cust] = authenticated ? cust.safe_dump : nil
+          output[:email] = authenticated ? cust.email : nil
+          output[:customer_since] = authenticated ? OT::TimeUtils.epochdom(cust.created) : nil
 
           if view_vars[:domains_enabled]
             custom_domains = cust.custom_domains_list.filter_map do |obj|

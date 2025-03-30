@@ -65,7 +65,6 @@
   "custom_domains": ["another.subdomain.onetimesecret.com", "secrets.onetime.dev"],
   "plans_enabled": true,
   "locale": "en",
-  "is_default_locale": true,
   "default_locale": "en",
   "fallback_locale": {
     "fr-CA": ["fr_CA", "fr_FR", "en"],

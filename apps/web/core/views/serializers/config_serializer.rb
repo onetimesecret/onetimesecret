@@ -10,7 +10,7 @@ module Core
       def self.serialize(view_vars, i18n)
         output = self.output_template
 
-        site = view_vars[:site]
+        site = view_vars[:site] || {}
         incoming = view_vars[:incoming] # TODO: Update to features.incoming
         development = view_vars[:development]
         diagnostics = view_vars[:diagnostics]
@@ -20,8 +20,8 @@ module Core
         output[:support_host] = site.dig(:support, :host)
         output[:secret_options] = site[:secret_options]
         output[:site_host] = site[:host]
-        regions = site[:regions]
-        domains = site[:domains]
+        regions = site[:regions] || {}
+        domains = site[:domains] || {}
 
         # Only send the regions config when the feature is enabled.
         output[:regions_enabled] = regions.fetch(:enabled, false)
