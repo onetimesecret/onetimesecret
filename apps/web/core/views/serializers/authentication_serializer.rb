@@ -13,6 +13,7 @@ module Core
         cust = view_vars[:cust]
 
         if authenticated && cust
+          output[:authenticated] = authenticated
           output[:custid] = cust.custid
           output[:cust] = cust.safe_dump
           output[:email] = cust.email
@@ -42,7 +43,7 @@ module Core
 
       def self.output_template
         {
-          authenticated: false,
+          authenticated: nil,
           custid: nil,
           cust: nil,
           email: nil,
