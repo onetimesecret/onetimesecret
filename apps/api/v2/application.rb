@@ -47,7 +47,8 @@ module V2
         use Rack::DetectHost
 
         # Applications middleware stack
-        use Onetime::DomainStrategy
+        use Onetime::DomainStrategy # after DetectHost
+        use Rack::JSONBodyParser
 
         # Application router
         run router_instance
