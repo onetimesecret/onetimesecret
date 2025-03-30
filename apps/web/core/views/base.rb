@@ -29,11 +29,11 @@ module Core
       attr_accessor :req, :sess, :cust, :locale, :messages, :form_fields, :pagename
       attr_reader :view_vars, :i18n_instance, :serialized_data
 
-      def initialize req, sess=nil, cust=nil, locale=nil, *args
+      def initialize req, sess=nil, cust=nil, locale_override=nil, *args
         @req = req
         @sess = sess
         @cust = cust || V2::Customer.anonymous
-        @locale = locale || (req.nil? ? OT.default_locale : req.env['ots.locale'])
+        @locale = locale_override || (req.nil? ? OT.default_locale : req.env['ots.locale'])
         @messages = []
 
         @i18n_instance = self.i18n
