@@ -102,6 +102,7 @@ SSL = 'true'
 RACK_ENV = 'production'
 EMAILER_MODE = 'smtp'
 CSP_ENABLED = 'true'
+SERVER_TYPE = 'puma'
 
 # [[services.machine_checks]]
 # image = "curlimages/curl"
