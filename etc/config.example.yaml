@@ -124,7 +124,7 @@
 # Logging Configuration
 :logger:
   # Enable or disable request logging via Rack::CommonLogger
-  :logRequests: <%= ENV['LOG_REQUESTS'] == 'false' || true %>
+  :logRequests: <%= ENV['LOG_REQUESTS'] != 'false' %>
 
 # Sending Emails
 :emailer:
