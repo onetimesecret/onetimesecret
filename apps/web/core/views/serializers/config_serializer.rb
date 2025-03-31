@@ -2,11 +2,21 @@
 
 module Core
   module Views
+
+    # Serializes application configuration for the frontend
+    #
+    # Responsible for transforming server-side configuration settings into
+    # a consistent format that can be safely exposed to the frontend.
     module ConfigSerializer
 
-      # - secret_options, authentication
-      # - regions_enabled, regions
-      # - support_host, incoming_recipient
+      # Serializes configuration data from view variables
+      #
+      # Transforms server configuration including site settings, feature flags,
+      # and environment variables into frontend-safe configuration.
+      #
+      # @param view_vars [Hash] The view variables containing site configuration
+      # @param i18n [Object] The internationalization instance
+      # @return [Hash] Serialized configuration data
       def self.serialize(view_vars, i18n)
         output = self.output_template
 
@@ -52,6 +62,9 @@ module Core
 
       private
 
+      # Provides the base template for configuration serializer output
+      #
+      # @return [Hash] Template with all possible configuration output fields
       def self.output_template
         {
           authentication: nil,

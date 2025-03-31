@@ -2,8 +2,18 @@
 
 module Core
   module Views
+
+    # Serializes system-level information for the frontend
+    #
+    # Responsible for transforming application version, runtime information,
+    # and security-related values for frontend consumption.
     module SystemSerializer
-      # - ot_version, ruby_version, shrimp
+
+      # Serializes system data from view variables
+      #
+      # @param view_vars [Hash] The view variables containing system information
+      # @param i18n [Object] The internationalization instance
+      # @return [Hash] Serialized system data including version and security values
       def self.serialize(view_vars, i18n)
         output = self.output_template
 
@@ -17,6 +27,9 @@ module Core
 
       private
 
+      # Provides the base template for system serializer output
+      #
+      # @return [Hash] Template with all possible system output fields
       def self.output_template
         {
           ot_version: nil,

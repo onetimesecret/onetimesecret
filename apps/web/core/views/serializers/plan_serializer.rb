@@ -2,8 +2,18 @@
 
 module Core
   module Views
+
+    # Serializes subscription plan data for the frontend
+    #
+    # Responsible for transforming customer plan information, available plans,
+    # and plan-related settings into a consistent format for frontend consumption.
     module PlanSerializer
-      # - plan, is_paid, default_planid, available_plans, plans_enabled
+
+      # Serializes plan data from view variables
+      #
+      # @param view_vars [Hash] The view variables containing plan information
+      # @param i18n [Object] The internationalization instance
+      # @return [Hash] Serialized plan data including current plan and available plans
       def self.serialize(view_vars, i18n)
         output = self.output_template
 
@@ -25,6 +35,9 @@ module Core
 
       private
 
+      # Provides the base template for plan serializer output
+      #
+      # @return [Hash] Template with all possible plan output fields
       def self.output_template
         {
           plan: nil,

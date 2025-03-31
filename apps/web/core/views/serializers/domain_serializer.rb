@@ -5,8 +5,21 @@ require 'onetime/middleware/domain_strategy'
 
 module Core
   module Views
+
+    # Serializes domain-related information for the frontend
+    #
+    # Handles custom domains, domain strategies, and domain branding
+    # transformations for frontend consumption.
     module DomainSerializer
 
+      # Serializes domain data from view variables
+      #
+      # Transforms domain strategy, custom domains, and domain branding
+      # information into a consistent format for the frontend.
+      #
+      # @param view_vars [Hash] The view variables containing domain information
+      # @param i18n [Object] The internationalization instance
+      # @return [Hash] Serialized domain data
       def self.serialize(view_vars, i18n)
         output = self.output_template
 
@@ -52,6 +65,9 @@ module Core
 
       private
 
+      # Provides the base template for domain serializer output
+      #
+      # @return [Hash] Template with all possible domain output fields
       def self.output_template
         {
           canonical_domain: nil,

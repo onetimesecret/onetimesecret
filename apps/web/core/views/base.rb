@@ -8,9 +8,14 @@ require 'v2/models/customer'
 
 require_relative 'helpers'
 require_relative 'serializers'
+
+# Core view framework with helpers and serializers
 #
-# - **Helpers**: Provide utility methods for internal use
-# - **Serializers**: Transform internal state for frontend consumption
+# This file defines the BaseView class which serves as the foundation for all views in the application.
+# It provides:
+#
+# - **Helpers**: Utility methods for view rendering and data manipulation
+# - **Serializers**: Transform internal view state for frontend consumption
 #
 module Core
   module Views
@@ -68,9 +73,9 @@ module Core
 
       # Add notification message to be displayed in StatusBar component
       #
-      # @param msg [String] message content to be displayed
-      # @param type [String] type of message, one of: info, error, success, warning
-      # @return [Array<Hash>] array containing all message objects
+      # @param msg [String] Message content to be displayed
+      # @param type [String] Type of message, one of: info, error, success, warning
+      # @return [Array<Hash>] Array containing all message objects
       def add_message msg, type='info'
         messages << {type: type, content: msg}
       end
@@ -84,6 +89,10 @@ module Core
       end
 
       # Run all registered serializers to transform view data for frontend consumption
+      #
+      # Executes each serializer registered for this view in dependency order,
+      # merging their results into a single data structure that can be safely
+      # passed to the frontend.
       #
       # @return [Hash] The serialized data
       def run_serializers
@@ -106,11 +115,16 @@ module Core
         end
 
         # Class-level serializers list
+        #
+        # @return [Array<Module>] List of serializers to use with this view
         def serializers
           @serializers ||= []
         end
 
         # Add serializers to this view
+        #
+        # @param serializer_list [Array<Module>] List of serializers to add to this view
+        # @return [Array<Module>] Updated list of serializers
         def use_serializers(*serializer_list)
           serializer_list.each do |serializer|
             serializers << serializer unless serializers.include?(serializer)

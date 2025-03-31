@@ -4,8 +4,16 @@ require 'onetime/utils'
 
 module Core
   module Views
+    # Serializes authentication-related data for the frontend
+    #
+    # Responsible for transforming customer authentication state and
+    # associated customer data into a consistent format for frontend consumption.
     module AuthenticationSerializer
-      # authenticated, cust, custid, email, customer_since
+      # Serializes authentication data from view variables
+      #
+      # @param view_vars [Hash] The view variables containing authentication state
+      # @param i18n [Object] The internationalization instance
+      # @return [Hash] Serialized authentication data including customer information
       def self.serialize(view_vars, i18n)
         output = self.output_template
 
@@ -42,6 +50,9 @@ module Core
 
       private
 
+      # Provides the base template for authentication serializer output
+      #
+      # @return [Hash] Template with all possible authentication output fields
       def self.output_template
         {
           authenticated: 'plop',

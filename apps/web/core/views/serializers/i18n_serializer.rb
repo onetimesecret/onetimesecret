@@ -2,8 +2,18 @@
 
 module Core
   module Views
+
+    # Serializes internationalization data for the frontend
+    #
+    # Responsible for providing locale configuration, available locales,
+    # and other i18n-related settings to the frontend.
     module I18nSerializer
-        # - i18n_enabled, locale, supported_locales, fallback_locale, default_locale
+
+      # Serializes internationalization data from view variables
+      #
+      # @param view_vars [Hash] The view variables containing locale information
+      # @param i18n [Object] The internationalization instance
+      # @return [Hash] Serialized i18n configuration including locale settings
       def self.serialize(view_vars, i18n)
         output = self.output_template
 
@@ -18,6 +28,9 @@ module Core
 
       private
 
+      # Provides the base template for i18n serializer output
+      #
+      # @return [Hash] Template with all possible i18n output fields
       def self.output_template
         {
           locale: nil,

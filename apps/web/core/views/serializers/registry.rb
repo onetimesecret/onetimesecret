@@ -2,8 +2,11 @@
 
 require 'tsort'
 
+# Dependencies-aware registry for view serializers
 #
-# ComponentRegistry.register(self, [DomainManager])
+# The SerializerRegistry manages the registration, dependency resolution, and execution
+# of serializers in the correct order. It uses Ruby's TSort module to handle dependency
+# ordering.
 #
 # For this use case, module methods are preferable because:
 #
@@ -12,9 +15,7 @@ require 'tsort'
 # 3. Dependencies are handled by the registry, not individual serializers
 # 4. The primary goal is to compose multiple independent transformations
 #
-# If your serializers need complex configuration, internal state, or inheritance relationships, a class-based approach would be more appropriate.
-#
-# Register serializers with their dependencies
+# Usage examples:
 #   SerializerRegistry.register(HTMLTags)
 #   SerializerRegistry.register(JavaScriptVars, [HTMLTags]) # Depends on HTMLTags
 #   SerializerRegistry.register(UserData, [JavaScriptVars]) # Depends on JavaScriptVars
@@ -29,12 +30,22 @@ module Core
       class << self
         attr_reader :serializers, :dependencies
 
+        # Register a serializer with optional dependencies
+        #
+        # @param serializer [Module] The serializer to register
+        # @param depends_on [Array<Module>] Serializers this one depends on
+        # @return [Array] The current list of registered serializers
         def register(serializer, depends_on = [])
           serializers << serializer unless serializers.include?(serializer)
           dependencies[serializer] = Array(depends_on)
         end
 
         # Run specified serializers in dependency order
+        #
+        # @param serializer_list [Array<Module>] List of serializers to execute
+        # @param vars [Hash] View variables to pass to each serializer
+        # @param i18n [Object] Internationalization instance
+        # @return [Hash] Combined output from all serializers
         def run(serializer_list, vars, i18n)
           # Get serializers in dependency order, filtering to requested ones
           ordered = sorted_serializers.select { |s| serializer_list.include?(s) }
@@ -51,7 +62,9 @@ module Core
           end
         end
 
-
+        # Get all serializers in dependency order
+        #
+        # @return [Array<Module>] Serializers sorted by dependency order
         def sorted_serializers
           tsort
         end
