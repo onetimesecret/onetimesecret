@@ -18,7 +18,12 @@ module Core
       private
 
       def self.output_template
-        {}
+        {
+          ot_version: nil,
+          ruby_version: nil,
+          shrimp: nil,
+          nonce: nil,
+        }
       end
 
       SerializerRegistry.register(self)

@@ -6,8 +6,7 @@ require 'onetime/middleware/domain_strategy'
 module Core
   module Views
     module DomainSerializer
-      # - canonical_domain, domain_strategy, domain_id, display_domain, domain_branding, domain_logo
-      # - custom_domains
+
       def self.serialize(view_vars, i18n)
         output = self.output_template
 
@@ -64,7 +63,7 @@ module Core
           domain_logo: nil,
           domain_strategy: nil,
           # Were in original implementation, now removed:
-          # display_locale: nil,\
+          # display_locale: nil,
         }
       end
 

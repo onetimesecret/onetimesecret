@@ -26,7 +26,13 @@ module Core
       private
 
       def self.output_template
-        {}
+        {
+          plan: nil,
+          is_paid: nil,
+          default_planid: nil,
+          available_plans: nil,
+          plans_enabled: nil,
+        }
       end
 
       SerializerRegistry.register(self)
