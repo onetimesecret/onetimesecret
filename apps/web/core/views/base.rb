@@ -36,10 +36,18 @@ module Core
 
         # We determine locale here because it's used for i18n. Otherwise we couldn't
         # determine the i18n messages until inside or after initialize_view_vars.
-        # The heuristic is to use the locale_override if provided, otherwise use
-        # the request's locale that was set in the controller (check_locale!)
-        # or fallback to default locale as configured in config.yaml.
-        @locale = locale_override || (req.nil? ? OT.default_locale : req.env['ots.locale'])
+        #
+        # Determine locale with this priority:
+        # 1. Explicitly provided locale
+        # 2. Locale from request environment (if available)
+        # 3. Application default locale as set in yaml configuration
+        @locale = if locale_override
+                    locale_override
+                  elsif !req.nil? && req.env['ots.locale']
+                    req.env['ots.locale']
+                  else
+                    OT.default_locale
+                  end
 
         @i18n_instance = self.i18n
         @messages = []
