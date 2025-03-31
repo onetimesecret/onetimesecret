@@ -1,5 +1,16 @@
+# apps/web/core/views/helpers/i18n.rb
 
-
+# I18nHelpers provides localization functionality for view templates.
+#
+# This module implements a caching mechanism for translations with
+# fallback behavior when requested locales aren't available.
+#
+# @example
+#   include Core::Views::I18nHelpers
+#
+#   # Access translations
+#   i18n[:page][:welcome_message]
+#
 module Core
   module Views
     module I18nHelpers

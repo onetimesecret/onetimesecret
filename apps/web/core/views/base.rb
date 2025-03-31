@@ -67,20 +67,25 @@ module Core
       end
 
       # Add notification message to be displayed in StatusBar component
+      #
       # @param msg [String] message content to be displayed
-      # @param type [String] type of message, one of: info, error, success (default: 'info')
-      # @return [Array<Hash>] array containing message objects {type: String, content: String}
+      # @param type [String] type of message, one of: info, error, success, warning
+      # @return [Array<Hash>] array containing all message objects
       def add_message msg, type='info'
         messages << {type: type, content: msg}
       end
 
       # Add error message to be displayed in StatusBar component
+      #
       # @param msg [String] error message content to be displayed
-      # @return [Array<Hash>] array containing message objects {type: String, content: String}
+      # @return [Array<Hash>] array containing all message objects
       def add_error msg
         add_message(msg, 'error')
       end
 
+      # Run all registered serializers to transform view data for frontend consumption
+      #
+      # @return [Hash] The serialized data
       def run_serializers
         SerializerRegistry.run(self.class.serializers, view_vars, i18n_instance)
       end

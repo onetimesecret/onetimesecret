@@ -2,24 +2,18 @@
 
 module Core
   module Views
-    ##
-    # ViteManifest - Asset Management for Multiple Vite Configurations
+    # ViteManifest handles asset loading for Vite-managed frontend assets.
     #
-    # Supports two Vite build configurations:
-    # 1. Default (vite.config.ts) - Consolidated assets with separate style entry
-    # 2. Alternative (vite.config.local.ts) - Same, without the hash in the filenames
+    # This module loads JavaScript, CSS, and font assets based on the Vite manifest,
+    # supporting both production and development configurations. It handles the
+    # complexities of CSS bundling and font preloading.
     #
-    # Asset Loading Strategy:
-    # - Checks main.ts entry for embedded CSS references
-    # - Checks for separate style.css entry
-    # - Maintains backward compatibility with both manifest formats
-    # - Handles font preloading for both configurations
-    #
-    # @see vite.config.ts
-    # @see vite.config.local.ts
-    #
-    module ViteManifest # rubocop:disable Style/Documentation
+    module ViteManifest
 
+      # Generates HTML tags for all required Vite assets.
+      #
+      # @param nonce [String, nil] Content Security Policy nonce
+      # @return [String] HTML tags for all required assets
       def vite_assets(nonce: nil)
         nonce ||= self[:nonce] # we allow overriding the nonce for testing
         manifest_path = File.join(PUBLIC_DIR, 'dist', '.vite', 'manifest.json')
@@ -57,15 +51,30 @@ module Core
 
       private
 
+      # Builds a script tag for JavaScript assets.
+      #
+      # @param file [String] Asset file path
+      # @param nonce [String] Content Security Policy nonce
+      # @return [String] HTML script tag
       def build_script_tag(file, nonce)
         %(<script type="module" nonce="#{nonce}" src="/dist/#{file}"></script>)
       end
 
+      # Builds a link tag for CSS assets.
+      #
+      # @param file [String] CSS file path
+      # @param nonce [String] Content Security Policy nonce
+      # @return [String, nil] HTML link tag or nil if file is nil
       def build_css_tag(file, nonce)
         return unless file
         %(    <link rel="stylesheet" nonce="#{nonce}" href="/dist/#{file}">)
       end
 
+      # Builds preload link tags for font assets.
+      #
+      # @param manifest [Hash] Vite manifest data
+      # @param nonce [String] Content Security Policy nonce
+      # @return [Array<String>] Array of HTML preload link tags
       def build_font_preloads(manifest, nonce)
         manifest.values
           .select { |entry| entry['file'] =~ /\.(woff2?|ttf|otf|eot)$/ }
@@ -75,6 +84,11 @@ module Core
         end
       end
 
+      # Builds an error script tag when asset loading fails.
+      #
+      # @param nonce [String] Content Security Policy nonce
+      # @param message [String] Error message
+      # @return [String] HTML script tag with error message
       def error_script(nonce, message)
         %(<script nonce="#{nonce}">console.warn("#{message}")</script>)
       end
