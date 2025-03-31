@@ -14,7 +14,9 @@ end
 $LOAD_PATH.unshift(File.join(APP_DIR, 'api'))
 $LOAD_PATH.unshift(File.join(APP_DIR, 'web'))
 
+# Only load what's necessary for successful interactive startup
 require_relative '../onetime'
+require_relative '../onetime/models'
 
 Onetime.info 'Calling Onetime.boot!...'
 Onetime.boot! :cli
