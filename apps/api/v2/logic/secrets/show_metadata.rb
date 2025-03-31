@@ -26,7 +26,7 @@ module V2::Logic
         raise OT::MissingSecret if metadata.nil?
       end
 
-      def process
+      def process # rubocop:disable Metrics/MethodLength,Metrics/PerceivedComplexity
         @secret = @metadata.load_secret
 
         @metadata_key = metadata.key
