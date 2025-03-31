@@ -74,7 +74,7 @@ jobs:
 
         with:
           environment: ${{ env.ONETIME_ENV }}
-          version: ${GITHUB_SHA::7}
+          release: ${GITHUB_SHA::7}
           # inject: true
           # sourcemaps: './dist'
 

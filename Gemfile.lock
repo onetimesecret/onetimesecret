@@ -124,6 +124,7 @@ GEM
       timeout
     net-smtp (0.5.0)
       net-protocol
+    nio4r (2.7.4)
     ostruct (0.6.1)
     otto (1.1.0.pre.alpha4)
       addressable (~> 2.2, < 3)
@@ -146,6 +147,8 @@ GEM
       date
       stringio
     public_suffix (6.0.1)
+    puma (6.6.0)
+      nio4r (~> 2.0)
     racc (1.8.1)
     rack (2.2.13)
     rack-contrib (2.5.0)
@@ -259,6 +262,7 @@ DEPENDENCIES
   pry-byebug
   psych (~> 5.2.3)
   public_suffix
+  puma (~> 6.6)
   rack (>= 2.2.12, < 3.0)
   rack-contrib (~> 2.5)
   rack-proxy
