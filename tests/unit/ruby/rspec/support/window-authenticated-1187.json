@@ -8,7 +8,7 @@
     "verified": "true",
     "last_login": "",
     "locale": "en",
-    "updated": "1743304412",
+    "updated": "1743381820",
     "created": "1736271223",
     "stripe_customer_id": "cus_plop",
     "stripe_subscription_id": "",
@@ -28,7 +28,7 @@
         "dark_mode": true
       }
     },
-    "secrets_created": "3219",
+    "secrets_created": "3222",
     "secrets_burned": "24",
     "secrets_shared": "34",
     "emails_sent": "0",
@@ -51,16 +51,14 @@
     "current_jurisdiction": "EU",
     "jurisdictions": [
       {
-        "identifier": "EU",
-        "display_name": "European Union",
-        "domain": "eu.onetimesecret.com",
-        "icon": { "collection": "fa6-solid", "name": "earth-europe" }
+        "identifier": "AT",
+        "display_name": "Atat Region",
+        "domain": "at.example.com"
       },
       {
-        "identifier": "CA",
-        "display_name": "Canada",
-        "domain": "ca.onetimesecret.com",
-        "icon": { "collection": "fa6-solid", "name": "earth-oceania" }
+        "identifier": "CE",
+        "display_name": "CECE Region",
+        "domain": "ce.example.com"
       }
     ]
   },
@@ -183,8 +181,8 @@
   },
   "is_paid": true,
   "default_planid": "basic",
-  "ot_version": "0.20.4 (5764d1f7)",
+  "ot_version": "0.20.4 (32aa7e9d)",
   "ruby_version": "ruby-341",
-  "shrimp": "176lwmw114hjfaet7853ljtirsppyucwxyl9507xu2g3hi3nz9",
-  "nonce": "9MF5TiCu4ZbkKOiAmnhjJg=="
+  "shrimp": "skcfgqzrq8o2o6shb37pf7ro2y9xocgszflpmze4flf4pfsc2",
+  "nonce": "riGVTd5b+a6TCNNXf0YgiQ=="
 }

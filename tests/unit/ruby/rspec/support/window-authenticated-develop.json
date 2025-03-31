@@ -7,7 +7,7 @@
     "autoverify": false,
     "colonels": ["example@onetime.dev"]
   },
-  "shrimp": "616l5ew9dhz3bra7q9rooqz3dwu3i7wqz46bqy54ttxskvtf4v",
+  "shrimp": "skcfgqzrq8o2o6shb37pf7ro2y9xocgszflpmze4flf4pfsc2",
   "regions_enabled": true,
   "regions": {
     "enabled": true,
@@ -30,11 +30,11 @@
   "cust": {
     "identifier": "example@onetime.dev",
     "custid": "example@onetime.dev",
-    "role": "colonel",
+    "role": "customer",
     "verified": "true",
     "last_login": "",
     "locale": "en",
-    "updated": "1743192459",
+    "updated": "1743381820",
     "created": "1736271223",
     "stripe_customer_id": "cus_plop",
     "stripe_subscription_id": "",
@@ -54,17 +54,18 @@
         "dark_mode": true
       }
     },
-    "secrets_created": "3219",
+    "secrets_created": "3222",
     "secrets_burned": "24",
     "secrets_shared": "34",
     "emails_sent": "0",
-    "active": false
+    "active": true
   },
   "email": "example@onetime.dev",
   "customer_since": "Jan 07, 2025",
   "custom_domains": ["another.subdomain.onetimesecret.com", "secrets.onetime.dev"],
   "plans_enabled": true,
   "locale": "en",
+  "is_default_locale": true,
   "default_locale": "en",
   "fallback_locale": {
     "fr-CA": ["fr_CA", "fr_FR", "en"],
@@ -78,7 +79,7 @@
   "support_host": "https://docs.onetime.dev",
   "secret_options": {
     "default_ttl": 604800.0,
-    "ttl_options": [300, 1800, 3600, 14400, 43200, 86400, 259200, 604800, 1209600, 2592000]
+    "ttl_options": [60, 300, 1800, 3600, 14400, 43200, 86400, 259200, 604800, 1209600, 2592000]
   },
   "frontend_host": "http:&#x2F;&#x2F;localhost:5173",
   "authenticated": true,
@@ -89,7 +90,7 @@
   "domain_branding": null,
   "domain_logo": null,
   "display_domain": "dev.onetime.dev",
-  "ot_version": "0.20.4 (plop)",
+  "ot_version": "0.20.4 (32aa7e9d)",
   "ruby_version": "ruby-341",
   "messages": [],
   "available_plans": {
