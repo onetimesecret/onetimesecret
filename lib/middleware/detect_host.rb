@@ -195,7 +195,7 @@ module Rack
       # domain names for our application's routing logic.
       def valid_domain_name?(host)
         return false if INVALID_HOSTS.include?(host)
-        return false if valid_ip?
+        return false if valid_ip?(host)
         true
       end
 
