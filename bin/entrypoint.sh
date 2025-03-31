@@ -81,7 +81,10 @@ fi
 # Run the command configured for the docker compose service
 # in the docker-compose.yaml file, or a default if none is
 # provided. See Dockerfile for more details.
-if [ -z "$@" ]; then
+#
+# Check if no arguments were provided to the script
+# (e.g. running container without command override).
+if [ $# -eq 0 ]; then
   PORT="${PORT:-3000}" # explicit default
 
   # Choose server based on SERVER_TYPE environment variable
