@@ -10,6 +10,7 @@ The JSON file has samples of the actual JSON objects, of which there are two str
 ```bash
 # Colorized output
 diff --color <(jq --sort-keys . window-authenticated-develop.json) <(jq --sort-keys . window-authenticated-1187.json)
+diff --color <(jq --sort-keys . window-notauthenticated-develop.json) <(jq --sort-keys . window-notauthenticated-1187.json)
 
 # Side-by-side comparison
 diff --side-by-side <(jq --sort-keys . window-authenticated-develop.json) <(jq --sort-keys . window-authenticated-1187.json)

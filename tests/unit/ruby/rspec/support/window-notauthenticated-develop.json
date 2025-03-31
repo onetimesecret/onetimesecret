@@ -5,23 +5,37 @@
     "signup": true,
     "signin": true,
     "autoverify": false,
-    "colonels": ["example@onetime.dev"]
+    "colonels": ["delbo@solutious.com"]
   },
-  "shrimp": "3kolsfjf27p5hp87xiugslowt2kejy9pwnthd4ggvttnpswnwc",
+  "shrimp": "39epbmm7300eqxpcmw6o4318bsygqjqep2kldwgfw2uetq9rmb",
   "regions_enabled": true,
   "regions": {
     "enabled": true,
     "current_jurisdiction": "EU",
     "jurisdictions": [
       {
-        "identifier": "AT",
-        "display_name": "Atat Region",
-        "domain": "at.example.com"
+        "identifier": "EU",
+        "display_name": "European Union",
+        "domain": "eu.onetimesecret.com",
+        "icon": { "collection": "fa6-solid", "name": "earth-europe" }
       },
       {
-        "identifier": "CE",
-        "display_name": "CECE Region",
-        "domain": "ce.example.com"
+        "identifier": "CA",
+        "display_name": "Canada",
+        "domain": "ca.onetimesecret.com",
+        "icon": { "collection": "fa6-solid", "name": "earth-oceania" }
+      },
+      {
+        "identifier": "NZ",
+        "display_name": "Aotearoa New Zealand",
+        "domain": "nz.onetimesecret.com",
+        "icon": { "collection": "fa6-solid", "name": "earth-oceania" }
+      },
+      {
+        "identifier": "US",
+        "display_name": "United States",
+        "domain": "us.onetimesecret.com",
+        "icon": { "collection": "fa6-solid", "name": "earth-americas" }
       }
     ]
   },
@@ -33,6 +47,7 @@
   "custom_domains": null,
   "plans_enabled": true,
   "locale": "en",
+  "is_default_locale": true,
   "default_locale": "en",
   "fallback_locale": {
     "fr-CA": ["fr_CA", "fr_FR", "en"],
@@ -46,7 +61,7 @@
   "support_host": "https://docs.onetime.dev",
   "secret_options": {
     "default_ttl": 604800.0,
-    "ttl_options": [300, 1800, 3600, 14400, 43200, 86400, 259200, 604800, 1209600, 2592000]
+    "ttl_options": [60, 300, 1800, 3600, 14400, 43200, 86400, 259200, 604800, 1209600, 2592000]
   },
   "frontend_host": "http:&#x2F;&#x2F;localhost:5173",
   "authenticated": false,
@@ -57,7 +72,7 @@
   "domain_branding": null,
   "domain_logo": null,
   "display_domain": "dev.onetime.dev",
-  "ot_version": "0.20.4 ()",
+  "ot_version": "0.20.4 (45fb50aa)",
   "ruby_version": "ruby-341",
   "messages": [],
   "available_plans": {
