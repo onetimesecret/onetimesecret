@@ -95,8 +95,6 @@ module Rack
         '127.0.0.1',
         '::1',
       ].freeze
-
-      IP_PATTERN = /\A(\d{1,3}\.){3}\d{1,3}\z|\A[0-9a-fA-F:]+\z/
     end
 
     attr_reader :logger
@@ -144,7 +142,7 @@ module Rack
         host = self.class.normalize_host(env[header_key])
         next if host.nil?
 
-        if self.class.valid_host?(host)
+        if self.class.valid_domain_name?(host)
           detected_host = host
           logger.debug("[DetectHost] #{host} via #{header_key}")
           break # stop on first valid host
@@ -188,17 +186,16 @@ module Rack
         host
       end
 
-      # Determines if a host string is valid for use.
+      # Determines if a string is a valid host for use in this application.
       #
       # @param host [String] The host to validate
-      # @return [Boolean] true if the host is valid, false otherwise
+      # @return [Boolean] true if the host is a valid domain name
       #
-      # A valid host:
-      # - Is not in the INVALID_HOSTS list
-      # - Is not an IP address (must be a domain name)
-      def valid_host?(host)
+      # Note: This method intentionally rejects IP addresses as we require
+      # domain names for our application's routing logic.
+      def valid_domain_name?(host)
         return false if INVALID_HOSTS.include?(host)
-        return false if host.match?(IP_PATTERN)
+        return false if valid_ip?
         true
       end
 
@@ -238,6 +235,10 @@ module Rack
         false
       end
 
+      # Determines if a string represents a valid IP address.
+      #
+      # @param ip_string [String] String to check
+      # @return [Boolean] true if the string is a valid IP address
       def valid_ip?(ip_string)
         return false if ip_string.to_s.empty?
 
