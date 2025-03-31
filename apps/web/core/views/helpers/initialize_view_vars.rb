@@ -1,11 +1,11 @@
-# apps/web/core/views/helpers/initialize_vars.rb
+# apps/web/core/views/helpers/initialize_view_vars.rb
 
 module Core
   module Views
     # InitializeViewVars
     #
     # This module is meant to be extended and not included. That's why
-    # initialize_vars takes the arguments it does instead of relying on
+    # initialize_view_vars takes the arguments it does instead of relying on
     # instance variables and their attr_reader methods.
     module InitializeViewVars
       # Initialize core variables used throughout view rendering. These values
@@ -18,7 +18,7 @@ module Core
       # @param locale [String] Current locale
       # @param i18n_instance [I18n] Current I18n instance
       # @return [Hash] Collection of initialized variables
-      def initialize_vars(req, sess, cust, locale, i18n_instance)
+      def initialize_view_vars(req, sess, cust, locale, i18n_instance)
 
         # Extract the top-level keys from the YAML configuration
         site = OT.conf.fetch(:site, {})

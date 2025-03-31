@@ -37,7 +37,10 @@ module Core
         @messages = []
 
         @i18n_instance = self.i18n
-        @view_vars = self.class.initialize_vars(req, sess, cust, locale, i18n_instance)
+        @messages = []
+
+        # We use a class helper method to initialize view variables
+        @view_vars = self.class.initialize_view_vars(req, sess, cust, locale, i18n_instance)
 
         # Make the view-relevant variables available to the view and HTML template
         @view_vars.each do |key, value|
