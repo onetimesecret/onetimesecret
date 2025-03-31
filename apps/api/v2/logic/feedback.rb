@@ -84,8 +84,8 @@ module V2
           record: {
           },
           details: {
-            message: "Message received. Send as much as you like!"
-          }
+            message: "Message received. Send as much as you like!",
+          },
         }
       end
 

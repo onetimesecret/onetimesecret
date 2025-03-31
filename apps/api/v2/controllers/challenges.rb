@@ -124,7 +124,7 @@ module V2
             challenge: challenge.challenge,
             number: number,
             salt: challenge.salt,
-            signature: challenge.signature
+            signature: challenge.signature,
           }
         end
       end

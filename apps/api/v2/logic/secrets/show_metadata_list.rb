@@ -47,8 +47,8 @@ module V2::Logic
             now: now,
             has_items: has_items,
             received: received,
-            notreceived: notreceived
-          }
+            notreceived: notreceived,
+          },
         }
       end
     end

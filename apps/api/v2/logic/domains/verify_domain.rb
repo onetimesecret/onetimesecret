@@ -50,7 +50,7 @@ module V2::Logic
         records = [{
           type: 'TXT',
           address: custom_domain.validation_record,
-          match_against: custom_domain.txt_validation_value
+          match_against: custom_domain.txt_validation_value,
         }]
         OT.info "[VerifyDomain.refresh_txt_record_status] %s" % records
         res = Onetime::Cluster::Approximated.check_records_match_exactly(api_key, records)

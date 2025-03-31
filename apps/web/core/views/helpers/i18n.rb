@@ -57,7 +57,7 @@ module Core
           locale: locale,
           default: OT.default_locale,
           page: page_messages,
-          COMMON: common_messages
+          COMMON: common_messages,
         }
 
         @i18n_cache[locale] = result

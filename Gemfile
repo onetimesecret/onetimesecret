@@ -63,12 +63,12 @@ gem 'base64'
 gem 'syslog', '~> 0.3.0'
 
 # As of Ruby 3.5, these are no longer in the standard library
+gem 'benchmark' # Used in tests
 gem 'fiddle'    # Fiddle library for handling dynamic libraries (required by reline)
 gem 'irb'       # IRB
 gem 'logger'    # Logger library for logging messages (required by truemail)
 gem 'ostruct'   # OpenStruct library for creating data objects (required by json)
 gem 'rdoc'      # IRB
-gem 'benchmark' # Used in tests
 gem 'reline'
 
 # Third-party services

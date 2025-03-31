@@ -47,7 +47,7 @@ module V2::Logic
         {
           custid: @cust.custid,
           record: {},
-          message: "Removed #{display_domain}"
+          message: "Removed #{display_domain}",
         }
       end
     end

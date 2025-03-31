@@ -96,7 +96,7 @@ module Onetime::Mail
             :user_name => OT.conf[:emailer][:user],
             :password  => OT.conf[:emailer][:pass],
             :authentication => OT.conf[:emailer][:auth],
-            :enable_starttls_auto => OT.conf[:emailer][:tls].to_s == 'true'
+            :enable_starttls_auto => OT.conf[:emailer][:tls].to_s == 'true',
           }
         end
       end

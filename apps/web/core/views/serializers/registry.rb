@@ -70,12 +70,12 @@ module Core
         end
 
         # TSort interface implementation
-        def tsort_each_node(&block)
-          serializers.each(&block)
+        def tsort_each_node(&)
+          serializers.each(&)
         end
 
-        def tsort_each_child(node, &block)
-          dependencies.fetch(node, []).each(&block)
+        def tsort_each_child(node, &)
+          dependencies.fetch(node, []).each(&)
         end
       end
 

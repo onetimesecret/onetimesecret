@@ -217,7 +217,8 @@ module V1
         related_names = self.class.redis_types.keys
         OT.ld "[destroy!] #{self.class} has relations: #{related_names}"
 
-        related_keys = related_names.filter_map do |name|generate_txt_validation_record
+        related_keys = related_names.filter_map do |name|
+                         generate_txt_validation_record
           relation = send(name) # e.g. self.brand
           relation.rediskey
         end

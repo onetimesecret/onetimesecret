@@ -28,28 +28,28 @@ module Onetime::Mail
           # Prepare the email parameters
           email_params = {
             destination: {
-              to_addresses: [to_email]
+              to_addresses: [to_email],
             },
             content: {
               simple: {
                 subject: {
                   data: subject,
-                  charset: 'UTF-8'
+                  charset: 'UTF-8',
                 },
                 body: {
                   html: {
                     data: html_content,
-                    charset: 'UTF-8'
+                    charset: 'UTF-8',
                   },
                   text: {
                     data: text_content,
-                    charset: 'UTF-8'
-                  }
-                }
-              }
+                    charset: 'UTF-8',
+                  },
+                },
+              },
             },
             from_email_address: sender_email,
-            reply_to_addresses: [reply_to]
+            reply_to_addresses: [reply_to],
           }
 
           # Send the email

@@ -23,7 +23,7 @@ module V2
         authorized do
           response = {
             record: cust.safe_dump,
-            details: { authenticated: sess.authenticated? }
+            details: { authenticated: sess.authenticated? },
           }
           json response
         end
@@ -85,7 +85,7 @@ module V2
 
             ret = {
               isValid: is_valid,
-              shrimp: sess.shrimp
+              shrimp: sess.shrimp,
             }
             json ret
           end

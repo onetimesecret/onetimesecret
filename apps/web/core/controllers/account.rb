@@ -61,7 +61,7 @@ module Core
             # When calling `encode_www_form` the list gets expanded into N query
             # parameters where N is the number of elements in the list. So a list
             # with 2 items `[en, en-US]` becomes `locale=en&locale=en-US`.
-            locale: req.env['rack.locale']
+            locale: req.env['rack.locale'],
           }
 
           # Adding the existing customer details streamlines the payment flow
@@ -174,7 +174,7 @@ module Core
             # Create a Stripe Customer Portal session
             session = Stripe::BillingPortal::Session.create({
                                                               customer: customer_id,
-              return_url: return_url
+              return_url: return_url,
                                                             })
 
             # Continue the redirect

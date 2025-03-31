@@ -26,7 +26,7 @@ module Onetime::StripeRefinements
           {
             price_id: item.price.id,
             price_nickname: item.price.nickname,
-            quantity: item.quantity
+            quantity: item.quantity,
           }
         end
       }},
@@ -45,7 +45,7 @@ module Onetime::StripeRefinements
           nickname: sub.plan.nickname,
           amount: sub.plan.amount,
           interval: sub.plan.interval,
-          interval_count: sub.plan.interval_count
+          interval_count: sub.plan.interval_count,
         } : nil
       }},
     ]
@@ -90,7 +90,7 @@ module Onetime::StripeRefinements
           line1: cust.address.line1,
           line2: cust.address.line2,
           postal_code: cust.address.postal_code,
-          state: cust.address.state
+          state: cust.address.state,
         } : nil
       }},
 

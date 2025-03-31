@@ -35,7 +35,7 @@ module Onetime
         MINOR: main_version_parts[1],
         PATCH: main_version_parts[2],
         PRE: version_parts[1], # Pre-release version if present
-        BUILD: get_build_info
+        BUILD: get_build_info,
       }
     end
 

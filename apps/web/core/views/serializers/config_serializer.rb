@@ -53,7 +53,7 @@ module Core
         Onetime.with_diagnostics do
           output[:diagnostics] = {
             # e.g. {dsn: "https://...", ...}
-            sentry: sentry.fetch(:frontend, {})
+            sentry: sentry.fetch(:frontend, {}),
           }
         end
 

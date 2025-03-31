@@ -29,7 +29,7 @@ module Onetime
             cluster_ip: Features.cluster_ip,
             cluster_name: Features.cluster_name,
             cluster_host: Features.cluster_host,
-            vhost_target: Features.vhost_target
+            vhost_target: Features.vhost_target,
           }
         end
       end
@@ -143,7 +143,7 @@ module Onetime
           redirect_www: false,
           redirect: false,
           exact_match: false,
-          keep_host: nil
+          keep_host: nil,
         }
         post_options = default_options.merge(options)
 
@@ -156,7 +156,7 @@ module Onetime
             redirect: post_options[:redirect],
             exact_match: post_options[:exact_match],
             redirect_www: post_options[:redirect_www],
-            keep_host: post_options[:keep_host]
+            keep_host: post_options[:keep_host],
           }.to_json)
 
         case response.code
@@ -266,7 +266,7 @@ module Onetime
           redirect_www: true,
           redirect: false,
           exact_match: false,
-          keep_host: nil
+          keep_host: nil,
         }
         post_options = default_options.merge(options)
 
@@ -280,7 +280,7 @@ module Onetime
             redirect: post_options[:redirect],
             exact_match: post_options[:exact_match],
             redirect_www: post_options[:redirect_www],
-            keep_host: post_options[:keep_host]
+            keep_host: post_options[:keep_host],
           }.to_json)
 
         case response.code

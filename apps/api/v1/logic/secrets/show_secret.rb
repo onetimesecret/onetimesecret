@@ -95,8 +95,8 @@ module V1::Logic
             show_secret: @show_secret,
             correct_passphrase: @correct_passphrase,
             display_lines: @display_lines,
-            one_liner: @one_liner
-          }
+            one_liner: @one_liner,
+          },
         }
 
         # Add the secret_value only if the secret is viewable

@@ -57,7 +57,7 @@ module Onetime
       Kernel.exit(1)
     end
 
-    def after_load(conf = nil)
+    def after_load(conf = nil) # rubocop:disable Metrics/MethodLength,Metrics/PerceivedComplexity
       conf ||= {}
 
       unless conf.key?(:development)
@@ -112,7 +112,7 @@ module Onetime
 
       conf[:site][:interface] = {
         ui: { enabled: true },
-        api: { enabled: true }
+        api: { enabled: true },
       }.merge(conf[:site][:interface])
 
       # Make sure colonels are in their proper location since previously
@@ -197,7 +197,7 @@ module Onetime
       merged = apply_defaults(diagnostics[:sentry])
       conf[:diagnostics] = {
         enabled: OT.d9s_enabled,
-        sentry: merged
+        sentry: merged,
       }
 
       sentry = merged[:backend] || {}
@@ -327,6 +327,6 @@ module Onetime
     blocked_mx_ip_addresses: :blacklisted_mx_ip_addresses,
 
     # An example mapping for testing.
-    example_internal_key: :example_external_key
+    example_internal_key: :example_external_key,
   }
 end

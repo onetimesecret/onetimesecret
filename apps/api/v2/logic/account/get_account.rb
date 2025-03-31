@@ -64,7 +64,7 @@ module V2::Logic
           description: stripe_customer.description,
           balance: stripe_customer.balance,
           created: stripe_customer.created,
-          metadata: stripe_customer.metadata
+          metadata: stripe_customer.metadata,
         }
       end
 
@@ -80,8 +80,8 @@ module V2::Logic
             amount: stripe_subscription.plan.amount,
             currency: stripe_subscription.plan.currency,
             interval: stripe_subscription.plan.interval,
-            product: stripe_subscription.plan.product
-          }
+            product: stripe_subscription.plan.product,
+          },
         }
       end
 
@@ -92,9 +92,9 @@ module V2::Logic
             apitoken: cust.apitoken,
             cust: cust.safe_dump,
             stripe_customer: nil,
-            stripe_subscriptions: nil
+            stripe_subscriptions: nil,
           },
-          details: {}
+          details: {},
         }
 
         if show_stripe_section?

@@ -59,7 +59,7 @@ module Onetime
             auth: conf.fetch(:auth, nil), # auth type
             region: conf.fetch(:region, nil),
             pass: "has password: #{password_is_present}",
-            locale: locale.to_s
+            locale: locale.to_s,
           }
 
           OT.info "[mailer] #{mode} #{logsafe_config.to_json}"
@@ -104,7 +104,7 @@ module Onetime
           {
             locale: locale,
             email: locale_data[:email][pagename],
-            COMMON: locale_data[:web][:COMMON]
+            COMMON: locale_data[:web][:COMMON],
           }
         end
 
