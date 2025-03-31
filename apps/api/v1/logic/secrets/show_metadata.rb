@@ -27,7 +27,7 @@ module V1::Logic
         raise OT::MissingSecret if metadata.nil?
       end
 
-      def process
+      def process # rubocop:disable Metrics/MethodLength,Metrics/PerceivedComplexity
         @secret = @metadata.load_secret
 
         @metadata_key = metadata.key
@@ -168,7 +168,7 @@ module V1::Logic
       def success_data
         {
           record: metadata_attributes,
-          details: ancillary_attributes
+          details: ancillary_attributes,
         }
       end
 
@@ -192,7 +192,7 @@ module V1::Logic
           metadata_path: metadata_path,
           share_url: share_url,
           metadata_url: metadata_url,
-          burn_url: burn_url
+          burn_url: burn_url,
         })
 
         attributes
@@ -215,7 +215,7 @@ module V1::Logic
           show_secret_link: show_secret_link,
           show_metadata_link: show_metadata_link,
           show_metadata: show_metadata,
-          show_recipients: show_recipients
+          show_recipients: show_recipients,
         }
       end
 

@@ -69,7 +69,7 @@ view = Core::Views::VuePoint.new(@req, @sess, @cust, 'en', @metadata)
 
 ## Sets authentication status correctly
 view = Core::Views::VuePoint.new(@req, @sess, @cust, 'en', @metadata)
-authenticated_value = view[:jsvars][:authenticated]
+authenticated_value = view.serialized_data[:authenticated]
 authenticated_value
 #=> true
 
@@ -77,7 +77,7 @@ authenticated_value
 unauthenticated_sess = MockSession.new
 def unauthenticated_sess.authenticated?; false; end
 view = Core::Views::VuePoint.new(@req, unauthenticated_sess, V1::Customer.anonymous, 'en', @metadata)
-authenticated_value = view[:jsvars][:authenticated]
+authenticated_value = view.serialized_data[:authenticated]
 authenticated_value
 #=> false
 

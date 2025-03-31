@@ -58,7 +58,7 @@ module V1
         {
           browser: agent.split('/')[0],
           version: agent.split('/')[1],
-          mobile: agent.downcase.match?(/mobile|android|iphone/i)
+          mobile: agent.downcase.match?(/mobile|android|iphone/i),
         }
       }},
 
@@ -69,7 +69,7 @@ module V1
         {
           path: uri.path,
           query: uri.query,
-          hostname: uri.host
+          hostname: uri.host,
         }
       }},
 

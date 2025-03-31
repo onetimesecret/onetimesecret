@@ -27,7 +27,7 @@ OT.boot! :test, false
 @num = rand(1000)
 
 class TestHelper
-  include Core::ViewHelpers
+  include Core::Views::SanitizerHelpers
   attr_reader :num
 
   def initialize(num)

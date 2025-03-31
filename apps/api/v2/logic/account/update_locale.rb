@@ -21,7 +21,7 @@ module V2::Logic
       def success_data
         {
           new_locale: new_locale,
-          old_locale: old_locale
+          old_locale: old_locale,
         }
       end
 

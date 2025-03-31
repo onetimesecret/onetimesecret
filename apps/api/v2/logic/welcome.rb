@@ -22,7 +22,7 @@ module V2::Logic
           stripe_checkout_email: checkout_email,
           stripe_subscription_id: checkout_session.subscription,
           stripe_customer_id: checkout_session.customer,
-          planid: 'identity'
+          planid: 'identity',
         }
 
       end

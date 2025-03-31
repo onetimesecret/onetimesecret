@@ -46,13 +46,13 @@ module V1::Logic
           record: {
             metadata: metadata.safe_dump,
             secret: secret.safe_dump,
-            share_domain: share_domain
+            share_domain: share_domain,
           },
           details: {
             kind: kind,
             recipient: recipient,
-            recipient_safe: recipient_safe
-          }
+            recipient_safe: recipient_safe,
+          },
         }
       end
 
@@ -62,7 +62,7 @@ module V1::Logic
           secret: secret_value,
           recipient: recipient,
           ttl: ttl,
-          kind: kind
+          kind: kind,
         }
       end
 

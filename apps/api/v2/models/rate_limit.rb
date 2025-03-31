@@ -95,7 +95,7 @@ module V2
       count = redis.incr(rediskey)
       update_expiration
       limit = self.class.event_limit(event)
-      OT.ld "[OT] #{external_identifier} #{event} #{count}/#{limit}"
+      OT.ld "[#{self.class}#incr!] #{external_identifier} #{event} #{count}/#{limit}"
       if self.class.exceeded?(event, count)
         raise Onetime::LimitExceeded.new(external_identifier, event, count)
       end

@@ -20,7 +20,7 @@ module V2
     # handle errors, redirects, and other exceptions here to ensure that
     # we respond consistently to all requests. That's why we integrate
     # Sentry here rather than app specific logic.
-    def carefully(redirect=nil, content_type=nil, app: :web) # rubocop:disable Metrics/MethodLength
+    def carefully(redirect=nil, content_type=nil, app: :web) # rubocop:disable Metrics/MethodLength,Metrics/PerceivedComplexity
       redirect ||= req.request_path unless app == :api
       content_type ||= 'text/html; charset=utf-8'
 

@@ -63,7 +63,7 @@ module V1::Logic
           metadata_path: build_path(:private, metadata.key),
           share_url: build_url(baseuri, build_path(:secret, metadata.secret_key)),
           metadata_url: build_url(baseuri, build_path(:private, metadata.key)),
-          burn_url: build_url(baseuri, build_path(:private, metadata.key, 'burn'))
+          burn_url: build_url(baseuri, build_path(:private, metadata.key, 'burn')),
         })
 
         {
@@ -86,8 +86,8 @@ module V1::Logic
             show_metadata_link: false,
             show_metadata: true,
             show_recipients: !metadata.recipients.to_s.empty?,
-            is_orphaned: false
-          }
+            is_orphaned: false,
+          },
         }
       end
 

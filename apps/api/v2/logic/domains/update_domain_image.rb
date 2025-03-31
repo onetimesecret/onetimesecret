@@ -113,8 +113,8 @@ module V2::Logic
         {
           record: _image_field.hgetall,
           details: {
-            msg: "Image updated successfully for #{@custom_domain.display_domain}"
-          }
+            msg: "Image updated successfully for #{@custom_domain.display_domain}",
+          },
         }
       end
 

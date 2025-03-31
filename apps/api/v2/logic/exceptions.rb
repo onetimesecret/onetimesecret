@@ -21,7 +21,7 @@ module V2::Logic
         # Context data
         environment: params[:environment].to_s.slice(0, 50) || 'production',
         release: params[:release].to_s.slice(0, 50),
-        user: cust.anonymous? ? sess.ipaddress : cust.custid
+        user: cust.anonymous? ? sess.ipaddress : cust.custid,
       }.compact
     end
 
@@ -63,8 +63,8 @@ module V2::Logic
         success: greenlighted,
         record: exception.safe_dump,
         details: {
-          message: "Exception logged"
-        }
+          message: "Exception logged",
+        },
       }
     end
 

@@ -59,8 +59,8 @@ require 'rack/content_length'
 require 'rack/contrib'
 
 require_relative 'apps/app_registry'
-require_relative 'lib/middleware'
 require_relative 'lib/onetime'
+require_relative 'lib/onetime/middleware'
 
 # Load all applications
 AppRegistry.load_applications

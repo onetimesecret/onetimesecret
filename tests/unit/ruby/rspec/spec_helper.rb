@@ -16,8 +16,8 @@ SimpleCov.start if ENV['COVERAGE']
 base_path = File.expand_path('../../../../..', __FILE__)
 apps_root = File.join(base_path, 'apps').freeze
 
-# Add the apps dirs to the load path. This allows us
-# to require 'v2/logic' naturally.
+# Add the apps dirs to the load path. This allows us to require
+# 'v2/logic' naturally (without needing the 'apps/api' prefix).
 $LOAD_PATH.unshift(File.join(apps_root, 'api'))
 $LOAD_PATH.unshift(File.join(apps_root, 'web'))
 

@@ -44,7 +44,7 @@ module V2::Logic
         {
           record: image.hgetall,  # encoded filename content_type
           details: {
-          }
+          },
         }
       end
 

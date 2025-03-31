@@ -17,7 +17,6 @@ export const stateFixture: OnetimeWindow = {
   email: 'test@example.com',
   frontend_host: 'https://dev.onetimesecret.com',
 
-  is_default_locale: false,
   fallback_locale: 'en',
   default_locale: 'en',
   locale: 'en',

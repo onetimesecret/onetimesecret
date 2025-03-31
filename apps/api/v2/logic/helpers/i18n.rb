@@ -36,7 +36,7 @@ module V2
         result = {
           locale: locale,
           email: locale_data[:email] || {},
-          web: locale_data[:web] || {}
+          web: locale_data[:web] || {},
         }
 
         # Cache for this specific locale

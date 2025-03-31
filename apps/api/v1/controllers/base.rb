@@ -24,7 +24,7 @@ module V1
 
     # curl -F 'ttl=7200' -u 'EMAIL:APITOKEN' http://LOCALHOSTNAME:3000/api/v1/generate
     def authorized allow_anonymous=false
-      carefully(redirect=nil, content_type='application/json', app: :api) do
+      carefully(redirect=nil, content_type='application/json', app: :api) do # rubocop:disable Metrics/BlockLength,Metrics/PerceivedComplexity
         check_locale!
 
         req.env['otto.auth'] ||= Rack::Auth::Basic::Request.new(req.env)

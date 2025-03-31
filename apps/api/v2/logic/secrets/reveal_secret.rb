@@ -24,7 +24,7 @@ module V2::Logic
         raise OT::MissingSecret if secret.nil? || !secret.viewable?
       end
 
-      def process
+      def process # rubocop:disable Metrics/MethodLength,Metrics/PerceivedComplexity
         @correct_passphrase = secret.passphrase?(passphrase)
         @show_secret = secret.viewable? && (correct_passphrase || !secret.has_passphrase?) && continue
         @verification = secret.verification.to_s == "true"
@@ -113,8 +113,8 @@ module V2::Logic
             show_secret: @show_secret,
             correct_passphrase: @correct_passphrase,
             display_lines: @display_lines,
-            one_liner: @one_liner
-          }
+            one_liner: @one_liner,
+          },
         }
 
         # Add the secret_value only if the secret is viewable

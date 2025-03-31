@@ -30,6 +30,10 @@ AllCops:
     - 'tests/unit/ruby/rspec/**/*'
     - 'vendor/**/*'
 
+Style/TrailingCommaInHashLiteral:
+  Enabled: true
+  EnforcedStyleForMultiline: comma
+
 Layout/MultilineMethodCallIndentation:
   EnforcedStyle: indented
 

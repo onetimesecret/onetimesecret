@@ -93,7 +93,7 @@ module V2
           :created => hsh['created']&.to_i,
           :received => hsh['received']&.to_i, # empty fields become 0
           :recipient => recipient,
-          :share_domain => hsh['share_domain']
+          :share_domain => hsh['share_domain'],
         }
         if ret[:state] == 'received'
           ret.delete :secret_ttl

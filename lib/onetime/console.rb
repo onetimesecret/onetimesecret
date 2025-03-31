@@ -27,7 +27,7 @@ if defined?(IRB)
     PROMPT_S: "%l ",   # The prompt for continuing strings
     PROMPT_C: "↳  ",    # The prompt for continuing statements
     PROMPT_N: "⇢  ",    # The prompt for nested statements
-    RETURN: "⮑  %s\n"         # The format for return values
+    RETURN: "⮑  %s\n",         # The format for return values
   }
 
   # Set the global prompt mode to :ONETIME

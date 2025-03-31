@@ -37,7 +37,6 @@ module V1
           require_relative 'models'
 
           V1::RateLimit.register_events OT.conf[:limits]
-          OT.li "rate limits: #{V1::RateLimit.events.map { |k,v| "#{k}=#{v}" }.join(', ')}"
 
           # Log warmup completion
           Onetime.li "V1 warmup completed"

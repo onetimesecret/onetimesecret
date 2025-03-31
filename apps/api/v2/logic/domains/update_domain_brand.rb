@@ -49,7 +49,7 @@ module V2::Logic
         {
           custid: @cust.custid,
           record: @custom_domain.safe_dump.fetch(:brand, {}),
-          details: {}
+          details: {},
         }
       end
 

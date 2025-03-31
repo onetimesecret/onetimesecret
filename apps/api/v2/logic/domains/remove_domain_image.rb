@@ -42,8 +42,8 @@ module V2::Logic
         {
           record: nil,
           details: {
-            msg: "Image removed successfully for #{@custom_domain.display_domain}"
-          }
+            msg: "Image removed successfully for #{@custom_domain.display_domain}",
+          },
         }
       end
 

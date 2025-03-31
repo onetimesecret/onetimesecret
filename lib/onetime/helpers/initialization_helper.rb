@@ -100,7 +100,7 @@ module Onetime
           region: email_config[:region],
           user: email_config[:user],
           tls: email_config[:tls],
-          auth: email_config[:auth] # this is an smtp feature and not credentials
+          auth: email_config[:auth], # this is an smtp feature and not credentials
         }.map { |k,v| "#{k}=#{v}" }.join(', ')
         OT.li "mailer: #{@emailer}"
         OT.li "mail: #{mail_settings}"

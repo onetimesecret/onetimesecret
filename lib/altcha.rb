@@ -45,7 +45,7 @@ module Altcha
         challenge: @challenge,
         maxnumber: @maxnumber,
         salt: @salt,
-        signature: @signature
+        signature: @signature,
       }.to_json(options)
     end
 
@@ -71,7 +71,7 @@ module Altcha
         challenge: @challenge,
         number: @number,
         salt: @salt,
-        signature: @signature
+        signature: @signature,
       }.to_json(options)
     end
 
@@ -96,7 +96,7 @@ module Altcha
         algorithm: @algorithm,
         verificationData: @verification_data,
         signature: @signature,
-        verified: @verified
+        verified: @verified,
       }.to_json(options)
     end
 

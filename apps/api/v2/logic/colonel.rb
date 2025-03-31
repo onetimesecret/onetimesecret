@@ -66,7 +66,7 @@ module V2::Logic
             secrets_shared: this_cust.secrets_shared,
             emails_sent: this_cust.emails_sent,
             verified: this_cust.verified?,
-            stamp: natural_time(this_cust.created) || '[no create stamp]'
+            stamp: natural_time(this_cust.created) || '[no create stamp]',
           }
         end.compact.reverse
 
@@ -122,9 +122,9 @@ module V2::Logic
               feedback_count: feedback_count,
               today_feedback_count: today_feedback_count,
               yesterday_feedback_count: yesterday_feedback_count,
-              older_feedback_count: older_feedback_count
-            }
-          }
+              older_feedback_count: older_feedback_count,
+            },
+          },
         }
       end
 

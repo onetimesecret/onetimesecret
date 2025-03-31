@@ -36,6 +36,8 @@ module V2
           require_relative 'logic'
           require_relative 'models'
 
+          V2::RateLimit.register_events OT.conf[:limits]
+
           # Log warmup completion
           Onetime.li "V2 warmup completed"
         end
@@ -45,7 +47,8 @@ module V2
         use Rack::DetectHost
 
         # Applications middleware stack
-        use Onetime::DomainStrategy
+        use Onetime::DomainStrategy # after DetectHost
+        use Rack::JSONBodyParser
 
         # Application router
         run router_instance
