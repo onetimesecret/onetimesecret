@@ -105,12 +105,13 @@ end
 # Optional alternate server - install with: bundle install --with optional
 #
 # Start with:
-# RUBY_YJIT_ENABLE=1 bundle exec puma -p 7143 -t 4:16 -w 2
+#   $ RUBY_YJIT_ENABLE=1 bundle exec puma -p 7143 -t 4:16 -w 2
+#
 # Arguments explained:
 #   RUBY_YJIT_ENABLE=1  - Enable Ruby's JIT compiler for better performance
 #   -p 7143             - Run on port 7143
 #   -t 4:16             - Use min 4, max 16 threads per worker
 #   -w 2                - Run 2 worker processes (clustered mode)
 group :optional do
-  gem 'puma'
+  gem 'puma', '~> 6.6'
 end
