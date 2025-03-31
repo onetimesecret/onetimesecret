@@ -33,19 +33,21 @@ module Core
         output
       end
 
-      private
+      class << self
+        private
 
-      # Provides the base template for plan serializer output
-      #
-      # @return [Hash] Template with all possible plan output fields
-      def self.output_template
-        {
-          plan: nil,
-          is_paid: nil,
-          default_planid: nil,
-          available_plans: nil,
-          plans_enabled: nil,
-        }
+        # Provides the base template for plan serializer output
+        #
+        # @return [Hash] Template with all possible plan output fields
+        def output_template
+          {
+            plan: nil,
+            is_paid: nil,
+            default_planid: nil,
+            available_plans: nil,
+            plans_enabled: nil,
+          }
+        end
       end
 
       SerializerRegistry.register(self)

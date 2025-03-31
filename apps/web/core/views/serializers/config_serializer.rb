@@ -60,29 +60,31 @@ module Core
         output
       end
 
-      private
+      class << self
+        private
 
-      # Provides the base template for configuration serializer output
-      #
-      # @return [Hash] Template with all possible configuration output fields
-      def self.output_template
-        {
-          authentication: nil,
-          d9s_enabled: nil,
-          diagnostics: nil,
-          domains: nil,
-          domains_enabled: nil,
-          frontend_development: nil,
-          frontend_host: nil,
-          incoming_recipient: nil,
-          plans_enabled: nil,
-          regions: nil,
-          regions_enabled: nil,
-          secret_options: nil,
-          site_host: nil,
-          support_host: nil,
-          ui: nil,
-        }
+        # Provides the base template for configuration serializer output
+        #
+        # @return [Hash] Template with all possible configuration output fields
+        def output_template
+          {
+            authentication: nil,
+            d9s_enabled: nil,
+            diagnostics: nil,
+            domains: nil,
+            domains_enabled: nil,
+            frontend_development: nil,
+            frontend_host: nil,
+            incoming_recipient: nil,
+            plans_enabled: nil,
+            regions: nil,
+            regions_enabled: nil,
+            secret_options: nil,
+            site_host: nil,
+            support_host: nil,
+            ui: nil,
+          }
+        end
       end
 
       SerializerRegistry.register(self)

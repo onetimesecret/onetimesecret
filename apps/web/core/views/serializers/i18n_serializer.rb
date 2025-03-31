@@ -26,19 +26,21 @@ module Core
         output
       end
 
-      private
+      class << self
+        private
 
-      # Provides the base template for i18n serializer output
-      #
-      # @return [Hash] Template with all possible i18n output fields
-      def self.output_template
-        {
-          locale: nil,
-          default_locale: nil,
-          fallback_locale: nil,
-          supported_locales: [],
-          i18n_enabled: nil,
-        }
+        # Provides the base template for i18n serializer output
+        #
+        # @return [Hash] Template with all possible i18n output fields
+        def output_template
+          {
+            locale: nil,
+            default_locale: nil,
+            fallback_locale: nil,
+            supported_locales: [],
+            i18n_enabled: nil,
+          }
+        end
       end
 
       SerializerRegistry.register(self)

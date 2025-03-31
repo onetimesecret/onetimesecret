@@ -48,20 +48,22 @@ module Core
         output
       end
 
-      private
+      class << self
+        private
 
-      # Provides the base template for authentication serializer output
-      #
-      # @return [Hash] Template with all possible authentication output fields
-      def self.output_template
-        {
-          authenticated: 'plop',
-          custid: nil,
-          cust: nil,
-          email: nil,
-          customer_since: nil,
-          custom_domains: nil,
-        }
+        # Provides the base template for authentication serializer output
+        #
+        # @return [Hash] Template with all possible authentication output fields
+        def output_template
+          {
+            authenticated: 'plop',
+            custid: nil,
+            cust: nil,
+            email: nil,
+            customer_since: nil,
+            custom_domains: nil,
+          }
+        end
       end
 
       SerializerRegistry.register(self)

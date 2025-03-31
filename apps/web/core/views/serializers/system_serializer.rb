@@ -25,20 +25,21 @@ module Core
         output
       end
 
-      private
+      class << self
+        private
 
-      # Provides the base template for system serializer output
-      #
-      # @return [Hash] Template with all possible system output fields
-      def self.output_template
-        {
-          ot_version: nil,
-          ruby_version: nil,
-          shrimp: nil,
-          nonce: nil,
-        }
+        # Provides the base template for system serializer output
+        #
+        # @return [Hash] Template with all possible system output fields
+        def output_template
+          {
+            ot_version: nil,
+            ruby_version: nil,
+            shrimp: nil,
+            nonce: nil,
+          }
+        end
       end
-
       SerializerRegistry.register(self)
     end
   end

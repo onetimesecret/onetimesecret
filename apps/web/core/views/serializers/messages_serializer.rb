@@ -23,16 +23,18 @@ module Core
         output
       end
 
-      private
+      class << self
+        private
 
-      # Provides the base template for messages serializer output
-      #
-      # @return [Hash] Template with all possible message output fields
-      def self.output_template
-        {
-          messages: [],
-          global_banner: nil,
-        }
+        # Provides the base template for messages serializer output
+        #
+        # @return [Hash] Template with all possible message output fields
+        def output_template
+          {
+            messages: [],
+            global_banner: nil,
+          }
+        end
       end
 
       SerializerRegistry.register(self)
