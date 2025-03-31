@@ -262,7 +262,7 @@ DEPENDENCIES
   pry-byebug
   psych (~> 5.2.3)
   public_suffix
-  puma
+  puma (~> 6.6)
   rack (>= 2.2.12, < 3.0)
   rack-contrib (~> 2.5)
   rack-proxy
