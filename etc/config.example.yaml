@@ -120,6 +120,12 @@
     :rate_limit: <%= ENV['REDIS_DBS_RATE_LIMIT'] || 2 %>
     :feedback: <%= ENV['REDIS_DBS_FEEDBACK'] || 11 %>
     :exception_info: <%= ENV['REDIS_DBS_EXCEPTION_INFO'] || 12 %>
+
+# Logging Configuration
+:logger:
+  # Enable or disable request logging via Rack::CommonLogger
+  :logRequests: <%= ENV['LOG_REQUESTS'] == 'false' || true %>
+
 # Sending Emails
 :emailer:
   # Local Development with Mailpit

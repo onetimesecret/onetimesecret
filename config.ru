@@ -71,7 +71,10 @@ BaseApplication.register_applications
 Onetime.boot! :app
 
 # Common middleware for all applications
-use Rack::CommonLogger
+if defined?(OT) && OT.conf.dig(:logger, :logRequests)
+  OT.li "[config.ru] Request logging with Rack::CommonLogger enabled"
+  use Rack::CommonLogger
+end
 use Rack::ContentLength
 
 # If Sentry is not successfully enabled, the `Sentry` client is not
