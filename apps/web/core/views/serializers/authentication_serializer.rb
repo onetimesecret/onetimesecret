@@ -9,15 +9,16 @@ module Core
       def self.serialize(view_vars, i18n)
         output = self.output_template
 
-        authenticated = view_vars[:authenticated]
-        cust = view_vars[:cust]
+        output[:authenticated] = view_vars[:authenticated]
+        output[:cust] = view_vars[:cust] || V2::Customer.anonymous
 
-        if authenticated && cust
-          output[:authenticated] = authenticated
-          output[:custid] = authenticated ? cust.custid : nil
-          output[:cust] = authenticated ? cust.safe_dump : nil
-          output[:email] = authenticated ? cust.email : nil
-          output[:customer_since] = authenticated ? OT::TimeUtils.epochdom(cust.created) : nil
+        if output[:authenticated]
+          cust = output[:cust]
+
+          output[:custid] = cust.custid
+          output[:cust] = cust.safe_dump
+          output[:email] = cust.email
+          output[:customer_since] = OT::TimeUtils.epochdom(cust.created)
 
           if view_vars[:domains_enabled]
             custom_domains = cust.custom_domains_list.filter_map do |obj|
@@ -43,7 +44,7 @@ module Core
 
       def self.output_template
         {
-          authenticated: nil,
+          authenticated: 'plop',
           custid: nil,
           cust: nil,
           email: nil,

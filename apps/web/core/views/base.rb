@@ -26,15 +26,20 @@ module Core
       self.view_namespace = Core::Views
       self.view_path = './app/web/views'
 
-      attr_accessor :req, :sess, :cust, :locale, :messages, :form_fields, :pagename
-      attr_reader :view_vars, :i18n_instance, :serialized_data
+      attr_accessor :req, :sess, :cust, :locale, :form_fields, :pagename
+      attr_reader :i18n_instance, :view_vars, :serialized_data, :messages
 
       def initialize req, sess=nil, cust=nil, locale_override=nil, *args
         @req = req
         @sess = sess
         @cust = cust || V2::Customer.anonymous
+
+        # We determine locale here because it's used for i18n. Otherwise we couldn't
+        # determine the i18n messages until inside or after initialize_view_vars.
+        # The heuristic is to use the locale_override if provided, otherwise use
+        # the request's locale that was set in the controller (check_locale!)
+        # or fallback to default locale as configured in config.yaml.
         @locale = locale_override || (req.nil? ? OT.default_locale : req.env['ots.locale'])
-        @messages = []
 
         @i18n_instance = self.i18n
         @messages = []
