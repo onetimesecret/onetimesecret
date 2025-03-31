@@ -15,12 +15,33 @@
 #             extends: onetime-config
 #        -->  command: ["onetime", "-h", "0.0.0.0", "-p", "3000"]
 #
+#   Server Options:
+#
+#     SERVER_TYPE=thin (default) - Use Thin server
+#     SERVER_TYPE=puma          - Use Puma server
+#
+#   Puma Options:
+#
+#     PUMA_MIN_THREADS=4        - Minimum number of threads
+#     PUMA_MAX_THREADS=16       - Maximum number of threads
+#     PUMA_WORKERS=2            - Number of worker processes
+#
 
 # Stop at the first sign of trouble
 set -e
 
 # Set PORT to the existing value or default to 3000
 PORT=${PORT:-3000}
+
+# Set web server type to run
+#
+# One of: thin (default), puma
+SERVER_TYPE=${SERVER_TYPE:-thin}
+
+# Puma settings
+PUMA_MIN_THREADS=${PUMA_MIN_THREADS:-4}
+PUMA_MAX_THREADS=${PUMA_MAX_THREADS:-16}
+PUMA_WORKERS=${PUMA_WORKERS:-2}
 
 if [ "$ONETIME_DEBUG" = "true" ] || [ "$ONETIME_DEBUG" = "1" ]; then
   # Prints commands and their arguments as they are executed. This allows
@@ -62,7 +83,15 @@ fi
 # provided. See Dockerfile for more details.
 if [ -z "$@" ]; then
   PORT="${PORT:-3000}" # explicit default
-  exec bundle exec thin -R config.ru -p $PORT start
+
+  # Choose server based on SERVER_TYPE environment variable
+  if [ "$SERVER_TYPE" = "puma" ]; then
+    >&2 echo "Starting Puma server on port $PORT with $PUMA_WORKERS workers ($PUMA_MIN_THREADS-$PUMA_MAX_THREADS threads)"
+    RUBY_YJIT_ENABLE=1 exec bundle exec puma -R config.ru -p $PORT -t $PUMA_MIN_THREADS:$PUMA_MAX_THREADS -w $PUMA_WORKERS
+  else
+    >&2 echo "Starting Thin server on port $PORT"
+    exec bundle exec thin -R config.ru -p $PORT start
+  fi
 else
   exec bundle exec "$@"
 fi
