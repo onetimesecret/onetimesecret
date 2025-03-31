@@ -16,10 +16,18 @@ import { Stripe } from 'stripe';
 import { FallbackLocale } from 'vue-i18n';
 
 /**
- * TypeScript declarations for custom window properties injected by the Ruby backend.
- * Extends the global Window interface to provide type safety for server-injected data.
+ * TypeScript declarations for custom window properties injected by
+ * the Ruby backend. These properties are used to pass data from the
+ * backend to the frontend. The properties are added to the window object
+ * each time a full page load is performed.
  *
- * The backend injects data as json via <script> tag in the HTML header.
+ * The corresponding Ruby backend code can be found in:
+ * lib/onetime/app/web/views/base.rb
+ *
+ * Implementation:
+ * - Backend injects data via JSON <script> tag in the HTML header
+ * - Properties are added to window.__ONETIME_STATE__
+ * - This declaration file enables TypeScript type checking and IDE support
  */
 
 type Message = { type: 'success' | 'error' | 'info'; content: string };
@@ -93,4 +101,8 @@ export interface OnetimeWindow {
 
   d9s_enabled: boolean;
   diagnostics: DiagnosticsConfig;
+
+  features: {
+    markdown: boolean;
+  };
 }

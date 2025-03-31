@@ -167,7 +167,8 @@
     "secrets": {
       "privacyOptions": "Privacy Options",
       "selectDuration": "Select duration",
-      "expiresIn": "Expires in {duration}"
+      "expiresIn": "Expires in {duration}",
+      "enterPassphrase": "Enter Passphrase"
     },
     "homepage": {
       "tagline1": "Paste a password, secret message or private link below.",
