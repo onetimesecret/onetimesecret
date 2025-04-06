@@ -3,6 +3,9 @@
 <script setup lang="ts">
   import { ref, computed, onMounted, onBeforeUnmount } from 'vue';
 
+  // Action types for the button
+  type ActionType = 'create-link' | 'generate-password';
+
   const props = defineProps({
     content: { type: String, default: '' },
     withGenerate: { type: Boolean, default: false },
@@ -12,20 +15,38 @@
 
   const isDropdownOpen = ref(false);
   const buttonRef = ref<HTMLElement | null>(null);
+  const selectedAction = ref<ActionType>('create-link');
   const isContentEmpty = computed(() => !props.content.trim());
   const isDisabled = computed(() => !isContentEmpty.value && !props.content);
 
+  // Button labels and icons based on selected action
+  const buttonConfig = computed(() => {
+    const configs = {
+      'create-link': {
+        label: 'Create Link',
+        icon: '<rect x="3" y="11" width="18" height="11" rx="2" ry="2" /><path d="M7 11V7a5 5 0 0 1 10 0v4" />',
+        emit: () => emit('create-link'),
+      },
+      'generate-password': {
+        label: 'Generate Password',
+        icon: '<path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4" />',
+        emit: () => emit('generate-password'),
+      },
+    };
+    return configs[selectedAction.value];
+  });
+
   function handleMainClick() {
     if (isDisabled.value) return;
-    emit('create-link');
+    buttonConfig.value.emit();
   }
 
   function handleDropdownToggle() {
     isDropdownOpen.value = !isDropdownOpen.value;
   }
 
-  function handleGeneratePassword() {
-    emit('generate-password');
+  function setAction(action: ActionType) {
+    selectedAction.value = action;
     isDropdownOpen.value = false;
   }
 
@@ -51,8 +72,10 @@
     <button
       type="submit"
       :class="[
-        'flex items-center justify-center gap-2 px-4 py-3 bg-brand-500 dark:bg-brand-600 text-white font-semibold text-lg rounded-l-lg transition-colors',
-        'hover:bg-brand-700 dark:hover:bg-brand-700',
+        'flex items-center justify-center gap-2 px-4 py-3 text-white font-semibold text-lg rounded-l-lg transition-colors',
+        selectedAction === 'create-link'
+          ? 'bg-brand-500 dark:bg-brand-600 hover:bg-brand-700 dark:hover:bg-brand-700'
+          : 'bg-brand-600 dark:bg-brand-700 hover:bg-brand-700 dark:hover:bg-brand-800',
         'focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 dark:focus:ring-offset-slate-900',
         {
           'bg-brand-500/50 dark:bg-brand-600/50 cursor-not-allowed dark:text-white/50': isDisabled,
@@ -60,7 +83,7 @@
       ]"
       @click="handleMainClick"
       :disabled="isDisabled"
-      aria-label="Create Link">
+      :aria-label="buttonConfig.label">
       <span class="flex items-center text-current">
         <svg
           xmlns="http://www.w3.org/2000/svg"
@@ -70,18 +93,10 @@
           fill="none"
           stroke="currentColor"
           stroke-width="2"
-          class="size-5">
-          <rect
-            x="3"
-            y="11"
-            width="18"
-            height="11"
-            rx="2"
-            ry="2" />
-          <path d="M7 11V7a5 5 0 0 1 10 0v4" />
-        </svg>
+          class="size-5"
+          v-html="buttonConfig.icon" />
       </span>
-      <span>Create Link</span>
+      <span>{{ buttonConfig.label }}</span>
     </button>
 
     <button
@@ -109,7 +124,7 @@
       <button
         type="button"
         class="flex items-center gap-2 w-full px-4 py-2.5 border-0 bg-transparent text-left text-gray-800 dark:text-gray-200 transition-colors hover:bg-gray-100 dark:hover:bg-gray-700 disabled:opacity-60 disabled:cursor-not-allowed"
-        @click="handleMainClick"
+        @click="setAction('create-link')"
         :disabled="isDisabled">
         <span class="flex items-center text-current">
           <svg
@@ -138,7 +153,7 @@
         type="button"
         v-if="props.withGenerate"
         class="flex items-center gap-2 w-full px-4 py-2.5 border-0 bg-transparent text-left text-gray-800 dark:text-gray-200 transition-colors hover:bg-gray-100 dark:hover:bg-gray-700"
-        @click="handleGeneratePassword">
+        @click="setAction('generate-password')">
         <span class="flex items-center text-brand-500 dark:text-brand-400">
           <svg
             xmlns="http://www.w3.org/2000/svg"
