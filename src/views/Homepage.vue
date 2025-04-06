@@ -1,3 +1,5 @@
+<!-- src/views/Homepage.vue -->
+
 <script setup lang="ts">
   import HomepagePlansCTA from '@/components/ctas/HomepagePlansCTA.vue';
   import HomepageTaglines from '@/components/HomepageTaglines.vue';

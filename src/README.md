@@ -1,22 +1,25 @@
 # Vue 3 File Naming Style Guide
 
 ## Core Rules
+
 - Use PascalCase for components, layouts, Stores, views: `UserProfile.vue`
 - Use descriptive suffixes ("discriminator suffixes") to indicate file type/purpose: `auth.routes.ts`
 - Consider kebab-case for non-Vue specific files (e.g. `color-utils.ts`)
 
 ## Benefits
+
 1. **Clear Purpose**: Suffixes immediately identify file responsibility
 2. **Prevents Conflicts**: Allows related files to share base names without collision
 3. **Better Organization**: Makes codebase more navigable and maintainable
 4. **IDE Support**: Improves autocompletion and file searching
 
 ## By Directory
+
 ```
 api/
   secrets.ts           // API endpoints/clients
 
-assets/               // Static assets, styles, images
+assets/                // Static assets, styles, images
   style.css
 
 components/
@@ -24,37 +27,37 @@ components/
   DefaultHeader.vue
 
 composables/
-  useMetadata.ts    // Composable hooks
+  useMetadata.ts       // Composable hooks
 
 layouts/
   DefaultLayout.vue    // Page layouts
 
-locales/              // i18n translation files
+locales/               // i18n translation files
   en.json
 
-plugins/              // Plugin configurations
+plugins/               // Plugin configurations
   errorHandler.ts
 
 router/
-  auth.routes.ts      // Route definitions
+  auth.routes.ts       // Route definitions
 
-schemas/              // Data/validation schemas
+schemas/               // Data/validation schemas
   customer.ts
 
-services/            // Business logic
+services/              // Business logic
   window.ts
 
-stores/             // State management
+stores/                // State management
   README.md            // Store guidelines & patterns
   authStore.ts
 
-types/              // TypeScript definitions
+types/                 // TypeScript definitions
   forms.ts
 
-utils/             // Helper functions
+utils/                 // Helper functions
   colorUtils.ts
 
-views/             // Page components
+views/                 // Page components
   Homepage.vue
 ```
 

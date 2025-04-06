@@ -1,3 +1,5 @@
+<!-- src/components/secrets/canonical/SecretDisplayCase.vue -->
+
 <script setup lang="ts">
 import { useClipboard } from '@/composables/useClipboard';
 import { Secret, SecretDetails } from '@/schemas/models';

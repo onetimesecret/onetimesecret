@@ -2,7 +2,9 @@
 
 # Validates i18n locale file maintain consistent key structure with base en.json
 # Flags structural differences in translation keys without comparing values
+#
 # Usage: ./check-locale-file [-q] [-f] [-v] LOCALE_FILE
+#
 # Exit: 0 if structures match, 1 if differences found
 
 QUIET=${QUIET:-0}
