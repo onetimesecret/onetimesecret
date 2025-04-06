@@ -11,7 +11,7 @@
   const emit = defineEmits(['generate-password', 'create-link']);
 
   const isDropdownOpen = ref(false);
-  const buttonRef = ref(null);
+  const buttonRef = ref<HTMLElement | null>(null);
   const isContentEmpty = computed(() => !props.content.trim());
   const isDisabled = computed(() => !isContentEmpty.value && !props.content);
 
@@ -29,8 +29,8 @@
     isDropdownOpen.value = false;
   }
 
-  function handleClickOutside(event) {
-    if (buttonRef.value && !buttonRef.value.contains(event.target)) {
+  function handleClickOutside(event: MouseEvent) {
+    if (buttonRef.value && !buttonRef.value.contains(event.target as Node)) {
       isDropdownOpen.value = false;
     }
   }
