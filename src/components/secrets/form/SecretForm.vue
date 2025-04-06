@@ -13,6 +13,7 @@
   import HomepageLinksPlaceholder from '../HomepageLinksPlaceholder.vue';
   import { nanoid } from 'nanoid';
   import { type ConcealedMessage } from '@/types/ui/concealed-message';
+  import SplitButton from '@/components/SplitButton.vue';
 
   export interface Props {
     enabled?: boolean;
@@ -61,7 +62,7 @@
   const { availableDomains, selectedDomain, domainsEnabled, updateSelectedDomain } =
     useDomainDropdown();
 
-  const hasContent = computed(() => form.secret.length > 0);
+
   const completionProgress = computed(() => {
     let progress = 0;
     if (form.secret.length > 0) progress += 50;
@@ -217,7 +218,7 @@
             <!-- Action Button (maintains consistent width) -->
             <div class="order-2 sm:order-2 flex-shrink-0">
               <div class="mb-2">
-                <button
+                <!-- <button
                   type="submit"
                   tabindex="0"
                   :disabled="!hasContent || isSubmitting"
@@ -227,7 +228,8 @@
                     name="lock-closed"
                     class="size-5" />
                   <span>Create Link</span>
-                </button>
+                </button> -->
+                <SplitButton :with-generate="props.withGenerate" />
               </div>
             </div>
             <!-- </div> -->
