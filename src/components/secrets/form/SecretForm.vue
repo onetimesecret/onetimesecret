@@ -218,17 +218,6 @@
             <!-- Action Button (maintains consistent width) -->
             <div class="order-2 sm:order-2 flex-shrink-0">
               <div class="mb-2">
-                <!-- <button
-                  type="submit"
-                  tabindex="0"
-                  :disabled="!hasContent || isSubmitting"
-                  class="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-lg px-4 py-3 text-lg font-semibold disabled:bg-brand-500/50 disabled:cursor-not-allowed dark:disabled:bg-brand-600/50 bg-brand-500 dark:bg-brand-600 text-white dark:disabled:text-white/50 hover:bg-brand-700 transition-colors focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 dark:focus:ring-offset-slate-900 whitespace-nowrap">
-                  <OIcon
-                    collection="heroicons"
-                    name="lock-closed"
-                    class="size-5" />
-                  <span>Create Link</span>
-                </button> -->
                 <SplitButton :with-generate="props.withGenerate" />
               </div>
             </div>
