@@ -122,9 +122,9 @@
     :exception_info: <%= ENV['REDIS_DBS_EXCEPTION_INFO'] || 12 %>
 
 # Logging Configuration
-:logger:
-  # Enable or disable request logging via Rack::CommonLogger
-  :logRequests: <%= ENV['LOG_REQUESTS'] != 'false' %>
+:logging:
+  # HTTP request logs (Rack::CommonLogger)
+  :http_requests: <%= ENV['LOG_HTTP_REQUESTS'] != 'false' %>
 
 # Sending Emails
 :emailer:

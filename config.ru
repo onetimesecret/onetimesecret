@@ -71,7 +71,7 @@ BaseApplication.register_applications
 Onetime.boot! :app
 
 # Common middleware for all applications
-if !defined?(OT) || !OT.conf.dig(:logger, :logRequests).eql?(false)
+if !defined?(OT) || !OT.conf.dig(:logging, :http_requests).eql?(false)
   OT.li "[config.ru] Request logging with Rack::CommonLogger enabled"
   use Rack::CommonLogger
 end
