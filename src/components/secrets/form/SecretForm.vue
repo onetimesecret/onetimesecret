@@ -1,6 +1,6 @@
 <!-- src/components/secrets/form/SecretForm.vue -->
 <script setup lang="ts">
-  import { computed, watch, onMounted, ref } from 'vue';
+  import { watch, onMounted, ref } from 'vue';
   // import { useRouter } from 'vue-router';
   import BasicFormAlerts from '@/components/BasicFormAlerts.vue';
   import OIcon from '@/components/icons/OIcon.vue';
@@ -40,7 +40,6 @@
 
   const { form, validation, operations, isSubmitting, submit } = useSecretConcealer({
     onSuccess: async (response) => {
-
       const newMessage: ConcealedMessage = {
         id: nanoid(),
         metadata_key: response.record.metadata.key,
@@ -55,21 +54,11 @@
       concealedMessages.value.unshift(newMessage);
       operations.reset();
       secretContentInput.value?.clearTextarea(); // Clear textarea
-
     },
   });
 
   const { availableDomains, selectedDomain, domainsEnabled, updateSelectedDomain } =
     useDomainDropdown();
-
-
-  const completionProgress = computed(() => {
-    let progress = 0;
-    if (form.secret.length > 0) progress += 50;
-    if (form.passphrase) progress += 25;
-    if (form.ttl !== expiryOptions[0].value) progress += 25;
-    return progress;
-  });
 
   const expiryOptions = [
     { value: 7 * 24 * 3600, label: '7 days' },
@@ -110,16 +99,6 @@
       <div
         ref="div1"
         class="overflow-visible rounded-xl border border-gray-200 bg-white shadow-lg dark:border-gray-700 dark:bg-slate-900">
-        <!-- Header Section -->
-        <div class="relative border-b border-gray-200 dark:border-gray-700">
-          <!-- Progress Indicator -->
-          <div class="absolute bottom-0 left-0 w-full h-1 bg-gray-100 dark:bg-gray-800">
-            <div
-              class="h-full bg-blue-600 dark:bg-blue-500 rounded-r transition-all duration-300"
-              :style="{ width: `${completionProgress}%` }"></div>
-          </div>
-        </div>
-
         <!-- Main Content Section -->
         <div class="p-6 space-y-6">
           <!-- Secret Input Section -->
@@ -185,9 +164,8 @@
         </div>
 
         <!-- Pro tip Section -->
-        <!-- <div class="px-6 pb-6"> -->
-        <!-- <div class="border-t border-gray-200 dark:border-gray-700"> -->
-        <div v-if="showProTip"
+        <div
+          v-if="showProTip"
           class="flex items-start gap-3 p-4 bg-brandcomp-50 dark:bg-brandcomp-900/20">
           <OIcon
             collection="heroicons"
@@ -197,47 +175,43 @@
             Your message will self-destruct after being viewed. The link can only be accessed once.
           </p>
         </div>
-        <!-- </div> -->
-        <!-- </div> -->
 
         <!-- Footer Section -->
-        <!-- <div class="border-t border-gray-200 dark:border-gray-700"> -->
-        <!-- Actions Container -->
-        <div class="px-6 py-4">
-          <div class="flex flex-col sm:gap-4 sm:flex-row sm:items-center sm:justify-between">
-            <!-- Domain Preview (grows to fill available space) -->
-            <div class="order-1 sm:order-2 flex-grow min-w-0">
-              <CustomDomainPreview
-                v-if="productIdentity.isCanonical"
-                :available-domains="availableDomains"
-                :with-domain-dropdown="domainsEnabled"
-                @update:selected-domain="updateSelectedDomain"
-                class="w-full" />
-            </div>
+        <div class="border-t border-gray-200 dark:border-gray-700">
+          <!-- Actions Container -->
+          <div class="px-6 py-4">
+            <div class="flex flex-col sm:gap-4 sm:flex-row sm:items-center sm:justify-between">
+              <!-- Domain Preview (grows to fill available space) -->
+              <div class="order-1 sm:order-2 flex-grow min-w-0">
+                <CustomDomainPreview
+                  v-if="productIdentity.isCanonical"
+                  :available-domains="availableDomains"
+                  :with-domain-dropdown="domainsEnabled"
+                  @update:selected-domain="updateSelectedDomain"
+                  class="w-full" />
+              </div>
 
-            <!-- Action Button (maintains consistent width) -->
-            <div class="order-2 sm:order-2 flex-shrink-0">
-              <div class="mb-2">
-                <SplitButton :with-generate="props.withGenerate" />
+              <!-- Action Button (maintains consistent width) -->
+              <div class="order-2 sm:order-2 flex-shrink-0">
+                <div class="mb-2">
+                  <SplitButton :with-generate="props.withGenerate" />
+                </div>
               </div>
             </div>
-            <!-- </div> -->
-          </div>
 
-          <!-- Final Notice Section -->
-          <!-- <div class="px-6 pb-6"> -->
-          <div
-            v-if="showFinalNotice"
-            class="border-t border-gray-200 dark:border-gray-700">
-            <div class="flex items-start gap-3 p-4 bg-brandcomp-50 dark:bg-brandcomp-900/20">
-              <OIcon
-                collection="heroicons"
-                name="information-circle"
-                class="mt-0.5 h-5 w-5 flex-shrink-0 text-brandcomp-600 dark:text-brandcomp-500" />
-              <p class="text-sm text-brandcomp-700 dark:text-brandcomp-300"> </p>
+            <!-- Final Notice Section -->
+            <div
+              v-if="showFinalNotice"
+              class="border-t border-gray-200 dark:border-gray-700">
+              <div class="flex items-start gap-3 p-4 bg-brandcomp-50 dark:bg-brandcomp-900/20">
+                <OIcon
+                  collection="heroicons"
+                  name="information-circle"
+                  class="mt-0.5 h-5 w-5 flex-shrink-0 text-brandcomp-600 dark:text-brandcomp-500" />
+                <p class="text-sm text-brandcomp-700 dark:text-brandcomp-300"> </p>
+              </div>
             </div>
           </div>
-          <!-- </div> -->
         </div>
       </div>
     </form>
