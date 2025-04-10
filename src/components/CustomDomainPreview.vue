@@ -144,24 +144,22 @@
           :aria-label="`Select domain. Currently selected: ${selectedDomain}. Press Space or Enter to open dropdown`">
           <div class="flex items-center min-w-0 w-full">
             <!-- Prefix stays the same -->
-            <span class="text-gray-600 shrink-0 opacity-50 text-sm">https://</span>
+            <span class="text-gray-500/50 shrink-0 text-sm">https://</span>
 
             <!-- Domain and suffix container -->
             <div class="flex min-w-0 flex-grow">
               <!-- Domain part -->
               <span
-                class="border-b-2 border-transparent group-hover:border-brandcomp-500 dark:group-hover:border-brandcomp-400 transition-colors
-                max-w-lg truncate">
+                class="border-b-2 border-transparent group-hover:border-brandcomp-500 dark:group-hover:border-brandcomp-400 transition-colors max-w-lg truncate">
                 {{ selectedDomain }}
               </span>
 
               <!-- Suffix moves next to domain -->
               <span class="flex shrink-0 items-center">
-                <span class="text-gray-600/50 text-sm">/secret/</span>
                 <span
-                  class="w-16 opacity-50 text-sm bg-gradient-to-r from-[50%] from-gray-600/50 to-transparent bg-clip-text text-transparent"
-                  >abcdef123456</span
-                >
+                  class="w-16 text-sm bg-gradient-to-r from-[50%] from-gray-600/50 to-transparent bg-clip-text text-transparent">
+                  /secret/abc23456
+                </span>
               </span>
             </div>
 
@@ -184,6 +182,8 @@
             class="p-2 text-center text-gray-500 dark:text-gray-400">
             Loading...
           </div>
+
+          <!-- Domains List -->
           <div
             v-else
             v-for="(domain, index) in availableDomains"
