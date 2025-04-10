@@ -1,11 +1,9 @@
 <!-- src/views/Homepage.vue -->
 
 <script setup lang="ts">
-  import HomepagePlansCTA from '@/components/ctas/HomepagePlansCTA.vue';
   import HomepageTaglines from '@/components/HomepageTaglines.vue';
   import SecretForm from '@/components/secrets/form/SecretForm.vue';
   import { WindowService } from '@/services/window.service';
-  import { computed } from 'vue';
 
   const windowProps = WindowService.getMultiple([
     'authenticated',
@@ -13,19 +11,12 @@
     'plans_enabled',
   ]);
 
-  const showPlansCTA = computed(
-    () => windowProps.authentication?.signup && windowProps.plans_enabled
-  );
 </script>
 
 <template>
   <div class="container mx-auto min-w-[320px] max-w-2xl py-1">
     <HomepageTaglines
       v-if="!windowProps.authenticated"
-      class="mb-6" />
-
-    <HomepagePlansCTA
-      v-if="showPlansCTA"
       class="mb-6" />
 
     <SecretForm
