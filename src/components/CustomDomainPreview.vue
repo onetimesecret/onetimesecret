@@ -147,17 +147,17 @@
             <span class="text-gray-500/50 shrink-0 text-sm">https://</span>
 
             <!-- Domain and suffix container -->
-            <div class="flex min-w-0 flex-grow">
+            <div class="flex min-w-0 flex-grow overflow-hidden">
               <!-- Domain part -->
               <span
-                class="border-b-2 border-transparent group-hover:border-brandcomp-500 dark:group-hover:border-brandcomp-400 transition-colors max-w-lg truncate">
+                class="border-b-2 border-transparent group-hover:border-brandcomp-500 text-slate-900 dark:group-hover:border-brandcomp-400 truncate max-w-[92%]">
                 {{ selectedDomain }}
               </span>
 
               <!-- Suffix moves next to domain -->
-              <span class="flex shrink-0 items-center">
+              <span class="flex min-w-0 flex-1 items-center overflow-hidden">
                 <span
-                  class="w-16 text-sm bg-gradient-to-r from-[50%] from-gray-600/50 to-transparent bg-clip-text text-transparent">
+                  class="truncate text-sm bg-gradient-to-r from-[50%] from-gray-600/50 to-transparent bg-clip-text text-transparent">
                   /secret/abc23456
                 </span>
               </span>
@@ -168,14 +168,14 @@
               <OIcon
                 collection="heroicons"
                 name="chevron-down"
-                class="h-4 w-4 text-gray-600 group-hover:text-brandcomp-500 dark:group-hover:text-brandcomp-400" />
+                class="h-4 w-4 text-gray-950 group-hover:text-brandcomp-500 dark:group-hover:text-brandcomp-400" />
             </span>
           </div>
         </button>
 
         <div
           v-if="isOpen"
-          class="absolute z-10 w-full mt-1 bg-white dark:bg-gray-800 border border-gray-200/70 dark:border-gray-700/70 rounded-md shadow-lg"
+          class="absolute z-10 w-full mt-1 bg-white dark:bg-gray-800 border border-gray-200/70 dark:border-gray-700/70 rounded-md shadow-lg max-w-full overflow-hidden"
           role="listbox">
           <div
             v-if="isLoading"
@@ -189,7 +189,7 @@
             v-for="(domain, index) in availableDomains"
             :key="domain"
             @click="selectDomain(domain)"
-            class="p-2 hover:text-brandcomp-600 dark:hover:text-brandcomp-400 hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer flex items-center"
+            class="p-2 hover:text-brandcomp-600 dark:hover:text-brandcomp-400 hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer flex items-center w-full"
             role="option"
             :aria-selected="domain === selectedDomain"
             :class="[
@@ -207,7 +207,7 @@
               collection="heroicons"
               name="check"
               class="h-4 w-4 shrink-0" />
-            <span :class="{ 'pl-6': !(domain === selectedDomain) }">{{ domain }}</span>
+            <span :class="{ 'pl-6': !(domain === selectedDomain) }" class="truncate min-w-0 flex-1">{{ domain }}</span>
           </div>
           <div
             v-if="!authenticated"
