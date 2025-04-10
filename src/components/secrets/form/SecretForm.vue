@@ -74,7 +74,7 @@
     updatePassphrase,
     updateTtl,
     updateRecipient,
-    togglePassphraseVisibility
+    togglePassphraseVisibility,
   } = usePrivacyOptions(operations);
 
   const { availableDomains, selectedDomain, domainsEnabled, updateSelectedDomain } =
@@ -93,7 +93,6 @@
   };
   const secretContentInput = ref<{ clearTextarea: () => void } | null>(null);
   const selectedAction = ref<'create-link' | 'generate-password'>('create-link');
-
 
   // Watch for domain changes and update form
   watch(selectedDomain, (domain) => {
@@ -115,6 +114,7 @@
     <form
       ref="form1"
       @submit.prevent="handleSubmit"
+      :aria-busy="isSubmitting"
       class="space-y-6">
       <div
         ref="div1"
@@ -122,15 +122,32 @@
         <!-- Main Content Section -->
         <div class="p-6 space-y-6">
           <!-- Secret Input Section -->
-          <SecretContentInputArea
-            v-show="selectedAction === 'create-link'"
-            ref="secretContentInput"
-            v-model:content="form.secret"
-            :disabled="isSubmitting"
-            :min-height="'200px'"
-            :max-height="400"
-            class="bg-gray-50 dark:bg-slate-800/50 transition-colors focus-within:bg-white dark:focus-within:bg-slate-800"
-            @update:content="(content) => operations.updateField('secret', content)" />
+          <div>
+            <h3>
+              <label
+                id="secretContentLabel"
+                class="sr-only">
+                <!--
+                  Using sr-only (screen-reader only) for this main content area because:
+                  1. The purpose of a large textarea in a secret-sharing context is visually self-evident
+                  2. The placeholder text provides sufficient visual context for sighted users
+                  3. Other form fields (passphrase, expiration, etc.) keep visible labels as they
+                      represent configuration options that need explicit identification
+                -->
+                {{ $t('secret-content') || 'Secret Content' }}
+              </label>
+            </h3>
+            <SecretContentInputArea
+              v-show="selectedAction === 'create-link'"
+              ref="secretContentInput"
+              v-model:content="form.secret"
+              :disabled="isSubmitting"
+              :min-height="'200px'"
+              :max-height="400"
+              aria-labelledby="secretContentLabel"
+              class="bg-gray-50 dark:bg-slate-800/50 transition-colors focus-within:bg-white dark:focus-within:bg-slate-800"
+              @update:content="(content) => operations.updateField('secret', content)" />
+          </div>
           <div
             v-show="selectedAction === 'generate-password'"
             class="rounded-lg border border-gray-200 p-4 bg-gray-50 dark:bg-slate-800/50 dark:border-gray-700 text-center">
@@ -143,114 +160,156 @@
           <div class="grid gap-6 md:grid-cols-2">
             <!-- Passphrase Field -->
             <div class="relative">
-              <div class="pointer-events-none absolute inset-y-0 left-3 flex items-center">
-                <OIcon
-                  collection="heroicons"
-                  name="key"
-                  class="h-4 w-4 text-gray-400" />
+              <h3>
+                <label
+                  :for="passphraseId"
+                  class="block mb-1 text-sm font-brand text-gray-700 dark:text-gray-300">
+                  {{ $t('web.COMMON.secret_passphrase') || 'Passphrase (optional)' }}
+                </label>
+              </h3>
+              <div class="relative">
+                <div class="pointer-events-none absolute inset-y-0 left-3 flex items-center">
+                  <OIcon
+                    collection="heroicons"
+                    name="key"
+                    class="h-4 w-4 text-gray-400"
+                    aria-hidden="true" />
+                </div>
+                <input
+                  :type="state.passphraseVisibility ? 'text' : 'password'"
+                  :value="form.passphrase"
+                  :id="passphraseId"
+                  name="passphrase"
+                  autocomplete="off"
+                  :aria-invalid="!!getError('passphrase')"
+                  :aria-errormessage="getError('passphrase') ? passphraseErrorId : undefined"
+                  class="w-full rounded-lg border border-gray-200 bg-white pl-10 pr-10 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500 focus:outline-none transition-shadow duration-200 dark:border-gray-700 dark:bg-slate-800 dark:text-white dark:placeholder:text-gray-500"
+                  :placeholder="$t('web.secrets.enterPassphrase')"
+                  @input="(e) => updatePassphrase((e.target as HTMLInputElement).value)" />
+                <button
+                  type="button"
+                  @click="togglePassphraseVisibility"
+                  :aria-label="state.passphraseVisibility ? 'Hide passphrase' : 'Show passphrase'"
+                  :aria-pressed="state.passphraseVisibility"
+                  class="absolute inset-y-0 right-3 flex items-center focus:outline-none focus:ring-2 focus:ring-blue-500 rounded-sm">
+                  <OIcon
+                    collection="heroicons"
+                    :name="state.passphraseVisibility ? 'solid-eye' : 'outline-eye-off'"
+                    class="h-4 w-4 text-gray-400 hover:text-gray-600"
+                    aria-hidden="true" />
+                </button>
               </div>
-              <input
-                :type="state.passphraseVisibility ? 'text' : 'password'"
-                :value="form.passphrase"
-                :id="passphraseId"
-                name="passphrase"
-                autocomplete="off"
-                :aria-invalid="!!getError('passphrase')"
-                :aria-errormessage="getError('passphrase') ? passphraseErrorId : undefined"
-                class="w-full rounded-lg border border-gray-200 bg-white pl-10 pr-10 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500 dark:border-gray-700 dark:bg-slate-800 dark:text-white dark:placeholder:text-gray-500"
-                :placeholder="$t('web.secrets.enterPassphrase')"
-                @input="(e) => updatePassphrase((e.target as HTMLInputElement).value)" />
-              <button
-                type="button"
-                @click="togglePassphraseVisibility"
-                class="absolute inset-y-0 right-3 flex items-center">
-                <OIcon
-                  collection="heroicons"
-                  :name="state.passphraseVisibility ? 'solid-eye' : 'outline-eye-off'"
-                  class="h-4 w-4 text-gray-400 hover:text-gray-600" />
-              </button>
             </div>
-            <div v-if="getError('passphrase')"
-                 :id="passphraseErrorId"
-                 role="alert"
-                 class="mt-1 text-sm text-red-500">
+            <div
+              v-if="getError('passphrase')"
+              :id="passphraseErrorId"
+              role="alert"
+              aria-live="assertive"
+              class="mt-1 text-sm text-red-600 dark:text-red-400 font-medium">
               {{ getError('passphrase') }}
             </div>
 
             <!-- Expiry Selection -->
-            <div v-if="props.withExpiry" class="relative">
-              <div class="pointer-events-none absolute inset-y-0 left-3 flex items-center">
-                <OIcon
-                  collection="heroicons"
-                  name="fire"
-                  class="h-4 w-4 text-gray-400" />
-              </div>
-              <select
-                :value="form.ttl"
-                :id="lifetimeId"
-                name="ttl"
-                :aria-invalid="!!getError('ttl')"
-                :aria-errormessage="getError('ttl') ? lifetimeErrorId : undefined"
-                class="w-full appearance-none rounded-lg border border-gray-200 bg-white pl-10 pr-10 py-2.5 text-sm text-gray-900 focus:border-blue-500 focus:ring-2 focus:ring-blue-500 dark:border-gray-700 dark:bg-slate-800 dark:text-white"
-                @change="(e) => updateTtl(Number((e.target as HTMLSelectElement).value))">
-                <option
-                  value=""
-                  disabled>
-                  {{ $t('web.secrets.selectDuration') }}
-                </option>
-                <template v-if="lifetimeOptions.length > 0">
+            <div
+              v-if="props.withExpiry"
+              class="relative">
+              <h3>
+                <label
+                  :for="lifetimeId"
+                  class="block mb-1 text-sm font-brand text-gray-700 dark:text-gray-300">
+                  {{ $t('web.LABELS.expiration_time') || 'Secret Expiration' }}
+                </label>
+              </h3>
+              <div class="relative">
+                <div class="pointer-events-none absolute inset-y-0 left-3 flex items-center">
+                  <OIcon
+                    collection="heroicons"
+                    name="fire"
+                    class="h-4 w-4 text-gray-400"
+                    aria-hidden="true" />
+                </div>
+                <select
+                  :value="form.ttl"
+                  :id="lifetimeId"
+                  name="ttl"
+                  :aria-invalid="!!getError('ttl')"
+                  :aria-describedby="getError('ttl') ? lifetimeErrorId : undefined"
+                  class="w-full appearance-none rounded-lg border border-gray-200 bg-white pl-10 pr-10 py-2.5 text-sm text-gray-900 focus:border-blue-500 focus:ring-2 focus:ring-blue-500 focus:outline-none transition-shadow duration-200 dark:border-gray-700 dark:bg-slate-800 dark:text-white"
+                  @change="(e) => updateTtl(Number((e.target as HTMLSelectElement).value))">
                   <option
-                    v-for="option in lifetimeOptions"
-                    :key="option.value"
-                    :value="option.value">
-                    {{ $t('web.secrets.expiresIn', { duration: option.label }) }}
+                    value=""
+                    disabled>
+                    {{ $t('web.secrets.selectDuration') }}
                   </option>
-                </template>
-                <option v-else
-                  value=""
-                  disabled>
-                  {{ $t('web.UNITS.ttl.noOptionsAvailable') }}
-                </option>
-              </select>
-              <div class="pointer-events-none absolute inset-y-0 right-3 flex items-center">
-                <OIcon
-                  collection="heroicons"
-                  name="chevron-down"
-                  class="h-4 w-4 text-gray-400" />
+                  <template v-if="lifetimeOptions.length > 0">
+                    <option
+                      v-for="option in lifetimeOptions"
+                      :key="option.value"
+                      :value="option.value">
+                      {{ $t('web.secrets.expiresIn', { duration: option.label }) }}
+                    </option>
+                  </template>
+                  <option
+                    v-else
+                    value=""
+                    disabled>
+                    {{ $t('web.UNITS.ttl.noOptionsAvailable') }}
+                  </option>
+                </select>
+                <div class="pointer-events-none absolute inset-y-0 right-3 flex items-center">
+                  <OIcon
+                    collection="heroicons"
+                    name="chevron-down"
+                    class="h-4 w-4 text-gray-400" />
+                </div>
               </div>
             </div>
-            <div v-if="getError('ttl')"
-                 :id="lifetimeErrorId"
-                 role="alert"
-                 class="mt-1 text-sm text-red-500">
+            <div
+              v-if="getError('ttl')"
+              :id="lifetimeErrorId"
+              role="alert"
+              aria-live="assertive"
+              class="mt-1 text-sm text-red-600 dark:text-red-400 font-medium">
               {{ getError('ttl') }}
             </div>
           </div>
 
           <!-- Recipient Field -->
-          <div v-if="props.withRecipient" class="mt-4">
+          <div
+            v-if="props.withRecipient"
+            class="mt-4">
+            <h3>
+              <label
+                :for="recipientId"
+                class="block mb-1 text-sm font-brand text-gray-700 dark:text-gray-300">
+                {{ $t('web.COMMON.secret_recipient_address') || 'Email Recipient' }}
+              </label>
+            </h3>
             <div class="relative">
               <div class="pointer-events-none absolute inset-y-0 left-3 flex items-center">
                 <OIcon
                   collection="heroicons"
                   name="envelope"
-                  class="h-4 w-4 text-gray-400" />
+                  class="h-4 w-4 text-gray-400"
+                  aria-hidden="true" />
               </div>
               <input
                 :value="form.recipient"
                 :id="recipientId"
                 type="email"
                 name="recipient[]"
-                placeholder="tom@myspace.com"
+                :placeholder="$t('web.COMMON.email_placeholder')"
                 :aria-invalid="!!getError('recipient')"
                 :aria-errormessage="getError('recipient') ? recipientErrorId : undefined"
                 class="w-full rounded-lg border border-gray-200 bg-white pl-10 pr-10 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500 dark:border-gray-700 dark:bg-slate-800 dark:text-white dark:placeholder:text-gray-500"
                 @input="(e) => updateRecipient((e.target as HTMLInputElement).value)" />
             </div>
-            <div v-if="getError('recipient')"
-                 :id="recipientErrorId"
-                 role="alert"
-                 class="mt-1 text-sm text-red-500">
+            <div
+              v-if="getError('recipient')"
+              :id="recipientErrorId"
+              role="alert"
+              aria-live="assertive"
+              class="mt-1 text-sm text-red-600 dark:text-red-400 font-medium">
               {{ getError('recipient') }}
             </div>
           </div>
@@ -284,14 +343,32 @@
                   class="w-full" />
               </div>
 
-              <!-- Action Button (maintains consistent width) -->
+              <!-- Action Button (full-width on mobile, normal width on desktop) -->
               <div class="order-2 sm:order-2 flex-shrink-0">
-                <div class="mb-2">
+                <div class="mb-2 mt-3 sm:mt-0">
                   <SplitButton
                     :with-generate="props.withGenerate"
                     :disabled="selectedAction === 'create-link' && !hasContent"
                     :disable-generate="selectedAction === 'create-link' && hasContent"
+                    :aria-label="
+                      selectedAction === 'create-link' ? 'Create Secret Link' : 'Generate Password'
+                    "
+                    :aria-describedby="
+                      selectedAction === 'create-link'
+                        ? 'create-link-desc'
+                        : 'generate-password-desc'
+                    "
                     @update:action="selectedAction = $event" />
+                  <div
+                    class="sr-only"
+                    id="create-link-desc"
+                    >Creates a secure link to share your secret</div
+                  >
+                  <div
+                    class="sr-only"
+                    id="generate-password-desc"
+                    >Generates a secure random password</div
+                  >
                 </div>
               </div>
             </div>
@@ -300,12 +377,18 @@
             <div
               v-if="showFinalNotice"
               class="border-t border-gray-200 dark:border-gray-700">
-              <div class="flex items-start gap-3 p-4 bg-brandcomp-50 dark:bg-brandcomp-900/20">
+              <div
+                class="flex items-start gap-3 p-4 bg-brandcomp-50 dark:bg-brandcomp-900/20 rounded-b-lg">
                 <OIcon
                   collection="heroicons"
                   name="information-circle"
                   class="mt-0.5 h-5 w-5 flex-shrink-0 text-brandcomp-600 dark:text-brandcomp-500" />
-                <p class="text-sm text-brandcomp-700 dark:text-brandcomp-300"> </p>
+                <p class="text-sm text-brandcomp-700 dark:text-brandcomp-300">
+                  {{
+                    $t('web.homepage.securityNotice') ||
+                    'Secret links will automatically expire after the selected time period or when viewed.'
+                  }}
+                </p>
               </div>
             </div>
           </div>

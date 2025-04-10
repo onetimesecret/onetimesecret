@@ -40,12 +40,12 @@
 
   const formattedMaxLength = computed(() => formatNumber(props.maxLength!));
 
-  // const statusColor = computed(() => {
-  //   const percentage = charCount.value / props.maxLength!;
-  //   if (percentage < 0.8) return 'bg-emerald-400 dark:bg-emerald-500';
-  //   if (percentage < 0.95) return 'bg-amber-400 dark:bg-amber-500';
-  //   return 'bg-red-400 dark:bg-red-500';
-  // });
+  const statusColor = computed(() => {
+    const percentage = charCount.value / props.maxLength!;
+    if (percentage < 0.8) return 'bg-emerald-400 dark:bg-emerald-500';
+    if (percentage < 0.95) return 'bg-amber-400 dark:bg-amber-500';
+    return 'bg-red-400 dark:bg-red-500';
+  });
 
   // Watch for changes to emit updates
   watch(content, (newContent) => {
@@ -77,7 +77,7 @@
         transition-all duration-200
       "
       :placeholder="$t('web.COMMON.secret_placeholder')"
-      aria-label="Enter the secret content to share here">
+      :aria-label="$t('enter-the-secret-content-here')">
     </textarea>
 
     <!--
@@ -88,10 +88,9 @@
     -->
     <div
       v-if="showCounter"
-      class="pointer-events-none select-none hidden rounded-full bg-white px-3 py-1 text-sm text-gray-400 shadow-sm transition-colors duration-200 dark:bg-gray-800 dark:text-gray-500">
-      {{
-        $t('formattedcharcount-formattedmaxlength-chars', [formattedCharCount, formattedMaxLength])
-      }}
+      class="pointer-events-none select-none absolute bottom-3 right-3 rounded-full px-3 py-1 text-sm shadow-sm transition-colors duration-200 flex items-center gap-1.5 bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm">
+      <span :class="[statusColor, 'w-2.5 h-2.5 rounded-full']" aria-hidden="true"></span>
+      <span class="text-gray-600 dark:text-gray-400 font-medium">{{ formattedCharCount }} / {{ formattedMaxLength }}</span>
     </div>
   </div>
 </template>
