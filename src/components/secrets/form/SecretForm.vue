@@ -84,7 +84,13 @@
   const hasContent = computed(() => !!form.secret && form.secret.trim().length > 0);
 
   // Form submission handlers
-  const handleConceal = () => submit('conceal');
+  const handleSubmit = () => {
+    // Use appropriate submission type based on selected action
+    if (selectedAction.value === 'generate-password') {
+      return submit('generate');
+    }
+    return submit('conceal');
+  };
   const secretContentInput = ref<{ clearTextarea: () => void } | null>(null);
   const selectedAction = ref<'create-link' | 'generate-password'>('create-link');
 
@@ -108,7 +114,7 @@
 
     <form
       ref="form1"
-      @submit.prevent="handleConceal"
+      @submit.prevent="handleSubmit"
       class="space-y-6">
       <div
         ref="div1"
