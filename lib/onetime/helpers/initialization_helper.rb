@@ -88,6 +88,10 @@ module Onetime
       OT.li "locales: #{@locales.keys.join(', ')}" if OT.i18n_enabled
       OT.li "diagnotics: #{OT.d9s_enabled}"
 
+      if site_config.dig(:plans, :enabled)
+        OT.li "plans: #{OT::Plan.plans.keys}"
+      end
+
       if site_config.key?(:authentication)
         OT.li "auth: #{site_config[:authentication].map { |k,v| "#{k}=#{v}" }.join(', ')}"
       end
