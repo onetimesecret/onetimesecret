@@ -11,10 +11,14 @@
       initialContent?: string;
       cornerClass?: string;
       disabled?: boolean;
+      minHeight?: string;
+      maxHeight?: number;
     }>(),
     {
       maxLength: 10000,
       disabled: false,
+      minHeight: '200px',
+      maxHeight: 400,
     }
   );
 
@@ -23,7 +27,7 @@
   const { content, charCount, textareaRef, checkContentLength, clearTextarea } = useTextarea({
     maxLength: props.maxLength || 10000,
     initialContent: props.initialContent,
-    maxHeight: 400,
+    maxHeight: props.maxHeight,
     onContentChange: (newContent) => emit('update:content', newContent),
   });
 
@@ -60,7 +64,18 @@
       @input="checkContentLength"
       :maxlength="maxLength"
       :class="[cornerClass]"
-      class="block w-full min-h-[200px] resize-none rounded-lg border border-gray-200 p-4 font-mono text-base leading-relaxed text-gray-900 placeholder:text-gray-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500 disabled:bg-gray-50 disabled:text-gray-500 dark:border-gray-700 dark:bg-slate-800 dark:text-white dark:placeholder:text-gray-500 dark:focus:border-blue-400 dark:focus:ring-blue-400 transition-all duration-200"
+      :style="{ minHeight: minHeight, maxHeight: maxHeight + 'px' }"
+      class="
+        block w-full resize-none
+        rounded-lg border border-gray-200 p-4
+        font-mono text-base leading-relaxed
+        text-gray-900 placeholder:text-gray-400
+        focus:border-blue-500 focus:ring-2 focus:ring-blue-500
+        disabled:bg-gray-50 disabled:text-gray-500
+        dark:border-gray-700 dark:bg-slate-800 dark:text-white dark:placeholder:text-gray-500
+        dark:focus:border-blue-400 dark:focus:ring-blue-400
+        transition-all duration-200
+      "
       :placeholder="$t('web.COMMON.secret_placeholder')"
       aria-label="Enter the secret content to share here">
     </textarea>

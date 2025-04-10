@@ -80,9 +80,18 @@
   const { availableDomains, selectedDomain, domainsEnabled, updateSelectedDomain } =
     useDomainDropdown();
 
+  // Compute whether the form has content or not
+  const hasContent = computed(() => !!form.secret && form.secret.trim().length > 0);
+
   // Form submission handlers
   const handleConceal = () => submit('conceal');
   const secretContentInput = ref<{ clearTextarea: () => void } | null>(null);
+  const selectedAction = ref<'create-link' | 'generate-password'>('create-link');
+
+  // Computed property to determine if textarea should be disabled
+  const isTextareaDisabled = computed(() =>
+    selectedAction.value === 'generate-password' || isSubmitting.value
+  );
 
   // Watch for domain changes and update form
   watch(selectedDomain, (domain) => {
@@ -114,9 +123,11 @@
           <SecretContentInputArea
             ref="secretContentInput"
             v-model:content="form.secret"
-            :disabled="isSubmitting"
-            @update:content="(content) => operations.updateField('secret', content)"
-            class="bg-gray-50 dark:bg-slate-800/50 transition-colors focus-within:bg-white dark:focus-within:bg-slate-800" />
+            :disabled="isTextareaDisabled"
+            :min-height="selectedAction === 'generate-password' ? '80px' : '200px'"
+            :max-height="selectedAction === 'generate-password' ? 100 : 400"
+            class="bg-gray-50 dark:bg-slate-800/50 transition-colors focus-within:bg-white dark:focus-within:bg-slate-800"
+            @update:content="(content) => operations.updateField('secret', content)" />
 
           <!-- Form Controls Section -->
           <div class="grid gap-6 md:grid-cols-2">
@@ -206,13 +217,6 @@
             </div>
           </div>
 
-
-
-
-          <!--  -->
-
-
-
           <!-- Recipient Field -->
           <div v-if="props.withRecipient" class="mt-4">
             <div class="relative">
@@ -273,7 +277,11 @@
               <!-- Action Button (maintains consistent width) -->
               <div class="order-2 sm:order-2 flex-shrink-0">
                 <div class="mb-2">
-                  <SplitButton :with-generate="props.withGenerate" />
+                  <SplitButton
+                    :with-generate="props.withGenerate"
+                    :disabled="!hasContent"
+                    :disable-generate="hasContent"
+                    @update:action="selectedAction = $event" />
                 </div>
               </div>
             </div>

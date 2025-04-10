@@ -9,15 +9,27 @@
   const props = defineProps({
     content: { type: String, default: '' },
     withGenerate: { type: Boolean, default: false },
+    disabled: { type: Boolean, default: false },
+    disableGenerate: { type: Boolean, default: false },
   });
 
-  const emit = defineEmits(['generate-password', 'create-link']);
+  const emit = defineEmits(['generate-password', 'create-link', 'update:action']);
 
   const isDropdownOpen = ref(false);
   const buttonRef = ref<HTMLElement | null>(null);
   const selectedAction = ref<ActionType>('create-link');
   const isContentEmpty = computed(() => !props.content.trim());
-  const isDisabled = computed(() => !isContentEmpty.value && !props.content);
+  const isMainButtonDisabled = computed(() => {
+    // Disable the Create Link action when no content
+    if (selectedAction.value === 'create-link') {
+      return props.disabled || (!isContentEmpty.value && !props.content);
+    }
+    // Disable Generate Password action when there IS content
+    if (selectedAction.value === 'generate-password') {
+      return props.disableGenerate;
+    }
+    return false;
+  });
 
   // Button labels and icons based on selected action
   const buttonConfig = computed(() => {
@@ -37,7 +49,7 @@
   });
 
   function handleMainClick() {
-    if (isDisabled.value) return;
+    if (isMainButtonDisabled.value) return;
     buttonConfig.value.emit();
   }
 
@@ -48,6 +60,7 @@
   function setAction(action: ActionType) {
     selectedAction.value = action;
     isDropdownOpen.value = false;
+    emit('update:action', action);
   }
 
   function handleClickOutside(event: MouseEvent) {
@@ -58,6 +71,8 @@
 
   onMounted(() => {
     document.addEventListener('click', handleClickOutside);
+    // Emit initial action
+    emit('update:action', selectedAction.value);
   });
 
   onBeforeUnmount(() => {
@@ -78,11 +93,11 @@
           : 'bg-brand-600 dark:bg-brand-700 hover:bg-brand-700 dark:hover:bg-brand-800',
         'focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 dark:focus:ring-offset-slate-900',
         {
-          'bg-brand-500/50 dark:bg-brand-600/50 cursor-not-allowed dark:text-white/50': isDisabled,
+          'bg-brand-500/50 dark:bg-brand-600/50 cursor-not-allowed dark:text-white/50': isMainButtonDisabled,
         },
       ]"
       @click="handleMainClick"
-      :disabled="isDisabled"
+      :disabled="isMainButtonDisabled"
       :aria-label="buttonConfig.label">
       <span class="flex items-center text-current">
         <svg
@@ -123,9 +138,8 @@
       class="absolute top-full right-0 mt-1 bg-white dark:bg-gray-800 rounded-md shadow-lg w-52 z-10">
       <button
         type="button"
-        class="flex items-center gap-2 w-full px-4 py-2.5 border-0 bg-transparent text-left text-gray-800 dark:text-gray-200 transition-colors hover:bg-gray-100 dark:hover:bg-gray-700 disabled:opacity-60 disabled:cursor-not-allowed"
-        @click="setAction('create-link')"
-        :disabled="isDisabled">
+        class="flex items-center gap-2 w-full px-4 py-2.5 border-0 bg-transparent text-left text-gray-800 dark:text-gray-200 transition-colors hover:bg-gray-100 dark:hover:bg-gray-700"
+        @click="setAction('create-link')">
         <span class="flex items-center text-current">
           <svg
             xmlns="http://www.w3.org/2000/svg"
