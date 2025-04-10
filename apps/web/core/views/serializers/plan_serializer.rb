@@ -45,7 +45,6 @@ module Core
             is_paid: nil,
             default_planid: nil,
             available_plans: nil,
-            plans_enabled: nil,
           }
         end
       end
