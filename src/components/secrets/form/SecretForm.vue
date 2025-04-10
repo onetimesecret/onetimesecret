@@ -88,10 +88,6 @@
   const secretContentInput = ref<{ clearTextarea: () => void } | null>(null);
   const selectedAction = ref<'create-link' | 'generate-password'>('create-link');
 
-  // Computed property to determine if textarea should be disabled
-  const isTextareaDisabled = computed(() =>
-    selectedAction.value === 'generate-password' || isSubmitting.value
-  );
 
   // Watch for domain changes and update form
   watch(selectedDomain, (domain) => {
@@ -121,13 +117,21 @@
         <div class="p-6 space-y-6">
           <!-- Secret Input Section -->
           <SecretContentInputArea
+            v-show="selectedAction === 'create-link'"
             ref="secretContentInput"
             v-model:content="form.secret"
-            :disabled="isTextareaDisabled"
-            :min-height="selectedAction === 'generate-password' ? '80px' : '200px'"
-            :max-height="selectedAction === 'generate-password' ? 100 : 400"
+            :disabled="isSubmitting"
+            :min-height="'200px'"
+            :max-height="400"
             class="bg-gray-50 dark:bg-slate-800/50 transition-colors focus-within:bg-white dark:focus-within:bg-slate-800"
             @update:content="(content) => operations.updateField('secret', content)" />
+          <div
+            v-show="selectedAction === 'generate-password'"
+            class="rounded-lg border border-gray-200 p-4 bg-gray-50 dark:bg-slate-800/50 dark:border-gray-700 text-center">
+            <p class="text-gray-500 dark:text-gray-400 py-10">
+              {{ $t('web.homepage.passwordGenerationMode') }}
+            </p>
+          </div>
 
           <!-- Form Controls Section -->
           <div class="grid gap-6 md:grid-cols-2">
@@ -279,8 +283,8 @@
                 <div class="mb-2">
                   <SplitButton
                     :with-generate="props.withGenerate"
-                    :disabled="!hasContent"
-                    :disable-generate="hasContent"
+                    :disabled="selectedAction === 'create-link' && !hasContent"
+                    :disable-generate="selectedAction === 'create-link' && hasContent"
                     @update:action="selectedAction = $event" />
                 </div>
               </div>
