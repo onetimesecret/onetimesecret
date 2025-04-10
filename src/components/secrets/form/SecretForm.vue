@@ -1,6 +1,6 @@
 <!-- src/components/secrets/form/SecretForm.vue -->
 <script setup lang="ts">
-  import { onMounted, ref, watch } from 'vue';
+  import { computed, onMounted, ref, watch } from 'vue';
   import BasicFormAlerts from '@/components/BasicFormAlerts.vue';
   import OIcon from '@/components/icons/OIcon.vue';
   import SplitButton from '@/components/SplitButton.vue';
@@ -32,9 +32,20 @@
   });
 
   const productIdentity = useProductIdentity();
-  // const mode = ref<'write' | 'preview'>('write');
   const showFinalNotice = ref(false);
   const showProTip = ref(props.withAsterisk);
+
+  // Helper function to get validation errors
+  const getError = (field: keyof typeof form) => validation.errors.get(field);
+
+  // Generate unique IDs for form fields to ensure proper label associations
+  const uniqueId = computed(() => `secret-form-${Math.random().toString(36).substring(2, 9)}`);
+  const passphraseId = computed(() => `passphrase-${uniqueId.value}`);
+  const passphraseErrorId = computed(() => `passphrase-error-${uniqueId.value}`);
+  const lifetimeId = computed(() => `lifetime-${uniqueId.value}`);
+  const lifetimeErrorId = computed(() => `lifetime-error-${uniqueId.value}`);
+  const recipientId = computed(() => `recipient-${uniqueId.value}`);
+  const recipientErrorId = computed(() => `recipient-error-${uniqueId.value}`);
 
   const concealedMessages = ref<ConcealedMessage[]>([]);
 
@@ -61,8 +72,8 @@
     state,
     lifetimeOptions,
     updatePassphrase,
-    // updateTtl,
-    // updateRecipient,
+    updateTtl,
+    updateRecipient,
     togglePassphraseVisibility
   } = usePrivacyOptions(operations);
 
@@ -154,12 +165,13 @@
                   class="h-4 w-4 text-gray-400" />
               </div>
               <select
-                v-model="form.ttl"
+                :value="form.ttl"
                 :id="lifetimeId"
                 name="ttl"
                 :aria-invalid="!!getError('ttl')"
                 :aria-errormessage="getError('ttl') ? lifetimeErrorId : undefined"
-                class="w-full appearance-none rounded-lg border border-gray-200 bg-white pl-10 pr-10 py-2.5 text-sm text-gray-900 focus:border-blue-500 focus:ring-2 focus:ring-blue-500 dark:border-gray-700 dark:bg-slate-800 dark:text-white">
+                class="w-full appearance-none rounded-lg border border-gray-200 bg-white pl-10 pr-10 py-2.5 text-sm text-gray-900 focus:border-blue-500 focus:ring-2 focus:ring-blue-500 dark:border-gray-700 dark:bg-slate-800 dark:text-white"
+                @change="(e) => updateTtl(Number((e.target as HTMLSelectElement).value))">
                 <option
                   value=""
                   disabled>
@@ -185,6 +197,47 @@
                   name="chevron-down"
                   class="h-4 w-4 text-gray-400" />
               </div>
+            </div>
+            <div v-if="getError('ttl')"
+                 :id="lifetimeErrorId"
+                 role="alert"
+                 class="mt-1 text-sm text-red-500">
+              {{ getError('ttl') }}
+            </div>
+          </div>
+
+
+
+
+          <!--  -->
+
+
+
+          <!-- Recipient Field -->
+          <div v-if="props.withRecipient" class="mt-4">
+            <div class="relative">
+              <div class="pointer-events-none absolute inset-y-0 left-3 flex items-center">
+                <OIcon
+                  collection="heroicons"
+                  name="envelope"
+                  class="h-4 w-4 text-gray-400" />
+              </div>
+              <input
+                :value="form.recipient"
+                :id="recipientId"
+                type="email"
+                name="recipient[]"
+                placeholder="tom@myspace.com"
+                :aria-invalid="!!getError('recipient')"
+                :aria-errormessage="getError('recipient') ? recipientErrorId : undefined"
+                class="w-full rounded-lg border border-gray-200 bg-white pl-10 pr-10 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500 dark:border-gray-700 dark:bg-slate-800 dark:text-white dark:placeholder:text-gray-500"
+                @input="(e) => updateRecipient((e.target as HTMLInputElement).value)" />
+            </div>
+            <div v-if="getError('recipient')"
+                 :id="recipientErrorId"
+                 role="alert"
+                 class="mt-1 text-sm text-red-500">
+              {{ getError('recipient') }}
             </div>
           </div>
         </div>
