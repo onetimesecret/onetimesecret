@@ -1,25 +1,26 @@
 <!-- src/components/secrets/form/SecretForm.vue -->
 <script setup lang="ts">
-  import { watch, onMounted, ref } from 'vue';
-  // import { useRouter } from 'vue-router';
+  import { onMounted, ref, watch } from 'vue';
   import BasicFormAlerts from '@/components/BasicFormAlerts.vue';
   import OIcon from '@/components/icons/OIcon.vue';
-  import SecretContentInputArea from './SecretContentInputArea.vue';
-  import { useSecretConcealer } from '@/composables/useSecretConcealer';
-  import { useDomainDropdown } from '@/composables/useDomainDropdown';
-  import { useProductIdentity } from '@/stores/identityStore';
-  import CustomDomainPreview from './../../CustomDomainPreview.vue';
-  import SecretLinksTable from '../SecretLinksTable.vue';
-  import HomepageLinksPlaceholder from '../HomepageLinksPlaceholder.vue';
-  import { nanoid } from 'nanoid';
-  import { type ConcealedMessage } from '@/types/ui/concealed-message';
   import SplitButton from '@/components/SplitButton.vue';
+  import { useDomainDropdown } from '@/composables/useDomainDropdown';
+  import { usePrivacyOptions } from '@/composables/usePrivacyOptions';
+  import { useSecretConcealer } from '@/composables/useSecretConcealer';
+  import { useProductIdentity } from '@/stores/identityStore';
+  import { type ConcealedMessage } from '@/types/ui/concealed-message';
+  import { nanoid } from 'nanoid';
+  import HomepageLinksPlaceholder from '../HomepageLinksPlaceholder.vue';
+  import SecretLinksTable from '../SecretLinksTable.vue';
+  import CustomDomainPreview from './../../CustomDomainPreview.vue';
+  import SecretContentInputArea from './SecretContentInputArea.vue';
 
   export interface Props {
     enabled?: boolean;
     withRecipient?: boolean;
     withAsterisk?: boolean;
     withGenerate?: boolean;
+    withExpiry?: boolean;
   }
 
   const props = withDefaults(defineProps<Props>(), {
@@ -27,11 +28,10 @@
     withRecipient: false,
     withAsterisk: false,
     withGenerate: false,
+    withExpiry: true,
   });
 
-  // const router = useRouter();
   const productIdentity = useProductIdentity();
-  const passphraseVisible = ref(false);
   // const mode = ref<'write' | 'preview'>('write');
   const showFinalNotice = ref(false);
   const showProTip = ref(props.withAsterisk);
@@ -57,23 +57,21 @@
     },
   });
 
+  const {
+    state,
+    lifetimeOptions,
+    updatePassphrase,
+    // updateTtl,
+    // updateRecipient,
+    togglePassphraseVisibility
+  } = usePrivacyOptions(operations);
+
   const { availableDomains, selectedDomain, domainsEnabled, updateSelectedDomain } =
     useDomainDropdown();
-
-  const expiryOptions = [
-    { value: 7 * 24 * 3600, label: '7 days' },
-    { value: 3 * 24 * 3600, label: '3 days' },
-    { value: 24 * 3600, label: '1 day' },
-    { value: 12 * 3600, label: '12 hours' },
-    { value: 1 * 3600, label: '1 hour' },
-  ];
 
   // Form submission handlers
   const handleConceal = () => submit('conceal');
   const secretContentInput = ref<{ clearTextarea: () => void } | null>(null);
-  const togglePassphraseVisibility = () => {
-    passphraseVisible.value = !passphraseVisible.value;
-  };
 
   // Watch for domain changes and update form
   watch(selectedDomain, (domain) => {
@@ -120,23 +118,35 @@
                   class="h-4 w-4 text-gray-400" />
               </div>
               <input
-                :type="passphraseVisible ? 'text' : 'password'"
-                v-model="form.passphrase"
+                :type="state.passphraseVisibility ? 'text' : 'password'"
+                :value="form.passphrase"
+                :id="passphraseId"
+                name="passphrase"
+                autocomplete="off"
+                :aria-invalid="!!getError('passphrase')"
+                :aria-errormessage="getError('passphrase') ? passphraseErrorId : undefined"
                 class="w-full rounded-lg border border-gray-200 bg-white pl-10 pr-10 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500 dark:border-gray-700 dark:bg-slate-800 dark:text-white dark:placeholder:text-gray-500"
-                :placeholder="$t('web.secrets.enterPassphrase')" />
+                :placeholder="$t('web.secrets.enterPassphrase')"
+                @input="(e) => updatePassphrase((e.target as HTMLInputElement).value)" />
               <button
                 type="button"
                 @click="togglePassphraseVisibility"
                 class="absolute inset-y-0 right-3 flex items-center">
                 <OIcon
                   collection="heroicons"
-                  :name="passphraseVisible ? 'solid-eye' : 'outline-eye-off'"
+                  :name="state.passphraseVisibility ? 'solid-eye' : 'outline-eye-off'"
                   class="h-4 w-4 text-gray-400 hover:text-gray-600" />
               </button>
             </div>
+            <div v-if="getError('passphrase')"
+                 :id="passphraseErrorId"
+                 role="alert"
+                 class="mt-1 text-sm text-red-500">
+              {{ getError('passphrase') }}
+            </div>
 
             <!-- Expiry Selection -->
-            <div class="relative">
+            <div v-if="props.withExpiry" class="relative">
               <div class="pointer-events-none absolute inset-y-0 left-3 flex items-center">
                 <OIcon
                   collection="heroicons"
@@ -145,12 +155,28 @@
               </div>
               <select
                 v-model="form.ttl"
+                :id="lifetimeId"
+                name="ttl"
+                :aria-invalid="!!getError('ttl')"
+                :aria-errormessage="getError('ttl') ? lifetimeErrorId : undefined"
                 class="w-full appearance-none rounded-lg border border-gray-200 bg-white pl-10 pr-10 py-2.5 text-sm text-gray-900 focus:border-blue-500 focus:ring-2 focus:ring-blue-500 dark:border-gray-700 dark:bg-slate-800 dark:text-white">
                 <option
-                  v-for="option in expiryOptions"
-                  :key="option.value"
-                  :value="option.value">
-                  {{ option.label }}
+                  value=""
+                  disabled>
+                  {{ $t('web.secrets.selectDuration') }}
+                </option>
+                <template v-if="lifetimeOptions.length > 0">
+                  <option
+                    v-for="option in lifetimeOptions"
+                    :key="option.value"
+                    :value="option.value">
+                    {{ $t('web.secrets.expiresIn', { duration: option.label }) }}
+                  </option>
+                </template>
+                <option v-else
+                  value=""
+                  disabled>
+                  {{ $t('web.UNITS.ttl.noOptionsAvailable') }}
                 </option>
               </select>
               <div class="pointer-events-none absolute inset-y-0 right-3 flex items-center">
