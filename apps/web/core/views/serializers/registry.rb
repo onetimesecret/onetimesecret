@@ -57,8 +57,13 @@ module Core
               next result
             end
 
-            # Detect key collisions
-            output.keys.each do |key|
+            output.each_key do |key|
+              # Detect keys that are not defined in the serializer output_template
+              unless serializer.output_template.key?(key)
+                OT.le "[SerializerRegistry] Warning: Key '#{key}' not defined in #{serializer}"
+              end
+
+              # Detect key collisions with output from previous serializers
               if seen_keys.key?(key)
                 collision_msg = <<~MSG
                   [SerializerRegistry] Warning: Key collision detected
