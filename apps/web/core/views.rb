@@ -27,7 +27,6 @@ module Core
       )
 
       def init *args
-
       end
     end
 
@@ -43,6 +42,9 @@ module Core
         PlanSerializer,
         SystemSerializer,
       )
+
+      def init *args
+      end
     end
 
     class Error < Core::Views::BaseView
