@@ -67,8 +67,6 @@ module Core
       end
 
       class << self
-        private
-
         # Provides the base template for domain serializer output
         #
         # @return [Hash] Template with all possible domain output fields

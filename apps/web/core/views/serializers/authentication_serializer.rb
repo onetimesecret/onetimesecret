@@ -33,8 +33,6 @@ module Core
       end
 
       class << self
-        # private
-
         # Provides the base template for authentication serializer output
         #
         # @return [Hash] Template with all possible authentication output fields

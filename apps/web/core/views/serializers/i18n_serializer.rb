@@ -27,8 +27,6 @@ module Core
       end
 
       class << self
-        private
-
         # Provides the base template for i18n serializer output
         #
         # @return [Hash] Template with all possible i18n output fields

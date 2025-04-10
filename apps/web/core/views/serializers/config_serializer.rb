@@ -61,8 +61,6 @@ module Core
       end
 
       class << self
-        private
-
         # Provides the base template for configuration serializer output
         #
         # @return [Hash] Template with all possible configuration output fields

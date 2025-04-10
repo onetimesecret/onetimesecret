@@ -24,8 +24,6 @@ module Core
       end
 
       class << self
-        private
-
         # Provides the base template for messages serializer output
         #
         # @return [Hash] Template with all possible message output fields
