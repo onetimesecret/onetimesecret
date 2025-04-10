@@ -186,7 +186,8 @@
       "need_free_account": "Just getting started? Send emails with a free account.",
       "sign_up_free": "Free Sign-up",
       "visit-onetime-secret-home": "Visit Onetime Secret homepage",
-      "passwordGenerationMode": " Click \"Generate Password\" to create a secure random password that you can share.",
+      "password_generation_title": "Password Generator",
+      "password_generation_description": " Click \"Generate Password\" to create a secure random password that you can share.",
       "protip1": "Your message will self-destruct after being viewed. The link can only be accessed once."
     },
     "private": {

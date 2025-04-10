@@ -121,7 +121,7 @@
         <!-- Main Content Section -->
         <div class="p-6 space-y-6">
           <!-- Secret Input Section -->
-          <div>
+          <div v-show="selectedAction === 'create-link'">
             <h3>
               <label
                 id="secretContentLabel"
@@ -137,25 +137,52 @@
               </label>
             </h3>
             <SecretContentInputArea
-              v-show="selectedAction === 'create-link'"
               ref="secretContentInput"
               v-model:content="form.secret"
               :disabled="isSubmitting"
               :min-height="'200px'"
               :max-height="400"
               aria-labelledby="secretContentLabel"
-              class="bg-gray-50 dark:bg-slate-800/50 transition-colors focus-within:bg-white dark:focus-within:bg-slate-800"
+              class="bg-gray-50 dark:bg-slate-800/50 transition-colors focus-within:bg-white dark:focus-within:bg-slate-800 rounded-lg border border-gray-200 dark:border-gray-700"
               @update:content="(content) => operations.updateField('secret', content)" />
           </div>
 
           <!-- Generate Password Text -->
           <div
             v-show="selectedAction === 'generate-password'"
-            class="rounded-lg border border-gray-200 p-4 bg-gray-50 dark:bg-slate-800/50 dark:border-gray-700 text-center">
-            <p class="text-gray-500 dark:text-gray-400 py-10">
-              <!-- {{ $t('web.homepage.passwordGenerationMode') }} -->
-              Click "Generate Password" to create a secure random password that you can share.
-            </p>
+            class="rounded-lg border border-gray-200 bg-gray-50 dark:bg-slate-800/50 dark:border-gray-700"
+            aria-labelledby="generatedPasswordHeader"
+            aria-describedby="generatedPasswordDesc">
+            <div class="text-center space-y-4 p-4">
+              <div class="flex justify-center">
+                <div class="rounded-full p-3 bg-brand-100 dark:bg-brand-900/30">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="24"
+                    height="24"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    class="text-brand-600 dark:text-brand-400 size-6">
+                    <path
+                      d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4" />
+                  </svg>
+                </div>
+              </div>
+
+              <h4
+                id="generatedPasswordHeader"
+                class="text-lg font-medium text-gray-900 dark:text-white">
+                {{ $t('web.homepage.password_generation_title') }}
+              </h4>
+
+              <p
+                id="generatedPasswordDesc"
+                class="text-gray-600 dark:text-gray-300 max-w-md mx-auto">
+                {{ $t('web.homepage.password_generation_description') }}
+              </p>
+            </div>
           </div>
 
           <!-- Form Controls Section -->
