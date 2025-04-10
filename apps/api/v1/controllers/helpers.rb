@@ -300,7 +300,7 @@ module V1
       # Should always report false and false when disabled.
       unless cust.anonymous?
         custref = cust.obscure_email
-        OT.info "[sess.check_session] #{sess.short_identifier} #{custref} authenabled=#{authentication_enabled?.to_s}, sess=#{sess.authenticated?.to_s}"
+        OT.ld "[sess.check_session(v1)] #{sess.short_identifier} #{custref} authenabled=#{authentication_enabled?.to_s}, sess=#{sess.authenticated?.to_s}"
       end
     end
 
