@@ -158,7 +158,7 @@
               <!-- Suffix moves next to domain -->
               <span class="flex min-w-0 flex-1 items-center overflow-hidden">
                 <span
-                  class="truncate text-sm text-gray-600 dark:text-gray-400">
+                  class="truncate text-sm bg-gradient-to-r from-gray-600/80 to-transparent bg-clip-text text-transparent dark:from-gray-400">
                   /secret/abc23456
                 </span>
               </span>

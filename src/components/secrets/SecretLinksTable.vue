@@ -31,17 +31,17 @@
             <th
               scope="col"
               class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider dark:text-gray-400">
-              Share Link
+              {{ $t('web.LABELS.secret_link') }}
             </th>
             <th
               scope="col"
               class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider dark:text-gray-400">
-              Security
+              {{ $t('details') }}
             </th>
             <th
               scope="col"
               class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider dark:text-gray-400">
-              Expires
+                {{ $t('web.LABELS.actions') }}
             </th>
           </tr>
         </thead>

@@ -32,7 +32,6 @@
   });
 
   const productIdentity = useProductIdentity();
-  const showFinalNotice = ref(false);
   const showProTip = ref(props.withAsterisk);
 
   // Helper function to get validation errors
@@ -148,11 +147,14 @@
               class="bg-gray-50 dark:bg-slate-800/50 transition-colors focus-within:bg-white dark:focus-within:bg-slate-800"
               @update:content="(content) => operations.updateField('secret', content)" />
           </div>
+
+          <!-- Generate Password Text -->
           <div
             v-show="selectedAction === 'generate-password'"
             class="rounded-lg border border-gray-200 p-4 bg-gray-50 dark:bg-slate-800/50 dark:border-gray-700 text-center">
             <p class="text-gray-500 dark:text-gray-400 py-10">
-              {{ $t('web.homepage.passwordGenerationMode') }}
+              <!-- {{ $t('web.homepage.passwordGenerationMode') }} -->
+              Click "Generate Password" to create a secure random password that you can share.
             </p>
           </div>
 
@@ -361,34 +363,15 @@
                     @update:action="selectedAction = $event" />
                   <div
                     class="sr-only"
-                    id="create-link-desc"
-                    >Creates a secure link to share your secret</div
-                  >
+                    id="create-link-desc">
+                    Creates a secure link to share your secret
+                  </div>
                   <div
                     class="sr-only"
-                    id="generate-password-desc"
-                    >Generates a secure random password</div
-                  >
+                    id="generate-password-desc">
+                    Generates a secure random password
+                  </div>
                 </div>
-              </div>
-            </div>
-
-            <!-- Final Notice Section -->
-            <div
-              v-if="showFinalNotice"
-              class="border-t border-gray-200 dark:border-gray-700">
-              <div
-                class="flex items-start gap-3 p-4 bg-brandcomp-50 dark:bg-brandcomp-900/20 rounded-b-lg">
-                <OIcon
-                  collection="heroicons"
-                  name="information-circle"
-                  class="mt-0.5 h-5 w-5 flex-shrink-0 text-brandcomp-600 dark:text-brandcomp-500" />
-                <p class="text-sm text-brandcomp-700 dark:text-brandcomp-300">
-                  {{
-                    $t('web.homepage.securityNotice') ||
-                    'Secret links will automatically expire after the selected time period or when viewed.'
-                  }}
-                </p>
               </div>
             </div>
           </div>
