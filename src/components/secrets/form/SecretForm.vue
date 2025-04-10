@@ -172,7 +172,7 @@
             name="information-circle"
             class="mt-0.5 h-5 w-5 flex-shrink-0 text-brandcomp-600 dark:text-brandcomp-500" />
           <p class="text-sm text-brandcomp-700 dark:text-brandcomp-300">
-            Your message will self-destruct after being viewed. The link can only be accessed once.
+            {{ $t('web.homepage.protip1') }}
           </p>
         </div>
 
