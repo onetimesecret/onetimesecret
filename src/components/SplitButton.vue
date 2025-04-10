@@ -89,11 +89,11 @@
       :class="[
         'flex items-center justify-center gap-2 px-4 py-3 text-white font-semibold text-lg rounded-l-lg transition-colors',
         selectedAction === 'create-link'
-          ? 'bg-brand-500 dark:bg-brand-600 hover:bg-brand-700 dark:hover:bg-brand-700'
-          : 'bg-brand-600 dark:bg-brand-700 hover:bg-brand-700 dark:hover:bg-brand-800',
+          ? 'bg-brand-500 dark:bg-brand-600 hover:bg-brand-600 dark:hover:bg-brand-700'
+          : 'bg-brand-600 dark:bg-brand-700 hover:bg-brand-600 dark:hover:bg-brand-800',
         'focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 dark:focus:ring-offset-slate-900',
         {
-          'bg-brand-500/50 dark:bg-brand-600/50 cursor-not-allowed dark:text-white/50': isMainButtonDisabled,
+          'bg-brand-500/60 dark:bg-brand-600/60 disabled:hover:bg-brand-500/70 cursor-not-allowed dark:text-white/50': isMainButtonDisabled,
         },
       ]"
       @click="handleMainClick"

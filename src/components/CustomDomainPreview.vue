@@ -19,6 +19,7 @@
    * @see {@link useDomainDropdown} For domain selection implementation
    */
   import OIcon from '@/components/icons/OIcon.vue';
+  import FancyIcon from '@/components/ctas/FancyIcon.vue';
   import { useDomainDropdown } from '@/composables/useDomainDropdown';
   import { useDropdown } from '@/composables/useDropdown';
   import { WindowService } from '@/services/window.service';
@@ -218,12 +219,8 @@
               'cursor-pointer select-none',
               'text-brandcomp-600 dark:text-brandcomp-400 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-brandcomp-700 dark:hover:text-brandcomp-300',
             ]">
-            <OIcon
-              v-if="false"
-              collection="heroicons"
-              name="check"
-              class="h-4 w-4 shrink-0" />
-            <router-link to="/pricing" class="w-full block py-1 font-medium hover:underline">Upgrade for secrets.yourdomain.com</router-link>
+              <FancyIcon />
+            <router-link to="/pricing" class="w-full block py-1 font-medium hover:underline">{{ $t('upgrade-for-yourdomain') }}</router-link>
           </div>
         </div>
       </div>

@@ -1,7 +1,7 @@
 <!-- src/components/layout/HeaderUserNav.vue -->
 
 <script setup lang="ts">
-  import FancyIcon from '@/components/ctas/FancyIcon.vue';
+  import FancyIconLink from '@/components/ctas/FancyIconLink.vue';
   import { Customer } from '@/schemas/models';
   import OIcon from '@/components/icons/OIcon.vue';
   import { ref, computed } from 'vue';
@@ -40,7 +40,7 @@
       </span>
     </router-link>
 
-    <FancyIcon
+    <FancyIconLink
       v-if="showUpgrade"
       to="/pricing"
       :aria-label="$t('click-this-lightning-bolt-to-upgrade-for-custom-domains')" />
