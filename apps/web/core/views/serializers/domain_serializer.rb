@@ -22,6 +22,8 @@ module Core
       # @return [Hash] Serialized domain data
       def self.serialize(view_vars, i18n)
         output = self.output_template
+        site = view_vars[:site] || {}
+        domains_enabled = site.dig(:domains, :enabled)
 
         is_authenticated = view_vars[:authenticated]
         domains = view_vars[:site].fetch(:domains, {})
@@ -41,6 +43,24 @@ module Core
           output[:domain_logo] = (custom_domain&.logo&.hgetall || {}).to_h
 
           domain_locale = output[:domain_branding].fetch('locale', nil)
+        end
+
+        if domains_enabled
+
+          custom_domains = cust.custom_domains_list.filter_map do |obj|
+            # Only verified domains that resolve
+            unless obj.ready?
+              # For now just log until we can reliably re-attempt verification and
+              # have some visibility which customers this will affect. We've made
+              # the verification more stringent so currently many existing domains
+              # would return obj.ready? == false.
+              OT.li "[custom_domains] Allowing unverified domain: #{obj.display_domain} (#{obj.verified}/#{obj.resolving})"
+            end
+
+            obj.display_domain
+          end
+
+          output[:custom_domains] = custom_domains.sort
         end
 
         output
