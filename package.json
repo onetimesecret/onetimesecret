@@ -65,6 +65,7 @@
     "highlight.js": "^11.11.1",
     "marked": "^15.0.7",
     "marked-highlight": "^2.2.1",
+    "nanoid": "^5.1.5",
     "pinia": "^3.0.1",
     "pnpm": "^10.7.0",
     "stripe": "^17.6.0",
