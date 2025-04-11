@@ -8,6 +8,7 @@
   import { usePrivacyOptions } from '@/composables/usePrivacyOptions';
   import { useSecretConcealer } from '@/composables/useSecretConcealer';
   import { useProductIdentity } from '@/stores/identityStore';
+  import { useConcealedMetadataStore } from '@/stores/concealedMetadataStore';
   import { type ConcealedMessage } from '@/types/ui/concealed-message';
   import { nanoid } from 'nanoid';
   import HomepageLinksPlaceholder from '../HomepageLinksPlaceholder.vue';
@@ -32,7 +33,13 @@
   });
 
   const productIdentity = useProductIdentity();
+  const concealedMetadataStore = useConcealedMetadataStore();
   const showProTip = ref(props.withAsterisk);
+
+  // Initialize the concealed metadata store if not already initialized
+  if (!concealedMetadataStore.isInitialized) {
+    concealedMetadataStore.init();
+  }
 
   // Helper function to get validation errors
   const getError = (field: keyof typeof form) => validation.errors.get(field);
@@ -46,7 +53,8 @@
   const recipientId = computed(() => `recipient-${uniqueId.value}`);
   const recipientErrorId = computed(() => `recipient-error-${uniqueId.value}`);
 
-  const concealedMessages = ref<ConcealedMessage[]>([]);
+  // Use the store's concealed messages
+  const concealedMessages = computed(() => concealedMetadataStore.concealedMessages);
 
   const { form, validation, operations, isSubmitting, submit } = useSecretConcealer({
     onSuccess: async (response) => {
@@ -61,7 +69,8 @@
           createdAt: new Date(),
         },
       };
-      concealedMessages.value.unshift(newMessage);
+      // Add the message to the store instead of the local array
+      concealedMetadataStore.addMessage(newMessage);
       operations.reset();
       secretContentInput.value?.clearTextarea(); // Clear textarea
     },
@@ -406,7 +415,7 @@
       </div>
     </form>
 
-    <template v-if="concealedMessages.length > 0">
+    <template v-if="concealedMetadataStore.hasMessages">
       <SecretLinksTable :concealedMessages="concealedMessages" />
     </template>
     <template v-else>
