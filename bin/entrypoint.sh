@@ -66,10 +66,10 @@ unset datestamp location basename
 # Gemfile are installed at up time (i.e. avoids a rebuild).
 # Check if BUNDLE_INSTALL is set to "true" (case-insensitive)
 if [[ "${BUNDLE_INSTALL,,}" == "true" ]]; then
-  >&2 echo "Running bundle install..."
+  >&2 echo "INFO: Running bundle install..."
   >&2 bundle install
 else
-  >&2 echo "Skipping bundle install. Use BUNDLE_INSTALL=true to run it."
+  >&2 echo "INFO: Skipping bundle install. Use BUNDLE_INSTALL=true to run it."
 fi
 
 if [ -d "/mnt/public" ]; then
