@@ -1,7 +1,39 @@
 #!/usr/bin/env python3
 import json
 from pathlib import Path
-from typing import Dict, Any, Union
+from typing import Dict, Any
+
+"""
+Locale File Migration Utility
+
+This script transforms existing locale JSON files from a legacy structure to a
+standardized hierarchical format based on a template structure. It flattens the
+existing structure, migrates keys to new naming conventions, and rebuilds a
+properly categorized nested structure.
+
+Usage:
+    python migrate-locale.py
+
+Input Files:
+    - src/locales/en.json: Source locale file with existing translations
+    - nested.json: Template file defining target structure
+
+Output:
+    - src/locales/en.new.json: Migrated locale file with preserved values in new structure
+    - Console output with migration statistics and validation
+
+Dependencies:
+    - Python 3.6+
+    - Standard library only (json, pathlib)
+
+The migration process:
+1. Flattens existing nested locale structure to dot notation
+2. Applies key transformation rules to standardize naming
+3. Categorizes keys into semantic groups (buttons, labels, status, etc.)
+4. Rebuilds nested structure according to standardized format
+5. Validates and outputs the new structure
+"""
+
 
 def flatten_dict(d: Dict[str, Any], parent_key: str = '', sep: str = '.') -> Dict[str, Any]:
     """

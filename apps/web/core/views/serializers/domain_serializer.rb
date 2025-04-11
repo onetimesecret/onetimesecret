@@ -22,6 +22,8 @@ module Core
       # @return [Hash] Serialized domain data
       def self.serialize(view_vars, i18n)
         output = self.output_template
+        site = view_vars[:site] || {}
+        domains_enabled = site.dig(:domains, :enabled)
 
         is_authenticated = view_vars[:authenticated]
         domains = view_vars[:site].fetch(:domains, {})
@@ -43,8 +45,10 @@ module Core
           domain_locale = output[:domain_branding].fetch('locale', nil)
         end
 
-        # There's no custom domain list when the feature is disabled.
-        if is_authenticated && domains[:enabled]
+        # There's no custom domain list when the feature is disabled
+        # or when the user is not logged in.
+        if is_authenticated && domains_enabled
+
           custom_domains = cust.custom_domains_list.filter_map do |obj|
             # Only verified domains that resolve
             unless obj.ready?
@@ -57,6 +61,7 @@ module Core
 
             obj.display_domain
           end
+
           output[:custom_domains] = custom_domains.sort
         end
 
@@ -64,15 +69,12 @@ module Core
       end
 
       class << self
-        private
-
         # Provides the base template for domain serializer output
         #
         # @return [Hash] Template with all possible domain output fields
         def output_template
           {
             canonical_domain: nil,
-            custom_domains: nil,
             display_domain: nil,
             domain_branding: nil,
             domain_id: nil,

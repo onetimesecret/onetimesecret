@@ -1,0 +1,189 @@
+// src/components/SplitButton.vue
+
+<script setup lang="ts">
+  import { ref, computed, onMounted, onBeforeUnmount } from 'vue';
+
+  // Action types for the button
+  type ActionType = 'create-link' | 'generate-password';
+
+  const props = defineProps({
+    content: { type: String, default: '' },
+    withGenerate: { type: Boolean, default: false },
+    disabled: { type: Boolean, default: false },
+    disableGenerate: { type: Boolean, default: false },
+  });
+
+  const emit = defineEmits(['generate-password', 'create-link', 'update:action']);
+
+  const isDropdownOpen = ref(false);
+  const buttonRef = ref<HTMLElement | null>(null);
+  const selectedAction = ref<ActionType>('create-link');
+  const isContentEmpty = computed(() => !props.content.trim());
+  const isMainButtonDisabled = computed(() => {
+    // Disable the Create Link action when no content
+    if (selectedAction.value === 'create-link') {
+      return props.disabled || (!isContentEmpty.value && !props.content);
+    }
+    // Disable Generate Password action when there IS content
+    if (selectedAction.value === 'generate-password') {
+      return props.disableGenerate;
+    }
+    return false;
+  });
+
+  // Button labels and icons based on selected action
+  const buttonConfig = computed(() => {
+    const configs = {
+      'create-link': {
+        label: 'Create Link',
+        icon: '<rect x="3" y="11" width="18" height="11" rx="2" ry="2" /><path d="M7 11V7a5 5 0 0 1 10 0v4" />',
+        emit: () => emit('create-link'),
+      },
+      'generate-password': {
+        label: 'Generate Password',
+        icon: '<path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4" />',
+        emit: () => emit('generate-password'),
+      },
+    };
+    return configs[selectedAction.value];
+  });
+
+  function handleMainClick() {
+    if (isMainButtonDisabled.value) return;
+    buttonConfig.value.emit();
+  }
+
+  function handleDropdownToggle() {
+    isDropdownOpen.value = !isDropdownOpen.value;
+  }
+
+  function setAction(action: ActionType) {
+    selectedAction.value = action;
+    isDropdownOpen.value = false;
+    emit('update:action', action);
+  }
+
+  function handleClickOutside(event: MouseEvent) {
+    if (buttonRef.value && !buttonRef.value.contains(event.target as Node)) {
+      isDropdownOpen.value = false;
+    }
+  }
+
+  onMounted(() => {
+    document.addEventListener('click', handleClickOutside);
+    // Emit initial action
+    emit('update:action', selectedAction.value);
+  });
+
+  onBeforeUnmount(() => {
+    document.removeEventListener('click', handleClickOutside);
+  });
+</script>
+
+<template>
+  <div
+    class="inline-flex relative w-full sm:w-auto"
+    ref="buttonRef">
+    <button
+      type="submit"
+      :class="[
+        'flex items-center justify-center gap-2 px-4 py-3 text-white font-semibold text-lg rounded-l-lg transition-colors',
+        selectedAction === 'create-link'
+          ? 'bg-brand-500 dark:bg-brand-600 hover:bg-brand-600 dark:hover:bg-brand-700'
+          : 'bg-brand-600 dark:bg-brand-700 hover:bg-brand-600 dark:hover:bg-brand-800',
+        'focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 dark:focus:ring-offset-slate-900',
+        {
+          'bg-brand-500/60 dark:bg-brand-600/60 disabled:hover:bg-brand-500/70 cursor-not-allowed dark:text-white/50': isMainButtonDisabled,
+        },
+      ]"
+      @click="handleMainClick"
+      :disabled="isMainButtonDisabled"
+      :aria-label="buttonConfig.label">
+      <span class="flex items-center text-current">
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="20"
+          height="20"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          class="size-5"
+          v-html="buttonConfig.icon" />
+      </span>
+      <span>{{ buttonConfig.label }}</span>
+    </button>
+
+    <button
+      type="button"
+      class="flex items-center justify-center px-3 py-3 bg-brand-500 dark:bg-brand-600 text-white rounded-r-lg border-l border-white/30 transition-colors hover:bg-brand-700 dark:hover:bg-brand-700 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 dark:focus:ring-offset-slate-900"
+      @click="handleDropdownToggle"
+      aria-label="Show more options"
+      :aria-expanded="isDropdownOpen">
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        width="20"
+        height="20"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+        class="size-5">
+        <polyline points="6 9 12 15 18 9" />
+      </svg>
+    </button>
+
+    <div
+      v-if="isDropdownOpen"
+      class="absolute top-full right-0 mt-1 bg-white dark:bg-gray-800 rounded-md shadow-lg w-52 z-10">
+      <button
+        type="button"
+        class="flex items-center gap-2 w-full px-4 py-2.5 border-0 bg-transparent text-left text-gray-800 dark:text-gray-200 transition-colors hover:bg-gray-100 dark:hover:bg-gray-700"
+        @click="setAction('create-link')">
+        <span class="flex items-center text-current">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="20"
+            height="20"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            class="size-5">
+            <rect
+              x="3"
+              y="11"
+              width="18"
+              height="11"
+              rx="2"
+              ry="2" />
+            <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+          </svg>
+        </span>
+        <span>Create Link</span>
+      </button>
+
+      <button
+        type="button"
+        v-if="props.withGenerate"
+        class="flex items-center gap-2 w-full px-4 py-2.5 border-0 bg-transparent text-left text-gray-800 dark:text-gray-200 transition-colors hover:bg-gray-100 dark:hover:bg-gray-700"
+        @click="setAction('generate-password')">
+        <span class="flex items-center text-brand-500 dark:text-brand-400">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="20"
+            height="20"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            class="size-5">
+            <path
+              d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4" />
+          </svg>
+        </span>
+        <span>Generate Password</span>
+      </button>
+    </div>
+  </div>
+</template>

@@ -47,16 +47,36 @@ module Core
         # @param i18n [Object] Internationalization instance
         # @return [Hash] Combined output from all serializers
         def run(serializer_list, vars, i18n)
-          # Get serializers in dependency order, filtering to requested ones
           ordered = sorted_serializers.select { |s| serializer_list.include?(s) }
+          seen_keys = {}
 
-          # Execute each serializer and merge results
           ordered.reduce({}) do |result, serializer|
             output = serializer.serialize(vars, i18n)
             if output.nil?
               OT.le "[SerializerRegistry] Warning: #{serializer} returned nil"
               next result
             end
+
+            output.each_key do |key|
+              # Detect keys that are not defined in the serializer output_template
+              unless serializer.output_template.key?(key)
+                OT.le "[SerializerRegistry] Warning: Key '#{key}' not defined in #{serializer}"
+              end
+
+              # Detect key collisions with output from previous serializers
+              if seen_keys.key?(key)
+                collision_msg = <<~MSG
+                  [SerializerRegistry] Warning: Key collision detected
+                  Key: '#{key}'
+                  First defined by: #{seen_keys[key]}
+                  Then defined by: #{serializer}
+                MSG
+                OT.le collision_msg
+              else
+                seen_keys[key] = serializer
+              end
+            end
+
             OT.ld "[SerializerRegistry] Executing serializer: #{serializer}"
             result.merge(output)
           end

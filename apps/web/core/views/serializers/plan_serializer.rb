@@ -34,8 +34,6 @@ module Core
       end
 
       class << self
-        private
-
         # Provides the base template for plan serializer output
         #
         # @return [Hash] Template with all possible plan output fields
@@ -45,7 +43,6 @@ module Core
             is_paid: nil,
             default_planid: nil,
             available_plans: nil,
-            plans_enabled: nil,
           }
         end
       end

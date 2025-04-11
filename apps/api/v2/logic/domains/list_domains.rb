@@ -14,8 +14,7 @@ module V2::Logic
       end
 
       def process
-        OT.ld "[ListDomains] Processing #{cust.custom_domains.size}"
-          OT.info "[ListDomains] Processing #{cust.custom_domains.rediskey}"
+        OT.ld "[ListDomains] Processing #{cust.custom_domains.size} #{cust.custom_domains.rediskey}"
 
         @custom_domains = cust.custom_domains_list.map do |domain|
           domain.safe_dump

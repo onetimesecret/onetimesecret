@@ -223,7 +223,7 @@ module Onetime
         OT.ld "[DomainStrategy]: Initializing from config (before): #{@domains_enabled} "
         @domains_enabled = config.dig(:domains, :enabled) || false
         @canonical_domain = get_canonical_domain(config)
-        OT.le "[DomainStrategy]: Initializing from config: #{@domains_enabled} "
+        OT.ld "[DomainStrategy]: Initializing from config: #{@domains_enabled} "
 
         # We don't need to get into any domain parsing if domains are disabled
         return unless domains_enabled?

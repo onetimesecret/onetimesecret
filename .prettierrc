@@ -16,6 +16,24 @@
         "parser": "ruby",
         "rubyParser": "syntax_tree"
       }
+    },
+    {
+      "files": "*.svg",
+      "options": {
+        "parser": "html",
+        "htmlSelfClosing": true,
+        "htmlWhitespaceSensitivity": "ignore",
+        "voidTags": "always"
+      }
+    },
+    {
+      "files": ["*.vue"],
+      "options": {
+        "vueIndentScriptAndStyle": true,
+        "htmlSelfClosing": true,
+        "htmlWhitespaceSensitivity": "ignore",
+        "voidElements": ["path", "circle", "rect", "polyline", "line", "polygon"]
+      }
     }
   ],
   "plugins": ["prettier-plugin-vue", "@prettier/plugin-ruby"],
@@ -28,5 +46,6 @@
   "tabWidth": 2,
   "trailingComma": "es5",
   "useTabs": false,
-  "vueIndentScriptAndStyle": true
+  "vueIndentScriptAndStyle": true,
+  "htmlSelfClosing": true
 }

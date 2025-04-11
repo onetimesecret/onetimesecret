@@ -305,7 +305,7 @@ module V1
       custom_domains.revmembers.collect do |domain|
         V1::CustomDomain.load domain, self.custid
       rescue OT::RecordNotFound => e
-        OT.le "[custom_domains_list] Error: #{e.message} (#{domain} / #{self.custid})"
+        OT.le "[custom_domains_list(v1)] Error: #{e.message} (#{domain} / #{self.custid})"
       end.compact
     end
 

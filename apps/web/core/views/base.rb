@@ -57,18 +57,24 @@ module Core
         @i18n_instance = self.i18n
         @messages = []
 
-        # We use a class helper method to initialize view variables
+        update_view_vars
+
+        init(*args) if respond_to?(:init)
+
+        update_serialized_data
+      end
+
+      def update_serialized_data
+        @serialized_data = self.run_serializers
+      end
+
+      def update_view_vars
         @view_vars = self.class.initialize_view_vars(req, sess, cust, locale, i18n_instance)
 
         # Make the view-relevant variables available to the view and HTML template
         @view_vars.each do |key, value|
           self[key] = value
         end
-
-        init(*args) if respond_to?(:init)
-
-        # Run serializers and apply to view
-        @serialized_data = self.run_serializers
       end
 
       # Add notification message to be displayed in StatusBar component

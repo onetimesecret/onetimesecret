@@ -32,6 +32,7 @@
       "secret": "Secret | Secrets",
       "recent": "Recent",
       "received": "Received",
+      "burn": "Burn",
       "burned": "Burned",
       "expires_in": "Expires in",
       "burn_this_secret": "Burn this secret",
@@ -167,7 +168,8 @@
     "secrets": {
       "privacyOptions": "Privacy Options",
       "selectDuration": "Select duration",
-      "expiresIn": "Expires in {duration}"
+      "expiresIn": "Expires in {duration}",
+      "enterPassphrase": "Enter Passphrase"
     },
     "homepage": {
       "tagline1": "Paste a password, secret message or private link below.",
@@ -184,7 +186,10 @@
       "explore_premium_plans": "With Custom Domains",
       "need_free_account": "Just getting started? Send emails with a free account.",
       "sign_up_free": "Free Sign-up",
-      "visit-onetime-secret-home": "Visit Onetime Secret homepage"
+      "visit-onetime-secret-home": "Visit Onetime Secret homepage",
+      "password_generation_title": "Password Generator",
+      "password_generation_description": " Click \"Generate Password\" to create a secure random password that you can share.",
+      "protip1": "Your message will self-destruct after being viewed. The link can only be accessed once."
     },
     "private": {
       "pretext": "Share this link:",
@@ -200,6 +205,7 @@
       "destroyed_ago": "Destroyed {time}",
       "burned": "Burned",
       "viewed": "Viewed",
+      "view_metadata": "View Metadata",
       "destroyed": "Destroyed",
       "have-more-questions-visit-our": "Have more questions? Visit our",
       "the-burn-feature-lets-you-permanently-delete-a-s": "The burn feature lets you permanently delete a secret before anyone views it. This is useful if you need to revoke access or shared the wrong information. Once burned, the secret cannot be recovered.",
@@ -613,6 +619,7 @@
   "t-ai-generated-testimonial": "{0}:",
   "t-benefits-of-identity-plus": "{0}: Identity Plus",
   "upgrade-to": "Upgrade to",
+  "upgrade-for-yourdomain": "Upgrade for secrets.yourdomain.com",
   "secret-access-form": "Secret access form",
   "content-status": "Content status",
   "secret-content-copied-to-clipboard": "Secret content copied to clipboard",

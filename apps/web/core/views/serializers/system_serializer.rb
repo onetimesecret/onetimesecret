@@ -26,8 +26,6 @@ module Core
       end
 
       class << self
-        private
-
         # Provides the base template for system serializer output
         #
         # @return [Hash] Template with all possible system output fields

@@ -300,7 +300,7 @@ module V2
       # Should always report false and false when disabled.
       unless cust.anonymous?
         custref = cust.obscure_email
-        OT.info "[sess.check_session] #{sess.short_identifier} #{custref} authenabled=#{authentication_enabled?.to_s}, sess=#{sess.authenticated?.to_s}"
+        OT.ld "[sess.check_session(v2)] #{sess.short_identifier} #{custref} authenabled=#{authentication_enabled?.to_s}, sess=#{sess.authenticated?.to_s}"
       end
     end
 
@@ -386,7 +386,7 @@ module V2
       return if cust.anonymous?
       reqstr = stringify_request_details(req)
       custref = cust.obscure_email
-      OT.info "[carefully] #{sess.short_identifier} #{custref} at #{reqstr}"
+      OT.ld "[carefully] #{sess.short_identifier} #{custref} at #{reqstr}"
     end
 
     # Collectes request details in a single string for logging purposes.
