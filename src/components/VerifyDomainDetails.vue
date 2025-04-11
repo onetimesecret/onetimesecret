@@ -29,7 +29,7 @@ const emit = defineEmits<{
 const { verifyDomain, isLoading, error } = useDomainsManager();
 const { t } = useI18n();
 
-const success = ref<string | null>(null);
+const success = ref<string | undefined>(undefined);
 const buttonDisabledDelay = ref(false);
 const isButtonDisabled = computed(() => isLoading.value || buttonDisabledDelay.value);
 const buttonText = computed(() => isLoading.value ? t('web.COMMON.processing') : t('verify-domain'));
@@ -66,7 +66,7 @@ const verify = async () => {
 
     <BasicFormAlerts
       :success="success"
-      :error="error"
+      :errors="error ? [error.message] : []"
     />
 
     <div class="mb-4 flex justify-end">

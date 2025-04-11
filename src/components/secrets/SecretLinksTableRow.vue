@@ -29,7 +29,7 @@
   const handleCopy = async () => {
     try {
       const record = props.concealedMessage;
-      const share_domain = record.share_domain ?? site_host;
+      const share_domain = record.response.record.metadata.share_domain ?? site_host;
       const share_link = `https://${share_domain}/secret/${record.secret_key}`;
       await navigator.clipboard.writeText(share_link);
       isCopied.value = true;

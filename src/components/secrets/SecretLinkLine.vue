@@ -1,5 +1,20 @@
 <!-- src/components/secrets/SecretLinkLine.vue -->
 
+<script setup lang="ts">
+import { ref } from 'vue';
+
+const isCopied = ref(false);
+const displayLink = ref('https://link');
+const handleCopy = () => {
+  navigator.clipboard.writeText(displayLink.value);
+  isCopied.value = true;
+  setTimeout(() => {
+    isCopied.value = false;
+  }, 2000);
+};
+
+</script>
+
 <template>
   <div class="flex items-center w-full">
     <div class="relative flex-1 group/link">
