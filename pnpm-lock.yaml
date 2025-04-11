@@ -172,8 +172,8 @@ importers:
         specifier: ^15.12.0
         version: 15.12.0
       happy-dom:
-        specifier: ^15.11.7
-        version: 15.11.7
+        specifier: ^17.4.4
+        version: 17.4.4
       jiti:
         specifier: 2.4.0
         version: 2.4.0
@@ -227,7 +227,7 @@ importers:
         version: 3.2.2(vite@5.4.15(@types/node@22.9.0)(terser@5.36.0))
       vitest:
         specifier: ^2.1.9
-        version: 2.1.9(@types/node@22.9.0)(@vitest/ui@2.1.9)(happy-dom@15.11.7)(jsdom@26.0.0)(terser@5.36.0)
+        version: 2.1.9(@types/node@22.9.0)(@vitest/ui@2.1.9)(happy-dom@17.4.4)(jsdom@26.0.0)(terser@5.36.0)
       vue-router:
         specifier: ^4.5.0
         version: 4.5.0(vue@3.5.13(typescript@5.6.3))
@@ -2281,8 +2281,8 @@ packages:
     resolution: {integrity: sha512-5v6yZd4JK3eMI3FqqCouswVqwugaA9r4dNZB1wwcmrD02QkV5H0y7XBQW8QwQqEaZY1pM9aqORSORhJRdNK44Q==}
     engines: {node: '>=6.0'}
 
-  happy-dom@15.11.7:
-    resolution: {integrity: sha512-KyrFvnl+J9US63TEzwoiJOQzZBJY7KgBushJA8X61DMbNsH+2ONkDuLDnCnwUiPTF42tLoEmrPyoqbenVA5zrg==}
+  happy-dom@17.4.4:
+    resolution: {integrity: sha512-/Pb0ctk3HTZ5xEL3BZ0hK1AqDSAUuRQitOmROPHhfUYEWpmTImwfD8vFDGADmMAX0JYgbcgxWoLFKtsWhcpuVA==}
     engines: {node: '>=18.0.0'}
 
   has-bigints@1.0.2:
@@ -4727,7 +4727,7 @@ snapshots:
       std-env: 3.8.0
       test-exclude: 7.0.1
       tinyrainbow: 1.2.0
-      vitest: 2.1.9(@types/node@22.9.0)(@vitest/ui@2.1.9)(happy-dom@15.11.7)(jsdom@26.0.0)(terser@5.36.0)
+      vitest: 2.1.9(@types/node@22.9.0)(@vitest/ui@2.1.9)(happy-dom@17.4.4)(jsdom@26.0.0)(terser@5.36.0)
     transitivePeerDependencies:
       - supports-color
 
@@ -4774,7 +4774,7 @@ snapshots:
       sirv: 3.0.0
       tinyglobby: 0.2.10
       tinyrainbow: 1.2.0
-      vitest: 2.1.9(@types/node@22.9.0)(@vitest/ui@2.1.9)(happy-dom@15.11.7)(jsdom@26.0.0)(terser@5.36.0)
+      vitest: 2.1.9(@types/node@22.9.0)(@vitest/ui@2.1.9)(happy-dom@17.4.4)(jsdom@26.0.0)(terser@5.36.0)
 
   '@vitest/utils@2.1.9':
     dependencies:
@@ -5961,9 +5961,8 @@ snapshots:
       section-matter: 1.0.0
       strip-bom-string: 1.0.0
 
-  happy-dom@15.11.7:
+  happy-dom@17.4.4:
     dependencies:
-      entities: 4.5.0
       webidl-conversions: 7.0.0
       whatwg-mimetype: 3.0.0
 
@@ -7231,7 +7230,7 @@ snapshots:
       fsevents: 2.3.3
       terser: 5.36.0
 
-  vitest@2.1.9(@types/node@22.9.0)(@vitest/ui@2.1.9)(happy-dom@15.11.7)(jsdom@26.0.0)(terser@5.36.0):
+  vitest@2.1.9(@types/node@22.9.0)(@vitest/ui@2.1.9)(happy-dom@17.4.4)(jsdom@26.0.0)(terser@5.36.0):
     dependencies:
       '@vitest/expect': 2.1.9
       '@vitest/mocker': 2.1.9(vite@5.4.15(@types/node@22.9.0)(terser@5.36.0))
@@ -7256,7 +7255,7 @@ snapshots:
     optionalDependencies:
       '@types/node': 22.9.0
       '@vitest/ui': 2.1.9(vitest@2.1.9)
-      happy-dom: 15.11.7
+      happy-dom: 17.4.4
       jsdom: 26.0.0
     transitivePeerDependencies:
       - less
