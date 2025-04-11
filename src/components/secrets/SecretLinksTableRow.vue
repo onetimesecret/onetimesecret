@@ -2,6 +2,7 @@
 
 <script setup lang="ts">
   import OIcon from '@/components/icons/OIcon.vue';
+  import { WindowService } from '@/services/window.service';
   import { type ConcealedMessage } from '@/types/ui/concealed-message';
   import { formatDistanceToNow } from 'date-fns';
   import { ref } from 'vue';
@@ -21,16 +22,21 @@
   // Track if this row's content was copied
   const isCopied = ref(false);
 
+  const site_host = WindowService.get('site_host');
+
   const handleCopy = async () => {
     try {
-      await navigator.clipboard.writeText(props.concealedMessage.secret_key);
+      const record = props.concealedMessage;
+      const share_domain = record.share_domain ?? site_host;
+      const share_link = `https://${share_domain}/secret/${record.secret_key}`;
+      await navigator.clipboard.writeText(share_link);
       isCopied.value = true;
       emit('copy');
 
-      // Reset copy state after 2 seconds
+      // Reset copy state after around 2 seconds
       setTimeout(() => {
         isCopied.value = false;
-      }, 2000);
+      }, 1500);
     } catch (err) {
       console.error('Failed to copy text: ', err);
     }
@@ -41,7 +47,7 @@
   <tr class="group hover:bg-gray-50 dark:hover:bg-slate-800/50 transition-colors">
     <td class="px-6 py-4">
       <div class="flex items-center gap-2">
-        <span class="font-mono text-sm text-gray-900 dark:text-gray-100 truncate">
+        <span class="font-mono text-sm text-gray-900 dark:text-gray-100 truncate max-w-[12ch]">
           <router-link :to="`/private/${concealedMessage.metadata_key}`">
             {{ concealedMessage.metadata_key }}
           </router-link>
