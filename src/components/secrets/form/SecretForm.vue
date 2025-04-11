@@ -1,6 +1,7 @@
 <!-- src/components/secrets/form/SecretForm.vue -->
 <script setup lang="ts">
   import { computed, onMounted, ref, watch } from 'vue';
+  import { useRouter } from 'vue-router';
   import BasicFormAlerts from '@/components/BasicFormAlerts.vue';
   import OIcon from '@/components/icons/OIcon.vue';
   import SplitButton from '@/components/SplitButton.vue';
@@ -11,8 +12,6 @@
   import { useConcealedMetadataStore } from '@/stores/concealedMetadataStore';
   import { type ConcealedMessage } from '@/types/ui/concealed-message';
   import { nanoid } from 'nanoid';
-  import HomepageLinksPlaceholder from '../HomepageLinksPlaceholder.vue';
-  import SecretLinksTable from '../SecretLinksTable.vue';
   import CustomDomainPreview from './../../CustomDomainPreview.vue';
   import SecretContentInputArea from './SecretContentInputArea.vue';
 
@@ -32,6 +31,7 @@
     withExpiry: true,
   });
 
+  const router = useRouter();
   const productIdentity = useProductIdentity();
   const concealedMetadataStore = useConcealedMetadataStore();
   const showProTip = ref(props.withAsterisk);
@@ -54,7 +54,7 @@
   const recipientErrorId = computed(() => `recipient-error-${uniqueId.value}`);
 
   // Use the store's concealed messages
-  const concealedMessages = computed(() => concealedMetadataStore.concealedMessages);
+  //const concealedMessages = computed(() => concealedMetadataStore.concealedMessages);
 
   const { form, validation, operations, isSubmitting, submit } = useSecretConcealer({
     onSuccess: async (response) => {
@@ -73,6 +73,9 @@
       concealedMetadataStore.addMessage(newMessage);
       operations.reset();
       secretContentInput.value?.clearTextarea(); // Clear textarea
+
+      // Navigate to the metadata view page
+      router.push(`/private/${response.record.metadata.key}`);
     },
   });
 
@@ -128,7 +131,7 @@
         ref="div1"
         class="overflow-visible rounded-xl border border-gray-200 bg-white shadow-lg dark:border-gray-700 dark:bg-slate-900">
         <!-- Main Content Section -->
-        <div class="p-6 space-y-6">
+        <div class="p-6 space-y-">
           <!-- Secret Input Section -->
           <div v-show="selectedAction === 'create-link'">
             <h3>
@@ -159,7 +162,7 @@
           <!-- Generate Password Text -->
           <div
             v-show="selectedAction === 'generate-password'"
-            class="rounded-lg border border-gray-200 bg-gray-50 dark:bg-slate-800/50 dark:border-gray-700"
+            class="rounded-lg border border-gray-200 bg-gray-50 dark:bg-slate-800/50 dark:border-gray-700 mt-2"
             aria-labelledby="generatedPasswordHeader"
             aria-describedby="generatedPasswordDesc">
             <div class="text-center space-y-4 p-4">
@@ -195,7 +198,7 @@
           </div>
 
           <!-- Form Controls Section -->
-          <div class="grid gap-6 md:grid-cols-2">
+          <div class="grid gap-6 md:grid-cols-2 mt-6">
             <!-- Passphrase Field -->
             <div class="relative">
               <h3>
@@ -415,13 +418,9 @@
       </div>
     </form>
 
-    <template v-if="concealedMetadataStore.hasMessages">
-      <SecretLinksTable :concealedMessages="concealedMessages" />
-    </template>
-    <template v-else>
-      <HomepageLinksPlaceholder
-        title="No secrets yet"
-        description="Create a secret above to get started." />
-    </template>
+    <div>
+      <!-- Add vertical negative space -->
+      <div class="h-16"></div>
+    </div>
   </div>
 </template>
