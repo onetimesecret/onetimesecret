@@ -11,13 +11,13 @@
       initialContent?: string;
       cornerClass?: string;
       disabled?: boolean;
-      minHeight?: string;
+      minHeight?: number;
       maxHeight?: number;
     }>(),
     {
       maxLength: 10000,
       disabled: false,
-      minHeight: '200px',
+      minHeight: 200,
       maxHeight: 400,
     }
   );
@@ -64,7 +64,7 @@
       @input="checkContentLength"
       :maxlength="maxLength"
       :class="[cornerClass]"
-      :style="{ minHeight: minHeight, maxHeight: maxHeight + 'px' }"
+      :style="{ minHeight: minHeight + 'px', maxHeight: maxHeight + 'px' }"
       class="
         block w-full resize-none
         rounded-lg border border-gray-200 p-4

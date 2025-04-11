@@ -131,10 +131,9 @@
         ref="div1"
         class="overflow-visible rounded-xl border border-gray-200 bg-white shadow-lg dark:border-gray-700 dark:bg-slate-900">
         <!-- Main Content Section -->
-        <div class="p-6 space-y-">
+        <div class="p-6">
           <!-- Secret Input Section -->
-          <div v-show="selectedAction === 'create-link'">
-            <h3>
+          <span v-show="selectedAction === 'create-link'">
               <label
                 id="secretContentLabel"
                 class="sr-only">
@@ -147,25 +146,25 @@
                 -->
                 {{ $t('secret-content') || 'Secret Content' }}
               </label>
-            </h3>
+
             <SecretContentInputArea
               ref="secretContentInput"
               v-model:content="form.secret"
               :disabled="isSubmitting"
-              :min-height="'200px'"
+
               :max-height="400"
               aria-labelledby="secretContentLabel"
-              class="bg-gray-50 dark:bg-slate-800/50 transition-colors focus-within:bg-white dark:focus-within:bg-slate-800 rounded-lg border border-gray-200 dark:border-gray-700"
+
               @update:content="(content) => operations.updateField('secret', content)" />
-          </div>
+          </span>
 
           <!-- Generate Password Text -->
           <div
             v-show="selectedAction === 'generate-password'"
-            class="rounded-lg border border-gray-200 bg-gray-50 dark:bg-slate-800/50 dark:border-gray-700 mt-2"
+            class="rounded-lg border border-gray-200 bg-gray-50 dark:bg-slate-800/50 dark:border-gray-700"
             aria-labelledby="generatedPasswordHeader"
             aria-describedby="generatedPasswordDesc">
-            <div class="text-center space-y-4 p-4">
+            <div class="text-center space-y-4 p-4 pb-6">
               <div class="flex justify-center">
                 <div class="rounded-full p-3 bg-brand-100 dark:bg-brand-900/30">
                   <svg
