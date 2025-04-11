@@ -32,6 +32,7 @@
       "secret": "Secret",
       "recent": "Récent",
       "received": "Reçu",
+      "burn": "",
       "burned": "Supprimé",
       "expires_in": "Expire dans",
       "burn_this_secret": "Supprimer ce secret",
@@ -58,7 +59,6 @@
       "button_create_account": "Créer un compte",
       "share_a_secret": "Partager un secret",
       "title_home": "Accueil",
-      "title_recent_secrets": "Secrets récents",
       "word_none": "Aucun",
       "word_burned": "supprimé",
       "word_received": "reçu",
@@ -104,7 +104,8 @@
       "help_section": "Section d'aide",
       "passphrase_protected": "Protégé par phrase de passe",
       "feedback-received": "Retour d'information reçu",
-      "sending-ellipses": "Envoi..."
+      "sending-ellipses": "Envoi...",
+      "title_recent_secrets": "Secrets récents"
     },
     "STATUS": {
       "new": "Nouveau",
@@ -167,7 +168,8 @@
     "secrets": {
       "privacyOptions": "Options de confidentialité",
       "selectDuration": "Sélectionner la durée",
-      "expiresIn": "Expire dans {duration}"
+      "expiresIn": "Expire dans {duration}",
+      "enterPassphrase": ""
     },
     "homepage": {
       "tagline1": "Collez votre mot de passe, message secret ou lien privé ci-dessous",
@@ -184,7 +186,10 @@
       "explore_premium_plans": "Découvrir les forfaits Premium",
       "need_free_account": "Vous débutez ?",
       "sign_up_free": "Créer un compte gratuit",
-      "visit-onetime-secret-home": ""
+      "visit-onetime-secret-home": "",
+      "password_generation_title": "",
+      "password_generation_description": "",
+      "protip1": ""
     },
     "private": {
       "pretext": "Partager ce lien :",
@@ -200,6 +205,7 @@
       "destroyed_ago": "Détruit il y a {time}",
       "burned": "Supprimé",
       "viewed": "Consulté",
+      "view_metadata": "",
       "destroyed": "Détruit",
       "have-more-questions-visit-our": "Vous avez d'autres questions ? Visitez notre",
       "the-burn-feature-lets-you-permanently-delete-a-s": "La fonction de brûlage vous permet de supprimer définitivement un secret avant que quiconque ne le consulte. Cette fonction est utile si vous devez révoquer l'accès à un secret ou si vous avez partagé des informations erronées. Une fois brûlé, le secret ne peut plus être récupéré.",
@@ -610,6 +616,7 @@
   "t-ai-generated-testimonial": "{0}:",
   "t-benefits-of-identity-plus": "{0} : Identité Plus",
   "upgrade-to": "Passer à",
+  "upgrade-for-yourdomain": "",
   "secret-access-form": "Formulaire d'accès secret",
   "content-status": "Statut du contenu",
   "secret-content-copied-to-clipboard": "Contenu du secret copié dans le presse-papiers",

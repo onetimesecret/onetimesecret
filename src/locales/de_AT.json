@@ -32,6 +32,7 @@
       "secret": "Geheimnis | Geheimnisse",
       "recent": "Jüngste | Jüngste",
       "received": "Empfangen",
+      "burn": "",
       "burned": "Verbrannt",
       "expires_in": "Läuft ab in",
       "burn_this_secret": "Dieses Geheimnis verbrennen",
@@ -58,7 +59,6 @@
       "button_create_account": "Konto erstellen",
       "share_a_secret": "Ein Geheimnis teilen",
       "title_home": "Startseite",
-      "title_recent_secrets": "Neueste Geheimnisse",
       "word_none": "Keine",
       "word_burned": "verbrannt",
       "word_received": "erhalten",
@@ -104,7 +104,8 @@
       "help_section": "Hilfe-Bereich",
       "passphrase_protected": "Geschützt mit Sicherheitsphrase",
       "feedback-received": "Rückmeldung erhalten.",
-      "sending-ellipses": "Ich schicke..."
+      "sending-ellipses": "Ich schicke...",
+      "title_recent_secrets": "Neueste Geheimnisse"
     },
     "STATUS": {
       "new": "Neu",
@@ -167,7 +168,8 @@
     "secrets": {
       "privacyOptions": "Datenschutz-Optionen",
       "selectDuration": "Dauer auswählen",
-      "expiresIn": "Läuft ab in {duration}"
+      "expiresIn": "Läuft ab in {duration}",
+      "enterPassphrase": ""
     },
     "homepage": {
       "tagline1": "Fügen Sie unten ein Passwort, eine geheime Nachricht oder einen privaten Link ein.",
@@ -184,7 +186,10 @@
       "explore_premium_plans": "Mit benutzerdefinierten Bereiche",
       "need_free_account": "Sie haben gerade erst angefangen? Versenden Sie E-Mails mit einem kostenlosen Konto.",
       "sign_up_free": "Kostenlose Anmeldung",
-      "visit-onetime-secret-home": "Besuchen Sie die Homepage von Onetime Secret"
+      "visit-onetime-secret-home": "Besuchen Sie die Homepage von Onetime Secret",
+      "password_generation_title": "",
+      "password_generation_description": "",
+      "protip1": ""
     },
     "private": {
       "pretext": "Teilen Sie diesen Link:",
@@ -200,6 +205,7 @@
       "destroyed_ago": "Zerstört {Zeit}",
       "burned": "Verbrannt",
       "viewed": "Aufgerufen",
+      "view_metadata": "",
       "destroyed": "Zerstörte",
       "have-more-questions-visit-our": "Haben Sie weitere Fragen? Besuchen Sie unser",
       "the-burn-feature-lets-you-permanently-delete-a-s": "Mit der Brennfunktion können Sie ein Geheimnis dauerhaft löschen, bevor es jemand sieht. Dies ist nützlich, wenn Sie den Zugriff widerrufen oder die falschen Informationen weitergeben möchten. Einmal gebrannt, kann das Geheimnis nicht wiederhergestellt werden.",
@@ -610,6 +616,7 @@
   "t-ai-generated-testimonial": "{0}:",
   "t-benefits-of-identity-plus": "{0}: Identität Plus",
   "upgrade-to": "Upgrade auf",
+  "upgrade-for-yourdomain": "",
   "secret-access-form": "Formular für den geheimen Zugang",
   "content-status": "Inhaltlicher Zustand",
   "secret-content-copied-to-clipboard": "Geheimer Inhalt in die Zwischenablage kopiert",

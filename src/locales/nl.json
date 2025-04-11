@@ -32,6 +32,7 @@
       "secret": "Bericht",
       "recent": "Recent",
       "received": "Ontvangen",
+      "burn": "",
       "burned": "Verwijderd",
       "expires_in": "Verloopt in",
       "burn_this_secret": "Verwijder dit bericht",
@@ -58,7 +59,6 @@
       "button_create_account": "Account aanmaken",
       "share_a_secret": "Deel een bericht",
       "title_home": "Home",
-      "title_recent_secrets": "Recente berichten",
       "word_none": "Geen",
       "word_burned": "Verwijderd",
       "word_received": "Ontvangen",
@@ -104,7 +104,8 @@
       "help_section": "Hulpsectie",
       "passphrase_protected": "Beveiligd met wachtwoordzin",
       "feedback-received": "Feedback ontvangen.",
-      "sending-ellipses": "Versturen..."
+      "sending-ellipses": "Versturen...",
+      "title_recent_secrets": "Recente berichten"
     },
     "STATUS": {
       "new": "Nieuw",
@@ -167,7 +168,8 @@
     "secrets": {
       "privacyOptions": "Privacy opties",
       "selectDuration": "Selecteer duur",
-      "expiresIn": "Verloopt in {duration}"
+      "expiresIn": "Verloopt in {duration}",
+      "enterPassphrase": ""
     },
     "homepage": {
       "tagline1": "Plak het wachtwoord, geheime bericht of privé link hieronder",
@@ -184,7 +186,10 @@
       "explore_premium_plans": "Verken premium-abonnementen",
       "need_free_account": "Net begonnen?",
       "sign_up_free": "Maak een gratis account aan",
-      "visit-onetime-secret-home": "Bezoek Onetime Secret homepage"
+      "visit-onetime-secret-home": "Bezoek Onetime Secret homepage",
+      "password_generation_title": "",
+      "password_generation_description": "",
+      "protip1": ""
     },
     "private": {
       "pretext": "Deel een link:",
@@ -200,6 +205,7 @@
       "destroyed_ago": "Vernietigd {time}",
       "burned": "Verwijderd",
       "viewed": "Link geopend",
+      "view_metadata": "",
       "destroyed": "Vernietigd",
       "have-more-questions-visit-our": "Meer vragen? Bezoek onze",
       "the-burn-feature-lets-you-permanently-delete-a-s": "Met de verwijderfunctie kunt u een bericht permanent verwijderen voordat iemand het bekijkt. Dit is handig als u de toegang moet intrekken of verkeerde informatie hebt gedeeld. Eenmaal verwijderd kan het bericht niet worden hersteld.",
@@ -581,6 +587,7 @@
   "t-ai-generated-testimonial": "{0}:",
   "t-benefits-of-identity-plus": "{0}: Identity Plus",
   "upgrade-to": "Upgraden naar",
+  "upgrade-for-yourdomain": "",
   "secret-access-form": "Berichttoegangsformulier",
   "content-status": "Inhoudsstatus",
   "secret-content-copied-to-clipboard": "Berichtinhoud gekopieerd naar klembord",

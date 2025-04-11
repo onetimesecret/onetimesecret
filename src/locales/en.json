@@ -59,7 +59,6 @@
       "button_create_account": "Create Account",
       "share_a_secret": "Share a secret",
       "title_home": "Home",
-      "title_recent_secrets": "Recent Secrets",
       "word_none": "None",
       "word_burned": "burned",
       "word_received": "received",
@@ -105,7 +104,8 @@
       "help_section": "Help Section",
       "passphrase_protected": "Protected with passphrase",
       "feedback-received": "Feedback received.",
-      "sending-ellipses": "Sending..."
+      "sending-ellipses": "Sending...",
+      "title_recent_secrets": "Recent Secrets"
     },
     "STATUS": {
       "new": "New",
