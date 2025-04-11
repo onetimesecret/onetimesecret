@@ -97,6 +97,7 @@
       "no_passphrase": "No Passphrase Required",
       "secret_link": "Secret Link",
       "security_details": "Security Details",
+      "items_count": "{count} Items",
       "recipients_count": "{count} Recipients",
       "views": "Views",
       "times_viewed": "times viewed",
@@ -151,6 +152,16 @@
           "hour": "hour | hours",
           "minute": "minute | minutes",
           "second": "second | seconds"
+        },
+        "noOptionsAvailable": "---"
+      },
+      "ttl_remaining": {
+        "duration": "{count} {unit} remaining",
+        "time": {
+          "day": "day remaining | days remaining",
+          "hour": "hour remaining | hours remaining",
+          "minute": "minute remaining | minutes remaining",
+          "second": "second remaining | seconds remaining"
         },
         "noOptionsAvailable": "---"
       },

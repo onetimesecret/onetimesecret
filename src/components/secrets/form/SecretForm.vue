@@ -193,18 +193,11 @@
               <h3>
                 <label
                   :for="passphraseId"
-                  class="block mb-1 text-sm font-brand text-gray-700 dark:text-gray-300">
-                  {{ $t('web.COMMON.secret_passphrase') || 'Passphrase (optional)' }}
+                  class="block mb-1 text-sm font-brand text-gray-600 dark:text-gray-300">
+                  {{ $t('web.COMMON.secret_passphrase') }}
                 </label>
               </h3>
               <div class="relative">
-                <div class="pointer-events-none absolute inset-y-0 left-3 flex items-center">
-                  <OIcon
-                    collection="heroicons"
-                    name="key"
-                    class="h-4 w-4 text-gray-400"
-                    aria-hidden="true" />
-                </div>
                 <input
                   :type="state.passphraseVisibility ? 'text' : 'password'"
                   :value="form.passphrase"
@@ -213,7 +206,7 @@
                   autocomplete="off"
                   :aria-invalid="!!getError('passphrase')"
                   :aria-errormessage="getError('passphrase') ? passphraseErrorId : undefined"
-                  class="w-full rounded-lg border border-gray-200 bg-white pl-10 pr-10 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500 focus:outline-none transition-shadow duration-200 dark:border-gray-700 dark:bg-slate-800 dark:text-white dark:placeholder:text-gray-500"
+                  class="w-full rounded-lg border border-gray-200 bg-white pl-5 pr-10 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500 focus:outline-none transition-shadow duration-200 dark:border-gray-700 dark:bg-slate-800 dark:text-white dark:placeholder:text-gray-500"
                   :placeholder="$t('web.secrets.enterPassphrase')"
                   @input="(e) => updatePassphrase((e.target as HTMLInputElement).value)" />
                 <button
@@ -246,25 +239,18 @@
               <h3>
                 <label
                   :for="lifetimeId"
-                  class="block mb-1 text-sm font-brand text-gray-700 dark:text-gray-300">
+                  class="block mb-1 text-sm font-brand text-gray-600 dark:text-gray-300">
                   {{ $t('web.LABELS.expiration_time') || 'Secret Expiration' }}
                 </label>
               </h3>
               <div class="relative">
-                <div class="pointer-events-none absolute inset-y-0 left-3 flex items-center">
-                  <OIcon
-                    collection="heroicons"
-                    name="fire"
-                    class="h-4 w-4 text-gray-400"
-                    aria-hidden="true" />
-                </div>
                 <select
                   :value="form.ttl"
                   :id="lifetimeId"
                   name="ttl"
                   :aria-invalid="!!getError('ttl')"
                   :aria-describedby="getError('ttl') ? lifetimeErrorId : undefined"
-                  class="w-full appearance-none rounded-lg border border-gray-200 bg-white pl-10 pr-10 py-2.5 text-sm text-gray-900 focus:border-blue-500 focus:ring-2 focus:ring-blue-500 focus:outline-none transition-shadow duration-200 dark:border-gray-700 dark:bg-slate-800 dark:text-white"
+                  class="w-full appearance-none rounded-lg border border-gray-200 bg-white pl-5 pr-10 py-2.5 text-sm text-gray-600 focus:border-blue-500 focus:ring-2 focus:ring-blue-500 focus:outline-none transition-shadow duration-200 dark:border-gray-700 dark:bg-slate-800 dark:text-white"
                   @change="(e) => updateTtl(Number((e.target as HTMLSelectElement).value))">
                   <option
                     value=""

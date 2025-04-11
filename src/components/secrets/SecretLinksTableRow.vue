@@ -7,7 +7,6 @@
   import { formatDistanceToNow } from 'date-fns';
   import { ref, computed } from 'vue';
   import { formatTTL } from '@/utils/formatters';
-  // import SecretLinksTableRowActions from '@/components/secrets/SecretLinksTableRowActions.vue';
   import { useI18n } from 'vue-i18n';
 
   const { t } = useI18n();
@@ -49,108 +48,130 @@
     return formatDistanceToNow(props.concealedMessage.clientInfo.createdAt, { addSuffix: true });
   });
 
-  // Compute security status label
-  const securityStatusLabel = computed(() => {
-    return props.concealedMessage.clientInfo.hasPassphrase
-      ? t('web.private.requires_passphrase')
-      : '';
+  // Compute security status and time remaining
+  const hasPassphrase = computed(() => props.concealedMessage.clientInfo.hasPassphrase);
+  const timeRemaining = computed(() => formatTTL(props.concealedMessage.clientInfo.ttl));
+
+  // Calculate TTL percentage for background color
+  const getTtlPercentage = computed(() => {
+    // Default max TTL to 7 days (604800 seconds)
+    const maxTtl = 604800;
+    // Get current TTL
+    const currentTtl = props.concealedMessage.clientInfo.ttl;
+    return Math.floor((currentTtl / maxTtl) * 100);
   });
 
-  // Compute security level class
-  // const securityLevelClass = computed(() => {
-  //   return props.concealedMessage.clientInfo.hasPassphrase
-  //     ? 'text-emerald-600 dark:text-emerald-400 font-medium'
-  //     : 'text-amber-600 dark:text-amber-400';
-  // });
+  // Background color class based on TTL percentage
+  const ttlBackgroundClass = computed(() => {
+    const percentage = getTtlPercentage.value;
+    if (percentage > 75) return 'bg-opacity-0 dark:bg-opacity-0';
+    if (percentage > 50) return 'bg-emerald-50/30 dark:bg-emerald-900/10';
+    if (percentage > 25) return 'bg-amber-50/40 dark:bg-amber-900/15';
+    return 'bg-red-50/40 dark:bg-red-900/10';
+  });
 
+  // Get status label based on TTL percentage
+  const statusLabel = computed(() => {
+    const percentage = getTtlPercentage.value;
+    if (percentage <= 25) return t('web.STATUS.expiring_soon');
+    return '';
+  });
+
+  // Create shareable link with proper domain
+  const secretLink = computed(() => {
+    const record = props.concealedMessage;
+    const shareDomain = record.response.record.metadata.share_domain ?? site_host;
+    return `https://${shareDomain}/secret/${record.secret_key}`;
+  });
+
+  // Display key (shortened for clarity)
+  const displayKey = computed(() => {
+    return props.concealedMessage.response.record.metadata.shortkey;
+  });
 </script>
 
 <template>
-  <tr class="group border-b border-gray-200 dark:border-gray-700 transition-all duration-200 hover:bg-gray-50/80 dark:hover:bg-slate-800/70">
+  <tr :class="[
+      'group border-b border-gray-200 dark:border-gray-700 transition-all duration-200 hover:bg-gray-50/80 dark:hover:bg-slate-800/70',
+      ttlBackgroundClass
+    ]">
     <!-- Secret ID Column -->
-    <td class="px-6 py-3 whitespace-nowrap">
+    <td class="px-6 py-4 whitespace-nowrap">
       <div class="flex flex-col">
-        <div class="flex items-center gap-2 mb-1">
+        <div class="flex items-center gap-2 mb-1.5">
           <OIcon
+            v-if="hasPassphrase"
             collection="heroicons"
-            name="document-text-solid"
+            name="key"
+            class="size-4 text-emerald-500 dark:text-emerald-400" />
+          <OIcon
+            v-else
+            collection="heroicons"
+            name="document-text"
             class="size-4 text-gray-500 dark:text-gray-400" />
-          <span class="font-mono text-sm text-gray-800 dark:text-gray-200 truncate max-w-[15ch]">
+          <span class="font-mono text-sm text-gray-800 dark:text-gray-200 truncate max-w-[15ch] font-medium">
             <router-link
               :to="`/private/${concealedMessage.metadata_key}`"
-              class="hover:text-gray-600 dark:hover:text-gray-300 transition-colors flex items-center gap-1">
-              {{ concealedMessage.response.record.metadata.shortkey }}
+              class="hover:text-gray-600 dark:hover:text-gray-300 transition-colors">
+              {{ displayKey }}
             </router-link>
           </span>
         </div>
-        <div class="flex items-center text-xs text-gray-500 dark:text-gray-400 ml-6">
-          <OIcon
-            collection="heroicons"
-            name="clock-solid"
-            class="mr-1.5 size-3" />
+        <span class="text-xs text-gray-500 dark:text-gray-400 ml-6">
           {{ formattedDate }}
-        </div>
+        </span>
       </div>
     </td>
 
-    <!-- Security & Expiration Column -->
-    <td class="px-6 py-3">
+    <!-- Security & Expiration Column (hidden on mobile) -->
+    <td class="px-6 py-4 hidden sm:table-cell">
       <div class="flex flex-col space-y-2">
-        <div v-if="securityStatusLabel"
+        <div v-if="hasPassphrase"
           class="flex items-center gap-1.5">
-          <OIcon
-            collection="heroicons"
-            :name="concealedMessage.clientInfo.hasPassphrase ? 'key-solid' : 'lock-open-solid'"
-            class="size-3.5 text-gray-500 dark:text-gray-400" />
-          <span class="text-sm text-gray-700 dark:text-gray-300">{{ securityStatusLabel }}</span>
+          <span class="text-sm text-emerald-600 dark:text-emerald-400 font-medium">
+            {{ $t('web.LABELS.passphrase_protected') }}
+          </span>
         </div>
-        <div class="flex items-center gap-1.5 text-sm text-gray-600 dark:text-gray-400">
+        <div class="flex items-center text-sm text-gray-600 dark:text-gray-400">
           <OIcon
             collection="heroicons"
-            name="clock-solid"
-            class="size-3.5 text-gray-500 dark:text-gray-400" />
-          <span>{{ formatTTL(concealedMessage.clientInfo.ttl) }}</span>
+            name="clock"
+            class="mr-1.5 size-3.5" />
+          <span>{{ timeRemaining }}</span>
+          <span v-if="statusLabel" class="ml-1.5 text-amber-600 dark:text-amber-400 text-xs px-1.5 py-0.5 bg-amber-50 dark:bg-amber-900/20 rounded">
+            {{ statusLabel }}
+          </span>
         </div>
       </div>
     </td>
 
     <!-- Actions Column -->
-    <td class="px-6 py-3 text-right">
-      <div class="flex justify-end space-x-2">
-        <!-- Split Button for Secret Link -->
-        <div class="flex relative group/secret-link">
+    <td class="px-6 py-4 text-right">
+      <div class="flex justify-end">
+        <!-- Combined Action Button -->
+        <div class="relative group inline-block">
           <button
             @click="handleCopy"
-            class="inline-flex items-center justify-center rounded-r-md border-l border-gray-200 dark:border-gray-700/50 bg-gray-100 dark:bg-gray-800/50 p-1.5 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700/40 focus:outline-none focus:ring-2 focus:ring-gray-300 focus:ring-offset-2 transition-all">
+            class="flex items-center gap-2 px-3 py-1.5 rounded-l-md bg-gray-100 text-sm font-medium text-gray-700 dark:bg-gray-800/50 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700/40 focus:outline-none focus:ring-2 focus:ring-gray-300 focus:ring-offset-2 transition-all border-r border-gray-200 dark:border-gray-700/50">
             <OIcon
               collection="material-symbols"
               :name="isCopied ? 'check' : 'content-copy-outline'"
               class="size-4" />
-
-            <!-- Tooltip that appears on hover -->
-            <span class="absolute -top-9 right-0 px-2 py-1 bg-gray-800 text-white text-xs rounded opacity-0 group-hover/secret-link:opacity-100 whitespace-nowrap transition-opacity duration-200 z-10">
-              {{ isCopied ? 'Copied!' : 'Copy secret link' }}
-            </span>
+            <span class="sr-only">{{ isCopied ? $t('web.COMMON.copied_to_clipboard') : $t('copy-to-clipboard') }}</span>
           </button>
           <router-link
-            :to="`/secret/${concealedMessage.secret_key}`"
+            :to="secretLink"
             target="_blank"
-            class="inline-flex items-center justify-center rounded-l-md bg-gray-100 px-3 py-1.5 text-sm font-medium text-gray-700 dark:bg-gray-800/50 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700/40 focus:outline-none focus:ring-2 focus:ring-gray-300 focus:ring-offset-2 transition-all">
+            class="flex items-center gap-2 px-3 py-1.5 rounded-r-md bg-gray-100 text-sm font-medium text-gray-700 dark:bg-gray-800/50 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700/40 focus:outline-none focus:ring-2 focus:ring-gray-300 focus:ring-offset-2 transition-all">
             <OIcon
               collection="heroicons"
               name="arrow-top-right-on-square"
-              class="mr-1.5 size-4" />
+              class="size-4" />
+            <span class="sr-only">{{ $t('web.COMMON.view_secret') }}</span>
           </router-link>
-        </div>
 
-        <!-- Actions Menu -->
-        <!-- <SecretLinksTableRowActions
-          :concealed-message="concealedMessage"
-          @delete="$emit('delete', concealedMessage)" /> -->
+        </div>
       </div>
     </td>
   </tr>
 </template>
-
-<style scoped>
-</style>
