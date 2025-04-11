@@ -76,7 +76,7 @@ import EmailObfuscator from '@/components/EmailObfuscator.vue';
         {{ $t('web.security.with-the-subject-line-vulnerability-report-brief') }}
       </li>
       <li>
-        <strong>{{ $t('web.security.details') }}</strong>{{ $t('web.security.include-as-much-information-as-possible-about-th') }}
+        <strong>{{ $t('web.LABELS.details') }}</strong>{{ $t('web.security.include-as-much-information-as-possible-about-th') }}
         <ul class="mt-2 list-disc pl-6">
           <li>{{ $t('web.security.a-detailed-description-of-the-vulnerability') }}</li>
           <li>{{ $t('web.security.steps-to-reproduce-the-issue') }}</li>

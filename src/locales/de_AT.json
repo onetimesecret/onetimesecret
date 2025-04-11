@@ -445,7 +445,7 @@
   "escape": "Flucht",
   "active": "Aktiv",
   "theyll-appear-here-once-youve-shared-them": "Sie werden hier erscheinen, sobald Sie sie geteilt haben.",
-  "copy-to-clipboard": "In die Zwischenablage kopieren",
+  "web.LABELS.copy_to_clipboard": "In die Zwischenablage kopieren",
   "copied": "Kopiert",
   "pricing": "Preisgestaltung",
   "meets-and-exceeds-compliance-standards": "Erfüllt und übertrifft die Konformitätsstandards",

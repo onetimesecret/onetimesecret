@@ -445,7 +445,7 @@
   "escape": "Quitter",
   "active": "Actif",
   "theyll-appear-here-once-youve-shared-them": "Les éléments partagés apparaîtront ici",
-  "copy-to-clipboard": "Copier",
+  "web.LABELS.copy_to_clipboard": "Copier",
   "copied": "Copié",
   "pricing": "Tarifs",
   "meets-and-exceeds-compliance-standards": "Respecter et dépasser les normes de conformité",

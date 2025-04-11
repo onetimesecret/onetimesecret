@@ -87,7 +87,7 @@
 
     <div class="flex items-center justify-between mb-3">
       <h3 class="text-lg font-medium text-gray-700 dark:text-gray-200">
-        {{ $t('web.LABELS.timeline') }}
+        {{ $t('web.COMMON.recent') }}
       </h3>
 
       <div class="flex items-center gap-2">
@@ -119,17 +119,17 @@
               <th
                 scope="col"
                 class="px-6 py-2.5 text-left text-xs font-medium text-gray-500 uppercase tracking-wider dark:text-gray-400">
-                {{ $t('web.LABELS.secret_link') }}
+                {{ $t('web.LABELS.receipts') }}
               </th>
               <th
                 scope="col"
                 class="px-6 py-2.5 text-left text-xs font-medium text-gray-500 uppercase tracking-wider dark:text-gray-400 hidden sm:table-cell">
-                {{ $t('details') }}
+                {{ $t('web.LABELS.details') }}
               </th>
               <th
                 scope="col"
                 class="px-6 py-2.5 text-right text-xs font-medium text-gray-500 uppercase tracking-wider dark:text-gray-400">
-                  {{ $t('web.LABELS.actions') }}
+                  {{ $t('web.LABELS.share') }}
               </th>
             </tr>
           </thead>

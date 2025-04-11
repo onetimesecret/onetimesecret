@@ -416,7 +416,7 @@
   "escape": "Escape",
   "active": "Actief",
   "theyll-appear-here-once-youve-shared-them": "Ze verschijnen hier zodra u ze heeft gedeeld.",
-  "copy-to-clipboard": "Kopiëren naar klembord",
+  "web.LABELS.copy_to_clipboard": "Kopiëren naar klembord",
   "copied": "Gekopieerd",
   "pricing": "Prijzen",
   "meets-and-exceeds-compliance-standards": "Voldoet aan en overtreft nalevingsstandaarden",
