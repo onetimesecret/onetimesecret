@@ -15,7 +15,7 @@ importers:
         specifier: ^1.7.23
         version: 1.7.23(vue@3.5.13(typescript@5.6.3))
       '@intlify/core':
-        specifier: ^11.0.1
+        specifier: ^11.1.2
         version: 11.1.2
       '@prettier/plugin-ruby':
         specifier: ^4.0.4
@@ -36,10 +36,10 @@ importers:
         specifier: ^13.0.0
         version: 13.0.0(axios@1.8.2)(focus-trap@7.6.4)(vue@3.5.13(typescript@5.6.3))
       altcha:
-        specifier: ^1.1.0
+        specifier: ^1.4.0
         version: 1.4.0
       axios:
-        specifier: ^1.7.7
+        specifier: ^1.8.2
         version: 1.8.2
       axios-mock-adapter:
         specifier: ^2.1.0
@@ -51,10 +51,10 @@ importers:
         specifier: ^4.1.0
         version: 4.1.0
       dompurify:
-        specifier: ^3.1.7
+        specifier: ^3.2.4
         version: 3.2.4
       focus-trap:
-        specifier: ^7.6.0
+        specifier: ^7.6.4
         version: 7.6.4
       focus-trap-vue:
         specifier: ^4.0.3
@@ -68,6 +68,9 @@ importers:
       marked-highlight:
         specifier: ^2.2.1
         version: 2.2.1(marked@15.0.7)
+      nanoid:
+        specifier: ^5.1.5
+        version: 5.1.5
       pinia:
         specifier: ^3.0.1
         version: 3.0.1(typescript@5.6.3)(vue@3.5.13(typescript@5.6.3))
@@ -75,7 +78,7 @@ importers:
         specifier: ^10.7.0
         version: 10.7.0
       stripe:
-        specifier: ^17.3.1
+        specifier: ^17.6.0
         version: 17.6.0
       vue:
         specifier: ^3.5.13
@@ -94,25 +97,25 @@ importers:
         specifier: ^9.14.0
         version: 9.14.0
       '@intlify/devtools-types':
-        specifier: ^11.0.1
+        specifier: ^11.1.2
         version: 11.1.2
       '@intlify/eslint-plugin-vue-i18n':
-        specifier: ^3.0.0
+        specifier: ^3.2.0
         version: 3.2.0(eslint@9.15.0(jiti@2.4.0))
       '@pinia/testing':
         specifier: ^0.1.7
         version: 0.1.7(pinia@3.0.1(typescript@5.6.3)(vue@3.5.13(typescript@5.6.3)))(vue@3.5.13(typescript@5.6.3))
       '@playwright/test':
-        specifier: ^1.48.2
+        specifier: ^1.51.1
         version: 1.51.1
       '@sentry/vite-plugin':
-        specifier: ^3.1.2
+        specifier: ^3.2.4
         version: 3.2.4
       '@tailwindcss/forms':
-        specifier: ^0.5.9
+        specifier: ^0.5.10
         version: 0.5.10(tailwindcss@3.4.17(ts-node@10.9.2(@types/node@22.9.0)(typescript@5.6.3)))
       '@tailwindcss/typography':
-        specifier: ^0.5.15
+        specifier: ^0.5.16
         version: 0.5.16(tailwindcss@3.4.17(ts-node@10.9.2(@types/node@22.9.0)(typescript@5.6.3)))
       '@tsconfig/node22':
         specifier: ^22.0.0
@@ -121,7 +124,7 @@ importers:
         specifier: ^22.9.0
         version: 22.9.0
       '@typescript-eslint/eslint-plugin':
-        specifier: ^8.14.0
+        specifier: ^8.28.0
         version: 8.28.0(@typescript-eslint/parser@8.14.0(eslint@9.15.0(jiti@2.4.0))(typescript@5.6.3))(eslint@9.15.0(jiti@2.4.0))(typescript@5.6.3)
       '@typescript-eslint/parser':
         specifier: ^8.14.0
@@ -130,13 +133,13 @@ importers:
         specifier: ^5.1.4
         version: 5.1.4(vite@5.4.15(@types/node@22.9.0)(terser@5.36.0))(vue@3.5.13(typescript@5.6.3))
       '@vitest/coverage-v8':
-        specifier: ^2.1.8
+        specifier: ^2.1.9
         version: 2.1.9(vitest@2.1.9)
       '@vitest/ui':
-        specifier: ^2.1.8
+        specifier: ^2.1.9
         version: 2.1.9(vitest@2.1.9)
       '@vue/runtime-core':
-        specifier: ^3.5.12
+        specifier: ^3.5.13
         version: 3.5.13
       '@vue/test-utils':
         specifier: ^2.4.6
@@ -163,7 +166,7 @@ importers:
         specifier: ^3.17.5
         version: 3.17.5(tailwindcss@3.4.17(ts-node@10.9.2(@types/node@22.9.0)(typescript@5.6.3)))
       eslint-plugin-vue:
-        specifier: ^9.30.0
+        specifier: ^9.32.0
         version: 9.32.0(eslint@9.15.0(jiti@2.4.0))
       globals:
         specifier: ^15.12.0
@@ -181,7 +184,7 @@ importers:
         specifier: ^1.48.2
         version: 1.48.2
       postcss:
-        specifier: ^8.4.49
+        specifier: ^8.5.3
         version: 8.5.3
       prettier:
         specifier: ^3.4.2
@@ -193,10 +196,10 @@ importers:
         specifier: ^6.0.1
         version: 6.0.1
       rollup:
-        specifier: ^4.24.4
+        specifier: ^4.35.0
         version: 4.35.0
       tailwindcss:
-        specifier: ^3.4.14
+        specifier: ^3.4.17
         version: 3.4.17(ts-node@10.9.2(@types/node@22.9.0)(typescript@5.6.3))
       ts-node:
         specifier: ^10.9.2
@@ -208,13 +211,13 @@ importers:
         specifier: ^5.6.3
         version: 5.6.3
       typescript-eslint:
-        specifier: ^8.14.0
+        specifier: ^8.27.0
         version: 8.27.0(eslint@9.15.0(jiti@2.4.0))(typescript@5.6.3)
       unplugin-vue-markdown:
-        specifier: ^28.0.0
+        specifier: ^28.3.0
         version: 28.3.0(rollup@4.35.0)(vite@5.4.15(@types/node@22.9.0)(terser@5.36.0))
       vite:
-        specifier: ^5.4.11
+        specifier: ^5.4.15
         version: 5.4.15(@types/node@22.9.0)(terser@5.36.0)
       vite-plugin-checker:
         specifier: ^0.8.0
@@ -223,10 +226,10 @@ importers:
         specifier: ^3.2.2
         version: 3.2.2(vite@5.4.15(@types/node@22.9.0)(terser@5.36.0))
       vitest:
-        specifier: ^2.1.8
+        specifier: ^2.1.9
         version: 2.1.9(@types/node@22.9.0)(@vitest/ui@2.1.9)(happy-dom@15.11.7)(jsdom@26.0.0)(terser@5.36.0)
       vue-router:
-        specifier: ^4.4.5
+        specifier: ^4.5.0
         version: 4.5.0(vue@3.5.13(typescript@5.6.3))
       vue-router-mock:
         specifier: ^1.1.0
@@ -1624,11 +1627,8 @@ packages:
     resolution: {integrity: sha512-QOSvevhslijgYwRx6Rv7zKdMF8lbRmx+uQGx2+vDc+KI/eBnsy9kit5aj23AgGu3pa4t9AgwbnXWqS+iOY+2aA==}
     engines: {node: '>= 6'}
 
-  caniuse-lite@1.0.30001678:
-    resolution: {integrity: sha512-RR+4U/05gNtps58PEBDZcPWTgEO2MBeoPZ96aQcjmfkBWRIDfN451fW2qyDA9/+HohLLIL5GqiMwA+IB1pWarw==}
-
-  caniuse-lite@1.0.30001707:
-    resolution: {integrity: sha512-3qtRjw/HQSMlDWf+X79N206fepf4SOOU6SQLMaq/0KkZLmSjPxAkBOQQ+FxbHKfHmYLZFfdWsO3KA90ceHPSnw==}
+  caniuse-lite@1.0.30001713:
+    resolution: {integrity: sha512-wCIWIg+A4Xr7NfhTuHdX+/FKh3+Op3LBbSp2N5Pfx6T/LhdQy3GTyoTg48BReaW/MyMNZAkTadsBtai3ldWK0Q==}
 
   chai@5.1.2:
     resolution: {integrity: sha512-aGtmf24DW6MLHHG5gCx4zaI3uBq3KRtxeVs0DjFH6Z0rDNbsvTxFASFvdj79pxjxZ8/5u3PIiN3IwEIQkiiuPw==}
@@ -2748,6 +2748,11 @@ packages:
   nanoid@3.3.9:
     resolution: {integrity: sha512-SppoicMGpZvbF1l3z4x7No3OlIjP7QJvC9XR7AhZr1kL133KHnKPztkKDc+Ir4aJ/1VhTySrtKhrsycmrMQfvg==}
     engines: {node: ^10 || ^12 || ^13.7 || ^14 || >=15.0.1}
+    hasBin: true
+
+  nanoid@5.1.5:
+    resolution: {integrity: sha512-Ir/+ZpE9fDsNH0hQ3C68uyThDXzYcim2EqcZ8zn8Chtt1iylPT9xXJB0kPCnqzgcEGikO9RxSrh63MsmVCU7Fw==}
+    engines: {node: ^18 || >=20}
     hasBin: true
 
   natural-compare@1.4.0:
@@ -5069,7 +5074,7 @@ snapshots:
   autoprefixer@10.4.20(postcss@8.5.3):
     dependencies:
       browserslist: 4.24.2
-      caniuse-lite: 1.0.30001678
+      caniuse-lite: 1.0.30001713
       fraction.js: 4.3.7
       normalize-range: 0.1.2
       picocolors: 1.1.1
@@ -5117,14 +5122,14 @@ snapshots:
 
   browserslist@4.24.2:
     dependencies:
-      caniuse-lite: 1.0.30001678
+      caniuse-lite: 1.0.30001713
       electron-to-chromium: 1.5.55
       node-releases: 2.0.18
       update-browserslist-db: 1.1.1(browserslist@4.24.2)
 
   browserslist@4.24.4:
     dependencies:
-      caniuse-lite: 1.0.30001707
+      caniuse-lite: 1.0.30001713
       electron-to-chromium: 1.5.128
       node-releases: 2.0.19
       update-browserslist-db: 1.1.3(browserslist@4.24.4)
@@ -5160,9 +5165,7 @@ snapshots:
 
   camelcase-css@2.0.1: {}
 
-  caniuse-lite@1.0.30001678: {}
-
-  caniuse-lite@1.0.30001707: {}
+  caniuse-lite@1.0.30001713: {}
 
   chai@5.1.2:
     dependencies:
@@ -6416,6 +6419,8 @@ snapshots:
       thenify-all: 1.6.0
 
   nanoid@3.3.9: {}
+
+  nanoid@5.1.5: {}
 
   natural-compare@1.4.0: {}
 

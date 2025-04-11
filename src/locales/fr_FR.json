@@ -32,6 +32,7 @@
       "secret": "Secret",
       "recent": "Récent",
       "received": "Reçu",
+      "burn": "",
       "burned": "Détruit",
       "expires_in": "Expire dans",
       "burn_this_secret": "Détruire ce secret",
@@ -58,7 +59,6 @@
       "button_create_account": "Créer un compte",
       "share_a_secret": "Partager un secret",
       "title_home": "Accueil",
-      "title_recent_secrets": "Secrets récents",
       "word_none": "Aucun",
       "word_burned": "détruit",
       "word_received": "reçu",
@@ -104,7 +104,8 @@
       "help_section": "Section d'aide",
       "passphrase_protected": "Protégé par phrase secrète",
       "feedback-received": "Retour d'information reçu",
-      "sending-ellipses": "Envoi en cours..."
+      "sending-ellipses": "Envoi en cours...",
+      "title_recent_secrets": "Secrets récents"
     },
     "STATUS": {
       "new": "Nouveau",
@@ -167,7 +168,8 @@
     "secrets": {
       "privacyOptions": "Options de confidentialité",
       "selectDuration": "Sélectionner la durée",
-      "expiresIn": "Expire dans {duration}"
+      "expiresIn": "Expire dans {duration}",
+      "enterPassphrase": ""
     },
     "homepage": {
       "tagline1": "Coller un mot de passe, message secret ou un lien privé ci-dessous",
@@ -184,7 +186,10 @@
       "explore_premium_plans": "Découvrir les forfaits Premium",
       "need_free_account": "Vous débutez ?",
       "sign_up_free": "Créer un compte gratuit",
-      "visit-onetime-secret-home": ""
+      "visit-onetime-secret-home": "",
+      "password_generation_title": "",
+      "password_generation_description": "",
+      "protip1": ""
     },
     "private": {
       "pretext": "Partagez ce lien sécurisé :",
@@ -200,6 +205,7 @@
       "destroyed_ago": "Supprimé il y a {time}",
       "burned": "Supprimé",
       "viewed": "Consulté",
+      "view_metadata": "",
       "destroyed": "Supprimé",
       "have-more-questions-visit-our": "Des questions ? Consultez notre",
       "the-burn-feature-lets-you-permanently-delete-a-s": "La fonction de suppression immédiate permet d'effacer définitivement un secret avant sa consultation. Utile pour révoquer l'accès ou corriger des informations partagées par erreur. Une fois supprimé, le secret est irrécupérable.",
@@ -439,7 +445,7 @@
   "escape": "Quitter",
   "active": "Actif",
   "theyll-appear-here-once-youve-shared-them": "Les éléments partagés apparaîtront ici",
-  "copy-to-clipboard": "Copier",
+  "web.LABELS.copy_to_clipboard": "Copier",
   "copied": "Copié",
   "pricing": "Tarifs",
   "meets-and-exceeds-compliance-standards": "Respecter et dépasser les normes de conformité",
@@ -610,6 +616,7 @@
   "t-ai-generated-testimonial": "{0}:",
   "t-benefits-of-identity-plus": "{0} : Identité Plus",
   "upgrade-to": "Passer à",
+  "upgrade-for-yourdomain": "",
   "secret-access-form": "Formulaire d'accès secret",
   "content-status": "État du contenu",
   "secret-content-copied-to-clipboard": "Contenu du secret copié dans le presse-papiers",

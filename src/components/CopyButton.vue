@@ -18,7 +18,7 @@ const props = withDefaults(defineProps<Props>(), {
 const copied = ref(false);
 const showTooltip = ref(false);
 let tooltipTimeout: number | null = null;
-const ariaLabel = copied.value ? t('copied') : t('copy-to-clipboard');
+const ariaLabel = copied.value ? t('web.STATUS.copied') : t('web.LABELS.copy_to_clipboard');
 
 const copyToClipboard = () => {
   navigator.clipboard.writeText(props.text).then(() => {

@@ -16,7 +16,7 @@
   const copied = ref(false);
   const showToast = ref(false);
   const linkInput = ref<HTMLInputElement>();
-  const buttonText = computed(() => copied.value ? t('copied') : t('copy-to-clipboard') );
+  const buttonText = computed(() => copied.value ? t('web.STATUS.copied') : t('web.LABELS.copy_to_clipboard') );
 
   const copyToClipboard = async () => {
     if (!linkInput.value) return;
@@ -174,10 +174,6 @@
   100% {
     background-position: 200% 0;
   }
-}
-
-.bg-200% {
-  background-size: 200% auto;
 }
 
 .animate-ping-slow {
