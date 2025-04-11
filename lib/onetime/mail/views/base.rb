@@ -172,10 +172,10 @@ module Onetime
           clone.render
         end
 
-        def private_uri(obj)
-          format('/private/%s', obj.key)
+        def receipt_uri(obj)
+          format('/receipt/%s', obj.key)
         end
-
+        alias private_uri receipt_uri
         def secret_uri(obj)
           format('/secret/%s', obj.key)
         end

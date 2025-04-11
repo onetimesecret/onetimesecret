@@ -22,6 +22,9 @@ GET    /account                                   V2::Controllers::Account#get_a
 GET    /private/recent                            V2::Controllers::Secrets#list_metadata
 POST   /private/:key/burn                         V2::Controllers::Secrets#burn_secret
 GET    /private/:key                              V2::Controllers::Secrets#get_metadata
+GET    /receipt/recent                            V2::Controllers::Secrets#list_metadata
+POST   /receipt/:key/burn                         V2::Controllers::Secrets#burn_secret
+GET    /receipt/:key                              V2::Controllers::Secrets#get_metadata
 GET    /secret/:key                               V2::Controllers::Secrets#get_secret
 POST   /secret/:key/reveal                        V2::Controllers::Secrets#reveal_secret
 

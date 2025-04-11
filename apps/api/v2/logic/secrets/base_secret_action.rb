@@ -67,7 +67,7 @@ module V2::Logic
       end
 
       def redirect_uri
-        ['/private/', metadata.key].join
+        ['/receipt/', metadata.key].join
       end
 
       protected

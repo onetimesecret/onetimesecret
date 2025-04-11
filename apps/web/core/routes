@@ -14,6 +14,7 @@ GET   /welcome                                   Core::Controllers::Account#welc
 POST  /welcome/stripe/webhook                    Core::Controllers::Account#welcome_webhook
 
 GET   /private/*                                 Core::Controllers::Page#index
+GET   /receipt/*                                 Core::Controllers::Page#index
 GET   /secret/*                                  Core::Controllers::Page#index
 
 POST  /signin                                    Core::Controllers::Account#authenticate

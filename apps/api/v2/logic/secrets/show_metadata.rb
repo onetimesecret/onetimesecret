@@ -84,7 +84,7 @@ module V2::Logic
             @can_decrypt = secret.can_decrypt?
             # If we can't decrypt the secret (i.e. if we can't access it) then
             # then we leave secret_value nil. We do this so that after creating
-            # a secret we can show the received contents on the "/private/metadata_key"
+            # a secret we can show the received contents on the "/receipt/metadata_key"
             # page one time. Particularly for generated passwords which are not
             # shown any other time.
             @secret_value = secret.decrypted_value if @can_decrypt

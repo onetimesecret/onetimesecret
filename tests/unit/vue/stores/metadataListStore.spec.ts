@@ -40,6 +40,7 @@ describe('metadataListStore', () => {
         ...mockMetadataRecent,
       };
 
+      axiosMock.onGet('/api/v2/receipt/recent').reply(200, mockResponse);
       axiosMock.onGet('/api/v2/private/recent').reply(200, mockResponse);
 
       await store.fetchList();
@@ -64,6 +65,7 @@ describe('metadataListStore', () => {
         },
       };
 
+      axiosMock.onGet('/api/v2/receipt/recent').reply(200, mockResponse);
       axiosMock.onGet('/api/v2/private/recent').reply(200, mockResponse);
 
       await store.fetchList();
@@ -83,6 +85,7 @@ describe('metadataListStore', () => {
         details: mockMetadataRecentDetails,
       };
 
+      axiosMock.onGet('/api/v2/receipt/recent').reply(200, mockResponse);
       axiosMock.onGet('/api/v2/private/recent').reply(200, mockResponse);
 
       await store.refreshRecords();
@@ -101,6 +104,7 @@ describe('metadataListStore', () => {
         details: mockMetadataRecentDetails,
       };
 
+      axiosMock.onGet('/api/v2/receipt/recent').reply(200, mockResponse);
       axiosMock.onGet('/api/v2/private/recent').reply(200, mockResponse);
 
       // First call to initialize
