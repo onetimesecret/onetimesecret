@@ -1,3 +1,5 @@
+<!-- src/components/secrets/SecretLinksTableRow.vue -->
+
 <script setup lang="ts">
   import OIcon from '@/components/icons/OIcon.vue';
   import { type ConcealedMessage } from '@/types/ui/concealed-message';
@@ -5,6 +7,7 @@
   import { ref } from 'vue';
   import CopyToClipboardButton from '@/components/ui/CopyToClipboardButton.vue';
   import { formatTTL } from '@/utils/formatters';
+  import SecretLinksTableRowActions from '@/components/secrets/SecretLinksTableRowActions.vue';
 
   const props = defineProps<{
     concealedMessage: ConcealedMessage;
@@ -12,6 +15,7 @@
 
   const emit = defineEmits<{
     copy: [];
+    delete: [concealedMessage: ConcealedMessage];
   }>();
 
   // Track if this row's content was copied
@@ -37,9 +41,9 @@
   <tr class="group hover:bg-gray-50 dark:hover:bg-slate-800/50 transition-colors">
     <td class="px-6 py-4">
       <div class="flex items-center gap-2">
-        <span class="font-mono text-sm text-gray-900 dark:text-gray-100 truncate max-w-[300px]">
+        <span class="font-mono text-sm text-gray-900 dark:text-gray-100 truncate">
           <router-link :to="`/private/${concealedMessage.metadata_key}`">
-            {{ concealedMessage.secret_key }}
+            {{ concealedMessage.metadata_key }}
           </router-link>
         </span>
         <CopyToClipboardButton
@@ -50,6 +54,7 @@
       <span class="text-sm text-gray-500 dark:text-gray-400">
         {{ formatDistanceToNow(concealedMessage.clientInfo.createdAt, { addSuffix: true }) }}
       </span>
+
     </td>
     <td class="px-6 py-4">
       <div class="flex items-center gap-2">
@@ -64,20 +69,23 @@
             collection="material-symbols"
             :name="concealedMessage.clientInfo.hasPassphrase ? 'key-vertical' : 'lock-open'"
             class="w-4 h-4" />
-          <span>{{
-            concealedMessage.clientInfo.hasPassphrase ? 'Protected' : 'No passphrase'
-          }}</span>
+          <span v-if="concealedMessage.clientInfo.hasPassphrase">
+            {{ $t('web.private.requires_passphrase') }}
+          </span>
+          <span class="inline-flex items-center gap-1.5 text-sm text-gray-500 dark:text-gray-400">
+            <OIcon
+              collection="material-symbols"
+              name="timer"
+              class="w-4 h-4" />
+            {{ formatTTL(concealedMessage.clientInfo.ttl) }}
+          </span>
         </div>
       </div>
     </td>
     <td class="px-6 py-4">
-      <span class="inline-flex items-center gap-1.5 text-sm text-gray-500 dark:text-gray-400">
-        <OIcon
-          collection="material-symbols"
-          name="timer"
-          class="w-4 h-4" />
-        {{ formatTTL(concealedMessage.clientInfo.ttl) }}
-      </span>
+      <SecretLinksTableRowActions
+        :concealed-message="concealedMessage"
+        @delete="$emit('delete', concealedMessage)" />
     </td>
   </tr>
 </template>

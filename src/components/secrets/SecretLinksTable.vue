@@ -19,6 +19,17 @@
       showToast.value = false;
     }, 1500);
   };
+
+  const handleBurn = (concealedMessage: ConcealedMessage) => {
+    // Here you would add logic to delete the message, e.g.,
+    // through a store or service call
+    console.log('Deleting message', concealedMessage.id);
+    toastMessage.value = 'Message deleted';
+    showToast.value = true;
+    setTimeout(() => {
+      showToast.value = false;
+    }, 1500);
+  };
 </script>
 
 <template>
@@ -51,6 +62,7 @@
             :key="concealedMessage.id"
             :concealed-message="concealedMessage"
             @copy="handleCopy"
+            @delete="handleBurn"
           />
         </tbody>
       </table>

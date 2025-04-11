@@ -32,6 +32,7 @@ const STORAGE_KEY = 'oneTimeSecret_concealedMessages';
 /**
  * Loads concealed messages from sessionStorage
  */
+/* eslint-disable max-lines-per-function */
 function loadFromStorage(): ConcealedMessage[] {
   try {
     const stored = sessionStorage.getItem(STORAGE_KEY);
@@ -102,6 +103,13 @@ export const useConcealedMetadataStore = defineStore('concealedMetadata', () => 
    * @param message The concealed message to add
    */
   function addMessage(message: ConcealedMessage) {
+    // Check for existing message with the same ID and remove if found
+    const existingIndex = concealedMessages.value.findIndex((m) => m.id === message.id);
+    if (existingIndex !== -1) {
+      concealedMessages.value.splice(existingIndex, 1);
+    }
+
+    // Add new message to the beginning of the array
     concealedMessages.value.unshift(message);
   }
 
