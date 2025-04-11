@@ -36,11 +36,6 @@
   const concealedMetadataStore = useConcealedMetadataStore();
   const showProTip = ref(props.withAsterisk);
 
-  // Initialize the concealed metadata store if not already initialized
-  if (!concealedMetadataStore.isInitialized) {
-    concealedMetadataStore.init();
-  }
-
   // Helper function to get validation errors
   const getError = (field: keyof typeof form) => validation.errors.get(field);
 
@@ -52,9 +47,6 @@
   const lifetimeErrorId = computed(() => `lifetime-error-${uniqueId.value}`);
   const recipientId = computed(() => `recipient-${uniqueId.value}`);
   const recipientErrorId = computed(() => `recipient-error-${uniqueId.value}`);
-
-  // Use the store's concealed messages
-  //const concealedMessages = computed(() => concealedMetadataStore.concealedMessages);
 
   const { form, validation, operations, isSubmitting, submit } = useSecretConcealer({
     onSuccess: async (response) => {
@@ -69,7 +61,7 @@
           createdAt: new Date(),
         },
       };
-      // Add the message to the store instead of the local array
+      // Add the message to the store
       concealedMetadataStore.addMessage(newMessage);
       operations.reset();
       secretContentInput.value?.clearTextarea(); // Clear textarea
@@ -134,27 +126,25 @@
         <div class="p-6">
           <!-- Secret Input Section -->
           <span v-show="selectedAction === 'create-link'">
-              <label
-                id="secretContentLabel"
-                class="sr-only">
-                <!--
+            <label
+              id="secretContentLabel"
+              class="sr-only">
+              <!--
                   Using sr-only (screen-reader only) for this main content area because:
                   1. The purpose of a large textarea in a secret-sharing context is visually self-evident
                   2. The placeholder text provides sufficient visual context for sighted users
                   3. Other form fields (passphrase, expiration, etc.) keep visible labels as they
                       represent configuration options that need explicit identification
                 -->
-                {{ $t('secret-content') || 'Secret Content' }}
-              </label>
+              {{ $t('secret-content') || 'Secret Content' }}
+            </label>
 
             <SecretContentInputArea
               ref="secretContentInput"
               v-model:content="form.secret"
               :disabled="isSubmitting"
-
               :max-height="400"
               aria-labelledby="secretContentLabel"
-
               @update:content="(content) => operations.updateField('secret', content)" />
           </span>
 
@@ -417,9 +407,7 @@
       </div>
     </form>
 
-    <div>
-      <!-- Add vertical negative space -->
-      <div class="h-16"></div>
-    </div>
+    <!-- Add vertical negative space -->
+    <div class="h-8"></div>
   </div>
 </template>
