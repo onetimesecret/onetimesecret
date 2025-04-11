@@ -45,7 +45,9 @@ module Core
           domain_locale = output[:domain_branding].fetch('locale', nil)
         end
 
-        if domains_enabled
+        # There's no custom domain list when the feature is disabled
+        # or when the user is not logged in.
+        if is_authenticated && domains_enabled
 
           custom_domains = cust.custom_domains_list.filter_map do |obj|
             # Only verified domains that resolve
