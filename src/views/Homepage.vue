@@ -27,18 +27,21 @@
 </script>
 
 <template>
-  <div class="container mx-auto min-w-[320px] max-w-2xl py-1">
+  <div class="container mx-auto min-w-[320px] max-w-2xl py-4">
     <HomepageTaglines
       v-if="!windowProps.authenticated"
       class="mb-6" />
 
     <SecretForm
-      class="mb-8"
+      class="mb-12"
       :with-recipient="false"
       :with-asterisk="true"
       :with-generate="true" />
 
-    <div class="mt-6">
+    <!-- Visual divider -->
+    <div class="border-t border-gray-200 dark:border-gray-700 mb-6"></div>
+
+    <div>
       <template v-if="concealedMetadataStore.hasMessages">
         <SecretLinksTable :concealedMessages="concealedMessages" />
       </template>

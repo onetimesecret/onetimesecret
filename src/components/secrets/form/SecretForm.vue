@@ -406,8 +406,5 @@
         </div>
       </div>
     </form>
-
-    <!-- Add vertical negative space -->
-    <div class="h-8"></div>
   </div>
 </template>
