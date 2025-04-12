@@ -105,7 +105,7 @@ export const useCsrfStore = defineStore('csrf', () => {
   }
 
   function initVisibilityCheck() {
-    console.debug(`[csrfStore] Init initVisibilityCheck...`);
+    // console.debug(`[csrfStore] Init initVisibilityCheck...`);
 
     const visibility = useDocumentVisibility();
 
@@ -117,7 +117,7 @@ export const useCsrfStore = defineStore('csrf', () => {
   }
 
   function startPeriodicCheck(intervalMs: number = DEFAULT_PERIODIC_INTERVAL_MS) {
-    console.debug(`[csrfStore] Init startPeriodicCheck... ${DEFAULT_PERIODIC_INTERVAL_MS}`);
+    // console.debug(`[csrfStore] Init startPeriodicCheck... ${DEFAULT_PERIODIC_INTERVAL_MS}`);
 
     stopPeriodicCheck();
     intervalChecker.value = window.setInterval(() => {

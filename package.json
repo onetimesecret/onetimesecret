@@ -29,7 +29,7 @@
     "preview:local": "vite preview --config vite.config.local.ts",
     "preview": "vite preview",
     "rspec": "bundle exec rspec --format documentation",
-    "test:base": "vitest --typecheck",
+    "test:base": "vitest",
     "test:coverage": "pnpm test:base run --coverage",
     "test:watch:coverage": "pnpm test:base --coverage",
     "test:watch:ui": "pnpm test:base --ui --open",

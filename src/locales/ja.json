@@ -20,7 +20,7 @@
     },
     "title": "私たちについて"
   },
-  "about-onetime-secret-0": "Onetime Secret について",
+  "about-onetime-secret": "Onetime Secret について",
   "access-our-documentation": "ドキュメントにアクセスする",
   "a-cname-record-is-not-allowed-instead-youll-need": "）、CNAME レコードは許可されていません。代わりに、A レコードを作成する必要があります。これを行う方法の詳細は、ページの下部に記載されています。",
   "added-formatdistancetonow-domain-created-addsuffix-true": "{0} を追加",
