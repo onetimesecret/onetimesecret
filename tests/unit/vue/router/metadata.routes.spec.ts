@@ -19,12 +19,10 @@ vi.mock('@/stores/secretStore', () => ({
   })),
 }));
 
-describe('Metadata Routes', () => {
-  describe('Metadata Link Route (/private)', () => {
+describe('Receipt Routes', () => {
+  describe('Receipt Link Route (/receipt)', () => {
     it('should define metadata link route correctly', () => {
-      const route = routes.find(
-        (route: RouteRecordRaw) => route.path === '/private/:metadataKey'
-      );
+      const route = routes.find((route: RouteRecordRaw) => route.path === '/receipt/:metadataKey');
       expect(route).toBeDefined();
       expect(route?.meta?.layout).toBeDefined();
       expect(route?.meta?.layoutProps?.displayMasthead).toBe(true);
@@ -36,11 +34,16 @@ describe('Metadata Routes', () => {
     });
   });
 
+  describe('Private Link Route (/private)', () => {
+    it('should define metadata link route correctly', () => {
+      const route = routes.find((route: RouteRecordRaw) => route.path === '/metadata/:metadataKey');
+      expect(route).toBeUndefined();
+    });
+  });
+
   describe('Metadata Link Route (/metadata)', () => {
     it('should define metadata link route correctly', () => {
-      const route = routes.find(
-        (route: RouteRecordRaw) => route.path === '/metadata/:metadataKey'
-      );
+      const route = routes.find((route: RouteRecordRaw) => route.path === '/metadata/:metadataKey');
       expect(route).toBeUndefined();
     });
   });

@@ -2,6 +2,7 @@
 
 import { vi } from 'vitest';
 import { stateFixture } from './fixtures/window.fixture';
+import { type OnetimeWindow } from '@/types/declarations/window';
 
 export const windowMock = {
   // Preserve any existing window properties you need
@@ -14,7 +15,7 @@ export function setupWindowState(state = stateFixture) {
   window.__ONETIME_STATE__ = {
     ...(window.__ONETIME_STATE__ || {}),
     ...state,
-  };
+  } as OnetimeWindow;
   return window;
 }
 
@@ -27,8 +28,8 @@ export function setupEmptyWindowState() {
     locale: 'en',
   };
 
-  window.__ONETIME_STATE__ = minimalState;
-  console.debug('setupEmptyWindowState', window.__ONETIME_STATE__);
+  window.__ONETIME_STATE__ = minimalState as OnetimeWindow;
+  // console.debug('setupEmptyWindowState', window.__ONETIME_STATE__);
   return window;
 }
 

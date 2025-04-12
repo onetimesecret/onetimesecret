@@ -67,7 +67,7 @@
       secretContentInput.value?.clearTextarea(); // Clear textarea
 
       // Navigate to the metadata view page
-      router.push(`/private/${response.record.metadata.key}`);
+      router.push(`/receipt/${response.record.metadata.key}`);
     },
   });
 

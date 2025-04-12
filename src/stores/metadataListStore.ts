@@ -57,7 +57,7 @@ export const useMetadataListStore = defineStore('metadataList', () => {
   }
 
   async function fetchList() {
-    const response = await $api.get('/api/v2/private/recent');
+    const response = await $api.get('/api/v2/receipt/recent');
     const validated = responseSchemas.metadataList.parse(response.data);
 
     records.value = validated.records ?? [];

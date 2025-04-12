@@ -5,6 +5,14 @@
     "isolatedModules": true,
     "verbatimModuleSyntax": true
   },
-  "include": ["tests/**/*.ts", "tests/**/*.vue"],
-  "exclude": ["node_modules", "public/web/dist"]
+  "include": [
+    "src/**/*.ts",
+    "src/**/*.vue",
+    "src/content/*.md",
+    "src/types/**/*.ts",
+    "src/types/declarations/*.d.ts",
+    "tests/**/*.ts",
+    "tests/**/*.vue"
+  ],
+  "exclude": ["node_modules", "public/web/dist", "dist"]
 }
