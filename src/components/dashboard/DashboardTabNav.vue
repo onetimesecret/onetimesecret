@@ -60,7 +60,7 @@ const tabs = computed((): TabItem[] => {
     {
       id: 'recent',
       path: '/recent',
-      label: t('web.COMMON.title_recent_secrets'),
+      label: t('web.LABELS.title_recent_secrets'),
       count: counts.value.metadata,
       countLabel: t('recent-secrets-count'),
       icon: 'clock'

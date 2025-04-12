@@ -31,7 +31,7 @@
         <div class="py-1">
           <MenuItem v-slot="{ active }">
             <router-link
-              :to="`/private/${concealedMessage.metadata_key}`"
+              :to="`/receipt/${concealedMessage.metadata_key}`"
               :class="[
                 active
                   ? 'bg-gray-100 text-gray-900 dark:bg-gray-800 dark:text-white'
@@ -68,7 +68,7 @@
         <div class="py-1">
           <MenuItem v-slot="{ active }">
           <router-link
-          :to="`/private/${concealedMessage.metadata_key}/burn`"
+          :to="`/receipt/${concealedMessage.metadata_key}/burn`"
               :class="[
                 active ? 'bg-gray-100 dark:bg-gray-800' : '',
                 'flex w-full items-center px-4 py-2 text-sm text-red-600 transition-colors duration-200 hover:text-red-500 dark:text-red-400 dark:hover:text-red-300',

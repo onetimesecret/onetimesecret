@@ -27,7 +27,7 @@ const alertClasses = computed(() => ({
 }));
 
 const { isCopied, copyToClipboard } = useClipboard();
-const isCopiedText = computed(() => isCopied ? t('copied') : t('copy-to-clipboard') );
+const isCopiedText = computed(() => isCopied ? t('web.STATUS.copied') : t('web.LABELS.copy_to_clipboard') );
 const copySecretContent = async () => {
   if (props.record?.secret_value === undefined) {
     return;

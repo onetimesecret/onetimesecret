@@ -58,7 +58,9 @@ const withValidatedMetadataKey = {
 /**
  * Routes for viewing and managing metadata/secrets:
  * - /private/:metadataKey - View metadata and secret details
+ * - /receipt/:metadataKey - Alternative path for viewing metadata and secret details
  * - /private/:metadataKey/burn - Permanently delete a secret
+ * - /receipt/:metadataKey/burn - Alternative path for permanently deleting a secret
  */
 const routes: Array<RouteRecordMultipleViews> = [
   {
@@ -83,8 +85,50 @@ const routes: Array<RouteRecordMultipleViews> = [
     },
   },
   {
+    path: '/receipt/:metadataKey',
+    name: 'Receipt link',
+    components: {
+      default: ShowMetadata,
+      header: QuietHeader,
+      footer: QuietFooter,
+    },
+    ...withValidatedMetadataKey,
+    meta: {
+      layoutProps: {
+        displayMasthead: true,
+        displayNavigation: true,
+        displayLinks: true,
+        displayFeedback: true,
+        displayPoweredBy: false,
+        displayVersion: true,
+        displayToggles: true,
+      },
+    },
+  },
+  {
     path: '/private/:metadataKey/burn',
     name: 'Burn secret',
+    components: {
+      default: BurnSecret,
+      header: QuietHeader,
+      footer: QuietFooter,
+    },
+    ...withValidatedMetadataKey,
+    meta: {
+      layout: DefaultLayout,
+      layoutProps: {
+        displayMasthead: false,
+        displayNavigation: false,
+        displayLinks: false,
+        displayFeedback: false,
+        displayVersion: true,
+        displayPoweredBy: true,
+      },
+    },
+  },
+  {
+    path: '/receipt/:metadataKey/burn',
+    name: 'Burn receipt',
     components: {
       default: BurnSecret,
       header: QuietHeader,

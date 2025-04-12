@@ -12,7 +12,6 @@ defineProps<Props>();
 </script>
 
 <template>
-  <!-- Move to a separate component -->
   <div
     class="space-y-8"
     v-cloak>

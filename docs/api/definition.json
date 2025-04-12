@@ -269,7 +269,7 @@
         "tags": ["v1", "readonly", "system"]
       }
     },
-    "/v2/private/recent": {
+    "/v2/receipt/recent": {
       "get": {
         "summary": "List Recent Metadata",
         "responses": {
@@ -287,7 +287,7 @@
         "tags": ["v2", "secrets", "metadata", "readonly"]
       }
     },
-    "/v2/private/{key}/burn": {
+    "/v2/receipt/{key}/burn": {
       "post": {
         "summary": "Burn Secret",
         "parameters": [
@@ -315,7 +315,7 @@
         "tags": ["v2", "secrets", "danger"]
       }
     },
-    "/v2/private/{key}": {
+    "/v2/receipt/{key}": {
       "get": {
         "summary": "Get Metadata",
         "parameters": [
@@ -1567,14 +1567,7 @@
       },
       "MetadataRecordsDetails": {
         "type": "object",
-        "required": [
-          "type",
-          "since",
-          "now",
-          "has_items",
-          "received",
-          "notreceived"
-        ],
+        "required": ["type", "since", "now", "has_items", "received", "notreceived"],
         "properties": {
           "type": {
             "type": "string",
@@ -2095,14 +2088,7 @@
             "type": "number"
           }
         },
-        "required": [
-          "custid",
-          "role",
-          "verified",
-          "active",
-          "locale",
-          "secrets_created"
-        ]
+        "required": ["custid", "role", "verified", "active", "locale", "secrets_created"]
       },
       "BaseMetadata": {
         "allOf": [
@@ -2128,13 +2114,7 @@
                 "type": "string"
               }
             },
-            "required": [
-              "key",
-              "shortkey",
-              "secret_key",
-              "secret_shortkey",
-              "share_domain"
-            ]
+            "required": ["key", "shortkey", "secret_key", "secret_shortkey", "share_domain"]
           }
         ]
       },
@@ -2231,13 +2211,7 @@
                 "type": "boolean"
               }
             },
-            "required": [
-              "custid",
-              "display_domain",
-              "base_domain",
-              "subdomain",
-              "verified"
-            ]
+            "required": ["custid", "display_domain", "base_domain", "subdomain", "verified"]
           }
         ]
       },
@@ -2254,12 +2228,7 @@
               },
               "role": {
                 "type": "string",
-                "enum": [
-                  "customer",
-                  "colonel",
-                  "recipient",
-                  "user_deleted_self"
-                ]
+                "enum": ["customer", "colonel", "recipient", "user_deleted_self"]
               },
               "verified": {
                 "oneOf": [

@@ -48,7 +48,8 @@ export default defineConfig({
       hooks: 'list', // runs beforeEachand afterEach in the order defined
     },
     typecheck: {
-      tsconfig: './tsconfig.json',
+      enabled: true,
+      tsconfig: './tsconfig.test.json',
     },
   },
   resolve: {
