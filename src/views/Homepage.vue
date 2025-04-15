@@ -26,8 +26,8 @@
       :with-asterisk="true"
       :with-generate="true" />
 
-    <!-- Visual divider -->
-    <div class="border-t border-gray-200 dark:border-gray-700 mb-6"></div>
+    <!-- Space divider -->
+    <div class="mb-6 "></div>
 
     <RecentSecretsTable />
 

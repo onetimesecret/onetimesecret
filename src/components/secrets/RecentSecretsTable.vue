@@ -1,10 +1,9 @@
 <!-- src/components/secrets/RecentSecretsTable.vue -->
 
 <script setup lang="ts">
-  import { computed } from 'vue';
-  import HomepageLinksPlaceholder from '@/components/secrets/HomepageLinksPlaceholder.vue';
   import SecretLinksTable from '@/components/secrets/SecretLinksTable.vue';
   import { useConcealedMetadataStore } from '@/stores/concealedMetadataStore';
+  import { computed } from 'vue';
 
 
   const concealedMetadataStore = useConcealedMetadataStore();
@@ -21,12 +20,7 @@
 <template>
   <div>
     <template v-if="concealedMetadataStore.hasMessages">
-      <SecretLinksTable :concealedMessages="concealedMessages" />
-    </template>
-    <template v-else>
-      <HomepageLinksPlaceholder
-        title="No secrets yet"
-        description="Create a secret above to get started." />
+      <SecretLinksTable :concealed-messages="concealedMessages" />
     </template>
   </div>
 </template>
