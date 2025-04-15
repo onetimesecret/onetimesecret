@@ -16,8 +16,6 @@ defineProps<Props>();
 
     <slot name="cta"></slot>
 
-    <slot name="footer">
-
-    </slot>
+    <slot name="footer"></slot>
   </div>
 </template>
