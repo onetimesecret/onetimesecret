@@ -8,9 +8,9 @@ import {
 } from '@/schemas/models/domain/brand';
 import { useProductIdentity } from '@/stores/identityStore';
 import { ref, computed } from 'vue';
-import BaseSecretDisplay from './BaseSecretDisplay.vue';
 import { useI18n } from 'vue-i18n';
 
+import BaseSecretDisplay from './BaseSecretDisplay.vue';
 
 interface Props {
   secretKey: string;
@@ -31,7 +31,7 @@ const emit = defineEmits(['user-confirmed']);
 const passphrase = ref('');
 
 const submitForm = async () => {
-  emit('user-confirmed', passphrase);
+  emit('user-confirmed', passphrase.value);
 };
 
 const productIdentity = useProductIdentity();
