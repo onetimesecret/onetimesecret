@@ -1,17 +1,18 @@
 <!-- src/components/secrets/form/SecretForm.vue -->
 <script setup lang="ts">
-  import { computed, onMounted, ref, watch } from 'vue';
-  import { useRouter } from 'vue-router';
   import BasicFormAlerts from '@/components/BasicFormAlerts.vue';
   import OIcon from '@/components/icons/OIcon.vue';
   import SplitButton from '@/components/SplitButton.vue';
   import { useDomainDropdown } from '@/composables/useDomainDropdown';
   import { usePrivacyOptions } from '@/composables/usePrivacyOptions';
   import { useSecretConcealer } from '@/composables/useSecretConcealer';
-  import { useProductIdentity } from '@/stores/identityStore';
   import { useConcealedMetadataStore } from '@/stores/concealedMetadataStore';
+  import { useProductIdentity } from '@/stores/identityStore';
   import { type ConcealedMessage } from '@/types/ui/concealed-message';
   import { nanoid } from 'nanoid';
+  import { computed, onMounted, ref, watch } from 'vue';
+  import { useRouter } from 'vue-router';
+
   import CustomDomainPreview from './../../CustomDomainPreview.vue';
   import SecretContentInputArea from './SecretContentInputArea.vue';
 
@@ -108,7 +109,7 @@
 </script>
 
 <template>
-  <div class="min-w-[320px] max-w-2xl mx-auto space-y-6">
+  <div class="mx-auto min-w-[320px] max-w-2xl space-y-6">
     <!-- Enhanced Alert Display -->
     <BasicFormAlerts
       :errors="Array.from(validation.errors.values())"
@@ -151,12 +152,12 @@
           <!-- Generate Password Text -->
           <div
             v-show="selectedAction === 'generate-password'"
-            class="rounded-lg border border-gray-200 bg-gray-50 dark:bg-slate-800/50 dark:border-gray-700"
+            class="rounded-lg border border-gray-200 bg-gray-50 dark:border-gray-700 dark:bg-slate-800/50"
             aria-labelledby="generatedPasswordHeader"
             aria-describedby="generatedPasswordDesc">
-            <div class="text-center space-y-4 p-4 pb-6">
+            <div class="space-y-4 p-4 pb-6 text-center">
               <div class="flex justify-center">
-                <div class="rounded-full p-3 bg-brand-100 dark:bg-brand-900/30">
+                <div class="rounded-full bg-brand-100 p-3 dark:bg-brand-900/30">
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
                     width="24"
@@ -165,7 +166,7 @@
                     fill="none"
                     stroke="currentColor"
                     stroke-width="2"
-                    class="text-brand-600 dark:text-brand-400 size-6">
+                    class="size-6 text-brand-600 dark:text-brand-400">
                     <path
                       d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4" />
                   </svg>
@@ -180,24 +181,25 @@
 
               <p
                 id="generatedPasswordDesc"
-                class="text-gray-600 dark:text-gray-300 max-w-md mx-auto">
+                class="mx-auto max-w-md text-gray-600 dark:text-gray-300">
                 {{ $t('web.homepage.password_generation_description') }}
               </p>
             </div>
           </div>
 
           <!-- Form Controls Section -->
-          <div class="grid gap-6 md:grid-cols-2 mt-6">
+          <div class="mt-6 grid gap-6 md:grid-cols-2">
             <!-- Passphrase Field -->
             <div class="relative">
               <h3>
                 <label
                   :for="passphraseId"
-                  class="block mb-1 text-sm font-brand text-gray-600 dark:text-gray-300">
+                  class="mb-1 block font-brand text-sm text-gray-600 dark:text-gray-300">
                   {{ $t('web.COMMON.secret_passphrase') }}
                 </label>
               </h3>
               <div class="relative">
+                <!-- prettier-ignore-attribute class -->
                 <input
                   :type="state.passphraseVisibility ? 'text' : 'password'"
                   :value="form.passphrase"
@@ -206,7 +208,10 @@
                   autocomplete="off"
                   :aria-invalid="!!getError('passphrase')"
                   :aria-errormessage="getError('passphrase') ? passphraseErrorId : undefined"
-                  class="w-full rounded-lg border border-gray-200 bg-white pl-5 pr-10 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500 focus:outline-none transition-shadow duration-200 dark:border-gray-700 dark:bg-slate-800 dark:text-white dark:placeholder:text-gray-500"
+                  class="w-full rounded-lg border border-gray-200 bg-white py-2.5 pl-5 pr-10
+                    text-sm text-gray-900 transition-shadow duration-200 placeholder:text-gray-400
+                    focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500
+                    dark:border-gray-700 dark:bg-slate-800 dark:text-white dark:placeholder:text-gray-500"
                   :placeholder="$t('web.secrets.enterPassphrase')"
                   @input="(e) => updatePassphrase((e.target as HTMLInputElement).value)" />
                 <button
@@ -214,7 +219,7 @@
                   @click="togglePassphraseVisibility"
                   :aria-label="state.passphraseVisibility ? 'Hide passphrase' : 'Show passphrase'"
                   :aria-pressed="state.passphraseVisibility"
-                  class="absolute inset-y-0 right-3 flex items-center focus:outline-none focus:ring-2 focus:ring-blue-500 rounded-sm">
+                  class="absolute inset-y-0 right-3 flex items-center rounded-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
                   <OIcon
                     collection="heroicons"
                     :name="state.passphraseVisibility ? 'solid-eye' : 'outline-eye-off'"
@@ -228,7 +233,7 @@
               :id="passphraseErrorId"
               role="alert"
               aria-live="assertive"
-              class="mt-1 text-sm text-red-600 dark:text-red-400 font-medium">
+              class="mt-1 text-sm font-medium text-red-600 dark:text-red-400">
               {{ getError('passphrase') }}
             </div>
 
@@ -239,7 +244,7 @@
               <h3>
                 <label
                   :for="lifetimeId"
-                  class="block mb-1 text-sm font-brand text-gray-600 dark:text-gray-300">
+                  class="mb-1 block font-brand text-sm text-gray-600 dark:text-gray-300">
                   {{ $t('web.LABELS.expiration_time') || 'Secret Expiration' }}
                 </label>
               </h3>
@@ -250,7 +255,7 @@
                   name="ttl"
                   :aria-invalid="!!getError('ttl')"
                   :aria-describedby="getError('ttl') ? lifetimeErrorId : undefined"
-                  class="w-full appearance-none rounded-lg border border-gray-200 bg-white pl-5 pr-10 py-2.5 text-sm text-gray-600 focus:border-blue-500 focus:ring-2 focus:ring-blue-500 focus:outline-none transition-shadow duration-200 dark:border-gray-700 dark:bg-slate-800 dark:text-white"
+                  class="w-full appearance-none rounded-lg border border-gray-200 bg-white py-2.5 pl-5 pr-10 text-sm text-gray-600 transition-shadow duration-200 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:border-gray-700 dark:bg-slate-800 dark:text-white"
                   @change="(e) => updateTtl(Number((e.target as HTMLSelectElement).value))">
                   <option
                     value=""
@@ -285,7 +290,7 @@
               :id="lifetimeErrorId"
               role="alert"
               aria-live="assertive"
-              class="mt-1 text-sm text-red-600 dark:text-red-400 font-medium">
+              class="mt-1 text-sm font-medium text-red-600 dark:text-red-400">
               {{ getError('ttl') }}
             </div>
           </div>
@@ -297,7 +302,7 @@
             <h3>
               <label
                 :for="recipientId"
-                class="block mb-1 text-sm font-brand text-gray-700 dark:text-gray-300">
+                class="mb-1 block font-brand text-sm text-gray-700 dark:text-gray-300">
                 {{ $t('web.COMMON.secret_recipient_address') || 'Email Recipient' }}
               </label>
             </h3>
@@ -317,7 +322,7 @@
                 :placeholder="$t('web.COMMON.email_placeholder')"
                 :aria-invalid="!!getError('recipient')"
                 :aria-errormessage="getError('recipient') ? recipientErrorId : undefined"
-                class="w-full rounded-lg border border-gray-200 bg-white pl-10 pr-10 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500 dark:border-gray-700 dark:bg-slate-800 dark:text-white dark:placeholder:text-gray-500"
+                class="w-full rounded-lg border border-gray-200 bg-white py-2.5 pl-10 pr-10 text-sm text-gray-900 placeholder:text-gray-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500 dark:border-gray-700 dark:bg-slate-800 dark:text-white dark:placeholder:text-gray-500"
                 @input="(e) => updateRecipient((e.target as HTMLInputElement).value)" />
             </div>
             <div
@@ -325,7 +330,7 @@
               :id="recipientErrorId"
               role="alert"
               aria-live="assertive"
-              class="mt-1 text-sm text-red-600 dark:text-red-400 font-medium">
+              class="mt-1 text-sm font-medium text-red-600 dark:text-red-400">
               {{ getError('recipient') }}
             </div>
           </div>
@@ -334,7 +339,7 @@
         <!-- Pro tip Section -->
         <div
           v-if="showProTip"
-          class="flex items-start gap-3 p-4 bg-brandcomp-50 dark:bg-brandcomp-900/20">
+          class="flex items-start gap-3 bg-brandcomp-50 p-4 dark:bg-brandcomp-900/20">
           <OIcon
             collection="heroicons"
             name="information-circle"
@@ -348,9 +353,9 @@
         <div class="border-t border-gray-200 dark:border-gray-700">
           <!-- Actions Container -->
           <div class="px-6 py-4">
-            <div class="flex flex-col sm:gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between sm:gap-4">
               <!-- Domain Preview (grows to fill available space) -->
-              <div class="order-1 sm:order-2 flex-grow min-w-0">
+              <div class="order-1 min-w-0 flex-grow sm:order-2">
                 <CustomDomainPreview
                   v-if="productIdentity.isCanonical"
                   :available-domains="availableDomains"
@@ -360,7 +365,7 @@
               </div>
 
               <!-- Action Button (full-width on mobile, normal width on desktop) -->
-              <div class="order-2 sm:order-2 flex-shrink-0">
+              <div class="order-2 flex-shrink-0 sm:order-2">
                 <div class="mb-2 mt-3 sm:mt-0">
                   <SplitButton
                     :with-generate="props.withGenerate"
