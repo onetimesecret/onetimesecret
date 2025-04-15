@@ -19,7 +19,7 @@ const emit = defineEmits(['user-confirmed']);
 const passphrase = ref('');
 
 const submitForm = async () => {
-  emit('user-confirmed', passphrase);
+  emit('user-confirmed', passphrase.value);
 };
 </script>
 
