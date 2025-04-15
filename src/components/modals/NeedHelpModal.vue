@@ -137,6 +137,7 @@
 
                 <!-- Footer with close button -->
                 <div class="mt-6 flex justify-end">
+                  <!-- prettier-ignore-attribute class -->
                   <button
                     type="button"
                     @click="showHelp = false"

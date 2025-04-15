@@ -133,7 +133,8 @@
       "passphrase_protected": "Protected with passphrase",
       "feedback-received": "Feedback received.",
       "sending-ellipses": "Sending...",
-      "title_recent_secrets": "Recent Secrets"
+      "title_recent_secrets": "Recent Secrets",
+      "caption_recent_secrets": "Secrets links created in this session"
     },
     "STATUS": {
       "new": "New",
