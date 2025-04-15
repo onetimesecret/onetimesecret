@@ -663,7 +663,6 @@
   "request-password-reset": "Passwort zurücksetzen anfordern",
   "forgot-password": "Passwort vergessen",
   "google": "Google",
-  "unknown-jurisdiction-0": "Unbekannte Gerichtsbarkeit",
   "unknown-jurisdiction": "Unbekannte Gerichtsbarkeit",
   "redis-info": "Redis-Informationen",
   "customer-secrets_created-customer-secrets_shared": "{0}/{1}/{2} [{3}]",

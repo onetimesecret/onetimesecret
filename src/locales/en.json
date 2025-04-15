@@ -681,7 +681,6 @@
   "request-password-reset": "Request password reset",
   "forgot-password": "Forgot Password",
   "google": "Google",
-  "unknown-jurisdiction-0": "Unknown Jurisdiction",
   "unknown-jurisdiction": "Unknown Jurisdiction",
   "redis-info": "Redis Info",
   "customer-secrets_created-customer-secrets_shared": "{0}/{1}/{2} [{3}]",

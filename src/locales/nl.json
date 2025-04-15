@@ -634,7 +634,6 @@
   "request-password-reset": "Wachtwoordreset aanvragen",
   "forgot-password": "Wachtwoord vergeten",
   "google": "Google",
-  "unknown-jurisdiction-0": "Onbekende jurisdictie",
   "unknown-jurisdiction": "Onbekende jurisdictie",
   "redis-info": "Redis info",
   "customer-secrets_created-customer-secrets_shared": "{0}/{1}/{2} [{3}]",
