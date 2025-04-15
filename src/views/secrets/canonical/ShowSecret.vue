@@ -17,10 +17,9 @@
   import BaseShowSecret, { type Props } from '@/components/base/BaseShowSecret.vue';
   import FooterAttribution from '@/components/layout/SecretFooterAttribution.vue';
   import FooterControls from '@/components/layout/SecretFooterControls.vue';
-  import NeedHelpModal from '@/components/modals/NeedHelpModal.vue';
   import SecretConfirmationForm from '@/components/secrets/canonical/SecretConfirmationForm.vue';
   import SecretDisplayCase from '@/components/secrets/canonical/SecretDisplayCase.vue';
-  import SecretRecipientHelpContent from '@/components/secrets/SecretRecipientHelpContent.vue';
+
   import UnknownSecret from './UnknownSecret.vue';
 
   defineProps<Props>();
@@ -44,7 +43,8 @@
     <template #loading="{}">
       <div class="flex justify-center">
         <div
-          class="size-32 animate-spin rounded-full border-4 border-brand-500 border-t-transparent"></div>
+          class="size-32 animate-spin rounded-full
+            border-4 border-brand-500 border-t-transparent"></div>
       </div>
     </template>
 
@@ -60,12 +60,15 @@
       <template v-if="!record.verification">
         <div
           v-if="isOwner && !showSecret"
-          class="mb-4 border-l-4 border-amber-400 bg-amber-50 p-4 text-amber-700 dark:border-amber-500 dark:bg-amber-900 dark:text-amber-100"
+          class="mb-4 border-l-4 border-amber-400 bg-amber-50 p-4 text-amber-700
+            dark:border-amber-500 dark:bg-amber-900 dark:text-amber-100"
           role="alert"
           aria-live="polite">
           <button
             type="button"
-            class="float-right hover:text-amber-900 focus:outline-none focus:ring-2 focus:ring-amber-500 dark:hover:text-amber-50"
+            class="float-right
+              hover:text-amber-900 focus:outline-none focus:ring-2 focus:ring-amber-500
+              dark:hover:text-amber-50"
             @click="closeWarning"
             :aria-label="$t('dismiss-warning')">
             <span aria-hidden="true">&times;</span>
@@ -83,7 +86,8 @@
           <button
             type="button"
             class="float-right hover:text-brand-900
-              focus:outline-none focus:ring-2 focus:ring-brand-500 dark:hover:text-brand-50"
+              focus:outline-none focus:ring-2 focus:ring-brand-500
+              dark:hover:text-brand-50"
             @click="closeWarning"
             :aria-label="$t('dismiss-notification')">
             <span aria-hidden="true">&times;</span>
@@ -104,18 +108,12 @@
           :is-submitting="isLoading"
           @user-confirmed="onConfirm"
         />
-        <NeedHelpModal>
-          <template #content>
-            <SecretRecipientHelpContent />
-          </template>
-        </NeedHelpModal>
       </div>
     </template>
 
     <!-- Onboarding slot -->
     <template #onboarding="{ record }">
       <div v-if="!record.verification">
-        <!-- <SecretRecipientOnboardingContent /> -->
       </div>
     </template>
 

@@ -251,6 +251,7 @@
       "you_created_this_secret": "You created this secret. If you view it, the recipient will not be able to see it.",
       "your_secret_message": "Your secret message:",
       "this_message_for_you": "This message is for you:",
+      "your_message_is_ready": "Your secure message is ready.",
       "reply_with_secret": "Reply with another secret",
       "pre_reveal_default": "Click the button below to reveal your secure message.",
       "post_reveal_default": "Your secure message is shown below.",

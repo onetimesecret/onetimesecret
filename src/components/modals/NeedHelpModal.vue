@@ -10,11 +10,21 @@
     TransitionRoot,
   } from '@headlessui/vue';
   import { ref } from 'vue';
+  import { useI18n } from 'vue-i18n';
+
   const showHelp = ref(false);
+  const { t } = useI18n();
 
-  interface Props {};
+  interface Props {
+    linkTextLabel?: string;
+    linkIconName?: string;
+  };
 
-  defineProps<Props>();
+  withDefaults(defineProps<Props>(), {
+    linkTextLabel: 'web.LABELS.need_help',
+    linkIconName: 'information-circle-20-solid',
+  });
+
 </script>
 
 <template>
@@ -27,11 +37,11 @@
         focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2
         dark:hover:text-gray-300">
       <OIcon
-        collection="mdi"
-        name="information"
+        collection="heroicons"
+        :name="linkIconName"
         class="size-5"
         aria-hidden="true" />
-      <span>{{ $t('web.LABELS.need_help') }}</span>
+      <span>{{ t(linkTextLabel) }}</span>
     </button>
 
     <TransitionRoot
@@ -50,7 +60,7 @@
           leave="ease-in duration-200"
           leave-from="opacity-100"
           leave-to="opacity-0">
-          <div class="fixed inset-0 bg-black/25"></div>
+          <div class="fixed inset-0 bg-black/50"></div>
         </TransitionChild>
 
         <!-- Content -->
@@ -64,9 +74,9 @@
               leave-from="opacity-100 scale-100"
               leave-to="opacity-0 scale-95">
               <DialogPanel
-                class="w-full max-w-md transform overflow-hidden rounded-2xl bg-white p-6 dark:bg-gray-800">
+                class="w-full max-w-md overflow-hidden rounded-2xl bg-white p-6 dark:bg-gray-800">
                 <!-- Header with close button -->
-                <div class="flex justify-between items-center mb-4">
+                <div class="mb-4 flex items-center justify-between">
                   <DialogTitle
                     class="text-lg font-medium text-gray-900 dark:text-gray-100">
                     {{ $t('web.LABELS.help_section') }}
@@ -74,12 +84,13 @@
                   <button
                     type="button"
                     @click="showHelp = false"
-                    class="rounded-md text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-brand-500">
+                    class="rounded-md text-gray-400 hover:text-gray-500
+                      focus:outline-none focus:ring-2 focus:ring-brand-500">
                     <span class="sr-only">{{ $t('web.LABELS.close') }}</span>
                     <OIcon
                       collection="mdi"
                       name="close"
-                      class="h-6 w-6"
+                      class="size-6"
                       aria-hidden="true" />
                   </button>
                 </div>
@@ -94,7 +105,10 @@
                   <button
                     type="button"
                     @click="showHelp = false"
-                    class="inline-flex justify-center rounded-md border border-transparent bg-brand-100 px-4 py-2 text-sm font-medium text-brand-900 hover:bg-brand-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2">
+                    class="inline-flex justify-center rounded-md border border-transparent
+                      bg-brand-100 px-4 py-2 text-sm font-medium text-brand-900
+                      hover:bg-brand-200
+                      focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2">
                     {{ $t('web.LABELS.close') }}
                   </button>
                 </div>
