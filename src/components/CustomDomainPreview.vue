@@ -19,8 +19,8 @@
    * @see {@link useDropdown} For dropdown behavior implementation
    * @see {@link useDomainDropdown} For domain selection implementation
    */
-  import OIcon from '@/components/icons/OIcon.vue';
   import FancyIcon from '@/components/ctas/FancyIcon.vue';
+  import OIcon from '@/components/icons/OIcon.vue';
   import { useDomainDropdown } from '@/composables/useDomainDropdown';
   import { useDropdown } from '@/composables/useDropdown';
   import { WindowService } from '@/services/window.service';
@@ -34,6 +34,7 @@
       withDomainDropdown?: boolean;
     }>(),
     {
+      availableDomains: undefined,
       initialDomain: '',
       withDomainDropdown: false,
     }
@@ -60,8 +61,9 @@
     close();
   });
 
-  // Keyboard navigation
+  // Keyboard navigation for Space key
   onKeyStroke('Space', (e) => {
+    // This is already checking for button focus, which is correct
     if (document.activeElement === buttonRef.value) {
       e.preventDefault();
       isOpen.value = !isOpen.value;
@@ -70,7 +72,12 @@
 
   // Arrow key navigation
   onKeyStroke(['ArrowDown', 'ArrowUp'], (e) => {
+    // Only handle arrow keys when the component is focused or dropdown is open
     if (!props.availableDomains?.length) return;
+
+    // Check if either the button is focused or the dropdown is open
+    const isComponentFocused = document.activeElement === buttonRef.value || isOpen.value;
+    if (!isComponentFocused) return;
 
     e.preventDefault();
     if (!isOpen.value) {
@@ -89,7 +96,9 @@
 
   // Enter to select highlighted item
   onKeyStroke('Enter', (e) => {
-    if (isOpen.value && activeIndex.value >= 0) {
+    // Only handle when dropdown is open and component is focused
+    const isComponentFocused = document.activeElement === buttonRef.value || isOpen.value;
+    if (isOpen.value && activeIndex.value >= 0 && isComponentFocused) {
       e.preventDefault();
       const domain = props.availableDomains?.[activeIndex.value];
       if (domain) selectDomain(domain);
@@ -97,7 +106,9 @@
   });
 
   onKeyStroke('Escape', () => {
-    if (isOpen.value) {
+    // Only handle when dropdown is open and component is focused
+    const isComponentFocused = document.activeElement === buttonRef.value || isOpen.value;
+    if (isOpen.value && isComponentFocused) {
       close();
       buttonRef.value?.focus();
     }

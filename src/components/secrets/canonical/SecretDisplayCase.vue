@@ -193,7 +193,7 @@
             <span aria-hidden="true">&times;</span>
           </button>
           <strong>{{ $t('web.COMMON.warning') }}</strong>
-          {{ $t('web.shared.secret_was_truncated') }} {{ record.original_size }}.
+          {{ $t('web.shared.secret_was_truncated') }}
         </div>
       </div>
     </template>
