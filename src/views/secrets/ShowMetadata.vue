@@ -1,18 +1,21 @@
+<!-- src/views/secrets/ShowMetadata.vue -->
+
 <script setup lang="ts">
-  import DashboardTabNav from '@/components/dashboard/DashboardTabNav.vue';
-  import BurnButtonForm from '@/components/secrets/metadata/BurnButtonForm.vue';
   import MetadataSkeleton from '@/components/closet/MetadataSkeleton.vue';
+  import CopyButton from '@/components/CopyButton.vue';
+  import DashboardTabNav from '@/components/dashboard/DashboardTabNav.vue';
+  import OIcon from '@/components/icons/OIcon.vue';
+  import NeedHelpModal from '@/components/modals/NeedHelpModal.vue';
+  import BurnButtonForm from '@/components/secrets/metadata/BurnButtonForm.vue';
+  import MetadataFAQ from '@/components/secrets/metadata/MetadataFAQ.vue';
+  import SecretLink from '@/components/secrets/metadata/SecretLink.vue';
   import StatusBadge from '@/components/secrets/metadata/StatusBadge.vue';
   import TimelineDisplay from '@/components/secrets/metadata/TimelineDisplay.vue';
-  import NeedHelpModal from '@/components/modals/NeedHelpModal.vue';
-  import SecretLink from '@/components/secrets/metadata/SecretLink.vue';
-  import CopyButton from '@/components/CopyButton.vue';
-  import OIcon from '@/components/icons/OIcon.vue';
-  import MetadataFAQ from '@/components/secrets/metadata/MetadataFAQ.vue';
-  import UnknownMetadata from './UnknownMetadata.vue';
   import { useMetadata } from '@/composables/useMetadata';
-  import { onMounted, onUnmounted, watch, computed } from 'vue';
   import { useSecretExpiration, EXPIRATION_EVENTS } from '@/composables/useSecretExpiration';
+  import { onMounted, onUnmounted, watch, computed } from 'vue';
+
+  import UnknownMetadata from './UnknownMetadata.vue';
 
   // Define props
   interface Props {
@@ -28,11 +31,7 @@
   );
 
   const isAvailable = computed(() => {
-    return !(
-      record.value?.is_destroyed ||
-      record.value?.is_burned ||
-      record.value?.is_received
-    );
+    return !(record.value?.is_destroyed || record.value?.is_burned || record.value?.is_received);
   });
 
   // Watch for route parameter changes to refetch data
@@ -77,35 +76,36 @@
 
     <div
       v-else-if="record && details"
-      class="max-w-3xl mx-auto py-8 space-y-8 animate-fade-in-up">
-
+      class="animate-fade-in-up mx-auto max-w-3xl space-y-8 py-8">
       <!-- Main Card with Enhanced Styling -->
-      <div class="overflow-hidden bg-gradient-to-b from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-950
-                  rounded-xl shadow-md dark:shadow-slate-900/30 border border-slate-200/50 dark:border-slate-800/50">
-
+      <div
+        class="overflow-hidden rounded-xl border border-slate-200/50
+          bg-gradient-to-b from-slate-50 to-slate-100 shadow-md
+          dark:border-slate-800/50 dark:from-slate-900 dark:to-slate-950 dark:shadow-slate-900/30">
         <!-- Secret Link Header -->
         <section
           v-if="!details.show_recipients"
-          class="relative transform transition-transform duration-300 hover:scale-[1.01]"
+          class="relative transition-transform duration-300 hover:scale-[1.01]"
           aria-labelledby="secret-header">
-
           <SecretLink
             v-if="isAvailable"
             :record="record"
             :details="details"
-            :isInitialView="!record.is_viewed"
-            class="focus-within:ring-2 focus-within:ring-brand-500 rounded-lg" />
+            :is-initial-view="!record.is_viewed"
+            class="rounded-lg focus-within:ring-2 focus-within:ring-brand-500"
+          />
         </section>
 
         <!-- Recipients Section -->
         <div
           v-if="details.show_recipients"
-          class="border-t border-slate-200 py-5 px-6 dark:border-slate-800">
-          <h3 class="text-lg font-semibold text-slate-800 dark:text-slate-200 flex items-center">
+          class="border-t border-slate-200 px-6 py-5 dark:border-slate-800">
+          <h3 class="flex items-center text-lg font-semibold text-slate-800 dark:text-slate-200">
             <OIcon
               collection="material-symbols"
               name="mail-outline"
-              class="w-5 h-5 mr-2 text-brand-500 dark:text-brand-400" />
+              class="mr-2 size-5 text-brand-500 dark:text-brand-400"
+            />
             {{ $t('web.COMMON.sent_to') }} {{ record.recipients }}
           </h3>
         </div>
@@ -113,47 +113,58 @@
         <!-- Secret Value with Enhanced Styling -->
         <section
           v-if="details.show_secret"
-          class="px-6 py-5 bg-slate-50 dark:bg-slate-800/60 border-y border-slate-200 dark:border-slate-700/50">
+          class="border-y border-slate-200 bg-slate-50 px-6 py-5
+            dark:border-slate-700/50 dark:bg-slate-800/60">
           <textarea
             readonly
             :value="details.secret_value"
             :rows="details.display_lines || 3"
-            class="font-mono text-base leading-tight tracking-wide whitespace-pre shadow-sm transition-colors px-4 py-3 w-full resize-none rounded-lg border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-brand-500 focus:border-brand-500 dark:focus:border-brand-400"></textarea>
-          <div class="flex items-center justify-between w-full mt-3">
+            class="w-full resize-none whitespace-pre
+              rounded-lg border-2 border-slate-200 bg-white px-4 py-3
+              font-mono text-base leading-tight tracking-wide text-slate-900 shadow-sm transition-colors
+              focus:border-brand-500 focus:ring-2 focus:ring-brand-500
+              dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:focus:border-brand-400"></textarea>
+          <div class="mt-3 flex w-full items-center justify-between">
             <p
-              class="text-sm text-amber-600 dark:text-amber-400 opacity-80 flex items-center gap-2 animate-pulse-slow"
+              class="flex items-center gap-2 text-sm "
               role="alert"
               aria-live="polite">
               <OIcon
                 collection="material-symbols"
                 name="warning"
-                class="w-4 h-4 flex-shrink-0"
-                aria-hidden="true" />
+                class="size-4 shrink-0 text-amber-600 dark:text-amber-400"
+                aria-hidden="true"
+              />
               {{ $t('web.private.only_see_once') }}
             </p>
             <CopyButton
               v-if="details.secret_value"
-              class="ml-auto hover:scale-105 transition-transform"
-              :text="details.secret_value" />
+              class="ml-auto transition-transform hover:scale-105"
+              :text="details.secret_value"
+            />
           </div>
         </section>
 
         <!-- Encrypted Content Placeholder -->
         <section
           v-if="!details.show_secret && !record.is_destroyed"
-          class="px-6 py-5 bg-gradient-to-r from-slate-200 to-slate-100 dark:from-slate-800/80 dark:to-slate-800/30 border-y border-slate-200 dark:border-slate-700/50">
+          class="border-y border-slate-200 bg-gradient-to-r from-slate-200 to-slate-100 px-6 py-5
+            dark:border-slate-700/50 dark:from-slate-800/80 dark:to-slate-800/30">
           <div
-            class="flex items-center justify-between font-mono text-slate-400 dark:text-slate-500 py-2">
-            <div class="flex-1 flex items-center">
+            class="flex items-center justify-between py-2 font-mono text-slate-400 dark:text-slate-500">
+            <div class="flex flex-1 items-center">
               <span class="inline-block w-full overflow-hidden">
-                <span class="blur-sm select-none">•••••••••••••••••••••••••••••••••••••••</span>
+                <span class="select-none blur-sm">•••••••••••••••••••••••••••••••••••••••</span>
               </span>
               <OIcon
                 collection="material-symbols"
                 name="lock-outline"
-                class="flex-shrink-0 h-4 w-4 ml-2 text-slate-400" />
+                class="ml-2 size-4 shrink-0 text-slate-400"
+              />
             </div>
-            <span class="text-xs font-medium px-2 py-1 rounded-full bg-slate-300/50 dark:bg-slate-700/50">
+            <span
+              class="rounded-full bg-slate-300/50 px-2 py-1 text-xs font-medium
+                dark:bg-slate-700/50">
               {{ $t('web.LABELS.encrypted') }}
             </span>
           </div>
@@ -163,30 +174,34 @@
         <section
           class="px-6 py-5"
           aria-labelledby="section-status">
-          <div class="flex items-center justify-between mb-3">
+          <div class="mb-3 flex items-center justify-between">
             <h2
               id="section-status"
-              class="text-sm font-medium text-slate-700 dark:text-slate-300 flex items-center">
+              class="flex items-center text-sm font-medium text-slate-700 dark:text-slate-300">
               <OIcon
                 collection="material-symbols"
                 name="history"
-                class="w-4 h-4 mr-2 text-brand-500 dark:text-brand-400" />
+                class="mr-2 size-4 text-brand-500 dark:text-brand-400"
+              />
               {{ $t('web.LABELS.timeline') }}
             </h2>
             <StatusBadge
               :record="record"
-              :expires-in="details?.secret_realttl ?? undefined" />
+              :expires-in="details?.secret_realttl ?? undefined"
+            />
           </div>
 
           <TimelineDisplay
             :record="record"
-            :details="details" />
+            :details="details"
+          />
         </section>
 
         <!-- Actions Section with Improved Layout -->
         <section
           v-if="true"
-          class="px-6 py-5 bg-slate-50 dark:bg-slate-800/30 border-t border-slate-200 dark:border-slate-700/50"
+          class="border-t border-slate-200 bg-slate-50 px-6 py-5
+            dark:border-slate-700/50 dark:bg-slate-800/30"
           aria-labelledby="section-actions">
           <h2
             id="section-actions"
@@ -196,16 +211,22 @@
 
           <BurnButtonForm
             :record="record"
-            :details="details" />
+            :details="details"
+          />
 
           <router-link
             type="button"
             to="/"
-            class="mt-16 mb-4 w-full inline-flex items-center justify-center px-4 py-2.5 text-sm font-brand text-slate-700 bg-white border border-slate-300 rounded-md dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-500 dark:text-slate-200 dark:border-slate-600 dark:focus:ring-offset-slate-900 transition-colors duration-200">
+            class="mb-4 mt-16 inline-flex w-full items-center justify-center
+              rounded-md border border-slate-300 bg-white px-4 py-2.5 font-brand text-sm
+              text-slate-700 transition-colors duration-200 hover:bg-slate-50
+              focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2
+              dark:border-slate-600 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700 dark:focus:ring-offset-slate-900">
             <OIcon
               collection="material-symbols"
               name="add"
-              class="w-4 h-4 mr-2" />
+              class="mr-2 size-4"
+            />
             {{ $t('create-another-secret') }}
           </router-link>
         </section>
@@ -214,12 +235,14 @@
       <!-- Help Section with Card Styling -->
       <section
         aria-labelledby="section-help"
-        class="mt-6 bg-white dark:bg-slate-800/30 rounded-xl shadow-sm border border-slate-200/80 dark:border-slate-700/50 p-5 relative">
+        class="relative mt-6 rounded-xl border border-slate-200/80 bg-white p-5 shadow-sm
+          dark:border-slate-700/50 dark:bg-slate-800/30">
         <NeedHelpModal>
           <template #content>
             <MetadataFAQ
               :record="record"
-              :details="details" />
+              :details="details"
+            />
           </template>
         </NeedHelpModal>
       </section>
@@ -228,7 +251,7 @@
 </template>
 
 <style scoped>
-.animate-fade-in-up {
+  .animate-fade-in-up {
   animation: fadeInUp 0.5s ease-out forwards;
 }
 
@@ -244,7 +267,7 @@
 }
 
 .animate-pulse-slow {
-  animation: pulseSlow 3s infinite;
+  animation: pulseSlow 9s infinite;
 }
 
 @keyframes pulseSlow {
