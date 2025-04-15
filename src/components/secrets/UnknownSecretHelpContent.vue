@@ -9,7 +9,7 @@
   <div class="space-y-6 text-sm text-gray-600 dark:text-gray-400">
     <div class="flex items-center justify-between">
       <h2 class="text-lg font-semibold text-gray-800 dark:text-gray-200">
-        {{ $t('web.COMMON.faq') }}
+        {{ $t('web.COMMON.faq_title') }}
       </h2>
     </div>
 

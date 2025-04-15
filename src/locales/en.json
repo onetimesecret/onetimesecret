@@ -75,7 +75,7 @@
       "share_link_securely": "For security, share this link separately from other details.",
       "copied_to_clipboard": "Copied to clipboard",
       "button_create_incoming": "",
-      "faq": "F.A.Q."
+      "faq_title": "F.A.Q."
     },
     "LABELS": {
       "view_toggle": {
