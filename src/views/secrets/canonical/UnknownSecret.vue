@@ -1,6 +1,10 @@
+<!-- src/views/secrets/canonical/UnknownSecret.vue -->
+
 <script setup lang="ts">
-  import type { BrandSettings } from '@/schemas/models/domain/brand';
   import BaseUnknownSecret from '@/components/base/BaseUnknownSecret.vue';
+  import NeedHelpModal from '@/components/modals/NeedHelpModal.vue';
+  import UnknownSecretHelpContent from '@/components/secrets/UnknownSecretHelpContent.vue';
+  import type { BrandSettings } from '@/schemas/models/domain/brand';
 
   interface Props {
     branded?: boolean;
@@ -15,36 +19,50 @@
     :branded="branded"
     :brand-settings="brandSettings">
     <template #header="{}">
-      <div class="mb-8 items-center">
-        <svg
-          class="mx-auto mb-4 size-20 text-brand-500"
-          width="60"
-          height="60"
-          viewBox="0 0 24 24"
-          fill="none"
-          xmlns="http://www.w3.org/2000/svg"
-          aria-hidden="true">
-          <path
-            d="M10 14L12 12M12 12L14 10M12 12L10 10M12 12L14 14M21 12C21 16.9706 16.9706 21 12 21C7.02944 21 3 16.9706 3 12C3 7.02944 7.02944 3 12 3C16.9706 3 21 7.02944 21 12Z"
-            stroke="currentColor"
-            stroke-width="2"
-            stroke-linecap="round"
-            stroke-linejoin="round" />
-        </svg>
+      <div class="mb-8">
+        <!-- Header flex container with icon, title and help link -->
+        <div class="mb-4 flex items-start justify-between">
+          <div class="flex flex-col items-center">
+            <svg
+              class="mx-auto mb-4 size-20 text-brand-500"
+              width="60"
+              height="60"
+              viewBox="0 0 24 24"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+              aria-hidden="true">
+              <path
+                d="M10 14L12 12M12 12L14 10M12 12L10 10M12 12L14 14M21 12C21 16.9706 16.9706 21 12 21C7.02944 21 3 16.9706 3 12C3 7.02944 7.02944 3 12 3C16.9706 3 21 7.02944 21 12Z"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round" />
+            </svg>
 
-        <h1
-          class="mb-6 text-3xl font-bold text-gray-800 dark:text-white"
-          :aria-label="$t('information-no-longer-available')">
-          {{ $t('that-information-is-no-longer-available') }}
-        </h1>
+            <h1
+              class="text-3xl font-bold text-gray-800 dark:text-white"
+              :aria-label="$t('information-no-longer-available')">
+              {{ $t('that-information-is-no-longer-available') }}
+            </h1>
+          </div>
+
+          <!-- Help Modal Trigger -->
+          <NeedHelpModal link-icon-name="question-mark-circle-16-solid" link-text-label="">
+            <button
+              type="button"
+              class="ml-4 text-sm font-medium text-brand-600 hover:text-brand-500
+                focus:underline focus:outline-none dark:text-brand-400 dark:hover:text-brand-300">
+              {{ $t('web.COMMON.need_help') }}?
+            </button>
+            <template #content>
+              <UnknownSecretHelpContent />
+            </template>
+          </NeedHelpModal>
+        </div>
       </div>
     </template>
 
     <template #message="{}">
-      <div class="bg-white dark:bg-gray-800 shadow-md rounded-lg py-8 text-lg">
-        <em>{{ $t('welcome-to-onetime-secret') }}</em>
-        {{ $t('information-shared-through-our-service-can-only-') }}
-      </div>
     </template>
 
     <template #alert="{}">

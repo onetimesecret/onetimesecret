@@ -68,7 +68,9 @@
         link-text-label="">
         <button
           type="button"
-          class="ml-4 text-sm font-medium text-brand-600 hover:text-brand-500 focus:underline focus:outline-none dark:text-brand-400 dark:hover:text-brand-300">
+          class="ml-4 text-sm font-medium
+            text-brand-600 hover:text-brand-500
+            focus:underline focus:outline-none dark:text-brand-400 dark:hover:text-brand-300">
           {{ $t('web.COMMON.need_help') }}?
         </button>
         <template #content>
@@ -110,7 +112,9 @@
             :id="passphraseInputId"
             type="password"
             name="passphrase"
-            class="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-brand-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+            class="w-full rounded-md border border-gray-300 px-3 py-2
+              focus:outline-none focus:ring-2 focus:ring-brand-500
+              dark:border-gray-600 dark:bg-gray-700 dark:text-white"
             autocomplete="current-password"
             :placeholder="$t('web.COMMON.enter_passphrase_here')"
             aria-required="true"
@@ -134,14 +138,14 @@
         ]">
         <span
           v-if="isSubmitting"
-          class="sr-only"
-          >{{ $t('web.COMMON.submitting') }}</span
-        >
+          class="sr-only">
+          {{ $t('web.COMMON.submitting') }}
+        </span>
         <span
           v-else
-          class="sr-only"
-          >{{ $t('web.COMMON.click_to_continue') }}</span
-        >
+          class="sr-only">
+          {{ $t('web.COMMON.click_to_continue') }}
+        </span>
         {{ isSubmitting ? $t('web.COMMON.submitting') : $t('web.COMMON.click_to_continue') }}
       </button>
     </form>

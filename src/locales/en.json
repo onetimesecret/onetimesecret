@@ -74,7 +74,8 @@
       "burn_security_notice": "Burning a secret will delete it before it has been received.",
       "share_link_securely": "For security, share this link separately from other details.",
       "copied_to_clipboard": "Copied to clipboard",
-      "button_create_incoming": ""
+      "button_create_incoming": "",
+      "faq": "F.A.Q."
     },
     "LABELS": {
       "view_toggle": {
@@ -611,6 +612,10 @@
   "delano-mandelbaum": "Delano Mandelbaum",
   "delano": "Delano",
   "help-content-goes-here": "Help content goes here.",
+  "why-is-this-secret-unavailable": "Why is this secret unavailable?",
+  "secrets-are-designed-to-be-viewed-only-once": "Secrets are designed to be viewed only once. This link may have already been accessed, expired, or been manually deleted by the sender.",
+  "what-should-i-do-now": "What should I do now?",
+  "contact-the-person-who-sent-you-this-link": "Contact the person who sent you this link and ask them to create a new secret. Let them know you weren't able to access the original information.",
   "done": "Done",
   "loading-settings-content": "Loading settings content...",
   "settings-sections-0": "Settings sections",
