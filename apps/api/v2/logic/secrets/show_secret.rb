@@ -6,7 +6,7 @@ module V2::Logic
     class ShowSecret < V2::Logic::Base
       attr_reader :key, :passphrase, :continue
       attr_reader :secret, :show_secret, :secret_value, :is_truncated,
-                  :original_size, :verification, :correct_passphrase,
+                  :verification, :correct_passphrase,
                   :display_lines, :one_liner, :is_owner, :has_passphrase,
                   :secret_key, :share_domain
 
@@ -35,7 +35,6 @@ module V2::Logic
           # the encrypted string.
           @secret_value = secret.can_decrypt? ? secret.decrypted_value : secret.value
           @is_truncated = secret.truncated?
-          @original_size = secret.original_size
 
           if verification
             if cust.anonymous? || (cust.custid == owner.custid && !owner.verified?)

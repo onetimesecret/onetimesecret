@@ -246,7 +246,6 @@ export const mockSecretRecord: Secret = {
   secret_ttl: 86400,
   // Schema expects number, not string
   lifespan: 86400,
-  original_size: '42 bytes',
 };
 
 export const mockBurnedSecretRecord: Secret | null = null;
@@ -264,7 +263,6 @@ export const mockReceivedSecretRecord: Secret = {
   secret_value: 'received test secret',
   secret_ttl: 86400,
   lifespan: 86400,
-  original_size: '42 bytes',
 };
 
 export const mockOrphanedSecretRecord: Secret = {
@@ -281,7 +279,6 @@ export const mockOrphanedSecretRecord: Secret = {
   // Schema now expects number, not null
   secret_ttl: 0,
   lifespan: 0,
-  original_size: '42 bytes',
 };
 
 export const mockReceivedSecretRecord1: Secret = {
@@ -297,7 +294,6 @@ export const mockReceivedSecretRecord1: Secret = {
   secret_value: 'received-test-secret-1',
   secret_ttl: 3600, // 1 hour
   lifespan: 3600,
-  original_size: '42 bytes',
 };
 
 export const mockReceivedSecretRecord2: Secret = {
@@ -313,7 +309,6 @@ export const mockReceivedSecretRecord2: Secret = {
   secret_value: 'received-test-secret-2',
   secret_ttl: 7200, // 2 hours
   lifespan: 7200,
-  original_size: '42 bytes',
 };
 
 export const mockNotReceivedSecretRecord1: Secret = {
@@ -329,7 +324,6 @@ export const mockNotReceivedSecretRecord1: Secret = {
   secret_value: 'not-received-test-secret-1',
   secret_ttl: 1800, // 30 minutes
   lifespan: 1800,
-  original_size: '42 bytes',
 };
 
 export const mockSecretResponse = {

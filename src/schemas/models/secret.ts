@@ -42,7 +42,6 @@ export const secretSchema = createModelSchema({
   ...secretBaseSchema.shape,
   secret_ttl: transforms.fromString.number,
   lifespan: transforms.fromString.number,
-  original_size: z.string(),
 }).strip();
 
 // Details schema with explicit typing

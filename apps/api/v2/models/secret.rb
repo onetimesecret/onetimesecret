@@ -16,7 +16,6 @@ module V2
     field :state
     field :value
     field :metadata_key
-    field :original_size
     field :value_checksum
     field :value_encryption
     field :lifespan
@@ -45,7 +44,6 @@ module V2
       :state,
       { secret_ttl: ->(m) { m.lifespan } },
       :lifespan,
-      :original_size,
       { shortkey: ->(m) { m.key.slice(0, 8) } },
       { has_passphrase: ->(m) { m.has_passphrase? } },
       { verification: ->(m) { m.verification? } },
@@ -119,7 +117,6 @@ module V2
         storable_value = original_value
       end
 
-      self.original_size = original_value.size
       self.value_checksum = storable_value.gibbler
       self.value_encryption = 2
       self.value = storable_value.encrypt opts.merge(:key => encryption_key)
@@ -224,7 +221,7 @@ module V2
       # happens in Logic::RevealSecret.process which prepares the secret value
       # to be included in the response and then calls this method att the end.
       # It's at that point that `Logic::RevealSecret.success_data` is called
-      # which means if we were to clear out say -- original_size -- it would
+      # which means if we were to clear out say -- state -- it would
       # be null in the API's JSON response. Not a huge deal in that case, but
       # we validate response data in the UI now and this would raise an error.
       @value = nil
