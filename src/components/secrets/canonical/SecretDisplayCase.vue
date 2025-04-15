@@ -1,6 +1,8 @@
 <!-- src/components/secrets/canonical/SecretDisplayCase.vue -->
 
 <script setup lang="ts">
+  import NeedHelpModal from '@/components/modals/NeedHelpModal.vue';
+  import SecretDisplayHelpContent from '@/components/secrets/SecretDisplayHelpContent.vue';
   import { useClipboard } from '@/composables/useClipboard';
   import { Secret, SecretDetails } from '@/schemas/models';
   import { computed } from 'vue';
@@ -20,6 +22,13 @@
   const props = defineProps<Props>();
   const { t } = useI18n();
 
+  // Generate unique IDs for ARIA attributes based on record identifier
+  const secretContentId = computed(() => `secret-content-${props.record?.identifier || 'unknown'}`);
+  const truncationWarningId = computed(
+    () => `truncation-warning-${props.record?.identifier || 'unknown'}`
+  );
+  const statusMessageId = computed(() => `status-message-${props.record?.identifier || 'unknown'}`);
+
   const alertClasses = computed(() => ({
     'mb-4 p-4 rounded-md': true,
     'bg-branddim-50 text-branddim-700 dark:bg-branddim-900 dark:text-branddim-100':
@@ -29,9 +38,12 @@
   }));
 
   const { isCopied, copyToClipboard } = useClipboard();
-  const isCopiedText = computed(() =>
-    isCopied ? t('web.STATUS.copied') : t('web.LABELS.copy_to_clipboard')
-  );
+
+  // Use different translation keys for copy button text based on state
+  const copyButtonText = computed(() => {
+    return isCopied.value ? t('web.STATUS.copied') : t('web.LABELS.copy_to_clipboard');
+  });
+
   const copySecretContent = async () => {
     if (props.record?.secret_value === undefined) {
       return;
@@ -50,7 +62,7 @@
 
   const closeTruncatedWarning = (event: Event) => {
     const element = event.target as HTMLElement;
-    const warning = element.closest('.bg-brandcomp-100');
+    const warning = element.closest('.bg-brandcomp-100, .bg-brandcomp-800');
     if (warning) {
       warning.remove();
       // Announce removal to screen readers
@@ -66,11 +78,38 @@
 
 <template>
   <BaseSecretDisplay>
+    <!-- Header section with title and help link -->
+    <template #header>
+      <div class="mb-4 flex items-start justify-between">
+        <div>
+          <h1
+            class="text-xl font-bold text-gray-800 dark:text-gray-200"
+            id="secret-display-heading">
+            {{ $t('web.shared.post_reveal_default') }}
+          </h1>
+        </div>
+        <!-- Help Modal Trigger positioned to the right -->
+        <NeedHelpModal
+          link-icon-name="question-mark-circle-16-solid"
+          link-text-label="">
+          <button
+            type="button"
+            class="ml-4 text-sm font-medium text-brand-600 hover:text-brand-500 focus:underline focus:outline-none dark:text-brand-400 dark:hover:text-brand-300">
+            {{ $t('web.COMMON.need_help') }}?
+          </button>
+          <template #content>
+            <SecretDisplayHelpContent />
+          </template>
+        </NeedHelpModal>
+      </div>
+    </template>
+
     <!-- Alert display -->
     <div
       v-if="submissionStatus?.status === 'error' || submissionStatus?.status === 'success'"
       :class="alertClasses"
       role="alert"
+      :id="statusMessageId"
       aria-live="polite">
       <div class="flex">
         <div class="shrink-0">
@@ -100,7 +139,8 @@
         <div class="ml-3">
           <p class="text-sm">
             {{
-              submissionStatus.message || (submissionStatus.status === 'error' ? 'An error occurred' : 'Success')
+              submissionStatus.message ||
+              (submissionStatus.status === 'error' ? 'An error occurred' : 'Success')
             }}
           </p>
         </div>
@@ -110,52 +150,46 @@
     <template #content>
       <div class="relative">
         <label
-          :for="'secret-content-' + record?.identifier"
+          :for="secretContentId"
           class="sr-only">
-          {{ $t('secret-content') }}
+          {{ $t('web.LABELS.secret_content') }}
         </label>
         <textarea
           v-if="record?.secret_value"
-          :id="'secret-content-' + record?.identifier"
-          class="w-full resize-none rounded-md border border-gray-300 bg-gray-100 px-3 py-2
-            font-mono text-base leading-[1.2] tracking-wider
-            focus:outline-none focus:ring-2 focus:ring-brand-500
-            dark:border-gray-600 dark:bg-gray-800 dark:text-white"
+          :id="secretContentId"
+          class="w-full resize-none rounded-md border border-gray-300 bg-gray-100 px-3 py-2 font-mono text-base leading-[1.2] tracking-wider focus:outline-none focus:ring-2 focus:ring-brand-500 dark:border-gray-600 dark:bg-gray-800 dark:text-white"
           readonly
           :rows="details?.display_lines ?? 4"
           :value="record?.secret_value"
-          :aria-label="$t('secret-content')"></textarea>
+          aria-describedby="copy-instructions"
+          :aria-label="$t('web.LABELS.secret_content')"></textarea>
         <div
           v-else
           class="text-red-500 dark:text-red-400"
           role="alert">
-          {{ $t('secret-value-not-available') }}
+          {{ $t('web.ERRORS.secret_not_available') }}
         </div>
+        <p
+          id="copy-instructions"
+          class="sr-only">
+          {{ $t('web.COMMON.press_copy_button_below') }}
+        </p>
       </div>
     </template>
 
     <template #warnings>
       <div>
-        <p
-          v-if="!record?.verification"
-          class="text-sm text-branddim-500 dark:text-gray-500"
-          role="alert"
-          aria-live="polite">
-          ({{ $t('web.COMMON.careful_only_see_once') }})
-        </p>
-
         <div
           v-if="record?.is_truncated"
-          class="border-l-4 border-brandcomp-500 bg-brandcomp-100 p-4
-          text-sm text-brandcomp-700 dark:bg-brandcomp-800 dark:text-brandcomp-200"
+          :id="truncationWarningId"
+          class="border-l-4 border-brandcomp-500 bg-brandcomp-100 p-4 text-sm text-brandcomp-700 dark:bg-brandcomp-800 dark:text-brandcomp-200"
           role="alert"
           aria-live="polite">
           <button
             type="button"
-            class="float-right hover:text-brandcomp-900
-              focus:outline-none focus:ring-2 focus:ring-brandcomp-500 dark:hover:text-brandcomp-50"
+            class="float-right hover:text-brandcomp-900 focus:outline-none focus:ring-2 focus:ring-brandcomp-500 dark:hover:text-brandcomp-50"
             @click="closeTruncatedWarning"
-            :aria-label="$t('dismiss-truncation-warning')">
+            :aria-label="$t('web.LABELS.dismiss_warning')">
             <span aria-hidden="true">&times;</span>
           </button>
           <strong>{{ $t('web.COMMON.warning') }}</strong>
@@ -168,13 +202,9 @@
       <div class="mt-4">
         <button
           @click="copySecretContent"
-          :title="isCopiedText"
-          class="inline-flex items-center justify-center rounded-md bg-brand-500 px-4 py-2.5
-            text-sm font-medium text-brand-50 shadow-sm transition-colors duration-150 ease-in-out
-            hover:bg-brand-600 hover:shadow
-            focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2
-            disabled:cursor-not-allowed disabled:opacity-50 dark:bg-brand-700 dark:text-brand-100 dark:hover:bg-brand-600"
-          :aria-label="isCopiedText"
+          :title="copyButtonText"
+          class="inline-flex items-center justify-center rounded-md bg-brand-500 px-4 py-2.5 text-sm font-medium text-brand-50 shadow-sm transition-colors duration-150 ease-in-out hover:bg-brand-600 hover:shadow focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-brand-700 dark:text-brand-100 dark:hover:bg-brand-600"
+          :aria-label="copyButtonText"
           :aria-pressed="isCopied">
           <svg
             v-if="!isCopied"
@@ -204,13 +234,13 @@
               stroke-width="2"
               d="M5 13l4 4L19 7" />
           </svg>
-          <span>{{ isCopiedText }}</span>
+          <span>{{ copyButtonText }}</span>
         </button>
 
         <!-- Navigation -->
         <div
           v-if="!record?.verification"
-          class="mt-24 text-center text-sm text-slate-500 dark:text-slate-400 italic">
+          class="mt-24 text-center text-sm text-slate-500 dark:text-slate-400">
           <p>
             {{ $t('you-can-safely-close-this-tab') }}
           </p>

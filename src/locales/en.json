@@ -1,5 +1,26 @@
 {
   "web": {
+    "help": {
+      "secret_view_faq": {
+        "what_am_i_looking_at": {
+          "title": "What am I looking at?",
+          "description": "You're viewing a secure message that was shared with you through OneTime Secret. This content is displayed only once and then permanently deleted from our servers."
+        },
+        "can_i_view_again": {
+          "title": "Can I view this secret again later?",
+          "description": "No. For security reasons, this secret is only viewable once. After closing this page, the content will be permanently deleted and cannot be recovered by anyone, including us."
+        },
+        "how_to_copy": {
+          "title": "How do I save this information?",
+          "description": "Use the 'Copy to Clipboard' button to copy the entire secret. For longer secrets, make sure to verify you've copied the complete content before leaving this page."
+        },
+        "is_my_viewing_tracked": {
+          "title": "Is my viewing of this secret tracked?",
+          "description": "The sender will be notified that their secret was viewed, but we don't track who viewed it or from what location. Your privacy is protected."
+        },
+        "one_time_warning": "Once you leave or refresh this page, this secret will be permanently deleted and cannot be recovered by anyone."
+      }
+    },
     "COMMON": {
       "broadcast": "",
       "button_generate_secret_short": "Generate Password",

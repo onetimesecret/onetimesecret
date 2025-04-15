@@ -52,13 +52,13 @@
         <h1
           :id="formHeadingId"
           class="text-xl font-bold text-gray-800 dark:text-gray-200">
-          {{ $t('secret-confirmation') }}
+          {{ statusMessage }}
         </h1>
         <div
           class="mt-1 text-base text-gray-600 dark:text-gray-400"
           role="status"
           aria-live="polite">
-          {{ statusMessage }}
+          {{ $t('web.COMMON.careful_only_see_once') }}
         </div>
       </div>
 

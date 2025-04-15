@@ -26,7 +26,7 @@
 
   const closeWarning = (event: Event) => {
     const element = event.target as HTMLElement;
-    const warning = element.closest('.bg-amber-50, .bg-brand-50');
+    const warning = element.closest('.bg-amber-50, .bg-brand-50, .bg-amber-900, .bg-brand-900');
     if (warning) {
       warning.remove();
     }
@@ -120,14 +120,7 @@
     <!-- Reveal slot -->
     <template #reveal="{ record, details }">
       <div class="space-y-4">
-        <h2
-          class="text-brand-600 dark:text-brand-100"
-          id="secret-heading">
-          {{ $t('web.shared.this_message_for_you') }}
-        </h2>
-
         <SecretDisplayCase
-          aria-labelledby="secret-heading"
           class="w-full"
           :record="record"
           :details="details"
