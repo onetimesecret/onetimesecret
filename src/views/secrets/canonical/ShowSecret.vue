@@ -19,10 +19,28 @@
   import FooterControls from '@/components/layout/SecretFooterControls.vue';
   import SecretConfirmationForm from '@/components/secrets/canonical/SecretConfirmationForm.vue';
   import SecretDisplayCase from '@/components/secrets/canonical/SecretDisplayCase.vue';
+  import {  nextTick } from 'vue';
 
   import UnknownSecret from './UnknownSecret.vue';
 
   defineProps<Props>();
+
+  // Watch for transitions between confirmation and reveal states
+  // This assumes there's a showSecret or similar state variable in BaseShowSecret
+  // that we can access via props or emitted events
+
+  // Example implementation:
+  const handleSecretRevealed = async () => {
+    await nextTick();
+    // Focus the first focusable element in the SecretDisplayCase
+    const focusableElement = document.querySelector('.secret-display-case button, .secret-display-case a, .secret-display-case [tabindex="0"]');
+    if (focusableElement) {
+      (focusableElement as HTMLElement).focus();
+    }
+  };
+
+  // Call this method after secret is revealed
+  defineExpose({ handleSecretRevealed });
 
   const closeWarning = (event: Event) => {
     const element = event.target as HTMLElement;

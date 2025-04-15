@@ -118,8 +118,17 @@
             autocomplete="current-password"
             :placeholder="$t('web.COMMON.enter_passphrase_here')"
             aria-required="true"
+            :aria-invalid="error ? 'true' : undefined"
+            :aria-errormessage="error ? 'passphrase-error' : undefined"
             :aria-describedby="passphraseDescriptionId" />
         </div>
+        <p
+          v-if="error"
+          id="passphrase-error"
+          class="mt-1 text-sm text-red-600 dark:text-red-400"
+          role="alert">
+          {{ String(error) }}
+        </p>
         <p
           :id="passphraseDescriptionId"
           class="text-sm text-gray-500 dark:text-gray-400">

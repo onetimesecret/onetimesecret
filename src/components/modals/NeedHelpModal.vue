@@ -35,7 +35,7 @@
       class="flex items-center gap-2 rounded-md p-1
         text-sm text-gray-500 hover:text-gray-700
         focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2
-        dark:hover:text-gray-300">
+        dark:text-gray-400 dark:hover:text-gray-300">
       <OIcon
         collection="heroicons"
         :name="linkIconName"

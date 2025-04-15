@@ -213,7 +213,10 @@
             fill="none"
             viewBox="0 0 24 24"
             stroke="currentColor"
-            aria-hidden="true">
+            aria-hidden="true"
+            role="img"
+            aria-label="Copy icon">
+            <title>{{ $t('web.LABELS.copy_icon') }}</title>
             <path
               stroke-linecap="round"
               stroke-linejoin="round"
@@ -227,7 +230,10 @@
             fill="none"
             viewBox="0 0 24 24"
             stroke="currentColor"
-            aria-hidden="true">
+            aria-hidden="true"
+            role="img"
+            aria-label="Checkmark icon">
+            <title>{{ $t('web.LABELS.copied_icon') }}</title>
             <path
               stroke-linecap="round"
               stroke-linejoin="round"

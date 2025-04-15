@@ -5,9 +5,6 @@
 </script>
 
 <template>
-  <!-- Header/Title Placeholder -->
-  <div class="h-8 w-1/3 rounded-lg bg-gray-200 dark:bg-gray-700"></div>
-
   <!-- Main Content Box -->
   <div class="rounded-lg border border-gray-200 p-6 dark:border-gray-700">
     <!-- Secret Info Line -->
