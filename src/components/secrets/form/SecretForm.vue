@@ -122,7 +122,8 @@
       class="space-y-6">
       <div
         ref="div1"
-        class="overflow-visible rounded-xl border border-gray-200 bg-white shadow-lg dark:border-gray-700 dark:bg-slate-900">
+        class="overflow-visible rounded-xl border border-gray-200
+          bg-white shadow-lg dark:border-gray-700 dark:bg-slate-900">
         <!-- Main Content Section -->
         <div class="p-6">
           <!-- Secret Input Section -->
@@ -152,7 +153,8 @@
           <!-- Generate Password Text -->
           <div
             v-show="selectedAction === 'generate-password'"
-            class="rounded-lg border border-gray-200 bg-gray-50 dark:border-gray-700 dark:bg-slate-800/50"
+            class="rounded-lg border border-gray-200 bg-gray-50
+              dark:border-gray-700 dark:bg-slate-800/50"
             aria-labelledby="generatedPasswordHeader"
             aria-describedby="generatedPasswordDesc">
             <div class="space-y-4 p-4 pb-6 text-center">
@@ -214,16 +216,18 @@
                     dark:border-gray-700 dark:bg-slate-800 dark:text-white dark:placeholder:text-gray-500"
                   :placeholder="$t('web.secrets.enterPassphrase')"
                   @input="(e) => updatePassphrase((e.target as HTMLInputElement).value)" />
+                <!-- prettier-ignore-attribute class -->
                 <button
                   type="button"
                   @click="togglePassphraseVisibility"
                   :aria-label="state.passphraseVisibility ? 'Hide passphrase' : 'Show passphrase'"
                   :aria-pressed="state.passphraseVisibility"
-                  class="absolute inset-y-0 right-3 flex items-center rounded-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                  class="absolute inset-y-0 right-3 flex items-center rounded-sm
+                    focus:outline-none focus:ring-2 focus:ring-blue-500">
                   <OIcon
                     collection="heroicons"
                     :name="state.passphraseVisibility ? 'solid-eye' : 'outline-eye-off'"
-                    class="h-4 w-4 text-gray-400 hover:text-gray-600"
+                    class="size-4 text-gray-400 hover:text-gray-600"
                     aria-hidden="true" />
                 </button>
               </div>
@@ -249,13 +253,17 @@
                 </label>
               </h3>
               <div class="relative">
+                <!-- prettier-ignore-attribute class -->
                 <select
                   :value="form.ttl"
                   :id="lifetimeId"
                   name="ttl"
                   :aria-invalid="!!getError('ttl')"
                   :aria-describedby="getError('ttl') ? lifetimeErrorId : undefined"
-                  class="w-full appearance-none rounded-lg border border-gray-200 bg-white py-2.5 pl-5 pr-10 text-sm text-gray-600 transition-shadow duration-200 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:border-gray-700 dark:bg-slate-800 dark:text-white"
+                  class="w-full appearance-none rounded-lg border border-gray-200
+                    bg-white py-2.5 pl-5 pr-10 text-sm text-gray-600 transition-shadow duration-200
+                    focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500
+                    dark:border-gray-700 dark:bg-slate-800 dark:text-white"
                   @change="(e) => updateTtl(Number((e.target as HTMLSelectElement).value))">
                   <option
                     value=""
@@ -281,7 +289,7 @@
                   <OIcon
                     collection="heroicons"
                     name="chevron-down"
-                    class="h-4 w-4 text-gray-400" />
+                    class="size-4 text-gray-400" />
                 </div>
               </div>
             </div>
@@ -311,9 +319,10 @@
                 <OIcon
                   collection="heroicons"
                   name="envelope"
-                  class="h-4 w-4 text-gray-400"
+                  class="size-4 text-gray-400"
                   aria-hidden="true" />
               </div>
+              <!-- prettier-ignore-attribute class -->
               <input
                 :value="form.recipient"
                 :id="recipientId"
@@ -322,7 +331,10 @@
                 :placeholder="$t('web.COMMON.email_placeholder')"
                 :aria-invalid="!!getError('recipient')"
                 :aria-errormessage="getError('recipient') ? recipientErrorId : undefined"
-                class="w-full rounded-lg border border-gray-200 bg-white py-2.5 pl-10 pr-10 text-sm text-gray-900 placeholder:text-gray-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500 dark:border-gray-700 dark:bg-slate-800 dark:text-white dark:placeholder:text-gray-500"
+                class="w-full rounded-lg border border-gray-200
+                  bg-white px-10 py-2.5 text-sm text-gray-900 placeholder:text-gray-400
+                  focus:border-blue-500 focus:ring-2 focus:ring-blue-500
+                  dark:border-gray-700 dark:bg-slate-800 dark:text-white dark:placeholder:text-gray-500"
                 @input="(e) => updateRecipient((e.target as HTMLInputElement).value)" />
             </div>
             <div
@@ -343,7 +355,7 @@
           <OIcon
             collection="heroicons"
             name="information-circle"
-            class="mt-0.5 h-5 w-5 flex-shrink-0 text-brandcomp-600 dark:text-brandcomp-500" />
+            class="mt-0.5 size-5 shrink-0 text-brandcomp-600 dark:text-brandcomp-500" />
           <p class="text-sm text-brandcomp-700 dark:text-brandcomp-300">
             {{ $t('web.homepage.protip1') }}
           </p>
@@ -355,7 +367,7 @@
           <div class="px-6 py-4">
             <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between sm:gap-4">
               <!-- Domain Preview (grows to fill available space) -->
-              <div class="order-1 min-w-0 flex-grow sm:order-2">
+              <div class="order-1 min-w-0 grow sm:order-2">
                 <CustomDomainPreview
                   v-if="productIdentity.isCanonical"
                   :available-domains="availableDomains"
@@ -365,7 +377,7 @@
               </div>
 
               <!-- Action Button (full-width on mobile, normal width on desktop) -->
-              <div class="order-2 flex-shrink-0 sm:order-2">
+              <div class="order-2 shrink-0 sm:order-2">
                 <div class="mb-2 mt-3 sm:mt-0">
                   <SplitButton
                     :with-generate="props.withGenerate"
