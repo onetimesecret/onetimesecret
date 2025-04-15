@@ -364,8 +364,8 @@
         <!-- Footer Section -->
         <div class="border-t border-gray-200 dark:border-gray-700">
           <!-- Actions Container -->
-          <div class="px-6 py-4">
-            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between sm:gap-4">
+          <div class="p-6">
+            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between sm:gap-4 ">
               <!-- Domain Preview (grows to fill available space) -->
               <div class="order-1 min-w-0 grow sm:order-2">
                 <CustomDomainPreview
@@ -378,7 +378,7 @@
 
               <!-- Action Button (full-width on mobile, normal width on desktop) -->
               <div class="order-2 shrink-0 sm:order-2">
-                <div class="mb-2 mt-3 sm:mt-0">
+                <div class="mb-0 mt-3 sm:mt-0">
                   <SplitButton
                     :with-generate="props.withGenerate"
                     :disabled="selectedAction === 'create-link' && !hasContent"
