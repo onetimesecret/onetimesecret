@@ -41,7 +41,7 @@
         :name="linkIconName"
         class="size-5"
         aria-hidden="true" />
-      <span>{{ t(linkTextLabel) }}</span>
+      <span v-if="linkTextLabel">{{ t(linkTextLabel) }}</span>
     </button>
 
     <TransitionRoot

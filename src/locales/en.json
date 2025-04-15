@@ -732,7 +732,7 @@
   "secure-encrypted-storage": "Secure, encrypted storage",
   "this-is-a-private-instance-only-authorized-team-": "This is a private instance. Only authorized team members can generate new secure links.",
   "return-to-home": "Return to Home",
-  "that-information-is-no-longer-available": "That information is no longer available.",
+  "that-information-is-no-longer-available": "This secret has been viewed or expired.",
   "information-no-longer-available": "Information no longer available",
   "create-another-secret": "Create another secret",
   "support-details": "Support Details",
