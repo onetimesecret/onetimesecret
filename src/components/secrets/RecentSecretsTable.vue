@@ -48,12 +48,11 @@ const itemsCount = computed(() => concealedMessages.value.length);
         :aria-labelledby="'recent-secrets-heading'"
       />
     </div>
-
-    <p
+    <div
       v-else
       class="py-4 text-center text-gray-600 dark:text-gray-400"
       aria-live="polite">
       {{ t('web.secrets.no_recent_secrets') }}
-    </p>
+    </div>
   </section>
 </template>

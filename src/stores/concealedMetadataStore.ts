@@ -1,9 +1,9 @@
 // stores/concealedMetadataStore.ts
 import { PiniaPluginOptions } from '@/plugins/pinia';
 import { loggingService } from '@/services/logging.service';
+import { type ConcealedMessage } from '@/types/ui/concealed-message';
 import { defineStore, PiniaCustomProperties } from 'pinia';
 import { ref, computed, watch } from 'vue';
-import { type ConcealedMessage } from '@/types/ui/concealed-message';
 
 interface StoreOptions extends PiniaPluginOptions {}
 

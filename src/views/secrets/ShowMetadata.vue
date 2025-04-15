@@ -78,6 +78,7 @@
       v-else-if="record && details"
       class="animate-fade-in-up mx-auto max-w-3xl space-y-8 py-8">
       <!-- Main Card with Enhanced Styling -->
+      <!-- prettier-ignore-attribute class -->
       <div
         class="overflow-hidden rounded-xl border border-slate-200/50
           bg-gradient-to-b from-slate-50 to-slate-100 shadow-md
@@ -92,8 +93,7 @@
             :record="record"
             :details="details"
             :is-initial-view="!record.is_viewed"
-            class="rounded-lg focus-within:ring-2 focus-within:ring-brand-500"
-          />
+            class="rounded-lg focus-within:ring-2 focus-within:ring-brand-500" />
         </section>
 
         <!-- Recipients Section -->
@@ -104,17 +104,18 @@
             <OIcon
               collection="material-symbols"
               name="mail-outline"
-              class="mr-2 size-5 text-brand-500 dark:text-brand-400"
-            />
+              class="mr-2 size-5 text-brand-500 dark:text-brand-400" />
             {{ $t('web.COMMON.sent_to') }} {{ record.recipients }}
           </h3>
         </div>
 
         <!-- Secret Value with Enhanced Styling -->
+        <!-- prettier-ignore-attribute class -->
         <section
           v-if="details.show_secret"
           class="border-y border-slate-200 bg-slate-50 px-6 py-5
             dark:border-slate-700/50 dark:bg-slate-800/60">
+          <!-- prettier-ignore-attribute class -->
           <textarea
             readonly
             :value="details.secret_value"
@@ -126,32 +127,33 @@
               dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:focus:border-brand-400"></textarea>
           <div class="mt-3 flex w-full items-center justify-between">
             <p
-              class="flex items-center gap-2 text-sm "
+              class="flex items-center gap-2 text-sm"
               role="alert"
               aria-live="polite">
               <OIcon
                 collection="material-symbols"
                 name="warning"
                 class="size-4 shrink-0 text-amber-600 dark:text-amber-400"
-                aria-hidden="true"
-              />
+                aria-hidden="true" />
               {{ $t('web.private.only_see_once') }}
             </p>
             <CopyButton
               v-if="details.secret_value"
               class="ml-auto transition-transform hover:scale-105"
-              :text="details.secret_value"
-            />
+              :text="details.secret_value" />
           </div>
         </section>
 
         <!-- Encrypted Content Placeholder -->
+        <!-- prettier-ignore-attribute class -->
         <section
           v-if="!details.show_secret && !record.is_destroyed"
           class="border-y border-slate-200 bg-gradient-to-r from-slate-200 to-slate-100 px-6 py-5
             dark:border-slate-700/50 dark:from-slate-800/80 dark:to-slate-800/30">
+          <!-- prettier-ignore-attribute class -->
           <div
-            class="flex items-center justify-between py-2 font-mono text-slate-400 dark:text-slate-500">
+            class="flex items-center justify-between py-2 font-mono
+              text-slate-400 dark:text-slate-500">
             <div class="flex flex-1 items-center">
               <span class="inline-block w-full overflow-hidden">
                 <span class="select-none blur-sm">•••••••••••••••••••••••••••••••••••••••</span>
@@ -159,12 +161,10 @@
               <OIcon
                 collection="material-symbols"
                 name="lock-outline"
-                class="ml-2 size-4 shrink-0 text-slate-400"
-              />
+                class="ml-2 size-4 shrink-0 text-slate-400" />
             </div>
             <span
-              class="rounded-full bg-slate-300/50 px-2 py-1 text-xs font-medium
-                dark:bg-slate-700/50">
+              class="rounded-full bg-slate-300/50 px-2 py-1 text-xs font-medium dark:bg-slate-700/50">
               {{ $t('web.LABELS.encrypted') }}
             </span>
           </div>
@@ -181,23 +181,21 @@
               <OIcon
                 collection="material-symbols"
                 name="history"
-                class="mr-2 size-4 text-brand-500 dark:text-brand-400"
-              />
+                class="mr-2 size-4 text-brand-500 dark:text-brand-400" />
               {{ $t('web.LABELS.timeline') }}
             </h2>
             <StatusBadge
               :record="record"
-              :expires-in="details?.secret_realttl ?? undefined"
-            />
+              :expires-in="details?.secret_realttl ?? undefined" />
           </div>
 
           <TimelineDisplay
             :record="record"
-            :details="details"
-          />
+            :details="details" />
         </section>
 
         <!-- Actions Section with Improved Layout -->
+        <!-- prettier-ignore-attribute class -->
         <section
           v-if="true"
           class="border-t border-slate-200 bg-slate-50 px-6 py-5
@@ -211,22 +209,16 @@
 
           <BurnButtonForm
             :record="record"
-            :details="details"
-          />
+            :details="details" />
 
           <router-link
             type="button"
             to="/"
-            class="mb-4 mt-16 inline-flex w-full items-center justify-center
-              rounded-md border border-slate-300 bg-white px-4 py-2.5 font-brand text-sm
-              text-slate-700 transition-colors duration-200 hover:bg-slate-50
-              focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2
-              dark:border-slate-600 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700 dark:focus:ring-offset-slate-900">
+            class="mb-4 mt-16 inline-flex w-full items-center justify-center rounded-md border border-slate-300 bg-white px-4 py-2.5 font-brand text-sm text-slate-700 transition-colors duration-200 hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700 dark:focus:ring-offset-slate-900">
             <OIcon
               collection="material-symbols"
               name="add"
-              class="mr-2 size-4"
-            />
+              class="mr-2 size-4" />
             {{ $t('create-another-secret') }}
           </router-link>
         </section>
@@ -235,14 +227,12 @@
       <!-- Help Section with Card Styling -->
       <section
         aria-labelledby="section-help"
-        class="relative mt-6 rounded-xl border border-slate-200/80 bg-white p-5 shadow-sm
-          dark:border-slate-700/50 dark:bg-slate-800/30">
+        class="relative mt-6 rounded-xl border border-slate-200/80 bg-white p-5 shadow-sm dark:border-slate-700/50 dark:bg-slate-800/30">
         <NeedHelpModal>
           <template #content>
             <MetadataFAQ
               :record="record"
-              :details="details"
-            />
+              :details="details" />
           </template>
         </NeedHelpModal>
       </section>
@@ -252,30 +242,31 @@
 
 <style scoped>
   .animate-fade-in-up {
-  animation: fadeInUp 0.5s ease-out forwards;
-}
+    animation: fadeInUp 0.5s ease-out forwards;
+  }
 
-@keyframes fadeInUp {
-  from {
-    opacity: 0;
-    transform: translateY(10px);
+  @keyframes fadeInUp {
+    from {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
   }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
 
-.animate-pulse-slow {
-  animation: pulseSlow 9s infinite;
-}
+  .animate-pulse-slow {
+    animation: pulseSlow 9s infinite;
+  }
 
-@keyframes pulseSlow {
-  0%, 100% {
-    opacity: 1;
+  @keyframes pulseSlow {
+    0%,
+    100% {
+      opacity: 1;
+    }
+    50% {
+      opacity: 0.6;
+    }
   }
-  50% {
-    opacity: 0.6;
-  }
-}
 </style>
