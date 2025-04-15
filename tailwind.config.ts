@@ -1,3 +1,5 @@
+// tailwind.config.ts
+
 import forms from '@tailwindcss/forms';
 import typography from '@tailwindcss/typography';
 import defaultTheme from 'tailwindcss/defaultTheme';
@@ -145,17 +147,6 @@ export default {
         '200%': '200% 100%',
       },
     },
-    // Don't mess with the scaling. rem == root em (ie. <html>). Everything is relative to that.
-    //fontSize: {
-    //  'sm': '0.9rem',
-    //  'base': '1rem',
-    //  'lg': '1.25rem',
-    //  'xl': '1.30rem',
-    //  '2xl': '1.563rem',
-    //  '3xl': '1.953rem',
-    //  '4xl': '2.441rem',
-    //  '5xl': '3.052rem',
-    //}
   },
   plugins: [
     forms(),
