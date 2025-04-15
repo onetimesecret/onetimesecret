@@ -7,6 +7,9 @@ import defaultTheme from 'tailwindcss/defaultTheme';
 /**
  * Tailwind CSS Configuration
  *
+ * npx prettier path/2/ComponentFile.vue --write --log-level debug
+ * <!-- prettier-ignore-attribute class -->
+ *
  **/
 
 export default {
