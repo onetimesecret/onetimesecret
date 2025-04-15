@@ -112,6 +112,7 @@
       "passphrase_protected": "Protégé par phrase de passe",
       "feedback-received": "Retour d'information reçu",
       "sending-ellipses": "Envoi...",
+      "pricing": "Tarification",
       "title_recent_secrets": "Secrets récents"
     },
     "STATUS": {
@@ -130,7 +131,6 @@
       "secured": "Sécurisé",
       "securing": "Sécurisation",
       "copied": "Copié",
-      "pricing": "Tarification",
       "time_remaining": "Temps restant",
       "new_description": "Le lien secret a été créé et n'a pas encore été consulté",
       "unread_description": "Le lien secret a été créé et n'a pas été consulté",

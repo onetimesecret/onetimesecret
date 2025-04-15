@@ -134,6 +134,7 @@
       "feedback-received": "Feedback received.",
       "sending-ellipses": "Sending...",
       "title_recent_secrets": "Recent Secrets",
+      "pricing": "Pricing",
       "caption_recent_secrets": "Secrets links created in this session"
     },
     "STATUS": {
@@ -152,7 +153,6 @@
       "secured": "Secured",
       "securing": "Securing",
       "copied": "Copied",
-      "pricing": "Pricing",
       "time_remaining": "Time Remaining",
       "new_description": "Secret link has been created and not yet viewed",
       "unread_description": "Secret link has been created and has not been viewed",
@@ -672,7 +672,7 @@
   "warning-dismissed": "Warning dismissed",
   "secret-value-not-available": "Secret value not available",
   "dismiss-truncation-warning": "Dismiss truncation warning",
-  "you-can-safely-close-this-tab": "You can safely close this tab.",
+  "you-can-safely-close-this-tab": "You can close this window when done.",
   "sign-in-to-your-account": "Welcome Back",
   "enter-the-secret-content-here": "Enter the secret content here",
   "enter-the-secret-content-to-share-here": "Enter the secret content to share here",

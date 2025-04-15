@@ -112,6 +112,7 @@
       "passphrase_protected": "Geschützt mit Sicherheitsphrase",
       "feedback-received": "Rückmeldung erhalten.",
       "sending-ellipses": "Ich schicke...",
+      "pricing": "Preisgestaltung",
       "title_recent_secrets": "Neueste Geheimnisse"
     },
     "STATUS": {
@@ -130,7 +131,6 @@
       "secured": "Gesichert",
       "securing": "Sichern",
       "copied": "Kopiert",
-      "pricing": "Preisgestaltung",
       "time_remaining": "Verbleibende Zeit",
       "new_description": "Der geheime Link wurde erstellt und noch nicht angesehen",
       "unread_description": "Der geheime Link wurde erstellt und wurde noch nicht angesehen",

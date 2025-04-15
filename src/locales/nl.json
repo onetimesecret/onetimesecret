@@ -112,6 +112,7 @@
       "passphrase_protected": "Beveiligd met wachtwoordzin",
       "feedback-received": "Feedback ontvangen.",
       "sending-ellipses": "Versturen...",
+      "pricing": "Prijzen",
       "title_recent_secrets": "Recente berichten"
     },
     "STATUS": {
@@ -130,7 +131,6 @@
       "secured": "Beveiligd",
       "securing": "Beveiligen",
       "copied": "Gekopieerd",
-      "pricing": "Prijzen",
       "time_remaining": "Resterende tijd",
       "new_description": "Beveiligde link is aangemaakt en nog niet bekeken",
       "unread_description": "Beveiligde link is aangemaakt en is nog niet bekeken",
