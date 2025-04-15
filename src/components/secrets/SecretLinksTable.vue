@@ -1,10 +1,11 @@
 <script setup lang="ts">
-  import { type ConcealedMessage } from '@/types/ui/concealed-message';
-  import { ref, computed } from 'vue';
-  import SecretLinksTableRow from './SecretLinksTableRow.vue';
-  import ToastNotification from '@/components/ui/ToastNotification.vue';
-  import { useI18n } from 'vue-i18n';
   import OIcon from '@/components/icons/OIcon.vue';
+  import ToastNotification from '@/components/ui/ToastNotification.vue';
+  import { type ConcealedMessage } from '@/types/ui/concealed-message';
+  import { computed, ref } from 'vue';
+  import { useI18n } from 'vue-i18n';
+
+  import SecretLinksTableRow from './SecretLinksTableRow.vue';
 
   const { t } = useI18n();
 
@@ -26,7 +27,7 @@
     const active: ConcealedMessage[] = [];
     const expired: ConcealedMessage[] = [];
 
-    props.concealedMessages.forEach(message => {
+    props.concealedMessages.forEach((message) => {
       // Consider a secret expired if TTL is <= 0 or it's marked as burned
       const isExpired = message.clientInfo.ttl <= 0;
       const isBurned = !!message.response.record.metadata?.burned;
@@ -83,53 +84,70 @@
 </script>
 
 <template>
-  <div class="recent-secrets mt-8">
-
-    <div class="flex items-center justify-between mb-3">
+  <div class="mt-8">
+    <div class="mb-3 flex items-center justify-between">
       <h3 class="text-lg font-medium text-gray-700 dark:text-gray-200">
         {{ $t('web.COMMON.recent') }}
       </h3>
 
       <div class="flex items-center gap-2">
-        <span v-if="hasSecrets" class="text-sm text-gray-500 dark:text-gray-400">
-          {{ $t('web.LABELS.items_count', {count: activeSecrets.length}) }}
-          <span v-if="hasExpiredSecrets" class="ml-1">
-            ({{ $t('web.LABELS.expired_count', {count: expiredSecrets.length}) }})
+        <span
+          v-if="hasSecrets"
+          class="text-sm text-gray-500 dark:text-gray-400">
+          {{ $t('web.LABELS.items_count', { count: activeSecrets.length }) }}
+          <span
+            v-if="hasExpiredSecrets"
+            class="ml-1">
+            ({{ $t('web.LABELS.expired_count', { count: expiredSecrets.length }) }})
           </span>
         </span>
       </div>
     </div>
-
-    <div v-if="!hasSecrets" class="flex flex-col items-center justify-center py-8 bg-gray-50 dark:bg-slate-800/30 rounded-lg border border-gray-200 dark:border-gray-700">
+    <!-- prettier-ignore-attribute class -->
+    <div
+      v-if="!hasSecrets"
+      class="flex flex-col items-center justify-center
+        rounded-lg border border-gray-200 bg-gray-50 py-8
+        dark:border-gray-700 dark:bg-slate-800/30">
       <OIcon
         collection="heroicons"
         name="document-text"
-        class="size-10 text-gray-400 dark:text-gray-500 mb-3" />
+        class="mb-3 size-10 text-gray-400 dark:text-gray-500" />
       <p class="text-gray-500 dark:text-gray-400">{{ $t('web.secrets.noRecents') }}</p>
     </div>
-
+    <!-- prettier-ignore-attribute class -->
     <div
       v-else
-      class="relative overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm dark:border-gray-700 dark:bg-slate-900 opacity-90">
+      class="relative overflow-hidden
+        rounded-lg border border-gray-200 bg-white opacity-90 shadow-sm dark:border-gray-700 dark:bg-slate-900">
       <div class="overflow-x-auto">
         <!-- Active Secrets Table -->
         <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
           <thead class="bg-gray-50 dark:bg-slate-800">
             <tr>
+              <!-- prettier-ignore-attribute class -->
               <th
                 scope="col"
-                class="px-6 py-2.5 text-left text-xs font-medium text-gray-500 uppercase tracking-wider dark:text-gray-400">
+                class="px-6 py-2.5
+                  text-left text-xs font-medium uppercase tracking-wider
+                  text-gray-500 dark:text-gray-400">
                 {{ $t('web.LABELS.receipts') }}
               </th>
+              <!-- prettier-ignore-attribute class -->
               <th
                 scope="col"
-                class="px-6 py-2.5 text-left text-xs font-medium text-gray-500 uppercase tracking-wider dark:text-gray-400 hidden sm:table-cell">
+                class="hidden px-6 py-2.5
+                  text-left text-xs font-medium uppercase tracking-wider
+                  text-gray-500 dark:text-gray-400 sm:table-cell">
                 {{ $t('web.LABELS.details') }}
               </th>
+              <!-- prettier-ignore-attribute class -->
               <th
                 scope="col"
-                class="px-6 py-2.5 text-right text-xs font-medium text-gray-500 uppercase tracking-wider dark:text-gray-400">
-                  {{ $t('web.LABELS.share') }}
+                class="px-6 py-2.5
+                  text-right text-xs font-medium uppercase tracking-wider
+                  text-gray-500 dark:text-gray-400">
+                {{ $t('web.LABELS.share') }}
               </th>
             </tr>
           </thead>
@@ -139,23 +157,27 @@
               :key="concealedMessage.id"
               :concealed-message="concealedMessage"
               @copy="handleCopy"
-              @delete="handleBurn"
-            />
+              @delete="handleBurn" />
           </tbody>
         </table>
 
         <!-- Expired Secrets Section -->
-        <div v-if="hasExpiredSecrets" class="border-t border-gray-200 dark:border-gray-700 mt-2">
+        <div
+          v-if="hasExpiredSecrets"
+          class="mt-2 border-t border-gray-200 dark:border-gray-700">
+          <!-- prettier-ignore-attribute class -->
           <div
             @click="toggleExpiredSecrets"
-            class="flex items-center justify-between px-6 py-3 bg-gray-50 dark:bg-slate-800 cursor-pointer hover:bg-gray-100 dark:hover:bg-slate-700 transition-colors">
+            class="flex cursor-pointer items-center justify-between
+              bg-gray-50 px-6 py-3 transition-colors hover:bg-gray-100
+              dark:bg-slate-800 dark:hover:bg-slate-700">
             <div class="flex items-center">
               <OIcon
                 collection="heroicons"
                 :name="showExpired ? 'chevron-down' : 'chevron-right'"
-                class="size-4 text-gray-500 dark:text-gray-400 mr-2" />
+                class="mr-2 size-4 text-gray-500 dark:text-gray-400" />
               <span class="text-sm font-medium text-gray-700 dark:text-gray-300">
-                {{ $t('web.LABELS.expired_secrets', {count: expiredSecrets.length}) }}
+                {{ $t('web.LABELS.expired_secrets', { count: expiredSecrets.length }) }}
               </span>
             </div>
           </div>
@@ -163,14 +185,16 @@
           <!-- Expandable Expired Secrets Table -->
           <div v-if="showExpired">
             <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-              <tbody class="divide-y divide-gray-200 dark:divide-gray-700 bg-gray-50/50 dark:bg-slate-800/50">
+              <!-- prettier-ignore-attribute class -->
+              <tbody
+                class="divide-y divide-gray-200 bg-gray-50/50
+                  dark:divide-gray-700 dark:bg-slate-800/50">
                 <SecretLinksTableRow
                   v-for="concealedMessage in sortedExpiredSecrets"
                   :key="concealedMessage.id"
                   :concealed-message="concealedMessage"
                   @copy="handleCopy"
-                  @delete="handleBurn"
-                />
+                  @delete="handleBurn" />
               </tbody>
             </table>
           </div>
@@ -179,8 +203,7 @@
 
       <ToastNotification
         :show="showToast"
-        :message="toastMessage"
-      />
+        :message="toastMessage" />
     </div>
   </div>
 </template>
