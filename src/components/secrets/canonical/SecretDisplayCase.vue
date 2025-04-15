@@ -152,7 +152,7 @@
         <label
           :for="secretContentId"
           class="sr-only">
-          {{ $t('web.LABELS.secret_content') }}
+          {{ $t('secret-content') }}
         </label>
         <textarea
           v-if="record?.secret_value"
@@ -162,7 +162,7 @@
           :rows="details?.display_lines ?? 4"
           :value="record?.secret_value"
           aria-describedby="copy-instructions"
-          :aria-label="$t('web.LABELS.secret_content')"></textarea>
+          :aria-label="$t('secret-content')"></textarea>
         <div
           v-else
           class="text-red-500 dark:text-red-400"
@@ -172,7 +172,7 @@
         <p
           id="copy-instructions"
           class="sr-only">
-          {{ $t('web.COMMON.press_copy_button_below') }}
+          {{ $t('press_copy_button_below') }}
         </p>
       </div>
     </template>

@@ -145,16 +145,6 @@
           'hover:bg-brand-600 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2',
           'disabled:cursor-not-allowed disabled:opacity-50 dark:bg-brand-600 dark:hover:bg-brand-600 dark:focus:ring-brand-400',
         ]">
-        <span
-          v-if="isSubmitting"
-          class="sr-only">
-          {{ $t('web.COMMON.submitting') }}
-        </span>
-        <span
-          v-else
-          class="sr-only">
-          {{ $t('web.COMMON.click_to_continue') }}
-        </span>
         {{ isSubmitting ? $t('web.COMMON.submitting') : $t('web.COMMON.click_to_continue') }}
       </button>
     </form>

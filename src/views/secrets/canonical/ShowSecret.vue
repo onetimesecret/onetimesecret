@@ -29,13 +29,18 @@
   // This assumes there's a showSecret or similar state variable in BaseShowSecret
   // that we can access via props or emitted events
 
-  // Example implementation:
+  // Focus management for a11y when secret is revealed
   const handleSecretRevealed = async () => {
     await nextTick();
     // Focus the first focusable element in the SecretDisplayCase
-    const focusableElement = document.querySelector('.secret-display-case button, .secret-display-case a, .secret-display-case [tabindex="0"]');
-    if (focusableElement) {
-      (focusableElement as HTMLElement).focus();
+    const displayCase = document.querySelector('.secret-display-case');
+    if (displayCase) {
+      const focusableElements = displayCase.querySelectorAll(
+        'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+      );
+      if (focusableElements.length > 0) {
+        (focusableElements[0] as HTMLElement).focus();
+      }
     }
   };
 
@@ -62,7 +67,11 @@
       <div class="flex justify-center">
         <div
           class="size-32 animate-spin rounded-full
-            border-4 border-brand-500 border-t-transparent"></div>
+            border-4 border-brand-500 border-t-transparent"
+          role="status"
+          aria-live="polite">
+          <span class="sr-only">{{ $t('web.COMMON.loading') }}</span>
+        </div>
       </div>
     </template>
 
@@ -84,12 +93,12 @@
           aria-live="polite">
           <button
             type="button"
-            class="float-right
-              hover:text-amber-900 focus:outline-none focus:ring-2 focus:ring-amber-500
+            class="float-right rounded-md p-1
+              focus:outline-none focus:ring-2 focus:ring-amber-500 hover:text-amber-900
               dark:hover:text-amber-50"
             @click="closeWarning"
             :aria-label="$t('dismiss-warning')">
-            <span aria-hidden="true">&times;</span>
+            <span aria-hidden="true" class="text-lg">&times;</span>
           </button>
           <strong class="font-medium">{{ $t('web.COMMON.warning') }}:</strong>
           {{ $t('web.shared.you_created_this_secret') }}
@@ -103,12 +112,12 @@
           aria-live="polite">
           <button
             type="button"
-            class="float-right hover:text-brand-900
-              focus:outline-none focus:ring-2 focus:ring-brand-500
+            class="float-right rounded-md p-1
+              focus:outline-none focus:ring-2 focus:ring-brand-500 hover:text-brand-900
               dark:hover:text-brand-50"
             @click="closeWarning"
             :aria-label="$t('dismiss-notification')">
-            <span aria-hidden="true">&times;</span>
+            <span aria-hidden="true" class="text-lg">&times;</span>
           </button>
           {{ $t('web.shared.viewed_own_secret') }}
         </div>

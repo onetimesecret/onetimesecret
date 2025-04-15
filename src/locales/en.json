@@ -900,5 +900,6 @@
   "an-error-occurred": "An error occurred",
   "copy-secret-to-clipboard": "Copy secret to clipboard",
   "secret-copied-to-clipboard": "Secret copied to clipboard",
-  "Double check that passphrase": "Double check that passphrase"
+  "Double check that passphrase": "Double check that passphrase",
+  "press_copy_button_below": "Press the copy button below."
 }
