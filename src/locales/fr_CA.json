@@ -74,7 +74,8 @@
       "burn_security_notice": "La suppression d'un secret l'effacera avant qu'il n'ait été reçu.",
       "share_link_securely": "Pour la sécurité, partagez ce lien séparément des autres détails.",
       "copied_to_clipboard": "Copié dans le presse-papiers",
-      "button_create_incoming": "Envoyer un message"
+      "button_create_incoming": "Envoyer un message",
+      "faq_title": "F.A.Q."
     },
     "LABELS": {
       "view_toggle": {
@@ -82,6 +83,7 @@
         "hide": "Masquer"
       },
       "timeline": "Chronologie",
+      "lifespan": "Durée de vie",
       "expiration_time": "Délai d'expiration",
       "close": "Fermer",
       "loading": "Chargement...",
@@ -89,14 +91,19 @@
       "saving": "Enregistrement en cours",
       "saved": "Enregistré",
       "save": "Enregistrer",
+      "details": "Détails",
       "encrypted": "Chiffré",
       "secret_status": "État du secret",
       "need_help": "Besoin d'aide?",
       "create_new_secret": "Créer un nouveau secret",
       "actions": "Actions",
       "no_passphrase": "Aucune phrase de passe requise",
+      "copy_to_clipboard": "Copier dans le presse-papiers",
+      "receipts": "Reçus",
+      "share": "Partager",
       "secret_link": "Lien secret",
       "security_details": "Détails de sécurité",
+      "items_count": "{count} Items",
       "recipients_count": "{count} destinataires",
       "views": "Consultations",
       "times_viewed": "fois consulté",
@@ -122,6 +129,8 @@
       "orphaned": "Orphelin",
       "secured": "Sécurisé",
       "securing": "Sécurisation",
+      "copied": "Copié",
+      "pricing": "Tarification",
       "time_remaining": "Temps restant",
       "new_description": "Le lien secret a été créé et n'a pas encore été consulté",
       "unread_description": "Le lien secret a été créé et n'a pas été consulté",
@@ -151,6 +160,16 @@
           "hour": "heure | heures",
           "minute": "minute | minutes",
           "second": "seconde | secondes"
+        },
+        "noOptionsAvailable": "---"
+      },
+      "ttl_remaining": {
+        "duration": "{count} {unit} restant",
+        "time": {
+          "day": "jour restant | jours restants",
+          "hour": "heure restante | heures restantes",
+          "minute": "minute restante | minutes restantes",
+          "second": "seconde restante | secondes restantes"
         },
         "noOptionsAvailable": "---"
       },
@@ -233,6 +252,7 @@
       "you_created_this_secret": "Vous avez créé ce secret. Si vous le voyez, le destinateur ne pourra plus le voir.",
       "your_secret_message": "Votre message secret :",
       "this_message_for_you": "Ce message est pour vous :",
+      "your_message_is_ready": "Votre message sécurisé est prêt.",
       "reply_with_secret": "Répondre avec un autre secret",
       "pre_reveal_default": "Click the button below to reveal your secure message.",
       "post_reveal_default": "Your secure message is shown below.",
@@ -336,7 +356,6 @@
       "steps-to-reproduce-the-issue": "Marche à suivre pour reproduire le problème.",
       "a-detailed-description-of-the-vulnerability": "Description détaillée de la vulnérabilité.",
       "include-as-much-information-as-possible-about-th": ": Inclure autant d'informations que possible sur la vulnérabilité. Il s'agit notamment de",
-      "details": "Détails",
       "with-the-subject-line-vulnerability-report-brief": "avec pour objet \"Rapport de vulnérabilité : [Brève description]\".",
       "send-an-email-to": ": Envoyer un courriel à",
       "how-to-report": "Comment rapporter",
@@ -445,9 +464,6 @@
   "escape": "Quitter",
   "active": "Actif",
   "theyll-appear-here-once-youve-shared-them": "Ils apparaîtront ici après leur partage",
-  "web.LABELS.copy_to_clipboard": "Copier dans le presse-papiers",
-  "copied": "Copié",
-  "pricing": "Tarification",
   "meets-and-exceeds-compliance-standards": "Respecter et dépasser les normes de conformité",
   "start-today": "Commencez dès aujourd'hui",
   "start-today-with-identity-plus": "Commencez dès aujourd'hui avec Identity Plus",
@@ -593,6 +609,10 @@
   "delano-mandelbaum": "Delano Mandelbaum",
   "delano": "Delano",
   "help-content-goes-here": "Le contenu de l'aide se trouve ici.",
+  "why-is-this-secret-unavailable": "Pourquoi ce secret n'est-il pas disponible?",
+  "secrets-are-designed-to-be-viewed-only-once": "Les secrets sont conçus pour être consultés une seule fois. Ce lien a peut-être déjà été accédé, est expiré ou a été supprimé manuellement par l'expéditeur.",
+  "what-should-i-do-now": "Que dois-je faire maintenant?",
+  "contact-the-person-who-sent-you-this-link": "Contactez la personne qui vous a envoyé ce lien et demandez-lui d'en créer un nouveau. Faites-lui savoir que vous n'avez pas pu accéder à l'information originale.",
   "done": "Terminé",
   "loading-settings-content": "Chargement du contenu des paramètres...",
   "settings-sections-0": "Sections des paramètres",
