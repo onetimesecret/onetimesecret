@@ -15,12 +15,12 @@
    * @see SecretDisplayCase - Simplified secret reveal display
    */
   import BaseShowSecret, { type Props } from '@/components/base/BaseShowSecret.vue';
+  import FooterAttribution from '@/components/layout/SecretFooterAttribution.vue';
+  import FooterControls from '@/components/layout/SecretFooterControls.vue';
+  import NeedHelpModal from '@/components/modals/NeedHelpModal.vue';
   import SecretConfirmationForm from '@/components/secrets/canonical/SecretConfirmationForm.vue';
   import SecretDisplayCase from '@/components/secrets/canonical/SecretDisplayCase.vue';
-  import SecretRecipientOnboardingContent from '@/components/secrets/SecretRecipientOnboardingContent.vue';
-  import FooterControls from '@/components/layout/SecretFooterControls.vue';
-  import FooterAttribution from '@/components/layout/SecretFooterAttribution.vue';
-
+  import SecretRecipientHelpContent from '@/components/secrets/SecretRecipientHelpContent.vue';
   import UnknownSecret from './UnknownSecret.vue';
 
   defineProps<Props>();
@@ -76,12 +76,14 @@
 
         <div
           v-if="isOwner && showSecret"
-          class="mb-4 border-l-4 border-brand-400 bg-brand-50 p-4 text-brand-700 dark:border-brand-500 dark:bg-brand-900 dark:text-brand-100"
+          class="mb-4 border-l-4 border-brand-400 bg-brand-50 p-4 text-brand-700
+            dark:border-brand-500 dark:bg-brand-900 dark:text-brand-100"
           role="alert"
           aria-live="polite">
           <button
             type="button"
-            class="float-right hover:text-brand-900 focus:outline-none focus:ring-2 focus:ring-brand-500 dark:hover:text-brand-50"
+            class="float-right hover:text-brand-900
+              focus:outline-none focus:ring-2 focus:ring-brand-500 dark:hover:text-brand-50"
             @click="closeWarning"
             :aria-label="$t('dismiss-notification')">
             <span aria-hidden="true">&times;</span>
@@ -93,21 +95,27 @@
 
     <!-- Confirmation slot -->
     <template #confirmation="{ record, details, error, isLoading, onConfirm }">
-      <div class="mx-auto max-w-2xl space-y-20">
+      <div class="mx-auto max-w-2xl space-y-48 ">
         <SecretConfirmationForm
           :secret-key="secretKey"
           :record="record"
           :details="details"
           :error="error"
           :is-submitting="isLoading"
-          @user-confirmed="onConfirm" />
+          @user-confirmed="onConfirm"
+        />
+        <NeedHelpModal>
+          <template #content>
+            <SecretRecipientHelpContent />
+          </template>
+        </NeedHelpModal>
       </div>
     </template>
 
     <!-- Onboarding slot -->
     <template #onboarding="{ record }">
       <div v-if="!record.verification">
-        <SecretRecipientOnboardingContent />
+        <!-- <SecretRecipientOnboardingContent /> -->
       </div>
     </template>
 
@@ -124,7 +132,8 @@
           aria-labelledby="secret-heading"
           class="w-full"
           :record="record"
-          :details="details" />
+          :details="details"
+        />
       </div>
     </template>
 
@@ -135,8 +144,10 @@
 
     <!-- Footer slot -->
     <template #footer="{ siteHost }">
-    <div class="flex flex-col items-center space-y-8 py-8">
-        <FooterControls :show-language="true" />
+      <div class="flex flex-col items-center space-y-8 py-8">
+        <div class="flex items-center justify-center">
+          <FooterControls :show-language="true" />
+        </div>
         <FooterAttribution
           :site-host="siteHost"
           :show-nav="false"

@@ -19,7 +19,7 @@ const emit = defineEmits(['user-confirmed']);
 const passphrase = ref('');
 
 const submitForm = async () => {
-  emit('user-confirmed', passphrase);
+  emit('user-confirmed', passphrase.value);
 };
 </script>
 
@@ -39,12 +39,12 @@ const submitForm = async () => {
       {{ $t('web.COMMON.click_to_verify') }}
     </p>
 
-    <h2
+    <h1
       v-if="record?.has_passphrase"
       class="text-xl font-bold text-gray-800 dark:text-gray-200"
       id="passphrase-heading">
       {{ $t('web.shared.requires_passphrase') }}
-    </h2>
+    </h1>
 
     <form
       @submit.prevent="submitForm"

@@ -1,4 +1,7 @@
+<!-- src/components/modals/NeedHelpModal.vue -->
+
 <script setup lang="ts">
+  import OIcon from '@/components/icons/OIcon.vue';
   import {
     Dialog,
     DialogPanel,
@@ -6,7 +9,6 @@
     TransitionChild,
     TransitionRoot,
   } from '@headlessui/vue';
-  import OIcon from '@/components/icons/OIcon.vue';
   import { ref } from 'vue';
   const showHelp = ref(false);
 
@@ -20,11 +22,14 @@
     <button
       type="button"
       @click="showHelp = !showHelp"
-      class="text-sm text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 flex items-center gap-2 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-500 rounded-md p-1">
+      class="flex items-center gap-2 rounded-md p-1
+        text-sm text-gray-500 hover:text-gray-700
+        focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2
+        dark:hover:text-gray-300">
       <OIcon
         collection="mdi"
         name="information"
-        class="w-5 h-5"
+        class="size-5"
         aria-hidden="true" />
       <span>{{ $t('web.LABELS.need_help') }}</span>
     </button>
