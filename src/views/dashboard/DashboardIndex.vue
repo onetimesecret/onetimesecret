@@ -20,7 +20,8 @@
       <!-- Visual divider -->
       <div class="border-t border-gray-200 dark:border-gray-700 my-6"></div>
 
-      <RecentSecretsTable />
+      <RecentSecretsTable
+        v-if="cust.feature_flags.beta ?? false" />
     </div>
 
 </template>

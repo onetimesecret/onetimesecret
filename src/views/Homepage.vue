@@ -29,7 +29,7 @@
     <!-- Space divider -->
     <div class="mb-6 "></div>
 
-    <RecentSecretsTable />
-
+    <RecentSecretsTable
+      v-if="false" />
   </div>
 </template>
