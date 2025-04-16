@@ -123,6 +123,7 @@
       "receipts": "Receipts",
       "share": "Share",
       "secret_link": "Secret Link",
+      "dismiss": "Dismiss",
       "security_details": "Security Details",
       "items_count": "{count} Items",
       "recipients_count": "{count} Recipients",
@@ -205,6 +206,9 @@
       "share_link_instruction": "Share the link with the intended recipient",
       "share_passphrase_instruction": "Share the passphrase separately through a secure channel",
       "secure_channel_instruction": "Use a different secure channel to share sensitive information"
+    },
+    "ARIA": {
+      "focus-is-now-in-the-main-text-area": "Focus is now in the main text area"
     },
     "secrets": {
       "privacyOptions": "Privacy Options",
@@ -861,7 +865,6 @@
   "follow-these-steps-to-verify-domain-ownership-an": "Follow these steps to verify domain ownership and elevate your online presence:",
   "domain-verification-steps": "Domain Verification Steps",
   "domain-verification-initiated-successfully": "Domain verification initiated successfully.",
-  "dismiss": "Dismiss",
   "deactivate": "Deactivate",
   "are-you-sure-you-want-to-deactivate-your-account": "Are you sure you want to deactivate your account? All of your data will be permanently removed from our servers forever. This action cannot be undone.",
   "deactivate-account": "Deactivate account",
