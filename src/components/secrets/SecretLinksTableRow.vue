@@ -4,9 +4,9 @@
   import OIcon from '@/components/icons/OIcon.vue';
   import { WindowService } from '@/services/window.service';
   import { type ConcealedMessage } from '@/types/ui/concealed-message';
+  import { formatTTL } from '@/utils/formatters';
   import { formatDistanceToNow } from 'date-fns';
   import { ref, computed } from 'vue';
-  import { formatTTL } from '@/utils/formatters';
   import { useI18n } from 'vue-i18n';
 
   const { t } = useI18n();

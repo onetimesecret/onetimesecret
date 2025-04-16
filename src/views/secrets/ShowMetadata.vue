@@ -78,12 +78,13 @@
   <div class="flex flex-col">
     <DashboardTabNav />
 
-    <div class="container mx-auto px-4 py-8">
+    <div class="container mx-auto px-4">
       <!--  Add Back navigation link -->
       <!-- prettier-ignore-attribute class -->
-      <router-link
-        to="/"
-        class="inline-flex items-center gap-2 text-lg font-medium
+      <button
+        type="button"
+        @click="$router.go(-1)"
+        class="mb-4 mt-2 inline-flex items-center gap-2 text-lg font-medium
         text-gray-600 hover:text-gray-800
         dark:text-gray-300 dark:hover:text-gray-200">
         <OIcon
@@ -91,7 +92,7 @@
           name="arrow-left"
           size="6" />
         {{ $t('back') }}
-      </router-link>
+      </button>
 
       <MetadataSkeleton v-if="isLoading" />
 
@@ -101,7 +102,7 @@
 
       <div
         v-else-if="record && details"
-        class="mx-auto max-w-3xl space-y-8 py-8">
+        class="mx-auto max-w-3xl space-y-8">
         <!-- Main Card with Enhanced Styling -->
         <!-- prettier-ignore-attribute class -->
         <div

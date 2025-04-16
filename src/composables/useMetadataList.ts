@@ -3,8 +3,9 @@
 import { ApplicationError } from '@/schemas';
 import { useMetadataListStore } from '@/stores/metadataListStore';
 import { useNotificationsStore } from '@/stores/notificationsStore';
-import { storeToRefs } from 'pinia';
 import { computed, ref } from 'vue';
+import { storeToRefs } from 'pinia';
+
 import { AsyncHandlerOptions, useAsyncHandler } from './useAsyncHandler';
 
 /**

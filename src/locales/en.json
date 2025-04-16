@@ -127,6 +127,7 @@
       "security_details": "Security Details",
       "items_count": "{count} Items",
       "recipients_count": "{count} Recipients",
+      "view": "View",
       "views": "Views",
       "times_viewed": "times viewed",
       "view_progress": "View Progress",

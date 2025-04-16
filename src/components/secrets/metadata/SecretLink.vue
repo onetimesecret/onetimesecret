@@ -59,10 +59,12 @@
     <!-- Passphrase Indicator -->
     <div
       v-if="details?.has_passphrase"
-      class="absolute -top-2 right-3 flex items-center gap-2 rounded-full border border-amber-100 bg-amber-50 px-2 py-1 text-sm font-medium text-amber-600 shadow-sm transition-transform hover:scale-105 dark:border-amber-800/50 dark:bg-amber-900/30 dark:text-amber-400">
+      class="flex items-center gap-2 rounded-full
+        border border-amber-100 bg-amber-50 px-2 py-1
+        text-sm font-medium text-amber-600 shadow-sm transition-transform dark:border-amber-800/50 dark:bg-amber-900/30 dark:text-amber-400">
       <OIcon
-        collection=""
-        name="mdi-lock"
+        collection="mdi"
+        name="lock"
         class="size-4" />
       {{ $t('web.LABELS.passphrase_protected') }}
     </div>
@@ -113,6 +115,7 @@
       <!-- Secret Link Display with Enhanced Styling -->
       <div class="flex items-start px-5 py-3">
         <div class="group/link relative min-w-0 grow">
+          <!-- prettier-ignore-attribute class -->
           <textarea
             ref="linkInput"
             readonly
@@ -121,11 +124,13 @@
             :aria-label="$t('secret-link')"></textarea>
 
           <!-- Focus effect overlay -->
+          <!-- prettier-ignore-attribute class -->
           <div
             class="pointer-events-none absolute inset-0 rounded-md border border-transparent group-focus-within/link:border-brand-500"></div>
         </div>
 
         <div class="ml-4 shrink-0">
+          <!-- prettier-ignore-attribute class -->
           <button
             @click="copyToClipboard"
             class="inline-flex items-center justify-center rounded-md p-2.5 text-gray-500 transition-all duration-200 hover:bg-gray-100 hover:text-brand-600 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-brand-400"
@@ -142,13 +147,15 @@
       </div>
 
       <!-- Security Notice with Enhanced Design -->
+      <!-- prettier-ignore-attribute class -->
       <div
-        class="border-t border-gray-200 bg-gray-50 px-5 py-3 dark:border-gray-700 dark:bg-gray-900/50">
+        class="border-t border-gray-200
+          bg-gray-50 px-5 py-3 dark:border-gray-700 dark:bg-gray-900/50">
         <div class="flex items-center text-xs text-gray-500 dark:text-gray-400">
           <OIcon
             collection="material-symbols"
             name="shield-outline"
-            class="mr-2 size-4 text-brand-500 transition-transform group-hover:scale-110 dark:text-brand-400" />
+            class="mr-2 size-4 text-brand-500 transition-transform dark:text-brand-400" />
           <span class="transition-colors group-hover:text-gray-700 dark:group-hover:text-gray-300">
             {{ $t('web.COMMON.share_link_securely') }}
           </span>
@@ -156,9 +163,11 @@
       </div>
 
       <!-- Copy Feedback Toast with Enhanced Design -->
+      <!-- prettier-ignore-attribute class -->
       <div
         v-if="showToast"
-        class="absolute right-4 top-4 flex items-center gap-2 rounded-md bg-slate-900 px-3.5 py-2 text-sm text-white shadow-lg transition-all duration-300 dark:bg-slate-700"
+        class="absolute right-4 top-4 flex items-center gap-2 rounded-md
+        bg-slate-900 px-3.5 py-2 text-sm text-white shadow-lg transition-all duration-300 dark:bg-slate-700"
         :class="{
           'translate-y-1 opacity-0': !showToast,
           'translate-y-0 opacity-100': showToast,

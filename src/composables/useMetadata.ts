@@ -48,7 +48,8 @@ export function useMetadata(metadataKey: string) {
       return result;
     });
 
-  const burn = () => wrap(async () => {
+  const burn = () =>
+    wrap(async () => {
       if (!canBurn.value) {
         throw createError('Cannot burn this secret', 'human', 'error'); // fires synchronously fyi
       }
@@ -59,7 +60,7 @@ export function useMetadata(metadataKey: string) {
       //notifications.show('Secret burned successfully', 'success');
 
       router.push({
-        name: 'Metadata link',
+        name: 'Receipt link',
         params: { metadataKey },
         query: { ts: Date.now().toString() },
       });
