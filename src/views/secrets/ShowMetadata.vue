@@ -68,6 +68,20 @@
   <div class="min-h-screen">
     <DashboardTabNav />
 
+    <!--  Add Back navigation link -->
+    <!-- prettier-ignore-attribute class -->
+    <router-link
+      to="/"
+      class="inline-flex items-center gap-2 text-lg font-medium
+        text-gray-600 hover:text-gray-800
+        dark:text-gray-300 dark:hover:text-gray-200">
+      <OIcon
+        collection="heroicons"
+        name="arrow-left"
+        size="6" />
+      {{ $t('back') }}
+    </router-link>
+
     <MetadataSkeleton v-if="isLoading" />
 
     <div v-else-if="!record || !details">
@@ -212,24 +226,16 @@
           <BurnButtonForm
             :record="record"
             :details="details" />
-
-          <router-link
-            type="button"
-            to="/"
-            class="mb-4 mt-16 inline-flex w-full items-center justify-center rounded-md border border-slate-300 bg-white px-4 py-2.5 font-brand text-sm text-slate-700 transition-colors duration-200 hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700 dark:focus:ring-offset-slate-900">
-            <OIcon
-              collection="material-symbols"
-              name="add"
-              class="mr-2 size-4" />
-            {{ $t('create-another-secret') }}
-          </router-link>
         </section>
       </div>
 
       <!-- Help Section with Card Styling -->
+      <!-- prettier-ignore-attribute class -->
       <section
         aria-labelledby="section-help"
-        class="relative mt-6 rounded-xl border border-slate-200/80 bg-white p-5 shadow-sm dark:border-slate-700/50 dark:bg-slate-800/30">
+        class="relative mt-6 rounded-xl border border-slate-200/80
+          bg-white p-5 shadow-sm
+          dark:border-slate-700/50 dark:bg-slate-800/30">
         <NeedHelpModal>
           <template #content>
             <MetadataFAQ

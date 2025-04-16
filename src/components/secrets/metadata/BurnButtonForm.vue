@@ -1,8 +1,10 @@
+<!-- src/components/secrets/metadata/BurnButtonForm.vue -->
+
 <script setup lang="ts">
-  import { ref } from 'vue';
-  import type { Metadata, MetadataDetails } from '@/schemas/models';
   import OIcon from '@/components/icons/OIcon.vue';
   import { useMetadata } from '@/composables/useMetadata';
+  import type { Metadata, MetadataDetails } from '@/schemas/models';
+  import { ref } from 'vue';
 
   interface Props {
     record: Metadata;
@@ -34,6 +36,7 @@
     <form class="space-y-6"
           @submit.prevent>
       <!-- Initial Burn Button with Enhanced Design -->
+      <!-- prettier-ignore-attribute class -->
       <button v-if="!showConfirmation"
               type="button"
               @click="showConfirmation = true"
@@ -112,18 +115,6 @@
                    class="w-4 h-4"
                    :class="{ 'animate-spin': isLoading }" />
           </button>
-        </div>
-      </div>
-
-      <!-- Security Notice with Enhanced Design -->
-      <div role="note"
-           class="mt-6 p-4 rounded-lg bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-800/60 dark:to-gray-800/30 border border-gray-200 dark:border-gray-700/50 shadow-sm">
-        <div class="flex items-start gap-3 text-sm text-gray-600 dark:text-gray-400">
-          <OIcon collection="heroicons"
-                 name="shield-exclamation"
-                 class="w-5 h-5 flex-shrink-0 text-amber-500 dark:text-amber-400"
-                 aria-hidden="true" />
-          <span>{{ $t('web.COMMON.burn_security_notice') }}</span>
         </div>
       </div>
     </form>
