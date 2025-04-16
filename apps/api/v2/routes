@@ -26,6 +26,8 @@ GET    /receipt/recent                            V2::Controllers::Secrets#list_
 POST   /receipt/:key/burn                         V2::Controllers::Secrets#burn_secret
 GET    /receipt/:key                              V2::Controllers::Secrets#get_metadata
 GET    /secret/:key                               V2::Controllers::Secrets#get_secret
+GET    /secret/:key/status                        V2::Controllers::Secrets#get_secret_status
+POST   /secret/status                             V2::Controllers::Secrets#list_secret_status
 POST   /secret/:key/reveal                        V2::Controllers::Secrets#reveal_secret
 
 POST   /secret/generate                           V2::Controllers::Secrets#generate_secret
