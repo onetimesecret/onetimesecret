@@ -25,12 +25,10 @@
     collection: string; // heroicons-solid
     name: string; // ellipses-vertical
     size?: string; // size-5
-    ariaHidden?: boolean;
     ariaLabel?: string; // Add aria-label prop
   }
 
   const props = withDefaults(defineProps<Props>(), {
-    ariaHidden: true,
     ariaLabel: undefined,
     size: "5",
   });
@@ -46,7 +44,7 @@
 <template>
   <svg
     :class="size"
-    :aria-hidden="ariaHidden"
+    :aria-hidden="true"
     :aria-label="ariaLabel"
     role="img">
     <title v-if="ariaLabel">{{ ariaLabel }}</title>

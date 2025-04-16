@@ -84,6 +84,11 @@
   <div
     class="inline-flex relative w-full sm:w-auto"
     ref="buttonRef">
+    <!-- Visually hidden announcement for screen readers when action changes -->
+    <div
+      v-if="selectedAction"
+      class="sr-only"
+      aria-live="assertive">{{ buttonConfig.label }} mode activated</div>
     <button
       type="submit"
       :class="[
@@ -116,8 +121,10 @@
       type="button"
       class="flex items-center justify-center px-3 py-3 bg-brand-500 dark:bg-brand-600 text-white rounded-r-lg border-l border-white/30 transition-colors hover:bg-brand-700 dark:hover:bg-brand-700 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 dark:focus:ring-offset-slate-900"
       @click="handleDropdownToggle"
-      aria-label="Show more options"
-      :aria-expanded="isDropdownOpen">
+      aria-label="Show more actions"
+      :aria-expanded="isDropdownOpen"
+      aria-haspopup="true"
+      aria-controls="split-button-dropdown">
       <svg
         xmlns="http://www.w3.org/2000/svg"
         width="20"
@@ -133,6 +140,7 @@
 
     <div
       v-if="isDropdownOpen"
+      id="split-button-dropdown"
       class="absolute top-full right-0 mt-1 bg-white dark:bg-gray-800 rounded-md shadow-lg w-52 z-10">
       <button
         type="button"

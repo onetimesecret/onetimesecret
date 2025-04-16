@@ -107,7 +107,9 @@
         dark:border-gray-700 dark:bg-slate-900">
       <div class="overflow-x-auto">
         <!-- Table Header with Refresh Button -->
-        <div class="flex justify-between bg-gray-50 p-2 dark:bg-slate-800">
+        <div
+          v-if="false"
+          class="flex justify-between bg-gray-50 p-2 dark:bg-slate-800">
           <span class="text-xs text-gray-500 dark:text-gray-400">
             {{ $t('web.LABELS.last_refreshed') }}: {{ lastRefreshed.toLocaleTimeString() }}
           </span>

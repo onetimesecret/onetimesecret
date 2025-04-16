@@ -13,7 +13,7 @@
   import TimelineDisplay from '@/components/secrets/metadata/TimelineDisplay.vue';
   import { useMetadata } from '@/composables/useMetadata';
   import { useSecretExpiration, EXPIRATION_EVENTS } from '@/composables/useSecretExpiration';
-  import { onMounted, onUnmounted, watch, computed } from 'vue';
+  import { onMounted, onUnmounted, watch, computed, ref } from 'vue';
 
   import UnknownMetadata from './UnknownMetadata.vue';
 
@@ -22,6 +22,10 @@
     metadataKey: string;
   }
   const props = defineProps<Props>();
+
+  // State for delayed warning message
+  const showWarning = ref(false);
+  const warningMessage = ref<HTMLElement | null>(null);
 
   const { record, details, isLoading, fetch, reset } = useMetadata(props.metadataKey);
 
@@ -56,6 +60,12 @@
     onExpirationEvent(EXPIRATION_EVENTS.WARNING, () => {
       // Show warning notification
     });
+
+    // Delay showing the warning message for better screen reader experience
+    // This ensures the page has loaded and user has context before the warning is announced
+    setTimeout(() => {
+      showWarning.value = true;
+    }, 1500); // 1.5 second delay for optimal timing
   });
 
   // Ensure cleanup when component unmounts
@@ -141,9 +151,11 @@
               dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:focus:border-brand-400"></textarea>
           <div class="mt-3 flex w-full items-center justify-between">
             <p
+              ref="warningMessage"
               class="flex items-center gap-2 text-sm"
               role="alert"
-              aria-live="polite">
+              aria-live="polite"
+              :class="{ 'invisible': !showWarning }">
               <OIcon
                 collection="material-symbols"
                 name="warning"

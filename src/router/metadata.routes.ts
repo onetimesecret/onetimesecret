@@ -1,10 +1,10 @@
-import DefaultLayout from '@/layouts/DefaultLayout.vue';
 import QuietFooter from '@/components/layout/QuietFooter.vue';
 import QuietHeader from '@/components/layout/QuietHeader.vue';
+import DefaultLayout from '@/layouts/DefaultLayout.vue';
+import { WindowService } from '@/services/window.service';
 import BurnSecret from '@/views/secrets/BurnSecret.vue';
 import ShowMetadata from '@/views/secrets/ShowMetadata.vue';
 import { RouteLocationNormalized, RouteRecordMultipleViews } from 'vue-router';
-import { WindowService } from '@/services/window.service';
 
 /**
  * Type guard that validates a metadata key.
