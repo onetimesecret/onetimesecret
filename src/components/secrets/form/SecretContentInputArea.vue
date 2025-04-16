@@ -17,6 +17,8 @@
     {
       maxLength: 10000,
       disabled: false,
+      initialContent: '',
+      cornerClass: '',
       minHeight: 200,
       maxHeight: 400,
     }
@@ -57,6 +59,13 @@
 
 <template>
   <div class="relative">
+    <!-- <div
+      id="textarea-focus-announcement"
+      aria-live="polite"
+      class="sr-only">
+      {{ $t('focus-is-now-in-the-main-text-area') }}
+    </div> -->
+    <!-- prettier-ignore-attribute class -->
     <textarea
       ref="textareaRef"
       v-model="content"
@@ -65,13 +74,11 @@
       :maxlength="maxLength"
       :class="[cornerClass]"
       :style="{ minHeight: minHeight + 'px', maxHeight: maxHeight + 'px' }"
-      autofocus
       class="
         block w-full resize-none
         rounded-lg border border-gray-200 p-4
         font-mono text-base leading-relaxed
         text-gray-900 transition-all
-
         duration-200 placeholder:text-gray-400 focus:border-blue-500
         focus:ring-2 focus:ring-blue-500
         disabled:bg-gray-50 disabled:text-gray-500 dark:border-gray-700 dark:bg-slate-800
@@ -88,12 +95,18 @@
       very often, and prefer v-if if the condition is unlikely to change at
       runtime. -- https://vuejs.org/guide/essentials/conditional.html#v-if-vs-v-show
     -->
+    <!-- prettier-ignore-attribute class -->
     <div
       v-if="showCounter"
       class="pointer-events-none absolute bottom-3 right-3 flex select-none items-center gap-1.5
-        rounded-full bg-white/90 px-3 py-1 text-sm shadow-sm backdrop-blur-sm transition-colors duration-200 dark:bg-gray-800/90">
-      <span :class="[statusColor, 'size-2.5 rounded-full']" aria-hidden="true"></span>
-      <span class="font-medium text-gray-600 dark:text-gray-400">{{ formattedCharCount }} / {{ formattedMaxLength }}</span>
+        rounded-full bg-white/90 px-3 py-1 text-sm shadow-sm
+        backdrop-blur-sm transition-colors duration-200 dark:bg-gray-800/90">
+      <span
+        :class="[statusColor, 'size-2.5 rounded-full']"
+        aria-hidden="true"></span>
+      <span class="font-medium text-gray-600 dark:text-gray-400">
+        {{ formattedCharCount }} / {{ formattedMaxLength }}
+      </span>
     </div>
   </div>
 </template>

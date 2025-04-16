@@ -120,6 +120,7 @@
       @submit.prevent="handleSubmit"
       :aria-busy="isSubmitting"
       class="space-y-6">
+      <!-- prettier-ignore-attribute class -->
       <div
         ref="div1"
         class="overflow-visible rounded-xl border border-gray-200
