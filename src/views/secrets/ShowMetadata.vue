@@ -100,7 +100,7 @@
 
     <div
       v-else-if="record && details"
-      class="animate-fade-in-up mx-auto max-w-3xl space-y-8 py-8">
+      class="mx-auto max-w-3xl space-y-8 py-8">
       <!-- Main Card with Enhanced Styling -->
       <!-- prettier-ignore-attribute class -->
       <div
@@ -225,7 +225,7 @@
         <!-- Actions Section with Improved Layout -->
         <!-- prettier-ignore-attribute class -->
         <section
-          v-if="true"
+          v-if="isAvailable"
           class="border-t border-slate-200 bg-slate-50 px-6 py-5
             dark:border-slate-700/50 dark:bg-slate-800/30"
           aria-labelledby="section-actions">
@@ -244,6 +244,7 @@
       <!-- Help Section with Card Styling -->
       <!-- prettier-ignore-attribute class -->
       <section
+        v-if="isAvailable"
         aria-labelledby="section-help"
         class="relative mt-6 rounded-xl border border-slate-200/80
           bg-white p-5 shadow-sm
@@ -261,32 +262,4 @@
 </template>
 
 <style scoped>
-  .animate-fade-in-up {
-    animation: fadeInUp 0.5s ease-out forwards;
-  }
-
-  @keyframes fadeInUp {
-    from {
-      opacity: 0;
-      transform: translateY(10px);
-    }
-    to {
-      opacity: 1;
-      transform: translateY(0);
-    }
-  }
-
-  .animate-pulse-slow {
-    animation: pulseSlow 9s infinite;
-  }
-
-  @keyframes pulseSlow {
-    0%,
-    100% {
-      opacity: 1;
-    }
-    50% {
-      opacity: 0.6;
-    }
-  }
 </style>
