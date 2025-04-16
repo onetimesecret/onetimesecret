@@ -136,6 +136,8 @@
       "sending-ellipses": "Sending...",
       "title_recent_secrets": "Recent Secrets",
       "pricing": "Pricing",
+      "refresh": "Refresh",
+      "reload": "Reload",
       "caption_recent_secrets": "Secrets links created in this session"
     },
     "STATUS": {
