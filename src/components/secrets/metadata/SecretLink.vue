@@ -18,7 +18,9 @@
   const copied = ref(false);
   const showToast = ref(false);
   const linkInput = ref<HTMLInputElement>();
-  const buttonText = computed(() => copied.value ? t('web.STATUS.copied') : t('web.LABELS.copy_to_clipboard') );
+  const buttonText = computed(() =>
+    copied.value ? t('web.STATUS.copied') : t('web.LABELS.copy_to_clipboard')
+  );
 
   const copyToClipboard = async () => {
     if (!linkInput.value) return;
@@ -57,10 +59,7 @@
     <!-- Passphrase Indicator -->
     <div
       v-if="details?.has_passphrase"
-      class="absolute -top-2 right-3 flex items-center gap-2
-        rounded-full border border-amber-100 bg-amber-50 px-2 py-1
-        text-sm font-medium text-amber-600 shadow-sm transition-transform hover:scale-105
-        dark:border-amber-800/50 dark:bg-amber-900/30 dark:text-amber-400">
+      class="absolute -top-2 right-3 flex items-center gap-2 rounded-full border border-amber-100 bg-amber-50 px-2 py-1 text-sm font-medium text-amber-600 shadow-sm transition-transform hover:scale-105 dark:border-amber-800/50 dark:bg-amber-900/30 dark:text-amber-400">
       <OIcon
         collection=""
         name="mdi-lock"
@@ -69,8 +68,7 @@
     </div>
 
     <div
-      class="group relative overflow-hidden rounded-lg border-gray-200 bg-white shadow-md
-        dark:border-gray-700 dark:bg-gray-800">
+      class="group relative overflow-hidden rounded-lg border-gray-200 bg-white shadow-md dark:border-gray-700 dark:bg-gray-800">
       <!-- Momentum Indicator - Enhanced Animation -->
       <div class="absolute left-0 top-0 h-1.5 w-full overflow-hidden">
         <div
@@ -78,7 +76,7 @@
           :class="[
             isInitialView
               ? 'bg-gradient-to-r from-green-400 via-green-500 to-green-400'
-              : 'bg-gradient-to-r from-amber-300 via-amber-500 to-amber-300'
+              : 'bg-gradient-to-r from-amber-300 via-amber-500 to-amber-300',
           ]">
         </div>
       </div>
@@ -86,7 +84,7 @@
       <!-- Initial Success Message - Enhanced with Icon Animation -->
       <div
         v-if="isInitialView"
-        class="mb-2 flex items-center gap-2 px-5 pt-4 font-brand text-base ">
+        class="mb-2 flex items-center gap-2 px-5 pt-4 font-brand text-base">
         <div class="relative">
           <OIcon
             collection="mdi"
@@ -100,16 +98,16 @@
 
       <!-- Subsequent Message - Enhanced Design -->
       <div
-        class="mb-1 flex items-center gap-2 px-5 pt-4
-          font-mono text-sm tracking-wide text-gray-500">
+        class="mb-1 flex items-center gap-2 px-5 pt-4 font-mono text-sm tracking-wide text-gray-500">
         <OIcon
           collection="material-symbols"
           name="key-vertical"
           class="size-4 transition-transform duration-300 group-hover:rotate-12"
           aria-hidden="true" />
         <span
-          class="transition-colors group-hover:text-brand-500
-          dark:group-hover:text-brand-400">{{ record.secret_shortkey }}</span>
+          class="transition-colors group-hover:text-brand-500 dark:group-hover:text-brand-400"
+          >{{ record.secret_shortkey }}</span
+        >
       </div>
 
       <!-- Secret Link Display with Enhanced Styling -->
@@ -123,14 +121,17 @@
             :aria-label="$t('secret-link')"></textarea>
 
           <!-- Focus effect overlay -->
-          <div class="pointer-events-none absolute inset-0 rounded-md border border-transparent group-focus-within/link:border-brand-500"></div>
+          <div
+            class="pointer-events-none absolute inset-0 rounded-md border border-transparent group-focus-within/link:border-brand-500"></div>
         </div>
 
         <div class="ml-4 shrink-0">
           <button
             @click="copyToClipboard"
             class="inline-flex items-center justify-center rounded-md p-2.5 text-gray-500 transition-all duration-200 hover:bg-gray-100 hover:text-brand-600 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-brand-400"
-            :class="{ 'bg-green-50 text-green-500 dark:bg-green-900/30 dark:text-green-400': copied }">
+            :class="{
+              'bg-green-50 text-green-500 dark:bg-green-900/30 dark:text-green-400': copied,
+            }">
             <OIcon
               collection="material-symbols"
               :name="copied ? 'check' : 'content-copy-outline'"
@@ -148,8 +149,7 @@
             collection="material-symbols"
             name="shield-outline"
             class="mr-2 size-4 text-brand-500 transition-transform group-hover:scale-110 dark:text-brand-400" />
-          <span
-            class="transition-colors group-hover:text-gray-700 dark:group-hover:text-gray-300">
+          <span class="transition-colors group-hover:text-gray-700 dark:group-hover:text-gray-300">
             {{ $t('web.COMMON.share_link_securely') }}
           </span>
         </div>
@@ -158,14 +158,13 @@
       <!-- Copy Feedback Toast with Enhanced Design -->
       <div
         v-if="showToast"
-        class="absolute right-4 top-4 flex items-center gap-2 rounded-md
-          bg-slate-900 px-3.5 py-2 text-sm text-white shadow-lg transition-all duration-300 dark:bg-slate-700"
+        class="absolute right-4 top-4 flex items-center gap-2 rounded-md bg-slate-900 px-3.5 py-2 text-sm text-white shadow-lg transition-all duration-300 dark:bg-slate-700"
         :class="{
-          'opacity-0 translate-y-1': !showToast,
+          'translate-y-1 opacity-0': !showToast,
           'translate-y-0 opacity-100': showToast,
         }">
         <OIcon
-                    collection="material-symbols"
+          collection="material-symbols"
           name="check-circle-outline"
           class="size-4 text-green-400" />
         {{ $t('web.COMMON.copied_to_clipboard') }}
@@ -175,33 +174,31 @@
 </template>
 
 <style scoped>
-.animate-gradient-x {
-  animation: gradient-x 10s linear infinite;
-}
-
-@keyframes gradient-x {
-  0% {
-    background-position: 0% 0;
+  .animate-gradient-x {
+    animation: gradient-x 10s linear infinite;
   }
-  100% {
-    background-position: 200% 0;
+
+  @keyframes gradient-x {
+    0% {
+      background-position: 0% 0;
+    }
+    100% {
+      background-position: 200% 0;
+    }
   }
-}
 
-
-
-.animate-success-ping {
-  animation: success-ping 10s cubic-bezier(0, 0, 0.2, 1);
-}
-
-@keyframes success-ping {
-  0% {
-    transform: scale(0.5);
-    opacity: 0;
+  .animate-success-ping {
+    animation: success-ping 10s cubic-bezier(0, 0, 0.2, 1);
   }
-  100% {
-    transform: scale(1);
-    opacity: 1;
+
+  @keyframes success-ping {
+    0% {
+      transform: scale(0.5);
+      opacity: 0;
+    }
+    100% {
+      transform: scale(1);
+      opacity: 1;
+    }
   }
-}
 </style>

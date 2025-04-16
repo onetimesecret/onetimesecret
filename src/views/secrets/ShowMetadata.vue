@@ -210,7 +210,8 @@
                 <OIcon
                   collection="material-symbols"
                   name="history"
-                  class="mr-2 size-4 text-brand-500 dark:text-brand-400" />
+                  class="mr-2"
+                  size="5" />
                 {{ $t('web.LABELS.timeline') }}
               </h2>
               <StatusBadge

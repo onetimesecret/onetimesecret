@@ -27,7 +27,7 @@
 <template>
   <div
     class="relative pt-4"
-    :class="{ 'opacity-60': showFaded }">
+    :class="{ 'opacity-90': showFaded }">
     <!-- Timeline Track with Gradient -->
     <!-- prettier-ignore-attribute class -->
     <div
@@ -51,20 +51,24 @@
           <!-- prettier-ignore-attribute class -->
           <OIcon
             collection="material-symbols"
-            name="schedule-outline"
+            name="check"
             class="size-6 text-brand-600 transition-transform duration-300
                   group-hover:rotate-12 dark:text-brand-400"
             aria-hidden="true" />
         </div>
         <div class="transition-transform duration-200 group-hover:translate-x-1">
-          <p class="font-brand text-sm text-gray-900 dark:text-gray-100">
+          <p class="font-brand text-base text-gray-900 dark:text-gray-100">
             {{ $t('web.STATUS.created') }}
           </p>
           <time
             :datetime="record.created.toISOString()"
-            class="text-sm text-gray-500 dark:text-gray-400">
+            class="text-sm text-gray-700 dark:text-gray-300">
             {{ record.created.toLocaleString() }}
           </time>
+          <p
+            class="mt-0.5 text-xs text-gray-600 dark:text-gray-400">
+            {{ formatTimeAgo(record.created) }}
+          </p>
         </div>
       </div>
 
@@ -86,22 +90,23 @@
           <OIcon
             collection="material-symbols"
             name="mark-email-read-outline"
-            class="size-6 text-green-600 transition-transform duration-300
-                        group-hover:rotate-12 dark:text-green-400"
+            size="6"
+            class="text-green-600 transition-transform duration-300
+              group-hover:rotate-12 dark:text-green-400"
             aria-hidden="true" />
         </div>
         <div class="transition-transform duration-200 group-hover:translate-x-1">
-          <p class="font-brand text-sm text-gray-900 dark:text-gray-100">
+          <p class="font-brand text-base text-gray-900 dark:text-gray-100">
             {{ $t('web.STATUS.received') }}
           </p>
           <time
             :datetime="record.received?.toISOString()"
-            class="text-sm text-gray-500 dark:text-gray-400">
+            class="text-sm text-gray-700 dark:text-gray-300">
             {{ record.received?.toLocaleString() }}
           </time>
           <p
             v-if="record.received"
-            class="mt-0.5 text-xs text-gray-400 dark:text-gray-500">
+            class="mt-0.5 text-xs text-gray-600 dark:text-gray-400">
             {{ formatTimeAgo(record.received) }}
           </p>
         </div>
@@ -125,17 +130,17 @@
             aria-hidden="true" />
         </div>
         <div class="transition-transform duration-200 group-hover:translate-x-1">
-          <p class="font-brand text-sm text-gray-900 dark:text-gray-100">
+          <p class="font-brand text-base text-gray-900 dark:text-gray-100">
             {{ $t('web.STATUS.burned') }}
           </p>
           <time
             :datetime="record.burned?.toISOString()"
-            class="text-sm text-gray-500 dark:text-gray-400">
+            class="text-sm text-gray-700 dark:text-gray-300">
             {{ record.burned?.toLocaleString() }}
           </time>
           <p
             v-if="record.burned"
-            class="mt-0.5 text-xs text-gray-400 dark:text-gray-500">
+            class="mt-0.5 text-xs text-gray-600 dark:text-gray-400">
             {{ formatTimeAgo(record.burned) }}
           </p>
         </div>
@@ -159,7 +164,7 @@
             aria-hidden="true" />
         </div>
         <div class="grow transition-transform duration-200 group-hover:translate-x-1">
-          <p class="font-brand text-sm text-gray-900 dark:text-gray-100">
+          <p class="font-brand text-base text-gray-900 dark:text-gray-100">
             {{ progress >= 100 ? $t('web.STATUS.expired') : $t('web.STATUS.expires') }}
           </p>
 
@@ -191,10 +196,10 @@
 
           <time
             :datetime="expirationDate.toISOString()"
-            class="mt-2 block text-sm text-gray-500 dark:text-gray-400">
+            class="mt-2 block text-sm text-gray-700 dark:text-gray-300">
             {{ expirationDate.toLocaleString() }}
           </time>
-          <p class="mt-0.5 text-xs text-gray-400 dark:text-gray-500">
+          <p class="mt-0.5 text-xs text-gray-600 dark:text-gray-400">
             {{ timeRemaining }}
           </p>
         </div>
