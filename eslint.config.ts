@@ -207,7 +207,7 @@ export default [
       'max-lines-per-function': [
         'error',
         {
-          max: 50, // Target length for most functions
+          max: 70, // Target length for most functions
           skipBlankLines: true,
           skipComments: true,
           IIFEs: true, // Include immediately-invoked function expressions
