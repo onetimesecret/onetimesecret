@@ -164,7 +164,7 @@
         </div>
         <!-- Time info rows - display creation date and lifespan on separate lines -->
         <div class="ml-6 flex flex-col">
-          <div class="pl-1 text-xs text-gray-500 dark:text-gray-400">
+          <div class="pl-1 text-xs text-gray-700 dark:text-gray-400">
             <span class="sr-only">{{ $t('web.LABELS.lifespan') }}</span>
             {{ timeRemaining }} |
             <span class="sr-only">{{ $t('web.STATUS.created') }}</span>

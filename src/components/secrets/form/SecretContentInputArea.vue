@@ -65,6 +65,7 @@
       :maxlength="maxLength"
       :class="[cornerClass]"
       :style="{ minHeight: minHeight + 'px', maxHeight: maxHeight + 'px' }"
+      autofocus
       class="
         block w-full resize-none
         rounded-lg border border-gray-200 p-4

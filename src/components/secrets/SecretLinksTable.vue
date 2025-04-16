@@ -87,21 +87,21 @@
               <th
                 scope="col"
                 class="px-6 py-2.5 text-left text-xs font-medium uppercase tracking-wider
-                  text-gray-500 dark:text-gray-400">
+                  text-gray-700 dark:text-gray-400">
                 {{ $t('web.LABELS.receipts') }}
               </th>
               <!-- prettier-ignore-attribute class -->
               <th
                 scope="col"
                 class="hidden px-6 py-2.5 text-left text-xs font-medium uppercase tracking-wider
-                  text-gray-500 dark:text-gray-400 sm:table-cell">
+                  text-gray-700 dark:text-gray-400 sm:table-cell">
                 {{ $t('web.LABELS.details') }}
               </th>
               <!-- prettier-ignore-attribute class -->
               <th
                 scope="col"
                 class="px-6 py-2.5 text-right text-xs font-medium uppercase tracking-wider
-                  text-gray-500 dark:text-gray-400">
+                  text-gray-700 dark:text-gray-400">
                 {{ $t('web.LABELS.share') }}
               </th>
             </tr>
