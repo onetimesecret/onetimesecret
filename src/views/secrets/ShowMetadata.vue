@@ -163,8 +163,10 @@
                 name="lock-outline"
                 class="ml-2 size-4 shrink-0 text-slate-400" />
             </div>
+            <!-- prettier-ignore-attribute class -->
             <span
-              class="rounded-full bg-slate-300/50 px-2 py-1 text-xs font-medium dark:bg-slate-700/50">
+              class="rounded-full bg-slate-300/50 px-2 py-1
+                text-xs font-medium dark:bg-slate-700/50">
               {{ $t('web.LABELS.encrypted') }}
             </span>
           </div>
