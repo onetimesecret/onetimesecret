@@ -1,7 +1,7 @@
 // src/services/secrets.service.ts
 
-import { inject } from 'vue';
 import type { AxiosInstance } from 'axios';
+import { inject } from 'vue';
 
 // Type for status response
 type SecretStatus = { valid: boolean; viewed: boolean; expired: boolean };
