@@ -4,12 +4,14 @@
   import OIcon from '@/components/icons/OIcon.vue';
   import ToastNotification from '@/components/ui/ToastNotification.vue';
   import { type ConcealedMessage } from '@/types/ui/concealed-message';
-  import { computed, ref } from 'vue';
+  import { computed, ref, onMounted, onBeforeUnmount, provide } from 'vue';
   import { useI18n } from 'vue-i18n';
+  //import { useSecretStore } from '@/stores/secretStore';
 
   import SecretLinksTableRow from './SecretLinksTableRow.vue';
 
   const { t } = useI18n();
+  //const secretStore = useSecretStore();
 
   const props = defineProps<{
     concealedMessages: ConcealedMessage[];
@@ -19,6 +21,14 @@
   // Toast notification state
   const showToast = ref(false);
   const toastMessage = ref('');
+  const refreshInterval = ref<number | null>(null);
+  const lastRefreshed = ref(new Date());
+
+  // Trigger for child components to refresh
+  const refreshTrigger = ref(0);
+
+  // Provide the refresh trigger to child components
+  provide('refreshTrigger', refreshTrigger);
 
   const hasSecrets = computed(() => props.concealedMessages.length > 0);
 
@@ -44,6 +54,28 @@
       showToast.value = false;
     }, 1500);
   };
+
+  // Method to force refresh all statuses
+  const refreshAllStatuses = async () => {
+    lastRefreshed.value = new Date();
+    // Increment the refresh trigger to notify all child components
+    refreshTrigger.value++;
+  };
+
+  // Set up the interval to update the "last refreshed" indicator
+  onMounted(() => {
+    refreshInterval.value = window.setInterval(() => {
+      // Auto-refresh status every 5 minutes
+      refreshAllStatuses();
+    }, 300000); // Every 5 minutes
+  });
+
+  // Clean up
+  onBeforeUnmount(() => {
+    if (refreshInterval.value) {
+      clearInterval(refreshInterval.value);
+    }
+  });
 </script>
 
 <template>
@@ -74,6 +106,25 @@
         rounded-lg border border-gray-200 bg-white opacity-90 shadow-sm
         dark:border-gray-700 dark:bg-slate-900">
       <div class="overflow-x-auto">
+        <!-- Table Header with Refresh Button -->
+        <div class="flex justify-between bg-gray-50 p-2 dark:bg-slate-800">
+          <span class="text-xs text-gray-500 dark:text-gray-400">
+            {{ $t('web.LABELS.last_refreshed') }}: {{ lastRefreshed.toLocaleTimeString() }}
+          </span>
+          <!-- prettier-ignore-attribute class -->
+          <button
+            @click="refreshAllStatuses"
+            class="flex items-center text-xs
+              text-blue-500 hover:text-blue-600
+              dark:text-blue-400 dark:hover:text-blue-300">
+            <OIcon
+              collection="heroicons"
+              name="arrow-path"
+              class="mr-1 size-4" />
+            {{ $t('web.LABELS.refresh') }}
+          </button>
+        </div>
+
         <!-- Secrets Table -->
         <table
           class="min-w-full divide-y divide-gray-200 dark:divide-gray-700"
