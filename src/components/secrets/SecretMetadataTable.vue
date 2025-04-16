@@ -120,7 +120,10 @@
                     </div>
                   </td>
                   <td class="whitespace-nowrap px-6 py-4 text-right">
-                    <div class="flex justify-end space-x-2">
+                    <!-- TODO: We need the secret key in the list metadata endpoint to create the link -->
+                    <div
+                      v-if="false"
+                      class="flex justify-end space-x-2">
                       <!-- prettier-ignore-attribute class -->
                       <div
                         v-if="!item.is_destroyed"
