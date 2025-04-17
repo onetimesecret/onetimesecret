@@ -117,7 +117,7 @@ const handleKeyDown = (event: KeyboardEvent, tabIndex: number) => {
       <li
         v-for="(tab, index) in tabs"
         :key="tab.id"
-        class="flex-shrink-0">
+        class="shrink-0">
         <router-link
           :to="tab.path"
           :id="`tab-${tab.id}`"
@@ -135,7 +135,7 @@ const handleKeyDown = (event: KeyboardEvent, tabIndex: number) => {
           <svg
             v-if="tab.icon === 'home'"
             aria-hidden="true"
-            class="mr-2 h-5 w-5"
+            class="mr-2 size-5"
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24">
@@ -150,7 +150,7 @@ const handleKeyDown = (event: KeyboardEvent, tabIndex: number) => {
           <svg
             v-else-if="tab.icon === 'clock'"
             aria-hidden="true"
-            class="h-5 w-5"
+            class="size-5"
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24">
@@ -165,7 +165,7 @@ const handleKeyDown = (event: KeyboardEvent, tabIndex: number) => {
           <svg
             v-else-if="tab.icon === 'globe'"
             aria-hidden="true"
-            class="h-5 w-5"
+            class="size-5"
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24">
@@ -179,13 +179,17 @@ const handleKeyDown = (event: KeyboardEvent, tabIndex: number) => {
           <!-- Tab with count (Recent and Domains) -->
           <template v-if="tab.count !== undefined">
             <!-- Responsive labels based on screen size -->
-            <span v-if="tab.shortLabel" class="block truncate xs:hidden">{{ tab.shortLabel }}</span>
-            <span v-else-if="tab.icon !== 'home'" class="block truncate xs:hidden">{{ tab.label }}</span>
-            <span class="hidden truncate xs:block">{{ tab.label }}</span>
+            <span v-if="tab.shortLabel" class="xs:hidden block truncate">{{ tab.shortLabel }}</span>
+            <span v-else-if="tab.icon !== 'home'" class="xs:hidden block truncate">
+              {{ tab.label }}
+            </span>
+            <span class="xs:block hidden truncate">
+              {{ tab.label }}
+            </span>
 
             <!-- Count badge -->
             <span
-              class="ml-1 flex-shrink-0 rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-600 dark:bg-gray-800 dark:text-gray-400"
+              class="ml-1 shrink-0 rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-600 dark:bg-gray-800 dark:text-gray-400"
               :aria-label="tab.countLabel">
               {{ tab.count }}
             </span>
