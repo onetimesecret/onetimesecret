@@ -1,11 +1,11 @@
-# apps/api/v2/logic/secrets/show_metadata_list.rb
+# apps/api/v2/logic/secrets/list_metadata.rb
 
 require 'time'
 
 module V2::Logic
   module Secrets
 
-    class ShowMetadataList < V2::Logic::Base
+    class ListMetadata < V2::Logic::Base
       attr_reader :records, :since, :now, :query_results
       attr_reader :received, :notreceived, :has_items
 

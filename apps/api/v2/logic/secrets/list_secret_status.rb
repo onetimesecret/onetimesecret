@@ -1,4 +1,4 @@
-# apps/api/v2/logic/secrets/show_secret_status.rb
+# apps/api/v2/logic/secrets/list_secret_status.rb
 
 module V2::Logic
   module Secrets

@@ -62,7 +62,7 @@ module V2
       end
 
       def list_metadata
-        retrieve_records(V2::Logic::Secrets::ShowMetadataList)
+        retrieve_records(V2::Logic::Secrets::ListMetadata)
       end
 
     end
