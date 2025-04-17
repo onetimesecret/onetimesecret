@@ -13,6 +13,7 @@ import { useI18n } from 'vue-i18n';
  * Composable for managing secret status operations
  * Provides a unified interface for interacting with secret status
  */
+// eslint-disable-next-line max-statements
 export function useSecretStatus() {
   const { t } = useI18n();
   const store = useSecretStore();

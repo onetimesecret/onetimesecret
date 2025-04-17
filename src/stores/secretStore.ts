@@ -1,7 +1,10 @@
 // src/stores/secretStore.ts
+
 import { PiniaPluginOptions } from '@/plugins/pinia';
 import {
   ConcealDataResponse,
+  ConcealPayload,
+  GeneratePayload,
   responseSchemas,
   type SecretResponse,
   type SecretStatusResponse,
@@ -11,7 +14,6 @@ import { loggingService } from '@/services/logging.service';
 import { AxiosInstance } from 'axios';
 import { defineStore, PiniaCustomProperties } from 'pinia';
 import { computed, inject, ref } from 'vue';
-import { GeneratePayload, ConcealPayload } from '@/schemas/api';
 
 interface StoreOptions extends PiniaPluginOptions {}
 

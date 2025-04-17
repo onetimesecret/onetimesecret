@@ -16,7 +16,7 @@ import {
   customerSchema,
   jurisdictionDetailsSchema,
   jurisdictionSchema,
-  secretListSchema,
+  secretResponsesSchema,
 } from '@/schemas/models';
 import { brandSettingschema, imagePropsSchema } from '@/schemas/models/domain/brand';
 import { feedbackDetailsSchema, feedbackSchema } from '@/schemas/models/feedback';
@@ -48,15 +48,9 @@ export const responseSchemas = {
   secret: createApiResponseSchema(secretSchema, secretDetailsSchema),
 
   // List responses
-  customDomainList: createApiListResponseSchema(
-    customDomainSchema,
-    customDomainDetailsSchema
-  ),
-  metadataList: createApiListResponseSchema(
-    metadataRecordsSchema,
-    metadataRecordsDetailsSchema
-  ),
-  secretList: createApiListResponseSchema(secretListSchema),
+  customDomainList: createApiListResponseSchema(customDomainSchema, customDomainDetailsSchema),
+  metadataList: createApiListResponseSchema(metadataRecordsSchema, metadataRecordsDetailsSchema),
+  secretList: createApiListResponseSchema(secretResponsesSchema),
 
   // Special responses
   csrf: z.object({

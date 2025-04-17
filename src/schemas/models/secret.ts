@@ -35,7 +35,7 @@ const secretBaseSchema = z.object({
 });
 
 // List view schema (stripped down version)
-export const secretListSchema = createModelSchema(secretBaseSchema.shape).strip();
+export const secretResponsesSchema = createModelSchema(secretBaseSchema.shape).strip();
 
 // Full secret schema with all fields
 export const secretSchema = createModelSchema({
@@ -57,7 +57,7 @@ export const secretDetailsSchema = z.object({
 // Export types
 export type Secret = z.infer<typeof secretSchema>;
 export type SecretDetails = z.infer<typeof secretDetailsSchema>;
-export type SecretList = z.infer<typeof secretListSchema>;
+export type SecretList = z.infer<typeof secretResponsesSchema>;
 
 /**
  * CHANGELOG
