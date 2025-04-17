@@ -81,8 +81,8 @@ export const useMetadataListStore = defineStore('metadataList', () => {
   function $reset() {
     records.value = null;
     details.value = null;
-    _initialized.value = false;
     count.value = null;
+    _initialized.value = false;
   }
 
   return {

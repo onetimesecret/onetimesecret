@@ -3,8 +3,8 @@
 import { ApplicationError } from '@/schemas';
 import { useMetadataListStore } from '@/stores/metadataListStore';
 import { useNotificationsStore } from '@/stores/notificationsStore';
-import { computed, ref } from 'vue';
 import { storeToRefs } from 'pinia';
+import { computed, ref } from 'vue';
 
 import { AsyncHandlerOptions, useAsyncHandler } from './useAsyncHandler';
 
@@ -37,7 +37,6 @@ export function useMetadataList() {
 
   /**
    * Fetch metadata list
-
    */
   const fetch = async () => wrap(async () => await store.fetchList());
 

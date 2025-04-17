@@ -26,7 +26,7 @@
   // Create shareable link for an item
   const getShareLink = (item: MetadataRecords) => {
     const share_domain = item.share_domain ?? site_host;
-    return `https://${share_domain}/secret/${item.secret_key}`;
+    return `https://${share_domain}/secret/${item.key}`;
   };
 
   // Handle copying link to clipboard
@@ -122,11 +122,11 @@
                   <td class="whitespace-nowrap px-6 py-4 text-right">
                     <!-- TODO: We need the secret key in the list metadata endpoint to create the link -->
                     <div
-                      v-if="false"
+
                       class="flex justify-end space-x-2">
                       <!-- prettier-ignore-attribute class -->
                       <div
-                        v-if="!item.is_destroyed"
+                        v-if="!item.is_destroyed && false"
                         class="group relative inline-block">
                         <!-- Open Secret Button -->
                         <a
@@ -144,7 +144,8 @@
                           <span class="sr-only">{{ $t('web.COMMON.view_secret') }}</span>
                         </a>
                         <!-- Copy Button with Tooltip -->
-                        <div class="relative">
+                        <div
+                          class="relative">
                           <!-- prettier-ignore-attribute class -->
                           <button
                             @click="handleCopy(item)"
@@ -175,7 +176,7 @@
 
                       <!-- prettier-ignore-attribute class -->
                       <router-link
-                        v-if="!item.is_destroyed && false"
+                        v-if="!item.is_destroyed"
                         :to="{ name: 'Burn secret', params: { metadataKey: item.key } }"
                         class="inline-flex items-center rounded-md bg-red-100 px-2.5 py-1.5 text-sm
                           font-medium text-red-700 hover:bg-red-200 focus:outline-none focus:ring-2
@@ -247,7 +248,7 @@
                     scope="col"
                     class="px-6 py-2.5 text-left text-xs font-medium uppercase tracking-wider
                       text-gray-700 dark:text-gray-400">
-                    {{ $t('web.LABELS.secret') }}
+                    {{ $t('web.COMMON.secret') }}
                   </th>
                   <!-- prettier-ignore-attribute class -->
                   <th
@@ -261,7 +262,7 @@
                     scope="col"
                     class="px-6 py-2.5 text-right text-xs font-medium uppercase tracking-wider
                       text-gray-700 dark:text-gray-400">
-                    {{ $t('web.LABELS.status') }}
+                    {{ $t('status') }}
                   </th>
                 </tr>
               </thead>
@@ -296,9 +297,10 @@
                       ]">
                       <OIcon
                         :collection="'heroicons'"
-                        :name="item.is_destroyed ? 'x-mark' : item.is_burned ? 'fire' : 'check'"
-                        class="mr-1.5 size-4" />
-                      <span v-if="item.is_destroyed">
+                        :name="item.is_burned ? 'fire' : 'x-mark' "
+                        size="4"
+                        class="mr-1.5" />
+                      <span v-if="item.is_expired">
                         {{ $t('web.STATUS.expired') }}
                       </span>
                       <span v-else-if="item.is_burned">
