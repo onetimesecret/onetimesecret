@@ -40,6 +40,7 @@ export const productTiers: Array<ProductTier> = [
       'REST API',
     ],
     featured: false,
+    learn_more: 'https://docs.onetimesecret.com/en/secret-links/',
   },
   {
     id: 'tier-identity',
