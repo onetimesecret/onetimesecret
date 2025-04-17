@@ -84,8 +84,8 @@
                   <!-- prettier-ignore-attribute class -->
                   <th
                     scope="col"
-                    class="hidden px-6 py-2.5 text-left text-xs font-medium uppercase tracking-wider
-                      text-gray-700 dark:text-gray-400 sm:table-cell">
+                    class="px-6 py-2.5 text-left text-xs font-medium uppercase tracking-wider
+                      text-gray-700 dark:text-gray-400">
                     {{ $t('web.LABELS.details') }}
                   </th>
                   <!-- prettier-ignore-attribute class -->
@@ -108,18 +108,33 @@
                     <SecretMetadataTableItem
                       :secret-metadata="item" />
                   </td>
-                  <td class="whitespace-nowrap px-6 py-4 sm:table-cell">
-                    <div class="flex flex-col space-y-1 text-sm text-gray-600 dark:text-gray-400">
-                      <span v-if="item.show_recipients" :aria-label="$t('web.COMMON.secret_recipient_address')">
+                  <td class="whitespace-nowrap px-6 py-4">
+                    <div
+                      class="flex flex-row flex-wrap items-center gap-x-3 gap-y-1 text-sm text-gray-600 dark:text-gray-400"
+                    >
+                      <span
+                        v-if="item.show_recipients"
+                        :aria-label="$t('web.COMMON.secret_recipient_address')"
+                        class="shrink"
+                      >
                         {{ item.recipients }}
                       </span>
                       <div v-if="item.has_passphrase" class="flex items-center">
                         <OIcon
                           collection="heroicons"
                           name="key"
-                          class="mr-1 size-3 text-emerald-500 dark:text-emerald-400" />
-                        <span class="font-medium text-emerald-600 dark:text-emerald-400">
-                          {{ $t('web.COMMON.secret_passphrase') }}
+                          class="size-3 text-emerald-500 dark:text-emerald-400"
+                          aria-hidden="true"
+                        />
+                        <span
+                          class="ml-1 font-medium text-emerald-600 dark:text-emerald-400 sm:inline"
+                        >
+                          <span class="hidden sm:inline">
+                            {{ $t('web.COMMON.secret_passphrase') }}
+                          </span>
+                          <span class="sr-only sm:hidden">
+                            {{ $t('web.COMMON.secret_passphrase') }}
+                          </span>
                         </span>
                       </div>
                     </div>
@@ -145,7 +160,9 @@
                           <OIcon
                             collection="heroicons"
                             name="arrow-top-right-on-square"
-                            class="size-4" />
+                            class="size-4"
+                            aria-hidden="true"
+                          />
                           <span class="sr-only">{{ $t('web.COMMON.view_secret') }}</span>
                         </a>
                         <!-- Copy Button with Tooltip -->
@@ -161,7 +178,9 @@
                             <OIcon
                               collection="heroicons"
                               :name="copiedItemKey === item.key ? 'check' : 'clipboard'"
-                              class="size-4" />
+                              class="size-4"
+                              aria-hidden="true"
+                            />
                             <span class="sr-only">{{ $t('web.LABELS.copy_to_clipboard') }}</span>
                           </button>
                           <!-- Copy Feedback Tooltip -->
@@ -190,7 +209,9 @@
                         <OIcon
                           collection="heroicons"
                           name="fire"
-                          class="mr-1.5 size-4" />
+                          class="mr-1.5 size-4"
+                          aria-hidden="true"
+                        />
                         <span>{{ $t('web.COMMON.burn') }}</span>
                       </router-link>
                     </div>
@@ -258,8 +279,8 @@
                   <!-- prettier-ignore-attribute class -->
                   <th
                     scope="col"
-                    class="hidden px-6 py-2.5 text-left text-xs font-medium uppercase tracking-wider
-                      text-gray-700 dark:text-gray-400 sm:table-cell">
+                    class="px-6 py-2.5 text-left text-xs font-medium uppercase tracking-wider
+                      text-gray-700 dark:text-gray-400">
                     {{ $t('web.LABELS.details') }}
                   </th>
                   <!-- prettier-ignore-attribute class -->
@@ -282,9 +303,15 @@
                     <SecretMetadataTableItem
                       :secret-metadata="item" />
                   </td>
-                  <td class="whitespace-nowrap px-6 py-4 sm:table-cell">
-                    <div class="text-sm text-gray-600 dark:text-gray-400">
-                      <span v-if="item.show_recipients" :aria-label="$t('web.COMMON.secret_recipient_address')">
+                  <td class="whitespace-nowrap px-6 py-4">
+                    <div
+                      class="flex flex-row flex-wrap items-center gap-x-3 gap-y-1 text-sm text-gray-600 dark:text-gray-400"
+                    >
+                      <span
+                        v-if="item.show_recipients"
+                        :aria-label="$t('web.COMMON.secret_recipient_address')"
+                        class="shrink"
+                      >
                         {{ item.recipients }}
                       </span>
                     </div>
@@ -303,7 +330,9 @@
                         :collection="'heroicons'"
                         :name="item.is_burned ? 'fire' : 'x-mark' "
                         size="4"
-                        class="mr-1.5" />
+                        class="mr-1.5"
+                        aria-hidden="true"
+                      />
                       <span v-if="item.is_expired">
                         {{ $t('web.STATUS.expired') }}
                       </span>
