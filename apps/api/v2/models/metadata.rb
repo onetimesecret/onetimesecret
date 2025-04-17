@@ -68,6 +68,8 @@ module V2
 
       # We use the hash syntax here since `:truncated?` is not a valid symbol.
       { :is_truncated => ->(m) { m.truncated? } },
+
+      { :has_passphrase => ->(m) { m.has_passphrase? } },
     ]
 
     def init
@@ -140,6 +142,10 @@ module V2
 
     def valid?
       exists?
+    end
+
+    def has_passphrase?
+      !passphrase.to_s.empty?
     end
 
     def deliver_by_email cust, locale, secret, eaddrs, template=nil, ticketno=nil
