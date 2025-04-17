@@ -8,7 +8,12 @@ module V2::Logic
 
       def process_params
         @keys = params[:keys].to_s.strip.downcase.gsub(/[^a-z0-9,]/, '').split(',').compact
-        @secrets = keys.map { |key| V2::Secret.load(key).safe_dump }
+        @secrets = keys.map { |key|
+          next unless key
+          record = V2::Secret.load(key)
+          next unless record
+          record.safe_dump
+        }.compact
       end
 
       def raise_concerns
