@@ -7,9 +7,8 @@ import {
   GeneratePayload,
   responseSchemas,
   type SecretResponse,
-  type SecretStatusResponse,
 } from '@/schemas/api';
-import { type Secret, type SecretDetails, type SecretStatus } from '@/schemas/models/secret';
+import { type Secret, type SecretDetails, type SecretState } from '@/schemas/models/secret';
 import { loggingService } from '@/services/logging.service';
 import { AxiosInstance } from 'axios';
 import { defineStore, PiniaCustomProperties } from 'pinia';
@@ -24,7 +23,7 @@ export type SecretStore = {
   // State
   record: Secret | null;
   details: SecretDetails | null;
-  status: SecretStatus | null;
+  status: SecretState | null;
   _initialized: boolean;
 
   // Getters
@@ -34,7 +33,7 @@ export type SecretStore = {
   init: () => { isInitialized: boolean };
   fetch: (secretKey: string) => Promise<void>;
   reveal: (secretKey: string, passphrase?: string) => Promise<void>;
-  getStatus: (secretKey: string) => Promise<SecretStatus>;
+  getStatus: (secretKey: string) => Promise<SecretState>;
   clear: () => void;
   $reset: () => void;
 } & PiniaCustomProperties;
@@ -49,7 +48,7 @@ export const useSecretStore = defineStore('secrets', () => {
   // State
   const record = ref<Secret | null>(null);
   const details = ref<SecretDetails | null>(null);
-  const status = ref<SecretStatus | null>(null);
+  const status = ref<SecretState | null>(null);
   const _initialized = ref(false);
 
   // Getters
@@ -139,19 +138,6 @@ export const useSecretStore = defineStore('secrets', () => {
     return validated;
   }
 
-  /**
-   * Gets the current status of a secret
-   * @param secretKey - Unique identifier for the secret
-   * @throws Will throw an error if the API call fails
-   * @returns Validated secret status response
-   */
-  async function getStatus(secretKey: string): Promise<SecretStatus> {
-    const response = await $api.get<SecretStatusResponse>(`/api/v2/secret/${secretKey}/status`);
-    const validated = responseSchemas.secretStatus.parse(response.data);
-    status.value = validated.status;
-    return validated.status;
-  }
-
   function clear() {
     record.value = null;
     details.value = null;
@@ -185,7 +171,6 @@ export const useSecretStore = defineStore('secrets', () => {
     conceal,
     generate,
     reveal,
-    getStatus,
     $reset,
   };
 });
