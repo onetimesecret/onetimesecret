@@ -9,18 +9,19 @@
   import { useMetadataList } from '@/composables/useMetadataList';
   import { MetadataRecords } from '@/schemas/api/endpoints';
   import { onMounted, computed, ref, onBeforeUnmount } from 'vue';
-  import { useI18n } from 'vue-i18n';
-
-  const { t } = useI18n();
 
   // Define props
   interface Props {}
   defineProps<Props>();
 
   const { details, recordCount, isLoading, refreshRecords, error } = useMetadataList();
+
   const sectionId = ref(`dashboard-recent-${Math.random().toString(36).substring(2, 9)}`);
   const lastRefreshed = ref(new Date());
   const refreshInterval = ref<number | null>(null);
+
+  // Refresh state
+  const isRefreshing = ref(false);
 
   // Toast notification state
   const showToast = ref(false);
@@ -43,12 +44,11 @@
 
   // Method to force refresh
   const handleRefresh = async () => {
-    toastMessage.value = t('web.LABELS.refreshing');
-    showToast.value = true;
+    isRefreshing.value = true;
     await refreshRecords();
     lastRefreshed.value = new Date();
     setTimeout(() => {
-      showToast.value = false;
+      isRefreshing.value = false;
     }, 1500);
   };
 
@@ -91,6 +91,7 @@
         <div
           v-if="recordCount > 0"
           class="mb-4 flex items-center justify-between">
+          <!-- prettier-ignore-attribute class -->
           <div>
             <h2
               id="dashboard-recent-heading"
@@ -103,6 +104,7 @@
             <span class="text-sm text-gray-500 dark:text-gray-400">
               {{ $t('web.LABELS.items_count', { count: recordCount }) }}
             </span>
+            <!-- prettier-ignore-attribute class -->
             <button
               @click="handleRefresh"
               class="flex items-center gap-1 rounded p-1.5
@@ -113,7 +115,7 @@
               <OIcon
                 collection="heroicons"
                 name="arrow-path"
-                class="size-4" />
+                :class="['size-4', { 'animate-spin': isRefreshing }]" />
               <span class="sr-only">{{ $t('web.LABELS.refresh') }}</span>
             </button>
           </div>
