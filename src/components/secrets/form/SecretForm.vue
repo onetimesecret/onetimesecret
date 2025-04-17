@@ -10,7 +10,7 @@
   import { useProductIdentity } from '@/stores/identityStore';
   import { type ConcealedMessage } from '@/types/ui/concealed-message';
   import { nanoid } from 'nanoid';
-  import { computed, onMounted, ref, watch, nextTick } from 'vue';
+  import { computed, onMounted, ref, watch } from 'vue';
   import { useRouter } from 'vue-router';
 
   import CustomDomainPreview from './../../CustomDomainPreview.vue';
@@ -105,27 +105,6 @@
 
   // Focus management when switching between Create Link and Generate Password modes
   const generatePasswordSection = ref<HTMLElement | null>(null);
-  watch(selectedAction, (newAction) => {
-    // Use nextTick to wait for DOM updates
-    nextTick(() => {
-      if (newAction === 'generate-password' && generatePasswordSection.value) {
-        // Focus the generated password section header for screen readers
-        const header = generatePasswordSection.value.querySelector('#generatedPasswordHeader');
-        if (header && header instanceof HTMLElement) {
-          header.focus();
-        }
-      } else if (newAction === 'create-link') {
-        // Just announce the mode change, since we don't have direct access to focus the textarea
-        // Screen readers will announce the change via the aria-live region in SplitButton
-        console.log('Switched to Create Link mode');
-        // Clear the textarea using the available method
-        if (secretContentInput.value) {
-          // We know we have this method from the ref type
-          secretContentInput.value.clearTextarea();
-        }
-      }
-    });
-  });
 
   onMounted(() => {
     operations.updateField('share_domain', selectedDomain.value);
