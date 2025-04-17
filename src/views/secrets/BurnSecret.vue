@@ -76,11 +76,12 @@
       <form @submit.prevent="burn"
             class="space-y-4">
         <div v-if="details?.has_passphrase">
-          <input type="password"
-                 v-model="passphrase"
-                 id="passField"
-                 class="w-full rounded-md border border-gray-300 bg-white px-3 py-2 focus:outline-none focus:ring-2 focus:ring-brand-500 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200"
-                 placeholder="$t('web.COMMON.enter_passphrase_here')" />
+          <input
+            type="password"
+            v-model="passphrase"
+            id="passField"
+            class="w-full rounded-md border border-gray-300 bg-white px-3 py-2 focus:outline-none focus:ring-2 focus:ring-brand-500 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200"
+            :placeholder="$t('web.COMMON.enter_passphrase_here')" />
         </div>
         <button type="submit"
                 :disabled="isLoading"
