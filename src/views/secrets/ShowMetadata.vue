@@ -38,6 +38,10 @@
     return !(record.value?.is_destroyed || record.value?.is_burned || record.value?.is_received);
   });
 
+  const goBack = () => {
+    window.history.back();
+  };
+
   // Watch for route parameter changes to refetch data
   watch(
     () => props.metadataKey,
@@ -83,7 +87,7 @@
       <!-- prettier-ignore-attribute class -->
       <button
         type="button"
-        @click="$router.go(-1)"
+        @click="goBack"
         class="mb-4 mt-2 inline-flex items-center gap-2 text-lg font-medium
         text-gray-600 hover:text-gray-800
         dark:text-gray-300 dark:hover:text-gray-200">
