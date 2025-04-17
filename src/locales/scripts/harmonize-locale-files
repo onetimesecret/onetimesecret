@@ -8,6 +8,7 @@
 #   -q: Suppress all output
 #   -f: Only output filenames of failed repairs
 #   -v: Show verbose repair output
+#   -c: copy values from base file
 #
 # Exit: 0 if all repairs succeed, 1 if any fail
 

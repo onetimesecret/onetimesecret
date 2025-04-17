@@ -1,3 +1,4 @@
+/** eslint-disable tailwindcss/migration-from-tailwind-2 */
 <!-- src/components/CustomDomainPreview.vue -->
 
 <script setup lang="ts">
@@ -133,61 +134,76 @@
 </script>
 
 <template>
+  <!-- prettier-ignore-attribute class -->
   <div
     v-if="withDomainDropdown"
     :title="$t('link-preview')"
-    class="mb-2 p-3 rounded-lg bg-gray-50 dark:bg-gray-800 border border-gray-300 dark:border-gray-600 border-dashed shadow-sm transition-all duration-200 hover:shadow-md hover:border-gray-400 dark:hover:border-gray-500">
+    class="mb-0 rounded-lg border border-dashed border-gray-300
+      bg-gray-50 p-3 shadow-sm transition-all duration-200
+      hover:border-gray-400 hover:shadow-md dark:border-gray-600
+      dark:bg-gray-800 dark:hover:border-gray-500">
     <div class="flex items-center font-mono text-gray-600 dark:text-gray-400">
       <OIcon
         collection="heroicons"
         name="globe-alt-solid"
-        class="size-5 shrink-0 text-gray-400 dark:text-gray-500 mr-2" />
+        class="mr-2 size-5 shrink-0 text-gray-400 dark:text-gray-500" />
 
       <div
         ref="dropdownRef"
-        class="relative flex-1 min-w-0">
+        class="relative min-w-0 flex-1">
+        <!-- prettier-ignore-attribute class -->
         <button
           ref="buttonRef"
           type="button"
           @click="isOpen = !isOpen"
-          class="w-full text-left appearance-none bg-transparent group cursor-pointer px-0 flex items-center font-brand focus:outline-none focus:ring-2 focus:ring-brandcomp-500 focus:ring-offset-2 focus:ring-offset-gray-50 dark:focus:ring-offset-gray-800 rounded-sm transition-shadow"
+          class="group flex w-full cursor-pointer appearance-none items-center rounded-sm
+            bg-transparent px-0 text-left font-brand transition-shadow
+            focus:outline-none focus:ring-2 focus:ring-brandcomp-500 focus:ring-offset-2 focus:ring-offset-gray-50
+            dark:focus:ring-offset-gray-800"
           aria-haspopup="listbox"
           :aria-expanded="isOpen"
           :aria-label="`Select domain. Currently selected: ${selectedDomain}. Press Space or Enter to open dropdown`">
-          <div class="flex items-center min-w-0 w-full">
+          <div class="flex w-full min-w-0 items-center">
             <!-- Prefix stays the same -->
-            <span class="text-gray-500 shrink-0 text-sm">https://</span>
+            <span class="shrink-0 text-sm text-gray-500">https://</span>
 
             <!-- Domain and suffix container -->
-            <div class="flex min-w-0 flex-grow overflow-hidden">
-              <!-- Domain part -->
+            <div class="flex min-w-0 grow overflow-hidden">
+              <!-- prettier-ignore-attribute class -->
               <span
-                class="border-b-2 border-transparent group-hover:border-brandcomp-500 text-slate-900 dark:text-gray-100 dark:group-hover:border-brandcomp-400 truncate max-w-[92%]">
+                class="max-w-[92%] truncate border-b-2 border-transparent text-slate-900
+                  group-hover:border-brandcomp-500 dark:text-gray-100 dark:group-hover:border-brandcomp-400">
                 {{ selectedDomain }}
               </span>
 
               <!-- Suffix moves next to domain -->
               <span class="flex min-w-0 flex-1 items-center overflow-hidden">
+                <!-- prettier-ignore-attribute class -->
                 <span
-                  class="truncate text-sm bg-gradient-to-r from-gray-600/80 to-transparent bg-clip-text text-transparent dark:from-gray-400">
+                  class="truncate bg-gradient-to-r from-gray-600/80 to-transparent bg-clip-text
+                  text-sm text-transparent dark:from-gray-400">
                   /secret/abc23456
                 </span>
               </span>
             </div>
 
             <!-- Dropdown icon -->
-            <span class="shrink-0 ml-1">
+            <span class="ml-1 shrink-0">
+              <!-- prettier-ignore-attribute class -->
               <OIcon
                 collection="heroicons"
                 name="chevron-down"
-                class="h-4 w-4 text-gray-950 group-hover:text-brandcomp-500 dark:group-hover:text-brandcomp-400" />
+                class="size-4 text-gray-950 group-hover:text-brandcomp-500
+                  dark:group-hover:text-brandcomp-400" />
             </span>
           </div>
         </button>
-
+        <!-- prettier-ignore-attribute class -->
         <div
           v-if="isOpen"
-          class="absolute z-10 w-full mt-1 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-md shadow-lg max-w-full overflow-hidden"
+          class="absolute z-10 mt-1 w-full max-w-full overflow-hidden
+            rounded-md border border-gray-300 bg-white shadow-lg
+            dark:border-gray-600 dark:bg-gray-800"
           role="listbox">
           <div
             v-if="isLoading"
@@ -201,16 +217,16 @@
             v-for="(domain, index) in availableDomains"
             :key="domain"
             @click="selectDomain(domain)"
-            class="p-2 cursor-pointer flex items-center w-full"
+            class="flex w-full cursor-pointer items-center p-2"
             role="option"
             :aria-selected="domain === selectedDomain"
             :class="[
-              'p-2 flex items-center gap-2 transition-colors',
+              'flex items-center gap-2 p-2 transition-colors',
               'cursor-pointer select-none',
               {
-                'bg-brandcomp-100 dark:bg-brandcomp-800 text-brandcomp-800 dark:text-brandcomp-200 font-medium':
+                'bg-brandcomp-100 font-medium text-brandcomp-800 dark:bg-brandcomp-800 dark:text-brandcomp-200':
                   domain === selectedDomain || index === activeIndex,
-                'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-brandcomp-700 dark:hover:text-brandcomp-300':
+                'text-gray-700 hover:bg-gray-100 hover:text-brandcomp-700 dark:text-gray-300 dark:hover:bg-gray-700 dark:hover:text-brandcomp-300':
                   domain !== selectedDomain && index !== activeIndex,
               },
             ]">
@@ -218,20 +234,29 @@
               v-if="domain === selectedDomain"
               collection="heroicons"
               name="check"
-              class="h-4 w-4 shrink-0" />
-            <span :class="{ 'pl-6': !(domain === selectedDomain) }" class="truncate min-w-0 flex-1">{{ domain }}</span>
+              class="size-4 shrink-0" />
+            <!-- prettier-ignore -->
+            <span
+              :class="{ 'pl-6': !(domain === selectedDomain) }"
+              class="min-w-0 flex-1 truncate">{{ domain }}</span>
           </div>
+          <!-- prettier-ignore-attribute class -->
           <div
             v-if="!authenticated"
-            class="p-2 cursor-pointer flex items-center border-t border-gray-200 dark:border-gray-700"
+            class="flex cursor-pointer items-center
+              border-t border-gray-200 p-2 dark:border-gray-700"
             role="option"
             :class="[
-              'p-2 flex items-center gap-2 transition-colors',
+              'flex items-center gap-2 p-2 transition-colors',
               'cursor-pointer select-none',
-              'text-brandcomp-600 dark:text-brandcomp-400 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-brandcomp-700 dark:hover:text-brandcomp-300',
+              'text-brandcomp-600 hover:bg-gray-100 hover:text-brandcomp-700 dark:text-brandcomp-400 dark:hover:bg-gray-700 dark:hover:text-brandcomp-300',
             ]">
-              <FancyIcon />
-            <router-link to="/pricing" class="w-full block py-1 font-medium hover:underline">{{ $t('upgrade-for-yourdomain') }}</router-link>
+            <FancyIcon />
+            <!-- prettier-ignore -->
+            <router-link
+              to="/pricing"
+              class="block w-full py-1
+                font-medium hover:underline">{{ $t('upgrade-for-yourdomain') }}</router-link>
           </div>
         </div>
       </div>
@@ -241,15 +266,15 @@
 
 <style scoped>
   select {
-  -webkit-appearance: none;
-  -moz-appearance: none;
-  appearance: none;
-  border: none;
-  text-indent: 0;
-  padding-right: 1rem;
-}
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    border: none;
+    text-indent: 0;
+    padding-right: 1rem;
+  }
 
-select::-ms-expand {
-  display: none;
-}
+  select::-ms-expand {
+    display: none;
+  }
 </style>

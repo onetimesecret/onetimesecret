@@ -156,7 +156,7 @@ const statusConfig = computed(() => {
             type="button"
             class="ml-4 text-gray-400 hover:text-gray-500 dark:hover:text-gray-300"
             @click="notifications.hide">
-            <span class="sr-only">{{ $t('dismiss') }}</span>
+            <span class="sr-only">{{ $t('web.LABELS.dismiss') }}</span>
             <OIcon
               collection="mdi"
               name="close"

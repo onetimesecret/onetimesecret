@@ -74,7 +74,8 @@
       "burn_security_notice": "La destruction d'un secret le supprimera avant sa réception.",
       "share_link_securely": "Pour des raisons de sécurité, partagez ce lien séparément des autres informations.",
       "copied_to_clipboard": "Copié dans le presse-papiers",
-      "button_create_incoming": "Créer un message"
+      "button_create_incoming": "Créer un message",
+      "faq_title": "F.A.Q."
     },
     "LABELS": {
       "view_toggle": {
@@ -82,6 +83,7 @@
         "hide": "Masquer"
       },
       "timeline": "Chronologie",
+      "lifespan": "Durée de vie",
       "expiration_time": "Délai d'expiration",
       "close": "Fermer",
       "loading": "Chargement...",
@@ -89,14 +91,19 @@
       "saving": "Enregistrement...",
       "saved": "Enregistré",
       "save": "Enregistrer",
+      "details": "Détails",
       "encrypted": "Chiffré",
       "secret_status": "État du secret",
       "need_help": "Besoin d'aide ?",
       "create_new_secret": "Créer un nouveau secret",
       "actions": "Actions",
       "no_passphrase": "Aucune phrase secrète requise",
+      "copy_to_clipboard": "Copier dans le presse-papiers",
+      "receipts": "Accusés de réception",
+      "share": "Partager",
       "secret_link": "Lien secret",
       "security_details": "Détails de sécurité",
+      "items_count": "{count} éléments",
       "recipients_count": "{count} destinataires",
       "views": "Consultations",
       "times_viewed": "fois consulté",
@@ -105,6 +112,7 @@
       "passphrase_protected": "Protégé par phrase secrète",
       "feedback-received": "Retour d'information reçu",
       "sending-ellipses": "Envoi en cours...",
+      "pricing": "Tarifs",
       "title_recent_secrets": "Secrets récents"
     },
     "STATUS": {
@@ -122,6 +130,7 @@
       "orphaned": "Orphelin",
       "secured": "Sécurisé",
       "securing": "Sécurisation",
+      "copied": "Copié",
       "time_remaining": "Temps restant",
       "new_description": "Le lien secret a été créé et n'a pas encore été consulté",
       "unread_description": "Le lien secret a été créé et n'a pas été consulté",
@@ -151,6 +160,16 @@
           "hour": "heure | heures",
           "minute": "minute | minutes",
           "second": "seconde | secondes"
+        },
+        "noOptionsAvailable": "---"
+      },
+      "ttl_remaining": {
+        "duration": "{count} {unit} restant",
+        "time": {
+          "day": "jour restant | jours restants",
+          "hour": "heure restante | heures restantes",
+          "minute": "minute restante | minutes restantes",
+          "second": "seconde restante | secondes restantes"
         },
         "noOptionsAvailable": "---"
       },
@@ -233,6 +252,7 @@
       "you_created_this_secret": "Vous êtes l'auteur de ce secret. Sa consultation le rend inaccessible au destinataire.",
       "your_secret_message": "Votre message sécurisé :",
       "this_message_for_you": "Message sécurisé à votre attention :",
+      "your_message_is_ready": "Votre message sécurisé est prêt.",
       "reply_with_secret": "Répondre par un message sécurisé",
       "pre_reveal_default": "Cliquez ci-dessous pour afficher votre message sécurisé.",
       "post_reveal_default": "Votre message sécurisé s'affiche ci-dessous.",
@@ -336,7 +356,6 @@
       "steps-to-reproduce-the-issue": "Marche à suivre pour reproduire le problème.",
       "a-detailed-description-of-the-vulnerability": "Description détaillée de la vulnérabilité.",
       "include-as-much-information-as-possible-about-th": ": Inclure autant d'informations que possible sur la vulnérabilité. Il s'agit notamment de",
-      "details": "Détails",
       "with-the-subject-line-vulnerability-report-brief": "avec pour objet \"Rapport de vulnérabilité : [Brève description]\".",
       "send-an-email-to": ": Envoyer un courriel à",
       "how-to-report": "Comment rapporter",
@@ -445,9 +464,6 @@
   "escape": "Quitter",
   "active": "Actif",
   "theyll-appear-here-once-youve-shared-them": "Les éléments partagés apparaîtront ici",
-  "web.LABELS.copy_to_clipboard": "Copier",
-  "copied": "Copié",
-  "pricing": "Tarifs",
   "meets-and-exceeds-compliance-standards": "Respecter et dépasser les normes de conformité",
   "start-today": "Commencez dès aujourd'hui",
   "start-today-with-identity-plus": "Commencez dès aujourd'hui avec Identity Plus",
@@ -593,6 +609,10 @@
   "delano-mandelbaum": "Delano Mandelbaum",
   "delano": "Delano",
   "help-content-goes-here": "Le contenu de l'aide se trouve ici.",
+  "why-is-this-secret-unavailable": "Pourquoi ce secret n'est-il pas disponible ?",
+  "secrets-are-designed-to-be-viewed-only-once": "Les secrets sont conçus pour n'être consultés qu'une seule fois. Ce lien a peut-être déjà été consulté, a expiré, ou a été supprimé manuellement par l'expéditeur.",
+  "what-should-i-do-now": "Que dois-je faire à présent ?",
+  "contact-the-person-who-sent-you-this-link": "Veuillez contacter la personne qui vous a envoyé ce lien et demandez-lui de créer un nouveau secret. Informez-la que vous n'avez pas pu accéder aux informations originales.",
   "done": "Terminé",
   "loading-settings-content": "Chargement du contenu des paramètres...",
   "settings-sections-0": "Sections des paramètres",
@@ -663,7 +683,6 @@
   "request-password-reset": "Demander la réinitialisation du mot de passe",
   "forgot-password": "Mot de passe oublié",
   "google": "Google",
-  "unknown-jurisdiction-0": "Juridiction inconnue",
   "unknown-jurisdiction": "Juridiction inconnue",
   "redis-info": "Informations sur Redis",
   "customer-secrets_created-customer-secrets_shared": "{0}/{1}/{2} [{3}]",

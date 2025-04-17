@@ -74,7 +74,8 @@
       "burn_security_notice": "Het verwijderen van een bericht zal het verwijderen voordat het is ontvangen.",
       "share_link_securely": "Deel deze link om veiligheidsredenen apart van andere details.",
       "copied_to_clipboard": "Gekopieerd naar klembord",
-      "button_create_incoming": "Verstuur naar support"
+      "button_create_incoming": "Verstuur naar support",
+      "faq_title": "FAQ"
     },
     "LABELS": {
       "view_toggle": {
@@ -82,6 +83,7 @@
         "hide": "Verbergen"
       },
       "timeline": "Tijdlijn",
+      "lifespan": "Levensduur",
       "expiration_time": "Vervaltijd",
       "close": "Sluiten",
       "loading": "Laden...",
@@ -89,14 +91,19 @@
       "saving": "Opslaan...",
       "saved": "Opgeslagen",
       "save": "Opslaan",
+      "details": "Details",
       "encrypted": "Versleuteld",
       "secret_status": "Berichtstatus",
       "need_help": "Hulp nodig?",
       "create_new_secret": "Nieuw bericht maken",
       "actions": "Acties",
       "no_passphrase": "Geen wachtwoordzin vereist",
+      "copy_to_clipboard": "Kopiëren naar klembord",
+      "receipts": "Ontvangstbewijzen",
+      "share": "Delen",
       "secret_link": "Beveiligde link",
       "security_details": "Beveiligingsdetails",
+      "items_count": "{count} items",
       "recipients_count": "{count} ontvangers",
       "views": "Weergaven",
       "times_viewed": "keer bekeken",
@@ -105,6 +112,7 @@
       "passphrase_protected": "Beveiligd met wachtwoordzin",
       "feedback-received": "Feedback ontvangen.",
       "sending-ellipses": "Versturen...",
+      "pricing": "Prijzen",
       "title_recent_secrets": "Recente berichten"
     },
     "STATUS": {
@@ -122,6 +130,7 @@
       "orphaned": "Onbeheerd",
       "secured": "Beveiligd",
       "securing": "Beveiligen",
+      "copied": "Gekopieerd",
       "time_remaining": "Resterende tijd",
       "new_description": "Beveiligde link is aangemaakt en nog niet bekeken",
       "unread_description": "Beveiligde link is aangemaakt en is nog niet bekeken",
@@ -151,6 +160,16 @@
           "hour": "uur | uren",
           "minute": "minuut | minuten",
           "second": "seconde | seconden"
+        },
+        "noOptionsAvailable": "---"
+      },
+      "ttl_remaining": {
+        "duration": "Nog {count} {unit}",
+        "time": {
+          "day": "dag resterend | dagen resterend",
+          "hour": "uur resterend | uren resterend",
+          "minute": "minuut resterend | minuten resterend",
+          "second": "seconde resterend | seconden resterend"
         },
         "noOptionsAvailable": "---"
       },
@@ -233,6 +252,7 @@
       "you_created_this_secret": "U heeft dit bericht aangemaakt. Als u het bekijkt, kan de ontvanger het niet meer lezen.",
       "your_secret_message": "Uw beveiligde bericht:",
       "this_message_for_you": "Dit bericht is voor u:",
+      "your_message_is_ready": "Uw beveiligde bericht is klaar.",
       "reply_with_secret": "Beantwoord met een ander geheim bericht",
       "pre_reveal_default": "Klik op de knop hieronder om uw beveiligde bericht te bekijken.",
       "post_reveal_default": "Uw beveiligde bericht wordt hieronder weergegeven.",
@@ -416,9 +436,6 @@
   "escape": "Escape",
   "active": "Actief",
   "theyll-appear-here-once-youve-shared-them": "Ze verschijnen hier zodra u ze heeft gedeeld.",
-  "web.LABELS.copy_to_clipboard": "Kopiëren naar klembord",
-  "copied": "Gekopieerd",
-  "pricing": "Prijzen",
   "meets-and-exceeds-compliance-standards": "Voldoet aan en overtreft nalevingsstandaarden",
   "start-today": "Begin vandaag",
   "start-today-with-identity-plus": "Begin vandaag met Identity Plus",
@@ -564,6 +581,10 @@
   "delano-mandelbaum": "Delano Mandelbaum",
   "delano": "Delano",
   "help-content-goes-here": "Hulpinhoud komt hier.",
+  "why-is-this-secret-unavailable": "Waarom is dit geheim niet beschikbaar?",
+  "secrets-are-designed-to-be-viewed-only-once": "Geheimen zijn ontworpen om slechts één keer bekeken te worden. Deze link is mogelijk al geopend, verlopen of handmatig verwijderd door de afzender.",
+  "what-should-i-do-now": "Wat moet ik nu doen?",
+  "contact-the-person-who-sent-you-this-link": "Neem contact op met de persoon die je deze link heeft gestuurd en vraag om een nieuw geheim aan te maken. Laat hen weten dat je geen toegang had tot de oorspronkelijke informatie.",
   "done": "Klaar",
   "loading-settings-content": "Instellingen laden...",
   "settings-sections-0": "Instellingensecties",
@@ -634,7 +655,6 @@
   "request-password-reset": "Wachtwoordreset aanvragen",
   "forgot-password": "Wachtwoord vergeten",
   "google": "Google",
-  "unknown-jurisdiction-0": "Onbekende jurisdictie",
   "unknown-jurisdiction": "Onbekende jurisdictie",
   "redis-info": "Redis info",
   "customer-secrets_created-customer-secrets_shared": "{0}/{1}/{2} [{3}]",

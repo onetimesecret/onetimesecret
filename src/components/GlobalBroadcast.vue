@@ -95,7 +95,7 @@ const sanitizedContent = computed(() => {
       <button
         type="button"
         class="-m-3 p-3 focus-visible:outline-offset-[-4px]">
-        <span class="sr-only">{{ $t('dismiss') }}</span>
+        <span class="sr-only">{{ $t('web.LABELS.dismiss') }}</span>
         <OIcon
           collection="heroicons-solid"
           name="xmarkicon"

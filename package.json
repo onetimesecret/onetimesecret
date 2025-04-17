@@ -108,6 +108,7 @@
     "playwright": "^1.51.1",
     "postcss": "^8.5.3",
     "prettier": "^3.5.3",
+    "prettier-plugin-tailwindcss": "^0.6.11",
     "prettier-plugin-vue": "^1.1.6",
     "rimraf": "^6.0.1",
     "rollup": "^4.39.0",

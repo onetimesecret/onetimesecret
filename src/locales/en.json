@@ -1,5 +1,27 @@
 {
   "web": {
+    "help": {
+      "learn_more": "Learn more",
+      "secret_view_faq": {
+        "what_am_i_looking_at": {
+          "title": "What am I looking at?",
+          "description": "You're viewing a secure message that was shared with you through OneTime Secret. This content is displayed only once and then permanently deleted from our servers."
+        },
+        "can_i_view_again": {
+          "title": "Can I view this secret again later?",
+          "description": "No. For security reasons, this secret is only viewable once. After closing this page, the content will be permanently deleted and cannot be recovered by anyone, including us."
+        },
+        "how_to_copy": {
+          "title": "How do I save this information?",
+          "description": "Use the 'Copy to Clipboard' button to copy the entire secret. For longer secrets, make sure to verify you've copied the complete content before leaving this page."
+        },
+        "is_my_viewing_tracked": {
+          "title": "Is my viewing of this secret tracked?",
+          "description": "The sender will be notified that their secret was viewed, but we don't track who viewed it or from what location. Your privacy is protected."
+        },
+        "one_time_warning": "Once you leave or refresh this page, this secret will be permanently deleted and cannot be recovered by anyone."
+      }
+    },
     "COMMON": {
       "broadcast": "",
       "button_generate_secret_short": "Generate Password",
@@ -74,7 +96,8 @@
       "burn_security_notice": "Burning a secret will delete it before it has been received.",
       "share_link_securely": "For security, share this link separately from other details.",
       "copied_to_clipboard": "Copied to clipboard",
-      "button_create_incoming": ""
+      "button_create_incoming": "",
+      "faq_title": "F.A.Q."
     },
     "LABELS": {
       "view_toggle": {
@@ -101,9 +124,11 @@
       "receipts": "Receipts",
       "share": "Share",
       "secret_link": "Secret Link",
+      "dismiss": "Dismiss",
       "security_details": "Security Details",
       "items_count": "{count} Items",
       "recipients_count": "{count} Recipients",
+      "view": "View",
       "views": "Views",
       "times_viewed": "times viewed",
       "view_progress": "View Progress",
@@ -111,7 +136,11 @@
       "passphrase_protected": "Protected with passphrase",
       "feedback-received": "Feedback received.",
       "sending-ellipses": "Sending...",
-      "title_recent_secrets": "Recent Secrets"
+      "title_recent_secrets": "Recent Secrets",
+      "pricing": "Pricing",
+      "refresh": "Refresh",
+      "reload": "Reload",
+      "caption_recent_secrets": "Secrets links created in this session"
     },
     "STATUS": {
       "new": "New",
@@ -129,7 +158,6 @@
       "secured": "Secured",
       "securing": "Securing",
       "copied": "Copied",
-      "pricing": "Pricing",
       "time_remaining": "Time Remaining",
       "new_description": "Secret link has been created and not yet viewed",
       "unread_description": "Secret link has been created and has not been viewed",
@@ -182,6 +210,9 @@
       "share_link_instruction": "Share the link with the intended recipient",
       "share_passphrase_instruction": "Share the passphrase separately through a secure channel",
       "secure_channel_instruction": "Use a different secure channel to share sensitive information"
+    },
+    "ARIA": {
+      "focus-is-now-in-the-main-text-area": "Focus is now in the main text area"
     },
     "secrets": {
       "privacyOptions": "Privacy Options",
@@ -251,6 +282,7 @@
       "you_created_this_secret": "You created this secret. If you view it, the recipient will not be able to see it.",
       "your_secret_message": "Your secret message:",
       "this_message_for_you": "This message is for you:",
+      "your_message_is_ready": "Your secure message is ready.",
       "reply_with_secret": "Reply with another secret",
       "pre_reveal_default": "Click the button below to reveal your secure message.",
       "post_reveal_default": "Your secure message is shown below.",
@@ -610,6 +642,10 @@
   "delano-mandelbaum": "Delano Mandelbaum",
   "delano": "Delano",
   "help-content-goes-here": "Help content goes here.",
+  "why-is-this-secret-unavailable": "Why is this secret unavailable?",
+  "secrets-are-designed-to-be-viewed-only-once": "Secrets are designed to be viewed only once. This link may have already been accessed, expired, or been manually deleted by the sender.",
+  "what-should-i-do-now": "What should I do now?",
+  "contact-the-person-who-sent-you-this-link": "Contact the person who sent you this link and ask them to create a new secret. Let them know you weren't able to access the original information.",
   "done": "Done",
   "loading-settings-content": "Loading settings content...",
   "settings-sections-0": "Settings sections",
@@ -644,7 +680,7 @@
   "warning-dismissed": "Warning dismissed",
   "secret-value-not-available": "Secret value not available",
   "dismiss-truncation-warning": "Dismiss truncation warning",
-  "you-can-safely-close-this-tab": "You can safely close this tab.",
+  "you-can-safely-close-this-tab": "You can close this window when done.",
   "sign-in-to-your-account": "Welcome Back",
   "enter-the-secret-content-here": "Enter the secret content here",
   "enter-the-secret-content-to-share-here": "Enter the secret content to share here",
@@ -655,7 +691,7 @@
   "not-received": "NOT RECEIVED",
   "received": "RECEIVED",
   "secrets-example-dot-com": "secrets.example.com",
-  "when-ready-click-the-view-secret-button-at-the-t": "When ready, click the \"View Secret\" button at the top of the page to reveal your one-time message.",
+  "when-ready-click-the-view-secret-button-at-the-t": "When ready, click the button at the top of the page to reveal your one-time message.",
   "what-happens-next": "What happens next?",
   "yes-after-viewing-the-secret-is-permanently-dele": "Yes. After viewing, the secret is permanently deleted from our servers, ensuring your privacy.",
   "is-it-secure": "Is it secure?",
@@ -680,7 +716,6 @@
   "request-password-reset": "Request password reset",
   "forgot-password": "Forgot Password",
   "google": "Google",
-  "unknown-jurisdiction-0": "Unknown Jurisdiction",
   "unknown-jurisdiction": "Unknown Jurisdiction",
   "redis-info": "Redis Info",
   "customer-secrets_created-customer-secrets_shared": "{0}/{1}/{2} [{3}]",
@@ -727,7 +762,7 @@
   "secure-encrypted-storage": "Secure, encrypted storage",
   "this-is-a-private-instance-only-authorized-team-": "This is a private instance. Only authorized team members can generate new secure links.",
   "return-to-home": "Return to Home",
-  "that-information-is-no-longer-available": "That information is no longer available.",
+  "that-information-is-no-longer-available": "This secret has been viewed or expired.",
   "information-no-longer-available": "Information no longer available",
   "create-another-secret": "Create another secret",
   "support-details": "Support Details",
@@ -834,7 +869,6 @@
   "follow-these-steps-to-verify-domain-ownership-an": "Follow these steps to verify domain ownership and elevate your online presence:",
   "domain-verification-steps": "Domain Verification Steps",
   "domain-verification-initiated-successfully": "Domain verification initiated successfully.",
-  "dismiss": "Dismiss",
   "deactivate": "Deactivate",
   "are-you-sure-you-want-to-deactivate-your-account": "Are you sure you want to deactivate your account? All of your data will be permanently removed from our servers forever. This action cannot be undone.",
   "deactivate-account": "Deactivate account",
@@ -874,5 +908,6 @@
   "an-error-occurred": "An error occurred",
   "copy-secret-to-clipboard": "Copy secret to clipboard",
   "secret-copied-to-clipboard": "Secret copied to clipboard",
-  "Double check that passphrase": "Double check that passphrase"
+  "Double check that passphrase": "Double check that passphrase",
+  "press_copy_button_below": "Press the copy button below."
 }

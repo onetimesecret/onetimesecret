@@ -53,6 +53,7 @@ export const metadataBaseSchema = createModelSchema({
   metadata_ttl: transforms.fromString.number,
   lifespan: transforms.fromString.number,
   state: metadataStateSchema,
+  has_passphrase: z.boolean().optional(),
   received: transforms.fromString.dateNullable.optional(),
   burned: transforms.fromString.dateNullable.optional(),
   viewed: transforms.fromString.dateNullable.optional(),

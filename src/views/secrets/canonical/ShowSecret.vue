@@ -15,19 +15,41 @@
    * @see SecretDisplayCase - Simplified secret reveal display
    */
   import BaseShowSecret, { type Props } from '@/components/base/BaseShowSecret.vue';
+  import FooterAttribution from '@/components/layout/SecretFooterAttribution.vue';
+  import FooterControls from '@/components/layout/SecretFooterControls.vue';
   import SecretConfirmationForm from '@/components/secrets/canonical/SecretConfirmationForm.vue';
   import SecretDisplayCase from '@/components/secrets/canonical/SecretDisplayCase.vue';
-  import SecretRecipientOnboardingContent from '@/components/secrets/SecretRecipientOnboardingContent.vue';
-  import FooterControls from '@/components/layout/SecretFooterControls.vue';
-  import FooterAttribution from '@/components/layout/SecretFooterAttribution.vue';
+  import {  nextTick } from 'vue';
 
   import UnknownSecret from './UnknownSecret.vue';
 
   defineProps<Props>();
 
+  // Watch for transitions between confirmation and reveal states
+  // This assumes there's a showSecret or similar state variable in BaseShowSecret
+  // that we can access via props or emitted events
+
+  // Focus management for a11y when secret is revealed
+  const handleSecretRevealed = async () => {
+    await nextTick();
+    // Focus the first focusable element in the SecretDisplayCase
+    const displayCase = document.querySelector('.secret-display-case');
+    if (displayCase) {
+      const focusableElements = displayCase.querySelectorAll(
+        'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+      );
+      if (focusableElements.length > 0) {
+        (focusableElements[0] as HTMLElement).focus();
+      }
+    }
+  };
+
+  // Call this method after secret is revealed
+  defineExpose({ handleSecretRevealed });
+
   const closeWarning = (event: Event) => {
     const element = event.target as HTMLElement;
-    const warning = element.closest('.bg-amber-50, .bg-brand-50');
+    const warning = element.closest('.bg-amber-50, .bg-brand-50, .bg-amber-900, .bg-brand-900');
     if (warning) {
       warning.remove();
     }
@@ -44,7 +66,12 @@
     <template #loading="{}">
       <div class="flex justify-center">
         <div
-          class="size-32 animate-spin rounded-full border-4 border-brand-500 border-t-transparent"></div>
+          class="size-32 animate-spin rounded-full
+            border-4 border-brand-500 border-t-transparent"
+          role="status"
+          aria-live="polite">
+          <span class="sr-only">{{ $t('web.COMMON.loading') }}</span>
+        </div>
       </div>
     </template>
 
@@ -60,15 +87,18 @@
       <template v-if="!record.verification">
         <div
           v-if="isOwner && !showSecret"
-          class="mb-4 border-l-4 border-amber-400 bg-amber-50 p-4 text-amber-700 dark:border-amber-500 dark:bg-amber-900 dark:text-amber-100"
+          class="mb-4 border-l-4 border-amber-400 bg-amber-50 p-4 text-amber-700
+            dark:border-amber-500 dark:bg-amber-900 dark:text-amber-100"
           role="alert"
           aria-live="polite">
           <button
             type="button"
-            class="float-right hover:text-amber-900 focus:outline-none focus:ring-2 focus:ring-amber-500 dark:hover:text-amber-50"
+            class="float-right rounded-md p-1
+              focus:outline-none focus:ring-2 focus:ring-amber-500 hover:text-amber-900
+              dark:hover:text-amber-50"
             @click="closeWarning"
             :aria-label="$t('dismiss-warning')">
-            <span aria-hidden="true">&times;</span>
+            <span aria-hidden="true" class="text-lg">&times;</span>
           </button>
           <strong class="font-medium">{{ $t('web.COMMON.warning') }}:</strong>
           {{ $t('web.shared.you_created_this_secret') }}
@@ -76,15 +106,18 @@
 
         <div
           v-if="isOwner && showSecret"
-          class="mb-4 border-l-4 border-brand-400 bg-brand-50 p-4 text-brand-700 dark:border-brand-500 dark:bg-brand-900 dark:text-brand-100"
+          class="mb-4 border-l-4 border-brand-400 bg-brand-50 p-4 text-brand-700
+            dark:border-brand-500 dark:bg-brand-900 dark:text-brand-100"
           role="alert"
           aria-live="polite">
           <button
             type="button"
-            class="float-right hover:text-brand-900 focus:outline-none focus:ring-2 focus:ring-brand-500 dark:hover:text-brand-50"
+            class="float-right rounded-md p-1
+              focus:outline-none focus:ring-2 focus:ring-brand-500 hover:text-brand-900
+              dark:hover:text-brand-50"
             @click="closeWarning"
             :aria-label="$t('dismiss-notification')">
-            <span aria-hidden="true">&times;</span>
+            <span aria-hidden="true" class="text-lg">&times;</span>
           </button>
           {{ $t('web.shared.viewed_own_secret') }}
         </div>
@@ -93,38 +126,32 @@
 
     <!-- Confirmation slot -->
     <template #confirmation="{ record, details, error, isLoading, onConfirm }">
-      <div class="mx-auto max-w-2xl space-y-20">
+      <div class="mx-auto max-w-2xl space-y-48 ">
         <SecretConfirmationForm
           :secret-key="secretKey"
           :record="record"
           :details="details"
           :error="error"
           :is-submitting="isLoading"
-          @user-confirmed="onConfirm" />
+          @user-confirmed="onConfirm"
+        />
       </div>
     </template>
 
     <!-- Onboarding slot -->
     <template #onboarding="{ record }">
       <div v-if="!record.verification">
-        <SecretRecipientOnboardingContent />
       </div>
     </template>
 
     <!-- Reveal slot -->
     <template #reveal="{ record, details }">
       <div class="space-y-4">
-        <h2
-          class="text-brand-600 dark:text-brand-100"
-          id="secret-heading">
-          {{ $t('web.shared.this_message_for_you') }}
-        </h2>
-
         <SecretDisplayCase
-          aria-labelledby="secret-heading"
           class="w-full"
           :record="record"
-          :details="details" />
+          :details="details"
+        />
       </div>
     </template>
 
@@ -135,8 +162,10 @@
 
     <!-- Footer slot -->
     <template #footer="{ siteHost }">
-    <div class="flex flex-col items-center space-y-8 py-8">
-        <FooterControls :show-language="true" />
+      <div class="flex flex-col items-center space-y-8 py-8">
+        <div class="flex items-center justify-center">
+          <FooterControls :show-language="true" />
+        </div>
         <FooterAttribution
           :site-host="siteHost"
           :show-nav="false"

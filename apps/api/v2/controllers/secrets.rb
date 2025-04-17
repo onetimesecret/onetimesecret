@@ -48,12 +48,21 @@ module V2
         retrieve_records(V2::Logic::Secrets::ShowSecret, allow_anonymous: true)
       end
 
+      def get_secret_status
+        retrieve_records(V2::Logic::Secrets::ShowSecretStatus, allow_anonymous: true)
+      end
+
+
+      def list_secret_status
+        retrieve_records(V2::Logic::Secrets::ListSecretStatus, allow_anonymous: true)
+      end
+
       def reveal_secret
         retrieve_records(V2::Logic::Secrets::RevealSecret, allow_anonymous: true)
       end
 
       def list_metadata
-        retrieve_records(V2::Logic::Secrets::ShowMetadataList)
+        retrieve_records(V2::Logic::Secrets::ListMetadata)
       end
 
     end

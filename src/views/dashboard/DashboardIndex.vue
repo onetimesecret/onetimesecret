@@ -4,23 +4,26 @@
   import DashboardTabNav from '@/components/dashboard/DashboardTabNav.vue';
   import SecretForm from '@/components/secrets/form/SecretForm.vue';
   import RecentSecretsTable from '@/components/secrets/RecentSecretsTable.vue';
+  import { WindowService } from '@/services/window.service';
+  import { computed } from 'vue';
+
+  const cust = WindowService.get('cust');
+
+  const isBetaEnabled = computed(() => cust?.feature_flags?.beta ?? false);
 </script>
 
 <template>
-
   <div class="container mx-auto min-w-[320px] max-w-2xl">
-      <DashboardTabNav />
+    <DashboardTabNav />
 
-      <SecretForm
-        class="mb-12"
-        :with-generate="true"
-        :with-recipient="true"
-      />
+    <SecretForm
+      class="mb-12"
+      :with-generate="true"
+      :with-recipient="true" />
 
-      <!-- Visual divider -->
-      <div class="border-t border-gray-200 dark:border-gray-700 my-6"></div>
+    <!-- Space divider -->
+    <div class="mb-6"></div>
 
-      <RecentSecretsTable />
-    </div>
-
+    <RecentSecretsTable v-if="isBetaEnabled" />
+  </div>
 </template>

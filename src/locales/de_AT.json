@@ -74,7 +74,8 @@
       "burn_security_notice": "Wenn Sie ein Geheimnis verbrennen, wird es gelöscht, bevor es empfangen wurde.",
       "share_link_securely": "Geben Sie diesen Link aus Sicherheitsgründen getrennt von anderen Angaben weiter.",
       "copied_to_clipboard": "In die Zwischenablage kopiert",
-      "button_create_incoming": "Nachricht senden"
+      "button_create_incoming": "Nachricht senden",
+      "faq_title": "FAQ"
     },
     "LABELS": {
       "view_toggle": {
@@ -82,6 +83,7 @@
         "hide": "Ausblenden"
       },
       "timeline": "Zeitleiste",
+      "lifespan": "Lebensdauer",
       "expiration_time": "Ablaufzeit",
       "close": "Schließen Sie",
       "loading": "Laden...",
@@ -89,14 +91,19 @@
       "saving": "Retten...",
       "saved": "Gerettet",
       "save": "Speichern",
+      "details": "Einzelheiten",
       "encrypted": "Verschlüsselt",
       "secret_status": "Geheimstatus",
       "need_help": "Brauchen Sie Hilfe?",
       "create_new_secret": "Neues Geheimnis erstellen",
       "actions": "Aktionen",
       "no_passphrase": "Keine Sicherheitsphrase erforderlich",
+      "copy_to_clipboard": "In die Zwischenablage kopieren",
+      "receipts": "Empfangsbestätigungen",
+      "share": "Teilen",
       "secret_link": "Geheime Verbindung",
       "security_details": "Details zur Sicherheit",
+      "items_count": "{count} Einträge",
       "recipients_count": "{count} Empfänger",
       "views": "Ansichten",
       "times_viewed": "mal angesehen",
@@ -105,6 +112,7 @@
       "passphrase_protected": "Geschützt mit Sicherheitsphrase",
       "feedback-received": "Rückmeldung erhalten.",
       "sending-ellipses": "Ich schicke...",
+      "pricing": "Preisgestaltung",
       "title_recent_secrets": "Neueste Geheimnisse"
     },
     "STATUS": {
@@ -122,6 +130,7 @@
       "orphaned": "Verwaist",
       "secured": "Gesichert",
       "securing": "Sichern",
+      "copied": "Kopiert",
       "time_remaining": "Verbleibende Zeit",
       "new_description": "Der geheime Link wurde erstellt und noch nicht angesehen",
       "unread_description": "Der geheime Link wurde erstellt und wurde noch nicht angesehen",
@@ -151,6 +160,16 @@
           "hour": "stunde | Stunden",
           "minute": "minute | Minuten",
           "second": "sekunde | Sekunden"
+        },
+        "noOptionsAvailable": "---"
+      },
+      "ttl_remaining": {
+        "duration": "Noch {count} {unit}",
+        "time": {
+          "day": "Tag übrig | Tage übrig",
+          "hour": "Stunde übrig | Stunden übrig",
+          "minute": "Minute übrig | Minuten übrig",
+          "second": "Sekunde übrig | Sekunden übrig"
         },
         "noOptionsAvailable": "---"
       },
@@ -233,6 +252,7 @@
       "you_created_this_secret": "Sie haben dieses Geheimnis erstellt. Wenn Sie es einsehen, kann der Empfänger es nicht sehen.",
       "your_secret_message": "Ihre geheime Nachricht:",
       "this_message_for_you": "Diese Nachricht ist für Sie bestimmt:",
+      "your_message_is_ready": "Ihre sichere Nachricht ist bereit",
       "reply_with_secret": "Antwort mit einem anderen Geheimnis",
       "pre_reveal_default": "Zum Anzeigen der geschützten Nachricht klicken Sie bitte auf die Schaltfläche.",
       "post_reveal_default": "Ihre sichere Nachricht wird unten angezeigt.",
@@ -336,7 +356,6 @@
       "steps-to-reproduce-the-issue": "Schritte zur Reproduktion des Problems.",
       "a-detailed-description-of-the-vulnerability": "Eine detaillierte Beschreibung der Schwachstelle.",
       "include-as-much-information-as-possible-about-th": ": Geben Sie so viele Informationen wie möglich über die Schwachstelle an. Dies sollte umfassen:",
-      "details": "Einzelheiten",
       "with-the-subject-line-vulnerability-report-brief": "mit der Betreffzeile \"Schwachstellenbericht: [Kurzbeschreibung]\".",
       "send-an-email-to": ": Senden Sie eine E-Mail an",
       "how-to-report": "Wie melden",
@@ -445,9 +464,6 @@
   "escape": "Flucht",
   "active": "Aktiv",
   "theyll-appear-here-once-youve-shared-them": "Sie werden hier erscheinen, sobald Sie sie geteilt haben.",
-  "web.LABELS.copy_to_clipboard": "In die Zwischenablage kopieren",
-  "copied": "Kopiert",
-  "pricing": "Preisgestaltung",
   "meets-and-exceeds-compliance-standards": "Erfüllt und übertrifft die Konformitätsstandards",
   "start-today": "Heute beginnen",
   "start-today-with-identity-plus": "Beginnen Sie noch heute mit Identity Plus",
@@ -593,6 +609,10 @@
   "delano-mandelbaum": "Delano Mandelbaum",
   "delano": "Delano",
   "help-content-goes-here": "Hilfe-Inhalte finden Sie hier.",
+  "why-is-this-secret-unavailable": "Warum ist dieses Geheimnis nicht verfügbar?",
+  "secrets-are-designed-to-be-viewed-only-once": "Geheimnisse sind so konzipiert, dass sie nur einmal angesehen werden können. Dieser Link wurde möglicherweise bereits aufgerufen, ist abgelaufen oder wurde vom Absender manuell gelöscht.",
+  "what-should-i-do-now": "Was soll ich jetzt tun?",
+  "contact-the-person-who-sent-you-this-link": "Kontaktieren Sie die Person, die Ihnen diesen Link gesendet hat, und bitten Sie sie, ein neues Geheimnis zu erstellen. Teilen Sie ihr mit, dass Sie nicht auf die ursprünglichen Informationen zugreifen konnten.",
   "done": "Erledigt",
   "loading-settings-content": "Inhalt der Einstellungen laden...",
   "settings-sections-0": "Abschnitte \"Einstellungen",
@@ -663,7 +683,6 @@
   "request-password-reset": "Passwort zurücksetzen anfordern",
   "forgot-password": "Passwort vergessen",
   "google": "Google",
-  "unknown-jurisdiction-0": "Unbekannte Gerichtsbarkeit",
   "unknown-jurisdiction": "Unbekannte Gerichtsbarkeit",
   "redis-info": "Redis-Informationen",
   "customer-secrets_created-customer-secrets_shared": "{0}/{1}/{2} [{3}]",

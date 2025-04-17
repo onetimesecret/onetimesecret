@@ -6,7 +6,7 @@
 # We test:
 # 1. Secret creation (ConcealSecret)
 # 2. Secret viewing (ShowSecret, RevealSecret)
-# 3. Secret metadata (ShowMetadata, ShowMetadataList)
+# 3. Secret metadata (ShowMetadata, ListMetadata)
 # 4. Secret deletion (BurnSecret)
 
 require_relative '../test_logic'
@@ -43,7 +43,7 @@ secret.generate_id
   secret: 'test secret value',
   passphrase: 'testpass123',
   ttl: '7200',
-  recipient: 'recipient@example.com'
+  recipient: 'recipient@example.com',
 }
 logic = Logic::Secrets::ConcealSecret.new @sess, @cust, {secret: @secret_params}
 [
@@ -65,7 +65,7 @@ logic = Logic::Secrets::ConcealSecret.new @sess, @cust, {secret: @secret_params}
 # Test secret viewing
 @view_params = {
   key: @secret.key, # Key converted to symbol
-  passphrase: 'testpass123' # Key converted to symbol
+  passphrase: 'testpass123', # Key converted to symbol
 }
 logic = Logic::Secrets::ShowSecret.new @sess, @cust, @view_params
 [logic.key, logic.passphrase]
@@ -85,15 +85,15 @@ logic = Logic::Secrets::ShowMetadata.new @sess, @cust, { key: @metadata.key }
 [logic.instance_variables.include?(:@key), logic.instance_variables.include?(:@metadata_key), logic.instance_variables.include?(:@secret_key), logic.secret_key, logic.key]
 #=> [true, false, false, nil, @metadata.key]
 
-# ShowMetadataList Tests
+# ListMetadata Tests
 
 ## Note that process_params is not run unless params are passed in
-logic = Logic::Secrets::ShowMetadataList.new @sess, @cust
+logic = Logic::Secrets::ListMetadata.new @sess, @cust
 [logic.since, logic.now]
 #=> [nil, nil]
 
 ## Test metadata list viewing
-logic = Logic::Secrets::ShowMetadataList.new @sess, @cust, {}
+logic = Logic::Secrets::ListMetadata.new @sess, @cust, {}
 [logic.records.class, logic.since.class, logic.now.class]
 #=> [NilClass, Integer, Time]
 

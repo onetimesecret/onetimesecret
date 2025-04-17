@@ -11,6 +11,51 @@
   <svg style="display: block">
     <defs>
       <symbol
+        viewBox="0 0 16 16"
+        id="heroicons-arrow-path">
+        <path
+          fill="currentColor"
+          fill-rule="evenodd"
+          d="M13.836 2.477a.75.75 0 0 1 .75.75v3.182a.75.75 0 0 1-.75.75h-3.182a.75.75 0 0 1 0-1.5h1.37l-.84-.841a4.5 4.5 0 0 0-7.08.932a.75.75 0 0 1-1.3-.75a6 6 0 0 1 9.44-1.242l.842.84V3.227a.75.75 0 0 1 .75-.75m-.911 7.5A.75.75 0 0 1 13.199 11a6 6 0 0 1-9.44 1.241l-.84-.84v1.371a.75.75 0 0 1-1.5 0V9.591a.75.75 0 0 1 .75-.75H5.35a.75.75 0 0 1 0 1.5H3.98l.841.841a4.5 4.5 0 0 0 7.08-.932a.75.75 0 0 1 1.025-.273"
+          clip-rule="evenodd" />
+      </symbol>
+      <symbol
+        viewBox="0 0 16 16"
+        id="heroicons-arrow-down">
+        <path
+          fill="currentColor"
+          fill-rule="evenodd"
+          d="M8 2a.75.75 0 0 1 .75.75v8.69l3.22-3.22a.75.75 0 1 1 1.06 1.06l-4.5 4.5a.75.75 0 0 1-1.06 0l-4.5-4.5a.75.75 0 0 1 1.06-1.06l3.22 3.22V2.75A.75.75 0 0 1 8 2"
+          clip-rule="evenodd" />
+      </symbol>
+      <symbol
+        viewBox="0 0 16 16"
+        id="heroicons-arrow-up">
+        <path
+          fill="currentColor"
+          fill-rule="evenodd"
+          d="M8 14a.75.75 0 0 1-.75-.75V4.56L4.03 7.78a.75.75 0 0 1-1.06-1.06l4.5-4.5a.75.75 0 0 1 1.06 0l4.5 4.5a.75.75 0 0 1-1.06 1.06L8.75 4.56v8.69A.75.75 0 0 1 8 14"
+          clip-rule="evenodd" />
+      </symbol>
+      <symbol
+        viewBox="0 0 16 16"
+        id="heroicons-arrow-right">
+        <path
+          fill="currentColor"
+          fill-rule="evenodd"
+          d="M2 8a.75.75 0 0 1 .75-.75h8.69L8.22 4.03a.75.75 0 0 1 1.06-1.06l4.5 4.5a.75.75 0 0 1 0 1.06l-4.5 4.5a.75.75 0 0 1-1.06-1.06l3.22-3.22H2.75A.75.75 0 0 1 2 8"
+          clip-rule="evenodd" />
+      </symbol>
+      <symbol
+        viewBox="0 0 16 16"
+        id="heroicons-arrow-left">
+        <path
+          fill="currentColor"
+          fill-rule="evenodd"
+          d="M14 8a.75.75 0 0 1-.75.75H4.56l3.22 3.22a.75.75 0 1 1-1.06 1.06l-4.5-4.5a.75.75 0 0 1 0-1.06l4.5-4.5a.75.75 0 0 1 1.06 1.06L4.56 7.25h8.69A.75.75 0 0 1 14 8"
+          clip-rule="evenodd" />
+      </symbol>
+      <symbol
         viewBox="0 0 24 24"
         id="heroicons-arrow-top-right-on-square">
         <path

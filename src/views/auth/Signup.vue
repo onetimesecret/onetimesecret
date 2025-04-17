@@ -25,7 +25,7 @@
     () =>
       getCurrentJurisdiction.value || {
         identifier: t('unknown-jurisdiction'),
-        display_name: t('unknown-jurisdiction-0'),
+        display_name: t('unknown-jurisdiction'),
         domain: '',
         icon: {
           collection: 'mdi',

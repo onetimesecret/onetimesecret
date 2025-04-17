@@ -1,42 +1,37 @@
 {
-  "arrayBrackets": "multiline",
   "arrowParens": "always",
   "bracketSameLine": true,
   "bracketSpacing": true,
   "embeddedLanguageFormatting": "auto",
   "endOfLine": "lf",
-  "functionParenthesis": "multiline",
   "htmlWhitespaceSensitivity": "strict",
   "jsxSingleQuote": false,
-  "objectBraces": "multiline",
   "overrides": [
     {
       "files": "*.rb",
       "options": {
         "parser": "ruby",
-        "rubyParser": "syntax_tree"
+        "printWidth": 80
       }
     },
     {
       "files": "*.svg",
       "options": {
-        "parser": "html",
-        "htmlSelfClosing": true,
-        "htmlWhitespaceSensitivity": "ignore",
-        "voidTags": "always"
+        "parser": "html"
       }
     },
     {
       "files": ["*.vue"],
       "options": {
+        "parser": "vue",
         "vueIndentScriptAndStyle": true,
-        "htmlSelfClosing": true,
-        "htmlWhitespaceSensitivity": "ignore",
-        "voidElements": ["path", "circle", "rect", "polyline", "line", "polygon"]
+        "htmlWhitespaceSensitivity": "strict",
+        "printWidth": 100
       }
     }
   ],
-  "plugins": ["prettier-plugin-vue", "@prettier/plugin-ruby"],
+  "plugins": ["prettier-plugin-vue", "@prettier/plugin-ruby", "prettier-plugin-tailwindcss"],
+  "vueIndentScriptAndStyle": true,
   "printWidth": 100,
   "proseWrap": "preserve",
   "quoteProps": "as-needed",
@@ -46,6 +41,8 @@
   "tabWidth": 2,
   "trailingComma": "es5",
   "useTabs": false,
-  "vueIndentScriptAndStyle": true,
-  "htmlSelfClosing": true
+  "tailwindConfig": "./tailwind.config.ts",
+  "tailwindFunctions": ["clsx", "cn"],
+  "tailwindAttributes": ["class", ":class", "className", "ngClass"],
+  "tailwindPreserveDuplicates": false
 }
