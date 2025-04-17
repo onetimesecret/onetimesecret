@@ -115,7 +115,7 @@
           dark:border-slate-800/50 dark:from-slate-900 dark:to-slate-950 dark:shadow-slate-900/30">
           <!-- Secret Link Header -->
           <section
-            v-if="!details.show_recipients"
+
             class="relative transition-transform duration-300 hover:scale-[1.01]"
             aria-labelledby="secret-header">
             <SecretLink

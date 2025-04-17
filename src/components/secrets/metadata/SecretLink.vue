@@ -98,7 +98,7 @@
         <span>{{ $t('web.private.created_success') }}</span>
       </div>
 
-      <!-- Subsequent Message - Enhanced Design -->
+      <!-- Subsequent Message -->
       <div
         class="mb-1 flex items-center gap-2 px-5 pt-4 font-mono text-sm tracking-wide text-gray-500">
         <OIcon
@@ -107,13 +107,15 @@
           class="size-4 transition-transform duration-300 group-hover:rotate-12"
           aria-hidden="true" />
         <span
-          class="transition-colors group-hover:text-brand-500 dark:group-hover:text-brand-400"
-          >{{ record.secret_shortkey }}</span
-        >
+          class="transition-colors group-hover:text-brand-500 dark:group-hover:text-brand-400">
+          {{ record.secret_shortkey }}
+        </span>
       </div>
 
       <!-- Secret Link Display with Enhanced Styling -->
-      <div class="flex items-start px-5 py-3">
+      <div
+        v-if="!details.show_recipients"
+        class="flex items-start px-5 py-3">
         <div class="group/link relative min-w-0 grow">
           <!-- prettier-ignore-attribute class -->
           <textarea
@@ -149,6 +151,7 @@
       <!-- Security Notice with Enhanced Design -->
       <!-- prettier-ignore-attribute class -->
       <div
+        v-if="!details.show_recipients"
         class="border-t border-gray-200
           bg-gray-50 px-5 py-3 dark:border-gray-700 dark:bg-gray-900/50">
         <div class="flex items-center text-xs text-gray-500 dark:text-gray-400">
