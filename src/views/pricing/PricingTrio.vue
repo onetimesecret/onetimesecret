@@ -1,15 +1,15 @@
 <!-- src/views/pricing/PricingTrio.vue -->
 
 <script setup lang="ts">
-  import { ref, onMounted } from 'vue';
-  import { RadioGroup, RadioGroupOption } from '@headlessui/vue';
   import OIcon from '@/components/icons/OIcon.vue';
   import MovingGlobules from '@/components/MovingGlobules.vue';
   import QuoteSection from '@/components/QuoteSection.vue';
   import type { PaymentFrequency } from '@/sources/productTiers';
-  import { useJurisdictionStore } from '@/stores';
   import { paymentFrequencies as frequencies, productTiers as tiers } from '@/sources/productTiers';
   import { testimonials as testimonialsData } from '@/sources/testimonials';
+  import { useJurisdictionStore } from '@/stores';
+  import { RadioGroup, RadioGroupOption } from '@headlessui/vue';
+  import { onMounted, ref } from 'vue';
   import { useI18n } from 'vue-i18n';
 
   const { t } = useI18n();
@@ -27,7 +27,7 @@
 </script>
 
 <template>
-  <div class="relative isolate dark:bg-gray-900 py-24 sm:py-32">
+  <div class="relative isolate py-24 dark:bg-gray-900 sm:py-32">
     <!-- Background Globules -->
     <MovingGlobules
       from-colour="#23b5dd"
@@ -37,29 +37,33 @@
       :scale="1"
       aria-hidden="true" />
 
-    <div class="mx-auto max-w-7xl px-6 lg:px-8 relative z-10">
+    <div class="relative z-10 mx-auto max-w-7xl px-6 lg:px-8">
       <!-- Header section -->
       <div class="mx-auto max-w-4xl text-center">
         <h2 class="text-base/7 font-semibold text-brand-600 dark:text-brand-400">{{
           t('pricing')
         }}</h2>
-        <p class="mt-2 text-5xl font-bold font-brand tracking-tight text-gray-900 dark:text-white">
+        <p class="mt-2 font-brand text-5xl font-bold tracking-tight text-gray-900 dark:text-white">
           {{ t('secure-links-stronger-connections') }}
         </p>
       </div>
       <p
-        class="mx-auto mt-6 max-w-2xl text-center text-lg font-medium text-pretty text-gray-600 dark:text-gray-300 sm:text-xl/8">
+        class="mx-auto mt-6 max-w-2xl text-pretty text-center text-lg font-medium text-gray-600 dark:text-gray-300 sm:text-xl/8">
         {{ t('secure-your-brand-and-build-customer-trust-with-') }}
       </p>
 
       <!-- Payment Frequency Toggle -->
       <div class="mt-16 flex justify-center">
         <!-- Add hidden label for screen readers -->
-        <span id="frequency-label" class="sr-only">{{ t('select-payment-frequency') }}</span>
+        <span
+          id="frequency-label"
+          class="sr-only"
+          >{{ t('select-payment-frequency') }}</span
+        >
 
         <RadioGroup
           v-model="frequency"
-          class="grid grid-cols-2 gap-x-1 rounded-full p-1 text-center text-xs/5 font-semibold ring-1 ring-gray-200 dark:ring-gray-700 ring-inset"
+          class="grid grid-cols-2 gap-x-1 rounded-full p-1 text-center text-xs/5 font-semibold ring-1 ring-inset ring-gray-200 dark:ring-gray-700"
           aria-labelledby="frequency-label">
           <RadioGroupOption
             as="template"
@@ -70,7 +74,7 @@
             <div
               :class="[
                 checked ? 'bg-brand-600 text-white' : 'text-gray-500 dark:text-gray-400',
-                active ? 'ring-2 ring-offset-1 ring-brand-400' : '',
+                active ? 'ring-2 ring-brand-400 ring-offset-1' : '',
                 'cursor-pointer rounded-full px-2.5 py-1',
               ]">
               {{ option.label }}
@@ -82,16 +86,17 @@
       <!-- Pricing Tiers -->
       <div
         class="isolate mx-auto mt-10 grid max-w-md grid-cols-1 gap-8 lg:mx-0 lg:max-w-none lg:grid-cols-3"
-        role="list">
+        role="list"
+        aria-label="Pricing plans">
         <!-- Pricing tier card -->
         <div
           v-for="tier in tiers"
           :key="tier.id"
           :class="[
             tier.featured
-              ? 'bg-brandcomp-100/80 dark:bg-brand-950 ring-brandcomp-900 dark:ring-brand-500 shadow-xl border border-brandcomp-700/30 dark:border-brand-400/30'
-              : 'ring-gray-200 dark:ring-gray-700 bg-white dark:bg-gray-900',
-            'rounded-3xl p-8 ring-1 xl:p-10 transition-transform duration-200 hover:scale-105',
+              ? 'border border-brandcomp-700/30 bg-brandcomp-100/80 shadow-xl ring-brandcomp-900 dark:border-brand-400/30 dark:bg-brand-950 dark:ring-brand-500'
+              : 'bg-white ring-gray-200 dark:bg-gray-900 dark:ring-gray-700',
+            'rounded-3xl p-8 ring-1 transition-transform duration-200 hover:scale-105 xl:p-10',
           ]"
           role="listitem">
           <!-- Name -->
@@ -114,7 +119,9 @@
             >{{ tier.description }}</p
           >
           <!-- Price -->
-          <p class="mt-6 flex items-baseline gap-x-1" aria-label="Price">
+          <p
+            class="mt-6 flex items-baseline gap-x-1"
+            aria-label="Price for ${tier.name}">
             <span
               :class="[
                 tier.featured
@@ -138,13 +145,14 @@
           <!-- CTA Button -->
           <a
             :href="`${tier.href}${frequency.priceSuffix}`"
+            :aria-label="`${tier.cta} for ${tier.name} plan`"
             :aria-describedby="`tier-${tier.id}`"
             :class="[
-                tier.featured
-                  ? 'bg-brandcomp-800 dark:bg-brand-600 text-white hover:bg-brandcomp-900 dark:hover:bg-brand-700 focus-visible:outline-brandcomp-500'
-                  : 'bg-brand-600 dark:bg-brandcomp-800 text-white hover:bg-brand-500 dark:hover:bg-brandcomp-700 focus-visible:outline-brand-500',
-                'mt-6 block rounded-md px-3 py-2 text-center text-lg font-semibold focus-visible:outline-2 focus-visible:outline-offset-2 transition-colors',
-              ]">
+              tier.featured
+                ? 'bg-brandcomp-800 text-white hover:bg-brandcomp-900 focus-visible:outline-brandcomp-500 dark:bg-brand-600 dark:hover:bg-brand-700'
+                : 'bg-brand-600 text-white hover:bg-brand-500 focus-visible:outline-brand-500 dark:bg-brandcomp-800 dark:hover:bg-brandcomp-700',
+              'mt-6 block rounded-md px-3 py-2 text-center text-lg font-semibold transition-colors focus-visible:outline-2 focus-visible:outline-offset-2',
+            ]">
             {{ tier.cta }}
           </a>
           <!-- Features -->
@@ -194,7 +202,7 @@
 
       <!-- Data Locality Notice -->
       <p class="mt-10 text-center text-sm text-gray-600 dark:text-gray-400">
-      {{ t('includes-all-data-locality-options', [jurisdictions.join(', ')]) }}
+        {{ t('includes-all-data-locality-options', [jurisdictions.join(', ')]) }}
       </p>
     </div>
 
