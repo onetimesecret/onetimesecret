@@ -106,17 +106,22 @@
                     hover:bg-gray-50/80 dark:border-gray-700 dark:hover:bg-slate-800/70">
                   <td class="whitespace-nowrap px-6 py-4">
                     <SecretMetadataTableItem
-                      :secret-metadata="item"
-                      view="table-cell" />
+                      :secret-metadata="item" />
                   </td>
-                  <td class="hidden whitespace-nowrap px-6 py-4 sm:table-cell">
-                    <div class="text-sm text-gray-600 dark:text-gray-400">
-                      <span v-if="item.show_recipients">
-                        {{ $t('web.COMMON.sent_to') }} {{ item.recipients }}
+                  <td class="whitespace-nowrap px-6 py-4 sm:table-cell">
+                    <div class="flex flex-col space-y-1 text-sm text-gray-600 dark:text-gray-400">
+                      <span v-if="item.show_recipients" :aria-label="$t('web.COMMON.secret_recipient_address')">
+                        {{ item.recipients }}
                       </span>
-                      <span v-else>
-                        <!-- Has a passphrase -->
-                      </span>
+                      <div v-if="item.has_passphrase" class="flex items-center">
+                        <OIcon
+                          collection="heroicons"
+                          name="key"
+                          class="mr-1 size-3 text-emerald-500 dark:text-emerald-400" />
+                        <span class="font-medium text-emerald-600 dark:text-emerald-400">
+                          {{ $t('web.COMMON.secret_passphrase') }}
+                        </span>
+                      </div>
                     </div>
                   </td>
                   <td class="whitespace-nowrap px-6 py-4 text-right">
@@ -275,13 +280,12 @@
                     hover:bg-gray-50/80 dark:border-gray-700 dark:hover:bg-slate-800/70">
                   <td class="whitespace-nowrap px-6 py-4">
                     <SecretMetadataTableItem
-                      :secret-metadata="item"
-                      view="table-cell" />
+                      :secret-metadata="item" />
                   </td>
-                  <td class="hidden whitespace-nowrap px-6 py-4 sm:table-cell">
+                  <td class="whitespace-nowrap px-6 py-4 sm:table-cell">
                     <div class="text-sm text-gray-600 dark:text-gray-400">
-                      <span v-if="item.show_recipients">
-                        {{ $t('web.COMMON.sent_to') }} {{ item.recipients }}
+                      <span v-if="item.show_recipients" :aria-label="$t('web.COMMON.secret_recipient_address')">
+                        {{ item.recipients }}
                       </span>
                     </div>
                   </td>
