@@ -57,9 +57,9 @@
         <!-- Add hidden label for screen readers -->
         <span
           id="frequency-label"
-          class="sr-only"
-          >{{ t('select-payment-frequency') }}</span
-        >
+          class="sr-only">
+          {{ t('select-payment-frequency') }}
+        </span>
 
         <RadioGroup
           v-model="frequency"
@@ -99,103 +99,106 @@
             'rounded-3xl p-8 ring-1 transition-transform duration-200 hover:scale-105 xl:p-10',
           ]"
           role="listitem">
-          <!-- Name -->
-          <h3
-            :id="`tier-${tier.id}`"
-            :class="[
-              tier.featured ? 'text-gray-900 dark:text-white' : 'text-gray-800 dark:text-white',
-              'text-2xl font-semibold',
-            ]">
-            {{ tier.name }}
-          </h3>
-          <!-- Description -->
-          <p
-            :class="[
-              tier.featured
-                ? 'text-brandcomp-900 dark:text-brand-100'
-                : 'text-gray-600 dark:text-gray-300',
-              'mt-4 text-sm/6',
-            ]"
-            >{{ tier.description }}</p
-          >
-          <!-- Price -->
-          <p
-            class="mt-6 flex items-baseline gap-x-1"
-            aria-label="Price for ${tier.name}">
-            <span
-              :class="[
-                tier.featured
-                  ? 'text-brandcomp-900 dark:text-white'
-                  : 'text-gray-900 dark:text-white',
-                'text-4xl font-semibold tracking-tight',
-              ]">
-              {{ typeof tier.price === 'string' ? tier.price : tier.price[frequency.value] }}
-            </span>
-            <span
-              v-if="typeof tier.price !== 'string'"
+          <div class="flex h-full flex-col">
+            <div>
+              <!-- Name -->
+              <h3
+                :id="`tier-${tier.id}`"
+                :class="[
+                  tier.featured ? 'text-gray-900 dark:text-white' : 'text-gray-800 dark:text-white',
+                  'text-2xl font-semibold',
+                ]">
+                {{ tier.name }}
+              </h3>
+              <!-- Description -->
+              <p
+                :class="[
+                  tier.featured
+                    ? 'text-brandcomp-900 dark:text-brand-100'
+                    : 'text-gray-600 dark:text-gray-300',
+                  'mt-4 text-sm/6',
+                ]">
+                {{ tier.description }}
+              </p>
+              <!-- Learn more link - Moved here for better context -->
+              <a
+                v-if="tier.learn_more"
+                :href="tier?.learn_more"
+                :aria-label="`Learn more about ${tier.name} plan`"
+                class="mt-2 inline-flex items-center text-sm font-medium text-brand-600
+                hover:text-brand-700 focus:outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-500 dark:text-brand-400 dark:hover:text-brand-300">
+                {{ t('web.help.learn_more') }}
+                <OIcon
+                  collection="heroicons"
+                  name="arrow-right-16-solid"
+                  class="ml-1 size-4"
+                  aria-hidden="true" />
+              </a>
+              <!-- Price -->
+              <p
+                class="mt-6 flex items-baseline gap-x-1"
+                aria-label="Price for ${tier.name}">
+                <span
+                  :class="[
+                    tier.featured
+                      ? 'text-brandcomp-900 dark:text-white'
+                      : 'text-gray-900 dark:text-white',
+                    'text-4xl font-semibold tracking-tight',
+                  ]">
+                  {{ typeof tier.price === 'string' ? tier.price : tier.price[frequency.value] }}
+                </span>
+                <span
+                  v-if="typeof tier.price !== 'string'"
+                  :class="[
+                    tier.featured
+                      ? 'text-brandcomp-900 dark:text-brand-100'
+                      : 'text-gray-600 dark:text-gray-300',
+                    'text-sm/6 font-semibold',
+                  ]">
+                  {{ frequency.priceSuffix }}
+                </span>
+              </p>
+              <!-- CTA Button -->
+              <a
+                :href="`${tier.href}${frequency.priceSuffix}`"
+                :aria-label="`${tier.cta} for ${tier.name} plan`"
+                :aria-describedby="`tier-${tier.id}`"
+                :class="[
+                  tier.featured
+                    ? 'bg-brandcomp-800 text-white hover:bg-brandcomp-900 focus-visible:outline-brandcomp-500 dark:bg-brand-600 dark:hover:bg-brand-700'
+                    : 'bg-brand-600 text-white hover:bg-brand-500 focus-visible:outline-brand-500 dark:bg-brandcomp-800 dark:hover:bg-brandcomp-700',
+                  'mt-6 block rounded-md px-3 py-2 text-center text-lg font-semibold transition-colors focus-visible:outline-2 focus-visible:outline-offset-2',
+                ]">
+                {{ tier.cta }}
+              </a>
+            </div>
+            <!-- Features -->
+            <ul
+              role="list"
               :class="[
                 tier.featured
                   ? 'text-brandcomp-900 dark:text-brand-100'
                   : 'text-gray-600 dark:text-gray-300',
-                'text-sm/6 font-semibold',
-              ]">
-              {{ frequency.priceSuffix }}
-            </span>
-          </p>
-          <!-- CTA Button -->
-          <a
-            :href="`${tier.href}${frequency.priceSuffix}`"
-            :aria-label="`${tier.cta} for ${tier.name} plan`"
-            :aria-describedby="`tier-${tier.id}`"
-            :class="[
-              tier.featured
-                ? 'bg-brandcomp-800 text-white hover:bg-brandcomp-900 focus-visible:outline-brandcomp-500 dark:bg-brand-600 dark:hover:bg-brand-700'
-                : 'bg-brand-600 text-white hover:bg-brand-500 focus-visible:outline-brand-500 dark:bg-brandcomp-800 dark:hover:bg-brandcomp-700',
-              'mt-6 block rounded-md px-3 py-2 text-center text-lg font-semibold transition-colors focus-visible:outline-2 focus-visible:outline-offset-2',
-            ]">
-            {{ tier.cta }}
-          </a>
-          <!-- Features -->
-          <ul
-            role="list"
-            :class="[
-              tier.featured
-                ? 'text-brandcomp-900 dark:text-brand-100'
-                : 'text-gray-600 dark:text-gray-300',
-              'mt-8 space-y-3 text-sm/6 xl:mt-10',
-            ]"
-            :aria-label="`${tier.name} features`">
-            <li
-              v-for="feature in tier.features"
-              :key="feature"
-              class="flex gap-x-3">
-              <OIcon
-                collection="heroicons"
-                name="check-16-solid"
-                :class="[
-                  tier.featured
-                    ? 'text-brandcomp-600 dark:text-white'
-                    : 'text-brand-600 dark:text-brand-400',
-                  'h-6 w-5 flex-none',
-                ]"
-                aria-hidden="true" />
-              <span>{{ feature }}</span>
-            </li>
-          </ul>
-          <!-- Learn more link with improved placement and accessibility -->
-          <div class="mt-8 border-t border-gray-200 dark:border-gray-700 pt-6">
-            <a
-              v-if="tier.learn_more"
-              :href="tier?.learn_more"
-              :aria-label="`Learn more about ${tier.name} plan`"
-              class="inline-flex items-center text-sm font-medium text-brand-600 hover:text-brand-700 dark:text-brand-400 dark:hover:text-brand-300 focus:outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-500 transition-all hover:translate-x-0.5">
-              {{ t('web.help.learn_more') }}
-              <OIcon
-                collection="heroicons"
-                name="arrow-right-16-solid"
-                class="ml-1 h-4 w-4"
-                aria-hidden="true" />
-            </a>
+                'mt-8 space-y-3 text-sm/6 xl:mt-10',
+              ]"
+              :aria-label="`${tier.name} features`">
+              <li
+                v-for="feature in tier.features"
+                :key="feature"
+                class="flex gap-x-3">
+                <OIcon
+                  collection="heroicons"
+                  name="check-16-solid"
+                  :class="[
+                    tier.featured
+                      ? 'text-brandcomp-600 dark:text-white'
+                      : 'text-brand-600 dark:text-brand-400',
+                    'h-6 w-5 flex-none',
+                  ]"
+                  aria-hidden="true" />
+                <span>{{ feature }}</span>
+              </li>
+            </ul>
           </div>
         </div>
       </div>
