@@ -105,30 +105,29 @@
                   class="group border-b border-gray-200 transition-all duration-200
                     hover:bg-gray-50/80 dark:border-gray-700 dark:hover:bg-slate-800/70">
                   <td class="whitespace-nowrap px-6 py-4">
-                    <SecretMetadataTableItem
-                      :secret-metadata="item" />
+                    <SecretMetadataTableItem :secret-metadata="item" />
                   </td>
                   <td class="whitespace-nowrap px-6 py-4">
+                    <!-- prettier-ignore-attribute class -->
                     <div
-                      class="flex flex-row flex-wrap items-center gap-x-3 gap-y-1 text-sm text-gray-600 dark:text-gray-400"
-                    >
+                      class="flex flex-row flex-wrap items-center gap-x-3 gap-y-1 text-sm
+                        text-gray-600 dark:text-gray-400">
                       <span
                         v-if="item.show_recipients"
                         :aria-label="$t('web.COMMON.secret_recipient_address')"
-                        class="shrink"
-                      >
+                        class="shrink">
                         {{ item.recipients }}
                       </span>
-                      <div v-if="item.has_passphrase" class="flex items-center">
+                      <div
+                        v-if="item.has_passphrase"
+                        class="flex items-center">
                         <OIcon
                           collection="heroicons"
                           name="key"
                           class="size-3 text-emerald-500 dark:text-emerald-400"
-                          aria-hidden="true"
-                        />
+                          aria-hidden="true" />
                         <span
-                          class="ml-1 font-medium text-emerald-600 dark:text-emerald-400 sm:inline"
-                        >
+                          class="ml-1 font-medium text-emerald-600 dark:text-emerald-400 sm:inline">
                           <span class="hidden sm:inline">
                             {{ $t('web.COMMON.secret_passphrase') }}
                           </span>
@@ -141,9 +140,7 @@
                   </td>
                   <td class="whitespace-nowrap px-6 py-4 text-right">
                     <!-- TODO: We need the secret key in the list metadata endpoint to create the link -->
-                    <div
-
-                      class="flex justify-end space-x-2">
+                    <div class="flex justify-end space-x-2">
                       <!-- prettier-ignore-attribute class -->
                       <div
                         v-if="!item.is_destroyed && false"
@@ -152,22 +149,16 @@
                         <a
                           :href="getShareLink(item)"
                           target="_blank"
-                          class="flex items-center gap-2 rounded-t
-                            bg-gray-100 px-3 py-1.5 text-sm font-medium
-                            text-gray-700 transition-all hover:bg-gray-200
-                            focus:outline-none focus:ring-2 focus:ring-gray-300 focus:ring-offset-2
-                            dark:bg-gray-800/50 dark:text-gray-300 dark:hover:bg-gray-700/40">
+                          class="flex items-center gap-2 rounded-t bg-gray-100 px-3 py-1.5 text-sm font-medium text-gray-700 transition-all hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-gray-300 focus:ring-offset-2 dark:bg-gray-800/50 dark:text-gray-300 dark:hover:bg-gray-700/40">
                           <OIcon
                             collection="heroicons"
                             name="arrow-top-right-on-square"
                             class="size-4"
-                            aria-hidden="true"
-                          />
+                            aria-hidden="true" />
                           <span class="sr-only">{{ $t('web.COMMON.view_secret') }}</span>
                         </a>
                         <!-- Copy Button with Tooltip -->
-                        <div
-                          class="relative">
+                        <div class="relative">
                           <!-- prettier-ignore-attribute class -->
                           <button
                             @click="handleCopy(item)"
@@ -179,8 +170,7 @@
                               collection="heroicons"
                               :name="copiedItemKey === item.key ? 'check' : 'clipboard'"
                               class="size-4"
-                              aria-hidden="true"
-                            />
+                              aria-hidden="true" />
                             <span class="sr-only">{{ $t('web.LABELS.copy_to_clipboard') }}</span>
                           </button>
                           <!-- Copy Feedback Tooltip -->
@@ -192,8 +182,7 @@
                             px-2 py-1 text-xs text-white shadow-lg">
                             {{ $t('web.STATUS.copied') }}
                             <div
-                              class="absolute left-1/2 top-full size-2 -translate-x-1/2
-                              rotate-45 rounded-b bg-gray-800"></div>
+                              class="absolute left-1/2 top-full size-2 -translate-x-1/2 rotate-45 rounded-b bg-gray-800"></div>
                           </div>
                         </div>
                       </div>
@@ -210,8 +199,7 @@
                           collection="heroicons"
                           name="fire"
                           class="mr-1.5 size-4"
-                          aria-hidden="true"
-                        />
+                          aria-hidden="true" />
                         <span>{{ $t('web.COMMON.burn') }}</span>
                       </router-link>
                     </div>
@@ -300,18 +288,15 @@
                   class="group border-b border-gray-200 transition-all duration-200
                     hover:bg-gray-50/80 dark:border-gray-700 dark:hover:bg-slate-800/70">
                   <td class="whitespace-nowrap px-6 py-4">
-                    <SecretMetadataTableItem
-                      :secret-metadata="item" />
+                    <SecretMetadataTableItem :secret-metadata="item" />
                   </td>
                   <td class="whitespace-nowrap px-6 py-4">
                     <div
-                      class="flex flex-row flex-wrap items-center gap-x-3 gap-y-1 text-sm text-gray-600 dark:text-gray-400"
-                    >
+                      class="flex flex-row flex-wrap items-center gap-x-3 gap-y-1 text-sm text-gray-600 dark:text-gray-400">
                       <span
                         v-if="item.show_recipients"
                         :aria-label="$t('web.COMMON.secret_recipient_address')"
-                        class="shrink"
-                      >
+                        class="shrink">
                         {{ item.recipients }}
                       </span>
                     </div>
@@ -328,11 +313,10 @@
                       ]">
                       <OIcon
                         :collection="'heroicons'"
-                        :name="item.is_burned ? 'fire' : 'x-mark' "
+                        :name="item.is_burned ? 'fire' : 'x-mark'"
                         size="4"
                         class="mr-1.5"
-                        aria-hidden="true"
-                      />
+                        aria-hidden="true" />
                       <span v-if="item.is_expired">
                         {{ $t('web.STATUS.expired') }}
                       </span>

@@ -100,12 +100,14 @@
             </h2>
           </div>
 
-          <div class="flex items-center gap-3">
+          <div
+            class="flex items-center gap-3">
             <span class="text-sm text-gray-500 dark:text-gray-400">
               {{ $t('web.LABELS.items_count', { count: recordCount }) }}
             </span>
             <!-- prettier-ignore-attribute class -->
             <button
+              v-if="false"
               @click="handleRefresh"
               class="flex items-center gap-1 rounded p-1.5
                 text-gray-500 hover:bg-gray-100 hover:text-gray-700
