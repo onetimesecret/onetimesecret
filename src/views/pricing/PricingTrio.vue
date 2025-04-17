@@ -171,9 +171,24 @@
                   'h-6 w-5 flex-none',
                 ]"
                 aria-hidden="true" />
-              {{ feature }}
+              <span>{{ feature }}</span>
             </li>
           </ul>
+          <!-- Learn more link with improved placement and accessibility -->
+          <div class="mt-8 border-t border-gray-200 dark:border-gray-700 pt-6">
+            <a
+              v-if="tier.learn_more"
+              :href="tier?.learn_more"
+              :aria-label="`Learn more about ${tier.name} plan`"
+              class="inline-flex items-center text-sm font-medium text-brand-600 hover:text-brand-700 dark:text-brand-400 dark:hover:text-brand-300 focus:outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-500 transition-all hover:translate-x-0.5">
+              {{ t('web.help.learn_more') }}
+              <OIcon
+                collection="heroicons"
+                name="arrow-right-16-solid"
+                class="ml-1 h-4 w-4"
+                aria-hidden="true" />
+            </a>
+          </div>
         </div>
       </div>
 
