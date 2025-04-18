@@ -55,6 +55,7 @@
           {{ statusMessage }}
         </h1>
         <div
+          v-if="!record?.has_passphrase"
           class="mt-1 text-base text-gray-600 dark:text-gray-400"
           role="status"
           aria-live="polite">
@@ -78,14 +79,6 @@
         </template>
       </NeedHelpModal>
     </div>
-
-    <!-- Error message area, announced assertively when present -->
-    <p
-      v-if="error"
-      class="mb-4 text-sm text-red-600 dark:text-red-400"
-      role="alert">
-      {{ String(error) }}
-    </p>
 
     <form
       @submit.prevent="submitForm"
@@ -128,11 +121,6 @@
           class="mt-1 text-sm text-red-600 dark:text-red-400"
           role="alert">
           {{ String(error) }}
-        </p>
-        <p
-          :id="passphraseDescriptionId"
-          class="text-sm text-gray-500 dark:text-gray-400">
-          {{ $t('web.COMMON.careful_only_see_once') }}
         </p>
       </div>
 

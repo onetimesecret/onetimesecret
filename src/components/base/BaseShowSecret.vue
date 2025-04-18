@@ -88,14 +88,6 @@
         </slot>
       </template>
 
-      <!-- Error State -->
-      <template v-else-if="state.error">
-        <slot
-          name="error"
-          :error="state.error"
-          :branded="branded"></slot>
-      </template>
-
       <!-- Main Content - Valid Secret -->
       <div v-else-if="record && details">
         <!-- Alerts slot for owner warnings -->

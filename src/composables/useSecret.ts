@@ -13,7 +13,6 @@ export function useSecret(secretKey: string, options?: AsyncHandlerOptions) {
     isLoading: false,
     error: '',
     success: '',
-    passphrase: '',
   });
 
   const defaultAsyncHandlerOptions: AsyncHandlerOptions = {
@@ -39,7 +38,6 @@ export function useSecret(secretKey: string, options?: AsyncHandlerOptions) {
   const reveal = (passphrase: string) =>
     wrap(async () => {
       await store.reveal(secretKey, passphrase);
-      state.passphrase = '';
     });
 
   return {
