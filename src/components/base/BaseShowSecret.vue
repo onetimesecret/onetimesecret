@@ -49,13 +49,13 @@
 
 <template>
   <main
-    class="min-h-screen grid grid-rows-[auto_minmax(0,max-content)_auto] gap-4"
+    class="grid min-h-screen grid-rows-[auto_minmax(0,max-content)_auto] gap-4"
     role="main"
     :aria-label="$t('secret-viewing-page')">
     <header
       v-if="$slots.header"
       class="w-full bg-white dark:bg-gray-900">
-      <div class="w-full max-w-4xl mx-auto px-4">
+      <div class="mx-auto w-full max-w-4xl px-4">
         <slot
           name="header"
           :record="record"
@@ -64,7 +64,7 @@
     </header>
 
     <!-- Content wrapper  -->
-    <div class="w-full max-w-4xl mx-auto px-4">
+    <div class="mx-auto w-full max-w-4xl px-4">
       <!-- Global Loading State -->
       <div
         v-if="state.isLoading"
@@ -130,12 +130,12 @@
     <footer
       v-if="$slots.footer"
       class="w-full bg-white dark:bg-gray-900">
-      <div class="w-full max-w-4xl mx-auto px-4">
+      <div class="mx-auto w-full max-w-4xl px-4">
         <slot
           name="footer"
           :record="record"
           :details="details"
-          :siteHost="props.siteHost"></slot>
+          :site-host="props.siteHost"></slot>
       </div>
     </footer>
   </main>

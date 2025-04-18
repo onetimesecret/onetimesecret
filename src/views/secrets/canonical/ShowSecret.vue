@@ -94,7 +94,7 @@
           <button
             type="button"
             class="float-right rounded-md p-1
-              focus:outline-none focus:ring-2 focus:ring-amber-500 hover:text-amber-900
+              hover:text-amber-900 focus:outline-none focus:ring-2 focus:ring-amber-500
               dark:hover:text-amber-50"
             @click="closeWarning"
             :aria-label="$t('dismiss-warning')">
@@ -113,7 +113,7 @@
           <button
             type="button"
             class="float-right rounded-md p-1
-              focus:outline-none focus:ring-2 focus:ring-brand-500 hover:text-brand-900
+              hover:text-brand-900 focus:outline-none focus:ring-2 focus:ring-brand-500
               dark:hover:text-brand-50"
             @click="closeWarning"
             :aria-label="$t('dismiss-notification')">

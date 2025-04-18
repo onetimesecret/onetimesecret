@@ -94,7 +94,9 @@
           link-text-label="">
           <button
             type="button"
-            class="ml-4 text-sm font-medium text-brand-600 hover:text-brand-500 focus:underline focus:outline-none dark:text-brand-400 dark:hover:text-brand-300">
+            class="ml-4 text-sm font-medium
+              text-brand-600 hover:text-brand-500
+              focus:underline focus:outline-none dark:text-brand-400 dark:hover:text-brand-300">
             {{ $t('web.COMMON.need_help') }}?
           </button>
           <template #content>
@@ -122,7 +124,8 @@
             <path
               fill-rule="evenodd"
               d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
-              clip-rule="evenodd" />
+              clip-rule="evenodd"
+            />
           </svg>
           <svg
             v-else
@@ -133,14 +136,15 @@
             <path
               fill-rule="evenodd"
               d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-              clip-rule="evenodd" />
+              clip-rule="evenodd"
+            />
           </svg>
         </div>
         <div class="ml-3">
           <p class="text-sm">
             {{
               submissionStatus.message ||
-              (submissionStatus.status === 'error' ? 'An error occurred' : 'Success')
+                (submissionStatus.status === 'error' ? 'An error occurred' : 'Success')
             }}
           </p>
         </div>
@@ -154,10 +158,14 @@
           class="sr-only">
           {{ $t('secret-content') }}
         </label>
+        <!-- prettier-ignore-attribute class -->
         <textarea
           v-if="record?.secret_value"
           :id="secretContentId"
-          class="w-full resize-none rounded-md border border-gray-300 bg-gray-100 px-3 py-2 font-mono text-base leading-[1.2] tracking-wider focus:outline-none focus:ring-2 focus:ring-brand-500 dark:border-gray-600 dark:bg-gray-800 dark:text-white"
+          class="w-full resize-none rounded-md
+            border border-gray-300 bg-gray-100 px-3 py-2 font-mono text-base leading-[1.2] tracking-wider
+            focus:outline-none focus:ring-2 focus:ring-brand-500
+            dark:border-gray-600 dark:bg-gray-800 dark:text-white"
           readonly
           :rows="details?.display_lines ?? 4"
           :value="record?.secret_value"
@@ -179,15 +187,20 @@
 
     <template #warnings>
       <div>
+        <!-- prettier-ignore-attribute class -->
         <div
           v-if="record?.is_truncated"
           :id="truncationWarningId"
-          class="border-l-4 border-brandcomp-500 bg-brandcomp-100 p-4 text-sm text-brandcomp-700 dark:bg-brandcomp-800 dark:text-brandcomp-200"
+          class="border-l-4 border-brandcomp-500
+            bg-brandcomp-100 p-4 text-sm text-brandcomp-700
+            dark:bg-brandcomp-800 dark:text-brandcomp-200"
           role="alert"
           aria-live="polite">
           <button
             type="button"
-            class="float-right hover:text-brandcomp-900 focus:outline-none focus:ring-2 focus:ring-brandcomp-500 dark:hover:text-brandcomp-50"
+            class="float-right
+              hover:text-brandcomp-900 focus:outline-none focus:ring-2 focus:ring-brandcomp-500
+              dark:hover:text-brandcomp-50"
             @click="closeTruncatedWarning"
             :aria-label="$t('web.LABELS.dismiss_warning')">
             <span aria-hidden="true">&times;</span>
@@ -200,10 +213,17 @@
 
     <template #cta>
       <div class="mt-4">
+        <!-- prettier-ignore-attribute class -->
         <button
           @click="copySecretContent"
           :title="copyButtonText"
-          class="inline-flex items-center justify-center rounded-md bg-brand-500 px-4 py-2.5 text-sm font-medium text-brand-50 shadow-sm transition-colors duration-150 ease-in-out hover:bg-brand-600 hover:shadow focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-brand-700 dark:text-brand-100 dark:hover:bg-brand-600"
+          class="inline-flex items-center justify-center rounded-md
+            bg-brand-500 px-4 py-2.5 text-sm font-medium
+            text-brand-50 shadow-sm transition-colors duration-150 ease-in-out
+            hover:bg-brand-600 hover:shadow
+            focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2
+            disabled:cursor-not-allowed disabled:opacity-50
+            dark:bg-brand-700 dark:text-brand-100 dark:hover:bg-brand-600"
           :aria-label="copyButtonText"
           :aria-pressed="isCopied">
           <svg
@@ -221,7 +241,8 @@
               stroke-linecap="round"
               stroke-linejoin="round"
               stroke-width="2"
-              d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+              d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"
+            />
           </svg>
           <svg
             v-else
@@ -238,7 +259,8 @@
               stroke-linecap="round"
               stroke-linejoin="round"
               stroke-width="2"
-              d="M5 13l4 4L19 7" />
+              d="M5 13l4 4L19 7"
+            />
           </svg>
           <span>{{ copyButtonText }}</span>
         </button>
@@ -256,7 +278,11 @@
           class="mt-16">
           <a
             href="/signin"
-            class="block w-full rounded-md border border-slate-500 bg-white px-4 py-2 text-center text-slate-500 hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-slate-500 focus:ring-offset-2 dark:border-slate-400 dark:bg-gray-800 dark:text-slate-400 dark:hover:bg-gray-700"
+            class="block w-full rounded-md
+              border border-slate-500 bg-white px-4 py-2 text-center
+              text-slate-500 hover:bg-slate-50
+              focus:outline-none focus:ring-2 focus:ring-slate-500 focus:ring-offset-2
+              dark:border-slate-400 dark:bg-gray-800 dark:text-slate-400 dark:hover:bg-gray-700"
             :aria-label="$t('sign-in-to-your-account')">
             {{ $t('web.COMMON.login_to_your_account') }}
           </a>
