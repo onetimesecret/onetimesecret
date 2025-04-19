@@ -52,8 +52,11 @@
   // Get the correct equivalent left and right corner classes
   const corners = computed(() => processCornerClass(props.cornerClass));
   const textColorClass = computed(() => props.buttonTextLight ? 'text-white' : 'text-gray-800');
-  // Fixed focus ring styling that will work with Tailwind
-  const focusRingClass = computed(() => 'focus:outline-none focus:ring-2 focus:ring-offset-2 dark:focus:ring-offset-slate-900');
+  // Left button focus ring (respects left corner rounding)
+  const leftButtonFocusClass = computed(() => `focus:outline-none focus:ring-2 focus:ring-offset-2 dark:focus:ring-offset-slate-900 focus:z-10 ${corners.value.leftCorner}`);
+
+  // Right button focus ring (respects right corner rounding)
+  const rightButtonFocusClass = computed(() => `focus:outline-none focus:ring-2 focus:ring-offset-2 dark:focus:ring-offset-slate-900 focus:z-10 ${corners.value.rightCorner}`);
 
   // Compute the ring color based on primaryColor availability
   const ringColorStyle = computed(() => {
@@ -126,8 +129,7 @@
         corners.leftCorner,
         textColorClass,
         'flex items-center justify-center gap-2 px-4 py-3 text-lg font-semibold transition-colors',
-        'focus:outline-none',
-        focusRingClass,
+        leftButtonFocusClass,
         {
           'cursor-not-allowed opacity-60 disabled:hover:opacity-70 dark:opacity-60': isMainButtonDisabled,
         },
@@ -163,9 +165,8 @@
         textColorClass,
         'flex items-center justify-center',
         'border-l',
-        'p-3 transition-colors ',
-        'focus:outline-none',
-        focusRingClass,
+        'p-3 transition-colors',
+        rightButtonFocusClass,
         'hover:opacity-100',
       ]"
       :style="{
