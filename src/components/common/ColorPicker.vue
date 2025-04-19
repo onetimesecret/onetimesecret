@@ -1,7 +1,9 @@
 <script setup lang="ts">
-import HoverTooltip from './HoverTooltip.vue';
 import { computed } from 'vue';
 import { useI18n } from 'vue-i18n';
+
+import HoverTooltip from './HoverTooltip.vue';
+
 const { t } = useI18n();
 
 const props = withDefaults(defineProps<{
@@ -45,25 +47,29 @@ const updateColor = (event: Event, isText = false) => {
 </script>
 
 <template>
-  <div class="relative group">
+  <div class="group relative">
     <HoverTooltip>{{ label }}</HoverTooltip>
     <label
       :id="id + '-label'"
       class="sr-only">{{ label }}</label>
+    <!-- prettier-ignore-attribute class -->
     <div
       class="group
             flex h-11 items-center
             gap-3 rounded-lg
             border border-gray-200 bg-white
             px-3 shadow-sm
-            focus-within:ring-2 focus-within:ring-brand-500 focus-within:ring-offset-2
+            transition-all duration-200 focus-within:ring-2
+            focus-within:ring-brand-500 focus-within:ring-offset-2
             dark:border-gray-600 dark:bg-gray-800
-            dark:focus-within:ring-brand-400 dark:focus-within:ring-offset-0
-            transition-all duration-200">
+            dark:focus-within:ring-brand-400 dark:focus-within:ring-offset-0">
       <!-- Color Preview Circle -->
       <div class="relative flex items-center">
+        <!-- prettier-ignore-attribute class -->
         <div
-          class="size-6 rounded-full border-2 border-white shadow-sm ring-1 ring-gray-200 dark:border-gray-700 dark:ring-gray-600"
+          class="size-6 rounded-full border-2 border-white shadow-sm
+            ring-1 ring-gray-200
+            dark:border-gray-700 dark:ring-gray-600"
           role="presentation"
           :style="{ backgroundColor: modelValue }">
           <input

@@ -50,4 +50,6 @@
     <title v-if="ariaLabel">{{ ariaLabel }}</title>
     <use :href="`#${iconId}`" />
   </svg>
+  <svg aria-hidden="true" :class="size" >
+    <use :href="`#${[collection, name].filter(Boolean).join('-')}`" />
 </template>
