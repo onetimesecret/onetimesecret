@@ -1,15 +1,18 @@
-//import { createHtmlPlugin } from 'vite-plugin-html'
+// vite.config.ts
+
 import Vue from '@vitejs/plugin-vue';
 import { resolve } from 'path';
 import process from 'process';
 import Markdown from 'unplugin-vue-markdown/vite';
 import { defineConfig } from 'vite';
+
+import { addTrailingNewline } from './src/build/plugins/addTrailingNewline';
+import { DEBUG } from './src/utils/debug';
+
+//import { createHtmlPlugin } from 'vite-plugin-html'
 //import checker from 'vite-plugin-checker';
 //import vueDevTools from 'vite-plugin-vue-devtools';
 //import Inspector from 'vite-plugin-vue-inspector'; // OR vite-plugin-vue-inspector
-import { DEBUG } from './src/utils/debug';
-
-import { addTrailingNewline } from './src/build/plugins/addTrailingNewline';
 
 // Remember, for security reasons, only variables prefixed with VITE_ are
 // available here to prevent accidental exposure of sensitive
@@ -17,15 +20,16 @@ import { addTrailingNewline } from './src/build/plugins/addTrailingNewline';
 const viteBaseUrl = process.env.VITE_BASE_URL;
 
 // According to the documentation, we should be able to set the allowed hosts
-// via __VITE_ADDITIONAL_SERVER_ALLOWED_HOSTS but as of 5.4.15m that is not
+// via __VITE_ADDITIONAL_SERVER_ALLOWED_HOSTS but as of 5.4.15, that is not
 // working as expected. So here we capture the value of that env var with
-// and without the __ prefix and if they're defined, add them to
-// server.allowedHosts below. -- Delano (2025-03-28)
+// and without the __ prefix and if either are defined, add the hosts to
+// server.allowedHosts below. Multiple hosts can be separated by commas.
 //
 // https://vite.dev/config/server-options.html#server-allowedhosts
 // https://github.com/vitejs/vite/security/advisories/GHSA-vg6x-rcgg-rjx6
-const viteAdditionalServerAllowedHosts = process.env.VITE_ADDITIONAL_SERVER_ALLOWED_HOSTS;
-const __viteAdditionalServerAllowedHosts = process.env.__VITE_ADDITIONAL_SERVER_ALLOWED_HOSTS;
+const viteAdditionalServerAllowedHosts =
+  process.env.__VITE_ADDITIONAL_SERVER_ALLOWED_HOSTS ??
+  process.env.VITE_ADDITIONAL_SERVER_ALLOWED_HOSTS;
 
 /**
  * Vite Configuration - Consolidated Assets
@@ -281,11 +285,17 @@ export default defineConfig({
 
       // Add additional hosts from environment variables if defined
       if (viteAdditionalServerAllowedHosts) {
-        hosts.push(viteAdditionalServerAllowedHosts);
+        // Split by comma and add each host to the array
+        const additionalHosts = viteAdditionalServerAllowedHosts
+          .split(',')
+          .map((host) => host.trim());
+        hosts.push(...additionalHosts.filter((host) => host !== ''));
       }
 
-      if (__viteAdditionalServerAllowedHosts) {
-        hosts.push(__viteAdditionalServerAllowedHosts);
+      // Log all the allowed hosts for debugging
+      if (DEBUG) {
+        const timestamp = new Date().toLocaleTimeString();
+        console.log(`${timestamp} [vite] Vite server allowed hosts:`, hosts);
       }
 
       return hosts;
