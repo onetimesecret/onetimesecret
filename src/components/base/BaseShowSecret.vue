@@ -1,4 +1,5 @@
-<!-- BaseShowSecret.vue -->
+<!-- src/components/base/BaseShowSecret.vue -->
+
 <script setup lang="ts">
   /**
    * Base component for secret display implementations
@@ -17,7 +18,7 @@
 
   import SecretSkeleton from '@/components/closet/SecretSkeleton.vue';
   import { useSecret } from '@/composables/useSecret';
-  import { onMounted, Ref } from 'vue';
+  import { onMounted } from 'vue';
   import { onBeforeRouteUpdate } from 'vue-router';
 
   export interface Props {
@@ -33,8 +34,8 @@
 
   const { record, details, state, load, reveal } = useSecret(props.secretKey);
 
-  const handleUserConfirmed = (passphrase: Ref<string>) => {
-    reveal(passphrase.value);
+  const handleUserConfirmed = (passphrase: string) => {
+    reveal(passphrase);
   };
 
   onBeforeRouteUpdate((to, from, next) => {
