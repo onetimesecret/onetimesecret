@@ -2,6 +2,7 @@
 
 <script setup lang="ts">
   import type { BrandSettings } from '@/schemas/models/domain/brand';
+  import { fontFamilyClasses, FontFamily } from '@/schemas/models/domain/brand';
 
   export interface Props {
     branded?: boolean;
@@ -24,14 +25,8 @@
     :class="[
       branded ? 'w-full shadow-xl' : 'shadow-md',
       branded && brandSettings?.corner_style === 'sharp' ? 'rounded-none' : '',
-    ]"
-    :style="
-      branded && brandSettings
-        ? {
-          fontFamily: brandSettings.font_family || 'inherit',
-        }
-        : {}
-    ">
+      branded && brandSettings?.font_family ? fontFamilyClasses[brandSettings.font_family as FontFamily] : ''
+    ]">
     <!-- Header slot for icon and title -->
     <slot
       name="header"

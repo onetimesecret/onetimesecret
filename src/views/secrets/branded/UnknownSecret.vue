@@ -3,6 +3,7 @@
 <script setup lang="ts">
   import BaseUnknownSecret from '@/components/base/BaseUnknownSecret.vue';
   import type { BrandSettings } from '@/schemas/models/domain/brand';
+  import { fontFamilyClasses, FontFamily } from '@/schemas/models/domain/brand';
 
   interface Props {
     brandSettings?: BrandSettings;
@@ -22,13 +23,9 @@
         <div
           class="flex size-12 items-center justify-center rounded-full"
           :class="brandSettings?.primary_color ? '' : 'bg-brand-100 dark:bg-brand-900'"
-          :style="
-            brandSettings?.primary_color
-              ? {
-                backgroundColor: getBackgroundColor(brandSettings.primary_color),
-              }
-              : {}
-          ">
+          :style="brandSettings?.primary_color
+            ? { backgroundColor: getBackgroundColor(brandSettings.primary_color) }
+            : {}">
           <svg
             xmlns="http://www.w3.org/2000/svg"
             class="size-6"
@@ -49,7 +46,11 @@
         </div>
         <div>
           <!-- prettier-ignore-attribute class -->
-          <h2 class="text-xl font-semibold text-gray-900 dark:text-white">
+          <h2
+            class="text-xl font-semibold text-gray-900 dark:text-white"
+            :class="brandSettings?.font_family
+              ? fontFamilyClasses[brandSettings.font_family as FontFamily]
+              : ''">
             {{ $t('not-found') }}
           </h2>
         </div>
