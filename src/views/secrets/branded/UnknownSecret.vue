@@ -16,7 +16,7 @@
     :branded="true"
     :brand-settings="brandSettings">
     <!-- Header with icon and title -->
-    <template #header="{ brandSettings, getBackgroundColor }">
+    <template #header="{ getBackgroundColor }">
       <div class="mb-8 flex items-center space-x-4">
         <div
           class="flex size-12 items-center justify-center rounded-full"

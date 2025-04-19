@@ -60,7 +60,7 @@
     </template>
 
     <!-- Confirmation slot -->
-    <template #confirmation="{ secretKey, record, details, error, isLoading, onConfirm }">
+    <template #confirmation="{ record, details, error, isLoading, onConfirm }">
       <div
         :class="{
           'rounded-lg': brandSettings?.corner_style === 'rounded',
@@ -102,7 +102,7 @@
     </template>
 
     <!-- Footer slot -->
-    <template #footer="{ siteHost }">
+    <template #footer="{ }">
       <div class="flex flex-col items-center space-y-8 py-8">
         <FooterControls :show-language="true" />
         <FooterAttribution
