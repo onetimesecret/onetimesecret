@@ -24,8 +24,8 @@
           :style="
             brandSettings?.primary_color
               ? {
-                  backgroundColor: getBackgroundColor(brandSettings.primary_color),
-                }
+                backgroundColor: getBackgroundColor(brandSettings.primary_color),
+              }
               : {}
           ">
           <svg
