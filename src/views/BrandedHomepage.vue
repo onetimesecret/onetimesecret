@@ -2,19 +2,22 @@
   import SecretForm from '@/components/secrets/form/SecretForm.vue';
   import { useProductIdentity } from '@/stores/identityStore';
 
-  const { allowPublicHomepage, primaryColor, cornerClass } = useProductIdentity();
+  const { allowPublicHomepage, primaryColor, cornerClass, buttonTextLight } = useProductIdentity();
 </script>
 
 <template>
   <div class="container mx-auto mb-28 min-w-[320px] max-w-2xl py-1">
+    <!-- Start of the branded homepage form -->
     <SecretForm
       v-if="allowPublicHomepage"
       class="mb-8"
       :primary-color="primaryColor"
+      :button-text-light="buttonTextLight"
       :corner-class="cornerClass"
       :with-recipient="false"
       :with-asterisk="false"
-      :with-generate="false" />
+      :with-generate="false"
+    />
 
     <!--
       BrandedHomepage.vue

@@ -8,7 +8,12 @@
   import { usePrivacyOptions } from '@/composables/usePrivacyOptions';
   import { useSecretConcealer } from '@/composables/useSecretConcealer';
   import { useConcealedMetadataStore } from '@/stores/concealedMetadataStore';
-  import { useProductIdentity } from '@/stores/identityStore';
+  import {
+    useProductIdentity,
+    DEFAULT_CORNER_CLASS,
+    DEFAULT_PRIMARY_COLOR,
+    DEFAULT_BUTTON_TEXT_LIGHT,
+  } from '@/stores/identityStore';
   import { type ConcealedMessage } from '@/types/ui/concealed-message';
   import { nanoid } from 'nanoid';
   import { computed, onMounted, ref, watch } from 'vue';
@@ -25,6 +30,7 @@
     withExpiry?: boolean;
     cornerClass?: string;
     primaryColor?: string;
+    buttonTextLight?: boolean;
   }
 
   const props = withDefaults(defineProps<Props>(), {
@@ -33,8 +39,9 @@
     withAsterisk: false,
     withGenerate: false,
     withExpiry: true,
-    cornerClass: 'rounded-lg',
-    primaryColor: '#dc4a22',
+    cornerClass: DEFAULT_CORNER_CLASS,
+    primaryColor: DEFAULT_PRIMARY_COLOR,
+    buttonTextLight: DEFAULT_BUTTON_TEXT_LIGHT,
   });
 
   const router = useRouter();
@@ -231,8 +238,7 @@
                     focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500
                     dark:border-gray-700 dark:bg-slate-800 dark:text-white dark:placeholder:text-gray-500"
                   :placeholder="$t('web.secrets.enterPassphrase')"
-                  @input="(e) => updatePassphrase((e.target as HTMLInputElement).value)"
-                />
+                  @input="(e) => updatePassphrase((e.target as HTMLInputElement).value)" />
                 <!-- prettier-ignore-attribute class -->
                 <button
                   type="button"
@@ -245,8 +251,7 @@
                     collection="heroicons"
                     :name="state.passphraseVisibility ? 'solid-eye' : 'outline-eye-off'"
                     class="size-4 text-gray-400 hover:text-gray-600"
-                    aria-hidden="true"
-                  />
+                    aria-hidden="true" />
                 </button>
               </div>
             </div>
@@ -384,7 +389,7 @@
         <div class="border-t border-gray-200 dark:border-gray-700">
           <!-- Actions Container -->
           <div class="p-6">
-            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between sm:gap-4 ">
+            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between sm:gap-4">
               <!-- Domain Preview (grows to fill available space) -->
               <div class="order-1 min-w-0 grow sm:order-2">
                 <CustomDomainPreview
@@ -401,6 +406,8 @@
                   <SplitButton
                     :with-generate="props.withGenerate"
                     :corner-class="cornerClass"
+                    :primary-color="primaryColor"
+                    :button-text-light="buttonTextLight"
                     :disabled="selectedAction === 'create-link' && !hasContent"
                     :disable-generate="selectedAction === 'create-link' && hasContent"
                     :aria-label="

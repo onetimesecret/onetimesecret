@@ -12,7 +12,8 @@
     disabled: { type: Boolean, default: false },
     disableGenerate: { type: Boolean, default: false },
     cornerClass: { type: String, default: '' },
-    primaryColor: { type: String, default: '' }
+    primaryColor: { type: String, default: '' },
+    buttonTextLight: { type: Boolean, default: undefined },
   });
 
   const emit = defineEmits(['generate-password', 'create-link', 'update:action']);
@@ -35,7 +36,7 @@
 
   const processCornerClass = (cornerClass: string | undefined): { leftCorner: string, rightCorner: string } => {
     if (!cornerClass) {
-      return { leftCorner: 'rounded-l-lg', rightCorner: 'rounded-r-lg' };
+      return { leftCorner: 'rounded-l-xl', rightCorner: 'rounded-r-xl' };
     }
 
     // Extract radius size from cornerClass (e.g., 'lg', 'md', 'sm', etc.)
@@ -50,6 +51,14 @@
 
   // Get the correct equivalent left and right corner classes
   const corners = computed(() => processCornerClass(props.cornerClass));
+  const textColorClass = computed(() => props.buttonTextLight ? 'text-white' : 'text-gray-800');
+  // Fixed focus ring styling that will work with Tailwind
+  const focusRingClass = computed(() => 'focus:outline-none focus:ring-2 focus:ring-offset-2 dark:focus:ring-offset-slate-900');
+
+  // Compute the ring color based on primaryColor availability
+  const ringColorStyle = computed(() => {
+    return props.primaryColor ? props.primaryColor : 'var(--color-brand-600)';
+  });
 
   // Button labels and icons based on selected action
   const buttonConfig = computed(() => {
@@ -115,13 +124,19 @@
       type="submit"
       :class="[
         corners.leftCorner,
-        'flex items-center justify-center gap-2 px-4 py-3 text-lg font-semibold text-white transition-colors',
-        'bg-brand-500 hover:bg-brand-600 dark:bg-brand-600 dark:hover:bg-brand-700',
-        'focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 dark:focus:ring-offset-slate-900',
+        textColorClass,
+        'flex items-center justify-center gap-2 px-4 py-3 text-lg font-semibold transition-colors',
+        'focus:outline-none',
+        focusRingClass,
         {
-          'cursor-not-allowed bg-brand-500/60 disabled:hover:bg-brand-500/70 dark:bg-brand-600/60 dark:text-white/50': isMainButtonDisabled,
+          'cursor-not-allowed opacity-60 disabled:hover:opacity-70 dark:opacity-60': isMainButtonDisabled,
         },
       ]"
+      :style="{
+        backgroundColor: `${primaryColor}`,
+        borderColor: `${primaryColor}`,
+        '--tw-ring-color': ringColorStyle,
+      }"
       @click="handleMainClick"
       :disabled="isMainButtonDisabled"
       :aria-label="buttonConfig.label">
@@ -145,13 +160,19 @@
       type="button"
       :class="[
         corners.rightCorner,
+        textColorClass,
         'flex items-center justify-center',
-        'border-l border-white/30 bg-brand-500',
-        'p-3 text-white transition-colors hover:bg-brand-700',
-        'focus:outline-none focus:ring-2',
-        'focus:ring-brand-500 focus:ring-offset-2 dark:bg-brand-600 dark:hover:bg-brand-700',
-        'dark:focus:ring-offset-slate-900',
+        'border-l',
+        'p-3 transition-colors ',
+        'focus:outline-none',
+        focusRingClass,
+        'hover:opacity-100',
       ]"
+      :style="{
+        backgroundColor: `${primaryColor}`,
+        borderColor: `${primaryColor}`,
+        '--tw-ring-color': ringColorStyle,
+      }"
       @click="handleDropdownToggle"
       aria-label="Show more actions"
       :aria-expanded="isDropdownOpen"
