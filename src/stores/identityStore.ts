@@ -6,7 +6,9 @@ import { defineStore } from 'pinia';
 import { computed, reactive, toRefs } from 'vue';
 import { useI18n } from 'vue-i18n';
 
-const DEFAULT_PRIMARY_COLOR = '#dc4a22';
+export const DEFAULT_PRIMARY_COLOR = '#dc4a22';
+export const DEFAULT_CORNER_CLASS = 'rounded-lg';
+export const DEFAULT_BUTTON_TEXT_LIGHT = true; // light text for default colour
 
 /**
  * Represents the product's identity state for a given domain context
@@ -28,6 +30,7 @@ interface IdentityState {
   brand: BrandSettings | null;
   /** Primary color for branding */
   primaryColor: string;
+  buttonTextLight: boolean;
   allowPublicHomepage: boolean;
 }
 
@@ -50,6 +53,7 @@ const getInitialState = (): IdentityState => {
 
   // Parse with fallback values
   let primaryColor = primaryColorValidator.parse(brand.primary_color) ?? DEFAULT_PRIMARY_COLOR;
+  const buttonTextLight = brand.button_text_light ?? DEFAULT_BUTTON_TEXT_LIGHT;
 
   const allowPublicHomepage = brand.allow_public_homepage ?? false;
 
@@ -62,6 +66,7 @@ const getInitialState = (): IdentityState => {
     domainId,
     brand,
     primaryColor,
+    buttonTextLight,
     allowPublicHomepage,
   };
 };
@@ -106,7 +111,7 @@ export const useProductIdentity = defineStore('productIdentity', () => {
       case 'square':
         return 'rounded-none';
       default:
-        return '';
+        return DEFAULT_CORNER_CLASS;
     }
   });
 
@@ -150,6 +155,6 @@ export const useProductIdentity = defineStore('productIdentity', () => {
     displayName,
     $reset,
 
-    ...toRefs(state), //
+    ...toRefs(state),
   };
 });

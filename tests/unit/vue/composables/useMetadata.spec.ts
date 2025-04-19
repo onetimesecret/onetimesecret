@@ -289,7 +289,6 @@ describe('useMetadata', () => {
 
       // Verify
       expect(store.burn).not.toHaveBeenCalled();
-      console.log('PLOPLPOPLPOLPO');
       console.log(error.value);
       console.log(error.value?.original);
       debugger;

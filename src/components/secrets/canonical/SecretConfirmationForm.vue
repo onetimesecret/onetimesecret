@@ -55,6 +55,7 @@
           {{ statusMessage }}
         </h1>
         <div
+          v-if="!record?.has_passphrase"
           class="mt-1 text-base text-gray-600 dark:text-gray-400"
           role="status"
           aria-live="polite">
@@ -66,6 +67,7 @@
       <NeedHelpModal
         link-icon-name="question-mark-circle-16-solid"
         link-text-label="">
+        <!-- prettier-ignore-attribute class -->
         <button
           type="button"
           class="ml-4 text-sm font-medium
@@ -79,14 +81,6 @@
       </NeedHelpModal>
     </div>
 
-    <!-- Error message area, announced assertively when present -->
-    <p
-      v-if="error"
-      class="mb-4 text-sm text-red-600 dark:text-red-400"
-      role="alert">
-      {{ String(error) }}
-    </p>
-
     <form
       @submit.prevent="submitForm"
       class="space-y-6"
@@ -98,7 +92,7 @@
         class="space-y-2">
         <h2
           :id="passphraseHeadingId"
-          class="text-lg font-semibold text-gray-800 dark:text-gray-200">
+          class="text-lg font-light text-gray-800 dark:text-gray-200">
           {{ $t('web.shared.requires_passphrase') }}
         </h2>
         <div>
@@ -107,6 +101,7 @@
             class="sr-only">
             {{ $t('web.COMMON.enter_passphrase_here') }}
           </label>
+          <!-- prettier-ignore-attribute class -->
           <input
             v-model="passphrase"
             :id="passphraseInputId"
@@ -120,7 +115,8 @@
             aria-required="true"
             :aria-invalid="error ? 'true' : undefined"
             :aria-errormessage="error ? 'passphrase-error' : undefined"
-            :aria-describedby="passphraseDescriptionId" />
+            :aria-describedby="passphraseDescriptionId"
+          />
         </div>
         <p
           v-if="error"
@@ -128,11 +124,6 @@
           class="mt-1 text-sm text-red-600 dark:text-red-400"
           role="alert">
           {{ String(error) }}
-        </p>
-        <p
-          :id="passphraseDescriptionId"
-          class="text-sm text-gray-500 dark:text-gray-400">
-          {{ $t('web.COMMON.careful_only_see_once') }}
         </p>
       </div>
 

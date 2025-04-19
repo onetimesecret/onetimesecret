@@ -1,10 +1,9 @@
+/** eslint-disable tailwindcss/classnames-order */
 <!-- src/components/dashboard/BrandSettingsBar.vue -->
 
 <script setup lang="ts">
   import OIcon from '@/components/icons/OIcon.vue';
   import type { BrandSettings } from '@/schemas/models';
-  import ColorPicker from '../common/ColorPicker.vue';
-  import CycleButton from '../common/CycleButton.vue';
   import {
     CornerStyle,
     cornerStyleDisplayMap,
@@ -15,9 +14,13 @@
     fontIconMap,
     fontOptions,
   } from '@/schemas/models/domain/brand';
-  import { Composer, useI18n } from 'vue-i18n';
-  const { t } = useI18n();
   import { computed } from 'vue';
+  import { Composer, useI18n } from 'vue-i18n';
+
+  import ColorPicker from '../common/ColorPicker.vue';
+  import CycleButton from '../common/CycleButton.vue';
+
+  const { t } = useI18n();
 
   const props = defineProps<{
     modelValue: BrandSettings;
@@ -54,18 +57,19 @@
 
 <template>
   <div v-if="!isLoading || isInitialized">
+    <!-- prettier-ignore-attribute class -->
     <div
-      class="border-b border-gray-200 bg-white/80 backdrop-blur-sm dark:border-gray-700 dark:bg-gray-800/80">
+      class="border-b border-gray-200
+        bg-white/80 backdrop-blur-sm
+        dark:border-gray-700 dark:bg-gray-800/80">
       <div class="mx-auto w-fit px-2 py-3">
         <form
           @submit.prevent="handleSubmit"
-          class="flex items-center gap-4 min-w-0">
-
+          class="flex min-w-0 items-center gap-4">
           <!-- Left section - wrap in flex container -->
-          <div class="flex items-center gap-4 flex-shrink min-w-0">
-
+          <div class="flex min-w-0 shrink items-center gap-4">
             <!-- Color Picker -->
-            <div class="flex items-center gap-4 flex-shrink min-w-0">
+            <div class="flex min-w-0 shrink items-center gap-4">
               <ColorPicker
                 :model-value="modelValue.primary_color"
                 @update:model-value="(value) => updateBrandSetting('primary_color', value)"
@@ -75,7 +79,7 @@
             </div>
 
             <!-- UI Elements -->
-            <div class="flex items-center gap-2 flex-shrink-0">
+            <div class="flex shrink-0 items-center gap-2">
               <CycleButton
                 :model-value="modelValue.corner_style"
                 @update:model-value="(value) => updateBrandSetting('corner_style', value)"
@@ -83,7 +87,8 @@
                 :options="cornerStyleOptions"
                 :label="t('corner-style')"
                 :display-map="cornerStyleDisplayMap"
-                :icon-map="cornerStyleIconMap" />
+                :icon-map="cornerStyleIconMap"
+              />
               <CycleButton
                 :model-value="modelValue.font_family"
                 @update:model-value="(value) => updateBrandSetting('font_family', value)"
@@ -91,36 +96,38 @@
                 :options="fontOptions"
                 :label="t('font-family')"
                 :display-map="fontDisplayMap"
-                :icon-map="fontIconMap" />
+                :icon-map="fontIconMap"
+              />
             </div>
 
             <!-- Instructions -->
-            <div class="flex-shrink-0">
+            <div class="shrink-0">
               <slot name="instructions-button"></slot>
             </div>
 
             <!-- Language -->
-            <div class="flex-shrink-0">
+            <div class="shrink-0">
               <slot name="language-button"></slot>
             </div>
           </div>
 
 
           <!-- Save Button -->
-          <div class="ml-auto flex-shrink-0">
+          <div class="ml-auto shrink-0">
+            <!-- prettier-ignore-attribute class -->
             <button
               type="submit"
               :disabled="isDisabled"
-              class="flex-shrink-0 inline-flex h-11 items-center justify-center
+              class="inline-flex h-11 shrink-0 items-center justify-center
                        rounded-lg border border-transparent
                        bg-brand-600 px-4
                        text-base font-medium text-white
                        shadow-sm
-                       hover:bg-brand-700
-                       focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2
-                       dark:focus:ring-brand-400 dark:focus:ring-offset-0
+                       transition-all
+                       duration-200 hover:bg-brand-700 focus:outline-none focus:ring-2
+                       focus:ring-brand-500 focus:ring-offset-2
                        disabled:cursor-not-allowed disabled:opacity-50
-                       transition-all duration-200
+                       dark:focus:ring-brand-400 dark:focus:ring-offset-0
                        sm:w-auto sm:text-sm">
               <OIcon
                 v-if="isLoading"

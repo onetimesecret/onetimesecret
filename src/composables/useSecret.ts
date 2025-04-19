@@ -3,6 +3,7 @@
 import { useSecretStore } from '@/stores/secretStore';
 import { storeToRefs } from 'pinia';
 import { reactive } from 'vue';
+
 import { AsyncHandlerOptions, useAsyncHandler } from './useAsyncHandler';
 
 export function useSecret(secretKey: string, options?: AsyncHandlerOptions) {
@@ -13,7 +14,6 @@ export function useSecret(secretKey: string, options?: AsyncHandlerOptions) {
     isLoading: false,
     error: '',
     success: '',
-    passphrase: '',
   });
 
   const defaultAsyncHandlerOptions: AsyncHandlerOptions = {
@@ -39,7 +39,6 @@ export function useSecret(secretKey: string, options?: AsyncHandlerOptions) {
   const reveal = (passphrase: string) =>
     wrap(async () => {
       await store.reveal(secretKey, passphrase);
-      state.passphrase = '';
     });
 
   return {

@@ -77,8 +77,9 @@ export default [
     files: [
       'src/**/*.{js,mjs,cjs,ts,vue}',
       //'tests/**/*.{js,mjs,cjs,ts,vue}',
-      'vite.config.ts',
       'eslint.config.ts',
+      'tailwind.config.ts',
+      'vite.config.ts',
     ],
     languageOptions: {
       globals: {

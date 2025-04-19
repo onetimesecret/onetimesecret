@@ -33,7 +33,7 @@
     size: "5",
   });
   const size = computed(() => `size-${props.size ?? 5}`);
-  const iconId = computed(() => `${props.collection}-${props.name}`);
+  const iconId = computed(() => [props.collection, props.name].filter(Boolean).join('-'));
   const ariaLabel = computed(() => props.ariaLabel ?? `${iconId.value} icon`);
 
   // Professional iconist tip:

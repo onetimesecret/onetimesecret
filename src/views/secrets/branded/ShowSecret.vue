@@ -1,4 +1,5 @@
 <!-- src/views/secrets/branded/ShowSecret.vue -->
+
 <script setup lang="ts">
   /**
    * Branded secret display implementation that maintains consistent UI between confirmation
@@ -14,11 +15,11 @@
    */
 
   import BaseShowSecret from '@/components/base/BaseShowSecret.vue';
+  import FooterAttribution from '@/components/layout/SecretFooterAttribution.vue';
+  import FooterControls from '@/components/layout/SecretFooterControls.vue';
   import SecretConfirmationForm from '@/components/secrets/branded/SecretConfirmationForm.vue';
   import SecretDisplayCase from '@/components/secrets/branded/SecretDisplayCase.vue';
   import { useProductIdentity } from '@/stores/identityStore';
-  import FooterControls from '@/components/layout/SecretFooterControls.vue';
-  import FooterAttribution from '@/components/layout/SecretFooterAttribution.vue';
 
   import UnknownSecret from './UnknownSecret.vue';
 
@@ -44,8 +45,10 @@
     <!-- Loading slot -->
     <template #loading="{}">
       <div class="flex justify-center">
+        <!-- prettier-ignore-attribute class -->
         <div
-          class="size-32 animate-spin rounded-full border-4 border-brand-500 border-t-transparent"></div>
+          class="size-32 animate-spin
+          rounded-full border-4 border-brand-500 border-t-transparent"></div>
       </div>
     </template>
 
@@ -57,7 +60,7 @@
     </template>
 
     <!-- Confirmation slot -->
-    <template #confirmation="{ secretKey, record, details, error, isLoading, onConfirm }">
+    <template #confirmation="{ record, details, error, isLoading, onConfirm }">
       <div
         :class="{
           'rounded-lg': brandSettings?.corner_style === 'rounded',
@@ -78,7 +81,7 @@
 
     <!-- Reveal slot -->
     <template #reveal="{ record, details }">
-      <div class="mx-auto max-w-2xl w-full">
+      <div class="mx-auto w-full max-w-2xl">
         <SecretDisplayCase
           aria-labelledby="secret-heading"
           :secret-key="secretKey"
@@ -99,7 +102,7 @@
     </template>
 
     <!-- Footer slot -->
-    <template #footer="{ siteHost }">
+    <template #footer="{ }">
       <div class="flex flex-col items-center space-y-8 py-8">
         <FooterControls :show-language="true" />
         <FooterAttribution
