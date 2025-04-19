@@ -83,7 +83,7 @@
 <template>
   <BaseSecretDisplay
     :default-title="$t('you-have-a-message')"
-    :previewI18n="i18n"
+    :preview-i18n="i18n"
     :domain-branding="safeBrandSettings"
     :corner-class="cornerClass"
     :font-class="fontFamilyClass"
@@ -152,9 +152,11 @@
         @submit.prevent="submitForm"
         :aria-label="$t('secret-access-form')">
         <!-- Error Message -->
+        <!-- prettier-ignore-attribute class -->
         <div
           v-if="error"
-          class="mb-4 rounded-md bg-red-50 p-4 text-sm text-red-700 dark:bg-red-900/50 dark:text-red-200"
+          class="mb-4 rounded-md bg-red-50 p-4 text-sm
+            text-red-700 dark:bg-red-900/50 dark:text-red-200"
           role="alert">
           {{ error }}
         </div>
@@ -212,6 +214,7 @@
     -webkit-line-clamp: 3;
     -webkit-box-orient: vertical;
     overflow: hidden;
+    line-clamp: 3;
   }
 
   /* Ensure focus outline is visible in all color schemes */

@@ -1,4 +1,5 @@
 <!-- src/components/secrets/form/SecretForm.vue -->
+
 <script setup lang="ts">
   import BasicFormAlerts from '@/components/BasicFormAlerts.vue';
   import OIcon from '@/components/icons/OIcon.vue';

@@ -82,7 +82,7 @@
 
 <template>
   <div
-    class="inline-flex relative w-full sm:w-auto"
+    class="relative inline-flex w-full sm:w-auto"
     ref="buttonRef">
     <!-- Visually hidden announcement for screen readers when action changes -->
     <div
@@ -92,11 +92,11 @@
     <button
       type="submit"
       :class="[
-        'flex items-center justify-center gap-2 px-4 py-3 text-white font-semibold text-lg rounded-l-lg transition-colors',
-        'bg-brand-500 dark:bg-brand-600 hover:bg-brand-600 dark:hover:bg-brand-700',
+        'flex items-center justify-center gap-2 rounded-l-lg px-4 py-3 text-lg font-semibold text-white transition-colors',
+        'bg-brand-500 hover:bg-brand-600 dark:bg-brand-600 dark:hover:bg-brand-700',
         'focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 dark:focus:ring-offset-slate-900',
         {
-          'bg-brand-500/60 dark:bg-brand-600/60 disabled:hover:bg-brand-500/70 cursor-not-allowed dark:text-white/50': isMainButtonDisabled,
+          'cursor-not-allowed bg-brand-500/60 disabled:hover:bg-brand-500/70 dark:bg-brand-600/60 dark:text-white/50': isMainButtonDisabled,
         },
       ]"
       @click="handleMainClick"
@@ -117,9 +117,15 @@
       <span>{{ buttonConfig.label }}</span>
     </button>
 
+    <!-- prettier-ignore-attribute class -->
     <button
       type="button"
-      class="flex items-center justify-center px-3 py-3 bg-brand-500 dark:bg-brand-600 text-white rounded-r-lg border-l border-white/30 transition-colors hover:bg-brand-700 dark:hover:bg-brand-700 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 dark:focus:ring-offset-slate-900"
+      class="flex items-center justify-center rounded-r-lg
+        border-l border-white/30 bg-brand-500
+        p-3 text-white transition-colors hover:bg-brand-700
+        focus:outline-none focus:ring-2
+        focus:ring-brand-500 focus:ring-offset-2 dark:bg-brand-600 dark:hover:bg-brand-700
+        dark:focus:ring-offset-slate-900"
       @click="handleDropdownToggle"
       aria-label="Show more actions"
       :aria-expanded="isDropdownOpen"
@@ -138,13 +144,18 @@
       </svg>
     </button>
 
+    <!-- prettier-ignore-attribute class -->
     <div
       v-if="isDropdownOpen"
       id="split-button-dropdown"
-      class="absolute top-full right-0 mt-1 bg-white dark:bg-gray-800 rounded-md shadow-lg w-52 z-10">
+      class="absolute right-0 top-full z-10 mt-1 w-52 rounded-md
+        bg-white shadow-lg dark:bg-gray-800">
+      <!-- prettier-ignore-attribute class -->
       <button
         type="button"
-        class="flex items-center gap-2 w-full px-4 py-2.5 border-0 bg-transparent text-left text-gray-800 dark:text-gray-200 transition-colors hover:bg-gray-100 dark:hover:bg-gray-700"
+        class="flex w-full items-center gap-2 border-0 bg-transparent px-4
+          py-2.5 text-left text-gray-800 transition-colors hover:bg-gray-100
+          dark:text-gray-200 dark:hover:bg-gray-700"
         @click="setAction('create-link')">
         <span class="flex items-center text-current">
           <svg
@@ -169,10 +180,13 @@
         <span>Create Link</span>
       </button>
 
+      <!-- prettier-ignore-attribute class -->
       <button
         type="button"
         v-if="props.withGenerate"
-        class="flex items-center gap-2 w-full px-4 py-2.5 border-0 bg-transparent text-left text-gray-800 dark:text-gray-200 transition-colors hover:bg-gray-100 dark:hover:bg-gray-700"
+        class="flex w-full items-center gap-2 border-0 bg-transparent px-4 py-2.5
+          text-left text-gray-800 transition-colors hover:bg-gray-100
+          dark:text-gray-200 dark:hover:bg-gray-700"
         @click="setAction('generate-password')">
         <span class="flex items-center text-brand-500 dark:text-brand-400">
           <svg
