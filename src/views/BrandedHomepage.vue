@@ -10,6 +10,8 @@
     <SecretForm
       v-if="allowPublicHomepage"
       class="mb-8"
+      :primary-color="primaryColor"
+      :corner-class="cornerClass"
       :with-recipient="false"
       :with-asterisk="false"
       :with-generate="false" />

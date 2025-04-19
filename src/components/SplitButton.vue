@@ -11,6 +11,8 @@
     withGenerate: { type: Boolean, default: false },
     disabled: { type: Boolean, default: false },
     disableGenerate: { type: Boolean, default: false },
+    cornerClass: { type: String, default: '' },
+    primaryColor: { type: String, default: '' }
   });
 
   const emit = defineEmits(['generate-password', 'create-link', 'update:action']);
@@ -30,6 +32,24 @@
     }
     return false;
   });
+
+  const processCornerClass = (cornerClass: string | undefined): { leftCorner: string, rightCorner: string } => {
+    if (!cornerClass) {
+      return { leftCorner: 'rounded-l-lg', rightCorner: 'rounded-r-lg' };
+    }
+
+    // Extract radius size from cornerClass (e.g., 'lg', 'md', 'sm', etc.)
+    const match = cornerClass.match(/rounded-(\w+)/);
+    const size = match ? match[1] : 'xl';
+
+    return {
+      leftCorner: `rounded-l-${size}`,
+      rightCorner: `rounded-r-${size}`,
+    };
+  }
+
+  // Get the correct equivalent left and right corner classes
+  const corners = computed(() => processCornerClass(props.cornerClass));
 
   // Button labels and icons based on selected action
   const buttonConfig = computed(() => {
@@ -88,11 +108,14 @@
     <div
       v-if="selectedAction"
       class="sr-only"
-      aria-live="assertive">{{ buttonConfig.label }} mode activated</div>
+      aria-live="assertive">
+      {{ buttonConfig.label }} mode activated
+    </div>
     <button
       type="submit"
       :class="[
-        'flex items-center justify-center gap-2 rounded-l-lg px-4 py-3 text-lg font-semibold text-white transition-colors',
+        corners.leftCorner,
+        'flex items-center justify-center gap-2 px-4 py-3 text-lg font-semibold text-white transition-colors',
         'bg-brand-500 hover:bg-brand-600 dark:bg-brand-600 dark:hover:bg-brand-700',
         'focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 dark:focus:ring-offset-slate-900',
         {
@@ -120,12 +143,15 @@
     <!-- prettier-ignore-attribute class -->
     <button
       type="button"
-      class="flex items-center justify-center rounded-r-lg
-        border-l border-white/30 bg-brand-500
-        p-3 text-white transition-colors hover:bg-brand-700
-        focus:outline-none focus:ring-2
-        focus:ring-brand-500 focus:ring-offset-2 dark:bg-brand-600 dark:hover:bg-brand-700
-        dark:focus:ring-offset-slate-900"
+      :class="[
+        corners.rightCorner,
+        'flex items-center justify-center',
+        'border-l border-white/30 bg-brand-500',
+        'p-3 text-white transition-colors hover:bg-brand-700',
+        'focus:outline-none focus:ring-2',
+        'focus:ring-brand-500 focus:ring-offset-2 dark:bg-brand-600 dark:hover:bg-brand-700',
+        'dark:focus:ring-offset-slate-900',
+      ]"
       @click="handleDropdownToggle"
       aria-label="Show more actions"
       :aria-expanded="isDropdownOpen"
@@ -148,7 +174,8 @@
     <div
       v-if="isDropdownOpen"
       id="split-button-dropdown"
-      class="absolute right-0 top-full z-10 mt-1 w-52 rounded-md
+      :class="cornerClass"
+      class="absolute right-0 top-full z-10 mt-1 w-52
         bg-white shadow-lg dark:bg-gray-800">
       <!-- prettier-ignore-attribute class -->
       <button

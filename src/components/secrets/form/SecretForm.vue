@@ -23,6 +23,8 @@
     withAsterisk?: boolean;
     withGenerate?: boolean;
     withExpiry?: boolean;
+    cornerClass?: string;
+    primaryColor?: string;
   }
 
   const props = withDefaults(defineProps<Props>(), {
@@ -31,6 +33,8 @@
     withAsterisk: false,
     withGenerate: false,
     withExpiry: true,
+    cornerClass: 'rounded-lg',
+    primaryColor: '#dc4a22',
   });
 
   const router = useRouter();
@@ -127,7 +131,8 @@
       <!-- prettier-ignore-attribute class -->
       <div
         ref="div1"
-        class="overflow-visible rounded-xl border border-gray-200
+        :class="[cornerClass]"
+        class="overflow-visible border border-gray-200
           bg-white shadow-lg dark:border-gray-700 dark:bg-slate-900">
         <!-- Main Content Section -->
         <div class="p-6">
@@ -151,6 +156,7 @@
               v-model:content="form.secret"
               :disabled="isSubmitting"
               :max-height="400"
+              :corner-class="cornerClass"
               aria-labelledby="secretContentLabel"
               @update:content="(content) => operations.updateField('secret', content)" />
           </span>
@@ -158,6 +164,7 @@
           <!-- Generate Password Text -->
           <div
             v-show="selectedAction === 'generate-password'"
+            :class="[cornerClass]"
             class="rounded-lg border border-gray-200 bg-gray-50
               dark:border-gray-700 dark:bg-slate-800/50"
             aria-labelledby="generatedPasswordHeader"
@@ -218,25 +225,28 @@
                   autocomplete="off"
                   :aria-invalid="!!getError('passphrase')"
                   :aria-errormessage="getError('passphrase') ? passphraseErrorId : undefined"
-                  class="w-full rounded-lg border border-gray-200 bg-white py-2.5 pl-5 pr-10
+                  :class="[cornerClass]"
+                  class="w-full border border-gray-200 bg-white py-2.5 pl-5 pr-10
                     text-sm text-gray-900 transition-shadow duration-200 placeholder:text-gray-400
                     focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500
                     dark:border-gray-700 dark:bg-slate-800 dark:text-white dark:placeholder:text-gray-500"
                   :placeholder="$t('web.secrets.enterPassphrase')"
-                  @input="(e) => updatePassphrase((e.target as HTMLInputElement).value)" />
+                  @input="(e) => updatePassphrase((e.target as HTMLInputElement).value)"
+                />
                 <!-- prettier-ignore-attribute class -->
                 <button
                   type="button"
                   @click="togglePassphraseVisibility"
                   :aria-label="state.passphraseVisibility ? 'Hide passphrase' : 'Show passphrase'"
                   :aria-pressed="state.passphraseVisibility"
-                  class="absolute inset-y-0 right-3 flex items-center rounded-sm
+                  class="absolute inset-y-0 right-3 flex items-center
                     focus:outline-none focus:ring-2 focus:ring-blue-500">
                   <OIcon
                     collection="heroicons"
                     :name="state.passphraseVisibility ? 'solid-eye' : 'outline-eye-off'"
                     class="size-4 text-gray-400 hover:text-gray-600"
-                    aria-hidden="true" />
+                    aria-hidden="true"
+                  />
                 </button>
               </div>
             </div>
@@ -268,7 +278,8 @@
                   name="ttl"
                   :aria-invalid="!!getError('ttl')"
                   :aria-describedby="getError('ttl') ? lifetimeErrorId : undefined"
-                  class="w-full appearance-none rounded-lg border border-gray-200
+                  :class="[cornerClass]"
+                  class="w-full appearance-none border border-gray-200
                     bg-white py-2.5 pl-5 pr-10 text-sm text-gray-600 transition-shadow duration-200
                     focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500
                     dark:border-gray-700 dark:bg-slate-800 dark:text-white"
@@ -339,7 +350,8 @@
                 :placeholder="$t('web.COMMON.email_placeholder')"
                 :aria-invalid="!!getError('recipient')"
                 :aria-errormessage="getError('recipient') ? recipientErrorId : undefined"
-                class="w-full rounded-lg border border-gray-200
+                :class="[cornerClass]"
+                class="w-full border border-gray-200
                   bg-white px-10 py-2.5 text-sm text-gray-900 placeholder:text-gray-400
                   focus:border-blue-500 focus:ring-2 focus:ring-blue-500
                   dark:border-gray-700 dark:bg-slate-800 dark:text-white dark:placeholder:text-gray-500"
@@ -388,6 +400,7 @@
                 <div class="mb-0 mt-3 sm:mt-0">
                   <SplitButton
                     :with-generate="props.withGenerate"
+                    :corner-class="cornerClass"
                     :disabled="selectedAction === 'create-link' && !hasContent"
                     :disable-generate="selectedAction === 'create-link' && hasContent"
                     :aria-label="

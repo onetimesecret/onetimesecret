@@ -80,7 +80,6 @@
 
             <!-- UI Elements -->
             <div class="flex shrink-0 items-center gap-2">
-              <OIcon collection="" name="tabler-border-corner-rounded" />
               <CycleButton
                 :model-value="modelValue.corner_style"
                 @update:model-value="(value) => updateBrandSetting('corner_style', value)"
