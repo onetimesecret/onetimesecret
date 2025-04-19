@@ -7,13 +7,13 @@
   import HoverTooltip from './HoverTooltip.vue';
 
   interface Props {
-    modelValue: string | undefined;
-    options: string[];
-    label: string;
-    displayMap?: Record;
-    iconMap?: Record;
-    defaultValue?: string;
-  }
+      modelValue: string | undefined;
+      options: string[];
+      label: string;
+      displayMap?: Record<string, string>;
+      iconMap?: Record<string, string>;
+      defaultValue?: string;
+    }
 
   const props = withDefaults(defineProps<Props>(), {
     displayMap: () => ({}),
