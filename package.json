@@ -102,7 +102,7 @@
     "eslint-plugin-tailwindcss": "^3.18.0",
     "eslint-plugin-vue": "^9.33.0",
     "globals": "^15.15.0",
-    "happy-dom": "^15.11.7",
+    "happy-dom": "^17.4.4",
     "jiti": "2.4.0",
     "jsdom": "^26.0.0",
     "playwright": "^1.51.1",
