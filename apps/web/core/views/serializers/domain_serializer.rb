@@ -75,6 +75,7 @@ module Core
         def output_template
           {
             canonical_domain: nil,
+            custom_domains: nil,
             display_domain: nil,
             domain_branding: nil,
             domain_id: nil,
