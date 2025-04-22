@@ -15,6 +15,7 @@ module Onetime
 
     def self.random_fortune
       raise OT::Problem, "No fortunes" if fortunes.nil?
+      raise OT::Problem, "#{fortunes.class} is not an Array" unless fortunes.is_a?(Array)
       fortune = fortunes.sample.to_s.strip
       raise OT::Problem, "No fortune found" if fortune.empty?
       fortune
