@@ -15,6 +15,8 @@
 # logic without needing to run the full application, allowing for
 # targeted testing of this specific functionality.
 
+require 'securerandom'
+
 require_relative '../test_logic'
 
 # Load the app
@@ -33,7 +35,7 @@ OT.boot! :test, false
 
 # A generator for valid params for creating an account
 @valid_params = lambda do
-  entropy = OT.entropy[0..6]
+  entropy = SecureRandom.hex[0..6]
   email = "tryouts+60+#{entropy}@onetimesecret.com"
   pword = 'loopersucks'
   {

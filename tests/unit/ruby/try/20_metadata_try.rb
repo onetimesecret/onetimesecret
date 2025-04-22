@@ -14,7 +14,9 @@
 # stored, and managed, which is crucial for maintaining information
 # about secrets in the application.
 
-require_relative './test_models'
+require 'securerandom'
+
+require_relative 'test_models'
 
 #Familia.debug = true
 
@@ -57,7 +59,7 @@ unique_values.size
 #=> @iterations
 
 ## Doesn't exist yet
-@metadata = V2::Metadata.new :metadata, [OT.instance, Time.now.to_f, OT.entropy]
+@metadata = V2::Metadata.new :metadata, [OT.instance, Time.now.to_f, SecureRandom.hex]
 @metadata.exists?
 #=> false
 

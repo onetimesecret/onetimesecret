@@ -42,11 +42,12 @@ onMounted(() => {
 });
 const githubLink = '<a href="https://github.com/onetimesecret/onetimesecret">our code remains open-source</a>';
 const privacyPolicyLink = `<router-link to="/info/privacy">privacy policy</router-link>`;
+const openSourceLink = '<a href="https://github.com/onetimesecret/onetimesecret">open source</a>';
 </script>
 
 <template>
   <article class="prose dark:prose-invert md:prose-lg lg:prose-xl">
-    <h2 class="intro">
+    <h2 class="">
       {{ $t('web.about.title') }}
     </h2>
 
@@ -117,7 +118,7 @@ const privacyPolicyLink = `<router-link to="/info/privacy">privacy policy</route
 
     <h4>{{ $t('web.about.faq.law_enforcement_title') }}</h4>
     <p v-html="$t('web.about.intro.paragraph3', { githubLink })"></p>
-    <p v-html="$t('web.about.faq.law_enforcement_description', { privacyPolicyLink: privacyPolicyLink })"></p>
+    <p v-html="$t('web.about.faq.law_enforcement_description', { privacyPolicyLink })"></p>
 
     <h4>{{ $t('web.about.faq.trust_title') }}</h4>
     <p>
@@ -126,7 +127,7 @@ const privacyPolicyLink = `<router-link to="/info/privacy">privacy policy</route
     <ul>
       <li>{{ $t('web.about.faq.trust_points.0') }}</li>
       <li>{{ $t('web.about.faq.trust_points.1') }}</li>
-      <li>{{ $t('web.about.faq.trust_points.2') }}</li>
+      <li v-html="$t('web.about.faq.trust_points.2', { openSourceLink })"></li>
       <li>{{ $t('web.about.faq.trust_points.3') }}</li>
     </ul>
 

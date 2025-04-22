@@ -20,9 +20,6 @@ on:
       - opened
       - ready_for_review
       - review_requested
-    # Don't deploy on PRs from forks
-    paths-ignore:
-      - '**'
 
   # Automatic trigger on pushes to feature and work-in-progress branches
   # Allows for continuous integration and testing of new features
@@ -36,8 +33,8 @@ jobs:
     name: Deploy
     runs-on: ubuntu-24.04
     environment: Fly.io
-    if: github.repository == 'onetimesecret/onetimesecret'
-
+    # Don't deploy on PRs from forks
+    if: github.repository == 'onetimesecret/onetimesecret' && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository)
     steps:
       - name: Debug Repository Info
         run: |
