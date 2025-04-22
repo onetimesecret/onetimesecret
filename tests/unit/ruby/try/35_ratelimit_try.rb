@@ -16,14 +16,16 @@
 # and RateLimited mixin, which are essential for preventing abuse and ensuring
 # fair usage of the application.
 
-require_relative './test_models'
+require 'securerandom'
+
+require_relative 'test_models'
 
 # Use the default config file for tests
 OT.boot! :test, true
 
 # Setup section - define instance variables accessible across all tryouts
 @stamp = RateLimit.eventstamp
-@identifier = "tryouts-35+#{OT.entropy[0,8]}"
+@identifier = "tryouts-35+#{SecureRandom.hex[0,8]}"
 @limiter = RateLimit.new @identifier, :test_limit
 
 # Create a test class that includes RateLimited
