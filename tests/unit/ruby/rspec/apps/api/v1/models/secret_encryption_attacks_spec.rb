@@ -88,8 +88,11 @@ RSpec.describe V1::Secret, 'security hardening' do
 
       # Case 1: Empty value
       secret.value = ""
-      # Fix: Empty value with encryption mode 2 will trigger OpenSSL error
-      expect { secret.decrypted_value }.to raise_error(OpenSSL::Cipher::CipherError)
+      # Ruby 3.1 raises ArgumentError, 3.2+ raises OpenSSL::Cipher::CipherError
+      # We accept either behavior for the v1 legacy code
+      expect { secret.decrypted_value }.to raise_error { |error|
+        expect([ArgumentError, OpenSSL::Cipher::CipherError]).to include(error.class)
+      }
 
       # Case 2: Nil value
       secret.value = nil

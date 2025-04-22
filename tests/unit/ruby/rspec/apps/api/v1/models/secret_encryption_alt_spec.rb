@@ -40,6 +40,10 @@ RSpec.describe V1::Secret do
 
     it 'respects size limitations' do
       long_value = "a" * 10_000
+
+      # Mock SecureRandom.rand to return a consistent value for tests
+      allow(SecureRandom).to receive(:rand).and_return(0)
+
       secret.encrypt_value(long_value, size: 1000)
 
       expect(secret.truncated?).to be true
