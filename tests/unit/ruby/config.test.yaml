@@ -249,6 +249,15 @@
   :verify_domain: 25
   :check_status: 25
   :update_branding: 25
+  :destroy_session: 5
+  :get_domain_brand: 1000
+  :get_domain_logo: 1000
+  :get_image: 1000
+  :remove_domain_logo: 20
+  :show_account: 100
+  :stripe_webhook: 25
+  :update_domain_brand: 50
+  :view_colonel: 50
 :development:
   :enabled: <%= ['development', 'dev'].include?(ENV['RACK_ENV']) %>
   :debug: <%= ['true', '1', 'yes'].include?(ENV['ONETIME_DEBUG']) %>

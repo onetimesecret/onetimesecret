@@ -166,7 +166,15 @@
   :attempt_secret_access: int()
   :check_status: int()
   :update_branding: int()
-
+  :destroy_session: int()
+  :get_domain_brand: int()
+  :get_domain_logo: int()
+  :get_image: int()
+  :remove_domain_logo: int()
+  :show_account: int()
+  :stripe_webhook: int()
+  :update_domain_brand: int()
+  :view_colonel: int()
 :development:
   :enabled: any()
   :debug: any()
