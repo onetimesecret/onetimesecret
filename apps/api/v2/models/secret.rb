@@ -110,6 +110,13 @@ module V2
     end
 
     def encrypt_value original_value, opts={}
+
+      if original_value.to_s.empty?
+        self.value_encryption = -1
+        self.value_checksum = "".gibbler
+        return
+      end
+
       if opts[:size] && original_value.size > opts[:size]
         storable_value = original_value.slice(0, opts[:size])
         self.truncated = true
@@ -123,9 +130,13 @@ module V2
     end
 
     def decrypted_value opts={}
+      encryption_mode = value_encryption.to_i
       v_encrypted = self.value
+      v_encrypted = "" if encryption_mode.negative? && v_encrypted.nil?
       v_encrypted.force_encoding("utf-8")
-      v_decrypted = case value_encryption.to_i
+      v_decrypted = case encryption_mode
+      when -1
+        ""
       when 0
         v_encrypted
       when 1
