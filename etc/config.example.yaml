@@ -399,6 +399,19 @@
   #   automatic retry with nil secret
   #
   :allow_nil_global_secret: false
+  # SECURITY FEATURE: List of previously used secrets for decryption during rotation
+  #
+  # FORMAT: Array of strings containing previous secret values
+  # ["old_secret_1", "old_secret_2", "oldest_secret"]
+  #
+  # USAGE: When rotating secrets, add old values here while setting new primary
+  # secret in site.secret or SECRET env var. The application will:
+  # 1. Use current primary secret for all new encryptions
+  # 2. Try each rotated secret (in order) for decryption when primary fails
+  #
+  # MAINTENANCE: Remove secrets from this list after their encrypted data expires
+  # or has been successfully re-encrypted with the current primary secret
+  :rotated_secrets: []
   # When set to true, the Rack::Builder#freeze_app freezes the middleware stack
   # after initialization to prevent any runtime modifications to the app middleware chain.
   # This is a security measure that prevents malicious code from injecting new middleware.

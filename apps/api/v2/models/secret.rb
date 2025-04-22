@@ -152,25 +152,65 @@ module V2
       v_encrypted = self.value
       v_encrypted = "" if encryption_mode.negative? && v_encrypted.nil?
       v_encrypted.force_encoding("utf-8")
-      v_decrypted = case encryption_mode
-      when -1
-        ""
-      when 0
-        v_encrypted
-      when 1
-        v_encrypted.decrypt opts.merge(:key => encryption_key_v1)
-      when 2
-        v_encrypted.decrypt opts.merge(:key => encryption_key_v2)
-      else
-        raise RuntimeError, "Unknown encryption mode: #{value_encryption}"
+
+      # First try with the primary global secret
+      begin
+        v_decrypted = case encryption_mode
+        when -1
+          ""
+        when 0
+          v_encrypted
+        when 1
+          v_encrypted.decrypt opts.merge(:key => encryption_key_v1)
+        when 2
+          v_encrypted.decrypt opts.merge(:key => encryption_key_v2)
+        else
+          raise RuntimeError, "Unknown encryption mode: #{value_encryption}"
+        end
+        v_decrypted.force_encoding("utf-8") # Hacky fix for https://github.com/onetimesecret/onetimesecret/issues/37
+        return v_decrypted
+      rescue OpenSSL::Cipher::CipherError => original_error
+        # Try fallback global secrets for mode 2 (current encryption)
+        if encryption_mode == 2 && has_fallback_secrets?
+          fallback_result = try_fallback_secrets(v_encrypted, opts)
+          return fallback_result if fallback_result
+        end
+
+        # If all secrets fail, try nil secret if allowed
+        allow_nil = OT.conf[:experimental].fetch(:allow_nil_global_secret, false)
+        if allow_nil
+          decryption_options = opts.merge(:key => encryption_key_v2_with_nil)
+          return v_encrypted.decrypt(decryption_options)
+        end
+
+        # If nothing works, raise the original error
+        raise original_error
       end
-      v_decrypted.force_encoding("utf-8") # Hacky fix for https://github.com/onetimesecret/onetimesecret/issues/37
-      v_decrypted
-    rescue OpenSSL::Cipher::CipherError => e
-      decryption_options = opts.merge(:key => encryption_key_v2_with_nil)
-      allow_nil = OT.conf[:experimental].fetch(:allow_nil_global_secret, false)
-      raise e unless allow_nil
-      v_encrypted.decrypt decryption_options
+    end
+
+    # Check if there are additional global secrets configured beyond the primary one
+    def has_fallback_secrets?
+      rotated_secrets = OT.conf[:experimental].fetch(:rotated_secrets, [])
+      rotated_secrets.is_a?(Array) && rotated_secrets.length > 1
+    end
+
+    # Try to decrypt using each fallback secret
+    def try_fallback_secrets(encrypted_value, opts)
+      return nil unless has_fallback_secrets?
+      rotated_secrets = OT.conf[:experimental].fetch(:rotated_secrets, [])
+      rotated_secrets.each do |fallback_secret|
+        begin
+          # Generate key using the fallback secret
+          key = V2::Secret.encryption_key(fallback_secret, self.key, self.passphrase_temp)
+          result = encrypted_value.decrypt(opts.merge(:key => key))
+          result.force_encoding("utf-8")
+          return result
+        rescue OpenSSL::Cipher::CipherError
+          # Continue to next secret if this one fails
+          next
+        end
+      end
+      nil # Return nil if all fallback secrets fail
     end
 
     def can_decrypt?

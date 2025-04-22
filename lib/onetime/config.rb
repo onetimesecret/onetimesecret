@@ -64,6 +64,7 @@ module Onetime
         OT.ld "Setting an empty experimental config #{path}"
         conf[:experimental] = {
           allow_nil_global_secret: false,
+          rotated_secrets: [],
         }
       end
 
@@ -110,6 +111,10 @@ module Onetime
         OT.li "Set valid SECRET env var or site.secret in config ASAP"
         OT.li "!" * 50
       end
+
+      # Remove nil elements
+      rotated_secrets = conf[:experimental].fetch(:rotated_secrets, []).compact
+      conf[:experimental][:rotated_secrets] = rotated_secrets
 
       unless conf[:site]&.key?(:domains)
         conf[:site][:domains] = { enabled: false }
