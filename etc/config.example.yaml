@@ -375,19 +375,29 @@
 # Settings for experimental features that are still being tested.
 # All of these features are turned off by default and may not work as expected.
 :experimental:
-  # Allow the application to run with a nil site.secret config setting (i.e. at
-  # the top of this file or via the SECRET env var). This should always be
-  # false unless:
-  # 1) you choose to always run the application with a nil secret.
-  # 2) you accidentally ran the application with a nil global secret and want
-  # to restart with the correct secret, but still allow any secret links that
-  # were created during that time to be received.
+  # SECURITY CRITICAL: Controls whether the application can run without a site.secret
+  # (either in this file or via the SECRET env var).
   #
-  # When true, the application will _not fail_ on start up and when decrypting
-  # secrets it will rescue CipherError and retry to decrypt with an explicitly
-  # nil global secret. After N days (or whatever your maximum expiration time
-  # may be), this can be turned off again. When false, the application will
-  # fail to start with a relevant message if the global secret is nil.
+  # DEFAULT: false (application will fail to start if site.secret is nil)
+  #
+  # WARNING: Setting to true presents significant security risks:
+  # - Secrets may be stored without proper encryption
+  # - Unauthorized access to sensitive data becomes possible
+  # - Secret link integrity cannot be guaranteed
+  #
+  # VALID USE CASES (temporary only):
+  # 1. RECOVERY: You accidentally ran with nil secret and need to recover
+  #    existing secrets created during that time. Enable temporarily until
+  #    all affected secrets expire (max TTL period).
+  # 2. MIGRATION: During a controlled migration between encryption schemes,
+  #    with proper security measures in place.
+  #
+  # BEHAVIOR WHEN TRUE:
+  # - Application starts without failing
+  # - Warning logs appear at startup
+  # - When decrypting, CipherErrors with the real secret will cause
+  #   automatic retry with nil secret
+  #
   :allow_nil_global_secret: false
   # When set to true, the Rack::Builder#freeze_app freezes the middleware stack
   # after initialization to prevent any runtime modifications to the app middleware chain.

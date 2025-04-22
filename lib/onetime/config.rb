@@ -60,6 +60,13 @@ module Onetime
     def after_load(conf = nil) # rubocop:disable Metrics/MethodLength,Metrics/PerceivedComplexity
       conf ||= {}
 
+      unless conf.key?(:experimental)
+        OT.ld "Setting an empty experimental config #{path}"
+        conf[:experimental] = {
+          allow_nil_global_secret: false,
+        }
+      end
+
       unless conf.key?(:development)
         raise OT::Problem, "No `development` config found in #{path}"
       end
@@ -74,6 +81,34 @@ module Onetime
 
       unless conf[:site]&.key?(:authentication)
         raise OT::Problem, "No `site.authentication` config found in #{path}"
+      end
+
+      unless conf[:site]&.key?(:secret)
+        OT.ld "No site.secret setting in #{path}"
+        conf[:site][:secret] = nil
+      end
+
+      # Handle potential nil global secret
+      # The global secret is critical for encrypting/decrypting secrets
+      # Running without a global secret is only permitted in exceptional cases
+      allow_nil = conf[:experimental].fetch(:allow_nil_global_secret, false)
+      global_secret = conf[:site].fetch(:secret, nil)
+
+      if global_secret.nil?
+        unless allow_nil
+          # Fast fail when global secret is nil and not explicitly allowed
+          raise OT::Problem, "Global secret cannot be nil - set SECRET env var or site.secret in config"
+        end
+
+        # Security warning when proceeding with nil global secret
+        OT.li "!" * 50
+        OT.li "SECURITY WARNING: Running with nil global secret!"
+        OT.li "This configuration presents serious security risks:"
+        OT.li "- Secret encryption will be compromised"
+        OT.li "- Data cannot be properly protected"
+        OT.li "- Only use during recovery or transition periods"
+        OT.li "Set valid SECRET env var or site.secret in config ASAP"
+        OT.li "!" * 50
       end
 
       unless conf[:site]&.key?(:domains)
