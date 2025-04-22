@@ -7,7 +7,7 @@
   # Be sure to create and store a backup in a secure offsite
   # location. Changing the secret can lead to unforeseen issues
   # like not being able to decrypt existing secrets.
-  :secret: <%= ENV['SECRET'] || 'CHANGEME' %>
+  :secret: <%= ENV['SECRET'] || nil %>
   # API and UI Configuration
   :interface:
     # Controls whether the web user interface is available. When disabled, the
