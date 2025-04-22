@@ -428,10 +428,30 @@ module V1
     #
     def capture_error(error, level=:error, &)
       return unless OT.d9s_enabled # diagnostics are disabled by default
-      Sentry.capture_exception(error, level: level, &)
-    rescue StandardError => ex
-      OT.le "[capture_error] #{ex.class}: #{ex.message}"
-      OT.ld ex.backtrace.join("\n")
+
+      # Capture more detailed debugging information when Sentry errors occur
+      begin
+        # Log request headers before attempting to send to Sentry
+        if defined?(req) && req.respond_to?(:env)
+          headers = req.env.select { |k, _v| k.start_with?('HTTP_') rescue false }
+          OT.ld "[capture_error] Request headers: #{headers.inspect}"
+        end
+
+        # Try Sentry exception reporting
+        Sentry.capture_exception(error, level: level, &)
+      rescue NoMethodError => e
+        if e.message.include?('start_with?')
+          OT.le "[capture_error] Sentry error with nil value in start_with? check: #{e.message}"
+          OT.ld e.backtrace.join("\n")
+          # Continue execution - don't let a Sentry error break the app
+        else
+          # Re-raise any other NoMethodError that isn't related to start_with?
+          raise
+        end
+      rescue StandardError => ex
+        OT.le "[capture_error] #{ex.class}: #{ex.message}"
+        OT.ld ex.backtrace.join("\n")
+      end
     end
 
     def capture_message(message, level=:log, &)

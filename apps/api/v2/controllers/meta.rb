@@ -65,10 +65,14 @@ module V2
         publically do
           carefully do
             # NOTE: Unlike `check_shrimp!`, this method only considers
-            # the Official Shrimp HTTP Header. The endoint it supports
+            # the Official Shrimp HTTP Header. The endpoint it supports
             # is used by the Vue app as a Just-In-Time check to try to
             # avoid scenarios where we have an outdated shrimp and an
             # important request fails inexplicably for the user.
+
+            # Log all headers for debugging Sentry issue
+            OT.ld "[Debug-Sentry] Request headers: #{req.env.select { |k, v| k.start_with?('HTTP_') }.inspect}"
+
             shrimp = req.env['HTTP_O_SHRIMP'].to_s
             OT.le 'Missing O-Shrimp header' if shrimp.empty?
 
