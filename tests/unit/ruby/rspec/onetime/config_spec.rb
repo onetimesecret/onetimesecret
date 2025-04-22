@@ -8,7 +8,7 @@ RSpec.describe Onetime::Config do
         {
           defaults: { timeout: 5, enabled: true },
           api: { timeout: 10 },
-          web: {}
+          web: {},
         }
       end
 
@@ -17,16 +17,16 @@ RSpec.describe Onetime::Config do
           defaults: {
             dsn: 'default-dsn',
             environment: 'test',
-            enabled: true
+            enabled: true,
           },
           backend: {
             dsn: 'backend-dsn',
-            traces_sample_rate: 0.1
+            traces_sample_rate: 0.1,
           },
           frontend: {
             path: '/web',
-            profiles_sample_rate: 0.2
-          }
+            profiles_sample_rate: 0.2,
+          },
         }
       end
 
@@ -44,7 +44,7 @@ RSpec.describe Onetime::Config do
             dsn: 'backend-dsn',
             environment: 'test',
             enabled: true,
-            traces_sample_rate: 0.1
+            traces_sample_rate: 0.1,
           })
 
           expect(result[:frontend]).to eq({
@@ -52,7 +52,7 @@ RSpec.describe Onetime::Config do
             environment: 'test',
             enabled: true,
             path: '/web',
-            profiles_sample_rate: 0.2
+            profiles_sample_rate: 0.2,
           })
         end
       end
@@ -76,7 +76,7 @@ RSpec.describe Onetime::Config do
           config = {
             defaults: { timeout: 5 },
             api: "invalid",
-            web: { port: 3000 }
+            web: { port: 3000 },
           }
           result = described_class.apply_defaults(config)
           expect(result.keys).to contain_exactly(:web)
@@ -95,7 +95,7 @@ RSpec.describe Onetime::Config do
       {
         defaults: { timeout: 5, enabled: true },
         api: { timeout: 10 },
-        web: {}
+        web: {},
       }
     end
 
@@ -106,7 +106,7 @@ RSpec.describe Onetime::Config do
       {
         defaults: { dsn: 'default-dsn', environment: 'test' },
         backend: { dsn: 'backend-dsn' },
-        frontend: { path: '/web' }
+        frontend: { path: '/web' },
       }
     end
 
@@ -131,7 +131,7 @@ RSpec.describe Onetime::Config do
       config = {
         defaults: { dsn: 'default-dsn' },
         backend: { dsn: nil },
-        frontend: { dsn: nil }
+        frontend: { dsn: nil },
       }
       result = described_class.apply_defaults(config)
       expect(result[:backend][:dsn]).to eq('default-dsn')
@@ -143,13 +143,13 @@ RSpec.describe Onetime::Config do
 
       expect(result[:backend]).to eq({
         dsn: 'backend-dsn',
-        environment: 'test'
+        environment: 'test',
       })
 
       expect(result[:frontend]).to eq({
         dsn: 'default-dsn',
         environment: 'test',
-        path: '/web'
+        path: '/web',
       })
     end
 
@@ -227,14 +227,15 @@ RSpec.describe Onetime::Config do
         config = {
           colonels: ['root@example.com', 'admin@example.com'],
           site: {
+            secret: 'notnil',
             authentication: {
-              enabled: true # Set authentication as enabled
-            }
+              enabled: true, # Set authentication as enabled
+            },
           },
           development: {},
           mail: {
-            truemail: {}
-          }
+            truemail: {},
+          },
         }
 
         described_class.after_load(config)
@@ -246,15 +247,16 @@ RSpec.describe Onetime::Config do
         # Config with colonels in site.authentication
         config = {
           site: {
+             secret: 'notnil',
             authentication: {
               enabled: true, # Set authentication as enabled
-              colonels: ['site@example.com']
-            }
+              colonels: ['site@example.com'],
+            },
           },
           development: {},
           mail: {
-            truemail: {}
-          }
+            truemail: {},
+          },
         }
 
         described_class.after_load(config)
@@ -267,15 +269,16 @@ RSpec.describe Onetime::Config do
         config = {
           colonels: ['root@example.com', 'admin@example.com'],
           site: {
+            secret: 'notnil',
             authentication: {
               enabled: true, # Set authentication as enabled
-              colonels: ['site@example.com', 'auth@example.com']
-            }
+              colonels: ['site@example.com', 'auth@example.com'],
+            },
           },
           development: {},
           mail: {
-            truemail: {}
-          }
+            truemail: {},
+          },
         }
 
         described_class.after_load(config)
@@ -288,14 +291,15 @@ RSpec.describe Onetime::Config do
         # Config with no colonels defined
         config = {
           site: {
+            secret: 'notnil',
             authentication: {
-              enabled: true # Set authentication as enabled
-            }
+              enabled: true, # Set authentication as enabled
+            },
           },
           development: {},
           mail: {
-            truemail: {}
-          }
+            truemail: {},
+          },
         }
 
         described_class.after_load(config)
@@ -310,8 +314,8 @@ RSpec.describe Onetime::Config do
           site: {},
           development: {},
           mail: {
-            truemail: {}
-          }
+            truemail: {},
+          },
         }
 
         expect {
@@ -324,15 +328,16 @@ RSpec.describe Onetime::Config do
         config = {
           colonels: ['root@example.com', 'admin@example.com'],
           site: {
+            secret: 'notnil',
             authentication: {
               enabled: false,
-              colonels: ['site@example.com']
-            }
+              colonels: ['site@example.com'],
+            },
           },
           development: {},
           mail: {
-            truemail: {}
-          }
+            truemail: {},
+          },
         }
 
         described_class.after_load(config)
