@@ -1,5 +1,7 @@
 # apps/api/v2/models/secret.rb
 
+require 'openssl'
+
 module V2
   class Secret < Familia::Horreum
     include Gibbler::Complex
@@ -116,10 +118,11 @@ module V2
       else
         storable_value = original_value
       end
-
       self.value_checksum = storable_value.gibbler
       self.value_encryption = 2
-      self.value = storable_value.encrypt opts.merge(:key => encryption_key)
+
+      encryption_options = opts.merge(:key => encryption_key)
+      self.value = storable_value.encrypt encryption_options
     end
 
     def decrypted_value opts={}
@@ -137,6 +140,11 @@ module V2
       end
       v_decrypted.force_encoding("utf-8") # Hacky fix for https://github.com/onetimesecret/onetimesecret/issues/37
       v_decrypted
+    rescue OpenSSL::Cipher::CipherError => e
+      decryption_options = opts.merge(:key => encryption_key_v2_with_nil)
+      allow_nil = OT.conf[:experimental].fetch(:allow_nil_global_secret, false)
+      raise e unless allow_nil
+      v_encrypted.decrypt decryption_options
     end
 
     def can_decrypt?
@@ -162,6 +170,11 @@ module V2
 
     def encryption_key_v2 *ignored
       V2::Secret.encryption_key OT.global_secret, self.key, self.passphrase_temp
+    end
+
+    # Used as a failover key when experimental.allow_nil_global_secret is true.
+    def encryption_key_v2_with_nil
+      V2::Secret.encryption_key nil, self.key, self.passphrase_temp
     end
 
     def load_customer
