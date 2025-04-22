@@ -31,7 +31,9 @@ RSpec.describe V2::Secret do
         secret.encrypt_value(long_value, size: size_limit)
 
         decrypted = secret.decrypted_value
-        expect(decrypted.length).to eq(size_limit)
+        # Account for the randomized fuzzy truncation (0-20% extra)
+        expect(decrypted.length).to be >= size_limit
+        expect(decrypted.length).to be <= (size_limit * 1.2).to_i
         expect(secret.truncated?).to be true
       end
 
@@ -285,6 +287,7 @@ RSpec.describe V2::Secret do
       secret.encrypt_value("")
 
       expect(secret.value_checksum).to eq("".gibbler)
+      expect(secret.value_encryption).to eq(-1) # Special flag for empty content
       expect(secret.decrypted_value).to eq("")
     end
 
