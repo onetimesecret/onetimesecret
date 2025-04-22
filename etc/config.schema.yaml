@@ -19,6 +19,7 @@
 :mail: include(':mail')
 :internationalization: include(':internationalization')
 :diagnostics: include(':diagnostics')
+:logging: include(':logging')
 :limits: include(':limits')
 :development: include(':development')
 :experimental: include(':experimental')
@@ -64,8 +65,8 @@
       :api_key: str(required=False)
       :cluster_ip: str(required=False)
       :cluster_host: str(required=False)
-      :cluster_name: str()
-      :vhost_target: str()
+      :cluster_name: str(required=False)
+      :vhost_target: str(required=False)
 
 :features:
   :incoming:
@@ -135,6 +136,9 @@
     :frontend:
       :dsn: str(required=False)
       :trackComponents: any(str(), bool())
+
+:logging:
+  :http_requests: any(str(), bool())
 
 :limits:
   :create_secret: int()

@@ -79,6 +79,6 @@ def error_fortunes.random
 end
 Onetime::Utils.fortunes = error_fortunes
 Onetime::Utils.random_fortune
-#=> "A house is full of games and puzzles."
+#=> "Unexpected outcomes bring valuable lessons."
 
 Onetime::Utils.instance_variable_set(:@fortunes, @original_fortunes)

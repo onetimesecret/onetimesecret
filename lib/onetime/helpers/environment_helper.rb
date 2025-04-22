@@ -36,6 +36,10 @@ module Onetime
       end
     end
 
+    def now
+      Time.now.utc
+    end
+
     def with_diagnostics(&)
       return unless Onetime.d9s_enabled
       yield # call the block in its own context
