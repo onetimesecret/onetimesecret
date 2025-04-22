@@ -1,20 +1,16 @@
+# support/smtp_test.rb
+#
+# Basic SMTP checker for OneTimeSecret
+# This utility helps test SMTP email delivery using configured environment variables
+
 # frozen_string_literal: true
 # typed: false
 
-# Basic SMTP checker
-#
-# Update the .env file in the root project directory as
-# needed to make sure the SMTP_* environment variables
-# are set correctly for testing.
-#
-#     $ vi .env
-#     [...]
-#     $ ruby support/smtp_test
-#
+$LOAD_PATH.unshift(File.expand_path("../../lib", __FILE__))
 
 require 'net/smtp'
-
 require 'dotenv'
+
 Dotenv.load
 
 timestamp = Time.now.strftime('%Y-%m-%d %H:%M:%S')
@@ -57,3 +53,23 @@ rescue Net::SMTPError, StandardError => e
   puts e.message
   exit(1)
 end
+
+# === USAGE INSTRUCTIONS ===
+#
+# 1. Update the .env file in the root project directory with your SMTP settings:
+#
+#    SMTP_HOST=smtp.example.com
+#    SMTP_PORT=587
+#    SMTP_USERNAME=your_username
+#    SMTP_PASSWORD=your_password
+#    FROM_EMAIL=sender@example.com
+#    TO_EMAIL=recipient@example.com
+#
+# 2. Run the script:
+#
+#    $ ruby support/smtp_test.rb
+#
+# 3. Check the output to verify if the email was sent successfully
+#
+# 4. Custom parameters can be set directly in the .env file or by modifying
+#    the variables at the top of this script.
