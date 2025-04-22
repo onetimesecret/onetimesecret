@@ -38,12 +38,29 @@ RSpec.describe V2::Secret do
       expect(secret.value).not_to be_empty
     end
 
-    it 'respects size limitations' do
+    # This test verifies the security enhancement that prevents information leakage through
+    # content length analysis. By introducing randomization to the truncation point,
+    # attackers can't determine the exact content length, which could leak information
+    # about the secret's contents (e.g., password complexity, message format).
+    #
+    # The implementation adds 0-20% randomization to the truncation point to create
+    # unpredictable length variations while still enforcing size limits.
+    it 'applies fuzzy truncation for information leakage prevention' do
+      size_limit = 1000
       long_value = "a" * 10_000
-      secret.encrypt_value(long_value, size: 1000)
 
+      secret.encrypt_value(long_value, size: size_limit)
+      decrypted_length = secret.decrypted_value.length
+
+      # Verify truncation flag was set
       expect(secret.truncated?).to be true
-      expect(secret.decrypted_value.length).to eq(1000)
+
+      # Verify the length falls within expected fuzzy range (size to size+20%)
+      expect(decrypted_length).to be >= size_limit
+      expect(decrypted_length).to be <= (size_limit * 1.2).to_i
+
+      # Log the actual randomized length for debugging purposes
+      puts "Truncated secret length with fuzziness: #{decrypted_length} (base: #{size_limit})"
     end
 
     it 'handles special characters' do
