@@ -170,6 +170,7 @@ module V2
         v_decrypted.force_encoding("utf-8") # Hacky fix for https://github.com/onetimesecret/onetimesecret/issues/37
         return v_decrypted
       rescue OpenSSL::Cipher::CipherError => original_error
+        OT.le "[decrypted_value] m:#{metadata_key} s:#{key} CipherError #{original_error.message}"
         # Try fallback global secrets for mode 2 (current encryption)
         if encryption_mode == 2 && has_fallback_secrets?
           fallback_result = try_fallback_secrets(v_encrypted, opts)
@@ -179,6 +180,7 @@ module V2
         # If all secrets fail, try nil secret if allowed
         allow_nil = OT.conf[:experimental].fetch(:allow_nil_global_secret, false)
         if allow_nil
+          OT.li "[decrypted_value] m:#{metadata_key} s:#{key} Trying nil global secret"
           decryption_options = opts.merge(:key => encryption_key_v2_with_nil)
           return v_encrypted.decrypt(decryption_options)
         end
@@ -198,15 +200,18 @@ module V2
     def try_fallback_secrets(encrypted_value, opts)
       return nil unless has_fallback_secrets?
       rotated_secrets = OT.conf[:experimental].fetch(:rotated_secrets, [])
-      rotated_secrets.each do |fallback_secret|
+      OT.ld "[try_fallback_secrets] m:#{metadata_key} s:#{key} Trying rotated secrets (#{rotated_secrets.length})"
+      rotated_secrets.each_with_index do |fallback_secret, index|
         begin
           # Generate key using the fallback secret
-          key = V2::Secret.encryption_key(fallback_secret, self.key, self.passphrase_temp)
-          result = encrypted_value.decrypt(opts.merge(:key => key))
+          encryption_key = V2::Secret.encryption_key(fallback_secret, self.key, self.passphrase_temp)
+          result = encrypted_value.decrypt(opts.merge(:key => encryption_key))
           result.force_encoding("utf-8")
+          OT.li "[try_fallback_secrets] m:#{metadata_key} s:#{key} Success (index #{index})"
           return result
         rescue OpenSSL::Cipher::CipherError
           # Continue to next secret if this one fails
+          OT.ld "[try_fallback_secrets] m:#{metadata_key} s:#{key} Failed (index #{index})"
           next
         end
       end
