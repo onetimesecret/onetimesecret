@@ -103,16 +103,18 @@ def test_problematic_secret(secret_key, additional_global_secrets=[], potential_
   # Try decryption with different parameter combinations
   encrypted_value = secret.value
 
+  result = nil
   potential_passphrases.each do |passphrase|
     result = test_decrypt(encrypted_value, secret_key, secret.value_encryption,
                          passphrase, potential_global_secrets)
-    if result
-      puts "\nSUCCESS! Found working configuration."
-      return
-    end
+    break if result
   end
 
-  puts "\nFailed to decrypt with all tried combinations."
+  if result
+    puts "\nSUCCESS! Found working configuration."
+  else
+    puts "\nFailed to decrypt with all tried combinations."
+  end
 end
 
 # Function to manually test encryption key generation with specific parameters

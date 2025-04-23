@@ -432,7 +432,7 @@ module Core
       begin
         # Log request headers before attempting to send to Sentry
         if defined?(req) && req.respond_to?(:env)
-          headers = req.env.select { |k, _v| k.start_with?('HTTP_') rescue false }
+          headers = req.env.select { |k, _v| k.start_with?('HTTP_') rescue false } # rubocop:disable Style/RescueModifier
           OT.ld "[capture_error] Request headers: #{headers.inspect}"
         end
 
