@@ -388,6 +388,36 @@
   # middleware chain manipulation at runtime. For most applications, this should
   # be enabled in production environments.
   :freeze_app: false
+  # Middleware Configuration
+  # Controls which security and performance middleware components are enabled
+  :middleware:
+    # Sanitizes request parameters to ensure proper UTF-8 encoding
+    # Prevents encoding-based attacks and malformed input
+    :utf8_sanitizer: true
+    # Protects against Cross-Site Request Forgery (CSRF) attacks
+    # Validates that requests originate from the same site
+    :http_origin: false
+    # Escapes HTML entities in request parameters
+    # Helps prevent XSS attacks via request parameters
+    :escaped_params: false
+    # Sets X-XSS-Protection header to enable browser XSS filtering
+    # Modern browsers rely less on this as CSP becomes standard
+    :xss_header: false
+    # Prevents your site from being embedded in frames (clickjacking protection)
+    # Sets X-Frame-Options header to SAMEORIGIN or DENY
+    :frame_options: false
+    # Blocks directory traversal attacks using "../" in paths
+    # Critical for preventing unauthorized file access
+    :path_traversal: false
+    # Protects against cookie tossing attacks
+    # Prevents session fixation via manipulated cookies
+    :cookie_tossing: false
+    # Prevents IP spoofing attacks by validating IP addresses
+    # Useful when IP-based access controls are implemented
+    :ip_spoofing: false
+    # Forces all connections to use HTTPS via HSTS headers
+    # Disable only for development or when behind a secure proxy
+    :strict_transport: false
   # When enabled, adds Content-Security-Policy headers to the response. When
   # `development.enabled=true`, the headers will be less restrictive but still
   # prevent any content loading from other origins. In regular production mode,

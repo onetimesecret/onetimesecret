@@ -64,6 +64,8 @@ Encoding.default_external = Encoding::UTF_8
 # Load required Rack extensions and application modules
 require 'rack/content_length'
 require 'rack/contrib'
+require 'rack/protection'
+require 'rack/utf8_sanitizer'
 
 # Load application-specific components
 require_relative 'apps/app_registry'    # Application registry for mounting apps
@@ -128,6 +130,66 @@ end
 if BaseApplication.production?
   require_relative 'lib/onetime/middleware/static_files'
   use Onetime::Middleware::StaticFiles
+end
+
+# Security Middleware Configuration
+# Each middleware component can be enabled/disabled via configuration
+middleware_settings = Onetime.conf.dig(:experimental, :middleware)
+p [:plop, middleware_settings]
+if middleware_settings
+  # UTF-8 Sanitization - Ensures proper UTF-8 encoding in request parameters
+  if middleware_settings[:utf8_sanitizer]
+    Onetime.ld "[config.ru] Enabling UTF8Sanitizer middleware"
+    use Rack::UTF8Sanitizer, sanitize_null_bytes: true
+  end
+
+  # Protection against CSRF attacks
+  if middleware_settings[:http_origin]
+    Onetime.ld "[config.ru] Enabling HttpOrigin protection"
+    use Rack::Protection::HttpOrigin
+  end
+
+  # Escapes HTML in parameters to prevent XSS
+  if middleware_settings[:escaped_params]
+    Onetime.ld "[config.ru] Enabling EscapedParams protection"
+    use Rack::Protection::EscapedParams
+  end
+
+  # Sets X-XSS-Protection header
+  if middleware_settings[:xss_header]
+    Onetime.ld "[config.ru] Enabling XSSHeader protection"
+    use Rack::Protection::XSSHeader
+  end
+
+  # Prevents clickjacking via X-Frame-Options
+  if middleware_settings[:frame_options]
+    Onetime.ld "[config.ru] Enabling FrameOptions protection"
+    use Rack::Protection::FrameOptions
+  end
+
+  # Blocks directory traversal attacks
+  if middleware_settings[:path_traversal]
+    Onetime.ld "[config.ru] Enabling PathTraversal protection"
+    use Rack::Protection::PathTraversal
+  end
+
+  # Prevents session fixation via manipulated cookies
+  if middleware_settings[:cookie_tossing]
+    Onetime.ld "[config.ru] Enabling CookieTossing protection"
+    use Rack::Protection::CookieTossing
+  end
+
+  # Prevents IP spoofing attacks
+  if middleware_settings[:ip_spoofing]
+    Onetime.ld "[config.ru] Enabling IPSpoofing protection"
+    use Rack::Protection::IPSpoofing
+  end
+
+  # Forces HTTPS connections via HSTS headers
+  if middleware_settings[:strict_transport]
+    Onetime.ld "[config.ru] Enabling StrictTransport protection"
+    use Rack::Protection::StrictTransport
+  end
 end
 
 # Application Mounting
