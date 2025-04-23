@@ -1,6 +1,11 @@
+# .github/workflows/config.yml
+
 # https://github.com/nrkno/yaml-schema-validator-github-action
 
 name: Validate YAML config
+permissions:
+  contents: read
+  pull-requests: write
 on:
   push:
     branches:
