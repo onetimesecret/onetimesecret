@@ -180,11 +180,7 @@
   :debug: any()
   :frontend_host: str()
 
-:experimental:
-  :freeze_app: bool()
-  :middleware: any()
-  :csp:
-    :enabled: any()
+:experimental: map(required=False)
 
 ---
 

@@ -58,22 +58,29 @@ module V2::Logic
 
       def safe_stripe_customer_dump
         return nil if stripe_customer.nil?
+        object_id = stripe_customer&.id
         {
-          id: stripe_customer.id,
+          id: object_id,
           email: stripe_customer.email,
           description: stripe_customer.description,
           balance: stripe_customer.balance,
           created: stripe_customer.created,
           metadata: stripe_customer.metadata,
         }
+      rescue RuntimeError => e
+          OT.le("[safe_stripe_customer_dump] Error for #{object_id}: #{e.message}")
+        nil
       end
 
       def safe_stripe_subscription_dump
+        # https://docs.stripe.com/api/subscriptions/retrieve?lang=ruby&api-version=2025-03-31.basil
         return nil if stripe_subscription.nil?
+        object_id = stripe_subscription&.id
+        item_data = stripe_subscription.items.data.first
         {
-          id: stripe_subscription.id,
+          id: object_id,
           status: stripe_subscription.status,
-          current_period_end: stripe_subscription.current_period_end,
+          current_period_end: item_data&.current_period_end,
           items: stripe_subscription.items,
           plan: {
             id: stripe_subscription.plan.id,
@@ -83,6 +90,9 @@ module V2::Logic
             product: stripe_subscription.plan.product,
           },
         }
+      rescue RuntimeError => e
+          OT.le("[safe_stripe_subscription_dump] Error for #{object_id}: #{e.message}")
+        nil
       end
 
       def success_data

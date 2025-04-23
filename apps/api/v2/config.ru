@@ -1,6 +1,6 @@
-# apps/api/v1/config.ru
+# apps/api/v2/config.ru
 #
-# Rackup configuration file for running the API v1 application
+# Rackup configuration file for running the API v2 application
 # as a standalone service.
 
 require_relative '../../app_registry'
@@ -20,6 +20,6 @@ end
 $LOAD_PATH.unshift(File.join(app_root, 'lib'))
 
 # Create and run the Rack app instance
-rack_app = V1::Application.new
+rack_app = V2::Application.new
 
 run rack_app

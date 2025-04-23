@@ -60,6 +60,14 @@ module Onetime
     def after_load(conf = nil) # rubocop:disable Metrics/MethodLength,Metrics/PerceivedComplexity
       conf ||= {}
 
+      unless conf.key?(:experimental)
+        OT.ld "Setting an empty experimental config #{path}"
+        conf[:experimental] = {
+          allow_nil_global_secret: false,
+          rotated_secrets: [],
+        }
+      end
+
       unless conf.key?(:development)
         raise OT::Problem, "No `development` config found in #{path}"
       end
@@ -75,6 +83,38 @@ module Onetime
       unless conf[:site]&.key?(:authentication)
         raise OT::Problem, "No `site.authentication` config found in #{path}"
       end
+
+      unless conf[:site]&.key?(:secret)
+        OT.ld "No site.secret setting in #{path}"
+        conf[:site][:secret] = nil
+      end
+
+      # Handle potential nil global secret
+      # The global secret is critical for encrypting/decrypting secrets
+      # Running without a global secret is only permitted in exceptional cases
+      allow_nil = conf[:experimental].fetch(:allow_nil_global_secret, false)
+      global_secret = conf[:site].fetch(:secret, nil)
+
+      if global_secret.nil?
+        unless allow_nil
+          # Fast fail when global secret is nil and not explicitly allowed
+          raise OT::Problem, "Global secret cannot be nil - set SECRET env var or site.secret in config"
+        end
+
+        # Security warning when proceeding with nil global secret
+        OT.li "!" * 50
+        OT.li "SECURITY WARNING: Running with nil global secret!"
+        OT.li "This configuration presents serious security risks:"
+        OT.li "- Secret encryption will be compromised"
+        OT.li "- Data cannot be properly protected"
+        OT.li "- Only use during recovery or transition periods"
+        OT.li "Set valid SECRET env var or site.secret in config ASAP"
+        OT.li "!" * 50
+      end
+
+      # Remove nil elements
+      rotated_secrets = conf[:experimental].fetch(:rotated_secrets, []).compact
+      conf[:experimental][:rotated_secrets] = rotated_secrets
 
       unless conf[:site]&.key?(:domains)
         conf[:site][:domains] = { enabled: false }
@@ -212,27 +252,60 @@ module Onetime
         require 'sentry-ruby'
         require 'stackprof'
 
-        OT.li "[sentry-init] Initializing with DSN: #{dsn[0..10]}..."
-        Sentry.init do |config|
-          config.dsn = dsn
-          config.environment = "#{site_host} (#{OT.env})"
-          config.release = OT::VERSION.inspect
+        # Log more details about the Sentry configuration for debugging
+        OT.ld "[sentry-debug] DSN present: #{!dsn.nil?}"
+        OT.ld "[sentry-debug] Site host: #{site_host.inspect}"
+        OT.ld "[sentry-debug] OT.env: #{OT.env.inspect}"
 
-          # Configure breadcrumbs logger for detailed error tracking.
-          # Uses sentry_logger to capture progression of events leading
-          # to errors, providing context for debugging.
-          config.breadcrumbs_logger = [:sentry_logger]
-
-          # Set traces_sample_rate to capture 10% of
-          # transactions for performance monitoring.
-          config.traces_sample_rate = 0.1
-
-          # Set profiles_sample_rate to profile 10%
-          # of sampled transactions.
-          config.profiles_sample_rate = 0.1
+        # Early validation to prevent nil errors during initialization
+        if dsn.nil?
+          OT.le "[sentry-init] Cannot initialize Sentry with nil DSN"
+          OT.d9s_enabled = false
+        elsif site_host.nil?
+          OT.le "[sentry-init] Cannot initialize Sentry with nil site_host"
+          OT.ld "Falling back to default environment name"
+          site_host = "unknown-host"
         end
 
-        OT.ld "[sentry-init] Status: #{Sentry.initialized? ? 'OK' : 'Failed'}"
+        # Only proceed if we have valid configuration
+        if OT.d9s_enabled
+          # Safely log first part of DSN for debugging
+          dsn_preview = dsn ? "#{dsn[0..10]}..." : "nil"
+          OT.li "[sentry-init] Initializing with DSN: #{dsn_preview}"
+
+          Sentry.init do |config|
+            config.dsn = dsn
+            config.environment = "#{site_host} (#{OT.env})"
+            config.release = OT::VERSION.inspect
+
+            # Configure breadcrumbs logger for detailed error tracking.
+            # Uses sentry_logger to capture progression of events leading
+            # to errors, providing context for debugging.
+            config.breadcrumbs_logger = [:sentry_logger]
+
+            # Set traces_sample_rate to capture 10% of
+            # transactions for performance monitoring.
+            config.traces_sample_rate = 0.1
+
+            # Set profiles_sample_rate to profile 10%
+            # of sampled transactions.
+            config.profiles_sample_rate = 0.1
+
+            # Add a before_send to filter out problematic events that might cause errors
+            config.before_send = lambda do |event, _hint|
+              # Return nil if the event would cause errors in processing
+              if event.nil? || event.request.nil? || event.request.headers.nil?
+                OT.ld "[sentry-debug] Filtering out event with nil components"
+                return nil
+              end
+
+              # Return the event if it passes validation
+              event
+            end
+          end
+
+          OT.ld "[sentry-init] Status: #{Sentry.initialized? ? 'OK' : 'Failed'}"
+        end
       end
 
       # Make sure these are set

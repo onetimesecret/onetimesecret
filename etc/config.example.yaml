@@ -7,7 +7,7 @@
   # Be sure to create and store a backup in a secure offsite
   # location. Changing the secret can lead to unforeseen issues
   # like not being able to decrypt existing secrets.
-  :secret: <%= ENV['SECRET'] || 'CHANGEME' %>
+  :secret: <%= ENV['SECRET'] || nil %>
   # API and UI Configuration
   :interface:
     # Controls whether the web user interface is available. When disabled, the
@@ -375,6 +375,43 @@
 # Settings for experimental features that are still being tested.
 # All of these features are turned off by default and may not work as expected.
 :experimental:
+  # SECURITY CRITICAL: Controls whether the application can run without a site.secret
+  # (either in this file or via the SECRET env var).
+  #
+  # DEFAULT: false (application will fail to start if site.secret is nil)
+  #
+  # WARNING: Setting to true presents significant security risks:
+  # - Secrets may be stored without proper encryption
+  # - Unauthorized access to sensitive data becomes possible
+  # - Secret link integrity cannot be guaranteed
+  #
+  # VALID USE CASES (temporary only):
+  # 1. RECOVERY: You accidentally ran with nil secret and need to recover
+  #    existing secrets created during that time. Enable temporarily until
+  #    all affected secrets expire (max TTL period).
+  # 2. MIGRATION: During a controlled migration between encryption schemes,
+  #    with proper security measures in place.
+  #
+  # BEHAVIOR WHEN TRUE:
+  # - Application starts without failing
+  # - Warning logs appear at startup
+  # - When decrypting, CipherErrors with the real secret will cause
+  #   automatic retry with nil secret
+  #
+  :allow_nil_global_secret: false
+  # SECURITY FEATURE: List of previously used secrets for decryption during rotation
+  #
+  # FORMAT: Array of strings containing previous secret values
+  # ["old_secret_1", "old_secret_2", "oldest_secret"]
+  #
+  # USAGE: When rotating secrets, add old values here while setting new primary
+  # secret in site.secret or SECRET env var. The application will:
+  # 1. Use current primary secret for all new encryptions
+  # 2. Try each rotated secret (in order) for decryption when primary fails
+  #
+  # MAINTENANCE: Remove secrets from this list after their encrypted data expires
+  # or has been successfully re-encrypted with the current primary secret
+  :rotated_secrets: []
   # When set to true, the Rack::Builder#freeze_app freezes the middleware stack
   # after initialization to prevent any runtime modifications to the app middleware chain.
   # This is a security measure that prevents malicious code from injecting new middleware.

@@ -139,7 +139,7 @@ module V2
 
     def get_stripe_customer_by_id customer_id=nil
       customer_id ||= stripe_customer_id
-      return unless customer_id
+      return if customer_id.to_s.empty?
       OT.info "[Customer.get_stripe_customer_by_id] Fetching customer: #{customer_id} #{custid}"
       @stripe_customer = Stripe::Customer.retrieve(customer_id)
 
@@ -168,7 +168,7 @@ module V2
 
     def get_stripe_subscription_by_id subscription_id=nil
       subscription_id ||= stripe_subscription_id
-      return unless subscription_id
+      return if subscription_id.to_s.empty?
       OT.info "[Customer.get_stripe_subscription_by_id] Fetching subscription: #{subscription_id} #{custid}"
       @stripe_subscription = Stripe::Subscription.retrieve(subscription_id)
     rescue Stripe::StripeError => e
