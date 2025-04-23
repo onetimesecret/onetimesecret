@@ -27,6 +27,8 @@ module Onetime
     # Each protection can be individually enabled/disabled via configuration.
     #
     class Security
+      @middleware_components = {}
+
       # The wrapped Rack application
       # @return [#call] The Rack application instance passed to this middleware
       attr_reader :app
@@ -59,70 +61,79 @@ module Onetime
         # Store reference to original app for use inside builder block
         # This is necessary because the Rack::Builder block runs in a different context
         app_instance = @app
-        middleware_settings = Onetime.conf.dig(:experimental, :middleware)
+        middleware_settings = Onetime.conf.dig(:experimental, :middleware) || {}
 
+        # Define middleware components with their corresponding settings keys
+        components = self.class.middleware_components
         Rack::Builder.new do
-          # Get middleware configuration from application settings
-          if middleware_settings
-            # UTF-8 Sanitization - Ensures proper UTF-8 encoding in request parameters
-            if middleware_settings[:utf8_sanitizer]
-              Onetime.ld "[Security] Enabling UTF8Sanitizer middleware"
-              use Rack::UTF8Sanitizer, sanitize_null_bytes: true
-            end
-
-            # Protection against CSRF attacks
-            if middleware_settings[:http_origin]
-              Onetime.ld "[Security] Enabling HttpOrigin protection"
-              use Rack::Protection::HttpOrigin
-            end
-
-            # Escapes HTML in parameters to prevent XSS
-            if middleware_settings[:escaped_params]
-              Onetime.ld "[Security] Enabling EscapedParams protection"
-              use Rack::Protection::EscapedParams
-            end
-
-            # Sets X-XSS-Protection header
-            if middleware_settings[:xss_header]
-              Onetime.ld "[Security] Enabling XSSHeader protection"
-              use Rack::Protection::XSSHeader
-            end
-
-            # Prevents clickjacking via X-Frame-Options
-            if middleware_settings[:frame_options]
-              Onetime.ld "[Security] Enabling FrameOptions protection"
-              use Rack::Protection::FrameOptions
-            end
-
-            # Blocks directory traversal attacks
-            if middleware_settings[:path_traversal]
-              Onetime.ld "[Security] Enabling PathTraversal protection"
-              use Rack::Protection::PathTraversal
-            end
-
-            # Prevents session fixation via manipulated cookies
-            if middleware_settings[:cookie_tossing]
-              Onetime.ld "[Security] Enabling CookieTossing protection"
-              use Rack::Protection::CookieTossing
-            end
-
-            # Prevents IP spoofing attacks
-            if middleware_settings[:ip_spoofing]
-              Onetime.ld "[Security] Enabling IPSpoofing protection"
-              use Rack::Protection::IPSpoofing
-            end
-
-            # Forces HTTPS connections via HSTS headers
-            if middleware_settings[:strict_transport]
-              Onetime.ld "[Security] Enabling StrictTransport protection"
-              use Rack::Protection::StrictTransport
+          # Apply each middleware if configured
+          components.each do |name, config|
+            next unless middleware_settings[config[:key]]
+            Onetime.ld "[Security] Enabling #{name} protection"
+            if config[:options]
+              use config[:klass], config[:options]
+            else
+              use config[:klass]
             end
           end
 
-          # All requests eventually pass through to the original application
+          # Pass through to original application
           run ->(env) { app_instance.call(env) }
         end.to_app
+      end
+
+      class << self
+        attr_accessor :middleware_components
       end
     end
   end
 end
+
+Onetime::Middleware::Security.middleware_components = {
+  # UTF-8 Sanitization - Ensures proper UTF-8 encoding in request parameters
+  "UTF8Sanitizer" => {
+    key: :utf8_sanitizer,
+    klass: Rack::UTF8Sanitizer,
+    options: { sanitize_null_bytes: true },
+  },
+  # Protection against CSRF attacks
+  "HttpOrigin" => {
+    key: :http_origin,
+    klass: Rack::Protection::HttpOrigin,
+  },
+  # Escapes HTML in parameters to prevent XSS
+  "EscapedParams" => {
+    key: :escaped_params,
+    klass: Rack::Protection::EscapedParams,
+  },
+  # Sets X-XSS-Protection header
+  "XSSHeader" => {
+    key: :xss_header,
+    klass: Rack::Protection::XSSHeader,
+  },
+  # Prevents clickjacking via X-Frame-Options
+  "FrameOptions" => {
+    key: :frame_options,
+    klass: Rack::Protection::FrameOptions,
+  },
+  # Blocks directory traversal attacks
+  "PathTraversal" => {
+    key: :path_traversal,
+    klass: Rack::Protection::PathTraversal,
+  },
+  # Prevents session fixation via manipulated cookies
+  "CookieTossing" => {
+    key: :cookie_tossing,
+    klass: Rack::Protection::CookieTossing,
+  },
+  # Prevents IP spoofing attacks
+  "IPSpoofing" => {
+    key: :ip_spoofing,
+    klass: Rack::Protection::IPSpoofing,
+  },
+  # Forces HTTPS connections via HSTS headers
+  "StrictTransport" => {
+    key: :strict_transport,
+    klass: Rack::Protection::StrictTransport,
+  },
+}
