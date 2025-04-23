@@ -1,7 +1,8 @@
-# apps/api/v1/config.ru
+# apps/web/core/config.ru
 #
-# Rackup configuration file for running the API v1 application
-# as a standalone service.
+# Rackup configuration file for running the core web application
+# as a standalone service. The Vue frontend relies on this
+# service for initial page loads with window.__ONETIME_STATE__.
 
 require_relative '../../app_registry'
 require_relative 'application'
@@ -20,6 +21,6 @@ end
 $LOAD_PATH.unshift(File.join(app_root, 'lib'))
 
 # Create and run the Rack app instance
-rack_app = V1::Application.new
+rack_app = Core::Application.new
 
 run rack_app
