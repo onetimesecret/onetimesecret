@@ -62,7 +62,7 @@ module V2::Logic
 
             cust.apply_fields(**update_customer_fields).commit_fields
 
-            raise V2::Redirect.new('/signin')
+            raise OT::Redirect.new('/signin')
           else
             OT.info "[FromStripePaymentLink] Associating checkout #{checkout_session_id} with new user #{checkout_email}"
 

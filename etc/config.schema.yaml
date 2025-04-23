@@ -182,6 +182,7 @@
 
 :experimental:
   :freeze_app: bool()
+  :middleware: any()
   :csp:
     :enabled: any()
 
