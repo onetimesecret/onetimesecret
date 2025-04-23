@@ -52,13 +52,17 @@ module Onetime
         # Store reference to original app for use inside builder block
         # This is necessary because the Rack::Builder block runs in a different context
         app_instance = @app
+        middleware_settings = Onetime.conf.dig(:experimental, :middleware) || {}
 
         Rack::Builder.new do
           # Configure static file middleware to serve files from public/web directory
           # Only serve specific paths that contain static assets
-          use Rack::Static,
-            :urls => ["/dist", "/img", "/v3", "/site.webmanifest", "/favicon.ico"],
-            :root => "public/web"
+          if middleware_settings[:static_files]
+            Onetime.ld "[StaticFiles] Enabling StaticFiles middleware"
+            use Rack::Static,
+              :urls => ["/dist", "/img", "/v3", "/site.webmanifest", "/favicon.ico"],
+              :root => "public/web"
+          end
 
           # All non-static requests pass through to the original application
           run ->(env) { app_instance.call(env) }

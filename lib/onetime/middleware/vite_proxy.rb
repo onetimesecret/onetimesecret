@@ -61,15 +61,15 @@ module Onetime
           use Rack::Lint
 
           # Retrieve development configuration settings
-          config = defined?(OT) ? OT.conf.fetch(:development, {}) : {}
+          config = Onetime.conf.fetch(:development, {})
 
           # Configure Vite proxy based on settings
           case config
           in {enabled: true, frontend_host: String => frontend_host}
             if frontend_host.strip.empty?
-              OT.ld "[ViteProxy] No frontend host configured to proxy"
+              Onetime.ld "[ViteProxy] No frontend host configured to proxy"
             else
-              OT.li "[ViteProxy] Using frontend proxy for /dist to #{frontend_host}"
+              Onetime.li "[ViteProxy] Using frontend proxy for /dist to #{frontend_host}"
               require 'rack/proxy'
 
               # Define anonymous proxy class for Vite dev server
@@ -87,7 +87,7 @@ module Onetime
               use proxy_klass, backend: frontend_host
             end
           else
-            OT.ld "[ViteProxy] Frontend proxy disabled"
+            Onetime.ld "[ViteProxy] Frontend proxy disabled"
           end
 
           # Enable automatic code reloading with 1 second check interval

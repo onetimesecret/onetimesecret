@@ -391,6 +391,8 @@
   # Middleware Configuration
   # Controls which security and performance middleware components are enabled
   :middleware:
+    # Serve static files for frontend vue application
+    :static_files: true
     # Sanitizes request parameters to ensure proper UTF-8 encoding
     # Prevents encoding-based attacks and malformed input
     :utf8_sanitizer: true
