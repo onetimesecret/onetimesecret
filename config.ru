@@ -91,45 +91,11 @@ if defined?(OT) && OT.conf.dig(:experimental, :freeze_app)
   freeze_app
 end
 
-# Enable local frontend development server proxy
-if ENV['RACK_ENV'] =~ /\A(dev|development)\z/
-  # Validate Rack compliance
-  use Rack::Lint
-
-  # Frontend development proxy configuration
-  def run_frontend_proxy
-    return unless defined?(OT)
-    config = OT.conf.fetch(:development, {})
-
-    case config
-    in {enabled: true, frontend_host: String => frontend_host}
-      if frontend_host.strip.empty?
-        OT.ld "[config.ru] No frontend host configured to proxy"
-        return
-      end
-
-      OT.li "[config.ru] Using frontend proxy for /dist to #{frontend_host}"
-      require 'rack/proxy'
-
-      # Proxy requests to the Vite dev server
-      proxy_klass = Class.new(Rack::Proxy) do
-        define_method(:perform_request) do |env|
-          case env['PATH_INFO']
-          when %r{\A/dist/} then super(env.merge('REQUEST_PATH' => env['PATH_INFO']))
-          else @app.call(env)
-          end
-        end
-      end
-
-      use proxy_klass, backend: frontend_host
-    else
-      OT.ld "[config.ru] Frontend proxy disabled"
-    end
-  end
-
-  # Add development middleware
-  use Rack::Reloader, 1
-  run_frontend_proxy
+# Enable development environment middleware
+# This handles Rack::Lint and frontend proxy setup in development mode
+if BaseApplication.development?
+  require_relative 'lib/onetime/middleware/vite_proxy'
+  use Onetime::Middleware::ViteProxy
 end
 
 # Mount all applications
