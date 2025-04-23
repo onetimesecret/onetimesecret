@@ -1,5 +1,14 @@
 GIT
   remote: https://github.com/rspec/rspec
+  revision: d064fd0e9f00af834dfcfbe55e74b066a76e98e6
+  specs:
+    rspec (3.14.0.pre)
+      rspec-core (= 3.14.0.pre)
+      rspec-expectations (= 3.14.0.pre)
+      rspec-mocks (= 3.14.0.pre)
+
+GIT
+  remote: https://github.com/rspec/rspec
   revision: 5946b3c9aa61279bf52363bfde4d850810daaa3a
   glob: rspec-core/rspec-core.gemspec
   specs:
@@ -30,15 +39,6 @@ GIT
   glob: rspec-support/rspec-support.gemspec
   specs:
     rspec-support (3.14.0.pre)
-
-GIT
-  remote: https://github.com/rspec/rspec
-  revision: a80119c703d38f993c414490abe8c992154cf5d1
-  specs:
-    rspec (3.14.0.pre)
-      rspec-core (= 3.14.0.pre)
-      rspec-expectations (= 3.14.0.pre)
-      rspec-mocks (= 3.14.0.pre)
 
 GEM
   remote: https://rubygems.org/
@@ -75,7 +75,7 @@ GEM
     csv (3.3.3)
     daemons (1.4.1)
     date (3.4.1)
-    diff-lcs (1.5.1)
+    diff-lcs (1.6.1)
     docile (1.4.1)
     dotenv (3.1.7)
     drydock (0.6.9)
