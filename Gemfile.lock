@@ -1,14 +1,5 @@
 GIT
   remote: https://github.com/rspec/rspec
-  revision: d064fd0e9f00af834dfcfbe55e74b066a76e98e6
-  specs:
-    rspec (3.14.0.pre)
-      rspec-core (= 3.14.0.pre)
-      rspec-expectations (= 3.14.0.pre)
-      rspec-mocks (= 3.14.0.pre)
-
-GIT
-  remote: https://github.com/rspec/rspec
   revision: 5946b3c9aa61279bf52363bfde4d850810daaa3a
   glob: rspec-core/rspec-core.gemspec
   specs:
@@ -39,6 +30,15 @@ GIT
   glob: rspec-support/rspec-support.gemspec
   specs:
     rspec-support (3.14.0.pre)
+
+GIT
+  remote: https://github.com/rspec/rspec
+  revision: d064fd0e9f00af834dfcfbe55e74b066a76e98e6
+  specs:
+    rspec (3.14.0.pre)
+      rspec-core (= 3.14.0.pre)
+      rspec-expectations (= 3.14.0.pre)
+      rspec-mocks (= 3.14.0.pre)
 
 GEM
   remote: https://rubygems.org/
@@ -173,7 +173,7 @@ GEM
     redis-client (0.24.0)
       connection_pool
     regexp_parser (2.10.0)
-    reline (0.6.0)
+    reline (0.6.1)
       io-console (~> 0.5)
     rexml (3.3.9)
     rubocop (1.75.2)
