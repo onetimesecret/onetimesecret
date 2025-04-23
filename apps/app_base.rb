@@ -42,6 +42,14 @@ class BaseApplication
       OT.ld "Tracking #{subclass} for registration"
     end
 
+    def development?
+      ENV['RACK_ENV'] =~ /\A(dev|development)\z/
+    end
+
+    def production?
+      ENV['RACK_ENV'] =~ /\A(prod|production)\z/
+    end
+
     # Registers all tracked application subclasses with AppRegistry
     # Must be called after all application classes are defined
     # @raise [ArgumentError] If any application has invalid prefix

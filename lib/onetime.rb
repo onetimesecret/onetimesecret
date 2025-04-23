@@ -47,20 +47,6 @@ module Onetime
   unless defined?(Onetime::HOME)
     HOME = File.expand_path(File.join(File.dirname(__FILE__), '..'))
   end
-
-  module ClassMethods
-
-    def now
-      Time.now.utc
-    end
-
-    def entropy
-      SecureRandom.hex
-    end
-
-  end
-
-  extend ClassMethods
 end
 
 # Sets the SIGINT handler for a graceful shutdown and prevents Sentry from

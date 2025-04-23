@@ -110,22 +110,48 @@ module V2
     end
 
     def encrypt_value original_value, opts={}
-      if opts[:size] && original_value.size > opts[:size]
-        storable_value = original_value.slice(0, opts[:size])
+      # Handles empty values with a special encryption flag. This is important
+      # for consistency in how we deal with these values and expressly for Ruby
+      # 3.1 which uses an older version of openssl that does not tolerate empty
+      # strings like the more progressive 3.2+ Rubies.
+      if original_value.to_s.empty?
+        self.value_encryption = -1
+        self.value_checksum = "".gibbler
+        return
+      end
+
+      # Determine if the secret exceeds the configured size threshold
+      if opts[:size] && original_value.length >= opts[:size]
+        # Apply randomized truncation to mitigate information leakage. By
+        # varying the actual truncation point by 0-20%, we prevent attackers
+        # from inferring the exact content length, which could leak information
+        # about the secret's contents.
+        random_factor = 1.0 + (rand * 0.2)  # Random factor between 1.0-1.2
+        adjusted_size = (opts[:size] * random_factor).to_i
+
+        # The random factor already ensures fuzziness up to 20% above base
+        # size. This ensures unpredictable truncation points within a
+        # controlled range.
+        storable_value = original_value.slice(0, adjusted_size)
         self.truncated = true
       else
         storable_value = original_value
       end
 
+      # Secure the value with cryptographic checksum and encryption
       self.value_checksum = storable_value.gibbler
-      self.value_encryption = 2
+      self.value_encryption = 2  # Current encryption version
       self.value = storable_value.encrypt opts.merge(:key => encryption_key)
     end
 
     def decrypted_value opts={}
+      encryption_mode = value_encryption.to_i
       v_encrypted = self.value
+      v_encrypted = "" if encryption_mode.negative? && v_encrypted.nil?
       v_encrypted.force_encoding("utf-8")
-      v_decrypted = case value_encryption.to_i
+      v_decrypted = case encryption_mode
+      when -1
+        ""
       when 0
         v_encrypted
       when 1

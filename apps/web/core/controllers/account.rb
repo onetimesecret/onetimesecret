@@ -51,7 +51,7 @@ module Core
 
           unless validated_url
             OT.le "[plan_redirect] Unknown #{tierid}/#{billing_cycle}. Sending to /signup"
-            raise V2::Redirect.new('/signup')
+            raise OT::Redirect.new('/signup')
           end
 
           OT.info "[plan_redirect] Clicked #{tierid} per #{billing_cycle} (redirecting to #{validated_url})"

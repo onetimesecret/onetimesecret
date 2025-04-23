@@ -19,6 +19,7 @@
 :mail: include(':mail')
 :internationalization: include(':internationalization')
 :diagnostics: include(':diagnostics')
+:logging: include(':logging')
 :limits: include(':limits')
 :development: include(':development')
 :experimental: include(':experimental')
@@ -64,8 +65,8 @@
       :api_key: str(required=False)
       :cluster_ip: str(required=False)
       :cluster_host: str(required=False)
-      :cluster_name: str()
-      :vhost_target: str()
+      :cluster_name: str(required=False)
+      :vhost_target: str(required=False)
 
 :features:
   :incoming:
@@ -136,6 +137,9 @@
       :dsn: str(required=False)
       :trackComponents: any(str(), bool())
 
+:logging:
+  :http_requests: any(str(), bool())
+
 :limits:
   :create_secret: int()
   :create_account: int()
@@ -162,7 +166,15 @@
   :attempt_secret_access: int()
   :check_status: int()
   :update_branding: int()
-
+  :destroy_session: int()
+  :get_domain_brand: int()
+  :get_domain_logo: int()
+  :get_image: int()
+  :remove_domain_logo: int()
+  :show_account: int()
+  :stripe_webhook: int()
+  :update_domain_brand: int()
+  :view_colonel: int()
 :development:
   :enabled: any()
   :debug: any()
@@ -170,6 +182,7 @@
 
 :experimental:
   :freeze_app: bool()
+  :middleware: any()
   :csp:
     :enabled: any()
 

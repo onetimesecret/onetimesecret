@@ -37,7 +37,7 @@ module V2::Logic
 
         # Quietly redirect suspected bots to the home page.
         unless skill.empty?
-          raise V2::Redirect.new('/?s=1') # the query string is arbitrary, for log filtering
+          raise OT::Redirect.new('/?s=1') # the query string is arbitrary, for log filtering
         end
       end
 

@@ -94,8 +94,9 @@ export function createDiagnostics(options: EnableDiagnosticsOptions): Plugin {
     stackParser: defaultStackParser,
     tracesSampleRate: 0.01,
     tracePropagationTargets: [
-      'localhost',
-      new RegExp(`^https:\\/\\/[^/]+${host.replace('.', '\\.')}`),
+      /^localhost(:\d+)?$/, // Matches localhost with optional port
+      // Add host domain regex only if host is provided
+      ...(host ? [new RegExp(`^https?:\/\/[^/]+${host.replace('.', '\\.')}`)] : []),
     ],
 
     // Only the integrations listed here will be used

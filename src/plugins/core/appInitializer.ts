@@ -42,6 +42,7 @@ function initializeApp(app: App, options: AppInitializerOptions = {}) {
   const diagnostics = WindowService.get('diagnostics');
   const d9sEnabled = WindowService.get('d9s_enabled');
   const displayDomain = WindowService.get('display_domain');
+  const siteHost = WindowService.get('site_host');
   const router = createAppRouter();
   const pinia = createPinia();
   const api = options.api ?? createApi();
@@ -49,7 +50,7 @@ function initializeApp(app: App, options: AppInitializerOptions = {}) {
   if (d9sEnabled) {
     // Create plugin instances
     const diagnosticsPlugin = createDiagnostics({
-      host: displayDomain,
+      host: displayDomain ?? siteHost,
       config: diagnostics,
       router,
     });

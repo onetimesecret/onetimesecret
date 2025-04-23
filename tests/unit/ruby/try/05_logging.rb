@@ -9,7 +9,9 @@
 # demonstration and debugging purposes.
 #
 
-require_relative './test_helpers'
+require 'securerandom'
+
+require_relative 'test_helpers'
 
 SYSLOG = Syslog.open('onetime') unless defined?(SYSLOG)
 
@@ -29,12 +31,12 @@ end
 # TRYOUTS
 
 ## Can generate a random string
-Onetime.entropy.class
+SecureRandom.hex.class
 #=> String
 
 ## Can generate a different random string each time
-initial_val = Onetime.entropy
-initial_val != Onetime.entropy
+initial_val = SecureRandom.hex
+initial_val != SecureRandom.hex
 #=> true
 
 ## SYSLOG is defined
