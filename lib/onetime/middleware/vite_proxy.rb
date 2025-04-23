@@ -1,4 +1,7 @@
-# lib/onetime/middleware/development_environment.rb
+# lib/onetime/middleware/vite_proxy.rb
+#
+# Development proxy middleware for Onetime Secret application.
+# Provides development-specific utilities including Vite integration.
 
 require 'rack'
 
@@ -8,44 +11,59 @@ module Onetime
     #
     # This middleware handles development-specific functionality:
     # 1. Validates Rack compliance using Rack::Lint
-    # 2. Sets up a proxy to a local frontend development server when configured
+    # 2. Sets up a proxy to a local Vite frontend development server
+    # 3. Configures hot module reloading for frontend development
+    # 4. Enables automatic code reloading via Rack::Reloader
     #
-    # It's only activated in development mode and provides a clean separation
+    # Only activated in development mode, this middleware provides a clean separation
     # of development concerns from the main application stack.
     #
     class ViteProxy
+      # The wrapped Rack application
+      # @return [#call] The Rack application instance passed to this middleware
       attr_reader :app
 
+      # Initialize the Vite proxy middleware for development
+      #
+      # @param app [#call] The Rack application to wrap
       def initialize(app)
         @app = app
-        @rack_app = setup_environment
+        @rack_app = setup_proxy
       end
 
-      # Processes the request through the development middleware stack.
+      # Process an HTTP request through the development middleware stack
+      # Routes frontend asset requests to Vite dev server when configured
       #
-      # @param env [Hash] Rack environment hash
-      # @return [Array] Standard Rack response array
+      # @param env [Hash] Rack environment hash containing request information
+      # @return [Array] Standard Rack response array [status, headers, body]
       def call(env)
         @rack_app.call(env)
       end
 
       private
 
-      # Configures the middleware stack for development.
+      # Configure the development middleware stack with Vite proxy
       #
-      # @return [#call] Configured Rack application
-      def setup_environment
-        # Keep a reference to the original app instance. We do this outside
-        # of the Rack::Builder block which runs in another context.
+      # Creates a Rack middleware stack that includes:
+      # - Rack::Lint for validating Rack compliance
+      # - Conditional Vite dev server proxy based on configuration
+      # - Rack::Reloader for automatic code reloading
+      #
+      # @return [#call] Configured Rack application for development
+      def setup_proxy
+        # Store reference to original app for use inside builder block
+        # This is necessary because the Rack::Builder block runs in a different context
         app_instance = @app
 
         Rack::Builder.new do
-          # Validate Rack compliance
+          # Enable Rack compliance validation in development
+          # This helps catch middleware issues early
           use Rack::Lint
 
-          # Get the settings
+          # Retrieve development configuration settings
           config = defined?(OT) ? OT.conf.fetch(:development, {}) : {}
 
+          # Configure Vite proxy based on settings
           case config
           in {enabled: true, frontend_host: String => frontend_host}
             if frontend_host.strip.empty?
@@ -54,7 +72,8 @@ module Onetime
               OT.li "[ViteProxy] Using frontend proxy for /dist to #{frontend_host}"
               require 'rack/proxy'
 
-              # Define proxy class for Vite dev server
+              # Define anonymous proxy class for Vite dev server
+              # This selectively forwards only /dist/ requests to Vite
               proxy_klass = Class.new(Rack::Proxy) do
                 define_method(:perform_request) do |env|
                   case env['PATH_INFO']
@@ -64,19 +83,19 @@ module Onetime
                 end
               end
 
+              # Add the proxy to the middleware stack
               use proxy_klass, backend: frontend_host
             end
           else
             OT.ld "[ViteProxy] Frontend proxy disabled"
           end
 
-          # Add Rack::Reloader for development
+          # Enable automatic code reloading with 1 second check interval
           use Rack::Reloader, 1
 
-          # Pass through to the original app
+          # All requests eventually pass through to the original application
           run ->(env) { app_instance.call(env) }
         end.to_app
-
       end
     end
   end

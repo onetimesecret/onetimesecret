@@ -1,19 +1,19 @@
 # config.ru
-
-# Rackup Configuration
+#
+# Main Rack configuration file for the OneTime Secret application.
+# This file orchestrates the entire application stack, sets up middleware,
+# and defines the application's runtime environment.
 #
 # Usage:
+#   $ thin -e dev -R config.ru -p 3000 start
 #
-#     $ thin -e dev -R config.ru -p 3000 start
-#
-#
-# Directory structure expectations:
+# Application Structure:
 # ```
 # /
-# ├── config.ru               # Main config file
+# ├── config.ru               # Main Rack configuration
 # ├── lib/
-# │   ├── app_registry.rb     # Registry implementation
-# │   └── onetime.rb          # Core library
+# │   ├── app_registry.rb     # Application registry implementation
+# │   └── onetime.rb          # Core OneTime Secret library
 # └── apps/
 #     ├── api/
 #     │   ├── v1/
@@ -31,72 +31,105 @@
 # ```
 #
 
-# Environment Variables
+# Environment Configuration
+# -------------------------------
+# Set default environment variables and establish directory structure constants.
+# These fundamentals ensure the application knows where to find its resources.
 ENV['RACK_ENV'] ||= 'production'
 ENV['ONETIME_HOME'] ||= File.expand_path(__dir__).freeze
 project_root = ENV['ONETIME_HOME']
 app_root = File.join(project_root, '/apps').freeze
 
-# Directory Constants
+# Public Directory Configuration
+# Define the location for static web assets
 unless defined?(PUBLIC_DIR)
   PUBLIC_DIR = File.join(project_root, '/public/web').freeze
 end
 
-# Add main Onetime libs to the load path
+# Load Path Configuration
+# Add the lib directory to Ruby's load path for require statements
 $LOAD_PATH.unshift(File.join(project_root, 'lib'))
 
-# Freshly installed operating systems don't always have their locale settings
-# figured out. By setting this to UTF-8, we ensure that:
-# - All file I/O operations default to UTF-8 encoding.
-# - Network I/O operations treat data as UTF-8 encoded.
-# - Standard input/output (STDIN, STDOUT, STDERR) uses UTF-8 encoding.
-# - Strings created from external sources default to UTF-8 encoding.
-# This helps maintain consistency and reduces encoding-related issues.
+# Character Encoding Configuration
+# Set UTF-8 as the default external encoding to ensure consistent text handling:
+# - Standardizes file and network I/O operations
+# - Normalizes STDIN/STDOUT/STDERR encoding
+# - Provides default encoding for strings from external sources
+# This prevents encoding-related bugs, especially on fresh OS installations
+# where locale settings may not be properly configured.
 Encoding.default_external = Encoding::UTF_8
 
-# Required Libraries
+# Dependencies and Core Libraries
+# -------------------------------
+# Load required Rack extensions and application modules
 require 'rack/content_length'
 require 'rack/contrib'
 
-require_relative 'apps/app_registry'
-require_relative 'lib/onetime'
-require_relative 'lib/onetime/middleware'
+# Load application-specific components
+require_relative 'apps/app_registry'    # Application registry for mounting apps
+require_relative 'lib/onetime'          # Core OneTime Secret functionality
+require_relative 'lib/onetime/middleware' # Custom middleware components
 
-# Load all applications
+# Application Initialization
+# -------------------------------
+# Load all application modules from the registry
 AppRegistry.load_applications
 BaseApplication.register_applications
 
-# Applications must be loaded before boot to ensure Familia models are registered.
-# This allows proper database connection setup for all model classes.
+# Bootstrap the Application
+# Applications must be loaded before boot to ensure all Familia models
+# are properly registered. This sequence is critical for establishing
+# database connections for all model classes.
 Onetime.boot! :app
 
-# Common middleware for all applications
-if !defined?(OT) || !OT.conf.dig(:logging, :http_requests).eql?(false)
-  OT.li "[config.ru] Request logging with Rack::CommonLogger enabled"
-  use Rack::CommonLogger
-end
-use Rack::ContentLength
+# Middleware Configuration
+# -------------------------------
 
-# If Sentry is not successfully enabled, the `Sentry` client is not
-# available and this block is not executed.
+# Standard Middleware Setup
+# Configure essential middleware components for all environments
+if !Onetime.conf.dig(:logging, :http_requests).eql?(false)
+  Onetime.li "[config.ru] Request logging with Rack::CommonLogger enabled"
+  use Rack::CommonLogger  # Log HTTP requests in standard format
+end
+use Rack::ContentLength  # Automatically set Content-Length header
+
+# Error Monitoring Integration
+# Add Sentry exception tracking when available
+# This block only executes if Sentry was successfully initialized
 Onetime.with_diagnostics do
-  OT.ld "[config.ru] Sentry enabled"
-  # Put Sentry middleware first to catch exceptions as early as possible
+  Onetime.ld "[config.ru] Sentry enabled"
+  # Position Sentry middleware early to capture exceptions throughout the stack
   use Sentry::Rack::CaptureExceptions
 end
 
-# Support development without code reloading in production-like environments
-if defined?(OT) && OT.conf.dig(:experimental, :freeze_app)
-  OT.li "[experimental] Freezing app by request (env: #{ENV['RACK_ENV']})"
+# Performance Optimization
+# Support running with code frozen in production-like environments
+# This reduces memory usage and prevents runtime modifications
+if Onetime.conf.dig(:experimental, :freeze_app)
+  Onetime.li "[experimental] Freezing app by request (env: #{ENV['RACK_ENV']})"
   freeze_app
 end
 
-# Enable development environment middleware
-# This handles Rack::Lint and frontend proxy setup in development mode
+# Development Environment Configuration
+# Enable development-specific middleware when in development mode
+# This handles code validation and frontend development server integration
 if BaseApplication.development?
   require_relative 'lib/onetime/middleware/vite_proxy'
   use Onetime::Middleware::ViteProxy
 end
 
-# Mount all applications
+# Production Environment Configuration
+# Serve static frontend assets in production mode
+# While reverse proxies often handle static files in production,
+# this provides a fallback capability for simpler deployments.
+#
+# Note: This explicit configuration replaces the implicit functionality
+# that existed prior to v0.21.0 release.
+if BaseApplication.production?
+  require_relative 'lib/onetime/middleware/static_files'
+  use Onetime::Middleware::StaticFiles
+end
+
+# Application Mounting
+# Map all registered applications to their respective URL paths
 run Rack::URLMap.new(AppRegistry.build)
