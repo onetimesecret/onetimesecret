@@ -106,8 +106,8 @@
   # Database Mapping Configuration
   # These mappings allow separating data across different Redis logical
   # databases (0-15). These can be arranged any way you like.
-  # Note: If using a Redis provider with single-database limitation (e.g., Upstash),
-  # set all values to 0.
+  # Note: If using a Redis provider with single-database limitation
+  # (e.g., Upstash) set all values to 0.
   :dbs:
     :session: <%= ENV['REDIS_DBS_SESSION'] || 1 %>
     :splittest: <%= ENV['REDIS_DBS_SPLITTEST'] || 1 %>
@@ -375,8 +375,8 @@
 # Settings for experimental features that are still being tested.
 # All of these features are turned off by default and may not work as expected.
 :experimental:
-  # SECURITY CRITICAL: Controls whether the application can run without a site.secret
-  # (either in this file or via the SECRET env var).
+  # SECURITY FEATURE: Controls whether the application can run without a
+  # site.secret (either in this file or via the SECRET env var).
   #
   # DEFAULT: false (application will fail to start if site.secret is nil)
   #
@@ -398,8 +398,8 @@
   # - When decrypting, CipherErrors with the real secret will cause
   #   automatic retry with nil secret
   #
-  :allow_nil_global_secret: false
-  # SECURITY FEATURE: List of previously used secrets for decryption during rotation
+  :allow_nil_global_secret: <%= ENV['ALLOW_NIL_GLOBAL_SECRET'] == 'true' || false %>
+  # SECURITY FEATURE: Support for rotating global secret
   #
   # FORMAT: Array of strings containing previous secret values
   # ["old_secret_1", "old_secret_2", "oldest_secret"]
@@ -409,21 +409,23 @@
   # 1. Use current primary secret for all new encryptions
   # 2. Try each rotated secret (in order) for decryption when primary fails
   #
-  # MAINTENANCE: Remove secrets from this list after their encrypted data expires
-  # or has been successfully re-encrypted with the current primary secret
+  # MAINTENANCE: Remove secrets from this list after the relevant secrets
+  # have expired or has been successfully re-encrypted with the current
+  # primary secret. An easy guideline is the maximum TTL in `ttl_options`.
   :rotated_secrets: []
   # When set to true, the Rack::Builder#freeze_app freezes the middleware stack
-  # after initialization to prevent any runtime modifications to the app middleware chain.
-  # This is a security measure that prevents malicious code from injecting new middleware.
+  # after initialization to prevent any runtime modifications to the app
+  # middleware chain. This is a security measure that prevents malicious
+  # code from injecting new middleware.
   #
   # Effects:
-  # - Freezes the middleware stack, preventing adding/removing middleware after boot
+  # - Freezes the middleware stack, preventing adding/removing after boot
   # - Freezes the app object passed to Rack::Builder
   # - Does not affect request/response object mutability
   #
   # Note: This setting can help make your application more secure by preventing
-  # middleware chain manipulation at runtime. For most applications, this should
-  # be enabled in production environments.
+  # middleware chain manipulation at runtime. For most applications, this
+  # should be enabled in production environments.
   :freeze_app: false
   # Middleware Configuration
   # Controls which security and performance middleware components are enabled
