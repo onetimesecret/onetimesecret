@@ -29,6 +29,8 @@
     "preview:local": "vite preview --config vite.config.local.ts",
     "preview": "vite preview",
     "rspec": "bundle exec rspec --format documentation",
+    "rubocop": "bundle exec rubocop --config .rubocop.yml --format json --fail-level warning",
+    "rubocop:pretty": "pnpm --silent run rubocop | jq",
     "test:base": "vitest",
     "test:coverage": "pnpm test:base run --coverage",
     "test:watch:coverage": "pnpm test:base --coverage",
