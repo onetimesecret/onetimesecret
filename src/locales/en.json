@@ -140,7 +140,11 @@
       "pricing": "Pricing",
       "refresh": "Refresh",
       "reload": "Reload",
-      "caption_recent_secrets": "Secrets links created in this session"
+      "caption_recent_secrets": "Secrets links created in this session",
+      "create-link-short": "Create Link",
+      "create-link": "Create Secret Link",
+      "create-request-short": "Create Request",
+      "create-request": "Create Request Link"
     },
     "STATUS": {
       "new": "New",

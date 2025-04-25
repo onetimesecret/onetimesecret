@@ -113,7 +113,14 @@
       "feedback-received": "Retour d'information reçu",
       "sending-ellipses": "Envoi en cours...",
       "pricing": "Tarifs",
-      "title_recent_secrets": "Secrets récents"
+      "title_recent_secrets": "Secrets récents",
+      "refresh": "Rafraîchir",
+      "reload": "Recharger",
+      "caption_recent_secrets": "Liens secrets créés durant cette session",
+      "create-link-short": "Créer un lien",
+      "create-link": "Créer un lien secret",
+      "create-request-short": "Créer une demande",
+      "create-request": "Créer un lien de demande"
     },
     "STATUS": {
       "new": "Nouveau",

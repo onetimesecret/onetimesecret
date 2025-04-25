@@ -113,7 +113,14 @@
       "feedback-received": "Feedback ontvangen.",
       "sending-ellipses": "Versturen...",
       "pricing": "Prijzen",
-      "title_recent_secrets": "Recente berichten"
+      "title_recent_secrets": "Recente berichten",
+      "refresh": "Vernieuwen",
+      "reload": "Herladen",
+      "caption_recent_secrets": "Berichtlinks aangemaakt in deze sessie",
+      "create-link-short": "Link aanmaken",
+      "create-link": "Geheime link aanmaken",
+      "create-request-short": "Verzoek aanmaken",
+      "create-request": "Verzoeklink aanmaken"
     },
     "STATUS": {
       "new": "Nieuw",

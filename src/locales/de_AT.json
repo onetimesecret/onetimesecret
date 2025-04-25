@@ -113,7 +113,14 @@
       "feedback-received": "Rückmeldung erhalten.",
       "sending-ellipses": "Ich schicke...",
       "pricing": "Preisgestaltung",
-      "title_recent_secrets": "Neueste Geheimnisse"
+      "title_recent_secrets": "Neueste Geheimnisse",
+      "refresh": "Aktualisieren",
+      "reload": "Neu laden",
+      "caption_recent_secrets": "In dieser Sitzung erstellte Geheimlinks",
+      "create-link-short": "Link erstellen",
+      "create-link": "Geheimen Link erstellen",
+      "create-request-short": "Anfrage erstellen",
+      "create-request": "Anfrage-Link erstellen"
     },
     "STATUS": {
       "new": "Neu",

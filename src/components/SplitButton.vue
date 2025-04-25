@@ -2,6 +2,8 @@
 
 <script setup lang="ts">
   import { ref, computed, onMounted, onBeforeUnmount } from 'vue';
+  import { useI18n } from 'vue-i18n';
+  const { t } = useI18n();
 
   // Action types for the button
   type ActionType = 'create-link' | 'generate-password';
@@ -67,12 +69,12 @@
   const buttonConfig = computed(() => {
     const configs = {
       'create-link': {
-        label: 'Create Link',
+        label: t('web.LABELS.create-link-short'),
         icon: '<rect x="3" y="11" width="18" height="11" rx="2" ry="2" /><path d="M7 11V7a5 5 0 0 1 10 0v4" />',
         emit: () => emit('create-link'),
       },
       'generate-password': {
-        label: 'Generate Password',
+        label: t('web.COMMON.button_generate_secret_short'),
         icon: '<path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4" />',
         emit: () => emit('generate-password'),
       },
@@ -229,7 +231,7 @@
             <path d="M7 11V7a5 5 0 0 1 10 0v4" />
           </svg>
         </span>
-        <span>Create Link</span>
+        <span>{{ $t('web.LABELS.create-link-short') }}</span>
       </button>
 
       <!-- prettier-ignore-attribute class -->
