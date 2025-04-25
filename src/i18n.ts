@@ -24,7 +24,7 @@ const domainBranding = WindowService.get('domain_branding');
 const supportedLocales = WindowService.get('supported_locales') || [];
 const fallbackLocale = WindowService.get('fallback_locale') || {};
 const defaultLocale = WindowService.get('default_locale') || 'en';
-const displayLocale = domainBranding.locale ?? WindowService.get('locale');
+const displayLocale = domainBranding?.locale ?? WindowService.get('locale');
 
 /**
  * Creates a completely independent i18n instance with its own locale state and message
