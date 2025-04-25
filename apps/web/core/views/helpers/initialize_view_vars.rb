@@ -20,15 +20,27 @@ module Core
       # @return [Hash] Collection of initialized variables
       def initialize_view_vars(req, sess, cust, locale, i18n_instance)
 
-        # Extract the top-level keys from the YAML configuration
-        site = OT.conf.fetch(:site, {})
+        # Extract the top-level keys from the YAML configuration.
+        # NOTE: We create a shallow copy so we can remove keys from the hash
+        # before serializing. Potentially we could just pass the whole darn
+        # thing but for havent for legacy reasons. Ideally we want this
+        # careful logic to be opt-in rather than opt-out and once we make
+        # that change, it's a non-issue.
+        #
+        # TODO: Revisit this approach to make configuration filtering
+        #       opt-in rather than opt-out. We should implement a proper
+        #       serialization approach that explicitly selects which
+        #       configuration values to share with the frontend instead
+        #       of removing sensitive keys.
+        #
+        site = {}.merge(OT.conf.fetch(:site, {}))
         incoming = OT.conf.fetch(:incoming, {})
         development = OT.conf.fetch(:development, {})
         diagnostics = OT.conf.fetch(:diagnostics, {})
 
         # Everything in site is safe to share with the
         # frontend, except for these keys.
-        site.delete(:secret)
+        site.delete(:secret) # danger bay
         site.delete(:authenticity)
         site.fetch(:domains, {}).delete(:cluster)
         site.fetch(:authentication, {}).delete(:colonels)

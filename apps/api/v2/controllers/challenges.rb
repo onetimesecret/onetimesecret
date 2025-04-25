@@ -79,10 +79,6 @@ module V2
         end
       end
 
-      def self.secret_key
-        OT.conf.dig(:site, :authenticity, :secret_key) # ALTCHA_HMAC_KEY
-      end
-
       module ClassMethods
         def secret_key
           OT.conf.dig(:site, :authenticity, :secret_key)
@@ -92,9 +88,7 @@ module V2
         # by the AltchaChallenge and then resubmitted with the solution
         # number for verification (aka the "payload")
         def generate_authenticity_challenge(max_number=100_000)
-          options = Altcha::ChallengeOptions.new
-          options.max_number = max_number # 1m is the lib default
-          options.hmac_key = secret_key
+          options = Altcha::ChallengeOptions.new hmac_key: secret_key, max_number: max_number
           Altcha.create_challenge(options)
         end
 
