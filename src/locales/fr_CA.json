@@ -1,5 +1,27 @@
 {
   "web": {
+    "help": {
+      "learn_more": "Learn more",
+      "secret_view_faq": {
+        "what_am_i_looking_at": {
+          "title": "What am I looking at?",
+          "description": "You're viewing a secure message that was shared with you through OneTime Secret. This content is displayed only once and then permanently deleted from our servers."
+        },
+        "can_i_view_again": {
+          "title": "Can I view this secret again later?",
+          "description": "No. For security reasons, this secret is only viewable once. After closing this page, the content will be permanently deleted and cannot be recovered by anyone, including us."
+        },
+        "how_to_copy": {
+          "title": "How do I save this information?",
+          "description": "Use the 'Copy to Clipboard' button to copy the entire secret. For longer secrets, make sure to verify you've copied the complete content before leaving this page."
+        },
+        "is_my_viewing_tracked": {
+          "title": "Is my viewing of this secret tracked?",
+          "description": "The sender will be notified that their secret was viewed, but we don't track who viewed it or from what location. Your privacy is protected."
+        },
+        "one_time_warning": "Once you leave or refresh this page, this secret will be permanently deleted and cannot be recovered by anyone."
+      }
+    },
     "COMMON": {
       "broadcast": "",
       "button_generate_secret_short": "Générer un mot de passe",
@@ -102,9 +124,11 @@
       "receipts": "Reçus",
       "share": "Partager",
       "secret_link": "Lien secret",
+      "dismiss": "Rejeter",
       "security_details": "Détails de sécurité",
       "items_count": "{count} Items",
       "recipients_count": "{count} destinataires",
+      "view": "View",
       "views": "Consultations",
       "times_viewed": "fois consulté",
       "view_progress": "Progression des consultations",
@@ -112,8 +136,8 @@
       "passphrase_protected": "Protégé par phrase de passe",
       "feedback-received": "Retour d'information reçu",
       "sending-ellipses": "Envoi...",
-      "pricing": "Tarification",
       "title_recent_secrets": "Secrets récents",
+      "pricing": "Tarification",
       "refresh": "Actualiser",
       "reload": "Recharger",
       "caption_recent_secrets": "Liens secrets créés durant cette session",
@@ -190,6 +214,9 @@
       "share_link_instruction": "Partagez le lien avec le destinataire visé",
       "share_passphrase_instruction": "Partagez la phrase de passe séparément via un canal sécurisé",
       "secure_channel_instruction": "Utilisez un canal sécurisé différent pour partager les informations sensibles"
+    },
+    "ARIA": {
+      "focus-is-now-in-the-main-text-area": "Focus is now in the main text area"
     },
     "secrets": {
       "privacyOptions": "Options de confidentialité",
@@ -843,7 +870,6 @@
   "follow-these-steps-to-verify-domain-ownership-an": "Suivez ces étapes pour vérifier la propriété du domaine et améliorer votre présence en ligne :",
   "domain-verification-steps": "Étapes de vérification du domaine",
   "domain-verification-initiated-successfully": "La vérification du domaine a été lancée avec succès.",
-  "dismiss": "Rejeter",
   "deactivate": "Désactiver",
   "are-you-sure-you-want-to-deactivate-your-account": "Êtes-vous sûr de vouloir désactiver votre compte ? Toutes vos données seront définitivement supprimées de nos serveurs. Cette action ne peut être annulée.",
   "deactivate-account": "Désactiver le compte",
@@ -883,5 +909,6 @@
   "an-error-occurred": "Une erreur s'est produite",
   "copy-secret-to-clipboard": "Copier le secret dans le presse-papiers",
   "secret-copied-to-clipboard": "Secret copié dans le presse-papiers",
-  "Double check that passphrase": "Vérifier à nouveau la phrase de passe"
+  "Double check that passphrase": "Vérifier à nouveau la phrase de passe",
+  "press_copy_button_below": "Press the copy button below."
 }

@@ -1,5 +1,27 @@
 {
   "web": {
+    "help": {
+      "learn_more": "Learn more",
+      "secret_view_faq": {
+        "what_am_i_looking_at": {
+          "title": "What am I looking at?",
+          "description": "You're viewing a secure message that was shared with you through OneTime Secret. This content is displayed only once and then permanently deleted from our servers."
+        },
+        "can_i_view_again": {
+          "title": "Can I view this secret again later?",
+          "description": "No. For security reasons, this secret is only viewable once. After closing this page, the content will be permanently deleted and cannot be recovered by anyone, including us."
+        },
+        "how_to_copy": {
+          "title": "How do I save this information?",
+          "description": "Use the 'Copy to Clipboard' button to copy the entire secret. For longer secrets, make sure to verify you've copied the complete content before leaving this page."
+        },
+        "is_my_viewing_tracked": {
+          "title": "Is my viewing of this secret tracked?",
+          "description": "The sender will be notified that their secret was viewed, but we don't track who viewed it or from what location. Your privacy is protected."
+        },
+        "one_time_warning": "Once you leave or refresh this page, this secret will be permanently deleted and cannot be recovered by anyone."
+      }
+    },
     "COMMON": {
       "broadcast": "",
       "button_generate_secret_short": "Genereer wachtwoord",
@@ -102,9 +124,11 @@
       "receipts": "Ontvangstbewijzen",
       "share": "Delen",
       "secret_link": "Beveiligde link",
+      "dismiss": "Negeren",
       "security_details": "Beveiligingsdetails",
       "items_count": "{count} items",
       "recipients_count": "{count} ontvangers",
+      "view": "View",
       "views": "Weergaven",
       "times_viewed": "keer bekeken",
       "view_progress": "Voortgang bekijken",
@@ -112,8 +136,8 @@
       "passphrase_protected": "Beveiligd met wachtwoordzin",
       "feedback-received": "Feedback ontvangen.",
       "sending-ellipses": "Versturen...",
-      "pricing": "Prijzen",
       "title_recent_secrets": "Recente berichten",
+      "pricing": "Prijzen",
       "refresh": "Vernieuwen",
       "reload": "Herladen",
       "caption_recent_secrets": "Berichtlinks aangemaakt in deze sessie",
@@ -190,6 +214,9 @@
       "share_link_instruction": "Deel de link met de beoogde ontvanger",
       "share_passphrase_instruction": "Deel de wachtwoordzin apart via een beveiligd kanaal",
       "secure_channel_instruction": "Gebruik een ander beveiligd kanaal om gevoelige informatie te delen"
+    },
+    "ARIA": {
+      "focus-is-now-in-the-main-text-area": "Focus is now in the main text area"
     },
     "secrets": {
       "privacyOptions": "Privacy opties",
@@ -815,7 +842,6 @@
   "follow-these-steps-to-verify-domain-ownership-an": "Volg deze stappen om domeineigendom te verifiëren en uw online aanwezigheid te verbeteren:",
   "domain-verification-steps": "Domeinverificatiestappen",
   "domain-verification-initiated-successfully": "Domeinverificatie succesvol gestart.",
-  "dismiss": "Negeren",
   "deactivate": "Deactiveren",
   "are-you-sure-you-want-to-deactivate-your-account": "Weet u zeker dat u uw account wilt deactiveren? Al uw gegevens worden permanent van onze servers verwijderd. Deze actie kan niet ongedaan worden gemaakt.",
   "deactivate-account": "Account deactiveren",
@@ -855,5 +881,6 @@
   "an-error-occurred": "Er is een fout opgetreden",
   "copy-secret-to-clipboard": "Bericht kopiëren naar klembord",
   "secret-copied-to-clipboard": "Bericht gekopieerd naar klembord",
-  "Double check that passphrase": "Controleer die wachtwoordzin nogmaals"
+  "Double check that passphrase": "Controleer die wachtwoordzin nogmaals",
+  "press_copy_button_below": "Press the copy button below."
 }

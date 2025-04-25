@@ -1,5 +1,27 @@
 {
   "web": {
+    "help": {
+      "learn_more": "Learn more",
+      "secret_view_faq": {
+        "what_am_i_looking_at": {
+          "title": "What am I looking at?",
+          "description": "You're viewing a secure message that was shared with you through OneTime Secret. This content is displayed only once and then permanently deleted from our servers."
+        },
+        "can_i_view_again": {
+          "title": "Can I view this secret again later?",
+          "description": "No. For security reasons, this secret is only viewable once. After closing this page, the content will be permanently deleted and cannot be recovered by anyone, including us."
+        },
+        "how_to_copy": {
+          "title": "How do I save this information?",
+          "description": "Use the 'Copy to Clipboard' button to copy the entire secret. For longer secrets, make sure to verify you've copied the complete content before leaving this page."
+        },
+        "is_my_viewing_tracked": {
+          "title": "Is my viewing of this secret tracked?",
+          "description": "The sender will be notified that their secret was viewed, but we don't track who viewed it or from what location. Your privacy is protected."
+        },
+        "one_time_warning": "Once you leave or refresh this page, this secret will be permanently deleted and cannot be recovered by anyone."
+      }
+    },
     "COMMON": {
       "broadcast": "",
       "button_generate_secret_short": "Passwort erstellen",
@@ -102,9 +124,11 @@
       "receipts": "Empfangsbestätigungen",
       "share": "Teilen",
       "secret_link": "Geheime Verbindung",
+      "dismiss": "Ablehnen",
       "security_details": "Details zur Sicherheit",
       "items_count": "{count} Einträge",
       "recipients_count": "{count} Empfänger",
+      "view": "View",
       "views": "Ansichten",
       "times_viewed": "mal angesehen",
       "view_progress": "Fortschritte anzeigen",
@@ -112,8 +136,8 @@
       "passphrase_protected": "Geschützt mit Sicherheitsphrase",
       "feedback-received": "Rückmeldung erhalten.",
       "sending-ellipses": "Ich schicke...",
-      "pricing": "Preisgestaltung",
       "title_recent_secrets": "Neueste Geheimnisse",
+      "pricing": "Preisgestaltung",
       "refresh": "Aktualisieren",
       "reload": "Neu laden",
       "caption_recent_secrets": "In dieser Sitzung erstellte Geheimlinks",
@@ -190,6 +214,9 @@
       "share_link_instruction": "Teilen Sie den Link mit dem gewünschten Empfänger",
       "share_passphrase_instruction": "Geben Sie die Sicherheitsphrase separat über einen sicheren Kanal weiter",
       "secure_channel_instruction": "Verwenden Sie einen anderen sicheren Kanal für den Austausch vertraulicher Informationen"
+    },
+    "ARIA": {
+      "focus-is-now-in-the-main-text-area": "Focus is now in the main text area"
     },
     "secrets": {
       "privacyOptions": "Datenschutz-Optionen",
@@ -843,7 +870,6 @@
   "follow-these-steps-to-verify-domain-ownership-an": "Befolgen Sie diese Schritte, um die Bereichinhaberschaft zu überprüfen und Ihre Online-Präsenz zu verbessern:",
   "domain-verification-steps": "Schritte der Domänenüberprüfung",
   "domain-verification-initiated-successfully": "Die Domänenüberprüfung wurde erfolgreich eingeleitet.",
-  "dismiss": "Ablehnen",
   "deactivate": "Deaktivieren Sie",
   "are-you-sure-you-want-to-deactivate-your-account": "Sind Sie sicher, dass Sie Ihr Konto deaktivieren möchten? Alle Ihre Daten werden dauerhaft und für immer von unseren Servern entfernt. Diese Aktion kann nicht rückgängig gemacht werden.",
   "deactivate-account": "Konto deaktivieren",
@@ -883,5 +909,6 @@
   "an-error-occurred": "Es ist ein Fehler aufgetreten",
   "copy-secret-to-clipboard": "Geheimnis in die Zwischenablage kopieren",
   "secret-copied-to-clipboard": "Geheimnis in die Zwischenablage kopiert",
-  "Double check that passphrase": "Überprüfen Sie die Sicherheitsphrase doppelt"
+  "Double check that passphrase": "Überprüfen Sie die Sicherheitsphrase doppelt",
+  "press_copy_button_below": "Press the copy button below."
 }
