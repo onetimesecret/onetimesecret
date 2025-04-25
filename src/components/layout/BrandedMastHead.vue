@@ -1,7 +1,7 @@
 <!-- src/components/layout/Masthead.vue -->
 <script setup lang="ts">
-  import type { LayoutProps } from '@/types/ui/layouts';
   import { useProductIdentity } from '@/stores/identityStore';
+  import type { LayoutProps } from '@/types/ui/layouts';
   import { ref } from 'vue';
 
   const productIdentity = useProductIdentity();
@@ -25,8 +25,8 @@
 </script>
 
 <template>
-  <div class="bg-white dark:bg-gray-900 py-8 transition-colors duration-200">
-    <div class="container mx-auto px-4 max-w-2xl">
+  <div class="bg-white py-8 transition-colors duration-200 dark:bg-gray-900">
+    <div class="container mx-auto max-w-2xl px-4">
       <div class="flex flex-col items-center gap-8">
         <!-- Logo Section -->
         <div
@@ -37,7 +37,7 @@
             <div
               :class="[
                 productIdentity.cornerClass,
-                'flex size-16 items-center justify-center overflow-hidden bg-gray-100 dark:bg-gray-800 transition-all duration-200',
+                'flex size-16 items-center justify-center overflow-hidden bg-gray-100 transition-all duration-200 dark:bg-gray-800',
               ]">
               <img
                 v-if="productIdentity.logoUri && !imageError"
@@ -65,19 +65,19 @@
 
         <!-- Content Section -->
         <div
-          class="text-center space-y-3"
+          class="space-y-3 text-center"
           :class="[
             productIdentity.fontFamilyClass,
             productIdentity.cornerClass,
           ]">
           <h1
-            class="text-2xl sm:text-3xl font-medium text-gray-900 dark:text-gray-100"
+            class="text-2xl font-medium text-gray-900 dark:text-gray-100 sm:text-3xl"
             :class="productIdentity.fontFamilyClass">
-            {{ $t(headertext) }}
+            {{ headertext }}
           </h1>
           <p
-            class="text-sm sm:text-base text-gray-600 dark:text-gray-300 max-w-md mx-auto">
-            {{ $t(subtext) }}
+            class="mx-auto max-w-md text-sm text-gray-600 dark:text-gray-300 sm:text-base">
+            {{ subtext }}
           </p>
         </div>
       </div>

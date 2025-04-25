@@ -1,23 +1,25 @@
 <!-- src/components/layout/DefaultFooter.vue -->
 
 <script setup lang="ts">
-  import FooterLinkLists from '@/components/layout/FooterLinkLists.vue';
   import FeedbackToggle from '@/components/FeedbackToggle.vue';
   import JurisdictionToggle from '@/components/JurisdictionToggle.vue';
+  import LanguageToggle from '@/components/LanguageToggle.vue';
+  import FooterLinkLists from '@/components/layout/FooterLinkLists.vue';
   import ThemeToggle from '@/components/ThemeToggle.vue';
+  import { WindowService } from '@/services/window.service';
   import { useProductIdentity } from '@/stores/identityStore';
   import type { LayoutProps } from '@/types/ui/layouts';
-  import { WindowService } from '@/services/window.service';
   import { ref } from 'vue';
-
-  import LanguageToggle from '@/components/LanguageToggle.vue';
 
   const productIdentity = useProductIdentity();
 
   withDefaults(defineProps<LayoutProps>(), {});
 
   const windowProps = WindowService.getMultiple([
-    'regions_enabled', 'regions', 'authentication', 'i18n_enabled',
+    'regions_enabled',
+    'regions',
+    'authentication',
+    'i18n_enabled',
   ]);
 
   const companyName = ref('OnetimeSecret.com');
@@ -31,7 +33,8 @@
       class="container mx-auto max-w-2xl px-4">
       <FooterLinkLists
         v-if="displayLinks"
-        v-bind="$props" />
+        v-bind="$props"
+      />
 
       <div
         class="mt-6 flex flex-col-reverse items-center justify-between space-y-6 space-y-reverse md:flex-row md:space-y-0">
@@ -50,7 +53,9 @@
           <ThemeToggle
             class="text-gray-500 transition-colors duration-200 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-100"
             :aria-label="$t('toggle-dark-mode')" />
-          <LanguageToggle v-if="windowProps.i18n_enabled" :compact="true" />
+          <LanguageToggle
+            v-if="windowProps.i18n_enabled"
+            :compact="true" />
           <FeedbackToggle
             v-if="displayFeedback && windowProps.authentication?.enabled"
             class="text-gray-500 transition-colors duration-200 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-100"
@@ -69,22 +74,26 @@
           <ThemeToggle
             class="text-gray-500 transition-colors duration-200 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-100"
             :aria-label="$t('toggle-dark-mode')" />
-          <LanguageToggle v-if="windowProps.i18n_enabled" :compact="true" />
+          <LanguageToggle
+            v-if="windowProps.i18n_enabled"
+            :compact="true" />
         </div>
 
         <!-- Links Section -->
         <div class="text-sm text-gray-500 dark:text-gray-400">
           <router-link
             to="/info/terms"
-            class="transition-colors duration-200 hover:text-gray-800 dark:hover:text-gray-100 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2">
+            class="transition-colors duration-200 hover:text-gray-800 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 dark:hover:text-gray-100">
             {{ $t('terms') }}
           </router-link>
           <span
             class="mx-2 select-none"
-            aria-hidden="true">·</span>
+            aria-hidden="true">
+            ·
+          </span>
           <router-link
             to="/info/privacy"
-            class="transition-colors duration-200 hover:text-gray-800 dark:hover:text-gray-100 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2">
+            class="transition-colors duration-200 hover:text-gray-800 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 dark:hover:text-gray-100">
             {{ $t('privacy') }}
           </router-link>
         </div>
