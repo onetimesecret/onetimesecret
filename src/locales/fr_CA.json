@@ -222,7 +222,7 @@
       "privacyOptions": "Options de confidentialité",
       "selectDuration": "Sélectionner la durée",
       "expiresIn": "Expire dans {duration}",
-      "enterPassphrase": ""
+      "enterPassphrase": "Saisir la phrase secrète"
     },
     "homepage": {
       "tagline1": "Collez votre mot de passe, message secret ou lien privé ci-dessous",

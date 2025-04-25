@@ -222,7 +222,7 @@
       "privacyOptions": "Privacy opties",
       "selectDuration": "Selecteer duur",
       "expiresIn": "Verloopt in {duration}",
-      "enterPassphrase": ""
+      "enterPassphrase": "Wachtwoordzin invoeren"
     },
     "homepage": {
       "tagline1": "Plak het wachtwoord, geheime bericht of privé link hieronder",

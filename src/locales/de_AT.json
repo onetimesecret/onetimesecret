@@ -222,7 +222,7 @@
       "privacyOptions": "Datenschutz-Optionen",
       "selectDuration": "Dauer auswählen",
       "expiresIn": "Läuft ab in {duration}",
-      "enterPassphrase": ""
+      "enterPassphrase": "Passphrase eingeben"
     },
     "homepage": {
       "tagline1": "Fügen Sie unten ein Passwort, eine geheime Nachricht oder einen privaten Link ein.",
