@@ -53,10 +53,10 @@
   const corners = computed(() => processCornerClass(props.cornerClass));
   const textColorClass = computed(() => props.buttonTextLight ? 'text-white' : 'text-gray-800');
   // Left button focus ring (respects left corner rounding)
-  const leftButtonFocusClass = computed(() => `focus:outline-none focus:ring-2 focus:ring-offset-2 dark:focus:ring-offset-slate-900 focus:z-10 ${corners.value.leftCorner}`);
+  const leftButtonFocusClass = computed(() => `${corners.value.leftCorner}`);
 
   // Right button focus ring (respects right corner rounding)
-  const rightButtonFocusClass = computed(() => `focus:outline-none focus:ring-2 focus:ring-offset-2 dark:focus:ring-offset-slate-900 focus:z-10 ${corners.value.rightCorner}`);
+  const rightButtonFocusClass = computed(() => `${corners.value.rightCorner}`);
 
   // Compute the ring color based on primaryColor availability
   const ringColorStyle = computed(() => {
@@ -128,8 +128,9 @@
       :class="[
         corners.leftCorner,
         textColorClass,
-        'flex items-center justify-center gap-2 px-4 py-3 text-lg font-semibold transition-colors',
         leftButtonFocusClass,
+        'flex items-center justify-center gap-2 px-4 py-3 text-lg font-semibold transition-colors',
+        'focus:z-10 focus:outline-none focus:ring-2 focus:ring-offset-2 dark:focus:ring-offset-slate-900',
         {
           'cursor-not-allowed opacity-60 disabled:hover:opacity-70 dark:opacity-60': isMainButtonDisabled,
         },
@@ -152,7 +153,8 @@
           stroke="currentColor"
           stroke-width="2"
           class="size-5"
-          v-html="buttonConfig.icon" />
+          v-html="buttonConfig.icon"
+        />
       </span>
       <span>{{ buttonConfig.label }}</span>
     </button>
@@ -163,10 +165,10 @@
       :class="[
         corners.rightCorner,
         textColorClass,
-        'flex items-center justify-center',
-        'border-l',
-        'p-3 transition-colors',
         rightButtonFocusClass,
+        'flex items-center justify-center',
+        'focus:z-10 focus:outline-none focus:ring-2 focus:ring-offset-2 dark:focus:ring-offset-slate-900',
+        'border-l p-3 transition-colors',
         'hover:opacity-100',
       ]"
       :style="{
@@ -222,7 +224,8 @@
               width="18"
               height="11"
               rx="2"
-              ry="2" />
+              ry="2"
+            />
             <path d="M7 11V7a5 5 0 0 1 10 0v4" />
           </svg>
         </span>

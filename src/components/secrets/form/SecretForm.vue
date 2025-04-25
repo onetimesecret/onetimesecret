@@ -128,7 +128,8 @@
     <!-- Enhanced Alert Display -->
     <BasicFormAlerts
       :errors="Array.from(validation.errors.values())"
-      class="sticky top-4 z-50" />
+      class="sticky top-4 z-50"
+    />
 
     <form
       ref="form1"
