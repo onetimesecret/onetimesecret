@@ -18,11 +18,12 @@ source 'https://rubygems.org/'
 gem 'truemail'
 
 gem 'addressable'
+gem 'altcha', '~> 0.2.1'
 
 gem 'rack', '>= 2.2.12', '< 3.0'
 gem 'rack-contrib', '~> 2.5'
-gem 'rack-utf8_sanitizer', '~> 1.10.1'
 gem 'rack-protection', '~> 3.2'
+gem 'rack-utf8_sanitizer', '~> 1.10.1'
 
 gem 'dotenv'
 gem 'multi_json'
@@ -33,15 +34,15 @@ gem 'thin'
 gem 'drydock'
 #gem 'familia', path: '/Users/d/Projects/opensource/d/familia'
 gem 'familia', '~> 1.1.0.pre.rc1'
-
 gem 'gibbler'
-
 gem 'otto', '~> 1.1.0.pre.alpha4'
-
-gem 'redis', '~> 5.4.0'
 gem 'storable'
 gem 'sysinfo'
 gem 'uri-redis', '~> 1.3.0'
+
+
+gem 'redis', '~> 5.4.0'
+
 
 gem 'bcrypt'
 gem 'encryptor', '= 1.1.3'
@@ -79,9 +80,8 @@ gem 'sendgrid-ruby'
 gem "sentry-ruby", require: false
 gem 'stripe', require: false
 
-gem 'stackprof', require: false
-
 gem 'rubocop', require: false
+gem 'stackprof', require: false
 
 group :development do
   gem 'byebug', require: false
