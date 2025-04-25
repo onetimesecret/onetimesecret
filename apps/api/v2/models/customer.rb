@@ -15,7 +15,6 @@ module V2
 
     prefix :customer
 
-
     class_sorted_set :values, key: 'onetime:customer'
     class_hashkey :domains, key: 'onetime:customers:domain'
 
