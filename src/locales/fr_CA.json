@@ -288,7 +288,7 @@
       "this_message_for_you": "Ce message est pour vous :",
       "your_message_is_ready": "Votre message sécurisé est prêt.",
       "reply_with_secret": "Répondre avec un autre secret",
-      "pre_reveal_default": "Click the button below to reveal your secure message.",
+      "pre_reveal_default": "Cliquez ci-dessous pour afficher votre message sécurisé.",
       "post_reveal_default": "Your secure message is shown below.",
       "secret_was_truncated": "Le secret a été accordé"
     },
