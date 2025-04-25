@@ -1,5 +1,27 @@
 {
   "web": {
+    "help": {
+      "learn_more": "En savoir plus",
+      "secret_view_faq": {
+        "what_am_i_looking_at": {
+          "title": "Que suis-je en train de regarder?",
+          "description": "Vous consultez un message sécurisé qui a été partagé avec vous via Onetime Secret. Ce contenu n'est affiché qu'une seule fois, puis supprimé définitivement de nos serveurs."
+        },
+        "can_i_view_again": {
+          "title": "Puis-je consulter ce message à nouveau plus tard?",
+          "description": "Non. Pour des raisons de sécurité, ce message n'est visible qu'une seule fois. Après avoir fermé cette page, le contenu sera définitivement supprimé et ne pourra être récupéré par personne, y compris nous."
+        },
+        "how_to_copy": {
+          "title": "Comment puis-je sauvegarder cette information?",
+          "description": "Utilisez le bouton 'Copier dans le presse-papiers' pour copier l'intégralité du message. Pour les messages plus longs, assurez-vous de vérifier que vous avez copié le contenu complet avant de quitter cette page."
+        },
+        "is_my_viewing_tracked": {
+          "title": "Est-ce que ma consultation de ce message est suivie?",
+          "description": "L'expéditeur sera informé que son message a été consulté, mais nous ne suivons pas qui l'a consulté ni depuis quel endroit. Votre confidentialité est protégée."
+        },
+        "one_time_warning": "Une fois que vous quittez ou actualisez cette page, ce message sera définitivement supprimé et ne pourra être récupéré par personne."
+      }
+    },
     "COMMON": {
       "broadcast": "",
       "button_generate_secret_short": "Générer un mot de passe",
@@ -102,9 +124,11 @@
       "receipts": "Reçus",
       "share": "Partager",
       "secret_link": "Lien secret",
+      "dismiss": "Rejeter",
       "security_details": "Détails de sécurité",
       "items_count": "{count} Items",
       "recipients_count": "{count} destinataires",
+      "view": "View",
       "views": "Consultations",
       "times_viewed": "fois consulté",
       "view_progress": "Progression des consultations",
@@ -112,8 +136,15 @@
       "passphrase_protected": "Protégé par phrase de passe",
       "feedback-received": "Retour d'information reçu",
       "sending-ellipses": "Envoi...",
+      "title_recent_secrets": "Secrets récents",
       "pricing": "Tarification",
-      "title_recent_secrets": "Secrets récents"
+      "refresh": "Actualiser",
+      "reload": "Recharger",
+      "caption_recent_secrets": "Liens secrets créés durant cette session",
+      "create-link-short": "Créer un lien",
+      "create-link": "Créer un lien secret",
+      "create-request-short": "Créer une demande",
+      "create-request": "Créer un lien de demande"
     },
     "STATUS": {
       "new": "Nouveau",
@@ -184,11 +215,14 @@
       "share_passphrase_instruction": "Partagez la phrase de passe séparément via un canal sécurisé",
       "secure_channel_instruction": "Utilisez un canal sécurisé différent pour partager les informations sensibles"
     },
+    "ARIA": {
+      "focus-is-now-in-the-main-text-area": "Focus is now in the main text area"
+    },
     "secrets": {
       "privacyOptions": "Options de confidentialité",
       "selectDuration": "Sélectionner la durée",
       "expiresIn": "Expire dans {duration}",
-      "enterPassphrase": ""
+      "enterPassphrase": "Saisir la phrase secrète"
     },
     "homepage": {
       "tagline1": "Collez votre mot de passe, message secret ou lien privé ci-dessous",
@@ -254,7 +288,7 @@
       "this_message_for_you": "Ce message est pour vous :",
       "your_message_is_ready": "Votre message sécurisé est prêt.",
       "reply_with_secret": "Répondre avec un autre secret",
-      "pre_reveal_default": "Click the button below to reveal your secure message.",
+      "pre_reveal_default": "Cliquez ci-dessous pour afficher votre message sécurisé.",
       "post_reveal_default": "Your secure message is shown below.",
       "secret_was_truncated": "Le secret a été accordé"
     },
@@ -836,7 +870,6 @@
   "follow-these-steps-to-verify-domain-ownership-an": "Suivez ces étapes pour vérifier la propriété du domaine et améliorer votre présence en ligne :",
   "domain-verification-steps": "Étapes de vérification du domaine",
   "domain-verification-initiated-successfully": "La vérification du domaine a été lancée avec succès.",
-  "dismiss": "Rejeter",
   "deactivate": "Désactiver",
   "are-you-sure-you-want-to-deactivate-your-account": "Êtes-vous sûr de vouloir désactiver votre compte ? Toutes vos données seront définitivement supprimées de nos serveurs. Cette action ne peut être annulée.",
   "deactivate-account": "Désactiver le compte",
@@ -876,5 +909,6 @@
   "an-error-occurred": "Une erreur s'est produite",
   "copy-secret-to-clipboard": "Copier le secret dans le presse-papiers",
   "secret-copied-to-clipboard": "Secret copié dans le presse-papiers",
-  "Double check that passphrase": "Vérifier à nouveau la phrase de passe"
+  "Double check that passphrase": "Vérifier à nouveau la phrase de passe",
+  "press_copy_button_below": "Press the copy button below."
 }

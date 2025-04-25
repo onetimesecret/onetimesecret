@@ -2,6 +2,8 @@
 
 <script setup lang="ts">
   import { ref, computed, onMounted, onBeforeUnmount } from 'vue';
+  import { useI18n } from 'vue-i18n';
+  const { t } = useI18n();
 
   // Action types for the button
   type ActionType = 'create-link' | 'generate-password';
@@ -53,10 +55,10 @@
   const corners = computed(() => processCornerClass(props.cornerClass));
   const textColorClass = computed(() => props.buttonTextLight ? 'text-white' : 'text-gray-800');
   // Left button focus ring (respects left corner rounding)
-  const leftButtonFocusClass = computed(() => `focus:outline-none focus:ring-2 focus:ring-offset-2 dark:focus:ring-offset-slate-900 focus:z-10 ${corners.value.leftCorner}`);
+  const leftButtonFocusClass = computed(() => `${corners.value.leftCorner}`);
 
   // Right button focus ring (respects right corner rounding)
-  const rightButtonFocusClass = computed(() => `focus:outline-none focus:ring-2 focus:ring-offset-2 dark:focus:ring-offset-slate-900 focus:z-10 ${corners.value.rightCorner}`);
+  const rightButtonFocusClass = computed(() => `${corners.value.rightCorner}`);
 
   // Compute the ring color based on primaryColor availability
   const ringColorStyle = computed(() => {
@@ -67,12 +69,12 @@
   const buttonConfig = computed(() => {
     const configs = {
       'create-link': {
-        label: 'Create Link',
+        label: t('web.LABELS.create-link-short'),
         icon: '<rect x="3" y="11" width="18" height="11" rx="2" ry="2" /><path d="M7 11V7a5 5 0 0 1 10 0v4" />',
         emit: () => emit('create-link'),
       },
       'generate-password': {
-        label: 'Generate Password',
+        label: t('web.COMMON.button_generate_secret_short'),
         icon: '<path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4" />',
         emit: () => emit('generate-password'),
       },
@@ -128,8 +130,9 @@
       :class="[
         corners.leftCorner,
         textColorClass,
-        'flex items-center justify-center gap-2 px-4 py-3 text-lg font-semibold transition-colors',
         leftButtonFocusClass,
+        'flex items-center justify-center gap-2 px-4 py-3 text-lg font-semibold transition-colors',
+        'focus:z-10 focus:outline-none focus:ring-2 focus:ring-offset-2 dark:focus:ring-offset-slate-900',
         {
           'cursor-not-allowed opacity-60 disabled:hover:opacity-70 dark:opacity-60': isMainButtonDisabled,
         },
@@ -152,7 +155,8 @@
           stroke="currentColor"
           stroke-width="2"
           class="size-5"
-          v-html="buttonConfig.icon" />
+          v-html="buttonConfig.icon"
+        />
       </span>
       <span>{{ buttonConfig.label }}</span>
     </button>
@@ -163,10 +167,10 @@
       :class="[
         corners.rightCorner,
         textColorClass,
-        'flex items-center justify-center',
-        'border-l',
-        'p-3 transition-colors',
         rightButtonFocusClass,
+        'flex items-center justify-center',
+        'focus:z-10 focus:outline-none focus:ring-2 focus:ring-offset-2 dark:focus:ring-offset-slate-900',
+        'border-l p-3 transition-colors',
         'hover:opacity-100',
       ]"
       :style="{
@@ -222,11 +226,12 @@
               width="18"
               height="11"
               rx="2"
-              ry="2" />
+              ry="2"
+            />
             <path d="M7 11V7a5 5 0 0 1 10 0v4" />
           </svg>
         </span>
-        <span>Create Link</span>
+        <span>{{ $t('web.LABELS.create-link-short') }}</span>
       </button>
 
       <!-- prettier-ignore-attribute class -->

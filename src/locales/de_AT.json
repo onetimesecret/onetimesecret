@@ -1,5 +1,27 @@
 {
   "web": {
+    "help": {
+      "learn_more": "Mehr erfahren",
+      "secret_view_faq": {
+        "what_am_i_looking_at": {
+          "title": "Was sehe ich hier?",
+          "description": "Sie betrachten eine sichere Nachricht, die über Onetime Secret mit Ihnen geteilt wurde. Dieser Inhalt wird nur einmal angezeigt und dann dauerhaft von unseren Servern gelöscht."
+        },
+        "can_i_view_again": {
+          "title": "Kann ich diese Nachricht später noch einmal ansehen?",
+          "description": "Nein. Aus Sicherheitsgründen ist diese Nachricht nur einmal einsehbar. Nach dem Schließen dieser Seite wird der Inhalt dauerhaft gelöscht und kann von niemandem, auch nicht von uns, wiederhergestellt werden."
+        },
+        "how_to_copy": {
+          "title": "Wie speichere ich diese Information?",
+          "description": "Verwenden Sie die Schaltfläche 'In die Zwischenablage kopieren', um die gesamte Nachricht zu kopieren. Bei längeren Nachrichten sollten Sie überprüfen, ob Sie den vollständigen Inhalt kopiert haben, bevor Sie diese Seite verlassen."
+        },
+        "is_my_viewing_tracked": {
+          "title": "Wird meine Betrachtung dieser Nachricht verfolgt?",
+          "description": "Der Absender wird benachrichtigt, dass seine Nachricht angesehen wurde, aber wir verfolgen nicht, wer sie angesehen hat oder von welchem Standort aus. Ihre Privatsphäre wird geschützt."
+        },
+        "one_time_warning": "Sobald Sie diese Seite verlassen oder aktualisieren, wird diese Nachricht dauerhaft gelöscht und kann von niemandem wiederhergestellt werden."
+      }
+    },
     "COMMON": {
       "broadcast": "",
       "button_generate_secret_short": "Passwort erstellen",
@@ -102,9 +124,11 @@
       "receipts": "Empfangsbestätigungen",
       "share": "Teilen",
       "secret_link": "Geheime Verbindung",
+      "dismiss": "Ablehnen",
       "security_details": "Details zur Sicherheit",
       "items_count": "{count} Einträge",
       "recipients_count": "{count} Empfänger",
+      "view": "View",
       "views": "Ansichten",
       "times_viewed": "mal angesehen",
       "view_progress": "Fortschritte anzeigen",
@@ -112,8 +136,15 @@
       "passphrase_protected": "Geschützt mit Sicherheitsphrase",
       "feedback-received": "Rückmeldung erhalten.",
       "sending-ellipses": "Ich schicke...",
+      "title_recent_secrets": "Neueste Geheimnisse",
       "pricing": "Preisgestaltung",
-      "title_recent_secrets": "Neueste Geheimnisse"
+      "refresh": "Aktualisieren",
+      "reload": "Neu laden",
+      "caption_recent_secrets": "In dieser Sitzung erstellte Geheimlinks",
+      "create-link-short": "Link erstellen",
+      "create-link": "Geheimen Link erstellen",
+      "create-request-short": "Anfrage erstellen",
+      "create-request": "Anfrage-Link erstellen"
     },
     "STATUS": {
       "new": "Neu",
@@ -184,11 +215,14 @@
       "share_passphrase_instruction": "Geben Sie die Sicherheitsphrase separat über einen sicheren Kanal weiter",
       "secure_channel_instruction": "Verwenden Sie einen anderen sicheren Kanal für den Austausch vertraulicher Informationen"
     },
+    "ARIA": {
+      "focus-is-now-in-the-main-text-area": "Focus is now in the main text area"
+    },
     "secrets": {
       "privacyOptions": "Datenschutz-Optionen",
       "selectDuration": "Dauer auswählen",
       "expiresIn": "Läuft ab in {duration}",
-      "enterPassphrase": ""
+      "enterPassphrase": "Passphrase eingeben"
     },
     "homepage": {
       "tagline1": "Fügen Sie unten ein Passwort, eine geheime Nachricht oder einen privaten Link ein.",
@@ -836,7 +870,6 @@
   "follow-these-steps-to-verify-domain-ownership-an": "Befolgen Sie diese Schritte, um die Bereichinhaberschaft zu überprüfen und Ihre Online-Präsenz zu verbessern:",
   "domain-verification-steps": "Schritte der Domänenüberprüfung",
   "domain-verification-initiated-successfully": "Die Domänenüberprüfung wurde erfolgreich eingeleitet.",
-  "dismiss": "Ablehnen",
   "deactivate": "Deaktivieren Sie",
   "are-you-sure-you-want-to-deactivate-your-account": "Sind Sie sicher, dass Sie Ihr Konto deaktivieren möchten? Alle Ihre Daten werden dauerhaft und für immer von unseren Servern entfernt. Diese Aktion kann nicht rückgängig gemacht werden.",
   "deactivate-account": "Konto deaktivieren",
@@ -876,5 +909,6 @@
   "an-error-occurred": "Es ist ein Fehler aufgetreten",
   "copy-secret-to-clipboard": "Geheimnis in die Zwischenablage kopieren",
   "secret-copied-to-clipboard": "Geheimnis in die Zwischenablage kopiert",
-  "Double check that passphrase": "Überprüfen Sie die Sicherheitsphrase doppelt"
+  "Double check that passphrase": "Überprüfen Sie die Sicherheitsphrase doppelt",
+  "press_copy_button_below": "Press the copy button below."
 }

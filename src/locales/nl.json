@@ -1,5 +1,27 @@
 {
   "web": {
+    "help": {
+      "learn_more": "Meer informatie",
+      "secret_view_faq": {
+        "what_am_i_looking_at": {
+          "title": "Wat bekijk ik?",
+          "description": "U bekijkt een beveiligde bericht dat met u is gedeeld via Onetime Secret. Deze inhoud wordt slechts één keer weergegeven en vervolgens permanent van onze servers verwijderd."
+        },
+        "can_i_view_again": {
+          "title": "Kan ik dit bericht later opnieuw bekijken?",
+          "description": "Nee. Om veiligheidsredenen is dit bericht slechts één keer te bekijken. Na het sluiten van deze pagina wordt de inhoud permanent verwijderd en kan deze door niemand, ook niet door ons, worden teruggehaald."
+        },
+        "how_to_copy": {
+          "title": "Hoe bewaar ik deze informatie?",
+          "description": "Gebruik de knop 'Kopiëren naar klembord' om het volledige bericht te kopiëren. Controleer bij langere berichten of u de volledige inhoud heeft gekopieerd voordat u deze pagina verlaat."
+        },
+        "is_my_viewing_tracked": {
+          "title": "Wordt mijn weergave van dit bericht bijgehouden?",
+          "description": "De afzender wordt op de hoogte gebracht dat zijn bericht is bekeken, maar we houden niet bij wie het heeft bekeken of vanaf welke locatie. Uw privacy wordt beschermd."
+        },
+        "one_time_warning": "Zodra u deze pagina verlaat of vernieuwt, wordt dit bericht permanent verwijderd en kan het door niemand worden teruggehaald."
+      }
+    },
     "COMMON": {
       "broadcast": "",
       "button_generate_secret_short": "Genereer wachtwoord",
@@ -102,9 +124,11 @@
       "receipts": "Ontvangstbewijzen",
       "share": "Delen",
       "secret_link": "Beveiligde link",
+      "dismiss": "Negeren",
       "security_details": "Beveiligingsdetails",
       "items_count": "{count} items",
       "recipients_count": "{count} ontvangers",
+      "view": "View",
       "views": "Weergaven",
       "times_viewed": "keer bekeken",
       "view_progress": "Voortgang bekijken",
@@ -112,8 +136,15 @@
       "passphrase_protected": "Beveiligd met wachtwoordzin",
       "feedback-received": "Feedback ontvangen.",
       "sending-ellipses": "Versturen...",
+      "title_recent_secrets": "Recente berichten",
       "pricing": "Prijzen",
-      "title_recent_secrets": "Recente berichten"
+      "refresh": "Vernieuwen",
+      "reload": "Herladen",
+      "caption_recent_secrets": "Berichtlinks aangemaakt in deze sessie",
+      "create-link-short": "Link aanmaken",
+      "create-link": "Geheime link aanmaken",
+      "create-request-short": "Verzoek aanmaken",
+      "create-request": "Verzoeklink aanmaken"
     },
     "STATUS": {
       "new": "Nieuw",
@@ -184,11 +215,14 @@
       "share_passphrase_instruction": "Deel de wachtwoordzin apart via een beveiligd kanaal",
       "secure_channel_instruction": "Gebruik een ander beveiligd kanaal om gevoelige informatie te delen"
     },
+    "ARIA": {
+      "focus-is-now-in-the-main-text-area": "Focus is now in the main text area"
+    },
     "secrets": {
       "privacyOptions": "Privacy opties",
       "selectDuration": "Selecteer duur",
       "expiresIn": "Verloopt in {duration}",
-      "enterPassphrase": ""
+      "enterPassphrase": "Wachtwoordzin invoeren"
     },
     "homepage": {
       "tagline1": "Plak het wachtwoord, geheime bericht of privé link hieronder",
@@ -808,7 +842,6 @@
   "follow-these-steps-to-verify-domain-ownership-an": "Volg deze stappen om domeineigendom te verifiëren en uw online aanwezigheid te verbeteren:",
   "domain-verification-steps": "Domeinverificatiestappen",
   "domain-verification-initiated-successfully": "Domeinverificatie succesvol gestart.",
-  "dismiss": "Negeren",
   "deactivate": "Deactiveren",
   "are-you-sure-you-want-to-deactivate-your-account": "Weet u zeker dat u uw account wilt deactiveren? Al uw gegevens worden permanent van onze servers verwijderd. Deze actie kan niet ongedaan worden gemaakt.",
   "deactivate-account": "Account deactiveren",
@@ -848,5 +881,6 @@
   "an-error-occurred": "Er is een fout opgetreden",
   "copy-secret-to-clipboard": "Bericht kopiëren naar klembord",
   "secret-copied-to-clipboard": "Bericht gekopieerd naar klembord",
-  "Double check that passphrase": "Controleer die wachtwoordzin nogmaals"
+  "Double check that passphrase": "Controleer die wachtwoordzin nogmaals",
+  "press_copy_button_below": "Press the copy button below."
 }
