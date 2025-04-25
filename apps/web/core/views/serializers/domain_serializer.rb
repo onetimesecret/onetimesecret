@@ -43,6 +43,7 @@ module Core
           output[:domain_logo] = (custom_domain&.logo&.hgetall || {}).to_h
 
           domain_locale = output[:domain_branding].fetch('locale', nil)
+          output[:domain_locale] = domain_locale
         end
 
         # There's no custom domain list when the feature is disabled
