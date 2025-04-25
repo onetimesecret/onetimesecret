@@ -52,7 +52,7 @@ jobs:
 
       # Step 1: Check this out
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
 
       # Step 2: Always leave a note
       - name: Record commit hash and display version info
@@ -62,7 +62,7 @@ jobs:
           head -4 package.json .commit_hash.txt
 
       - name: Create Sentry release (backend)
-        uses: getsentry/action-release@v3
+        uses: getsentry/action-release@00ed2a6cc2171514e031a0f5b4b3cdc586dc171a # v3
         env:
           SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
           SENTRY_ORG: ${{ secrets.SENTRY_ORG }}
@@ -77,7 +77,7 @@ jobs:
 
       # Step 3: Set up Fly.io CLI
       - name: Set up Fly.io CLI
-        uses: superfly/flyctl-actions/setup-flyctl@1.5
+        uses: superfly/flyctl-actions/setup-flyctl@fc53c09e1bc3be6f54706524e3b82c4f462f77be # 1.5
 
       # Step 4: Deploy to Fly.io
       - name: Deploy to Fly.io
