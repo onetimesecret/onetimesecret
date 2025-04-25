@@ -93,7 +93,26 @@ RSpec.describe Core::Views::BaseView do
         instance_double('V2::Customer',
           anonymous?: true,
           planid: 'anonymous',
-          custid: nil)
+          custid: nil,
+          safe_dump: {
+            "identifier" => "anon",
+            "custid" => "anon",
+            "role" => "customer",
+            "verified" => nil,
+            "last_login" => nil,
+            "locale" => "",
+            "updated" => nil,
+            "created" => nil,
+            "stripe_customer_id" => nil,
+            "stripe_subscription_id" => nil,
+            "stripe_checkout_email" => nil,
+            "plan" => {"planid" => nil, "source" => "parts_unknown"},
+            "secrets_created" => "0",
+            "secrets_burned" => "0",
+            "secrets_shared" => "0",
+            "emails_sent" => "0",
+            "active" => false
+          })
       end
 
       it 'sets appropriate anonymous state' do
@@ -248,7 +267,25 @@ RSpec.describe Core::Views::BaseView do
           anonymous?: true,
           planid: 'anonymous',
           created: Time.now.to_i,
-          safe_dump: nil,
+          safe_dump: {
+            "identifier" => "anon",
+            "custid" => "anon",
+            "role" => "customer",
+            "verified" => nil,
+            "last_login" => nil,
+            "locale" => "",
+            "updated" => nil,
+            "created" => nil,
+            "stripe_customer_id" => nil,
+            "stripe_subscription_id" => nil,
+            "stripe_checkout_email" => nil,
+            "plan" => {"planid" => nil, "source" => "parts_unknown"},
+            "secrets_created" => "0",
+            "secrets_burned" => "0",
+            "secrets_shared" => "0",
+            "emails_sent" => "0",
+            "active" => false
+          },
           verified?: false,
           active?: false,
           role: 'anonymous')
