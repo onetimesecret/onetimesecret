@@ -1,25 +1,25 @@
 {
   "web": {
     "help": {
-      "learn_more": "Learn more",
+      "learn_more": "En savoir plus",
       "secret_view_faq": {
         "what_am_i_looking_at": {
-          "title": "What am I looking at?",
-          "description": "You're viewing a secure message that was shared with you through OneTime Secret. This content is displayed only once and then permanently deleted from our servers."
+          "title": "Qu'est-ce que je regarde ?",
+          "description": "Vous consultez un message sécurisé qui a été partagé avec vous via Onetime Secret. Ce contenu n'est affiché qu'une seule fois, puis supprimé définitivement de nos serveurs."
         },
         "can_i_view_again": {
-          "title": "Can I view this secret again later?",
-          "description": "No. For security reasons, this secret is only viewable once. After closing this page, the content will be permanently deleted and cannot be recovered by anyone, including us."
+          "title": "Puis-je consulter ce message à nouveau ultérieurement ?",
+          "description": "Non. Pour des raisons de sécurité, ce message n'est visible qu'une seule fois. Après avoir fermé cette page, le contenu sera définitivement supprimé et ne pourra être récupéré par personne, y compris nous."
         },
         "how_to_copy": {
-          "title": "How do I save this information?",
-          "description": "Use the 'Copy to Clipboard' button to copy the entire secret. For longer secrets, make sure to verify you've copied the complete content before leaving this page."
+          "title": "Comment puis-je sauvegarder cette information ?",
+          "description": "Utilisez le bouton 'Copier dans le presse-papiers' pour copier l'intégralité du message. Pour les messages plus longs, assurez-vous de vérifier que vous avez copié le contenu complet avant de quitter cette page."
         },
         "is_my_viewing_tracked": {
-          "title": "Is my viewing of this secret tracked?",
-          "description": "The sender will be notified that their secret was viewed, but we don't track who viewed it or from what location. Your privacy is protected."
+          "title": "Ma consultation de ce message est-elle suivie ?",
+          "description": "L'expéditeur sera informé que son message a été consulté, mais nous ne suivons pas qui l'a consulté ni depuis quel endroit. Votre confidentialité est protégée."
         },
-        "one_time_warning": "Once you leave or refresh this page, this secret will be permanently deleted and cannot be recovered by anyone."
+        "one_time_warning": "Une fois que vous quittez ou actualisez cette page, ce message sera définitivement supprimé et ne pourra être récupéré par personne."
       }
     },
     "COMMON": {

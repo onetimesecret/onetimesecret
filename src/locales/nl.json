@@ -1,25 +1,25 @@
 {
   "web": {
     "help": {
-      "learn_more": "Learn more",
+      "learn_more": "Meer informatie",
       "secret_view_faq": {
         "what_am_i_looking_at": {
-          "title": "What am I looking at?",
-          "description": "You're viewing a secure message that was shared with you through OneTime Secret. This content is displayed only once and then permanently deleted from our servers."
+          "title": "Wat bekijk ik?",
+          "description": "U bekijkt een beveiligde bericht dat met u is gedeeld via Onetime Secret. Deze inhoud wordt slechts één keer weergegeven en vervolgens permanent van onze servers verwijderd."
         },
         "can_i_view_again": {
-          "title": "Can I view this secret again later?",
-          "description": "No. For security reasons, this secret is only viewable once. After closing this page, the content will be permanently deleted and cannot be recovered by anyone, including us."
+          "title": "Kan ik dit bericht later opnieuw bekijken?",
+          "description": "Nee. Om veiligheidsredenen is dit bericht slechts één keer te bekijken. Na het sluiten van deze pagina wordt de inhoud permanent verwijderd en kan deze door niemand, ook niet door ons, worden teruggehaald."
         },
         "how_to_copy": {
-          "title": "How do I save this information?",
-          "description": "Use the 'Copy to Clipboard' button to copy the entire secret. For longer secrets, make sure to verify you've copied the complete content before leaving this page."
+          "title": "Hoe bewaar ik deze informatie?",
+          "description": "Gebruik de knop 'Kopiëren naar klembord' om het volledige bericht te kopiëren. Controleer bij langere berichten of u de volledige inhoud heeft gekopieerd voordat u deze pagina verlaat."
         },
         "is_my_viewing_tracked": {
-          "title": "Is my viewing of this secret tracked?",
-          "description": "The sender will be notified that their secret was viewed, but we don't track who viewed it or from what location. Your privacy is protected."
+          "title": "Wordt mijn weergave van dit bericht bijgehouden?",
+          "description": "De afzender wordt op de hoogte gebracht dat zijn bericht is bekeken, maar we houden niet bij wie het heeft bekeken of vanaf welke locatie. Uw privacy wordt beschermd."
         },
-        "one_time_warning": "Once you leave or refresh this page, this secret will be permanently deleted and cannot be recovered by anyone."
+        "one_time_warning": "Zodra u deze pagina verlaat of vernieuwt, wordt dit bericht permanent verwijderd en kan het door niemand worden teruggehaald."
       }
     },
     "COMMON": {
