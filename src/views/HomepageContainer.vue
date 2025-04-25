@@ -17,7 +17,8 @@
 </script>
 
 <template>
-  <Component :is="currentComponent"
-             :display-domain="displayDomain"
-             :site-host="siteHost" />
+  <Component
+    :is="currentComponent"
+    :display-domain="displayDomain"
+    :site-host="siteHost" />
 </template>

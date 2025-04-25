@@ -41,7 +41,7 @@ module Core
         end
       end
 
-      SerializerRegistry.register(self)
+      SerializerRegistry.register(self, ['DomainSerializer'])
     end
   end
 end

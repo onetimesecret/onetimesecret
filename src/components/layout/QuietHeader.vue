@@ -1,8 +1,10 @@
+<!-- src/components/layout/QuietHeader.vue -->
+
 <script setup lang="ts">
-  import type { LayoutProps } from '@/types/ui/layouts';
-  import { useProductIdentity } from '@/stores/identityStore';
-  import MastHead from '@/components/layout/MastHead.vue';
   import BrandedMasthead from '@/components/layout/BrandedMastHead.vue';
+  import MastHead from '@/components/layout/MastHead.vue';
+  import { useProductIdentity } from '@/stores/identityStore';
+  import type { LayoutProps } from '@/types/ui/layouts';
   import { computed } from 'vue';
   import { useI18n } from 'vue-i18n';
   const { t } = useI18n();
@@ -26,19 +28,18 @@
 
 <template>
   <header class="bg-white dark:bg-gray-900">
-
     <div
       v-if="displayMasthead"
       class="container mx-auto min-w-[320px] max-w-2xl p-4">
-
       <BrandedMasthead
         v-if="productIdentity.isCustom"
         :headertext="headertext"
         :subtext="subtext"
-        v-bind="props"/>
+        v-bind="props" />
 
-      <MastHead v-else v-bind="props" />
+      <MastHead
+        v-else
+        v-bind="props" />
     </div>
-
   </header>
 </template>
