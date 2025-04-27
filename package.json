@@ -96,7 +96,7 @@
     "@vue/test-utils": "2.4.6",
     "@vueuse/core": "12.8.2",
     "autoprefixer": "10.4.21",
-    "esbuild": "0.25.0",
+    "esbuild": "0.25.3",
     "eslint": "9.25.1",
     "eslint-config-prettier": "10.1.2",
     "eslint-import-resolver-typescript": "3.10.0",
