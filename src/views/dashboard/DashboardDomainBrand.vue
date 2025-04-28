@@ -53,6 +53,34 @@
 
   const windowProps = WindowService.getMultiple(['i18n_enabled']);
 
+  // Instructions fields configuration for the modal
+  const instructionFields = computed(() => [
+    {
+      key: 'instructions_pre_reveal',
+      label: t('pre-reveal-instructions'),
+      tooltipContent: t('these-instructions-will-be-shown-to-recipients-before'),
+      placeholderKey: 'example-pre-reveal-instructions',
+      value: brandSettings.value?.instructions_pre_reveal || ''
+    },
+    {
+      key: 'instructions_post_reveal',
+      label: t('post-reveal-instructions'),
+      tooltipContent: t('these-instructions-will-be-shown-to-recipients-after'),
+      placeholderKey: 'example-post-reveal-instructions',
+      value: brandSettings.value?.instructions_post_reveal || ''
+    }
+  ]);
+
+  // Handle instruction updates from the modal
+  const handleInstructionUpdate = (key: string, value: string) => {
+    if (brandSettings.value) {
+      brandSettings.value = {
+        ...brandSettings.value,
+        [key]: value
+      };
+    }
+  };
+
   // Add loading guard
   watch(
     () => isLoading.value,
@@ -97,25 +125,11 @@
           :has-unsaved-changes="hasUnsavedChanges"
           @submit="() => saveBranding(brandSettings)">
           <template #instructions-buttons>
-            <div class="flex space-x-2">
-              <InstructionsModal
-                v-model="brandSettings.instructions_pre_reveal"
-                :preview-i18n="previewI18n"
-                :label="t('pre-reveal-instructions')"
-                :button-label="t('pre-reveal-instructions')"
-                :tooltip-content="t('these-instructions-will-be-shown-to-recipients-before')"
-                placeholder-key="use-your-phone-to-scan-the-qr-code"
-                @update:model-value="(value) => (brandSettings.instructions_pre_reveal = value)" />
-
-              <InstructionsModal
-                v-model="brandSettings.instructions_post_reveal"
-                :preview-i18n="previewI18n"
-                :label="t('post-reveal-instructions')"
-                :button-label="t('post-reveal-instructions')"
-                :tooltip-content="t('these-instructions-will-be-shown-to-recipients-after')"
-                placeholder-key="important-copy-this-information-now"
-                @update:model-value="(value) => (brandSettings.instructions_post_reveal = value)" />
-            </div>
+            <InstructionsModal
+              :instruction-fields="instructionFields"
+              :preview-i18n="previewI18n"
+              @update="handleInstructionUpdate"
+              @save="saveBranding" />
           </template>
 
           <template #language-button>
