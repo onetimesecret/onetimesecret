@@ -1,116 +1,137 @@
 <script setup lang="ts">
-import HoverTooltip from '../common/HoverTooltip.vue';
-import OIcon from '@/components/icons/OIcon.vue';
-import { useEventListener } from '@vueuse/core';
-import { ref, computed, watch, nextTick, onMounted, onUnmounted } from 'vue';
-import { useI18n, Composer } from 'vue-i18n';
+  import OIcon from '@/components/icons/OIcon.vue';
+  import { useEventListener } from '@vueuse/core';
+  import { ref, watch, nextTick, onMounted, onUnmounted } from 'vue';
+  import { useI18n, Composer } from 'vue-i18n';
 
-const { t } = useI18n();
+  import HoverTooltip from '../common/HoverTooltip.vue';
 
-const props = withDefaults(defineProps<{
-  previewI18n: Composer;
-  modelValue?: string;
-}>(), {
-  modelValue: '',
-});
+  const { t } = useI18n();
 
-
-const emit = defineEmits<{
-  (e: 'update:modelValue', value: string): void;
-  (e: 'save'): void;
-}>();
-
-const isOpen = ref(false);
-const tooltipShow = ref(false);
-const textareaRef = ref<HTMLTextAreaElement | null>(null);
-
-const characterCount = computed(() => props.modelValue?.length ?? 0);
-
-const updateValue = (event: Event) => {
-  const target = event.target as HTMLTextAreaElement;
-  emit('update:modelValue', target.value);
-};
-
-const toggleOpen = () => {
-  isOpen.value = !isOpen.value;
-};
-
-const close = () => {
-  isOpen.value = false;
-};
-
-// Handle ESC key press globally
-const handleEscPress = (e: KeyboardEvent) => {
-  if (e.key === t('escape') && isOpen.value) {
-    close();
-  }
-};
-const handleKeydown = (e: KeyboardEvent) => {
-  // Close on escape
-  if (e.key === t('escape')) {
-    close();
-    return;
+  /**
+   * Interface for instruction field configuration
+   */
+  interface InstructionField {
+    key: string;
+    label: string;
+    tooltipContent: string;
+    placeholderKey: string;
+    value: string;
   }
 
-  // Save on Cmd+Enter (Mac) or Ctrl+Enter (Windows)
-  if (e.key === t('enter') && (e.metaKey || e.ctrlKey)) {
-    emit('save');
-    close();
-  }
-};
+  const props = defineProps<{
+    previewI18n: Composer;
+    instructionFields: InstructionField[];
+    maxLength?: number;
+  }>();
 
-const placeholderExample = computed(() =>
-  `${props.previewI18n.t('e-g-example')} ${props.previewI18n.t('use-your-phone-to-scan-the-qr-code')}`);
+  const emit = defineEmits<{
+    (e: 'update', key: string, value: string): void;
+    (e: 'save'): void;
+  }>();
 
-onMounted(() => {
-  document.addEventListener('keydown', handleEscPress);
-});
+  const isOpen = ref(false);
+  const tooltipShown = ref<Record<string, boolean>>({});
+  const activeFieldRef = ref<string | null>(null);
+  const textareaRefs = ref<Record<string, HTMLTextAreaElement | null>>({});
 
-onUnmounted(() => {
-  document.removeEventListener('keydown', handleEscPress);
-});
+  // Setup tooltip show/hide for each field
+  const showTooltip = (key: string) => {
+    tooltipShown.value = { ...tooltipShown.value, [key]: true };
+  };
 
-// Close on click outside - replace existing useEventListener
-useEventListener(document, 'click', (e: MouseEvent) => {
-  const target = e.target as HTMLElement;
-  const modalEl = textareaRef.value?.closest('.relative');
-  if (modalEl && !modalEl.contains(target) && isOpen.value) {
-    close();
-  }
-}, { capture: true });
+  const hideTooltip = (key: string) => {
+    tooltipShown.value = { ...tooltipShown.value, [key]: false };
+  };
 
-// Close on click outside
-useEventListener(document, 'click', (e) => {
-  const target = e.target as HTMLElement;
-  if (!target.closest('.relative') && isOpen.value) {
-    close();
-  }
-}, { capture: true });
+  const characterCount = (value: string) => value?.length ?? 0;
 
-// Focus textarea when opening
-watch(isOpen, (newValue) => {
-  if (newValue && textareaRef.value) {
-    nextTick(() => {
-      textareaRef.value?.focus();
-    });
-  }
-});
+  const getPlaceholderExample = (placeholderKey: string) => {
+    return `${props.previewI18n.t('e-g-example')} ${props.previewI18n.t(placeholderKey)}`;
+  };
+
+  const updateValue = (key: string, event: Event) => {
+    const target = event.target as HTMLTextAreaElement;
+    emit('update', key, target.value);
+  };
+
+  const toggleOpen = () => {
+    isOpen.value = !isOpen.value;
+  };
+
+  const close = () => {
+    isOpen.value = false;
+  };
+
+  // Handle ESC key press globally
+  const handleEscPress = (e: KeyboardEvent) => {
+    if (e.key === 'Escape' && isOpen.value) {
+      close();
+    }
+  };
+
+  const handleKeydown = (e: KeyboardEvent, key: string) => {
+    // Update active field reference
+    activeFieldRef.value = key;
+
+    // Close on escape
+    if (e.key === 'Escape') {
+      close();
+      return;
+    }
+
+    // Save on Cmd+Enter (Mac) or Ctrl+Enter (Windows)
+    if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) {
+      emit('save');
+      close();
+    }
+  };
+
+  onMounted(() => {
+    document.addEventListener('keydown', handleEscPress);
+  });
+
+  onUnmounted(() => {
+    document.removeEventListener('keydown', handleEscPress);
+  });
+
+  // Close on click outside
+  useEventListener(
+    document,
+    'click',
+    (e: MouseEvent) => {
+      const target = e.target as HTMLElement;
+      const modalEl = document.querySelector('.instructions-modal');
+      if (modalEl && !modalEl.contains(target) && isOpen.value) {
+        close();
+      }
+    },
+    { capture: true }
+  );
+
+  // Focus first textarea when opening
+  watch(isOpen, (newValue) => {
+    if (newValue && props.instructionFields.length > 0) {
+      const firstKey = props.instructionFields[0].key;
+      nextTick(() => {
+        textareaRefs.value[firstKey]?.focus();
+      });
+    }
+  });
 </script>
 
 <template>
-  <div class="relative group">
+  <div class="group relative">
     <HoverTooltip>{{ t('instructions') }}</HoverTooltip>
+    <!-- prettier-ignore-attribute class -->
     <button
       type="button"
       @click="toggleOpen"
-      class="group relative inline-flex h-11 items-center gap-2
-             rounded-lg bg-white px-4
-             ring-1 ring-gray-200 shadow-sm
-             hover:bg-gray-50
-             focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2
-             dark:bg-gray-800 dark:ring-gray-700 dark:hover:bg-gray-700
-             dark:focus:ring-brand-400 dark:focus:ring-offset-0
-             transition-all duration-200"
+      class="group relative inline-flex h-11 items-center gap-2 rounded-lg
+        bg-white px-4 shadow-sm ring-1 ring-gray-200 transition-all duration-200
+        hover:bg-gray-50
+        focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2
+        dark:bg-gray-800 dark:ring-gray-700 dark:hover:bg-gray-700 dark:focus:ring-brand-400 dark:focus:ring-offset-0"
       :aria-expanded="isOpen"
       :aria-label="t('instructions')"
       aria-haspopup="true">
@@ -136,65 +157,68 @@ watch(isOpen, (newValue) => {
       leave-active-class="transition duration-75 ease-in"
       leave-from-class="transform scale-100 opacity-100"
       leave-to-class="transform scale-95 opacity-0">
+      <!-- prettier-ignore-attribute class -->
       <div
         v-if="isOpen"
-        class="absolute right-0 z-50
-                  mt-2 w-96
-                  rounded-lg bg-white
-                  shadow-lg
-                  ring-1
-                  ring-black ring-opacity-5 dark:bg-gray-800">
-        <div class="p-4">
-          <label
-            class="mb-2
-                       block
-                       text-sm font-medium text-gray-700
-                       dark:text-gray-200">
-            {{ $t('pre-reveal-instructions') }}
-            <OIcon
-              collection="mdi"
-              name="help-circle"
-              class="ml-1
-                         inline-block size-4 text-gray-400"
-              @mouseenter="tooltipShow = true"
-              @mouseleave="tooltipShow = false"
-            />
-            <div
-              v-if="tooltipShow"
-              class="absolute z-50
-                        max-w-xs rounded
-                        bg-gray-900
-                        px-2 py-1
-                        text-xs text-white
-                        shadow-lg
-                        dark:bg-gray-700">
-              {{ $t('these-instructions-will-be-shown-to-recipients-before') }}
-            </div>
-          </label>
-          <textarea
-            :value="modelValue"
-            @input="updateValue"
-            @keydown="handleKeydown"
-            ref="textareaRef"
-            rows="3"
-            class="w-full rounded-lg text-sm
-                   ring-1 ring-gray-200 shadow-sm
-                   border-0
-                   outline-none
-                   focus:ring-2 focus:ring-brand-500 focus:ring-offset-2
-                   dark:ring-gray-700 dark:bg-gray-700 dark:text-white
-                   dark:focus:ring-brand-400 dark:focus:ring-offset-0
-                   transition-all duration-200"
-            :placeholder="placeholderExample"
-            @keydown.esc="close"></textarea>
-
+        class="instructions-modal absolute right-0 z-50 mt-2 w-96 rounded-lg
+          bg-white shadow-lg ring-1 ring-black/5
+          dark:bg-gray-800">
+        <div class="max-h-[80vh] overflow-y-auto">
           <div
-            class="mt-2 flex items-center
-                      justify-between
-                      text-xs text-gray-500
-                      dark:text-gray-400">
-            <span>{{ $t('charactercount-500-characters', [characterCount]) }}</span>
-            <span>{{ $t('press-esc-to-close') }}</span>
+            v-for="(field, index) in instructionFields"
+            :key="field.key"
+            class="p-4"
+            :class="{ 'border-t border-gray-200 dark:border-gray-700': index > 0 }">
+            <label class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-200">
+              {{ field.label }}
+              <OIcon
+                collection="mdi"
+                name="help-circle"
+                class="ml-1 inline-block size-4 text-gray-400"
+                @mouseenter="showTooltip(field.key)"
+                @mouseleave="hideTooltip(field.key)" />
+              <!-- prettier-ignore-attribute class -->
+              <div
+                v-if="tooltipShown[field.key]"
+                class="absolute z-50 max-w-xs rounded
+                  bg-gray-900 px-2 py-1 text-xs text-white shadow-lg
+                  dark:bg-gray-700">
+                {{ field.tooltipContent }}
+              </div>
+            </label>
+            <!-- prettier-ignore-attribute class -->
+            <textarea
+              :value="field.value"
+              @input="(e) => updateValue(field.key, e)"
+              @keydown="(e) => handleKeydown(e, field.key)"
+              :ref="(el) => { if (el) textareaRefs[field.key] = el as HTMLTextAreaElement }"
+              rows="3"
+              class="w-full rounded-lg border-0 text-sm shadow-sm
+                outline-none ring-1 ring-gray-200 transition-all duration-200
+                focus:ring-2 focus:ring-brand-500 focus:ring-offset-2
+                dark:bg-gray-700 dark:text-white dark:ring-gray-700 dark:focus:ring-brand-400 dark:focus:ring-offset-0"
+              :placeholder="getPlaceholderExample(field.placeholderKey)"
+              @keydown.esc="close"></textarea>
+
+            <div
+              class="mt-2 flex items-center justify-between text-xs text-gray-500 dark:text-gray-400">
+              <span>{{ $t('charactercount-500-characters', [characterCount(field.value)]) }}</span>
+              <span v-if="index === instructionFields.length - 1">{{ $t('press-esc-to-close') }}</span>
+            </div>
+          </div>
+        </div>
+        <div class="border-t border-gray-200 p-3 dark:border-gray-700">
+          <div class="flex justify-end">
+            <button
+              @click="close"
+              class="inline-flex items-center px-3 py-1.5 text-sm rounded-md border border-gray-300 shadow-sm hover:bg-gray-50 dark:border-gray-600 dark:hover:bg-gray-700">
+              {{ t('close') }}
+            </button>
+            <button
+              @click="emit('save'); close();"
+              class="ml-2 inline-flex items-center px-3 py-1.5 text-sm rounded-md border border-transparent bg-brand-600 text-white shadow-sm hover:bg-brand-700 dark:bg-brand-600 dark:hover:bg-brand-700">
+              {{ t('save-all') }}
+            </button>
           </div>
         </div>
       </div>

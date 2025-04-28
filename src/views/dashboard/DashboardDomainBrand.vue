@@ -53,6 +53,34 @@
 
   const windowProps = WindowService.getMultiple(['i18n_enabled']);
 
+  // Instructions fields configuration for the modal
+  const instructionFields = computed(() => [
+    {
+      key: 'instructions_pre_reveal',
+      label: t('pre-reveal-instructions'),
+      tooltipContent: t('these-instructions-will-be-shown-to-recipients-before'),
+      placeholderKey: 'example-pre-reveal-instructions',
+      value: brandSettings.value?.instructions_pre_reveal || ''
+    },
+    {
+      key: 'instructions_post_reveal',
+      label: t('post-reveal-instructions'),
+      tooltipContent: t('these-instructions-will-be-shown-to-recipients-after'),
+      placeholderKey: 'example-post-reveal-instructions',
+      value: brandSettings.value?.instructions_post_reveal || ''
+    }
+  ]);
+
+  // Handle instruction updates from the modal
+  const handleInstructionUpdate = (key: string, value: string) => {
+    if (brandSettings.value) {
+      brandSettings.value = {
+        ...brandSettings.value,
+        [key]: value
+      };
+    }
+  };
+
   // Add loading guard
   watch(
     () => isLoading.value,
@@ -96,11 +124,12 @@
           :is-initialized="isInitialized"
           :has-unsaved-changes="hasUnsavedChanges"
           @submit="() => saveBranding(brandSettings)">
-          <template #instructions-button>
+          <template #instructions-buttons>
             <InstructionsModal
-              v-model="brandSettings.instructions_pre_reveal"
+              :instruction-fields="instructionFields"
               :preview-i18n="previewI18n"
-              @update:model-value="(value) => (brandSettings.instructions_pre_reveal = value)" />
+              @update="handleInstructionUpdate"
+              @save="() => saveBranding(brandSettings)" />
           </template>
 
           <template #language-button>
@@ -164,7 +193,6 @@
 
           <!-- Recipient Preview -->
           <BrowserPreviewFrame
-            class="mx-auto w-full max-w-3xl overflow-hidden"
             :domain="displayDomain"
             :browser-type="browserType"
             @toggle-browser="toggleBrowser"
@@ -181,7 +209,8 @@
               :on-logo-upload="handleLogoUpload"
               :on-logo-remove="removeLogo"
               secret-key="abcd"
-              class="max-w-full transition-all duration-200 hover:scale-[1.02]" />
+              class="max-w-full transition-all duration-200 hover:scale-[1.02]"
+            />
           </BrowserPreviewFrame>
 
           <!-- Loading and Error States -->

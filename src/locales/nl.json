@@ -547,7 +547,7 @@
   "added-formatdistancetonow-domain-created-addsuffix-true": "Toegevoegd {0}",
   "press-esc-to-close": "Druk op ESC om te sluiten",
   "charactercount-500-characters": "{0}/500 tekens",
-  "use-your-phone-to-scan-the-qr-code": "Gebruik uw telefoon om de QR-code te scannen",
+  "example-pre-reveal-instructions": "Gebruik uw telefoon om de QR-code te scannen",
   "these-instructions-will-be-shown-to-recipients-before": "Deze instructies worden aan ontvangers getoond voordat ze de geheime inhoud bekijken",
   "pre-reveal-instructions": "Instructies vóór onthulling",
   "instructions": "Instructies",
