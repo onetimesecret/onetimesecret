@@ -40,9 +40,7 @@ gem 'storable'
 gem 'sysinfo'
 gem 'uri-redis', '~> 1.3.0'
 
-
 gem 'redis', '~> 5.4.0'
-
 
 gem 'bcrypt'
 gem 'encryptor', '= 1.1.3'
@@ -50,7 +48,7 @@ gem 'encryptor', '= 1.1.3'
 gem 'httparty'
 
 gem 'mail'
-
+gem 'net-imap', '~> 0.5.7'
 gem "fastimage", "~> 2.4"
 
 gem 'psych', '~> 5.2.3'
