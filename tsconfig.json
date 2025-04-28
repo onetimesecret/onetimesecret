@@ -47,7 +47,7 @@
     // Enable strict, or at the very least, noImplicitThis, and Pinia will infer
     // the type of your state automatically (sometimes hints helps).
     "noImplicitAny": true,
-    "noImplicitThis": null,
+    "noImplicitThis": true,
     "allowJs": false,
     "allowImportingTsExtensions": false,
     "resolvePackageJsonExports": false,
