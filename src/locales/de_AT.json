@@ -575,7 +575,7 @@
   "added-formatdistancetonow-domain-created-addsuffix-true": "Hinzugefügt {0}",
   "press-esc-to-close": "Zum Schließen ESC drücken",
   "charactercount-500-characters": "{0}/500 Zeichen",
-  "use-your-phone-to-scan-the-qr-code": "Scannen Sie mit Ihrem Handy den QR-Kennung",
+  "example-pre-reveal-instructions": "Scannen Sie mit Ihrem Handy den QR-Kennung",
   "these-instructions-will-be-shown-to-recipients-before": "Diese Anweisungen werden den Empfängern angezeigt, bevor sie den geheimen Inhalt preisgeben",
   "pre-reveal-instructions": "Anweisungen vor der Enthüllung",
   "instructions": "Anweisungen",
