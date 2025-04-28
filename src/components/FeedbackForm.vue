@@ -19,13 +19,16 @@ withDefaults(defineProps<Props>(), {
   showRedButton: false,
 })
 
+const altchaPayload = ref('');
 const userTimezone = ref('');
 const feedbackMessage = ref('');
 
+// Reset in form reset function
 const resetForm = () => {
   feedbackMessage.value = '';
-  // Reset other non-hidden form fields here if you have any
+  altchaPayload.value = '';
 };
+
 
 onMounted(() => {
   userTimezone.value = Intl.DateTimeFormat().resolvedOptions().timeZone;
@@ -78,6 +81,11 @@ const {
           />
           <input
             type="hidden"
+            name="authenticity_payload"
+            :value="altchaPayload"
+          />
+          <input
+            type="hidden"
             name="shrimp"
             :value="csrfStore.shrimp"
           />
@@ -125,7 +133,10 @@ const {
             </div>
           </div>
 
-          <AltchaChallenge v-if="!windowProps.cust" />
+          <AltchaChallenge
+            v-if="!windowProps.cust || windowProps.cust.identifier == 'anon'"
+            v-model:payload="altchaPayload"
+            :is-floating="true" />
         </form>
 
         <div
@@ -148,7 +159,7 @@ const {
         </h3>
         <ul class="space-y-2 text-sm text-gray-600 dark:text-gray-400">
           <li
-            v-if="windowProps.cust"
+            v-if="windowProps.cust && windowProps.cust.identifier !== 'anon'"
             class="flex items-center">
             <svg
               class="mr-2 size-4 text-brand-500"

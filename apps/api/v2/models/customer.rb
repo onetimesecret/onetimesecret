@@ -58,6 +58,8 @@ module V2
     @safe_dump_fields = [
       { :identifier => ->(obj) { obj.identifier } },
       :custid,
+      :email,
+
       :role,
       :verified,
       :last_login,
