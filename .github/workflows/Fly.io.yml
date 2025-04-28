@@ -33,8 +33,12 @@ jobs:
     name: Deploy
     runs-on: ubuntu-24.04
     environment: Fly.io
-    # Don't deploy on PRs from forks
-    if: github.repository == 'onetimesecret/onetimesecret' && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository)
+    # Don't deploy on PRs from forks or Renovate PRs
+    if: |
+      github.repository == 'onetimesecret/onetimesecret' &&
+      (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository) &&
+      (github.event_name != 'pull_request' || !startsWith(github.head_ref, 'deps/')) &&
+      (github.event_name != 'pull_request' || github.event.pull_request.user.login != 'renovate[bot]')
     steps:
       - name: Debug Repository Info
         run: |
