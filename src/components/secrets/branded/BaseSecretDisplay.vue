@@ -29,7 +29,7 @@
     fontClass: string;
     defaultTitle?: string;
     previewI18n?: Composer;
-    isRevealed?: false;
+    isRevealed?: boolean;
   }>();
 
   // Text expansion logic
