@@ -87,7 +87,7 @@
     "@tailwindcss/typography": "0.5.16",
     "@tsconfig/node22": "22.0.1",
     "@types/node": "22.14.1",
-    "@typescript-eslint/eslint-plugin": "8.29.1",
+    "@typescript-eslint/eslint-plugin": "8.31.0",
     "@typescript-eslint/parser": "8.29.1",
     "@vitejs/plugin-vue": "5.2.3",
     "@vitest/coverage-v8": "2.1.9",
