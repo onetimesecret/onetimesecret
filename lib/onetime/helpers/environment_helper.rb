@@ -68,6 +68,11 @@ module Onetime
       stdout("I", msg)
     end
 
+    def lw(*msgs)
+      msg = msgs.join("#{$/}")
+      stdout("W", msg)
+    end
+
     def le(*msgs)
       msg = msgs.join("#{$/}")
       stderr("E", msg)
