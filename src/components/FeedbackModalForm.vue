@@ -113,13 +113,17 @@
       <div>
         <label
           for="feedback-message"
-          class="sr-only"
-          >{{ $t('your-feedback') }}</label
-        >
+          class="sr-only">
+          {{ $t('your-feedback') }}
+        </label>
+        <!-- prettier-ignore-attribute class -->
         <textarea
           id="feedback-message"
           v-model="feedbackMessage"
-          class="w-full rounded-md border border-gray-300 bg-gray-50 px-3 py-2 text-gray-900 transition-colors placeholder:text-gray-400 focus:border-red-500 focus:outline-none focus:ring-2 focus:ring-red-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+          class="w-full rounded-md border border-gray-300
+            bg-gray-50 px-3 py-2 text-gray-900 transition-colors placeholder:text-gray-400
+            focus:border-red-500 focus:outline-none focus:ring-2 focus:ring-red-500
+            dark:border-gray-600 dark:bg-gray-700 dark:text-white"
           name="msg"
           rows="4"
           required
@@ -139,11 +143,14 @@
         type="hidden"
         name="version"
         :value="ot_version" />
-
+      <!-- prettier-ignore-attribute class -->
       <button
         type="submit"
         :disabled="isSubmitting || feedbackMessage == ''"
-        class="w-full rounded-md bg-red-600 px-4 py-2 font-medium text-white transition-colors hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 focus:ring-offset-gray-50 disabled:cursor-not-allowed disabled:opacity-50 dark:focus:ring-offset-gray-800"
+        class="w-full rounded-md bg-red-600 px-4 py-2 font-medium
+          text-white transition-colors hover:bg-red-700
+          focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 focus:ring-offset-gray-50
+          disabled:cursor-not-allowed disabled:opacity-50 dark:focus:ring-offset-gray-800"
         :aria-label="$t('web.feedback.send-feedback')">
         {{ buttonText }}
       </button>
@@ -172,9 +179,15 @@
         {{ $t('web.feedback.when-you-submit-feedback-well-see') }}
       </h3>
       <ul class="space-y-1">
-        <li v-if="cust && cust.identifier != 'anon'"> • {{ $t('web.account.customer-id') }} {{ cust }} </li>
-        <li>• {{ $t('web.account.timezone') }} {{ userTimezone }}</li>
-        <li>• {{ $t('web.site.website-version') }} {{ ot_version }}</li>
+        <li v-if="cust && cust.identifier != 'anon'">
+          • {{ $t('web.account.customer-id') }}: {{ cust.email }}
+        </li>
+        <li>
+          • {{ $t('web.account.timezone') }}: {{ userTimezone }}
+        </li>
+        <li>
+          • {{ $t('web.site.website-version') }}: {{ ot_version }}
+        </li>
       </ul>
     </div>
   </div>
