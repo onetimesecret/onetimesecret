@@ -47,7 +47,7 @@
   const characterCount = (value: string) => value?.length ?? 0;
 
   const getPlaceholderExample = (placeholderKey: string) => {
-    return `${props.previewI18n.t('e-g-example')} ${props.previewI18n.t(placeholderKey)}`;
+    return `${props.previewI18n.t('e-g-example')} ${placeholderKey}`;
   };
 
   const updateValue = (key: string, event: Event) => {
@@ -160,7 +160,8 @@
       <!-- prettier-ignore-attribute class -->
       <div
         v-if="isOpen"
-        class="instructions-modal absolute right-0 z-50 mt-2 w-96 rounded-lg
+        id="instructions-modal"
+        class="absolute right-0 z-50 mt-2 w-96 rounded-lg
           bg-white shadow-lg ring-1 ring-black/5
           dark:bg-gray-800">
         <div class="max-h-[80vh] overflow-y-auto">
@@ -200,25 +201,12 @@
               :placeholder="getPlaceholderExample(field.placeholderKey)"
               @keydown.esc="close"></textarea>
 
+            <!-- prettier-ignore-attribute class -->
             <div
               class="mt-2 flex items-center justify-between text-xs text-gray-500 dark:text-gray-400">
               <span>{{ $t('charactercount-500-characters', [characterCount(field.value)]) }}</span>
               <span v-if="index === instructionFields.length - 1">{{ $t('press-esc-to-close') }}</span>
             </div>
-          </div>
-        </div>
-        <div class="border-t border-gray-200 p-3 dark:border-gray-700">
-          <div class="flex justify-end">
-            <button
-              @click="close"
-              class="inline-flex items-center px-3 py-1.5 text-sm rounded-md border border-gray-300 shadow-sm hover:bg-gray-50 dark:border-gray-600 dark:hover:bg-gray-700">
-              {{ t('close') }}
-            </button>
-            <button
-              @click="emit('save'); close();"
-              class="ml-2 inline-flex items-center px-3 py-1.5 text-sm rounded-md border border-transparent bg-brand-600 text-white shadow-sm hover:bg-brand-700 dark:bg-brand-600 dark:hover:bg-brand-700">
-              {{ t('save-all') }}
-            </button>
           </div>
         </div>
       </div>

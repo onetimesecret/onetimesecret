@@ -356,7 +356,7 @@ module Core
           "frame-ancestors 'none';",                           # Prevent site from being embedded in frames
           "manifest-src 'self';",
           # "require-trusted-types-for 'script';",
-          "worker-src 'self';",                                # Allow Workers from same origin only
+          "worker-src 'self' data:;",                          # Allow Workers from same origin, data blobs
         ]
       else
         csp = [
@@ -372,7 +372,7 @@ module Core
           "frame-ancestors 'none';",
           "manifest-src 'self';",
           #"require-trusted-types-for 'script';",
-          "worker-src 'self';",
+          "worker-src 'self' data:;",
         ]
       end
 

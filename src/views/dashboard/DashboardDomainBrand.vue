@@ -59,14 +59,14 @@
       key: 'instructions_pre_reveal',
       label: t('pre-reveal-instructions'),
       tooltipContent: t('these-instructions-will-be-shown-to-recipients-before'),
-      placeholderKey: 'example-pre-reveal-instructions',
+      placeholderKey: t('example-pre-reveal-instructions'),
       value: brandSettings.value?.instructions_pre_reveal || ''
     },
     {
       key: 'instructions_post_reveal',
       label: t('post-reveal-instructions'),
       tooltipContent: t('these-instructions-will-be-shown-to-recipients-after'),
-      placeholderKey: 'example-post-reveal-instructions',
+      placeholderKey: t('example-post-reveal-instructions'),
       value: brandSettings.value?.instructions_post_reveal || ''
     }
   ]);
