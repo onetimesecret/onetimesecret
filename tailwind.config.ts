@@ -59,7 +59,22 @@ export default {
     './src/**/*.{vue,js,ts,jsx,tsx,mjs}',
     './templates/web/**/*.html',
   ],
-
+  safelist: [
+    'rounded-l-sm',
+    'rounded-r-sm',
+    'rounded-l-md',
+    'rounded-r-md',
+    'rounded-l-lg',
+    'rounded-r-lg',
+    'rounded-l-xl',
+    'rounded-r-xl',
+    'rounded-l-2xl',
+    'rounded-r-2xl',
+    'rounded-l-3xl',
+    'rounded-r-3xl',
+    'rounded-l-full',
+    'rounded-r-full',
+  ],
   darkMode: 'class',
   theme: {
     fontFamily: {
