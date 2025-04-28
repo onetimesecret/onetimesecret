@@ -18,7 +18,7 @@
 # security or scalability needs, use separate containers for app and database.
 #
 
-FROM ghcr.io/onetimesecret/onetimesecret@sha256:5f8a1e96d6999f4c3a4b1fa12400072ba5d6bbd226f35f3fd03450585e5c1432
+FROM ghcr.io/onetimesecret/onetimesecret@sha256:4b9ea5f55386e8919f93b0f594f811e0f64777ea2953ac260ea31c1d3fcebfef
 ARG VERSION=0.0.0
 
 LABEL Name=onetimesecret-lite Version=$VERSION
