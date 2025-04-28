@@ -101,7 +101,7 @@
     'click',
     (e: MouseEvent) => {
       const target = e.target as HTMLElement;
-      const modalEl = document.querySelector('#instructions-modal');
+      const modalEl = document.querySelector('.instructions-modal');
       if (modalEl && !modalEl.contains(target) && isOpen.value) {
         close();
       }
