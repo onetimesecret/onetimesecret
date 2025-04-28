@@ -129,7 +129,7 @@
               :instruction-fields="instructionFields"
               :preview-i18n="previewI18n"
               @update="handleInstructionUpdate"
-              @save="saveBranding" />
+              @save="() => saveBranding(brandSettings)" />
           </template>
 
           <template #language-button>

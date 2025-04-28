@@ -191,7 +191,7 @@
               :value="field.value"
               @input="(e) => updateValue(field.key, e)"
               @keydown="(e) => handleKeydown(e, field.key)"
-              :ref="el => textareaRefs[field.key] = el"
+              :ref="(el) => { if (el) textareaRefs[field.key] = el as HTMLTextAreaElement }"
               rows="3"
               class="w-full rounded-lg border-0 text-sm shadow-sm
                 outline-none ring-1 ring-gray-200 transition-all duration-200
