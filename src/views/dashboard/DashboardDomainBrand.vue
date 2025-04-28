@@ -96,11 +96,26 @@
           :is-initialized="isInitialized"
           :has-unsaved-changes="hasUnsavedChanges"
           @submit="() => saveBranding(brandSettings)">
-          <template #instructions-button>
-            <InstructionsModal
-              v-model="brandSettings.instructions_pre_reveal"
-              :preview-i18n="previewI18n"
-              @update:model-value="(value) => (brandSettings.instructions_pre_reveal = value)" />
+          <template #instructions-buttons>
+            <div class="flex space-x-2">
+              <InstructionsModal
+                v-model="brandSettings.instructions_pre_reveal"
+                :preview-i18n="previewI18n"
+                :label="t('pre-reveal-instructions')"
+                :button-label="t('pre-reveal-instructions')"
+                :tooltip-content="t('these-instructions-will-be-shown-to-recipients-before')"
+                placeholder-key="use-your-phone-to-scan-the-qr-code"
+                @update:model-value="(value) => (brandSettings.instructions_pre_reveal = value)" />
+
+              <InstructionsModal
+                v-model="brandSettings.instructions_post_reveal"
+                :preview-i18n="previewI18n"
+                :label="t('post-reveal-instructions')"
+                :button-label="t('post-reveal-instructions')"
+                :tooltip-content="t('these-instructions-will-be-shown-to-recipients-after')"
+                placeholder-key="important-copy-this-information-now"
+                @update:model-value="(value) => (brandSettings.instructions_post_reveal = value)" />
+            </div>
           </template>
 
           <template #language-button>
@@ -164,7 +179,6 @@
 
           <!-- Recipient Preview -->
           <BrowserPreviewFrame
-            class="mx-auto w-full max-w-3xl overflow-hidden"
             :domain="displayDomain"
             :browser-type="browserType"
             @toggle-browser="toggleBrowser"
@@ -181,7 +195,8 @@
               :on-logo-upload="handleLogoUpload"
               :on-logo-remove="removeLogo"
               secret-key="abcd"
-              class="max-w-full transition-all duration-200 hover:scale-[1.02]" />
+              class="max-w-full transition-all duration-200 hover:scale-[1.02]"
+            />
           </BrowserPreviewFrame>
 
           <!-- Loading and Error States -->

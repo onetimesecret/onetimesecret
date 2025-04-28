@@ -12,9 +12,19 @@
     defineProps<{
       previewI18n: Composer;
       modelValue?: string;
+      maxLength?: number;
+      tooltipContent?: string;
+      label?: string;
+      buttonLabel?: string;
+      placeholderKey?: string;
     }>(),
     {
       modelValue: '',
+      maxLength: 500,
+      tooltipContent: '',
+      label: '',
+      buttonLabel: '',
+      placeholderKey: 'use-your-phone-to-scan-the-qr-code'
     }
   );
 
@@ -28,6 +38,9 @@
   const textareaRef = ref<HTMLTextAreaElement | null>(null);
 
   const characterCount = computed(() => props.modelValue?.length ?? 0);
+  const instructionLabel = computed(() => props.label || t('pre-reveal-instructions'));
+  const tooltipText = computed(() => props.tooltipContent || t('these-instructions-will-be-shown-to-recipients-before'));
+  const buttonAriaLabel = computed(() => props.buttonLabel || t('instructions'));
 
   const updateValue = (event: Event) => {
     const target = event.target as HTMLTextAreaElement;
@@ -64,7 +77,7 @@
 
   const placeholderExample = computed(
     () =>
-      `${props.previewI18n.t('e-g-example')} ${props.previewI18n.t('use-your-phone-to-scan-the-qr-code')}`
+      `${props.previewI18n.t('e-g-example')} ${props.previewI18n.t(props.placeholderKey)}`
   );
 
   onMounted(() => {
@@ -89,19 +102,6 @@
     { capture: true }
   );
 
-  // Close on click outside
-  useEventListener(
-    document,
-    'click',
-    (e) => {
-      const target = e.target as HTMLElement;
-      if (!target.closest('.relative') && isOpen.value) {
-        close();
-      }
-    },
-    { capture: true }
-  );
-
   // Focus textarea when opening
   watch(isOpen, (newValue) => {
     if (newValue && textareaRef.value) {
@@ -114,7 +114,7 @@
 
 <template>
   <div class="group relative">
-    <HoverTooltip>{{ t('instructions') }}</HoverTooltip>
+    <HoverTooltip>{{ buttonAriaLabel }}</HoverTooltip>
     <!-- prettier-ignore-attribute class -->
     <button
       type="button"
@@ -125,7 +125,7 @@
         focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2
         dark:bg-gray-800 dark:ring-gray-700 dark:hover:bg-gray-700 dark:focus:ring-brand-400 dark:focus:ring-offset-0"
       :aria-expanded="isOpen"
-      :aria-label="t('instructions')"
+      :aria-label="buttonAriaLabel"
       aria-haspopup="true">
       <OIcon
         collection="mdi"
@@ -157,7 +157,7 @@
           dark:bg-gray-800">
         <div class="p-4">
           <label class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-200">
-            {{ $t('pre-reveal-instructions') }}
+            {{ instructionLabel }}
             <OIcon
               collection="mdi"
               name="help-circle"
@@ -170,7 +170,7 @@
               class="absolute z-50 max-w-xs rounded
                 bg-gray-900 px-2 py-1 text-xs text-white shadow-lg
                 dark:bg-gray-700">
-              {{ $t('these-instructions-will-be-shown-to-recipients-before') }}
+              {{ tooltipText }}
             </div>
           </label>
           <!-- prettier-ignore-attribute class -->

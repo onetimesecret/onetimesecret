@@ -102,7 +102,7 @@
 
             <!-- Instructions -->
             <div class="shrink-0">
-              <slot name="instructions-button"></slot>
+              <slot name="instructions-buttons"></slot>
             </div>
 
             <!-- Language -->
