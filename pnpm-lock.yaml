@@ -64,10 +64,10 @@ importers:
         version: 11.11.1
       marked:
         specifier: ^15.0.8
-        version: 15.0.8
+        version: 15.0.11
       marked-highlight:
         specifier: ^2.2.1
-        version: 2.2.1(marked@15.0.8)
+        version: 2.2.1(marked@15.0.11)
       nanoid:
         specifier: ^5.1.5
         version: 5.1.5
@@ -2627,8 +2627,8 @@ packages:
     peerDependencies:
       marked: '>=4 <16'
 
-  marked@15.0.8:
-    resolution: {integrity: sha512-rli4l2LyZqpQuRve5C0rkn6pj3hT8EWPC+zkAxFTAJLxRbENfTAhEQq9itrmf1Y81QtAX5D/MYlGlIomNgj9lA==}
+  marked@15.0.11:
+    resolution: {integrity: sha512-1BEXAU2euRCG3xwgLVT1y0xbJEld1XOrmRJpUwRCcy7rxhSCwMrmEu9LXoPhHSCJG41V7YcQ2mjKRr5BA3ITIA==}
     engines: {node: '>= 18'}
     hasBin: true
 
@@ -6259,11 +6259,11 @@ snapshots:
       punycode.js: 2.3.1
       uc.micro: 2.1.0
 
-  marked-highlight@2.2.1(marked@15.0.8):
+  marked-highlight@2.2.1(marked@15.0.11):
     dependencies:
-      marked: 15.0.8
+      marked: 15.0.11
 
-  marked@15.0.8: {}
+  marked@15.0.11: {}
 
   math-intrinsics@1.1.0: {}
 
