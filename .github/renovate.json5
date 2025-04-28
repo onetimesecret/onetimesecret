@@ -56,6 +56,11 @@
     {
       "matchPackageNames": ["rack"],
       "recreateWhen": "never"
+    },
+    {
+      "matchDatasources": ["docker"],
+      "matchPackageNames": ["ghcr.io/onetimesecret/onetimesecret"],
+      "enabled": false
     }
   ],
 
