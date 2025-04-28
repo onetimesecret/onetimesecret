@@ -52,6 +52,7 @@ module V2
 
         begin
           configured_colonels = OT.conf.dig(:site, :authentication, :colonels) || []
+          OT.ld "[configured_colonels] #{configured_colonels.inspect}"
 
           first_colonel = nil
           configured_colonels.each do |colonel_email|

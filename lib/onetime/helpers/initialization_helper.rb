@@ -77,16 +77,22 @@ module Onetime
       site_config = OT.conf.fetch(:site) # if :site is missing we got real problems
       email_config = OT.conf.fetch(:emailer, {})
       redis_info = Familia.redis.info
+      colonels = site_config.dig(:authentication, :colonels)
 
       OT.li "---  ONETIME #{OT.mode} v#{OT::VERSION.inspect}  #{'---' * 3}"
       OT.li "system: #{@sysinfo.platform} (#{RUBY_ENGINE} #{RUBY_VERSION} in #{OT.env})"
       OT.li "config: #{OT::Config.path}"
       OT.li "redis: #{redis_info['redis_version']} (#{Familia.uri.serverid})"
       OT.li "familia: v#{Familia::VERSION}"
-      OT.li "colonels: #{OT.conf.fetch(:colonels, []).join(', ')}"
       OT.li "i18n: #{OT.i18n_enabled}"
       OT.li "locales: #{@locales.keys.join(', ')}" if OT.i18n_enabled
       OT.li "diagnotics: #{OT.d9s_enabled}"
+
+      if colonels.empty?
+        OT.lw "colonels: No colonels configured"
+      else
+        OT.li "colonels: #{colonels.join(', ')}"
+      end
 
       if site_config.dig(:plans, :enabled)
         OT.li "plans: #{OT::Plan.plans.keys}"
