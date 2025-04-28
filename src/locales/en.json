@@ -38,6 +38,7 @@
       "submitting": "Submitting...",
       "processing": "Processing...",
       "description": "Keep sensitive information out of your chat logs and email. Share a secret link that is available only one time.",
+      "incorrect_passphrase": "Incorrect passphrase",
       "keywords": "secret,password generator,share a secret,onetime",
       "button_create_secret": "Create a secret link",
       "button_generate_secret": "Or generate a random password",
@@ -97,7 +98,9 @@
       "share_link_securely": "For security, share this link separately from other details.",
       "copied_to_clipboard": "Copied to clipboard",
       "button_create_incoming": "",
-      "faq_title": "F.A.Q."
+      "faq_title": "F.A.Q.",
+      "verification_not_valid": "Verification is not valid",
+      "verification_already_logged_in": "Cannot verify an account when you're already logged in"
     },
     "LABELS": {
       "view_toggle": {

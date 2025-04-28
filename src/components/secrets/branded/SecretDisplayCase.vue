@@ -88,7 +88,7 @@
   <!-- Updated -->
   <BaseSecretDisplay
     :default-title="$t('you-have-a-message')"
-    :previewI18n="i18n"
+    :preview-i18n="i18n"
     :domain-branding="safeBrandSettings"
     :corner-class="cornerClass"
     :font-class="fontFamilyClass"
@@ -130,7 +130,7 @@
           <p class="text-sm">
             {{
               submissionStatus.message ||
-              (submissionStatus.status === 'error' ? $t('an-error-occurred') : $t('web.STATUS.success'))
+                (submissionStatus.status === 'error' ? $t('an-error-occurred') : $t('web.STATUS.success'))
             }}
           </p>
         </div>
