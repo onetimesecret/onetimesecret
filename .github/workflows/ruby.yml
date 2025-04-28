@@ -40,6 +40,9 @@ on:
         required: false
         default: false
 
+permissions:
+  contents: read
+
 jobs:
   build:
     timeout-minutes: 15 # prevent hung jobs

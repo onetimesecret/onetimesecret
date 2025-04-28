@@ -41,6 +41,10 @@ on:
         description: 'Run the build with tmate debugging enabled (https://github.com/marketplace/actions/debugging-with-tmate)'
         required: false
         default: false
+
+permissions:
+  contents: read
+
 jobs:
   test:
     runs-on: ubuntu-24.04

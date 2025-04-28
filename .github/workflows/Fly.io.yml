@@ -28,6 +28,9 @@ on:
       - 'feature/*'
       - 'wip/*'
 
+permissions:
+  contents: read
+
 jobs:
   deploy:
     name: Deploy
