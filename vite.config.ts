@@ -114,7 +114,7 @@ export default defineConfig({
           // Be cool and chill about 3rd party components. Alternatvely can use
           // `app.config.compilerOptions.isCustomElement = tag => tag.startsWith('altcha-')`
           // in main.ts.
-          isCustomElement: (tag) => tag.includes('altcha-'),
+          isCustomElement: (tag: string | string[]) => tag.includes('altcha-'),
         },
       },
     }),

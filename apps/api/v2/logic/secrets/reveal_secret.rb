@@ -45,7 +45,7 @@ module V2::Logic
             if owner.nil? || owner.anonymous? || owner.verified?
               OT.le "[verification] Invalid verification attempt for secret #{secret.shortkey} - no owner or anonymous owner or already verified"
               secret.received!
-              raise_form_error "This verification is not valid"
+              raise_form_error i18n.dig(:web, :COMMON, :verification_not_valid) || "Verification not valid"
 
             elsif cust.anonymous? || (cust.custid == owner.custid && !owner.verified?)
               OT.li "[verification] Verifying owner #{owner.custid} for secret #{secret.shortkey}"
@@ -53,9 +53,10 @@ module V2::Logic
               owner.reset_secret.delete!
               sess.destroy!
               secret.received!
+
             else
               OT.le "[verification] Invalid verification - user already logged in"
-              raise_form_error "You can't verify an account when you're already logged in."
+              raise_form_error i18n.dig(:web, :COMMON, :verification_already_logged_in) || "Cannot verify when logged in"
             end
           else
             OT.li "[reveal_secret] #{secret.key} viewed successfully"
@@ -81,7 +82,7 @@ module V2::Logic
         elsif secret.has_passphrase? && !correct_passphrase
           OT.le "[reveal_secret] Failed passphrase attempt for secret #{secret.shortkey} #{sess.short_identifier} #{sess.ipaddress}"
           limit_action :failed_passphrase if secret.has_passphrase?
-          message = OT.locales.dig(locale, :web, :COMMON, :error_passphrase) || 'Incorrect passphrase'
+          message = i18n.dig(:web, :COMMON, :incorrect_passphrase) || 'Incorrect passphrase'
           raise_form_error message
         end
 

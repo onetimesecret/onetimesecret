@@ -28,6 +28,8 @@
   const i18n = useI18n();
   const { t } = i18n;
 
+  const isRevealed = computed(() => !!props.record?.secret_value && props.record.secret_value !== '');
+
   const productIdentity = useProductIdentity();
   const brandSettings = productIdentity.brand; // Not reactive
   const defaultBranding = brandSettingschema.parse({});
@@ -88,11 +90,11 @@
   <!-- Updated -->
   <BaseSecretDisplay
     :default-title="$t('you-have-a-message')"
-    :previewI18n="i18n"
+    :preview-i18n="i18n"
     :domain-branding="safeBrandSettings"
     :corner-class="cornerClass"
     :font-class="fontFamilyClass"
-    :instructions="brandSettings?.instructions_pre_reveal">
+    :is-revealed="isRevealed">
     <!-- Alert display -->
     <div
       v-if="
@@ -130,7 +132,7 @@
           <p class="text-sm">
             {{
               submissionStatus.message ||
-              (submissionStatus.status === 'error' ? $t('an-error-occurred') : $t('web.STATUS.success'))
+                (submissionStatus.status === 'error' ? $t('an-error-occurred') : $t('web.STATUS.success'))
             }}
           </p>
         </div>
