@@ -28,6 +28,8 @@
   const i18n = useI18n();
   const { t } = i18n;
 
+  const isRevealed = computed(() => !!props.record?.secret_value && props.record.secret_value !== '');
+
   const productIdentity = useProductIdentity();
   const brandSettings = productIdentity.brand; // Not reactive
   const defaultBranding = brandSettingschema.parse({});
@@ -92,7 +94,7 @@
     :domain-branding="safeBrandSettings"
     :corner-class="cornerClass"
     :font-class="fontFamilyClass"
-    :instructions="brandSettings?.instructions_pre_reveal">
+    :is-revealed="isRevealed">
     <!-- Alert display -->
     <div
       v-if="

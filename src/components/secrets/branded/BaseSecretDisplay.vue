@@ -1,4 +1,5 @@
 <!-- src/components/secrets/BaseSecretDisplay.vue -->
+
 <script setup lang="ts">
   /**
    * Core display component for branded secret workflows that provides consistent
@@ -27,8 +28,8 @@
     cornerClass: string;
     fontClass: string;
     defaultTitle?: string;
-    instructions?: string;
     previewI18n?: Composer;
+    isRevealed?: false;
   }>();
 
   // Text expansion logic
@@ -37,6 +38,20 @@
   const isLongText = ref(false);
 
   const displayComposer = props.previewI18n || i18n;
+
+  // Computed property for instructions text
+  const instructions = computed(() => {
+    const isPostReveal = props.isRevealed === true;
+    const instructionsKey = isPostReveal
+      ? 'instructions_post_reveal'
+      : 'instructions_pre_reveal';
+    const defaultKey = isPostReveal
+      ? 'web.shared.post_reveal_default'
+      : 'web.shared.pre_reveal_default';
+
+    return props.domainBranding[instructionsKey]?.trim() ||
+           displayComposer.t(defaultKey);
+  });
 
   // Reusable computed properties
   const textClasses = computed(() => ({

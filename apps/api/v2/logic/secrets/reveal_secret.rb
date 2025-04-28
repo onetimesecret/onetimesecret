@@ -53,6 +53,7 @@ module V2::Logic
               owner.reset_secret.delete!
               sess.destroy!
               secret.received!
+
             else
               OT.le "[verification] Invalid verification - user already logged in"
               raise_form_error i18n.dig(:web, :COMMON, :verification_already_logged_in) || "Cannot verify when logged in"

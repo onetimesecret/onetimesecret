@@ -46,16 +46,6 @@ const ariaLabelText = computed(() =>
     : t('view-secret-message')
 )
 
-// Computed property for instructions text
-const instructions = computed(() => {
-  if (isRevealed.value) {
-    return props.domainBranding.instructions_post_reveal?.trim() ||
-      props.previewI18n.t('web.shared.post_reveal_default');
-  }
-  return props.domainBranding.instructions_pre_reveal?.trim() ||
-    props.previewI18n.t('web.shared.pre_reveal_default');
-});
-
 const handleLogoChange = (event: Event) => {
   const input = event.target as HTMLInputElement;
   const file = input.files?.[0];
@@ -86,8 +76,8 @@ const fontFamilyClass = computed(() => {
   <BaseSecretDisplay
     :default-title="previewI18n.t('you-have-a-message')"
     :domain-branding="domainBranding"
-    :previewI18n="previewI18n"
-    :instructions="instructions"
+    :preview-i18n="previewI18n"
+    :is-revealed="isRevealed"
     :corner-class="cornerClass"
     :font-class="fontFamilyClass">
 
