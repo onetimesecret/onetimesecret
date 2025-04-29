@@ -1,6 +1,7 @@
 # apps/web/core/routes
 
 GET   /                                          Core::Controllers::Page#index
+GET   /feedback                                  Core::Controllers::Page#index
 GET   /404                                       Core::Controllers::Page#not_found
 GET   /500                                       Core::Controllers::Page#server_error
 GET   /robots.txt                                Core::Controllers::Page#robots_txt
