@@ -186,7 +186,7 @@
       @keydown.down.prevent="focusNextItem">
       <div
         :id="dropdownId"
-        class="max-h-60 overflow-y-auto py-1"
+        class="max-h-dvh overflow-y-auto py-1"
         role="none">
         <!-- prettier-ignore-attribute class -->
         <div

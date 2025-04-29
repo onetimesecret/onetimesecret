@@ -122,12 +122,12 @@ watch(isOpen, (newValue) => {
         :aria-activedescendant="modelValue"
         tabindex="0"
         class="absolute right-0 z-50
-               mt-2 w-56 /* Increased width to accommodate name + code */
+               mt-2 w-56
                rounded-lg bg-white
                shadow-lg
                ring-1 ring-black/5
                dark:bg-gray-800">
-        <div class="max-h-60 overflow-y-auto py-1">
+        <div class="max-h-dvh overflow-y-auto py-1">
           <button
             type="button"
             v-for="locale in supportedLocales"
