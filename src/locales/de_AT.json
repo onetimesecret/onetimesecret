@@ -38,6 +38,7 @@
       "submitting": "Verarbeitung",
       "processing": "Verarbeitung",
       "description": "Halten Sie sensible Informationen aus Ihren Chat-Protokollen und E-Mails heraus. Geben Sie einen geheimen Link weiter, der nur einmalig verfügbar ist.",
+      "incorrect_passphrase": "Falsche Passphrase",
       "keywords": "geheimnis, Passwortgenerator, Geheimnis teilen, einmalig",
       "button_create_secret": "Einen geheimen Link erstellen",
       "button_generate_secret": "Oder generieren Sie ein zufälliges Passwort",
@@ -97,7 +98,9 @@
       "share_link_securely": "Geben Sie diesen Link aus Sicherheitsgründen getrennt von anderen Angaben weiter.",
       "copied_to_clipboard": "In die Zwischenablage kopiert",
       "button_create_incoming": "Nachricht senden",
-      "faq_title": "FAQ"
+      "faq_title": "FAQ",
+      "verification_not_valid": "Verifizierung ist nicht gültig",
+      "verification_already_logged_in": "Ein Konto kann nicht verifiziert werden, wenn Sie bereits angemeldet sind."
     },
     "LABELS": {
       "view_toggle": {
@@ -113,6 +116,7 @@
       "saving": "Retten...",
       "saved": "Gerettet",
       "save": "Speichern",
+      "save_all": "Alles speichern",
       "details": "Einzelheiten",
       "encrypted": "Verschlüsselt",
       "secret_status": "Geheimstatus",
@@ -576,8 +580,11 @@
   "press-esc-to-close": "Zum Schließen ESC drücken",
   "charactercount-500-characters": "{0}/500 Zeichen",
   "example-pre-reveal-instructions": "Scannen Sie mit Ihrem Handy den QR-Kennung",
+  "example-post-reveal-instructions": "Kontaktieren Sie onboarding{'@'}example.com bei Fragen",
   "these-instructions-will-be-shown-to-recipients-before": "Diese Anweisungen werden den Empfängern angezeigt, bevor sie den geheimen Inhalt preisgeben",
+  "these-instructions-will-be-shown-to-recipients-after": "Diese Anweisungen werden den Empfängern angezeigt, nachdem sie das Geheimnis enthüllt haben.",
   "pre-reveal-instructions": "Anweisungen vor der Enthüllung",
+  "post-reveal-instructions": "Anweisungen nach der Enthüllung",
   "instructions": "Anweisungen",
   "enter": "Eingabe",
   "hide-secret-message": "Vertraulichen Inhalt ausblenden",
