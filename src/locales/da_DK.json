@@ -96,7 +96,7 @@
       "confirm_burn": "Ja, brænd denne hemmelighed",
       "burn_security_notice": "Hvis du brænder en hemmelighed, slettes den, før den er modtaget.",
       "share_link_securely": "Af sikkerhedshensyn skal du dele dette link separat fra andre detaljer.",
-      "kopieret_til_udklipsholder": "Kopieret til udklipsholder",
+      "copied_to_clipboard": "Kopieret til udklipsholder",
       "button_create_incoming": "",
       "faq_title": "F.A.Q.",
       "verification_not_valid": "Bekræftelsen er ikke gyldig",
@@ -153,10 +153,10 @@
     "STATUS": {
       "new": "New",
       "unread": "Ulæst",
-      "set": "Link åbnet",
-      "modtaget": "Modtaget",
-      "brændt": "Brændt",
-      "ødelagt": "Destroyed",
+      "viewed": "Link åbnet",
+      "received": "Modtaget",
+      "burned": "Brændt",
+      "destroyed": "Destroyed",
       "expiring_soon": "Udløber snart",
       "created": "Oprettet",
       "created_description": "",
@@ -199,9 +199,9 @@
         "noOptionsAvailable": "---"
       },
       "ttl_remaining": {
-        "varighed": "{count} {unit} remaining",
+        "duration": "{count} {unit}",
         "time": {
-          "dag": "dag tilbage | dage tilbage",
+          "day": "dag tilbage | dage tilbage",
           "hour": "time remaining | hours remaining",
           "minute": "resterende minut | resterende minutter",
           "second": "resterende sekund | resterende sekunder"
@@ -213,7 +213,7 @@
       "hours_remaining": "{count} timer tilbage",
       "minutes_remaining": "{count} Minutter tilbage"
     },
-    "INSTRUKTION": {
+    "INSTRUCTION": {
       "sharing_instructions": "Delingsinstruktioner",
       "share_link_instruction": "Del linket med den tiltænkte modtager",
       "share_passphrase_instruction": "Del adgangssætningen separat via en sikker kanal",
@@ -243,7 +243,7 @@
       "explore_premium_plans": "Med brugerdefinerede domæner",
       "need_free_account": "Lige begyndt? Send e-mails med en gratis konto.",
       "sign_up_free": "Gratis tilmelding",
-      "besøg-onetime-hemmelig-hjemmeside": "Besøg Onetimes hemmelige hjemmeside",
+      "visit-onetime-secret-home": "Besøg Onetimes hemmelige hjemmeside",
       "password_generation_title": "Adgangskodegenerator",
       "password_generation_description": "Klik på \"Generate Password\" for at oprette en sikker, tilfældig adgangskode, som du kan dele.",
       "protip1": "Din besked vil ødelægge sig selv, når den er blevet set. Linket kan kun tilgås én gang."
@@ -325,16 +325,6 @@
       "incoming_recipient_address": "Support modtager",
       "incoming_success_message": "Din e-mail er blevet sendt",
       "incoming_button_creating": "Oprettelse"
-    },
-    "page": {
-      "cta_title": "",
-      "cta_subtitle": "",
-      "cta_feature1": "",
-      "cta_feature2": "",
-      "cta_feature3": "",
-      "explore_premium_plans": "",
-      "need_free_account": "",
-      "sign_up_free": ""
     },
     "account": {
       "subscription_title": "Subscription",

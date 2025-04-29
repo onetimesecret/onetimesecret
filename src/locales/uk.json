@@ -326,16 +326,6 @@
       "incoming_success_message": "Ваш електронний лист надіслано",
       "incoming_button_creating": "Створення"
     },
-    "page": {
-      "cta_title": "",
-      "cta_subtitle": "",
-      "cta_feature1": "",
-      "cta_feature2": "",
-      "cta_feature3": "",
-      "explore_premium_plans": "",
-      "need_free_account": "",
-      "sign_up_free": ""
-    },
     "account": {
       "subscription_title": "Підписка",
       "manage_subscription": "Керувати підпискою",
