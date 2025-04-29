@@ -20,7 +20,7 @@ gem 'truemail'
 gem 'addressable'
 gem 'altcha', '~> 0.2.1'
 
-gem 'rack', '>= 2.2.12', '< 3.0'
+gem 'rack', '>= 2.2.12', '< 3.1.14'
 gem 'rack-contrib', '~> 2.5'
 gem 'rack-protection', '~> 3.2'
 gem 'rack-utf8_sanitizer', '~> 1.10.1'
