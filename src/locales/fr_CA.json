@@ -38,6 +38,7 @@
       "submitting": "Soumission en cours",
       "processing": "Traitement en cours",
       "description": "Ne stockez aucune information confidentielle dans vos emails ou fils de discussion. Partagez un lien secret, disponible qu'une seule fois.",
+      "incorrect_passphrase": "Phrase secrète incorrecte",
       "keywords": "secret, générateur de mot de passe, usage unique",
       "button_create_secret": "Créer un lien secret",
       "button_generate_secret": "Ou générer un mot de passe aléatoire",
@@ -97,7 +98,9 @@
       "share_link_securely": "Pour la sécurité, partagez ce lien séparément des autres détails.",
       "copied_to_clipboard": "Copié dans le presse-papiers",
       "button_create_incoming": "Envoyer un message",
-      "faq_title": "F.A.Q."
+      "faq_title": "F.A.Q.",
+      "verification_not_valid": "La vérification n'est pas valide",
+      "verification_already_logged_in": "Impossible de vérifier un compte lorsque vous êtes déjà connecté"
     },
     "LABELS": {
       "view_toggle": {
@@ -113,6 +116,7 @@
       "saving": "Enregistrement en cours",
       "saved": "Enregistré",
       "save": "Enregistrer",
+      "save_all": "Tout enregistrer",
       "details": "Détails",
       "encrypted": "Chiffré",
       "secret_status": "État du secret",
@@ -576,8 +580,11 @@
   "press-esc-to-close": "Appuyez sur ESC pour fermer",
   "charactercount-500-characters": "{0}/500 caractères",
   "example-pre-reveal-instructions": "Utilisez votre téléphone pour scanner le code QR",
+  "example-post-reveal-instructions": "Contactez onboarding{'@'}example.com pour toute question",
   "these-instructions-will-be-shown-to-recipients-before": "",
+  "these-instructions-will-be-shown-to-recipients-after": "Ces instructions seront affichées aux destinataires après qu'ils auront révélé le secret",
   "pre-reveal-instructions": "Instructions préalables au dévoilement",
+  "post-reveal-instructions": "Instructions post-révélation",
   "instructions": "Instructions",
   "enter": "Entrer",
   "hide-secret-message": "Masquer le contenu confidentiel",
