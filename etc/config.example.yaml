@@ -230,6 +230,10 @@
   :fallback_locale:
     fr-CA: [fr_CA, fr_FR, en]
     fr: [fr_FR, fr_CA, en]
+    de-AT: [de_AT, de, en]
+    de: [de, de_AT, en]
+    it: [it_IT, en]
+    pt: [pt_BR, en]
     default: [en]
   # A list of ISO language codes (e.g., 'en' for English, 'es'
   # for Spanish, etc.). There is a corresponding file in src/locales
@@ -248,22 +252,22 @@
     - fr_CA
     - fr_FR
     - it_IT
+    - ja
     - nl
+    - tr
     - uk
+    - pl
+    - pt_BR
+    - sv_SE
   :incomplete:
     - ar
     - ca_ES
     - cs
     - he
     - hu
-    - ja
-    - pl
-    - pt_BR
     - pt_PT
     - ru
     - sl_SI
-    - sv_SE
-    - tr
     - vi
     - zh
 :diagnostics:
