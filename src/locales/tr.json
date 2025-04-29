@@ -369,49 +369,49 @@
       "title": "Hakkımızda",
       "faq": {
         "trust_points": [
-          "We can't access your information even if we wanted to (which we don't). For example, if you share a password, we don't know the username or even the application it's for.",
-          "If you use a passphrase (available under \"Privacy Options\"), we include that in the encryption key for the secret. We only store a bcrypt hash of the passphrase, making it impossible for us to decrypt your secret once it's saved.",
-          "Our code is {openSourceLink}. You can review it yourself or even run your own instance if you prefer.",
-          "We use industry-standard security practices, including HTTPS for all connections and encryption at rest for stored data."
+          "İstese bile bilgilerinize erişemeyiz (ki istemiyoruz). Örneğin, bir şifreyi paylaşırsanız, kullanıcı adını veya şifrenin hangi uygulama için olduğunu bile bilmiyoruz.",
+          "Bir parolayı kullanırsanız (Privacy Options altında bulunur), bunu gizli bilgilerin şifreleme anahtarına dahil ederiz. Parolanın yalnızca bcrypt hash'ini saklarız, böylece kaydedildikten sonra gizli bilgilerinizi şifresini çözmemiz imkansız hale gelir.",
+          "Kodumuz {openSourceLink}'dir. İsterseniz kendiniz inceleyebilir veya hatta kendi örneğinizi çalıştırabilirsiniz.",
+          "Tüm bağlantılar için HTTPS ve depolanan veriler için şifreleme dahil olmak üzere endüstri standardı güvenlik uygulamaları kullanıyoruz."
         ],
         "passphrase_points": [
-          "We never store the unencrypted secret or the passphrase.",
-          "The bcrypt hash cannot be used to decrypt the secret.",
-          "Without the original passphrase, the encrypted secret cannot be decrypted, even by us.",
-          "This means that even if our servers were compromised, your secret would remain secure as long as the passphrase remains unknown."
+          "Şifrelenmemiş gizli bilgileri veya parolayı asla saklamayız.",
+          "bcrypt hash, gizli bilgilerin şifresini çözmek için kullanılamaz.",
+          "Orijinal parola olmadan, şifrelenmiş gizli bilgiler bizim tarafımızdan bile çözülemez.",
+          "Bu, sunucularımız ele geçirilse bile, parolayı kimse bilmediği sürece gizli bilgilerinizin güvende kalacağı anlamına gelir."
         ],
-        "why_use_title": "Why would I use this?",
-        "why_use_description": "When you send people passwords and private links via email or chat, there are copies of that information stored in many places. If you use a Onetime link instead, the information persists for a single viewing which means it can't be read by someone else later. This allows you to send sensitive information in a safe way knowing it's seen by one person only. Think of it like a self-destructing message.",
-        "file_limitation_title": "Why can't I send pictures or other kinds of files?",
-        "file_limitation_description": "Our service is designed specifically for text-based secrets to ensure maximum security and simplicity. Files, especially images, can contain metadata that might unintentionally reveal information about the sender or recipient. By focusing on text, we can guarantee that no additional data is transmitted beyond what you explicitly type. If you need to share a file securely, we recommend using a dedicated secure file transfer service. We may consider adding support for files in the future if there are compelling use cases for it.",
-        "text_copy_title": "But I can copy the secret text. What's the difference?",
-        "text_copy_description": "True, but all you have is text. Images and other file types can contain metadata and other potentially revealing information about the sender or recipient. Again, this is simply to ensure that no private information is shared outside of the intended recipient.",
-        "secret_retrieval_title": "Can I retrieve a secret that has already been shared?",
-        "secret_retrieval_description": "Nope. We display it once and then delete it. After that, it's gone forever.",
-        "account_difference_title": "What's the difference between anonymous use and having a free account?",
-        "account_difference_description": "Anonymous users can create secrets that last up to {anonymousTtlDays} days and have a maximum size of {anonymousSizeKB} KB. Free account holders get extended benefits: secrets can last up to {defaultTtlDays} days and can be up to {defaultSizeKB} KB in size. Account holders also get access to additional features like burn-before-reading options, which allow senders to delete secrets before they're received.",
-        "law_enforcement_title": "How do you handle data requests from law enforcement or other third parties?",
-        "law_enforcement_description": "We designed our system with privacy in mind. We don't store secrets after they've been viewed, and we don't keep access logs beyond the minimum necessary. This means that in most cases, we simply don't have any data to provide in response to such requests. For more details, please review our {privacyPolicyLink}.",
-        "trust_title": "Why should I trust you?",
-        "trust_description": "We've designed our system with privacy and security as top priorities. Here's why you can trust us:",
-        "passphrase_title": "How does the passphrase option work?",
-        "passphrase_description": "When you use a passphrase, we encrypt your secret on our servers using the passphrase you provide. We don't store the passphrase itself, only a bcrypt hash of it. This hash is used to verify the passphrase when the recipient enters it. Here's why this is secure:",
-        "passphrase_final_note": "Remember, the security of your secret depends on the strength of your passphrase and how securely you communicate it to the recipient."
+        "why_use_title": "Bunu neden kullanmalıyım?",
+        "why_use_description": "E-posta veya sohbet yoluyla kişilere şifreler ve özel bağlantılar gönderdiğinizde, bu bilgilerin kopyaları birçok yerde saklanır. Bunun yerine tek kullanımlık bir bağlantı kullanırsanız, bilgiler tek bir kez görüntülenir ve daha sonra başkaları tarafından okunamaz. Bu sayede, hassas bilgileri yalnızca bir kişi tarafından görüleceğini bilerek güvenli bir şekilde gönderebilirsiniz. Bunu kendi kendini imha eden bir mesaj gibi düşünün.",
+        "file_limitation_title": "Neden resim veya başka türde dosyalar gönderemiyorum?",
+        "file_limitation_description": "Hizmetimiz, maksimum güvenlik ve basitlik sağlamak için metin tabanlı sırlar için özel olarak tasarlanmıştır. Dosyalar, özellikle resimler, gönderen veya alıcı hakkında istemeden bilgi açığa çıkarabilecek meta veriler içerebilir. Metne odaklanarak, açıkça yazdıklarınızın dışında hiçbir ek verinin iletilmediğini garanti edebiliriz. Bir dosyayı güvenli bir şekilde paylaşmanız gerekiyorsa, özel bir güvenli dosya aktarım hizmeti kullanmanızı öneririz. Zorunlu kullanım durumları olması halinde, gelecekte dosya desteği eklemeyi düşünebiliriz.",
+        "text_copy_title": "Ama gizli metni kopyalayabiliyorum. Farkı ne?",
+        "text_copy_description": "Doğru, ancak elinizde sadece metin var. Görüntüler ve diğer dosya türleri, gönderen veya alıcı hakkında meta veriler ve diğer potansiyel olarak ifşa edici bilgiler içerebilir. Yine, bu sadece özel bilgilerin amaçlanan alıcı dışında paylaşılmamasını sağlamak içindir.",
+        "secret_retrieval_title": "Zaten paylaşılmış bir sırrı geri alabilir miyim?",
+        "secret_retrieval_description": "Hayır. Gizli metni bir kez görüntüler ve ardından sileriz. Bundan sonra, gizli metin kalıcı olarak silinir.",
+        "account_difference_title": "Anonim kullanım ile ücretsiz hesap arasındaki fark nedir?",
+        "account_difference_description": "Anonim kullanıcılar, {anonymousTtlDays} gün süreyle geçerli ve maksimum {anonymousSizeKB} KB boyutunda gizli metinler oluşturabilir. Ücretsiz hesap sahipleri daha fazla avantajdan yararlanır: sırlar {defaultTtlDays} gün boyunca saklanabilir ve boyutu {defaultSizeKB} KB'ye kadar olabilir. Hesap sahipleri ayrıca, gönderenlerin sırları alınmadan önce silmelerine olanak tanıyan `okumadan sil` gibi ek özelliklere de erişebilir.",
+        "law_enforcement_title": "Yasa uygulama kurumları veya diğer üçüncü tarafların veri taleplerini nasıl ele alıyorsunuz?",
+        "law_enforcement_description": "Sistemimizi gizliliği göz önünde bulundurarak tasarladık. Gizli bilgileri görüntülendikten sonra saklamıyoruz ve erişim günlüklerini gerekli olan minimum süreden daha uzun süre saklamıyoruz. Bu, çoğu durumda bu tür taleplere yanıt olarak sağlayabileceğimiz herhangi bir veri bulunmadığı anlamına gelir. Daha fazla bilgi için lütfen {privacyPolicyLink} adresindeki gizlilik politikamızı inceleyin.",
+        "trust_title": "Neden size güvenmeliyim?",
+        "trust_description": "Sistemimizi gizlilik ve güvenliği öncelik olarak tasarladık. Bize güvenebileceğiniz nedenler şunlardır:",
+        "passphrase_title": "Parola seçeneği nasıl çalışır?",
+        "passphrase_description": "Parola kullandığınızda, gizli bilgilerinizi sağladığınız parolayı kullanarak sunucularımızda şifreleriz. Parola cümlesinin kendisini saklamıyoruz, sadece bcrypt hash değerini saklıyoruz. Bu hash değeri, alıcı parola cümlesini girdiğinde onu doğrulamak için kullanılır. Bunun güvenli olmasının nedenleri şunlardır:",
+        "passphrase_final_note": "Unutmayın, gizli bilgilerinizi korumanın güvenliği, parola cümlenizin gücüne ve alıcıya ne kadar güvenli bir şekilde ilettiğinize bağlıdır."
       },
       "intro": {
-        "paragraph1": "Hi, I'm {name}, the creator of Onetime Secret. What started in 2012 as a simple, secure way to share sensitive information has grown beyond our wildest expectations. Over a decade later, we're facilitating the secure sharing of millions of secrets monthly, with use cases we never imagined.",
-        "paragraph2": "The first half of 2024 has been our busiest period yet. We're grateful that people have continued to use and share our product for more than a decade. We're currently working on improvements that we think will make the service even more useful — we'll share more details soon.",
-        "paragraph3": "True to our roots, {githubLink} on GitHub. As we navigate the evolving landscape of digital privacy and security, we're committed to transparency and continual improvement.",
-        "paragraph4": "Thank you for being part of our journey. Here's to another decade of secure, ephemeral sharing.",
-        "feedback_hint": "If you have any questions, there is a feedback form at the bottom of (almost) every page.",
-        "signature": "Happy sharing,\n{name}"
+        "paragraph1": "Merhaba, ben {name}, Onetime Secret'in yaratıcısı. 2012 yılında hassas bilgileri paylaşmak için basit ve güvenli bir yol olarak başlayan bu girişim, en çılgın beklentilerimizin ötesine geçti. On yıldan fazla bir süre sonra, hayal bile edemeyeceğimiz kullanım örnekleriyle her ay milyonlarca sırrın güvenli bir şekilde paylaşılmasını sağlıyoruz.",
+        "paragraph2": "2024`ün ilk yarısı, şimdiye kadarki en yoğun dönemimiz oldu. İnsanların on yıldan fazla bir süredir ürünümüzü kullanmaya ve paylaşmaya devam etmelerine minnettarız. Şu anda hizmeti daha da kullanışlı hale getireceğini düşündüğümüz iyileştirmeler üzerinde çalışıyoruz. Yakında daha fazla ayrıntı paylaşacağız.",
+        "paragraph3": "Köklerimize sadık kalarak, GitHub'da {githubLink}. Dijital gizlilik ve güvenliğin sürekli değişen dünyasında, şeffaflık ve sürekli iyileştirmeye bağlıyız.",
+        "paragraph4": "Yolculuğumuzun bir parçası olduğunuz için teşekkür ederiz. Güvenli ve geçici paylaşımın devam edeceği bir on yıla daha.",
+        "feedback_hint": "Herhangi bir sorunuz varsa, (neredeyse) her sayfanın altında bir geri bildirim formu bulunmaktadır.",
+        "signature": "Paylaşımlarınızın keyfini çıkarın,\n{name}"
       }
     },
     "meta": {
-      "were-making-onetime-secret-available-in-multiple": "We're making {onetime-secret} available in multiple languages. Since this is a new feature, you may encounter translation errors or awkward phrasing. Your feedback helps us improve - if you spot any issues, please {send-feedback}",
-      "translations-are-new-spotted-an-error": "Translations are new. Spotted an error? {send-feedback}",
-      "we-recently-added-translations": "We recently added translations. Spotted an error? {send-feedback}",
-      "privacy-and-security-should-be-accessible": "Privacy and security should be accessible to everyone, regardless of language. We're adding translations to help both our users and their message recipients better understand how to safely use and access secure messages and links. Since this is a new feature, you might encounter some translation errors or unclear instructions. To help us improve the clarity and accuracy of our translations, especially for critical security-related content, please {send-feedback} if you spot any issues"
+      "were-making-onetime-secret-available-in-multiple": "{onetime-secret} özelliğini birden fazla dilde kullanıma sunuyoruz. Bu yeni bir özellik olduğundan, çeviri hataları veya garip ifadelerle karşılaşabilirsiniz. Geri bildirimleriniz bize yardımcı olur - herhangi bir sorunla karşılaşırsanız, lütfen {send-feedback}",
+      "translations-are-new-spotted-an-error": "Çeviriler yenidir. Bir hata mı gördünüz? {send-feedback}",
+      "we-recently-added-translations": "Çevirileri kısa süre önce ekledik. Bir hata mı gördünüz? {send-feedback}",
+      "privacy-and-security-should-be-accessible": "Gizlilik ve güvenlik, dil farkı gözetmeksizin herkes için erişilebilir olmalıdır. Kullanıcılarımızın ve mesaj alıcılarının güvenli mesajları ve bağlantıları nasıl güvenli bir şekilde kullanacaklarını ve erişeceklerini daha iyi anlamalarına yardımcı olmak için çeviriler ekliyoruz. Bu yeni bir özellik olduğundan, bazı çeviri hataları veya belirsiz talimatlarla karşılaşabilirsiniz. Çevirilerimizin netliğini ve doğruluğunu, özellikle güvenlikle ilgili kritik içeriklerde iyileştirmemize yardımcı olmak için, herhangi bir sorun fark ederseniz lütfen {send-feedback}"
     },
     "domains": {
       "learn-more-dns": "Learn more about DNS configuration",
