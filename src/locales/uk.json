@@ -245,7 +245,7 @@
       "sign_up_free": "Створити безкоштовний обліковий запис",
       "visit-onetime-secret-home": "Відвідати домашню сторінку Onetime Secret",
       "password_generation_title": "Генератор паролів",
-      "password_generation_description": " Натисніть \"Згенерувати пароль\", щоб створити безпечний випадковий пароль, яким ви зможете поділитися.",share.",
+      "password_generation_description": " Натисніть \"Згенерувати пароль\", щоб створити безпечний випадковий пароль, яким ви зможете поділитися.",
       "protip1": "Ваше повідомлення самознищиться після перегляду. Доступ до посилання можливий лише один раз."
     },
     "private": {
@@ -265,20 +265,20 @@
       "view_metadata": "Переглянути метадані",
       "destroyed": "Видалено",
       "have-more-questions-visit-our": "Маєте ще запитання? Відвідайте наш",
-      "the-burn-feature-lets-you-permanently-delete-a-s": "Функція знищення дозволяє назавжди видалити секрет до того, як його хтось перегляне. Це корисно, якщо вам потрібно скасувати доступ або ви поділилися неправильною інформацією. Після знищення секрет неможливо відновити.",before anyone views it. This is useful if you need to revoke access or shared the wrong information. Once burned, the secret cannot be recovered.",
+      "the-burn-feature-lets-you-permanently-delete-a-s": "Функція знищення дозволяє назавжди видалити секрет до того, як його хтось перегляне. Це корисно, якщо вам потрібно скасувати доступ або ви поділилися неправильною інформацією. Після знищення секрет неможливо відновити.",
       "whats-the-burn-feature": "Що таке функція знищення?",
-      "your-secret-will-remain-available-for-record-nat": "Ваш секрет залишатиметься доступним протягом {0} або доки його не переглянуть, залежно від того, що настане раніше. Після виконання будь-якої з цих умов секрет назавжди видаляється.",viewed, whichever comes first. After either condition is met, the secret is permanently deleted.",
+      "your-secret-will-remain-available-for-record-nat": "Ваш секрет залишатиметься доступним протягом {0} або доки його не переглянуть, залежно від того, що настане раніше. Після виконання будь-якої з цих умов секрет назавжди видаляється.",
       "how-does-secret-expiration-work": "Як працює закінчення терміну дії секрету?",
-      "for-security-reasons-we-cant-recover-lost-secret": "З міркувань безпеки ми не можемо відновити втрачені секретні посилання. Вам потрібно буде створити новий секрет і згенерувати нове посилання. Рекомендуємо копіювати посилання одразу після створення.",You'll need to create a new secret and generate a new link. We recommend copying the link immediately after creation.",
+      "for-security-reasons-we-cant-recover-lost-secret": "З міркувань безпеки ми не можемо відновити втрачені секретні посилання. Вам потрібно буде створити новий секрет і згенерувати нове посилання. Рекомендуємо копіювати посилання одразу після створення.",
       "lost-your-secret-link": "Втратили секретне посилання?",
       "expires-in-record-natural_expiration-0": "Термін дії закінчується через {0}",
-      "we-display-the-value-for-you-so-that-you-can-ver": "Ми показуємо вам значення, щоб ви могли його перевірити, але робимо це лише один раз, щоб якщо хтось отримає доступ до цієї приватної сторінки (у вашій історії браузера або якщо ви випадково надішлете приватне посилання замість секретного), він не побачить значення секрету.",we do that once so that if someone gets this private page (in your browser history or if you accidentally send the private link instead of the secret one), they won't see the secret value.",
+      "we-display-the-value-for-you-so-that-you-can-ver": "Ми показуємо вам значення, щоб ви могли його перевірити, але робимо це лише один раз, щоб якщо хтось отримає доступ до цієї приватної сторінки (у вашій історії браузера або якщо ви випадково надішлете приватне посилання замість секретного), він не побачить значення секрету.",
       "why-can-i-only-see-the-secret-value-once": "Чому я можу бачити значення секрету лише один раз?",
-      "burning-a-secret-permanently-deletes-it-before-a": "Знищення секрету назавжди видаляє його до того, як хтось зможе його прочитати. Отримувач побачить повідомлення про те, що секрет не існує. Це корисно, якщо ви випадково поділилися неправильною інформацією або вам потрібно запобігти доступу.",read it. The recipient will see a message indicating the secret doesn't exist. This is useful if you accidentally share the wrong information or need to prevent access.",
+      "burning-a-secret-permanently-deletes-it-before-a": "Знищення секрету назавжди видаляє його до того, як хтось зможе його прочитати. Отримувач побачить повідомлення про те, що секрет не існує. Це корисно, якщо ви випадково поділилися неправильною інформацією або вам потрібно запобігти доступу.",
       "what-happens-when-i-burn-a-secret": "Що відбувається, коли я знищую секрет?",
-      "and-never-stored-in-its-original-form-this-appro": "і ніколи не зберігається в оригінальному вигляді. Такий підхід означає, що ми не можемо отримати доступ або відновити ваш секрет - це може зробити лише той, хто має правильну парольну фразу.",we can't access or recover your secret - only someone with the correct passphrase can.",
+      "and-never-stored-in-its-original-form-this-appro": "і ніколи не зберігається в оригінальному вигляді. Такий підхід означає, що ми не можемо отримати доступ або відновити ваш секрет - це може зробити лише той, хто має правильну парольну фразу.",
       "passphrase-protection": "Захист парольною фразою",
-      "each-secret-can-only-be-viewed-once-after-viewin": "Кожен секрет можна переглянути лише один раз. Після перегляду він назавжди видаляється з наших серверів. Це гарантує, що ваша конфіденційна інформація не буде випадково розкрита через історію браузера або помилково передані приватні посилання.",permanently deleted from our servers. This ensures your sensitive information isn't accidentally exposed through browser history or mistakenly shared private links.",
+      "each-secret-can-only-be-viewed-once-after-viewin": "Кожен секрет можна переглянути лише один раз. Після перегляду він назавжди видаляється з наших серверів. Це гарантує, що ваша конфіденційна інформація не буде випадково розкрита через історію браузера або помилково передані приватні посилання.",
       "one-time-access": "Одноразовий доступ",
       "core-security-features": "Основні функції безпеки",
       "expires-in-record-natural_expiration": "Термін дії закінчується через {0}",
@@ -420,10 +420,10 @@
       }
     },
     "meta": {
-      "were-making-onetime-secret-available-in-multiple": "Ми робимо Onetime Secret доступним кількома мовами. Оскільки це нова функція, ви можете зіткнутися з помилками перекладу або незграбними формулюваннями. Ваш відгук допомагає нам вдосконалюватися - якщо ви помітите будь-які проблеми, будь ласка, {send-feedback}",languages. Since this is a new feature, you may encounter translation errors or awkward phrasing. Your feedback helps us improve - if you spot any issues, please {send-feedback}",
+      "were-making-onetime-secret-available-in-multiple": "Ми робимо Onetime Secret доступним кількома мовами. Оскільки це нова функція, ви можете зіткнутися з помилками перекладу або незграбними формулюваннями. Ваш відгук допомагає нам вдосконалюватися - якщо ви помітите будь-які проблеми, будь ласка, {send-feedback}",
       "translations-are-new-spotted-an-error": "Переклади нові. Помітили помилку? {send-feedback}",
       "we-recently-added-translations": "Ми нещодавно додали переклади. Помітили помилку? {send-feedback}",
-      "privacy-and-security-should-be-accessible": "Конфіденційність та безпека мають бути доступними для всіх, незалежно від мови. Ми додаємо переклади, щоб допомогти як нашим користувачам, так і одержувачам їхніх повідомлень краще зрозуміти, як безпечно використовувати та отримувати доступ до захищених повідомлень та посилань. Оскільки це нова функція, ви можете зіткнутися з деякими помилками перекладу або незрозумілими інструкціями. Щоб допомогти нам покращити чіткість та точність наших перекладів, особливо для критично важливого контенту, пов'язаного з безпекою, будь ласка, {send-feedback}, якщо ви помітите будь-які проблеми"of language. We're adding translations to help both our users and their message recipients better understand how to safely use and access secure messages and links. Since this is a new feature, you might encounter some translation errors or unclear instructions. To help us improve the clarity and accuracy of our translations, especially for critical security-related content, please {send-feedback} if you spot any issues"
+      "privacy-and-security-should-be-accessible": "Конфіденційність та безпека мають бути доступними для всіх, незалежно від мови. Ми додаємо переклади, щоб допомогти як нашим користувачам, так і одержувачам їхніх повідомлень краще зрозуміти, як безпечно використовувати та отримувати доступ до захищених повідомлень та посилань. Оскільки це нова функція, ви можете зіткнутися з деякими помилками перекладу або незрозумілими інструкціями. Щоб допомогти нам покращити чіткість та точність наших перекладів, особливо для критично важливого контенту, пов'язаного з безпекою, будь ласка, {send-feedback}, якщо ви помітите будь-які проблеми"
     },
     "domains": {
       "learn-more-dns": "Дізнатися більше про конфігурацію DNS",
