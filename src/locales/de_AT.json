@@ -244,9 +244,9 @@
       "need_free_account": "Sie haben gerade erst angefangen? Versenden Sie E-Mails mit einem kostenlosen Konto.",
       "sign_up_free": "Kostenlose Anmeldung",
       "visit-onetime-secret-home": "Besuchen Sie die Homepage von Onetime Secret",
-      "password_generation_title": "",
-      "password_generation_description": "",
-      "protip1": ""
+      "password_generation_title": "Passwortgenerator",
+      "password_generation_description": "Klicken Sie auf \"Passwort generieren\", um ein sicheres Zufallspasswort zu erstellen, das Sie teilen können.",
+      "protip1": "Ihre Nachricht zerstört sich nach dem Ansehen selbst. Der Link kann nur einmal aufgerufen werden."
     },
     "private": {
       "pretext": "Teilen Sie diesen Link:",
@@ -441,10 +441,10 @@
       }
     },
     "meta": {
-      "were-making-onetime-secret-available-in-multiple": "",
-      "translations-are-new-spotted-an-error": "",
-      "we-recently-added-translations": "",
-      "privacy-and-security-should-be-accessible": ""
+      "were-making-onetime-secret-available-in-multiple": "Wir stellen {onetime-secret} in mehreren Sprachen zur Verfügung. Da dies eine neue Funktion ist, können Übersetzungsfehler oder umständliche Formulierungen auftreten. Ihr Feedback hilft uns bei der Verbesserung – wenn Sie Probleme entdecken, bitte {send-feedback}",
+      "translations-are-new-spotted-an-error": "Übersetzungen sind neu. Fehler entdeckt? {send-feedback}",
+      "we-recently-added-translations": "Wir haben kürzlich Übersetzungen hinzugefügt. Fehler entdeckt? {send-feedback}",
+      "privacy-and-security-should-be-accessible": "Datenschutz und Sicherheit sollten für jeden zugänglich sein, unabhängig von der Sprache. Wir fügen Übersetzungen hinzu, um sowohl unseren Benutzern als auch den Empfängern ihrer Nachrichten zu helfen, besser zu verstehen, wie sie sichere Nachrichten und Links sicher verwenden und darauf zugreifen können. Da dies eine neue Funktion ist, können Übersetzungsfehler oder unklare Anweisungen auftreten. Um die Klarheit und Genauigkeit unserer Übersetzungen zu verbessern, insbesondere bei kritischen sicherheitsrelevanten Inhalten, bitte {send-feedback}, wenn Sie Probleme entdecken"
     },
     "domains": "Bereiche"
   },
@@ -627,7 +627,7 @@
   "this-regulatory-framework-is-determined-by-your-": "Dieser Rechtsrahmen wird durch Ihren Zugangsbereich bestimmt:",
   "your-account-and-data-are-protected-under-the-la": "Ihr Konto und Ihre Daten sind durch die Gesetze und Vorschriften folgender Länder geschützt",
   "current": "Aktuell",
-  "jurisdiction-display_name-iscurrentjurisdiction-": "",
+  "jurisdiction-display_name-iscurrentjurisdiction-": "{0} {1}",
   "available-regions": "Verfügbare Regionen",
   "account-id-customerid": "Konto-ID",
   "jurisdiction": "Zuständigkeitsbereich",

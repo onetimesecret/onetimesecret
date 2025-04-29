@@ -627,7 +627,7 @@
   "this-regulatory-framework-is-determined-by-your-": "Ce cadre réglementaire est déterminé par votre domaine d'accès :",
   "your-account-and-data-are-protected-under-the-la": "Votre compte et vos données sont protégés par les lois et règlements des pays suivants",
   "current": "Actuel",
-  "jurisdiction-display_name-iscurrentjurisdiction-": "",
+  "jurisdiction-display_name-iscurrentjurisdiction-": "{0} {1}",
   "available-regions": "Régions disponibles",
   "account-id-customerid": "ID du compte",
   "jurisdiction": "Compétence",
