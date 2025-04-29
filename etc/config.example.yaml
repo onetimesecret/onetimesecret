@@ -238,23 +238,24 @@
   # language by using the toggle in the footer or in the settings
   # modal if they're logged in.
   :locales:
-    - en
     - de_AT
+    - da_DK
+    - el_GR
+    - en
     - fr_CA
     - fr_FR
+    - it_IT
     - nl
+    - uk
   :incomplete:
     - ar
     - bg
     - ca_ES
     - cs
-    - da_DK
     - de
-    - el_GR
     - es
     - he
     - hu
-    - it_IT
     - ja
     - pl
     - pt_BR
@@ -263,7 +264,6 @@
     - sl_SI
     - sv_SE
     - tr
-    - uk
     - vi
     - zh
 :diagnostics:
