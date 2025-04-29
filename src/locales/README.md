@@ -105,6 +105,28 @@ jq '
 ' keys.json > keys_sorted.json
 ```
 
+### Translating
+
+This command outputs a unified diff format focusing on additions and modifications with ample context, suitable for processing.
+
+```bash
+  $ git --no-pager -c color.ui=false diff --diff-filter=AM -U5 HEAD -- src/locales/LANG.json
+```
+
+Using the diff output, use a prompt like the following to produce a patch with the translated changes.
+
+> When we harmonize our language files eith en.json, it orders the
+> hierarchical structure of the JSON and adds missing keys, using the english
+> message as a placeholder. When copying and pasting the diff, I want it to
+> contain enough context so that an LLM can modify the diff directly, with a
+> prompt like, "Replace the new and changed values with english into the
+> target language."
+
+Save that patch to a file and use git apply to make it so:
+
+```bash
+  $ git apply patch.diff
+```
 
 ### Adhoc commands
 
