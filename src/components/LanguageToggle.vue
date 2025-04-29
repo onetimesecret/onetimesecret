@@ -208,20 +208,37 @@
           :key="locale"
           @click="changeLocale(locale)"
           :class="[
-            'flex w-full items-center justify-between gap-2 font-brand',
-            'px-4 py-2 text-base transition-colors',
-            'text-gray-900 dark:text-gray-100',
-            'hover:bg-gray-200 dark:hover:bg-gray-700',
+            'flex w-full items-center justify-between gap-2 font-brand', // Use justify-between for flexible layout
+            'px-4 py-2 text-left text-base transition-colors', // Ensure text aligns left
+            'text-gray-900 dark:text-gray-100', // Default text colors
+            'hover:bg-gray-200 dark:hover:bg-gray-700', // Hover state
+            'focus:bg-gray-200 focus:outline-none dark:focus:bg-gray-700', // Focus state for keyboard navigation
             locale === currentLocale
-              ? 'bg-gray-100 font-medium text-brand-600 dark:bg-gray-800 dark:text-brand-400'
-              : '',
+              ? 'bg-gray-100 font-medium text-brand-600 dark:bg-gray-800 dark:text-brand-400' // Current item style
+              : 'font-normal', // Non-current item style
           ]"
           :aria-current="locale === currentLocale ? 'true' : undefined"
           :aria-selected="locale === currentLocale"
           role="menuitem"
           :lang="locale">
-          <!-- Display the mapped name -->
-          <span>{{ name }}</span>
+          <!-- Text container: allows shrinking and prevents overflow issues -->
+          <span class="flex min-w-0 flex-1 items-baseline">
+            <!-- Language name: allow wrapping or truncate if needed, provide full name in title -->
+            <span
+              class="truncate"
+              :title="name">{{ name }}</span>
+            <!-- Locale code: less prominent, won't shrink -->
+            <span class="ml-2 shrink-0 text-sm text-gray-500 dark:text-gray-400">
+              {{ locale }}
+            </span>
+          </span>
+          <!-- Checkmark icon for the currently selected locale for visual confirmation -->
+          <OIcon
+            v-if="locale === currentLocale"
+            collection="heroicons"
+            name="check-20-solid"
+            class="ml-2 size-5 shrink-0 text-brand-500 dark:text-brand-400"
+            aria-hidden="true" />
         </button>
       </div>
     </div>
