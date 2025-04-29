@@ -17,8 +17,7 @@ interface StoreOptions extends PiniaPluginOptions {
   storageKey?: string;
 }
 
-/* eslint-disable max-lines-per-function */
-/* eslint-disable max-statements */
+/* eslint-disable max-lines-per-function, max-statements */
 export const useLanguageStore = defineStore('language', () => {
   const $api = inject('api') as AxiosInstance;
 
@@ -45,6 +44,8 @@ export const useLanguageStore = defineStore('language', () => {
     for (const localeCode of supportedLocales.value) {
       if (localeCode in localeCodes) {
         result[localeCode] = localeCodes[localeCode as keyof typeof localeCodes];
+      } else {
+        console.warn(`[languageStore] Locale code "${localeCode}" not found in localeCodes map.`);
       }
     }
     return result;

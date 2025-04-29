@@ -18,14 +18,19 @@
   }>();
 
   const { t } = useI18n();
-  const { currentLocale, supportedLocales, updateLanguage, initializeLanguage } = useLanguage();
+  const { currentLocale, supportedLocalesWithNames, updateLanguage, initializeLanguage } = useLanguage();
 
   const isMenuOpen = ref(false);
   const menuItems = ref<HTMLElement[]>([]);
 
-  const ariaLabel = computed(() => t('current-language-is-currentlocal', [currentLocale.value]));
+  const ariaLabel = computed(() => t('current-language-is-currentlocal', [currentLocaleName.value]));
   const dropdownMode = computed(() => (props.compact ? 'icon' : 'dropdown'));
   const dropdownId = `lang-dropdown-${Math.random().toString(36).slice(2, 11)}`;
+
+  const currentLocaleName = computed(() => {
+    // Safely access the locale name, fallback to the locale code
+    return supportedLocalesWithNames?.[currentLocale.value] || currentLocale.value;
+  });
 
   const toggleMenu = () => {
     isMenuOpen.value = !isMenuOpen.value;
@@ -53,7 +58,9 @@
     liveRegion.setAttribute('aria-live', 'polite');
     liveRegion.setAttribute('aria-atomic', 'true');
     liveRegion.className = 'sr-only';
-    liveRegion.textContent = t('language-changed-to-newlocale', [locale]);
+    // Safely access the locale name for announcement
+    const localeName = supportedLocalesWithNames?.[locale] || locale;
+    liveRegion.textContent = t('language-changed-to-newlocale', [localeName]);
     document.body.appendChild(liveRegion);
     setTimeout(() => {
       if (document.body.contains(liveRegion)) {
@@ -91,7 +98,9 @@
 
   onMounted(() => {
     initializeLanguage();
-    menuItems.value = Array.from(document.querySelectorAll('[role="menuitem"]')) as HTMLElement[];
+    // Note: Querying menu items here might be too early if the menu isn't rendered initially.
+    // Consider updating menuItems when the menu opens if issues persist.
+    menuItems.value = Array.from(document.querySelectorAll(`[id='${dropdownId}'] [role="menuitem"]`)) as HTMLElement[];
     document.addEventListener('click', handleClickOutside);
     document.addEventListener('keydown', handleEscapeKey);
   });
@@ -147,7 +156,8 @@
             stroke-width="2"
             d="M3 5h12M9 3v2m1.048 9.5A18.022 18.022 0 016.412 9m6.088 9h7M11 21l5-10 5 10M12.751 5C11.783 10.77 8.07 15.61 3 18.129" />
         </svg>
-        {{ currentLocale }}
+        <!-- Display currentLocaleName which now safely falls back -->
+        {{ currentLocaleName }}
         <svg
           class="-mr-1 ml-2 size-5"
           xmlns="http://www.w3.org/2000/svg"
@@ -184,7 +194,8 @@
                text-gray-500 dark:border-gray-700 dark:text-gray-400"
           role="presentation">
           <div class="flex items-center justify-between font-bold text-gray-700 dark:text-gray-100">
-            {{ currentLocale }}
+            <!-- Display currentLocaleName here as well -->
+            {{ currentLocaleName }}
             <OIcon
               collection="heroicons"
               name="check-20-solid"
@@ -193,7 +204,7 @@
           </div>
         </div>
         <button
-          v-for="locale in supportedLocales"
+          v-for="(name, locale) in supportedLocalesWithNames"
           :key="locale"
           @click="changeLocale(locale)"
           :class="[
@@ -209,7 +220,8 @@
           :aria-selected="locale === currentLocale"
           role="menuitem"
           :lang="locale">
-          <span>{{ locale }}</span>
+          <!-- Display the mapped name -->
+          <span>{{ name }}</span>
         </button>
       </div>
     </div>

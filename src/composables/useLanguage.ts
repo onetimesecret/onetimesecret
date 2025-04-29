@@ -50,8 +50,9 @@ export function useLanguage(options?: AsyncHandlerOptions) {
   return {
     // Expose store values through composable
     currentLocale: computed(() => languageStore.getCurrentLocale),
-    supportedLocales: computed(() => languageStore.getSupportedLocales),
-    supportedLocalesWithNames: computed(() => languageStore.getSupportedLocalesWithNames),
+
+    supportedLocales: languageStore.getSupportedLocales,
+    supportedLocalesWithNames: languageStore.supportedLocalesWithNames,
 
     // Encapsulate business logic and side effects
     updateLanguage,
