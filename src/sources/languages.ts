@@ -22,6 +22,8 @@ export const localeCodes = {
   it: 'Italiano',
   it_IT: 'Italiano (Italia)',
   ja: '日本語',
+  ko: '한국어',
+  mi_NZ: 'Maori (Aoteara New Zealand)',
   nl: 'Nederlands',
   pl: 'Polski',
   pt: 'Português',
@@ -35,5 +37,5 @@ export const localeCodes = {
   tr: 'Türkçe',
   uk: 'Українська',
   vi: 'Tiếng Việt',
-  zh: '中文',
+  zh: '中文 (简体)',
 };
