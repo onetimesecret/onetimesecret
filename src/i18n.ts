@@ -5,6 +5,9 @@ import fr_CA from '@/locales/fr_CA.json';
 import fr_FR from '@/locales/fr_FR.json';
 import de_AT from '@/locales/de_AT.json';
 import nl from '@/locales/nl.json';
+import it_IT from '@/locales/it_IT.json';
+import uk from '@/locales/uk.json';
+import da_DK from '@/locales/da_DK.json';
 import { WindowService } from '@/services/window.service';
 import { createI18n, type Composer } from 'vue-i18n';
 import { type Locale } from '@/schemas/i18n/locale';
@@ -62,6 +65,9 @@ export function createI18nInstance(initialLocale: string = defaultLocale) {
       fr_CA,
       de_AT,
       nl,
+      it_IT,
+      uk,
+      da_DK,
     },
     availableLocales: supportedLocales,
   });
