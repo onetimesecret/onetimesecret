@@ -2,6 +2,7 @@
   import { computed, onMounted, onUnmounted, ref } from 'vue';
   import { useI18n } from 'vue-i18n';
   import { useLanguage } from '@/composables/useLanguage';
+
   import OIcon from './icons/OIcon.vue';
 
   interface Props {
@@ -148,7 +149,7 @@
         </svg>
         {{ currentLocale }}
         <svg
-          class="size-5 -mr-1 ml-2"
+          class="-mr-1 ml-2 size-5"
           xmlns="http://www.w3.org/2000/svg"
           viewBox="0 0 20 20"
           fill="currentColor"
@@ -163,7 +164,11 @@
 
     <div
       v-if="isMenuOpen"
-      class="absolute right-0 bottom-full z-[49] mb-2 w-56 rounded-md bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none dark:bg-gray-800 dark:ring-white dark:ring-opacity-20"
+      :class="[
+        'absolute bottom-full right-0 z-[49] mb-2 w-56 rounded-md',
+        'bg-white shadow-lg ring-1 ring-black/5 focus:outline-none',
+        'dark:bg-gray-800 dark:ring-white/20',
+      ]"
       role="menu"
       aria-orientation="vertical"
       @keydown.esc="closeMenu"
@@ -173,8 +178,10 @@
         :id="dropdownId"
         class="max-h-60 overflow-y-auto py-1"
         role="none">
+        <!-- prettier-ignore-attribute class -->
         <div
-          class="border-b border-gray-200 px-4 py-2 text-sm font-medium text-gray-500 dark:border-gray-700 dark:text-gray-400"
+          class="border-b border-gray-200 px-4 py-2 text-sm font-medium
+               text-gray-500 dark:border-gray-700 dark:text-gray-400"
           role="presentation">
           <div class="flex items-center justify-between font-bold text-gray-700 dark:text-gray-100">
             {{ currentLocale }}
