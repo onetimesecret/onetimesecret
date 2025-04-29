@@ -199,26 +199,26 @@
       "ttl_remaining": {
         "duration": "Kalan {count} {unit}",
         "time": {
-          "day": "gu00fcn kaldu0131 | gu00fcn kaldu0131",
-          "hour": "saat kaldu0131 | saat kaldu0131",
-          "minute": "dakika kaldu0131 | dakika kaldu0131",
-          "second": "saniye kaldu0131 | saniye kaldu0131"
+          "day": "gün kaldı | gün kaldı",
+          "hour": "saat kaldı | saat kaldı",
+          "minute": "dakika kaldı | dakika kaldı",
+          "second": "saniye kaldı | saniye kaldı"
         },
         "noOptionsAvailable": "---"
       },
-      "limited_views": "{count} gu00f6ru00fcntu00fcleme su0131nu0131ru0131",
-      "days_remaining": "{count} Gu00fcn Kaldu0131",
-      "hours_remaining": "{count} Saat Kaldu0131",
-      "minutes_remaining": "{count} Dakika Kaldu0131"
+      "limited_views": "{count} görüntüleme sınırı",
+      "days_remaining": "{count} Gün Kaldı",
+      "hours_remaining": "{count} Saat Kaldı",
+      "minutes_remaining": "{count} Dakika Kaldı"
     },
     "INSTRUCTION": {
-      "sharing_instructions": "Paylau015fu0131m Talimatları",
-      "share_link_instruction": "Bau011flantu0131yu0131 hedeflenen alu0131cu0131 ile paylau015fu0131n",
-      "share_passphrase_instruction": "Parolayu0131 gu00fcvenli bir kanal u00fczerinden ayru0131ca paylau015fu0131n",
-      "secure_channel_instruction": "Hassas bilgileri paylau015fmak iu00e7in farklı bir gu00fcvenli kanal kullanın"
+      "sharing_instructions": "Paylaşım Talimatları",
+      "share_link_instruction": "Bağlantıyı hedeflenen alıcı ile paylaşın",
+      "share_passphrase_instruction": "Parolayı güvenli bir kanal üzerinden ayrıca paylaşın",
+      "secure_channel_instruction": "Hassas bilgileri paylaşmak için farklı bir güvenli kanal kullanın"
     },
     "ARIA": {
-      "focus-is-now-in-the-main-text-area": "Odak u015fimdi ana metin alanında"
+      "focus-is-now-in-the-main-text-area": "Odak şimdi ana metin alanında"
     },
     "secrets": {
       "privacyOptions": "Gizlilik Seçenekleri",
@@ -241,46 +241,46 @@
       "explore_premium_plans": "Premium Planları Keşfedin",
       "need_free_account": "Yeni mi başlıyorsunuz?",
       "sign_up_free": "Ücretsiz hesap oluşturun",
-      "visit-onetime-secret-home": "Onetime Secret ana sayfasu0131nu0131 ziyaret edin",
-      "password_generation_title": "Parola Oluu015fturucu",
-      "password_generation_description": " Paylau015fabileceu011finiz gu00fcvenli bir rastgele parola oluu015fturmak iu00e7in \"Parola Oluu015ftur\" du00fcu011fmesine tu0131klayu0131n.",
-      "protip1": "Mesaju0131nu0131z gu00f6ru00fcntu00fclendikten sonra kendiliu011finden imha olacaktu0131r. Bau011flantu0131 sadece bir kez eriu015filebilir."
+      "visit-onetime-secret-home": "Onetime Secret ana sayfasını ziyaret edin",
+      "password_generation_title": "Parola Oluşturucu",
+      "password_generation_description": " Paylaşabileceğiniz güvenli bir rastgele parola oluşturmak için \"Parola Oluştur\" düğmesine tıklayın.",
+      "protip1": "Mesajınız görüntülendikten sonra kendiliğinden imha olacaktır. Bağlantı sadece bir kez erişilebilir."
     },
     "private": {
       "pretext": "Bu linki paylaş:",
       "requires_passphrase": "Parola gerektirir.",
       "this_msg_is_encrypted": "Bu mesaj parolan ile şifrelenmiştir.",
       "only_see_once": "bunu sadece bir defa göreceksin",
-      "created_success": "Gizli mesaj bau015faru0131yla oluu015fturuldu!",
-      "created_success_key": "Gizli mesaj {shortKey} bau015faru0131yla oluu015fturuldu!",
-      "created_securely": "Gizli mesaju0131nu0131z gu00fcvenli bir u015fekilde oluu015fturuldu",
-      "burned_ago": "{time} u00f6nce yaku0131ldu0131",
-      "viewed_ago": "Bu gizli mesaj {time} u00f6nce gu00f6ru00fcntu00fclendi",
-      "encrypted_message": "Bu mesaj u015fifrelenmiştir",
-      "destroyed_ago": "{time} u00f6nce imha edildi",
+      "created_success": "Gizli mesaj başarıyla oluşturuldu!",
+      "created_success_key": "Gizli mesaj {shortKey} başarıyla oluşturuldu!",
+      "created_securely": "Gizli mesajınız güvenli bir şekilde oluşturuldu",
+      "burned_ago": "{time} önce yakıldı",
+      "viewed_ago": "Bu gizli mesaj {time} önce görüntülendi",
+      "encrypted_message": "Bu mesaj şifrelenmiştir",
+      "destroyed_ago": "{time} önce imha edildi",
       "burned": "Yakılan",
-      "viewed": "Gu00f6ru00fcntu00fclendi",
-      "view_metadata": "Meta Verileri Gu00f6ru00fcntu00fcle",
-      "destroyed": "u0130mha Edildi",
+      "viewed": "Görüntülendi",
+      "view_metadata": "Meta Verileri Görüntüle",
+      "destroyed": "İmha Edildi",
       "have-more-questions-visit-our": "Daha fazla sorunuz mu var? ziyaret edin",
-      "the-burn-feature-lets-you-permanently-delete-a-s": "Yakma u00f6zelliu011fi, gizli mesaju0131 herhangi biri gu00f6ru00fcntu00fclemeden u00f6nce kalu0131cu0131 olarak silmenizi sau011flar. Bu, eriu015fimi iptal etmeniz veya yanlu0131u015f bilgi paylau015fmanu0131z durumunda faydalu0131du0131r. Bir kez yaku0131ldu0131u011fu0131nda, gizli mesaj kurtaru0131lamaz.",
-      "whats-the-burn-feature": "Yakma u00f6zelliu011fi nedir?",
-      "your-secret-will-remain-available-for-record-nat": "Gizli mesaju0131nu0131z {0} boyunca veya gu00f6ru00fcntu00fclenene kadar, hangisi u00f6nce gelirse, kullanu0131labilir kalacaktu0131r. Her iki kou015fuldan biri karu015fu0131landu0131ktan sonra, gizli mesaj kalu0131cu0131 olarak silinir.",
-      "how-does-secret-expiration-work": "Gizli mesaj su00fcresi sona ermesi nasu0131l u00e7alu0131u015fu0131r?",
-      "for-security-reasons-we-cant-recover-lost-secret": "Gu00fcvenlik nedenleriyle, kaybolmuu015f gizli bau011flantu0131laru0131 kurtaramayu0131z. Yeni bir gizli mesaj oluu015fturmanu0131z ve yeni bir bau011flantu0131 oluu015fturmanu0131z gerekecek. Bau011flantu0131yu0131 oluu015fturduktan hemen sonra kopyalamanu0131zu0131 u00f6neririz.",
-      "lost-your-secret-link": "Gizli bau011flantu0131nu0131zu0131 mu kaybettiniz?",
-      "expires-in-record-natural_expiration-0": "{0} iu00e7inde sona erer",
-      "we-display-the-value-for-you-so-that-you-can-ver": "Deu011feri dou011frulayabilmeniz iu00e7in size gu00f6steriyoruz, ancak bunu bir kez yapu0131yoruz, buu015fekilde biri bu u00f6zel sayfaya eriu015firse (tarayu0131cu0131 geu00e7miu015finizde veya yanliu015flikla gizli bau011flantu0131 yerine u00f6zel bau011flantu0131yu0131 gu00f6nderirseniz), gizli deu011feri gu00f6remezler.",
-      "why-can-i-only-see-the-secret-value-once": "Gizli deu011feri neden sadece bir kez gu00f6rebiliyorum?",
-      "burning-a-secret-permanently-deletes-it-before-a": "Bir gizli mesaju0131 yakmak, herhangi biri okumadan u00f6nce onu kalu0131cu0131 olarak siler. Alu0131cu0131, gizli mesaju0131n var olmadu0131u011fu0131nu0131 belirten bir mesaj gu00f6recektir. Bu, yanliu015flikla yanlu0131u015f bilgi paylau015fu0131rsanu0131z veya eriu015fimi engellemeniz gerekirse faydalu0131du0131r.",
-      "what-happens-when-i-burn-a-secret": "Bir gizli mesaju0131 yaktu0131u011fu0131mda ne olur?",
-      "and-never-stored-in-its-original-form-this-appro": "ve asla orijinal u015feklinde saklanmaz. Bu yaklau015fu0131m, gizli mesaju0131nu0131za eriu015femeyeceu011fimiz veya onu kurtaramayacau011fu0131mu0131z anlamu0131na gelir - yalnu0131zca dou011fru parolaya sahip biri eriu015febilir.",
-      "passphrase-protection": "Parola Korumasu0131",
-      "each-secret-can-only-be-viewed-once-after-viewin": "Her gizli mesaj yalnu0131zca bir kez gu00f6ru00fcntu00fclenebilir. Gu00f6ru00fcntu00fclendikten sonra, sunucularu0131mu0131zdan kalu0131cu0131 olarak silinir. Bu, hassas bilgilerinizin tarayu0131cu0131 geu00e7miu015fi veya yanlu015flu0131kla paylau015fu0131lan u00f6zel bau011flantu0131lar aracu0131lu0131u011fu0131yla kazara ifua015fa edilmemesini sau011flar.",
-      "one-time-access": "Tek Seferlik Eriu015fim",
-      "core-security-features": "Temel Gu00fcvenlik u00d6zellikleri",
-      "expires-in-record-natural_expiration": "{0} iu00e7inde sona erer",
-      "send-feedback": "Geribildirim gu00f6nder"
+      "the-burn-feature-lets-you-permanently-delete-a-s": "Yakma özelliği, gizli mesajı herhangi biri görüntülemeden önce kalıcı olarak silmenizi sağlar. Bu, erişimi iptal etmeniz veya yanlış bilgi paylaşmanız durumunda faydalıdır. Bir kez yakıldığında, gizli mesaj kurtarılamaz.",
+      "whats-the-burn-feature": "Yakma özelliği nedir?",
+      "your-secret-will-remain-available-for-record-nat": "Gizli mesajınız {0} boyunca veya görüntülenene kadar, hangisi önce gelirse, kullanılabilir kalacaktır. Her iki koşuldan biri karşılandıktan sonra, gizli mesaj kalıcı olarak silinir.",
+      "how-does-secret-expiration-work": "Gizli mesaj süresi sona ermesi nasıl çalışır?",
+      "for-security-reasons-we-cant-recover-lost-secret": "Güvenlik nedenleriyle, kaybolmuş gizli bağlantıları kurtaramayız. Yeni bir gizli mesaj oluşturmanız ve yeni bir bağlantı oluşturmanız gerekecek. Bağlantıyı oluşturduktan hemen sonra kopyalamanızı öneririz.",
+      "lost-your-secret-link": "Gizli bağlantınızı mu kaybettiniz?",
+      "expires-in-record-natural_expiration-0": "{0} içinde sona erer",
+      "we-display-the-value-for-you-so-that-you-can-ver": "Değeri doğrulayabilmeniz için size gösteriyoruz, ancak bunu bir kez yapıyoruz, buşekilde biri bu özel sayfaya erişirse (tarayıcı geçmişinizde veya yanlişlikla gizli bağlantı yerine özel bağlantıyı gönderirseniz), gizli değeri göremezler.",
+      "why-can-i-only-see-the-secret-value-once": "Gizli değeri neden sadece bir kez görebiliyorum?",
+      "burning-a-secret-permanently-deletes-it-before-a": "Bir gizli mesajı yakmak, herhangi biri okumadan önce onu kalıcı olarak siler. Alıcı, gizli mesajın var olmadığını belirten bir mesaj görecektir. Bu, yanlişlikla yanlış bilgi paylaşırsanız veya erişimi engellemeniz gerekirse faydalıdır.",
+      "what-happens-when-i-burn-a-secret": "Bir gizli mesajı yaktığımda ne olur?",
+      "and-never-stored-in-its-original-form-this-appro": "ve asla orijinal şeklinde saklanmaz. Bu yaklaşım, gizli mesajınıza erişemeyeceğimiz veya onu kurtaramayacağımız anlamına gelir - yalnızca doğru parolaya sahip biri erişebilir.",
+      "passphrase-protection": "Parola Koruması",
+      "each-secret-can-only-be-viewed-once-after-viewin": "Her gizli mesaj yalnızca bir kez görüntülenebilir. Görüntülendikten sonra, sunucularımızdan kalıcı olarak silinir. Bu, hassas bilgilerinizin tarayıcı geçmişi veya yanlşlıkla paylaşılan özel bağlantılar aracılığıyla kazara ifꀕfa edilmemesini sağlar.",
+      "one-time-access": "Tek Seferlik Erişim",
+      "core-security-features": "Temel Güvenlik Özellikleri",
+      "expires-in-record-natural_expiration": "{0} içinde sona erer",
+      "send-feedback": "Geribildirim gönder"
     },
     "shared": {
       "requires_passphrase": "Bu mesaj parola gerektirir:",
@@ -288,10 +288,10 @@
       "you_created_this_secret": "Bu linki sen oluşturdun. Eğer onu açarsan, alıcı artık onu göremez.",
       "your_secret_message": "Gizli mesajın:",
       "this_message_for_you": "Bu mesaj senin için:",
-      "your_message_is_ready": "Gu00fcvenli mesaju0131nu0131z hazu0131r.",
+      "your_message_is_ready": "Güvenli mesajınız hazır.",
       "reply_with_secret": "Başka bir gizli mesajla yanıtla",
-      "pre_reveal_default": "Gu00fcvenli mesaju0131nu0131zu0131 gu00f6rmek iu00e7in au015fau011fu0131daki du00fcu011fmeye tu0131klayu0131n.",
-      "post_reveal_default": "Gu00fcvenli mesaju0131nu0131z au015fau011fu0131da gu00f6steriliyor.",
+      "pre_reveal_default": "Güvenli mesajınızı görmek için aşağıdaki düğmeye tıklayın.",
+      "post_reveal_default": "Güvenli mesajınız aşağıda gösteriliyor.",
       "secret_was_truncated": "Fazla uzun olduğu için mesaj kısaltıldı"
     },
     "dashboard": {
@@ -326,12 +326,12 @@
     },
     "account": {
       "subscription_title": "Abonelik",
-      "manage_subscription": "Abonelik Yu00f6netimi",
-      "customer_information": "Mu00fcu015fteri Bilgileri",
-      "customer_since": "Mu00fcu015fteri olduu011fu tarih:",
+      "manage_subscription": "Abonelik Yönetimi",
+      "customer_information": "Müşteri Bilgileri",
+      "customer_since": "Müşteri olduğu tarih:",
       "email": "E-posta:",
       "account_balance": "Hesap bakiyesi:",
-      "default_payment_method": "Varsayu0131lan u00d6deme Yu00f6ntemi",
+      "default_payment_method": "Varsayılan Ödeme Yöntemi",
       "card_ending": "ile biten",
       "subscriptions_title": "Abonelikler",
       "quantity": "Miktar:",
@@ -345,7 +345,7 @@
         "updating": "Güncelleniyor..."
       },
       "timezone": "Zaman Dilimi",
-      "customer-id": "Mu00fcu015fteri Kimliu011fi"
+      "customer-id": "Müşteri Kimliği"
     },
     "colonel": {
       "customer-secrets_created-customer-secrets_shared-0": "{0}/{1}/{2} [{3}]",
@@ -363,10 +363,10 @@
     },
     "security": "Güvenlik",
     "site": {
-      "website-version": "Web Sitesi Su00fcru00fcmu00fc"
+      "website-version": "Web Sitesi Sürümü"
     },
     "about": {
-      "title": "Hakku0131mu0131zda",
+      "title": "Hakkımızda",
       "faq": {
         "trust_points": [
           "We can't access your information even if we wanted to (which we don't). For example, if you share a password, we don't know the username or even the application it's for.",
