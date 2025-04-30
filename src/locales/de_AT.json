@@ -32,12 +32,12 @@
       "custom_domains_description": "Stärken Sie Verbindungen und schaffen Sie Vertrauen mit Ihren eigenen geheimen Links.",
       "get_started_button": "Los geht's",
       "confirm_password_placeholder": "Bestätigen Sie Ihr Passwort",
-      "skill_placeholder": "",
       "header_settings": "Einstellungen",
       "submit_with": "Einreichen",
       "submitting": "Verarbeitung",
       "processing": "Verarbeitung",
       "description": "Halten Sie sensible Informationen aus Ihren Chat-Protokollen und E-Mails heraus. Geben Sie einen geheimen Link weiter, der nur einmalig verfügbar ist.",
+      "incorrect_passphrase": "Falsche Passphrase",
       "keywords": "geheimnis, Passwortgenerator, Geheimnis teilen, einmalig",
       "button_create_secret": "Einen geheimen Link erstellen",
       "button_generate_secret": "Oder generieren Sie ein zufälliges Passwort",
@@ -97,7 +97,9 @@
       "share_link_securely": "Geben Sie diesen Link aus Sicherheitsgründen getrennt von anderen Angaben weiter.",
       "copied_to_clipboard": "In die Zwischenablage kopiert",
       "button_create_incoming": "Nachricht senden",
-      "faq_title": "FAQ"
+      "faq_title": "FAQ",
+      "verification_not_valid": "Verifizierung ist nicht gültig",
+      "verification_already_logged_in": "Ein Konto kann nicht verifiziert werden, wenn Sie bereits angemeldet sind."
     },
     "LABELS": {
       "view_toggle": {
@@ -113,6 +115,7 @@
       "saving": "Retten...",
       "saved": "Gerettet",
       "save": "Speichern",
+      "save_all": "Alles speichern",
       "details": "Einzelheiten",
       "encrypted": "Verschlüsselt",
       "secret_status": "Geheimstatus",
@@ -155,7 +158,6 @@
       "destroyed": "Zerstörte",
       "expiring_soon": "Bald ablaufend",
       "created": "Erstellt",
-      "created_description": "",
       "expires": "Abgelaufen",
       "expired": "Abgelaufen",
       "orphaned": "Verwaist",
@@ -240,9 +242,9 @@
       "need_free_account": "Sie haben gerade erst angefangen? Versenden Sie E-Mails mit einem kostenlosen Konto.",
       "sign_up_free": "Kostenlose Anmeldung",
       "visit-onetime-secret-home": "Besuchen Sie die Homepage von Onetime Secret",
-      "password_generation_title": "",
-      "password_generation_description": "",
-      "protip1": ""
+      "password_generation_title": "Passwortgenerator",
+      "password_generation_description": "Klicken Sie auf \"Passwort generieren\", um ein sicheres Zufallspasswort zu erstellen, das Sie teilen können.",
+      "protip1": "Ihre Nachricht zerstört sich nach dem Ansehen selbst. Der Link kann nur einmal aufgerufen werden."
     },
     "private": {
       "pretext": "Teilen Sie diesen Link:",
@@ -321,16 +323,6 @@
       "incoming_recipient_address": "Empfänger der Unterstützung",
       "incoming_success_message": "Ihre E-Mail wurde gesendet",
       "incoming_button_creating": "Erstellen von"
-    },
-    "page": {
-      "cta_title": "",
-      "cta_subtitle": "",
-      "cta_feature1": "",
-      "cta_feature2": "",
-      "cta_feature3": "",
-      "explore_premium_plans": "",
-      "need_free_account": "",
-      "sign_up_free": ""
     },
     "account": {
       "subscription_title": "Abonnement",
@@ -447,10 +439,10 @@
       }
     },
     "meta": {
-      "were-making-onetime-secret-available-in-multiple": "",
-      "translations-are-new-spotted-an-error": "",
-      "we-recently-added-translations": "",
-      "privacy-and-security-should-be-accessible": ""
+      "were-making-onetime-secret-available-in-multiple": "Wir stellen {onetime-secret} in mehreren Sprachen zur Verfügung. Da dies eine neue Funktion ist, können Übersetzungsfehler oder umständliche Formulierungen auftreten. Ihr Feedback hilft uns bei der Verbesserung – wenn Sie Probleme entdecken, bitte {send-feedback}",
+      "translations-are-new-spotted-an-error": "Übersetzungen sind neu. Fehler entdeckt? {send-feedback}",
+      "we-recently-added-translations": "Wir haben kürzlich Übersetzungen hinzugefügt. Fehler entdeckt? {send-feedback}",
+      "privacy-and-security-should-be-accessible": "Datenschutz und Sicherheit sollten für jeden zugänglich sein, unabhängig von der Sprache. Wir fügen Übersetzungen hinzu, um sowohl unseren Benutzern als auch den Empfängern ihrer Nachrichten zu helfen, besser zu verstehen, wie sie sichere Nachrichten und Links sicher verwenden und darauf zugreifen können. Da dies eine neue Funktion ist, können Übersetzungsfehler oder unklare Anweisungen auftreten. Um die Klarheit und Genauigkeit unserer Übersetzungen zu verbessern, insbesondere bei kritischen sicherheitsrelevanten Inhalten, bitte {send-feedback}, wenn Sie Probleme entdecken"
     },
     "domains": "Bereiche"
   },
@@ -576,8 +568,11 @@
   "press-esc-to-close": "Zum Schließen ESC drücken",
   "charactercount-500-characters": "{0}/500 Zeichen",
   "example-pre-reveal-instructions": "Scannen Sie mit Ihrem Handy den QR-Kennung",
+  "example-post-reveal-instructions": "Kontaktieren Sie onboarding{'@'}example.com bei Fragen",
   "these-instructions-will-be-shown-to-recipients-before": "Diese Anweisungen werden den Empfängern angezeigt, bevor sie den geheimen Inhalt preisgeben",
+  "these-instructions-will-be-shown-to-recipients-after": "Diese Anweisungen werden den Empfängern angezeigt, nachdem sie das Geheimnis enthüllt haben.",
   "pre-reveal-instructions": "Anweisungen vor der Enthüllung",
+  "post-reveal-instructions": "Anweisungen nach der Enthüllung",
   "instructions": "Anweisungen",
   "enter": "Eingabe",
   "hide-secret-message": "Vertraulichen Inhalt ausblenden",
@@ -630,7 +625,7 @@
   "this-regulatory-framework-is-determined-by-your-": "Dieser Rechtsrahmen wird durch Ihren Zugangsbereich bestimmt:",
   "your-account-and-data-are-protected-under-the-la": "Ihr Konto und Ihre Daten sind durch die Gesetze und Vorschriften folgender Länder geschützt",
   "current": "Aktuell",
-  "jurisdiction-display_name-iscurrentjurisdiction-": "",
+  "jurisdiction-display_name-iscurrentjurisdiction-": "{0} {1}",
   "available-regions": "Verfügbare Regionen",
   "account-id-customerid": "Konto-ID",
   "jurisdiction": "Zuständigkeitsbereich",

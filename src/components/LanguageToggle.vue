@@ -2,6 +2,7 @@
   import { computed, onMounted, onUnmounted, ref } from 'vue';
   import { useI18n } from 'vue-i18n';
   import { useLanguage } from '@/composables/useLanguage';
+
   import OIcon from './icons/OIcon.vue';
 
   interface Props {
@@ -17,14 +18,19 @@
   }>();
 
   const { t } = useI18n();
-  const { currentLocale, supportedLocales, updateLanguage, initializeLanguage } = useLanguage();
+  const { currentLocale, supportedLocalesWithNames, updateLanguage, initializeLanguage } = useLanguage();
 
   const isMenuOpen = ref(false);
   const menuItems = ref<HTMLElement[]>([]);
 
-  const ariaLabel = computed(() => t('current-language-is-currentlocal', [currentLocale.value]));
+  const ariaLabel = computed(() => t('current-language-is-currentlocal', [currentLocaleName.value]));
   const dropdownMode = computed(() => (props.compact ? 'icon' : 'dropdown'));
   const dropdownId = `lang-dropdown-${Math.random().toString(36).slice(2, 11)}`;
+
+  const currentLocaleName = computed(() => {
+    // Safely access the locale name, fallback to the locale code
+    return supportedLocalesWithNames?.[currentLocale.value] || currentLocale.value;
+  });
 
   const toggleMenu = () => {
     isMenuOpen.value = !isMenuOpen.value;
@@ -52,7 +58,9 @@
     liveRegion.setAttribute('aria-live', 'polite');
     liveRegion.setAttribute('aria-atomic', 'true');
     liveRegion.className = 'sr-only';
-    liveRegion.textContent = t('language-changed-to-newlocale', [locale]);
+    // Safely access the locale name for announcement
+    const localeName = supportedLocalesWithNames?.[locale] || locale;
+    liveRegion.textContent = t('language-changed-to-newlocale', [localeName]);
     document.body.appendChild(liveRegion);
     setTimeout(() => {
       if (document.body.contains(liveRegion)) {
@@ -90,7 +98,9 @@
 
   onMounted(() => {
     initializeLanguage();
-    menuItems.value = Array.from(document.querySelectorAll('[role="menuitem"]')) as HTMLElement[];
+    // Note: Querying menu items here might be too early if the menu isn't rendered initially.
+    // Consider updating menuItems when the menu opens if issues persist.
+    menuItems.value = Array.from(document.querySelectorAll(`[id='${dropdownId}'] [role="menuitem"]`)) as HTMLElement[];
     document.addEventListener('click', handleClickOutside);
     document.addEventListener('keydown', handleEscapeKey);
   });
@@ -146,9 +156,10 @@
             stroke-width="2"
             d="M3 5h12M9 3v2m1.048 9.5A18.022 18.022 0 016.412 9m6.088 9h7M11 21l5-10 5 10M12.751 5C11.783 10.77 8.07 15.61 3 18.129" />
         </svg>
-        {{ currentLocale }}
+        <!-- Display currentLocaleName which now safely falls back -->
+        {{ currentLocaleName }}
         <svg
-          class="size-5 -mr-1 ml-2"
+          class="-mr-1 ml-2 size-5"
           xmlns="http://www.w3.org/2000/svg"
           viewBox="0 0 20 20"
           fill="currentColor"
@@ -163,7 +174,11 @@
 
     <div
       v-if="isMenuOpen"
-      class="absolute right-0 bottom-full z-[49] mb-2 w-56 rounded-md bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none dark:bg-gray-800 dark:ring-white dark:ring-opacity-20"
+      :class="[
+        'absolute bottom-full right-0 z-[49] mb-2 w-56 rounded-md',
+        'bg-white shadow-lg ring-1 ring-black/5 focus:outline-none',
+        'dark:bg-gray-800 dark:ring-white/20',
+      ]"
       role="menu"
       aria-orientation="vertical"
       @keydown.esc="closeMenu"
@@ -171,13 +186,16 @@
       @keydown.down.prevent="focusNextItem">
       <div
         :id="dropdownId"
-        class="max-h-60 overflow-y-auto py-1"
+        class="max-h-dvh overflow-y-auto py-1"
         role="none">
+        <!-- prettier-ignore-attribute class -->
         <div
-          class="border-b border-gray-200 px-4 py-2 text-sm font-medium text-gray-500 dark:border-gray-700 dark:text-gray-400"
+          class="border-b border-gray-200 px-4 py-2 text-sm font-medium
+               text-gray-500 dark:border-gray-700 dark:text-gray-400"
           role="presentation">
           <div class="flex items-center justify-between font-bold text-gray-700 dark:text-gray-100">
-            {{ currentLocale }}
+            <!-- Display currentLocaleName here as well -->
+            {{ currentLocaleName }}
             <OIcon
               collection="heroicons"
               name="check-20-solid"
@@ -186,23 +204,41 @@
           </div>
         </div>
         <button
-          v-for="locale in supportedLocales"
+          v-for="(name, locale) in supportedLocalesWithNames"
           :key="locale"
           @click="changeLocale(locale)"
           :class="[
-            'flex w-full items-center justify-between gap-2 font-brand',
-            'px-4 py-2 text-base transition-colors',
-            'text-gray-900 dark:text-gray-100',
-            'hover:bg-gray-200 dark:hover:bg-gray-700',
+            'flex w-full items-center justify-between gap-2 font-brand', // Use justify-between for flexible layout
+            'px-4 py-2 text-left text-base transition-colors', // Ensure text aligns left
+            'text-gray-900 dark:text-gray-100', // Default text colors
+            'hover:bg-gray-200 dark:hover:bg-gray-700', // Hover state
+            'focus:bg-gray-200 focus:outline-none dark:focus:bg-gray-700', // Focus state for keyboard navigation
             locale === currentLocale
-              ? 'bg-gray-100 font-medium text-brand-600 dark:bg-gray-800 dark:text-brand-400'
-              : '',
+              ? 'bg-gray-100 font-medium text-brand-600 dark:bg-gray-800 dark:text-brand-400' // Current item style
+              : 'font-normal', // Non-current item style
           ]"
           :aria-current="locale === currentLocale ? 'true' : undefined"
           :aria-selected="locale === currentLocale"
           role="menuitem"
           :lang="locale">
-          <span>{{ locale }}</span>
+          <!-- Text container: allows shrinking and prevents overflow issues -->
+          <span class="flex min-w-0 flex-1 items-baseline">
+            <!-- Language name: allow wrapping or truncate if needed, provide full name in title -->
+            <span
+              class="truncate"
+              :title="name">{{ name }}</span>
+            <!-- Locale code: less prominent, won't shrink -->
+            <span class="ml-2 shrink-0 text-sm text-gray-500 dark:text-gray-400">
+              {{ locale }}
+            </span>
+          </span>
+          <!-- Checkmark icon for the currently selected locale for visual confirmation -->
+          <OIcon
+            v-if="locale === currentLocale"
+            collection="heroicons"
+            name="check-20-solid"
+            class="ml-2 size-5 shrink-0 text-brand-500 dark:text-brand-400"
+            aria-hidden="true" />
         </button>
       </div>
     </div>

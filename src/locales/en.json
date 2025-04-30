@@ -32,7 +32,6 @@
       "custom_domains_description": "Strengthen connections and build trust with your own branded secret links.",
       "get_started_button": "Get Started",
       "confirm_password_placeholder": "Confirm your password",
-      "skill_placeholder": "",
       "header_settings": "Settings",
       "submit_with": "Submit",
       "submitting": "Submitting...",
@@ -97,7 +96,7 @@
       "burn_security_notice": "Burning a secret will delete it before it has been received.",
       "share_link_securely": "For security, share this link separately from other details.",
       "copied_to_clipboard": "Copied to clipboard",
-      "button_create_incoming": "",
+      "button_create_incoming": "Create Incoming",
       "faq_title": "F.A.Q.",
       "verification_not_valid": "Verification is not valid",
       "verification_already_logged_in": "Cannot verify an account when you're already logged in"
@@ -159,7 +158,6 @@
       "destroyed": "Destroyed",
       "expiring_soon": "Expiring Soon",
       "created": "Created",
-      "created_description": "",
       "expires": "Expires",
       "expired": "Expired",
       "orphaned": "Orphaned",
@@ -325,16 +323,6 @@
       "incoming_recipient_address": "Support recipient",
       "incoming_success_message": "Your email has been sent",
       "incoming_button_creating": "Creating"
-    },
-    "page": {
-      "cta_title": "",
-      "cta_subtitle": "",
-      "cta_feature1": "",
-      "cta_feature2": "",
-      "cta_feature3": "",
-      "explore_premium_plans": "",
-      "need_free_account": "",
-      "sign_up_free": ""
     },
     "account": {
       "subscription_title": "Subscription",
@@ -579,7 +567,6 @@
   "remove": "Remove",
   "verify-domain": "Verify Domain",
   "manage-brand": "Manage Brand",
-  "DNS Incorrect": "DNS Incorrect",
   "added-formatdistancetonow-domain-created-addsuffix-true": "Added {0}",
   "press-esc-to-close": "Press ESC to close",
   "charactercount-500-characters": "{0}/500 characters",

@@ -1,11 +1,11 @@
-<!-- src/components/common/LanguageSelector.vue -->
+<!-- src/components/dashboard/LanguageSelector.vue -->
 <script setup lang="ts">
 import HoverTooltip from '@/components/common/HoverTooltip.vue';
 import OIcon from '@/components/icons/OIcon.vue';
+import { useLanguage } from '@/composables/useLanguage';
 import { useEventListener } from '@vueuse/core';
 import { ref, watch, nextTick, onMounted, onUnmounted } from 'vue';
 import { useI18n, Composer } from 'vue-i18n';
-import { useLanguage } from '@/composables/useLanguage';
 
 const { t } = useI18n();
 
@@ -20,7 +20,8 @@ const emit = defineEmits<{
   (e: 'update:modelValue', value: string): void;
 }>();
 
-const { supportedLocales } = useLanguage();
+// Import supportedLocalesWithNames for display
+const { supportedLocales, supportedLocalesWithNames } = useLanguage();
 
 const isOpen = ref(false);
 
@@ -57,6 +58,7 @@ onUnmounted(() => {
 // Close on click outside
 useEventListener(document, 'click', (e: MouseEvent) => {
   const target = e.target as HTMLElement;
+  // Ensure listboxRef.value exists before accessing closest
   const modalEl = listboxRef.value?.closest('.relative');
   if (modalEl && !modalEl.contains(target) && isOpen.value) {
     close();
@@ -74,19 +76,20 @@ watch(isOpen, (newValue) => {
 </script>
 
 <template>
-  <div class="relative group">
+  <div class="group relative">
     <HoverTooltip>{{ t('language') }}</HoverTooltip>
+    <!-- prettier-ignore-attribute class -->
     <button
       type="button"
       @click="toggleOpen"
       class="group relative inline-flex h-11 items-center gap-2
              rounded-lg bg-white px-4
-             ring-1 ring-gray-200 shadow-sm
-             hover:bg-gray-50
-             focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2
-             dark:bg-gray-800 dark:ring-gray-700 dark:hover:bg-gray-700
-             dark:focus:ring-brand-400 dark:focus:ring-offset-0
-             transition-all duration-200"
+             shadow-sm ring-1 ring-gray-200
+             transition-all
+             duration-200 hover:bg-gray-50 focus:outline-none focus:ring-2
+             focus:ring-brand-500 focus:ring-offset-2 dark:bg-gray-800
+             dark:ring-gray-700 dark:hover:bg-gray-700
+             dark:focus:ring-brand-400 dark:focus:ring-offset-0"
       :aria-expanded="isOpen"
       :aria-label="t('language')"
       aria-haspopup="listbox">
@@ -111,6 +114,7 @@ watch(isOpen, (newValue) => {
       leave-active-class="transition duration-75 ease-in"
       leave-from-class="transform scale-100 opacity-100"
       leave-to-class="transform scale-95 opacity-0">
+      <!-- prettier-ignore-attribute class -->
       <div
         v-if="isOpen"
         ref="listboxRef"
@@ -118,27 +122,51 @@ watch(isOpen, (newValue) => {
         :aria-activedescendant="modelValue"
         tabindex="0"
         class="absolute right-0 z-50
-               mt-2 w-48
+               mt-2 w-56
                rounded-lg bg-white
                shadow-lg
-               ring-1 ring-black ring-opacity-5
+               ring-1 ring-black/5
                dark:bg-gray-800">
-        <div class="py-1">
-        <button
-          type="button"
-          v-for="locale in supportedLocales"
-          :key="locale"
-          role="option"
-          :aria-selected="modelValue === locale"
-          :class="[
-            'w-full px-4 py-2 text-left text-sm flex justify-between items-center',
-            'hover:bg-gray-100 dark:hover:bg-gray-700',
-            modelValue === locale ? 'bg-gray-50 dark:bg-gray-700' : ''
-          ]"
-          @click="handleLanguageSelect(locale)">
-          {{ locale }}
-          <span v-if="modelValue === locale" aria-hidden="true">✓</span>
-        </button>
+        <div class="max-h-dvh overflow-y-auto py-1">
+          <button
+            type="button"
+            v-for="locale in supportedLocales"
+            :key="locale"
+            role="option"
+            :aria-selected="modelValue === locale"
+            :class="[
+              'flex w-full items-center justify-between gap-2 font-brand', // Use justify-between
+              'px-4 py-2 text-left text-base transition-colors', // Ensure text aligns left
+              'text-gray-900 dark:text-gray-100', // Default text colors
+              'hover:bg-gray-100 dark:hover:bg-gray-700', // Hover state
+              'focus:bg-gray-100 focus:outline-none dark:focus:bg-gray-700', // Focus state
+              modelValue === locale
+                ? 'bg-gray-50 font-medium text-brand-600 dark:bg-gray-700 dark:text-brand-400' // Current item style
+                : 'font-normal' // Non-current item style
+            ]"
+            @click="handleLanguageSelect(locale)"
+            :lang="locale">
+            <!-- Text container -->
+            <span class="flex min-w-0 flex-1 items-baseline">
+              <!-- Language name -->
+              <span
+                class="truncate"
+                :title="supportedLocalesWithNames[locale] || locale">
+                {{ supportedLocalesWithNames[locale] || locale }}
+              </span>
+              <!-- Locale code -->
+              <span class="ml-2 shrink-0 text-sm text-gray-500 dark:text-gray-400">
+                {{ locale }}
+              </span>
+            </span>
+            <!-- Checkmark icon -->
+            <OIcon
+              v-if="modelValue === locale"
+              collection="heroicons"
+              name="check-20-solid"
+              class="ml-2 size-5 shrink-0 text-brand-500 dark:text-brand-400"
+              aria-hidden="true" />
+          </button>
         </div>
       </div>
     </Transition>
