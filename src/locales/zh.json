@@ -110,7 +110,7 @@
     },
     "secrets": {
       "privacyOptions": "隐私选项",
-      "expiresIn": "在{持续时间}中到期"
+      "expiresIn": "在{duration}中到期"
     },
     "signup": {
       "create-your-account": "创建您的帐户"

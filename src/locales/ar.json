@@ -113,7 +113,7 @@
     },
     "secrets": {
       "privacyOptions": "خيارات الخصوصية",
-      "expiresIn": "تنتهي في {المدة}"
+      "expiresIn": "تنتهي في {duration}"
     },
     "signup": {
       "create-your-account": "قم بإنشاء حسابك",
