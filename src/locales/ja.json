@@ -331,17 +331,7 @@
       "manage_subscription": "サブスクリプションを管理",
       "customer_information": "顧客情報",
       "customer_since": "顧客登録日:",
-      "email": {
-        "incomingsupport": {
-          "body1": "お客様が次の情報を送信しました"
-        },
-        "secretlink": {
-          "body1": "からの秘密があります"
-        },
-        "welcome": {
-          "please_verify": "アカウントを確認してください:"
-        }
-      },
+      "email": "Email:",
       "account_balance": "アカウント残高:",
       "default_payment_method": "デフォルトの支払い方法",
       "card_ending": "末尾が",
@@ -707,9 +697,7 @@
   "yesterday": "昨日",
   "today": "今日",
   "misc": "その他",
-  "feedback": {
-    "send-feedback": "フィードバックを送信"
-  },
+  "feedback": "フィードバック",
   "customers": "顧客",
   "stats": "統計",
   "switch": "スイッチ",
