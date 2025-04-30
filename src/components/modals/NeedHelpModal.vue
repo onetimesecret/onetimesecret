@@ -17,6 +17,7 @@
 
   // Track the trigger button element and modal element for focus management
   const triggerRef = ref<HTMLButtonElement | null>(null);
+  // The ref for DialogPanel will hold the underlying HTMLDivElement
   const modalRef = ref<HTMLDivElement | null>(null);
 
   // Handle focus management
@@ -24,11 +25,15 @@
     if (newVal) {
       // Set focus to the modal when opened
       nextTick(() => {
-        // Access the underlying DOM element via $el
-        const panelElement = modalRef.value?.$el;
+        // Access the underlying DOM element directly via .value (No $el
+        // needed for native elements).
+        const panelElement = modalRef.value;
         if (panelElement instanceof HTMLElement) {
-          const firstFocusable = panelElement.querySelector('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])');
-          if (firstFocusable instanceof HTMLElement) {
+          // Find the first focusable element within the panel
+          const firstFocusable = panelElement.querySelector<HTMLElement>(
+            'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+          );
+          if (firstFocusable) {
             firstFocusable.focus();
           }
         }
@@ -106,6 +111,7 @@
               leave="ease-in duration-200"
               leave-from="opacity-100 scale-100"
               leave-to="opacity-0 scale-95">
+              <!-- Attach the ref directly to the DialogPanel -->
               <DialogPanel
                 ref="modalRef"
                 class="w-full max-w-md overflow-hidden rounded-2xl bg-white p-6 dark:bg-gray-800">
