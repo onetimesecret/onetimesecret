@@ -7,10 +7,16 @@
 
   interface Props {
     compact?: boolean;
+    /**
+     * Tailwind class to control the maximum height of the dropdown menu.
+     * Defaults to 'max-h-72'.
+     */
+    maxHeight?: string;
   }
 
   const props = withDefaults(defineProps<Props>(), {
     compact: false,
+    maxHeight: 'max-h-72', // Default max height class
   });
 
   const emit = defineEmits<{
@@ -117,6 +123,7 @@
     :aria-haspopup="true"
     :aria-controls="dropdownId"
     :aria-expanded="isMenuOpen">
+    <!-- Button remains the same -->
     <button
       type="button"
       :class="[
@@ -124,7 +131,7 @@
         'focus:outline-none focus:ring-2 focus:ring-brand-600 dark:focus:ring-brand-400',
         'focus:ring-offset-2 focus:ring-offset-white dark:ring-offset-gray-900',
         'text-gray-700 dark:text-gray-400',
-        'hover:bg-gray-200 hover:text-gray-900 dark:hover:text-gray-200 dark:hover:bg-gray-700',
+        'hover:bg-gray-200 hover:text-gray-900 dark:hover:bg-gray-700 dark:hover:text-gray-200',
         dropdownMode === 'icon'
           ? ['size-10 p-1']
           : ['w-full px-4 py-2', 'bg-gray-100 dark:bg-gray-800'],
@@ -136,6 +143,7 @@
       @keydown.down.prevent="isMenuOpen = true"
       @keydown.enter.prevent="isMenuOpen = true"
       @keydown.space.prevent="isMenuOpen = true">
+      <!-- Button content remains the same -->
       <template v-if="compact">
         <OIcon
           class="size-5"
@@ -156,7 +164,6 @@
             stroke-width="2"
             d="M3 5h12M9 3v2m1.048 9.5A18.022 18.022 0 016.412 9m6.088 9h7M11 21l5-10 5 10M12.751 5C11.783 10.77 8.07 15.61 3 18.129" />
         </svg>
-        <!-- Display currentLocaleName which now safely falls back -->
         {{ currentLocaleName }}
         <svg
           class="-mr-1 ml-2 size-5"
@@ -184,9 +191,10 @@
       @keydown.esc="closeMenu"
       @keydown.up.prevent="focusPreviousItem"
       @keydown.down.prevent="focusNextItem">
+      <!-- Apply the maxHeight prop here -->
       <div
         :id="dropdownId"
-        class="max-h-dvh overflow-y-auto py-1"
+        :class="['overflow-y-auto py-1', props.maxHeight]"
         role="none">
         <!-- prettier-ignore-attribute class -->
         <div
@@ -194,7 +202,6 @@
                text-gray-500 dark:border-gray-700 dark:text-gray-400"
           role="presentation">
           <div class="flex items-center justify-between font-bold text-gray-700 dark:text-gray-100">
-            <!-- Display currentLocaleName here as well -->
             {{ currentLocaleName }}
             <OIcon
               collection="heroicons"
@@ -203,36 +210,33 @@
               aria-hidden="true" />
           </div>
         </div>
+        <!-- Menu items remain the same -->
         <button
           v-for="(name, locale) in supportedLocalesWithNames"
           :key="locale"
           @click="changeLocale(locale)"
           :class="[
-            'flex w-full items-center justify-between gap-2 font-brand', // Use justify-between for flexible layout
-            'px-4 py-2 text-left text-base transition-colors', // Ensure text aligns left
-            'text-gray-900 dark:text-gray-100', // Default text colors
-            'hover:bg-gray-200 dark:hover:bg-gray-700', // Hover state
-            'focus:bg-gray-200 focus:outline-none dark:focus:bg-gray-700', // Focus state for keyboard navigation
+            'flex w-full items-center justify-between gap-2 font-brand',
+            'px-4 py-2 text-left text-base transition-colors',
+            'text-gray-900 dark:text-gray-100',
+            'hover:bg-gray-200 dark:hover:bg-gray-700',
+            'focus:bg-gray-200 focus:outline-none dark:focus:bg-gray-700',
             locale === currentLocale
-              ? 'bg-gray-100 font-medium text-brand-600 dark:bg-gray-800 dark:text-brand-400' // Current item style
-              : 'font-normal', // Non-current item style
+              ? 'bg-gray-100 font-medium text-brand-600 dark:bg-gray-800 dark:text-brand-400'
+              : 'font-normal',
           ]"
           :aria-current="locale === currentLocale ? 'true' : undefined"
           :aria-selected="locale === currentLocale"
           role="menuitem"
           :lang="locale">
-          <!-- Text container: allows shrinking and prevents overflow issues -->
           <span class="flex min-w-0 flex-1 items-baseline">
-            <!-- Language name: allow wrapping or truncate if needed, provide full name in title -->
             <span
               class="truncate"
               :title="name">{{ name }}</span>
-            <!-- Locale code: less prominent, won't shrink -->
             <span class="ml-2 shrink-0 text-sm text-gray-500 dark:text-gray-400">
               {{ locale }}
             </span>
           </span>
-          <!-- Checkmark icon for the currently selected locale for visual confirmation -->
           <OIcon
             v-if="locale === currentLocale"
             collection="heroicons"

@@ -76,7 +76,8 @@
             :aria-label="$t('toggle-dark-mode')" />
           <LanguageToggle
             v-if="windowProps.i18n_enabled"
-            :compact="true" />
+            :compact="true"
+            max-height="max-h-dvh" />
         </div>
 
         <!-- Links Section -->
