@@ -32,12 +32,12 @@
       "custom_domains_description": "Versterk verbindingen en bouw vertrouwen op met uw eigen geheime links met merkbranding.",
       "get_started_button": "Aan de slag",
       "confirm_password_placeholder": "Bevestig uw wachtwoord",
-      "skill_placeholder": "",
       "header_settings": "Instellingen",
       "submit_with": "Versturen",
       "submitting": "Verwerken",
       "processing": "Verwerking",
       "description": "Zorg ervoor dat geheime informatie buiten chat logs en e-mail blijft. Deel een geheime link welke maar één keer beschikbaar is.",
+      "incorrect_passphrase": "Onjuiste wachtwoordzin",
       "keywords": "geheim,wachtwoord generator,deel geheim,een keer",
       "button_create_secret": "Creëer een beveiligde link",
       "button_generate_secret": "Of genereer een beveiligd wachtwoord",
@@ -97,7 +97,9 @@
       "share_link_securely": "Deel deze link om veiligheidsredenen apart van andere details.",
       "copied_to_clipboard": "Gekopieerd naar klembord",
       "button_create_incoming": "Verstuur naar support",
-      "faq_title": "FAQ"
+      "faq_title": "FAQ",
+      "verification_not_valid": "Verificatie is niet geldig",
+      "verification_already_logged_in": "Kan geen account verifiëren wanneer u al bent ingelogd"
     },
     "LABELS": {
       "view_toggle": {
@@ -113,6 +115,7 @@
       "saving": "Opslaan...",
       "saved": "Opgeslagen",
       "save": "Opslaan",
+      "save_all": "Alles opslaan",
       "details": "Details",
       "encrypted": "Versleuteld",
       "secret_status": "Berichtstatus",
@@ -155,7 +158,6 @@
       "destroyed": "Vernietigd",
       "expiring_soon": "Verloopt binnenkort",
       "created": "Aangemaakt",
-      "created_description": "",
       "expires": "Verloopt",
       "expired": "Verlopen",
       "orphaned": "Onbeheerd",
@@ -321,16 +323,6 @@
       "incoming_recipient_address": "Support ontvanger",
       "incoming_success_message": "Uw e-mailbericht is verstuurd.",
       "incoming_button_creating": "Aanmaken"
-    },
-    "page": {
-      "cta_title": "",
-      "cta_subtitle": "",
-      "cta_feature1": "",
-      "cta_feature2": "",
-      "cta_feature3": "",
-      "explore_premium_plans": "",
-      "need_free_account": "",
-      "sign_up_free": ""
     },
     "account": {
       "subscription_title": "Abonnement",
@@ -548,8 +540,11 @@
   "press-esc-to-close": "Druk op ESC om te sluiten",
   "charactercount-500-characters": "{0}/500 tekens",
   "example-pre-reveal-instructions": "Gebruik uw telefoon om de QR-code te scannen",
+  "example-post-reveal-instructions": "Neem contact op met onboarding{'@'}example.com bij vragen",
   "these-instructions-will-be-shown-to-recipients-before": "Deze instructies worden aan ontvangers getoond voordat ze de geheime inhoud bekijken",
+  "these-instructions-will-be-shown-to-recipients-after": "Deze instructies worden aan ontvangers getoond nadat ze het geheim hebben onthuld",
   "pre-reveal-instructions": "Instructies vóór onthulling",
+  "post-reveal-instructions": "Instructies na onthulling",
   "instructions": "Instructies",
   "enter": "Invoeren",
   "hide-secret-message": "Bericht verbergen",

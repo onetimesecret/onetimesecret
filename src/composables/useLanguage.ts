@@ -2,6 +2,7 @@
 
 import { ref, reactive, computed } from 'vue';
 import { useLanguageStore } from '@/stores/languageStore';
+
 import { useAsyncHandler, AsyncHandlerOptions } from './useAsyncHandler';
 
 const languageListeners = new Set<(locale: string) => void>();
@@ -49,7 +50,9 @@ export function useLanguage(options?: AsyncHandlerOptions) {
   return {
     // Expose store values through composable
     currentLocale: computed(() => languageStore.getCurrentLocale),
-    supportedLocales: computed(() => languageStore.getSupportedLocales),
+
+    supportedLocales: languageStore.getSupportedLocales,
+    supportedLocalesWithNames: languageStore.supportedLocalesWithNames,
 
     // Encapsulate business logic and side effects
     updateLanguage,
