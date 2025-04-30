@@ -24,9 +24,13 @@
     if (newVal) {
       // Set focus to the modal when opened
       nextTick(() => {
-        const firstFocusable = modalRef.value?.querySelector('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])');
-        if (firstFocusable instanceof HTMLElement) {
-          firstFocusable.focus();
+        // Access the underlying DOM element via $el
+        const panelElement = modalRef.value?.$el;
+        if (panelElement instanceof HTMLElement) {
+          const firstFocusable = panelElement.querySelector('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])');
+          if (firstFocusable instanceof HTMLElement) {
+            firstFocusable.focus();
+          }
         }
       });
     } else {
