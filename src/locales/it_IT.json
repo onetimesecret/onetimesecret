@@ -223,7 +223,7 @@
     "secrets": {
       "privacyOptions": "Privacy Options",
       "selectDuration": "Seleziona durata",
-      "expiresIn": "Scade tra {durata}",
+      "expiresIn": "Scade tra {duration}",
       "enterPassphrase": "Inserisci Passphrase"
     },
     "homepage": {

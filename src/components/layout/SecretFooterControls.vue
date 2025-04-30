@@ -19,6 +19,7 @@ import { WindowService } from '@/services/window.service';
     <ThemeToggle />
     <LanguageToggle
       v-if="windowProps.i18n_enabled && showLanguage"
-      :compact="true" />
+      :compact="true"
+      max-height="max-h-dvh" />
   </div>
 </template>

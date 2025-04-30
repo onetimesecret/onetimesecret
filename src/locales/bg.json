@@ -223,7 +223,7 @@
     "secrets": {
       "privacyOptions": "Опции за поверителност",
       "selectDuration": "Изберете продължителност",
-      "expiresIn": "Изтича след {продължителност}",
+      "expiresIn": "Изтича след {duration}",
       "enterPassphrase": "Въведете парола"
     },
     "homepage": {

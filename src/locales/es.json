@@ -223,7 +223,7 @@
     "secrets": {
       "privacyOptions": "Opciones de privacidad",
       "selectDuration": "Seleccionar duración",
-      "expiresIn": "Expira en {duración}",
+      "expiresIn": "Expira en {duration}",
       "enterPassphrase": "Introduce la Frase de Contraseña"
     },
     "homepage": {
