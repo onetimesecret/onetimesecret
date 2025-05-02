@@ -50,15 +50,15 @@ GEM
     attic (1.0.1)
       rake (~> 13.0.6)
     aws-eventstream (1.3.2)
-    aws-partitions (1.1090.0)
-    aws-sdk-core (3.222.2)
+    aws-partitions (1.1096.0)
+    aws-sdk-core (3.223.0)
       aws-eventstream (~> 1, >= 1.3.0)
       aws-partitions (~> 1, >= 1.992.0)
       aws-sigv4 (~> 1.9)
       base64
       jmespath (~> 1, >= 1.6.1)
       logger
-    aws-sdk-sesv2 (1.74.0)
+    aws-sdk-sesv2 (1.75.0)
       aws-sdk-core (~> 3, >= 3.216.0)
       aws-sigv4 (~> 1.5)
     aws-sigv4 (1.11.0)
