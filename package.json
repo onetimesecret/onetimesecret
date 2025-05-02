@@ -124,7 +124,7 @@
     "vite-plugin-checker": "0.9.1",
     "vite-plugin-html": "3.2.2",
     "vitest": "2.1.9",
-    "vue-router": "4.5.0",
+    "vue-router": "4.5.1",
     "vue-router-mock": "1.1.0",
     "vue-tsc": "2.2.8"
   },
