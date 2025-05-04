@@ -94,7 +94,7 @@ jobs:
           bundler-cache: true
 
       - name: Setup tmate session
-        uses: mxschmitt/action-tmate@c606f8612a802e46b3742322514c09fbc8c4afee # v3
+        uses: mxschmitt/action-tmate@7b6a61a73bbb9793cb80ad69b8dd8ac19261834c # v3
         if: ${{ github.event_name == 'workflow_dispatch' && inputs.debug_enabled }}
         with:
           detached: true
