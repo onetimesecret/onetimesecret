@@ -130,15 +130,9 @@
             :value="record.share_url"
             class="w-full resize-none rounded-md
               border-0 bg-slate-50 px-3 py-2.5 font-mono text-sm text-gray-900
-              focus:ring-1 focus:ring-brand-500
+              focus:ring-1 focus:ring-green-500
               dark:bg-slate-900 dark:text-gray-100 sm:text-base"
             :aria-label="$t('secret-link')"></textarea>
-
-          <!-- Focus effect overlay -->
-          <!-- prettier-ignore-attribute class -->
-          <div
-            class="pointer-events-none absolute inset-0 rounded-md
-              border border-transparent group-focus-within/link:border-brand-500"></div>
         </div>
 
         <div class="ml-4 shrink-0">
