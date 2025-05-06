@@ -35,7 +35,8 @@
  *   </div>
  * </template>
  */
-import { ref, computed } from 'vue';
+import { ref, computed, watch } from 'vue';
+import { useHash } from '@/composables/useHash';
 
 interface BannerState {
   dismissed: boolean;
@@ -52,12 +53,22 @@ interface BannerIdOptions {
  * @param options - Object containing prefix and content
  * @returns Generated banner ID
  */
-export function generateBannerId(options: BannerIdOptions): string {
+export async function generateBannerId(options: BannerIdOptions): Promise<string> {
   const { prefix, content } = options;
-  const contentPrefix = content
-    ? content.substring(0, 10).replace(/[^a-z0-9]/gi, '')
-    : 'default';
-  return `${prefix}-${contentPrefix}`;
+
+  // If no content, use default
+  if (!content) {
+    return `${prefix}-default`;
+  }
+
+  // Use the useHash composable to generate a SHA-256 hash
+  const { generateHash } = useHash();
+  const hashHex = await generateHash(content);
+
+  // Use first 8 characters of the hash for the banner ID
+  const shortHash = hashHex ? hashHex.substring(0, 8) : 'fallback';
+
+  return `${prefix}-${shortHash}`;
 }
 
 /**
@@ -70,37 +81,59 @@ export function useDismissableBanner(
   bannerIdOrOptions: string | BannerIdOptions,
   expirationDays: number = 0
 ) {
+  // Determine the actual banner ID to use - for object options, use a placeholder
+  // that will be updated when the async ID generation completes
+  const bannerId = ref(
+    typeof bannerIdOrOptions === 'string'
+      ? bannerIdOrOptions
+      : `${bannerIdOrOptions.prefix}-initial`
+  );
+
+  // If we received options, generate the ID asynchronously
+  if (typeof bannerIdOrOptions !== 'string') {
+    generateBannerId(bannerIdOrOptions).then((id) => {
+      bannerId.value = id;
+    });
+  }
+
   // Initialize state from localStorage or with defaults
   const getStoredState = (): BannerState => {
-    const stored = localStorage.getItem(`banner-${bannerId}`);
+    const stored = localStorage.getItem(`banner-${bannerId.value}`);
     if (stored) {
       try {
         const parsedState = JSON.parse(stored);
         // Basic validation to ensure it's at least an object with expected keys,
         // though a more robust validation (e.g., with Zod) could be used here.
-        if (typeof parsedState === 'object' && parsedState !== null &&
-            'dismissed' in parsedState && 'timestamp' in parsedState) {
+        if (
+          typeof parsedState === 'object' &&
+          parsedState !== null &&
+          'dismissed' in parsedState &&
+          'timestamp' in parsedState
+        ) {
           return parsedState as BannerState;
         }
         // If the structure is not what we expect, treat as invalid.
-        console.warn(`Invalid banner state structure for ${bannerId}:`, parsedState);
+        console.warn(`Invalid banner state structure for ${bannerId.value}:`, parsedState);
         return { dismissed: false, timestamp: null };
       } catch (error) {
         // If JSON parsing fails, log the error and return default state.
-        console.warn(`Failed to parse banner state for ${bannerId} from localStorage:`, error);
+        console.warn(
+          `Failed to parse banner state for ${bannerId.value} from localStorage:`,
+          error
+        );
         return { dismissed: false, timestamp: null };
       }
     }
     return { dismissed: false, timestamp: null };
   };
 
-  // Determine the actual banner ID to use
-  const bannerId = typeof bannerIdOrOptions === 'string'
-    ? bannerIdOrOptions
-    : generateBannerId(bannerIdOrOptions);
-
   // Create reactive state
   const bannerState = ref<BannerState>(getStoredState());
+
+  // Re-read storage when bannerId changes (when async generation completes)
+  watch(bannerId, () => {
+    bannerState.value = getStoredState();
+  });
 
   // Computed property to determine if banner should be visible
   const isVisible = computed(() => {
@@ -122,12 +155,12 @@ export function useDismissableBanner(
       dismissed: true,
       timestamp: new Date().toISOString(),
     };
-    localStorage.setItem(`banner-${bannerId}`, JSON.stringify(bannerState.value));
+    localStorage.setItem(`banner-${bannerId.value}`, JSON.stringify(bannerState.value));
   };
 
   return {
     isVisible,
     dismiss,
-    bannerId,
+    bannerId: computed(() => bannerId.value),
   };
 }

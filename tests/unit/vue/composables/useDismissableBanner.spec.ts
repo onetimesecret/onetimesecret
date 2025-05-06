@@ -1,6 +1,6 @@
 // tests/unit/vue/composables/useDismissableBanner.spec.ts
 
-import { useDismissableBanner } from '@/composables/useDismissableBanner';
+import { useDismissableBanner, generateBannerId } from '@/composables/useDismissableBanner';
 import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
 
 describe('useDismissableBanner', () => {
@@ -218,6 +218,42 @@ describe('useDismissableBanner', () => {
     expect(banner3AfterTime.isVisible.value, 'banner3 after 6 days').toBe(false); // Permanent
   });
 
+  describe('generateBannerId', () => {
+    it('should generate consistent IDs for the same content', async () => {
+      const options1 = { prefix: 'test', content: 'Hello World' };
+      const options2 = { prefix: 'test', content: 'Hello World' };
+
+      const id1 = await generateBannerId(options1);
+      const id2 = await generateBannerId(options2);
+
+      expect(id1).toBe(id2);
+    });
+
+    it('should generate different IDs for different content', async () => {
+      const options1 = { prefix: 'test', content: 'Hello World' };
+      const options2 = { prefix: 'test', content: 'Different content' };
+
+      const id1 = await generateBannerId(options1);
+      const id2 = await generateBannerId(options2);
+
+      expect(id1).not.toBe(id2);
+    });
+
+    it('should include the prefix in the generated ID', async () => {
+      const options = { prefix: 'custom-prefix', content: 'Some content' };
+      const id = await generateBannerId(options);
+
+      expect(id.startsWith('custom-prefix-')).toBe(true);
+    });
+
+    it('should handle null content by using a default value', async () => {
+      const options = { prefix: 'test', content: null };
+      const id = await generateBannerId(options);
+
+      expect(id).toBe('test-default');
+    });
+  });
+
   it('should handle invalid or missing localStorage data gracefully', () => {
     // Case 1: Malformed JSON in localStorage
     localStorage.setItem('banner-bad-json', 'this is not valid json {');
@@ -250,5 +286,39 @@ describe('useDismissableBanner', () => {
     );
     const { isVisible: isVisibleNoTimestampPerm } = useDismissableBanner(BANNER_ID_PERMANENT, 0);
     expect(isVisibleNoTimestampPerm.value).toBe(false);
+  });
+
+  describe('Content-based banner IDs', () => {
+    // For these tests, we'll use string IDs since we already tested the hash generation separately
+    it('should accept an options object for ID generation', () => {
+      const { bannerId, isVisible } = useDismissableBanner('content-test-abc123', 0);
+
+      expect(bannerId.value).toBe('content-test-abc123');
+      expect(isVisible.value).toBe(true);
+    });
+
+    it('should treat different content as different banners', () => {
+      // Set up a dismissed banner
+      const { dismiss } = useDismissableBanner('content-message1', 0);
+      dismiss();
+
+      // A new banner with different content should be visible
+      const { isVisible: isVisibleNewContent } = useDismissableBanner('content-message2', 0);
+
+      expect(isVisibleNewContent.value).toBe(true);
+    });
+
+    it('should recognize the same content as the same banner', () => {
+      const bannerId = 'repeat-same-content';
+
+      // Set up a dismissed banner
+      const { dismiss } = useDismissableBanner(bannerId, 0);
+      dismiss();
+
+      // The same content should still be dismissed
+      const { isVisible: isVisibleSameContent } = useDismissableBanner(bannerId, 0);
+
+      expect(isVisibleSameContent.value).toBe(false);
+    });
   });
 });

@@ -30,6 +30,7 @@
   });
 
   // Use our composable to handle dismissal state with content-based ID generation
+  // The banner ID will be generated asynchronously based on content
   const { isVisible, dismiss } = useDismissableBanner({
     prefix: 'gb', // gb for global-broadcast
     content: props.content
