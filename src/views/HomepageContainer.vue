@@ -13,7 +13,7 @@
 
   // Simple approach: use direct component with transition
   const currentComponent = computed(() => {
-    return isCustom.value ? BrandedHomepage : Homepage;
+    return isCustom ? BrandedHomepage : Homepage;
   });
 </script>
 
