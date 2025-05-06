@@ -20,6 +20,14 @@
     return !!globalBanner;
   });
 
+  // Generate a unique ID for this banner based on content to ensure new banners are shown
+  const bannerContentId = computed(() => {
+    // Use the first 10 chars of content as part of ID so new content always shows
+    const contentPrefix = globalBanner ?
+      globalBanner.substring(0, 10).replace(/[^a-z0-9]/gi, '') : '';
+    return `global-banner-${contentPrefix}`;
+  });
+
   // Compute primary color styles based on brand color or prop
   const primaryColorClass = computed(() => {
     const currentColor = identityStore.primaryColor;
@@ -44,17 +52,14 @@
     <GlobalBroadcast
       v-if="displayGlobalBroadcast"
       :show="hasGlobalBanner"
-      :content="globalBanner" />
+      :content="globalBanner"
+      :banner-id="bannerContentId"
+      :expiration-days="7" />
 
-    <!-- Header content, Ramos territory -->
+    <!-- Rest of the owl -->
     <slot name="header"></slot>
-
-    <!-- Main page content, only in Japan -->
     <slot name="main"></slot>
-
-    <!-- Footer content, Haaland maybe? -->
     <slot name="footer"></slot>
-
     <slot name="status">
       <div id="status-messages"></div>
     </slot>
