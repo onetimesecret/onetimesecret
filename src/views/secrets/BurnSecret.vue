@@ -129,9 +129,9 @@
         <button
           type="submit"
           :disabled="isLoading"
-          class="flex w-full items-center justify-center rounded-md
-            bg-yellow-400 px-4 py-2 text-gray-800 transition duration-200
-            hover:bg-yellow-300
+          class="group flex w-full items-center justify-center rounded-md
+            bg-yellow-400 px-4 py-2 text-gray-800  duration-200
+            hover:bg-yellow-500
             focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:ring-offset-2
             dark:focus:ring-offset-gray-800"
           aria-describedby="burn-action-description">
