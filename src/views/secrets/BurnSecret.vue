@@ -1,6 +1,7 @@
 <!-- src/views/secrets/BurnSecret.vue -->
 
 <script setup lang="ts">
+  import OIcon from '@/components/icons/OIcon.vue';
   import { useMetadata } from '@/composables/useMetadata';
   import { onMounted } from 'vue';
 
@@ -31,10 +32,14 @@
     </div>
 
     <!-- Destroyed/Invalid State -->
+    <!-- prettier-ignore-attribute class -->
     <div
       v-else-if="!record || record?.is_destroyed"
       role="alert"
-      class="space-y-4 rounded-lg border-l-4 border-red-500 bg-red-50 p-5 shadow-sm dark:border-red-600 dark:bg-red-900/30">
+      class="space-y-4 rounded-lg
+        border-l-4 border-red-500
+        bg-red-50 p-5 shadow-sm
+        dark:border-red-600 dark:bg-red-900/30">
       <!-- Status Message -->
       <div class="flex items-center space-x-3">
         <svg
@@ -60,16 +65,28 @@
 
       <!-- Action Buttons -->
       <div class="flex flex-col gap-3 sm:flex-row">
+        <!-- prettier-ignore-attribute class -->
         <a
           v-if="record?.metadata_path"
           :href="record.metadata_path"
-          class="flex-1 rounded-lg bg-white px-4 py-2.5 text-center font-brand font-medium text-gray-700 shadow-sm transition hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-red-500 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700"
+          class="flex-1 rounded-lg
+            bg-white px-4 py-2.5 text-center font-brand font-medium
+            text-gray-700 shadow-sm transition
+            hover:bg-gray-50
+            focus:outline-none focus:ring-2 focus:ring-red-500 dark:bg-gray-800
+            dark:text-gray-200 dark:hover:bg-gray-700"
           :aria-label="$t('back-to-details')">
           {{ $t('back-to-details') }}
         </a>
+        <!-- prettier-ignore-attribute class -->
         <router-link
           to="/"
-          class="flex-1 rounded-lg bg-red-600 px-4 py-2.5 text-center font-brand font-medium text-white shadow-sm transition hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 dark:bg-red-700 dark:hover:bg-red-600">
+          class="flex-1 rounded-lg
+            bg-red-600 px-4 py-2.5 text-center font-brand font-medium
+            text-white shadow-sm transition
+            hover:bg-red-700
+            focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2
+            dark:bg-red-700 dark:hover:bg-red-600">
           {{ $t('web.LABELS.create_new_secret') }}
         </router-link>
       </div>
@@ -97,32 +114,32 @@
             class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
             {{ $t('web.COMMON.enter_passphrase_here') }}
           </label>
+          <!-- prettier-ignore-attribute class -->
           <input
             type="password"
             v-model="passphrase"
             id="passField"
-            class="w-full rounded-md border border-gray-300 bg-white px-3 py-2 focus:outline-none focus:ring-2 focus:ring-brand-500 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200"
+            class="w-full rounded-md
+              border border-gray-300 bg-white px-3 py-2
+              focus:outline-none focus:ring-2 focus:ring-brand-500
+              dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200"
             :aria-describedby="details?.has_passphrase ? 'password-hint' : undefined" />
         </div>
+        <!-- prettier-ignore-attribute class -->
         <button
           type="submit"
           :disabled="isLoading"
-          class="flex w-full items-center justify-center rounded-md bg-yellow-400 px-4 py-2 text-gray-800 transition duration-200 hover:bg-yellow-300 focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:ring-offset-2 dark:focus:ring-offset-gray-800"
+          class="flex w-full items-center justify-center rounded-md
+            bg-yellow-400 px-4 py-2 text-gray-800 transition duration-200
+            hover:bg-yellow-300
+            focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:ring-offset-2
+            dark:focus:ring-offset-gray-800"
           aria-describedby="burn-action-description">
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            class="mr-2 size-5"
-            viewBox="0 0 20 20"
-            fill="currentColor"
-            width="20"
-            height="20"
-            aria-hidden="true"
-            role="img">
-            <path
-              fill-rule="evenodd"
-              d="M12.395 2.553a1 1 0 00-1.45-.385c-.345.23-.614.558-.822.88-.214.33-.403.713-.57 1.116-.334.804-.614 1.768-.84 2.734a31.365 31.365 0 00-.613 3.58 2.64 2.64 0 01-.945-1.067c-.328-.68-.398-1.534-.398-2.654A1 1 0 005.05 6.05 6.981 6.981 0 003 11a7 7 0 1011.95-4.95c-.592-.591-.98-.985-1.348-1.467-.363-.476-.724-1.063-1.207-2.03zM12.12 15.12A3 3 0 017 13s.879.5 2.5.5c0-1 .5-4 1.25-4.5.5 1 .786 1.293 1.371 1.879A2.99 2.99 0 0113 13a2.99 2.99 0 01-.879 2.121z"
-              clip-rule="evenodd" />
-          </svg>
+          <OIcon
+            collection=""
+            name="heroicons-fire-20-solid"
+            class="mr-1 size-5 transition-all group-hover:rotate-12 group-hover:scale-125"
+            aria-hidden="true" />
           {{ $t('web.COMMON.word_confirm') }}: {{ $t('web.COMMON.burn_this_secret') }}
         </button>
         <!-- prettier-ignore-attribute class -->
