@@ -10,7 +10,7 @@
   export interface Props {
     content: string | null; // Can contain HTML
     show: boolean;
-    bannerId?: string; // Unique identifier for this banner
+
     expirationDays?: number; // Days until banner reappears after dismissal
   }
 
@@ -25,12 +25,20 @@
   const props = withDefaults(defineProps<Props>(), {
     content: 'Welcome to the Global Broadcast!',
     show: false,
-    bannerId: 'global-broadcast',
+
     expirationDays: 0, // Default to permanent dismissal
   });
 
+  // Generate a unique ID for this banner based on content to ensure new banners are shown
+  const internalBannerId = computed(() => {
+    // Use the first 10 chars of content as part of ID so new content always shows
+    const contentPrefix = props.content ?
+      props.content.substring(0, 10).replace(/[^a-z0-9]/gi, '') : 'default';
+    return `gb-${contentPrefix}`; // gb for global-broadcast
+  });
+
   // Use our composable to handle dismissal state
-  const { isVisible, dismiss } = useDismissableBanner(props.bannerId, props.expirationDays);
+  const { isVisible, dismiss } = useDismissableBanner(internalBannerId.value, props.expirationDays);
 
   // Function to decode HTML entities
   function decodeHTMLEntities(html: string) {
