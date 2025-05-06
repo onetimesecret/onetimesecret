@@ -1,12 +1,14 @@
-<!-- src/components/layout/DefaultFooter.vue -->
+<!-- src/components/layout/MicroFooter.vue -->
 
 <script setup lang="ts">
   import type { LayoutProps } from '@/types/ui/layouts';
+  import { WindowService } from '@/services/window.service';
   import FooterControls from '@/components/layout/SecretFooterControls.vue';
   import FooterAttribution from '@/components/layout/SecretFooterAttribution.vue';
 
   withDefaults(defineProps<LayoutProps>(), {});
 
+  const siteHost = WindowService.get('site_host');
 </script>
 <template>
   <footer
