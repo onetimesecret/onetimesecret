@@ -30,6 +30,8 @@ GET    /secret/:key/status                        V2::Controllers::Secrets#get_s
 POST   /secret/status                             V2::Controllers::Secrets#list_secret_status
 POST   /secret/:key/reveal                        V2::Controllers::Secrets#reveal_secret
 
+OPTIONS /secret/generate                          V2::Controllers::Secrets#generate_secret_options
+OPTIONS /secret/conceal                           V2::Controllers::Secrets#generate_secret_options
 POST   /secret/generate                           V2::Controllers::Secrets#generate_secret
 POST   /secret/conceal                            V2::Controllers::Secrets#conceal_secret
 

@@ -11,14 +11,39 @@
 
   const { isCustom, displayDomain, siteHost } = useProductIdentity();
 
+  // Simple approach: use direct component with transition
   const currentComponent = computed(() => {
     return isCustom ? BrandedHomepage : Homepage;
   });
 </script>
 
 <template>
-  <Component
-    :is="currentComponent"
-    :display-domain="displayDomain"
-    :site-host="siteHost" />
+  <div class="homepage-container">
+    <Transition name="homepage-fade" mode="out-in">
+      <Component
+        :key="isCustom ? 'branded' : 'standard'"
+        :is="currentComponent"
+        :display-domain="displayDomain"
+        :site-host="siteHost" />
+    </Transition>
+  </div>
 </template>
+
+<style scoped>
+.homepage-container {
+  /* Ensure container has a minimum height to prevent layout shifts */
+  min-height: 500px;
+  position: relative;
+}
+
+/* Transition definitions */
+.homepage-fade-enter-active,
+.homepage-fade-leave-active {
+  transition: opacity 0.25s ease;
+}
+
+.homepage-fade-enter-from,
+.homepage-fade-leave-to {
+  opacity: 0;
+}
+</style>

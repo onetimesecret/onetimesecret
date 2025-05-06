@@ -31,6 +31,20 @@ module V2
         )
       end
 
+      def generate_secret_options
+        # Return a response for an HTTP OPTIONS request
+        headers = {
+          "Content-Type" => "application/json",
+          "Allow" => "GET, POST, OPTIONS",
+          "Access-Control-Allow-Origin" => "*",
+          "Access-Control-Allow-Methods" => "GET, POST, OPTIONS",
+          "Access-Control-Allow-Headers" => "Content-Type, Authorization",
+          "Access-Control-Max-Age" => "86400",
+
+        }
+        [200, headers, {}]
+      end
+
       def burn_secret
         process_action(
           V2::Logic::Secrets::BurnSecret,

@@ -79,7 +79,8 @@ module V2::Logic
           @maxviews = secret.maxviews
           @has_maxviews = @maxviews > 1
           @view_count = nil
-          if secret.viewable? && metadata.state?(:new)
+
+          if secret.viewable?
             @has_passphrase = !secret.passphrase.to_s.empty?
             @can_decrypt = secret.can_decrypt?
             # If we can't decrypt the secret (i.e. if we can't access it) then
@@ -87,12 +88,14 @@ module V2::Logic
             # a secret we can show the received contents on the "/receipt/metadata_key"
             # page one time. Particularly for generated passwords which are not
             # shown any other time.
-            begin
-              OT.ld "[show_metadata] m:#{metadata_key} s:#{secret_key} Decrypting for first and only creator viewing"
-              @secret_value = secret.decrypted_value if @can_decrypt
-            rescue OpenSSL::Cipher::CipherError => e
-              OT.le "[show_metadata] m:#{metadata_key} s:#{secret_key} #{e.message}"
-              @secret_value = nil
+            if can_decrypt && metadata.state?(:new)
+              begin
+                OT.ld "[show_metadata] m:#{metadata_key} s:#{secret_key} Decrypting for first and only creator viewing"
+                @secret_value = secret.decrypted_value if @can_decrypt
+              rescue OpenSSL::Cipher::CipherError => e
+                OT.le "[show_metadata] m:#{metadata_key} s:#{secret_key} #{e.message}"
+                @secret_value = nil
+              end
             end
             @is_truncated = secret.truncated?
           end

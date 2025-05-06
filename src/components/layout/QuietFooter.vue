@@ -55,7 +55,8 @@
             :aria-label="$t('toggle-dark-mode')" />
           <LanguageToggle
             v-if="windowProps.i18n_enabled"
-            :compact="true" />
+            :compact="true"
+            max-height="max-h-dvh" />
           <FeedbackToggle
             v-if="displayFeedback && windowProps.authentication?.enabled"
             class="text-gray-500 transition-colors duration-200 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-100"

@@ -11,6 +11,10 @@
   defineProps<LayoutProps>();
 
   const globalBanner = WindowService.get('global_banner') ?? null;
+
+  // Component key cannot be null or undefined
+  const globalBroadcastKey = globalBanner ? 'global_broadcast' : 'n/a';
+
   const identityStore = useProductIdentity();
 
   // If there's a global banner set (in redis), this will be true. The actual
@@ -44,17 +48,14 @@
     <GlobalBroadcast
       v-if="displayGlobalBroadcast"
       :show="hasGlobalBanner"
-      :content="globalBanner" />
+      :content="globalBanner"
+      :key="globalBroadcastKey"
+      :expiration-days="7" />
 
-    <!-- Header content, Ramos territory -->
+    <!-- Rest of the owl -->
     <slot name="header"></slot>
-
-    <!-- Main page content, only in Japan -->
     <slot name="main"></slot>
-
-    <!-- Footer content, Haaland maybe? -->
     <slot name="footer"></slot>
-
     <slot name="status">
       <div id="status-messages"></div>
     </slot>
