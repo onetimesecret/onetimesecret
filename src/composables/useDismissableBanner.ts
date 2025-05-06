@@ -11,6 +11,13 @@
  * // Banner that reappears after 7 days
  * const { isVisible: isPromoVisible, dismiss: dismissPromo } =
  *   useDismissableBanner('promo', 7)
+ *
+ * // Banner with ID generated from content
+ * const bannerContent = "Welcome to our site!"
+ * const { isVisible, dismiss } = useDismissableBanner({
+ *   prefix: 'welcome',
+ *   content: bannerContent
+ * }, 7)
  * </script>
  *
  * <template>
@@ -35,13 +42,34 @@ interface BannerState {
   timestamp: string | null;
 }
 
+interface BannerIdOptions {
+  prefix: string;
+  content: string | null;
+}
+
+/**
+ * Generates a unique banner ID based on content
+ * @param options - Object containing prefix and content
+ * @returns Generated banner ID
+ */
+export function generateBannerId(options: BannerIdOptions): string {
+  const { prefix, content } = options;
+  const contentPrefix = content
+    ? content.substring(0, 10).replace(/[^a-z0-9]/gi, '')
+    : 'default';
+  return `${prefix}-${contentPrefix}`;
+}
+
 /**
  * Composable for managing dismissable banners with optional expiration
- * @param bannerId - Unique identifier for the banner
+ * @param bannerIdOrOptions - String ID or options for generating ID from content
  * @param expirationDays - Optional number of days until the banner reappears (0 for never)
  * @returns Object with isVisible state and dismiss function
  */
-export function useDismissableBanner(bannerId: string, expirationDays: number = 0) {
+export function useDismissableBanner(
+  bannerIdOrOptions: string | BannerIdOptions,
+  expirationDays: number = 0
+) {
   // Initialize state from localStorage or with defaults
   const getStoredState = (): BannerState => {
     const stored = localStorage.getItem(`banner-${bannerId}`);
@@ -65,6 +93,11 @@ export function useDismissableBanner(bannerId: string, expirationDays: number = 
     }
     return { dismissed: false, timestamp: null };
   };
+
+  // Determine the actual banner ID to use
+  const bannerId = typeof bannerIdOrOptions === 'string'
+    ? bannerIdOrOptions
+    : generateBannerId(bannerIdOrOptions);
 
   // Create reactive state
   const bannerState = ref<BannerState>(getStoredState());
@@ -95,5 +128,6 @@ export function useDismissableBanner(bannerId: string, expirationDays: number = 
   return {
     isVisible,
     dismiss,
+    bannerId,
   };
 }

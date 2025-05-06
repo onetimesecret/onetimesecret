@@ -29,16 +29,11 @@
     expirationDays: 0, // Default to permanent dismissal
   });
 
-  // Generate a unique ID for this banner based on content to ensure new banners are shown
-  const internalBannerId = computed(() => {
-    // Use the first 10 chars of content as part of ID so new content always shows
-    const contentPrefix = props.content ?
-      props.content.substring(0, 10).replace(/[^a-z0-9]/gi, '') : 'default';
-    return `gb-${contentPrefix}`; // gb for global-broadcast
-  });
-
-  // Use our composable to handle dismissal state
-  const { isVisible, dismiss } = useDismissableBanner(internalBannerId.value, props.expirationDays);
+  // Use our composable to handle dismissal state with content-based ID generation
+  const { isVisible, dismiss } = useDismissableBanner({
+    prefix: 'gb', // gb for global-broadcast
+    content: props.content
+  }, props.expirationDays);
 
   // Function to decode HTML entities
   function decodeHTMLEntities(html: string) {
