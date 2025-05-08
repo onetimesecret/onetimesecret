@@ -10,9 +10,11 @@ module Core
     # initialize_view_vars takes the arguments it does instead of relying on
     # instance variables and their attr_reader methods.
     module InitializeViewVars
+      # Define fields that are safe to expose to the frontend
+      # Explicitly excluding :secret and :authenticity which contain sensitive data
       @safe_site_fields = [
-        :host, :ssl, :secret, :authenticity, :plans, :interface,
-        :secret_options, :authentication, :support, :regions, :domains
+        :host, :ssl, :plans, :interface, :domains,
+        :secret_options, :authentication, :support, :regions
       ]
 
       class << self
@@ -32,11 +34,14 @@ module Core
 
         # Extract the top-level keys from the YAML configuration.
         #
-        # TODO: Revisit this approach to make configuration filtering
-        #       opt-in rather than opt-out. We should implement a proper
-        #       serialization approach that explicitly selects which
-        #       configuration values to share with the frontend instead
-        #       of removing sensitive keys.
+        # SECURITY: This implementation follows an opt-in approach for configuration filtering.
+        # We explicitly whitelist fields that are safe to share and filter nested sensitive data.
+        # This prevents accidental exposure of sensitive information to the frontend.
+        #
+        # Sensitive data types being protected:
+        # - Secret keys and credentials (:secret, nested :cluster, :colonels)
+        # - Authentication tokens (:authenticity)
+        # - Internal infrastructure details
         #
         site_config = OT.conf.fetch(:site, {})
         incoming = OT.conf.fetch(:incoming, {})
@@ -45,12 +50,28 @@ module Core
 
         # Populate a new hash with the site config settings that are safe
         # to share with the front-end app (i.e. public).
+        #
+        # SECURITY: This is an opt-in approach that explicitly selects which
+        # configuration values to share with the frontend while protecting
+        # sensitive data. We copy only the whitelisted fields and then
+        # filter specific nested sensitive data from complex structures.
         safe_site = InitializeViewVars.safe_site_fields.each_with_object({}) do |field, hash|
           unless site_config.key?(field)
             OT.lw "[view_vars] Site config is missing field: #{field}"
             next
           end
-          hash[field] = site_config[field]
+
+          # Perform deep copy to prevent unintended mutations to the original config
+          hash[field] = Marshal.load(Marshal.dump(site_config[field]))
+        end
+
+        # Additional filtering for nested sensitive data
+        if safe_site[:domains]
+          safe_site[:domains].delete(:cluster) if safe_site[:domains].is_a?(Hash)
+        end
+
+        if safe_site[:authentication]
+          safe_site[:authentication].delete(:colonels) if safe_site[:authentication].is_a?(Hash)
         end
 
         # Extract values from session

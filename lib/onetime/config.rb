@@ -57,8 +57,27 @@ module Onetime
       Kernel.exit(1)
     end
 
+    # After loading the configuration, this method processes and validates the
+    # configuration, setting defaults and ensuring required elements are present.
+    # It also performs deep copy protection to prevent mutations from propagating
+    # to shared configuration instances.
+    #
+    # Security measures implemented in this method:
+    # 1. Deep copy protection - prevents unintended mutations to shared config
+    # 2. Validation of critical security settings - enforces presence of required security fields
+    # 3. Security warnings for dangerous configurations - alerts about potential vulnerabilities
+    # 4. Configuration immutability - freezes config to prevent runtime modifications
+    #
+    # @param conf [Hash] The loaded configuration hash
+    # @return [Hash] The processed configuration hash with defaults applied and security measures in place
     def after_load(conf = nil) # rubocop:disable Metrics/MethodLength,Metrics/PerceivedComplexity
       conf ||= {}
+
+      # SECURITY MEASURE #1: Deep Copy Protection
+      # Create a deep copy of the configuration to prevent unintended mutations
+      # This protects against side effects when multiple components access the same config
+      # Without this, modifications to the config in one component could affect others
+      conf = Marshal.load(Marshal.dump(conf))
 
       unless conf.key?(:experimental)
         OT.ld "Setting an empty experimental config #{path}"
@@ -402,4 +421,6 @@ module Onetime
     # An example mapping for testing.
     example_internal_key: :example_external_key,
   }
+
+
 end
