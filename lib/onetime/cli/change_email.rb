@@ -139,20 +139,27 @@ module Onetime
 
               # Verify the change was successful by checking relevant records
               puts "\nVerifying changes..."
-              verify_success = true # should really default to false
+              verify_success = false # Default to false, only set to true if all checks pass
 
               puts
               puts "  customer can now use: #{new_email}"
               puts
 
               # Check customer record exists with new email
-              unless V2::Customer.exists?(new_email)
+              if V2::Customer.exists?(new_email)
+                # If this is the only check, or all other checks also pass,
+                # then we can set verify_success to true.
+                # For now, let's assume we need to check domains too.
+                # If there are no domains, this branch means success.
+                verify_success = true unless domains.any?
+              else
                 puts "ERROR: Customer record with new email #{new_email} not found!"
-                verify_success = false
+                # verify_success remains false
               end
 
               # Check domains were migrated properly
               if domains.any?
+                all_domains_verified = true # Assume true initially for domain checks
                 puts "Checking domain mappings:"
                 domains.each_with_index do |domain_info, index|
                   domain = domain_info[:domain]
@@ -164,9 +171,11 @@ module Onetime
                     puts "  ✓ Domain #{index+1}: #{domain} correctly mapped to #{new_domain_id}"
                   else
                     puts "  ✗ Domain #{index+1}: #{domain} incorrectly mapped to #{new_domain_id} (expected: #{calculated_id})"
-                    verify_success = false
+                    all_domains_verified = false
                   end
                 end
+                # Final success depends on both customer and all domains being verified
+                verify_success = V2::Customer.exists?(new_email) && all_domains_verified
               end
 
               if verify_success
