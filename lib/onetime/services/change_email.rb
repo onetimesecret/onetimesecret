@@ -1,4 +1,4 @@
-# lib/onetime/services/email_change.rb
+# lib/onetime/services/change_email.rb
 
 module Onetime
   module Services
@@ -15,16 +15,16 @@ module Onetime
     # 4. References in sorted sets and hashes (onetime:customer, customdomain:values, etc.)
     #
     # @example Basic usage
-    #   service = Onetime::Services::EmailChange.new('old@example.com', 'new@example.com', 'US')
+    #   service = Onetime::Services::ChangeEmail.new('old@example.com', 'new@example.com', 'US')
     #   service.validate!
     #   service.execute!
     #
     # @example With custom domains
     #   domains = [{domain: 'example.com', old_id: 'abc123def'}]
-    #   service = Onetime::Services::EmailChange.new('old@example.com', 'new@example.com', 'US', domains)
+    #   service = Onetime::Services::ChangeEmail.new('old@example.com', 'new@example.com', 'US', domains)
     #   service.validate!
     #   service.execute!
-    class EmailChange
+    class ChangeEmail
       attr_reader :old_email, :new_email, :realm, :domains, :log_entries
 
       # Initializes the email change service with the necessary information.
@@ -292,7 +292,7 @@ module Onetime
       #
       # Each log message is:
       # 1. Added to the internal log entries array for the final report
-      # 2. Logged to the OT info log with [EMAIL_CHANGE] prefix
+      # 2. Logged to the OT info log with [cli.change-email] prefix
       # 3. Printed to stdout for real-time feedback (optionally)
       #
       # @param message [String] The message to log
@@ -333,7 +333,7 @@ module Onetime
       def save_report_to_redis
         report_text = generate_report
         timestamp = Time.now.to_i
-        report_key = "email_change:#{old_email}:#{new_email}:#{timestamp}"
+        report_key = "change_email:#{old_email}:#{new_email}:#{timestamp}"
 
         # Save to Redis DB 0 for audit logs
         redis = Familia.redis

@@ -1,9 +1,9 @@
-# lib/onetime/cli/email_change.rb
+# lib/onetime/cli/change_email.rb
 
 module Onetime
   class CLI < Drydock::Command
     # CLI command to view email change reports
-    def view_email_changes
+    def change_email
       # Default limit is 10 reports, can be overridden with --limit or -n option
       limit = option.limit || 10
       email_filter = argv.first
@@ -15,7 +15,7 @@ module Onetime
       redis = Familia.redis
 
       # Get keys matching the pattern
-      pattern = email_filter ? "email_change:#{email_filter}:*" : "email_change:*"
+      pattern = email_filter ? "change_email:#{email_filter}:*" : "change_email:*"
       keys = redis.keys(pattern).sort_by { |k| k.split(':').last.to_i }.reverse.first(limit.to_i)
 
       if keys.empty?
@@ -47,7 +47,7 @@ module Onetime
       # Provide instructions for viewing specific reports
       unless option.verbose
         puts "\nTo view a specific report in full:"
-        puts "  ots view-email-changes --verbose OLDEMAIL"
+        puts "  ots change-email-log --verbose OLDEMAIL"
       end
     end
 
@@ -55,13 +55,13 @@ module Onetime
     #
     # This command provides an interactive interface for the email address change process,
     # handling validation, confirmation, execution and reporting. It interfaces with the
-    # EmailChange service which performs the actual data updates.
+    # ChangeEmail service which performs the actual data updates.
     #
     # The command supports changing a customer's email address with or without associated
     # custom domains. When domains are involved, it automatically calculates the required
     # ID changes.
     #
-    # @see Onetime::Services::EmailChange
+    # @see Onetime::Services::ChangeEmail
     # Command to change customer email addresses
     def change_email # rubocop:disable Metrics/MethodLength
       if argv.length < 2
@@ -115,8 +115,8 @@ module Onetime
 
       # Initialize the email change service
       # This service handles all validation and execution logic for email changes
-      require_relative '../services/email_change'
-      service = Onetime::Services::EmailChange.new(old_email, new_email, realm, domains)
+      require_relative '../services/change_email'
+      service = Onetime::Services::ChangeEmail.new(old_email, new_email, realm, domains)
 
       # Validate all inputs and domain relationships before executing changes
       # This ensures we catch any issues before modifying data
@@ -176,7 +176,7 @@ module Onetime
               report_key = service.save_report_to_redis
 
               # Also save report to file for convenience
-              report_file = "email_change_#{old_email}_to_#{new_email}_#{Time.now.strftime('%Y%m%d%H%M%S')}.log"
+              report_file = "change_email_#{old_email}_to_#{new_email}_#{Time.now.strftime('%Y%m%d%H%M%S')}.log"
               log_dir = File.join(Onetime::HOME, 'log')
 
               if File.exist?(log_dir)
@@ -208,7 +208,7 @@ module Onetime
     # Helper method to fetch a specific email change report from Redis
     # @param key [String] The Redis key for the report
     # @return [String, nil] The report text or nil if not found
-    def get_email_change_report(key)
+    def get_change_email_report(key)
       redis = Familia.redis
       redis.get(key)
     end
