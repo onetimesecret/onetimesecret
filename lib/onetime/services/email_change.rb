@@ -43,7 +43,45 @@ module Onetime
         @domains = domains || []
         @log_entries = []
         @domain_mappings = {}
+        # Use database 6 for operations as specified in the manual process
         @redis = Familia.redis
+        @redis.select(6) unless Familia.redis_options[:db] == 6
+      end
+
+      # Generates a summary of changes that will be made during execution
+      # @return [String] A human-readable summary of changes
+      def summarize_changes
+        changes = ["CHANGES TO BE MADE:",
+                   "===================",
+                   "1. Change customer email from #{old_email} to #{new_email}",
+                   "2. Update the following Redis keys:",
+                   "   - customer:#{old_email}:object → customer:#{new_email}:object",
+                   "   - customer:#{old_email}:custom_domain → customer:#{new_email}:custom_domain (if exists)",
+                   "   - customer:#{old_email}:metadata → customer:#{new_email}:metadata (if exists)",
+                   "3. Update customer in values sorted set (onetime:customer)"]
+
+        # Add domain changes if any
+        if @domains.any?
+          changes << "4. Update #{@domains.size} custom domain(s):"
+
+          @domains.each do |domain_info|
+            domain = domain_info[:domain]
+            old_id = domain_info[:old_id]
+            new_id = [domain, new_email].gibbler.shorten
+
+            changes << "   - Domain: #{domain}"
+            changes << "     Old ID: #{old_id}"
+            changes << "     New ID: #{new_id}"
+            changes << "     Keys to update:"
+            changes << "       - customdomain:#{old_id}:object → customdomain:#{new_id}:object"
+            changes << "       - customdomain:#{old_id}:brand → customdomain:#{new_id}:brand (if exists)"
+            changes << "     Update in customdomain:values sorted set"
+            changes << "     Update in customdomain:display_domains hash"
+            changes << "     Update in customdomain:owners hash (if exists)"
+          end
+        end
+
+        changes.join("\n")
       end
 
       # Validates all inputs and domain relationships before making changes.
@@ -134,6 +172,7 @@ module Onetime
       # @return [Boolean] True if all operations succeeded, false if any errors occurred
       def execute!
         log "EXECUTION: Starting email change process for #{old_email} -> #{new_email}"
+        log "Using Redis database #{@redis.connection[:db]}"
 
         begin
           # Update customer object fields
@@ -184,6 +223,7 @@ module Onetime
       # 4. Updates domain display mappings
       # 5. Updates domain ownership records
       #
+      # Updates domain records in Redis
       # @private
       def update_domains
         @domain_mappings.each do |old_domain_id, new_domain_id|
@@ -218,6 +258,11 @@ module Onetime
           if @redis.hexists("customdomain:owners", old_domain_id)
             @redis.hdel("customdomain:owners", old_domain_id)
             @redis.hset("customdomain:owners", new_domain_id, new_email)
+          end
+
+          # Update customer:domains mapping if it exists
+          if @redis.hexists("onetime:customers:domain", domain)
+            @redis.hset("onetime:customers:domain", domain, new_email)
           end
         end
       end
@@ -259,6 +304,12 @@ module Onetime
                   "LOG ENTRIES:"]
         report.concat(log_entries)
         report.join("\n")
+      end
+
+      # Displays a preview of the changes to be made
+      # @return [void]
+      def display_preview
+        puts summarize_changes
       end
     end
   end
