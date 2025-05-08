@@ -168,7 +168,6 @@ module Onetime
           opts[:template_extension] = 'txt'
           # Update the options in the cloned instance
           clone.instance_variable_set(:@options, opts)
-          # require 'pry-byebug'; binding.pry
           clone.render
         end
 
