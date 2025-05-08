@@ -136,19 +136,19 @@ module Onetime
 
           # Verify domain format
           unless domain && !domain.empty?
-            raise "ERROR: Invalid domain format"
+            raise "ERROR: Invalid domain format for domain entry: #{domain_info.inspect}"
           end
 
           # Verify calculated old ID matches provided ID
           calculated_id = [domain, old_email].gibbler.shorten
           if calculated_id != old_id
-            raise "ERROR: Calculated domain ID (#{calculated_id}) does not match provided ID (#{old_id})"
+            raise "ERROR: For domain '#{domain}': Calculated domain ID (#{calculated_id}) does not match provided ID (#{old_id})"
           end
 
           # Check domain exists in display_domains
           stored_id = V2::CustomDomain.redis.hget("customdomain:display_domains", domain)
           if stored_id != old_id
-            raise "ERROR: Stored domain ID (#{stored_id}) does not match calculated ID (#{old_id})"
+            raise "ERROR: For domain '#{domain}': domain ID in display_domains (#{stored_id}) does not match expected ID (#{old_id})"
           end
 
           # Calculate new domain ID
@@ -293,15 +293,16 @@ module Onetime
       # Each log message is:
       # 1. Added to the internal log entries array for the final report
       # 2. Logged to the OT info log with [EMAIL_CHANGE] prefix
-      # 3. Printed to stdout for real-time feedback
+      # 3. Printed to stdout for real-time feedback (optionally)
       #
       # @param message [String] The message to log
-      def log(message)
+      # @param stdout [Boolean] Whether to print the message to stdout
+      def log(message, stdout = true)
         timestamp = Time.now.strftime("%Y-%m-%d %H:%M:%S")
         entry = "[#{timestamp}] #{message}"
         @log_entries << entry
         OT.info "[EMAIL_CHANGE] #{message}"
-        puts entry
+        puts entry if stdout
       end
 
       # Generates a formatted report of all actions taken during the email change.
@@ -311,7 +312,7 @@ module Onetime
       # 2. A chronological log of all operations performed
       # 3. Timestamp and status information for each action
       #
-      # This report is typically written to a log file for audit purposes.
+      # This report is saved to Redis DB 0 for audit purposes.
       #
       # @return [String] The formatted report as a single string
       def generate_report
@@ -320,11 +321,28 @@ module Onetime
                   "Old Email: #{old_email}",
                   "New Email: #{new_email}",
                   "Realm: #{realm}",
-                  "Domains: #{domains.inspect}",
+                  "Domains: #{domains.map { |d| d[:domain] }.join(', ')}",
+                  "Timestamp: #{Time.now}",
                   "=====================",
                   "LOG ENTRIES:"]
         report.concat(log_entries)
         report.join("\n")
+      end
+
+      # Saves the report to Redis DB 0 for auditing purposes
+      # @return [String] The key where the report was stored
+      def save_report_to_redis
+        report_text = generate_report
+        timestamp = Time.now.to_i
+        report_key = "email_change:#{old_email}:#{new_email}:#{timestamp}"
+
+        # Save to Redis DB 0 for audit logs
+        redis = Redis.new(Familia.redis_options.merge(db: 0))
+        redis.set(report_key, report_text)
+        redis.expire(report_key, 365 * 24 * 60 * 60) # 1 year TTL
+
+        log "Report saved to Redis with key: #{report_key}", true
+        report_key
       end
 
       # Displays a preview of the changes to be made
