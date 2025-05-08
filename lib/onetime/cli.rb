@@ -8,6 +8,9 @@ require 'onetime/migration'
 require 'v2/models'
 require 'v2/logic'
 
+# Load CLI commands
+require_relative 'cli/email_change'
+
 module Onetime
   class CLI < Drydock::Command
     def init
