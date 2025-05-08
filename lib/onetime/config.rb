@@ -10,6 +10,25 @@ module Onetime
     attr_reader :env, :base, :bootstrap
     attr_writer :path
 
+    # Recursively freezes an object and all its nested components
+    # to ensure complete immutability. This is a critical security
+    # measure that prevents any modification of configuration values
+    # after they've been loaded and validated, protecting against both
+    # accidental mutations and potential security exploits.
+    #
+    # @param obj [Object] The object to freeze
+    # @return [Object] The frozen object
+    # @security This ensures configuration values cannot be tampered with at runtime
+    def deep_freeze(obj)
+      case obj
+      when Hash
+        obj.each_value { |v| deep_freeze(v) }
+      when Array
+        obj.each { |v| deep_freeze(v) }
+      end
+      obj.freeze
+    end
+
     # Normalizes environment variables prior to loading and rendering the YAML
     # configuration. In some cases, this might include setting default values
     # and ensuring necessary environment variables are present.
@@ -79,10 +98,12 @@ module Onetime
       # Without this, modifications to the config in one component could affect others
       conf = Marshal.load(Marshal.dump(conf))
 
+      # SECURITY MEASURE #2: Validation and Default Security Settings
+      # Ensure all critical security-related configurations exist
       unless conf.key?(:experimental)
         OT.ld "Setting an empty experimental config #{path}"
         conf[:experimental] = {
-          allow_nil_global_secret: false,
+          allow_nil_global_secret: false, # Default to secure setting
           rotated_secrets: [],
         }
       end
@@ -108,6 +129,7 @@ module Onetime
         conf[:site][:secret] = nil
       end
 
+      # SECURITY MEASURE #2 (continued): Critical Secret Validation
       # Handle potential nil global secret
       # The global secret is critical for encrypting/decrypting secrets
       # Running without a global secret is only permitted in exceptional cases
@@ -117,10 +139,14 @@ module Onetime
       if global_secret.nil?
         unless allow_nil
           # Fast fail when global secret is nil and not explicitly allowed
+          # This is a critical security check that prevents running without encryption
           raise OT::Problem, "Global secret cannot be nil - set SECRET env var or site.secret in config"
         end
 
+        # SECURITY MEASURE #3: Security Warnings for Dangerous Configurations
         # Security warning when proceeding with nil global secret
+        # These warnings are prominently displayed to ensure administrators
+        # understand the security implications of their configuration
         OT.li "!" * 50
         OT.li "SECURITY WARNING: Running with nil global secret!"
         OT.li "This configuration presents serious security risks:"
@@ -331,6 +357,18 @@ module Onetime
       development = conf[:development]
       development[:enabled] ||= false
       development[:frontend_host] ||= ''
+
+      # SECURITY MEASURE #4: Configuration Immutability
+      # Freeze the entire configuration recursively to prevent modifications
+      # This ensures configuration immutability and protects against
+      # accidental or malicious changes after loading
+      #
+      # Why this matters:
+      # - Prevents runtime modification of sensitive values like secrets and API keys
+      # - Any attempt to modify frozen config will raise a FrozenError, failing fast
+      # - Guarantees configuration integrity throughout application lifecycle
+      # - Makes security guarantees stronger by ensuring config values can't be tampered with
+      deep_freeze(conf)
     end
 
     def exists?
