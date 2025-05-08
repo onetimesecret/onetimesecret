@@ -1,4 +1,18 @@
-# Quick Redis scan to find customers with missing/empty email fields
+
+# Customer Email Audit & Repair Script
+#
+# Purpose: Identifies and optionally repairs customer records in Redis with missing email fields.
+#
+# Usage:
+#   1. Load in IRB: load './migrate/1381_customer_field.rb'
+#   2. Review the script's output to see affected customers
+#   3. If repairs needed, modify dry_run = false and reload
+#
+# Execution modes:
+#   - Audit only (dry_run = true): Lists customers with missing emails, no changes made
+#   - Repair mode (dry_run = false): Updates empty email fields with customer ID value
+
+
 report_field = 'email'
 redis_client = V2::Customer.redis
 scan_pattern = "#{V2::Customer.prefix}:*:object"
@@ -25,10 +39,11 @@ rescue => ex
   exit 1
 end
 
-
 loop do
+  # Quick Redis scan to find customers with missing/empty email fields
   cursor, keys = redis_client.scan(cursor, match: scan_pattern, count: batch_size)
   total_scanned += keys.size
+  print "." # Progress indicator
 
   keys.each do |key|
     # How the record is identified/stored in Redis
@@ -74,7 +89,6 @@ loop do
     end
   end
 
-  print "." if total_scanned % progress_size == 0 # Progress indicator
   break if cursor == "0"
 end
 
@@ -83,4 +97,23 @@ empty_count = problem_customers.size
 puts "\nScan complete: #{empty_count} out of #{total_scanned} customers missing #{report_field} field"
 puts "Errors: #{error_count}; Skipped: #{total_skipped}"
 puts "#{modified_count} customers modified (dry_run: #{dry_run})"
-puts "First 10 affected customers: #{problem_customers.first(10).map{ |c| c[:id] }.join(', ')}" if modified_count > 0
+
+if modified_count > 0
+  puts "First 10 affected customers: #{problem_customers.first(10).map{ |c| c[:id] }.join(', ')}"
+
+  # Extract just the IDs from problem_customers array and save to Redis.
+  # This intentionally saves to DB 0, rather than the Customer DB, for
+  # visibility and to not clutter the Customer DB with additional data.
+  unless problem_customers.empty?
+    list_key = "missing_email_customers:#{Time.now.strftime('%Y%m%d')}"
+
+    # Delete any existing list with this key
+    Familia.redis.del(list_key)
+
+    # Add all customer IDs to the list (RPUSH adds multiple values efficiently)
+    Familia.redis.rpush(list_key, problem_customers.map { |c| c[:id] })
+
+    puts "Saved #{problem_customers.size} customer IDs to Redis list '#{list_key}'"
+    puts "To retrieve: LRANGE #{list_key} 0 -1"
+  end
+end
