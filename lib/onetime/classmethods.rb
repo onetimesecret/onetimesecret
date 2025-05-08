@@ -1,4 +1,4 @@
-# lib/onetime/helpers/environment_helper.rb
+# lib/onetime/classmethods.rb
 
 # Usage:
 # module Onetime
@@ -7,7 +7,7 @@
 #
 # Environment detection and normalization
 module Onetime
-  module EnvironmentHelper
+  module ClassMethods
     @env = nil
     @mode = :app
     @debug = nil

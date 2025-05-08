@@ -20,6 +20,7 @@ require 'familia'
 require 'storable'
 
 require_relative 'onetime/core_ext'
+require_relative 'onetime/classmethods'
 require_relative 'onetime/helpers'
 
 # Ensure immediate flushing of stdout to improve real-time logging visibility.
@@ -37,7 +38,7 @@ STDOUT.sync = ENV['STDOUT_SYNC'] && %w[true yes 1].include?(ENV['STDOUT_SYNC'])
 # the app. It is the main namespace for the application.
 #
 module Onetime
-  extend EnvironmentHelper
+  extend ClassMethods
   extend GlobalsHelper
   extend LocalesHelper
   extend DatabaseHelper
