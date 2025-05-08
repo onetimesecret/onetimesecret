@@ -54,10 +54,13 @@ end
 trap("SIGINT") do
   OT.li "Shutting down gracefully..."
   begin
-    Sentry.close(timeout: 2)  # Attempt graceful shutdown with a short timeout
+    Sentry.close  # Attempt graceful shutdown with a short timeout
+  rescue ThreadError => ex
+    OT.ld "Sentry shutdown interrupted: #{ex} (#{ex.class})"
   rescue StandardError => ex
     # Ignore Sentry errors during shutdown
-    OT.le "Error during shutdown: #{ex}"
+    OT.le "Error during shutdown: #{ex} (#{ex.class})"
+    OT.ld ex.backtrace.join("\n")
   end
   exit
 end

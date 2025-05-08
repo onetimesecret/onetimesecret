@@ -307,15 +307,54 @@ RSpec.describe Onetime::Config do
         expect(config[:site][:authentication][:colonels]).to eq([])
       end
 
-      it 'handles missing site.authentication section' do
+      it 'raises heck when site is nil' do
+        # Config without site.authentication section
+        config = {
+          development: {},
+        }
+
+        expect {
+          described_class.after_load(config)
+        }.to raise_error(OT::Problem, /No `site` config found/)
+      end
+
+      it 'raises heck when site.secret is nil' do
         # Config without site.authentication section
         config = {
           colonels: ['root@example.com'],
-          site: {},
+          site: {secret: nil},
           development: {},
           mail: {
             truemail: {},
           },
+        }
+
+        expect {
+          described_class.after_load(config)
+        }.to raise_error(OT::Problem, /Global secret cannot be nil/)
+      end
+
+      it 'raises heck when site.secret is CHANGEME (same behaviour as nil)' do
+        # Config without site.authentication section
+        config = {
+          colonels: ['root@example.com'],
+          site: {secret: 'CHANGEME'},
+          development: {},
+          mail: {
+            truemail: {},
+          },
+        }
+
+        expect {
+          described_class.after_load(config)
+        }.to raise_error(OT::Problem, /Global secret cannot be nil/)
+      end
+
+      it 'handles missing site.authentication section' do
+        # Config without site.authentication section
+        config = {
+          site: {secret: '1234'},
+          development: {},
         }
 
         expect {

@@ -112,16 +112,8 @@ module Onetime
         raise OT::Problem, "No `development` config found in #{path}"
       end
 
-      unless conf.key?(:mail)
-        raise OT::Problem, "No `mail` config found in #{path}"
-      end
-
-      mtc = conf[:mail][:truemail]
-      OT.ld "Setting TrueMail config from #{path}"
-      raise OT::Problem, "No TrueMail config found" unless mtc
-
-      unless conf[:site]&.key?(:authentication)
-        raise OT::Problem, "No `site.authentication` config found in #{path}"
+      unless conf.key?(:site)
+        raise OT::Problem, "No `site` config found in #{path}"
       end
 
       unless conf[:site]&.key?(:secret)
@@ -135,6 +127,7 @@ module Onetime
       # Running without a global secret is only permitted in exceptional cases
       allow_nil = conf[:experimental].fetch(:allow_nil_global_secret, false)
       global_secret = conf[:site].fetch(:secret, nil)
+      global_secret = nil if global_secret.to_s.strip == 'CHANGEME'
 
       if global_secret.nil?
         unless allow_nil
@@ -156,6 +149,18 @@ module Onetime
         OT.li "Set valid SECRET env var or site.secret in config ASAP"
         OT.li "!" * 50
       end
+
+      unless conf[:site]&.key?(:authentication)
+        raise OT::Problem, "No `site.authentication` config found in #{path}"
+      end
+
+      unless conf.key?(:mail)
+        raise OT::Problem, "No `mail` config found in #{path}"
+      end
+
+      mtc = conf[:mail][:truemail]
+      OT.ld "Setting TrueMail config from #{path}"
+      raise OT::Problem, "No TrueMail config found" unless mtc
 
       # Remove nil elements
       rotated_secrets = conf[:experimental].fetch(:rotated_secrets, []).compact

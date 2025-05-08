@@ -190,7 +190,7 @@ module V1::Logic
       def handle_success
         return raise_form_error "Could not store your secret" unless greenlighted
         update_stats
-        send_email_notification
+        send_email_to_recipient
       end
 
       def update_stats
@@ -202,7 +202,7 @@ module V1::Logic
         V1::Logic.stathat_count("Secrets", 1)
       end
 
-      def send_email_notification
+      def send_email_to_recipient
         return if recipient.nil? || recipient.empty?
         klass = OT::Mail::SecretLink
         metadata.deliver_by_email cust, locale, secret, recipient.first, klass

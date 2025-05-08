@@ -77,7 +77,7 @@ module Onetime
       site_config = OT.conf.fetch(:site) # if :site is missing we got real problems
       email_config = OT.conf.fetch(:emailer, {})
       redis_info = Familia.redis.info
-      colonels = site_config.dig(:authentication, :colonels)
+      colonels = site_config.dig(:authentication, :colonels) || []
 
       OT.li "---  ONETIME #{OT.mode} v#{OT::VERSION.inspect}  #{'---' * 3}"
       OT.li "system: #{@sysinfo.platform} (#{RUBY_ENGINE} #{RUBY_VERSION} in #{OT.env})"

@@ -234,10 +234,6 @@ module V1
       end
     end
 
-    def email
-      @custid
-    end
-
     def role? guess
       role.to_s.eql?(guess.to_s)
     end
