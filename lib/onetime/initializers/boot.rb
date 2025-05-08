@@ -3,7 +3,7 @@
 require 'sysinfo'
 
 module Onetime
-  module Initializations
+  module Initializers
     @sysinfo = nil
     @conf = nil
 
