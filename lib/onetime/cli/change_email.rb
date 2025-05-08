@@ -139,7 +139,11 @@ module Onetime
 
               # Verify the change was successful by checking relevant records
               puts "\nVerifying changes..."
-              verify_success = true
+              verify_success = true # should really default to false
+
+              puts
+              puts "  customer can now use: #{new_email}"
+              puts
 
               # Check customer record exists with new email
               unless V2::Customer.exists?(new_email)

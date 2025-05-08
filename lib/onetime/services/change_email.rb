@@ -57,6 +57,8 @@ module Onetime
                    "   - customer:#{old_email}:object → customer:#{new_email}:object",
                    "   - customer:#{old_email}:custom_domain → customer:#{new_email}:custom_domain (if exists)",
                    "   - customer:#{old_email}:metadata → customer:#{new_email}:metadata (if exists)",
+                   "   - customer:#{old_email}:feature_flags → customer:#{new_email}:feature_flags (if exists)",
+                   "   - customer:#{old_email}:reset_secret → customer:#{new_email}:reset_secret (if exists)",
                    "3. Update customer in values sorted set (onetime:customer)"]
 
         # Add domain changes if any
@@ -74,6 +76,8 @@ module Onetime
             changes << "     Keys to update:"
             changes << "       - customdomain:#{old_id}:object → customdomain:#{new_id}:object"
             changes << "       - customdomain:#{old_id}:brand → customdomain:#{new_id}:brand (if exists)"
+            changes << "       - customdomain:#{old_id}:logo → customdomain:#{new_id}:logo (if exists)"
+            changes << "       - customdomain:#{old_id}:icon → customdomain:#{new_id}:icon (if exists)"
             changes << "     Update in customdomain:values sorted set"
             changes << "     Update in customdomain:display_domains hash"
             changes << "     Update in customdomain:owners hash (if exists)"
@@ -187,7 +191,7 @@ module Onetime
 
             # Update domain records if needed
             # This is called outside the multi block as it has its own multi block
-            # update_domains
+            # update_domains!
 
             # Rename customer keys
             log "Renaming customer keys"
@@ -218,7 +222,7 @@ module Onetime
           end
 
           # Update domain records if needed (has its own multi block)
-          update_domains if @domain_mappings.any?
+          update_domains! if @domain_mappings.any?
 
           log "EXECUTION: Email change completed successfully"
           return true
@@ -247,7 +251,7 @@ module Onetime
       #
       # Updates domain records in Redis
       # @private
-      def update_domains
+      def update_domains!
         redis = V2::CustomDomain.redis # Use CustomDomain's redis connection
 
         @domain_mappings.each do |old_domain_id, new_domain_id|
