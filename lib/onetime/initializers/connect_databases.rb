@@ -1,9 +1,9 @@
-# lib/helpers/database_helper.rb
+# lib/onetime/initializers/connect_databases.rb
 
 require_relative '../refinements/horreum_refinements'
 
 module Onetime
-  module DatabaseHelper
+  module Initializers
 
     using Familia::HorreumRefinements
 

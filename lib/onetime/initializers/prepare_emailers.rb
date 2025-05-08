@@ -1,7 +1,7 @@
-# lib/onetime/helpers/mail_helper.rb
+# lib/onetime/initializers/prepare_emailers.rb
 
 module Onetime
-  module MailHelper
+  module Initializers
     attr_reader :emailer
 
     # Prepares the emailer based on the configured mode.

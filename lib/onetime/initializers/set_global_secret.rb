@@ -1,7 +1,7 @@
-# lib/onetime/helpers/globals_helper.rb
+# lib/onetime/initializers/set_global_secret.rb
 
 module Onetime
-  module GlobalsHelper
+  module Initializers
     attr_reader :global_secret, :global_banner
 
     def set_global_secret

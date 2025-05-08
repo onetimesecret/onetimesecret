@@ -1,7 +1,7 @@
-# lib/onetime/helpers.rb
+# lib/onetime/initializers.rb
 
-require_relative 'helpers/globals_helper'
-require_relative 'helpers/locales_helper'
-require_relative 'helpers/database_helper'
-require_relative 'helpers/mail_helper'
-require_relative 'helpers/initialization_helper'
+require_relative 'initializers/boot'
+require_relative 'initializers/set_global_secret'
+require_relative 'initializers/load_locales'
+require_relative 'initializers/connect_databases'
+require_relative 'initializers/prepare_emailers'

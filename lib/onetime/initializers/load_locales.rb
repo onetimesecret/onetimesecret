@@ -1,9 +1,9 @@
-# lib/helpers/locales_helper.rb
+# lib/onetime/initializers/load_locales.rb
 
 require 'json'
 
 module Onetime
-  module LocalesHelper
+  module Initializers
     @i18n_enabled = false
 
     attr_reader :i18n_enabled, :locales, :supported_locales, :default_locale, :fallback_locale

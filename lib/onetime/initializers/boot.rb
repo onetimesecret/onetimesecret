@@ -1,9 +1,9 @@
-# lib/onetime/helpers/initialization_helper.rb
+# lib/onetime/initializers/boot.rb
 
 require 'sysinfo'
 
 module Onetime
-  module InitializationHelper
+  module Initializations
     @sysinfo = nil
     @conf = nil
 
@@ -73,7 +73,6 @@ module Onetime
       OT.ld e.backtrace.join("\n")
       exit 99 unless mode?(:cli)
     end
-
 
     # Prints a banner with information about the current environment
     # and configuration.
