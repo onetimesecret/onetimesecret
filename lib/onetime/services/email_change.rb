@@ -43,9 +43,8 @@ module Onetime
         @domains = domains || []
         @log_entries = []
         @domain_mappings = {}
-        # Use database 6 for operations as specified in the manual process
-        @redis = Familia.redis
-        @redis.select(6) unless Familia.redis_options[:db] == 6
+
+        # Redis instances are defined in the execution methods
       end
 
       # Generates a summary of changes that will be made during execution
@@ -147,7 +146,7 @@ module Onetime
           end
 
           # Check domain exists in display_domains
-          stored_id = @redis.hget("customdomain:display_domains", domain)
+          stored_id = V2::CustomDomain.redis.hget("customdomain:display_domains", domain)
           if stored_id != old_id
             raise "ERROR: Stored domain ID (#{stored_id}) does not match calculated ID (#{old_id})"
           end
@@ -171,38 +170,50 @@ module Onetime
       #
       # @return [Boolean] True if all operations succeeded, false if any errors occurred
       def execute!
+        # Get the redis connection via the model to make sure we're
+        # connected to the correct DB where customer records live.
+        redis = V2::Customer.redis
+
         log "EXECUTION: Starting email change process for #{old_email} -> #{new_email}"
-        log "Using Redis database #{@redis.connection[:db]}"
+        log "Using Redis database #{redis.connection[:db]}"
 
         begin
           # Update customer object fields
           log "Updating customer object fields"
-          @redis.hset("customer:#{old_email}:object", "custid", new_email)
-          @redis.hset("customer:#{old_email}:object", "key", new_email)
-          @redis.hset("customer:#{old_email}:object", "email", new_email)
+          redis.hset("customer:#{old_email}:object", "custid", new_email)
+          redis.hset("customer:#{old_email}:object", "key", new_email)
+          redis.hset("customer:#{old_email}:object", "email", new_email)
 
           # Update domain records if needed
           update_domains if @domain_mappings.any?
 
           # Rename customer keys
           log "Renaming customer keys"
-          @redis.rename("customer:#{old_email}:object", "customer:#{new_email}:object")
+          redis.rename("customer:#{old_email}:object", "customer:#{new_email}:object")
 
           # These keys might not exist for all customers, so check first
-          if @redis.exists?("customer:#{old_email}:custom_domain")
-            @redis.rename("customer:#{old_email}:custom_domain", "customer:#{new_email}:custom_domain")
+          if redis.exists?("customer:#{old_email}:custom_domain")
+            redis.rename("customer:#{old_email}:custom_domain", "customer:#{new_email}:custom_domain")
           end
 
-          if @redis.exists?("customer:#{old_email}:metadata")
-            @redis.rename("customer:#{old_email}:metadata", "customer:#{new_email}:metadata")
+          if redis.exists?("customer:#{old_email}:metadata")
+            redis.rename("customer:#{old_email}:metadata", "customer:#{new_email}:metadata")
+          end
+
+          if redis.exists?("customer:#{old_email}:feature_flags")
+            redis.rename("customer:#{old_email}:feature_flags", "customer:#{new_email}:feature_flags")
+          end
+
+          if redis.exists?("customer:#{old_email}:reset_secret")
+            redis.rename("customer:#{old_email}:reset_secret", "customer:#{new_email}:reset_secret")
           end
 
           # Update customer values list
           # Get score for the old email in the sorted set
-          score = @redis.zscore("onetime:customer", old_email)
+          score = redis.zscore("onetime:customer", old_email)
           if score
-            @redis.zadd("onetime:customer", score, new_email)
-            @redis.zrem("onetime:customer", old_email)
+            redis.zadd("onetime:customer", score, new_email)
+            redis.zrem("onetime:customer", old_email)
           end
 
           log "EXECUTION: Email change completed successfully"
@@ -229,40 +240,50 @@ module Onetime
         @domain_mappings.each do |old_domain_id, new_domain_id|
           log "Updating domain #{old_domain_id} -> #{new_domain_id}"
 
+          redis = V2::CustomDomain.redis
+
           # Update domain object fields
-          @redis.hset("customdomain:#{old_domain_id}:object", "custid", new_email)
-          @redis.hset("customdomain:#{old_domain_id}:object", "key", new_domain_id)
-          @redis.hset("customdomain:#{old_domain_id}:object", "domainid", new_domain_id)
+          redis.hset("customdomain:#{old_domain_id}:object", "custid", new_email)
+          redis.hset("customdomain:#{old_domain_id}:object", "key", new_domain_id)
+          redis.hset("customdomain:#{old_domain_id}:object", "domainid", new_domain_id)
 
           # Get domain score for later use
-          domain_score = @redis.zscore("customdomain:values", old_domain_id)
+          domain_score = redis.zscore("customdomain:values", old_domain_id)
           log "Domain score: #{domain_score}"
 
           # Check if brand key exists before renaming
-          if @redis.exists?("customdomain:#{old_domain_id}:brand")
-            @redis.rename("customdomain:#{old_domain_id}:brand", "customdomain:#{new_domain_id}:brand")
+          if redis.exists?("customdomain:#{old_domain_id}:brand")
+            redis.rename("customdomain:#{old_domain_id}:brand", "customdomain:#{new_domain_id}:brand")
+          end
+
+          if redis.exists?("customdomain:#{old_domain_id}:logo")
+            redis.rename("customdomain:#{old_domain_id}:logo", "customdomain:#{new_domain_id}:logo")
+          end
+
+          if redis.exists?("customdomain:#{old_domain_id}:icon")
+            redis.rename("customdomain:#{old_domain_id}:icon", "customdomain:#{new_domain_id}:icon")
           end
 
           # Rename object key
-          @redis.rename("customdomain:#{old_domain_id}:object", "customdomain:#{new_domain_id}:object")
+          redis.rename("customdomain:#{old_domain_id}:object", "customdomain:#{new_domain_id}:object")
 
           # Update sorted sets and hashes
-          @redis.zadd("customdomain:values", domain_score, new_domain_id)
-          @redis.zrem("customdomain:values", old_domain_id)
+          redis.zadd("customdomain:values", domain_score, new_domain_id)
+          redis.zrem("customdomain:values", old_domain_id)
 
           # Update display domains
           domain = domains.find { |d| d[:old_id] == old_domain_id }[:domain]
-          @redis.hset("customdomain:display_domains", domain, new_domain_id)
+          redis.hset("customdomain:display_domains", domain, new_domain_id)
 
           # Update the owners key if it exists
-          if @redis.hexists("customdomain:owners", old_domain_id)
-            @redis.hdel("customdomain:owners", old_domain_id)
-            @redis.hset("customdomain:owners", new_domain_id, new_email)
+          if redis.hexists("customdomain:owners", old_domain_id)
+            redis.hdel("customdomain:owners", old_domain_id)
+            redis.hset("customdomain:owners", new_domain_id, new_email)
           end
 
           # Update customer:domains mapping if it exists
-          if @redis.hexists("onetime:customers:domain", domain)
-            @redis.hset("onetime:customers:domain", domain, new_email)
+          if redis.hexists("onetime:customers:domain", domain)
+            redis.hset("onetime:customers:domain", domain, new_email)
           end
         end
       end
