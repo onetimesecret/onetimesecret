@@ -68,20 +68,23 @@ module Onetime
     # 3. Security warnings for dangerous configurations - alerts about potential vulnerabilities
     # 4. Configuration immutability - freezes config to prevent runtime modifications
     #
-    # @param conf [Hash] The loaded configuration hash
+    # @param raw_conf [Hash] The loaded, unprocessed configuration hash in raw form
     # @return [Hash] The processed configuration hash with defaults applied and security measures in place
-    def after_load(conf = nil) # rubocop:disable Metrics/MethodLength,Metrics/PerceivedComplexity
-      conf ||= {}
+    def after_load(raw_conf) # rubocop:disable Metrics/MethodLength,Metrics/PerceivedComplexity
+      # We check for settings in the frozen raw config where we can be sure that
+      # its values are directly from the actual config file -- without any
+      # normalization or other manipulation.
+      deep_freeze(raw_conf)
 
-      # SECURITY MEASURE #1: Deep Copy Protection
+      # SAFETY MEASURE: Deep Copy Protection
       # Create a deep copy of the configuration to prevent unintended mutations
       # This protects against side effects when multiple components access the same config
-      # Without this, modifications to the config in one component could affect others
-      conf = Marshal.load(Marshal.dump(conf))
+      # Without this, modifications to the config in one component could affect others.
+      conf = Marshal.load(Marshal.dump(raw_conf))
 
-      # SECURITY MEASURE #2: Validation and Default Security Settings
+      # SAFETY MEASURE: Validation and Default Security Settings
       # Ensure all critical security-related configurations exist
-      unless conf.key?(:experimental)
+      unless raw_conf.key?(:experimental)
         OT.ld "Setting an empty experimental config #{path}"
         conf[:experimental] = {
           allow_nil_global_secret: false, # Default to secure setting
@@ -89,20 +92,20 @@ module Onetime
         }
       end
 
-      unless conf.key?(:development)
+      unless raw_conf.key?(:development)
         raise OT::Problem, "No `development` config found in #{path}"
       end
 
-      unless conf.key?(:site)
+      unless raw_conf.key?(:site)
         raise OT::Problem, "No `site` config found in #{path}"
       end
 
-      unless conf[:site]&.key?(:secret)
+      unless raw_conf[:site]&.key?(:secret)
         OT.ld "No site.secret setting in #{path}"
         conf[:site][:secret] = nil
       end
 
-      # SECURITY MEASURE #2 (continued): Critical Secret Validation
+      # SAFETY MEASURE: Critical Secret Validation
       # Handle potential nil global secret
       # The global secret is critical for encrypting/decrypting secrets
       # Running without a global secret is only permitted in exceptional cases
@@ -117,7 +120,7 @@ module Onetime
           raise OT::Problem, "Global secret cannot be nil - set SECRET env var or site.secret in config"
         end
 
-        # SECURITY MEASURE #3: Security Warnings for Dangerous Configurations
+        # SAFETY MEASURE: Security Warnings for Dangerous Configurations
         # Security warning when proceeding with nil global secret
         # These warnings are prominently displayed to ensure administrators
         # understand the security implications of their configuration
@@ -143,7 +146,10 @@ module Onetime
       OT.ld "Setting TrueMail config from #{path}"
       raise OT::Problem, "No TrueMail config found" unless mtc
 
-      # Remove nil elements
+      # Remove nil elements that have inadvertently been set in
+      # the list of previously used global secrets. Happens easily
+      # when using environment vars in the config.yaml that aren't
+      # set or are set to an empty string.
       rotated_secrets = conf[:experimental].fetch(:rotated_secrets, []).compact
       conf[:experimental][:rotated_secrets] = rotated_secrets
 
