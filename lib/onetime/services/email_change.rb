@@ -146,9 +146,9 @@ module Onetime
           end
 
           # Check domain exists in display_domains
-          stored_id = V2::CustomDomain.redis.hget("customdomain:display_domains", domain)
-          if stored_id != old_id
-            raise "ERROR: For domain '#{domain}': domain ID in display_domains (#{stored_id}) does not match expected ID (#{old_id})"
+          display_domains_id = V2::CustomDomain.redis.hget("customdomain:display_domains", domain)
+          if !display_domains_id.to_s.empty? && display_domains_id != old_id
+            raise "ERROR: For domain '#{domain}': domain ID in display_domains (#{display_domains_id}) does not match expected ID (#{old_id})"
           end
 
           # Calculate new domain ID
@@ -301,8 +301,7 @@ module Onetime
         timestamp = Time.now.strftime("%Y-%m-%d %H:%M:%S")
         entry = "[#{timestamp}] #{message}"
         @log_entries << entry
-        OT.info "[EMAIL_CHANGE] #{message}"
-        puts entry if stdout
+        OT.info "[cli.change-email] #{message}" if stdout
       end
 
       # Generates a formatted report of all actions taken during the email change.
@@ -337,7 +336,7 @@ module Onetime
         report_key = "email_change:#{old_email}:#{new_email}:#{timestamp}"
 
         # Save to Redis DB 0 for audit logs
-        redis = Redis.new(Familia.redis_options.merge(db: 0))
+        redis = Familia.redis
         redis.set(report_key, report_text)
         redis.expire(report_key, 365 * 24 * 60 * 60) # 1 year TTL
 

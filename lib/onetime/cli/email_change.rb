@@ -12,7 +12,7 @@ module Onetime
       puts "=" * 50
 
       # Connect to Redis DB 0 where audit logs are stored
-      redis = Redis.new(Familia.redis_options.merge(db: 0))
+      redis = Familia.redis
 
       # Get keys matching the pattern
       pattern = email_filter ? "email_change:#{email_filter}:*" : "email_change:*"
@@ -153,7 +153,7 @@ module Onetime
                 domains.each_with_index do |domain_info, index|
                   domain = domain_info[:domain]
                   # Check display_domains mapping
-                  new_domain_id = Familia.redis.hget("customdomain:display_domains", domain)
+                  new_domain_id = V2::CustomDomain.redis.hget("customdomain:display_domains", domain)
                   calculated_id = [domain, new_email].gibbler.shorten
 
                   if new_domain_id == calculated_id
@@ -209,7 +209,7 @@ module Onetime
     # @param key [String] The Redis key for the report
     # @return [String, nil] The report text or nil if not found
     def get_email_change_report(key)
-      redis = Redis.new(Familia.redis_options.merge(db: 0))
+      redis = Familia.redis
       redis.get(key)
     end
   end
