@@ -35,10 +35,10 @@ module Onetime
       OT::Config.before_load
 
       # Loads the configuration and renders all value templates (ERB)
-      @conf = OT::Config.load
+      raw_conf = OT::Config.load
 
       # Normalize OT.conf
-      OT::Config.after_load(@conf)
+      @conf = OT::Config.after_load(raw_conf)
 
       Familia.uri = OT.conf[:redis][:uri]
       @sysinfo ||= SysInfo.new.freeze
@@ -53,7 +53,11 @@ module Onetime
       check_global_banner
       print_log_banner unless mode?(:test)
 
-      @conf # return the config
+      # Let's be clear about returning nil. Previously we returned @conf
+      # which is confusing since we set it to @conf above (i.e. if it's
+      # already available to the calling code, why provide another way
+      # to get it?).
+      nil
 
     rescue OT::Problem => e
       OT.le "Problem booting: #{e}"
