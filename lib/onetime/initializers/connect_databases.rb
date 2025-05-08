@@ -21,6 +21,8 @@ module Onetime
     # @return [void]
     #
     def connect_databases
+      Familia.uri = OT.conf[:redis][:uri]
+
       # Connect each model to its configured Redis database
       dbs = OT.conf.dig(:redis, :dbs)
 

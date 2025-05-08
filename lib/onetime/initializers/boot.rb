@@ -26,10 +26,17 @@ module Onetime
     #
     # NOTE: Should be called last in the list of onetime helpers.
     #
-    def boot!(mode = nil, db = true)
+    def boot!(mode = nil, connect_to_db = true)
       OT.mode = mode unless mode.nil?
       OT.env = ENV['RACK_ENV'] || 'production'
       OT.d9s_enabled = false # diagnostics are disabled by default
+
+      @sysinfo ||= SysInfo.new.freeze
+
+      # Sets a unique SHA hash every time this process starts. In a multi-
+      # threaded environment (e.g. with Puma), this could different for
+      # each thread.
+      @instance ||= [OT.sysinfo.hostname, OT.sysinfo.user, Process.pid, OT::VERSION.to_s, OT.now.to_i].gibbler.freeze
 
       # Normalize environment variables prior to loading the YAML config
       OT::Config.before_load
@@ -37,26 +44,24 @@ module Onetime
       # Loads the configuration and renders all value templates (ERB)
       raw_conf = OT::Config.load
 
-      # Normalize OT.conf
+      # Normalize the configruation and make it available to the rest
+      # of the initializers (via OT.conf).
       @conf = OT::Config.after_load(raw_conf)
-
-      Familia.uri = OT.conf[:redis][:uri]
-      @sysinfo ||= SysInfo.new.freeze
-      @instance ||= [OT.sysinfo.hostname, OT.sysinfo.user, $$, OT::VERSION.to_s, OT.now.to_i].gibbler.freeze
 
       load_locales
       set_global_secret
       prepare_emailers
       load_fortunes
       load_plans
-      connect_databases if db
+      connect_databases if connect_to_db
       check_global_banner
       print_log_banner unless mode?(:test)
 
-      # Let's be clear about returning nil. Previously we returned @conf
-      # which is confusing since we set it to @conf above (i.e. if it's
-      # already available to the calling code, why provide another way
-      # to get it?).
+      # Let's be clear about returning the prepared configruation. Previously
+      # we returned @conf here which was confusing because already made it
+      # available above. Now it is clear that the only way the rest of the
+      # code in the application has access to the processed configuration
+      # is from within this boot! method.
       nil
 
     rescue OT::Problem => e
