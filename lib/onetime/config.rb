@@ -10,25 +10,6 @@ module Onetime
     attr_reader :env, :base, :bootstrap
     attr_writer :path
 
-    # Recursively freezes an object and all its nested components
-    # to ensure complete immutability. This is a critical security
-    # measure that prevents any modification of configuration values
-    # after they've been loaded and validated, protecting against both
-    # accidental mutations and potential security exploits.
-    #
-    # @param obj [Object] The object to freeze
-    # @return [Object] The frozen object
-    # @security This ensures configuration values cannot be tampered with at runtime
-    def deep_freeze(obj)
-      case obj
-      when Hash
-        obj.each_value { |v| deep_freeze(v) }
-      when Array
-        obj.each { |v| deep_freeze(v) }
-      end
-      obj.freeze
-    end
-
     # Normalizes environment variables prior to loading and rendering the YAML
     # configuration. In some cases, this might include setting default values
     # and ensuring necessary environment variables are present.
@@ -392,6 +373,25 @@ module Onetime
       # `key` is a symbol. Returns a symbol.
       # If the key is not in the KEY_MAP, return the key itself.
       KEY_MAP[key] || key
+    end
+
+    # Recursively freezes an object and all its nested components
+    # to ensure complete immutability. This is a critical security
+    # measure that prevents any modification of configuration values
+    # after they've been loaded and validated, protecting against both
+    # accidental mutations and potential security exploits.
+    #
+    # @param obj [Object] The object to freeze
+    # @return [Object] The frozen object
+    # @security This ensures configuration values cannot be tampered with at runtime
+    def deep_freeze(obj)
+      case obj
+      when Hash
+        obj.each_value { |v| deep_freeze(v) }
+      when Array
+        obj.each { |v| deep_freeze(v) }
+      end
+      obj.freeze
     end
 
     # Merges section configurations with defaults

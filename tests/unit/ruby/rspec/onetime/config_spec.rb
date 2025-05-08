@@ -303,7 +303,7 @@ RSpec.describe Onetime::Config do
         }
 
         described_class.after_load(config)
-        require 'pry-byebug'; binding.pry;
+
         expect(OT.conf[:site][:authentication][:colonels]).to eq([])
       end
 
