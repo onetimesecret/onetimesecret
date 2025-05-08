@@ -58,12 +58,19 @@ loop do
       next
     end
 
+    if redis_key_identifier != record_identifier
+      puts "Mismatch #{key} (mismatched custid field: #{record_identifier})"
+      total_skipped += 1
+      cursor = "0"
+      break
+    end
+
     field_value = record_data[report_field.to_s]
     if field_value.to_s.empty?
       problem_customers << { id: record_identifier, key: key }
       next if dry_run
-      redis_client.hset(key, report_field.to_s, record_identifier)
       modified_count += 1
+      redis_client.hset(key, report_field.to_s, record_identifier)
     end
   end
 
