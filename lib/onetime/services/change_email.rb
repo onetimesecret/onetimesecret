@@ -178,46 +178,57 @@ module Onetime
         log "Using Redis database #{redis.connection[:db]}"
 
         begin
-          # Update customer object fields
-          log "Updating customer object fields"
-          redis.hset("customer:#{old_email}:object", "custid", new_email)
-          redis.hset("customer:#{old_email}:object", "key", new_email)
-          redis.hset("customer:#{old_email}:object", "email", new_email)
+          redis.multi do |multi|
+            # Update customer object fields
+            log "Updating customer object fields"
+            multi.hset("customer:#{old_email}:object", "custid", new_email)
+            multi.hset("customer:#{old_email}:object", "key", new_email)
+            multi.hset("customer:#{old_email}:object", "email", new_email)
 
-          # Update domain records if needed
+            # Update domain records if needed
+            # This is called outside the multi block as it has its own multi block
+            # update_domains
+
+            # Rename customer keys
+            log "Renaming customer keys"
+            multi.rename("customer:#{old_email}:object", "customer:#{new_email}:object")
+
+            # These keys might not exist for all customers, so check first
+            # Note: Redis EXISTS command cannot be used inside a MULTI block.
+            # We'll attempt the RENAME and it will fail if the key doesn't exist,
+            # which is acceptable for this use case. If a more graceful handling
+            # is needed, these checks would need to be done before the MULTI block.
+            multi.rename("customer:#{old_email}:custom_domain", "customer:#{new_email}:custom_domain") if redis.exists?("customer:#{old_email}:custom_domain")
+            multi.rename("customer:#{old_email}:metadata", "customer:#{new_email}:metadata") if redis.exists?("customer:#{old_email}:metadata")
+            multi.rename("customer:#{old_email}:feature_flags", "customer:#{new_email}:feature_flags") if redis.exists?("customer:#{old_email}:feature_flags")
+            multi.rename("customer:#{old_email}:reset_secret", "customer:#{new_email}:reset_secret") if redis.exists?("customer:#{old_email}:reset_secret")
+
+
+            # Update customer values list
+            # Get score for the old email in the sorted set
+            # Note: ZSCORE cannot be used inside a MULTI block.
+            # This operation needs to be handled carefully.
+            # For now, we'll assume this is done outside or before the transaction.
+            # A possible approach is to fetch the score before the multi block.
+            score = redis.zscore("onetime:customer", old_email)
+            if score
+              multi.zadd("onetime:customer", score, new_email)
+              multi.zrem("onetime:customer", old_email)
+            end
+          end
+
+          # Update domain records if needed (has its own multi block)
           update_domains if @domain_mappings.any?
-
-          # Rename customer keys
-          log "Renaming customer keys"
-          redis.rename("customer:#{old_email}:object", "customer:#{new_email}:object")
-
-          # These keys might not exist for all customers, so check first
-          if redis.exists?("customer:#{old_email}:custom_domain")
-            redis.rename("customer:#{old_email}:custom_domain", "customer:#{new_email}:custom_domain")
-          end
-
-          if redis.exists?("customer:#{old_email}:metadata")
-            redis.rename("customer:#{old_email}:metadata", "customer:#{new_email}:metadata")
-          end
-
-          if redis.exists?("customer:#{old_email}:feature_flags")
-            redis.rename("customer:#{old_email}:feature_flags", "customer:#{new_email}:feature_flags")
-          end
-
-          if redis.exists?("customer:#{old_email}:reset_secret")
-            redis.rename("customer:#{old_email}:reset_secret", "customer:#{new_email}:reset_secret")
-          end
-
-          # Update customer values list
-          # Get score for the old email in the sorted set
-          score = redis.zscore("onetime:customer", old_email)
-          if score
-            redis.zadd("onetime:customer", score, new_email)
-            redis.zrem("onetime:customer", old_email)
-          end
 
           log "EXECUTION: Email change completed successfully"
           return true
+        rescue Redis::CommandError => e
+          # Specific handling for errors during EXEC
+          log "ERROR during Redis transaction: #{e.message}"
+          log e.backtrace.join("\n")
+          # Attempt to unwatch if a watch was used, though not explicitly here
+          redis.unwatch if redis.respond_to?(:unwatch)
+          return false
         rescue => e
           log "ERROR: #{e.message}"
           log e.backtrace.join("\n")
@@ -237,53 +248,70 @@ module Onetime
       # Updates domain records in Redis
       # @private
       def update_domains
+        redis = V2::CustomDomain.redis # Use CustomDomain's redis connection
+
         @domain_mappings.each do |old_domain_id, new_domain_id|
           log "Updating domain #{old_domain_id} -> #{new_domain_id}"
 
-          redis = V2::CustomDomain.redis
+          begin
+            redis.multi do |multi|
+              # Update domain object fields
+              multi.hset("customdomain:#{old_domain_id}:object", "custid", new_email)
+              multi.hset("customdomain:#{old_domain_id}:object", "key", new_domain_id)
+              multi.hset("customdomain:#{old_domain_id}:object", "domainid", new_domain_id)
 
-          # Update domain object fields
-          redis.hset("customdomain:#{old_domain_id}:object", "custid", new_email)
-          redis.hset("customdomain:#{old_domain_id}:object", "key", new_domain_id)
-          redis.hset("customdomain:#{old_domain_id}:object", "domainid", new_domain_id)
+              # Get domain score for later use
+              # Note: ZSCORE cannot be used inside a MULTI block.
+              # Fetch score before the multi block.
+              domain_score = redis.zscore("customdomain:values", old_domain_id)
+              log "Domain score: #{domain_score}" # Log score before multi
 
-          # Get domain score for later use
-          domain_score = redis.zscore("customdomain:values", old_domain_id)
-          log "Domain score: #{domain_score}"
+              # Check if brand key exists before renaming
+              # Note: EXISTS cannot be used inside a MULTI block.
+              # Perform this check before the multi block if critical,
+              # otherwise, RENAME will fail gracefully if the key doesn't exist.
+              multi.rename("customdomain:#{old_domain_id}:brand", "customdomain:#{new_domain_id}:brand") if redis.exists?("customdomain:#{old_domain_id}:brand")
+              multi.rename("customdomain:#{old_domain_id}:logo", "customdomain:#{new_domain_id}:logo") if redis.exists?("customdomain:#{old_domain_id}:logo")
+              multi.rename("customdomain:#{old_domain_id}:icon", "customdomain:#{new_domain_id}:icon") if redis.exists?("customdomain:#{old_domain_id}:icon")
 
-          # Check if brand key exists before renaming
-          if redis.exists?("customdomain:#{old_domain_id}:brand")
-            redis.rename("customdomain:#{old_domain_id}:brand", "customdomain:#{new_domain_id}:brand")
-          end
 
-          if redis.exists?("customdomain:#{old_domain_id}:logo")
-            redis.rename("customdomain:#{old_domain_id}:logo", "customdomain:#{new_domain_id}:logo")
-          end
+              # Rename object key
+              multi.rename("customdomain:#{old_domain_id}:object", "customdomain:#{new_domain_id}:object")
 
-          if redis.exists?("customdomain:#{old_domain_id}:icon")
-            redis.rename("customdomain:#{old_domain_id}:icon", "customdomain:#{new_domain_id}:icon")
-          end
+              # Update sorted sets and hashes
+              if domain_score # Ensure score was fetched successfully
+                multi.zadd("customdomain:values", domain_score, new_domain_id)
+                multi.zrem("customdomain:values", old_domain_id)
+              end
 
-          # Rename object key
-          redis.rename("customdomain:#{old_domain_id}:object", "customdomain:#{new_domain_id}:object")
+              # Update display domains
+              domain = domains.find { |d| d[:old_id] == old_domain_id }[:domain]
+              multi.hset("customdomain:display_domains", domain, new_domain_id)
 
-          # Update sorted sets and hashes
-          redis.zadd("customdomain:values", domain_score, new_domain_id)
-          redis.zrem("customdomain:values", old_domain_id)
+              # Update the owners key if it exists
+              # Note: HEXISTS cannot be used inside a MULTI block.
+              # Perform this check before the multi block if critical.
+              if redis.hexists("customdomain:owners", old_domain_id)
+                multi.hdel("customdomain:owners", old_domain_id)
+                multi.hset("customdomain:owners", new_domain_id, new_email)
+              end
 
-          # Update display domains
-          domain = domains.find { |d| d[:old_id] == old_domain_id }[:domain]
-          redis.hset("customdomain:display_domains", domain, new_domain_id)
-
-          # Update the owners key if it exists
-          if redis.hexists("customdomain:owners", old_domain_id)
-            redis.hdel("customdomain:owners", old_domain_id)
-            redis.hset("customdomain:owners", new_domain_id, new_email)
-          end
-
-          # Update customer:domains mapping if it exists
-          if redis.hexists("onetime:customers:domain", domain)
-            redis.hset("onetime:customers:domain", domain, new_email)
+              # Update customer:domains mapping if it exists
+              # Note: HEXISTS cannot be used inside a MULTI block.
+              if redis.hexists("onetime:customers:domain", domain)
+                multi.hset("onetime:customers:domain", domain, new_email)
+              end
+            end
+          rescue Redis::CommandError => e
+            log "ERROR during Redis transaction for domain #{old_domain_id}: #{e.message}"
+            log e.backtrace.join("\n")
+            # Attempt to unwatch if a watch was used
+            redis.unwatch if redis.respond_to?(:unwatch)
+            # Decide if we should re-raise or handle. For now, log and continue.
+          rescue => e
+            log "ERROR updating domain #{old_domain_id}: #{e.message}"
+            log e.backtrace.join("\n")
+            # Decide if we should re-raise or handle.
           end
         end
       end

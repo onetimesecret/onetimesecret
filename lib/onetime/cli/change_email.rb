@@ -175,16 +175,6 @@ module Onetime
               # Save report to Redis for permanent audit trail
               report_key = service.save_report_to_redis
 
-              # Also save report to file for convenience
-              report_file = "change_email_#{old_email}_to_#{new_email}_#{Time.now.strftime('%Y%m%d%H%M%S')}.log"
-              log_dir = File.join(Onetime::HOME, 'log')
-
-              if File.exist?(log_dir)
-                log_path = File.join(log_dir, report_file)
-                File.write(log_path, service.generate_report)
-                puts "Report also saved to file: #{log_path}"
-              end
-
               puts "Email change completed and logged to Redis with key: #{report_key}"
             else
               puts "\nEmail change failed. See log for details."
