@@ -90,6 +90,12 @@ class OT::CLI::Definition
   about "  automatically detected and updated."
   about ""
   command change_email: OT::CLI
+
+  usage "ots view-email-changes [EMAIL] [--verbose] [--limit N]"
+  about "View history of email address changes"
+  option :v, :verbose, "Display full change reports"
+  option :n, :limit, Integer, "Limit number of reports to show (default: 10)"
+  command view_email_changes: OT::CLI
 end
 
 begin

@@ -2,6 +2,55 @@
 
 module Onetime
   class CLI < Drydock::Command
+    # CLI command to view email change reports
+    def view_email_changes
+      # Default limit is 10 reports, can be overridden with --limit or -n option
+      limit = option.limit || 10
+      email_filter = argv.first
+
+      puts "Viewing recent email change reports#{email_filter ? " for #{email_filter}" : ""} (limit: #{limit})"
+      puts "=" * 50
+
+      # Connect to Redis DB 0 where audit logs are stored
+      redis = Redis.new(Familia.redis_options.merge(db: 0))
+
+      # Get keys matching the pattern
+      pattern = email_filter ? "email_change:#{email_filter}:*" : "email_change:*"
+      keys = redis.keys(pattern).sort_by { |k| k.split(':').last.to_i }.reverse.first(limit.to_i)
+
+      if keys.empty?
+        puts "No email change reports found#{email_filter ? " for #{email_filter}" : ""}."
+        return
+      end
+
+      keys.each_with_index do |key, idx|
+        parts = key.split(':')
+        old_email = parts[1]
+        new_email = parts[2]
+        timestamp = Time.at(parts[3].to_i)
+
+        puts "#{idx+1}. #{old_email} → #{new_email} (#{timestamp.strftime('%Y-%m-%d %H:%M:%S')})"
+
+        if option.verbose
+          # Show full report in verbose mode
+          report = redis.get(key)
+          if report
+            puts "-" * 40
+            puts report
+            puts "-" * 40
+          else
+            puts "  Report data not available"
+          end
+        end
+      end
+
+      # Provide instructions for viewing specific reports
+      unless option.verbose
+        puts "\nTo view a specific report in full:"
+        puts "  ots view-email-changes --verbose OLDEMAIL"
+      end
+    end
+
     # CLI command implementation for changing customer email addresses.
     #
     # This command provides an interactive interface for the email address change process,
@@ -50,10 +99,10 @@ module Onetime
         custom_domains = customer.custom_domains_list
         if custom_domains.any?
           puts "Found #{custom_domains.size} domain(s) associated with customer:"
-          custom_domains.each do |domain|
+          custom_domains.each_with_index do |domain, index|
             display_domain = domain.display_domain
             old_id = domain.identifier
-            puts "  - #{display_domain} (ID: #{old_id})"
+            puts "  #{index+1}. #{display_domain} (ID: #{old_id})"
             domains << {domain: display_domain, old_id: old_id}
           end
         else
@@ -61,6 +110,7 @@ module Onetime
         end
       rescue => e
         puts "Warning: Error detecting custom domains: #{e.message}"
+        puts e.backtrace.join("\n") if OT.debug?
       end
 
       # Initialize the email change service
@@ -99,29 +149,43 @@ module Onetime
 
               # Check domains were migrated properly
               if domains.any?
-                domains.each do |domain_info|
+                puts "Checking domain mappings:"
+                domains.each_with_index do |domain_info, index|
                   domain = domain_info[:domain]
                   # Check display_domains mapping
                   new_domain_id = Familia.redis.hget("customdomain:display_domains", domain)
                   calculated_id = [domain, new_email].gibbler.shorten
-                  unless new_domain_id == calculated_id
-                    puts "ERROR: Domain #{domain} mapping is incorrect: #{new_domain_id} (expected: #{calculated_id})"
+
+                  if new_domain_id == calculated_id
+                    puts "  ✓ Domain #{index+1}: #{domain} correctly mapped to #{new_domain_id}"
+                  else
+                    puts "  ✗ Domain #{index+1}: #{domain} incorrectly mapped to #{new_domain_id} (expected: #{calculated_id})"
                     verify_success = false
                   end
                 end
               end
 
-              puts verify_success ? "Verification successful! All records updated properly." : "Verification failed! Some records may not be properly updated."
+              if verify_success
+                puts "\n✅ Verification successful! All records updated properly."
+              else
+                puts "\n❌ Verification failed! Some records may not be properly updated."
+                puts "   This may indicate an issue with the update process."
+              end
 
-              # Save report to file
+              # Save report to Redis for permanent audit trail
+              report_key = service.save_report_to_redis
+
+              # Also save report to file for convenience
               report_file = "email_change_#{old_email}_to_#{new_email}_#{Time.now.strftime('%Y%m%d%H%M%S')}.log"
-
-              # Write report to log directory if it exists
               log_dir = File.join(Onetime::HOME, 'log')
-              log_path = File.exist?(log_dir) ? File.join(log_dir, report_file) : report_file
 
-              File.write(log_path, service.generate_report)
-              puts "Report saved to #{log_path}"
+              if File.exist?(log_dir)
+                log_path = File.join(log_dir, report_file)
+                File.write(log_path, service.generate_report)
+                puts "Report also saved to file: #{log_path}"
+              end
+
+              puts "Email change completed and logged to Redis with key: #{report_key}"
             else
               puts "\nEmail change failed. See log for details."
               exit 1
@@ -132,9 +196,21 @@ module Onetime
         end
       rescue => e
         # Handle validation and execution errors with descriptive messages
-        puts "Error during validation: #{e.message}"
+        puts "Error during operation: #{e.message}"
+        puts "Check the domain IDs carefully. If there's a mismatch between stored and calculated IDs,"
+        puts "this may indicate data corruption or manual changes to Redis keys."
+
+        puts e.backtrace.join("\n") if OT.debug?
         exit 1
       end
+    end
+
+    # Helper method to fetch a specific email change report from Redis
+    # @param key [String] The Redis key for the report
+    # @return [String, nil] The report text or nil if not found
+    def get_email_change_report(key)
+      redis = Redis.new(Familia.redis_options.merge(db: 0))
+      redis.get(key)
     end
   end
 end
