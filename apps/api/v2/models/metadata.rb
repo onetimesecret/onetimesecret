@@ -164,11 +164,11 @@ module V2
       OT.info "[deliver-by-email3] #{cust.obscure_email} #{secret.key} (#{eaddrs_safe.size}) #{eaddrs_safe_str}"
       self.recipients! eaddrs_safe_str
 
-      OT.ld "SECRET HAS MORE THAN ONE RECIPIENT #{eaddrs.size}" if eaddrs.size > 1
+      OT.lw "SECRET HAS MORE THAN ONE RECIPIENT #{eaddrs.size}" if eaddrs.size > 1
       eaddrs.each do |email_address|
         view = template.new cust, locale, secret, email_address
         view.ticketno = ticketno if (ticketno)
-        view.emailer.reply_to = cust.custid
+        view.emailer.reply_to = cust.email
         view.deliver_email self.token  # pass the token from spawn_pair through
         break # force just a single recipient
       end

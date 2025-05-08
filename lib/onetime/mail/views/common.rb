@@ -30,17 +30,20 @@ module Onetime
 
         self[:secret] = secret
         self[:custid] = cust.custid
+        self[:sender_email] = cust.email
         self[:email_address] = recipient
         self[:from_name] = OT.conf[:emailer][:fromname]
         self[:from] = OT.conf[:emailer][:from]
         self[:signature_link] = 'https://onetimesecret.com/'
       end
       def subject
-        i18n[:email][:subject] % [self[:custid]] # e.g. "ABC" sent you a secret
+        i18n[:email][:subject] % [self[:sender_email]] # e.g. "ABC" sent you a secret
       end
+
       def display_domain
         secret_display_domain self[:secret]
       end
+
       def uri_path
         raise ArgumentError, "Invalid secret key" unless self[:secret]&.key
         secret_uri self[:secret]
