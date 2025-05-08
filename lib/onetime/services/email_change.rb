@@ -2,15 +2,40 @@
 
 module Onetime
   module Services
-    # Service to handle customer email address changes
-    # This handles updating Redis keys and relationships
+    # Service class for managing customer email address changes.
+    #
+    # This service handles the complex process of changing a customer's email address,
+    # which involves updating multiple Redis keys and maintaining relationships
+    # between customers and their custom domains.
+    #
+    # When changing an email address, all of the following need to be updated:
+    # 1. Customer record fields (custid, key, email)
+    # 2. Redis keys associated with the customer (object, custom_domain, metadata)
+    # 3. Custom domain relationships and IDs which are derived from email addresses
+    # 4. References in sorted sets and hashes (onetime:customer, customdomain:values, etc.)
+    #
+    # @example Basic usage
+    #   service = Onetime::Services::EmailChange.new('old@example.com', 'new@example.com', 'US')
+    #   service.validate!
+    #   service.execute!
+    #
+    # @example With custom domains
+    #   domains = [{domain: 'example.com', old_id: 'abc123def'}]
+    #   service = Onetime::Services::EmailChange.new('old@example.com', 'new@example.com', 'US', domains)
+    #   service.validate!
+    #   service.execute!
     class EmailChange
       attr_reader :old_email, :new_email, :realm, :domains, :log_entries
 
-      # @param old_email [String] The current email address
+      # Initializes the email change service with the necessary information.
+      #
+      # @param old_email [String] The current email address of the customer
       # @param new_email [String] The new email address to change to
-      # @param realm [String] Geographic region (US/EU/CA/NZ)
+      # @param realm [String] Geographic region (US/EU/CA/NZ) for auditing purposes
       # @param domains [Array<Hash>] Array of domain hashes with :domain and :old_id keys
+      #   Each hash should contain:
+      #   - :domain [String] The domain name (e.g., 'example.com')
+      #   - :old_id [String] The current domain ID derived from [domain, old_email]
       def initialize(old_email, new_email, realm, domains = [])
         @old_email = old_email
         @new_email = new_email
@@ -21,9 +46,18 @@ module Onetime
         @redis = Familia.redis
       end
 
-      # Validates all inputs and domain relationships before making changes
-      # @return [Boolean] True if validation passes
-      # @raise [RuntimeError] If validation fails
+      # Validates all inputs and domain relationships before making changes.
+      #
+      # Performs the following validations:
+      # 1. Verifies the old email exists in the system
+      # 2. Verifies the new email doesn't already exist
+      # 3. For each domain, validates:
+      #    - The domain format is valid
+      #    - The provided old domain ID matches calculated ID
+      #    - The domain exists in customdomain:display_domains
+      #
+      # @return [Boolean] True if all validations pass
+      # @raise [RuntimeError] If any validation fails, with a descriptive error message
       def validate!
         log "VALIDATION: Starting validation checks"
 
@@ -48,7 +82,15 @@ module Onetime
         true
       end
 
-      # Validates all domain relationships
+      # Validates all domain relationships and generates new domain IDs.
+      #
+      # For each domain in the domains array:
+      # 1. Verifies domain format
+      # 2. Checks if calculated old domain ID matches provided ID
+      # 3. Verifies domain exists in display_domains with correct ID
+      # 4. Calculates new domain ID based on new email
+      # 5. Stores mapping from old ID to new ID for later update
+      #
       # @private
       def validate_domains
         domains.each do |domain_info|
@@ -79,8 +121,17 @@ module Onetime
         end
       end
 
-      # Executes the email change process
-      # @return [Boolean] True if all operations succeeded
+      # Executes the email change process by updating all related Redis keys.
+      #
+      # This process:
+      # 1. Updates customer object fields (custid, key, email)
+      # 2. Updates custom domain records if any exist
+      # 3. Renames all Redis keys associated with the customer
+      # 4. Updates the customer in the customer values sorted set
+      #
+      # All operations are logged for audit purposes.
+      #
+      # @return [Boolean] True if all operations succeeded, false if any errors occurred
       def execute!
         log "EXECUTION: Starting email change process for #{old_email} -> #{new_email}"
 
@@ -124,7 +175,15 @@ module Onetime
         end
       end
 
-      # Updates domain records in Redis
+      # Updates all domain records in Redis with the new email and IDs.
+      #
+      # For each domain mapping:
+      # 1. Updates domain object fields (custid, key, domainid)
+      # 2. Renames domain keys (brand, object)
+      # 3. Updates domain in sorted sets and hashes
+      # 4. Updates domain display mappings
+      # 5. Updates domain ownership records
+      #
       # @private
       def update_domains
         @domain_mappings.each do |old_domain_id, new_domain_id|
@@ -163,7 +222,13 @@ module Onetime
         end
       end
 
-      # Logs a message to the internal log and stdout
+      # Logs a message to the internal log and stdout with timestamp.
+      #
+      # Each log message is:
+      # 1. Added to the internal log entries array for the final report
+      # 2. Logged to the OT info log with [EMAIL_CHANGE] prefix
+      # 3. Printed to stdout for real-time feedback
+      #
       # @param message [String] The message to log
       def log(message)
         timestamp = Time.now.strftime("%Y-%m-%d %H:%M:%S")
@@ -173,8 +238,16 @@ module Onetime
         puts entry
       end
 
-      # Generates a report of all actions taken
-      # @return [String] The formatted report
+      # Generates a formatted report of all actions taken during the email change.
+      #
+      # The report includes:
+      # 1. A header with old and new emails, realm, and affected domains
+      # 2. A chronological log of all operations performed
+      # 3. Timestamp and status information for each action
+      #
+      # This report is typically written to a log file for audit purposes.
+      #
+      # @return [String] The formatted report as a single string
       def generate_report
         report = ["EMAIL CHANGE REPORT",
                   "=====================",

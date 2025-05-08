@@ -96,7 +96,6 @@ module Onetime
         OT.li "!" * 50
       end
 
-
       unless conf.key?(:mail)
         raise OT::Problem, "No `mail` config found in #{path}"
       end

@@ -1,9 +1,19 @@
 # lib/onetime/cli/email_change.rb
 
 module Onetime
-  class CLI
-    # Command to change customer email addresses
-    def change_email
+  class CLI < Drydock::Command
+    # CLI command implementation for changing customer email addresses.
+    #
+    # This command provides an interactive interface for the email address change process,
+    # handling validation, confirmation, execution and reporting. It interfaces with the
+    # EmailChange service which performs the actual data updates.
+    #
+    # The command supports changing a customer's email address with or without associated
+    # custom domains. When domains are involved, it automatically calculates the required
+    # ID changes.
+    #
+    # @see Onetime::Services::EmailChange
+    def change_email # rubocop:disable Metrics/MethodLength
       if argv.length < 2
         puts "Usage: ots change-email OLD_EMAIL NEW_EMAIL [REALM] [DOMAIN OLD_ID]..."
         puts "  Change a customer's email address and update related records."
@@ -37,11 +47,13 @@ module Onetime
         end
       end
 
-      # Initialize service
+      # Initialize the email change service
+      # This service handles all validation and execution logic for email changes
       require_relative '../services/email_change'
       service = Onetime::Services::EmailChange.new(old_email, new_email, realm, domains)
 
-      # First validate
+      # Validate all inputs and domain relationships before executing changes
+      # This ensures we catch any issues before modifying data
       begin
         if service.validate!
           puts "Validation passed. Ready to execute changes."
@@ -52,10 +64,12 @@ module Onetime
             if service.execute!
               puts "\nEmail change completed successfully."
 
-              # Save report to file
+              # Generate and save detailed audit report to a log file
+              # This provides a permanent record of the change for compliance
               report_file = "email_change_#{old_email}_to_#{new_email}_#{Time.now.strftime('%Y%m%d%H%M%S')}.log"
 
-              # Write report to log directory if it exists
+              # Write report to the application log directory if it exists,
+              # otherwise write to the current directory
               log_dir = File.join(Onetime::HOME, 'log')
               log_path = File.exist?(log_dir) ? File.join(log_dir, report_file) : report_file
 
@@ -70,6 +84,7 @@ module Onetime
           end
         end
       rescue => e
+        # Handle validation and execution errors with descriptive messages
         puts "Error during validation: #{e.message}"
         exit 1
       end
