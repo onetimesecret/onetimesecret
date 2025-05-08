@@ -303,8 +303,8 @@ RSpec.describe Onetime::Config do
         }
 
         described_class.after_load(config)
-
-        expect(config[:site][:authentication][:colonels]).to eq([])
+        require 'pry-byebug'; binding.pry;
+        expect(OT.conf[:site][:authentication][:colonels]).to eq([])
       end
 
       it 'raises heck when site is nil' do
@@ -365,7 +365,6 @@ RSpec.describe Onetime::Config do
       it 'sets authentication colonels to false when authentication is disabled' do
         # Config with authentication disabled
         config = {
-          colonels: ['root@example.com', 'admin@example.com'],
           site: {
             secret: 'notnil',
             authentication: {
