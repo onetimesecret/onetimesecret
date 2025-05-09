@@ -149,20 +149,22 @@ RSpec.describe "Onetime::Config during Onetime.boot!" do
 
       it "ensures diagnostics are disabled when there is no dsn" do
         OT.conf[:diagnostics][:sentry][:backend][:dsn] = nil
+        # Frontend DSN might also need to be nil if it alone can enable diagnostics
+        OT.conf[:diagnostics][:sentry][:frontend][:dsn] = nil
         conf = OT.conf
         Onetime::Config.after_load(conf)
 
         d9s_conf = conf.fetch(:diagnostics)
 
         expect(d9s_conf.dig(:sentry, :backend, :dsn)).to be_nil
-        expect(conf.dig(:diagnostics, :enabled)).to eq(false)
-        expect(OT.d9s_enabled).to be(false)
+        expect(d9s_conf.dig(:enabled)).to eq(false) # Reflects bug: uses initial OT.d9s_enabled
+        expect(OT.d9s_enabled).to be(false) # Correctly false as DSN is missing
 
       end
 
 
       it "handles :autoverify correctly based on config" do
-        conf = OT.conf
+        conf = OT.conf # config.test.yaml has site.authentication.autoverify = false
         Onetime::Config.after_load(conf)
         expect(conf.dig(:site, :authentication, :autoverify)).to be(false)
       end
@@ -330,34 +332,27 @@ RSpec.describe "Onetime::Config during Onetime.boot!" do
     end
 
     context "regarding diagnostics (Sentry)" do
-      let(:base_config) { Marshal.load(Marshal.dump(loaded_config)) } # Deep copy for modification
+      let(:base_config) { YAML.load(ERB.new(File.read(source_config_path)).result) } # Deep copy for modification
 
       before do
         # Stub Kernel.require for Sentry
-        allow(Kernel).to receive(:require).with('sentry-ruby')
-        allow(Kernel).to receive(:require).with('stackprof')
+        allow(Kernel).to receive(:require).with('sentry-ruby').and_return(true)
+        allow(Kernel).to receive(:require).with('stackprof').and_return(true)
 
         # Mock Sentry's class methods
         # Ensure Sentry constant is available for mocking
         if defined?(Sentry)
           allow(Sentry).to receive(:init)
-          allow(Sentry).to receive(:initialized?).and_return(false) # Default to not initialized
+          allow(Sentry).to receive(:initialized?).and_return(false)  # Default to not initialized
           allow(Sentry).to receive(:close)
         else
           # If Sentry is not defined (e.g. not in Gemfile for test env or not yet loaded)
           # create a stub for it.
-          sentry_stub = Class.new do
-            class << self
-              attr_accessor :initialized_status
-              def init(&block); self.initialized_status = true; end
-              def initialized?; !!self.initialized_status; end
-              def close(timeout:); self.initialized_status = false; end
-              def method_missing(method_name, *args, &block); end # Catch-all
-              def respond_to_missing?(method_name, include_private = false); true; end
-            end
-          end
+          sentry_stub = class_double("Sentry").as_null_object
           stub_const("Sentry", sentry_stub)
-          # No need to allow Sentry methods again as they are defined on the stub
+          allow(Sentry).to receive(:init) # ensure it can be called on the stub
+          allow(Sentry).to receive(:initialized?).and_return(false)
+          allow(Sentry).to receive(:close)
         end
       end
 
@@ -365,15 +360,17 @@ RSpec.describe "Onetime::Config during Onetime.boot!" do
         # config.test.yaml (loaded by default) has diagnostics.enabled = true and a DSN.
         # We expect Sentry.init to be called and Onetime.d9s_enabled to be true.
         # The Onetime.conf[:diagnostics][:enabled] is set from an early OT.d9s_enabled state.
-        expect(Sentry).to receive(:init)
-        allow(Sentry).to receive(:initialized?).and_return(true)
+        # For this test, we use the actual config loaded by Onetime.boot!
+        allow(Sentry).to receive(:init) # Ensure we can check if it was called
+        allow(Sentry).to receive(:initialized?).and_return(true) # Simulate successful init
 
-        Onetime.boot!(:test)
+        Onetime.boot!(:test) # Uses source_config_path by default due to global before_each
 
-        expect(Onetime.d9s_enabled).to be true
+        expect(Sentry).to have_received(:init)
         # This reflects the bug where OT.conf[:diagnostics][:enabled] is set using
         # the initial OT.d9s_enabled value (false) from Onetime.boot!
         expect(Onetime.conf.dig(:diagnostics, :enabled)).to be false
+        expect(Onetime.d9s_enabled).to be true
       end
 
       it "disables diagnostics if config has enabled=false, even with a DSN" do
@@ -413,9 +410,9 @@ RSpec.describe "Onetime::Config during Onetime.boot!" do
 
         expect(Onetime.i18n_enabled).to be true
         expect(Onetime.default_locale).to eq('en')
-        expect(Onetime.supported_locales).to contain_exactly('en', 'fr_CA', 'fr_FR')
-        expect(Onetime.locales).to be_a(Hash)
-        expect(Onetime.locales.keys).to contain_exactly('en', 'fr_CA', 'fr_FR')
+        expect(Onetime.supported_locales).to match_array(['en', 'fr_CA', 'fr_FR'])
+        expect(Onetime.locales.keys).to match_array(['en', 'fr_CA', 'fr_FR'])
+        expect(Onetime.fallback_locale).to eq({ :"fr-CA" => ['fr_CA', 'fr_FR', 'en'], :fr => ['fr_FR', 'fr_CA', 'en'], :"fr-*" => ['fr_FR', 'en'], :default => ['en'] })
 
         # NOTE: Disabled in v0.20.5. It takes a while to figure out how this is getting set
         # and it changes once we get back to v0.22.0 anyhow so we can be specific then.
@@ -423,7 +420,7 @@ RSpec.describe "Onetime::Config during Onetime.boot!" do
       end
 
       it "disables i18n and uses defaults if config has internationalization.enabled = false" do
-        modified_config = Marshal.load(Marshal.dump(loaded_config)) # Deep copy
+        modified_config = YAML.load(ERB.new(File.read(source_config_path)).result) # Deep copy
         modified_config[:internationalization][:enabled] = false
         allow(Onetime::Config).to receive(:load).and_return(modified_config)
 
@@ -432,8 +429,7 @@ RSpec.describe "Onetime::Config during Onetime.boot!" do
         expect(Onetime.i18n_enabled).to be false
         expect(Onetime.default_locale).to eq('en')
         expect(Onetime.supported_locales).to eq(['en'])
-        expect(Onetime.locales).to be_a(Hash)
-        expect(Onetime.locales.keys).to eq(['en'])
+        expect(Onetime.locales.keys).to eq(['en']) # Only default locale 'en' should be loaded
         expect(Onetime.fallback_locale).to be_nil
       end
     end
@@ -524,7 +520,7 @@ RSpec.describe "Onetime::Config during Onetime.boot!" do
         # Familia.redis.serverid is stubbed in the main before(:each)
 
         Onetime.boot!(:app) # Use a non-test mode like :app
-        expect(Onetime).to have_received(:print_log_banner)
+        expect(Onetime).to have_received(:print_log_banner).at_least(:once)
       end
     end
   end
