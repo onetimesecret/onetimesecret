@@ -110,7 +110,6 @@ RSpec.describe "Onetime::Config during Onetime.boot!" do
 
     it "ensures required keys are present and defaults applied" do
       conf = Onetime::Config.load(source_config_path)
-      require 'pry-byebug'; binding.pry;
 
       OT.instance_variable_set(:'@conf', conf) # To mimic the logic in OT.boot! at v0.20.5
 
@@ -129,8 +128,8 @@ RSpec.describe "Onetime::Config during Onetime.boot!" do
       # explicitly skips adding the `:defaults` section to the result hash.
       # This is intentional as the `:defaults` section has fulfilled its
       # purpose once merged with the other sections.
-      #expect(conf.dig(:diagnostics, :sentry, :defaults)).to be_nil
-      expect(conf.dig(:diagnostics, :sentry, :defaults)).to be_a(Hash)
+      expect(conf.dig(:diagnostics, :sentry, :defaults)).to be_nil
+      #expect(conf.dig(:diagnostics, :sentry, :defaults)).to be_a(Hash)
 
       expect(conf.dig(:diagnostics, :sentry, :backend)).to be_a(Hash)
       expect(conf.dig(:diagnostics, :sentry, :frontend)).to be_a(Hash)
