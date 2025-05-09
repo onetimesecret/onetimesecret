@@ -12,8 +12,12 @@ $LOAD_PATH.unshift(lib_path) unless $LOAD_PATH.include?(lib_path)
 # Load the onetime library
 begin
   require 'onetime'
-  require 'onetime/config'
-  require 'onetime/alias' # OT
+  require 'onetime/alias' # allows using OT::Mail
+  require 'onetime/refinements/rack_refinements'
+  require 'onetime/logic'
+  require 'onetime/models'
+  require 'onetime/controllers'
+  require 'onetime/views'
 rescue LoadError => e
   puts "Failed to load onetime: #{e.message}"
   puts "Current directory: #{Dir.pwd}"
