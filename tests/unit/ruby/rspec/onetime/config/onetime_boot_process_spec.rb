@@ -244,7 +244,7 @@ RSpec.describe "Onetime boot configuration process" do
           authentication: { enabled: true },
           secret_options: { ttl_options: "300 3600 86400" }
         }
-        ot_conf_for_test = test_config.deep_clone
+        ot_conf_for_test = OT::Config.deep_clone(test_config)
         ot_conf_for_test[:site][:secret_options][:ttl_options] = "10 20 30"
         OT.instance_variable_set(:@conf, ot_conf_for_test)
 
@@ -259,7 +259,7 @@ RSpec.describe "Onetime boot configuration process" do
           authentication: { enabled: true },
           secret_options: { default_ttl: "86400" }
         }
-        ot_conf_for_test = test_config.deep_clone
+        ot_conf_for_test = OT::Config.deep_clone(test_config)
         ot_conf_for_test[:site][:secret_options][:default_ttl] = "12345"
         OT.instance_variable_set(:@conf, ot_conf_for_test)
 
@@ -269,9 +269,9 @@ RSpec.describe "Onetime boot configuration process" do
       end
 
       it 'converts TTL options string from test config to integers' do
-        config = test_config.deep_clone
+        config = OT::Config.deep_clone(test_config)
         config[:site][:secret_options][:ttl_options] = "1800 43200 604800"
-        OT.instance_variable_set(:@conf, config.deep_clone)
+        OT.instance_variable_set(:@conf, OT::Config.deep_clone(config))
 
         Onetime::Config.after_load(config)
 
@@ -282,8 +282,8 @@ RSpec.describe "Onetime boot configuration process" do
 
     context 'with diagnostics configuration' do
       it 'enables diagnostics from test config file' do
-        config = test_config.deep_clone
-        OT.instance_variable_set(:@conf, config.deep_clone)
+        config = OT::Config.deep_clone(test_config)
+        OT.instance_variable_set(:@conf, OT::Config.deep_clone(config))
         OT.d9s_enabled = false
 
         allow(Kernel).to receive(:require).with('sentry-ruby')
@@ -300,7 +300,7 @@ RSpec.describe "Onetime boot configuration process" do
       end
 
       it 'enables diagnostics when configured with a valid DSN' do
-        config = minimal_config.deep_clone
+        config = OT::Config.deep_clone(minimal_config)
         config[:diagnostics] = {
           enabled: true,
           sentry: {
@@ -308,7 +308,7 @@ RSpec.describe "Onetime boot configuration process" do
             backend: { dsn: 'https://example.com/sentry' }
           }
         }
-        OT.instance_variable_set(:@conf, config.deep_clone)
+        OT.instance_variable_set(:@conf, OT::Config.deep_clone(config))
         OT.d9s_enabled = false
 
         allow(Kernel).to receive(:require).with('sentry-ruby')
@@ -323,7 +323,7 @@ RSpec.describe "Onetime boot configuration process" do
       end
 
       it 'applies defaults to sentry configuration' do
-        config = minimal_config.deep_clone
+        config = OT::Config.deep_clone(minimal_config)
         config[:diagnostics] = {
           enabled: true,
           sentry: {
@@ -332,7 +332,7 @@ RSpec.describe "Onetime boot configuration process" do
             frontend: { profiles_sample_rate: 0.2 }
           }
         }
-        OT.instance_variable_set(:@conf, config.deep_clone)
+        OT.instance_variable_set(:@conf, OT::Config.deep_clone(config))
         OT.d9s_enabled = false
 
         allow(Kernel).to receive(:require).with('sentry-ruby')
@@ -357,27 +357,27 @@ RSpec.describe "Onetime boot configuration process" do
 
     context 'with validation errors' do
       it 'raises an error if development config is missing' do
-        config = minimal_config.deep_clone
+        config = OT::Config.deep_clone(minimal_config)
         config.delete(:development)
-        OT.instance_variable_set(:@conf, config.deep_clone)
+        OT.instance_variable_set(:@conf, OT::Config.deep_clone(config))
 
         expect { Onetime::Config.after_load(config) }
           .to raise_error(OT::Problem, /No `development` config found/)
       end
 
       it 'raises an error if mail config is missing' do
-        config = minimal_config.deep_clone
+        config = OT::Config.deep_clone(minimal_config)
         config.delete(:mail)
-        OT.instance_variable_set(:@conf, config.deep_clone)
+        OT.instance_variable_set(:@conf, OT::Config.deep_clone(config))
 
         expect { Onetime::Config.after_load(config) }
           .to raise_error(OT::Problem, /No `mail` config found/)
       end
 
       it 'raises an error if site authentication config is missing' do
-        config = minimal_config.deep_clone
+        config = OT::Config.deep_clone(minimal_config)
         config[:site].delete(:authentication)
-        OT.instance_variable_set(:@conf, config.deep_clone)
+        OT.instance_variable_set(:@conf, OT::Config.deep_clone(config))
 
         expect { Onetime::Config.after_load(config) }
           .to raise_error(OT::Problem, /No `site.authentication` config found/)

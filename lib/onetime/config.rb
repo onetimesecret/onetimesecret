@@ -380,7 +380,6 @@ module Onetime
       # If the key is not in the KEY_MAP, return the key itself.
       KEY_MAP[key] || key
     end
-
     # Recursively freezes an object and all its nested components
     # to ensure complete immutability. This is a critical security
     # measure that prevents any modification of configuration values
@@ -398,6 +397,25 @@ module Onetime
         obj.each { |v| deep_freeze(v) }
       end
       obj.freeze
+    end
+
+    # Creates a complete deep copy of a configuration hash using Marshal
+    # dump and load. This ensures all nested objects are properly duplicated,
+    # preventing unintended sharing of references that could lead to data
+    # corruption if modified.
+    #
+    # @param config_hash [Hash] The configuration hash to be cloned
+    # @return [Hash] A deep copy of the original configuration hash
+    # @raise [OT::Problem] When Marshal serialization fails due to unserializable objects
+    # @security Prevents configuration mutations from affecting multiple components
+    def deep_clone(config_hash)
+      Marshal.load(Marshal.dump(config_hash))
+    rescue TypeError => ex
+      raise OT::Problem, "[deep_clone] #{ex.message}"
+    end
+
+    def deep_clone_fallback(config_hash)
+      config_hash.map { |k, v| [k, deep_clone(v)] }.to_h
     end
 
     # Merges section configurations with defaults
@@ -445,6 +463,20 @@ module Onetime
       end
     end
 
+    # Searches for configuration files in predefined locations based on application mode.
+    # In CLI mode, it looks in user and system directories. In service mode, it only
+    # checks system directories for security and consistency.
+    #
+    # @param filename [String, nil] Optional configuration filename, defaults to 'config.yaml'
+    # @return [Array<String>] List of found configuration file paths in order of precedence
+    #
+    # @example Finding default config files
+    #   find_configs
+    #   # => ["/etc/onetime/config.yaml"]
+    #
+    # @example Finding custom config files
+    #   find_configs("database.yaml")
+    #   # => ["/etc/onetime/database.yaml", "./etc/database.yaml"]
     def find_configs(filename = nil)
       filename ||= 'config.yaml'
       paths = Onetime.mode?(:cli) ? UTILITY_PATHS : SERVICE_PATHS
