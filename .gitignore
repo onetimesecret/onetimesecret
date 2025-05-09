@@ -63,3 +63,7 @@ test-results/
 playwright-report/
 blob-report/
 playwright/.cache/
+
+.claude
+.qodo
+CLAUDE.md
