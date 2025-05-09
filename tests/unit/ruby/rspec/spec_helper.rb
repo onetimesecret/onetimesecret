@@ -24,6 +24,7 @@ $LOAD_PATH.unshift(spec_path) unless $LOAD_PATH.include?(spec_path)
 
 begin
   require 'onetime'
+  require 'onetime/config'
   require 'onetime/alias' # OT
   require 'onetime/refinements/rack_refinements'
   require 'onetime/logic/secrets/show_secret'
