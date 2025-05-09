@@ -1,4 +1,5 @@
-<!-- BaseShowSecret.vue -->
+<!-- src/components/base/BaseShowSecret.vue -->
+
 <script setup lang="ts">
   /**
    * Base component for secret display implementations
@@ -17,7 +18,7 @@
 
   import SecretSkeleton from '@/components/closet/SecretSkeleton.vue';
   import { useSecret } from '@/composables/useSecret';
-  import { onMounted, Ref } from 'vue';
+  import { onMounted } from 'vue';
   import { onBeforeRouteUpdate } from 'vue-router';
 
   export interface Props {
@@ -33,8 +34,8 @@
 
   const { record, details, state, load, reveal } = useSecret(props.secretKey);
 
-  const handleUserConfirmed = (passphrase: Ref<string>) => {
-    reveal(passphrase.value);
+  const handleUserConfirmed = (passphrase: string) => {
+    reveal(passphrase);
   };
 
   onBeforeRouteUpdate((to, from, next) => {
@@ -49,13 +50,13 @@
 
 <template>
   <main
-    class="min-h-screen grid grid-rows-[auto_minmax(0,max-content)_auto] gap-4"
+    class="grid min-h-screen grid-rows-[auto_minmax(0,max-content)_auto] gap-4"
     role="main"
     :aria-label="$t('secret-viewing-page')">
     <header
       v-if="$slots.header"
       class="w-full bg-white dark:bg-gray-900">
-      <div class="w-full max-w-4xl mx-auto px-4">
+      <div class="mx-auto w-full max-w-4xl px-4">
         <slot
           name="header"
           :record="record"
@@ -64,7 +65,7 @@
     </header>
 
     <!-- Content wrapper  -->
-    <div class="w-full max-w-4xl mx-auto px-4">
+    <div class="mx-auto w-full max-w-4xl px-4">
       <!-- Global Loading State -->
       <div
         v-if="state.isLoading"
@@ -86,14 +87,6 @@
           :branded="branded"
           :details="details">
         </slot>
-      </template>
-
-      <!-- Error State -->
-      <template v-else-if="state.error">
-        <slot
-          name="error"
-          :error="state.error"
-          :branded="branded"></slot>
       </template>
 
       <!-- Main Content - Valid Secret -->
@@ -138,12 +131,12 @@
     <footer
       v-if="$slots.footer"
       class="w-full bg-white dark:bg-gray-900">
-      <div class="w-full max-w-4xl mx-auto px-4">
+      <div class="mx-auto w-full max-w-4xl px-4">
         <slot
           name="footer"
           :record="record"
           :details="details"
-          :siteHost="props.siteHost"></slot>
+          :site-host="props.siteHost"></slot>
       </div>
     </footer>
   </main>

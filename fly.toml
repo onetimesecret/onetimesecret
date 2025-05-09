@@ -94,7 +94,7 @@ tls_skip_verify = true
 # specified. This is faster and eliminates having to package an
 # HTTP server into your container.
 [[statics]]
-guest_path = '/app/public/web'
+guest_path = '/app/public/web/dist'
 url_prefix = '/dist'
 
 [env]
@@ -102,6 +102,7 @@ SSL = 'true'
 RACK_ENV = 'production'
 EMAILER_MODE = 'smtp'
 CSP_ENABLED = 'true'
+SERVER_TYPE = 'puma'
 
 # [[services.machine_checks]]
 # image = "curlimages/curl"

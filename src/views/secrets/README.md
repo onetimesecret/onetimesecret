@@ -8,7 +8,7 @@ rendering both pages.
 
 ## Metadata Page
 
-`secrets.example.com/private/METADATA_KEY`
+`secrets.example.com/receipt/METADATA_KEY`
 
 The metadata page has distinct states with specific visual priorities
 and transitions, primarily based on the parameters and state of the

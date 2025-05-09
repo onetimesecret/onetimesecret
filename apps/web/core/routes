@@ -1,0 +1,48 @@
+# apps/web/core/routes
+
+GET   /                                          Core::Controllers::Page#index
+GET   /feedback                                  Core::Controllers::Page#index
+GET   /404                                       Core::Controllers::Page#not_found
+GET   /500                                       Core::Controllers::Page#server_error
+GET   /robots.txt                                Core::Controllers::Page#robots_txt
+
+POST  /incoming                                  Core::Controllers::Data#create_incoming
+GET   /window                                    Core::Controllers::Data#export_window
+
+GET   /plans/:tier                               Core::Controllers::Account#plan_redirect
+GET   /plans/:tier/:billing_cycle                Core::Controllers::Account#plan_redirect
+GET   /welcome                                   Core::Controllers::Account#welcome
+POST  /welcome/stripe/webhook                    Core::Controllers::Account#welcome_webhook
+
+GET   /private/*                                 Core::Controllers::Page#index
+GET   /receipt/*                                 Core::Controllers::Page#index
+GET   /secret/*                                  Core::Controllers::Page#index
+
+POST  /signin                                    Core::Controllers::Account#authenticate
+POST  /signup                                    Core::Controllers::Account#create_account
+
+GET   /about                                     Core::Controllers::Page#index
+GET   /translations                              Core::Controllers::Page#index
+GET   /info/*                                    Core::Controllers::Page#index
+GET   /pricing                                   Core::Controllers::Page#index
+GET   /signin                                    Core::Controllers::Page#index
+GET   /signup                                    Core::Controllers::Page#index
+GET   /signup/*                                  Core::Controllers::Page#index
+GET   /logout                                    Core::Controllers::Account#logout
+
+GET   /forgot                                    Core::Controllers::Page#index
+GET   /forgot/:key                               Core::Controllers::Page#index
+POST  /forgot                                    Core::Controllers::Account#request_reset
+POST  /forgot/:key                               Core::Controllers::Account#request_reset
+
+GET   /dashboard                                 Core::Controllers::Page#customers_only
+GET   /recent                                    Core::Controllers::Page#customers_only
+GET   /domains/*                                 Core::Controllers::Page#customers_only
+GET   /domains                                   Core::Controllers::Page#customers_only
+GET   /account/*                                 Core::Controllers::Page#customers_only
+GET   /account                                   Core::Controllers::Page#customers_only
+GET   /account/billing_portal                    Core::Controllers::Account#customer_portal_redirect
+
+GET   /colonel                                   Core::Controllers::Page#colonels_only
+
+GET   /imagine/:custom_domain_id/:image_type.:image_ext  Core::Controllers::Page#imagine

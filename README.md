@@ -490,6 +490,45 @@ ONETIME_DEBUG=true bundle exec thin -e dev start
 
 When running the Vite server in development mode, it will automatically reload when files change. Ensure that `RACK_ENV` is set to `development` or `development.enabled` in `etc/config` is set to `false`.
 
+#### Vite Development Server Security
+
+Starting with Vite 5.4.12, additional security measures were implemented to prevent unauthorized access to development servers. When using custom domains for development, you must explicitly configure allowed hosts.
+
+##### Configuring Allowed Hosts
+
+By default, only `localhost` and `127.0.0.1` are allowed to access the development server. To use custom domains:
+
+1. **Using environment variables** (recommended for local development):
+
+   ```bash
+   # Option 1: Using export
+   export VITE_ADDITIONAL_SERVER_ALLOWED_HOSTS="dev.onetime.dev"
+   pnpm run dev
+
+   # Option 2: Set inline
+   VITE_ADDITIONAL_SERVER_ALLOWED_HOSTS="dev.onetime.dev" pnpm run dev
+   ```
+
+2. **Using .env file**:
+
+   Add to your `.env` file:
+   ```
+   VITE_ADDITIONAL_SERVER_ALLOWED_HOSTS=dev.onetime.dev
+   ```
+
+3. **Using Docker**:
+
+   ```bash
+   docker run -p 3000:3000 -d \
+     -e VITE_ADDITIONAL_SERVER_ALLOWED_HOSTS="dev.onetime.dev" \
+     # other env vars...
+     onetimesecret/onetimesecret:latest
+   ```
+
+> **Security Warning:** Never set `allowedHosts: true` in your configuration as this creates a security vulnerability allowing any website to access your development server.
+
+See [GHSA-vg6x-rcgg-rjx6](https://github.com/vitejs/vite/security/advisories/GHSA-vg6x-rcgg-rjx6) for details on the vulnerability this configuration prevents.
+
 #### Setting up pre-commit hooks
 
 We use the `pre-commit` framework to maintain code quality. To set it up:

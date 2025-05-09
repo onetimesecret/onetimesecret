@@ -84,8 +84,7 @@ class Rack::HandleInvalidUTF8
     return true if @check_enabled
     return false unless defined?(Otto) && app.is_a?(Otto)
     name, route = app.route_definitions.first
-    has_settings = route.klass.include?(Onetime::App::AppSettings)
-    setting_enabled = has_settings && route.klass.check_utf8
+    setting_enabled = route.klass.respond_to?(:check_utf8) && route.klass.check_utf8
     logger.debug "[handle-invalid-utf8] #{name} has settings: #{has_settings}, enabled: #{setting_enabled}"
     return setting_enabled
   end
@@ -134,7 +133,7 @@ class Rack::HandleInvalidUTF8
     cls = self.class
     headers = {
       'Content-Type': "#{cls.default_content_type}; charset=#{cls.default_charset}",
-      'Content-Length': body.bytesize.to_s
+      'Content-Length': body.bytesize.to_s,
     }
 
     [status, headers, [body]]

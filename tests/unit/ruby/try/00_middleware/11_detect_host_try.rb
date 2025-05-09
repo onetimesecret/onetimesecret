@@ -10,13 +10,16 @@
 # 4. Multiple host handling
 # 5. Empty and missing header handling
 
-require 'onetime'
+require_relative '../test_helpers'
+
 require 'stringio'
 require 'middleware/detect_host'
 
 # Capture log output for verification
 @log_output = StringIO.new
 @app = ->(env) { [200, {}, ['OK']] }
+@original_value = OT.debug?
+OT.debug = true  # log messages are only avalable in debug mode
 @middleware = Rack::DetectHost.new(@app, io: @log_output)
 
 ## X-Forwarded-Host takes precedence over Host header
@@ -70,7 +73,9 @@ env['rack.detected_host']
 ## Handles missing headers gracefully
 env = {}
 @middleware.call(env)
-[env['rack.detected_host'], @log_output.string.include?('No valid host detected')]
+output = @log_output.string
+puts output
+[env['rack.detected_host'], output.include?('Invalid host detected')]
 #=> [nil, true]
 
 ## Always forwards request to app regardless of host validity
@@ -78,3 +83,8 @@ env = {'HTTP_HOST' => 'example.com'}
 status, _, body = @middleware.call(env)
 [status, body]
 #=> [200, ['OK']]
+
+
+
+# Put everything back the way we found it
+OT.debug = @original_value

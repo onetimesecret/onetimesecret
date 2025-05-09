@@ -1,17 +1,17 @@
 // src/plugins/core/appInitializer.ts
 
+import { createApi } from '@/api';
 import i18n from '@/i18n';
 import { createAppRouter } from '@/router';
 import { loggingService } from '@/services/logging.service';
 import { WindowService } from '@/services/window.service';
-import { createApi } from '@/api';
 import { AxiosInstance } from 'axios';
 import { createPinia } from 'pinia';
 import { App, Plugin } from 'vue';
-import { autoInitPlugin } from '../pinia/autoInitPlugin';
 
-import { createDiagnostics } from './enableDiagnotics';
+import { createDiagnostics } from './enableDiagnostics';
 import { createErrorBoundary } from './globalErrorBoundary';
+import { autoInitPlugin } from '../pinia/autoInitPlugin';
 
 interface AppInitializerOptions {
   api?: AxiosInstance;
@@ -38,10 +38,12 @@ export const AppInitializer: Plugin<AppInitializerOptions> = {
  *
  * We separate this from the main plugin to interface for testing purposes.
  */
+/*eslint max-statements: ["error", 20]*/
 function initializeApp(app: App, options: AppInitializerOptions = {}) {
   const diagnostics = WindowService.get('diagnostics');
   const d9sEnabled = WindowService.get('d9s_enabled');
   const displayDomain = WindowService.get('display_domain');
+  const siteHost = WindowService.get('site_host');
   const router = createAppRouter();
   const pinia = createPinia();
   const api = options.api ?? createApi();
@@ -49,7 +51,7 @@ function initializeApp(app: App, options: AppInitializerOptions = {}) {
   if (d9sEnabled) {
     // Create plugin instances
     const diagnosticsPlugin = createDiagnostics({
-      host: displayDomain,
+      host: displayDomain ?? siteHost,
       config: diagnostics,
       router,
     });

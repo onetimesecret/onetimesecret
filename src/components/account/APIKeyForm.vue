@@ -1,3 +1,5 @@
+<!-- src/components/account/APIKeyForm.vue -->
+
 <script setup lang="ts">
   import APIKeyCard from '@/components/account/APIKeyCard.vue';
   import { useFormSubmission } from '@/composables/useFormSubmission';

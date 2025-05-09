@@ -20,9 +20,6 @@ on:
       - opened
       - ready_for_review
       - review_requested
-    # Don't deploy on PRs from forks
-    paths-ignore:
-      - '**'
 
   # Automatic trigger on pushes to feature and work-in-progress branches
   # Allows for continuous integration and testing of new features
@@ -31,13 +28,20 @@ on:
       - 'feature/*'
       - 'wip/*'
 
+permissions:
+  contents: read
+
 jobs:
   deploy:
     name: Deploy
     runs-on: ubuntu-24.04
     environment: Fly.io
-    if: github.repository == 'onetimesecret/onetimesecret'
-
+    # Don't deploy on PRs from forks or Renovate PRs
+    if: |
+      github.repository == 'onetimesecret/onetimesecret' &&
+      (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository) &&
+      (github.event_name != 'pull_request' || !startsWith(github.head_ref, 'deps/')) &&
+      (github.event_name != 'pull_request' || github.event.pull_request.user.login != 'renovate[bot]')
     steps:
       - name: Debug Repository Info
         run: |
@@ -55,7 +59,7 @@ jobs:
 
       # Step 1: Check this out
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
 
       # Step 2: Always leave a note
       - name: Record commit hash and display version info
@@ -65,7 +69,7 @@ jobs:
           head -4 package.json .commit_hash.txt
 
       - name: Create Sentry release (backend)
-        uses: getsentry/action-release@v3
+        uses: getsentry/action-release@00ed2a6cc2171514e031a0f5b4b3cdc586dc171a # v3
         env:
           SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
           SENTRY_ORG: ${{ secrets.SENTRY_ORG }}
@@ -74,13 +78,13 @@ jobs:
 
         with:
           environment: ${{ env.ONETIME_ENV }}
-          version: ${GITHUB_SHA::7}
+          release: ${GITHUB_SHA::7}
           # inject: true
           # sourcemaps: './dist'
 
       # Step 3: Set up Fly.io CLI
       - name: Set up Fly.io CLI
-        uses: superfly/flyctl-actions/setup-flyctl@1.5
+        uses: superfly/flyctl-actions/setup-flyctl@fc53c09e1bc3be6f54706524e3b82c4f462f77be # 1.5
 
       # Step 4: Deploy to Fly.io
       - name: Deploy to Fly.io

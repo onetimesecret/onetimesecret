@@ -1,7 +1,9 @@
 <!-- src/components/secrets/branded/UnknownSecret.vue -->
+
 <script setup lang="ts">
   import BaseUnknownSecret from '@/components/base/BaseUnknownSecret.vue';
   import type { BrandSettings } from '@/schemas/models/domain/brand';
+  import { fontFamilyClasses, FontFamily } from '@/schemas/models/domain/brand';
 
   interface Props {
     brandSettings?: BrandSettings;
@@ -16,18 +18,14 @@
     :branded="true"
     :brand-settings="brandSettings">
     <!-- Header with icon and title -->
-    <template #header="{ brandSettings, getBackgroundColor }">
+    <template #header="{ getBackgroundColor }">
       <div class="mb-8 flex items-center space-x-4">
         <div
           class="flex size-12 items-center justify-center rounded-full"
           :class="brandSettings?.primary_color ? '' : 'bg-brand-100 dark:bg-brand-900'"
-          :style="
-            brandSettings?.primary_color
-              ? {
-                  backgroundColor: getBackgroundColor(brandSettings.primary_color),
-                }
-              : {}
-          ">
+          :style="brandSettings?.primary_color
+            ? { backgroundColor: getBackgroundColor(brandSettings.primary_color) }
+            : {}">
           <svg
             xmlns="http://www.w3.org/2000/svg"
             class="size-6"
@@ -47,13 +45,20 @@
           </svg>
         </div>
         <div>
-          <h2 class="text-xl font-semibold text-gray-900 dark:text-white"> {{ $t('not-found') }} </h2>
+          <!-- prettier-ignore-attribute class -->
+          <h2
+            class="text-xl font-semibold text-gray-900 dark:text-white"
+            :class="brandSettings?.font_family
+              ? fontFamilyClasses[brandSettings.font_family as FontFamily]
+              : ''">
+            {{ $t('not-found') }}
+          </h2>
         </div>
       </div>
     </template>
 
     <!-- Main message -->
-    <template #message="{ brandSettings }">
+    <template #message="{ }">
       <p class="text-gray-600 dark:text-gray-300">
         <span v-if="brandSettings?.instructions_post_reveal">
           {{ brandSettings?.instructions_post_reveal }}
@@ -65,21 +70,18 @@
     </template>
 
     <!-- Action button -->
-    <template #action="{ brandSettings }">
+    <template #action="{ }">
+      <!-- prettier-ignore-attribute class -->
       <router-link
         to="/"
-        class="inline-block rounded-lg border-2 bg-white px-4 py-2 transition duration-300 ease-in-out hover:bg-brand-100 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 dark:bg-gray-800 dark:hover:bg-gray-700 dark:focus:ring-brand-400 dark:focus:ring-offset-gray-900"
-        :style="
-          brandSettings?.primary_color
-            ? {
-                color: brandSettings.primary_color,
-                borderColor: brandSettings.primary_color,
-              }
-            : {
-                color: 'var(--color-brand-500)',
-                borderColor: 'var(--color-brand-500)',
-              }
-        ">
+        class="inline-block rounded-lg border-2
+          bg-white px-4 py-2 transition duration-300 ease-in-out
+          hover:bg-brand-100 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2
+          dark:bg-gray-800 dark:hover:bg-gray-700 dark:focus:ring-brand-400 dark:focus:ring-offset-gray-900"
+        :style="{
+          backgroundColor: brandSettings?.primary_color ?? '#dc4a22',
+          color: brandSettings?.button_text_light ?? true ? '#ffffff' : '#222222',
+        }">
         {{ $t('return-to-home') }}
       </router-link>
     </template>

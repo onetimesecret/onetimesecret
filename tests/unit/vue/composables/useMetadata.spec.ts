@@ -1,3 +1,5 @@
+// tests/unit/vue/composables/useMetadata.spec.ts
+
 import { useMetadata } from '@/composables/useMetadata';
 import { AxiosError } from 'axios';
 import { useMetadataStore } from '@/stores/metadataStore';
@@ -287,7 +289,6 @@ describe('useMetadata', () => {
 
       // Verify
       expect(store.burn).not.toHaveBeenCalled();
-      console.log('PLOPLPOPLPOLPO');
       console.log(error.value);
       console.log(error.value?.original);
       debugger;

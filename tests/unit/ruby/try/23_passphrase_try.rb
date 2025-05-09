@@ -1,4 +1,4 @@
-# frozen_string_literal: true
+# tests/unit/ruby/try/23_passphrase_try.rb
 
 # These tryouts test the functionality of passphrase handling in the OneTime application.
 # Specifically, they focus on:
@@ -9,45 +9,46 @@
 # These tests aim to ensure that passphrases are correctly stored and verified,
 # which is crucial for maintaining the security of secrets in the application.
 #
-# The tryouts use the Onetime::Secret class to demonstrate passphrase-related operations,
+# The tryouts use the V2::Secret class to demonstrate passphrase-related operations,
 # allowing for targeted testing of these specific scenarios without needing to run the full application.
 
 
-require 'onetime'
+require_relative './test_models'
+require 'core/controllers/settings'
+
 #Familia.debug = false
 
 # Use the default config file for tests
-OT::Config.path = File.join(Onetime::HOME, 'tests', 'unit', 'ruby', 'config.test.yaml')
-OT.boot! :test
+OT.boot! :test, false
 
 ## Can store a passphrase
-s = Onetime::Secret.new :shared
+s = V2::Secret.new :shared
 s.passphrase = 'plop'
 s.passphrase
 #=> 'plop'
 
 ## Can store a one-way, encrypted passphrase
-s = Onetime::Secret.new :shared
+s = V2::Secret.new :shared
 s.update_passphrase 'plop'
 [s.passphrase_encryption, s.passphrase?('plop')]
 #=> ["1", true]
 
 ## Calling update_passphrase! automatically saves the passphrase
-s = Onetime::Secret.new :shared
+s = V2::Secret.new :shared
 s.update_passphrase! 'plop'
 
 secret_key = s.identifier
-s2 = Onetime::Secret.from_identifier secret_key
+s2 = V2::Secret.from_identifier secret_key
 
 [s2.passphrase_encryption, s2.passphrase?('plop')]
 #=> ["1", true]
 
 ## Calling update_passphrase (without bang) automatically saves the passphrase too
-s = Onetime::Secret.new :shared
+s = V2::Secret.new :shared
 s.update_passphrase 'plop'
 
 secret_key = s.identifier
-s2 = Onetime::Secret.from_identifier secret_key
+s2 = V2::Secret.from_identifier secret_key
 
 [s2.passphrase_encryption, s2.passphrase?('plop')]
 #=> ["1", true]

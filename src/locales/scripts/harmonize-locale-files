@@ -1,14 +1,16 @@
 #!/bin/bash
 
 # Wrapper to repair all locale files
-# Repairs i18n locale files to match base en.json key structure
-# Preserves existing translations while adding missing keys
+#
 # Usage: ./harmonize-locale-files [-q quiet] [-f filename-only] [-v verbose]
-# Exit: 0 if all repairs succeed, 1 if any fail
+#
 # Options:
 #   -q: Suppress all output
 #   -f: Only output filenames of failed repairs
 #   -v: Show verbose repair output
+#   -c: copy values from base file
+#
+# Exit: 0 if all repairs succeed, 1 if any fail
 
 SCRIPT_DIR=$(dirname "$(readlink -f "$0")")
 

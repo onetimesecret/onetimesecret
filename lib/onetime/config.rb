@@ -1,7 +1,6 @@
 module Onetime
   module Config
     extend self
-    attr_writer :path
 
     unless defined?(SERVICE_PATHS)
       SERVICE_PATHS = %w[/etc/onetime ./etc].freeze
@@ -9,6 +8,16 @@ module Onetime
     end
 
     attr_reader :env, :base, :bootstrap
+    attr_writer :path
+
+    # Normalizes environment variables prior to loading and rendering the YAML
+    # configuration. In some cases, this might include setting default values
+    # and ensuring necessary environment variables are present.
+    def before_load
+      # In v0.20.6, REGIONS_ENABLE was renamed to REGIONS_ENABLED for
+      # consistency. We ensure both are considered for compatability.
+      ENV['REGIONS_ENABLED'] = ENV.values_at('REGIONS_ENABLED', 'REGIONS_ENABLE').compact.first || 'false'
+    end
 
     # Load a YAML configuration file, allowing for ERB templating within the file.
     # This reads the file at the given path, processes any embedded Ruby (ERB) code,
@@ -48,20 +57,101 @@ module Onetime
       Kernel.exit(1)
     end
 
-    def after_load(conf = nil)
-      conf ||= {}
+    # After loading the configuration, this method processes and validates the
+    # configuration, setting defaults and ensuring required elements are present.
+    # It also performs deep copy protection to prevent mutations from propagating
+    # to shared configuration instances.
+    #
+    # Security measures implemented in this method:
+    # 1. Deep copy protection - prevents unintended mutations to shared config
+    # 2. Validation of critical security settings - enforces presence of required security fields
+    # 3. Security warnings for dangerous configurations - alerts about potential vulnerabilities
+    # 4. Configuration immutability - freezes config to prevent runtime modifications
+    #
+    # @param raw_conf [Hash] The loaded, unprocessed configuration hash in raw form
+    # @return [Hash] The processed configuration hash with defaults applied and security measures in place
+    def after_load(raw_conf) # rubocop:disable Metrics/MethodLength,Metrics/PerceivedComplexity
+      # We check for settings in the frozen raw config where we can be sure that
+      # its values are directly from the actual config file -- without any
+      # normalization or other manipulation.
+      deep_freeze(raw_conf)
 
-      unless conf.key?(:development)
+      # SAFETY MEASURE: Deep Copy Protection
+      # Create a deep copy of the configuration to prevent unintended mutations
+      # This protects against side effects when multiple components access the same config
+      # Without this, modifications to the config in one component could affect others.
+      conf = Marshal.load(Marshal.dump(raw_conf))
+
+      # SAFETY MEASURE: Validation and Default Security Settings
+      # Ensure all critical security-related configurations exist
+      unless raw_conf.key?(:experimental)
+        OT.ld "Setting an empty experimental config #{path}"
+        conf[:experimental] = {
+          allow_nil_global_secret: false, # Default to secure setting
+          rotated_secrets: [],
+        }
+      end
+
+      unless raw_conf.key?(:development)
         raise OT::Problem, "No `development` config found in #{path}"
+      end
+
+      unless raw_conf.key?(:site)
+        raise OT::Problem, "No `site` config found in #{path}"
+      end
+
+      unless raw_conf[:site]&.key?(:secret)
+        OT.ld "No site.secret setting in #{path}"
+        conf[:site][:secret] = nil
+      end
+
+      # SAFETY MEASURE: Critical Secret Validation
+      # Handle potential nil global secret
+      # The global secret is critical for encrypting/decrypting secrets
+      # Running without a global secret is only permitted in exceptional cases
+      allow_nil = conf[:experimental].fetch(:allow_nil_global_secret, false)
+      global_secret = conf[:site].fetch(:secret, nil)
+      global_secret = nil if global_secret.to_s.strip == 'CHANGEME'
+
+      if global_secret.nil?
+        unless allow_nil
+          # Fast fail when global secret is nil and not explicitly allowed
+          # This is a critical security check that prevents running without encryption
+          raise OT::Problem, "Global secret cannot be nil - set SECRET env var or site.secret in config"
+        end
+
+        # SAFETY MEASURE: Security Warnings for Dangerous Configurations
+        # Security warning when proceeding with nil global secret
+        # These warnings are prominently displayed to ensure administrators
+        # understand the security implications of their configuration
+        OT.li "!" * 50
+        OT.li "SECURITY WARNING: Running with nil global secret!"
+        OT.li "This configuration presents serious security risks:"
+        OT.li "- Secret encryption will be compromised"
+        OT.li "- Data cannot be properly protected"
+        OT.li "- Only use during recovery or transition periods"
+        OT.li "Set valid SECRET env var or site.secret in config ASAP"
+        OT.li "!" * 50
+      end
+
+      unless conf[:site]&.key?(:authentication)
+        raise OT::Problem, "No `site.authentication` config found in #{path}"
       end
 
       unless conf.key?(:mail)
         raise OT::Problem, "No `mail` config found in #{path}"
       end
 
-      unless conf[:site]&.key?(:authentication)
-        raise OT::Problem, "No `site.authentication` config found in #{path}"
-      end
+      mtc = conf[:mail][:truemail]
+      OT.ld "Setting TrueMail config from #{path}"
+      raise OT::Problem, "No TrueMail config found" unless mtc
+
+      # Remove nil elements that have inadvertently been set in
+      # the list of previously used global secrets. Happens easily
+      # when using environment vars in the config.yaml that aren't
+      # set or are set to an empty string.
+      rotated_secrets = conf[:experimental].fetch(:rotated_secrets, []).compact
+      conf[:experimental][:rotated_secrets] = rotated_secrets
 
       unless conf[:site]&.key?(:domains)
         conf[:site][:domains] = { enabled: false }
@@ -80,6 +170,7 @@ module Onetime
       end
       conf[:site][:secret_options][:default_ttl] ||= 7.days
       conf[:site][:secret_options][:ttl_options] ||= [
+        60.seconds,     # 60 seconds (was missing from v0.20.5)
         5.minutes,      # 300 seconds
         30.minutes,     # 1800
         1.hour,         # 3600
@@ -91,16 +182,36 @@ module Onetime
         2.weeks,        # 1209600
         30.days,        # 2592000
       ]
+
+      # Make sure there is an interface config (for installs running off
+      # of an older config file).
+      conf[:site][:interface] ||= {}
+
+      conf[:site][:interface] = {
+        ui: { enabled: true },
+        api: { enabled: true },
+      }.merge(conf[:site][:interface])
+
+      # Make sure colonels are in their proper location since previously
+      # it was at the root level
+      colonels = conf.fetch(:colonels, nil)
+      if colonels && !conf.dig(:site, :authentication)&.key?(:colonels)
+        conf[:site][:authentication] ||= {}
+        conf[:site][:authentication][:colonels] = colonels
+      end
+      conf[:site][:authentication][:colonels] ||= [] # make sure it exists
+
       # Disable all authentication sub-features when main feature is off for
       # consistency, security, and to prevent unexpected behavior. Ensures clean
       # config state.
-      if OT.conf.dig(:site, :authentication, :enabled) != true
-        OT.conf[:site][:authentication].each_key do |key|
+      # NOTE: Needs to run after other site.authentication logic
+      if conf.dig(:site, :authentication, :enabled) != true
+        conf[:site][:authentication].each_key do |key|
           conf[:site][:authentication][key] = false
         end
       end
 
-      if OT.conf.dig(:site, :domains, :enabled).to_s == "true"
+      if conf.dig(:site, :domains, :enabled).to_s == "true"
         cluster = conf.dig(:site, :domains, :cluster)
         OT.ld "Setting OT::Cluster::Features #{cluster}"
         klass = OT::Cluster::Features
@@ -115,16 +226,16 @@ module Onetime
         end
       end
 
-      site_host = OT.conf.dig(:site, :host)
-      ttl_options = OT.conf.dig(:site, :secret_options, :ttl_options)
-      default_ttl = OT.conf.dig(:site, :secret_options, :default_ttl)
+      site_host = conf.dig(:site, :host)
+      ttl_options = conf.dig(:site, :secret_options, :ttl_options)
+      default_ttl = conf.dig(:site, :secret_options, :default_ttl)
 
       # if the ttl_options setting is a string, we want to split it into an
       # array of integers.
       if ttl_options.is_a?(String)
         conf[:site][:secret_options][:ttl_options] = ttl_options.split(/\s+/)
       end
-      ttl_options = OT.conf.dig(:site, :secret_options, :ttl_options)
+      ttl_options = conf.dig(:site, :secret_options, :ttl_options)
       if ttl_options.is_a?(Array)
         conf[:site][:secret_options][:ttl_options] = ttl_options.map(&:to_i)
       end
@@ -133,7 +244,7 @@ module Onetime
         conf[:site][:secret_options][:default_ttl] = default_ttl.to_i
       end
 
-      if OT.conf.dig(:site, :plans, :enabled).to_s == "true"
+      if conf.dig(:site, :plans, :enabled).to_s == "true"
         stripe_key = conf.dig(:site, :plans, :stripe_key)
         unless stripe_key
           raise OT::Problem, "No `site.plans.stripe_key` found in #{path}"
@@ -142,10 +253,6 @@ module Onetime
         require 'stripe'
         Stripe.api_key = stripe_key
       end
-
-      mtc = conf[:mail][:truemail]
-      OT.ld "Setting TrueMail config from #{path}"
-      raise OT::Problem, "No TrueMail config found" unless mtc
 
       # Iterate over the keys in the mail/truemail config
       # and set the corresponding key in the Truemail config.
@@ -160,17 +267,17 @@ module Onetime
         end
       end
 
-      diagnostics = OT.conf.fetch(:diagnostics, {})
+      diagnostics = conf.fetch(:diagnostics, {})
 
       # Apply the defaults to sentry backend and frontend configs
       # and update the config with the merged values.
       merged = apply_defaults(diagnostics[:sentry])
-      OT.conf[:diagnostics] = {
+      conf[:diagnostics] = {
         enabled: OT.d9s_enabled, # d9s_enabled hasn't been set yet, so always false
-        sentry: merged
+        sentry: merged,
       }
 
-      sentry = merged[:backend]
+      sentry = merged[:backend] || {}
       dsn = sentry.fetch(:dsn, nil)
 
       # Only require Sentry if we have a DSN
@@ -182,33 +289,78 @@ module Onetime
         require 'sentry-ruby'
         require 'stackprof'
 
-        OT.li "[sentry-init] Initializing with DSN: #{dsn[0..10]}..."
-        Sentry.init do |config|
-          config.dsn = dsn
-          config.environment = "#{site_host} (#{OT.env})"
-          config.release = OT::VERSION.inspect
+        # Log more details about the Sentry configuration for debugging
+        OT.ld "[sentry-debug] DSN present: #{!dsn.nil?}"
+        OT.ld "[sentry-debug] Site host: #{site_host.inspect}"
+        OT.ld "[sentry-debug] OT.env: #{OT.env.inspect}"
 
-          # Configure breadcrumbs logger for detailed error tracking.
-          # Uses sentry_logger to capture progression of events leading
-          # to errors, providing context for debugging.
-          config.breadcrumbs_logger = [:sentry_logger]
-
-          # Set traces_sample_rate to capture 10% of
-          # transactions for performance monitoring.
-          config.traces_sample_rate = 0.1
-
-          # Set profiles_sample_rate to profile 10%
-          # of sampled transactions.
-          config.profiles_sample_rate = 0.1
+        # Early validation to prevent nil errors during initialization
+        if dsn.nil?
+          OT.le "[sentry-init] Cannot initialize Sentry with nil DSN"
+          OT.d9s_enabled = false
+        elsif site_host.nil?
+          OT.le "[sentry-init] Cannot initialize Sentry with nil site_host"
+          OT.ld "Falling back to default environment name"
+          site_host = "unknown-host"
         end
 
-        OT.li "[sentry-init] Status: #{Sentry.initialized? ? 'OK' : 'Failed'}"
+        # Only proceed if we have valid configuration
+        if OT.d9s_enabled
+          # Safely log first part of DSN for debugging
+          dsn_preview = dsn ? "#{dsn[0..10]}..." : "nil"
+          OT.li "[sentry-init] Initializing with DSN: #{dsn_preview}"
+
+          Sentry.init do |config|
+            config.dsn = dsn
+            config.environment = "#{site_host} (#{OT.env})"
+            config.release = OT::VERSION.inspect
+
+            # Configure breadcrumbs logger for detailed error tracking.
+            # Uses sentry_logger to capture progression of events leading
+            # to errors, providing context for debugging.
+            config.breadcrumbs_logger = [:sentry_logger]
+
+            # Set traces_sample_rate to capture 10% of
+            # transactions for performance monitoring.
+            config.traces_sample_rate = 0.1
+
+            # Set profiles_sample_rate to profile 10%
+            # of sampled transactions.
+            config.profiles_sample_rate = 0.1
+
+            # Add a before_send to filter out problematic events that might cause errors
+            config.before_send = lambda do |event, _hint|
+              # Return nil if the event would cause errors in processing
+              if event.nil? || event.request.nil? || event.request.headers.nil?
+                OT.ld "[sentry-debug] Filtering out event with nil components"
+                return nil
+              end
+
+              # Return the event if it passes validation
+              event
+            end
+          end
+
+          OT.ld "[sentry-init] Status: #{Sentry.initialized? ? 'OK' : 'Failed'}"
+        end
       end
 
       # Make sure these are set
       development = conf[:development]
       development[:enabled] ||= false
       development[:frontend_host] ||= ''
+
+      # SECURITY MEASURE #4: Configuration Immutability
+      # Freeze the entire configuration recursively to prevent modifications
+      # This ensures configuration immutability and protects against
+      # accidental or malicious changes after loading
+      #
+      # Why this matters:
+      # - Prevents runtime modification of sensitive values like secrets and API keys
+      # - Any attempt to modify frozen config will raise a FrozenError, failing fast
+      # - Guarantees configuration integrity throughout application lifecycle
+      # - Makes security guarantees stronger by ensuring config values can't be tampered with
+      deep_freeze(conf)
     end
 
     def exists?
@@ -227,6 +379,25 @@ module Onetime
       # `key` is a symbol. Returns a symbol.
       # If the key is not in the KEY_MAP, return the key itself.
       KEY_MAP[key] || key
+    end
+
+    # Recursively freezes an object and all its nested components
+    # to ensure complete immutability. This is a critical security
+    # measure that prevents any modification of configuration values
+    # after they've been loaded and validated, protecting against both
+    # accidental mutations and potential security exploits.
+    #
+    # @param obj [Object] The object to freeze
+    # @return [Object] The frozen object
+    # @security This ensures configuration values cannot be tampered with at runtime
+    def deep_freeze(obj)
+      case obj
+      when Hash
+        obj.each_value { |v| deep_freeze(v) }
+      when Array
+        obj.each { |v| deep_freeze(v) }
+      end
+      obj.freeze
     end
 
     # Merges section configurations with defaults
@@ -297,6 +468,8 @@ module Onetime
     blocked_mx_ip_addresses: :blacklisted_mx_ip_addresses,
 
     # An example mapping for testing.
-    example_internal_key: :example_external_key
+    example_internal_key: :example_external_key,
   }
+
+
 end

@@ -1,11 +1,12 @@
 // src/composables/useDomain.ts
 
-import { useDomainsStore, useNotificationsStore } from '@/stores';
 import { ApplicationError } from '@/schemas/errors';
-import { AsyncHandlerOptions, useAsyncHandler } from './useAsyncHandler';
+import { useDomainsStore, useNotificationsStore } from '@/stores';
 import { computed, ref } from 'vue';
-import { useRouter } from 'vue-router';
 import { useI18n } from 'vue-i18n';
+import { useRouter } from 'vue-router';
+
+import { AsyncHandlerOptions, useAsyncHandler } from './useAsyncHandler';
 
 /**
  * Composable for managing state for a single domain.

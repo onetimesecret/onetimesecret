@@ -1,19 +1,23 @@
 ---
 :site:
   :host: '127.0.0.1:3000'
-  :domains:
-    :enabled: false
-    # The default domain used for link URLs. When not set or empty,
-    # site.host is used.
-    :default: <%= ENV['DEFAULT_DOMAIN'] || nil %>
-    # The cluster type determines how the application will support
-    # multiple domains. The default is nil which means that the
-    # application itself is responsible for handling multiple domains.
-    :cluster:
-      :type: <%= ENV['CLUSTER_TYPE'] || nil %>
   # Turns https/http on or off when generating links
   :ssl: true
   :secret: SuP0r_53cRU7
+  :interface:
+    # Controls whether the web user interface is available. When disabled, the
+    # homepage becomes a basic, readonly page with the logo and a brief
+    # explanation of the site and how it works. This is helpful for link
+    # recipients who may do some light investigation to see if the site is legit.
+    :ui:
+      :enabled: true
+    # Controls whether the API endpoints are available. When disabled, the API
+    # is compltely disabled. Requests to /api/* will return 404.
+    :api:
+      :enabled: true
+  :secret_options:
+    :default_ttl: <%= ENV['DEFAULT_TTL'] || '43200' %> # 12 hours in seconds
+    :ttl_options: <%= (ENV['TTL_OPTIONS'] || '1800 43200 604800') %> # 30m, 12h, 7d
   # Registration and Authentication settings
   :authentication:
     # Can be disabled altogether, including API authentication.
@@ -33,30 +37,43 @@
     # an instance for your team or company, you can disable this feature
     # to make it easier for users to sign in.
     :autoverify: false
+    :colonels:
+      - 'CHANGEME@EXAMPLE.com'
   :authenticity:
     :type: <%= ENV['AUTHENTICITY_TYPE'] || 'altcha' %>
     :secret_key: <%= ENV['AUTHENTICITY_SECRET_KEY'] || 'your-secret-key' %>
   :plans:
     :enabled: false
   :regions:
-    :enabled: <%= ENV['REGIONS_ENABLE'] || false %>
+    :enabled: <%= ENV['REGIONS_ENABLED'] || false %>
     :current_jurisdiction: <%= ENV['JURISDICTION'] || 'EU' %>
     :jurisdictions:
       - :identifier: AT
         :display_name: Atat Region
         :domain: at.example.com
+        :icon:
+          :collection: heroicon
+          :name: inbox
       - :identifier: CE
         :display_name: CECE Region
         :domain: ce.example.com
+        :icon:
+          :collection: heroicon
+          :name: mail
+  :domains:
+    :enabled: false
+    # The default domain used for link URLs. When not set or empty,
+    # site.host is used.
+    :default: <%= ENV['DEFAULT_DOMAIN'] || nil %>
+    # The cluster type determines how the application will support
+    # multiple domains. The default is nil which means that the
+    # application itself is responsible for handling multiple domains.
+    :cluster:
+      :type: <%= ENV['CLUSTER_TYPE'] || nil %>
   :support:
     :host: <%= ENV['SUPPORT_HOST'] || nil %>
-  :secret_options:
-    :default_ttl: <%= ENV['DEFAULT_TTL'] || '43200' %> # 12 hours in seconds
-    # Default: 5 minutes, 30 minutes, 1 hour, 4 hours, 12 hours, 1 day, 3 days, 1 week, 2 weeks
-    :ttl_options: <%= (ENV['TTL_OPTIONS'] || '1800 43200 604800') %>
 :redis:
   :uri: 'redis://CHANGEME@127.0.0.1:6379/0'
-  :config: ./try/redis.conf
   :dbs:
     :session: 1
     :splittest: 1
@@ -69,8 +86,11 @@
     :feedback: 11
     :rate_limit: 2
     :exception_info: 12
-:colonels:
-  - 'CHANGEME@EXAMPLE.com'
+:features:
+  :incoming:
+    :enabled: false
+    :email:
+    :passphrase:
 :emailer:
   :mode: <%= ENV['EMAILER_MODE'] || 'smtp' %>
   :from: <%= ENV['FROM_EMAIL'] || ENV['FROM_EMAIL'] || 'tests@example.com' %>
@@ -201,6 +221,8 @@
     :frontend:
       :dsn: <%= ENV['SENTRY_DSN_FRONTEND'] || nil %>
       :trackComponents: true
+:logging:
+  :http_requests: true
 :limits:
   :create_secret: 250
   :create_account: 100
@@ -221,6 +243,21 @@
   :add_domain: 100
   :report_exception: 5
   :attempt_secret_access: 10
+  :remove_domain: 25
+  :list_domains: 25
+  :get_domain: 25
+  :verify_domain: 25
+  :check_status: 25
+  :update_branding: 25
+  :destroy_session: 5
+  :get_domain_brand: 1000
+  :get_domain_logo: 1000
+  :get_image: 1000
+  :remove_domain_logo: 20
+  :show_account: 100
+  :stripe_webhook: 25
+  :update_domain_brand: 50
+  :view_colonel: 50
 :development:
   :enabled: <%= ['development', 'dev'].include?(ENV['RACK_ENV']) %>
   :debug: <%= ['true', '1', 'yes'].include?(ENV['ONETIME_DEBUG']) %>

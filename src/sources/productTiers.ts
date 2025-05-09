@@ -13,6 +13,7 @@ export interface ProductTier {
   description: string;
   features: string[];
   featured: boolean;
+  learn_more?: string;
 }
 
 export const paymentFrequencies: Array<PaymentFrequency> = [
@@ -39,6 +40,7 @@ export const productTiers: Array<ProductTier> = [
       'REST API',
     ],
     featured: false,
+    learn_more: 'https://docs.onetimesecret.com/en/secret-links/',
   },
   {
     id: 'tier-identity',
@@ -62,6 +64,7 @@ export const productTiers: Array<ProductTier> = [
       'No rate limits',
     ],
     featured: false,
+    learn_more: 'https://docs.onetimesecret.com/en/custom-domains/',
   },
   {
     id: 'tier-dedicated',

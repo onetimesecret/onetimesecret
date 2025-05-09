@@ -1,151 +1,145 @@
-# frozen_string_literal: true
-
-# Rackup Configuration
+# config.ru
+#
+# Main Rack configuration file for the OneTime Secret application.
+# This file orchestrates the entire application stack, sets up middleware,
+# and defines the application's runtime environment.
 #
 # Usage:
+#   $ thin -e dev -R config.ru -p 3000 start
 #
-#     $ thin -e dev -R config.ru -p 3000 start
+# Application Structure:
+# ```
+# /
+# ├── config.ru               # Main Rack configuration
+# ├── lib/
+# │   ├── app_registry.rb     # Application registry implementation
+# │   └── onetime.rb          # Core OneTime Secret library
+# └── apps/
+#     ├── api/
+#     │   ├── v1/
+#     │   │   ├── config.ru   # V1 API registration
+#     │   │   └── application.rb
+#     │   ├── v2/
+#     │   │   ├── config.ru   # V2 API registration
+#     │   │   └── application.rb
+#     │   └── v3/
+#     │       ├── config.ru   # Roda app registration
+#     │       └── roda_app.rb
+#     └── web/
+#         ├── config.ru       # Web app registration
+#         └── application.rb
+# ```
 #
 
-# Environment Variables
+# Environment Configuration
+# -------------------------------
+# Set default environment variables and establish directory structure constants.
+# These fundamentals ensure the application knows where to find its resources.
 ENV['RACK_ENV'] ||= 'production'
-ENV['APP_ROOT'] = File.expand_path(__dir__).freeze
-app_root = ENV['APP_ROOT']
+ENV['ONETIME_HOME'] ||= File.expand_path(__dir__).freeze
+project_root = ENV['ONETIME_HOME']
+app_root = File.join(project_root, '/apps').freeze
 
-# Directory Constants
+# Public Directory Configuration
+# Define the location for static web assets
 unless defined?(PUBLIC_DIR)
-  PUBLIC_DIR = File.join(app_root, '/public/web').freeze
-  APP_DIR = File.join(app_root, '/lib/onetime/app').freeze
+  PUBLIC_DIR = File.join(project_root, '/public/web').freeze
 end
 
-# Load Paths
-$LOAD_PATH.unshift(File.join(app_root, 'lib'))
+# Load Path Configuration
+# Add the lib directory to Ruby's load path for require statements
+$LOAD_PATH.unshift(File.join(project_root, 'lib'))
 
-# Freshly installed operating systems don't always have their locale settings
-# figured out. By setting this to UTF-8, we ensure that:
-# - All file I/O operations default to UTF-8 encoding.
-# - Network I/O operations treat data as UTF-8 encoded.
-# - Standard input/output (STDIN, STDOUT, STDERR) uses UTF-8 encoding.
-# - Strings created from external sources default to UTF-8 encoding.
-# This helps maintain consistency and reduces encoding-related issues.
+# Character Encoding Configuration
+# Set UTF-8 as the default external encoding to ensure consistent text handling:
+# - Standardizes file and network I/O operations
+# - Normalizes STDIN/STDOUT/STDERR encoding
+# - Provides default encoding for strings from external sources
+# This prevents encoding-related bugs, especially on fresh OS installations
+# where locale settings may not be properly configured.
 Encoding.default_external = Encoding::UTF_8
 
-# Required Libraries
+# Dependencies and Core Libraries
+# -------------------------------
+# Load required Rack extensions and application modules
 require 'rack/content_length'
 require 'rack/contrib'
-require_relative 'lib/middleware'
-require_relative 'lib/onetime'
+require 'rack/protection'
+require 'rack/utf8_sanitizer'
 
+# Load application-specific components
+require_relative 'apps/app_registry'    # Application registry for mounting apps
+require_relative 'lib/onetime'          # Core OneTime Secret functionality
+require_relative 'lib/onetime/middleware' # Custom middleware components
 
-# Boot Application
+# Application Initialization
+# -------------------------------
+# Load all application modules from the registry
+AppRegistry.load_applications
+BaseApplication.register_applications
+
+# Bootstrap the Application
+# Applications must be loaded before boot to ensure all Familia models
+# are properly registered. This sequence is critical for establishing
+# database connections for all model classes.
 Onetime.boot! :app
 
-# Rack Applications Configuration
-apps = {
-  '/api/v1' => '/api/v1/routes',
-  '/api/v2' => '/api/v2/routes',
-  '/'       => '/web/routes'
-}.transform_values { |path| Otto.new(File.join(APP_DIR, path)) }
+# Middleware Configuration
+# -------------------------------
 
-# JSON Response Headers
-headers = { 'Content-Type' => 'application/json' }
+# Standard Middleware Setup
+# Configure essential middleware components for all environments
+if !Onetime.conf.dig(:logging, :http_requests).eql?(false)
+  Onetime.li "[config.ru] Request logging with Rack::CommonLogger enabled"
+  use Rack::CommonLogger  # Log HTTP requests in standard format
+end
+use Rack::ContentLength  # Automatically set Content-Length header
 
-# API Error Responses
-apps["/api/v1"].not_found = [404, headers, [{ error: 'Not Found' }.to_json]]
-apps["/api/v1"].server_error = [500, headers, [{ error: 'Internal Server Error' }.to_json]]
-apps["/api/v2"].not_found = [404, headers, [{ message: 'Not Found' }.to_json]]
-apps["/api/v2"].server_error = [500, headers, [{ message: 'Internal Server Error' }.to_json]]
-
-# Public Directory for Root Endpoint
-apps['/'].option[:public] = PUBLIC_DIR
-
-# Common Middleware
-common_middleware = [
-  Rack::Lint,
-  Rack::CommonLogger,
-  Rack::ClearSessionMessages,
-  Rack::HandleInvalidUTF8,
-  Rack::HandleInvalidPercentEncoding,
-  Rack::ContentLength,
-  Rack::DetectHost,    # Must come before DomainStrategy
-  Onetime::DomainStrategy,  # Added after DetectHost
-]
-
-# If Sentry is not successfully enabled, there will be
-# no `Sentry::Rack::CaptureExceptions` constant available.
+# Error Monitoring Integration
+# Add Sentry exception tracking when available
+# This block only executes if Sentry was successfully initialized
 Onetime.with_diagnostics do
-  OT.ld "[config.ru] Sentry enabled"
-  # Put Sentry middleware first to catch exceptions as early as possible
-  common_middleware.unshift(Sentry::Rack::CaptureExceptions)
+  Onetime.ld "[config.ru] Sentry enabled"
+  # Position Sentry middleware early to capture exceptions throughout the stack
+  use Sentry::Rack::CaptureExceptions
 end
 
-# Apply common middleware to all apps
-common_middleware.each { |middleware|
-  OT.li "[config.ru] Using #{middleware}"
-  use middleware
-}
-
-# Support development without code reloading in production-like environments
-if OT.conf.dig(:experimental, :freeze_app)
-  OT.li "[experimental] Freezing app by request (env: #{ENV['RACK_ENV']})"
+# Performance Optimization
+# Support running with code frozen in production-like environments
+# This reduces memory usage and prevents runtime modifications
+if Onetime.conf.dig(:experimental, :freeze_app)
+  Onetime.li "[experimental] Freezing app by request (env: #{ENV['RACK_ENV']})"
   freeze_app
 end
 
-# Enable local frontend development server proxy
-# Supports running Vite dev server separately from the Ruby backend
-# Configure via config.yml:
-#   development:
-#     enabled: true
-#     frontend_host: 'http://localhost:5173'
-if Otto.env?(:dev) || Otto.env?(:development)
-
-  OT.li "[config.ru] Development environment detected"
-  # Rack::Reloader monitors Ruby files for changes and automatically reloads them
-  # This allows code changes to take effect without manually restarting the server
-  # The argument '1' means check for changes on every request, with 1s cooldown.
-  # NOTE: This middleware should only be used in development, never in production
-  use Rack::Reloader, 1
-
-  def run_frontend_proxy
-    config = OT.conf.dig(:development)
-
-    case config
-    in {enabled: true, frontend_host: String => frontend_host}
-      return if frontend_host.strip.empty?
-
-      OT.li "[config.ru] Using frontend proxy for /dist to #{frontend_host}"
-      require 'rack/proxy'
-
-      # Proxy requests to the Vite dev server while preserving path structure
-      # Only forwards /dist/* requests to maintain compatibility with production
-      proxy_klass = Class.new(Rack::Proxy) do
-        define_method(:perform_request) do |env|
-          case env['PATH_INFO']
-          when %r{\A/dist/} then super(env.merge('REQUEST_PATH' => env['PATH_INFO']))
-          else @app.call(env)
-          end
-        end
-      end
-
-      use proxy_klass, backend: frontend_host
-    else
-      OT.ld "[config.ru] Not running frontend proxy"
-    end
-  end
-  run_frontend_proxy
-
+# Development Environment Configuration
+# Enable development-specific middleware when in development mode
+# This handles code validation and frontend development server integration
+if BaseApplication.development?
+  require_relative 'lib/onetime/middleware/vite_proxy'
+  use Onetime::Middleware::ViteProxy
 end
 
-# Mount Applications
-map '/api/v2' do
-  use Rack::JSONBodyParser
-  run apps['/api/v2']
+# Production Environment Configuration
+# Serve static frontend assets in production mode
+# While reverse proxies often handle static files in production,
+# this provides a fallback capability for simpler deployments.
+#
+# Note: This explicit configuration replaces the implicit functionality
+# that existed prior to v0.21.0 release.
+if BaseApplication.production?
+  require_relative 'lib/onetime/middleware/static_files'
+  use Onetime::Middleware::StaticFiles
+
+  # Security Middleware Configuration
+  # Configures security-related middleware components based on application settings
+  require_relative 'lib/onetime/middleware/security'
+  Onetime.ld "[config.ru] Setting up Security middleware"
+  use Onetime::Middleware::Security
 end
 
-map '/api/v1' do
-  run apps['/api/v1']
-end
 
-map '/' do
-  run apps['/']
-end
+
+# Application Mounting
+# Map all registered applications to their respective URL paths
+run Rack::URLMap.new(AppRegistry.build)

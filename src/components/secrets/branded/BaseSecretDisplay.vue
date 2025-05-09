@@ -1,35 +1,35 @@
 <!-- src/components/secrets/BaseSecretDisplay.vue -->
+
 <script setup lang="ts">
-/**
- * Core display component for branded secret workflows that provides consistent
- * layout and styling across both confirmation and reveal states.
- *
- * This component is specifically designed for custom branded deployments where
- * maintaining brand consistency is prioritized over marketing opportunities.
- * For the core OneTimeSecret implementation, see the canonical SecretDisplayCase.
- *
- * @prop defaultTitle - Fallback title when branding is unavailable
- * @prop instructions - Optional pre-reveal instructions from domain branding
- * @prop domainBranding - Domain-specific styling configuration
- *
- * @slot logo - Domain logo or fallback icon
- * @slot content - Main content area (confirmation form or secret content)
- * @slot action-button - Action button slot (submit or copy)
- */
-  import { BrandSettings } from '@/schemas/models';
+  /**
+   * Core display component for branded secret workflows that provides consistent
+   * layout and styling across both confirmation and reveal states.
+   *
+   * This component is specifically designed for custom branded deployments where
+   * maintaining brand consistency is prioritized over marketing opportunities.
+   * For the core Onetime Secret implementation, see the canonical SecretDisplayCase.
+   *
+   * @prop defaultTitle - Fallback title when branding is unavailable
+   * @prop instructions - Optional pre-reveal instructions from domain branding
+   * @prop domainBranding - Domain-specific styling configuration
+   *
+   * @slot logo - Domain logo or fallback icon
+   * @slot content - Main content area (confirmation form or secret content)
+   * @slot action-button - Action button slot (submit or copy)
+   */
   import OIcon from '@/components/icons/OIcon.vue';
+  import { BrandSettings } from '@/schemas/models';
   import { computed, nextTick, onMounted, onUnmounted, ref } from 'vue';
   import { Composer, useI18n } from 'vue-i18n';
   const i18n = useI18n();
-
 
   const props = defineProps<{
     domainBranding: BrandSettings;
     cornerClass: string;
     fontClass: string;
     defaultTitle?: string;
-    instructions?: string;
     previewI18n?: Composer;
+    isRevealed?: boolean;
   }>();
 
   // Text expansion logic
@@ -38,6 +38,20 @@
   const isLongText = ref(false);
 
   const displayComposer = props.previewI18n || i18n;
+
+  // Computed property for instructions text
+  const instructions = computed(() => {
+    const isPostReveal = props.isRevealed === true;
+    const instructionsKey = isPostReveal
+      ? 'instructions_post_reveal'
+      : 'instructions_pre_reveal';
+    const defaultKey = isPostReveal
+      ? 'web.shared.post_reveal_default'
+      : 'web.shared.pre_reveal_default';
+
+    return props.domainBranding[instructionsKey]?.trim() ||
+           displayComposer.t(defaultKey);
+  });
 
   // Reusable computed properties
   const textClasses = computed(() => ({
@@ -76,32 +90,36 @@
 </script>
 
 <template>
-  <div class="min-h-[50vh] w-full rounded-lg bg-white p-4 dark:bg-gray-800 sm:p-6">
+  <div class="min-h-[35vh] w-full rounded-lg bg-white p-4 dark:bg-gray-800 sm:p-6">
     <!-- Title and Instructions -->
     <div class="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-4">
       <slot name="logo"></slot>
 
       <div class="flex-1 text-center sm:text-left">
         <div class="relative min-h-[5.5rem] sm:min-h-24">
-          <h2 :class="[cornerClass, fontClass]"
-              class="mb-2 text-base font-medium leading-normal text-gray-900 dark:text-gray-200 sm:mb-3 sm:text-xl">
+          <h2
+            :class="[cornerClass, fontClass]"
+            class="mb-2 text-base font-medium leading-normal
+              text-gray-900 dark:text-gray-200 sm:mb-3 sm:text-xl">
             <slot name="title">{{ defaultTitle }}</slot>
           </h2>
 
           <div class="relative">
-            <p ref="textRef"
-               :class="[textClasses, cornerClass, fontClass]"
-               class="pb-4">
+            <p
+              ref="textRef"
+              :class="[textClasses, cornerClass, fontClass]"
+              class="pb-4">
               {{ instructions || displayComposer.t('web.shared.pre_reveal_default') }}
             </p>
 
             <button
               v-if="isLongText"
               @click="toggleExpand"
+              :class="[textClasses, cornerClass, fontClass]"
               class="absolute bottom-0 left-1/2 -translate-x-1/2
-                rounded-full border border-gray-200 bg-white px-3 py-1
-                text-xs text-gray-500 shadow-sm transition-all duration-200
-                hover:text-gray-700 hover:shadow
+                border border-gray-200 bg-white px-3 py-1
+                text-xs text-gray-500 shadow-sm transition-all
+                duration-200 hover:text-gray-700 hover:shadow
                 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-400 dark:hover:text-gray-300">
               <slot
                 name="expand-button"
@@ -116,8 +134,10 @@
 
     <!-- Content Area -->
     <div class="my-3 sm:my-4">
-      <div :class="[cornerClass]"
-            class="flex min-h-32 w-full items-center justify-center bg-gray-100 dark:bg-gray-700 sm:min-h-36">
+      <div
+        :class="[cornerClass]"
+        class="flex min-h-32 w-full items-center justify-center
+          bg-gray-100 dark:bg-gray-700 sm:min-h-36">
         <slot name="content"></slot>
       </div>
     </div>

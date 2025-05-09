@@ -30,7 +30,7 @@ import EmailObfuscator from '@/components/EmailObfuscator.vue';
       <tbody>
         <tr class="border-b dark:border-gray-600">
           <td class="p-2 dark:text-gray-300">
-            0.20.x+
+            0.21.x+
           </td>
           <td class="p-2 dark:text-gray-300">
             {{ $t('emoji-checkmark') }}
@@ -38,7 +38,7 @@ import EmailObfuscator from '@/components/EmailObfuscator.vue';
         </tr>
         <tr class="border-b dark:border-gray-600">
           <td class="p-2 dark:text-gray-300">
-            0.19.x
+            0.20.x
           </td>
           <td class="p-2 dark:text-gray-300">
             {{ $t('emoji-checkmark') }}
@@ -46,7 +46,7 @@ import EmailObfuscator from '@/components/EmailObfuscator.vue';
         </tr>
         <tr>
           <td class="p-2 dark:text-gray-300">
-            &lt; 0.18.x
+            &lt; 0.19.x
           </td>
           <td class="p-2 dark:text-gray-300">
             {{ $t('emoji-x') }}
@@ -76,7 +76,7 @@ import EmailObfuscator from '@/components/EmailObfuscator.vue';
         {{ $t('web.security.with-the-subject-line-vulnerability-report-brief') }}
       </li>
       <li>
-        <strong>{{ $t('web.security.details') }}</strong>{{ $t('web.security.include-as-much-information-as-possible-about-th') }}
+        <strong>{{ $t('web.LABELS.details') }}</strong>{{ $t('web.security.include-as-much-information-as-possible-about-th') }}
         <ul class="mt-2 list-disc pl-6">
           <li>{{ $t('web.security.a-detailed-description-of-the-vulnerability') }}</li>
           <li>{{ $t('web.security.steps-to-reproduce-the-issue') }}</li>

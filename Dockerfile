@@ -1,4 +1,4 @@
-# syntax=docker/dockerfile:1.10
+# syntax=docker/dockerfile:1.15@sha256:9857836c9ee4268391bb5b09f9f157f3c91bb15821bb77969642813b0d00518d
 # check=error=true
 
 ##
@@ -97,7 +97,7 @@ ARG CODE_ROOT=/app
 ARG ONETIME_HOME=/opt/onetime
 ARG VERSION
 
-FROM docker.io/library/ruby:3.4-slim-bookworm AS base
+FROM docker.io/library/ruby:3.4-slim-bookworm@sha256:bf1ae63808063b7c3ba614d7e2e290011812ebffb7fd773f5ac4081d0c88538a AS base
 
 # Limit to packages needed for the system itself
 ARG PACKAGES="build-essential rsync netcat-openbsd libffi-dev libyaml-dev git"
@@ -110,8 +110,8 @@ RUN set -eux \
   && rm -rf /var/lib/apt/lists/*
 
 # Copy Node.js and npm from the official image
-COPY --from=docker.io/library/node:22 /usr/local/bin/node /usr/local/bin/
-COPY --from=docker.io/library/node:22 /usr/local/lib/node_modules /usr/local/lib/node_modules
+COPY --from=docker.io/library/node:22@sha256:a1f1274dadd49738bcd4cf552af43354bb781a7e9e3bc984cfeedc55aba2ddd8 /usr/local/bin/node /usr/local/bin/
+COPY --from=docker.io/library/node:22@sha256:a1f1274dadd49738bcd4cf552af43354bb781a7e9e3bc984cfeedc55aba2ddd8 /usr/local/lib/node_modules /usr/local/lib/node_modules
 
 # Create necessary symlinks
 RUN ln -s /usr/local/lib/node_modules/npm/bin/npm-cli.js /usr/local/bin/npm \
@@ -176,8 +176,7 @@ COPY package.json pnpm-lock.yaml tsconfig.json vite.config.ts postcss.config.mjs
 
 # Remove pnpm after use
 RUN set -eux \
-  && pnpm run type-check \
-  && pnpm run build-only \
+  && pnpm run build \
   && pnpm prune --prod \
   && rm -rf node_modules \
   && npm uninstall -g pnpm
@@ -193,7 +192,7 @@ RUN VERSION=$(node -p "require('./package.json').version") \
 ##
 # APPLICATION LAYER (FINAL)
 #
-FROM ruby:3.4-slim-bookworm AS final
+FROM ruby:3.4-slim-bookworm@sha256:bf1ae63808063b7c3ba614d7e2e290011812ebffb7fd773f5ac4081d0c88538a AS final
 ARG CODE_ROOT
 ARG VERSION
 LABEL org.opencontainers.image.version=$VERSION
@@ -206,6 +205,7 @@ COPY --from=build $CODE_ROOT/public $CODE_ROOT/public
 COPY --from=build $CODE_ROOT/templates $CODE_ROOT/templates
 COPY --from=build $CODE_ROOT/src $CODE_ROOT/src
 COPY bin $CODE_ROOT/bin
+COPY apps $CODE_ROOT/apps
 COPY etc $CODE_ROOT/etc
 COPY lib $CODE_ROOT/lib
 COPY migrate $CODE_ROOT/migrate

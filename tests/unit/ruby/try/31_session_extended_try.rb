@@ -1,17 +1,15 @@
-# frozen_string_literal: true
+# tests/unit/ruby/try/31_session_extended_try.rb
 
 require 'benchmark'
 
-require 'onetime'
-
+require_relative './test_models'
 # Use the default config file for tests
-OT::Config.path = File.join(Onetime::HOME, 'tests', 'unit', 'ruby', 'config.test.yaml')
-OT.boot! :test
+OT.boot! :test, false
 
 @ipaddress = '10.0.0.254'
 @useragent = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_2_5) AppleWebKit/237.36 (KHTML, like Gecko) Chrome/10.0.95 Safari/237.36'
 @custid = 'tryouts'
-@session_ids = 1000.times.map { OT::Session.create(@ipaddress, @custid, @useragent).sessid }
+@session_ids = 1000.times.map { V2::Session.create(@ipaddress, @custid, @useragent).sessid }
 
 
 ## Generate a large set of session IDs and check for duplicates
@@ -42,7 +40,7 @@ last_chars = @session_ids.map { |id| id[-3, 3] }
 #=> [true, true]
 
 ## Add timing tests to verify that ID generation is consistent and reasonably fast
-times = 10.times.map { Benchmark.realtime { OT::Session.create(@ipaddress, @custid, @useragent) } }
+times = 10.times.map { Benchmark.realtime { V2::Session.create(@ipaddress, @custid, @useragent) } }
 [times.max < 0.01, times.min > 0]  # Adjust the max time (0.01 seconds) as needed
 #=> [true, true]
 
@@ -53,7 +51,7 @@ similar_inputs = [
   ['10.0.0.1', 'user2', 'Chrome'],
   ['10.0.0.1', 'user1', 'Firefox']
 ]
-similar_ids = similar_inputs.map { |ip, cust, ua| OT::Session.create(ip, cust, ua).sessid }
+similar_ids = similar_inputs.map { |ip, cust, ua| V2::Session.create(ip, cust, ua).sessid }
 similar_ids.uniq.length == similar_ids.length
 #=> true
 
@@ -64,7 +62,7 @@ varied_inputs = [
   ['172.16.0.1', 'customer3', 'Opera'],
   ['::1', 'customer4', 'Brave']
 ]
-varied_ids = varied_inputs.map { |ip, cust, ua| OT::Session.create(ip, cust, ua).sessid }
+varied_ids = varied_inputs.map { |ip, cust, ua| V2::Session.create(ip, cust, ua).sessid }
 varied_ids.uniq.length == varied_ids.length
 #=> true
 
@@ -80,6 +78,6 @@ upcase_ids = @session_ids.map(&:upcase)
 #=> [true, false]  # Adjust based on your case-sensitivity requirements
 
 ## Test ID generation across different Ruby versions (simulate by calling the method multiple times)
-ruby_version_ids = 3.times.map { OT::Session.create(@ipaddress, @custid, @useragent).sessid }
+ruby_version_ids = 3.times.map { V2::Session.create(@ipaddress, @custid, @useragent).sessid }
 ruby_version_ids.uniq.length == ruby_version_ids.length
 #=> true

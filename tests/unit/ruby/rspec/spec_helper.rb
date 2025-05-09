@@ -5,17 +5,43 @@ require 'yaml'
 require 'tempfile'
 require 'fileutils'
 
-# Add the lib directory to the load path
-lib_path = File.expand_path('../../../../../../lib', __FILE__)
-$LOAD_PATH.unshift(lib_path) unless $LOAD_PATH.include?(lib_path)
+base_path = File.expand_path('../../../../..', __FILE__)
+apps_root = File.join(base_path, 'apps').freeze
 
-# Load the onetime library
+# Add the apps dirs to the load path. This allows us to require
+# 'v2/logic' naturally (without needing the 'apps/api' prefix).
+$LOAD_PATH.unshift(File.join(apps_root, 'api'))
+$LOAD_PATH.unshift(File.join(apps_root, 'web'))
+
+# Adds the 'lib' directory to the load path to ensure that the Onetime
+# library can be required.
+$LOAD_PATH.unshift File.join(base_path, 'lib')
+
+# Add spec directory to load path
+spec_path = File.expand_path('../..', __FILE__)
+$LOAD_PATH.unshift(spec_path)
+
 begin
   require 'onetime'
-  require 'onetime/config'
-  require 'onetime/alias' # OT
+  require 'onetime/alias' # allows using OT::Mail
+  require 'onetime/refinements/rack_refinements'
+  require 'onetime/logic'
+  require 'onetime/models'
+  require 'onetime/controllers'
+  require 'onetime/views'
+
+  # Due to how Familia::Horreum defines model classes we need to create
+  # an instance of each model class to ensure that they are loaded and
+  # available for testing. Part of ##1185.
+  #
+  # From Horreum#initialize:
+  #   "Automatically add a 'key' field if it's not already defined."
+  #
+  # V1::Secret.new
+  # V2::Secret.new
+
 rescue LoadError => e
-  puts "Failed to load onetime: #{e.message}"
+  puts "Failed to load onetime module: #{e.message}"
   puts "Current directory: #{Dir.pwd}"
   puts "Load path: #{$LOAD_PATH.inspect}"
   exit 1
@@ -29,10 +55,22 @@ OT::Config.path = File.join(Onetime::HOME, 'tests', 'unit', 'ruby', 'config.test
 
 # Configure RSpec
 RSpec.configure do |config|
-  # Use the specified formatter
-  config.formatter = :documentation
+  # Configures RSpec to include chain clauses in custom matcher descriptions for better readability.
+  config.expect_with :rspec do |expectations|
+    expectations.include_chain_clauses_in_custom_matcher_descriptions = true
+  end
 
-  # Enable warnings
+  # Sets RSpec as the mocking framework.
+  config.mock_with :rspec
+
+  # Applies shared context metadata to host groups, enhancing test organization.
+  # Will be default in RSpec 4
+  config.shared_context_metadata_behavior = :apply_to_host_groups
+
+  # Disables RSpec's monkey patching to encourage the use of the RSpec DSL.
+  config.disable_monkey_patching!
+
+  # Suppresses Ruby warnings during test runs for a cleaner output.
   config.warnings = false
 
   # Run specs in random order

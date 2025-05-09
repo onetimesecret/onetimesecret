@@ -1,10 +1,12 @@
-require 'onetime'
+# tests/unit/ruby/try/50_middleware/20_domain_strategy_basics_try.rb
+
+require_relative '../test_helpers'
+
 require 'middleware/detect_host'
 require 'onetime/middleware/domain_strategy'
 
 # Setup
-OT::Config.path = File.join(Onetime::HOME, 'tests', 'unit', 'ruby', 'config.test.yaml')
-OT.boot! :test
+OT.boot! :test, false
 
 @canonical_domain = 'onetimesecret.com'
 @parser = Onetime::DomainStrategy::Parser

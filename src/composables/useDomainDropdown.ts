@@ -5,10 +5,13 @@ import { ref } from 'vue';
 
 // Create a single shared ref for selectedDomain
 const selectedDomain = ref('');
+const isLoading = ref(false);
 
 export function useDomainDropdown() {
-  const { domains_enabled: domainsEnabled, site_host: defaultDomain } =
-    WindowService.getMultiple(['domains_enabled', 'site_host']);
+  const { domains_enabled: domainsEnabled, site_host: defaultDomain } = WindowService.getMultiple([
+    'domains_enabled',
+    'site_host',
+  ]);
 
   const availableDomains = ref(
     (() => {
@@ -58,5 +61,6 @@ export function useDomainDropdown() {
     updateSelectedDomain,
     addDomain,
     removeDomain,
+    isLoading,
   };
 }

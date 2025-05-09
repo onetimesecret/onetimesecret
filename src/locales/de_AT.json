@@ -1,5 +1,27 @@
 {
   "web": {
+    "help": {
+      "learn_more": "Mehr erfahren",
+      "secret_view_faq": {
+        "what_am_i_looking_at": {
+          "title": "Was sehe ich hier?",
+          "description": "Sie betrachten eine sichere Nachricht, die über Onetime Secret mit Ihnen geteilt wurde. Dieser Inhalt wird nur einmal angezeigt und dann dauerhaft von unseren Servern gelöscht."
+        },
+        "can_i_view_again": {
+          "title": "Kann ich diese Nachricht später noch einmal ansehen?",
+          "description": "Nein. Aus Sicherheitsgründen ist diese Nachricht nur einmal einsehbar. Nach dem Schließen dieser Seite wird der Inhalt dauerhaft gelöscht und kann von niemandem, auch nicht von uns, wiederhergestellt werden."
+        },
+        "how_to_copy": {
+          "title": "Wie speichere ich diese Information?",
+          "description": "Verwenden Sie die Schaltfläche 'In die Zwischenablage kopieren', um die gesamte Nachricht zu kopieren. Bei längeren Nachrichten sollten Sie überprüfen, ob Sie den vollständigen Inhalt kopiert haben, bevor Sie diese Seite verlassen."
+        },
+        "is_my_viewing_tracked": {
+          "title": "Wird meine Betrachtung dieser Nachricht verfolgt?",
+          "description": "Der Absender wird benachrichtigt, dass seine Nachricht angesehen wurde, aber wir verfolgen nicht, wer sie angesehen hat oder von welchem Standort aus. Ihre Privatsphäre wird geschützt."
+        },
+        "one_time_warning": "Sobald Sie diese Seite verlassen oder aktualisieren, wird diese Nachricht dauerhaft gelöscht und kann von niemandem wiederhergestellt werden."
+      }
+    },
     "COMMON": {
       "broadcast": "",
       "button_generate_secret_short": "Passwort erstellen",
@@ -10,12 +32,12 @@
       "custom_domains_description": "Stärken Sie Verbindungen und schaffen Sie Vertrauen mit Ihren eigenen geheimen Links.",
       "get_started_button": "Los geht's",
       "confirm_password_placeholder": "Bestätigen Sie Ihr Passwort",
-      "skill_placeholder": "",
       "header_settings": "Einstellungen",
       "submit_with": "Einreichen",
       "submitting": "Verarbeitung",
       "processing": "Verarbeitung",
       "description": "Halten Sie sensible Informationen aus Ihren Chat-Protokollen und E-Mails heraus. Geben Sie einen geheimen Link weiter, der nur einmalig verfügbar ist.",
+      "incorrect_passphrase": "Falsche Passphrase",
       "keywords": "geheimnis, Passwortgenerator, Geheimnis teilen, einmalig",
       "button_create_secret": "Einen geheimen Link erstellen",
       "button_generate_secret": "Oder generieren Sie ein zufälliges Passwort",
@@ -32,6 +54,7 @@
       "secret": "Geheimnis | Geheimnisse",
       "recent": "Jüngste | Jüngste",
       "received": "Empfangen",
+      "burn": "",
       "burned": "Verbrannt",
       "expires_in": "Läuft ab in",
       "burn_this_secret": "Dieses Geheimnis verbrennen",
@@ -58,7 +81,6 @@
       "button_create_account": "Konto erstellen",
       "share_a_secret": "Ein Geheimnis teilen",
       "title_home": "Startseite",
-      "title_recent_secrets": "Neueste Geheimnisse",
       "word_none": "Keine",
       "word_burned": "verbrannt",
       "word_received": "erhalten",
@@ -74,7 +96,10 @@
       "burn_security_notice": "Wenn Sie ein Geheimnis verbrennen, wird es gelöscht, bevor es empfangen wurde.",
       "share_link_securely": "Geben Sie diesen Link aus Sicherheitsgründen getrennt von anderen Angaben weiter.",
       "copied_to_clipboard": "In die Zwischenablage kopiert",
-      "button_create_incoming": "Nachricht senden"
+      "button_create_incoming": "Nachricht senden",
+      "faq_title": "FAQ",
+      "verification_not_valid": "Verifizierung ist nicht gültig",
+      "verification_already_logged_in": "Ein Konto kann nicht verifiziert werden, wenn Sie bereits angemeldet sind."
     },
     "LABELS": {
       "view_toggle": {
@@ -82,6 +107,7 @@
         "hide": "Ausblenden"
       },
       "timeline": "Zeitleiste",
+      "lifespan": "Lebensdauer",
       "expiration_time": "Ablaufzeit",
       "close": "Schließen Sie",
       "loading": "Laden...",
@@ -89,22 +115,39 @@
       "saving": "Retten...",
       "saved": "Gerettet",
       "save": "Speichern",
+      "save_all": "Alles speichern",
+      "details": "Einzelheiten",
       "encrypted": "Verschlüsselt",
       "secret_status": "Geheimstatus",
       "need_help": "Brauchen Sie Hilfe?",
       "create_new_secret": "Neues Geheimnis erstellen",
       "actions": "Aktionen",
       "no_passphrase": "Keine Sicherheitsphrase erforderlich",
+      "copy_to_clipboard": "In die Zwischenablage kopieren",
+      "receipts": "Empfangsbestätigungen",
+      "share": "Teilen",
       "secret_link": "Geheime Verbindung",
+      "dismiss": "Ablehnen",
       "security_details": "Details zur Sicherheit",
+      "items_count": "{count} Einträge",
       "recipients_count": "{count} Empfänger",
+      "view": "View",
       "views": "Ansichten",
       "times_viewed": "mal angesehen",
       "view_progress": "Fortschritte anzeigen",
       "help_section": "Hilfe-Bereich",
       "passphrase_protected": "Geschützt mit Sicherheitsphrase",
       "feedback-received": "Rückmeldung erhalten.",
-      "sending-ellipses": "Ich schicke..."
+      "sending-ellipses": "Ich schicke...",
+      "title_recent_secrets": "Neueste Geheimnisse",
+      "pricing": "Preisgestaltung",
+      "refresh": "Aktualisieren",
+      "reload": "Neu laden",
+      "caption_recent_secrets": "In dieser Sitzung erstellte Geheimlinks",
+      "create-link-short": "Link erstellen",
+      "create-link": "Geheimen Link erstellen",
+      "create-request-short": "Anfrage erstellen",
+      "create-request": "Anfrage-Link erstellen"
     },
     "STATUS": {
       "new": "Neu",
@@ -115,12 +158,12 @@
       "destroyed": "Zerstörte",
       "expiring_soon": "Bald ablaufend",
       "created": "Erstellt",
-      "created_description": "",
       "expires": "Abgelaufen",
       "expired": "Abgelaufen",
       "orphaned": "Verwaist",
       "secured": "Gesichert",
       "securing": "Sichern",
+      "copied": "Kopiert",
       "time_remaining": "Verbleibende Zeit",
       "new_description": "Der geheime Link wurde erstellt und noch nicht angesehen",
       "unread_description": "Der geheime Link wurde erstellt und wurde noch nicht angesehen",
@@ -153,6 +196,16 @@
         },
         "noOptionsAvailable": "---"
       },
+      "ttl_remaining": {
+        "duration": "Noch {count} {unit}",
+        "time": {
+          "day": "Tag übrig | Tage übrig",
+          "hour": "Stunde übrig | Stunden übrig",
+          "minute": "Minute übrig | Minuten übrig",
+          "second": "Sekunde übrig | Sekunden übrig"
+        },
+        "noOptionsAvailable": "---"
+      },
       "limited_views": "{count} Ansichtsgrenze",
       "days_remaining": "{count} Verbleibende Tage",
       "hours_remaining": "{count} Verbleibende Stunden",
@@ -164,10 +217,14 @@
       "share_passphrase_instruction": "Geben Sie die Sicherheitsphrase separat über einen sicheren Kanal weiter",
       "secure_channel_instruction": "Verwenden Sie einen anderen sicheren Kanal für den Austausch vertraulicher Informationen"
     },
+    "ARIA": {
+      "focus-is-now-in-the-main-text-area": "Focus is now in the main text area"
+    },
     "secrets": {
       "privacyOptions": "Datenschutz-Optionen",
       "selectDuration": "Dauer auswählen",
-      "expiresIn": "Läuft ab in {duration}"
+      "expiresIn": "Läuft ab in {duration}",
+      "enterPassphrase": "Passphrase eingeben"
     },
     "homepage": {
       "tagline1": "Fügen Sie unten ein Passwort, eine geheime Nachricht oder einen privaten Link ein.",
@@ -184,7 +241,10 @@
       "explore_premium_plans": "Mit benutzerdefinierten Bereiche",
       "need_free_account": "Sie haben gerade erst angefangen? Versenden Sie E-Mails mit einem kostenlosen Konto.",
       "sign_up_free": "Kostenlose Anmeldung",
-      "visit-onetime-secret-home": "Besuchen Sie die Homepage von Onetime Secret"
+      "visit-onetime-secret-home": "Besuchen Sie die Homepage von Onetime Secret",
+      "password_generation_title": "Passwortgenerator",
+      "password_generation_description": "Klicken Sie auf \"Passwort generieren\", um ein sicheres Zufallspasswort zu erstellen, das Sie teilen können.",
+      "protip1": "Ihre Nachricht zerstört sich nach dem Ansehen selbst. Der Link kann nur einmal aufgerufen werden."
     },
     "private": {
       "pretext": "Teilen Sie diesen Link:",
@@ -200,6 +260,7 @@
       "destroyed_ago": "Zerstört {Zeit}",
       "burned": "Verbrannt",
       "viewed": "Aufgerufen",
+      "view_metadata": "",
       "destroyed": "Zerstörte",
       "have-more-questions-visit-our": "Haben Sie weitere Fragen? Besuchen Sie unser",
       "the-burn-feature-lets-you-permanently-delete-a-s": "Mit der Brennfunktion können Sie ein Geheimnis dauerhaft löschen, bevor es jemand sieht. Dies ist nützlich, wenn Sie den Zugriff widerrufen oder die falschen Informationen weitergeben möchten. Einmal gebrannt, kann das Geheimnis nicht wiederhergestellt werden.",
@@ -227,6 +288,7 @@
       "you_created_this_secret": "Sie haben dieses Geheimnis erstellt. Wenn Sie es einsehen, kann der Empfänger es nicht sehen.",
       "your_secret_message": "Ihre geheime Nachricht:",
       "this_message_for_you": "Diese Nachricht ist für Sie bestimmt:",
+      "your_message_is_ready": "Ihre sichere Nachricht ist bereit",
       "reply_with_secret": "Antwort mit einem anderen Geheimnis",
       "pre_reveal_default": "Zum Anzeigen der geschützten Nachricht klicken Sie bitte auf die Schaltfläche.",
       "post_reveal_default": "Ihre sichere Nachricht wird unten angezeigt.",
@@ -261,16 +323,6 @@
       "incoming_recipient_address": "Empfänger der Unterstützung",
       "incoming_success_message": "Ihre E-Mail wurde gesendet",
       "incoming_button_creating": "Erstellen von"
-    },
-    "page": {
-      "cta_title": "",
-      "cta_subtitle": "",
-      "cta_feature1": "",
-      "cta_feature2": "",
-      "cta_feature3": "",
-      "explore_premium_plans": "",
-      "need_free_account": "",
-      "sign_up_free": ""
     },
     "account": {
       "subscription_title": "Abonnement",
@@ -330,7 +382,6 @@
       "steps-to-reproduce-the-issue": "Schritte zur Reproduktion des Problems.",
       "a-detailed-description-of-the-vulnerability": "Eine detaillierte Beschreibung der Schwachstelle.",
       "include-as-much-information-as-possible-about-th": ": Geben Sie so viele Informationen wie möglich über die Schwachstelle an. Dies sollte umfassen:",
-      "details": "Einzelheiten",
       "with-the-subject-line-vulnerability-report-brief": "mit der Betreffzeile \"Schwachstellenbericht: [Kurzbeschreibung]\".",
       "send-an-email-to": ": Senden Sie eine E-Mail an",
       "how-to-report": "Wie melden",
@@ -388,10 +439,10 @@
       }
     },
     "meta": {
-      "were-making-onetime-secret-available-in-multiple": "",
-      "translations-are-new-spotted-an-error": "",
-      "we-recently-added-translations": "",
-      "privacy-and-security-should-be-accessible": ""
+      "were-making-onetime-secret-available-in-multiple": "Wir stellen {onetime-secret} in mehreren Sprachen zur Verfügung. Da dies eine neue Funktion ist, können Übersetzungsfehler oder umständliche Formulierungen auftreten. Ihr Feedback hilft uns bei der Verbesserung – wenn Sie Probleme entdecken, bitte {send-feedback}",
+      "translations-are-new-spotted-an-error": "Übersetzungen sind neu. Fehler entdeckt? {send-feedback}",
+      "we-recently-added-translations": "Wir haben kürzlich Übersetzungen hinzugefügt. Fehler entdeckt? {send-feedback}",
+      "privacy-and-security-should-be-accessible": "Datenschutz und Sicherheit sollten für jeden zugänglich sein, unabhängig von der Sprache. Wir fügen Übersetzungen hinzu, um sowohl unseren Benutzern als auch den Empfängern ihrer Nachrichten zu helfen, besser zu verstehen, wie sie sichere Nachrichten und Links sicher verwenden und darauf zugreifen können. Da dies eine neue Funktion ist, können Übersetzungsfehler oder unklare Anweisungen auftreten. Um die Klarheit und Genauigkeit unserer Übersetzungen zu verbessern, insbesondere bei kritischen sicherheitsrelevanten Inhalten, bitte {send-feedback}, wenn Sie Probleme entdecken"
     },
     "domains": "Bereiche"
   },
@@ -439,9 +490,6 @@
   "escape": "Flucht",
   "active": "Aktiv",
   "theyll-appear-here-once-youve-shared-them": "Sie werden hier erscheinen, sobald Sie sie geteilt haben.",
-  "copy-to-clipboard": "In die Zwischenablage kopieren",
-  "copied": "Kopiert",
-  "pricing": "Preisgestaltung",
   "meets-and-exceeds-compliance-standards": "Erfüllt und übertrifft die Konformitätsstandards",
   "start-today": "Heute beginnen",
   "start-today-with-identity-plus": "Beginnen Sie noch heute mit Identity Plus",
@@ -519,9 +567,12 @@
   "added-formatdistancetonow-domain-created-addsuffix-true": "Hinzugefügt {0}",
   "press-esc-to-close": "Zum Schließen ESC drücken",
   "charactercount-500-characters": "{0}/500 Zeichen",
-  "use-your-phone-to-scan-the-qr-code": "Scannen Sie mit Ihrem Handy den QR-Kennung",
+  "example-pre-reveal-instructions": "Scannen Sie mit Ihrem Handy den QR-Kennung",
+  "example-post-reveal-instructions": "Kontaktieren Sie onboarding{'@'}example.com bei Fragen",
   "these-instructions-will-be-shown-to-recipients-before": "Diese Anweisungen werden den Empfängern angezeigt, bevor sie den geheimen Inhalt preisgeben",
+  "these-instructions-will-be-shown-to-recipients-after": "Diese Anweisungen werden den Empfängern angezeigt, nachdem sie das Geheimnis enthüllt haben.",
   "pre-reveal-instructions": "Anweisungen vor der Enthüllung",
+  "post-reveal-instructions": "Anweisungen nach der Enthüllung",
   "instructions": "Anweisungen",
   "enter": "Eingabe",
   "hide-secret-message": "Vertraulichen Inhalt ausblenden",
@@ -574,19 +625,23 @@
   "this-regulatory-framework-is-determined-by-your-": "Dieser Rechtsrahmen wird durch Ihren Zugangsbereich bestimmt:",
   "your-account-and-data-are-protected-under-the-la": "Ihr Konto und Ihre Daten sind durch die Gesetze und Vorschriften folgender Länder geschützt",
   "current": "Aktuell",
-  "jurisdiction-display_name-iscurrentjurisdiction-": "",
+  "jurisdiction-display_name-iscurrentjurisdiction-": "{0} {1}",
   "available-regions": "Verfügbare Regionen",
   "account-id-customerid": "Konto-ID",
   "jurisdiction": "Zuständigkeitsbereich",
   "data-center-location-currentjurisdiction-identif": "Standort des Rechenzentrums: {0}",
   "data-region": "Daten Region",
-  "all-feedback-welcome": ". Jedes Rückmeldung ist willkommen!",
+  "all-feedback-welcome": "Jedes Rückmeldung ist willkommen!",
   "help-us-improve": "Helfen Sie uns zu verbessern",
   "close-feedback-modal": "Rückmeldung-Modal schließen",
   "share-your-feedback": "Teilen Sie Ihr Rückmeldung mit",
   "delano-mandelbaum": "Delano Mandelbaum",
   "delano": "Delano",
   "help-content-goes-here": "Hilfe-Inhalte finden Sie hier.",
+  "why-is-this-secret-unavailable": "Warum ist dieses Geheimnis nicht verfügbar?",
+  "secrets-are-designed-to-be-viewed-only-once": "Geheimnisse sind so konzipiert, dass sie nur einmal angesehen werden können. Dieser Link wurde möglicherweise bereits aufgerufen, ist abgelaufen oder wurde vom Absender manuell gelöscht.",
+  "what-should-i-do-now": "Was soll ich jetzt tun?",
+  "contact-the-person-who-sent-you-this-link": "Kontaktieren Sie die Person, die Ihnen diesen Link gesendet hat, und bitten Sie sie, ein neues Geheimnis zu erstellen. Teilen Sie ihr mit, dass Sie nicht auf die ursprünglichen Informationen zugreifen konnten.",
   "done": "Erledigt",
   "loading-settings-content": "Inhalt der Einstellungen laden...",
   "settings-sections-0": "Abschnitte \"Einstellungen",
@@ -610,6 +665,7 @@
   "t-ai-generated-testimonial": "{0}:",
   "t-benefits-of-identity-plus": "{0}: Identität Plus",
   "upgrade-to": "Upgrade auf",
+  "upgrade-for-yourdomain": "",
   "secret-access-form": "Formular für den geheimen Zugang",
   "content-status": "Inhaltlicher Zustand",
   "secret-content-copied-to-clipboard": "Geheimer Inhalt in die Zwischenablage kopiert",
@@ -656,7 +712,6 @@
   "request-password-reset": "Passwort zurücksetzen anfordern",
   "forgot-password": "Passwort vergessen",
   "google": "Google",
-  "unknown-jurisdiction-0": "Unbekannte Gerichtsbarkeit",
   "unknown-jurisdiction": "Unbekannte Gerichtsbarkeit",
   "redis-info": "Redis-Informationen",
   "customer-secrets_created-customer-secrets_shared": "{0}/{1}/{2} [{3}]",
@@ -810,7 +865,6 @@
   "follow-these-steps-to-verify-domain-ownership-an": "Befolgen Sie diese Schritte, um die Bereichinhaberschaft zu überprüfen und Ihre Online-Präsenz zu verbessern:",
   "domain-verification-steps": "Schritte der Domänenüberprüfung",
   "domain-verification-initiated-successfully": "Die Domänenüberprüfung wurde erfolgreich eingeleitet.",
-  "dismiss": "Ablehnen",
   "deactivate": "Deaktivieren Sie",
   "are-you-sure-you-want-to-deactivate-your-account": "Sind Sie sicher, dass Sie Ihr Konto deaktivieren möchten? Alle Ihre Daten werden dauerhaft und für immer von unseren Servern entfernt. Diese Aktion kann nicht rückgängig gemacht werden.",
   "deactivate-account": "Konto deaktivieren",
@@ -850,5 +904,6 @@
   "an-error-occurred": "Es ist ein Fehler aufgetreten",
   "copy-secret-to-clipboard": "Geheimnis in die Zwischenablage kopieren",
   "secret-copied-to-clipboard": "Geheimnis in die Zwischenablage kopiert",
-  "Double check that passphrase": "Überprüfen Sie die Sicherheitsphrase doppelt"
+  "Double check that passphrase": "Überprüfen Sie die Sicherheitsphrase doppelt",
+  "press_copy_button_below": "Press the copy button below."
 }

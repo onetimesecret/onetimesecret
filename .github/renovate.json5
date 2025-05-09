@@ -1,0 +1,69 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+
+  // Core presets
+  "extends": [
+    "config:recommended",
+    "docker:pinDigests",
+    "helpers:pinGitHubActionDigests",
+    ":pinDevDependencies",
+    ":pinDependencies"
+  ],
+
+  // Update control and scheduling
+  "timezone": "America/Vancouver",
+  "schedule": ["before 5am"],
+  "separateMinorPatch": true,
+  "separateMultipleMajor": true,
+  "separateMultipleMinor": true,
+  "recreateWhen": "always",
+  "rebaseWhen": "auto",
+
+  // PR management
+  "prConcurrentLimit": 50,
+  "prHourlyLimit": 25,
+  "labels": ["auto-update"],
+  "assignees": ["delano"],
+  "reviewers": [],
+
+  // Branch settings
+  "branchPrefix": "deps/",
+  "branchNameStrict": true,
+
+  // Automerge settings
+  "automerge": true,
+  "automergeType": "branch",
+  "automergeStrategy": "merge-commit",
+  "major": { "automerge": false },
+  "minor": { "automerge": false },
+  "patch": { "automerge": true },
+  "pin": { "automerge": true },
+  "lockFileMaintenance": { "automerge": true },
+
+  // Security settings
+  "vulnerabilityAlerts": {
+    "labels": ["security"],
+    "assignees": ["delano"],
+    "schedule": "at any time"
+  },
+
+  // Package-specific rules
+  "packageRules": [
+    {
+      "matchPackageNames": ["encryptor"],
+      "recreateWhen": "never"
+    },
+    {
+      "matchPackageNames": ["rack"],
+      "recreateWhen": "never"
+    },
+    {
+      "matchDatasources": ["docker"],
+      "matchPackageNames": ["ghcr.io/onetimesecret/onetimesecret"],
+      "enabled": false
+    }
+  ],
+
+  // Additional settings
+  "forkProcessing": "enabled"
+}

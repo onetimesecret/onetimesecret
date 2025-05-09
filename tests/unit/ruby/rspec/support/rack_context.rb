@@ -1,4 +1,4 @@
-#  tests/unit/ruby/rspec/support/rack_context.rb
+# tests/unit/ruby/rspec/support/rack_context.rb
 
 RSpec.shared_context "rack_test_context" do
   let(:rack_request) do
@@ -12,12 +12,12 @@ RSpec.shared_context "rack_test_context" do
         'HTTP_HOST' => 'example.com',
         'rack.session' => {},
         'HTTP_ACCEPT' => 'application/json',
+        'ots.locale' => 'en',
       },
       cookies: {},
       session: {},
       script_name: '',
-      body: StringIO.new,
-    )
+      body: StringIO.new)
   end
 
   let(:rack_response) do
@@ -28,8 +28,7 @@ RSpec.shared_context "rack_test_context" do
       body: [],
       set_cookie: nil,
       finish: [200, {}, []],
-      write: nil,
-    ).tap do |resp|
+      write: nil).tap do |resp|
       allow(resp).to receive(:[]=) { |k,v| resp.headers[k] = v }
       allow(resp).to receive(:[]) { |k| resp.headers[k] }
       allow(resp).to receive(:header).and_return(resp.headers)

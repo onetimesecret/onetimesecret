@@ -1,4 +1,4 @@
-# tests/unit/ruby/rspec/config/i18n_fix_spec.rb
+# tests/unit/ruby/rspec/config/i18n_spec.rb
 
 # e.g. pnpm run rspec tests/unit/ruby/rspec/config/i18n_spec.rb
 
@@ -17,14 +17,14 @@ RSpec.describe "Internationalization config" do
         end
 
         before do
-          described_class.i18n_enabled = false
+          described_class.instance_variable_set(:@i18n_enabled, false)
           described_class.instance_variable_set(:@locales, nil)
         end
 
         after do
-          described_class.i18n_enabled = original_state[:i18n_enabled]
+          described_class.instance_variable_set(:@i18n_enabled, original_state[:i18n_enabled])
           described_class.instance_variable_set(:@locales, original_state[:locales])
-          described_class.default_locale = original_state[:default_locale]
+          described_class.instance_variable_set(:@default_locale, original_state[:default_locale])
         end
 
         it 'returns nil' do
@@ -50,25 +50,25 @@ RSpec.describe "Internationalization config" do
              default_locale: described_class.default_locale,
              supported_locales: described_class.supported_locales
            }
-         end
+        end
 
          before do
            # Setup disabled internationalization state
-           described_class.i18n_enabled = false
-           described_class.default_locale = 'en'
-           described_class.supported_locales = ['en']
+           described_class.instance_variable_set(:@i18n_enabled, false)
+           described_class.instance_variable_set(:@default_locale, 'en')
+           described_class.instance_variable_set(:@supported_locales, ['en'])
 
            # Simulate loading only English locale
-           en_locale = {'greeting': 'Hello'}
+           en_locale = {greeting: 'Hello'}
            described_class.instance_variable_set(:@locales, {'en' => en_locale})
          end
 
          after do
            # Restore original state
-           described_class.i18n_enabled = original_state[:i18n_enabled]
+           described_class.instance_variable_set(:@i18n_enabled, original_state[:i18n_enabled])
            described_class.instance_variable_set(:@locales, original_state[:locales])
-           described_class.default_locale = original_state[:default_locale]
-           described_class.supported_locales = original_state[:supported_locales]
+           described_class.instance_variable_set(:@default_locale, original_state[:default_locale])
+           described_class.instance_variable_set(:@supported_locales, original_state[:supported_locales])
          end
 
          it 'returns only English locale' do
@@ -102,10 +102,10 @@ RSpec.describe "Internationalization config" do
 
         before do
           # Setup enabled internationalization state
-          described_class.i18n_enabled = true
-          described_class.default_locale = 'fr_FR'
-          described_class.supported_locales = ['en', 'fr_FR', 'de_AT']
-          described_class.fallback_locale = {'fr-CA': ['fr_CA', 'fr_FR', 'en'], 'default': ['en']}
+          described_class.instance_variable_set(:@i18n_enabled, true)
+          described_class.instance_variable_set(:@default_locale, 'fr_FR')
+          described_class.instance_variable_set(:@supported_locales, %w[en fr_FR de_AT])
+          described_class.instance_variable_set(:@fallback_locale, {'fr-CA': %w[fr_CA fr_FR en], default: ['en']})
 
           # Simulate loading multiple locales
           test_locales = {
@@ -118,11 +118,11 @@ RSpec.describe "Internationalization config" do
 
         after do
           # Restore original state
-          described_class.i18n_enabled = original_state[:i18n_enabled]
+          described_class.instance_variable_set(:@i18n_enabled, original_state[:i18n_enabled])
           described_class.instance_variable_set(:@locales, original_state[:locales])
-          described_class.default_locale = original_state[:default_locale]
-          described_class.supported_locales = original_state[:supported_locales]
-          described_class.fallback_locale = original_state[:fallback_locale]
+          described_class.instance_variable_set(:@default_locale, original_state[:default_locale])
+          described_class.instance_variable_set(:@supported_locales, original_state[:supported_locales])
+          described_class.instance_variable_set(:@fallback_locale, original_state[:fallback_locale])
         end
 
         it 'returns all configured locales' do
@@ -134,7 +134,7 @@ RSpec.describe "Internationalization config" do
         end
 
         it 'includes all locales in supported locales' do
-          expect(described_class.supported_locales).to eq(['en', 'fr_FR', 'de_AT'])
+          expect(described_class.supported_locales).to eq(%w[en fr_FR de_AT])
         end
 
         it 'accesses specific locale content correctly' do
@@ -143,21 +143,20 @@ RSpec.describe "Internationalization config" do
         end
 
         it 'respects configured fallback locales' do
-          expect(described_class.fallback_locale[:'fr-CA']).to eq(['fr_CA', 'fr_FR', 'en'])
+          expect(described_class.fallback_locale[:'fr-CA']).to eq(%w[fr_CA fr_FR en])
           expect(described_class.fallback_locale[:default]).to eq(['en'])
         end
       end
-
     end
   end
 
-  describe Onetime::App::WebHelpers do
+  describe V2::ControllerHelpers do
     describe '#check_locale! (Regression for #1142)' do
       let(:req) { double('request', params: {}, env: {}) }
       let(:cust) { double('customer', locale: nil) }
       let(:helper) do
         Class.new do
-          include Onetime::App::WebHelpers
+          include V2::ControllerHelpers
           attr_accessor :req, :cust
 
           def initialize(req, cust)
@@ -174,17 +173,17 @@ RSpec.describe "Internationalization config" do
           @original_default_locale = Onetime.default_locale
 
           # Set up the previously buggy condition
-          Onetime.i18n_enabled = false
+          Onetime.instance_variable_set(:@i18n_enabled, false)
           Onetime.instance_variable_set(:@locales, nil)
-          Onetime.default_locale = 'en'
+          Onetime.instance_variable_set(:@default_locale, 'en')
 
           allow(Onetime).to receive(:ld) # Suppress logs
         end
 
         after do
-          Onetime.i18n_enabled = @original_i18n_enabled
+          Onetime.instance_variable_set(:@i18n_enabled, @original_i18n_enabled)
           Onetime.instance_variable_set(:@locales, @original_locales)
-          Onetime.default_locale = @original_default_locale
+          Onetime.instance_variable_set(:@default_locale, @original_default_locale)
         end
 
         it 'handles nil locales gracefully without raising errors' do

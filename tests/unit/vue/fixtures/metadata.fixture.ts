@@ -1,5 +1,7 @@
 // tests/unit/vue/fixtures/metadata.fixture.ts
-import { MetadataState, Secret, SecretState } from '@/schemas';
+
+import { MetadataState } from '@/schemas/models/metadata';
+import { Secret, SecretState } from '@/schemas/models/secret';
 import type { Metadata, MetadataDetails } from '@/schemas/models/metadata';
 
 /**
@@ -69,6 +71,9 @@ export const mockMetadataRecord: Metadata = {
   received: null,
   created: new Date('2024-12-25T16:06:54Z'),
   updated: new Date('2024-12-26T09:06:54Z'),
+  secret_ttl: null,
+  metadata_ttl: null,
+  lifespan: null,
 };
 
 export const mockMetadataDetails: MetadataDetails = {
@@ -239,8 +244,8 @@ export const mockSecretRecord: Secret = {
   verification: true,
   secret_value: 'test-secret',
   secret_ttl: 86400,
-  lifespan: '24 hours',
-  original_size: '42 bytes',
+  // Schema expects number, not string
+  lifespan: 86400,
 };
 
 export const mockBurnedSecretRecord: Secret | null = null;
@@ -257,8 +262,7 @@ export const mockReceivedSecretRecord: Secret = {
   verification: true,
   secret_value: 'received test secret',
   secret_ttl: 86400,
-  lifespan: '24 hours',
-  original_size: '42 bytes',
+  lifespan: 86400,
 };
 
 export const mockOrphanedSecretRecord: Secret = {
@@ -272,9 +276,9 @@ export const mockOrphanedSecretRecord: Secret = {
   has_passphrase: false,
   verification: true,
   secret_value: 'orphaned test secret',
-  secret_ttl: null,
-  lifespan: null,
-  original_size: '42 bytes',
+  // Schema now expects number, not null
+  secret_ttl: 0,
+  lifespan: 0,
 };
 
 export const mockReceivedSecretRecord1: Secret = {
@@ -289,8 +293,7 @@ export const mockReceivedSecretRecord1: Secret = {
   verification: true,
   secret_value: 'received-test-secret-1',
   secret_ttl: 3600, // 1 hour
-  lifespan: '1 hour',
-  original_size: '42 bytes',
+  lifespan: 3600,
 };
 
 export const mockReceivedSecretRecord2: Secret = {
@@ -305,8 +308,7 @@ export const mockReceivedSecretRecord2: Secret = {
   verification: true,
   secret_value: 'received-test-secret-2',
   secret_ttl: 7200, // 2 hours
-  lifespan: '2 hours',
-  original_size: '42 bytes',
+  lifespan: 7200,
 };
 
 export const mockNotReceivedSecretRecord1: Secret = {
@@ -321,8 +323,7 @@ export const mockNotReceivedSecretRecord1: Secret = {
   verification: true,
   secret_value: 'not-received-test-secret-1',
   secret_ttl: 1800, // 30 minutes
-  lifespan: '30 minutes',
-  original_size: '42 bytes',
+  lifespan: 1800,
 };
 
 export const mockSecretResponse = {

@@ -33,7 +33,7 @@
             <router-link to="/pricing"
                          class="text-xl text-gray-600 transition-colors duration-300 hover:text-brand-500 dark:text-gray-400 dark:hover:text-brand-400 md:text-lg"
                          :aria-label="$t('view-our-subscription-pricing')">
-              {{ $t('pricing') }}
+              {{ $t('web.LABELS.pricing') }}
             </router-link>
           </li>
           <li v-if="windowProps.support_host">

@@ -1,5 +1,27 @@
 {
   "web": {
+    "help": {
+      "learn_more": "Learn more",
+      "secret_view_faq": {
+        "what_am_i_looking_at": {
+          "title": "What am I looking at?",
+          "description": "You're viewing a secure message that was shared with you through OneTime Secret. This content is displayed only once and then permanently deleted from our servers."
+        },
+        "can_i_view_again": {
+          "title": "Can I view this secret again later?",
+          "description": "No. For security reasons, this secret is only viewable once. After closing this page, the content will be permanently deleted and cannot be recovered by anyone, including us."
+        },
+        "how_to_copy": {
+          "title": "How do I save this information?",
+          "description": "Use the 'Copy to Clipboard' button to copy the entire secret. For longer secrets, make sure to verify you've copied the complete content before leaving this page."
+        },
+        "is_my_viewing_tracked": {
+          "title": "Is my viewing of this secret tracked?",
+          "description": "The sender will be notified that their secret was viewed, but we don't track who viewed it or from what location. Your privacy is protected."
+        },
+        "one_time_warning": "Once you leave or refresh this page, this secret will be permanently deleted and cannot be recovered by anyone."
+      }
+    },
     "COMMON": {
       "broadcast": "",
       "button_generate_secret_short": "Generate Password",
@@ -10,12 +32,12 @@
       "custom_domains_description": "Strengthen connections and build trust with your own branded secret links.",
       "get_started_button": "Get Started",
       "confirm_password_placeholder": "Confirm your password",
-      "skill_placeholder": "",
       "header_settings": "Settings",
       "submit_with": "Submit",
       "submitting": "Submitting...",
       "processing": "Processing...",
       "description": "Keep sensitive information out of your chat logs and email. Share a secret link that is available only one time.",
+      "incorrect_passphrase": "Incorrect passphrase",
       "keywords": "secret,password generator,share a secret,onetime",
       "button_create_secret": "Create a secret link",
       "button_generate_secret": "Or generate a random password",
@@ -32,6 +54,7 @@
       "secret": "Secret | Secrets",
       "recent": "Recent",
       "received": "Received",
+      "burn": "Burn",
       "burned": "Burned",
       "expires_in": "Expires in",
       "burn_this_secret": "Burn this secret",
@@ -58,7 +81,6 @@
       "button_create_account": "Create Account",
       "share_a_secret": "Share a secret",
       "title_home": "Home",
-      "title_recent_secrets": "Recent Secrets",
       "word_none": "None",
       "word_burned": "burned",
       "word_received": "received",
@@ -74,7 +96,10 @@
       "burn_security_notice": "Burning a secret will delete it before it has been received.",
       "share_link_securely": "For security, share this link separately from other details.",
       "copied_to_clipboard": "Copied to clipboard",
-      "button_create_incoming": ""
+      "button_create_incoming": "Create Incoming",
+      "faq_title": "F.A.Q.",
+      "verification_not_valid": "Verification is not valid",
+      "verification_already_logged_in": "Cannot verify an account when you're already logged in"
     },
     "LABELS": {
       "view_toggle": {
@@ -82,6 +107,7 @@
         "hide": "Hide"
       },
       "timeline": "Timeline",
+      "lifespan": "Lifespan",
       "expiration_time": "Expiration Time",
       "close": "Close",
       "loading": "Loading...",
@@ -89,22 +115,39 @@
       "saving": "Saving...",
       "saved": "Saved",
       "save": "Save",
+      "save_all": "Save All",
+      "details": "Details",
       "encrypted": "Encrypted",
       "secret_status": "Secret Status",
       "need_help": "Need help?",
       "create_new_secret": "Create New Secret",
       "actions": "Actions",
       "no_passphrase": "No Passphrase Required",
+      "copy_to_clipboard": "Copy to clipboard",
+      "receipts": "Receipts",
+      "share": "Share",
       "secret_link": "Secret Link",
+      "dismiss": "Dismiss",
       "security_details": "Security Details",
+      "items_count": "{count} Items",
       "recipients_count": "{count} Recipients",
+      "view": "View",
       "views": "Views",
       "times_viewed": "times viewed",
       "view_progress": "View Progress",
       "help_section": "Help Section",
       "passphrase_protected": "Protected with passphrase",
       "feedback-received": "Feedback received.",
-      "sending-ellipses": "Sending..."
+      "sending-ellipses": "Sending...",
+      "title_recent_secrets": "Recent Secrets",
+      "pricing": "Pricing",
+      "refresh": "Refresh",
+      "reload": "Reload",
+      "caption_recent_secrets": "Secrets links created in this session",
+      "create-link-short": "Create Link",
+      "create-link": "Create Secret Link",
+      "create-request-short": "Create Request",
+      "create-request": "Create Request Link"
     },
     "STATUS": {
       "new": "New",
@@ -115,12 +158,12 @@
       "destroyed": "Destroyed",
       "expiring_soon": "Expiring Soon",
       "created": "Created",
-      "created_description": "",
       "expires": "Expires",
       "expired": "Expired",
       "orphaned": "Orphaned",
       "secured": "Secured",
       "securing": "Securing",
+      "copied": "Copied",
       "time_remaining": "Time Remaining",
       "new_description": "Secret link has been created and not yet viewed",
       "unread_description": "Secret link has been created and has not been viewed",
@@ -153,6 +196,16 @@
         },
         "noOptionsAvailable": "---"
       },
+      "ttl_remaining": {
+        "duration": "{count} {unit} remaining",
+        "time": {
+          "day": "day remaining | days remaining",
+          "hour": "hour remaining | hours remaining",
+          "minute": "minute remaining | minutes remaining",
+          "second": "second remaining | seconds remaining"
+        },
+        "noOptionsAvailable": "---"
+      },
       "limited_views": "{count} view limit",
       "days_remaining": "{count} Days Left",
       "hours_remaining": "{count} Hours Left",
@@ -164,10 +217,14 @@
       "share_passphrase_instruction": "Share the passphrase separately through a secure channel",
       "secure_channel_instruction": "Use a different secure channel to share sensitive information"
     },
+    "ARIA": {
+      "focus-is-now-in-the-main-text-area": "Focus is now in the main text area"
+    },
     "secrets": {
       "privacyOptions": "Privacy Options",
       "selectDuration": "Select duration",
-      "expiresIn": "Expires in {duration}"
+      "expiresIn": "Expires in {duration}",
+      "enterPassphrase": "Enter Passphrase"
     },
     "homepage": {
       "tagline1": "Paste a password, secret message or private link below.",
@@ -184,7 +241,10 @@
       "explore_premium_plans": "With Custom Domains",
       "need_free_account": "Just getting started? Send emails with a free account.",
       "sign_up_free": "Free Sign-up",
-      "visit-onetime-secret-home": "Visit Onetime Secret homepage"
+      "visit-onetime-secret-home": "Visit Onetime Secret homepage",
+      "password_generation_title": "Password Generator",
+      "password_generation_description": " Click \"Generate Password\" to create a secure random password that you can share.",
+      "protip1": "Your message will self-destruct after being viewed. The link can only be accessed once."
     },
     "private": {
       "pretext": "Share this link:",
@@ -200,6 +260,7 @@
       "destroyed_ago": "Destroyed {time}",
       "burned": "Burned",
       "viewed": "Viewed",
+      "view_metadata": "View Metadata",
       "destroyed": "Destroyed",
       "have-more-questions-visit-our": "Have more questions? Visit our",
       "the-burn-feature-lets-you-permanently-delete-a-s": "The burn feature lets you permanently delete a secret before anyone views it. This is useful if you need to revoke access or shared the wrong information. Once burned, the secret cannot be recovered.",
@@ -227,6 +288,7 @@
       "you_created_this_secret": "You created this secret. If you view it, the recipient will not be able to see it.",
       "your_secret_message": "Your secret message:",
       "this_message_for_you": "This message is for you:",
+      "your_message_is_ready": "Your secure message is ready.",
       "reply_with_secret": "Reply with another secret",
       "pre_reveal_default": "Click the button below to reveal your secure message.",
       "post_reveal_default": "Your secure message is shown below.",
@@ -261,16 +323,6 @@
       "incoming_recipient_address": "Support recipient",
       "incoming_success_message": "Your email has been sent",
       "incoming_button_creating": "Creating"
-    },
-    "page": {
-      "cta_title": "",
-      "cta_subtitle": "",
-      "cta_feature1": "",
-      "cta_feature2": "",
-      "cta_feature3": "",
-      "explore_premium_plans": "",
-      "need_free_account": "",
-      "sign_up_free": ""
     },
     "account": {
       "subscription_title": "Subscription",
@@ -330,7 +382,6 @@
       "steps-to-reproduce-the-issue": "Steps to reproduce the issue.",
       "a-detailed-description-of-the-vulnerability": "A detailed description of the vulnerability.",
       "include-as-much-information-as-possible-about-th": ": Include as much information as possible about the vulnerability. This should include:",
-      "details": "Details",
       "with-the-subject-line-vulnerability-report-brief": "with the subject line \"Vulnerability Report: [Brief Description]\".",
       "send-an-email-to": ": Send an email to",
       "how-to-report": "How to Report",
@@ -442,9 +493,6 @@
   "escape": "Escape",
   "active": "Active",
   "theyll-appear-here-once-youve-shared-them": "They'll appear here once you've shared them.",
-  "copy-to-clipboard": "Copy to clipboard",
-  "copied": "Copied",
-  "pricing": "Pricing",
   "meets-and-exceeds-compliance-standards": "Meets and exceeds compliance standards",
   "start-today": "Start today",
   "start-today-with-identity-plus": "Start today with Identity Plus",
@@ -501,7 +549,7 @@
   "font-family": "Font Family",
   "corner-style": "Corner Style",
   "brand-color": "Brand Color",
-  "preview-of-the-secret-link-page-for-recipients": "Preview of the secret link page for recipients",
+  "preview-of-the-secret-link-page-for-recipients": "Preview of recipient's view when accessing your secure link",
   "preview-and-customize": "Preview & Customize",
   "switch-to-safari-browser-view": "Switch to Safari browser view",
   "microsoft-edge": "Microsoft Edge",
@@ -522,9 +570,12 @@
   "added-formatdistancetonow-domain-created-addsuffix-true": "Added {0}",
   "press-esc-to-close": "Press ESC to close",
   "charactercount-500-characters": "{0}/500 characters",
-  "use-your-phone-to-scan-the-qr-code": "Use your phone to scan the QR code",
+  "example-pre-reveal-instructions": "Use your phone to scan the QR code",
+  "example-post-reveal-instructions": "Contact onboarding{'@'}example.com with any questions",
   "these-instructions-will-be-shown-to-recipients-before": "These instructions will be shown to recipients before they reveal the secret content",
+  "these-instructions-will-be-shown-to-recipients-after": "These instructions will be shown to recipients after they reveal the secret",
   "pre-reveal-instructions": "Pre-reveal Instructions",
+  "post-reveal-instructions": "Post-reveal Instructions",
   "instructions": "Instructions",
   "enter": "Enter",
   "hide-secret-message": "Hide secret message",
@@ -583,13 +634,17 @@
   "jurisdiction": "Jurisdiction",
   "data-center-location-currentjurisdiction-identif": "Data center location: {0}",
   "data-region": "Data Region",
-  "all-feedback-welcome": ". All feedback welcome!",
+  "all-feedback-welcome": "All feedback welcome!",
   "help-us-improve": "Help us improve",
   "close-feedback-modal": "Close feedback modal",
   "share-your-feedback": "Share your feedback",
   "delano-mandelbaum": "Delano Mandelbaum",
   "delano": "Delano",
   "help-content-goes-here": "Help content goes here.",
+  "why-is-this-secret-unavailable": "Why is this secret unavailable?",
+  "secrets-are-designed-to-be-viewed-only-once": "Secrets are designed to be viewed only once. This link may have already been accessed, expired, or been manually deleted by the sender.",
+  "what-should-i-do-now": "What should I do now?",
+  "contact-the-person-who-sent-you-this-link": "Contact the person who sent you this link and ask them to create a new secret. Let them know you weren't able to access the original information.",
   "done": "Done",
   "loading-settings-content": "Loading settings content...",
   "settings-sections-0": "Settings sections",
@@ -613,6 +668,7 @@
   "t-ai-generated-testimonial": "{0}:",
   "t-benefits-of-identity-plus": "{0}: Identity Plus",
   "upgrade-to": "Upgrade to",
+  "upgrade-for-yourdomain": "Upgrade for secrets.yourdomain.com",
   "secret-access-form": "Secret access form",
   "content-status": "Content status",
   "secret-content-copied-to-clipboard": "Secret content copied to clipboard",
@@ -623,7 +679,7 @@
   "warning-dismissed": "Warning dismissed",
   "secret-value-not-available": "Secret value not available",
   "dismiss-truncation-warning": "Dismiss truncation warning",
-  "you-can-safely-close-this-tab": "You can safely close this tab.",
+  "you-can-safely-close-this-tab": "You can close this window when done.",
   "sign-in-to-your-account": "Welcome Back",
   "enter-the-secret-content-here": "Enter the secret content here",
   "enter-the-secret-content-to-share-here": "Enter the secret content to share here",
@@ -634,7 +690,7 @@
   "not-received": "NOT RECEIVED",
   "received": "RECEIVED",
   "secrets-example-dot-com": "secrets.example.com",
-  "when-ready-click-the-view-secret-button-at-the-t": "When ready, click the \"View Secret\" button at the top of the page to reveal your one-time message.",
+  "when-ready-click-the-view-secret-button-at-the-t": "When ready, click the button at the top of the page to reveal your one-time message.",
   "what-happens-next": "What happens next?",
   "yes-after-viewing-the-secret-is-permanently-dele": "Yes. After viewing, the secret is permanently deleted from our servers, ensuring your privacy.",
   "is-it-secure": "Is it secure?",
@@ -659,7 +715,6 @@
   "request-password-reset": "Request password reset",
   "forgot-password": "Forgot Password",
   "google": "Google",
-  "unknown-jurisdiction-0": "Unknown Jurisdiction",
   "unknown-jurisdiction": "Unknown Jurisdiction",
   "redis-info": "Redis Info",
   "customer-secrets_created-customer-secrets_shared": "{0}/{1}/{2} [{3}]",
@@ -706,7 +761,7 @@
   "secure-encrypted-storage": "Secure, encrypted storage",
   "this-is-a-private-instance-only-authorized-team-": "This is a private instance. Only authorized team members can generate new secure links.",
   "return-to-home": "Return to Home",
-  "that-information-is-no-longer-available": "That information is no longer available.",
+  "that-information-is-no-longer-available": "This secret has been viewed or expired.",
   "information-no-longer-available": "Information no longer available",
   "create-another-secret": "Create another secret",
   "support-details": "Support Details",
@@ -813,7 +868,6 @@
   "follow-these-steps-to-verify-domain-ownership-an": "Follow these steps to verify domain ownership and elevate your online presence:",
   "domain-verification-steps": "Domain Verification Steps",
   "domain-verification-initiated-successfully": "Domain verification initiated successfully.",
-  "dismiss": "Dismiss",
   "deactivate": "Deactivate",
   "are-you-sure-you-want-to-deactivate-your-account": "Are you sure you want to deactivate your account? All of your data will be permanently removed from our servers forever. This action cannot be undone.",
   "deactivate-account": "Deactivate account",
@@ -853,5 +907,6 @@
   "an-error-occurred": "An error occurred",
   "copy-secret-to-clipboard": "Copy secret to clipboard",
   "secret-copied-to-clipboard": "Secret copied to clipboard",
-  "Double check that passphrase": "Double check that passphrase"
+  "Double check that passphrase": "Double check that passphrase",
+  "press_copy_button_below": "Press the copy button below."
 }

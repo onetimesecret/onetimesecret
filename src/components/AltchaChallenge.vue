@@ -1,12 +1,14 @@
+<!-- src/components/AltchaChallenge.vue -->
+
 <!-- Based on https://github.com/altcha-org/altcha-starter-vue-ts/blob/main/src/components/Altcha.vue -->
 <script setup lang="ts">
-  import { ref, onMounted, onUnmounted, watch } from 'vue';
+  import { altchaWorkerUrl } from '@/workers/altcha-worker';
+  import { onMounted, onUnmounted, ref, watch } from 'vue';
   // Importing altcha package will introduce a new element <altcha-widget>.
   //
   // See compilerOptions in vite.config.ts.
   import 'altcha';
   // import '@/../node_modules/altcha/dist_external/altcha.js';
-  import { altchaWorkerUrl } from '@/workers/altcha-worker';
 
   interface Props {
     payload?: string;
@@ -14,6 +16,7 @@
   }
 
   const props = withDefaults(defineProps<Props>(), {
+    payload: undefined,
     isFloating: true,
   });
 

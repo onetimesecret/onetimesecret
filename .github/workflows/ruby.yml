@@ -40,6 +40,9 @@ on:
         required: false
         default: false
 
+permissions:
+  contents: read
+
 jobs:
   build:
     timeout-minutes: 15 # prevent hung jobs
@@ -61,14 +64,15 @@ jobs:
     runs-on: ubuntu-24.04
 
     strategy:
-      fail-fast: false # continue other matrix jobs if one fails
+      fail-fast: true
       matrix:
         ruby: ['3.4', '3.3', '3.2', '3.1']
+        continue-on-error: [false]
 
     # Make redis available for running the tryouts
     services:
       redis:
-        image: redis:bookworm@sha256:e422889e156ebea83856b6ff973bfe0c86bce867d80def228044eeecf925592b
+        image: redis:bookworm@sha256:7df1eeff67eb0ba84f6b9d2940765a6bb1158081426745c185a03b1507de6a09
         # Set health checks to wait until redis has started
         options: >-
           --health-cmd "redis-cli ping"
@@ -82,7 +86,7 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@eef61447b9ff4aafe5dcd4e0bbf5d482be7e7871 # v4
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
 
       - uses: ruby/setup-ruby@v1
         with:
@@ -90,13 +94,13 @@ jobs:
           bundler-cache: true
 
       - name: Setup tmate session
-        uses: mxschmitt/action-tmate@e5c7151931ca95bad1c6f4190c730ecf8c7dde48 # v3
+        uses: mxschmitt/action-tmate@7b6a61a73bbb9793cb80ad69b8dd8ac19261834c # v3
         if: ${{ github.event_name == 'workflow_dispatch' && inputs.debug_enabled }}
         with:
           detached: true
 
       - name: Install dependencies (bundler ${{ matrix.bundler }})
-        continue-on-error: ${{ matrix.continue-on-error || false }}
+        continue-on-error: ${{ matrix.continue-on-error }}
         run: |
           bundle config path vendor/bundle
           bundle install --jobs 4 --retry 3
@@ -122,16 +126,11 @@ jobs:
           echo "Total tests: $(jq '.summary.example_count' tmp/rspec_results.json)" >> $GITHUB_STEP_SUMMARY
 
       - name: Run tryouts
-        continue-on-error: ${{ matrix.continue-on-error || false }}
+        continue-on-error: ${{ matrix.continue-on-error }}
         run: |
           bundle exec try -vf
 
-      - name: Typecheck with Sorbet
-        continue-on-error: ${{ matrix.continue-on-error || true }}
-        run: |
-          bundle exec srb tc
-
       - name: Rubocop
-        continue-on-error: ${{ matrix.continue-on-error || true }}
+        continue-on-error: ${{ matrix.continue-on-error }}
         run: |
           bundle exec rubocop --config .rubocop.yml --format json --fail-level warning

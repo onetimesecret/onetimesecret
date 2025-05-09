@@ -1,4 +1,4 @@
-# frozen_string_literal: true
+# tests/unit/ruby/try/10_utils_try.rb
 
 # These tryouts test the functionality of the Onetime::Utils module.
 # The Utils module provides various utility functions used throughout
@@ -16,18 +16,14 @@
 # without needing to run the full application, allowing for targeted
 # testing of these specific functionalities.
 
-# Running:
-#
-# $ RUBYLIB=./lib bundle exec try -v ./try/10_utils_try.rb
-#
-
-require 'onetime'
+require_relative './test_helpers'
 
 # Familia.debug = true
 
 # Use the default config file for tests
-OT::Config.path = File.join(Onetime::HOME, 'tests', 'unit', 'ruby', 'config.test.yaml')
-OT.boot! :test
+
+OT.boot! :test, false
+@original_fortunes = Onetime::Utils.instance_variable_get(:@fortunes)
 
 ## Create a strand
 Onetime::Utils.strand.class
@@ -60,3 +56,29 @@ Onetime::Utils.obscure_email('r@onetimesecret.com')
 ## Obscure email address (Long)
 Onetime::Utils.obscure_email('readyreadyreadyready@onetimesecretonetimesecretonetimesecret.com')
 #=> 're*****@o*****.com'
+
+## random_fortune returns a string
+## Create a mock fortunes collection
+mock_fortunes = ["Fortune favors the bold.", "The early bird gets the worm."]
+Onetime::Utils.fortunes = mock_fortunes
+Onetime::Utils.random_fortune.class
+#=> String
+
+## random_fortune returns a trimmed fortune
+## Test with trailing whitespace
+mock_fortunes = ["Fortune with trailing space   "]
+Onetime::Utils.fortunes = mock_fortunes
+Onetime::Utils.random_fortune
+#=> "Fortune with trailing space"
+
+## random_fortune handles errors gracefully
+## Create object that will raise error when random is called
+error_fortunes = Object.new
+def error_fortunes.random
+  raise StandardError, "Test error"
+end
+Onetime::Utils.fortunes = error_fortunes
+Onetime::Utils.random_fortune
+#=> "Unexpected outcomes bring valuable lessons."
+
+Onetime::Utils.instance_variable_set(:@fortunes, @original_fortunes)

@@ -1,6 +1,9 @@
+// src/schemas/models/customer.ts
+
 import { transforms } from '@/schemas/transforms';
 import { withFeatureFlags } from '@/schemas/utils/feature_flags';
 import { z } from 'zod';
+
 import { createModelSchema } from './base';
 import { planSchema } from './plan';
 
@@ -34,6 +37,7 @@ export const customerSchema = withFeatureFlags(
       CustomerRole.RECIPIENT,
       CustomerRole.USER_DELETED_SELF,
     ]),
+    email: z.string().email(),
 
     // Boolean fields from API
     verified: transforms.fromString.boolean,
@@ -64,10 +68,7 @@ export const customerSchema = withFeatureFlags(
 );
 
 // Update the type to explicitly use Date for timestamps
-export type Customer = Omit<
-  z.infer<typeof customerSchema>,
-  'created' | 'updated'
-> & {
+export type Customer = Omit<z.infer<typeof customerSchema>, 'created' | 'updated'> & {
   created: Date;
   updated: Date;
 };

@@ -189,21 +189,21 @@ pm.test("Create User Response", function() {
 ```prompt
 We're working with postman collection "API Reference (2024-10-11)" (921ac7a7-6ef2-4b90-8fed-9b33df220a96).
 
-@lib/onetime/app/api/v1/routes
+@apps/api/v1/routes
 
-@lib/onetime/app/api/v1/endpoints.rb
+@apps/api/v1/endpoints.rb
 
 * Route files contain the literal URL paths that are supported by the API.
 * Endpoint files are like the controllers in MVC. Each route is mapped to one endpoint.
 * Logic Files contain the REST API implementation details (processed request params, body etc) and defines response JSON format in `success_data`:.
 
-@lib/onetime/logic
+@apps/api/v2/logic
 
 Our ultimate goal is for the Collection to be be the source of truth, accurate and complete representation of the codebase. We need to ensure that each request in Postman matches a corresponding route and logic file, and that all necessary fields are correctly defined.
 
 Work methodically through the routes, matching each up with the appropriate endpoint and logic files. For each route, follow these steps:
-1. **Identify the Route**: Find the route in `@lib/onetime/app/api/v1/routes`.
-2. **Match with Endpoint**: Ensure there is a corresponding endpoint method in `@lib/onetime/app/api/v1/endpoints.rb` that maps to this route.
+1. **Identify the Route**: Find the route in `@apps/api/v1/routes`.
+2. **Match with Endpoint**: Ensure there is a corresponding endpoint method in `@apps/api/v1/endpoints.rb` that maps to this route.
 3. **Check Logic File**: Verify that the logic for handling requests and generating responses is correctly defined in the appropriate logic file within `@lib/onetime/logic`.
 4. **Validate Fields**: Ensure all necessary fields (e.g., request parameters, response structure) are accurately represented in Postman.
 ```
