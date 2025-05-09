@@ -32,7 +32,7 @@ RSpec.describe "Onetime boot configuration process" do
     allow(Onetime).to receive(:le)
     allow(Familia).to receive(:redis).and_return(double('Redis').as_null_object)
     allow(Gibbler).to receive(:secret=)
-    allow(OT::RateLimit).to receive(:register_events)
+    allow(V2::RateLimit).to receive(:register_events)
     allow(OT::Plan).to receive(:load_plans!)
 
     # Mock redis operations

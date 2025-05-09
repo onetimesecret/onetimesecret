@@ -292,9 +292,9 @@ RSpec.describe "Onetime::Config during Onetime.boot!" do
     end
 
     it "configures rate limits based on @conf" do
-      allow(OT::RateLimit).to receive(:register_events)
+      allow(V2::RateLimit).to receive(:register_events)
       Onetime.boot!(:test)
-      expect(OT::RateLimit).to have_received(:register_events).with(Onetime.conf[:limits])
+      expect(V2::RateLimit).to have_received(:register_events).with(Onetime.conf[:limits])
     end
 
     it "sets Familia.uri from the configuration" do
