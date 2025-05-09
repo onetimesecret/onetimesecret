@@ -70,6 +70,10 @@ RSpec.configure do |config|
   # Disables RSpec's monkey patching to encourage the use of the RSpec DSL.
   config.disable_monkey_patching!
 
+  # RSpec will create this file to keep track of example statuses, and
+  # powers the the --only-failures flag.
+  config.example_status_persistence_file_path = ".rspec_status"
+
   # Suppresses Ruby warnings during test runs for a cleaner output.
   config.warnings = false
 
