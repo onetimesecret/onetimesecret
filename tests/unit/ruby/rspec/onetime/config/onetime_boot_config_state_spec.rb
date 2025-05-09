@@ -64,10 +64,10 @@ RSpec.describe "Onetime::Config during Onetime.boot!" do
     allow(redis_double).to receive(:info).and_return({'redis_version' => 'test_version'})
     allow(redis_double).to receive(:serverid).and_return('testserver:0000') # Added default for print_log_banner
 
-    allow(Onetime::App::Mail::SMTPMailer).to receive(:setup)
+    allow(Onetime::Mail::Mailer::SMTPMailer).to receive(:setup)
     # Add other mailers if they could be chosen by config
-    allow(Onetime::App::Mail::SendGridMailer).to receive(:setup)
-    allow(Onetime::App::Mail::AmazonSESMailer).to receive(:setup)
+    allow(Onetime::Mail::Mailer::SendGridMailer).to receive(:setup)
+    allow(Onetime::Mail::Mailer::SESMailer).to receive(:setup)
 
     truemail_config_double = double("Truemail::Configuration").as_null_object
     allow(Truemail).to receive(:configure).and_yield(truemail_config_double)
