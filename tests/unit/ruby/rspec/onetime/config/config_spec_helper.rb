@@ -40,7 +40,10 @@ RSpec.configure do |config|
   config.warnings = false
 
   # Run specs in random order
-  config.order = :random
+  config.order = :defined # ideally we can run :randomized...
+
+  # Alternately instead of order :defined, start the process with the same seed every time.
+  # config.seed = 12345 # any fixed number
 
   # Disable RSpec exposing methods globally on `Module` and `main`
   config.disable_monkey_patching!
