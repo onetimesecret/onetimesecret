@@ -27,7 +27,6 @@ RSpec.describe "Onetime boot configuration process" do
     @original_path = Onetime::Config.instance_variable_get(:@path)
     @original_mode = Onetime.mode
     @original_env = Onetime.env
-    @original_conf = Onetime.instance_variable_get(:@conf)
     @original_emailer = Onetime.instance_variable_get(:@emailer)
     @original_sysinfo = Onetime.instance_variable_get(:@sysinfo)
     @original_instance = Onetime.instance_variable_get(:@instance)
@@ -60,7 +59,7 @@ RSpec.describe "Onetime boot configuration process" do
     Onetime::Config.instance_variable_set(:@path, @original_path)
     Onetime.mode = @original_mode
     Onetime.env = @original_env
-    Onetime.instance_variable_set(:@conf, @original_conf)
+    Onetime.instance_variable_set(:@conf, nil)
     Onetime.instance_variable_set(:@emailer, @original_emailer)
     Onetime.instance_variable_set(:@sysinfo, @original_sysinfo)
     Onetime.instance_variable_set(:@instance, @original_instance)
@@ -95,9 +94,10 @@ RSpec.describe "Onetime boot configuration process" do
         Onetime.boot!(:test)
       end
 
-      it 'sets diagnostics to disabled by default' do
+      it 'sets diagnostics to disabled when test conf has it enabled but dsn is nil' do
+        expect(Onetime.d9s_enabled).to be_nil
         Onetime.boot!(:test)
-        expect(Onetime.d9s_enabled).to be true
+        expect(Onetime.d9s_enabled).to be false
       end
 
       it 'does not set Familia URI when we do not want DB connection' do
@@ -187,10 +187,6 @@ RSpec.describe "Onetime boot configuration process" do
         },
         redis: { uri: 'redis://localhost:6379/0' }
       }
-    end
-
-    before do
-      OT.instance_variable_set(:@conf, test_config)
     end
 
     it 'applies default values to secret_options when not specified' do
@@ -284,7 +280,6 @@ RSpec.describe "Onetime boot configuration process" do
       it 'converts TTL options string from test config to integers' do
         config = OT::Config.deep_clone(test_config)
         config[:site][:secret_options][:ttl_options] = "1800 43200 604800"
-        OT.instance_variable_set(:@conf, OT::Config.deep_clone(config))
 
         Onetime::Config.after_load(config)
 
@@ -295,21 +290,21 @@ RSpec.describe "Onetime boot configuration process" do
 
     context 'with diagnostics configuration' do
       it 'enables diagnostics from test config file' do
-        config = OT::Config.deep_clone(test_config)
-        OT.instance_variable_set(:@conf, OT::Config.deep_clone(config))
-        OT.d9s_enabled = false
+        raw_config = OT::Config.deep_clone(test_config)
 
         allow(Kernel).to receive(:require).with('sentry-ruby')
         allow(Kernel).to receive(:require).with('stackprof')
         allow(Sentry).to receive(:init)
         allow(Sentry).to receive(:initialized?).and_return(true)
 
-        Onetime::Config.after_load(config)
+        config = Onetime::Config.after_load(raw_config)
 
-        expect(OT.d9s_enabled).to be true
-        expect(config[:diagnostics][:enabled]).to be false
-        expect(config[:diagnostics][:sentry][:defaults][:sampleRate]).to eq(0.11)
-        expect(config[:diagnostics][:sentry][:defaults][:maxBreadcrumbs]).to eq(22)
+        expect(OT.d9s_enabled).to be false
+        expect(config[:diagnostics][:enabled]).to be true
+        expect(config[:diagnostics][:sentry][:backend][:sampleRate]).to eq(0.11)
+        expect(config[:diagnostics][:sentry][:backend][:maxBreadcrumbs]).to eq(22)
+        expect(config[:diagnostics][:sentry][:frontend][:sampleRate]).to eq(0.11)
+        expect(config[:diagnostics][:sentry][:frontend][:maxBreadcrumbs]).to eq(22)
       end
 
       it 'enables diagnostics when configured with a valid DSN' do
@@ -321,18 +316,17 @@ RSpec.describe "Onetime boot configuration process" do
             backend: { dsn: 'https://example.com/sentry' }
           }
         }
-        OT.instance_variable_set(:@conf, OT::Config.deep_clone(config))
-        OT.d9s_enabled = false
 
         allow(Kernel).to receive(:require).with('sentry-ruby')
         allow(Kernel).to receive(:require).with('stackprof')
         allow(Sentry).to receive(:init)
         allow(Sentry).to receive(:initialized?).and_return(true)
 
-        Onetime::Config.after_load(config)
+        OT.d9s_enabled = false
+        processed_config = Onetime::Config.after_load(config)
 
         expect(OT.d9s_enabled).to be true
-        expect(config[:diagnostics][:enabled]).to be false
+        expect(processed_config[:diagnostics][:enabled]).to be true
       end
 
       it 'applies defaults to sentry configuration' do
@@ -345,7 +339,6 @@ RSpec.describe "Onetime boot configuration process" do
             frontend: { profiles_sample_rate: 0.2 }
           }
         }
-        OT.instance_variable_set(:@conf, OT::Config.deep_clone(config))
         OT.d9s_enabled = false
 
         allow(Kernel).to receive(:require).with('sentry-ruby')
@@ -353,18 +346,28 @@ RSpec.describe "Onetime boot configuration process" do
         allow(Sentry).to receive(:init)
         allow(Sentry).to receive(:initialized?).and_return(true)
 
-        Onetime::Config.after_load(config)
+        processed_config = Onetime::Config.after_load(config)
 
-        expect(config[:diagnostics][:sentry][:backend][:environment]).to eq('test-default')
-        expect(config[:diagnostics][:sentry][:frontend][:environment]).to eq('test-default')
-        expect(config[:diagnostics][:sentry][:backend][:traces_sample_rate]).to eq(0.1)
-        expect(config[:diagnostics][:sentry][:frontend][:profiles_sample_rate]).to eq(0.2)
-        expect(config[:diagnostics][:sentry][:backend][:dsn]).to eq('https://example.com/sentry')
-        expect(config[:diagnostics][:sentry][:frontend][:dsn]).to eq('https://example.com/sentry')
+        expect(processed_config[:diagnostics][:sentry][:backend][:environment]).to eq('test-default')
+        expect(processed_config[:diagnostics][:sentry][:frontend][:environment]).to eq('test-default')
+        expect(processed_config[:diagnostics][:sentry][:backend][:traces_sample_rate]).to eq(0.1)
+        expect(processed_config[:diagnostics][:sentry][:frontend][:profiles_sample_rate]).to eq(0.2)
+        expect(processed_config[:diagnostics][:sentry][:backend][:dsn]).to eq('https://example.com/sentry')
+        expect(processed_config[:diagnostics][:sentry][:frontend][:dsn]).to eq('https://example.com/sentry')
 
-        final_ot_conf_sentry = OT.conf.dig(:diagnostics, :sentry)
-        expect(final_ot_conf_sentry[:backend][:environment]).to eq('test-default')
-        expect(final_ot_conf_sentry[:frontend][:environment]).to eq('test-default')
+        # The defaults aren't returned in the processed config because
+        # they've been applied to the frontend and backend settings and
+        # are no longer needed or relevant.
+        expect(processed_config[:diagnostics][:sentry][:defaults]).to be_nil
+        # The defaults remain in the config that we passed in because we go
+        # out of our way to make sure we don't mutate the original config.
+        expect(config[:diagnostics][:sentry][:defaults]).to be_a(Hash)
+
+        # OT.conf is assigned a value in boot! based on the return
+        # value from after_load. We test for this specifically b/c
+        # we had an issue with interdependent configurations and
+        # want to be sure we don't go down that road again.
+        expect(OT.conf).to be_nil
       end
     end
 
@@ -372,7 +375,6 @@ RSpec.describe "Onetime boot configuration process" do
       it 'raises an error if development config is missing' do
         config = OT::Config.deep_clone(minimal_config)
         config.delete(:development)
-        OT.instance_variable_set(:@conf, OT::Config.deep_clone(config))
 
         expect { Onetime::Config.after_load(config) }
           .to raise_error(OT::Problem, /No `development` config found/)
@@ -381,7 +383,6 @@ RSpec.describe "Onetime boot configuration process" do
       it 'raises an error if mail config is missing' do
         config = OT::Config.deep_clone(minimal_config)
         config.delete(:mail)
-        OT.instance_variable_set(:@conf, OT::Config.deep_clone(config))
 
         expect { Onetime::Config.after_load(config) }
           .to raise_error(OT::Problem, /No `mail` config found/)
@@ -390,7 +391,6 @@ RSpec.describe "Onetime boot configuration process" do
       it 'raises an error if site authentication config is missing' do
         config = OT::Config.deep_clone(minimal_config)
         config[:site].delete(:authentication)
-        OT.instance_variable_set(:@conf, OT::Config.deep_clone(config))
 
         expect { Onetime::Config.after_load(config) }
           .to raise_error(OT::Problem, /No `site.authentication` config found/)
