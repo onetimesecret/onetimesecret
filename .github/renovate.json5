@@ -12,16 +12,16 @@
 
   // Update control and scheduling
   "timezone": "America/Vancouver",
-  "schedule": ["before 5am"],
-  "separateMinorPatch": true,
+  "schedule": ["before 5am on Monday"],
+  "separateMinorPatch": false,
   "separateMultipleMajor": true,
   "separateMultipleMinor": true,
-  "recreateWhen": "always",
+  "recreateWhen": "auto",
   "rebaseWhen": "auto",
 
   // PR management
-  "prConcurrentLimit": 50,
-  "prHourlyLimit": 25,
+  "prConcurrentLimit": 15,
+  "prHourlyLimit": 10,
   "labels": ["auto-update"],
   "assignees": ["delano"],
   "reviewers": [],
@@ -61,6 +61,11 @@
       "matchDatasources": ["docker"],
       "matchPackageNames": ["ghcr.io/onetimesecret/onetimesecret"],
       "enabled": false
+    },
+    {
+      "matchPackagePatterns": ["^@types/"],
+      "groupName": "TypeScript type definitions",
+      "groupSlug": "types-updates"
     }
   ],
 
