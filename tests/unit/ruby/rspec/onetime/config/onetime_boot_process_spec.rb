@@ -3,6 +3,11 @@
 require_relative './config_spec_helper'
 require 'tempfile'
 
+# The Sentry lib is only required when diagnostics are enabled. We include it
+# here so we can write expectant testcases but we'll want to also test that
+# the library is required correctly under expected conditions.
+require 'sentry-ruby'
+
 RSpec.describe "Onetime boot configuration process" do
   let(:test_config_path) { File.join(Onetime::HOME, 'tests', 'unit', 'ruby', 'config.test.yaml') }
   let(:test_config_string) { File.read(test_config_path) }
@@ -94,9 +99,14 @@ RSpec.describe "Onetime boot configuration process" do
         expect(Onetime.d9s_enabled).to be true
       end
 
-      it 'sets Familia URI from Redis config' do
+      it 'does not set Familia URI when we do not want DB connection' do
+        expect(Familia).not_to receive(:uri=)
+        Onetime.boot!(:test, false)
+      end
+
+      it 'sets Familia URI from Redis config when we want DB connection' do
         expect(Familia).to receive(:uri=).with(test_config[:redis][:uri])
-        Onetime.boot!(:test)
+        Onetime.boot!(:test, true)
       end
 
       it 'initializes system info' do
