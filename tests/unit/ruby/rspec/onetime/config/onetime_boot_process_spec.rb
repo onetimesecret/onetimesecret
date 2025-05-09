@@ -1,6 +1,8 @@
 # tests/unit/ruby/rspec/onetime/config/onetime_boot_process_spec.rb
 
-require_relative './config_spec_helper'
+require_relative(
+  './config_spec_helper'
+)
 require 'tempfile'
 
 # The Sentry lib is only required when diagnostics are enabled. We include it
@@ -75,7 +77,6 @@ RSpec.describe "Onetime boot configuration process" do
         allow(Onetime).to receive(:load_locales)
         allow(Onetime).to receive(:set_global_secret)
         allow(Onetime).to receive(:prepare_emailers)
-        allow(Onetime).to receive(:prepare_rate_limits)
         allow(Onetime).to receive(:load_fortunes)
         allow(Onetime).to receive(:load_plans)
         allow(Onetime).to receive(:connect_databases)
@@ -105,8 +106,10 @@ RSpec.describe "Onetime boot configuration process" do
       end
 
       it 'sets Familia URI from Redis config when we want DB connection' do
-        expect(Familia).to receive(:uri=).with(test_config[:redis][:uri])
+        allow(Onetime).to receive(:connect_databases).and_call_original
+        allow(Familia).to receive(:uri=)
         Onetime.boot!(:test, true)
+        expect(Familia).to have_received(:uri=).with(test_config[:redis][:uri])
       end
 
       it 'initializes system info' do
@@ -120,10 +123,10 @@ RSpec.describe "Onetime boot configuration process" do
         expect(Onetime.instance).to be_frozen
       end
 
-      it 'returns the configuration' do
+      it 'returns nil and makes configuration available through Onetime.conf' do
         result = Onetime.boot!(:test)
-        expect(result).to be_a(Hash)
-        expect(result).to eq(Onetime.conf)
+        expect(result).to be_nil
+        expect(Onetime.conf).to be_a(Hash)
       end
     end
 
@@ -131,18 +134,18 @@ RSpec.describe "Onetime boot configuration process" do
       it 'calls necessary setup methods in the correct order' do
         # Test the sequence of method calls
         expect(Onetime::Config).to receive(:load).and_return(test_config).ordered
-        expect(Onetime::Config).to receive(:after_load).with(test_config).ordered # ensure it receives the loaded config
-        expect(Familia).to receive(:uri=).with(test_config[:redis][:uri]).ordered
+        expect(Onetime::Config).to receive(:after_load).with(test_config).and_return(test_config).ordered # ensure it receives the loaded config
         expect(Onetime).to receive(:load_locales).ordered
         expect(Onetime).to receive(:set_global_secret).ordered
         expect(Onetime).to receive(:prepare_emailers).ordered
-        expect(Onetime).to receive(:prepare_rate_limits).ordered
         expect(Onetime).to receive(:load_fortunes).ordered
         expect(Onetime).to receive(:load_plans).ordered
         expect(Onetime).to receive(:connect_databases).ordered
         expect(Onetime).to receive(:check_global_banner).ordered
         expect(Onetime).not_to receive(:print_log_banner) # print_log_banner unless mode?(:test)
 
+        # We no longer expect Familia.uri= directly since it's called inside connect_databases
+        # which we're now stubbing in this test
         Onetime.boot!(:test)
       end
     end
