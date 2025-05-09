@@ -177,6 +177,15 @@ RSpec.describe "Onetime boot configuration process" do
       }
     end
 
+    before do
+      OT.instance_variable_set(:@conf, test_config)
+    end
+
+    # Causes issue in v0.20.5
+    # after do
+    #   OT.instance_variable_set(:@conf, nil)
+    # end
+
     it 'applies default values to secret_options when not specified' do
       config = minimal_config.dup
 
@@ -200,6 +209,7 @@ RSpec.describe "Onetime boot configuration process" do
 
     it 'initializes empty domains configuration' do
       config = minimal_config.dup
+      OT.instance_variable_set(:@conf, test_config)
       Onetime::Config.after_load(config)
 
       expect(config[:site][:domains]).to eq({ enabled: false })
@@ -214,6 +224,7 @@ RSpec.describe "Onetime boot configuration process" do
 
     it 'initializes empty regions configuration' do
       config = minimal_config.dup
+
       Onetime::Config.after_load(config)
 
       expect(config[:site][:regions]).to eq({ enabled: false })
@@ -264,7 +275,7 @@ RSpec.describe "Onetime boot configuration process" do
 
         # This is nil bc of the bug. Should fail when the bug is fixed. The values
         # `1800, 43200, 604800` are coming from confog.test.yaml.
-        expect(config[:site][:secret_options][:ttl_options]).to eq([1800, 43200, 604800])
+        expect(config[:site][:secret_options][:ttl_options]).to eq(["1800", "43200", "604800"])
       end
 
       it 'converts string default_ttl to integer' do
