@@ -181,8 +181,8 @@ importers:
         specifier: 2.4.2
         version: 2.4.2
       jsdom:
-        specifier: 26.0.0
-        version: 26.0.0
+        specifier: 26.1.0
+        version: 26.1.0
       playwright:
         specifier: 1.52.0
         version: 1.52.0
@@ -233,7 +233,7 @@ importers:
         version: 3.2.2(vite@5.4.19(@types/node@22.15.17)(terser@5.39.0))
       vitest:
         specifier: 2.1.9
-        version: 2.1.9(@types/node@22.15.17)(@vitest/ui@2.1.9)(happy-dom@17.4.6)(jsdom@26.0.0)(terser@5.39.0)
+        version: 2.1.9(@types/node@22.15.17)(@vitest/ui@2.1.9)(happy-dom@17.4.6)(jsdom@26.1.0)(terser@5.39.0)
       vue-router:
         specifier: 4.5.1
         version: 4.5.1(vue@3.5.13(typescript@5.8.3))
@@ -2528,8 +2528,8 @@ packages:
     resolution: {integrity: sha512-wpxZs9NoxZaJESJGIZTyDEaYpl0FKSA+FB9aJiyemKhMwkxQg63h4T1KJgUGHpTqPDNRcmmYLugrRjJlBtWvRA==}
     hasBin: true
 
-  jsdom@26.0.0:
-    resolution: {integrity: sha512-BZYDGVAIriBWTpIxYzrXjv3E/4u8+/pSG5bQdIYCbNCGOvsPkDQfTVLAIXAf9ETdCpduCVTkDe2NNZ8NIwUVzw==}
+  jsdom@26.1.0:
+    resolution: {integrity: sha512-Cvc9WUhxSMEo4McES3P7oK3QaXldCfNWp7pl2NNeiIFlCoLr3kfq9kb1fxftiwk1FLV7CvpvDfonxtzUDeSOPg==}
     engines: {node: '>=18'}
     peerDependencies:
       canvas: ^3.0.0
@@ -4732,7 +4732,7 @@ snapshots:
       std-env: 3.9.0
       test-exclude: 7.0.1
       tinyrainbow: 1.2.0
-      vitest: 2.1.9(@types/node@22.15.17)(@vitest/ui@2.1.9)(happy-dom@17.4.6)(jsdom@26.0.0)(terser@5.39.0)
+      vitest: 2.1.9(@types/node@22.15.17)(@vitest/ui@2.1.9)(happy-dom@17.4.6)(jsdom@26.1.0)(terser@5.39.0)
     transitivePeerDependencies:
       - supports-color
 
@@ -4779,7 +4779,7 @@ snapshots:
       sirv: 3.0.1
       tinyglobby: 0.2.13
       tinyrainbow: 1.2.0
-      vitest: 2.1.9(@types/node@22.15.17)(@vitest/ui@2.1.9)(happy-dom@17.4.6)(jsdom@26.0.0)(terser@5.39.0)
+      vitest: 2.1.9(@types/node@22.15.17)(@vitest/ui@2.1.9)(happy-dom@17.4.6)(jsdom@26.1.0)(terser@5.39.0)
 
   '@vitest/utils@2.1.9':
     dependencies:
@@ -6172,12 +6172,11 @@ snapshots:
     dependencies:
       argparse: 2.0.1
 
-  jsdom@26.0.0:
+  jsdom@26.1.0:
     dependencies:
       cssstyle: 4.3.0
       data-urls: 5.0.0
       decimal.js: 10.5.0
-      form-data: 4.0.2
       html-encoding-sniffer: 4.0.0
       http-proxy-agent: 7.0.2
       https-proxy-agent: 7.0.6
@@ -7238,7 +7237,7 @@ snapshots:
       fsevents: 2.3.3
       terser: 5.39.0
 
-  vitest@2.1.9(@types/node@22.15.17)(@vitest/ui@2.1.9)(happy-dom@17.4.6)(jsdom@26.0.0)(terser@5.39.0):
+  vitest@2.1.9(@types/node@22.15.17)(@vitest/ui@2.1.9)(happy-dom@17.4.6)(jsdom@26.1.0)(terser@5.39.0):
     dependencies:
       '@vitest/expect': 2.1.9
       '@vitest/mocker': 2.1.9(vite@5.4.19(@types/node@22.15.17)(terser@5.39.0))
@@ -7264,7 +7263,7 @@ snapshots:
       '@types/node': 22.15.17
       '@vitest/ui': 2.1.9(vitest@2.1.9)
       happy-dom: 17.4.6
-      jsdom: 26.0.0
+      jsdom: 26.1.0
     transitivePeerDependencies:
       - less
       - lightningcss
