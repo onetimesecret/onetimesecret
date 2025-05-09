@@ -1,6 +1,6 @@
 # tests/unit/ruby/rspec/onetime/config2/truemail_spec.rb
 
-require_relative '../../spec_helper'
+require_relative './spec_helper'
 
 RSpec.describe "Onetime TrueMail configuration" do
   describe "Truemail integration in Config.after_load" do
@@ -98,8 +98,11 @@ RSpec.describe "Onetime TrueMail configuration" do
       allow(@truemail_config).to receive(:whitelist_validation=)
       allow(@truemail_config).to receive(:dns=)
 
-      # Expect error log for invalid key
+      # Simulate behavior by allowing the method to be called
+      # In the actual implementation, this would trigger the error log
+      allow(@truemail_config).to receive(:respond_to?).with("invalid_key=").and_return(false)
       expect(Onetime).to receive(:le).with("config.invalid_key does not exist")
+      allow(@truemail_config).to receive(:invalid_key=)
 
       Onetime::Config.after_load(config)
     end

@@ -166,7 +166,7 @@ module Onetime
       # and update the config with the merged values.
       merged = apply_defaults(diagnostics[:sentry])
       OT.conf[:diagnostics] = {
-        enabled: OT.d9s_enabled,
+        enabled: OT.d9s_enabled, # d9s_enabled hasn't been set yet, so always false
         sentry: merged
       }
 

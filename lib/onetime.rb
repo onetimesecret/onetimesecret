@@ -158,6 +158,7 @@ module Onetime
 
     def set_global_secret
       @global_secret = OT.conf[:site][:secret] || 'CHANGEME'
+      # TODO: The unless is awkward. Use `if Gibbler.secret.nil? || !Gibbler.secret.frozen?`
       unless Gibbler.secret && Gibbler.secret.frozen?
         Gibbler.secret = global_secret.freeze
       end
