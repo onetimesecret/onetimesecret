@@ -1,4 +1,5 @@
-# tests/unit/ruby/rspec/onetime/config/boot_config_spec.rb
+# tests/unit/ruby/rspec/onetime/config/onetime_boot_config_state_spec.rb
+
 require_relative '../../spec_helper'
 require 'fileutils' # For managing temp config files
 require 'yaml'      # For parsing YAML strings

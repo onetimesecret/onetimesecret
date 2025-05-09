@@ -1,6 +1,6 @@
-# tests/unit/ruby/rspec/onetime/config2/boot_spec.rb
+# tests/unit/ruby/rspec/onetime/config/onetime_boot_process_spec.rb
 
-require_relative './spec_helper'
+require_relative './config_spec_helper'
 require 'tempfile'
 
 RSpec.describe "Onetime boot configuration process" do
@@ -219,7 +219,7 @@ RSpec.describe "Onetime boot configuration process" do
       expect(config[:site][:regions]).to eq({ enabled: false })
     end
 
-    # pnpm run rspec ./tests/unit/ruby/rspec/onetime/config2/boot_spec.rb -e "when main feature is off"
+    # pnpm run rspec ./tests/unit/ruby/rspec/onetime/config/boot_spec.rb -e "when main feature is off"
     it 'disables authentication sub-features when main feature is off' do
 
       # OT.instance_variable_set(:@conf, test_config.dup)

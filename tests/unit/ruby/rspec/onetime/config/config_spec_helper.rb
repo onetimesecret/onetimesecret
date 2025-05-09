@@ -1,4 +1,4 @@
-# tests/unit/ruby/rspec/onetime/config2/spec_helper.rb
+# tests/unit/ruby/rspec/onetime/config/config_spec_helper.rb
 
 require 'rspec'
 require 'yaml'
