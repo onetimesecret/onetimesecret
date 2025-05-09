@@ -171,17 +171,40 @@ RSpec.describe "Onetime global state after boot" do
       before(:each) do
         allow(Onetime).to receive(:exit)
       end
-
+      
       it "handles configuration errors gracefully" do
         allow(Onetime::Config).to receive(:load).and_raise(StandardError.new("Test error"))
         expect(Onetime).to receive(:exit)
         Onetime.boot!(:test)
       end
-
+      
       it "handles Redis connection errors gracefully" do
         allow(Familia).to receive(:uri=).and_raise(Redis::CannotConnectError.new("Connection refused"))
         expect(Onetime).to receive(:exit)
         Onetime.boot!(:test)
+      end
+      
+      it "enables diagnostics when DSN is provided" do
+        # Known behavior when DSN is present and enabled is true
+        # This test documents the expected correct behavior
+        
+        # Mock the configuration to include a valid DSN
+        allow(Onetime::Config).to receive(:load) do
+          config = YAML.load(ERB.new(File.read(source_config_path)).result)
+          config[:diagnostics][:sentry][:defaults][:dsn] = "https://valid-dsn@sentry.example.com/123"
+          config[:diagnostics][:enabled] = true
+          config
+        end
+        
+        # Sentry should be initialized with the DSN
+        if defined?(Sentry)
+          expect(Sentry).to receive(:init)
+        end
+        
+        Onetime.boot!(:test)
+        
+        # Diagnostics should be enabled with a valid DSN and enabled=true
+        expect(Onetime.d9s_enabled).to eq(true)
       end
     end
   end
