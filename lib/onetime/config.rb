@@ -335,9 +335,9 @@ module Onetime
     #   }
     #   sections = apply_defaults(service_config)
     #   sections[:backend][:dsn] #=> ENV['DSN']
-    def apply_defaults(defaults, config)
+    def apply_defaults(defaults=nil, config={})
       return {} if config.nil? || config.empty?
-      return {} unless defaults.is_a?(Hash)
+      return config unless defaults.is_a?(Hash) # new in 0.22.1, previously {}
 
       config.each_with_object({}) do |(section, values), result|
         next if section == :defaults
