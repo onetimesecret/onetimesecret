@@ -29,7 +29,9 @@ module Onetime
     def boot!(mode = nil, connect_to_db = true)
       OT.mode = mode unless mode.nil?
       OT.env = ENV['RACK_ENV'] || 'production'
-      OT.d9s_enabled = false # diagnostics are disabled by default
+      # Default to diagnostics disabled
+      # In test mode, this will be overridden by the value in test config
+      OT.d9s_enabled = false
 
       @sysinfo ||= SysInfo.new.freeze
 
