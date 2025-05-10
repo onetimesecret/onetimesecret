@@ -3,7 +3,7 @@
 require_relative './config_spec_helper'
 
 RSpec.describe "Onetime TrueMail configuration" do
-  describe "Truemail integration in Config.after_load" do
+  describe "integration in Config.after_load" do
     let(:minimal_config) do
       {
         development: { enabled: false },
@@ -51,23 +51,24 @@ RSpec.describe "Onetime TrueMail configuration" do
 
     before do
       # Store original mail config
-      @original_conf = Onetime.instance_variable_get(:@conf)
+      @original_config = Onetime.instance_variable_get(:@conf)
 
       # Mock Truemail config
       @truemail_config = double('TruemailConfig')
+      # Allow respond_to? calls with sensible defaults
+      allow(@truemail_config).to receive(:respond_to?) do |method_name|
+       # Only methods ending with = are considered valid setter methods
+       method_name.to_s.end_with?('=') && method_name.to_s != 'invalid_key='
+      end
       allow(Truemail).to receive(:configure).and_yield(@truemail_config)
-
-      # Suppress logging
-      allow(Onetime).to receive(:ld)
-      allow(Onetime).to receive(:le)
     end
 
     after do
       # Restore original configuration
-      Onetime.instance_variable_set(:@conf, @original_conf)
+      Onetime.instance_variable_set(:@conf, @original_config)
     end
 
-    it 'requires a truemail configuration' do
+    it 'requires a configuration' do
       config = minimal_config.dup
       config[:mail].delete(:truemail)
 
@@ -75,7 +76,7 @@ RSpec.describe "Onetime TrueMail configuration" do
         .to raise_error(OT::Problem, /No TrueMail config found/)
     end
 
-    it 'configures Truemail with minimal settings' do
+    it 'configures with minimal settings' do
       config = minimal_config.dup
       truemail_settings = config[:mail][:truemail]
 
@@ -85,31 +86,40 @@ RSpec.describe "Onetime TrueMail configuration" do
       expect(@truemail_config).to receive(:whitelist_validation=).with(truemail_settings[:allowed_domains_only])
       expect(@truemail_config).to receive(:dns=).with(truemail_settings[:dns])
 
-      Onetime::Config.after_load(config)
+      conf = Onetime::Config.after_load(config)
+      Onetime.instance_variable_set(:@conf, conf)
+      Onetime.configure_truemail
     end
 
     it 'logs error when Truemail config key does not exist' do
-      config = minimal_config.dup
-      config[:mail][:truemail][:invalid_key] = 'value'
+      test_config = minimal_config.dup
+      test_config[:mail][:truemail][:invalid_key] = 'value'
 
-      # Set up expectations for valid keys
+      # Expect the error to be logged
+      expect(Onetime).to receive(:le).with('config.invalid_key does not exist')
+
+      # Set up stubs for valid keys present in minimal_config.
+      # These are needed because configure_truemail iterates through all keys
+      # and calls the corresponding setters.
       allow(@truemail_config).to receive(:default_validation_type=)
       allow(@truemail_config).to receive(:verifier_email=)
+      # :allowed_domains_only maps to :whitelist_validation
       allow(@truemail_config).to receive(:whitelist_validation=)
       allow(@truemail_config).to receive(:dns=)
 
-      # Simulate behavior by allowing the method to be called
-      # In the actual implementation, this would trigger the error log
-      allow(@truemail_config).to receive(:respond_to?).with("invalid_key=").and_return(false)
-      expect(Onetime).to receive(:le).with("config.invalid_key does not exist")
+      # Allow the :invalid_key= setter to be called without error,
+      # as configure_truemail attempts this call even after logging
+      # (due to the commented-out 'next').
       allow(@truemail_config).to receive(:invalid_key=)
 
-      Onetime::Config.after_load(config)
+      conf = Onetime::Config.after_load(test_config)
+      OT.instance_variable_set(:@conf, conf)
+      OT.configure_truemail
     end
 
     it 'maps custom key names to Truemail configuration keys' do
-      config = minimal_config.dup
-      config[:mail][:truemail] = {
+      test_config = minimal_config.dup
+      test_config[:mail][:truemail] = {
         allowed_domains_only: true,
         allowed_emails: ['test@example.com'],
         blocked_domains: ['bad.com']
@@ -120,12 +130,14 @@ RSpec.describe "Onetime TrueMail configuration" do
       expect(@truemail_config).to receive(:whitelisted_emails=).with(['test@example.com'])
       expect(@truemail_config).to receive(:blacklisted_domains=).with(['bad.com'])
 
-      Onetime::Config.after_load(config)
+      conf = Onetime::Config.after_load(test_config)
+      OT.instance_variable_set(:@conf, conf)
+      OT.configure_truemail
     end
 
-    it 'configures Truemail with all possible settings' do
-      config = minimal_config.dup
-      config[:mail][:truemail] = full_truemail_config
+    it 'configures with all possible settings' do
+      test_config = minimal_config.dup
+      test_config[:mail][:truemail] = full_truemail_config
 
       # Set expectations for all keys
       expect(@truemail_config).to receive(:default_validation_type=).with(full_truemail_config[:default_validation_type])
@@ -147,7 +159,9 @@ RSpec.describe "Onetime TrueMail configuration" do
       expect(@truemail_config).to receive(:dns=).with(full_truemail_config[:dns])
       expect(@truemail_config).to receive(:logger=).with(full_truemail_config[:logger])
 
-      Onetime::Config.after_load(config)
+      conf = Onetime::Config.after_load(test_config)
+      OT.instance_variable_set(:@conf, conf)
+      OT.configure_truemail
     end
 
     context 'with key mapping tests' do
@@ -192,7 +206,7 @@ RSpec.describe "Onetime TrueMail configuration" do
         allowed_domains: :whitelisted_domains,
         blocked_domains: :blacklisted_domains,
         blocked_mx_ip_addresses: :blacklisted_mx_ip_addresses,
-        example_internal_key: :example_external_key
+        example_internal_key: :example_external_key,
       )
     end
 
