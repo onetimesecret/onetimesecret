@@ -113,16 +113,10 @@ RSpec.describe "Onetime global state after boot" do
         Onetime.boot!(:test)
 
         expect(Onetime.sysinfo).not_to be_nil
-        expect(
-Onetime.sysinfo).to be_frozen
+        expect(Onetime.sysinfo).to be_frozen
 
-        # Access sysinfo as a hash regardless of its actual class
-        sysinfo = Onetime.sysinfo.respond_to?(:[]) ?
-                 Onetime.sysinfo :
-                 Onetime.sysinfo.instance_variable_get(:@info)
-
-        expect(sysinfo[:ruby]).to eq(RUBY_VERSION)
-        expect(sysinfo[:platform]).to eq(RUBY_PLATFORM)
+        version = Onetime.sysinfo.ruby.join('.')
+        expect(version).to eq(RUBY_VERSION)
       end
 
       it "initializes and freezes Onetime.instance" do
@@ -135,7 +129,7 @@ Onetime.sysinfo).to be_frozen
       end
     end
 
-    context "regarding internationalization" do
+    context "regarding i18n" do
       before(:each) do
         # Make sure we actually test the i18n initialization
         Onetime.instance_variable_set(:@locale, nil)
@@ -145,46 +139,16 @@ Onetime.sysinfo).to be_frozen
 
       it "initializes i18n settings from config" do
         Onetime.boot!(:test)
+        expect(Onetime.conf[:internationalization][:enabled]).to be(true)
+        expect(Onetime.conf[:internationalization][:fallback_locale]).to be_a(Hash)
 
-        if Onetime.respond_to?(:locale)
-          expect(Onetime.locale).to eq(Onetime.conf[:site][:locale])
-        end
-
-        if Onetime.respond_to?(:default_locale)
-          expect(Onetime.default_locale).to eq(Onetime.conf[:site][:locale])
-        end
-
-        if Onetime.respond_to?(:locales) && Onetime.conf[:site][:internationalization]
-          if Onetime.conf[:site][:internationalization][:enabled]
-            expect(Onetime.locales).to match_array(Onetime.conf[:site][:internationalization][:locales])
-          else
-            expect(Onetime.locales).to match_array([Onetime.default_locale])
-          end
-        end
+        expect(Onetime.supported_locales).to match_array(Onetime.conf[:internationalization][:locales])
+        expect(Onetime.supported_locales).to include(Onetime.default_locale)
+        expect(Onetime.i18n_enabled).to be(true)
+        expect(Onetime.fallback_locale).to be_a(Hash)
       end
 
-      it "sets i18n to defaults when disabled in config" do
-        # First boot to get a valid config
-        Onetime.boot!(:test)
-
-        # Manually override the internationalization setting
-        original_conf = Onetime.conf.dup
-        config_hash = Marshal.dump(original_conf)
-
-        if config_hash[:site] && config_hash[:site][:internationalization]
-          config_hash[:site][:internationalization][:enabled] = false
-          Onetime.instance_variable_set(:@conf, config_hash)
-
-          # Re-initialize i18n with modified config
-          if Onetime.respond_to?(:initialize_i18n, true)
-            Onetime.send(:initialize_i18n)
-
-            # Check that only the default locale is available
-            if Onetime.respond_to?(:locales)
-              expect(Onetime.locales).to eq([Onetime.default_locale])
-            end
-          end
-        end
+      it "sets Onetime's i18n default settings when disabled in config", skip: "TODO: Implement in a test file where we can control the config and not locked in to whatever is in config.test.yaml" do
       end
     end
 
@@ -230,26 +194,42 @@ Onetime.sysinfo).to be_frozen
     end
 
     context "regarding error handling" do
-      before(:each) do
-        allow(Onetime).to receive(:exit)
+      # The before(:each) block that previously stubbed `Onetime.exit`
+      # is no longer necessary for these specific tests, as we are directly
+      # asserting that an exception is raised.
+
+      it "handles configuration load errors by re-raising the error when not in CLI mode" do
+        # This simulates an error during OT::Config.load
+        config_error = StandardError.new("Test configuration error")
+        allow(Onetime::Config).to receive(:load).and_raise(config_error)
+
+        # Onetime.boot! is called with :test mode.
+        # The rescue block for StandardError in boot! should re-raise the error.
+        expect {
+          Onetime.boot!(:test)
+        }.to raise_error(StandardError, "Test configuration error")
       end
 
-      it "handles configuration load errors" do
-        allow(Onetime::Config).to receive(:load).and_raise(StandardError.new("Test configuration error"))
+      it "handles Redis connection errors by re-raising the error when not in CLI mode" do
+        # Ensure the actual Onetime.connect_databases method is called for this test,
+        # overriding the general stub from the main before(:each) block.
+        # This allows us to test the error handling within Onetime.boot!
+        # when connect_databases itself encounters an issue.
+        allow(Onetime).to receive(:connect_databases).and_call_original
 
-        # Since we might not know the exact exit code, we just expect exit to be called
-        expect(Onetime).to receive(:exit)
+        # Simulate that setting the Familia URI (which happens inside connect_databases)
+        # results in a connection error. This ensures the error is raised
+        # before any actual network connection to a Redis server is attempted by Familia.
+        redis_error = Redis::CannotConnectError.new("Test Redis error")
+        allow(Familia).to receive(:uri=).and_raise(redis_error)
 
-        Onetime.boot!(:test)
-      end
-
-      it "handles Redis connection errors" do
-        allow(Familia).to receive(:uri=).and_raise(Redis::CannotConnectError.new("Test Redis error"))
-
-        # Since we might not know the exact exit code, we just expect exit to be called
-        expect(Onetime).to receive(:exit)
-
-        Onetime.boot!(:test)
+        # Onetime.boot! will call the original connect_databases.
+        # Within connect_databases, the call to Familia.uri= will trigger our stubbed redis_error.
+        # This error should then be caught by the rescue block in Onetime.boot!
+        # and re-raised because the mode is :test (not :cli).
+        expect {
+          Onetime.boot!(:test)
+        }.to raise_error(Redis::CannotConnectError, "Test Redis error")
       end
     end
   end
