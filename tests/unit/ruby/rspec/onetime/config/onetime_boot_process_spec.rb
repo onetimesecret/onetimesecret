@@ -192,8 +192,29 @@ RSpec.describe "Onetime boot configuration process" do
           host: 'example.com',
           secret: 'test_secret',
         },
-        redis: { uri: 'redis://localhost:6379/0' }
+        redis: { uri: 'redis://localhost:6379/0' },
       }
+    end
+
+    context 'with i18n' do
+
+      it "sets i18n to disabled when missing from config" do
+        raw_config = minimal_config.dup
+        expect(raw_config.key?(:internationalization)).to be false
+
+        processed_config = Onetime::Config.after_load(raw_config)
+        expect(processed_config[:internationalization][:enabled]).to be(false)
+      end
+
+      it "does not add settings when disabeld in config" do
+        raw_config = minimal_config.dup
+        raw_config[:internationalization] = { enabled: false }
+
+        processed_config = Onetime::Config.after_load(raw_config)
+        expect(processed_config[:internationalization][:enabled]).to be(false)
+        expect(processed_config[:internationalization].keys).to eq([:enabled])
+      end
+
     end
 
     it 'applies default values to secret_options when not specified' do

@@ -92,6 +92,10 @@ module Onetime
         }
       end
 
+      unless conf.key(:internationalization)
+        conf[:internationalization] = { enabled: false }
+      end
+
       unless conf.key?(:development)
         raise OT::Problem, "No `development` config found in #{path}"
       end
