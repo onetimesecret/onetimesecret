@@ -46,7 +46,7 @@ RSpec.describe "Onetime::Config during Onetime.boot!" do
     sysinfo_double = instance_double(SysInfo, hostname: 'testhost', user: 'testuser', platform: 'testplatform').as_null_object
     allow(Onetime).to receive(:sysinfo).and_return(sysinfo_double)
 
-    allow(Gibbler).to receive(:secret).and_return(nil) # See related TODO in set_global_secret
+    allow(Gibbler).to receive(:secret).and_return(nil)
     allow(Gibbler).to receive(:secret=)
 
     allow(Onetime).to receive(:load_locales).and_call_original # Changed from simple stub
@@ -139,18 +139,18 @@ RSpec.describe "Onetime::Config during Onetime.boot!" do
     end
 
     context "when we set OT.conf manually" do
+      let(:loaded_config) { Onetime::Config.load(source_config_path) }
 
       before do
+
       end
 
       it "ensures diagnostics are disabled when there is no dsn" do
-        test_config = Onetime::Config.load(source_config_path)
-
-        test_config[:diagnostics][:sentry][:backend][:dsn] = nil
+        loaded_config[:diagnostics][:sentry][:backend][:dsn] = nil
         # Frontend DSN might also need to be nil if it alone can enable diagnostics
-        test_config[:diagnostics][:sentry][:frontend][:dsn] = nil
+        loaded_config[:diagnostics][:sentry][:frontend][:dsn] = nil
 
-        conf = Onetime::Config.after_load(test_config)
+        conf = Onetime::Config.after_load(loaded_config)
 
         diagnostics_config = conf.fetch(:diagnostics)
         expect(diagnostics_config.dig(:sentry, :backend, :dsn)).to be_nil
@@ -158,10 +158,9 @@ RSpec.describe "Onetime::Config during Onetime.boot!" do
         expect(Onetime.d9s_enabled).to be(false) # after_load makes it false
       end
 
-
       it "handles :autoverify correctly based on config" do
-        conf = OT.conf # config.test.yaml has site.authentication.autoverify = false
-        Onetime::Config.after_load(conf)
+        conf = Onetime::Config.after_load(loaded_config)
+
         expect(conf.dig(:site, :authentication, :autoverify)).to be(false)
       end
     end
