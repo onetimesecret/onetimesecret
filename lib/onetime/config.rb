@@ -92,7 +92,7 @@ module Onetime
         }
       end
 
-      unless conf.key(:internationalization)
+      unless conf.key?(:internationalization)
         conf[:internationalization] = { enabled: false }
       end
 
