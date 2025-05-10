@@ -35,9 +35,10 @@ module Onetime
         dsn_preview = dsn ? "#{dsn[0..10]}..." : "nil"
         OT.li "[sentry-init] Initializing with DSN: #{dsn_preview}"
 
-        # Only require Sentry if we have a DSN
-        require 'sentry-ruby'
-        require 'stackprof'
+        # Only require Sentry if we have a DSN. We call explicitly
+        # via Kernel to aid in testing.
+        Kernel.require 'sentry-ruby'
+        Kernel.require 'stackprof'
 
         Sentry.init do |config|
           config.dsn = dsn
