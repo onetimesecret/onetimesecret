@@ -29,8 +29,10 @@ module Onetime
     def boot!(mode = nil, connect_to_db = true)
       OT.mode = mode unless mode.nil?
       OT.env = ENV['RACK_ENV'] || 'production'
-      # Default to diagnostics disabled
-      # In test mode, this will be overridden by the value in test config
+
+      # Default to diagnostics disabled. FYI: in test mode, the test config
+      # YAML has diagnostics enabled. But the DSN values are nil so it
+      # doesn't get enabled even after loading config.
       OT.d9s_enabled = false
 
       @sysinfo ||= SysInfo.new.freeze
@@ -47,7 +49,7 @@ module Onetime
       raw_conf = OT::Config.load
 
       # Normalize the configruation and make it available to the rest
-      # of the initializers (via OT.conf).
+      # of the initializers (via OT.conf). raw_conf is frozen at this point.
       @conf = OT::Config.after_load(raw_conf)
 
       # OT.conf is deeply frozen at this point which means that the

@@ -129,7 +129,7 @@ module Onetime
       conf = if incoming_config.nil?
         {}
       else
-        Marshal.load(Marshal.dump(incoming_config))
+        deep_clone(incoming_config)
       end
 
       # SAFETY MEASURE: Validation and Default Security Settings
@@ -321,12 +321,6 @@ module Onetime
       raise OT::Problem, "[deep_clone] #{ex.message}"
     end
 
-    def deep_clone(config_hash)
-      Marshal.load(Marshal.dump(config_hash))
-    rescue TypeError => ex
-      raise OT::Problem, "[deep_clone] #{ex.message}"
-    end
-
     # Applies default values to configuration sections.
     #
     # @param config [Hash] Configuration with top-level section keys, including a :defaults key
@@ -400,10 +394,11 @@ module Onetime
     # @param other [Hash] Hash with values that override defaults
     # @return [Hash] A new hash containing the merged result
     def deep_merge(original, other)
-      return other.dup if original.nil?
-      return original.dup if other.nil?
+      return deep_clone(other) if original.nil?
+      return deep_clone(original) if other.nil?
 
-      other = other.dup
+      original_clone = deep_clone(original)
+      other_clone = deep_clone(other)
       merger = proc do |_key, v1, v2|
         if v1.is_a?(Hash) && v2.is_a?(Hash)
           v1.merge(v2, &merger)
@@ -413,7 +408,7 @@ module Onetime
           v2
         end
       end
-      original.merge(other, &merger)
+      original_clone.merge(other_clone, &merger)
     end
   end
 
