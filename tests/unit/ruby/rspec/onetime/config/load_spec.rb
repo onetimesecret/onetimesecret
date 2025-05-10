@@ -83,13 +83,14 @@ RSpec.describe Onetime::Config do
     end
 
     context 'with invalid configuration files' do
-      it 'raises ArgumentError for missing file path' do
-        expect { described_class.load(nil) }.to raise_error(ArgumentError, /Missing config file/)
+      it 'uses a default path when given nil' do
+        expect(described_class.load(nil)).to be_a(Hash)
+        expect(described_class.path).to be_a(String)
       end
 
       it 'raises ArgumentError for unreadable file' do
         nonexistent_path = '/path/does/not/exist.yaml'
-        expect { described_class.load(nonexistent_path) }.to raise_error(ArgumentError, /Bad path/)
+        expect { described_class.load(nonexistent_path) }.to raise_error(OT::ConfigError, /Bad path/)
       end
 
       it 'exits with error for invalid YAML' do
@@ -97,7 +98,7 @@ RSpec.describe Onetime::Config do
         File.write(invalid_yaml_path, "---\n:site: *undefined_alias\n")
 
         expect(Onetime).to receive(:le).at_least(:once)
-        expect { described_class.load(invalid_yaml_path) }.to raise_error(SystemExit)
+        expect { described_class.load(invalid_yaml_path) }.to raise_error(OT::ConfigError)
       end
 
       it 'exits with error for invalid ERB' do
@@ -105,7 +106,7 @@ RSpec.describe Onetime::Config do
         File.write(invalid_erb_path, "---\n:site:\n  :host: <%= undefined_method %>\n")
 
         expect(Onetime).to receive(:le).at_least(:once)
-        expect { described_class.load(invalid_erb_path) }.to raise_error(SystemExit)
+        expect { described_class.load(invalid_erb_path) }.to raise_error(OT::ConfigError)
       end
     end
   end
