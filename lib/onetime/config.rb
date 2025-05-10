@@ -337,11 +337,27 @@ module Onetime
         next if section == :defaults   # Skip the :defaults key in config_param itself
         next unless values.is_a?(Hash) # Process only sections that are hashes
 
-        # Deep merge defaults with section values, preserving nil values only for explicitly set keys
-        result[section] = defaults.merge(values) do |_key, default_val, section_val|
-          section_val.nil? ? default_val : section_val
+        # Deep merge defaults with section values
+        result[section] = deep_merge(defaults, values)
+      end
+    end
+
+    # Standard deep_merge implementation based on widely used patterns
+    # @param original [Hash] Base hash with default values
+    # @param other [Hash] Hash with values that override defaults
+    # @return [Hash] A new hash containing the merged result
+    private def deep_merge(original, other)
+      other = other.dup
+      merger = proc do |_key, v1, v2|
+        if v1.is_a?(Hash) && v2.is_a?(Hash)
+          v1.merge(v2, &merger)
+        elsif v2.nil?
+          v1
+        else
+          v2
         end
       end
+      original.merge(other, &merger)
     end
 
     # Searches for configuration files in predefined locations based on application mode.
