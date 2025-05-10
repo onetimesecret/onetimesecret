@@ -21,6 +21,10 @@ $LOAD_PATH.unshift File.join(base_path, 'lib')
 spec_path = File.expand_path('../..', __FILE__)
 $LOAD_PATH.unshift(spec_path)
 
+require_relative './support/mail_context'
+require_relative './support/rack_context'
+require_relative './support/view_context'
+
 begin
   require 'onetime'
   require 'onetime/alias' # allows using OT::Mail
@@ -93,6 +97,7 @@ RSpec.configure do |config|
 
   # Global before hooks
   config.before(:each) do
+
     # Suppress logging during tests
     allow(OT).to receive(:ld).and_return(nil)
     allow(OT).to receive(:li).and_return(nil)
