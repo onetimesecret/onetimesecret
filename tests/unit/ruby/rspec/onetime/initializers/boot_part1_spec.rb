@@ -336,78 +336,7 @@ RSpec.describe "Onetime::Config during Onetime.boot!" do
       end
     end
 
-    context "regarding diagnostics (Sentry)" do
-      let(:loaded_config) { Onetime::Config.load(source_config_path) }
-
-      before do
-        # Stub Kernel.require for Sentry
-        allow(Kernel).to receive(:require).with('sentry-ruby').and_return(true)
-        allow(Kernel).to receive(:require).with('stackprof').and_return(true)
-
-        # Mock Sentry's class methods
-        # Ensure Sentry constant is available for mocking
-        if defined?(Sentry)
-          allow(Sentry).to receive(:init)
-          allow(Sentry).to receive(:initialized?).and_return(false)  # Default to not initialized
-          allow(Sentry).to receive(:close)
-        else
-          # If Sentry is not defined (e.g. not in Gemfile for test env or not yet loaded)
-          # create a stub for it.
-          sentry_stub = class_double("Sentry").as_null_object
-          stub_const("Sentry", sentry_stub)
-          allow(Sentry).to receive(:init) # ensure it can be called on the stub
-          allow(Sentry).to receive(:initialized?).and_return(false)
-          allow(Sentry).to receive(:close)
-        end
-      end
-
-      it "enables diagnostics and initializes Sentry when config has enabled=true and DSN" do
-        # config.test.yaml (loaded by default) has diagnostics.enabled = true and a DSN.
-        # We expect Sentry.init to be called and Onetime.d9s_enabled to be true.
-        # The Onetime.conf[:diagnostics][:enabled] is set from an early OT.d9s_enabled state.
-        # For this test, we use the actual config loaded by Onetime.boot!
-        allow(Sentry).to receive(:init) # Ensure we can check if it was called
-        allow(Sentry).to receive(:initialized?).and_return(true) # Simulate successful init
-
-        Onetime.boot!(:test) # Uses source_config_path by default due to global before_each
-
-        expect(Onetime.conf.dig(:diagnostics, :enabled)).to be false
-        expect(Sentry).to have_received(:init)
-        # This reflects the bug where OT.conf[:diagnostics][:enabled] is set using
-        # the initial OT.d9s_enabled value (false) from Onetime.boot!
-        expect(Onetime.d9s_enabled).to be true
-      end
-
-      it "disables diagnostics if config has enabled=false, even with a DSN" do
-        modified_config = loaded_config
-        modified_config[:diagnostics][:enabled] = false
-        allow(Onetime::Config).to receive(:load).and_return(modified_config)
-
-        expect(Sentry).not_to receive(:init)
-
-        Onetime.boot!(:test)
-
-        expect(Onetime.d9s_enabled).to be false
-        expect(Onetime.conf.dig(:diagnostics, :enabled)).to be false
-      end
-
-      it "disables diagnostics if config has enabled=true but no DSN" do
-        modified_config = loaded_config
-        modified_config[:diagnostics][:sentry][:backend][:dsn] = nil
-        # Assuming frontend DSN doesn't solely enable Sentry if backend is nil
-        modified_config[:diagnostics][:sentry][:frontend][:dsn] = nil
-        allow(Onetime::Config).to receive(:load).and_return(modified_config)
-
-        expect(Sentry).not_to receive(:init)
-
-        Onetime.boot!(:test)
-
-        expect(Onetime.d9s_enabled).to be false
-        # This reflects the bug where OT.conf[:diagnostics][:enabled] is set using
-        # the initial OT.d9s_enabled value (false) from Onetime.boot!
-        expect(Onetime.conf.dig(:diagnostics, :enabled)).to be false
-      end
-    end
+    # Sentry diagnostics tests moved to setup_diagnostics_spec.rb
 
     context "regarding internationalization" do
       it "correctly sets i18n settings from config.test.yaml" do
