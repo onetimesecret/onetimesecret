@@ -327,35 +327,43 @@ module Onetime
 
     # Applies default values to configuration sections.
     #
-    # @param defaults [Hash, nil] Default settings to apply to each section
-    # @param config [Hash] Configuration with top-level section keys
-    # @return [Hash] Configuration with defaults applied to each section
+    # @param config [Hash] Configuration with top-level section keys, including a :defaults key
+    # @return [Hash] Configuration with defaults applied to each section, with :defaults removed
     #
-    # This method performs shallow merging of defaults into each section:
+    # This method extracts defaults from the :defaults key and applies them to each section:
     # - Section values override defaults (except nil values, which use defaults)
-    # - The :defaults section is skipped entirely
+    # - The :defaults section is removed from the result
     # - Only Hash-type sections receive defaults
     #
     # @example Basic usage
-    #   defaults = { timeout: 5, enabled: true }
-    #   config = { api: { timeout: 10 }, web: { theme: 'dark' } }
-    #   apply_defaults(defaults, config)
+    #   config = {
+    #     defaults: { timeout: 5, enabled: true },
+    #     api: { timeout: 10 },
+    #     web: { theme: 'dark' }
+    #   }
+    #   apply_defaults(config)
     #   # => { api: { timeout: 10, enabled: true },
     #   #      web: { theme: 'dark', timeout: 5, enabled: true } }
     #
     # @example Edge cases
-    #   apply_defaults(nil, {a: {x: 1}})  # => {a: {x: 1}}
-    #   apply_defaults({x: 1}, nil)       # => {}
+    #   apply_defaults({a: {x: 1}})                # => {a: {x: 1}}
+    #   apply_defaults({defaults: {x: 1}, b: {}})  # => {b: {x: 1}}
     #
-    def apply_defaults(defaults=nil, config={})
+    def apply_defaults(config={})
       return {} if config.nil? || config.empty?
-      return config unless defaults.is_a?(Hash) # new in 0.22.1, previously {}
 
+      # Extract defaults from the configuration
+      defaults = config[:defaults]
+
+      # If no valid defaults exist, return config without the :defaults key
+      return config.reject { |k, _| k == :defaults } unless defaults.is_a?(Hash)
+
+      # Process each section, applying defaults
       config.each_with_object({}) do |(section, values), result|
-        next if section == :defaults   # Skip the :defaults key in config_param itself
+        next if section == :defaults   # Skip the :defaults key
         next unless values.is_a?(Hash) # Process only sections that are hashes
 
-        # Deep merge defaults with section values
+        # Apply defaults to each section
         result[section] = deep_merge(defaults, values)
       end
     end
