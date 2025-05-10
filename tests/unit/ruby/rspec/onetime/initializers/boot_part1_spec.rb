@@ -153,10 +153,9 @@ RSpec.describe "Onetime::Config during Onetime.boot!" do
         conf = Onetime::Config.after_load(test_config)
 
         diagnostics_config = conf.fetch(:diagnostics)
-
         expect(diagnostics_config.dig(:sentry, :backend, :dsn)).to be_nil
         expect(diagnostics_config.dig(:enabled)).to eq(true) # matches what is in test_config
-        expect(OT.d9s_enabled).to be(false) # after_load makes it false
+        expect(Onetime.d9s_enabled).to be(false) # after_load makes it false
       end
 
 
