@@ -13,7 +13,7 @@ module Onetime
     @debug = nil
 
     # d9s: diagnostics is a boolean flag. If true, it will enable Sentry
-    @d9s_enabled = false
+    @d9s_enabled = nil
 
     attr_accessor :mode, :env, :d9s_enabled
     attr_writer :debug

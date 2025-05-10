@@ -17,11 +17,12 @@ RSpec.describe "Onetime::Config during Onetime.boot!" do
     allow(Onetime::Config).to receive(:path).and_return(source_config_path)
     allow(Onetime::Config).to receive(:find_configs).and_return([source_config_path])
 
-    # Reset Onetime main module state
+    # Reset Onetime main module state. These are meant to match
+    # exactly what Onetime instance vars
     Onetime.instance_variable_set(:@conf, nil)
     Onetime.instance_variable_set(:@mode, :app)
     Onetime.instance_variable_set(:@env, 'test')
-    Onetime.instance_variable_set(:@d9s_enabled, false)
+    Onetime.instance_variable_set(:@d9s_enabled, nil)
     Onetime.instance_variable_set(:@i18n_enabled, false)
     Onetime.instance_variable_set(:@supported_locales, ['en'])
     Onetime.instance_variable_set(:@default_locale, 'en')
