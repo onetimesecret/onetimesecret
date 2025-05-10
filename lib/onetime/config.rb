@@ -370,28 +370,6 @@ module Onetime
       end
     end
 
-    # Standard deep_merge implementation based on widely used patterns
-    # @param original [Hash] Base hash with default values
-    # @param other [Hash] Hash with values that override defaults
-    # @return [Hash] A new hash containing the merged result
-    private def deep_merge(original, other)
-      return other.dup if original.nil?
-      return original.dup if other.nil?
-
-      other = other.dup
-      merger = proc do |_key, v1, v2|
-        if v1.is_a?(Hash) && v2.is_a?(Hash)
-          v1.merge(v2, &merger)
-        elsif v2.nil?
-          v1
-        else
-          v2
-        end
-      end
-      original.merge(other, &merger)
-    end
-
-
     # Searches for configuration files in predefined locations based on application mode.
     # In CLI mode, it looks in user and system directories. In service mode, it only
     # checks system directories for security and consistency.
@@ -414,6 +392,28 @@ module Onetime
         Onetime.ld "Looking for #{f}"
         f if File.exist?(f)
       end.compact
+    end
+
+    private
+    # Standard deep_merge implementation based on widely used patterns
+    # @param original [Hash] Base hash with default values
+    # @param other [Hash] Hash with values that override defaults
+    # @return [Hash] A new hash containing the merged result
+    def deep_merge(original, other)
+      return other.dup if original.nil?
+      return original.dup if other.nil?
+
+      other = other.dup
+      merger = proc do |_key, v1, v2|
+        if v1.is_a?(Hash) && v2.is_a?(Hash)
+          v1.merge(v2, &merger)
+        elsif v2.nil?
+          v1
+        else
+          v2
+        end
+      end
+      original.merge(other, &merger)
     end
   end
 
