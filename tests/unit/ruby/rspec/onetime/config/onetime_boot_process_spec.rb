@@ -48,7 +48,13 @@ RSpec.describe "Onetime boot configuration process" do
     allow(redis_double).to receive(:info).and_return({"redis_version" => "6.0.0"})
     allow(Familia).to receive(:uri).and_return(double('URI', serverid: 'localhost:6379'))
     allow(Familia).to receive(:redis).and_return(redis_double)
-    allow(Familia).to receive(:members).and_return([])
+    # TODO: Make truemail gets reset too (Truemail.configuration)
+
+    # Our Familia models only register themselves once -- at start time. This
+    # prevents us from mocking Familia.members bc requiring the models again
+    # doesn't re-load them. We could use `load` which will but then we're
+    # getting way off track. Better solution is to make registration callable.
+    # allow(Familia).to receive(:members).and_return([])
 
     # Point to our test config file
     Onetime::Config.instance_variable_set(:@path, test_config_path)
@@ -110,6 +116,7 @@ RSpec.describe "Onetime boot configuration process" do
         allow(Familia).to receive(:uri=)
         Onetime.boot!(:test, true)
         expect(Familia).to have_received(:uri=).with(test_config[:redis][:uri])
+        expect(Onetime).to have_received(:connect_databases)
       end
 
       it 'initializes system info' do
@@ -155,21 +162,21 @@ RSpec.describe "Onetime boot configuration process" do
         allow(Onetime::Config).to receive(:load).and_raise(OT::Problem.new("Config loading failed"))
         expect(Onetime).to receive(:le).with("Problem booting: Config loading failed") # a bug as of v0.20.5
         expect(Onetime).to receive(:ld) # For backtrace
-        expect { Onetime.boot!(:test) }.to raise_error(SystemExit)
+        expect { Onetime.boot!(:test) }.to raise_error(OT::Problem)
       end
 
       it 'handles Redis connection errors' do
         allow(Onetime::Config).to receive(:load).and_return(test_config)
         allow(Familia).to receive(:uri=).and_raise(Redis::CannotConnectError.new("Connection refused"))
         expect(Onetime).to receive(:le).with(/Cannot connect to redis .* \(Redis::CannotConnectError\)/)
-        expect { Onetime.boot!(:test) }.to raise_error(SystemExit)
+        expect { Onetime.boot!(:test) }.to raise_error(Redis::CannotConnectError)
       end
 
       it 'handles unexpected errors' do
         allow(Onetime::Config).to receive(:load).and_raise(StandardError.new("Something went wrong"))
         expect(Onetime).to receive(:le).with(/Unexpected error `Something went wrong` \(StandardError\)/)
         expect(Onetime).to receive(:ld) # For backtrace
-        expect { Onetime.boot!(:test) }.to raise_error(SystemExit)
+        expect { Onetime.boot!(:test) }.to raise_error(StandardError)
       end
     end
   end
@@ -179,7 +186,7 @@ RSpec.describe "Onetime boot configuration process" do
     let(:minimal_config) do
       {
         development: { enabled: false },
-        mail: { truemail: { default_validation_type: :regex } },
+        mail: { truemail: { default_validation_type: :regex, verifier_email: 'hello@example.com' } },
         site: {
           authentication: { enabled: true },
           host: 'example.com',
@@ -190,45 +197,49 @@ RSpec.describe "Onetime boot configuration process" do
     end
 
     it 'applies default values to secret_options when not specified' do
-      config = minimal_config.dup
+      # The minimal config does not contain settings for secret_options so
+      # OT::Config is going to supply its defaults. OT.conf is nil because
+      # this testing code path starts each testcase with it nil on purpose
+      # so there is no influence from the config.test.yaml. That's why
+      # there are 11 ttl_options and not 3 (from the yaml).
+      raw_config = minimal_config.dup
 
-      Onetime::Config.after_load(config)
+      processed_config = Onetime::Config.after_load(raw_config)
 
-      expect(config[:site][:secret_options][:default_ttl]).to eq(7.days)
-      expect(config[:site][:secret_options][:ttl_options]).to be_an(Array)
-
-      expect(config[:site][:secret_options][:ttl_options].length).to eq(3)
+      expect(processed_config[:site][:secret_options][:default_ttl]).to eq(7.days)
+      expect(processed_config[:site][:secret_options][:ttl_options]).to be_an(Array)
+      expect(processed_config[:site][:secret_options][:ttl_options].length).to eq(11)
     end
 
     it 'uses values from config file when specified' do
       config = test_config.dup
-      Onetime::Config.after_load(config)
+      processed_config = Onetime::Config.after_load(config)
 
-      expect(config[:site][:secret_options][:default_ttl]).to_not be_nil
-      expect(config[:site][:secret_options][:ttl_options]).to include(1800, 43200, 604800)
+      expect(processed_config[:site][:secret_options][:default_ttl]).to_not be_nil
+      expect(processed_config[:site][:secret_options][:ttl_options]).to include(1800, 43200, 604800)
     end
 
     it 'initializes empty domains configuration' do
       config = minimal_config.dup
-      OT.instance_variable_set(:@conf, test_config)
-      Onetime::Config.after_load(config)
 
-      expect(config[:site][:domains]).to eq({ enabled: false })
+      processed_config = Onetime::Config.after_load(config)
+
+      expect(processed_config[:site][:domains]).to eq({ enabled: false })
     end
 
     it 'initializes empty plans configuration' do
       config = minimal_config.dup
-      Onetime::Config.after_load(config)
+      processed_config = Onetime::Config.after_load(config)
 
-      expect(config[:site][:plans]).to eq({ enabled: false })
+      expect(processed_config[:site][:plans]).to eq({ enabled: false })
     end
 
     it 'initializes empty regions configuration' do
       config = minimal_config.dup
 
-      Onetime::Config.after_load(config)
+      processed_config = Onetime::Config.after_load(config)
 
-      expect(config[:site][:regions]).to eq({ enabled: false })
+      expect(processed_config[:site][:regions]).to eq({ enabled: false })
     end
 
     it 'disables authentication sub-features when main feature is off' do
@@ -238,10 +249,13 @@ RSpec.describe "Onetime boot configuration process" do
         signup: true,
         signin: true
       }
-      OT.instance_variable_set(:@conf, test_config.dup)
 
-      Onetime::Config.after_load(config)
+      processed_config = Onetime::Config.after_load(config)
 
+      expect(processed_config[:site][:authentication][:signup]).to be false
+      expect(processed_config[:site][:authentication][:signin]).to be false
+
+      # The config we passed in was not modified
       expect(config[:site][:authentication][:signup]).to be true
       expect(config[:site][:authentication][:signin]).to be true
     end
@@ -250,41 +264,37 @@ RSpec.describe "Onetime boot configuration process" do
       it 'converts string ttl_options to integers' do
         config = minimal_config.dup
         config[:site] = {
+          secret: '53krU7',
           authentication: { enabled: true },
-          secret_options: { ttl_options: "300 3600 86400" }
+          secret_options: { ttl_options: "300 3600 86400" },
         }
-        ot_conf_for_test = OT::Config.deep_clone(test_config)
-        ot_conf_for_test[:site][:secret_options][:ttl_options] = "10 20 30"
-        OT.instance_variable_set(:@conf, ot_conf_for_test)
 
-        Onetime::Config.after_load(config)
+        processed_config = Onetime::Config.after_load(config)
 
-        expect(config[:site][:secret_options][:ttl_options]).to eq(["10", "20", "30"])
+        expect(processed_config[:site][:secret_options][:ttl_options]).to eq([300, 3600, 86400])
       end
 
       it 'converts string default_ttl to integer' do
         config = minimal_config.dup
         config[:site] = {
+          secret: '53krU7',
           authentication: { enabled: true },
-          secret_options: { default_ttl: "86400" }
+          secret_options: { default_ttl: "86400" },
         }
-        ot_conf_for_test = OT::Config.deep_clone(test_config)
-        ot_conf_for_test[:site][:secret_options][:default_ttl] = "12345"
-        OT.instance_variable_set(:@conf, ot_conf_for_test)
 
-        Onetime::Config.after_load(config)
+        processed_config = Onetime::Config.after_load(config)
 
-        expect(config[:site][:secret_options][:default_ttl]).to eq(12345)
+        expect(processed_config[:site][:secret_options][:default_ttl]).to eq(86400)
       end
 
       it 'converts TTL options string from test config to integers' do
         config = OT::Config.deep_clone(test_config)
         config[:site][:secret_options][:ttl_options] = "1800 43200 604800"
 
-        Onetime::Config.after_load(config)
+        processed_config = Onetime::Config.after_load(config)
 
-        expect(config[:site][:secret_options][:ttl_options]).to be_an(Array)
-        expect(config[:site][:secret_options][:ttl_options]).to eq([1800, 43200, 604800])
+        expect(processed_config[:site][:secret_options][:ttl_options]).to be_an(Array)
+        expect(processed_config[:site][:secret_options][:ttl_options]).to eq([1800, 43200, 604800])
       end
     end
 
@@ -297,14 +307,14 @@ RSpec.describe "Onetime boot configuration process" do
         allow(Sentry).to receive(:init)
         allow(Sentry).to receive(:initialized?).and_return(true)
 
-        config = Onetime::Config.after_load(raw_config)
+        processed_config = Onetime::Config.after_load(raw_config)
 
         expect(OT.d9s_enabled).to be false
-        expect(config[:diagnostics][:enabled]).to be true
-        expect(config[:diagnostics][:sentry][:backend][:sampleRate]).to eq(0.11)
-        expect(config[:diagnostics][:sentry][:backend][:maxBreadcrumbs]).to eq(22)
-        expect(config[:diagnostics][:sentry][:frontend][:sampleRate]).to eq(0.11)
-        expect(config[:diagnostics][:sentry][:frontend][:maxBreadcrumbs]).to eq(22)
+        expect(processed_config[:diagnostics][:enabled]).to be true
+        expect(processed_config[:diagnostics][:sentry][:backend][:sampleRate]).to eq(0.11)
+        expect(processed_config[:diagnostics][:sentry][:backend][:maxBreadcrumbs]).to eq(22)
+        expect(processed_config[:diagnostics][:sentry][:frontend][:sampleRate]).to eq(0.11)
+        expect(processed_config[:diagnostics][:sentry][:frontend][:maxBreadcrumbs]).to eq(22)
       end
 
       it 'enables diagnostics when configured with a valid DSN' do
