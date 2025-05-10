@@ -67,16 +67,35 @@ module Onetime
     rescue OT::Problem => e
       OT.le "Problem booting: #{e}"
       OT.ld e.backtrace.join("\n")
-      exit 1 unless mode?(:cli) # allows for debugging in the console
+
+      # NOTE: Prefer `raise` over `exit` here. Previously we used
+      # exit and it caused unexpected behaviour in tests, where
+      # rspec for example would report all 5 examples passed even
+      # though there were 30+ testcases defined in the file. There
+      # were no log messages to indicate where the problem occurred
+      # possibly because:
+      #
+      # 1. RSpec captures each example's STDOUT/STDERR and only prints it
+      #    once the example finishes.
+      # 2. Calling `exit` in the middle of an example kills the process
+      #    immediately—any pending output (your `OT.le` message, buffered
+      #    IO, etc.) never gets flushed back through RSpec's reporter.
+      #
+      # We were fortunate to find the issue via rspec. We had mocked
+      # the connect_database method but also called the original:
+      #
+      # allow(Onetime).to receive(:connect_databases).and_call_original
+      #
+      raise e unless mode?(:cli) # allows for debugging in the console
 
     rescue Redis::CannotConnectError => e
       OT.le "Cannot connect to redis #{Familia.uri} (#{e.class})"
-      exit 10 unless mode?(:cli)
+      raise e unless mode?(:cli)
 
     rescue StandardError => e
       OT.le "Unexpected error `#{e}` (#{e.class})"
       OT.ld e.backtrace.join("\n")
-      exit 99 unless mode?(:cli)
+      raise e unless mode?(:cli)
     end
 
     # Prints a banner with information about the current environment
