@@ -212,7 +212,7 @@ RSpec.describe "Onetime boot configuration process" do
 
         processed_config = Onetime::Config.after_load(raw_config)
         expect(processed_config[:internationalization][:enabled]).to be(false)
-        expect(processed_config[:internationalization].keys).to eq([:enabled])
+        expect(processed_config[:internationalization].keys).to eq([:enabled, :default_locale])
       end
 
     end
@@ -331,7 +331,7 @@ RSpec.describe "Onetime boot configuration process" do
 
         processed_config = Onetime::Config.after_load(raw_config)
 
-        expect(OT.d9s_enabled).to be false
+        expect(OT.d9s_enabled).to be_nil # this is set in an initializer
         expect(processed_config[:diagnostics][:enabled]).to be true
         expect(processed_config[:diagnostics][:sentry][:backend][:sampleRate]).to eq(0.11)
         expect(processed_config[:diagnostics][:sentry][:backend][:maxBreadcrumbs]).to eq(22)

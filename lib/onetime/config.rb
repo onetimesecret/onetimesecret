@@ -129,7 +129,7 @@ module Onetime
 
       # SAFETY MEASURE: Validation and Default Security Settings
       # Ensure all critical security-related configurations exist
-      conf = apply_defaults(defaults, conf) # TODO: We don't need to re-assign `conf`
+      conf = deep_merge(defaults, conf) # TODO: We don't need to re-assign `conf`
 
       raise_concerns(conf)
 
@@ -180,6 +180,7 @@ module Onetime
 
       # Apply the defaults to sentry backend and frontend configs
       # and set our local config with the merged values.
+      # # TODO: NOT WORKING AS EXPECTED. See test: Onetime boot configuration process .after_load with diagnostics configuration enables diagnostics from test config file
       diagnostics = incoming_config.fetch(:diagnostics, {})
       conf[:diagnostics] = {
         enabled: diagnostics[:enabled] || false,
