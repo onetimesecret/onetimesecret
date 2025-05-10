@@ -83,7 +83,6 @@ module Onetime
     def load(path=nil)
       path ||= self.path
 
-      raise ArgumentError, "Missing config file" if path.nil?
       raise ArgumentError, "Bad path (#{path})" unless File.readable?(path)
 
       parsed_template = ERB.new(File.read(path))
