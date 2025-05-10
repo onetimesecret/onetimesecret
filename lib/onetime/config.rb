@@ -259,10 +259,6 @@ module Onetime
       end
     end
 
-    def exists?
-      !path.nil?
-    end
-
     def dirname
       @dirname ||= File.dirname(path)
     end
@@ -414,8 +410,8 @@ module Onetime
     def find_configs(filename = nil)
       filename ||= 'config.yaml'
       paths = Onetime.mode?(:cli) ? UTILITY_PATHS : SERVICE_PATHS
-      paths.collect do |f|
-        f = File.join File.expand_path(f), filename
+      paths.collect do |path|
+        f = File.join File.expand_path(path), filename
         Onetime.ld "Looking for #{f}"
         f if File.exist?(f)
       end.compact
