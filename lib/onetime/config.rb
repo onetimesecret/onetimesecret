@@ -196,15 +196,6 @@ module Onetime
         api: { enabled: true },
       }.merge(conf[:site][:interface])
 
-      # Make sure colonels are in their proper location since previously
-      # it was at the root level
-      colonels = conf.fetch(:colonels, nil)
-      if colonels && !conf.dig(:site, :authentication)&.key?(:colonels)
-        conf[:site][:authentication] ||= {}
-        conf[:site][:authentication][:colonels] = colonels
-      end
-      conf[:site][:authentication][:colonels] ||= [] # make sure it exists
-
       # Disable all authentication sub-features when main feature is off for
       # consistency, security, and to prevent unexpected behavior. Ensures clean
       # config state.
@@ -214,6 +205,15 @@ module Onetime
           conf[:site][:authentication][key] = false
         end
       end
+
+      # Make sure colonels are in their proper location since previously
+      # it was at the root level
+      colonels = conf.fetch(:colonels, nil)
+      if colonels && !conf.dig(:site, :authentication)&.key?(:colonels)
+        conf[:site][:authentication] ||= { enabled: false }
+        conf[:site][:authentication][:colonels] = colonels
+      end
+      conf[:site][:authentication][:colonels] ||= [] # make sure it exists
 
       if conf.dig(:site, :domains, :enabled).to_s == "true"
         cluster = conf.dig(:site, :domains, :cluster)
@@ -265,30 +265,32 @@ module Onetime
           actual_key = mapped_key(key)
           unless config.respond_to?("#{actual_key}=")
             OT.le "config.#{actual_key} does not exist"
+            # next
           end
           OT.ld "Setting Truemail config key #{key} to #{value}"
           config.send("#{actual_key}=", value)
         end
       end
 
-      diagnostics = conf.fetch(:diagnostics, {})
+      diagnostics = incoming_config.fetch(:diagnostics, {})
 
       # Apply the defaults to sentry backend and frontend configs
-      # and update the config with the merged values.
-      merged = apply_defaults(diagnostics[:sentry])
+      # and set our local config with the merged values.
       conf[:diagnostics] = {
-        enabled: OT.d9s_enabled, # d9s_enabled hasn't been set yet, so always false
-        sentry: merged,
+        enabled: diagnostics[:enabled] || false,
+        sentry: apply_defaults(diagnostics[:sentry]),
       }
 
-      sentry = merged[:backend] || {}
-      dsn = sentry.fetch(:dsn, nil)
+      conf[:diagnostics][:sentry][:backend] ||= {}
+      backend = conf[:diagnostics][:sentry][:backend]
+
+      dsn = backend.fetch(:dsn, nil)
 
       # Only require Sentry if we have a DSN
-      OT.d9s_enabled = (diagnostics[:enabled] || false) && !dsn.nil?
+      OT.d9s_enabled = (conf[:diagnostics][:enabled] || false) && !dsn.nil?
 
       if OT.d9s_enabled
-        OT.ld "Setting up Sentry #{sentry}..."
+        OT.ld "Setting up Sentry #{backend}..."
 
         require 'sentry-ruby'
         require 'stackprof'
