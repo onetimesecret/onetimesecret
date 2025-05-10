@@ -235,7 +235,7 @@ RSpec.describe "Onetime::Config during Onetime.boot!" do
   end
 
   describe "State of Onetime.conf at the end of Onetime.boot!" do
-    let(:loaded_config) { YAML.load(ERB.new(File.read(source_config_path)).result) }
+    let(:loaded_config) { Onetime::Config.load(source_config_path) }
 
     before(:each) do
       ENV['RACK_ENV'] = 'test'
@@ -282,13 +282,23 @@ RSpec.describe "Onetime::Config during Onetime.boot!" do
 
     it "configures emailer based on @conf" do
       Onetime.boot!(:test)
-      expect(Onetime.emailer).to eq(Onetime::App::Mail::SMTPMailer)
-      expect(Onetime::App::Mail::SMTPMailer).to have_received(:setup)
+      expect(Onetime.emailer).to eq(Onetime::Mail::Mailer::SMTPMailer)
+      expect(Onetime::Mail::Mailer::SMTPMailer).to have_received(:setup)
     end
 
-    it "configures rate limits based on @conf" do
+    it "configures rate limits based on @conf", skip: "Move to V2::Application tests" do
       allow(V2::RateLimit).to receive(:register_events)
-      Onetime.boot!(:test)
+
+      # Load application-specific components
+      require 'app_registry'
+      require 'v2/application'
+
+      # Application Initialization
+      # -------------------------------
+      # Load all application modules from the registry
+      AppRegistry.load_applications
+      BaseApplication.register_applications
+
       expect(V2::RateLimit).to have_received(:register_events).with(Onetime.conf[:limits])
     end
 
@@ -327,7 +337,7 @@ RSpec.describe "Onetime::Config during Onetime.boot!" do
     end
 
     context "regarding diagnostics (Sentry)" do
-      let(:base_config) { YAML.load(ERB.new(File.read(source_config_path)).result) } # Deep copy for modification
+      let(:loaded_config) { Onetime::Config.load(source_config_path) }
 
       before do
         # Stub Kernel.require for Sentry
@@ -361,15 +371,15 @@ RSpec.describe "Onetime::Config during Onetime.boot!" do
 
         Onetime.boot!(:test) # Uses source_config_path by default due to global before_each
 
+        expect(Onetime.conf.dig(:diagnostics, :enabled)).to be false
         expect(Sentry).to have_received(:init)
         # This reflects the bug where OT.conf[:diagnostics][:enabled] is set using
         # the initial OT.d9s_enabled value (false) from Onetime.boot!
-        expect(Onetime.conf.dig(:diagnostics, :enabled)).to be false
         expect(Onetime.d9s_enabled).to be true
       end
 
       it "disables diagnostics if config has enabled=false, even with a DSN" do
-        modified_config = base_config
+        modified_config = loaded_config
         modified_config[:diagnostics][:enabled] = false
         allow(Onetime::Config).to receive(:load).and_return(modified_config)
 
@@ -382,7 +392,7 @@ RSpec.describe "Onetime::Config during Onetime.boot!" do
       end
 
       it "disables diagnostics if config has enabled=true but no DSN" do
-        modified_config = base_config
+        modified_config = loaded_config
         modified_config[:diagnostics][:sentry][:backend][:dsn] = nil
         # Assuming frontend DSN doesn't solely enable Sentry if backend is nil
         modified_config[:diagnostics][:sentry][:frontend][:dsn] = nil

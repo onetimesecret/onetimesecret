@@ -1,4 +1,4 @@
-#
+# lib/onetime/config.rb
 
 module Onetime
   module Config
