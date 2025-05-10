@@ -1,3 +1,5 @@
+#
+
 module Onetime
   module Config
     extend self
@@ -5,6 +7,58 @@ module Onetime
     unless defined?(SERVICE_PATHS)
       SERVICE_PATHS = %w[/etc/onetime ./etc].freeze
       UTILITY_PATHS = %w[~/.onetime /etc/onetime ./etc].freeze
+      DEFAULTS = {
+        site: {
+          secret: nil,
+          domains: { enabled: false },
+          regions: { enabled: false },
+          plans: { enabled: false },
+          secret_options: {
+            default_ttl: 7.days,
+            ttl_options: [
+              60.seconds,     # 60 seconds (was missing from v0.20.5)
+              5.minutes,      # 300 seconds
+              30.minutes,     # 1800
+              1.hour,         # 3600
+              4.hours,        # 14400
+              12.hours,       # 43200
+              1.day,          # 86400
+              3.days,         # 259200
+              1.week,         # 604800
+              2.weeks,        # 1209600
+              30.days,        # 2592000
+            ]
+          },
+          interface: {
+            ui: { enabled: true },
+            api: { enabled: true },
+          },
+          authentication: {
+            enabled: true,
+            colonels: [],
+          },
+        },
+        internationalization: {
+          enabled: false,
+          default_locale: 'en',
+        },
+        mail: {},
+        logging: {
+          http_requests: true,
+        },
+        diagnostics: {
+          enabled: false,
+        },
+        development: {
+          enabled: false,
+          frontend_host: '',
+        },
+        experimental: {
+          allow_nil_global_secret: false, # defaults to a secure setting
+          rotated_secrets: [],
+        },
+      }
+
     end
 
     attr_reader :env, :base, :bootstrap
@@ -61,7 +115,7 @@ module Onetime
     #
     # @param incoming_config [Hash] The loaded, unprocessed configuration hash in raw form
     # @return [Hash] The processed configuration hash with defaults applied and security measures in place
-    def after_load(incoming_config) # rubocop:disable Metrics/MethodLength,Metrics/PerceivedComplexity
+    def after_load(incoming_config)
 
       # SAFETY MEASURE: Freeze the incoming (presumably) shared config
       # We check for settings in the frozen raw config where we can be sure that
@@ -79,57 +133,9 @@ module Onetime
         Marshal.load(Marshal.dump(incoming_config))
       end
 
-      # TODO: Move up to boot!, possibly along with the deep_freeze and marshalling
-      defaults = {
-        # TODO: Populate further based on below logic.
-        site: {
-          secret: nil,
-          domains: { enabled: false },
-          regions: { enabled: false },
-          plans: { enabled: false },
-          secret_options: {
-            default_ttl: 7.days,
-            ttl_options: [
-              60.seconds,     # 60 seconds (was missing from v0.20.5)
-              5.minutes,      # 300 seconds
-              30.minutes,     # 1800
-              1.hour,         # 3600
-              4.hours,        # 14400
-              12.hours,       # 43200
-              1.day,          # 86400
-              3.days,         # 259200
-              1.week,         # 604800
-              2.weeks,        # 1209600
-              30.days,        # 2592000
-            ]
-          },
-          interface: {
-            ui: { enabled: true },
-            api: { enabled: true },
-          },
-          authentication: {
-            enabled: true,
-            colonels: [],
-          },
-        },
-        mail: {},
-        diagnostics: {
-          enabled: false,
-        },
-        internationalization: {
-          enabled: false,
-          default_locale: 'en',
-        },
-        development: {},
-        experimental: {
-          allow_nil_global_secret: false, # defaults to a secure setting
-          rotated_secrets: [],
-        },
-      }
-
       # SAFETY MEASURE: Validation and Default Security Settings
       # Ensure all critical security-related configurations exist
-      conf = deep_merge(defaults, conf) # TODO: We don't need to re-assign `conf`
+      conf = deep_merge(DEFAULTS, conf) # TODO: We don't need to re-assign `conf`
 
       raise_concerns(conf)
 
@@ -167,7 +173,7 @@ module Onetime
         conf[:site][:secret_options][:default_ttl] = default_ttl.to_i
       end
 
-      # TODO: Move to initializer
+      # TODO: Move to an initializer
       if conf.dig(:site, :plans, :enabled).to_s == "true"
         stripe_key = conf.dig(:site, :plans, :stripe_key)
         unless stripe_key
@@ -180,18 +186,18 @@ module Onetime
 
       # Apply the defaults to sentry backend and frontend configs
       # and set our local config with the merged values.
-      # # TODO: NOT WORKING AS EXPECTED. See test: Onetime boot configuration process .after_load with diagnostics configuration enables diagnostics from test config file
       diagnostics = incoming_config.fetch(:diagnostics, {})
       conf[:diagnostics] = {
         enabled: diagnostics[:enabled] || false,
-        sentry: apply_defaults(diagnostics[:defaults], diagnostics[:sentry]),
+        sentry: apply_defaults(diagnostics[:sentry]),
       }
       conf[:diagnostics][:sentry][:backend] ||= {}
 
-      # Make sure these are set
-      development = conf[:development]
-      development[:enabled] ||= false
-      development[:frontend_host] ||= ''
+      # Update global diagnostic flag based on config
+      backend_dsn = conf.dig(:diagnostics, :sentry, :backend, :dsn)
+      frontend_dsn = conf.dig(:diagnostics, :sentry, :frontend, :dsn)
+      # It's disabled when no DSN is present, regardless of enabled setting
+      Onetime.d9s_enabled = conf.dig(:diagnostics, :enabled) && (backend_dsn || frontend_dsn)
 
       # SECURITY MEASURE #4: Configuration Immutability
       # Freeze the entire configuration recursively to prevent modifications
