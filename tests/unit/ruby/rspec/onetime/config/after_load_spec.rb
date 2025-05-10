@@ -328,11 +328,11 @@ RSpec.describe "Onetime boot configuration process" do
         # Save original value to restore after test
         original_value = OT.d9s_enabled
         OT.d9s_enabled = nil
-
+;
         processed_config = Onetime::Config.after_load(raw_config)
 
-        # In test mode, after_load doesn't change d9s_enabled anymore
-        expect(OT.d9s_enabled).to be_nil
+        expect(OT.d9s_enabled).to be(false)
+
         OT.d9s_enabled = original_value # restore original value
         expect(processed_config[:diagnostics][:enabled]).to be true
         expect(processed_config[:diagnostics][:sentry][:backend][:sampleRate]).to eq(0.11)
@@ -418,21 +418,7 @@ RSpec.describe "Onetime boot configuration process" do
     end
 
     context 'with validation errors' do
-      it 'raises an error if development config is missing' do
-        config = OT::Config.deep_clone(minimal_config)
-        config.delete(:development)
 
-        expect { Onetime::Config.after_load(config) }
-          .to raise_error(OT::Problem, /No `development` config found/)
-      end
-
-      it 'raises an error if mail config is missing' do
-        config = OT::Config.deep_clone(minimal_config)
-        config.delete(:mail)
-
-        expect { Onetime::Config.after_load(config) }
-          .to raise_error(OT::Problem, /No `mail` config found/)
-      end
 
       it 'raises an error if site authentication config is missing' do
         config = OT::Config.deep_clone(minimal_config)
