@@ -54,52 +54,6 @@ module Onetime
       raise OT::ConfigError.new(e.message)
     end
 
-    def raise_concerns(conf)
-
-      # SAFETY MEASURE: Critical Secret Validation
-      # Handle potential nil global secret
-      # The global secret is critical for encrypting/decrypting secrets
-      # Running without a global secret is only permitted in exceptional cases
-      allow_nil = conf[:experimental].fetch(:allow_nil_global_secret, false)
-      global_secret = conf[:site].fetch(:secret, nil)
-      global_secret = nil if global_secret.to_s.strip == 'CHANGEME'
-
-      # Onetime.global_secret is set in the initializer set_global_secret
-
-      if global_secret.nil?
-        unless allow_nil
-          # Fast fail when global secret is nil and not explicitly allowed
-          # This is a critical security check that prevents running without encryption
-          raise OT::ConfigError, "Global secret cannot be nil - set SECRET env var or site.secret in config"
-        end
-
-        # SAFETY MEASURE: Security Warnings for Dangerous Configurations
-        # Security warning when proceeding with nil global secret
-        # These warnings are prominently displayed to ensure administrators
-        # understand the security implications of their configuration
-        OT.li "!" * 50
-        OT.li "SECURITY WARNING: Running with nil global secret!"
-        OT.li "This configuration presents serious security risks:"
-        OT.li "- Secret encryption will be compromised"
-        OT.li "- Data cannot be properly protected"
-        OT.li "- Only use during recovery or transition periods"
-        OT.li "Set valid SECRET env var or site.secret in config ASAP"
-        OT.li "!" * 50
-      end
-
-      unless conf[:site]&.key?(:authentication)
-        raise OT::ConfigError, "No `site.authentication` config found in #{path}"
-      end
-
-      unless conf.key?(:mail)
-        raise OT::ConfigError, "No `mail` config found in #{path}"
-      end
-
-      unless conf[:mail].key?(:truemail)
-        raise OT::ConfigError, "No TrueMail config found"
-      end
-    end
-
     # After loading the configuration, this method processes and validates the
     # configuration, setting defaults and ensuring required elements are present.
     # It also performs deep copy protection to prevent mutations from propagating
@@ -251,6 +205,52 @@ module Onetime
       deep_freeze(conf)
     end
 
+    def raise_concerns(conf)
+
+      # SAFETY MEASURE: Critical Secret Validation
+      # Handle potential nil global secret
+      # The global secret is critical for encrypting/decrypting secrets
+      # Running without a global secret is only permitted in exceptional cases
+      allow_nil = conf.dig(:experimental, :allow_nil_global_secret) || false
+      global_secret = conf[:site].fetch(:secret, nil)
+      global_secret = nil if global_secret.to_s.strip == 'CHANGEME'
+
+      # Onetime.global_secret is set in the initializer set_global_secret
+
+      if global_secret.nil?
+        unless allow_nil
+          # Fast fail when global secret is nil and not explicitly allowed
+          # This is a critical security check that prevents running without encryption
+          raise OT::ConfigError, "Global secret cannot be nil - set SECRET env var or site.secret in config"
+        end
+
+        # SAFETY MEASURE: Security Warnings for Dangerous Configurations
+        # Security warning when proceeding with nil global secret
+        # These warnings are prominently displayed to ensure administrators
+        # understand the security implications of their configuration
+        OT.li "!" * 50
+        OT.li "SECURITY WARNING: Running with nil global secret!"
+        OT.li "This configuration presents serious security risks:"
+        OT.li "- Secret encryption will be compromised"
+        OT.li "- Data cannot be properly protected"
+        OT.li "- Only use during recovery or transition periods"
+        OT.li "Set valid SECRET env var or site.secret in config ASAP"
+        OT.li "!" * 50
+      end
+
+      unless conf[:site]&.key?(:authentication)
+        raise OT::ConfigError, "No `site.authentication` config found in #{path}"
+      end
+
+      unless conf.key?(:mail)
+        raise OT::ConfigError, "No `mail` config found in #{path}"
+      end
+
+      unless conf[:mail].key?(:truemail)
+        raise OT::ConfigError, "No TrueMail config found"
+      end
+    end
+
     def exists?
       !path.nil?
     end
@@ -268,6 +268,7 @@ module Onetime
       # If the key is not in the KEY_MAP, return the key itself.
       KEY_MAP[key] || key
     end
+
     # Recursively freezes an object and all its nested components
     # to ensure complete immutability. This is a critical security
     # measure that prevents any modification of configuration values
