@@ -347,6 +347,9 @@ module Onetime
     # @param other [Hash] Hash with values that override defaults
     # @return [Hash] A new hash containing the merged result
     private def deep_merge(original, other)
+      return other.dup if original.nil?
+      return original.dup if other.nil?
+
       other = other.dup
       merger = proc do |_key, v1, v2|
         if v1.is_a?(Hash) && v2.is_a?(Hash)
@@ -359,6 +362,7 @@ module Onetime
       end
       original.merge(other, &merger)
     end
+
 
     # Searches for configuration files in predefined locations based on application mode.
     # In CLI mode, it looks in user and system directories. In service mode, it only
