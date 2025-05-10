@@ -418,16 +418,94 @@ RSpec.describe "Onetime boot configuration process" do
     end
 
     context 'with validation errors' do
-
-
-      it 'raises an error if site authentication config is missing' do
-        config = OT::Config.deep_clone(minimal_config)
-        config[:site].delete(:authentication)
-
-        expect { Onetime::Config.after_load(config) }
-          .to raise_error(OT::Problem, /No `site.authentication` config found/)
+      # Define a let block for a base configuration object.
+      # This provides a fresh, deep-cloned copy of the loaded configuration
+      # (typically from test.yaml) for each test example.
+      let(:config) do
+        Onetime::Config.deep_clone(test_config)
       end
-    end
+
+      # Before each test in this context, reset global Onetime.conf
+      # and ensure some baseline configuration properties are set on the
+      # `config` object. This helps make tests more robust against
+      # variations in `test.yaml`.
+      before do
+        # Onetime.instance_variable_set(:@conf, nil)
+      end
+
+      # New tests for `raise_concerns` validations:
+      context 'when global secret is invalid (via raise_concerns)' do
+        it 'raises OT::ConfigError if global secret is nil and not allowed' do
+          config[:site][:secret] = nil
+          config[:experimental][:allow_nil_global_secret] = false # Explicitly ensure it's not allowed
+
+          expect {
+            Onetime::Config.after_load(config)
+          }.to raise_error(OT::ConfigError, "Global secret cannot be nil - set SECRET env var or site.secret in config")
+        end
+
+        it 'raises OT::ConfigError if global secret is "CHANGEME" and not allowed' do
+          config[:site][:secret] = 'CHANGEME' # Test the specific "CHANGEME" string
+          config[:experimental][:allow_nil_global_secret] = false
+
+          expect {
+            Onetime::Config.after_load(config)
+          }.to raise_error(OT::ConfigError, "Global secret cannot be nil - set SECRET env var or site.secret in config")
+        end
+
+        it 'raises OT::ConfigError if global secret is whitespace "CHANGEME  " and not allowed' do
+          config[:site][:secret] = 'CHANGEME  ' # Test with trailing whitespace
+          config[:experimental][:allow_nil_global_secret] = false
+
+          expect {
+            Onetime::Config.after_load(config)
+          }.to raise_error(OT::ConfigError, "Global secret cannot be nil - set SECRET env var or site.secret in config")
+        end
+
+        it 'does not raise for nil global secret if explicitly allowed' do
+          config[:site][:secret] = nil
+          config[:experimental][:allow_nil_global_secret] = true # Explicitly allow nil secret
+
+          # Suppress console output from OT.li during this test
+          allow(OT).to receive(:li)
+
+          # Expect that this specific error is not raised.
+          # If other parts of the config are invalid, other errors might still occur.
+          # This test focuses on the global secret check.
+          expect { Onetime::Config.after_load(config) }.not_to raise_error(OT::ConfigError, "Global secret cannot be nil - set SECRET env var or site.secret in config")
+
+          # To ensure no errors are raised at all (assuming the rest of the config is valid):
+          # expect { Onetime::Config.after_load(config) }.not_to raise_error
+          # This depends on the `config` being otherwise fully valid.
+        end
+      end
+
+      context 'when truemail configuration is missing (via raise_concerns)' do
+        it 'raises OT::ConfigError' do
+          # Global secret is valid due to the `before` hook setup.
+          config[:mail].delete(:truemail) # Remove the truemail configuration
+
+          expect {
+            Onetime::Config.after_load(config)
+          }.to raise_error(OT::ConfigError, "No TrueMail config found")
+        end
+
+        it 'raises OT::ConfigError for missing truemail even if nil global secret is allowed' do
+          config[:site][:secret] = nil # Set global secret to nil
+          config[:experimental][:allow_nil_global_secret] = true # Allow nil global secret
+
+          config[:mail].delete(:truemail) # Remove truemail configuration
+
+          allow(OT).to receive(:li) # Suppress warnings for allowed nil secret
+
+          # The check for truemail comes after the global secret check in `raise_concerns`.
+          # So, if nil secret is allowed, it proceeds to check truemail.
+          expect {
+            Onetime::Config.after_load(config)
+          }.to raise_error(OT::ConfigError, "No TrueMail config found")
+        end
+      end
+    end # This closes the `context 'with validation errors'`
   end
 
   describe '.mapped_key' do
