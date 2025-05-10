@@ -307,41 +307,35 @@ module Onetime
       config_hash.map { |k, v| [k, deep_clone(v)] }.to_h
     end
 
-    # Merges section configurations with defaults
+    # Applies default values to configuration sections.
     #
-    # @param config [Hash] Raw configuration with :defaults and named sections
-    # @return [Hash] Processed sections with defaults applied
+    # @param defaults [Hash, nil] Default settings to apply to each section
+    # @param config [Hash] Configuration with top-level section keys
+    # @return [Hash] Configuration with defaults applied to each section
+    #
+    # This method performs shallow merging of defaults into each section:
+    # - Section values override defaults (except nil values, which use defaults)
+    # - The :defaults section is skipped entirely
+    # - Only Hash-type sections receive defaults
     #
     # @example Basic usage
-    #   config = {
-    #     defaults: { timeout: 5, enabled: true },
-    #     api: { timeout: 10 },
-    #     web: {}
-    #   }
-    #   apply_defaults(config)
-    #   # => {
-    #   #   api: { timeout: 10, enabled: true },
-    #   #   web: { timeout: 5, enabled: true }
-    #   # }
+    #   defaults = { timeout: 5, enabled: true }
+    #   config = { api: { timeout: 10 }, web: { theme: 'dark' } }
+    #   apply_defaults(defaults, config)
+    #   # => { api: { timeout: 10, enabled: true },
+    #   #      web: { theme: 'dark', timeout: 5, enabled: true } }
     #
-    # @example With nil config
-    #   apply_defaults(nil) #=> {}
+    # @example Edge cases
+    #   apply_defaults(nil, {a: {x: 1}})  # => {a: {x: 1}}
+    #   apply_defaults({x: 1}, nil)       # => {}
     #
-    # @example Real world config
-    #   service_config = {
-    #     defaults: { dsn: ENV['DSN'] },
-    #     backend: { path: '/api' },
-    #     frontend: { path: '/web' }
-    #   }
-    #   sections = apply_defaults(service_config)
-    #   sections[:backend][:dsn] #=> ENV['DSN']
     def apply_defaults(defaults=nil, config={})
       return {} if config.nil? || config.empty?
       return config unless defaults.is_a?(Hash) # new in 0.22.1, previously {}
 
       config.each_with_object({}) do |(section, values), result|
-        next if section == :defaults
-        next unless values.is_a?(Hash)
+        next if section == :defaults   # Skip the :defaults key in config_param itself
+        next unless values.is_a?(Hash) # Process only sections that are hashes
 
         # Deep merge defaults with section values, preserving nil values only for explicitly set keys
         result[section] = defaults.merge(values) do |_key, default_val, section_val|
