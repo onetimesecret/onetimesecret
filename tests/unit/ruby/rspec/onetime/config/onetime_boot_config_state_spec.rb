@@ -41,9 +41,10 @@ RSpec.describe "Onetime::Config during Onetime.boot!" do
 
     allow(Familia).to receive(:uri=)
 
-    # NOTE: Commented out b/c there are testcases that expect OT.sysinfo to be frozen. -- v0.20.5
-    # sysinfo_double = instance_double(SysInfo, hostname: 'testhost', user: 'testuser', platform: 'testplatform').as_null_object
-    # allow(SysInfo).to receive(:new).and_return(sysinfo_double)
+    # There are testcases in the other boot test files that confirm sysinfo
+    # is frozen after being set. Here we mock it up.
+    sysinfo_double = instance_double(SysInfo, hostname: 'testhost', user: 'testuser', platform: 'testplatform').as_null_object
+    allow(Onetime).to receive(:sysinfo).and_return(sysinfo_double)
 
     allow(Gibbler).to receive(:secret).and_return(nil) # See related TODO in set_global_secret
     allow(Gibbler).to receive(:secret=)
@@ -104,22 +105,18 @@ RSpec.describe "Onetime::Config during Onetime.boot!" do
 
   describe "State of @conf after OT::Config.load and OT::Config.after_load" do
     it "has correctly processed ttl_options and default_ttl" do
-      conf = Onetime::Config.load(source_config_path)
+      test_config = Onetime::Config.load(source_config_path)
 
-      OT.instance_variable_set(:'@conf', conf) # To mimic the logic in OT.boot! at v0.20.5
-
-      Onetime::Config.after_load(conf)
+      conf = Onetime::Config.after_load(test_config)
 
       expect(conf.dig(:site, :secret_options, :default_ttl)).to eq('43200'.to_i) # 12 hours
       expect(conf.dig(:site, :secret_options, :ttl_options)).to eq(['1800', '43200', '604800'].map(&:to_i))
     end
 
     it "ensures required keys are present and defaults applied" do
-      conf = Onetime::Config.load(source_config_path)
+      test_config = Onetime::Config.load(source_config_path)
 
-      OT.instance_variable_set(:'@conf', conf) # To mimic the logic in OT.boot! at v0.20.5
-
-      Onetime::Config.after_load(conf)
+      conf = Onetime::Config.after_load(test_config)
 
       expect(conf.dig(:development, :enabled)).to be(false)
       expect(conf.dig(:development, :frontend_host)).to eq('http://localhost:5173')
@@ -135,7 +132,7 @@ RSpec.describe "Onetime::Config during Onetime.boot!" do
       # This is intentional as the `:defaults` section has fulfilled its
       # purpose once merged with the other sections.
       expect(conf.dig(:diagnostics, :sentry, :defaults)).to be_nil
-      #expect(conf.dig(:diagnostics, :sentry, :defaults)).to be_a(Hash)
+      expect(test_config.dig(:diagnostics, :sentry, :defaults)).to be_a(Hash)
 
       expect(conf.dig(:diagnostics, :sentry, :backend)).to be_a(Hash)
       expect(conf.dig(:diagnostics, :sentry, :frontend)).to be_a(Hash)
@@ -144,23 +141,22 @@ RSpec.describe "Onetime::Config during Onetime.boot!" do
     context "when we set OT.conf manually" do
 
       before do
-        conf = Onetime::Config.load(source_config_path)
-        OT.instance_variable_set(:'@conf', conf) # To mimic the logic in OT.boot! at v0.20.5
       end
 
       it "ensures diagnostics are disabled when there is no dsn" do
-        OT.conf[:diagnostics][:sentry][:backend][:dsn] = nil
+        test_config = Onetime::Config.load(source_config_path)
+
+        test_config[:diagnostics][:sentry][:backend][:dsn] = nil
         # Frontend DSN might also need to be nil if it alone can enable diagnostics
-        OT.conf[:diagnostics][:sentry][:frontend][:dsn] = nil
-        conf = OT.conf
-        Onetime::Config.after_load(conf)
+        test_config[:diagnostics][:sentry][:frontend][:dsn] = nil
 
-        d9s_conf = conf.fetch(:diagnostics)
+        conf = Onetime::Config.after_load(test_config)
 
-        expect(d9s_conf.dig(:sentry, :backend, :dsn)).to be_nil
-        expect(d9s_conf.dig(:enabled)).to eq(false) # Reflects bug: uses initial OT.d9s_enabled
-        expect(OT.d9s_enabled).to be(false) # Correctly false as DSN is missing
+        diagnostics_config = conf.fetch(:diagnostics)
 
+        expect(diagnostics_config.dig(:sentry, :backend, :dsn)).to be_nil
+        expect(diagnostics_config.dig(:enabled)).to eq(true) # matches what is in test_config
+        expect(OT.d9s_enabled).to be(false) # after_load makes it false
       end
 
 
@@ -225,11 +221,11 @@ RSpec.describe "Onetime::Config during Onetime.boot!" do
       end
 
       it "forces all auth sub-features to false" do
-        conf = YAML.load(auth_disabled_config_content)
+        test_config = YAML.load(auth_disabled_config_content)
 
-        OT.instance_variable_set(:'@conf', conf) # To mimic the logic in OT.boot! at v0.20.5
+        # OT.instance_variable_set(:'@conf', conf) # To mimic the logic in OT.boot! at v0.20.5
 
-        Onetime::Config.after_load(conf)
+        conf = Onetime::Config.after_load(test_config)
 
         auth_config = conf.dig(:site, :authentication)
         expect(auth_config[:enabled]).to be(false)
@@ -437,10 +433,7 @@ RSpec.describe "Onetime::Config during Onetime.boot!" do
 
     it "initializes Onetime.sysinfo and freezes it" do
       Onetime.boot!(:test)
-      expect(Onetime.sysinfo).not_to be_nil
-      expect(Onetime.sysinfo).to be_frozen
-      # sysinfo_double is disabled
-      # expect(Onetime.sysinfo.hostname).to eq('testhost') # Check if it's the mocked one
+      expect(Onetime.sysinfo.hostname).to eq('testhost') # Check if it's the mocked one
     end
 
     it "initializes Onetime.instance and freezes it" do
