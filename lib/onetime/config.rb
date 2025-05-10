@@ -116,11 +116,6 @@ module Onetime
     # @return [Hash] The processed configuration hash with defaults applied and security measures in place
     def after_load(incoming_config)
 
-      # SAFETY MEASURE: Freeze the incoming (presumably) shared config
-      # We check for settings in the frozen raw config where we can be sure that
-      # its values are directly from the actual config file -- without any
-      # normalization or other manipulation.
-      deep_freeze(incoming_config)
 
       # SAFETY MEASURE: Deep Copy Protection
       # Create a deep copy of the configuration to prevent unintended mutations
@@ -243,14 +238,6 @@ module Onetime
         OT.li "- Only use during recovery or transition periods"
         OT.li "Set valid SECRET env var or site.secret in config ASAP"
         OT.li "!" * 50
-      end
-
-      unless conf[:site]&.key?(:authentication)
-        raise OT::ConfigError, "No `site.authentication` config found in #{path}"
-      end
-
-      unless conf.key?(:mail)
-        raise OT::ConfigError, "No `mail` config found in #{path}"
       end
 
       unless conf[:mail].key?(:truemail)

@@ -48,8 +48,11 @@ module Onetime
       # Loads the configuration and renders all value templates (ERB)
       raw_conf = OT::Config.load
 
-      # Normalize the configruation and make it available to the rest
-      # of the initializers (via OT.conf). raw_conf is frozen at this point.
+      # SAFETY MEASURE: Freeze the (inevitably) shared config
+      OT::Config.deep_freeze(raw_conf)
+
+      # Normalize the configuration and make it available to the rest
+      # of the initializers (via OT.conf).
       @conf = OT::Config.after_load(raw_conf)
 
       # OT.conf is deeply frozen at this point which means that the
