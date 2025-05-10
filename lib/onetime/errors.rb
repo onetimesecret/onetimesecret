@@ -2,6 +2,13 @@
 
 module Onetime
 
+  # The Problem class inherits from RuntimeError, which is a subclass of StandardError.
+  # Both RuntimeError and StandardError are standard exception classes in Ruby, but
+  # RuntimeError is used for errors that are typically caused by the program's logic
+  # and are usually rescued implicitly (e.g., in `rescue RuntimeError`).
+  # StandardError is the default exception type for many Ruby errors and is also rescue-able.
+  #
+  # Subclassing from RuntimeError indicates the error is more specific to runtime conditions.
   class Problem < RuntimeError
     attr_accessor :message
 
@@ -9,6 +16,14 @@ module Onetime
       super(message)
       @message = message
     end
+  end
+
+  # Raised when there is an issue with configuration settings, such as missing,
+  # invalid, or malformed configuration data during initialization. This
+  # exception indicates that the application's configuration is not set up
+  # correctly and needs to be reviewed and corrected before normal operation
+  # can proceed.
+  class ConfigError < Problem
   end
 
   class RecordNotFound < Problem

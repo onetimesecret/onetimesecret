@@ -1,6 +1,15 @@
 GIT
   remote: https://github.com/rspec/rspec
-  revision: 5946b3c9aa61279bf52363bfde4d850810daaa3a
+  revision: 9f7a21bb8438f206ebc37bf69b995db8ca625244
+  specs:
+    rspec (3.14.0.pre)
+      rspec-core (= 3.14.0.pre)
+      rspec-expectations (= 3.14.0.pre)
+      rspec-mocks (= 3.14.0.pre)
+
+GIT
+  remote: https://github.com/rspec/rspec
+  revision: 9f7a21bb8438f206ebc37bf69b995db8ca625244
   glob: rspec-core/rspec-core.gemspec
   specs:
     rspec-core (3.14.0.pre)
@@ -8,7 +17,7 @@ GIT
 
 GIT
   remote: https://github.com/rspec/rspec
-  revision: 5946b3c9aa61279bf52363bfde4d850810daaa3a
+  revision: 9f7a21bb8438f206ebc37bf69b995db8ca625244
   glob: rspec-expectations/rspec-expectations.gemspec
   specs:
     rspec-expectations (3.14.0.pre)
@@ -17,7 +26,7 @@ GIT
 
 GIT
   remote: https://github.com/rspec/rspec
-  revision: 5946b3c9aa61279bf52363bfde4d850810daaa3a
+  revision: 9f7a21bb8438f206ebc37bf69b995db8ca625244
   glob: rspec-mocks/rspec-mocks.gemspec
   specs:
     rspec-mocks (3.14.0.pre)
@@ -26,19 +35,10 @@ GIT
 
 GIT
   remote: https://github.com/rspec/rspec
-  revision: 5946b3c9aa61279bf52363bfde4d850810daaa3a
+  revision: 9f7a21bb8438f206ebc37bf69b995db8ca625244
   glob: rspec-support/rspec-support.gemspec
   specs:
     rspec-support (3.14.0.pre)
-
-GIT
-  remote: https://github.com/rspec/rspec
-  revision: d064fd0e9f00af834dfcfbe55e74b066a76e98e6
-  specs:
-    rspec (3.14.0.pre)
-      rspec-core (= 3.14.0.pre)
-      rspec-expectations (= 3.14.0.pre)
-      rspec-mocks (= 3.14.0.pre)
 
 GEM
   remote: https://rubygems.org/

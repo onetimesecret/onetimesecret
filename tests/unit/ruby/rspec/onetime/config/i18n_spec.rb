@@ -2,7 +2,7 @@
 
 # e.g. pnpm run rspec tests/unit/ruby/rspec/config/i18n_spec.rb
 
-require_relative '../spec_helper'
+require_relative '../../spec_helper'
 
 RSpec.describe "Internationalization config" do
   describe Onetime do

@@ -34,6 +34,14 @@ Style/TrailingCommaInHashLiteral:
   Enabled: true
   EnforcedStyleForMultiline: comma
 
+# The Style/DoubleNegation cop is disabled because double negation provides
+# a concise, idiomatic way to convert values to boolean in Ruby. Alternative
+# approaches like ternary expressions or comparison with nil create unnecessary
+# verbosity without adding clarity. In cases where boolean coercion is the
+# explicit intent, !! clearly communicates this purpose to other Ruby developers.
+Style/DoubleNegation:
+  Enabled: false
+
 Layout/MultilineMethodCallIndentation:
   EnforcedStyle: indented
 

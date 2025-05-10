@@ -4,34 +4,32 @@ require_relative '../spec_helper'
 require 'openssl'
 
 RSpec.describe "Experimental config settings" do
+  let(:source_config_path) { File.expand_path(File.join(Onetime::HOME, 'tests', 'unit', 'ruby', 'config.test.yaml')) }
+
   describe "allow_nil_global_secret" do
     let(:test_value) { "This is a test secret value" }
     let(:passphrase) { "testpassphrase" }
     let(:regular_secret) { "regular-secret-key" }
     let(:nil_secret) { nil }
 
-    # No shared secrets - each test creates its own instance
+    # Load the YAML content after ERB processing
+    let(:test_config) { Onetime::Config.load(source_config_path) }
+    let(:processed_config) { Onetime::Config.after_load(test_config) }
 
     before(:each) do
-      # Store original configuration
-      @original_allow_nil = OT.conf[:experimental]&.fetch(:allow_nil_global_secret, false)
-      @original_global_secret = OT.global_secret
-
-      # Setup configuration for testing
-      OT.conf[:experimental] ||= {}
     end
 
     after(:each) do
-      # Restore original configuration
-      OT.conf[:experimental][:allow_nil_global_secret] = @original_allow_nil
-
-      # Restore original global secret
-      OT.instance_variable_set(:@global_secret, @original_global_secret)
+      OT.instance_variable_set(:@conf, nil)
+      OT.instance_variable_set(:@global_secret, nil)
     end
 
     context "when allow_nil_global_secret is false (default)" do
       before do
-        OT.conf[:experimental][:allow_nil_global_secret] = false
+        @context_config = OT::Config.deep_clone(processed_config)
+        @context_config[:experimental][:allow_nil_global_secret] = false
+
+        OT.instance_variable_set(:@conf, @context_config)
       end
 
       it "successfully encrypts and decrypts with a non-nil global secret" do
@@ -79,7 +77,10 @@ RSpec.describe "Experimental config settings" do
 
     context "when allow_nil_global_secret is true" do
       before do
-        OT.conf[:experimental][:allow_nil_global_secret] = true
+        @context_config = OT::Config.deep_clone(processed_config)
+        @context_config[:experimental][:allow_nil_global_secret] = true
+
+        OT.instance_variable_set(:@conf, @context_config)
       end
 
       it "successfully encrypts and decrypts with a non-nil global secret" do
@@ -148,7 +149,7 @@ RSpec.describe "Experimental config settings" do
         OT.instance_variable_set(:@global_secret, nil)
 
         # Enable fallback mechanism
-        OT.conf[:experimental][:allow_nil_global_secret] = true
+        @context_config[:experimental][:allow_nil_global_secret] = true
 
         # We need to know exactly what encryption key was used during encryption
         # So we can return it during the mock of encryption_key_v2_with_nil
@@ -183,7 +184,10 @@ RSpec.describe "Experimental config settings" do
 
     context "when switching between nil and non-nil global secrets" do
       before do
-        OT.conf[:experimental][:allow_nil_global_secret] = true
+        @context_config = OT::Config.deep_clone(processed_config)
+        @context_config[:experimental][:allow_nil_global_secret] = true
+
+        OT.instance_variable_set(:@conf, @context_config)
       end
 
       it "fails to decrypt values encrypted with non-nil secret using nil secret without special handling" do
@@ -205,7 +209,7 @@ RSpec.describe "Experimental config settings" do
         OT.instance_variable_set(:@global_secret, nil)
 
         # Enable fallback mechanism but mock it to fail
-        OT.conf[:experimental][:allow_nil_global_secret] = true
+        @context_config[:experimental][:allow_nil_global_secret] = true
         allow(secret).to receive(:encryption_key_v2_with_nil).and_raise(OpenSSL::Cipher::CipherError)
 
         # Decryption should fail with CipherError
@@ -234,7 +238,7 @@ RSpec.describe "Experimental config settings" do
         OT.instance_variable_set(:@global_secret, regular_secret)
 
         # IMPORTANT: Completely disable the fallback
-        OT.conf[:experimental][:allow_nil_global_secret] = false
+        @context_config[:experimental][:allow_nil_global_secret] = false
 
         # The decryption should fail since the key material is different
         secret.passphrase_temp = passphrase
