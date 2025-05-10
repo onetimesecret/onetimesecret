@@ -122,3 +122,130 @@ The most idiomatic approach would be a combination:
 5.  **`Onetime.boot!` catches this error**, logs it, and halts the application (unless in CLI mode), preventing it from running in an undefined or unsafe state.
 
 This ensures that `OT.conf` and its related global state variables are populated with either user-defined values or sensible defaults, and the application only proceeds if all *critical* requirements are met. For everything else, the defaults allow for a smoother experience.
+
+## Recommendations for Configuration Schema and Validation
+
+Ways the validation of your configuration, which is a great step for a growing project. This helps catch errors early, provides clearer feedback to users/developers, and serves as a form of documentation for your configuration structure.
+
+Given Onetime is a Ruby application and you're not bound by Rails conventions, here are a few recommendations for configuration schema and validation, ranging from lightweight to more comprehensive:
+
+1.  **Custom Validation Logic (Your Current Direction)**
+    *   **Description:** As we discussed, you can build this directly into your `Onetime::Config.after_load` method or a helper it calls. This involves manually checking for key presence, types, and valid values.
+    *   **Pros:**
+        *   No new dependencies.
+        *   Full control over logic and error messages.
+    *   **Cons:**
+        *   Can become verbose and harder to maintain as the configuration schema grows.
+        *   Error reporting might be less standardized unless you build a robust system for it.
+        *   Type checking can be manual and error-prone.
+    *   **Best for:** Smaller configuration files or when you want to avoid external dependencies at all costs.
+
+2.  **`dry-schema` (from the Dry-rb ecosystem)**
+    *   **Description:** `dry-schema` is a powerful data coercion and validation library. It provides a DSL (Domain Specific Language) to define schemas, including types, required/optional keys, and more complex rules.
+    *   **Pros:**
+        *   **Clear DSL:** Schemas are easy to read and write.
+        *   **Type Safety:** Enforces data types (e.g., string, integer, boolean, nested hashes).
+        *   **Detailed Error Messages:** Generates structured error messages that pinpoint what's wrong.
+        *   **Coercion:** Can automatically coerce input values (e.g., string "true" to boolean `true`).
+        *   **Well-maintained and part of a respected ecosystem.**
+    *   **Cons:**
+        *   Adds an external dependency (`dry-schema` and its own dependencies like `dry-core`, `dry-logic`).
+        *   Slight learning curve if you're new to Dry-rb.
+    *   **Integration into `Onetime::Config.after_load`:**
+        You would define a schema and then validate the configuration (after defaults are applied) against it.
+
+        ```ruby
+        # /dev/null/onetime_config_schema.rb (Conceptual Example)
+        # require 'dry-schema'
+        #
+        # OnetimeConfigSchema = Dry::Schema.Params do # Or Dry::Schema.JSON if not dealing with form params
+        #   required(:site).hash do
+        #     required(:host).filled(:string)
+        #     required(:domain).filled(:string)
+        #     optional(:secret_options).array(:string) # Example
+        #     # ... other site settings
+        #   end
+        #
+        #   required(:redis).hash do
+        #     required(:host).filled(:string)
+        #     required(:port).filled(:integer)
+        #     # ... other redis settings
+        #   end
+        #
+        #   optional(:diagnostics).hash do
+        #     required(:enabled).bool
+        #     optional(:dsn).maybe(:string) # 'maybe' allows nil or the specified type
+        #   end
+        #
+        #   # ... other top-level sections
+        # end
+
+        # In Onetime::Config.after_load(raw_conf)
+        # ...
+        # conf = apply_defaults(raw_conf || {}) # Ensure conf is a hash
+        #
+        # validation_result = OnetimeConfigSchema.call(conf)
+        #
+        # if validation_result.failure?
+        #   # validation_result.errors.to_h provides a detailed hash of errors
+        #   # You can format this into a user-friendly message
+        #   error_messages = validation_result.errors.to_h.map do |field, messages|
+        #     "Config error for '#{field}': #{messages.join(', ')}"
+        #   end.join("; ")
+        #   raise Onetime::ConfigError, "Configuration validation failed: #{error_messages}"
+        # end
+        #
+        # # If validation passes, conf is valid according to the schema.
+        # # dry-schema can also return the coerced/typed data if you use its output.
+        # # For example: validated_conf = validation_result.to_h
+        # # Then you'd use validated_conf going forward.
+        #
+        # @conf = deep_freeze(conf) # Or deep_freeze(validated_conf)
+        # ...
+        ```
+    *   **Best for:** Projects that anticipate growing configuration complexity and value robust validation and clear error reporting.
+
+3.  **JSON Schema with a Ruby Validator (e.g., `json-schema` gem)**
+    *   **Description:** Define your schema in a standard JSON Schema file (`.json`). Then use a Ruby gem to validate your configuration hash against this schema.
+    *   **Pros:**
+        *   **Standardized:** JSON Schema is a widely adopted standard.
+        *   **Language Agnostic:** The schema definition itself isn't tied to Ruby.
+        *   Good for interoperability if other tools or services need to understand your config structure.
+    *   **Cons:**
+        *   Schema definition is in JSON, which can be more verbose than a Ruby DSL.
+        *   Adds an external dependency.
+    *   **Integration:** Similar to `dry-schema`, you'd load your schema and validate the config hash in `after_load`.
+    *   **Best for:** Situations where adherence to the JSON Schema standard is a priority, or if you need to share the schema definition across different programming languages.
+
+4.  **Lightweight Contract Libraries (e.g., `contracts.ruby`)**
+    *   **Description:** While primarily for method contracts, libraries like `contracts.ruby` can be adapted to validate data structures.
+    *   **Pros:**
+        *   Can enforce types and structure.
+        *   Ruby-centric.
+    *   **Cons:**
+        *   May not be as specifically tailored for configuration validation as `dry-schema`.
+        *   The primary focus is on runtime checking of method arguments/return values.
+    *   **Best for:** If you're already using such a library for other purposes in your project and want to leverage it for configuration as well.
+
+**Recommendations for Onetime:**
+
+Considering Onetime's current state and the desire for robust, maintainable code:
+
+*   **If you prefer minimal dependencies:** Continue refining your **custom validation logic**. Focus on creating helper methods that provide clear error messages and make the validation rules readable within `Onetime::Config`.
+*   **For a more structured and scalable approach:** I would strongly recommend looking into **`dry-schema`**.
+    *   It provides a good balance of power, a clean Ruby DSL for schema definition, and excellent error reporting.
+    *   It will make your configuration rules explicit and easier to manage as the application evolves.
+    *   The ability to get coerced, typed data back from the validation can also reduce boilerplate type checks elsewhere.
+
+**Steps if you choose `dry-schema` (or similar):**
+
+1.  **Add the gem:** `pnpm add -D @types/dry-schema` (if using something like `package.json` for Ruby gems via a bridge, or directly in your `Gemfile`: `gem 'dry-schema'`).
+2.  **Define your schema:** Create a Ruby file (e.g., `lib/onetime/config_schema.rb`) to define your `OnetimeConfigSchema` using the `dry-schema` DSL. This schema should reflect the structure *after* defaults are applied.
+3.  **Integrate into `Onetime::Config.after_load`:**
+    *   Load/require your schema definition.
+    *   After applying defaults to the `raw_conf`, pass the resulting `conf` hash to your schema for validation (`YourSchema.call(conf)`).
+    *   Check `validation_result.success?` or `validation_result.failure?`.
+    *   If it fails, extract the error messages (`validation_result.errors.to_h`) and raise an `Onetime::ConfigError` with a well-formatted summary.
+    *   If it succeeds, you can use the (potentially coerced) output from the validation (`validation_result.to_h`) as your final configuration hash before freezing.
+
+This approach will make your configuration handling more declarative and robust.

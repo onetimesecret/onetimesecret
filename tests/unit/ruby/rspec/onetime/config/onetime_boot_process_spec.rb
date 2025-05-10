@@ -226,10 +226,11 @@ RSpec.describe "Onetime boot configuration process" do
       raw_config = minimal_config.dup
 
       processed_config = Onetime::Config.after_load(raw_config)
+      secret_options = processed_config[:site][:secret_options]
 
-      expect(processed_config[:site][:secret_options][:default_ttl]).to eq(7.days)
-      expect(processed_config[:site][:secret_options][:ttl_options]).to be_an(Array)
-      expect(processed_config[:site][:secret_options][:ttl_options].length).to eq(11)
+      expect(secret_options[:default_ttl]).to eq(7.days)
+      expect(secret_options[:ttl_options]).to be_an(Array)
+      expect(secret_options[:ttl_options].length).to eq(11)
     end
 
     it 'uses values from config file when specified' do
