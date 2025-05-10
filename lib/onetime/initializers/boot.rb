@@ -48,8 +48,20 @@ module Onetime
       # of the initializers (via OT.conf).
       @conf = OT::Config.after_load(raw_conf)
 
+      # OT.conf is deeply frozen at this point which means that the
+      # initializers are meant to read from it, set other values, but
+      # not modify it.
+      # TODO: Consider leaving unfrozen until the end of boot!
+
+      # NOTE: We could benefit from tsort to make sure these
+      # initializers are loaded in the correct order.
       load_locales
       set_global_secret
+      set_rotated_secrets
+      setup_authentication
+      setup_diagnostics
+      configure_domains
+      configure_truemail
       prepare_emailers
       load_fortunes
       load_plans

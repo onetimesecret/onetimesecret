@@ -37,16 +37,13 @@ module Onetime
       YAML.load(parsed_template.result)
     rescue StandardError => e
       OT.le "Error loading config: #{path}"
-      OT.le
 
       # Log the contents of the parsed template for debugging purposes.
       # This helps identify issues with template rendering and provides
       # context for the error, making it easier to diagnose config
       # problems, especially when the error involves environment vars.
-      if parsed_template
-        template_content = parsed_template.result
-        template_lines = template_content.split("\n")
-
+      if OT.debug? && parsed_template
+        template_lines = parsed_template.result.split("\n")
         template_lines.each_with_index do |line, index|
           OT.ld "Line #{index + 1}: #{line}"
         end
@@ -54,60 +51,10 @@ module Onetime
 
       OT.le e.message
       OT.le e.backtrace.join("\n")
-      Kernel.exit(1)
+      raise OT::ConfigError.new(e.message)
     end
 
-    # After loading the configuration, this method processes and validates the
-    # configuration, setting defaults and ensuring required elements are present.
-    # It also performs deep copy protection to prevent mutations from propagating
-    # to shared configuration instances.
-    #
-    # Security measures implemented in this method:
-    # 1. Deep copy protection - prevents unintended mutations to shared config
-    # 2. Validation of critical security settings - enforces presence of required security fields
-    # 3. Security warnings for dangerous configurations - alerts about potential vulnerabilities
-    # 4. Configuration immutability - freezes config to prevent runtime modifications
-    #
-    # @param incoming_config [Hash] The loaded, unprocessed configuration hash in raw form
-    # @return [Hash] The processed configuration hash with defaults applied and security measures in place
-    def after_load(incoming_config) # rubocop:disable Metrics/MethodLength,Metrics/PerceivedComplexity
-      # We check for settings in the frozen raw config where we can be sure that
-      # its values are directly from the actual config file -- without any
-      # normalization or other manipulation.
-      deep_freeze(incoming_config)
-
-      # SAFETY MEASURE: Deep Copy Protection
-      # Create a deep copy of the configuration to prevent unintended mutations
-      # This protects against side effects when multiple components access the same config
-      # Without this, modifications to the config in one component could affect others.
-      conf = Marshal.load(Marshal.dump(incoming_config))
-
-      # SAFETY MEASURE: Validation and Default Security Settings
-      # Ensure all critical security-related configurations exist
-      unless conf.key?(:experimental)
-        OT.ld "Setting an empty experimental config #{path}"
-        conf[:experimental] = {
-          allow_nil_global_secret: false, # Default to secure setting
-          rotated_secrets: [],
-        }
-      end
-
-      unless conf.key?(:internationalization)
-        conf[:internationalization] = { enabled: false }
-      end
-
-      unless conf.key?(:development)
-        raise OT::Problem, "No `development` config found in #{path}"
-      end
-
-      unless conf.key?(:site)
-        raise OT::Problem, "No `site` config found in #{path}"
-      end
-
-      unless conf[:site]&.key?(:secret)
-        OT.ld "No site.secret setting in #{path}"
-        conf[:site][:secret] = nil
-      end
+    def raise_concerns(conf)
 
       # SAFETY MEASURE: Critical Secret Validation
       # Handle potential nil global secret
@@ -117,11 +64,13 @@ module Onetime
       global_secret = conf[:site].fetch(:secret, nil)
       global_secret = nil if global_secret.to_s.strip == 'CHANGEME'
 
+      # Onetime.global_secret is set in the initializer set_global_secret
+
       if global_secret.nil?
         unless allow_nil
           # Fast fail when global secret is nil and not explicitly allowed
           # This is a critical security check that prevents running without encryption
-          raise OT::Problem, "Global secret cannot be nil - set SECRET env var or site.secret in config"
+          raise OT::ConfigError, "Global secret cannot be nil - set SECRET env var or site.secret in config"
         end
 
         # SAFETY MEASURE: Security Warnings for Dangerous Configurations
@@ -139,62 +88,96 @@ module Onetime
       end
 
       unless conf[:site]&.key?(:authentication)
-        raise OT::Problem, "No `site.authentication` config found in #{path}"
+        raise OT::ConfigError, "No `site.authentication` config found in #{path}"
       end
 
       unless conf.key?(:mail)
-        raise OT::Problem, "No `mail` config found in #{path}"
+        raise OT::ConfigError, "No `mail` config found in #{path}"
       end
 
-      mtc = conf[:mail][:truemail]
-      OT.ld "Setting TrueMail config from #{path}"
-      raise OT::Problem, "No TrueMail config found" unless mtc
+      unless conf[:mail].key?(:truemail)
+        raise OT::ConfigError, "No TrueMail config found"
+      end
+    end
 
-      # Remove nil elements that have inadvertently been set in
-      # the list of previously used global secrets. Happens easily
-      # when using environment vars in the config.yaml that aren't
-      # set or are set to an empty string.
-      rotated_secrets = conf[:experimental].fetch(:rotated_secrets, []).compact
-      conf[:experimental][:rotated_secrets] = rotated_secrets
+    # After loading the configuration, this method processes and validates the
+    # configuration, setting defaults and ensuring required elements are present.
+    # It also performs deep copy protection to prevent mutations from propagating
+    # to shared configuration instances.
+    #
+    # @param incoming_config [Hash] The loaded, unprocessed configuration hash in raw form
+    # @return [Hash] The processed configuration hash with defaults applied and security measures in place
+    def after_load(incoming_config) # rubocop:disable Metrics/MethodLength,Metrics/PerceivedComplexity
 
-      unless conf[:site]&.key?(:domains)
-        conf[:site][:domains] = { enabled: false }
+      # SAFETY MEASURE: Freeze the incoming (presumably) shared config
+      # We check for settings in the frozen raw config where we can be sure that
+      # its values are directly from the actual config file -- without any
+      # normalization or other manipulation.
+      deep_freeze(incoming_config)
+
+      # SAFETY MEASURE: Deep Copy Protection
+      # Create a deep copy of the configuration to prevent unintended mutations
+      # This protects against side effects when multiple components access the same config
+      # Without this, modifications to the config in one component could affect others.
+      conf = if incoming_config.nil?
+        {}
+      else
+        Marshal.load(Marshal.dump(incoming_config))
       end
 
-      unless conf[:site]&.key?(:plans)
-        conf[:site][:plans] = { enabled: false }
-      end
+      # TODO: Move up to boot!, possibly along with the deep_freeze and marshalling
+      defaults = {
+        # TODO: Populate further based on below logic.
+        site: {
+          secret: nil,
+          domains: { enabled: false },
+          regions: { enabled: false },
+          plans: { enabled: false },
+          secret_options: {
+            default_ttl: 7.days,
+            ttl_options: [
+              60.seconds,     # 60 seconds (was missing from v0.20.5)
+              5.minutes,      # 300 seconds
+              30.minutes,     # 1800
+              1.hour,         # 3600
+              4.hours,        # 14400
+              12.hours,       # 43200
+              1.day,          # 86400
+              3.days,         # 259200
+              1.week,         # 604800
+              2.weeks,        # 1209600
+              30.days,        # 2592000
+            ]
+          },
+          interface: {
+            ui: { enabled: true },
+            api: { enabled: true },
+          },
+          authentication: {
+            enabled: true,
+            colonels: [],
+          },
+        },
+        mail: {},
+        diagnostics: {
+          enabled: false,
+        },
+        internationalization: {
+          enabled: false,
+          default_locale: 'en',
+        },
+        development: {},
+        experimental: {
+          allow_nil_global_secret: false, # defaults to a secure setting
+          rotated_secrets: [],
+        },
+      }
 
-      unless conf[:site]&.key?(:regions)
-        conf[:site][:regions] = { enabled: false }
-      end
+      # SAFETY MEASURE: Validation and Default Security Settings
+      # Ensure all critical security-related configurations exist
+      conf = apply_defaults(defaults, conf) # TODO: We don't need to re-assign `conf`
 
-      unless conf[:site]&.key?(:secret_options)
-        conf[:site][:secret_options] = {}
-      end
-      conf[:site][:secret_options][:default_ttl] ||= 7.days
-      conf[:site][:secret_options][:ttl_options] ||= [
-        60.seconds,     # 60 seconds (was missing from v0.20.5)
-        5.minutes,      # 300 seconds
-        30.minutes,     # 1800
-        1.hour,         # 3600
-        4.hours,        # 14400
-        12.hours,       # 43200
-        1.day,          # 86400
-        3.days,         # 259200
-        1.week,         # 604800
-        2.weeks,        # 1209600
-        30.days,        # 2592000
-      ]
-
-      # Make sure there is an interface config (for installs running off
-      # of an older config file).
-      conf[:site][:interface] ||= {}
-
-      conf[:site][:interface] = {
-        ui: { enabled: true },
-        api: { enabled: true },
-      }.merge(conf[:site][:interface])
+      raise_concerns(conf)
 
       # Disable all authentication sub-features when main feature is off for
       # consistency, security, and to prevent unexpected behavior. Ensures clean
@@ -206,31 +189,13 @@ module Onetime
         end
       end
 
-      # Make sure colonels are in their proper location since previously
-      # it was at the root level
-      colonels = conf.fetch(:colonels, nil)
-      if colonels && !conf.dig(:site, :authentication)&.key?(:colonels)
-        conf[:site][:authentication] ||= { enabled: false }
-        conf[:site][:authentication][:colonels] = colonels
-      end
-      conf[:site][:authentication][:colonels] ||= [] # make sure it exists
+      # Combine colonels from root level and authentication section
+      # This handles the legacy config where colonels were at the root level
+      # while ensuring we don't lose any colonels from either location
+      root_colonels = conf.fetch(:colonels, [])
+      auth_colonels = conf.dig(:site, :authentication, :colonels) || []
+      conf[:site][:authentication][:colonels] = (root_colonels + auth_colonels).compact.uniq
 
-      if conf.dig(:site, :domains, :enabled).to_s == "true"
-        cluster = conf.dig(:site, :domains, :cluster)
-        OT.ld "Setting OT::Cluster::Features #{cluster}"
-        klass = OT::Cluster::Features
-        klass.api_key = cluster[:api_key]
-        klass.cluster_ip = cluster[:cluster_ip]
-        klass.cluster_name = cluster[:cluster_name]
-        klass.cluster_host = cluster[:cluster_host]
-        klass.vhost_target = cluster[:vhost_target]
-        OT.ld "Domains config: #{cluster}"
-        unless klass.api_key
-          raise OT::Problem.new, "No `site.domains.cluster` api key (#{klass.api_key})"
-        end
-      end
-
-      site_host = conf.dig(:site, :host)
       ttl_options = conf.dig(:site, :secret_options, :ttl_options)
       default_ttl = conf.dig(:site, :secret_options, :default_ttl)
 
@@ -248,6 +213,7 @@ module Onetime
         conf[:site][:secret_options][:default_ttl] = default_ttl.to_i
       end
 
+      # TODO: Move to initializer
       if conf.dig(:site, :plans, :enabled).to_s == "true"
         stripe_key = conf.dig(:site, :plans, :stripe_key)
         unless stripe_key
@@ -258,98 +224,14 @@ module Onetime
         Stripe.api_key = stripe_key
       end
 
-      # Iterate over the keys in the mail/truemail config
-      # and set the corresponding key in the Truemail config.
-      Truemail.configure do |config|
-        mtc.each do |key, value|
-          actual_key = mapped_key(key)
-          unless config.respond_to?("#{actual_key}=")
-            OT.le "config.#{actual_key} does not exist"
-            # next
-          end
-          OT.ld "Setting Truemail config key #{key} to #{value}"
-          config.send("#{actual_key}=", value)
-        end
-      end
-
-      diagnostics = incoming_config.fetch(:diagnostics, {})
-
       # Apply the defaults to sentry backend and frontend configs
       # and set our local config with the merged values.
+      diagnostics = incoming_config.fetch(:diagnostics, {})
       conf[:diagnostics] = {
         enabled: diagnostics[:enabled] || false,
-        sentry: apply_defaults(diagnostics[:sentry]),
+        sentry: apply_defaults(diagnostics[:defaults], diagnostics[:sentry]),
       }
-
       conf[:diagnostics][:sentry][:backend] ||= {}
-      backend = conf[:diagnostics][:sentry][:backend]
-
-      dsn = backend.fetch(:dsn, nil)
-
-      # Only require Sentry if we have a DSN
-      OT.d9s_enabled = (conf[:diagnostics][:enabled] || false) && !dsn.nil?
-
-      if OT.d9s_enabled
-        OT.ld "Setting up Sentry #{backend}..."
-
-        require 'sentry-ruby'
-        require 'stackprof'
-
-        # Log more details about the Sentry configuration for debugging
-        OT.ld "[sentry-debug] DSN present: #{!dsn.nil?}"
-        OT.ld "[sentry-debug] Site host: #{site_host.inspect}"
-        OT.ld "[sentry-debug] OT.env: #{OT.env.inspect}"
-
-        # Early validation to prevent nil errors during initialization
-        if dsn.nil?
-          OT.le "[sentry-init] Cannot initialize Sentry with nil DSN"
-          OT.d9s_enabled = false
-        elsif site_host.nil?
-          OT.le "[sentry-init] Cannot initialize Sentry with nil site_host"
-          OT.ld "Falling back to default environment name"
-          site_host = "unknown-host"
-        end
-
-        # Only proceed if we have valid configuration
-        if OT.d9s_enabled
-          # Safely log first part of DSN for debugging
-          dsn_preview = dsn ? "#{dsn[0..10]}..." : "nil"
-          OT.li "[sentry-init] Initializing with DSN: #{dsn_preview}"
-
-          Sentry.init do |config|
-            config.dsn = dsn
-            config.environment = "#{site_host} (#{OT.env})"
-            config.release = OT::VERSION.inspect
-
-            # Configure breadcrumbs logger for detailed error tracking.
-            # Uses sentry_logger to capture progression of events leading
-            # to errors, providing context for debugging.
-            config.breadcrumbs_logger = [:sentry_logger]
-
-            # Set traces_sample_rate to capture 10% of
-            # transactions for performance monitoring.
-            config.traces_sample_rate = 0.1
-
-            # Set profiles_sample_rate to profile 10%
-            # of sampled transactions.
-            config.profiles_sample_rate = 0.1
-
-            # Add a before_send to filter out problematic events that might cause errors
-            config.before_send = lambda do |event, _hint|
-              # Return nil if the event would cause errors in processing
-              if event.nil? || event.request.nil? || event.request.headers.nil?
-                OT.ld "[sentry-debug] Filtering out event with nil components"
-                return nil
-              end
-
-              # Return the event if it passes validation
-              event
-            end
-          end
-
-          OT.ld "[sentry-init] Status: #{Sentry.initialized? ? 'OK' : 'Failed'}"
-        end
-      end
 
       # Make sure these are set
       development = conf[:development]
@@ -452,10 +334,8 @@ module Onetime
     #   }
     #   sections = apply_defaults(service_config)
     #   sections[:backend][:dsn] #=> ENV['DSN']
-    def apply_defaults(config)
+    def apply_defaults(defaults, config)
       return {} if config.nil? || config.empty?
-
-      defaults = config[:defaults] || {}
       return {} unless defaults.is_a?(Hash)
 
       config.each_with_object({}) do |(section, values), result|
