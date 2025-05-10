@@ -298,14 +298,31 @@ module Onetime
     # @return [Hash] A deep copy of the original configuration hash
     # @raise [OT::Problem] When Marshal serialization fails due to unserializable objects
     # @security Prevents configuration mutations from affecting multiple components
+    #
+    # @limitations
+    #   This method has significant limitations due to its reliance on Marshal:
+    #   - Cannot clone objects with singleton methods, procs, lambdas, or IO objects
+    #   - Will fail when encountering objects that implement custom _dump methods without _load
+    #   - Loses any non-serializable attributes from complex objects
+    #   - May not preserve class/module references across different Ruby processes
+    #   - Thread-safety issues may arise with concurrent serialization operations
+    #   - Performance can degrade with deeply nested or large object structures
+    #
+    #   Consider using a recursive approach for specialized object cloning when
+    #   dealing with configuration containing custom objects, procs, or other
+    #   non-serializable elements. For critical security contexts, validate that
+    #   all configuration elements are serializable before using this method.
+    #
     def deep_clone(config_hash)
       Marshal.load(Marshal.dump(config_hash))
     rescue TypeError => ex
       raise OT::Problem, "[deep_clone] #{ex.message}"
     end
 
-    def deep_clone_fallback(config_hash)
-      config_hash.map { |k, v| [k, deep_clone(v)] }.to_h
+    def deep_clone(config_hash)
+      Marshal.load(Marshal.dump(config_hash))
+    rescue TypeError => ex
+      raise OT::Problem, "[deep_clone] #{ex.message}"
     end
 
     # Applies default values to configuration sections.
