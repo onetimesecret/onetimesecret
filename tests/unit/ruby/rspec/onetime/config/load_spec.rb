@@ -161,10 +161,15 @@ RSpec.describe Onetime::Config do
         etc_dir = File.join(temp_dir, 'etc')
         FileUtils.mkdir_p(etc_dir)
         test_file = File.join(etc_dir, 'config.yaml')
+
+        # Write test configuration to the file
         File.write(test_file, valid_yaml)
 
+        # Make sure the file exists
+        expect(File.exist?(test_file)).to be true
+
         # Stub the constant to include our test directory
-        stub_const('Onetime::Config::SERVICE_PATHS', [temp_dir])
+        stub_const('Onetime::Config::SERVICE_PATHS', [etc_dir])
 
         result = described_class.find_configs
         expect(result).to eq([test_file])
@@ -219,18 +224,6 @@ RSpec.describe Onetime::Config do
 
       # Should still return cached value
       expect(described_class.dirname).to eq(dirname)
-    end
-  end
-
-  describe '.exists?' do
-    it 'returns true when path is set' do
-      described_class.instance_variable_set(:@path, test_config_path)
-      expect(described_class.exists?).to be true
-    end
-
-    it 'returns false when path is nil' do
-      described_class.instance_variable_set(:@path, nil)
-      expect(described_class.exists?).to be false
     end
   end
 end

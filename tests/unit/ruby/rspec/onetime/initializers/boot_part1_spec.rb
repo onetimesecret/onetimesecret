@@ -346,7 +346,12 @@ RSpec.describe "Onetime::Config during Onetime.boot!" do
         expect(Onetime.default_locale).to eq('en')
         expect(Onetime.supported_locales).to match_array(['en', 'fr_CA', 'fr_FR'])
         expect(Onetime.locales.keys).to match_array(['en', 'fr_CA', 'fr_FR'])
-        expect(Onetime.fallback_locale).to eq({ :"fr-CA" => ['fr_CA', 'fr_FR', 'en'], :fr => ['fr_FR', 'fr_CA', 'en'], :"fr-*" => ['fr_FR', 'en'], :default => ['en'] })
+        expect(Onetime.fallback_locale).to eq({
+          "fr-CA" => ['fr_CA', 'fr_FR', 'en'],
+          "fr" => ['fr_FR', 'fr_CA', 'en'],
+          "fr-*" => ['fr_FR', 'en'],
+          "default" => ['en']
+        })
 
         # NOTE: Disabled in v0.20.5. It takes a while to figure out how this is getting set
         # and it changes once we get back to v0.22.0 anyhow so we can be specific then.

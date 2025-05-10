@@ -164,8 +164,8 @@ RSpec.describe "Onetime TrueMail configuration" do
         }
 
         # Set up minimal config with these special keys
-        config = minimal_config.dup
-        config[:mail][:truemail] = mapped_keys_config
+        test_config = minimal_config.dup
+        test_config[:mail][:truemail] = mapped_keys_config
 
         # Set expectations for mapped keys
         expect(@truemail_config).to receive(:whitelist_validation=).with(true)
@@ -176,7 +176,9 @@ RSpec.describe "Onetime TrueMail configuration" do
         expect(@truemail_config).to receive(:blacklisted_mx_ip_addresses=).with(['10.0.0.1'])
         expect(@truemail_config).to receive(:example_external_key=).with('test_value')
 
-        Onetime::Config.after_load(config)
+        conf = Onetime::Config.after_load(test_config)
+        OT.instance_variable_set(:@conf, conf)
+        OT.configure_truemail
       end
     end
   end
