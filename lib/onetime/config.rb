@@ -68,23 +68,23 @@ module Onetime
     # 3. Security warnings for dangerous configurations - alerts about potential vulnerabilities
     # 4. Configuration immutability - freezes config to prevent runtime modifications
     #
-    # @param raw_conf [Hash] The loaded, unprocessed configuration hash in raw form
+    # @param incoming_config [Hash] The loaded, unprocessed configuration hash in raw form
     # @return [Hash] The processed configuration hash with defaults applied and security measures in place
-    def after_load(raw_conf) # rubocop:disable Metrics/MethodLength,Metrics/PerceivedComplexity
+    def after_load(incoming_config) # rubocop:disable Metrics/MethodLength,Metrics/PerceivedComplexity
       # We check for settings in the frozen raw config where we can be sure that
       # its values are directly from the actual config file -- without any
       # normalization or other manipulation.
-      deep_freeze(raw_conf)
+      deep_freeze(incoming_config)
 
       # SAFETY MEASURE: Deep Copy Protection
       # Create a deep copy of the configuration to prevent unintended mutations
       # This protects against side effects when multiple components access the same config
       # Without this, modifications to the config in one component could affect others.
-      conf = Marshal.load(Marshal.dump(raw_conf))
+      conf = Marshal.load(Marshal.dump(incoming_config))
 
       # SAFETY MEASURE: Validation and Default Security Settings
       # Ensure all critical security-related configurations exist
-      unless raw_conf.key?(:experimental)
+      unless conf.key?(:experimental)
         OT.ld "Setting an empty experimental config #{path}"
         conf[:experimental] = {
           allow_nil_global_secret: false, # Default to secure setting
@@ -92,15 +92,15 @@ module Onetime
         }
       end
 
-      unless raw_conf.key?(:development)
+      unless conf.key?(:development)
         raise OT::Problem, "No `development` config found in #{path}"
       end
 
-      unless raw_conf.key?(:site)
+      unless conf.key?(:site)
         raise OT::Problem, "No `site` config found in #{path}"
       end
 
-      unless raw_conf[:site]&.key?(:secret)
+      unless conf[:site]&.key?(:secret)
         OT.ld "No site.secret setting in #{path}"
         conf[:site][:secret] = nil
       end
