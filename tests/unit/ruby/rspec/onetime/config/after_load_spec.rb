@@ -1,8 +1,6 @@
-# tests/unit/ruby/rspec/onetime/config/onetime_boot_process_spec.rb
+# tests/unit/ruby/rspec/onetime/config/after_load_spec.rb
 
-require_relative(
-  './config_spec_helper'
-)
+require_relative 'config_spec_helper'
 require 'tempfile'
 
 # The Sentry lib is only required when diagnostics are enabled. We include it
@@ -197,7 +195,6 @@ RSpec.describe "Onetime boot configuration process" do
     end
 
     context 'with i18n' do
-
       it "sets i18n to disabled when missing from config" do
         raw_config = minimal_config.dup
         expect(raw_config.key?(:internationalization)).to be false
@@ -214,7 +211,6 @@ RSpec.describe "Onetime boot configuration process" do
         expect(processed_config[:internationalization][:enabled]).to be(false)
         expect(processed_config[:internationalization].keys).to eq([:enabled, :default_locale])
       end
-
     end
 
     it 'applies default values to secret_options when not specified' do
@@ -238,7 +234,7 @@ RSpec.describe "Onetime boot configuration process" do
       processed_config = Onetime::Config.after_load(config)
 
       expect(processed_config[:site][:secret_options][:default_ttl]).to_not be_nil
-      expect(processed_config[:site][:secret_options][:ttl_options]).to include(1800, 43200, 604800)
+      expect(processed_config[:site][:secret_options][:ttl_options]).to include(1800, 43_200, 604_800)
     end
 
     it 'initializes empty domains configuration' do
@@ -269,7 +265,7 @@ RSpec.describe "Onetime boot configuration process" do
       config[:site][:authentication] = {
         enabled: false,
         signup: true,
-        signin: true
+        signin: true,
       }
 
       processed_config = Onetime::Config.after_load(config)
@@ -293,7 +289,7 @@ RSpec.describe "Onetime boot configuration process" do
 
         processed_config = Onetime::Config.after_load(config)
 
-        expect(processed_config[:site][:secret_options][:ttl_options]).to eq([300, 3600, 86400])
+        expect(processed_config[:site][:secret_options][:ttl_options]).to eq([300, 3600, 86_400])
       end
 
       it 'converts string default_ttl to integer' do
@@ -306,7 +302,7 @@ RSpec.describe "Onetime boot configuration process" do
 
         processed_config = Onetime::Config.after_load(config)
 
-        expect(processed_config[:site][:secret_options][:default_ttl]).to eq(86400)
+        expect(processed_config[:site][:secret_options][:default_ttl]).to eq(86_400)
       end
 
       it 'converts TTL options string from test config to integers' do
@@ -316,7 +312,7 @@ RSpec.describe "Onetime boot configuration process" do
         processed_config = Onetime::Config.after_load(config)
 
         expect(processed_config[:site][:secret_options][:ttl_options]).to be_an(Array)
-        expect(processed_config[:site][:secret_options][:ttl_options]).to eq([1800, 43200, 604800])
+        expect(processed_config[:site][:secret_options][:ttl_options]).to eq([1800, 43_200, 604_800])
       end
     end
 
@@ -345,8 +341,8 @@ RSpec.describe "Onetime boot configuration process" do
           enabled: true,
           sentry: {
             defaults: { dsn: 'https://example.com/sentry' },
-            backend: { dsn: 'https://example.com/sentry' }
-          }
+            backend: { dsn: 'https://example.com/sentry' },
+          },
         }
 
         allow(Kernel).to receive(:require).with('sentry-ruby')
@@ -368,8 +364,8 @@ RSpec.describe "Onetime boot configuration process" do
           sentry: {
             defaults: { dsn: 'https://example.com/sentry', environment: 'test-default' },
             backend: { traces_sample_rate: 0.1 },
-            frontend: { profiles_sample_rate: 0.2 }
-          }
+            frontend: { profiles_sample_rate: 0.2 },
+          },
         }
         OT.d9s_enabled = false
 
