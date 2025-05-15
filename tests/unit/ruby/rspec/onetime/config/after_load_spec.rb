@@ -3,10 +3,9 @@
 require_relative '../../spec_helper'
 require 'tempfile'
 
-# The Sentry lib is only required when diagnostics are enabled. We include it
-# here so we can write expectant testcases but we'll want to also test that
-# the library is required correctly under expected conditions.
-require 'sentry-ruby'
+# The Sentry lib is only required when diagnostics are enabled. We don't include
+# it here b/c we stub the class so we can write expectant testcases. We'll want
+# to also test that the library is required correctly in another test file.
 
 RSpec.describe "Onetime boot configuration process" do
   let(:test_config_path) { File.join(Onetime::HOME, 'tests', 'unit', 'ruby', 'config.test.yaml') }
@@ -317,6 +316,11 @@ RSpec.describe "Onetime boot configuration process" do
     end
 
     context 'with diagnostics configuration' do
+      # Define a stub for Sentry before all tests in this context
+      before(:each) do
+        stub_const("Sentry", Class.new)
+      end
+
       it 'enables diagnostics from test config file' do
         raw_config = OT::Config.deep_clone(test_config)
 
@@ -328,7 +332,6 @@ RSpec.describe "Onetime boot configuration process" do
         # Save original value to restore after test
         original_value = OT.d9s_enabled
         OT.d9s_enabled = nil
-;
         processed_config = Onetime::Config.after_load(raw_config)
 
         expect(OT.d9s_enabled).to be(false)
