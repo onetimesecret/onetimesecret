@@ -3,17 +3,21 @@
 require_relative '../../../../spec_helper'
 
 RSpec.describe V2::Secret, 'security hardening' do
-  let(:secret) { V2::Secret.new }
+  let(:secret) { create_stubbed_v2_secret(key: "test-secret-key-12345") }
   let(:passphrase) { "secure-test-passphrase" }
   let(:secret_value) { "Sensitive information 123" }
 
   before do
-    allow(secret).to receive(:key).and_return("test-secret-key-12345")
     allow(OT).to receive(:global_secret).and_return("global-test-secret")
-    OT.boot!(:test)
+    allow(OT).to receive(:conf).and_return({
+      experimental: {
+        allow_nil_global_secret: false,
+        rotated_secrets: []
+      }
+    })
   end
 
-  describe 'timing attack resistance' do
+  describe 'timing attack resistance', allow_redis: false do
     before do
       # Set up a secret with known passphrase
       secret.update_passphrase!(passphrase)
@@ -72,7 +76,7 @@ RSpec.describe V2::Secret, 'security hardening' do
     end
   end
 
-  describe 'handling corrupted encryption data' do
+  describe 'handling corrupted encryption data', allow_redis: false do
     before do
       secret.encrypt_value(secret_value)
     end
@@ -128,7 +132,7 @@ RSpec.describe V2::Secret, 'security hardening' do
     end
   end
 
-  describe 'key generation security' do
+  describe 'key generation security', allow_redis: false do
     it 'produces secure-length encryption keys' do
       key1 = secret.encryption_key_v1
       key2 = secret.encryption_key_v2

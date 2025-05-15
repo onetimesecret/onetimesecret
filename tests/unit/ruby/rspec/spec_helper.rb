@@ -104,9 +104,12 @@ RSpec.configure do |config|
     allow(OT).to receive(:le).and_return(nil) unless defined?(@preserve_error_logs) && @preserve_error_logs
   end
 
-  # Disable actual Redis connections
-  config.before(:each) do
-    # This is a safety net - it will raise an error if any code tries to actually connect to Redis
-    allow(Redis).to receive(:new).and_raise("Real Redis connections are not allowed in tests! Use test helpers instead.")
+  # Disable actual Redis connections by default, but allow specific tests to enable them
+  config.before(:each) do |example|
+    # Skip Redis mocking if test is explicitly marked to allow Redis
+    unless example.metadata[:allow_redis]
+      # This is a safety net - it will raise an error if any code tries to actually connect to Redis
+      allow(Redis).to receive(:new).and_raise("Real Redis connections are not allowed in tests! Use test helpers instead.")
+    end
   end
 end

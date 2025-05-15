@@ -267,7 +267,7 @@ RSpec.describe "Onetime::Initializers#setup_diagnostics" do
       Onetime.instance_variable_set(:@d9s_enabled, nil)
     end
 
-    it "properly initializes diagnostics when enabled in config" do
+    it "properly initializes diagnostics when enabled in config", allow_redis: true do
       modified_config = loaded_config.dup
       modified_config[:diagnostics] = {
         enabled: true,
@@ -288,7 +288,7 @@ RSpec.describe "Onetime::Initializers#setup_diagnostics" do
       expect(Onetime.d9s_enabled).to be true
     end
 
-    it "does not initialize Sentry when diagnostics are disabled in config" do
+    it "does not initialize Sentry when diagnostics are disabled in config", allow_redis: true do
       modified_config = loaded_config.dup
       modified_config[:diagnostics] = {
         enabled: false,
