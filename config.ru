@@ -138,8 +138,6 @@ if BaseApplication.production?
   use Onetime::Middleware::Security
 end
 
-
-
 # Application Mounting
 # Map all registered applications to their respective URL paths
 run Rack::URLMap.new(AppRegistry.build)

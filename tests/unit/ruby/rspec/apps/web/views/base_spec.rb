@@ -2,15 +2,19 @@
 
 # e.g. pnpm run rspec tests/unit/ruby/rspec/apps/web/views/base_spec.rb
 
+require_relative '../../../spec_helper'
+
 require 'core/views/base'
 require 'core/views/serializers'
-require_relative '../../../spec_helper'
 
 RSpec.describe Core::Views::BaseView do
   include_context "rack_test_context"
   include_context "view_test_context"
 
   before(:all) do
+    OT::Plan.load_plans!
+    @sysinfo ||= SysInfo.new.freeze
+
     described_class.use_serializers(
       Core::Views::ConfigSerializer,
       Core::Views::AuthenticationSerializer,

@@ -1,4 +1,4 @@
-# lib/onetime/helpers/environment_helper.rb
+# lib/onetime/classmethods.rb
 
 # Usage:
 # module Onetime
@@ -7,13 +7,13 @@
 #
 # Environment detection and normalization
 module Onetime
-  module EnvironmentHelper
+  module ClassMethods
     @env = nil
     @mode = :app
     @debug = nil
 
     # d9s: diagnostics is a boolean flag. If true, it will enable Sentry
-    @d9s_enabled = false
+    @d9s_enabled = nil
 
     attr_accessor :mode, :env, :d9s_enabled
     attr_writer :debug

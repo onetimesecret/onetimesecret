@@ -2,13 +2,22 @@
 
 require_relative '../../../../spec_helper'
 
-RSpec.describe V2::Secret do
+RSpec.describe V2::Secret, allow_redis: false do
   let(:customer_id) { 'test-customer-123' }
   let(:token) { nil }
   let(:secret_value) { "This is a test secret" }
   let(:passphrase) { "secure-passphrase" }
 
-  let(:secret_pair) { described_class.spawn_pair(customer_id, token) }
+  before do
+    allow(OT).to receive(:conf).and_return({
+      experimental: {
+        allow_nil_global_secret: false,
+        rotated_secrets: []
+      }
+    })
+  end
+
+  let(:secret_pair) { create_stubbed_v2_secret_pair(custid: customer_id, token: token) }
   let(:metadata) { secret_pair[0] }
   let(:secret) { secret_pair[1] }
 
@@ -23,7 +32,7 @@ RSpec.describe V2::Secret do
     end
 
     it 'generates unique identifiers for each pair' do
-      metadata2, secret2 = described_class.spawn_pair(customer_id)
+      metadata2, secret2 = create_stubbed_v2_secret_pair(custid: customer_id)
 
       expect(secret.key).not_to eq(secret2.key)
       expect(metadata.key).not_to eq(metadata2.key)
@@ -59,8 +68,8 @@ RSpec.describe V2::Secret do
       expect(decrypted_length).to be >= size_limit
       expect(decrypted_length).to be <= (size_limit * 1.2).to_i
 
-      # Log the actual randomized length for debugging purposes
-      puts "Truncated secret length with fuzziness: #{decrypted_length} (base: #{size_limit})"
+      # Uncomment to log the actual randomized length for debugging purposes
+      # puts "Truncated secret length with fuzziness: #{decrypted_length} (base: #{size_limit})"
     end
 
     it 'handles special characters' do
@@ -128,15 +137,10 @@ RSpec.describe V2::Secret do
 
     before do
       lifecycle_secret.encrypt_value(secret_value)
-      # Fix: Allow destroy! to be called without affecting test results
-      allow(lifecycle_secret).to receive(:destroy!)
-      # Fix: Use proper Time.now.utc mocking
+      # Use proper Time.now.utc mocking
       allow(Time).to receive_message_chain(:now, :utc).and_return(mock_time)
       # Make load_metadata return the related metadata object
       allow(lifecycle_secret).to receive(:load_metadata).and_return(lifecycle_metadata)
-      # Fix: Allow save to be called without affecting test results
-      allow(lifecycle_metadata).to receive(:save).and_return(true)
-      allow(lifecycle_secret).to receive(:save).and_return(true)
     end
 
     it 'transitions from new to received' do

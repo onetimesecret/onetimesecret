@@ -54,9 +54,13 @@ etc/config*
 !fly.toml
 .github/*md
 .eslintcache
+.claude
+.rspec*
+.qodo
 .continuerc.json
 tsconfig.tsbuildinfo
 CLAUDE.md
+
 
 # Environment files
 .env*
@@ -67,4 +71,3 @@ test-results/
 playwright-report/
 blob-report/
 playwright/.cache/
-.qodo

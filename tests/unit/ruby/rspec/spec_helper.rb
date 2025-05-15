@@ -1,17 +1,9 @@
-# tests/unit/ruby/rspec/spec_helper.rb
-
-# This file sets up the RSpec testing environment for the OnetimeSecret project.
-# It includes necessary libraries, configures code coverage, and mocks essential components.
+# tests/unit/ruby/rspec/onetime/config/spec_helper.rb
 
 require 'rspec'
-require 'simplecov'
-
-require_relative 'support/rack_context'
-require_relative 'support/view_context'
-require_relative 'support/mail_context'
-
-# Starts SimpleCov for code coverage analysis if the COVERAGE environment variable is set.
-SimpleCov.start if ENV['COVERAGE']
+require 'yaml'
+require 'tempfile'
+require 'fileutils'
 
 base_path = File.expand_path('../../../../..', __FILE__)
 apps_root = File.join(base_path, 'apps').freeze
@@ -28,6 +20,11 @@ $LOAD_PATH.unshift File.join(base_path, 'lib')
 # Add spec directory to load path
 spec_path = File.expand_path('../..', __FILE__)
 $LOAD_PATH.unshift(spec_path)
+
+require_relative './support/mail_context'
+require_relative './support/rack_context'
+require_relative './support/view_context'
+require_relative './support/model_test_helper'
 
 begin
   require 'onetime'
@@ -51,39 +48,17 @@ begin
 rescue LoadError => e
   puts "Failed to load onetime module: #{e.message}"
   puts "Current directory: #{Dir.pwd}"
-  puts "Load path: #{$LOAD_PATH}"
-  exit
+  puts "Load path: #{$LOAD_PATH.inspect}"
+  exit 1
 end
 
+# Setup test environment
+OT.mode = :test
+
+# Set config path for tests
 OT::Config.path = File.join(Onetime::HOME, 'tests', 'unit', 'ruby', 'config.test.yaml')
-OT.boot! :test
 
-# Mocking the OT module to stub logging methods during tests.
-# This prevents actual logging and allows tests to run without external dependencies.
-module OT
-  class << self
-    # Stub method for logging to avoid cluttering test output.
-    # @param message [String] The message intended for logging.
-    def ld(message)
-      puts message
-    end
-  end
-end
-
-# We fail fast if templates aren't where we expec
-# Should run after other setup code but before RSpec.configure
-def verify_template_structure
-  template_dir = File.expand_path("#{Onetime::HOME}/templates/mail", __FILE__)
-  unless Dir.exist?(template_dir)
-    puts "ERROR: Template directory not found at: #{template_dir}"
-    puts "Current directory: #{Dir.pwd}"
-    puts "Directory contents: #{Dir.entries('..')}"
-    raise "Template directory missing - check project structure"
-  end
-end
-verify_template_structure
-
-# Configures RSpec with desired settings to tailor the testing environment.
+# Configure RSpec
 RSpec.configure do |config|
   # Configures RSpec to include chain clauses in custom matcher descriptions for better readability.
   config.expect_with :rspec do |expectations|
@@ -100,21 +75,41 @@ RSpec.configure do |config|
   # Disables RSpec's monkey patching to encourage the use of the RSpec DSL.
   config.disable_monkey_patching!
 
+  # RSpec will create this file to keep track of example statuses, and
+  # powers the the --only-failures flag.
+  config.example_status_persistence_file_path = ".rspec_status"
+
   # Suppresses Ruby warnings during test runs for a cleaner output.
   config.warnings = false
 
-  # Orders test execution randomly to surface order dependencies and improve test reliability.
-  config.order = :random
+  # Run specs in random order
+  config.order = :defined # one of: :randomized (ideally), :defined
 
-  # Seeds the random number generator based on RSpec's seed to allow reproducible test order.
-  Kernel.srand config.seed
+  # Alternately instead of order :defined, start the process with the same seed every time.
+  # config.seed = 12345 # any fixed number
 
-  # Shared Context
-  config.include_context "rack_test_context", type: :request
-  config.include_context "view_test_context", type: :view
+  # Disable RSpec exposing methods globally on `Module` and `main`
+  config.disable_monkey_patching!
 
-  config.before(:each, type: :request) do
-    allow(Rack::Request).to receive(:new).and_return(rack_request)
-    allow(Rack::Response).to receive(:new).and_return(rack_response)
+  # Enable aggregate failures by default for cleaner specs
+  config.define_derived_metadata do |meta|
+    meta[:aggregate_failures] = true unless meta.key?(:aggregate_failures)
+  end
+
+  # Global before hooks
+  config.before(:each) do
+    # Suppress logging during tests
+    allow(OT).to receive(:ld).and_return(nil)
+    allow(OT).to receive(:li).and_return(nil)
+    allow(OT).to receive(:le).and_return(nil) unless defined?(@preserve_error_logs) && @preserve_error_logs
+  end
+
+  # Disable actual Redis connections by default, but allow specific tests to enable them
+  config.before(:each) do |example|
+    # Skip Redis mocking if test is explicitly marked to allow Redis
+    unless example.metadata[:allow_redis]
+      # This is a safety net - it will raise an error if any code tries to actually connect to Redis
+      allow(Redis).to receive(:new).and_raise("Real Redis connections are not allowed in tests! Use test helpers instead.")
+    end
   end
 end

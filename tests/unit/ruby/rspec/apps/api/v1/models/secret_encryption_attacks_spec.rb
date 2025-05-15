@@ -3,12 +3,11 @@
 require_relative '../../../../spec_helper'
 
 RSpec.describe V1::Secret, 'security hardening' do
-  let(:secret) { V1::Secret.new }
+  let(:secret) { create_stubbed_secret(key: "test-secret-key-12345") }
   let(:passphrase) { "secure-test-passphrase" }
   let(:secret_value) { "Sensitive information 123" }
 
   before do
-    allow(secret).to receive(:key).and_return("test-secret-key-12345")
     allow(OT).to receive(:global_secret).and_return("global-test-secret")
   end
 
@@ -31,13 +30,10 @@ RSpec.describe V1::Secret, 'security hardening' do
     end
 
     it 'takes similar time for correct and incorrect passphrases' do
-      # This test ensures that comparing correct and incorrect passphrases
-      # takes approximately the same time, which is a hallmark of constant-time
-      # comparison algorithms that resist timing attacks
-
       # Skip in CI environment where timing can be unreliable
       skip "Timing tests may be unreliable in CI environments" if ENV['CI']
 
+      # Rest of the test remains the same...
       # Warm up
       5.times { secret.passphrase?(passphrase) }
       5.times { secret.passphrase?("wrong-passphrase") }
@@ -65,8 +61,6 @@ RSpec.describe V1::Secret, 'security hardening' do
       avg_incorrect = incorrect_times.sum / incorrect_times.size
 
       # Timing difference should be minimal
-      # Allow up to 2x difference because BCrypt comparison exits early on
-      # hash algorithm mismatch, but actual password comparison is constant time
       expect(avg_incorrect / avg_correct).to be_between(0.5, 2.0)
     end
   end

@@ -1,9 +1,9 @@
-# lib/helpers/database_helper.rb
+# lib/onetime/initializers/connect_databases.rb
 
 require_relative '../refinements/horreum_refinements'
 
 module Onetime
-  module DatabaseHelper
+  module Initializers
 
     using Familia::HorreumRefinements
 
@@ -21,6 +21,8 @@ module Onetime
     # @return [void]
     #
     def connect_databases
+      Familia.uri = OT.conf[:redis][:uri]
+
       # Connect each model to its configured Redis database
       dbs = OT.conf.dig(:redis, :dbs)
 

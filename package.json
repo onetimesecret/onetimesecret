@@ -1,6 +1,6 @@
 {
   "name": "onetimesecret",
-  "version": "0.21.7",
+  "version": "0.22.0",
   "description": "",
   "type": "module",
   "scripts": {
@@ -29,6 +29,7 @@
     "preview:local": "vite preview --config vite.config.local.ts",
     "preview": "vite preview",
     "rspec": "bundle exec rspec --format documentation",
+    "rspec:failures": "bundle exec rspec --format failures",
     "rubocop": "bundle exec rubocop --config .rubocop.yml --format json --fail-level warning",
     "rubocop:pretty": "pnpm --silent run rubocop | jq",
     "test:base": "vitest",
