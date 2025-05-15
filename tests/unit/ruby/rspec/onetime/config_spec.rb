@@ -223,8 +223,9 @@ RSpec.describe Onetime::Config do
   describe '#after_load' do
     context 'colonels backwards compatibility' do
       it 'moves colonels from root level to site.authentication when not present in site.authentication' do
+
         # Config with colonels at root level only
-        config = {
+        raw_config = {
           colonels: ['root@example.com', 'admin@example.com'],
           site: {
             secret: 'notnil',
@@ -238,14 +239,13 @@ RSpec.describe Onetime::Config do
           },
         }
 
-        described_class.after_load(config)
-
-        expect(config[:site][:authentication][:colonels]).to eq(['root@example.com', 'admin@example.com'])
+        processed_config = described_class.after_load(raw_config)
+        expect(processed_config[:site][:authentication][:colonels]).to eq(['root@example.com', 'admin@example.com'])
       end
 
       it 'keeps colonels in site.authentication when present' do
         # Config with colonels in site.authentication
-        config = {
+        raw_config = {
           site: {
              secret: 'notnil',
             authentication: {
@@ -259,14 +259,14 @@ RSpec.describe Onetime::Config do
           },
         }
 
-        described_class.after_load(config)
+        processed_config = described_class.after_load(raw_config)
 
-        expect(config[:site][:authentication][:colonels]).to eq(['site@example.com'])
+        expect(processed_config[:site][:authentication][:colonels]).to eq(['site@example.com'])
       end
 
       it 'prioritizes site.authentication colonels when defined in both places' do
         # Config with colonels in both places
-        config = {
+        raw_config = {
           colonels: ['root@example.com', 'admin@example.com'],
           site: {
             secret: 'notnil',
@@ -281,15 +281,16 @@ RSpec.describe Onetime::Config do
           },
         }
 
-        described_class.after_load(config)
+        processed_config = described_class.after_load(raw_config)
 
-        # Should not change the existing site.authentication.colonels
-        expect(config[:site][:authentication][:colonels]).to eq(['site@example.com', 'auth@example.com'])
+        # Should change the existing site.authentication.colonels by combining
+        # with the root colonel list coming afterwards.
+        expect(processed_config[:site][:authentication][:colonels]).to eq(['site@example.com', 'auth@example.com', 'root@example.com', 'admin@example.com'])
       end
 
       it 'initializes empty colonels array when not defined anywhere' do
         # Config with no colonels defined
-        config = {
+        raw_config = {
           site: {
             secret: 'notnil',
             authentication: {
@@ -302,19 +303,19 @@ RSpec.describe Onetime::Config do
           },
         }
 
-        described_class.after_load(config)
+        processed_config = described_class.after_load(raw_config)
 
-        expect(OT.conf[:site][:authentication][:colonels]).to eq([])
+        expect(processed_config[:site][:authentication][:colonels]).to eq([])
       end
 
       it 'raises heck when site is nil' do
         # Config without site.authentication section
-        config = {
+        raw_config = {
           development: {},
         }
 
         expect {
-          described_class.after_load(config)
+          described_class.after_load(raw_config)
         }.to raise_error(OT::Problem, /No `site` config found/)
       end
 

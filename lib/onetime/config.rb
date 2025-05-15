@@ -148,7 +148,7 @@ module Onetime
       # while ensuring we don't lose any colonels from either location
       root_colonels = conf.fetch(:colonels, [])
       auth_colonels = conf.dig(:site, :authentication, :colonels) || []
-      conf[:site][:authentication][:colonels] = (root_colonels + auth_colonels).compact.uniq
+      conf[:site][:authentication][:colonels] = (auth_colonels + root_colonels).compact.uniq
 
       ttl_options = conf.dig(:site, :secret_options, :ttl_options)
       default_ttl = conf.dig(:site, :secret_options, :default_ttl)
