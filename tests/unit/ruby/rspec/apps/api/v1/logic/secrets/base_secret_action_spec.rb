@@ -1,5 +1,9 @@
 # tests/unit/ruby/rspec/apps/api/v1/logic/secrets/base_secret_action_spec.rb
 
+require_relative '../../../../../spec_helper'
+require 'v1/logic'
+
+
 RSpec.describe V1::Logic::Secrets::BaseSecretAction do
   # Create test implementation class
   class TestSecretAction < V1::Logic::Secrets::BaseSecretAction
@@ -28,6 +32,10 @@ RSpec.describe V1::Logic::Secrets::BaseSecretAction do
   }
 
   subject { TestSecretAction.new(session, customer, base_params) }
+
+  before(:all) do
+    OT.boot!(:test)
+  end
 
   before do
     allow(Onetime::Plan).to receive(:plan).and_return(double('Plan',

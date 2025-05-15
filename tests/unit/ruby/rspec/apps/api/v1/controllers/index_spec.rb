@@ -1,9 +1,11 @@
 # tests/unit/ruby/rspec/apps/api/v1/controllers/index_spec.rb
 
 require_relative '../../../../spec_helper'
-require 'v2/controllers'
+require 'v1/controllers'
 
 RSpec.describe V1::Controllers::Index, type: :request do
+  include_context "rack_test_context"
+
   let(:request) { rack_request }
   let(:response) { rack_response }
 
