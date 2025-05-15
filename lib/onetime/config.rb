@@ -120,6 +120,19 @@ module Onetime
       # Create a deep copy of the configuration to prevent unintended mutations
       # This protects against side effects when multiple components access the same config
       # Without this, modifications to the config in one component could affect others.
+      puts "DEBUG: Inspecting incoming_config type and structure:"
+      puts "Type: #{incoming_config.class}"
+      puts "Has singleton methods: #{incoming_config.singleton_methods.any?}" if incoming_config.respond_to?(:singleton_methods)
+
+      if incoming_config.is_a?(Hash)
+        incoming_config.each do |k, v|
+          puts "Key: #{k}, Value type: #{v.class}"
+          if v.respond_to?(:singleton_methods) && v.singleton_methods.any?
+            puts "  - Value has singleton methods: #{v.singleton_methods.join(', ')}"
+          end
+        end
+      end
+
       conf = if incoming_config.nil?
         {}
       else
@@ -306,10 +319,103 @@ module Onetime
     #   non-serializable elements. For critical security contexts, validate that
     #   all configuration elements are serializable before using this method.
     #
+    # Helper method to debug configuration hash contents
+    def debug_config_hash(hash, prefix = '')
+      return puts "#{prefix}nil" if hash.nil?
+      return puts "#{prefix}#{hash} (#{hash.class})" unless hash.is_a?(Hash)
+
+      hash.each do |k, v|
+        case v
+        when Hash
+          puts "#{prefix}#{k}: Hash (#{v.size} elements)"
+          debug_config_hash(v, "#{prefix}  ")
+        when Array
+          puts "#{prefix}#{k}: Array (#{v.size} elements)"
+          v.each_with_index do |item, idx|
+            puts "#{prefix}  [#{idx}] #{item.class}: #{item.inspect[0..50]}"
+            puts "#{prefix}     Singleton methods: #{item.singleton_methods.join(', ')}" if item.singleton_methods.any?
+          end
+        else
+          puts "#{prefix}#{k}: #{v.class} #{v.inspect[0..50]}"
+          puts "#{prefix}   Singleton methods: #{v.singleton_methods.join(', ')}" if v.respond_to?(:singleton_methods) && v.singleton_methods.any?
+        end
+      end
+    end
+
     def deep_clone(config_hash)
-      Marshal.load(Marshal.dump(config_hash))
-    rescue TypeError => ex
-      raise OT::Problem, "[deep_clone] #{ex.message}"
+      return {} if config_hash.nil?
+
+      begin
+        # Debug before attempting to clone
+        puts "DEBUG: Inspecting config hash before deep_clone:"
+        debug_config_hash(config_hash)
+
+        deep_clone_value(config_hash)
+      rescue TypeError => ex
+        puts "ERROR: TypeError in deep_clone: #{ex.message}"
+        raise OT::Problem, "[deep_clone] #{ex.message}"
+      end
+    end
+
+    def deep_clone_value(value, path = [])
+      case value
+      when Hash
+        value.each_with_object({}) do |(k, v), hash|
+          new_path = path + [k]
+          begin
+            hash[k] = deep_clone_value(v, new_path)
+          rescue => e
+            puts "Error in path: #{new_path.join('.')}: #{e.message} (#{v.class})"
+            hash[k] = v.to_s
+          end
+        end
+      when Array
+        value.each_with_index.map do |v, i|
+          begin
+            deep_clone_value(v, path + ["[#{i}]"])
+          rescue => e
+            puts "Error in array at #{path.join('.')}[#{i}]: #{e.message} (#{v.class})"
+            v.to_s
+          end
+        end
+      when Integer, Float, String, Symbol, true, false, nil
+        value
+      when Proc, Method, UnboundMethod
+        puts "Non-serializable type at #{path.join('.')}: #{value.class}"
+        value.to_s
+      else
+        begin
+          # Check if object is a singleton
+          if value.singleton_methods.any? || (value.respond_to?(:singleton_class) && value.method(:singleton_class).owner != Object)
+            singleton_info = value.singleton_methods.empty? ? "has singleton_class" : "singleton methods: #{value.singleton_methods.join(', ')}"
+            puts "Singleton detected at #{path.join('.')}: #{value.class} - #{singleton_info}"
+            puts "  Object ancestry: #{value.class.ancestors.join(' < ')}"
+            puts "  Object id: #{value.object_id}"
+
+            # Try to convert to a non-singleton representation
+            value.to_s
+          else
+            begin
+              Marshal.load(Marshal.dump(value))
+            rescue TypeError => e
+              puts "Marshal error at #{path.join('.')}: #{e.message} (#{value.class})"
+              puts "  Object inspect: #{value.inspect[0..100]}..."
+              value.to_s
+            end
+          end
+        rescue TypeError => e
+          puts "Marshal error at #{path.join('.')}: #{e.message} (#{value.class})"
+          # Additional debugging
+          if defined?(ObjectSpace.memsize_of)
+            puts "  Object size: #{ObjectSpace.memsize_of(value)} bytes"
+          end
+          puts "  Object inspect: #{value.inspect[0..100]}..."
+          value.to_s
+        rescue => e
+          puts "Unexpected error at #{path.join('.')}: #{e.message} (#{value.class})"
+          value.to_s
+        end
+      end
     end
 
     # Applies default values to configuration sections.
