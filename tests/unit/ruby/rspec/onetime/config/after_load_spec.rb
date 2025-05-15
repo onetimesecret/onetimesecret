@@ -1,6 +1,6 @@
 # tests/unit/ruby/rspec/onetime/config/after_load_spec.rb
 
-require_relative 'config_spec_helper'
+require_relative '../../spec_helper'
 require 'tempfile'
 
 # The Sentry lib is only required when diagnostics are enabled. We include it

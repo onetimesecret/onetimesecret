@@ -1,6 +1,6 @@
 # tests/unit/ruby/rspec/onetime/config/truemail_spec.rb
 
-require_relative './config_spec_helper'
+require_relative '../../spec_helper'
 
 RSpec.describe "Onetime TrueMail configuration" do
   describe "integration in Config.after_load" do
