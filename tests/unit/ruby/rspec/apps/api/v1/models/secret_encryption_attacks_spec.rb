@@ -14,6 +14,16 @@ RSpec.describe V1::Secret, 'security hardening' do
 
   describe 'timing attack resistance' do
     before do
+      # Create a fresh Redis mock for each test
+      redis_mock = instance_double('Redis')
+      allow(redis_mock).to receive(:hset).and_return('OK')
+      allow(redis_mock).to receive(:hget).and_return(nil)
+      allow(redis_mock).to receive(:hexists).and_return(false)
+      allow(redis_mock).to receive(:expire).and_return(1)
+
+      # Mock Familia.redis to return our mock
+      allow(Familia).to receive(:redis).and_return(redis_mock)
+
       # Set up a secret with known passphrase
       secret.update_passphrase!(passphrase)
       # Clear the temp passphrase after setup
@@ -31,13 +41,20 @@ RSpec.describe V1::Secret, 'security hardening' do
     end
 
     it 'takes similar time for correct and incorrect passphrases' do
-      # This test ensures that comparing correct and incorrect passphrases
-      # takes approximately the same time, which is a hallmark of constant-time
-      # comparison algorithms that resist timing attacks
-
       # Skip in CI environment where timing can be unreliable
       skip "Timing tests may be unreliable in CI environments" if ENV['CI']
 
+      # Create a fresh Redis mock for this specific test
+      redis_mock = instance_double('Redis')
+      allow(redis_mock).to receive(:hset).and_return('OK')
+      allow(redis_mock).to receive(:hget).and_return(nil)
+      allow(redis_mock).to receive(:hexists).and_return(false)
+      allow(redis_mock).to receive(:expire).and_return(1)
+
+      # Mock Familia.redis to return our mock
+      allow(Familia).to receive(:redis).and_return(redis_mock)
+
+      # Rest of the test remains the same...
       # Warm up
       5.times { secret.passphrase?(passphrase) }
       5.times { secret.passphrase?("wrong-passphrase") }
@@ -65,14 +82,23 @@ RSpec.describe V1::Secret, 'security hardening' do
       avg_incorrect = incorrect_times.sum / incorrect_times.size
 
       # Timing difference should be minimal
-      # Allow up to 2x difference because BCrypt comparison exits early on
-      # hash algorithm mismatch, but actual password comparison is constant time
       expect(avg_incorrect / avg_correct).to be_between(0.5, 2.0)
     end
   end
 
+  # Similar approach for other describe blocks that interact with Redis
   describe 'handling corrupted encryption data' do
     before do
+      # Create a fresh Redis mock for each test in this block
+      redis_mock = instance_double('Redis')
+      allow(redis_mock).to receive(:hset).and_return('OK')
+      allow(redis_mock).to receive(:hget).and_return(nil)
+      allow(redis_mock).to receive(:hexists).and_return(false)
+      allow(redis_mock).to receive(:expire).and_return(1)
+
+      # Mock Familia.redis to return our mock
+      allow(Familia).to receive(:redis).and_return(redis_mock)
+
       secret.encrypt_value(secret_value)
     end
 
