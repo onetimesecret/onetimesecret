@@ -74,6 +74,10 @@ RSpec.describe "Onetime boot configuration process" do
   describe '.boot!' do
     context 'with valid configuration' do
       before do
+        # Explicitly reset the d9s_enabled to nil before each test
+        # This ensures that tests don't leak state to each other when run in sequence
+        Onetime.d9s_enabled = nil
+
         # Stub out methods that interact with the file system or external services
         allow(Onetime::Config).to receive(:load).and_return(test_config)
         allow(Onetime).to receive(:load_locales)
