@@ -16,7 +16,9 @@ RSpec.describe "Onetime::Initializers#setup_diagnostics" do
     allow(Kernel).to receive(:require).and_call_original
     allow(Kernel).to receive(:require).with('sentry-ruby') do
       # Create a mock Sentry module if it doesn't exist
+      OT.li "[setup_diagnostics] Possibly defining Sentry"
       unless defined?(Sentry)
+        OT.li "[setup_diagnostics] Defining Sentry"
         module Sentry
           class << self
             attr_reader :last_config

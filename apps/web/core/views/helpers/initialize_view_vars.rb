@@ -57,7 +57,7 @@ module Core
         # filter specific nested sensitive data from complex structures.
         safe_site = InitializeViewVars.safe_site_fields.each_with_object({}) do |field, hash|
           unless site_config.key?(field)
-            OT.lw "[view_vars] Site config is missing field: #{field}"
+            OT.ld "[view_vars] Site config is missing field: #{field}"
             next
           end
 

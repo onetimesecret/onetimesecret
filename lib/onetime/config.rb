@@ -194,8 +194,8 @@ module Onetime
       # Update global diagnostic flag based on config
       backend_dsn = conf.dig(:diagnostics, :sentry, :backend, :dsn)
       frontend_dsn = conf.dig(:diagnostics, :sentry, :frontend, :dsn)
-      # It's disabled when no DSN is present, regardless of enabled setting
 
+      # It's disabled when no DSN is present, regardless of enabled setting
       Onetime.d9s_enabled = !!(conf.dig(:diagnostics, :enabled) && (backend_dsn || frontend_dsn))
 
       # SECURITY MEASURE #4: Configuration Immutability
