@@ -10,6 +10,7 @@ RSpec.describe V2::Secret, 'security hardening' do
   before do
     allow(secret).to receive(:key).and_return("test-secret-key-12345")
     allow(OT).to receive(:global_secret).and_return("global-test-secret")
+    OT.boot!(:test)
   end
 
   describe 'timing attack resistance' do

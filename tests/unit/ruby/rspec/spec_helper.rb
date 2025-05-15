@@ -82,7 +82,7 @@ RSpec.configure do |config|
   config.warnings = false
 
   # Run specs in random order
-  config.order = :defined # ideally we can run :randomized...
+  config.order = :defined # one of: :randomized (ideally), :defined
 
   # Alternately instead of order :defined, start the process with the same seed every time.
   # config.seed = 12345 # any fixed number
