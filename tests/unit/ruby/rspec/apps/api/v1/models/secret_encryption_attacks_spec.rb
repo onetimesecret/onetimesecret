@@ -3,27 +3,16 @@
 require_relative '../../../../spec_helper'
 
 RSpec.describe V1::Secret, 'security hardening' do
-  let(:secret) { V1::Secret.new }
+  let(:secret) { create_stubbed_secret(key: "test-secret-key-12345") }
   let(:passphrase) { "secure-test-passphrase" }
   let(:secret_value) { "Sensitive information 123" }
 
   before do
-    allow(secret).to receive(:key).and_return("test-secret-key-12345")
     allow(OT).to receive(:global_secret).and_return("global-test-secret")
   end
 
   describe 'timing attack resistance' do
     before do
-      # Create a fresh Redis mock for each test
-      redis_mock = instance_double('Redis')
-      allow(redis_mock).to receive(:hset).and_return('OK')
-      allow(redis_mock).to receive(:hget).and_return(nil)
-      allow(redis_mock).to receive(:hexists).and_return(false)
-      allow(redis_mock).to receive(:expire).and_return(1)
-
-      # Mock Familia.redis to return our mock
-      allow(Familia).to receive(:redis).and_return(redis_mock)
-
       # Set up a secret with known passphrase
       secret.update_passphrase!(passphrase)
       # Clear the temp passphrase after setup
@@ -43,16 +32,6 @@ RSpec.describe V1::Secret, 'security hardening' do
     it 'takes similar time for correct and incorrect passphrases' do
       # Skip in CI environment where timing can be unreliable
       skip "Timing tests may be unreliable in CI environments" if ENV['CI']
-
-      # Create a fresh Redis mock for this specific test
-      redis_mock = instance_double('Redis')
-      allow(redis_mock).to receive(:hset).and_return('OK')
-      allow(redis_mock).to receive(:hget).and_return(nil)
-      allow(redis_mock).to receive(:hexists).and_return(false)
-      allow(redis_mock).to receive(:expire).and_return(1)
-
-      # Mock Familia.redis to return our mock
-      allow(Familia).to receive(:redis).and_return(redis_mock)
 
       # Rest of the test remains the same...
       # Warm up
@@ -86,19 +65,8 @@ RSpec.describe V1::Secret, 'security hardening' do
     end
   end
 
-  # Similar approach for other describe blocks that interact with Redis
   describe 'handling corrupted encryption data' do
     before do
-      # Create a fresh Redis mock for each test in this block
-      redis_mock = instance_double('Redis')
-      allow(redis_mock).to receive(:hset).and_return('OK')
-      allow(redis_mock).to receive(:hget).and_return(nil)
-      allow(redis_mock).to receive(:hexists).and_return(false)
-      allow(redis_mock).to receive(:expire).and_return(1)
-
-      # Mock Familia.redis to return our mock
-      allow(Familia).to receive(:redis).and_return(redis_mock)
-
       secret.encrypt_value(secret_value)
     end
 

@@ -24,6 +24,7 @@ $LOAD_PATH.unshift(spec_path)
 require_relative './support/mail_context'
 require_relative './support/rack_context'
 require_relative './support/view_context'
+require_relative './support/model_test_helper'
 
 begin
   require 'onetime'
@@ -97,10 +98,15 @@ RSpec.configure do |config|
 
   # Global before hooks
   config.before(:each) do
-
     # Suppress logging during tests
     allow(OT).to receive(:ld).and_return(nil)
     allow(OT).to receive(:li).and_return(nil)
     allow(OT).to receive(:le).and_return(nil) unless defined?(@preserve_error_logs) && @preserve_error_logs
+  end
+
+  # Disable actual Redis connections
+  config.before(:each) do
+    # This is a safety net - it will raise an error if any code tries to actually connect to Redis
+    allow(Redis).to receive(:new).and_raise("Real Redis connections are not allowed in tests! Use test helpers instead.")
   end
 end

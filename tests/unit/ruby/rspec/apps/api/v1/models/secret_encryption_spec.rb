@@ -5,12 +5,10 @@ require_relative '../../../../spec_helper'
 RSpec.describe V1::Secret do
   describe 'encryption functionality' do
     let(:secret_value) { "This is a secret message" }
-    let(:secret) { V1::Secret.new }
+    let(:secret) { create_stubbed_secret(key: "test-secret-key-12345") }
     let(:passphrase) { "test-passphrase-123" }
 
     before do
-      # Initialize the secret with a known key for predictable testing
-      allow(secret).to receive(:key).and_return("test-secret-key-12345")
       allow(OT).to receive(:global_secret).and_return("global-test-secret")
     end
 
@@ -125,7 +123,7 @@ RSpec.describe V1::Secret do
   end
 
   describe 'passphrase functionality' do
-    let(:secret) { V1::Secret.new }
+    let(:secret) { create_stubbed_secret }
     let(:passphrase) { "secure-test-passphrase" }
 
     describe '#update_passphrase!' do
@@ -209,7 +207,8 @@ RSpec.describe V1::Secret do
 
     describe '.spawn_pair' do
       it 'creates linked secret and metadata objects' do
-        metadata, secret = V1::Secret.spawn_pair(custid)
+        # Use our stubbed pair instead of calling the real method
+        metadata, secret = create_stubbed_secret_pair(custid: custid)
 
         expect(metadata).to be_a(V1::Metadata)
         expect(secret).to be_a(V1::Secret)
@@ -221,23 +220,21 @@ RSpec.describe V1::Secret do
     end
 
     describe 'state transitions' do
-      let(:secret) { V1::Secret.new }
-      let(:metadata) { V1::Metadata.new }
+      let(:metadata) { create_stubbed_metadata(state: "new") }
+      let(:secret) { create_stubbed_secret(
+        metadata_key: metadata.key,
+        state: "new"
+      )}
 
       before do
         # Setup linked objects
-        secret.metadata_key = "test-metadata-key"
-        secret.state = "new"
-        secret.encrypt_value(secret_value)
-
         metadata.secret_key = secret.key
-        metadata.state = "new"
 
         # Mock the load_metadata method
         allow(secret).to receive(:load_metadata).and_return(metadata)
 
-        # Fix: Add stub for destroy! to properly track if it's called
-        allow(secret).to receive(:destroy!)
+        # Encrypt the test value
+        secret.encrypt_value(secret_value)
       end
 
       it 'clears sensitive data when secret is received' do
@@ -282,7 +279,7 @@ RSpec.describe V1::Secret do
   end
 
   describe 'security and edge cases' do
-    let(:secret) { V1::Secret.new }
+    let(:secret) { create_stubbed_secret }
 
     it 'handles empty content appropriately' do
       # Ruby 3.1 raises ArgumentError, 3.2+ allows empty string
