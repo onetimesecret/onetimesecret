@@ -308,15 +308,20 @@ RSpec.describe Onetime::Config do
         expect(processed_config[:site][:authentication][:colonels]).to eq([])
       end
 
-      it 'raises heck when site is nil' do
-        # Config without site.authentication section
+      it 'uses default values when site is nil' do
+        # Config without site section
         raw_config = {
-          development: {},
+          site: {
+            secret: 'anyvaluewilldo',
+          },
+          mail: {
+            truemail: {},
+          },
         }
 
         expect {
           described_class.after_load(raw_config)
-        }.to raise_error(OT::Problem, /No `site` config found/)
+        }.not_to raise_error
       end
 
       it 'raises heck when site.secret is nil' do
@@ -355,17 +360,19 @@ RSpec.describe Onetime::Config do
         # Config without site.authentication section
         config = {
           site: {secret: '1234'},
-          development: {},
+          mail: {
+            truemail: {},
+          },
         }
 
         expect {
           described_class.after_load(config)
-        }.to raise_error(OT::Problem, /No `site.authentication` config found/)
+        }.not_to raise_error
       end
 
       it 'sets authentication colonels to false when authentication is disabled' do
         # Config with authentication disabled
-        config = {
+        raw_config = {
           site: {
             secret: 'notnil',
             authentication: {
@@ -379,10 +386,10 @@ RSpec.describe Onetime::Config do
           },
         }
 
-        described_class.after_load(config)
+        processed_config = described_class.after_load(raw_config)
 
         # When authentication is disabled, all authentication settings are set to false
-        expect(config[:site][:authentication][:colonels]).to eq(false)
+        expect(processed_config[:site][:authentication][:colonels]).to eq(false)
       end
     end
   end

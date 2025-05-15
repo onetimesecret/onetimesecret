@@ -116,7 +116,6 @@ module Onetime
     # @return [Hash] The processed configuration hash with defaults applied and security measures in place
     def after_load(incoming_config)
 
-
       # SAFETY MEASURE: Deep Copy Protection
       # Create a deep copy of the configuration to prevent unintended mutations
       # This protects against side effects when multiple components access the same config
@@ -149,6 +148,11 @@ module Onetime
       root_colonels = conf.fetch(:colonels, [])
       auth_colonels = conf.dig(:site, :authentication, :colonels) || []
       conf[:site][:authentication][:colonels] = (auth_colonels + root_colonels).compact.uniq
+
+      # Clear colonels and set to false if authentication is disabled
+      unless conf.dig(:site, :authentication, :enabled)
+        conf[:site][:authentication][:colonels] = false
+      end
 
       ttl_options = conf.dig(:site, :secret_options, :ttl_options)
       default_ttl = conf.dig(:site, :secret_options, :default_ttl)
