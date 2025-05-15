@@ -100,7 +100,7 @@
     "esbuild": "0.25.4",
     "eslint": "9.25.1",
     "eslint-config-prettier": "10.1.2",
-    "eslint-import-resolver-typescript": "3.10.1",
+    "eslint-import-resolver-typescript": "4.3.4",
     "eslint-plugin-import": "2.31.0",
     "eslint-plugin-tailwindcss": "3.18.0",
     "eslint-plugin-vue": "9.33.0",
