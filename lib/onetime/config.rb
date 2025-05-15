@@ -307,7 +307,12 @@ module Onetime
     #   all configuration elements are serializable before using this method.
     #
     def deep_clone(config_hash)
-      Marshal.load(Marshal.dump(config_hash))
+      # Previously used Marshal here. But in Ruby 3.1 it died cryptically with
+      # a singleton error. It seems like it's related to gibbler but since we
+      # know we only expect a regular hash here without any methods, procs
+      # etc, we use YAML instead to accomplish the same thing (JSON is
+      # another option but it turns all the symbol keys into strings).
+      YAML.load(YAML.dump(config_hash))
     rescue TypeError => ex
       raise OT::Problem, "[deep_clone] #{ex.message}"
     end
