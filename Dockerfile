@@ -2,7 +2,7 @@
 # check=error=true
 
 ##
-# ONETIME SECRET - DOCKER IMAGE - 2025-01-15
+# ONETIME SECRET - DOCKER IMAGE - 2025-05-15
 #
 # For detailed instructions on building, running, and deploying this Docker image,
 # please refer to our comprehensive Docker guide:
@@ -48,7 +48,7 @@
 #
 #     $ export HOST=localhost:3000
 #     $ export SSL=false
-#     $ export COLONEL=admin@example.com
+#     $ export SECRET=MUST_BE_UNIQUE
 #     $ export REDIS_URL=redis://host.docker.internal:6379/0
 #     $ export RACK_ENV=production
 #
@@ -56,7 +56,7 @@
 #
 #     $ docker run -p 3000:3000 -d --name onetimesecret \
 #       -e REDIS_URL=$REDIS_URL \
-#       -e COLONEL=$COLONEL \
+#       -e SECRET=$SECRET \
 #       -e HOST=$HOST \
 #       -e SSL=$SSL \
 #       -e RACK_ENV=$RACK_ENV \
@@ -70,15 +70,17 @@
 # authentication and enable persistence. Also, change the secret and
 # specify the domain it will be deployed on. For example:
 #
+#   $ openssl rand -hex 32
+#   [copy value to set SECRET]
 #   $ export HOST=example.com
 #   $ export SSL=true
-#   $ export COLONEL=admin@example.com
+#   $ export SECRET=COPIED_VALUE
 #   $ export REDIS_URL=redis://username:password@hostname:6379/0
 #   $ export RACK_ENV=production
 #
 #   $ docker run -p 3000:3000 -d --name onetimesecret \
 #     -e REDIS_URL=$REDIS_URL \
-#     -e COLONEL=$COLONEL \
+#     -e SECRET=$SECRET \
 #     -e HOST=$HOST \
 #     -e SSL=$SSL \
 #     -e RACK_ENV=$RACK_ENV \

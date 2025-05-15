@@ -144,19 +144,17 @@ Regardless of how you obtained or built the image, follow these steps to run One
    ```bash
    export HOST=localhost:3000
    export SSL=false
-   export COLONEL=admin@example.com
+   export SECRET=CHANGE_THIS_VALUE
    export REDIS_URL=redis://host.docker.internal:6379/0
    export RACK_ENV=production
    ```
-
-   Note: The `COLONEL` variable sets the admin account email. It's a playful combination of "colonel" (someone in charge) and "kernel" (as in Linux), representing the system administrator.
 
 3. Run the OnetimeSecret container:
 
    ```bash
    docker run -p 3000:3000 -d --name onetimesecret \
      -e REDIS_URL=$REDIS_URL \
-     -e COLONEL=$COLONEL \
+     -e SECRET=$SECRET \
      -e HOST=$HOST \
      -e SSL=$SSL \
      -e RACK_ENV=$RACK_ENV \
@@ -384,7 +382,7 @@ For quick setups or container deployments, you can use environment variables to 
 ```bash
 export HOST=localhost:3000
 export SSL=false
-export COLONEL=admin@example.com
+export SECRET=A_UNIQUE_VALUE
 export REDIS_URL=redis://username:password@hostname:6379/0
 export RACK_ENV=production
 ```
@@ -557,32 +555,8 @@ docker history <image_id>
 
 ### Production Deployment
 
-When deploying to production, ensure you:
+See [Dockerfile](./Dockerfile)
 
-1. Protect your Redis instance with authentication or Redis networks.
-2. Enable Redis persistence and save the data securely.
-3. Change the secret to a strong, unique value.
-4. Specify the correct domain it will be deployed on.
-
-Example production deployment:
-
-```bash
-export HOST=example.com
-export SSL=true
-export COLONEL=admin@example.com
-export REDIS_URL=redis://username:password@hostname:6379/0
-export RACK_ENV=production
-
-docker run -p 3000:3000 -d --name onetimesecret \
-  -e REDIS_URL=$REDIS_URL \
-  -e COLONEL=$COLONEL \
-  -e HOST=$HOST \
-  -e SSL=$SSL \
-  -e RACK_ENV=$RACK_ENV \
-  onetimesecret
-```
-
-Ensure all sensitive information is properly secured and not exposed in your deployment scripts or environment.
 
 ## Similar Services
 

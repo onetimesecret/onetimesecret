@@ -59,6 +59,10 @@ echo "
 🎭  Happy secret sharing, you magnificent nerdlinger! 🎭
 "
 
+# Generate a unique secret
+echo "Generating a unique secret..."
+export UNIQUE_SECRET=`openssl rand -hex 32`
+
 # Start Redis server
 echo "Starting Redis..."
 redis-server /etc/redis/redis.conf &
@@ -83,7 +87,7 @@ ENV HOST=127.0.0.1:3000
 ENV PORT=3000
 ENV STDOUT_SYNC=true
 ENV SSL=false
-ENV COLONEL=admin@example.com
+ENV SECRET=UNIQUE_SECRET
 ENV REDIS_URL=redis://localhost:6379/0
 ENV RACK_ENV=production
 ENV AUTH_ENABLED=false
