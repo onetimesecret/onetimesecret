@@ -361,82 +361,8 @@
       "send-feedback": "Tuku urupare",
       "sending-ellipses": "Kei te tuku..."
     },
-    "security": {
-      "thank-you-for-helping-us-keep-onetime-secret-sec": "Tēnā koe mō tō āwhina ki a mātou ki te pupuri i te haumaru me te pai o Onetime Secret!",
-      "we-take-your-privacy-seriously-all-reports-will-": "Ka aro nui mātou ki tō matatapu. Ka noho muna ngā pūrongo katoa, ā, ka mahi tahi mātou ki a koe kia whakaū kāore ngā taipitopito o te whakaraerae e hurahia ana tae noa ki te wā kua oti te whakatikatika.",
-      "confidentiality": "Te Noho Muna",
-      "if-the-vulnerability-is-declined-we-will-provide": ": Mēnā ka whakakāhoretia te whakaraerae, ka whakarato mātou i tētahi whakamārama taipitopito mo te take kāore i whakaaetia.",
-      "declined-vulnerabilities": "Ngā Whakaraerae Whakakāhoretia",
-      "if-the-vulnerability-is-accepted-we-will-work-on": ": Mēnā ka whakaaetia te whakaraerae, ka mahi mātou i te whakatikatika, ā, ka whai ki te tuku i te wā tōmuri ake. Ka whakamōhiotia koe i te wā kua tukuna te whakatikatika.",
-      "accepted-vulnerabilities": "Ngā Whakaraerae Whakaaetia",
-      "resolution-process": "Tukanga Whakatau",
-      "you-can-expect-to-receive-updates-on-the-status-": ": Ka taea e koe te tūmanako ka whiwhi koe i ngā whakahōunga mō te tūnga o tō pūrongo kia kotahi i ia 7 rā tae noa ki te wā kua whakaputaina te take, kua whakaputaina rānei he whakatau.",
-      "updates": "Ngā Whakahōunga",
-      "we-will-conduct-an-initial-assessment-of-the-vul": ": Ka whakahaere mātou i tētahi aromatawai tuatahi o te whakaraerae i roto i nga 14 rā mahi.",
-      "initial-assessment": "Aromatawai Tuatahi",
-      "you-will-receive-an-acknowledgment-of-your-repor": ": Ka whiwhi koe i te whakaae o tō pūrongo i roto i te 5 rā mahi.",
-      "acknowledgment": "Whakaae",
-      "what-to-expect": "He Aha Te Tūmanako",
-      "your-contact-information-for-follow-up-questions": "Ō mōhiohio whakapā mō ngā pātai whai muri.",
-      "any-potential-impact": "He pānga ka taea.",
-      "steps-to-reproduce-the-issue": "Ngā mahi hei whakaputa anō i te take.",
-      "a-detailed-description-of-the-vulnerability": "He whakaahuatanga taipitopito o te whakaraerae.",
-      "include-as-much-information-as-possible-about-th": ": Whakaurua ngā mōhiohio katoa e taea ana mō te whakaraerae. Me whai ēnei:",
-      "with-the-subject-line-vulnerability-report-brief": "me te rārangi kaupapa \"Pūrongo Whakaraerae: [He Whakaahuatanga Poto]\".",
-      "send-an-email-to": ": Tukuna he īmēra ki",
-      "how-to-report": "Me Pēhea te Pūrongo",
-      "if-you-discover-a-security-vulnerability-within-": "Mēnā ka kitea e koe he whakaraerae haumaru i roto i tēnei kaupapa, ka akiaki mātou kia pūrongo koe i te wā tōmuri. Anei te huarahi e taea ai e koe:",
-      "reporting-a-vulnerability": "Te Pūrongo i tētahi Whakaraerae",
-      "if-you-are-using-an-unsupported-version-we-stron": "Mēnā kei te whakamahi koe i tētahi putanga kāore i te tautokona, ka tino tūtohu mātou kia whakahou ki tētahi o ngā putanga e tautokona ana kia taea ai e koe te whiwhi i ngā whakahōunga haumaru hou.",
-      "we-provide-security-updates-for-the-following-ve": "Ka whakarato mātou i ngā whakahōunga haumaru mō ēnei putanga o tā mātou kaupapa:",
-      "supported-versions": "Ngā Putanga Tautokona",
-      "we-take-the-security-of-this-project-seriously-a": "Ka aro nui mātou ki te haumaru o tēnei kaupapa, ā, ka mihi i ō mahi hei whakapuaki tika i ngā whakaraerae. Ka whakaatu tēnei tuhinga i tā mātou kaupapahere haumaru, ā, ka whakarato i ngā aratohu mō te pēhea te pūrongo i ngā whakaraerae.",
-      "security-policy": "Kaupapahere Haumaru"
-    },
     "site": {
       "website-version": "Putanga Paetukutuku"
-    },
-    "about": {
-      "title": "Mō Mātou",
-      "faq": {
-        "trust_points": [
-          "Kāore e taea e mātou te uru ki ō mōhiohio ahakoa mēnā hiahia mātou (ēngari kāore mātou e hiahia). Hei tauira, mēnā ka tuari koe i tētahi kupuhipa, kāore mātou e mōhio te ingoa kaiwhakamahi, te taupānga rānei mōna.",
-          "Mēnā ka whakamahi koe i tētahi kupu karapa (e wātea ana i raro i \"Kōwhiringa Matatapu\"), ka whakaurua tēnā ki te matua whakamuhumuhu mō te karere huna. Ka rokiroki noa mātou i tētahi hash bcrypt o te kupu karapa, kāore e taea te whakamuhumuhu i tō karere huna ina kua tiakina.",
-          "Kei te {openSourceLink} tō mātou waehere. Ka taea e koe te arotake, ka taea hoki te whakahaere i tō ake taupānga mēnā e pai ana koe.",
-          "Ka whakamahi mātou i ngā tikanga haumaru ahumahi-paerewa, tae atu ki HTTPS mō ngā hononga katoa me te whakamuhumuhu i te wā ata mō ngā raraunga rokiroki."
-        ],
-        "passphrase_points": [
-          "Kāore mātou e rokiroki i te karere huna whakamuhumuhu-kore, i te kupu karapa rānei.",
-          "Kāore e taea te whakamahi te hash bcrypt ki te whakamuhumuhu i te karere huna.",
-          "Ki te kore te kupu karapa taketake, kāore e taea te whakamuhumuhu i te karere huna muhumuhu, tae atu ki a mātou.",
-          "Ko te tikanga o tēnei mēnā i takahia ā mātou tūmau, ka noho haumaru tonu tō karere huna mēnā ka noho tonu te kupu karapa kāore e mōhiotia."
-        ],
-        "why_use_title": "He aha te take me whakamahi au i tēnei?",
-        "why_use_description": "Ina tuku koe i ngā kupuhipa me ngā hononga tūmataiti ki te tangata mā te īmēra, kōrerorero rānei, he tārua o aua mōhiohio e rokiroki ana i ngā wāhi maha. Mēnā ka whakamahi koe i tētahi hononga Onetime, ka noho tonu te mōhiohio mō te tirohanga kotahi, ko te tikanga kāore e taea te pānui e tētahi atu ā muri ake. Ka taea e koe te tuku i ngā mōhiohio tairongo i runga i te huarahi haumaru, me te mōhio ka kite tētahi tangata anake. Me whakaaro pēnei mō te karere motuhake-whakakore.",
-        "file_limitation_title": "He aha te take kāore e taea e au te tuku whakaahua, momo kōnae kē atu rānei?",
-        "file_limitation_description": "Kua hoahoatia tā mātou ratonga motuhake mō ngā karere huna-tuhinga hei whakaū i te haumaru teitei me te māmā. Ko ngā kōnae, otirā ngā whakaahua, ka taea te pupuri i ngā metadata ka hurahia mōhiohio mō te kaituku, mō te kaiwhiwhi rānei me te kore e hiahia. Mā te arotahi ki te kuputuhi, ka taea e mātou te whakaū kāore he raraunga atu ka tukuna i tua atu o tāu e tāipa mārama ana. Mēnā me tuari koe i tētahi kōnae i runga i te haumaru, ka tūtohu mātou kia whakamahi i tētahi ratonga whakawhiti kōnae haumaru motuhake. Ka whakaaro pea mātou ki te tāpiri i te tautoko mō ngā kōnae ā muri ake nei mēnā he take whakamahi pai mō tēnei.",
-        "text_copy_title": "Engari ka taea e au te tārua i te kuputuhi karere huna. He aha te rerekētanga?",
-        "text_copy_description": "He tika, engari ko tāu he kuputuhi anake. Ko ngā whakaahua me ētahi atu momo kōnae ka taea te pupuri i ngā metadata me ētahi atu mōhiohio hurahanga pea mō te kaituku, mō te kaiwhiwhi rānei. Anō hoki, kia whakaū tēnei kāore he mōhiohio tūmataiti e tuarihia ana i waho atu i te kaiwhiwhi e hiahiatia ana.",
-        "secret_retrieval_title": "Ka taea e au te tiki i tētahi karere huna kua tuaritia kētia?",
-        "secret_retrieval_description": "Kāo. Ka whakaatu kotahi noa mātou i tēnei, kātahi ka muku. Whai muri i tēnā, kua ngaro mō ake tonu atu.",
-        "account_difference_title": "He aha te rerekētanga i waenga i te whakamahi ingoakore me te whai pūkete koreutu?",
-        "account_difference_description": "Ka taea e ngā kaiwhakamahi ingoakore te waihanga karere huna e ora ana mō {anonymousTtlDays} rā, ā, he rahi mōrahi o {anonymousSizeKB} KB. Ka whiwhi ngā kaipupuri pūkete koreutu i ngā painga whakawhānui: ka taea e ngā karere huna te ora mō {defaultTtlDays} rā, ā, ka taea te tae ki te {defaultSizeKB} KB te rahi. Ka whiwhi hoki ngā kaipupuri pūkete i te urunga ki ngā āhuatanga tāpiri pēnei i ngā kōwhiringa whakawareware-i-mua-i-te-pānui, ka taea e ngā kaituku te muku i ngā karere huna i mua i te taenga.",
-        "law_enforcement_title": "Me pēhea tā koutou whakahaere i ngā tono raraunga mai i ngā pirihimana, ētahi atu tuatoru rānei?",
-        "law_enforcement_description": "I hoahoa mātou i tō mātou pūnaha me te aro ki te matatapu. Kāore mātou e rokiroki i ngā karere huna whai muri i te tirohanga, ā, kāore mātou e pupuri rārangi urunga i tua atu i te iti e hiahiatia ana. Ko te tikanga o tēnei i te nuinga o te wā, kāore ō mātou raraunga hei whakarato hei whakautu ki aua tono. Mō ētahi atu taipitopito, tēnā arotake i tā mātou {privacyPolicyLink}.",
-        "trust_title": "He aha au e whakawhirinaki ai ki a koe?",
-        "trust_description": "Kua hoahoa mātou i tō mātou pūnaha me te matatapu me te haumaru hei mātāmua. Anei te take ka taea e koe te whakawhirinaki ki a mātou:",
-        "passphrase_title": "Me pēhea te mahi o te kōwhiringa kupu karapa?",
-        "passphrase_description": "Ina whakamahi koe i tētahi kupu karapa, ka muhuhia e mātou tō karere huna i runga i ā mātou tūmau me te kupu karapa e whakaratohia ana e koe. Kāore mātou e rokiroki i te kupu karapa, engari he hash bcrypt anake. Ka whakamahia tēnei hash hei whakaū i te kupu karapa ina tāurua e te kaiwhiwhi. Anei te take he haumaru tēnei:",
-        "passphrase_final_note": "Kia maumahara, ko te haumaru o tō karere huna ka whakawhirinaki ki te kaha o tō kupu karapa me te pēhea te haumaru o tō whakawhitiwhiti i tēnei ki te kaiwhiwhi."
-      },
-      "intro": {
-        "paragraph1": "Kia ora, ko {name} au, te kaihanga o Onetime Secret. I tīmata i te tau 2012 hei huarahi māmā, haumaru ki te tuari i ngā mōhiohio tairongo kua tipu ki tua atu o ā mātou tūmanako taikaha. Neke atu i te tekau tau ā muri mai, kei te āwhina mātou i te tuari haumaru o ngā miriona karere huna ia marama, me ngā kēhi whakamahi kāore mātou i whakaaro.",
-        "paragraph2": "Ko te wāhanga tuatahi o te tau 2024 tā mātou wā pukumahi rawa. E mihi ana mātou kua haere tonu te tangata ki te whakamahi me te tuari i tā mātou hua mō te tekau tau neke atu. Kei te mahi mātou i ngā whakapaitanga e whakaaro ana mātou ka pai ake ai te ratonga — ka tuari mātou i ētahi atu taipitopito ā tōna wā.",
-        "paragraph3": "E whai ana i ō mātou pakiaka, {githubLink} i GitHub. I a mātou e whakatere ana i te horanuku hurihuri o te matatapu matihiko me te haumaru, kua whakapau kaha mātou ki te pūataata me te whakapai tonu.",
-        "paragraph4": "Tēnā koe mō tō whai wāhi ki tō mātou haerenga. Ki tētahi atu tekau tau o te tuari haumaru, anoano.",
-        "feedback_hint": "Mēnā he pātai āu, he puka urupare kei te raro o (tata) ia whārangi.",
-        "signature": "Ngā mihi me te tuari harikoa,\n{name}"
-      }
     },
     "meta": {
       "were-making-onetime-secret-available-in-multiple": "Kei te whakarato mātou i a {onetime-secret} i roto i ngā reo maha. I te mea he āhuatanga hou tēnei, ka tūtaki pea koe ki ngā hapa whakamaori, kupu whakatakoto pōrearea rānei. Ka āwhina tō urupare i a mātou ki te whakapai ake - mēnā ka kitea e koe he take, tēnā {send-feedback}",
