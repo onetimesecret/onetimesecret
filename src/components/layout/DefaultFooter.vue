@@ -4,7 +4,6 @@
   import FeedbackToggle from '@/components/FeedbackToggle.vue';
   import JurisdictionToggle from '@/components/JurisdictionToggle.vue';
   import LanguageToggle from '@/components/LanguageToggle.vue';
-  import FooterLinkLists from '@/components/layout/FooterLinkLists.vue';
   import ThemeToggle from '@/components/ThemeToggle.vue';
   import { WindowService } from '@/services/window.service';
   import type { LayoutProps } from '@/types/ui/layouts';
@@ -38,14 +37,10 @@
     duration-300 dark:bg-gray-800"
     :aria-label="$t('site-footer')">
     <div class="container mx-auto max-w-2xl px-4">
-      <FooterLinkLists
-        v-if="displayLinks"
-        v-bind="$props" />
-
       <!-- prettier-ignore-attribute class -->
       <div
         class="
-        mt-6 flex
+        flex
         flex-col-reverse items-center
         justify-between
         space-y-6 space-y-reverse md:flex-row
@@ -60,21 +55,6 @@
           <span v-if="displayVersion">
             &copy; {{ new Date().getFullYear() }} {{ companyName }}.
           </span>
-          <div
-            v-if="!displayLinks"
-            class="text-inherit">
-            <router-link
-              to="/info/terms"
-              class="transition-colors duration-200 hover:text-gray-800 dark:hover:text-gray-100">
-              {{ $t('terms') }}
-            </router-link>
-            <span class="mx-2">·</span>
-            <router-link
-              to="/info/privacy"
-              class="transition-colors duration-200 hover:text-gray-800 dark:hover:text-gray-100">
-              {{ $t('privacy') }}
-            </router-link>
-          </div>
         </div>
 
         <!-- prettier-ignore-attribute class -->

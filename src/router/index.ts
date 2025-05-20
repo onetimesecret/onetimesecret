@@ -7,13 +7,11 @@ import accountRoutes from './account.routes';
 import authRoutes from './auth.routes';
 import dashboardRoutes from './dashboard.routes';
 import metadataRoutes from './metadata.routes';
-import productRoutes from './product.routes';
 import publicRoutes from './public.routes';
 import secretRoutes from './secret.routes';
 
 const routes: RouteRecordRaw[] = [
   ...publicRoutes,
-  ...productRoutes,
   ...metadataRoutes,
   ...secretRoutes,
   ...authRoutes,

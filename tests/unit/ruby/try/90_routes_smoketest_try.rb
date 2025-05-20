@@ -40,8 +40,8 @@ response = @mock_request.get('/dashboard')
 [response.status, response.headers["Location"]]
 #=> [302, "/"]
 
-## Can access the about page
-response = @mock_request.get('/about')
+## Can access the feedback page
+response = @mock_request.get('/feedback')
 response.status
 #=> 200
 
