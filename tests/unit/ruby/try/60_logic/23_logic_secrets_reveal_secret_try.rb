@@ -294,7 +294,7 @@ begin
 rescue OT::FormError => e
   [logic.secret.has_passphrase?, logic.correct_passphrase, logic.show_secret, e.message]
 end
-#=> [true, false, false, "Double check that passphrase"]
+#=> [true, false, false, "Incorrect passphrase"]
 
 ## Correctly handles a secret with an incorrect passphrase (bogus locale)
 metadata = @create_metadata.call

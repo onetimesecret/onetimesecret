@@ -17,7 +17,8 @@ module Core
       def self.serialize(view_vars, i18n)
         output = self.output_template
 
-        output[:ot_version] = OT::VERSION.inspect
+        output[:ot_version] = OT::VERSION.to_s
+        output[:ot_version_long] = OT::VERSION.inspect
         output[:ruby_version] = if OT.sysinfo.nil?
           RUBY_VERSION.to_s
         else
@@ -36,6 +37,7 @@ module Core
         def output_template
           {
             ot_version: nil,
+            ot_version_long: nil,
             ruby_version: nil,
             shrimp: nil,
             nonce: nil,

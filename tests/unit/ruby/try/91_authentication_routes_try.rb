@@ -55,9 +55,23 @@ response = @mock_request.get('/dashboard')
 # Web Routes (authentication disabled)
 
 ## Disable authentication for all routes
-OT.conf[:site][:authentication][:enabled] = false
-OT::Config.after_load(OT.conf)
-OT.conf[:site][:authentication][:signin]
+old_conf = OT.instance_variable_get(:@conf)
+new_conf = {
+  site: {
+    secret: 'notnil',
+    authentication: {
+      enabled: false,
+      signin: true,
+    }
+  },
+  mail: {
+    truemail: {},
+  }
+}
+OT.instance_variable_set(:@conf, new_conf)
+processed_conf = OT::Config.after_load(OT.conf)
+OT.instance_variable_set(:@conf, old_conf)
+processed_conf[:site][:authentication][:signin]
 #=> false
 
 ## With auth disabled, can access the sign-in page
@@ -81,7 +95,21 @@ response = @mock_request.post('/signup')
 ##=> 404
 
 ## With auth disabled, dashboard returns 401
+old_conf = OT.instance_variable_get(:@conf)
+new_conf = {
+  site: {
+    secret: 'notnil',
+    authentication: {
+      enabled: false,
+    }
+  },
+  mail: {
+    truemail: {},
+  }
+}
+OT.instance_variable_set(:@conf, new_conf)
 response = @mock_request.get('/dashboard')
+OT.instance_variable_set(:@conf, old_conf)
 # This is a 400 response b/c authentication is disabled in
 # the config. A protected endpoint (like /dashboard which is
 # for customers_only) returns disabled_response.

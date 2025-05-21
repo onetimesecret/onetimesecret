@@ -343,6 +343,7 @@
   :stripe_webhook: 25
   :update_domain_brand: 50
   :view_colonel: 50
+  :external_redirect: 100
 :development:
   # Development Mode Configuration
   #

@@ -181,7 +181,8 @@
   },
   "is_paid": true,
   "default_planid": "basic",
-  "ot_version": "0.20.4 (32aa7e9d)",
+  "ot_version": "0.20.4",
+  "ot_version_long": "0.20.4 (32aa7e9d)",
   "ruby_version": "ruby-341",
   "shrimp": "skcfgqzrq8o2o6shb37pf7ro2y9xocgszflpmze4flf4pfsc2",
   "nonce": "riGVTd5b+a6TCNNXf0YgiQ=="

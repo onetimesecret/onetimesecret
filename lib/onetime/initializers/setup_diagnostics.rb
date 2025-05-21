@@ -21,7 +21,7 @@ module Onetime
 
       # Early validation to prevent nil errors during initialization
       if dsn.nil?
-        OT.le "[sentry-init] Cannot initialize Sentry with nil DSN"
+        OT.ld "[sentry-init] Cannot initialize Sentry with nil DSN"
         OT.d9s_enabled = false
       elsif site_host.nil?
         OT.le "[sentry-init] Cannot initialize Sentry with nil site_host"

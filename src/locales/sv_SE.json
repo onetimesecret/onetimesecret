@@ -361,82 +361,8 @@
       "send-feedback": "Skicka feedback",
       "sending-ellipses": "Skickar..."
     },
-    "security": {
-      "thank-you-for-helping-us-keep-onetime-secret-sec": "Tack för att du hjälper oss att hålla Onetime Secret säkert och utmärkt!",
-      "we-take-your-privacy-seriously-all-reports-will-": "Vi tar din integritet på allvar. Alla rapporter kommer att hållas konfidentiella, och vi kommer att arbeta med dig för att säkerställa att inga detaljer om sårbarheten avslöjas förrän en fix är på plats.",
-      "confidentiality": "Konfidentialitet",
-      "if-the-vulnerability-is-declined-we-will-provide": ": Om sårbarheten avvisas kommer vi att ge en detaljerad förklaring till varför den inte accepterades.",
-      "declined-vulnerabilities": "Avvisade sårbarheter",
-      "if-the-vulnerability-is-accepted-we-will-work-on": ": Om sårbarheten accepteras kommer vi att arbeta på en fix och sträva efter att släppa den så snart som möjligt. Du kommer att meddelas när fixen är distribuerad.",
-      "accepted-vulnerabilities": "Accepterade sårbarheter",
-      "resolution-process": "Lösningsprocess",
-      "you-can-expect-to-receive-updates-on-the-status-": ": Du kan förvänta dig att få uppdateringar om statusen för din rapport minst en gång var 7:e dag tills problemet är löst eller ett beslut har fattats.",
-      "updates": "Uppdateringar",
-      "we-will-conduct-an-initial-assessment-of-the-vul": ": Vi kommer att genomföra en första bedömning av sårbarheten inom 14 arbetsdagar.",
-      "initial-assessment": "Första bedömning",
-      "you-will-receive-an-acknowledgment-of-your-repor": ": Du kommer att få en bekräftelse på din rapport inom 5 arbetsdagar.",
-      "acknowledgment": "Bekräftelse",
-      "what-to-expect": "Vad du kan förvänta dig",
-      "your-contact-information-for-follow-up-questions": "Din kontaktinformation för uppföljningsfrågor.",
-      "any-potential-impact": "Eventuell potentiell påverkan.",
-      "steps-to-reproduce-the-issue": "Steg för att reproducera problemet.",
-      "a-detailed-description-of-the-vulnerability": "En detaljerad beskrivning av sårbarheten.",
-      "include-as-much-information-as-possible-about-th": ": Inkludera så mycket information som möjligt om sårbarheten. Detta bör inkludera:",
-      "with-the-subject-line-vulnerability-report-brief": "med ämnesraden \"Sårbarhetsrapport: [Kort beskrivning]\". ",
-      "send-an-email-to": ": Skicka ett e-postmeddelande till",
-      "how-to-report": "Hur man rapporterar",
-      "if-you-discover-a-security-vulnerability-within-": "Om du upptäcker en säkerhetssårbarhet inom detta projekt uppmuntrar vi dig att rapportera den så snart som möjligt. Så här kan du göra det:",
-      "reporting-a-vulnerability": "Rapportera en sårbarhet",
-      "if-you-are-using-an-unsupported-version-we-stron": "Om du använder en version som inte stöds rekommenderar vi starkt att du uppgraderar till en av de versioner som stöds för att säkerställa att du får de senaste säkerhetsuppdateringarna.",
-      "we-provide-security-updates-for-the-following-ve": "Vi tillhandahåller säkerhetsuppdateringar för följande versioner av vårt projekt:",
-      "supported-versions": "Versioner som stöds",
-      "we-take-the-security-of-this-project-seriously-a": "Vi tar säkerheten i detta projekt på allvar och uppskattar dina ansträngningar att ansvarsfullt avslöja sårbarheter. Detta dokument beskriver vår säkerhetspolicy och ger riktlinjer för hur man rapporterar sårbarheter.",
-      "security-policy": "Säkerhetspolicy"
-    },
     "site": {
       "website-version": "Webbplatsversion"
-    },
-    "about": {
-      "title": "Om oss",
-      "faq": {
-        "trust_points": [
-          "Vi kan inte komma åt din information även om vi ville (vilket vi inte vill). Om du till exempel delar ett lösenord vet vi inte användarnamnet eller ens vilken applikation det gäller.",
-          "Om du använder en lösenfras (tillgänglig under \"Sekretessalternativ\"), inkluderar vi den i krypteringsnyckeln för hemligheten. Vi lagrar endast en bcrypt-hash av lösenfrasen, vilket gör det omöjligt för oss att dekryptera din hemlighet när den väl har sparats.",
-          "Vår kod är {openSourceLink}. Du kan granska den själv eller till och med köra din egen instans om du föredrar det.",
-          "Vi använder branschstandardiserade säkerhetspraxis, inklusive HTTPS för alla anslutningar och kryptering i vila för lagrad data."
-        ],
-        "passphrase_points": [
-          "Vi lagrar aldrig den okrypterade hemligheten eller lösenfrasen.",
-          "Bcrypt-hashen kan inte användas för att dekryptera hemligheten.",
-          "Utan den ursprungliga lösenfrasen kan den krypterade hemligheten inte dekrypteras, inte ens av oss.",
-          "Detta innebär att även om våra servrar skulle komprometteras skulle din hemlighet förbli säker så länge lösenfrasen förblir okänd."
-        ],
-        "why_use_title": "Varför skulle jag använda detta?",
-        "why_use_description": "När du skickar lösenord och privata länkar via e-post eller chatt finns det kopior av den informationen lagrad på många ställen. Om du använder en Onetime-länk istället, finns informationen kvar för en enda visning, vilket innebär att den inte kan läsas av någon annan senare. Detta gör att du kan skicka känslig information på ett säkert sätt med vetskapen om att den endast ses av en person. Tänk på det som ett självförstörande meddelande.",
-        "file_limitation_title": "Varför kan jag inte skicka bilder eller andra typer av filer?",
-        "file_limitation_description": "Vår tjänst är utformad specifikt för textbaserade hemligheter för att säkerställa maximal säkerhet och enkelhet. Filer, särskilt bilder, kan innehålla metadata som oavsiktligt kan avslöja information om avsändaren eller mottagaren. Genom att fokusera på text kan vi garantera att ingen ytterligare data överförs utöver vad du uttryckligen skriver. Om du behöver dela en fil säkert rekommenderar vi att du använder en dedikerad säker filöverföringstjänst. Vi kan överväga att lägga till stöd för filer i framtiden om det finns övertygande användningsfall för det.",
-        "text_copy_title": "Men jag kan kopiera hemlighetstexten. Vad är skillnaden?",
-        "text_copy_description": "Sant, men allt du har är text. Bilder och andra filtyper kan innehålla metadata och annan potentiellt avslöjande information om avsändaren eller mottagaren. Återigen är detta helt enkelt för att säkerställa att ingen privat information delas utanför den avsedda mottagaren.",
-        "secret_retrieval_title": "Kan jag hämta en hemlighet som redan har delats?",
-        "secret_retrieval_description": "Nej. Vi visar den en gång och raderar den sedan. Efter det är den borta för alltid.",
-        "account_difference_title": "Vad är skillnaden mellan anonym användning och att ha ett gratiskonto?",
-        "account_difference_description": "Anonyma användare kan skapa hemligheter som varar upp till {anonymousTtlDays} dagar och har en maximal storlek på {anonymousSizeKB} KB. Innehavare av gratiskonton får utökade förmåner: hemligheter kan vara upp till {defaultTtlDays} dagar och kan vara upp till {defaultSizeKB} KB stora. Kontoinnehavare får också tillgång till ytterligare funktioner som alternativet att bränna före läsning, vilket gör att avsändare kan radera hemligheter innan de tas emot.",
-        "law_enforcement_title": "Hur hanterar ni dataförfrågningar från brottsbekämpande myndigheter eller andra tredje parter?",
-        "law_enforcement_description": "Vi har utformat vårt system med integritet i åtanke. Vi lagrar inte hemligheter efter att de har visats, och vi behåller inte åtkomstloggar utöver det absolut nödvändiga. Detta innebär att vi i de flesta fall helt enkelt inte har någon data att tillhandahålla som svar på sådana förfrågningar. För mer information, vänligen granska vår {privacyPolicyLink}.",
-        "trust_title": "Varför ska jag lita på er?",
-        "trust_description": "Vi har utformat vårt system med integritet och säkerhet som högsta prioritet. Här är varför du kan lita på oss:",
-        "passphrase_title": "Hur fungerar alternativet med lösenfras?",
-        "passphrase_description": "När du använder en lösenfras krypterar vi din hemlighet på våra servrar med den lösenfras du anger. Vi lagrar inte själva lösenfrasen, endast en bcrypt-hash av den. Denna hash används för att verifiera lösenfrasen när mottagaren anger den. Här är varför detta är säkert:",
-        "passphrase_final_note": "Kom ihåg att säkerheten för din hemlighet beror på styrkan i din lösenfras och hur säkert du kommunicerar den till mottagaren."
-      },
-      "intro": {
-        "paragraph1": "Hej, jag är {name}, skaparen av Onetime Secret. Det som började 2012 som ett enkelt, säkert sätt att dela känslig information har vuxit bortom våra vildaste förväntningar. Över ett decennium senare underlättar vi säker delning av miljontals hemligheter varje månad, med användningsfall vi aldrig föreställt oss.",
-        "paragraph2": "Första halvan av 2024 har varit vår mest hektiska period hittills. Vi är tacksamma för att människor har fortsatt att använda och dela vår produkt i mer än ett decennium. Vi arbetar för närvarande med förbättringar som vi tror kommer att göra tjänsten ännu mer användbar – vi delar mer information snart.",
-        "paragraph3": "Trogna våra rötter, {githubLink} på GitHub. När vi navigerar i det föränderliga landskapet av digital integritet och säkerhet är vi engagerade i transparens och ständig förbättring.",
-        "paragraph4": "Tack för att du är en del av vår resa. Skål för ytterligare ett decennium av säker, efemär delning.",
-        "feedback_hint": "Om du har några frågor finns det ett feedbackformulär längst ner på (nästan) varje sida.",
-        "signature": "Med vänliga hälsningar,\n{name}"
-      }
     },
     "meta": {
       "were-making-onetime-secret-available-in-multiple": "Vi gör {onetime-secret} tillgängligt på flera språk. Eftersom detta är en ny funktion kan du stöta på översättningsfel eller klumpiga formuleringar. Din feedback hjälper oss att förbättra - om du upptäcker några problem, vänligen {send-feedback}",

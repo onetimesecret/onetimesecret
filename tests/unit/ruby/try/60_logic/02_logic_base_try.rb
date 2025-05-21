@@ -85,9 +85,19 @@ logic.process
 ## Can create account and have it auto-verified.
 sess = Session.create '255.255.255.255', 'anon'
 cust = Customer.new
-OT.conf[:site][:authentication][:autoverify] = true # force the config to be true
+old_conf = OT.instance_variable_get(:@conf)
+new_conf = {
+  site: {
+    authentication: {
+      autoverify: true # force the config to be true
+    }
+  }
+}
+OT.instance_variable_set(:@conf, new_conf)
 logic = V2::Logic::Account::CreateAccount.new sess, cust, @valid_params.call, 'en'
 logic.raise_concerns
 logic.process
-[logic.autoverify, logic.cust.verified, OT.conf.dig(:site, :authentication, :autoverify)]
+ret = [logic.autoverify, logic.cust.verified, OT.conf.dig(:site, :authentication, :autoverify)]
+OT.instance_variable_set(:@conf, old_conf)
+ret
 #=> [true, 'true', true]

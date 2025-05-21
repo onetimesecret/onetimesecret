@@ -361,82 +361,8 @@
       "send-feedback": "Enviar feedback",
       "sending-ellipses": "Enviando..."
     },
-    "security": {
-      "thank-you-for-helping-us-keep-onetime-secret-sec": "Obrigado por nos ajudar a manter o Onetime Secret seguro e excelente!",
-      "we-take-your-privacy-seriously-all-reports-will-": "Levamos sua privacidade a sério. Todos os relatórios serão mantidos confidenciais e trabalharemos com você para garantir que quaisquer detalhes da vulnerabilidade não sejam divulgados até que uma correção esteja em vigor.",
-      "confidentiality": "Confidencialidade",
-      "if-the-vulnerability-is-declined-we-will-provide": ": Se a vulnerabilidade for recusada, forneceremos uma explicação detalhada do motivo pelo qual não foi aceita.",
-      "declined-vulnerabilities": "Vulnerabilidades Recusadas",
-      "if-the-vulnerability-is-accepted-we-will-work-on": ": Se a vulnerabilidade for aceita, trabalharemos em uma correção e pretendemos lançá-la o mais rápido possível. Você será notificado assim que a correção for implantada.",
-      "accepted-vulnerabilities": "Vulnerabilidades Aceitas",
-      "resolution-process": "Processo de Resolução",
-      "you-can-expect-to-receive-updates-on-the-status-": ": Você pode esperar receber atualizações sobre o status do seu relatório pelo menos uma vez a cada 7 dias até que o problema seja resolvido ou uma decisão seja tomada.",
-      "updates": "Atualizações",
-      "we-will-conduct-an-initial-assessment-of-the-vul": ": Realizaremos uma avaliação inicial da vulnerabilidade em até 14 dias úteis.",
-      "initial-assessment": "Avaliação Inicial",
-      "you-will-receive-an-acknowledgment-of-your-repor": ": Você receberá uma confirmação do seu relatório em até 5 dias úteis.",
-      "acknowledgment": "Confirmação",
-      "what-to-expect": "O Que Esperar",
-      "your-contact-information-for-follow-up-questions": "Suas informações de contato para perguntas de acompanhamento.",
-      "any-potential-impact": "Qualquer impacto potencial.",
-      "steps-to-reproduce-the-issue": "Passos para reproduzir o problema.",
-      "a-detailed-description-of-the-vulnerability": "Uma descrição detalhada da vulnerabilidade.",
-      "include-as-much-information-as-possible-about-th": ": Inclua o máximo de informações possível sobre a vulnerabilidade. Isso deve incluir:",
-      "with-the-subject-line-vulnerability-report-brief": "com a linha de assunto \"Relatório de Vulnerabilidade: [Breve Descrição]\".",
-      "send-an-email-to": ": Envie um email para",
-      "how-to-report": "Como Relatar",
-      "if-you-discover-a-security-vulnerability-within-": "Se você descobrir uma vulnerabilidade de segurança neste projeto, encorajamos você a relatá-la o mais rápido possível. Veja como fazer:",
-      "reporting-a-vulnerability": "Relatando uma Vulnerabilidade",
-      "if-you-are-using-an-unsupported-version-we-stron": "Se você estiver usando uma versão não suportada, recomendamos fortemente a atualização para uma das versões suportadas para garantir que você receba as últimas atualizações de segurança.",
-      "we-provide-security-updates-for-the-following-ve": "Fornecemos atualizações de segurança para as seguintes versões do nosso projeto:",
-      "supported-versions": "Versões Suportadas",
-      "we-take-the-security-of-this-project-seriously-a": "Levamos a segurança deste projeto a sério e agradecemos seus esforços para divulgar vulnerabilidades de forma responsável. Este documento descreve nossa política de segurança e fornece diretrizes sobre como relatar vulnerabilidades.",
-      "security-policy": "Política de Segurança"
-    },
     "site": {
       "website-version": "Versão do Site"
-    },
-    "about": {
-      "title": "Sobre Nós",
-      "faq": {
-        "trust_points": [
-          "Não podemos acessar suas informações mesmo que quiséssemos (o que não queremos). Por exemplo, se você compartilhar uma senha, não sabemos o nome de usuário ou mesmo para qual aplicativo ela se destina.",
-          "Se você usar uma senha mestre (disponível em \"Opções de Privacidade\"), nós a incluímos na chave de criptografia do segredo. Armazenamos apenas um hash bcrypt da senha mestre, tornando impossível para nós descriptografar seu segredo depois de salvo.",
-          "Nosso código é {openSourceLink}. Você pode revisá-lo ou até mesmo executar sua própria instância, se preferir.",
-          "Usamos práticas de segurança padrão da indústria, incluindo HTTPS para todas as conexões e criptografia em repouso para dados armazenados."
-        ],
-        "passphrase_points": [
-          "Nunca armazenamos o segredo não criptografado ou a senha mestre.",
-          "O hash bcrypt não pode ser usado para descriptografar o segredo.",
-          "Sem a senha mestre original, o segredo criptografado não pode ser descriptografado, nem mesmo por nós.",
-          "Isso significa que, mesmo que nossos servidores fossem comprometidos, seu segredo permaneceria seguro enquanto a senha mestre permanecer desconhecida."
-        ],
-        "why_use_title": "Por que eu usaria isso?",
-        "why_use_description": "Quando você envia senhas e links privados para pessoas por email ou chat, cópias dessas informações são armazenadas em muitos lugares. Se você usar um link Onetime, a informação persiste apenas para uma única visualização, o que significa que não pode ser lida por outra pessoa posteriormente. Isso permite enviar informações sensíveis de forma segura, sabendo que serão vistas apenas por uma pessoa. Pense nisso como uma mensagem autodestrutiva.",
-        "file_limitation_title": "Por que não posso enviar fotos ou outros tipos de arquivos?",
-        "file_limitation_description": "Nosso serviço é projetado especificamente para segredos baseados em texto para garantir máxima segurança e simplicidade. Arquivos, especialmente imagens, podem conter metadados que podem revelar informações não intencionais sobre o remetente ou destinatário. Ao focar em texto, podemos garantir que nenhum dado adicional seja transmitido além do que você digita explicitamente. Se precisar compartilhar um arquivo com segurança, recomendamos usar um serviço dedicado de transferência segura de arquivos. Podemos considerar adicionar suporte para arquivos no futuro, se houver casos de uso convincentes para isso.",
-        "text_copy_title": "Mas eu posso copiar o texto do segredo. Qual é a diferença?",
-        "text_copy_description": "Verdade, mas tudo o que você tem é texto. Imagens e outros tipos de arquivos podem conter metadados e outras informações potencialmente reveladoras sobre o remetente ou destinatário. Novamente, isso é simplesmente para garantir que nenhuma informação privada seja compartilhada fora do destinatário pretendido.",
-        "secret_retrieval_title": "Posso recuperar um segredo que já foi compartilhado?",
-        "secret_retrieval_description": "Não. Nós o exibimos uma vez e depois o excluímos. Depois disso, ele desaparece para sempre.",
-        "account_difference_title": "Qual é a diferença entre o uso anônimo e ter uma conta gratuita?",
-        "account_difference_description": "Usuários anônimos podem criar segredos que duram até {anonymousTtlDays} dias e têm um tamanho máximo de {anonymousSizeKB} KB. Titulares de contas gratuitas obtêm benefícios estendidos: os segredos podem durar até {defaultTtlDays} dias e ter até {defaultSizeKB} KB de tamanho. Os titulares de contas também têm acesso a recursos adicionais, como opções de remoção antes da leitura, que permitem aos remetentes excluir segredos antes de serem recebidos.",
-        "law_enforcement_title": "Como vocês lidam com solicitações de dados de autoridades policiais ou outros terceiros?",
-        "law_enforcement_description": "Projetamos nosso sistema com a privacidade em mente. Não armazenamos segredos após serem visualizados e não mantemos logs de acesso além do mínimo necessário. Isso significa que, na maioria dos casos, simplesmente não temos dados para fornecer em resposta a tais solicitações. Para mais detalhes, revise nossa {privacyPolicyLink}.",
-        "trust_title": "Por que devo confiar em vocês?",
-        "trust_description": "Projetamos nosso sistema com privacidade e segurança como principais prioridades. Eis por que você pode confiar em nós:",
-        "passphrase_title": "Como funciona a opção de senha mestre?",
-        "passphrase_description": "Quando você usa uma senha mestre, criptografamos seu segredo em nossos servidores usando a senha mestre que você fornece. Não armazenamos a senha mestre em si, apenas um hash bcrypt dela. Esse hash é usado para verificar a senha mestre quando o destinatário a insere. Eis por que isso é seguro:",
-        "passphrase_final_note": "Lembre-se, a segurança do seu segredo depende da força da sua senha mestre e de quão seguramente você a comunica ao destinatário."
-      },
-      "intro": {
-        "paragraph1": "Olá, sou {name}, o criador do Onetime Secret. O que começou em 2012 como uma forma simples e segura de compartilhar informações sensíveis cresceu além das nossas expectativas mais ousadas. Mais de uma década depois, estamos facilitando o compartilhamento seguro de milhões de segredos mensalmente, com casos de uso que nunca imaginamos.",
-        "paragraph2": "O primeiro semestre de 2024 foi nosso período mais movimentado até agora. Somos gratos por as pessoas continuarem a usar e compartilhar nosso produto por mais de uma década. Estamos atualmente trabalhando em melhorias que acreditamos que tornarão o serviço ainda mais útil — compartilharemos mais detalhes em breve.",
-        "paragraph3": "Fiéis às nossas raízes, {githubLink} no GitHub. Enquanto navegamos pelo cenário em evolução da privacidade e segurança digital, estamos comprometidos com a transparência e a melhoria contínua.",
-        "paragraph4": "Obrigado por fazer parte da nossa jornada. Um brinde a outra década de compartilhamento seguro e efêmero.",
-        "feedback_hint": "Se você tiver alguma dúvida, há um formulário de feedback na parte inferior de (quase) todas as páginas.",
-        "signature": "Boas partilhas,\n{name}"
-      }
     },
     "meta": {
       "were-making-onetime-secret-available-in-multiple": "Estamos disponibilizando o {onetime-secret} em vários idiomas. Como este é um recurso novo, você pode encontrar erros de tradução ou frases estranhas. Seu feedback nos ajuda a melhorar - se você encontrar algum problema, por favor {send-feedback}",

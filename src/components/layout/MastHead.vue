@@ -300,20 +300,7 @@
               {{ $t('web.COMMON.header_create_account') }}
             </router-link>
             <span
-              class="text-gray-400"
-              aria-hidden="true"
-              role="separator">
-              |
-            </span>
-            <!-- prettier-ignore-attribute class -->
-            <router-link
-              to="/about"
-              :title="$t('about-onetime-secret')"
-              class="text-gray-600 transition-colors duration-200
-                hover:text-gray-800 dark:text-gray-300 dark:hover:text-white">
-              {{ $t('web.COMMON.header_about') }}
-            </router-link>
-            <span
+              v-if="windowProps.authentication.signup && windowProps.authentication.signin"
               class="text-gray-400"
               aria-hidden="true"
               role="separator">
@@ -329,15 +316,6 @@
               {{ $t('web.COMMON.header_sign_in') }}
             </router-link>
           </template>
-          <!-- prettier-ignore-attribute class -->
-          <router-link
-            v-else
-            to="/about"
-            :title="$t('about-onetime-secret-0')"
-            class="text-gray-600 transition-colors duration-200
-              hover:text-gray-800 dark:text-gray-300 dark:hover:text-white">
-            {{ $t('web.COMMON.header_about') }}
-          </router-link>
         </template>
       </nav>
     </div>

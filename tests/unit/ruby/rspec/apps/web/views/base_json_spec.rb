@@ -49,7 +49,7 @@ RSpec.xdescribe Core::Views::BaseView, "JSON Output" do
             'HTTP_ACCEPT' => 'application/json',
             'onetime.domain_strategy' => not_authenticated_json["domain_strategy"],
             'onetime.display_domain' => not_authenticated_json["display_domain"],
-            'ots.locale' => not_authenticated_json["locale"]
+            'ots.locale' => not_authenticated_json["locale"],
           })
       end
 
@@ -65,16 +65,16 @@ RSpec.xdescribe Core::Views::BaseView, "JSON Output" do
             regions: {
               enabled: authenticated_json["regions_enabled"],
               current_jurisdiction: authenticated_json["regions"]["current_jurisdiction"],
-              jurisdictions: authenticated_json["regions"]["jurisdictions"]
+              jurisdictions: authenticated_json["regions"]["jurisdictions"],
             },
             plans: { enabled: authenticated_json["plans_enabled"] },
             secret_options: authenticated_json["secret_options"],
-            support: { host: authenticated_json["support_host"] }
+            support: { host: authenticated_json["support_host"] },
           },
           development: {
             enabled: true,
-            frontend_host: authenticated_json["frontend_host"]
-          }
+            frontend_host: authenticated_json["frontend_host"],
+          },
         })
 
         # Set up internationalization
@@ -90,10 +90,10 @@ RSpec.xdescribe Core::Views::BaseView, "JSON Output" do
             web: {
               COMMON: {
                 description: 'Test Description',
-                keywords: 'test,keywords'
-              }
-            }
-          }
+                keywords: 'test,keywords',
+              },
+            },
+          },
         })
 
         # Mock version info - Use double instead of OpenStruct
@@ -140,8 +140,8 @@ RSpec.xdescribe Core::Views::BaseView, "JSON Output" do
         expect(json_output["domains_enabled"]).to eq(not_authenticated_json["domains_enabled"])
 
         # Test structure excluding volatile fields
-        filtered_output = json_output.except("shrimp", "ot_version", "ruby_version", "messages")
-        filtered_sample = not_authenticated_json.except("shrimp", "ot_version", "ruby_version", "messages")
+        filtered_output = json_output.except("shrimp", "ot_version", "ot_version_long", "ruby_version", "messages")
+        filtered_sample = not_authenticated_json.except("shrimp", "ot_version", "ot_version_long", "ruby_version", "messages")
 
         expect(filtered_output).to match(filtered_sample)
       end
@@ -189,7 +189,7 @@ RSpec.xdescribe Core::Views::BaseView, "JSON Output" do
             'HTTP_ACCEPT' => 'application/json',
             'onetime.domain_strategy' => authenticated_json["domain_strategy"],
             'onetime.display_domain' => authenticated_json["display_domain"],
-            'ots.locale' => authenticated_json["locale"]
+            'ots.locale' => authenticated_json["locale"],
           })
       end
 
@@ -205,16 +205,16 @@ RSpec.xdescribe Core::Views::BaseView, "JSON Output" do
               regions: {
                 enabled: not_authenticated_json["regions_enabled"],
                 current_jurisdiction: not_authenticated_json["regions"]["current_jurisdiction"],
-                jurisdictions: not_authenticated_json["regions"]["jurisdictions"]
+                jurisdictions: not_authenticated_json["regions"]["jurisdictions"],
               },
               plans: { enabled: not_authenticated_json["plans_enabled"] },
               secret_options: not_authenticated_json["secret_options"],
-              support: { host: not_authenticated_json["support_host"] }
+              support: { host: not_authenticated_json["support_host"] },
             },
             development: {
               enabled: true,
-              frontend_host: not_authenticated_json["frontend_host"]
-            }
+              frontend_host: not_authenticated_json["frontend_host"],
+            },
           })
 
         # Set up internationalization
@@ -230,10 +230,10 @@ RSpec.xdescribe Core::Views::BaseView, "JSON Output" do
             web: {
               COMMON: {
                 description: 'Test Description',
-                keywords: 'test,keywords'
-              }
-            }
-          }
+                keywords: 'test,keywords',
+              },
+            },
+          },
         })
 
         # Mock version info - Use double instead of OpenStruct
@@ -290,8 +290,8 @@ RSpec.xdescribe Core::Views::BaseView, "JSON Output" do
         expect(json_output["custom_domains"]).to match_array(authenticated_json["custom_domains"])
 
         # Test structure excluding volatile fields
-        filtered_output = json_output.except("shrimp", "ot_version", "ruby_version", "messages")
-        filtered_sample = authenticated_json.except("shrimp", "ot_version", "ruby_version", "messages")
+        filtered_output = json_output.except("shrimp", "ot_version", "ot_version_long", "ruby_version", "messages")
+        filtered_sample = authenticated_json.except("shrimp", "ot_version", "ot_version_long", "ruby_version", "messages")
 
         expect(filtered_output).to match(filtered_sample)
       end

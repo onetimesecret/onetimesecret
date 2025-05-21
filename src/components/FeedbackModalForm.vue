@@ -2,12 +2,12 @@
 
 <script setup lang="ts">
   import AltchaChallenge from '@/components/AltchaChallenge.vue';
-  import { useFormSubmission } from '@/composables/useFormSubmission';
-  import { WindowService } from '@/services/window.service';
-  import { useCsrfStore } from '@/stores/csrfStore';
-  import { useMediaQuery } from '@vueuse/core';
-  import { computed, onMounted, ref } from 'vue';
-  import { useI18n } from 'vue-i18n';
+import { useFormSubmission } from '@/composables/useFormSubmission';
+import { WindowService } from '@/services/window.service';
+import { useCsrfStore } from '@/stores/csrfStore';
+import { useMediaQuery } from '@vueuse/core';
+import { computed, onMounted, ref } from 'vue';
+import { useI18n } from 'vue-i18n';
 
   const { t } = useI18n();
   const csrfStore = useCsrfStore();
@@ -38,7 +38,7 @@
 
   // We use this to determine whether to include the authenticity check
   const cust = WindowService.get('cust');
-  const ot_version = WindowService.get('ot_version');
+  const ot_version_long = WindowService.get('ot_version_long');
 
   const emit = defineEmits(['feedback-sent']);
 
@@ -142,7 +142,7 @@
       <input
         type="hidden"
         name="version"
-        :value="ot_version" />
+        :value="ot_version_long" />
       <!-- prettier-ignore-attribute class -->
       <button
         type="submit"
@@ -186,7 +186,7 @@
           • {{ $t('web.account.timezone') }}: {{ userTimezone }}
         </li>
         <li>
-          • {{ $t('web.site.website-version') }}: {{ ot_version }}
+          • {{ $t('web.site.website-version') }}: {{ ot_version_long }}
         </li>
       </ul>
     </div>

@@ -361,51 +361,8 @@
       "send-feedback": "Enviar comentarios",
       "sending-ellipses": "Enviando..."
     },
-    "security": "Seguridad",
     "site": {
       "website-version": "Versión del Sitio Web"
-    },
-    "about": {
-      "title": "Acerca de Nosotros",
-      "faq": {
-        "trust_points": [
-          "No podemos acceder a tu información aunque quisiéramos (y no queremos). Por ejemplo, si compartes una contraseña, no sabemos el nombre de usuario ni siquiera la aplicación para la que es.",
-          "Si usas una frase de contraseña (disponible en \"Opciones de Privacidad\"), la incluimos en la clave de cifrado del secreto. Solo almacenamos un hash bcrypt de la frase de contraseña, lo que nos imposibilita descifrar tu secreto una vez guardado.",
-          "Nuestro código es {openSourceLink}. Puedes revisarlo tú mismo o incluso ejecutar tu propia instancia si lo prefieres.",
-          "Utilizamos prácticas de seguridad estándar de la industria, incluyendo HTTPS para todas las conexiones y cifrado en reposo para los datos almacenados."
-        ],
-        "passphrase_points": [
-          "Nunca almacenamos el secreto sin cifrar ni la frase de contraseña.",
-          "El hash bcrypt no se puede usar para descifrar el secreto.",
-          "Sin la frase de contraseña original, el secreto cifrado no se puede descifrar, ni siquiera por nosotros.",
-          "Esto significa que incluso si nuestros servidores fueran comprometidos, tu secreto permanecería seguro siempre que la frase de contraseña permanezca desconocida."
-        ],
-        "why_use_title": "¿Por qué usaría esto?",
-        "why_use_description": "Cuando envías contraseñas y enlaces privados a personas por correo electrónico o chat, hay copias de esa información almacenadas en muchos lugares. Si usas un enlace de Onetime en su lugar, la información persiste para una sola visualización, lo que significa que no puede ser leída por otra persona más tarde. Esto te permite enviar información sensible de forma segura sabiendo que solo la ve una persona. Piénsalo como un mensaje autodestructivo.",
-        "file_limitation_title": "¿Por qué no puedo enviar imágenes u otros tipos de archivos?",
-        "file_limitation_description": "Nuestro servicio está diseñado específicamente para secretos basados en texto para garantizar la máxima seguridad y simplicidad. Los archivos, especialmente las imágenes, pueden contener metadatos que podrían revelar involuntariamente información sobre el remitente o el destinatario. Al centrarnos en el texto, podemos garantizar que no se transmitan datos adicionales más allá de lo que escribes explícitamente. Si necesitas compartir un archivo de forma segura, te recomendamos utilizar un servicio dedicado de transferencia segura de archivos. Podríamos considerar agregar soporte para archivos en el futuro si existen casos de uso convincentes para ello.",
-        "text_copy_title": "Pero puedo copiar el texto secreto. ¿Cuál es la diferencia?",
-        "text_copy_description": "Cierto, pero todo lo que tienes es texto. Las imágenes y otros tipos de archivos pueden contener metadatos y otra información potencialmente reveladora sobre el remitente o el destinatario. Nuevamente, esto es simplemente para garantizar que no se comparta información privada fuera del destinatario previsto.",
-        "secret_retrieval_title": "¿Puedo recuperar un secreto que ya ha sido compartido?",
-        "secret_retrieval_description": "No. Lo mostramos una vez y luego lo eliminamos. Después de eso, desaparece para siempre.",
-        "account_difference_title": "¿Cuál es la diferencia entre el uso anónimo y tener una cuenta gratuita?",
-        "account_difference_description": "Los usuarios anónimos pueden crear secretos que duran hasta {anonymousTtlDays} días y tienen un tamaño máximo de {anonymousSizeKB} KB. Los titulares de cuentas gratuitas obtienen beneficios extendidos: los secretos pueden durar hasta {defaultTtlDays} días y pueden tener un tamaño de hasta {defaultSizeKB} KB. Los titulares de cuentas también tienen acceso a funciones adicionales como opciones de destruir antes de leer, que permiten a los remitentes eliminar secretos antes de que sean recibidos.",
-        "law_enforcement_title": "¿Cómo manejan las solicitudes de datos de las fuerzas del orden u otros terceros?",
-        "law_enforcement_description": "Diseñamos nuestro sistema pensando en la privacidad. No almacenamos secretos después de que han sido vistos y no guardamos registros de acceso más allá del mínimo necesario. Esto significa que, en la mayoría de los casos, simplemente no tenemos datos para proporcionar en respuesta a tales solicitudes. Para obtener más detalles, revisa nuestra {privacyPolicyLink}.",
-        "trust_title": "¿Por qué debería confiar en ustedes?",
-        "trust_description": "Hemos diseñado nuestro sistema con la privacidad y la seguridad como principales prioridades. He aquí por qué puedes confiar en nosotros:",
-        "passphrase_title": "¿Cómo funciona la opción de frase de contraseña?",
-        "passphrase_description": "Cuando usas una frase de contraseña, ciframos tu secreto en nuestros servidores usando la frase de contraseña que proporcionas. No almacenamos la frase de contraseña en sí, solo un hash bcrypt de ella. Este hash se usa para verificar la frase de contraseña cuando el destinatario la introduce. He aquí por qué esto es seguro:",
-        "passphrase_final_note": "Recuerda, la seguridad de tu secreto depende de la fortaleza de tu frase de contraseña y de cuán seguramente la comuniques al destinatario."
-      },
-      "intro": {
-        "paragraph1": "Hola, soy {name}, el creador de Onetime Secret. Lo que comenzó en 2012 como una forma simple y segura de compartir información sensible ha crecido más allá de nuestras expectativas más descabelladas. Más de una década después, estamos facilitando el intercambio seguro de millones de secretos mensualmente, con casos de uso que nunca imaginamos.",
-        "paragraph2": "La primera mitad de 2024 ha sido nuestro período más ocupado hasta ahora. Agradecemos que la gente haya seguido usando y compartiendo nuestro producto durante más de una década. Actualmente estamos trabajando en mejoras que creemos que harán el servicio aún más útil; compartiremos más detalles pronto.",
-        "paragraph3": "Fieles a nuestras raíces, {githubLink} en GitHub. Mientras navegamos por el panorama cambiante de la privacidad y seguridad digital, estamos comprometidos con la transparencia y la mejora continua.",
-        "paragraph4": "Gracias por ser parte de nuestro viaje. Brindemos por otra década de intercambio seguro y efímero.",
-        "feedback_hint": "Si tienes alguna pregunta, hay un formulario de comentarios en la parte inferior de (casi) todas las páginas.",
-        "signature": "Feliz intercambio,\n{name}"
-      }
     },
     "meta": {
       "were-making-onetime-secret-available-in-multiple": "Estamos haciendo que {onetime-secret} esté disponible en varios idiomas. Dado que esta es una nueva función, puedes encontrar errores de traducción o frases incómodas. Tus comentarios nos ayudan a mejorar; si detectas algún problema, por favor {send-feedback}",

@@ -21,10 +21,6 @@ GET   /secret/*                                  Core::Controllers::Page#index
 POST  /signin                                    Core::Controllers::Account#authenticate
 POST  /signup                                    Core::Controllers::Account#create_account
 
-GET   /about                                     Core::Controllers::Page#index
-GET   /translations                              Core::Controllers::Page#index
-GET   /info/*                                    Core::Controllers::Page#index
-GET   /pricing                                   Core::Controllers::Page#index
 GET   /signin                                    Core::Controllers::Page#index
 GET   /signup                                    Core::Controllers::Page#index
 GET   /signup/*                                  Core::Controllers::Page#index

@@ -11,9 +11,9 @@ import {
   RegionsConfig,
   SecretOptions,
 } from '@/schemas/models';
-import { DiagnosticsConfig } from '../diagnostics';
 import { Stripe } from 'stripe';
 import { FallbackLocale } from 'vue-i18n';
+import { DiagnosticsConfig } from '../diagnostics';
 
 /**
  * TypeScript declarations for custom window properties injected by
@@ -51,6 +51,7 @@ export interface OnetimeWindow {
   default_locale: Locale;
 
   ot_version: string;
+  ot_version_long: string;
   plans_enabled: boolean;
   regions_enabled: boolean;
   ruby_version: string;

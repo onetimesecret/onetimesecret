@@ -90,7 +90,8 @@
   "domain_branding": null,
   "domain_logo": null,
   "display_domain": "dev.onetime.dev",
-  "ot_version": "0.20.4 (32aa7e9d)",
+  "ot_version": "0.20.4",
+  "ot_version_long": "0.20.4 (32aa7e9d)",
   "ruby_version": "ruby-341",
   "messages": [],
   "available_plans": {
