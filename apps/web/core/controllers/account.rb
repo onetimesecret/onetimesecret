@@ -173,9 +173,9 @@ module Core
 
             # Create a Stripe Customer Portal session
             session = Stripe::BillingPortal::Session.create({
-                                                              customer: customer_id,
+              customer: customer_id,
               return_url: return_url,
-                                                            })
+            })
 
             # Continue the redirect
             res.redirect session.url

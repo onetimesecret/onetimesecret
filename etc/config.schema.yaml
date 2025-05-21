@@ -175,6 +175,7 @@
   :stripe_webhook: int()
   :update_domain_brand: int()
   :view_colonel: int()
+  :external_redirect: int()
 :development:
   :enabled: any()
   :debug: any()
