@@ -88,6 +88,7 @@ module V2
     def init
       self.custid ||= 'anon'
       self.role ||= 'customer'
+      self.email ||= custid
 
       # When an instance is first created, any field that doesn't have a
       # value set will be nil. We need to ensure that these fields are
