@@ -8,7 +8,6 @@
   import { WindowService } from '@/services/window.service';
   import { useProductIdentity } from '@/stores/identityStore';
   import type { LayoutProps } from '@/types/ui/layouts';
-  import { ref } from 'vue';
 
   const productIdentity = useProductIdentity();
 
@@ -19,9 +18,9 @@
     'regions',
     'authentication',
     'i18n_enabled',
+    'ot_version',
   ]);
 
-  const companyName = ref('OnetimeSecret.com');
 </script>
 <template>
   <footer
@@ -34,8 +33,10 @@
         class="flex flex-col-reverse items-center justify-between space-y-6 space-y-reverse md:flex-row md:space-y-0">
         <div
           class="flex w-full flex-wrap items-center justify-center gap-4 text-center text-sm text-gray-500 dark:text-gray-400 md:w-auto md:justify-start md:text-left">
-          <span v-if="displayVersion">
-            &copy; {{ new Date().getFullYear() }} {{ companyName }}.
+          <span
+            v-if="displayVersion"
+            :title="`${$t('onetime-secret-literal')} Version`">
+            <a :href="`https://github.com/onetimesecret/onetimesecret/releases/tag/v${windowProps.ot_version}`">v{{ windowProps.ot_version }}</a>
           </span>
         </div>
 

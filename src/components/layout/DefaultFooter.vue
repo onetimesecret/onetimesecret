@@ -7,7 +7,6 @@
   import ThemeToggle from '@/components/ThemeToggle.vue';
   import { WindowService } from '@/services/window.service';
   import type { LayoutProps } from '@/types/ui/layouts';
-  import { ref } from 'vue';
 
   withDefaults(defineProps<LayoutProps>(), {
     displayFeedback: true,
@@ -22,9 +21,9 @@
     'regions',
     'authentication',
     'i18n_enabled',
+    'ot_version',
   ]);
 
-  const companyName = ref('OnetimeSecret.com');
 </script>
 
 <template>
@@ -52,8 +51,8 @@
           flex-wrap items-center justify-center
           gap-4 text-center
           text-sm text-gray-500 dark:text-gray-400 md:w-auto md:justify-start md:text-left">
-          <span v-if="displayVersion">
-            &copy; {{ new Date().getFullYear() }} {{ companyName }}.
+          <span v-if="displayVersion" :title="`${$t('onetime-secret-literal')} Version`">
+             - v{{windowProps.ot_version}}
           </span>
         </div>
 

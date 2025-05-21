@@ -300,6 +300,7 @@
               {{ $t('web.COMMON.header_create_account') }}
             </router-link>
             <span
+              v-if="windowProps.authentication.signup && windowProps.authentication.signin"
               class="text-gray-400"
               aria-hidden="true"
               role="separator">
