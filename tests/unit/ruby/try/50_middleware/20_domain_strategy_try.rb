@@ -11,12 +11,14 @@ require 'onetime/middleware/domain_strategy'
 OT.boot! :test, false
 
 # In test setup
-OT.conf[:site] = {
+
+new_conf = {
   domains: {
     enabled: true,
     default: 'onetimesecret.com'
   }
 }
+OT.instance_variable_set(:@conf, new_conf)
 
 @canonical_domain = 'onetimesecret.com'
 @customer_id = 'cus_test1234' + rand(36**5).to_s(36)
