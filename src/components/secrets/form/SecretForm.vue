@@ -63,6 +63,7 @@
 
   const { form, validation, operations, isSubmitting, submit } = useSecretConcealer({
     onSuccess: async (response) => {
+      if (!response) throw 'Response is missing';
       const newMessage: ConcealedMessage = {
         id: nanoid(),
         metadata_key: response.record.metadata.key,

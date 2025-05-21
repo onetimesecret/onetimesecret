@@ -155,7 +155,7 @@ export function useAsyncHandler(options: AsyncHandlerOptions = {}) {
         const isHuman = errorGuards.isOfHumanInterest(classifiedError);
         const message = isHuman
           ? classifiedError.message
-          : 'An unexpected error occurred. Please try again.';
+          : 'web.COMMON.unexpected_error';
         handlers.notify(message, classifiedError.severity);
       }
 

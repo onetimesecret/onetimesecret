@@ -71,6 +71,7 @@
       "warning": "Warning",
       "oops": "Oops!",
       "error": "Error",
+      "unexpected_error": "An unexpected error occurred. Please try again.",
       "secret_was_truncated": "The message was truncated",
       "signup_for_more": "Signup for more",
       "login_to_your_account": "Log in to your account",

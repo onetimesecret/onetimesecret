@@ -84,12 +84,34 @@ export const errorClassifier = {
   },
 
   classifyValidation(error: ZodError): ApplicationError {
+    // Get a more user-friendly message from the ZodError
+    const formattedMessage = this.formatZodError(error);
+
     return wrapError(
-      error.message || 'Validation Error',
+      formattedMessage,
       'human',
       'error',
       error
     );
+  },
+
+  formatZodError(error: ZodError): string {
+    if (!error.errors || error.errors.length === 0) {
+      return 'Validation Error';
+    }
+
+    // Get the first error message
+    const firstError = error.errors[0];
+
+    if (firstError.code === 'invalid_type') {
+      // Format the invalid_type error nicely
+      const expected = firstError.expected;
+      const received = firstError.received;
+      return `Invalid data received. Expected ${expected} but got ${received}.`;
+    }
+
+    // Default to the error message
+    return firstError.message || 'Validation Error';
   },
 
   getTypeFromStatus(status: number): ErrorType {
