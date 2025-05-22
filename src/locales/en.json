@@ -24,6 +24,8 @@
     },
     "COMMON": {
       "broadcast": "",
+      "powered_by": "Powered by",
+      "website_url": "https://onetimesecret.com/en",
       "button_generate_secret_short": "Generate Password",
       "generate_password_disabled": "Generate Password is disabled when the form is valid",
       "email_placeholder": "e.g. tom{'@'}myspace.com",

@@ -23,7 +23,6 @@
     'i18n_enabled',
     'ot_version',
   ]);
-
 </script>
 
 <template>
@@ -49,10 +48,28 @@
           class="
           flex w-full
           flex-wrap items-center justify-center
-          gap-4 text-center
-          text-sm text-gray-500 dark:text-gray-400 md:w-auto md:justify-start md:text-left">
-          <span v-if="displayVersion" :title="`${$t('onetime-secret-literal')} Version`">
-             - v{{windowProps.ot_version}}
+          text-center
+          text-xs text-gray-500 dark:text-gray-400 md:w-auto md:justify-start md:text-left">
+          <span
+            v-if="displayPoweredBy"
+            :title="`${$t('onetime-secret-literal')} Version`">
+            {{ $t('web.COMMON.powered_by') }}
+            <a
+              href="{{$t('web.COMMON.website_url')}}"
+              target="_blank"
+              rel="noopener noreferrer"
+              >{{ $t('onetime-secret-literal') }}</a
+            >
+          </span>
+          <span
+            v-if="displayVersion && displayPoweredBy"
+            class="flex items-center justify-center px-2">
+            -
+          </span>
+          <span
+            v-if="displayVersion"
+            :title="`${$t('onetime-secret-literal')} Version`">
+            v{{ windowProps.ot_version }}
           </span>
         </div>
 
