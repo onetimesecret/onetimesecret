@@ -2,6 +2,7 @@
 
 <script setup lang="ts">
   import FeedbackToggle from '@/components/FeedbackToggle.vue';
+  import FooterLinks from '@/components/layout/FooterLinks.vue';
   import JurisdictionToggle from '@/components/JurisdictionToggle.vue';
   import LanguageToggle from '@/components/LanguageToggle.vue';
   import ThemeToggle from '@/components/ThemeToggle.vue';
@@ -13,7 +14,8 @@
     displayLinks: true,
     displayVersion: true,
     displayToggles: true,
-    displayPoweredBy: false,
+    displayPoweredBy: true,
+    displayFooterLinks: false,
   });
 
   const windowProps = WindowService.getMultiple([
@@ -22,6 +24,7 @@
     'authentication',
     'i18n_enabled',
     'ot_version',
+    'ui',
   ]);
 </script>
 
@@ -35,6 +38,10 @@
     duration-300 dark:bg-gray-800"
     :aria-label="$t('site-footer')">
     <div class="container mx-auto max-w-2xl px-4">
+      <!-- Footer Links Section -->
+      <FooterLinks v-if="displayLinks" />
+
+      <!-- Existing Footer Content -->
       <!-- prettier-ignore-attribute class -->
       <div
         class="
@@ -42,7 +49,13 @@
         flex-col-reverse items-center
         justify-between
         space-y-6 space-y-reverse md:flex-row
-        md:space-y-0">
+        md:space-y-0"
+        :class="
+          displayLinks && windowProps.ui?.footer_links?.enabled
+            ? 'mt-8 border-t border-gray-200 pt-8 dark:border-gray-700'
+            : ''
+        ">
+        <!-- Version and Powered By -->
         <!-- prettier-ignore-attribute class -->
         <div
           class="
@@ -73,6 +86,7 @@
           </span>
         </div>
 
+        <!-- Toggles Section -->
         <!-- prettier-ignore-attribute class -->
         <div
           v-if="displayToggles"

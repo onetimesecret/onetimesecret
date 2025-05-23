@@ -12,6 +12,8 @@
     displayNavigation: true,
     displayVersion: true,
     displayToggles: true,
+    displayPoweredBy: true,
+    displayFooterLinks: false,
   });
 </script>
 
