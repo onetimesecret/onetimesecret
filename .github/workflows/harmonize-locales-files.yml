@@ -64,6 +64,12 @@ jobs:
           # Run the wrapper script
           "${GITHUB_WORKSPACE}/src/locales/scripts/github-action-harmonize.sh"
 
+      - name: Create reports directory
+        if: steps.harmonize.outputs.changes_made == 'true'
+        run: |
+          mkdir -p ./reports
+          echo "Created reports directory"
+
       - name: Generate enhanced translation templates and report
         if: |
           (steps.harmonize.outputs.changes_made == 'true') &&
@@ -74,10 +80,6 @@ jobs:
         run: |
           echo "=== Starting report generation ==="
           echo "Changed files detected: ${{ steps.harmonize.outputs.changes_made }}"
-
-          # Create reports directory first
-          mkdir -p ./reports
-          echo "Created reports directory"
 
           # Make translation template script executable
           chmod +x "${GITHUB_WORKSPACE}/src/locales/scripts/generate-translation-template.sh"
@@ -149,8 +151,7 @@ jobs:
           git diff --name-only | grep 'src/locales/' | grep -v 'en.json' >> enhanced-report.md
           echo '```' >> enhanced-report.md
 
-          # Create reports directory and copy files
-          mkdir -p ./reports
+          # Copy enhanced report to reports directory
           cp enhanced-report.md ./reports/
 
           # Copy translation templates to reports if they exist
@@ -170,8 +171,31 @@ jobs:
           echo "reports_generated=true" >> $GITHUB_OUTPUT
           echo "Report generation step completed"
 
-      - name: Upload translation templates and reports
+      - name: Ensure minimal report exists
         if: steps.harmonize.outputs.changes_made == 'true'
+        run: |
+          # Ensure reports directory exists with at least basic content
+          mkdir -p ./reports
+
+          # Create a basic report if none exists
+          if [ ! -f "./reports/enhanced-report.md" ]; then
+            echo "# 🌍 Harmonization Report" > ./reports/enhanced-report.md
+            echo "" >> ./reports/enhanced-report.md
+            echo "**Generated:** $(date -u +%Y-%m-%dT%H:%M:%SZ)" >> ./reports/enhanced-report.md
+            echo "**Status:** Harmonization completed but detailed report generation failed" >> ./reports/enhanced-report.md
+            echo "" >> ./reports/enhanced-report.md
+            echo "## Files Modified" >> ./reports/enhanced-report.md
+            echo '```' >> ./reports/enhanced-report.md
+            git diff --name-only | grep 'src/locales/' | grep -v 'en.json' >> ./reports/enhanced-report.md || echo "Unable to determine modified files" >> ./reports/enhanced-report.md
+            echo '```' >> ./reports/enhanced-report.md
+          fi
+
+          # List final contents for debugging
+          echo "=== Final reports directory contents ==="
+          ls -la ./reports/
+
+      - name: Upload translation templates and reports
+        if: always() && steps.harmonize.outputs.changes_made == 'true'
         uses: actions/upload-artifact@v4
         with:
           name: translation-templates-and-reports
@@ -180,7 +204,7 @@ jobs:
         continue-on-error: true
 
       - name: Upload fallback reports (minimal)
-        if: steps.harmonize.outputs.changes_made == 'true' && failure()
+        if: always() && steps.harmonize.outputs.changes_made == 'true' && failure()
         uses: actions/upload-artifact@v4
         with:
           name: fallback-harmonization-report
@@ -193,6 +217,7 @@ jobs:
       - name: Create Pull Request for changes
         if: steps.harmonize.outputs.changes_made == 'true'
         id: create-pr
+        continue-on-error: true
         run: |
           # Debug Git state
           echo "=== Git Debug Information ==="
