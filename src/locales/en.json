@@ -5,7 +5,7 @@
       "secret_view_faq": {
         "what_am_i_looking_at": {
           "title": "What am I looking at?",
-          "description": "You're viewing a secure message that was shared with you through OneTime Secret. This content is displayed only once and then permanently deleted from our servers."
+          "description": "You're viewing a secure message that was shared with you through Onetime Secret. This content is displayed only once and then permanently deleted from our servers."
         },
         "can_i_view_again": {
           "title": "Can I view this secret again later?",
@@ -841,5 +841,10 @@
   "copy-secret-to-clipboard": "Copy secret to clipboard",
   "secret-copied-to-clipboard": "Secret copied to clipboard",
   "Double check that passphrase": "Double check that passphrase",
-  "press_copy_button_below": "Press the copy button below."
+  "press_copy_button_below": "Press the copy button below.",
+  "components": {
+    "potentialLogos": {
+      "title": "Potential Logo Icons"
+    }
+  }
 }

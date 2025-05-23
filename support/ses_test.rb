@@ -1,6 +1,6 @@
 # support/ses_test.rb
 #
-# Test script for AWS SES email delivery in OneTimeSecret
+# Test script for AWS SES email delivery in OnetimeSecret
 # This utility verifies that Amazon SES is properly configured for sending emails
 
 $LOAD_PATH.unshift(File.expand_path("../../lib", __FILE__))

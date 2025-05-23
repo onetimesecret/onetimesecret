@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-# These tryouts test the TrueMail configuration integration in the OneTime application.
+# These tryouts test the TrueMail configuration integration in the Onetime application.
 # They cover:
 #
 # 1. Key mapping between OneTime's naming conventions and TrueMail's API
