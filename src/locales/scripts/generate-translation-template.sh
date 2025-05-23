@@ -89,9 +89,11 @@ generate_translation_template() {
       # Get English content for reference
       (input | .) as $english |
 
-      # Find keys where current value is empty string but English has content
+      # Find keys where current value equals English value (indicating copied/untranslated keys)
+      # or where current value is empty string but English has content
       reduce (paths(scalars) as $path |
-        if (getpath($path) == "" and ($english | getpath($path) != ""))
+        if (($english | getpath($path)) != null and ($english | getpath($path)) != "" and
+            (getpath($path) == ($english | getpath($path)) or getpath($path) == ""))
         then {($path | join(".")): ($english | getpath($path))}
         else empty
         end
