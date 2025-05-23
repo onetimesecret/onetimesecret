@@ -32,6 +32,7 @@
   :interface:
     :ui:
       :enabled: any(bool(), str())
+      :footer_links: include(':footer_links', required=False)
     :api:
       :enabled: any(bool(), str())
   :secret_options:
@@ -193,3 +194,22 @@
   :icon:
     :collection: str()
     :name: str()
+
+---
+
+:footer_links:
+  :enabled: any(bool(), str())
+  :groups: list(include(':footer_link_group'), required=False)
+
+:footer_link_group:
+  :name: str()
+  :i18n_key: str(required=False)
+  :links: list(include(':footer_link'))
+
+:footer_link:
+  :text: str()
+  :i18n_key: str(required=False)
+  :url: str()
+  :external: any(bool(required=False), str())
+  :icon: str(required=False)
+  :visible: bool(required=False)
