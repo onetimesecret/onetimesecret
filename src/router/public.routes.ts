@@ -1,9 +1,8 @@
 // src/router/public.routes.ts
 
-import QuietFooter from '@/components/layout/QuietFooter.vue';
-import QuietHeader from '@/components/layout/QuietHeader.vue';
+import DefaultFooter from '@/components/layout/DefaultFooter.vue';
+import DefaultHeader from '@/components/layout/DefaultHeader.vue';
 import DefaultLayout from '@/layouts/DefaultLayout.vue';
-import QuietLayout from '@/layouts/QuietLayout.vue';
 import { WindowService } from '@/services/window.service';
 import HomepageContainer from '@/views/HomepageContainer.vue';
 import IncomingSupportSecret from '@/views/secrets/IncomingSupportSecret.vue';
@@ -15,18 +14,18 @@ const routes: Array<RouteRecordRaw> = [
     name: 'Home',
     components: {
       default: HomepageContainer,
-      header: QuietHeader,
-      footer: QuietFooter,
+      header: DefaultHeader,
+      footer: DefaultFooter,
     },
     meta: {
       requiresAuth: false,
-      layout: QuietLayout,
+      layout: DefaultLayout,
       layoutProps: {
         displayMasthead: true,
         displayNavigation: true,
         displayLinks: true,
         displayFeedback: true,
-        displayPoweredBy: false,
+        displayPoweredBy: true,
         displayVersion: true,
         displayToggles: true,
       },
