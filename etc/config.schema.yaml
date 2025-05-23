@@ -210,6 +210,6 @@
   :text: str()
   :i18n_key: str(required=False)
   :url: str()
-  :external: bool(required=False)
+  :external: any(bool(required=False), str())
   :icon: str(required=False)
   :visible: bool(required=False)
