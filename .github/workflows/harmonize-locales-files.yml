@@ -1,0 +1,86 @@
+name: Harmonize Locale Files
+
+on:
+  # Run on push to main branch
+  push:
+    branches:
+      - develop
+    paths:
+      - 'src/locales/en.json'
+
+  # Allow manual trigger
+  workflow_dispatch:
+    inputs:
+      copy_english:
+        description: 'Copy English phrases for new keys instead of empty strings'
+        type: boolean
+        default: true
+      generate_report:
+        description: 'Generate diff report for translation needs'
+        type: boolean
+        default: true
+
+jobs:
+  harmonize:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up environment
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y jq
+
+      - name: Run harmonize-locale-files script
+        id: harmonize
+        shell: bash
+        env:
+          COPY_ENGLISH: ${{ github.event_name != 'workflow_dispatch' || github.event.inputs.copy_english == 'true' }}
+        run: |
+          # Make wrapper script executable
+          chmod +x "${GITHUB_WORKSPACE}/src/locales/scripts/github-action-harmonize.sh"
+
+          # Run the wrapper script
+          "${GITHUB_WORKSPACE}/src/locales/scripts/github-action-harmonize.sh"
+
+      - name: Generate translation needs report
+        if: |
+          (steps.harmonize.outputs.changes_made == 'true') &&
+          ((github.event_name == 'workflow_dispatch' && github.event.inputs.generate_report == 'true') ||
+           github.event_name == 'push')
+        id: report
+        run: |
+          echo "# Translation Needs Report" > translation-report.md
+          echo "## Files changed" >> translation-report.md
+          echo "The following locale files have been updated:" >> translation-report.md
+          echo "$(git diff --name-only | grep 'src/locales/' | grep -v 'en.json')" >> translation-report.md
+          echo "" >> translation-report.md
+
+          echo "## Changes needed" >> translation-report.md
+          echo "The following keys need translation in each modified locale file:" >> translation-report.md
+          echo '```diff' >> translation-report.md
+          git diff --unified=0 src/locales/*.json | grep -E "^\+.*\":" | grep -v "src/locales/en.json" >> translation-report.md
+          echo '```' >> translation-report.md
+
+          # Create artifact for the report
+          mkdir -p ./reports
+          cp translation-report.md ./reports/
+
+      - name: Upload translation report
+        if: steps.report.conclusion == 'success'
+        uses: actions/upload-artifact@v4
+        with:
+          name: translation-needs-report
+          path: ./reports/translation-report.md
+          retention-days: 30
+
+      - name: Commit changes
+        if: steps.harmonize.outputs.changes_made == 'true'
+        run: |
+          git config --global user.name "GitHub Action"
+          git config --global user.email "action@github.com"
+          git add src/locales/*.json
+          git commit -m "[i18n] Harmonize locale files" -m "Synchronized locale files structure with en.json"
+          git push
