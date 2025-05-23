@@ -194,27 +194,36 @@ jobs:
         if: steps.harmonize.outputs.changes_made == 'true'
         id: create-pr
         run: |
+          # Debug Git state
+          echo "=== Git Debug Information ==="
+          echo "Current branch: $(git branch --show-current)"
+          echo "Current ref: ${{ github.ref }}"
+          echo "Current ref name: ${{ github.ref_name }}"
+          echo "Default branch: ${{ github.event.repository.default_branch }}"
+          echo "Head SHA: ${{ github.sha }}"
+          git status --porcelain
+          echo "=========================="
+
           # Configure git
           git config --global user.name "GitHub Action"
           git config --global user.email "action@github.com"
 
-          # Create a unique branch name
-          BRANCH_NAME="i18n/harmonize-locales-$(date +%Y%m%d-%H%M%S)"
-          echo "branch_name=$BRANCH_NAME" >> $GITHUB_OUTPUT
-
-          # Create and switch to new branch
-          git checkout -b "$BRANCH_NAME"
-
-          # Add and commit changes
-          git add src/locales/*.json
-
           # Check if there are actually changes to commit
+          git add src/locales/*.json
           if git diff --cached --quiet; then
             echo "No changes to commit"
             echo "pr_created=false" >> $GITHUB_OUTPUT
             exit 0
           fi
 
+          # Create a unique branch name
+          BRANCH_NAME="i18n/harmonize-locales-$(date +%Y%m%d-%H%M%S)"
+          echo "branch_name=$BRANCH_NAME" >> $GITHUB_OUTPUT
+
+          # Create and switch to new branch from current HEAD
+          git checkout -b "$BRANCH_NAME"
+
+          # Commit changes on the new branch
           git commit -m "[i18n] Harmonize locale files" -m "Synchronized locale files structure with en.json
 
           This automated change ensures all locale files have the same key structure as en.json.
@@ -225,7 +234,7 @@ jobs:
           - The structure changes make sense for all locales"
 
           # Push the branch
-          git push origin "$BRANCH_NAME"
+          git push -u origin "$BRANCH_NAME"
 
           echo "pr_created=true" >> $GITHUB_OUTPUT
 
@@ -280,5 +289,5 @@ jobs:
             --title "🌍 Harmonize locale files structure" \
             --body-file pr-body.md \
             --head "${{ steps.create-pr.outputs.branch_name }}" \
-            --base "${{ github.ref_name }}" \
+            --base "${{ github.head_ref || github.ref_name }}" \
             --label "i18n"
