@@ -1,6 +1,6 @@
 // src/router/public.routes.ts
 
-import PotentialLogos from '@/components/icons/PotentialLogos.vue';
+import AlternateLogos from '@/components/icons/logos/AlternateLogos.vue';
 import DefaultFooter from '@/components/layout/DefaultFooter.vue';
 import DefaultHeader from '@/components/layout/DefaultHeader.vue';
 import DefaultLayout from '@/layouts/DefaultLayout.vue';
@@ -62,7 +62,7 @@ const routes: Array<RouteRecordRaw> = [
   {
     path: '/icons',
     name: 'Icons',
-    component: PotentialLogos,
+    component: AlternateLogos,
     meta: {
       requiresAuth: false,
       layout: DefaultLayout,

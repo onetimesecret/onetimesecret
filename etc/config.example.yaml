@@ -29,7 +29,7 @@
           # Logo configuration
           :logo:
             # URL to logo image file
-            :url: <%= ENV['LOGO_URL'] || '/img/emojione-monotone-japanese-secret-button.svg' %>
+            :url: <%= ENV['LOGO_URL'] || 'MonotoneJapaneseSecretButton.vue' %>
             # Alt text for logo image
             :alt: <%= ENV['LOGO_ALT'] || 'Onetime Secret' %>
             # Where the logo links to when clicked
