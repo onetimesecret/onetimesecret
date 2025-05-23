@@ -29,12 +29,11 @@ export interface LayoutDisplay {
   displayGlobalBroadcast: boolean;
   displayMasthead: boolean;
   displayNavigation: boolean;
-  displayLinks: boolean;
+  displayFooterLinks: boolean;
   displayFeedback: boolean;
   displayVersion: boolean;
   displayPoweredBy: boolean;
   displayToggles: boolean;
-  displayFooterLinks?: boolean;
 }
 
 /**

@@ -33,7 +33,7 @@ import { DiagnosticsConfig } from '../diagnostics';
 type Message = { type: 'success' | 'error' | 'info'; content: string };
 
 export interface FooterLink {
-  text: string;
+  text?: string;
   i18n_key?: string;
   url: string;
   external?: boolean;
@@ -41,7 +41,7 @@ export interface FooterLink {
 }
 
 export interface FooterGroup {
-  name: string;
+  name?: string;
   i18n_key?: string;
   links: FooterLink[];
 }
@@ -51,8 +51,30 @@ export interface FooterLinksConfig {
   groups: FooterGroup[];
 }
 
+export interface HeaderLogo {
+  url: string;
+  alt: string;
+  link_to: string;
+}
+
+export interface HeaderBranding {
+  logo: HeaderLogo;
+  company_name?: string;
+}
+
+export interface HeaderNavigation {
+  enabled: boolean;
+}
+
+export interface HeaderConfig {
+  enabled: boolean;
+  branding?: HeaderBranding;
+  navigation?: HeaderNavigation;
+}
+
 export interface UiInterface {
   enabled: boolean;
+  header?: HeaderConfig;
   footer_links?: FooterLinksConfig;
 }
 

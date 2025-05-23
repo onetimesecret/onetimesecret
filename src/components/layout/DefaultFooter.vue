@@ -11,11 +11,10 @@
 
   withDefaults(defineProps<LayoutProps>(), {
     displayFeedback: true,
-    displayLinks: true,
+    displayFooterLinks: true,
     displayVersion: true,
     displayToggles: true,
     displayPoweredBy: true,
-    displayFooterLinks: false,
   });
 
   const windowProps = WindowService.getMultiple([
@@ -39,7 +38,7 @@
     :aria-label="$t('site-footer')">
     <div class="container mx-auto max-w-2xl px-4">
       <!-- Footer Links Section -->
-      <FooterLinks v-if="displayLinks" />
+      <FooterLinks v-if="displayFooterLinks" />
 
       <!-- Existing Footer Content -->
       <!-- prettier-ignore-attribute class -->
@@ -51,7 +50,7 @@
         space-y-6 space-y-reverse md:flex-row
         md:space-y-0"
         :class="
-          displayLinks && windowProps.ui?.footer_links?.enabled
+          displayFooterLinks && windowProps.ui?.footer_links?.enabled
             ? 'mt-8 border-t border-gray-200 pt-8 dark:border-gray-700'
             : ''
         ">
