@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { type  PropType, computed } from 'vue';
-import type { IconSet } from './meta';
-import { iconLibraries } from './meta';
+import type { IconSet } from './sprites';
+import { iconLibraries } from './sprites';
 
 const props = defineProps({
   icons: {
