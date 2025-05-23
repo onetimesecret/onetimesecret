@@ -32,6 +32,30 @@ import { DiagnosticsConfig } from '../diagnostics';
 
 type Message = { type: 'success' | 'error' | 'info'; content: string };
 
+export interface FooterLink {
+  text: string;
+  i18n_key?: string;
+  url: string;
+  external?: boolean;
+  icon?: string;
+}
+
+export interface FooterGroup {
+  name: string;
+  i18n_key?: string;
+  links: FooterLink[];
+}
+
+export interface FooterLinksConfig {
+  enabled: boolean;
+  groups: FooterGroup[];
+}
+
+export interface UiInterface {
+  enabled: boolean;
+  footer_links?: FooterLinksConfig;
+}
+
 export interface OnetimeWindow {
   apitoken?: string;
   authenticated: boolean;
@@ -106,4 +130,6 @@ export interface OnetimeWindow {
   features: {
     markdown: boolean;
   };
+
+  ui: UiInterface;
 }

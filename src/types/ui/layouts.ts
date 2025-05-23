@@ -34,6 +34,7 @@ export interface LayoutDisplay {
   displayVersion: boolean;
   displayPoweredBy: boolean;
   displayToggles: boolean;
+  displayFooterLinks?: boolean;
 }
 
 /**
