@@ -5,6 +5,15 @@ on:
   push:
     branches:
       - develop
+      - 'i18n/**'
+    paths:
+      - 'src/locales/en.json'
+
+  # Run when a PR is created or updated
+  pull_request:
+    branches:
+      - develop
+      - 'i18n/**'
     paths:
       - 'src/locales/en.json'
 
@@ -55,36 +64,97 @@ jobs:
           # Run the wrapper script
           "${GITHUB_WORKSPACE}/src/locales/scripts/github-action-harmonize.sh"
 
-      - name: Generate translation needs report
+      - name: Generate enhanced translation templates and report
         if: |
           (steps.harmonize.outputs.changes_made == 'true') &&
           ((github.event_name == 'workflow_dispatch' && github.event.inputs.generate_report == 'true') ||
            github.event_name == 'push')
         id: report
         run: |
-          echo "# Translation Needs Report" > translation-report.md
-          echo "## Files changed" >> translation-report.md
-          echo "The following locale files have been updated:" >> translation-report.md
-          echo "$(git diff --name-only | grep 'src/locales/' | grep -v 'en.json')" >> translation-report.md
-          echo "" >> translation-report.md
+          # Make translation template script executable
+          chmod +x "${GITHUB_WORKSPACE}/src/locales/scripts/generate-translation-template.sh"
 
-          echo "## Changes needed" >> translation-report.md
-          echo "The following keys need translation in each modified locale file:" >> translation-report.md
-          echo '```diff' >> translation-report.md
-          git diff --unified=0 src/locales/*.json | grep -E "^\+.*\":" | grep -v "src/locales/en.json" >> translation-report.md
-          echo '```' >> translation-report.md
+          # Source the enhanced reporting functions
+          source "${GITHUB_WORKSPACE}/src/locales/scripts/generate-translation-template.sh"
 
-          # Create artifact for the report
+          # Generate templates
+          generate_translation_template
+
+          # Create comprehensive report
+          echo "# 🌍 Translation Needs Report" > enhanced-report.md
+          echo "" >> enhanced-report.md
+          echo "**Generated:** $(date -u +%Y-%m-%dT%H:%M:%SZ)" >> enhanced-report.md
+          echo "**Workflow:** ${{ github.workflow }}" >> enhanced-report.md
+          echo "**Commit:** ${{ github.sha }}" >> enhanced-report.md
+          echo "" >> enhanced-report.md
+
+          # Add instructions
+          cat >> enhanced-report.md << 'EOF'
+          ## 📋 Translation Instructions
+
+          1. Download the translation templates from the workflow artifacts
+          2. Translate the English phrases while keeping JSON structure intact
+          3. Submit translations via PR or issue comment with the translated JSON
+          4. Use the automated integration script to apply translations
+
+          ## 🔧 Integration Commands
+
+          To apply translations programmatically:
+          ```bash
+          chmod +x ./src/locales/scripts/apply-translations.sh
+          ./src/locales/scripts/apply-translations.sh <translation-file> <locale>
+          ```
+
+          ## 📁 Template Files
+
+          Each locale that needs translation has two files generated:
+          - `{locale}-translation-needed.json` - JSON template with keys needing translation
+          - `{locale}-report.md` - Individual locale report with instructions
+
+          EOF
+
+          # Include summary of changes
+          echo "" >> enhanced-report.md
+          echo "## 📊 Translation Summary" >> enhanced-report.md
+          echo "| Locale | Keys Added | Template File | Status |" >> enhanced-report.md
+          echo "|--------|------------|---------------|--------|" >> enhanced-report.md
+
+          # Check if translation templates were generated
+          if [ -d "translation-templates" ]; then
+            for template_file in translation-templates/*-translation-needed.json; do
+              if [ -f "$template_file" ]; then
+                locale=$(basename "$template_file" -translation-needed.json)
+                key_count=$(jq 'keys | length' "$template_file" 2>/dev/null || echo "0")
+                echo "| $locale | $key_count | $template_file | 🔄 Needs translation |" >> enhanced-report.md
+              fi
+            done
+          else
+            echo "| - | 0 | - | ✅ No translations needed |" >> enhanced-report.md
+          fi
+
+          echo "" >> enhanced-report.md
+          echo "## 📄 Changed Files" >> enhanced-report.md
+          echo "The following locale files were modified:" >> enhanced-report.md
+          echo '```' >> enhanced-report.md
+          git diff --name-only | grep 'src/locales/' | grep -v 'en.json' >> enhanced-report.md
+          echo '```' >> enhanced-report.md
+
+          # Create reports directory and copy files
           mkdir -p ./reports
-          cp translation-report.md ./reports/
+          cp enhanced-report.md ./reports/
 
-      - name: Upload translation report
+          # Copy translation templates to reports if they exist
+          if [ -d "translation-templates" ]; then
+            cp -r translation-templates ./reports/
+          fi
+
+      - name: Upload translation templates and reports
         if: steps.report.conclusion == 'success'
         uses: actions/upload-artifact@v4
         with:
-          name: translation-needs-report
-          path: ./reports/translation-report.md
-          retention-days: 30
+          name: translation-templates-and-reports
+          path: ./reports/
+          retention-days: 90
 
       - name: Create Pull Request for changes
         if: steps.harmonize.outputs.changes_made == 'true'
@@ -144,12 +214,12 @@ jobs:
           $(git diff --name-only HEAD~1 | grep 'src/locales/' | grep -v 'en.json')
           \`\`\`"
 
-          # Add translation report to PR body if it exists
-          if [ -f "./reports/translation-report.md" ]; then
+          # Add enhanced translation report to PR body if it exists
+          if [ -f "./reports/enhanced-report.md" ]; then
             PR_BODY="$PR_BODY
 
           ### Translation Needs Report
-          $(cat ./reports/translation-report.md)"
+          $(cat ./reports/enhanced-report.md)"
           fi
 
           PR_BODY="$PR_BODY
