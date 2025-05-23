@@ -1,5 +1,6 @@
 // src/router/public.routes.ts
 
+import PotentialLogos from '@/components/icons/PotentialLogos.vue';
 import DefaultFooter from '@/components/layout/DefaultFooter.vue';
 import DefaultHeader from '@/components/layout/DefaultHeader.vue';
 import DefaultLayout from '@/layouts/DefaultLayout.vue';
@@ -23,7 +24,7 @@ const routes: Array<RouteRecordRaw> = [
       layoutProps: {
         displayMasthead: true,
         displayNavigation: true,
-        displayLinks: true,
+        displayFooterLinks: true,
         displayFeedback: true,
         displayPoweredBy: true,
         displayVersion: true,
@@ -40,7 +41,7 @@ const routes: Array<RouteRecordRaw> = [
           ...to.meta.layoutProps,
           displayMasthead: true,
           displayNavigation: false,
-          displayLinks: false,
+          displayFooterLinks: false,
           displayFeedback: false,
           displayVersion: true,
           displayPoweredBy: true,
@@ -58,7 +59,15 @@ const routes: Array<RouteRecordRaw> = [
       layout: DefaultLayout,
     },
   },
-
+  {
+    path: '/icons',
+    name: 'Icons',
+    component: PotentialLogos,
+    meta: {
+      requiresAuth: false,
+      layout: DefaultLayout,
+    },
+  },
   {
     path: '/feedback',
     name: 'Feedback',
@@ -68,7 +77,7 @@ const routes: Array<RouteRecordRaw> = [
       layout: DefaultLayout,
       layoutProps: {
         displayMasthead: true,
-        displayLinks: true,
+        displayFooterLinks: true,
         displayFeedback: false,
       },
     },
