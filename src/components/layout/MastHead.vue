@@ -10,6 +10,7 @@
   import { useJurisdictionStore } from '@/stores/jurisdictionStore';
   import type { LayoutProps } from '@/types/ui/layouts';
   import { computed, nextTick, ref, watch } from 'vue';
+  import { useI18n } from 'vue-i18n';
 
   withDefaults(defineProps<LayoutProps>(), {
     displayMasthead: true,
@@ -23,9 +24,31 @@
     'authentication',
     'authenticated',
     'cust',
+    'ui',
   ]);
 
   const isColonel = computed(() => windowProps.cust?.role === 'colonel');
+
+  // i18n setup
+  const { t } = useI18n();
+
+  // Header configuration
+  const headerConfig = computed(() => windowProps.ui?.header);
+  const logoUrl = computed(() =>
+    headerConfig.value?.branding?.logo?.url || '/v3/img/onetime-logo-v3-xl.svg'
+  );
+  const logoAlt = computed(() =>
+    headerConfig.value?.branding?.logo?.alt || 'Onetime Secret'
+  );
+  const logoLinkTo = computed(() =>
+    headerConfig.value?.branding?.logo?.link_to || '/'
+  );
+  const companyName = computed(() =>
+    headerConfig.value?.branding?.company_name || t('onetime-secret-literal')
+  );
+  const navigationEnabled = computed(() =>
+    headerConfig.value?.navigation?.enabled !== false
+  );
 
   // Reactive state
   const isSettingsModalOpen = ref(false);
@@ -118,17 +141,17 @@
       <div class="mb-4 flex items-center justify-between sm:mb-0">
         <div class="relative">
           <router-link
-            to="/"
+            :to="logoLinkTo"
             class="group flex items-center"
             :aria-label="$t('onetime-secret-homepage')">
             <div class="relative">
               <img
                 id="logo"
-                src="@/assets/img/onetime-logo-v3-xl.svg"
+                :src="logoUrl"
                 class="size-12 rounded-md transition-transform sm:size-16"
                 height="64"
                 width="64"
-                alt="" />
+                :alt="logoAlt" />
             </div>
           </router-link>
           <!-- Jurisdiction selector section -->
@@ -217,10 +240,10 @@
             </div>
           </div>
         </div>
-        <router-link to="/">
+        <router-link :to="logoLinkTo">
           <div class="ml-3 flex flex-col">
             <span class="font-brand text-xl font-bold tracking-tight text-gray-900 dark:text-white">
-              {{ $t('onetime-secret-literal') }}
+              {{ companyName }}
             </span>
             <span class="text-xs text-gray-500 dark:text-gray-400" aria-hidden="true">
               {{ $t('tagline-signed') }}.
@@ -244,7 +267,7 @@
       </div>
 
       <nav
-        v-if="displayNavigation"
+        v-if="displayNavigation && navigationEnabled"
         role="navigation"
         :aria-label="$t('main-navigation')"
         class="flex flex-wrap items-center justify-center gap-4

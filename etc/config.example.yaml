@@ -19,6 +19,27 @@
       # Controls whether the web interface is enabled
       # When false, only a basic explanation page is shown
       :enabled: <%= ENV['UI_ENABLED'] != 'false' %>
+      # Header configuration
+      # Controls branding and navigation in the site header
+      :header:
+        # Control switch to enable/disable header customization
+        :enabled: <%= ENV['HEADER_ENABLED'] != 'false' %>
+        # Branding configuration for logo and company name
+        :branding:
+          # Logo configuration
+          :logo:
+            # URL to logo image file
+            :url: <%= ENV['LOGO_URL'] || '/img/emojione-monotone-japanese-secret-button.svg' %>
+            # Alt text for logo image
+            :alt: <%= ENV['LOGO_ALT'] || 'Onetime Secret' %>
+            # Where the logo links to when clicked
+            :href: <%= ENV['LOGO_LINK'] || '/' %>
+          # Company name override (falls back to i18n if not set)
+          :company_name: <%= ENV['COMPANY_NAME'] %>
+        # Navigation configuration
+        :navigation:
+          # Enable/disable header navigation entirely
+          :enabled: <%= ENV['HEADER_NAV_ENABLED'] != 'false' %>
       # Footer link configuration
       # These links appear in the footer of each page
       :footer_links:

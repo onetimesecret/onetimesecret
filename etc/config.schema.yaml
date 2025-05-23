@@ -32,6 +32,7 @@
   :interface:
     :ui:
       :enabled: any(bool(), str())
+      :header: include(':header', required=False)
       :footer_links: include(':footer_links', required=False)
     :api:
       :enabled: any(bool(), str())
@@ -210,6 +211,23 @@
   :text: str()
   :i18n_key: str(required=False)
   :url: str()
-  :external: any(bool(required=False), str())
+  :external: bool(required=False)
   :icon: str(required=False)
   :visible: bool(required=False)
+
+:header:
+  :enabled: any(bool(), str())
+  :branding: include(':header_branding', required=False)
+  :navigation: include(':header_navigation', required=False)
+
+:header_branding:
+  :logo: include(':header_logo', required=False)
+  :company_name: str(required=False)
+
+:header_logo:
+  :url: str(required=False)
+  :alt: str(required=False)
+  :link_to: str(required=False)
+
+:header_navigation:
+  :enabled: any(bool(), str())
