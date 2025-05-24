@@ -2,11 +2,14 @@
 
 <script setup lang="ts">
   import FeedbackToggle from '@/components/FeedbackToggle.vue';
-  import FooterLinks from '@/components/layout/FooterLinks.vue';
   import JurisdictionToggle from '@/components/JurisdictionToggle.vue';
   import LanguageToggle from '@/components/LanguageToggle.vue';
+  import FooterLinks from '@/components/layout/FooterLinks.vue';
+
   import ThemeToggle from '@/components/ThemeToggle.vue';
+
   import { WindowService } from '@/services/window.service';
+
   import type { LayoutProps } from '@/types/ui/layouts';
 
   withDefaults(defineProps<LayoutProps>(), {
@@ -63,15 +66,13 @@
           text-center
           text-xs text-gray-500 dark:text-gray-400 md:w-auto md:justify-start md:text-left">
           <span
-            v-if="displayPoweredBy"
+            v-if="displayVersion"
             :title="`${$t('onetime-secret-literal')} Version`">
-            {{ $t('web.COMMON.powered_by') }}
             <a
-              href="{{$t('web.COMMON.website_url')}}"
-              target="_blank"
-              rel="noopener noreferrer"
-              >{{ $t('onetime-secret-literal') }}</a
-            >
+              :href="`https://github.com/onetimesecret/onetimesecret/releases/tag/v${windowProps.ot_version}`"
+              :aria-label="$t('release-notes')">
+              v{{ windowProps.ot_version }}
+            </a>
           </span>
           <span
             v-if="displayVersion && displayPoweredBy"
@@ -79,9 +80,15 @@
             -
           </span>
           <span
-            v-if="displayVersion"
+            v-if="displayPoweredBy"
             :title="`${$t('onetime-secret-literal')} Version`">
-            v{{ windowProps.ot_version }}
+            {{ $t('web.COMMON.powered_by') }}
+            <a
+              :href="$t('web.COMMON.website_url')"
+              target="_blank"
+              rel="noopener noreferrer">
+              {{ $t('onetime-secret-literal') }}
+            </a>
           </span>
         </div>
 
