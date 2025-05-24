@@ -1,4 +1,4 @@
-<!-- src/components/icons/TablerSprites.vue -->
+<!-- src/components/icons/AlternateLogos.vue -->
 
 <template>
   <svg
