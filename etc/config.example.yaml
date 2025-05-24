@@ -29,9 +29,9 @@
           # Logo configuration
           :logo:
             # URL to logo image file
-            :url: <%= ENV['LOGO_URL'] || 'MonotoneJapaneseSecretButton.vue' %>
+            :url: <%= ENV['LOGO_URL'] || 'DefaultLogo.vue' %>
             # Alt text for logo image
-            :alt: <%= ENV['LOGO_ALT'] || 'Onetime Secret' %>
+            :alt: <%= ENV['LOGO_ALT'] || 'Share a Secret One-Time' %>
             # Where the logo links to when clicked
             :href: <%= ENV['LOGO_LINK'] || '/' %>
           # Company name override (falls back to i18n if not set)

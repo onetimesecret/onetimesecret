@@ -9,7 +9,7 @@
   import { computed, ref, watch, type Component } from 'vue';
   import { useI18n } from 'vue-i18n';
 
-  withDefaults(defineProps<LayoutProps>(), {
+  const props = withDefaults(defineProps<LayoutProps>(), {
     displayMasthead: true,
     displayNavigation: true,
     colonel: false,
@@ -29,28 +29,32 @@
 
   // Header configuration
   const headerConfig = computed(() => windowProps.ui?.header);
-  const logoUrl = computed(() =>
-    headerConfig.value?.branding?.logo?.url || 'MonotoneJapaneseSecretButton.vue'
-  );
-  const logoAlt = computed(() =>
-    headerConfig.value?.branding?.logo?.alt || t('one-time-secret-literal')
-  );
-  const logoLinkTo = computed(() =>
-    headerConfig.value?.branding?.logo?.link_to || '/'
-  );
-  const companyName = computed(() =>
-    headerConfig.value?.branding?.company_name || t('one-time-secret-literal')
-  );
+
+  // Default logo component for fallback
+  const DEFAULT_LOGO = 'MonotoneJapaneseSecretButton.vue';
+
+  // Simplified logo configuration with prop override support
+  const logoConfig = computed(() => ({
+    url: props.logo?.url || headerConfig.value?.branding?.logo?.url || DEFAULT_LOGO,
+    alt: props.logo?.alt || headerConfig.value?.branding?.logo?.alt || t('one-time-secret-literal'),
+    href: props.logo?.href || headerConfig.value?.branding?.logo?.link_to || '/',
+    size: props.logo?.size || 64,
+    showCompanyName: props.logo?.showCompanyName ?? !!headerConfig.value?.branding?.company_name,
+    companyName: props.logo?.companyName || headerConfig.value?.branding?.company_name || t('one-time-secret-literal'),
+    mode: props.logo?.mode || 'light',
+    ariaLabel: props.logo?.ariaLabel
+  }));
+
   const navigationEnabled = computed(() =>
     headerConfig.value?.navigation?.enabled !== false
   );
 
   // Logo component handling
-  const isVueComponent = computed(() => logoUrl.value.endsWith('.vue'));
+  const isVueComponent = computed(() => logoConfig.value.url.endsWith('.vue'));
   const logoComponent = ref<Component | null>(null);
 
   // Watch for changes to logoUrl and load Vue component if needed
-  watch(logoUrl, async (newLogoUrl) => {
+  watch(() => logoConfig.value.url, async (newLogoUrl) => {
     if (newLogoUrl.endsWith('.vue')) {
       try {
         const componentName = newLogoUrl.replace('.vue', '');
@@ -58,7 +62,20 @@
         logoComponent.value = module.default;
       } catch (error) {
         console.warn(`Failed to load logo component: ${newLogoUrl}`, error);
-        logoComponent.value = null;
+        // Fall back to default logo if specified logo fails to load
+        if (newLogoUrl !== DEFAULT_LOGO) {
+          try {
+            const defaultComponent = DEFAULT_LOGO.replace('.vue', '');
+            const module = await import(`@/components/icons/logos/${defaultComponent}.vue`);
+            logoComponent.value = module.default;
+            console.info(`Loaded fallback logo: ${defaultComponent}`);
+          } catch (fallbackError) {
+            console.error(`Failed to load fallback logo: ${DEFAULT_LOGO}`, fallbackError);
+            logoComponent.value = null;
+          }
+        } else {
+          logoComponent.value = null;
+        }
       }
     } else {
       logoComponent.value = null;
@@ -83,22 +100,33 @@
   <div class="w-full">
     <div class="flex flex-col items-center justify-between sm:flex-row">
       <!-- Logo lockup -->
-      <div class="mb-4 flex items-center justify-between sm:mb-0">
-        <component
-          v-if="isVueComponent && logoComponent"
-          :is="logoComponent"
-          id="logo"
-          :size="64"
-          :aria-label="t('one-time-secret-literal')"
-          class="size-12 rounded-md transition-transform sm:size-16" />
-        <img
-          v-else
-          id="logo"
-          :src="logoUrl"
-          class="size-12 rounded-md transition-transform sm:size-16"
-          height="64"
-          width="64"
-          :alt="t('one-time-secret-literal')" />
+      <div class="mb-4 flex items-center justify-between gap-3 sm:mb-0">
+        <div v-if="isVueComponent && logoComponent">
+          <component
+            :is="logoComponent"
+            id="logo"
+            v-bind="logoConfig"
+            class="transition-transform" />
+        </div>
+        <div v-else>
+          <a
+            :href="logoConfig.href"
+            class="flex items-center gap-3"
+            :aria-label="logoConfig.alt">
+            <img
+              id="logo"
+              :src="logoConfig.url"
+              class="size-12 transition-transform"
+              :height="logoConfig.size"
+              :width="logoConfig.size"
+              :alt="logoConfig.alt" />
+            <span
+              v-if="logoConfig.showCompanyName"
+              class="text-lg font-bold text-gray-800 dark:text-gray-100">
+              {{ logoConfig.companyName }}
+            </span>
+          </a>
+        </div>
       </div>
       <nav
         v-if="displayNavigation && navigationEnabled"
@@ -124,6 +152,7 @@
 
           <SettingsModal
             :is-open="isSettingsModalOpen"
+
             @close="closeSettingsModal" />
 
           <span
