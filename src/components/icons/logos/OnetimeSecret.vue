@@ -24,6 +24,78 @@ const windowProps = WindowService.getMultiple([
 // i18n setup
 const { t } = useI18n();
 
+const jurisdictionStore = useJurisdictionStore();
+const currentJurisdiction = computed<Jurisdiction | null>(
+  () => jurisdictionStore.getCurrentJurisdiction
+);
+
+// Safety functions for icon props
+const getIconCollection = (jurisdiction: Jurisdiction | null): string => {
+  return jurisdiction?.icon?.collection || 'fa6-solid';
+};
+
+const getIconName = (jurisdiction: Jurisdiction | null): string => {
+  return jurisdiction?.icon?.name || 'globe';
+};
+
+const tooltipVisible = ref(false);
+const navigateToJurisdiction = (domain: string) => {
+  window.location.href = `https://${domain}/`;
+};
+const toggleJurisdictionMenu = () => {
+  tooltipVisible.value = !tooltipVisible.value;
+};
+
+const handleJurisdictionKeydown = (event: KeyboardEvent) => {
+  if (event.key === 'Enter' || event.key === ' ') {
+    event.preventDefault();
+    toggleJurisdictionMenu();
+  } else if (event.key === 'Escape' && tooltipVisible.value) {
+    event.preventDefault();
+    tooltipVisible.value = false;
+  }
+};
+
+// Enhanced keyboard handling using VueUse
+onKeyStroke('Escape', (e) => {
+  if (tooltipVisible.value) {
+    e.preventDefault();
+    closeJurisdictionMenu();
+  }
+});
+
+// Focus management for dropdown
+const closeJurisdictionMenu = () => {
+  tooltipVisible.value = false;
+  document.getElementById('jurisdiction-button')?.focus();
+};
+
+// We can also simplify the click outside handling with VueUse
+const menuRef = ref<HTMLElement | null>(null);
+const buttonRef = ref<HTMLElement | null>(null);
+
+useEventListener(document, 'mousedown', (event) => {
+  if (
+    tooltipVisible.value &&
+    menuRef.value &&
+    buttonRef.value &&
+    !menuRef.value.contains(event.target as Node) &&
+    !buttonRef.value.contains(event.target as Node)
+  ) {
+    tooltipVisible.value = false;
+  }
+});
+
+// Add keyboard navigation within dropdown
+watch(tooltipVisible, (newValue) => {
+  if (newValue) {
+    // Focus first option when menu opens
+    nextTick(() => {
+      const firstOption = document.getElementById('jurisdiction-option-0');
+      if (firstOption) firstOption.focus();
+    });
+  }
+});
 </script>
 
 <template>
@@ -34,7 +106,7 @@ const { t } = useI18n();
     <router-link
       :to="logoLinkTo"
       class="group flex items-center"
-      :aria-label="$t('onetime-secret-homepage')">
+      :aria-label="t('onetime-secret-homepage')">
       <div class="relative size-12 rounded-md transition-transform sm:size-16">
         <svg
           baseProfile="tiny-ps"
@@ -105,7 +177,7 @@ const { t } = useI18n();
           <div
             class="px-3 py-2 font-brand text-xs uppercase
               tracking-wider text-gray-700 dark:text-gray-100">
-            {{ $t('regions') }}
+            {{ t('regions') }}
           </div>
           <!-- prettier-ignore-attribute class -->
           <div
@@ -164,10 +236,10 @@ const { t } = useI18n();
       </span>
       <!-- Tagline -->
       <span class="text-xs text-gray-500 dark:text-gray-400" aria-hidden="true">
-        {{ $t('tagline-signed') }}.
-        <em>{{ $t('tagline-sealed') }}. </em>
+        {{ t('tagline-signed') }}.
+        <em>{{ t('tagline-sealed') }}. </em>
         <span class="group/tooltip relative inline-block">
-          {{ $t('tagline-delivered') }}.<sup
+          {{ t('tagline-delivered') }}.<sup
             class="text-[0.7em] text-gray-500 [animation:pulse_4s_ease-in-out_infinite]
               group-hover/tooltip:[animation:none]
               dark:text-gray-400">*</sup>
@@ -176,7 +248,7 @@ const { t } = useI18n();
               text-xs text-gray-500
               group-hover/tooltip:block dark:bg-gray-800/80 dark:text-gray-400">
             <sup class="text-[0.7em] text-gray-500 dark:text-gray-400">*</sup>
-            {{ $t('recipient-delivery-is-optional') }}
+            {{ t('recipient-delivery-is-optional') }}
           </span>
         </span>
       </span>

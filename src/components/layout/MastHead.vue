@@ -4,12 +4,9 @@
   import OIcon from '@/components/icons/OIcon.vue';
   import HeaderUserNav from '@/components/layout/HeaderUserNav.vue';
   import SettingsModal from '@/components/modals/SettingsModal.vue';
-  import { useEventListener, onKeyStroke } from '@vueuse/core';
-  import type { Jurisdiction } from '@/schemas/models/jurisdiction';
   import { WindowService } from '@/services/window.service';
-  import { useJurisdictionStore } from '@/stores/jurisdictionStore';
   import type { LayoutProps } from '@/types/ui/layouts';
-  import { computed, nextTick, ref, watch, type Component } from 'vue';
+  import { computed, ref, watch, type Component } from 'vue';
   import { useI18n } from 'vue-i18n';
 
   withDefaults(defineProps<LayoutProps>(), {
@@ -19,8 +16,6 @@
   });
 
   const windowProps = WindowService.getMultiple([
-    'regions_enabled',
-    'regions',
     'authentication',
     'authenticated',
     'cust',
@@ -59,7 +54,7 @@
     if (newLogoUrl.endsWith('.vue')) {
       try {
         const componentName = newLogoUrl.replace('.vue', '');
-        const module = await import(`@/components/icons/logos/OnetimeSecret.vue`);
+        const module = await import(`@/components/icons/logos/${componentName}.vue`);
         logoComponent.value = module.default;
       } catch (error) {
         console.warn(`Failed to load logo component: ${newLogoUrl}`, error);
@@ -81,78 +76,7 @@
   const closeSettingsModal = () => {
     isSettingsModalOpen.value = false;
   };
-  const jurisdictionStore = useJurisdictionStore();
-  const currentJurisdiction = computed<Jurisdiction | null>(
-    () => jurisdictionStore.getCurrentJurisdiction
-  );
 
-  // Safety functions for icon props
-  const getIconCollection = (jurisdiction: Jurisdiction | null): string => {
-    return jurisdiction?.icon?.collection || 'fa6-solid';
-  };
-
-  const getIconName = (jurisdiction: Jurisdiction | null): string => {
-    return jurisdiction?.icon?.name || 'globe';
-  };
-
-  const tooltipVisible = ref(false);
-  const navigateToJurisdiction = (domain: string) => {
-    window.location.href = `https://${domain}/`;
-  };
-  const toggleJurisdictionMenu = () => {
-    tooltipVisible.value = !tooltipVisible.value;
-  };
-
-  const handleJurisdictionKeydown = (event: KeyboardEvent) => {
-    if (event.key === 'Enter' || event.key === ' ') {
-      event.preventDefault();
-      toggleJurisdictionMenu();
-    } else if (event.key === 'Escape' && tooltipVisible.value) {
-      event.preventDefault();
-      tooltipVisible.value = false;
-    }
-  };
-
-  // Enhanced keyboard handling using VueUse
-  onKeyStroke('Escape', (e) => {
-    if (tooltipVisible.value) {
-      e.preventDefault();
-      closeJurisdictionMenu();
-    }
-  });
-
-  // Focus management for dropdown
-  const closeJurisdictionMenu = () => {
-    tooltipVisible.value = false;
-    document.getElementById('jurisdiction-button')?.focus();
-  };
-
-  // We can also simplify the click outside handling with VueUse
-  const menuRef = ref<HTMLElement | null>(null);
-  const buttonRef = ref<HTMLElement | null>(null);
-
-  useEventListener(document, 'mousedown', (event) => {
-    if (
-      tooltipVisible.value &&
-      menuRef.value &&
-      buttonRef.value &&
-      !menuRef.value.contains(event.target as Node) &&
-      !buttonRef.value.contains(event.target as Node)
-    ) {
-      tooltipVisible.value = false;
-    }
-  });
-
-  // Add keyboard navigation within dropdown
-  watch(tooltipVisible, (newValue) => {
-    if (newValue) {
-      // Focus first option when menu opens
-      nextTick(() => {
-        const firstOption = document.getElementById('jurisdiction-option-0');
-        if (firstOption) firstOption.focus();
-      });
-    }
-  });
 </script>
 
 <template>
@@ -179,7 +103,7 @@
       <nav
         v-if="displayNavigation && navigationEnabled"
         role="navigation"
-        :aria-label="$t('main-navigation')"
+        :aria-label="t('main-navigation')"
         class="flex flex-wrap items-center justify-center gap-4
           font-brand text-sm sm:justify-end sm:text-base">
         <template v-if="windowProps.authenticated && windowProps.cust">
@@ -191,7 +115,7 @@
             @click="openSettingsModal"
             class="text-xl text-gray-600 transition-colors duration-200
               hover:text-gray-800 dark:text-gray-300 dark:hover:text-white"
-            :aria-label="$t('web.COMMON.header_settings')">
+            :aria-label="t('web.COMMON.header_settings')">
             <OIcon
               class="size-5"
               collection="material-symbols"
@@ -212,8 +136,8 @@
             to="/logout"
             class="text-gray-600 transition-colors duration-200
               hover:text-gray-800 dark:text-gray-300 dark:hover:text-white"
-            :title="$t('web.COMMON.header_logout')"
-            :aria-label="$t('web.COMMON.header_logout')">
+            :title="t('web.COMMON.header_logout')"
+            :aria-label="t('web.COMMON.header_logout')">
             <OIcon
               class="size-5"
               collection="heroicons"
@@ -227,10 +151,10 @@
             <router-link
               v-if="windowProps.authentication.signup"
               to="/signup"
-              :title="$t('signup-individual-and-business-plans')"
+              :title="t('signup-individual-and-business-plans')"
               class="font-bold text-gray-600 transition-colors duration-200
                 hover:text-gray-800 dark:text-gray-300 dark:hover:text-white">
-              {{ $t('web.COMMON.header_create_account') }}
+              {{ t('web.COMMON.header_create_account') }}
             </router-link>
             <span
               v-if="windowProps.authentication.signup && windowProps.authentication.signin"
@@ -243,10 +167,10 @@
             <router-link
               v-if="windowProps.authentication.signin"
               to="/signin"
-              :title="$t('log-in-to-onetime-secret')"
+              :title="t('log-in-to-onetime-secret')"
               class="text-gray-600 transition-colors duration-200
                 hover:text-gray-800 dark:text-gray-300 dark:hover:text-white">
-              {{ $t('web.COMMON.header_sign_in') }}
+              {{ t('web.COMMON.header_sign_in') }}
             </router-link>
           </template>
         </template>
