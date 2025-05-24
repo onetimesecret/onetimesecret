@@ -130,6 +130,7 @@ module Onetime
       OT.li "config: #{OT::Config.path}"
       OT.li "redis: #{redis_info['redis_version']} (#{Familia.uri.serverid})"
       OT.li "familia: v#{Familia::VERSION}"
+      OT.li "interface: #{site_config[:interface]}"
       OT.li "i18n: #{OT.i18n_enabled}"
       OT.li "locales: #{@locales.keys.join(', ')}" if OT.i18n_enabled
       OT.li "diagnotics: #{OT.d9s_enabled}"
