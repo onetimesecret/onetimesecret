@@ -554,6 +554,7 @@
   "as-we-add-new-features-our-translations-graduall": "As we add new features, our translations gradually need updates to stay current. This affects both onetimesecret.com and thousands of self-hosted installations worldwide.",
   "language": "Language",
   "theme": "Theme",
+  "release-notes": "Release Notes",
   "appearance": "Appearance",
   "contact-our-compliance-team": "contact our compliance team",
   "review-our-documentation": "review our documentation",
