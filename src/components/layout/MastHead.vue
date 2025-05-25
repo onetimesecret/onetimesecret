@@ -9,6 +9,7 @@
   import type { LayoutProps } from '@/types/ui/layouts';
   import { computed, ref, watch, type Component } from 'vue';
   import { useI18n } from 'vue-i18n';
+import { shallowRef } from 'vue';
 
   const props = withDefaults(defineProps<LayoutProps>(), {
     displayMasthead: true,
@@ -51,9 +52,9 @@
   );
 
   // Logo component handling
-  const isVueComponent = logoConfig.value.url.endsWith('.vue');
-  const logoComponent = ref<Component | null>(
-    isVueComponent && logoConfig.value.url === DEFAULT_LOGO
+  const isVueComponent = computed(() => logoConfig.value.url.endsWith('.vue'));
+  const logoComponent = shallowRef<Component | null>(
+    isVueComponent.value && logoConfig.value.url === DEFAULT_LOGO
       ? DefaultLogo
       : null
   );

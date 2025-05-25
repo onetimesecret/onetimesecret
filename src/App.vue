@@ -5,7 +5,7 @@
   import CriticalSprites from '@/components/icons/sprites/CriticalSprites.vue';
   import { iconLibraryComponents } from '@/components/icons/sprites';
   import type { LayoutProps } from '@/types/ui/layouts';
-  import { computed, ref, onMounted, type Component } from 'vue';
+  import { computed, ref, onMounted, type Component, markRaw } from 'vue';
   import { useI18n } from 'vue-i18n';
   import { useRoute } from 'vue-router';
 
@@ -48,7 +48,7 @@
 
       const results = await Promise.all(loadPromises);
       results.forEach(([key, component]) => {
-        loadedSprites.value[key] = component;
+        loadedSprites.value[key] = markRaw(component);
       });
     } catch (error) {
       console.warn('Failed to load some sprite components:', error);
