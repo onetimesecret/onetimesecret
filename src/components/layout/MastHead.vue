@@ -4,6 +4,7 @@
   import OIcon from '@/components/icons/OIcon.vue';
   import HeaderUserNav from '@/components/layout/HeaderUserNav.vue';
   import SettingsModal from '@/components/modals/SettingsModal.vue';
+  import DefaultLogo from '@/components/icons/logos/DefaultLogo.vue';
   import { WindowService } from '@/services/window.service';
   import type { LayoutProps } from '@/types/ui/layouts';
   import { computed, ref, watch, type Component } from 'vue';
@@ -31,7 +32,7 @@
   const headerConfig = computed(() => windowProps.ui?.header);
 
   // Default logo component for fallback
-  const DEFAULT_LOGO = 'MonotoneJapaneseSecretButton.vue';
+  const DEFAULT_LOGO = 'DefaultLogo.vue';
 
   // Simplified logo configuration with prop override support
   const logoConfig = computed(() => ({
@@ -50,8 +51,12 @@
   );
 
   // Logo component handling
-  const isVueComponent = computed(() => logoConfig.value.url.endsWith('.vue'));
-  const logoComponent = ref<Component | null>(null);
+  const isVueComponent = logoConfig.value.url.endsWith('.vue');
+  const logoComponent = ref<Component | null>(
+    isVueComponent && logoConfig.value.url === DEFAULT_LOGO
+      ? DefaultLogo
+      : null
+  );
 
   // Watch for changes to logoUrl and load Vue component if needed
   watch(() => logoConfig.value.url, async (newLogoUrl) => {
@@ -101,10 +106,12 @@
     <div class="flex flex-col items-center justify-between sm:flex-row">
       <!-- Logo lockup -->
       <div class="mb-4 flex items-center justify-between gap-3 sm:mb-0">
-        <div v-if="isVueComponent && logoComponent">
+
+        <div v-if="isVueComponent">
           <component
             :is="logoComponent"
             id="logo"
+            v-if="logoComponent"
             v-bind="logoConfig"
             class="transition-transform" />
         </div>
