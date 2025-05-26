@@ -7,7 +7,7 @@ module V2
     module Colonel
       class GetColonelConfig < V2::Logic::Base
         attr_reader :config, :interface, :secret_options, :mail, :limits,
-          :experimental, :diagnostics
+          :diagnostics
 
         def process_params
           @interface = OT.conf.dig(:site, :interface)
@@ -15,7 +15,6 @@ module V2
           @mail = OT.conf.fetch(:mail, {})
           @limits = OT.conf.fetch(:limits, {})
           @diagnostics = OT.conf.fetch(:diagnostics, {})
-          @experimental = OT.conf.fetch(:experimental, {})
         end
 
         def raise_concerns
@@ -34,7 +33,6 @@ module V2
               mail: mail,
               limits: limits,
               diagnostics: diagnostics,
-              experimental: experimental,
             }
           }
         end

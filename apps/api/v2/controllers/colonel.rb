@@ -20,6 +20,13 @@ module V2
         retrieve_records(V2::Logic::Colonel::GetColonelConfig, auth_type: :colonels)
       end
 
+      def update_config
+        process_records(V2::Logic::Colonel::UpdateColonelConfig,
+          "Config updated successfully.",
+          "Config could not be updated.",
+          auth_type: :colonels,
+        )
+      end
     end
   end
 end
