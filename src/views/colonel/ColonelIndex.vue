@@ -1,13 +1,13 @@
 <script setup lang="ts">
   import { useColonelConfigStore } from '@/stores/colonelConfigStore';
-  import { onMounted, ref, watch, computed } from 'vue';
+  import { onMounted, computed, watch } from 'vue';
   import { storeToRefs } from 'pinia';
   import { useI18n } from 'vue-i18n';
   import { json } from '@codemirror/lang-json';
   import { basicSetup } from 'codemirror';
   import CodeMirror from 'vue-codemirror6';
-  import { colonelConfigSchema, type ColonelConfigDetails } from '@/schemas/api/endpoints/colonel';
-  import { z } from 'zod';
+  import { type ColonelConfigDetails } from '@/schemas/api/endpoints/colonel';
+  import { useColonelConfig, type ConfigSectionKey } from '@/composables/useColonelConfig';
 
   const { t } = useI18n();
 
@@ -21,8 +21,6 @@
   ];
 
   // Config section tabs with typed keys
-  type ConfigSectionKey = keyof ColonelConfigDetails;
-
   const configSections = [
     { key: 'interface' as ConfigSectionKey, label: 'Interface' },
     { key: 'secret_options' as ConfigSectionKey, label: 'Secret Options' },
@@ -32,23 +30,26 @@
   ];
 
   const store = useColonelConfigStore();
-  const { isLoading, details: config } = storeToRefs(store);
-  const { fetch, update } = store;
+  const { isLoading: storeLoading, details: config } = storeToRefs(store);
+  const { fetch } = store;
 
-  // Currently active section
-  const activeSection = ref<ConfigSectionKey>(configSections[0].key);
+  // Use the colonel config composable
+  const {
+    activeSection,
+    sectionEditors,
+    validationState,
+    validationMessages,
+    errorMessage,
+    saveSuccess,
+    isSaving,
+    hasValidationErrors,
+    validateJson,
+    initializeSectionEditors,
+    saveConfig
+  } = useColonelConfig();
 
-  // Editor contents for each section - initialize with empty object
-  const sectionEditors = ref<Record<ConfigSectionKey, string>>({} as Record<ConfigSectionKey, string>);
-
-  // Validation state - initialize with empty object
-  const validationState = ref<Record<ConfigSectionKey, boolean>>({} as Record<ConfigSectionKey, boolean>);
-  const validationMessages = ref<Record<ConfigSectionKey, string | null>>({} as Record<ConfigSectionKey, string | null>);
-
-  // Error messages
-  const errorMessage = ref<string | null>(null);
-  const saveSuccess = ref<boolean>(false);
-  const isSaving = ref<boolean>(false);
+  // Set initial active section
+  activeSection.value = configSections[0].key;
 
   // Editor configuration
   const lang = json();
@@ -58,188 +59,39 @@
   const currentSectionContent = computed({
     get: () => sectionEditors.value[activeSection.value] || '',
     set: (val) => {
-      sectionEditors.value[activeSection.value] = val;
-      validateJson(activeSection.value, val);
+      if (activeSection.value) {
+        sectionEditors.value[activeSection.value] = val;
+        validateJson(activeSection.value, val);
+      }
     },
   });
 
-  // Computed property to safely check if any validation has failed
-  const hasValidationErrors = computed(() => {
-    const validationStateValue = validationState.value;
-    if (!validationStateValue || typeof validationStateValue !== 'object') {
-      return false;
-    }
-    return Object.values(validationStateValue).some((state) => state === false);
-  });
-
-  // Check if JSON is valid
-  const validateJson = (section: ConfigSectionKey, content: string) => {
-    try {
-      // Handle empty string as valid (will be converted to empty object)
-      if (content.trim() === '') {
-        content = '{}';
-        sectionEditors.value[section] = content;
-      }
-
-      // Parse to validate JSON
-      const parsed = JSON.parse(content);
-
-      // Additional check: ensure it's actually an object, not null, array, etc.
-      if (parsed === null || typeof parsed !== 'object' || Array.isArray(parsed)) {
-        throw new Error(t('web.colonel.mustBeObject'));
-      }
-
-      validationState.value[section] = true;
-      validationMessages.value[section] = null;
-    } catch (error) {
-      validationState.value[section] = false;
-      if (error instanceof Error) {
-        validationMessages.value[section] = error.message;
-      } else {
-        validationMessages.value[section] = t('web.colonel.invalidJson', { section });
-      }
-    }
-  };
-
-  /**
-   * Initialize section editors with config data
-   */
-  const initializeSectionEditors = (configData: ColonelConfigDetails | null) => {
-    console.debug('Initializing section editors with config data:', configData);
-
-    // Always initialize all sections, falling back to empty objects as needed
-    configSections.forEach((section) => {
-      try {
-        // Get section data or use empty object as fallback
-        const sectionData = configData && configData[section.key] ? configData[section.key] : {};
-        // Format JSON with proper indentation
-        const content = JSON.stringify(sectionData, null, 2);
-        // Store in editor state
-        sectionEditors.value[section.key] = content;
-        // Validate (will be valid since we're using empty object as fallback)
-        validateJson(section.key, content);
-      } catch (error) {
-        console.error(`Error initializing section ${section.key}:`, error);
-        // Default to empty object on error
-        sectionEditors.value[section.key] = '{}';
-        validateJson(section.key, '{}');
-      }
-    });
-  };
-
   // Update editor content when config changes
-  watch(() => config.value, initializeSectionEditors);
+  watch(() => config.value, (newConfig) => initializeSectionEditors(newConfig, configSections));
 
   onMounted(async () => {
     try {
-      // Initialize with empty objects first to prevent undefined errors
-      initializeSectionEditors({} as ColonelConfigDetails);
+      // Initialize with empty objects first
+      initializeSectionEditors({} as ColonelConfigDetails, configSections);
 
-      // Then explicitly fetch config
-      fetch();
+      // Fetch config
+      await fetch();
 
       if (!config.value) {
         console.warn('Config data is null or undefined after fetching');
-        // Initialize with empty objects to allow editing
-        initializeSectionEditors({} as ColonelConfigDetails);
+        initializeSectionEditors({} as ColonelConfigDetails, configSections);
       } else {
-        // Initial config setup after fetch completes
-        initializeSectionEditors(config.value);
+        initializeSectionEditors(config.value, configSections);
       }
     } catch (error) {
       console.error('Error fetching config:', error);
       errorMessage.value = t('web.colonel.errorFetchingConfig');
-      // Initialize with empty objects to allow editing even after error
-      initializeSectionEditors({} as ColonelConfigDetails);
+      initializeSectionEditors({} as ColonelConfigDetails, configSections);
     }
   });
 
-  /**
-   * Save the configuration after validating with Zod schema
-   */
-  const saveConfig = async () => {
-    errorMessage.value = null;
-    saveSuccess.value = false;
-    isSaving.value = true;
-
-    try {
-      // Validate all sections first
-
-      for (const section of configSections) {
-        validateJson(section.key, sectionEditors.value[section.key] || '{}');
-        if (validationState.value[section.key] === false) {
-          activeSection.value = section.key; // Switch to invalid section
-          errorMessage.value = t('web.colonel.invalidJson', { section: section.label });
-          console.error(
-            `Invalid JSON in section ${section.key}:`,
-            validationMessages.value[section.key]
-          );
-          isSaving.value = false;
-          return;
-        }
-      }
-
-      // Combine all section editors into a single config object
-      const combinedConfig: Partial<ColonelConfigDetails> = {};
-
-      for (const section of configSections) {
-        const sectionContent = sectionEditors.value[section.key];
-        if (sectionContent) {
-          combinedConfig[section.key] = JSON.parse(sectionContent);
-        }
-      }
-
-      console.debug('Combined config before validation:', combinedConfig);
-
-      // Validate the combined config against the schema
-      try {
-        colonelConfigSchema.parse(combinedConfig);
-      } catch (validationError) {
-        if (validationError instanceof z.ZodError) {
-          const firstError = validationError.errors[0];
-          const errorPath = firstError.path.length > 0 ? firstError.path.join('.') : 'root';
-          errorMessage.value = `${t('web.colonel.validationError')}: ${errorPath} - ${firstError.message}`;
-          console.error('Validation error:', validationError);
-
-          // Try to set active section to the one with the error if possible
-          const errorSection = firstError.path[0];
-          if (errorSection && typeof errorSection === 'string') {
-            const matchingSection = configSections.find(
-              (s) => s.key === (errorSection as ConfigSectionKey)
-            );
-            if (matchingSection) {
-              activeSection.value = matchingSection.key;
-            }
-          }
-
-          isSaving.value = false;
-          return;
-        }
-        throw validationError;
-      }
-
-      try {
-        await update(combinedConfig as ColonelConfigDetails);
-
-        // Refetch config to ensure we have the latest data
-        fetch();
-
-        saveSuccess.value = true;
-        console.log('Config saved successfully');
-      } catch (updateError) {
-        console.error('Error updating config:', updateError);
-        errorMessage.value = t('web.colonel.errorSavingConfig');
-        if (updateError instanceof Error) {
-          errorMessage.value += `: ${updateError.message}`;
-        }
-      }
-    } catch (error) {
-      errorMessage.value = t('web.colonel.errorSavingConfig');
-      console.error('Error saving config:', error);
-    } finally {
-      isSaving.value = false;
-    }
-  };
+  // Handle save action
+  const handleSave = () => saveConfig(configSections);
 </script>
 
 <template>
@@ -260,12 +112,10 @@
     </div>
 
     <div
-      v-if="isLoading"
-      class="p-6 text-center"
-      >
+      v-if="storeLoading"
+      class="p-6 text-center">
         {{t('web.LABELS.loading')}}
-      </div
-    >
+      </div>
 
     <div
       v-else
@@ -300,11 +150,11 @@
       <!-- Editor for current section -->
       <div class="mb-4">
         <div
-          class="overflow-auto rounded-md border"
+          class="min-h-[400px] max-h-[600px] overflow-auto rounded-md border"
           :class="[
-            validationState && validationState[activeSection] === false
+            validationState && validationState[activeSection || ''] === false
               ? 'border-red-500'
-              : validationState && validationState[activeSection] === true
+              : validationState && validationState[activeSection || ''] === true
                 ? 'border-green-500'
                 : 'border-gray-300',
           ]">
@@ -314,16 +164,16 @@
             :extensions="extensions"
             basic
             :placeholder="`Enter configuration for ${activeSection}`"
-            class="min-h-[320px] max-h-[700px]" />
+            class="min-h-[400px] max-h-[600px]" />
         </div>
         <div
-          v-if="validationMessages && validationMessages[activeSection]"
+          v-if="validationMessages && validationMessages[activeSection || '']"
           class="mt-2 text-sm text-red-600 dark:text-red-400">
-          {{ validationMessages[activeSection] }}
+          {{ validationMessages[activeSection || ''] }}
         </div>
       </div>
 
-      <!-- Error and Success messages moved before save button -->
+      <!-- Error and Success messages -->
       <div class="mb-4 space-y-3">
         <!-- Error message -->
         <div
@@ -354,7 +204,7 @@
       </div>
 
       <button
-        @click="saveConfig"
+        @click="handleSave"
         class="rounded-md bg-brand-500 px-4 py-2 text-white hover:bg-brand-600 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2"
         :disabled="isSaving || hasValidationErrors">
         {{ isSaving ? t('web.LABELS.saving') : t('web.LABELS.save') }}
