@@ -26,7 +26,6 @@
   // Core logo properties
   const ariaLabel = computed(() => props.ariaLabel || t('one-time-secret-literal'));
   const companyName = computed(() => props.companyName || t('one-time-secret-literal'));
-  const textColor = computed(() => (props.mode === 'dark' ? 'text-white' : 'text-gray-800'));
   const svgSize = computed(() =>
     typeof props.size === 'number' && props.size > 0 ? props.size : 64
   );
@@ -138,8 +137,10 @@
           aria-controls="jurisdiction-menu"
           class="absolute -bottom-0.5 -right-0.5 z-10 rounded border border-brand-100
                  bg-brand-500 px-0.5 py-0 font-brand
-                 text-[0.6em] font-medium text-brand-100
-                 dark:border-slate-800 dark:bg-slate-800 dark:text-slate-100"
+                 text-[0.6em] font-medium text-brand-100 transition-colors
+                 hover:bg-brand-600 focus:outline-none focus:ring-2 focus:ring-brand-400
+                 dark:border-slate-700 dark:bg-slate-700 dark:text-slate-100
+                 dark:hover:bg-slate-600 dark:focus:ring-slate-500"
           @click="toggleJurisdictionMenu"
           @keydown="handleJurisdictionKeydown">
           {{ currentJurisdiction?.identifier }}
@@ -157,12 +158,12 @@
           class="absolute z-50 mt-1 w-max min-w-[200px]
                  divide-y divide-gray-200 rounded-lg bg-white px-2 py-1
                  text-xs shadow-lg ring-1 ring-black/5
-                 dark:divide-gray-700 dark:bg-gray-800">
+                 dark:divide-gray-600 dark:bg-gray-800 dark:text-white dark:ring-white/10">
           <div class="py-2">
             <!-- prettier-ignore-attribute class -->
             <div
               class="px-3 py-2 font-brand text-xs uppercase
-                  tracking-wider text-gray-700 dark:text-gray-100">
+                  tracking-wider text-gray-700 dark:text-gray-200">
               {{ t('regions') }}
             </div>
             <!-- prettier-ignore-attribute class -->
@@ -174,8 +175,9 @@
               :aria-selected="currentJurisdiction?.identifier === jurisdiction.identifier"
               tabindex="0"
               class="group flex w-full cursor-pointer items-center rounded-md p-2 text-sm
-                       text-gray-700 hover:bg-gray-100
-                       dark:text-gray-300 dark:hover:bg-gray-700"
+                       text-gray-700 transition-colors hover:bg-gray-100 focus:bg-gray-100
+                       focus:outline-none
+                       dark:text-gray-300 dark:hover:bg-gray-700 dark:focus:bg-gray-700"
               @click="navigateToJurisdiction(jurisdiction.domain)"
               @keydown.enter="navigateToJurisdiction(jurisdiction.domain)"
               @keydown.space.prevent="navigateToJurisdiction(jurisdiction.domain)">
@@ -183,19 +185,19 @@
                 <OIcon
                   :collection="getIconCollection(jurisdiction)"
                   :name="getIconName(jurisdiction)"
-                  class="mr-2 size-5"
+                  class="mr-2 size-5 text-gray-600 dark:text-gray-400"
                   aria-hidden="true" />
                 <span
                   class="block truncate"
                   :class="{
-                    'font-bold': currentJurisdiction?.identifier === jurisdiction.identifier,
+                    'font-bold text-gray-900 dark:text-gray-100': currentJurisdiction?.identifier === jurisdiction.identifier,
                   }">
                   {{ jurisdiction.display_name }}
                 </span>
               </span>
               <span
                 v-if="currentJurisdiction?.identifier === jurisdiction.identifier"
-                class="ml-auto text-brand-500">
+                class="ml-auto text-brand-500 dark:text-brand-400">
                 <svg
                   class="size-5"
                   xmlns="http://www.w3.org/2000/svg"
@@ -221,13 +223,13 @@
         <a
           :href="props.href"
           :alt="ariaLabel"
-          class="">
-        <div :class="[textColor, 'text-lg font-bold leading-tight']">
+          class="transition-opacity hover:opacity-80">
+        <div :class="['text-lg font-bold leading-tight transition-colors']">
           {{ companyName }}
         </div>
         <!-- Tagline -->
         <div
-          class="text-xs text-gray-500 dark:text-gray-400"
+          class="text-xs text-gray-500 transition-colors dark:text-gray-400"
           aria-hidden="true">
           {{ t('tagline-signed') }}.
           <em>{{ t('tagline-sealed') }}. </em>
@@ -237,7 +239,7 @@
               >*</sup
             >
             <span
-              class="absolute left-full top-0 ml-1 hidden w-max rounded bg-gray-200/80 px-2 py-1 text-xs text-gray-500 group-hover/tooltip:block dark:bg-gray-800/80 dark:text-gray-400">
+              class="absolute left-full top-0 ml-1 hidden w-max rounded bg-gray-200/90 px-2 py-1 text-xs text-gray-600 shadow-md group-hover/tooltip:block dark:bg-gray-700/90 dark:text-gray-300">
               <sup class="text-[0.7em] text-gray-500 dark:text-gray-400">*</sup>
               {{ t('recipient-delivery-is-optional') }}
             </span>
