@@ -1,8 +1,12 @@
 <script setup lang="ts">
 import { useColonelStore } from '@/stores/colonelStore';
-import { onMounted } from 'vue';
+import { onMounted, ref, watch } from 'vue';
 import { storeToRefs } from 'pinia';
 import { useI18n } from 'vue-i18n';
+import { json } from '@codemirror/lang-json';
+import { basicSetup } from 'codemirror';
+import CodeMirror from 'vue-codemirror6';
+
 const { t } = useI18n();
 
 const tabs = [
@@ -14,10 +18,58 @@ const tabs = [
 ];
 
 const store = useColonelStore();
-const { isLoading } = storeToRefs(store);
-const { fetch } = store; // Actions are extracted directly
+const { isLoading, config } = storeToRefs(store);
+const { fetch, updateConfig } = store;
 
-onMounted(fetch);
+// Reference to the CodeMirror component
+const cm = ref();
+
+// Editor content for v-model
+const editorContent = ref('');
+
+// Editor configuration
+const lang = json();
+const extensions = [basicSetup];
+
+// Update editor content when config changes
+watch(
+  () => config.value,
+  (newConfig) => {
+    if (newConfig) {
+      editorContent.value = JSON.stringify(newConfig, null, 2);
+      console.log('Config loaded:', editorContent.value);
+    } else {
+      console.warn('Config is null or undefined');
+      editorContent.value = '';
+    }
+  }
+);
+
+onMounted(async () => {
+  try {
+    await fetch();
+    // Initial config setup after fetch completes
+    if (config.value) {
+      editorContent.value = JSON.stringify(config.value, null, 2);
+      console.log('Initial config loaded:', editorContent.value);
+    } else {
+      console.warn('No config available after fetch');
+    }
+  } catch (error) {
+    console.error('Error fetching config:', error);
+  }
+});
+
+const saveConfig = () => {
+  try {
+    const configValue = JSON.parse(editorContent.value);
+    updateConfig(configValue);
+    console.log('Config saved:', configValue);
+  } catch (error) {
+    console.error('Invalid JSON:', error);
+    // Handle error - could show an error message to the user
+  }
+};
 </script>
 
 <template>
@@ -36,11 +88,35 @@ onMounted(fetch);
       </nav>
     </div>
 
-    <div v-if="isLoading">Loading...</div>
+    <div v-if="isLoading" class="p-6 text-center">Loading...</div>
 
     <div v-else class="p-6">
+      <div class="mb-4">
+        <h2 class="text-lg font-medium text-gray-900 dark:text-white">
+          {{ t('colonel.configEditor') }}
+        </h2>
+        <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+          {{ t('colonel.configEditorDescription') }}
+        </p>
+      </div>
 
-      plop
+      <div class="border border-gray-300 rounded-md min-h-[400px] mb-4">
+        <CodeMirror
+          ref="cm"
+          v-model="editorContent"
+          :lang="lang"
+          :extensions="extensions"
+          basic
+          placeholder="Enter configuration JSON"
+          class="min-h-[400px]"
+        />
+      </div>
+
+      <button
+        @click="saveConfig"
+        class="px-4 py-2 bg-brand-500 text-white rounded-md hover:bg-brand-600 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2">
+        {{ t('save') }}
+      </button>
     </div>
   </div>
 </template>

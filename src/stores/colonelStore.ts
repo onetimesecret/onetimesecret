@@ -13,9 +13,12 @@ export type ColonelStore = {
   _initialized: boolean;
   record: {} | null; // response is empty object
   details: ColonelDetails;
+  config: Record<string, any> | null;
 
   // Actions
   fetch: () => Promise<ColonelDetails>;
+  fetchConfig: () => Promise<Record<string, any>>;
+  updateConfig: (config: Record<string, any>) => Promise<void>;
   dispose: () => void;
   $reset: () => void;
 } & PiniaCustomProperties;
@@ -26,6 +29,7 @@ export const useColonelStore = defineStore('colonel', () => {
   // State
   const record = ref<{} | null>(null);
   const details = ref<ColonelDetails | null>(null);
+  const config = ref<Record<string, any> | null>(null);
   const _initialized = ref(false);
   const isLoading = ref(false);
 
@@ -41,6 +45,9 @@ export const useColonelStore = defineStore('colonel', () => {
       console.debug('Colonel validation successful:', validated);
       details.value = validated.details;
 
+      // After fetching colonel data, also fetch the configuration
+      await fetchConfig();
+
       return record.value;
     } catch (error) {
       console.error('Colonel validation failed:', {
@@ -53,9 +60,31 @@ export const useColonelStore = defineStore('colonel', () => {
     }
   }
 
+  async function fetchConfig() {
+    try {
+      const response = await $api.get('/api/v2/colonel/config');
+      config.value = response.data;
+      return config.value;
+    } catch (error) {
+      console.error('Failed to fetch configuration:', error);
+      throw error;
+    }
+  }
+
+  async function updateConfig(newConfig: Record<string, any>) {
+    try {
+      await $api.post('/api/v2/colonel/config', newConfig);
+      config.value = newConfig;
+    } catch (error) {
+      console.error('Failed to update configuration:', error);
+      throw error;
+    }
+  }
+
   function dispose() {
     record.value = null;
     details.value = null;
+    config.value = null;
   }
 
   /**
@@ -64,6 +93,7 @@ export const useColonelStore = defineStore('colonel', () => {
   function $reset() {
     record.value = null;
     details.value = null;
+    config.value = null;
     _initialized.value = false;
   }
 
@@ -72,10 +102,13 @@ export const useColonelStore = defineStore('colonel', () => {
     // State
     record,
     details,
+    config,
     isLoading,
 
     // Actions
     fetch,
+    fetchConfig,
+    updateConfig,
     dispose,
     $reset,
   };

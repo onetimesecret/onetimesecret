@@ -12,8 +12,12 @@ module V2
       @check_utf8 = true
       @check_uri_encoding = true
 
-      def get_index
-        retrieve_records(V2::Logic::Colonel::GetColonel, auth_type: :colonels)
+      def get_info
+        retrieve_records(V2::Logic::Colonel::GetColonelInfo, auth_type: :colonels)
+      end
+
+      def get_config
+        retrieve_records(V2::Logic::Colonel::GetColonelConfig, auth_type: :colonels)
       end
 
     end
