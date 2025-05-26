@@ -82,7 +82,6 @@
           <span
             v-if="displayPoweredBy"
             :title="`${$t('onetime-secret-literal')} Version`">
-
             <a
               :href="$t('web.COMMON.website_url')"
               target="_blank"
