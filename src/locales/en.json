@@ -394,7 +394,8 @@
       "sectionSaved": "{section} saved successfully",
       "saveSection": "Save {section}",
       "saveAll": "Save All",
-      "unsavedChanges": "Unsaved changes"
+      "unsavedChanges": "Unsaved changes",
+      "schemaValidationError": "Schema validation error: {message} ({path})"
     },
     "feedback": {
       "when-you-submit-feedback-well-see": "When you submit feedback, we'll see:",

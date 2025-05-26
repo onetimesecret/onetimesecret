@@ -1,4 +1,5 @@
 <script setup lang="ts">
+  import OIcon from '@/components/icons/OIcon.vue';
   import { useColonelConfigStore } from '@/stores/colonelConfigStore';
   import { onMounted, computed, watch } from 'vue';
   import { storeToRefs } from 'pinia';
@@ -50,7 +51,7 @@
     saveConfig,
     saveCurrentSection,
     markSectionModified,
-    switchToSection,
+    switchToSection
   } = useColonelConfig();
 
   // Set initial active section
@@ -73,10 +74,7 @@
   });
 
   // Update editor content when config changes
-  watch(
-    () => config.value,
-    (newConfig) => initializeSectionEditors(newConfig, configSections)
-  );
+  watch(() => config.value, (newConfig) => initializeSectionEditors(newConfig, configSections));
 
   onMounted(async () => {
     try {
@@ -115,22 +113,25 @@
     <div
       id="primaryTabs"
       class="sticky top-0 z-10 border-b border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-800">
-      <nav class="flex overflow-x-auto">
-        <a
-          v-for="tab in navTabs"
-          :key="tab.href"
-          :href="tab.href"
-          class="mx-1 border-b-2 border-transparent px-4 py-3 text-sm font-semibold text-gray-700 transition-colors duration-150 first:ml-0 hover:border-brand-500 hover:text-brand-600 focus:border-brand-500 focus:outline-none dark:text-gray-200 dark:hover:border-brand-400 dark:hover:text-brand-400">
-          {{ tab.name }}
-        </a>
-      </nav>
+        <nav class="flex overflow-x-auto">
+          <a
+            v-for="tab in navTabs"
+            :key="tab.href"
+            :href="tab.href"
+            class="px-4 py-3 text-sm font-semibold transition-colors duration-150 border-b-2 mx-1 first:ml-0
+            border-transparent hover:border-brand-500 hover:text-brand-600 focus:outline-none focus:border-brand-500
+            dark:hover:text-brand-400 dark:hover:border-brand-400
+            text-gray-700 dark:text-gray-200">
+            {{ tab.name }}
+          </a>
+        </nav>
     </div>
 
     <div
       v-if="isLoading"
       class="p-6 text-center">
-      {{ t('web.LABELS.loading') }}
-    </div>
+        {{t('web.LABELS.loading')}}
+      </div>
 
     <div
       v-else
@@ -162,14 +163,14 @@
             <!-- Modified indicator -->
             <span
               v-if="modifiedSections.has(section.key)"
-              class="absolute -right-1 -top-1 h-2 w-2 rounded-full bg-blue-500"
+              class="absolute -top-1 -right-1 h-2 w-2 rounded-full bg-blue-500"
               :title="`${section.label} has unsaved changes`">
             </span>
 
             <!-- Error indicator -->
             <span
               v-else-if="sectionsWithErrors.includes(section.key)"
-              class="absolute -right-1 -top-1 h-3 w-3 rounded-full bg-red-500"
+              class="absolute -top-1 -right-1 h-3 w-3 rounded-full bg-red-500"
               :title="`${section.label} has validation errors`">
             </span>
           </button>
@@ -177,9 +178,7 @@
       </div>
 
       <!-- Section status indicator -->
-      <div
-        v-if="activeSection"
-        class="mb-2 text-sm">
+      <div v-if="activeSection" class="mb-2 text-sm">
         <span
           v-if="modifiedSections.has(activeSection)"
           class="inline-flex items-center rounded-full bg-blue-100 px-2.5 py-0.5 text-xs font-medium text-blue-800 dark:bg-blue-900 dark:text-blue-200">
@@ -197,7 +196,7 @@
       <!-- Editor for current section -->
       <div class="mb-4">
         <div
-          class="max-h-[600px] min-h-[400px] overflow-auto rounded-md border"
+          class="min-h-[400px] max-h-[600px] overflow-auto rounded-md border"
           :class="[
             currentSectionHasError
               ? 'border-red-500'
@@ -205,13 +204,14 @@
                 ? 'border-green-500'
                 : 'border-gray-300',
           ]">
+
           <CodeMirror
             v-model="currentSectionContent"
             :lang="lang"
             :extensions="extensions"
             basic
             :placeholder="`Enter configuration for ${activeSection}`"
-            class="max-h-[600px] min-h-[400px]" />
+            class="min-h-[400px] max-h-[600px]" />
         </div>
         <div
           v-if="activeSection && validationMessages[activeSection]"
@@ -243,9 +243,16 @@
         <div
           v-if="saveSuccess"
           class="rounded-md border border-green-400 bg-green-100 p-3 text-green-700">
-          <div class="flex items-center">
-            <span class="mr-2">✅</span>
-            <span>{{ t('web.colonel.configSaved') }}</span>
+          <div class="flex items-center justify-between">
+            <div class="flex items-center">
+              <span class="mr-2">✅</span>
+              <span>{{ t('web.colonel.configSaved') }}</span>
+            </div>
+            <button
+              @click="saveSuccess = false"
+              class="ml-3 text-sm text-green-700 hover:underline focus:outline-none">
+              <OIcon collection="heroicons" name="x-mark" />
+            </button>
           </div>
         </div>
       </div>
@@ -258,13 +265,7 @@
           @click="handleSaveSection"
           class="rounded-md bg-brand-600 px-4 py-2 text-white hover:bg-brand-700 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2"
           :disabled="isSaving">
-          {{
-            isSaving
-              ? t('web.LABELS.saving')
-              : t('web.colonel.saveSection', {
-                  section: configSections.find((s) => s.key === activeSection)?.label,
-                })
-          }}
+          {{ isSaving ? t('web.LABELS.saving') : t('web.colonel.saveSection', { section: configSections.find(s => s.key === activeSection)?.label }) }}
         </button>
 
         <!-- Save all button -->

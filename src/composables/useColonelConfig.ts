@@ -7,7 +7,8 @@ import { useI18n } from 'vue-i18n';
 import { z } from 'zod';
 import { useAsyncHandler, type AsyncHandlerOptions } from './useAsyncHandler';
 
-export type ConfigSectionKey = keyof ColonelConfigDetails;
+// Use the keys of the colonelConfigSchema.shape as ConfigSectionKey
+export type ConfigSectionKey = keyof typeof colonelConfigSchema.shape;
 
 /* eslint-disable max-lines-per-function */
 export function useColonelConfig() {
@@ -49,40 +50,42 @@ export function useColonelConfig() {
   // Validation logic
   const validateJson = (section: ConfigSectionKey, content: string) => {
     try {
-      // Handle empty content
+      let parsedJsonForZod;
       if (!content || content.trim() === '') {
-        content = '{}';
-        sectionEditors.value[section] = content;
+        parsedJsonForZod = {};
+      } else {
+        parsedJsonForZod = JSON.parse(content);
       }
 
-      const parsed = JSON.parse(content);
+      const sectionSchema = colonelConfigSchema.shape[section];
+      const validationResult = sectionSchema.safeParse(parsedJsonForZod);
 
-      // Allow null/undefined for optional sections
-      if (parsed === null || parsed === undefined) {
-        validationState.value[section] = true;
-        validationMessages.value[section] = null;
-        return;
+      if (validationResult.success) {
+        const zodData = validationResult.data;
+        if (typeof zodData === 'object' && zodData !== null && Object.keys(zodData).length === 0 && content.trim() !== '{}') {
+          validationState.value[section] = false;
+          validationMessages.value[section] = t('web.colonel.sectionEffectivelyEmpty', { section });
+        } else {
+          validationState.value[section] = true;
+          validationMessages.value[section] = null;
+        }
+      } else {
+        validationState.value[section] = false;
+        const firstError = validationResult.error.errors[0];
+        const path = firstError.path.join('.') || 'section root';
+        validationMessages.value[section] = t('web.colonel.schemaValidationError', {
+          section,
+          path,
+          message: firstError.message,
+        });
       }
-
-      // Require objects (not arrays or primitives) for config sections
-      if (typeof parsed !== 'object' || Array.isArray(parsed)) {
-        throw new Error(t('web.colonel.mustBeObject'));
-      }
-
-      // Additional section-specific validation could be added here
-      // For now, any valid JSON object is accepted
-
-      validationState.value[section] = true;
-      validationMessages.value[section] = null;
     } catch (error) {
       validationState.value[section] = false;
       if (error instanceof SyntaxError) {
-        // JSON parsing error
-        validationMessages.value[section] = t('web.colonel.invalidJson', { section });
-      } else if (error instanceof Error) {
-        validationMessages.value[section] = error.message;
+        validationMessages.value[section] = t('web.colonel.invalidJsonSyntax', { section });
       } else {
-        validationMessages.value[section] = t('web.colonel.invalidJson', { section });
+        console.error(`Unexpected error validating section ${section}:`, error);
+        validationMessages.value[section] = t('web.colonel.unknownValidationError', { section });
       }
     }
   };
@@ -191,29 +194,14 @@ export function useColonelConfig() {
         return;
       }
 
-      // Create minimal config with only valid sections to avoid validation errors
-      const currentConfig = store.details || ({} as ColonelConfigDetails);
-
-      // Build config with only the current section and other valid sections
-      const updatedConfig: Partial<ColonelConfigDetails> = {};
-
-      // Add all currently valid sections from editors
-      for (const section of configSections) {
-        if (validationState.value[section.key] === true) {
-          updatedConfig[section.key] = JSON.parse(sectionEditors.value[section.key] || '{}');
-        } else if (section.key !== currentSection) {
-          // For invalid sections (except current), use original data if available
-          if (currentConfig[section.key]) {
-            updatedConfig[section.key] = currentConfig[section.key];
-          }
-        }
-      }
-
-      // Always include the current section we're saving
-      updatedConfig[currentSection] = JSON.parse(sectionEditors.value[currentSection]);
+      // Create a payload with only the current section's data
+      const payload: Partial<ColonelConfigDetails> = {};
+      payload[currentSection] = JSON.parse(sectionEditors.value[currentSection]);
 
       try {
-        await store.update(updatedConfig as ColonelConfigDetails);
+        // Send only the current section for update
+        await store.update(payload as ColonelConfigDetails);
+        // Fetch the full updated config to refresh the store and other sections
         await store.fetch();
 
         // Remove from modified sections
@@ -222,6 +210,7 @@ export function useColonelConfig() {
         saveSuccess.value = true;
         notifications.show(t('web.colonel.sectionSaved', { section: sectionLabel }), 'success');
       } catch (error) {
+        // The wrap function will handle notifications.show for errors
         throw error;
       }
 
@@ -287,7 +276,7 @@ export function useColonelConfig() {
       } catch (validationError) {
         if (validationError instanceof z.ZodError) {
           const firstError = validationError.errors[0];
-          const errorPath = firstError.path.length > 0 ? firstError.path.join('.') : 'root';
+          const errorPath = firstError.path.length > 0 ? validationError.errors[0].path.join('.') : 'root';
           errorMessage.value = `${t('web.colonel.validationError')}: ${errorPath} - ${firstError.message}`;
           return;
         }
