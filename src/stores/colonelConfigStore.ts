@@ -41,9 +41,11 @@ export const useColonelConfigStore = defineStore('colonel', () => {
     try {
       const validated = responseSchemas.colonelConfig.parse(response.data);
       details.value = validated.details;
-    } catch (ZodError) {
-      console.error('Colonel config validation error:', ZodError);
-      details.value = response.data.details;
+    } catch (validationError) {
+      console.warn('Colonel config validation warning:', validationError);
+      // Gracefully handle validation errors by using response data directly
+      // This allows for partial configurations and new fields not yet in schema
+      details.value = response.data.details || {};
     }
 
     return response.data;
@@ -54,9 +56,10 @@ export const useColonelConfigStore = defineStore('colonel', () => {
    * @param newConfig Updated configuration object
    */
   async function update(newConfig: ColonelConfigDetails) {
-    // Validate the config before sending to API
+    // Validate the config before sending to API, but allow partial configurations
     try {
-      colonelConfigSchema.parse(newConfig);
+      // Use partial validation to allow incomplete config objects
+      colonelConfigSchema.partial().parse(newConfig);
     } catch (validationError) {
       if (validationError instanceof z.ZodError) {
         const firstError = validationError.errors[0];
@@ -67,12 +70,18 @@ export const useColonelConfigStore = defineStore('colonel', () => {
 
     const response = await $api.post('/api/v2/colonel/config', { config: newConfig });
 
-    const validated = responseSchemas.metadata.parse(response.data);
-    record.value = validated.record;
-
-    // Update local state with the received config if available, otherwise use what we sent
-    details.value = validated.details;
-    return validated;
+    try {
+      const validated = responseSchemas.colonelConfig.parse(response.data);
+      record.value = validated.record;
+      details.value = validated.details;
+      return validated;
+    } catch (validationError) {
+      console.warn('Response validation warning:', validationError);
+      // Fallback to using response data directly if validation fails
+      record.value = response.data.record || {};
+      details.value = response.data.details || {};
+      return response.data;
+    }
   }
 
   function dispose() {

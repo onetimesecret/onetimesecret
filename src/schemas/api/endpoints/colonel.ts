@@ -11,7 +11,7 @@ const numberOrString = z.union([z.string(), z.number()]).optional();
 
 const interfaceSchema = z.object({
   ui: z.object({
-    enabled: booleanOrString,
+    enabled: booleanOrString.optional(),
     header: z
       .object({
         enabled: booleanOrString.optional(),
@@ -40,131 +40,131 @@ const interfaceSchema = z.object({
         groups: z
           .array(
             z.object({
-              name: z.string(),
+              name: z.string().optional(),
               i18n_key: z.string().optional(),
               links: z.array(
                 z.object({
                   text: z.string().optional(),
                   i18n_key: z.string().optional(),
-                  url: z.string(),
+                  url: z.string().optional(),
                   external: z.boolean().optional(),
                   icon: z.string().optional(),
                   visible: z.boolean().optional(),
                 })
-              ),
+              ).optional(),
             })
           )
           .optional(),
       })
       .optional(),
-  }),
+  }).optional(),
   api: z.object({
-    enabled: booleanOrString,
-  }),
+    enabled: booleanOrString.optional(),
+  }).optional(),
 });
 
 // Secret options
 const secretOptionsSchema = z.object({
-  default_ttl: numberOrString,
-  ttl_options: z.union([z.string(), z.array(z.number())]),
+  default_ttl: numberOrString.optional(),
+  ttl_options: z.union([z.string(), z.array(z.number())]).optional(),
 });
 
 // Mail schema
 const mailSchema = z.object({
   truemail: z.object({
-    default_validation_type: z.string(),
-    verifier_email: z.string(),
+    default_validation_type: z.string().optional(),
+    verifier_email: z.string().optional(),
     verifier_domain: z.string().optional(),
-    allowed_domains_only: z.boolean(),
-    dns: z.array(z.string()),
-    smtp_fail_fast: z.boolean(),
-    smtp_safe_check: z.boolean(),
-    not_rfc_mx_lookup_flow: z.boolean(),
+    allowed_domains_only: z.boolean().optional(),
+    dns: z.array(z.string()).optional(),
+    smtp_fail_fast: z.boolean().optional(),
+    smtp_safe_check: z.boolean().optional(),
+    not_rfc_mx_lookup_flow: z.boolean().optional(),
     logger: z.object({
       tracking_event: z.any().optional(),
       stdout: z.any().optional(),
-    }),
-  }),
+    }).optional(),
+  }).optional(),
 });
 
 // Diagnostics schema
 const diagnosticsSchema = z.object({
-  enabled: booleanOrString,
+  enabled: booleanOrString.optional(),
   sentry: z.object({
     backend: z.object({
       dsn: z.string().optional(),
-      sampleRate: z.union([z.string(), z.number()]),
-      maxBreadcrumbs: z.union([z.string(), z.number()]),
-      logErrors: booleanOrString,
-    }),
+      sampleRate: z.union([z.string(), z.number()]).optional(),
+      maxBreadcrumbs: z.union([z.string(), z.number()]).optional(),
+      logErrors: booleanOrString.optional(),
+    }).optional(),
     frontend: z.object({
       dsn: z.string().optional(),
-      sampleRate: z.union([z.string(), z.number()]),
-      maxBreadcrumbs: z.union([z.string(), z.number()]),
-      logErrors: booleanOrString,
+      sampleRate: z.union([z.string(), z.number()]).optional(),
+      maxBreadcrumbs: z.union([z.string(), z.number()]).optional(),
+      logErrors: booleanOrString.optional(),
       trackComponents: booleanOrString.optional(),
-    }),
-  }),
+    }).optional(),
+  }).optional(),
 });
 
 // Limits schema
 const limitsSchema = z.object({
-  create_secret: z.number(),
-  create_account: z.number(),
-  update_account: z.number(),
-  email_recipient: z.number(),
-  send_feedback: z.number(),
-  authenticate_session: z.number(),
-  get_page: z.number(),
-  dashboard: z.number(),
-  failed_passphrase: z.number(),
-  show_metadata: z.number(),
-  show_secret: z.number(),
-  burn_secret: z.number(),
-  destroy_account: z.number(),
-  forgot_password_request: z.number(),
-  forgot_password_reset: z.number(),
-  generate_apitoken: z.number(),
-  add_domain: z.number(),
-  remove_domain: z.number(),
-  list_domains: z.number(),
-  get_domain: z.number(),
-  verify_domain: z.number(),
-  report_exception: z.number(),
-  attempt_secret_access: z.number(),
-  check_status: z.number(),
-  update_branding: z.number(),
-  destroy_session: z.number(),
-  get_domain_brand: z.number(),
-  get_domain_logo: z.number(),
-  get_image: z.number(),
-  remove_domain_logo: z.number(),
-  show_account: z.number(),
-  stripe_webhook: z.number(),
-  update_domain_brand: z.number(),
-  view_colonel: z.number(),
-  external_redirect: z.number(),
+  create_secret: z.number().optional(),
+  create_account: z.number().optional(),
+  update_account: z.number().optional(),
+  email_recipient: z.number().optional(),
+  send_feedback: z.number().optional(),
+  authenticate_session: z.number().optional(),
+  get_page: z.number().optional(),
+  dashboard: z.number().optional(),
+  failed_passphrase: z.number().optional(),
+  show_metadata: z.number().optional(),
+  show_secret: z.number().optional(),
+  burn_secret: z.number().optional(),
+  destroy_account: z.number().optional(),
+  forgot_password_request: z.number().optional(),
+  forgot_password_reset: z.number().optional(),
+  generate_apitoken: z.number().optional(),
+  add_domain: z.number().optional(),
+  remove_domain: z.number().optional(),
+  list_domains: z.number().optional(),
+  get_domain: z.number().optional(),
+  verify_domain: z.number().optional(),
+  report_exception: z.number().optional(),
+  attempt_secret_access: z.number().optional(),
+  check_status: z.number().optional(),
+  update_branding: z.number().optional(),
+  destroy_session: z.number().optional(),
+  get_domain_brand: z.number().optional(),
+  get_domain_logo: z.number().optional(),
+  get_image: z.number().optional(),
+  remove_domain_logo: z.number().optional(),
+  show_account: z.number().optional(),
+  stripe_webhook: z.number().optional(),
+  update_domain_brand: z.number().optional(),
+  view_colonel: z.number().optional(),
+  external_redirect: z.number().optional(),
   update_colonel_config: z.number().optional(),
 });
 
 /**
  * ColonelConfigSchema defines the top-level structure of the configuration.
  * Each section references deeper schemas defined elsewhere.
- * Using .optional().default({}) to handle partial configuration data during initialization.
+ * Using .optional() to handle partial configuration data during initialization.
  */
 export const colonelConfigSchema = z.object({
-  interface: interfaceSchema.optional().default({}),
-  secret_options: secretOptionsSchema.optional().default({}),
-  mail: mailSchema.optional().default({ truemail: {} }),
-  diagnostics: diagnosticsSchema.optional().default({}),
-  limits: limitsSchema.optional().default({}),
-  // development: developmentSchema.optional().default({}),
-  // experimental: z.record(z.any()).optional().default({}),
-  // features: z.record(z.any()),
-  // redis: z.record(z.any()),
-  // logging: z.record(z.any()),
-  // emailer: z.record(z.any()),
-  // internationalization: z.record(z.any()),
+  interface: interfaceSchema.optional(),
+  secret_options: secretOptionsSchema.optional(),
+  mail: mailSchema.optional(),
+  diagnostics: diagnosticsSchema.optional(),
+  limits: limitsSchema.optional(),
+  // development: developmentSchema.optional(),
+  // experimental: z.record(z.any()).optional(),
+  // features: z.record(z.any()).optional(),
+  // redis: z.record(z.any()).optional(),
+  // logging: z.record(z.any()).optional(),
+  // emailer: z.record(z.any()).optional(),
+  // internationalization: z.record(z.any()).optional(),
 });
 
 export const colonelConfigDetailsSchema = colonelConfigSchema.extend({

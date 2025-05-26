@@ -49,22 +49,37 @@ export function useColonelConfig() {
   // Validation logic
   const validateJson = (section: ConfigSectionKey, content: string) => {
     try {
-      if (content.trim() === '') {
+      // Handle empty content
+      if (!content || content.trim() === '') {
         content = '{}';
         sectionEditors.value[section] = content;
       }
 
       const parsed = JSON.parse(content);
 
-      if (parsed === null || typeof parsed !== 'object' || Array.isArray(parsed)) {
+      // Allow null/undefined for optional sections
+      if (parsed === null || parsed === undefined) {
+        validationState.value[section] = true;
+        validationMessages.value[section] = null;
+        return;
+      }
+
+      // Require objects (not arrays or primitives) for config sections
+      if (typeof parsed !== 'object' || Array.isArray(parsed)) {
         throw new Error(t('web.colonel.mustBeObject'));
       }
+
+      // Additional section-specific validation could be added here
+      // For now, any valid JSON object is accepted
 
       validationState.value[section] = true;
       validationMessages.value[section] = null;
     } catch (error) {
       validationState.value[section] = false;
-      if (error instanceof Error) {
+      if (error instanceof SyntaxError) {
+        // JSON parsing error
+        validationMessages.value[section] = t('web.colonel.invalidJson', { section });
+      } else if (error instanceof Error) {
         validationMessages.value[section] = error.message;
       } else {
         validationMessages.value[section] = t('web.colonel.invalidJson', { section });
@@ -94,8 +109,7 @@ export function useColonelConfig() {
 
   // Check if current section has validation error
   const currentSectionHasError = computed(() =>
-    activeSection.value ? sectionsWithErrors.value.includes(activeSection.value) : false
-  );
+    activeSection.value ? sectionsWithErrors.value.includes(activeSection.value) : false);
 
   // Get sections that can be saved (valid and modified)
   const saveableSections = computed(() =>
@@ -156,7 +170,6 @@ export function useColonelConfig() {
   };
 
   // Save only the current section
-  /* eslint-disable complexity */
   const saveCurrentSection = async (
     configSections: Array<{ key: ConfigSectionKey; label: string }>
   ) =>
@@ -178,15 +191,29 @@ export function useColonelConfig() {
         return;
       }
 
-      // Get current config and update only the current section
+      // Create minimal config with only valid sections to avoid validation errors
       const currentConfig = store.details || ({} as ColonelConfigDetails);
-      const updatedConfig = {
-        ...currentConfig,
-        [currentSection]: JSON.parse(sectionEditors.value[currentSection]),
-      };
+
+      // Build config with only the current section and other valid sections
+      const updatedConfig: Partial<ColonelConfigDetails> = {};
+
+      // Add all currently valid sections from editors
+      for (const section of configSections) {
+        if (validationState.value[section.key] === true) {
+          updatedConfig[section.key] = JSON.parse(sectionEditors.value[section.key] || '{}');
+        } else if (section.key !== currentSection) {
+          // For invalid sections (except current), use original data if available
+          if (currentConfig[section.key]) {
+            updatedConfig[section.key] = currentConfig[section.key];
+          }
+        }
+      }
+
+      // Always include the current section we're saving
+      updatedConfig[currentSection] = JSON.parse(sectionEditors.value[currentSection]);
 
       try {
-        await store.update(updatedConfig);
+        await store.update(updatedConfig as ColonelConfigDetails);
         await store.fetch();
 
         // Remove from modified sections

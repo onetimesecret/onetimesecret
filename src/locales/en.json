@@ -390,7 +390,9 @@
       "configSaved": "Configuration saved successfully",
       "mustBeObject": "Configuration must be a JSON object",
       "multipleSectionsInvalid": "Multiple sections have validation errors: {sections}",
-      "saveSection": "Save Section",
+      "sectionHasError": "{section} has validation errors: {error}",
+      "sectionSaved": "{section} saved successfully",
+      "saveSection": "Save {section}",
       "saveAll": "Save All",
       "unsavedChanges": "Unsaved changes"
     },
