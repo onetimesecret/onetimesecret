@@ -14,7 +14,6 @@ import { type LogoConfig } from '@/types/ui/layouts';
     defineProps<LogoConfig>(),
     {
       size: 64,
-      mode: 'light',
       href: '/',
     }
   );
@@ -22,8 +21,6 @@ import { type LogoConfig } from '@/types/ui/layouts';
   const { t } = useI18n();
 
   const ariaLabel = computed(() => props.ariaLabel || t('one-time-secret-literal'));
-
-  const textColor = computed(() => (props.mode === 'dark' ? 'text-white' : 'text-gray-800'));
 
   const svgSize = computed(() =>
     typeof props.size === 'number' && props.size > 0 ? props.size : 64
@@ -48,13 +45,19 @@ import { type LogoConfig } from '@/types/ui/layouts';
       <MonotoneJapaneseSecretButton
         :size="svgSize"
         :aria-label="ariaLabel"
-        class="shrink-0" />
+        class="shrink-0 text-brand-500" />
       <div
         v-if="props.showCompanyName && props.companyName"
         class="flex flex-col">
-        <span :class="[textSize, textColor, 'font-bold leading-tight']">
+        <div :class="[textSize, 'font-bold leading-tight']">
           {{ props.companyName }}
-        </span>
+        </div>
+        <!-- Tagline -->
+        <div
+          class="text-xs text-gray-500 transition-colors dark:text-gray-400"
+          aria-hidden="true">
+            {{ props.tagLine || t('web.COMMON.tagline') }}
+        </div>
       </div>
     </a>
   </div>

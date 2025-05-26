@@ -18,8 +18,8 @@ export interface LogoConfig {
   showCompanyName?: boolean;
   /** Company name override (falls back to config or i18n) */
   companyName?: string;
-  /** Color mode for logo display */
-  mode?: 'light' | 'dark';
+  /** Tagline override (falls back to config or i18n) */
+  tagLine?: string;
   /** Custom aria label override */
   ariaLabel?: string;
 }

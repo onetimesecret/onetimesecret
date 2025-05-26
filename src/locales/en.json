@@ -24,6 +24,7 @@
     },
     "COMMON": {
       "broadcast": "",
+      "tagline": "Links that only work once",
       "powered_by": "Powered by",
       "website_url": "https://onetimesecret.com/en",
       "button_generate_secret_short": "Generate Password",
