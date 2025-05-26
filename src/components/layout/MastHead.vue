@@ -43,7 +43,6 @@ import { shallowRef } from 'vue';
     size: props.logo?.size || 64,
     showCompanyName: props.logo?.showCompanyName ?? !!headerConfig.value?.branding?.company_name,
     companyName: props.logo?.companyName || headerConfig.value?.branding?.company_name || t('one-time-secret-literal'),
-    mode: props.logo?.mode || 'light',
     ariaLabel: props.logo?.ariaLabel
   }));
 

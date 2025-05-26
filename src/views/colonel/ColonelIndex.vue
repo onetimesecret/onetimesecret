@@ -14,7 +14,7 @@
 
   // Main navigation tabs
   const navTabs = [
-    { name: t('Home'), href: '/colonel' },
+    { name: t('Config'), href: '/colonel' },
     { name: t('Info'), href: '/colonel/info#stats' },
   ];
 
@@ -51,7 +51,8 @@
     saveConfig,
     saveCurrentSection,
     markSectionModified,
-    switchToSection
+    switchToSection,
+    isProgrammaticChange, // <-- Import the new flag
   } = useColonelConfig();
 
   // Set initial active section
@@ -67,8 +68,11 @@
     set: (val) => {
       if (activeSection.value) {
         sectionEditors.value[activeSection.value] = val;
-        markSectionModified(activeSection.value);
-        validateJson(activeSection.value, val);
+        // Only mark as modified and validate if the change wasn't programmatic
+        if (!isProgrammaticChange.value) {
+          markSectionModified(activeSection.value);
+          validateJson(activeSection.value, val);
+        }
       }
     },
   });

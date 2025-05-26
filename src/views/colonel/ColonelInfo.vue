@@ -8,7 +8,7 @@
   const { t } = useI18n();
 
   const navTabs = [
-    { name: t('Home'), href: '/colonel' },
+    { name: t('Config'), href: '/colonel' },
     { name: t('Info'), href: '/colonel/info#stats' },
   ];
 

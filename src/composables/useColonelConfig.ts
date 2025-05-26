@@ -31,6 +31,7 @@ export function useColonelConfig() {
   const saveSuccess = ref<boolean>(false);
   const isLoading = ref<boolean>(false);
   const isSaving = ref<boolean>(false);
+  const isProgrammaticChange = ref<boolean>(false); // <-- Add this flag
 
   // Track which sections have been modified
   const modifiedSections = ref<Set<ConfigSectionKey>>(new Set());
@@ -132,20 +133,23 @@ export function useColonelConfig() {
     configData: ColonelConfigDetails | null,
     configSections: Array<{ key: ConfigSectionKey }>
   ) => {
-    configSections.forEach((section) => {
-      try {
-        const sectionData = configData && configData[section.key] ? configData[section.key] : {};
-        const content = JSON.stringify(sectionData, null, 2);
-        sectionEditors.value[section.key] = content;
-        validateJson(section.key, content);
-      } catch (error) {
-        console.error(`Error initializing section ${section.key}:`, error);
-        sectionEditors.value[section.key] = '{}';
-        validateJson(section.key, '{}');
-      }
-    });
-    // Clear modified sections on initialization
-    modifiedSections.value.clear();
+    isProgrammaticChange.value = true; // <-- Set flag before programmatic changes
+    try {
+      configSections.forEach((section) => {
+        try {
+          const sectionData = configData && configData[section.key] ? configData[section.key] : {};
+          const content = JSON.stringify(sectionData, null, 2);
+          sectionEditors.value[section.key] = content;
+          validateJson(section.key, content);
+        } catch (error) {
+          console.error(`Error initializing section ${section.key}:`, error);
+          sectionEditors.value[section.key] = '{}';
+          validateJson(section.key, '{}');
+        }
+      });
+    } finally {
+      isProgrammaticChange.value = false; // <-- Reset flag after programmatic changes
+    }
   };
 
   // Mark section as modified
@@ -309,6 +313,7 @@ export function useColonelConfig() {
     isLoading,
     isSaving,
     modifiedSections,
+    isProgrammaticChange, // <-- Expose the flag
 
     // Computed
     hasValidationErrors,
