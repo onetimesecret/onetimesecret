@@ -1,6 +1,6 @@
 // stores/colonelStore.ts
 
-import { responseSchemas, type ColonelDetails } from '@/schemas/api';
+import { responseSchemas, type ColonelInfoDetails } from '@/schemas/api';
 import { AxiosInstance } from 'axios';
 import { defineStore, PiniaCustomProperties } from 'pinia';
 import { inject, ref } from 'vue';
@@ -12,11 +12,11 @@ export type ColonelStore = {
   // State
   _initialized: boolean;
   record: {} | null; // response is empty object
-  details: ColonelDetails;
+  details: ColonelInfoDetails;
   config: Record<string, any> | null;
 
   // Actions
-  fetch: () => Promise<ColonelDetails>;
+  fetch: () => Promise<ColonelInfoDetails>;
   fetchConfig: () => Promise<Record<string, any>>;
   updateConfig: (config: Record<string, any>) => Promise<void>;
   dispose: () => void;
@@ -28,7 +28,7 @@ export const useColonelStore = defineStore('colonel', () => {
 
   // State
   const record = ref<{} | null>(null);
-  const details = ref<ColonelDetails | null>(null);
+  const details = ref<ColonelInfoDetails | null>(null);
   const config = ref<Record<string, any> | null>(null);
   const _initialized = ref(false);
   const isLoading = ref(false);
@@ -41,7 +41,7 @@ export const useColonelStore = defineStore('colonel', () => {
     try {
       response = await $api.get('/api/v2/colonel');
 
-      const validated = responseSchemas.colonel.parse(response.data);
+      const validated = responseSchemas.colonelInfo.parse(response.data);
       console.debug('Colonel validation successful:', validated);
       details.value = validated.details;
 

@@ -3,15 +3,15 @@ import { transforms } from '@/schemas/transforms';
 import { z } from 'zod';
 
 // Common types
-const BooleanOrString = z.union([z.boolean(), z.string()]);
-const NumberOrString = z.union([z.string(), z.number()]);
+const booleanOrString = z.union([z.boolean(), z.string()]);
+const numberOrString = z.union([z.string(), z.number()]);
 
-const InterfaceSchema = z.object({
+const interfaceSchema = z.object({
   ui: z.object({
-    enabled: BooleanOrString,
+    enabled: booleanOrString,
     header: z
       .object({
-        enabled: BooleanOrString.optional(),
+        enabled: booleanOrString.optional(),
         branding: z
           .object({
             logo: z
@@ -26,14 +26,14 @@ const InterfaceSchema = z.object({
           .optional(),
         navigation: z
           .object({
-            enabled: BooleanOrString.optional(),
+            enabled: booleanOrString.optional(),
           })
           .optional(),
       })
       .optional(),
     footer_links: z
       .object({
-        enabled: BooleanOrString.optional(),
+        enabled: booleanOrString.optional(),
         groups: z
           .array(
             z.object({
@@ -56,18 +56,18 @@ const InterfaceSchema = z.object({
       .optional(),
   }),
   api: z.object({
-    enabled: BooleanOrString,
+    enabled: booleanOrString,
   }),
 });
 
 // Secret options
-const SecretOptionsSchema = z.object({
-  default_ttl: NumberOrString,
+const secretOptionsSchema = z.object({
+  default_ttl: numberOrString,
   ttl_options: z.string(),
 });
 
 // Mail schema
-const MailSchema = z.object({
+const mailSchema = z.object({
   truemail: z.object({
     default_validation_type: z.string(),
     verifier_email: z.string(),
@@ -85,27 +85,27 @@ const MailSchema = z.object({
 });
 
 // Diagnostics schema
-const DiagnosticsSchema = z.object({
-  enabled: BooleanOrString,
+const diagnosticsSchema = z.object({
+  enabled: booleanOrString,
   sentry: z.object({
     defaults: z.object({
       dsn: z.string().optional(),
       sampleRate: z.union([z.string(), z.number()]),
       maxBreadcrumbs: z.union([z.string(), z.number()]),
-      logErrors: BooleanOrString,
+      logErrors: booleanOrString,
     }),
     backend: z.object({
       dsn: z.string().optional(),
     }),
     frontend: z.object({
       dsn: z.string().optional(),
-      trackComponents: BooleanOrString.optional(),
+      trackComponents: booleanOrString.optional(),
     }),
   }),
 });
 
 // Limits schema
-const LimitsSchema = z.object({
+const limitsSchema = z.object({
   create_secret: z.number(),
   create_account: z.number(),
   update_account: z.number(),
@@ -144,7 +144,7 @@ const LimitsSchema = z.object({
   update_colonel_config: z.number().optional(),
 });
 
-const DevelopmentSchema = z.object({
+const developmentSchema = z.object({
   enabled: z.any(),
   debug: z.any(),
   frontend_host: z.string(),
@@ -154,13 +154,13 @@ const DevelopmentSchema = z.object({
  * ColonelConfigSchema defines the top-level structure of the configuration.
  * Each section references deeper schemas defined elsewhere.
  */
-export const ColonelConfigSchema = z.object({
-  interface: InterfaceSchema,
-  secret_options: SecretOptionsSchema,
-  mail: MailSchema,
-  diagnostics: DiagnosticsSchema,
-  limits: LimitsSchema,
-  development: DevelopmentSchema,
+export const colonelConfigSchema = z.object({
+  interface: interfaceSchema,
+  secret_options: secretOptionsSchema,
+  mail: mailSchema,
+  diagnostics: diagnosticsSchema,
+  limits: limitsSchema,
+  development: developmentSchema,
   // features: z.record(z.any()),
   // redis: z.record(z.any()),
   // logging: z.record(z.any()),
@@ -168,6 +168,8 @@ export const ColonelConfigSchema = z.object({
   // internationalization: z.record(z.any()),
   // experimental: z.record(z.any()).optional(),
 });
+
+export const colonelConfigDetailsSchema = colonelConfigSchema.extend({});
 
 /**
  * An abridged customer record used in the recent list.
@@ -187,7 +189,7 @@ export const recentCustomerSchema = z.object({
  * Raw API data structures before transformation
  * These represent the API shape that will be transformed by input schemas
  */
-export const colonelDetailsSchema = z.object({
+export const colonelInfoDetailsSchema = z.object({
   recent_customers: z.array(recentCustomerSchema),
   today_feedback: z.array(feedbackSchema),
   yesterday_feedback: z.array(feedbackSchema),
@@ -211,5 +213,6 @@ export const colonelDetailsSchema = z.object({
 });
 
 // Export types
-export type ColonelDetails = z.infer<typeof colonelDetailsSchema>;
+export type ColonelInfoDetails = z.infer<typeof colonelInfoDetailsSchema>;
+export type ColonelConfigDetails = z.infer<typeof colonelConfigDetailsSchema>;
 export type RecentCustomer = z.infer<typeof recentCustomerSchema>;
