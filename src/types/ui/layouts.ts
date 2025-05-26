@@ -1,7 +1,5 @@
 // types/ui/layouts.ts
 
-import { AuthenticationSettings, Customer } from '@/schemas/models';
-
 /**
  * Logo configuration for masthead and other layout components
  */
@@ -24,25 +22,6 @@ export interface LogoConfig {
   ariaLabel?: string;
   /** Whether to identify that we are in the colonel area */
   isColonelArea?: boolean;
-}
-/**
- * Core application configuration passed from server
- *
- * @deprecated Components use WindowService to access this data
- * now. Keeping for reference until all components are updated.
- *
- */
-export interface WindowConfig {
-  authenticated: boolean;
-  colonel: boolean;
-  cust?: Customer;
-  onetimeVersion: string;
-  authentication?: AuthenticationSettings;
-  plansEnabled: boolean;
-  supportHost: string;
-  globalBanner?: string;
-  hasGlobalBanner?: boolean;
-  primaryColor?: string;
 }
 
 /**
