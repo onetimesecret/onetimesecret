@@ -31,6 +31,21 @@ const routes: Array<RouteRecordRaw> = [
     },
     props: true,
   },
+  {
+    path: '/colonel/info',
+    name: 'ColonelInfo',
+    components: {
+      default: () => import('@/views/colonel/ColonelInfo.vue'),
+      header: DefaultHeader,
+      footer: DefaultFooter,
+    },
+    meta: {
+      isAdmin: true,
+      requiresAuth: true,
+      displayPoweredBy: false,
+    },
+    props: true,
+  },
 ];
 
 export default routes;
