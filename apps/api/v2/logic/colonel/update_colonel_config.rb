@@ -1,4 +1,4 @@
-# apps/api/v2/logic/colonel/get_colonel_config.rb
+# apps/api/v2/logic/colonel/update_colonel_config.rb
 
 require_relative '../base'
 
@@ -7,41 +7,90 @@ module V2
     module Colonel
       class UpdateColonelConfig < V2::Logic::Base
         @safe_fields = [:interface, :secret_options, :mail, :limits,
-                        :experimental, :diagnostics]
+                        :diagnostics, :development, :experimental]
 
         attr_reader :config, :interface, :secret_options, :mail, :limits,
-                    :experimental, :diagnostics
+                    :experimental, :diagnostics, :development
 
         def process_params
           OT.ld "[UpdateColonelConfig#process_params] params: #{params.inspect}"
-          @config = params[:config] || {}
+          # Accept config either directly or wrapped in a :config key
+          @config = params.key?(:config) ? params[:config] : params
 
+          # Extract configuration sections, supporting both string and symbol keys
+          @interface = config[:interface] || config['interface']
+          @secret_options = config[:secret_options] || config['secret_options']
+          @mail = config[:mail] || config['mail']
+          @limits = config[:limits] || config['limits']
+          @diagnostics = config[:diagnostics] || config['diagnostics']
+          @development = config[:development] || config['development']
+          @experimental = config[:experimental] || config['experimental']
+
+          OT.ld "[UpdateColonelConfig#process_params] Extracted config sections: interface=#{!!interface}, secret_options=#{!!secret_options}, mail=#{!!mail}, limits=#{!!limits}, diagnostics=#{!!diagnostics}, development=#{!!development}"
         end
 
         def raise_concerns
           limit_action :update_colonel_config
-          raise_form_error "`config` was empty" unless config.size > 0
+          raise_form_error "`config` was empty" if config.empty?
 
-          self.class.safe_fields.each do |field|
-            raise_form_error "Invalid field: #{field}" unless config.key?(field)
-          end
+          # Normalize keys to symbols for comparison
+          config_keys = config.keys.map { |k| k.respond_to?(:to_sym) ? k.to_sym : k }
+
+          # Ensure at least one valid field is present (not requiring all sections)
+          present_fields = self.class.safe_fields & config_keys
+          raise_form_error "No valid configuration sections found" if present_fields.empty?
+
+          # Log unsupported fields but don't error
+          unsupported_fields = config_keys - self.class.safe_fields
+          OT.ld "[UpdateColonelConfig#raise_concerns] Ignoring unsupported fields: #{unsupported_fields.join(', ')}" unless unsupported_fields.empty?
         end
 
         def process
+          OT.ld "[UpdateColonelConfig#process] Updating configuration"
+
+          begin
+            # Update site configuration
+            OT.conf[:site] ||= {}
+            OT.conf[:site][:interface] = interface if interface
+            OT.conf[:site][:secret_options] = secret_options if secret_options
+
+            # Update other top-level configurations with deep merge to preserve existing settings
+            OT.conf[:mail] = OT.conf.fetch(:mail, {}).merge(mail) if mail
+            OT.conf[:limits] = OT.conf.fetch(:limits, {}).merge(limits) if limits
+            OT.conf[:diagnostics] = OT.conf.fetch(:diagnostics, {}).merge(diagnostics) if diagnostics
+            OT.conf[:development] = OT.conf.fetch(:development, {}).merge(development) if development
+            OT.conf[:experimental] = OT.conf.fetch(:experimental, {}).merge(experimental) if experimental
+
+            # Save updated configuration to Redis or other persistent storage
+            OT.save_conf
+
+            OT.ld "[UpdateColonelConfig#process] Configuration updated successfully"
+          rescue => ex
+            OT.ld "[UpdateColonelConfig#process] Error updating configuration: #{ex.message}"
+            OT.ld "[UpdateColonelConfig#process] #{ex.backtrace.join("\n")}" if ex.backtrace
+            raise_form_error "Failed to save configuration: #{ex.message}"
+          end
         end
 
         def success_data
-          {
+          OT.ld "[UpdateColonelConfig#success_data] Returning updated configuration"
+
+          # Create a response that matches the GetColonelConfig format
+          response = {
             record: {},
-            details: {
-              interface: interface,
-              secret_options: secret_options,
-              mail: mail,
-              limits: limits,
-              diagnostics: diagnostics,
-              experimental: experimental,
-            }
+            details: {}
           }
+
+          # Only include sections that were provided in the request
+          response[:details][:interface] = interface if interface
+          response[:details][:secret_options] = secret_options if secret_options
+          response[:details][:mail] = mail if mail
+          response[:details][:limits] = limits if limits
+          response[:details][:diagnostics] = diagnostics if diagnostics
+          response[:details][:development] = development if development
+          response[:details][:experimental] = experimental if experimental
+
+          response
         end
 
         class << self

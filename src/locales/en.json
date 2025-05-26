@@ -24,7 +24,7 @@
     },
     "COMMON": {
       "broadcast": "",
-      "tagline": "Links that only work once",
+      "tagline": "Secure links that only work once",
       "powered_by": "Powered by",
       "website_url": "https://onetimesecret.com/en",
       "button_generate_secret_short": "Generate Password",
@@ -380,7 +380,15 @@
       "user-feedback-total-details-counts-feedback_coun-0": "User Feedback (Total: {0})",
       "metadata-secrets-details-counts-metadata_count-d-0": "Metadata / Secrets: {0}/{1} ({2}/{3}/{4} total)",
       "secrets-details-counts-secret_count-0": "Secrets ({0})",
-      "active-in-the-past-5-minutes-0": "(active in the past 5 minutes)"
+      "active-in-the-past-5-minutes-0": "(active in the past 5 minutes)",
+      "configEditor": "Configuration Editor",
+      "configEditorDescription": "Edit system configuration settings. Changes apply immediately after saving.",
+      "invalidJson": "Invalid JSON in {section} section",
+      "validationError": "Validation error",
+      "errorFetchingConfig": "Error loading configuration",
+      "errorSavingConfig": "Error saving configuration",
+      "configSaved": "Configuration saved successfully",
+      "mustBeObject": "Configuration must be a JSON object"
     },
     "feedback": {
       "when-you-submit-feedback-well-see": "When you submit feedback, we'll see:",

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import FeedbackSection from '@/components/colonel/FeedbackSection.vue';
-import { useColonelStore } from '@/stores/colonelStore';
+import { useColonelInfoStore } from '@/stores/colonelInfoStore';
 import { computed, onMounted } from 'vue';
 import { storeToRefs } from 'pinia';
 import { useI18n } from 'vue-i18n';
@@ -22,7 +22,7 @@ const feedbackSections = computed(() => {
   ];
 });
 
-const store = useColonelStore();
+const store = useColonelInfoStore();
 const { details, isLoading } = storeToRefs(store);
 const { fetch } = store; // Actions are extracted directly
 

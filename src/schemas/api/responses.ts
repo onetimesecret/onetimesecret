@@ -41,6 +41,7 @@ export const responseSchemas = {
   brandSettings: createApiResponseSchema(brandSettingschema),
   checkAuth: createApiResponseSchema(customerSchema, checkAuthDetailsSchema),
   colonelInfo: createApiResponseSchema(z.object({}), colonelInfoDetailsSchema),
+  colonelConfig: createApiResponseSchema(z.object({}), colonelConfigDetailsSchema),
   concealData: createApiResponseSchema(concealDataSchema),
   customDomain: createApiResponseSchema(customDomainSchema, customDomainDetailsSchema),
   customer: createApiResponseSchema(customerSchema, checkAuthDetailsSchema),
@@ -49,7 +50,7 @@ export const responseSchemas = {
   jurisdiction: createApiResponseSchema(jurisdictionSchema, jurisdictionDetailsSchema),
   metadata: createApiResponseSchema(metadataSchema, metadataDetailsSchema),
   secret: createApiResponseSchema(secretSchema, secretDetailsSchema),
-  colonelConfig: createApiResponseSchema(z.object({}), colonelConfigDetailsSchema),
+
   // List responses
   customDomainList: createApiListResponseSchema(customDomainSchema, customDomainDetailsSchema),
   metadataList: createApiListResponseSchema(metadataRecordsSchema, metadataRecordsDetailsSchema),

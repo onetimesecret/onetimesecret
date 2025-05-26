@@ -1,10 +1,13 @@
+// src/schemas/api/endpoints/colonel.ts
+
 import { feedbackSchema } from '@/schemas/models';
 import { transforms } from '@/schemas/transforms';
 import { z } from 'zod';
 
 // Common types
-const booleanOrString = z.union([z.boolean(), z.string()]);
-const numberOrString = z.union([z.string(), z.number()]);
+// More flexible type validation that can handle missing values
+const booleanOrString = z.union([z.boolean(), z.string()]).optional();
+const numberOrString = z.union([z.string(), z.number()]).optional();
 
 const interfaceSchema = z.object({
   ui: z.object({
@@ -63,7 +66,7 @@ const interfaceSchema = z.object({
 // Secret options
 const secretOptionsSchema = z.object({
   default_ttl: numberOrString,
-  ttl_options: z.string(),
+  ttl_options: z.union([z.string(), z.array(z.number())]),
 });
 
 // Mail schema
@@ -153,23 +156,27 @@ const developmentSchema = z.object({
 /**
  * ColonelConfigSchema defines the top-level structure of the configuration.
  * Each section references deeper schemas defined elsewhere.
+ * Using .optional().default({}) to handle partial configuration data during initialization.
  */
 export const colonelConfigSchema = z.object({
-  interface: interfaceSchema,
-  secret_options: secretOptionsSchema,
-  mail: mailSchema,
-  diagnostics: diagnosticsSchema,
-  limits: limitsSchema,
-  development: developmentSchema,
+  interface: interfaceSchema.optional().default({}),
+  secret_options: secretOptionsSchema.optional().default({}),
+  mail: mailSchema.optional().default({}),
+  diagnostics: diagnosticsSchema.optional().default({}),
+  limits: limitsSchema.optional().default({}),
+  development: developmentSchema.optional().default({}),
+  experimental: z.record(z.any()).optional().default({}),
   // features: z.record(z.any()),
   // redis: z.record(z.any()),
   // logging: z.record(z.any()),
   // emailer: z.record(z.any()),
   // internationalization: z.record(z.any()),
-  // experimental: z.record(z.any()).optional(),
 });
 
-export const colonelConfigDetailsSchema = colonelConfigSchema.extend({});
+export const colonelConfigDetailsSchema = colonelConfigSchema.extend({
+  // This extension allows for additional fields in the future without breaking changes
+  // All fields are optional with defaults to handle missing data
+});
 
 /**
  * An abridged customer record used in the recent list.
@@ -186,16 +193,16 @@ export const recentCustomerSchema = z.object({
 });
 
 /**
- * Raw API data structures before transformation
- * These represent the API shape that will be transformed by input schemas
+ // Raw API data structures before transformation
+ // These represent the API shape that will be transformed by input schemas
  */
 export const colonelInfoDetailsSchema = z.object({
-  recent_customers: z.array(recentCustomerSchema),
-  today_feedback: z.array(feedbackSchema),
-  yesterday_feedback: z.array(feedbackSchema),
-  older_feedback: z.array(feedbackSchema).nullable(),
-  redis_info: z.string(),
-  plans_enabled: z.boolean(),
+  recent_customers: z.array(recentCustomerSchema).default([]),
+  today_feedback: z.array(feedbackSchema).default([]),
+  yesterday_feedback: z.array(feedbackSchema).default([]),
+  older_feedback: z.array(feedbackSchema).nullable().default(null),
+  redis_info: z.string().optional().default(''),
+  plans_enabled: z.boolean().optional().default(false),
   counts: z.object({
     customer_count: transforms.fromString.number,
     emails_sent: transforms.fromString.number,
