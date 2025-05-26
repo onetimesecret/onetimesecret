@@ -82,11 +82,12 @@
           <span
             v-if="displayPoweredBy"
             :title="`${$t('onetime-secret-literal')} Version`">
-            {{ $t('web.COMMON.powered_by') }}
+
             <a
               :href="$t('web.COMMON.website_url')"
               target="_blank"
               rel="noopener noreferrer">
+              {{ $t('web.COMMON.powered_by') }}
               {{ $t('onetime-secret-literal') }}
             </a>
           </span>
