@@ -11,10 +11,11 @@ import { type LogoConfig } from '@/types/ui/layouts';
    * Props for controlling logo appearance
    */
   const props = withDefaults(
-    defineProps<LogoConfig>(),
+    defineProps<LogoConfig & { isColonelArea?: boolean }>(),
     {
       size: 64,
       href: '/',
+      isColonelArea: false,
     }
   );
 
@@ -42,16 +43,29 @@ import { type LogoConfig } from '@/types/ui/layouts';
       :href="props.href"
       :alt="ariaLabel"
       class="flex items-center gap-3">
+      <!-- Logo Mark -->
       <MonotoneJapaneseSecretButton
         :size="svgSize"
         :aria-label="ariaLabel"
         :title="t('default-logo-icon')"
-        class="shrink-0 text-brand-500" />
+        class="shrink-0 text-brand-500 dark:text-white" />
+      <!-- Text Mark -->
+      <!-- Company Name -->
       <div
         v-if="props.showCompanyName && props.companyName"
-        class="flex flex-col">
+        class="relative flex flex-col">
         <div :class="[textSize, 'font-bold leading-tight']">
           {{ props.companyName }}
+        </div>
+        <!-- Colonel Overlay -->
+        <div
+          v-if="props.isColonelArea"
+          class="absolute inset-0 flex items-center justify-center pointer-events-none">
+          <span
+            class="-rotate-6 tracking-widest transform-gpu rounded-lg bg-red-500/90 px-2 py-1 text-sm font-bold text-white shadow-lg"
+            style="transform-origin: center;">
+            Colonels Only
+          </span>
         </div>
         <!-- Tagline -->
         <div

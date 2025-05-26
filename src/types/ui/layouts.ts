@@ -22,6 +22,8 @@ export interface LogoConfig {
   tagLine?: string;
   /** Custom aria label override */
   ariaLabel?: string;
+  /** Whether to identify that we are in the colonel area */
+  isColonelArea?: boolean;
 }
 /**
  * Core application configuration passed from server

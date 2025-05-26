@@ -13,7 +13,9 @@ const routes: Array<RouteRecordRaw> = [
     },
     meta: {
       requiresAuth: true,
-      displayPoweredBy: false,
+      layoutProps: {
+        displayPoweredBy: false,
+      },
     },
   },
   {
@@ -25,9 +27,11 @@ const routes: Array<RouteRecordRaw> = [
       footer: DefaultFooter,
     },
     meta: {
-      isAdmin: true,
       requiresAuth: true,
-      displayPoweredBy: false,
+      layoutProps: {
+        displayPoweredBy: false,
+        colonel: true,
+      },
     },
     props: true,
   },
@@ -40,9 +44,11 @@ const routes: Array<RouteRecordRaw> = [
       footer: DefaultFooter,
     },
     meta: {
-      isAdmin: true,
       requiresAuth: true,
-      displayPoweredBy: false,
+      layoutProps: {
+        displayPoweredBy: false,
+        colonel: true,
+      },
     },
     props: true,
   },

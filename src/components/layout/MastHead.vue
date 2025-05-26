@@ -43,7 +43,8 @@ import { shallowRef } from 'vue';
     size: props.logo?.size || 64,
     showCompanyName: props.logo?.showCompanyName ?? !!headerConfig.value?.branding?.company_name,
     companyName: props.logo?.companyName || headerConfig.value?.branding?.company_name || t('one-time-secret-literal'),
-    ariaLabel: props.logo?.ariaLabel
+    ariaLabel: props.logo?.ariaLabel,
+    isColonelArea: props.logo?.isColonelArea ?? props.colonel,
   }));
 
   const navigationEnabled = computed(() =>
