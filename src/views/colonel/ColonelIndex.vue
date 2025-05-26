@@ -46,9 +46,14 @@
     hasValidationErrors,
     sectionsWithErrors,
     currentSectionHasError,
+    modifiedSections,
+    currentSectionCanSave,
     validateJson,
     initializeSectionEditors,
-    saveConfig
+    saveConfig,
+    saveCurrentSection,
+    markSectionModified,
+    switchToSection
   } = useColonelConfig();
 
   // Set initial active section
@@ -64,6 +69,7 @@
     set: (val) => {
       if (activeSection.value) {
         sectionEditors.value[activeSection.value] = val;
+        markSectionModified(activeSection.value);
         validateJson(activeSection.value, val);
       }
     },
@@ -93,8 +99,14 @@
     }
   });
 
-  // Handle save action
-  const handleSave = () => saveConfig(configSections);
+  // Handle save actions
+  const handleSaveAll = () => saveConfig(configSections);
+  const handleSaveSection = () => saveCurrentSection(configSections);
+
+  // Handle section switching
+  const handleSectionSwitch = (sectionKey: ConfigSectionKey) => {
+    switchToSection(sectionKey);
+  };
 </script>
 
 <template>
@@ -138,7 +150,7 @@
           <button
             v-for="section in configSections"
             :key="section.key"
-            @click="activeSection = section.key"
+            @click="handleSectionSwitch(section.key)"
             class="relative px-4 py-2 text-sm font-medium"
             :class="[
               activeSection === section.key
@@ -146,14 +158,38 @@
                 : 'text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300',
             ]">
             {{ section.label }}
+
+            <!-- Modified indicator -->
+            <span
+              v-if="modifiedSections.has(section.key)"
+              class="absolute -top-1 -right-1 h-2 w-2 rounded-full bg-blue-500"
+              :title="`${section.label} has unsaved changes`">
+            </span>
+
             <!-- Error indicator -->
             <span
-              v-if="sectionsWithErrors.includes(section.key)"
+              v-else-if="sectionsWithErrors.includes(section.key)"
               class="absolute -top-1 -right-1 h-3 w-3 rounded-full bg-red-500"
               :title="`${section.label} has validation errors`">
             </span>
           </button>
         </nav>
+      </div>
+
+      <!-- Section status indicator -->
+      <div v-if="activeSection" class="mb-2 text-sm">
+        <span
+          v-if="modifiedSections.has(activeSection)"
+          class="inline-flex items-center rounded-full bg-blue-100 px-2.5 py-0.5 text-xs font-medium text-blue-800 dark:bg-blue-900 dark:text-blue-200">
+          <span class="mr-1 h-1.5 w-1.5 rounded-full bg-blue-400"></span>
+          {{ t('web.colonel.unsavedChanges') }}
+        </span>
+        <span
+          v-else-if="validationState[activeSection] === true"
+          class="inline-flex items-center rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-medium text-green-800 dark:bg-green-900 dark:text-green-200">
+          <span class="mr-1 h-1.5 w-1.5 rounded-full bg-green-400"></span>
+          {{ t('web.LABELS.saved') }}
+        </span>
       </div>
 
       <!-- Editor for current section -->
@@ -181,7 +217,6 @@
           class="mt-2 text-sm text-red-600 dark:text-red-400">
           {{ validationMessages[activeSection] }}
         </div>
-
       </div>
 
       <!-- Error and Success messages -->
@@ -214,12 +249,25 @@
         </div>
       </div>
 
-      <button
-        @click="handleSave"
-        class="rounded-md bg-brand-500 px-4 py-2 text-white hover:bg-brand-600 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2"
-        :disabled="isSaving || hasValidationErrors">
-        {{ isSaving ? t('web.LABELS.saving') : t('web.LABELS.save') }}
-      </button>
+      <!-- Action buttons -->
+      <div class="flex space-x-3">
+        <!-- Save current section button -->
+        <button
+          v-if="currentSectionCanSave"
+          @click="handleSaveSection"
+          class="rounded-md bg-brand-600 px-4 py-2 text-white hover:bg-brand-700 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2"
+          :disabled="isSaving">
+          {{ isSaving ? t('web.LABELS.saving') : t('web.colonel.saveSection', { section: configSections.find(s => s.key === activeSection)?.label }) }}
+        </button>
+
+        <!-- Save all button -->
+        <button
+          @click="handleSaveAll"
+          class="rounded-md bg-brand-500 px-4 py-2 text-white hover:bg-brand-600 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2"
+          :disabled="isSaving || hasValidationErrors">
+          {{ isSaving ? t('web.LABELS.saving') : t('web.colonel.saveAll') }}
+        </button>
+      </div>
     </div>
   </div>
 </template>

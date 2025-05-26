@@ -31,6 +31,9 @@ export function useColonelConfig() {
   const isLoading = ref<boolean>(false);
   const isSaving = ref<boolean>(false);
 
+  // Track which sections have been modified
+  const modifiedSections = ref<Set<ConfigSectionKey>>(new Set());
+
   // AsyncHandler setup
   const defaultOptions: AsyncHandlerOptions = {
     notify: (message, severity) => notifications.show(message, severity),
@@ -94,6 +97,19 @@ export function useColonelConfig() {
     activeSection.value ? sectionsWithErrors.value.includes(activeSection.value) : false
   );
 
+  // Get sections that can be saved (valid and modified)
+  const saveableSections = computed(() =>
+    Array.from(modifiedSections.value).filter((section) => validationState.value[section] === true)
+  );
+
+  // Check if current section can be saved
+  const currentSectionCanSave = computed(
+    () =>
+      activeSection.value &&
+      modifiedSections.value.has(activeSection.value) &&
+      validationState.value[activeSection.value] === true
+  );
+
   // Initialize section editors
   const initializeSectionEditors = (
     configData: ColonelConfigDetails | null,
@@ -111,54 +127,120 @@ export function useColonelConfig() {
         validateJson(section.key, '{}');
       }
     });
+    // Clear modified sections on initialization
+    modifiedSections.value.clear();
   };
 
-  // Save configuration
+  // Mark section as modified
+  const markSectionModified = (section: ConfigSectionKey) => {
+    modifiedSections.value.add(section);
+  };
+
+  // Validate section when switching away from it
+  const validateCurrentSection = () => {
+    if (activeSection.value) {
+      validateJson(activeSection.value, sectionEditors.value[activeSection.value] || '{}');
+    }
+  };
+
+  // Switch to section with validation
+  const switchToSection = (newSection: ConfigSectionKey) => {
+    // Validate current section before switching
+    validateCurrentSection();
+
+    // Switch to new section
+    activeSection.value = newSection;
+
+    // Clear success message when switching sections
+    saveSuccess.value = false;
+  };
+
+  // Save only the current section
   /* eslint-disable complexity */
+  const saveCurrentSection = async (
+    configSections: Array<{ key: ConfigSectionKey; label: string }>
+  ) =>
+    wrap(async () => {
+      if (!activeSection.value) return;
+
+      errorMessage.value = null;
+      saveSuccess.value = false;
+
+      const currentSection = activeSection.value;
+      const sectionLabel =
+        configSections.find((s) => s.key === currentSection)?.label || currentSection;
+
+      // Validate current section
+      validateJson(currentSection, sectionEditors.value[currentSection] || '{}');
+
+      if (validationState.value[currentSection] === false) {
+        errorMessage.value = t('web.colonel.invalidJson', { section: sectionLabel });
+        return;
+      }
+
+      // Get current config and update only the current section
+      const currentConfig = store.details || ({} as ColonelConfigDetails);
+      const updatedConfig = {
+        ...currentConfig,
+        [currentSection]: JSON.parse(sectionEditors.value[currentSection]),
+      };
+
+      try {
+        await store.update(updatedConfig);
+        await store.fetch();
+
+        // Remove from modified sections
+        modifiedSections.value.delete(currentSection);
+
+        saveSuccess.value = true;
+        notifications.show(t('web.colonel.sectionSaved', { section: sectionLabel }), 'success');
+      } catch (error) {
+        throw error;
+      }
+
+      return true;
+    });
+
+  // Save all sections (improved UX)
   const saveConfig = async (configSections: Array<{ key: ConfigSectionKey; label: string }>) =>
     wrap(async () => {
       errorMessage.value = null;
       saveSuccess.value = false;
 
-      // First, validate the current active section
-      if (activeSection.value) {
-        validateJson(activeSection.value, sectionEditors.value[activeSection.value] || '{}');
-        if (validationState.value[activeSection.value] === false) {
-          errorMessage.value = t('web.colonel.invalidJson', {
-            section:
-              configSections.find((s) => s.key === activeSection.value)?.label ||
-              activeSection.value,
-          });
-          console.error(
-            `Invalid JSON in current section ${activeSection.value}:`,
-            validationMessages.value[activeSection.value]
-          );
-          return;
-        }
-      }
+      // Remember current section to return to it
+      const originalSection = activeSection.value;
 
-      // Then validate all other sections
-      const invalidSections: string[] = [];
+      // Validate all sections first without switching
+      const invalidSections: { key: ConfigSectionKey; label: string; error: string }[] = [];
+
       for (const section of configSections) {
         validateJson(section.key, sectionEditors.value[section.key] || '{}');
         if (validationState.value[section.key] === false) {
-          invalidSections.push(section.label);
+          invalidSections.push({
+            key: section.key,
+            label: section.label,
+            error: validationMessages.value[section.key] || 'Invalid JSON',
+          });
         }
       }
 
-      // If there are invalid sections, show a summary
+      // If there are validation errors, show them without switching sections
       if (invalidSections.length > 0) {
         if (invalidSections.length === 1) {
-          const invalidSection = configSections.find((s) => invalidSections.includes(s.label));
-          if (invalidSection) {
-            activeSection.value = invalidSection.key;
-            errorMessage.value = t('web.colonel.invalidJson', { section: invalidSection.label });
-          }
+          const invalid = invalidSections[0];
+          errorMessage.value = t('web.colonel.sectionHasError', {
+            section: invalid.label,
+            error: invalid.error,
+          });
         } else {
+          const sectionNames = invalidSections.map((s) => s.label).join(', ');
           errorMessage.value = t('web.colonel.multipleSectionsInvalid', {
-            sections: invalidSections.join(', '),
+            sections: sectionNames,
+            count: invalidSections.length,
           });
         }
+
+        // Don't switch sections - let user decide where to go
         return;
       }
 
@@ -180,18 +262,6 @@ export function useColonelConfig() {
           const firstError = validationError.errors[0];
           const errorPath = firstError.path.length > 0 ? firstError.path.join('.') : 'root';
           errorMessage.value = `${t('web.colonel.validationError')}: ${errorPath} - ${firstError.message}`;
-
-          // Set active section to the one with the error if possible
-          const errorSection = firstError.path[0];
-          if (errorSection && typeof errorSection === 'string') {
-            const matchingSection = configSections.find(
-              (s) => s.key === (errorSection as ConfigSectionKey)
-            );
-            // Set active section to matching section if found
-            const shouldSetActiveSection = !!matchingSection;
-            shouldSetActiveSection && (activeSection.value = matchingSection.key);
-          }
-
           return;
         }
         throw validationError;
@@ -200,7 +270,14 @@ export function useColonelConfig() {
       // Update config and refetch
       await store.update(combinedConfig as ColonelConfigDetails);
       await store.fetch();
+
+      // Clear all modified sections
+      modifiedSections.value.clear();
+
       saveSuccess.value = true;
+
+      // Return to original section
+      activeSection.value = originalSection;
 
       return true;
     });
@@ -215,15 +292,22 @@ export function useColonelConfig() {
     saveSuccess,
     isLoading,
     isSaving,
+    modifiedSections,
 
     // Computed
     hasValidationErrors,
     sectionsWithErrors,
     currentSectionHasError,
+    saveableSections,
+    currentSectionCanSave,
 
     // Methods
     validateJson,
     initializeSectionEditors,
     saveConfig,
+    saveCurrentSection,
+    markSectionModified,
+    validateCurrentSection,
+    switchToSection,
   };
 }
