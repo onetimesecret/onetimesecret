@@ -37,9 +37,16 @@ export const useColonelConfigStore = defineStore('colonel', () => {
    */
   async function fetch() {
     const response = await $api.get('/api/v2/colonel/config');
-    const validated = responseSchemas.colonelConfig.parse(response.data);
-    details.value = validated.details;
-    return validated.record;
+
+    try {
+      const validated = responseSchemas.colonelConfig.parse(response.data);
+      details.value = validated.details;
+    } catch (ZodError) {
+      console.error('Colonel config validation error:', ZodError);
+      details.value = response.data.details;
+    }
+
+    return response.data;
   }
 
   /**

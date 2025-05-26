@@ -91,17 +91,17 @@ const mailSchema = z.object({
 const diagnosticsSchema = z.object({
   enabled: booleanOrString,
   sentry: z.object({
-    defaults: z.object({
+    backend: z.object({
       dsn: z.string().optional(),
       sampleRate: z.union([z.string(), z.number()]),
       maxBreadcrumbs: z.union([z.string(), z.number()]),
       logErrors: booleanOrString,
     }),
-    backend: z.object({
-      dsn: z.string().optional(),
-    }),
     frontend: z.object({
       dsn: z.string().optional(),
+      sampleRate: z.union([z.string(), z.number()]),
+      maxBreadcrumbs: z.union([z.string(), z.number()]),
+      logErrors: booleanOrString,
       trackComponents: booleanOrString.optional(),
     }),
   }),
@@ -147,12 +147,6 @@ const limitsSchema = z.object({
   update_colonel_config: z.number().optional(),
 });
 
-const developmentSchema = z.object({
-  enabled: z.any(),
-  debug: z.any(),
-  frontend_host: z.string(),
-});
-
 /**
  * ColonelConfigSchema defines the top-level structure of the configuration.
  * Each section references deeper schemas defined elsewhere.
@@ -161,11 +155,11 @@ const developmentSchema = z.object({
 export const colonelConfigSchema = z.object({
   interface: interfaceSchema.optional().default({}),
   secret_options: secretOptionsSchema.optional().default({}),
-  mail: mailSchema.optional().default({}),
+  mail: mailSchema.optional().default({ truemail: {} }),
   diagnostics: diagnosticsSchema.optional().default({}),
   limits: limitsSchema.optional().default({}),
-  development: developmentSchema.optional().default({}),
-  experimental: z.record(z.any()).optional().default({}),
+  // development: developmentSchema.optional().default({}),
+  // experimental: z.record(z.any()).optional().default({}),
   // features: z.record(z.any()),
   // redis: z.record(z.any()),
   // logging: z.record(z.any()),
