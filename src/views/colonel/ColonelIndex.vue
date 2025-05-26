@@ -30,7 +30,7 @@
   ];
 
   const store = useColonelConfigStore();
-  const { isLoading: storeLoading, details: config } = storeToRefs(store);
+  const { details: config } = storeToRefs(store);
   const { fetch } = store;
 
   // Use the colonel config composable
@@ -42,7 +42,10 @@
     errorMessage,
     saveSuccess,
     isSaving,
+    isLoading,
     hasValidationErrors,
+    sectionsWithErrors,
+    currentSectionHasError,
     validateJson,
     initializeSectionEditors,
     saveConfig
@@ -112,7 +115,7 @@
     </div>
 
     <div
-      v-if="storeLoading"
+      v-if="isLoading"
       class="p-6 text-center">
         {{t('web.LABELS.loading')}}
       </div>
@@ -136,13 +139,19 @@
             v-for="section in configSections"
             :key="section.key"
             @click="activeSection = section.key"
-            class="px-4 py-2 text-sm font-medium"
+            class="relative px-4 py-2 text-sm font-medium"
             :class="[
               activeSection === section.key
                 ? 'border-b-2 border-brand-500 text-brand-600 dark:text-brand-400'
                 : 'text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300',
             ]">
             {{ section.label }}
+            <!-- Error indicator -->
+            <span
+              v-if="sectionsWithErrors.includes(section.key)"
+              class="absolute -top-1 -right-1 h-3 w-3 rounded-full bg-red-500"
+              :title="`${section.label} has validation errors`">
+            </span>
           </button>
         </nav>
       </div>
@@ -152,12 +161,13 @@
         <div
           class="min-h-[400px] max-h-[600px] overflow-auto rounded-md border"
           :class="[
-            validationState && validationState[activeSection || ''] === false
+            currentSectionHasError
               ? 'border-red-500'
-              : validationState && validationState[activeSection || ''] === true
+              : activeSection && validationState[activeSection] === true
                 ? 'border-green-500'
                 : 'border-gray-300',
           ]">
+
           <CodeMirror
             v-model="currentSectionContent"
             :lang="lang"
@@ -167,10 +177,11 @@
             class="min-h-[400px] max-h-[600px]" />
         </div>
         <div
-          v-if="validationMessages && validationMessages[activeSection || '']"
+          v-if="activeSection && validationMessages[activeSection]"
           class="mt-2 text-sm text-red-600 dark:text-red-400">
-          {{ validationMessages[activeSection || ''] }}
+          {{ validationMessages[activeSection] }}
         </div>
+
       </div>
 
       <!-- Error and Success messages -->

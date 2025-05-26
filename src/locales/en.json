@@ -388,7 +388,8 @@
       "errorFetchingConfig": "Error loading configuration",
       "errorSavingConfig": "Error saving configuration",
       "configSaved": "Configuration saved successfully",
-      "mustBeObject": "Configuration must be a JSON object"
+      "mustBeObject": "Configuration must be a JSON object",
+      "multipleSectionsInvalid": "Multiple sections have validation errors: {sections}"
     },
     "feedback": {
       "when-you-submit-feedback-well-see": "When you submit feedback, we'll see:",

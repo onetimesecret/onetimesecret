@@ -78,6 +78,22 @@ export function useColonelConfig() {
     return Object.values(validationStateValue).some((state) => state === false);
   });
 
+  // Check which sections have validation errors
+  const sectionsWithErrors = computed(() => {
+    const validationStateValue = validationState.value;
+    if (!validationStateValue || typeof validationStateValue !== 'object') {
+      return [];
+    }
+    return Object.entries(validationStateValue)
+      .filter(([, state]) => state === false)
+      .map(([key]) => key as ConfigSectionKey);
+  });
+
+  // Check if current section has validation error
+  const currentSectionHasError = computed(() =>
+    activeSection.value ? sectionsWithErrors.value.includes(activeSection.value) : false
+  );
+
   // Initialize section editors
   const initializeSectionEditors = (
     configData: ColonelConfigDetails | null,
@@ -98,23 +114,52 @@ export function useColonelConfig() {
   };
 
   // Save configuration
+  /* eslint-disable complexity */
   const saveConfig = async (configSections: Array<{ key: ConfigSectionKey; label: string }>) =>
     wrap(async () => {
       errorMessage.value = null;
       saveSuccess.value = false;
 
-      // Validate all sections first
-      for (const section of configSections) {
-        validateJson(section.key, sectionEditors.value[section.key] || '{}');
-        if (validationState.value[section.key] === false) {
-          activeSection.value = section.key; // Switch to invalid section
-          errorMessage.value = t('web.colonel.invalidJson', { section: section.label });
+      // First, validate the current active section
+      if (activeSection.value) {
+        validateJson(activeSection.value, sectionEditors.value[activeSection.value] || '{}');
+        if (validationState.value[activeSection.value] === false) {
+          errorMessage.value = t('web.colonel.invalidJson', {
+            section:
+              configSections.find((s) => s.key === activeSection.value)?.label ||
+              activeSection.value,
+          });
           console.error(
-            `Invalid JSON in section ${section.key}:`,
-            validationMessages.value[section.key]
+            `Invalid JSON in current section ${activeSection.value}:`,
+            validationMessages.value[activeSection.value]
           );
           return;
         }
+      }
+
+      // Then validate all other sections
+      const invalidSections: string[] = [];
+      for (const section of configSections) {
+        validateJson(section.key, sectionEditors.value[section.key] || '{}');
+        if (validationState.value[section.key] === false) {
+          invalidSections.push(section.label);
+        }
+      }
+
+      // If there are invalid sections, show a summary
+      if (invalidSections.length > 0) {
+        if (invalidSections.length === 1) {
+          const invalidSection = configSections.find((s) => invalidSections.includes(s.label));
+          if (invalidSection) {
+            activeSection.value = invalidSection.key;
+            errorMessage.value = t('web.colonel.invalidJson', { section: invalidSection.label });
+          }
+        } else {
+          errorMessage.value = t('web.colonel.multipleSectionsInvalid', {
+            sections: invalidSections.join(', '),
+          });
+        }
+        return;
       }
 
       // Combine all section editors into a single config object
@@ -173,6 +218,8 @@ export function useColonelConfig() {
 
     // Computed
     hasValidationErrors,
+    sectionsWithErrors,
+    currentSectionHasError,
 
     // Methods
     validateJson,
