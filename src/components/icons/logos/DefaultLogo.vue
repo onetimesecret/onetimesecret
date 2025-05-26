@@ -45,6 +45,7 @@ import { type LogoConfig } from '@/types/ui/layouts';
       <MonotoneJapaneseSecretButton
         :size="svgSize"
         :aria-label="ariaLabel"
+        :title="t('default-logo-icon')"
         class="shrink-0 text-brand-500" />
       <div
         v-if="props.showCompanyName && props.companyName"

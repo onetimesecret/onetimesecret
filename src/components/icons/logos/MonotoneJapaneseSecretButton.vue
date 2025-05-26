@@ -20,12 +20,14 @@ import { computed } from 'vue'
  * - brightness: 0 (black) to 2 (double bright), default 1 (normal)
  * - size: pixel size for width/height (default 64)
  * - ariaLabel: accessibility label
+ * - title: hover text for the icon
  */
 const props = defineProps<{
   opacity?: number
   brightness?: number
   size?: number
   ariaLabel?: string
+  title?: string
 }>()
 
 const svgOpacity = computed(() =>
@@ -49,6 +51,10 @@ const svgSize = computed(() =>
 const ariaLabel = computed(() =>
   props.ariaLabel || 'Japanese secret button logo'
 )
+
+const hoverTitle = computed(() =>
+  props.title || 'Japanese kanji "秘" (himitsu) meaning "secret" or "confidential"'
+)
 </script>
 
 <template>
@@ -58,6 +64,7 @@ const ariaLabel = computed(() =>
     viewBox="0 0 64 64"
     xmlns="http://www.w3.org/2000/svg"
     :aria-label="ariaLabel"
+    :title="hoverTitle"
     role="img"
     :style="{
       opacity: svgOpacity,
