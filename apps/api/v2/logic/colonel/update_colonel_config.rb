@@ -7,26 +7,34 @@ module V2
     module Colonel
       class UpdateColonelConfig < V2::Logic::Base
         @safe_fields = [:interface, :secret_options, :mail, :limits,
-                        :diagnostics, :development, :experimental]
+                        :diagnostics]
 
         attr_reader :config, :interface, :secret_options, :mail, :limits,
-                    :experimental, :diagnostics, :development
+                    :experimental
 
         def process_params
           OT.ld "[UpdateColonelConfig#process_params] params: #{params.inspect}"
           # Accept config either directly or wrapped in a :config key
           @config = params.key?(:config) ? params[:config] : params
 
-          # Extract configuration sections, supporting both string and symbol keys
-          @interface = config[:interface] || config['interface']
-          @secret_options = config[:secret_options] || config['secret_options']
-          @mail = config[:mail] || config['mail']
-          @limits = config[:limits] || config['limits']
-          @diagnostics = config[:diagnostics] || config['diagnostics']
-          @development = config[:development] || config['development']
-          @experimental = config[:experimental] || config['experimental']
+          # Extract configuration sections
+          @interface = config[:interface]
+          @secret_options = config[:secret_options]
+          @mail = config[:mail]
+          @limits = config[:limits]
+          @diagnostics = config[:diagnostics]
+          # require 'pry-byebug'; binding.pry;
+          # Log which configuration sections were extracted
+          config_sections = {
+            interface: interface,
+            secret_options: secret_options,
+            mail: mail,
+            limits: limits,
+            diagnostics: diagnostics,
+          }
 
-          OT.ld "[UpdateColonelConfig#process_params] Extracted config sections: interface=#{!!interface}, secret_options=#{!!secret_options}, mail=#{!!mail}, limits=#{!!limits}, diagnostics=#{!!diagnostics}, development=#{!!development}"
+          OT.ld "[UpdateColonelConfig#process_params] Extracted config sections: " +
+                config_sections.map { |name, value| "#{name}=#{!!value}" }.join(", ")
         end
 
         def raise_concerns

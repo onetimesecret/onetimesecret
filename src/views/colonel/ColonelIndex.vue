@@ -164,12 +164,10 @@
 
     try {
       // Validate all sections first
-      let hasInvalidSection = false;
 
       for (const section of configSections) {
         validateJson(section.key, sectionEditors.value[section.key] || '{}');
         if (validationState.value[section.key] === false) {
-          hasInvalidSection = true;
           activeSection.value = section.key; // Switch to invalid section
           errorMessage.value = t('web.colonel.invalidJson', { section: section.label });
           console.error(
@@ -264,7 +262,9 @@
     <div
       v-if="isLoading"
       class="p-6 text-center"
-      >Loading...</div
+      >
+        {{t('web.LABELS.loading')}}
+      </div
     >
 
     <div
@@ -300,7 +300,7 @@
       <!-- Editor for current section -->
       <div class="mb-4">
         <div
-          class="min-h-[400px] rounded-md border"
+          class="overflow-auto rounded-md border"
           :class="[
             validationState && validationState[activeSection] === false
               ? 'border-red-500'
@@ -314,7 +314,7 @@
             :extensions="extensions"
             basic
             :placeholder="`Enter configuration for ${activeSection}`"
-            class="min-h-[400px]" />
+            class="min-h-[320px] max-h-[700px]" />
         </div>
         <div
           v-if="validationMessages && validationMessages[activeSection]"
@@ -323,29 +323,33 @@
         </div>
       </div>
 
-      <!-- Error message -->
-      <div
-        v-if="errorMessage"
-        class="mt-4 rounded-md border border-red-400 bg-red-100 p-3 text-red-700">
-        <div class="flex items-center">
-          <span class="mr-2">⚠️</span>
-          <span>{{ errorMessage }}</span>
-        </div>
-        <button
+      <!-- Error and Success messages moved before save button -->
+      <div class="mb-4 space-y-3">
+        <!-- Error message -->
+        <div
           v-if="errorMessage"
-          @click="errorMessage = null"
-          class="mt-2 text-sm text-red-700 hover:underline">
-          {{ t('web.LABELS.dismiss') }}
-        </button>
-      </div>
+          class="rounded-md border border-red-400 bg-red-100 p-3 text-red-700">
+          <div class="flex items-start justify-between">
+            <div class="flex items-center">
+              <span class="mr-2">⚠️</span>
+              <span>{{ errorMessage }}</span>
+            </div>
+            <button
+              @click="errorMessage = null"
+              class="ml-3 text-sm text-red-700 hover:underline focus:outline-none">
+              {{ t('web.LABELS.dismiss') }}
+            </button>
+          </div>
+        </div>
 
-      <!-- Success message -->
-      <div
-        v-if="saveSuccess"
-        class="mt-4 rounded-md border border-green-400 bg-green-100 p-3 text-green-700">
-        <div class="flex items-center">
-          <span class="mr-2">✅</span>
-          <span>{{ t('web.colonel.configSaved') }}</span>
+        <!-- Success message -->
+        <div
+          v-if="saveSuccess"
+          class="rounded-md border border-green-400 bg-green-100 p-3 text-green-700">
+          <div class="flex items-center">
+            <span class="mr-2">✅</span>
+            <span>{{ t('web.colonel.configSaved') }}</span>
+          </div>
         </div>
       </div>
 

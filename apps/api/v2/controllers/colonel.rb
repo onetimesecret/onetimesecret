@@ -21,7 +21,7 @@ module V2
       end
 
       def update_config
-        process_records(V2::Logic::Colonel::UpdateColonelConfig,
+        process_action(V2::Logic::Colonel::UpdateColonelConfig,
           "Config updated successfully.",
           "Config could not be updated.",
           auth_type: :colonels,
