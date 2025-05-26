@@ -257,8 +257,9 @@
   :show_account: 100
   :stripe_webhook: 25
   :update_domain_brand: 50
-  :view_colonel: 50
+  :view_colonel: 100
   :external_redirect: 100
+  :update_colonel_config: 50
 :development:
   :enabled: <%= ['development', 'dev'].include?(ENV['RACK_ENV']) %>
   :debug: <%= ['true', '1', 'yes'].include?(ENV['ONETIME_DEBUG']) %>
