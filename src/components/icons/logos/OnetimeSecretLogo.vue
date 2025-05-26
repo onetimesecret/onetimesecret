@@ -1,4 +1,4 @@
-<!-- src/components/icons/logos/OnetimeSecret.vue -->
+<!-- src/components/icons/logos/OnetimeSecretLogo.vue -->
 
 <script setup lang="ts">
   import { onKeyStroke, useEventListener } from '@vueuse/core';
