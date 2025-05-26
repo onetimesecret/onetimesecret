@@ -2,6 +2,131 @@ import { feedbackSchema } from '@/schemas/models';
 import { transforms } from '@/schemas/transforms';
 import { z } from 'zod';
 
+export const ColonelConfigSchema = z.object({
+  interface: z.object({
+    ui: z.object({
+      enabled: z.union([z.boolean(), z.string()]),
+      header: z.object({
+        enabled: z.union([z.boolean(), z.string()]),
+        branding: z.object({
+          logo: z.object({
+            url: z.string().optional(),
+            alt: z.string().optional(),
+            link_to: z.string().optional(),
+          }).optional(),
+          company_name: z.string().optional(),
+        }).optional(),
+        navigation: z.object({
+          enabled: z.union([z.boolean(), z.string()]),
+        }).optional(),
+      }).optional(),
+      footer_links: z.object({
+        enabled: z.union([z.boolean(), z.string()]),
+        groups: z.array(z.object({
+          name: z.string(),
+          i18n_key: z.string().optional(),
+          links: z.array(z.object({
+            text: z.string(),
+            i18n_key: z.string().optional(),
+            url: z.string(),
+            external: z.boolean().optional(),
+            icon: z.string().optional(),
+            visible: z.boolean().optional(),
+          })),
+        })).optional(),
+      }).optional(),
+    }),
+    api: z.object({
+      enabled: z.union([z.boolean(), z.string()]),
+    }),
+  }),
+  secret_options: z.object({
+    default_ttl: z.union([z.string(), z.number()]),
+    ttl_options: z.string(),
+  }),
+  mail: z.object({
+    truemail: z.object({
+      default_validation_type: z.string(),
+      verifier_email: z.string(),
+      verifier_domain: z.string().optional(),
+      connection_timeout: z.number().optional(),
+      response_timeout: z.number().optional(),
+      connection_attempts: z.number().optional(),
+      validation_type_for: z.any().optional(),
+      allowed_domains_only: z.boolean(),
+      allowed_emails: z.array(z.string()).optional(),
+      blocked_emails: z.array(z.string()).optional(),
+      allowed_domains: z.array(z.string()).optional(),
+      blocked_domains: z.array(z.string()).optional(),
+      blocked_mx_ip_addresses: z.array(z.string()).optional(),
+      dns: z.array(z.string()),
+      smtp_port: z.number().optional(),
+      smtp_fail_fast: z.boolean(),
+      smtp_safe_check: z.boolean(),
+      not_rfc_mx_lookup_flow: z.boolean(),
+      email_pattern: z.string().optional(),
+      smtp_error_body_pattern: z.string().optional(),
+      logger: z.record(z.any()),
+    }),
+  }),
+  limits: z.object({
+    create_secret: z.number(),
+    create_account: z.number(),
+    update_account: z.number(),
+    email_recipient: z.number(),
+    send_feedback: z.number(),
+    authenticate_session: z.number(),
+    get_page: z.number(),
+    dashboard: z.number(),
+    failed_passphrase: z.number(),
+    show_metadata: z.number(),
+    show_secret: z.number(),
+    burn_secret: z.number(),
+    destroy_account: z.number(),
+    forgot_password_request: z.number(),
+    forgot_password_reset: z.number(),
+    generate_apitoken: z.number(),
+    add_domain: z.number(),
+    remove_domain: z.number(),
+    list_domains: z.number(),
+    get_domain: z.number(),
+    verify_domain: z.number(),
+    report_exception: z.number(),
+    attempt_secret_access: z.number(),
+    check_status: z.number(),
+    update_branding: z.number(),
+    destroy_session: z.number(),
+    get_domain_brand: z.number(),
+    get_domain_logo: z.number(),
+    get_image: z.number(),
+    remove_domain_logo: z.number(),
+    show_account: z.number(),
+    stripe_webhook: z.number(),
+    update_domain_brand: z.number(),
+    view_colonel: z.number(),
+    external_redirect: z.number(),
+    update_colonel_config: z.number(),
+  }),
+  diagnostics: z.object({
+    enabled: z.union([z.boolean(), z.string()]),
+    sentry: z.object({
+      defaults: z.object({
+        dsn: z.string().optional(),
+        sampleRate: z.union([z.string(), z.number()]),
+        maxBreadcrumbs: z.union([z.string(), z.number()]),
+        logErrors: z.union([z.string(), z.boolean()]),
+      }),
+      backend: z.object({
+        dsn: z.string().optional(),
+      }),
+      frontend: z.object({
+        dsn: z.string().optional(),
+        trackComponents: z.union([z.string(), z.boolean()]),
+      }),
+    }),
+  }),
+});
+
 /**
  * An abridged customer record used in the recent list.
  */
