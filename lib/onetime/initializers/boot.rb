@@ -74,6 +74,12 @@ module Onetime
       load_plans
       connect_databases if connect_to_db
       check_global_banner
+
+      # Setup colonel config - check for existing override configuration
+      # and merge with YAML config if present. Must happen before other
+      # initializers that depend on the final merged configuration.
+      setup_colonel_config
+
       print_log_banner unless mode?(:test)
 
       # Let's be clear about returning the prepared configruation. Previously
