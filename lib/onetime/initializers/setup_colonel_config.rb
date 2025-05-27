@@ -63,7 +63,7 @@ module Onetime
     def create_initial_colonel_config
       OT.li "Creating initial colonel config from YAML..."
 
-      colonel_config_data = extract_colonel_sections(OT.conf)
+      colonel_config_data = V2::ColonelConfig.extract_colonel_config(OT.conf)
       colonel_config_data[:comment] = "Initial configuration"
       colonel_config_data[:custid] = nil # No customer owner for initial config
 
@@ -71,56 +71,17 @@ module Onetime
       OT.li "Created initial colonel config: #{new_config.rediskey}"
     end
 
-    # Merges colonel config values into the main configuration
-    def merge_colonel_config(colonel_config)
-      OT.li "Merging colonel config #{colonel_config.rediskey} with YAML configuration"
+    # Applies colonel config on top of the main configuration, where the colonel
+    # config overrides the main configuration.
+    def apply_colonel_config(colonel_config)
 
-      sections_overridden = []
 
-      # Map colonel config fields to their configuration paths
-      field_mappings = {
-        interface: [:site, :interface],
-        secret_options: [:site, :secret_options],
-        mail: [:mail],
-        limits: [:limits],
-        experimental: [:experimental],
-        diagnostics: [:diagnostics],
-      }
+      onetime_config_data = colonel_config.to_onetime_config
 
-      field_mappings.each do |field, config_path|
-        colonel_value = colonel_config.send(field)
-        next if colonel_value.nil? || colonel_value.empty?
+      # Makes a deep copy of OT.conf, then merges the colonel config data, and
+      # replaces OT.config with the merged data.
+      Onetime::Config.apply_config(onetime_config_data)
 
-        # Parse JSON if it's a string (for complex fields)
-        parsed_value = colonel_value.is_a?(String) ? JSON.parse(colonel_value) : colonel_value
-
-        # Deep merge the value into the configuration
-        set_deep_config_value(OT.conf, config_path, parsed_value)
-        sections_overridden << config_path.join('.')
-      end
-
-      if sections_overridden.any?
-        OT.li "Colonel config overrode sections: #{sections_overridden.join(', ')}"
-      else
-        OT.li "Colonel config present but no sections overridden"
-      end
-    end
-
-    # Extracts the sections that colonel config manages from the full config
-    def extract_colonel_sections(config)
-      {
-        interface: config.dig(:site, :interface),
-        secret_options: config.dig(:site, :secret_options),
-        mail: config[:mail],
-        limits: config[:limits],
-        experimental: config[:experimental],
-        diagnostics: config[:diagnostics],
-      }
-    end
-
-    # Sets a value deep in a nested hash structure
-    def set_deep_config_value(config, path, value)
-      path[0..-2].inject(config) { |h, key| h[key] ||= {} }[path.last] = value
     end
 
   end

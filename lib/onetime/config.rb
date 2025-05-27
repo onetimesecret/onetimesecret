@@ -389,6 +389,13 @@ module Onetime
       end.compact
     end
 
+    # Makes a deep copy of OT.conf, then merges the colonel config data, and
+    # replaces OT.config with the merged data.
+    def apply_config(other)
+      new_config = deep_merge(OT.conf, other)
+      OT.conf = new_config
+    end
+
     private
     # Standard deep_merge implementation based on widely used patterns
     # @param original [Hash] Base hash with default values
