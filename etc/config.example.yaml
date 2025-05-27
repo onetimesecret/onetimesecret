@@ -174,7 +174,6 @@
   # (e.g., Upstash) set all values to 0.
   :dbs:
     :session: <%= ENV['REDIS_DBS_SESSION'] || 1 %>
-    :splittest: <%= ENV['REDIS_DBS_SPLITTEST'] || 1 %>
     :custom_domain: <%= ENV['REDIS_DBS_CUSTOM_DOMAIN'] || 6 %>
     :customer: <%= ENV['REDIS_DBS_CUSTOMER'] || 6 %>
     :subdomain: <%= ENV['REDIS_DBS_SUBDOMAIN'] || 6 %>
@@ -184,6 +183,7 @@
     :rate_limit: <%= ENV['REDIS_DBS_RATE_LIMIT'] || 2 %>
     :feedback: <%= ENV['REDIS_DBS_FEEDBACK'] || 11 %>
     :exception_info: <%= ENV['REDIS_DBS_EXCEPTION_INFO'] || 12 %>
+    :colonel_config: <%= ENV['REDIS_DBS_COLONEL_CONFIG'] || 15 %>
 
 # Logging Configuration
 :logging:
