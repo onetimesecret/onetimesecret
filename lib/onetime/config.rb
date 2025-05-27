@@ -192,7 +192,7 @@ module Onetime
       diagnostics = incoming_config.fetch(:diagnostics, {})
       conf[:diagnostics] = {
         enabled: diagnostics[:enabled] || false,
-        sentry: apply_defaults(diagnostics[:sentry]),
+        sentry: apply_defaults_to_peers(diagnostics[:sentry]),
       }
       conf[:diagnostics][:sentry][:backend] ||= {}
 
@@ -322,7 +322,7 @@ module Onetime
       raise OT::Problem, "[deep_clone] #{ex.message}"
     end
 
-    # Applies default values to configuration sections.
+    # Applies default values to its config level peers
     #
     # @param config [Hash] Configuration with top-level section keys, including a :defaults key
     # @return [Hash] Configuration with defaults applied to each section, with :defaults removed
@@ -338,22 +338,22 @@ module Onetime
     #     api: { timeout: 10 },
     #     web: { theme: 'dark' }
     #   }
-    #   apply_defaults(config)
+    #   apply_defaults_to_peers(config)
     #   # => { api: { timeout: 10, enabled: true },
     #   #      web: { theme: 'dark', timeout: 5, enabled: true } }
     #
     # @example Edge cases
-    #   apply_defaults({a: {x: 1}})                # => {a: {x: 1}}
-    #   apply_defaults({defaults: {x: 1}, b: {}})  # => {b: {x: 1}}
+    #   apply_defaults_to_peers({a: {x: 1}})                # => {a: {x: 1}}
+    #   apply_defaults_to_peers({defaults: {x: 1}, b: {}})  # => {b: {x: 1}}
     #
-    def apply_defaults(config={})
+    def apply_defaults_to_peers(config={})
       return {} if config.nil? || config.empty?
 
       # Extract defaults from the configuration
       defaults = config[:defaults]
 
       # If no valid defaults exist, return config without the :defaults key
-      return config.reject { |k, _| k == :defaults } unless defaults.is_a?(Hash)
+      return config.except(:defaults) unless defaults.is_a?(Hash)
 
       # Process each section, applying defaults
       config.each_with_object({}) do |(section, values), result|
