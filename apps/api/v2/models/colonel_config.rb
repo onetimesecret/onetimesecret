@@ -20,6 +20,39 @@ module V2
       }
     end
 
+    class << self
+      # Extracts the sections that colonel config manages from the full config
+      def extract_colonel_config(config)
+        FIELD_MAPPINGS.transform_values do |path|
+          path.length == 1 ? config[path[0]] : config.dig(*path)
+        end
+      end
+
+      # Takes a colonel config hash or instance and constructs a new hash
+      # with the same structure as the Onetime YAML configuration.
+      def construct_onetime_config(config)
+        colonel_config_hash = config.is_a?(Hash) ? config : config.to_h
+        colonel_config_hash.transform_keys!(&:to_sym)
+
+        result = {}
+
+        FIELD_MAPPINGS.each do |field, path|
+          value = colonel_config_hash[field]
+          next unless value
+
+          # Build nested hash structure based on path
+          current = result
+          path[0..-2].each do |key|
+            current[key] ||= {}
+            current = current[key]
+          end
+          current[path.last] = value
+        end
+
+        result
+      end
+    end
+
     feature :safe_dump
 
     identifier :configid
@@ -87,6 +120,10 @@ module V2
     def generate_id
       @key ||= Familia.generate_id.slice(0, 31)
       @key
+    end
+
+    def to_onetime_config
+      self.class.construct_onetime_config(self)
     end
 
     module ClassMethods
