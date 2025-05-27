@@ -395,7 +395,8 @@
       "saveSection": "Save {section}",
       "saveAll": "Save All",
       "unsavedChanges": "Unsaved changes",
-      "schemaValidationError": "Schema validation error: {message} ({path})"
+      "schemaValidationError": "Schema validation error: {message} ({path})",
+      "unknownValidationError": "Unknown validation error: {error}"
     },
     "feedback": {
       "when-you-submit-feedback-well-see": "When you submit feedback, we'll see:",

@@ -2,7 +2,7 @@
 import { colonelConfigSchema, type ColonelConfigDetails } from '@/schemas/api/endpoints/colonel';
 import { useNotificationsStore } from '@/stores';
 import { useColonelConfigStore } from '@/stores/colonelConfigStore';
-import { computed, ref } from 'vue';
+import { computed, nextTick, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { z } from 'zod';
 import { useAsyncHandler, type AsyncHandlerOptions } from './useAsyncHandler';
@@ -63,7 +63,12 @@ export function useColonelConfig() {
 
       if (validationResult.success) {
         const zodData = validationResult.data;
-        if (typeof zodData === 'object' && zodData !== null && Object.keys(zodData).length === 0 && content.trim() !== '{}') {
+        if (
+          typeof zodData === 'object' &&
+          zodData !== null &&
+          Object.keys(zodData).length === 0 &&
+          content.trim() !== '{}'
+        ) {
           validationState.value[section] = false;
           validationMessages.value[section] = t('web.colonel.sectionEffectivelyEmpty', { section });
         } else {
@@ -83,7 +88,7 @@ export function useColonelConfig() {
     } catch (error) {
       validationState.value[section] = false;
       if (error instanceof SyntaxError) {
-        validationMessages.value[section] = t('web.colonel.invalidJsonSyntax', { section });
+        validationMessages.value[section] = error.message;
       } else {
         console.error(`Unexpected error validating section ${section}:`, error);
         validationMessages.value[section] = t('web.colonel.unknownValidationError', { section });
@@ -113,7 +118,8 @@ export function useColonelConfig() {
 
   // Check if current section has validation error
   const currentSectionHasError = computed(() =>
-    activeSection.value ? sectionsWithErrors.value.includes(activeSection.value) : false);
+    activeSection.value ? sectionsWithErrors.value.includes(activeSection.value) : false
+  );
 
   // Get sections that can be saved (valid and modified)
   const saveableSections = computed(() =>
@@ -169,8 +175,18 @@ export function useColonelConfig() {
     // Validate current section before switching
     validateCurrentSection();
 
-    // Switch to new section
-    activeSection.value = newSection;
+    // Set flag to indicate this is a programmatic change
+    isProgrammaticChange.value = true;
+
+    try {
+      // Switch to new section
+      activeSection.value = newSection;
+    } finally {
+      // Always reset the flag
+      nextTick(() => {
+        isProgrammaticChange.value = false;
+      });
+    }
 
     // Clear success message when switching sections
     saveSuccess.value = false;
@@ -205,8 +221,6 @@ export function useColonelConfig() {
       try {
         // Send only the current section for update
         await store.update(payload as ColonelConfigDetails);
-        // Fetch the full updated config to refresh the store and other sections
-        await store.fetch();
 
         // Remove from modified sections
         modifiedSections.value.delete(currentSection);
@@ -280,7 +294,8 @@ export function useColonelConfig() {
       } catch (validationError) {
         if (validationError instanceof z.ZodError) {
           const firstError = validationError.errors[0];
-          const errorPath = firstError.path.length > 0 ? validationError.errors[0].path.join('.') : 'root';
+          const errorPath =
+            firstError.path.length > 0 ? validationError.errors[0].path.join('.') : 'root';
           errorMessage.value = `${t('web.colonel.validationError')}: ${errorPath} - ${firstError.message}`;
           return;
         }
@@ -289,7 +304,7 @@ export function useColonelConfig() {
 
       // Update config and refetch
       await store.update(combinedConfig as ColonelConfigDetails);
-      await store.fetch();
+      // await store.fetch();
 
       // Clear all modified sections
       modifiedSections.value.clear();

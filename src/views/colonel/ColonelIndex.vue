@@ -1,7 +1,11 @@
+<!-- src/views/colonel/ColonelIndex.vue -->
+
+<!-- https://codemirror.net/docs/guide/ -->
+
 <script setup lang="ts">
   import OIcon from '@/components/icons/OIcon.vue';
   import { useColonelConfigStore } from '@/stores/colonelConfigStore';
-  import { onMounted, computed, watch } from 'vue';
+  import { onMounted, computed } from 'vue';
   import { storeToRefs } from 'pinia';
   import { useI18n } from 'vue-i18n';
   import { json } from '@codemirror/lang-json';
@@ -52,7 +56,7 @@
     saveCurrentSection,
     markSectionModified,
     switchToSection,
-    isProgrammaticChange, // <-- Import the new flag
+    isProgrammaticChange,
   } = useColonelConfig();
 
   // Set initial active section
@@ -66,6 +70,11 @@
   const currentSectionContent = computed({
     get: () => (activeSection.value ? sectionEditors.value[activeSection.value] || '' : ''),
     set: (val) => {
+      console.log('currentSectionContent setter called:', {
+        activeSection: activeSection.value,
+        newValue: val,
+        isProgrammatic: isProgrammaticChange.value
+      });
       if (activeSection.value) {
         sectionEditors.value[activeSection.value] = val;
         // Only mark as modified and validate if the change wasn't programmatic
@@ -78,7 +87,7 @@
   });
 
   // Update editor content when config changes
-  watch(() => config.value, (newConfig) => initializeSectionEditors(newConfig, configSections));
+  // watch(() => config.value, (newConfig) => initializeSectionEditors(newConfig, configSections));
 
   onMounted(async () => {
     try {
@@ -88,16 +97,12 @@
       // Fetch config
       await fetch();
 
-      if (!config.value) {
-        console.warn('Config data is null or undefined after fetching');
-        initializeSectionEditors({} as ColonelConfigDetails, configSections);
-      } else {
+      if (config.value) {
         initializeSectionEditors(config.value, configSections);
       }
     } catch (error) {
       console.error('Error fetching config:', error);
       errorMessage.value = t('web.colonel.errorFetchingConfig');
-      initializeSectionEditors({} as ColonelConfigDetails, configSections);
     }
   });
 
@@ -190,7 +195,7 @@
           {{ t('web.colonel.unsavedChanges') }}
         </span>
         <span
-          v-else-if="validationState[activeSection] === true"
+          v-else-if="saveSuccess"
           class="inline-flex items-center rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-medium text-green-800 dark:bg-green-900 dark:text-green-200">
           <span class="mr-1 h-1.5 w-1.5 rounded-full bg-green-400"></span>
           {{ t('web.LABELS.saved') }}
