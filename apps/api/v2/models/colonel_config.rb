@@ -9,12 +9,24 @@ module V2
   class ColonelConfig < Familia::Horreum
     include Gibbler::Complex
 
+    unless defined?(FIELD_MAPPINGS)
+      FIELD_MAPPINGS = {
+        interface: [:site, :interface],
+        secret_options: [:site, :secret_options],
+        mail: [:mail],
+        limits: [:limits],
+        experimental: [:experimental],
+        diagnostics: [:diagnostics],
+      }
+    end
+
     feature :safe_dump
 
     identifier :configid
 
     class_sorted_set :values
-    class_hashkey :history
+    class_sorted_set :stack
+    class_sorted_set :audit_log
 
     field :configid
     field :interface
@@ -52,7 +64,7 @@ module V2
     def init
       @configid ||= self.generate_id
 
-      OT.ld "[ColonelConfig.init] id:#{configid}"
+      OT.ld "[ColonelConfig.init] #{configid} #{rediskey}"
     end
 
     # This method overrides the default save behavior to enforce saving
@@ -135,12 +147,18 @@ module V2
         now = OT.now.to_i # created time, identifier
         self.values.add now, fobj.to_s
         self.stack.add now, fobj.to_s
+        self.audit_log.add now, fobj.to_s
       end
 
       def rem fobj
         self.values.remove fobj.to_s
         # don't arbitrarily remove from stack, only for rollbacks/reversions.
         # never remove from audit_log
+      end
+
+      def remove_bad_config fobj
+        self.values.remove fobj.to_s
+        self.stack.remove fobj.to_s
       end
 
       def all
@@ -157,17 +175,17 @@ module V2
       def current
         # Get the most recent config by retrieving the element with the highest score
         # (using revrange 0, 0 to get just the highest-scored element)
-        latest_identifier = self.stack.revrangeraw(0, 0).first
-        raise Onetime::Problem.new("No config stack found") unless latest_identifier
-        load(latest_identifier)
+        objid = self.stack.revrangeraw(0, 0).first
+        raise Onetime::RecordNotFound.new("No config stack found") unless objid
+        load(objid)
       end
 
       def previous
         # Get the previous config by retrieving the element with the second-highest score
         # (using revrange 1, 1 to get just the second-highest-scored element)
-        previous_identifier = self.stack.revrangeraw(1, 1).first
-        raise Onetime::Problem.new("No previous config found") unless previous_identifier
-        load(previous_identifier)
+        objid = self.stack.revrangeraw(1, 1).first
+        raise Onetime::RecordNotFound.new("No previous config found") unless objid
+        load(objid)
       end
 
       def rollback!
