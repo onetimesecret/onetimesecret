@@ -99,7 +99,7 @@ ARG CODE_ROOT=/app
 ARG ONETIME_HOME=/opt/onetime
 ARG VERSION
 
-FROM docker.io/library/ruby:3.4-slim-bookworm@sha256:5d7149ee7eda2420d1b2bc3af78798de9eac3098e910c44a3ddd93da2a4130ca AS base
+FROM docker.io/library/ruby:3.4-slim-bookworm@sha256:93664239ae7e485147c2fa83397fdc24bf7b7f1e15c3ad9d48591828a50a50e7 AS base
 
 # Limit to packages needed for the system itself
 ARG PACKAGES="build-essential rsync netcat-openbsd libffi-dev libyaml-dev git"
