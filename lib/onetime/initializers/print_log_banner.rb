@@ -37,7 +37,8 @@ module Onetime
 
       OT.li "", system_table.render(:unicode,
         padding: [0, 1],
-        column_widths: [15, 60]
+        multiline: true,
+        column_widths: [15, 79]
       )
 
       # Authentication and permissions table
@@ -62,7 +63,8 @@ module Onetime
 
         OT.li "", auth_table.render(:unicode,
           padding: [0, 1],
-          column_widths: [15, 60]
+          multiline: true,
+          column_widths: [15, 79]
         )
       end
 
@@ -76,7 +78,8 @@ module Onetime
 
           OT.li "", plans_table.render(:unicode,
             padding: [0, 1],
-            column_widths: [15, 60]
+            multiline: true,
+            column_widths: [15, 79]
           )
         rescue => e
           OT.le "Error rendering plans table: #{e.message}"
@@ -104,7 +107,8 @@ module Onetime
 
             OT.li "", mail_table.render(:unicode,
               padding: [0, 1],
-              column_widths: [15, 60]
+              multiline: true,
+              column_widths: [15, 79]
             )
           end
         rescue => e
@@ -143,7 +147,8 @@ module Onetime
 
         OT.li "", config_table.render(:unicode,
           padding: [0, 1],
-          column_widths: [15, 60]
+          multiline: true,
+          column_widths: [15, 79]
         )
       end
 
