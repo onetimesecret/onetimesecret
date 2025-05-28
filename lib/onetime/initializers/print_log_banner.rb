@@ -56,8 +56,13 @@ module Onetime
       end
 
       if site_config.key?(:authentication)
-        auth_settings = site_config[:authentication].map { |k,v| "#{k}=#{v}" }.join(', ')
-        auth_rows << ['Auth Settings', auth_settings]
+        auth_config = site_config[:authentication]
+        if auth_config.key?(:enabled) && !auth_config[:enabled]
+          auth_rows << ['Auth Settings', 'disabled']
+        else
+          auth_settings = auth_config.map { |k,v| "#{k}=#{v}" }.join(', ')
+          auth_rows << ['Auth Settings', auth_settings]
+        end
       end
 
       unless auth_rows.empty?
@@ -78,22 +83,32 @@ module Onetime
       feature_rows = []
 
       # Plans section
-      if site_config.dig(:plans, :enabled)
-        begin
-          feature_rows << ['Plans', OT::Plan.plans.keys.join(', ')]
-        rescue => e
-          feature_rows << ['Plans', "Error: #{e.message}"]
+      if site_config.key?(:plans)
+        plans_config = site_config[:plans]
+        if plans_config.key?(:enabled) && !plans_config[:enabled]
+          feature_rows << ['Plans', 'disabled']
+        else
+          begin
+            feature_rows << ['Plans', OT::Plan.plans.keys.join(', ')]
+          rescue => e
+            feature_rows << ['Plans', "Error: #{e.message}"]
+          end
         end
       end
 
       # Domains and regions
       [:domains, :regions].each do |key|
-        if site_config.key?(key) && !site_config[key].empty?
-          # Format as JSON for better readability with nested structures
-          formatted_value = site_config[key].is_a?(Hash) ?
-            site_config[key].map { |k,v| "#{k}=#{v.is_a?(Hash) || v.is_a?(Array) ? v.to_json : v}" }.join(', ') :
-            site_config[key].to_s
-          feature_rows << [key.to_s.capitalize, formatted_value]
+        if site_config.key?(key)
+          config = site_config[key]
+          if config.is_a?(Hash) && config.key?(:enabled) && !config[:enabled]
+            feature_rows << [key.to_s.capitalize, 'disabled']
+          elsif !config.empty?
+            # Format as JSON for better readability with nested structures
+            formatted_value = config.is_a?(Hash) ?
+              config.map { |k,v| "#{k}=#{v.is_a?(Hash) || v.is_a?(Array) ? v.to_json : v}" }.join(', ') :
+              config.to_s
+            feature_rows << [key.to_s.capitalize, formatted_value]
+          end
         end
       end
 
@@ -114,15 +129,19 @@ module Onetime
       # SECTION 4: Email Configuration
       if email_config && !email_config.empty?
         begin
-          mail_rows = [
-            ['Mailer', @emailer],
-            ['Mode', email_config[:mode]],
-            ['From', "'#{email_config[:fromname]} <#{email_config[:from]}>'"],
-            ['Host', "#{email_config[:host]}:#{email_config[:port]}"],
-            ['Region', email_config[:region]],
-            ['TLS', email_config[:tls]],
-            ['Auth', email_config[:auth]]
-          ].reject { |row| row[1].nil? || row[1].to_s.empty? }
+          if email_config.key?(:enabled) && !email_config[:enabled]
+            mail_rows = [['Status', 'disabled']]
+          else
+            mail_rows = [
+              ['Mailer', @emailer],
+              ['Mode', email_config[:mode]],
+              ['From', "'#{email_config[:fromname]} <#{email_config[:from]}>'"],
+              ['Host', "#{email_config[:host]}:#{email_config[:port]}"],
+              ['Region', email_config[:region]],
+              ['TLS', email_config[:tls]],
+              ['Auth', email_config[:auth]]
+            ].reject { |row| row[1].nil? || row[1].to_s.empty? }
+          end
 
           if !mail_rows.empty?
             mail_table = TTY::Table.new(
@@ -148,12 +167,16 @@ module Onetime
 
       [:development, :experimental].each do |key|
         if config_value = OT.conf.fetch(key, false)
-          # Format as JSON for better readability of nested structures
-          formatted_value = config_value.map do |k, v|
-            value_str = (v.is_a?(Hash) || v.is_a?(Array)) ? v.to_json : v.to_s
-            "#{k}=#{value_str}"
-          end.join(', ')
-          dev_rows << [key.to_s.capitalize, formatted_value]
+          if config_value.is_a?(Hash) && config_value.key?(:enabled) && !config_value[:enabled]
+            dev_rows << [key.to_s.capitalize, 'disabled']
+          else
+            # Format as JSON for better readability of nested structures
+            formatted_value = config_value.map do |k, v|
+              value_str = (v.is_a?(Hash) || v.is_a?(Array)) ? v.to_json : v.to_s
+              "#{k}=#{value_str}"
+            end.join(', ')
+            dev_rows << [key.to_s.capitalize, formatted_value]
+          end
         end
       end
 
