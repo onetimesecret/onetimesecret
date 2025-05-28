@@ -10,7 +10,7 @@ module V2
                         :diagnostics]
 
         attr_reader :config, :interface, :secret_options, :mail, :limits,
-                    :diagnostics, :greenlighted
+                    :diagnostics, :greenlighted, :record
 
         def process_params
           OT.ld "[UpdateColonelConfig#process_params] params: #{params.inspect}"
@@ -64,9 +64,15 @@ module V2
           OT.li "[UpdateColonelConfig#process] Limits: #{limits.inspect}" if limits
           OT.li "[UpdateColonelConfig#process] Diagnostics: #{diagnostics.inspect}" if diagnostics
 
-          # Here you would typically update the configuration in the database or file
-          # For this example, we will just log the changes
-          # In a real application, you would replace this with actual update logic
+          # Create a new ColonelConfig object with the updated values
+          @record = ColonelConfig.create(
+            interface: interface,
+            secret_options: secret_options,
+            mail: mail,
+            limits: limits,
+            diagnostics: diagnostics,
+          )
+
           @greenlighted = true
         end
 
@@ -75,7 +81,7 @@ module V2
 
           # Create a response that matches the GetColonelConfig format
           response = {
-            record: {},
+            record: @record,
             details: {},
           }
 
