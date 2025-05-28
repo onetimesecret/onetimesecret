@@ -97,13 +97,12 @@ module Onetime
 
       # Domains and regions
       [:domains, :regions].each do |key|
-        if site_config.key?(key)
-          config = site_config[key]
-          if is_feature_disabled?(config)
-            feature_rows << [key.to_s.capitalize, 'disabled']
-          elsif !config.empty?
-            feature_rows << [key.to_s.capitalize, format_config_value(config)]
-          end
+        next unless site_config.key?(key)
+        config = site_config[key]
+        if is_feature_disabled?(config)
+          feature_rows << [key.to_s.capitalize, 'disabled']
+        elsif !config.empty?
+          feature_rows << [key.to_s.capitalize, format_config_value(config)]
         end
       end
 
@@ -125,7 +124,7 @@ module Onetime
               ['Host', "#{email_config[:host]}:#{email_config[:port]}"],
               ['Region', email_config[:region]],
               ['TLS', email_config[:tls]],
-              ['Auth', email_config[:auth]]
+              ['Auth', email_config[:auth]],
             ].reject { |row| row[1].nil? || row[1].to_s.empty? }
           end
 
@@ -191,14 +190,13 @@ module Onetime
     def render_section(header1, header2, rows)
       table = TTY::Table.new(
         header: [header1, header2],
-        rows: rows
+        rows: rows,
       )
 
       rendered = table.render(:unicode,
         padding: [0, 1],
         multiline: true,
-        column_widths: [15, 79]
-      )
+        column_widths: [15, 79])
 
       # Return rendered table with an extra newline
       rendered + "\n"
