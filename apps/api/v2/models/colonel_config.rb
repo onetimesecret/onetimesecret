@@ -105,7 +105,11 @@ module V2
     # have a complete history of configuration objects.
     def save **kwargs
       raise OT::Problem, "Cannot clobber #{self.class} #{rediskey}" if exists?
-      super(**kwargs)
+
+      redis.multi do |multi|
+        super(**kwargs)
+        self.class.add(self, multi)
+      end
     end
 
     # Check if the given customer is the owner of this domain
@@ -188,11 +192,20 @@ module V2
         false
       end
 
-      def add fobj
+      def add(fobj, multi = nil)
         now = self.now
-        self.values.add now, fobj.to_s
-        self.stack.add now, fobj.to_s
-        self.audit_log.add now, fobj.to_s
+
+        if multi
+          # Use the provided multi instance for atomic operations
+          multi.zadd(self.values.rediskey, now, fobj.to_s)
+          multi.zadd(self.stack.rediskey, now, fobj.to_s)
+          multi.zadd(self.audit_log.rediskey, now, fobj.to_s)
+        else
+          # Fall back to individual operations for backward compatibility
+          self.values.add now, fobj.to_s
+          self.stack.add now, fobj.to_s
+          self.audit_log.add now, fobj.to_s
+        end
       end
 
       def rem fobj
