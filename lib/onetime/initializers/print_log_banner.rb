@@ -6,6 +6,25 @@ require 'json'
 module Onetime
   module Initializers
 
+    # Prints a formatted banner with system and configuration information at startup.
+    # The banner is organized into logical sections, each rendered as a table.
+    #
+    # Structure:
+    # - All output is collected in an array and printed with a single OT.li call
+    # - Each section is rendered as a TTY::Table with consistent formatting
+    # - Sections are separated by newlines
+    #
+    # To add a new section to the banner:
+    # 1. Add a section comment: ====== New Section Name ======
+    # 2. Create an array to collect rows: `new_section_rows = []`
+    # 3. Add key/value pairs to the array: `new_section_rows << ['Key', 'Value']`
+    # 4. Check if the section has content: `unless new_section_rows.empty?`
+    # 5. Add rendered section to output: `output << render_section('Header1', 'Header2', new_section_rows)`
+    #
+    # Helper methods available:
+    # - render_section(header1, header2, rows): Creates a formatted table
+    # - is_feature_disabled?(config): Checks if a feature is disabled
+    # - format_config_value(config): Formats complex config values for display
     def print_log_banner
       site_config = OT.conf.fetch(:site) # if :site is missing we got real problems
       email_config = OT.conf.fetch(:emailer, {})
@@ -19,7 +38,7 @@ module Onetime
       output << "---  ONETIME #{OT.mode} v#{OT::VERSION.inspect}  #{'---' * 3}"
       output << ""
 
-      # SECTION 1: Core System Information
+      # ====== System Information Section ======
       system_rows = [
         ['System', "#{@sysinfo.platform} (#{RUBY_ENGINE} #{RUBY_VERSION} in #{OT.env})"],
         ['Config', OT::Config.path],
@@ -34,19 +53,9 @@ module Onetime
         system_rows << ['Locales', @locales.keys.join(', ')]
       end
 
-      system_table = TTY::Table.new(
-        header: ['Component', 'Value'],
-        rows: system_rows,
-      )
+      output << render_section('Component', 'Value', system_rows)
 
-      output << system_table.render(:unicode,
-        padding: [0, 1],
-        multiline: true,
-        column_widths: [15, 79]
-      )
-      output << ""
-
-      # SECTION 2: Authentication Settings
+      # ====== Authentication Section ======
       auth_rows = []
 
       if colonels.empty?
@@ -57,7 +66,7 @@ module Onetime
 
       if site_config.key?(:authentication)
         auth_config = site_config[:authentication]
-        if auth_config.key?(:enabled) && !auth_config[:enabled]
+        if is_feature_disabled?(auth_config)
           auth_rows << ['Auth Settings', 'disabled']
         else
           auth_settings = auth_config.map { |k,v| "#{k}=#{v}" }.join(', ')
@@ -66,26 +75,16 @@ module Onetime
       end
 
       unless auth_rows.empty?
-        auth_table = TTY::Table.new(
-          header: ['Authentication', 'Details'],
-          rows: auth_rows
-        )
-
-        output << auth_table.render(:unicode,
-          padding: [0, 1],
-          multiline: true,
-          column_widths: [15, 79],
-        )
-        output << ""
+        output << render_section('Authentication', 'Details', auth_rows)
       end
 
-      # SECTION 3: Features Configuration
+      # ====== Features Section ======
       feature_rows = []
 
       # Plans section
       if site_config.key?(:plans)
         plans_config = site_config[:plans]
-        if plans_config.key?(:enabled) && !plans_config[:enabled]
+        if is_feature_disabled?(plans_config)
           feature_rows << ['Plans', 'disabled']
         else
           begin
@@ -100,37 +99,24 @@ module Onetime
       [:domains, :regions].each do |key|
         if site_config.key?(key)
           config = site_config[key]
-          if config.is_a?(Hash) && config.key?(:enabled) && !config[:enabled]
+          if is_feature_disabled?(config)
             feature_rows << [key.to_s.capitalize, 'disabled']
           elsif !config.empty?
-            # Format as JSON for better readability with nested structures
-            formatted_value = config.is_a?(Hash) ?
-              config.map { |k,v| "#{k}=#{v.is_a?(Hash) || v.is_a?(Array) ? v.to_json : v}" }.join(', ') :
-              config.to_s
-            feature_rows << [key.to_s.capitalize, formatted_value]
+            feature_rows << [key.to_s.capitalize, format_config_value(config)]
           end
         end
       end
 
       unless feature_rows.empty?
-        feature_table = TTY::Table.new(
-          header: ['Features', 'Configuration'],
-          rows: feature_rows
-        )
-
-        output << feature_table.render(:unicode,
-          padding: [0, 1],
-          multiline: true,
-          column_widths: [15, 79]
-        )
-        output << ""
+        output << render_section('Features', 'Configuration', feature_rows)
       end
 
-      # SECTION 4: Email Configuration
+      # ====== Email Configuration Section ======
       if email_config && !email_config.empty?
         begin
-          if email_config.key?(:enabled) && !email_config[:enabled]
-            mail_rows = [['Status', 'disabled']]
+          mail_rows = []
+          if is_feature_disabled?(email_config)
+            mail_rows << ['Status', 'disabled']
           else
             mail_rows = [
               ['Mailer', @emailer],
@@ -144,17 +130,7 @@ module Onetime
           end
 
           if !mail_rows.empty?
-            mail_table = TTY::Table.new(
-              header: ['Mail Config', 'Value'],
-              rows: mail_rows
-            )
-
-            output << mail_table.render(:unicode,
-              padding: [0, 1],
-              multiline: true,
-              column_widths: [15, 79]
-            )
-            output << ""
+            output << render_section('Mail Config', 'Value', mail_rows)
           end
         rescue => e
           output << "Error rendering mail table: #{e.message}"
@@ -162,52 +138,27 @@ module Onetime
         end
       end
 
-      # SECTION 5: Development and Experimental Settings
+      # ====== Development and Experimental Settings Section ======
       dev_rows = []
 
       [:development, :experimental].each do |key|
         if config_value = OT.conf.fetch(key, false)
-          if config_value.is_a?(Hash) && config_value.key?(:enabled) && !config_value[:enabled]
+          if is_feature_disabled?(config_value)
             dev_rows << [key.to_s.capitalize, 'disabled']
           else
-            # Format as JSON for better readability of nested structures
-            formatted_value = config_value.map do |k, v|
-              value_str = (v.is_a?(Hash) || v.is_a?(Array)) ? v.to_json : v.to_s
-              "#{k}=#{value_str}"
-            end.join(', ')
-            dev_rows << [key.to_s.capitalize, formatted_value]
+            dev_rows << [key.to_s.capitalize, format_config_value(config_value)]
           end
         end
       end
 
       unless dev_rows.empty?
-        dev_table = TTY::Table.new(
-          header: ['Development', 'Settings'],
-          rows: dev_rows
-        )
-
-        output << dev_table.render(:unicode,
-          padding: [0, 1],
-          multiline: true,
-          column_widths: [15, 79]
-        )
-        output << ""
+        output << render_section('Development', 'Settings', dev_rows)
       end
 
-      # SECTION 6: Secret Options (separate due to its importance)
+      # ====== Secret Options Section ======
       secret_options = OT.conf.dig(:site, :secret_options)
       if secret_options
-        secret_table = TTY::Table.new(
-          header: ['Security', 'Configuration'],
-          rows: [['Secret Options', secret_options.to_json]]
-        )
-
-        output << secret_table.render(:unicode,
-          padding: [0, 1],
-          multiline: true,
-          column_widths: [15, 79]
-        )
-        output << ""
+        output << render_section('Security', 'Configuration', [['Secret Options', secret_options.to_json]])
       end
 
       # Footer
@@ -215,6 +166,42 @@ module Onetime
 
       # Output everything with a single OT.li call
       OT.li output.join("\n")
+    end
+
+    private
+
+    # Helper method to check if a feature is disabled
+    def is_feature_disabled?(config)
+      config.is_a?(Hash) && config.key?(:enabled) && !config[:enabled]
+    end
+
+    # Helper method to format config values with special handling for hashes and arrays
+    def format_config_value(config)
+      if config.is_a?(Hash)
+        config.map do |k, v|
+          value_str = (v.is_a?(Hash) || v.is_a?(Array)) ? v.to_json : v.to_s
+          "#{k}=#{value_str}"
+        end.join(', ')
+      else
+        config.to_s
+      end
+    end
+
+    # Helper method to render a section as a table
+    def render_section(header1, header2, rows)
+      table = TTY::Table.new(
+        header: [header1, header2],
+        rows: rows
+      )
+
+      rendered = table.render(:unicode,
+        padding: [0, 1],
+        multiline: true,
+        column_widths: [15, 79]
+      )
+
+      # Return rendered table with an extra newline
+      rendered + "\n"
     end
 
   end
