@@ -47,9 +47,9 @@ gem 'encryptor', '= 1.1.3'
 
 gem 'httparty'
 
+gem "fastimage", "~> 2.4"
 gem 'mail'
 gem 'net-imap', '~> 0.5.7'
-gem "fastimage", "~> 2.4"
 
 gem 'psych', '~> 5.2.3'
 gem 'stringio', '~> 3.1.6'
@@ -94,6 +94,7 @@ group :development do
 end
 
 group :test do
+  gem "fakeredis", :require => "fakeredis/rspec"
   gem 'rack-test', require: false
   gem 'rspec', git: "https://github.com/rspec/rspec"
   gem 'simplecov', require: false
