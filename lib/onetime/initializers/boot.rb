@@ -72,8 +72,10 @@ module Onetime
       prepare_emailers
       load_fortunes
       load_plans
-      connect_databases if connect_to_db
-      check_global_banner
+      if connect_to_db
+        connect_databases
+        check_global_banner
+      end
 
       # Setup colonel config - check for existing override configuration
       # and merge with YAML config if present. Must happen before other
