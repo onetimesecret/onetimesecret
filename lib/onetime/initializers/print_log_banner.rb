@@ -26,7 +26,6 @@ module Onetime
     # - is_feature_disabled?(config): Checks if a feature is disabled
     # - format_config_value(config): Formats complex config values for display
     # - format_duration(seconds): Converts seconds to human-readable format (e.g., "5m", "2h", "7d")
-    # rubocop:disable Metrics/MethodLength, Metrics/PerceivedComplexity
     def print_log_banner
       site_config = OT.conf.fetch(:site) # if :site is missing we got real problems
       email_config = OT.conf.fetch(:emailer, {})
@@ -40,7 +39,46 @@ module Onetime
       output << "---  ONETIME #{OT.mode} v#{OT::VERSION.inspect}  #{'---' * 3}"
       output << ""
 
-      # ====== System Information Section ======
+      # Add each section to output
+      system_rows = build_system_section(redis_info)
+      output << render_section('Component', 'Value', system_rows)
+
+      dev_rows = build_dev_section
+      unless dev_rows.empty?
+        output << render_section('Development', 'Settings', dev_rows)
+      end
+
+      feature_rows = build_features_section(site_config)
+      unless feature_rows.empty?
+        output << render_section('Features', 'Configuration', feature_rows)
+      end
+
+      mail_rows = build_email_section(email_config)
+      unless mail_rows.empty?
+        output << render_section('Mail Config', 'Value', mail_rows)
+      end
+
+      auth_rows = build_auth_section(site_config, colonels)
+      unless auth_rows.empty?
+        output << render_section('Authentication', 'Details', auth_rows)
+      end
+
+      customization_rows = build_customization_section(site_config)
+      unless customization_rows.empty?
+        output << render_section('Customization', 'Configuration', customization_rows)
+      end
+
+      # Footer
+      output << "#{'-' * 75}"
+
+      # Output everything with a single OT.li call
+      OT.li output.join("\n")
+    end
+
+    private
+
+    # Builds system information section rows
+    def build_system_section(redis_info)
       system_rows = [
         ['System', "#{@sysinfo.platform} (#{RUBY_ENGINE} #{RUBY_VERSION} in #{OT.env})"],
         ['Config', OT::Config.path],
@@ -55,9 +93,11 @@ module Onetime
         system_rows << ['Locales', @locales.keys.join(', ')]
       end
 
-      output << render_section('Component', 'Value', system_rows)
+      system_rows
+    end
 
-      # ====== Development and Experimental Settings Section ======
+    # Builds development and experimental settings section rows
+    def build_dev_section
       dev_rows = []
 
       [:development, :experimental].each do |key|
@@ -70,11 +110,11 @@ module Onetime
         end
       end
 
-      unless dev_rows.empty?
-        output << render_section('Development', 'Settings', dev_rows)
-      end
+      dev_rows
+    end
 
-      # ====== Features Section ======
+    # Builds features section rows
+    def build_features_section(site_config)
       feature_rows = []
 
       # Plans section
@@ -102,38 +142,34 @@ module Onetime
         end
       end
 
-      unless feature_rows.empty?
-        output << render_section('Features', 'Configuration', feature_rows)
-      end
+      feature_rows
+    end
 
-      # ====== Email Configuration Section ======
-      if email_config && !email_config.empty?
-        begin
-          mail_rows = []
-          if is_feature_disabled?(email_config)
-            mail_rows << ['Status', 'disabled']
-          else
-            mail_rows = [
-              ['Mailer', @emailer],
-              ['Mode', email_config[:mode]],
-              ['From', "'#{email_config[:fromname]} <#{email_config[:from]}>'"],
-              ['Host', "#{email_config[:host]}:#{email_config[:port]}"],
-              ['Region', email_config[:region]],
-              ['TLS', email_config[:tls]],
-              ['Auth', email_config[:auth]],
-            ].reject { |row| row[1].nil? || row[1].to_s.empty? }
-          end
+    # Builds email configuration section rows
+    def build_email_section(email_config)
+      return [] if email_config.nil? || email_config.empty?
 
-          if !mail_rows.empty?
-            output << render_section('Mail Config', 'Value', mail_rows)
-          end
-        rescue => e
-          output << "Error rendering mail table: #{e.message}"
-          output << ""
+      begin
+        if is_feature_disabled?(email_config)
+          [['Status', 'disabled']]
+        else
+          [
+            ['Mailer', @emailer],
+            ['Mode', email_config[:mode]],
+            ['From', "'#{email_config[:fromname]} <#{email_config[:from]}>'"],
+            ['Host', "#{email_config[:host]}:#{email_config[:port]}"],
+            ['Region', email_config[:region]],
+            ['TLS', email_config[:tls]],
+            ['Auth', email_config[:auth]],
+          ].reject { |row| row[1].nil? || row[1].to_s.empty? }
         end
+      rescue => e
+        [['Error', "Error rendering mail config: #{e.message}"]]
       end
+    end
 
-      # ====== Authentication Section ======
+    # Builds authentication section rows
+    def build_auth_section(site_config, colonels)
       auth_rows = []
 
       if colonels.empty?
@@ -152,11 +188,11 @@ module Onetime
         end
       end
 
-      unless auth_rows.empty?
-        output << render_section('Authentication', 'Details', auth_rows)
-      end
+      auth_rows
+    end
 
-      # ====== Customization Section ======
+    # Builds customization section rows
+    def build_customization_section(site_config)
       customization_rows = []
 
       # Secret options
@@ -205,18 +241,8 @@ module Onetime
         end
       end
 
-      unless customization_rows.empty?
-        output << render_section('Customization', 'Configuration', customization_rows)
-      end
-
-      # Footer
-      output << "#{'-' * 75}"
-
-      # Output everything with a single OT.li call
-      OT.li output.join("\n")
+      customization_rows
     end
-
-    private
 
     # Helper method to check if a feature is disabled
     def is_feature_disabled?(config)
