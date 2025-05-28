@@ -189,7 +189,7 @@ module V2
       end
 
       def add fobj
-        now = OT.now.to_i # created time, identifier
+        now = self.now
         self.values.add now, fobj.to_s
         self.stack.add now, fobj.to_s
         self.audit_log.add now, fobj.to_s
@@ -213,7 +213,7 @@ module V2
       end
 
       def recent duration=7.days
-        spoint, epoint = OT.now.to_i-duration, OT.now.to_i
+        spoint, epoint = self.now-duration, self.now
         self.values.rangebyscoreraw(spoint, epoint).collect { |identifier| load(identifier) }
       end
 
@@ -248,6 +248,22 @@ module V2
 
       def history
         self.history.revrangeraw(0, -1).collect { |identifier| load(identifier) }
+      end
+
+      # Using precision time (float) is critical for sorted set scores because it ensures
+      # proper ordering of configuration records in chronological sequence. Without
+      # precision, multiple configs created within the same second would have identical
+      # integer scores, making their order in the sorted set non-deterministic.
+      #
+      # This precise ordering is essential for:
+      # - current: Finding the most recent config reliably
+      # - previous: Identifying the correct second-most-recent config for rollbacks
+      # - rollback!: Ensuring we remove the actual latest config, not an arbitrary one
+      #
+      # Float timestamps provide microsecond precision, virtually eliminating the
+      # possibility of score collisions even with rapid sequential operations.
+      def now
+        OT.hnow # use precision scores
       end
     end
 

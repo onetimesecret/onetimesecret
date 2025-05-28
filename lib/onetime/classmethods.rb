@@ -36,18 +36,21 @@ module Onetime
       end
     end
 
-    # Returns the current wall clock time as microseconds since Unix epoch using the system's
-    # high-precision clock interface. This method provides the most accurate and consistent
-    # timestamp available on the platform.
+    # Returns the current wall clock time as microseconds since Unix epoch
+    # using the system's high-precision clock interface. This method provides
+    # the most accurate and consistent timestamp available on the platform.
     #
-    # Uses Process.clock_gettime with CLOCK_REALTIME, which directly interfaces with the
-    # system's realtime clock and typically offers better precision and performance than
-    # Time-based alternatives. The CLOCK_REALTIME source represents actual wall clock time
-    # and is suitable for timestamps that need to be compared across system restarts or
-    # with external systems.
+    # Uses Process.clock_gettime with CLOCK_REALTIME, which directly
+    # interfaces with the system's realtime clock and typically offers better
+    # precision and performance than Time-based alternatives. The
+    # CLOCK_REALTIME source represents actual wall clock time and is suitable
+    # for timestamps that need to be compared across system restarts or with
+    # external systems.
     #
-    # @return [Integer] Microseconds since Unix epoch (January 1, 1970 00:00:00 UTC)
-    #   Range: ~1,600,000,000,000,000 to ~4,100,000,000,000,000 (current era to ~2100 CE)
+    # @return [Integer] Microseconds since Unix epoch (January 1, 1970
+    #   00:00:00 UTC)
+    #   Range: ~1,600,000,000,000,000 to ~4,100,000,000,000,000 (current
+    #   era to ~2100 CE)
     #   Precision: 1 microsecond (1/1,000,000 second)
     #
     # @note This method is optimal for:
@@ -65,34 +68,40 @@ module Onetime
     #   hnowµs  #=> 1716825600123456
     #   hnowµs  #=> 1716825600123457 (called 1 microsecond later)
     #
-    # @see Process.clock_gettime Ruby documentation for underlying implementation
+    # @see Process.clock_gettime Ruby documentation for underlying
+    #   implementation
     # @since Ruby 2.1.0 (when Process.clock_gettime was introduced)
     def hnowµs
       Process.clock_gettime(Process::CLOCK_REALTIME, :microsecond)
     end
 
-    # Returns the current UTC time as microseconds since Unix epoch, computed from Ruby's
-    # Time object. This method converts the high-precision floating-point time representation
-    # to an integer microsecond count.
+    # Returns the current UTC time as microseconds since Unix epoch, computed
+    # from Ruby's Time object. This method converts the high-precision
+    # floating-point time representation to an integer microsecond count.
     #
-    # Uses Time.now.utc.to_f which returns seconds as a Float with subsecond precision,
-    # then multiplies by 1,000,000 and converts to integer. While generally reliable,
-    # this approach may have slight performance overhead compared to direct system clock
-    # access and could theoretically suffer from floating-point precision limitations
-    # with very large timestamp values (though not practically relevant until ~2285 CE).
+    # Uses Time.now.utc.to_f which returns seconds as a Float with subsecond
+    # precision, then multiplies by 1,000,000 and converts to integer. While
+    # generally reliable, this approach may have slight performance overhead
+    # compared to direct system clock access and could theoretically suffer
+    # from floating-point precision limitations with very large timestamp
+    # values (though not practically relevant until ~2285 CE).
     #
-    # @return [Integer] Microseconds since Unix epoch (January 1, 1970 00:00:00 UTC)
+    # @return [Integer] Microseconds since Unix epoch (January 1, 1970
+    #   00:00:00 UTC)
     #   Range: Same as hnowµs but computed via different path
-    #   Precision: Limited by Time.now precision and floating-point conversion
+    #   Precision: Limited by Time.now precision and floating-point
+    #   conversion
     #
     # @note This method is suitable for:
     #   - General-purpose timestamping where maximum precision isn't critical
     #   - Legacy code compatibility where Time.now patterns are established
-    #   - Situations where Process.clock_gettime isn't available (very old Ruby versions)
+    #   - Situations where Process.clock_gettime isn't available (very old
+    #     Ruby versions)
     #
     # @note Considerations:
     #   - Slightly slower than hnowµs due to floating-point arithmetic
-    #   - Precision depends on Time.now implementation (usually microsecond or better)
+    #   - Precision depends on Time.now implementation (usually microsecond
+    #     or better)
     #   - Result should be identical to hnowµs under normal circumstances
     #   - May show small variations from hnowµs due to different code paths
     #
@@ -105,16 +114,19 @@ module Onetime
       (Time.now.utc.to_f * 1_000_000).to_i
     end
 
-    # Returns the current time as a Time object in UTC timezone. This is the standard
-    # Ruby approach for obtaining timezone-normalized time objects suitable for
-    # date/time arithmetic, formatting, and general temporal operations.
+    # Returns the current time as a Time object in UTC timezone. This is the
+    # standard Ruby approach for obtaining timezone-normalized time objects
+    # suitable for date/time arithmetic, formatting, and general temporal
+    # operations.
     #
-    # The returned Time object contains full precision available from the system
-    # (typically microsecond, potentially nanosecond) and provides rich functionality
-    # for time manipulation, comparison, and formatting operations.
+    # The returned Time object contains full precision available from the
+    # system (typically microsecond, potentially nanosecond) and provides
+    # rich functionality for time manipulation, comparison, and formatting
+    # operations.
     #
     # @return [Time] Time object representing current UTC time
-    #   Precision: Full system precision (accessible via #nsec, #usec methods)
+    #   Precision: Full system precision (accessible via #nsec, #usec
+    #   methods)
     #   Timezone: Always UTC (Coordinated Universal Time)
     #
     # @note This method is optimal for:
@@ -122,7 +134,8 @@ module Onetime
     #   - Date/time arithmetic operations (adding days, months, etc.)
     #   - Time zone conversions and calculations
     #   - Integration with Rails/ActiveSupport time helpers
-    #   - Situations requiring Time object methods (#strftime, #year, #month, etc.)
+    #   - Situations requiring Time object methods (#strftime, #year,
+    #     #month, etc.)
     #
     # @note Avoid for:
     #   - Redis sorted set scores (use hnowµs or nowµs instead)
@@ -138,6 +151,38 @@ module Onetime
     # @see Time Ruby documentation for full Time object capabilities
     def now
       Time.now.utc
+    end
+
+    # Returns the current wall clock time as a floating-point number of
+    # seconds since the Unix epoch, using the system's high-precision clock
+    # interface.
+    #
+    # This method utilizes Process.clock_gettime with CLOCK_REALTIME and
+    # :float_second, providing sub-second precision suitable for performance
+    # measurements, time calculations, and scenarios where fractional seconds
+    # are required.
+    #
+    # @return [Float] Seconds since Unix epoch (January 1, 1970 00:00:00
+    #   UTC), with sub-second precision
+    #
+    # @note This method is optimal for:
+    #   - High-precision time interval calculations
+    #   - Profiling and benchmarking code execution
+    #   - Scenarios requiring floating-point timestamps
+    #
+    # @note Platform considerations:
+    #   - Precision and accuracy depend on the underlying operating system
+    #     and hardware
+    #   - Typically provides microsecond or better precision on modern
+    #     systems
+    #
+    # @example
+    #   hnow  #=> 1716825600.123456
+    #   hnow  #=> 1716825600.123457 (called microseconds later)
+    #
+    # @see Process.clock_gettime Ruby documentation for further details
+    def hnow
+      Process.clock_gettime(Process::CLOCK_REALTIME, :float_second)
     end
 
     def with_diagnostics(&)
