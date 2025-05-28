@@ -125,7 +125,7 @@ RSpec.describe "Onetime::Config during Onetime.boot!" do
       expect(conf.dig(:site, :secret_options)).to have_key(:ttl_options)
       expect(conf.dig(:diagnostics, :sentry)).to be_a(Hash)
 
-      # In after_load, when we call `merged = apply_defaults(diagnostics[:sentry])`
+      # In after_load, when we call `merged = apply_defaults_to_peers(diagnostics[:sentry])`
       # :default is nil and no longer a hash. Details:
       # Notice that line with `next if section == :defaults` - this
       # explicitly skips adding the `:defaults` section to the result hash.

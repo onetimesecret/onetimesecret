@@ -8,7 +8,7 @@ module Onetime
     # Creates initial colonel config record on first boot.
     #
     def setup_colonel_config
-      OT.li "Setting up colonel configuration..."
+      OT.ld "Setting up colonel configuration..."
 
       # Check if this is the first boot by looking for existing data
       is_first_boot = detect_first_boot
@@ -18,14 +18,14 @@ module Onetime
       existing_config = begin
         V2::ColonelConfig.current
       rescue OT::RecordNotFound => e
-        OT.li "No existing colonel config found: #{e.message}"
+        OT.ld "No existing colonel config found: #{e.message}"
         nil
       end
 
       if existing_config
-        OT.li "Found existing colonel config: #{existing_config.rediskey}"
+        OT.ld "Found existing colonel config: #{existing_config.rediskey}"
         # Merge existing colonel config with YAML configuration
-        merge_colonel_config(existing_config)
+        # merge_colonel_config(existing_config)
 
       elsif existing_config.nil?
         # Create initial colonel config from current YAML configuration
@@ -61,14 +61,14 @@ module Onetime
 
     # Creates initial colonel config record from current YAML configuration
     def create_initial_colonel_config
-      OT.li "Creating initial colonel config from YAML..."
+      OT.ld "Creating initial colonel config from YAML..."
 
       colonel_config_data = V2::ColonelConfig.extract_colonel_config(OT.conf)
       colonel_config_data[:comment] = "Initial configuration"
       colonel_config_data[:custid] = nil # No customer owner for initial config
 
       new_config = V2::ColonelConfig.create(**colonel_config_data)
-      OT.li "Created initial colonel config: #{new_config.rediskey}"
+      OT.ld "Created initial colonel config: #{new_config.rediskey}"
     end
 
     # Applies colonel config on top of the main configuration, where the colonel
