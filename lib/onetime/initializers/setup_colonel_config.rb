@@ -2,6 +2,7 @@
 
 module Onetime
   module Initializers
+    @first_boot = nil
 
     # Sets up colonel configuration by checking for existing override
     # configuration in Redis and merging it with YAML configuration.
@@ -12,7 +13,7 @@ module Onetime
 
       # Check if this is the first boot by looking for existing data
       is_first_boot = detect_first_boot
-      OT.li "First boot detected: #{is_first_boot}"
+      OT.ld "First boot detected: #{is_first_boot}"
 
       # Check for existing colonel config
       existing_config = begin

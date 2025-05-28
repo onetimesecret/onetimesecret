@@ -2,6 +2,8 @@
 
 module Onetime
   module Initializers
+    # d9s: diagnostics is a boolean flag. If true, it will enable Sentry
+    attr_accessor :d9s_enabled
 
     def setup_diagnostics
 
