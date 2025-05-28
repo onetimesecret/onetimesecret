@@ -396,7 +396,6 @@ module Onetime
       OT.replace_config! new_config
     end
 
-    private
     # Standard deep_merge implementation based on widely used patterns
     # @param original [Hash] Base hash with default values
     # @param other [Hash] Hash with values that override defaults

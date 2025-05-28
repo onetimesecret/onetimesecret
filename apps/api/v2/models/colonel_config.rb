@@ -28,6 +28,14 @@ module V2
         end
       end
 
+      # Returns a hash of only the fields in FIELD_MAPPINGS
+      def filter_colonel_config(config)
+        config_data = config.is_a?(Hash) ? config : config.to_h
+        FIELD_MAPPINGS.transform_values do |value|
+          config_data.fetch(value, nil)
+        end
+      end
+
       # Takes a colonel config hash or instance and constructs a new hash
       # with the same structure as the Onetime YAML configuration.
       def construct_onetime_config(config)
@@ -132,6 +140,10 @@ module V2
     def generate_id
       @key ||= Familia.generate_id.slice(0, 31)
       @key
+    end
+
+    def filtered
+      self.class.filter_colonel_config(self)
     end
 
     def to_onetime_config

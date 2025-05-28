@@ -64,14 +64,21 @@ module V2
           OT.li "[UpdateColonelConfig#process] Limits: #{limits.inspect}" if limits
           OT.li "[UpdateColonelConfig#process] Diagnostics: #{diagnostics.inspect}" if diagnostics
 
+
+          # Only include sections that were provided in the request
+          @updated_fields = {}
+          @updated_fields[:interface] = interface if interface
+          @updated_fields[:secret_options] = secret_options if secret_options
+          @updated_fields[:mail] = mail if mail
+          @updated_fields[:limits] = limits if limits
+          @updated_fields[:diagnostics] = diagnostics if diagnostics
+
+          current_config = ColonelConfig.current || ColonelConfig.new
+          filtered_fields = current_config.filtered
+          merged_config = OT::Config.deep_merge(filtered_fields, @updated_fields)
+
           # Create a new ColonelConfig object with the updated values
-          @record = ColonelConfig.create(
-            interface: interface,
-            secret_options: secret_options,
-            mail: mail,
-            limits: limits,
-            diagnostics: diagnostics,
-          )
+          @record = ColonelConfig.create(**merged_config)
 
           @greenlighted = true
         end
@@ -82,15 +89,8 @@ module V2
           # Create a response that matches the GetColonelConfig format
           response = {
             record: @record,
-            details: {},
+            details: @updated_fields,
           }
-
-          # Only include sections that were provided in the request
-          response[:details][:interface] = interface if interface
-          response[:details][:secret_options] = secret_options if secret_options
-          response[:details][:mail] = mail if mail
-          response[:details][:limits] = limits if limits
-          response[:details][:diagnostics] = diagnostics if diagnostics
 
           response
         end
