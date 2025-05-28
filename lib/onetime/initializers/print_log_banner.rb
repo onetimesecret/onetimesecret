@@ -26,6 +26,7 @@ module Onetime
     # - is_feature_disabled?(config): Checks if a feature is disabled
     # - format_config_value(config): Formats complex config values for display
     # - format_duration(seconds): Converts seconds to human-readable format (e.g., "5m", "2h", "7d")
+    # rubocop:disable Metrics/MethodLength, Metrics/PerceivedComplexity
     def print_log_banner
       site_config = OT.conf.fetch(:site) # if :site is missing we got real problems
       email_config = OT.conf.fetch(:emailer, {})
@@ -92,13 +93,12 @@ module Onetime
 
       # Domains and regions
       [:domains, :regions].each do |key|
-        if site_config.key?(key)
-          config = site_config[key]
-          if is_feature_disabled?(config)
-            feature_rows << [key.to_s.capitalize, 'disabled']
-          elsif !config.empty?
-            feature_rows << [key.to_s.capitalize, format_config_value(config)]
-          end
+        next unless site_config.key?(key)
+        config = site_config[key]
+        if is_feature_disabled?(config)
+          feature_rows << [key.to_s.capitalize, 'disabled']
+        elsif !config.empty?
+          feature_rows << [key.to_s.capitalize, format_config_value(config)]
         end
       end
 
@@ -120,7 +120,7 @@ module Onetime
               ['Host', "#{email_config[:host]}:#{email_config[:port]}"],
               ['Region', email_config[:region]],
               ['TLS', email_config[:tls]],
-              ['Auth', email_config[:auth]]
+              ['Auth', email_config[:auth]],
             ].reject { |row| row[1].nil? || row[1].to_s.empty? }
           end
 
@@ -158,8 +158,9 @@ module Onetime
 
       # ====== Customization Section ======
       customization_rows = []
-      secret_options = OT.conf.dig(:site, :secret_options)
 
+      # Secret options
+      secret_options = OT.conf.dig(:site, :secret_options)
       if secret_options
         # Format default TTL
         if secret_options[:default_ttl]
@@ -171,6 +172,27 @@ module Onetime
         if secret_options[:ttl_options]
           ttl_options = secret_options[:ttl_options].map { |seconds| format_duration(seconds) }.join(', ')
           customization_rows << ['TTL Options', ttl_options]
+        end
+      end
+
+      # Interface configuration
+      [:ui, :api].each do |key|
+        next unless site_config.key?(key)
+        config = site_config[key]
+        if is_feature_disabled?(config)
+          customization_rows << [key.to_s.upcase, 'disabled']
+        elsif !config.empty?
+          customization_rows << [key.to_s.upcase, format_config_value(config)]
+        end
+      end
+
+      # Check for a combined interface config
+      if site_config.key?(:interface)
+        interface_config = site_config[:interface]
+        if is_feature_disabled?(interface_config)
+          customization_rows << ['Interface', 'disabled']
+        elsif !interface_config.empty?
+          customization_rows << ['Interface', format_config_value(interface_config)]
         end
       end
 
@@ -214,18 +236,18 @@ module Onetime
       when 60...3600
         minutes = seconds / 60
         minutes == 1 ? "1m" : "#{minutes}m"
-      when 3600...86400
+      when 3600...86_400
         hours = seconds / 3600
         hours == 1 ? "1h" : "#{hours}h"
-      when 86400...604800
-        days = seconds / 86400
+      when 86_400...604_800
+        days = seconds / 86_400
         days == 1 ? "1d" : "#{days}d"
-      when 604800...2592000
-        weeks = seconds / 604800
+      when 604_800...2_592_000
+        weeks = seconds / 604_800
         weeks == 1 ? "1w" : "#{weeks}w"
       else
         # For very large values, use days
-        days = seconds / 86400
+        days = seconds / 86_400
         "#{days}d"
       end
     end
@@ -234,14 +256,13 @@ module Onetime
     def render_section(header1, header2, rows)
       table = TTY::Table.new(
         header: [header1, header2],
-        rows: rows
+        rows: rows,
       )
 
       rendered = table.render(:unicode,
         padding: [0, 1],
         multiline: true,
-        column_widths: [15, 79]
-      )
+        column_widths: [15, 79])
 
       # Return rendered table with an extra newline
       rendered + "\n"
