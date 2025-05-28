@@ -25,6 +25,7 @@ module Onetime
     # - render_section(header1, header2, rows): Creates a formatted table
     # - is_feature_disabled?(config): Checks if a feature is disabled
     # - format_config_value(config): Formats complex config values for display
+    # - format_duration(seconds): Converts seconds to human-readable format (e.g., "5m", "2h", "7d")
     def print_log_banner
       site_config = OT.conf.fetch(:site) # if :site is missing we got real problems
       email_config = OT.conf.fetch(:emailer, {})
@@ -97,12 +98,13 @@ module Onetime
 
       # Domains and regions
       [:domains, :regions].each do |key|
-        next unless site_config.key?(key)
-        config = site_config[key]
-        if is_feature_disabled?(config)
-          feature_rows << [key.to_s.capitalize, 'disabled']
-        elsif !config.empty?
-          feature_rows << [key.to_s.capitalize, format_config_value(config)]
+        if site_config.key?(key)
+          config = site_config[key]
+          if is_feature_disabled?(config)
+            feature_rows << [key.to_s.capitalize, 'disabled']
+          elsif !config.empty?
+            feature_rows << [key.to_s.capitalize, format_config_value(config)]
+          end
         end
       end
 
@@ -124,7 +126,7 @@ module Onetime
               ['Host', "#{email_config[:host]}:#{email_config[:port]}"],
               ['Region', email_config[:region]],
               ['TLS', email_config[:tls]],
-              ['Auth', email_config[:auth]],
+              ['Auth', email_config[:auth]]
             ].reject { |row| row[1].nil? || row[1].to_s.empty? }
           end
 
@@ -135,6 +137,28 @@ module Onetime
           output << "Error rendering mail table: #{e.message}"
           output << ""
         end
+      end
+
+      # ====== Customization Section ======
+      customization_rows = []
+      secret_options = OT.conf.dig(:site, :secret_options)
+
+      if secret_options
+        # Format default TTL
+        if secret_options[:default_ttl]
+          default_ttl = format_duration(secret_options[:default_ttl].to_i)
+          customization_rows << ['Default TTL', default_ttl]
+        end
+
+        # Format TTL options
+        if secret_options[:ttl_options]
+          ttl_options = secret_options[:ttl_options].map { |seconds| format_duration(seconds) }.join(', ')
+          customization_rows << ['TTL Options', ttl_options]
+        end
+      end
+
+      unless customization_rows.empty?
+        output << render_section('Customization', 'Configuration', customization_rows)
       end
 
       # ====== Development and Experimental Settings Section ======
@@ -152,12 +176,6 @@ module Onetime
 
       unless dev_rows.empty?
         output << render_section('Development', 'Settings', dev_rows)
-      end
-
-      # ====== Secret Options Section ======
-      secret_options = OT.conf.dig(:site, :secret_options)
-      if secret_options
-        output << render_section('Security', 'Configuration', [['Secret Options', secret_options.to_json]])
       end
 
       # Footer
@@ -186,17 +204,44 @@ module Onetime
       end
     end
 
+    # Helper method to convert seconds to human-readable duration format
+    def format_duration(seconds)
+      seconds = seconds.to_i
+
+      case seconds
+      when 0...60
+        "#{seconds}s"
+      when 60...3600
+        minutes = seconds / 60
+        minutes == 1 ? "1m" : "#{minutes}m"
+      when 3600...86400
+        hours = seconds / 3600
+        hours == 1 ? "1h" : "#{hours}h"
+      when 86400...604800
+        days = seconds / 86400
+        days == 1 ? "1d" : "#{days}d"
+      when 604800...2592000
+        weeks = seconds / 604800
+        weeks == 1 ? "1w" : "#{weeks}w"
+      else
+        # For very large values, use days
+        days = seconds / 86400
+        "#{days}d"
+      end
+    end
+
     # Helper method to render a section as a table
     def render_section(header1, header2, rows)
       table = TTY::Table.new(
         header: [header1, header2],
-        rows: rows,
+        rows: rows
       )
 
       rendered = table.render(:unicode,
         padding: [0, 1],
         multiline: true,
-        column_widths: [15, 79])
+        column_widths: [15, 79]
+      )
 
       # Return rendered table with an extra newline
       rendered + "\n"
