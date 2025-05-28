@@ -1,0 +1,251 @@
+# lib/onetime/initializers/print_log_banner.rb
+
+require 'tty-table'
+require 'json'
+
+module Onetime
+  module Initializers
+
+    # Prints a formatted banner with system and configuration information at startup.
+    # The banner is organized into logical sections, each rendered as a table.
+    #
+    # Structure:
+    # - All output is collected in an array and printed with a single OT.li call
+    # - Each section is rendered as a TTY::Table with consistent formatting
+    # - Sections are separated by newlines
+    #
+    # To add a new section to the banner:
+    # 1. Add a section comment: ====== New Section Name ======
+    # 2. Create an array to collect rows: `new_section_rows = []`
+    # 3. Add key/value pairs to the array: `new_section_rows << ['Key', 'Value']`
+    # 4. Check if the section has content: `unless new_section_rows.empty?`
+    # 5. Add rendered section to output: `output << render_section('Header1', 'Header2', new_section_rows)`
+    #
+    # Helper methods available:
+    # - render_section(header1, header2, rows): Creates a formatted table
+    # - is_feature_disabled?(config): Checks if a feature is disabled
+    # - format_config_value(config): Formats complex config values for display
+    # - format_duration(seconds): Converts seconds to human-readable format (e.g., "5m", "2h", "7d")
+    def print_log_banner
+      site_config = OT.conf.fetch(:site) # if :site is missing we got real problems
+      email_config = OT.conf.fetch(:emailer, {})
+      redis_info = Familia.redis.info
+      colonels = site_config.dig(:authentication, :colonels) || []
+
+      # Create a buffer to collect all output
+      output = []
+
+      # Header banner
+      output << "---  ONETIME #{OT.mode} v#{OT::VERSION.inspect}  #{'---' * 3}"
+      output << ""
+
+      # ====== System Information Section ======
+      system_rows = [
+        ['System', "#{@sysinfo.platform} (#{RUBY_ENGINE} #{RUBY_VERSION} in #{OT.env})"],
+        ['Config', OT::Config.path],
+        ['Redis', "#{redis_info['redis_version']} (#{Familia.uri.serverid})"],
+        ['Familia', "v#{Familia::VERSION}"],
+        ['I18n', OT.i18n_enabled],
+        ['Diagnostics', OT.d9s_enabled],
+      ]
+
+      # Add locales if i18n is enabled
+      if OT.i18n_enabled
+        system_rows << ['Locales', @locales.keys.join(', ')]
+      end
+
+      output << render_section('Component', 'Value', system_rows)
+
+      # ====== Authentication Section ======
+      auth_rows = []
+
+      if colonels.empty?
+        auth_rows << ['Colonels', 'No colonels configured ⚠️']
+      else
+        auth_rows << ['Colonels', colonels.join(', ')]
+      end
+
+      if site_config.key?(:authentication)
+        auth_config = site_config[:authentication]
+        if is_feature_disabled?(auth_config)
+          auth_rows << ['Auth Settings', 'disabled']
+        else
+          auth_settings = auth_config.map { |k,v| "#{k}=#{v}" }.join(', ')
+          auth_rows << ['Auth Settings', auth_settings]
+        end
+      end
+
+      unless auth_rows.empty?
+        output << render_section('Authentication', 'Details', auth_rows)
+      end
+
+      # ====== Features Section ======
+      feature_rows = []
+
+      # Plans section
+      if site_config.key?(:plans)
+        plans_config = site_config[:plans]
+        if is_feature_disabled?(plans_config)
+          feature_rows << ['Plans', 'disabled']
+        else
+          begin
+            feature_rows << ['Plans', OT::Plan.plans.keys.join(', ')]
+          rescue => e
+            feature_rows << ['Plans', "Error: #{e.message}"]
+          end
+        end
+      end
+
+      # Domains and regions
+      [:domains, :regions].each do |key|
+        if site_config.key?(key)
+          config = site_config[key]
+          if is_feature_disabled?(config)
+            feature_rows << [key.to_s.capitalize, 'disabled']
+          elsif !config.empty?
+            feature_rows << [key.to_s.capitalize, format_config_value(config)]
+          end
+        end
+      end
+
+      unless feature_rows.empty?
+        output << render_section('Features', 'Configuration', feature_rows)
+      end
+
+      # ====== Email Configuration Section ======
+      if email_config && !email_config.empty?
+        begin
+          mail_rows = []
+          if is_feature_disabled?(email_config)
+            mail_rows << ['Status', 'disabled']
+          else
+            mail_rows = [
+              ['Mailer', @emailer],
+              ['Mode', email_config[:mode]],
+              ['From', "'#{email_config[:fromname]} <#{email_config[:from]}>'"],
+              ['Host', "#{email_config[:host]}:#{email_config[:port]}"],
+              ['Region', email_config[:region]],
+              ['TLS', email_config[:tls]],
+              ['Auth', email_config[:auth]]
+            ].reject { |row| row[1].nil? || row[1].to_s.empty? }
+          end
+
+          if !mail_rows.empty?
+            output << render_section('Mail Config', 'Value', mail_rows)
+          end
+        rescue => e
+          output << "Error rendering mail table: #{e.message}"
+          output << ""
+        end
+      end
+
+      # ====== Customization Section ======
+      customization_rows = []
+      secret_options = OT.conf.dig(:site, :secret_options)
+
+      if secret_options
+        # Format default TTL
+        if secret_options[:default_ttl]
+          default_ttl = format_duration(secret_options[:default_ttl].to_i)
+          customization_rows << ['Default TTL', default_ttl]
+        end
+
+        # Format TTL options
+        if secret_options[:ttl_options]
+          ttl_options = secret_options[:ttl_options].map { |seconds| format_duration(seconds) }.join(', ')
+          customization_rows << ['TTL Options', ttl_options]
+        end
+      end
+
+      unless customization_rows.empty?
+        output << render_section('Customization', 'Configuration', customization_rows)
+      end
+
+      # ====== Development and Experimental Settings Section ======
+      dev_rows = []
+
+      [:development, :experimental].each do |key|
+        if config_value = OT.conf.fetch(key, false)
+          if is_feature_disabled?(config_value)
+            dev_rows << [key.to_s.capitalize, 'disabled']
+          else
+            dev_rows << [key.to_s.capitalize, format_config_value(config_value)]
+          end
+        end
+      end
+
+      unless dev_rows.empty?
+        output << render_section('Development', 'Settings', dev_rows)
+      end
+
+      # Footer
+      output << "#{'-' * 75}"
+
+      # Output everything with a single OT.li call
+      OT.li output.join("\n")
+    end
+
+    private
+
+    # Helper method to check if a feature is disabled
+    def is_feature_disabled?(config)
+      config.is_a?(Hash) && config.key?(:enabled) && !config[:enabled]
+    end
+
+    # Helper method to format config values with special handling for hashes and arrays
+    def format_config_value(config)
+      if config.is_a?(Hash)
+        config.map do |k, v|
+          value_str = (v.is_a?(Hash) || v.is_a?(Array)) ? v.to_json : v.to_s
+          "#{k}=#{value_str}"
+        end.join(', ')
+      else
+        config.to_s
+      end
+    end
+
+    # Helper method to convert seconds to human-readable duration format
+    def format_duration(seconds)
+      seconds = seconds.to_i
+
+      case seconds
+      when 0...60
+        "#{seconds}s"
+      when 60...3600
+        minutes = seconds / 60
+        minutes == 1 ? "1m" : "#{minutes}m"
+      when 3600...86400
+        hours = seconds / 3600
+        hours == 1 ? "1h" : "#{hours}h"
+      when 86400...604800
+        days = seconds / 86400
+        days == 1 ? "1d" : "#{days}d"
+      when 604800...2592000
+        weeks = seconds / 604800
+        weeks == 1 ? "1w" : "#{weeks}w"
+      else
+        # For very large values, use days
+        days = seconds / 86400
+        "#{days}d"
+      end
+    end
+
+    # Helper method to render a section as a table
+    def render_section(header1, header2, rows)
+      table = TTY::Table.new(
+        header: [header1, header2],
+        rows: rows
+      )
+
+      rendered = table.render(:unicode,
+        padding: [0, 1],
+        multiline: true,
+        column_widths: [15, 79]
+      )
+
+      # Return rendered table with an extra newline
+      rendered + "\n"
+    end
+
+  end
+end

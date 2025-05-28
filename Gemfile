@@ -38,6 +38,7 @@ gem 'gibbler'
 gem 'otto', '~> 1.1.0.pre.alpha4'
 gem 'storable'
 gem 'sysinfo'
+gem 'tty-table', '~> 0.12.0'
 gem 'uri-redis', '~> 1.3.0'
 
 gem 'redis', '~> 5.4.0'
