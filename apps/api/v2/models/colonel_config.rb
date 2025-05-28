@@ -114,7 +114,15 @@ module V2
     # @return [Boolean] true if the customer is the owner, false otherwise
     def owner?(cust)
       matching_class = cust.is_a?(V2::Customer)
-      (matching_class ? cust.custid : cust).eql?(custid)
+      (matching_class ? cust.custid : cust).to_s.eql?(owner)
+    end
+
+    def owner
+      custid.to_s
+    end
+
+    def to_s
+      identifier
     end
 
     def generate_id
