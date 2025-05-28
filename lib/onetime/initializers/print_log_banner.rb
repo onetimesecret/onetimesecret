@@ -56,27 +56,21 @@ module Onetime
 
       output << render_section('Component', 'Value', system_rows)
 
-      # ====== Authentication Section ======
-      auth_rows = []
+      # ====== Development and Experimental Settings Section ======
+      dev_rows = []
 
-      if colonels.empty?
-        auth_rows << ['Colonels', 'No colonels configured ⚠️']
-      else
-        auth_rows << ['Colonels', colonels.join(', ')]
-      end
-
-      if site_config.key?(:authentication)
-        auth_config = site_config[:authentication]
-        if is_feature_disabled?(auth_config)
-          auth_rows << ['Auth Settings', 'disabled']
-        else
-          auth_settings = auth_config.map { |k,v| "#{k}=#{v}" }.join(', ')
-          auth_rows << ['Auth Settings', auth_settings]
+      [:development, :experimental].each do |key|
+        if config_value = OT.conf.fetch(key, false)
+          if is_feature_disabled?(config_value)
+            dev_rows << [key.to_s.capitalize, 'disabled']
+          else
+            dev_rows << [key.to_s.capitalize, format_config_value(config_value)]
+          end
         end
       end
 
-      unless auth_rows.empty?
-        output << render_section('Authentication', 'Details', auth_rows)
+      unless dev_rows.empty?
+        output << render_section('Development', 'Settings', dev_rows)
       end
 
       # ====== Features Section ======
@@ -139,6 +133,29 @@ module Onetime
         end
       end
 
+      # ====== Authentication Section ======
+      auth_rows = []
+
+      if colonels.empty?
+        auth_rows << ['Colonels', 'No colonels configured ⚠️']
+      else
+        auth_rows << ['Colonels', colonels.join(', ')]
+      end
+
+      if site_config.key?(:authentication)
+        auth_config = site_config[:authentication]
+        if is_feature_disabled?(auth_config)
+          auth_rows << ['Auth Settings', 'disabled']
+        else
+          auth_settings = auth_config.map { |k,v| "#{k}=#{v}" }.join(', ')
+          auth_rows << ['Auth Settings', auth_settings]
+        end
+      end
+
+      unless auth_rows.empty?
+        output << render_section('Authentication', 'Details', auth_rows)
+      end
+
       # ====== Customization Section ======
       customization_rows = []
       secret_options = OT.conf.dig(:site, :secret_options)
@@ -159,23 +176,6 @@ module Onetime
 
       unless customization_rows.empty?
         output << render_section('Customization', 'Configuration', customization_rows)
-      end
-
-      # ====== Development and Experimental Settings Section ======
-      dev_rows = []
-
-      [:development, :experimental].each do |key|
-        if config_value = OT.conf.fetch(key, false)
-          if is_feature_disabled?(config_value)
-            dev_rows << [key.to_s.capitalize, 'disabled']
-          else
-            dev_rows << [key.to_s.capitalize, format_config_value(config_value)]
-          end
-        end
-      end
-
-      unless dev_rows.empty?
-        output << render_section('Development', 'Settings', dev_rows)
       end
 
       # Footer
