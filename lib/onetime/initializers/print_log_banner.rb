@@ -176,23 +176,32 @@ module Onetime
       end
 
       # Interface configuration
-      [:ui, :api].each do |key|
-        next unless site_config.key?(key)
-        config = site_config[key]
-        if is_feature_disabled?(config)
-          customization_rows << [key.to_s.upcase, 'disabled']
-        elsif !config.empty?
-          customization_rows << [key.to_s.upcase, format_config_value(config)]
-        end
-      end
-
-      # Check for a combined interface config
       if site_config.key?(:interface)
         interface_config = site_config[:interface]
         if is_feature_disabled?(interface_config)
           customization_rows << ['Interface', 'disabled']
-        elsif !interface_config.empty?
-          customization_rows << ['Interface', format_config_value(interface_config)]
+        elsif interface_config.is_a?(Hash)
+          # Handle nested ui and api configs under interface
+          [:ui, :api].each do |key|
+            next unless interface_config.key?(key)
+            sub_config = interface_config[key]
+            if is_feature_disabled?(sub_config)
+              customization_rows << ["Interface > #{key.to_s.upcase}", 'disabled']
+            elsif !sub_config.nil? && (sub_config.is_a?(Hash) ? !sub_config.empty? : !sub_config.to_s.empty?)
+              customization_rows << ["Interface > #{key.to_s.upcase}", format_config_value(sub_config)]
+            end
+          end
+        end
+      else
+        # Fallback: check for standalone ui and api configs
+        [:ui, :api].each do |key|
+          next unless site_config.key?(key)
+          config = site_config[key]
+          if is_feature_disabled?(config)
+            customization_rows << [key.to_s.upcase, 'disabled']
+          elsif !config.empty?
+            customization_rows << [key.to_s.upcase, format_config_value(config)]
+          end
         end
       end
 
