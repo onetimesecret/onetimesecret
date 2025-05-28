@@ -42,6 +42,17 @@ RSpec.describe "Onetime global state after boot" do
     allow(Familia).to receive(:uri=).and_return(true)
     allow(Familia).to receive(:redis).and_return(redis_double)
     allow(redis_double).to receive(:get).with('global_banner').and_return(nil)
+    allow(redis_double).to receive(:scan_each).and_return([])
+
+    # Mock V2 model Redis connections and methods used in detect_first_boot
+    allow(V2::Metadata).to receive(:redis).and_return(redis_double)
+    allow(V2::Customer).to receive(:values).and_return(double('Values', element_count: 0))
+    allow(V2::Session).to receive(:values).and_return(double('Values', element_count: 0))
+
+    # Mock colonel config setup methods
+    allow(V2::ColonelConfig).to receive(:current).and_raise(OT::RecordNotFound.new("No config found"))
+    allow(V2::ColonelConfig).to receive(:extract_colonel_config).and_return({})
+    allow(V2::ColonelConfig).to receive(:create).and_return(double('ColonelConfig', rediskey: 'test:config'))
 
     # Other common mocks
     allow(Onetime).to receive(:connect_databases).and_return(true)

@@ -43,8 +43,23 @@ RSpec.describe "Onetime boot configuration process" do
     allow(redis_double).to receive(:ping).and_return("PONG")
     allow(redis_double).to receive(:get).and_return(nil)
     allow(redis_double).to receive(:info).and_return({"redis_version" => "6.0.0"})
+    allow(redis_double).to receive(:scan_each).and_return([]) # Add this line
     allow(Familia).to receive(:uri).and_return(double('URI', serverid: 'localhost:6379'))
     allow(Familia).to receive(:redis).and_return(redis_double)
+
+    # Mock V2 model Redis connections used in detect_first_boot
+    allow(V2::Metadata).to receive(:redis).and_return(redis_double)
+    allow(V2::Customer).to receive(:values).and_return(double('Values', element_count: 0))
+    allow(V2::Session).to receive(:values).and_return(double('Values', element_count: 0))
+
+    allow(V2::RateLimit).to receive(:register_events)
+    allow(OT::Plan).to receive(:load_plans!)
+
+    # Mock colonel config setup methods
+    allow(V2::ColonelConfig).to receive(:current).and_raise(OT::RecordNotFound.new("No config found"))
+    allow(V2::ColonelConfig).to receive(:extract_colonel_config).and_return({})
+    allow(V2::ColonelConfig).to receive(:create).and_return(double('ColonelConfig', rediskey: 'test:config'))
+
     # TODO: Make truemail gets reset too (Truemail.configuration)
 
     # Our Familia models only register themselves once -- at start time. This
