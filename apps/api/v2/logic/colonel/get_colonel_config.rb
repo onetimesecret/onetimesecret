@@ -40,14 +40,22 @@ module V2
           nil
         end
 
-        # Build configuration using existing config merge functionality
+        # Build configuration by directly merging colonel overrides with base sections
         def build_merged_configuration
           base_sections = ColonelConfig.extract_colonel_config(OT.conf)
+          OT.ld "[GetColonelConfig#build_merged_configuration] Base sections: #{base_sections.keys}"
 
           return base_sections unless current_record
 
-          colonel_overrides = ColonelConfig.construct_onetime_config(current_record)
-          Onetime::Config.deep_merge(base_sections, colonel_overrides)
+          # Get the colonel overrides directly (with proper deserialization)
+          colonel_overrides = current_record.filtered
+          OT.ld "[GetColonelConfig#build_merged_configuration] Colonel overrides (raw): #{colonel_overrides}"
+
+          # Merge colonel overrides directly into base sections
+          merged = Onetime::Config.deep_merge(base_sections, colonel_overrides)
+          OT.ld "[GetColonelConfig#build_merged_configuration] Final merged result: #{merged}"
+
+          merged
         end
       end
     end

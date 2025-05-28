@@ -15,10 +15,12 @@ module V2
         secret_options: [:site, :secret_options],
         mail: [:mail],
         limits: [:limits],
-        experimental: [:experimental],
         diagnostics: [:diagnostics],
       }
     end
+
+    # Fields that need JSON serialization/deserialization
+    JSON_FIELDS = [:interface, :secret_options, :mail, :limits, :diagnostics].freeze
 
     class << self
       # Extracts the sections that colonel config manages from the full config
@@ -28,11 +30,13 @@ module V2
         end
       end
 
-      # Returns a hash of only the fields in FIELD_MAPPINGS
+      # Returns a hash of only the fields in FIELD_MAPPINGS, with proper deserialization
       def filter_colonel_config(config)
         config_data = config.is_a?(Hash) ? config : config.to_h
-        FIELD_MAPPINGS.transform_values do |value|
-          config_data.fetch(value, nil)
+        FIELD_MAPPINGS.keys.each_with_object({}) do |field, result|
+          value = config_data[field]
+          # Only include non-empty values
+          result[field] = value if value && !value.empty?
         end
       end
 
@@ -46,7 +50,8 @@ module V2
 
         FIELD_MAPPINGS.each do |field, path|
           value = colonel_config_hash[field]
-          next unless value
+          # Skip empty/nil values to allow fallback to base config
+          next unless value && !value.empty?
 
           # Build nested hash structure based on path
           current = result
@@ -82,10 +87,6 @@ module V2
     field :updated
     field :_original_value
 
-    hashkey :brand
-    hashkey :logo # image fields need a corresponding v2 route and logic class
-    hashkey :icon
-
     @txt_validation_prefix = '_onetime-challenge'
 
     @safe_dump_fields = [
@@ -94,7 +95,6 @@ module V2
       :secret_options,
       :mail,
       :limits,
-      :experimental,
       :diagnostics,
       :custid,
       :comment,
@@ -106,6 +106,44 @@ module V2
       @configid ||= self.generate_id
 
       OT.ld "[ColonelConfig.init] #{configid} #{rediskey}"
+    end
+
+    # Serialize complex data to JSON when setting fields
+    def serialize_field_value(value)
+      if value.is_a?(Hash) || value.is_a?(Array)
+        JSON.generate(value)
+      else
+        value
+      end
+    end
+
+    # Deserialize JSON strings back to Ruby objects when getting fields
+    def deserialize_field_value(field_name, raw_value)
+      return nil if raw_value.nil? || raw_value.empty?
+
+      if JSON_FIELDS.include?(field_name.to_sym) && raw_value.is_a?(String)
+        begin
+          JSON.parse(raw_value)
+        rescue JSON::ParserError
+          raw_value
+        end
+      else
+        raw_value
+      end
+    end
+
+    # Override field setters to handle JSON serialization
+    JSON_FIELDS.each do |field|
+      define_method("#{field}=") do |value|
+        serialized_value = serialize_field_value(value)
+        instance_variable_set("@#{field}", serialized_value)
+      end
+
+      # Override field getters to handle JSON deserialization
+      define_method(field) do
+        raw_value = instance_variable_get("@#{field}")
+        deserialize_field_value(field, raw_value)
+      end
     end
 
     # This method overrides the default save behavior to enforce saving
@@ -143,11 +181,29 @@ module V2
     end
 
     def filtered
-      self.class.filter_colonel_config(self)
+      # Use the deserialized getter methods
+      JSON_FIELDS.each_with_object({}) do |field, result|
+        value = send(field) # This now uses the overridden getter
+        result[field] = value if value && !value.empty?
+      end
     end
 
     def to_onetime_config
-      self.class.construct_onetime_config(self)
+      self.class.construct_onetime_config(filtered)
+    end
+
+    # Override to_h to use deserialized values
+    def to_h
+      JSON_FIELDS.each_with_object({}) do |field, hash|
+        value = send(field) # Use the getter method which handles deserialization
+        hash[field] = value if value
+      end.merge(
+        configid: configid,
+        custid: custid,
+        comment: comment,
+        created: created,
+        updated: updated
+      ).compact
     end
 
     module ClassMethods

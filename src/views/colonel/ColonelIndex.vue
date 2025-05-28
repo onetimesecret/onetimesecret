@@ -45,14 +45,14 @@
     saveSuccess,
     isSaving,
     isLoading,
-    hasValidationErrors,
+    //hasValidationErrors,
     sectionsWithErrors,
     currentSectionHasError,
     modifiedSections,
     currentSectionCanSave,
     validateJson,
     initializeSectionEditors,
-    saveConfig,
+    //saveConfig,
     saveCurrentSection,
     markSectionModified,
     switchToSection,
@@ -107,7 +107,7 @@
   });
 
   // Handle save actions
-  const handleSaveAll = () => saveConfig(configSections);
+  //const handleSaveAll = () => saveConfig(configSections);
   const handleSaveSection = () => saveCurrentSection(configSections);
 
   // Handle section switching
@@ -278,12 +278,12 @@
         </button>
 
         <!-- Save all button -->
-        <button
+        <!-- <button
           @click="handleSaveAll"
           class="rounded-md bg-brand-500 px-4 py-2 text-white hover:bg-brand-600 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2"
           :disabled="isSaving || hasValidationErrors">
           {{ isSaving ? t('web.LABELS.saving') : t('web.colonel.saveAll') }}
-        </button>
+        </button> -->
       </div>
     </div>
   </div>

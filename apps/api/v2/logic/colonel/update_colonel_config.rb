@@ -23,7 +23,7 @@ module V2
           @mail = config[:mail]
           @limits = config[:limits]
           @diagnostics = config[:diagnostics]
-          # require 'pry-byebug'; binding.pry;
+
           # Log which configuration sections were extracted
           config_sections = {
             interface: interface,
@@ -56,7 +56,7 @@ module V2
         end
 
         def process
-          OT.ld "[UpdateColonelConfig#process] Updating configuration"
+          OT.ld "[UpdateColonelConfig#process] Persisting colonel configuration"
 
           OT.li "[UpdateColonelConfig#process] Interface: #{interface.inspect}" if interface
           OT.li "[UpdateColonelConfig#process] Secret Options: #{secret_options.inspect}" if secret_options
@@ -64,35 +64,49 @@ module V2
           OT.li "[UpdateColonelConfig#process] Limits: #{limits.inspect}" if limits
           OT.li "[UpdateColonelConfig#process] Diagnostics: #{diagnostics.inspect}" if diagnostics
 
+          begin
+            # Build the update fields - only include non-nil values
+            update_fields = build_update_fields
 
-          # Only include sections that were provided in the request
-          @updated_fields = {}
-          @updated_fields[:interface] = interface if interface
-          @updated_fields[:secret_options] = secret_options if secret_options
-          @updated_fields[:mail] = mail if mail
-          @updated_fields[:limits] = limits if limits
-          @updated_fields[:diagnostics] = diagnostics if diagnostics
+            # Create a new ColonelConfig record with the updated values
+            @record = ColonelConfig.create(**update_fields)
 
-          current_config = ColonelConfig.current || ColonelConfig.new
-          filtered_fields = current_config.filtered
-          merged_config = OT::Config.deep_merge(filtered_fields, @updated_fields)
+            @greenlighted = true
+            OT.ld "[UpdateColonelConfig#process] Colonel configuration persisted successfully"
 
-          # Create a new ColonelConfig object with the updated values
-          @record = ColonelConfig.create(**merged_config)
-
-          @greenlighted = true
+          rescue => e
+            OT.le "[UpdateColonelConfig#process] Failed to persist colonel configuration: #{e.message}"
+            raise_form_error "Failed to update configuration: #{e.message}"
+          end
         end
 
         def success_data
-          OT.ld "[UpdateColonelConfig#success_data] Returning updated configuration"
+          OT.ld "[UpdateColonelConfig#success_data] Returning updated colonel configuration"
 
-          # Create a response that matches the GetColonelConfig format
-          response = {
-            record: @record,
-            details: @updated_fields,
+          # Return the record and the sections that were provided
+          {
+            record: @record&.safe_dump || {},
+            details: build_update_fields
           }
+        end
 
-          response
+        private
+
+        def build_update_fields
+          fields = {}
+          # Only include sections that were provided and are not nil/empty
+          fields[:interface] = interface if interface && !interface.empty?
+          fields[:secret_options] = secret_options if secret_options && !secret_options.empty?
+          fields[:mail] = mail if mail && !mail.empty?
+          fields[:limits] = limits if limits && !limits.empty?
+          fields[:diagnostics] = diagnostics if diagnostics && !diagnostics.empty?
+
+          # Add metadata
+          fields[:custid] = @cust.custid if @cust
+          fields[:created] = Time.now.to_i
+          fields[:updated] = Time.now.to_i
+
+          fields
         end
 
         class << self
