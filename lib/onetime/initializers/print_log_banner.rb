@@ -1,6 +1,7 @@
 # lib/onetime/initializers/print_log_banner.rb
 
 require 'tty-table'
+require 'json'
 
 module Onetime
   module Initializers
@@ -11,10 +12,14 @@ module Onetime
       redis_info = Familia.redis.info
       colonels = site_config.dig(:authentication, :colonels) || []
 
-      # Header banner
-      OT.li "---  ONETIME #{OT.mode} v#{OT::VERSION.inspect}  #{'---' * 3}"
+      # Create a buffer to collect all output
+      output = []
 
-      # Prepare system information table
+      # Header banner
+      output << "---  ONETIME #{OT.mode} v#{OT::VERSION.inspect}  #{'---' * 3}"
+      output << ""
+
+      # SECTION 1: Core System Information
       system_rows = [
         ['System', "#{@sysinfo.platform} (#{RUBY_ENGINE} #{RUBY_VERSION} in #{OT.env})"],
         ['Config', OT::Config.path],
@@ -29,19 +34,19 @@ module Onetime
         system_rows << ['Locales', @locales.keys.join(', ')]
       end
 
-      # Create system information table
       system_table = TTY::Table.new(
         header: ['Component', 'Value'],
         rows: system_rows,
       )
 
-      OT.li "", system_table.render(:unicode,
+      output << system_table.render(:unicode,
         padding: [0, 1],
         multiline: true,
         column_widths: [15, 79]
       )
+      output << ""
 
-      # Authentication and permissions table
+      # SECTION 2: Authentication Settings
       auth_rows = []
 
       if colonels.empty?
@@ -61,99 +66,132 @@ module Onetime
           rows: auth_rows
         )
 
-        OT.li "", auth_table.render(:unicode,
+        output << auth_table.render(:unicode,
+          padding: [0, 1],
+          multiline: true,
+          column_widths: [15, 79],
+        )
+        output << ""
+      end
+
+      # SECTION 3: Features Configuration
+      feature_rows = []
+
+      # Plans section
+      if site_config.dig(:plans, :enabled)
+        begin
+          feature_rows << ['Plans', OT::Plan.plans.keys.join(', ')]
+        rescue => e
+          feature_rows << ['Plans', "Error: #{e.message}"]
+        end
+      end
+
+      # Domains and regions
+      [:domains, :regions].each do |key|
+        if site_config.key?(key) && !site_config[key].empty?
+          # Format as JSON for better readability with nested structures
+          formatted_value = site_config[key].is_a?(Hash) ?
+            site_config[key].map { |k,v| "#{k}=#{v.is_a?(Hash) || v.is_a?(Array) ? v.to_json : v}" }.join(', ') :
+            site_config[key].to_s
+          feature_rows << [key.to_s.capitalize, formatted_value]
+        end
+      end
+
+      unless feature_rows.empty?
+        feature_table = TTY::Table.new(
+          header: ['Features', 'Configuration'],
+          rows: feature_rows
+        )
+
+        output << feature_table.render(:unicode,
           padding: [0, 1],
           multiline: true,
           column_widths: [15, 79]
         )
+        output << ""
       end
 
-      # Plans table (if enabled)
-      if site_config.dig(:plans, :enabled)
-        begin
-          plans_table = TTY::Table.new(
-            header: ['Plans', 'Available'],
-            rows: [['Active Plans', OT::Plan.plans.keys.join(', ')]]
-          )
-
-          OT.li "", plans_table.render(:unicode,
-            padding: [0, 1],
-            multiline: true,
-            column_widths: [15, 79]
-          )
-        rescue => e
-          OT.le "Error rendering plans table: #{e.message}"
-        end
-      end
-
-      # Email configuration table
+      # SECTION 4: Email Configuration
       if email_config && !email_config.empty?
         begin
           mail_rows = [
+            ['Mailer', @emailer],
             ['Mode', email_config[:mode]],
             ['From', "'#{email_config[:fromname]} <#{email_config[:from]}>'"],
             ['Host', "#{email_config[:host]}:#{email_config[:port]}"],
             ['Region', email_config[:region]],
-            ['User', email_config[:user]],
             ['TLS', email_config[:tls]],
-            ['Auth', email_config[:auth]] # this is an smtp feature and not credentials
+            ['Auth', email_config[:auth]]
           ].reject { |row| row[1].nil? || row[1].to_s.empty? }
 
           if !mail_rows.empty?
             mail_table = TTY::Table.new(
               header: ['Mail Config', 'Value'],
-              rows: [['Mailer', @emailer]] + mail_rows
+              rows: mail_rows
             )
 
-            OT.li "", mail_table.render(:unicode,
+            output << mail_table.render(:unicode,
               padding: [0, 1],
               multiline: true,
               column_widths: [15, 79]
             )
+            output << ""
           end
         rescue => e
-          OT.le "Error rendering mail table: #{e.message}"
+          output << "Error rendering mail table: #{e.message}"
+          output << ""
         end
       end
 
-      # Configuration sections table (domains, regions)
-      config_rows = []
-      [:domains, :regions].each do |key|
-        if site_config.key?(key)
-          config_value = site_config[key].map { |k,v| "#{k}=#{v}" }.join(', ')
-          config_rows << [key.to_s.capitalize, config_value]
-        end
-      end
+      # SECTION 5: Development and Experimental Settings
+      dev_rows = []
 
-      # Optional top-level configuration sections
       [:development, :experimental].each do |key|
         if config_value = OT.conf.fetch(key, false)
-          formatted_value = config_value.map { |k,v| "#{k}=#{v}" }.join(', ')
-          config_rows << [key.to_s.capitalize, formatted_value]
+          # Format as JSON for better readability of nested structures
+          formatted_value = config_value.map do |k, v|
+            value_str = (v.is_a?(Hash) || v.is_a?(Array)) ? v.to_json : v.to_s
+            "#{k}=#{value_str}"
+          end.join(', ')
+          dev_rows << [key.to_s.capitalize, formatted_value]
         end
       end
 
-      # Secret options
-      secret_options = OT.conf.dig(:site, :secret_options)
-      if secret_options
-        config_rows << ['Secret Options', secret_options.to_s]
-      end
-
-      unless config_rows.empty?
-        config_table = TTY::Table.new(
-          header: ['Configuration', 'Settings'],
-          rows: config_rows
+      unless dev_rows.empty?
+        dev_table = TTY::Table.new(
+          header: ['Development', 'Settings'],
+          rows: dev_rows
         )
 
-        OT.li "", config_table.render(:unicode,
+        output << dev_table.render(:unicode,
           padding: [0, 1],
           multiline: true,
           column_widths: [15, 79]
         )
+        output << ""
+      end
+
+      # SECTION 6: Secret Options (separate due to its importance)
+      secret_options = OT.conf.dig(:site, :secret_options)
+      if secret_options
+        secret_table = TTY::Table.new(
+          header: ['Security', 'Configuration'],
+          rows: [['Secret Options', secret_options.to_json]]
+        )
+
+        output << secret_table.render(:unicode,
+          padding: [0, 1],
+          multiline: true,
+          column_widths: [15, 79]
+        )
+        output << ""
       end
 
       # Footer
-      OT.li "#{'-' * 75}"
+      output << "#{'-' * 75}"
+
+      # Output everything with a single OT.li call
+      OT.li output.join("\n")
     end
 
   end
