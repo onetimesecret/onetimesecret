@@ -36,8 +36,8 @@ importers:
         specifier: 13.1.0
         version: 13.1.0(axios@1.9.0)(focus-trap@7.6.4)(vue@3.5.13(typescript@5.8.3))
       altcha:
-        specifier: 1.4.3
-        version: 1.4.3
+        specifier: 1.4.4
+        version: 1.4.4
       axios:
         specifier: 1.9.0
         version: 1.9.0
@@ -1496,8 +1496,8 @@ packages:
   alien-signals@1.0.13:
     resolution: {integrity: sha512-OGj9yyTnJEttvzhTUWuscOvtqxq5vrhF7vL9oS0xJ2mK0ItPYP1/y+vCFebfxoEyAz0++1AIwJ5CMr+Fk3nDmg==}
 
-  altcha@1.4.3:
-    resolution: {integrity: sha512-gaTHhxhVlm3x+r1GYEDcCj/us++6jPCyfBnEfjROyw5BzgOkXZBJjWeZE5PwlEQXYRgHf9/p8mJY2Uhwr3vb3A==}
+  altcha@1.4.4:
+    resolution: {integrity: sha512-4ZoRt4xOz4+NnOcnMvW9gEDjGUC6d9k+4xf6RFty6FWPbyNlYE/2BPJaOhP6WS/PliYkXnPjer1Yk/U47VMiqQ==}
 
   ansi-regex@5.0.1:
     resolution: {integrity: sha512-quJQXlTSUGL2LH9SUXo8VwsY4soanhgo6LNSm84E1LBcE8s3O0wpdiRzyR9z/ZZJMlMWv37qOOb9pdJlMUEKFQ==}
@@ -5177,7 +5177,7 @@ snapshots:
 
   alien-signals@1.0.13: {}
 
-  altcha@1.4.3:
+  altcha@1.4.4:
     dependencies:
       '@altcha/crypto': 0.0.1
     optionalDependencies:
