@@ -99,7 +99,7 @@ ARG CODE_ROOT=/app
 ARG ONETIME_HOME=/opt/onetime
 ARG VERSION
 
-FROM docker.io/library/ruby:3.4-slim-bookworm@sha256:5d7149ee7eda2420d1b2bc3af78798de9eac3098e910c44a3ddd93da2a4130ca AS base
+FROM docker.io/library/ruby:3.4-slim-bookworm@sha256:93664239ae7e485147c2fa83397fdc24bf7b7f1e15c3ad9d48591828a50a50e7 AS base
 
 # Limit to packages needed for the system itself
 ARG PACKAGES="build-essential rsync netcat-openbsd libffi-dev libyaml-dev git"
@@ -112,8 +112,8 @@ RUN set -eux \
   && rm -rf /var/lib/apt/lists/*
 
 # Copy Node.js and npm from the official image
-COPY --from=docker.io/library/node:22@sha256:74066d050011dd18c56390523cb255b38bce09b332221a4ec15ab0d8e1ac61fe /usr/local/bin/node /usr/local/bin/
-COPY --from=docker.io/library/node:22@sha256:74066d050011dd18c56390523cb255b38bce09b332221a4ec15ab0d8e1ac61fe /usr/local/lib/node_modules /usr/local/lib/node_modules
+COPY --from=docker.io/library/node:22@sha256:0b5b940c21ab03353de9042f9166c75bcfc53c4cd0508c7fd88576646adbf875 /usr/local/bin/node /usr/local/bin/
+COPY --from=docker.io/library/node:22@sha256:0b5b940c21ab03353de9042f9166c75bcfc53c4cd0508c7fd88576646adbf875 /usr/local/lib/node_modules /usr/local/lib/node_modules
 
 # Create necessary symlinks
 RUN ln -s /usr/local/lib/node_modules/npm/bin/npm-cli.js /usr/local/bin/npm \

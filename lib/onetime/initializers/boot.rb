@@ -125,69 +125,6 @@ module Onetime
       raise e unless mode?(:cli)
     end
 
-    # Prints a banner with information about the current environment
-    # and configuration.
-    def print_log_banner
-      site_config = OT.conf.fetch(:site) # if :site is missing we got real problems
-      email_config = OT.conf.fetch(:emailer, {})
-      redis_info = Familia.redis.info
-      colonels = site_config.dig(:authentication, :colonels) || []
-
-      OT.li "---  ONETIME #{OT.mode} v#{OT::VERSION.inspect}  #{'---' * 3}"
-      OT.li "system: #{@sysinfo.platform} (#{RUBY_ENGINE} #{RUBY_VERSION} in #{OT.env})"
-      OT.li "config: #{OT::Config.path}"
-      OT.li "redis: #{redis_info['redis_version']} (#{Familia.uri.serverid})"
-      OT.li "familia: v#{Familia::VERSION}"
-      OT.li "interface: #{site_config[:interface]}"
-      OT.li "i18n: #{OT.i18n_enabled}"
-      OT.li "locales: #{@locales.keys.join(', ')}" if OT.i18n_enabled
-      OT.li "diagnotics: #{OT.d9s_enabled}"
-
-      if colonels.empty?
-        OT.lw "colonels: No colonels configured"
-      else
-        OT.li "colonels: #{colonels.join(', ')}"
-      end
-
-      if site_config.dig(:plans, :enabled)
-        OT.li "plans: #{OT::Plan.plans.keys}"
-      end
-
-      if site_config.key?(:authentication)
-        OT.li "auth: #{site_config[:authentication].map { |k,v| "#{k}=#{v}" }.join(', ')}"
-      end
-
-      if email_config
-        mail_settings = {
-          mode: email_config[:mode],
-          from: "'#{email_config[:fromname]} <#{email_config[:from]}>'",
-          host: "#{email_config[:host]}:#{email_config[:port]}",
-          region: email_config[:region],
-          user: email_config[:user],
-          tls: email_config[:tls],
-          auth: email_config[:auth], # this is an smtp feature and not credentials
-        }.map { |k,v| "#{k}=#{v}" }.join(', ')
-        OT.li "mailer: #{@emailer}"
-        OT.li "mail: #{mail_settings}"
-      end
-
-      # Log configuration sections that contain mapping data
-      [:domains, :regions].each do |key|
-        if site_config.key?(key)
-          OT.li "#{key}: #{site_config[key].map { |k,v| "#{k}=#{v}" }.join(', ')}"
-        end
-      end
-
-      # Log optional top-level configuration sections
-      [:development, :experimental].each do |key|
-        if config_value = OT.conf.fetch(key, false)
-          OT.li "#{key}: #{config_value.map { |k,v| "#{k}=#{v}" }.join(', ')}"
-        end
-      end
-
-      OT.li "secret options: #{OT.conf.dig(:site, :secret_options)}"
-    end
-
     # Replaces the global configuration instance with the provided data.
     def replace_config!(other)
       # TODO: Validate the new configuration data before replacing it

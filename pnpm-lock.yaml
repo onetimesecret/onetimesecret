@@ -42,8 +42,8 @@ importers:
         specifier: 13.1.0
         version: 13.1.0(axios@1.9.0)(focus-trap@7.6.4)(vue@3.5.13(typescript@5.8.3))
       altcha:
-        specifier: 1.4.3
-        version: 1.4.3
+        specifier: 1.4.4
+        version: 1.4.4
       axios:
         specifier: 1.9.0
         version: 1.9.0
@@ -130,8 +130,8 @@ importers:
         specifier: 0.5.16
         version: 0.5.16(tailwindcss@3.4.17(ts-node@10.9.2(@types/node@22.15.21)(typescript@5.8.3)))
       '@tsconfig/node22':
-        specifier: 22.0.1
-        version: 22.0.1
+        specifier: 22.0.2
+        version: 22.0.2
       '@types/node':
         specifier: 22.15.21
         version: 22.15.21
@@ -1168,8 +1168,8 @@ packages:
   '@tsconfig/node16@1.0.4':
     resolution: {integrity: sha512-vxhUy4J8lyeyinH7Azl1pdd43GJhZH/tP2weN8TntQblOY+A0XbT8DJk1/oCPuOOyg/Ja757rG0CgHcWC8OfMA==}
 
-  '@tsconfig/node22@22.0.1':
-    resolution: {integrity: sha512-VkgOa3n6jvs1p+r3DiwBqeEwGAwEvnVCg/hIjiANl5IEcqP3G0u5m8cBJspe1t9qjZRlZ7WFgqq5bJrGdgAKMg==}
+  '@tsconfig/node22@22.0.2':
+    resolution: {integrity: sha512-Kmwj4u8sDRDrMYRoN9FDEcXD8UpBSaPQQ24Gz+Gamqfm7xxn+GBR7ge/Z7pK8OXNGyUzbSwJj+TH6B+DS/epyA==}
 
   '@tybys/wasm-util@0.9.0':
     resolution: {integrity: sha512-6+7nlbMVX/PVDCwaIQ8nTOPveOcFLSt8GcXdx8hD0bt39uWxYT88uXzqTd4fTvqta7oeUJqudepapKNt2DYJFw==}
@@ -1553,8 +1553,8 @@ packages:
   alien-signals@1.0.13:
     resolution: {integrity: sha512-OGj9yyTnJEttvzhTUWuscOvtqxq5vrhF7vL9oS0xJ2mK0ItPYP1/y+vCFebfxoEyAz0++1AIwJ5CMr+Fk3nDmg==}
 
-  altcha@1.4.3:
-    resolution: {integrity: sha512-gaTHhxhVlm3x+r1GYEDcCj/us++6jPCyfBnEfjROyw5BzgOkXZBJjWeZE5PwlEQXYRgHf9/p8mJY2Uhwr3vb3A==}
+  altcha@1.4.4:
+    resolution: {integrity: sha512-4ZoRt4xOz4+NnOcnMvW9gEDjGUC6d9k+4xf6RFty6FWPbyNlYE/2BPJaOhP6WS/PliYkXnPjer1Yk/U47VMiqQ==}
 
   ansi-regex@5.0.1:
     resolution: {integrity: sha512-quJQXlTSUGL2LH9SUXo8VwsY4soanhgo6LNSm84E1LBcE8s3O0wpdiRzyR9z/ZZJMlMWv37qOOb9pdJlMUEKFQ==}
@@ -4925,7 +4925,7 @@ snapshots:
 
   '@tsconfig/node16@1.0.4': {}
 
-  '@tsconfig/node22@22.0.1': {}
+  '@tsconfig/node22@22.0.2': {}
 
   '@tybys/wasm-util@0.9.0':
     dependencies:
@@ -5350,7 +5350,7 @@ snapshots:
 
   alien-signals@1.0.13: {}
 
-  altcha@1.4.3:
+  altcha@1.4.4:
     dependencies:
       '@altcha/crypto': 0.0.1
     optionalDependencies:
