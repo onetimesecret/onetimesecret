@@ -4,6 +4,9 @@
 # clear && ONETIME_DEBUG=1 REDIS_URL='redis://127.0.0.1:2121/0' bundle exec try -vf tests/unit/ruby/try/20_models/10_colonel_config_class_methods_try.rb
 # REDIS_URL='redis://127.0.0.1:2121/0' ruby support/clear_redis.rb --all --force
 
+# Testing race condition with sorted sets using low precision now:
+# while true; do pnpm run redis:clean --force && pnpm run test:tryouts tests/unit/ruby/try/20_models/10_colonel_config_class_methods_try.rb || break; done
+
 require 'securerandom'
 require 'fakeredis'
 
