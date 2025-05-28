@@ -81,7 +81,7 @@ module Onetime
 
       # Makes a deep copy of OT.conf, then merges the colonel config data, and
       # replaces OT.config with the merged data.
-      Onetime::Config.apply_config(onetime_config_data)
+      Onetime.apply_config(onetime_config_data)
 
     end
 

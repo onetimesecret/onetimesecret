@@ -393,7 +393,7 @@ module Onetime
     # replaces OT.config with the merged data.
     def apply_config(other)
       new_config = deep_merge(OT.conf, other)
-      OT.conf = new_config
+      OT.replace_config! new_config
     end
 
     private
