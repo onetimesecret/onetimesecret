@@ -1,6 +1,6 @@
 // src/router/public.routes.ts
 
-import AlternateLogos from '@/components/icons/logos/AlternateLogos.vue';
+import AlternateLogos from '@/components/logos/AlternateLogos.vue';
 import DefaultFooter from '@/components/layout/DefaultFooter.vue';
 import DefaultHeader from '@/components/layout/DefaultHeader.vue';
 import DefaultLayout from '@/layouts/DefaultLayout.vue';

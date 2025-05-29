@@ -1,4 +1,4 @@
-<!-- src/components/icons/logos/DefaultLogo.vue -->
+<!-- src/components/logos/DefaultLogo.vue -->
 
 <script setup lang="ts">
   import { computed } from 'vue';

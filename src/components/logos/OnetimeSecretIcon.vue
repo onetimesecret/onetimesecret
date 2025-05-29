@@ -1,4 +1,4 @@
-<!-- src/components/icons/logos/OnetimeSecretIcon.vue -->
+<!-- src/components/logos/OnetimeSecretIcon.vue -->
 
 <script setup lang="ts">
   import { computed } from 'vue';

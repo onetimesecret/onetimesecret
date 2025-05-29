@@ -4,7 +4,7 @@
   import OIcon from '@/components/icons/OIcon.vue';
   import HeaderUserNav from '@/components/layout/HeaderUserNav.vue';
   import SettingsModal from '@/components/modals/SettingsModal.vue';
-  import DefaultLogo from '@/components/icons/logos/DefaultLogo.vue';
+  import DefaultLogo from '@/components/logos/DefaultLogo.vue';
   import { WindowService } from '@/services/window.service';
   import type { LayoutProps } from '@/types/ui/layouts';
   import { computed, ref, watch, type Component } from 'vue';
@@ -64,7 +64,7 @@ import { shallowRef } from 'vue';
     if (newLogoUrl.endsWith('.vue')) {
       try {
         const componentName = newLogoUrl.replace('.vue', '');
-        const module = await import(`@/components/icons/logos/${componentName}.vue`);
+        const module = await import(`@/components/logos/${componentName}.vue`);
         logoComponent.value = module.default;
       } catch (error) {
         console.warn(`Failed to load logo component: ${newLogoUrl}`, error);
@@ -72,7 +72,7 @@ import { shallowRef } from 'vue';
         if (newLogoUrl !== DEFAULT_LOGO) {
           try {
             const defaultComponent = DEFAULT_LOGO.replace('.vue', '');
-            const module = await import(`@/components/icons/logos/${defaultComponent}.vue`);
+            const module = await import(`@/components/logos/${defaultComponent}.vue`);
             logoComponent.value = module.default;
             console.info(`Loaded fallback logo: ${defaultComponent}`);
           } catch (fallbackError) {
