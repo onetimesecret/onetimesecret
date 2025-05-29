@@ -227,14 +227,16 @@ module V2
           end
 
           redis.multi do |multi|
-            # We're using multi here instead of save to ensure atomicity
-            kwargs.each_with_index do |(key, value), index|
-              multi.hset(obj.rediskey, key, value.to_s)
+            # Use the object's field values which are properly serialized
+            kwargs.each do |key, _value|
+              # Get the serialized value from the object's instance variable
+              serialized_value = obj.instance_variable_get("@#{key}")
+              multi.hset(obj.rediskey, key, serialized_value) if serialized_value
             end
             multi.hset(obj.rediskey, :configid, obj.identifier)
             multi.hset(obj.rediskey, :created_at, Time.now.to_i)
             multi.hset(obj.rediskey, :updated_at, Time.now.to_i)
-            add(obj.identifier) # keep track of instances via class_list :values
+            add(obj.identifier, multi) # keep track of instances via class_list :values
           end
         end
 
@@ -243,6 +245,7 @@ module V2
         OT.le "[ColonelConfig.create] Redis error: #{e.message}"
         raise Onetime::Problem, "Unable to create custom domain"
       end
+
 
       # Simply instatiates a new ColonelConfig object and checks if it exists.
       def exists? identifier
