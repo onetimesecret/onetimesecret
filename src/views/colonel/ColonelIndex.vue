@@ -10,9 +10,9 @@
   // Main navigation tabs
   const navTabs = [
     { name: t('web.colonel.dashboard'), href: '/colonel', icon: 'home' },
-    { name: t('web.colonel.activity'), href: '/colonel/activity', icon: 'chart-bar' },
-    { name: t('web.colonel.accounts'), href: '/colonel/accounts', icon: 'users' },
-    { name: t('web.colonel.domains'), href: '/colonel/domains', icon: 'globe-alt' },
+    // { name: t('web.colonel.activity'), href: '/colonel/activity', icon: 'chart-bar' },
+    { name: t('web.colonel.users'), href: '/colonel/users', icon: 'users' },
+    // { name: t('web.colonel.domains'), href: '/colonel/domains', icon: 'globe-alt' },
     { name: t('web.colonel.settings'), href: '/colonel/settings', icon: 'cog-6-tooth' },
   ];
 

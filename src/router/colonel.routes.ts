@@ -25,6 +25,17 @@ const routes: Array<RouteRecordRaw> = [
     props: true,
   },
   {
+    path: '/colonel/users',
+    name: 'ColonelUsers',
+    components: {
+      default: () => import('@/views/colonel/ColonelUsers.vue'),
+      header: DefaultHeader,
+      footer: DefaultFooter,
+    },
+    meta: defaultMeta,
+    props: true,
+  },
+  {
     path: '/colonel/settings',
     name: 'ColonelSettings',
     components: {
