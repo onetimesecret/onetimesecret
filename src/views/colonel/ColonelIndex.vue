@@ -2,19 +2,11 @@
 
 <script setup lang="ts">
   import OIcon from '@/components/icons/OIcon.vue';
+  import ColonelNavigation from '@/components/colonel/ColonelNavigation.vue';
   import { computed } from 'vue';
   import { useI18n } from 'vue-i18n';
 
   const { t } = useI18n();
-
-  // Main navigation tabs
-  const navTabs = [
-    { name: t('web.colonel.dashboard'), href: '/colonel', icon: 'home' },
-    // { name: t('web.colonel.activity'), href: '/colonel/activity', icon: 'chart-bar' },
-    { name: t('web.colonel.users'), href: '/colonel/users', icon: 'users' },
-    // { name: t('web.colonel.domains'), href: '/colonel/domains', icon: 'globe-alt' },
-    { name: t('web.colonel.settings'), href: '/colonel/settings', icon: 'cog-6-tooth' },
-  ];
 
   // Quick stats - these would come from API calls in a real implementation
   const stats = computed(() => [
@@ -84,27 +76,7 @@
 <template>
   <div class="min-h-screen bg-gray-50 dark:bg-gray-900">
     <!-- Header with navigation -->
-    <div class="bg-white shadow-sm dark:bg-gray-800">
-      <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <!-- Main navigation tabs -->
-        <nav class="flex overflow-x-auto">
-          <a
-            v-for="tab in navTabs"
-            :key="tab.href"
-            :href="tab.href"
-            class="mx-1 flex items-center border-b-2 border-transparent px-4 py-4 text-sm font-medium text-gray-700 transition-colors duration-150 first:ml-0 hover:border-brand-500 hover:text-brand-600 focus:border-brand-500 focus:outline-none dark:text-gray-200 dark:hover:border-brand-400 dark:hover:text-brand-400"
-            :class="{
-              'border-brand-500 text-brand-600 dark:text-brand-400': tab.href === '/colonel',
-            }">
-            <OIcon
-              :name="tab.icon"
-              collection="heroicons"
-              class="mr-2 h-5 w-5" />
-            {{ tab.name }}
-          </a>
-        </nav>
-      </div>
-    </div>
+    <ColonelNavigation />
 
     <!-- Main content -->
     <main class="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
