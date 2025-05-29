@@ -8,8 +8,8 @@
   const { t } = useI18n();
 
   const navTabs = [
-    { name: t('Config'), href: '/colonel' },
-    { name: t('Info'), href: '/colonel/info#stats' },
+    { name: t('Customization'), href: '/colonel' },
+    { name: t('Activity'), href: '/colonel/info#stats' },
   ];
 
   const feedbackSections = computed(() => {
