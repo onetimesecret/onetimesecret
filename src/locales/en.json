@@ -396,7 +396,35 @@
       "saveAll": "Save All",
       "unsavedChanges": "Unsaved changes",
       "schemaValidationError": "Schema validation error: {message} ({path})",
-      "unknownValidationError": "Unknown validation error: {error}"
+      "unknownValidationError": "Unknown validation error: {error}",
+      "dashboard": "Dashboard",
+      "activity": "Activity",
+      "accounts": "Accounts",
+      "domains": "Domains",
+      "settings": "Settings",
+      "welcome": "Welcome to Colonel",
+      "welcomeDesc": "Administrative control panel for OneTimeSecret",
+      "quickActions": "Quick Actions",
+      "recentActivity": "Recent Activity",
+      "viewAll": "View All",
+      "activityPlaceholder": "Activity data will be displayed here",
+      "stats": {
+        "totalSecrets": "Total Secrets",
+        "activeUsers": "Active Users",
+        "secretsToday": "Secrets Today",
+        "systemHealth": "System Health",
+        "healthy": "Healthy"
+      },
+      "actions": {
+        "viewActivity": "View Activity",
+        "viewActivityDesc": "Monitor system activity and usage",
+        "manageAccounts": "Manage Accounts",
+        "manageAccountsDesc": "User account administration",
+        "configureDomains": "Configure Domains",
+        "configureDomainsDesc": "Domain and DNS settings",
+        "systemSettings": "System Settings",
+        "systemSettingsDesc": "Application configuration"
+      }
     },
     "feedback": {
       "when-you-submit-feedback-well-see": "When you submit feedback, we'll see:",

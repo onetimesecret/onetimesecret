@@ -192,6 +192,22 @@ export function useColonelConfig() {
     saveSuccess.value = false;
   };
 
+  // Set initial active section with programmatic flag
+  const setInitialActiveSection = (section: ConfigSectionKey) => {
+    // Set flag to indicate this is a programmatic change
+    isProgrammaticChange.value = true;
+
+    try {
+      // Set initial section
+      activeSection.value = section;
+    } finally {
+      // Always reset the flag
+      nextTick(() => {
+        isProgrammaticChange.value = false;
+      });
+    }
+  };
+
   // Save only the current section
   const saveCurrentSection = async (
     configSections: Array<{ key: ConfigSectionKey; label: string }>
@@ -345,5 +361,6 @@ export function useColonelConfig() {
     markSectionModified,
     validateCurrentSection,
     switchToSection,
+    setInitialActiveSection,
   };
 }
