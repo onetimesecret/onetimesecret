@@ -169,18 +169,18 @@
             ]">
             {{ section.label }}
 
-            <!-- Modified indicator -->
-            <span
-              v-if="modifiedSections.has(section.key)"
-              class="absolute -top-1 -right-1 h-2 w-2 rounded-full bg-blue-500"
-              :title="`${section.label} has unsaved changes`">
-            </span>
-
             <!-- Error indicator -->
             <span
-              v-else-if="sectionsWithErrors.includes(section.key)"
-              class="absolute -top-1 -right-1 h-3 w-3 rounded-full bg-red-500"
+              v-if="sectionsWithErrors.includes(section.key)"
+              class="absolute -top-1 -right-1 size-2 rounded-full bg-red-500"
               :title="`${section.label} has validation errors`">
+            </span>
+
+            <!-- Modified indicator -->
+            <span
+              v-else-if="modifiedSections.has(section.key)"
+              class="absolute -top-1 -right-1 size-2 rounded-full bg-blue-500"
+              :title="`${section.label} has unsaved changes`">
             </span>
           </button>
         </nav>
