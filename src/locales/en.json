@@ -381,7 +381,7 @@
       "metadata-secrets-details-counts-metadata_count-d-0": "Metadata / Secrets: {0}/{1} ({2}/{3}/{4} total)",
       "secrets-details-counts-secret_count-0": "Secrets ({0})",
       "active-in-the-past-5-minutes-0": "(active in the past 5 minutes)",
-      "configEditor": "Configuration Editor",
+      "configEditorTitle": "Settings",
       "configEditorDescription": "Edit system configuration settings. Changes apply immediately after saving.",
       "invalidJson": "Invalid JSON in {section} section",
       "validationError": "Validation error",
