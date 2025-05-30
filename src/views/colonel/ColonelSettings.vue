@@ -188,7 +188,7 @@ const lightTheme = EditorView.theme({});
           <!-- Editor for current section -->
           <div class="mb-6">
             <div
-              class="min-h-[400px] max-h-[600px] overflow-auto rounded-md border"
+              class="min-h-[400px] max-h-[900px] overflow-auto rounded-md border"
               :class="[
                 currentSectionHasError
                   ? 'border-red-500'
@@ -204,7 +204,7 @@ const lightTheme = EditorView.theme({});
                 :extensions="extensions"
                 basic
                 :placeholder="`Enter configuration for ${activeSection}`"
-                class="min-h-[400px] max-h-[600px]" />
+                class="min-h-[400px] max-h-[900px]" />
             </div>
             <div
               v-if="activeSection && validationMessages[activeSection]"
