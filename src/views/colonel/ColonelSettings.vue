@@ -9,11 +9,15 @@
   import { useI18n } from 'vue-i18n';
   import { json } from '@codemirror/lang-json';
   import { basicSetup } from 'codemirror';
+  import { oneDark } from '@codemirror/theme-one-dark';
+  import { EditorView } from '@codemirror/view';
   import CodeMirror from 'vue-codemirror6';
   import { type ColonelConfigDetails } from '@/schemas/api/endpoints/colonel';
   import { useColonelConfig, type ConfigSectionKey } from '@/composables/useColonelConfig';
+  import { useTheme } from '@/composables/useTheme';
 
   const { t } = useI18n();
+  const { isDarkMode } = useTheme();
 
   // Config section tabs with typed keys
   const configSections = [
@@ -51,9 +55,45 @@
     setInitialActiveSection,
   } = useColonelConfig();
 
+
+
   // Editor configuration
   const lang = json();
-  const extensions = [basicSetup];
+
+  // Light theme configuration
+  const lightTheme = EditorView.theme({
+    '&': {
+      color: '#374151',
+      backgroundColor: '#ffffff',
+    },
+    '.cm-content': {
+      padding: '16px',
+      caretColor: '#374151',
+    },
+    '.cm-focused .cm-cursor': {
+      borderLeftColor: '#374151',
+    },
+    '.cm-selectionBackground, .cm-focused .cm-selectionBackground': {
+      backgroundColor: '#e5e7eb',
+    },
+    '.cm-gutters': {
+      backgroundColor: '#f9fafb',
+      color: '#6b7280',
+      border: 'none',
+    },
+    '.cm-activeLineGutter': {
+      backgroundColor: '#f3f4f6',
+    },
+    '.cm-activeLine': {
+      backgroundColor: '#f9fafb',
+    },
+  });
+
+  // Computed extensions that include theme
+  const extensions = computed(() => [
+    basicSetup,
+    isDarkMode.value ? oneDark : lightTheme,
+  ]);
 
   // Computed property for the current section's content
   const currentSectionContent = computed({
@@ -185,6 +225,7 @@
 
               <CodeMirror
                 v-model="currentSectionContent"
+                :key="`codemirror-${activeSection}-${isDarkMode}`"
                 :lang="lang"
                 :extensions="extensions"
                 basic
