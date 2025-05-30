@@ -61,33 +61,7 @@
   const lang = json();
 
   // Light theme configuration
-  const lightTheme = EditorView.theme({
-    '&': {
-      color: '#374151',
-      backgroundColor: '#ffffff',
-    },
-    '.cm-content': {
-      padding: '16px',
-      caretColor: '#374151',
-    },
-    '.cm-focused .cm-cursor': {
-      borderLeftColor: '#374151',
-    },
-    '.cm-selectionBackground, .cm-focused .cm-selectionBackground': {
-      backgroundColor: '#e5e7eb',
-    },
-    '.cm-gutters': {
-      backgroundColor: '#f9fafb',
-      color: '#6b7280',
-      border: 'none',
-    },
-    '.cm-activeLineGutter': {
-      backgroundColor: '#f3f4f6',
-    },
-    '.cm-activeLine': {
-      backgroundColor: '#f9fafb',
-    },
-  });
+const lightTheme = EditorView.theme({});
 
   // Computed extensions that include theme
   const extensions = computed(() => [
