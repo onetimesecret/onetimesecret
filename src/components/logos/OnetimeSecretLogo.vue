@@ -18,14 +18,14 @@
     size: 64,
     mode: 'light',
     href: '/',
-    showCompanyName: true,
+    showSiteName: true,
   });
 
   const { t } = useI18n();
 
   // Core logo properties
   const ariaLabel = computed(() => props.ariaLabel || t('one-time-secret-literal'));
-  const companyName = computed(() => props.companyName || t('one-time-secret-literal'));
+  const siteName = computed(() => props.siteName || t('one-time-secret-literal'));
   const svgSize = computed(() =>
     typeof props.size === 'number' && props.size > 0 ? props.size : 64
   );
@@ -218,14 +218,14 @@
 
     <!-- Text content -->
     <div
-      v-if="props.showCompanyName && companyName"
+      v-if="props.showSiteName && siteName"
       class="flex flex-col">
         <a
           :href="props.href"
           :alt="ariaLabel"
           class="transition-opacity hover:opacity-80">
         <div :class="['text-lg font-bold leading-tight transition-colors']">
-          {{ companyName }}
+          {{ siteName }}
         </div>
         <!-- Tagline -->
         <div

@@ -59,7 +59,7 @@ export interface HeaderLogo {
 
 export interface HeaderBranding {
   logo: HeaderLogo;
-  company_name?: string;
+  site_name?: string;
 }
 
 export interface HeaderNavigation {

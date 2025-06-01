@@ -41,8 +41,8 @@ import { shallowRef } from 'vue';
     alt: props.logo?.alt || headerConfig.value?.branding?.logo?.alt || t('one-time-secret-literal'),
     href: props.logo?.href || headerConfig.value?.branding?.logo?.link_to || '/',
     size: props.logo?.size || 64,
-    showCompanyName: props.logo?.showCompanyName ?? !!headerConfig.value?.branding?.company_name,
-    companyName: props.logo?.companyName || headerConfig.value?.branding?.company_name || t('one-time-secret-literal'),
+    showSiteName: props.logo?.showSiteName ?? !!headerConfig.value?.branding?.site_name,
+    siteName: props.logo?.siteName || headerConfig.value?.branding?.site_name || t('one-time-secret-literal'),
     ariaLabel: props.logo?.ariaLabel,
     isColonelArea: props.logo?.isColonelArea ?? props.colonel,
   }));
@@ -129,9 +129,10 @@ import { shallowRef } from 'vue';
               :width="logoConfig.size"
               :alt="logoConfig.alt" />
             <span
-              v-if="logoConfig.showCompanyName"
-              class="text-lg font-bold text-gray-800 dark:text-gray-100">
-              {{ logoConfig.companyName }}
+              v-if="logoConfig.showSiteName"
+              class="text-lg font-bold text-gray-800 d
+              ark:text-gray-100">
+              {{ logoConfig.siteName }}
             </span>
           </a>
         </div>

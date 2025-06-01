@@ -13,9 +13,9 @@ export interface LogoConfig {
   /** Logo size in pixels (defaults to 64) */
   size?: number;
   /** Whether to show company name next to logo */
-  showCompanyName?: boolean;
+  showSiteName?: boolean;
   /** Company name override (falls back to config or i18n) */
-  companyName?: string;
+  siteName?: string;
   /** Tagline override (falls back to config or i18n) */
   tagLine?: string;
   /** Custom aria label override */

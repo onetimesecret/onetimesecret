@@ -52,10 +52,10 @@ import { type LogoConfig } from '@/types/ui/layouts';
       <!-- Text Mark -->
       <!-- Company Name -->
       <div
-        v-if="props.showCompanyName && props.companyName"
+        v-if="props.showSiteName && props.siteName"
         class="relative flex flex-col">
         <div :class="[textSize, 'font-bold leading-tight']">
-          {{ props.companyName }}
+          {{ props.siteName }}
         </div>
         <!-- Colonel Overlay -->
         <div

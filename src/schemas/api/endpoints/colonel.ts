@@ -10,57 +10,63 @@ const booleanOrString = z.union([z.boolean(), z.string()]).optional();
 const numberOrString = z.union([z.string(), z.number()]).optional();
 
 const interfaceSchema = z.object({
-  ui: z.object({
-    enabled: booleanOrString.optional(),
-    header: z
-      .object({
-        enabled: booleanOrString.optional(),
-        branding: z
-          .object({
-            logo: z
-              .object({
-                url: z.string().optional(),
-                alt: z.string().optional(),
-                link_to: z.string().optional(),
-              })
-              .optional(),
-            company_name: z.string().optional(),
-          })
-          .optional(),
-        navigation: z
-          .object({
-            enabled: booleanOrString.optional(),
-          })
-          .optional(),
-      })
-      .optional(),
-    footer_links: z
-      .object({
-        enabled: booleanOrString.optional(),
-        groups: z
-          .array(
-            z.object({
-              name: z.string().optional(),
-              i18n_key: z.string().optional(),
-              links: z.array(
-                z.object({
-                  text: z.string().optional(),
-                  i18n_key: z.string().optional(),
+  ui: z
+    .object({
+      enabled: booleanOrString.optional(),
+      header: z
+        .object({
+          enabled: booleanOrString.optional(),
+          branding: z
+            .object({
+              logo: z
+                .object({
                   url: z.string().optional(),
-                  external: z.boolean().optional(),
-                  icon: z.string().optional(),
-                  visible: z.boolean().optional(),
+                  alt: z.string().optional(),
+                  link_to: z.string().optional(),
                 })
-              ).optional(),
+                .optional(),
+              site_name: z.string().optional(),
             })
-          )
-          .optional(),
-      })
-      .optional(),
-  }).optional(),
-  api: z.object({
-    enabled: booleanOrString.optional(),
-  }).optional(),
+            .optional(),
+          navigation: z
+            .object({
+              enabled: booleanOrString.optional(),
+            })
+            .optional(),
+        })
+        .optional(),
+      footer_links: z
+        .object({
+          enabled: booleanOrString.optional(),
+          groups: z
+            .array(
+              z.object({
+                name: z.string().optional(),
+                i18n_key: z.string().optional(),
+                links: z
+                  .array(
+                    z.object({
+                      text: z.string().optional(),
+                      i18n_key: z.string().optional(),
+                      url: z.string().optional(),
+                      external: z.boolean().optional(),
+                      icon: z.string().optional(),
+                      visible: z.boolean().optional(),
+                    })
+                  )
+                  .optional(),
+              })
+            )
+            .optional(),
+        })
+        .optional(),
+    })
+    .optional(),
+  api: z
+    .object({
+      enabled: booleanOrString.optional(),
+    })
+    .optional(),
 });
 
 // Secret options
@@ -71,40 +77,50 @@ const secretOptionsSchema = z.object({
 
 // Mail schema
 const mailSchema = z.object({
-  truemail: z.object({
-    default_validation_type: z.string().optional(),
-    verifier_email: z.string().optional(),
-    verifier_domain: z.string().optional(),
-    allowed_domains_only: z.boolean().optional(),
-    dns: z.array(z.string()).optional(),
-    smtp_fail_fast: z.boolean().optional(),
-    smtp_safe_check: z.boolean().optional(),
-    not_rfc_mx_lookup_flow: z.boolean().optional(),
-    logger: z.object({
-      tracking_event: z.any().optional(),
-      stdout: z.any().optional(),
-    }).optional(),
-  }).optional(),
+  truemail: z
+    .object({
+      default_validation_type: z.string().optional(),
+      verifier_email: z.string().optional(),
+      verifier_domain: z.string().optional(),
+      allowed_domains_only: z.boolean().optional(),
+      dns: z.array(z.string()).optional(),
+      smtp_fail_fast: z.boolean().optional(),
+      smtp_safe_check: z.boolean().optional(),
+      not_rfc_mx_lookup_flow: z.boolean().optional(),
+      logger: z
+        .object({
+          tracking_event: z.any().optional(),
+          stdout: z.any().optional(),
+        })
+        .optional(),
+    })
+    .optional(),
 });
 
 // Diagnostics schema
 const diagnosticsSchema = z.object({
   enabled: booleanOrString.optional(),
-  sentry: z.object({
-    backend: z.object({
-      dsn: z.string().optional(),
-      sampleRate: z.union([z.string(), z.number()]).optional(),
-      maxBreadcrumbs: z.union([z.string(), z.number()]).optional(),
-      logErrors: booleanOrString.optional(),
-    }).optional(),
-    frontend: z.object({
-      dsn: z.string().optional(),
-      sampleRate: z.union([z.string(), z.number()]).optional(),
-      maxBreadcrumbs: z.union([z.string(), z.number()]).optional(),
-      logErrors: booleanOrString.optional(),
-      trackComponents: booleanOrString.optional(),
-    }).optional(),
-  }).optional(),
+  sentry: z
+    .object({
+      backend: z
+        .object({
+          dsn: z.string().optional(),
+          sampleRate: z.union([z.string(), z.number()]).optional(),
+          maxBreadcrumbs: z.union([z.string(), z.number()]).optional(),
+          logErrors: booleanOrString.optional(),
+        })
+        .optional(),
+      frontend: z
+        .object({
+          dsn: z.string().optional(),
+          sampleRate: z.union([z.string(), z.number()]).optional(),
+          maxBreadcrumbs: z.union([z.string(), z.number()]).optional(),
+          logErrors: booleanOrString.optional(),
+          trackComponents: booleanOrString.optional(),
+        })
+        .optional(),
+    })
+    .optional(),
 });
 
 // Limits schema

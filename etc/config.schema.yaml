@@ -222,7 +222,7 @@
 
 :header_branding:
   :logo: include(':header_logo', required=False)
-  :company_name: str(required=False)
+  :site_name: str(required=False)
 
 :header_logo:
   :url: str(required=False)

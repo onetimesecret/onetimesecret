@@ -21,7 +21,7 @@ RSpec.describe Onetime::Config do
                     alt: 'OneTime Secret',
                     href: '/'
                   },
-                  company_name: 'OneTime Secret'
+                  site_name: 'OneTime Secret'
                 }
               }
             },
@@ -68,7 +68,7 @@ RSpec.describe Onetime::Config do
               enabled: false,
               header: {
                 branding: {
-                  company_name: 'Custom Company'
+                  site_name: 'Custom Company'
                 }
               }
             }
