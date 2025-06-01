@@ -9,7 +9,7 @@
   import type { Jurisdiction } from '@/schemas/models/jurisdiction';
   import { useJurisdictionStore } from '@/stores/jurisdictionStore';
   import type { LogoConfig } from '@/types/ui/layouts';
-  import OnetimeSecretIcon from './OnetimeSecretIcon.vue';
+  import OnetimeSecretIcon from '@/components/icons/OnetimeSecretIcon.vue';
 
   /**
    * Props for controlling logo appearance

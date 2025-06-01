@@ -1,4 +1,4 @@
-<!-- src/components/logos/MonotoneJapaneseSecretButton.vue -->
+<!-- src/components/icons/MonotoneJapaneseSecretButtonIcon.vue -->
 
 <!--
 emojione-monotone-japanese-secret-button.svg

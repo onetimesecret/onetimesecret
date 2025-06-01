@@ -1,6 +1,5 @@
 // src/router/public.routes.ts
 
-import AlternateLogos from '@/components/logos/AlternateLogos.vue';
 import DefaultFooter from '@/components/layout/DefaultFooter.vue';
 import DefaultHeader from '@/components/layout/DefaultHeader.vue';
 import DefaultLayout from '@/layouts/DefaultLayout.vue';
@@ -54,15 +53,6 @@ const routes: Array<RouteRecordRaw> = [
     path: '/incoming',
     name: 'Inbound Secrets',
     component: IncomingSupportSecret,
-    meta: {
-      requiresAuth: false,
-      layout: DefaultLayout,
-    },
-  },
-  {
-    path: '/icons',
-    name: 'Icons',
-    component: AlternateLogos,
     meta: {
       requiresAuth: false,
       layout: DefaultLayout,
