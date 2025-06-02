@@ -62,7 +62,7 @@ import { type LogoConfig } from '@/types/ui/layouts';
           v-if="props.isColonelArea"
           class="absolute inset-0 flex items-center justify-center pointer-events-none">
           <span
-            class="-rotate-6 tracking-widest transform-gpu rounded-lg bg-red-500/90 px-2 py-1 text-sm font-bold text-white shadow-lg"
+            class="-rotate-6 tracking-widest transform-gpu rounded-lg bg-brand-500 dark:bg-brand-600/90 px-2 py-1 text-sm font-bold text-white shadow-lg"
             style="transform-origin: center;">
             Colonels Only
           </span>

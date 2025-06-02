@@ -18,6 +18,7 @@
     size: 64,
     mode: 'light',
     href: '/',
+    isColonelArea: false,
     showSiteName: true,
   });
 

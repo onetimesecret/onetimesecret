@@ -20,15 +20,20 @@ export function useColonelNavigation() {
   // Main Colonel navigation tabs
   const navTabs = computed((): ColonelNavTab[] => [
     {
-      name: t('web.colonel.dashboard'),
+      name: t('web.COMMON.title_home'),
       href: '/colonel',
       icon: { collection: 'material-symbols', name: 'family-home-rounded' },
     },
     {
-      name: t('web.colonel.users'),
-      href: '/colonel/users',
-      icon: { collection: 'heroicons', name: 'user-solid' },
+      name: t('web.colonel.activity'),
+      href: '/colonel/info',
+      icon: { collection: 'ph', name: 'activity' },
     },
+    // {
+    //   name: t('web.colonel.users'),
+    //   href: '/colonel/users',
+    //   icon: { collection: 'heroicons', name: 'user-solid' },
+    // },
     {
       name: t('web.colonel.settings'),
       href: '/colonel/settings',
