@@ -68,7 +68,7 @@ module Onetime
       secret: 8,
       feedback: 11,
       exception_info: 12,
-      colonel_config: 15,
+      system_settings: 15,
     }
   end
 end

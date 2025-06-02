@@ -5,7 +5,7 @@
 export { useAccountStore } from './accountStore';
 export { useAuthStore } from './authStore';
 export { useBrandStore } from './brandStore';
-export { useColonelSettingsStore } from './colonelSettingsStore';
+export { useSystemSettingsStore } from './systemSettingsStore';
 export { useColonelInfoStore } from './colonelInfoStore';
 export { useCsrfStore } from './csrfStore';
 export { useCustomerStore } from './customerStore';

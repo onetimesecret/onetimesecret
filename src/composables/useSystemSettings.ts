@@ -1,20 +1,20 @@
-// src/composables/useColonelSettings.ts
+// src/composables/useSystemSettings.ts
 
-import { colonelConfigSchema, type ColonelSettingsDetails } from '@/schemas/api/endpoints/colonel';
+import { systemSettingsSchema, type SystemSettingsDetails } from '@/schemas/api/endpoints/colonel';
 import { useNotificationsStore } from '@/stores';
-import { useColonelSettingsStore } from '@/stores/colonelSettingsStore';
+import { useSystemSettingsStore } from '@/stores/systemSettingsStore';
 import { computed, nextTick, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { z } from 'zod';
 import { useAsyncHandler, type AsyncHandlerOptions } from './useAsyncHandler';
 
-// Use the keys of the colonelConfigSchema.shape as ConfigSectionKey
-export type ConfigSectionKey = keyof typeof colonelConfigSchema.shape;
+// Use the keys of the systemSettingsSchema.shape as ConfigSectionKey
+export type ConfigSectionKey = keyof typeof systemSettingsSchema.shape;
 
 /* eslint-disable max-lines-per-function */
-export function useColonelSettings() {
+export function useSystemSettings() {
   const { t } = useI18n();
-  const store = useColonelSettingsStore();
+  const store = useSystemSettingsStore();
   const notifications = useNotificationsStore();
 
   // State
@@ -59,7 +59,7 @@ export function useColonelSettings() {
         parsedJsonForZod = JSON.parse(content);
       }
 
-      const sectionSchema = colonelConfigSchema.shape[section];
+      const sectionSchema = systemSettingsSchema.shape[section];
       const validationResult = sectionSchema.safeParse(parsedJsonForZod);
 
       if (validationResult.success) {
@@ -137,7 +137,7 @@ export function useColonelSettings() {
 
   // Initialize section editors
   const initializeSectionEditors = (
-    configData: ColonelSettingsDetails | null,
+    configData: SystemSettingsDetails | null,
     configSections: Array<{ key: ConfigSectionKey }>
   ) => {
     isProgrammaticChange.value = true; // <-- Set flag before programmatic changes
@@ -232,12 +232,12 @@ export function useColonelSettings() {
       }
 
       // Create a payload with only the current section's data
-      const payload: Partial<ColonelSettingsDetails> = {};
+      const payload: Partial<SystemSettingsDetails> = {};
       payload[currentSection] = JSON.parse(sectionEditors.value[currentSection]);
 
       try {
         // Send only the current section for update
-        await store.update(payload as ColonelSettingsDetails);
+        await store.update(payload as SystemSettingsDetails);
 
         // Remove from modified sections
         modifiedSections.value.delete(currentSection);
@@ -296,7 +296,7 @@ export function useColonelSettings() {
       }
 
       // Combine all section editors into a single config object
-      const combinedConfig: Partial<ColonelSettingsDetails> = {};
+      const combinedConfig: Partial<SystemSettingsDetails> = {};
 
       for (const section of configSections) {
         const sectionContent = sectionEditors.value[section.key];
@@ -307,7 +307,7 @@ export function useColonelSettings() {
 
       // Validate the combined config against the schema
       try {
-        colonelConfigSchema.parse(combinedConfig);
+        systemSettingsSchema.parse(combinedConfig);
       } catch (validationError) {
         if (validationError instanceof z.ZodError) {
           const firstError = validationError.errors[0];
@@ -320,7 +320,7 @@ export function useColonelSettings() {
       }
 
       // Update config and refetch
-      await store.update(combinedConfig as ColonelSettingsDetails);
+      await store.update(combinedConfig as SystemSettingsDetails);
       // await store.fetch();
 
       // Clear all modified sections

@@ -1,4 +1,4 @@
-# lib/onetime/initializers/setup_colonel_config.rb
+# lib/onetime/initializers/setup_system_settings.rb
 
 module Onetime
   module Initializers
@@ -8,7 +8,7 @@ module Onetime
     # configuration in Redis and merging it with YAML configuration.
     # Creates initial colonel config record on first boot.
     #
-    def setup_colonel_config
+    def setup_system_settings
       OT.ld "Setting up colonel configuration..."
 
       # Check if this is the first boot by looking for existing data
@@ -17,7 +17,7 @@ module Onetime
 
       # Check for existing colonel config
       existing_config = begin
-        V2::ColonelSettings.current
+        V2::SystemSettings.current
       rescue OT::RecordNotFound => e
         OT.ld "No existing colonel config found: #{e.message}"
         nil
@@ -26,11 +26,11 @@ module Onetime
       if existing_config
         OT.ld "Found existing colonel config: #{existing_config.rediskey}"
         # Merge existing colonel config with YAML configuration
-        # merge_colonel_config(existing_config)
+        # merge_system_settings(existing_config)
 
       elsif existing_config.nil?
         # Create initial colonel config from current YAML configuration
-        create_initial_colonel_config
+        create_initial_system_settings
       else
         OT.lw "Not sure how we got here"
       end
@@ -61,23 +61,23 @@ module Onetime
     end
 
     # Creates initial colonel config record from current YAML configuration
-    def create_initial_colonel_config
+    def create_initial_system_settings
       OT.ld "Creating initial colonel config from YAML..."
 
-      colonel_config_data = V2::ColonelSettings.extract_colonel_config(OT.conf)
-      colonel_config_data[:comment] = "Initial configuration"
-      colonel_config_data[:custid] = nil # No customer owner for initial config
+      system_settings_data = V2::SystemSettings.extract_system_settings(OT.conf)
+      system_settings_data[:comment] = "Initial configuration"
+      system_settings_data[:custid] = nil # No customer owner for initial config
 
-      new_config = V2::ColonelSettings.create(**colonel_config_data)
+      new_config = V2::SystemSettings.create(**system_settings_data)
       OT.ld "Created initial colonel config: #{new_config.rediskey}"
     end
 
     # Applies colonel config on top of the main configuration, where the colonel
     # config overrides the main configuration.
-    def apply_colonel_config(colonel_config)
+    def apply_system_settings(system_settings)
 
 
-      onetime_config_data = colonel_config.to_onetime_config
+      onetime_config_data = system_settings.to_onetime_config
 
       # Makes a deep copy of OT.conf, then merges the colonel config data, and
       # replaces OT.config with the merged data.

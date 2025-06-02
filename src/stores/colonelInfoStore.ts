@@ -1,7 +1,7 @@
 // stores/colonelInfoStore.ts
 
 import { responseSchemas, type ColonelInfoDetails } from '@/schemas/api';
-import { type ColonelSettingsDetails } from '@/schemas/api/endpoints/colonel';
+import { type SystemSettingsDetails } from '@/schemas/api/endpoints/colonel';
 import { AxiosInstance } from 'axios';
 import { defineStore, PiniaCustomProperties } from 'pinia';
 import { inject, ref } from 'vue';
@@ -14,12 +14,12 @@ export type ColonelInfoStore = {
   _initialized: boolean;
   record: {} | null; // response is empty object
   details: ColonelInfoDetails;
-  config: ColonelSettingsDetails | null;
+  config: SystemSettingsDetails | null;
 
   // Actions
   fetchInfo: () => Promise<ColonelInfoDetails>;
-  fetchConfig: () => Promise<ColonelSettingsDetails>;
-  updateConfig: (config: ColonelSettingsDetails) => Promise<void>;
+  fetchConfig: () => Promise<SystemSettingsDetails>;
+  updateConfig: (config: SystemSettingsDetails) => Promise<void>;
   dispose: () => void;
   $reset: () => void;
 } & PiniaCustomProperties;

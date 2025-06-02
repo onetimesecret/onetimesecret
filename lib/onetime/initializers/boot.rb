@@ -80,7 +80,7 @@ module Onetime
       # Setup colonel config - check for existing override configuration
       # and merge with YAML config if present. Must happen before other
       # initializers that depend on the final merged configuration.
-      setup_colonel_config
+      setup_system_settings
 
       print_log_banner unless mode?(:test)
 

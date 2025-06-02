@@ -1,12 +1,12 @@
-# apps/api/v2/models/colonel_config.rb
+# apps/api/v2/models/system_settings.rb
 
-# Colonel Config
+# System Settings
 #
 # Representation of the subset of the full YAML configuration that we
-# make available to be modified in the colonel. The colonel config
+# make available to be modified in the colonel. The system settings
 # saved in Redis then supercedes the equivalent YAML configuration.
 module V2
-  class ColonelSettings < Familia::Horreum
+  class SystemSettings < Familia::Horreum
     include Gibbler::Complex
 
     unless defined?(FIELD_MAPPINGS)
@@ -23,15 +23,15 @@ module V2
     JSON_FIELDS = FIELD_MAPPINGS.keys.freeze
 
     class << self
-      # Extracts the sections that colonel config manages from the full config
-      def extract_colonel_config(config)
+      # Extracts the sections that system settings manages from the full config
+      def extract_system_settings(config)
         FIELD_MAPPINGS.transform_values do |path|
           path.length == 1 ? config[path[0]] : config.dig(*path)
         end
       end
 
       # Returns a hash of only the fields in FIELD_MAPPINGS, with proper deserialization
-      def filter_colonel_config(config)
+      def filter_system_settings(config)
         config_data = config.is_a?(Hash) ? config : config.to_h
         FIELD_MAPPINGS.keys.each_with_object({}) do |field, result|
           value = config_data[field]
@@ -40,16 +40,16 @@ module V2
         end
       end
 
-      # Takes a colonel config hash or instance and constructs a new hash
+      # Takes a system settings hash or instance and constructs a new hash
       # with the same structure as the Onetime YAML configuration.
       def construct_onetime_config(config)
-        colonel_config_hash = config.is_a?(Hash) ? config : config.to_h
-        colonel_config_hash.transform_keys!(&:to_sym)
+        system_settings_hash = config.is_a?(Hash) ? config : config.to_h
+        system_settings_hash.transform_keys!(&:to_sym)
 
         result = {}
 
         FIELD_MAPPINGS.each do |field, path|
-          value = colonel_config_hash[field]
+          value = system_settings_hash[field]
           # Skip empty/nil values to allow fallback to base config
           next unless value && !value.empty?
 
@@ -105,7 +105,7 @@ module V2
     def init
       @configid ||= self.generate_id
 
-      OT.ld "[ColonelSettings.init] #{configid} #{rediskey}"
+      OT.ld "[SystemSettings.init] #{configid} #{rediskey}"
     end
 
     # Serialize complex data to JSON when setting fields
@@ -242,23 +242,23 @@ module V2
 
         obj  # Return the created object
       rescue Redis::BaseError => e
-        OT.le "[ColonelSettings.create] Redis error: #{e.message}"
+        OT.le "[SystemSettings.create] Redis error: #{e.message}"
         raise Onetime::Problem, "Unable to create custom domain"
       end
 
 
-      # Simply instatiates a new ColonelSettings object and checks if it exists.
+      # Simply instatiates a new SystemSettings object and checks if it exists.
       def exists? identifier
-        # The `parse`` method instantiates a new ColonelSettings object but does
+        # The `parse`` method instantiates a new SystemSettings object but does
         # not save it to Redis. We do that here to piggyback on the inital
         # validation and parsing. We use the derived identifier to load
         # the object from Redis using
         obj = load(identifier)
-        OT.ld "[ColonelSettings.exists?] Got #{obj} for #{identifier}"
+        OT.ld "[SystemSettings.exists?] Got #{obj} for #{identifier}"
         obj.exists?
 
       rescue Onetime::Problem => e
-        OT.le "[ColonelSettings.exists?] #{e.message}"
+        OT.le "[SystemSettings.exists?] #{e.message}"
         OT.ld e.backtrace.join("\n")
         false
       end

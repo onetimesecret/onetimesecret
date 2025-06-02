@@ -160,15 +160,15 @@ const limitsSchema = z.object({
   update_domain_brand: z.number().optional(),
   view_colonel: z.number().optional(),
   external_redirect: z.number().optional(),
-  update_colonel_config: z.number().optional(),
+  update_system_settings: z.number().optional(),
 });
 
 /**
- * ColonelSettingsSchema defines the top-level structure of the configuration.
+ * SystemSettingsSchema defines the top-level structure of the settings.
  * Each section references deeper schemas defined elsewhere.
- * Using .optional() to handle partial configuration data during initialization.
+ * Using .optional() to handle partial settings data during initialization.
  */
-export const colonelConfigSchema = z.object({
+export const systemSettingsSchema = z.object({
   interface: interfaceSchema.optional(),
   secret_options: secretOptionsSchema.optional(),
   mail: mailSchema.optional(),
@@ -183,7 +183,7 @@ export const colonelConfigSchema = z.object({
   // internationalization: z.record(z.any()).optional(),
 });
 
-export const colonelConfigDetailsSchema = colonelConfigSchema.extend({
+export const systemSettingsDetailsSchema = systemSettingsSchema.extend({
   // This extension allows for additional fields in the future without breaking changes
   // All fields are optional with defaults to handle missing data
 });
@@ -231,5 +231,5 @@ export const colonelInfoDetailsSchema = z.object({
 
 // Export types
 export type ColonelInfoDetails = z.infer<typeof colonelInfoDetailsSchema>;
-export type ColonelSettingsDetails = z.infer<typeof colonelConfigDetailsSchema>;
+export type SystemSettingsDetails = z.infer<typeof systemSettingsDetailsSchema>;
 export type RecentCustomer = z.infer<typeof recentCustomerSchema>;

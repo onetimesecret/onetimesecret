@@ -5,7 +5,7 @@ import {
   checkAuthDetailsSchema,
 } from '@/schemas/api/endpoints/account';
 import {
-  colonelConfigDetailsSchema,
+  systemSettingsDetailsSchema,
   colonelInfoDetailsSchema,
 } from '@/schemas/api/endpoints/colonel';
 import {
@@ -41,7 +41,7 @@ export const responseSchemas = {
   brandSettings: createApiResponseSchema(brandSettingschema),
   checkAuth: createApiResponseSchema(customerSchema, checkAuthDetailsSchema),
   colonelInfo: createApiResponseSchema(z.object({}), colonelInfoDetailsSchema),
-  colonelConfig: createApiResponseSchema(z.object({}), colonelConfigDetailsSchema),
+  systemSettings: createApiResponseSchema(z.object({}), systemSettingsDetailsSchema),
   concealData: createApiResponseSchema(concealDataSchema),
   customDomain: createApiResponseSchema(customDomainSchema, customDomainDetailsSchema),
   customer: createApiResponseSchema(customerSchema, checkAuthDetailsSchema),
@@ -74,7 +74,7 @@ export type ApiTokenResponse = ResponseTypes['apiToken'];
 export type BrandSettingsResponse = ResponseTypes['brandSettings'];
 export type CheckAuthResponse = ResponseTypes['checkAuth'];
 export type ColonelInfoResponse = ResponseTypes['colonelInfo'];
-export type ColonelSettingsResponse = ResponseTypes['colonelConfig'];
+export type SystemSettingsResponse = ResponseTypes['colonelConfig'];
 export type ConcealDataResponse = ResponseTypes['concealData'];
 export type CsrfResponse = ResponseTypes['csrf'];
 export type CustomDomainListResponse = ResponseTypes['customDomainList'];

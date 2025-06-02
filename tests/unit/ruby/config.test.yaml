@@ -85,7 +85,7 @@
     :feedback: 11
     :rate_limit: 2
     :exception_info: 12
-    :colonel_config: 15
+    :system_settings: 15
 :features:
   :incoming:
     :enabled: false
@@ -259,7 +259,7 @@
   :update_domain_brand: 50
   :view_colonel: 100
   :external_redirect: 100
-  :update_colonel_config: 50
+  :update_colonel_settings: 50
 :development:
   :enabled: <%= ['development', 'dev'].include?(ENV['RACK_ENV']) %>
   :debug: <%= ['true', '1', 'yes'].include?(ENV['ONETIME_DEBUG']) %>

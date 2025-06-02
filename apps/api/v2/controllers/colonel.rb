@@ -16,13 +16,13 @@ module V2
       end
 
       def get_config
-        retrieve_records(V2::Logic::Colonel::GetColonelSettings, auth_type: :colonels)
+        retrieve_records(V2::Logic::Colonel::GetSystemSettings, auth_type: :colonels)
       end
 
       def update_config
-        process_action(V2::Logic::Colonel::UpdateColonelSettings,
-          "Config updated successfully.",
-          "Config could not be updated.",
+        process_action(V2::Logic::Colonel::UpdateSystemSettings,
+          "System settings updated successfully.",
+          "System settings could not be updated.",
           auth_type: :colonels,
         )
       end

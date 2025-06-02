@@ -37,9 +37,9 @@ const routes: Array<RouteRecordRaw> = [
   },
   {
     path: '/colonel/settings',
-    name: 'ColonelSettings',
+    name: 'SystemSettings',
     components: {
-      default: () => import('@/views/colonel/ColonelSettings.vue'),
+      default: () => import('@/views/colonel/SystemSettings.vue'),
       header: DefaultHeader,
       footer: DefaultFooter,
     },
