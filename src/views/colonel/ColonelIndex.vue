@@ -2,37 +2,66 @@
 
 <script setup lang="ts">
   import OIcon from '@/components/icons/OIcon.vue';
-  import { computed } from 'vue';
+  import { useColonelInfoStore } from '@/stores/colonelInfoStore';
+  import { storeToRefs } from 'pinia';
+  import { computed, onMounted } from 'vue';
   import { useI18n } from 'vue-i18n';
 
   const { t } = useI18n();
 
-  // Quick stats - these would come from API calls in a real implementation
-  const stats = computed(() => [
+  const store = useColonelInfoStore();
+  const { stats, isLoading } = storeToRefs(store);
+  const { fetchStats } = store;
+
+  onMounted(fetchStats);
+
+  // Quick stats using real data from the store
+  const statsData = computed(() => [
     {
       name: t('web.colonel.stats.totalSecrets'),
-      value: '1,234',
-      change: '+12%',
-      changeType: 'increase' as const,
+      value: stats.value?.counts?.secret_count?.toLocaleString() || '0',
+      change: null,
+      changeType: 'neutral' as const,
       icon: { collection: 'heroicons', name: 'lock-closed' },
     },
     {
       name: t('web.colonel.stats.activeUsers'),
-      value: '89',
-      change: '+5%',
-      changeType: 'increase' as const,
-      icon: { collection: 'heroicons', name: 'globe-alt' },
+      value: stats.value?.counts?.session_count?.toString() || '0',
+      change: null,
+      changeType: 'neutral' as const,
+      icon: { collection: 'heroicons', name: 'users' },
     },
     {
-      name: t('web.colonel.stats.secretsToday'),
-      value: '23',
-      change: '-2%',
-      changeType: 'decrease' as const,
-      icon: { collection: 'heroicons', name: 'clock' },
+      name: 'Secrets Created',
+      value: stats.value?.counts?.secrets_created?.toLocaleString() || '0',
+      change: null,
+      changeType: 'neutral' as const,
+      icon: { collection: 'heroicons', name: 'plus-circle' },
+    },
+    {
+      name: 'Secrets Shared',
+      value: stats.value?.counts?.secrets_shared?.toLocaleString() || '0',
+      change: null,
+      changeType: 'neutral' as const,
+      icon: { collection: 'heroicons', name: 'share' },
+    },
+    {
+      name: 'Total Customers',
+      value: stats.value?.counts?.customer_count?.toLocaleString() || '0',
+      change: null,
+      changeType: 'neutral' as const,
+      icon: { collection: 'heroicons', name: 'user-group' },
+    },
+    {
+      name: 'Emails Sent',
+      value: stats.value?.counts?.emails_sent?.toLocaleString() || '0',
+      change: null,
+      changeType: 'neutral' as const,
+      icon: { collection: 'heroicons', name: 'envelope' },
     },
     {
       name: t('web.colonel.stats.systemHealth'),
-      value: t('web.colonel.stats.healthy'),
+      value: stats.value ? t('web.colonel.stats.healthy') : t('web.LABELS.loading'),
       change: null,
       changeType: 'neutral' as const,
       icon: { collection: 'heroicons', name: 'heart' },
@@ -48,13 +77,6 @@
       icon: { collection: 'ph', name: 'activity' },
       color: 'bg-blue-500',
     },
-    // {
-    //   name: t('web.colonel.actions.manageAccounts'),
-    //   description: t('web.colonel.actions.manageAccountsDesc'),
-    //   href: '/colonel/users',
-    //   icon: { collection: 'heroicons', name: 'users' },
-    //   color: 'bg-green-500',
-    // },
     {
       name: t('web.colonel.actions.systemSettings'),
       description: t('web.colonel.actions.systemSettingsDesc'),
@@ -77,34 +99,58 @@
       </p>
     </div>
 
+    <!-- Loading state -->
+    <div
+      v-if="isLoading"
+      class="mb-6 p-4 text-center text-gray-600 dark:text-gray-400">
+      {{ t('web.LABELS.loading') }}
+    </div>
+
+    <!-- System Status Banner -->
+    <div
+      v-if="stats"
+      class="mb-6 rounded-lg border border-green-200 bg-green-50 p-4 dark:border-green-700 dark:bg-green-900/20">
+      <div class="flex items-center">
+        <OIcon
+          collection="heroicons"
+          name="check-circle"
+          class="h-5 w-5 text-green-500 dark:text-green-400" />
+        <p class="ml-2 text-sm text-green-800 dark:text-green-200">
+          {{ t('web.colonel.stats.systemHealth') }}:
+          <span class="font-semibold">{{ t('web.colonel.stats.healthy') }}</span>
+          • {{ stats.counts.session_count }} active sessions
+        </p>
+      </div>
+    </div>
+
     <!-- Stats grid -->
-    <div class="mb-6 grid grid-cols-1 gap-3 sm:grid-cols-2">
+    <div
+      v-if="!isLoading"
+      class="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
       <div
-        v-for="stat in stats"
+        v-for="stat in statsData"
         :key="stat.name"
-        class="overflow-hidden rounded-lg bg-white px-3 py-3 shadow dark:bg-gray-800">
+        class="overflow-hidden rounded-lg bg-white px-4 py-5 shadow transition-shadow hover:shadow-md dark:bg-gray-800">
         <div class="flex items-center justify-between">
           <div class="flex items-center space-x-3">
-            <OIcon
-              :collection="stat.icon.collection"
-              :name="stat.icon.name"
-              class="h-6 w-6 text-gray-400 dark:text-gray-500" />
+            <div class="flex h-10 w-10 items-center justify-center rounded-lg bg-brand-50 dark:bg-brand-900/20">
+              <OIcon
+                :collection="stat.icon.collection"
+                :name="stat.icon.name"
+                class="h-5 w-5 text-brand-600 dark:text-brand-400" />
+            </div>
             <div>
-              <dt class="text-xs font-medium text-gray-500 dark:text-gray-400">
+              <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">
                 {{ stat.name }}
               </dt>
-              <dd class="text-lg font-semibold text-gray-900 dark:text-white">
+              <dd class="text-2xl font-bold text-gray-900 dark:text-white">
                 {{ stat.value }}
               </dd>
             </div>
           </div>
           <div
             v-if="stat.change"
-            class="text-xs font-semibold"
-            :class="{
-              'text-green-600 dark:text-green-400': stat.changeType === 'increase',
-              'text-red-600 dark:text-red-400': stat.changeType === 'decrease',
-            }">
+            class="text-xs font-semibold text-gray-500 dark:text-gray-400">
             {{ stat.change }}
           </div>
         </div>

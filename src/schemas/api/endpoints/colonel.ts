@@ -206,6 +206,21 @@ export const recentCustomerSchema = z.object({
  // Raw API data structures before transformation
  // These represent the API shape that will be transformed by input schemas
  */
+/**
+ * Lightweight stats schema for dashboard display
+ */
+export const colonelStatsDetailsSchema = z.object({
+  counts: z.object({
+    customer_count: transforms.fromString.number,
+    emails_sent: transforms.fromString.number,
+    metadata_count: transforms.fromString.number,
+    secret_count: transforms.fromString.number,
+    secrets_created: transforms.fromString.number,
+    secrets_shared: transforms.fromString.number,
+    session_count: transforms.fromString.number,
+  }),
+});
+
 export const colonelInfoDetailsSchema = z.object({
   recent_customers: z.array(recentCustomerSchema).default([]),
   today_feedback: z.array(feedbackSchema).default([]),
@@ -230,6 +245,7 @@ export const colonelInfoDetailsSchema = z.object({
 });
 
 // Export types
+export type ColonelStatsDetails = z.infer<typeof colonelStatsDetailsSchema>;
 export type ColonelInfoDetails = z.infer<typeof colonelInfoDetailsSchema>;
 export type SystemSettingsDetails = z.infer<typeof systemSettingsDetailsSchema>;
 export type RecentCustomer = z.infer<typeof recentCustomerSchema>;

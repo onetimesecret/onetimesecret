@@ -15,6 +15,10 @@ module V2
         retrieve_records(V2::Logic::Colonel::GetColonelInfo, auth_type: :colonels)
       end
 
+      def get_stats
+        retrieve_records(V2::Logic::Colonel::GetColonelStats, auth_type: :colonels)
+      end
+
       def get_config
         retrieve_records(V2::Logic::Colonel::GetSystemSettings, auth_type: :colonels)
       end

@@ -52,3 +52,4 @@ POST   /altcha/verify-spam                        V2::Controllers::Challenges#al
 GET    /colonel/config                            V2::Controllers::Colonel#get_config
 POST   /colonel/config                            V2::Controllers::Colonel#update_config
 GET    /colonel/info                              V2::Controllers::Colonel#get_info
+GET    /colonel/stats                             V2::Controllers::Colonel#get_stats
