@@ -1,8 +1,7 @@
 # apps/api/v2/controllers/base.rb
 
-require_relative 'class_methods'
-require_relative 'helpers'
 require_relative 'class_settings'
+require_relative 'helpers'
 require 'altcha'
 
 module V2

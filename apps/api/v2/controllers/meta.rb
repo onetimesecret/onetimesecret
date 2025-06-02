@@ -93,7 +93,6 @@ module V2
         end
       end
 
-      extend V2::Controllers::ClassMethods
     end
   end
 end
