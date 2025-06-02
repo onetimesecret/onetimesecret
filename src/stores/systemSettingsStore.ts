@@ -32,7 +32,7 @@ export const useSystemSettingsStore = defineStore('colonel', () => {
   const _initialized = ref(false);
 
   /**
-   * Fetch colonel configuration from the API
+   * Fetch system settings from the API
    * @returns Validated configuration object
    */
   async function fetch() {
@@ -52,7 +52,7 @@ export const useSystemSettingsStore = defineStore('colonel', () => {
   }
 
   /**
-   * Update colonel configuration
+   * Update system settings
    * @param newConfig Updated configuration object
    */
   async function update(newConfig: SystemSettingsDetails) {

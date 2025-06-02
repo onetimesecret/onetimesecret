@@ -32,7 +32,7 @@
   const { details: config } = storeToRefs(store);
   const { fetch } = store;
 
-  // Use the colonel config composable
+  // Use the system settings composable
   const {
     activeSection,
     sectionEditors,

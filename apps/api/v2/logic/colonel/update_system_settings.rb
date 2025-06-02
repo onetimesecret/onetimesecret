@@ -56,7 +56,7 @@ module V2
         end
 
         def process
-          OT.ld "[UpdateSystemSettings#process] Persisting colonel configuration"
+          OT.ld "[UpdateSystemSettings#process] Persisting system settings"
 
           OT.li "[UpdateSystemSettings#process] Interface: #{interface.inspect}" if interface
           OT.li "[UpdateSystemSettings#process] Secret Options: #{secret_options.inspect}" if secret_options
@@ -75,13 +75,13 @@ module V2
             OT.ld "[UpdateSystemSettings#process] System settings persisted successfully"
 
           rescue => e
-            OT.le "[UpdateSystemSettings#process] Failed to persist colonel configuration: #{e.message}"
+            OT.le "[UpdateSystemSettings#process] Failed to persist system settings: #{e.message}"
             raise_form_error "Failed to update configuration: #{e.message}"
           end
         end
 
         def success_data
-          OT.ld "[UpdateSystemSettings#success_data] Returning updated colonel configuration"
+          OT.ld "[UpdateSystemSettings#success_data] Returning updated system settings"
 
           # Return the record and the sections that were provided
           {

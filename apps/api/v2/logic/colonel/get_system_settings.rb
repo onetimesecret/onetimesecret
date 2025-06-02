@@ -20,7 +20,7 @@ module V2
           @current_record = fetch_current_system_settings
           @merged_config = build_merged_configuration
 
-          OT.ld "[GetSystemSettings#process] Retrieved colonel config with #{@merged_config.keys.size} sections"
+          OT.ld "[GetSystemSettings#process] Retrieved system settings with #{@merged_config.keys.size} sections"
         end
 
         def success_data
@@ -32,11 +32,11 @@ module V2
 
         private
 
-        # Safely fetch the current colonel config, handling the case where none exists
+        # Safely fetch the current system settings, handling the case where none exists
         def fetch_current_system_settings
           SystemSettings.current
         rescue Onetime::RecordNotFound
-          OT.ld "[GetSystemSettings#fetch_current_system_settings] No colonel config found, using base config only"
+          OT.ld "[GetSystemSettings#fetch_current_system_settings] No system settings found, using base config only"
           nil
         end
 

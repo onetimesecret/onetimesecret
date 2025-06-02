@@ -77,7 +77,7 @@ module Onetime
         check_global_banner
       end
 
-      # Setup colonel config - check for existing override configuration
+      # Setup system settings - check for existing override configuration
       # and merge with YAML config if present. Must happen before other
       # initializers that depend on the final merged configuration.
       setup_system_settings

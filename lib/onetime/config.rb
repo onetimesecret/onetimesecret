@@ -389,7 +389,7 @@ module Onetime
       end.compact
     end
 
-    # Makes a deep copy of OT.conf, then merges the colonel config data, and
+    # Makes a deep copy of OT.conf, then merges the system settings data, and
     # replaces OT.config with the merged data.
     def apply_config(other)
       new_config = deep_merge(OT.conf, other)

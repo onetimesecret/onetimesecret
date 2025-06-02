@@ -43,7 +43,7 @@ export function useSystemSettings() {
     setLoading: (loading) => (isSaving.value = loading),
     onError: (err) => {
       errorMessage.value = err.message || t('web.colonel.errorSavingConfig');
-      console.error('Error in colonel config:', err);
+      console.error('Error in system settings:', err);
     },
   };
 

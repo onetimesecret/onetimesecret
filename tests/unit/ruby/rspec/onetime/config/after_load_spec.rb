@@ -55,7 +55,7 @@ RSpec.describe "Onetime boot configuration process" do
     allow(V2::RateLimit).to receive(:register_events)
     allow(OT::Plan).to receive(:load_plans!)
 
-    # Mock colonel config setup methods
+    # Mock system settings setup methods
     allow(V2::SystemSettings).to receive(:current).and_raise(OT::RecordNotFound.new("No config found"))
     allow(V2::SystemSettings).to receive(:extract_colonel_config).and_return({})
     allow(V2::SystemSettings).to receive(:create).and_return(double('SystemSettings', rediskey: 'test:config'))
