@@ -15,28 +15,28 @@
       value: '1,234',
       change: '+12%',
       changeType: 'increase' as const,
-      icon: 'lock-closed',
+      icon: { collection: 'heroicons', name: 'lock-closed' },
     },
     {
       name: t('web.colonel.stats.activeUsers'),
       value: '89',
       change: '+5%',
       changeType: 'increase' as const,
-      icon: 'users',
+      icon: { collection: 'heroicons', name: 'globe-alt' },
     },
     {
       name: t('web.colonel.stats.secretsToday'),
       value: '23',
       change: '-2%',
       changeType: 'decrease' as const,
-      icon: 'calendar-days',
+      icon: { collection: 'heroicons', name: 'clock' },
     },
     {
       name: t('web.colonel.stats.systemHealth'),
       value: t('web.colonel.stats.healthy'),
       change: null,
       changeType: 'neutral' as const,
-      icon: 'heart',
+      icon: { collection: 'heroicons', name: 'heart' },
     },
   ]);
 
@@ -46,21 +46,21 @@
       name: t('web.colonel.actions.viewActivity'),
       description: t('web.colonel.actions.viewActivityDesc'),
       href: '/colonel/activity',
-      icon: 'chart-bar',
+      icon: { collection: 'ph', name: 'activity' },
       color: 'bg-blue-500',
     },
     {
       name: t('web.colonel.actions.manageAccounts'),
       description: t('web.colonel.actions.manageAccountsDesc'),
       href: '/colonel/users',
-      icon: 'users',
+      icon: { collection: 'heroicons', name: 'users' },
       color: 'bg-green-500',
     },
     {
       name: t('web.colonel.actions.systemSettings'),
       description: t('web.colonel.actions.systemSettingsDesc'),
       href: '/colonel/settings',
-      icon: 'cog-6-tooth',
+      icon: { collection: 'material-symbols', name: 'settings-outline' },
       color: 'bg-orange-500',
     },
   ]);
@@ -92,8 +92,8 @@
           <div class="flex items-center justify-between">
             <div class="flex items-center space-x-3">
               <OIcon
-                :name="stat.icon"
-                collection="heroicons"
+                :collection="stat.icon.collection"
+                :name="stat.icon.name"
                 class="h-6 w-6 text-gray-400 dark:text-gray-500" />
               <div>
                 <dt class="text-xs font-medium text-gray-500 dark:text-gray-400">
@@ -133,8 +133,8 @@
                 class="flex h-8 w-8 items-center justify-center rounded-md text-white"
                 :class="action.color">
                 <OIcon
-                  :name="action.icon"
-                  collection="heroicons"
+                  :collection="action.icon.collection"
+                  :name="action.icon.name"
                   class="h-4 w-4" />
               </div>
               <div>
@@ -169,8 +169,8 @@
         </div>
         <div class="py-6 text-center text-gray-500 dark:text-gray-400">
           <OIcon
-            name="chart-bar"
             collection="heroicons"
+            name="clipboard"
             class="mx-auto mb-3 h-8 w-8" />
           <p class="text-sm">{{ t('web.colonel.activityPlaceholder') }}</p>
         </div>

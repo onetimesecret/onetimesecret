@@ -7,7 +7,7 @@ import { useRoute } from 'vue-router';
 export interface ColonelNavTab {
   name: string;
   href: string;
-  icon: string;
+  icon: { collection: string; name: string };
 }
 
 /**
@@ -19,9 +19,21 @@ export function useColonelNavigation() {
 
   // Main Colonel navigation tabs
   const navTabs = computed((): ColonelNavTab[] => [
-    { name: t('web.colonel.dashboard'), href: '/colonel', icon: 'home' },
-    { name: t('web.colonel.users'), href: '/colonel/users', icon: 'users' },
-    { name: t('web.colonel.settings'), href: '/colonel/settings', icon: 'cog-6-tooth' },
+    {
+      name: t('web.colonel.dashboard'),
+      href: '/colonel',
+      icon: { collection: 'material-symbols', name: 'family-home-rounded' },
+    },
+    {
+      name: t('web.colonel.users'),
+      href: '/colonel/users',
+      icon: { collection: 'heroicons', name: 'user-solid' },
+    },
+    {
+      name: t('web.colonel.settings'),
+      href: '/colonel/settings',
+      icon: { collection: 'material-symbols', name: 'settings' },
+    },
   ]);
 
   // Current active tab based on route

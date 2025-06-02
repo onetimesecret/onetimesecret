@@ -20,8 +20,8 @@
             'border-brand-500 text-brand-600 dark:text-brand-400': isTabActive(tab.href),
           }">
           <OIcon
-            :name="tab.icon"
-            collection="heroicons"
+            :collection="tab.icon.collection"
+            :name="tab.icon.name"
             class="mr-2 h-5 w-5" />
           {{ tab.name }}
         </a>
