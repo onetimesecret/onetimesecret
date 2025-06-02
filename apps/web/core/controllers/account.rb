@@ -1,13 +1,11 @@
 # apps/web/core/controllers/account.rb
 
 require_relative 'base'
-require_relative 'settings'
 
 module Core
   module Controllers
     class Account
-      include ControllerSettings
-      include ControllerBase
+      include Controllers::Base
 
       # Redirects users to the appropriate Stripe Payment Link based on selected plan
       #
