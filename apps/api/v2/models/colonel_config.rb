@@ -20,7 +20,7 @@ module V2
     end
 
     # Fields that need JSON serialization/deserialization
-    JSON_FIELDS = [:interface, :secret_options, :mail, :limits, :diagnostics].freeze
+    JSON_FIELDS = FIELD_MAPPINGS.keys.freeze
 
     class << self
       # Extracts the sections that colonel config manages from the full config
