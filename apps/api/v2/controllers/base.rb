@@ -1,11 +1,14 @@
 # apps/api/v2/controllers/base.rb
 
+require_relative 'class_methods'
 require_relative 'helpers'
-require 'altcha' # lib/altcha
+require_relative 'class_settings'
+require 'altcha'
 
 module V2
-  module ControllerBase
+  module Controllers::Base
     include V2::ControllerHelpers
+    include V2::Controllers::ClassSettings
 
     attr_reader :req, :res
     attr_reader :sess, :cust, :locale

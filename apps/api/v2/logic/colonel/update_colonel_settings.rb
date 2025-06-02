@@ -5,7 +5,7 @@ require_relative '../base'
 module V2
   module Logic
     module Colonel
-      class UpdateColonelConfig < V2::Logic::Base
+      class UpdateColonelSettings < V2::Logic::Base
         @safe_fields = [:interface, :secret_options, :mail, :limits,
                         :diagnostics]
 
@@ -13,7 +13,7 @@ module V2
                     :diagnostics, :greenlighted, :record
 
         def process_params
-          OT.ld "[UpdateColonelConfig#process_params] params: #{params.inspect}"
+          OT.ld "[UpdateColonelSettings#process_params] params: #{params.inspect}"
           # Accept config either directly or wrapped in a :config key
           @config = params[:config]
 
@@ -33,7 +33,7 @@ module V2
             diagnostics: diagnostics,
           }
 
-          OT.ld "[UpdateColonelConfig#process_params] Extracted config sections: " +
+          OT.ld "[UpdateColonelSettings#process_params] Extracted config sections: " +
                 config_sections.map { |name, value| "#{name}=#{!!value}" }.join(", ")
         end
 
@@ -47,41 +47,41 @@ module V2
           # Ensure at least one valid field is present (not requiring all sections)
           present_fields = self.class.safe_fields & config_keys
 
-          OT.ld "[UpdateColonelConfig#raise_concerns] Present fields: #{present_fields.join(', ')}"
+          OT.ld "[UpdateColonelSettings#raise_concerns] Present fields: #{present_fields.join(', ')}"
           raise_form_error "No valid configuration sections found" if present_fields.empty?
 
           # Log unsupported fields but don't error
           unsupported_fields = config_keys - self.class.safe_fields
-          OT.ld "[UpdateColonelConfig#raise_concerns] Ignoring unsupported fields: #{unsupported_fields.join(', ')}" unless unsupported_fields.empty?
+          OT.ld "[UpdateColonelSettings#raise_concerns] Ignoring unsupported fields: #{unsupported_fields.join(', ')}" unless unsupported_fields.empty?
         end
 
         def process
-          OT.ld "[UpdateColonelConfig#process] Persisting colonel configuration"
+          OT.ld "[UpdateColonelSettings#process] Persisting colonel configuration"
 
-          OT.li "[UpdateColonelConfig#process] Interface: #{interface.inspect}" if interface
-          OT.li "[UpdateColonelConfig#process] Secret Options: #{secret_options.inspect}" if secret_options
-          OT.li "[UpdateColonelConfig#process] Mail: #{mail.inspect}" if mail
-          OT.li "[UpdateColonelConfig#process] Limits: #{limits.inspect}" if limits
-          OT.li "[UpdateColonelConfig#process] Diagnostics: #{diagnostics.inspect}" if diagnostics
+          OT.li "[UpdateColonelSettings#process] Interface: #{interface.inspect}" if interface
+          OT.li "[UpdateColonelSettings#process] Secret Options: #{secret_options.inspect}" if secret_options
+          OT.li "[UpdateColonelSettings#process] Mail: #{mail.inspect}" if mail
+          OT.li "[UpdateColonelSettings#process] Limits: #{limits.inspect}" if limits
+          OT.li "[UpdateColonelSettings#process] Diagnostics: #{diagnostics.inspect}" if diagnostics
 
           begin
             # Build the update fields - only include non-nil values
             update_fields = build_update_fields
 
-            # Create a new ColonelConfig record with the updated values
-            @record = ColonelConfig.create(**update_fields)
+            # Create a new ColonelSettings record with the updated values
+            @record = ColonelSettings.create(**update_fields)
 
             @greenlighted = true
-            OT.ld "[UpdateColonelConfig#process] Colonel configuration persisted successfully"
+            OT.ld "[UpdateColonelSettings#process] Colonel configuration persisted successfully"
 
           rescue => e
-            OT.le "[UpdateColonelConfig#process] Failed to persist colonel configuration: #{e.message}"
+            OT.le "[UpdateColonelSettings#process] Failed to persist colonel configuration: #{e.message}"
             raise_form_error "Failed to update configuration: #{e.message}"
           end
         end
 
         def success_data
-          OT.ld "[UpdateColonelConfig#success_data] Returning updated colonel configuration"
+          OT.ld "[UpdateColonelSettings#success_data] Returning updated colonel configuration"
 
           # Return the record and the sections that were provided
           {

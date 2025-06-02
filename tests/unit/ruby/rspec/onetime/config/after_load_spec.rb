@@ -56,9 +56,9 @@ RSpec.describe "Onetime boot configuration process" do
     allow(OT::Plan).to receive(:load_plans!)
 
     # Mock colonel config setup methods
-    allow(V2::ColonelConfig).to receive(:current).and_raise(OT::RecordNotFound.new("No config found"))
-    allow(V2::ColonelConfig).to receive(:extract_colonel_config).and_return({})
-    allow(V2::ColonelConfig).to receive(:create).and_return(double('ColonelConfig', rediskey: 'test:config'))
+    allow(V2::ColonelSettings).to receive(:current).and_raise(OT::RecordNotFound.new("No config found"))
+    allow(V2::ColonelSettings).to receive(:extract_colonel_config).and_return({})
+    allow(V2::ColonelSettings).to receive(:create).and_return(double('ColonelSettings', rediskey: 'test:config'))
 
     # TODO: Make truemail gets reset too (Truemail.configuration)
 

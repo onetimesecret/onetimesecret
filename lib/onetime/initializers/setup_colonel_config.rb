@@ -17,7 +17,7 @@ module Onetime
 
       # Check for existing colonel config
       existing_config = begin
-        V2::ColonelConfig.current
+        V2::ColonelSettings.current
       rescue OT::RecordNotFound => e
         OT.ld "No existing colonel config found: #{e.message}"
         nil
@@ -64,11 +64,11 @@ module Onetime
     def create_initial_colonel_config
       OT.ld "Creating initial colonel config from YAML..."
 
-      colonel_config_data = V2::ColonelConfig.extract_colonel_config(OT.conf)
+      colonel_config_data = V2::ColonelSettings.extract_colonel_config(OT.conf)
       colonel_config_data[:comment] = "Initial configuration"
       colonel_config_data[:custid] = nil # No customer owner for initial config
 
-      new_config = V2::ColonelConfig.create(**colonel_config_data)
+      new_config = V2::ColonelSettings.create(**colonel_config_data)
       OT.ld "Created initial colonel config: #{new_config.rediskey}"
     end
 

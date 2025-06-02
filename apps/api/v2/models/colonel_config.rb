@@ -6,7 +6,7 @@
 # make available to be modified in the colonel. The colonel config
 # saved in Redis then supercedes the equivalent YAML configuration.
 module V2
-  class ColonelConfig < Familia::Horreum
+  class ColonelSettings < Familia::Horreum
     include Gibbler::Complex
 
     unless defined?(FIELD_MAPPINGS)
@@ -105,7 +105,7 @@ module V2
     def init
       @configid ||= self.generate_id
 
-      OT.ld "[ColonelConfig.init] #{configid} #{rediskey}"
+      OT.ld "[ColonelSettings.init] #{configid} #{rediskey}"
     end
 
     # Serialize complex data to JSON when setting fields
@@ -242,23 +242,23 @@ module V2
 
         obj  # Return the created object
       rescue Redis::BaseError => e
-        OT.le "[ColonelConfig.create] Redis error: #{e.message}"
+        OT.le "[ColonelSettings.create] Redis error: #{e.message}"
         raise Onetime::Problem, "Unable to create custom domain"
       end
 
 
-      # Simply instatiates a new ColonelConfig object and checks if it exists.
+      # Simply instatiates a new ColonelSettings object and checks if it exists.
       def exists? identifier
-        # The `parse`` method instantiates a new ColonelConfig object but does
+        # The `parse`` method instantiates a new ColonelSettings object but does
         # not save it to Redis. We do that here to piggyback on the inital
         # validation and parsing. We use the derived identifier to load
         # the object from Redis using
         obj = load(identifier)
-        OT.ld "[ColonelConfig.exists?] Got #{obj} for #{identifier}"
+        OT.ld "[ColonelSettings.exists?] Got #{obj} for #{identifier}"
         obj.exists?
 
       rescue Onetime::Problem => e
-        OT.le "[ColonelConfig.exists?] #{e.message}"
+        OT.le "[ColonelSettings.exists?] #{e.message}"
         OT.ld e.backtrace.join("\n")
         false
       end

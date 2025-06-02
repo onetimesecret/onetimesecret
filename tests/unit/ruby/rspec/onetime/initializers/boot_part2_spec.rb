@@ -50,9 +50,9 @@ RSpec.describe "Onetime global state after boot" do
     allow(V2::Session).to receive(:values).and_return(double('Values', element_count: 0))
 
     # Mock colonel config setup methods
-    allow(V2::ColonelConfig).to receive(:current).and_raise(OT::RecordNotFound.new("No config found"))
-    allow(V2::ColonelConfig).to receive(:extract_colonel_config).and_return({})
-    allow(V2::ColonelConfig).to receive(:create).and_return(double('ColonelConfig', rediskey: 'test:config'))
+    allow(V2::ColonelSettings).to receive(:current).and_raise(OT::RecordNotFound.new("No config found"))
+    allow(V2::ColonelSettings).to receive(:extract_colonel_config).and_return({})
+    allow(V2::ColonelSettings).to receive(:create).and_return(double('ColonelSettings', rediskey: 'test:config'))
 
     # Other common mocks
     allow(Onetime).to receive(:connect_databases).and_return(true)
