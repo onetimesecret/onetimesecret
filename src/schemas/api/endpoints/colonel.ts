@@ -164,7 +164,7 @@ const limitsSchema = z.object({
 });
 
 /**
- * ColonelConfigSchema defines the top-level structure of the configuration.
+ * ColonelSettingsSchema defines the top-level structure of the configuration.
  * Each section references deeper schemas defined elsewhere.
  * Using .optional() to handle partial configuration data during initialization.
  */
@@ -231,5 +231,5 @@ export const colonelInfoDetailsSchema = z.object({
 
 // Export types
 export type ColonelInfoDetails = z.infer<typeof colonelInfoDetailsSchema>;
-export type ColonelConfigDetails = z.infer<typeof colonelConfigDetailsSchema>;
+export type ColonelSettingsDetails = z.infer<typeof colonelConfigDetailsSchema>;
 export type RecentCustomer = z.infer<typeof recentCustomerSchema>;

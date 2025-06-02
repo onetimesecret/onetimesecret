@@ -1,7 +1,8 @@
-// src/composables/useColonelConfig.ts
-import { colonelConfigSchema, type ColonelConfigDetails } from '@/schemas/api/endpoints/colonel';
+// src/composables/useColonelSettings.ts
+
+import { colonelConfigSchema, type ColonelSettingsDetails } from '@/schemas/api/endpoints/colonel';
 import { useNotificationsStore } from '@/stores';
-import { useColonelConfigStore } from '@/stores/colonelConfigStore';
+import { useColonelSettingsStore } from '@/stores/colonelSettingsStore';
 import { computed, nextTick, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { z } from 'zod';
@@ -11,9 +12,9 @@ import { useAsyncHandler, type AsyncHandlerOptions } from './useAsyncHandler';
 export type ConfigSectionKey = keyof typeof colonelConfigSchema.shape;
 
 /* eslint-disable max-lines-per-function */
-export function useColonelConfig() {
+export function useColonelSettings() {
   const { t } = useI18n();
-  const store = useColonelConfigStore();
+  const store = useColonelSettingsStore();
   const notifications = useNotificationsStore();
 
   // State
@@ -136,7 +137,7 @@ export function useColonelConfig() {
 
   // Initialize section editors
   const initializeSectionEditors = (
-    configData: ColonelConfigDetails | null,
+    configData: ColonelSettingsDetails | null,
     configSections: Array<{ key: ConfigSectionKey }>
   ) => {
     isProgrammaticChange.value = true; // <-- Set flag before programmatic changes
@@ -231,12 +232,12 @@ export function useColonelConfig() {
       }
 
       // Create a payload with only the current section's data
-      const payload: Partial<ColonelConfigDetails> = {};
+      const payload: Partial<ColonelSettingsDetails> = {};
       payload[currentSection] = JSON.parse(sectionEditors.value[currentSection]);
 
       try {
         // Send only the current section for update
-        await store.update(payload as ColonelConfigDetails);
+        await store.update(payload as ColonelSettingsDetails);
 
         // Remove from modified sections
         modifiedSections.value.delete(currentSection);
@@ -295,7 +296,7 @@ export function useColonelConfig() {
       }
 
       // Combine all section editors into a single config object
-      const combinedConfig: Partial<ColonelConfigDetails> = {};
+      const combinedConfig: Partial<ColonelSettingsDetails> = {};
 
       for (const section of configSections) {
         const sectionContent = sectionEditors.value[section.key];
@@ -319,7 +320,7 @@ export function useColonelConfig() {
       }
 
       // Update config and refetch
-      await store.update(combinedConfig as ColonelConfigDetails);
+      await store.update(combinedConfig as ColonelSettingsDetails);
       // await store.fetch();
 
       // Clear all modified sections

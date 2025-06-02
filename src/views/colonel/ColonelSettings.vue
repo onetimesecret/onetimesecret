@@ -3,7 +3,7 @@
 <script setup lang="ts">
   import OIcon from '@/components/icons/OIcon.vue';
   import ColonelNavigation from '@/components/colonel/ColonelNavigation.vue';
-  import { useColonelConfigStore } from '@/stores/colonelConfigStore';
+  import { useColonelSettingsStore } from '@/stores/colonelSettingsStore';
   import { onMounted, computed } from 'vue';
   import { storeToRefs } from 'pinia';
   import { useI18n } from 'vue-i18n';
@@ -12,8 +12,8 @@
   import { oneDark } from '@codemirror/theme-one-dark';
   import { EditorView } from '@codemirror/view';
   import CodeMirror from 'vue-codemirror6';
-  import { type ColonelConfigDetails } from '@/schemas/api/endpoints/colonel';
-  import { useColonelConfig, type ConfigSectionKey } from '@/composables/useColonelConfig';
+  import { type ColonelSettingsDetails } from '@/schemas/api/endpoints/colonel';
+  import { useColonelSettings, type ConfigSectionKey } from '@/composables/useColonelSettings';
   import { useTheme } from '@/composables/useTheme';
 
   const { t } = useI18n();
@@ -28,7 +28,7 @@
     { key: 'limits' as ConfigSectionKey, label: 'Limits' },
   ];
 
-  const store = useColonelConfigStore();
+  const store = useColonelSettingsStore();
   const { details: config } = storeToRefs(store);
   const { fetch } = store;
 
@@ -53,7 +53,7 @@
     switchToSection,
     isProgrammaticChange,
     setInitialActiveSection,
-  } = useColonelConfig();
+  } = useColonelSettings();
 
 
 
@@ -93,7 +93,7 @@ const lightTheme = EditorView.theme({});
         initializeSectionEditors(config.value, configSections);
       } else {
         // Only initialize with empty if no config was returned
-        initializeSectionEditors({} as ColonelConfigDetails, configSections);
+        initializeSectionEditors({} as ColonelSettingsDetails, configSections);
       }
 
       // Set active section after initialization using the programmatic method
