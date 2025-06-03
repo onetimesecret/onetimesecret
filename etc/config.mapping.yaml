@@ -40,6 +40,10 @@ mappings:
     - from: "logging"
       to: "logging"
 
+    # i18n
+    - from: "internationalization"
+      to: "i18n"
+
     # Development settings
     - from: "development"
       to: "development"
@@ -97,10 +101,6 @@ mappings:
     # Limits
     - from: "limits"
       to: "limits"
-
-    # i18n
-    - from: "internationalization"
-      to: "features.internationalization"
 
     # Mail validation
     - from: "mail.truemail"
