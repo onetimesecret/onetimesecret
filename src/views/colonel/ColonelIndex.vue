@@ -18,20 +18,6 @@
   // Quick stats using real data from the store
   const statsData = computed(() => [
     {
-      name: t('web.colonel.stats.totalSecrets'),
-      value: stats.value?.counts?.secret_count?.toLocaleString() || '0',
-      change: null,
-      changeType: 'neutral' as const,
-      icon: { collection: 'heroicons', name: 'lock-closed' },
-    },
-    {
-      name: t('web.colonel.stats.activeUsers'),
-      value: stats.value?.counts?.session_count?.toString() || '0',
-      change: null,
-      changeType: 'neutral' as const,
-      icon: { collection: 'heroicons', name: 'users' },
-    },
-    {
       name: t('web.colonel.stats.secretsCreated'),
       value: stats.value?.counts?.secrets_created?.toLocaleString() || '0',
       change: null,
@@ -46,11 +32,11 @@
       icon: { collection: 'heroicons', name: 'share' },
     },
     {
-      name: t('web.colonel.stats.totalCustomers'),
-      value: stats.value?.counts?.customer_count?.toLocaleString() || '0',
+      name: t('web.colonel.stats.activeUsers'),
+      value: stats.value?.counts?.session_count?.toString() || '0',
       change: null,
       changeType: 'neutral' as const,
-      icon: { collection: 'heroicons', name: 'user-group' },
+      icon: { collection: 'heroicons', name: 'users' },
     },
     {
       name: t('web.colonel.stats.emailsSent'),
@@ -60,11 +46,18 @@
       icon: { collection: 'heroicons', name: 'envelope' },
     },
     {
-      name: t('web.colonel.stats.systemHealth'),
-      value: stats.value ? t('web.colonel.stats.healthy') : t('web.LABELS.loading'),
+      name: t('web.colonel.stats.totalSecrets'),
+      value: stats.value?.counts?.secret_count?.toLocaleString() || '0',
       change: null,
       changeType: 'neutral' as const,
-      icon: { collection: 'heroicons', name: 'heart' },
+      icon: { collection: 'heroicons', name: 'lock-closed' },
+    },
+    {
+      name: t('web.colonel.stats.totalCustomers'),
+      value: stats.value?.counts?.customer_count?.toLocaleString() || '0',
+      change: null,
+      changeType: 'neutral' as const,
+      icon: { collection: 'heroicons', name: 'user-group' },
     },
   ]);
 
@@ -133,7 +126,8 @@
         class="overflow-hidden rounded-lg bg-white px-4 py-5 shadow transition-shadow hover:shadow-md dark:bg-gray-800">
         <div class="flex items-center justify-between">
           <div class="flex items-center space-x-3">
-            <div class="flex h-10 w-10 items-center justify-center rounded-lg bg-brand-50 dark:bg-brand-900/20">
+            <div
+              class="flex h-10 w-10 items-center justify-center rounded-lg bg-brand-50 dark:bg-brand-900/20">
               <OIcon
                 :collection="stat.icon.collection"
                 :name="stat.icon.name"
