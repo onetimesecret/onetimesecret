@@ -6,7 +6,7 @@ name: Vue Tests
 #     the `main` branch.
 #  2. It uses Ubuntu as the runner environment.
 #  3. It checks out your code and sets up Node.js version 18.
-#  4. It installs pnpm version 9, as specified in your `package.json`.
+#  4. It installs pnpm version 10, as specified in your `package.json`.
 #  5. It installs the project dependencies using `pnpm install`.
 #  6. It runs the tests using the `pnpm test` command, which corresponds to
 #     the `"test": "vitest run"` script in your `package.json`.
@@ -60,7 +60,7 @@ jobs:
       - name: Install pnpm
         uses: pnpm/action-setup@a7487c7e89a18df4991f7f222e4898a00d66ddda # v4
         with:
-          version: 9
+          version: 10
 
       - name: Install dependencies
         run: pnpm install
