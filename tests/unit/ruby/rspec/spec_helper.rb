@@ -4,6 +4,7 @@ require 'rspec'
 require 'yaml'
 require 'tempfile'
 require 'fileutils'
+# require 'fakeredis'
 
 base_path = File.expand_path('../../../../..', __FILE__)
 apps_root = File.join(base_path, 'apps').freeze

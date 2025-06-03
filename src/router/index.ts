@@ -5,6 +5,7 @@ import { createRouter, createWebHistory } from 'vue-router';
 
 import accountRoutes from './account.routes';
 import authRoutes from './auth.routes';
+import colonelRoutes from './colonel.routes';
 import dashboardRoutes from './dashboard.routes';
 import metadataRoutes from './metadata.routes';
 import publicRoutes from './public.routes';
@@ -17,6 +18,7 @@ const routes: RouteRecordRaw[] = [
   ...authRoutes,
   ...dashboardRoutes,
   ...accountRoutes,
+  ...colonelRoutes,
 ];
 
 /**
@@ -104,6 +106,7 @@ export function createAppRouter(): Router {
 
   return router;
 }
+
 /**
  * About Auto vs Lazy loading
  *
@@ -111,5 +114,4 @@ export function createAppRouter(): Router {
  *    Auto-loaded components are imported and initialized immediately when the
  *    application starts. If these components have dependencies that are not
  *    yet available or initialized, they might not function correctly.
- *
  */
