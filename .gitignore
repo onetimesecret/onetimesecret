@@ -51,7 +51,8 @@ public/web/dist/
 etc/config*
 !etc/config.example.yaml
 !etc/config.schema.yaml
-!etc/config.mapping.yaml
+etc/system_settings*
+!etc/system_settings.example.yaml
 !fly.toml
 .github/*md
 .eslintcache
