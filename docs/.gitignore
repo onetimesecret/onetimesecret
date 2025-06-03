@@ -5,7 +5,7 @@
 !architecture/OVERVIEW.md
 !architecture/ERRORS.md
 !architecture/config-vs-settings.md
-!architecture/vue3-error-handling.md
+!architecture/type-safety.md
 !architecture/UI.md
 !/api/*
 !DOCKER*.md
