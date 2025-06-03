@@ -3,10 +3,10 @@
 !api/
 !architecture/
 !architecture/OVERVIEW.md
-!architecture/ERRORS.md
+!architecture/error-handling.md
 !architecture/config-vs-settings.md
 !architecture/type-safety.md
-!architecture/UI.md
+!architecture/frontend-architecture.md
 !/api/*
 !DOCKER*.md
 !README*.md
