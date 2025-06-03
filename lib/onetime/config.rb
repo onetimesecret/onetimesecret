@@ -124,12 +124,12 @@ module Onetime
       conf = if incoming_config.nil?
         {}
       else
-        deep_clone(incoming_config)
+        OT::Utils.deep_clone(incoming_config)
       end
 
       # SAFETY MEASURE: Validation and Default Security Settings
       # Ensure all critical security-related configurations exist
-      conf = deep_merge(DEFAULTS, conf) # TODO: We don't need to re-assign `conf`
+      conf = OT::Utils.deep_merge(DEFAULTS, conf) # TODO: We don't need to re-assign `conf`
 
       raise_concerns(conf)
 
@@ -209,7 +209,7 @@ module Onetime
       # - Any attempt to modify frozen config will raise a FrozenError, failing fast
       # - Guarantees configuration integrity throughout application lifecycle
       # - Makes security guarantees stronger by ensuring config values can't be tampered with
-      deep_freeze(conf)
+      OT::Utils.deep_freeze(conf)
     end
 
     def raise_concerns(conf)
@@ -264,60 +264,6 @@ module Onetime
       KEY_MAP[key] || key
     end
 
-    # Recursively freezes an object and all its nested components
-    # to ensure complete immutability. This is a critical security
-    # measure that prevents any modification of configuration values
-    # after they've been loaded and validated, protecting against both
-    # accidental mutations and potential security exploits.
-    #
-    # @param obj [Object] The object to freeze
-    # @return [Object] The frozen object
-    # @security This ensures configuration values cannot be tampered with at runtime
-    def deep_freeze(obj)
-      case obj
-      when Hash
-        obj.each_value { |v| deep_freeze(v) }
-      when Array
-        obj.each { |v| deep_freeze(v) }
-      end
-      obj.freeze
-    end
-
-    # Creates a complete deep copy of a configuration hash using Marshal
-    # dump and load. This ensures all nested objects are properly duplicated,
-    # preventing unintended sharing of references that could lead to data
-    # corruption if modified.
-    #
-    # @param config_hash [Hash] The configuration hash to be cloned
-    # @return [Hash] A deep copy of the original configuration hash
-    # @raise [OT::Problem] When Marshal serialization fails due to unserializable objects
-    # @security Prevents configuration mutations from affecting multiple components
-    #
-    # @limitations
-    #   This method has significant limitations due to its reliance on Marshal:
-    #   - Cannot clone objects with singleton methods, procs, lambdas, or IO objects
-    #   - Will fail when encountering objects that implement custom _dump methods without _load
-    #   - Loses any non-serializable attributes from complex objects
-    #   - May not preserve class/module references across different Ruby processes
-    #   - Thread-safety issues may arise with concurrent serialization operations
-    #   - Performance can degrade with deeply nested or large object structures
-    #
-    #   Consider using a recursive approach for specialized object cloning when
-    #   dealing with configuration containing custom objects, procs, or other
-    #   non-serializable elements. For critical security contexts, validate that
-    #   all configuration elements are serializable before using this method.
-    #
-    def deep_clone(config_hash)
-      # Previously used Marshal here. But in Ruby 3.1 it died cryptically with
-      # a singleton error. It seems like it's related to gibbler but since we
-      # know we only expect a regular hash here without any methods, procs
-      # etc, we use YAML instead to accomplish the same thing (JSON is
-      # another option but it turns all the symbol keys into strings).
-      YAML.load(YAML.dump(config_hash))
-    rescue TypeError => ex
-      raise OT::Problem, "[deep_clone] #{ex.message}"
-    end
-
     # Applies default values to its config level peers
     #
     # @param config [Hash] Configuration with top-level section keys, including a :defaults key
@@ -357,7 +303,7 @@ module Onetime
         next unless values.is_a?(Hash) # Process only sections that are hashes
 
         # Apply defaults to each section
-        result[section] = deep_merge(defaults, values)
+        result[section] = OT::Utils.deep_merge(defaults, values)
       end
     end
 
@@ -388,31 +334,10 @@ module Onetime
     # Makes a deep copy of OT.conf, then merges the system settings data, and
     # replaces OT.config with the merged data.
     def apply_config(other)
-      new_config = deep_merge(OT.conf, other)
+      new_config = OT::Utils.deep_merge(OT.conf, other)
       OT.replace_config! new_config
     end
 
-    # Standard deep_merge implementation based on widely used patterns
-    # @param original [Hash] Base hash with default values
-    # @param other [Hash] Hash with values that override defaults
-    # @return [Hash] A new hash containing the merged result
-    def deep_merge(original, other)
-      return deep_clone(other) if original.nil?
-      return deep_clone(original) if other.nil?
-
-      original_clone = deep_clone(original)
-      other_clone = deep_clone(other)
-      merger = proc do |_key, v1, v2|
-        if v1.is_a?(Hash) && v2.is_a?(Hash)
-          v1.merge(v2, &merger)
-        elsif v2.nil?
-          v1
-        else
-          v2
-        end
-      end
-      original_clone.merge(other_clone, &merger)
-    end
   end
 
   # A simple map of our config options using our naming conventions
