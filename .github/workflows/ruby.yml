@@ -81,8 +81,10 @@ jobs:
           --health-retries 5
         ports:
           # https://docs.github.com/en/actions/using-containerized-services/creating-redis-service-containers#running-jobs-in-containers
-          # Maps port 6379 on service container to the host
-          - 6379:6379
+          # Maps port 6379 on service container to 2121 on the host to
+          # match the port we use in dev which helps us avoid clobbering
+          # our dev redis instances.
+          - 2121:6379
 
     steps:
       - name: Checkout code
