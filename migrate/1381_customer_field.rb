@@ -12,6 +12,12 @@
 #   - Audit only (dry_run = true): Lists customers with missing emails, no changes made
 #   - Repair mode (dry_run = false): Updates empty email fields with customer ID value
 
+base_path = File.expand_path File.join(File.dirname(__FILE__), '..')
+$:.unshift File.join(base_path, 'lib')
+
+require 'onetime'
+require 'onetime/migration'
+
 
 report_field = 'email'
 redis_client = V2::Customer.redis

@@ -6,7 +6,7 @@ require 'fileutils'
 class ConfigMapper
   def initialize(project_root = nil)
     @project_root = project_root || File.expand_path('..', __dir__)
-    @config_example = File.join(@project_root, 'etc', 'config.example.converted.yaml')
+    @config_example = File.join(@project_root, 'etc', 'config.converted.yaml')
     @config_mapping = File.join(@project_root, 'etc', 'config.mapping.yaml')
     @static_output = File.join(@project_root, 'etc', 'config.static.yaml')
     @dynamic_output = File.join(@project_root, 'etc', 'config.dynamic.yaml')
