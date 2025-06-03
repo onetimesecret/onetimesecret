@@ -63,11 +63,15 @@ module Onetime
       # That way, at least the default language will display.
       locales_defs.each do |key, locale|
         next if OT.default_locale == key
+        # NOTE: We switched to using the properly deep merge method from utils
+        # which avoids potential accidental modification of child hashes. It
+        # also treats nils differently, ensuring that the default values are
+        # preserved when merging and nils no longer override existing values.
         locales_defs[key] = OT::Utils.deep_merge(default_locale_def, locale)
       end
 
-      @locales = locales_defs || {}
-
+      # Allow indifferent access to the locales hash
+      @locales = OT::Utils.deep_indifferent_hash(locales_defs || {})
     end
   end
 end
