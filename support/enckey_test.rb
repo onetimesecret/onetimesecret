@@ -1,6 +1,6 @@
 # support/enckey_test.rb
 #
-# Test script for debugging OneTimeSecret encryption keys
+# Test script for debugging OnetimeSecret encryption keys
 # This utility helps diagnose encryption/decryption issues by testing
 # various key combinations and encryption methods.
 

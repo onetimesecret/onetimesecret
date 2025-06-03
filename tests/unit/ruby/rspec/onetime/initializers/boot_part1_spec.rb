@@ -125,7 +125,7 @@ RSpec.describe "Onetime::Config during Onetime.boot!" do
       expect(conf.dig(:site, :secret_options)).to have_key(:ttl_options)
       expect(conf.dig(:diagnostics, :sentry)).to be_a(Hash)
 
-      # In after_load, when we call `merged = apply_defaults(diagnostics[:sentry])`
+      # In after_load, when we call `merged = apply_defaults_to_peers(diagnostics[:sentry])`
       # :default is nil and no longer a hash. Details:
       # Notice that line with `next if section == :defaults` - this
       # explicitly skips adding the `:defaults` section to the result hash.
@@ -264,7 +264,7 @@ RSpec.describe "Onetime::Config during Onetime.boot!" do
       expect(conf.dig(:site, :host)).to eq('127.0.0.1:3000')
       expect(conf.dig(:site, :secret_options, :default_ttl)).to eq('43200'.to_i)
       expect(conf.dig(:site, :secret_options, :ttl_options)).to eq(['1800', '43200', '604800'].map(&:to_i))
-      expect(conf.dig(:redis, :uri)).to eq('redis://CHANGEME@127.0.0.1:6379/0')
+      expect(conf.dig(:redis, :uri)).to eq('redis://CHANGEME@127.0.0.1:2121/0')
       expect(conf.dig(:development, :enabled)).to be(false)
       expect(Onetime.env).to eq('test')
     end

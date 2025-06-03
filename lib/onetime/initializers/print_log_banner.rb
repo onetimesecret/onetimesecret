@@ -39,7 +39,46 @@ module Onetime
       output << "---  ONETIME #{OT.mode} v#{OT::VERSION.inspect}  #{'---' * 3}"
       output << ""
 
-      # ====== System Information Section ======
+      # Add each section to output
+      system_rows = build_system_section(redis_info)
+      output << render_section('Component', 'Value', system_rows)
+
+      dev_rows = build_dev_section
+      unless dev_rows.empty?
+        output << render_section('Development', 'Settings', dev_rows)
+      end
+
+      feature_rows = build_features_section(site_config)
+      unless feature_rows.empty?
+        output << render_section('Features', 'Configuration', feature_rows)
+      end
+
+      mail_rows = build_email_section(email_config)
+      unless mail_rows.empty?
+        output << render_section('Mail Config', 'Value', mail_rows)
+      end
+
+      auth_rows = build_auth_section(site_config, colonels)
+      unless auth_rows.empty?
+        output << render_section('Authentication', 'Details', auth_rows)
+      end
+
+      customization_rows = build_customization_section(site_config)
+      unless customization_rows.empty?
+        output << render_section('Customization', 'Configuration', customization_rows)
+      end
+
+      # Footer
+      output << "#{'-' * 75}"
+
+      # Output everything with a single OT.li call
+      OT.li output.join("\n")
+    end
+
+    private
+
+    # Builds system information section rows
+    def build_system_section(redis_info)
       system_rows = [
         ['System', "#{@sysinfo.platform} (#{RUBY_ENGINE} #{RUBY_VERSION} in #{OT.env})"],
         ['Config', OT::Config.path],
@@ -54,9 +93,11 @@ module Onetime
         system_rows << ['Locales', @locales.keys.join(', ')]
       end
 
-      output << render_section('Component', 'Value', system_rows)
+      system_rows
+    end
 
-      # ====== Development and Experimental Settings Section ======
+    # Builds development and experimental settings section rows
+    def build_dev_section
       dev_rows = []
 
       [:development, :experimental].each do |key|
@@ -69,11 +110,11 @@ module Onetime
         end
       end
 
-      unless dev_rows.empty?
-        output << render_section('Development', 'Settings', dev_rows)
-      end
+      dev_rows
+    end
 
-      # ====== Features Section ======
+    # Builds features section rows
+    def build_features_section(site_config)
       feature_rows = []
 
       # Plans section
@@ -92,48 +133,43 @@ module Onetime
 
       # Domains and regions
       [:domains, :regions].each do |key|
-        if site_config.key?(key)
-          config = site_config[key]
-          if is_feature_disabled?(config)
-            feature_rows << [key.to_s.capitalize, 'disabled']
-          elsif !config.empty?
-            feature_rows << [key.to_s.capitalize, format_config_value(config)]
-          end
+        next unless site_config.key?(key)
+        config = site_config[key]
+        if is_feature_disabled?(config)
+          feature_rows << [key.to_s.capitalize, 'disabled']
+        elsif !config.empty?
+          feature_rows << [key.to_s.capitalize, format_config_value(config)]
         end
       end
 
-      unless feature_rows.empty?
-        output << render_section('Features', 'Configuration', feature_rows)
-      end
+      feature_rows
+    end
 
-      # ====== Email Configuration Section ======
-      if email_config && !email_config.empty?
-        begin
-          mail_rows = []
-          if is_feature_disabled?(email_config)
-            mail_rows << ['Status', 'disabled']
-          else
-            mail_rows = [
-              ['Mailer', @emailer],
-              ['Mode', email_config[:mode]],
-              ['From', "'#{email_config[:fromname]} <#{email_config[:from]}>'"],
-              ['Host', "#{email_config[:host]}:#{email_config[:port]}"],
-              ['Region', email_config[:region]],
-              ['TLS', email_config[:tls]],
-              ['Auth', email_config[:auth]]
-            ].reject { |row| row[1].nil? || row[1].to_s.empty? }
-          end
+    # Builds email configuration section rows
+    def build_email_section(email_config)
+      return [] if email_config.nil? || email_config.empty?
 
-          if !mail_rows.empty?
-            output << render_section('Mail Config', 'Value', mail_rows)
-          end
-        rescue => e
-          output << "Error rendering mail table: #{e.message}"
-          output << ""
+      begin
+        if is_feature_disabled?(email_config)
+          [['Status', 'disabled']]
+        else
+          [
+            ['Mailer', @emailer],
+            ['Mode', email_config[:mode]],
+            ['From', "'#{email_config[:fromname]} <#{email_config[:from]}>'"],
+            ['Host', "#{email_config[:host]}:#{email_config[:port]}"],
+            ['Region', email_config[:region]],
+            ['TLS', email_config[:tls]],
+            ['Auth', email_config[:auth]],
+          ].reject { |row| row[1].nil? || row[1].to_s.empty? }
         end
+      rescue => e
+        [['Error', "Error rendering mail config: #{e.message}"]]
       end
+    end
 
-      # ====== Authentication Section ======
+    # Builds authentication section rows
+    def build_auth_section(site_config, colonels)
       auth_rows = []
 
       if colonels.empty?
@@ -152,14 +188,15 @@ module Onetime
         end
       end
 
-      unless auth_rows.empty?
-        output << render_section('Authentication', 'Details', auth_rows)
-      end
+      auth_rows
+    end
 
-      # ====== Customization Section ======
+    # Builds customization section rows
+    def build_customization_section(site_config)
       customization_rows = []
-      secret_options = OT.conf.dig(:site, :secret_options)
 
+      # Secret options
+      secret_options = OT.conf.dig(:site, :secret_options)
       if secret_options
         # Format default TTL
         if secret_options[:default_ttl]
@@ -174,18 +211,38 @@ module Onetime
         end
       end
 
-      unless customization_rows.empty?
-        output << render_section('Customization', 'Configuration', customization_rows)
+      # Interface configuration
+      if site_config.key?(:interface)
+        interface_config = site_config[:interface]
+        if is_feature_disabled?(interface_config)
+          customization_rows << ['Interface', 'disabled']
+        elsif interface_config.is_a?(Hash)
+          # Handle nested ui and api configs under interface
+          [:ui, :api].each do |key|
+            next unless interface_config.key?(key)
+            sub_config = interface_config[key]
+            if is_feature_disabled?(sub_config)
+              customization_rows << ["Interface > #{key.to_s.upcase}", 'disabled']
+            elsif !sub_config.nil? && (sub_config.is_a?(Hash) ? !sub_config.empty? : !sub_config.to_s.empty?)
+              customization_rows << ["Interface > #{key.to_s.upcase}", format_config_value(sub_config)]
+            end
+          end
+        end
+      else
+        # Fallback: check for standalone ui and api configs
+        [:ui, :api].each do |key|
+          next unless site_config.key?(key)
+          config = site_config[key]
+          if is_feature_disabled?(config)
+            customization_rows << [key.to_s.upcase, 'disabled']
+          elsif !config.empty?
+            customization_rows << [key.to_s.upcase, format_config_value(config)]
+          end
+        end
       end
 
-      # Footer
-      output << "#{'-' * 75}"
-
-      # Output everything with a single OT.li call
-      OT.li output.join("\n")
+      customization_rows
     end
-
-    private
 
     # Helper method to check if a feature is disabled
     def is_feature_disabled?(config)
@@ -214,18 +271,18 @@ module Onetime
       when 60...3600
         minutes = seconds / 60
         minutes == 1 ? "1m" : "#{minutes}m"
-      when 3600...86400
+      when 3600...86_400
         hours = seconds / 3600
         hours == 1 ? "1h" : "#{hours}h"
-      when 86400...604800
-        days = seconds / 86400
+      when 86_400...604_800
+        days = seconds / 86_400
         days == 1 ? "1d" : "#{days}d"
-      when 604800...2592000
-        weeks = seconds / 604800
+      when 604_800...2_592_000
+        weeks = seconds / 604_800
         weeks == 1 ? "1w" : "#{weeks}w"
       else
         # For very large values, use days
-        days = seconds / 86400
+        days = seconds / 86_400
         "#{days}d"
       end
     end
@@ -234,14 +291,13 @@ module Onetime
     def render_section(header1, header2, rows)
       table = TTY::Table.new(
         header: [header1, header2],
-        rows: rows
+        rows: rows,
       )
 
       rendered = table.render(:unicode,
         padding: [0, 1],
         multiline: true,
-        column_widths: [15, 79]
-      )
+        column_widths: [15, 79])
 
       # Return rendered table with an extra newline
       rendered + "\n"

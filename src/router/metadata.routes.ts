@@ -33,7 +33,7 @@ const withValidatedMetadataKey = {
         ...to.meta.layoutProps,
         displayMasthead: true,
         displayNavigation: false,
-        displayLinks: false,
+        displayFooterLinks: false,
         displayFeedback: false,
         displayVersion: true,
         displayPoweredBy: true,
@@ -76,7 +76,7 @@ const routes: Array<RouteRecordMultipleViews> = [
       layoutProps: {
         displayMasthead: true,
         displayNavigation: true,
-        displayLinks: true,
+        displayFooterLinks: true,
         displayFeedback: true,
         displayPoweredBy: false,
         displayVersion: true,
@@ -97,7 +97,7 @@ const routes: Array<RouteRecordMultipleViews> = [
       layoutProps: {
         displayMasthead: true,
         displayNavigation: true,
-        displayLinks: true,
+        displayFooterLinks: true,
         displayFeedback: true,
         displayPoweredBy: false,
         displayVersion: true,
@@ -119,7 +119,7 @@ const routes: Array<RouteRecordMultipleViews> = [
       layoutProps: {
         displayMasthead: false,
         displayNavigation: false,
-        displayLinks: false,
+        displayFooterLinks: false,
         displayFeedback: false,
         displayVersion: true,
         displayPoweredBy: true,
@@ -140,7 +140,7 @@ const routes: Array<RouteRecordMultipleViews> = [
       layoutProps: {
         displayMasthead: false,
         displayNavigation: false,
-        displayLinks: false,
+        displayFooterLinks: false,
         displayFeedback: false,
         displayVersion: true,
         displayPoweredBy: true,

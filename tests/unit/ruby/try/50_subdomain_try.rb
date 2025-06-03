@@ -1,6 +1,6 @@
 # tests/unit/ruby/try/50_subdomain_try.rb
 
-# These tryouts test the subdomain functionality in the OneTime application.
+# These tryouts test the subdomain functionality in the Onetime application.
 # They cover various aspects of subdomain management, including:
 #
 # 1. Creating and normalizing subdomains

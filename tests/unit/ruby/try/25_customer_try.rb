@@ -1,6 +1,6 @@
 # tests/unit/ruby/try/25_customer_try.rb
 
-# These tryouts test the customer model functionality in the OneTime application.
+# These tryouts test the customer model functionality in the Onetime application.
 # They cover various aspects of customer management, including:
 #
 # 1. Customer creation and initialization
