@@ -20,11 +20,17 @@ Establishes core application identity and security framework.
 - `colonels`: Array of administrator email addresses with elevated privileges
 
 #### Authenticity Protection (`authenticity`)
+
+Settings for [Altcha](https://github.com/altcha-org/altcha).
+
 - `type`: Anti-bot protection method ('altcha' or alternative)
 - `secret_key`: HMAC key for authenticity challenges (**CRITICAL: Replace default**)
 
 #### Security Middleware (`middleware`)
-Collection of security protections that can be toggled individually:
+Collection of security protections that can be toggled individually. These come from:
+gem 'rack-contrib', '~> 2.5'
+gem 'rack-protection', '~> 3.2'
+gem 'rack-utf8_sanitizer', '~> 1.10.1'
 
 - `static_files`: Serve frontend Vue application assets
 - `utf8_sanitizer`: Sanitize request parameters for proper UTF-8 encoding
