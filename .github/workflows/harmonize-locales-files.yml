@@ -1,3 +1,5 @@
+# .github/workflows/harmonize-locales-files.yml
+
 name: Harmonize Locale Files
 
 on:
@@ -24,6 +26,11 @@ on:
         description: 'Generate diff report for translation needs'
         type: boolean
         default: true
+
+# https://github.com/onetimesecret/onetimesecret/security/code-scanning/107
+permissions:
+  contents: read
+  pull-requests: write
 
 jobs:
   check_commit:
