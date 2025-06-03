@@ -5,3 +5,4 @@ public
 log
 sorbet
 etc
+*.svg

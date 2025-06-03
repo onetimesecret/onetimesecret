@@ -5,7 +5,7 @@
       "secret_view_faq": {
         "what_am_i_looking_at": {
           "title": "Hvad kigger jeg på?",
-          "description": "Du ser en sikker besked, som blev delt med dig via OneTime Secret. Dette indhold vises kun én gang og slettes derefter permanent fra vores servere."
+          "description": "Du ser en sikker besked, som blev delt med dig via Onetime Secret. Dette indhold vises kun én gang og slettes derefter permanent fra vores servere."
         },
         "can_i_view_again": {
           "title": "Kan jeg se denne hemmelighed igen senere?",

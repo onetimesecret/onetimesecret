@@ -163,7 +163,7 @@ content = JSON.parse(response.body)
 #=> [404, nil, 'Not Found']
 
 ## Can post to a bogus endpoint and get a 404
-response = @mock_request.post('/api/v2/colonel')
+response = @mock_request.post('/api/v2/colonel/info')
 content = JSON.parse(response.body)
 [response.status, content["success"], content["custid"]]
 #=> [404, nil, nil]

@@ -67,7 +67,8 @@ module Onetime
       email_receipt: 8,
       secret: 8,
       feedback: 11,
-      exceptions: 12,
+      exception_info: 12,
+      system_settings: 15,
     }
   end
 end

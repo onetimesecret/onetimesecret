@@ -2,7 +2,7 @@
 
 # frozen_string_literal: true
 
-# These tryouts test the StripeEvent model functionality in the OneTime application.
+# These tryouts test the StripeEvent model functionality in the Onetime application.
 # They cover various aspects of Stripe event management, including:
 #
 # 1. StripeEvent creation and initialization

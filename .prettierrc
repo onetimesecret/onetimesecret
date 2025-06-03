@@ -17,7 +17,8 @@
     {
       "files": "*.svg",
       "options": {
-        "parser": "html"
+        "parser": "html",
+        "plugins": []
       }
     },
     {
