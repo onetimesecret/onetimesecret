@@ -7,13 +7,12 @@
 
   const props = withDefaults(defineProps<LayoutProps>(), {
     displayFeedback: true,
-    displayLinks: true,
+    displayFooterLinks: true,
     displayMasthead: true,
     displayNavigation: true,
     displayVersion: true,
     displayToggles: true,
     displayPoweredBy: true,
-    displayFooterLinks: false,
   });
 </script>
 

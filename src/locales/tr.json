@@ -5,7 +5,7 @@
       "secret_view_faq": {
         "what_am_i_looking_at": {
           "title": "Neye bakıyorum?",
-          "description": "OneTime Secret aracılığıyla sizinle paylaşılan güvenli bir mesaja bakıyorsunuz. Bu içerik yalnızca bir kez görüntülenir ve ardından sunucularımızdan kalıcı olarak silinir."
+          "description": "Onetime Secret aracılığıyla sizinle paylaşılan güvenli bir mesaja bakıyorsunuz. Bu içerik yalnızca bir kez görüntülenir ve ardından sunucularımızdan kalıcı olarak silinir."
         },
         "can_i_view_again": {
           "title": "Bu gizli mesajı daha sonra tekrar görüntüleyebilir miyim?",

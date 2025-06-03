@@ -40,5 +40,6 @@ GET   /account                                   Core::Controllers::Page#custome
 GET   /account/billing_portal                    Core::Controllers::Account#customer_portal_redirect
 
 GET   /colonel                                   Core::Controllers::Page#colonels_only
+GET   /colonel/*                                 Core::Controllers::Page#colonels_only
 
 GET   /imagine/:custom_domain_id/:image_type.:image_ext  Core::Controllers::Page#imagine

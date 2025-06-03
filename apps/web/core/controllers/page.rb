@@ -1,13 +1,10 @@
 
 require_relative 'base'
 
-require_relative 'settings'
-
 module Core
   module Controllers
     class Page
-      include ControllerSettings
-      include ControllerBase
+      include Controllers::Base
 
       # /imagine/b79b17281be7264f778c/logo.png
       def imagine

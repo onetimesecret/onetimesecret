@@ -5,7 +5,7 @@
       "secret_view_faq": {
         "what_am_i_looking_at": {
           "title": "지금 무엇을 보고 있나요?",
-          "description": "OneTime Secret을 통해 공유된 보안 메시지를 보고 계십니다. 이 내용은 단 한 번만 표시되며 이후 저희 서버에서 영구적으로 삭제됩니다."
+          "description": "Onetime Secret을 통해 공유된 보안 메시지를 보고 계십니다. 이 내용은 단 한 번만 표시되며 이후 저희 서버에서 영구적으로 삭제됩니다."
         },
         "can_i_view_again": {
           "title": "이 메시지를 나중에 다시 볼 수 있나요?",

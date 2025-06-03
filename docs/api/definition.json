@@ -654,7 +654,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/ColonelResponse"
+                  "$ref": "#/components/schemas/ColonelInfoResponse"
                 }
               }
             }
@@ -1957,7 +1957,7 @@
           }
         }
       },
-      "ColonelResponse": {
+      "ColonelInfoResponse": {
         "type": "object",
         "required": ["success", "details"],
         "properties": {
@@ -1968,7 +1968,7 @@
             "type": "object"
           },
           "details": {
-            "$ref": "#/components/schemas/ColonelDetails"
+            "$ref": "#/components/schemas/ColonelInfoDetails"
           }
         }
       },
@@ -2933,7 +2933,7 @@
           }
         ]
       },
-      "ColonelDetails": {
+      "ColonelInfoDetails": {
         "allOf": [
           {
             "$ref": "#/components/schemas/BaseApiV2Record"

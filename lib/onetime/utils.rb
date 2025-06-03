@@ -13,7 +13,7 @@ module Onetime
     end
     attr_accessor :fortunes
 
-    def self.random_fortune
+    def random_fortune
       raise OT::Problem, "No fortunes" if fortunes.nil?
       raise OT::Problem, "#{fortunes.class} is not an Array" unless fortunes.is_a?(Array)
       fortune = fortunes.sample.to_s.strip

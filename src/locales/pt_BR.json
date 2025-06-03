@@ -5,7 +5,7 @@
       "secret_view_faq": {
         "what_am_i_looking_at": {
           "title": "O que estou vendo?",
-          "description": "Você está visualizando uma mensagem segura que foi compartilhada com você através do OneTime Secret. Este conteúdo é exibido apenas uma vez e depois é excluído permanentemente de nossos servidores."
+          "description": "Você está visualizando uma mensagem segura que foi compartilhada com você através do Onetime Secret. Este conteúdo é exibido apenas uma vez e depois é excluído permanentemente de nossos servidores."
         },
         "can_i_view_again": {
           "title": "Posso ver este segredo novamente mais tarde?",
