@@ -413,6 +413,10 @@
         "totalSecrets": "Total Secrets",
         "activeUsers": "Active Users",
         "secretsToday": "Secrets Today",
+        "secretsCreated": "Secrets Created",
+        "secretsShared": "Secrets Shared",
+        "totalCustomers": "Total Customers",
+        "emailsSent": "Emails Sent",
         "systemHealth": "System Health",
         "healthy": "Healthy"
       },
