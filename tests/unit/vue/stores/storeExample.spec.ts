@@ -2,7 +2,7 @@ import axios, { type AxiosInstance } from 'axios';
 import AxiosMockAdapter from 'axios-mock-adapter';
 import { createPinia, defineStore, setActivePinia } from 'pinia';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { inject } from 'vue';
+import { createApp } from 'vue';
 
 // Minimal store implementation
 const useTestStore = defineStore('test', {
@@ -10,40 +10,44 @@ const useTestStore = defineStore('test', {
     isLoading: false,
     data: null as any,
     error: null as Error | null,
-    _api: null as AxiosInstance | null,
   }),
 
   actions: {
-    init() {
-      this._api = inject('api') as AxiosInstance;
-    },
-
-    async fetchData(id: string) {
-      const response = await this._api!.get(`/api/data/${id}`);
-      this.data = response.data;
-      return response.data;
+    async fetchData(id: string, api: AxiosInstance) {
+      this.isLoading = true;
+      try {
+        const response = await api.get(`/api/data/${id}`);
+        this.data = response.data;
+        return response.data;
+      } catch (error) {
+        this.error = error as Error;
+        throw error;
+      } finally {
+        this.isLoading = false;
+      }
     },
   },
 });
 
 describe('Store Testing Pattern', () => {
   let axiosMock: AxiosMockAdapter;
+  let axiosInstance: AxiosInstance;
   let store: ReturnType<typeof useTestStore>;
   const mockData = { id: '123', value: 'test' };
 
   beforeEach(() => {
     // 1. Setup fresh Pinia instance
-    setActivePinia(createPinia());
+    const pinia = createPinia();
+    setActivePinia(pinia);
 
     // 2. Create fresh axios instance and mock
-    const axiosInstance = axios.create();
+    axiosInstance = axios.create();
     axiosMock = new AxiosMockAdapter(axiosInstance, {
       onNoMatch: 'throwException',
     });
 
-    // 3. Initialize store with mocked axios
+    // 3. Initialize store
     store = useTestStore();
-    store.init();
   });
 
   afterEach(() => {
@@ -63,7 +67,7 @@ describe('Store Testing Pattern', () => {
     });
 
     // 3. Execute and await the operation
-    const result = await store.fetchData('123');
+    const result = await store.fetchData('123', axiosInstance);
 
     // 4. Verify result
     expect(result).toEqual(mockData);
@@ -79,8 +83,9 @@ describe('Store Testing Pattern', () => {
     axiosMock.onGet('/api/data/123').networkError();
 
     // 2. Verify error handling
-    await expect(store.fetchData('123')).rejects.toThrow();
+    await expect(store.fetchData('123', axiosInstance)).rejects.toThrow();
     expect(store.isLoading).toBe(false);
+    expect(store.error).toBeTruthy();
   });
 
   it('handles delayed responses correctly', async () => {
@@ -94,7 +99,7 @@ describe('Store Testing Pattern', () => {
     });
 
     // 2. Start the request
-    const promise = store.fetchData('123');
+    const promise = store.fetchData('123', axiosInstance);
 
     // 3. Verify immediate loading state
     expect(store.isLoading).toBe(true);
