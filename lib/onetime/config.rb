@@ -10,49 +10,45 @@ module Onetime
       DEFAULTS = {
         site: {
           secret: nil,
-          domains: { enabled: false },
-          regions: { enabled: false },
-          plans: { enabled: false },
-          secret_options: {
-            default_ttl: 7.days,
-            ttl_options: [
-              60.seconds,     # 60 seconds (was missing from v0.20.5)
-              5.minutes,      # 300 seconds
-              30.minutes,     # 1800
-              1.hour,         # 3600
-              4.hours,        # 14400
-              12.hours,       # 43200
-              1.day,          # 86400
-              3.days,         # 259200
-              1.week,         # 604800
-              2.weeks,        # 1209600
-              30.days,        # 2592000
-            ]
-          },
-          interface: {
-            ui: { enabled: true },
-            api: { enabled: true },
-          },
+          api: { enabled: true },
+
           # All keys that we want to explicitly be set to false when enabled
           # is false, should be represented in this hash.
           authentication: {
             enabled: false,
-            signin: false,
-            signup: false,
-            autoverify: false,
             colonels: [],
           },
+          authenticity: {
+            enabled: false,
+            type: nil,
+            secret_key: nil,
+          },
+          middleware: {
+            static_files: true,
+            utf8_sanitizer: true,
+          },
         },
-        internationalization: {
-          enabled: false,
-          default_locale: 'en',
+        storage: {
+          db: {
+            connection: {
+              url: 'redis://localhost:6379',
+            },
+            database_mapping: nil,
+          }
         },
-        mail: {},
+        mail: {
+          connection: {
+            mode: 'smtp',
+            from: "noreply@example.com",
+            fromname: "OneTimeSecret",
+          }
+        },
         logging: {
           http_requests: true,
         },
-        diagnostics: {
+        i18n: {
           enabled: false,
+          default_locale: 'en',
         },
         development: {
           enabled: false,

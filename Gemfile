@@ -32,7 +32,6 @@ gem 'public_suffix'
 gem 'thin'
 
 gem 'drydock'
-#gem 'familia', path: '/Users/d/Projects/opensource/d/familia'
 gem 'familia', '~> 1.2.0'
 gem 'gibbler'
 gem 'otto', '~> 1.1.0.pre.alpha4'
