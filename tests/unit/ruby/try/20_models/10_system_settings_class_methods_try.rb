@@ -1,11 +1,11 @@
-# tests/unit/ruby/try/20_models/10_colonel_config_class_methods_try.rb
+# tests/unit/ruby/try/20_models/10_system_settings_class_methods_try.rb
 
 # redis-server --port 2121 --save "" --appendonly no
-# clear && ONETIME_DEBUG=1 REDIS_URL='redis://127.0.0.1:2121/0' bundle exec try -vf tests/unit/ruby/try/20_models/10_colonel_config_class_methods_try.rb
+# clear && ONETIME_DEBUG=1 REDIS_URL='redis://127.0.0.1:2121/0' bundle exec try -vf tests/unit/ruby/try/20_models/10_system_settings_class_methods_try.rb
 # REDIS_URL='redis://127.0.0.1:2121/0' ruby support/clear_redis.rb --all --force
 
 # Testing race condition with sorted sets using low precision now:
-# while true; do pnpm run redis:clean --force && pnpm run test:tryouts tests/unit/ruby/try/20_models/10_colonel_config_class_methods_try.rb || break; done
+# while true; do pnpm run redis:clean --force && pnpm run test:tryouts tests/unit/ruby/try/20_models/10_system_settings_class_methods_try.rb || break; done
 
 require 'securerandom'
 require 'fakeredis'
@@ -55,7 +55,7 @@ V2::SystemSettings.stack.clear
   }
 }
 
-@colonel_config_hash = {
+@system_settings_hash = {
   interface: {
     host: 'custom.example.com',
     port: 8080,
@@ -89,12 +89,12 @@ V2::SystemSettings.stack.clear
 }
 
 ## Can extract settings sections from full config using FIELD_MAPPINGS
-V2::SystemSettings.extract_colonel_config(@test_config)
-#=> {:interface=>{:host=>"localhost", :port=>3000, :ssl=>false}, :secret_options=>{:max_size=>1024, :default_ttl=>3600}, :mail=>{:from=>"noreply@example.com", :smtp=>{:host=>"smtp.example.com", :port=>587}}, :limits=>{:create_secret=>250, :send_feedback=>10}, :experimental=>{:enabled=>false}, :diagnostics=>{:enabled=>true, :level=>"info"}}
+V2::SystemSettings.extract_system_settings(@test_config)
+#=> {:interface=>{:host=>"localhost", :port=>3000, :ssl=>false}, :secret_options=>{:max_size=>1024, :default_ttl=>3600}, :mail=>{:from=>"noreply@example.com", :smtp=>{:host=>"smtp.example.com", :port=>587}}, :limits=>{:create_secret=>250, :send_feedback=>10}, :diagnostics=>{:enabled=>true, :level=>"info"}}
 
 ## Can construct onetime config structure from system settings hash
-V2::SystemSettings.construct_onetime_config(@colonel_config_hash)
-#=> {:site=>{:interface=>{:host=>"custom.example.com", :port=>8080, :ssl=>true}, :secret_options=>{:max_size=>2048}}, :mail=>{:from=>"custom@example.com"}, :limits=>{:create_secret=>500}, :experimental=>{:enabled=>true}, :diagnostics=>{:level=>"debug"}}
+V2::SystemSettings.construct_onetime_config(@system_settings_hash)
+#=> {:site=>{:interface=>{:host=>"custom.example.com", :port=>8080, :ssl=>true}, :secret_options=>{:max_size=>2048}}, :mail=>{:from=>"custom@example.com"}, :limits=>{:create_secret=>500}, :diagnostics=>{:level=>"debug"}}
 
 ## Can construct onetime config from partial system settings hash
 partial_config = { interface: { host: 'partial.example.com' }, mail: { from: 'partial@example.com' } }
@@ -203,13 +203,13 @@ V2::SystemSettings.stack.member?(@obj2.identifier)
 
 ## Extract settings sections handles missing nested keys gracefully
 incomplete_config = { site: { interface: { host: 'test' } } }
-result = V2::SystemSettings.extract_colonel_config(incomplete_config)
+result = V2::SystemSettings.extract_system_settings(incomplete_config)
 result[:secret_options]
 #=> nil
 
 ## Extract settings sections handles completely missing sections
 minimal_config = { other_section: { value: 'test' } }
-result = V2::SystemSettings.extract_colonel_config(minimal_config)
+result = V2::SystemSettings.extract_system_settings(minimal_config)
 [result[:interface], result[:mail], result[:limits]]
 #=> [nil, nil, nil]
 
@@ -222,7 +222,7 @@ p [:plop, result]
 
 ## FIELD_MAPPINGS constant is properly defined
 V2::SystemSettings::FIELD_MAPPINGS.keys.sort
-#=> [:diagnostics, :experimental, :interface, :limits, :mail, :secret_options]
+#=> [:diagnostics, :interface, :limits, :mail, :secret_options]
 
 ## FIELD_MAPPINGS has correct paths for nested site sections
 [

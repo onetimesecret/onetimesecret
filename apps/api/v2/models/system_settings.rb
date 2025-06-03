@@ -79,7 +79,6 @@ module V2
     field :secret_options
     field :mail
     field :limits
-    field :experimental
     field :diagnostics
     field :custid
     field :comment
