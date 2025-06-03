@@ -72,8 +72,16 @@ module Onetime
       prepare_emailers
       load_fortunes
       load_plans
-      connect_databases if connect_to_db
-      check_global_banner
+      if connect_to_db
+        connect_databases
+        check_global_banner
+      end
+
+      # Setup system settings - check for existing override configuration
+      # and merge with YAML config if present. Must happen before other
+      # initializers that depend on the final merged configuration.
+      setup_system_settings
+
       print_log_banner unless mode?(:test)
 
       # Let's be clear about returning the prepared configruation. Previously
@@ -117,5 +125,19 @@ module Onetime
       raise e unless mode?(:cli)
     end
 
+    # Replaces the global configuration instance with the provided data.
+    def replace_config!(other)
+      # TODO: Validate the new configuration data before replacing it
+      self.conf = other
+    end
+
+    private
+
+    # Replaces the global configuration instance. This method is private to
+    # prevent external modification of the shared configuration state
+    # after initialization.
+    def conf=(value)
+      @conf = value
+    end
   end
 end

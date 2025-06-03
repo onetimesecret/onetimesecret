@@ -1,13 +1,11 @@
 # apps/web/core/controllers/data.rb
 
 require_relative 'base'
-require_relative 'settings'
 
 module Core
   module Controllers
     class Data
-      include ControllerSettings
-      include ControllerBase
+      include Controllers::Base
 
       def export_window
         publically do

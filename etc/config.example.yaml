@@ -19,6 +19,27 @@
       # Controls whether the web interface is enabled
       # When false, only a basic explanation page is shown
       :enabled: <%= ENV['UI_ENABLED'] != 'false' %>
+      # Header configuration
+      # Controls branding and navigation in the site header
+      :header:
+        # Control switch to enable/disable header customization
+        :enabled: <%= ENV['HEADER_ENABLED'] != 'false' %>
+        # Branding configuration for logo and company name
+        :branding:
+          # Logo configuration
+          :logo:
+            # URL to logo image file
+            :url: <%= ENV['LOGO_URL'] || 'DefaultLogo.vue' %>
+            # Alt text for logo image
+            :alt: <%= ENV['LOGO_ALT'] || 'Share a Secret One-Time' %>
+            # Where the logo links to when clicked
+            :href: <%= ENV['LOGO_LINK'] || '/' %>
+          # Company name override (falls back to i18n if not set)
+          :site_name: <%= ENV['SITE_NAME'] %>
+        # Navigation configuration
+        :navigation:
+          # Enable/disable header navigation entirely
+          :enabled: <%= ENV['HEADER_NAV_ENABLED'] != 'false' %>
       # Footer link configuration
       # These links appear in the footer of each page
       :footer_links:
@@ -153,7 +174,6 @@
   # (e.g., Upstash) set all values to 0.
   :dbs:
     :session: <%= ENV['REDIS_DBS_SESSION'] || 1 %>
-    :splittest: <%= ENV['REDIS_DBS_SPLITTEST'] || 1 %>
     :custom_domain: <%= ENV['REDIS_DBS_CUSTOM_DOMAIN'] || 6 %>
     :customer: <%= ENV['REDIS_DBS_CUSTOMER'] || 6 %>
     :subdomain: <%= ENV['REDIS_DBS_SUBDOMAIN'] || 6 %>
@@ -163,6 +183,7 @@
     :rate_limit: <%= ENV['REDIS_DBS_RATE_LIMIT'] || 2 %>
     :feedback: <%= ENV['REDIS_DBS_FEEDBACK'] || 11 %>
     :exception_info: <%= ENV['REDIS_DBS_EXCEPTION_INFO'] || 12 %>
+    :system_settings: <%= ENV['REDIS_DBS_SYSTEM_SETTINGS'] || 15 %>
 
 # Logging Configuration
 :logging:
@@ -385,8 +406,9 @@
   :show_account: 100
   :stripe_webhook: 25
   :update_domain_brand: 50
-  :view_colonel: 50
+  :view_colonel: 100
   :external_redirect: 100
+  :update_colonel_settings: 50
 :development:
   # Development Mode Configuration
   #

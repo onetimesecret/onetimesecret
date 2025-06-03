@@ -1,14 +1,12 @@
 # apps/api/v2/controllers/domains.rb
 
 require_relative 'base'
-require_relative 'settings'
 require_relative '../logic/domains'
 
 module V2
   module Controllers
     class Domains
-      include V2::ControllerSettings
-      include V2::ControllerBase
+      include V2::Controllers::Base
 
       @check_utf8 = true
       @check_uri_encoding = true

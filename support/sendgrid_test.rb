@@ -1,6 +1,6 @@
 # support/sendgrid_test.rb
 #
-# Test script for SendGrid email delivery in OneTimeSecret
+# Test script for SendGrid email delivery in OnetimeSecret
 # This utility verifies that SendGrid API integration is properly configured
 
 $LOAD_PATH.unshift(File.expand_path("../../lib", __FILE__))

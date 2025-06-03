@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-# These tryouts test the TrueMail configuration integration in the OneTime application.
+# These tryouts test the TrueMail configuration integration in the Onetime application.
 # They cover:
 #
 # 1. Key mapping between OneTime's naming conventions and TrueMail's API
@@ -67,16 +67,16 @@ config = {
   web: {}
 }
 original_defaults = config[:defaults].dup
-result = Onetime::Config.apply_defaults(config)
+result = Onetime::Config.apply_defaults_to_peers(config)
 [result[:api][:timeout], result[:web][:timeout], result[:api][:enabled], config[:defaults] == original_defaults]
 #=> [10, 5, true, true]
 
 ## apply_defaults handles nil config
-Onetime::Config.apply_defaults(nil)
+Onetime::Config.apply_defaults_to_peers(nil)
 #=> {}
 
 ## apply_defaults handles empty config
-Onetime::Config.apply_defaults({})
+Onetime::Config.apply_defaults_to_peers({})
 #=> {}
 
 ## apply_defaults preserves defaults when section value is nil
@@ -85,6 +85,6 @@ config = {
   backend: { dsn: nil },
   frontend: { dsn: nil }
 }
-result = Onetime::Config.apply_defaults(config)
+result = Onetime::Config.apply_defaults_to_peers(config)
 [result[:backend][:dsn], result[:frontend][:dsn]]
 #=> ['default-dsn', 'default-dsn']

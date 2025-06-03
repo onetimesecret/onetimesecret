@@ -1,6 +1,6 @@
 # tests/unit/ruby/try/60_logic/21_logic_secrets_show_metadata_try.rb
 
-# These tryouts test the ShowMetadata logic functionality in the OneTime application,
+# These tryouts test the ShowMetadata logic functionality in the Onetime application,
 # with a focus on the initialization process and its arguments.
 # They cover:
 #

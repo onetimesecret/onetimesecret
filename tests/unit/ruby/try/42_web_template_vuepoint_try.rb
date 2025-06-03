@@ -1,6 +1,6 @@
 # tests/unit/ruby/try/42_web_template_vuepoint_try.rb
 
-# These tryouts test the VuePoint view functionality in the OneTime application,
+# These tryouts test the VuePoint view functionality in the Onetime application,
 # with a focus on the initialization process and its arguments.
 # They cover:
 #

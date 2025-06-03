@@ -82,6 +82,9 @@ Performance/Size:
   Enabled: true
   Exclude: []
 
+Naming/AsciiIdentifiers:
+  Enabled: false
+
 Metrics/CyclomaticComplexity:
   Enabled: false
 

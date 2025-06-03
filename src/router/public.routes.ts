@@ -23,7 +23,7 @@ const routes: Array<RouteRecordRaw> = [
       layoutProps: {
         displayMasthead: true,
         displayNavigation: true,
-        displayLinks: true,
+        displayFooterLinks: true,
         displayFeedback: true,
         displayPoweredBy: true,
         displayVersion: true,
@@ -40,7 +40,7 @@ const routes: Array<RouteRecordRaw> = [
           ...to.meta.layoutProps,
           displayMasthead: true,
           displayNavigation: false,
-          displayLinks: false,
+          displayFooterLinks: false,
           displayFeedback: false,
           displayVersion: true,
           displayPoweredBy: true,
@@ -58,7 +58,6 @@ const routes: Array<RouteRecordRaw> = [
       layout: DefaultLayout,
     },
   },
-
   {
     path: '/feedback',
     name: 'Feedback',
@@ -68,7 +67,7 @@ const routes: Array<RouteRecordRaw> = [
       layout: DefaultLayout,
       layoutProps: {
         displayMasthead: true,
-        displayLinks: true,
+        displayFooterLinks: true,
         displayFeedback: false,
       },
     },

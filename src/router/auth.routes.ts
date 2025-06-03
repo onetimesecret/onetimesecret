@@ -16,7 +16,7 @@ const routes: Array<RouteRecordRaw> = [
       layoutProps: {
         displayMasthead: false,
         displayNavigation: false,
-        displayLinks: false,
+        displayFooterLinks: false,
         displayFeedback: false,
         displayVersion: true,
         displayToggles: true,
@@ -45,7 +45,7 @@ const routes: Array<RouteRecordRaw> = [
       layoutProps: {
         displayMasthead: false,
         displayNavigation: false,
-        displayLinks: false,
+        displayFooterLinks: false,
         displayFeedback: false,
         displayVersion: true,
       },
@@ -73,7 +73,7 @@ const routes: Array<RouteRecordRaw> = [
       layoutProps: {
         displayMasthead: true,
         displayNavigation: false,
-        displayLinks: false,
+        displayFooterLinks: false,
         displayFeedback: true,
         displayVersion: false,
       },

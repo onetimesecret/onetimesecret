@@ -73,10 +73,9 @@
   :support:
     :host: <%= ENV['SUPPORT_HOST'] || nil %>
 :redis:
-  :uri: 'redis://CHANGEME@127.0.0.1:6379/0'
+  :uri: <%= ENV['REDIS_URL'] || 'redis://CHANGEME@127.0.0.1:2121/0' %>
   :dbs:
     :session: 1
-    :splittest: 1
     :custom_domain: 6
     :customer: 6
     :subdomain: 6
@@ -86,6 +85,7 @@
     :feedback: 11
     :rate_limit: 2
     :exception_info: 12
+    :system_settings: 15
 :features:
   :incoming:
     :enabled: false
@@ -257,8 +257,9 @@
   :show_account: 100
   :stripe_webhook: 25
   :update_domain_brand: 50
-  :view_colonel: 50
+  :view_colonel: 100
   :external_redirect: 100
+  :update_colonel_settings: 50
 :development:
   :enabled: <%= ['development', 'dev'].include?(ENV['RACK_ENV']) %>
   :debug: <%= ['true', '1', 'yes'].include?(ENV['ONETIME_DEBUG']) %>

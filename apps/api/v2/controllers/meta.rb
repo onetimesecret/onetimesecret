@@ -4,14 +4,11 @@ require 'json'
 require 'base64'
 
 require_relative 'base'
-require_relative 'class_methods'
-require_relative 'settings'
 
 module V2
   module Controllers
     class Meta
-      include ControllerBase
-      include ControllerSettings
+      include Controllers::Base
 
       def status
         publically do
@@ -96,7 +93,6 @@ module V2
         end
       end
 
-      extend V2::Controllers::ClassMethods
     end
   end
 end

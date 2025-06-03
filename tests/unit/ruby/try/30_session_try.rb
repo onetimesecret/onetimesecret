@@ -1,6 +1,6 @@
 # tests/unit/ruby/try/30_session_try.rb
 
-# These tryouts test the session management functionality in the OneTime application.
+# These tryouts test the session management functionality in the Onetime application.
 # They cover various aspects of session handling, including:
 #
 # 1. Session creation and initialization
