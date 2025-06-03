@@ -60,7 +60,8 @@
       <div
         id="top"
         class="mb-4 border-l-4 border-brand-500 pl-3 text-sm">
-        <h4 class="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-600 dark:text-gray-400">
+        <h4
+          class="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-600 dark:text-gray-400">
           {{ t('quick-navigation') }}
         </h4>
         <div class="flex flex-wrap gap-2">
@@ -102,12 +103,12 @@
               </p>
             </div>
           </div>
-          <div class="text-right">
+          <div class="text-right flex-shrink-0">
             <a
               href="/colonel"
-              class="text-xs text-brand-600 hover:text-brand-700 dark:text-brand-400"
-              >View Dashboard →</a
-            >
+              class="text-xs text-brand-600 hover:text-brand-700 dark:text-brand-400">
+              View Dashboard →
+            </a>
           </div>
         </div>
       </div>
@@ -128,16 +129,17 @@
           /></a>
         </h3>
 
-        <div class="overflow-hidden bg-white text-xs shadow dark:bg-gray-800 sm:rounded-lg">
-          <div class="divide-y divide-gray-200 dark:divide-gray-700">
+        <ul class="overflow-hidden bg-white text-xs shadow dark:bg-gray-800 sm:rounded-lg">
+          <li
+            v-for="section in feedbackSections"
+            :key="section.title"
+            class="border-b border-gray-200 last:border-b-0 dark:border-gray-700">
             <FeedbackSection
-              v-for="section in feedbackSections"
-              :key="section.title"
               :title="section.title"
               :count="section.count ?? 0"
               :feedback="section.feedback ?? []" />
-          </div>
-        </div>
+          </li>
+        </ul>
       </div>
 
       <!-- Customers Section -->
@@ -145,11 +147,11 @@
         id="customers"
         class="mb-6">
         <h3 class="mb-3 flex items-center text-lg font-semibold text-gray-900 dark:text-white">
-          <span
-            >Recent Customers ({{ details?.counts.recent_customer_count }}/{{
+          <span>
+            Recent Customers ({{ details?.counts.recent_customer_count }}/{{
               details?.counts.customer_count
-            }})</span
-          >
+            }})
+          </span>
           <a
             href="#top"
             class="ml-2"
@@ -159,15 +161,15 @@
               size="4"
           /></a>
         </h3>
-        <div class="space-y-3">
-          <div
+        <ul class="space-y-3">
+          <li
             v-for="customer in details?.recent_customers"
             :key="customer.custid"
             class="rounded-lg bg-white p-4 shadow dark:bg-gray-800">
             <div class="flex items-center justify-between">
-              <div>
+              <div class="min-w-0 flex-1">
                 <div class="flex items-center space-x-2">
-                  <span class="font-medium text-gray-900 dark:text-gray-100">{{
+                  <span class="truncate font-medium text-gray-900 dark:text-gray-100 max-w-xs">{{
                     customer.custid
                   }}</span>
                   <span
@@ -183,18 +185,18 @@
                 </div>
                 <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">{{ customer.stamp }}</p>
               </div>
-              <div class="text-right">
+              <div class="text-right flex-shrink-0">
                 <div class="text-sm font-medium text-gray-900 dark:text-gray-100">{{
                   customer.planid
                 }}</div>
-                <p class="text-xs text-gray-500 dark:text-gray-400">
+                <p class="text-xs text-gray-500 dark:text-gray-400 whitespace-nowrap">
                   {{ customer.secrets_created }} created • {{ customer.secrets_shared }} shared •
                   {{ customer.emails_sent }} emails
                 </p>
               </div>
             </div>
-          </div>
-        </div>
+          </li>
+        </ul>
       </div>
 
       <!-- Redis Info Section -->
