@@ -33,18 +33,18 @@ module Onetime
       (1..len).collect { chars[rand(chars.size - 1)] }.join
     end
 
-    def indifferent_params(params)
+    def deep_indifferent_hash(params)
       if params.is_a?(Hash)
         params = indifferent_hash.merge(params)
         params.each do |key, value|
           next unless value.is_a?(Hash) || value.is_a?(Array)
 
-          params[key] = indifferent_params(value)
+          params[key] = deep_indifferent_hash(value)
         end
       elsif params.is_a?(Array)
         params.collect! do |value|
           if value.is_a?(Hash) || value.is_a?(Array)
-            indifferent_params(value)
+            deep_indifferent_hash(value)
           else
             value
           end

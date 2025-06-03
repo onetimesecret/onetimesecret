@@ -56,7 +56,7 @@ module V2
       def get_form_fields!
         fields_json = self.form_fields
         return if fields_json.to_s.empty?
-        ret = OT::Utils.indifferent_params JSON.parse(fields_json) # TODO: Use refinement
+        ret = OT::Utils.deep_indifferent_hash JSON.parse(fields_json) # TODO: Use refinement
         self.remove :form_fields
         ret
       rescue JSON::ParserError => ex
