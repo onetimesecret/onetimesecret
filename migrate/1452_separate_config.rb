@@ -41,7 +41,7 @@ module Onetime
         { 'from' => 'experimental.allow_nil_global_secret', 'to' => 'experimental.allow_nil_global_secret' },
         { 'from' => 'experimental.rotated_secrets', 'to' => 'experimental.rotated_secrets' },
         { 'from' => 'experimental.freeze_app', 'to' => 'experimental.freeze_app' },
-        { 'from' => 'experimental.middleware', 'to' => 'site.middleware' }
+        { 'from' => 'experimental.middleware', 'to' => 'site.middleware' },
       ],
       'dynamic' => [
         { 'from' => 'site.interface.ui', 'to' => 'user_interface' },
@@ -58,7 +58,7 @@ module Onetime
         { 'from' => 'limits', 'to' => 'limits' },
         { 'from' => 'mail.truemail', 'to' => 'mail.validation.recipients' },
         { 'from' => 'mail.truemail', 'to' => 'mail.validation.accounts' },
-      ]
+      ],
     }.freeze
 
     def migrate
@@ -223,32 +223,24 @@ module Onetime
     end
 
     def finalize_configuration
-      # Move static config to final location
+      # Move static config to final location (replace existing)
       if File.exist?(@static_config)
-        unless File.exist?(@final_static_path) || dry_run?
-          execute_if_actual_run do
-            FileUtils.mv(@static_config, @final_static_path)
-            track_stat(:static_finalized)
-            info "Moved static config to: #{@final_static_path}"
-          end
-        else
-          info "Static config already exists at: #{@final_static_path}"
+        execute_if_actual_run do
+          FileUtils.mv(@static_config, @final_static_path)
+          track_stat(:static_finalized)
+          info "Replaced static config at: #{@final_static_path}"
         end
       end
 
       # Move dynamic config to final location
       if File.exist?(@dynamic_config)
-        unless File.exist?(@final_dynamic_path) || dry_run?
-          # Ensure target directory exists
-          FileUtils.mkdir_p(File.dirname(@final_dynamic_path))
+        # Ensure target directory exists
+        FileUtils.mkdir_p(File.dirname(@final_dynamic_path))
 
-          execute_if_actual_run do
-            FileUtils.mv(@dynamic_config, @final_dynamic_path)
-            track_stat(:dynamic_finalized)
-            info "Moved dynamic config to: #{@final_dynamic_path}"
-          end
-        else
-          info "Dynamic config already exists at: #{@final_dynamic_path}"
+        execute_if_actual_run do
+          FileUtils.mv(@dynamic_config, @final_dynamic_path)
+          track_stat(:dynamic_finalized)
+          info "Created dynamic config at: #{@final_dynamic_path}"
         end
       end
 
