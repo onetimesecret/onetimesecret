@@ -5,14 +5,12 @@ require 'base64'
 
 require 'altcha'
 require_relative 'base'
-require_relative 'settings'
 
 
 module V2
   module Controllers
     class Challenges
-      include V2::ControllerSettings
-      include V2::ControllerBase
+      include V2::Controllers::Base
 
       # NOTE: Based on https://github.com/altcha-org/altcha-starter-rb
       #

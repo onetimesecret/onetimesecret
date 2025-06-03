@@ -1,6 +1,6 @@
 # tests/unit/ruby/try/35_ratelimit_try.rb
 
-# These tryouts test the rate limiting functionality in the OneTime application.
+# These tryouts test the rate limiting functionality in the Onetime application.
 # They cover various aspects of rate limiting, including:
 #
 # 1. Defining and registering rate limit events

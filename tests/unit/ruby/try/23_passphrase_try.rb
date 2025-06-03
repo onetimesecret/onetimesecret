@@ -1,6 +1,6 @@
 # tests/unit/ruby/try/23_passphrase_try.rb
 
-# These tryouts test the functionality of passphrase handling in the OneTime application.
+# These tryouts test the functionality of passphrase handling in the Onetime application.
 # Specifically, they focus on:
 #
 # 1. Storing a plaintext passphrase

@@ -1,6 +1,6 @@
 # config.ru
 #
-# Main Rack configuration file for the OneTime Secret application.
+# Main Rack configuration file for the Onetime Secret application.
 # This file orchestrates the entire application stack, sets up middleware,
 # and defines the application's runtime environment.
 #
@@ -13,7 +13,7 @@
 # ├── config.ru               # Main Rack configuration
 # ├── lib/
 # │   ├── app_registry.rb     # Application registry implementation
-# │   └── onetime.rb          # Core OneTime Secret library
+# │   └── onetime.rb          # Core Onetime Secret library
 # └── apps/
 #     ├── api/
 #     │   ├── v1/
@@ -69,7 +69,7 @@ require 'rack/utf8_sanitizer'
 
 # Load application-specific components
 require_relative 'apps/app_registry'    # Application registry for mounting apps
-require_relative 'lib/onetime'          # Core OneTime Secret functionality
+require_relative 'lib/onetime'          # Core Onetime Secret functionality
 require_relative 'lib/onetime/middleware' # Custom middleware components
 
 # Application Initialization

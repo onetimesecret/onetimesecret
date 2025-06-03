@@ -104,6 +104,6 @@ has_msg = content.slice('error').eql?({'error' => 'Not Found'})
 # API v2 Routes
 
 ## Cannot access the colonel dashboard when not authenticated
-response = @mock_request.get('/api/v2/colonel')
+response = @mock_request.get('/api/v2/colonel/info')
 response.status
 #=> 403
