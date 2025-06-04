@@ -126,11 +126,7 @@ module Onetime
       # This protects against side effects when multiple components access the same config
       # Without this, modifications to the config in one component could affect others.
       copied_conf = OT::Utils.deep_clone(incoming_config)
-      merged_conf = OT::Utils.deep_merge(DEFAULTS, copied_conf)
-
-      # SAFETY MEASURE: Validation and Default Security Settings
-      # Ensure all critical security-related configurations exist
-      conf = merged_conf #OT::Utils.deep_indifferent_hash(merged_conf)
+      conf = OT::Utils.deep_merge(DEFAULTS, copied_conf)
 
       raise_concerns(conf)
 

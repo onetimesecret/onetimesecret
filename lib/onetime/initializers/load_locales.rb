@@ -1,12 +1,15 @@
 # lib/onetime/initializers/load_locales.rb
 
 require 'json'
+require 'onetime/refinements/hash_refinements'
 
 module Onetime
   module Initializers
     @i18n_enabled = false
 
     attr_reader :i18n_enabled, :locales, :supported_locales, :default_locale, :fallback_locale
+
+    using IndifferentHashAccess
 
     # We always load locales regardless of whether internationalization
     # is enabled. When it's disabled, we just limit the locales to
@@ -71,7 +74,7 @@ module Onetime
       end
 
       # Allow indifferent access to the locales hash
-      @locales = OT::Utils.deep_indifferent_hash(locales_defs || {})
+      @locales = locales_defs || {}
     end
   end
 end

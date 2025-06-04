@@ -1,6 +1,7 @@
 # apps/api/v2/models/mixins/session_messages.rb
 
 require 'json'
+require 'onetime/refinements/hash_refinements'
 
 module V2
   module Mixins
@@ -30,6 +31,8 @@ module V2
     # - 20 minute TTL on message persistence
     module SessionMessages
 
+      using IndifferentHashAccess
+
       def self.included base
         # In some UI flows, we temporarily store form values after a form
         # error so that the form UI inputs can be prepopulated, even if
@@ -56,7 +59,7 @@ module V2
       def get_form_fields!
         fields_json = self.form_fields
         return if fields_json.to_s.empty?
-        ret = OT::Utils.deep_indifferent_hash JSON.parse(fields_json) # TODO: Use refinement
+        ret = JSON.parse(fields_json)
         self.remove :form_fields
         ret
       rescue JSON::ParserError => ex
