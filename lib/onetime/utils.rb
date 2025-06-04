@@ -36,26 +36,44 @@ module Onetime
 
     def deep_indifferent_hash(params)
       if params.is_a?(Hash)
-        params = indifferent_hash.merge(params)
+        result = indifferent_hash
         params.each do |key, value|
-          next unless value.is_a?(Hash) || value.is_a?(Array)
-
-          params[key] = deep_indifferent_hash(value)
+          if value.is_a?(Hash) || value.is_a?(Array)
+            result[key] = deep_indifferent_hash(value)
+          else
+            result[key] = value
+          end
         end
+        result
       elsif params.is_a?(Array)
-        params.collect! do |value|
+        params.map do |value|
           if value.is_a?(Hash) || value.is_a?(Array)
             deep_indifferent_hash(value)
           else
             value
           end
         end
+      else
+        params
       end
     end
 
+
     # Creates a Hash with indifferent access.
     def indifferent_hash
-      Hash.new { |hash, key| hash[key.to_s] if key.is_a?(Symbol) }
+      hash = Hash.new { |h, key| h[key.to_s] if key.is_a?(Symbol) }
+
+      def hash.fetch(key, *args, &block)
+        super(key, *args, &block)
+      rescue KeyError
+        if key.is_a?(Symbol) && has_key?(key.to_s)
+          super(key.to_s, *args, &block)
+        else
+          raise
+        end
+      end
+
+      hash
     end
 
     # Standard deep_merge implementation with symbol/string key normalization
@@ -80,28 +98,6 @@ module Onetime
         end
       end
       original_normalized.merge(other_normalized, &merger)
-    end
-
-    private
-
-    # Recursively normalizes hash keys to strings to ensure consistent key types
-    # and prevent symbol/string key conflicts during merging operations.
-    #
-    # @param obj [Object] The object to normalize (Hash, Array, or other)
-    # @return [Object] The object with normalized string keys
-    def normalize_keys(obj)
-      case obj
-      when Hash
-        normalized = {}
-        obj.each do |key, value|
-          normalized[key.to_s] = normalize_keys(value)
-        end
-        normalized
-      when Array
-        obj.map { |item| normalize_keys(item) }
-      else
-        obj
-      end
     end
 
     # Recursively freezes an object and all its nested components
@@ -162,6 +158,28 @@ module Onetime
       regex = /(\b(([A-Z0-9]{1,2})[A-Z0-9._%-]*)([A-Z0-9])?(@([A-Z0-9])[A-Z0-9.-]+(\.[A-Z]{2,4}\b)))/i
       el = text.split('@')
       text.gsub regex, '\\3*****\\4@\\6*****\\7'
+    end
+
+    private
+
+    # Recursively normalizes hash keys to strings to ensure consistent key types
+    # and prevent symbol/string key conflicts during merging operations.
+    #
+    # @param obj [Object] The object to normalize (Hash, Array, or other)
+    # @return [Object] The object with normalized string keys
+    def normalize_keys(obj)
+      case obj
+      when Hash
+        normalized = {}
+        obj.each do |key, value|
+          normalized[key.to_s] = normalize_keys(value)
+        end
+        normalized
+      when Array
+        obj.map { |item| normalize_keys(item) }
+      else
+        obj
+      end
     end
 
     module Sanitation
