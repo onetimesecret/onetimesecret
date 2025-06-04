@@ -34,6 +34,30 @@ module Onetime
       (1..len).collect { chars[rand(chars.size - 1)] }.join
     end
 
+    # Creates a deeply nested hash structure with indifferent symbol/string access.
+    # Recursively processes all nested hashes and arrays to ensure consistent
+    # indifferent access behavior throughout the entire data structure.
+    #
+    # This method is specifically designed to work with configuration data that
+    # has been normalized to string keys (e.g., by deep_merge) but needs to
+    # support symbol-based access for backward compatibility and convenience.
+    #
+    # @param params [Object] The object to process (Hash, Array, or other)
+    # @return [Object] A new object with indifferent hash access applied recursively
+    #
+    # @example Basic usage with nested hash
+    #   config = { 'site' => { 'secret' => 'abc123' } }
+    #   result = deep_indifferent_hash(config)
+    #   result[:site][:secret]        # => 'abc123'
+    #   result[:site].fetch(:secret)  # => 'abc123'
+    #
+    # @example With arrays containing hashes
+    #   data = { 'items' => [{ 'name' => 'test' }] }
+    #   result = deep_indifferent_hash(data)
+    #   result[:items][0][:name]      # => 'test'
+    #
+    # @note This method creates new objects and does not mutate the input
+    # @see #indifferent_hash for the underlying hash creation mechanism
     def deep_indifferent_hash(params)
       if params.is_a?(Hash)
         result = indifferent_hash
@@ -58,16 +82,39 @@ module Onetime
       end
     end
 
-
-    # Creates a Hash with indifferent access.
+    # Creates a Hash with indifferent symbol/string access for reading operations.
+    # Allows accessing string keys using symbol notation via both [] and fetch methods.
+    #
+    # This implementation provides one-way indifferent access: symbol keys are
+    # automatically converted to strings for lookup. This design choice aligns
+    # with configuration systems where keys are normalized to strings but
+    # developer convenience requires symbol access.
+    #
+    # @return [Hash] A hash with custom [] and fetch behavior for symbol keys
+    #
+    # @example Basic symbol-to-string conversion
+    #   hash = indifferent_hash
+    #   hash['name'] = 'John'
+    #   hash[:name]         # => 'John' (via default proc)
+    #   hash.fetch(:name)   # => 'John' (via overridden fetch)
+    #
+    # @example Fetch with defaults and blocks
+    #   hash = indifferent_hash
+    #   hash['key'] = 'value'
+    #   hash.fetch(:missing, 'default')  # => 'default'
+    #   hash.fetch(:key)                 # => 'value'
+    #
+    # @note Only converts Symbol → String, not String → Symbol
+    # @note The fetch override maintains Ruby's standard fetch behavior for defaults and blocks
+    # @see #deep_indifferent_hash for recursive application to nested structures
     def indifferent_hash
       hash = Hash.new { |h, key| h[key.to_s] if key.is_a?(Symbol) }
 
-      def hash.fetch(key, *args, &block)
-        super(key, *args, &block)
+      def hash.fetch(key, ...)
+        super(key, ...)
       rescue KeyError
         if key.is_a?(Symbol) && has_key?(key.to_s)
-          super(key.to_s, *args, &block)
+          super(key.to_s, ...)
         else
           raise
         end
