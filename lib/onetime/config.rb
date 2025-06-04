@@ -45,7 +45,7 @@ module Onetime
             mode: 'smtp',
             from: "noreply@example.com",
             fromname: "OneTimeSecret",
-          }
+          },
         },
         logging: {
           http_requests: true,
