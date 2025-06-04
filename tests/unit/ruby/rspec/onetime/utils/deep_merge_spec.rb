@@ -1,8 +1,8 @@
-# tests/unit/ruby/rspec/onetime/config/deep_merge_spec.rb
+# tests/unit/ruby/rspec/onetime/utils/deep_merge_spec.rb
 
 require_relative '../../spec_helper'
 
-RSpec.describe Onetime::Config do
+RSpec.describe Onetime::Utils do
   # Since deep_merge is private, we need to use send to test it directly
   describe '#deep_merge' do
     let(:subject) { described_class }
