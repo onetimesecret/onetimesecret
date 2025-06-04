@@ -166,29 +166,32 @@ module Onetime
       obj.freeze
     end
 
-    # Creates a complete deep copy of a configuration hash using Marshal
-    # dump and load. This ensures all nested objects are properly duplicated,
-    # preventing unintended sharing of references that could lead to data
-    # corruption if modified.
+    # Creates a complete deep copy of a configuration hash using YAML serialization.
+    # This ensures all nested objects are properly duplicated, preventing unintended
+    # sharing of references that could lead to data corruption if modified.
     #
     # @param config_hash [Hash] The configuration hash to be cloned
     # @return [Hash] A deep copy of the original configuration hash
-    # @raise [OT::Problem] When Marshal serialization fails due to unserializable objects
+    # @raise [OT::Problem] When YAML serialization fails due to unserializable objects
     # @security Prevents configuration mutations from affecting multiple components
     #
+    # @security_note YAML Deserialization Restrictions
+    #   Ruby's YAML parser (Psych) restricts object loading to prevent deserialization
+    #   attacks. Only basic types are allowed by default: String, Integer, Float, Array,
+    #   Hash, Symbol, Date, Time. Custom objects will raise Psych::DisallowedClass errors.
+    #   Malicious alias references will raise Psych::BadAlias errors. These restrictions
+    #   are intentional and provide security benefits by preventing malicious object
+    #   deserialization and YAML bomb attacks in configuration data.
+    #
     # @limitations
-    #   This method has significant limitations due to its reliance on Marshal:
-    #   - Cannot clone objects with singleton methods, procs, lambdas, or IO objects
-    #   - Will fail when encountering objects that implement custom _dump methods without _load
-    #   - Loses any non-serializable attributes from complex objects
-    #   - May not preserve class/module references across different Ruby processes
-    #   - Thread-safety issues may arise with concurrent serialization operations
+    #   - Only works with basic Ruby data types (String, Integer, Hash, Array, Symbol)
+    #   - Custom objects, Struct instances, and complex classes are blocked for security
+    #   - Objects with singleton methods or custom serialization will fail
     #   - Performance can degrade with deeply nested or large object structures
     #
-    #   Consider using a recursive approach for specialized object cloning when
-    #   dealing with configuration containing custom objects, procs, or other
-    #   non-serializable elements. For critical security contexts, validate that
-    #   all configuration elements are serializable before using this method.
+    #   For configuration use cases, these limitations are beneficial as they ensure
+    #   data integrity and prevent security vulnerabilities. Use recursive approaches
+    #   for custom object cloning outside of configuration contexts.
     #
     def deep_clone(config_hash)
       # Previously used Marshal here. But in Ruby 3.1 it died cryptically with
@@ -197,7 +200,7 @@ module Onetime
       # etc, we use YAML instead to accomplish the same thing (JSON is
       # another option but it turns all the symbol keys into strings).
       YAML.load(YAML.dump(config_hash)) # TODO: Use oj for performance and string gains
-    rescue TypeError => ex
+    rescue TypeError, Psych::DisallowedClass, Psych::BadAlias => ex
       raise OT::Problem, "[deep_clone] #{ex.message}"
     end
 
