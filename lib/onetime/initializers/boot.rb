@@ -1,6 +1,7 @@
 # lib/onetime/initializers/boot.rb
 
 require 'sysinfo'
+require 'onetime/refinements/hash_refinements'
 
 module Onetime
   module Initializers
@@ -8,6 +9,8 @@ module Onetime
     @conf = nil
 
     attr_reader :conf, :instance, :sysinfo
+
+    using IndifferentHashAccess
 
     # Boot reads and interprets the configuration and applies it to the
     # relevant features and services. Must be called after applications
@@ -48,12 +51,14 @@ module Onetime
       # Loads the configuration and renders all value templates (ERB)
       raw_conf = OT::Config.load
 
+      indifferent_raw_conf = raw_conf #OT::Utils.deep_indifferent_hash(raw_conf)
+
       # SAFETY MEASURE: Freeze the (inevitably) shared config
-      OT::Config.deep_freeze(raw_conf)
+      OT::Utils.deep_freeze(indifferent_raw_conf)
 
       # Normalize the configuration and make it available to the rest
       # of the initializers (via OT.conf).
-      @conf = OT::Config.after_load(raw_conf)
+      @conf = OT::Config.after_load(indifferent_raw_conf)
 
       # OT.conf is deeply frozen at this point which means that the
       # initializers are meant to read from it, set other values, but

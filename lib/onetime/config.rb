@@ -1,8 +1,12 @@
 # lib/onetime/config.rb
 
+require 'onetime/refinements/hash_refinements'
+
 module Onetime
   module Config
     extend self
+
+    using IndifferentHashAccess
 
     unless defined?(SERVICE_PATHS)
       SERVICE_PATHS = %w[/etc/onetime ./etc].freeze
@@ -121,15 +125,12 @@ module Onetime
       # Create a deep copy of the configuration to prevent unintended mutations
       # This protects against side effects when multiple components access the same config
       # Without this, modifications to the config in one component could affect others.
-      conf = if incoming_config.nil?
-        {}
-      else
-        OT::Utils.deep_clone(incoming_config)
-      end
+      copied_conf = OT::Utils.deep_clone(incoming_config)
+      merged_conf = OT::Utils.deep_merge(DEFAULTS, copied_conf)
 
       # SAFETY MEASURE: Validation and Default Security Settings
       # Ensure all critical security-related configurations exist
-      conf = OT::Utils.deep_merge(DEFAULTS, conf) # TODO: We don't need to re-assign `conf`
+      conf = merged_conf #OT::Utils.deep_indifferent_hash(merged_conf)
 
       raise_concerns(conf)
 
