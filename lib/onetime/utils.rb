@@ -1,5 +1,6 @@
 
 require 'httparty'
+require 'yaml'
 
 module Onetime
   module Utils
@@ -57,17 +58,18 @@ module Onetime
       Hash.new { |hash, key| hash[key.to_s] if key.is_a?(Symbol) }
     end
 
-    # Standard deep_merge implementation
+    # Standard deep_merge implementation with symbol/string key normalization
     #
     # @param original [Hash] Base hash with default values
     # @param other [Hash] Hash with values that override defaults
-    # @return [Hash] A new hash containing the merged result
+    # @return [Hash] A new hash containing the merged result with string keys
     def deep_merge(original, other)
-      return deep_clone(other) if original.nil?
-      return deep_clone(original) if other.nil?
+      return normalize_keys(deep_clone(other)) if original.nil?
+      return normalize_keys(deep_clone(original)) if other.nil?
 
-      original_clone = deep_clone(original)
-      other_clone = deep_clone(other)
+      original_normalized = normalize_keys(deep_clone(original))
+      other_normalized = normalize_keys(deep_clone(other))
+
       merger = proc do |_key, v1, v2|
         if v1.is_a?(Hash) && v2.is_a?(Hash)
           v1.merge(v2, &merger)
@@ -77,7 +79,29 @@ module Onetime
           v2
         end
       end
-      original_clone.merge(other_clone, &merger)
+      original_normalized.merge(other_normalized, &merger)
+    end
+
+    private
+
+    # Recursively normalizes hash keys to strings to ensure consistent key types
+    # and prevent symbol/string key conflicts during merging operations.
+    #
+    # @param obj [Object] The object to normalize (Hash, Array, or other)
+    # @return [Object] The object with normalized string keys
+    def normalize_keys(obj)
+      case obj
+      when Hash
+        normalized = {}
+        obj.each do |key, value|
+          normalized[key.to_s] = normalize_keys(value)
+        end
+        normalized
+      when Array
+        obj.map { |item| normalize_keys(item) }
+      else
+        obj
+      end
     end
 
     # Recursively freezes an object and all its nested components
@@ -129,7 +153,7 @@ module Onetime
       # know we only expect a regular hash here without any methods, procs
       # etc, we use YAML instead to accomplish the same thing (JSON is
       # another option but it turns all the symbol keys into strings).
-      YAML.load(YAML.dump(config_hash))
+      YAML.load(YAML.dump(config_hash)) # TODO: Use oj for performance and string gains
     rescue TypeError => ex
       raise OT::Problem, "[deep_clone] #{ex.message}"
     end
