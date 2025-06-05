@@ -107,7 +107,7 @@ module Onetime
       #
       # allow(Onetime).to receive(:connect_databases).and_call_original
       #
-      raise error unless mode?(:cli)
+      raise error unless mode?(:cli) || mode?(:test)
     end
 
   end
