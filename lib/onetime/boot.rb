@@ -70,7 +70,7 @@ module Onetime
       # Pass necessary context like mode and connect_to_db preference
       initializer_options = {
         mode: OT.mode,
-        connect_to_db: connect_to_db
+        connect_to_db: connect_to_db,
       }
       Onetime::Initializers::Registry.run_all!(initializer_options)
 

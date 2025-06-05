@@ -23,7 +23,7 @@ module Onetime
 
       begin
         # Load the migration script
-        require_relative "../../migrate/#{migration_file}"
+        require_relative migration_path
 
         # Run the migration with options
         success = Onetime::Migration.run(run: option.run)
