@@ -1,9 +1,22 @@
 # apps/app_registry.rb
 
-APPS_ROOT = File.expand_path(__dir__).freeze
-$LOAD_PATH.unshift(File.join(APPS_ROOT, 'api'))
-$LOAD_PATH.unshift(File.join(APPS_ROOT, 'web'))
+unless defined?(APPS_ROOT)
+  project_root = ENV['ONETIME_HOME']
 
+  # Add the directory containing the rack applications to Ruby's load path
+  APPS_ROOT = File.expand_path(project_root).freeze
+  $LOAD_PATH.unshift(File.join(APPS_ROOT, 'api'))
+  $LOAD_PATH.unshift(File.join(APPS_ROOT, 'web'))
+
+  # Add the lib directoryfor require statements
+  LIB_ROOT = File.join(project_root, 'lib').freeze
+  $LOAD_PATH.unshift(LIB_ROOT)
+
+  # Location for static web assets like images, CSS, and JavaScript files
+  PUBLIC_DIR = File.join(project_root, '/public/web').freeze
+end
+
+require 'onetime'
 require 'onetime/middleware'
 
 module AppRegistry

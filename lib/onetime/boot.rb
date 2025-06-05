@@ -13,7 +13,7 @@ module Onetime
 
     attr_reader :conf, :instance, :sysinfo, :i18n_enabled, :locales, :supported_locales,
                 :default_locale, :fallback_locale, :global_banner, :rotated_secrets,
-                :emailer, :first_boot, :global_secret
+                :emailer, :first_boot
     attr_writer :global_secret
     attr_accessor :d9s_enabled
 
