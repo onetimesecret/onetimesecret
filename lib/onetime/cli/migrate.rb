@@ -27,7 +27,11 @@ module Onetime
 
         # Run the migration with options
         success = Onetime::Migration.run(run: option.run)
-        puts success ? "\nMigration completed successfully" : "\nMigration failed"
+        if option.run
+          puts success ? "\nMigration completed successfully" : "\nMigration did not run"
+        else
+          puts success ? "\nDry run completed successfully" : "\nDry run failed"
+        end
         exit(success ? 0 : 1)
       rescue LoadError => e
         puts "Error loading migration: #{e.message}"

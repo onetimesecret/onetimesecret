@@ -42,7 +42,7 @@ module Onetime
       unless is_needed
         migration.info ""
         migration.migration_not_needed_banner
-        return true
+        return false
       end
 
       migration.migrate
@@ -68,7 +68,6 @@ module Onetime
     def migration_needed?
       raise NotImplementedError, "#{self.class} must implement #migration_needed?"
     end
-
 
     # === Run Mode Control ===
     # Migrations support dry-run mode (default) and actual-run mode (--run flag)

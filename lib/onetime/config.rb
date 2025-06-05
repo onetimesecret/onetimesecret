@@ -15,9 +15,6 @@ module Onetime
         site: {
           secret: nil,
           api: { enabled: true },
-
-          # All keys that we want to explicitly be set to false when enabled
-          # is false, should be represented in this hash.
           authentication: {
             enabled: false,
             colonels: [],
