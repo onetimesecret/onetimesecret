@@ -71,11 +71,7 @@ module Onetime
       # Sets a unique SHA hash every time this process starts. In a multi-
       # threaded environment (e.g. with Puma), this should be different for
       # each thread.
-      @instance = [
-        Process.pid,
-        OT::VERSION.to_s,
-        OT.hnow,
-      ].gibbler.freeze
+      @instance = [Process.pid.to_s, OT::VERSION.to_s].gibbler.freeze
     end
 
     def handle_boot_error(error)
