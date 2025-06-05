@@ -15,6 +15,7 @@ module Onetime
                 :default_locale, :fallback_locale, :global_banner, :rotated_secrets,
                 :emailer, :first_boot, :global_secret
     attr_writer :global_secret
+    attr_accessor :d9s_enabled
 
     using IndifferentHashAccess
 

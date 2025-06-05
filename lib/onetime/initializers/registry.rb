@@ -23,7 +23,7 @@ module Onetime
           end
           initializers << initializer_module unless initializers.include?(initializer_module)
           dependencies[initializer_module] = Array(depends_on)
-          OT.ld "[InitializerRegistry] Registered #{initializer_module} with dependencies: #{Array(depends_on).map(&:name)}"
+          OT.ld "[InitializerRegistry] Registered #{initializer_module} with dependencies: #{depends_on.inspect}"
         end
 
         # Run all registered initializers in dependency order.
