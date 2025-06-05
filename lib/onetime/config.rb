@@ -242,8 +242,9 @@ module Onetime
         OT.li "!" * 50
       end
 
-      unless conf[:mail].key?(:truemail)
-        raise OT::ConfigError, "No TrueMail config found"
+      unless conf[:mail].key?(:validation)
+        raise OT::ConfigError, "No mail validation config found (TrueMail)"
+        # OT.le "TEMPORARY WARNING: No TrueMail config found"
       end
     end
 
