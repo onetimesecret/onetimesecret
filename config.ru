@@ -57,9 +57,6 @@ end
 # Add the lib directory to Ruby's load path for require statements
 $LOAD_PATH.unshift(File.join(project_root, 'lib'))
 
-require_relative 'lib/onetime'          # Core Onetime Secret functionality
-require_relative 'lib/onetime/middleware' # Custom middleware components
-
 # Load application-specific components
 require_relative 'apps/app_registry'    # Application registry for mounting apps
 
