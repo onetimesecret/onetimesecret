@@ -34,7 +34,6 @@ RSpec.describe "Onetime global state after boot" do
     Onetime.instance_variable_set(:@locale, nil)
     Onetime.instance_variable_set(:@locales, nil)
     Onetime.instance_variable_set(:@instance, nil)
-    Onetime.instance_variable_set(:@sysinfo, nil)
     Onetime.instance_variable_set(:@global_banner, nil)
     OT::Utils.instance_variable_set(:@fortunes, nil)
 
@@ -120,15 +119,7 @@ RSpec.describe "Onetime global state after boot" do
     end
 
     context "regarding system information" do
-      it "initializes and freezes Onetime.sysinfo" do
-        Onetime.boot!(:test)
 
-        expect(Onetime.sysinfo).not_to be_nil
-        expect(Onetime.sysinfo).to be_frozen
-
-        version = Onetime.sysinfo.ruby.join('.')
-        expect(version).to eq(RUBY_VERSION)
-      end
 
       it "initializes and freezes Onetime.instance" do
         Onetime.boot!(:test)

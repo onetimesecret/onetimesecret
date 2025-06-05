@@ -80,7 +80,7 @@ module Onetime
     # Builds system information section rows
     def build_system_section(redis_info)
       system_rows = [
-        ['System', "#{@sysinfo.platform} (#{RUBY_ENGINE} #{RUBY_VERSION} in #{OT.env})"],
+        ['System', "#{RUBY_ENGINE} #{RUBY_VERSION} in #{OT.env}"],
         ['Config', OT::Config.path],
         ['Redis', "#{redis_info['redis_version']} (#{Familia.uri.serverid})"],
         ['Familia', "v#{Familia::VERSION}"],
