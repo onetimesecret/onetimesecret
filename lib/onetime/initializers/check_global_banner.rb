@@ -1,5 +1,5 @@
-# /Users/d/Projects/opensource/onetime/onetimesecret/lib/onetime/initializers/check_global_banner.rb
 # lib/onetime/initializers/check_global_banner.rb
+
 module Onetime
   module Initializers
     attr_reader :global_banner

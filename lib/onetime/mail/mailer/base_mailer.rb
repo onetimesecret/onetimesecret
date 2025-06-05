@@ -1,5 +1,7 @@
 # lib/onetime/mail/mailer/base_mailer.rb
 
+require 'onetime/refinements/hash_refinements'
+
 module Onetime
   module Mail
     module Mailer
@@ -7,6 +9,8 @@ module Onetime
       class BaseMailer
         attr_accessor :reply_to
         attr_reader :from, :fromname
+
+        using IndifferentHashAccess
 
         def initialize(from, fromname, reply_to=nil)
           OT.ld "[mail-init] from:#{from}, fromname:#{fromname}, reply-to:#{reply_to}"

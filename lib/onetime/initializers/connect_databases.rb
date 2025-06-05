@@ -1,11 +1,13 @@
 # lib/onetime/initializers/connect_databases.rb
 
 require_relative '../refinements/horreum_refinements'
+require 'onetime/refinements/hash_refinements'
 
 module Onetime
   module Initializers
 
     using Familia::HorreumRefinements
+    using IndifferentHashAccess
 
     # Connects each model to its configured Redis database.
     #

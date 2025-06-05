@@ -1,8 +1,12 @@
 # lib/onetime/initializers/prepare_emailers.rb
 
+require 'onetime/refinements/hash_refinements'
+
 module Onetime
   module Initializers
     attr_reader :emailer
+
+    using IndifferentHashAccess
 
     # Prepares the emailer based on the configured mode.
     #

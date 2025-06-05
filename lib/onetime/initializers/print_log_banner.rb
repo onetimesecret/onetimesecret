@@ -1,10 +1,14 @@
 # lib/onetime/initializers/print_log_banner.rb
 
+require 'onetime/refinements/hash_refinements'
+
 require 'tty-table'
 require 'json'
 
 module Onetime
   module Initializers
+
+    using IndifferentHashAccess
 
     # Prints a formatted banner with system and configuration information at startup.
     # The banner is organized into logical sections, each rendered as a table.
