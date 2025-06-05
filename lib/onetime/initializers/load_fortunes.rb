@@ -4,11 +4,15 @@ require 'onetime/refinements/hash_refinements'
 
 module Onetime
   module Initializers
+    module LoadFortunes
 
-    using IndifferentHashAccess
+      using IndifferentHashAccess
 
-    def load_fortunes
-      OT::Utils.fortunes ||= File.readlines(File.join(Onetime::HOME, 'etc', 'fortunes'))
+      def self.run(options = {})
+        OT::Utils.fortunes ||= File.readlines(File.join(Onetime::HOME, 'etc', 'fortunes'))
+        OT.ld "[initializer] Fortunes loaded (#{OT::Utils.fortunes.length} entries)"
+      end
+
     end
   end
 end

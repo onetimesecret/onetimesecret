@@ -6,14 +6,15 @@ require 'onetime/refinements/hash_refinements'
 require_relative './initializers'
 
 module Onetime
-  extend Initializers
-
   @sysinfo = nil
   @conf = nil
 
   class << self
 
-    attr_reader :conf, :instance, :sysinfo
+    attr_reader :conf, :instance, :sysinfo, :i18n_enabled, :locales, :supported_locales,
+                :default_locale, :fallback_locale, :global_banner, :rotated_secrets,
+                :emailer, :first_boot, :global_secret
+    attr_writer :global_secret
 
     using IndifferentHashAccess
 
@@ -71,29 +72,6 @@ module Onetime
         connect_to_db: connect_to_db
       }
       Onetime::Initializers::Registry.run_all!(initializer_options)
-
-      # NOTE: We could benefit from tsort to make sure these
-      # initializers are loaded in the correct order.
-      # load_locales
-      # set_global_secret
-      # set_rotated_secrets
-      # setup_authentication
-      # setup_diagnostics
-      # configure_domains
-      # configure_truemail
-      # prepare_emailers
-      # load_fortunes
-      # load_plans
-      # if connect_to_db
-      #   connect_databases
-      #   check_global_banner
-      # end
-
-      # Setup system settings - check for existing override configuration
-      # and merge with YAML config if present. Must happen before other
-      # initializers that depend on the final merged configuration.
-      #setup_system_settings
-      #print_log_banner unless mode?(:test) # This logic is now inside PrintLogBanner.run
 
       # Let's be clear about returning the prepared configruation. Previously
       # we returned @conf here which was confusing because already made it
