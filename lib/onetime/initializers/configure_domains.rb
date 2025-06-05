@@ -1,7 +1,10 @@
 # lib/onetime/initializers/configure_domains.rb
 
+require 'onetime/refinements/hash_refinements'
+
 module Onetime
   module Initializers
+    using IndifferentHashAccess
 
     def configure_domains
       is_enabled = conf.dig(:site, :domains, :enabled).to_s == "true"

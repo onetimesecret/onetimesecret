@@ -1,11 +1,16 @@
 # lib/onetime/mail/mailer/smtp_mailer.rb
 
 require 'mail'  # gem 'mail', here referred to as ::Mail
+
+require 'onetime/refinements/hash_refinements'
+
 require_relative 'base_mailer'
 
 module Onetime::Mail
   module Mailer
     class SMTPMailer < BaseMailer
+
+      using IndifferentHashAccess
 
       def send_email(to_address, subject, html_content, text_content) # rubocop:disable Metrics/MethodLength
         mailer_response = nil

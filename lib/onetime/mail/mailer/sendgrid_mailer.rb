@@ -1,12 +1,17 @@
 # lib/onetime/mail/mailer/sendgrid_mailer.rb
 
 require 'sendgrid-ruby'
+
+require 'onetime/refinements/hash_refinements'
+
 require_relative 'base_mailer'
 
 module Onetime::Mail
   module Mailer
     class SendGridMailer < BaseMailer
       include SendGrid
+
+      using IndifferentHashAccess
 
       def send_email(to_address, subject, html_content, text_content, test_mode=false)
         mailer_response = nil

@@ -1,11 +1,16 @@
 # lib/onetime/mail/mailer/ses_mailer.rb
 
 require 'aws-sdk-sesv2'
+
+require 'onetime/refinements/hash_refinements'
+
 require_relative 'base_mailer'
 
 module Onetime::Mail
   module Mailer
     class SESMailer < BaseMailer
+
+      using IndifferentHashAccess
 
       def send_email(to_address, subject, html_content, text_content)
         mailer_response = nil

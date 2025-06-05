@@ -1,8 +1,12 @@
 # lib/onetime/initializers/setup_system_settings.rb
 
+require 'onetime/refinements/hash_refinements'
+
 module Onetime
   module Initializers
     @first_boot = nil
+
+    using IndifferentHashAccess
 
     # Sets up system settings by checking for existing override
     # configuration in Redis and merging it with YAML configuration.

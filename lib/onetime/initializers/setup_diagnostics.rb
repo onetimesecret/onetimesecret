@@ -1,9 +1,13 @@
 # lib/onetime/initializers/setup_diagnostics.rb
 
+require 'onetime/refinements/hash_refinements'
+
 module Onetime
   module Initializers
     # d9s: diagnostics is a boolean flag. If true, it will enable Sentry
     attr_accessor :d9s_enabled
+
+    using IndifferentHashAccess
 
     def setup_diagnostics
 

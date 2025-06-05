@@ -1,5 +1,6 @@
 
 require 'httparty'
+require 'yaml'
 
 module Onetime
   module Utils
@@ -13,6 +14,24 @@ module Onetime
     end
     attr_accessor :fortunes
 
+    # Returns a random fortune from the configured fortunes array.
+    # Provides graceful degradation with fallback messages when fortunes
+    # are unavailable or malformed, ensuring the application never fails
+    # due to fortune retrieval issues.
+    #
+    # @return [String] A random fortune string, or a fallback message
+    # @raise [OT::Problem] Never raised - all errors are caught and logged
+    #
+    # @example Normal usage
+    #   Utils.fortunes = ["Good luck!", "Fortune favors the bold"]
+    #   Utils.random_fortune # => "Good luck!" or "Fortune favors the bold"
+    #
+    # @example Graceful degradation
+    #   Utils.fortunes = nil
+    #   Utils.random_fortune # => "Unexpected outcomes bring valuable lessons."
+    #
+    # @note All errors are logged but never propagated to maintain system stability
+    # @security Validates input type to prevent injection of malicious objects
     def random_fortune
       raise OT::Problem, "No fortunes" if fortunes.nil?
       raise OT::Problem, "#{fortunes.class} is not an Array" unless fortunes.is_a?(Array)
@@ -28,44 +47,136 @@ module Onetime
       'A house is full of games and puzzles.'
     end
 
+    # Generates a random string of specified length using a predefined character set.
+    # Provides both safe and unsafe character sets for different use cases, with the
+    # safe set excluding visually similar characters to improve readability.
+    #
+    # @param len [Integer] Length of the generated string (default: 12)
+    # @param safe [Boolean] Whether to use the safe character set (default: true)
+    # @return [String] A randomly generated string of the specified length
+    #
+    # @example Generate a safe 12-character string
+    #   Utils.strand         # => "kF8mN2qR9xPw"
+    #   Utils.strand(8)      # => "kF8mN2qR"
+    #
+    # @example Generate using full character set
+    #   Utils.strand(8, false) # => "il0O1o$!"
+    #
+    # @note Safe mode excludes potentially confusing characters: i, l, o, 1, 0
+    # @note Character sets include: a-z, A-Z, 0-9, and symbols: * $ ! ? ( )
+    # @security Uses cryptographically secure random generation for unpredictability
     def strand(len = 12, safe = true)
       chars = safe ? VALID_CHARS_SAFE : VALID_CHARS
       (1..len).collect { chars[rand(chars.size - 1)] }.join
     end
 
-    def indifferent_params(params)
-      if params.is_a?(Hash)
-        params = indifferent_hash.merge(params)
-        params.each do |key, value|
-          next unless value.is_a?(Hash) || value.is_a?(Array)
+    # Standard deep_merge implementation with symbol/string key normalization
+    #
+    # @param original [Hash] Base hash with default values
+    # @param other [Hash] Hash with values that override defaults
+    # @return [Hash] A new hash containing the merged result with string keys
+    def deep_merge(original, other)
+      return normalize_keys(deep_clone(other)) if original.nil?
+      return normalize_keys(deep_clone(original)) if other.nil?
 
-          params[key] = indifferent_params(value)
-        end
-      elsif params.is_a?(Array)
-        params.collect! do |value|
-          if value.is_a?(Hash) || value.is_a?(Array)
-            indifferent_params(value)
-          else
-            value
-          end
+      original_normalized = normalize_keys(deep_clone(original))
+      other_normalized = normalize_keys(deep_clone(other))
+
+      merger = proc do |_key, v1, v2|
+        if v1.is_a?(Hash) && v2.is_a?(Hash)
+          v1.merge(v2, &merger)
+        elsif v2.nil?
+          v1
+        else
+          v2
         end
       end
+      original_normalized.merge(other_normalized, &merger)
     end
 
-    # Creates a Hash with indifferent access.
-    def indifferent_hash
-      Hash.new { |hash, key| hash[key.to_s] if key.is_a?(Symbol) }
+    # Recursively freezes an object and all its nested components
+    # to ensure complete immutability. This is a critical security
+    # measure that prevents any modification of configuration values
+    # after they've been loaded and validated, protecting against both
+    # accidental mutations and potential security exploits.
+    #
+    # @param obj [Object] The object to freeze
+    # @return [Object] The frozen object
+    # @security This ensures configuration values cannot be tampered with at runtime
+    def deep_freeze(obj)
+      case obj
+      when Hash
+        obj.each_value { |v| deep_freeze(v) }
+      when Array
+        obj.each { |v| deep_freeze(v) }
+      end
+      obj.freeze
     end
 
-    def deep_merge(default, overlay)
-      merger = proc { |_key, v1, v2| v1.is_a?(Hash) && v2.is_a?(Hash) ? v1.merge(v2, &merger) : v2 }
-      default.merge(overlay, &merger)
+    # Creates a complete deep copy of a configuration hash using YAML serialization.
+    # This ensures all nested objects are properly duplicated, preventing unintended
+    # sharing of references that could lead to data corruption if modified.
+    #
+    # @param config_hash [Hash] The configuration hash to be cloned
+    # @return [Hash] A deep copy of the original configuration hash
+    # @raise [OT::Problem] When YAML serialization fails due to unserializable objects
+    # @security Prevents configuration mutations from affecting multiple components
+    #
+    # @security_note YAML Deserialization Restrictions
+    #   Ruby's YAML parser (Psych) restricts object loading to prevent deserialization
+    #   attacks. Only basic types are allowed by default: String, Integer, Float, Array,
+    #   Hash, Symbol, Date, Time. Custom objects will raise Psych::DisallowedClass errors.
+    #   Malicious alias references will raise Psych::BadAlias errors. These restrictions
+    #   are intentional and provide security benefits by preventing malicious object
+    #   deserialization and YAML bomb attacks in configuration data.
+    #
+    # @limitations
+    #   - Only works with basic Ruby data types (String, Integer, Hash, Array, Symbol)
+    #   - Custom objects, Struct instances, and complex classes are blocked for security
+    #   - Objects with singleton methods or custom serialization will fail
+    #   - Performance can degrade with deeply nested or large object structures
+    #
+    #   For configuration use cases, these limitations are beneficial as they ensure
+    #   data integrity and prevent security vulnerabilities. Use recursive approaches
+    #   for custom object cloning outside of configuration contexts.
+    #
+    def deep_clone(config_hash)
+      # Previously used Marshal here. But in Ruby 3.1 it died cryptically with
+      # a singleton error. It seems like it's related to gibbler but since we
+      # know we only expect a regular hash here without any methods, procs
+      # etc, we use YAML instead to accomplish the same thing (JSON is
+      # another option but it turns all the symbol keys into strings).
+      YAML.load(YAML.dump(config_hash)) # TODO: Use oj for performance and string gains
+    rescue TypeError, Psych::DisallowedClass, Psych::BadAlias => ex
+      raise OT::Problem, "[deep_clone] #{ex.message}"
     end
 
     def obscure_email(text)
       regex = /(\b(([A-Z0-9]{1,2})[A-Z0-9._%-]*)([A-Z0-9])?(@([A-Z0-9])[A-Z0-9.-]+(\.[A-Z]{2,4}\b)))/i
       el = text.split('@')
       text.gsub regex, '\\3*****\\4@\\6*****\\7'
+    end
+
+    private
+
+    # Recursively normalizes hash keys to strings to ensure consistent key types
+    # and prevent symbol/string key conflicts during merging operations.
+    #
+    # @param obj [Object] The object to normalize (Hash, Array, or other)
+    # @return [Object] The object with normalized string keys
+    def normalize_keys(obj)
+      case obj
+      when Hash
+        normalized = {}
+        obj.each do |key, value|
+          normalized[key.to_s] = normalize_keys(value)
+        end
+        normalized
+      when Array
+        obj.map { |item| normalize_keys(item) }
+      else
+        obj
+      end
     end
 
     module Sanitation

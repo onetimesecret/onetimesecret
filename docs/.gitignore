@@ -2,11 +2,9 @@
 !.gitignore
 !api/
 !architecture/
-!architecture/OVERVIEW.md
-!architecture/error-handling.md
-!architecture/config-vs-settings.md
-!architecture/type-safety.md
-!architecture/frontend-architecture.md
+!architecture/*.md
+!configuration
+!configuration/*.md
 !/api/*
 !DOCKER*.md
 !README*.md

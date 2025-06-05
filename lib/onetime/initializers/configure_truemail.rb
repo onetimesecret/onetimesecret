@@ -1,7 +1,12 @@
 # lib/onetime/initializers/configure_truemail.rb
 
+require 'onetime/refinements/hash_refinements'
+
+
 module Onetime
   module Initializers
+
+    using IndifferentHashAccess
 
     def configure_truemail
       truemail_config = Onetime.conf[:mail][:truemail]

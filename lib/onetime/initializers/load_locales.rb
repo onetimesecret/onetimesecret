@@ -1,12 +1,15 @@
 # lib/onetime/initializers/load_locales.rb
 
 require 'json'
+require 'onetime/refinements/hash_refinements'
 
 module Onetime
   module Initializers
     @i18n_enabled = false
 
     attr_reader :i18n_enabled, :locales, :supported_locales, :default_locale, :fallback_locale
+
+    using IndifferentHashAccess
 
     # We always load locales regardless of whether internationalization
     # is enabled. When it's disabled, we just limit the locales to
@@ -63,11 +66,15 @@ module Onetime
       # That way, at least the default language will display.
       locales_defs.each do |key, locale|
         next if OT.default_locale == key
+        # NOTE: We switched to using the properly deep merge method from utils
+        # which avoids potential accidental modification of child hashes. It
+        # also treats nils differently, ensuring that the default values are
+        # preserved when merging and nils no longer override existing values.
         locales_defs[key] = OT::Utils.deep_merge(default_locale_def, locale)
       end
 
+      # Allow indifferent access to the locales hash
       @locales = locales_defs || {}
-
     end
   end
 end

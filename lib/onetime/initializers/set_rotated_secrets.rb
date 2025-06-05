@@ -1,8 +1,12 @@
 # lib/onetime/initializers/set_rotated_secrets.rb
 
+require 'onetime/refinements/hash_refinements'
+
 module Onetime
   module Initializers
     attr_reader :rotated_secrets
+
+    using IndifferentHashAccess
 
     def set_rotated_secrets
 
