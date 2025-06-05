@@ -37,8 +37,11 @@ module Onetime
       migration.prepare
 
       is_needed = migration.migration_needed?
-      migration.info("Migration needed? #{is_needed}. (This usually means it has already been applied.)")
-      return true unless is_needed
+      migration.info("Migration needed? #{is_needed}.")
+      unless is_needed
+        migration.migration_not_needed_banner
+        return true
+      end
 
       migration.migrate
     end
@@ -63,6 +66,7 @@ module Onetime
     def migration_needed?
       raise NotImplementedError, "#{self.class} must implement #migration_needed?"
     end
+
 
     # === Run Mode Control ===
     # Migrations support dry-run mode (default) and actual-run mode (--run flag)
@@ -153,6 +157,10 @@ module Onetime
         header("ACTUAL RUN SUMMARY")
         yield(:actual_run) if block_given?
       end
+    end
+
+    def migration_not_needed_banner
+      info "This usually means that the migration has already been applied."
     end
 
     protected
