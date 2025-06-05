@@ -37,8 +37,10 @@ module Onetime
       migration.prepare
 
       is_needed = migration.migration_needed?
+      migration.info ""
       migration.info("Migration needed? #{is_needed}.")
       unless is_needed
+        migration.info ""
         migration.migration_not_needed_banner
         return true
       end
