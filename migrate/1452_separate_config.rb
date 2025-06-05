@@ -91,7 +91,7 @@ module Onetime
           info("Checking setting: #{from_path} #{value.class}")
           !value.nil?
         end
-        # require 'pry-byebug'; binding.pry;
+
         ret
       rescue => e
         error "Failed to check migration status: #{e.message}"
@@ -100,17 +100,30 @@ module Onetime
     end
 
     def migration_not_needed_banner
-      # Print help message for things to check to give a clue as to what to do next
+      # Print help message for things to check to give a clue as to what to do
+      # next
+      source_file = File.basename(@source_config)
+      dynamic_file = File.basename(@final_dynamic_path)
       separator
       info "Things to check:"
       info ""
-      info "  1. Look for hints in the output above e.g."
-      info "      `Checking setting: logging NilClass` means there is no"
-      info "       top-level 'logging' key in the YAML."
-      info "  2. Check #{File.basename(@source_config)} for any missing or" \
-           " invalid settings."
-      info "  3. Please verify that all settings in the source file exist"
-      info "     with non-nil values."
+      info "  1. Check if migration has already completed:"
+      info "     If you have #{dynamic_file}, the migration"
+      info "     has already run successfully and you're good to go!"
+      info ""
+      info "  2. Review the source configuration file:"
+      info "     Check #{source_file} for any missing or invalid settings."
+      info "     All required static configuration keys must exist with "
+      info "     non-nil values."
+      info ""
+      info "  3. Look for diagnostic hints in the output above:"
+      info "     Messages like `Checking setting: logging NilClass` indicate"
+      info "     that the 'logging' key is missing or null in your YAML file."
+      info ""
+      info "  4. Verify configuration format:"
+      info "     If the migration has already run, #{source_file} will"
+      info "     be in the updated static config format (not the original "
+      info "     monolithic format)."
       separator
     end
 
