@@ -11,8 +11,6 @@ require 'syslog'
 require 'encryptor'
 require 'bcrypt'
 
-require 'sendgrid-ruby'
-
 require 'rack'
 require 'otto'
 require 'gibbler/mixins'
@@ -20,6 +18,15 @@ require 'familia'
 require 'storable'
 
 require_relative 'onetime/core_ext'
+
+# Character Encoding Configuration
+# Set UTF-8 as the default external encoding to ensure consistent text handling:
+# - Standardizes file and network I/O operations
+# - Normalizes STDIN/STDOUT/STDERR encoding
+# - Provides default encoding for strings from external sources
+# This prevents encoding-related bugs, especially on fresh OS installations
+# where locale settings may not be properly configured.
+Encoding.default_external = Encoding::UTF_8
 
 # Ensure immediate flushing of stdout to improve real-time logging visibility.
 # This is particularly useful in development and production environments where

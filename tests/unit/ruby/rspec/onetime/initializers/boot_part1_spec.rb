@@ -296,7 +296,7 @@ RSpec.describe "Onetime::Config during Onetime.boot!" do
       # Application Initialization
       # -------------------------------
       # Load all application modules from the registry
-      AppRegistry.load_applications
+      AppRegistry.discover_applications
       BaseApplication.register_applications
 
       expect(V2::RateLimit).to have_received(:register_events).with(Onetime.conf[:limits])
