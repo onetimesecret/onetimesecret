@@ -37,45 +37,14 @@ module Onetime
     # is useful for testing or when you want to run code without necessary
     # loading all or any of the models.
     #
-    # NOTE: Should be called last in the list of onetime helpers.
-    #
     def boot!(mode = nil, connect_to_db = true)
-      OT.mode = mode unless mode.nil?
-      OT.env = ENV['RACK_ENV'] || 'production'
+      prepare_onetime_namespace(mode)
 
-      # Default to diagnostics disabled. FYI: in test mode, the test config
-      # YAML has diagnostics enabled. But the DSN values are nil so it
-      # doesn't get enabled even after loading config.
-      OT.d9s_enabled = false
-
-      @sysinfo ||= SysInfo.new.freeze
-
-      # Sets a unique SHA hash every time this process starts. In a multi-
-      # threaded environment (e.g. with Puma), this could different for
-      # each thread.
-      @instance ||= [OT.sysinfo.hostname, OT.sysinfo.user, Process.pid, OT::VERSION.to_s, OT.now.to_i].gibbler.freeze
-
-      # Normalize environment variables prior to loading the YAML config
-      OT::Config.before_load
-
-      # Loads the configuration and renders all value templates (ERB)
-      raw_conf = OT::Config.load
-
-      # SAFETY MEASURE: Freeze the (inevitably) shared config
-      # TODO: Consider leaving unfrozen until the end of boot!
-      OT::Utils.deep_freeze(raw_conf)
-
-      # Normalize the configuration and make it available to the rest
-      # of the initializers (via OT.conf).
-      @conf = OT::Config.after_load(raw_conf)
+      conf = OT::Config.setup
 
       # Run all registered initializers in TSort-determined order
       # Pass necessary context like mode and connect_to_db preference
-      initializer_options = {
-        mode: OT.mode,
-        connect_to_db: connect_to_db,
-      }
-      Onetime::Initializers::Registry.run_all!(initializer_options)
+      run_initializers(connect_to_db)
 
       # Let's be clear about returning the prepared configruation. Previously
       # we returned @conf here which was confusing because already made it
@@ -83,10 +52,57 @@ module Onetime
       # code in the application has access to the processed configuration
       # is from within this boot! method.
       nil
+    rescue => error
+      handle_boot_error(error)
+    end
 
-    rescue OT::Problem => e
-      OT.le "Problem booting: #{e}"
-      OT.ld e.backtrace.join("\n")
+    private
+
+    def prepare_onetime_namespace(mode)
+      @mode = mode unless mode.nil?
+      @env = ENV['RACK_ENV'] || 'production'
+
+      # Default to diagnostics disabled. FYI: in test mode, the test config
+      # YAML has diagnostics enabled. But the DSN values are nil so it
+      # doesn't get enabled even after loading config.
+      OT.d9s_enabled = false # TODO
+
+      @sysinfo = SysInfo.new.freeze
+
+      # Sets a unique SHA hash every time this process starts. In a multi-
+      # threaded environment (e.g. with Puma), this could different for
+      # each thread.
+      @instance = [
+        OT.sysinfo.hostname,
+        OT.sysinfo.user,
+        Process.pid,
+        OT::VERSION.to_s,
+        OT.hnow,
+      ].gibbler.freeze
+    end
+
+    def run_initializers(connect_to_db)
+      initializer_options = {
+        mode: OT.mode,
+        connect_to_db: connect_to_db,
+      }
+      Onetime::Initializers::Registry.run_all!(initializer_options)
+    end
+
+    def handle_boot_error(error)
+      case error
+      when OT::Problem
+        OT.le "Problem booting: #{error}"
+        OT.ld error.backtrace.join("\n")
+      when Redis::CannotConnectError
+        OT.le "Cannot connect to redis #{Familia.uri} (#{error.class})"
+      when TSort::Cyclic
+        # The detailed message from the registry's sorted_initializers will be part of e.message
+        OT.le "Problem booting due to initializer dependency cycle: #{error.message}"
+      else
+        OT.le "Unexpected error `#{error}` (#{error.class})"
+        OT.ld error.backtrace.join("\n")
+      end
 
       # NOTE: Prefer `raise` over `exit` here. Previously we used
       # exit and it caused unexpected behaviour in tests, where
@@ -106,21 +122,8 @@ module Onetime
       #
       # allow(Onetime).to receive(:connect_databases).and_call_original
       #
-      raise e unless mode?(:cli) # allows for debugging in the console
-
-    rescue Redis::CannotConnectError => e
-      OT.le "Cannot connect to redis #{Familia.uri} (#{e.class})"
-      raise e unless mode?(:cli)
-
-    rescue TSort::Cyclic => e # Catch TSort errors specifically
-      OT.le "Problem booting due to initializer dependency cycle: #{e.message}"
-      # The detailed message from the registry's sorted_initializers will be part of e.message
-      raise e unless mode?(:cli)
-
-    rescue StandardError => e
-      OT.le "Unexpected error `#{e}` (#{e.class})"
-      OT.ld e.backtrace.join("\n")
-      raise e unless mode?(:cli)
+      raise error unless mode?(:cli)
     end
+
   end
 end
