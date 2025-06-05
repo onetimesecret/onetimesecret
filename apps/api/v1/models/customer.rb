@@ -231,7 +231,7 @@ module V1
       if anonymous?
         'anon'
       else
-        OT::Utils.obscure_email(custid)
+        V1::Utils.obscure_email(custid)
       end
     end
 

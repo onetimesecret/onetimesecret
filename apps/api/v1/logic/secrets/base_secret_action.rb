@@ -117,7 +117,7 @@ module V1::Logic
           next if email_address.to_s.empty?
           email_address.scan(r).uniq.first
         }.compact.uniq
-        @recipient_safe = recipient.collect { |r| OT::Utils.obscure_email(r) }
+        @recipient_safe = recipient.collect { |r| V1::Utils.obscure_email(r) }
       end
 
       # Capture the selected domain the link is meant for, as long as it's
