@@ -3,7 +3,7 @@
 require 'sysinfo'
 require 'onetime/refinements/hash_refinements'
 
-require_relative './initializers'
+require_relative 'initializers'
 
 module Onetime
   @sysinfo = nil
@@ -44,7 +44,10 @@ module Onetime
 
       # Run all registered initializers in TSort-determined order
       # Pass necessary context like mode and connect_to_db preference
-      run_initializers(connect_to_db)
+      Onetime::Initializers::Registry.run_all!({
+        mode: OT.mode,
+        connect_to_db: connect_to_db,
+      })
 
       # Let's be clear about returning the prepared configruation. Previously
       # we returned @conf here which was confusing because already made it
@@ -79,14 +82,6 @@ module Onetime
         OT::VERSION.to_s,
         OT.hnow,
       ].gibbler.freeze
-    end
-
-    def run_initializers(connect_to_db)
-      initializer_options = {
-        mode: OT.mode,
-        connect_to_db: connect_to_db,
-      }
-      Onetime::Initializers::Registry.run_all!(initializer_options)
     end
 
     def handle_boot_error(error)

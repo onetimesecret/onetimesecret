@@ -67,7 +67,7 @@ module Onetime
             {
               order: index,
               name: initializer.name,
-              dependencies: deps.empty? ? [] : deps.map(&:name)
+              dependencies: deps.empty? ? [] : deps.map(&:name),
             }
           end
         rescue TSort::Cyclic => e
@@ -75,7 +75,7 @@ module Onetime
           [{
             order: 0,
             name: "ERROR",
-            dependencies: ["Cyclic dependency detected: #{e.message}"]
+            dependencies: ["Cyclic dependency detected: #{e.message}"],
           }]
         end
 
