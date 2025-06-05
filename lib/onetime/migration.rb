@@ -14,11 +14,26 @@ module Onetime
     def self.run(options = {})
       migration = new
       migration.options = options
+      migration.prepare
+
+      is_good = migration.migration_needed?
+      migration.info("Migration needed? #{is_good}. (This usually means it has already been applied.)")
+      return true unless is_good
+
       migration.migrate
+
+    end
+
+    def prepare
+      debug("Preparing migration - default")
     end
 
     def migrate
       raise NotImplementedError, "#{self.class} must implement #migrate"
+    end
+
+    def migration_needed?
+      raise NotImplementedError, "#{self.class} must implement #migration_needed?"
     end
 
     # Core run mode methods
