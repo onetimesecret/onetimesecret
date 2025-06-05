@@ -57,8 +57,9 @@ end
 # Add the lib directory to Ruby's load path for require statements
 $LOAD_PATH.unshift(File.join(project_root, 'lib'))
 
-# Load application-specific components
-require_relative 'apps/app_registry'    # Application registry for mounting apps
+require_relative 'lib/onetime'
+
+require_relative 'apps/app_registry'
 
 # Bootstrap the Application
 # -------------------------------
@@ -67,8 +68,6 @@ require_relative 'apps/app_registry'    # Application registry for mounting apps
 # database connections for all model classes.
 Onetime.boot! :app
 
-# Application Initialization
-# -------------------------------
 # Discover and map application modules to their routes
 AppRegistry.initialize_applications
 

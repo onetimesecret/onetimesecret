@@ -4,7 +4,6 @@ APPS_ROOT = File.expand_path(__dir__).freeze
 $LOAD_PATH.unshift(File.join(APPS_ROOT, 'api'))
 $LOAD_PATH.unshift(File.join(APPS_ROOT, 'web'))
 
-require 'onetime'
 require 'onetime/middleware'
 
 module AppRegistry
