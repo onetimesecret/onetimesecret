@@ -1,7 +1,7 @@
 # apps/app_registry.rb
 
 unless defined?(APPS_ROOT)
-  project_root = ENV['ONETIME_HOME']
+  project_root = ENV['ONETIME_HOME'] || File.expand_path("..", __dir__).freeze
 
   # Add the directory containing the rack applications to Ruby's load path
   APPS_ROOT = File.expand_path(project_root).freeze
