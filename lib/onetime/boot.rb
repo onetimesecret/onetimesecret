@@ -57,40 +57,43 @@ module Onetime
       raw_conf = OT::Config.load
 
       # SAFETY MEASURE: Freeze the (inevitably) shared config
+      # TODO: Consider leaving unfrozen until the end of boot!
       OT::Utils.deep_freeze(raw_conf)
 
       # Normalize the configuration and make it available to the rest
       # of the initializers (via OT.conf).
       @conf = OT::Config.after_load(raw_conf)
 
-      # OT.conf is deeply frozen at this point which means that the
-      # initializers are meant to read from it, set other values, but
-      # not modify it.
-      # TODO: Consider leaving unfrozen until the end of boot!
+      # Run all registered initializers in TSort-determined order
+      # Pass necessary context like mode and connect_to_db preference
+      initializer_options = {
+        mode: OT.mode,
+        connect_to_db: connect_to_db
+      }
+      Onetime::Initializers::Registry.run_all!(initializer_options)
 
       # NOTE: We could benefit from tsort to make sure these
       # initializers are loaded in the correct order.
-      load_locales
-      set_global_secret
-      set_rotated_secrets
-      setup_authentication
-      setup_diagnostics
-      configure_domains
-      configure_truemail
-      prepare_emailers
-      load_fortunes
-      load_plans
-      if connect_to_db
-        connect_databases
-        check_global_banner
-      end
+      # load_locales
+      # set_global_secret
+      # set_rotated_secrets
+      # setup_authentication
+      # setup_diagnostics
+      # configure_domains
+      # configure_truemail
+      # prepare_emailers
+      # load_fortunes
+      # load_plans
+      # if connect_to_db
+      #   connect_databases
+      #   check_global_banner
+      # end
 
       # Setup system settings - check for existing override configuration
       # and merge with YAML config if present. Must happen before other
       # initializers that depend on the final merged configuration.
-      setup_system_settings
-
-      print_log_banner unless mode?(:test)
+      #setup_system_settings
+      #print_log_banner unless mode?(:test) # This logic is now inside PrintLogBanner.run
 
       # Let's be clear about returning the prepared configruation. Previously
       # we returned @conf here which was confusing because already made it
@@ -125,6 +128,11 @@ module Onetime
 
     rescue Redis::CannotConnectError => e
       OT.le "Cannot connect to redis #{Familia.uri} (#{e.class})"
+      raise e unless mode?(:cli)
+
+    rescue TSort::Cyclic => e # Catch TSort errors specifically
+      OT.le "Problem booting due to initializer dependency cycle: #{e.message}"
+      # The detailed message from the registry's sorted_initializers will be part of e.message
       raise e unless mode?(:cli)
 
     rescue StandardError => e
