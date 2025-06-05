@@ -20,8 +20,12 @@ require 'onetime/migration'
 require 'yaml'
 require 'fileutils'
 
+require 'onetime/refinements/hash_refinements'
+
 module Onetime
   class Migration < BaseMigration
+
+    using IndifferentHashAccess
 
     # Configuration mapping for splitting monolithic config
     CONFIG_MAPPINGS = {
@@ -35,6 +39,7 @@ module Onetime
         { 'from' => 'redis.uri', 'to' => 'storage.db.connection.url' },
         { 'from' => 'redis.dbs', 'to' => 'storage.db.database_mapping' },
         { 'from' => 'emailer', 'to' => 'mail.connection' },
+        { 'from' => 'mail.truemail', 'to' => 'mail.validation.default' },
         { 'from' => 'logging', 'to' => 'logging' },
         { 'from' => 'internationalization', 'to' => 'i18n' },
         { 'from' => 'development', 'to' => 'development' },
@@ -61,9 +66,8 @@ module Onetime
       ],
     }.freeze
 
-    def migrate
-      run_mode_banner
-
+    def prepare
+      info("Preparing migration")
       @base_path = File.expand_path File.join(File.dirname(__FILE__), '..')
       @source_config = File.join(@base_path, 'etc', 'config.yaml')
       @backup_suffix = Time.now.strftime('%Y%m%d%H%M%S')
@@ -72,6 +76,46 @@ module Onetime
       @dynamic_config = File.join(@base_path, 'etc', 'config.dynamic.yaml')
       @final_static_path = File.join(@base_path, 'etc', 'config.yaml')
       @final_dynamic_path = File.join(@base_path, 'etc', 'system_settings.defaults.yaml')
+    end
+
+    def migration_needed?
+      return false unless File.exist?(@source_config)
+
+      begin
+        config = YAML.load_file(@source_config)
+
+        # Check if all static mapping source paths exist with non-nil values
+        ret = CONFIG_MAPPINGS['static'].all? do |mapping|
+          from_path = mapping['from']
+          value = get_nested_value(config, from_path.split('.'))
+          info("Checking setting: #{from_path} #{value.class}")
+          !value.nil?
+        end
+        # require 'pry-byebug'; binding.pry;
+        ret
+      rescue => e
+        error "Failed to check migration status: #{e.message}"
+        false
+      end
+    end
+
+    def migration_not_needed_banner
+      # Print help message for things to check to give a clue as to what to do next
+      separator
+      info "Things to check:"
+      info ""
+      info "  1. Look for hints in the output above e.g."
+      info "      `Checking setting: logging NilClass` means there is no"
+      info "       top-level 'logging' key in the YAML."
+      info "  2. Check #{File.basename(@source_config)} for any missing or" \
+           " invalid settings."
+      info "  3. Please verify that all settings in the source file exist"
+      info "     with non-nil values."
+      separator
+    end
+
+    def migrate
+      run_mode_banner
 
       # Validate source file exists
       unless File.exist?(@source_config)
@@ -98,12 +142,19 @@ module Onetime
         info "Configuration separation completed successfully"
         info "Static config: #{@final_static_path}"
         info "Dynamic config: #{@final_dynamic_path}"
+        separator
+        info "Files processed: #{@stats[:files_processed]}"
+        info "Errors encountered: #{@stats[:errors]}"
       end
 
       true
     end
 
     private
+
+    def get_nested_value(hash, keys)
+      keys.reduce(hash) { |h, key| h&.dig(key) }
+    end
 
     def backup_config
       backup_path = "#{@source_config}.#{@backup_suffix}"
