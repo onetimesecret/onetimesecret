@@ -75,7 +75,7 @@ require_relative 'lib/onetime/middleware' # Custom middleware components
 # Application Initialization
 # -------------------------------
 # Load all application modules from the registry
-AppRegistry.load_applications
+AppRegistry.discover_applications
 BaseApplication.register_applications
 
 # Bootstrap the Application

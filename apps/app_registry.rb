@@ -11,7 +11,7 @@ module AppRegistry
   class << self
     attr_reader :mounts
 
-    def load_applications
+    def discover_applications
       paths = Dir.glob(File.join(APPS_ROOT, '**/application.rb'))
       OT.ld "[app_registry] Found #{paths.join(', ')}"
       paths.each { |f| require f }
