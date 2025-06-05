@@ -15,24 +15,6 @@ module Onetime
     attr_accessor :mode, :env
     attr_writer :debug
 
-    # Returns the normalized application environment
-    # Defaults to 'production' when uncertain for maximum security
-    # @return [String] environment name
-    def env
-      env = ENV['RACK_ENV'] || 'production'
-
-      # Normalize abbreviated environment names
-      case env
-      when 'dev'  then 'development'
-      when 'prod' then 'production'
-      when 'stage', 'staging' then 'staging'
-      when 'test' then 'test'
-      else
-        # Valid environment names pass through, unknown values become 'production'
-        %w[development production test staging].include?(env) ? env : 'production'
-      end
-    end
-
     # Returns the current wall clock time as microseconds since Unix epoch
     # using the system's high-precision clock interface. This method provides
     # the most accurate and consistent timestamp available on the platform.
@@ -182,23 +164,6 @@ module Onetime
       Process.clock_gettime(Process::CLOCK_REALTIME, :float_second)
     end
 
-    def with_diagnostics(&)
-      return unless Onetime.d9s_enabled
-      yield # call the block in its own context
-    end
-
-    def debug
-      @debug ||= ENV['ONETIME_DEBUG'].to_s.match?(/^(true|1)$/i)
-    end
-
-    def debug?
-      !!debug # force a boolean
-    end
-
-    def mode?(guess)
-      @mode.to_s == guess.to_s
-    end
-
     def info(*msgs)
       return unless mode?(:app) || mode?(:cli) # can reduce output in tryouts
       msg = msgs.join("#{$/}")
@@ -242,10 +207,103 @@ module Onetime
       STDERR.puts(logline)
     end
 
+    def with_diagnostics(&)
+      return unless Onetime.d9s_enabled
+      yield # call the block in its own context
+    end
+
+    def debug
+      @debug ||= ENV['ONETIME_DEBUG'].to_s.match?(/^(true|1)$/i)
+    end
+
+    # Returns debug status and optionally executes block if enabled.
+    #
+    # @example Basic usage
+    #   debug?  #=> true/false
+    #
+    # @example With block execution
+    #   debug? { enable_verbose_logging }
+    def debug?(&block)
+      result = !!debug
+      block&.call if result
+      result
+    end
+
+    # Compares current mode and optionally executes block if matched.
+    #
+    # @example Basic usage
+    #   mode?(:cli)  #=> true/false
+    #
+    # @example With block execution
+    #   mode?(:cli) { wait_for_interactive_answer }
+    def mode?(guess, &block)
+      result = @mode.to_s == guess.to_s
+      block&.call if result
+      result
+    end
+
     # Convenience methods for environment checking
-    def production?; env == 'production'; end
-    def development?; env == 'development'; end
-    def test?; env == 'test'; end
-    def staging?; env == 'staging'; end
+    def production?(&)
+      env_matches?(%w[prod production], &)
+    end
+
+    def development?(&)
+      env_matches?(%w[dev development], &)
+    end
+
+    def testing?(&)
+      env_matches?(%w[test testing], &)
+    end
+
+    def staging?(&)
+      env_matches?(%w[stage staging], &)
+    end
+
+    # Returns the normalized application environment
+    # Defaults to 'production' when uncertain for maximum security
+    # @return [String] environment name
+    def env
+      env = ENV['RACK_ENV'] || 'production'
+
+      # Normalize abbreviated environment names
+      case env
+      when 'dev'  then 'development'
+      when 'prod' then 'production'
+      when 'stage', 'staging' then 'staging'
+      when 'test', 'testing' then 'testing'
+      else
+        # Valid environment names pass through, unknown values become 'production'
+        %w[development production testing staging].include?(env) ? env : 'production'
+      end
+    end
+
+    private
+
+    # Checks if the current environment matches any of the given patterns.
+    # Optionally executes a block if a match is found.
+    #
+    # @param patterns [Array<String>] Environment names to match against
+    # @param block [Proc, nil] Optional block executed on match
+    # @return [Boolean] true if any pattern matches current environment
+    #
+    # @note Requires Ruby 2.7+ for _1 numbered parameter syntax
+    #
+    # @example Basic matching
+    #   env_matches?(['development', 'dev'])  #=> true/false
+    #
+    # @example With block execution
+    #   env_matches?(['production']) { setup_monitoring }
+    #
+    # @example Block with conditional execution
+    #   env_matches?(['development', 'staging']) do
+    #     puts "Running in non-production environment"
+    #     enable_debug_logging
+    #   end
+    #
+    def env_matches?(patterns, &block)
+      result = patterns.any? { env == _1 }
+      block&.call if result
+      result
+    end
   end
 end
