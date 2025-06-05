@@ -29,28 +29,28 @@ Registry.register(Init::LoadFortunes)
 Registry.register(Init::ConnectDatabases) # Internally handles options[:connect_to_db]
 
 # Group 1: Depend on Group 0 (especially ConnectDatabases)
-Registry.register(Init::LoadGlobalBanner, depends_on: [Init::ConnectDatabases])
-Registry.register(Init::SetupSystemSettings, depends_on: [Init::ConnectDatabases]) # Loads OT.sysconfig from DB
+Registry.register(Init::LoadGlobalBanner, [Init::ConnectDatabases])
+Registry.register(Init::SetupSystemSettings, [Init::ConnectDatabases]) # Loads OT.sysconfig from DB
 
 # Group 2: Depend on SetupSystemSettings (OT.sysconfig) and others
-Registry.register(Init::LoadPlans, depends_on: [Init::SetupSystemSettings])
-Registry.register(Init::SetupAuthentication, depends_on: [
+Registry.register(Init::LoadPlans, [Init::SetupSystemSettings])
+Registry.register(Init::SetupAuthentication, [
                     Init::SetupGlobalSecret,
                     Init::SetupRotatedSecrets,
                     Init::SetupSystemSettings,
                   ])
-Registry.register(Init::SetupDiagnostics, depends_on: [Init::SetupSystemSettings])
-Registry.register(Init::ConfigureDomains, depends_on: [Init::SetupSystemSettings])
-Registry.register(Init::ConfigureTruemail, depends_on: [Init::SetupSystemSettings])
+Registry.register(Init::SetupDiagnostics, [Init::SetupSystemSettings])
+Registry.register(Init::ConfigureDomains, [Init::SetupSystemSettings])
+Registry.register(Init::ConfigureTruemail, [Init::SetupSystemSettings])
 
 # Group 3: Depend on Group 2
-Registry.register(Init::SetupEmailers, depends_on: [
+Registry.register(Init::SetupEmailers, [
                     Init::ConfigureTruemail,
                     Init::ConfigureDomains,
                     Init::SetupSystemSettings, # Redundant if others list it, but explicit
                   ])
 
 # Group 4: Finalizers (e.g., logging)
-Registry.register(Init::DisplayLogBanner, depends_on: [ # Depends on a late-stage initializer to ensure it runs last
+Registry.register(Init::DisplayLogBanner, [ # Depends on a late-stage initializer to ensure it runs last
                     Init::SetupEmailers,
                   ])

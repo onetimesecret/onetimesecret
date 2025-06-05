@@ -14,6 +14,7 @@ require_relative 'cli/move_keys'
 require_relative 'cli/customers'
 require_relative 'cli/domains'
 require_relative 'cli/change_email'
+require_relative 'cli/initializers'
 
 module Onetime
   class CLI < Drydock::Command

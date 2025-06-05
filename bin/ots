@@ -91,11 +91,19 @@ class OT::CLI::Definition
   about ""
   command change_email: OT::CLI
 
-  usage "ots change-email-log [EMAIL] [--verbose] [--limit N]"
+  usage "ots change-email-log [EMAIL] [--limit N]"
+  usage "ots [--verbose] change-email-log [EMAIL] [--limit N]"
   about "View history of email address changes"
-  option :v, :verbose, "Display full change reports"
+  about "Use --verbose to display full change reports"
   option :n, :limit, Integer, "Limit number of reports to show (default: 10)"
   command change_email_log: OT::CLI
+
+  usage 'ots initializers [--dependencies] [--verbose]'
+  usage 'ots --verbose initializers [--dependencies]'
+  about 'Display boot-time initializers in execution order'
+  about "Use --verbose for full module names"
+  option :d, :dependencies, "Show dependencies for each initializer"
+  command initializers: InitializersCommand
 end
 
 begin

@@ -58,13 +58,34 @@ module Onetime
           raise TSort::Cyclic, detailed_message # Re-raise with more info
         end
 
-        # TSort interface implementation
-        def tsort_each_node(&block)
-          initializers.each(&block)
+        # Get execution order information for display/debugging
+        #
+        # @return [Array<Hash>] Array of hashes with initializer info
+        def execution_order
+          sorted_initializers.map.with_index(1) do |initializer, index|
+            deps = dependencies[initializer] || []
+            {
+              order: index,
+              name: initializer.name,
+              dependencies: deps.empty? ? [] : deps.map(&:name)
+            }
+          end
+        rescue TSort::Cyclic => e
+          # Return error info if there's a cycle
+          [{
+            order: 0,
+            name: "ERROR",
+            dependencies: ["Cyclic dependency detected: #{e.message}"]
+          }]
         end
 
-        def tsort_each_child(node, &block)
-          dependencies.fetch(node, []).each(&block)
+        # TSort interface implementation
+        def tsort_each_node(&)
+          initializers.each(&)
+        end
+
+        def tsort_each_child(node, &)
+          dependencies.fetch(node, []).each(&)
         end
 
         private
