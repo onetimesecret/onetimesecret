@@ -26,10 +26,10 @@ module Onetime
       when 'dev'  then 'development'
       when 'prod' then 'production'
       when 'stage', 'staging' then 'staging'
-      when 'test' then 'test'
+      when 'test', 'testing' then 'testing'
       else
         # Valid environment names pass through, unknown values become 'production'
-        %w[development production test staging].include?(env) ? env : 'production'
+        %w[development production testing staging].include?(env) ? env : 'production'
       end
     end
 
@@ -182,23 +182,6 @@ module Onetime
       Process.clock_gettime(Process::CLOCK_REALTIME, :float_second)
     end
 
-    def with_diagnostics(&)
-      return unless Onetime.d9s_enabled
-      yield # call the block in its own context
-    end
-
-    def debug
-      @debug ||= ENV['ONETIME_DEBUG'].to_s.match?(/^(true|1)$/i)
-    end
-
-    def debug?
-      !!debug # force a boolean
-    end
-
-    def mode?(guess)
-      @mode.to_s == guess.to_s
-    end
-
     def info(*msgs)
       return unless mode?(:app) || mode?(:cli) # can reduce output in tryouts
       msg = msgs.join("#{$/}")
@@ -242,10 +225,61 @@ module Onetime
       STDERR.puts(logline)
     end
 
+    def with_diagnostics(&)
+      return unless Onetime.d9s_enabled
+      yield # call the block in its own context
+    end
+
+    def debug
+      @debug ||= ENV['ONETIME_DEBUG'].to_s.match?(/^(true|1)$/i)
+    end
+
+    def debug?
+      !!debug # force a boolean
+    end
+
+    def mode?(guess)
+      @mode.to_s == guess.to_s
+    end
+
     # Convenience methods for environment checking
-    def production?; env =~ /\A(prod|production)\z/; end
-    def development?; env =~ /\A(dev|development)\z/; end
-    def test?; env =~ /\A(test|testing)\z/; end
-    def staging?; env =~ /\A(stage|staging)\z/; end
+    def production?(&)
+      env_matches?(%w[prod production], &)
+    end
+
+    def development?(&)
+      env_matches?(%w[dev development], &)
+    end
+
+    def testing?(&)
+      env_matches?(%w[test testing], &)
+    end
+
+    def staging?(&)
+      env_matches?(%w[stage staging], &)
+    end
+
+    private
+
+    # Checks if the current environment matches any of the given patterns.
+    # Optionally executes a block if a match is found.
+    #
+    # @param patterns [Array<String>] Environment names to match against
+    # @param block [Proc, nil] Optional block executed on match
+    # @return [Boolean] true if any pattern matches current environment
+    #
+    # @note Requires Ruby 2.7+ for _1 numbered parameter syntax
+    #
+    # @example Basic matching
+    #   env_matches?(['development', 'dev'])  #=> true/false
+    #
+    # @example With block execution
+    #   env_matches?(['production']) { setup_monitoring }
+    #
+    def env_matches?(patterns, &block)
+      result = patterns.any? { env == _1 }
+      block&.call if result
+      result
+    end
   end
 end
