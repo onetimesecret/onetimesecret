@@ -8,9 +8,10 @@ require_relative './initializers'
 module Onetime
   extend Initializers
 
-  module Initializers
-    @sysinfo = nil
-    @conf = nil
+  @sysinfo = nil
+  @conf = nil
+
+  class << self
 
     attr_reader :conf, :instance, :sysinfo
 
@@ -130,21 +131,6 @@ module Onetime
       OT.le "Unexpected error `#{e}` (#{e.class})"
       OT.ld e.backtrace.join("\n")
       raise e unless mode?(:cli)
-    end
-
-    # Replaces the global configuration instance with the provided data.
-    def replace_config!(other)
-      # TODO: Validate the new configuration data before replacing it
-      self.conf = other
-    end
-
-    private
-
-    # Replaces the global configuration instance. This method is private to
-    # prevent external modification of the shared configuration state
-    # after initialization.
-    def conf=(value)
-      @conf = value
     end
   end
 end

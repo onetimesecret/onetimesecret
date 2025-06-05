@@ -7,14 +7,19 @@
 #
 # Environment detection and normalization
 module Onetime
-  module ClassMethods
-    @env = nil
-    @mode = :app
-    @conf = nil
-    @debug = nil
+  @env = nil
+  @mode = :app
+  @debug = nil
 
+  module ClassMethods
     attr_accessor :mode
     attr_writer :debug, :env
+
+    # Replaces the global configuration instance with the provided data.
+    def replace_config!(other)
+      # TODO: Validate the new configuration data before replacing it
+      self.conf = other
+    end
 
     # Returns the current wall clock time as microseconds since Unix epoch
     # using the system's high-precision clock interface. This method provides
@@ -305,6 +310,13 @@ module Onetime
       result = patterns.any? { env == _1 }
       block&.call if result
       result
+    end
+
+    # Replaces the global configuration instance. This method is private to
+    # prevent external modification of the shared configuration state
+    # after initialization.
+    def conf=(value)
+      @conf = value
     end
   end
 
