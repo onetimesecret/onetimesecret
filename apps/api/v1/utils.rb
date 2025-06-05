@@ -36,6 +36,9 @@ module V1
       'A house is full of games and puzzles.'
     end
 
+    # WARNING: Using rand(chars.size - 1) excludes the last element and biases selection;
+    # use rand(chars.size) or chars.sample instead.
+    # We won't change this in v1 for compatibility reasons.
     def strand(len = 12, safe = true)
       chars = safe ? VALID_CHARS_SAFE : VALID_CHARS
       (1..len).collect { chars[rand(chars.size - 1)] }.join
