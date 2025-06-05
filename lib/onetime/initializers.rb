@@ -17,72 +17,71 @@ require_relative 'initializers/setup_system_settings'
 require_relative 'initializers/display_log_banner'
 
 # Alias for brevity in registration
-Init = Onetime::Initializers
-Registry = Init::Registry
+OT::Init = Onetime::Initializers
 
 # Register initializers with their dependencies
 # Group 0: No internal dependencies, rely on OT.conf
-Registry.register(Init::LoadLocales)
-Registry.register(Init::SetupGlobalSecret)
-Registry.register(Init::SetupRotatedSecrets)
-Registry.register(Init::LoadFortunes)
-Registry.register(Init::ConnectDatabases) # Internally handles options[:connect_to_db]
+OT::Init::Registry.register(OT::Init::LoadLocales)
+OT::Init::Registry.register(OT::Init::SetupGlobalSecret)
+OT::Init::Registry.register(OT::Init::SetupRotatedSecrets)
+OT::Init::Registry.register(OT::Init::LoadFortunes)
+OT::Init::Registry.register(OT::Init::ConnectDatabases) # Internally handles options[:connect_to_db]
 
 # Group 1: Depend on Group 0 (especially ConnectDatabases)
-Registry.register(
-  Init::LoadGlobalBanner,
-  [Init::ConnectDatabases],
+OT::Init::Registry.register(
+  OT::Init::LoadGlobalBanner,
+  [OT::Init::ConnectDatabases],
 )
 
-Registry.register(
-  Init::SetupSystemSettings,
-  [Init::ConnectDatabases],
+OT::Init::Registry.register(
+  OT::Init::SetupSystemSettings,
+  [OT::Init::ConnectDatabases],
 ) # Loads OT.sysconfig from DB
 
 # Group 2: Depend on SetupSystemSettings (OT.sysconfig) and others
-Registry.register(
-  Init::LoadPlans,
-  [Init::SetupSystemSettings],
+OT::Init::Registry.register(
+  OT::Init::LoadPlans,
+  [OT::Init::SetupSystemSettings],
 )
 
-Registry.register(
-  Init::SetupAuthentication,
+OT::Init::Registry.register(
+  OT::Init::SetupAuthentication,
   [
-    Init::SetupGlobalSecret,
-    Init::SetupRotatedSecrets,
-    Init::SetupSystemSettings,
+    OT::Init::SetupGlobalSecret,
+    OT::Init::SetupRotatedSecrets,
+    OT::Init::SetupSystemSettings,
   ],
 )
 
-Registry.register(
-  Init::SetupDiagnostics,
-  [Init::SetupSystemSettings],
+OT::Init::Registry.register(
+  OT::Init::SetupDiagnostics,
+  [OT::Init::SetupSystemSettings],
 )
 
-Registry.register(
-  Init::ConfigureDomains,
-  [Init::SetupSystemSettings],
+OT::Init::Registry.register(
+  OT::Init::ConfigureDomains,
+  [OT::Init::SetupSystemSettings],
 )
 
-Registry.register(
-  Init::ConfigureTruemail,
-  [Init::SetupSystemSettings],
+OT::Init::Registry.register(
+  OT::Init::ConfigureTruemail,
+  [OT::Init::SetupSystemSettings],
 )
 
 # Group 3: Depend on Group 2
-Registry.register(
-  Init::SetupEmailers,
+OT::Init::Registry.register(
+  OT::Init::SetupEmailers,
   [
-    Init::ConfigureTruemail,
-    Init::ConfigureDomains,
-    Init::SetupSystemSettings, # Redundant if others list it, but explicit
+    OT::Init::ConfigureTruemail,
+    OT::Init::ConfigureDomains,
+    OT::Init::SetupSystemSettings, # Redundant if others list it, but explicit
   ],
 )
 
 # Group 4: Finalizers (e.g., logging)
-Registry.register(
-  Init::DisplayLogBanner, # Depends on a late-stage initializer to ensure it runs last
+OT::Init::Registry.register(
+  OT::Init::DisplayLogBanner, # Depends on a late-stage initializer to ensure it runs last
   [
-    Init::SetupEmailers,
+    OT::Init::SetupEmailers,
   ],
 )
