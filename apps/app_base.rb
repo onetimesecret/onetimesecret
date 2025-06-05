@@ -4,6 +4,8 @@ require 'rack'
 require 'otto'
 require 'json'
 
+require_relative 'app_registry'
+
 class BaseApplication
   attr_reader :options, :router, :rack_app
 
@@ -29,17 +31,16 @@ class BaseApplication
 
   class << self
     @prefix = nil
-    @subclasses = nil
 
-    attr_reader :prefix, :subclasses
+    attr_reader :prefix
 
     # Tracks subclasses for deferred registration
     # @param subclass [Class] The class inheriting from BaseApplication
     # @return [void]
     def inherited(subclass)
       # Keep track subclasses without immediate registration
-      (@subclasses ||= []) << subclass
-      OT.ld "Tracking #{subclass} for registration"
+      AppRegistry.track_application(subclass)
+      OT.ld "BaseApplication.inherited: #{subclass} registered with AppRegistry"
     end
 
     def development?

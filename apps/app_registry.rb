@@ -6,10 +6,11 @@ $LOAD_PATH.unshift(File.join(APPS_ROOT, 'web'))
 
 module AppRegistry
   # Simple hash to store mount paths
+  @applications = []
   @mounts = {}
 
   class << self
-    attr_reader :mounts
+    attr_reader :applications, :mounts
 
     def discover_applications
       paths = Dir.glob(File.join(APPS_ROOT, '**/application.rb'))
@@ -17,10 +18,14 @@ module AppRegistry
       paths.each { |f| require f }
     end
 
+    def track_application(app_class)
+      @applications << app_class unless @applications.include?(app_class)
+      OT.ld "AppRegistry tracking application: #{app_class}"
+    end
+
     # Maps all discovered application classes to their URL routes
     # @return [Array<Class>] Registered application classes
     def map_applications_to_routes
-      applications = BaseApplication.subclasses || []
       OT.li "Mapping #{applications.size} application(s) to routes"
 
       applications.each do |app_class|
