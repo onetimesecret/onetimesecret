@@ -7,14 +7,8 @@
 #
 # Environment detection and normalization
 module Onetime
-  @env = nil
-  @mode = :app
-  @debug = nil
 
   module ClassMethods
-    attr_accessor :mode
-    attr_writer :debug, :env
-
     # Replaces the global configuration instance with the provided data.
     def replace_config!(other)
       # TODO: Validate the new configuration data before replacing it

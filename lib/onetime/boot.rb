@@ -8,14 +8,17 @@ require_relative './initializers'
 module Onetime
   @sysinfo = nil
   @conf = nil
+  @env = nil
+  @mode = :app
+  @debug = nil
 
   class << self
 
-    attr_reader :conf, :instance, :sysinfo, :i18n_enabled, :locales, :supported_locales,
-                :default_locale, :fallback_locale, :global_banner, :rotated_secrets,
-                :emailer, :first_boot
-    attr_writer :global_secret
-    attr_accessor :d9s_enabled
+    attr_accessor :mode, :d9s_enabled
+    attr_writer :debug, :env, :global_secret
+    attr_reader :conf, :instance, :sysinfo, :i18n_enabled, :locales,
+                :supported_locales, :default_locale, :fallback_locale,
+                :global_banner, :rotated_secrets, :emailer, :first_boot
 
     using IndifferentHashAccess
 
