@@ -1,4 +1,4 @@
-# apps/app_base.rb
+# apps/base_application.rb
 
 require 'rack'
 require 'otto'

@@ -1,6 +1,6 @@
 # apps/api/v1/application.rb
 
-require_relative '../../app_base'
+require_relative '../../base_application'
 
 require_relative 'models'
 require_relative 'logic'

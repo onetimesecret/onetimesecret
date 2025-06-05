@@ -1,6 +1,6 @@
 # apps/web/core/application.rb
 
-require_relative '../../app_base'
+require_relative '../../base_application'
 
 require_relative 'controllers'
 
