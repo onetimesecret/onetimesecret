@@ -24,14 +24,15 @@ require 'timeout'
 require 'tempfile'
 
 RSpec.describe 'Puma Multi-Process Integration', type: :integration do
-  # Skip this test unless explicitly requested via environment variable
+  # This test validates core multi-process functionality that's critical for production
+  # deployment. Despite being ~2.5s slower than unit tests, it's included in the normal
+  # test suite because it verifies process-level behavior that can't be tested otherwise.
   before(:all) do
-    skip 'Set PUMA_INTEGRATION_TESTS=1 to run' unless ENV['PUMA_INTEGRATION_TESTS']
 
     @port = 9292
     @host = '127.0.0.1'
     @base_url = "http://#{@host}:#{@port}"
-    @workers = 2 # Reduced for simpler testing
+    @workers = 3 # Reduced for simpler testing
     @puma_pid_file = Tempfile.new(['puma_test', '.pid'])
     @puma_config_file = Tempfile.new(['puma_config', '.rb'])
     @test_app_file = Tempfile.new(['test_app', '.ru'])
@@ -210,6 +211,7 @@ RSpec.describe 'Puma Multi-Process Integration', type: :integration do
       puts "  Unique PIDs observed: #{unique_pids.size}"
       puts "  Unique instances observed: #{unique_instances.size}"
       puts "  PIDs: #{unique_pids.sort}"
+      puts ""
 
       # Verify basic multi-process setup
       expect(unique_pids.size).to be >= 1
@@ -222,14 +224,18 @@ RSpec.describe 'Puma Multi-Process Integration', type: :integration do
 
         # Verify PID-to-instance consistency
         pid_to_instances = parsed.group_by { |p| p[:pid] }
+        puts "  PID to OT.instance mapping:"
         pid_to_instances.each do |pid, process_data|
           instances = process_data.map { |pd| pd[:instance] }.uniq
+          puts "    PID #{pid} → #{instances.first}"
           expect(instances.size).to eq(1),
             "Process #{pid} should have consistent instance value"
         end
       else
         puts "  ℹ Single worker process in test environment"
         puts "  ✓ OT.instance generation works correctly"
+        puts "  PID to OT.instance mapping:"
+        puts "    PID #{unique_pids.first} → #{unique_instances.first}"
       end
     end
   end
@@ -249,8 +255,17 @@ RSpec.describe 'Puma Multi-Process Integration', type: :integration do
       end
     end
   rescue Timeout::Error
-    stdout_content = File.read(@puma_stdout.path) rescue "Could not read stdout"
-    stderr_content = File.read(@puma_stderr.path) rescue "Could not read stderr"
+    stdout_content = begin
+      File.read(@puma_stdout.path)
+    rescue
+      "Could not read stdout"
+    end
+
+    stderr_content = begin
+      File.read(@puma_stderr.path)
+    rescue
+      "Could not read stderr"
+    end
 
     raise "Puma server failed to start within 15 seconds\nSTDOUT:\n#{stdout_content}\nSTDERR:\n#{stderr_content}"
   end
