@@ -32,8 +32,6 @@ class BaseApplication
     # so inside of it `self` refers to the Rack::Builder instance.
     router_instance = router
 
-    # Invoke the warmup block if it is defined
-    self.class.warmup&.call
     Rack::Builder.new do |builder|
       MiddlewareStack.configure(builder)
 
@@ -41,7 +39,10 @@ class BaseApplication
         builder.use(middleware, *args, &block)
       end
 
-      run router_instance
+      # Invoke the warmup block if it is defined
+      builder.warmup(&self.class.warmup) # TODO: Or builder.warmup&.call?
+
+      builder.run router_instance
     end.to_app
   end
 
