@@ -49,31 +49,5 @@ class BaseApplication
     def production?
       ENV['RACK_ENV'] =~ /\A(prod|production)\z/
     end
-
-    # Registers all tracked application subclasses with AppRegistry
-    # Must be called after all application classes are defined
-    # @raise [ArgumentError] If any application has invalid prefix
-    # @return [Array<Class>] Registered application classes
-    def register_applications
-      applications = (subclasses || [])
-      OT.li "Registering #{applications.size} application(s)"
-
-      require_relative 'app_registry'
-
-      applications.each do |subclass|
-        uri_prefix = subclass.prefix
-
-        unless uri_prefix.is_a?(String)
-          raise ArgumentError, "Prefix must be a string for #{subclass} (got #{uri_prefix.class})"
-        end
-
-        OT.li "  #{subclass} for #{uri_prefix}"
-
-        AppRegistry.register(uri_prefix, subclass)
-      end
-
-      subclasses
-    end
-
   end
 end

@@ -74,9 +74,9 @@ require_relative 'lib/onetime/middleware' # Custom middleware components
 
 # Application Initialization
 # -------------------------------
-# Load all application modules from the registry
+# Discover and map application modules to their routes
 AppRegistry.discover_applications
-BaseApplication.register_applications
+AppRegistry.map_applications_to_routes
 
 # Bootstrap the Application
 # Applications must be loaded before boot to ensure all Familia models

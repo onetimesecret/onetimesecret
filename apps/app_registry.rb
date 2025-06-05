@@ -17,6 +17,26 @@ module AppRegistry
       paths.each { |f| require f }
     end
 
+    # Maps all discovered application classes to their URL routes
+    # @return [Array<Class>] Registered application classes
+    def map_applications_to_routes
+      applications = BaseApplication.subclasses || []
+      OT.li "Mapping #{applications.size} application(s) to routes"
+
+      applications.each do |app_class|
+        uri_prefix = app_class.prefix
+
+        unless uri_prefix.is_a?(String)
+          raise ArgumentError, "Prefix must be a string for #{app_class} (got #{uri_prefix.class})"
+        end
+
+        OT.li "  #{app_class} for #{uri_prefix}"
+        register(uri_prefix, app_class)
+      end
+
+      applications
+    end
+
     # Register an application with its mount path
     def register(path, app_class)
       @mounts[path] = app_class
