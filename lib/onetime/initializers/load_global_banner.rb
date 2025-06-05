@@ -1,8 +1,8 @@
-# lib/onetime/initializers/check_global_banner.rb
+# lib/onetime/initializers/load_global_banner.rb
 
 module Onetime
   module Initializers
-    module CheckGlobalBanner
+    module LoadGlobalBanner
 
       def self.run(options = {})
         # Skip if database connection is disabled

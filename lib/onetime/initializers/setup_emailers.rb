@@ -1,10 +1,10 @@
-# lib/onetime/initializers/prepare_emailers.rb
+# lib/onetime/initializers/setup_emailers.rb
 
 require 'onetime/refinements/hash_refinements'
 
 module Onetime
   module Initializers
-    module PrepareEmailers
+    module SetupEmailers
 
       using IndifferentHashAccess
 

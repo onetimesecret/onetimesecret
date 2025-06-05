@@ -1,10 +1,10 @@
-# lib/onetime/initializers/set_global_secret.rb
+# lib/onetime/initializers/setup_global_secret.rb
 
 require 'onetime/refinements/hash_refinements'
 
 module Onetime
   module Initializers
-    module SetGlobalSecret
+    module SetupGlobalSecret
 
       using IndifferentHashAccess
 

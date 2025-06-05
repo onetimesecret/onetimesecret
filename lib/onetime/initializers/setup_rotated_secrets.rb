@@ -1,10 +1,10 @@
-# lib/onetime/initializers/set_rotated_secrets.rb
+# lib/onetime/initializers/setup_rotated_secrets.rb
 
 require 'onetime/refinements/hash_refinements'
 
 module Onetime
   module Initializers
-    module SetRotatedSecrets
+    module SetupRotatedSecrets
 
       using IndifferentHashAccess
 

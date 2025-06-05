@@ -1,4 +1,4 @@
-# lib/onetime/initializers/print_log_banner.rb
+# lib/onetime/initializers/display_log_banner.rb
 
 require 'onetime/refinements/hash_refinements'
 
@@ -7,7 +7,7 @@ require 'json'
 
 module Onetime
   module Initializers
-    module PrintLogBanner
+    module DisplayLogBanner
 
       using IndifferentHashAccess
 
