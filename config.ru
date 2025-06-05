@@ -114,7 +114,7 @@ end
 # Development Environment Configuration
 # Enable development-specific middleware when in development mode
 # This handles code validation and frontend development server integration
-if BaseApplication.development?
+if Onetime.development?
   require_relative 'lib/onetime/middleware/vite_proxy'
   use Onetime::Middleware::ViteProxy
 end
@@ -126,7 +126,7 @@ end
 #
 # Note: This explicit configuration replaces the implicit functionality
 # that existed prior to v0.21.0 release.
-if BaseApplication.production?
+if Onetime.production?
   require_relative 'lib/onetime/middleware/static_files'
   use Onetime::Middleware::StaticFiles
 

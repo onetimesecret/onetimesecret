@@ -42,13 +42,5 @@ class BaseApplication
       AppRegistry.track_application(subclass)
       OT.ld "BaseApplication.inherited: #{subclass} registered with AppRegistry"
     end
-
-    def development?
-      ENV['RACK_ENV'] =~ /\A(dev|development)\z/
-    end
-
-    def production?
-      ENV['RACK_ENV'] =~ /\A(prod|production)\z/
-    end
   end
 end

@@ -243,9 +243,9 @@ module Onetime
     end
 
     # Convenience methods for environment checking
-    def production?; env == 'production'; end
-    def development?; env == 'development'; end
-    def test?; env == 'test'; end
-    def staging?; env == 'staging'; end
+    def production?; env =~ /\A(prod|production)\z/; end
+    def development?; env =~ /\A(dev|development)\z/; end
+    def test?; env =~ /\A(test|testing)\z/; end
+    def staging?; env =~ /\A(stage|staging)\z/; end
   end
 end
