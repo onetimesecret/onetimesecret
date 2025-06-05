@@ -1,12 +1,10 @@
 # lib/onetime/boot.rb
 
-require 'sysinfo'
 require 'onetime/refinements/hash_refinements'
 
 require_relative 'initializers'
 
 module Onetime
-  @sysinfo = nil
   @conf = nil
   @env = nil
   @mode = :app
@@ -16,7 +14,7 @@ module Onetime
 
     attr_accessor :mode, :d9s_enabled
     attr_writer :debug, :env, :global_secret
-    attr_reader :conf, :instance, :sysinfo, :i18n_enabled, :locales,
+    attr_reader :conf, :instance, :i18n_enabled, :locales,
                 :supported_locales, :default_locale, :fallback_locale,
                 :global_banner, :rotated_secrets, :emailer, :first_boot
 
@@ -68,16 +66,12 @@ module Onetime
       # Default to diagnostics disabled. FYI: in test mode, the test config
       # YAML has diagnostics enabled. But the DSN values are nil so it
       # doesn't get enabled even after loading config.
-      OT.d9s_enabled = false # TODO
-
-      @sysinfo = SysInfo.new.freeze
+      @d9s_enabled = false
 
       # Sets a unique SHA hash every time this process starts. In a multi-
-      # threaded environment (e.g. with Puma), this could different for
+      # threaded environment (e.g. with Puma), this should be different for
       # each thread.
       @instance = [
-        OT.sysinfo.hostname,
-        OT.sysinfo.user,
         Process.pid,
         OT::VERSION.to_s,
         OT.hnow,

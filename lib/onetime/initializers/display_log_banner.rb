@@ -64,12 +64,12 @@ module Onetime
         OT.ld "[initializer] Log banner printed"
       end
 
-      private
+      private_class_method
 
       # Builds system information section rows
       def self.build_system_section(redis_info)
         system_rows = [
-          ['System', "#{OT.sysinfo.platform} (#{RUBY_ENGINE} #{RUBY_VERSION} in #{OT.env})"],
+          ['System', "#{RUBY_ENGINE} #{RUBY_VERSION} in #{OT.env}"],
           ['Config', OT::Config.path],
           ['Redis', "#{redis_info['redis_version']} (#{Familia.uri.serverid})"],
           ['Familia', "v#{Familia::VERSION}"],

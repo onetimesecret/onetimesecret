@@ -13,7 +13,6 @@ RSpec.describe Core::Views::BaseView do
 
   before(:all) do
     OT::Plan.load_plans!
-    @sysinfo ||= SysInfo.new.freeze
 
     described_class.use_serializers(
       Core::Views::ConfigSerializer,
