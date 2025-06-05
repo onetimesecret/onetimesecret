@@ -14,39 +14,94 @@ class InitializersCommand < Drydock::Command
     begin
       execution_info = Onetime::Initializers::Registry.execution_order
 
-      if execution_info.first[:name] == "ERROR"
-        puts "❌ #{execution_info.first[:dependencies].first}"
-        return
+      return handle_error(execution_info) if execution_info.first[:name] == "ERROR"
+
+      if option.dependencies
+        display_with_dependencies(execution_info)
+      else
+        display_simple_list(execution_info)
       end
-
-      execution_info.each do |info|
-        order_str = sprintf("%2d.", info[:order])
-        name = info[:name].split('::').last # Get just the module name
-
-        if global.verbose
-          puts "#{order_str} #{name}"
-          puts "    Module: #{info[:name]}"
-          if option.dependencies && !info[:dependencies].empty?
-            puts "    Dependencies: #{info[:dependencies].map { |d| d.split('::').last }.join(', ')}"
-          end
-          puts
-        elsif option.dependencies
-          deps_str = info[:dependencies].empty? ?
-            "(no dependencies)" :
-            "→ #{info[:dependencies].map { |d| d.split('::').last }.join(', ')}"
-          puts "#{order_str} #{name.ljust(20)} #{deps_str}"
-        else
-          puts "#{order_str} #{name}"
-        end
-      end
-
-      puts
-      puts "Total: #{execution_info.length} initializers"
 
     rescue => e
       puts "❌ Error loading initializers: #{e.message}"
       puts "   This command requires the initializers to be loadable"
       puts "   but does not require a full application boot."
     end
+  end
+
+  private
+
+  def handle_error(execution_info)
+    puts "❌ #{execution_info.first[:dependencies].first}"
+  end
+
+  def display_with_dependencies(execution_info)
+    execution_info.each do |info|
+      order_str = sprintf("%2d.", info[:order])
+      name = info[:name].split('::').last
+
+      if verbose_mode?
+        display_verbose_with_dependencies(order_str, name, info)
+      else
+        display_compact_with_dependencies(order_str, name, info)
+      end
+    end
+
+    display_dependencies_footer(execution_info.length)
+  end
+
+  def display_simple_list(execution_info)
+    execution_info.each do |info|
+      order_str = sprintf("%2d.", info[:order])
+      name = info[:name].split('::').last
+
+      if verbose_mode?
+        display_verbose_simple(order_str, name, info)
+      else
+        puts "#{order_str} #{name}"
+      end
+    end
+
+    display_simple_footer(execution_info.length)
+  end
+
+  def display_verbose_with_dependencies(order_str, name, info)
+    puts "#{order_str} #{name}"
+    puts "    Module: #{info[:name]}"
+    if !info[:dependencies].empty?
+      puts "    Dependencies: #{info[:dependencies].map { |d| d.split('::').last }.join(', ')}"
+    end
+    puts
+  end
+
+  def display_compact_with_dependencies(order_str, name, info)
+    deps_str = info[:dependencies].empty? ?
+      "(no dependencies)" :
+      "→ #{info[:dependencies].map { |d| d.split('::').last }.join(', ')}"
+    puts "#{order_str} #{name.ljust(20)} #{deps_str}"
+  end
+
+  def display_verbose_simple(order_str, name, info)
+    puts "#{order_str} #{name}"
+    puts "    Module: #{info[:name]}"
+    puts
+  end
+
+  def display_dependencies_footer(count)
+    puts
+    puts "Total: #{count} initializers"
+    puts
+    puts "Legend:"
+    puts "  → Dependencies (must run before this initializer)"
+    puts "  Use --verbose for full module names"
+  end
+
+  def display_simple_footer(count)
+    puts
+    puts "Total: #{count} initializers"
+  end
+
+  def verbose_mode?
+    global.verbose && global.verbose > 0
   end
 end
