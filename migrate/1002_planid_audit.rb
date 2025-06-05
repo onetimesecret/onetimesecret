@@ -130,6 +130,9 @@ module Onetime
 
       true # Return success
     end
+    def migration_needed?
+      true
+    end
   end
 end
 
