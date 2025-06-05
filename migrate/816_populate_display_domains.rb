@@ -121,6 +121,10 @@ module Onetime
         false
       end
     end
+
+    def migration_needed?
+      true
+    end
   end
 end
 

@@ -32,7 +32,7 @@ module Onetime
 
         puts "#{idx+1}. #{old_email} → #{new_email} (#{timestamp.strftime('%Y-%m-%d %H:%M:%S')})"
 
-        if option.verbose
+        if global.verbose
           # Show full report in verbose mode
           report = redis.get(key)
           if report
@@ -46,7 +46,7 @@ module Onetime
       end
 
       # Provide instructions for viewing specific reports
-      unless option.verbose
+      unless global.verbose
         puts "\nTo view a specific report in full:"
         puts "  ots change-email-log --verbose OLDEMAIL"
       end

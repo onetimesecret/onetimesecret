@@ -29,7 +29,6 @@ RSpec.describe "Onetime::Config during Onetime.boot!" do
     Onetime.instance_variable_set(:@fallback_locale, nil)
     Onetime.instance_variable_set(:@locales, nil)
     Onetime.instance_variable_set(:@instance, nil)
-    Onetime.instance_variable_set(:@sysinfo, nil)
     Onetime.instance_variable_set(:@emailer, nil)
     Onetime.instance_variable_set(:@global_secret, nil)
     Onetime.instance_variable_set(:@global_banner, nil) # Reset global_banner state
@@ -40,11 +39,6 @@ RSpec.describe "Onetime::Config during Onetime.boot!" do
     allow(OT::Config).to receive(:after_load).and_call_original
 
     allow(Familia).to receive(:uri=)
-
-    # There are testcases in the other boot test files that confirm sysinfo
-    # is frozen after being set. Here we mock it up.
-    sysinfo_double = instance_double(SysInfo, hostname: 'testhost', user: 'testuser', platform: 'testplatform').as_null_object
-    allow(Onetime).to receive(:sysinfo).and_return(sysinfo_double)
 
     allow(Gibbler).to receive(:secret).and_return(nil)
     allow(Gibbler).to receive(:secret=)
@@ -371,11 +365,6 @@ RSpec.describe "Onetime::Config during Onetime.boot!" do
         expect(Onetime.locales.keys).to eq(['en']) # Only default locale 'en' should be loaded
         expect(Onetime.fallback_locale).to be_nil
       end
-    end
-
-    it "initializes Onetime.sysinfo and freezes it" do
-      Onetime.boot!(:test)
-      expect(Onetime.sysinfo.hostname).to eq('testhost') # Check if it's the mocked one
     end
 
     it "initializes Onetime.instance and freezes it" do

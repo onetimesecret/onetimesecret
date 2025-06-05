@@ -152,7 +152,7 @@ module V1
       OT.info "[deliver-by-email2] #{cust.obscure_email} #{secret.key} (token/#{self.token})"
       eaddrs = [eaddrs].flatten.compact[0..9] # Max 10
 
-      eaddrs_safe = eaddrs.collect { |e| OT::Utils.obscure_email(e) }
+      eaddrs_safe = eaddrs.collect { |e| V1::Utils.obscure_email(e) }
       eaddrs_safe_str = eaddrs_safe.join(', ')
 
       OT.info "[deliver-by-email3] #{cust.obscure_email} #{secret.key} (#{eaddrs_safe.size}) #{eaddrs_safe_str}"

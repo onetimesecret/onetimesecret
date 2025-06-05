@@ -15,9 +15,6 @@ module Onetime
         site: {
           secret: nil,
           api: { enabled: true },
-
-          # All keys that we want to explicitly be set to false when enabled
-          # is false, should be represented in this hash.
           authentication: {
             enabled: false,
             colonels: [],
@@ -68,6 +65,19 @@ module Onetime
 
     attr_reader :env, :base, :bootstrap
     attr_writer :path
+
+    def setup
+      # Normalize environment variables prior to loading the YAML config
+      before_load
+      # Loads the configuration and renders all value templates (ERB)
+      raw_conf = load
+      # SAFETY MEASURE: Freeze the (inevitably) shared config
+      # TODO: Consider leaving unfrozen until the end of boot!
+      OT::Utils.deep_freeze(raw_conf)
+      # Normalize the configuration and make it available to the rest
+      # of the initializers (via OT.conf).
+      after_load(raw_conf)
+    end
 
     # Normalizes environment variables prior to loading and rendering the YAML
     # configuration. In some cases, this might include setting default values
@@ -352,6 +362,4 @@ module Onetime
     # An example mapping for testing.
     example_internal_key: :example_external_key,
   }
-
-
 end

@@ -48,7 +48,7 @@ module V1
       obscured = if cust.anonymous?
         'anonymous'
       else
-        OT::Utils.obscure_email(cust.custid)
+        V1::Utils.obscure_email(cust.custid)
       end
 
       return_value

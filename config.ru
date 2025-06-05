@@ -44,20 +44,6 @@
 # These fundamentals ensure the application knows where to find its resources.
 ENV['RACK_ENV'] ||= 'production'
 ENV['ONETIME_HOME'] ||= File.expand_path(__dir__).freeze
-project_root = ENV['ONETIME_HOME']
-app_root = File.join(project_root, '/apps').freeze
-
-# Public Directory Configuration
-# Define the location for static web assets
-unless defined?(PUBLIC_DIR)
-  PUBLIC_DIR = File.join(project_root, '/public/web').freeze
-end
-
-# Load Path Configuration
-# Add the lib directory to Ruby's load path for require statements
-$LOAD_PATH.unshift(File.join(project_root, 'lib'))
-
-require_relative 'lib/onetime'
 
 require_relative 'apps/app_registry'
 

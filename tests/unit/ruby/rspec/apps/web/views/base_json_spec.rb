@@ -99,11 +99,6 @@ RSpec.xdescribe Core::Views::BaseView, "JSON Output" do
         # Mock version info - Use double instead of OpenStruct
         allow(OT).to receive(:global_banner).and_return(nil)
 
-        sysinfo_mock = double('SysInfo')
-        allow(sysinfo_mock).to receive(:vm).and_return('ruby')
-        allow(sysinfo_mock).to receive(:ruby).and_return(['341'])
-        allow(OT).to receive(:sysinfo).and_return(sysinfo_mock)
-
         allow(OT).to receive(:VERSION).and_return("0.20.4 ()")
 
         # For plans
@@ -238,11 +233,6 @@ RSpec.xdescribe Core::Views::BaseView, "JSON Output" do
 
         # Mock version info - Use double instead of OpenStruct
         allow(OT).to receive(:global_banner).and_return(nil)
-
-        sysinfo_mock = double('SysInfo')
-        allow(sysinfo_mock).to receive(:vm).and_return('ruby')
-        allow(sysinfo_mock).to receive(:ruby).and_return(['341'])
-        allow(OT).to receive(:sysinfo).and_return(sysinfo_mock)
 
         allow(OT).to receive(:VERSION).and_return("0.20.4 (plop)")
 

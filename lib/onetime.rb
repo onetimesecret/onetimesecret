@@ -46,11 +46,6 @@ module Onetime
   unless defined?(Onetime::HOME)
     HOME = File.expand_path(File.join(File.dirname(__FILE__), '..'))
   end
-
-  require_relative 'onetime/classmethods'
-  require_relative 'onetime/initializers'
-  extend ClassMethods
-  extend Initializers
 end
 
 # Sets the SIGINT handler for a graceful shutdown and prevents Sentry from
@@ -71,6 +66,7 @@ trap("SIGINT") do
   exit
 end
 
+require_relative 'onetime/class_methods'
 require_relative 'onetime/errors'
 require_relative 'onetime/utils'
 require_relative 'onetime/version'
@@ -79,3 +75,4 @@ require_relative 'onetime/config'
 require_relative 'onetime/plan'
 require_relative 'onetime/mail'
 require_relative 'onetime/alias'
+require_relative 'onetime/boot'

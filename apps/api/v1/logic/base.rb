@@ -111,7 +111,7 @@ module V1
       def send_verification_email token=nil
       _, secret = V1::Secret.spawn_pair cust.custid, token
 
-        msg = "Thanks for verifying your account. We got you a secret fortune cookie!\n\n\"%s\"" % OT::Utils.random_fortune
+        msg = "Thanks for verifying your account. We got you a secret fortune cookie!\n\n\"%s\"" % V1::Utils.random_fortune
 
         secret.encrypt_value msg
         secret.verification = true

@@ -1,4 +1,4 @@
-# lib/onetime/classmethods.rb
+# lib/onetime/class_methods.rb
 
 # Usage:
 # module Onetime
@@ -7,13 +7,13 @@
 #
 # Environment detection and normalization
 module Onetime
-  module ClassMethods
-    @env = nil
-    @mode = :app
-    @debug = nil
 
-    attr_accessor :mode
-    attr_writer :debug, :env
+  module ClassMethods
+    # Replaces the global configuration instance with the provided data.
+    def replace_config!(other)
+      # TODO: Validate the new configuration data before replacing it
+      self.conf = other
+    end
 
     # Returns the current wall clock time as microseconds since Unix epoch
     # using the system's high-precision clock interface. This method provides
@@ -305,5 +305,14 @@ module Onetime
       block&.call if result
       result
     end
+
+    # Replaces the global configuration instance. This method is private to
+    # prevent external modification of the shared configuration state
+    # after initialization.
+    def conf=(value)
+      @conf = value
+    end
   end
+
+  extend ClassMethods
 end

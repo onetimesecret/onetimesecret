@@ -67,7 +67,7 @@ module Onetime
     # @security Uses cryptographically secure random generation for unpredictability
     def strand(len = 12, safe = true)
       chars = safe ? VALID_CHARS_SAFE : VALID_CHARS
-      (1..len).collect { chars[rand(chars.size - 1)] }.join
+      (1..len).collect { chars.sample }.join
     end
 
     # Standard deep_merge implementation with symbol/string key normalization
