@@ -1,9 +1,13 @@
-# lib/onetime/initializers/boot.rb
+# lib/onetime/boot.rb
 
 require 'sysinfo'
 require 'onetime/refinements/hash_refinements'
 
+require_relative './initializers'
+
 module Onetime
+  extend Initializers
+
   module Initializers
     @sysinfo = nil
     @conf = nil

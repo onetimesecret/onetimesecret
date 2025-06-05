@@ -1,4 +1,4 @@
-# lib/onetime/classmethods.rb
+# lib/onetime/class_methods.rb
 
 # Usage:
 # module Onetime
@@ -10,6 +10,7 @@ module Onetime
   module ClassMethods
     @env = nil
     @mode = :app
+    @conf = nil
     @debug = nil
 
     attr_accessor :mode
@@ -306,4 +307,6 @@ module Onetime
       result
     end
   end
+
+  extend ClassMethods
 end

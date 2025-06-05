@@ -2,6 +2,8 @@
 
 require 'mustache'
 
+# Chimera is a Mustache template that supports multiple extensions
+#
 class Chimera < Mustache
   self.template_extension = 'html'
 
