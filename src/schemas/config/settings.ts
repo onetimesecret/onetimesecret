@@ -5,6 +5,65 @@ import { z } from 'zod';
 
 const nullableString = z.string().nullable().optional();
 
+// Rate limit configuration helpers
+const RATE_LIMIT_CATEGORIES = {
+  authentication: [
+    'create_account',
+    'update_account',
+    'destroy_account',
+    'authenticate_session',
+    'destroy_session',
+    'show_account',
+  ],
+  secrets: [
+    'create_secret',
+    'show_secret',
+    'show_metadata',
+    'burn_secret',
+    'attempt_secret_access',
+    'failed_passphrase',
+  ],
+  domains: [
+    'add_domain',
+    'remove_domain',
+    'list_domains',
+    'get_domain',
+    'verify_domain',
+    'get_domain_brand',
+    'get_domain_logo',
+    'remove_domain_logo',
+    'update_domain_brand',
+  ],
+  communication: ['email_recipient', 'send_feedback'],
+  passwordReset: ['forgot_password_request', 'forgot_password_reset'],
+  ui: ['dashboard', 'get_page', 'get_image'],
+  system: [
+    'generate_apitoken',
+    'check_status',
+    'report_exception',
+    'update_branding',
+    'update_system_settings',
+    'view_colonel',
+    'external_redirect',
+  ],
+  payments: ['stripe_webhook'],
+} as const;
+
+const rateLimitValue = transforms.fromString.number.optional();
+
+const createRateLimitFields = () => {
+  const fields: Record<string, typeof rateLimitValue> = {};
+
+  // Add all categorized rate limits
+  Object.values(RATE_LIMIT_CATEGORIES).forEach((category) => {
+    category.forEach((key) => {
+      fields[key] = rateLimitValue;
+    });
+  });
+
+  return fields;
+};
+
 // --- Schemas for system_settings.defaults.yaml (Dynamic Settings) ---
 
 const userInterfaceLogoSchema = z.object({
@@ -174,44 +233,7 @@ const diagnosticsSchema = z.object({
   sentry: diagnosticsSentrySchema.optional(),
 });
 
-const limitsSchema = z.object({
-  check_status: transforms.fromString.number.optional(),
-  create_secret: transforms.fromString.number.optional(),
-  create_account: transforms.fromString.number.optional(),
-  update_account: transforms.fromString.number.optional(),
-  email_recipient: transforms.fromString.number.optional(),
-  send_feedback: transforms.fromString.number.optional(),
-  authenticate_session: transforms.fromString.number.optional(),
-  dashboard: transforms.fromString.number.optional(),
-  failed_passphrase: transforms.fromString.number.optional(),
-  show_metadata: transforms.fromString.number.optional(),
-  show_secret: transforms.fromString.number.optional(),
-  burn_secret: transforms.fromString.number.optional(),
-  destroy_account: transforms.fromString.number.optional(),
-  forgot_password_request: transforms.fromString.number.optional(),
-  forgot_password_reset: transforms.fromString.number.optional(),
-  add_domain: transforms.fromString.number.optional(),
-  remove_domain: transforms.fromString.number.optional(),
-  list_domains: transforms.fromString.number.optional(),
-  get_domain: transforms.fromString.number.optional(),
-  verify_domain: transforms.fromString.number.optional(),
-  get_page: transforms.fromString.number.optional(),
-  report_exception: transforms.fromString.number.optional(),
-  attempt_secret_access: transforms.fromString.number.optional(),
-  generate_apitoken: transforms.fromString.number.optional(),
-  update_branding: transforms.fromString.number.optional(),
-  destroy_session: transforms.fromString.number.optional(),
-  get_domain_brand: transforms.fromString.number.optional(),
-  get_domain_logo: transforms.fromString.number.optional(),
-  get_image: transforms.fromString.number.optional(),
-  remove_domain_logo: transforms.fromString.number.optional(),
-  show_account: transforms.fromString.number.optional(),
-  stripe_webhook: transforms.fromString.number.optional(),
-  update_domain_brand: transforms.fromString.number.optional(),
-  view_colonel: transforms.fromString.number.optional(),
-  external_redirect: transforms.fromString.number.optional(),
-  update_system_settings: transforms.fromString.number.optional(),
-});
+const limitsSchema = z.object(createRateLimitFields()).catchall(rateLimitValue);
 
 const individualMailValidationSchema = z.object({
   default_validation_type: z.string().optional(),
@@ -369,3 +391,10 @@ export const staticConfigSchema = z.object({
 });
 
 export type StaticConfig = z.infer<typeof staticConfigSchema>;
+
+// Rate limit types for better type safety
+export type RateLimitKey =
+  | keyof (typeof RATE_LIMIT_CATEGORIES)[keyof typeof RATE_LIMIT_CATEGORIES][number]
+  | string;
+export type RateLimits = z.infer<typeof limitsSchema>;
+export { RATE_LIMIT_CATEGORIES };
