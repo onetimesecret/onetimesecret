@@ -12,16 +12,28 @@ module AppRegistry
   class << self
     attr_reader :applications, :mounts
 
+    def track_application(app_class)
+      @applications << app_class unless @applications.include?(app_class)
+      OT.ld "AppRegistry tracking application: #{app_class}"
+    end
+
+    def initialize_applications
+      discover_applications
+      map_applications_to_routes
+    end
+
+    # Build rack application map
+    def build
+      mounts.transform_values { |app_class| app_class.new }
+    end
+
     def discover_applications
       paths = Dir.glob(File.join(APPS_ROOT, '**/application.rb'))
       OT.ld "[app_registry] Found #{paths.join(', ')}"
       paths.each { |f| require f }
     end
 
-    def track_application(app_class)
-      @applications << app_class unless @applications.include?(app_class)
-      OT.ld "AppRegistry tracking application: #{app_class}"
-    end
+    private
 
     # Maps all discovered application classes to their URL routes
     # @return [Array<Class>] Registered application classes
@@ -47,15 +59,5 @@ module AppRegistry
       @mounts[path] = app_class
     end
 
-    # Build rack application map
-    def build
-      mounts.transform_values { |app_class| app_class.new }
-    end
-
-    # Generate path to a registered app
-    def path_to(mount_path, path = '/')
-      path = path.start_with?('/') ? path : "/#{path}"
-      "#{mount_path}#{path}"
-    end
   end
 end
