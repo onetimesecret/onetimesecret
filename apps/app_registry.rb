@@ -29,14 +29,14 @@ module AppRegistry
       OT.li "Mapping #{applications.size} application(s) to routes"
 
       applications.each do |app_class|
-        uri_prefix = app_class.prefix
+        mount = app_class.uri_prefix
 
-        unless uri_prefix.is_a?(String)
-          raise ArgumentError, "Prefix must be a string for #{app_class} (got #{uri_prefix.class})"
+        unless mount.is_a?(String)
+          raise ArgumentError, "Mount point must be a string (#{app_class} gave #{mount.class})"
         end
 
-        OT.li "  #{app_class} for #{uri_prefix}"
-        register(uri_prefix, app_class)
+        OT.li "  #{app_class} for #{mount}"
+        register(mount, app_class)
       end
 
       applications

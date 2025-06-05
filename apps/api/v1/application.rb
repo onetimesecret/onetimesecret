@@ -8,7 +8,7 @@ require_relative 'controllers'
 
 module V1
   class Application < ::BaseApplication
-    @prefix = '/api/v1'
+    @uri_prefix = '/api/v1'
 
     private
 

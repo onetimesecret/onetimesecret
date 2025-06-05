@@ -30,9 +30,9 @@ class BaseApplication
   end
 
   class << self
-    @prefix = nil
+    @uri_prefix = nil
 
-    attr_reader :prefix
+    attr_reader :uri_prefix
 
     # Tracks subclasses for deferred registration
     # @param subclass [Class] The class inheriting from BaseApplication

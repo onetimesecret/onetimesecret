@@ -6,7 +6,7 @@ require_relative 'controllers'
 
 module Core
   class Application < ::BaseApplication
-    @prefix = '/'
+    @uri_prefix = '/'
 
     private
 

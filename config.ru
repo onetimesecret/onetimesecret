@@ -139,5 +139,5 @@ if BaseApplication.production?
 end
 
 # Application Mounting
-# Map all registered applications to their respective URL paths
+# Map all registered applications to their respective URI paths
 run Rack::URLMap.new(AppRegistry.build)
