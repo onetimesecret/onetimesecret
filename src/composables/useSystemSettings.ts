@@ -78,7 +78,7 @@ export function useSystemSettings() {
         }
       } else {
         validationState.value[section] = false;
-        const firstError = validationResult.error.errors[0];
+        const firstError = validationResult.error.issues[0];
         const path = firstError.path.join('.') || 'section root';
         validationMessages.value[section] = t('web.colonel.schemaValidationError', {
           section,
@@ -310,9 +310,9 @@ export function useSystemSettings() {
         systemSettingsSchema.parse(combinedConfig);
       } catch (validationError) {
         if (validationError instanceof z.ZodError) {
-          const firstError = validationError.errors[0];
+          const firstError = validationError.issues[0];
           const errorPath =
-            firstError.path.length > 0 ? validationError.errors[0].path.join('.') : 'root';
+            firstError.path.length > 0 ? validationError.issues[0].path.join('.') : 'root';
           errorMessage.value = `${t('web.colonel.validationError')}: ${errorPath} - ${firstError.message}`;
           return;
         }

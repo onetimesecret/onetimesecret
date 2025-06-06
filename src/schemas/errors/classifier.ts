@@ -2,12 +2,7 @@
 
 import { NavigationFailure, NavigationFailureType } from 'vue-router';
 
-import type {
-  ApplicationError,
-  ErrorType,
-  ErrorSeverity,
-  HttpErrorLike,
-} from './types';
+import type { ApplicationError, ErrorType, ErrorSeverity, HttpErrorLike } from './types';
 import { errorGuards } from './guards';
 import { wrapError } from './wrapper';
 import { HTTP_STATUS_CODES } from './constants';
@@ -87,21 +82,16 @@ export const errorClassifier = {
     // Get a more user-friendly message from the ZodError
     const formattedMessage = this.formatZodError(error);
 
-    return wrapError(
-      formattedMessage,
-      'human',
-      'error',
-      error
-    );
+    return wrapError(formattedMessage, 'human', 'error', error);
   },
 
   formatZodError(error: ZodError): string {
-    if (!error.errors || error.errors.length === 0) {
+    if (!error.issues || error.issues.length === 0) {
       return 'Validation Error';
     }
 
     // Get the first error message
-    const firstError = error.errors[0];
+    const firstError = error.issues[0];
 
     if (firstError.code === 'invalid_type') {
       // Format the invalid_type error nicely

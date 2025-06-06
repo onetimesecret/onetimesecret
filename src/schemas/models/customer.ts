@@ -67,8 +67,4 @@ export const customerSchema = withFeatureFlags(
   }).strict()
 );
 
-// Update the type to explicitly use Date for timestamps
-export type Customer = Omit<z.infer<typeof customerSchema>, 'created' | 'updated'> & {
-  created: Date;
-  updated: Date;
-};
+export type Customer = z.infer<typeof customerSchema>;

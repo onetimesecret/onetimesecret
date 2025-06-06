@@ -62,7 +62,7 @@ export const useSystemSettingsStore = defineStore('colonel', () => {
       systemSettingsSchema.partial().parse(newConfig);
     } catch (validationError) {
       if (validationError instanceof z.ZodError) {
-        const firstError = validationError.errors[0];
+        const firstError = validationError.issues[0];
         throw new Error(`Validation error: ${firstError.path.join('.')} - ${firstError.message}`);
       }
       throw validationError;

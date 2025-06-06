@@ -40,7 +40,7 @@ export type BaseModel = z.infer<typeof baseModelSchema>;
  * ```
  * export const userSchema = createModelSchema({
  *   name: z.string(),
- *   email: z.string().email()
+ *   email: z.email()
  * })
  * ```
  *

@@ -14,7 +14,7 @@ import { z } from 'zod/v4';
  */
 /* eslint-disable max-lines-per-function */
 /* eslint-disable complexity */
-export function useFormSubmission<ResponseSchema extends z.ZodType>(
+export function useFormSubmission<ResponseSchema extends z.ZodTypeAny>(
   options: FormSubmissionOptions<ResponseSchema>
 ) {
   const isSubmitting = ref(false);

@@ -42,10 +42,7 @@ export const transforms = {
      * Input: "test@example.com" -> "test@example.com"
      * Input: "invalid" -> ZodError
      */
-    optionalEmail: z.preprocess(
-      (val) => (val === '' ? undefined : val),
-      z.string().email().optional()
-    ),
+    optionalEmail: z.preprocess((val) => (val === '' ? undefined : val), z.email().optional()),
   },
 
   fromNumber: {
