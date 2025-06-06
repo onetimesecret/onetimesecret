@@ -138,73 +138,16 @@ module Onetime
       copied_conf = OT::Utils.deep_clone(incoming_config)
       conf = OT::Utils.deep_merge(DEFAULTS, copied_conf)
 
+      # These are checks for things that we cannot continue booting without. We
+      # don't need to exit immediately -- for example, running a console session
+      # or in tests or running in development mode. But we should not be
+      # continuing in a production ready state if any of these checks fail.
       raise_concerns(conf)
 
-      # Disable all authentication sub-features when main feature is off for
-      # consistency, security, and to prevent unexpected behavior. Ensures clean
-      # config state.
-      # NOTE: Needs to run after other site.authentication logic
-      if conf.dig(:site, :authentication, :enabled) != true
-        conf[:site][:authentication].each_key do |key|
-          conf[:site][:authentication][key] = false
-        end
-      end
-
-      # Combine colonels from root level and authentication section
-      # This handles the legacy config where colonels were at the root level
-      # while ensuring we don't lose any colonels from either location
-      root_colonels = conf.fetch(:colonels, [])
-      auth_colonels = conf.dig(:site, :authentication, :colonels) || []
-      conf[:site][:authentication][:colonels] = (auth_colonels + root_colonels).compact.uniq
-
-      # Clear colonels and set to false if authentication is disabled
-      unless conf.dig(:site, :authentication, :enabled)
-        conf[:site][:authentication][:colonels] = false
-      end
-
-      ttl_options = conf.dig(:site, :secret_options, :ttl_options)
-      default_ttl = conf.dig(:site, :secret_options, :default_ttl)
-
-      # if the ttl_options setting is a string, we want to split it into an
-      # array of integers.
-      if ttl_options.is_a?(String)
-        conf[:site][:secret_options][:ttl_options] = ttl_options.split(/\s+/)
-      end
-      ttl_options = conf.dig(:site, :secret_options, :ttl_options)
-      if ttl_options.is_a?(Array)
-        conf[:site][:secret_options][:ttl_options] = ttl_options.map(&:to_i)
-      end
-
-      if default_ttl.is_a?(String)
-        conf[:site][:secret_options][:default_ttl] = default_ttl.to_i
-      end
-
-      # TODO: Move to an initializer
-      if conf.dig(:site, :plans, :enabled).to_s == "true"
-        stripe_key = conf.dig(:site, :plans, :stripe_key)
-        unless stripe_key
-          raise OT::Problem, "No `site.plans.stripe_key` found in #{path}"
-        end
-
-        require 'stripe'
-        Stripe.api_key = stripe_key
-      end
-
-      # Apply the defaults to sentry backend and frontend configs
-      # and set our local config with the merged values.
-      diagnostics = incoming_config.fetch(:diagnostics, {})
-      conf[:diagnostics] = {
-        enabled: diagnostics[:enabled] || false,
-        sentry: apply_defaults_to_peers(diagnostics[:sentry]),
-      }
-      conf[:diagnostics][:sentry][:backend] ||= {}
-
-      # Update global diagnostic flag based on config
-      backend_dsn = conf.dig(:diagnostics, :sentry, :backend, :dsn)
-      frontend_dsn = conf.dig(:diagnostics, :sentry, :frontend, :dsn)
-
-      # It's disabled when no DSN is present, regardless of enabled setting
-      Onetime.d9s_enabled = !!(conf.dig(:diagnostics, :enabled) && (backend_dsn || frontend_dsn))
+      #
+      # SEE code past end of file for the inline logic we used here to read
+      # and set both OT.conf and OT.d9s_enabled etc flags in an unclear way.
+      #
 
       # SECURITY MEASURE #4: Configuration Immutability
       # Freeze the entire configuration recursively to prevent modifications
@@ -219,6 +162,7 @@ module Onetime
       OT::Utils.deep_freeze(conf)
     end
 
+    # Access conf here but not Onetime.conf or any other global flag etc.
     def raise_concerns(conf)
 
       # SAFETY MEASURE: Critical Secret Validation
@@ -228,8 +172,6 @@ module Onetime
       allow_nil = conf.dig(:experimental, :allow_nil_global_secret) || false
       global_secret = conf[:site].fetch(:secret, nil)
       global_secret = nil if global_secret.to_s.strip == 'CHANGEME'
-
-      # Onetime.global_secret is set in the initializer set_global_secret
 
       if global_secret.nil?
         unless allow_nil
@@ -363,3 +305,74 @@ module Onetime
     example_internal_key: :example_external_key,
   }
 end
+
+
+__END__
+
+```ruby
+# Disable all authentication sub-features when main feature is off for
+# consistency, security, and to prevent unexpected behavior. Ensures clean
+# config state.
+# NOTE: Needs to run after other site.authentication logic
+if conf.dig(:site, :authentication, :enabled) != true
+  conf[:site][:authentication].each_key do |key|
+    conf[:site][:authentication][key] = false
+  end
+end
+
+# Combine colonels from root level and authentication section
+# This handles the legacy config where colonels were at the root level
+# while ensuring we don't lose any colonels from either location
+root_colonels = conf.fetch(:colonels, [])
+auth_colonels = conf.dig(:site, :authentication, :colonels) || []
+conf[:site][:authentication][:colonels] = (auth_colonels + root_colonels).compact.uniq
+
+# Clear colonels and set to false if authentication is disabled
+unless conf.dig(:site, :authentication, :enabled)
+  conf[:site][:authentication][:colonels] = false
+end
+
+ttl_options = conf.dig(:site, :secret_options, :ttl_options)
+default_ttl = conf.dig(:site, :secret_options, :default_ttl)
+
+# if the ttl_options setting is a string, we want to split it into an
+# array of integers.
+if ttl_options.is_a?(String)
+  conf[:site][:secret_options][:ttl_options] = ttl_options.split(/\s+/)
+end
+ttl_options = conf.dig(:site, :secret_options, :ttl_options)
+if ttl_options.is_a?(Array)
+  conf[:site][:secret_options][:ttl_options] = ttl_options.map(&:to_i)
+end
+
+if default_ttl.is_a?(String)
+  conf[:site][:secret_options][:default_ttl] = default_ttl.to_i
+end
+
+# TODO: Move to an initializer
+if conf.dig(:site, :plans, :enabled).to_s == "true"
+  stripe_key = conf.dig(:site, :plans, :stripe_key)
+  unless stripe_key
+    raise OT::Problem, "No `site.plans.stripe_key` found in #{path}"
+  end
+
+  require 'stripe'
+  Stripe.api_key = stripe_key
+end
+
+# Apply the defaults to sentry backend and frontend configs
+# and set our local config with the merged values.
+diagnostics = incoming_config.fetch(:diagnostics, {})
+conf[:diagnostics] = {
+  enabled: diagnostics[:enabled] || false,
+  sentry: apply_defaults_to_peers(diagnostics[:sentry]),
+}
+conf[:diagnostics][:sentry][:backend] ||= {}
+
+# Update global diagnostic flag based on config
+backend_dsn = conf.dig(:diagnostics, :sentry, :backend, :dsn)
+frontend_dsn = conf.dig(:diagnostics, :sentry, :frontend, :dsn)
+
+# It's disabled when no DSN is present, regardless of enabled setting
+Onetime.d9s_enabled = !!(conf.dig(:diagnostics, :enabled) && (backend_dsn || frontend_dsn))
+```

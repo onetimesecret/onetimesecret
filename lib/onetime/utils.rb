@@ -100,6 +100,11 @@ module Onetime
     # after they've been loaded and validated, protecting against both
     # accidental mutations and potential security exploits.
     #
+    # NOTE: This operates on the object itself, ensuring that all
+    # nested components are also frozen. If you need to freeze an object
+    # without modifying its original state, use `deep_clone` first
+    # to avoid deep trouble.
+    #
     # @param obj [Object] The object to freeze
     # @return [Object] The frozen object
     # @security This ensures configuration values cannot be tampered with at runtime
