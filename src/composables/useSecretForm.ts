@@ -3,7 +3,7 @@
 import { transforms } from '@/schemas/transforms';
 import { reactive } from 'vue';
 import { WindowService } from '@/services/window.service';
-import { z } from 'zod';
+import { z } from 'zod/v4';
 
 export interface SecretFormState {
   form: SecretFormData;

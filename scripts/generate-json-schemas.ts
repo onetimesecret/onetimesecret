@@ -100,7 +100,7 @@ function generateTypeDefinitions() {
  * Generated on: ${new Date().toISOString()}
  */
 
-import { z } from 'zod';
+import { z } from 'zod/v4';
 import { systemSettingsSchema, staticConfigSchema } from '../src/schemas/config/settings';
 
 // Inferred types from schemas

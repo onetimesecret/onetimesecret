@@ -2,7 +2,7 @@
 
 import { feedbackSchema } from '@/schemas/models';
 import { transforms } from '@/schemas/transforms';
-import { z } from 'zod';
+import { z } from 'zod/v4';
 
 // Common types
 // More flexible type validation that can handle missing values

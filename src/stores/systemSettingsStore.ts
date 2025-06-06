@@ -5,7 +5,7 @@ import { systemSettingsSchema, type SystemSettingsDetails } from '@/schemas/api/
 import { AxiosInstance } from 'axios';
 import { defineStore, PiniaCustomProperties } from 'pinia';
 import { inject, ref } from 'vue';
-import { z } from 'zod';
+import { z } from 'zod/v4';
 
 /**
  * Type definition for SystemSettingsStore.

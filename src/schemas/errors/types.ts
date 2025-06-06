@@ -1,4 +1,4 @@
-import { z } from 'zod';
+import { z } from 'zod/v4';
 import { ERROR_SEVERITIES, ERROR_TYPES } from './constants';
 
 /**

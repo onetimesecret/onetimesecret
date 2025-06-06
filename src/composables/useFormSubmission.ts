@@ -3,7 +3,7 @@
 import { useCsrfStore } from '@/stores/csrfStore';
 import type { FormSubmissionOptions } from '@/types/ui';
 import { ref } from 'vue';
-import { z } from 'zod';
+import { z } from 'zod/v4';
 
 /**
  *

@@ -26,7 +26,7 @@ import { brandSettingschema, imagePropsSchema } from '@/schemas/models/domain/br
 import { feedbackDetailsSchema, feedbackSchema } from '@/schemas/models/feedback';
 import { metadataDetailsSchema, metadataSchema } from '@/schemas/models/metadata';
 import { secretDetailsSchema, secretSchema } from '@/schemas/models/secret';
-import { z } from 'zod';
+import { z } from 'zod/v4';
 
 export interface AsyncDataResult<T> {
   data: T | null;

@@ -1,5 +1,5 @@
 // schemas/utils/feature_flags.ts
-import { z } from 'zod';
+import { z } from 'zod/v4';
 
 /**
  * Simple, flexible feature flags schema

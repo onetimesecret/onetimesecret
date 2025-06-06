@@ -5,7 +5,7 @@ import { useNotificationsStore } from '@/stores';
 import { useSystemSettingsStore } from '@/stores/systemSettingsStore';
 import { computed, nextTick, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
-import { z } from 'zod';
+import { z } from 'zod/v4';
 import { useAsyncHandler, type AsyncHandlerOptions } from './useAsyncHandler';
 
 // Use the keys of the systemSettingsSchema.shape as ConfigSectionKey
