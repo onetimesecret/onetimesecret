@@ -2,7 +2,7 @@
 
 import { ttlToNaturalLanguage } from '@/utils/format/index';
 import { parseBoolean, parseDateValue, parseNumber, parseNestedObject } from '@/utils/parse/index';
-import { z } from 'zod';
+import { z } from 'zod/v4';
 
 /**
  * Core string transformers for API/Redis data conversion

@@ -1,7 +1,7 @@
 // src/schemas/config/settings.ts
 
 import { transforms } from '@/schemas/transforms';
-import { z } from 'zod';
+import { z } from 'zod/v4';
 
 const nullableString = z.string().nullable().optional();
 

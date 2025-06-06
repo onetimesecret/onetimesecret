@@ -102,11 +102,11 @@ importers:
         specifier: 11.1.3
         version: 11.1.3(vue@3.5.13(typescript@5.8.3))
       zod:
-        specifier: 3.24.3
-        version: 3.24.3
+        specifier: 3.25.51
+        version: 3.25.51
       zod-validation-error:
         specifier: 3.4.0
-        version: 3.4.0(zod@3.24.3)
+        version: 3.4.0(zod@3.25.51)
     devDependencies:
       '@eslint/js':
         specifier: 9.26.0
@@ -4099,8 +4099,8 @@ packages:
     peerDependencies:
       zod: ^3.18.0
 
-  zod@3.24.3:
-    resolution: {integrity: sha512-HhY1oqzWCQWuUqvBFnsyrtZRhyPeR7SUGv+C4+MsisMuVfSPx8HpwWqH8tRahSlt6M3PiFAcoeFhZAqIXTxoSg==}
+  zod@3.25.51:
+    resolution: {integrity: sha512-TQSnBldh+XSGL+opiSIq0575wvDPqu09AqWe1F7JhUMKY+M91/aGlK4MhpVNO7MgYfHcVCB1ffwAUTJzllKJqg==}
 
 snapshots:
 
@@ -4719,8 +4719,8 @@ snapshots:
       express-rate-limit: 7.5.0(express@5.1.0)
       pkce-challenge: 5.0.0
       raw-body: 3.0.0
-      zod: 3.24.3
-      zod-to-json-schema: 3.24.5(zod@3.24.3)
+      zod: 3.25.51
+      zod-to-json-schema: 3.24.5(zod@3.25.51)
     transitivePeerDependencies:
       - supports-color
 
@@ -6121,7 +6121,7 @@ snapshots:
       minimatch: 3.1.2
       natural-compare: 1.4.0
       optionator: 0.9.4
-      zod: 3.24.3
+      zod: 3.25.51
     optionalDependencies:
       jiti: 2.4.2
     transitivePeerDependencies:
@@ -7033,7 +7033,7 @@ snapshots:
       '@codemirror/lang-yaml': 6.1.2
       '@codemirror/theme-one-dark': 6.1.2
       '@headlessui/vue': 1.7.23(vue@3.5.13(typescript@5.8.3))
-      '@intlify/core': 11.1.3
+      '@intlify/core': 11.1.5
       '@prettier/plugin-ruby': 4.0.4(prettier@3.5.3)
       '@sentry/browser': 9.17.0
       '@sentry/core': 9.17.0
@@ -7046,7 +7046,7 @@ snapshots:
       client: link:@vitejs/plugin-vue/client
       codemirror: 6.0.1
       date-fns: 4.1.0
-      dompurify: 3.2.5
+      dompurify: 3.2.6
       focus-trap: 7.6.4
       focus-trap-vue: 4.0.3(focus-trap@7.6.4)(vue@3.5.13(typescript@5.8.3))
       highlight.js: 11.11.1
@@ -7059,8 +7059,8 @@ snapshots:
       vue: 3.5.13(typescript@5.8.3)
       vue-codemirror6: 1.3.15(prettier@3.5.3)(typescript@5.8.3)(vue@3.5.13(typescript@5.8.3))
       vue-i18n: 11.1.3(vue@3.5.13(typescript@5.8.3))
-      zod: 3.24.3
-      zod-validation-error: 3.4.0(zod@3.24.3)
+      zod: 3.25.51
+      zod-validation-error: 3.4.0(zod@3.25.51)
     transitivePeerDependencies:
       - '@vue/composition-api'
       - async-validator
@@ -8176,12 +8176,12 @@ snapshots:
 
   yocto-queue@0.1.0: {}
 
-  zod-to-json-schema@3.24.5(zod@3.24.3):
+  zod-to-json-schema@3.24.5(zod@3.25.51):
     dependencies:
-      zod: 3.24.3
+      zod: 3.25.51
 
-  zod-validation-error@3.4.0(zod@3.24.3):
+  zod-validation-error@3.4.0(zod@3.25.51):
     dependencies:
-      zod: 3.24.3
+      zod: 3.25.51
 
-  zod@3.24.3: {}
+  zod@3.25.51: {}
