@@ -10,11 +10,13 @@ export const windowMock = {
   document: window.document,
 };
 
-export function setupWindowState(state = stateFixture) {
-  // Keep any existing window state and override with new state
+export function setupWindowState(newState: Partial<OnetimeWindow> = {}) {
+  // Start with the full fixture, then merge existing global state (if any), then new state.
+  // This ensures all keys are present.
   window.__ONETIME_STATE__ = {
-    ...(window.__ONETIME_STATE__ || {}),
-    ...state,
+    ...stateFixture, // Base with all required fields
+    ...(window.__ONETIME_STATE__ || {}), // Merge existing state if any
+    ...newState, // Override with the new partial state
   } as OnetimeWindow;
   return window;
 }

@@ -1,14 +1,11 @@
 // tests/unit/vue/fixtures/window.fixture.ts
 import { OnetimeWindow } from '@/types/declarations/window';
-import { vi } from 'vitest';
+// import { vi } from 'vitest';
 
-const setIntervalMock = vi.fn().mockReturnValue(123);
-const clearIntervalMock = vi.fn();
+// const setIntervalMock = vi.fn().mockReturnValue(123);
+// const clearIntervalMock = vi.fn();
 
 export const stateFixture: OnetimeWindow = {
-  setInterval: setIntervalMock,
-  clearInterval: clearIntervalMock,
-
   authenticated: false,
   baseuri: 'https://dev.onetimesecret.com',
   cust: null,
@@ -107,9 +104,27 @@ export const stateFixture: OnetimeWindow = {
     filename: '',
   },
   messages: [],
+  i18n_enabled: true,
+  d9s_enabled: false,
+  diagnostics: {
+    sentry: {
+      dsn: '', // Default DSN for testing purposes
+      enabled: false,
+      logErrors: true,
+      trackComponents: true,
+    },
+  },
+  features: {
+    markdown: true,
+  },
+  ui: {
+    // UiInterface has 'enabled' as mandatory, header and footer_links are optional.
+    enabled: true,
+  },
 } as const;
 
 // Export the window fixture with the new structure
 export const windowFixture = {
   __ONETIME_STATE__: stateFixture,
-} as OnetimeWindow & typeof globalThis;
+} as unknown as Window;
+// } as OnetimeWindow & typeof globalThis;
