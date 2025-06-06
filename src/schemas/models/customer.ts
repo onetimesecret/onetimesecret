@@ -1,11 +1,21 @@
 // src/schemas/models/customer.ts
 
 import { transforms } from '@/schemas/transforms';
-import { withFeatureFlags } from '@/schemas/utils/feature_flags';
 import { z } from 'zod/v4';
 
 import { createModelSchema } from './base';
 import { planSchema } from './plan';
+
+/**
+ * Simple, flexible feature flags schema
+ * Allows any key-value pairs of boolean flags
+ */
+export const featureFlagsSchema = z.record(z.string(), z.boolean());
+
+/**
+ * Type definition for feature flags
+ */
+export type FeatureFlags = z.infer<typeof featureFlagsSchema>;
 
 /**
  * @fileoverview Customer schema with simplified type boundaries
@@ -27,44 +37,55 @@ export const CustomerRole = {
 /**
  * Customer schema with unified transformations
  */
-export const customerSchema = withFeatureFlags(
-  createModelSchema({
-    // Core fields
-    custid: z.string(),
-    role: z.enum([
-      CustomerRole.CUSTOMER,
-      CustomerRole.COLONEL,
-      CustomerRole.RECIPIENT,
-      CustomerRole.USER_DELETED_SELF,
-    ]),
-    email: z.string().email(),
+export const customerSchema = createModelSchema({
+  // Core fields
+  custid: z.string(),
+  role: z.enum([
+    CustomerRole.CUSTOMER,
+    CustomerRole.COLONEL,
+    CustomerRole.RECIPIENT,
+    CustomerRole.USER_DELETED_SELF,
+  ]),
+  email: z.email(),
 
-    // Boolean fields from API
-    verified: transforms.fromString.boolean,
-    active: transforms.fromString.boolean,
-    contributor: transforms.fromString.boolean.optional(),
+  // Boolean fields from API
+  verified: transforms.fromString.boolean,
+  active: transforms.fromString.boolean,
+  contributor: transforms.fromString.boolean.optional(),
 
-    // Counter fields from API with default values
-    secrets_created: transforms.fromString.number.default(0),
-    secrets_burned: transforms.fromString.number.default(0),
-    secrets_shared: transforms.fromString.number.default(0),
-    emails_sent: transforms.fromString.number.default(0),
+  // Counter fields from API with default values
+  secrets_created: transforms.fromString.number.default(0),
+  secrets_burned: transforms.fromString.number.default(0),
+  secrets_shared: transforms.fromString.number.default(0),
+  emails_sent: transforms.fromString.number.default(0),
 
-    // Date fields
-    last_login: transforms.fromString.dateNullable,
+  // Date fields
+  last_login: transforms.fromString.dateNullable,
 
-    // Optional fields
-    locale: z.string().nullable(),
-    planid: z.string().nullable().optional(),
+  // Optional fields
+  locale: z.string().nullable(),
+  planid: z.string().nullable().optional(),
 
-    // Plan data
-    plan: planSchema,
+  // Plan data
+  plan: planSchema,
 
-    // Stripe-related fields
-    stripe_customer_id: z.string().nullable(),
-    stripe_subscription_id: z.string().nullable(),
-    stripe_checkout_email: z.string().nullable(),
-  }).strict()
-);
+  // Feature flags
+  feature_flags: z
+    .record(z.string(), z.union([z.boolean(), z.number(), z.string()]))
+    .transform((val): FeatureFlags => {
+      // Convert all values to booleans for FeatureFlags type
+      const featureFlags: FeatureFlags = {};
+      for (const [key, value] of Object.entries(val)) {
+        featureFlags[key] = Boolean(value);
+      }
+      return featureFlags;
+    })
+    .default({}),
+
+  // Stripe-related fields
+  stripe_customer_id: z.string().nullable(),
+  stripe_subscription_id: z.string().nullable(),
+  stripe_checkout_email: z.string().nullable(),
+}).strict();
 
 export type Customer = z.infer<typeof customerSchema>;
