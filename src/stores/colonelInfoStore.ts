@@ -1,7 +1,10 @@
 // stores/colonelInfoStore.ts
 
 import { responseSchemas, type ColonelInfoDetails } from '@/schemas/api';
-import { type SystemSettingsDetails, type ColonelStatsDetails } from '@/schemas/api/endpoints/colonel';
+import {
+  type SystemSettingsDetails,
+  type ColonelStatsDetails,
+} from '@/schemas/api/endpoints/colonel';
 import { AxiosInstance } from 'axios';
 import { defineStore, PiniaCustomProperties } from 'pinia';
 import { inject, ref } from 'vue';
@@ -45,11 +48,11 @@ export const useColonelInfoStore = defineStore('colonel', () => {
     try {
       const response = await $api.get('/api/v2/colonel/info');
       const validated = responseSchemas.colonelInfo.parse(response.data);
-      details.value = validated.details;
+      details.value = validated.details as ColonelInfoDetails | null;
       // Also populate stats from the full response
       if (validated.details) {
         stats.value = {
-          counts: validated.details.counts
+          counts: (validated.details as ColonelInfoDetails).counts,
         };
       }
       return validated.record;
@@ -69,7 +72,7 @@ export const useColonelInfoStore = defineStore('colonel', () => {
       const response = await $api.get('/api/v2/colonel/stats');
       const validated = responseSchemas.colonelStats.parse(response.data);
       if (validated.details) {
-        stats.value = validated.details;
+        stats.value = validated.details as ColonelStats | null;
       }
       return stats.value!;
     } catch (error) {
