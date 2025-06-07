@@ -149,6 +149,16 @@ module Onetime
         meta_schema: 'https://json-schema.org/draft/2020-12/schema',
         insert_property_defaults: true,
         format: true,
+
+        # For fields that we validate as strings, if the value is a symbol
+        # we convert it to a string to during validation.
+        before_property_validation: proc do |data, property, property_schema, _parent|
+          val = data[property]
+          case property_schema["type"]
+          when "string"
+            data[property] = val.to_s if val.is_a?(Symbol)
+          end
+        end,
       )
 
       # Validate and collect errors
@@ -171,7 +181,7 @@ module Onetime
     # Formats validation errors into user-friendly messages
     def format_validation_errors(errors)
       errors.map do |err|
-        "value at `#{err['data_pointer']}` #{err['error'].sub(/^[^a-z]+at.+$/i, '')}"
+        err['error']
       end
     end
 
