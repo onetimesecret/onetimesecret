@@ -7,8 +7,8 @@ module Onetime
       TRANSLATIONS = {
         en: {
           title: "Configuration Incomplete",
-          message1: "Server booted successfully but required configuration components aren't fully loaded yet.",
-          message2: "Please refresh in a moment or check server logs for details.",
+          message1: "Server booted successfully but static configuration is missing.",
+          message2: "Please check server logs for details.",
         },
         es: {
           title: "Configuración Incompleta",
@@ -95,23 +95,92 @@ module Onetime
           accept_language = env['HTTP_ACCEPT_LANGUAGE'] || ''
           lang_code = parse_accept_language(accept_language)
 
-          # Use translations for detected language or fall back to English
-          texts = TRANSLATIONS[lang_code] || TRANSLATIONS[:en]
-
           html = <<~HTML
-            <html>
+            <html lang="#{lang_code}" class="light">
               <head>
-                <style>
-                  body {
-                    background-color: #adb5bd;
-                    color: #000000;
-                    padding: 1rem;
-                    border-radius: 0.25rem;
-                    text-align: center;
-                    padding: 20px;
+              <style>
+                :root {
+                  --bg-color: #ffffff;
+                  --text-color: rgb(17 24 39);
+                }
+
+                html.dark {
+                  --bg-color: rgb(17 24 39);
+                  --text-color: #ffffff;
+                }
+
+                body {
+                  background-color: var(--bg-color);
+                  color: var(--text-color);
+                  padding: 1rem;
+                  border-radius: 0.25rem;
+                  text-align: center;
+                  padding: 20px;
+                  cursor: pointer;
+                  transition: background-color 0.3s ease, color 0.3s ease;
+                }
+              </style>
+              <script>
+                // Run immediately to avoid FOUC
+                (function() {
+                  // Check for dark mode preference
+                  var isDarkMode = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+
+                  // Apply class immediately
+                  if (isDarkMode) {
+                    document.documentElement.classList.remove('light');
+                    document.documentElement.classList.add('dark');
                   }
-                </style>
+                })();
+
+                // Set up proper theme change detection
+                document.addEventListener('DOMContentLoaded', function() {
+                  var darkModeMediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+                  var htmlElement = document.documentElement;
+
+                  // Function to update theme
+                  function updateTheme(isDark) {
+                    if (isDark) {
+                      htmlElement.classList.remove('light');
+                      htmlElement.classList.add('dark');
+                    } else {
+                      htmlElement.classList.remove('dark');
+                      htmlElement.classList.add('light');
+                    }
+                  }
+
+                  // Set up cross-browser compatible event listener
+                  try {
+                    // Modern API (addEventListener)
+                    darkModeMediaQuery.addEventListener('change', function(e) {
+                      updateTheme(e.matches);
+                    });
+                  } catch (e1) {
+                    try {
+                      // Fallback for Safari 13, iOS 13
+                      darkModeMediaQuery.addListener(function(e) {
+                        updateTheme(e.matches);
+                      });
+                    } catch (e2) {
+                      console.error('Could not set up theme change detection', e2);
+                    }
+                  }
+
+                  // Log for debugging
+                  console.log('Theme detection initialized. Current mode:',
+                    darkModeMediaQuery.matches ? 'dark' : 'light');
+                });
+              </script>
+
                 <script>
+                  // All available languages
+                  const translations = #{TRANSLATIONS.to_json};
+                  const languageCodes = Object.keys(translations);
+
+                  // Initialize with the user's language
+                  let currentLang = "#{lang_code}";
+
+                  // Set up random font on load
                   document.addEventListener('DOMContentLoaded', function() {
                     const fonts = [
                       'Comic Sans MS', 'Papyrus', 'Impact', 'Brush Script MT',
@@ -121,18 +190,39 @@ module Onetime
                     ];
                     const randomFont = fonts[Math.floor(Math.random() * fonts.length)];
                     document.body.style.fontFamily = randomFont;
+
+                    // Set up click handler for language switching
+                    document.body.addEventListener('click', function() {
+                      // Get a random language that's different from current
+                      let newLang;
+                      do {
+                        const randomIndex = Math.floor(Math.random() * languageCodes.length);
+                        newLang = languageCodes[randomIndex];
+                      } while (newLang === currentLang && languageCodes.length > 1);
+
+                      currentLang = newLang;
+
+                      // Update the text content
+                      document.getElementById('title').textContent = translations[newLang].title;
+                      document.getElementById('message1').textContent = translations[newLang].message1;
+                      document.getElementById('message2').textContent = translations[newLang].message2;
+
+                      // Also change the font when language changes
+                      const newRandomFont = fonts[Math.floor(Math.random() * fonts.length)];
+                      document.body.style.fontFamily = newRandomFont;
+                    });
                   });
                 </script>
               </head>
               <body>
-                <h2>#{texts[:title]}</h2>
-                <p>#{texts[:message1]}</p>
-                <p>#{texts[:message2]}</p>
+                <h2 id="title">#{TRANSLATIONS[lang_code][:title]}</h2>
+                <p id="message1">#{TRANSLATIONS[lang_code][:message1]}</p>
+                <p id="message2">#{TRANSLATIONS[lang_code][:message2]}</p>
               </body>
             </html>
           HTML
 
-          [503, {'Content-Type' => 'text/html'}, [html]]
+          [503, {'Content-Type' => 'text/html; charset=utf-8'}, [html.encode('UTF-8')]]
         end
       end
 
@@ -143,11 +233,24 @@ module Onetime
         return :en if accept_language.empty?
 
         # Extract language code from Accept-Language header (e.g., "en-US,en;q=0.9")
-        lang = accept_language.split(',').first.split(';').first.split('-').first.downcase.to_sym
+        lang = accept_language.split(',').first.split(';').first
+
+        # Handle special case for de_AT (Austrian German)
+        if lang.downcase == 'de-at'
+          return :de_AT
+        end
+
+        # Extract base language code
+        base_lang = lang.split('-').first.downcase.to_sym
 
         # Return language if we have a translation, otherwise fall back to English
-        TRANSLATIONS.key?(lang) ? lang : :en
+        TRANSLATIONS.key?(base_lang) ? base_lang : :en
       end
     end
   end
 end
+
+
+__END__
+{'Content-Type' => 'text/html; charset=utf-8'},
+[html.encode('UTF-8')]]
