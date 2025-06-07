@@ -1,5 +1,9 @@
 # lib/onetime/config.rb
 
+require 'json'
+require 'json_schemer'
+require 'yaml'
+
 require 'onetime/refinements/hash_refinements'
 
 module Onetime
@@ -35,7 +39,7 @@ module Onetime
               url: 'redis://localhost:6379',
             },
             database_mapping: nil,
-          }
+          },
         },
         mail: {
           connection: {
@@ -67,11 +71,17 @@ module Onetime
     attr_writer :path
 
     def load
+      # Load schema before loading configuration
+      schema = _load_json_schema
+
       # Normalize environment variables prior to loading the YAML config
       before_load
 
       # Loads the configuration and renders all value templates (ERB)
       raw_conf = _load_static_configuration
+
+      # Validate against schema and apply defaults
+      validate_with_schema(raw_conf, schema)
 
       # SAFETY MEASURE: Freeze this shared config so that we are sure to
       # have an unmodified version straight from the YAML file.
@@ -129,6 +139,34 @@ module Onetime
       # - Guarantees configuration integrity throughout application lifecycle
       # - Makes security guarantees stronger by ensuring config values can't be tampered with
       OT::Utils.deep_freeze(conf)
+    end
+
+    def validate_with_schema(conf, schema)
+
+      # Create schema validator with defaults insertion enabled
+      schemer = JSONSchemer.schema(
+        schema,
+        meta_schema: 'https://json-schema.org/draft/2020-12/schema',
+        insert_property_defaults: true,
+
+        #before_property_validation: ->(data, property, property_schema, _parent) { data }
+        #after_property_validation: ->(data) { data }
+
+        format: true,
+      )
+
+      # Validate and collect errors
+      errors = schemer.validate(conf).to_a
+      return if errors.empty?
+
+      # Format error messages
+      error_messages = errors.map do |err|
+        "#{err['error']} at #{err['pointer']}" # e.g. /mail/connection/fromname
+      end.join("\n")
+
+      conf_safe = OT::Utils.type_structure(conf)
+      conf_pretty = JSON.pretty_generate(conf_safe)
+      raise OT::ConfigError, "Configuration validation failed:\n#{error_messages}\n#{conf_pretty}"
     end
 
     # Access conf here but not Onetime.conf or any other global flag etc.
@@ -306,6 +344,16 @@ module Onetime
       OT.le "Error parsing YAML: #{e.message}"
       raise OT::ConfigError, "Error parsing YAML: #{e.message}"
     end
+
+    def _load_json_schema
+      path = File.join(dirname, 'schemas', 'static-config.json')
+      raise OT::ConfigError, "Schema file not found: #{path}" unless File.exist?(path)
+
+      JSON.parse(File.read(path))
+    rescue JSON::ParserError => e
+      raise OT::ConfigError, "Invalid JSON schema: #{e.message}"
+    end
+
 
   end
 
