@@ -3,6 +3,7 @@
 require 'json'
 require 'json_schemer'
 require 'yaml'
+require_relative 'errors'
 
 require 'onetime/refinements/hash_refinements'
 
@@ -142,29 +143,40 @@ module Onetime
     end
 
     def validate_with_schema(conf, schema)
-
       # Create schema validator with defaults insertion enabled
       schemer = JSONSchemer.schema(
         schema,
         meta_schema: 'https://json-schema.org/draft/2020-12/schema',
         insert_property_defaults: true,
-
-        #before_property_validation: ->(data, property, property_schema, _parent) { data }
-        #after_property_validation: ->(data) { data }
-
         format: true,
       )
 
       # Validate and collect errors
       errors = schemer.validate(conf).to_a
-      return if errors.empty?
+      return conf if errors.empty?
 
-      # Format error messages and extract problematic paths
-      error_messages = errors.map do |err|
-        "#{err['error']}"
-      end.join("\n")
+      # Format error messages
+      error_messages = format_validation_errors(errors)
 
-      # Build a hash containing only the paths with errors
+      # Extract problem paths
+      error_paths = extract_error_paths(errors)
+
+      # Raise a structured error object instead of just a string message
+      raise OT::ConfigValidationError.new(
+        messages: error_messages,
+        paths: error_paths
+      )
+    end
+
+    # Formats validation errors into user-friendly messages
+    def format_validation_errors(errors)
+      errors.map do |err|
+        "value at `#{err['data_pointer']}` #{err['error'].sub(/^[^a-z]+at.+$/i, '')}"
+      end
+    end
+
+    # Extracts the paths and values that failed validation
+    def extract_error_paths(errors)
       error_paths = {}
       errors.each do |err|
         path_segments = err['data_pointer'].split('/').reject(&:empty?)
@@ -178,19 +190,10 @@ module Onetime
           current = current[segment]
         end
 
-        # Get actual value at this path for the last segment
-        value = err['data']
-        current[path_segments.last] = value
+        # Add value at this path
+        current[path_segments.last] = err['data']
       end
-
-      # Convert just the error paths to type structure
-      if error_paths.any?
-        conf_safe = OT::Utils.type_structure(error_paths)
-        conf_pretty = JSON.pretty_generate(conf_safe)
-        raise OT::ConfigError, "Configuration validation failed:\n#{error_messages}\nProblematic config:\n#{conf_pretty}"
-      else
-        raise OT::ConfigError, "Configuration validation failed:\n#{error_messages}"
-      end
+      error_paths
     end
 
     # Access conf here but not Onetime.conf or any other global flag etc.
@@ -333,7 +336,7 @@ module Onetime
 
       parsed_template = _file_read(path)
 
-      _yaml_load(parsed_template)
+      _yaml_load(parsed_template.result)
 
     rescue OT::ConfigError => e
       # DEBUGGING: Allow the contents of the parsed template to be logged.
@@ -362,8 +365,8 @@ module Onetime
       raise OT::ConfigError, "Configuration file not found: #{path}"
     end
 
-    def _yaml_load(parsed)
-      YAML.load(parsed.result) # use YAML.safe_load(parsed.result)
+    def _yaml_load(parsed_str)
+      YAML.load(parsed_str) # use YAML.safe_load(parsed_str)
     rescue Psych::SyntaxError => e
       OT.le "Error parsing YAML: #{e.message}"
       raise OT::ConfigError, "Error parsing YAML: #{e.message}"

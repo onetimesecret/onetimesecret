@@ -1,4 +1,5 @@
 
+require 'json'
 
 module Onetime
 
@@ -24,6 +25,23 @@ module Onetime
   # correctly and needs to be reviewed and corrected before normal operation
   # can proceed.
   class ConfigError < Problem
+  end
+
+  # Specific error for schema validation failures with structured information
+  # about which paths in the configuration are problematic
+  class ConfigValidationError < ConfigError
+    attr_reader :messages, :paths
+
+    def initialize(messages:, paths:)
+      @messages = Array(messages)
+      @paths = paths
+      super(formatted_message)
+    end
+
+    def formatted_message
+      paths_json = JSON.pretty_generate(OT::Utils.type_structure(@paths))
+      "Configuration validation failed:\n#{@messages.join("\n")}\nProblematic config:\n#{paths_json}"
+    end
   end
 
   class RecordNotFound < Problem

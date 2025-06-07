@@ -75,9 +75,7 @@ module Onetime
       boot!(mode, connect_to_db)
       true
     rescue => e
-      OT.le "BOOT ERROR: #{e.class}: #{e.message}"
-      OT.ld e.backtrace.join("\n")
-
+      # Boot errors are already logged in handle_boot_error
       OT.not_ready! # returns false
     end
 
@@ -100,16 +98,22 @@ module Onetime
 
     def handle_boot_error(error)
       case error
+      when OT::ConfigValidationError
+        # ConfigValidationError already includes formatted messages and problematic paths
+        OT.le "Configuration validation failed during boot"
+        OT.le error.message
+      when OT::ConfigError
+        OT.le "Configuration error during boot: #{error.message}"
       when OT::Problem
         OT.le "Problem booting: #{error}"
         OT.ld error.backtrace.join("\n")
       when Redis::CannotConnectError
-        OT.le "Cannot connect to redis #{Familia.uri} (#{error.class})"
+        OT.le "Cannot connect to Redis #{Familia.uri} (#{error.class})"
       when TSort::Cyclic
         # The detailed message from the registry's sorted_initializers will be part of e.message
         OT.le "Problem booting due to initializer dependency cycle: #{error.message}"
       else
-        OT.le "Unexpected error `#{error}` (#{error.class})"
+        OT.le "Unexpected error during boot: #{error.class} - #{error.message}"
         OT.ld error.backtrace.join("\n")
       end
 
@@ -131,6 +135,8 @@ module Onetime
       #
       # allow(Onetime).to receive(:connect_databases).and_call_original
       #
+      # Only re-raise in app mode to stop the server. In test/cli mode,
+      # we continue with reduced functionality.
       raise error unless mode?(:cli) || mode?(:test)
     end
 
