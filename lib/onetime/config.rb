@@ -66,14 +66,17 @@ module Onetime
     attr_reader :env, :base, :bootstrap
     attr_writer :path
 
-    def setup
+    def load
       # Normalize environment variables prior to loading the YAML config
       before_load
+
       # Loads the configuration and renders all value templates (ERB)
-      raw_conf = load
-      # SAFETY MEASURE: Freeze the (inevitably) shared config
-      # TODO: Consider leaving unfrozen until the end of boot!
+      raw_conf = _load_static_configuration
+
+      # SAFETY MEASURE: Freeze this shared config so that we are sure to
+      # have an unmodified version straight from the YAML file.
       OT::Utils.deep_freeze(raw_conf)
+
       # Normalize the configuration and make it available to the rest
       # of the initializers (via OT.conf).
       after_load(raw_conf)
@@ -86,40 +89,6 @@ module Onetime
       # In v0.20.6, REGIONS_ENABLE was renamed to REGIONS_ENABLED for
       # consistency. We ensure both are considered for compatability.
       ENV['REGIONS_ENABLED'] = ENV.values_at('REGIONS_ENABLED', 'REGIONS_ENABLE').compact.first || 'false'
-    end
-
-    # Load a YAML configuration file, allowing for ERB templating within the file.
-    # This reads the file at the given path, processes any embedded Ruby (ERB) code,
-    # and then parses the result as YAML.
-    #
-    # @param path [String] (optional the path to the YAML configuration file
-    # @return [Hash] the parsed YAML data
-    #
-    def load(path=nil)
-      path ||= self.path
-
-      raise ArgumentError, "Bad path (#{path})" unless File.readable?(path)
-
-      parsed_template = ERB.new(File.read(path))
-
-      YAML.load(parsed_template.result)
-    rescue StandardError => e
-      OT.le "Error loading config: #{path}"
-
-      # Log the contents of the parsed template for debugging purposes.
-      # This helps identify issues with template rendering and provides
-      # context for the error, making it easier to diagnose config
-      # problems, especially when the error involves environment vars.
-      if OT.debug? && parsed_template
-        template_lines = parsed_template.result.split("\n")
-        template_lines.each_with_index do |line, index|
-          OT.ld "Line #{index + 1}: #{line}"
-        end
-      end
-
-      OT.le e.message
-      OT.le e.backtrace.join("\n")
-      raise OT::ConfigError.new(e.message)
     end
 
     # After loading the configuration, this method processes and validates the
@@ -142,7 +111,7 @@ module Onetime
       # don't need to exit immediately -- for example, running a console session
       # or in tests or running in development mode. But we should not be
       # continuing in a production ready state if any of these checks fail.
-      raise_concerns(conf)
+      # raise_concerns(conf)
 
       #
       # SEE code past end of file for the inline logic we used here to read
@@ -286,6 +255,56 @@ module Onetime
     def apply_config(other)
       new_config = OT::Utils.deep_merge(OT.conf, other)
       OT.replace_config! new_config
+    end
+
+    private
+
+    # Load a YAML configuration file, allowing for ERB templating within the file.
+    # This reads the file at the given path, processes any embedded Ruby (ERB) code,
+    # and then parses the result as YAML.
+    #
+    # @param path [String] (optional the path to the YAML configuration file
+    # @return [Hash] the parsed YAML data
+    #
+    def _load_static_configuration(path=nil)
+      path ||= self.path
+
+      parsed_template = _file_read(path)
+
+      _yaml_load(parsed_template)
+
+    rescue OT::ConfigError => e
+      # DEBUGGING: Allow the contents of the parsed template to be logged.
+      # This helps identify issues with template rendering and provides
+      # context for the error, making it easier to diagnose config
+      # problems, especially when the error involves environment vars.
+      if OT.debug? && parsed_template
+        template_lines = parsed_template.result.split("\n")
+        template_lines.each_with_index do |line, index|
+          OT.ld "Line #{index + 1}: #{line}"
+        end
+      end
+
+      OT.le e.message
+      OT.ld e.backtrace.join("\n")
+      raise e
+    end
+
+    def _file_read(path)
+      raise ArgumentError, "Bad path (#{path})" unless File.readable?(path)
+
+      ERB.new(File.read(path)) # returns the parsed template object
+
+    rescue Errno::ENOENT => e
+      OT.le "Config file not found: #{path}"
+      raise OT::ConfigError, "Configuration file not found: #{path}"
+    end
+
+    def _yaml_load(parsed)
+      YAML.load(parsed.result) # use YAML.safe_load(parsed.result)
+    rescue Psych::SyntaxError => e
+      OT.le "Error parsing YAML: #{e.message}"
+      raise OT::ConfigError, "Error parsing YAML: #{e.message}"
     end
 
   end

@@ -38,14 +38,17 @@ module Onetime
     def boot!(mode = nil, connect_to_db = true)
       prepare_onetime_namespace(mode)
 
-      conf = OT::Config.setup
+      conf = OT::Config.load
 
+      # TODO: Re-enable
+      #
       # Run all registered initializers in TSort-determined order
       # Pass necessary context like mode and connect_to_db preference
-      Onetime::Initializers::Registry.run_all!({
-        mode: OT.mode,
-        connect_to_db: connect_to_db,
-      })
+      # Onetime::Initializers::Registry.run_all!({
+      #   mode: OT.mode,
+      #   connect_to_db: connect_to_db,
+      #   config: conf,
+      # })
 
       # Let's be clear about returning the prepared configruation. Previously
       # we returned @conf here which was confusing because already made it
