@@ -101,7 +101,12 @@ class OT::CLI::Definition
   about 'Display boot-time initializers in order'
   about "Use global --verbose for full module names"
   option :d, :dependencies, "Show dependencies for each initializer"
-  command initializers: InitializersCommand
+  command initializers: OT::InitializersCommand
+
+  usage 'ots validate [CONFIG_PATH]'
+  about 'Validate configuration file against JSON schema'
+  about 'Use --verbose for error details and --verbose --verbose for full error paths'
+  command validate: OT::ValidateCommand
 end
 
 begin

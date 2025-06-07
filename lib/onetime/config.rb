@@ -112,7 +112,6 @@ module Onetime
 
       # Validate and collect errors
       errors = schemer.validate(conf).to_a
-
       return conf if errors.empty?
 
       # Format error messages
@@ -282,7 +281,7 @@ module Onetime
       OT.replace_config! new_config
     end
 
-    private
+    # These methods are intentionally not private to allow use by the CLI validate command
 
     # Load a YAML configuration file, allowing for ERB templating within the file.
     # This reads the file at the given path, processes any embedded Ruby (ERB) code,
@@ -331,6 +330,8 @@ module Onetime
       OT.le "Error parsing YAML: #{e.message}"
       raise OT::ConfigError, "Error parsing YAML: #{e.message}"
     end
+
+    private
 
     def _load_json_schema
       path = File.join(dirname, 'schemas', 'static-config.json')

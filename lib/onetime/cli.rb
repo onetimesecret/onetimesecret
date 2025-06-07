@@ -15,6 +15,7 @@ require_relative 'cli/customers'
 require_relative 'cli/domains'
 require_relative 'cli/change_email'
 require_relative 'cli/initializers'
+require_relative 'cli/validate'
 
 module Onetime
   class CLI < Drydock::Command
