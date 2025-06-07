@@ -87,142 +87,140 @@ module Onetime
       end
 
       def call(env)
-        if Onetime.ready?
-          @app.call(env)
-        else
-          # Get preferred language from Accept-Language header
-          accept_language = env['HTTP_ACCEPT_LANGUAGE'] || ''
-          lang_code = parse_accept_language(accept_language)
+        return @app.call(env) if Onetime.ready?
 
-          html = <<~HTML
-            <html lang="#{lang_code}" class="light">
-              <head>
-              <style>
-                :root {
-                  --bg-color: #ffffff;
-                  --text-color: rgb(17 24 39);
+        # Get preferred language from Accept-Language header
+        accept_language = env['HTTP_ACCEPT_LANGUAGE'] || ''
+        lang_code = parse_accept_language(accept_language)
+
+        html = <<~HTML
+          <html lang="#{lang_code}" class="light">
+            <head>
+            <style>
+              :root {
+                --bg-color: #ffffff;
+                --text-color: rgb(17 24 39);
+              }
+
+              html.dark {
+                --bg-color: rgb(17 24 39);
+                --text-color: #ffffff;
+              }
+
+              body {
+                background-color: var(--bg-color);
+                color: var(--text-color);
+                padding: 1rem;
+                border-radius: 0.25rem;
+                text-align: center;
+                padding: 20px;
+
+                transition: background-color 0.3s ease, color 0.3s ease;
+              }
+            </style>
+            <script>
+              // Run immediately to avoid FOUC
+              (function() {
+                // Check for dark mode preference
+                var isDarkMode = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+
+                // Apply class immediately
+                if (isDarkMode) {
+                  document.documentElement.classList.remove('light');
+                  document.documentElement.classList.add('dark');
                 }
+              })();
 
-                html.dark {
-                  --bg-color: rgb(17 24 39);
-                  --text-color: #ffffff;
-                }
+              // Set up proper theme change detection
+              document.addEventListener('DOMContentLoaded', function() {
+                var darkModeMediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+                var htmlElement = document.documentElement;
 
-                body {
-                  background-color: var(--bg-color);
-                  color: var(--text-color);
-                  padding: 1rem;
-                  border-radius: 0.25rem;
-                  text-align: center;
-                  padding: 20px;
-
-                  transition: background-color 0.3s ease, color 0.3s ease;
-                }
-              </style>
-              <script>
-                // Run immediately to avoid FOUC
-                (function() {
-                  // Check for dark mode preference
-                  var isDarkMode = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
-
-                  // Apply class immediately
-                  if (isDarkMode) {
-                    document.documentElement.classList.remove('light');
-                    document.documentElement.classList.add('dark');
+                // Function to update theme
+                function updateTheme(isDark) {
+                  if (isDark) {
+                    htmlElement.classList.remove('light');
+                    htmlElement.classList.add('dark');
+                  } else {
+                    htmlElement.classList.remove('dark');
+                    htmlElement.classList.add('light');
                   }
-                })();
+                }
 
-                // Set up proper theme change detection
-                document.addEventListener('DOMContentLoaded', function() {
-                  var darkModeMediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
-                  var htmlElement = document.documentElement;
-
-                  // Function to update theme
-                  function updateTheme(isDark) {
-                    if (isDark) {
-                      htmlElement.classList.remove('light');
-                      htmlElement.classList.add('dark');
-                    } else {
-                      htmlElement.classList.remove('dark');
-                      htmlElement.classList.add('light');
-                    }
-                  }
-
-                  // Set up cross-browser compatible event listener
+                // Set up cross-browser compatible event listener
+                try {
+                  // Modern API (addEventListener)
+                  darkModeMediaQuery.addEventListener('change', function(e) {
+                    updateTheme(e.matches);
+                  });
+                } catch (e1) {
                   try {
-                    // Modern API (addEventListener)
-                    darkModeMediaQuery.addEventListener('change', function(e) {
+                    // Fallback for Safari 13, iOS 13
+                    darkModeMediaQuery.addListener(function(e) {
                       updateTheme(e.matches);
                     });
-                  } catch (e1) {
-                    try {
-                      // Fallback for Safari 13, iOS 13
-                      darkModeMediaQuery.addListener(function(e) {
-                        updateTheme(e.matches);
-                      });
-                    } catch (e2) {
-                      console.error('Could not set up theme change detection', e2);
-                    }
+                  } catch (e2) {
+                    console.error('Could not set up theme change detection', e2);
                   }
+                }
 
-                  // Log for debugging
-                  console.log('Theme detection initialized. Current mode:',
-                    darkModeMediaQuery.matches ? 'dark' : 'light');
+                // Log for debugging
+                console.log('Theme detection initialized. Current mode:',
+                  darkModeMediaQuery.matches ? 'dark' : 'light');
+              });
+            </script>
+
+              <script>
+                // All available languages
+                const translations = #{TRANSLATIONS.to_json};
+                const languageCodes = Object.keys(translations);
+
+                // Initialize with the user's language
+                let currentLang = "#{lang_code}";
+
+                // Set up random font on load
+                document.addEventListener('DOMContentLoaded', function() {
+                  const fonts = [
+                    'Comic Sans MS', 'Papyrus', 'Impact', 'Brush Script MT',
+                    'Courier New', 'Monaco', 'Chalkduster', 'Copperplate',
+                    'Lucida Console', 'Futura', 'Bebas Neue', 'Creepster',
+                    'Chiller', 'Jokerman', 'cursive', 'fantasy', 'monospace'
+                  ];
+                  const randomFont = fonts[Math.floor(Math.random() * fonts.length)];
+                  document.body.style.fontFamily = randomFont;
+
+                  // Set up click handler for language switching
+                  document.body.addEventListener('click', function() {
+                    // Get a random language that's different from current
+                    let newLang;
+                    do {
+                      const randomIndex = Math.floor(Math.random() * languageCodes.length);
+                      newLang = languageCodes[randomIndex];
+                    } while (newLang === currentLang && languageCodes.length > 1);
+
+                    currentLang = newLang;
+
+                    // Update the text content
+                    document.getElementById('title').textContent = translations[newLang].title;
+                    document.getElementById('message1').textContent = translations[newLang].message1;
+                    document.getElementById('message2').textContent = translations[newLang].message2;
+
+                    // Also change the font when language changes
+                    const newRandomFont = fonts[Math.floor(Math.random() * fonts.length)];
+                    document.body.style.fontFamily = newRandomFont;
+                  });
                 });
               </script>
+            </head>
+            <body>
+              <h2 id="title">#{TRANSLATIONS[lang_code][:title]}</h2>
+              <p id="message1">#{TRANSLATIONS[lang_code][:message1]}</p>
+              <p id="message2">#{TRANSLATIONS[lang_code][:message2]}</p>
+            </body>
+          </html>
+        HTML
 
-                <script>
-                  // All available languages
-                  const translations = #{TRANSLATIONS.to_json};
-                  const languageCodes = Object.keys(translations);
-
-                  // Initialize with the user's language
-                  let currentLang = "#{lang_code}";
-
-                  // Set up random font on load
-                  document.addEventListener('DOMContentLoaded', function() {
-                    const fonts = [
-                      'Comic Sans MS', 'Papyrus', 'Impact', 'Brush Script MT',
-                      'Courier New', 'Monaco', 'Chalkduster', 'Copperplate',
-                      'Lucida Console', 'Futura', 'Bebas Neue', 'Creepster',
-                      'Chiller', 'Jokerman', 'cursive', 'fantasy', 'monospace'
-                    ];
-                    const randomFont = fonts[Math.floor(Math.random() * fonts.length)];
-                    document.body.style.fontFamily = randomFont;
-
-                    // Set up click handler for language switching
-                    document.body.addEventListener('click', function() {
-                      // Get a random language that's different from current
-                      let newLang;
-                      do {
-                        const randomIndex = Math.floor(Math.random() * languageCodes.length);
-                        newLang = languageCodes[randomIndex];
-                      } while (newLang === currentLang && languageCodes.length > 1);
-
-                      currentLang = newLang;
-
-                      // Update the text content
-                      document.getElementById('title').textContent = translations[newLang].title;
-                      document.getElementById('message1').textContent = translations[newLang].message1;
-                      document.getElementById('message2').textContent = translations[newLang].message2;
-
-                      // Also change the font when language changes
-                      const newRandomFont = fonts[Math.floor(Math.random() * fonts.length)];
-                      document.body.style.fontFamily = newRandomFont;
-                    });
-                  });
-                </script>
-              </head>
-              <body>
-                <h2 id="title">#{TRANSLATIONS[lang_code][:title]}</h2>
-                <p id="message1">#{TRANSLATIONS[lang_code][:message1]}</p>
-                <p id="message2">#{TRANSLATIONS[lang_code][:message2]}</p>
-              </body>
-            </html>
-          HTML
-
-          [503, {'Content-Type' => 'text/html; charset=utf-8'}, [html.encode('UTF-8')]]
-        end
+        [503, {'Content-Type' => 'text/html; charset=utf-8'}, [html.encode('UTF-8')]]
       end
 
       private
