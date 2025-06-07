@@ -40,6 +40,7 @@ module Onetime
 
       OT.ld "[BOOT] Initializing Onetime application in '#{OT.mode}' mode"
       conf = OT::Config.load
+
       OT.ld "[BOOT] Configuration loaded from #{conf.config_path}" if conf.respond_to?(:config_path)
 
       # TODO: Re-enable
@@ -68,6 +69,16 @@ module Onetime
       nil
     rescue => error
       handle_boot_error(error)
+    end
+
+    def safe_boot!(mode = nil, connect_to_db = true)
+      boot!(mode, connect_to_db)
+      true
+    rescue => e
+      OT.le "BOOT ERROR: #{e.class}: #{e.message}"
+      OT.ld e.backtrace.join("\n")
+
+      OT.not_ready! # returns false
     end
 
     private

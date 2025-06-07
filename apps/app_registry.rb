@@ -35,6 +35,11 @@ module AppRegistry
     def initialize_applications
       discover_applications
       map_applications_to_routes
+    rescue => e
+      OT.le "APPLICATION REGISTRY ERROR: #{e.class}: #{e.message}"
+      OT.ld e.backtrace.join("\n")
+
+      Onetime.not_ready!
     end
 
     # Build rack application map
