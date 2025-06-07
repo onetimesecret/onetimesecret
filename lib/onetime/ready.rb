@@ -7,6 +7,14 @@ module Onetime
       !!@ready
     end
 
+    def not_ready?
+      !ready?
+    end
+
+    def not_ready!
+      @ready = false
+    end
+
     def mark_ready!
       @ready = true
     end
