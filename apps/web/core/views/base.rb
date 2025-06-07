@@ -4,8 +4,6 @@ require 'chimera'
 
 require 'onetime/middleware'
 
-require 'v2/models/customer'
-
 require_relative 'helpers'
 require_relative 'serializers'
 
@@ -37,7 +35,8 @@ module Core
       def initialize req, sess=nil, cust=nil, locale_override=nil, *args
         @req = req
         @sess = sess
-        @cust = cust || V2::Customer.anonymous
+
+        @cust = cust || anonymous_customer
 
         # We determine locale here because it's used for i18n. Otherwise we couldn't
         # determine the i18n messages until inside or after initialize_view_vars.
@@ -62,6 +61,14 @@ module Core
         init(*args) if respond_to?(:init)
 
         update_serialized_data
+      end
+
+      def anonymous_customer
+        # Lazy-load the model here if we need to. This avoids having to
+        # load models at interpretation time. Running tests for example,
+        # in some cases won't have a database connection.
+        require 'v2/models/customer' unless defined?(V2::Customer)
+        @cust = V2::Customer.anonymous
       end
 
       def update_serialized_data

@@ -17,8 +17,8 @@ module Core
       def self.serialize(view_vars, i18n)
         output = self.output_template
 
-        output[:messages] = view_vars[:messages]
-        output[:global_banner] = OT.global_banner if OT.global_banner
+        output[:messages] = view_vars&.fetch(:messages, nil)
+        output[:global_banner] = OT.global_banner if OT.global_banner # TODO
 
         output
       end

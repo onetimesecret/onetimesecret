@@ -1,6 +1,5 @@
 # apps/web/core/views/serializers/domain_serializer.rb
 
-require 'v2/models/custom_domain'
 require 'onetime/middleware/domain_strategy'
 
 module Core
@@ -30,6 +29,8 @@ module Core
         cust = view_vars[:cust]
 
         output[:domain_strategy] = view_vars[:domain_strategy]
+
+        require 'v2/models/custom_domain' unless defined?(V2::CustomDomain)
 
         output[:canonical_domain] = Onetime::DomainStrategy.canonical_domain
         output[:display_domain] = view_vars[:display_domain]

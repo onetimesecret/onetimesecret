@@ -167,7 +167,7 @@ module Core
       locale ||= cust.locale if cust&.locale
       locale ||= (req.env['rack.locale'] || []).first
 
-      have_translations = locale && OT.locales.has_key?(locale)
+      have_translations = locale && OT.locales&.has_key?(locale)
       lmsg = format(
         '[check_locale!] class=%s locale=%s cust=%s req=%s t=%s',
         self.class.name,
@@ -279,10 +279,9 @@ module Core
       # Update the session fields in redis (including updated timestamp)
       sess.save
 
-      # Only set the cookie after session is for sure saved to redis
-      is_secure = Onetime.conf[:site][:ssl]
+      is_secure = Onetime.conf&.dig(:site, :ssl) || true
 
-      # Update the session cookie
+      # Only set the cookie after session is for sure saved to redis
       res.send_cookie :sess, sess.sessid, sess.ttl, is_secure
 
       # Re-hydrate the customer object
@@ -335,6 +334,8 @@ module Core
 
       # Skip the Content-Security-Policy header if it's already set
       return if res.header['Content-Security-Policy']
+
+      return if OT.conf.nil?
 
       # Skip the CSP header unless it's enabled in the experimental settings
       return if OT.conf.dig(:experimental, :csp, :enabled) != true

@@ -35,11 +35,11 @@ module Onetime
       calculated_price.zero?
     end
 
+    @plans = {}
     module ClassMethods
       attr_reader :plans
 
       def add_plan(planid, *args)
-        @plans ||= {}
         new_plan = new(planid, *args)
         plans[new_plan.planid] = new_plan
         plans[new_plan.planid.gibbler.short] = new_plan
@@ -50,11 +50,11 @@ module Onetime
       end
 
       def plan(planid)
-        plans[normalize(planid)]
+        plans[normalize(planid)] #unless planid.nil?
       end
 
       def plan?(planid)
-        plans.member?(normalize(planid))
+        planid.nil? ? false : plans.member?(normalize(planid))
       end
 
       def load_plans!

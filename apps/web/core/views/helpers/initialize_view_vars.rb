@@ -31,6 +31,8 @@ module Core
       # @param i18n_instance [I18n] Current I18n instance
       # @return [Hash] Collection of initialized variables
       def initialize_view_vars(req, sess, cust, locale, i18n_instance)
+        # Return minimal defaults if OT.conf isn't loaded yet
+        return self.minimal_defaults(req, sess, cust, locale) unless OT.conf
 
         # Extract the top-level keys from the YAML configuration.
         #
@@ -116,6 +118,17 @@ module Core
           script_element_id: script_element_id,
           shrimp: shrimp,
           site: safe_site,
+        }
+      end
+
+      def minimal_defaults(req, sess, cust, locale)
+        {
+          authenticated: false,
+          cust: cust,
+          locale: locale,
+          messages: sess&.get_messages || [],
+          no_cache: false,
+          site: {},
         }
       end
     end

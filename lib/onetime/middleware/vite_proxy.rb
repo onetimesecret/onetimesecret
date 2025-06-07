@@ -61,7 +61,7 @@ module Onetime
           use Rack::Lint
 
           # Retrieve development configuration settings
-          config = Onetime.conf.fetch(:development, {})
+          config = Onetime.conf&.dig(:development) || {}
 
           # Configure Vite proxy based on settings
           case config

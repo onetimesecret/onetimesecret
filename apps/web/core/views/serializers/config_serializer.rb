@@ -21,9 +21,9 @@ module Core
         output = self.output_template
 
         site = view_vars[:site] || {}
-        incoming = view_vars[:incoming] # TODO: Update to features.incoming
-        development = view_vars[:development]
-        diagnostics = view_vars[:diagnostics]
+        incoming = view_vars[:incoming] || {} # TODO: Update to features.incoming
+        development = view_vars[:development] || {}
+        diagnostics = view_vars[:diagnostics] || {}
 
         output[:ui] = site.dig(:interface, :ui)
         output[:authentication] = site.fetch(:authentication, nil)

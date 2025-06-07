@@ -17,7 +17,7 @@ module Core
       def self.serialize(view_vars, i18n)
         output = self.output_template
 
-        output[:locale] = view_vars[:locale]
+        output[:locale] = view_vars&.fetch(:locale, nil)
         output[:default_locale] = OT.default_locale # the application default
         output[:fallback_locale] = OT.fallback_locale
         output[:supported_locales] = OT.supported_locales
