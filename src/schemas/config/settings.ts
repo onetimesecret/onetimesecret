@@ -8,12 +8,14 @@ const nullableString = z.string().nullable().optional();
 /**
  * Rate Limits Management:
  *
- * Adding: Add new key with transforms.fromString.number.optional() in appropriate comment group
+ * Adding: Add new key with transforms.fromString.number.optional() in
+ * appropriate comment group
  * Removing: Delete the line (catchall handles unknown keys gracefully)
  * Updating: Modify the key name directly
  *
- * All rate limit values are optional numeric limits (requests per time window).
- * Unknown rate limits are automatically handled via catchall for backward compatibility.
+ * All rate limit values are optional numeric limits (requests per time
+ * window). Unknown rate limits are automatically handled via catchall for
+ * backward compatibility.
  */
 const RATE_LIMIT_KEYS = [
   // Core authentication and account operations
@@ -333,21 +335,52 @@ const staticSiteSchema = z.object({
   host: z.string().default('localhost:3000'),
   ssl: transforms.fromString.boolean.default(false),
   secret: z.string().default('CHANGEME'),
-  authentication: staticSiteAuthenticationSchema,
-  authenticity: staticSiteAuthenticitySchema,
-  middleware: staticSiteMiddlewareSchema,
+  authentication: staticSiteAuthenticationSchema.default({}),
+  authenticity: staticSiteAuthenticitySchema.default({}),
+  middleware: staticSiteMiddlewareSchema.default({}),
 });
 
 const staticStorageDbConnectionSchema = z.object({
   url: z.string().default('redis://localhost:6379'),
 });
 
+// 'connection' is required for 'db' (if 'db' exists and is not optional
+// itself)
 const staticStorageDbSchema = z.object({
-  connection: staticStorageDbConnectionSchema,
-  database_mapping: z.record(z.string(), transforms.fromString.number).optional(),
+  // Ensure connection object is created by default
+  connection: staticStorageDbConnectionSchema.default({}),
+  // Allow null for database_mapping values
+  database_mapping: z.record(z.string(), transforms.fromString.number.nullable()).optional(),
 });
 
+/**
+ * Storage Database Schema Configuration
+ *
+ * The 'db' property within 'storage' is configured as optional based on the current
+ * JSON schema specification. This design decision reflects the following considerations:
+ *
+ * Schema Requirements Analysis:
+ * - The JSON schema does not include 'db' in storage.required array
+ * - Therefore 'db' remains optional at the storage level
+ *
+ * Default Value Behavior:
+ * - If 'db' is present: Internal .default({}) for 'connection' applies automatically
+ * - If 'db' is absent: No database configuration is generated
+ *
+ * Alternative Implementation:
+ * If the schema required 'db' to always exist when 'storage' is present:
+ * ```
+ * db: staticStorageDbSchema.default({})
+ * ```
+ *
+ * Current Implementation Rationale:
+ * Maintains schema compliance while allowing flexible storage configurations.
+ * The Ruby default generator will only create database configuration when
+ * explicitly specified, preventing unnecessary Redis connection attempts.
+ */
 const staticStorageSchema = z.object({
+  // Kept optional per existing JSON schema. If db were required for storage,
+  // it would need .default({})
   db: staticStorageDbSchema.optional(),
 });
 
@@ -361,18 +394,23 @@ const staticMailConnectionSchema = z.object({
   port: transforms.fromString.number.optional(),
   user: nullableString,
   pass: nullableString,
-  // Can be true/false, 'true'/'false', or nil
   tls: transforms.fromString.boolean.nullable().optional(),
 });
 
+// The 'default' property within 'validation' is an object type
+const staticMailIndividualValidationSchema = individualMailValidationSchema; // Alias for clarity
+
+// 'validation' itself is a required property of 'mail'.
+// The 'default' property *within* 'validation' is optional.
+// So staticMailValidationSchema refers to the structure for mail.validation.
 const staticMailValidationSchema = z.object({
-  // Reuses the detailed validation schema
-  default: individualMailValidationSchema.optional(),
+  default: staticMailIndividualValidationSchema.optional(), // 'default' key is optional
 });
 
+// 'connection' and 'validation' are required for 'mail'
 const staticMailSchema = z.object({
-  connection: staticMailConnectionSchema,
-  validation: staticMailValidationSchema,
+  connection: staticMailConnectionSchema.default({}), // Ensure connection object is created
+  validation: staticMailValidationSchema.default({}), // Ensure validation object is created
 });
 
 const staticLoggingSchema = z.object({
@@ -400,13 +438,13 @@ const staticExperimentalSchema = z.object({
 });
 
 export const staticConfigSchema = z.object({
-  site: staticSiteSchema.optional(),
-  storage: staticStorageSchema.optional(),
-  mail: staticMailSchema.optional(),
-  logging: staticLoggingSchema.optional(),
-  i18n: staticI18nSchema.optional(),
-  development: staticDevelopmentSchema.optional(),
-  experimental: staticExperimentalSchema.optional(),
+  site: staticSiteSchema.default({}),
+  storage: staticStorageSchema.default({}), // storage itself gets a default empty object
+  mail: staticMailSchema.default({}),
+  logging: staticLoggingSchema.default({}),
+  i18n: staticI18nSchema.default({}),
+  development: staticDevelopmentSchema.default({}),
+  experimental: staticExperimentalSchema.default({}),
 });
 
 export type StaticConfig = z.infer<typeof staticConfigSchema>;
