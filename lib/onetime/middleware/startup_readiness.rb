@@ -3,6 +3,7 @@
 module Onetime
   module Middleware
     class StartupReadiness
+
       def initialize(app)
         @app = app
       end
@@ -11,34 +12,44 @@ module Onetime
         if Onetime.ready?
           @app.call(env)
         else
-          # Return a specific startup page
-          [503,
-           {'Content-Type' => 'text/html'},
-           ["<html><body> Missing required static configuration. Please check server log and config file for details.</body></html>"]]
+          [503, {'Content-Type' => 'text/html'}, [STARTUP_HTML]]
         end
       end
-    end
-  end
-end
 
-# lib/onetime.rb
-module Onetime
-  class << self
-    def ready?
-      !!@ready
-    end
+      STARTUP_HTML = <<~HTML
+        <html>
+          <head>
+            <style>
+              body {
+                background-color: #adb5bd;
+                color: #000000;
+                padding: 1rem;
+                border-radius: 0.25rem;
+                text-align: center;
+                padding: 20px;
+              }
+            </style>
+            <script>
+              document.addEventListener('DOMContentLoaded', function() {
+                const fonts = [
+                  'Comic Sans MS', 'Papyrus', 'Impact', 'Brush Script MT',
+                  'Courier New', 'Monaco', 'Chalkduster', 'Copperplate',
+                  'Lucida Console', 'Futura', 'Bebas Neue', 'Creepster',
+                  'Chiller', 'Jokerman', 'cursive', 'fantasy', 'monospace'
+                ];
+                const randomFont = fonts[Math.floor(Math.random() * fonts.length)];
+                document.body.style.fontFamily = randomFont;
+              });
+            </script>
+          </head>
+          <body>
+            <h2>Configuration Incomplete</h2>
+            <p>Server booted successfully but static configuration is missing.</p>
+            <p>Please check server logs for details.</p>
+          </body>
+        </html>
+      HTML
 
-    def mark_ready!
-      @ready = true
-    end
-
-    # Call this after all configuration is loaded
-    def complete_initialization!
-      # Load plans
-      Plan.load_plans!
-      # Load locales and other config
-      # ...
-      mark_ready!
     end
   end
 end
