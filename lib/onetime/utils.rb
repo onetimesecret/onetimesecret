@@ -1,6 +1,5 @@
 
 require 'httparty'
-require 'yaml'
 
 module Onetime
   module Utils
@@ -154,6 +153,29 @@ module Onetime
       YAML.load(YAML.dump(config_hash)) # TODO: Use oj for performance and string gains
     rescue TypeError, Psych::DisallowedClass, Psych::BadAlias => ex
       raise OT::Problem, "[deep_clone] #{ex.message}"
+    end
+
+    # Dump structure with types instead of values. Used for safe logging of
+    # configuration data to help debugging.
+    # @param obj [Object] Any Ruby object
+    # @return [Hash,Array,String] Structure with class names instead of values
+    def type_structure(obj)
+      case obj
+      when Hash
+        obj.transform_values { |v| type_structure(v) }
+          .transform_values { |v| v.is_a?(Hash) ? v : v.to_s }
+      when Array
+        if obj.empty?
+          "Array<empty>"
+        else
+          sample = type_structure(obj.first)
+          "Array<#{sample.class.name}>"
+        end
+      when NilClass
+        "nil"
+      else
+        obj.class.name
+      end
     end
 
     def obscure_email(text)
