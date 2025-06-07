@@ -31,16 +31,18 @@ class BaseApplication
     # Rack::Builder uses `instance_eval` internally, creating a new context
     # so inside of it `self` refers to the Rack::Builder instance.
     router_instance = router
+    @middleware ||= []
+    base_klass = self.class
 
     Rack::Builder.new do |builder|
       MiddlewareStack.configure(builder)
 
-      self.class.middleware.each do |middleware, args, block|
+      base_klass.middleware.each do |middleware, args, block|
         builder.use(middleware, *args, &block)
       end
 
       # Invoke the warmup block if it is defined
-      builder.warmup(&self.class.warmup) # TODO: Or builder.warmup&.call?
+      builder.warmup(&base_klass.warmup) # TODO: Or builder.warmup&.call?
 
       builder.run router_instance
     end.to_app
