@@ -12,74 +12,73 @@ module Onetime
         },
         es: {
           title: "Configuración Incompleta",
-          message1: "El servidor arrancó correctamente pero los componentes de configuración requeridos aún no están completamente cargados.",
-          message2: "Por favor, actualice en un momento o revise los registros del servidor para más detalles.",
+          message1: "El servidor arrancó correctamente pero falta la configuración estática.",
+          message2: "Por favor, revise los registros del servidor para más detalles.",
         },
         fr: {
           title: "Configuration Incomplète",
-          message1: "Le serveur a démarré avec succès mais les composants de configuration requis ne sont pas encore complètement chargés.",
-          message2: "Veuillez rafraîchir dans un instant ou consulter les journaux du serveur pour plus de détails.",
+          message1: "Le serveur a démarré avec succès mais la configuration statique est manquante.",
+          message2: "Veuillez consulter les journaux du serveur pour plus de détails.",
         },
         ta: {
           title: "முழு பயன்பாடு இல்லை",
-          message1: "தரவு வெளியே முடிவடைந்தது, இன்று மேலும் பயன்பாடுகள் பதிவு செய்யப்படும்.",
-          message2: "தரவு வெளியே முடிவடைந்தது, இன்று மேலும் பயன்பாடுகள் பதிவு செய்யப்படும்.",
+          message1: "சேவையகம் வெற்றிகரமாக துவங்கியது ஆனால் நிலையான கட்டமைப்பு காணவில்லை.",
+          message2: "விவரங்களுக்கு சேவையக பதிவுகளை சரிபார்க்கவும்.",
         },
         ba: {
           title: "Конфигурация неполная",
-          message1: "Сервер успешно запущен, но необходимые компоненты конфигурации еще не полностью загружены.",
-          message2: "Пожалуйста, обновите страницу через несколько секунд или проверьте журналы сервера для получения дополнительной информации.",
+          message1: "Сервер успешно запущен, но отсутствует статическая конфигурация.",
+          message2: "Пожалуйста, проверьте журналы сервера для получения подробностей.",
         },
         bg: {
           title: "Непълна конфигурация",
-          message1: "Сървърът е успешно стартиран, но необходимите компоненти за конфигурация все още не са напълно заредени.",
-          message2: "Моля, актуализирайте страницата след няколко секунди или проверете журнала на сървъра за допълнителна информация.",
+          message1: "Сървърът е успешно стартиран, но липсва статична конфигурация.",
+          message2: "Моля, проверете журнала на сървъра за подробности.",
         },
         cs: {
           title: "Nepřípravený server",
-          message1: "Server byl úspěšně spuštěn, ale potřebné komponenty pro nastavení ještě nejsou plně načteny.",
-          message2: "Prosím, aktualizujte stránku za několik sekund nebo zkontrolujte serverový protokol pro další informace.",
+          message1: "Server byl úspěšně spuštěn, ale chybí statická konfigurace.",
+          message2: "Zkontrolujte protokoly serveru pro další informace.",
         },
         de: {
           title: "Konfiguration unvollständig",
-          message1: "Der Server wurde erfolgreich gestartet, aber die erforderlichen Konfigurationskomponenten sind noch nicht vollständig geladen.",
-          message2: "Bitte aktualisieren Sie in einem Moment oder überprüfen Sie die Serverprotokolle für Details.",
+          message1: "Der Server wurde erfolgreich gestartet, aber die statische Konfiguration fehlt.",
+          message2: "Bitte überprüfen Sie die Serverprotokolle für Details.",
         },
         de_AT: {
           title: "Konfiguration nicht vollständig",
-          message1: "Der Server wurde erfolgreich gestartet, jedoch sind die erforderlichen Konfigurationskomponenten noch nicht zur Gänze geladen.",
-          message2: "Wir ersuchen Sie, die Seite in Kürze erneut zu laden oder die Serverprotokolle für nähere Informationen zu konsultieren.",
+          message1: "Der Server wurde erfolgreich gestartet, jedoch fehlt die statische Konfiguration.",
+          message2: "Wir ersuchen Sie, die Serverprotokolle für nähere Informationen zu konsultieren.",
         },
         nl: {
           title: "Configuratie onvolledig",
-          message1: "De server is succesvol opgestart, maar de vereiste configuratiecomponenten zijn nog niet volledig geladen.",
-          message2: "Vernieuw over een moment of controleer de serverlogboeken voor details.",
+          message1: "De server is succesvol opgestart, maar de statische configuratie ontbreekt.",
+          message2: "Controleer de serverlogboeken voor details.",
         },
-
         da: {
           title: "Konfiguration ufuldstændig",
-          message1: "Serveren startede med succes, men de nødvendige konfigurationskomponenter er endnu ikke fuldt indlæst.",
-          message2: "Opdater om et øjeblik eller tjek serverlogfiler for detaljer.",
+          message1: "Serveren startede med succes, men den statiske konfiguration mangler.",
+          message2: "Tjek serverlogfiler for detaljer.",
         },
         uk: {
           title: "Конфігурація неповна",
-          message1: "Сервер успішно запущено, але необхідні компоненти конфігурації ще не повністю завантажені.",
-          message2: "Будь ласка, оновіть сторінку за мить або перевірте журнали сервера для отримання деталей.",
+          message1: "Сервер успішно запущено, але статична конфігурація відсутня.",
+          message2: "Будь ласка, перевірте журнали сервера для отримання деталей.",
         },
         ko: {
           title: "구성이 불완전함",
-          message1: "서버가 성공적으로 부팅되었지만 필요한 구성 요소가 아직 완전히 로드되지 않았습니다.",
-          message2: "잠시 후 새로고침하거나 서버 로그에서 자세한 내용을 확인하세요.",
+          message1: "서버가 성공적으로 부팅되었지만 정적 구성이 누락되었습니다.",
+          message2: "자세한 내용은 서버 로그를 확인하세요.",
         },
         zh: {
           title: "配置不完整",
-          message1: "服务器成功启动，但所需的配置组件尚未完全加载。",
-          message2: "请稍后刷新或查看服务器日志以获取详细信息。",
+          message1: "服务器成功启动，但缺少静态配置。",
+          message2: "请查看服务器日志以获取详细信息。",
         },
         ja: {
           title: "設定が不完全",
-          message1: "サーバーが正常に起動しましたが、必要なコンポーネントがまだ完全にロードされていません。",
-          message2: "しばらくしてリロードするか、サーバーログを確認してください。",
+          message1: "サーバーが正常に起動しましたが、静的設定が欠落しています。",
+          message2: "詳細はサーバーログを確認してください。",
         },
       }
 
@@ -116,7 +115,7 @@ module Onetime
                   border-radius: 0.25rem;
                   text-align: center;
                   padding: 20px;
-                  cursor: pointer;
+
                   transition: background-color 0.3s ease, color 0.3s ease;
                 }
               </style>
@@ -249,8 +248,3 @@ module Onetime
     end
   end
 end
-
-
-__END__
-{'Content-Type' => 'text/html; charset=utf-8'},
-[html.encode('UTF-8')]]
