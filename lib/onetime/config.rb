@@ -159,14 +159,38 @@ module Onetime
       errors = schemer.validate(conf).to_a
       return if errors.empty?
 
-      # Format error messages
+      # Format error messages and extract problematic paths
       error_messages = errors.map do |err|
-        "#{err['error']} at #{err['pointer']}" # e.g. /mail/connection/fromname
+        "#{err['error']}"
       end.join("\n")
 
-      conf_safe = OT::Utils.type_structure(conf)
-      conf_pretty = JSON.pretty_generate(conf_safe)
-      raise OT::ConfigError, "Configuration validation failed:\n#{error_messages}\n#{conf_pretty}"
+      # Build a hash containing only the paths with errors
+      error_paths = {}
+      errors.each do |err|
+        path_segments = err['data_pointer'].split('/').reject(&:empty?)
+        next if path_segments.empty?
+
+        # Navigate to proper nesting level
+        current = error_paths
+        parent_segments = path_segments[0..-2]
+        parent_segments.each do |segment|
+          current[segment] ||= {}
+          current = current[segment]
+        end
+
+        # Get actual value at this path for the last segment
+        value = err['data']
+        current[path_segments.last] = value
+      end
+
+      # Convert just the error paths to type structure
+      if error_paths.any?
+        conf_safe = OT::Utils.type_structure(error_paths)
+        conf_pretty = JSON.pretty_generate(conf_safe)
+        raise OT::ConfigError, "Configuration validation failed:\n#{error_messages}\nProblematic config:\n#{conf_pretty}"
+      else
+        raise OT::ConfigError, "Configuration validation failed:\n#{error_messages}"
+      end
     end
 
     # Access conf here but not Onetime.conf or any other global flag etc.
