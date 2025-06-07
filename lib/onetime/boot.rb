@@ -53,7 +53,7 @@ module Onetime
       # })
 
       if OT.conf.nil?
-        OT.le "[BOOT] ERROR: Configuration failed to load properly"
+        OT.le "[BOOT] ERROR: Configuration failed to load"
       else
         OT.ld "[BOOT] Completing initialization process..."
         Onetime.complete_initialization!
