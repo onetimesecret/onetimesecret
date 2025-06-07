@@ -136,7 +136,7 @@ const userInterfaceSchema = z.object({
 });
 
 const apiSchema = z.object({
-  enabled: transforms.fromString.boolean.optional(),
+  enabled: transforms.fromString.boolean.default(true),
 });
 
 const secretOptionsSchema = z.object({
@@ -306,18 +306,19 @@ export type SystemSettingsDetails = z.infer<typeof systemSettingsDetailsSchema>;
 // --- Schemas for config.yaml (Static Settings) ---
 
 const staticSiteAuthenticationSchema = z.object({
-  enabled: transforms.fromString.boolean.optional(),
-  colonels: z.array(z.string()).optional(),
+  enabled: transforms.fromString.boolean.default(false),
+  colonels: z.array(z.string()).default([]),
 });
 
 const staticSiteAuthenticitySchema = z.object({
+  enabled: transforms.fromString.boolean.default(false),
   type: z.string().optional(),
   secret_key: z.string().optional(),
 });
 
 const staticSiteMiddlewareSchema = z.object({
-  static_files: transforms.fromString.boolean.optional(),
-  utf8_sanitizer: transforms.fromString.boolean.optional(),
+  static_files: transforms.fromString.boolean.default(true),
+  utf8_sanitizer: transforms.fromString.boolean.default(true),
   http_origin: transforms.fromString.boolean.optional(),
   escaped_params: transforms.fromString.boolean.optional(),
   xss_header: transforms.fromString.boolean.optional(),
@@ -329,20 +330,20 @@ const staticSiteMiddlewareSchema = z.object({
 });
 
 const staticSiteSchema = z.object({
-  host: z.string().optional(),
-  ssl: transforms.fromString.boolean.optional(),
-  secret: z.string().optional(),
-  authentication: staticSiteAuthenticationSchema.optional(),
-  authenticity: staticSiteAuthenticitySchema.optional(),
-  middleware: staticSiteMiddlewareSchema.optional(),
+  host: z.string().default('localhost:3000'),
+  ssl: transforms.fromString.boolean.default(false),
+  secret: z.string().default('CHANGEME'),
+  authentication: staticSiteAuthenticationSchema,
+  authenticity: staticSiteAuthenticitySchema,
+  middleware: staticSiteMiddlewareSchema,
 });
 
 const staticStorageDbConnectionSchema = z.object({
-  url: z.string().optional(),
+  url: z.string().default('redis://localhost:6379'),
 });
 
 const staticStorageDbSchema = z.object({
-  connection: staticStorageDbConnectionSchema.optional(),
+  connection: staticStorageDbConnectionSchema,
   database_mapping: z.record(z.string(), transforms.fromString.number).optional(),
 });
 
@@ -351,15 +352,15 @@ const staticStorageSchema = z.object({
 });
 
 const staticMailConnectionSchema = z.object({
-  mode: z.string().optional(),
+  mode: z.string().default('smtp'),
+  auth: z.string().default('login'),
   region: z.string().optional(),
-  from: transforms.fromString.optionalEmail,
-  fromname: z.string().optional(),
+  from: transforms.fromString.optionalEmail.default('noreply@example.com'),
+  fromname: z.string().default('OneTimeSecret'),
   host: z.string().optional(),
   port: transforms.fromString.number.optional(),
   user: nullableString,
   pass: nullableString,
-  auth: z.string().optional(),
   // Can be true/false, 'true'/'false', or nil
   tls: transforms.fromString.boolean.nullable().optional(),
 });
@@ -370,20 +371,20 @@ const staticMailValidationSchema = z.object({
 });
 
 const staticMailSchema = z.object({
-  connection: staticMailConnectionSchema.optional(),
-  validation: staticMailValidationSchema.optional(),
+  connection: staticMailConnectionSchema,
+  validation: staticMailValidationSchema,
 });
 
 const staticLoggingSchema = z.object({
-  http_requests: transforms.fromString.boolean.optional(),
+  http_requests: transforms.fromString.boolean.default(true),
 });
 
 const staticI18nSchema = z.object({
-  enabled: transforms.fromString.boolean.optional(),
-  default_locale: z.string().optional(),
-  fallback_locale: z.record(z.string(), z.union([z.array(z.string()), z.string()])).optional(),
-  locales: z.array(z.string()).optional(),
-  incomplete: z.array(z.string()).optional(),
+  enabled: transforms.fromString.boolean.default(false),
+  default_locale: z.string().default('en'),
+  fallback_locale: z.record(z.string(), z.union([z.array(z.string()), z.string()])).default({}),
+  locales: z.array(z.string()).default([]),
+  incomplete: z.array(z.string()).default([]),
 });
 
 const staticDevelopmentSchema = z.object({
@@ -393,9 +394,9 @@ const staticDevelopmentSchema = z.object({
 });
 
 const staticExperimentalSchema = z.object({
-  allow_nil_global_secret: transforms.fromString.boolean.optional(),
-  rotated_secrets: z.array(z.string()).optional(),
-  freeze_app: transforms.fromString.boolean.optional(),
+  allow_nil_global_secret: transforms.fromString.boolean.default(false),
+  rotated_secrets: z.array(z.string()).default([]),
+  freeze_app: transforms.fromString.boolean.default(false),
 });
 
 export const staticConfigSchema = z.object({

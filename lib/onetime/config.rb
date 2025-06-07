@@ -16,56 +16,6 @@ module Onetime
     unless defined?(SERVICE_PATHS)
       SERVICE_PATHS = %w[/etc/onetime ./etc].freeze
       UTILITY_PATHS = %w[~/.onetime /etc/onetime ./etc].freeze
-      DEFAULTS = {
-        site: {
-          secret: nil,
-          api: { enabled: true },
-          authentication: {
-            enabled: false,
-            colonels: [],
-          },
-          authenticity: {
-            enabled: false,
-            type: nil,
-            secret_key: nil,
-          },
-          middleware: {
-            static_files: true,
-            utf8_sanitizer: true,
-          },
-        },
-        storage: {
-          db: {
-            connection: {
-              url: 'redis://localhost:6379',
-            },
-            database_mapping: nil,
-          },
-        },
-        mail: {
-          connection: {
-            mode: 'smtp',
-            from: "noreply@example.com",
-            fromname: "OneTimeSecret",
-          },
-        },
-        logging: {
-          http_requests: true,
-        },
-        i18n: {
-          enabled: false,
-          default_locale: 'en',
-        },
-        development: {
-          enabled: false,
-          frontend_host: '',
-        },
-        experimental: {
-          allow_nil_global_secret: false, # defaults to a secure setting
-          rotated_secrets: [],
-        },
-      }
-
     end
 
     attr_reader :env, :base, :bootstrap
@@ -116,13 +66,12 @@ module Onetime
       # This protects against side effects when multiple components access the same config
       # Without this, modifications to the config in one component could affect others.
       copied_conf = OT::Utils.deep_clone(incoming_config)
-      conf = OT::Utils.deep_merge(DEFAULTS, copied_conf)
 
       # These are checks for things that we cannot continue booting without. We
       # don't need to exit immediately -- for example, running a console session
       # or in tests or running in development mode. But we should not be
       # continuing in a production ready state if any of these checks fail.
-      # raise_concerns(conf)
+      # raise_concerns(copied_conf)
 
       #
       # SEE code past end of file for the inline logic we used here to read
@@ -139,7 +88,7 @@ module Onetime
       # - Any attempt to modify frozen config will raise a FrozenError, failing fast
       # - Guarantees configuration integrity throughout application lifecycle
       # - Makes security guarantees stronger by ensuring config values can't be tampered with
-      OT::Utils.deep_freeze(conf)
+      OT::Utils.deep_freeze(copied_conf)
     end
 
     def validate_with_schema(conf, schema)
@@ -163,6 +112,7 @@ module Onetime
 
       # Validate and collect errors
       errors = schemer.validate(conf).to_a
+
       return conf if errors.empty?
 
       # Format error messages
