@@ -38,7 +38,9 @@ module Onetime
     def boot!(mode = nil, connect_to_db = true)
       prepare_onetime_namespace(mode)
 
+      OT.ld "[BOOT] Initializing Onetime application in '#{OT.mode}' mode"
       conf = OT::Config.load
+      OT.ld "[BOOT] Configuration loaded from #{conf.config_path}" if conf.respond_to?(:config_path)
 
       # TODO: Re-enable
       #
@@ -49,6 +51,14 @@ module Onetime
       #   connect_to_db: connect_to_db,
       #   config: conf,
       # })
+
+      if OT.conf.nil?
+        OT.le "[BOOT] ERROR: Configuration failed to load properly"
+      else
+        OT.ld "[BOOT] Completing initialization process..."
+        Onetime.complete_initialization!
+        OT.li "[BOOT] Startup completed successfully (instance: #{@instance})"
+      end
 
       # Let's be clear about returning the prepared configruation. Previously
       # we returned @conf here which was confusing because already made it
