@@ -97,7 +97,7 @@ module Onetime
         schema,
         meta_schema: 'https://json-schema.org/draft/2020-12/schema',
         insert_property_defaults: true,
-        format: true,
+        # format: true,
 
         # For fields that we validate as strings, if the value is a symbol
         # we convert it to a string to during validation.
