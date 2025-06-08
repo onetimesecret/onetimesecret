@@ -6,6 +6,8 @@
   "scripts": {
     "build": "pnpm run schema:generate && vite build --config vite.config.ts",
     "build:local": "pnpm run schema:generate && vite build --config vite.config.local.ts",
+    "config": "pnpm run schema:generate && bundle exec bin/ots config",
+    "config:validate": "pnpm run schema:generate && bundle exec bin/ots validate",
     "clean": "rimraf public/web/dist",
     "dev": "vite --host",
     "dev:local": "vite --config vite.config.local.ts --host",
@@ -38,7 +40,6 @@
     "schema:generate": "tsx scripts/generate-json-schemas.ts",
     "schema:generate:openapi": "tsx scripts/generate-json-schemas.ts --openapi",
     "schema:generate:watch": "tsx scripts/generate-json-schemas.ts --watch",
-    "schema:validate": "bundle exec bin/ots -v validate",
     "test": "pnpm test:base run --printConsoleTrace",
     "test:base": "vitest",
     "test:chrome:inspect": "pnpm test:base --inspect-brk --no-file-parallelism",
