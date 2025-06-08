@@ -13,8 +13,15 @@ RSpec.describe "Experimental config settings" do
     let(:nil_secret) { nil }
 
     # Load the YAML content after ERB processing
-    let(:test_config) { Onetime::Config.load(source_config_path) }
-    let(:processed_config) { Onetime::Config.after_load(test_config) }
+    let(:test_config) {
+      config_instance = Onetime::Config.new(config_path: source_config_path)
+      config_instance.send(:load_config)
+    }
+    let(:processed_config) {
+      config_instance = Onetime::Config.new
+      config_instance.instance_variable_set(:@unprocessed_config, test_config)
+      config_instance.send(:after_load)
+    }
 
     before(:each) do
     end
