@@ -1,28 +1,23 @@
-# .github/workflows/ruby_tests.yml
+# .github/workflows/ruby-tests.yml
 
-name: Ruby CI
+name: Ruby Tests
 
-# This GitHub Actions workflow is named "Ruby CI" and is
-# triggered by push events on branches starting with "fix/" or
-# "rel/", pull requests on the
+# This GitHub Actions workflow runs Ruby tests using RSpec and tryouts.
 #
-# The workflow has a single job named "build" that runs on the
-# latest version of Ubuntu. It uses a strategy matrix to run
-# the job with different
+# The workflow is triggered by push events on branches starting with "fix/" or
+# "rel/", pull requests on main/develop/feature/* branches, and manual dispatch.
 #
-# The steps in the job are as follows:
+# The workflow has a single job named "test" that runs on Ubuntu 24.04
+# with a strategy matrix to test multiple Ruby versions.
+#
+# The steps in the job are:
 # 1. Checkout code using the actions/checkout@v4 action.
-# 2. Set up the specified version of Ruby using the
-#     ruby/setup-ruby@v1 action.
-# 3. Install dependencies using Bundler. The Bundler version
-#     is determined by the matrix variable.
-# 4. Run the "try" command using bundle exec try. The
-#     continue-on-error flag is set to true, allowing the
-#     workflow to continue even if this step
+# 2. Set up the specified version of Ruby using the ruby/setup-ruby@v1 action.
+# 3. Install dependencies using Bundler.
+# 4. Run RSpec tests with JSON output for reporting.
+# 5. Run tryouts for additional testing.
 #
-# This workflow is designed for continuous integration of a
-# Ruby project, ensuring that the code builds and dependencies
-# are installed correctly.
+# This workflow ensures that Ruby tests pass across supported Ruby versions.
 
 on:
   push:
@@ -46,7 +41,7 @@ permissions:
   contents: read
 
 jobs:
-  build:
+  test:
     timeout-minutes: 15 # prevent hung jobs
 
     # Can also be set to `self-hosted` if worker is running. Possible
@@ -130,8 +125,3 @@ jobs:
         continue-on-error: ${{ matrix.continue-on-error }}
         run: |
           bundle exec try -vf
-
-      - name: Rubocop
-        continue-on-error: ${{ matrix.continue-on-error }}
-        run: |
-          bundle exec rubocop --config .rubocop.yml --format json --fail-level warning
