@@ -178,6 +178,7 @@ COPY package.json pnpm-lock.yaml tsconfig.json vite.config.ts postcss.config.mjs
 
 # Remove pnpm after use
 RUN set -eux \
+  && pnpm run schema:generate \
   && pnpm run build \
   && pnpm prune --prod \
   && rm -rf node_modules \

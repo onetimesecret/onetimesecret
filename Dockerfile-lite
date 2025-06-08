@@ -74,6 +74,10 @@ until redis-cli ping; do
 done
 echo "Redis is ready!"
 
+# Generate JSON schemas
+echo "Generating JSON schemas..."
+cd /app && pnpm run schema:generate
+
 # Start Onetime Secret
 echo "Starting Onetime Secret..."
 exec /app/bin/entrypoint.sh
