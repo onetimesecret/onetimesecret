@@ -1,43 +1,86 @@
 #!/usr/bin/env tsx
 /**
- * Generate configuration schema and TypeScript types from Zod schemas.
+ * Generate JSON Schemas and TypeScript types from Zod configuration schemas
  *
  * Usage:
- *    # generates schema + types
- *    $ tsx scripts/generate-json-schemas.ts
- *    # generates OpenAPI schema into directory
- *    $ tsx scripts/generate-json-schemas.ts --openapi
- *
- *   OR
- *
- *    $ pnpm run schema:generate
+ *   tsx scripts/generate-json-schemas.ts           # Generate main schema + types
+ *   tsx scripts/generate-json-schemas.ts --openapi # Include OpenAPI schemas
+ *   tsx scripts/generate-json-schemas.ts --watch   # Watch mode (future)
  */
 
 import { writeFileSync, mkdirSync } from 'fs';
 import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
 import { z } from 'zod/v4';
-
 import { systemSettingsSchema, staticConfigSchema } from '../src/schemas/config/settings.ts';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
-const OUTPUT_SCHEMA = join(__dirname, '../etc/config.schema.yaml');
+const OUTPUT_MAIN_SCHEMA = join(__dirname, '../etc/config.schema.yaml');
 const OUTPUT_TYPES = join(__dirname, '../src/types/config.ts');
-const OUTPUT_OPENAPI_DIR = join(__dirname, '../etc/schemas');
+const OUTPUT_SCHEMAS_DIR = join(__dirname, '../etc/schemas');
 
 // Combined configuration schema
-const configSchema = z.object({
+const combinedConfigSchema = z.object({
   static: staticConfigSchema.optional(),
   dynamic: systemSettingsSchema.optional(),
 });
 
 /**
+ * Generate individual JSON schema files
+ */
+function generateIndividualSchemas(): void {
+  mkdirSync(OUTPUT_SCHEMAS_DIR, { recursive: true });
+
+  const schemas = [
+    {
+      schema: systemSettingsSchema,
+      name: 'system-settings',
+      description: 'Dynamic system settings loaded from system_settings.defaults.yaml',
+    },
+    {
+      schema: staticConfigSchema,
+      name: 'static-config',
+      description: 'Static configuration settings loaded from config.yaml',
+    },
+    {
+      schema: combinedConfigSchema,
+      name: 'combined-config',
+      description: 'Combined configuration schema for both static and dynamic settings',
+    },
+  ];
+
+  schemas.forEach(({ schema, name, description }) => {
+    const jsonSchema = z.toJSONSchema(schema, {
+      target: 'draft-2020-12',
+      unrepresentable: 'any',
+      cycles: 'ref',
+      reused: 'inline',
+    });
+
+    const schemaWithMeta = {
+      $schema: 'https://json-schema.org/draft/2020-12/schema',
+      $id: `https://onetimesecret.com/schemas/${name}.json`,
+      title: name
+        .split('-')
+        .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+        .join(' '),
+      description,
+      ...jsonSchema,
+    };
+
+    const outputPath = join(OUTPUT_SCHEMAS_DIR, `${name}.json`);
+    writeFileSync(outputPath, JSON.stringify(schemaWithMeta, null, 2));
+    console.log(`Generated: ${outputPath}`);
+  });
+}
+
+/**
  * Generate main configuration schema as YAML
  */
-function generateConfigSchema(): void {
-  const jsonSchema = z.toJSONSchema(configSchema, {
+function generateMainSchema(): void {
+  const jsonSchema = z.toJSONSchema(combinedConfigSchema, {
     target: 'draft-2020-12',
     unrepresentable: 'any',
     cycles: 'ref',
@@ -52,8 +95,8 @@ function generateConfigSchema(): void {
     ...jsonSchema,
   };
 
-  writeFileSync(OUTPUT_SCHEMA, JSON.stringify(schemaWithMeta, null, 2));
-  console.log(`Generated: ${OUTPUT_SCHEMA}`);
+  writeFileSync(OUTPUT_MAIN_SCHEMA, JSON.stringify(staticConfigSchema, null, 2));
+  console.log(`Generated: ${OUTPUT_MAIN_SCHEMA}`);
 }
 
 /**
@@ -68,7 +111,7 @@ function generateTypeDefinitions(): void {
  */
 
 import { z } from 'zod/v4';
-import { systemSettingsSchema, staticConfigSchema } from '@/schemas/config/settings';
+import { systemSettingsSchema, staticConfigSchema } from '../schemas/config/settings';
 
 export type SystemSettings = z.infer<typeof systemSettingsSchema>;
 export type StaticConfig = z.infer<typeof staticConfigSchema>;
@@ -89,12 +132,10 @@ export { systemSettingsSchema, staticConfigSchema };
  * Generate OpenAPI schemas (optional)
  */
 function generateOpenAPISchemas(): void {
-  mkdirSync(OUTPUT_OPENAPI_DIR, { recursive: true });
-
   const schemas = [
     { schema: systemSettingsSchema, name: 'system-settings' },
     { schema: staticConfigSchema, name: 'static-config' },
-    { schema: configSchema, name: 'combined-config' },
+    { schema: combinedConfigSchema, name: 'combined-config' },
   ];
 
   schemas.forEach(({ schema, name }) => {
@@ -114,7 +155,7 @@ function generateOpenAPISchemas(): void {
       ...openAPISchema,
     };
 
-    const outputPath = join(OUTPUT_OPENAPI_DIR, `${name}.openapi.json`);
+    const outputPath = join(OUTPUT_SCHEMAS_DIR, `${name}.openapi.json`);
     writeFileSync(outputPath, JSON.stringify(schemaWithMeta, null, 2));
     console.log(`Generated: ${outputPath}`);
   });
@@ -125,8 +166,15 @@ function generateOpenAPISchemas(): void {
  */
 function main(): void {
   const includeOpenAPI = process.argv.includes('--openapi');
+  const watchMode = process.argv.includes('--watch');
 
-  generateConfigSchema();
+  if (watchMode) {
+    console.log('Watch mode not yet implemented');
+    return;
+  }
+
+  generateMainSchema();
+  generateIndividualSchemas();
   generateTypeDefinitions();
 
   if (includeOpenAPI) {
@@ -140,4 +188,9 @@ if (import.meta.url === `file://${process.argv[1]}`) {
   main();
 }
 
-export { generateConfigSchema, generateTypeDefinitions, generateOpenAPISchemas };
+export {
+  generateMainSchema,
+  generateIndividualSchemas,
+  generateTypeDefinitions,
+  generateOpenAPISchemas,
+};
