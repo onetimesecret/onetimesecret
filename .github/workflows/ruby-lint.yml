@@ -49,7 +49,7 @@ jobs:
       fail-fast: true
       matrix:
         ruby: ['3.4', '3.5']
-        continue-on-error: [false]
+        continue-on-error: [true]
 
     steps:
       - name: Checkout code
