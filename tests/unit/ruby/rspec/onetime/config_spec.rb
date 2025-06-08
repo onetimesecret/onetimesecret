@@ -3,95 +3,11 @@
 require_relative '../spec_helper'
 
 RSpec.describe Onetime::Config do
-  describe '#apply_defaults' do
-      let(:basic_config) do
-        {
-          defaults: { timeout: 5, enabled: true },
-          api: { timeout: 10 },
-          web: {},
-        }
-      end
+  let(:test_config_path) { File.join(Onetime::HOME, 'tests', 'unit', 'ruby', 'config.test.yaml') }
+  let(:test_schema_path) { File.join(Onetime::HOME, 'etc', 'config.schema.yml') }
 
-      let(:sentry_config) do
-        {
-          defaults: {
-            dsn: 'default-dsn',
-            environment: 'test',
-            enabled: true,
-          },
-          backend: {
-            dsn: 'backend-dsn',
-            traces_sample_rate: 0.1,
-          },
-          frontend: {
-            path: '/web',
-            profiles_sample_rate: 0.2,
-          },
-        }
-      end
-
-      context 'with valid inputs' do
-        it 'merges defaults into sections' do
-          result = described_class.apply_defaults_to_peers(basic_config)
-          expect(result[:api]).to eq({ timeout: 10, enabled: true })
-          expect(result[:web]).to eq({ timeout: 5, enabled: true })
-        end
-
-        it 'handles sentry-specific configuration' do
-          result = described_class.apply_defaults_to_peers(sentry_config)
-
-          expect(result[:backend]).to eq({
-            dsn: 'backend-dsn',
-            environment: 'test',
-            enabled: true,
-            traces_sample_rate: 0.1,
-          })
-
-          expect(result[:frontend]).to eq({
-            dsn: 'default-dsn',
-            environment: 'test',
-            enabled: true,
-            path: '/web',
-            profiles_sample_rate: 0.2,
-          })
-        end
-      end
-
-      context 'with edge cases' do
-        it 'handles nil config' do
-          expect(described_class.apply_defaults_to_peers(nil)).to eq({})
-        end
-
-        it 'handles empty config' do
-          expect(described_class.apply_defaults_to_peers({})).to eq({})
-        end
-
-        it 'handles missing defaults section' do
-          config = { api: { timeout: 10 } }
-          result = described_class.apply_defaults_to_peers(config)
-          expect(result).to eq({ api: { timeout: 10 } })
-        end
-
-        it 'skips non-hash section values' do
-          config = {
-            defaults: { timeout: 5 },
-            api: "invalid",
-            web: { port: 3000 },
-          }
-          result = described_class.apply_defaults_to_peers(config)
-          expect(result.keys).to contain_exactly(:web)
-        end
-
-        it 'preserves original defaults' do
-          original = sentry_config[:defaults].dup
-          described_class.apply_defaults_to_peers(sentry_config)
-          expect(sentry_config[:defaults]).to eq(original)
-        end
-      end
-  end
-
-  describe '#apply_defaults' do
-    let(:config_with_defaults) do
+  describe '::Utils.apply_defaults_to_peers' do
+    let(:basic_config) do
       {
         defaults: { timeout: 5, enabled: true },
         api: { timeout: 10 },
@@ -99,69 +15,143 @@ RSpec.describe Onetime::Config do
       }
     end
 
-    let(:empty_config) { {} }
-    let(:nil_config) { nil }
-
-    let(:service_config) do
+    let(:sentry_config) do
       {
-        defaults: { dsn: 'default-dsn', environment: 'test' },
-        backend: { dsn: 'backend-dsn' },
-        frontend: { path: '/web' },
+        defaults: {
+          dsn: 'default-dsn',
+          environment: 'test',
+          enabled: true,
+        },
+        backend: {
+          dsn: 'backend-dsn',
+          traces_sample_rate: 0.1,
+        },
+        frontend: {
+          path: '/web',
+          profiles_sample_rate: 0.2,
+        },
       }
     end
 
-    it 'merges defaults into sections while preserving overrides' do
-      result = described_class.apply_defaults_to_peers(config_with_defaults)
+    context 'with valid inputs' do
+      it 'merges defaults into sections' do
+        result = described_class::Utils.apply_defaults_to_peers(basic_config)
+        expect(result[:api]).to eq({ timeout: 10, enabled: true })
+        expect(result[:web]).to eq({ timeout: 5, enabled: true })
+      end
 
-      expect(result[:api]).to eq({ timeout: 10, enabled: true })
-      expect(result[:web]).to eq({ timeout: 5, enabled: true })
+      it 'handles sentry-specific configuration' do
+        result = described_class::Utils.apply_defaults_to_peers(sentry_config)
+
+        expect(result[:backend]).to eq({
+          dsn: 'backend-dsn',
+          environment: 'test',
+          enabled: true,
+          traces_sample_rate: 0.1,
+        })
+
+        expect(result[:frontend]).to eq({
+          dsn: 'default-dsn',
+          environment: 'test',
+          enabled: true,
+          path: '/web',
+          profiles_sample_rate: 0.2,
+        })
+      end
     end
 
-    it 'handles empty config' do
-      result = described_class.apply_defaults_to_peers(empty_config)
-      expect(result).to eq({})
+    context 'with edge cases' do
+      it 'handles nil config' do
+        expect(described_class::Utils.apply_defaults_to_peers(nil)).to eq({})
+      end
+
+      it 'handles empty config' do
+        expect(described_class::Utils.apply_defaults_to_peers({})).to eq({})
+      end
+
+      it 'handles missing defaults section' do
+        config = { api: { timeout: 10 } }
+        result = described_class::Utils.apply_defaults_to_peers(config)
+        expect(result).to eq({ api: { timeout: 10 } })
+      end
+
+      it 'skips non-hash section values' do
+        config = {
+          defaults: { timeout: 5 },
+          api: "invalid",
+          web: { port: 3000 },
+        }
+        result = described_class::Utils.apply_defaults_to_peers(config)
+        expect(result.keys).to contain_exactly(:web)
+      end
+
+      it 'preserves original defaults' do
+        original = sentry_config[:defaults].dup
+        described_class::Utils.apply_defaults_to_peers(sentry_config)
+        expect(sentry_config[:defaults]).to eq(original)
+      end
     end
 
-    it 'handles nil config' do
-      result = described_class.apply_defaults_to_peers(nil_config)
-      expect(result).to eq({})
-    end
+    context 'additional edge cases' do
+      let(:config_with_defaults) do
+        {
+          defaults: { timeout: 5, enabled: true },
+          api: { timeout: 10 },
+          web: {},
+        }
+      end
 
-    it 'preserves defaults when section value is nil' do
-      config = {
-        defaults: { dsn: 'default-dsn' },
-        backend: { dsn: nil },
-        frontend: { dsn: nil },
-      }
-      result = described_class.apply_defaults_to_peers(config)
-      expect(result[:backend][:dsn]).to eq('default-dsn')
-      expect(result[:frontend][:dsn]).to eq('default-dsn')
-    end
+      let(:service_config) do
+        {
+          defaults: { dsn: 'default-dsn', environment: 'test' },
+          backend: { dsn: 'backend-dsn' },
+          frontend: { path: '/web' },
+        }
+      end
 
-    it 'processes real world service config correctly' do
-      result = described_class.apply_defaults_to_peers(service_config)
+      it 'merges defaults into sections while preserving overrides' do
+        result = described_class::Utils.apply_defaults_to_peers(config_with_defaults)
 
-      expect(result[:backend]).to eq({
-        dsn: 'backend-dsn',
-        environment: 'test',
-      })
+        expect(result[:api]).to eq({ timeout: 10, enabled: true })
+        expect(result[:web]).to eq({ timeout: 5, enabled: true })
+      end
 
-      expect(result[:frontend]).to eq({
-        dsn: 'default-dsn',
-        environment: 'test',
-        path: '/web',
-      })
-    end
+      it 'preserves defaults when section value is nil' do
+        config = {
+          defaults: { dsn: 'default-dsn' },
+          backend: { dsn: nil },
+          frontend: { dsn: nil },
+        }
+        result = described_class::Utils.apply_defaults_to_peers(config)
+        expect(result[:backend][:dsn]).to eq('default-dsn')
+        expect(result[:frontend][:dsn]).to eq('default-dsn')
+      end
 
-    it 'preserves original defaults hash' do
-      original_defaults = service_config[:defaults].dup
-      described_class.apply_defaults_to_peers(service_config)
+      it 'processes real world service config correctly' do
+        result = described_class::Utils.apply_defaults_to_peers(service_config)
 
-      expect(service_config[:defaults]).to eq(original_defaults)
+        expect(result[:backend]).to eq({
+          dsn: 'backend-dsn',
+          environment: 'test',
+        })
+
+        expect(result[:frontend]).to eq({
+          dsn: 'default-dsn',
+          environment: 'test',
+          path: '/web',
+        })
+      end
+
+      it 'preserves original defaults hash' do
+        original_defaults = service_config[:defaults].dup
+        described_class::Utils.apply_defaults_to_peers(service_config)
+
+        expect(service_config[:defaults]).to eq(original_defaults)
+      end
     end
   end
 
-  describe '#before_load' do
+  describe '.before_load' do
     before do
       # Store original environment variables
       @original_env = ENV.to_hash
@@ -179,7 +169,7 @@ RSpec.describe Onetime::Config do
           ENV['REGIONS_ENABLED'] = 'TESTA'
           ENV.delete('REGIONS_ENABLE')
 
-          described_class.before_load
+          described_class.new.before_load
 
           expect(ENV['REGIONS_ENABLED']).to eq('TESTA')
         end
@@ -190,7 +180,7 @@ RSpec.describe Onetime::Config do
           ENV.delete('REGIONS_ENABLED')
           ENV['REGIONS_ENABLE'] = 'TESTB'
 
-          described_class.before_load
+          described_class.new.before_load
 
           expect(ENV['REGIONS_ENABLED']).to eq('TESTB')
         end
@@ -201,7 +191,7 @@ RSpec.describe Onetime::Config do
           ENV['REGIONS_ENABLED'] = 'TESTA'
           ENV['REGIONS_ENABLE'] = 'TESTB'
 
-          described_class.before_load
+          described_class.new.before_load
 
           expect(ENV['REGIONS_ENABLED']).to eq('TESTA')
         end
@@ -212,7 +202,7 @@ RSpec.describe Onetime::Config do
           ENV.delete('REGIONS_ENABLED')
           ENV.delete('REGIONS_ENABLE')
 
-          described_class.before_load
+          described_class.new.before_load
 
           expect(ENV['REGIONS_ENABLED']).to eq('false')
         end
@@ -221,16 +211,21 @@ RSpec.describe Onetime::Config do
   end
 
   describe '#after_load' do
-    context 'colonels backwards compatibility' do
-      it 'moves colonels from root level to site.authentication when not present in site.authentication' do
+    let(:config_instance) { described_class.new }
 
-        # Config with colonels at root level only
-        raw_config = {
+    before do
+      # Set up config instance with minimal unprocessed config
+      allow(config_instance).to receive(:unprocessed_config).and_return(raw_config)
+    end
+
+    context 'colonels backwards compatibility' do
+      let(:raw_config) do
+        {
           colonels: ['root@example.com', 'admin@example.com'],
           site: {
             secret: 'notnil',
             authentication: {
-              enabled: true, # Set authentication as enabled
+              enabled: true,
             },
           },
           development: {},
@@ -238,158 +233,341 @@ RSpec.describe Onetime::Config do
             truemail: {},
           },
         }
+      end
 
-        processed_config = described_class.after_load(raw_config)
+      it 'moves colonels from root level to site.authentication when not present in site.authentication' do
+        processed_config = config_instance.send(:after_load)
         expect(processed_config[:site][:authentication][:colonels]).to eq(['root@example.com', 'admin@example.com'])
       end
 
-      it 'keeps colonels in site.authentication when present' do
-        # Config with colonels in site.authentication
-        raw_config = {
-          site: {
-             secret: 'notnil',
-            authentication: {
-              enabled: true, # Set authentication as enabled
-              colonels: ['site@example.com'],
+      context 'when colonels exist in site.authentication' do
+        let(:raw_config) do
+          {
+            site: {
+              secret: 'notnil',
+              authentication: {
+                enabled: true,
+                colonels: ['site@example.com'],
+              },
             },
-          },
-          development: {},
-          mail: {
-            truemail: {},
-          },
-        }
-
-        processed_config = described_class.after_load(raw_config)
-
-        expect(processed_config[:site][:authentication][:colonels]).to eq(['site@example.com'])
-      end
-
-      it 'prioritizes site.authentication colonels when defined in both places' do
-        # Config with colonels in both places
-        raw_config = {
-          colonels: ['root@example.com', 'admin@example.com'],
-          site: {
-            secret: 'notnil',
-            authentication: {
-              enabled: true, # Set authentication as enabled
-              colonels: ['site@example.com', 'auth@example.com'],
+            development: {},
+            mail: {
+              truemail: {},
             },
-          },
-          development: {},
-          mail: {
-            truemail: {},
-          },
-        }
+          }
+        end
 
-        processed_config = described_class.after_load(raw_config)
-
-        # Should change the existing site.authentication.colonels by combining
-        # with the root colonel list coming afterwards.
-        expect(processed_config[:site][:authentication][:colonels]).to eq(['site@example.com', 'auth@example.com', 'root@example.com', 'admin@example.com'])
+        it 'keeps colonels in site.authentication when present' do
+          processed_config = config_instance.send(:after_load)
+          expect(processed_config[:site][:authentication][:colonels]).to eq(['site@example.com'])
+        end
       end
 
-      it 'initializes empty colonels array when not defined anywhere' do
-        # Config with no colonels defined
-        raw_config = {
-          site: {
-            secret: 'notnil',
-            authentication: {
-              enabled: true, # Set authentication as enabled
+      context 'when colonels are defined in both places' do
+        let(:raw_config) do
+          {
+            colonels: ['root@example.com', 'admin@example.com'],
+            site: {
+              secret: 'notnil',
+              authentication: {
+                enabled: true,
+                colonels: ['site@example.com', 'auth@example.com'],
+              },
             },
-          },
-          development: {},
-          mail: {
-            truemail: {},
-          },
-        }
-
-        processed_config = described_class.after_load(raw_config)
-
-        expect(processed_config[:site][:authentication][:colonels]).to eq([])
-      end
-
-      it 'uses default values when site is nil' do
-        # Config without site section
-        raw_config = {
-          site: {
-            secret: 'anyvaluewilldo',
-          },
-          mail: {
-            truemail: {},
-          },
-        }
-
-        expect {
-          described_class.after_load(raw_config)
-        }.not_to raise_error
-      end
-
-      it 'raises heck when site.secret is nil' do
-        # Config without site.authentication section
-        config = {
-          colonels: ['root@example.com'],
-          site: {secret: nil},
-          development: {},
-          mail: {
-            truemail: {},
-          },
-        }
-
-        expect {
-          described_class.after_load(config)
-        }.to raise_error(OT::Problem, /Global secret cannot be nil/)
-      end
-
-      it 'raises heck when site.secret is CHANGEME (same behaviour as nil)' do
-        # Config without site.authentication section
-        config = {
-          colonels: ['root@example.com'],
-          site: {secret: 'CHANGEME'},
-          development: {},
-          mail: {
-            truemail: {},
-          },
-        }
-
-        expect {
-          described_class.after_load(config)
-        }.to raise_error(OT::Problem, /Global secret cannot be nil/)
-      end
-
-      it 'handles missing site.authentication section' do
-        # Config without site.authentication section
-        config = {
-          site: {secret: '1234'},
-          mail: {
-            truemail: {},
-          },
-        }
-
-        expect {
-          described_class.after_load(config)
-        }.not_to raise_error
-      end
-
-      it 'sets authentication colonels to false when authentication is disabled' do
-        # Config with authentication disabled
-        raw_config = {
-          site: {
-            secret: 'notnil',
-            authentication: {
-              enabled: false,
-              colonels: ['site@example.com'],
+            development: {},
+            mail: {
+              truemail: {},
             },
-          },
+          }
+        end
+
+        it 'prioritizes site.authentication colonels when defined in both places' do
+          processed_config = config_instance.send(:after_load)
+          expect(processed_config[:site][:authentication][:colonels]).to eq(['site@example.com', 'auth@example.com', 'root@example.com', 'admin@example.com'])
+        end
+      end
+
+      context 'when no colonels are defined' do
+        let(:raw_config) do
+          {
+            site: {
+              secret: 'notnil',
+              authentication: {
+                enabled: true,
+              },
+            },
+            development: {},
+            mail: {
+              truemail:
+ {},
+            },
+          }
+        end
+
+        it 'initializes empty colonels array when not defined anywhere' do
+          processed_config = config_instance.send(:after_load)
+          expect(processed_config[:site][:authentication][:colonels]).to eq([])
+        end
+      end
+
+      context 'when site is minimal' do
+        let(:raw_config) do
+          {
+            site: {
+              secret: 'anyvaluewilldo',
+            },
+            mail: {
+              truemail: {},
+            },
+          }
+        end
+
+        it 'uses default values when site is minimal' do
+          expect {
+            config_instance.send(:after_load)
+          }.not_to raise_error
+        end
+      end
+
+      context 'when site.secret is nil' do
+        let(:raw_config) do
+          {
+            colonels: ['root@example.com'],
+            site: {secret: nil},
+            development: {},
+            mail: {
+              truemail: {},
+            },
+          }
+        end
+
+        it 'raises heck when site.secret is nil' do
+          expect {
+            config_instance.send(:after_load)
+          }.to raise_error(OT::Problem, /Global secret cannot be nil/)
+        end
+      end
+
+      context 'when site.secret is CHANGEME' do
+        let(:raw_config) do
+          {
+            colonels: ['root@example.com'],
+            site: {secret: 'CHANGEME'},
+            development: {},
+            mail: {
+              truemail: {},
+            },
+          }
+        end
+
+        it 'raises heck when site.secret is CHANGEME (same behaviour as nil)' do
+          expect {
+            config_instance.send(:after_load)
+          }.to raise_error(OT::Problem, /Global secret cannot be nil/)
+        end
+      end
+
+      context 'when missing site.authentication section' do
+        let(:raw_config) do
+          {
+            site: {secret: '1234'},
+            mail: {
+              truemail: {},
+            },
+          }
+        end
+
+        it 'handles missing site.authentication section' do
+          expect {
+            config_instance.send(:after_load)
+          }.not_to raise_error
+        end
+      end
+
+      context 'when authentication is disabled' do
+        let(:raw_config) do
+          {
+            site: {
+              secret: 'notnil',
+              authentication: {
+                enabled: false,
+                colonels: ['site@example.com'],
+              },
+            },
+            development: {},
+            mail: {
+              truemail: {},
+            },
+          }
+        end
+
+        it 'sets authentication colonels to false when authentication is disabled' do
+          processed_config = config_instance.send(:after_load)
+          expect(processed_config[:site][:authentication][:colonels]).to eq(false)
+        end
+      end
+    end
+  end
+
+  describe 'class methods' do
+    describe '.find_configs' do
+      it 'returns array of config paths' do
+        configs = described_class.find_configs('config')
+        expect(configs).to be_an(Array)
+      end
+
+      it 'finds existing config files' do
+        configs = described_class.find_configs('config')
+        expect(configs).not_to be_empty
+      end
+    end
+
+    describe '.find_config' do
+      it 'returns first config path' do
+        config_path = described_class.find_config('config')
+        expect(config_path).to be_a(String)
+        expect(File.exist?(config_path)).to be true
+      end
+    end
+
+    describe '.load!' do
+      it 'creates and loads a config instance' do
+        # Mock the config loading to avoid validation issues with test config
+        mock_config = {
+          site: { secret: 'test-secret' },
           development: {},
-          mail: {
-            truemail: {},
-          },
+          mail: { truemail: {} }
         }
 
-        processed_config = described_class.after_load(raw_config)
+        allow_any_instance_of(described_class).to receive(:load_config).and_return(mock_config)
+        allow_any_instance_of(described_class).to receive(:load_schema).and_return({})
+        allow_any_instance_of(described_class).to receive(:validate).and_return(mock_config)
 
-        # When authentication is disabled, all authentication settings are set to false
-        expect(processed_config[:site][:authentication][:colonels]).to eq(false)
+        config = described_class.load!
+        expect(config).to be_a(described_class)
+        expect(config.config).to be_a(Hash)
+      end
+    end
+  end
+
+  describe 'instance methods' do
+    let(:config_instance) { described_class.new }
+
+    describe '#initialize' do
+      it 'sets config_path when provided' do
+        instance = described_class.new(config_path: '/custom/path')
+        expect(instance.config_path).to eq('/custom/path')
+      end
+
+      it 'finds config_path when not provided' do
+        instance = described_class.new
+        expect(instance.config_path).to be_a(String)
+      end
+
+      it 'sets schema_path when provided' do
+        instance = described_class.new(schema_path: '/custom/schema')
+        expect(instance.schema_path).to eq('/custom/schema')
+      end
+
+      it 'finds schema_path when not provided' do
+        instance = described_class.new
+        expect(instance.schema_path).to be_a(String)
+      end
+    end
+
+    describe '#load!' do
+      it 'calls before_load, load, and after_load in sequence' do
+        expect(config_instance).to receive(:before_load).ordered
+        expect(config_instance).to receive(:load).ordered
+        expect(config_instance).to receive(:after_load).ordered
+
+        config_instance.load!
+      end
+    end
+
+    describe '#load' do
+      before do
+        allow(config_instance).to receive(:load_schema).and_return({})
+        allow(config_instance).to receive(:load_config).and_return({})
+        allow(config_instance).to receive(:validate).and_return({})
+      end
+
+      it 'loads schema, config, and validates' do
+        expect(config_instance).to receive(:load_schema)
+        expect(config_instance).to receive(:load_config)
+        expect(config_instance).to receive(:validate)
+
+        config_instance.load
+      end
+
+      it 'sets instance variables' do
+        config_instance.load
+
+        expect(config_instance.schema).to eq({})
+        expect(config_instance.unprocessed_config).to eq({})
+        expect(config_instance.validated_config).to eq({})
+      end
+    end
+
+    describe '#validate' do
+      let(:mock_config) { { test: 'value' } }
+      let(:mock_schema) { { type: 'object' } }
+
+      before do
+        allow(config_instance).to receive(:unprocessed_config).and_return(mock_config)
+        allow(config_instance).to receive(:schema).and_return(mock_schema)
+      end
+
+      it 'calls Utils.validate_with_schema' do
+        expect(described_class::Utils).to receive(:validate_with_schema)
+          .with(mock_config, mock_schema)
+          .and_return(mock_config)
+
+        config_instance.validate
+      end
+    end
+
+    describe '#load_config', :allow_redis do
+      let(:yaml_config) { "test:\n  value: 123" }
+      let(:erb_config) { "test:\n  value: <%= 456 %>" }
+
+      before do
+        allow(OT::Config::Load).to receive(:file_read).and_return(yaml_config)
+        allow(OT::Config::Load).to receive(:yaml_load).and_return({ test: { value: 123 } })
+      end
+
+      it 'reads and processes config file' do
+        result = config_instance.send(:load_config)
+
+        expect(result).to eq({ test: { value: 123 } })
+        expect(config_instance.config_template_str).to eq(yaml_config)
+        expect(config_instance.rendered_yaml).to be_a(String)
+      end
+
+      context 'with ERB template' do
+        before do
+          allow(OT::Config::Load).to receive(:file_read).and_return(erb_config)
+          allow(OT::Config::Load).to receive(:yaml_load).and_return({ test: { value: 456 } })
+        end
+
+        it 'processes ERB templates' do
+          result = config_instance.send(:load_config)
+
+          expect(result).to eq({ test: { value: 456 } })
+          expect(config_instance.rendered_yaml).to include('456')
+        end
+      end
+    end
+
+    describe '#load_schema' do
+      before do
+        allow(OT::Config::Load).to receive(:yaml_load_file).and_return({ type: 'object' })
+      end
+
+      it 'loads schema from file' do
+        result = config_instance.send(:load_schema)
+
+        expect(result).to eq({ type: 'object' })
       end
     end
   end

@@ -17,8 +17,10 @@ module Onetime
     using IndifferentHashAccess
 
     @xdg = XDG::Environment.new
+
     # This lets local project settings override user settings, which
     # override system defaults. It's the standard precedence.
+    #
     @paths = [
       File.join(Dir.pwd, 'etc'), # 1. current working directory
       File.join(Onetime::HOME, 'etc'), # 2. onetimesecret/etc
@@ -59,7 +61,7 @@ module Onetime
     end
 
     def validate
-      OT::Config::Utils.validate_with_schema(@unprocessed_config, @schema)
+      OT::Config::Utils.validate_with_schema(unprocessed_config, schema)
     end
 
     # After loading the configuration, this method processes and validates the
@@ -73,20 +75,58 @@ module Onetime
     def after_load
 
       # Create a deep copy of the configuration to prevent unintended mutations
-      local_copy = OT::Utils.deep_clone(@unprocessed_config)
+      local_copy = OT::Utils.deep_clone(unprocessed_config)
 
-      # These are checks for things that we cannot continue booting without. We
-      # don't need to exit immediately -- for example, running a console session
-      # or in tests or running in development mode. But we should not be
-      # continuing in a production ready state if any of these checks fail.
-      # raise_concerns(local_copy)
+      # Process colonels backwards compatibility
+      process_colonels_compatibility!(local_copy)
 
-      #
-      # SEE code past end of file for the inline logic we used here to read
-      # and set both OT.conf and OT.d9s_enabled etc flags in an unclear way.
-      #
+      # Validate critical configuration
+      validate_critical_config!(local_copy)
+
+      # Process authentication settings
+      process_authentication_settings!(local_copy)
 
       @config = OT::Utils.deep_freeze(local_copy)
+    end
+
+    private
+
+    def process_colonels_compatibility!(config)
+      # Ensure site.authentication exists
+      config[:site] ||= {}
+      config[:site][:authentication] ||= {}
+
+      # Handle colonels backwards compatibility
+      root_colonels = config.delete(:colonels)
+      auth_colonels = config[:site][:authentication][:colonels]
+
+      if auth_colonels.nil?
+        # No colonels in authentication, use root colonels or empty array
+        config[:site][:authentication][:colonels] = root_colonels || []
+      elsif root_colonels
+        # Combine existing auth colonels with root colonels
+        config[:site][:authentication][:colonels] = auth_colonels + root_colonels
+      end
+    end
+
+    def validate_critical_config!(config)
+      site_secret = config.dig(:site, :secret)
+      if site_secret.nil? || site_secret == 'CHANGEME'
+        raise OT::Problem, "Global secret cannot be nil or CHANGEME"
+      end
+    end
+
+    def process_authentication_settings!(config)
+      auth_config = config.dig(:site, :authentication)
+      return unless auth_config
+
+      # If authentication is disabled, set all auth sub-features to false
+      unless auth_config[:enabled]
+        auth_config[:colonels] = false
+        auth_config[:signup] = false
+        auth_config[:signin] = false
+        auth_config[:autoverify] = false
+      end
     end
 
 
