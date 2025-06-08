@@ -13,16 +13,22 @@ module Onetime
         # Create config instance with optional paths
         config = OT::Config.new(config_path: path, schema_path: schema_path)
 
-        OT.li "Validating configuration at #{config.config_path}..." if verbose_mode?
-        OT.li "Using schema: #{config.schema_path}" if verbose_mode?
+        OT.li "Validating #{config.config_path}..."
+        OT.li "Schema: #{config.schema_path}"
 
         # Load and validate - this automatically validates against schema
         config.load!
 
         # Show processed content if extra verbose
-        if verbose_mode? && config.instance_variable_get(:@parsed_template)
+        if option.show && config.parsed_template
+          OT.ld "Template:"
+          template_lines = config.parsed_template.result.split("\n")
+          template_lines.each_with_index do |line, index|
+            OT.ld "Line #{index + 1}: #{line}"
+          end
+
           OT.ld "Processed configuration:"
-          config.instance_variable_get(:@rendered_yaml).lines.each_with_index do |line, idx|
+          config.rendered_yaml.lines.each_with_index do |line, idx|
             OT.ld "  #{idx + 1}: #{line}"
           end
         end
@@ -35,9 +41,10 @@ module Onetime
         end
 
         # Show parsed config in verbose mode
-        if verbose_mode?
-          OT.li "\nValidated configuration structure:"
-          puts JSON.pretty_generate(config.unprocessed_config)
+        if option.show
+          OT.li "\nValidated configuration structure:", JSON.pretty_generate(config.unprocessed_config)
+        elsif verbose_mode?
+          OT.li "\nValidated configuration structure:", JSON.pretty_generate(OT::Utils.type_structure(config.config))
         end
 
         OT.li '' if verbose_mode?
@@ -45,21 +52,7 @@ module Onetime
         0 # Success exit code
 
       rescue OT::ConfigValidationError => e
-        OT.le "❌ Configuration validation failed"
-
-        # Show validation errors
-        if e.messages.any?
-          OT.le "\nValidation errors:"
-          e.messages.each_with_index do |msg, idx|
-            OT.le "  #{idx + 1}. #{msg}"
-          end
-        end
-
-        # Show problematic paths in verbose mode
-        if verbose_mode? && !e.paths.empty?
-          OT.ld "\nProblematic configuration values:"
-          display_error_paths(e.paths)
-        end
+        OT.le "❌ #{e.message}"
 
         # Show help message for non-verbose mode
         unless verbose_mode?
@@ -90,17 +83,6 @@ module Onetime
       global.verbose && global.verbose > 0
     end
 
-    def display_error_paths(paths, prefix = '')
-      paths.each do |key, value|
-        path = prefix.empty? ? key.to_s : "#{prefix}.#{key}"
 
-        if value.is_a?(Hash)
-          display_error_paths(value, path)
-        else
-
-          OT.ld "  #{path}: #{value.inspect}"
-        end
-      end
-    end
   end
 end

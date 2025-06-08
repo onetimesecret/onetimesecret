@@ -107,6 +107,7 @@ class OT::CLI::Definition
   about 'Validate configuration file against JSON schema'
   about 'Use --verbose for error details and --verbose --verbose for full error paths'
   option :f, :full, "Run validation checks and raise concerns"
+  option :show, "Show validated configuration"
   option :s, :schema, String, "Path to custom JSON schema file"
   command validate: OT::ValidateCommand
 end
