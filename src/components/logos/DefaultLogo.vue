@@ -41,7 +41,6 @@ import { type LogoConfig } from '@/types/ui/layouts';
     :aria-label="ariaLabel">
     <a
       :href="props.href"
-      :alt="ariaLabel"
       class="flex items-center gap-3">
       <!-- Logo Mark -->
       <MonotoneJapaneseSecretButton

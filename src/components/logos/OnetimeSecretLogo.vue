@@ -116,7 +116,6 @@
       <!-- Logomark -->
       <a
         :href="props.href"
-        :alt="ariaLabel"
         class="">
         <OnetimeSecretIcon
           :size="svgSize"
@@ -223,7 +222,6 @@
       class="flex flex-col">
         <a
           :href="props.href"
-          :alt="ariaLabel"
           class="transition-opacity hover:opacity-80">
         <div :class="['text-lg font-bold leading-tight transition-colors']">
           {{ siteName }}
