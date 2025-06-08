@@ -20,8 +20,13 @@ module Onetime
 
     attr_reader :env, :base, :schema, :parsed_template
     attr_writer :path
+    attr_accessor :schema_path
 
-    def load
+    def load(config_path: nil, schema_path: nil)
+      # Allow overriding paths for this load operation
+      @path = config_path || self.path
+      @schema_path = schema_path || self.schema_path
+
       # Load schema before loading configuration
       @schema = _load_json_schema
 
@@ -41,6 +46,10 @@ module Onetime
       # Normalize the configuration and make it available to the rest
       # of the initializers (via OT.conf).
       after_load(raw_conf)
+    ensure
+      # Restore original paths if they were temporarily overridden
+      @path = original_path if config_path
+      @schema_path = original_schema_path if schema_path
     end
 
     # Normalizes environment variables prior to loading and rendering the YAML
@@ -91,7 +100,10 @@ module Onetime
       OT::Utils.deep_freeze(copied_conf)
     end
 
-    def validate_with_schema(conf, schema)
+    def validate_with_schema(conf, schema = nil)
+      # Use provided schema or load default one
+      schema ||= @schema || _load_json_schema
+
       # Create schema validator with defaults insertion enabled
       schemer = JSONSchemer.schema(
         schema,
@@ -282,6 +294,18 @@ module Onetime
     def apply_config(other)
       new_config = OT::Utils.deep_merge(OT.conf, other)
       OT.replace_config! new_config
+    end
+
+    # Load a custom schema from a specific path
+    #
+    # @param schema_path [String] the path to the JSON schema file
+    # @return [Hash] the parsed JSON schema
+    def load_custom_schema(schema_path)
+      raise OT::ConfigError, "Schema file not found: #{schema_path}" unless File.exist?(schema_path)
+
+      JSON.parse(File.read(schema_path))
+    rescue JSON::ParserError => e
+      raise OT::ConfigError, "Invalid JSON schema: #{e.message}"
     end
 
     # These methods are intentionally not private to allow use by the CLI validate command

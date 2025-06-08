@@ -4,7 +4,7 @@ module Onetime
   class ValidateCommand < Drydock::Command
     def validate
       # Determine path - from args, OT::Config, or discover first available
-      path = argv.first || OT::Config.path
+      path = argv.first || nil
 
       if path.nil? || !File.exist?(path)
         path_desc = path.nil? ? "default paths" : path
@@ -12,35 +12,38 @@ module Onetime
         return 1
       end
 
-      # Store path for schema loading reference
-      OT::Config.path = path
+      # Check for custom schema path from options
+      schema_path = option.schema
 
       OT.li "Validating configuration at #{path}..." if verbose_mode?
+      OT.li "Using schema: #{schema_path || 'default'}" if verbose_mode? && schema_path
 
       begin
-
-        config_data = OT::Config.load
+        # Load config with optional custom schema
+        config_data = OT::Config.load(config_path: path, schema_path: schema_path)
         parsed_template = OT::Config.parsed_template
         schema = OT::Config.schema
 
         # Show processed content if extra verbose
-        OT.ld "Processed configuration:"
-        parsed_template.result.lines.each_with_index do |line, idx|
-          OT.ld "  #{idx + 1}: #{line}"
+        if verbose_mode?
+          OT.ld "Processed configuration:"
+          parsed_template.result.lines.each_with_index do |line, idx|
+            OT.ld "  #{idx + 1}: #{line}"
+          end
         end
-
-        # 4. Validate configuration against schema - using public OT::Config method
-        OT::Config.validate_with_schema(config_data, schema)
 
         # Optional: Run additional validation checks beyond schema
-        if argv.include?('--full-check')
-          OT::Config.raise_concerns(config_data)
-        end
+        OT::Config.raise_concerns(config_data) if option.full
 
-        puts JSON.pretty_generate(config_data) if verbose_mode?
+        # Show parsed config in verbose mode
+        if verbose_mode?
+          OT.li "\nParsed configuration:"
+          puts JSON.pretty_generate(config_data)
+        end
 
         OT.li '' if verbose_mode?
         OT.li "✅ Configuration valid"
+        0 # Success exit code
 
       rescue OT::ConfigValidationError => e
         OT.li '' if verbose_mode?
@@ -48,7 +51,7 @@ module Onetime
         OT.le "❌ Configuration validation failed"
 
         # Show error details based on verbosity level
-        if global.verbose > 0
+        if global.verbose && global.verbose > 0
           OT.ld "\nValidation errors:"
           e.messages.each_with_index do |msg, idx|
             OT.ld "  #{idx + 1}. #{msg}"
@@ -68,8 +71,11 @@ module Onetime
         exit 2
       rescue StandardError => e
         OT.le "❌ Unexpected error: #{e.message}"
-        OT.ld e.backtrace.join("\n") if global.verbose > 0
+        OT.ld e.backtrace.join("\n") if global.verbose && global.verbose > 0
         exit 3
+      ensure
+        # Restore original path
+        OT::Config.path = original_path if defined?(original_path)
       end
     end
 
