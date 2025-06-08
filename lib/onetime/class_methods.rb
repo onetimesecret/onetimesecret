@@ -15,6 +15,22 @@ module Onetime
       self.conf = other
     end
 
+    # Applies configuration overrides by merging them with the existing
+    # configuration and replacing the global config instance.
+    #
+    # @param override_config [Hash] Configuration data to merge with existing config
+    def apply_config(override_config = nil)
+      # Handle nil or empty override config
+      current_config = self.conf || {}
+      override_config ||= {}
+
+      # Deep merge the configurations, with override_config taking precedence
+      merged_config = OT::Utils.deep_merge(current_config, override_config)
+
+      # Replace the global configuration
+      replace_config!(merged_config)
+    end
+
     # Returns the current wall clock time as microseconds since Unix epoch
     # using the system's high-precision clock interface. This method provides
     # the most accurate and consistent timestamp available on the platform.
