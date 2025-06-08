@@ -110,6 +110,13 @@ class OT::CLI::Definition
   option :show, "Show validated configuration"
   option :s, :schema, String, "Path to custom JSON schema file"
   command validate: OT::ValidateCommand
+
+  usage 'ots config'
+  about 'Parse, resolve, and render configuration'
+  about 'Use global --verbose for full configuration details'
+  option :t, :types, "Show types for each configuration key"
+  command config: OT::ConfigCommand
+
 end
 
 begin
