@@ -1,11 +1,11 @@
 {
   "extends": "./tsconfig.json",
   "compilerOptions": {
-    "types": ["vitest/globals", "node"],
     "isolatedModules": true,
     "verbatimModuleSyntax": true
   },
   "include": [
+    "**/*.config.*s",
     "src/**/*.ts",
     "src/**/*.vue",
     "src/content/*.md",
@@ -13,6 +13,5 @@
     "src/types/declarations/*.d.ts",
     "tests/**/*.ts",
     "tests/**/*.vue"
-  ],
-  "exclude": ["node_modules", "public/web/dist", "dist"]
+  ]
 }

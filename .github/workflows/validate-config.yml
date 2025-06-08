@@ -1,4 +1,4 @@
-# .github/workflows/config.yml
+# .github/workflows/validate-config.yml
 
 name: Validate YAML config
 permissions:

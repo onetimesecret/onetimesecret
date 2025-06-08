@@ -1,6 +1,6 @@
-# .github/workflows/Fly.io.yml
+# .github/workflows/deploy-staging.yml
 
-name: Continuous Deployment with Fly.io
+name: Staging Deployment with Fly.io
 
 on:
   # Manual trigger option for deployments

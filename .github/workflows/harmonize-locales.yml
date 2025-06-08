@@ -1,6 +1,6 @@
-# .github/workflows/harmonize-locales-files.yml
+# .github/workflows/harmonize-locales.yml
 
-name: Harmonize Locale Files
+name: Harmonize Locales
 
 on:
   # Run on push to main branch

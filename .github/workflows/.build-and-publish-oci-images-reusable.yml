@@ -1,4 +1,4 @@
-# .github/workflows/.docker-build-publish-reusable.yml
+# .github/workflows/.build-and-publish-oci-images-reusable.yml
 
 name: Docker Build and Publish (Reusable)
 
