@@ -16,6 +16,7 @@ ruby '>= 3.1.5'
 source 'https://rubygems.org/'
 
 gem 'truemail'
+gem 'xdg'
 
 gem 'addressable'
 gem 'altcha', '~> 0.2.1'

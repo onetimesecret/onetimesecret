@@ -257,6 +257,7 @@ GEM
     unicode-display_width (2.6.0)
     unicode_utils (1.4.0)
     uri-redis (1.3.0)
+    xdg (9.2.0)
 
 PLATFORMS
   aarch64-linux
@@ -326,6 +327,7 @@ DEPENDENCIES
   tryouts
   tty-table (~> 0.12.0)
   uri-redis (~> 1.3.0)
+  xdg
 
 RUBY VERSION
    ruby 3.3.5p100
