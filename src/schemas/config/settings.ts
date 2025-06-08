@@ -1,6 +1,5 @@
 // src/schemas/config/settings.ts
 
-import { transforms } from '@/schemas/transforms';
 import { z } from 'zod/v4';
 
 const nullableString = z.string().nullable().optional();
@@ -8,7 +7,7 @@ const nullableString = z.string().nullable().optional();
 /**
  * Rate Limits Management:
  *
- * Adding: Add new key with transforms.fromString.number.optional() in
+ * Adding: Add new key with z.number().optional() in
  * appropriate comment group
  * Removing: Delete the line (catchall handles unknown keys gracefully)
  * Updating: Modify the key name directly
@@ -71,7 +70,7 @@ const RATE_LIMIT_KEYS = [
   'stripe_webhook',
 ] as const;
 
-const rateLimitValue = transforms.fromString.number.optional();
+const rateLimitValue = z.number().optional();
 
 const createRateLimitFields = () => {
   const fields: Record<string, typeof rateLimitValue> = {};
@@ -99,11 +98,11 @@ const userInterfaceHeaderBrandingSchema = z.object({
 
 const userInterfaceHeaderNavigationSchema = z.object({
   // Adjusted based on YAML <%= ... != 'false' %>
-  enabled: transforms.fromString.boolean.optional(),
+  enabled: z.boolean().optional(),
 });
 
 const userInterfaceHeaderSchema = z.object({
-  enabled: transforms.fromString.boolean.optional(),
+  enabled: z.boolean().optional(),
   branding: userInterfaceHeaderBrandingSchema.optional(),
   navigation: userInterfaceHeaderNavigationSchema.optional(),
 });
@@ -112,7 +111,7 @@ const userInterfaceFooterLinkSchema = z.object({
   text: z.string().optional(),
   i18n_key: z.string().optional(),
   url: nullableString, // Can be nil from ENV
-  external: transforms.fromString.boolean.optional(),
+  external: z.boolean().optional(),
   icon: z.string().optional(), // Added
 });
 
@@ -124,41 +123,41 @@ const userInterfaceFooterGroupSchema = z.object({
 });
 
 const userInterfaceFooterLinksSchema = z.object({
-  enabled: transforms.fromString.boolean.optional(),
+  enabled: z.boolean().optional(),
   groups: z.array(userInterfaceFooterGroupSchema).optional(),
 });
 
 const userInterfaceSchema = z.object({
-  enabled: transforms.fromString.boolean.optional(),
+  enabled: z.boolean().optional(),
   header: userInterfaceHeaderSchema.optional(),
   footer_links: userInterfaceFooterLinksSchema.optional(),
-  signup: transforms.fromString.boolean.optional(), // Added
-  signin: transforms.fromString.boolean.optional(), // Added
+  signup: z.boolean().optional(), // Added
+  signin: z.boolean().optional(), // Added
   autoverify: z.null().optional(), // Added, YAML has 'null'
 });
 
 const apiSchema = z.object({
-  enabled: transforms.fromString.boolean.default(true),
+  enabled: z.boolean().default(true),
 });
 
 const secretOptionsSchema = z.object({
   // Can be nil from ENV
-  default_ttl: transforms.fromString.number.nullable().optional(),
+  default_ttl: z.number().nullable().optional(),
   ttl_options: z
-    .union([z.string(), z.array(transforms.fromString.number)])
+    .union([z.string(), z.array(z.number())])
     .nullable()
     .optional(), // Can be nil from ENV
 });
 
 const featuresIncomingSchema = z.object({
-  enabled: transforms.fromString.boolean.optional(),
-  email: transforms.fromString.optionalEmail,
+  enabled: z.boolean().optional(),
+  email: z.email().optional(),
   passphrase: z.string().optional(),
   regex: z.string().optional(),
 });
 
 const featuresStathatSchema = z.object({
-  enabled: transforms.fromString.boolean.optional(),
+  enabled: z.boolean().optional(),
   apikey: z.string().optional(),
   default_chart: z.string().optional(),
 });
@@ -177,7 +176,7 @@ const featuresRegionJurisdictionSchema = z.object({
 
 const featuresRegionsSchema = z.object({
   // YAML: <%= ENV['REGIONS_ENABLED'] || true %>
-  enabled: transforms.fromString.boolean.optional(),
+  enabled: z.boolean().optional(),
   current_jurisdiction: nullableString,
   jurisdictions: z.array(featuresRegionJurisdictionSchema).optional(),
 });
@@ -195,7 +194,7 @@ const featuresPlansPaymentLinksSchema = z.object({
 
 const featuresPlansSchema = z.object({
   // YAML: <%= ENV['PLANS_ENABLED'] == 'true' || false %>
-  enabled: transforms.fromString.boolean.optional(),
+  enabled: z.boolean().optional(),
   stripe_key: nullableString,
   webook_signing_secret: z.string().optional(), // Typo 'webook' from YAML
   payment_links: featuresPlansPaymentLinksSchema.optional(),
@@ -212,7 +211,7 @@ const featuresDomainsClusterSchema = z.object({
 
 const featuresDomainsSchema = z.object({
   // YAML: <%= ENV['DOMAINS_ENABLED'] || true %>
-  enabled: transforms.fromString.boolean.optional(),
+  enabled: z.boolean().optional(),
   default: nullableString,
   cluster: featuresDomainsClusterSchema.optional(),
 });
@@ -227,9 +226,9 @@ const featuresSchema = z.object({
 
 const diagnosticsSentryDefaultsSchema = z.object({
   dsn: nullableString,
-  sampleRate: transforms.fromString.number.optional(),
-  maxBreadcrumbs: transforms.fromString.number.optional(),
-  logErrors: transforms.fromString.boolean.optional(),
+  sampleRate: z.number().optional(),
+  maxBreadcrumbs: z.number().optional(),
+  logErrors: z.boolean().optional(),
 });
 
 const diagnosticsSentryBackendSchema = z.object({
@@ -238,7 +237,7 @@ const diagnosticsSentryBackendSchema = z.object({
 
 const diagnosticsSentryFrontendSchema = z.object({
   dsn: nullableString,
-  trackComponents: transforms.fromString.boolean.optional(),
+  trackComponents: z.boolean().optional(),
 });
 
 const diagnosticsSentrySchema = z.object({
@@ -249,7 +248,7 @@ const diagnosticsSentrySchema = z.object({
 
 const diagnosticsSchema = z.object({
   // YAML: <%= ENV['DIAGNOSTICS_ENABLED'] == 'true' || false %>
-  enabled: transforms.fromString.boolean.optional(),
+  enabled: z.boolean().optional(),
   sentry: diagnosticsSentrySchema.optional(),
 });
 
@@ -257,27 +256,27 @@ const limitsSchema = z.object(createRateLimitFields()).catchall(rateLimitValue);
 
 const individualMailValidationSchema = z.object({
   default_validation_type: z.string().optional(),
-  verifier_email: transforms.fromString.optionalEmail,
+  verifier_email: z.email().optional(),
   verifier_domain: z.string().optional(),
-  connection_timeout: transforms.fromString.number.optional(),
-  response_timeout: transforms.fromString.number.optional(),
-  connection_attempts: transforms.fromString.number.optional(),
-  allowed_domains_only: transforms.fromString.boolean.optional(),
+  connection_timeout: z.number().optional(),
+  response_timeout: z.number().optional(),
+  connection_attempts: z.number().optional(),
+  allowed_domains_only: z.boolean().optional(),
   allowed_emails: z.array(z.string()).optional(),
   blocked_emails: z.array(z.string()).optional(),
   allowed_domains: z.array(z.string()).optional(),
   blocked_domains: z.array(z.string()).optional(),
   blocked_mx_ip_addresses: z.array(z.string()).optional(),
   dns: z.array(z.string()).optional(),
-  smtp_port: transforms.fromString.number.optional(),
-  smtp_fail_fast: transforms.fromString.boolean.optional(),
-  smtp_safe_check: transforms.fromString.boolean.optional(),
-  not_rfc_mx_lookup_flow: transforms.fromString.boolean.optional(),
+  smtp_port: z.number().optional(),
+  smtp_fail_fast: z.boolean().optional(),
+  smtp_safe_check: z.boolean().optional(),
+  not_rfc_mx_lookup_flow: z.boolean().optional(),
   logger: z
     .object({
       // YAML :all
       tracking_event: z.string().optional(),
-      stdout: transforms.fromString.boolean.optional(),
+      stdout: z.boolean().optional(),
       log_absolute_path: z.string().optional(),
     })
     .optional(),
@@ -308,36 +307,36 @@ export type SystemSettingsDetails = z.infer<typeof systemSettingsDetailsSchema>;
 // --- Schemas for config.yaml (Static Settings) ---
 
 const staticSiteAuthenticationSchema = z.object({
-  enabled: transforms.fromString.boolean.default(false),
+  enabled: z.boolean().default(false),
   colonels: z.array(z.string()).default([]),
 });
 
 const staticSiteAuthenticitySchema = z.object({
-  enabled: transforms.fromString.boolean.default(false),
+  enabled: z.boolean().default(false),
   type: z.string().optional(),
   secret_key: z.string().optional(),
 });
 
 const staticSiteMiddlewareSchema = z.object({
-  static_files: transforms.fromString.boolean.default(true),
-  utf8_sanitizer: transforms.fromString.boolean.default(true),
-  http_origin: transforms.fromString.boolean.optional(),
-  escaped_params: transforms.fromString.boolean.optional(),
-  xss_header: transforms.fromString.boolean.optional(),
-  frame_options: transforms.fromString.boolean.optional(),
-  path_traversal: transforms.fromString.boolean.optional(),
-  cookie_tossing: transforms.fromString.boolean.optional(),
-  ip_spoofing: transforms.fromString.boolean.optional(),
-  strict_transport: transforms.fromString.boolean.optional(),
+  static_files: z.boolean().default(true),
+  utf8_sanitizer: z.boolean().default(true),
+  http_origin: z.boolean().optional(),
+  escaped_params: z.boolean().optional(),
+  xss_header: z.boolean().optional(),
+  frame_options: z.boolean().optional(),
+  path_traversal: z.boolean().optional(),
+  cookie_tossing: z.boolean().optional(),
+  ip_spoofing: z.boolean().optional(),
+  strict_transport: z.boolean().optional(),
 });
 
 const staticSiteSchema = z.object({
   host: z.string().default('localhost:3000'),
-  ssl: transforms.fromString.boolean.default(false),
+  ssl: z.boolean().default(false),
   secret: z.string().default('CHANGEME'),
-  authentication: staticSiteAuthenticationSchema.default({}),
-  authenticity: staticSiteAuthenticitySchema.default({}),
-  middleware: staticSiteMiddlewareSchema.default({}),
+  authentication: staticSiteAuthenticationSchema,
+  authenticity: staticSiteAuthenticitySchema,
+  middleware: staticSiteMiddlewareSchema,
 });
 
 const staticStorageDbConnectionSchema = z.object({
@@ -348,9 +347,9 @@ const staticStorageDbConnectionSchema = z.object({
 // itself)
 const staticStorageDbSchema = z.object({
   // Ensure connection object is created by default
-  connection: staticStorageDbConnectionSchema.default({}),
+  connection: staticStorageDbConnectionSchema,
   // Allow null for database_mapping values
-  database_mapping: z.record(z.string(), transforms.fromString.number.nullable()).optional(),
+  database_mapping: z.record(z.string(), z.number().nullable()).optional(),
 });
 
 /**
@@ -388,13 +387,13 @@ const staticMailConnectionSchema = z.object({
   mode: z.string().default('smtp'),
   auth: z.string().default('login'),
   region: z.string().optional(),
-  from: transforms.fromString.optionalEmail.default('noreply@example.com'),
+  from: z.email().optional().default('noreply@example.com'),
   fromname: z.string().default('OneTimeSecret'),
   host: z.string().optional(),
-  port: transforms.fromString.number.optional(),
+  port: z.number().optional(),
   user: nullableString,
   pass: nullableString,
-  tls: transforms.fromString.boolean.nullable().optional(),
+  tls: z.boolean().nullable().optional(),
 });
 
 // The 'default' property within 'validation' is an object type
@@ -409,42 +408,42 @@ const staticMailValidationSchema = z.object({
 
 // 'connection' and 'validation' are required for 'mail'
 const staticMailSchema = z.object({
-  connection: staticMailConnectionSchema.default({}), // Ensure connection object is created
-  validation: staticMailValidationSchema.default({}), // Ensure validation object is created
+  connection: staticMailConnectionSchema, // Ensure connection object is created
+  validation: staticMailValidationSchema, // Ensure validation object is created
 });
 
 const staticLoggingSchema = z.object({
-  http_requests: transforms.fromString.boolean.default(true),
+  http_requests: z.boolean().default(true),
 });
 
 const staticI18nSchema = z.object({
-  enabled: transforms.fromString.boolean.default(false),
+  enabled: z.boolean().default(false),
   default_locale: z.string().default('en'),
-  fallback_locale: z.record(z.string(), z.union([z.array(z.string()), z.string()])).default({}),
+  fallback_locale: z.record(z.string(), z.union([z.array(z.string()), z.string()])),
   locales: z.array(z.string()).default([]),
   incomplete: z.array(z.string()).default([]),
 });
 
 const staticDevelopmentSchema = z.object({
-  enabled: transforms.fromString.boolean.optional(),
-  debug: transforms.fromString.boolean.optional(),
+  enabled: z.boolean().optional(),
+  debug: z.boolean().optional(),
   frontend_host: z.string().optional(),
 });
 
 const staticExperimentalSchema = z.object({
-  allow_nil_global_secret: transforms.fromString.boolean.default(false),
+  allow_nil_global_secret: z.boolean().default(false),
   rotated_secrets: z.array(z.string()).default([]),
-  freeze_app: transforms.fromString.boolean.default(false),
+  freeze_app: z.boolean().default(false),
 });
 
 export const staticConfigSchema = z.object({
-  site: staticSiteSchema.default({}),
-  storage: staticStorageSchema.default({}), // storage itself gets a default empty object
-  mail: staticMailSchema.default({}),
-  logging: staticLoggingSchema.default({}),
-  i18n: staticI18nSchema.default({}),
-  development: staticDevelopmentSchema.default({}),
-  experimental: staticExperimentalSchema.default({}),
+  site: staticSiteSchema,
+  storage: staticStorageSchema, // storage itself gets a default empty object
+  mail: staticMailSchema,
+  logging: staticLoggingSchema,
+  i18n: staticI18nSchema,
+  development: staticDevelopmentSchema,
+  experimental: staticExperimentalSchema,
 });
 
 export type StaticConfig = z.infer<typeof staticConfigSchema>;
