@@ -27,6 +27,10 @@ module Onetime
   class ConfigError < Problem
   end
 
+  # Configuration problem error (custom business logic validation failed).
+  class ConfigConflictError < ConfigError
+  end
+
   # Specific error for schema validation failures with structured information
   # about which paths in the configuration are problematic
   class ConfigValidationError < ConfigError
