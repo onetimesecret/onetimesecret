@@ -84,6 +84,7 @@ jobs:
 
           echo "No trigger conditions met"
           echo "should_run=false" >> $GITHUB_OUTPUT
+          exit 0
 
   harmonize:
     needs: check_commit
