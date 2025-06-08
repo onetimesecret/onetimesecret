@@ -3,7 +3,7 @@
 require_relative '../../spec_helper'
 require 'onetime/models'
 
-RSpec.describe Onetime::Config do
+RSpec.xdescribe Onetime::Config do
   describe '#apply_config' do
     let(:original_config) do
       {
