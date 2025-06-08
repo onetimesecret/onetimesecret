@@ -18,12 +18,12 @@ module Onetime
       UTILITY_PATHS = %w[~/.onetime /etc/onetime ./etc].freeze
     end
 
-    attr_reader :env, :base, :bootstrap
+    attr_reader :env, :base, :schema, :parsed_template
     attr_writer :path
 
     def load
       # Load schema before loading configuration
-      schema = _load_json_schema
+      @schema = _load_json_schema
 
       # Normalize environment variables prior to loading the YAML config
       before_load
@@ -32,7 +32,7 @@ module Onetime
       raw_conf = _load_static_configuration
 
       # Validate against schema and apply defaults
-      validate_with_schema(raw_conf, schema)
+      validate_with_schema(raw_conf, @schema)
 
       # SAFETY MEASURE: Freeze this shared config so that we are sure to
       # have an unmodified version straight from the YAML file.
@@ -123,7 +123,7 @@ module Onetime
       # Raise a structured error object instead of just a string message
       raise OT::ConfigValidationError.new(
         messages: error_messages,
-        paths: error_paths
+        paths: error_paths,
       )
     end
 
@@ -293,17 +293,17 @@ module Onetime
     def _load_static_configuration(path=nil)
       path ||= self.path
 
-      parsed_template = _file_read(path)
+      @parsed_template = _file_read(path)
 
-      _yaml_load(parsed_template.result)
+      _yaml_load(@parsed_template.result)
 
     rescue OT::ConfigError => e
       # DEBUGGING: Allow the contents of the parsed template to be logged.
       # This helps identify issues with template rendering and provides
       # context for the error, making it easier to diagnose config
       # problems, especially when the error involves environment vars.
-      if OT.debug? && parsed_template
-        template_lines = parsed_template.result.split("\n")
+      if OT.debug? && @parsed_template
+        template_lines = @parsed_template.result.split("\n")
         template_lines.each_with_index do |line, index|
           OT.ld "Line #{index + 1}: #{line}"
         end

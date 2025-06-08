@@ -18,22 +18,15 @@ module Onetime
       OT.li "Validating configuration at #{path}..." if verbose_mode?
 
       begin
-        # 1. Apply environment variable normalization
-        OT::Config.before_load
 
-        # 2. Load schema file - using exact OT::Config method
-        schema = OT::Config.send(:_load_json_schema)
-
-        # 3. Parse configuration file with ERB - using exact OT::Config methods
-        parsed_template = OT::Config.send(:_file_read, path)
-        config_data = OT::Config.send(:_yaml_load, parsed_template.result)
+        config_data = OT::Config.load
+        parsed_template = OT::Config.parsed_template
+        schema = OT::Config.schema
 
         # Show processed content if extra verbose
-        if verbose_mode?
-          OT.li "Processed configuration:"
-          parsed_template.result.lines.each_with_index do |line, idx|
-            OT.li "  #{idx + 1}: #{line}"
-          end
+        OT.ld "Processed configuration:"
+        parsed_template.result.lines.each_with_index do |line, idx|
+          OT.ld "  #{idx + 1}: #{line}"
         end
 
         # 4. Validate configuration against schema - using public OT::Config method
@@ -43,6 +36,8 @@ module Onetime
         if argv.include?('--full-check')
           OT::Config.raise_concerns(config_data)
         end
+
+        puts JSON.pretty_generate(config_data) if verbose_mode?
 
         OT.li '' if verbose_mode?
         OT.li "✅ Configuration valid"
