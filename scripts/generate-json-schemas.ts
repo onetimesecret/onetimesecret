@@ -80,7 +80,7 @@ function generateIndividualSchemas(): void {
  * Generate main configuration schema as YAML
  */
 function generateMainSchema(): void {
-  const jsonSchema = z.toJSONSchema(combinedConfigSchema, {
+  const jsonSchema = z.toJSONSchema(staticConfigSchema, {
     target: 'draft-2020-12',
     unrepresentable: 'any',
     cycles: 'ref',
@@ -95,7 +95,7 @@ function generateMainSchema(): void {
     ...jsonSchema,
   };
 
-  writeFileSync(OUTPUT_MAIN_SCHEMA, JSON.stringify(staticConfigSchema, null, 2));
+  writeFileSync(OUTPUT_MAIN_SCHEMA, JSON.stringify(schemaWithMeta, null, 2));
   console.log(`Generated: ${OUTPUT_MAIN_SCHEMA}`);
 }
 
@@ -111,7 +111,7 @@ function generateTypeDefinitions(): void {
  */
 
 import { z } from 'zod/v4';
-import { systemSettingsSchema, staticConfigSchema } from '../schemas/config/settings';
+import { systemSettingsSchema, staticConfigSchema } from '@/schemas/config/settings';
 
 export type SystemSettings = z.infer<typeof systemSettingsSchema>;
 export type StaticConfig = z.infer<typeof staticConfigSchema>;
