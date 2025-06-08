@@ -1,4 +1,4 @@
-# .github/workflows/ruby.yml
+# .github/workflows/ruby_tests.yml
 
 name: Ruby CI
 
