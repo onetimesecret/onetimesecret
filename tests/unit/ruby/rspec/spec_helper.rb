@@ -38,7 +38,7 @@ begin
 
   # Due to how Familia::Horreum defines model classes we need to create
   # an instance of each model class to ensure that they are loaded and
-  # available for testing. Part of ##1185.
+  # available for testing. Part of #1185.
   #
   # From Horreum#initialize:
   #   "Automatically add a 'key' field if it's not already defined."
@@ -56,8 +56,23 @@ end
 # Setup test environment
 OT.mode = :test
 
-# Set config path for tests
-OT::Config.path = File.join(Onetime::HOME, 'tests', 'unit', 'ruby', 'config.test.yaml')
+# Set up minimal test configuration
+minimal_test_config = {
+  site: {
+    secret: 'test-secret-key-for-tests',
+    authentication: {
+      enabled: true,
+      colonels: []
+    }
+  },
+  development: {},
+  mail: {
+    truemail: {}
+  }
+}
+
+# Set the configuration directly for tests
+OT.send(:conf=, minimal_test_config)
 
 # Configure RSpec
 RSpec.configure do |config|

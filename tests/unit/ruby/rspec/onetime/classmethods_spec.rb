@@ -162,14 +162,14 @@ RSpec.describe Onetime::ClassMethods do
 
   describe '#mode?' do
     it 'compares mode as strings' do
-      test_class.mode = :app
+      allow(test_class).to receive(:mode).and_return(:app)
       expect(test_class.mode?(:app)).to be true
       expect(test_class.mode?('app')).to be true
       expect(test_class.mode?(:cli)).to be false
     end
 
     it 'handles nil mode' do
-      test_class.mode = nil
+      allow(test_class).to receive(:mode).and_return(nil)
       expect(test_class.mode?(nil)).to be true
       expect(test_class.mode?('')).to be true
     end
@@ -311,13 +311,13 @@ RSpec.describe Onetime::ClassMethods do
     describe '#info' do
       context 'when mode is app or cli' do
         it 'outputs info messages' do
-          test_class.mode = :app
+          allow(test_class).to receive(:mode).and_return(:app)
           expect(test_class).to receive(:stdout).with('I', 'test message')
           test_class.info('test message')
         end
 
         it 'joins multiple messages' do
-          test_class.mode = :cli
+          allow(test_class).to receive(:mode).and_return(:cli)
           expect(test_class).to receive(:stdout).with('I', "msg1#{$/}msg2")
           test_class.info('msg1', 'msg2')
         end
@@ -325,7 +325,7 @@ RSpec.describe Onetime::ClassMethods do
 
       context 'when mode is not app or cli' do
         it 'does not output messages' do
-          test_class.mode = :tryout
+          allow(test_class).to receive(:mode).and_return(:tryout)
           expect(test_class).not_to receive(:stdout)
           test_class.info('test message')
         end
@@ -373,7 +373,7 @@ RSpec.describe Onetime::ClassMethods do
   end
 
   describe '#stdout and #stderr' do
-    let(:timestamp) { 1234567890 }
+    let(:timestamp) { 1_234_567_890 }
 
     before do
       allow(Time).to receive_message_chain(:now, :to_i).and_return(timestamp)

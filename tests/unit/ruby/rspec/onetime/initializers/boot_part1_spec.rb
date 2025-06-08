@@ -76,7 +76,7 @@ RSpec.describe "Onetime::Config during Onetime.boot!" do
       end
     }
     # Explicitly stub methods that might be called with specific arguments if method_missing is too broad
-    Onetime::KEY_MAP.each_value do |truemail_key|
+    Onetime::Config::KEY_MAP.each_value do |truemail_key|
       allow(truemail_config_double).to receive(:"#{truemail_key}=") if truemail_config_double.respond_to?(:"#{truemail_key}=")
     end
     allow(truemail_config_double).to receive(:verifier_email=)
@@ -104,7 +104,7 @@ RSpec.describe "Onetime::Config during Onetime.boot!" do
       conf = Onetime::Config.after_load(test_config)
 
       expect(conf.dig(:site, :secret_options, :default_ttl)).to eq('43200'.to_i) # 12 hours
-      expect(conf.dig(:site, :secret_options, :ttl_options)).to eq(['1800', '43200', '604800'].map(&:to_i))
+      expect(conf.dig(:site, :secret_options, :ttl_options)).to eq(%w[1800 43200 604800].map(&:to_i))
     end
 
     it "ensures required keys are present and defaults applied" do
@@ -136,7 +136,6 @@ RSpec.describe "Onetime::Config during Onetime.boot!" do
       let(:loaded_config) { Onetime::Config.load(source_config_path) }
 
       before do
-
       end
 
       it "ensures diagnostics are disabled when there is no dsn" do
@@ -257,7 +256,7 @@ RSpec.describe "Onetime::Config during Onetime.boot!" do
       expect(conf).not_to be_nil
       expect(conf.dig(:site, :host)).to eq('127.0.0.1:3000')
       expect(conf.dig(:site, :secret_options, :default_ttl)).to eq('43200'.to_i)
-      expect(conf.dig(:site, :secret_options, :ttl_options)).to eq(['1800', '43200', '604800'].map(&:to_i))
+      expect(conf.dig(:site, :secret_options, :ttl_options)).to eq(%w[1800 43200 604800].map(&:to_i))
       expect(conf.dig(:redis, :uri)).to eq('redis://CHANGEME@127.0.0.1:2121/0')
       expect(conf.dig(:development, :enabled)).to be(false)
       expect(Onetime.env).to eq('test')
@@ -338,13 +337,13 @@ RSpec.describe "Onetime::Config during Onetime.boot!" do
 
         expect(Onetime.i18n_enabled).to be true
         expect(Onetime.default_locale).to eq('en')
-        expect(Onetime.supported_locales).to match_array(['en', 'fr_CA', 'fr_FR'])
-        expect(Onetime.locales.keys).to match_array(['en', 'fr_CA', 'fr_FR'])
+        expect(Onetime.supported_locales).to match_array(%w[en fr_CA fr_FR])
+        expect(Onetime.locales.keys).to match_array(%w[en fr_CA fr_FR])
         expect(Onetime.fallback_locale).to eq({
-          "fr-CA" => ['fr_CA', 'fr_FR', 'en'],
-          "fr" => ['fr_FR', 'fr_CA', 'en'],
+          "fr-CA" => %w[fr_CA fr_FR en],
+          "fr" => %w[fr_FR fr_CA en],
           "fr-*" => ['fr_FR', 'en'],
-          "default" => ['en']
+          "default" => ['en'],
         })
 
         # NOTE: Disabled in v0.20.5. It takes a while to figure out how this is getting set

@@ -1,4 +1,4 @@
-import { z } from 'zod';
+import { z } from 'zod/v4';
 import { ERROR_SEVERITIES, ERROR_TYPES } from './constants';
 
 /**
@@ -50,6 +50,6 @@ export const applicationErrorSchema = z
     severity: errorSeverityEnum,
     code: z.union([z.string(), z.number()]).nullable().default(null),
     original: z.instanceof(Error).optional().nullable().default(null),
-    details: z.record(z.unknown()).optional().default({}),
+    details: z.record(z.string(), z.unknown()).optional().default({}),
   })
   .strict();

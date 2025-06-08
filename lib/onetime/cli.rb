@@ -9,12 +9,14 @@ require 'v2/models'
 require 'v2/logic'
 
 # Load CLI commands
-require_relative 'cli/migrate'
-require_relative 'cli/move_keys'
-require_relative 'cli/customers'
-require_relative 'cli/domains'
-require_relative 'cli/change_email'
-require_relative 'cli/initializers'
+require_relative 'cli/migrate_command'
+require_relative 'cli/move_keys_command'
+require_relative 'cli/customers_command'
+require_relative 'cli/domains_command'
+require_relative 'cli/change_email_command'
+require_relative 'cli/initializers_command'
+require_relative 'cli/validate_command'
+require_relative 'cli/config_command'
 
 module Onetime
   class CLI < Drydock::Command

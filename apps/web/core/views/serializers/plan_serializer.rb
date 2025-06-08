@@ -26,8 +26,8 @@ module Core
         plan = Onetime::Plan.plan(cust.planid) unless cust.nil?
         plan ||= Onetime::Plan.plan('anonymous')
 
-        output[:plan] = plan.safe_dump
-        output[:is_paid] = plan.paid?
+        output[:plan] = plan&.safe_dump
+        output[:is_paid] = plan&.paid? || false
         output[:default_planid] = 'basic'
 
         output

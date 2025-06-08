@@ -47,12 +47,13 @@ ENV['ONETIME_HOME'] ||= File.expand_path(__dir__).freeze
 
 require_relative 'apps/app_registry'
 
+
 # Bootstrap the Application
 # -------------------------------
 # Applications must be loaded before boot to ensure all Familia models
 # are properly registered. This sequence is critical for establishing
 # database connections for all model classes.
-Onetime.boot! :app
+Onetime.safe_boot! :app
 
 # Discover and map application modules to their routes
 AppRegistry.initialize_applications

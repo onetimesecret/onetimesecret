@@ -16,6 +16,7 @@ ruby '>= 3.1.5'
 source 'https://rubygems.org/'
 
 gem 'truemail'
+gem 'xdg'
 
 gem 'addressable'
 gem 'altcha', '~> 0.2.1'
@@ -26,6 +27,7 @@ gem 'rack-protection', '~> 3.2'
 gem 'rack-utf8_sanitizer', '~> 1.10.1'
 
 gem 'dotenv'
+gem 'json_schemer'
 gem 'multi_json'
 gem 'mustache'
 gem 'public_suffix'

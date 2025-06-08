@@ -1,5 +1,5 @@
 import { transforms } from '@/schemas/transforms';
-import { z } from 'zod';
+import { z } from 'zod/v4';
 
 export const feedbackSchema = z.object({
   // Feedback content using consistent transform pattern

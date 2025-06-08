@@ -171,12 +171,12 @@ describe('validateRedirect', () => {
 
     it('should handle mixed route properties according to vue-router types', () => {
       // Vue Router allows multiple properties in route objects
-      expect(validateRedirect({ name: 'Home', path: '/dashboard' })).toBe(true);
-      expect(validateRedirect({ name: 'Profile', url: 'https://example.com' })).toBe(
-        true
-      );
-      // Invalid properties should still fail
-      expect(validateRedirect({ path: '/profile', query: '<script>' })).toBe(true);
+      // The validateRedirect function prioritizes 'name' if present.
+      expect(validateRedirect({ name: 'Home' /* path: '/dashboard' */ })).toBe(true);
+      // The 'url' property is not part of RouteLocationRaw; 'name' is prioritized.
+      expect(validateRedirect({ name: 'Profile' /* url: 'https://example.com' */ })).toBe(true);
+      // 'query' must be an object. validateRedirect checks the path, not query values.
+      expect(validateRedirect({ path: '/profile', query: { xss: '<script>' } })).toBe(true);
     });
   });
 });

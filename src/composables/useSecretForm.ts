@@ -3,7 +3,7 @@
 import { transforms } from '@/schemas/transforms';
 import { reactive } from 'vue';
 import { WindowService } from '@/services/window.service';
-import { z } from 'zod';
+import { z } from 'zod/v4';
 
 export interface SecretFormState {
   form: SecretFormData;
@@ -83,7 +83,7 @@ export function useSecretForm() {
         const result = formSchema.safeParse(form);
         errors.clear();
         if (!result.success) {
-          result.error.errors.forEach((err) => {
+          result.error.issues.forEach((err) => {
             if (err.path[0]) {
               errors.set(err.path[0] as keyof SecretFormData, err.message);
             }

@@ -1,82 +1,53 @@
 # lib/onetime/config.rb
 
+require 'json'
+require 'erb'
+require 'yaml'
+require 'pathname'
+require 'xdg'
+
+require_relative 'errors'
+require_relative 'config/load'
+require_relative 'config/utils'
+
 require 'onetime/refinements/hash_refinements'
 
 module Onetime
-  module Config
-    extend self
-
+  class Config
     using IndifferentHashAccess
 
-    unless defined?(SERVICE_PATHS)
-      SERVICE_PATHS = %w[/etc/onetime ./etc].freeze
-      UTILITY_PATHS = %w[~/.onetime /etc/onetime ./etc].freeze
-      DEFAULTS = {
-        site: {
-          secret: nil,
-          api: { enabled: true },
-          authentication: {
-            enabled: false,
-            colonels: [],
-          },
-          authenticity: {
-            enabled: false,
-            type: nil,
-            secret_key: nil,
-          },
-          middleware: {
-            static_files: true,
-            utf8_sanitizer: true,
-          },
-        },
-        storage: {
-          db: {
-            connection: {
-              url: 'redis://localhost:6379',
-            },
-            database_mapping: nil,
-          }
-        },
-        mail: {
-          connection: {
-            mode: 'smtp',
-            from: "noreply@example.com",
-            fromname: "OneTimeSecret",
-          },
-        },
-        logging: {
-          http_requests: true,
-        },
-        i18n: {
-          enabled: false,
-          default_locale: 'en',
-        },
-        development: {
-          enabled: false,
-          frontend_host: '',
-        },
-        experimental: {
-          allow_nil_global_secret: false, # defaults to a secure setting
-          rotated_secrets: [],
-        },
-      }
+    @xdg = XDG::Environment.new
 
+    # This lets local project settings override user settings, which
+    # override system defaults. It's the standard precedence.
+    #
+    @paths = [
+      File.join(Dir.pwd, 'etc'), # 1. current working directory
+      File.join(Onetime::HOME, 'etc'), # 2. onetimesecret/etc
+      File.join(@xdg.config_home, 'onetime'), # 3. ~/.config/onetime
+      File.join(File::SEPARATOR, 'etc', 'onetime'), # 4. /etc/onetime
+    ]
+    @extensions = ['.yml', '.yaml', '.json', '.json5', '']
+
+    attr_reader :config_path, :schema_path, :local_copy, :config,
+          :unprocessed_config, :validated_config, :schema, :parsed_template,
+          :rendered_yaml, :config_template_str
+
+    def initialize(config_path: nil, schema_path: nil)
+      @config_path = config_path || self.class.find_config('config')
+      @schema_path = schema_path || self.class.find_config('config.schema')
     end
 
-    attr_reader :env, :base, :bootstrap
-    attr_writer :path
-
-    def setup
-      # Normalize environment variables prior to loading the YAML config
+    def load!
       before_load
-      # Loads the configuration and renders all value templates (ERB)
-      raw_conf = load
-      # SAFETY MEASURE: Freeze the (inevitably) shared config
-      # TODO: Consider leaving unfrozen until the end of boot!
-      OT::Utils.deep_freeze(raw_conf)
-      # Normalize the configuration and make it available to the rest
-      # of the initializers (via OT.conf).
-      after_load(raw_conf)
+      load
+      after_load
+    end
+
+    def load
+      @schema = load_schema
+      @unprocessed_config = load_config
+      @validated_config = validate
     end
 
     # Normalizes environment variables prior to loading and rendering the YAML
@@ -85,7 +56,85 @@ module Onetime
     def before_load
       # In v0.20.6, REGIONS_ENABLE was renamed to REGIONS_ENABLED for
       # consistency. We ensure both are considered for compatability.
-      ENV['REGIONS_ENABLED'] = ENV.values_at('REGIONS_ENABLED', 'REGIONS_ENABLE').compact.first || 'false'
+      set_value = ENV.values_at('REGIONS_ENABLED', 'REGIONS_ENABLE').compact.first
+      ENV['REGIONS_ENABLED'] = set_value || 'false'
+    end
+
+    def validate
+      OT::Config::Utils.validate_with_schema(unprocessed_config, schema)
+    end
+
+    # After loading the configuration, this method processes and validates the
+    # configuration, setting defaults and ensuring required elements are present.
+    # It also performs deep copy protection to prevent mutations from propagating
+    # to shared configuration instances.
+    #
+    # Operates on the loaded, unprocessed configuration hash in raw form.
+    #
+    # @return [Hash] The processed configuration has
+    def after_load
+
+      # Create a deep copy and normalize keys to strings
+      local_copy = OT::Utils.deep_merge({}, unprocessed_config)
+
+      # Process colonels backwards compatibility
+      process_colonels_compatibility!(local_copy)
+
+      # Validate critical configuration
+      validate_critical_config!(local_copy)
+
+      # Process authentication settings
+      process_authentication_settings!(local_copy)
+
+      @config = OT::Utils.deep_freeze(local_copy)
+    end
+
+    private
+
+    def process_colonels_compatibility!(config)
+      # Ensure site.authentication exists (using string keys)
+      config['site'] ||= {}
+      config['site']['authentication'] ||= {}
+
+      # Handle colonels backwards compatibility (handle both symbol and string keys)
+      root_colonels = config.delete('colonels') || config.delete(:colonels)
+      auth_colonels = config['site']['authentication']['colonels']
+
+      if auth_colonels.nil?
+        # No colonels in authentication, use root colonels or empty array
+        config['site']['authentication']['colonels'] = root_colonels || []
+      elsif root_colonels
+        # Combine existing auth colonels with root colonels
+        config['site']['authentication']['colonels'] = auth_colonels + root_colonels
+      end
+    end
+
+    def validate_critical_config!(config)
+      site_secret = config.dig('site', 'secret')
+      if site_secret.nil? || site_secret == 'CHANGEME'
+        raise OT::Problem, "Global secret cannot be nil or CHANGEME"
+      end
+    end
+
+    def process_authentication_settings!(config)
+      auth_config = config.dig('site', 'authentication')
+      return unless auth_config
+
+      # If authentication is disabled, set all auth sub-features to false
+      unless auth_config['enabled']
+        auth_config['colonels'] = false
+        auth_config['signup'] = false
+        auth_config['signin'] = false
+        auth_config['autoverify'] = false
+      end
+    end
+
+
+    def raise_concerns
+    end
+
+    def load_schema(path = @schema_path)
+      OT::Config::Load.yaml_load_file(path)
     end
 
     # Load a YAML configuration file, allowing for ERB templating within the file.
@@ -95,271 +144,53 @@ module Onetime
     # @param path [String] (optional the path to the YAML configuration file
     # @return [Hash] the parsed YAML data
     #
-    def load(path=nil)
-      path ||= self.path
+    def load_config(path = @config_path)
 
-      raise ArgumentError, "Bad path (#{path})" unless File.readable?(path)
+      @config_template_str = OT::Config::Load.file_read(path)
+      @parsed_template = ERB.new(@config_template_str)
+      @rendered_yaml = @parsed_template.result
 
-      parsed_template = ERB.new(File.read(path))
+      OT::Config::Load.yaml_load(@rendered_yaml)
 
-      YAML.load(parsed_template.result)
-    rescue StandardError => e
-      OT.le "Error loading config: #{path}"
-
-      # Log the contents of the parsed template for debugging purposes.
+    rescue OT::ConfigError => e
+      # DEBUGGING: Allow the contents of the parsed template to be logged.
       # This helps identify issues with template rendering and provides
       # context for the error, making it easier to diagnose config
       # problems, especially when the error involves environment vars.
-      if OT.debug? && parsed_template
-        template_lines = parsed_template.result.split("\n")
+      if OT.debug? && @parsed_template
+        template_lines = @parsed_template.result.split("\n")
         template_lines.each_with_index do |line, index|
           OT.ld "Line #{index + 1}: #{line}"
         end
       end
 
       OT.le e.message
-      OT.le e.backtrace.join("\n")
-      raise OT::ConfigError.new(e.message)
+      OT.ld e.backtrace.join("\n")
+      raise e
     end
 
-    # After loading the configuration, this method processes and validates the
-    # configuration, setting defaults and ensuring required elements are present.
-    # It also performs deep copy protection to prevent mutations from propagating
-    # to shared configuration instances.
-    #
-    # @param incoming_config [Hash] The loaded, unprocessed configuration hash in raw form
-    # @return [Hash] The processed configuration hash with defaults applied and security measures in place
-    def after_load(incoming_config)
 
-      # SAFETY MEASURE: Deep Copy Protection
-      # Create a deep copy of the configuration to prevent unintended mutations
-      # This protects against side effects when multiple components access the same config
-      # Without this, modifications to the config in one component could affect others.
-      copied_conf = OT::Utils.deep_clone(incoming_config)
-      conf = OT::Utils.deep_merge(DEFAULTS, copied_conf)
+    class << self
+      attr_reader :xdg, :paths, :extensions
 
-      raise_concerns(conf)
+      def load!
+        conf = new
+        conf.load!
+        conf
+      end
 
-      # Disable all authentication sub-features when main feature is off for
-      # consistency, security, and to prevent unexpected behavior. Ensures clean
-      # config state.
-      # NOTE: Needs to run after other site.authentication logic
-      if conf.dig(:site, :authentication, :enabled) != true
-        conf[:site][:authentication].each_key do |key|
-          conf[:site][:authentication][key] = false
+      def find_configs(basename = 'config')
+        paths.flat_map do |path|
+          extensions.filter_map do |ext|
+            file = File.join(path, "#{basename}#{ext}")
+            file if File.exist?(file)
+          end
         end
       end
 
-      # Combine colonels from root level and authentication section
-      # This handles the legacy config where colonels were at the root level
-      # while ensuring we don't lose any colonels from either location
-      root_colonels = conf.fetch(:colonels, [])
-      auth_colonels = conf.dig(:site, :authentication, :colonels) || []
-      conf[:site][:authentication][:colonels] = (auth_colonels + root_colonels).compact.uniq
-
-      # Clear colonels and set to false if authentication is disabled
-      unless conf.dig(:site, :authentication, :enabled)
-        conf[:site][:authentication][:colonels] = false
-      end
-
-      ttl_options = conf.dig(:site, :secret_options, :ttl_options)
-      default_ttl = conf.dig(:site, :secret_options, :default_ttl)
-
-      # if the ttl_options setting is a string, we want to split it into an
-      # array of integers.
-      if ttl_options.is_a?(String)
-        conf[:site][:secret_options][:ttl_options] = ttl_options.split(/\s+/)
-      end
-      ttl_options = conf.dig(:site, :secret_options, :ttl_options)
-      if ttl_options.is_a?(Array)
-        conf[:site][:secret_options][:ttl_options] = ttl_options.map(&:to_i)
-      end
-
-      if default_ttl.is_a?(String)
-        conf[:site][:secret_options][:default_ttl] = default_ttl.to_i
-      end
-
-      # TODO: Move to an initializer
-      if conf.dig(:site, :plans, :enabled).to_s == "true"
-        stripe_key = conf.dig(:site, :plans, :stripe_key)
-        unless stripe_key
-          raise OT::Problem, "No `site.plans.stripe_key` found in #{path}"
-        end
-
-        require 'stripe'
-        Stripe.api_key = stripe_key
-      end
-
-      # Apply the defaults to sentry backend and frontend configs
-      # and set our local config with the merged values.
-      diagnostics = incoming_config.fetch(:diagnostics, {})
-      conf[:diagnostics] = {
-        enabled: diagnostics[:enabled] || false,
-        sentry: apply_defaults_to_peers(diagnostics[:sentry]),
-      }
-      conf[:diagnostics][:sentry][:backend] ||= {}
-
-      # Update global diagnostic flag based on config
-      backend_dsn = conf.dig(:diagnostics, :sentry, :backend, :dsn)
-      frontend_dsn = conf.dig(:diagnostics, :sentry, :frontend, :dsn)
-
-      # It's disabled when no DSN is present, regardless of enabled setting
-      Onetime.d9s_enabled = !!(conf.dig(:diagnostics, :enabled) && (backend_dsn || frontend_dsn))
-
-      # SECURITY MEASURE #4: Configuration Immutability
-      # Freeze the entire configuration recursively to prevent modifications
-      # This ensures configuration immutability and protects against
-      # accidental or malicious changes after loading
-      #
-      # Why this matters:
-      # - Prevents runtime modification of sensitive values like secrets and API keys
-      # - Any attempt to modify frozen config will raise a FrozenError, failing fast
-      # - Guarantees configuration integrity throughout application lifecycle
-      # - Makes security guarantees stronger by ensuring config values can't be tampered with
-      OT::Utils.deep_freeze(conf)
-    end
-
-    def raise_concerns(conf)
-
-      # SAFETY MEASURE: Critical Secret Validation
-      # Handle potential nil global secret
-      # The global secret is critical for encrypting/decrypting secrets
-      # Running without a global secret is only permitted in exceptional cases
-      allow_nil = conf.dig(:experimental, :allow_nil_global_secret) || false
-      global_secret = conf[:site].fetch(:secret, nil)
-      global_secret = nil if global_secret.to_s.strip == 'CHANGEME'
-
-      # Onetime.global_secret is set in the initializer set_global_secret
-
-      if global_secret.nil?
-        unless allow_nil
-          # Fast fail when global secret is nil and not explicitly allowed
-          # This is a critical security check that prevents running without encryption
-          raise OT::ConfigError, "Global secret cannot be nil - set SECRET env var or site.secret in config"
-        end
-
-        # SAFETY MEASURE: Security Warnings for Dangerous Configurations
-        # Security warning when proceeding with nil global secret
-        # These warnings are prominently displayed to ensure administrators
-        # understand the security implications of their configuration
-        OT.li "!" * 50
-        OT.li "SECURITY WARNING: Running with nil global secret!"
-        OT.li "This configuration presents serious security risks:"
-        OT.li "- Secret encryption will be compromised"
-        OT.li "- Data cannot be properly protected"
-        OT.li "- Only use during recovery or transition periods"
-        OT.li "Set valid SECRET env var or site.secret in config ASAP"
-        OT.li "!" * 50
-      end
-
-      unless conf[:mail].key?(:validation)
-        raise OT::ConfigError, "No mail validation config found (TrueMail)"
-        # OT.le "TEMPORARY WARNING: No TrueMail config found"
+      def find_config(...)
+        find_configs(...).first
       end
     end
-
-    def dirname
-      @dirname ||= File.dirname(path)
-    end
-
-    def path
-      @path ||= find_configs.first
-    end
-
-    def mapped_key(key)
-      # `key` is a symbol. Returns a symbol.
-      # If the key is not in the KEY_MAP, return the key itself.
-      KEY_MAP[key] || key
-    end
-
-    # Applies default values to its config level peers
-    #
-    # @param config [Hash] Configuration with top-level section keys, including a :defaults key
-    # @return [Hash] Configuration with defaults applied to each section, with :defaults removed
-    #
-    # This method extracts defaults from the :defaults key and applies them to each section:
-    # - Section values override defaults (except nil values, which use defaults)
-    # - The :defaults section is removed from the result
-    # - Only Hash-type sections receive defaults
-    #
-    # @example Basic usage
-    #   config = {
-    #     defaults: { timeout: 5, enabled: true },
-    #     api: { timeout: 10 },
-    #     web: { theme: 'dark' }
-    #   }
-    #   apply_defaults_to_peers(config)
-    #   # => { api: { timeout: 10, enabled: true },
-    #   #      web: { theme: 'dark', timeout: 5, enabled: true } }
-    #
-    # @example Edge cases
-    #   apply_defaults_to_peers({a: {x: 1}})                # => {a: {x: 1}}
-    #   apply_defaults_to_peers({defaults: {x: 1}, b: {}})  # => {b: {x: 1}}
-    #
-    def apply_defaults_to_peers(config={})
-      return {} if config.nil? || config.empty?
-
-      # Extract defaults from the configuration
-      defaults = config[:defaults]
-
-      # If no valid defaults exist, return config without the :defaults key
-      return config.except(:defaults) unless defaults.is_a?(Hash)
-
-      # Process each section, applying defaults
-      config.each_with_object({}) do |(section, values), result|
-        next if section == :defaults   # Skip the :defaults key
-        next unless values.is_a?(Hash) # Process only sections that are hashes
-
-        # Apply defaults to each section
-        result[section] = OT::Utils.deep_merge(defaults, values)
-      end
-    end
-
-    # Searches for configuration files in predefined locations based on application mode.
-    # In CLI mode, it looks in user and system directories. In service mode, it only
-    # checks system directories for security and consistency.
-    #
-    # @param filename [String, nil] Optional configuration filename, defaults to 'config.yaml'
-    # @return [Array<String>] List of found configuration file paths in order of precedence
-    #
-    # @example Finding default config files
-    #   find_configs
-    #   # => ["/etc/onetime/config.yaml"]
-    #
-    # @example Finding custom config files
-    #   find_configs("database.yaml")
-    #   # => ["/etc/onetime/database.yaml", "./etc/database.yaml"]
-    def find_configs(filename = nil)
-      filename ||= 'config.yaml'
-      paths = Onetime.mode?(:cli) ? UTILITY_PATHS : SERVICE_PATHS
-      paths.collect do |path|
-        f = File.join File.expand_path(path), filename
-        Onetime.ld "Looking for #{f}"
-        f if File.exist?(f)
-      end.compact
-    end
-
-    # Makes a deep copy of OT.conf, then merges the system settings data, and
-    # replaces OT.config with the merged data.
-    def apply_config(other)
-      new_config = OT::Utils.deep_merge(OT.conf, other)
-      OT.replace_config! new_config
-    end
-
   end
-
-  # A simple map of our config options using our naming conventions
-  # to the names that are used by other libraries. This makes it easier
-  # for us to have our own consistent naming conventions.
-  KEY_MAP = {
-    allowed_domains_only: :whitelist_validation,
-    allowed_emails: :whitelisted_emails,
-    blocked_emails: :blacklisted_emails,
-    allowed_domains: :whitelisted_domains,
-    blocked_domains: :blacklisted_domains,
-    blocked_mx_ip_addresses: :blacklisted_mx_ip_addresses,
-
-    # An example mapping for testing.
-    example_internal_key: :example_external_key,
-  }
 end

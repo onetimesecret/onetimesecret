@@ -1,7 +1,7 @@
-# lib/onetime/cli/domains.rb
+# lib/onetime/cli/domains_command.rb
 
 module Onetime
-  class CLI < Drydock::Command
+  class DomainsCommand < Drydock::Command
     def domains
       puts '%d custom domains' % V2::CustomDomain.values.size
       if option.list

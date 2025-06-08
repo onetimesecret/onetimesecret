@@ -5,7 +5,7 @@ export * from './vhost';
 // src/schemas/models/domain.ts
 import { createModelSchema } from '@/schemas/models/base';
 import { transforms } from '@/schemas/transforms';
-import { z } from 'zod';
+import { z } from 'zod/v4';
 
 import { brandSettingschema } from './brand';
 import { vhostSchema } from './vhost';

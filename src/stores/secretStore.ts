@@ -76,7 +76,7 @@ export const useSecretStore = defineStore('secrets', () => {
     const response = await $api.get(`/api/v2/secret/${secretKey}`);
     const validated = responseSchemas.secret.parse(response.data);
     record.value = validated.record;
-    details.value = validated.details;
+    details.value = validated.details as SecretDetails | null;
 
     return validated;
   }
@@ -133,7 +133,7 @@ export const useSecretStore = defineStore('secrets', () => {
 
     const validated = responseSchemas.secret.parse(response.data);
     record.value = validated.record;
-    details.value = validated.details;
+    details.value = validated.details as SecretDetails | null;
 
     return validated;
   }

@@ -5,7 +5,7 @@ import { systemSettingsSchema, type SystemSettingsDetails } from '@/schemas/api/
 import { AxiosInstance } from 'axios';
 import { defineStore, PiniaCustomProperties } from 'pinia';
 import { inject, ref } from 'vue';
-import { z } from 'zod';
+import { z } from 'zod/v4';
 
 /**
  * Type definition for SystemSettingsStore.
@@ -40,12 +40,12 @@ export const useSystemSettingsStore = defineStore('colonel', () => {
 
     try {
       const validated = responseSchemas.systemSettings.parse(response.data);
-      details.value = validated.details;
+      details.value = validated.details as SystemSettingsDetails | null;
     } catch (validationError) {
       console.warn('System settings validation warning:', validationError);
       // Gracefully handle validation errors by using response data directly
       // This allows for partial configurations and new fields not yet in schema
-      details.value = response.data.details || {};
+      details.value = (response.data.details || null) as SystemSettingsDetails | null;
     }
 
     return response.data;
@@ -62,7 +62,7 @@ export const useSystemSettingsStore = defineStore('colonel', () => {
       systemSettingsSchema.partial().parse(newConfig);
     } catch (validationError) {
       if (validationError instanceof z.ZodError) {
-        const firstError = validationError.errors[0];
+        const firstError = validationError.issues[0];
         throw new Error(`Validation error: ${firstError.path.join('.')} - ${firstError.message}`);
       }
       throw validationError;
@@ -73,13 +73,13 @@ export const useSystemSettingsStore = defineStore('colonel', () => {
     try {
       const validated = responseSchemas.systemSettings.parse(response.data);
       record.value = validated.record;
-      details.value = validated.details;
+      details.value = validated.details as SystemSettingsDetails | null;
       return validated;
     } catch (validationError) {
       console.warn('Response validation warning:', validationError);
       // Fallback to using response data directly if validation fails
       record.value = response.data.record || {};
-      details.value = response.data.details || {};
+      details.value = (response.data.details || null) as SystemSettingsDetails | null;
       return response.data;
     }
   }

@@ -1,8 +1,7 @@
-# lib/onetime/cli/move_keys.rb
+# lib/onetime/cli/move_keys_command.rb
 
 module Onetime
-  class CLI < Drydock::Command
-
+  class MoveKeysCommand < Drydock::Command
     def move_keys
       sourcedb, targetdb, filter = *argv
       raise 'No target database supplied' unless sourcedb && targetdb
@@ -20,7 +19,6 @@ module Onetime
         end
       end
       puts
-
     end
   end
 end

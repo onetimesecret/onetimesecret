@@ -1,6 +1,6 @@
 // src/schemas/models/public.ts
 import { transforms } from '@/schemas/transforms';
-import { z } from 'zod';
+import { z } from 'zod/v4';
 
 /**
  * Zod schema for SecretOptions

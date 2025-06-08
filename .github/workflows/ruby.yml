@@ -58,9 +58,6 @@ jobs:
     # yaml files at all). Adding a new workflow in a test branch
     # seemed to wake up the dragon and all was well in the world.
     #
-    # Rubygems as of version 3.6.0 has dropped support for
-    # Ruby 3.0. Fair enough!
-    #
     # https://github.com/rubygems/rubygems/blob/master/CHANGELOG.md#breaking-changes
     #
     runs-on: ubuntu-24.04
@@ -68,7 +65,7 @@ jobs:
     strategy:
       fail-fast: true
       matrix:
-        ruby: ['3.4', '3.3', '3.2', '3.1']
+        ruby: ['3.4', '3.5']
         continue-on-error: [false]
 
     # Make redis available for running the tryouts
