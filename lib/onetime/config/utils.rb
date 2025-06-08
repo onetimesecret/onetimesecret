@@ -1,5 +1,7 @@
 # lib/onetime/config/utils.rb
 
+require 'json_schemer'
+
 module Onetime
   class Config
 

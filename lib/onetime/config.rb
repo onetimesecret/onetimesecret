@@ -58,7 +58,9 @@ module Onetime
     end
 
     def validate
-      OT::Config::Utils.validate_config(@unprocessed_config, @schema)
+      # Wrap config in 'static' key since schema expects this structure
+      wrapped_config = { static: @unprocessed_config }
+      OT::Config::Utils.validate_with_schema(wrapped_config, @schema)
     end
 
     # After loading the configuration, this method processes and validates the
