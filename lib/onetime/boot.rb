@@ -39,9 +39,9 @@ module Onetime
       prepare_onetime_namespace(mode)
 
       OT.ld "[BOOT] Initializing Onetime application in '#{OT.mode}' mode"
-      conf = OT::Config.load
+      conf = OT::Config.load!
 
-      OT.ld "[BOOT] Configuration loaded from #{conf.config_path}" if conf.respond_to?(:config_path)
+      OT.ld "[BOOT] Configuration loaded from #{conf.config_path}"
 
       # TODO: Re-enable
       #
