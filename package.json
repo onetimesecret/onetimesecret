@@ -37,6 +37,7 @@
     "rubocop:pretty": "pnpm --silent run rubocop | jq",
     "schema:generate": "tsx scripts/generate-json-schemas.ts",
     "schema:generate:watch": "tsx scripts/generate-json-schemas.ts --watch",
+    "schema:validate": "bundle exec bin/ots -v validate",
     "test": "pnpm test:base run --printConsoleTrace",
     "test:base": "vitest",
     "test:chrome:inspect": "pnpm test:base --inspect-brk --no-file-parallelism",

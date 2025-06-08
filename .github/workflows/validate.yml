@@ -1,7 +1,5 @@
 # .github/workflows/config.yml
 
-# https://github.com/nrkno/yaml-schema-validator-github-action
-
 name: Validate YAML config
 permissions:
   contents: read
@@ -30,22 +28,39 @@ on:
         default: false
 
 jobs:
-  yaml-schema-validation:
+  config-validation:
     runs-on: ubuntu-24.04
     steps:
       - name: Checkout repository
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
 
-      - uses: nrkno/yaml-schema-validator-github-action@32c469c6568f476abfaafb5ea5acf8b8a41b29a9 # v4
-        continue-on-error: false
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@7d3497fd78c07c0d84ebafa58d8dac60cd1f0763 # v1.199.0
         with:
-          schema: etc/config.schema.yaml
-          target: etc/config.example.yaml
+          ruby-version: '3.4'
+          bundler-cache: true
 
-      - uses: nrkno/yaml-schema-validator-github-action@32c469c6568f476abfaafb5ea5acf8b8a41b29a9 # v4
-        continue-on-error: true
+      - name: Set up Node.js
+        uses: actions/setup-node@39370e3970a6d050c480ffad4ff0ed4d3fdee5af # v4.1.0
         with:
-          schema: etc/config.schema.yaml
-          target: tests/unit/ruby/config.test.yaml
-          # Disable strict checks for test config
-          no-strict: true
+          node-version: '22'
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@fe02b34f77f8bc703788d5817da081398fad5dd2 # v4.0.0
+        with:
+          version: 10.10.0
+
+      - name: Install Node dependencies
+        run: pnpm install
+
+      - name: Generate JSON schemas
+        run: pnpm run schema:generate
+
+      - name: Validate example config
+        run: pnpm run schema:validate
+
+      - name: Validate test config
+        continue-on-error: true
+        run: |
+          echo "Validating test configuration (may have intentional errors)..."
+          bin/ots validate tests/unit/ruby/config.test.yaml || true
