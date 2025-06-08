@@ -46,9 +46,10 @@ module Onetime
 
         OT.li '' if verbose_mode?
         OT.li "✅ Configuration valid"
-        return 0
+
       rescue OT::ConfigValidationError => e
-        OT.le ''
+        OT.li '' if verbose_mode?
+        OT.le e.message
         OT.le "❌ Configuration validation failed"
 
         # Show error details based on verbosity level
@@ -66,14 +67,14 @@ module Onetime
           OT.ld "Use --verbose for error details"
         end
 
-        return 1
+        exit 1
       rescue OT::ConfigError => e
         OT.le "❌ Configuration error: #{e.message}"
-        return 1
+        exit 2
       rescue StandardError => e
         OT.le "❌ Unexpected error: #{e.message}"
         OT.ld e.backtrace.join("\n") if global.verbose > 0
-        return 1
+        exit 3
       end
     end
 
