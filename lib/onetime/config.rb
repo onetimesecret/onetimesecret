@@ -28,7 +28,8 @@ module Onetime
     @extensions = ['.yml', '.yaml', '.json', '.json5', '']
 
     attr_reader :config_path, :schema_path, :local_copy, :config,
-          :unprocessed_config, :validated_config, :schema
+          :unprocessed_config, :validated_config, :schema, :parsed_template,
+          :rendered_yaml, :config_template_str
 
     def initialize(config_path: nil, schema_path: nil)
       @config_path = config_path || self.class.find_config('config')
@@ -58,9 +59,7 @@ module Onetime
     end
 
     def validate
-      # Wrap config in 'static' key since schema expects this structure
-      wrapped_config = { static: @unprocessed_config }
-      OT::Config::Utils.validate_with_schema(wrapped_config, @schema)
+      OT::Config::Utils.validate_with_schema(@unprocessed_config, @schema)
     end
 
     # After loading the configuration, this method processes and validates the
