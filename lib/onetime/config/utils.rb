@@ -125,52 +125,32 @@ module Onetime
       def apply_defaults_to_peers(config={})
         return {} if config.nil? || config.empty?
 
-        # Extract defaults from the configuration
-        defaults = config[:defaults]
+        # Extract defaults from the configuration (handle both symbol and string keys)
+        defaults = config[:defaults] || config['defaults']
 
         # If no valid defaults exist, return config without the :defaults key
-        return config.except(:defaults) unless defaults.is_a?(Hash)
+        unless defaults.is_a?(Hash)
+          result = {}
+          config.each do |key, value|
+            next if key == :defaults || key == 'defaults'
+            # Normalize the value to string keys using deep_merge with empty hash
+            result[key.to_s] = value.is_a?(Hash) ? OT::Utils.deep_merge({}, value) : value
+          end
+          return result
+        end
 
         # Process each section, applying defaults
         config.each_with_object({}) do |(section, values), result|
-          next if section == :defaults   # Skip the :defaults key
+          # Skip the :defaults key (handle both symbol and string)
+          next if section == :defaults || section == 'defaults'
           next unless values.is_a?(Hash) # Process only sections that are hashes
 
-          # Apply defaults to each section - preserve symbol keys for config consistency
-          result[section] = deep_merge_with_symbols(defaults, values)
+          # Apply defaults to each section, normalize section key to string
+          result[section.to_s] = OT::Utils.deep_merge(defaults, values)
         end
       end
 
-      # Deep merge that preserves symbol keys for configuration consistency
-      # Unlike OT::Utils.deep_merge which normalizes to string keys, this preserves the original key types
-      def deep_merge_with_symbols(defaults, overrides)
-        return {} if defaults.nil? && overrides.nil?
-        return deep_clone_preserving_keys(overrides) if defaults.nil?
-        return deep_clone_preserving_keys(defaults) if overrides.nil?
 
-        result = deep_clone_preserving_keys(defaults)
-
-        overrides.each do |key, value|
-          if result.key?(key) && result[key].is_a?(Hash) && value.is_a?(Hash)
-            result[key] = deep_merge_with_symbols(result[key], value)
-          elsif !value.nil?
-            result[key] = deep_clone_preserving_keys(value)
-          end
-        end
-
-        result
-      end
-
-      def deep_clone_preserving_keys(obj)
-        case obj
-        when Hash
-          obj.transform_values { |value| deep_clone_preserving_keys(value) }
-        when Array
-          obj.map { |item| deep_clone_preserving_keys(item) }
-        else
-          obj
-        end
-      end
 
     end
 

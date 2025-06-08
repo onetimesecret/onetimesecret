@@ -36,26 +36,26 @@ RSpec.describe Onetime::Config do
     context 'with valid inputs' do
       it 'merges defaults into sections' do
         result = described_class::Utils.apply_defaults_to_peers(basic_config)
-        expect(result[:api]).to eq({ timeout: 10, enabled: true })
-        expect(result[:web]).to eq({ timeout: 5, enabled: true })
+        expect(result['api']).to eq({ 'timeout' => 10, 'enabled' => true })
+        expect(result['web']).to eq({ 'timeout' => 5, 'enabled' => true })
       end
 
       it 'handles sentry-specific configuration' do
         result = described_class::Utils.apply_defaults_to_peers(sentry_config)
 
-        expect(result[:backend]).to eq({
-          dsn: 'backend-dsn',
-          environment: 'test',
-          enabled: true,
-          traces_sample_rate: 0.1,
+        expect(result['backend']).to eq({
+          'dsn' => 'backend-dsn',
+          'environment' => 'test',
+          'enabled' => true,
+          'traces_sample_rate' => 0.1,
         })
 
-        expect(result[:frontend]).to eq({
-          dsn: 'default-dsn',
-          environment: 'test',
-          enabled: true,
-          path: '/web',
-          profiles_sample_rate: 0.2,
+        expect(result['frontend']).to eq({
+          'dsn' => 'default-dsn',
+          'environment' => 'test',
+          'enabled' => true,
+          'path' => '/web',
+          'profiles_sample_rate' => 0.2,
         })
       end
     end
@@ -72,7 +72,7 @@ RSpec.describe Onetime::Config do
       it 'handles missing defaults section' do
         config = { api: { timeout: 10 } }
         result = described_class::Utils.apply_defaults_to_peers(config)
-        expect(result).to eq({ api: { timeout: 10 } })
+        expect(result).to eq({ 'api' => { 'timeout' => 10 } })
       end
 
       it 'skips non-hash section values' do
@@ -82,7 +82,7 @@ RSpec.describe Onetime::Config do
           web: { port: 3000 },
         }
         result = described_class::Utils.apply_defaults_to_peers(config)
-        expect(result.keys).to contain_exactly(:web)
+        expect(result.keys).to contain_exactly('web')
       end
 
       it 'preserves original defaults' do
@@ -112,8 +112,8 @@ RSpec.describe Onetime::Config do
       it 'merges defaults into sections while preserving overrides' do
         result = described_class::Utils.apply_defaults_to_peers(config_with_defaults)
 
-        expect(result[:api]).to eq({ timeout: 10, enabled: true })
-        expect(result[:web]).to eq({ timeout: 5, enabled: true })
+        expect(result['api']).to eq({ 'timeout' => 10, 'enabled' => true })
+        expect(result['web']).to eq({ 'timeout' => 5, 'enabled' => true })
       end
 
       it 'preserves defaults when section value is nil' do
@@ -123,22 +123,22 @@ RSpec.describe Onetime::Config do
           frontend: { dsn: nil },
         }
         result = described_class::Utils.apply_defaults_to_peers(config)
-        expect(result[:backend][:dsn]).to eq('default-dsn')
-        expect(result[:frontend][:dsn]).to eq('default-dsn')
+        expect(result['backend']['dsn']).to eq('default-dsn')
+        expect(result['frontend']['dsn']).to eq('default-dsn')
       end
 
       it 'processes real world service config correctly' do
         result = described_class::Utils.apply_defaults_to_peers(service_config)
 
-        expect(result[:backend]).to eq({
-          dsn: 'backend-dsn',
-          environment: 'test',
+        expect(result['backend']).to eq({
+          'dsn' => 'backend-dsn',
+          'environment' => 'test',
         })
 
-        expect(result[:frontend]).to eq({
-          dsn: 'default-dsn',
-          environment: 'test',
-          path: '/web',
+        expect(result['frontend']).to eq({
+          'dsn' => 'default-dsn',
+          'environment' => 'test',
+          'path' => '/web',
         })
       end
 
@@ -147,6 +147,43 @@ RSpec.describe Onetime::Config do
         described_class::Utils.apply_defaults_to_peers(service_config)
 
         expect(service_config[:defaults]).to eq(original_defaults)
+      end
+    end
+
+    context 'indifferent access support' do
+      let(:config_with_symbol_keys) do
+        {
+          defaults: { timeout: 5, enabled: true },
+          api: { timeout: 10 },
+          web: {},
+        }
+      end
+
+      it 'supports symbol key access on string-normalized results' do
+        result = described_class::Utils.apply_defaults_to_peers(config_with_symbol_keys)
+
+        # Results are normalized to string keys
+        expect(result['api']['timeout']).to eq(10)
+        expect(result['web']['enabled']).to eq(true)
+
+        # But should support symbol access via IndifferentHashAccess
+        # This will be handled by the refinement in the actual config system
+        expect(result.keys).to all(be_a(String))
+      end
+
+      it 'handles mixed symbol/string input keys consistently' do
+        mixed_config = {
+          'defaults' => { timeout: 5, 'enabled' => true },
+          :api => { 'timeout' => 10 },
+          'web' => {},
+        }
+
+        result = described_class::Utils.apply_defaults_to_peers(mixed_config)
+
+        # All keys should be normalized to strings
+        expect(result.keys).to all(be_a(String))
+        expect(result['api'].keys).to all(be_a(String))
+        expect(result['web'].keys).to all(be_a(String))
       end
     end
   end
@@ -237,7 +274,7 @@ RSpec.describe Onetime::Config do
 
       it 'moves colonels from root level to site.authentication when not present in site.authentication' do
         processed_config = config_instance.send(:after_load)
-        expect(processed_config[:site][:authentication][:colonels]).to eq(['root@example.com', 'admin@example.com'])
+        expect(processed_config['site']['authentication']['colonels']).to eq(['root@example.com', 'admin@example.com'])
       end
 
       context 'when colonels exist in site.authentication' do
@@ -259,7 +296,7 @@ RSpec.describe Onetime::Config do
 
         it 'keeps colonels in site.authentication when present' do
           processed_config = config_instance.send(:after_load)
-          expect(processed_config[:site][:authentication][:colonels]).to eq(['site@example.com'])
+          expect(processed_config['site']['authentication']['colonels']).to eq(['site@example.com'])
         end
       end
 
@@ -283,7 +320,7 @@ RSpec.describe Onetime::Config do
 
         it 'prioritizes site.authentication colonels when defined in both places' do
           processed_config = config_instance.send(:after_load)
-          expect(processed_config[:site][:authentication][:colonels]).to eq(['site@example.com', 'auth@example.com', 'root@example.com', 'admin@example.com'])
+          expect(processed_config['site']['authentication']['colonels']).to eq(['site@example.com', 'auth@example.com', 'root@example.com', 'admin@example.com'])
         end
       end
 
@@ -306,7 +343,7 @@ RSpec.describe Onetime::Config do
 
         it 'initializes empty colonels array when not defined anywhere' do
           processed_config = config_instance.send(:after_load)
-          expect(processed_config[:site][:authentication][:colonels]).to eq([])
+          expect(processed_config['site']['authentication']['colonels']).to eq([])
         end
       end
 
@@ -403,7 +440,37 @@ RSpec.describe Onetime::Config do
 
         it 'sets authentication colonels to false when authentication is disabled' do
           processed_config = config_instance.send(:after_load)
-          expect(processed_config[:site][:authentication][:colonels]).to eq(false)
+          expect(processed_config['site']['authentication']['colonels']).to eq(false)
+        end
+      end
+
+      context 'indifferent access in after_load results' do
+        let(:raw_config) do
+          {
+            colonels: ['root@example.com'],
+            site: {
+              secret: 'test-secret',
+              authentication: {
+                enabled: true,
+              },
+            },
+            development: {},
+            mail: {
+              truemail: {},
+            },
+          }
+        end
+
+        it 'produces string-keyed results that work with IndifferentHashAccess' do
+          processed_config = config_instance.send(:after_load)
+
+          # Verify string keys are used
+          expect(processed_config.keys).to all(be_a(String))
+          expect(processed_config['site'].keys).to all(be_a(String))
+          expect(processed_config['site']['authentication'].keys).to all(be_a(String))
+
+          # Verify the structure is correct
+          expect(processed_config['site']['authentication']['colonels']).to eq(['root@example.com'])
         end
       end
     end

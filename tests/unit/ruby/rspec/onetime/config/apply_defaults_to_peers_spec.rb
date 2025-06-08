@@ -41,41 +41,41 @@ RSpec.describe Onetime::Config::Utils do
     context 'with valid inputs' do
       it 'merges defaults into sections' do
         result = described_class.apply_defaults_to_peers(basic_config)
-        expect(result[:api]).to eq({ timeout: 10, enabled: true })
-        expect(result[:web]).to eq({ timeout: 5, enabled: true })
+        expect(result['api']).to eq({ 'timeout' => 10, 'enabled' => true })
+        expect(result['web']).to eq({ 'timeout' => 5, 'enabled' => true })
       end
 
       it 'handles sentry-specific configuration' do
         result = described_class.apply_defaults_to_peers(sentry_config)
 
-        expect(result[:backend]).to eq({
-          dsn: 'backend-dsn',
-          environment: 'test',
-          enabled: true,
-          traces_sample_rate: 0.1
+        expect(result['backend']).to eq({
+          'dsn' => 'backend-dsn',
+          'environment' => 'test',
+          'enabled' => true,
+          'traces_sample_rate' => 0.1
         })
 
-        expect(result[:frontend]).to eq({
-          dsn: 'default-dsn',
-          environment: 'test',
-          enabled: true,
-          path: '/web',
-          profiles_sample_rate: 0.2
+        expect(result['frontend']).to eq({
+          'dsn' => 'default-dsn',
+          'environment' => 'test',
+          'enabled' => true,
+          'path' => '/web',
+          'profiles_sample_rate' => 0.2
         })
       end
 
       it 'correctly applies defaults to a typical service configuration with multiple sections' do
         result = described_class.apply_defaults_to_peers(service_config)
 
-        expect(result[:backend]).to eq({
-          dsn: 'backend-dsn',
-          environment: 'test'
+        expect(result['backend']).to eq({
+          'dsn' => 'backend-dsn',
+          'environment' => 'test'
         })
 
-        expect(result[:frontend]).to eq({
-          dsn: 'default-dsn',
-          environment: 'test',
-          path: '/web'
+        expect(result['frontend']).to eq({
+          'dsn' => 'default-dsn',
+          'environment' => 'test',
+          'path' => '/web'
         })
       end
     end
@@ -100,7 +100,7 @@ RSpec.describe Onetime::Config::Utils do
       it 'handles missing defaults section' do
         config = { api: { timeout: 10 } }
         result = described_class.apply_defaults_to_peers(config)
-        expect(result).to eq({ api: { timeout: 10 } })
+        expect(result).to eq({ 'api' => { 'timeout' => 10 } })
       end
 
       it 'skips non-hash section values' do
@@ -110,7 +110,7 @@ RSpec.describe Onetime::Config::Utils do
           web: { port: 3000 }
         }
         result = described_class.apply_defaults_to_peers(config)
-        expect(result.keys).to contain_exactly(:web)
+        expect(result.keys).to contain_exactly('web')
       end
 
       it 'preserves original defaults' do
@@ -126,8 +126,8 @@ RSpec.describe Onetime::Config::Utils do
           frontend: { dsn: nil }
         }
         result = described_class.apply_defaults_to_peers(config)
-        expect(result[:backend][:dsn]).to eq('default-dsn')
-        expect(result[:frontend][:dsn]).to eq('default-dsn')
+        expect(result['backend']['dsn']).to eq('default-dsn')
+        expect(result['frontend']['dsn']).to eq('default-dsn')
       end
 
       it 'does not modify the original defaults hash passed as an argument' do
@@ -150,8 +150,8 @@ RSpec.describe Onetime::Config::Utils do
       it 'merges defaults into sections, allowing section-specific values to override defaults' do
         result = described_class.apply_defaults_to_peers(config_with_defaults)
 
-        expect(result[:api]).to eq({ timeout: 10, enabled: true })
-        expect(result[:web]).to eq({ timeout: 5, enabled: true })
+        expect(result['api']).to eq({ 'timeout' => 10, 'enabled' => true })
+        expect(result['web']).to eq({ 'timeout' => 5, 'enabled' => true })
       end
 
       it 'handles nested hash structures properly' do
@@ -170,15 +170,49 @@ RSpec.describe Onetime::Config::Utils do
 
         result = described_class.apply_defaults_to_peers(config)
 
-        expect(result[:production]).to eq({
-          database: { timeout: 5, host: 'prod-db' },
-          cache: { ttl: 3600 }
+        expect(result['production']).to eq({
+          'database' => { 'timeout' => 5, 'host' => 'prod-db' },
+          'cache' => { 'ttl' => 3600 }
         })
 
-        expect(result[:staging]).to eq({
-          database: { timeout: 5 },
-          cache: { ttl: 1800 }
+        expect(result['staging']).to eq({
+          'database' => { 'timeout' => 5 },
+          'cache' => { 'ttl' => 1800 }
         })
+      end
+
+      it 'supports indifferent access patterns' do
+        config = {
+          defaults: { timeout: 5, enabled: true },
+          api: { timeout: 10 },
+          web: {},
+        }
+
+        result = described_class.apply_defaults_to_peers(config)
+
+        # Results are normalized to string keys
+        expect(result.keys).to all(be_a(String))
+        expect(result['api'].keys).to all(be_a(String))
+        expect(result['web'].keys).to all(be_a(String))
+
+        # Verify structure is correct
+        expect(result['api']['timeout']).to eq(10)
+        expect(result['web']['enabled']).to eq(true)
+      end
+
+      it 'handles mixed symbol/string input keys consistently' do
+        mixed_config = {
+          'defaults' => { timeout: 5, 'enabled' => true },
+          :api => { 'timeout' => 10 },
+          'web' => {},
+        }
+
+        result = described_class.apply_defaults_to_peers(mixed_config)
+
+        # All keys should be normalized to strings
+        expect(result.keys).to all(be_a(String))
+        expect(result['api'].keys).to all(be_a(String))
+        expect(result['web'].keys).to all(be_a(String))
       end
     end
   end

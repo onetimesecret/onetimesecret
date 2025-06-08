@@ -74,8 +74,8 @@ module Onetime
     # @return [Hash] The processed configuration has
     def after_load
 
-      # Create a deep copy of the configuration to prevent unintended mutations
-      local_copy = OT::Utils.deep_clone(unprocessed_config)
+      # Create a deep copy and normalize keys to strings
+      local_copy = OT::Utils.deep_merge({}, unprocessed_config)
 
       # Process colonels backwards compatibility
       process_colonels_compatibility!(local_copy)
@@ -92,40 +92,40 @@ module Onetime
     private
 
     def process_colonels_compatibility!(config)
-      # Ensure site.authentication exists
-      config[:site] ||= {}
-      config[:site][:authentication] ||= {}
+      # Ensure site.authentication exists (using string keys)
+      config['site'] ||= {}
+      config['site']['authentication'] ||= {}
 
-      # Handle colonels backwards compatibility
-      root_colonels = config.delete(:colonels)
-      auth_colonels = config[:site][:authentication][:colonels]
+      # Handle colonels backwards compatibility (handle both symbol and string keys)
+      root_colonels = config.delete('colonels') || config.delete(:colonels)
+      auth_colonels = config['site']['authentication']['colonels']
 
       if auth_colonels.nil?
         # No colonels in authentication, use root colonels or empty array
-        config[:site][:authentication][:colonels] = root_colonels || []
+        config['site']['authentication']['colonels'] = root_colonels || []
       elsif root_colonels
         # Combine existing auth colonels with root colonels
-        config[:site][:authentication][:colonels] = auth_colonels + root_colonels
+        config['site']['authentication']['colonels'] = auth_colonels + root_colonels
       end
     end
 
     def validate_critical_config!(config)
-      site_secret = config.dig(:site, :secret)
+      site_secret = config.dig('site', 'secret')
       if site_secret.nil? || site_secret == 'CHANGEME'
         raise OT::Problem, "Global secret cannot be nil or CHANGEME"
       end
     end
 
     def process_authentication_settings!(config)
-      auth_config = config.dig(:site, :authentication)
+      auth_config = config.dig('site', 'authentication')
       return unless auth_config
 
       # If authentication is disabled, set all auth sub-features to false
-      unless auth_config[:enabled]
-        auth_config[:colonels] = false
-        auth_config[:signup] = false
-        auth_config[:signin] = false
-        auth_config[:autoverify] = false
+      unless auth_config['enabled']
+        auth_config['colonels'] = false
+        auth_config['signup'] = false
+        auth_config['signin'] = false
+        auth_config['autoverify'] = false
       end
     end
 
