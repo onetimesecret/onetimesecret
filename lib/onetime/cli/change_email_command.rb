@@ -1,7 +1,7 @@
-# lib/onetime/cli/change_email.rb
+# lib/onetime/cli/change_email_command.rb
 
 module Onetime
-  class CLI < Drydock::Command
+  class ChangeEmailCommand < Drydock::Command
 
     # CLI command to view email change reports
     def change_email_log

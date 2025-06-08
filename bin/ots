@@ -53,25 +53,25 @@ class OT::CLI::Definition
   usage 'ots migrate MIGRATION_SCRIPT [--run]'
   about 'Run a migration script from the migrate/ directory'
   option :r, :run, "Actually apply changes (default is dry run mode)"
-  command migrate: OT::CLI
+  command migrate: OT::MigrateCommand
 
   usage 'ots move-keys SOURCEDB TARGETDB [filter]'
-  command move_keys: OT::CLI
+  command move_keys: OT::MoveKeysCommand
 
   usage 'ots customers'
   option :l, :list, "List customer domains (by count)"
   option :c, :check, "Show customer records where custid and email do not match (obscured)"
-  command customers: OT::CLI
+  command customers: OT::CustomersCommand
 
   usage 'ots domains'
   option :l, :list, "List domains"
-  command domains: OT::CLI
+  command domains: OT::DomainsCommand
 
   usage 'ots revalidate-domains'
   about 'Revalidate domain verification status. Optionally specify a domain and/or customer_id.'
   option :d, :domain, String, "Domain to revalidate"
   option :c, :custid, String, "Customer ID to revalidate"
-  command revalidate_domains: OT::CLI
+  command revalidate_domains: OT::DomainsCommand
 
   usage "ots change-email OLD_EMAIL NEW_EMAIL [REALM]"
   about "Change customer email address and update all related records"
@@ -89,13 +89,13 @@ class OT::CLI::Definition
   about "  Note: Custom domains associated with this customer will be"
   about "  automatically detected and updated."
   about ""
-  command change_email: OT::CLI
+  command change_email: OT::ChangeEmailCommand
 
   usage "ots change-email-log [EMAIL] [--limit N]"
   about "View history of email address changes"
   about "Use global --verbose to display full change reports"
   option :n, :limit, Integer, "Limit number of reports to show (default: 10)"
-  command change_email_log: OT::CLI
+  command change_email_log: OT::ChangeEmailCommand
 
   usage 'ots initializers [--dependencies]'
   about 'Display boot-time initializers in order'
