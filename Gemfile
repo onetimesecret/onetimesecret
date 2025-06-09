@@ -84,14 +84,15 @@ gem 'stackprof', require: false
 
 group :development do
   gem 'byebug', require: false
-  gem 'byebug-dap', require: false
+  # Enable for Debug Adapter Protocol. Not included with the development group
+  # group because it lags on byebug version.
+  # gem 'byebug-dap', require: false
   gem 'pry', require: false
   gem 'pry-byebug', require: false
   gem 'rack-proxy', require: false
   gem 'rubocop-performance', require: false
   gem 'rubocop-rspec', require: false
   gem 'rubocop-thread_safety', require: false
-  gem 'tryouts', require: false
 end
 
 group :test do
@@ -102,6 +103,7 @@ group :test do
   %w[rspec-core rspec-expectations rspec-mocks rspec-support].each do |lib|
     gem lib, git: "https://github.com/rspec/rspec", glob: "#{lib}/#{lib}.gemspec"
   end
+  gem 'tryouts', require: false
 end
 
 # Optional alternate server - install with: bundle install --with optional
