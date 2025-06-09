@@ -1,9 +1,9 @@
-<!-- src/components/logos/DefaultLogo.vue -->
+<!-- src/components/logos/LegacyLogo.vue -->
 
 <script setup lang="ts">
   import { computed } from 'vue';
   import { useI18n } from 'vue-i18n';
-  import MonotoneJapaneseSecretButton from '@/components/icons/MonotoneJapaneseSecretButtonIcon.vue';
+  import OnetimeSecretIcon from '@/components/icons/OnetimeSecretIcon.vue';
 
 import { type LogoConfig } from '@/types/ui/layouts';
 
@@ -41,9 +41,10 @@ import { type LogoConfig } from '@/types/ui/layouts';
     :aria-label="ariaLabel">
     <a
       :href="props.href"
+      :aria-label="ariaLabel"
       class="flex items-center gap-3">
       <!-- Logo Mark -->
-      <MonotoneJapaneseSecretButton
+      <OnetimeSecretIcon
         :size="svgSize"
         :aria-label="ariaLabel"
         :title="t('default-logo-icon')"
