@@ -36,11 +36,12 @@ module Onetime
     # loading all or any of the models.
     #
     def boot!(mode = nil, connect_to_db = true)
+      OT.ld "[BOOT] Initializing Onetime application in '#{OT.mode}' mode"
+
       prepare_onetime_namespace(mode)
 
-      OT.ld "[BOOT] Initializing Onetime application in '#{OT.mode}' mode"
-      conf = OT::Config.load!
-
+      config = OT::Config.load!
+      require 'pry-byebug'; binding.pry;
       OT.ld "[BOOT] Configuration loaded from #{conf.config_path}"
 
       # TODO: Re-enable
@@ -54,7 +55,8 @@ module Onetime
       # })
 
       if OT.conf.nil?
-        OT.le "[BOOT] ERROR: Configuration failed to load"
+        OT.le "[BOOT] Configuration failed to load and validate"
+        OT.le "[BOOT] Has the schema been generated? Run `pnpm run schema:generate`"
       else
         OT.ld "[BOOT] Completing initialization process..."
         Onetime.complete_initialization!
@@ -99,7 +101,7 @@ module Onetime
     def handle_boot_error(error)
       case error
       when OT::ConfigValidationError
-        # ConfigValidationError already includes formatted messages and problematic paths
+        # ConfigValidationError includes detailed information about the error
         OT.le "Configuration validation failed during boot"
         OT.le error.message
       when OT::ConfigError
