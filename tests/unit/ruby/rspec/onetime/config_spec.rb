@@ -1,5 +1,14 @@
 # tests/unit/ruby/rspec/onetime/config_spec.rb
 
+# Zed task for running rspec on the whole file:
+# , t f
+#
+# Based on the current line:
+# , t r
+#
+# Re-run task
+# alt-cmd+r
+
 require_relative '../spec_helper'
 
 RSpec.describe Onetime::Config do
@@ -247,6 +256,7 @@ RSpec.describe Onetime::Config do
     end
   end
 
+  # , t r
   describe '#after_load' do
     let(:config_instance) { described_class.new }
 
@@ -503,7 +513,7 @@ RSpec.describe Onetime::Config do
         mock_config = {
           site: { secret: 'test-secret' },
           development: {},
-          mail: { truemail: {} }
+          mail: { truemail: {} },
         }
 
         allow_any_instance_of(described_class).to receive(:load_config).and_return(mock_config)
