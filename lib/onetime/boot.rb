@@ -45,7 +45,7 @@ module Onetime
 
       config = OT::Config.load!
 
-      OT.ld "[BOOT] Configuration loaded from #{conf.config_path}"
+      OT.ld "[BOOT] Configuration loaded from #{config.config_path}"
 
       # TODO: Re-enable
       #

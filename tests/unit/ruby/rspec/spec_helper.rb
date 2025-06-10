@@ -15,7 +15,7 @@ unless defined?(APPS_ROOT)
 
   # Add the apps dirs to the load path. This allows us to require
   # 'v2/logic' naturally (without needing the 'apps/api' prefix).
-  %w{api web}.map { |name| $LOAD_PATH.unshift(File.join(APPS_ROOT, name)) }
+  %w{api web}.each { |name| $LOAD_PATH.unshift(File.join(APPS_ROOT, name)) }
 
   # Add the lib directory for the core project.
   LIB_ROOT = File.join(project_root, 'lib').freeze

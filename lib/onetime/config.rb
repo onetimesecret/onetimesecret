@@ -91,7 +91,7 @@ module Onetime
       # # Stage 2: Business logic processing + Stage 3: Re-validation.
       # Processing may violate schema constraints, so we validate the result.
 
-      local_copy = validate_with_schema(local_copy, schema)
+      local_copy = OT::Config::Utils.validate_with_schema(local_copy, schema)
       @processed_config = OT::Utils.deep_freeze(local_copy)
     end
 
