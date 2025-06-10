@@ -56,13 +56,24 @@ module Onetime
       #   config: conf,
       # })
 
+      # We have enough configuration to boot at this point. When do
+      # merge with the configuration from the database? Or is that the
+      # responsibility of the initializers? TODO: Find a way forward
+      # NOTE: We need to reduce the number of initializers and make the run hotter
+      #
+      # Somewhere between here and:
+      # apps/web/frontend/views/helpers/initialize_view_vars.rb
+      #
+      # In the current state of config that we have here, the app boots up
+      # and serves requests (not the error middleware, gets passed that),
+      # and then responds with 400 and an angry [view_vars] "Site config is missing field: host"
       @conf = config.configuration
 
       if OT.conf.nil?
-        OT.le "[BOOT] Configuration failed to load and validate"
-        OT.le "[BOOT] Has the schema been generated? Run `pnpm run schema:generate`"
+        OT.le '[BOOT] Configuration failed to load and validate'
+        OT.le '[BOOT] Has the schema been generated? Run `pnpm run schema:generate`'
       else
-        OT.ld "[BOOT] Completing initialization process..."
+        OT.ld '[BOOT] Completing initialization process...'
         Onetime.complete_initialization!
         OT.li "[BOOT] Startup completed successfully (instance: #{@instance})"
       end
@@ -106,7 +117,7 @@ module Onetime
       case error
       when OT::ConfigValidationError
         # ConfigValidationError includes detailed information about the error
-        OT.le "Configuration validation failed during boot"
+        OT.le 'Configuration validation failed during boot'
         OT.le error.message
       when OT::ConfigError
         OT.le "Configuration error during boot: #{error.message}"

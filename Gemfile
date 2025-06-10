@@ -48,7 +48,7 @@ gem 'encryptor', '= 1.1.3'
 
 gem 'httparty'
 
-gem "fastimage", "~> 2.4"
+gem 'fastimage', '~> 2.4'
 gem 'mail'
 gem 'net-imap', '~> 0.5.7'
 
@@ -76,7 +76,7 @@ gem 'reline'
 # Third-party services
 gem 'aws-sdk-sesv2', '~> 1.74'
 gem 'sendgrid-ruby'
-gem "sentry-ruby", require: false
+gem 'sentry-ruby', require: false
 gem 'stripe', require: false
 
 group :development do
@@ -96,12 +96,12 @@ group :development do
 end
 
 group :test do
-  gem "fakeredis", :require => "fakeredis/rspec"
+  gem 'fakeredis', :require => 'fakeredis/rspec'
   gem 'rack-test', require: false
-  gem 'rspec', git: "https://github.com/rspec/rspec"
+  gem 'rspec', git: 'https://github.com/rspec/rspec'
   gem 'simplecov', require: false
   %w[rspec-core rspec-expectations rspec-mocks rspec-support].each do |lib|
-    gem lib, git: "https://github.com/rspec/rspec", glob: "#{lib}/#{lib}.gemspec"
+    gem lib, git: 'https://github.com/rspec/rspec', glob: "#{lib}/#{lib}.gemspec"
   end
   gem 'tryouts', require: false
 end

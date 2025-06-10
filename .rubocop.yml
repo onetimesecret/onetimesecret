@@ -34,6 +34,14 @@ Style/TrailingCommaInHashLiteral:
   Enabled: true
   EnforcedStyleForMultiline: comma
 
+# Offense count: 189
+# This cop supports safe autocorrection (--autocorrect).
+# Configuration parameters: EnforcedStyle, ConsistentQuotesInMultiline.
+# SupportedStyles: single_quotes, double_quotes
+Style/StringLiterals:
+  Enabled: true
+  EnforcedStyle: single_quotes
+
 # The Style/DoubleNegation cop is disabled because double negation provides
 # a concise, idiomatic way to convert values to boolean in Ruby. Alternative
 # approaches like ternary expressions or comparison with nil create unnecessary
@@ -49,6 +57,32 @@ Gemspec/DeprecatedAttributeAssignment:
   Enabled: true
 
 Gemspec/DevelopmentDependencies:
+  Enabled: true
+
+# Offense count: 9
+# This cop supports safe autocorrection (--autocorrect).
+# Configuration parameters: EnforcedStyleAlignWith, Severity.
+# SupportedStylesAlignWith: keyword, variable, start_of_line
+Layout/EndAlignment:
+  Enabled: false
+
+# Offense count: 23
+# This cop supports safe autocorrection (--autocorrect).
+# Configuration parameters: AllowForAlignment, AllowBeforeTrailingComments, ForceEqualSignAlignment.
+Layout/ExtraSpacing:
+  Enabled: false
+
+# Offense count: 7
+# This cop supports safe autocorrection (--autocorrect).
+# Configuration parameters: EnforcedStyle.
+# SupportedStyles: normal, indented_internal_methods
+Layout/IndentationConsistency:
+  Enabled: true
+
+# Offense count: 7
+# This cop supports safe autocorrection (--autocorrect).
+# Configuration parameters: Width, AllowedPatterns.
+Layout/IndentationWidth:
   Enabled: true
 
 Layout/HashAlignment:

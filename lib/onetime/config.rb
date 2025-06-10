@@ -25,7 +25,6 @@ module Onetime
 
     # This lets local project settings override user settings, which
     # override system defaults. It's the standard precedence.
-    #
     @paths = [
       File.join(Dir.pwd, 'etc'), # 1. current working directory
       File.join(Onetime::HOME, 'etc'), # 2. onetimesecret/etc
@@ -50,12 +49,12 @@ module Onetime
       normalize_environment
 
       @schema = load_schema
+      # We validate before returning the config so that we're not inadvertently
+      # sending back configuration of unknown provenance. This is Stage 1 of
+      # our two-stage validation process. In addition to confirming the
+      # correctness, this validation also applies default values.
       @configuration = config_path
         .then { |path| read_template_file(path) }
-        # We validate before returning the config so that we're not inadvertently
-        # sending back configuration of unknown provenance. This is Stage 1 of
-        # our two-stage validation process. In addition to confirming the
-        # correctness, this validation also applies default values.
         .then { |template| render_erb_template(template) }
         .then { |yaml_content| parse_yaml(yaml_content) }
         .then { |config| validate_with_defaults(config) }
@@ -160,7 +159,7 @@ module Onetime
 
     def _validate(config, **)
       unless config.is_a?(Hash) && schema.is_a?(Hash)
-        raise ArgumentError, "Invalid configuration format"
+        raise ArgumentError, 'Invalid configuration format'
       end
       # loggable_config = OT::Utils.type_structure(config)
       # OT.ld "[Config] Validating #{loggable_config.size} #{schema.size}"
@@ -171,7 +170,7 @@ module Onetime
     # configuration. In some cases, this might include setting default values
     # and ensuring necessary environment variables are present.
     def normalize_environment
-      OT.ld "[Config] Normalizing environment variables"
+      OT.ld '[Config] Normalizing environment variables'
       # In v0.20.6, REGIONS_ENABLE was renamed to REGIONS_ENABLED for
       # consistency. We ensure both are considered for compatability.
       set_value = ENV.values_at('REGIONS_ENABLED', 'REGIONS_ENABLE').compact.first
