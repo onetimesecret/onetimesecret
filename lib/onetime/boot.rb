@@ -41,7 +41,7 @@ module Onetime
       prepare_onetime_namespace(mode)
 
       config = OT::Config.load!
-      require 'pry-byebug'; binding.pry;
+
       OT.ld "[BOOT] Configuration loaded from #{conf.config_path}"
 
       # TODO: Re-enable
