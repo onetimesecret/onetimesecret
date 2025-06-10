@@ -1,18 +1,9 @@
+# /Users/d/Projects/opensource/onetime/onetimesecret/lib/onetime/initializers/load_fortunes.rb
 # lib/onetime/initializers/load_fortunes.rb
-
-require 'onetime/refinements/hash_refinements'
-
 module Onetime
   module Initializers
-    module LoadFortunes
-
-      using IndifferentHashAccess
-
-      def self.run(options = {})
-        OT::Utils.fortunes ||= File.readlines(File.join(Onetime::HOME, 'etc', 'fortunes'))
-        OT.ld "[initializer] Fortunes loaded (#{OT::Utils.fortunes.length} entries)"
-      end
-
+    def load_fortunes
+      OT::Utils.fortunes ||= File.readlines(File.join(Onetime::HOME, 'etc', 'fortunes'))
     end
   end
 end
