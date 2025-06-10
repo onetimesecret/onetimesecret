@@ -46,9 +46,9 @@ gem 'redis', '~> 5.4.0'
 gem 'bcrypt'
 gem 'encryptor', '= 1.1.3'
 
-gem 'httparty'
-
 gem 'fastimage', '~> 2.4'
+gem 'hashdiff'
+gem 'httparty'
 gem 'mail'
 gem 'net-imap', '~> 0.5.7'
 

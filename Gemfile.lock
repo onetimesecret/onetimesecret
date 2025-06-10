@@ -91,6 +91,7 @@ GEM
       attic (~> 1.0)
       rake (~> 13.0)
     hana (1.3.7)
+    hashdiff (1.2.0)
     httparty (0.23.1)
       csv
       mini_mime (>= 1.0.0)
@@ -279,6 +280,7 @@ DEPENDENCIES
   fastimage (~> 2.4)
   fiddle
   gibbler
+  hashdiff
   httparty
   irb
   json_schemer
