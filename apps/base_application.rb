@@ -59,8 +59,8 @@ class BaseApplication
     # @return [void]
     def inherited(subclass)
       # Keep track subclasses without immediate registration
-      AppRegistry.track_application(subclass)
-      OT.ld "BaseApplication.inherited: #{subclass} registered with AppRegistry"
+      AppRegistry.register_application_class(subclass)
+      OT.ld "[BaseApplication.inherited] #{subclass} registered"
     end
 
     def use(klass, *args, &block)

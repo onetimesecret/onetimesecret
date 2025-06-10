@@ -6,8 +6,11 @@ module Onetime
       extend self
 
       def json_load_file(path)
-        json = File.read(path)
-        json_load(json)
+        json_load(file_read(path))
+      end
+
+      def yaml_load_file(path)
+        yaml_load(file_read(path))
       end
 
       def json_load(json)
@@ -17,23 +20,17 @@ module Onetime
         raise OT::ConfigError, "Invalid JSON schema: #{e.message}"
       end
 
-      def yaml_load_file(path)
-        yaml = File.read(path)
-        yaml_load(yaml)
-      end
-
       def yaml_load(yaml)
         YAML.safe_load(yaml, permitted_classes: [Symbol])
       rescue Psych::SyntaxError => e
         OT.le "Error parsing YAML: #{e.message}"
-        raise OT::ConfigError, "Invalid YAML schema: #{e.message}"
+        raise OT::ConfigError, "Invalid YAML schema"
       end
 
       def file_read(path)
-        File.read(path)
+        File.read(path.to_s)
       rescue Errno::ENOENT => e
-        OT.le "Config file not found: #{path}"
-        raise ArgumentError, "Configuration file not found: #{path}"
+        raise OT::ConfigError, "File not found: #{path || '<nil>'}"
       end
     end
   end

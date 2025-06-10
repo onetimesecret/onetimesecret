@@ -18,9 +18,6 @@ $LOAD_PATH.unshift(File.join(APP_DIR, 'web'))
 require_relative '../onetime'
 require_relative '../onetime/models'
 
-Onetime.info 'Calling Onetime.boot!...'
-Onetime.boot! :cli
-
 # Customize the prompt
 if defined?(IRB)
   require "irb/completion"
@@ -42,15 +39,36 @@ if defined?(IRB)
 
   # Additional IRB settings
   IRB.conf[:AUTO_INDENT] = true
-  IRB.conf[:ECHO] = true
   IRB.conf[:BACK_TRACE_LIMIT] = 25
-  IRB.conf[:SAVE_HISTORY] = 0
-  IRB.conf[:HISTORY_FILE] = nil
+  IRB.conf[:ECHO] = true
+  IRB.conf[:HISTORY_FILE] = nil if IRB.conf[:HISTORY_FILE].nil?
   IRB.conf[:IGNORE_EOF] = false
-  IRB.conf[:USE_PAGER] = true
-
-  puts
-  puts "Onetime console loaded (additional settings applied: #{IRB.conf[:RC]})."
-  puts "History not saved. Use 'ctrl-d' to quit."
-  puts
+  IRB.conf[:SAVE_HISTORY] = 0 if IRB.conf[:SAVE_HISTORY].nil?
+  IRB.conf[:USE_PAGER] = true if IRB.conf[:USE_PAGER].nil?
 end
+
+Onetime.boot! :cli
+
+# IRB.conf[:RC] indicates whether an RC file (.irbrc) was
+# loaded during IRB initialization
+has_settings = !IRB.conf[:RC].nil?
+has_history = IRB.conf[:SAVE_HISTORY] > 0
+use_pager = IRB.conf[:USE_PAGER]
+puts
+puts "╔═══════════════════════════════════════════════════════════════╗"
+puts "║                                                               ║"
+puts "║    ██████  ███    ██ ███████ ████████ ██ ███    ███ ███████   ║"
+puts "║   ██    ██ ████   ██ ██         ██    ██ ████  ████ ██        ║"
+puts "║   ██    ██ ██ ██  ██ █████      ██    ██ ██ ████ ██ █████     ║"
+puts "║   ██    ██ ██  ██ ██ ██         ██    ██ ██  ██  ██ ██        ║"
+puts "║    ██████  ██   ████ ███████    ██    ██ ██      ██ ███████   ║"
+puts "║                                                               ║"
+puts "╚═══════════════════════════════════════════════════════════════╝"
+puts
+puts "  Console Status:"
+puts "    → Settings: #{has_settings ? '✅ Applied (~/.irbrc)' : '❌ Default'}"
+puts "    → History:  #{has_history ? '✅ Enabled' : '❌ Disabled'}"
+puts "    → Pager:    #{use_pager ? '✅ Enabled' : '❌ Disabled'}"
+puts
+puts "  Use 'ctrl-d' to quit."
+puts

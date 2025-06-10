@@ -22,7 +22,7 @@ import { DiagnosticsConfig } from '../diagnostics';
  * each time a full page load is performed.
  *
  * The corresponding Ruby backend code can be found in:
- * lib/onetime/app/web/views/base.rb
+ * lib/onetime/app/web/frontend/views/base.rb
  *
  * Implementation:
  * - Backend injects data via JSON <script> tag in the HTML header
