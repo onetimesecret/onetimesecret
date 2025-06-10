@@ -1,6 +1,6 @@
-# apps/web/core/views/serializers/messages_serializer.rb
+# apps/web/frontend/views/serializers/messages_serializer.rb
 
-module Core
+module Frontend
   module Views
 
     # Serializes flash messages and global notifications for the frontend

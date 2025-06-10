@@ -1,8 +1,8 @@
-# apps/web/core/views/serializers/authentication_serializer.rb
+# apps/web/frontend/views/serializers/authentication_serializer.rb
 
 require 'onetime/utils'
 
-module Core
+module Frontend
   module Views
     # Serializes authentication-related data for the frontend
     #

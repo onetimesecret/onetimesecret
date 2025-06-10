@@ -1,6 +1,6 @@
 # tests/unit/ruby/rspec/config/i18n_spec.rb
 
-# e.g. pnpm run rspec tests/unit/ruby/rspec/config/i18n_spec.rb
+# e.g. pnpm run test:rspec tests/unit/ruby/rspec/config/i18n_spec.rb
 
 require_relative '../../spec_helper'
 

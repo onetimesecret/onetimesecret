@@ -1,4 +1,4 @@
-# apps/web/core/views/serializers/registry.rb
+# apps/web/frontend/views/serializers/registry.rb
 
 require 'tsort'
 
@@ -20,7 +20,7 @@ require 'tsort'
 #   SerializerRegistry.register(JavaScriptVars, [HTMLTags]) # Depends on HTMLTags
 #   SerializerRegistry.register(UserData, [JavaScriptVars]) # Depends on JavaScriptVars
 #   SerializerRegistry.register(I18nData)
-module Core
+module Frontend
   module Views
     class SerializerRegistry
       extend TSort

@@ -1,6 +1,6 @@
-# apps/web/core/views/serializers/plan_serializer.rb
+# apps/web/frontend/views/serializers/plan_serializer.rb
 
-module Core
+module Frontend
   module Views
 
     # Serializes subscription plan data for the frontend

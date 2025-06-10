@@ -28,7 +28,7 @@
 #   │   │   └── v2/application.rb
 #   │   │
 #   │   ├── web/
-#   │   │   └── core/application.rb
+#   │   │   └── frontend/application.rb
 #   │   │
 #   │   ├── app_registry.rb
 #   │   ├── base_application.rb

@@ -1,6 +1,6 @@
-# apps/web/core/views/helpers/initialize_view_vars.rb
+# apps/web/frontend/views/helpers/initialize_view_vars.rb
 
-module Core
+module Frontend
   module Views
 
 

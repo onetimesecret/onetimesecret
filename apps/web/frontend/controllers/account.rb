@@ -1,8 +1,8 @@
-# apps/web/core/controllers/account.rb
+# apps/web/frontend/controllers/account.rb
 
 require_relative 'base'
 
-module Core
+module Frontend
   module Controllers
     class Account
       include Controllers::Base

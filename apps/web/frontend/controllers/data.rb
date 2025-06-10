@@ -1,8 +1,8 @@
-# apps/web/core/controllers/data.rb
+# apps/web/frontend/controllers/data.rb
 
 require_relative 'base'
 
-module Core
+module Frontend
   module Controllers
     class Data
       include Controllers::Base
@@ -10,7 +10,7 @@ module Core
       def export_window
         publically do
           OT.ld "[export_window] authenticated? #{sess.authenticated?}"
-          view = Core::Views::ExportWindow.new req, sess, cust, locale
+          view = Frontend::Views::ExportWindow.new req, sess, cust, locale
           sess.event_incr! :get_page
           res.header['Content-Type'] = "application/json; charset=utf-8"
           res.body = view.serialized_data.to_json
@@ -24,7 +24,7 @@ module Core
             logic.raise_concerns
             logic.process
             req.params.clear
-            view = Core::Views::Incoming.new req, sess, cust, locale
+            view = Frontend::Views::Incoming.new req, sess, cust, locale
             view.add_message view.i18n[:page][:incoming_success_message]
             res.body = view.render
           else

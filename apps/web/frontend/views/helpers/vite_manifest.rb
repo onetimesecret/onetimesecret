@@ -1,6 +1,6 @@
-# apps/web/core/views/helpers/vite_manifest.rb
+# apps/web/frontend/views/helpers/vite_manifest.rb
 
-module Core
+module Frontend
   module Views
     # ViteManifest handles asset loading for Vite-managed frontend assets.
     #
