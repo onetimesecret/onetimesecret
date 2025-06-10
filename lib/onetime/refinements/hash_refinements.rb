@@ -113,17 +113,20 @@ module ThenWithDiff
 
       # Get previous state from last record
       last_record_json = ThenWithDiff.history.last
-      previous_state = last_record_json ? JSON.parse(last_record_json)['hash'] : {}
+      last_record = last_record_json ? JSON.parse(last_record_json) : {}
+      previous_state = last_record['content'] || last_record['hash'] || {}
 
       diff = Hashdiff.diff(previous_state, result, ThenWithDiff.options)
       OT.ld "[then_with_diff] #{step_name}: #{diff.size} changes" unless diff.empty?
 
       # Store as simple hash, serialized to JSON
       record = {
+        mode: OT.mode,
+        instance: OT.instance,
         step_name: step_name,
-        created: OT.now.to_i,
         diff: diff,
-        hash: OT::Utils.deep_clone(result).freeze,
+        content: OT::Utils.deep_clone(result).freeze,
+        created: OT.now.to_i,
       }
 
       ThenWithDiff.history << record.to_json
