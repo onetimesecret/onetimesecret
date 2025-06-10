@@ -20,7 +20,7 @@ module Onetime
   # 3. Re-validation (declarative) - ensures processing didn't break schema
   class Config
     using IndifferentHashAccess
-    using ThenRehash
+    using ThenWithDiff
 
     @xdg = XDG::Environment.new
 
@@ -64,10 +64,10 @@ module Onetime
         .then { |path| read_template_file(path) }
         .then { |template| render_erb_template(template) }
         .then { |yaml_content| parse_yaml(yaml_content) }
-        .then_rehash('validate_with_defaults') { |config| validate_with_defaults(config) }
-        .then_rehash('after_load') { |config| after_load(config) }
-        .then_rehash('validate') { |config| validate(config) }
-        .then { |config| deep_freeze(config) }
+        .then_with_diff('initial') { |config| validate_with_defaults(config) }
+        .then_with_diff('processed') { |config| after_load(config) }
+        .then_with_diff('validated') { |config| validate(config) }
+        .then_with_diff('freezed') { |config| deep_freeze(config) }
 
       self
     rescue OT::ConfigError => e
@@ -134,7 +134,7 @@ module Onetime
     end
 
     def deep_freeze(config)
-      OT.ld("[Config] Deep freezing (#{config.size} sections)")
+      OT.ld("[Config] Deep freezing (#{config.size} sections; already frozen: #{config.frozen?})")
       OT::Utils.deep_freeze(config)
     end
 
