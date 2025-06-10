@@ -35,7 +35,10 @@ module Onetime
     # is useful for testing or when you want to run code without necessary
     # loading all or any of the models.
     #
-    def boot!(mode = nil, connect_to_db = true)
+    # Application models need to be loaded before booting so that each one gets
+    # a database connection. It can't connect models it doesn't know about.
+    #
+    def boot!(mode = :app, connect_to_db = true)
       OT.ld "[BOOT] Initializing Onetime application in '#{OT.mode}' mode"
 
       prepare_onetime_namespace(mode)
