@@ -20,47 +20,47 @@ require 'onetime'
 require 'onetime/middleware'
 
 module AppRegistry
-  # Simple hash to store mount paths
-  @applications = []
-  @mounts = {}
+  @application_classes = []
+  @mount_mappings = {}
 
   class << self
-    attr_reader :applications, :mounts
+    attr_reader :application_classes, :mount_mappings
 
-    def track_application(app_class)
-      @applications << app_class unless @applications.include?(app_class)
-      OT.ld "AppRegistry tracking application: #{app_class}"
+    def register_application_class(app_class)
+      @application_classes << app_class unless @application_classes.include?(app_class)
+      OT.ld "[AppRegistry] Registered application: #{app_class}"
     end
 
-    def initialize_applications
-      discover_applications
-      map_applications_to_routes
+    # Discover and map application classes to their respective routes
+    def prepare_application_registry
+      find_application_files
+      create_mount_mappings
     rescue => e
-      OT.le "APPLICATION REGISTRY ERROR: #{e.class}: #{e.message}"
+      OT.le "[AppRegistry] ERROR: #{e.class}: #{e.message}"
       OT.ld e.backtrace.join("\n")
 
       Onetime.not_ready!
     end
 
-    # Build rack application map
-    def build
-      mounts.transform_values { |app_class| app_class.new }
-    end
-
-    def discover_applications
-      paths = Dir.glob(File.join(APPS_ROOT, '**/application.rb'))
-      OT.ld "[app_registry] Found #{paths.join(', ')}"
-      paths.each { |f| require f }
+    def create_rack_application_map
+      mappings = mount_mappings.transform_values { |app_class| app_class.new }
+      Rack::URLMap.new(mappings)
     end
 
     private
 
+    def find_application_files
+      filepaths = Dir.glob(File.join(APPS_ROOT, '**/application.rb'))
+      OT.ld "[AppRegistry] Scan found #{filepaths.size} application(s)"
+      filepaths.each { |f| require f }
+    end
+
     # Maps all discovered application classes to their URL routes
     # @return [Array<Class>] Registered application classes
-    def map_applications_to_routes
-      OT.li "Mapping #{applications.size} application(s) to routes"
+    def create_mount_mappings
+      OT.li "Mapping #{application_classes.size} application(s) to routes"
 
-      applications.each do |app_class|
+      application_classes.each do |app_class|
         mount = app_class.uri_prefix
 
         unless mount.is_a?(String)
@@ -71,13 +71,12 @@ module AppRegistry
         register(mount, app_class)
       end
 
-      applications
+      application_classes
     end
 
     # Register an application with its mount path
     def register(path, app_class)
-      @mounts[path] = app_class
+      @mount_mappings[path] = app_class
     end
-
   end
 end

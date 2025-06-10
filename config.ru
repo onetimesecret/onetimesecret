@@ -1,6 +1,6 @@
 # config.ru
 #
-# Main Rack configuration file for the Onetime Secret application.
+# Main Rack configuration file for the Onetime Secret project.
 # This file orchestrates the entire application stack, sets up middleware,
 # and defines the application's runtime environment.
 #
@@ -11,53 +11,38 @@
 #   $ puma -C puma.rb
 # ```
 #
-# Application Structure:
+# Project Structure:
 # ```
 #   /
 #   ├── apps/
+#   │   ├── app_registry.rb
 #   │   ├── api/
 #   │   │   ├── v1/
-#   │   │   │   ├── config.ru       # V1 API registration
 #   │   │   │   └── application.rb
 #   │   │   └── v2/
-#   │   │       ├── config.ru       # V2 API registration
 #   │   │       └── application.rb
-#   │   │
 #   │   └── web/
-#   │       ├── core/
-#   │       │   ├── config.ru       # Core web app registration
-#   │       │   └── application.rb
-#   │       ├── config.ru           # Web app registration
-#   │       └── application.rb
+#   │       └── core/
+#   │           └── application.rb
 #   │
 #   ├── lib/
-#   │   ├── app_registry.rb         # Application registry implementation
-#   │   └── onetime.rb              # Core Onetime Secret library
+#   │   └── onetime.rb
 #   │
-#   └── config.ru                   # Main Rack configuration
+#   └── config.ru
 # ```
 #
 
-# Environment Configuration
-# -------------------------------
-# Set default environment variables and establish directory structure constants.
-# These fundamentals ensure the application knows where to find its resources.
+# Establish the environment
 ENV['RACK_ENV'] ||= 'production'
 ENV['ONETIME_HOME'] ||= File.expand_path(__dir__).freeze
 
 require_relative 'apps/app_registry'
 
+# Application models need to be loaded before booting
+AppRegistry.prepare_application_registry
 
-# Bootstrap the Application
-# -------------------------------
-# Applications must be loaded before boot to ensure all Familia models
-# are properly registered. This sequence is critical for establishing
-# database connections for all model classes.
+# Bootstrap the application
 Onetime.safe_boot! :app
 
-# Discover and map application modules to their routes
-AppRegistry.initialize_applications
-
 # Application Mounting
-# Map all registered applications to their respective URI paths
-run Rack::URLMap.new(AppRegistry.build)
+run AppRegistry.create_rack_application_map
