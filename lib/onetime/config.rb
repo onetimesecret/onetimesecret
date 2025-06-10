@@ -44,7 +44,7 @@ module Onetime
 
     # States:
     attr_reader :unprocessed_config, :validated_config, :schema, :parsed_template
-    attr_reader :rendered_yaml, :config_template_str, :processed_config
+    attr_reader :parsed_yaml, :config_template_str, :processed_config
 
     def load!
       normalize_environment
@@ -102,7 +102,7 @@ module Onetime
     #
     def parse_yaml(content)
       OT.ld("[Config] Parsing YAML content (#{content.size} bytes)")
-      @rendered_yaml = OT::Config::Load.yaml_load(content)
+      @parsed_yaml = OT::Config::Load.yaml_load(content)
     end
 
     # Configuration processing can introduce new failure modes so we validate
@@ -150,8 +150,8 @@ module Onetime
         end
       end
 
-      OT.ld "[Config] Template: #{@template_str}" if @template_str
-      OT.ld "[Config] Rendered: #{@rendered_yaml}" if @rendered_yaml
+      OT.ld "[Config] Template: `#{@template_str[0..50]}`" if @template_str
+      OT.ld "[Config] Parsed YAML: #{@parsed_yaml.class}" if @parsed_yaml
       if unprocessed_config
         loggable_config = OT::Utils.type_structure(unprocessed_config)
         OT.ld "[Config] Parsed: #{loggable_config}"
