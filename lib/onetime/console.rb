@@ -17,6 +17,15 @@ $LOAD_PATH.unshift(File.join(APP_DIR, 'web'))
 # Only load what's necessary for successful interactive startup
 require_relative '../onetime'
 require_relative '../onetime/models'
+require_relative '../onetime/refinements/hash_refinements'
+
+# # Create a custom workspace with your loaded environment
+# workspace = IRB::WorkSpace.new(binding)
+# irb = IRB::Irb.new(workspace)
+
+# # Start the session
+# IRB.conf[:MAIN_CONTEXT] = irb.context
+# irb.eval_input
 
 # Customize the prompt
 if defined?(IRB)
@@ -28,7 +37,9 @@ if defined?(IRB)
     PROMPT_N: "⇢  ",    # The prompt for nested statements
     RETURN: "⮑  %s\n",         # The format for return values
   }
-
+  IRB.conf[:IRB_RC] = proc do |context|
+    context.workspace.binding.eval("using IndifferentHashAccess")
+  end
   # Set the global prompt mode to :ONETIME
   IRB.conf[:PROMPT_MODE] = :ONETIME
 
@@ -72,3 +83,5 @@ puts "    → Pager:    #{use_pager ? '✅ Enabled' : '❌ Disabled'}"
 puts
 puts "  Use 'ctrl-d' to quit."
 puts
+
+using IndifferentHashAccess
