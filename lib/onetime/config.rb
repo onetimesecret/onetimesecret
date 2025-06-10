@@ -20,6 +20,7 @@ module Onetime
   # 3. Re-validation (declarative) - ensures processing didn't break schema
   class Config
     using IndifferentHashAccess
+    using ThenRehash
 
     @xdg = XDG::Environment.new
 
@@ -54,12 +55,18 @@ module Onetime
       # our two-stage validation process. In addition to confirming the
       # correctness, this validation also applies default values.
       @configuration = config_path
+        # https://docs.ruby-lang.org/en/3.4/Kernel.html#method-i-then
+        # https://docs.ruby-lang.org/en/3.4/Enumerable.html#method-i-find
+        # Use detect as a circuit breaker (it's an alias for find)
+        #     1.then.detect(&:odd?)            # => 1
+        # Does not meet condition, drop value
+        #     2.then.detect(&:odd?)            # => nil
         .then { |path| read_template_file(path) }
         .then { |template| render_erb_template(template) }
         .then { |yaml_content| parse_yaml(yaml_content) }
-        .then { |config| validate_with_defaults(config) }
-        .then { |config| after_load(config) }
-        .then { |config| validate(config) }
+        .then_rehash('validate_with_defaults') { |config| validate_with_defaults(config) }
+        .then_rehash('after_load') { |config| after_load(config) }
+        .then_rehash('validate') { |config| validate(config) }
         .then { |config| deep_freeze(config) }
 
       self
