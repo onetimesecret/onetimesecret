@@ -91,8 +91,8 @@ group :development do
   gem 'rubocop-performance', require: false
   gem 'rubocop-rspec', require: false
   gem 'rubocop-thread_safety', require: false
-  gem 'ruby-lsp', require: false
   gem 'stackprof', require: false
+  gem 'syntax_tree', require: false
 end
 
 group :test do

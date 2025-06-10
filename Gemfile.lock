@@ -144,6 +144,7 @@ GEM
       tty-color (~> 0.5)
     pp (0.6.2)
       prettyprint
+    prettier_print (1.2.1)
     prettyprint (0.2.0)
     prism (1.4.0)
     pry (0.14.2)
@@ -173,8 +174,6 @@ GEM
       rack (>= 1.0, < 4.0)
     rainbow (3.1.1)
     rake (13.0.6)
-    rbs (3.9.4)
-      logger
     rdoc (6.13.1)
       psych (>= 4.0.0)
     redis (5.4.0)
@@ -209,11 +208,6 @@ GEM
     rubocop-thread_safety (0.7.2)
       lint_roller (~> 1.1)
       rubocop (~> 1.72, >= 1.72.1)
-    ruby-lsp (0.24.1)
-      language_server-protocol (~> 3.17.0)
-      prism (>= 1.2, < 2.0)
-      rbs (>= 3, < 5)
-      sorbet-runtime (>= 0.5.10782)
     ruby-progressbar (1.13.0)
     ruby_http_client (3.5.5)
     sendgrid-ruby (6.7.0)
@@ -228,7 +222,6 @@ GEM
     simplecov-html (0.13.1)
     simplecov_json_formatter (0.1.4)
     simpleidn (0.2.3)
-    sorbet-runtime (0.5.12163)
     stackprof (0.2.27)
     storable (0.10.0)
     stringio (3.1.7)
@@ -238,6 +231,8 @@ GEM
       unicode_utils (~> 1.4)
     strings-ansi (0.2.0)
     stripe (15.0.0)
+    syntax_tree (6.2.0)
+      prettier_print (>= 1.2.0)
     sysinfo (0.10.0)
       drydock (< 1.0)
       storable (~> 0.10)
@@ -317,7 +312,6 @@ DEPENDENCIES
   rubocop-performance
   rubocop-rspec
   rubocop-thread_safety
-  ruby-lsp
   sendgrid-ruby
   sentry-ruby
   simplecov
@@ -325,6 +319,7 @@ DEPENDENCIES
   storable
   stringio (~> 3.1.6)
   stripe
+  syntax_tree
   syslog (~> 0.3.0)
   thin
   truemail
