@@ -13,6 +13,7 @@ module Onetime
   class << self
 
     attr_accessor :mode, :d9s_enabled
+    attr_reader :configurator
     attr_writer :debug, :env, :global_secret
     attr_reader :conf, :instance, :i18n_enabled, :locales,
                 :supported_locales, :default_locale, :fallback_locale,
@@ -38,23 +39,22 @@ module Onetime
     # Application models need to be loaded before booting so that each one gets
     # a database connection. It can't connect models it doesn't know about.
     #
+    # Result**: OT.conf evolves from file-only → merged config during boot,
+    # maintaining compatibility with all existing code that expects `OT.conf`
+    # to be the single source of truth.
     def boot!(mode = :app, connect_to_db = true)
-      prepare_onetime_namespace(mode)
-      OT.ld "[BOOT] Initializing Onetime application in '#{OT.mode}' mode"
+      @mode = mode
 
-      config = OT::Config.load!
+      # Sets a unique SHA hash every time this process starts. In a multi-
+      # threaded environment (e.g. with Puma), this should be different for
+      # each thread.
+      @instance = [Process.pid.to_s, OT::VERSION.to_s].gibbler.short.freeze
 
-      OT.li "[BOOT] Configuration loaded from #{config.config_path}"
+      OT.ld "[BOOT] Initializing in '#{OT.mode}' mode (instance: #{@instance})"
 
-      # TODO: Re-enable
-      #
-      # Run all registered initializers in TSort-determined order
-      # Pass necessary context like mode and connect_to_db preference
-      # Onetime::Initializers::Registry.run_all!({
-      #   mode: OT.mode,
-      #   connect_to_db: connect_to_db,
-      #   config: conf,
-      # })
+      @configurator = OT::Config.load!
+
+      OT.li "[BOOT] Configuration loaded from #{configurator.config_path}"
 
       # We have enough configuration to boot at this point. When do
       # merge with the configuration from the database? Or is that the
@@ -67,16 +67,44 @@ module Onetime
       # In the current state of config that we have here, the app boots up
       # and serves requests (not the error middleware, gets passed that),
       # and then responds with 400 and an angry [view_vars] "Site config is missing field: host"
-      @conf = config.configuration
+      @conf = configurator.configuration
 
+      # We can't do much without the initial file-based configuration. If it's
+      # nil here it means that there's also no schema (which has the defaults).
       if OT.conf.nil?
         OT.le '[BOOT] Configuration failed to load and validate'
         OT.le '[BOOT] Has the schema been generated? Run `pnpm run schema:generate`'
-      else
-        OT.ld '[BOOT] Completing initialization process...'
-        Onetime.complete_initialization!
-        OT.li "[BOOT] Startup completed successfully (instance: #{@instance})"
+        return # or raise?
       end
+
+      # Initializers - simplified
+      #
+      # The registry was solving a problem you don't actually have. Your boot
+      # sequence is fundamentally sequential, not a complex dependency graph.
+      # The **module-per-initializer pattern** was solving the registry's
+      # needs, not your actual needs.
+      #
+      # Phase 1: Basic setup (reads from file-based OT.conf)
+      load_locales        # OT.conf[:locales] -> OT.locales
+      set_global_secret   # OT.conf[:site][:secret] -> OT.global_secret
+      set_rotated_secrets # OT.conf[:site][:rotated_secrets] -> OT.rotated_secrets
+      load_fortunes       # OT.conf[:fortunes] ->
+
+      # Phase 2: Database + Config Merge
+      if connect_to_db
+        connect_databases
+        setup_system_settings  # *** KEY: This updates @conf ***
+        check_global_banner    # Uses merged OT.conf
+      end
+
+      # Phase 3: Services (reads from merged OT.conf)
+      setup_authentication   # Uses merged OT.conf[:site][:authentication]
+      setup_diagnostics     # Uses merged OT.conf[:diagnostics]
+
+      OT.ld '[BOOT] Completing initialization process...'
+      Onetime.complete_initialization!
+      OT.li "[BOOT] Startup completed successfully (instance: #{@instance})"
+
 
       # Let's be clear about returning the prepared configruation. Previously
       # we returned @conf here which was confusing because already made it
@@ -98,20 +126,16 @@ module Onetime
 
     private
 
-    def prepare_onetime_namespace(mode)
-      @mode = mode unless mode.nil?
-      @env = ENV['RACK_ENV'] || 'production'
+    # def prepare_onetime_namespace(mode)
+    #   @mode = mode unless mode.nil?
+    #   @env = ENV['RACK_ENV'] || 'production'
 
-      # Default to diagnostics disabled. FYI: in test mode, the test config
-      # YAML has diagnostics enabled. But the DSN values are nil so it
-      # doesn't get enabled even after loading config.
-      @d9s_enabled = false
+    #   # Default to diagnostics disabled. FYI: in test mode, the test config
+    #   # YAML has diagnostics enabled. But the DSN values are nil so it
+    #   # doesn't get enabled even after loading config.
+    #   @d9s_enabled = false
 
-      # Sets a unique SHA hash every time this process starts. In a multi-
-      # threaded environment (e.g. with Puma), this should be different for
-      # each thread.
-      @instance = [Process.pid.to_s, OT::VERSION.to_s].gibbler.freeze
-    end
+    # end
 
     def handle_boot_error(error)
       case error
@@ -126,9 +150,6 @@ module Onetime
         OT.ld error.backtrace.join("\n")
       when Redis::CannotConnectError
         OT.le "Cannot connect to Redis #{Familia.uri} (#{error.class})"
-      when TSort::Cyclic
-        # The detailed message from the registry's sorted_initializers will be part of e.message
-        OT.le "Problem booting due to initializer dependency cycle: #{error.message}"
       else
         OT.le "Unexpected error during boot: #{error.class} - #{error.message}"
         OT.ld error.backtrace.join("\n")

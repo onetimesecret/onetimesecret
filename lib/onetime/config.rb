@@ -30,11 +30,11 @@ module Onetime
       File.join(Onetime::HOME, 'etc'), # 2. onetimesecret/etc
       File.join(@xdg.config_home, 'onetime'), # 3. ~/.config/onetime
       File.join(File::SEPARATOR, 'etc', 'onetime'), # 4. /etc/onetime
-    ]
-    @extensions = ['.yml', '.yaml', '.json', '.json5', '']
+    ].uniq.freeze
+    @extensions = ['.yml', '.yaml', '.json', '.json5', ''].freeze
 
     attr_accessor :config_path, :schema_path
-    attr_reader :configuration, :schema
+    attr_reader :schema
 
     def initialize(config_path: nil, schema_path: nil)
       @config_path = config_path || self.class.find_config('config')
@@ -69,6 +69,11 @@ module Onetime
     rescue StandardError => e
       log_debug_content(e)
       raise OT::ConfigError, "Configuration loading failed: #{e.message}"
+    end
+
+    # The accessor creates a new config hash every time and returns it frozen
+    def configuration
+      OT::Utils.deep_clone(@configuration).freeze
     end
 
     def read_template_file(path)
@@ -151,7 +156,7 @@ module Onetime
 
     def load_schema(path = nil)
       path ||= schema_path
-      OT.ld "[Config] Loading schema from #{path}"
+      OT.ld "[Config] Loading schema from #{path.inspect}"
       OT::Config::Load.yaml_load_file(path)
     end
 
@@ -180,11 +185,8 @@ module Onetime
     class << self
       attr_reader :xdg, :paths, :extensions
 
-      def load!
-        conf = new
-        conf.load!
-        conf
-      end
+      # Instantiates a new configuration object, loads it, and it returns itself
+      def load! = new.load!
 
       def find_configs(basename = 'config')
         paths.flat_map do |path|
