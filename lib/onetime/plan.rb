@@ -1,3 +1,4 @@
+# lib/onetime/plan.rb
 
 module Onetime
   class Plan
@@ -39,8 +40,8 @@ module Onetime
     module ClassMethods
       attr_reader :plans
 
-      def add_plan(planid, *args)
-        new_plan = new(planid, *args)
+      def add_plan(planid, *)
+        new_plan = new(planid, *)
         plans[new_plan.planid] = new_plan
         plans[new_plan.planid.gibbler.short] = new_plan
       end

@@ -25,7 +25,7 @@ module Onetime
       extend self
 
       def validate_with_schema(conf, schema, apply_defaults: false)
-        raise OT::ConfigError, "Schema is nil" if schema.nil?
+        raise OT::ConfigError, 'Schema is nil' if schema.nil?
 
         # Create schema validator with defaults insertion enabled
         schemer = JSONSchemer.schema(
@@ -41,8 +41,8 @@ module Onetime
           # symbols to represent certain values.
           before_property_validation: proc do |data, property, property_schema, _parent|
             val = data[property]
-            case property_schema["type"]
-            when "string"
+            case property_schema['type']
+            when 'string'
               data[property] = val.to_s if val.is_a?(Symbol)
             end
           end,
@@ -133,7 +133,7 @@ module Onetime
         unless defaults.is_a?(Hash)
           result = {}
           config.each do |key, value|
-            next if key == :defaults || key == 'defaults'
+            next if [:defaults, 'defaults'].include?(key)
             # Normalize the value to string keys using deep_merge with empty hash
             result[key.to_s] = value.is_a?(Hash) ? OT::Utils.deep_merge({}, value) : value
           end
@@ -143,7 +143,7 @@ module Onetime
         # Process each section, applying defaults
         config.each_with_object({}) do |(section, values), result|
           # Skip the :defaults key (handle both symbol and string)
-          next if section == :defaults || section == 'defaults'
+          next if [:defaults, 'defaults'].include?(section)
           next unless values.is_a?(Hash) # Process only sections that are hashes
 
           # Apply defaults to each section, normalize section key to string

@@ -20,7 +20,7 @@ module Onetime
         YAML.safe_load(yaml, permitted_classes: [Symbol])
       rescue Psych::SyntaxError => e
         OT.le "Error parsing YAML: #{e.message}"
-        raise OT::ConfigError, "Invalid YAML schema"
+        raise OT::ConfigError, 'Invalid YAML schema'
       end
 
       def file_read(path)

@@ -50,8 +50,8 @@ end
 
 # Sets the SIGINT handler for a graceful shutdown and prevents Sentry from
 # trying to send events over the network when we're shutting down via ctrl-c.
-trap("SIGINT") do
-  OT.li "Shutting down gracefully..."
+trap('SIGINT') do
+  OT.li 'Shutting down gracefully...'
   if OT.d9s_enabled
     begin
       Sentry.close  # Attempt graceful shutdown with a short timeout

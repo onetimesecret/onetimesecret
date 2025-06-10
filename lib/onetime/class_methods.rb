@@ -183,35 +183,35 @@ module Onetime
     def info(*msgs)
       return unless mode?(:app) || mode?(:cli) # can reduce output in tryouts
       msg = msgs.join("#{$/}")
-      stdout("I", msg)
+      stdout('I', msg)
     end
 
     def li(*msgs)
       msg = msgs.join("#{$/}")
-      stdout("I", msg)
+      stdout('I', msg)
     end
 
     def lw(*msgs)
       msg = msgs.join("#{$/}")
-      stdout("W", msg)
+      stdout('W', msg)
     end
 
     def le(*msgs)
       msg = msgs.join("#{$/}")
-      stderr("E", msg)
+      stderr('E', msg)
     end
 
     def ld(*msgs)
       return unless Onetime.debug
       msg = msgs.join("#{$/}")
-      stderr("D", msg)
+      stderr('D', msg)
     end
 
     def stdout(prefix, msg)
       return if STDOUT.closed?
 
       stamp = Time.now.to_i
-      logline = "%s(%s): %s" % [prefix, stamp, msg]
+      logline = '%s(%s): %s' % [prefix, stamp, msg]
       STDOUT.puts(logline)
     end
 
@@ -219,7 +219,7 @@ module Onetime
       return if STDERR.closed?
 
       stamp = Time.now.to_i
-      logline = "%s(%s): %s" % [prefix, stamp, msg]
+      logline = '%s(%s): %s' % [prefix, stamp, msg]
       STDERR.puts(logline)
     end
 
