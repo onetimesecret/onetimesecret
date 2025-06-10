@@ -79,9 +79,6 @@ gem 'sendgrid-ruby'
 gem "sentry-ruby", require: false
 gem 'stripe', require: false
 
-gem 'rubocop', require: false
-gem 'stackprof', require: false
-
 group :development do
   gem 'byebug', require: false
   # Enable for Debug Adapter Protocol. Not included with the development group
@@ -90,6 +87,10 @@ group :development do
   gem 'pry', require: false
   gem 'pry-byebug', require: false
   gem 'rack-proxy', require: false
+  gem 'rubocop', require: false
+  gem 'ruby-lsp', require: false
+  gem 'solargraph', require: false
+  gem 'stackprof', require: false
   gem 'rubocop-performance', require: false
   gem 'rubocop-rspec', require: false
   gem 'rubocop-thread_safety', require: false
