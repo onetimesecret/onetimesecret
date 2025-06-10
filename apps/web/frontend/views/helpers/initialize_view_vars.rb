@@ -89,9 +89,9 @@ module Frontend
         # HTML Tag vars. These are meant for the view templates themselves
         # and not the onetime state window data passed on to the Vue app (
         # although a serializer could still choose to include any of them).
-        description = i18n_instance[:COMMON][:description]
-        keywords = i18n_instance[:COMMON][:keywords]
-        page_title = "Onetime Secret" # TODO: Implement as config setting
+        description = i18n_instance.dig(:COMMON, :description)
+        keywords = i18n_instance.dig(:COMMON, :keywords)
+        page_title = OT.conf.dig(:user_interface, :header, :branding, :site_name) || 'OneTimeSecret'
         no_cache = false
         frontend_host = development[:frontend_host]
         frontend_development = development[:enabled]

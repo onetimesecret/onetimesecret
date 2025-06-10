@@ -7,7 +7,7 @@ require_relative 'initializers'
 module Onetime
   @conf = nil
   @env = nil
-  @mode = :app
+  @mode = nil
   @debug = nil
 
   class << self
@@ -39,13 +39,12 @@ module Onetime
     # a database connection. It can't connect models it doesn't know about.
     #
     def boot!(mode = :app, connect_to_db = true)
-      OT.ld "[BOOT] Initializing Onetime application in '#{OT.mode}' mode"
-
       prepare_onetime_namespace(mode)
+      OT.ld "[BOOT] Initializing Onetime application in '#{OT.mode}' mode"
 
       config = OT::Config.load!
 
-      OT.ld "[BOOT] Configuration loaded from #{config.config_path}"
+      OT.li "[BOOT] Configuration loaded from #{config.config_path}"
 
       # TODO: Re-enable
       #
@@ -56,6 +55,8 @@ module Onetime
       #   connect_to_db: connect_to_db,
       #   config: conf,
       # })
+
+      @conf = config.configuration
 
       if OT.conf.nil?
         OT.le "[BOOT] Configuration failed to load and validate"

@@ -34,40 +34,74 @@ module Onetime
     ]
     @extensions = ['.yml', '.yaml', '.json', '.json5', '']
 
-    attr_reader :config_path, :schema_path, :local_copy, :config,
-          :unprocessed_config, :validated_config, :schema, :parsed_template,
-          :rendered_yaml, :config_template_str, :processed_config
+    attr_accessor :config_path, :schema_path
+    attr_reader :configuration, :schema
 
     def initialize(config_path: nil, schema_path: nil)
       @config_path = config_path || self.class.find_config('config')
       @schema_path = schema_path || self.class.find_config('config.schema')
     end
 
+    # States:
+    attr_reader :unprocessed_config, :validated_config, :schema, :parsed_template
+    attr_reader :rendered_yaml, :config_template_str, :processed_config
+
     def load!
-      before_load
-      load
-      after_load
-    end
+      normalize_environment
 
-    def load
       @schema = load_schema
+      @configuration = config_path
+        .then { |path| read_template_file(path) }
+        # We validate before returning the config so that we're not inadvertently
+        # sending back configuration of unknown provenance. This is Stage 1 of
+        # our two-stage validation process. In addition to confirming the
+        # correctness, this validation also applies default values.
+        .then { |template| render_erb_template(template) }
+        .then { |yaml_content| parse_yaml(yaml_content) }
+        .then { |config| validate_with_defaults(config) }
+        .then { |config| after_load(config) }
+        .then { |config| validate(config) }
+        .then { |config| deep_freeze(config) }
 
-      # We validate before returning the config so that we're not inadvertently
-      # sending back configuration of unknown provenance. This is Stage 1 of
-      # our two-stage validation process. In addition to confirming the
-      # correctness, this validation also applies default values.
-      @unprocessed_config = load_config
-
+      self
+    rescue OT::ConfigError => e
+      log_debug_content(e)
+      raise
+    rescue StandardError => e
+      log_debug_content(e)
+      raise OT::ConfigError, "Configuration loading failed: #{e.message}"
     end
 
-    # Normalizes environment variables prior to loading and rendering the YAML
-    # configuration. In some cases, this might include setting default values
-    # and ensuring necessary environment variables are present.
-    def before_load
-      # In v0.20.6, REGIONS_ENABLE was renamed to REGIONS_ENABLED for
-      # consistency. We ensure both are considered for compatability.
-      set_value = ENV.values_at('REGIONS_ENABLED', 'REGIONS_ENABLE').compact.first
-      ENV['REGIONS_ENABLED'] = set_value || 'false'
+    def read_template_file(path)
+      OT.ld("[Config] Reading template file: #{path}")
+      @template_str = OT::Config::Load.file_read(path)
+    end
+
+    def render_erb_template(template)
+      OT.ld("[Config] Rendering ERB template (#{template.size} bytes)")
+      @rendered_template = ERB.new(template).result #(binding)
+    end
+
+    # Load a YAML configuration file, allowing for ERB templating within the file.
+    # This reads the file at the given path, processes any embedded Ruby (ERB) code,
+    # and then parses the result as YAML.
+    #
+    # @param path [String] (optional the path to the YAML configuration file
+    # @return [Hash] the parsed YAML data
+    #
+    def parse_yaml(content)
+      OT.ld("[Config] Parsing YAML content (#{content.size} bytes)")
+      @rendered_yaml = OT::Config::Load.yaml_load(content)
+    end
+
+    # Configuration processing can introduce new failure modes so we validate
+    # both when the config is loaded initially and after processing. This
+    # allows us to fail fast with clear error messages.
+    # First validation: Schema validation before processing.
+    # Ensures structural integrity, applies defaults.
+    def validate_with_defaults(config)
+      OT.ld("[Config] Validating w/ defaults (#{config.size} sections)")
+      _validate(config, apply_defaults: true)
     end
 
     # After loading the configuration, this method processes and validates the
@@ -81,59 +115,19 @@ module Onetime
     # zod transformations).
     #
     # @return [Hash] The processed configuration has
-    def after_load
+    def after_load(config) = config
 
-      # Create a deep copy and normalize keys to strings
-      local_copy = OT::Utils.deep_merge({}, unprocessed_config)
-
-
-      # Stage 2: Re-validate the processed result against the same schema
-      # # Stage 2: Business logic processing + Stage 3: Re-validation.
-      # Processing may violate schema constraints, so we validate the result.
-
-      local_copy = OT::Config::Utils.validate_with_schema(local_copy, schema)
-      @processed_config = OT::Utils.deep_freeze(local_copy)
+    def validate(config)
+      OT.ld("[Config] Validating w/o defaults (#{config.size} sections)")
+      _validate(config, apply_defaults: false)
     end
 
-    # Configuration processing can introduce new failure modes so we validate
-    # both when the config is loaded initially and after processing. This
-    # allows us to fail fast with clear error messages.
-    # First validation: Schema validation before processing.
-    # Ensures structural integrity, applies defaults.
-    def validate
-      loggable_config = OT::Utils.type_structure(unprocessed_config)
-      OT.ld "[Config] Validating #{loggable_config} #{schema.inspect}"
-      return false unless unprocessed_config.is_a?(Hash) && schema.is_a?(Hash)
-      OT::Config::Utils.validate_with_schema(unprocessed_config, schema)
+    def deep_freeze(config)
+      OT.ld("[Config] Deep freezing (#{config.size} sections)")
+      OT::Utils.deep_freeze(config)
     end
 
-    private
-
-    def load_schema(path = nil)
-      path ||= @schema_path
-      OT::Config::Load.yaml_load_file(path)
-    rescue OT::ConfigError => e
-      OT.le "Cannot load schema (#{e.message})"
-      nil
-    end
-
-    # Load a YAML configuration file, allowing for ERB templating within the file.
-    # This reads the file at the given path, processes any embedded Ruby (ERB) code,
-    # and then parses the result as YAML.
-    #
-    # @param path [String] (optional the path to the YAML configuration file
-    # @return [Hash] the parsed YAML data
-    #
-    def load_config(path = nil)
-      path ||= @config_path
-
-      @config_template_str = OT::Config::Load.file_read(path)
-      @parsed_template = ERB.new(@config_template_str)
-      @rendered_yaml = @parsed_template.result
-
-      validate OT::Config::Load.yaml_load(@rendered_yaml)
-
-    rescue OT::ConfigError => e
+    def log_debug_content(err)
       # DEBUGGING: Allow the contents of the parsed template to be logged.
       # This helps identify issues with template rendering and provides
       # context for the error, making it easier to diagnose config
@@ -145,9 +139,43 @@ module Onetime
         end
       end
 
-      OT.le e.message
-      OT.ld e.backtrace.join("\n")
-      raise e
+      OT.ld "[Config] Template: #{@template_str}" if @template_str
+      OT.ld "[Config] Rendered: #{@rendered_yaml}" if @rendered_yaml
+      if unprocessed_config
+        loggable_config = OT::Utils.type_structure(unprocessed_config)
+        OT.ld "[Config] Parsed: #{loggable_config}"
+      end
+
+      OT.le err.message
+      OT.ld err.backtrace.join("\n")
+    end
+
+    def load_schema(path = nil)
+      path ||= schema_path
+      OT.ld "[Config] Loading schema from #{path}"
+      OT::Config::Load.yaml_load_file(path)
+    end
+
+    private
+
+    def _validate(config, **)
+      unless config.is_a?(Hash) && schema.is_a?(Hash)
+        raise ArgumentError, "Invalid configuration format"
+      end
+      # loggable_config = OT::Utils.type_structure(config)
+      # OT.ld "[Config] Validating #{loggable_config.size} #{schema.size}"
+      OT::Config::Utils.validate_with_schema(config, schema, **)
+    end
+
+    # Normalizes environment variables prior to loading and rendering the YAML
+    # configuration. In some cases, this might include setting default values
+    # and ensuring necessary environment variables are present.
+    def normalize_environment
+      OT.ld "[Config] Normalizing environment variables"
+      # In v0.20.6, REGIONS_ENABLE was renamed to REGIONS_ENABLED for
+      # consistency. We ensure both are considered for compatability.
+      set_value = ENV.values_at('REGIONS_ENABLED', 'REGIONS_ENABLE').compact.first
+      ENV['REGIONS_ENABLED'] = set_value || 'false'
     end
 
     class << self

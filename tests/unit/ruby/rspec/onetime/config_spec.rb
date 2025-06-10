@@ -283,7 +283,7 @@ RSpec.describe Onetime::Config do
       end
 
       it 'moves colonels from root level to site.authentication when not present in site.authentication' do
-        processed_config = config_instance.send(:after_load)
+        processed_config = config_instance.after_load
         expect(processed_config['site']['authentication']['colonels']).to eq(['root@example.com', 'admin@example.com'])
       end
 
