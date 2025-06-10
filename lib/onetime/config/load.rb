@@ -5,13 +5,9 @@ module Onetime
     module Load
       extend self
 
-      def json_load_file(path)
-        json_load(file_read(path))
-      end
-
-      def yaml_load_file(path)
-        yaml_load(file_read(path))
-      end
+      # Convenience methods for loading configuration files
+      def json_load_file(path) = json_load(file_read(path))
+      def yaml_load_file(path) = yaml_load(file_read(path))
 
       def json_load(json)
         JSON.parse(json)

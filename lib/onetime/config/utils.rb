@@ -24,13 +24,14 @@ module Onetime
     module Utils
       extend self
 
-      def validate_with_schema(conf, schema)
+      def validate_with_schema(conf, schema, apply_defaults: false)
+        raise OT::ConfigError, "Schema is nil" if schema.nil?
 
         # Create schema validator with defaults insertion enabled
         schemer = JSONSchemer.schema(
           schema,
           meta_schema: 'https://json-schema.org/draft/2020-12/schema',
-          insert_property_defaults: true,
+          insert_property_defaults: apply_defaults,
           format: true,
 
           # For fields that we validate as strings, if the value is a symbol
