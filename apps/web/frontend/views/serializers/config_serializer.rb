@@ -1,6 +1,6 @@
-# apps/web/core/views/serializers/config_serializer.rb
+# apps/web/frontend/views/serializers/config_serializer.rb
 
-module Core
+module Frontend
   module Views
 
     # Serializes application configuration for the frontend

@@ -1,6 +1,6 @@
-# apps/web/core/views/serializers/i18n_serializer.rb
+# apps/web/frontend/views/serializers/i18n_serializer.rb
 
-module Core
+module Frontend
   module Views
 
     # Serializes internationalization data for the frontend

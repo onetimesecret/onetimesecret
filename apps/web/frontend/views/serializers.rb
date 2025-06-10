@@ -1,4 +1,4 @@
-# apps/web/core/views/serializers.rb
+# apps/web/frontend/views/serializers.rb
 
 require_relative 'serializers/registry'
 require_relative 'serializers/authentication_serializer'

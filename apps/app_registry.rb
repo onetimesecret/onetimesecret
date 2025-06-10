@@ -1,18 +1,18 @@
 # apps/app_registry.rb
 
 unless defined?(APPS_ROOT)
+  # Know where we are; use the project home directory if set or relative to us.
   project_root = ENV['ONETIME_HOME'] || File.expand_path("..", __dir__).freeze
 
-  # Add the directory containing the rack applications to Ruby's load path
+  # Add each directory containing the rack applications to Ruby's load path.
   APPS_ROOT = File.join(project_root, 'apps').freeze
-  $LOAD_PATH.unshift(File.join(APPS_ROOT, 'api'))
-  $LOAD_PATH.unshift(File.join(APPS_ROOT, 'web'))
+  %w{api web}.each { |name| $LOAD_PATH.unshift(File.join(APPS_ROOT, name)) }
 
-  # Add the lib directoryfor require statements
+  # Add the lib directory for the core project.
   LIB_ROOT = File.join(project_root, 'lib').freeze
   $LOAD_PATH.unshift(LIB_ROOT)
 
-  # Location for static web assets like images, CSS, and JavaScript files
+  # Define the directory for static web assets like images, CSS, and JS files.
   PUBLIC_DIR = File.join(project_root, '/public/web').freeze
 end
 
@@ -42,7 +42,7 @@ module AppRegistry
       Onetime.not_ready!
     end
 
-    def create_rack_application_map
+    def generate_rack_url_map
       mappings = mount_mappings.transform_values { |app_class| app_class.new }
       Rack::URLMap.new(mappings)
     end

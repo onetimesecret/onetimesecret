@@ -1,8 +1,8 @@
-# apps/web/core/views.rb
+# apps/web/frontend/views.rb
 
 require_relative 'views/base'
 
-module Core
+module Frontend
   module Views
 
     ##
@@ -11,9 +11,9 @@ module Core
     # JavaScript variables from the backend to the frontend.
     #
     # Example usage:
-    #   view = Core::Views::VuePoint.new
+    #   view = Frontend::Views::VuePoint.new
     #
-    class VuePoint < Core::Views::BaseView
+    class VuePoint < Frontend::Views::BaseView
       self.template_name = 'index'
 
       use_serializers(
@@ -30,7 +30,7 @@ module Core
       end
     end
 
-    class ExportWindow < Core::Views::BaseView
+    class ExportWindow < Frontend::Views::BaseView
       self.template_name = nil
 
       use_serializers(
@@ -47,19 +47,19 @@ module Core
       end
     end
 
-    class Error < Core::Views::BaseView
+    class Error < Frontend::Views::BaseView
       def init *args
         self[:title] = "I'm afraid there's been an error"
       end
     end
 
     # The robots.txt file
-    class RobotsTxt < Core::Views::BaseView
+    class RobotsTxt < Frontend::Views::BaseView
       self.template_name = 'robots'
       self.template_extension = 'txt'
     end
 
-    class UnknownSecret < Core::Views::BaseView
+    class UnknownSecret < Frontend::Views::BaseView
       self.template_name = :index
     end
   end

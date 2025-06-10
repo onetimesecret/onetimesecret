@@ -1,7 +1,7 @@
 
-module Core
+module Frontend
 
-  unless defined?(Core::BADAGENTS)
+  unless defined?(Frontend::BADAGENTS)
     BADAGENTS = [:facebook, :google, :yahoo, :bing, :stella, :baidu, :bot, :curl, :wget]
     LOCAL_HOSTS = ['localhost', '127.0.0.1'].freeze  # TODO: Add config
     HEADER_PREFIX = ENV.fetch('HEADER_PREFIX', 'X_SECRET_').upcase

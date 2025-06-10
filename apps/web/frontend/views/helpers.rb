@@ -1,4 +1,4 @@
-# apps/web/core/views/helpers.rb
+# apps/web/frontend/views/helpers.rb
 
 require_relative 'helpers/initialize_view_vars'
 require_relative 'helpers/sanitizer'

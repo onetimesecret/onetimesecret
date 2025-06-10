@@ -1,4 +1,4 @@
-# apps/web/core/views/base.rb
+# apps/web/frontend/views/base.rb
 
 require 'chimera'
 
@@ -15,19 +15,19 @@ require_relative 'serializers'
 # - **Helpers**: Utility methods for view rendering and data manipulation
 # - **Serializers**: Transform internal view state for frontend consumption
 #
-module Core
+module Frontend
   module Views
     class BaseView < Chimera
-      extend Core::Views::InitializeViewVars
-      include Core::Views::SanitizerHelpers
-      include Core::Views::I18nHelpers
-      include Core::Views::ViteManifest
+      extend Frontend::Views::InitializeViewVars
+      include Frontend::Views::SanitizerHelpers
+      include Frontend::Views::I18nHelpers
+      include Frontend::Views::ViteManifest
       include Onetime::TimeUtils
 
       self.template_path = './templates/web'
       self.template_extension = 'html'
-      self.view_namespace = Core::Views
-      self.view_path = './app/web/views'
+      self.view_namespace = Frontend::Views
+      self.view_path = './app/web/frontend/views'
 
       attr_accessor :req, :sess, :cust, :locale, :form_fields, :pagename
       attr_reader :i18n_instance, :view_vars, :serialized_data, :messages

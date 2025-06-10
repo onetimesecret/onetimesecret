@@ -1,18 +1,18 @@
-# tests/unit/ruby/rspec/apps/web/views/base_json_spec.rb
+# tests/unit/ruby/rspec/apps/web/frontend/views/base_json_spec.rb
 
-require_relative '../../../spec_helper'
 require 'json'
+require_relative '../../../../spec_helper'
 
-RSpec.xdescribe Core::Views::BaseView, "JSON Output" do
+RSpec.xdescribe Frontend::Views::BaseView, "JSON Output" do
   include_context "rack_test_context"
 
   let(:authenticated_json) do
-    json_path = File.expand_path('../../../../support/window-authenticated.json', __FILE__)
+    json_path = File.expand_path('../../../../../support/window-authenticated.json', __FILE__)
     JSON.parse(File.read(json_path))
   end
 
   let(:not_authenticated_json) do
-    json_path = File.expand_path('../../../../support/window-notauthenticated.json', __FILE__)
+    json_path = File.expand_path('../../../../../support/window-notauthenticated.json', __FILE__)
     JSON.parse(File.read(json_path))
   end
 
@@ -263,7 +263,7 @@ RSpec.xdescribe Core::Views::BaseView, "JSON Output" do
         allow(Onetime::DomainStrategy).to receive(:canonical_domain).and_return(authenticated_json["canonical_domain"])
 
         # For epochdom method
-        allow_any_instance_of(Core::Views::BaseView).to receive(:epochdom)
+        allow_any_instance_of(Frontend::Views::BaseView).to receive(:epochdom)
           .with(authenticated_json["cust"]["created"].to_i)
           .and_return(authenticated_json["customer_since"])
       end

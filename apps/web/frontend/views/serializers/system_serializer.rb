@@ -1,6 +1,6 @@
-# apps/web/core/views/serializers/system_serializer.rb
+# apps/web/frontend/views/serializers/system_serializer.rb
 
-module Core
+module Frontend
   module Views
 
     # Serializes system-level information for the frontend

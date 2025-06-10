@@ -1,13 +1,21 @@
 # config.ru
 #
-# Main Rack configuration file for the Onetime Secret project.
-# This file orchestrates the entire application stack, sets up middleware,
-# and defines the application's runtime environment.
+# Rack entry point for Onetime Secret.
 #
-# Usage:
+# This file serves as the main configuration and bootstrap point for the entire
+# application. It initializes the runtime environment, loads necessary components,
+# and creates the Rack application map that routes requests to the appropriate
+# sub-applications (web interface and API endpoints).
+#
+# Usage Examples:
 # ```bash
-#   $ thin -e dev -R config.ru -p 3000 start
+#   # Development with Thin
+#   $ thin -e development -R config.ru -p 3000 start
+#
+#   # Development with Puma (direct)
 #   $ puma -e development -p 3000 config.ru
+#
+#   # Production with Puma (using config file)
 #   $ puma -C puma.rb
 # ```
 #
@@ -15,17 +23,22 @@
 # ```
 #   /
 #   ├── apps/
-#   │   ├── app_registry.rb
 #   │   ├── api/
-#   │   │   ├── v1/
-#   │   │   │   └── application.rb
-#   │   │   └── v2/
-#   │   │       └── application.rb
-#   │   └── web/
-#   │       └── core/
-#   │           └── application.rb
+#   │   │   ├── v1/application.rb
+#   │   │   └── v2/application.rb
+#   │   │
+#   │   ├── web/
+#   │   │   └── frontend/application.rb
+#   │   │
+#   │   ├── app_registry.rb
+#   │   ├── base_application.rb
+#   │   └── middleware_stack.rb
 #   │
 #   ├── lib/
+#   │   ├── onetime/
+#   │   │   ├── boot.rb
+#   │   │   └── config.rb
+#   │   │
 #   │   └── onetime.rb
 #   │
 #   └── config.ru
@@ -41,8 +54,8 @@ require_relative 'apps/app_registry'
 # Application models need to be loaded before booting
 AppRegistry.prepare_application_registry
 
-# Bootstrap the application
-Onetime.safe_boot! :app
+# Bootstrap the configuration and core components
+Onetime.safe_boot!
 
-# Application Mounting
-run AppRegistry.create_rack_application_map
+# Mount and run Rack applications
+run AppRegistry.generate_rack_url_map

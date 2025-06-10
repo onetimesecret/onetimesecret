@@ -1,13 +1,13 @@
-# apps/web/core/controllers/base.rb
+# apps/web/frontend/controllers/base.rb
 
 require_relative 'helpers'
 require 'v2/controllers/class_settings'
 
-module Core
+module Frontend
 
   module Controllers
     module Base
-      include Core::ControllerHelpers
+      include Frontend::ControllerHelpers
       include V2::Controllers::ClassSettings
 
       attr_reader :req, :res
@@ -126,7 +126,7 @@ module Core
       end
 
       def secret_not_found_response
-        view = Core::Views::UnknownSecret.new req, sess, cust, locale
+        view = Frontend::Views::UnknownSecret.new req, sess, cust, locale
         res.status = 404
         res.body = view.render
       end
@@ -177,14 +177,14 @@ module Core
       # - Simplifies server configuration and maintenance.
       # - Allows for proper handling of 404s within the Vue.js application.
       def not_found_response(message, **)
-        view = Core::Views::VuePoint.new(req, sess, cust, locale)
+        view = Frontend::Views::VuePoint.new(req, sess, cust, locale)
         view.add_error(message) unless message&.empty?
         res.status = 404
         res.body = view.render  # Render the entrypoint HTML
       end
 
       def not_authorized_error hsh={}
-        view = Core::Views::Error.new req, sess, cust, locale
+        view = Frontend::Views::Error.new req, sess, cust, locale
         view.add_error "Not authorized"
         res.status = 401
         res.body = view.render
@@ -196,14 +196,14 @@ module Core
         # cases a server-side error occurs that isn't the fault of the
         # client, and in those cases we want to provide a fresh shrimp
         # so that the client can try again (without a full page refresh).
-        view = Core::Views::Error.new req, sess, cust, locale
+        view = Frontend::Views::Error.new req, sess, cust, locale
         view.add_error message
         res.status = 400
         res.body = view.render
       end
 
       def throttle_response message
-        view = Core::Views::Error.new req, sess, cust, locale
+        view = Frontend::Views::Error.new req, sess, cust, locale
         view.add_error message
         res.status = 429
         res.body = view.render

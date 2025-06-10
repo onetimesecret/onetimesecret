@@ -1,6 +1,6 @@
 # tests/unit/ruby/try/11_cached_method_try.rb
 
-# These tryouts test the functionality of the cached_method in the Core::ViewHelpers module.
+# These tryouts test the functionality of the cached_method in the Frontend::ViewHelpers module.
 # The cached_method provides a caching mechanism for method results using Redis.
 #
 # We're testing various aspects of the cached_method, including:
@@ -17,7 +17,7 @@
 
 require_relative './test_helpers'
 
-require 'core/views'
+require 'frontend/views'
 
 # Familia.debug = true
 
@@ -27,7 +27,7 @@ OT.boot! :test, false
 @num = rand(1000)
 
 class TestHelper
-  include Core::Views::SanitizerHelpers
+  include Frontend::Views::SanitizerHelpers
   attr_reader :num
 
   def initialize(num)

@@ -1,13 +1,14 @@
-# tests/unit/ruby/rspec/apps/web/views/base_spec.rb
+# tests/unit/ruby/rspec/apps/web/frontend/views/base_spec.rb
 
-# e.g. pnpm run rspec tests/unit/ruby/rspec/apps/web/views/base_spec.rb
+# e.g. pnpm run test:rspec tests/unit/ruby/rspec/apps/web/frontend/views/base_spec.rb
 
-require_relative '../../../spec_helper'
+require_relative '../../../../spec_helper'
 
-require 'core/views/base'
-require 'core/views/serializers'
+require 'frontend/views/base'
+require 'frontend/views/serializers'
 
-RSpec.describe Core::Views::BaseView do
+
+RSpec.describe Frontend::Views::BaseView do
   include_context "rack_test_context"
   include_context "view_test_context"
 
@@ -15,13 +16,13 @@ RSpec.describe Core::Views::BaseView do
     OT::Plan.load_plans!
 
     described_class.use_serializers(
-      Core::Views::ConfigSerializer,
-      Core::Views::AuthenticationSerializer,
-      Core::Views::DomainSerializer,
-      Core::Views::I18nSerializer,
-      Core::Views::MessagesSerializer,
-      Core::Views::PlanSerializer,
-      Core::Views::SystemSerializer,
+      Frontend::Views::ConfigSerializer,
+      Frontend::Views::AuthenticationSerializer,
+      Frontend::Views::DomainSerializer,
+      Frontend::Views::I18nSerializer,
+      Frontend::Views::MessagesSerializer,
+      Frontend::Views::PlanSerializer,
+      Frontend::Views::SystemSerializer,
     )
   end
 

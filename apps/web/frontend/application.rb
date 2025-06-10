@@ -1,10 +1,10 @@
-# apps/web/core/application.rb
+# apps/web/frontend/application.rb
 
 require_relative '../../base_application'
 
 require_relative 'controllers'
 
-module Core
+module Frontend
   class Application < ::BaseApplication
     @uri_prefix = '/'
 
@@ -19,13 +19,13 @@ module Core
       # Expensive initialization tasks go here
 
       # Log warmup completion
-      Onetime.li "Core warmup completed"
+      Onetime.li "Frontend warmup completed"
     end
 
     protected
 
     def build_router
-      routes_path = File.join(ENV['ONETIME_HOME'], 'apps/web/core/routes')
+      routes_path = File.join(ENV['ONETIME_HOME'], 'apps/web/frontend/routes')
       router = Otto.new(routes_path)
 
       # Default error responses

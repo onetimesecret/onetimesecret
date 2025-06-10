@@ -1,26 +1,33 @@
 # tests/unit/ruby/rspec/onetime/config/spec_helper.rb
 
 require 'rspec'
-require 'yaml'
 require 'tempfile'
 require 'fileutils'
 # require 'fakeredis'
 
-base_path = File.expand_path('../../../../..', __FILE__)
-apps_root = File.join(base_path, 'apps').freeze
+# Establish the environment
+ENV['RACK_ENV'] ||= 'production'
+ENV['ONETIME_HOME'] ||= File.expand_path('../../../../..', __FILE__).freeze
 
-# Add the apps dirs to the load path. This allows us to require
-# 'v2/logic' naturally (without needing the 'apps/api' prefix).
-$LOAD_PATH.unshift(File.join(apps_root, 'api'))
-$LOAD_PATH.unshift(File.join(apps_root, 'web'))
+unless defined?(APPS_ROOT)
+  project_root = ENV['ONETIME_HOME']
+  APPS_ROOT = File.join(project_root, 'apps').freeze
 
-# Adds the 'lib' directory to the load path to ensure that the Onetime
-# library can be required.
-$LOAD_PATH.unshift File.join(base_path, 'lib')
+  # Add the apps dirs to the load path. This allows us to require
+  # 'v2/logic' naturally (without needing the 'apps/api' prefix).
+  %w{api web}.each { |name| $LOAD_PATH.unshift(File.join(APPS_ROOT, name)) }
 
-# Add spec directory to load path
-spec_path = File.expand_path('../..', __FILE__)
-$LOAD_PATH.unshift(spec_path)
+  # Add the lib directory for the core project.
+  LIB_ROOT = File.join(project_root, 'lib').freeze
+  $LOAD_PATH.unshift(LIB_ROOT)
+
+  # Define the directory for static web assets like images, CSS, and JS files.
+  PUBLIC_DIR = File.join(project_root, '/public/web').freeze
+
+  # Add spec directory to load path
+  spec_path = File.expand_path('../..', __FILE__)
+  $LOAD_PATH.unshift(spec_path)
+end
 
 require_relative './support/mail_context'
 require_relative './support/rack_context'
