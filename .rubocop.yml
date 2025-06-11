@@ -28,7 +28,7 @@ AllCops:
     - 'apps/api/v1/**/*'
     - 'migrate/**/*'
     - 'node_modules/**/*'
-    - 'support/'
+    - 'support/**/*'
     - 'tests/unit/ruby/try/**/*'
     - 'tests/unit/ruby/rspec/**/*'
     - 'tmp/**/*'
@@ -38,10 +38,6 @@ Style/TrailingCommaInHashLiteral:
   Enabled: true
   EnforcedStyleForMultiline: comma
 
-# Offense count: 189
-# This cop supports safe autocorrection (--autocorrect).
-# Configuration parameters: EnforcedStyle, ConsistentQuotesInMultiline.
-# SupportedStyles: single_quotes, double_quotes
 Style/StringLiterals:
   Enabled: true
   EnforcedStyle: single_quotes
@@ -53,6 +49,38 @@ Style/StringLiterals:
 # explicit intent, !! clearly communicates this purpose to other Ruby developers.
 Style/DoubleNegation:
   Enabled: false
+
+Style/FormatString:
+  EnforcedStyle: format
+
+Style/FormatStringToken:
+  EnforcedStyle: unannotated
+
+Style/RedundantReturn:
+  Enabled: true
+  AllowMultipleReturnValues: false
+
+# We prefer `extend self` and `class << self`.
+Style/ModuleFunction:
+  Enabled: true
+  AutoCorrect: false
+  EnforcedStyle: extend_self
+
+# We use class instance variables quite a bit, mostly for readonly values set
+# at boot time. Except for our models with have redis-rb Redis instances
+# connected on their associated db via ModelClass.redis. We're well aware
+# so keeping this disabled reduces warning noise.
+ThreadSafety/ClassInstanceVariable:
+  Enabled: false
+
+Naming/RescuedExceptionsVariableName:
+  Enabled: true
+  PreferredName: ex # Default is 'e'
+
+Naming/PredicatePrefix:
+  Enabled: true
+  ForbiddenPrefixes: [is_, has_, have_]
+  AllowedMethods: [] # Exceptions to the rule
 
 Layout/MultilineMethodCallIndentation:
   EnforcedStyle: indented
@@ -156,3 +184,41 @@ Style/TrailingCommaInArguments:
 Style/TrailingCommaInArrayLiteral:
   Enabled: true
   EnforcedStyleForMultiline: comma
+
+# Supports --autocorrect
+Style/ZeroLengthPredicate:
+  Description: 'Use #empty? when testing for objects of length 0.'
+  Enabled: true
+  Safe: false
+  VersionAdded: '0.37'
+  VersionChanged: '0.39'
+
+# Department 'ThreadSafety' (6):
+ThreadSafety/ClassAndModuleAttributes:
+  Description: Avoid mutating class and module attributes.
+  Enabled: true
+  ActiveSupportClassAttributeAllowed: false
+
+ThreadSafety/DirChdir:
+  Description: Avoid using `Dir.chdir` due to its process-wide effect.
+  Enabled: true
+  AllowCallWithBlock: false
+
+# Do not assign mutable objects to class instance variables.
+ThreadSafety/MutableClassInstanceVariable:
+  Description:
+  Enabled: true
+  EnforcedStyle: literals # one of literals, strict
+  SafeAutoCorrect: false
+
+# Avoid starting new threads. Let a framework like Sidekiq handle the threads.
+ThreadSafety/NewThread:
+  Enabled: true
+
+# Avoid instance variables in Rack middleware.
+ThreadSafety/RackMiddlewareInstanceVariable:
+  Description:
+  Enabled: true
+  Include:
+    - lib/middleware/*.rb
+    - lib/middleware/onetime/*.rb
