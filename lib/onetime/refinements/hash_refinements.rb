@@ -100,7 +100,35 @@ module ThenWithDiff
     # An order difference alone between two arrays can create too many
     # diffs to be useful. Consider sorting them prior to diffing.
   }
-  @history = Familia::SortedSet.new 'then_with_diff_history', db: 2, ttl: 14.days
+
+  # NOTE: We recently added a valkey-backed settings model V2::SystemSettings
+  # which may seen at odds with this approach or potentially overlap. They
+  # use valkey for different purposes though: the settings model represents
+  # a timeline of settings objects including the current state; here we are
+  # using valkey like thread-safe shared memory and tracking the diffs at
+  # each steps that it is modified.
+  #
+  # The URL for this key: redis://host/2/system:then_with_diff:history
+  #
+  # Other differences:
+  # * SystemSettings:
+  #   * modified manually in the colonel UI.
+  #   * keeps track of every version of the settings object
+  # * Core configuration:
+  #   * modified via ./etc/config.yaml before the application boots up.
+  #   * only keeps a rolling 14 days of diffs
+  #   * not meant to be modified while the application is running.
+  #
+  # KNOWN LIMITATION: Since the key name is hardcoded any hash-like class that
+  # uses this refinement will have have its diffs stored in amongst the boot
+  # configuration for OT::Configurator. It's the only usecase right now but
+  # we'll want want to setup this history sorted set at boot-time to so
+  # we can access it in other parts of the codebase.
+  @history = Familia::SortedSet.new 'then_with_diff',
+    db: 2,
+    ttl: 14.days,
+    prefix: 'system',
+    suffix: 'history'
 
   class << self
     attr_reader :options, :history
@@ -114,7 +142,7 @@ module ThenWithDiff
       # Get previous state from last record
       last_record_json = ThenWithDiff.history.last
       last_record = last_record_json ? JSON.parse(last_record_json) : {}
-      previous_state = last_record['content'] || last_record['hash'] || {}
+      previous_state = last_record['content'] || {}
 
       diff = Hashdiff.diff(previous_state, result, ThenWithDiff.options)
       OT.ld "[then_with_diff] #{step_name}: #{diff.size} changes" unless diff.empty?

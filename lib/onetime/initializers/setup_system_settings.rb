@@ -26,13 +26,11 @@ module Onetime
       if existing_config
         OT.ld "Found existing system settings: #{existing_config.rediskey}"
         # Merge existing system settings with YAML configuration
-        # merge_system_settings(existing_config)
+        merge_system_settings(existing_config)
 
-      elsif existing_config.nil?
+      else
         # Create initial system settings from current YAML configuration
         create_initial_system_settings
-      else
-        OT.lw "Not sure how we got here"
       end
 
     rescue Redis::CannotConnectError => e
