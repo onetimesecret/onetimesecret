@@ -85,13 +85,6 @@ Layout/LeadingCommentSpace:
 Layout/LeadingEmptyLines:
   Enabled: false
 
-# Offense count: 39
-# This cop supports safe autocorrection (--autocorrect).
-# Configuration parameters: AllowHeredoc, AllowURI, URISchemes, IgnoreCopDirectives, AllowedPatterns, SplitStrings.
-# URISchemes: http, https
-Layout/LineLength:
-  Max: 198
-
 # Offense count: 1
 # This cop supports safe autocorrection (--autocorrect).
 # Configuration parameters: EnforcedStyle.
@@ -614,10 +607,3 @@ ThreadSafety/ClassAndModuleAttributes:
 # SupportedStyles: literals, strict
 ThreadSafety/MutableClassInstanceVariable:
   Enabled: false
-
-# Offense count: 39
-# This cop supports safe autocorrection (--autocorrect).
-# Configuration parameters: AllowHeredoc, AllowURI, URISchemes, IgnoreCopDirectives, AllowedPatterns, SplitStrings.
-# URISchemes: http, https
-Layout/LineLength:
-  Max: 198
