@@ -152,17 +152,6 @@ module Onetime
 
     private
 
-    # def prepare_onetime_namespace(mode)
-    #   @mode = mode unless mode.nil?
-    #   @env = ENV['RACK_ENV'] || 'production'
-
-    #   # Default to diagnostics disabled. FYI: in test mode, the test config
-    #   # YAML has diagnostics enabled. But the DSN values are nil so it
-    #   # doesn't get enabled even after loading config.
-    #   @d9s_enabled = false
-
-    # end
-
     def handle_boot_error(error)
       case error
       when OT::ConfigValidationError
@@ -204,5 +193,60 @@ module Onetime
       raise error unless mode?(:cli) || mode?(:test)
     end
 
+  end
+end
+
+__END__
+
+#
+# Work over these and at the bottom of config_module.rb.txt
+#
+
+def after_load
+  # # Process colonels backwards compatibility
+  # process_colonels_compatibility!(local_copy)
+
+  # # Validate critical configuration
+  # check_global_secret!(local_copy)
+
+  # # Process authentication settings
+  # process_authentication_settings!(local_copy)
+end
+
+def process_colonels_compatibility!(config)
+  # Ensure site.authentication exists (using string keys)
+  config['site'] ||= {}
+  config['site']['authentication'] ||= {}
+
+  # Handle colonels backwards compatibility (handle both symbol and string keys)
+  root_colonels = config.delete('colonels') || config.delete(:colonels)
+  auth_colonels = config['site']['authentication']['colonels']
+
+  if auth_colonels.nil?
+    # No colonels in authentication, use root colonels or empty array
+    config['site']['authentication']['colonels'] = root_colonels || []
+  elsif root_colonels
+    # Combine existing auth colonels with root colonels
+    config['site']['authentication']['colonels'] = auth_colonels + root_colonels
+  end
+end
+
+def check_global_secret!(config)
+  site_secret = config.dig('site', 'secret')
+  if site_secret.nil? || site_secret == 'CHANGEME'
+    raise OT::Problem, "Global secret cannot be nil or CHANGEME"
+  end
+end
+
+def process_authentication_settings!(config)
+  auth_config = config.dig('site', 'authentication')
+  return unless auth_config
+
+  # If authentication is disabled, set all auth sub-features to false
+  unless auth_config['enabled']
+    auth_config['colonels'] = false
+    auth_config['signup'] = false
+    auth_config['signin'] = false
+    auth_config['autoverify'] = false
   end
 end

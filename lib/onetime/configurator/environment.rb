@@ -2,6 +2,9 @@
 
 module Onetime
   class Configurator
+    # Normalizes environment variables prior to loading and rendering the YAML
+    # configuration. In some cases, this might include setting default values
+    # and ensuring necessary environment variables are present.
     class EnvironmentContext
       def initialize(env = ENV.to_h)
         @env = normalize_env_vars(env.dup).freeze
@@ -20,8 +23,9 @@ module Onetime
         env
       end
 
+      # In v0.20.6, REGIONS_ENABLE was renamed to REGIONS_ENABLED for
+      # consistency. We ensure both are considered for compatability.
       def normalize_regions_compatibility!(env)
-        # Apply business logic here without touching global ENV
         set_value = env['REGIONS_ENABLED'] || env['REGIONS_ENABLE'] || 'false'
         env['REGIONS_ENABLED'] = set_value
       end
