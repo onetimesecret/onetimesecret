@@ -21,11 +21,11 @@ OT.boot! :test, false
 
 
 ## Finds a config path
-[Onetime::Config.path.nil?, Onetime::Config.path.include?('config.test.yaml')]
+[OT::Configurator.path.nil?, OT::Configurator.path.include?('config.test.yaml')]
 #=> [false, true]
 
 ## Can load config
-@config = Onetime::Config.load
+@config = OT::Configurator.load
 @config.class
 #=> Hash
 
@@ -46,21 +46,21 @@ Onetime.global_secret
 #=> 'SuP0r_53cRU7'
 
 ## Config.mapped_key takens an internal key and returns the corresponding external key
-Onetime::Config.mapped_key(:example_internal_key)
+OT::Configurator.mapped_key(:example_internal_key)
 #=> :example_external_key
 
 ## Config.mapped_key returns the key itself if it is not in the KEY_MAP
-Onetime::Config.mapped_key(:every_developer_a_key)
+OT::Configurator.mapped_key(:every_developer_a_key)
 #=> :every_developer_a_key
 
 ## Config.find_configs returns an array of paths, but the test config isn't there
-paths = Onetime::Config.find_configs('config.test.yaml')
+paths = OT::Configurator.find_configs('config.test.yaml')
 path = File.expand_path(File.join(__dir__, '..', 'config.test.yaml'))
 paths.include?(path)
 #=> false
 
 ## Config.find_configs returns an array of paths, where it finds the example config
-paths = Onetime::Config.find_configs('config.example.yaml')
+paths = OT::Configurator.find_configs('config.example.yaml')
 path = File.expand_path(File.join(Onetime::HOME, 'etc', 'config.example.yaml'))
 paths.include?(path)
 #=> true

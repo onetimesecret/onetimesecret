@@ -13,7 +13,7 @@ RSpec.describe "Onetime::Config during Onetime.boot!" do
   end
 
   before(:each) do
-    # Mock Onetime::Config.path to use the actual test config file
+    # Mock OT::Configurator.path to use the actual test config file
     allow(Onetime::Config).to receive(:path).and_return(source_config_path)
     allow(Onetime::Config).to receive(:find_configs).and_return([source_config_path])
 
@@ -76,7 +76,7 @@ RSpec.describe "Onetime::Config during Onetime.boot!" do
       end
     }
     # Explicitly stub methods that might be called with specific arguments if method_missing is too broad
-    Onetime::Config::KEY_MAP.each_value do |truemail_key|
+    Onetime::Configurator::KEY_MAP.each_value do |truemail_key|
       allow(truemail_config_double).to receive(:"#{truemail_key}=") if truemail_config_double.respond_to?(:"#{truemail_key}=")
     end
     allow(truemail_config_double).to receive(:verifier_email=)
@@ -97,20 +97,20 @@ RSpec.describe "Onetime::Config during Onetime.boot!" do
     # Object.send(:remove_const, :DATABASE_IDS) if defined?(DATABASE_IDS_DEFINED_BY_TEST) && DATABASE_IDS_DEFINED_BY_TEST
   end
 
-  describe "State of @conf after OT::Config.load and OT::Config.after_load" do
+  describe "State of @conf after OT::Configurator.load and OT::Configurator.after_load" do
     it "has correctly processed ttl_options and default_ttl" do
-      test_config = Onetime::Config.load(source_config_path)
+      test_config = OT::Configurator.load(source_config_path)
 
-      conf = Onetime::Config.after_load(test_config)
+      conf = OT::Configurator.after_load(test_config)
 
       expect(conf.dig(:site, :secret_options, :default_ttl)).to eq('43200'.to_i) # 12 hours
       expect(conf.dig(:site, :secret_options, :ttl_options)).to eq(%w[1800 43200 604800].map(&:to_i))
     end
 
     it "ensures required keys are present and defaults applied" do
-      test_config = Onetime::Config.load(source_config_path)
+      test_config = OT::Configurator.load(source_config_path)
 
-      conf = Onetime::Config.after_load(test_config)
+      conf = OT::Configurator.after_load(test_config)
 
       expect(conf.dig(:development, :enabled)).to be(false)
       expect(conf.dig(:development, :frontend_host)).to eq('http://localhost:5173')
@@ -133,7 +133,7 @@ RSpec.describe "Onetime::Config during Onetime.boot!" do
     end
 
     context "when we set OT.conf manually" do
-      let(:loaded_config) { Onetime::Config.load(source_config_path) }
+      let(:loaded_config) { OT::Configurator.load(source_config_path) }
 
       before do
       end
@@ -143,7 +143,7 @@ RSpec.describe "Onetime::Config during Onetime.boot!" do
         # Frontend DSN might also need to be nil if it alone can enable diagnostics
         loaded_config[:diagnostics][:sentry][:frontend][:dsn] = nil
 
-        conf = Onetime::Config.after_load(loaded_config)
+        conf = OT::Configurator.after_load(loaded_config)
 
         diagnostics_config = conf.fetch(:diagnostics)
         expect(diagnostics_config.dig(:sentry, :backend, :dsn)).to be_nil
@@ -152,7 +152,7 @@ RSpec.describe "Onetime::Config during Onetime.boot!" do
       end
 
       it "handles :autoverify correctly based on config" do
-        conf = Onetime::Config.after_load(loaded_config)
+        conf = OT::Configurator.after_load(loaded_config)
 
         expect(conf.dig(:site, :authentication, :autoverify)).to be(false)
       end
@@ -216,7 +216,7 @@ RSpec.describe "Onetime::Config during Onetime.boot!" do
 
         # OT.instance_variable_set(:'@conf', conf) # To mimic the logic in OT.boot! at v0.20.5
 
-        conf = Onetime::Config.after_load(test_config)
+        conf = OT::Configurator.after_load(test_config)
 
         auth_config = conf.dig(:site, :authentication)
         expect(auth_config[:enabled]).to be(false)
@@ -228,7 +228,7 @@ RSpec.describe "Onetime::Config during Onetime.boot!" do
   end
 
   describe "State of Onetime.conf at the end of Onetime.boot!" do
-    let(:loaded_config) { Onetime::Config.load(source_config_path) }
+    let(:loaded_config) { OT::Configurator.load(source_config_path) }
 
     before(:each) do
       ENV['RACK_ENV'] = 'test'

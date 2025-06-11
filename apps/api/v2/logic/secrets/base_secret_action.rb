@@ -76,7 +76,7 @@ module V2::Logic
         @ttl = payload.fetch(:ttl, nil)
 
         # Get configuration options. We can rely on these values existing
-        # because that are guaranteed by OT::Config.after_load.
+        # because that are guaranteed by OT::Configurator.after_load.
         secret_options = OT.conf[:site].fetch(:secret_options, {
           default_ttl: 7.days,
           ttl_options: [1.minute, 1.hour, 1.day, 7.days]

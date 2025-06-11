@@ -43,7 +43,7 @@ OT.conf[:emailer][:tls]
 
 ## Emailer raises an exception when the mode is not valid
 ENV['EMAILER_MODE'] = 'bogus'
-Onetime::Config.load
+OT::Configurator.load
 OT.boot! :test, false
 ##=> ''
 
@@ -58,7 +58,7 @@ ENV['SMTP_PASSWORD'] = 'testpass'
 ENV['SMTP_AUTH'] = 'plain'
 ENV['SMTP_TLS'] = 'false'
 
-Onetime::Config.load
+OT::Configurator.load
 OT.boot! :test, false
 
 [
@@ -85,7 +85,7 @@ ENV.delete('SMTP_PASSWORD')
 ENV.delete('SMTP_AUTH')
 ENV.delete('SMTP_TLS')
 
-Onetime::Config.load
+OT::Configurator.load
 OT.boot! :test, false
 
 [

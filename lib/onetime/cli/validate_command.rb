@@ -11,7 +11,7 @@ module Onetime
 
       begin
         # Create config instance with optional paths
-        config = OT::Config.new(config_path: path, schema_path: schema_path)
+        config = OT::Configurator.new(config_path: path, schema_path: schema_path)
 
         OT.li "Validating #{config.config_path}..."
         OT.li "Schema: #{config.schema_path}"

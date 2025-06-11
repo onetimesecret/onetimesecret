@@ -52,7 +52,7 @@ module V2
           OT.ld "[GetSystemSettings#build_merged_configuration] Colonel overrides (raw): #{colonel_overrides}"
 
           # Merge colonel overrides directly into base sections
-          merged = Onetime::Config.deep_merge(base_sections, colonel_overrides)
+          merged = OT::Configurator.deep_merge(base_sections, colonel_overrides)
           OT.ld "[GetSystemSettings#build_merged_configuration] Final merged result: #{merged}"
 
           merged

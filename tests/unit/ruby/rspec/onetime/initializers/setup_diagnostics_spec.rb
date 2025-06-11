@@ -5,7 +5,7 @@ require 'ostruct'
 
 RSpec.describe "Onetime::Initializers#setup_diagnostics" do
   let(:source_config_path) { File.expand_path(File.join(Onetime::HOME, 'tests', 'unit', 'ruby', 'config.test.yaml')) }
-  let(:loaded_config) { Onetime::Config.load(source_config_path) }
+  let(:loaded_config) { OT::Configurator.load(source_config_path) }
 
   before do
     # Reset global state before each test

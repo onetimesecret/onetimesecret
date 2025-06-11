@@ -1,4 +1,4 @@
-# lib/onetime/config.rb
+# lib/onetime/configurator.rb
 
 require 'json'
 require 'erb'
@@ -7,8 +7,8 @@ require 'pathname'
 require 'xdg'
 
 require_relative 'errors'
-require_relative 'config/load'
-require_relative 'config/utils'
+require_relative 'configurator/load'
+require_relative 'configurator/utils'
 
 require 'onetime/refinements/hash_refinements'
 
@@ -18,7 +18,7 @@ module Onetime
   # 1. Schema validation (declarative) - structure + defaults
   # 2. Business processing (imperative) - compatibility, auth, etc.
   # 3. Re-validation (declarative) - ensures processing didn't break schema
-  class Config
+  class Configurator
     using IndifferentHashAccess
     using ThenWithDiff
 
@@ -46,7 +46,7 @@ module Onetime
     attr_reader :unprocessed_config, :validated_config, :schema, :parsed_template
     attr_reader :parsed_yaml, :config_template_str, :processed_config
 
-    # Typically called via `Onetime::Config.load!`
+    # Typically called via `OT::Configurator.load!`
     def load!(&)
       normalize_environment
 
@@ -85,12 +85,12 @@ module Onetime
     end
 
     def read_template_file(path)
-      OT.ld("[Config] Reading template file: #{path}")
-      @template_str = OT::Config::Load.file_read(path)
+      OT.ld("[config] Reading template file: #{path}")
+      @template_str = OT::Configurator::Load.file_read(path)
     end
 
     def render_erb_template(template)
-      OT.ld("[Config] Rendering ERB template (#{template.size} bytes)")
+      OT.ld("[config] Rendering ERB template (#{template.size} bytes)")
       @rendered_template = ERB.new(template).result #(binding)
     end
 
@@ -102,8 +102,8 @@ module Onetime
     # @return [Hash] the parsed YAML data
     #
     def parse_yaml(content)
-      OT.ld("[Config] Parsing YAML content (#{content.size} bytes)")
-      @parsed_yaml = OT::Config::Load.yaml_load(content)
+      OT.ld("[config] Parsing YAML content (#{content.size} bytes)")
+      @parsed_yaml = OT::Configurator::Load.yaml_load(content)
     end
 
     # Configuration processing can introduce new failure modes so we validate
@@ -112,7 +112,7 @@ module Onetime
     # First validation: Schema validation before processing.
     # Ensures structural integrity, applies defaults.
     def validate_with_defaults(config)
-      OT.ld("[Config] Validating w/ defaults (#{config.size} sections)")
+      OT.ld("[config] Validating w/ defaults (#{config.size} sections)")
       _validate(config, apply_defaults: true)
     end
 
@@ -128,17 +128,17 @@ module Onetime
     #
     # @return [Hash] The processed configuration has
     def after_load(config, &)
-      OT.ld("[Config] After loading (has block: #{block_given?})")
+      OT.ld("[config] After loading (has block: #{block_given?})")
       block_given? ? yield(config) : config
     end
 
     def validate(config)
-      OT.ld("[Config] Validating w/o defaults (#{config.size} sections)")
+      OT.ld("[config] Validating w/o defaults (#{config.size} sections)")
       _validate(config, apply_defaults: false)
     end
 
     def deep_freeze(config)
-      OT.ld("[Config] Deep freezing (#{config.size} sections; already frozen: #{config.frozen?})")
+      OT.ld("[config] Deep freezing (#{config.size} sections; already frozen: #{config.frozen?})")
       OT::Utils.deep_freeze(config)
     end
 
@@ -154,11 +154,11 @@ module Onetime
         end
       end
 
-      OT.ld "[Config] Template: `#{@template_str[0..50]}`" if @template_str
-      OT.ld "[Config] Parsed YAML: #{@parsed_yaml.class}" if @parsed_yaml
+      OT.ld "[config] Template: `#{@template_str[0..50]}`" if @template_str
+      OT.ld "[config] Parsed YAML: #{@parsed_yaml.class}" if @parsed_yaml
       if unprocessed_config
         loggable_config = OT::Utils.type_structure(unprocessed_config)
-        OT.ld "[Config] Parsed: #{loggable_config}"
+        OT.ld "[config] Parsed: #{loggable_config}"
       end
 
       OT.le err.message
@@ -167,8 +167,8 @@ module Onetime
 
     def load_schema(path = nil)
       path ||= schema_path
-      OT.ld "[Config] Loading schema from #{path.inspect}"
-      OT::Config::Load.yaml_load_file(path)
+      OT.ld "[config] Loading schema from #{path.inspect}"
+      OT::Configurator::Load.yaml_load_file(path)
     end
 
     private
@@ -178,15 +178,15 @@ module Onetime
         raise ArgumentError, 'Invalid configuration format'
       end
       # loggable_config = OT::Utils.type_structure(config)
-      # OT.ld "[Config] Validating #{loggable_config.size} #{schema.size}"
-      OT::Config::Utils.validate_with_schema(config, schema, **)
+      # OT.ld "[config] Validating #{loggable_config.size} #{schema.size}"
+      OT::Configurator::Utils.validate_with_schema(config, schema, **)
     end
 
     # Normalizes environment variables prior to loading and rendering the YAML
     # configuration. In some cases, this might include setting default values
     # and ensuring necessary environment variables are present.
     def normalize_environment
-      OT.ld '[Config] Normalizing environment variables'
+      OT.ld '[config] Normalizing environment variables'
       # In v0.20.6, REGIONS_ENABLE was renamed to REGIONS_ENABLED for
       # consistency. We ensure both are considered for compatability.
       set_value = ENV.values_at('REGIONS_ENABLED', 'REGIONS_ENABLE').compact.first

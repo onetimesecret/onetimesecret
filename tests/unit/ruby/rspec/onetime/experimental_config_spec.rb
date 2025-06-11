@@ -14,11 +14,11 @@ RSpec.describe "Experimental config settings" do
 
     # Load the YAML content after ERB processing
     let(:test_config) {
-      config_instance = Onetime::Config.new(config_path: source_config_path)
+      config_instance = OT::Configurator.new(config_path: source_config_path)
       config_instance.send(:load_config)
     }
     let(:processed_config) {
-      config_instance = Onetime::Config.new
+      config_instance = OT::Configurator.new
       config_instance.instance_variable_set(:@unprocessed_config, test_config)
       config_instance.send(:after_load)
     }
@@ -33,7 +33,7 @@ RSpec.describe "Experimental config settings" do
 
     context "when allow_nil_global_secret is false (default)" do
       before do
-        @context_config = OT::Config.deep_clone(processed_config)
+        @context_config = OT::Configurator.deep_clone(processed_config)
         @context_config[:experimental][:allow_nil_global_secret] = false
 
         OT.instance_variable_set(:@conf, @context_config)
@@ -84,7 +84,7 @@ RSpec.describe "Experimental config settings" do
 
     context "when allow_nil_global_secret is true" do
       before do
-        @context_config = OT::Config.deep_clone(processed_config)
+        @context_config = OT::Configurator.deep_clone(processed_config)
         @context_config[:experimental][:allow_nil_global_secret] = true
 
         OT.instance_variable_set(:@conf, @context_config)
@@ -191,7 +191,7 @@ RSpec.describe "Experimental config settings" do
 
     context "when switching between nil and non-nil global secrets" do
       before do
-        @context_config = OT::Config.deep_clone(processed_config)
+        @context_config = OT::Configurator.deep_clone(processed_config)
         @context_config[:experimental][:allow_nil_global_secret] = true
 
         OT.instance_variable_set(:@conf, @context_config)

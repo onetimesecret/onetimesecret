@@ -609,8 +609,8 @@ RSpec.describe Onetime::Config do
       let(:erb_config) { "test:\n  value: <%= 456 %>" }
 
       before do
-        allow(OT::Config::Load).to receive(:file_read).and_return(yaml_config)
-        allow(OT::Config::Load).to receive(:yaml_load).and_return({ test: { value: 123 } })
+        allow(OT::Configurator::Load).to receive(:file_read).and_return(yaml_config)
+        allow(OT::Configurator::Load).to receive(:yaml_load).and_return({ test: { value: 123 } })
       end
 
       it 'reads and processes config file' do
@@ -623,8 +623,8 @@ RSpec.describe Onetime::Config do
 
       context 'with ERB template' do
         before do
-          allow(OT::Config::Load).to receive(:file_read).and_return(erb_config)
-          allow(OT::Config::Load).to receive(:yaml_load).and_return({ test: { value: 456 } })
+          allow(OT::Configurator::Load).to receive(:file_read).and_return(erb_config)
+          allow(OT::Configurator::Load).to receive(:yaml_load).and_return({ test: { value: 456 } })
         end
 
         it 'processes ERB templates' do
@@ -638,7 +638,7 @@ RSpec.describe Onetime::Config do
 
     describe '#load_schema' do
       before do
-        allow(OT::Config::Load).to receive(:yaml_load_file).and_return({ type: 'object' })
+        allow(OT::Configurator::Load).to receive(:yaml_load_file).and_return({ type: 'object' })
       end
 
       it 'loads schema from file' do

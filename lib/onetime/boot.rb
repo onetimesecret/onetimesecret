@@ -52,7 +52,7 @@ module Onetime
 
       OT.ld "[BOOT] Initializing in '#{OT.mode}' mode (instance: #{@instance})"
 
-      @configurator = OT::Config.load! do |config|
+      @configurator = OT::Configurator.load! do |config|
         OT.ld '[BOOT] Our own custom after load'
         modify_before_its_frozen(config)
       end
@@ -146,7 +146,7 @@ module Onetime
     # Must return the whole modified config object
     def modify_before_its_frozen(config)
       # Modify the configuration before it is frozen
-      config[:key] = 'value'
+      config[:site][:middleware][:static_files] = false
       config
     end
 

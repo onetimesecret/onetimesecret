@@ -1,9 +1,9 @@
-# lib/onetime/config/utils.rb
+# lib/onetime/configurator/utils.rb
 
 require 'json_schemer'
 
 module Onetime
-  class Config
+  class Configurator
 
     unless defined?(KNOWN_PATHS)
       KNOWN_PATHS = %w[/etc/onetime ./etc ~/.onetime].freeze

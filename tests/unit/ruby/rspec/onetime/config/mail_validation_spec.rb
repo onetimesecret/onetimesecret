@@ -72,7 +72,7 @@ RSpec.xdescribe "Onetime mail validation (TrueMail) configuration" do
       config = minimal_config.dup
       config[:mail].delete(:truemail)
 
-      config_instance = Onetime::Config.new
+      config_instance = OT::Configurator.new
       allow(config_instance).to receive(:unprocessed_config).and_return(config)
 
       expect { config_instance.send(:after_load) }
@@ -89,7 +89,7 @@ RSpec.xdescribe "Onetime mail validation (TrueMail) configuration" do
       expect(@truemail_config).to receive(:whitelist_validation=).with(truemail_settings[:allowed_domains_only])
       expect(@truemail_config).to receive(:dns=).with(truemail_settings[:dns])
 
-      config_instance = Onetime::Config.new
+      config_instance = OT::Configurator.new
       allow(config_instance).to receive(:unprocessed_config).and_return(config)
 
       conf = config_instance.send(:after_load)
@@ -118,7 +118,7 @@ RSpec.xdescribe "Onetime mail validation (TrueMail) configuration" do
       # (due to the commented-out 'next').
       allow(@truemail_config).to receive(:invalid_key=)
 
-      config_instance = Onetime::Config.new
+      config_instance = OT::Configurator.new
       allow(config_instance).to receive(:unprocessed_config).and_return(test_config)
 
       conf = config_instance.send(:after_load)
@@ -139,7 +139,7 @@ RSpec.xdescribe "Onetime mail validation (TrueMail) configuration" do
       expect(@truemail_config).to receive(:whitelisted_emails=).with(['test@example.com'])
       expect(@truemail_config).to receive(:blacklisted_domains=).with(['bad.com'])
 
-      config_instance = Onetime::Config.new
+      config_instance = OT::Configurator.new
       allow(config_instance).to receive(:unprocessed_config).and_return(test_config)
 
       conf = config_instance.send(:after_load)
@@ -171,7 +171,7 @@ RSpec.xdescribe "Onetime mail validation (TrueMail) configuration" do
       expect(@truemail_config).to receive(:dns=).with(full_truemail_config[:dns])
       expect(@truemail_config).to receive(:logger=).with(full_truemail_config[:logger])
 
-      config_instance = Onetime::Config.new
+      config_instance = OT::Configurator.new
       allow(config_instance).to receive(:unprocessed_config).and_return(test_config)
 
       conf = config_instance.send(:after_load)
@@ -205,7 +205,7 @@ RSpec.xdescribe "Onetime mail validation (TrueMail) configuration" do
         expect(@truemail_config).to receive(:blacklisted_mx_ip_addresses=).with(['10.0.0.1'])
         expect(@truemail_config).to receive(:example_external_key=).with('test_value')
 
-        config_instance = Onetime::Config.new
+        config_instance = OT::Configurator.new
         allow(config_instance).to receive(:unprocessed_config).and_return(test_config)
 
         conf = config_instance.send(:after_load)
@@ -215,9 +215,9 @@ RSpec.xdescribe "Onetime mail validation (TrueMail) configuration" do
     end
   end
 
-  describe 'Onetime::Config::KEY_MAP' do
+  describe 'Onetime::Configurator::KEY_MAP' do
     it 'contains expected mapping keys' do
-      expect(Onetime::Config::KEY_MAP).to include(
+      expect(Onetime::Configurator::KEY_MAP).to include(
         allowed_domains_only: :whitelist_validation,
         allowed_emails: :whitelisted_emails,
         blocked_emails: :blacklisted_emails,
@@ -230,9 +230,9 @@ RSpec.xdescribe "Onetime mail validation (TrueMail) configuration" do
 
     it 'is used by mapped_key method' do
       # Test a few key mappings to verify the method uses KEY_MAP correctly
-      expect(Onetime::Config::Utils.mapped_key(:allowed_domains_only)).to eq(:whitelist_validation)
-      expect(Onetime::Config::Utils.mapped_key(:example_internal_key)).to eq(:example_external_key)
-      expect(Onetime::Config::Utils.mapped_key(:unmapped_key)).to eq(:unmapped_key)
+      expect(Onetime::Configurator::Utils.mapped_key(:allowed_domains_only)).to eq(:whitelist_validation)
+      expect(Onetime::Configurator::Utils.mapped_key(:example_internal_key)).to eq(:example_external_key)
+      expect(Onetime::Configurator::Utils.mapped_key(:unmapped_key)).to eq(:unmapped_key)
     end
   end
 end

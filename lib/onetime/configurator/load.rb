@@ -1,7 +1,7 @@
-# lib/onetime/config/load.rb
+# lib/onetime/configurator/load.rb
 
 module Onetime
-  class Config
+  class Configurator
     module Load
       extend self
 
