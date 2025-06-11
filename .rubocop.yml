@@ -20,8 +20,9 @@ plugins:
 
 AllCops:
   NewCops: enable
+  DisabledByDefault: true
   UseCache: true
-  MaxFilesInCache: 100
+  MaxFilesInCache: 1000
   TargetRubyVersion: 3.2
   Exclude:
     # The V1 API is in maintenance mode. No changes allowed 🚭
@@ -60,6 +61,9 @@ Style/RedundantReturn:
   Enabled: true
   AllowMultipleReturnValues: false
 
+Style/IfUnlessModifier:
+  Enabled: false
+
 # We prefer `extend self` and `class << self`.
 Style/ModuleFunction:
   Enabled: true
@@ -70,6 +74,12 @@ Style/ModuleFunction:
 Style/GuardClause:
   Enabled: true
   MinBodyLength: 3
+
+Naming/PredicateMethod:
+  Enabled: pending
+  Mode: ''
+  AllowedMethods:
+    - validate!
 
 # We use class instance variables quite a bit, mostly for readonly values set
 # at boot time. Except for our models with have redis-rb Redis instances
