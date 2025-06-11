@@ -7,6 +7,7 @@ require 'pathname'
 require 'xdg'
 
 require_relative 'errors'
+require_relative 'configurator/environment'
 require_relative 'configurator/load'
 require_relative 'configurator/utils'
 
@@ -48,8 +49,6 @@ module Onetime
 
     # Typically called via `OT::Configurator.load!`
     def load!(&)
-      normalize_environment
-
       @schema = load_schema
       # We validate before returning the config so that we're not inadvertently
       # sending back configuration of unknown provenance. This is Stage 1 of
@@ -76,7 +75,7 @@ module Onetime
       raise
     rescue StandardError => e
       log_debug_content(e)
-      raise OT::ConfigError, "Configuration loading failed: #{e.message}"
+      raise OT::ConfigError, "Unhandled error: #{e.message}"
     end
 
     # The accessor creates a new config hash every time and returns it frozen
@@ -185,17 +184,6 @@ module Onetime
       # loggable_config = OT::Utils.type_structure(config)
       # OT.ld "[config] Validating #{loggable_config.size} #{schema.size}"
       OT::Configurator::Utils.validate_with_schema(config, schema, **)
-    end
-
-    # Normalizes environment variables prior to loading and rendering the YAML
-    # configuration. In some cases, this might include setting default values
-    # and ensuring necessary environment variables are present.
-    def normalize_environment
-      OT.ld '[config] Normalizing environment variables'
-      # In v0.20.6, REGIONS_ENABLE was renamed to REGIONS_ENABLED for
-      # consistency. We ensure both are considered for compatability.
-      set_value = ENV.values_at('REGIONS_ENABLED', 'REGIONS_ENABLE').compact.first
-      ENV['REGIONS_ENABLED'] = set_value || 'false'
     end
 
     class << self
