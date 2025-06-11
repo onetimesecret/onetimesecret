@@ -47,14 +47,15 @@ module Onetime
 
       # Sets a unique SHA hash every time this process starts. In a multi-
       # threaded environment (e.g. with Puma), this should be different for
-      # each thread.
+      # each thread. See tests/unit/ruby/rspec/puma_multi_process_spec.rb.
       @instance = [Process.pid.to_s, OT::VERSION.to_s].gibbler.short.freeze
 
       OT.ld "[BOOT] Initializing in '#{OT.mode}' mode (instance: #{@instance})"
 
-      @configurator = OT::Configurator.load! do |config|
-        OT.ld '[BOOT] Our own custom after load'
-        modify_before_its_frozen(config)
+      @configurator = OT::Configurator.load! do |conf|
+        OT.ld '[BOOT] A chance to modify the conf hash before it is frozen'
+
+        conf # must return the configuration hash
       end
 
       OT.li "[BOOT] Configuration loaded from #{configurator.config_path}"
@@ -91,14 +92,19 @@ module Onetime
       # Phase 1: Basic setup
       # * Reads from file-based OT.conf (frozen)
       # * Writes to global OT attributes.
+      require_relative 'initializers/phase1_before_database'
       run_phase1_initializers
 
       # Phase 2: Database + Config Merge
       # * Reads from database
       # * Replaces OT.conf with merged config
-      run_phase2_initializers(connect_to_db)
+      if connect_to_db
+        require_relative 'initializers/phase2_connect_database'
+        run_phase2_initializers
+      end
 
       # Phase 3: Services (reads from merged OT.conf)
+      require_relative 'initializers/phase3_services'
       run_phase3_initializers
 
       OT.ld '[BOOT] Completing initialization process...'
@@ -115,39 +121,12 @@ module Onetime
       handle_boot_error(error)
     end
 
-    def run_phase1_initializers
-      load_locales        # OT.conf[:locales] -> OT.locales
-      set_global_secret   # OT.conf[:site][:secret] -> OT.global_secret
-      set_rotated_secrets # OT.conf[:site][:rotated_secrets] -> OT.rotated_secrets
-      load_fortunes       # OT.conf[:fortunes] ->
-    end
-
-    def run_phase2_initializers
-      if connect_to_db
-        connect_databases
-        setup_system_settings  # *** KEY: This updates @conf ***
-        check_global_banner    # Uses merged OT.conf
-      end
-    end
-
-    def run_phase3_initializers
-      setup_authentication   # Uses merged OT.conf[:site][:authentication]
-      setup_diagnostics     # Uses merged OT.conf[:diagnostics]
-    end
-
     def safe_boot!(mode = nil, connect_to_db = true)
       boot!(mode, connect_to_db)
       true
     rescue => e
       # Boot errors are already logged in handle_boot_error
       OT.not_ready! # returns false
-    end
-
-    # Must return the whole modified config object
-    def modify_before_its_frozen(config)
-      # Modify the configuration before it is frozen
-      config[:site][:middleware][:static_files] = false
-      config
     end
 
     private

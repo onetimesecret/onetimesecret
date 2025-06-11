@@ -47,7 +47,12 @@ module Onetime
     attr_reader :unprocessed_config, :validated_config, :schema, :parsed_template
     attr_reader :parsed_yaml, :config_template_str, :processed_config
 
-    # Typically called via `OT::Configurator.load!`
+    # Typically called via `OT::Configurator.load!`. The block is passed to
+    # after_load after the config is first loaded and the validated against
+    # the schema (which also applies default values).
+    #
+    # Using a combination of then and then_with_diff which tracks the chanegs to
+    # the configuration at each step in this load pipline.
     def load!(&)
       @schema = load_schema
       # We validate before returning the config so that we're not inadvertently
@@ -88,6 +93,10 @@ module Onetime
       @template_str = OT::Configurator::Load.file_read(path)
     end
 
+    # We create the environment context with the normalized ENV vars
+    # and make it available to ERB during the rendering process. It's
+    # all self-contained and does not rely on external dependencies or
+    # affect the global ENV.
     def render_erb_template(template)
       OT.ld("[config] Rendering ERB template (#{template.size} bytes)")
       context = Onetime::Configurator::EnvironmentContext.template_binding

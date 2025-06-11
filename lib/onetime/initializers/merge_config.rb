@@ -1,4 +1,4 @@
-# lib/onetime/initializers/setup_system_settings.rb
+# lib/onetime/initializers/merge_config.rb
 
 module Onetime
   module Initializers
@@ -8,7 +8,7 @@ module Onetime
     # configuration in Redis and merging it with YAML configuration.
     # Creates initial system settings record on first boot.
     #
-    def setup_system_settings
+    def merge_config
       OT.ld 'Setting up system settings...'
 
       # Check if this is the first boot by looking for existing data
