@@ -91,7 +91,8 @@ module Onetime
 
     def render_erb_template(template)
       OT.ld("[config] Rendering ERB template (#{template.size} bytes)")
-      @rendered_template = ERB.new(template).result #(binding)
+      context = Onetime::Configurator::EnvironmentContext.template_binding
+      @rendered_template = ERB.new(template).result(context)
     end
 
     # Load a YAML configuration file, allowing for ERB templating within the file.
@@ -154,8 +155,12 @@ module Onetime
         end
       end
 
-      OT.ld "[config] Template: `#{@template_str[0..50]}`" if @template_str
-      OT.ld "[config] Parsed YAML: #{@parsed_yaml.class}" if @parsed_yaml
+      OT.ld <<~DEBUG
+        [config]
+          Template: `#{@template_str.to_s[0..50]}`
+          Parsed YAML: `#{@parsed_yaml.class}`
+      DEBUG
+
       if unprocessed_config
         loggable_config = OT::Utils.type_structure(unprocessed_config)
         OT.ld "[config] Parsed: #{loggable_config}"
@@ -214,6 +219,7 @@ module Onetime
     end
   end
 end
+
 
 __END__
 
