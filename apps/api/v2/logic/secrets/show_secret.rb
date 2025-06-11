@@ -6,9 +6,9 @@ module V2::Logic
     class ShowSecret < V2::Logic::Base
       attr_reader :key, :passphrase, :continue
       attr_reader :secret, :show_secret, :secret_value, :is_truncated,
-                  :verification, :correct_passphrase,
-                  :display_lines, :one_liner, :is_owner, :has_passphrase,
-                  :secret_key, :share_domain
+        :verification, :correct_passphrase,
+        :display_lines, :one_liner, :is_owner, :has_passphrase,
+        :secret_key, :share_domain
 
       def process_params
         @key = params[:key].to_s

@@ -10,7 +10,7 @@ module V2
                         :diagnostics]
 
         attr_reader :config, :interface, :secret_options, :mail, :limits,
-                    :diagnostics, :greenlighted, :record
+          :diagnostics, :greenlighted, :record
 
         def process_params
           OT.ld "[UpdateSystemSettings#process_params] params: #{params.inspect}"

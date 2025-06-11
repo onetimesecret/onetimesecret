@@ -16,8 +16,8 @@ module Onetime
     attr_reader :configurator
     attr_writer :debug, :env, :global_secret
     attr_reader :conf, :instance, :i18n_enabled, :locales,
-                :supported_locales, :default_locale, :fallback_locale,
-                :global_banner, :rotated_secrets, :emailer, :first_boot
+      :supported_locales, :default_locale, :fallback_locale,
+      :global_banner, :rotated_secrets, :emailer, :first_boot
 
     using IndifferentHashAccess
 

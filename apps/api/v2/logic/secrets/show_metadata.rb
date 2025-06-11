@@ -7,14 +7,14 @@ module V2::Logic
       attr_reader :key, :metadata, :secret
       # Template variables
       attr_reader :metadata_key, :metadata_shortkey, :secret_key, :secret_state,
-            :secret_shortkey, :recipients, :no_cache, :expiration_in_seconds,
-            :natural_expiration, :is_received, :is_burned, :secret_realttl,
-            :is_destroyed, :expiration, :maxviews, :has_maxviews, :view_count,
-            :has_passphrase, :can_decrypt, :secret_value, :is_truncated,
-            :show_secret, :show_secret_link, :show_metadata_link, :metadata_attributes,
-            :show_metadata, :show_recipients, :share_domain, :is_orphaned,
-            :share_path, :burn_path, :metadata_path, :share_url, :is_expired,
-            :metadata_url, :burn_url, :display_lines
+        :secret_shortkey, :recipients, :no_cache, :expiration_in_seconds,
+        :natural_expiration, :is_received, :is_burned, :secret_realttl,
+        :is_destroyed, :expiration, :maxviews, :has_maxviews, :view_count,
+        :has_passphrase, :can_decrypt, :secret_value, :is_truncated,
+        :show_secret, :show_secret_link, :show_metadata_link, :metadata_attributes,
+        :show_metadata, :show_recipients, :share_domain, :is_orphaned,
+        :share_path, :burn_path, :metadata_path, :share_url, :is_expired,
+        :metadata_url, :burn_url, :display_lines
 
       def process_params
         @key = params[:key].to_s

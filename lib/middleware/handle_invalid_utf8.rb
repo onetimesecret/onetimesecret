@@ -30,9 +30,9 @@ class Rack::HandleInvalidUTF8
 
   class << self
     attr_reader :default_content_type,
-                :default_charset,
-                :default_exception,
-                :input_sources
+      :default_charset,
+      :default_exception,
+      :input_sources
   end
 
   attr_reader :logger

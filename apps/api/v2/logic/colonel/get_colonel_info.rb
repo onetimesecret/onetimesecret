@@ -9,11 +9,11 @@ module V2
     module Colonel
       class GetColonelInfo < V2::Logic::Base
         attr_reader :plans_enabled, :title, :stathat_chart, :session_count,
-                    :today_feedback, :yesterday_feedback, :older_feedback, :feedback_count,
-                    :today_feedback_count, :yesterday_feedback_count, :older_feedback_count,
-                    :recent_customers, :customer_count, :recent_customer_count, :metadata_count,
-                    :secret_count, :secrets_created, :secrets_shared, :emails_sent, :split_tests,
-                    :has_split_tests, :redis_info
+          :today_feedback, :yesterday_feedback, :older_feedback, :feedback_count,
+          :today_feedback_count, :yesterday_feedback_count, :older_feedback_count,
+          :recent_customers, :customer_count, :recent_customer_count, :metadata_count,
+          :secret_count, :secrets_created, :secrets_shared, :emails_sent, :split_tests,
+          :has_split_tests, :redis_info
 
         def process_params
           site = OT.conf.fetch(:site, {})

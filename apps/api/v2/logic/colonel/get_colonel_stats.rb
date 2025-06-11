@@ -7,7 +7,7 @@ module V2
     module Colonel
       class GetColonelStats < V2::Logic::Base
         attr_reader :session_count, :customer_count, :metadata_count,
-                    :secret_count, :secrets_created, :secrets_shared, :emails_sent
+          :secret_count, :secrets_created, :secrets_shared, :emails_sent
 
         def process_params
           # No parameters needed for stats endpoint
