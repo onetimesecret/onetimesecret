@@ -20,7 +20,7 @@ plugins:
 
 AllCops:
   NewCops: enable
-  DisabledByDefault: true # flip to true for a good autocorrect time
+  DisabledByDefault: false # flip to true for a good autocorrect time
   UseCache: true
   MaxFilesInCache: 1000
   TargetRubyVersion: 3.2
@@ -50,6 +50,20 @@ Style/RedundantParentheses:
 
 Lint/UnusedMethodArgument:
   Enabled: true
+
+# Offense count: 3
+# Configuration parameters: AllowedMethods, AllowedPatterns.
+Metrics/PerceivedComplexity:
+  Max: 20
+
+# Offense count: 2
+# Configuration parameters: AllowedConstants.
+Style/Documentation:
+  Enabled: false
+
+Style/RescueStandardError:
+  Enabled: false
+  EnforcedStyle: explicit
 
 # When true: Use match? instead of =~ when MatchData is not used. True is preferred but not for autocorrection. Regexs are too picky. Need to manually check every time.
 Performance/RegexpMatch:
