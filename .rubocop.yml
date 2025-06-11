@@ -66,6 +66,11 @@ Style/ModuleFunction:
   AutoCorrect: false
   EnforcedStyle: extend_self
 
+# Prefer 3 line if/else over one-liner
+Style/GuardClause:
+  Enabled: true
+  MinBodyLength: 3
+
 # We use class instance variables quite a bit, mostly for readonly values set
 # at boot time. Except for our models with have redis-rb Redis instances
 # connected on their associated db via ModelClass.redis. We're well aware

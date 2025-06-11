@@ -5,6 +5,7 @@ require_relative '../logic/colonel'
 
 module V2
   module Controllers
+    # rubocop:disable Naming/AccessorMethodName
     class Colonel
       include V2::Controllers::Base
 
@@ -32,4 +33,5 @@ module V2
       end
     end
   end
+  # rubocop:enable Naming/AccessorMethodName
 end
