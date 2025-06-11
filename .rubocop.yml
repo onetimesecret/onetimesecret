@@ -28,8 +28,10 @@ AllCops:
     - 'apps/api/v1/**/*'
     - 'migrate/**/*'
     - 'node_modules/**/*'
+    - 'support/'
     - 'tests/unit/ruby/try/**/*'
     - 'tests/unit/ruby/rspec/**/*'
+    - 'tmp/**/*'
     - 'vendor/**/*'
 
 Style/TrailingCommaInHashLiteral:
@@ -105,6 +107,20 @@ Lint/Void:
 Metrics/AbcSize:
   Enabled: false
   Max: 20
+
+# Offense count: 6
+# This cop supports safe autocorrection (--autocorrect).
+# Configuration parameters: AllowHeredoc, AllowURI, URISchemes, IgnoreCopDirectives, AllowedPatterns, SplitStrings.
+# URISchemes: http, https
+Layout/LineLength:
+  AllowHeredoc: true
+  AllowURI: true
+  URISchemes:
+    - https
+  IgnoreCopDirectives: true
+  AllowedPatterns: []
+  SplitStrings: false
+  Max: 120
 
 Metrics/ClassLength:
   Enabled: true

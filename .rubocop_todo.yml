@@ -68,10 +68,3 @@ Style/RaiseArgs:
 # AllowedMethods: present?, blank?, presence, try, try!
 Style/SafeNavigation:
   Enabled: false
-
-# Offense count: 6
-# This cop supports safe autocorrection (--autocorrect).
-# Configuration parameters: AllowHeredoc, AllowURI, URISchemes, IgnoreCopDirectives, AllowedPatterns, SplitStrings.
-# URISchemes: http, https
-Layout/LineLength:
-  Max: 176
