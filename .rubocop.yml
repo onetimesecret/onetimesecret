@@ -41,9 +41,9 @@ AllCops:
 # SupportedStyles: case, end
 Layout/CaseIndentation:
   Enabled: true
-  EnforcedStyle: case # case, end
+  EnforcedStyle: end # case, end
   IndentOneStep: false
-  # IndentationWidth: 2
+  IndentationWidth: 2
 
 Layout/CommentIndentation:
   Enabled: true

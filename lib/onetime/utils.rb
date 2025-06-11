@@ -361,8 +361,8 @@ module Onetime
       else
         weeks = (val / 3600.0 / 24.0 / 7).to_i
         result = Time.at(time_in_s.to_i)
-        .strftime("#{weeks} #{'week'.plural(weeks)} ago")
-        .downcase
+          .strftime("#{weeks} #{'week'.plural(weeks)} ago")
+          .downcase
       end
       result
     end
