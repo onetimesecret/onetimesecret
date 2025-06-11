@@ -31,7 +31,7 @@ module Onetime
 
       # Validate that models have been loaded before attempting to connect
       if Familia.members.empty?
-        raise Onetime::Problem, "No known Familia members. Models need to load before calling boot!"
+        raise Onetime::Problem, 'No known Familia members. Models need to load before calling boot!'
       end
 
       # Map model classes to their database numbers

@@ -9,7 +9,7 @@ module Onetime
     # Creates initial system settings record on first boot.
     #
     def setup_system_settings
-      OT.ld "Setting up system settings..."
+      OT.ld 'Setting up system settings...'
 
       # Check if this is the first boot by looking for existing data
       is_first_boot = detect_first_boot
@@ -37,11 +37,11 @@ module Onetime
 
     rescue Redis::CannotConnectError => e
       OT.lw "Cannot connect to Redis for system settings setup: #{e.message}"
-      OT.lw "Falling back to YAML configuration only"
+      OT.lw 'Falling back to YAML configuration only'
     rescue StandardError => e
       OT.le "Error during system settings setup: #{e.message}"
       OT.ld e.backtrace.join("\n")
-      OT.lw "Falling back to YAML configuration only"
+      OT.lw 'Falling back to YAML configuration only'
     end
 
     private
@@ -62,10 +62,10 @@ module Onetime
 
     # Creates initial system settings record from current YAML configuration
     def create_initial_system_settings
-      OT.ld "Creating initial system settings from YAML..."
+      OT.ld 'Creating initial system settings from YAML...'
 
       system_settings_data = V2::SystemSettings.extract_system_settings(OT.conf)
-      system_settings_data[:comment] = "Initial configuration"
+      system_settings_data[:comment] = 'Initial configuration'
       system_settings_data[:custid] = nil # No customer owner for initial config
 
       new_config = V2::SystemSettings.create(**system_settings_data)

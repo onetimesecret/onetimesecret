@@ -37,7 +37,7 @@ module Onetime
 
       # Header banner
       output << "---  ONETIME #{OT.mode} v#{OT::VERSION.inspect}  #{'---' * 3}"
-      output << ""
+      output << ''
 
       # Add each section to output
       system_rows = build_system_section(redis_info)
@@ -270,16 +270,16 @@ module Onetime
         "#{seconds}s"
       when 60...3600
         minutes = seconds / 60
-        minutes == 1 ? "1m" : "#{minutes}m"
+        minutes == 1 ? '1m' : "#{minutes}m"
       when 3600...86_400
         hours = seconds / 3600
-        hours == 1 ? "1h" : "#{hours}h"
+        hours == 1 ? '1h' : "#{hours}h"
       when 86_400...604_800
         days = seconds / 86_400
-        days == 1 ? "1d" : "#{days}d"
+        days == 1 ? '1d' : "#{days}d"
       when 604_800...2_592_000
         weeks = seconds / 604_800
-        weeks == 1 ? "1w" : "#{weeks}w"
+        weeks == 1 ? '1w' : "#{weeks}w"
       else
         # For very large values, use days
         days = seconds / 86_400

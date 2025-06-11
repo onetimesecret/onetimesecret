@@ -23,18 +23,18 @@ module Onetime
 
       # Early validation to prevent nil errors during initialization
       if dsn.nil?
-        OT.ld "[sentry-init] Cannot initialize Sentry with nil DSN"
+        OT.ld '[sentry-init] Cannot initialize Sentry with nil DSN'
         OT.d9s_enabled = false
       elsif site_host.nil?
-        OT.le "[sentry-init] Cannot initialize Sentry with nil site_host"
-        OT.ld "Falling back to default environment name"
-        site_host = "unknown-host"
+        OT.le '[sentry-init] Cannot initialize Sentry with nil site_host'
+        OT.ld 'Falling back to default environment name'
+        site_host = 'unknown-host'
       end
 
       # Only proceed if we have valid configuration
       if OT.d9s_enabled
         # Safely log first part of DSN for debugging
-        dsn_preview = dsn ? "#{dsn[0..10]}..." : "nil"
+        dsn_preview = dsn ? "#{dsn[0..10]}..." : 'nil'
         OT.li "[sentry-init] Initializing with DSN: #{dsn_preview}"
 
         # Only require Sentry if we have a DSN. We call explicitly
@@ -64,7 +64,7 @@ module Onetime
           config.before_send = lambda do |event, _hint|
             # Return nil if the event would cause errors in processing
             if event.nil? || event.request.nil? || event.request.headers.nil?
-              OT.ld "[sentry-debug] Filtering out event with nil components"
+              OT.ld '[sentry-debug] Filtering out event with nil components'
               return nil
             end
 
