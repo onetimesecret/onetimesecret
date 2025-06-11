@@ -20,7 +20,7 @@ module V2
     # handle errors, redirects, and other exceptions here to ensure that
     # we respond consistently to all requests. That's why we integrate
     # Sentry here rather than app specific logic.
-    def carefully(redirect=nil, content_type=nil, app: :web) # rubocop:disable Metrics/MethodLength,Metrics/PerceivedComplexity
+    def carefully(redirect = nil, content_type = nil, app: :web) # rubocop:disable Metrics/MethodLength,Metrics/PerceivedComplexity
       redirect ||= req.request_path unless app == :api
       content_type ||= 'text/html; charset=utf-8'
 
@@ -195,7 +195,7 @@ module V2
     # requests. Requests via basic auth (/api), may check for a
     # valid shrimp, but they don't regenerate a fresh every time
     # a successful validation occurs.
-    def check_shrimp!(replace=true)
+    def check_shrimp!(_replace = true)
       return if @check_shrimp_ran
       @check_shrimp_ran = true
       return unless req.post? || req.put? || req.delete? || req.patch?
@@ -213,7 +213,7 @@ module V2
       validate_shrimp(attempted_shrimp)
     end
 
-    def validate_shrimp(attempted_shrimp, replace=true)
+    def validate_shrimp(attempted_shrimp, replace = true)
       shrimp_is_empty = attempted_shrimp.empty?
       log_value = attempted_shrimp.shorten(5)
 
@@ -426,7 +426,7 @@ module V2
     # Available levels are :fatal, :error, :warning, :log, :info,
     # and :debug. The Sentry default, if not specified, is :error.
     #
-    def capture_error(error, level=:error, &)
+    def capture_error(error, level = :error, &)
       return unless OT.d9s_enabled # diagnostics are disabled by default
 
       # Capture more detailed debugging information when Sentry errors occur
@@ -439,22 +439,20 @@ module V2
 
         # Try Sentry exception reporting
         Sentry.capture_exception(error, level: level, &)
-      rescue NoMethodError => e
-        if e.message.include?('start_with?')
-          OT.le "[capture_error] Sentry error with nil value in start_with? check: #{e.message}"
-          OT.ld e.backtrace.join("\n")
-          # Continue execution - don't let a Sentry error break the app
-        else
-          # Re-raise any other NoMethodError that isn't related to start_with?
-          raise
-        end
+      rescue NoMethodError => ex
+        # Re-raise any other NoMethodError that isn't related to start_with?
+        raise unless ex.message.include?('start_with?')
+        OT.le "[capture_error] Sentry error with nil value in start_with? check: #{ex.message}"
+        OT.ld ex.backtrace.join("\n")
+        # Continue execution - don't let a Sentry error break the app
+
       rescue StandardError => ex
         OT.le "[capture_error] #{ex.class}: #{ex.message}"
         OT.ld ex.backtrace.join("\n")
       end
     end
 
-    def capture_message(message, level=:log, &)
+    def capture_message(message, level = :log, &)
       return unless OT.d9s_enabled # diagnostics are disabled by default
       Sentry.capture_message(message, level: level, &)
     rescue StandardError => ex
@@ -485,7 +483,7 @@ module V2
     #   collect_proxy_header_details(env)
     #   # => "HTTP_X_FORWARDED_FOR=203.0.113.195 REMOTE_ADDR=192.0.2.1 CF-Connecting-IP=203.0.113.195 CF-IPCountry=US CF-Ray=1234567890abcdef CF-Visitor={\"scheme\":\"https\"}"
     #
-    def collect_proxy_header_details(env=nil, keys=nil)
+    def collect_proxy_header_details(env = nil, keys = nil)
       env ||= {}
       keys ||= %w[
         HTTP_FLY_REQUEST_ID
@@ -532,7 +530,7 @@ module V2
       (LOCAL_HOSTS.member?(req.env['SERVER_NAME']) && (req.client_ipaddress == '127.0.0.1'))
     end
 
-    def deny_agents! *agents
+    def deny_agents! *_agents
       BADAGENTS.flatten.each do |agent|
         if req.user_agent =~ /#{agent}/i
           raise OT::Redirect.new('/')
