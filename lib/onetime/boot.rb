@@ -52,7 +52,10 @@ module Onetime
 
       OT.ld "[BOOT] Initializing in '#{OT.mode}' mode (instance: #{@instance})"
 
-      @configurator = OT::Config.load!
+      @configurator = OT::Config.load! do |config|
+        OT.ld '[BOOT] Our own custom after load'
+        modify_before_its_frozen(config)
+      end
 
       OT.li "[BOOT] Configuration loaded from #{configurator.config_path}"
 
@@ -66,7 +69,8 @@ module Onetime
       #
       # In the current state of config that we have here, the app boots up
       # and serves requests (not the error middleware, gets passed that),
-      # and then responds with 400 and an angry [view_vars] "Site config is missing field: host"
+      # and then responds with 400 and an angry [view_vars] "Site config is
+      # missing field: host".
       @conf = configurator.configuration
 
       # We can't do much without the initial file-based configuration. If it's
@@ -84,27 +88,22 @@ module Onetime
       # The **module-per-initializer pattern** was solving the registry's
       # needs, not your actual needs.
       #
-      # Phase 1: Basic setup (reads from file-based OT.conf)
-      load_locales        # OT.conf[:locales] -> OT.locales
-      set_global_secret   # OT.conf[:site][:secret] -> OT.global_secret
-      set_rotated_secrets # OT.conf[:site][:rotated_secrets] -> OT.rotated_secrets
-      load_fortunes       # OT.conf[:fortunes] ->
+      # Phase 1: Basic setup
+      # * Reads from file-based OT.conf (frozen)
+      # * Writes to global OT attributes.
+      run_phase1_initializers
 
       # Phase 2: Database + Config Merge
-      if connect_to_db
-        connect_databases
-        setup_system_settings  # *** KEY: This updates @conf ***
-        check_global_banner    # Uses merged OT.conf
-      end
+      # * Reads from database
+      # * Replaces OT.conf with merged config
+      run_phase2_initializers(connect_to_db)
 
       # Phase 3: Services (reads from merged OT.conf)
-      setup_authentication   # Uses merged OT.conf[:site][:authentication]
-      setup_diagnostics     # Uses merged OT.conf[:diagnostics]
+      run_phase3_initializers
 
       OT.ld '[BOOT] Completing initialization process...'
       Onetime.complete_initialization!
       OT.li "[BOOT] Startup completed successfully (instance: #{@instance})"
-
 
       # Let's be clear about returning the prepared configruation. Previously
       # we returned @conf here which was confusing because already made it
@@ -116,12 +115,39 @@ module Onetime
       handle_boot_error(error)
     end
 
+    def run_phase1_initializers
+      load_locales        # OT.conf[:locales] -> OT.locales
+      set_global_secret   # OT.conf[:site][:secret] -> OT.global_secret
+      set_rotated_secrets # OT.conf[:site][:rotated_secrets] -> OT.rotated_secrets
+      load_fortunes       # OT.conf[:fortunes] ->
+    end
+
+    def run_phase2_initializers
+      if connect_to_db
+        connect_databases
+        setup_system_settings  # *** KEY: This updates @conf ***
+        check_global_banner    # Uses merged OT.conf
+      end
+    end
+
+    def run_phase3_initializers
+      setup_authentication   # Uses merged OT.conf[:site][:authentication]
+      setup_diagnostics     # Uses merged OT.conf[:diagnostics]
+    end
+
     def safe_boot!(mode = nil, connect_to_db = true)
       boot!(mode, connect_to_db)
       true
     rescue => e
       # Boot errors are already logged in handle_boot_error
       OT.not_ready! # returns false
+    end
+
+    # Must return the whole modified config object
+    def modify_before_its_frozen(config)
+      # Modify the configuration before it is frozen
+      config[:key] = 'value'
+      config
     end
 
     private

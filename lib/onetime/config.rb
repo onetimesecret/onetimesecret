@@ -46,7 +46,8 @@ module Onetime
     attr_reader :unprocessed_config, :validated_config, :schema, :parsed_template
     attr_reader :parsed_yaml, :config_template_str, :processed_config
 
-    def load!
+    # Typically called via `Onetime::Config.load!`
+    def load!(&)
       normalize_environment
 
       @schema = load_schema
@@ -65,7 +66,7 @@ module Onetime
         .then { |template| render_erb_template(template) }
         .then { |yaml_content| parse_yaml(yaml_content) }
         .then_with_diff('initial') { |config| validate_with_defaults(config) }
-        .then_with_diff('processed') { |config| after_load(config) }
+        .then_with_diff('processed') { |config| after_load(config, &) }
         .then_with_diff('validated') { |config| validate(config) }
         .then_with_diff('freezed') { |config| deep_freeze(config) }
 
@@ -126,7 +127,10 @@ module Onetime
     # zod transformations).
     #
     # @return [Hash] The processed configuration has
-    def after_load(config) = config
+    def after_load(config, &)
+      OT.ld("[Config] After loading (has block: #{block_given?})")
+      block_given? ? yield(config) : config
+    end
 
     def validate(config)
       OT.ld("[Config] Validating w/o defaults (#{config.size} sections)")
@@ -193,7 +197,7 @@ module Onetime
       attr_reader :xdg, :paths, :extensions
 
       # Instantiates a new configuration object, loads it, and it returns itself
-      def load! = new.load!
+      def load!(&) = new.load!(&)
 
       def find_configs(basename = 'config')
         paths.flat_map do |path|
