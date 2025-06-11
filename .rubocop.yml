@@ -35,6 +35,16 @@ AllCops:
     - 'tmp/**/*'
     - 'vendor/**/*'
 
+# Offense count: 9
+# This cop supports safe autocorrection (--autocorrect).
+# Configuration parameters: EnforcedStyle, IndentOneStep, IndentationWidth.
+# SupportedStyles: case, end
+Layout/CaseIndentation:
+  Enabled: true
+  EnforcedStyle: case
+  IndentOneStep: false
+  # IndentationWidth: 2
+
 Layout/CommentIndentation:
   Enabled: true
 
@@ -191,6 +201,7 @@ Metrics/AbcSize:
 # Configuration parameters: AllowHeredoc, AllowURI, URISchemes, IgnoreCopDirectives, AllowedPatterns, SplitStrings.
 # URISchemes: http, https
 Layout/LineLength:
+  Enabled: true
   AllowHeredoc: true
   AllowURI: true
   URISchemes:
