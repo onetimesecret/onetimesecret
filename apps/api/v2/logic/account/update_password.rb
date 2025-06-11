@@ -20,10 +20,10 @@ module V2::Logic
 
       def field_specific_concerns
         if !@currentp.empty?
-          raise_form_error "Current password is incorrect" unless cust.passphrase?(@currentp)
-          raise_form_error "New password cannot be the same as current password" if @newp == @currentp
-          raise_form_error "New password is too short" unless @newp.size >= 6
-          raise_form_error "New passwords do not match" unless @newp == @newp2
+          raise_form_error 'Current password is incorrect' unless cust.passphrase?(@currentp)
+          raise_form_error 'New password cannot be the same as current password' if @newp == @currentp
+          raise_form_error 'New password is too short' unless @newp.size >= 6
+          raise_form_error 'New passwords do not match' unless @newp == @newp2
         end
       end
 

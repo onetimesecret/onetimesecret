@@ -16,7 +16,7 @@ module V2::Logic
         @password = self.class.normalize_password(params[:p])
 
         autoverify_setting = OT.conf&.dig(:site, :authentication, :autoverify)
-        @autoverify = autoverify_setting.to_s.eql?("true") || false
+        @autoverify = autoverify_setting.to_s.eql?('true') || false
 
         # This is a hidden field, so it should be empty. If it has a value, it's
         # a simple bot trying to submit the form or similar chicanery. We just
@@ -27,9 +27,9 @@ module V2::Logic
       def raise_concerns
         limit_action :create_account
         raise OT::FormError, "You're already signed up" if sess.authenticated?
-        raise_form_error "Please try another email address" if V2::Customer.exists?(custid)
-        raise_form_error "Is that a valid email address?" unless valid_email?(custid)
-        raise_form_error "Password is too short" unless password.size >= 6
+        raise_form_error 'Please try another email address' if V2::Customer.exists?(custid)
+        raise_form_error 'Is that a valid email address?' unless valid_email?(custid)
+        raise_form_error 'Password is too short' unless password.size >= 6
 
         unless Onetime::Plan.plan?(planid)
           @planid = 'basic'
@@ -63,11 +63,11 @@ module V2::Logic
         cust.save
 
         OT.info "[new-customer] #{cust.custid} #{cust.role} #{sess.ipaddress} #{plan.planid} #{sess.short_identifier}"
-        V2::Logic.stathat_count("New Customers (OTS)", 1)
+        V2::Logic.stathat_count('New Customers (OTS)', 1)
 
 
         success_message = if autoverify
-          "Account created."
+          'Account created.'
         else
           self.send_verification_email
 
@@ -81,7 +81,7 @@ module V2::Logic
       private
 
       def form_fields
-        { :planid => planid, :custid => custid }
+        { planid: planid, custid: custid }
       end
     end
 

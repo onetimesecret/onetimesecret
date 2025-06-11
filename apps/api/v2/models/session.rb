@@ -12,7 +12,7 @@ module V2
     ttl 20.minutes
     prefix :session
 
-    class_sorted_set :values, key: "onetime:session"
+    class_sorted_set :values, key: 'onetime:session'
 
     identifier :sessid
 
@@ -33,7 +33,7 @@ module V2
     field :referrer
 
     @safe_dump_fields = [
-      { :identifier => ->(obj) { obj.identifier } },
+      { identifier: ->(obj) { obj.identifier } },
       :sessid,
       :external_identifier,
       :authenticated,
@@ -145,7 +145,7 @@ module V2
     def shrimp? guess
       shrimp = self.shrimp.to_s
       guess = guess.to_s
-      OT.ld "[Sess#shrimp?] Checking with a constant time comparison"
+      OT.ld '[Sess#shrimp?] Checking with a constant time comparison'
       (!shrimp.empty?) && Rack::Utils.secure_compare(shrimp, guess)
     end
 

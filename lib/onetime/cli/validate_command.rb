@@ -21,13 +21,13 @@ module Onetime
 
         # Show processed content if extra verbose
         if option.show && config.parsed_template
-          OT.ld "Template:"
+          OT.ld 'Template:'
           template_lines = config.parsed_template.result.split("\n")
           template_lines.each_with_index do |line, index|
             OT.ld "Line #{index + 1}: #{line}"
           end
 
-          OT.ld "Processed configuration:"
+          OT.ld 'Processed configuration:'
           config.rendered_yaml.lines.each_with_index do |line, idx|
             OT.ld "  #{idx + 1}: #{line}"
           end
@@ -48,7 +48,7 @@ module Onetime
         end
 
         OT.li '' if verbose_mode?
-        OT.li "✅ Configuration valid"
+        OT.li '✅ Configuration valid'
         0 # Success exit code
 
       rescue OT::ConfigValidationError => e

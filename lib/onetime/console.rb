@@ -29,16 +29,16 @@ require_relative '../onetime/refinements/hash_refinements'
 
 # Customize the prompt
 if defined?(IRB)
-  require "irb/completion"
+  require 'irb/completion'
   IRB.conf[:PROMPT][:ONETIME] = {
-    PROMPT_I: "onetime> ",    # The main prompt
-    PROMPT_S: "%l ",   # The prompt for continuing strings
-    PROMPT_C: "↳  ",    # The prompt for continuing statements
-    PROMPT_N: "⇢  ",    # The prompt for nested statements
+    PROMPT_I: 'onetime> ',    # The main prompt
+    PROMPT_S: '%l ',   # The prompt for continuing strings
+    PROMPT_C: '↳  ',    # The prompt for continuing statements
+    PROMPT_N: '⇢  ',    # The prompt for nested statements
     RETURN: "⮑  %s\n",         # The format for return values
   }
   IRB.conf[:IRB_RC] = proc do |context|
-    context.workspace.binding.eval("using IndifferentHashAccess")
+    context.workspace.binding.eval('using IndifferentHashAccess')
   end
   # Set the global prompt mode to :ONETIME
   IRB.conf[:PROMPT_MODE] = :ONETIME
@@ -66,17 +66,17 @@ has_settings = !IRB.conf[:RC].nil?
 has_history = IRB.conf[:SAVE_HISTORY] > 0
 use_pager = IRB.conf[:USE_PAGER]
 puts
-puts "╔═══════════════════════════════════════════════════════════════╗"
-puts "║                                                               ║"
-puts "║    ██████  ███    ██ ███████ ████████ ██ ███    ███ ███████   ║"
-puts "║   ██    ██ ████   ██ ██         ██    ██ ████  ████ ██        ║"
-puts "║   ██    ██ ██ ██  ██ █████      ██    ██ ██ ████ ██ █████     ║"
-puts "║   ██    ██ ██  ██ ██ ██         ██    ██ ██  ██  ██ ██        ║"
-puts "║    ██████  ██   ████ ███████    ██    ██ ██      ██ ███████   ║"
-puts "║                                                               ║"
-puts "╚═══════════════════════════════════════════════════════════════╝"
+puts '╔═══════════════════════════════════════════════════════════════╗'
+puts '║                                                               ║'
+puts '║    ██████  ███    ██ ███████ ████████ ██ ███    ███ ███████   ║'
+puts '║   ██    ██ ████   ██ ██         ██    ██ ████  ████ ██        ║'
+puts '║   ██    ██ ██ ██  ██ █████      ██    ██ ██ ████ ██ █████     ║'
+puts '║   ██    ██ ██  ██ ██ ██         ██    ██ ██  ██  ██ ██        ║'
+puts '║    ██████  ██   ████ ███████    ██    ██ ██      ██ ███████   ║'
+puts '║                                                               ║'
+puts '╚═══════════════════════════════════════════════════════════════╝'
 puts
-puts "  Console Status:"
+puts '  Console Status:'
 puts "    → Settings: #{has_settings ? '✅ Applied (~/.irbrc)' : '❌ Default'}"
 puts "    → History:  #{has_history ? '✅ Enabled' : '❌ Disabled'}"
 puts "    → Pager:    #{use_pager ? '✅ Enabled' : '❌ Disabled'}"

@@ -22,12 +22,12 @@ module V2::Logic
         limit_action :destroy_account
 
         if @confirmation&.empty?
-          raise_form_error "Password confirmation is required."
+          raise_form_error 'Password confirmation is required.'
         else
           OT.info "[destroy-account] Passphrase check attempt cid/#{cust.custid} r/#{cust.role} ipa/#{sess.ipaddress}"
 
           unless cust.passphrase?(@confirmation)
-            raise_form_error "Please check the password."
+            raise_form_error 'Please check the password.'
           end
         end
       end
@@ -36,7 +36,7 @@ module V2::Logic
         # This is very defensive programming. When it comes to
         # destroying things though, let's pull out all the stops.
         unless raised_concerns_was_called
-          raise_form_error "We have concerns about that request."
+          raise_form_error 'We have concerns about that request.'
         end
 
         if cust.passphrase?(@confirmation)

@@ -20,7 +20,7 @@ class OT::CLI::Definition
   extend Drydock
 
   before do
-    puts "" # separate our content from the bootstrapping banner
+    puts '' # separate our content from the bootstrapping banner
   end
 
   global :v, :verbose, 'Increase output' do
@@ -70,69 +70,69 @@ class OT::CLI::Definition
   # In OT::CLI::Definition in bin/ots
   usage 'ots migrate MIGRATION_SCRIPT [--run]'
   about 'Run a migration script from the migrate/ directory'
-  option :r, :run, "Actually apply changes (default is dry run mode)"
+  option :r, :run, 'Actually apply changes (default is dry run mode)'
   command migrate: OT::MigrateCommand
 
   usage 'ots move-keys SOURCEDB TARGETDB [filter]'
   command move_keys: OT::MoveKeysCommand
 
   usage 'ots customers'
-  option :l, :list, "List customer domains (by count)"
-  option :c, :check, "Show customer records where custid and email do not match (obscured)"
+  option :l, :list, 'List customer domains (by count)'
+  option :c, :check, 'Show customer records where custid and email do not match (obscured)'
   command customers: OT::CustomersCommand
 
   usage 'ots domains'
-  option :l, :list, "List domains"
+  option :l, :list, 'List domains'
   command domains: OT::DomainsCommand
 
   usage 'ots revalidate-domains'
   about 'Revalidate domain verification status. Optionally specify a domain and/or customer_id.'
-  option :d, :domain, String, "Domain to revalidate"
-  option :c, :custid, String, "Customer ID to revalidate"
+  option :d, :domain, String, 'Domain to revalidate'
+  option :c, :custid, String, 'Customer ID to revalidate'
   command revalidate_domains: OT::DomainsCommand
 
-  usage "ots change-email OLD_EMAIL NEW_EMAIL [REALM]"
-  about "Change customer email address and update all related records"
-  about "Usage: ots change-email OLD_EMAIL NEW_EMAIL [REALM]"
+  usage 'ots change-email OLD_EMAIL NEW_EMAIL [REALM]'
+  about 'Change customer email address and update all related records'
+  about 'Usage: ots change-email OLD_EMAIL NEW_EMAIL [REALM]'
   about "  Change a customer's email address and update related records."
-  about ""
-  about "  Arguments:"
-  about "    OLD_EMAIL    Current email address of the customer"
-  about "    NEW_EMAIL    New email address to change to"
-  about "    REALM        Optional: Geographic region (US/EU/CA/NZ), defaults to US"
-  about ""
-  about "  Example:"
-  about "    ots change-email user@example.com new@example.com"
-  about ""
-  about "  Note: Custom domains associated with this customer will be"
-  about "  automatically detected and updated."
-  about ""
+  about ''
+  about '  Arguments:'
+  about '    OLD_EMAIL    Current email address of the customer'
+  about '    NEW_EMAIL    New email address to change to'
+  about '    REALM        Optional: Geographic region (US/EU/CA/NZ), defaults to US'
+  about ''
+  about '  Example:'
+  about '    ots change-email user@example.com new@example.com'
+  about ''
+  about '  Note: Custom domains associated with this customer will be'
+  about '  automatically detected and updated.'
+  about ''
   command change_email: OT::ChangeEmailCommand
 
-  usage "ots change-email-log [EMAIL] [--limit N]"
-  about "View history of email address changes"
-  about "Use global --verbose to display full change reports"
-  option :n, :limit, Integer, "Limit number of reports to show (default: 10)"
+  usage 'ots change-email-log [EMAIL] [--limit N]'
+  about 'View history of email address changes'
+  about 'Use global --verbose to display full change reports'
+  option :n, :limit, Integer, 'Limit number of reports to show (default: 10)'
   command change_email_log: OT::ChangeEmailCommand
 
   usage 'ots initializers [--dependencies]'
   about 'Display boot-time initializers in order'
-  about "Use global --verbose for full module names"
-  option :d, :dependencies, "Show dependencies for each initializer"
+  about 'Use global --verbose for full module names'
+  option :d, :dependencies, 'Show dependencies for each initializer'
   command initializers: OT::InitializersCommand
 
   usage 'ots validate [CONFIG_PATH]'
   about 'Validate configuration file against JSON schema'
   about 'Use --verbose for error details and --verbose --verbose for full error paths'
-  option :f, :full, "Run validation checks and raise concerns"
-  option :show, "Show validated configuration"
-  option :s, :schema, String, "Path to custom JSON schema file"
+  option :f, :full, 'Run validation checks and raise concerns'
+  option :show, 'Show validated configuration'
+  option :s, :schema, String, 'Path to custom JSON schema file'
   command validate: OT::ValidateCommand
 
   usage 'ots config'
   about 'Parse, resolve, and render configuration'
   about 'Use global --verbose for full configuration details'
-  option :t, :types, "Show types for each configuration key"
+  option :t, :types, 'Show types for each configuration key'
   command config: OT::ConfigCommand
 
 end

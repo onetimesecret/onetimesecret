@@ -43,10 +43,10 @@ module V2
 
           OT.ld "[authorized] Attempt for '#{custid}' via #{req.client_ipaddress} (basic auth)"
           possible = V2::Customer.load custid
-          raise OT::Unauthorized, "No such customer" if possible.nil?
+          raise OT::Unauthorized, 'No such customer' if possible.nil?
 
           @cust = possible if possible.apitoken?(apitoken)
-          raise OT::Unauthorized, "Invalid credentials" if cust.nil? # wrong token
+          raise OT::Unauthorized, 'Invalid credentials' if cust.nil? # wrong token
 
           @sess = cust.load_or_create_session req.client_ipaddress
 
@@ -62,7 +62,7 @@ module V2
           check_session!
 
           unless sess.authenticated? || allow_anonymous
-            raise OT::Unauthorized, "Session not authenticated"
+            raise OT::Unauthorized, 'Session not authenticated'
           end
 
           # Only attempt to load the customer object if the session has
@@ -70,7 +70,7 @@ module V2
           @cust = sess.load_customer if sess.authenticated?
           @cust ||= V2::Customer.anonymous if allow_anonymous
 
-          raise OT::Unauthorized, "Invalid credentials" if cust.nil? # wrong token
+          raise OT::Unauthorized, 'Invalid credentials' if cust.nil? # wrong token
 
           custid = @cust.custid unless @cust.nil?
           OT.ld "[authorized] '#{custid}' via #{req.client_ipaddress} (cookie)"
@@ -87,7 +87,7 @@ module V2
         else
 
           unless allow_anonymous
-            raise OT::Unauthorized, "No session or credentials"
+            raise OT::Unauthorized, 'No session or credentials'
           end
 
           @cust = V2::Customer.anonymous
@@ -114,7 +114,7 @@ module V2
     def colonels _
       allow_anonymous = false
       authorized(allow_anonymous) do
-        raise OT::Unauthorized, "No such customer" unless cust.role?(:colonel)
+        raise OT::Unauthorized, 'No such customer' unless cust.role?(:colonel)
         yield
       end
     end
@@ -211,7 +211,7 @@ module V2
     end
 
     def json hsh
-      res.header['Content-Type'] = "application/json; charset=utf-8"
+      res.header['Content-Type'] = 'application/json; charset=utf-8'
       res.body = hsh.to_json
     end
 
@@ -236,7 +236,7 @@ module V2
     end
 
     def secret_not_found_response
-      not_found_response "Unknown secret", :secret_key => req.params[:key]
+      not_found_response 'Unknown secret', secret_key: req.params[:key]
     end
 
     def disabled_response path
@@ -250,7 +250,7 @@ module V2
     end
 
     def not_authorized_error hsh={}
-      hsh[:message] = "Not authorized"
+      hsh[:message] = 'Not authorized'
       res.status = 403
       json hsh
     end

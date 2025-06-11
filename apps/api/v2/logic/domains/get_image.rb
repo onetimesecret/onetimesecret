@@ -38,21 +38,21 @@ module V2::Logic
       def raise_concerns
         limit_action :get_image
 
-        raise_not_found "Missing domain ID" if custom_domain_id.empty?
+        raise_not_found 'Missing domain ID' if custom_domain_id.empty?
 
         tmp_custom_domain = V2::CustomDomain.from_identifier custom_domain_id
-        raise_not_found "Domain not found" unless tmp_custom_domain
+        raise_not_found 'Domain not found' unless tmp_custom_domain
         @custom_domain = tmp_custom_domain # make it available after all concerns
 
         # Safely retrieve the logo filename from the custom domain's brand
         logo_filename = _image_field&.[]('filename')
         content_type = _image_field.[]('content_type')
 
-        raise_not_found "No content type" unless content_type
+        raise_not_found 'No content type' unless content_type
         @content_type = content_type
 
         encoded_content = _image_field['encoded']
-        raise_not_found "No content" unless encoded_content
+        raise_not_found 'No content' unless encoded_content
         @encoded_content = encoded_content
       end
 

@@ -77,7 +77,7 @@ module V2
     @txt_validation_prefix = '_onetime-challenge'
 
     @safe_dump_fields = [
-      { :identifier => ->(obj) { obj.identifier } },
+      { identifier: ->(obj) { obj.identifier } },
       :domainid,
       :display_domain,
       :custid,
@@ -86,14 +86,14 @@ module V2
       :trd,
       :tld,
       :sld,
-      { :is_apex => ->(obj) { obj.apex? } },
+      { is_apex: ->(obj) { obj.apex? } },
       :_original_value,
       :txt_validation_host,
       :txt_validation_value,
-      { :brand => ->(obj) { obj.brand.hgetall } },
+      { brand: ->(obj) { obj.brand.hgetall } },
       # NOTE: We don't serialize images here
       :status,
-      { :vhost => ->(obj) { obj.parse_vhost } },
+      { vhost: ->(obj) { obj.parse_vhost } },
       :verified,
       :created,
       :updated,
@@ -241,7 +241,7 @@ module V2
       end
     rescue Redis::BaseError => e
       OT.le "[CustomDomain.destroy!] Redis error: #{e.message}"
-      raise Onetime::Problem, "Unable to delete custom domain"
+      raise Onetime::Problem, 'Unable to delete custom domain'
     end
 
     # Checks if the domain is an apex domain.
@@ -283,11 +283,11 @@ module V2
     # @return [void]
     def validate_txt_record!
       unless txt_validation_host.to_s.match?(/\A[a-zA-Z0-9._-]+\z/)
-        raise Onetime::Problem, "TXT record hostname can only contain letters, numbers, dots, underscores, and hyphens"
+        raise Onetime::Problem, 'TXT record hostname can only contain letters, numbers, dots, underscores, and hyphens'
       end
 
       unless txt_validation_value.to_s.match?(/\A[a-f0-9]{32}\z/)
-        raise Onetime::Problem, "TXT record value must be a 32-character hexadecimal string"
+        raise Onetime::Problem, 'TXT record value must be a 32-character hexadecimal string'
       end
     end
 
@@ -413,7 +413,7 @@ module V2
         redis.watch(obj.rediskey) do
           if obj.exists?
             redis.unwatch
-            raise Onetime::Problem, "Duplicate domain for customer"
+            raise Onetime::Problem, 'Duplicate domain for customer'
           end
 
           redis.multi do |multi|
@@ -430,7 +430,7 @@ module V2
         obj  # Return the created object
       rescue Redis::BaseError => e
         OT.le "[CustomDomain.create] Redis error: #{e.message}"
-        raise Onetime::Problem, "Unable to create custom domain"
+        raise Onetime::Problem, 'Unable to create custom domain'
       end
 
       # Returns a new V2::CustomDomain object (without saving it).
@@ -446,10 +446,10 @@ module V2
       # @raise [Onetime::Problem] If domain exceeds MAX_SUBDOMAIN_DEPTH or MAX_TOTAL_LENGTH
       #
       def parse(input, custid)
-        raise Onetime::Problem, "Customer ID required" if custid.to_s.empty?
+        raise Onetime::Problem, 'Customer ID required' if custid.to_s.empty?
 
         segments = input.to_s.split('.').reject(&:empty?)
-        raise Onetime::Problem, "Invalid domain format" if segments.empty?
+        raise Onetime::Problem, 'Invalid domain format' if segments.empty?
 
         if segments.length > MAX_SUBDOMAIN_DEPTH
           raise Onetime::Problem, "Domain too deep (max: #{MAX_SUBDOMAIN_DEPTH})"

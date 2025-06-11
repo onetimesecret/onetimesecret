@@ -31,12 +31,12 @@ module V2::Logic
           # fields populated. The subscription section on the account screen
           # depends on these ID fields being populated.
           if stripe_customer
-            OT.info "Recording stripe customer ID"
+            OT.info 'Recording stripe customer ID'
             cust.stripe_customer_id = stripe_customer.id
           end
 
           if stripe_subscription
-            OT.info "Recording stripe subscription ID"
+            OT.info 'Recording stripe subscription ID'
             cust.stripe_subscription_id = stripe_subscription.id
           end
 

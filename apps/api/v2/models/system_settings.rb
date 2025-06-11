@@ -89,7 +89,7 @@ module V2
     @txt_validation_prefix = '_onetime-challenge'
 
     @safe_dump_fields = [
-      { :identifier => ->(obj) { obj.identifier } },
+      { identifier: ->(obj) { obj.identifier } },
       :interface,
       :secret_options,
       :mail,
@@ -242,7 +242,7 @@ module V2
         obj  # Return the created object
       rescue Redis::BaseError => e
         OT.le "[SystemSettings.create] Redis error: #{e.message}"
-        raise Onetime::Problem, "Unable to create custom domain"
+        raise Onetime::Problem, 'Unable to create custom domain'
       end
 
 
@@ -304,7 +304,7 @@ module V2
         # Get the most recent config by retrieving the element with the highest score
         # (using revrange 0, 0 to get just the highest-scored element)
         objid = self.stack.revrangeraw(0, 0).first
-        raise Onetime::RecordNotFound.new("No config stack found") unless objid
+        raise Onetime::RecordNotFound.new('No config stack found') unless objid
         load(objid)
       end
 
@@ -312,7 +312,7 @@ module V2
         # Get the previous config by retrieving the element with the second-highest score
         # (using revrange 1, 1 to get just the second-highest-scored element)
         objid = self.stack.revrangeraw(1, 1).first
-        raise Onetime::RecordNotFound.new("No previous config found") unless objid
+        raise Onetime::RecordNotFound.new('No previous config found') unless objid
         load(objid)
       end
 

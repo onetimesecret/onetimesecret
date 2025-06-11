@@ -133,7 +133,7 @@ module Frontend
 
       def not_found
         publically do
-          not_found_response ""
+          not_found_response ''
         end
       end
 
@@ -185,7 +185,7 @@ module Frontend
 
       def not_authorized_error hsh={}
         view = Frontend::Views::Error.new req, sess, cust, locale
-        view.add_error "Not authorized"
+        view.add_error 'Not authorized'
         res.status = 401
         res.body = view.render
       end

@@ -19,16 +19,16 @@ module Frontend
         manifest_path = File.join(PUBLIC_DIR, 'dist', '.vite', 'manifest.json')
 
         unless File.exist?(manifest_path)
-          msg = "Vite %s not found. Run `pnpm run build`"
+          msg = 'Vite %s not found. Run `pnpm run build`'
           OT.le msg % manifest_path
           return error_script(nonce, msg % 'manifest.json')
         end
 
         @manifest_cache ||= JSON.parse(File.read(manifest_path))
-        main_entry = @manifest_cache["main.ts"]
-        style_entry = @manifest_cache["style.css"] # may not exist
+        main_entry = @manifest_cache['main.ts']
+        style_entry = @manifest_cache['style.css'] # may not exist
 
-        return error_script(nonce, "Main entry not found in Vite manifest") unless main_entry
+        return error_script(nonce, 'Main entry not found in Vite manifest') unless main_entry
 
         assets = []
         assets << build_script_tag(main_entry['file'], nonce)

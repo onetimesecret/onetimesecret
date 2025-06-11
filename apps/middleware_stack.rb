@@ -18,7 +18,7 @@ module MiddlewareStack
 
       # Apply minimal middleware if config not available
       unless Onetime.conf
-        Onetime.ld "[middleware] Configuration not available, using minimal stack"
+        Onetime.ld '[middleware] Configuration not available, using minimal stack'
         return
       end
 
@@ -31,7 +31,7 @@ module MiddlewareStack
       # Add Sentry exception tracking when available
       # This block only executes if Sentry was successfully initialized
       Onetime.with_diagnostics do
-        Onetime.ld "[config.ru] Sentry enabled"
+        Onetime.ld '[config.ru] Sentry enabled'
         # Position Sentry middleware early to capture exceptions throughout the stack
 
         builder.use Sentry::Rack::CaptureExceptions
@@ -77,7 +77,7 @@ module MiddlewareStack
         # Configures security-related middleware components based on application settings
         require 'onetime/middleware/security'
 
-        Onetime.ld "[config.ru] Setting up Security middleware"
+        Onetime.ld '[config.ru] Setting up Security middleware'
         builder.use Onetime::Middleware::Security
       end
     end

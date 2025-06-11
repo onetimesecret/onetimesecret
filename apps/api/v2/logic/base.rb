@@ -106,7 +106,7 @@ module V2
         # This method is called a lot so we don't even attempt to log unless we're debugging
         OT.ld "[limit_action] #{event} (disable:#{disable_for_paid};sess:#{sess.class})" if OT.debug?
         return if disable_for_paid
-        raise OT::Problem, "No session to limit" unless sess
+        raise OT::Problem, 'No session to limit' unless sess
         sess.event_incr! event
       end
 

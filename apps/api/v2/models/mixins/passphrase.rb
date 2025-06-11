@@ -12,7 +12,7 @@ module V2
       attr_accessor :passphrase_temp
 
       def update_passphrase! val
-        self.passphrase_encryption! "1"
+        self.passphrase_encryption! '1'
         # Hold the unencrypted passphrase in memory for a short time
         # (which will basically be until this instance is garbage
         # collected) in case we need to repeat the save attempt on
@@ -37,7 +37,7 @@ module V2
           @passphrase_temp = guess if ret  # used to decrypt the value
           ret
         rescue BCrypt::Errors::InvalidHash => ex
-          prefix = "[passphrase?]"
+          prefix = '[passphrase?]'
           OT.ld "#{prefix} Invalid passphrase hash: #{ex.message}"
           (!guess.to_s.empty? && passphrase.to_s.downcase.strip == guess.to_s.downcase.strip)
         end

@@ -17,7 +17,7 @@ module V2::Logic
       def process_params
         # All parameters are passed in the :secret hash (secret[:ttl], etc)
         @payload = params[:secret] || {}
-        raise_form_error "Incorrect payload format" if payload.is_a?(String)
+        raise_form_error 'Incorrect payload format' if payload.is_a?(String)
         process_ttl
         process_secret
         process_passphrase
@@ -28,7 +28,7 @@ module V2::Logic
       def raise_concerns
         limit_action :create_secret
         limit_action :email_recipient unless recipient.empty?
-        raise_form_error "Unknown type of secret" if kind.nil?
+        raise_form_error 'Unknown type of secret' if kind.nil?
         validate_recipient
         validate_share_domain
       end
@@ -103,7 +103,7 @@ module V2::Logic
       end
 
       def process_secret
-        raise NotImplementedError, "You must implement process_secret"
+        raise NotImplementedError, 'You must implement process_secret'
       end
 
       def process_passphrase
@@ -146,7 +146,7 @@ module V2::Logic
 
       def validate_recipient
         return if recipient.empty?
-        raise_form_error "An account is required to send emails." if cust.anonymous?
+        raise_form_error 'An account is required to send emails.' if cust.anonymous?
         recipient.each do |recip|
           raise_form_error "Undeliverable email address: #{recip}" unless valid_email?(recip)
         end
@@ -177,7 +177,7 @@ module V2::Logic
       end
 
       def save_secret
-        secret.encrypt_value secret_value, :size => plan.options[:size]
+        secret.encrypt_value secret_value, size: plan.options[:size]
         metadata.ttl, secret.ttl = ttl*2, ttl
         metadata.lifespan = metadata.ttl.to_i
         metadata.secret_ttl = secret.ttl.to_i
@@ -191,7 +191,7 @@ module V2::Logic
       end
 
       def handle_success
-        return raise_form_error "Could not store your secret" unless greenlighted
+        return raise_form_error 'Could not store your secret' unless greenlighted
         update_stats
         send_email_to_recipient
       end
@@ -202,7 +202,7 @@ module V2::Logic
           cust.increment_field :secrets_created
         end
         V2::Customer.global.increment_field :secrets_created
-        V2::Logic.stathat_count("Secrets", 1)
+        V2::Logic.stathat_count('Secrets', 1)
       end
 
       def send_email_to_recipient

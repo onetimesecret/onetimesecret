@@ -22,7 +22,7 @@ SYSLOG = Syslog.open('onetime') unless defined?(SYSLOG)
 class Rack::HeaderLoggerMiddleware
   def initialize(app)
     @app = app
-    OT.ld("HeaderLoggerMiddleware initialized")
+    OT.ld('HeaderLoggerMiddleware initialized')
   end
 
   def call(env)

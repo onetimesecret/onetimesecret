@@ -33,13 +33,13 @@ module V2
             diagnostics: diagnostics,
           }
 
-          OT.ld "[UpdateSystemSettings#process_params] Extracted config sections: " +
-                config_sections.map { |name, value| "#{name}=#{!!value}" }.join(", ")
+          OT.ld '[UpdateSystemSettings#process_params] Extracted config sections: ' +
+                config_sections.map { |name, value| "#{name}=#{!!value}" }.join(', ')
         end
 
         def raise_concerns
           limit_action :update_colonel_settings
-          raise_form_error "`config` was empty" if config.empty?
+          raise_form_error '`config` was empty' if config.empty?
 
           # Normalize keys to symbols for comparison
           config_keys = config.keys.map { |k| k.respond_to?(:to_sym) ? k.to_sym : k }
@@ -48,7 +48,7 @@ module V2
           present_fields = self.class.safe_fields & config_keys
 
           OT.ld "[UpdateSystemSettings#raise_concerns] Present fields: #{present_fields.join(', ')}"
-          raise_form_error "No valid configuration sections found" if present_fields.empty?
+          raise_form_error 'No valid configuration sections found' if present_fields.empty?
 
           # Log unsupported fields but don't error
           unsupported_fields = config_keys - self.class.safe_fields
@@ -56,7 +56,7 @@ module V2
         end
 
         def process
-          OT.ld "[UpdateSystemSettings#process] Persisting system settings"
+          OT.ld '[UpdateSystemSettings#process] Persisting system settings'
 
           OT.li "[UpdateSystemSettings#process] Interface: #{interface.inspect}" if interface
           OT.li "[UpdateSystemSettings#process] Secret Options: #{secret_options.inspect}" if secret_options
@@ -72,7 +72,7 @@ module V2
             @record = SystemSettings.create(**update_fields)
 
             @greenlighted = true
-            OT.ld "[UpdateSystemSettings#process] System settings persisted successfully"
+            OT.ld '[UpdateSystemSettings#process] System settings persisted successfully'
 
           rescue => e
             OT.le "[UpdateSystemSettings#process] Failed to persist system settings: #{e.message}"
@@ -81,7 +81,7 @@ module V2
         end
 
         def success_data
-          OT.ld "[UpdateSystemSettings#success_data] Returning updated system settings"
+          OT.ld '[UpdateSystemSettings#success_data] Returning updated system settings'
 
           # Return the record and the sections that were provided
           {

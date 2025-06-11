@@ -30,10 +30,10 @@ module V2
           limit_action :email_recipient unless recipient.empty?
           regex = Regexp.new(OT.conf[:incoming][:regex] || '\A[a-zA-Z0-9]{1,32}\z')
           if secret_value.to_s.empty?
-            raise_form_error "You did not provide any information to share"
+            raise_form_error 'You did not provide any information to share'
           end
           if ticketno.to_s.empty? || !ticketno.match(regex)
-            raise_form_error "You must provide a valid ticket number"
+            raise_form_error 'You must provide a valid ticket number'
           end
         end
 
@@ -43,7 +43,7 @@ module V2
             secret.update_passphrase passphrase
             metadata.passphrase = secret.passphrase
           end
-          secret.encrypt_value secret_value, :size => plan.options[:size]
+          secret.encrypt_value secret_value, size: plan.options[:size]
           metadata.ttl, secret.ttl = ttl, ttl
           metadata.secret_shortkey = secret.shortkey
           secret.save
@@ -57,9 +57,9 @@ module V2
             unless recipient.nil? || recipient.empty?
               metadata.deliver_by_email cust, locale, secret, recipient.first, Onetime::Mail::IncomingSupport, ticketno
             end
-            V2::Logic.stathat_count("Secrets", 1)
+            V2::Logic.stathat_count('Secrets', 1)
           else
-            raise_form_error "Could not store your secret"
+            raise_form_error 'Could not store your secret'
           end
         end
       end

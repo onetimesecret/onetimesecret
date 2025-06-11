@@ -189,7 +189,7 @@ module Onetime
         # @return [PublicSuffix::Domain]
         def parse(host)
           host = host.to_s.split(':').first # remove port (e.g. localhost:3000)
-          raise PublicSuffix::DomainInvalid.new("Cannot parse host") unless basically_valid?(host)
+          raise PublicSuffix::DomainInvalid.new('Cannot parse host') unless basically_valid?(host)
           PublicSuffix.parse(host, default_rule: nil, ignore_private: false) # calls normalize
         end
 
@@ -218,7 +218,7 @@ module Onetime
 
       # Sets class instance variables based on the site configuration.
       def initialize_from_config(config)
-        raise ArgumentError, "Configuration cannot be nil" if config.nil?
+        raise ArgumentError, 'Configuration cannot be nil' if config.nil?
 
         OT.ld "[DomainStrategy]: Initializing from config (before): #{@domains_enabled} "
         @domains_enabled = config.dig(:domains, :enabled) || false

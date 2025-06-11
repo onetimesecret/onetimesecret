@@ -55,7 +55,7 @@ module V2::Logic
           burned_or_received = metadata.state?(:burned) || metadata.state?(:received)
 
           if !burned_or_received && metadata.secret_expired?
-            OT.le("[show_metadata] Metadata has expired secret. {metadata.shortkey}")
+            OT.le('[show_metadata] Metadata has expired secret. {metadata.shortkey}')
             metadata.secret_key = nil
             metadata.expired!
           elsif !burned_or_received

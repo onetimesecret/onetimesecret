@@ -6,8 +6,8 @@ module Onetime
       migration_file = argv.first
 
       unless migration_file
-        puts "Usage: ots migrate MIGRATION_SCRIPT [--run]"
-        puts "  --run    Actually apply changes (default is dry run mode)"
+        puts 'Usage: ots migrate MIGRATION_SCRIPT [--run]'
+        puts '  --run    Actually apply changes (default is dry run mode)'
         puts "\nAvailable migrations:"
         Dir[File.join(Onetime::HOME, 'migrate', '*.rb')].each do |file|
           puts "  - #{File.basename(file)}"

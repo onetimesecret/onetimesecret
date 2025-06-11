@@ -5,7 +5,7 @@ module Onetime
     extend Familia::Features::SafeDump::ClassMethods
 
     @safe_dump_fields = [
-      { :identifier => ->(obj) { obj.planid } },
+      { identifier: ->(obj) { obj.planid } },
       :planid, :price, :discount, :options
     ]
 

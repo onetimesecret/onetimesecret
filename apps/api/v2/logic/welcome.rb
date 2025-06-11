@@ -14,9 +14,9 @@ module V2
         end
 
         def raise_concerns
-          raise_form_error "No Stripe checkout_session_id" unless checkout_session_id
+          raise_form_error 'No Stripe checkout_session_id' unless checkout_session_id
           @checkout_session = Stripe::Checkout::Session.retrieve(checkout_session_id)
-          raise_form_error "Invalid Stripe checkout session" unless checkout_session
+          raise_form_error 'Invalid Stripe checkout session' unless checkout_session
 
           @checkout_email = checkout_session.customer_details.email
           @update_customer_fields = {
@@ -68,9 +68,9 @@ module V2
               OT.info "[FromStripePaymentLink] Associating checkout #{checkout_session_id} with new user #{checkout_email}"
 
               cust = V2::Customer.create(checkout_email)
-              cust.planid = "identity"
-              cust.verified = "true"
-              cust.role = "customer"
+              cust.planid = 'identity'
+              cust.verified = 'true'
+              cust.role = 'customer'
               cust.update_passphrase Onetime::Utils.strand(12)
               cust.apply_fields(**update_customer_fields).commit_fields
 
@@ -103,9 +103,9 @@ module V2
 
         def raise_concerns
           #limit_action :stripe_webhook
-          raise_form_error "No endpoint secret set" unless @endpoint_secret
-          raise_form_error "No Stripe payload" unless payload
-          raise_form_error "No Stripe signature" unless stripe_signature
+          raise_form_error 'No endpoint secret set' unless @endpoint_secret
+          raise_form_error 'No Stripe payload' unless payload
+          raise_form_error 'No Stripe signature' unless stripe_signature
 
           begin
             @event = Stripe::Webhook.construct_event(
@@ -116,11 +116,11 @@ module V2
 
           rescue JSON::ParserError => e
             OT.le "[webhook] JSON parsing error: #{e}: sig:#{stripe_signature}"
-            raise_form_error "Invalid payload"
+            raise_form_error 'Invalid payload'
 
           rescue Stripe::SignatureVerificationError => e
             OT.le "[webhook] Signature verification failed: #{e}: sig:#{stripe_signature}"
-            raise_form_error "Bad signature"
+            raise_form_error 'Bad signature'
           end
         end
 

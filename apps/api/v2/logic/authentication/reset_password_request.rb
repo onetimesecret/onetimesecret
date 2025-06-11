@@ -14,8 +14,8 @@ module V2::Logic
       def raise_concerns
         limit_action :forgot_password_request # limit requests
 
-        raise_form_error "Not a valid email address" unless valid_email?(@custid)
-        raise_form_error "No account found" unless V2::Customer.exists?(@custid)
+        raise_form_error 'Not a valid email address' unless valid_email?(@custid)
+        raise_form_error 'No account found' unless V2::Customer.exists?(@custid)
       end
 
       def process
@@ -30,7 +30,7 @@ module V2::Logic
 
         secret = V2::Secret.create @custid, [@custid]
         secret.ttl = 24.hours
-        secret.verification = "true"
+        secret.verification = 'true'
         secret.save
 
         cust.reset_secret = secret.key  # as a standalone rediskey, writes immediately

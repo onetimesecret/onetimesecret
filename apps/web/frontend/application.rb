@@ -19,7 +19,7 @@ module Frontend
       # Expensive initialization tasks go here
 
       # Log warmup completion
-      Onetime.li "Frontend warmup completed"
+      Onetime.li 'Frontend warmup completed'
     end
 
     protected

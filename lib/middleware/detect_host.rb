@@ -157,7 +157,7 @@ module Rack
 
       # Log indication if no valid host found in debug mode
       unless detected_host
-        logger.debug("[DetectHost] No valid host detected in request")
+        logger.debug('[DetectHost] No valid host detected in request')
       end
 
       # e.g. env['rack.detected_host'] = 'example.com'
@@ -221,9 +221,9 @@ module Rack
 
         # Check for private IPv6 ranges
         elsif ip.ipv6?
-          fc00 = IPAddr.new("fc00::/7")
-          fe80 = IPAddr.new("fe80::/10")
-          loopback = IPAddr.new("::1/128")
+          fc00 = IPAddr.new('fc00::/7')
+          fe80 = IPAddr.new('fe80::/10')
+          loopback = IPAddr.new('::1/128')
 
           return fc00.include?(ip) || # Unique Local Addresses
                  fe80.include?(ip) || # Link-local addresses

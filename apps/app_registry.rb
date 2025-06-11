@@ -2,7 +2,7 @@
 
 unless defined?(APPS_ROOT)
   # Know where we are; use the project home directory if set or relative to us.
-  project_root = ENV['ONETIME_HOME'] || File.expand_path("..", __dir__).freeze
+  project_root = ENV['ONETIME_HOME'] || File.expand_path('..', __dir__).freeze
 
   # Add each directory containing the rack applications to Ruby's load path.
   APPS_ROOT = File.join(project_root, 'apps').freeze

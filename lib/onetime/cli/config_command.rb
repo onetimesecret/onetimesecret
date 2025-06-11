@@ -21,7 +21,7 @@ module Onetime
 
         # Show processed content if extra verbose
         if verbose_mode?
-          OT.li "YAML Template:"
+          OT.li 'YAML Template:'
           template_lines = config.rendered_yaml.split("\n")
           template_lines.each_with_index do |line, index|
             OT.li "Line #{index + 1}: #{line}"

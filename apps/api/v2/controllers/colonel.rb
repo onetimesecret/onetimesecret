@@ -25,8 +25,8 @@ module V2
 
       def update_config
         process_action(V2::Logic::Colonel::UpdateSystemSettings,
-          "System settings updated successfully.",
-          "System settings could not be updated.",
+          'System settings updated successfully.',
+          'System settings could not be updated.',
           auth_type: :colonels,
         )
       end

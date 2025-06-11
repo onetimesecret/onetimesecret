@@ -50,16 +50,16 @@ module Onetime
       # Generates a summary of changes that will be made during execution
       # @return [String] A human-readable summary of changes
       def summarize_changes
-        changes = ["CHANGES TO BE MADE:",
-                   "===================",
+        changes = ['CHANGES TO BE MADE:',
+                   '===================',
                    "1. Change customer email from #{old_email} to #{new_email}",
-                   "2. Update the following Redis keys:",
+                   '2. Update the following Redis keys:',
                    "   - customer:#{old_email}:object → customer:#{new_email}:object",
                    "   - customer:#{old_email}:custom_domain → customer:#{new_email}:custom_domain (if exists)",
                    "   - customer:#{old_email}:metadata → customer:#{new_email}:metadata (if exists)",
                    "   - customer:#{old_email}:feature_flags → customer:#{new_email}:feature_flags (if exists)",
                    "   - customer:#{old_email}:reset_secret → customer:#{new_email}:reset_secret (if exists)",
-                   "3. Update customer in values sorted set (onetime:customer)"]
+                   '3. Update customer in values sorted set (onetime:customer)']
 
         # Add domain changes if any
         if @domains.any?
@@ -73,14 +73,14 @@ module Onetime
             changes << "   - Domain: #{domain}"
             changes << "     Old ID: #{old_id}"
             changes << "     New ID: #{new_id}"
-            changes << "     Keys to update:"
+            changes << '     Keys to update:'
             changes << "       - customdomain:#{old_id}:object → customdomain:#{new_id}:object"
             changes << "       - customdomain:#{old_id}:brand → customdomain:#{new_id}:brand (if exists)"
             changes << "       - customdomain:#{old_id}:logo → customdomain:#{new_id}:logo (if exists)"
             changes << "       - customdomain:#{old_id}:icon → customdomain:#{new_id}:icon (if exists)"
-            changes << "     Update in customdomain:values sorted set"
-            changes << "     Update in customdomain:display_domains hash"
-            changes << "     Update in customdomain:owners hash (if exists)"
+            changes << '     Update in customdomain:values sorted set'
+            changes << '     Update in customdomain:display_domains hash'
+            changes << '     Update in customdomain:owners hash (if exists)'
           end
         end
 
@@ -100,7 +100,7 @@ module Onetime
       # @return [Boolean] True if all validations pass
       # @raise [RuntimeError] If any validation fails, with a descriptive error message
       def validate!
-        log "VALIDATION: Starting validation checks"
+        log 'VALIDATION: Starting validation checks'
 
         # Check old email exists
         unless V2::Customer.exists?(old_email)
@@ -116,10 +116,10 @@ module Onetime
         if domains.any?
           validate_domains
         else
-          log "No domains to validate"
+          log 'No domains to validate'
         end
 
-        log "VALIDATION: All checks passed"
+        log 'VALIDATION: All checks passed'
         true
       end
 
@@ -150,7 +150,7 @@ module Onetime
           end
 
           # Check domain exists in display_domains
-          display_domains_id = V2::CustomDomain.redis.hget("customdomain:display_domains", domain)
+          display_domains_id = V2::CustomDomain.redis.hget('customdomain:display_domains', domain)
           if !display_domains_id.to_s.empty? && display_domains_id != old_id
             raise "ERROR: For domain '#{domain}': domain ID in display_domains (#{display_domains_id}) does not match expected ID (#{old_id})"
           end
@@ -184,17 +184,17 @@ module Onetime
         begin
           redis.multi do |multi|
             # Update customer object fields
-            log "Updating customer object fields"
-            multi.hset("customer:#{old_email}:object", "custid", new_email)
-            multi.hset("customer:#{old_email}:object", "key", new_email)
-            multi.hset("customer:#{old_email}:object", "email", new_email)
+            log 'Updating customer object fields'
+            multi.hset("customer:#{old_email}:object", 'custid', new_email)
+            multi.hset("customer:#{old_email}:object", 'key', new_email)
+            multi.hset("customer:#{old_email}:object", 'email', new_email)
 
             # Update domain records if needed
             # This is called outside the multi block as it has its own multi block
             # update_domains!
 
             # Rename customer keys
-            log "Renaming customer keys"
+            log 'Renaming customer keys'
             multi.rename("customer:#{old_email}:object", "customer:#{new_email}:object")
 
             # These keys might not exist for all customers, so check first
@@ -214,17 +214,17 @@ module Onetime
             # This operation needs to be handled carefully.
             # For now, we'll assume this is done outside or before the transaction.
             # A possible approach is to fetch the score before the multi block.
-            score = redis.zscore("onetime:customer", old_email)
+            score = redis.zscore('onetime:customer', old_email)
             if score
-              multi.zadd("onetime:customer", score, new_email)
-              multi.zrem("onetime:customer", old_email)
+              multi.zadd('onetime:customer', score, new_email)
+              multi.zrem('onetime:customer', old_email)
             end
           end
 
           # Update domain records if needed (has its own multi block)
           update_domains! if @domain_mappings.any?
 
-          log "EXECUTION: Email change completed successfully"
+          log 'EXECUTION: Email change completed successfully'
           return true
         rescue Redis::CommandError => e
           # Specific handling for errors during EXEC
@@ -260,14 +260,14 @@ module Onetime
           begin
             redis.multi do |multi|
               # Update domain object fields
-              multi.hset("customdomain:#{old_domain_id}:object", "custid", new_email)
-              multi.hset("customdomain:#{old_domain_id}:object", "key", new_domain_id)
-              multi.hset("customdomain:#{old_domain_id}:object", "domainid", new_domain_id)
+              multi.hset("customdomain:#{old_domain_id}:object", 'custid', new_email)
+              multi.hset("customdomain:#{old_domain_id}:object", 'key', new_domain_id)
+              multi.hset("customdomain:#{old_domain_id}:object", 'domainid', new_domain_id)
 
               # Get domain score for later use
               # Note: ZSCORE cannot be used inside a MULTI block.
               # Fetch score before the multi block.
-              domain_score = redis.zscore("customdomain:values", old_domain_id)
+              domain_score = redis.zscore('customdomain:values', old_domain_id)
               log "Domain score: #{domain_score}" # Log score before multi
 
               # Check if brand key exists before renaming
@@ -284,26 +284,26 @@ module Onetime
 
               # Update sorted sets and hashes
               if domain_score # Ensure score was fetched successfully
-                multi.zadd("customdomain:values", domain_score, new_domain_id)
-                multi.zrem("customdomain:values", old_domain_id)
+                multi.zadd('customdomain:values', domain_score, new_domain_id)
+                multi.zrem('customdomain:values', old_domain_id)
               end
 
               # Update display domains
               domain = domains.find { |d| d[:old_id] == old_domain_id }[:domain]
-              multi.hset("customdomain:display_domains", domain, new_domain_id)
+              multi.hset('customdomain:display_domains', domain, new_domain_id)
 
               # Update the owners key if it exists
               # Note: HEXISTS cannot be used inside a MULTI block.
               # Perform this check before the multi block if critical.
-              if redis.hexists("customdomain:owners", old_domain_id)
-                multi.hdel("customdomain:owners", old_domain_id)
-                multi.hset("customdomain:owners", new_domain_id, new_email)
+              if redis.hexists('customdomain:owners', old_domain_id)
+                multi.hdel('customdomain:owners', old_domain_id)
+                multi.hset('customdomain:owners', new_domain_id, new_email)
               end
 
               # Update customer:domains mapping if it exists
               # Note: HEXISTS cannot be used inside a MULTI block.
-              if redis.hexists("onetime:customers:domain", domain)
-                multi.hset("onetime:customers:domain", domain, new_email)
+              if redis.hexists('onetime:customers:domain', domain)
+                multi.hset('onetime:customers:domain', domain, new_email)
               end
             end
           rescue Redis::CommandError => e
@@ -330,7 +330,7 @@ module Onetime
       # @param message [String] The message to log
       # @param stdout [Boolean] Whether to print the message to stdout
       def log(message, stdout = true)
-        timestamp = Time.now.strftime("%Y-%m-%d %H:%M:%S")
+        timestamp = Time.now.strftime('%Y-%m-%d %H:%M:%S')
         entry = "[#{timestamp}] #{message}"
         @log_entries << entry
         OT.info "[cli.change-email] #{message}" if stdout
@@ -347,15 +347,15 @@ module Onetime
       #
       # @return [String] The formatted report as a single string
       def generate_report
-        report = ["EMAIL CHANGE REPORT",
-                  "=====================",
+        report = ['EMAIL CHANGE REPORT',
+                  '=====================',
                   "Old Email: #{old_email}",
                   "New Email: #{new_email}",
                   "Realm: #{realm}",
                   "Domains: #{domains.map { |d| d[:domain] }.join(', ')}",
                   "Timestamp: #{Time.now}",
-                  "=====================",
-                  "LOG ENTRIES:"]
+                  '=====================',
+                  'LOG ENTRIES:']
         report.concat(log_entries)
         report.join("\n")
       end

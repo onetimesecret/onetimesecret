@@ -25,7 +25,7 @@ module V2::Logic
       def process
         @correct_passphrase = !secret.has_passphrase? || secret.passphrase?(passphrase)
         @show_secret = secret.viewable? && correct_passphrase && continue
-        @verification = secret.verification.to_s == "true"
+        @verification = secret.verification.to_s == 'true'
         @secret_key = @secret.key
 
         owner = secret.load_customer
@@ -38,7 +38,7 @@ module V2::Logic
 
           if verification
             if cust.anonymous? || (cust.custid == owner.custid && !owner.verified?)
-              owner.verified! "true"
+              owner.verified! 'true'
               sess.destroy!
               secret.received!
             else
@@ -62,7 +62,7 @@ module V2::Logic
             # pluck out of the secret object before this is called.
             secret.received!
 
-            V2::Logic.stathat_count("Viewed Secrets", 1)
+            V2::Logic.stathat_count('Viewed Secrets', 1)
           end
 
         elsif continue && secret.has_passphrase? && !correct_passphrase

@@ -26,7 +26,7 @@ module V2::Logic
     end
 
     def raise_concerns
-      raise_form_error "Exception data required" if @exception_data[:message].empty?
+      raise_form_error 'Exception data required' if @exception_data[:message].empty?
 
       limit_action :report_exception
 
@@ -39,9 +39,9 @@ module V2::Logic
       @greenlighted = true
 
       # Create new exception record
-      OT.ld("[Exception] Creating new exception record")
+      OT.ld('[Exception] Creating new exception record')
       @exception = V2::ExceptionInfo.new
-      OT.ld("[Exception] Applying exception data", @exception_data)
+      OT.ld('[Exception] Applying exception data', @exception_data)
       exception.apply_fields(**@exception_data)
       exception.save
 
@@ -63,7 +63,7 @@ module V2::Logic
         success: greenlighted,
         record: exception.safe_dump,
         details: {
-          message: "Exception logged",
+          message: 'Exception logged',
         },
       }
     end

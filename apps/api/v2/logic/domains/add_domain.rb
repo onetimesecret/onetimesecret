@@ -19,8 +19,8 @@ module V2::Logic
       def raise_concerns
         OT.ld "[AddDomain] Raising any concerns about #{@domain_input}"
         # TODO: Consider returning all applicable errors (plural) at once
-        raise_form_error "Please enter a domain" if @domain_input.empty?
-        raise_form_error "Not a valid public domain" unless V2::CustomDomain.valid?(@domain_input)
+        raise_form_error 'Please enter a domain' if @domain_input.empty?
+        raise_form_error 'Not a valid public domain' unless V2::CustomDomain.valid?(@domain_input)
 
         limit_action :add_domain
         # Only store a valid, parsed input value to @domain
@@ -28,7 +28,7 @@ module V2::Logic
         @display_domain = @parsed_domain.display_domain
 
         OT.ld "[AddDomain] Display: #{@display_domain}, Identifier: #{@parsed_domain.identifier}, Exists?: #{@parsed_domain.exists?}"
-        raise_form_error "Duplicate domain" if @parsed_domain.exists?
+        raise_form_error 'Duplicate domain' if @parsed_domain.exists?
       end
 
       def process
@@ -42,7 +42,7 @@ module V2::Logic
           # simply log a message and return.
           create_vhost
         rescue HTTParty::ResponseError => e
-          OT.le "[AddDomain.create_vhost error] %s %s %s"  % [@cust.custid, @display_domain, e]
+          OT.le '[AddDomain.create_vhost error] %s %s %s'  % [@cust.custid, @display_domain, e]
           # Continue processing despite vhost error
         end
       end
@@ -52,13 +52,13 @@ module V2::Logic
         vhost_target = Onetime::Cluster::Features.vhost_target
 
         if api_key.to_s.empty?
-          return OT.info "[AddDomain.create_vhost] Approximated API key not set"
+          return OT.info '[AddDomain.create_vhost] Approximated API key not set'
         end
 
         res = Onetime::Cluster::Approximated.create_vhost(api_key, @display_domain, vhost_target, '443')
         payload = res.parsed_response
 
-        OT.info "[AddDomain.create_vhost] %s" % payload
+        OT.info '[AddDomain.create_vhost] %s' % payload
         custom_domain.vhost = payload['data'].to_json
         custom_domain.updated = OT.now.to_i
         custom_domain.save

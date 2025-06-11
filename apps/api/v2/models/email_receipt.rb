@@ -21,10 +21,10 @@ module V2
     field :updated
 
     @safe_dump_fields = [
-      { :identifier => ->(obj) { obj.identifier } },
+      { identifier: ->(obj) { obj.identifier } },
       :secretid,
       :message_response,
-      { :shortkey => ->(m) { m.key.slice(0, 8) } },
+      { shortkey: ->(m) { m.key.slice(0, 8) } },
       :created,
       :updated,
     ]

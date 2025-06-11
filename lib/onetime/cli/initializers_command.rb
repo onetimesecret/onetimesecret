@@ -9,13 +9,13 @@ module Onetime
       # Load only what we need without booting
       require_relative '../initializers'
 
-      puts "Boot-time Initializers (TSort execution order):"
-      puts "=" * 50
+      puts 'Boot-time Initializers (TSort execution order):'
+      puts '=' * 50
 
       begin
         execution_info = Onetime::Initializers::Registry.execution_order
 
-        return handle_error(execution_info) if execution_info.first[:name] == "ERROR"
+        return handle_error(execution_info) if execution_info.first[:name] == 'ERROR'
 
         if option.dependencies
           display_with_dependencies(execution_info)
@@ -25,8 +25,8 @@ module Onetime
 
       rescue => e
         puts "❌ Error loading initializers: #{e.message}"
-        puts "   This command requires the initializers to be loadable"
-        puts "   but does not require a full application boot."
+        puts '   This command requires the initializers to be loadable'
+        puts '   but does not require a full application boot.'
       end
     end
 
@@ -38,7 +38,7 @@ module Onetime
 
     def display_with_dependencies(execution_info)
       execution_info.each do |info|
-        order_str = sprintf("%2d.", info[:order])
+        order_str = sprintf('%2d.', info[:order])
         name = info[:name].split('::').last
 
         if verbose_mode?
@@ -53,7 +53,7 @@ module Onetime
 
     def display_simple_list(execution_info)
       execution_info.each do |info|
-        order_str = sprintf("%2d.", info[:order])
+        order_str = sprintf('%2d.', info[:order])
         name = info[:name].split('::').last
 
         if verbose_mode?
@@ -77,7 +77,7 @@ module Onetime
 
     def display_compact_with_dependencies(order_str, name, info)
       deps_str = info[:dependencies].empty? ?
-        "(no dependencies)" :
+        '(no dependencies)' :
         "→ #{info[:dependencies].map { |d| d.split('::').last }.join(', ')}"
       puts "#{order_str} #{name.ljust(20)} #{deps_str}"
     end
@@ -92,9 +92,9 @@ module Onetime
       puts
       puts "Total: #{count} initializers"
       puts
-      puts "Legend:"
-      puts "  → Dependencies (must run before this initializer)"
-      puts "  Use --verbose for full module names"
+      puts 'Legend:'
+      puts '  → Dependencies (must run before this initializer)'
+      puts '  Use --verbose for full module names'
     end
 
     def display_simple_footer(count)

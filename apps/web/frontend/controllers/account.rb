@@ -213,7 +213,7 @@ module Frontend
           no_cache!
           logic = V2::Logic::Authentication::AuthenticateSession.new sess, cust, req.params, locale
           if sess.authenticated?
-            sess.set_info_message "You are already logged in."
+            sess.set_info_message 'You are already logged in.'
             res.redirect '/'
           else
             if req.post? # rubocop:disable Style/IfInsideElse

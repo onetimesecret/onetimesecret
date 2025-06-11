@@ -13,7 +13,7 @@ module Onetime
 
       # Safe fields for Stripe Subscription object
       set_safe_dump_fields [
-        { :identifier => ->(obj) { obj.id } },
+        { identifier: ->(obj) { obj.id } },
         :id,
         :status,
         :current_period_start,
@@ -26,7 +26,7 @@ module Onetime
         :trial_end,
         :livemode,
 
-        { :items => lambda { |sub|
+        { items: lambda { |sub|
           sub.items.data.map do |item|
             {
               price_id: item.price.id,
@@ -36,15 +36,15 @@ module Onetime
           end
         }},
 
-        { :current_period_remaining => lambda { |sub|
+        { current_period_remaining: lambda { |sub|
           (Time.at(sub.current_period_end) - Time.now).to_i
         }},
 
-        { :on_trial => lambda { |sub|
+        { on_trial: lambda { |sub|
           sub.trial_end && Time.now < Time.at(sub.trial_end)
         }},
 
-        { :plan => lambda { |sub|
+        { plan: lambda { |sub|
           sub.plan ? {
             id: sub.plan.id,
             nickname: sub.plan.nickname,
@@ -77,7 +77,7 @@ module Onetime
 
       # Safe fields for Stripe Customer object
       @safe_dump_fields = [
-        { :identifier => ->(obj) { obj.id } },
+        { identifier: ->(obj) { obj.id } },
         :id,
         :email,
         :name,
@@ -88,7 +88,7 @@ module Onetime
         :preferred_locales,
         :currency,
 
-        { :address => lambda { |cust|
+        { address: lambda { |cust|
           cust.address ? {
             city: cust.address.city,
             country: cust.address.country,
@@ -99,11 +99,11 @@ module Onetime
           } : nil
         }},
 
-        { :has_payment_method => lambda { |cust|
+        { has_payment_method: lambda { |cust|
           !cust.default_source.nil?
         }},
 
-        { :metadata => lambda { |cust|
+        { metadata: lambda { |cust|
           # Only include safe metadata fields
           safe_metadata_keys = [:public_note, :preferred_language]
           cust.metadata_list.select { |k, _| safe_metadata_keys.include?(k.to_sym) }

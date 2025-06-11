@@ -24,7 +24,7 @@ module V2::Logic
         limit_action :authenticate_session
         if @cust.nil?
           @cust ||= V2::Customer.anonymous
-          raise_form_error "Try again"
+          raise_form_error 'Try again'
         end
       end
 
@@ -65,7 +65,7 @@ module V2::Logic
 
         else
           OT.ld "[login-failure] #{sess.short_identifier} #{cust.obscure_email} #{cust.role} (failed)"
-          raise_form_error "Try again"
+          raise_form_error 'Try again'
         end
       end
 
@@ -75,7 +75,7 @@ module V2::Logic
 
       private
       def form_fields
-        {:custid => custid}
+        {custid: custid}
       end
     end
   end

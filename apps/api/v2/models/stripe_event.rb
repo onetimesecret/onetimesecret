@@ -8,7 +8,7 @@ module V2
     ttl 5.years
     prefix :stripeevent
 
-    class_sorted_set :values, key: "onetime:stripeevent:values"
+    class_sorted_set :values, key: 'onetime:stripeevent:values'
 
     #identifier :eventid
 
@@ -20,7 +20,7 @@ module V2
     field :updated
 
     @safe_dump_fields = [
-      { :identifier => ->(obj) { obj.identifier } },
+      { identifier: ->(obj) { obj.identifier } },
       :eventid,
       :message_response,
       :stripe_customer,

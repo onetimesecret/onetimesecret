@@ -11,14 +11,14 @@ module V2::Logic
       end
 
       def raise_concerns
-        raise_form_error "Please enter a domain" if @domain_input.empty?
-        raise_form_error "Not a valid public domain" unless V2::CustomDomain.valid?(@domain_input)
+        raise_form_error 'Please enter a domain' if @domain_input.empty?
+        raise_form_error 'Not a valid public domain' unless V2::CustomDomain.valid?(@domain_input)
 
         limit_action :get_domain_brand
 
         @custom_domain = V2::CustomDomain.load(@domain_input, @cust.custid)
 
-        raise_form_error "Domain not found" unless @custom_domain
+        raise_form_error 'Domain not found' unless @custom_domain
       end
 
       def process

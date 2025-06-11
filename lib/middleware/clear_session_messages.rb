@@ -32,7 +32,7 @@ module Rack
       if response_has_content && is_successful_response
         # Clear the messages if all conditions are met
         sess.clear_messages!
-        logger.info("[ClearSessionMessages] Session messages cleared")
+        logger.info('[ClearSessionMessages] Session messages cleared')
       end
 
       [status, headers, response]
@@ -44,7 +44,7 @@ module Rack
     # there are messages to clear.
     def check_session_messages(sess)
       unless sess
-        logger.debug("[ClearSessionMessages] Session object not found in environment")
+        logger.debug('[ClearSessionMessages] Session object not found in environment')
         return false
       end
 

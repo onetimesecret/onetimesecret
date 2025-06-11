@@ -71,7 +71,7 @@ module V2::Logic
           record: attributes,
           details: {
             type: 'record',
-            title: "Secret burned",
+            title: 'Secret burned',
             display_lines: 0,
             display_feedback: false,
             no_cache: true,

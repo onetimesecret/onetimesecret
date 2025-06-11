@@ -36,7 +36,7 @@ module V2
         def fetch_current_system_settings
           SystemSettings.current
         rescue Onetime::RecordNotFound
-          OT.ld "[GetSystemSettings#fetch_current_system_settings] No system settings found, using base config only"
+          OT.ld '[GetSystemSettings#fetch_current_system_settings] No system settings found, using base config only'
           nil
         end
 

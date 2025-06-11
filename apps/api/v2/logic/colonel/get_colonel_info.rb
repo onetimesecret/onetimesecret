@@ -25,7 +25,7 @@ module V2
         end
 
         def process
-          @title = "Home"
+          @title = 'Home'
           @stathat_chart = OT.conf[:stathat][:default_chart] if OT.conf[:stathat]
           @session_count = V2::Session.recent(15.minutes).size
 

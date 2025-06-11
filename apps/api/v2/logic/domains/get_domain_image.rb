@@ -16,22 +16,22 @@ module V2::Logic
       end
 
       def raise_concerns
-        raise_form_error "Please enter a domain" if @domain_input.empty?
+        raise_form_error 'Please enter a domain' if @domain_input.empty?
 
         unless V2::CustomDomain.valid?(@domain_input)
-          raise_form_error "Not a valid public domain"
+          raise_form_error 'Not a valid public domain'
         end
 
         # Add rate limiting after basic value validation, before data access
         limit_action :get_domain_logo
 
         @custom_domain = V2::CustomDomain.load(@domain_input, @cust.custid)
-        raise_form_error "Domain not found" unless custom_domain
+        raise_form_error 'Domain not found' unless custom_domain
 
         @display_domain = @domain_input # Only after it's known to be a good value
 
         @image = self._image_field
-        raise_not_found "Image not found" unless image && image['encoded']
+        raise_not_found 'Image not found' unless image && image['encoded']
       end
 
       def process

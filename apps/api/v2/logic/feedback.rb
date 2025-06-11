@@ -19,11 +19,11 @@ module V2
       def raise_concerns
         limit_action :send_feedback
 
-        raise_form_error "You can be more original than that!" if @msg.empty?
+        raise_form_error 'You can be more original than that!' if @msg.empty?
 
         if cust.anonymous?
-          raise_form_error "Cannot skip authenticity check" if authenticity_payload.empty?
-          raise_form_error "You need to be carbon-based to do that" unless verify_authenticity_payload
+          raise_form_error 'Cannot skip authenticity check' if authenticity_payload.empty?
+          raise_form_error 'You need to be carbon-based to do that' unless verify_authenticity_payload
         end
       end
 
@@ -85,7 +85,7 @@ module V2
           record: {
           },
           details: {
-            message: "Message received. Send as much as you like!",
+            message: 'Message received. Send as much as you like!',
           },
         }
       end

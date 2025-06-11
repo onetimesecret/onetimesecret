@@ -95,13 +95,13 @@ module Onetime::Mail
       def self.setup
         ::Mail.defaults do
           delivery_method :smtp, {
-            :address   => OT.conf[:emailer][:host] || 'localhost',
-            :port      => OT.conf[:emailer][:port] || 587,
-            :domain    => OT.conf[:site][:domain],
-            :user_name => OT.conf[:emailer][:user],
-            :password  => OT.conf[:emailer][:pass],
-            :authentication => OT.conf[:emailer][:auth],
-            :enable_starttls_auto => OT.conf[:emailer][:tls].to_s == 'true',
+            address: OT.conf[:emailer][:host] || 'localhost',
+            port: OT.conf[:emailer][:port] || 587,
+            domain: OT.conf[:site][:domain],
+            user_name: OT.conf[:emailer][:user],
+            password: OT.conf[:emailer][:pass],
+            authentication: OT.conf[:emailer][:auth],
+            enable_starttls_auto: OT.conf[:emailer][:tls].to_s == 'true',
           }
         end
       end

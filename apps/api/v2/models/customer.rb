@@ -56,7 +56,7 @@ module V2
     # with hot reloading in dev mode will not work. You will need to restart the
     # server to see the changes.
     @safe_dump_fields = [
-      { :identifier => ->(obj) { obj.identifier } },
+      { identifier: ->(obj) { obj.identifier } },
       :custid,
       :email,
 
@@ -71,18 +71,18 @@ module V2
       :stripe_subscription_id,
       :stripe_checkout_email,
 
-      {:plan => ->(cust) { cust.load_plan } }, # safe_dump will be called automatically
+      {plan: ->(cust) { cust.load_plan } }, # safe_dump will be called automatically
 
       # NOTE: The secrets_created incrementer is null until the first secret
       # is created. See ConcealSecret for where the incrementer is called.
       #
-      {:secrets_created => ->(cust) { cust.secrets_created.to_s || 0 } },
-      {:secrets_burned => ->(cust) { cust.secrets_burned.to_s || 0 } },
-      {:secrets_shared => ->(cust) { cust.secrets_shared.to_s || 0 } },
-      {:emails_sent => ->(cust) { cust.emails_sent.to_s || 0 } },
+      {secrets_created: ->(cust) { cust.secrets_created.to_s || 0 } },
+      {secrets_burned: ->(cust) { cust.secrets_burned.to_s || 0 } },
+      {secrets_shared: ->(cust) { cust.secrets_shared.to_s || 0 } },
+      {emails_sent: ->(cust) { cust.emails_sent.to_s || 0 } },
 
       # We use the hash syntax here since `:active?` is not a valid symbol.
-      { :active => ->(cust) { cust.active? } },
+      { active: ->(cust) { cust.active? } },
     ]
 
     def init
@@ -108,7 +108,7 @@ module V2
     end
 
     def contributor?
-      self.contributor.to_s == "true"
+      self.contributor.to_s == 'true'
     end
 
     def locale?
@@ -125,7 +125,7 @@ module V2
     end
 
     def load_plan
-      Onetime::Plan.plan(planid) || {:planid => planid, :source => 'parts_unknown'}
+      Onetime::Plan.plan(planid) || {planid: planid, source: 'parts_unknown'}
     end
 
     def get_stripe_customer
@@ -210,7 +210,7 @@ module V2
 
     def external_identifier
       if anonymous?
-        raise Onetime::Problem, "Anonymous customer has no external identifier"
+        raise Onetime::Problem, 'Anonymous customer has no external identifier'
       end
       # Changing the type, order or value of the elements in this array will
       # change the external identifier. This is used to identify customers
@@ -279,7 +279,7 @@ module V2
     # @raise [Onetime::Problem] if the customer is anonymous.
     # @return [V2::Session] The loaded or newly created session.
     def load_or_create_session(ip_address)
-      raise Onetime::Problem, "Customer is anonymous" if anonymous?
+      raise Onetime::Problem, 'Customer is anonymous' if anonymous?
       @sess = V2::Session.load(sessid) unless sessid.to_s.empty?
       if @sess.nil?
         @sess = V2::Session.create(ip_address, custid)
@@ -423,8 +423,8 @@ module V2
       end
 
       def create custid, email=nil
-        raise Onetime::Problem, "custid is required" if custid.to_s.empty?
-        raise Onetime::Problem, "Customer exists" if exists?(custid)
+        raise Onetime::Problem, 'custid is required' if custid.to_s.empty?
+        raise Onetime::Problem, 'Customer exists' if exists?(custid)
         cust = new custid: custid, email: email || custid, role: 'customer'
         cust.save
         add cust

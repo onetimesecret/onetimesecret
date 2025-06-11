@@ -24,9 +24,9 @@ module Onetime
 
     class SecretLink < Mail::Views::Base
       def init secret, recipient
-        raise ArgumentError, "Customer required" unless cust
-        raise ArgumentError, "Recipient required" unless recipient
-        raise ArgumentError, "Secret required" unless secret
+        raise ArgumentError, 'Customer required' unless cust
+        raise ArgumentError, 'Recipient required' unless recipient
+        raise ArgumentError, 'Secret required' unless secret
 
         self[:secret] = secret
         self[:custid] = cust.custid
@@ -45,7 +45,7 @@ module Onetime
       end
 
       def uri_path
-        raise ArgumentError, "Invalid secret key" unless self[:secret]&.key
+        raise ArgumentError, 'Invalid secret key' unless self[:secret]&.key
         secret_uri self[:secret]
       end
     end
@@ -72,7 +72,7 @@ module Onetime
         self[:email_address] = cust.email
       end
       def subject
-        "Reset your password (OnetimeSecret.com)"
+        'Reset your password (OnetimeSecret.com)'
       end
       def forgot_path
         '/forgot/%s' % self[:secret].key

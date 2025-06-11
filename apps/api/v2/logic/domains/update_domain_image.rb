@@ -57,24 +57,24 @@ module V2::Logic
       def raise_concerns
         limit_action :update_domain_brand
 
-        raise_form_error "Domain is required" if @domain_input.empty?
+        raise_form_error 'Domain is required' if @domain_input.empty?
 
         # Check if the domain exists and belongs to the current customer
         @custom_domain = V2::CustomDomain.load(@domain_input, @cust.custid)
-        raise_form_error "Invalid Domain" unless @custom_domain
+        raise_form_error 'Invalid Domain' unless @custom_domain
 
         @display_domain = @domain_input
 
         # Validate the logo file
-        raise_form_error "Image file is required" unless @uploaded_file
+        raise_form_error 'Image file is required' unless @uploaded_file
 
         @bytes =  @uploaded_file.size
-        raise_form_error "Image file is too large" if bytes > MAX_IMAGE_BYTES
+        raise_form_error 'Image file is too large' if bytes > MAX_IMAGE_BYTES
 
         # Raise an error if the file type is not one of the allowed image types
         # Allowed types: JPEG, PNG, GIF, SVG, WEBP, BMP, TIFF
         unless IMAGE_MIME_TYPES.include?(@content_type)
-          raise_form_error "Invalid file type"
+          raise_form_error 'Invalid file type'
         end
 
         @greenlighted = true

@@ -104,11 +104,11 @@ module V2
     end
 
     def truncated?
-      self.truncated.to_s == "true"
+      self.truncated.to_s == 'true'
     end
 
     def verification?
-      verification.to_s == "true"
+      verification.to_s == 'true'
     end
 
     def encrypt_value original_value, opts={}
@@ -118,7 +118,7 @@ module V2
       # strings like the more progressive 3.2+ Rubies.
       if original_value.to_s.empty?
         self.value_encryption = -1
-        self.value_checksum = "".gibbler
+        self.value_checksum = ''.gibbler
         return
       end
 
@@ -143,31 +143,31 @@ module V2
       self.value_checksum = storable_value.gibbler
       self.value_encryption = 2  # Current encryption version
 
-      encryption_options = opts.merge(:key => encryption_key)
+      encryption_options = opts.merge(key: encryption_key)
       self.value = storable_value.encrypt encryption_options
     end
 
     def decrypted_value opts={}
       encryption_mode = value_encryption.to_i
       v_encrypted = self.value
-      v_encrypted = "" if encryption_mode.negative? && v_encrypted.nil?
-      v_encrypted.force_encoding("utf-8")
+      v_encrypted = '' if encryption_mode.negative? && v_encrypted.nil?
+      v_encrypted.force_encoding('utf-8')
 
       # First try with the primary global secret
       begin
         v_decrypted = case encryption_mode
         when -1
-          ""
+          ''
         when 0
           v_encrypted
         when 1
-          v_encrypted.decrypt opts.merge(:key => encryption_key_v1)
+          v_encrypted.decrypt opts.merge(key: encryption_key_v1)
         when 2
-          v_encrypted.decrypt opts.merge(:key => encryption_key_v2)
+          v_encrypted.decrypt opts.merge(key: encryption_key_v2)
         else
           raise RuntimeError, "Unknown encryption mode: #{value_encryption}"
         end
-        v_decrypted.force_encoding("utf-8") # Hacky fix for https://github.com/onetimesecret/onetimesecret/issues/37
+        v_decrypted.force_encoding('utf-8') # Hacky fix for https://github.com/onetimesecret/onetimesecret/issues/37
         return v_decrypted
       rescue OpenSSL::Cipher::CipherError => original_error
         OT.le "[decrypted_value] m:#{metadata_key} s:#{key} CipherError #{original_error.message}"
@@ -181,7 +181,7 @@ module V2
         allow_nil = OT.conf[:experimental].fetch(:allow_nil_global_secret, false)
         if allow_nil
           OT.li "[decrypted_value] m:#{metadata_key} s:#{key} Trying nil global secret"
-          decryption_options = opts.merge(:key => encryption_key_v2_with_nil)
+          decryption_options = opts.merge(key: encryption_key_v2_with_nil)
           return v_encrypted.decrypt(decryption_options)
         end
 
@@ -205,8 +205,8 @@ module V2
         begin
           # Generate key using the fallback secret
           encryption_key = V2::Secret.encryption_key(fallback_secret, self.key, self.passphrase_temp)
-          result = encrypted_value.decrypt(opts.merge(:key => encryption_key))
-          result.force_encoding("utf-8")
+          result = encrypted_value.decrypt(opts.merge(key: encryption_key))
+          result.force_encoding('utf-8')
           OT.li "[try_fallback_secrets] m:#{metadata_key} s:#{key} Success (index #{index})"
           return result
         rescue OpenSSL::Cipher::CipherError

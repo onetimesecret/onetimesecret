@@ -20,14 +20,14 @@ module V2::Logic
         OT.ld "[#{self.class}] Raising concerns for domain_input: #{@domain_input}"
         limit_action :remove_domain_logo
 
-        raise_form_error "Domain is required" if @domain_input.empty?
+        raise_form_error 'Domain is required' if @domain_input.empty?
 
         @custom_domain = V2::CustomDomain.load(@domain_input, @cust.custid)
-        raise_form_error "Invalid Domain" unless @custom_domain
+        raise_form_error 'Invalid Domain' unless @custom_domain
 
         @display_domain = @domain_input
 
-        raise_form_error "No image exists for this domain" unless image_exists?
+        raise_form_error 'No image exists for this domain' unless image_exists?
 
         @greenlighted = true
       end

@@ -37,7 +37,7 @@ module Onetime
           custid_email != email_field
         end
         if mismatched_customers.empty?
-          puts "All customers have matching custid and email fields."
+          puts 'All customers have matching custid and email fields.'
         end
 
         mismatched_customers.each do |cust|

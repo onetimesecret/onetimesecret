@@ -64,9 +64,9 @@ module V2
     rescue Onetime::BadShrimp => ex
       # If it's a json response, no need to set an error message on the session
       if res.header['Content-Type'] == 'application/json'
-        error_response 'Please refresh the page and try again', reason: "Bad shrimp 🍤"
+        error_response 'Please refresh the page and try again', reason: 'Bad shrimp 🍤'
       else
-        sess.set_error_message "Please go back, refresh the page, and try again."
+        sess.set_error_message 'Please go back, refresh the page, and try again.'
         res.redirect redirect
       end
 
@@ -102,7 +102,7 @@ module V2
       # Track rate limiting as a warning message
       capture_message "#{ex.message}: #{msg}", :warning
 
-      throttle_response "Cripes! You have been rate limited."
+      throttle_response 'Cripes! You have been rate limited.'
 
     rescue Familia::HighRiskFactor => ex
       OT.le "[attempt-saving-non-string-to-redis] #{obscured} (#{sess.ipaddress}): #{sess.identifier.shorten(10)} (#{req.current_absolute_uri})"
@@ -121,7 +121,7 @@ module V2
       capture_error ex
 
       # Include fresh shrimp so they can try again 🦐
-      error_response "An error occurred :[", shrimp: sess ? sess.add_shrimp : nil
+      error_response 'An error occurred :[', shrimp: sess ? sess.add_shrimp : nil
 
     rescue Errno::ECONNREFUSED => ex
       OT.le ex.message
@@ -141,7 +141,7 @@ module V2
       # Track the unexected errors
       capture_error ex
 
-      error_response "An unexpected error occurred :[", shrimp: sess ? sess.add_shrimp : nil
+      error_response 'An unexpected error occurred :[', shrimp: sess ? sess.add_shrimp : nil
 
     ensure
       @sess ||= V2::Session.new 'failover', 'anon'
@@ -246,7 +246,7 @@ module V2
       if req.cookie?(:sess) && V2::Session.exists?(req.cookie(:sess))
         @sess = V2::Session.load req.cookie(:sess)
       else
-        @sess = V2::Session.create req.client_ipaddress, "anon", req.user_agent
+        @sess = V2::Session.create req.client_ipaddress, 'anon', req.user_agent
       end
 
       # Set the session to rack.session
@@ -513,7 +513,7 @@ module V2
         #
         pretty_name = key.sub(/^HTTP_/, '').split('_').map(&:capitalize).join('-')
         "#{pretty_name}: #{env[key]}"
-      }.join(" ")
+      }.join(' ')
     end
 
     def secure_request?
@@ -525,7 +525,7 @@ module V2
       # sources. See Caddy config docs re: trusted_proxies.
       # X-Scheme is set by e.g. nginx, caddy etc
       # X-FORWARDED-PROTO is set by load balancer e.g. ELB
-      (req.env['HTTP_X_FORWARDED_PROTO'] == 'https' || req.env['HTTP_X_SCHEME'] == "https")
+      (req.env['HTTP_X_FORWARDED_PROTO'] == 'https' || req.env['HTTP_X_SCHEME'] == 'https')
     end
 
     def local?
@@ -541,9 +541,9 @@ module V2
     end
 
     def no_cache!
-      res.header['Cache-Control'] = "no-store, no-cache, must-revalidate, max-age=0"
-      res.header['Expires'] = "Mon, 7 Nov 2011 00:00:00 UTC"
-      res.header['Pragma'] = "no-cache"
+      res.header['Cache-Control'] = 'no-store, no-cache, must-revalidate, max-age=0'
+      res.header['Expires'] = 'Mon, 7 Nov 2011 00:00:00 UTC'
+      res.header['Pragma'] = 'no-cache'
     end
 
     def app_path *paths

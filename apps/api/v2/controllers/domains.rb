@@ -15,24 +15,24 @@ module V2
         OT.ld "[API::Domains] add_domain #{req.params}"
         process_action(
           V2::Logic::Domains::AddDomain,
-          "Domain added successfully.",
-          "Domain could not be added.",
+          'Domain added successfully.',
+          'Domain could not be added.',
         )
       end
 
       def verify_domain
         process_action(
           V2::Logic::Domains::VerifyDomain,
-          "Domain verified.",
-          "Domain could not be verified.",
+          'Domain verified.',
+          'Domain could not be verified.',
         )
       end
 
       def remove_domain
         process_action(
           V2::Logic::Domains::RemoveDomain,
-          "Domain removed successfully.",
-          "Domain could not be removed.",
+          'Domain removed successfully.',
+          'Domain could not be removed.',
         )
       end
 
@@ -55,8 +55,8 @@ module V2
       def update_domain_brand
         process_action(
           V2::Logic::Domains::UpdateDomainBrand,
-          "Brand settings saved successfully.",
-          "Brand settings could not be saved.",
+          'Brand settings saved successfully.',
+          'Brand settings could not be saved.',
         )
       end
 
