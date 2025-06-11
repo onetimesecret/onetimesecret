@@ -35,9 +35,9 @@ module AppRegistry
     def prepare_application_registry
       find_application_files
       create_mount_mappings
-    rescue => e
-      OT.le "[AppRegistry] ERROR: #{e.class}: #{e.message}"
-      OT.ld e.backtrace.join("\n")
+    rescue => ex
+      OT.le "[AppRegistry] ERROR: #{ex.class}: #{ex.message}"
+      OT.ld ex.backtrace.join("\n")
 
       Onetime.not_ready!
     end

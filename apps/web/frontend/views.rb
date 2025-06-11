@@ -48,7 +48,7 @@ module Frontend
     end
 
     class Error < Frontend::Views::BaseView
-      def init *args
+      def init *_args
         self[:title] = "I'm afraid there's been an error"
       end
     end

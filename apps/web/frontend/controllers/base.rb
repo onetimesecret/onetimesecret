@@ -18,7 +18,7 @@ module Frontend
         @req, @res = req, res
       end
 
-      def publically redirect=nil
+      def publically redirect = nil
         carefully(redirect) do
           check_session!     # 1. Load or create the session, load customer (or anon)
           check_locale!      # 2. Check the request for the desired locale
@@ -29,7 +29,7 @@ module Frontend
         end
       end
 
-      def authenticated redirect=nil
+      def authenticated redirect = nil
         carefully(redirect) do
           no_cache!
           check_session!     # 1. Load or create the session, load customer (or anon)
@@ -46,7 +46,7 @@ module Frontend
         end
       end
 
-      def colonels redirect=nil
+      def colonels redirect = nil
         carefully(redirect) do
           no_cache!
           check_session!     # 1. Load or create the session, load customer (or anon)
@@ -137,7 +137,7 @@ module Frontend
         end
       end
 
-      def server_error status=500, message=nil
+      def server_error status = 500, _message = nil
         res.status = status
         res['Content-Type'] = 'text/html'
         res.body = <<-HTML
@@ -183,7 +183,7 @@ module Frontend
         res.body = view.render  # Render the entrypoint HTML
       end
 
-      def not_authorized_error hsh={}
+      def not_authorized_error _hsh = {}
         view = Frontend::Views::Error.new req, sess, cust, locale
         view.add_error 'Not authorized'
         res.status = 401

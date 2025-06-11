@@ -37,7 +37,7 @@ module Onetime
         self[:signature_link] = 'https://onetimesecret.com/'
       end
       def subject
-        i18n[:email][:subject] % [self[:sender_email]] # e.g. "ABC" sent you a secret
+        format(i18n[:email][:subject], self[:sender_email]) # e.g. "ABC" sent you a secret
       end
 
       def display_domain
@@ -87,7 +87,7 @@ module Onetime
         self[:email_address] = recipient
       end
       def subject
-        i18n[:email][:subject] % [self[:ticketno]]
+        format(i18n[:email][:subject], self[:ticketno])
       end
       def verify_uri
         secret_uri self[:secret]

@@ -22,30 +22,30 @@ module V2::Logic
       def process
         potential_secret = @metadata.load_secret
 
-        if potential_secret
-          # Rate limit all secret access attempts
-          limit_action :attempt_secret_access
+        return unless potential_secret
+        # Rate limit all secret access attempts
+        limit_action :attempt_secret_access
 
-          @correct_passphrase = !potential_secret.has_passphrase? || potential_secret.passphrase?(passphrase)
-          viewable = potential_secret.viewable?
-          continue_result = params[:continue]
-          @greenlighted = viewable && correct_passphrase && continue_result
+        @correct_passphrase = !potential_secret.has_passphrase? || potential_secret.passphrase?(passphrase)
+        viewable = potential_secret.viewable?
+        continue_result = params[:continue]
+        @greenlighted = viewable && correct_passphrase && continue_result
 
-          if greenlighted
-            @secret = potential_secret
-            owner = secret.load_customer
-            secret.burned!
-            owner.increment_field :secrets_burned unless owner.anonymous?
-            V2::Customer.global.increment_field :secrets_burned
-            V2::Logic.stathat_count('Burned Secrets', 1)
+        if greenlighted
+          @secret = potential_secret
+          owner = secret.load_customer
+          secret.burned!
+          owner.increment_field :secrets_burned unless owner.anonymous?
+          V2::Customer.global.increment_field :secrets_burned
+          V2::Logic.stathat_count('Burned Secrets', 1)
 
-          elsif !correct_passphrase
-            limit_action :failed_passphrase if potential_secret.has_passphrase?
-            message = OT.locales.dig(locale, :web, :COMMON, :error_passphrase) || 'Incorrect passphrase'
-            raise_form_error message
+        elsif !correct_passphrase
+          limit_action :failed_passphrase if potential_secret.has_passphrase?
+          message = OT.locales.dig(locale, :web, :COMMON, :error_passphrase) || 'Incorrect passphrase'
+          raise_form_error message
 
-          end
         end
+
       end
 
       def success_data

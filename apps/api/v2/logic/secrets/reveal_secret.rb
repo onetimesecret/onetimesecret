@@ -56,7 +56,8 @@ module V2::Logic
 
             else
               OT.le '[verification] Invalid verification - user already logged in'
-              raise_form_error i18n.dig(:web, :COMMON, :verification_already_logged_in) || 'Cannot verify when logged in'
+              raise_form_error i18n.dig(:web, :COMMON,
+                :verification_already_logged_in) || 'Cannot verify when logged in'
             end
           else
             OT.li "[reveal_secret] #{secret.key} viewed successfully"

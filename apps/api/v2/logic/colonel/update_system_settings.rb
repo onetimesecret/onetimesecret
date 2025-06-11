@@ -74,9 +74,9 @@ module V2
             @greenlighted = true
             OT.ld '[UpdateSystemSettings#process] System settings persisted successfully'
 
-          rescue => e
-            OT.le "[UpdateSystemSettings#process] Failed to persist system settings: #{e.message}"
-            raise_form_error "Failed to update configuration: #{e.message}"
+          rescue => ex
+            OT.le "[UpdateSystemSettings#process] Failed to persist system settings: #{ex.message}"
+            raise_form_error "Failed to update configuration: #{ex.message}"
           end
         end
 
@@ -86,7 +86,7 @@ module V2
           # Return the record and the sections that were provided
           {
             record: @record&.safe_dump || {},
-            details: build_update_fields
+            details: build_update_fields,
           }
         end
 

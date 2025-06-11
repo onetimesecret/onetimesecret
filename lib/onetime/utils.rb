@@ -38,12 +38,12 @@ module Onetime
       fortune = fortunes.sample.to_s.strip
       raise OT::Problem, 'No fortune found' if fortune.empty?
       fortune
-    rescue OT::Problem => e
-      OT.le "#{e.message}"
+    rescue OT::Problem => ex
+      OT.le "#{ex.message}"
       'Unexpected outcomes bring valuable lessons.'
-    rescue StandardError => e
-      OT.le "#{e.message} (#{fortunes.class})"
-      OT.ld "#{e.backtrace.join("\n")}"
+    rescue StandardError => ex
+      OT.le "#{ex.message} (#{fortunes.class})"
+      OT.ld "#{ex.backtrace.join("\n")}"
       'A house is full of games and puzzles.'
     end
 

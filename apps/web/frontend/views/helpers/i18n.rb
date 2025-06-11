@@ -37,32 +37,32 @@ module Frontend
          # Return empty hash if locales not available yet
          return {} unless OT.locales
 
-        locale = self.locale
-        @i18n_cache ||= {}
-        return @i18n_cache[locale] if @i18n_cache.key?(locale)
+         locale = self.locale
+         @i18n_cache ||= {}
+         return @i18n_cache[locale] if @i18n_cache.key?(locale)
 
-        pagename = self.class.pagename
-        messages = OT.locales&.dig(locale) || {}
+         pagename = self.class.pagename
+         messages = OT.locales&.dig(locale) || {}
 
-        # Fall back to default locale if translations not available
-        if messages.empty?
-          OT.le "[#{pagename}.i18n] #{locale} not found in #{OT.locales.keys} (#{OT.supported_locales})"
-          messages = OT.locales&.dig(OT.default_locale) || {}
-        end
+         # Fall back to default locale if translations not available
+         if messages.empty?
+           OT.le "[#{pagename}.i18n] #{locale} not found in #{OT.locales.keys} (#{OT.supported_locales})"
+           messages = OT.locales&.dig(OT.default_locale) || {}
+         end
 
-        # Safe access to nested hash structure
-        web_messages = messages.fetch(:web, {})
-        common_messages = web_messages.fetch(:COMMON, {})
-        page_messages = web_messages.fetch(pagename, {})
+         # Safe access to nested hash structure
+         web_messages = messages.fetch(:web, {})
+         common_messages = web_messages.fetch(:COMMON, {})
+         page_messages = web_messages.fetch(pagename, {})
 
-        result = {
-          locale: locale,
-          default: OT.default_locale,
-          page: page_messages,
-          COMMON: common_messages,
-        }
+         result = {
+           locale: locale,
+           default: OT.default_locale,
+           page: page_messages,
+           COMMON: common_messages,
+         }
 
-        @i18n_cache[locale] = result
+         @i18n_cache[locale] = result
       end
 
     end

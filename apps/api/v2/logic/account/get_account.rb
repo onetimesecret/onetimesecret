@@ -21,35 +21,35 @@ module V2::Logic
 
       def process
 
-        if plans_enabled
-          @stripe_customer = cust.get_stripe_customer
-          @stripe_subscription = cust.get_stripe_subscription
+        return unless plans_enabled
+        @stripe_customer = cust.get_stripe_customer
+        @stripe_subscription = cust.get_stripe_subscription
 
-          # Rudimentary normalization to make sure that all Onetime customers
-          # that have a stripe customer and subscription record, have the
-          # RedisHash fields stripe_customer_id and stripe_subscription_id
-          # fields populated. The subscription section on the account screen
-          # depends on these ID fields being populated.
-          if stripe_customer
-            OT.info 'Recording stripe customer ID'
-            cust.stripe_customer_id = stripe_customer.id
-          end
-
-          if stripe_subscription
-            OT.info 'Recording stripe subscription ID'
-            cust.stripe_subscription_id = stripe_subscription.id
-          end
-
-          # Just incase we didn't capture the Onetime Secret planid update after
-          # a customer subscribes, let's make sure we update it b/c it doesn't
-          # feel good to pay for something and still see "Basic Plan" at the
-          # top of your account page.
-          if stripe_subscription && stripe_subscription.plan
-            cust.planid = 'identity' # TOOD: obviously find a better way
-          end
-
-          cust.save
+        # Rudimentary normalization to make sure that all Onetime customers
+        # that have a stripe customer and subscription record, have the
+        # RedisHash fields stripe_customer_id and stripe_subscription_id
+        # fields populated. The subscription section on the account screen
+        # depends on these ID fields being populated.
+        if stripe_customer
+          OT.info 'Recording stripe customer ID'
+          cust.stripe_customer_id = stripe_customer.id
         end
+
+        if stripe_subscription
+          OT.info 'Recording stripe subscription ID'
+          cust.stripe_subscription_id = stripe_subscription.id
+        end
+
+        # Just incase we didn't capture the Onetime Secret planid update after
+        # a customer subscribes, let's make sure we update it b/c it doesn't
+        # feel good to pay for something and still see "Basic Plan" at the
+        # top of your account page.
+        if stripe_subscription && stripe_subscription.plan
+          cust.planid = 'identity' # TOOD: obviously find a better way
+        end
+
+        cust.save
+
       end
 
       def show_stripe_section?
@@ -67,9 +67,9 @@ module V2::Logic
           created: stripe_customer.created,
           metadata: stripe_customer.metadata,
         }
-      rescue RuntimeError => e
-          OT.le("[safe_stripe_customer_dump] Error for #{object_id}: #{e.message}")
-        nil
+      rescue RuntimeError => ex
+          OT.le("[safe_stripe_customer_dump] Error for #{object_id}: #{ex.message}")
+          nil
       end
 
       def safe_stripe_subscription_dump
@@ -90,9 +90,9 @@ module V2::Logic
             product: stripe_subscription.plan.product,
           },
         }
-      rescue RuntimeError => e
-          OT.le("[safe_stripe_subscription_dump] Error for #{object_id}: #{e.message}")
-        nil
+      rescue RuntimeError => ex
+          OT.le("[safe_stripe_subscription_dump] Error for #{object_id}: #{ex.message}")
+          nil
       end
 
       def success_data

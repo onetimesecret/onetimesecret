@@ -33,12 +33,12 @@ module Onetime
           puts success ? "\nDry run completed successfully" : "\nDry run failed"
         end
         exit(success ? 0 : 1)
-      rescue LoadError => e
-        puts "Error loading migration: #{e.message}"
+      rescue LoadError => ex
+        puts "Error loading migration: #{ex.message}"
         exit 1
-      rescue StandardError => e
-        puts "Migration error: #{e.message}"
-        puts e.backtrace if OT.debug?
+      rescue StandardError => ex
+        puts "Migration error: #{ex.message}"
+        puts ex.backtrace if OT.debug?
         exit 1
       end
     end

@@ -37,7 +37,8 @@ module Onetime
         if verbose_mode?
           OT.ld "\nActual config structure being validated:"
           OT.ld "Top-level keys: #{config.unprocessed_config.keys.inspect}"
-          OT.ld "Schema expects keys under 'static': #{config.schema.dig('properties', 'static', 'properties')&.keys&.inspect}"
+          OT.ld "Schema expects keys under 'static': #{config.schema.dig('properties', 'static',
+            'properties')&.keys&.inspect}"
         end
 
         # Show parsed config in verbose mode
@@ -51,8 +52,8 @@ module Onetime
         OT.li '✅ Configuration valid'
         0 # Success exit code
 
-      rescue OT::ConfigValidationError => e
-        OT.le "❌ #{e.message}"
+      rescue OT::ConfigValidationError => ex
+        OT.le "❌ #{ex.message}"
 
         # Show help message for non-verbose mode
         unless verbose_mode?
@@ -61,18 +62,18 @@ module Onetime
 
         1 # Validation failure exit code
 
-      rescue OT::ConfigError => e
-        OT.le "❌ Configuration error: #{e.message}"
+      rescue OT::ConfigError => ex
+        OT.le "❌ Configuration error: #{ex.message}"
         exit 2 # Config error exit code
 
-      rescue ArgumentError => e
+      rescue ArgumentError => ex
         # Handle file not found errors
-        OT.le "❌ #{e.message}"
+        OT.le "❌ #{ex.message}"
         exit 3 # File not found exit code
 
-      rescue StandardError => e
-        OT.le "❌ Unexpected error: #{e.message}"
-        OT.ld e.backtrace.join("\n") if verbose_mode?
+      rescue StandardError => ex
+        OT.le "❌ Unexpected error: #{ex.message}"
+        OT.ld ex.backtrace.join("\n") if verbose_mode?
         exit 4 # Unexpected error exit code
       end
     end

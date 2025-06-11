@@ -32,7 +32,7 @@ module Frontend
       attr_accessor :req, :sess, :cust, :locale, :form_fields, :pagename
       attr_reader :i18n_instance, :view_vars, :serialized_data, :messages
 
-      def initialize req, sess=nil, cust=nil, locale_override=nil, *args
+      def initialize req, sess = nil, cust = nil, locale_override = nil, *args
         @req = req
         @sess = sess
 
@@ -89,7 +89,7 @@ module Frontend
       # @param msg [String] Message content to be displayed
       # @param type [String] Type of message, one of: info, error, success, warning
       # @return [Array<Hash>] Array containing all message objects
-      def add_message msg, type='info'
+      def add_message msg, type = 'info'
         messages << {type: type, content: msg}
       end
 

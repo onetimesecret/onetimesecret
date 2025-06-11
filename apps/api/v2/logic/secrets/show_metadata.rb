@@ -92,8 +92,8 @@ module V2::Logic
               begin
                 OT.ld "[show_metadata] m:#{metadata_key} s:#{secret_key} Decrypting for first and only creator viewing"
                 @secret_value = secret.decrypted_value if @can_decrypt
-              rescue OpenSSL::Cipher::CipherError => e
-                OT.le "[show_metadata] m:#{metadata_key} s:#{secret_key} #{e.message}"
+              rescue OpenSSL::Cipher::CipherError => ex
+                OT.le "[show_metadata] m:#{metadata_key} s:#{secret_key} #{ex.message}"
                 @secret_value = nil
               end
             end

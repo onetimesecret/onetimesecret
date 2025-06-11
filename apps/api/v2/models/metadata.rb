@@ -148,7 +148,7 @@ module V2
       !passphrase.to_s.empty?
     end
 
-    def deliver_by_email cust, locale, secret, eaddrs, template=nil, ticketno=nil
+    def deliver_by_email cust, locale, secret, eaddrs, template = nil, ticketno = nil
       template ||= V2::Email::SecretLink
 
       if eaddrs.nil? || eaddrs.empty?

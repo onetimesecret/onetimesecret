@@ -130,8 +130,8 @@ module V2
 
     def get_stripe_customer
       get_stripe_customer_by_id || get_stripe_customer_by_email
-    rescue Stripe::StripeError => e
-      OT.le "[Customer.get_stripe_customer] Error: #{e.message}: #{e.backtrace}"
+    rescue Stripe::StripeError => ex
+      OT.le "[Customer.get_stripe_customer] Error: #{ex.message}: #{ex.backtrace}"
       nil
     end
 
@@ -139,14 +139,14 @@ module V2
       get_stripe_subscription_by_id || get_stripe_subscriptions&.first
     end
 
-    def get_stripe_customer_by_id customer_id=nil
+    def get_stripe_customer_by_id customer_id = nil
       customer_id ||= stripe_customer_id
       return if customer_id.to_s.empty?
       OT.info "[Customer.get_stripe_customer_by_id] Fetching customer: #{customer_id} #{custid}"
       @stripe_customer = Stripe::Customer.retrieve(customer_id)
 
-    rescue Stripe::StripeError => e
-      OT.le "[Customer.get_stripe_customer_by_id] Error: #{e.message}"
+    rescue Stripe::StripeError => ex
+      OT.le "[Customer.get_stripe_customer_by_id] Error: #{ex.message}"
       nil
     end
 
@@ -163,22 +163,22 @@ module V2
 
       @stripe_customer
 
-    rescue Stripe::StripeError => e
-      OT.le "[Customer.get_stripe_customer_by_email] Error: #{e.message}"
+    rescue Stripe::StripeError => ex
+      OT.le "[Customer.get_stripe_customer_by_email] Error: #{ex.message}"
       nil
     end
 
-    def get_stripe_subscription_by_id subscription_id=nil
+    def get_stripe_subscription_by_id subscription_id = nil
       subscription_id ||= stripe_subscription_id
       return if subscription_id.to_s.empty?
       OT.info "[Customer.get_stripe_subscription_by_id] Fetching subscription: #{subscription_id} #{custid}"
       @stripe_subscription = Stripe::Subscription.retrieve(subscription_id)
-    rescue Stripe::StripeError => e
-      OT.le "[Customer.get_stripe_subscription_by_id] Error: #{e.message}"
+    rescue Stripe::StripeError => ex
+      OT.le "[Customer.get_stripe_subscription_by_id] Error: #{ex.message}"
       nil
     end
 
-    def get_stripe_subscriptions stripe_customer=nil
+    def get_stripe_subscriptions stripe_customer = nil
       stripe_customer ||= @stripe_customer
       subscriptions = []
       return subscriptions unless stripe_customer
@@ -186,8 +186,8 @@ module V2
       begin
         subscriptions = Stripe::Subscription.list(customer: stripe_customer.id, limit: 1)
 
-      rescue Stripe::StripeError => e
-        OT.le "Error: #{e.message}"
+      rescue Stripe::StripeError => ex
+        OT.le "Error: #{ex.message}"
       else
         if subscriptions.data.empty?
           OT.info "No subscriptions found for customer: #{stripe_customer.id}"
@@ -293,8 +293,8 @@ module V2
     def metadata_list
       metadata.revmembers.collect do |key|
         obj = V2::Metadata.load(key)
-      rescue Onetime::RecordNotFound => e
-        OT.le "[metadata_list] Error: #{e.message} (#{key} / #{self.custid})"
+      rescue Onetime::RecordNotFound => ex
+        OT.le "[metadata_list] Error: #{ex.message} (#{key} / #{self.custid})"
       end.compact
     end
 
@@ -305,8 +305,8 @@ module V2
     def custom_domains_list
       custom_domains.revmembers.collect do |domain|
         V2::CustomDomain.load domain, self.custid
-      rescue Onetime::RecordNotFound => e
-        OT.le "[custom_domains_list] Error: #{e.message} (#{domain} / #{self.custid})"
+      rescue Onetime::RecordNotFound => ex
+        OT.le "[custom_domains_list] Error: #{ex.message} (#{domain} / #{self.custid})"
       end.compact
     end
 
@@ -413,7 +413,7 @@ module V2
         self.values.revrangeraw(0, -1).collect { |identifier| load(identifier) }
       end
 
-      def recent duration=30.days, epoint=OT.now.to_i
+      def recent duration = 30.days, epoint = OT.now.to_i
         spoint = OT.now.to_i-duration
         self.values.rangebyscoreraw(spoint, epoint).collect { |identifier| load(identifier) }
       end
@@ -422,7 +422,7 @@ module V2
         new('anon').freeze
       end
 
-      def create custid, email=nil
+      def create custid, email = nil
         raise Onetime::Problem, 'custid is required' if custid.to_s.empty?
         raise Onetime::Problem, 'Customer exists' if exists?(custid)
         cust = new custid: custid, email: email || custid, role: 'customer'
@@ -443,12 +443,12 @@ module V2
 
         cust.increment field
 
-      rescue Redis::CommandError => e
+      rescue Redis::CommandError => ex
 
         # For whatever reason, redis throws an error when trying to
         # increment a non-existent hashkey field (rather than setting
         # it to 1): "ERR hash value is not an integer"
-        OT.le "[increment_field] Redis error (#{curval}): #{e.message}"
+        OT.le "[increment_field] Redis error (#{curval}): #{ex.message}"
 
         # So we'll set it to 1 if it's empty. It's possible we're here
         # due to a different error, but this value needs to be

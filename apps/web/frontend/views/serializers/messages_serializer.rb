@@ -14,7 +14,7 @@ module Frontend
       # @param view_vars [Hash] The view variables containing message information
       # @param i18n [Object] The internationalization instance
       # @return [Hash] Serialized messages and global banner information
-      def self.serialize(view_vars, i18n)
+      def self.serialize(view_vars, _i18n)
         output = self.output_template
 
         output[:messages] = view_vars&.fetch(:messages, nil)

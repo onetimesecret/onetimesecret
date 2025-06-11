@@ -178,12 +178,12 @@ module Frontend
             # Continue the redirect
             res.redirect session.url
 
-          rescue Stripe::StripeError => e
-            OT.le "[customer_portal_redirect] Stripe error: #{e.message}"
-            raise_form_error(e.message)
+          rescue Stripe::StripeError => ex
+            OT.le "[customer_portal_redirect] Stripe error: #{ex.message}"
+            raise_form_error(ex.message)
 
-          rescue => e
-            OT.le "[customer_portal_redirect] Unexpected error: #{e.message}"
+          rescue => ex
+            OT.le "[customer_portal_redirect] Unexpected error: #{ex.message}"
             raise_form_error('An unexpected error occurred')
           end
         end

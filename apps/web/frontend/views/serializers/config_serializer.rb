@@ -17,7 +17,7 @@ module Frontend
       # @param view_vars [Hash] The view variables containing site configuration
       # @param i18n [Object] The internationalization instance
       # @return [Hash] Serialized configuration data
-      def self.serialize(view_vars, i18n)
+      def self.serialize(view_vars, _i18n)
         output = self.output_template
 
         site = view_vars[:site] || {}

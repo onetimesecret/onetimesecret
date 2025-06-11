@@ -108,7 +108,7 @@ module Onetime
           }
         end
 
-        def deliver_email token=nil
+        def deliver_email token = nil
           errmsg = "Your message wasn't sent because we have an email problem"
 
           email_address_obscured = OT::Utils.obscure_email self[:email_address]
@@ -132,10 +132,10 @@ module Onetime
 
           rescue SocketError => ex
           internal_emsg = "Cannot send mail: #{ex.message}\n#{ex.backtrace}"
-            OT.le internal_emsg
+          OT.le internal_emsg
 
-            V2::EmailReceipt.create self[:cust].identifier, message_identifier, internal_emsg
-            raise OT::Problem, errmsg
+          V2::EmailReceipt.create self[:cust].identifier, message_identifier, internal_emsg
+          raise OT::Problem, errmsg
 
           rescue Exception => ex
             internal_emsg = "Cannot send mail: #{ex.message}\n#{ex.backtrace}"

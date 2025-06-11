@@ -121,12 +121,12 @@ module Onetime
           when ->(d) { known_custom_domain?(d.name) }       then :custom
           end
 
-        rescue PublicSuffix::DomainInvalid => e
-          OT.ld "[DomainStrategy]: Invalid domain #{request_domain} #{e.message}"
+        rescue PublicSuffix::DomainInvalid => ex
+          OT.ld "[DomainStrategy]: Invalid domain #{request_domain} #{ex.message}"
           nil
-        rescue => e
-          OT.le "[DomainStrategy]: Unhandled error: #{e.message} (backtrace: " \
-                "#{e.backtrace[0..2].join("\n")}) (args: #{request_domain.inspect}, " \
+        rescue => ex
+          OT.le "[DomainStrategy]: Unhandled error: #{ex.message} (backtrace: " \
+                "#{ex.backtrace[0..2].join("\n")}) (args: #{request_domain.inspect}, " \
                 "#{canonical_domain.inspect})"
           nil
         end
@@ -229,8 +229,8 @@ module Onetime
         return unless domains_enabled?
 
         @canonical_domain_parsed = Parser.parse(canonical_domain)
-      rescue PublicSuffix::DomainInvalid => e
-        OT.le "[DomainStrategy]: Invalid canonical domain: #{@canonical_domain.inspect} error=#{e.message}"
+      rescue PublicSuffix::DomainInvalid => ex
+        OT.le "[DomainStrategy]: Invalid canonical domain: #{@canonical_domain.inspect} error=#{ex.message}"
         @domains_enabled = false
       end
 

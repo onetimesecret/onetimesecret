@@ -23,8 +23,8 @@ module Onetime
           display_simple_list(execution_info)
         end
 
-      rescue => e
-        puts "❌ Error loading initializers: #{e.message}"
+      rescue => ex
+        puts "❌ Error loading initializers: #{ex.message}"
         puts '   This command requires the initializers to be loadable'
         puts '   but does not require a full application boot.'
       end
@@ -38,7 +38,7 @@ module Onetime
 
     def display_with_dependencies(execution_info)
       execution_info.each do |info|
-        order_str = sprintf('%2d.', info[:order])
+        order_str = format('%2d.', info[:order])
         name = info[:name].split('::').last
 
         if verbose_mode?
@@ -53,7 +53,7 @@ module Onetime
 
     def display_simple_list(execution_info)
       execution_info.each do |info|
-        order_str = sprintf('%2d.', info[:order])
+        order_str = format('%2d.', info[:order])
         name = info[:name].split('::').last
 
         if verbose_mode?

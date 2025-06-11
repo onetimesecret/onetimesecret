@@ -13,7 +13,7 @@ module Onetime::Mail
 
       using IndifferentHashAccess
 
-      def send_email(to_address, subject, html_content, text_content, test_mode=false)
+      def send_email(to_address, subject, html_content, text_content, test_mode = false)
         mailer_response = nil
         obscured_address = OT::Utils.obscure_email(to_address)
         sender_email = SendGrid::Email.new(email: self.from, name: self.fromname)

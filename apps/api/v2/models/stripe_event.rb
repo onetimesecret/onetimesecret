@@ -58,12 +58,12 @@ module V2
         self.values.revrangeraw(0, -1).collect { |identifier| load(identifier) }
       end
 
-      def recent duration=48.hours
+      def recent duration = 48.hours
         spoint, epoint = OT.now.to_i-duration, OT.now.to_i
         self.values.rangebyscoreraw(spoint, epoint).collect { |identifier| load(identifier) }
       end
 
-      def create(custid, secretid, message_response=nil)
+      def create(custid, secretid, message_response = nil)
         fobj = new custid: custid, secretid: secretid, message_response: message_response
         OT.ld "[StripeEvent.create] #{custid} #{secretid} #{message_response}"
         raise ArgumentError, "#{name} record exists #{rediskey}" if fobj.exists?

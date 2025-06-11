@@ -65,9 +65,9 @@ class Rack::HandleInvalidUTF8
 
   rescue Encoding::InvalidByteSequenceError,
          Encoding::CompatibilityError,
-         Encoding::UndefinedConversionError => e
+         Encoding::UndefinedConversionError => ex
 
-    return handle_exception(env, e)
+    handle_exception(env, ex)
   else
 
     @app.call(env)
@@ -86,7 +86,7 @@ class Rack::HandleInvalidUTF8
     name, route = app.route_definitions.first
     setting_enabled = route.klass.respond_to?(:check_utf8) && route.klass.check_utf8
     logger.debug "[handle-invalid-utf8] #{name} has settings: #{has_settings}, enabled: #{setting_enabled}"
-    return setting_enabled
+    setting_enabled
   end
 
   # Validates that the input is valid UTF-8 and raises an exception if it's not.
@@ -123,7 +123,7 @@ class Rack::HandleInvalidUTF8
     raise self.class.default_exception, "Invalid UTF-8 detected in env['#{key}']"
   end
 
-  def handle_exception(env, exception)
+  def handle_exception(_env, exception)
     message = "Invalid UTF-8 or null byte detected: #{exception.message}"
     logger.error "[handle-invalid-utf8] #{message}"
 

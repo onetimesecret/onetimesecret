@@ -85,7 +85,7 @@ module V2
         # This challenge is then serializd into a JSON string and base64 encoded
         # by the AltchaChallenge and then resubmitted with the solution
         # number for verification (aka the "payload")
-        def generate_authenticity_challenge(max_number=100_000)
+        def generate_authenticity_challenge(max_number = 100_000)
           options = Altcha::ChallengeOptions.new hmac_key: secret_key, max_number: max_number
           Altcha.create_challenge(options)
         end

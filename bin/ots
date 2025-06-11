@@ -139,10 +139,10 @@ end
 
 begin
   Drydock.run! ARGV, STDIN
-rescue RuntimeError => e
-  warn e.message
-rescue StandardError => e
-  puts e.message
-  puts e.backtrace
+rescue RuntimeError => ex
+  warn ex.message
+rescue StandardError => ex
+  puts ex.message
+  puts ex.backtrace
   exit 1
 end

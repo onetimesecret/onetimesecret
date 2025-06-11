@@ -18,8 +18,8 @@ module Onetime
       # Check for existing system settings
       existing_config = begin
         V2::SystemSettings.current
-      rescue OT::RecordNotFound => e
-        OT.ld "No existing system settings found: #{e.message}"
+      rescue OT::RecordNotFound => ex
+        OT.ld "No existing system settings found: #{ex.message}"
         nil
       end
 
@@ -33,12 +33,12 @@ module Onetime
         create_initial_system_settings
       end
 
-    rescue Redis::CannotConnectError => e
-      OT.lw "Cannot connect to Redis for system settings setup: #{e.message}"
+    rescue Redis::CannotConnectError => ex
+      OT.lw "Cannot connect to Redis for system settings setup: #{ex.message}"
       OT.lw 'Falling back to YAML configuration only'
-    rescue StandardError => e
-      OT.le "Error during system settings setup: #{e.message}"
-      OT.ld e.backtrace.join("\n")
+    rescue StandardError => ex
+      OT.le "Error during system settings setup: #{ex.message}"
+      OT.ld ex.backtrace.join("\n")
       OT.lw 'Falling back to YAML configuration only'
     end
 

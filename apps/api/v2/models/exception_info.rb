@@ -119,7 +119,7 @@ module V2
         Hash[ret]
       end
 
-      def recent duration=7.days, epoint=OT.now.to_i
+      def recent duration = 7.days, epoint = OT.now.to_i
         spoint = OT.now.to_i-duration
         ret = self.values.rangebyscoreraw(spoint, epoint, withscores: true)
         Hash[ret]

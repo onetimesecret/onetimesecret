@@ -211,7 +211,7 @@ module Onetime
       return if STDOUT.closed?
 
       stamp = Time.now.to_i
-      logline = '%s(%s): %s' % [prefix, stamp, msg]
+      logline = format('%s(%s): %s', prefix, stamp, msg)
       STDOUT.puts(logline)
     end
 
@@ -219,7 +219,7 @@ module Onetime
       return if STDERR.closed?
 
       stamp = Time.now.to_i
-      logline = '%s(%s): %s' % [prefix, stamp, msg]
+      logline = format('%s(%s): %s', prefix, stamp, msg)
       STDERR.puts(logline)
     end
 

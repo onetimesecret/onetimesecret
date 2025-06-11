@@ -111,7 +111,7 @@ module V2
       verification.to_s == 'true'
     end
 
-    def encrypt_value original_value, opts={}
+    def encrypt_value original_value, opts = {}
       # Handles empty values with a special encryption flag. This is important
       # for consistency in how we deal with these values and expressly for Ruby
       # 3.1 which uses an older version of openssl that does not tolerate empty
@@ -147,7 +147,7 @@ module V2
       self.value = storable_value.encrypt encryption_options
     end
 
-    def decrypted_value opts={}
+    def decrypted_value opts = {}
       encryption_mode = value_encryption.to_i
       v_encrypted = self.value
       v_encrypted = '' if encryption_mode.negative? && v_encrypted.nil?
@@ -168,9 +168,9 @@ module V2
           raise RuntimeError, "Unknown encryption mode: #{value_encryption}"
         end
         v_decrypted.force_encoding('utf-8') # Hacky fix for https://github.com/onetimesecret/onetimesecret/issues/37
-        return v_decrypted
-      rescue OpenSSL::Cipher::CipherError => original_error
-        OT.le "[decrypted_value] m:#{metadata_key} s:#{key} CipherError #{original_error.message}"
+        v_decrypted
+      rescue OpenSSL::Cipher::CipherError => ex
+        OT.le "[decrypted_value] m:#{metadata_key} s:#{key} CipherError #{ex.message}"
         # Try fallback global secrets for mode 2 (current encryption)
         if encryption_mode == 2 && has_fallback_secrets?
           fallback_result = try_fallback_secrets(v_encrypted, opts)
@@ -186,7 +186,7 @@ module V2
         end
 
         # If nothing works, raise the original error
-        raise original_error
+        raise ex
       end
     end
 
@@ -235,11 +235,11 @@ module V2
       end
     end
 
-    def encryption_key_v1 *ignored
+    def encryption_key_v1 *_ignored
       V2::Secret.encryption_key self.key, self.passphrase_temp
     end
 
-    def encryption_key_v2 *ignored
+    def encryption_key_v2 *_ignored
       V2::Secret.encryption_key OT.global_secret, self.key, self.passphrase_temp
     end
 
@@ -325,7 +325,7 @@ module V2
 
     class << self
 
-      def spawn_pair custid, token=nil
+      def spawn_pair custid, token = nil
         secret = V2::Secret.create(custid: custid, token: token)
         metadata = V2::Metadata.create(custid: custid, token: token)
 

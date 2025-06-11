@@ -201,7 +201,7 @@ module V2
         custid: custid,
         comment: comment,
         created: created,
-        updated: updated
+        updated: updated,
       ).compact
     end
 
@@ -240,8 +240,8 @@ module V2
         end
 
         obj  # Return the created object
-      rescue Redis::BaseError => e
-        OT.le "[SystemSettings.create] Redis error: #{e.message}"
+      rescue Redis::BaseError => ex
+        OT.le "[SystemSettings.create] Redis error: #{ex.message}"
         raise Onetime::Problem, 'Unable to create custom domain'
       end
 
@@ -256,9 +256,9 @@ module V2
         OT.ld "[SystemSettings.exists?] Got #{obj} for #{identifier}"
         obj.exists?
 
-      rescue Onetime::Problem => e
-        OT.le "[SystemSettings.exists?] #{e.message}"
-        OT.ld e.backtrace.join("\n")
+      rescue Onetime::Problem => ex
+        OT.le "[SystemSettings.exists?] #{ex.message}"
+        OT.ld ex.backtrace.join("\n")
         false
       end
 
@@ -295,7 +295,7 @@ module V2
         self.values.revrangeraw(0, -1).collect { |identifier| from_identifier(identifier) }
       end
 
-      def recent duration=7.days
+      def recent duration = 7.days
         spoint, epoint = self.now-duration, self.now
         self.values.rangebyscoreraw(spoint, epoint).collect { |identifier| load(identifier) }
       end

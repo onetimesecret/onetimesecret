@@ -114,12 +114,12 @@ module V2
               @endpoint_secret,
             )
 
-          rescue JSON::ParserError => e
-            OT.le "[webhook] JSON parsing error: #{e}: sig:#{stripe_signature}"
+          rescue JSON::ParserError => ex
+            OT.le "[webhook] JSON parsing error: #{ex}: sig:#{stripe_signature}"
             raise_form_error 'Invalid payload'
 
-          rescue Stripe::SignatureVerificationError => e
-            OT.le "[webhook] Signature verification failed: #{e}: sig:#{stripe_signature}"
+          rescue Stripe::SignatureVerificationError => ex
+            OT.le "[webhook] Signature verification failed: #{ex}: sig:#{stripe_signature}"
             raise_form_error 'Bad signature'
           end
         end

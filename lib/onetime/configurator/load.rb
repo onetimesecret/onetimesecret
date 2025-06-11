@@ -11,21 +11,21 @@ module Onetime
 
       def json_load(json)
         JSON.parse(json)
-      rescue JSON::ParserError => e
-        OT.le "Error parsing JSON: #{e.message}"
-        raise OT::ConfigError, "Invalid JSON schema: #{e.message}"
+      rescue JSON::ParserError => ex
+        OT.le "Error parsing JSON: #{ex.message}"
+        raise OT::ConfigError, "Invalid JSON schema: #{ex.message}"
       end
 
       def yaml_load(yaml)
         YAML.safe_load(yaml, permitted_classes: [Symbol])
-      rescue Psych::SyntaxError => e
-        OT.le "Error parsing YAML: #{e.message}"
+      rescue Psych::SyntaxError => ex
+        OT.le "Error parsing YAML: #{ex.message}"
         raise OT::ConfigError, 'Invalid YAML schema'
       end
 
       def file_read(path)
         File.read(path.to_s)
-      rescue Errno::ENOENT => e
+      rescue Errno::ENOENT => ex
         raise OT::ConfigError, "File not found: #{path || '<nil>'}"
       end
     end

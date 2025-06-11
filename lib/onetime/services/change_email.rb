@@ -202,10 +202,14 @@ module Onetime
             # We'll attempt the RENAME and it will fail if the key doesn't exist,
             # which is acceptable for this use case. If a more graceful handling
             # is needed, these checks would need to be done before the MULTI block.
-            multi.rename("customer:#{old_email}:custom_domain", "customer:#{new_email}:custom_domain") if redis.exists?("customer:#{old_email}:custom_domain")
-            multi.rename("customer:#{old_email}:metadata", "customer:#{new_email}:metadata") if redis.exists?("customer:#{old_email}:metadata")
-            multi.rename("customer:#{old_email}:feature_flags", "customer:#{new_email}:feature_flags") if redis.exists?("customer:#{old_email}:feature_flags")
-            multi.rename("customer:#{old_email}:reset_secret", "customer:#{new_email}:reset_secret") if redis.exists?("customer:#{old_email}:reset_secret")
+            multi.rename("customer:#{old_email}:custom_domain",
+              "customer:#{new_email}:custom_domain") if redis.exists?("customer:#{old_email}:custom_domain")
+            multi.rename("customer:#{old_email}:metadata",
+              "customer:#{new_email}:metadata") if redis.exists?("customer:#{old_email}:metadata")
+            multi.rename("customer:#{old_email}:feature_flags",
+              "customer:#{new_email}:feature_flags") if redis.exists?("customer:#{old_email}:feature_flags")
+            multi.rename("customer:#{old_email}:reset_secret",
+              "customer:#{new_email}:reset_secret") if redis.exists?("customer:#{old_email}:reset_secret")
 
 
             # Update customer values list
@@ -225,18 +229,18 @@ module Onetime
           update_domains! if @domain_mappings.any?
 
           log 'EXECUTION: Email change completed successfully'
-          return true
-        rescue Redis::CommandError => e
+          true
+        rescue Redis::CommandError => ex
           # Specific handling for errors during EXEC
-          log "ERROR during Redis transaction: #{e.message}"
-          log e.backtrace.join("\n")
+          log "ERROR during Redis transaction: #{ex.message}"
+          log ex.backtrace.join("\n")
           # Attempt to unwatch if a watch was used, though not explicitly here
           redis.unwatch if redis.respond_to?(:unwatch)
-          return false
-        rescue => e
-          log "ERROR: #{e.message}"
-          log e.backtrace.join("\n")
-          return false
+          false
+        rescue => ex
+          log "ERROR: #{ex.message}"
+          log ex.backtrace.join("\n")
+          false
         end
       end
 
@@ -274,9 +278,12 @@ module Onetime
               # Note: EXISTS cannot be used inside a MULTI block.
               # Perform this check before the multi block if critical,
               # otherwise, RENAME will fail gracefully if the key doesn't exist.
-              multi.rename("customdomain:#{old_domain_id}:brand", "customdomain:#{new_domain_id}:brand") if redis.exists?("customdomain:#{old_domain_id}:brand")
-              multi.rename("customdomain:#{old_domain_id}:logo", "customdomain:#{new_domain_id}:logo") if redis.exists?("customdomain:#{old_domain_id}:logo")
-              multi.rename("customdomain:#{old_domain_id}:icon", "customdomain:#{new_domain_id}:icon") if redis.exists?("customdomain:#{old_domain_id}:icon")
+              multi.rename("customdomain:#{old_domain_id}:brand",
+                "customdomain:#{new_domain_id}:brand") if redis.exists?("customdomain:#{old_domain_id}:brand")
+              multi.rename("customdomain:#{old_domain_id}:logo",
+                "customdomain:#{new_domain_id}:logo") if redis.exists?("customdomain:#{old_domain_id}:logo")
+              multi.rename("customdomain:#{old_domain_id}:icon",
+                "customdomain:#{new_domain_id}:icon") if redis.exists?("customdomain:#{old_domain_id}:icon")
 
 
               # Rename object key
@@ -306,15 +313,15 @@ module Onetime
                 multi.hset('onetime:customers:domain', domain, new_email)
               end
             end
-          rescue Redis::CommandError => e
-            log "ERROR during Redis transaction for domain #{old_domain_id}: #{e.message}"
-            log e.backtrace.join("\n")
+          rescue Redis::CommandError => ex
+            log "ERROR during Redis transaction for domain #{old_domain_id}: #{ex.message}"
+            log ex.backtrace.join("\n")
             # Attempt to unwatch if a watch was used
             redis.unwatch if redis.respond_to?(:unwatch)
             # Decide if we should re-raise or handle. For now, log and continue.
-          rescue => e
-            log "ERROR updating domain #{old_domain_id}: #{e.message}"
-            log e.backtrace.join("\n")
+          rescue => ex
+            log "ERROR updating domain #{old_domain_id}: #{ex.message}"
+            log ex.backtrace.join("\n")
             # Decide if we should re-raise or handle.
           end
         end

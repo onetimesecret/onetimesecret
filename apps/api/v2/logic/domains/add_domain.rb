@@ -12,8 +12,8 @@ module V2::Logic
 
       def process_params
         OT.ld "[AddDomain] Parsing #{params[:domain]}"
-         # PublicSuffix does its own normalizing so we don't need to do any here
-         @domain_input = params[:domain].to_s
+        # PublicSuffix does its own normalizing so we don't need to do any here
+        @domain_input = params[:domain].to_s
       end
 
       def raise_concerns
@@ -41,8 +41,8 @@ module V2::Logic
           # custom domain as a service API. If no API key is set, then this will
           # simply log a message and return.
           create_vhost
-        rescue HTTParty::ResponseError => e
-          OT.le '[AddDomain.create_vhost error] %s %s %s'  % [@cust.custid, @display_domain, e]
+        rescue HTTParty::ResponseError => ex
+          OT.le format('[AddDomain.create_vhost error] %s %s %s', @cust.custid, @display_domain, ex)
           # Continue processing despite vhost error
         end
       end

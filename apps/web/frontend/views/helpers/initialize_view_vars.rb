@@ -121,7 +121,7 @@ module Frontend
         }
       end
 
-      def minimal_defaults(req, sess, cust, locale)
+      def minimal_defaults(_req, sess, cust, locale)
         {
           authenticated: false,
           cust: cust,

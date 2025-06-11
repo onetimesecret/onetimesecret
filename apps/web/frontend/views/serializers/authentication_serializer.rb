@@ -14,7 +14,7 @@ module Frontend
       # @param view_vars [Hash] The view variables containing authentication state
       # @param i18n [Object] The internationalization instance
       # @return [Hash] Serialized authentication data including customer information
-      def self.serialize(view_vars, i18n)
+      def self.serialize(view_vars, _i18n)
         output = self.output_template
 
         output[:authenticated] = view_vars[:authenticated]

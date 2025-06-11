@@ -123,7 +123,7 @@ module Onetime
       #   apply_defaults_to_peers({a: {x: 1}})                # => {a: {x: 1}}
       #   apply_defaults_to_peers({defaults: {x: 1}, b: {}})  # => {b: {x: 1}}
       #
-      def apply_defaults_to_peers(config={})
+      def apply_defaults_to_peers(config = {})
         return {} if config.nil? || config.empty?
 
         # Extract defaults from the configuration (handle both symbol and string keys)

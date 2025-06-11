@@ -41,7 +41,7 @@ module V2::Logic
           custom_domain.save
         else
           msg = payload['message']
-          OT.le '[VerifyDomain.refresh_vhost] %s %s [%i]: %s'  % [display_domain, res.code, code, msg]
+          OT.le format('[VerifyDomain.refresh_vhost] %s %s [%i]: %s', display_domain, res.code, code, msg)
         end
       end
 
@@ -58,14 +58,14 @@ module V2::Logic
           payload = res.parsed_response
           match_records = payload['records']
           found_match = match_records.any? { |record| record['match'] == true }
-          OT.info '[VerifyDomain.refresh_txt_record_status] %s (matched:%s)' % [match_records, found_match]
+          OT.info format('[VerifyDomain.refresh_txt_record_status] %s (matched:%s)', match_records, found_match)
 
           # Check if any record has match: true
           custom_domain.verified! found_match  # save immediately
         else
           payload = res.parsed_response
           msg = payload['message'] || 'Inknown error'
-          OT.le '[VerifyDomain.refresh_txt_record_status] %s %s [%i]'  % [display_domain, res.code, msg]
+          OT.le format('[VerifyDomain.refresh_txt_record_status] %s %s [%i]', display_domain, res.code, msg)
         end
       end
     end

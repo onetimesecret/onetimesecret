@@ -55,9 +55,9 @@ module V2
         begin
           validator = Truemail.validate(guess)
 
-        rescue StandardError => e
-          OT.le "Email validation error: #{e.message}"
-          OT.le e.backtrace
+        rescue StandardError => ex
+          OT.le "Email validation error: #{ex.message}"
+          OT.le ex.backtrace
           false
         else
           valid = validator.result.valid?
@@ -115,28 +115,28 @@ module V2
       end
 
       # Requires the implementing class to have cust and session fields
-      def send_verification_email token=nil
+      def send_verification_email token = nil
       _, secret = V2::Secret.spawn_pair cust.custid, token
 
-        msg = "Thanks for verifying your account. We got you a secret fortune cookie!\n\n\"%s\"" % OT::Utils.random_fortune
+      msg = "Thanks for verifying your account. We got you a secret fortune cookie!\n\n\"%s\"" % OT::Utils.random_fortune
 
-        secret.encrypt_value msg
-        secret.verification = true
-        secret.custid = cust.custid
-        secret.save
+      secret.encrypt_value msg
+      secret.verification = true
+      secret.custid = cust.custid
+      secret.save
 
-        cust.reset_secret = secret.key # as a standalone rediskey, writes immediately
+      cust.reset_secret = secret.key # as a standalone rediskey, writes immediately
 
-        view = Onetime::Mail::Welcome.new cust, locale, secret
+      view = Onetime::Mail::Welcome.new cust, locale, secret
 
-        begin
-          view.deliver_email token
+      begin
+        view.deliver_email token
 
-        rescue StandardError => ex
-          errmsg = "Couldn't send the verification email. Let us know below."
-          OT.le "Error sending verification email: #{ex.message}", ex.backtrace
-          sess.set_info_message errmsg
-        end
+      rescue StandardError => ex
+        errmsg = "Couldn't send the verification email. Let us know below."
+        OT.le "Error sending verification email: #{ex.message}", ex.backtrace
+        sess.set_info_message errmsg
+      end
       end
 
       module ClassMethods
@@ -169,8 +169,8 @@ module V2
           Timeout.timeout(wait) do
             StatHat::API.ez_post_count(name, stathat_apikey, count)
           end
-        rescue SocketError => e
-          OT.info "Cannot connect to StatHat: #{e.message}"
+        rescue SocketError => ex
+          OT.info "Cannot connect to StatHat: #{ex.message}"
         rescue Timeout::Error
           OT.info 'timeout calling stathat'
         end
@@ -183,8 +183,8 @@ module V2
           Timeout.timeout(wait) do
             StatHat::API.ez_post_value(name, stathat_apikey, value)
           end
-        rescue SocketError => e
-          OT.info "Cannot connect to StatHat: #{e.message}"
+        rescue SocketError => ex
+          OT.info "Cannot connect to StatHat: #{ex.message}"
         rescue Timeout::Error
           OT.info 'timeout calling stathat'
         end

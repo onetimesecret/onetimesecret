@@ -175,8 +175,8 @@ module V2
     def parse_vhost
       return {} if vhost.to_s.empty?
       JSON.parse(vhost)
-    rescue JSON::ParserError => e
-      OT.le "[CustomDomain.parse_vhost] Error parsing JSON: #{vhost.inspect} - #{e}"
+    rescue JSON::ParserError => ex
+      OT.le "[CustomDomain.parse_vhost] Error parsing JSON: #{vhost.inspect} - #{ex}"
       {}
     end
 
@@ -239,8 +239,8 @@ module V2
           multi.zrem(customer.custom_domains.rediskey, self.display_domain)
         end
       end
-    rescue Redis::BaseError => e
-      OT.le "[CustomDomain.destroy!] Redis error: #{e.message}"
+    rescue Redis::BaseError => ex
+      OT.le "[CustomDomain.destroy!] Redis error: #{ex.message}"
       raise Onetime::Problem, 'Unable to delete custom domain'
     end
 
@@ -428,8 +428,8 @@ module V2
         end
 
         obj  # Return the created object
-      rescue Redis::BaseError => e
-        OT.le "[CustomDomain.create] Redis error: #{e.message}"
+      rescue Redis::BaseError => ex
+        OT.le "[CustomDomain.create] Redis error: #{ex.message}"
         raise Onetime::Problem, 'Unable to create custom domain'
       end
 
@@ -483,8 +483,8 @@ module V2
         # We don't need to fuss with empty stripping spaces, prefixes,
         # etc because PublicSuffix does that for us.
         PublicSuffix.domain(input, default_rule: nil)
-      rescue PublicSuffix::DomainInvalid => e
-        OT.le "[CustomDomain.base_domain] #{e.message} for `#{input}`"
+      rescue PublicSuffix::DomainInvalid => ex
+        OT.le "[CustomDomain.base_domain] #{ex.message} for `#{input}`"
         nil
       end
 
@@ -498,9 +498,9 @@ module V2
         ps_domain = PublicSuffix.parse(input, default_rule: nil)
         ps_domain.subdomain || ps_domain.domain
 
-      rescue PublicSuffix::Error => e
-        OT.le "[CustomDomain.parse] #{e.message} for `#{input}`"
-        raise Onetime::Problem, e.message
+      rescue PublicSuffix::Error => ex
+        OT.le "[CustomDomain.parse] #{ex.message} for `#{input}`"
+        raise Onetime::Problem, ex.message
       end
 
       # Returns boolean, whether the domain is a valid public suffix
@@ -514,8 +514,8 @@ module V2
         site_host = OT.conf.dig(:site, :host)
         OT.ld "[CustomDomain.default_domain?] #{display_domain} == #{site_host}"
         display_domain.eql?(site_host)
-      rescue PublicSuffix::Error => e
-        OT.le "[CustomDomain.default_domain?] #{e.message} for `#{input}"
+      rescue PublicSuffix::Error => ex
+        OT.le "[CustomDomain.default_domain?] #{ex.message} for `#{input}"
         false
       end
 
@@ -529,8 +529,8 @@ module V2
         OT.ld "[CustomDomain.exists?] Got #{obj.identifier} #{obj.display_domain} #{obj.custid}"
         obj.exists?
 
-      rescue Onetime::Problem => e
-        OT.le "[CustomDomain.exists?] #{e.message}"
+      rescue Onetime::Problem => ex
+        OT.le "[CustomDomain.exists?] #{ex.message}"
         false
       end
 
@@ -552,7 +552,7 @@ module V2
         self.values.revrangeraw(0, -1).collect { |identifier| from_identifier(identifier) }
       end
 
-      def recent duration=48.hours
+      def recent duration = 48.hours
         spoint, epoint = OT.now.to_i-duration, OT.now.to_i
         self.values.rangebyscoreraw(spoint, epoint).collect { |identifier| load(identifier) }
       end

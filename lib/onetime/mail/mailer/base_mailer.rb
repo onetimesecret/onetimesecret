@@ -12,7 +12,7 @@ module Onetime
 
         using IndifferentHashAccess
 
-        def initialize(from, fromname, reply_to=nil)
+        def initialize(from, fromname, reply_to = nil)
           OT.ld "[mail-init] from:#{from}, fromname:#{fromname}, reply-to:#{reply_to}"
           @from = from
           @fromname = fromname

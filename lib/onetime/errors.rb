@@ -97,7 +97,7 @@ module Onetime
 
   class Redirect < RuntimeError
     attr_reader :location, :status
-    def initialize l, s=302
+    def initialize l, s = 302
       @location, @status = l, s
     end
   end

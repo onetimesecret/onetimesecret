@@ -4,30 +4,30 @@ module Onetime
   class DomainsCommand < Drydock::Command
     def domains
       puts '%d custom domains' % V2::CustomDomain.values.size
-      if option.list
-        literally_all_domain_ids = V2::CustomDomain.values.all
-        all_domains = literally_all_domain_ids.map do |did|
-          V2::CustomDomain.from_identifier(did)
-        end
+      return unless option.list
+      literally_all_domain_ids = V2::CustomDomain.values.all
+      all_domains = literally_all_domain_ids.map do |did|
+        V2::CustomDomain.from_identifier(did)
+      end
 
-        # Group domains by display_domain
-        grouped_domains = all_domains.group_by(&:display_domain)
+      # Group domains by display_domain
+      grouped_domains = all_domains.group_by(&:display_domain)
 
-        grouped_domains.sort.each do |display_domain, domains|
-          if domains.size == 1
-            domain = domains.first
-            puts '%s %s' % [display_domain, domain.rediskey]
-          else
-            rediskeys = domains.map(&:rediskey)
-            rediskeys_display = if rediskeys.size > 3
-                                  "#{rediskeys[0..2].join(', ')}, ..."
-                                else
-                                  rediskeys.join(', ')
-                                end
-            puts '%4d  %s (%s)' % [domains.size, display_domain, rediskeys_display]
-          end
+      grouped_domains.sort.each do |display_domain, domains|
+        if domains.size == 1
+          domain = domains.first
+          puts format('%s %s', display_domain, domain.rediskey)
+        else
+          rediskeys = domains.map(&:rediskey)
+          rediskeys_display = if rediskeys.size > 3
+                                "#{rediskeys[0..2].join(', ')}, ..."
+                              else
+                                rediskeys.join(', ')
+                              end
+          puts format('%4d  %s (%s)', domains.size, display_domain, rediskeys_display)
         end
       end
+
     end
 
     def revalidate_domains
@@ -129,9 +129,9 @@ module Onetime
         status = domain.verification_state
         resolving_status = domain.resolving == 'true' ? 'resolving' : 'not resolving'
         puts "#{status} (#{resolving_status})"
-      rescue => e
-        puts "error: #{e.message}"
-        $stderr.puts e.backtrace
+      rescue => ex
+        puts "error: #{ex.message}"
+        $stderr.puts ex.backtrace
       end
     end
   end

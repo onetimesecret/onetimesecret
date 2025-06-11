@@ -75,12 +75,12 @@ module Onetime
         .then_with_diff('freezed') { |config| deep_freeze(config) }
 
       self
-    rescue OT::ConfigError => e
-      log_debug_content(e)
+    rescue OT::ConfigError => ex
+      log_debug_content(ex)
       raise
-    rescue StandardError => e
-      log_debug_content(e)
-      raise OT::ConfigError, "Unhandled error: #{e.message}"
+    rescue StandardError => ex
+      log_debug_content(ex)
+      raise OT::ConfigError, "Unhandled error: #{ex.message}"
     end
 
     # The accessor creates a new config hash every time and returns it frozen

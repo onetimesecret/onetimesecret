@@ -125,8 +125,8 @@ module Onetime
         else
           begin
             feature_rows << ['Plans', OT::Plan.plans.keys.join(', ')]
-          rescue => e
-            feature_rows << ['Plans', "Error: #{e.message}"]
+          rescue => ex
+            feature_rows << ['Plans', "Error: #{ex.message}"]
           end
         end
       end
@@ -163,8 +163,8 @@ module Onetime
             ['Auth', email_config[:auth]],
           ].reject { |row| row[1].nil? || row[1].to_s.empty? }
         end
-      rescue => e
-        [['Error', "Error rendering mail config: #{e.message}"]]
+      rescue => ex
+        [['Error', "Error rendering mail config: #{ex.message}"]]
       end
     end
 

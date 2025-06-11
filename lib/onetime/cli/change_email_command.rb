@@ -109,9 +109,9 @@ module Onetime
         else
           puts 'No custom domains associated with this customer.'
         end
-      rescue => e
-        puts "Warning: Error detecting custom domains: #{e.message}"
-        puts e.backtrace.join("\n") if OT.debug?
+      rescue => ex
+        puts "Warning: Error detecting custom domains: #{ex.message}"
+        puts ex.backtrace.join("\n") if OT.debug?
       end
 
       # Initialize the email change service
@@ -198,13 +198,13 @@ module Onetime
             puts 'Operation cancelled.'
           end
         end
-      rescue => e
+      rescue => ex
         # Handle validation and execution errors with descriptive messages
-        puts "Error during operation: #{e.message}"
+        puts "Error during operation: #{ex.message}"
         puts "Check the domain IDs carefully. If there's a mismatch between stored and calculated IDs,"
         puts 'this may indicate data corruption or manual changes to Redis keys.'
 
-        puts e.backtrace.join("\n") if OT.debug?
+        puts ex.backtrace.join("\n") if OT.debug?
         exit 1
       end
     end

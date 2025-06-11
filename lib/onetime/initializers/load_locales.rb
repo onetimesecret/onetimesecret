@@ -45,7 +45,7 @@ module Onetime
         OT.ld "Loading #{loc}: #{File.exist?(path)}"
         begin
           contents = File.read(path)
-        rescue Errno::ENOENT => e
+        rescue Errno::ENOENT => ex
           OT.le "Missing locale file: #{path}"
           next
         end

@@ -19,7 +19,7 @@ module Frontend
       # @param view_vars [Hash] The view variables containing domain information
       # @param i18n [Object] The internationalization instance
       # @return [Hash] Serialized domain data
-      def self.serialize(view_vars, i18n)
+      def self.serialize(view_vars, _i18n)
         output = self.output_template
         site = view_vars[:site] || {}
         domains_enabled = site.dig(:domains, :enabled)

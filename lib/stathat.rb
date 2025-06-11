@@ -10,7 +10,7 @@ module StatHat
         ukey: user_key,
         value: value }
       resp = Net::HTTP.post_form(URI.parse('http://api.stathat.com/v'), args)
-      return self.response_valid?(resp)
+      self.response_valid?(resp)
     end
 
     def self.post_count(stat_key, user_key, count)
@@ -18,7 +18,7 @@ module StatHat
         ukey: user_key,
         value: count }
       resp = Net::HTTP.post_form(URI.parse('http://api.stathat.com/c'), args)
-      return self.response_valid?(resp)
+      self.response_valid?(resp)
     end
 
     def self.ez_post_value(stat_name, account_email, value)
@@ -26,7 +26,7 @@ module StatHat
         email: account_email,
         value: value }
       resp = Net::HTTP.post_form(URI.parse('http://api.stathat.com/ez'), args)
-      return self.response_valid?(resp)
+      self.response_valid?(resp)
     end
 
     def self.ez_post_count(stat_name, account_email, count)
@@ -34,11 +34,11 @@ module StatHat
         email: account_email,
         count: count }
       resp = Net::HTTP.post_form(URI.parse('http://api.stathat.com/ez'), args)
-      return self.response_valid?(resp)
+      self.response_valid?(resp)
     end
 
     def self.response_valid?(response)
-      return response.code == '200'
+      response.code == '200'
     end
   end
 end

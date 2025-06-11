@@ -60,10 +60,10 @@ class Rack::HandleInvalidPercentEncoding
       #
       request.params
 
-    rescue ArgumentError => e
-      raise e unless e.message =~ /invalid %-encoding/
+    rescue ArgumentError => ex
+      raise ex unless ex.message =~ /invalid %-encoding/
 
-      return handle_exception(env, e)
+      handle_exception(env, ex)
     else
 
       @app.call(env)
@@ -81,7 +81,7 @@ class Rack::HandleInvalidPercentEncoding
     name, route = app.route_definitions.first
     setting_enabled = route.klass.respond_to?(:check_uri_encoding) && route.klass.check_uri_encoding
     logger.debug "[handle-invalid-uri-encoding] #{name} has settings: #{has_settings}, enabled: #{setting_enabled}"
-    return setting_enabled
+    setting_enabled
   end
 
   def handle_exception(env, exception)

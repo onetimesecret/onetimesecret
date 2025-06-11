@@ -83,8 +83,8 @@ module V2
         messages.to_a.filter_map do |message|
           next if message.to_s.empty?
           JSON.parse(message, symbolize_names: true)
-        rescue JSON::ParserError => e
-          OT.le "Error parsing JSON message: #{e.message}"
+        rescue JSON::ParserError => ex
+          OT.le "Error parsing JSON message: #{ex.message}"
           nil
         end
       end
@@ -95,8 +95,8 @@ module V2
 
           detail = JSON.parse(message, symbolize_names: true)
           detail if detail[:type].eql?('info')
-        rescue JSON::ParserError => e
-          OT.le "Error parsing JSON message: #{e.message}"
+        rescue JSON::ParserError => ex
+          OT.le "Error parsing JSON message: #{ex.message}"
           nil
         end
       end
@@ -117,7 +117,7 @@ module V2
         self.messages.clear
       end
 
-      def _json msg, type=:error
+      def _json msg, type = :error
         {type: type, content: msg}.to_json
       end
       private :_json

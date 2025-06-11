@@ -60,8 +60,10 @@ module Onetime
 
       def load_plans!
         add_plan :anonymous, 0, 0, ttl: 7.days, size: 100_000, api: false, name: 'Anonymous'
-        add_plan :basic, 0, 0, ttl: 14.days, size: 1_000_000, api: true, name: 'Basic Plan', email: true, custom_domains: false, dark_mode: true
-        add_plan :identity, 35, 0, ttl: 30.days, size: 10_000_000, api: true, name: 'Identity', email: true, custom_domains: true, dark_mode: true
+        add_plan :basic, 0, 0, ttl: 14.days, size: 1_000_000, api: true, name: 'Basic Plan', email: true,
+          custom_domains: false, dark_mode: true
+        add_plan :identity, 35, 0, ttl: 30.days, size: 10_000_000, api: true, name: 'Identity', email: true,
+          custom_domains: true, dark_mode: true
       end
     end
 

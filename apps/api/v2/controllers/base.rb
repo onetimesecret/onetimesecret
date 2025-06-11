@@ -25,7 +25,7 @@ module V2
       end
     end
 
-    def authorized allow_anonymous=false
+    def authorized allow_anonymous = false
       carefully(redirect=nil, content_type='application/json', app: :api) do # rubocop:disable Metrics/BlockLength,Metrics/PerceivedComplexity
         check_locale!
 
@@ -181,7 +181,7 @@ module V2
     #     json_success(custid: cust.custid, apitoken: logic.apitoken)
     #   end
     #
-    def process_action(logic_class, success_message, error_message, auth_type: :authorized, allow_anonymous: false)
+    def process_action(logic_class, _success_message, error_message, auth_type: :authorized, allow_anonymous: false)
       auth_method = auth_type == :colonels ? method(:colonels) : method(:authorized)
 
       auth_method.call(allow_anonymous) do
@@ -227,7 +227,7 @@ module V2
     # request was good. Pass a delicious fresh shrimp to the client
     # so they can try again with a new one (without refreshing the
     # entire page).
-    def handle_form_error ex, hsh={}
+    def handle_form_error ex, hsh = {}
       hsh[:shrimp] = sess.add_shrimp
       hsh[:message] = ex.message
       hsh[:success] = false
@@ -243,26 +243,26 @@ module V2
       not_found_response "#{path} is not available"
     end
 
-    def not_found_response msg, hsh={}
+    def not_found_response msg, hsh = {}
       hsh[:message] = msg
       res.status = 404
       json hsh
     end
 
-    def not_authorized_error hsh={}
+    def not_authorized_error hsh = {}
       hsh[:message] = 'Not authorized'
       res.status = 403
       json hsh
     end
 
-    def error_response msg, hsh={}
+    def error_response msg, hsh = {}
       hsh[:message] = msg
       hsh[:success] = false
       res.status = 500 # Bad Request
       json hsh
     end
 
-    def throttle_response msg, hsh={}
+    def throttle_response msg, hsh = {}
       hsh[:message] = msg
       hsh[:success] = false
       res.status = 429 # Too Many Requests
