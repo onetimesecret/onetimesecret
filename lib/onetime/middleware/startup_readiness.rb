@@ -2,6 +2,8 @@
 
 module Onetime
   module Middleware
+    # rubocop:disable Metrics/MethodLength
+    # rubocop:disable Layout/LineLength
     class StartupReadiness
       # Basic translations for startup message
       TRANSLATIONS = {
@@ -244,5 +246,7 @@ module Onetime
         TRANSLATIONS.key?(base_lang) ? base_lang : :en
       end
     end
+    # rubocop:enable Metrics/MethodLength
+    # rubocop:enable Layout/LineLength
   end
 end
