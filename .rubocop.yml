@@ -150,6 +150,12 @@ Layout/LineLength:
   SplitStrings: false
   Max: 120
 
+# Align the arguments of a method call if they span more than one line.
+Layout/ArgumentAlignment:
+  Enabled: true
+  EnforcedStyle: with_fixed_indentation # with_first_argument, with_fixed_indentation
+  IndentationWidth: 2
+
 Metrics/ClassLength:
   Enabled: true
   Max: 350
