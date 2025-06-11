@@ -20,7 +20,7 @@ plugins:
 
 AllCops:
   NewCops: enable
-  DisabledByDefault: true
+  DisabledByDefault: true # flip to true for a good autocorrect time
   UseCache: true
   MaxFilesInCache: 1000
   TargetRubyVersion: 3.2
@@ -34,6 +34,26 @@ AllCops:
     - 'tests/unit/ruby/rspec/**/*'
     - 'tmp/**/*'
     - 'vendor/**/*'
+
+Layout/CommentIndentation:
+  Enabled: true
+
+Layout/TrailingWhitespace:
+  Enabled: true
+
+Layout/SpaceAroundEqualsInParameterDefault:
+  Enabled: true
+
+# Use parentheses around a logical expression if it makes easier to read.
+Style/RedundantParentheses:
+  Enabled: false
+
+Lint/UnusedMethodArgument:
+  Enabled: true
+
+# When true: Use match? instead of =~ when MatchData is not used. True is preferred but not for autocorrection. Regexs are too picky. Need to manually check every time.
+Performance/RegexpMatch:
+  Enabled: false
 
 Style/TrailingCommaInHashLiteral:
   Enabled: true
@@ -74,6 +94,7 @@ Style/ModuleFunction:
 Style/GuardClause:
   Enabled: true
   MinBodyLength: 3
+  AllowConsecutiveConditionals: false
 
 Naming/PredicateMethod:
   Enabled: pending
@@ -211,8 +232,6 @@ Style/ZeroLengthPredicate:
   Description: 'Use #empty? when testing for objects of length 0.'
   Enabled: true
   Safe: false
-  VersionAdded: '0.37'
-  VersionChanged: '0.39'
 
 # Department 'ThreadSafety' (6):
 ThreadSafety/ClassAndModuleAttributes:
