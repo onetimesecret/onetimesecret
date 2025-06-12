@@ -124,7 +124,7 @@ module V2
       Time.now.utc.to_i >= (secret_expiration || 0)
     end
 
-    def older_than? seconds
+    def older_than?(seconds)
       age > seconds
     end
 
@@ -136,7 +136,7 @@ module V2
       custid.to_s == 'anon'
     end
 
-    def owner? cust
+    def owner?(cust)
       !anonymous? && (cust.is_a?(V2::Customer) ? cust.custid : cust).to_s == custid.to_s
     end
 
@@ -148,7 +148,7 @@ module V2
       !passphrase.to_s.empty?
     end
 
-    def deliver_by_email cust, locale, secret, eaddrs, template = nil, ticketno = nil
+    def deliver_by_email(cust, locale, secret, eaddrs, template = nil, ticketno = nil)
       template ||= V2::Email::SecretLink
 
       if eaddrs.nil? || eaddrs.empty?
@@ -242,7 +242,7 @@ module V2
       save update_expiration: false
     end
 
-    def state? guess
+    def state?(guess)
       state.to_s == guess.to_s
     end
 

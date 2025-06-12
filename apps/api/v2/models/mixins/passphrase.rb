@@ -11,7 +11,7 @@ module V2
 
       attr_accessor :passphrase_temp
 
-      def update_passphrase! val
+      def update_passphrase!(val)
         self.passphrase_encryption! '1'
         # Hold the unencrypted passphrase in memory for a short time
         # (which will basically be until this instance is garbage
@@ -22,7 +22,7 @@ module V2
       end
 
       # Allow for chaining API e.g. cust.update_passphrase('plop').custid
-      def update_passphrase val
+      def update_passphrase(val)
         update_passphrase! val
         self
       end
@@ -31,7 +31,7 @@ module V2
         !passphrase.to_s.empty?
       end
 
-      def passphrase? guess
+      def passphrase?(guess)
         begin
           ret = BCrypt::Password.new(passphrase) == guess
           @passphrase_temp = guess if ret  # used to decrypt the value

@@ -89,7 +89,7 @@ module Frontend
       # @param msg [String] Message content to be displayed
       # @param type [String] Type of message, one of: info, error, success, warning
       # @return [Array<Hash>] Array containing all message objects
-      def add_message msg, type = 'info'
+      def add_message(msg, type = 'info')
         messages << {type: type, content: msg}
       end
 
@@ -97,7 +97,7 @@ module Frontend
       #
       # @param msg [String] error message content to be displayed
       # @return [Array<Hash>] array containing all message objects
-      def add_error msg
+      def add_error(msg)
         add_message(msg, 'error')
       end
 

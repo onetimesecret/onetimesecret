@@ -115,7 +115,7 @@ module V2
       end
 
       # Requires the implementing class to have cust and session fields
-      def send_verification_email token = nil
+      def send_verification_email(token = nil)
       _, secret = V2::Secret.spawn_pair cust.custid, token
 
       msg = "Thanks for verifying your account. We got you a secret fortune cookie!\n\n\"%s\"" % OT::Utils.random_fortune

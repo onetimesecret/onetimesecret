@@ -4,17 +4,17 @@ module V2
   module Mixins
 
     module RateLimited
-      def event_incr! event
+      def event_incr!(event)
         # Uses the external identifier of the implementing class to keep
         # track of the event count. e.g. sess.external_identifier.
         V2::RateLimit.incr! external_identifier, event
       end
 
-      def event_get event
+      def event_get(event)
         V2::RateLimit.get external_identifier, event
       end
 
-      def event_clear! event
+      def event_clear!(event)
         V2::RateLimit.clear! external_identifier, event
       end
 

@@ -78,7 +78,7 @@ module V2::Logic
 
       end
 
-      def modified? guess
+      def modified?(guess)
         modified.member? guess
       end
 

@@ -8,7 +8,7 @@ module Onetime
   module Mail
 
     class Welcome < Mail::Views::Base
-      def init secret
+      def init(secret)
         self[:secret] = secret
         self[:email_address] = cust.email
       end
@@ -23,7 +23,7 @@ module Onetime
     end
 
     class SecretLink < Mail::Views::Base
-      def init secret, recipient
+      def init(secret, recipient)
         raise ArgumentError, 'Customer required' unless cust
         raise ArgumentError, 'Recipient required' unless recipient
         raise ArgumentError, 'Secret required' unless secret
@@ -52,7 +52,7 @@ module Onetime
 
     class SupportMessage < Mail::Views::Base
       attr_reader :subject
-      def init from_name, subject
+      def init(from_name, subject)
         @subject = subject
         self[:custid] = cust.custid
         self[:email_address] = cust.custid
@@ -67,7 +67,7 @@ module Onetime
     end
 
     class PasswordRequest < Mail::Views::Base
-      def init secret
+      def init(secret)
         self[:secret] = secret
         self[:email_address] = cust.email
       end
@@ -81,7 +81,7 @@ module Onetime
 
     class IncomingSupport < Mail::Views::Base
       attr_accessor :ticketno
-      def init secret, recipient
+      def init(secret, recipient)
         self[:secret] = secret
         self[:custid] = cust.custid
         self[:email_address] = recipient

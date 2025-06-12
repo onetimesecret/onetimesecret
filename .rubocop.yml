@@ -250,6 +250,9 @@ Style/ZeroLengthPredicate:
   Enabled: true
   Safe: false
 
+Style/MethodDefParentheses:
+  Enabled: true
+
 # Department 'ThreadSafety' (6):
 ThreadSafety/ClassAndModuleAttributes:
   Description: Avoid mutating class and module attributes.

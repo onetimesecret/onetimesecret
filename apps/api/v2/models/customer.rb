@@ -115,7 +115,7 @@ module V2
       !locale.to_s.empty?
     end
 
-    def apitoken? guess
+    def apitoken?(guess)
       self.apitoken.to_s == guess.to_s
     end
 
@@ -139,7 +139,7 @@ module V2
       get_stripe_subscription_by_id || get_stripe_subscriptions&.first
     end
 
-    def get_stripe_customer_by_id customer_id = nil
+    def get_stripe_customer_by_id(customer_id = nil)
       customer_id ||= stripe_customer_id
       return if customer_id.to_s.empty?
       OT.info "[Customer.get_stripe_customer_by_id] Fetching customer: #{customer_id} #{custid}"
@@ -168,7 +168,7 @@ module V2
       nil
     end
 
-    def get_stripe_subscription_by_id subscription_id = nil
+    def get_stripe_subscription_by_id(subscription_id = nil)
       subscription_id ||= stripe_subscription_id
       return if subscription_id.to_s.empty?
       OT.info "[Customer.get_stripe_subscription_by_id] Fetching subscription: #{subscription_id} #{custid}"
@@ -178,7 +178,7 @@ module V2
       nil
     end
 
-    def get_stripe_subscriptions stripe_customer = nil
+    def get_stripe_subscriptions(stripe_customer = nil)
       stripe_customer ||= @stripe_customer
       subscriptions = []
       return subscriptions unless stripe_customer
@@ -200,11 +200,11 @@ module V2
       subscriptions
     end
 
-    def get_persistent_value sess, n
+    def get_persistent_value(sess, n)
       (anonymous? ? sess : self)[n]
     end
 
-    def set_persistent_value sess, n, v
+    def set_persistent_value(sess, n, v)
       (anonymous? ? sess : self)[n] = v
     end
 
@@ -238,7 +238,7 @@ module V2
       end
     end
 
-    def role? guess
+    def role?(guess)
       role.to_s.eql?(guess.to_s)
     end
 
@@ -259,12 +259,12 @@ module V2
       !anonymous? && !verified? && role?('customer')  # we modify the role when destroying
     end
 
-    def reset_secret? secret
+    def reset_secret?(secret)
       return false if secret.nil? || !secret.exists? || secret.key.to_s.empty?
       Rack::Utils.secure_compare(self.reset_secret.to_s, secret.key)
     end
 
-    def valid_reset_secret! secret
+    def valid_reset_secret!(secret)
       if is_valid = reset_secret?(secret)
         OT.ld "[valid_reset_secret!] Reset secret is valid for #{custid} #{secret.shortkey}"
         secret.delete!
@@ -298,7 +298,7 @@ module V2
       end.compact
     end
 
-    def add_metadata obj
+    def add_metadata(obj)
       metadata.add OT.now.to_i, obj.key
     end
 
@@ -310,12 +310,12 @@ module V2
       end.compact
     end
 
-    def add_custom_domain obj
+    def add_custom_domain(obj)
       OT.ld "[add_custom_domain] adding #{obj} to #{self}"
       custom_domains.add OT.now.to_i, obj.display_domain # not the object identifier
     end
 
-    def remove_custom_domain obj
+    def remove_custom_domain(obj)
       custom_domains.remove obj.display_domain # not the object identifier
     end
 
@@ -390,7 +390,7 @@ module V2
       identifier.to_s
     end
 
-    def increment_field field
+    def increment_field(field)
       if anonymous?
         whereami = caller(1..4)
         OT.le "[increment_field] Refusing to increment #{field} for anon customer #{whereami}"
@@ -405,7 +405,7 @@ module V2
 
     module ClassMethods
       attr_reader :values
-      def add cust
+      def add(cust)
         self.values.add OT.now.to_i, cust.identifier
       end
 
@@ -413,7 +413,7 @@ module V2
         self.values.revrangeraw(0, -1).collect { |identifier| load(identifier) }
       end
 
-      def recent duration = 30.days, epoint = OT.now.to_i
+      def recent(duration = 30.days, epoint = OT.now.to_i)
         spoint = OT.now.to_i-duration
         self.values.rangebyscoreraw(spoint, epoint).collect { |identifier| load(identifier) }
       end
@@ -422,7 +422,7 @@ module V2
         new('anon').freeze
       end
 
-      def create custid, email = nil
+      def create(custid, email = nil)
         raise Onetime::Problem, 'custid is required' if custid.to_s.empty?
         raise Onetime::Problem, 'Customer exists' if exists?(custid)
         cust = new custid: custid, email: email || custid, role: 'customer'

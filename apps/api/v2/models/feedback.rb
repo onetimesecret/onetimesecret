@@ -8,7 +8,7 @@ module V2
 
     module ClassMethods
 
-      def add msg
+      def add(msg)
         self.values.add OT.now.to_i, msg
         # Auto-trim the set to keep only the most recent 30 days of feedback
         self.values.remrangebyscore 0, OT.now.to_i-30.days
@@ -20,7 +20,7 @@ module V2
         Hash[ret]
       end
 
-      def recent duration = 30.days, epoint = OT.now.to_i
+      def recent(duration = 30.days, epoint = OT.now.to_i)
         spoint = OT.now.to_i-duration
         ret = self.values.rangebyscoreraw(spoint, epoint, withscores: true)
         Hash[ret]

@@ -33,7 +33,7 @@ module V2
 
       using IndifferentHashAccess
 
-      def self.included base
+      def self.included(base)
         # In some UI flows, we temporarily store form values after a form
         # error so that the form UI inputs can be prepopulated, even if
         # there's a redirect in between. Ideally we can move this to local
@@ -52,7 +52,7 @@ module V2
         base.list :messages, ttl: 15.seconds
       end
 
-      def set_form_fields hsh
+      def set_form_fields(hsh)
         self.form_fields! hsh.to_json unless hsh.nil?
       end
 
@@ -67,15 +67,15 @@ module V2
         nil
       end
 
-      def set_error_message msg
+      def set_error_message(msg)
         self.messages << _json(msg, :error)
       end
 
-      def set_info_message msg
+      def set_info_message(msg)
         self.messages << _json(msg, :info)
       end
 
-      def set_success_message msg
+      def set_success_message(msg)
         self.messages << _json(msg, :success)
       end
 
@@ -117,7 +117,7 @@ module V2
         self.messages.clear
       end
 
-      def _json msg, type = :error
+      def _json(msg, type = :error)
         {type: type, content: msg}.to_json
       end
       private :_json

@@ -108,7 +108,7 @@ module Onetime
           }
         end
 
-        def deliver_email token = nil
+        def deliver_email(token = nil)
           errmsg = "Your message wasn't sent because we have an email problem"
 
           email_address_obscured = OT::Utils.obscure_email self[:email_address]

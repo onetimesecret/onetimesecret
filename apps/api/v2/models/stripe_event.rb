@@ -49,7 +49,7 @@ module V2
       attr_reader :values, :db
 
       # fobj is a familia object
-      def add fobj
+      def add(fobj)
         self.values.add OT.now.to_i, fobj.identifier
         self.values.remrangebyscore 0, OT.now.to_i-5.years # keep 5 years of stripe activity
       end
@@ -58,7 +58,7 @@ module V2
         self.values.revrangeraw(0, -1).collect { |identifier| load(identifier) }
       end
 
-      def recent duration = 48.hours
+      def recent(duration = 48.hours)
         spoint, epoint = OT.now.to_i-duration, OT.now.to_i
         self.values.rangebyscoreraw(spoint, epoint).collect { |identifier| load(identifier) }
       end

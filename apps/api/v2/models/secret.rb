@@ -95,7 +95,7 @@ module V2
     end
     alias :natural_ttl :natural_duration
 
-    def older_than? seconds
+    def older_than?(seconds)
       age > seconds
     end
 
@@ -111,7 +111,7 @@ module V2
       verification.to_s == 'true'
     end
 
-    def encrypt_value original_value, opts = {}
+    def encrypt_value(original_value, opts = {})
       # Handles empty values with a special encryption flag. This is important
       # for consistency in how we deal with these values and expressly for Ruby
       # 3.1 which uses an older version of openssl that does not tolerate empty
@@ -147,7 +147,7 @@ module V2
       self.value = storable_value.encrypt encryption_options
     end
 
-    def decrypted_value opts = {}
+    def decrypted_value(opts = {})
       encryption_mode = value_encryption.to_i
       v_encrypted = self.value
       v_encrypted = '' if encryption_mode.negative? && v_encrypted.nil?
@@ -253,7 +253,7 @@ module V2
       cust.nil? ? V2::Customer.anonymous : cust # TODO: Probably should simply return nil (see defensive "fix" in 23c152)
     end
 
-    def state? guess
+    def state?(guess)
       state.to_s.eql?(guess.to_s)
     end
 
@@ -265,7 +265,7 @@ module V2
       custid.to_s == 'anon'
     end
 
-    def owner? cust
+    def owner?(cust)
       !anonymous? && (cust.is_a?(V2::Customer) ? cust.custid : cust).to_s == custid.to_s
     end
 
@@ -325,7 +325,7 @@ module V2
 
     class << self
 
-      def spawn_pair custid, token = nil
+      def spawn_pair(custid, token = nil)
         secret = V2::Secret.create(custid: custid, token: token)
         metadata = V2::Metadata.create(custid: custid, token: token)
 

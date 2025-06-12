@@ -14,11 +14,11 @@ module Frontend
       attr_reader :sess, :cust, :locale
       attr_reader :ignoreshrimp
 
-      def initialize req, res
+      def initialize(req, res)
         @req, @res = req, res
       end
 
-      def publically redirect = nil
+      def publically(redirect = nil)
         carefully(redirect) do
           check_session!     # 1. Load or create the session, load customer (or anon)
           check_locale!      # 2. Check the request for the desired locale
@@ -29,7 +29,7 @@ module Frontend
         end
       end
 
-      def authenticated redirect = nil
+      def authenticated(redirect = nil)
         carefully(redirect) do
           no_cache!
           check_session!     # 1. Load or create the session, load customer (or anon)
@@ -46,7 +46,7 @@ module Frontend
         end
       end
 
-      def colonels redirect = nil
+      def colonels(redirect = nil)
         carefully(redirect) do
           no_cache!
           check_session!     # 1. Load or create the session, load customer (or anon)
@@ -117,7 +117,7 @@ module Frontend
         uri
       end
 
-      def handle_form_error ex, redirect
+      def handle_form_error(ex, redirect)
         # We store the form fields temporarily in the session so
         # that the form can be pre-populated after the redirect.
         sess.set_form_fields ex.form_fields
@@ -137,7 +137,7 @@ module Frontend
         end
       end
 
-      def server_error status = 500, _message = nil
+      def server_error(status = 500, _message = nil)
         res.status = status
         res['Content-Type'] = 'text/html'
         res.body = <<-HTML
@@ -155,7 +155,7 @@ module Frontend
         HTML
       end
 
-      def disabled_response path
+      def disabled_response(path)
         error_response "#{path} is not available"
       end
 
@@ -183,7 +183,7 @@ module Frontend
         res.body = view.render  # Render the entrypoint HTML
       end
 
-      def not_authorized_error _hsh = {}
+      def not_authorized_error(_hsh = {})
         view = Frontend::Views::Error.new req, sess, cust, locale
         view.add_error 'Not authorized'
         res.status = 401
@@ -202,7 +202,7 @@ module Frontend
         res.body = view.render
       end
 
-      def throttle_response message
+      def throttle_response(message)
         view = Frontend::Views::Error.new req, sess, cust, locale
         view.add_error message
         res.status = 429

@@ -1,22 +1,22 @@
 
 
 module QuantizeTime
-  def quantize quantum
+  def quantize(quantum)
     stamp = self.is_a?(Integer) ? self : to_i
     Time.at(stamp - (stamp % quantum)).utc
   end
-  def on_the_next quantum
+  def on_the_next(quantum)
     Time.at(quantize(quantum)+quantum).utc
   end
 end
 
 
 module QuantizeInteger
-  def quantize quantum
+  def quantize(quantum)
     stamp = self.is_a?(Integer) ? self : to_i
     stamp - (stamp % quantum)
   end
-  def on_the_next quantum
+  def on_the_next(quantum)
     quantize(quantum)+quantum
   end
 end

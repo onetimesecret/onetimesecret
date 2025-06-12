@@ -247,7 +247,7 @@ module V2
 
 
       # Simply instatiates a new SystemSettings object and checks if it exists.
-      def exists? identifier
+      def exists?(identifier)
         # The `parse`` method instantiates a new SystemSettings object but does
         # not save it to Redis. We do that here to piggyback on the inital
         # validation and parsing. We use the derived identifier to load
@@ -278,13 +278,13 @@ module V2
         end
       end
 
-      def rem fobj
+      def rem(fobj)
         self.values.remove fobj.to_s
         # don't arbitrarily remove from stack, only for rollbacks/reversions.
         # never remove from audit_log
       end
 
-      def remove_bad_config fobj
+      def remove_bad_config(fobj)
         self.values.remove fobj.to_s
         self.stack.remove fobj.to_s
       end
@@ -295,7 +295,7 @@ module V2
         self.values.revrangeraw(0, -1).collect { |identifier| from_identifier(identifier) }
       end
 
-      def recent duration = 7.days
+      def recent(duration = 7.days)
         spoint, epoint = self.now-duration, self.now
         self.values.rangebyscoreraw(spoint, epoint).collect { |identifier| load(identifier) }
       end

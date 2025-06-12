@@ -94,7 +94,7 @@ module V2
         OT.conf.dig(:site, :authenticity, :secret_key) # ALTCHA_HMAC_KEY
       end
 
-      def send_feedback cust, message
+      def send_feedback(cust, message)
         view = Onetime::Mail::FeedbackEmail.new cust, locale
         view.display_domain = self.display_domain
         view.domain_strategy = self.domain_strategy

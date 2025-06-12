@@ -123,7 +123,7 @@ module V2
       # @param event [Symbol] the type of event being limited
       # @return [Integer] the new count
       # @raise [Onetime::LimitExceeded] if the limit is exceeded
-      def incr! identifier, event
+      def incr!(identifier, event)
         lmtr = new identifier, event
         count = lmtr.incr!
 
@@ -141,7 +141,7 @@ module V2
       # @param identifier [String] unique identifier for the limited entity
       # @param event [Symbol] the type of event being limited
       # @return [Boolean] true if the key was deleted
-      def clear! identifier, event
+      def clear!(identifier, event)
         lmtr = new identifier, event
         ret = lmtr.clear
         OT.ld [:clear, event, identifier, ret].inspect
@@ -152,7 +152,7 @@ module V2
       # @param identifier [String] unique identifier for the limited entity
       # @param event [Symbol] the type of event being limited
       # @return [Integer] the current count
-      def get identifier, event
+      def get(identifier, event)
         lmtr = new identifier, event
         lmtr.get
       end
@@ -160,7 +160,7 @@ module V2
       # Get the configured limit for an event
       # @param event [Symbol] the event to get the limit for
       # @return [Integer] the configured limit or DEFAULT_LIMIT
-      def event_limit event
+      def event_limit(event)
         events[event] || DEFAULT_LIMIT # Float::INFINITY-1
       end
 
@@ -168,7 +168,7 @@ module V2
       # @param event [Symbol] the event to check
       # @param count [Integer] the count to check
       # @return [Boolean] true if the count exceeds the limit
-      def exceeded? event, count
+      def exceeded?(event, count)
         (count) > event_limit(event)
       end
 
@@ -176,7 +176,7 @@ module V2
       # @param event [Symbol] the event to register
       # @param count [Integer] the maximum allowed count
       # @return [Integer] the registered limit
-      def register_event single_event, count
+      def register_event(single_event, count)
         OT.ld "[register_event] #{single_event.inspect} #{count}"
         events[single_event] = count
       end
@@ -184,7 +184,7 @@ module V2
       # Register multiple events with their limits
       # @param events [Hash] map of event names to limits
       # @return [Hash] the updated events hash
-      def register_events multiple_events
+      def register_events(multiple_events)
         OT.ld "[register_events] #{multiple_events.inspect}"
         events.merge! multiple_events
       end

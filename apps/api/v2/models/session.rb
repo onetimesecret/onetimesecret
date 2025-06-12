@@ -142,7 +142,7 @@ module V2
     sessid
   end
 
-  def shrimp? guess
+  def shrimp?(guess)
     shrimp = self.shrimp.to_s
     guess = guess.to_s
     OT.ld '[Sess#shrimp?] Checking with a constant time comparison'
@@ -179,7 +179,7 @@ module V2
   module ClassMethods
     attr_reader :values
 
-    def add sess
+    def add(sess)
       self.values.add OT.now.to_i, sess.identifier
       self.values.remrangebyscore 0, OT.now.to_i-2.days
     end
@@ -188,12 +188,12 @@ module V2
       self.values.revrangeraw(0, -1).collect { |identifier| load(identifier) }
     end
 
-    def recent duration = 30.days
+    def recent(duration = 30.days)
       spoint, epoint = OT.now.to_i-duration, OT.now.to_i
       self.values.rangebyscoreraw(spoint, epoint).collect { |identifier| load(identifier) }
     end
 
-    def create ipaddress, custid, useragent = nil
+    def create(ipaddress, custid, useragent = nil)
       sess = new ipaddress: ipaddress, custid: custid, useragent: useragent
 
       sess.save

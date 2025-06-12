@@ -13,7 +13,7 @@ module V2
     attr_reader :sess, :cust, :locale
     attr_reader :ignoreshrimp
 
-    def initialize req, res
+    def initialize(req, res)
       @req, @res = req, res
     end
 
@@ -25,8 +25,9 @@ module V2
       end
     end
 
-    def authorized allow_anonymous = false
-      carefully(redirect=nil, content_type='application/json', app: :api) do # rubocop:disable Metrics/BlockLength,Metrics/PerceivedComplexity
+    # rubocop:disable Metrics/BlockLength,Metrics/PerceivedComplexity
+    def authorized(allow_anonymous = false)
+      carefully(redirect=nil, content_type='application/json', app: :api) do
         check_locale!
 
         req.env['otto.auth'] ||= Rack::Auth::Basic::Request.new(req.env)
@@ -109,9 +110,10 @@ module V2
         yield
       end
     end
+    # rubocop:enabled Metrics/BlockLength,Metrics/PerceivedComplexity
 
     # Ignores the allow_anonymous argument passed in
-    def colonels _
+    def colonels(_)
       allow_anonymous = false
       authorized(allow_anonymous) do
         raise OT::Unauthorized, 'No such customer' unless cust.role?(:colonel)
@@ -210,12 +212,12 @@ module V2
       end
     end
 
-    def json hsh
+    def json(hsh)
       res.header['Content-Type'] = 'application/json; charset=utf-8'
       res.body = hsh.to_json
     end
 
-    def json_success hsh
+    def json_success(hsh)
       # A convenience method that returns JSON success and adds a
       # fresh shrimp to the response body. The fresh shrimp is
       # helpful for parts of the Vue UI that get a successful
@@ -227,7 +229,7 @@ module V2
     # request was good. Pass a delicious fresh shrimp to the client
     # so they can try again with a new one (without refreshing the
     # entire page).
-    def handle_form_error ex, hsh = {}
+    def handle_form_error(ex, hsh = {})
       hsh[:shrimp] = sess.add_shrimp
       hsh[:message] = ex.message
       hsh[:success] = false
@@ -239,30 +241,30 @@ module V2
       not_found_response 'Unknown secret', secret_key: req.params[:key]
     end
 
-    def disabled_response path
+    def disabled_response(path)
       not_found_response "#{path} is not available"
     end
 
-    def not_found_response msg, hsh = {}
+    def not_found_response(msg, hsh = {})
       hsh[:message] = msg
       res.status = 404
       json hsh
     end
 
-    def not_authorized_error hsh = {}
+    def not_authorized_error(hsh = {})
       hsh[:message] = 'Not authorized'
       res.status = 403
       json hsh
     end
 
-    def error_response msg, hsh = {}
+    def error_response(msg, hsh = {})
       hsh[:message] = msg
       hsh[:success] = false
       res.status = 500 # Bad Request
       json hsh
     end
 
-    def throttle_response msg, hsh = {}
+    def throttle_response(msg, hsh = {})
       hsh[:message] = msg
       hsh[:success] = false
       res.status = 429 # Too Many Requests

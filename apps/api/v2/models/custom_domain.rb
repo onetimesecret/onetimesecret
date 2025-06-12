@@ -479,7 +479,7 @@ module V2
       # display domain.
       #
       # Returns either a string or nil if invalid
-      def base_domain input
+      def base_domain(input)
         # We don't need to fuss with empty stripping spaces, prefixes,
         # etc because PublicSuffix does that for us.
         PublicSuffix.domain(input, default_rule: nil)
@@ -494,7 +494,7 @@ module V2
       # www.froogle.com would return www.froogle.com; and froogle.com
       # would return froogle.com.
       #
-      def display_domain input
+      def display_domain(input)
         ps_domain = PublicSuffix.parse(input, default_rule: nil)
         ps_domain.subdomain || ps_domain.domain
 
@@ -505,11 +505,11 @@ module V2
 
       # Returns boolean, whether the domain is a valid public suffix
       # which checks without actually parsing it.
-      def valid? input
+      def valid?(input)
         PublicSuffix.valid?(input, default_rule: nil)
       end
 
-      def default_domain? input
+      def default_domain?(input)
         display_domain = V2::CustomDomain.display_domain(input)
         site_host = OT.conf.dig(:site, :host)
         OT.ld "[CustomDomain.default_domain?] #{display_domain} == #{site_host}"
@@ -520,7 +520,7 @@ module V2
       end
 
       # Simply instatiates a new CustomDomain object and checks if it exists.
-      def exists? input, custid
+      def exists?(input, custid)
         # The `parse`` method instantiates a new CustomDomain object but does
         # not save it to Redis. We do that here to piggyback on the inital
         # validation and parsing. We use the derived identifier to load
@@ -534,13 +534,13 @@ module V2
         false
       end
 
-      def add fobj
+      def add(fobj)
         self.values.add OT.now.to_i, fobj.to_s # created time, identifier
         self.display_domains.put fobj.display_domain, fobj.identifier
         self.owners.put fobj.to_s, fobj.custid  # domainid => customer id
       end
 
-      def rem fobj
+      def rem(fobj)
         self.values.remove fobj.to_s
         self.display_domains.remove fobj.display_domain
         self.owners.remove fobj.to_s
@@ -552,14 +552,14 @@ module V2
         self.values.revrangeraw(0, -1).collect { |identifier| from_identifier(identifier) }
       end
 
-      def recent duration = 48.hours
+      def recent(duration = 48.hours)
         spoint, epoint = OT.now.to_i-duration, OT.now.to_i
         self.values.rangebyscoreraw(spoint, epoint).collect { |identifier| load(identifier) }
       end
 
       # Implement a load method for CustomDomain to make sure the
       # correct derived ID is used as the key.
-      def load display_domain, custid
+      def load(display_domain, custid)
 
         custom_domain = parse(display_domain, custid).tap do |obj|
           OT.ld "[CustomDomain.load] Got #{obj.identifier} #{obj.display_domain} #{obj.custid}"
@@ -575,7 +575,7 @@ module V2
       #
       # @param display_domain [String] The display domain to load
       # @return [V2::CustomDomain, nil] The custom domain record or nil if not found
-      def from_display_domain display_domain
+      def from_display_domain(display_domain)
         # Get the domain ID from the display_domains hash
         domain_id = self.display_domains.get(display_domain)
         return nil unless domain_id
