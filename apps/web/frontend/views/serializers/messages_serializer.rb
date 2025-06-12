@@ -2,13 +2,11 @@
 
 module Frontend
   module Views
-
     # Serializes flash messages and global notifications for the frontend
     #
     # Responsible for transforming user-facing messages, notifications,
     # and global banners for frontend display.
     module MessagesSerializer
-
       # Serializes messages data from view variables
       #
       # @param view_vars [Hash] The view variables containing message information

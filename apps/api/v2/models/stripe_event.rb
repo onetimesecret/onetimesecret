@@ -1,7 +1,6 @@
 
 module V2
   class StripeEvent < Familia::Horreum
-
     feature :safe_dump
     feature :expiration
 
@@ -74,7 +73,6 @@ module V2
         add fobj # to the @values sorted set
         fobj
       end
-
     end
 
     extend ClassMethods

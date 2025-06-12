@@ -9,7 +9,6 @@ require_relative 'base_mailer'
 module Onetime::Mail
   module Mailer
     class SESMailer < BaseMailer
-
       using IndifferentHashAccess
 
       def send_email(to_address, subject, html_content, text_content)
@@ -59,11 +58,9 @@ module Onetime::Mail
 
           # Send the email
           mailer_response = self.class.ses_client.send_email(email_params)
-
         rescue Aws::SESV2::Errors::ServiceError => ex
           OT.le "> [send-exception-ses-error] #{ex.message} [to: #{obscured_address}]"
           OT.ld "#{ex.backtrace}"
-
         rescue => ex
           OT.le "> [send-exception-sending] #{ex.class} #{ex.message} [to: #{obscured_address}]"
           OT.ld ex.backtrace
@@ -97,6 +94,5 @@ module Onetime::Mail
         attr_reader :ses_client
       end
     end
-
   end
 end

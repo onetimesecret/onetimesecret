@@ -144,7 +144,6 @@ module Frontend
           end
         end
       end
-
     end
   end
 end

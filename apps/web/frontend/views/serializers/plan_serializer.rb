@@ -2,13 +2,11 @@
 
 module Frontend
   module Views
-
     # Serializes subscription plan data for the frontend
     #
     # Responsible for transforming customer plan information, available plans,
     # and plan-related settings into a consistent format for frontend consumption.
     module PlanSerializer
-
       # Serializes plan data from view variables
       #
       # @param view_vars [Hash] The view variables containing plan information

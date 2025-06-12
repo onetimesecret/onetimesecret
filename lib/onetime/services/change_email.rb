@@ -213,7 +213,6 @@ module Onetime
             multi.rename("customer:#{old_email}:reset_secret",
               "customer:#{new_email}:reset_secret") if redis.exists?("customer:#{old_email}:reset_secret")
 
-
             # Update customer values list
             # Get score for the old email in the sorted set
             # Note: ZSCORE cannot be used inside a MULTI block.
@@ -286,7 +285,6 @@ module Onetime
                 "customdomain:#{new_domain_id}:logo") if redis.exists?("customdomain:#{old_domain_id}:logo")
               multi.rename("customdomain:#{old_domain_id}:icon",
                 "customdomain:#{new_domain_id}:icon") if redis.exists?("customdomain:#{old_domain_id}:icon")
-
 
               # Rename object key
               multi.rename("customdomain:#{old_domain_id}:object", "customdomain:#{new_domain_id}:object")

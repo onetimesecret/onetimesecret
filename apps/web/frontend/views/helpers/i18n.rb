@@ -64,7 +64,6 @@ module Frontend
 
          @i18n_cache[locale] = result
       end
-
     end
   end
 end

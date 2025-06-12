@@ -9,10 +9,8 @@ require 'rack/utf8_sanitizer'
 #
 # Standard middleware for all applications
 module MiddlewareStack
-
   class << self
     def configure(builder)
-
       builder.use Rack::ContentLength
       builder.use Onetime::Middleware::StartupReadiness
 
@@ -53,7 +51,6 @@ module MiddlewareStack
 
     # development/production middleware setup
     def configure_environment(builder)
-
       # Development Environment Configuration
       # Enable development-specific middleware when in development mode
       # This handles code validation and frontend development server integration
@@ -81,6 +78,5 @@ module MiddlewareStack
         builder.use Onetime::Middleware::Security
       end
     end
-
   end
 end

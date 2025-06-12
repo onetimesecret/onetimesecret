@@ -123,7 +123,6 @@ module V2::Logic
         custom_domain.send(self.class.field)
       end
       private :_image_field
-
     end
 
     class UpdateDomainLogo < UpdateDomainImage
@@ -133,6 +132,5 @@ module V2::Logic
     class UpdateDomainIcon < UpdateDomainImage
       @field = :icon
     end
-
   end
 end

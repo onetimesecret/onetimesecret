@@ -1,7 +1,6 @@
 
 module V2::Logic
   module Account
-
     class GenerateAPIToken < V2::Logic::Base
       attr_reader :apitoken, :greenlighted
 
@@ -27,6 +26,5 @@ module V2::Logic
         { record: { apitoken: apitoken, active: true } }
       end
     end
-
   end
 end

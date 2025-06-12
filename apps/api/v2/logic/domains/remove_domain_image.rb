@@ -66,6 +66,5 @@ module V2::Logic
     class RemoveDomainIcon < RemoveDomainImage
       @field = :icon
     end
-
   end
 end

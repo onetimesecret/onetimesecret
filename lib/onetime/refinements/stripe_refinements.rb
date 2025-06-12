@@ -3,11 +3,9 @@
 require 'stripe' # ensures Stripe namespace is loaded
 
 module Onetime
-
   # Adds Familia's safe_dump method suppot to Stripe objects.
   # Currently: Subscript, Customer.
   module StripeRefinements
-
     refine Stripe::Subscription do
       extend Familia::Features::SafeDump::ClassMethods
 

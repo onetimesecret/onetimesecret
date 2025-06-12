@@ -7,7 +7,6 @@ module V2
     class_sorted_set :values, key: 'onetime:feedback' # naming for legacy compatibility
 
     module ClassMethods
-
       def add(msg)
         self.values.add OT.now.to_i, msg
         # Auto-trim the set to keep only the most recent 30 days of feedback

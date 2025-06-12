@@ -5,7 +5,6 @@ require_relative 'base'
 module V2
   module Logic
     module Welcome
-
       class FromStripePaymentLink < V2::Logic::Base
         attr_reader :checkout_session_id, :checkout_session, :checkout_email, :update_customer_fields
 
@@ -25,11 +24,9 @@ module V2
             stripe_customer_id: checkout_session.customer,
             planid: 'identity',
           }
-
         end
 
         def process
-
           if sess.authenticated?
             # If the user is already authenticated, we can associate the checkout
             # session with their account.
@@ -88,7 +85,6 @@ module V2
             end
 
           end
-
         end
       end
 
@@ -113,11 +109,9 @@ module V2
               stripe_signature,
               @endpoint_secret,
             )
-
           rescue JSON::ParserError => ex
             OT.le "[webhook] JSON parsing error: #{ex}: sig:#{stripe_signature}"
             raise_form_error 'Invalid payload'
-
           rescue Stripe::SignatureVerificationError => ex
             OT.le "[webhook] Signature verification failed: #{ex}: sig:#{stripe_signature}"
             raise_form_error 'Bad signature'
@@ -150,7 +144,6 @@ module V2
           [response_status, response_headers, [response_content.to_json]]
         end
       end
-
     end
   end
 end

@@ -106,7 +106,6 @@ module Onetime
 
     module Chooserator
       class << self
-
         # @param request_domain [String] The domain associated to the current request
         # @param canonical_domain [PublicSuffix::Domain, String] The canonical domain.
         def choose_strategy(request_domain, canonical_domain)
@@ -120,7 +119,6 @@ module Onetime
           when ->(d) { subdomain_of?(d, canonical_domain) } then :subdomain
           when ->(d) { known_custom_domain?(d.name) }       then :custom
           end
-
         rescue PublicSuffix::DomainInvalid => ex
           OT.ld "[DomainStrategy]: Invalid domain #{request_domain} #{ex.message}"
           nil
@@ -144,6 +142,7 @@ module Onetime
 
         def peer_of?(left, right)
           return false unless left.subdomain? && right.subdomain?
+
           # NOTE: We do not re-check if the domains are the same
           left.domain.eql?(right.domain)
         end
@@ -155,6 +154,7 @@ module Onetime
 
         def parent_of?(left, right)
           return false unless !left.subdomain? && right.subdomain?
+
           left.name.eql?(right.domain)
         end
         # subdomain_of?('sub.example.com', 'example.com') # => true
@@ -165,6 +165,7 @@ module Onetime
 
         def subdomain_of?(left, right)
           return false unless left.subdomain? && !right.subdomain?
+
           left.domain.eql?(right.name)
         end
         # subdomain_of?('sub.example.com', 'example.com') # => true
@@ -179,7 +180,6 @@ module Onetime
           require 'v2/models/custom_domain'
           !V2::CustomDomain.from_display_domain(potential_custom_domain).nil?
         end
-
       end
     end
 
@@ -190,6 +190,7 @@ module Onetime
         def parse(host)
           host = host.to_s.split(':').first # remove port (e.g. localhost:3000)
           raise PublicSuffix::DomainInvalid.new('Cannot parse host') unless basically_valid?(host)
+
           PublicSuffix.parse(host, default_rule: nil, ignore_private: false) # calls normalize
         end
 
@@ -205,7 +206,6 @@ module Onetime
 
           true
         end
-
       end
     end
 

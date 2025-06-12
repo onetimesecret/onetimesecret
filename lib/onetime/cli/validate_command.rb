@@ -51,7 +51,6 @@ module Onetime
         OT.li '' if verbose_mode?
         OT.li '✅ Configuration valid'
         0 # Success exit code
-
       rescue OT::ConfigValidationError => ex
         OT.le "❌ #{ex.message}"
 
@@ -61,16 +60,13 @@ module Onetime
         end
 
         1 # Validation failure exit code
-
       rescue OT::ConfigError => ex
         OT.le "❌ Configuration error: #{ex.message}"
         exit 2 # Config error exit code
-
       rescue ArgumentError => ex
         # Handle file not found errors
         OT.le "❌ #{ex.message}"
         exit 3 # File not found exit code
-
       rescue StandardError => ex
         OT.le "❌ Unexpected error: #{ex.message}"
         OT.ld ex.backtrace.join("\n") if verbose_mode?
@@ -83,7 +79,5 @@ module Onetime
     def verbose_mode?
       global.verbose && global.verbose > 0
     end
-
-
   end
 end

@@ -2,13 +2,11 @@
 
 module Frontend
   module Views
-
     # Serializes application configuration for the frontend
     #
     # Responsible for transforming server-side configuration settings into
     # a consistent format that can be safely exposed to the frontend.
     module ConfigSerializer
-
       # Serializes configuration data from view variables
       #
       # Transforms server configuration including site settings, feature flags,

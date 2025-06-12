@@ -32,7 +32,6 @@ module V2::Logic
           record: @custom_domain.safe_dump.fetch(:brand, {}),
         }
       end
-
     end
   end
 end

@@ -7,7 +7,6 @@
 #
 # Environment detection and normalization
 module Onetime
-
   module ClassMethods
     # Replaces the global configuration instance with the provided data.
     def replace_config!(other)
@@ -182,6 +181,7 @@ module Onetime
 
     def info(*msgs)
       return unless mode?(:app) || mode?(:cli) # can reduce output in tryouts
+
       msg = msgs.join("#{$/}")
       stdout('I', msg)
     end
@@ -203,6 +203,7 @@ module Onetime
 
     def ld(*msgs)
       return unless Onetime.debug
+
       msg = msgs.join("#{$/}")
       stderr('D', msg)
     end
@@ -225,6 +226,7 @@ module Onetime
 
     def with_diagnostics(&)
       return unless Onetime.d9s_enabled
+
       yield # call the block in its own context
     end
 

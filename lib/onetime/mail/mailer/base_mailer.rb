@@ -5,7 +5,6 @@ require 'onetime/refinements/hash_refinements'
 module Onetime
   module Mail
     module Mailer
-
       class BaseMailer
         attr_accessor :reply_to
         attr_reader :from, :fromname
@@ -31,7 +30,6 @@ module Onetime
           raise NotImplementedError
         end
       end
-
     end
   end
 end

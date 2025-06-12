@@ -170,6 +170,7 @@ module V2::Logic
 
       def one_liner
         return if secret_value.to_s.empty? # return nil when the value is empty
+
         secret_value.to_s.scan(/\n/).size.zero?
       end
 
@@ -242,7 +243,6 @@ module V2::Logic
         ret = ((80+v.size)/80) + (v.scan(/\n/).size) + 3
         ret = ret > 30 ? 30 : ret
       end
-
     end
   end
 end

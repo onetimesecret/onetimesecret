@@ -2,7 +2,6 @@
 
 module Onetime
   module Initializers
-
     def setup_authentication
       # Process the authentication config to make
       # sure the settings make sense. For example,

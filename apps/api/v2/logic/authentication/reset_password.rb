@@ -3,6 +3,7 @@ module V2::Logic
   module Authentication
     class ResetPassword < V2::Logic::Base
       attr_reader :secret, :is_confirmed
+
       def process_params
         @secret = V2::Secret.load params[:key].to_s
         @newp = self.class.normalize_password(params[:newp])
@@ -59,7 +60,6 @@ module V2::Logic
           # Log the failure message
           OT.info 'Password change failed: password confirmation not received'
         end
-
       end
 
       def success_data

@@ -4,7 +4,7 @@ ENV['RACK_ENV'] ||= 'production'
 ENV['ONETIME_HOME'] = File.expand_path(File.join(__dir__, '..', '..')).freeze
 app_root = ENV['ONETIME_HOME']
 
-Warning[:deprecated] = ['development', 'dev', 'test'].include?(ENV['RACK_ENV'].to_s)
+Warning[:deprecated] = %w[development dev test].include?(ENV['RACK_ENV'].to_s)
 
 # Directory Constants
 unless defined?(PUBLIC_DIR)

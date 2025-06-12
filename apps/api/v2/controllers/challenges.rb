@@ -6,7 +6,6 @@ require 'base64'
 require 'altcha'
 require_relative 'base'
 
-
 module V2
   module Controllers
     class Challenges
@@ -58,7 +57,6 @@ module V2
             payload,
             self.class.secret_key,
           )
-
 
           return error_response message: 'Bad Altcha payload' unless verified
 

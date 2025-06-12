@@ -53,7 +53,6 @@ module V2::Logic
         custom_domain.send(self.class.field)
       end
       private :_image_field
-
     end
 
     class GetDomainLogo < GetDomainImage
@@ -63,6 +62,5 @@ module V2::Logic
     class GetDomainIcon < GetDomainImage
       @field = :icon
     end
-
   end
 end

@@ -216,6 +216,7 @@ module V2
         # Fail fast if invalid fields are provided
         kwargs.each_with_index do |(key, value), index|
           next if self.fields.include?(key.to_s.to_sym)
+
           raise Onetime::Problem, "Invalid field #{key} (#{index})"
         end
 
@@ -245,7 +246,6 @@ module V2
         raise Onetime::Problem, 'Unable to create custom domain'
       end
 
-
       # Simply instatiates a new SystemSettings object and checks if it exists.
       def exists?(identifier)
         # The `parse`` method instantiates a new SystemSettings object but does
@@ -255,7 +255,6 @@ module V2
         obj = load(identifier)
         OT.ld "[SystemSettings.exists?] Got #{obj} for #{identifier}"
         obj.exists?
-
       rescue Onetime::Problem => ex
         OT.le "[SystemSettings.exists?] #{ex.message}"
         OT.ld ex.backtrace.join("\n")
@@ -305,6 +304,7 @@ module V2
         # (using revrange 0, 0 to get just the highest-scored element)
         objid = self.stack.revrangeraw(0, 0).first
         raise Onetime::RecordNotFound.new('No config stack found') unless objid
+
         load(objid)
       end
 
@@ -313,13 +313,13 @@ module V2
         # (using revrange 1, 1 to get just the second-highest-scored element)
         objid = self.stack.revrangeraw(1, 1).first
         raise Onetime::RecordNotFound.new('No previous config found') unless objid
+
         load(objid)
       end
 
       def rollback!
         rollback_key = rediskey(:rollback)
         redis.watch(rollback_key) do
-
           redis.multi do |multi|
             removed_identifier = multi.zpopmax(self.stack.rediskey, 1).first&.first
             current_identifier = multi.revrangeraw(0, 0).first

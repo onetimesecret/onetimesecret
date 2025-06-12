@@ -177,11 +177,9 @@ module Frontend
 
             # Continue the redirect
             res.redirect session.url
-
           rescue Stripe::StripeError => ex
             OT.le "[customer_portal_redirect] Stripe error: #{ex.message}"
             raise_form_error(ex.message)
-
           rescue => ex
             OT.le "[customer_portal_redirect] Unexpected error: #{ex.message}"
             raise_form_error('An unexpected error occurred')
@@ -194,6 +192,7 @@ module Frontend
           unless _auth_settings[:enabled] && _auth_settings[:signup]
             return disabled_response(req.path)
           end
+
           deny_agents!
           logic = V2::Logic::Account::CreateAccount.new sess, cust, req.params, locale
           logic.raise_concerns
@@ -207,6 +206,7 @@ module Frontend
           unless _auth_settings[:enabled] && _auth_settings[:signin]
             return disabled_response(req.path)
           end
+
           # If the request is halted, say for example rate limited, we don't want to
           # allow the browser to refresh and re-submit the form with the login
           # credentials.
@@ -263,7 +263,6 @@ module Frontend
       def _auth_settings
         OT.conf.dig(:site, :authentication)
       end
-
     end
   end
 end

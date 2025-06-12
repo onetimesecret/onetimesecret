@@ -139,6 +139,7 @@ module V2
       if @display_domain.to_s.empty? || @custid.to_s.empty?
         raise Onetime::Problem, 'Cannot generate identifier with emptiness'
       end
+
       [@display_domain, @custid].gibbler.shorten
     end
 
@@ -174,6 +175,7 @@ module V2
     #   custom_domain.parse_vhost #=> {"ssl"=>true, "redirect"=>"https"}
     def parse_vhost
       return {} if vhost.to_s.empty?
+
       JSON.parse(vhost)
     rescue JSON::ParserError => ex
       OT.le "[CustomDomain.parse_vhost] Error parsing JSON: #{vhost.inspect} - #{ex}"
@@ -361,6 +363,7 @@ module V2
     # @return [Symbol] The current verification state
     def verification_state
       return :unverified unless txt_validation_value
+
       if resolving.to_s == 'true'
         verified.to_s == 'true' ? :verified : :resolving
       else
@@ -497,7 +500,6 @@ module V2
       def display_domain(input)
         ps_domain = PublicSuffix.parse(input, default_rule: nil)
         ps_domain.subdomain || ps_domain.domain
-
       rescue PublicSuffix::Error => ex
         OT.le "[CustomDomain.parse] #{ex.message} for `#{input}`"
         raise Onetime::Problem, ex.message
@@ -528,7 +530,6 @@ module V2
         obj = parse(input, custid)
         OT.ld "[CustomDomain.exists?] Got #{obj.identifier} #{obj.display_domain} #{obj.custid}"
         obj.exists?
-
       rescue Onetime::Problem => ex
         OT.le "[CustomDomain.exists?] #{ex.message}"
         false
@@ -560,7 +561,6 @@ module V2
       # Implement a load method for CustomDomain to make sure the
       # correct derived ID is used as the key.
       def load(display_domain, custid)
-
         custom_domain = parse(display_domain, custid).tap do |obj|
           OT.ld "[CustomDomain.load] Got #{obj.identifier} #{obj.display_domain} #{obj.custid}"
           raise Onetime::RecordNotFound, "Domain not found #{obj.display_domain}" unless obj.exists?

@@ -1,6 +1,5 @@
 # apps/api/v2/logic/secrets/show_secret.rb
 
-
 module V2::Logic
   module Secrets
     class ShowSecret < V2::Logic::Base
@@ -86,6 +85,7 @@ module V2::Logic
 
       def success_data
         return nil unless secret
+
         ret = {
           record: secret.safe_dump,
           details: {
@@ -114,6 +114,7 @@ module V2::Logic
 
       def one_liner
         return if secret_value.to_s.empty? # return nil when the value is empty
+
         secret_value.to_s.scan(/\n/).size.zero?
       end
     end

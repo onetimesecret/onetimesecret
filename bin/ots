@@ -53,7 +53,6 @@ class OT::CLI::Definition
     # IRB.conf[:MAIN_CONTEXT] = irb.context
     # irb.eval_input
 
-
     # require 'onetime/console'
     # Your custom prompt and configuration is already set up above
 
@@ -134,7 +133,6 @@ class OT::CLI::Definition
   about 'Use global --verbose for full configuration details'
   option :t, :types, 'Show types for each configuration key'
   command config: OT::ConfigCommand
-
 end
 
 begin

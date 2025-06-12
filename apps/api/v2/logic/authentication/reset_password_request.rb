@@ -7,6 +7,7 @@ module V2::Logic
     class ResetPasswordRequest < V2::Logic::Base
       attr_reader :custid
       attr_accessor :token
+
       def process_params
         @custid = params[:u].to_s.downcase
       end
@@ -41,7 +42,6 @@ module V2::Logic
 
         begin
           view.deliver_email self.token
-
         rescue StandardError => ex
           errmsg = "Couldn't send the notification email. Let know below."
           OT.le "Error sending password reset email: #{ex.message}"
@@ -50,7 +50,6 @@ module V2::Logic
           OT.info "Password reset email sent to #{@custid} for sess=#{sess.short_identifier}"
           sess.set_success_message "We sent instructions to #{cust.custid}"
         end
-
       end
 
       def success_data

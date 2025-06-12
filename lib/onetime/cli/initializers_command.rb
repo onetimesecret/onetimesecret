@@ -4,7 +4,6 @@
 # to avoid the automatic boot process
 module Onetime
   class InitializersCommand < Drydock::Command
-
     def initializers
       # Load only what we need without booting
       require_relative '../initializers'
@@ -22,7 +21,6 @@ module Onetime
         else
           display_simple_list(execution_info)
         end
-
       rescue => ex
         puts "❌ Error loading initializers: #{ex.message}"
         puts '   This command requires the initializers to be loadable'

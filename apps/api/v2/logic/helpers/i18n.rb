@@ -3,7 +3,6 @@
 module V2
   module Logic
     module I18nHelpers
-
       # Retrieves and caches localized content for the current locale with fallback behavior.
       #
       # This implementation uses per-locale caching to prevent state conflicts when
@@ -44,7 +43,6 @@ module V2
 
         result
       end
-
     end
   end
 end

@@ -6,7 +6,6 @@ module Onetime
     attr_accessor :d9s_enabled
 
     def setup_diagnostics
-
       OT.d9s_enabled = conf[:diagnostics][:enabled] || false
       return unless OT.d9s_enabled
 
@@ -33,6 +32,7 @@ module Onetime
 
       # Only proceed if we have valid configuration
       return unless OT.d9s_enabled
+
       # Safely log first part of DSN for debugging
       dsn_preview = dsn ? "#{dsn[0..10]}..." : 'nil'
       OT.li "[sentry-init] Initializing with DSN: #{dsn_preview}"
@@ -74,7 +74,6 @@ module Onetime
       end
 
       OT.ld "[sentry-init] Status: #{Sentry.initialized? ? 'OK' : 'Failed'}"
-
     end
   end
 end

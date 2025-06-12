@@ -48,6 +48,7 @@ module Onetime
         return yield(key) if block_given?
         return args.first if args.length > 0
         return nil if args == [nil]  # Handle explicit nil default
+
         raise KeyError, "key not found: #{key.inspect}"
       end
 
@@ -68,6 +69,7 @@ module Onetime
       def dig(key, *rest)
         value = fetch(key, nil)  # Explicitly pass nil as default
         return value if rest.empty? || value.nil?
+
         value.respond_to?(:dig) ? value.dig(*rest) : nil
       end
     end

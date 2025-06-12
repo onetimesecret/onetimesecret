@@ -323,6 +323,5 @@ module Onetime
         response
       end
     end
-
   end
 end

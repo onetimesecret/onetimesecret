@@ -3,10 +3,10 @@ require 'onetime/refinements/stripe_refinements'
 
 module V2::Logic
   module Account
-
     class GetAccount < V2::Logic::Base
       attr_accessor :plans_enabled
       attr_reader :stripe_subscription, :stripe_customer
+
       using Onetime::StripeRefinements
 
       def process_params
@@ -20,8 +20,8 @@ module V2::Logic
       end
 
       def process
-
         return unless plans_enabled
+
         @stripe_customer = cust.get_stripe_customer
         @stripe_subscription = cust.get_stripe_subscription
 
@@ -49,7 +49,6 @@ module V2::Logic
         end
 
         cust.save
-
       end
 
       def show_stripe_section?
@@ -58,6 +57,7 @@ module V2::Logic
 
       def safe_stripe_customer_dump
         return nil if stripe_customer.nil?
+
         object_id = stripe_customer&.id
         {
           id: object_id,
@@ -75,6 +75,7 @@ module V2::Logic
       def safe_stripe_subscription_dump
         # https://docs.stripe.com/api/subscriptions/retrieve?lang=ruby&api-version=2025-03-31.basil
         return nil if stripe_subscription.nil?
+
         object_id = stripe_subscription&.id
         item_data = stripe_subscription.items.data.first
         {
@@ -116,6 +117,5 @@ module V2::Logic
         ret
       end
     end
-
   end
 end

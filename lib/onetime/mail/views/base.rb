@@ -6,7 +6,6 @@ require_relative 'view_helpers'
 module Onetime
   module Mail
     module Views
-
       class Base < Chimera
         include Mail::ViewHelpers
 
@@ -129,14 +128,12 @@ module Onetime
             unless token
               emailer.send_email self[:email_address], subject, render_html, render_text
             end
-
           rescue SocketError => ex
           internal_emsg = "Cannot send mail: #{ex.message}\n#{ex.backtrace}"
           OT.le internal_emsg
 
           V2::EmailReceipt.create self[:cust].identifier, message_identifier, internal_emsg
           raise OT::Problem, errmsg
-
           rescue Exception => ex
             internal_emsg = "Cannot send mail: #{ex.message}\n#{ex.backtrace}"
             OT.le internal_emsg
@@ -194,9 +191,7 @@ module Onetime
           host = Onetime.conf[:site][:host]
           [scheme, host].join
         end
-
       end
-
     end
   end
 end

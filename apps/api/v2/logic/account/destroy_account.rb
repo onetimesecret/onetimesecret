@@ -2,12 +2,12 @@
 
 module V2::Logic
   module Account
-
     class DestroyAccount < V2::Logic::Base
       attr_reader :raised_concerns_was_called, :greenlighted
 
       def process_params
         return if params.nil?
+
         OT.ld "[DestroyAccount#process_params] params: #{params.inspect}"
         @confirmation = self.class.normalize_password(params[:confirmation])
       end
@@ -40,6 +40,7 @@ module V2::Logic
         end
 
         return unless cust.passphrase?(@confirmation)
+
         # All criteria to destroy the account have been met.
         @greenlighted = true
 
@@ -74,8 +75,6 @@ module V2::Logic
         # (i.e. the homepage), they'll see it and remember what they did.
         sess.replace!
         sess.set_info_message 'Account deleted'
-
-
       end
 
       def modified?(guess)
@@ -85,8 +84,6 @@ module V2::Logic
       def success_data
         { custid: @cust.custid }
       end
-
     end
-
   end
 end

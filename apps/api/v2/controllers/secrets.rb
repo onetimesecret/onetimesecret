@@ -64,7 +64,6 @@ module V2
         retrieve_records(V2::Logic::Secrets::ShowSecretStatus, allow_anonymous: true)
       end
 
-
       def list_secret_status
         retrieve_records(V2::Logic::Secrets::ListSecretStatus, allow_anonymous: true)
       end
@@ -76,7 +75,6 @@ module V2
       def list_metadata
         retrieve_records(V2::Logic::Secrets::ListMetadata)
       end
-
     end
   end
 end

@@ -2,7 +2,6 @@
 require 'json'
 
 module Onetime
-
   # The Problem class inherits from RuntimeError, which is a subclass of StandardError.
   # Both RuntimeError and StandardError are standard exception classes in Ruby, but
   # RuntimeError is used for errors that are typically caused by the program's logic
@@ -97,9 +96,9 @@ module Onetime
 
   class Redirect < RuntimeError
     attr_reader :location, :status
+
     def initialize(l, s = 302)
       @location, @status = l, s
     end
   end
-
 end

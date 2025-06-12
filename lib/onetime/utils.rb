@@ -42,8 +42,10 @@ module Onetime
     def random_fortune
       raise OT::Problem, 'No fortunes' if fortunes.nil?
       raise OT::Problem, "#{fortunes.class} is not an Array" unless fortunes.is_a?(Array)
+
       fortune = fortunes.sample.to_s.strip
       raise OT::Problem, 'No fortune found' if fortune.empty?
+
       fortune
     rescue OT::Problem => ex
       OT.le "#{ex.message}"
@@ -366,6 +368,5 @@ module Onetime
       end
       result
     end
-
   end
 end

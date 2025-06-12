@@ -199,6 +199,7 @@ module V2
     # Try to decrypt using each fallback secret
     def try_fallback_secrets(encrypted_value, opts)
       return nil unless has_fallback_secrets?
+
       rotated_secrets = OT.conf[:experimental].fetch(:rotated_secrets, [])
       OT.ld "[try_fallback_secrets] m:#{metadata_key} s:#{key} Trying rotated secrets (#{rotated_secrets.length})"
       rotated_secrets.each_with_index do |fallback_secret, index|
@@ -280,6 +281,7 @@ module V2
     def viewed!
       # A guard to prevent regressing (e.g. from :burned back to :viewed)
       return unless state?(:new)
+
       # The secret link has been accessed but the secret has not been consumed yet
       @state = 'viewed'
       # NOTE: calling save re-creates all fields so if you're relying on
@@ -291,6 +293,7 @@ module V2
       # A guard to allow only a fresh, new secret to be received. Also ensures that
       # we don't support going from :viewed back to something else.
       return unless state?(:new) || state?(:viewed)
+
       md = load_metadata
       md.received! unless md.nil?
       # It's important for the state to change here, even though we're about to
@@ -317,6 +320,7 @@ module V2
       # A guard to allow only a fresh, new secret to be burned. Also ensures that
       # we don't support going from :burned back to something else.
       return unless state?(:new) || state?(:viewed)
+
       md = load_metadata
       md.burned! unless md.nil?
       @passphrase_temp = nil
@@ -324,7 +328,6 @@ module V2
     end
 
     class << self
-
       def spawn_pair(custid, token = nil)
         secret = V2::Secret.create(custid: custid, token: token)
         metadata = V2::Metadata.create(custid: custid, token: token)

@@ -101,7 +101,6 @@ module Frontend
           dependencies.fetch(node, []).each(&)
         end
       end
-
     end
   end
 end

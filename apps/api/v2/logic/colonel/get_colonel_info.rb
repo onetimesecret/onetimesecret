@@ -59,6 +59,7 @@ module V2
         def process_customers
           @recent_customers = V2::Customer.recent.collect do |this_cust|
             next if this_cust.nil?
+
             {
               custid: this_cust.custid,
               planid: this_cust.planid,
@@ -128,7 +129,6 @@ module V2
             },
           }
         end
-
       end
     end
   end

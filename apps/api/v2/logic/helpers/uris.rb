@@ -56,7 +56,6 @@ module V2
       def local?
         LOCAL_HOSTS.member?(req.env['SERVER_NAME']) && (req.client_ipaddress == '127.0.0.1')
       end
-
     end
   end
 end

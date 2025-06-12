@@ -8,7 +8,6 @@
 module Frontend
   module Views
     module SanitizerHelpers
-
       # Normalizes values to prevent injection attacks and ensure consistent formatting.
       #
       # @param value [String, Array, Hash] The value to normalize
@@ -87,8 +86,6 @@ module Frontend
 
         content
       end
-
     end
-
   end
 end

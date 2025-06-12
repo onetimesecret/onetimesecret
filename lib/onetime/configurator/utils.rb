@@ -4,7 +4,6 @@ require 'json_schemer'
 
 module Onetime
   class Configurator
-
     unless defined?(KNOWN_PATHS)
       KNOWN_PATHS = %w[/etc/onetime ./etc ~/.onetime].freeze
 
@@ -134,6 +133,7 @@ module Onetime
           result = {}
           config.each do |key, value|
             next if [:defaults, 'defaults'].include?(key)
+
             # Normalize the value to string keys using deep_merge with empty hash
             result[key.to_s] = value.is_a?(Hash) ? OT::Utils.deep_merge({}, value) : value
           end
@@ -150,11 +150,6 @@ module Onetime
           result[section.to_s] = OT::Utils.deep_merge(defaults, values)
         end
       end
-
-
-
     end
-
-
   end
 end

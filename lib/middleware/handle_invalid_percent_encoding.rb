@@ -3,7 +3,6 @@ require 'json'
 require 'logger'
 require 'rack'
 
-
 # Rack::HandleInvalidPercentEncoding
 #
 # This middleware addresses the challenge of handling malformed percent-encoded
@@ -59,13 +58,11 @@ class Rack::HandleInvalidPercentEncoding
       # See https://github.com/rack/rack/issues/337#issuecomment-46453404
       #
       request.params
-
     rescue ArgumentError => ex
       raise ex unless ex.message =~ /invalid %-encoding/
 
       handle_exception(env, ex)
     else
-
       @app.call(env)
     end
   end
@@ -78,6 +75,7 @@ class Rack::HandleInvalidPercentEncoding
   def check_enabled?(app)
     return true if @check_enabled
     return false unless defined?(Otto) && app.is_a?(Otto)
+
     name, route = app.route_definitions.first
     setting_enabled = route.klass.respond_to?(:check_uri_encoding) && route.klass.check_uri_encoding
     logger.debug "[handle-invalid-uri-encoding] #{name} has settings: #{has_settings}, enabled: #{setting_enabled}"

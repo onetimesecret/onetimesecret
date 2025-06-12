@@ -99,6 +99,7 @@ module V2
       if self.class.exceeded?(event, count)
         raise Onetime::LimitExceeded.new(external_identifier, event, count)
       end
+
       count
     end
 
@@ -114,7 +115,6 @@ module V2
     end
 
     module ClassMethods
-
       def load(identifier, event)
         new(identifier, event)
       end

@@ -5,7 +5,6 @@ require 'json'
 
 module Onetime
   module Initializers
-
     # Prints a formatted banner with system and configuration information at startup.
     # The banner is organized into logical sections, each rendered as a table.
     #
@@ -134,6 +133,7 @@ module Onetime
       # Domains and regions
       [:domains, :regions].each do |key|
         next unless site_config.key?(key)
+
         config = site_config[key]
         if is_feature_disabled?(config)
           feature_rows << [key.to_s.capitalize, 'disabled']
@@ -220,6 +220,7 @@ module Onetime
           # Handle nested ui and api configs under interface
           [:ui, :api].each do |key|
             next unless interface_config.key?(key)
+
             sub_config = interface_config[key]
             if is_feature_disabled?(sub_config)
               customization_rows << ["Interface > #{key.to_s.upcase}", 'disabled']
@@ -232,6 +233,7 @@ module Onetime
         # Fallback: check for standalone ui and api configs
         [:ui, :api].each do |key|
           next unless site_config.key?(key)
+
           config = site_config[key]
           if is_feature_disabled?(config)
             customization_rows << [key.to_s.upcase, 'disabled']
@@ -302,6 +304,5 @@ module Onetime
       # Return rendered table with an extra newline
       rendered + "\n"
     end
-
   end
 end

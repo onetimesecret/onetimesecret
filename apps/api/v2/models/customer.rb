@@ -142,9 +142,9 @@ module V2
     def get_stripe_customer_by_id(customer_id = nil)
       customer_id ||= stripe_customer_id
       return if customer_id.to_s.empty?
+
       OT.info "[Customer.get_stripe_customer_by_id] Fetching customer: #{customer_id} #{custid}"
       @stripe_customer = Stripe::Customer.retrieve(customer_id)
-
     rescue Stripe::StripeError => ex
       OT.le "[Customer.get_stripe_customer_by_id] Error: #{ex.message}"
       nil
@@ -162,7 +162,6 @@ module V2
       end
 
       @stripe_customer
-
     rescue Stripe::StripeError => ex
       OT.le "[Customer.get_stripe_customer_by_email] Error: #{ex.message}"
       nil
@@ -171,6 +170,7 @@ module V2
     def get_stripe_subscription_by_id(subscription_id = nil)
       subscription_id ||= stripe_subscription_id
       return if subscription_id.to_s.empty?
+
       OT.info "[Customer.get_stripe_subscription_by_id] Fetching subscription: #{subscription_id} #{custid}"
       @stripe_subscription = Stripe::Subscription.retrieve(subscription_id)
     rescue Stripe::StripeError => ex
@@ -185,7 +185,6 @@ module V2
 
       begin
         subscriptions = Stripe::Subscription.list(customer: stripe_customer.id, limit: 1)
-
       rescue Stripe::StripeError => ex
         OT.le "Error: #{ex.message}"
       else
@@ -212,6 +211,7 @@ module V2
       if anonymous?
         raise Onetime::Problem, 'Anonymous customer has no external identifier'
       end
+
       # Changing the type, order or value of the elements in this array will
       # change the external identifier. This is used to identify customers
       # primarily in logs and other external systems where the actual customer
@@ -261,6 +261,7 @@ module V2
 
     def reset_secret?(secret)
       return false if secret.nil? || !secret.exists? || secret.key.to_s.empty?
+
       Rack::Utils.secure_compare(self.reset_secret.to_s, secret.key)
     end
 
@@ -280,6 +281,7 @@ module V2
     # @return [V2::Session] The loaded or newly created session.
     def load_or_create_session(ip_address)
       raise Onetime::Problem, 'Customer is anonymous' if anonymous?
+
       @sess = V2::Session.load(sessid) unless sessid.to_s.empty?
       if @sess.nil?
         @sess = V2::Session.create(ip_address, custid)
@@ -372,6 +374,7 @@ module V2
     # anonymous customers from being persisted to the database.
     def save **kwargs
       raise Onetime::Problem, "Anonymous cannot be saved #{self.class} #{rediskey}" if anonymous?
+
       super(**kwargs)
     end
 
@@ -405,6 +408,7 @@ module V2
 
     module ClassMethods
       attr_reader :values
+
       def add(cust)
         self.values.add OT.now.to_i, cust.identifier
       end
@@ -425,6 +429,7 @@ module V2
       def create(custid, email = nil)
         raise Onetime::Problem, 'custid is required' if custid.to_s.empty?
         raise Onetime::Problem, 'Customer exists' if exists?(custid)
+
         cust = new custid: custid, email: email || custid, role: 'customer'
         cust.save
         add cust
@@ -438,13 +443,12 @@ module V2
 
       def increment_field(cust, field)
         return if cust.global?
+
         curval = cust.send(field)
         OT.info "[increment_field] cust.#{field} is #{curval} for #{cust}"
 
         cust.increment field
-
       rescue Redis::CommandError => ex
-
         # For whatever reason, redis throws an error when trying to
         # increment a non-existent hashkey field (rather than setting
         # it to 1): "ERR hash value is not an integer"

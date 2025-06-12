@@ -117,6 +117,7 @@ module V2
       allow_anonymous = false
       authorized(allow_anonymous) do
         raise OT::Unauthorized, 'No such customer' unless cust.role?(:colonel)
+
         yield
       end
     end
@@ -270,6 +271,5 @@ module V2
       res.status = 429 # Too Many Requests
       json hsh
     end
-
   end
 end

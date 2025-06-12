@@ -2,13 +2,11 @@
 
 module Frontend
   module Views
-
     # Serializes internationalization data for the frontend
     #
     # Responsible for providing locale configuration, available locales,
     # and other i18n-related settings to the frontend.
     module I18nSerializer
-
       # Serializes internationalization data from view variables
       #
       # @param view_vars [Hash] The view variables containing locale information

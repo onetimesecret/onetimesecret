@@ -184,6 +184,7 @@ module V2
       # A guard to allow only a fresh, new secret to be viewed. Also ensures
       # that we don't support going from viewed back to something else.
       return unless state?(:new)
+
       self.state = 'viewed'
       self.viewed = Time.now.utc.to_i
       # The nuance bewteen being "viewed" vs "received" or "burned" is
@@ -202,6 +203,7 @@ module V2
       # A guard to allow only a fresh secret to be received. Also ensures
       # that we don't support going from received back to something else.
       return unless state?(:new) || state?(:viewed)
+
       self.state = 'received'
       self.received = Time.now.utc.to_i
       self.secret_key = ''
@@ -217,6 +219,7 @@ module V2
       # cleared out the secret (and that probably have already set a reason).
       return if secret_key.to_s.empty?
       return unless state?(:new) || state?(:viewed) # only new or viewed secrets can be orphaned
+
       self.state = 'orphaned'
       self.updated = Time.now.utc.to_i
       self.secret_key = ''
@@ -226,6 +229,7 @@ module V2
     def burned!
       # See guard comment on `received!`
       return unless state?(:new) || state?(:viewed)
+
       self.state = 'burned'
       self.burned = Time.now.utc.to_i
       self.secret_key = ''
@@ -236,6 +240,7 @@ module V2
       # A guard to prevent prematurely expiring a secret. We only want to
       # expire secrets that are actually old enough to be expired.
       return unless secret_expired?
+
       self.state = 'expired'
       self.updated = Time.now.utc.to_i
       self.secret_key = ''

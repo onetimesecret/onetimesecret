@@ -15,6 +15,7 @@ module Onetime
         # Group customers by the domain portion of the email address
         grouped_customers = all_customers.group_by do |cust|
           next if cust.nil?
+
           email = cust.send(field).to_s
           domain = email.split('@')[1] || 'unknown'
           domain
@@ -32,6 +33,7 @@ module Onetime
 
         mismatched_customers = all_customers.select do |cust|
           next if cust.nil?
+
           custid_email = cust.custid.to_s
           email_field = cust.email.to_s
           custid_email != email_field

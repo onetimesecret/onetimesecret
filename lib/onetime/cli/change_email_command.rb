@@ -2,7 +2,6 @@
 
 module Onetime
   class ChangeEmailCommand < Drydock::Command
-
     # CLI command to view email change reports
     def change_email_log
       # Default limit is 10 reports, can be overridden with --limit or -n option

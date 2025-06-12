@@ -116,6 +116,7 @@ module Onetime
           # Apply each middleware if configured
           components.each do |name, config|
             next unless middleware_settings[config[:key]]
+
             Onetime.ld "[Security] Enabling #{name} protection"
             if config[:options]
               use config[:klass], config[:options]

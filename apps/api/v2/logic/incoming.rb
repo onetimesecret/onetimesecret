@@ -5,7 +5,6 @@ require_relative 'base'
 module V2
   module Logic
     module Incoming
-
       class CreateIncoming < V2::Logic::Base
         attr_reader :passphrase, :secret_value, :ticketno
         attr_reader :metadata, :secret, :recipient, :ttl
@@ -63,7 +62,6 @@ module V2
           end
         end
       end
-
     end
   end
 end

@@ -1,6 +1,5 @@
 
 module Frontend
-
   unless defined?(Frontend::BADAGENTS)
     BADAGENTS = [:facebook, :google, :yahoo, :bing, :stella, :baidu, :bot, :curl, :wget]
     LOCAL_HOSTS = ['localhost', '127.0.0.1'].freeze  # TODO: Add config
@@ -8,7 +7,6 @@ module Frontend
   end
 
   module ControllerHelpers
-
     def plan
       @plan = Onetime::Plan.plan(cust.planid) unless cust.nil?
       @plan ||= Onetime::Plan.plan('anonymous')
@@ -51,15 +49,12 @@ module Frontend
       end
 
       return_value
-
     rescue OT::Redirect => ex
       OT.info "[carefully] Redirecting to #{ex.location} (#{ex.status})"
       res.redirect ex.location, ex.status
-
     rescue OT::Unauthorized => ex
       OT.info ex.message
       not_authorized_error
-
     rescue OT::BadShrimp => ex
       # If it's a json response, no need to set an error message on the session
       if res.header['Content-Type'] == 'application/json'
@@ -68,7 +63,6 @@ module Frontend
         sess.set_error_message 'Please go back, refresh the page, and try again.'
         res.redirect redirect
       end
-
     rescue OT::FormError => ex
       OT.ld "[carefully] FormError: #{ex.message} (#{req.path}) redirect:#{redirect || 'n/a'}"
 
@@ -89,11 +83,9 @@ module Frontend
     #       end up with a generic error message instead of the specific one.
     rescue OT::MissingSecret => ex
       secret_not_found_response
-
     rescue OT::RecordNotFound => ex
       OT.ld "[carefully] RecordNotFound: #{ex.message} (#{req.path}) redirect:#{redirect || 'n/a'}"
       not_found_response ex.message, shrimp: sess.add_shrimp
-
     rescue OT::LimitExceeded => ex
       msg = "#{ex.event}(#{ex.count}) #{sess.identifier.shorten(10)}"
       OT.le "[limit-exceeded] #{obscured} (#{sess.ipaddress}): #{msg} (#{req.current_absolute_uri})"
@@ -102,7 +94,6 @@ module Frontend
       capture_message "#{ex.message}: #{msg}", :warning
 
       throttle_response 'Cripes! You have been rate limited.'
-
     rescue Familia::HighRiskFactor => ex
       OT.le "[attempt-saving-non-string-to-redis] #{obscured} (#{sess.ipaddress}): #{sess.identifier.shorten(10)} (#{req.current_absolute_uri})"
 
@@ -111,7 +102,6 @@ module Frontend
 
       # Include fresh shrimp so they can try again 🦐
       error_response "We're sorry, but we can't process your request at this time.", shrimp: sess.add_shrimp
-
     rescue Familia::NotConnected, Familia::Problem => ex
       OT.le "#{ex.class}: #{ex.message}"
       OT.le ex.backtrace
@@ -121,7 +111,6 @@ module Frontend
 
       # Include fresh shrimp so they can try again 🦐
       error_response 'An error occurred :[', shrimp: sess ? sess.add_shrimp : nil
-
     rescue Errno::ECONNREFUSED => ex
       OT.le ex.message
       OT.le ex.backtrace
@@ -130,7 +119,6 @@ module Frontend
       capture_error ex, :fatal
 
       error_response "We'll be back shortly!", shrimp: sess ? sess.add_shrimp : nil
-
     rescue StandardError => ex
       custid = cust&.custid || '<notset>'
       sessid = sess&.short_identifier || '<notset>'
@@ -141,7 +129,6 @@ module Frontend
       capture_error ex
 
       error_response 'An unexpected error occurred :[', shrimp: sess ? sess.add_shrimp : nil
-
     ensure
       @sess ||= V2::Session.new 'failover', 'anon'
       @cust ||= V2::Customer.anonymous
@@ -196,6 +183,7 @@ module Frontend
     # a successful validation occurs.
     def check_shrimp!(_replace = true)
       return if @check_shrimp_ran
+
       @check_shrimp_ran = true
       return unless req.post? || req.put? || req.delete? || req.patch?
 
@@ -239,6 +227,7 @@ module Frontend
 
     def check_session!
       return if @check_session_ran
+
       @check_session_ran = true
 
       # Load from redis or create the session
@@ -384,6 +373,7 @@ module Frontend
 
     def log_customer_activity
       return if cust.anonymous?
+
       reqstr = stringify_request_details(req)
       custref = cust.obscure_email
       OT.info "[carefully] #{sess.short_identifier} #{custref} at #{reqstr}"
@@ -441,13 +431,12 @@ module Frontend
         Sentry.capture_exception(error, level: level, &)
       rescue NoMethodError => ex
         raise unless ex.message.include?('start_with?')
+
         OT.le "[capture_error] Sentry error with nil value in start_with? check: #{ex.message}"
         OT.ld ex.backtrace.join("\n")
       # Continue execution - don't let a Sentry error break the app
 
       # Re-raise any other NoMethodError that isn't related to start_with?
-
-
       rescue StandardError => ex
         OT.le "[capture_error] #{ex.class}: #{ex.message}"
         OT.ld ex.backtrace.join("\n")
@@ -456,6 +445,7 @@ module Frontend
 
     def capture_message(message, level = :log, &)
       return unless OT.d9s_enabled # diagnostics are disabled by default
+
       Sentry.capture_message(message, level: level, &)
     rescue StandardError => ex
       OT.le "[capture_message] #{ex.class}: #{ex.message}"
@@ -551,6 +541,5 @@ module Frontend
       paths.unshift req.script_name
       paths.join('/').gsub '//', '/'
     end
-
   end
 end

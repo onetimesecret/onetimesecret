@@ -23,12 +23,12 @@ module V2::Logic
 
       def process
         return unless valid_update?
+
         @greenlighted = true
         log_update
         # TODO: Run in redis transaction
         perform_update
         @modified << field_name
-
       end
 
       def modified?(field_name)

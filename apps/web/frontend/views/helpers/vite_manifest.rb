@@ -9,7 +9,6 @@ module Frontend
     # complexities of CSS bundling and font preloading.
     #
     module ViteManifest
-
       # Generates HTML tags for all required Vite assets.
       #
       # @param nonce [String, nil] Content Security Policy nonce
@@ -67,6 +66,7 @@ module Frontend
       # @return [String, nil] HTML link tag or nil if file is nil
       def build_css_tag(file, nonce)
         return unless file
+
         %(    <link rel="stylesheet" nonce="#{nonce}" href="/dist/#{file}">)
       end
 

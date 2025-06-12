@@ -14,7 +14,6 @@ require_relative 'configurator/utils'
 require 'onetime/refinements/hash_refinements'
 
 module Onetime
-
   # Configuration loader using two-stage validation pattern:
   # 1. Schema validation (declarative) - structure + defaults
   # 2. Business processing (imperative) - compatibility, auth, etc.
@@ -190,6 +189,7 @@ module Onetime
       unless config.is_a?(Hash) && schema.is_a?(Hash)
         raise ArgumentError, 'Invalid configuration format'
       end
+
       # loggable_config = OT::Utils.type_structure(config)
       # OT.ld "[config] Validating #{loggable_config.size} #{schema.size}"
       OT::Configurator::Utils.validate_with_schema(config, schema, **)

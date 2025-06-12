@@ -29,6 +29,7 @@ module IndifferentHashAccess
   refine Hash do
     def [](key)
       return super(key) unless key.is_a?(String) || key.is_a?(Symbol)
+
       super(key.to_s) || super(key.to_sym)
     end
 
@@ -53,7 +54,6 @@ module IndifferentHashAccess
         super(key, ...)  # Let original method handle default/block
       end
     end
-
 
     def dig(key, *rest)
       value = self[key]  # Uses the flexible [] method

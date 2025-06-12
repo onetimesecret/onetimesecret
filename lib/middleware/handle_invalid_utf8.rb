@@ -60,16 +60,15 @@ class Rack::HandleInvalidUTF8
     shallow_copy = env.dup
     self.class.input_sources.each do |key|
       next unless shallow_copy.key?(key)
+
       check_and_raise_for_invalid_utf8(shallow_copy[key], key)
     end
-
   rescue Encoding::InvalidByteSequenceError,
          Encoding::CompatibilityError,
          Encoding::UndefinedConversionError => ex
 
     handle_exception(env, ex)
   else
-
     @app.call(env)
   end
 
@@ -83,6 +82,7 @@ class Rack::HandleInvalidUTF8
   def check_enabled?(app)
     return true if @check_enabled
     return false unless defined?(Otto) && app.is_a?(Otto)
+
     name, route = app.route_definitions.first
     setting_enabled = route.klass.respond_to?(:check_utf8) && route.klass.check_utf8
     logger.debug "[handle-invalid-utf8] #{name} has settings: #{has_settings}, enabled: #{setting_enabled}"
@@ -120,6 +120,7 @@ class Rack::HandleInvalidUTF8
 
     testcase.force_encoding('UTF-8')
     return if testcase.valid_encoding?
+
     raise self.class.default_exception, "Invalid UTF-8 detected in env['#{key}']"
   end
 

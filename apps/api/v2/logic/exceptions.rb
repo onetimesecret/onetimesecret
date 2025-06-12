@@ -5,7 +5,6 @@ require_relative 'base'
 module V2::Logic
   # Handles incoming exception reports similar to Sentry's basic functionality
   class ReceiveException < V2::Logic::Base
-
     attr_reader :exception_data, :environment, :release, :greenlighted, :exception, :exception_key
 
     def process_params
@@ -57,7 +56,6 @@ module V2::Logic
       @exception_key = exception.identifier
     end
 
-
     def success_data
       {
         success: greenlighted,
@@ -67,6 +65,5 @@ module V2::Logic
         },
       }
     end
-
   end
 end

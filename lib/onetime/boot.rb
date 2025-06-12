@@ -11,7 +11,6 @@ module Onetime
   @debug = nil
 
   class << self
-
     attr_accessor :mode, :d9s_enabled
     attr_reader :configurator
     attr_writer :debug, :env, :global_secret
@@ -171,7 +170,6 @@ module Onetime
       # we continue with reduced functionality.
       raise error unless mode?(:cli) || mode?(:test)
     end
-
   end
 end
 

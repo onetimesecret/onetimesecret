@@ -1,6 +1,5 @@
 require 'logger'
 
-
 module V2
   class ExceptionInfo < Familia::Horreum
     include Gibbler::Complex
@@ -64,6 +63,7 @@ module V2
       # Location info
       { location: lambda { |obj|
         return unless obj.url
+
         uri = URI.parse(obj.url)
         {
           path: uri.path,
@@ -94,13 +94,13 @@ module V2
     # Familia::Horreum uses key internally.
     def generate_id
       return @generate_id if defined?(@generate_id)
+
       @key = Familia.generate_id.slice(0, 31)
       @generate_id = @key
     end
 
     # Query methods for exception data
     module ClassMethods
-
       def add(fobj)
         created_time = OT.now.to_i
         identifier = fobj.identifier

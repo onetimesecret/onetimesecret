@@ -2,7 +2,6 @@
 
 module V2
   module Mixins
-
     module RateLimited
       def event_incr!(event)
         # Uses the external identifier of the implementing class to keep
@@ -23,6 +22,5 @@ module V2
         raise RuntimeError, "TODO: Implement #{self.class}.external_identifier"
       end
     end
-
   end
 end

@@ -41,6 +41,5 @@ module V2
 
       router
     end
-
   end
 end

@@ -35,6 +35,5 @@ module Frontend
 
       router
     end
-
   end
 end

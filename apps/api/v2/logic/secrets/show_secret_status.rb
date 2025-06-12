@@ -2,7 +2,6 @@
 
 module V2::Logic
   module Secrets
-
     class ShowSecretStatus < V2::Logic::Base
       attr_reader :key, :realttl
       attr_reader :secret, :verification
@@ -29,8 +28,6 @@ module V2::Logic
 
         ret
       end
-
     end
-
   end
 end

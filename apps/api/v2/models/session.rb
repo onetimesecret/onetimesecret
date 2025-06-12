@@ -93,6 +93,7 @@ module V2
   # data between users.
   def external_identifier
     return @external_identifier if @external_identifier
+
     elements = []
     elements << ipaddress || 'UNKNOWNIP'
     elements << custid || 'anon'
@@ -172,6 +173,7 @@ module V2
 
   def load_customer
     return V2::Customer.anonymous if anonymous?
+
     cust = V2::Customer.load custid
     cust.nil? ? V2::Customer.anonymous : cust
   end

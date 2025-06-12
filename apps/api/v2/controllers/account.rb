@@ -46,7 +46,6 @@ module V2
           'Account could not be destroyed.',
         )
       end
-
     end
   end
 end

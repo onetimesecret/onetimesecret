@@ -3,7 +3,6 @@ require_relative '../base'
 
 module V2::Logic
   module Domains
-
     # Get an image from a custom domain
     #
     # Unlike the v2 API image endpoints, this endpoint uses 2 parameters:
@@ -68,6 +67,5 @@ module V2::Logic
       end
       private :_image_field
     end
-
   end
 end

@@ -5,6 +5,7 @@ module Onetime
     def domains
       puts '%d custom domains' % V2::CustomDomain.values.size
       return unless option.list
+
       literally_all_domain_ids = V2::CustomDomain.values.all
       all_domains = literally_all_domain_ids.map do |did|
         V2::CustomDomain.from_identifier(did)
@@ -27,7 +28,6 @@ module Onetime
           puts format('%4d  %s (%s)', domains.size, display_domain, rediskeys_display)
         end
       end
-
     end
 
     def revalidate_domains

@@ -34,5 +34,4 @@ module Frontend
       end
     end
   end
-
 end

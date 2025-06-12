@@ -4,7 +4,6 @@ require_relative 'helpers'
 require 'v2/controllers/class_settings'
 
 module Frontend
-
   module Controllers
     module Base
       include Frontend::ControllerHelpers
@@ -67,11 +66,13 @@ module Frontend
 
       def check_referrer!
         return if @check_referrer_ran
+
         @check_referrer_ran = true
         unless req.referrer.nil?
           OT.ld("[check-referrer] #{req.referrer} (#{req.referrer.class}) - #{req.path}")
         end
         return if req.referrer.nil? || req.referrer.match(Onetime.conf[:site][:host])
+
         sess.referrer ||= req.referrer
 
         # Don't allow a pesky error here from preventing the

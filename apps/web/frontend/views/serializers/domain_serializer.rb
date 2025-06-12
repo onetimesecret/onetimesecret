@@ -4,13 +4,11 @@ require 'onetime/middleware/domain_strategy'
 
 module Frontend
   module Views
-
     # Serializes domain-related information for the frontend
     #
     # Handles custom domains, domain strategies, and domain branding
     # transformations for frontend consumption.
     module DomainSerializer
-
       # Serializes domain data from view variables
       #
       # Transforms domain strategy, custom domains, and domain branding

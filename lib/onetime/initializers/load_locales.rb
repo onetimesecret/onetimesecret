@@ -63,11 +63,11 @@ module Onetime
       # That way, at least the default language will display.
       locales_defs.each do |key, locale|
         next if OT.default_locale == key
+
         locales_defs[key] = OT::Utils.deep_merge(default_locale_def, locale)
       end
 
       @locales = locales_defs || {}
-
     end
   end
 end

@@ -9,7 +9,6 @@ require_relative 'base_mailer'
 module Onetime::Mail
   module Mailer
     class SMTPMailer < BaseMailer
-
       using IndifferentHashAccess
 
       def send_email(to_address, subject, html_content, text_content) # rubocop:disable Metrics/MethodLength
@@ -59,11 +58,9 @@ module Onetime::Mail
               body         text_content
             end
           end
-
         rescue Net::SMTPFatalError => ex
           OT.le "> [send-exception-smtperror] #{ex.message} [to: #{obscured_address}]"
           OT.ld "#{ex.class} #{ex.message}\n#{ex.backtrace}"
-
         rescue => ex
           OT.le "> [send-exception-sending] #{ex.class} #{ex.message} [to: #{obscured_address}]"
           OT.ld ex.backtrace
@@ -109,8 +106,6 @@ module Onetime::Mail
       def self.clear
         # No instance variables to clear, so this is intentionally a nullop.
       end
-
     end
-
   end
 end

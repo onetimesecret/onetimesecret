@@ -70,6 +70,7 @@ module V2::Logic
         # Step 2: Update remaining values
         brand_settings.each do |key, value| # rubocop:disable Style/CombinableLoops
           next if value.nil?
+
           OT.ld "[UpdateDomainBrand] Updating brand setting: #{key} => #{value} (#{value.class})"
           custom_domain.brand[key.to_s] = value.to_s # everything in redis is a string
         end
@@ -143,7 +144,6 @@ module V2::Logic
           raise_form_error 'Invalid corner style - must be one of: rounded, square, pill'
         end
       end
-
 
       # Validate color format (hex code)
       def valid_color?(color)

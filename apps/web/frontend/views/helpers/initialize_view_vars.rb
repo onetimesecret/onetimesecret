@@ -2,8 +2,6 @@
 
 module Frontend
   module Views
-
-
     # InitializeViewVars
     #
     # This module is meant to be extended and not included. That's why

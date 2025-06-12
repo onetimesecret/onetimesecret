@@ -5,7 +5,6 @@ require_relative 'base'
 
 module V2
   module Logic
-
     class ReceiveFeedback < V2::Logic::Base
       attr_reader :msg, :authenticity_payload, :verified, :verification_data, :greenlighted, :tz, :version
 
@@ -59,11 +58,11 @@ module V2
             OT.ld "Colonel: #{colonel_email}"
             first_colonel = V2::Customer.find colonel_email
             next unless first_colonel
+
             OT.ld "[receive_feedback] Sending feedback to colonel: #{colonel_email} #{first_colonel}"
             send_feedback first_colonel, msg
             break
           end
-
         rescue StandardError => ex
           # We liberally rescue all StandError exceptions here because we don't
           # want to fail the user's feedback submission if we can't send an email.
@@ -104,7 +103,6 @@ module V2
 
         begin
           view.deliver_email
-
         rescue StandardError => ex
           OT.le "Error sending feedback email: #{ex.message}", ex.backtrace
           # No need to notify the user of this error. The message is still
@@ -112,6 +110,5 @@ module V2
         end
       end
     end
-
   end
 end

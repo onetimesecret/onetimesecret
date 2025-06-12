@@ -4,7 +4,6 @@ require_relative '../refinements/horreum_refinements'
 
 module Onetime
   module Initializers
-
     using Familia::HorreumRefinements
 
     # Connects each model to its configured Redis database.

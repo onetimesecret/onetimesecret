@@ -32,7 +32,6 @@ module Onetime
         # Create initial system settings from current YAML configuration
         create_initial_system_settings
       end
-
     rescue Redis::CannotConnectError => ex
       OT.lw "Cannot connect to Redis for system settings setup: #{ex.message}"
       OT.lw 'Falling back to YAML configuration only'
@@ -73,15 +72,11 @@ module Onetime
     # Applies system settings on top of the main configuration, where the colonel
     # config overrides the main configuration.
     def apply_system_settings(system_settings)
-
-
       onetime_config_data = system_settings.to_onetime_config
 
       # Makes a deep copy of OT.conf, then merges the system settings data, and
       # replaces OT.config with the merged data.
       Onetime.apply_config(onetime_config_data)
-
     end
-
   end
 end

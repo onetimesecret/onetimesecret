@@ -5,7 +5,6 @@ require 'onetime/refinements/hash_refinements'
 
 module V2
   module Mixins
-
     # Provides session-based messaging and form state persistence functionality
     #
     # @example Basic usage
@@ -30,7 +29,6 @@ module V2
     #   as `messages` array of objects.
     # - 20 minute TTL on message persistence
     module SessionMessages
-
       using IndifferentHashAccess
 
       def self.included(base)
@@ -59,6 +57,7 @@ module V2
       def get_form_fields!
         fields_json = self.form_fields
         return if fields_json.to_s.empty?
+
         ret = JSON.parse(fields_json)
         self.remove :form_fields
         ret
@@ -82,6 +81,7 @@ module V2
       def get_messages
         messages.to_a.filter_map do |message|
           next if message.to_s.empty?
+
           JSON.parse(message, symbolize_names: true)
         rescue JSON::ParserError => ex
           OT.le "Error parsing JSON message: #{ex.message}"
@@ -121,8 +121,6 @@ module V2
         {type: type, content: msg}.to_json
       end
       private :_json
-
     end
   end
-
 end

@@ -74,6 +74,7 @@ module V2::Logic
       end
 
       private
+
       def form_fields
         {custid: custid}
       end

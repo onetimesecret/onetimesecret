@@ -54,7 +54,6 @@ module V2
 
         begin
           validator = Truemail.validate(guess)
-
         rescue StandardError => ex
           OT.le "Email validation error: #{ex.message}"
           OT.le ex.backtrace
@@ -107,6 +106,7 @@ module V2
         OT.ld "[limit_action] #{event} (disable:#{disable_for_paid};sess:#{sess.class})" if OT.debug?
         return if disable_for_paid
         raise OT::Problem, 'No session to limit' unless sess
+
         sess.event_incr! event
       end
 
@@ -131,7 +131,6 @@ module V2
 
       begin
         view.deliver_email token
-
       rescue StandardError => ex
         errmsg = "Couldn't send the verification email. Let us know below."
         OT.le "Error sending verification email: #{ex.message}", ex.backtrace

@@ -2,7 +2,6 @@
 
 module V2
   module Mixins
-
     module Passphrase
       def self.included(base)
         base.field :passphrase
@@ -43,9 +42,7 @@ module V2
         end
       end
     end
-
   end
-
 end
 
 __END__

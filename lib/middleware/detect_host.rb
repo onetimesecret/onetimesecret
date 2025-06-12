@@ -1,5 +1,4 @@
 module Rack
-
   require 'ipaddr'
 
   # Middleware to accurately detect the client's host in a Rack application.
@@ -183,6 +182,7 @@ module Rack
         host_with_port = value_unsafe.to_s.split(',').first.to_s
         host = host_with_port.split(':').first.to_s.strip.downcase
         return nil if host.empty?
+
         host
       end
 
@@ -196,6 +196,7 @@ module Rack
       def valid_domain_name?(host)
         return false if INVALID_HOSTS.include?(host)
         return false if valid_ip?(host)
+
         true
       end
 

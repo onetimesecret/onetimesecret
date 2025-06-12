@@ -4,11 +4,11 @@ require 'onetime/refinements/rack_refinements'
 
 module V2::Logic
   module Secrets
-
     class BaseSecretAction < V2::Logic::Base
       attr_reader :passphrase, :secret_value, :kind, :ttl, :recipient, :recipient_safe, :greenlighted
       attr_reader :metadata, :secret, :share_domain, :custom_domain, :payload
       attr_accessor :token
+
       using Onetime::RackRefinements
 
       # Process methods populate instance variables with the values. The
@@ -115,6 +115,7 @@ module V2::Logic
         r = Regexp.new(/\b[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}\b/)
         @recipient = payload[:recipient].collect { |email_address|
           next if email_address.to_s.empty?
+
           email_address.scan(r).uniq.first
         }.compact.uniq
         @recipient_safe = recipient.collect { |r| OT::Utils.obscure_email(r) }
@@ -126,7 +127,6 @@ module V2::Logic
       # most basic of checks, then whatever this is never had a whisker's
       # chance in a lion's den of being a custom domain anyway.
       def process_share_domain
-
         potential_domain = payload[:share_domain].to_s
         return if potential_domain.empty?
 
@@ -146,6 +146,7 @@ module V2::Logic
 
       def validate_recipient
         return if recipient.empty?
+
         raise_form_error 'An account is required to send emails.' if cust.anonymous?
         recipient.each do |recip|
           raise_form_error "Undeliverable email address: #{recip}" unless valid_email?(recip)
@@ -172,6 +173,7 @@ module V2::Logic
 
       def handle_passphrase
         return if passphrase.to_s.empty?
+
         secret.update_passphrase passphrase
         metadata.passphrase = secret.passphrase
       end
@@ -192,6 +194,7 @@ module V2::Logic
 
       def handle_success
         return raise_form_error 'Could not store your secret' unless greenlighted
+
         update_stats
         send_email_to_recipient
       end
@@ -207,6 +210,7 @@ module V2::Logic
 
       def send_email_to_recipient
         return if recipient.nil? || recipient.empty?
+
         klass = OT::Mail::SecretLink
         metadata.deliver_by_email cust, locale, secret, recipient.first, klass
       end
@@ -217,6 +221,7 @@ module V2::Logic
       # @return [String, nil] The domain to use for sharing
       def determine_share_domain
         return display_domain if custom_domain?
+
         share_domain
       end
 
@@ -258,6 +263,7 @@ module V2::Logic
       def validate_domain_permissions(domain_record)
         if custom_domain?
           return if domain_record.allow_public_homepage?
+
           raise_form_error "Public sharing disabled for domain: #{share_domain}"
         end
 

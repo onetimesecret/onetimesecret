@@ -5,6 +5,7 @@ module V2::Logic
   module Domains
     class RemoveDomain < V2::Logic::Base
       attr_reader :greenlighted, :domain_input, :display_domain
+
       def process_params
         @domain_input = params[:domain].to_s.strip
       end
@@ -36,6 +37,7 @@ module V2::Logic
         if api_key.to_s.empty?
           return OT.info '[RemoveDomain.delete_vhost] Approximated API key not set'
         end
+
         res = Onetime::Cluster::Approximated.delete_vhost(api_key, @display_domain)
         payload = res.parsed_response
         OT.info '[RemoveDomain.delete_vhost] %s' % payload

@@ -2,13 +2,11 @@
 
 module Frontend
   module Views
-
     # Serializes system-level information for the frontend
     #
     # Responsible for transforming application version, runtime information,
     # and security-related values for frontend consumption.
     module SystemSerializer
-
       # Serializes system data from view variables
       #
       # @param view_vars [Hash] The view variables containing system information

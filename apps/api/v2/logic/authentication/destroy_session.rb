@@ -5,10 +5,12 @@ module V2::Logic
     class DestroySession < V2::Logic::Base
       def process_params
       end
+
       def raise_concerns
         limit_action :destroy_session
         OT.info "[destroy-session] #{@custid} #{@sess.ipaddress}"
       end
+
       def process
         sess.destroy!
       end

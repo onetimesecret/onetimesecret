@@ -2,7 +2,6 @@
 
 module Onetime
   module Initializers
-
     def configure_domains
       is_enabled = conf.dig(:site, :domains, :enabled).to_s == 'true'
       return unless is_enabled
@@ -20,6 +19,5 @@ module Onetime
         raise OT::Problem.new, "No `site.domains.cluster` api key (#{klass.api_key})"
       end
     end
-
   end
 end

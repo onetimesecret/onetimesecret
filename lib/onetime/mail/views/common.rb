@@ -6,7 +6,6 @@ require_relative 'base'
 
 module Onetime
   module Mail
-
     class Welcome < Mail::Views::Base
       def init(secret)
         self[:secret] = secret
@@ -36,6 +35,7 @@ module Onetime
         self[:from] = OT.conf[:emailer][:from]
         self[:signature_link] = 'https://onetimesecret.com/'
       end
+
       def subject
         format(i18n[:email][:subject], self[:sender_email]) # e.g. "ABC" sent you a secret
       end
@@ -46,12 +46,14 @@ module Onetime
 
       def uri_path
         raise ArgumentError, 'Invalid secret key' unless self[:secret]&.key
+
         secret_uri self[:secret]
       end
     end
 
     class SupportMessage < Mail::Views::Base
       attr_reader :subject
+
       def init(from_name, subject)
         @subject = subject
         self[:custid] = cust.custid
@@ -71,9 +73,11 @@ module Onetime
         self[:secret] = secret
         self[:email_address] = cust.email
       end
+
       def subject
         'Reset your password (OnetimeSecret.com)'
       end
+
       def forgot_path
         '/forgot/%s' % self[:secret].key
       end
@@ -81,14 +85,17 @@ module Onetime
 
     class IncomingSupport < Mail::Views::Base
       attr_accessor :ticketno
+
       def init(secret, recipient)
         self[:secret] = secret
         self[:custid] = cust.custid
         self[:email_address] = recipient
       end
+
       def subject
         format(i18n[:email][:subject], self[:ticketno])
       end
+
       def verify_uri
         secret_uri self[:secret]
       end
@@ -98,9 +105,11 @@ module Onetime
       def init
         self[:email_address] = cust.email
       end
+
       def subject
         "This is a test email #{OT.now}"
       end
+
       def test_variable
         'test_value'
       end
@@ -108,9 +117,11 @@ module Onetime
 
     class FeedbackEmail < Mail::Views::Base
       attr_accessor :message, :display_domain, :domain_strategy
+
       def init
         self[:email_address] = cust.email
       end
+
       def subject
         stamp = OT.now.strftime('%b %d, %Y') # in UTC
         "Feedback on #{stamp} via #{display_domain} (#{domain_strategy})"

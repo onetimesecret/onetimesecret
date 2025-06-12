@@ -2,7 +2,6 @@
 
 module V2::Logic
   module Secrets
-
     class BurnSecret < V2::Logic::Base
       attr_reader :key, :passphrase, :continue
       attr_reader :metadata, :secret, :correct_passphrase, :greenlighted
@@ -23,6 +22,7 @@ module V2::Logic
         potential_secret = @metadata.load_secret
 
         return unless potential_secret
+
         # Rate limit all secret access attempts
         limit_action :attempt_secret_access
 
@@ -45,7 +45,6 @@ module V2::Logic
           raise_form_error message
 
         end
-
       end
 
       def success_data
@@ -90,8 +89,6 @@ module V2::Logic
           },
         }
       end
-
     end
-
   end
 end

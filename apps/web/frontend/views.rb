@@ -4,7 +4,6 @@ require_relative 'views/base'
 
 module Frontend
   module Views
-
     ##
     # The VuePoint class serves as a bridge between the Ruby Rack application
     # and the Vue.js frontend. It is responsible for initializing and passing
