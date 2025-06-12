@@ -57,23 +57,8 @@ module Onetime
     end
 
     refine Stripe::Customer do
-      @safe_dump_fields = []
-      @safe_dump_field_map = {}
       extend Familia::Features::SafeDump::ClassMethods
-
-      def safe_dump
-        self.class.safe_dump_field_map.transform_values do |callable|
-          transformed_value = callable.call(self)
-
-          # If the value is a ancestor of SafeDump we can call safe_dump
-          # on it, otherwise we'll just return the value as-is.
-          if transformed_value.is_a?(SafeDump)
-            transformed_value.safe_dump
-          else
-            transformed_value
-          end
-        end
-      end
+      @safe_dump_field_map = {} # rubocop:disable Style/MutableClassInstanceVariable
 
       # Safe fields for Stripe Customer object
       @safe_dump_fields = [
@@ -108,7 +93,21 @@ module Onetime
           safe_metadata_keys = [:public_note, :preferred_language]
           cust.metadata_list.select { |k, _| safe_metadata_keys.include?(k.to_sym) }
         }},
-      ]
+      ].freeze
+
+      def safe_dump
+        self.class.safe_dump_field_map.transform_values do |callable|
+          transformed_value = callable.call(self)
+
+          # If the value is a ancestor of SafeDump we can call safe_dump
+          # on it, otherwise we'll just return the value as-is.
+          if transformed_value.is_a?(SafeDump)
+            transformed_value.safe_dump
+          else
+            transformed_value
+          end
+        end
+      end
     end
   end
 end

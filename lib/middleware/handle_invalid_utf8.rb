@@ -9,8 +9,8 @@ require 'rack'
 # raising an exception and returning a 400 Bad Request response.
 #
 class Rack::HandleInvalidUTF8
-  @default_content_type = 'application/json'
-  @default_charset      = 'utf-8'
+  @default_content_type = 'application/json'.freeze
+  @default_charset      = 'utf-8'.freeze
   @default_exception    = Encoding::InvalidByteSequenceError
   @input_sources        = %w[
     SCRIPT_NAME
@@ -26,7 +26,7 @@ class Rack::HandleInvalidUTF8
 
     # Body content
     rack.input
-  ]
+  ].freeze
 
   class << self
     attr_reader :default_content_type,

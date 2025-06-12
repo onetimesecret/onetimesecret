@@ -8,7 +8,7 @@ require_relative 'controllers'
 
 module V2
   class Application < ::BaseApplication
-    @uri_prefix = '/api/v2'
+    @uri_prefix = '/api/v2'.freeze
 
     # Common middleware stack
     use Rack::ClearSessionMessages

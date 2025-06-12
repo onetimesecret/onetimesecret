@@ -83,7 +83,7 @@ module V2
 
       # We use the hash syntax here since `:active?` is not a valid symbol.
       { active: ->(cust) { cust.active? } },
-    ]
+    ].freeze
 
     def init
       self.custid ||= 'anon'

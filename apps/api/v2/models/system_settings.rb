@@ -86,7 +86,7 @@ module V2
     field :updated
     field :_original_value
 
-    @txt_validation_prefix = '_onetime-challenge'
+    @txt_validation_prefix = '_onetime-challenge'.freeze
 
     @safe_dump_fields = [
       { identifier: ->(obj) { obj.identifier } },
@@ -99,7 +99,7 @@ module V2
       :comment,
       :created,
       :updated,
-    ]
+    ].freeze
 
     def init
       @configid ||= self.generate_id

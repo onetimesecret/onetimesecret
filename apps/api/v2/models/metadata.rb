@@ -70,7 +70,7 @@ module V2
       { is_truncated: ->(m) { m.truncated? } },
 
       { has_passphrase: ->(m) { m.has_passphrase? } },
-    ]
+    ].freeze
 
     def init
       self.state ||= 'new'

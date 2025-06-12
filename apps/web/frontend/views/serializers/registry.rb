@@ -24,8 +24,11 @@ module Frontend
   module Views
     class SerializerRegistry
       extend TSort
+      # These class instance vars are populated at start-time and then readonly.
+      # rubocop:disable ThreadSafety/MutableClassInstanceVariable
       @serializers = []
       @dependencies = {}
+      # rubocop:enable ThreadSafety/MutableClassInstanceVariable
 
       class << self
         attr_reader :serializers, :dependencies

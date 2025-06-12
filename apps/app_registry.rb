@@ -20,8 +20,11 @@ require 'onetime'
 require 'onetime/middleware'
 
 module AppRegistry
+  # These class instance vars are populated at start-time and then readonly.
+  # rubocop:disable ThreadSafety/MutableClassInstanceVariable
   @application_classes = []
   @mount_mappings = {}
+  # rubocop:disable ThreadSafety/MutableClassInstanceVariable
 
   class << self
     attr_reader :application_classes, :mount_mappings

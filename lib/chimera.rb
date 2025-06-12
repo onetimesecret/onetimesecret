@@ -30,7 +30,7 @@ class Chimera < Mustache
 
     def partial(name)
       path = "#{template_path}/#{name}.#{template_extension}"
-
+      @partial_cache ||= {}
       if @partial_cache&.key?(path)
         @partial_cache[path]
       else
@@ -43,8 +43,13 @@ class Chimera < Mustache
   end
 
   # Initialize class instance variables
-  @partial_caching_enabled = true
-  @partial_cache = {}
+  @partial_caching_enabled = false
+  # TODO: This is genuinely not ideal. We have very few partials and minimal
+  # server rendered pages, but these templates are also used for emails. So
+  # the "fix" for now is to disable the feature. We'll see a marginal increase
+  # in web server resources which is better than playing with race conditions.
+  # The proper fix is a re-implementation.
+  @partial_cache = nil
 
   attr_reader :options
-  end
+end

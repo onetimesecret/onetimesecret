@@ -6,7 +6,7 @@ require_relative 'controllers'
 
 module Frontend
   class Application < ::BaseApplication
-    @uri_prefix = '/'
+    @uri_prefix = '/'.freeze
 
     # Common middleware stack
     use Rack::ClearSessionMessages

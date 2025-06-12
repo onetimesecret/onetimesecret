@@ -79,7 +79,7 @@ module V2
       { stack_length: lambda { |obj|
         obj.stack.to_s.split("\n").length if obj.stack
       }},
-    ]
+    ].freeze
 
     def init
       self.environment ||= 'production'

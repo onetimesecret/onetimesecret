@@ -52,7 +52,7 @@ module V2
       { is_truncated: ->(m) { m.truncated? } },
       :created,
       :updated,
-    ]
+    ].freeze
 
     def init
       self.state ||= 'new'

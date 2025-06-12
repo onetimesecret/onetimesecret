@@ -26,7 +26,7 @@ module V2
       :stripe_customer,
       :created,
       :updated,
-    ]
+    ].freeze
     # e.g.
     #
     #  stripeevent:1234567890:object

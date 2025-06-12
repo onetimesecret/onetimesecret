@@ -74,7 +74,7 @@ module V2
     hashkey :logo # image fields need a corresponding v2 route and logic class
     hashkey :icon
 
-    @txt_validation_prefix = '_onetime-challenge'
+    @txt_validation_prefix = '_onetime-challenge'.freeze
 
     @safe_dump_fields = [
       { identifier: ->(obj) { obj.identifier } },
@@ -97,7 +97,7 @@ module V2
       :verified,
       :created,
       :updated,
-    ]
+    ].freeze
 
     def init
       @domainid = self.identifier

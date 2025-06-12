@@ -40,7 +40,7 @@ module V2
     :stale,
     :created,
     :updated,
-  ]
+  ].freeze
 
   # When set to true, the session reports itself as not authenticated
   # regardless of the value of the authenticated field. This allows

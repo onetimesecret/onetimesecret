@@ -99,7 +99,7 @@ module ThenWithDiff
     use_lcs: true, # slower, more accurate
     # An order difference alone between two arrays can create too many
     # diffs to be useful. Consider sorting them prior to diffing.
-  }
+  }.freeze
 
   # NOTE: We recently added a valkey-backed settings model V2::SystemSettings
   # which may seen at odds with this approach or potentially overlap. They

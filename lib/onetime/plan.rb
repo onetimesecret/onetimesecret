@@ -7,7 +7,7 @@ module Onetime
     @safe_dump_fields = [
       { identifier: ->(obj) { obj.planid } },
       :planid, :price, :discount, :options
-    ]
+    ].freeze
 
     attr_reader :planid, :price, :discount, :options
 
@@ -36,9 +36,8 @@ module Onetime
       calculated_price.zero?
     end
 
-    @plans = {}
     module ClassMethods
-      attr_reader :plans
+      attr_accessor :plans
 
       def add_plan(planid, *)
         new_plan = new(planid, *)
@@ -64,6 +63,7 @@ module Onetime
           custom_domains: false, dark_mode: true
         add_plan :identity, 35, 0, ttl: 30.days, size: 10_000_000, api: true, name: 'Identity', email: true,
           custom_domains: true, dark_mode: true
+        self.plans.freeze
       end
     end
 

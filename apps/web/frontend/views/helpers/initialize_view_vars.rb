@@ -15,7 +15,7 @@ module Frontend
       @safe_site_fields = [
         :host, :ssl, :plans, :interface, :domains,
         :secret_options, :authentication, :support, :regions
-      ]
+      ].freeze
 
       class << self
         attr_reader :safe_site_fields

@@ -7,7 +7,7 @@ module V2
     module Colonel
       class UpdateSystemSettings < V2::Logic::Base
         @safe_fields = [:interface, :secret_options, :mail, :limits,
-                        :diagnostics]
+                        :diagnostics].freeze
 
         attr_reader :config, :interface, :secret_options, :mail, :limits,
           :diagnostics, :greenlighted, :record

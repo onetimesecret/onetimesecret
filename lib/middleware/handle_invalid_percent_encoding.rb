@@ -22,8 +22,8 @@ require 'rack'
 # https://stackoverflow.com/questions/24648206/ruby-on-rails-invalid-byte-sequence-in-utf-8-due-to-bot/24727310#24727310
 #
 class Rack::HandleInvalidPercentEncoding
-  @default_content_type = 'application/json'
-  @default_charset      = 'utf-8'
+  @default_content_type = 'application/json'.freeze
+  @default_charset      = 'utf-8'.freeze
 
   class << self
     attr_reader :default_content_type, :default_charset

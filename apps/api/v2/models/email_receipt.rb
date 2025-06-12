@@ -27,7 +27,7 @@ module V2
       { shortkey: ->(m) { m.key.slice(0, 8) } },
       :created,
       :updated,
-    ]
+    ].freeze
 
     # e.g.
     #
