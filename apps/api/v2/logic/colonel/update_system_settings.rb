@@ -73,7 +73,7 @@ module V2
 
             @greenlighted = true
             OT.ld '[UpdateSystemSettings#process] System settings persisted successfully'
-          rescue => ex
+          rescue StandardError => ex
             OT.le "[UpdateSystemSettings#process] Failed to persist system settings: #{ex.message}"
             raise_form_error "Failed to update configuration: #{ex.message}"
           end

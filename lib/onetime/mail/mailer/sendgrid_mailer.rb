@@ -61,7 +61,7 @@ module Onetime::Mail
 
           # NOTE: There doesn't seem to be a SendGrid specific error class. All
           # the examples use the generic Exception class.
-        rescue => ex
+        rescue StandardError => ex
           OT.le "> [send-exception-sending] #{ex.class} #{ex.message} [to: #{obscured_address}]"
           OT.ld ex.backtrace
         end

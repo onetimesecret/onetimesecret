@@ -129,7 +129,7 @@ module Onetime
         status = domain.verification_state
         resolving_status = domain.resolving == 'true' ? 'resolving' : 'not resolving'
         puts "#{status} (#{resolving_status})"
-      rescue => ex
+      rescue StandardError => ex
         puts "error: #{ex.message}"
         $stderr.puts ex.backtrace
       end

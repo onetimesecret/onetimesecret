@@ -180,7 +180,7 @@ module Frontend
           rescue Stripe::StripeError => ex
             OT.le "[customer_portal_redirect] Stripe error: #{ex.message}"
             raise_form_error(ex.message)
-          rescue => ex
+          rescue StandardError => ex
             OT.le "[customer_portal_redirect] Unexpected error: #{ex.message}"
             raise_form_error('An unexpected error occurred')
           end

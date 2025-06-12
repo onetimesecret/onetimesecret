@@ -116,14 +116,14 @@ module Onetime
       # code in the application has access to the processed configuration
       # is from within this boot! method.
       nil
-    rescue => ex
+    rescue StandardError => ex
       handle_boot_error(ex)
     end
 
     def safe_boot!(mode = nil, connect_to_db = true)
       boot!(mode, connect_to_db)
       true
-    rescue => ex
+    rescue StandardError => ex
       # Boot errors are already logged in handle_boot_error
       OT.not_ready! # returns false
     end

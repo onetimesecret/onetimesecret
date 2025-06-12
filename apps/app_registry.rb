@@ -38,7 +38,7 @@ module AppRegistry
     def prepare_application_registry
       find_application_files
       create_mount_mappings
-    rescue => ex
+    rescue StandardError => ex
       OT.le "[AppRegistry] ERROR: #{ex.class}: #{ex.message}"
       OT.ld ex.backtrace.join("\n")
 

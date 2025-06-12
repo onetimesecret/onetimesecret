@@ -61,7 +61,7 @@ module Onetime::Mail
         rescue Aws::SESV2::Errors::ServiceError => ex
           OT.le "> [send-exception-ses-error] #{ex.message} [to: #{obscured_address}]"
           OT.ld "#{ex.backtrace}"
-        rescue => ex
+        rescue StandardError => ex
           OT.le "> [send-exception-sending] #{ex.class} #{ex.message} [to: #{obscured_address}]"
           OT.ld ex.backtrace
         end

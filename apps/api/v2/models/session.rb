@@ -125,7 +125,7 @@ module V2
     if exists?
       begin
         self.delete!
-      rescue => ex
+      rescue StandardError => ex
         OT.le "[Session.replace!] Failed to delete key #{rediskey}: #{ex.message}"
       end
     end

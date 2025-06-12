@@ -67,13 +67,13 @@ Lint/UnusedMethodArgument:
 Metrics/PerceivedComplexity:
   Max: 20
 
-# Offense count: 2
+# Offense count: 186
 # Configuration parameters: AllowedConstants.
 Style/Documentation:
   Enabled: false
 
 Style/RescueStandardError:
-  Enabled: false
+  Enabled: true
   EnforcedStyle: explicit
 
 # When true: Use match? instead of =~ when MatchData is not used. True is preferred but not for autocorrection. Regexs are too picky. Need to manually check every time.

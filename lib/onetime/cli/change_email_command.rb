@@ -108,7 +108,7 @@ module Onetime
         else
           puts 'No custom domains associated with this customer.'
         end
-      rescue => ex
+      rescue StandardError => ex
         puts "Warning: Error detecting custom domains: #{ex.message}"
         puts ex.backtrace.join("\n") if OT.debug?
       end
@@ -197,7 +197,7 @@ module Onetime
             puts 'Operation cancelled.'
           end
         end
-      rescue => ex
+      rescue StandardError => ex
         # Handle validation and execution errors with descriptive messages
         puts "Error during operation: #{ex.message}"
         puts "Check the domain IDs carefully. If there's a mismatch between stored and calculated IDs,"

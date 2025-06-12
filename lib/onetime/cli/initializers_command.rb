@@ -21,7 +21,7 @@ module Onetime
         else
           display_simple_list(execution_info)
         end
-      rescue => ex
+      rescue StandardError => ex
         puts "❌ Error loading initializers: #{ex.message}"
         puts '   This command requires the initializers to be loadable'
         puts '   but does not require a full application boot.'

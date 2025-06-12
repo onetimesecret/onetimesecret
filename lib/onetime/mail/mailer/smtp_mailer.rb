@@ -61,7 +61,7 @@ module Onetime::Mail
         rescue Net::SMTPFatalError => ex
           OT.le "> [send-exception-smtperror] #{ex.message} [to: #{obscured_address}]"
           OT.ld "#{ex.class} #{ex.message}\n#{ex.backtrace}"
-        rescue => ex
+        rescue StandardError => ex
           OT.le "> [send-exception-sending] #{ex.class} #{ex.message} [to: #{obscured_address}]"
           OT.ld ex.backtrace
         end

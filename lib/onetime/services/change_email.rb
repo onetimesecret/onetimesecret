@@ -238,7 +238,7 @@ module Onetime
           # Attempt to unwatch if a watch was used, though not explicitly here
           redis.unwatch if redis.respond_to?(:unwatch)
           false
-        rescue => ex
+        rescue StandardError => ex
           log "ERROR: #{ex.message}"
           log ex.backtrace.join("\n")
           false
@@ -319,7 +319,7 @@ module Onetime
             # Attempt to unwatch if a watch was used
             redis.unwatch if redis.respond_to?(:unwatch)
             # Decide if we should re-raise or handle. For now, log and continue.
-          rescue => ex
+          rescue StandardError => ex
             log "ERROR updating domain #{old_domain_id}: #{ex.message}"
             log ex.backtrace.join("\n")
             # Decide if we should re-raise or handle.

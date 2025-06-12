@@ -122,7 +122,7 @@ module Onetime
         rescue PublicSuffix::DomainInvalid => ex
           OT.ld "[DomainStrategy]: Invalid domain #{request_domain} #{ex.message}"
           nil
-        rescue => ex
+        rescue StandardError => ex
           OT.le "[DomainStrategy]: Unhandled error: #{ex.message} (backtrace: " \
                 "#{ex.backtrace[0..2].join("\n")}) (args: #{request_domain.inspect}, " \
                 "#{canonical_domain.inspect})"
