@@ -24,7 +24,7 @@ require 'forwardable'
 module V2
   class RateLimit < Familia::Horreum
     extend Forwardable
-    @events = {}
+    @events = nil
 
     # Default limit for events that haven't been explicitly configured
     DEFAULT_LIMIT = 25 unless defined?(V2::RateLimit::DEFAULT_LIMIT)
@@ -111,13 +111,14 @@ module V2
     class << self
       # Hash of registered events and their limits
       attr_reader :events
+    end
+
+    module ClassMethods
 
       def load(identifier, event)
         new(identifier, event)
       end
-    end
 
-    module ClassMethods
       # Increment the counter for an identifier/event pair
       # @param identifier [String] unique identifier for the limited entity
       # @param event [Symbol] the type of event being limited
@@ -178,15 +179,23 @@ module V2
       # @return [Integer] the registered limit
       def register_event(single_event, count)
         OT.ld "[register_event] #{single_event.inspect} #{count}"
+        @events ||= {}
         events[single_event] = count
       end
 
       # Register multiple events with their limits
       # @param events [Hash] map of event names to limits
+      # @param freeze [Boolean] whether to freeze the events hash
       # @return [Hash] the updated events hash
-      def register_events(multiple_events)
+      def register_events(multiple_events, freeze: true)
         OT.ld "[register_events] #{multiple_events.inspect}"
+        @events ||= {}
         events.merge! multiple_events
+        freeze ? freeze_events : events
+      end
+
+      def freeze_events
+        events.freeze unless events.frozen?
       end
 
       # Get the current time window stamp
