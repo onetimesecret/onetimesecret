@@ -65,7 +65,7 @@ module Onetime
     # @see Process.clock_gettime Ruby documentation for underlying
     #   implementation
     # @since Ruby 2.1.0 (when Process.clock_gettime was introduced)
-    def hnowµs
+    def hnowµs # rubocop:disable Naming/AsciiIdentifiers
       Process.clock_gettime(Process::CLOCK_REALTIME, :microsecond)
     end
 
@@ -104,7 +104,7 @@ module Onetime
     #   nowµs  #=> 1716825600123458 (called shortly after)
     #
     # @see Time.now Ruby documentation for underlying time source
-    def nowµs
+    def nowµs # rubocop:disable Naming/AsciiIdentifiers
       (Time.now.utc.to_f * 1_000_000).to_i
     end
 
