@@ -74,7 +74,7 @@ module Onetime
           key: :strict_transport,
           klass: Rack::Protection::StrictTransport,
         },
-        }.freeze
+      }.freeze
 
       # The wrapped Rack application
       # @return [#call] The Rack application instance passed to this middleware

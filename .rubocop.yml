@@ -185,17 +185,20 @@ Layout/HashAlignment:
   Enabled: true
 
 Layout/FirstHashElementIndentation:
-  Enabled: false
+  Enabled: true
 
 Lint/Void:
-  Enabled: false
+  Enabled: true
 
+# Offense count: 122
+# Assignment Branch Condition size
 Metrics/AbcSize:
   Enabled: false
   Max: 20
 
+# Offense count: 217
 Layout/LineLength:
-  Enabled: False
+  Enabled: false
   AllowHeredoc: true
   AllowURI: true
   URISchemes:
