@@ -27,6 +27,7 @@ AllCops:
   Exclude:
     # The V1 API is in maintenance mode. No changes allowed 🚭
     - 'apps/api/v1/**/*'
+    - 'bin/bundle'
     - 'migrate/**/*'
     - 'node_modules/**/*'
     - 'support/**/*'
@@ -253,7 +254,10 @@ Style/ZeroLengthPredicate:
 Style/MethodDefParentheses:
   Enabled: true
 
-# Department 'ThreadSafety' (6):
+Style/FrozenStringLiteralComment:
+  Enabled: true
+  EnforcedStyle: never
+
 ThreadSafety/ClassAndModuleAttributes:
   Description: Avoid mutating class and module attributes.
   Enabled: true

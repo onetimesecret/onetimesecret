@@ -1,5 +1,7 @@
 # lib/onetime.rb
 
+Warning[:deprecated] = ['development', 'dev', 'test'].include?(ENV['RACK_ENV'].to_s)
+
 require 'bundler/setup'
 require 'securerandom'
 
