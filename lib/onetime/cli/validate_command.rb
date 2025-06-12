@@ -13,7 +13,7 @@ module Onetime
         # Create config instance with optional paths
         config = OT::Configurator.new(config_path: path, schema_path: schema_path)
 
-        OT.li "Validating #{config.config_path}..."
+        OT.li "Validating #{config.configuration_path}..."
         OT.li "Schema: #{config.schema_path}"
 
         # Load and validate - this automatically validates against schema
@@ -45,7 +45,7 @@ module Onetime
         if option.show
           OT.li "\nValidated configuration structure:", JSON.pretty_generate(config.unprocessed_config)
         elsif verbose_mode?
-          OT.li "\nValidated configuration structure:", JSON.pretty_generate(OT::Utils.type_structure(config.config))
+          OT.li "\nValidated configuration structure:", JSON.pretty_generate(OT::Utils.type_structure(config.configuration))
         end
 
         OT.li '' if verbose_mode?

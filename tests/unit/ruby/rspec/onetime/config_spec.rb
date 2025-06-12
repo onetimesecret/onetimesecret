@@ -11,7 +11,7 @@
 
 require_relative '../spec_helper'
 
-RSpec.describe Onetime::Config do
+RSpec.describe Onetime::Configurator do
   let(:test_config_path) { File.join(Onetime::HOME, 'tests', 'unit', 'ruby', 'config.test.yaml') }
   let(:test_schema_path) { File.join(Onetime::HOME, 'etc', 'config.schema.yml') }
 
@@ -522,7 +522,7 @@ RSpec.describe Onetime::Config do
 
         config = described_class.load!
         expect(config).to be_a(described_class)
-        expect(config.config).to be_a(Hash)
+        expect(config.configuration).to be_a(Hash)
       end
     end
   end

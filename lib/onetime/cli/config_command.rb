@@ -29,9 +29,9 @@ module Onetime
         end
 
         if option.types
-          puts JSON.pretty_generate(OT::Utils.type_structure(config.config))
+          puts JSON.pretty_generate(OT::Utils.type_structure(config.configuration))
         else
-          puts JSON.pretty_generate(config.config)
+          puts JSON.pretty_generate(config.configuration)
         end
       rescue OT::ConfigError => ex
         OT.le "❌ Configuration error: #{ex.message}"

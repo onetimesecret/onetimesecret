@@ -9,7 +9,7 @@ require 'fileutils'
 ENV['RACK_ENV'] ||= 'production'
 ENV['ONETIME_HOME'] ||= File.expand_path('../../../../..', __FILE__).freeze
 
-Warning[:deprecated] = ENV['RACK_ENV'].include?('development', 'dev', 'test')
+Warning[:deprecated] = true if ['development', 'dev', 'test'].include?(ENV['RACK_ENV'])
 
 unless defined?(APPS_ROOT)
   project_root = ENV['ONETIME_HOME']
