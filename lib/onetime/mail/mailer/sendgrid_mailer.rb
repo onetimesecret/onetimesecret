@@ -14,11 +14,11 @@ module Onetime::Mail
       using IndifferentHashAccess
 
       def send_email(to_address, subject, html_content, text_content, test_mode = false)
-        mailer_response = nil
+        mailer_response  = nil
         obscured_address = OT::Utils.obscure_email(to_address)
-        sender_email = SendGrid::Email.new(email: self.from, name: self.fromname)
-        to_email = SendGrid::Email.new(email: to_address)
-        reply_to = SendGrid::Email.new(email: self.reply_to)
+        sender_email     = SendGrid::Email.new(email: self.from, name: self.fromname)
+        to_email         = SendGrid::Email.new(email: to_address)
+        reply_to         = SendGrid::Email.new(email: self.reply_to)
 
         OT.ld "[email-send-start] sender:#{sender_email}; reply-to:#{reply_to}"
 
@@ -42,17 +42,17 @@ module Onetime::Mail
           )
 
           # https://github.com/sendgrid/sendgrid-ruby/blob/main/lib/sendgrid/helpers/mail/mail.rb
-          mail = SendGrid::Mail.new(sender_email, subject, to_email, sg_content_plain)
+          mail          = SendGrid::Mail.new(sender_email, subject, to_email, sg_content_plain)
           mail.reply_to = reply_to
 
           mail.add_content(sg_content_html)
 
           # Enable sandbox mode for testing
           if test_mode
-            mail_settings = SendGrid::MailSettings.new
-            sandbox_mode = SendGrid::SandBoxMode.new(enable: true)
+            mail_settings              = SendGrid::MailSettings.new
+            sandbox_mode               = SendGrid::SandBoxMode.new(enable: true)
             mail_settings.sandbox_mode = sandbox_mode
-            mail.mail_settings = mail_settings
+            mail.mail_settings         = mail_settings
           end
 
           OT.ld mail

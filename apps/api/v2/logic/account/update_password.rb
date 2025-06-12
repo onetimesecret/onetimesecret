@@ -4,8 +4,8 @@ module V2::Logic
       def process_params
         OT.ld "[UpdatePassword#process_params] params: #{params.inspect}"
         @currentp = self.class.normalize_password(params[:currentp])
-        @newp = self.class.normalize_password(params[:newp])
-        @newp2 = self.class.normalize_password(params[:newp2])
+        @newp     = self.class.normalize_password(params[:newp])
+        @newp2    = self.class.normalize_password(params[:newp2])
       end
 
       def success_data

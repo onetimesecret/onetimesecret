@@ -37,7 +37,7 @@ module V2
 
     unless defined?(MAX_SUBDOMAIN_DEPTH)
       MAX_SUBDOMAIN_DEPTH = 10 # e.g., a.b.c.d.e.f.g.h.i.j.example.com
-      MAX_TOTAL_LENGTH = 253   # RFC 1034 section 3.1
+      MAX_TOTAL_LENGTH    = 253   # RFC 1034 section 3.1
     end
 
     prefix :customdomain
@@ -111,10 +111,10 @@ module V2
 
       # Store the individual domain parts that PublicSuffix parsed out
       @base_domain = ps_domain.domain.to_s
-      @subdomain = ps_domain.subdomain.to_s
-      @trd = ps_domain.trd.to_s
-      @tld = ps_domain.tld.to_s
-      @sld = ps_domain.sld.to_s
+      @subdomain   = ps_domain.subdomain.to_s
+      @trd         = ps_domain.trd.to_s
+      @tld         = ps_domain.tld.to_s
+      @sld         = ps_domain.sld.to_s
 
       # Don't call generate_txt_validation_record here otherwise we'll
       # create a new validation record every time we instantiate a
@@ -313,7 +313,7 @@ module V2
       # Include a short identifier that is unique to this domain. This
       # allows for multiple customers to use the same domain without
       # conflicting with each other.
-      shortid = self.identifier.to_s[0..6]
+      shortid     = self.identifier.to_s[0..6]
       record_host = "#{self.class.txt_validation_prefix}-#{shortid}"
 
       # Append the TRD if it exists. This allows for multiple subdomains
@@ -331,7 +331,7 @@ module V2
 
       OT.info "[CustomDomain] Generated txt record #{record_host} -> #{record_value}"
 
-      @txt_validation_host = record_host
+      @txt_validation_host  = record_host
       @txt_validation_value = record_value
 
       validate_txt_record!
@@ -462,8 +462,8 @@ module V2
           raise Onetime::Problem, "Domain too long (max: #{MAX_TOTAL_LENGTH})"
         end
 
-        display_domain = self.display_domain(input)
-        obj = new(display_domain, custid)
+        display_domain      = self.display_domain(input)
+        obj                 = new(display_domain, custid)
         obj._original_value = input
         obj
       end
@@ -513,7 +513,7 @@ module V2
 
       def default_domain?(input)
         display_domain = V2::CustomDomain.display_domain(input)
-        site_host = OT.conf.dig(:site, :host)
+        site_host      = OT.conf.dig(:site, :host)
         OT.ld "[CustomDomain.default_domain?] #{display_domain} == #{site_host}"
         display_domain.eql?(site_host)
       rescue PublicSuffix::Error => ex

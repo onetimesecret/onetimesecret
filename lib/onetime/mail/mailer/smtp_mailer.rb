@@ -12,11 +12,11 @@ module Onetime::Mail
       using IndifferentHashAccess
 
       def send_email(to_address, subject, html_content, text_content) # rubocop:disable Metrics/MethodLength
-        mailer_response = nil
+        mailer_response  = nil
         obscured_address = OT::Utils.obscure_email(to_address)
-        sender_email = self.from # just the email address, not with the name
-        to_email = to_address
-        reply_to = self.reply_to
+        sender_email     = self.from # just the email address, not with the name
+        to_email         = to_address
+        reply_to         = self.reply_to
 
         OT.ld "[email-send-start] sender:#{sender_email}; reply-to:#{reply_to}"
 

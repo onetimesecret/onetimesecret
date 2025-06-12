@@ -25,7 +25,7 @@ class OT::CLI::Definition
 
   global :v, :verbose, 'Increase output' do
     @verbose ||= 0
-    @verbose += 1
+    @verbose  += 1
   end
 
   global :D, :debug do

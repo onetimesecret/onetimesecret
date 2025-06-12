@@ -18,7 +18,7 @@ module V2::Logic
 
       def process
         @greenlighted = true
-        @apitoken = cust.regenerate_apitoken
+        @apitoken     = cust.regenerate_apitoken
       end
 
       # The data returned from this method is passed back to the client.

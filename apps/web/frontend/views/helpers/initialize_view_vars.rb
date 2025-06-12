@@ -44,7 +44,7 @@ module Frontend
         # - Internal infrastructure details
         #
         site_config = OT.conf.fetch(:site, {})
-        incoming = OT.conf.fetch(:incoming, {})
+        incoming    = OT.conf.fetch(:incoming, {})
         development = OT.conf.fetch(:development, {})
         diagnostics = OT.conf.fetch(:diagnostics, {})
 
@@ -75,25 +75,25 @@ module Frontend
         end
 
         # Extract values from session
-        messages = sess.nil? ? [] : sess.get_messages
-        shrimp = sess.nil? ? nil : sess.add_shrimp
+        messages      = sess.nil? ? [] : sess.get_messages
+        shrimp        = sess.nil? ? nil : sess.add_shrimp
         authenticated = sess && sess.authenticated? && !cust.anonymous?
 
         # Extract values from rack request object
-        nonce = req.env.fetch('ots.nonce', nil) # TODO: Rename to onetime.nonce
+        nonce           = req.env.fetch('ots.nonce', nil) # TODO: Rename to onetime.nonce
         domain_strategy = req.env.fetch('onetime.domain_strategy', :default)
-        display_domain = req.env.fetch('onetime.display_domain', nil)
+        display_domain  = req.env.fetch('onetime.display_domain', nil)
 
         # HTML Tag vars. These are meant for the view templates themselves
         # and not the onetime state window data passed on to the Vue app (
         # although a serializer could still choose to include any of them).
-        description = i18n_instance.dig(:COMMON, :description)
-        keywords = i18n_instance.dig(:COMMON, :keywords)
-        page_title = OT.conf.dig(:user_interface, :header, :branding, :site_name) || 'OneTimeSecret'
-        no_cache = false
-        frontend_host = development[:frontend_host]
+        description          = i18n_instance.dig(:COMMON, :description)
+        keywords             = i18n_instance.dig(:COMMON, :keywords)
+        page_title           = OT.conf.dig(:user_interface, :header, :branding, :site_name) || 'OneTimeSecret'
+        no_cache             = false
+        frontend_host        = development[:frontend_host]
         frontend_development = development[:enabled]
-        script_element_id = 'onetime-state'
+        script_element_id    = 'onetime-state'
 
         # Return all view variables as a hash
         {

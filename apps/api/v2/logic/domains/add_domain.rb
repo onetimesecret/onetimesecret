@@ -24,7 +24,7 @@ module V2::Logic
 
         limit_action :add_domain
         # Only store a valid, parsed input value to @domain
-        @parsed_domain = V2::CustomDomain.parse(@domain_input, @cust.custid)
+        @parsed_domain  = V2::CustomDomain.parse(@domain_input, @cust.custid)
         @display_domain = @parsed_domain.display_domain
 
         OT.ld "[AddDomain] Display: #{@display_domain}, Identifier: #{@parsed_domain.identifier}, Exists?: #{@parsed_domain.exists?}"
@@ -32,7 +32,7 @@ module V2::Logic
       end
 
       def process
-        @greenlighted = true
+        @greenlighted  = true
         OT.ld "[AddDomain] Processing #{@display_domain}"
         @custom_domain = V2::CustomDomain.create(@display_domain, @cust.custid)
 
@@ -48,18 +48,18 @@ module V2::Logic
       end
 
       def create_vhost
-        api_key = Onetime::Cluster::Features.api_key
+        api_key      = Onetime::Cluster::Features.api_key
         vhost_target = Onetime::Cluster::Features.vhost_target
 
         if api_key.to_s.empty?
           return OT.info '[AddDomain.create_vhost] Approximated API key not set'
         end
 
-        res = Onetime::Cluster::Approximated.create_vhost(api_key, @display_domain, vhost_target, '443')
+        res     = Onetime::Cluster::Approximated.create_vhost(api_key, @display_domain, vhost_target, '443')
         payload = res.parsed_response
 
         OT.info '[AddDomain.create_vhost] %s' % payload
-        custom_domain.vhost = payload['data'].to_json
+        custom_domain.vhost   = payload['data'].to_json
         custom_domain.updated = OT.now.to_i
         custom_domain.save
       end

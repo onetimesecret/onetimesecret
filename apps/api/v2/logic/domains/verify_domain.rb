@@ -35,8 +35,8 @@ module V2::Logic
           payload = res.parsed_response
           OT.info '[VerifyDomain.refresh_vhost] %s' % payload
 
-          custom_domain.vhost = payload['data'].to_json
-          custom_domain.updated = OT.now.to_i
+          custom_domain.vhost     = payload['data'].to_json
+          custom_domain.updated   = OT.now.to_i
           custom_domain.resolving = (payload.dig('data', 'is_resolving') || false).to_s
           custom_domain.save
         else
@@ -53,18 +53,18 @@ module V2::Logic
           match_against: custom_domain.txt_validation_value,
         }]
         OT.info '[VerifyDomain.refresh_txt_record_status] %s' % records
-        res = Onetime::Cluster::Approximated.check_records_match_exactly(api_key, records)
+        res     = Onetime::Cluster::Approximated.check_records_match_exactly(api_key, records)
         if res.code == 200
-          payload = res.parsed_response
+          payload       = res.parsed_response
           match_records = payload['records']
-          found_match = match_records.any? { |record| record['match'] == true }
+          found_match   = match_records.any? { |record| record['match'] == true }
           OT.info format('[VerifyDomain.refresh_txt_record_status] %s (matched:%s)', match_records, found_match)
 
           # Check if any record has match: true
           custom_domain.verified! found_match  # save immediately
         else
           payload = res.parsed_response
-          msg = payload['message'] || 'Inknown error'
+          msg     = payload['message'] || 'Inknown error'
           OT.le format('[VerifyDomain.refresh_txt_record_status] %s %s [%i]', display_domain, res.code, msg)
         end
       end

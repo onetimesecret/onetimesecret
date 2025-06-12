@@ -12,10 +12,10 @@ module Onetime
     attr_reader :planid, :price, :discount, :options
 
     def initialize(planid, price, discount, options = {})
-      @planid = self.class.normalize(planid)
-      @price = price
+      @planid   = self.class.normalize(planid)
+      @price    = price
       @discount = discount
-      @options = options
+      @options  = options
 
       # Include dynamically here at instantiation time to avoid
       # circular dependency issues. Plans are loaded very early
@@ -40,8 +40,8 @@ module Onetime
       attr_accessor :plans
 
       def add_plan(planid, *)
-        new_plan = new(planid, *)
-        plans[new_plan.planid] = new_plan
+        new_plan                             = new(planid, *)
+        plans[new_plan.planid]               = new_plan
         plans[new_plan.planid.gibbler.short] = new_plan
       end
 

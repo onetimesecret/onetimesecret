@@ -51,20 +51,20 @@ module Onetime
   # Note: This middleware logs errors but does not halt request processing
   #
   class DomainStrategy
-    @canonical_domain = nil
-    @domains_enabled = nil
+    @canonical_domain        = nil
+    @domains_enabled         = nil
     @canonical_domain_parsed = nil
 
     unless defined?(MAX_SUBDOMAIN_DEPTH)
       MAX_SUBDOMAIN_DEPTH = 10 # e.g., a.b.c.d.e.f.g.h.i.j.example.com
-      MAX_TOTAL_LENGTH = 253   # RFC 1034 section 3.1
+      MAX_TOTAL_LENGTH    = 253   # RFC 1034 section 3.1
     end
 
     # Initializes the DomainStrategy middleware.
     #
     # @param app [Object] The Rack application.
     def initialize(app)
-      @app = app
+      @app        = app
       site_config = OT.conf&.dig(:site) || {}
       self.class.initialize_from_config(site_config)
       OT.info "[DomainStrategy]: canonical_domain=#{canonical_domain} enabled=#{domains_enabled?}"
@@ -75,16 +75,16 @@ module Onetime
     # @param env [Hash] The Rack environment.
     # @return [Array] The Rack response.
     def call(env)
-      display_domain = canonical_domain
+      display_domain  = canonical_domain
       domain_strategy = :canonical
 
       if domains_enabled?
-        display_domain = env[Rack::DetectHost.result_field_name]
+        display_domain  = env[Rack::DetectHost.result_field_name]
         # OT.ld "[DomainStrategy]: detected_host=#{display_domain.inspect} result_field_name=#{Rack::DetectHost.result_field_name}"
         domain_strategy = Chooserator.choose_strategy(display_domain, canonical_domain_parsed)
       end
 
-      env['onetime.display_domain'] = display_domain
+      env['onetime.display_domain']  = display_domain
       env['onetime.domain_strategy'] = domain_strategy || :invalid # make sure never nil
 
       OT.ld "[DomainStrategy]: host=#{display_domain.inspect} strategy=#{domain_strategy}"
@@ -110,7 +110,7 @@ module Onetime
         # @param canonical_domain [PublicSuffix::Domain, String] The canonical domain.
         def choose_strategy(request_domain, canonical_domain)
           canonical_domain = Parser.parse(canonical_domain) unless canonical_domain.is_a?(PublicSuffix::Domain)
-          request_domain = Parser.parse(request_domain)
+          request_domain   = Parser.parse(request_domain)
 
           case request_domain
           when ->(d) { equal_to?(d, canonical_domain) }    then :canonical
@@ -221,7 +221,7 @@ module Onetime
         raise ArgumentError, 'Configuration cannot be nil' if config.nil?
 
         OT.ld "[DomainStrategy]: Initializing from config (before): #{@domains_enabled} "
-        @domains_enabled = config.dig(:domains, :enabled) || false
+        @domains_enabled  = config.dig(:domains, :enabled) || false
         @canonical_domain = get_canonical_domain(config)
         OT.ld "[DomainStrategy]: Initializing from config: #{@domains_enabled} "
 
@@ -238,13 +238,13 @@ module Onetime
       # @return [String, nil] The canonical domain or nil
       def get_canonical_domain(config)
         default_domain = @domains_enabled ? config.dig(:domains, :default) : nil
-        site_host = config.fetch(:host, nil)
+        site_host      = config.fetch(:host, nil)
         default_domain || site_host
       end
 
       def reset!
-        @canonical_domain = nil
-        @domains_enabled = nil
+        @canonical_domain        = nil
+        @domains_enabled         = nil
         @canonical_domain_parsed = nil
       end
     end

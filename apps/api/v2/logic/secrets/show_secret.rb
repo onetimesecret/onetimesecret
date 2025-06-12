@@ -10,10 +10,10 @@ module V2::Logic
         :secret_key, :share_domain
 
       def process_params
-        @key = params[:key].to_s
-        @secret = V2::Secret.load key
+        @key        = params[:key].to_s
+        @secret     = V2::Secret.load key
         @passphrase = params[:passphrase].to_s
-        @continue = params[:continue].to_s == 'true'
+        @continue   = params[:continue].to_s == 'true'
       end
 
       def raise_concerns
@@ -23,9 +23,9 @@ module V2::Logic
 
       def process
         @correct_passphrase = !secret.has_passphrase? || secret.passphrase?(passphrase)
-        @show_secret = secret.viewable? && correct_passphrase && continue
-        @verification = secret.verification.to_s == 'true'
-        @secret_key = @secret.key
+        @show_secret        = secret.viewable? && correct_passphrase && continue
+        @verification       = secret.verification.to_s == 'true'
+        @secret_key         = @secret.key
 
         owner = secret.load_customer
 
@@ -74,11 +74,11 @@ module V2::Logic
           site_host # via LogicHlpers#site_host
         end
 
-        @share_domain = [base_scheme, domain].join
+        @share_domain   = [base_scheme, domain].join
         @has_passphrase = secret.has_passphrase?
-        @display_lines = calculate_display_lines
-        @is_owner = secret.owner?(cust)
-        @one_liner = one_liner
+        @display_lines  = calculate_display_lines
+        @is_owner       = secret.owner?(cust)
+        @one_liner      = one_liner
 
         secret.viewed! if secret.state?(:new)
       end
@@ -107,7 +107,7 @@ module V2::Logic
       end
 
       def calculate_display_lines
-        v = secret_value.to_s
+        v   = secret_value.to_s
         ret = ((80+v.size)/80) + (v.scan(/\n/).size) + 3
         ret = ret > 30 ? 30 : ret
       end

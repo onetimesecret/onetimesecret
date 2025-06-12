@@ -79,11 +79,11 @@ module Onetime
           next if path_segments.empty?
 
           # Navigate to proper nesting level
-          current = error_paths
+          current         = error_paths
           parent_segments = path_segments[0..-2]
           parent_segments.each do |segment|
             current[segment] ||= {}
-            current = current[segment]
+            current            = current[segment]
           end
 
           # Add value at this path

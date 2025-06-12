@@ -26,10 +26,10 @@ module Onetime
     # - format_config_value(config): Formats complex config values for display
     # - format_duration(seconds): Converts seconds to human-readable format (e.g., "5m", "2h", "7d")
     def print_log_banner
-      site_config = OT.conf.fetch(:site) # if :site is missing we got real problems
+      site_config  = OT.conf.fetch(:site) # if :site is missing we got real problems
       email_config = OT.conf.fetch(:emailer, {})
-      redis_info = Familia.redis.info
-      colonels = site_config.dig(:authentication, :colonels) || []
+      redis_info   = Familia.redis.info
+      colonels     = site_config.dig(:authentication, :colonels) || []
 
       # Create a buffer to collect all output
       output = []

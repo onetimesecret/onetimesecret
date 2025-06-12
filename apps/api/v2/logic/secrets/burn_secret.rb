@@ -7,10 +7,10 @@ module V2::Logic
       attr_reader :metadata, :secret, :correct_passphrase, :greenlighted
 
       def process_params
-        @key = params[:key].to_s
-        @metadata = V2::Metadata.load key
+        @key        = params[:key].to_s
+        @metadata   = V2::Metadata.load key
         @passphrase = params[:passphrase].to_s
-        @continue = [true, 'true'].include?(params[:continue])
+        @continue   = [true, 'true'].include?(params[:continue])
       end
 
       def raise_concerns
@@ -27,13 +27,13 @@ module V2::Logic
         limit_action :attempt_secret_access
 
         @correct_passphrase = !potential_secret.has_passphrase? || potential_secret.passphrase?(passphrase)
-        viewable = potential_secret.viewable?
-        continue_result = params[:continue]
-        @greenlighted = viewable && correct_passphrase && continue_result
+        viewable            = potential_secret.viewable?
+        continue_result     = params[:continue]
+        @greenlighted       = viewable && correct_passphrase && continue_result
 
         if greenlighted
           @secret = potential_secret
-          owner = secret.load_customer
+          owner   = secret.load_customer
           secret.burned!
           owner.increment_field :secrets_burned unless owner.anonymous?
           V2::Customer.global.increment_field :secrets_burned

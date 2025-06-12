@@ -37,7 +37,7 @@ module Onetime
     def display_with_dependencies(execution_info)
       execution_info.each do |info|
         order_str = format('%2d.', info[:order])
-        name = info[:name].split('::').last
+        name      = info[:name].split('::').last
 
         if verbose_mode?
           display_verbose_with_dependencies(order_str, name, info)
@@ -52,7 +52,7 @@ module Onetime
     def display_simple_list(execution_info)
       execution_info.each do |info|
         order_str = format('%2d.', info[:order])
-        name = info[:name].split('::').last
+        name      = info[:name].split('::').last
 
         if verbose_mode?
           display_verbose_simple(order_str, name, info)

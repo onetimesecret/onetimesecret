@@ -525,10 +525,3 @@ Style/ZeroLengthPredicate:
 # Configuration parameters: ActiveSupportClassAttributeAllowed.
 ThreadSafety/ClassAndModuleAttributes:
   Enabled: false
-
-# Offense count: 33
-# This cop supports unsafe autocorrection (--autocorrect-all).
-# Configuration parameters: EnforcedStyle.
-# SupportedStyles: literals, strict
-ThreadSafety/MutableClassInstanceVariable:
-  Enabled: false

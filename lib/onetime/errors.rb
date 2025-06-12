@@ -37,7 +37,7 @@ module Onetime
 
     def initialize(messages:, paths:)
       @messages = Array(messages)
-      @paths = paths
+      @paths    = paths
       super(formatted_message)
     end
 
@@ -61,9 +61,9 @@ module Onetime
     attr_reader :path, :user, :got, :wanted
 
     def initialize(path, user, got, wanted)
-      @path = path
-      @user = user
-      @got = got.to_s
+      @path   = path
+      @user   = user
+      @got    = got.to_s
       @wanted = wanted.to_s
     end
 
@@ -82,8 +82,8 @@ module Onetime
 
     def initialize(identifier, event, count)
       @identifier = identifier
-      @event = event
-      @count = count
+      @event      = event
+      @count      = count
     end
 
     def message

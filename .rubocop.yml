@@ -159,14 +159,15 @@ Layout/ElseAlignment:
 Layout/EndAlignment:
   Enabled: false
   # Severity: low
-  # SupportedStylesAlignWith: 10
+  # SupportedStylesAlignWith: 2
+  # Leave commented out. When we set align with, endless "error occurred"
   # EnforcedStyle: keyword # keyword, variable, start_of_line
 
 Layout/ExtraSpacing:
-  Enabled: false
-  # AllowForAlignment: true
-  # AllowBeforeTrailingComments: true
-  # ForceEqualSignAlignment: true
+  Enabled: true
+  AllowForAlignment: true
+  AllowBeforeTrailingComments: true
+  ForceEqualSignAlignment: true
 
 Layout/IndentationConsistency:
   EnforcedStyle: indented_internal_methods

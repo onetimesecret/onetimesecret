@@ -83,9 +83,9 @@ module V2
 
     def init
       self.environment ||= 'production'
-      self.timestamp ||= Time.now.utc.iso8601
-      self.created ||= Time.now.to_i
-      self.updated ||= Time.now.to_i
+      self.timestamp   ||= Time.now.utc.iso8601
+      self.created     ||= Time.now.to_i
+      self.updated     ||= Time.now.to_i
     end
 
     # Generates and memoizes a unique identifier
@@ -95,7 +95,7 @@ module V2
     def generate_id
       return @generate_id if defined?(@generate_id)
 
-      @key = Familia.generate_id.slice(0, 31)
+      @key         = Familia.generate_id.slice(0, 31)
       @generate_id = @key
     end
 
@@ -103,7 +103,7 @@ module V2
     module ClassMethods
       def add(fobj)
         created_time = OT.now.to_i
-        identifier = fobj.identifier
+        identifier   = fobj.identifier
 
         OT.li("[ExceptionInfo] #{identifier} #{fobj.type} #{fobj.release} #{fobj.url}")
 
@@ -121,7 +121,7 @@ module V2
 
       def recent(duration = 7.days, epoint = OT.now.to_i)
         spoint = OT.now.to_i-duration
-        ret = self.values.rangebyscoreraw(spoint, epoint, withscores: true)
+        ret    = self.values.rangebyscoreraw(spoint, epoint, withscores: true)
         Hash[ret]
       end
     end

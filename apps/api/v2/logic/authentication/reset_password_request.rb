@@ -29,8 +29,8 @@ module V2::Logic
           return sess.set_info_message msg
         end
 
-        secret = V2::Secret.create @custid, [@custid]
-        secret.ttl = 24.hours
+        secret              = V2::Secret.create @custid, [@custid]
+        secret.ttl          = 24.hours
         secret.verification = 'true'
         secret.save
 

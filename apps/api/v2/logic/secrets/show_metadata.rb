@@ -17,7 +17,7 @@ module V2::Logic
         :metadata_url, :burn_url, :display_lines
 
       def process_params
-        @key = params[:key].to_s
+        @key      = params[:key].to_s
         @metadata = V2::Metadata.load key
       end
 
@@ -29,10 +29,10 @@ module V2::Logic
       def process # rubocop:disable Metrics/MethodLength,Metrics/PerceivedComplexity
         @secret = @metadata.load_secret
 
-        @metadata_key = metadata.key
+        @metadata_key      = metadata.key
         @metadata_shortkey = metadata.shortkey
-        @secret_key = metadata.secret_key
-        @secret_shortkey = metadata.secret_shortkey
+        @secret_key        = metadata.secret_key
+        @secret_shortkey   = metadata.secret_shortkey
 
         # Default the recipients to an empty string. When a Familia::Horreum
         # object is loaded, the fields that have no values (or that don't
@@ -44,8 +44,8 @@ module V2::Logic
 
         @no_cache = true
 
-        @natural_expiration = metadata.secret_natural_duration
-        @expiration = metadata.secret_expiration
+        @natural_expiration    = metadata.secret_natural_duration
+        @expiration            = metadata.secret_expiration
         @expiration_in_seconds = metadata.secret_ttl
 
         secret = metadata.load_secret
@@ -64,25 +64,25 @@ module V2::Logic
             metadata.orphaned!
           end
 
-          @is_received = metadata.state?(:received)
-          @is_burned = metadata.state?(:burned)
-          @is_expired = metadata.state?(:expired)
-          @is_orphaned = metadata.state?(:orphaned)
+          @is_received  = metadata.state?(:received)
+          @is_burned    = metadata.state?(:burned)
+          @is_expired   = metadata.state?(:expired)
+          @is_orphaned  = metadata.state?(:orphaned)
           @is_destroyed = @is_burned || @is_received || @is_expired || @is_orphaned
 
           if is_destroyed && metadata.secret_key
             metadata.secret_key! nil
           end
         else
-          @secret_state = secret.state
+          @secret_state   = secret.state
           @secret_realttl = secret.realttl
-          @maxviews = secret.maxviews
-          @has_maxviews = @maxviews > 1
-          @view_count = nil
+          @maxviews       = secret.maxviews
+          @has_maxviews   = @maxviews > 1
+          @view_count     = nil
 
           if secret.viewable?
             @has_passphrase = !secret.passphrase.to_s.empty?
-            @can_decrypt = secret.can_decrypt?
+            @can_decrypt    = secret.can_decrypt?
             # If we can't decrypt the secret (i.e. if we can't access it) then
             # then we leave secret_value nil. We do this so that after creating
             # a secret we can show the received contents on the "/receipt/metadata_key"
@@ -97,7 +97,7 @@ module V2::Logic
                 @secret_value = nil
               end
             end
-            @is_truncated = secret.truncated?
+            @is_truncated   = secret.truncated?
           end
         end
 
@@ -229,17 +229,17 @@ module V2::Logic
       end
 
       def process_uris
-        @share_path = build_path(:secret, secret_key)
-        @burn_path = build_path(:private, metadata_key, 'burn')
+        @share_path    = build_path(:secret, secret_key)
+        @burn_path     = build_path(:private, metadata_key, 'burn')
         @metadata_path = build_path(:private, metadata_key)
-        @share_url = build_url(share_domain, @share_path)
-        @metadata_url = build_url(baseuri, @metadata_path)
-        @burn_url = build_url(baseuri, @burn_path)
+        @share_url     = build_url(share_domain, @share_path)
+        @metadata_url  = build_url(baseuri, @metadata_path)
+        @burn_url      = build_url(baseuri, @burn_path)
         @display_lines = calculate_display_lines
       end
 
       def calculate_display_lines
-        v = secret_value.to_s
+        v   = secret_value.to_s
         ret = ((80+v.size)/80) + (v.scan(/\n/).size) + 3
         ret = ret > 30 ? 30 : ret
       end

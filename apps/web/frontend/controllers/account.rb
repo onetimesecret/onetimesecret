@@ -34,12 +34,12 @@ module Frontend
         publically do
           # We take the tier and billing cycle from the URL path and try to
           # get the preconfigured Stripe payment links using those values.
-          tierid = req.params[:tier] ||= 'free'
+          tierid        = req.params[:tier] ||= 'free'
           billing_cycle = req.params[:billing_cycle] ||= 'month' # year or month
 
-          plans = OT.conf.dig(:site, :plans)
+          plans         = OT.conf.dig(:site, :plans)
           payment_links = plans.fetch(:payment_links, {})
-          payment_link = payment_links.dig(tierid.to_sym, billing_cycle.to_sym)
+          payment_link  = payment_links.dig(tierid.to_sym, billing_cycle.to_sym)
 
           OT.ld "[plan_redirect] plans: #{plans}"
           OT.ld "[plan_redirect] payment_links: #{payment_links}"
@@ -71,7 +71,7 @@ module Frontend
           # a two-charactor ISO country code. https://www.iso.org/obp/ui/#search
           #
           unless cust.anonymous?
-            stripe_params[:prefilled_email] = cust.custid
+            stripe_params[:prefilled_email]     = cust.custid
             stripe_params[:client_reference_id] = ''
           end
 
@@ -128,9 +128,9 @@ module Frontend
         # We ignore CSRF shrimp since it's a calling coming from outside the house
         # but we do verify the Stripe webhook signature in StripeWebhook#raise_concerns.
         publically do
-          logic = V2::Logic::Welcome::StripeWebhook.new sess, cust, req.params, locale
+          logic                  = V2::Logic::Welcome::StripeWebhook.new sess, cust, req.params, locale
           logic.stripe_signature = req.env['HTTP_STRIPE_SIGNATURE']
-          logic.payload = req.body.read
+          logic.payload          = req.body.read
           logic.raise_concerns
           logic.process
 
@@ -165,8 +165,8 @@ module Frontend
             # Get the Stripe Customer ID from our customer instance
             customer_id = cust.stripe_customer_id
 
-            site_host = Onetime.conf[:site][:host]
-            is_secure = Onetime.conf[:site][:ssl]
+            site_host  = Onetime.conf[:site][:host]
+            is_secure  = Onetime.conf[:site][:ssl]
             return_url = "#{is_secure ? 'https' : 'http'}://#{site_host}/account"
 
             # Create a Stripe Customer Portal session
@@ -219,8 +219,8 @@ module Frontend
             if req.post? # rubocop:disable Style/IfInsideElse
               logic.raise_concerns
               logic.process
-              sess = logic.sess
-              cust = logic.cust
+              sess      = logic.sess
+              cust      = logic.cust
               is_secure = Onetime.conf[:site][:ssl]
               res.send_cookie :sess, sess.sessid, sess.ttl, is_secure
               if cust.role?(:colonel)

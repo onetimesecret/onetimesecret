@@ -141,8 +141,8 @@ module ThenWithDiff
 
       # Get previous state from last record
       last_record_json = ThenWithDiff.history.last
-      last_record = last_record_json ? JSON.parse(last_record_json) : {}
-      previous_state = last_record['content'] || {}
+      last_record      = last_record_json ? JSON.parse(last_record_json) : {}
+      previous_state   = last_record['content'] || {}
 
       diff = Hashdiff.diff(previous_state, result, ThenWithDiff.options)
       OT.ld "[then_with_diff] #{step_name}: #{diff.size} changes" unless diff.empty?

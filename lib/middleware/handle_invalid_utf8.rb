@@ -38,8 +38,8 @@ class Rack::HandleInvalidUTF8
   attr_reader :logger
 
   def initialize(app, io: $stdout, check_enabled: nil)
-    @app = app
-    @logger = Logger.new(io, level: :info)
+    @app           = app
+    @logger        = Logger.new(io, level: :info)
     @check_enabled = check_enabled  # override the check_enabled? method
   end
 
@@ -83,7 +83,7 @@ class Rack::HandleInvalidUTF8
     return true if @check_enabled
     return false unless defined?(Otto) && app.is_a?(Otto)
 
-    name, route = app.route_definitions.first
+    name, route     = app.route_definitions.first
     setting_enabled = route.klass.respond_to?(:check_utf8) && route.klass.check_utf8
     logger.debug "[handle-invalid-utf8] #{name} has settings: #{has_settings}, enabled: #{setting_enabled}"
     setting_enabled
@@ -129,9 +129,9 @@ class Rack::HandleInvalidUTF8
     logger.error "[handle-invalid-utf8] #{message}"
 
     status = 400
-    body = { error: 'Bad Request', message: message }.to_json
+    body   = { error: 'Bad Request', message: message }.to_json
 
-    cls = self.class
+    cls     = self.class
     headers = {
       'Content-Type': "#{cls.default_content_type}; charset=#{cls.default_charset}",
       'Content-Length': body.bytesize.to_s,

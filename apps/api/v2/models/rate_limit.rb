@@ -125,7 +125,7 @@ module V2
       # @return [Integer] the new count
       # @raise [Onetime::LimitExceeded] if the limit is exceeded
       def incr!(identifier, event)
-        lmtr = new identifier, event
+        lmtr  = new identifier, event
         count = lmtr.incr!
 
         OT.ld ['RateLimit.incr!', event, identifier, count, event_limit(event)].inspect
@@ -144,7 +144,7 @@ module V2
       # @return [Boolean] true if the key was deleted
       def clear!(identifier, event)
         lmtr = new identifier, event
-        ret = lmtr.clear
+        ret  = lmtr.clear
         OT.ld [:clear, event, identifier, ret].inspect
         ret
       end
@@ -179,7 +179,7 @@ module V2
       # @return [Integer] the registered limit
       def register_event(single_event, count)
         OT.ld "[register_event] #{single_event.inspect} #{count}"
-        @events ||= {}
+        @events            ||= {}
         events[single_event] = count
       end
 
@@ -202,7 +202,7 @@ module V2
       # Time is rounded down to the nearest ttl interval
       # @return [String] formatted timestamp (HHMM)
       def eventstamp
-        now = OT.now.to_i
+        now     = OT.now.to_i
         rounded = now - (now % self.ttl)
         Time.at(rounded).utc.strftime('%H%M')
       end

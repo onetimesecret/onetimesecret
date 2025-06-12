@@ -13,7 +13,7 @@ module Onetime
 
         def initialize(from, fromname, reply_to = nil)
           OT.ld "[mail-init] from:#{from}, fromname:#{fromname}, reply-to:#{reply_to}"
-          @from = from
+          @from     = from
           @fromname = fromname
           @reply_to = reply_to
         end

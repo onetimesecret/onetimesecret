@@ -46,7 +46,7 @@
 #
 
 # Establish the environment
-ENV['RACK_ENV'] ||= 'production'
+ENV['RACK_ENV']     ||= 'production'
 ENV['ONETIME_HOME'] ||= File.expand_path(__dir__).freeze
 
 require_relative 'apps/app_registry'

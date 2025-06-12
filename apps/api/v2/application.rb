@@ -32,11 +32,11 @@ module V2
 
     def build_router
       routes_path = File.join(ENV['ONETIME_HOME'], 'apps/api/v2/routes')
-      router = Otto.new(routes_path)
+      router      = Otto.new(routes_path)
 
       # Default error responses
-      headers = { 'Content-Type' => 'application/json' }
-      router.not_found = [404, headers, [{ error: 'Not Found' }.to_json]]
+      headers             = { 'Content-Type' => 'application/json' }
+      router.not_found    = [404, headers, [{ error: 'Not Found' }.to_json]]
       router.server_error = [500, headers, [{ error: 'Internal Server Error' }.to_json]]
 
       router

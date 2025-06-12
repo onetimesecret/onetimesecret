@@ -91,7 +91,7 @@ module Onetime
       return normalize_keys(deep_clone(original)) if other.nil?
 
       original_normalized = normalize_keys(deep_clone(original))
-      other_normalized = normalize_keys(deep_clone(other))
+      other_normalized    = normalize_keys(deep_clone(other))
 
       merger = proc do |_key, v1, v2|
         if v1.is_a?(Hash) && v2.is_a?(Hash)
@@ -201,7 +201,7 @@ module Onetime
     # rubocop:disable Layout/LineLength
     def obscure_email(text)
       regex = /(\b(([A-Z0-9]{1,2})[A-Z0-9._%-]*)([A-Z0-9])?(@([A-Z0-9])[A-Z0-9.-]+(\.[A-Z]{2,4}\b)))/i
-      el = text.split('@')
+      el    = text.split('@')
       text.gsub regex, '\\3*****\\4@\\6*****\\7'
     end
     # rubocop:enable Layout/LineLength
@@ -361,7 +361,7 @@ module Onetime
       elsif val < 3600 * 24 * 7
         result = Time.at(time_in_s.to_i).strftime('on %A').downcase
       else
-        weeks = (val / 3600.0 / 24.0 / 7).to_i
+        weeks  = (val / 3600.0 / 24.0 / 7).to_i
         result = Time.at(time_in_s.to_i)
           .strftime("#{weeks} #{'week'.plural(weeks)} ago")
           .downcase

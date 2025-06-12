@@ -94,7 +94,7 @@ module V2
   def external_identifier
     return @external_identifier if @external_identifier
 
-    elements = []
+    elements               = []
     elements << ipaddress || 'UNKNOWNIP'
     elements << custid || 'anon'
     @external_identifier ||= elements.gibbler.base(36)
@@ -119,7 +119,7 @@ module V2
 
   def replace!
     @custid ||= self.custid
-    newid = self.class.generate_id
+    newid     = self.class.generate_id
 
     # Remove the existing session key from Redis
     if exists?
@@ -145,7 +145,7 @@ module V2
 
   def shrimp?(guess)
     shrimp = self.shrimp.to_s
-    guess = guess.to_s
+    guess  = guess.to_s
     OT.ld '[Sess#shrimp?] Checking with a constant time comparison'
     (!shrimp.empty?) && Rack::Utils.secure_compare(shrimp, guess)
   end

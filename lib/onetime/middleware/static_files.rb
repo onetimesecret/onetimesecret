@@ -27,7 +27,7 @@ module Onetime
       #
       # @param app [#call] The Rack application to wrap
       def initialize(app)
-        @app = app
+        @app      = app
         @rack_app = setup_static_files
       end
 
@@ -51,7 +51,7 @@ module Onetime
       def setup_static_files
         # Store reference to original app for use inside builder block
         # This is necessary because the Rack::Builder block runs in a different context
-        app_instance = @app
+        app_instance        = @app
         middleware_settings = Onetime.conf.dig(:experimental, :middleware) || {}
 
         Rack::Builder.new do

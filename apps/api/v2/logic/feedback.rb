@@ -9,10 +9,10 @@ module V2
       attr_reader :msg, :authenticity_payload, :verified, :verification_data, :greenlighted, :tz, :version
 
       def process_params
-        @msg = params[:msg].to_s.slice(0, 999)
+        @msg                  = params[:msg].to_s.slice(0, 999)
         @authenticity_payload = params[:authenticity_payload].to_s.slice(0, 999)
-        @tz = params[:tz].to_s.slice(0, 64)
-        @version = params[:version].to_s.slice(0, 32)
+        @tz                   = params[:tz].to_s.slice(0, 64)
+        @version              = params[:version].to_s.slice(0, 32)
       end
 
       def raise_concerns
@@ -46,7 +46,7 @@ module V2
 
       def process
         @greenlighted = true
-        @msg = format_feedback_message
+        @msg          = format_feedback_message
         OT.ld [:receive_feedback, msg].inspect
 
         begin
@@ -94,10 +94,10 @@ module V2
       end
 
       def send_feedback(cust, message)
-        view = Onetime::Mail::FeedbackEmail.new cust, locale
-        view.display_domain = self.display_domain
+        view                 = Onetime::Mail::FeedbackEmail.new cust, locale
+        view.display_domain  = self.display_domain
         view.domain_strategy = self.domain_strategy
-        view.message = message
+        view.message         = message
 
         OT.ld "[send_feedback] Calling deliver_email #{message.gibbler}"
 

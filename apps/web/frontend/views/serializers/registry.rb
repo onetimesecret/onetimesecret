@@ -26,7 +26,7 @@ module Frontend
       extend TSort
       # These class instance vars are populated at start-time and then readonly.
       # rubocop:disable ThreadSafety/MutableClassInstanceVariable
-      @serializers = []
+      @serializers  = []
       @dependencies = {}
       # rubocop:enable ThreadSafety/MutableClassInstanceVariable
 
@@ -50,7 +50,7 @@ module Frontend
         # @param i18n [Object] Internationalization instance
         # @return [Hash] Combined output from all serializers
         def run(serializer_list, vars, i18n)
-          ordered = sorted_serializers.select { |s| serializer_list.include?(s) }
+          ordered   = sorted_serializers.select { |s| serializer_list.include?(s) }
           seen_keys = {}
 
           ordered.reduce({}) do |result, serializer|

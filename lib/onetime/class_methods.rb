@@ -20,7 +20,7 @@ module Onetime
     # @param override_config [Hash] Configuration data to merge with existing config
     def apply_config(override_config = nil)
       # Handle nil or empty override config
-      current_config = self.conf || {}
+      current_config    = self.conf || {}
       override_config ||= {}
 
       # Deep merge the configurations, with override_config taking precedence
@@ -211,7 +211,7 @@ module Onetime
     def stdout(prefix, msg)
       return if STDOUT.closed?
 
-      stamp = Time.now.to_i
+      stamp   = Time.now.to_i
       logline = format('%s(%s): %s', prefix, stamp, msg)
       STDOUT.puts(logline)
     end
@@ -219,7 +219,7 @@ module Onetime
     def stderr(prefix, msg)
       return if STDERR.closed?
 
-      stamp = Time.now.to_i
+      stamp   = Time.now.to_i
       logline = format('%s(%s): %s', prefix, stamp, msg)
       STDERR.puts(logline)
     end

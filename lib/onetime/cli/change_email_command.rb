@@ -5,7 +5,7 @@ module Onetime
     # CLI command to view email change reports
     def change_email_log
       # Default limit is 10 reports, can be overridden with --limit or -n option
-      limit = option.limit || 10
+      limit        = option.limit || 10
       email_filter = argv.first
 
       puts "Viewing recent email change reports#{email_filter ? " for #{email_filter}" : ""} (limit: #{limit})"
@@ -16,7 +16,7 @@ module Onetime
 
       # Get keys matching the pattern
       pattern = email_filter ? "change_email:#{email_filter}:*" : 'change_email:*'
-      keys = redis.keys(pattern).sort_by { |k| k.split(':').last.to_i }.reverse.first(limit.to_i)
+      keys    = redis.keys(pattern).sort_by { |k| k.split(':').last.to_i }.reverse.first(limit.to_i)
 
       if keys.empty?
         puts "No email change reports found#{email_filter ? " for #{email_filter}" : ""}."
@@ -24,7 +24,7 @@ module Onetime
       end
 
       keys.each_with_index do |key, idx|
-        parts = key.split(':')
+        parts     = key.split(':')
         old_email = parts[1]
         new_email = parts[2]
         timestamp = Time.at(parts[3].to_i)
@@ -83,8 +83,8 @@ module Onetime
 
       old_email = argv[0]
       new_email = argv[1]
-      realm = argv[2] || 'US'
-      domains = []
+      realm     = argv[2] || 'US'
+      domains   = []
 
       # Load customer to check if exists
       customer = V2::Customer.load(old_email) rescue nil
@@ -101,7 +101,7 @@ module Onetime
           puts "Found #{custom_domains.size} domain(s) associated with customer:"
           custom_domains.each_with_index do |domain, index|
             display_domain = domain.display_domain
-            old_id = domain.identifier
+            old_id         = domain.identifier
             puts "  #{index+1}. #{display_domain} (ID: #{old_id})"
             domains << {domain: display_domain, old_id: old_id}
           end
@@ -162,7 +162,7 @@ module Onetime
                 all_domains_verified = true # Assume true initially for domain checks
                 puts 'Checking domain mappings:'
                 domains.each_with_index do |domain_info, index|
-                  domain = domain_info[:domain]
+                  domain        = domain_info[:domain]
                   # Check display_domains mapping
                   new_domain_id = V2::CustomDomain.redis.hget('customdomain:display_domains', domain)
                   calculated_id = [domain, new_email].gibbler.shorten
@@ -175,7 +175,7 @@ module Onetime
                   end
                 end
                 # Final success depends on both customer and all domains being verified
-                verify_success = V2::Customer.exists?(new_email) && all_domains_verified
+                verify_success       = V2::Customer.exists?(new_email) && all_domains_verified
               end
 
               if verify_success

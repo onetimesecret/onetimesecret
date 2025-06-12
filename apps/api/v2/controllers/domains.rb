@@ -8,7 +8,7 @@ module V2
     class Domains
       include V2::Controllers::Base
 
-      @check_utf8 = true
+      @check_utf8         = true
       @check_uri_encoding = true
 
       def add_domain

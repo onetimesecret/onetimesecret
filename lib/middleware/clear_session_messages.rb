@@ -8,7 +8,7 @@ module Rack
     attr_reader :logger
 
     def initialize(app, io: $stderr)
-      @app = app
+      @app    = app
       @logger = ::Logger.new(io, level: :info)
     end
 
@@ -26,7 +26,7 @@ module Rack
       return [status, headers, response] unless check_session_messages(sess)
 
       # Determine if we should clear the session messages
-      response_has_content = !Rack::Utils::STATUS_WITH_NO_ENTITY_BODY.include?(status)
+      response_has_content   = !Rack::Utils::STATUS_WITH_NO_ENTITY_BODY.include?(status)
       is_successful_response = status < 300
 
       if response_has_content && is_successful_response

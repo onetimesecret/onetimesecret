@@ -9,8 +9,8 @@ module Onetime
       OT.d9s_enabled = conf[:diagnostics][:enabled] || false
       return unless OT.d9s_enabled
 
-      backend = conf[:diagnostics][:sentry][:backend]
-      dsn = backend.fetch(:dsn, nil)
+      backend   = conf[:diagnostics][:sentry][:backend]
+      dsn       = backend.fetch(:dsn, nil)
       site_host = conf.dig(:site, :host)
 
       OT.ld "Setting up Sentry #{backend}..."
@@ -43,9 +43,9 @@ module Onetime
       Kernel.require 'stackprof'
 
       Sentry.init do |config|
-        config.dsn = dsn
+        config.dsn         = dsn
         config.environment = "#{site_host} (#{OT.env})"
-        config.release = OT::VERSION.inspect
+        config.release     = OT::VERSION.inspect
 
         # Configure breadcrumbs logger for detailed error tracking.
         # Uses sentry_logger to capture progression of events leading

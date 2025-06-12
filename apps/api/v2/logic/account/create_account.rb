@@ -15,7 +15,7 @@ module V2::Logic
         @password = self.class.normalize_password(params[:p])
 
         autoverify_setting = OT.conf&.dig(:site, :authentication, :autoverify)
-        @autoverify = autoverify_setting.to_s.eql?('true') || false
+        @autoverify        = autoverify_setting.to_s.eql?('true') || false
 
         # This is a hidden field, so it should be empty. If it has a value, it's
         # a simple bot trying to submit the form or similar chicanery. We just
@@ -49,16 +49,16 @@ module V2::Logic
         sess.custid = cust.custid
         sess.save
 
-        colonels = OT.conf.dig(:site, :authentication, :colonels)
+        colonels       = OT.conf.dig(:site, :authentication, :colonels)
         @customer_role = if colonels&.member?(cust.custid)
                            'colonel'
                          else
                            'customer'
                          end
 
-        cust.planid = @plan.planid
-        cust.verified = @autoverify.to_s
-        cust.role = @customer_role.to_s
+        cust.planid    = @plan.planid
+        cust.verified  = @autoverify.to_s
+        cust.role      = @customer_role.to_s
         cust.save
 
         OT.info "[new-customer] #{cust.custid} #{cust.role} #{sess.ipaddress} #{plan.planid} #{sess.short_identifier}"

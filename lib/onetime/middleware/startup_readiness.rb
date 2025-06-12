@@ -93,7 +93,7 @@ module Onetime
 
         # Get preferred language from Accept-Language header
         accept_language = env['HTTP_ACCEPT_LANGUAGE'] || ''
-        lang_code = parse_accept_language(accept_language)
+        lang_code       = parse_accept_language(accept_language)
 
         html = <<~HTML
           <html lang="#{lang_code}" class="light">

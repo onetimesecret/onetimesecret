@@ -8,7 +8,7 @@ module V2::Logic
 
       def initialize(*args)
         super
-        @modified = []
+        @modified     = []
         @greenlighted = false
       end
 

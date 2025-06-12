@@ -5,9 +5,9 @@ require 'onetime/refinements/hash_refinements'
 require_relative 'initializers'
 
 module Onetime
-  @conf = nil
-  @env = nil
-  @mode = nil
+  @conf  = nil
+  @env   = nil
+  @mode  = nil
   @debug = nil
 
   class << self

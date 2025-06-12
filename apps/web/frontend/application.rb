@@ -26,11 +26,11 @@ module Frontend
 
     def build_router
       routes_path = File.join(ENV['ONETIME_HOME'], 'apps/web/frontend/routes')
-      router = Otto.new(routes_path)
+      router      = Otto.new(routes_path)
 
       # Default error responses
-      headers = { 'Content-Type' => 'text/html' }
-      router.not_found = [404, headers, ['Not Found']]
+      headers             = { 'Content-Type' => 'text/html' }
+      router.not_found    = [404, headers, ['Not Found']]
       router.server_error = [500, headers, ['Internal Server Error']]
 
       router

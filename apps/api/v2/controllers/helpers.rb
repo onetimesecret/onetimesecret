@@ -2,14 +2,14 @@
 
 module V2
   unless defined?(V2::BADAGENTS)
-    BADAGENTS = [:facebook, :google, :yahoo, :bing, :stella, :baidu, :bot, :curl, :wget]
-    LOCAL_HOSTS = ['localhost', '127.0.0.1'].freeze  # TODO: Add config
+    BADAGENTS     = [:facebook, :google, :yahoo, :bing, :stella, :baidu, :bot, :curl, :wget]
+    LOCAL_HOSTS   = ['localhost', '127.0.0.1'].freeze  # TODO: Add config
     HEADER_PREFIX = ENV.fetch('HEADER_PREFIX', 'X_SECRET_').upcase
   end
 
   module ControllerHelpers
     def plan
-      @plan = Onetime::Plan.plan(cust.planid) unless cust.nil?
+      @plan   = Onetime::Plan.plan(cust.planid) unless cust.nil?
       @plan ||= Onetime::Plan.plan('anonymous')
       @plan
     end
@@ -19,7 +19,7 @@ module V2
     # we respond consistently to all requests. That's why we integrate
     # Sentry here rather than app specific logic.
     def carefully(redirect = nil, content_type = nil, app: :web) # rubocop:disable Metrics/MethodLength,Metrics/PerceivedComplexity
-      redirect ||= req.request_path unless app == :api
+      redirect     ||= req.request_path unless app == :api
       content_type ||= 'text/html; charset=utf-8'
 
       cust ||= V2::Customer.anonymous
@@ -156,7 +156,7 @@ module V2
       locale ||= (req.env['rack.locale'] || []).first
 
       have_translations = locale && OT.locales.has_key?(locale)
-      lmsg = format(
+      lmsg              = format(
         '[check_locale!] class=%s locale=%s cust=%s req=%s t=%s',
         self.class.name,
         locale,
@@ -203,7 +203,7 @@ module V2
 
     def validate_shrimp(attempted_shrimp, replace = true)
       shrimp_is_empty = attempted_shrimp.empty?
-      log_value = attempted_shrimp.shorten(5)
+      log_value       = attempted_shrimp.shorten(5)
 
       if sess.shrimp?(attempted_shrimp) || ignoreshrimp
         adjective = ignoreshrimp ? 'IGNORED' : 'GOOD'
@@ -218,7 +218,7 @@ module V2
         ### JUST SUBMIT A FORM WITHOUT ANY SHRIMP WHATSOEVER
         ### AND THAT'S NO WAY TO TREAT A GUEST.
         shrimp = (sess.shrimp || '[noshrimp]').clone
-        ex = Onetime::BadShrimp.new(req.path, cust.custid, attempted_shrimp, shrimp)
+        ex     = Onetime::BadShrimp.new(req.path, cust.custid, attempted_shrimp, shrimp)
         OT.ld "BAD SHRIMP for #{cust.custid}@#{req.path}: #{log_value}"
         sess.replace_shrimp! if replace && !shrimp_is_empty
         raise ex
@@ -308,7 +308,7 @@ module V2
       # are not used. This prevents situations where the app is running and
       # anyone accessing it can create an account without proper authentication.
       authentication_enabled = OT.conf[:site][:authentication][:enabled] rescue false # rubocop:disable Style/RescueModifier
-      signin_enabled = OT.conf[:site][:authentication][:signin] rescue false # rubocop:disable Style/RescueModifier
+      signin_enabled         = OT.conf[:site][:authentication][:signin] rescue false # rubocop:disable Style/RescueModifier
 
       # The only condition that allows a request to be authenticated is if
       # the site has authentication enabled, and the user is signed in. If a
@@ -374,7 +374,7 @@ module V2
     def log_customer_activity
       return if cust.anonymous?
 
-      reqstr = stringify_request_details(req)
+      reqstr  = stringify_request_details(req)
       custref = cust.obscure_email
       OT.ld "[carefully] #{sess.short_identifier} #{custref} at #{reqstr}"
     end
@@ -475,7 +475,7 @@ module V2
     #   # => "HTTP_X_FORWARDED_FOR=203.0.113.195 REMOTE_ADDR=192.0.2.1 CF-Connecting-IP=203.0.113.195 CF-IPCountry=US CF-Ray=1234567890abcdef CF-Visitor={\"scheme\":\"https\"}"
     #
     def collect_proxy_header_details(env = nil, keys = nil)
-      env ||= {}
+      env  ||= {}
       keys ||= %w[
         HTTP_FLY_REQUEST_ID
         HTTP_VIA
@@ -531,8 +531,8 @@ module V2
 
     def no_cache!
       res.header['Cache-Control'] = 'no-store, no-cache, must-revalidate, max-age=0'
-      res.header['Expires'] = 'Mon, 7 Nov 2011 00:00:00 UTC'
-      res.header['Pragma'] = 'no-cache'
+      res.header['Expires']       = 'Mon, 7 Nov 2011 00:00:00 UTC'
+      res.header['Pragma']        = 'no-cache'
     end
 
     def app_path *paths

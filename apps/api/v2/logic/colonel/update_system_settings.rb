@@ -18,11 +18,11 @@ module V2
           @config = params[:config]
 
           # Extract configuration sections
-          @interface = config[:interface]
+          @interface      = config[:interface]
           @secret_options = config[:secret_options]
-          @mail = config[:mail]
-          @limits = config[:limits]
-          @diagnostics = config[:diagnostics]
+          @mail           = config[:mail]
+          @limits         = config[:limits]
+          @diagnostics    = config[:diagnostics]
 
           # Log which configuration sections were extracted
           config_sections = {
@@ -92,16 +92,16 @@ module V2
         private
 
         def build_update_fields
-          fields = {}
+          fields                  = {}
           # Only include sections that were provided and are not nil/empty
-          fields[:interface] = interface if interface && !interface.empty?
+          fields[:interface]      = interface if interface && !interface.empty?
           fields[:secret_options] = secret_options if secret_options && !secret_options.empty?
-          fields[:mail] = mail if mail && !mail.empty?
-          fields[:limits] = limits if limits && !limits.empty?
-          fields[:diagnostics] = diagnostics if diagnostics && !diagnostics.empty?
+          fields[:mail]           = mail if mail && !mail.empty?
+          fields[:limits]         = limits if limits && !limits.empty?
+          fields[:diagnostics]    = diagnostics if diagnostics && !diagnostics.empty?
 
           # Add metadata
-          fields[:custid] = @cust.custid if @cust
+          fields[:custid]  = @cust.custid if @cust
           fields[:created] = Time.now.to_i
           fields[:updated] = Time.now.to_i
 

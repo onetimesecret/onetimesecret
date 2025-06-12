@@ -16,7 +16,7 @@ module V2
           :has_split_tests, :redis_info
 
         def process_params
-          site = OT.conf.fetch(:site, {})
+          site           = OT.conf.fetch(:site, {})
           @plans_enabled = site.dig(:plans, :enabled) || false
         end
 
@@ -25,7 +25,7 @@ module V2
         end
 
         def process
-          @title = 'Home'
+          @title         = 'Home'
           @stathat_chart = OT.conf[:stathat][:default_chart] if OT.conf[:stathat]
           @session_count = V2::Session.recent(15.minutes).size
 
@@ -37,15 +37,15 @@ module V2
         end
 
         def process_feedback
-          now = OT.now.to_i
-          @today_feedback = process_feedback_for_period(24.hours, now)
+          now                 = OT.now.to_i
+          @today_feedback     = process_feedback_for_period(24.hours, now)
           @yesterday_feedback = process_feedback_for_period(48.hours, now - 24.hours)
-          @older_feedback = process_feedback_for_period(14.days, now - 48.hours)
+          @older_feedback     = process_feedback_for_period(14.days, now - 48.hours)
 
-          @feedback_count = V2::Feedback.values.size
-          @today_feedback_count = @today_feedback.size
+          @feedback_count           = V2::Feedback.values.size
+          @today_feedback_count     = @today_feedback.size
           @yesterday_feedback_count = @yesterday_feedback.size
-          @older_feedback_count = @older_feedback.size
+          @older_feedback_count     = @older_feedback.size
         end
         private :process_feedback
 
@@ -72,17 +72,17 @@ module V2
             }
           end.compact.reverse
 
-          @customer_count = V2::Customer.values.size
+          @customer_count        = V2::Customer.values.size
           @recent_customer_count = @recent_customers.size
         end
         private :process_customers
 
         def process_statistics
-          @metadata_count = V2::Metadata.new.redis.keys('metadata*:object').count
-          @secret_count = V2::Secret.new.redis.keys('secret*:object').count
+          @metadata_count  = V2::Metadata.new.redis.keys('metadata*:object').count
+          @secret_count    = V2::Secret.new.redis.keys('secret*:object').count
           @secrets_created = V2::Customer.global.secrets_created.to_s
-          @secrets_shared = V2::Customer.global.secrets_shared.to_s
-          @emails_sent = V2::Customer.global.emails_sent.to_s
+          @secrets_shared  = V2::Customer.global.secrets_shared.to_s
+          @emails_sent     = V2::Customer.global.emails_sent.to_s
         end
         private :process_statistics
 
@@ -91,7 +91,7 @@ module V2
           info = Familia.redis.info
 
           # Extract relevant information
-          db_info = info.select { |key, _| key.start_with?('db') }
+          db_info     = info.select { |key, _| key.start_with?('db') }
           memory_info = info.slice('used_memory', 'used_memory_human', 'used_memory_peak', 'used_memory_peak_human')
 
           # Combine the extracted information

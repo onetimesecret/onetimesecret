@@ -109,7 +109,7 @@ module Frontend
             uri.scheme = 'https' if uri.scheme.nil? || uri.scheme != 'https'
           end
           # Set uri to nil if it is not an HTTP or HTTPS URI
-          uri = nil unless uri.is_a?(URI::HTTP)
+          uri        = nil unless uri.is_a?(URI::HTTP)
           # Log an info message with the validated URI
           OT.info "[validate_url] Validated URI: #{uri}"
         end
@@ -127,9 +127,9 @@ module Frontend
       end
 
       def secret_not_found_response
-        view = Frontend::Views::UnknownSecret.new req, sess, cust, locale
+        view       = Frontend::Views::UnknownSecret.new req, sess, cust, locale
         res.status = 404
-        res.body = view.render
+        res.body   = view.render
       end
 
       def not_found
@@ -139,9 +139,9 @@ module Frontend
       end
 
       def server_error(status = 500, _message = nil)
-        res.status = status
+        res.status          = status
         res['Content-Type'] = 'text/html'
-        res.body = <<-HTML
+        res.body            = <<-HTML
         <!DOCTYPE html>
         <html lang="en">
         <head>
@@ -178,17 +178,17 @@ module Frontend
       # - Simplifies server configuration and maintenance.
       # - Allows for proper handling of 404s within the Vue.js application.
       def not_found_response(message, **)
-        view = Frontend::Views::VuePoint.new(req, sess, cust, locale)
+        view       = Frontend::Views::VuePoint.new(req, sess, cust, locale)
         view.add_error(message) unless message&.empty?
         res.status = 404
-        res.body = view.render  # Render the entrypoint HTML
+        res.body   = view.render  # Render the entrypoint HTML
       end
 
       def not_authorized_error(_hsh = {})
-        view = Frontend::Views::Error.new req, sess, cust, locale
+        view       = Frontend::Views::Error.new req, sess, cust, locale
         view.add_error 'Not authorized'
         res.status = 401
-        res.body = view.render
+        res.body   = view.render
       end
 
       def error_response(message, **)
@@ -197,17 +197,17 @@ module Frontend
         # cases a server-side error occurs that isn't the fault of the
         # client, and in those cases we want to provide a fresh shrimp
         # so that the client can try again (without a full page refresh).
-        view = Frontend::Views::Error.new req, sess, cust, locale
+        view       = Frontend::Views::Error.new req, sess, cust, locale
         view.add_error message
         res.status = 400
-        res.body = view.render
+        res.body   = view.render
       end
 
       def throttle_response(message)
-        view = Frontend::Views::Error.new req, sess, cust, locale
+        view       = Frontend::Views::Error.new req, sess, cust, locale
         view.add_error message
         res.status = 429
-        res.body = view.render
+        res.body   = view.render
       end
     end
   end

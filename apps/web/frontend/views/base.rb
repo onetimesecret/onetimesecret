@@ -24,16 +24,16 @@ module Frontend
       include Frontend::Views::ViteManifest
       include Onetime::TimeUtils
 
-      self.template_path = './templates/web'
+      self.template_path      = './templates/web'
       self.template_extension = 'html'
-      self.view_namespace = Frontend::Views
-      self.view_path = './app/web/frontend/views'
+      self.view_namespace     = Frontend::Views
+      self.view_path          = './app/web/frontend/views'
 
       attr_accessor :req, :sess, :cust, :locale, :form_fields, :pagename
       attr_reader :i18n_instance, :view_vars, :serialized_data, :messages
 
       def initialize req, sess = nil, cust = nil, locale_override = nil, *args
-        @req = req
+        @req  = req
         @sess = sess
 
         @cust = cust || anonymous_customer
@@ -54,7 +54,7 @@ module Frontend
                   end
 
         @i18n_instance = self.i18n
-        @messages = []
+        @messages      = []
 
         update_view_vars
 

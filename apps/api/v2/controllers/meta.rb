@@ -53,7 +53,7 @@ module V2
       def get_supported_locales
         publically do
           supported_locales = OT.supported_locales.map(&:to_s)
-          default_locale = OT.default_locale
+          default_locale    = OT.default_locale
           json locales: supported_locales, default_locale: default_locale, locale: locale
         end
       end

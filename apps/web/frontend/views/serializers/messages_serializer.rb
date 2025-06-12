@@ -15,7 +15,7 @@ module Frontend
       def self.serialize(view_vars, _i18n)
         output = self.output_template
 
-        output[:messages] = view_vars&.fetch(:messages, nil)
+        output[:messages]      = view_vars&.fetch(:messages, nil)
         output[:global_banner] = OT.global_banner if OT.global_banner # TODO
 
         output

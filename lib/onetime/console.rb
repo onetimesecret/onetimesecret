@@ -1,15 +1,15 @@
 # lib/onetime/console.rb
 
-ENV['RACK_ENV'] ||= 'production'
+ENV['RACK_ENV']   ||= 'production'
 ENV['ONETIME_HOME'] = File.expand_path(File.join(__dir__, '..', '..')).freeze
-app_root = ENV['ONETIME_HOME']
+app_root            = ENV['ONETIME_HOME']
 
 Warning[:deprecated] = %w[development dev test].include?(ENV['RACK_ENV'].to_s)
 
 # Directory Constants
 unless defined?(PUBLIC_DIR)
   PUBLIC_DIR = File.join(app_root, '/public/web').freeze
-  APP_DIR = File.join(app_root, '/apps').freeze
+  APP_DIR    = File.join(app_root, '/apps').freeze
 end
 
 # Load Paths
@@ -39,11 +39,11 @@ if defined?(IRB)
     PROMPT_N: '⇢  ',    # The prompt for nested statements
     RETURN: "⮑  %s\n",         # The format for return values
   }
-  IRB.conf[:IRB_RC] = proc do |context|
+  IRB.conf[:IRB_RC]           = proc do |context|
     context.workspace.binding.eval('using IndifferentHashAccess')
   end
   # Set the global prompt mode to :ONETIME
-  IRB.conf[:PROMPT_MODE] = :ONETIME
+  IRB.conf[:PROMPT_MODE]      = :ONETIME
 
   # Try to set it for the current context, if it exists
   if defined?(IRB.CurrentContext) && IRB.CurrentContext
@@ -51,13 +51,13 @@ if defined?(IRB)
   end
 
   # Additional IRB settings
-  IRB.conf[:AUTO_INDENT] = true
+  IRB.conf[:AUTO_INDENT]      = true
   IRB.conf[:BACK_TRACE_LIMIT] = 25
-  IRB.conf[:ECHO] = true
-  IRB.conf[:HISTORY_FILE] = nil if IRB.conf[:HISTORY_FILE].nil?
-  IRB.conf[:IGNORE_EOF] = false
-  IRB.conf[:SAVE_HISTORY] = 0 if IRB.conf[:SAVE_HISTORY].nil?
-  IRB.conf[:USE_PAGER] = true if IRB.conf[:USE_PAGER].nil?
+  IRB.conf[:ECHO]             = true
+  IRB.conf[:HISTORY_FILE]     = nil if IRB.conf[:HISTORY_FILE].nil?
+  IRB.conf[:IGNORE_EOF]       = false
+  IRB.conf[:SAVE_HISTORY]     = 0 if IRB.conf[:SAVE_HISTORY].nil?
+  IRB.conf[:USE_PAGER]        = true if IRB.conf[:USE_PAGER].nil?
 end
 
 Onetime.boot! :cli
@@ -65,8 +65,8 @@ Onetime.boot! :cli
 # IRB.conf[:RC] indicates whether an RC file (.irbrc) was
 # loaded during IRB initialization
 has_settings = !IRB.conf[:RC].nil?
-has_history = IRB.conf[:SAVE_HISTORY] > 0
-use_pager = IRB.conf[:USE_PAGER]
+has_history  = IRB.conf[:SAVE_HISTORY] > 0
+use_pager    = IRB.conf[:USE_PAGER]
 puts
 puts '╔═══════════════════════════════════════════════════════════════╗'
 puts '║                                                               ║'

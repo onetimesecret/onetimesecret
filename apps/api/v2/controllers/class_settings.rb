@@ -9,7 +9,7 @@ module V2
   module Controllers
     module ClassSettings
       # Default settings for UTF-8 and URI encoding checks
-      @check_utf8 = nil
+      @check_utf8         = nil
       @check_uri_encoding = nil
 
       # When this module is included in a class, it extends that class

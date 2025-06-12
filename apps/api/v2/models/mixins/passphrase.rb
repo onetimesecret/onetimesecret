@@ -32,7 +32,7 @@ module V2
 
       def passphrase?(guess)
         begin
-          ret = BCrypt::Password.new(passphrase) == guess
+          ret              = BCrypt::Password.new(passphrase) == guess
           @passphrase_temp = guess if ret  # used to decrypt the value
           ret
         rescue BCrypt::Errors::InvalidHash => ex

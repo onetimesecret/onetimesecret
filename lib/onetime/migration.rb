@@ -25,14 +25,14 @@ module Onetime
 
     def initialize
       @options = {}
-      @stats = Hash.new(0)  # Auto-incrementing counter for tracking migration stats
+      @stats   = Hash.new(0)  # Auto-incrementing counter for tracking migration stats
     end
 
     # Main entry point - orchestrates the full migration process
     # @param options [Hash] CLI options, typically { run: true/false }
     # @return [Boolean] true if migration completed successfully
     def self.run(options = {})
-      migration = new
+      migration         = new
       migration.options = options
       migration.prepare
 

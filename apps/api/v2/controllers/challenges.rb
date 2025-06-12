@@ -28,7 +28,7 @@ module V2
           # generate method. Let's start with an even easier challenge and
           # work our way up.
           max_number = 50_000
-          challenge = self.class.generate_authenticity_challenge(max_number)
+          challenge  = self.class.generate_authenticity_challenge(max_number)
           json challenge
         end
       end
@@ -102,7 +102,7 @@ module V2
 
         def verify_authenticity_challenge(challenge, number, check_expires)
           hmac_key = secret_key
-          payload = _authenticity_challenge_payload(challenge, number)
+          payload  = _authenticity_challenge_payload(challenge, number)
           Altcha.verify_solution(payload, hmac_key, check_expires)
         end
 

@@ -61,9 +61,9 @@ module Onetime
     def create_initial_system_settings
       OT.ld 'Creating initial system settings from YAML...'
 
-      system_settings_data = V2::SystemSettings.extract_system_settings(OT.conf)
+      system_settings_data           = V2::SystemSettings.extract_system_settings(OT.conf)
       system_settings_data[:comment] = 'Initial configuration'
-      system_settings_data[:custid] = nil # No customer owner for initial config
+      system_settings_data[:custid]  = nil # No customer owner for initial config
 
       new_config = V2::SystemSettings.create(**system_settings_data)
       OT.ld "Created initial system settings: #{new_config.rediskey}"

@@ -9,15 +9,15 @@ module Onetime
       class Base < Chimera
         include Mail::ViewHelpers
 
-        self.template_path = './templates/mail'
+        self.template_path  = './templates/mail'
         self.view_namespace = Onetime::Mail
-        self.view_path = './onetime/email'
+        self.view_path      = './onetime/email'
 
         attr_reader :cust, :locale, :emailer, :mode, :from, :to
         attr_accessor :token, :text_template
 
         def initialize cust, locale, *args
-          @cust = cust
+          @cust   = cust
           @locale = locale
 
           # We quietly continue if we're given an unknown locale and continue
@@ -29,8 +29,8 @@ module Onetime
             OT.li "Initializing #{self.class} with locale: #{locale.to_s}"
           else
             default_value = OT.default_locale
-            @locale = default_value
-            available = OT.supported_locales
+            @locale       = default_value
+            available     = OT.supported_locales
             OT.le "[views.i18n] Locale not found: #{locale} (continuing with #{default_value} / #{available})"
           end
 
@@ -48,7 +48,7 @@ module Onetime
           )
 
           password_is_present = conf.fetch(:pass, nil).to_s.length.positive?
-          logsafe_config = {
+          logsafe_config      = {
             from: conf.fetch(:from, nil),
             fromname: conf.fetch(:fromname, nil),
             host: conf.fetch(:host, nil),
@@ -91,7 +91,7 @@ module Onetime
         #
         def i18n
           @i18n_cache ||= {}
-          locale = self.locale #|| OT.default_locale || 'en'
+          locale        = self.locale #|| OT.default_locale || 'en'
 
           # Return cached value for this specific locale if it exists
           return @i18n_cache[locale] if @i18n_cache.key?(locale)
@@ -129,7 +129,7 @@ module Onetime
               emailer.send_email self[:email_address], subject, render_html, render_text
             end
           rescue SocketError => ex
-          internal_emsg = "Cannot send mail: #{ex.message}\n#{ex.backtrace}"
+          internal_emsg   = "Cannot send mail: #{ex.message}\n#{ex.backtrace}"
           OT.le internal_emsg
 
           V2::EmailReceipt.create self[:cust].identifier, message_identifier, internal_emsg
@@ -157,10 +157,10 @@ module Onetime
         end
 
         def render_text
-          clone = self.clone
+          clone                     = self.clone
           # Create a new options hash if none exists, or duplicate the existing one
-          opts = clone.instance_variable_get(:@options)
-          opts = opts ? opts.dup : {}
+          opts                      = clone.instance_variable_get(:@options)
+          opts                      = opts ? opts.dup : {}
           # Set template extension
           opts[:template_extension] = 'txt'
           # Update the options in the cloned instance
@@ -178,7 +178,7 @@ module Onetime
 
         def secret_display_domain(obj)
           scheme = base_scheme
-          host = obj.share_domain || Onetime.conf[:site][:host]
+          host   = obj.share_domain || Onetime.conf[:site][:host]
           [scheme, host].join
         end
 
@@ -188,7 +188,7 @@ module Onetime
 
         def baseuri
           scheme = base_scheme
-          host = Onetime.conf[:site][:host]
+          host   = Onetime.conf[:site][:host]
           [scheme, host].join
         end
       end

@@ -16,7 +16,7 @@ module Onetime
         grouped_customers = all_customers.group_by do |cust|
           next if cust.nil?
 
-          email = cust.send(field).to_s
+          email  = cust.send(field).to_s
           domain = email.split('@')[1] || 'unknown'
           domain
         end
@@ -35,7 +35,7 @@ module Onetime
           next if cust.nil?
 
           custid_email = cust.custid.to_s
-          email_field = cust.email.to_s
+          email_field  = cust.email.to_s
           custid_email != email_field
         end
         if mismatched_customers.empty?
@@ -44,7 +44,7 @@ module Onetime
 
         mismatched_customers.each do |cust|
           obscured_custid = OT::Utils.obscure_email(cust.custid)
-          obscured_email = OT::Utils.obscure_email(cust.email)
+          obscured_email  = OT::Utils.obscure_email(cust.email)
           puts "CustID and email mismatch: CustID: #{obscured_custid}, Email: #{obscured_email}"
         end
       end

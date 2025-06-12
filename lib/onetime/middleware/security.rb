@@ -84,7 +84,7 @@ module Onetime
       #
       # @param app [#call] The Rack application to wrap
       def initialize(app)
-        @app = app
+        @app      = app
         @rack_app = setup_security_middleware
       end
 
@@ -107,7 +107,7 @@ module Onetime
       def setup_security_middleware
         # Store reference to original app for use inside builder block. This is
         # necessary because the Rack::Builder block runs in a different context.
-        app_instance = @app
+        app_instance        = @app
         middleware_settings = Onetime.conf.dig(:experimental, :middleware) || {}
 
         # Define middleware components with their corresponding settings keys

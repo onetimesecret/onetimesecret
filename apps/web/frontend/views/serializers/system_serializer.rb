@@ -15,12 +15,12 @@ module Frontend
       def self.serialize(view_vars, _i18n)
         output = self.output_template
 
-        output[:ot_version] = OT::VERSION.to_s
+        output[:ot_version]      = OT::VERSION.to_s
         output[:ot_version_long] = OT::VERSION.inspect
-        output[:ruby_version] = RUBY_VERSION.to_s
+        output[:ruby_version]    = RUBY_VERSION.to_s
 
         output[:shrimp] = view_vars[:shrimp]
-        output[:nonce] = view_vars[:nonce]
+        output[:nonce]  = view_vars[:nonce]
         output
       end
 

@@ -7,7 +7,7 @@ module Onetime
       return unless option.list
 
       literally_all_domain_ids = V2::CustomDomain.values.all
-      all_domains = literally_all_domain_ids.map do |did|
+      all_domains              = literally_all_domain_ids.map do |did|
         V2::CustomDomain.from_identifier(did)
       end
 
@@ -19,7 +19,7 @@ module Onetime
           domain = domains.first
           puts format('%s %s', display_domain, domain.rediskey)
         else
-          rediskeys = domains.map(&:rediskey)
+          rediskeys         = domains.map(&:rediskey)
           rediskeys_display = if rediskeys.size > 3
                                 "#{rediskeys[0..2].join(', ')}, ..."
                               else
@@ -97,7 +97,7 @@ module Onetime
     end
 
     def process_domains_in_batches(domains)
-      batch_size = 10
+      batch_size       = 10
       throttle_seconds = 4
 
       domains.each_slice(batch_size).with_index do |batch, batch_idx|
@@ -122,11 +122,11 @@ module Onetime
 
     def revalidate_domain(domain)
       begin
-        params = { domain: domain.display_domain }
-        verifier = V2::Logic::Domains::VerifyDomain.new(nil, domain.custid, params)
+        params           = { domain: domain.display_domain }
+        verifier         = V2::Logic::Domains::VerifyDomain.new(nil, domain.custid, params)
         verifier.raise_concerns
         verifier.process
-        status = domain.verification_state
+        status           = domain.verification_state
         resolving_status = domain.resolving == 'true' ? 'resolving' : 'not resolving'
         puts "#{status} (#{resolving_status})"
       rescue StandardError => ex

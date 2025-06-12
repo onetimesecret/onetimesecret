@@ -11,7 +11,7 @@ module V2::Logic
 
       def process_params
         OT.ld "[GetAccount#process_params] params: #{params.inspect}"
-        site = OT.conf.fetch(:site, {})
+        site           = OT.conf.fetch(:site, {})
         @plans_enabled = site.dig(:plans, :enabled) || false
       end
 
@@ -22,7 +22,7 @@ module V2::Logic
       def process
         return unless plans_enabled
 
-        @stripe_customer = cust.get_stripe_customer
+        @stripe_customer     = cust.get_stripe_customer
         @stripe_subscription = cust.get_stripe_subscription
 
         # Rudimentary normalization to make sure that all Onetime customers
@@ -109,8 +109,8 @@ module V2::Logic
         }
 
         if show_stripe_section?
-          ret[:record][:stripe_customer] = safe_stripe_customer_dump
-          subscription = safe_stripe_subscription_dump
+          ret[:record][:stripe_customer]      = safe_stripe_customer_dump
+          subscription                        = safe_stripe_subscription_dump
           ret[:record][:stripe_subscriptions] = [subscription] if subscription
         end
 

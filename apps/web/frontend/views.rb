@@ -54,7 +54,7 @@ module Frontend
 
     # The robots.txt file
     class RobotsTxt < Frontend::Views::BaseView
-      self.template_name = 'robots'
+      self.template_name      = 'robots'
       self.template_extension = 'txt'
     end
 

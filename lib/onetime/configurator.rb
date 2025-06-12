@@ -26,7 +26,7 @@ module Onetime
 
     # This lets local project settings override user settings, which
     # override system defaults. It's the standard precedence.
-    @paths = [
+    @paths      = [
       File.join(Dir.pwd, 'etc'), # 1. current working directory
       File.join(Onetime::HOME, 'etc'), # 2. onetimesecret/etc
       File.join(@xdg.config_home, 'onetime'), # 3. ~/.config/onetime
@@ -53,7 +53,7 @@ module Onetime
     # Using a combination of then and then_with_diff which tracks the chanegs to
     # the configuration at each step in this load pipline.
     def load!(&)
-      @schema = load_schema
+      @schema        = load_schema
       # We validate before returning the config so that we're not inadvertently
       # sending back configuration of unknown provenance. This is Stage 1 of
       # our two-stage validation process. In addition to confirming the
@@ -98,7 +98,7 @@ module Onetime
     # affect the global ENV.
     def render_erb_template(template)
       OT.ld("[config] Rendering ERB template (#{template.size} bytes)")
-      context = Onetime::Configurator::EnvironmentContext.template_binding
+      context            = Onetime::Configurator::EnvironmentContext.template_binding
       @rendered_template = ERB.new(template).result(context)
     end
 

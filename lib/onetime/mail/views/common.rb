@@ -8,7 +8,7 @@ module Onetime
   module Mail
     class Welcome < Mail::Views::Base
       def init(secret)
-        self[:secret] = secret
+        self[:secret]        = secret
         self[:email_address] = cust.email
       end
 
@@ -27,12 +27,12 @@ module Onetime
         raise ArgumentError, 'Recipient required' unless recipient
         raise ArgumentError, 'Secret required' unless secret
 
-        self[:secret] = secret
-        self[:custid] = cust.custid
-        self[:sender_email] = cust.email
-        self[:email_address] = recipient
-        self[:from_name] = OT.conf[:emailer][:fromname]
-        self[:from] = OT.conf[:emailer][:from]
+        self[:secret]         = secret
+        self[:custid]         = cust.custid
+        self[:sender_email]   = cust.email
+        self[:email_address]  = recipient
+        self[:from_name]      = OT.conf[:emailer][:fromname]
+        self[:from]           = OT.conf[:emailer][:from]
         self[:signature_link] = 'https://onetimesecret.com/'
       end
 
@@ -55,11 +55,11 @@ module Onetime
       attr_reader :subject
 
       def init(from_name, subject)
-        @subject = subject
-        self[:custid] = cust.custid
-        self[:email_address] = cust.custid
-        self[:from_name] = from_name
-        self[:from] = OT.conf[:emailer][:from]
+        @subject              = subject
+        self[:custid]         = cust.custid
+        self[:email_address]  = cust.custid
+        self[:from_name]      = from_name
+        self[:from]           = OT.conf[:emailer][:from]
         self[:signature_link] = baseuri
       end
 
@@ -70,7 +70,7 @@ module Onetime
 
     class PasswordRequest < Mail::Views::Base
       def init(secret)
-        self[:secret] = secret
+        self[:secret]        = secret
         self[:email_address] = cust.email
       end
 
@@ -87,8 +87,8 @@ module Onetime
       attr_accessor :ticketno
 
       def init(secret, recipient)
-        self[:secret] = secret
-        self[:custid] = cust.custid
+        self[:secret]        = secret
+        self[:custid]        = cust.custid
         self[:email_address] = recipient
       end
 

@@ -15,11 +15,11 @@ module Frontend
       def self.serialize(view_vars, _i18n)
         output = self.output_template
 
-        output[:locale] = view_vars&.fetch(:locale, nil)
-        output[:default_locale] = OT.default_locale # the application default
-        output[:fallback_locale] = OT.fallback_locale
+        output[:locale]            = view_vars&.fetch(:locale, nil)
+        output[:default_locale]    = OT.default_locale # the application default
+        output[:fallback_locale]   = OT.fallback_locale
         output[:supported_locales] = OT.supported_locales
-        output[:i18n_enabled] = OT.i18n_enabled
+        output[:i18n_enabled]      = OT.i18n_enabled
 
         output
       end

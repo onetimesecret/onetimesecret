@@ -11,13 +11,13 @@ module V2
         attr_accessor :token
 
         def process_params
-          @ttl = 7.days
-          @secret_value = params[:secret]
-          @ticketno = params[:ticketno].strip
-          @passphrase = OT.conf[:incoming][:passphrase].strip
+          @ttl               = 7.days
+          @secret_value      = params[:secret]
+          @ticketno          = params[:ticketno].strip
+          @passphrase        = OT.conf[:incoming][:passphrase].strip
           params[:recipient] = [OT.conf[:incoming][:email]]
-          r = Regexp.new(/\b[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}\b/)
-          @recipient = params[:recipient].collect { |email_address|
+          r                  = Regexp.new(/\b[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}\b/)
+          @recipient         = params[:recipient].collect { |email_address|
             next if email_address.to_s.empty?
 
             email_address.scan(r).uniq.first
@@ -37,7 +37,7 @@ module V2
         end
 
         def process
-          @metadata, @secret = V2::Secret.spawn_pair cust.custid, token
+          @metadata, @secret       = V2::Secret.spawn_pair cust.custid, token
           if !passphrase.empty?
             secret.update_passphrase passphrase
             metadata.passphrase = secret.passphrase

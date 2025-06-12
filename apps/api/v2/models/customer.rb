@@ -87,8 +87,8 @@ module V2
 
     def init
       self.custid ||= 'anon'
-      self.role ||= 'customer'
-      self.email ||= self.custid unless anonymous?
+      self.role   ||= 'customer'
+      self.email  ||= self.custid unless anonymous?
 
       # When an instance is first created, any field that doesn't have a
       # value set will be nil. We need to ensure that these fields are
@@ -102,9 +102,9 @@ module V2
       # contrast to the regular INCR command where a
       # non-existant key will simply be set to 1.
       self.secrets_created ||= 0
-      self.secrets_burned ||= 0
-      self.secrets_shared ||= 0
-      self.emails_sent ||= 0
+      self.secrets_burned  ||= 0
+      self.secrets_shared  ||= 0
+      self.emails_sent     ||= 0
     end
 
     def contributor?
@@ -180,7 +180,7 @@ module V2
 
     def get_stripe_subscriptions(stripe_customer = nil)
       stripe_customer ||= @stripe_customer
-      subscriptions = []
+      subscriptions     = []
       return subscriptions unless stripe_customer
 
       begin
@@ -217,7 +217,7 @@ module V2
       # primarily in logs and other external systems where the actual customer
       # ID is not needed or otherwise not appropriate to use. Keeping the
       # value consistent is generally preferred.
-      elements = ['cust', role, custid]
+      elements               = ['cust', role, custid]
       @external_identifier ||= elements.gibbler
       @external_identifier
     end
@@ -284,7 +284,7 @@ module V2
 
       @sess = V2::Session.load(sessid) unless sessid.to_s.empty?
       if @sess.nil?
-        @sess = V2::Session.create(ip_address, custid)
+        @sess  = V2::Session.create(ip_address, custid)
         sessid = @sess.identifier
         OT.info "[load_or_create_session] adding sess #{sessid} to #{obscure_email}"
         self.sessid!(sessid)
@@ -357,11 +357,11 @@ module V2
       # For example if we need to send a pro-rated refund
       # or if we need to send a notification to the customer
       # to confirm the account deletion.
-      self.ttl = 365.days
+      self.ttl        = 365.days
       self.regenerate_apitoken
       self.passphrase = ''
-      self.verified = 'false'
-      self.role = 'user_deleted_self'
+      self.verified   = 'false'
+      self.role       = 'user_deleted_self'
       save
     end
 

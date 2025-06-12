@@ -24,10 +24,10 @@ module Onetime
 
       # Load version from package.json
       package_json_path = File.join(Onetime::HOME, 'package.json')
-      package_json = JSON.parse(File.read(package_json_path))
+      package_json      = JSON.parse(File.read(package_json_path))
 
       # Split the version string into main version and pre-release parts
-      version_parts = package_json['version'].split('-')
+      version_parts      = package_json['version'].split('-')
       main_version_parts = version_parts[0].split('.')
 
       @version = {
@@ -42,7 +42,7 @@ module Onetime
     def self.get_build_info
       # Get the commit hash from .commit_hash.txt
       commit_hash_file = File.join(Onetime::HOME, '.commit_hash.txt')
-      commit_hash = 'pristine'
+      commit_hash      = 'pristine'
       if File.exist?(commit_hash_file)
         commit_hash = File.read(commit_hash_file).strip
       else

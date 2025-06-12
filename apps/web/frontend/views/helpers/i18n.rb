@@ -37,7 +37,7 @@ module Frontend
          # Return empty hash if locales not available yet
          return {} unless OT.locales
 
-         locale = self.locale
+         locale        = self.locale
          @i18n_cache ||= {}
          return @i18n_cache[locale] if @i18n_cache.key?(locale)
 
@@ -51,9 +51,9 @@ module Frontend
          end
 
          # Safe access to nested hash structure
-         web_messages = messages.fetch(:web, {})
+         web_messages    = messages.fetch(:web, {})
          common_messages = web_messages.fetch(:COMMON, {})
-         page_messages = web_messages.fetch(pagename, {})
+         page_messages   = web_messages.fetch(pagename, {})
 
          result = {
            locale: locale,

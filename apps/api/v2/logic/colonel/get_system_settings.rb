@@ -18,7 +18,7 @@ module V2
 
         def process
           @current_record = fetch_current_system_settings
-          @merged_config = build_merged_configuration
+          @merged_config  = build_merged_configuration
 
           OT.ld "[GetSystemSettings#process] Retrieved system settings with #{@merged_config.keys.size} sections"
         end

@@ -39,11 +39,11 @@ module Onetime
       #   - :domain [String] The domain name (e.g., 'example.com')
       #   - :old_id [String] The current domain ID derived from [domain, old_email]
       def initialize(old_email, new_email, realm, domains = [])
-        @old_email = old_email
-        @new_email = new_email
-        @realm = realm
-        @domains = domains || []
-        @log_entries = []
+        @old_email       = old_email
+        @new_email       = new_email
+        @realm           = realm
+        @domains         = domains || []
+        @log_entries     = []
         @domain_mappings = {}
 
         # Redis instances are defined in the execution methods
@@ -158,7 +158,7 @@ module Onetime
           end
 
           # Calculate new domain ID
-          new_id = [domain, new_email].gibbler.shorten
+          new_id                   = [domain, new_email].gibbler.shorten
           @domain_mappings[old_id] = new_id
           log "Domain mapping: #{domain} => #{old_id} -> #{new_id}"
         end
@@ -338,7 +338,7 @@ module Onetime
       # @param stdout [Boolean] Whether to print the message to stdout
       def log(message, stdout = true)
         timestamp = Time.now.strftime('%Y-%m-%d %H:%M:%S')
-        entry = "[#{timestamp}] #{message}"
+        entry     = "[#{timestamp}] #{message}"
         @log_entries << entry
         OT.info "[cli.change-email] #{message}" if stdout
       end
@@ -371,8 +371,8 @@ module Onetime
       # @return [String] The key where the report was stored
       def save_report_to_redis
         report_text = generate_report
-        timestamp = Time.now.to_i
-        report_key = "change_email:#{old_email}:#{new_email}:#{timestamp}"
+        timestamp   = Time.now.to_i
+        report_key  = "change_email:#{old_email}:#{new_email}:#{timestamp}"
 
         # Save to Redis DB 0 for audit logs
         redis = Familia.redis
