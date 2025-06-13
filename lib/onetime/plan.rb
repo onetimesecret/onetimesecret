@@ -50,7 +50,7 @@ module Onetime
       end
 
       def plan(planid)
-        plans[normalize(planid)] #unless planid.nil?
+        plans[normalize(planid)] # unless planid.nil?
       end
 
       def plan?(planid)
@@ -63,7 +63,7 @@ module Onetime
           custom_domains: false, dark_mode: true
         add_plan :identity, 35, 0, ttl: 30.days, size: 10_000_000, api: true, name: 'Identity', email: true,
           custom_domains: true, dark_mode: true
-        self.plans.freeze
+        plans.freeze
       end
     end
 

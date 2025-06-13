@@ -13,7 +13,7 @@ module Frontend
       # @param i18n [Object] The internationalization instance
       # @return [Hash] Serialized plan data including current plan and available plans
       def self.serialize(view_vars, _i18n)
-        output = self.output_template
+        output = output_template
 
         cust = view_vars[:cust]
 

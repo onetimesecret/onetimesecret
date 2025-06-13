@@ -58,7 +58,7 @@ module V2
           version: agent.split('/')[1],
           mobile: agent.downcase.match?(/mobile|android|iphone/i),
         }
-      }},
+      } },
 
       # Location info
       { location: lambda { |obj|
@@ -70,15 +70,15 @@ module V2
           query: uri.query,
           hostname: uri.host,
         }
-      }},
+      } },
 
       # Stack trace processing
       { stack_preview: lambda { |obj|
         obj.stack.to_s.split("\n").first(3).join("\n") if obj.stack
-      }},
+      } },
       { stack_length: lambda { |obj|
         obj.stack.to_s.split("\n").length if obj.stack
-      }},
+      } },
     ].freeze
 
     def init
@@ -107,21 +107,21 @@ module V2
 
         OT.li("[ExceptionInfo] #{identifier} #{fobj.type} #{fobj.release} #{fobj.url}")
 
-        self.values.add(created_time, identifier)
+        values.add(created_time, identifier)
 
         # Auto-trim the set to keep only the most recent 14 days of feedback
-        self.values.remrangebyscore 0, OT.now.to_i-self.ttl # e.g. 14 days
+        values.remrangebyscore 0, OT.now.to_i-ttl # e.g. 14 days
       end
 
       # Returns a Hash like: {"msg1"=>"1322644672", "msg2"=>"1322644668"}
       def all
-        ret = self.values.revrangeraw(0, -1, withscores: true)
+        ret = values.revrangeraw(0, -1, withscores: true)
         Hash[ret]
       end
 
       def recent(duration = 7.days, epoint = OT.now.to_i)
         spoint = OT.now.to_i-duration
-        ret    = self.values.rangebyscoreraw(spoint, epoint, withscores: true)
+        ret    = values.rangebyscoreraw(spoint, epoint, withscores: true)
         Hash[ret]
       end
     end

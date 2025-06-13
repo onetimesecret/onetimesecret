@@ -12,11 +12,8 @@ module Onetime
 
   class << self
     attr_accessor :mode, :d9s_enabled
-    attr_reader :configurator
+    attr_reader :configurator, :conf, :instance, :i18n_enabled, :locales, :supported_locales, :default_locale, :fallback_locale, :global_banner, :rotated_secrets, :emailer, :first_boot
     attr_writer :debug, :env, :global_secret
-    attr_reader :conf, :instance, :i18n_enabled, :locales,
-      :supported_locales, :default_locale, :fallback_locale,
-      :global_banner, :rotated_secrets, :emailer, :first_boot
 
     using IndifferentHashAccess
 
@@ -123,7 +120,7 @@ module Onetime
     def safe_boot!(mode = nil, connect_to_db = true)
       boot!(mode, connect_to_db)
       true
-    rescue StandardError => ex
+    rescue StandardError
       # Boot errors are already logged in handle_boot_error
       OT.not_ready! # returns false
     end

@@ -139,6 +139,9 @@ Style/SymbolArray:
 Style/StringLiteralsInInterpolation:
   Enabled: true
 
+Style/BlockDelimiters:
+  Enabled: true
+
 Naming/PredicateMethod:
   Enabled: pending
   Mode: ''

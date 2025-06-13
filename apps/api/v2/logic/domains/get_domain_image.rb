@@ -30,7 +30,7 @@ module V2::Logic
 
         @display_domain = @domain_input # Only after it's known to be a good value
 
-        @image = self._image_field
+        @image = _image_field
         raise_not_found 'Image not found' unless image && image['encoded']
       end
 
@@ -43,8 +43,7 @@ module V2::Logic
       def success_data
         {
           record: image.hgetall,  # encoded filename content_type
-          details: {
-          },
+          details: {},
         }
       end
 

@@ -6,8 +6,7 @@ module V2
   module Logic
     module Incoming
       class CreateIncoming < V2::Logic::Base
-        attr_reader :passphrase, :secret_value, :ticketno
-        attr_reader :metadata, :secret, :recipient, :ttl
+        attr_reader :passphrase, :secret_value, :ticketno, :metadata, :secret, :recipient, :ttl
         attr_accessor :token
 
         def process_params
@@ -38,12 +37,13 @@ module V2
 
         def process
           @metadata, @secret       = V2::Secret.spawn_pair cust.custid, token
-          if !passphrase.empty?
+          unless passphrase.empty?
             secret.update_passphrase passphrase
             metadata.passphrase = secret.passphrase
           end
           secret.encrypt_value secret_value, size: plan.options[:size]
-          metadata.ttl, secret.ttl = ttl, ttl
+          metadata.ttl             = ttl
+          secret.ttl               = ttl
           metadata.secret_shortkey = secret.shortkey
           secret.save
           metadata.save

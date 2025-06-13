@@ -35,7 +35,7 @@ module Onetime
     @extensions = ['.yml', '.yaml', '.json', '.json5', ''].freeze
 
     attr_accessor :config_path, :schema_path
-    attr_reader :schema
+    attr_reader :schema, :parsed_yaml, :config_template_str, :processed_config
 
     def initialize(config_path: nil, schema_path: nil)
       @config_path = config_path || self.class.find_config('config')
@@ -44,7 +44,6 @@ module Onetime
 
     # States:
     attr_reader :unprocessed_config, :validated_config, :schema, :parsed_template
-    attr_reader :parsed_yaml, :config_template_str, :processed_config
 
     # Typically called via `OT::Configurator.load!`. The block is passed to
     # after_load after the config is first loaded and the validated against

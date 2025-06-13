@@ -35,8 +35,8 @@ module Frontend
       def to_json_script(data, id: nil, nonce: nil)
         sanitized_json = to_sanitized_json(data)
         attributes     = ['type="application/json"']
-        attributes << %{id="#{Rack::Utils.escape_html(id)}"} if id
-        attributes << %{nonce="#{nonce}"} if nonce
+        attributes << %(id="#{Rack::Utils.escape_html(id)}") if id
+        attributes << %(nonce="#{nonce}") if nonce
 
         "<script #{attributes.join(' ')}>#{sanitized_json}</script>"
       end

@@ -3,8 +3,7 @@
 module V2::Logic
   module Secrets
     class BurnSecret < V2::Logic::Base
-      attr_reader :key, :passphrase, :continue
-      attr_reader :metadata, :secret, :correct_passphrase, :greenlighted
+      attr_reader :key, :passphrase, :continue, :metadata, :secret, :correct_passphrase, :greenlighted
 
       def process_params
         @key        = params[:key].to_s

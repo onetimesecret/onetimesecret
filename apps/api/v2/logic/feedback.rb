@@ -81,8 +81,7 @@ module V2
       def success_data
         {
           success: greenlighted,
-          record: {
-          },
+          record: {},
           details: {
             message: 'Message received. Send as much as you like!',
           },
@@ -95,8 +94,8 @@ module V2
 
       def send_feedback(cust, message)
         view                 = Onetime::Mail::FeedbackEmail.new cust, locale
-        view.display_domain  = self.display_domain
-        view.domain_strategy = self.domain_strategy
+        view.display_domain  = display_domain
+        view.domain_strategy = domain_strategy
         view.message         = message
 
         OT.ld "[send_feedback] Calling deliver_email #{message.gibbler}"

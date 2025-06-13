@@ -71,15 +71,15 @@ module V2
       :stripe_subscription_id,
       :stripe_checkout_email,
 
-      {plan: ->(cust) { cust.load_plan } }, # safe_dump will be called automatically
+      { plan: ->(cust) { cust.load_plan } }, # safe_dump will be called automatically
 
       # NOTE: The secrets_created incrementer is null until the first secret
       # is created. See ConcealSecret for where the incrementer is called.
       #
-      {secrets_created: ->(cust) { cust.secrets_created.to_s || 0 } },
-      {secrets_burned: ->(cust) { cust.secrets_burned.to_s || 0 } },
-      {secrets_shared: ->(cust) { cust.secrets_shared.to_s || 0 } },
-      {emails_sent: ->(cust) { cust.emails_sent.to_s || 0 } },
+      { secrets_created: ->(cust) { cust.secrets_created.to_s || 0 } },
+      { secrets_burned: ->(cust) { cust.secrets_burned.to_s || 0 } },
+      { secrets_shared: ->(cust) { cust.secrets_shared.to_s || 0 } },
+      { emails_sent: ->(cust) { cust.emails_sent.to_s || 0 } },
 
       # We use the hash syntax here since `:active?` is not a valid symbol.
       { active: ->(cust) { cust.active? } },
@@ -108,7 +108,7 @@ module V2
     end
 
     def contributor?
-      self.contributor.to_s == 'true'
+      contributor.to_s == 'true'
     end
 
     def locale?
@@ -116,16 +116,16 @@ module V2
     end
 
     def apitoken?(guess)
-      self.apitoken.to_s == guess.to_s
+      apitoken.to_s == guess.to_s
     end
 
     def regenerate_apitoken
-      self.apitoken! [OT.instance, OT.now.to_f, :apitoken, custid].gibbler
-      self.apitoken # the fast writer bang methods don't return the value
+      apitoken! [OT.instance, OT.now.to_f, :apitoken, custid].gibbler
+      apitoken # the fast writer bang methods don't return the value
     end
 
     def load_plan
-      Onetime::Plan.plan(planid) || {planid: planid, source: 'parts_unknown'}
+      Onetime::Plan.plan(planid) || { planid: planid, source: 'parts_unknown' }
     end
 
     def get_stripe_customer
@@ -262,14 +262,14 @@ module V2
     def reset_secret?(secret)
       return false if secret.nil? || !secret.exists? || secret.key.to_s.empty?
 
-      Rack::Utils.secure_compare(self.reset_secret.to_s, secret.key)
+      Rack::Utils.secure_compare(reset_secret.to_s, secret.key)
     end
 
     def valid_reset_secret!(secret)
       if is_valid = reset_secret?(secret)
         OT.ld "[valid_reset_secret!] Reset secret is valid for #{custid} #{secret.shortkey}"
         secret.delete!
-        self.reset_secret.delete!
+        reset_secret.delete!
       end
       is_valid
     end
@@ -287,14 +287,14 @@ module V2
         @sess  = V2::Session.create(ip_address, custid)
         sessid = @sess.identifier
         OT.info "[load_or_create_session] adding sess #{sessid} to #{obscure_email}"
-        self.sessid!(sessid)
+        sessid!(sessid)
       end
       @sess
     end
 
     def metadata_list
       metadata.revmembers.collect do |key|
-        obj = V2::Metadata.load(key)
+        V2::Metadata.load(key)
       rescue Onetime::RecordNotFound => ex
         OT.le "[metadata_list] Error: #{ex.message} (#{key} / #{self.custid})"
       end.compact
@@ -342,7 +342,7 @@ module V2
     #
     # @return [void]
     def destroy_requested!
-      self.destroy_requested
+      destroy_requested
       save
     end
 
@@ -358,7 +358,7 @@ module V2
       # or if we need to send a notification to the customer
       # to confirm the account deletion.
       self.ttl        = 365.days
-      self.regenerate_apitoken
+      regenerate_apitoken
       self.passphrase = ''
       self.verified   = 'false'
       self.role       = 'user_deleted_self'
@@ -410,16 +410,16 @@ module V2
       attr_reader :values
 
       def add(cust)
-        self.values.add OT.now.to_i, cust.identifier
+        values.add OT.now.to_i, cust.identifier
       end
 
       def all
-        self.values.revrangeraw(0, -1).collect { |identifier| load(identifier) }
+        values.revrangeraw(0, -1).collect { |identifier| load(identifier) }
       end
 
       def recent(duration = 30.days, epoint = OT.now.to_i)
         spoint = OT.now.to_i-duration
-        self.values.rangebyscoreraw(spoint, epoint).collect { |identifier| load(identifier) }
+        values.rangebyscoreraw(spoint, epoint).collect { |identifier| load(identifier) }
       end
 
       def anonymous

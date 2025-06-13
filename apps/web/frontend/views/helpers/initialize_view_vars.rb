@@ -30,7 +30,7 @@ module Frontend
       # @return [Hash] Collection of initialized variables
       def initialize_view_vars(req, sess, cust, locale, i18n_instance)
         # Return minimal defaults if OT.conf isn't loaded yet
-        return self.minimal_defaults(req, sess, cust, locale) unless OT.conf
+        return minimal_defaults(req, sess, cust, locale) unless OT.conf
 
         # Extract the top-level keys from the YAML configuration.
         #
@@ -66,12 +66,12 @@ module Frontend
         end
 
         # Additional filtering for nested sensitive data
-        if safe_site[:domains]
-          safe_site[:domains].delete(:cluster) if safe_site[:domains].is_a?(Hash)
+        if (safe_site[:domains]) && safe_site[:domains].is_a?(Hash)
+          safe_site[:domains].delete(:cluster)
         end
 
-        if safe_site[:authentication]
-          safe_site[:authentication].delete(:colonels) if safe_site[:authentication].is_a?(Hash)
+        if (safe_site[:authentication]) && safe_site[:authentication].is_a?(Hash)
+          safe_site[:authentication].delete(:colonels)
         end
 
         # Extract values from session

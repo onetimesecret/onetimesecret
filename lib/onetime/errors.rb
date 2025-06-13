@@ -1,4 +1,3 @@
-
 require 'json'
 
 module Onetime
@@ -98,7 +97,8 @@ module Onetime
     attr_reader :location, :status
 
     def initialize(l, s = 302)
-      @location, @status = l, s
+      @location = l
+      @status   = s
     end
   end
 end

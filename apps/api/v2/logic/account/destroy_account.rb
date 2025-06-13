@@ -1,5 +1,3 @@
-
-
 module V2::Logic
   module Account
     class DestroyAccount < V2::Logic::Base

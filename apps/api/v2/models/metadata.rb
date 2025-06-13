@@ -91,7 +91,7 @@ module V2
       # provide the metadata page even after the secret is gone.
       (secret_ttl.to_i * 2) if secret_ttl.to_i > 0
     end
-    alias :expiration_in_seconds :metadata_ttl
+    alias expiration_in_seconds metadata_ttl
 
     def expiration
       # Unix timestamp of when the metadata will expire. Based on
@@ -103,9 +103,9 @@ module V2
       # Colloquial representation of the TTL. e.g. "1 day"
       OT::TimeUtils.natural_duration metadata_ttl
     end
-    alias :natural_ttl :natural_duration
+    alias natural_ttl natural_duration
 
-    alias :secret_expiration_in_seconds :secret_ttl
+    alias secret_expiration_in_seconds secret_ttl
 
     def secret_expiration
       # Unix timestamp of when the secret will expire. Based on
@@ -118,7 +118,7 @@ module V2
       # Colloquial representation of the TTL. e.g. "1 day"
       OT::TimeUtils.natural_duration secret_ttl.to_i if secret_ttl
     end
-    alias :secret_natural_ttl :secret_natural_duration
+    alias secret_natural_ttl secret_natural_duration
 
     def secret_expired?
       Time.now.utc.to_i >= (secret_expiration || 0)
@@ -129,7 +129,7 @@ module V2
     end
 
     def shortkey
-      key.slice(0,6)
+      key.slice(0, 6)
     end
 
     def anonymous?
@@ -155,21 +155,21 @@ module V2
         OT.info "[deliver-by-email] #{cust.obscure_email} #{secret.key} No addresses specified"
       end
 
-      OT.info "[deliver-by-email2] #{cust.obscure_email} #{secret.key} (token/#{self.token})"
+      OT.info "[deliver-by-email2] #{cust.obscure_email} #{secret.key} (token/#{token})"
       eaddrs = [eaddrs].flatten.compact[0..9] # Max 10
 
       eaddrs_safe     = eaddrs.collect { |e| OT::Utils.obscure_email(e) }
       eaddrs_safe_str = eaddrs_safe.join(', ')
 
       OT.info "[deliver-by-email3] #{cust.obscure_email} #{secret.key} (#{eaddrs_safe.size}) #{eaddrs_safe_str}"
-      self.recipients! eaddrs_safe_str
+      recipients! eaddrs_safe_str
 
       OT.lw "SECRET HAS MORE THAN ONE RECIPIENT #{eaddrs.size}" if eaddrs.size > 1
       eaddrs.each do |email_address|
         view                  = template.new cust, locale, secret, email_address
-        view.ticketno         = ticketno if (ticketno)
+        view.ticketno         = ticketno if ticketno
         view.emailer.reply_to = cust.email
-        view.deliver_email self.token  # pass the token from spawn_pair through
+        view.deliver_email token  # pass the token from spawn_pair through
         break # force just a single recipient
       end
     end

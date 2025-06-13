@@ -35,7 +35,7 @@ module Onetime
       return unless domains_to_process
 
       total = domains_to_process.size
-      puts "Processing #{total} domain#{total == 1 ? '' : 's'}"
+      puts "Processing #{total} domain#{'s' unless total == 1}"
 
       process_domains_in_batches(domains_to_process)
 
@@ -57,13 +57,11 @@ module Onetime
     end
 
     def get_specific_domain
-      begin
         domain = V2::CustomDomain.load(option.domain, option.custid)
         [domain]
-      rescue Onetime::RecordNotFound
+    rescue Onetime::RecordNotFound
         puts "Domain #{option.domain} not found for customer #{option.custid}"
         nil
-      end
     end
 
     def get_customer_domains
@@ -121,7 +119,6 @@ module Onetime
     end
 
     def revalidate_domain(domain)
-      begin
         params           = { domain: domain.display_domain }
         verifier         = V2::Logic::Domains::VerifyDomain.new(nil, domain.custid, params)
         verifier.raise_concerns
@@ -129,10 +126,9 @@ module Onetime
         status           = domain.verification_state
         resolving_status = domain.resolving == 'true' ? 'resolving' : 'not resolving'
         puts "#{status} (#{resolving_status})"
-      rescue StandardError => ex
+    rescue StandardError => ex
         puts "error: #{ex.message}"
-        $stderr.puts ex.backtrace
-      end
+        warn ex.backtrace
     end
   end
 end

@@ -11,17 +11,17 @@ module Onetime::Mail
     class SMTPMailer < BaseMailer
       using IndifferentHashAccess
 
-      def send_email(to_address, subject, html_content, text_content) # rubocop:disable Metrics/MethodLength
+      def send_email(to_address, subject, html_content, text_content)
         mailer_response  = nil
         obscured_address = OT::Utils.obscure_email(to_address)
-        sender_email     = self.from # just the email address, not with the name
+        sender_email     = from # just the email address, not with the name
         to_email         = to_address
         reply_to         = self.reply_to
 
         OT.ld "[email-send-start] sender:#{sender_email}; reply-to:#{reply_to}"
 
         # Return early if there is no system email address to send from
-        if self.from.to_s.empty?
+        if from.to_s.empty?
           OT.le "> [send-exception] No from address [to: #{obscured_address}]"
           return
         end

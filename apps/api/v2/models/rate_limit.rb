@@ -103,7 +103,7 @@ module V2
       count
     end
 
-    alias_method :count, :value
+    alias count value
 
     def clear
       delete!
@@ -136,7 +136,7 @@ module V2
 
         count
       end
-      alias_method :increment!, :incr!
+      alias increment! incr!
 
       # Clear the counter for an identifier/event pair
       # @param identifier [String] unique identifier for the limited entity
@@ -203,7 +203,7 @@ module V2
       # @return [String] formatted timestamp (HHMM)
       def eventstamp
         now     = OT.now.to_i
-        rounded = now - (now % self.ttl)
+        rounded = now - (now % ttl)
         Time.at(rounded).utc.strftime('%H%M')
       end
     end

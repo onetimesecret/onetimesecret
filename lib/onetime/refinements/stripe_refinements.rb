@@ -32,25 +32,27 @@ module Onetime
               quantity: item.quantity,
             }
           end
-        }},
+        } },
 
         { current_period_remaining: lambda { |sub|
           (Time.at(sub.current_period_end) - Time.now).to_i
-        }},
+        } },
 
         { on_trial: lambda { |sub|
           sub.trial_end && Time.now < Time.at(sub.trial_end)
-        }},
+        } },
 
         { plan: lambda { |sub|
-          sub.plan ? {
-            id: sub.plan.id,
-            nickname: sub.plan.nickname,
-            amount: sub.plan.amount,
-            interval: sub.plan.interval,
-            interval_count: sub.plan.interval_count,
-          } : nil
-        }},
+          if sub.plan
+  {
+    id: sub.plan.id,
+    nickname: sub.plan.nickname,
+    amount: sub.plan.amount,
+    interval: sub.plan.interval,
+    interval_count: sub.plan.interval_count,
+  }
+end
+        } },
       ]
     end
 
@@ -72,25 +74,27 @@ module Onetime
         :currency,
 
         { address: lambda { |cust|
-          cust.address ? {
-            city: cust.address.city,
-            country: cust.address.country,
-            line1: cust.address.line1,
-            line2: cust.address.line2,
-            postal_code: cust.address.postal_code,
-            state: cust.address.state,
-          } : nil
-        }},
+          if cust.address
+  {
+    city: cust.address.city,
+    country: cust.address.country,
+    line1: cust.address.line1,
+    line2: cust.address.line2,
+    postal_code: cust.address.postal_code,
+    state: cust.address.state,
+  }
+end
+        } },
 
         { has_payment_method: lambda { |cust|
           !cust.default_source.nil?
-        }},
+        } },
 
         { metadata: lambda { |cust|
           # Only include safe metadata fields
           safe_metadata_keys = [:public_note, :preferred_language]
           cust.metadata_list.select { |k, _| safe_metadata_keys.include?(k.to_sym) }
-        }},
+        } },
       ].freeze
 
       def safe_dump

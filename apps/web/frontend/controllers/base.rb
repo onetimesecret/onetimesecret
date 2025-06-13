@@ -9,12 +9,11 @@ module Frontend
       include Frontend::ControllerHelpers
       include V2::Controllers::ClassSettings
 
-      attr_reader :req, :res
-      attr_reader :sess, :cust, :locale
-      attr_reader :ignoreshrimp
+      attr_reader :req, :res, :sess, :cust, :locale, :ignoreshrimp
 
       def initialize(req, res)
-        @req, @res = req, res
+        @req = req
+        @res = res
       end
 
       def publically(redirect = nil)
@@ -105,8 +104,8 @@ module Frontend
           # Set a default host if the host is missing
           uri.host ||= OT.conf[:site][:host]
           # Ensure the scheme is HTTPS if SSL is enabled in the configuration
-          if OT.conf[:site][:ssl]
-            uri.scheme = 'https' if uri.scheme.nil? || uri.scheme != 'https'
+          if (OT.conf[:site][:ssl]) && (uri.scheme.nil? || uri.scheme != 'https')
+            uri.scheme = 'https'
           end
           # Set uri to nil if it is not an HTTP or HTTPS URI
           uri        = nil unless uri.is_a?(URI::HTTP)

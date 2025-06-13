@@ -3,8 +3,7 @@
 module V2::Logic
   module Authentication
     class DestroySession < V2::Logic::Base
-      def process_params
-      end
+      def process_params; end
 
       def raise_concerns
         limit_action :destroy_session

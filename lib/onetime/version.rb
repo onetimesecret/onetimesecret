@@ -16,7 +16,7 @@ module Onetime
     def self.inspect
       load_config
       build = (@version || {}).fetch(:BUILD, nil).to_s
-      build.empty? ? to_s : "#{to_s} (#{build})"
+      build.empty? ? to_s : "#{self} (#{build})"
     end
 
     def self.load_config
@@ -46,7 +46,7 @@ module Onetime
       if File.exist?(commit_hash_file)
         commit_hash = File.read(commit_hash_file).strip
       else
-        $stderr.puts "Warning: Commit hash file not found. Using default value '#{commit_hash}'."
+        warn "Warning: Commit hash file not found. Using default value '#{commit_hash}'."
       end
       commit_hash
     end

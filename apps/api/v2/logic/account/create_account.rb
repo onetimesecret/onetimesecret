@@ -1,10 +1,7 @@
-
-
 module V2::Logic
   module Account
     class CreateAccount < V2::Logic::Base
-      attr_reader :cust, :plan, :autoverify, :customer_role
-      attr_reader :planid, :custid, :password, :skill
+      attr_reader :cust, :plan, :autoverify, :customer_role, :planid, :custid, :password, :skill
       attr_accessor :token
 
       def process_params
@@ -20,7 +17,7 @@ module V2::Logic
         # This is a hidden field, so it should be empty. If it has a value, it's
         # a simple bot trying to submit the form or similar chicanery. We just
         # quietly redirect to the home page to mimic a successful response.
-        @skill = params[:skill].to_s.strip.slice(0,60)
+        @skill = params[:skill].to_s.strip.slice(0, 60)
       end
 
       def raise_concerns
@@ -67,7 +64,7 @@ module V2::Logic
         success_message = if autoverify
           'Account created.'
         else
-          self.send_verification_email
+          send_verification_email
 
           "#{i18n.dig(:web, :COMMON, :verification_sent_to)} #{cust.custid}."
         end

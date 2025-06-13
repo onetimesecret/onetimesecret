@@ -5,8 +5,7 @@ require 'onetime/refinements/rack_refinements'
 module V2::Logic
   module Secrets
     class BaseSecretAction < V2::Logic::Base
-      attr_reader :passphrase, :secret_value, :kind, :ttl, :recipient, :recipient_safe, :greenlighted
-      attr_reader :metadata, :secret, :share_domain, :custom_domain, :payload
+      attr_reader :passphrase, :secret_value, :kind, :ttl, :recipient, :recipient_safe, :greenlighted, :metadata, :secret, :share_domain, :custom_domain, :payload
       attr_accessor :token
 
       using Onetime::RackRefinements
@@ -180,7 +179,8 @@ module V2::Logic
 
       def save_secret
         secret.encrypt_value secret_value, size: plan.options[:size]
-        metadata.ttl, secret.ttl = ttl*2, ttl
+        metadata.ttl             = ttl*2
+        secret.ttl               = ttl
         metadata.lifespan        = metadata.ttl.to_i
         metadata.secret_ttl      = secret.ttl.to_i
         metadata.secret_shortkey = secret.shortkey

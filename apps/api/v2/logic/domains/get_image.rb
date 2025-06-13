@@ -1,4 +1,3 @@
-
 require_relative '../base'
 
 module V2::Logic
@@ -15,8 +14,7 @@ module V2::Logic
     #   /imagine/b79b17281be7264f778c/logo.png
     #
     class GetImage < V2::Logic::Base
-      attr_reader :custom_domain_id, :filename, :custom_domain, :image_type, :image_ext
-      attr_reader :content_type, :content_length, :image_data, :encoded_content
+      attr_reader :custom_domain_id, :filename, :custom_domain, :image_type, :image_ext, :content_type, :content_length, :image_data, :encoded_content
 
       def process_params
         # Sanitize the id to allow only alphanumeric characters
@@ -44,7 +42,7 @@ module V2::Logic
         @custom_domain    = tmp_custom_domain # make it available after all concerns
 
         # Safely retrieve the logo filename from the custom domain's brand
-        logo_filename = _image_field&.[]('filename')
+        _image_field&.[]('filename')
         content_type  = _image_field.[]('content_type')
 
         raise_not_found 'No content type' unless content_type

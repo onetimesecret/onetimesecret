@@ -25,8 +25,7 @@ module Frontend
         SystemSerializer,
       )
 
-      def init *args
-      end
+      def init *args; end
     end
 
     class ExportWindow < Frontend::Views::BaseView
@@ -42,8 +41,7 @@ module Frontend
         SystemSerializer,
       )
 
-      def init *args
-      end
+      def init *args; end
     end
 
     class Error < Frontend::Views::BaseView

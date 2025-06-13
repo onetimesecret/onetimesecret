@@ -67,16 +67,18 @@ module Onetime
     def display_verbose_with_dependencies(order_str, name, info)
       puts "#{order_str} #{name}"
       puts "    Module: #{info[:name]}"
-      if !info[:dependencies].empty?
+      unless info[:dependencies].empty?
         puts "    Dependencies: #{info[:dependencies].map { |d| d.split('::').last }.join(', ')}"
       end
       puts
     end
 
     def display_compact_with_dependencies(order_str, name, info)
-      deps_str = info[:dependencies].empty? ?
-        '(no dependencies)' :
-        "→ #{info[:dependencies].map { |d| d.split('::').last }.join(', ')}"
+      deps_str = if info[:dependencies].empty?
+  '(no dependencies)'
+else
+  "→ #{info[:dependencies].map { |d| d.split('::').last }.join(', ')}"
+end
       puts "#{order_str} #{name.ljust(20)} #{deps_str}"
     end
 

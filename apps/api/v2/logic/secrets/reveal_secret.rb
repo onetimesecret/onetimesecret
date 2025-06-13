@@ -5,11 +5,7 @@ module V2::Logic
     # Very similar logic to ShowSecret, but with a few key differences
     # as required by the v2 API. The v1 API uses the original ShowSecret.
     class RevealSecret < V2::Logic::Base
-      attr_reader :key, :passphrase, :continue, :share_domain
-      attr_reader :secret, :show_secret, :secret_value, :is_truncated,
-        :verification, :correct_passphrase,
-        :display_lines, :one_liner, :is_owner, :has_passphrase,
-        :secret_key
+      attr_reader :key, :passphrase, :continue, :share_domain, :secret, :show_secret, :secret_value, :is_truncated, :verification, :correct_passphrase, :display_lines, :one_liner, :is_owner, :has_passphrase, :secret_key
 
       def process_params
         @key        = params[:key].to_s
@@ -128,14 +124,14 @@ module V2::Logic
 
       def calculate_display_lines
         v   = secret_value.to_s
-        ret = ((80+v.size)/80) + (v.scan(/\n/).size) + 3
-        ret = ret > 30 ? 30 : ret
+        ret = ((80+v.size)/80) + (v.scan("\n").size) + 3
+        ret > 30 ? 30 : ret
       end
 
       def one_liner
         return if secret_value.to_s.empty? # return nil when the value is empty
 
-        secret_value.to_s.scan(/\n/).empty?
+        secret_value.to_s.scan("\n").empty?
       end
     end
   end

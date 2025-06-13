@@ -1,4 +1,3 @@
-
 require 'json'
 require 'logger'
 require 'rack'
@@ -83,7 +82,7 @@ class Rack::HandleInvalidPercentEncoding
   end
 
   def handle_exception(env, exception)
-    rack_input = env['rack.input']&.read || ''
+    env['rack.input']&.read || ''
     env['rack.input'].rewind
 
     errmsg = exception.message

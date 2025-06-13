@@ -95,8 +95,8 @@ module V2
     return @external_identifier if @external_identifier
 
     elements               = []
-    elements << ipaddress || 'UNKNOWNIP'
-    elements << custid || 'anon'
+    (elements << ipaddress) || 'UNKNOWNIP'
+    (elements << custid) || 'anon'
     @external_identifier ||= elements.gibbler.base(36)
 
     # This is a very busy method so we can avoid generating and logging this
@@ -114,17 +114,17 @@ module V2
   end
 
   def stale?
-    self.stale.to_s == 'true'
+    stale.to_s == 'true'
   end
 
   def replace!
-    @custid ||= self.custid
+    @custid ||= custid
     newid     = self.class.generate_id
 
     # Remove the existing session key from Redis
     if exists?
       begin
-        self.delete!
+        delete!
       rescue StandardError => ex
         OT.le "[Session.replace!] Failed to delete key #{rediskey}: #{ex.message}"
       end
@@ -136,7 +136,7 @@ module V2
 
     # Familia doesn't automatically keep the key in sync with the
     # identifier field. We need to do it manually. See #860.
-    self.key = self.sessid
+    self.key = sessid
 
     save
 
@@ -155,12 +155,12 @@ module V2
     # we only add it if it's not already set ao that we don't accidentally
     # dispose of perfectly good piece of shrimp. Because of this guard, the
     # method is idempotent and can be called multiple times without side effects.
-    self.shrimp! self.class.generate_id if self.shrimp.to_s.empty?
-    self.shrimp # fast writer bang methods don't return the value
+    shrimp! self.class.generate_id if shrimp.to_s.empty?
+    shrimp # fast writer bang methods don't return the value
   end
 
   def replace_shrimp!
-    self.shrimp! self.class.generate_id
+    shrimp! self.class.generate_id
   end
 
   def authenticated?
@@ -182,17 +182,18 @@ module V2
     attr_reader :values
 
     def add(sess)
-      self.values.add OT.now.to_i, sess.identifier
-      self.values.remrangebyscore 0, OT.now.to_i-2.days
+      values.add OT.now.to_i, sess.identifier
+      values.remrangebyscore 0, OT.now.to_i-2.days
     end
 
     def all
-      self.values.revrangeraw(0, -1).collect { |identifier| load(identifier) }
+      values.revrangeraw(0, -1).collect { |identifier| load(identifier) }
     end
 
     def recent(duration = 30.days)
-      spoint, epoint = OT.now.to_i-duration, OT.now.to_i
-      self.values.rangebyscoreraw(spoint, epoint).collect { |identifier| load(identifier) }
+      spoint = OT.now.to_i-duration
+      epoint = OT.now.to_i
+      values.rangebyscoreraw(spoint, epoint).collect { |identifier| load(identifier) }
     end
 
     def create(ipaddress, custid, useragent = nil)

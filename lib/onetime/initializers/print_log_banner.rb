@@ -100,13 +100,13 @@ module Onetime
       dev_rows = []
 
       [:development, :experimental].each do |key|
-        if config_value = OT.conf.fetch(key, false)
-          if feature_disabled?(config_value)
-            dev_rows << [key.to_s.capitalize, 'disabled']
-          else
-            dev_rows << [key.to_s.capitalize, format_config_value(config_value)]
-          end
-        end
+        next unless config_value = OT.conf.fetch(key, false)
+
+        dev_rows << if feature_disabled?(config_value)
+          [key.to_s.capitalize, 'disabled']
+        else
+          [key.to_s.capitalize, format_config_value(config_value)]
+                    end
       end
 
       dev_rows
@@ -120,7 +120,7 @@ module Onetime
       if site_config.key?(:plans)
         plans_config = site_config[:plans]
         if feature_disabled?(plans_config)
-          feature_rows << ['Plans', 'disabled']
+          feature_rows << %w[Plans disabled]
         else
           begin
             feature_rows << ['Plans', OT::Plan.plans.keys.join(', ')]
@@ -151,7 +151,7 @@ module Onetime
 
       begin
         if feature_disabled?(email_config)
-          [['Status', 'disabled']]
+          [%w[Status disabled]]
         else
           [
             ['Mailer', @emailer],
@@ -172,18 +172,18 @@ module Onetime
     def build_auth_section(site_config, colonels)
       auth_rows = []
 
-      if colonels.empty?
-        auth_rows << ['Colonels', 'No colonels configured ⚠️']
+      auth_rows << if colonels.empty?
+        ['Colonels', 'No colonels configured ⚠️']
       else
-        auth_rows << ['Colonels', colonels.join(', ')]
-      end
+        ['Colonels', colonels.join(', ')]
+                   end
 
       if site_config.key?(:authentication)
         auth_config = site_config[:authentication]
         if feature_disabled?(auth_config)
           auth_rows << ['Auth Settings', 'disabled']
         else
-          auth_settings = auth_config.map { |k,v| "#{k}=#{v}" }.join(', ')
+          auth_settings = auth_config.map { |k, v| "#{k}=#{v}" }.join(', ')
           auth_rows << ['Auth Settings', auth_settings]
         end
       end
@@ -215,7 +215,7 @@ module Onetime
       if site_config.key?(:interface)
         interface_config = site_config[:interface]
         if feature_disabled?(interface_config)
-          customization_rows << ['Interface', 'disabled']
+          customization_rows << %w[Interface disabled]
         elsif interface_config.is_a?(Hash)
           # Handle nested ui and api configs under interface
           [:ui, :api].each do |key|
@@ -254,10 +254,10 @@ module Onetime
     # Helper method to format config values with special handling for hashes and arrays
     def format_config_value(config)
       if config.is_a?(Hash)
-        config.map do |k, v|
-          value_str = (v.is_a?(Hash) || v.is_a?(Array)) ? v.to_json : v.to_s
+        config.map { |k, v|
+          value_str = v.is_a?(Hash) || v.is_a?(Array) ? v.to_json : v.to_s
           "#{k}=#{value_str}"
-        end.join(', ')
+        }.join(', ')
       else
         config.to_s
       end

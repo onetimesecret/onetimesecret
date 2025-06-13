@@ -14,14 +14,14 @@ module Onetime::Mail
       def send_email(to_address, subject, html_content, text_content)
         mailer_response  = nil
         obscured_address = OT::Utils.obscure_email(to_address)
-        sender_email     = self.from
+        sender_email     = from
         to_email         = to_address
         reply_to         = self.reply_to
 
         OT.ld "[email-send-start] sender:#{sender_email}; reply-to:#{reply_to}"
 
         # Return early if there is no system email address to send from
-        if self.from.to_s.empty?
+        if from.to_s.empty?
           OT.le "> [send-exception] No from address [to: #{obscured_address}]"
           return
         end

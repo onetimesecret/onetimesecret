@@ -165,8 +165,6 @@ module Rack
       @app.call(env)
     end
 
-    private
-
     module ClassMethods
       # Extracts and normalizes the host from a header value.
       #

@@ -19,8 +19,7 @@ module V2
       include V2::Logic::I18nHelpers
       include V2::Logic::UriHelpers
 
-      attr_reader :sess, :cust, :params, :locale, :processed_params, :plan
-      attr_reader :site, :authentication, :domains_enabled
+      attr_reader :sess, :cust, :params, :locale, :processed_params, :plan, :site, :authentication, :domains_enabled
 
       attr_accessor :domain_strategy, :display_domain
 
@@ -45,7 +44,6 @@ module V2
         @site            = OT.conf.fetch(:site, {})
         domains          = site.fetch(:domains, {})
         @authentication  = site.fetch(:authentication, {})
-        domains          = site.fetch(:domains, {})
         @domains_enabled = domains[:enabled] || false
       end
 

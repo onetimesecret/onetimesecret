@@ -1,4 +1,3 @@
-
 module V2
   class EmailReceipt < Familia::Horreum
     include Gibbler::Complex
@@ -33,7 +32,7 @@ module V2
     #
     #  secret:1234567890:email
     #
-    #def initialize custid=nil, secretid=nil, message_response=nil
+    # def initialize custid=nil, secretid=nil, message_response=nil
     #  @prefix = :secret
     #  @suffix = :email
     #  @custid = custid
@@ -42,7 +41,7 @@ module V2
     #  @secretid = secretid.identifier if secretid.is_a?(Familia::RedisObject)
     #  @message_response = message_response
     #  super name, db: 8, ttl: 30.days
-    #end
+    # end
 
     def destroy! *args
       ret = super
@@ -55,17 +54,18 @@ module V2
 
       # fobj is a familia object
       def add(fobj)
-        self.values.add OT.now.to_i, fobj.identifier
-        self.values.remrangebyscore 0, OT.now.to_i-14.days # keep 14 days of email activity
+        values.add OT.now.to_i, fobj.identifier
+        values.remrangebyscore 0, OT.now.to_i-14.days # keep 14 days of email activity
       end
 
       def all
-        self.values.revrangeraw(0, -1).collect { |identifier| load(identifier) }
+        values.revrangeraw(0, -1).collect { |identifier| load(identifier) }
       end
 
       def recent(duration = 48.hours)
-        spoint, epoint = OT.now.to_i-duration, OT.now.to_i
-        self.values.rangebyscoreraw(spoint, epoint).collect { |identifier| load(identifier) }
+        spoint = OT.now.to_i-duration
+        epoint = OT.now.to_i
+        values.rangebyscoreraw(spoint, epoint).collect { |identifier| load(identifier) }
       end
 
       def create(custid, secretid, message_response = nil)

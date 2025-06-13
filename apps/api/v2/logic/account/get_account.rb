@@ -1,4 +1,3 @@
-
 require 'onetime/refinements/stripe_refinements'
 
 module V2::Logic

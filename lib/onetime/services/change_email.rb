@@ -1,8 +1,6 @@
 # lib/onetime/services/change_email.rb
 
 module Onetime
-  # rubocop:disable Metrics/ClassLength
-  # rubocop:disable Layout/LineLength
   module Services
     # Service class for managing customer email address changes.
     #
@@ -204,14 +202,22 @@ module Onetime
             # We'll attempt the RENAME and it will fail if the key doesn't exist,
             # which is acceptable for this use case. If a more graceful handling
             # is needed, these checks would need to be done before the MULTI block.
-            multi.rename("customer:#{old_email}:custom_domain",
-              "customer:#{new_email}:custom_domain") if redis.exists?("customer:#{old_email}:custom_domain")
-            multi.rename("customer:#{old_email}:metadata",
-              "customer:#{new_email}:metadata") if redis.exists?("customer:#{old_email}:metadata")
-            multi.rename("customer:#{old_email}:feature_flags",
-              "customer:#{new_email}:feature_flags") if redis.exists?("customer:#{old_email}:feature_flags")
-            multi.rename("customer:#{old_email}:reset_secret",
-              "customer:#{new_email}:reset_secret") if redis.exists?("customer:#{old_email}:reset_secret")
+            if redis.exists?("customer:#{old_email}:custom_domain")
+              multi.rename("customer:#{old_email}:custom_domain",
+                "customer:#{new_email}:custom_domain")
+            end
+            if redis.exists?("customer:#{old_email}:metadata")
+              multi.rename("customer:#{old_email}:metadata",
+                "customer:#{new_email}:metadata")
+            end
+            if redis.exists?("customer:#{old_email}:feature_flags")
+              multi.rename("customer:#{old_email}:feature_flags",
+                "customer:#{new_email}:feature_flags")
+            end
+            if redis.exists?("customer:#{old_email}:reset_secret")
+              multi.rename("customer:#{old_email}:reset_secret",
+                "customer:#{new_email}:reset_secret")
+            end
 
             # Update customer values list
             # Get score for the old email in the sorted set
@@ -279,12 +285,18 @@ module Onetime
               # Note: EXISTS cannot be used inside a MULTI block.
               # Perform this check before the multi block if critical,
               # otherwise, RENAME will fail gracefully if the key doesn't exist.
-              multi.rename("customdomain:#{old_domain_id}:brand",
-                "customdomain:#{new_domain_id}:brand") if redis.exists?("customdomain:#{old_domain_id}:brand")
-              multi.rename("customdomain:#{old_domain_id}:logo",
-                "customdomain:#{new_domain_id}:logo") if redis.exists?("customdomain:#{old_domain_id}:logo")
-              multi.rename("customdomain:#{old_domain_id}:icon",
-                "customdomain:#{new_domain_id}:icon") if redis.exists?("customdomain:#{old_domain_id}:icon")
+              if redis.exists?("customdomain:#{old_domain_id}:brand")
+                multi.rename("customdomain:#{old_domain_id}:brand",
+                  "customdomain:#{new_domain_id}:brand")
+              end
+              if redis.exists?("customdomain:#{old_domain_id}:logo")
+                multi.rename("customdomain:#{old_domain_id}:logo",
+                  "customdomain:#{new_domain_id}:logo")
+              end
+              if redis.exists?("customdomain:#{old_domain_id}:icon")
+                multi.rename("customdomain:#{old_domain_id}:icon",
+                  "customdomain:#{new_domain_id}:icon")
+              end
 
               # Rename object key
               multi.rename("customdomain:#{old_domain_id}:object", "customdomain:#{new_domain_id}:object")
@@ -390,6 +402,5 @@ module Onetime
       end
     end
   end
-  # rubocop:enable Layout/LineLength
-  # rubocop:enable Metrics/ClassLength
-end
+    # rubocop:enable Layout/LineLength
+  end

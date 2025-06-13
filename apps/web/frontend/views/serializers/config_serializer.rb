@@ -16,7 +16,7 @@ module Frontend
       # @param i18n [Object] The internationalization instance
       # @return [Hash] Serialized configuration data
       def self.serialize(view_vars, _i18n)
-        output = self.output_template
+        output = output_template
 
         site        = view_vars[:site] || {}
         incoming    = view_vars[:incoming] || {} # TODO: Update to features.incoming

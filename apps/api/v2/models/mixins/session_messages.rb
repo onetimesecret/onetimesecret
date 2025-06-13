@@ -51,15 +51,15 @@ module V2
       end
 
       def set_form_fields(hsh)
-        self.form_fields! hsh.to_json unless hsh.nil?
+        form_fields! hsh.to_json unless hsh.nil?
       end
 
       def get_form_fields!
-        fields_json = self.form_fields
+        fields_json = form_fields
         return if fields_json.to_s.empty?
 
         ret = JSON.parse(fields_json)
-        self.remove :form_fields
+        remove :form_fields
         ret
       rescue JSON::ParserError => ex
         OT.le "Error parsing JSON fields: #{ex.message}"
@@ -67,15 +67,15 @@ module V2
       end
 
       def set_error_message(msg)
-        self.messages << _json(msg, :error)
+        messages << _json(msg, :error)
       end
 
       def set_info_message(msg)
-        self.messages << _json(msg, :info)
+        messages << _json(msg, :info)
       end
 
       def set_success_message(msg)
-        self.messages << _json(msg, :success)
+        messages << _json(msg, :success)
       end
 
       def get_messages
@@ -114,11 +114,11 @@ module V2
       end
 
       def clear_messages!
-        self.messages.clear
+        messages.clear
       end
 
       def _json(msg, type = :error)
-        {type: type, content: msg}.to_json
+        { type: type, content: msg }.to_json
       end
       private :_json
     end

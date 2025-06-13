@@ -2,8 +2,7 @@
 
 module Onetime
   module Initializers
-    attr_reader :global_secret
-    attr_reader :rotated_secrets
+    attr_reader :global_secret, :rotated_secrets
 
     def run_phase1_initializers
       OT.ld 'Phase 1 Initializers'

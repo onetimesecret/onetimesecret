@@ -6,7 +6,7 @@ unless defined?(APPS_ROOT)
 
   # Add each directory containing the rack applications to Ruby's load path.
   APPS_ROOT = File.join(project_root, 'apps').freeze
-  %w{api web}.each { |name| $LOAD_PATH.unshift(File.join(APPS_ROOT, name)) }
+  %w[api web].each { |name| $LOAD_PATH.unshift(File.join(APPS_ROOT, name)) }
 
   # Add the lib directory for the core project.
   LIB_ROOT = File.join(project_root, 'lib').freeze
@@ -24,7 +24,6 @@ module AppRegistry
   # rubocop:disable ThreadSafety/MutableClassInstanceVariable
   @application_classes = []
   @mount_mappings      = {}
-  # rubocop:disable ThreadSafety/MutableClassInstanceVariable
 
   class << self
     attr_reader :application_classes, :mount_mappings

@@ -64,7 +64,7 @@ module V2
     end
 
     def shortkey
-      key.slice(0,6)
+      key.slice(0, 6)
     end
 
     def maxviews
@@ -75,11 +75,11 @@ module V2
     # it would be implmented as separate secrets with the same value. All of them
     # viewable only once.
     def maxviews?
-      self.view_count.to_s.to_i >= self.maxviews
+      view_count.to_s.to_i >= maxviews
     end
 
     def age
-      @age ||= Time.now.utc.to_i-self.updated
+      @age ||= Time.now.utc.to_i-updated
       @age
     end
 
@@ -93,7 +93,7 @@ module V2
       # Colloquial representation of the TTL. e.g. "1 day"
       OT::Utils::TimeUtils.natural_duration lifespan
     end
-    alias :natural_ttl :natural_duration
+    alias natural_ttl natural_duration
 
     def older_than?(seconds)
       age > seconds
@@ -104,7 +104,7 @@ module V2
     end
 
     def truncated?
-      self.truncated.to_s == 'true'
+      truncated.to_s == 'true'
     end
 
     def verification?
@@ -149,7 +149,7 @@ module V2
 
     def decrypted_value(opts = {})
       encryption_mode = value_encryption.to_i
-      v_encrypted     = self.value
+      v_encrypted     = value
       v_encrypted     = '' if encryption_mode.negative? && v_encrypted.nil?
       v_encrypted.force_encoding('utf-8')
 
@@ -165,7 +165,7 @@ module V2
         when 2
           v_encrypted.decrypt opts.merge(key: encryption_key_v2)
         else
-          raise RuntimeError, "Unknown encryption mode: #{value_encryption}"
+          raise "Unknown encryption mode: #{value_encryption}"
         end
         v_decrypted.force_encoding('utf-8') # Hacky fix for https://github.com/onetimesecret/onetimesecret/issues/37
         v_decrypted
@@ -203,18 +203,16 @@ module V2
       rotated_secrets = OT.conf[:experimental].fetch(:rotated_secrets, [])
       OT.ld "[try_fallback_secrets] m:#{metadata_key} s:#{key} Trying rotated secrets (#{rotated_secrets.length})"
       rotated_secrets.each_with_index do |fallback_secret, index|
-        begin
           # Generate key using the fallback secret
-          encryption_key = V2::Secret.encryption_key(fallback_secret, self.key, self.passphrase_temp)
+          encryption_key = V2::Secret.encryption_key(fallback_secret, key, passphrase_temp)
           result         = encrypted_value.decrypt(opts.merge(key: encryption_key))
           result.force_encoding('utf-8')
           OT.li "[try_fallback_secrets] m:#{metadata_key} s:#{key} Success (index #{index})"
           return result
-        rescue OpenSSL::Cipher::CipherError
+      rescue OpenSSL::Cipher::CipherError
           # Continue to next secret if this one fails
           OT.ld "[try_fallback_secrets] m:#{metadata_key} s:#{key} Failed (index #{index})"
           next
-        end
       end
       nil # Return nil if all fallback secrets fail
     end
@@ -223,30 +221,30 @@ module V2
       !value.to_s.empty?  && (passphrase.to_s.empty? || !passphrase_temp.to_s.empty?)
     end
 
-    def encryption_key *args
+    def encryption_key(*)
       case value_encryption.to_i
       when 0
-        self.value
+        value
       when 1  # Last used 2012-01-07
-        encryption_key_v1(*args)
+        encryption_key_v1(*)
       when 2
-        encryption_key_v2(*args)
+        encryption_key_v2(*)
       else
-        raise RuntimeError, "Unknown encryption mode: #{value_encryption}"
+        raise "Unknown encryption mode: #{value_encryption}"
       end
     end
 
     def encryption_key_v1 *_ignored
-      V2::Secret.encryption_key self.key, self.passphrase_temp
+      V2::Secret.encryption_key key, passphrase_temp
     end
 
     def encryption_key_v2 *_ignored
-      V2::Secret.encryption_key OT.global_secret, self.key, self.passphrase_temp
+      V2::Secret.encryption_key OT.global_secret, key, passphrase_temp
     end
 
     # Used as a failover key when experimental.allow_nil_global_secret is true.
     def encryption_key_v2_with_nil
-      V2::Secret.encryption_key nil, self.key, self.passphrase_temp
+      V2::Secret.encryption_key nil, key, passphrase_temp
     end
 
     def load_customer
@@ -313,7 +311,7 @@ module V2
       # we validate response data in the UI now and this would raise an error.
       @value           = nil
       @passphrase_temp = nil
-      self.destroy!
+      destroy!
     end
 
     def burned!
@@ -324,7 +322,7 @@ module V2
       md               = load_metadata
       md.burned! unless md.nil?
       @passphrase_temp = nil
-      self.destroy!
+      destroy!
     end
 
     class << self

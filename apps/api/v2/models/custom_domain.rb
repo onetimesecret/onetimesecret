@@ -100,7 +100,7 @@ module V2
     ].freeze
 
     def init
-      @domainid = self.identifier
+      @domainid = identifier
 
       # Display domain and cust should already be set and accessible
       # via accessor methods so we should see a valid identifier logged.
@@ -196,8 +196,8 @@ module V2
     end
 
     def check_identifier!
-      if self.identifier.to_s.empty?
-        raise RuntimeError, "Identifier cannot be empty for #{self.class}"
+      if identifier.to_s.empty?
+        raise "Identifier cannot be empty for #{self.class}"
       end
     end
 
@@ -229,16 +229,16 @@ module V2
       end
 
       redis.multi do |multi|
-        multi.del(self.rediskey)
+        multi.del(rediskey)
         # Also remove from the class-level values, :display_domains, :owners
         multi.zrem(V2::CustomDomain.values.rediskey, identifier)
         multi.hdel(V2::CustomDomain.display_domains.rediskey, display_domain)
         multi.hdel(V2::CustomDomain.owners.rediskey, display_domain)
-        multi.del(self.brand.rediskey)
-        multi.del(self.logo.rediskey)
-        multi.del(self.icon.rediskey)
+        multi.del(brand.rediskey)
+        multi.del(logo.rediskey)
+        multi.del(icon.rediskey)
         unless customer.nil?
-          multi.zrem(customer.custom_domains.rediskey, self.display_domain)
+          multi.zrem(customer.custom_domains.rediskey, display_domain)
         end
       end
     rescue Redis::BaseError => ex
@@ -270,11 +270,11 @@ module V2
     end
 
     def allow_public_homepage?
-      self.brand.get('allow_public_homepage').to_s == 'true'
+      brand.get('allow_public_homepage').to_s == 'true'
     end
 
     def allow_public_api?
-      self.brand.get('allow_public_api').to_s == 'true'
+      brand.get('allow_public_api').to_s == 'true'
     end
 
     # Validates the format of TXT record host and value used for domain verification.
@@ -313,14 +313,14 @@ module V2
       # Include a short identifier that is unique to this domain. This
       # allows for multiple customers to use the same domain without
       # conflicting with each other.
-      shortid     = self.identifier.to_s[0..6]
+      shortid     = identifier.to_s[0..6]
       record_host = "#{self.class.txt_validation_prefix}-#{shortid}"
 
       # Append the TRD if it exists. This allows for multiple subdomains
       # to be used for the same domain.
       # e.g. The `status` in status.example.com.
-      unless self.trd.to_s.empty?
-        record_host = "#{record_host}.#{self.trd}"
+      unless trd.to_s.empty?
+        record_host = "#{record_host}.#{trd}"
       end
 
       # The value needs to be sufficiently unique and non-guessable to
@@ -419,14 +419,14 @@ module V2
             raise Onetime::Problem, 'Duplicate domain for customer'
           end
 
-          redis.multi do |multi|
+          redis.multi do |_multi|
             obj.generate_txt_validation_record
             obj.save
             # Create minimal customer instance for Redis key
             cust = V2::Customer.new(custid: custid)
             cust.add_custom_domain(obj)
             # Add to global values set
-            self.add(obj)
+            add(obj)
           end
         end
 
@@ -536,26 +536,27 @@ module V2
       end
 
       def add(fobj)
-        self.values.add OT.now.to_i, fobj.to_s # created time, identifier
-        self.display_domains.put fobj.display_domain, fobj.identifier
-        self.owners.put fobj.to_s, fobj.custid  # domainid => customer id
+        values.add OT.now.to_i, fobj.to_s # created time, identifier
+        display_domains.put fobj.display_domain, fobj.identifier
+        owners.put fobj.to_s, fobj.custid  # domainid => customer id
       end
 
       def rem(fobj)
-        self.values.remove fobj.to_s
-        self.display_domains.remove fobj.display_domain
-        self.owners.remove fobj.to_s
+        values.remove fobj.to_s
+        display_domains.remove fobj.display_domain
+        owners.remove fobj.to_s
       end
 
       def all
         # Load all instances from the sorted set. No need
         # to involve the owners HashKey here.
-        self.values.revrangeraw(0, -1).collect { |identifier| from_identifier(identifier) }
+        values.revrangeraw(0, -1).collect { |identifier| from_identifier(identifier) }
       end
 
       def recent(duration = 48.hours)
-        spoint, epoint = OT.now.to_i-duration, OT.now.to_i
-        self.values.rangebyscoreraw(spoint, epoint).collect { |identifier| load(identifier) }
+        spoint = OT.now.to_i-duration
+        epoint = OT.now.to_i
+        values.rangebyscoreraw(spoint, epoint).collect { |identifier| load(identifier) }
       end
 
       # Implement a load method for CustomDomain to make sure the
@@ -577,7 +578,7 @@ module V2
       # @return [V2::CustomDomain, nil] The custom domain record or nil if not found
       def from_display_domain(display_domain)
         # Get the domain ID from the display_domains hash
-        domain_id = self.display_domains.get(display_domain)
+        domain_id = display_domains.get(display_domain)
         return nil unless domain_id
 
         # Load the record using the domain ID

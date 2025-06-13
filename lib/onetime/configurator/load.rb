@@ -25,7 +25,7 @@ module Onetime
 
       def file_read(path)
         File.read(path.to_s)
-      rescue Errno::ENOENT => ex
+      rescue Errno::ENOENT
         raise OT::ConfigError, "File not found: #{path || '<nil>'}"
       end
     end

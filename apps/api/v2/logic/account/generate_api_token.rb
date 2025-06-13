@@ -1,4 +1,3 @@
-
 module V2::Logic
   module Account
     class GenerateAPIToken < V2::Logic::Base

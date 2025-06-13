@@ -18,12 +18,12 @@ module Frontend
       # @param i18n [Object] The internationalization instance
       # @return [Hash] Serialized domain data
       def self.serialize(view_vars, _i18n)
-        output          = self.output_template
+        output          = output_template
         site            = view_vars[:site] || {}
         domains_enabled = site.dig(:domains, :enabled)
 
         is_authenticated = view_vars[:authenticated]
-        domains          = view_vars[:site].fetch(:domains, {})
+        view_vars[:site].fetch(:domains, {})
         cust             = view_vars[:cust]
 
         output[:domain_strategy] = view_vars[:domain_strategy]

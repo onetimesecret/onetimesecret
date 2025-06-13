@@ -13,7 +13,7 @@ module Frontend
       # @param i18n [Object] The internationalization instance
       # @return [Hash] Serialized system data including version and security values
       def self.serialize(view_vars, _i18n)
-        output = self.output_template
+        output = output_template
 
         output[:ot_version]      = OT::VERSION.to_s
         output[:ot_version_long] = OT::VERSION.inspect

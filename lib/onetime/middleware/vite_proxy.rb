@@ -65,7 +65,7 @@ module Onetime
 
           # Configure Vite proxy based on settings
           case config
-          in {enabled: true, frontend_host: String => frontend_host}
+          in { enabled: true, frontend_host: String => frontend_host }
             if frontend_host.strip.empty?
               Onetime.ld '[ViteProxy] No frontend host configured to proxy'
             else

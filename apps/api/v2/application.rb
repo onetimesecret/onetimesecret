@@ -31,7 +31,7 @@ module V2
     protected
 
     def build_router
-      routes_path = File.join(ENV['ONETIME_HOME'], 'apps/api/v2/routes')
+      routes_path = File.join(ENV.fetch('ONETIME_HOME', nil), 'apps/api/v2/routes')
       router      = Otto.new(routes_path)
 
       # Default error responses

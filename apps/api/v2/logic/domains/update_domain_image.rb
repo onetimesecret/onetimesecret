@@ -14,8 +14,7 @@ module V2::Logic
     end
 
     class UpdateDomainImage < V2::Logic::Base
-      attr_reader :greenlighted, :image, :display_domain, :custom_domain
-      attr_reader :content_type, :filename, :height, :width, :ratio, :bytes
+      attr_reader :greenlighted, :image, :display_domain, :custom_domain, :content_type, :filename, :height, :width, :ratio, :bytes
 
       @field = nil
 

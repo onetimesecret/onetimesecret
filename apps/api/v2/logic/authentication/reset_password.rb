@@ -1,4 +1,3 @@
-
 module V2::Logic
   module Authentication
     class ResetPassword < V2::Logic::Base

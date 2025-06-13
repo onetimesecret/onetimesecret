@@ -1,4 +1,3 @@
-
 module Frontend
   unless defined?(Frontend::BADAGENTS)
     BADAGENTS     = [:facebook, :google, :yahoo, :bing, :stella, :baidu, :bot, :curl, :wget]
@@ -55,7 +54,7 @@ module Frontend
     rescue OT::Unauthorized => ex
       OT.info ex.message
       not_authorized_error
-    rescue OT::BadShrimp => ex
+    rescue OT::BadShrimp
       # If it's a json response, no need to set an error message on the session
       if res.header['Content-Type'] == 'application/json'
         error_response 'Please refresh the page and try again', reason: 'Bad shrimp 🍤'
@@ -81,7 +80,7 @@ module Frontend
     # NOTE: It's important to handle MissingSecret before RecordNotFound since
     #       MissingSecret is a subclass of RecordNotFound. If we don't, we'll
     #       end up with a generic error message instead of the specific one.
-    rescue OT::MissingSecret => ex
+    rescue OT::MissingSecret
       secret_not_found_response
     rescue OT::RecordNotFound => ex
       OT.ld "[carefully] RecordNotFound: #{ex.message} (#{req.path}) redirect:#{redirect || 'n/a'}"
@@ -231,11 +230,11 @@ module Frontend
       @check_session_ran = true
 
       # Load from redis or create the session
-      if req.cookie?(:sess) && V2::Session.exists?(req.cookie(:sess))
-        @sess = V2::Session.load req.cookie(:sess)
+      @sess = if req.cookie?(:sess) && V2::Session.exists?(req.cookie(:sess))
+        V2::Session.load req.cookie(:sess)
       else
-        @sess = V2::Session.create req.client_ipaddress, 'anon', req.user_agent
-      end
+        V2::Session.create req.client_ipaddress, 'anon', req.user_agent
+              end
 
       # Set the session to rack.session
       #
@@ -285,7 +284,7 @@ module Frontend
       # Should always report false and false when disabled.
       unless cust.anonymous?
         custref = cust.obscure_email
-        OT.ld "[sess.check_session(web)] #{sess.short_identifier} #{custref} authenabled=#{authentication_enabled?.to_s}, sess=#{sess.authenticated?.to_s}"
+        OT.ld "[sess.check_session(web)] #{sess.short_identifier} #{custref} authenabled=#{authentication_enabled?}, sess=#{sess.authenticated?}"
       end
     end
 
@@ -330,8 +329,8 @@ module Frontend
       # Skip the Content-Security-Policy header if the front is running in
       # development mode. We need to allow inline scripts and styles for
       # hot reloading to work.
-      if OT.conf.dig(:development, :enabled)
-        csp = [
+      csp = if OT.conf.dig(:development, :enabled)
+        [
           "default-src 'none';",                               # Restrict to same origin by default
           "script-src 'unsafe-inline' 'nonce-#{nonce}';",      # Allow Vite's dynamic module imports and source maps
           "style-src 'self' 'unsafe-inline';",                 # Enable Vite's dynamic style injection
@@ -347,7 +346,7 @@ module Frontend
           "worker-src 'self' data:;",                          # Allow Workers from same origin, data blobs
         ]
       else
-        csp = [
+        [
           "default-src 'none';",
           "script-src 'unsafe-inline' 'nonce-#{nonce}';",      # unsafe-inline is ignored with a nonce
           "style-src 'self' 'unsafe-inline';",
@@ -359,10 +358,10 @@ module Frontend
           "form-action 'self';",
           "frame-ancestors 'none';",
           "manifest-src 'self';",
-          #"require-trusted-types-for 'script';",
+          # "require-trusted-types-for 'script';",
           "worker-src 'self' data:;",
         ]
-      end
+            end
 
       OT.ld "[CSP] #{csp.join(' ')}" if OT.debug?
 

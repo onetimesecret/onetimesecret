@@ -15,7 +15,7 @@ module Frontend
       # @param i18n [Object] The internationalization instance
       # @return [Hash] Serialized authentication data including customer information
       def self.serialize(view_vars, _i18n)
-        output = self.output_template
+        output = output_template
 
         output[:authenticated] = view_vars[:authenticated]
         cust                   = view_vars[:cust] || V2::Customer.anonymous

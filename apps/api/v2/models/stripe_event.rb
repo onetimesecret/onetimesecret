@@ -1,4 +1,3 @@
-
 module V2
   class StripeEvent < Familia::Horreum
     feature :safe_dump
@@ -9,7 +8,7 @@ module V2
 
     class_sorted_set :values, key: 'onetime:stripeevent:values'
 
-    #identifier :eventid
+    # identifier :eventid
 
     field :eventid
     field :custid
@@ -49,17 +48,18 @@ module V2
 
       # fobj is a familia object
       def add(fobj)
-        self.values.add OT.now.to_i, fobj.identifier
-        self.values.remrangebyscore 0, OT.now.to_i-5.years # keep 5 years of stripe activity
+        values.add OT.now.to_i, fobj.identifier
+        values.remrangebyscore 0, OT.now.to_i-5.years # keep 5 years of stripe activity
       end
 
       def all
-        self.values.revrangeraw(0, -1).collect { |identifier| load(identifier) }
+        values.revrangeraw(0, -1).collect { |identifier| load(identifier) }
       end
 
       def recent(duration = 48.hours)
-        spoint, epoint = OT.now.to_i-duration, OT.now.to_i
-        self.values.rangebyscoreraw(spoint, epoint).collect { |identifier| load(identifier) }
+        spoint = OT.now.to_i-duration
+        epoint = OT.now.to_i
+        values.rangebyscoreraw(spoint, epoint).collect { |identifier| load(identifier) }
       end
 
       def create(custid, secretid, message_response = nil)

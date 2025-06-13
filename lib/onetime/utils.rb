@@ -198,13 +198,19 @@ module Onetime
       end
     end
 
-    # rubocop:disable Layout/LineLength
     def obscure_email(text)
       regex = /(\b(([A-Z0-9]{1,2})[A-Z0-9._%-]*)([A-Z0-9])?(@([A-Z0-9])[A-Z0-9.-]+(\.[A-Z]{2,4}\b)))/i
-      el    = text.split('@')
+      text.split('@')
       text.gsub regex, '\\3*****\\4@\\6*****\\7'
     end
     # rubocop:enable Layout/LineLength
+
+    # Checks if a value represents a truthy boolean value
+    # @param value [Object] Value to check
+    # @return [Boolean] true if value is "true", "yes", or "1" (case-insensitive)
+    def yes?(value)
+      !value.to_s.empty? && %w[true yes 1].include?(value.downcase)
+    end
 
     private
 
@@ -366,6 +372,5 @@ module Onetime
       end
       result
     end
-
   end
 end

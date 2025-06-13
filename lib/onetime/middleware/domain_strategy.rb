@@ -139,7 +139,7 @@ module Onetime
         def equal_to?(left, right)
           return false unless left.domain? && right.domain?
 
-          left.name.eql?(right.name) || left.domain.eql?(right.domain) && left.trd.eql?('www')
+          left.name.eql?(right.name) || (left.domain.eql?(right.domain) && left.trd.eql?('www'))
         end
         # equal_to?('Example.com', 'example.com') # => true
         # equal_to?('sub.EXAMPLE.COM', 'sub.example.com') # => true
@@ -217,11 +217,9 @@ module Onetime
     end
 
     module ClassMethods
-      attr_reader :canonical_domain
-      attr_reader :domains_enabled
-      attr_reader :canonical_domain_parsed
+      attr_reader :canonical_domain, :domains_enabled, :canonical_domain_parsed
 
-      alias :domains_enabled? :domains_enabled
+      alias domains_enabled? domains_enabled
 
       # Sets class instance variables based on the site configuration.
       def initialize_from_config(config)

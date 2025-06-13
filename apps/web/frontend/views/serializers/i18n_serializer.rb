@@ -13,7 +13,7 @@ module Frontend
       # @param i18n [Object] The internationalization instance
       # @return [Hash] Serialized i18n configuration including locale settings
       def self.serialize(view_vars, _i18n)
-        output = self.output_template
+        output = output_template
 
         output[:locale]            = view_vars&.fetch(:locale, nil)
         output[:default_locale]    = OT.default_locale # the application default

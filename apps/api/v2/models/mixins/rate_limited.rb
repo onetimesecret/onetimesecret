@@ -19,7 +19,7 @@ module V2
 
       def external_identifier
         OT.ld "[external_identifier] #{self.class}##{id}" if OT.debug?
-        raise RuntimeError, "TODO: Implement #{self.class}.external_identifier"
+        raise "TODO: Implement #{self.class}.external_identifier"
       end
     end
   end

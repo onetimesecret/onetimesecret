@@ -1,8 +1,6 @@
-
-
 module QuantizeTime
   def quantize(quantum)
-    stamp = self.is_a?(Integer) ? self : to_i
+    stamp = is_a?(Integer) ? self : to_i
     Time.at(stamp - (stamp % quantum)).utc
   end
 
@@ -13,7 +11,7 @@ end
 
 module QuantizeInteger
   def quantize(quantum)
-    stamp = self.is_a?(Integer) ? self : to_i
+    stamp = is_a?(Integer) ? self : to_i
     stamp - (stamp % quantum)
   end
 
@@ -53,9 +51,9 @@ module Rack
     # don't print out the literal filename for 404s
     def not_found
       body = "File not found\n"
-      [404, {'Content-Type' => 'text/plain',
-             'Content-Length' => body.size.to_s,
-             'X-Cascade' => 'pass'},
+      [404, { 'Content-Type' => 'text/plain',
+              'Content-Length' => body.size.to_s,
+              'X-Cascade' => 'pass' },
        [body]]
     end
   end

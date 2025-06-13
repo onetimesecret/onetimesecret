@@ -161,7 +161,6 @@ module Frontend
       #
       def customer_portal_redirect
         authenticated do
-          begin
             # Get the Stripe Customer ID from our customer instance
             customer_id = cust.stripe_customer_id
 
@@ -177,13 +176,12 @@ module Frontend
 
             # Continue the redirect
             res.redirect session.url
-          rescue Stripe::StripeError => ex
+        rescue Stripe::StripeError => ex
             OT.le "[customer_portal_redirect] Stripe error: #{ex.message}"
             raise_form_error(ex.message)
-          rescue StandardError => ex
+        rescue StandardError => ex
             OT.le "[customer_portal_redirect] Unexpected error: #{ex.message}"
             raise_form_error('An unexpected error occurred')
-          end
         end
       end
 
@@ -201,7 +199,7 @@ module Frontend
         end
       end
 
-      def authenticate # rubocop:disable Metrics/AbcSize
+      def authenticate
         publically do
           unless _auth_settings[:enabled] && _auth_settings[:signin]
             return disabled_response(req.path)

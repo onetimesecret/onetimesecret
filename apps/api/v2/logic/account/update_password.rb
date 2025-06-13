@@ -19,7 +19,7 @@ module V2::Logic
       end
 
       def field_specific_concerns
-        return unless !@currentp.empty?
+        return if @currentp.empty?
 
         raise_form_error 'Current password is incorrect' unless cust.passphrase?(@currentp)
         raise_form_error 'New password cannot be the same as current password' if @newp == @currentp

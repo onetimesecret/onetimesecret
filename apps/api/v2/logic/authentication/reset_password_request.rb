@@ -24,7 +24,7 @@ module V2::Logic
 
         if cust.pending?
           OT.li "[ResetPasswordRequest] Resending verification email to #{cust.custid}"
-          self.send_verification_email
+          send_verification_email
           msg = "#{i18n.dig(:web, :COMMON, :verification_sent_to)} #{cust.custid}."
           return sess.set_info_message msg
         end
@@ -38,10 +38,10 @@ module V2::Logic
 
         view = OT::Mail::PasswordRequest.new cust, locale, secret
 
-        OT.ld "Calling deliver_email with token=(#{self.token})"
+        OT.ld "Calling deliver_email with token=(#{token})"
 
         begin
-          view.deliver_email self.token
+          view.deliver_email token
         rescue StandardError => ex
           errmsg = "Couldn't send the notification email. Let know below."
           OT.le "Error sending password reset email: #{ex.message}"

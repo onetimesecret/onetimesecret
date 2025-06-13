@@ -3,7 +3,6 @@
 module Onetime
   module Middleware
     # rubocop:disable Metrics/MethodLength
-    # rubocop:disable Layout/LineLength
     class StartupReadiness
       # Basic translations for startup message
       TRANSLATIONS = {
@@ -222,7 +221,7 @@ module Onetime
           </html>
         HTML
 
-        [503, {'Content-Type' => 'text/html; charset=utf-8'}, [html.encode('UTF-8')]]
+        [503, { 'Content-Type' => 'text/html; charset=utf-8' }, [html.encode('UTF-8')]]
       end
 
       private

@@ -16,7 +16,7 @@ module Onetime
         attr_reader :cust, :locale, :emailer, :mode, :from, :to
         attr_accessor :token, :text_template
 
-        def initialize cust, locale, *args
+        def initialize(cust, locale, *)
           @cust   = cust
           @locale = locale
 
@@ -26,7 +26,7 @@ module Onetime
           # user know that the email was not sent yet (and then having a way
           # to retry sending the email).
           if OT.locales.key?(locale)
-            OT.li "Initializing #{self.class} with locale: #{locale.to_s}"
+            OT.li "Initializing #{self.class} with locale: #{locale}"
           else
             default_value = OT.default_locale
             @locale       = default_value
@@ -34,7 +34,7 @@ module Onetime
             OT.le "[views.i18n] Locale not found: #{locale} (continuing with #{default_value} / #{available})"
           end
 
-          OT.ld "#{self.class} locale is: #{locale.to_s}"
+          OT.ld "#{self.class} locale is: #{locale}"
 
           conf = OT.conf.fetch(:emailer, {})
 
@@ -62,7 +62,7 @@ module Onetime
           }
 
           OT.info "[mailer] #{mode} #{logsafe_config.to_json}"
-          init(*args) if respond_to? :init
+          init(*) if respond_to? :init
         end
 
         # Retrieves internationalization data for the current view context.
@@ -91,7 +91,7 @@ module Onetime
         #
         def i18n
           @i18n_cache ||= {}
-          locale        = self.locale #|| OT.default_locale || 'en'
+          locale        = self.locale # || OT.default_locale || 'en'
 
           # Return cached value for this specific locale if it exists
           return @i18n_cache[locale] if @i18n_cache.key?(locale)

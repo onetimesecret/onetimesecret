@@ -9,12 +9,11 @@ module V2
     include V2::ControllerHelpers
     include V2::Controllers::ClassSettings
 
-    attr_reader :req, :res
-    attr_reader :sess, :cust, :locale
-    attr_reader :ignoreshrimp
+    attr_reader :req, :res, :sess, :cust, :locale, :ignoreshrimp
 
     def initialize(req, res)
-      @req, @res = req, res
+      @req = req
+      @res = res
     end
 
     def publically
@@ -27,7 +26,7 @@ module V2
 
     # rubocop:disable Metrics/BlockLength, Metrics/PerceivedComplexity
     def authorized(allow_anonymous = false)
-      carefully(redirect=nil, content_type='application/json', app: :api) do
+      carefully(nil, 'application/json', app: :api) do
         check_locale!
 
         req.env['otto.auth'] ||= Rack::Auth::Basic::Request.new(req.env)

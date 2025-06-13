@@ -102,7 +102,7 @@ module V2
     ].freeze
 
     def init
-      @configid ||= self.generate_id
+      @configid ||= generate_id
 
       OT.ld "[SystemSettings.init] #{configid} #{rediskey}"
     end
@@ -214,8 +214,8 @@ module V2
         obj = new(**kwargs)
 
         # Fail fast if invalid fields are provided
-        kwargs.each_with_index do |(key, value), index|
-          next if self.fields.include?(key.to_s.to_sym)
+        kwargs.each_with_index do |(key, _value), index|
+          next if fields.include?(key.to_s.to_sym)
 
           raise Onetime::Problem, "Invalid field #{key} (#{index})"
         end
@@ -266,43 +266,44 @@ module V2
 
         if multi
           # Use the provided multi instance for atomic operations
-          multi.zadd(self.values.rediskey, now, fobj.to_s)
-          multi.zadd(self.stack.rediskey, now, fobj.to_s)
-          multi.zadd(self.audit_log.rediskey, now, fobj.to_s)
+          multi.zadd(values.rediskey, now, fobj.to_s)
+          multi.zadd(stack.rediskey, now, fobj.to_s)
+          multi.zadd(audit_log.rediskey, now, fobj.to_s)
         else
           # Fall back to individual operations for backward compatibility
-          self.values.add now, fobj.to_s
-          self.stack.add now, fobj.to_s
-          self.audit_log.add now, fobj.to_s
+          values.add now, fobj.to_s
+          stack.add now, fobj.to_s
+          audit_log.add now, fobj.to_s
         end
       end
 
       def rem(fobj)
-        self.values.remove fobj.to_s
+        values.remove fobj.to_s
         # don't arbitrarily remove from stack, only for rollbacks/reversions.
         # never remove from audit_log
       end
 
       def remove_bad_config(fobj)
-        self.values.remove fobj.to_s
-        self.stack.remove fobj.to_s
+        values.remove fobj.to_s
+        stack.remove fobj.to_s
       end
 
       def all
         # Load all instances from the sorted set. No need
         # to involve the owners HashKey here.
-        self.values.revrangeraw(0, -1).collect { |identifier| from_identifier(identifier) }
+        values.revrangeraw(0, -1).collect { |identifier| from_identifier(identifier) }
       end
 
       def recent(duration = 7.days)
-        spoint, epoint = self.now-duration, self.now
-        self.values.rangebyscoreraw(spoint, epoint).collect { |identifier| load(identifier) }
+        spoint = now-duration
+        epoint = now
+        values.rangebyscoreraw(spoint, epoint).collect { |identifier| load(identifier) }
       end
 
       def current
         # Get the most recent config by retrieving the element with the highest score
         # (using revrange 0, 0 to get just the highest-scored element)
-        objid = self.stack.revrangeraw(0, 0).first
+        objid = stack.revrangeraw(0, 0).first
         raise Onetime::RecordNotFound.new('No config stack found') unless objid
 
         load(objid)
@@ -311,7 +312,7 @@ module V2
       def previous
         # Get the previous config by retrieving the element with the second-highest score
         # (using revrange 1, 1 to get just the second-highest-scored element)
-        objid = self.stack.revrangeraw(1, 1).first
+        objid = stack.revrangeraw(1, 1).first
         raise Onetime::RecordNotFound.new('No previous config found') unless objid
 
         load(objid)
@@ -321,8 +322,8 @@ module V2
         rollback_key = rediskey(:rollback)
         redis.watch(rollback_key) do
           redis.multi do |multi|
-            removed_identifier = multi.zpopmax(self.stack.rediskey, 1).first&.first
-            current_identifier = multi.revrangeraw(0, 0).first
+            multi.zpopmax(stack.rediskey, 1).first&.first
+            multi.revrangeraw(0, 0).first
           end
 
           OT.li "[#{self} removed #{removed_identifier}; current is #{current_identifier}]"
@@ -330,7 +331,7 @@ module V2
       end
 
       def history
-        self.history.revrangeraw(0, -1).collect { |identifier| load(identifier) }
+        history.revrangeraw(0, -1).collect { |identifier| load(identifier) }
       end
 
       # Using precision time (float) is critical for sorted set scores because it ensures

@@ -2,7 +2,7 @@
 
 module Onetime
   module Mail
-    module ViewHelpers # rubocop:disable Style/Documentation
+    module ViewHelpers
     end
   end
 end

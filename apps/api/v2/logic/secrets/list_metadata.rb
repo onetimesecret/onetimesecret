@@ -5,13 +5,12 @@ require 'time'
 module V2::Logic
   module Secrets
     class ListMetadata < V2::Logic::Base
-      attr_reader :records, :since, :now, :query_results
-      attr_reader :received, :notreceived, :has_items
+      attr_reader :records, :since, :now, :query_results, :received, :notreceived, :has_items
 
       def process_params
         # Calculate the timestamp for 30 days ago
         @now   = Time.now
-        @since = (Time.now - 30*24*60*60).to_i
+        @since = (Time.now - (30*24*60*60)).to_i
       end
 
       def raise_concerns
@@ -29,8 +28,8 @@ module V2::Logic
         end
 
         @has_items              = records.any?
-        records.sort!{ |a,b| b[:updated] <=> a[:updated] }
-        @received, @notreceived = *records.partition{ |m| m[:is_destroyed] }
+        records.sort! { |a, b| b[:updated] <=> a[:updated] }
+        @received, @notreceived = *records.partition { |m| m[:is_destroyed] }
       end
 
       def success_data

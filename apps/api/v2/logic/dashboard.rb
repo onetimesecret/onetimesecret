@@ -6,15 +6,13 @@ module V2
   module Logic
     module Dashboard
       class Index < V2::Logic::Base
-        def process_params
-        end
+        def process_params; end
 
         def raise_concerns
           limit_action :dashboard
         end
 
-        def process
-        end
+        def process; end
       end
 
       # FYI: this class is used by v1 API
@@ -30,8 +28,7 @@ module V2
           raise V2::MissingSecret if metadata.nil?
         end
 
-        def process
-        end
+        def process; end
       end
     end
   end

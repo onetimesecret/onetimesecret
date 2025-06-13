@@ -68,14 +68,14 @@ module V2
             # important request fails inexplicably for the user.
 
             # Log all headers for debugging Sentry issue
-            OT.ld "[Debug-Sentry] Request headers: #{req.env.select { |k, v| k.start_with?('HTTP_') }.inspect}"
+            OT.ld "[Debug-Sentry] Request headers: #{req.env.select { |k, _v| k.start_with?('HTTP_') }.inspect}"
 
             shrimp = req.env['HTTP_O_SHRIMP'].to_s
             OT.le 'Missing O-Shrimp header' if shrimp.empty?
 
             begin
               # Attempt to validate the shrimp
-              is_valid = validate_shrimp(shrimp, replace=false)
+              is_valid = validate_shrimp(shrimp, false)
             rescue OT::BadShrimp => ex
               # If a BadShrimp exception is raised, log it and set is_valid to false
               OT.ld "BadShrimp exception: #{ex.message}"

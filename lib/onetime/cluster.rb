@@ -210,7 +210,7 @@ module Onetime
       #    "target_ports" => "443",
       #    "user_message" => "..."
       #  }
-      #}
+      # }
       #
       def self.get_vhost_by_incoming_address(api_key, incoming_address, force = false)
         url_path  = "/vhosts/by/incoming/#{incoming_address}"
