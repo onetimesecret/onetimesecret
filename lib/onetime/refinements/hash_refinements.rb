@@ -28,17 +28,17 @@ require 'hashdiff'
 module IndifferentHashAccess
   refine Hash do
     def [](key)
-      return super(key) unless key.is_a?(String) || key.is_a?(Symbol)
+      return super unless key.is_a?(String) || key.is_a?(Symbol)
 
       super(key.to_s) || super(key.to_sym)
     end
 
     def fetch(key, ...)
       # Check if the original key exists first
-      return super(key, ...) if has_key?(key)
+      return super if has_key?(key)
 
       # Only try conversion for String/Symbol keys
-      return super(key, ...) unless key.is_a?(String) || key.is_a?(Symbol)
+      return super unless key.is_a?(String) || key.is_a?(Symbol)
 
       # Try converted key
       converted_key = case key
@@ -51,7 +51,7 @@ module IndifferentHashAccess
       if converted_key
         super(converted_key, ...)
       else
-        super(key, ...)  # Let original method handle default/block
+        super  # Let original method handle default/block
       end
     end
 

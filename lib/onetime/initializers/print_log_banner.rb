@@ -22,7 +22,7 @@ module Onetime
     #
     # Helper methods available:
     # - render_section(header1, header2, rows): Creates a formatted table
-    # - is_feature_disabled?(config): Checks if a feature is disabled
+    # - feature_disabled?(config): Checks if a feature is disabled
     # - format_config_value(config): Formats complex config values for display
     # - format_duration(seconds): Converts seconds to human-readable format (e.g., "5m", "2h", "7d")
     def print_log_banner
@@ -101,7 +101,7 @@ module Onetime
 
       [:development, :experimental].each do |key|
         if config_value = OT.conf.fetch(key, false)
-          if is_feature_disabled?(config_value)
+          if feature_disabled?(config_value)
             dev_rows << [key.to_s.capitalize, 'disabled']
           else
             dev_rows << [key.to_s.capitalize, format_config_value(config_value)]
@@ -119,7 +119,7 @@ module Onetime
       # Plans section
       if site_config.key?(:plans)
         plans_config = site_config[:plans]
-        if is_feature_disabled?(plans_config)
+        if feature_disabled?(plans_config)
           feature_rows << ['Plans', 'disabled']
         else
           begin
@@ -135,7 +135,7 @@ module Onetime
         next unless site_config.key?(key)
 
         config = site_config[key]
-        if is_feature_disabled?(config)
+        if feature_disabled?(config)
           feature_rows << [key.to_s.capitalize, 'disabled']
         elsif !config.empty?
           feature_rows << [key.to_s.capitalize, format_config_value(config)]
@@ -150,7 +150,7 @@ module Onetime
       return [] if email_config.nil? || email_config.empty?
 
       begin
-        if is_feature_disabled?(email_config)
+        if feature_disabled?(email_config)
           [['Status', 'disabled']]
         else
           [
@@ -180,7 +180,7 @@ module Onetime
 
       if site_config.key?(:authentication)
         auth_config = site_config[:authentication]
-        if is_feature_disabled?(auth_config)
+        if feature_disabled?(auth_config)
           auth_rows << ['Auth Settings', 'disabled']
         else
           auth_settings = auth_config.map { |k,v| "#{k}=#{v}" }.join(', ')
@@ -214,7 +214,7 @@ module Onetime
       # Interface configuration
       if site_config.key?(:interface)
         interface_config = site_config[:interface]
-        if is_feature_disabled?(interface_config)
+        if feature_disabled?(interface_config)
           customization_rows << ['Interface', 'disabled']
         elsif interface_config.is_a?(Hash)
           # Handle nested ui and api configs under interface
@@ -222,7 +222,7 @@ module Onetime
             next unless interface_config.key?(key)
 
             sub_config = interface_config[key]
-            if is_feature_disabled?(sub_config)
+            if feature_disabled?(sub_config)
               customization_rows << ["Interface > #{key.to_s.upcase}", 'disabled']
             elsif !sub_config.nil? && (sub_config.is_a?(Hash) ? !sub_config.empty? : !sub_config.to_s.empty?)
               customization_rows << ["Interface > #{key.to_s.upcase}", format_config_value(sub_config)]
@@ -235,7 +235,7 @@ module Onetime
           next unless site_config.key?(key)
 
           config = site_config[key]
-          if is_feature_disabled?(config)
+          if feature_disabled?(config)
             customization_rows << [key.to_s.upcase, 'disabled']
           elsif !config.empty?
             customization_rows << [key.to_s.upcase, format_config_value(config)]
@@ -247,7 +247,7 @@ module Onetime
     end
 
     # Helper method to check if a feature is disabled
-    def is_feature_disabled?(config)
+    def feature_disabled?(config)
       config.is_a?(Hash) && config.key?(:enabled) && !config[:enabled]
     end
 

@@ -236,7 +236,7 @@ module Onetime
       def normalize_value(value)
         case value.class.to_s
         when 'String', 'Gibbler::Digest', 'Symbol', 'Integer', 'Float'
-          if is_https?(value)
+          if https?(value)
             value
           else
             Rack::Utils.escape_html(value)
@@ -255,7 +255,7 @@ module Onetime
         end
       end
 
-      def is_https?(str)
+      def https?(str)
         uri = URI.parse(str)
         uri.is_a?(URI::HTTPS)
       rescue URI::InvalidURIError

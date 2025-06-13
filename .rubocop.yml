@@ -36,10 +36,6 @@ AllCops:
     - 'tmp/**/*'
     - 'vendor/**/*'
 
-# Offense count: 9
-# This cop supports safe autocorrection (--autocorrect).
-# Configuration parameters: EnforcedStyle, IndentOneStep, IndentationWidth.
-# SupportedStyles: case, end
 Layout/CaseIndentation:
   Enabled: true
   EnforcedStyle: end # case, end
@@ -141,7 +137,9 @@ Naming/RescuedExceptionsVariableName:
 Naming/PredicatePrefix:
   Enabled: true
   ForbiddenPrefixes: [is_, has_, have_]
-  AllowedMethods: [] # Exceptions to the rule
+  AllowedMethods: [
+      has_passphrase?, # correlates with the REST API field `has_passphrase`
+    ]
 
 Layout/MultilineMethodCallIndentation:
   EnforcedStyle: indented
@@ -188,6 +186,9 @@ Layout/FirstHashElementIndentation:
   Enabled: true
 
 Lint/Void:
+  Enabled: true
+
+Lint/CopDirectiveSyntax:
   Enabled: true
 
 # Offense count: 122
@@ -279,11 +280,10 @@ Style/TrailingCommaInArrayLiteral:
   Enabled: true
   EnforcedStyleForMultiline: comma
 
-# Supports --autocorrect
+# Use #empty? when testing for objects of length 0.
 Style/ZeroLengthPredicate:
-  Description: 'Use #empty? when testing for objects of length 0.'
   Enabled: true
-  Safe: false
+  Safe: true
 
 Style/MethodDefParentheses:
   Enabled: true
@@ -291,6 +291,9 @@ Style/MethodDefParentheses:
 Style/FrozenStringLiteralComment:
   Enabled: true
   EnforcedStyle: never
+
+Style/SuperArguments:
+  Enabled: true
 
 ThreadSafety/ClassAndModuleAttributes:
   Description: Avoid mutating class and module attributes.

@@ -13,7 +13,7 @@ module Onetime
     attr_accessor :message
 
     def initialize(message = nil)
-      super(message)
+      super
       @message = message
     end
   end

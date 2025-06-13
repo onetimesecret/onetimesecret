@@ -375,7 +375,7 @@ module V2
     def save **kwargs
       raise Onetime::Problem, "Anonymous cannot be saved #{self.class} #{rediskey}" if anonymous?
 
-      super(**kwargs)
+      super
     end
 
     def to_s

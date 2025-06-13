@@ -172,7 +172,7 @@ module V2
       rescue OpenSSL::Cipher::CipherError => ex
         OT.le "[decrypted_value] m:#{metadata_key} s:#{key} CipherError #{ex.message}"
         # Try fallback global secrets for mode 2 (current encryption)
-        if encryption_mode == 2 && has_fallback_secrets?
+        if encryption_mode == 2 && fallback_secrets?
           fallback_result = try_fallback_secrets(v_encrypted, opts)
           return fallback_result if fallback_result
         end
@@ -191,14 +191,14 @@ module V2
     end
 
     # Check if there are additional global secrets configured beyond the primary one
-    def has_fallback_secrets?
+    def fallback_secrets?
       rotated_secrets = OT.conf[:experimental].fetch(:rotated_secrets, [])
       rotated_secrets.is_a?(Array) && rotated_secrets.length > 1
     end
 
     # Try to decrypt using each fallback secret
     def try_fallback_secrets(encrypted_value, opts)
-      return nil unless has_fallback_secrets?
+      return nil unless fallback_secrets?
 
       rotated_secrets = OT.conf[:experimental].fetch(:rotated_secrets, [])
       OT.ld "[try_fallback_secrets] m:#{metadata_key} s:#{key} Trying rotated secrets (#{rotated_secrets.length})"

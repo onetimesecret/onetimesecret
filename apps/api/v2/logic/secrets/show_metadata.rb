@@ -171,7 +171,7 @@ module V2::Logic
       def one_liner
         return if secret_value.to_s.empty? # return nil when the value is empty
 
-        secret_value.to_s.scan(/\n/).size.zero?
+        secret_value.to_s.scan(/\n/).empty?
       end
 
       def success_data

@@ -93,7 +93,7 @@ module Onetime
     # Use this to wrap destructive operations
     # @yield Block to execute if in actual run mode
     # @return [Boolean] true if block was executed
-    def execute_if_actual_run
+    def for_realsies?
       if actual_run?
         yield
         true

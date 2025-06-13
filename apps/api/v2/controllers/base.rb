@@ -25,7 +25,7 @@ module V2
       end
     end
 
-    # rubocop:disable Metrics/BlockLength,Metrics/PerceivedComplexity
+    # rubocop:disable Metrics/BlockLength, Metrics/PerceivedComplexity
     def authorized(allow_anonymous = false)
       carefully(redirect=nil, content_type='application/json', app: :api) do
         check_locale!
@@ -110,7 +110,7 @@ module V2
         yield
       end
     end
-    # rubocop:enabled Metrics/BlockLength,Metrics/PerceivedComplexity
+    # rubocop:enable Metrics/BlockLength, Metrics/PerceivedComplexity
 
     # Ignores the allow_anonymous argument passed in
     def colonels(_)

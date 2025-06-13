@@ -102,7 +102,7 @@ module Rack
     @result_field_name = ENV['DETECTED_HOST'] || 'rack.detected_host'
 
     class << self
-      attr_accessor :result_field_name
+      attr_reader :result_field_name
     end
 
     # Initializes the middleware with the application and logging options.

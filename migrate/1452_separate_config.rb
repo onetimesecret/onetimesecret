@@ -177,7 +177,7 @@ module Onetime
         return
       end
 
-      execute_if_actual_run do
+      for_realsies? do
         FileUtils.cp(@source_config, backup_path)
         track_stat(:backup_created)
         info "Created backup: #{backup_path}"
@@ -190,7 +190,7 @@ module Onetime
         return
       end
 
-      execute_if_actual_run do
+      for_realsies? do
         # Use perl to convert symbol keys to strings
         cmd = "perl -pe 's/^(\\s*):([a-zA-Z_][a-zA-Z0-9_]*)/\\1\\2/g' '#{@source_config}' > '#{@converted_config}'"
         success = system(cmd)
@@ -208,7 +208,7 @@ module Onetime
     def separate_configuration
       return if File.exist?(@static_config) && File.exist?(@dynamic_config)
 
-      execute_if_actual_run do
+      for_realsies? do
         generate_static_config_with_yq
         generate_dynamic_config_with_yq
         track_stat(:configs_separated)
@@ -289,7 +289,7 @@ module Onetime
     def finalize_configuration
       # Move static config to final location (replace existing)
       if File.exist?(@static_config)
-        execute_if_actual_run do
+        for_realsies? do
           FileUtils.mv(@static_config, @final_static_path)
           track_stat(:static_finalized)
           info "Replaced static config at: #{@final_static_path}"
@@ -301,7 +301,7 @@ module Onetime
         # Ensure target directory exists
         FileUtils.mkdir_p(File.dirname(@final_dynamic_path))
 
-        execute_if_actual_run do
+        for_realsies? do
           FileUtils.mv(@dynamic_config, @final_dynamic_path)
           track_stat(:dynamic_finalized)
           info "Created dynamic config at: #{@final_dynamic_path}"
@@ -309,7 +309,7 @@ module Onetime
       end
 
       # Clean up temporary files in actual run
-      execute_if_actual_run do
+      for_realsies? do
         cleanup_temp_files
       end
     end
