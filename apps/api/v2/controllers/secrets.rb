@@ -23,7 +23,7 @@ module V2
       def generate_secret
         process_action(
           V2::Logic::Secrets::GenerateSecret,
-          'Secret generate successfully.',
+          'Secret generated successfully.',
           'Secret could not be generated.',
           allow_anonymous: true,
         )
