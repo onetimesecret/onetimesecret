@@ -46,9 +46,10 @@ Encoding.default_external = Encoding::UTF_8
 module Onetime
   unless defined?(Onetime::HOME)
     HOME        = File.expand_path(File.join(File.dirname(__FILE__), '..'))
-    STDOUT.sync = Onetime::Utils.yes?(ENV.fetch('STDOUT_SYNC', nil))
+    STDOUT.sync = Onetime::Utils.yes?(ENV.fetch('STDOUT_SYNC', false))
   end
 end
+
 
 # Sets the SIGINT handler for a graceful shutdown and prevents Sentry from
 # trying to send events over the network when we're shutting down via ctrl-c.
