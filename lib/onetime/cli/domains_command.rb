@@ -3,7 +3,7 @@
 module Onetime
   class DomainsCommand < Drydock::Command
     def domains
-      puts '%d custom domains' % V2::CustomDomain.values.size
+      puts format('%d custom domains', V2::CustomDomain.values.size)
       return unless option.list
 
       literally_all_domain_ids = V2::CustomDomain.values.all

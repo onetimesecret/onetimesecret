@@ -58,7 +58,7 @@ end
 
     refine Stripe::Customer do
       extend Familia::Features::SafeDump::ClassMethods
-      @safe_dump_field_map = {} # rubocop:disable Style/MutableClassInstanceVariable
+      @safe_dump_field_map = {} # rubocop:disable ThreadSafety/MutableClassInstanceVariable
 
       # Safe fields for Stripe Customer object
       @safe_dump_fields = [
@@ -75,15 +75,15 @@ end
 
         { address: lambda { |cust|
           if cust.address
-  {
-    city: cust.address.city,
-    country: cust.address.country,
-    line1: cust.address.line1,
-    line2: cust.address.line2,
-    postal_code: cust.address.postal_code,
-    state: cust.address.state,
-  }
-end
+          {
+            city: cust.address.city,
+            country: cust.address.country,
+            line1: cust.address.line1,
+            line2: cust.address.line2,
+            postal_code: cust.address.postal_code,
+            state: cust.address.state,
+          }
+        end
         } },
 
         { has_payment_method: lambda { |cust|

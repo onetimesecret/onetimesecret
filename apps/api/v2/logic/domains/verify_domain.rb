@@ -33,7 +33,7 @@ module V2::Logic
         res = Onetime::Cluster::Approximated.get_vhost_by_incoming_address(api_key, display_domain)
         if res.code == 200
           payload = res.parsed_response
-          OT.info '[VerifyDomain.refresh_vhost] %s' % payload
+          OT.info format('[VerifyDomain.refresh_vhost] %s', payload)
 
           custom_domain.vhost     = payload['data'].to_json
           custom_domain.updated   = OT.now.to_i
@@ -52,7 +52,7 @@ module V2::Logic
           address: custom_domain.validation_record,
           match_against: custom_domain.txt_validation_value,
         }]
-        OT.info '[VerifyDomain.refresh_txt_record_status] %s' % records
+        OT.info format('[VerifyDomain.refresh_txt_record_status] %s', records)
         res     = Onetime::Cluster::Approximated.check_records_match_exactly(api_key, records)
         if res.code == 200
           payload       = res.parsed_response

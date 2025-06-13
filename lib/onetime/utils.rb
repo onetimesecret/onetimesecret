@@ -329,13 +329,13 @@ module Onetime
 
     def natural_duration(duration_in_s)
       if duration_in_s <= 1.minute
-        '%d seconds' % duration_in_s
+        format('%d seconds', duration_in_s)
       elsif duration_in_s <= 1.hour
-        '%d minutes' % duration_in_s.in_minutes
+        format('%d minutes', duration_in_s.in_minutes)
       elsif duration_in_s <= 1.day
-        '%d hours' % duration_in_s.in_hours
+        format('%d hours', duration_in_s.in_hours)
       else
-        '%d days' % duration_in_s.in_days
+        format('%d days', duration_in_s.in_days)
       end
     end
 

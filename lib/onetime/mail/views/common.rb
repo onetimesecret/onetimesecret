@@ -79,7 +79,7 @@ module Onetime
       end
 
       def forgot_path
-        '/forgot/%s' % self[:secret].key
+        format('/forgot/%s', self[:secret].key)
       end
     end
 
@@ -107,7 +107,7 @@ module Onetime
       end
 
       def subject
-        "This is a test email #{OT.now}"
+        format('This is a test email %s', OT.now)
       end
 
       def test_variable

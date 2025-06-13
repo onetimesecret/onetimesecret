@@ -3,7 +3,7 @@
 module Onetime
   class CustomersCommand < Drydock::Command
     def customers
-      puts '%d customers' % V2::Customer.values.size
+      puts format('%d customers', V2::Customer.values.size)
       if option.list
         all_customers = V2::Customer.values.all.map do |custid|
           V2::Customer.load(custid)
