@@ -51,6 +51,7 @@ public/web/dist/
 etc/config*
 !etc/config.example.yaml
 etc/schemas/
+support/schemas/
 etc/system_settings*
 !etc/system_settings.example.yaml
 !fly.toml
