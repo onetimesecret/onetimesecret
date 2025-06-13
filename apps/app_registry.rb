@@ -16,6 +16,8 @@ unless defined?(APPS_ROOT)
   PUBLIC_DIR = File.join(project_root, '/public/web').freeze
 end
 
+# Require 'onetime' before requiring any gems so that bundler/setup
+# and friends can do their thang.
 require 'onetime'
 require 'onetime/middleware'
 

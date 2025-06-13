@@ -3,12 +3,11 @@
 Warning[:deprecated] = %w[development dev test].include?(ENV['RACK_ENV'].to_s)
 
 require 'bundler/setup'
-require 'securerandom'
-
-require 'truemail'
 
 require 'erb'
+require 'securerandom'
 require 'syslog'
+require 'truemail'
 
 require 'encryptor'
 require 'bcrypt'
