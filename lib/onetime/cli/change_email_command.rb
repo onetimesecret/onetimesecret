@@ -63,7 +63,9 @@ module Onetime
     #
     # @see Onetime::Services::ChangeEmail
     # Command to change customer email addresses
-    def change_email # rubocop:disable Metrics/MethodLength
+    # rubocop:disable Metrics/MethodLength
+    # rubocop:disable Metrics/PerceivedComplexity
+    def change_email
       if argv.length < 2
         puts 'Usage: ots change-email OLD_EMAIL NEW_EMAIL [REALM]'
         puts "  Change a customer's email address and update related records."
@@ -211,6 +213,8 @@ module Onetime
         exit 1
       end
     end
+    # rubocop:enable Metrics/MethodLength
+    # rubocop:enable Metrics/PerceivedComplexity
 
     # Helper method to fetch a specific email change report from Redis
     # @param key [String] The Redis key for the report

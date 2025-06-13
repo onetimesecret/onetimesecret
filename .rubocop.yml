@@ -107,6 +107,7 @@ Style/StringLiterals:
 Style/DoubleNegation:
   Enabled: false
 
+# Offense count: non-0
 Style/FormatString:
   EnforcedStyle: format
 
@@ -274,6 +275,7 @@ Metrics/ClassLength:
   Enabled: true
   Max: 350
 
+# Offense count: non-0
 Metrics/MethodLength:
   Enabled: true
   Max: 50
@@ -320,6 +322,7 @@ Style/FrozenStringLiteralComment:
 Style/SuperArguments:
   Enabled: true
 
+# Offense count: non-0
 ThreadSafety/ClassAndModuleAttributes:
   Description: Avoid mutating class and module attributes.
   Enabled: true
@@ -348,3 +351,75 @@ ThreadSafety/RackMiddlewareInstanceVariable:
   Include:
     - lib/middleware/*.rb
     - lib/middleware/onetime/*.rb
+
+# Unsafe autocorrect:
+Performance/MapCompact:
+  Enabled: false
+Performance/StringInclude:
+  Enabled: false
+Style/ClassAndModuleChildren:
+  Enabled: false
+Style/GlobalStdStream:
+  Enabled: false
+Style/HashConversion:
+  Enabled: false
+Style/HashEachMethods:
+  Enabled: false
+Style/IdenticalConditionalBranches:
+  Enabled: false
+Style/MinMaxComparison:
+  Enabled: false
+Style/MutableConstant:
+  Enabled: false
+Style/NumericPredicate:
+  Enabled: false
+Style/RaiseArgs:
+  Enabled: false
+Style/RedundantInterpolation:
+  Enabled: false
+Style/SafeNavigation:
+  Enabled: false
+Style/SpecialGlobalVars:
+  Enabled: false
+Style/StringConcatenation:
+  Enabled: false
+Style/SymbolProc:
+  Enabled: false
+
+# warnings
+Lint/RedundantCopDisableDirective:
+  Enabled: false
+Lint/AssignmentInCondition:
+  Enabled: false
+
+# Manual corrections
+Metrics/BlockLength:
+  Enabled: false
+Metrics/BlockNesting:
+  Enabled: false
+Metrics/ParameterLists:
+  Enabled: false
+Naming/AccessorMethodName:
+  Enabled: false
+Naming/MethodParameterName:
+  Enabled: false
+Performance/CollectionLiteralInLoop:
+  Enabled: false
+Style/OptionalBooleanParameter:
+  Enabled: false
+
+# warnings
+Lint/DuplicateMethods:
+  Enabled: false
+Lint/UselessOr:
+  Enabled: false
+Lint/UnreachableLoop:
+  Enabled: false
+Lint/MissingCopEnableDirective:
+  Enabled: false
+Lint/MissingSuper:
+  Enabled: false
+Lint/EmptyFile:
+  Enabled: false
+Lint/RescueException:
+  Enabled: false

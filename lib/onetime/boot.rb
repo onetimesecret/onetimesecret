@@ -11,9 +11,9 @@ module Onetime
   @debug = nil
 
   class << self
-    attr_accessor :mode, :d9s_enabled
+    attr_accessor :mode, :d9s_enabled # rubocop:disable ThreadSafety/ClassAndModuleAttributes
     attr_reader :configurator, :conf, :instance, :i18n_enabled, :locales, :supported_locales, :default_locale, :fallback_locale, :global_banner, :rotated_secrets, :emailer, :first_boot
-    attr_writer :debug, :env, :global_secret
+    attr_writer :debug, :env, :global_secret # rubocop:disable ThreadSafety/ClassAndModuleAttributes
 
     using IndifferentHashAccess
 

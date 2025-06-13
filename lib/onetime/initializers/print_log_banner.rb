@@ -192,6 +192,7 @@ module Onetime
     end
 
     # Builds customization section rows
+    # rubocop:disable Metrics/PerceivedComplexity
     def build_customization_section(site_config)
       customization_rows = []
 
@@ -245,6 +246,7 @@ module Onetime
 
       customization_rows
     end
+    # rubocop:enable Metrics/PerceivedComplexity
 
     # Helper method to check if a feature is disabled
     def feature_disabled?(config)

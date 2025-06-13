@@ -17,6 +17,7 @@ module V2::Logic
         raise OT::MissingSecret if secret.nil? || !secret.viewable?
       end
 
+      # rubocop:disable Metrics/PerceivedComplexity
       def process
         @correct_passphrase = !secret.has_passphrase? || secret.passphrase?(passphrase)
         @show_secret        = secret.viewable? && correct_passphrase && continue
@@ -78,6 +79,7 @@ module V2::Logic
 
         secret.viewed! if secret.state?(:new)
       end
+      # rubocop:enable Metrics/PerceivedComplexity
 
       def success_data
         return nil unless secret

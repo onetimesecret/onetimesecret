@@ -28,6 +28,7 @@ module Frontend
       # @param locale [String] Current locale
       # @param i18n_instance [I18n] Current I18n instance
       # @return [Hash] Collection of initialized variables
+      # rubocop:disable Metrics/MethodLength
       def initialize_view_vars(req, sess, cust, locale, i18n_instance)
         # Return minimal defaults if OT.conf isn't loaded yet
         return minimal_defaults(req, sess, cust, locale) unless OT.conf
@@ -118,6 +119,7 @@ module Frontend
           site: safe_site,
         }
       end
+      # rubocop:enable Metrics/MethodLength
 
       def minimal_defaults(_req, sess, cust, locale)
         {
