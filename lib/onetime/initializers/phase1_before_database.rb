@@ -17,11 +17,13 @@ module Onetime
       # the list of previously used global secrets. Happens easily
       # when using environment vars in the config.yaml that aren't
       # set or are set to an empty string.
-      @rotated_secrets = OT.conf[:experimental].fetch(:rotated_secrets, []).compact
+      @rotated_secrets = (OT.conf.dig(:experimental, :rotated_secrets) || []).compact
     end
 
     def load_fortunes
-      OT::Utils.fortunes ||= File.readlines(File.join(Onetime::HOME, 'etc', 'fortunes'))
+      fortune_path       = File.join(Onetime::HOME, 'src', 'locales', 'en', 'fortunes.json')
+      fortunes_list      = OT::Configurator::Load.json_load_file(fortune_path)
+      OT::Utils.fortunes = fortunes_list
     end
 
     def set_global_secret
