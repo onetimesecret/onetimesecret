@@ -70,13 +70,6 @@ module Onetime
       # missing field: host".
       @conf = configurator.configuration
 
-      # We can't do much without the initial file-based configuration. If it's
-      # nil here it means that there's also no schema (which has the defaults).
-      if OT.conf.nil?
-        OT.le '[BOOT] Configuration failed to load and validate'
-        OT.le '[BOOT] Has the schema been generated? Run `pnpm run schema:generate`'
-        return # or raise?
-      end
 
       # Initializers - simplified
       #
@@ -123,6 +116,16 @@ module Onetime
     rescue StandardError
       # Boot errors are already logged in handle_boot_error
       OT.not_ready! # returns false
+    ensure
+      # We can't do much without the initial file-based configuration. If it's
+      # nil here it means that there's also no schema (which has the defaults).
+      if OT.conf.nil?
+        OT.le '-' * 70
+        OT.le '[BOOT] Configuration failed to load and validate'
+        OT.le '[BOOT] Has the schema been generated? Run `pnpm run schema:generate`'
+        OT.le '-' * 70
+        # return nil
+      end
     end
 
     private
