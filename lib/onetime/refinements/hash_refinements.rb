@@ -35,7 +35,7 @@ module IndifferentHashAccess
 
     def fetch(key, ...)
       # Check if the original key exists first
-      return super if has_key?(key)
+      return super if key?(key)
 
       # Only try conversion for String/Symbol keys
       return super unless key.is_a?(String) || key.is_a?(Symbol)
@@ -43,9 +43,9 @@ module IndifferentHashAccess
       # Try converted key
       converted_key = case key
                       when Symbol
-                        key.to_s if has_key?(key.to_s)
+                        key.to_s if key?(key.to_s)
                       when String
-                        key.to_sym if has_key?(key.to_sym)
+                        key.to_sym if key?(key.to_sym)
                       end
 
       if converted_key

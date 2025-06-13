@@ -153,7 +153,7 @@ module V2
       end
 
       def stathat_enabled
-        return unless Onetime.conf.has_key?(:stathat)
+        return unless Onetime.conf.key?(:stathat)
 
         @stathat_enabled = Onetime.conf[:stathat][:enabled] if @stathat_enabled.nil?
         @stathat_enabled
