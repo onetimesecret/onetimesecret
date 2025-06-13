@@ -12,7 +12,7 @@ module Onetime
     # is enabled. When it's disabled, we just limit the locales to
     # english. Otherwise we would have to text strings to use.
     def load_locales
-      i18n = OT.conf.fetch(:internationalization, {})
+      i18n          = OT.conf.fetch(:internationalization, {})
       @i18n_enabled = i18n[:enabled] || false
 
       OT.ld 'Parsing through i18n locales...'
@@ -26,17 +26,17 @@ module Onetime
         # First look for the default locale in the i18n config, then
         # legacy the locales config approach of using the first one.
         @supported_locales = locales_list
-        @default_locale = i18n.fetch(:default_locale, locales_list.first) || 'en'
-        @fallback_locale = i18n.fetch(:fallback_locale, nil)
+        @default_locale    = i18n.fetch(:default_locale, locales_list.first) || 'en'
+        @fallback_locale   = i18n.fetch(:fallback_locale, nil)
 
         unless locales_list.include?(OT.default_locale)
           OT.le "Default locale #{OT.default_locale} not in locales_list #{locales_list}"
           @i18n_enabled = false
         end
       else
-        @default_locale = 'en'
+        @default_locale    = 'en'
         @supported_locales = [OT.default_locale]
-        @fallback_locale = nil
+        @fallback_locale   = nil
       end
 
       # Iterate over the list of supported locales, to load their JSON
@@ -45,7 +45,7 @@ module Onetime
         OT.ld "Loading #{loc}: #{File.exist?(path)}"
         begin
           contents = File.read(path)
-        rescue Errno::ENOENT => e
+        rescue Errno::ENOENT
           OT.le "Missing locale file: #{path}"
           next
         end
@@ -63,11 +63,11 @@ module Onetime
       # That way, at least the default language will display.
       locales_defs.each do |key, locale|
         next if OT.default_locale == key
+
         locales_defs[key] = OT::Utils.deep_merge(default_locale_def, locale)
       end
 
       @locales = locales_defs || {}
-
     end
   end
 end

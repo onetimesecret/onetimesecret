@@ -32,21 +32,21 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
       - name: Checkout repository
-        uses: actions/checkout
+        uses: actions/checkout@v4
 
       - name: Set up Ruby
-        uses: ruby/setup-ruby # let renovate update the specific versiob
+        uses: ruby/setup-ruby@1
         with:
           ruby-version: '3.4'
           bundler-cache: true
 
       - name: Set up Node.js
-        uses: actions/setup-node
+        uses: actions/setup-node@4
         with:
           node-version: '22'
 
       - name: Install pnpm
-        uses: pnpm/action-setup
+        uses: pnpm/action-setup@v4
         with:
           version: 10.10.0
 

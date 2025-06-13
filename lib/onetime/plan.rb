@@ -5,17 +5,17 @@ module Onetime
     extend Familia::Features::SafeDump::ClassMethods
 
     @safe_dump_fields = [
-      { :identifier => ->(obj) { obj.planid } },
+      { identifier: ->(obj) { obj.planid } },
       :planid, :price, :discount, :options
-    ]
+    ].freeze
 
     attr_reader :planid, :price, :discount, :options
 
     def initialize(planid, price, discount, options = {})
-      @planid = self.class.normalize(planid)
-      @price = price
+      @planid   = self.class.normalize(planid)
+      @price    = price
       @discount = discount
-      @options = options
+      @options  = options
 
       # Include dynamically here at instantiation time to avoid
       # circular dependency issues. Plans are loaded very early
@@ -36,13 +36,12 @@ module Onetime
       calculated_price.zero?
     end
 
-    @plans = {}
     module ClassMethods
-      attr_reader :plans
+      attr_accessor :plans
 
       def add_plan(planid, *)
-        new_plan = new(planid, *)
-        plans[new_plan.planid] = new_plan
+        new_plan                             = new(planid, *)
+        plans[new_plan.planid]               = new_plan
         plans[new_plan.planid.gibbler.short] = new_plan
       end
 
@@ -51,7 +50,7 @@ module Onetime
       end
 
       def plan(planid)
-        plans[normalize(planid)] #unless planid.nil?
+        plans[normalize(planid)] # unless planid.nil?
       end
 
       def plan?(planid)
@@ -60,8 +59,11 @@ module Onetime
 
       def load_plans!
         add_plan :anonymous, 0, 0, ttl: 7.days, size: 100_000, api: false, name: 'Anonymous'
-        add_plan :basic, 0, 0, ttl: 14.days, size: 1_000_000, api: true, name: 'Basic Plan', email: true, custom_domains: false, dark_mode: true
-        add_plan :identity, 35, 0, ttl: 30.days, size: 10_000_000, api: true, name: 'Identity', email: true, custom_domains: true, dark_mode: true
+        add_plan :basic, 0, 0, ttl: 14.days, size: 1_000_000, api: true, name: 'Basic Plan', email: true,
+          custom_domains: false, dark_mode: true
+        add_plan :identity, 35, 0, ttl: 30.days, size: 10_000_000, api: true, name: 'Identity', email: true,
+          custom_domains: true, dark_mode: true
+        plans.freeze
       end
     end
 

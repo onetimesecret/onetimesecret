@@ -18,8 +18,8 @@ module Onetime
       # Check for existing system settings
       existing_config = begin
         V2::SystemSettings.current
-      rescue OT::RecordNotFound => e
-        OT.ld "No existing system settings found: #{e.message}"
+      rescue OT::RecordNotFound => ex
+        OT.ld "No existing system settings found: #{ex.message}"
         nil
       end
 
@@ -32,13 +32,12 @@ module Onetime
         # Create initial system settings from current YAML configuration
         create_initial_system_settings
       end
-
-    rescue Redis::CannotConnectError => e
-      OT.lw "Cannot connect to Redis for system settings setup: #{e.message}"
+    rescue Redis::CannotConnectError => ex
+      OT.lw "Cannot connect to Redis for system settings setup: #{ex.message}"
       OT.lw 'Falling back to YAML configuration only'
-    rescue StandardError => e
-      OT.le "Error during system settings setup: #{e.message}"
-      OT.ld e.backtrace.join("\n")
+    rescue StandardError => ex
+      OT.le "Error during system settings setup: #{ex.message}"
+      OT.ld ex.backtrace.join("\n")
       OT.lw 'Falling back to YAML configuration only'
     end
 
@@ -62,9 +61,9 @@ module Onetime
     def create_initial_system_settings
       OT.ld 'Creating initial system settings from YAML...'
 
-      system_settings_data = V2::SystemSettings.extract_system_settings(OT.conf)
+      system_settings_data           = V2::SystemSettings.extract_system_settings(OT.conf)
       system_settings_data[:comment] = 'Initial configuration'
-      system_settings_data[:custid] = nil # No customer owner for initial config
+      system_settings_data[:custid]  = nil # No customer owner for initial config
 
       new_config = V2::SystemSettings.create(**system_settings_data)
       OT.ld "Created initial system settings: #{new_config.rediskey}"
@@ -73,15 +72,11 @@ module Onetime
     # Applies system settings on top of the main configuration, where the colonel
     # config overrides the main configuration.
     def apply_system_settings(system_settings)
-
-
       onetime_config_data = system_settings.to_onetime_config
 
       # Makes a deep copy of OT.conf, then merges the system settings data, and
       # replaces OT.config with the merged data.
       Onetime.apply_config(onetime_config_data)
-
     end
-
   end
 end

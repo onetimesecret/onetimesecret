@@ -2,26 +2,24 @@
 
 module Frontend
   module Views
-
     # Serializes internationalization data for the frontend
     #
     # Responsible for providing locale configuration, available locales,
     # and other i18n-related settings to the frontend.
     module I18nSerializer
-
       # Serializes internationalization data from view variables
       #
       # @param view_vars [Hash] The view variables containing locale information
       # @param i18n [Object] The internationalization instance
       # @return [Hash] Serialized i18n configuration including locale settings
-      def self.serialize(view_vars, i18n)
-        output = self.output_template
+      def self.serialize(view_vars, _i18n)
+        output = output_template
 
-        output[:locale] = view_vars&.fetch(:locale, nil)
-        output[:default_locale] = OT.default_locale # the application default
-        output[:fallback_locale] = OT.fallback_locale
+        output[:locale]            = view_vars&.fetch(:locale, nil)
+        output[:default_locale]    = OT.default_locale # the application default
+        output[:fallback_locale]   = OT.fallback_locale
         output[:supported_locales] = OT.supported_locales
-        output[:i18n_enabled] = OT.i18n_enabled
+        output[:i18n_enabled]      = OT.i18n_enabled
 
         output
       end

@@ -5,7 +5,6 @@ require 'json'
 
 module Onetime
   module Initializers
-
     # Prints a formatted banner with system and configuration information at startup.
     # The banner is organized into logical sections, each rendered as a table.
     #
@@ -23,14 +22,14 @@ module Onetime
     #
     # Helper methods available:
     # - render_section(header1, header2, rows): Creates a formatted table
-    # - is_feature_disabled?(config): Checks if a feature is disabled
+    # - feature_disabled?(config): Checks if a feature is disabled
     # - format_config_value(config): Formats complex config values for display
     # - format_duration(seconds): Converts seconds to human-readable format (e.g., "5m", "2h", "7d")
     def print_log_banner
-      site_config = OT.conf.fetch(:site) # if :site is missing we got real problems
+      site_config  = OT.conf.fetch(:site) # if :site is missing we got real problems
       email_config = OT.conf.fetch(:emailer, {})
-      redis_info = Familia.redis.info
-      colonels = site_config.dig(:authentication, :colonels) || []
+      redis_info   = Familia.redis.info
+      colonels     = site_config.dig(:authentication, :colonels) || []
 
       # Create a buffer to collect all output
       output = []
@@ -101,13 +100,13 @@ module Onetime
       dev_rows = []
 
       [:development, :experimental].each do |key|
-        if config_value = OT.conf.fetch(key, false)
-          if is_feature_disabled?(config_value)
-            dev_rows << [key.to_s.capitalize, 'disabled']
-          else
-            dev_rows << [key.to_s.capitalize, format_config_value(config_value)]
-          end
-        end
+        next unless config_value = OT.conf.fetch(key, false)
+
+        dev_rows << if feature_disabled?(config_value)
+          [key.to_s.capitalize, 'disabled']
+        else
+          [key.to_s.capitalize, format_config_value(config_value)]
+                    end
       end
 
       dev_rows
@@ -120,13 +119,13 @@ module Onetime
       # Plans section
       if site_config.key?(:plans)
         plans_config = site_config[:plans]
-        if is_feature_disabled?(plans_config)
-          feature_rows << ['Plans', 'disabled']
+        if feature_disabled?(plans_config)
+          feature_rows << %w[Plans disabled]
         else
           begin
             feature_rows << ['Plans', OT::Plan.plans.keys.join(', ')]
-          rescue => e
-            feature_rows << ['Plans', "Error: #{e.message}"]
+          rescue StandardError => ex
+            feature_rows << ['Plans', "Error: #{ex.message}"]
           end
         end
       end
@@ -134,8 +133,9 @@ module Onetime
       # Domains and regions
       [:domains, :regions].each do |key|
         next unless site_config.key?(key)
+
         config = site_config[key]
-        if is_feature_disabled?(config)
+        if feature_disabled?(config)
           feature_rows << [key.to_s.capitalize, 'disabled']
         elsif !config.empty?
           feature_rows << [key.to_s.capitalize, format_config_value(config)]
@@ -150,8 +150,8 @@ module Onetime
       return [] if email_config.nil? || email_config.empty?
 
       begin
-        if is_feature_disabled?(email_config)
-          [['Status', 'disabled']]
+        if feature_disabled?(email_config)
+          [%w[Status disabled]]
         else
           [
             ['Mailer', @emailer],
@@ -163,8 +163,8 @@ module Onetime
             ['Auth', email_config[:auth]],
           ].reject { |row| row[1].nil? || row[1].to_s.empty? }
         end
-      rescue => e
-        [['Error', "Error rendering mail config: #{e.message}"]]
+      rescue StandardError => ex
+        [['Error', "Error rendering mail config: #{ex.message}"]]
       end
     end
 
@@ -172,18 +172,18 @@ module Onetime
     def build_auth_section(site_config, colonels)
       auth_rows = []
 
-      if colonels.empty?
-        auth_rows << ['Colonels', 'No colonels configured ⚠️']
+      auth_rows << if colonels.empty?
+        ['Colonels', 'No colonels configured ⚠️']
       else
-        auth_rows << ['Colonels', colonels.join(', ')]
-      end
+        ['Colonels', colonels.join(', ')]
+                   end
 
       if site_config.key?(:authentication)
         auth_config = site_config[:authentication]
-        if is_feature_disabled?(auth_config)
+        if feature_disabled?(auth_config)
           auth_rows << ['Auth Settings', 'disabled']
         else
-          auth_settings = auth_config.map { |k,v| "#{k}=#{v}" }.join(', ')
+          auth_settings = auth_config.map { |k, v| "#{k}=#{v}" }.join(', ')
           auth_rows << ['Auth Settings', auth_settings]
         end
       end
@@ -192,6 +192,7 @@ module Onetime
     end
 
     # Builds customization section rows
+    # rubocop:disable Metrics/PerceivedComplexity
     def build_customization_section(site_config)
       customization_rows = []
 
@@ -214,14 +215,15 @@ module Onetime
       # Interface configuration
       if site_config.key?(:interface)
         interface_config = site_config[:interface]
-        if is_feature_disabled?(interface_config)
-          customization_rows << ['Interface', 'disabled']
+        if feature_disabled?(interface_config)
+          customization_rows << %w[Interface disabled]
         elsif interface_config.is_a?(Hash)
           # Handle nested ui and api configs under interface
           [:ui, :api].each do |key|
             next unless interface_config.key?(key)
+
             sub_config = interface_config[key]
-            if is_feature_disabled?(sub_config)
+            if feature_disabled?(sub_config)
               customization_rows << ["Interface > #{key.to_s.upcase}", 'disabled']
             elsif !sub_config.nil? && (sub_config.is_a?(Hash) ? !sub_config.empty? : !sub_config.to_s.empty?)
               customization_rows << ["Interface > #{key.to_s.upcase}", format_config_value(sub_config)]
@@ -232,8 +234,9 @@ module Onetime
         # Fallback: check for standalone ui and api configs
         [:ui, :api].each do |key|
           next unless site_config.key?(key)
+
           config = site_config[key]
-          if is_feature_disabled?(config)
+          if feature_disabled?(config)
             customization_rows << [key.to_s.upcase, 'disabled']
           elsif !config.empty?
             customization_rows << [key.to_s.upcase, format_config_value(config)]
@@ -243,9 +246,10 @@ module Onetime
 
       customization_rows
     end
+    # rubocop:enable Metrics/PerceivedComplexity
 
     # Helper method to check if a feature is disabled
-    def is_feature_disabled?(config)
+    def feature_disabled?(config)
       config.is_a?(Hash) && config.key?(:enabled) && !config[:enabled]
     end
 
@@ -253,7 +257,7 @@ module Onetime
     def format_config_value(config)
       if config.is_a?(Hash)
         config.map do |k, v|
-          value_str = (v.is_a?(Hash) || v.is_a?(Array)) ? v.to_json : v.to_s
+          value_str = v.is_a?(Hash) || v.is_a?(Array) ? v.to_json : v.to_s
           "#{k}=#{value_str}"
         end.join(', ')
       else
@@ -302,6 +306,5 @@ module Onetime
       # Return rendered table with an extra newline
       rendered + "\n"
     end
-
   end
 end

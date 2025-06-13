@@ -28,32 +28,32 @@ require 'hashdiff'
 module IndifferentHashAccess
   refine Hash do
     def [](key)
-      return super(key) unless key.is_a?(String) || key.is_a?(Symbol)
+      return super unless key.is_a?(String) || key.is_a?(Symbol)
+
       super(key.to_s) || super(key.to_sym)
     end
 
     def fetch(key, ...)
       # Check if the original key exists first
-      return super(key, ...) if has_key?(key)
+      return super if key?(key)
 
       # Only try conversion for String/Symbol keys
-      return super(key, ...) unless key.is_a?(String) || key.is_a?(Symbol)
+      return super unless key.is_a?(String) || key.is_a?(Symbol)
 
       # Try converted key
       converted_key = case key
                       when Symbol
-                        key.to_s if has_key?(key.to_s)
+                        key.to_s if key?(key.to_s)
                       when String
-                        key.to_sym if has_key?(key.to_sym)
+                        key.to_sym if key?(key.to_sym)
                       end
 
       if converted_key
         super(converted_key, ...)
       else
-        super(key, ...)  # Let original method handle default/block
+        super  # Let original method handle default/block
       end
     end
-
 
     def dig(key, *rest)
       value = self[key]  # Uses the flexible [] method
@@ -99,7 +99,7 @@ module ThenWithDiff
     use_lcs: true, # slower, more accurate
     # An order difference alone between two arrays can create too many
     # diffs to be useful. Consider sorting them prior to diffing.
-  }
+  }.freeze
 
   # NOTE: We recently added a valkey-backed settings model V2::SystemSettings
   # which may seen at odds with this approach or potentially overlap. They
@@ -141,8 +141,8 @@ module ThenWithDiff
 
       # Get previous state from last record
       last_record_json = ThenWithDiff.history.last
-      last_record = last_record_json ? JSON.parse(last_record_json) : {}
-      previous_state = last_record['content'] || {}
+      last_record      = last_record_json ? JSON.parse(last_record_json) : {}
+      previous_state   = last_record['content'] || {}
 
       diff = Hashdiff.diff(previous_state, result, ThenWithDiff.options)
       OT.ld "[then_with_diff] #{step_name}: #{diff.size} changes" unless diff.empty?

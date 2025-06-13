@@ -5,19 +5,15 @@ require 'onetime/refinements/hash_refinements'
 require_relative 'initializers'
 
 module Onetime
-  @conf = nil
-  @env = nil
-  @mode = nil
+  @conf  = nil
+  @env   = nil
+  @mode  = nil
   @debug = nil
 
   class << self
-
-    attr_accessor :mode, :d9s_enabled
-    attr_reader :configurator
-    attr_writer :debug, :env, :global_secret
-    attr_reader :conf, :instance, :i18n_enabled, :locales,
-                :supported_locales, :default_locale, :fallback_locale,
-                :global_banner, :rotated_secrets, :emailer, :first_boot
+    attr_accessor :mode, :d9s_enabled # rubocop:disable ThreadSafety/ClassAndModuleAttributes
+    attr_reader :configurator, :conf, :instance, :i18n_enabled, :locales, :supported_locales, :default_locale, :fallback_locale, :global_banner, :rotated_secrets, :emailer, :first_boot
+    attr_writer :debug, :env, :global_secret # rubocop:disable ThreadSafety/ClassAndModuleAttributes
 
     using IndifferentHashAccess
 
@@ -117,14 +113,14 @@ module Onetime
       # code in the application has access to the processed configuration
       # is from within this boot! method.
       nil
-    rescue => error
-      handle_boot_error(error)
+    rescue StandardError => ex
+      handle_boot_error(ex)
     end
 
     def safe_boot!(mode = nil, connect_to_db = true)
       boot!(mode, connect_to_db)
       true
-    rescue => e
+    rescue StandardError
       # Boot errors are already logged in handle_boot_error
       OT.not_ready! # returns false
     end
@@ -171,7 +167,6 @@ module Onetime
       # we continue with reduced functionality.
       raise error unless mode?(:cli) || mode?(:test)
     end
-
   end
 end
 

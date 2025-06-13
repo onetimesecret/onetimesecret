@@ -24,7 +24,7 @@ require 'forwardable'
 module V2
   class RateLimit < Familia::Horreum
     extend Forwardable
-    @events = {}
+    @events = nil
 
     # Default limit for events that haven't been explicitly configured
     DEFAULT_LIMIT = 25 unless defined?(V2::RateLimit::DEFAULT_LIMIT)
@@ -99,10 +99,11 @@ module V2
       if self.class.exceeded?(event, count)
         raise Onetime::LimitExceeded.new(external_identifier, event, count)
       end
+
       count
     end
 
-    alias_method :count, :value
+    alias count value
 
     def clear
       delete!
@@ -111,20 +112,20 @@ module V2
     class << self
       # Hash of registered events and their limits
       attr_reader :events
-
-      def load(identifier, event)
-        new(identifier, event)
-      end
     end
 
     module ClassMethods
+      def load(identifier, event)
+        new(identifier, event)
+      end
+
       # Increment the counter for an identifier/event pair
       # @param identifier [String] unique identifier for the limited entity
       # @param event [Symbol] the type of event being limited
       # @return [Integer] the new count
       # @raise [Onetime::LimitExceeded] if the limit is exceeded
-      def incr! identifier, event
-        lmtr = new identifier, event
+      def incr!(identifier, event)
+        lmtr  = new identifier, event
         count = lmtr.incr!
 
         OT.ld ['RateLimit.incr!', event, identifier, count, event_limit(event)].inspect
@@ -135,15 +136,15 @@ module V2
 
         count
       end
-      alias_method :increment!, :incr!
+      alias increment! incr!
 
       # Clear the counter for an identifier/event pair
       # @param identifier [String] unique identifier for the limited entity
       # @param event [Symbol] the type of event being limited
       # @return [Boolean] true if the key was deleted
-      def clear! identifier, event
+      def clear!(identifier, event)
         lmtr = new identifier, event
-        ret = lmtr.clear
+        ret  = lmtr.clear
         OT.ld [:clear, event, identifier, ret].inspect
         ret
       end
@@ -152,7 +153,7 @@ module V2
       # @param identifier [String] unique identifier for the limited entity
       # @param event [Symbol] the type of event being limited
       # @return [Integer] the current count
-      def get identifier, event
+      def get(identifier, event)
         lmtr = new identifier, event
         lmtr.get
       end
@@ -160,7 +161,7 @@ module V2
       # Get the configured limit for an event
       # @param event [Symbol] the event to get the limit for
       # @return [Integer] the configured limit or DEFAULT_LIMIT
-      def event_limit event
+      def event_limit(event)
         events[event] || DEFAULT_LIMIT # Float::INFINITY-1
       end
 
@@ -168,7 +169,7 @@ module V2
       # @param event [Symbol] the event to check
       # @param count [Integer] the count to check
       # @return [Boolean] true if the count exceeds the limit
-      def exceeded? event, count
+      def exceeded?(event, count)
         (count) > event_limit(event)
       end
 
@@ -176,25 +177,33 @@ module V2
       # @param event [Symbol] the event to register
       # @param count [Integer] the maximum allowed count
       # @return [Integer] the registered limit
-      def register_event single_event, count
+      def register_event(single_event, count)
         OT.ld "[register_event] #{single_event.inspect} #{count}"
+        @events            ||= {}
         events[single_event] = count
       end
 
       # Register multiple events with their limits
       # @param events [Hash] map of event names to limits
+      # @param freeze [Boolean] whether to freeze the events hash
       # @return [Hash] the updated events hash
-      def register_events multiple_events
+      def register_events(multiple_events, freeze: true)
         OT.ld "[register_events] #{multiple_events.inspect}"
+        @events ||= {}
         events.merge! multiple_events
+        freeze ? freeze_events : events
+      end
+
+      def freeze_events
+        events.freeze unless events.frozen?
       end
 
       # Get the current time window stamp
       # Time is rounded down to the nearest ttl interval
       # @return [String] formatted timestamp (HHMM)
       def eventstamp
-        now = OT.now.to_i
-        rounded = now - (now % self.ttl)
+        now     = OT.now.to_i
+        rounded = now - (now % ttl)
         Time.at(rounded).utc.strftime('%H%M')
       end
     end

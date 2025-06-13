@@ -9,16 +9,14 @@ require 'rack/utf8_sanitizer'
 #
 # Standard middleware for all applications
 module MiddlewareStack
-
   class << self
     def configure(builder)
-
       builder.use Rack::ContentLength
       builder.use Onetime::Middleware::StartupReadiness
 
       # Apply minimal middleware if config not available
       unless Onetime.conf
-        Onetime.ld "[middleware] Configuration not available, using minimal stack"
+        Onetime.ld '[middleware] Configuration not available, using minimal stack'
         return
       end
 
@@ -31,7 +29,7 @@ module MiddlewareStack
       # Add Sentry exception tracking when available
       # This block only executes if Sentry was successfully initialized
       Onetime.with_diagnostics do
-        Onetime.ld "[config.ru] Sentry enabled"
+        Onetime.ld '[config.ru] Sentry enabled'
         # Position Sentry middleware early to capture exceptions throughout the stack
 
         builder.use Sentry::Rack::CaptureExceptions
@@ -53,7 +51,6 @@ module MiddlewareStack
 
     # development/production middleware setup
     def configure_environment(builder)
-
       # Development Environment Configuration
       # Enable development-specific middleware when in development mode
       # This handles code validation and frontend development server integration
@@ -77,10 +74,9 @@ module MiddlewareStack
         # Configures security-related middleware components based on application settings
         require 'onetime/middleware/security'
 
-        Onetime.ld "[config.ru] Setting up Security middleware"
+        Onetime.ld '[config.ru] Setting up Security middleware'
         builder.use Onetime::Middleware::Security
       end
     end
-
   end
 end

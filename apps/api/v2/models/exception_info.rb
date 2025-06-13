@@ -1,6 +1,5 @@
 require 'logger'
 
-
 module V2
   class ExceptionInfo < Familia::Horreum
     include Gibbler::Complex
@@ -59,33 +58,34 @@ module V2
           version: agent.split('/')[1],
           mobile: agent.downcase.match?(/mobile|android|iphone/i),
         }
-      }},
+      } },
 
       # Location info
       { location: lambda { |obj|
         return unless obj.url
+
         uri = URI.parse(obj.url)
         {
           path: uri.path,
           query: uri.query,
           hostname: uri.host,
         }
-      }},
+      } },
 
       # Stack trace processing
       { stack_preview: lambda { |obj|
         obj.stack.to_s.split("\n").first(3).join("\n") if obj.stack
-      }},
+      } },
       { stack_length: lambda { |obj|
         obj.stack.to_s.split("\n").length if obj.stack
-      }},
-    ]
+      } },
+    ].freeze
 
     def init
       self.environment ||= 'production'
-      self.timestamp ||= Time.now.utc.iso8601
-      self.created ||= Time.now.to_i
-      self.updated ||= Time.now.to_i
+      self.timestamp   ||= Time.now.utc.iso8601
+      self.created     ||= Time.now.to_i
+      self.updated     ||= Time.now.to_i
     end
 
     # Generates and memoizes a unique identifier
@@ -94,34 +94,34 @@ module V2
     # Familia::Horreum uses key internally.
     def generate_id
       return @generate_id if defined?(@generate_id)
-      @key = Familia.generate_id.slice(0, 31)
+
+      @key         = Familia.generate_id.slice(0, 31)
       @generate_id = @key
     end
 
     # Query methods for exception data
     module ClassMethods
-
       def add(fobj)
         created_time = OT.now.to_i
-        identifier = fobj.identifier
+        identifier   = fobj.identifier
 
         OT.li("[ExceptionInfo] #{identifier} #{fobj.type} #{fobj.release} #{fobj.url}")
 
-        self.values.add(created_time, identifier)
+        values.add(created_time, identifier)
 
         # Auto-trim the set to keep only the most recent 14 days of feedback
-        self.values.remrangebyscore 0, OT.now.to_i-self.ttl # e.g. 14 days
+        values.remrangebyscore 0, OT.now.to_i-ttl # e.g. 14 days
       end
 
       # Returns a Hash like: {"msg1"=>"1322644672", "msg2"=>"1322644668"}
       def all
-        ret = self.values.revrangeraw(0, -1, withscores: true)
+        ret = values.revrangeraw(0, -1, withscores: true)
         Hash[ret]
       end
 
-      def recent duration=7.days, epoint=OT.now.to_i
+      def recent(duration = 7.days, epoint = OT.now.to_i)
         spoint = OT.now.to_i-duration
-        ret = self.values.rangebyscoreraw(spoint, epoint, withscores: true)
+        ret    = values.rangebyscoreraw(spoint, epoint, withscores: true)
         Hash[ret]
       end
     end

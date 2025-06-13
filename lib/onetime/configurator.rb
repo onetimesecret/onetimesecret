@@ -14,7 +14,6 @@ require_relative 'configurator/utils'
 require 'onetime/refinements/hash_refinements'
 
 module Onetime
-
   # Configuration loader using two-stage validation pattern:
   # 1. Schema validation (declarative) - structure + defaults
   # 2. Business processing (imperative) - compatibility, auth, etc.
@@ -27,7 +26,7 @@ module Onetime
 
     # This lets local project settings override user settings, which
     # override system defaults. It's the standard precedence.
-    @paths = [
+    @paths      = [
       File.join(Dir.pwd, 'etc'), # 1. current working directory
       File.join(Onetime::HOME, 'etc'), # 2. onetimesecret/etc
       File.join(@xdg.config_home, 'onetime'), # 3. ~/.config/onetime
@@ -36,7 +35,7 @@ module Onetime
     @extensions = ['.yml', '.yaml', '.json', '.json5', ''].freeze
 
     attr_accessor :config_path, :schema_path
-    attr_reader :schema
+    attr_reader :schema, :parsed_yaml, :config_template_str, :processed_config
 
     def initialize(config_path: nil, schema_path: nil)
       @config_path = config_path || self.class.find_config('config')
@@ -45,7 +44,6 @@ module Onetime
 
     # States:
     attr_reader :unprocessed_config, :validated_config, :schema, :parsed_template
-    attr_reader :parsed_yaml, :config_template_str, :processed_config
 
     # Typically called via `OT::Configurator.load!`. The block is passed to
     # after_load after the config is first loaded and the validated against
@@ -54,7 +52,7 @@ module Onetime
     # Using a combination of then and then_with_diff which tracks the chanegs to
     # the configuration at each step in this load pipline.
     def load!(&)
-      @schema = load_schema
+      @schema        = load_schema
       # We validate before returning the config so that we're not inadvertently
       # sending back configuration of unknown provenance. This is Stage 1 of
       # our two-stage validation process. In addition to confirming the
@@ -75,12 +73,12 @@ module Onetime
         .then_with_diff('freezed') { |config| deep_freeze(config) }
 
       self
-    rescue OT::ConfigError => e
-      log_debug_content(e)
+    rescue OT::ConfigError => ex
+      log_debug_content(ex)
       raise
-    rescue StandardError => e
-      log_debug_content(e)
-      raise OT::ConfigError, "Unhandled error: #{e.message}"
+    rescue StandardError => ex
+      log_debug_content(ex)
+      raise OT::ConfigError, "Unhandled error: #{ex.message}"
     end
 
     # The accessor creates a new config hash every time and returns it frozen
@@ -99,7 +97,7 @@ module Onetime
     # affect the global ENV.
     def render_erb_template(template)
       OT.ld("[config] Rendering ERB template (#{template.size} bytes)")
-      context = Onetime::Configurator::EnvironmentContext.template_binding
+      context            = Onetime::Configurator::EnvironmentContext.template_binding
       @rendered_template = ERB.new(template).result(context)
     end
 
@@ -190,6 +188,7 @@ module Onetime
       unless config.is_a?(Hash) && schema.is_a?(Hash)
         raise ArgumentError, 'Invalid configuration format'
       end
+
       # loggable_config = OT::Utils.type_structure(config)
       # OT.ld "[config] Validating #{loggable_config.size} #{schema.size}"
       OT::Configurator::Utils.validate_with_schema(config, schema, **)

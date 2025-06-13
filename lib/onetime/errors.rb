@@ -1,8 +1,6 @@
-
 require 'json'
 
 module Onetime
-
   # The Problem class inherits from RuntimeError, which is a subclass of StandardError.
   # Both RuntimeError and StandardError are standard exception classes in Ruby, but
   # RuntimeError is used for errors that are typically caused by the program's logic
@@ -14,7 +12,7 @@ module Onetime
     attr_accessor :message
 
     def initialize(message = nil)
-      super(message)
+      super
       @message = message
     end
   end
@@ -38,7 +36,7 @@ module Onetime
 
     def initialize(messages:, paths:)
       @messages = Array(messages)
-      @paths = paths
+      @paths    = paths
       super(formatted_message)
     end
 
@@ -62,9 +60,9 @@ module Onetime
     attr_reader :path, :user, :got, :wanted
 
     def initialize(path, user, got, wanted)
-      @path = path
-      @user = user
-      @got = got.to_s
+      @path   = path
+      @user   = user
+      @got    = got.to_s
       @wanted = wanted.to_s
     end
 
@@ -83,8 +81,8 @@ module Onetime
 
     def initialize(identifier, event, count)
       @identifier = identifier
-      @event = event
-      @count = count
+      @event      = event
+      @count      = count
     end
 
     def message
@@ -97,9 +95,10 @@ module Onetime
 
   class Redirect < RuntimeError
     attr_reader :location, :status
-    def initialize l, s=302
-      @location, @status = l, s
+
+    def initialize(l, s = 302)
+      @location = l
+      @status   = s
     end
   end
-
 end

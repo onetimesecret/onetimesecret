@@ -26,7 +26,7 @@ module Onetime
       # In v0.20.6, REGIONS_ENABLE was renamed to REGIONS_ENABLED for
       # consistency. We ensure both are considered for compatability.
       def normalize_regions_compatibility!(env)
-        set_value = env['REGIONS_ENABLED'] || env['REGIONS_ENABLE'] || 'false'
+        set_value              = env['REGIONS_ENABLED'] || env['REGIONS_ENABLE'] || 'false'
         env['REGIONS_ENABLED'] = set_value
       end
 

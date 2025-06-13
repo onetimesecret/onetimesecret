@@ -4,7 +4,6 @@ require 'json_schemer'
 
 module Onetime
   class Configurator
-
     unless defined?(KNOWN_PATHS)
       KNOWN_PATHS = %w[/etc/onetime ./etc ~/.onetime].freeze
 
@@ -80,11 +79,11 @@ module Onetime
           next if path_segments.empty?
 
           # Navigate to proper nesting level
-          current = error_paths
+          current         = error_paths
           parent_segments = path_segments[0..-2]
           parent_segments.each do |segment|
             current[segment] ||= {}
-            current = current[segment]
+            current            = current[segment]
           end
 
           # Add value at this path
@@ -123,7 +122,7 @@ module Onetime
       #   apply_defaults_to_peers({a: {x: 1}})                # => {a: {x: 1}}
       #   apply_defaults_to_peers({defaults: {x: 1}, b: {}})  # => {b: {x: 1}}
       #
-      def apply_defaults_to_peers(config={})
+      def apply_defaults_to_peers(config = {})
         return {} if config.nil? || config.empty?
 
         # Extract defaults from the configuration (handle both symbol and string keys)
@@ -134,6 +133,7 @@ module Onetime
           result = {}
           config.each do |key, value|
             next if [:defaults, 'defaults'].include?(key)
+
             # Normalize the value to string keys using deep_merge with empty hash
             result[key.to_s] = value.is_a?(Hash) ? OT::Utils.deep_merge({}, value) : value
           end
@@ -150,11 +150,6 @@ module Onetime
           result[section.to_s] = OT::Utils.deep_merge(defaults, values)
         end
       end
-
-
-
     end
-
-
   end
 end

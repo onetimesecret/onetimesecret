@@ -4,7 +4,6 @@ require_relative '../refinements/horreum_refinements'
 
 module Onetime
   module Initializers
-
     using Familia::HorreumRefinements
 
     # Connects each model to its configured Redis database.
@@ -37,11 +36,11 @@ module Onetime
       # Map model classes to their database numbers
       Familia.members.each do |model_class|
         model_sym = model_class.to_sym
-        db_index = dbs[model_sym] || DATABASE_IDS[model_sym] || 0 # see models.rb
+        db_index  = dbs[model_sym] || DATABASE_IDS[model_sym] || 0 # see models.rb
 
         # Assign a Redis connection to the model class
         model_class.redis = Familia.redis(db_index)
-        ping_result = model_class.redis.ping
+        ping_result       = model_class.redis.ping
 
         OT.ld "Connected #{model_sym} to DB #{db_index} (#{ping_result})"
       end

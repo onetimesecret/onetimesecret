@@ -6,7 +6,6 @@ require 'base64'
 require 'altcha'
 require_relative 'base'
 
-
 module V2
   module Controllers
     class Challenges
@@ -29,7 +28,7 @@ module V2
           # generate method. Let's start with an even easier challenge and
           # work our way up.
           max_number = 50_000
-          challenge = self.class.generate_authenticity_challenge(max_number)
+          challenge  = self.class.generate_authenticity_challenge(max_number)
           json challenge
         end
       end
@@ -59,7 +58,6 @@ module V2
             self.class.secret_key,
           )
 
-
           return error_response message: 'Bad Altcha payload' unless verified
 
           fields_verified = Altcha.verify_fields_hash(
@@ -85,7 +83,7 @@ module V2
         # This challenge is then serializd into a JSON string and base64 encoded
         # by the AltchaChallenge and then resubmitted with the solution
         # number for verification (aka the "payload")
-        def generate_authenticity_challenge(max_number=100_000)
+        def generate_authenticity_challenge(max_number = 100_000)
           options = Altcha::ChallengeOptions.new hmac_key: secret_key, max_number: max_number
           Altcha.create_challenge(options)
         end
@@ -104,7 +102,7 @@ module V2
 
         def verify_authenticity_challenge(challenge, number, check_expires)
           hmac_key = secret_key
-          payload = _authenticity_challenge_payload(challenge, number)
+          payload  = _authenticity_challenge_payload(challenge, number)
           Altcha.verify_solution(payload, hmac_key, check_expires)
         end
 

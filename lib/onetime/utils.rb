@@ -6,9 +6,16 @@ module Onetime
   module Utils
     extend self
     unless defined?(VALID_CHARS)
-      VALID_CHARS = [('a'..'z').to_a, ('A'..'Z').to_a, ('0'..'9').to_a, %w[* $ ! ? ( )]].flatten
+      VALID_CHARS = [
+        ('a'..'z').to_a,
+        ('A'..'Z').to_a,
+        ('0'..'9').to_a,
+        %w[* $ ! ? ( )],
+      ].flatten
+
       VALID_CHARS_SAFE = VALID_CHARS.clone
-      VALID_CHARS_SAFE.delete_if { |v| %w[i l o 1 0].member?(v) }
+      VALID_CHARS_SAFE.delete_if { |char| %w[i l o 1 0].include?(char) }
+
       VALID_CHARS.freeze
       VALID_CHARS_SAFE.freeze
     end
@@ -35,24 +42,28 @@ module Onetime
     def random_fortune
       raise OT::Problem, 'No fortunes' if fortunes.nil?
       raise OT::Problem, "#{fortunes.class} is not an Array" unless fortunes.is_a?(Array)
+
       fortune = fortunes.sample.to_s.strip
       raise OT::Problem, 'No fortune found' if fortune.empty?
+
       fortune
-    rescue OT::Problem => e
-      OT.le "#{e.message}"
+    rescue OT::Problem => ex
+      OT.le "#{ex.message}"
       'Unexpected outcomes bring valuable lessons.'
-    rescue StandardError => e
-      OT.le "#{e.message} (#{fortunes.class})"
-      OT.ld "#{e.backtrace.join("\n")}"
+    rescue StandardError => ex
+      OT.le "#{ex.message} (#{fortunes.class})"
+      OT.ld "#{ex.backtrace.join("\n")}"
       'A house is full of games and puzzles.'
     end
 
-    # Generates a random string of specified length using a predefined character set.
-    # Provides both safe and unsafe character sets for different use cases, with the
-    # safe set excluding visually similar characters to improve readability.
+    # Generates a random string of specified length using predefined
+    # character sets. Offers both safe and standard character sets for
+    # different use cases, with the safe set excluding visually similar
+    # characters to improve readability.
     #
     # @param len [Integer] Length of the generated string (default: 12)
-    # @param safe [Boolean] Whether to use the safe character set (default: true)
+    # @param safe [Boolean] Whether to use the safe character set
+    #   (default: true)
     # @return [String] A randomly generated string of the specified length
     #
     # @example Generate a safe 12-character string
@@ -64,7 +75,7 @@ module Onetime
     #
     # @note Safe mode excludes potentially confusing characters: i, l, o, 1, 0
     # @note Character sets include: a-z, A-Z, 0-9, and symbols: * $ ! ? ( )
-    # @security Uses cryptographically secure random generation for unpredictability
+    # @security Uses cryptographically secure random generation
     def strand(len = 12, safe = true)
       chars = safe ? VALID_CHARS_SAFE : VALID_CHARS
       (1..len).collect { chars.sample }.join
@@ -80,7 +91,7 @@ module Onetime
       return normalize_keys(deep_clone(original)) if other.nil?
 
       original_normalized = normalize_keys(deep_clone(original))
-      other_normalized = normalize_keys(deep_clone(other))
+      other_normalized    = normalize_keys(deep_clone(other))
 
       merger = proc do |_key, v1, v2|
         if v1.is_a?(Hash) && v2.is_a?(Hash)
@@ -107,7 +118,7 @@ module Onetime
     #
     # @param obj [Object] The object to freeze
     # @return [Object] The frozen object
-    # @security This ensures configuration values cannot be tampered with at runtime
+    # @security This ensures config values cannot be tampered with at runtime
     def deep_freeze(obj)
       case obj
       when Hash
@@ -118,32 +129,40 @@ module Onetime
       obj.freeze
     end
 
-    # Creates a complete deep copy of a configuration hash using YAML serialization.
-    # This ensures all nested objects are properly duplicated, preventing unintended
-    # sharing of references that could lead to data corruption if modified.
+    # Creates a complete deep copy of a configuration hash using YAML
+    # serialization. This ensures all nested objects are properly duplicated,
+    # preventing unintended sharing of references that could lead to data
+    # corruption if modified.
     #
     # @param config_hash [Hash] The configuration hash to be cloned
     # @return [Hash] A deep copy of the original configuration hash
-    # @raise [OT::Problem] When YAML serialization fails due to unserializable objects
-    # @security Prevents configuration mutations from affecting multiple components
+    # @raise [OT::Problem] When YAML serialization fails due to unserializable
+    #   objects
+    # @security Prevents configuration mutations from affecting multiple
+    #   components
     #
     # @security_note YAML Deserialization Restrictions
-    #   Ruby's YAML parser (Psych) restricts object loading to prevent deserialization
-    #   attacks. Only basic types are allowed by default: String, Integer, Float, Array,
-    #   Hash, Symbol, Date, Time. Custom objects will raise Psych::DisallowedClass errors.
-    #   Malicious alias references will raise Psych::BadAlias errors. These restrictions
-    #   are intentional and provide security benefits by preventing malicious object
-    #   deserialization and YAML bomb attacks in configuration data.
+    #   Ruby's YAML parser (Psych) restricts object loading to prevent
+    #   deserialization attacks. Only basic types are allowed by default:
+    #   String, Integer, Float, Array, Hash, Symbol, Date, Time. Custom
+    #   objects will raise Psych::DisallowedClass errors. Malicious alias
+    #   references will raise Psych::BadAlias errors. These restrictions are
+    #   intentional and provide security benefits by preventing malicious
+    #   object deserialization and YAML bomb attacks in configuration data.
     #
     # @limitations
-    #   - Only works with basic Ruby data types (String, Integer, Hash, Array, Symbol)
-    #   - Custom objects, Struct instances, and complex classes are blocked for security
+    #   - Only works with basic Ruby data types (String, Integer, Hash,
+    #     Array, Symbol)
+    #   - Custom objects, Struct instances, and complex classes are blocked
+    #     for security
     #   - Objects with singleton methods or custom serialization will fail
-    #   - Performance can degrade with deeply nested or large object structures
+    #   - Performance can degrade with deeply nested or large object
+    #     structures
     #
-    #   For configuration use cases, these limitations are beneficial as they ensure
-    #   data integrity and prevent security vulnerabilities. Use recursive approaches
-    #   for custom object cloning outside of configuration contexts.
+    #   For configuration use cases, these limitations are beneficial as they
+    #   ensure data integrity and prevent security vulnerabilities. Use
+    #   recursive approaches for custom object cloning outside of
+    #   configuration contexts.
     #
     def deep_clone(config_hash)
       # Previously used Marshal here. But in Ruby 3.1 it died cryptically with
@@ -151,7 +170,7 @@ module Onetime
       # know we only expect a regular hash here without any methods, procs
       # etc, we use YAML instead to accomplish the same thing (JSON is
       # another option but it turns all the symbol keys into strings).
-      YAML.load(YAML.dump(config_hash)) # TODO: Use oj for performance and string gains
+      YAML.load(YAML.dump(config_hash)) # TODO: Use oj for perf and string gains
     rescue TypeError, Psych::DisallowedClass, Psych::BadAlias => ex
       raise OT::Problem, "[deep_clone] #{ex.message}"
     end
@@ -181,8 +200,16 @@ module Onetime
 
     def obscure_email(text)
       regex = /(\b(([A-Z0-9]{1,2})[A-Z0-9._%-]*)([A-Z0-9])?(@([A-Z0-9])[A-Z0-9.-]+(\.[A-Z]{2,4}\b)))/i
-      el = text.split('@')
+      text.split('@')
       text.gsub regex, '\\3*****\\4@\\6*****\\7'
+    end
+    # rubocop:enable Layout/LineLength
+
+    # Checks if a value represents a truthy boolean value
+    # @param value [Object] Value to check
+    # @return [Boolean] true if value is "true", "yes", or "1" (case-insensitive)
+    def yes?(value)
+      !value.to_s.empty? && %w[true yes 1].include?(value.downcase)
     end
 
     private
@@ -215,14 +242,13 @@ module Onetime
       def normalize_value(value)
         case value.class.to_s
         when 'String', 'Gibbler::Digest', 'Symbol', 'Integer', 'Float'
-          if is_https?(value)
+          if https?(value)
             value
           else
             Rack::Utils.escape_html(value)
           end
-        when 'Array', 'Hash'
-          value
-        when 'Boolean', 'FalseClass', 'TrueClass'
+        # JSON-compatible types are passed through as-is
+        when 'Array', 'Hash', 'Boolean', 'FalseClass', 'TrueClass'
           value
         when 'NilClass'
           nil
@@ -234,7 +260,7 @@ module Onetime
         end
       end
 
-      def is_https?(str)
+      def https?(str)
         uri = URI.parse(str)
         uri.is_a?(URI::HTTPS)
       rescue URI::InvalidURIError
@@ -303,17 +329,16 @@ module Onetime
 
     def natural_duration(duration_in_s)
       if duration_in_s <= 1.minute
-        '%d seconds' % duration_in_s
+        format('%d seconds', duration_in_s)
       elsif duration_in_s <= 1.hour
-        '%d minutes' % duration_in_s.in_minutes
+        format('%d minutes', duration_in_s.in_minutes)
       elsif duration_in_s <= 1.day
-        '%d hours' % duration_in_s.in_hours
+        format('%d hours', duration_in_s.in_hours)
       else
-        '%d days' % duration_in_s.in_days
+        format('%d days', duration_in_s.in_days)
       end
     end
 
-    # rubocop:disable Metrics/PerceivedComplexity, Metrics/AbcSize
     def natural_time(time_in_s)
       return if time_in_s.nil?
 
@@ -340,11 +365,12 @@ module Onetime
       elsif val < 3600 * 24 * 7
         result = Time.at(time_in_s.to_i).strftime('on %A').downcase
       else
-        weeks = (val / 3600.0 / 24.0 / 7).to_i
-        result = Time.at(time_in_s.to_i).strftime("#{weeks} #{'week'.plural(weeks)} ago").downcase
+        weeks  = (val / 3600.0 / 24.0 / 7).to_i
+        result = Time.at(time_in_s.to_i)
+          .strftime("#{weeks} #{'week'.plural(weeks)} ago")
+          .downcase
       end
       result
     end
-
   end
 end

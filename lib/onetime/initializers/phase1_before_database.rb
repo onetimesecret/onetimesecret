@@ -2,8 +2,7 @@
 
 module Onetime
   module Initializers
-    attr_reader :global_secret
-    attr_reader :rotated_secrets
+    attr_reader :global_secret, :rotated_secrets
 
     def run_phase1_initializers
       OT.ld 'Phase 1 Initializers'
@@ -14,13 +13,11 @@ module Onetime
     end
 
     def set_rotated_secrets
-
       # Remove nil elements that have inadvertently been set in
       # the list of previously used global secrets. Happens easily
       # when using environment vars in the config.yaml that aren't
       # set or are set to an empty string.
       @rotated_secrets = OT.conf[:experimental].fetch(:rotated_secrets, []).compact
-
     end
 
     def load_fortunes

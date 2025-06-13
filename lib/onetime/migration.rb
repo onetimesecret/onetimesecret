@@ -25,22 +25,22 @@ module Onetime
 
     def initialize
       @options = {}
-      @stats = Hash.new(0)  # Auto-incrementing counter for tracking migration stats
+      @stats   = Hash.new(0)  # Auto-incrementing counter for tracking migration stats
     end
 
     # Main entry point - orchestrates the full migration process
     # @param options [Hash] CLI options, typically { run: true/false }
     # @return [Boolean] true if migration completed successfully
     def self.run(options = {})
-      migration = new
+      migration         = new
       migration.options = options
       migration.prepare
 
       is_needed = migration.migration_needed?
-      migration.info ""
+      migration.info ''
       migration.info("Migration needed? #{is_needed}.")
       unless is_needed
-        migration.info ""
+        migration.info ''
         migration.migration_not_needed_banner
         return false
       end
@@ -51,7 +51,7 @@ module Onetime
     # Hook for subclasses to initialize instance variables and validate preconditions
     # Called before migration_needed? check
     def prepare
-      debug("Preparing migration - default implementation")
+      debug('Preparing migration - default implementation')
     end
 
     # Perform the actual migration work
@@ -93,7 +93,7 @@ module Onetime
     # Use this to wrap destructive operations
     # @yield Block to execute if in actual run mode
     # @return [Boolean] true if block was executed
-    def execute_if_actual_run
+    def for_realsies?
       if actual_run?
         yield
         true
@@ -132,7 +132,7 @@ module Onetime
 
     # Print visual separator line
     def separator
-      OT.li("------------------------------------------------------------")
+      OT.li('------------------------------------------------------------')
     end
 
     # Show progress for long-running operations
@@ -140,7 +140,7 @@ module Onetime
     # @param total [Integer] total items to process
     # @param message [String] operation description
     # @param step [Integer] how often to show progress (every N items)
-    def progress(current, total, message = "Processing", step = 100)
+    def progress(current, total, message = 'Processing', step = 100)
       if current % step == 0 || current == total
         OT.li "#{message} #{current}/#{total}..."
       end
@@ -151,17 +151,17 @@ module Onetime
     def print_summary
       separator
       if dry_run?
-        header("DRY RUN SUMMARY")
+        header('DRY RUN SUMMARY')
         yield(:dry_run) if block_given?
-        info("To make actual changes, run with the --run option")
+        info('To make actual changes, run with the --run option')
       else
-        header("ACTUAL RUN SUMMARY")
+        header('ACTUAL RUN SUMMARY')
         yield(:actual_run) if block_given?
       end
     end
 
     def migration_not_needed_banner
-      info "This usually means that the migration has already been applied."
+      info 'This usually means that the migration has already been applied.'
     end
 
     protected
