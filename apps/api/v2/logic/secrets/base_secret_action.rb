@@ -111,12 +111,12 @@ module V2::Logic
 
       def process_recipient
         payload[:recipient] = [payload[:recipient]].flatten.compact.uniq # force a list
-        r                   = Regexp.new(/\b[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}\b/)
-        @recipient          = payload[:recipient].collect { |email_address|
+        r                   = /\b[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}\b/
+        @recipient          = payload[:recipient].collect do |email_address|
           next if email_address.to_s.empty?
 
           email_address.scan(r).uniq.first
-        }.compact.uniq
+        end.compact.uniq
         @recipient_safe     = recipient.collect { |r| OT::Utils.obscure_email(r) }
       end
 

@@ -15,12 +15,12 @@ module V2
           @ticketno          = params[:ticketno].strip
           @passphrase        = OT.conf[:incoming][:passphrase].strip
           params[:recipient] = [OT.conf[:incoming][:email]]
-          r                  = Regexp.new(/\b[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}\b/)
-          @recipient         = params[:recipient].collect { |email_address|
+          r                  = /\b[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}\b/
+          @recipient         = params[:recipient].collect do |email_address|
             next if email_address.to_s.empty?
 
             email_address.scan(r).uniq.first
-          }.compact.uniq
+          end.compact.uniq
         end
 
         def raise_concerns

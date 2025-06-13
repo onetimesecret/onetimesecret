@@ -254,10 +254,10 @@ module Onetime
     # Helper method to format config values with special handling for hashes and arrays
     def format_config_value(config)
       if config.is_a?(Hash)
-        config.map { |k, v|
+        config.map do |k, v|
           value_str = v.is_a?(Hash) || v.is_a?(Array) ? v.to_json : v.to_s
           "#{k}=#{value_str}"
-        }.join(', ')
+        end.join(', ')
       else
         config.to_s
       end

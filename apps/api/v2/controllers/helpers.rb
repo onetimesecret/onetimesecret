@@ -492,7 +492,7 @@ module V2
       prefix_keys = env.keys.select { |key| key.upcase.start_with?("HTTP_#{HEADER_PREFIX}") }
       keys.concat(prefix_keys) # the bang is silent
 
-      keys.sort.map { |key|
+      keys.sort.map do |key|
         # Normalize the header name so it looks identical in the logs as it
         # does in the browser dev console.
         #
@@ -500,7 +500,7 @@ module V2
         #
         pretty_name = key.sub(/^HTTP_/, '').split('_').map(&:capitalize).join('-')
         "#{pretty_name}: #{env[key]}"
-      }.join(' ')
+      end.join(' ')
     end
 
     def secure_request?
