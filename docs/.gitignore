@@ -5,6 +5,7 @@
 !architecture/*.md
 !configuration
 !configuration/*.md
-!/api/*
+!examples
+!examples/*
 !DOCKER*.md
 !README*.md

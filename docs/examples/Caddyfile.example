@@ -1,0 +1,117 @@
+##
+# == Caddy configuration file for Onetime Secret dev environment
+#
+# To run Caddy with the following Caddyfile, use the following command:
+#
+#   $ caddy run --config ./etc/caddy/Caddyfile
+#
+# Reload the Caddyfile without restarting Caddy:
+#   $ caddy reload --config ./etc/caddy/Caddyfile
+#
+# Automatically reload the Caddyfile when it changes:
+#   $ caddy run --config ./etc/caddy/Caddyfile --watch
+#
+# Automatically formats the Caddyfile after saving:
+#   $ caddy fmt --overwrite ./etc/caddy/Caddyfile
+#
+#
+# == About local dev certs
+#
+# The certs are generated using the following command:
+#   $ mkcert localhost ::1 dev.example.com
+#   $ mkcert -install
+#
+# And stored in the following directory: etc/caddy/.certs. The directory is created
+# manually and the certs are moved into it.
+#
+# For curl to work with the certs, the following environment variable needs to be set:
+#   $ export CURL_CA_BUNDLE="/path/2/mkcert/rootCA.pem"
+#
+# See: https://curl.se/docs/sslcerts.html
+#
+# For node to work with the certs, the following environment variable needs to be set:
+#   $ export NODE_EXTRA_CA_CERTS="/path/2/mkcert/rootCA.pem"
+#
+{
+	# This email address is used for ACME (Let's Encrypt) contacts
+	# and depending on your customer domain privacy settings, may be
+	# publicly visible in the certificate transparency logs.
+	email "domains@example.com"
+}
+
+https://example.com {
+	header Permissions-Policy ""
+
+	log {
+		output stdout
+	}
+
+	# re: Client IP Address when proxying.
+	#
+	# Caddy automatically handles the X-Forwarded-For header when
+	# proxying requests. This is the header that contains the client's
+	# IP address. Otherwise if we relied on the "Remote-Addr" header,
+	# that would be the IP address of this caddy proxy server.
+	#
+	# Note: If there are multiple proxies in the path of the request,
+	# the X-Forwarded-For header can contain multiple IP addresses,
+	# appended by each proxy in the chain. The first IP address in the
+	# list is the original client's IP address, and the subsequent IP
+	# addresses are the IP addresses of each proxy.
+	#
+	# Understanding the X-Forwarded-For header is important for
+	# security reasons. For example, if we were to use the client's
+	# IP address for rate limiting or audit logging purposes.
+	#
+	# See:
+	#   - https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-Forwarded-For
+	#   - The DRF setting NUM_PROXIES in settings.py.
+	#
+
+	# re: Content Security Policies (CSP)
+	#
+	# The Content-Security-Policy header helps prevent cross-site scripting
+	# attacks by allowing you to control what resources the browser is allowed
+	# to load for a particular page. The header is a string consisting of one
+	# or more directives that specify the allowed sources for a type of resource.
+	#
+	# See: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Security-Policy
+	#
+	#
+	# Very restrictive
+	#
+	# header Content-Security-Policy "default-src 'self'; connect-src 'self' dev.example.com; script-src 'self'; style-src 'self'; img-src 'self' data:; font-src 'self';"
+	#
+	# Moderately restrictive
+	#
+	# header Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self';"
+	#
+	# Least restrictive
+	#
+	# header Content-Security-Policy "default-src 'self' dev.example.com; connect-src 'self' dev.example.com; script-src 'self' 'unsafe-inline' dev.example.com; style-src 'self' 'unsafe-inline' dev.example.com; img-src 'self' data: dev.example.com; font-src 'self' dev.example.com;"
+
+	header X-Frame-Options "SAMEORIGIN"
+	header X-Content-Type-Options "nosniff"
+	header Referrer-Policy "same-origin"
+
+	# Leave strict transport security enabled in staging & production. Disable
+	# for development bc it's difficult to work around if there are any cert
+	# issues (browsers cache the HSTS policy and it's difficult to clear).
+	#
+	#header Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"
+
+	# Static files are served from the public directory.
+	root * /var/www/public
+	file_server
+
+	handle /api/* {
+		reverse_proxy 127.0.0.1:7143 {
+			header_down Server "Proxied Server Name (api)"
+		}
+	}
+
+	handle {
+		reverse_proxy 127.0.0.1:7143 {
+			header_down Server "Proxied Server Name (web)"
+		}
+	}
