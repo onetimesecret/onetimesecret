@@ -241,9 +241,8 @@ module Onetime
           else
             Rack::Utils.escape_html(value)
           end
-        when 'Array', 'Hash'
-          value
-        when 'Boolean', 'FalseClass', 'TrueClass'
+        # JSON-compatible types are passed through as-is
+        when 'Array', 'Hash', 'Boolean', 'FalseClass', 'TrueClass'
           value
         when 'NilClass'
           nil
@@ -334,7 +333,6 @@ module Onetime
       end
     end
 
-    # rubocop:disable Metrics/PerceivedComplexity, Metrics/AbcSize
     def natural_time(time_in_s)
       return if time_in_s.nil?
 
@@ -368,5 +366,6 @@ module Onetime
       end
       result
     end
+
   end
 end

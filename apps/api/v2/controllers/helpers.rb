@@ -280,9 +280,7 @@ module V2
 
       # We also force the session to be unauthenticated based on
       # the customer object.
-      if cust.anonymous?
-        sess.authenticated = false
-      elsif cust.verified.to_s != 'true'
+      if cust.anonymous? || cust.verified.to_s != 'true'
         sess.authenticated = false
       end
 

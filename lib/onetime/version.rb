@@ -35,11 +35,11 @@ module Onetime
         MINOR: main_version_parts[1],
         PATCH: main_version_parts[2],
         PRE: version_parts[1], # Pre-release version if present
-        BUILD: get_build_info,
+        BUILD: build_info,
       }
     end
 
-    def self.get_build_info
+    def self.build_info
       # Get the commit hash from .commit_hash.txt
       commit_hash_file = File.join(Onetime::HOME, '.commit_hash.txt')
       commit_hash      = 'pristine'

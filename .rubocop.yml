@@ -45,11 +45,17 @@ Layout/CaseIndentation:
 Layout/CommentIndentation:
   Enabled: true
 
+Layout/MultilineMethodCallBraceLayout:
+  Enabled: true
+
 Layout/TrailingWhitespace:
   Enabled: true
 
 Layout/SpaceAroundEqualsInParameterDefault:
   Enabled: true
+
+Layout/SpaceAroundOperators:
+  Enabled: false
 
 # Use parentheses around a logical expression if it makes easier to read.
 Style/RedundantParentheses:
@@ -57,6 +63,15 @@ Style/RedundantParentheses:
 
 Lint/UnusedMethodArgument:
   Enabled: true
+
+Lint/UselessAssignment:
+  Enabled: true
+
+Lint/DuplicateBranch:
+  Enabled: true
+  IgnoreLiteralBranches: false
+  IgnoreConstantBranches: false
+  IgnoreDuplicateElseBranch: false
 
 # Offense count: 3
 # Configuration parameters: AllowedMethods, AllowedPatterns.
@@ -116,6 +131,13 @@ Style/GuardClause:
   Enabled: true
   MinBodyLength: 3
   AllowConsecutiveConditionals: false
+
+Style/SymbolArray:
+  EnforcedStyle: brackets
+  Enabled: true
+
+Style/StringLiteralsInInterpolation:
+  Enabled: true
 
 Naming/PredicateMethod:
   Enabled: pending

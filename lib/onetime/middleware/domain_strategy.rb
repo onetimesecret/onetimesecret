@@ -113,9 +113,7 @@ module Onetime
           request_domain   = Parser.parse(request_domain)
 
           case request_domain
-          when ->(d) { equal_to?(d, canonical_domain) }    then :canonical
-          when ->(d) { peer_of?(d, canonical_domain) }     then :canonical
-          when ->(d) { parent_of?(d, canonical_domain) }    then :canonical
+          when ->(d) { canonical?(d, canonical_domain) }    then :canonical
           when ->(d) { subdomain_of?(d, canonical_domain) } then :subdomain
           when ->(d) { known_custom_domain?(d.name) }       then :custom
           end
@@ -127,6 +125,15 @@ module Onetime
                 "#{ex.backtrace[0..2].join("\n")}) (args: #{request_domain.inspect}, " \
                 "#{canonical_domain.inspect})"
           nil
+        end
+
+        # Any one of the following
+        def canonical?(d)
+          (
+            equal_to?(d, canonical_domain) ||
+            peer_of?(d, canonical_domain) ||
+            parent_of?(d, canonical_domain)
+          )
         end
 
         def equal_to?(left, right)
