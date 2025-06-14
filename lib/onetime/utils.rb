@@ -209,7 +209,7 @@ module Onetime
     # @param value [Object] Value to check
     # @return [Boolean] true if value is "true", "yes", or "1" (case-insensitive)
     def yes?(value)
-      !value.to_s.empty? && %w[true yes 1].include?(value.downcase)
+      !value.to_s.empty? && %w[true yes 1].include?(value.to_s.downcase)
     end
 
     private
