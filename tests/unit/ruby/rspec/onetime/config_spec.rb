@@ -1,8 +1,17 @@
 # tests/unit/ruby/rspec/onetime/config_spec.rb
 
+# Zed task for running rspec on the whole file:
+# , t f
+#
+# Based on the current line:
+# , t r
+#
+# Re-run task
+# alt-cmd+r
+
 require_relative '../spec_helper'
 
-RSpec.describe Onetime::Config do
+RSpec.describe Onetime::Configurator do
   let(:test_config_path) { File.join(Onetime::HOME, 'tests', 'unit', 'ruby', 'config.test.yaml') }
   let(:test_schema_path) { File.join(Onetime::HOME, 'etc', 'config.schema.yml') }
 
@@ -247,6 +256,7 @@ RSpec.describe Onetime::Config do
     end
   end
 
+  # , t r
   describe '#after_load' do
     let(:config_instance) { described_class.new }
 
@@ -273,7 +283,7 @@ RSpec.describe Onetime::Config do
       end
 
       it 'moves colonels from root level to site.authentication when not present in site.authentication' do
-        processed_config = config_instance.send(:after_load)
+        processed_config = config_instance.after_load
         expect(processed_config['site']['authentication']['colonels']).to eq(['root@example.com', 'admin@example.com'])
       end
 
@@ -503,7 +513,7 @@ RSpec.describe Onetime::Config do
         mock_config = {
           site: { secret: 'test-secret' },
           development: {},
-          mail: { truemail: {} }
+          mail: { truemail: {} },
         }
 
         allow_any_instance_of(described_class).to receive(:load_config).and_return(mock_config)
@@ -512,7 +522,7 @@ RSpec.describe Onetime::Config do
 
         config = described_class.load!
         expect(config).to be_a(described_class)
-        expect(config.config).to be_a(Hash)
+        expect(config.configuration).to be_a(Hash)
       end
     end
   end
@@ -599,8 +609,8 @@ RSpec.describe Onetime::Config do
       let(:erb_config) { "test:\n  value: <%= 456 %>" }
 
       before do
-        allow(OT::Config::Load).to receive(:file_read).and_return(yaml_config)
-        allow(OT::Config::Load).to receive(:yaml_load).and_return({ test: { value: 123 } })
+        allow(OT::Configurator::Load).to receive(:file_read).and_return(yaml_config)
+        allow(OT::Configurator::Load).to receive(:yaml_load).and_return({ test: { value: 123 } })
       end
 
       it 'reads and processes config file' do
@@ -613,8 +623,8 @@ RSpec.describe Onetime::Config do
 
       context 'with ERB template' do
         before do
-          allow(OT::Config::Load).to receive(:file_read).and_return(erb_config)
-          allow(OT::Config::Load).to receive(:yaml_load).and_return({ test: { value: 456 } })
+          allow(OT::Configurator::Load).to receive(:file_read).and_return(erb_config)
+          allow(OT::Configurator::Load).to receive(:yaml_load).and_return({ test: { value: 456 } })
         end
 
         it 'processes ERB templates' do
@@ -628,7 +638,7 @@ RSpec.describe Onetime::Config do
 
     describe '#load_schema' do
       before do
-        allow(OT::Config::Load).to receive(:yaml_load_file).and_return({ type: 'object' })
+        allow(OT::Configurator::Load).to receive(:yaml_load_file).and_return({ type: 'object' })
       end
 
       it 'loads schema from file' do

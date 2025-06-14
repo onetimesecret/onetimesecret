@@ -1,11 +1,13 @@
-#!/usr/bin/env tsx
+#!/usr/bin/env -S pnpm exec tsx
 /**
  * Generate JSON Schemas and TypeScript types from Zod configuration schemas
  *
  * Usage:
- *   tsx scripts/generate-json-schemas.ts           # Generate main schema + types
- *   tsx scripts/generate-json-schemas.ts --openapi # Include OpenAPI schemas
- *   tsx scripts/generate-json-schemas.ts --watch   # Watch mode (future)
+ *   pnpm exec tsx scripts/generate-json-schemas.ts           # Generate main schema + types
+ *   pnpm exec tsx scripts/generate-json-schemas.ts --openapi # Include OpenAPI schemas
+ *   pnpm exec tsx scripts/generate-json-schemas.ts --watch   # Watch mode (future)
+ *
+ * NOTE: The `-S` flag in the hasbang allows `env` to handle multiple arguments.
  */
 
 import { writeFileSync, mkdirSync } from 'fs';
@@ -19,7 +21,7 @@ const __dirname = dirname(__filename);
 
 const OUTPUT_MAIN_SCHEMA = join(__dirname, '../etc/config.schema.yaml');
 const OUTPUT_TYPES = join(__dirname, '../src/types/config.ts');
-const OUTPUT_SCHEMAS_DIR = join(__dirname, '../etc/schemas');
+const OUTPUT_SCHEMAS_DIR = join(__dirname, '../support/schemas');
 
 // Combined configuration schema
 const combinedConfigSchema = z.object({

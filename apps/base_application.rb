@@ -11,8 +11,8 @@ class BaseApplication
   attr_reader :options, :router, :rack_app
 
   def initialize(options = {})
-    @options = options
-    @router = build_router
+    @options  = options
+    @router   = build_router
     @rack_app = build_rack_app
   end
 
@@ -31,8 +31,8 @@ class BaseApplication
     # Rack::Builder uses `instance_eval` internally, creating a new context
     # so inside of it `self` refers to the Rack::Builder instance.
     router_instance = router
-    @middleware ||= []
-    base_klass = self.class
+    @middleware   ||= []
+    base_klass      = self.class
 
     Rack::Builder.new do |builder|
       MiddlewareStack.configure(builder)

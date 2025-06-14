@@ -13,35 +13,35 @@
 require 'onetime'
 
 # Use the default config file for tests
-OT::Config.path = File.join(Onetime::HOME, 'tests', 'unit', 'ruby', 'config.test.yaml')
+OT::Configurator.path = File.join(Onetime::HOME, 'tests', 'unit', 'ruby', 'config.test.yaml')
 OT.boot! :test
 
 ## mapped_key converts allowed_domains_only to whitelist_validation
-Onetime::Config.mapped_key(:allowed_domains_only)
+OT::Configurator.mapped_key(:allowed_domains_only)
 #=> :whitelist_validation
 
 ## mapped_key converts allowed_emails to whitelisted_emails
-Onetime::Config.mapped_key(:allowed_emails)
+OT::Configurator.mapped_key(:allowed_emails)
 #=> :whitelisted_emails
 
 ## mapped_key converts blocked_emails to blacklisted_emails
-Onetime::Config.mapped_key(:blocked_emails)
+OT::Configurator.mapped_key(:blocked_emails)
 #=> :blacklisted_emails
 
 ## mapped_key converts allowed_domains to whitelisted_domains
-Onetime::Config.mapped_key(:allowed_domains)
+OT::Configurator.mapped_key(:allowed_domains)
 #=> :whitelisted_domains
 
 ## mapped_key converts blocked_domains to blacklisted_domains
-Onetime::Config.mapped_key(:blocked_domains)
+OT::Configurator.mapped_key(:blocked_domains)
 #=> :blacklisted_domains
 
 ## mapped_key converts blocked_mx_ip_addresses to blacklisted_mx_ip_addresses
-Onetime::Config.mapped_key(:blocked_mx_ip_addresses)
+OT::Configurator.mapped_key(:blocked_mx_ip_addresses)
 #=> :blacklisted_mx_ip_addresses
 
 ## mapped_key returns unmapped keys as-is
-Onetime::Config.mapped_key(:unmapped_key)
+OT::Configurator.mapped_key(:unmapped_key)
 #=> :unmapped_key
 
 ## Config contains expected TrueMail settings from test config
@@ -67,16 +67,16 @@ config = {
   web: {}
 }
 original_defaults = config[:defaults].dup
-result = Onetime::Config.apply_defaults_to_peers(config)
+result = OT::Configurator.apply_defaults_to_peers(config)
 [result[:api][:timeout], result[:web][:timeout], result[:api][:enabled], config[:defaults] == original_defaults]
 #=> [10, 5, true, true]
 
 ## apply_defaults handles nil config
-Onetime::Config.apply_defaults_to_peers(nil)
+OT::Configurator.apply_defaults_to_peers(nil)
 #=> {}
 
 ## apply_defaults handles empty config
-Onetime::Config.apply_defaults_to_peers({})
+OT::Configurator.apply_defaults_to_peers({})
 #=> {}
 
 ## apply_defaults preserves defaults when section value is nil
@@ -85,6 +85,6 @@ config = {
   backend: { dsn: nil },
   frontend: { dsn: nil }
 }
-result = Onetime::Config.apply_defaults_to_peers(config)
+result = OT::Configurator.apply_defaults_to_peers(config)
 [result[:backend][:dsn], result[:frontend][:dsn]]
 #=> ['default-dsn', 'default-dsn']

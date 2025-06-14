@@ -1,12 +1,13 @@
 # lib/onetime.rb
 
-require 'bundler/setup'
-require 'securerandom'
+Warning[:deprecated] = %w[development dev test].include?(ENV['RACK_ENV'].to_s)
 
-require 'truemail'
+require 'bundler/setup'
 
 require 'erb'
+require 'securerandom'
 require 'syslog'
+require 'truemail'
 
 require 'encryptor'
 require 'bcrypt'
@@ -18,6 +19,7 @@ require 'familia'
 require 'storable'
 
 require_relative 'onetime/core_ext'
+require_relative 'onetime/utils'
 
 # Character Encoding Configuration
 # Set UTF-8 as the default external encoding to ensure consistent text handling:
@@ -35,8 +37,6 @@ Encoding.default_external = Encoding::UTF_8
 # Enabling sync can have a performance impact in high-throughput environments.
 #
 # NOTE: Use STDOUT the immuntable constant here, not $stdout (global var).
-#
-STDOUT.sync = ENV['STDOUT_SYNC'] && %w[true yes 1].include?(ENV['STDOUT_SYNC'])
 
 # Onetime is the core of the Onetime Secret application.
 # It contains the core classes and modules that make up
@@ -44,14 +44,16 @@ STDOUT.sync = ENV['STDOUT_SYNC'] && %w[true yes 1].include?(ENV['STDOUT_SYNC'])
 #
 module Onetime
   unless defined?(Onetime::HOME)
-    HOME = File.expand_path(File.join(File.dirname(__FILE__), '..'))
+    HOME        = File.expand_path(File.join(File.dirname(__FILE__), '..'))
+    STDOUT.sync = Onetime::Utils.yes?(ENV.fetch('STDOUT_SYNC', false))
   end
 end
 
+
 # Sets the SIGINT handler for a graceful shutdown and prevents Sentry from
 # trying to send events over the network when we're shutting down via ctrl-c.
-trap("SIGINT") do
-  OT.li "Shutting down gracefully..."
+trap('SIGINT') do
+  OT.li 'Shutting down gracefully...'
   if OT.d9s_enabled
     begin
       Sentry.close  # Attempt graceful shutdown with a short timeout
@@ -68,10 +70,9 @@ end
 
 require_relative 'onetime/class_methods'
 require_relative 'onetime/errors'
-require_relative 'onetime/utils'
 require_relative 'onetime/version'
 require_relative 'onetime/cluster'
-require_relative 'onetime/config'
+require_relative 'onetime/configurator'
 require_relative 'onetime/plan'
 require_relative 'onetime/mail'
 require_relative 'onetime/alias'

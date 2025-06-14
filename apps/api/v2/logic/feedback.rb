@@ -5,25 +5,24 @@ require_relative 'base'
 
 module V2
   module Logic
-
     class ReceiveFeedback < V2::Logic::Base
       attr_reader :msg, :authenticity_payload, :verified, :verification_data, :greenlighted, :tz, :version
 
       def process_params
-        @msg = params[:msg].to_s.slice(0, 999)
+        @msg                  = params[:msg].to_s.slice(0, 999)
         @authenticity_payload = params[:authenticity_payload].to_s.slice(0, 999)
-        @tz = params[:tz].to_s.slice(0, 64)
-        @version = params[:version].to_s.slice(0, 32)
+        @tz                   = params[:tz].to_s.slice(0, 64)
+        @version              = params[:version].to_s.slice(0, 32)
       end
 
       def raise_concerns
         limit_action :send_feedback
 
-        raise_form_error "You can be more original than that!" if @msg.empty?
+        raise_form_error 'You can be more original than that!' if @msg.empty?
 
         if cust.anonymous?
-          raise_form_error "Cannot skip authenticity check" if authenticity_payload.empty?
-          raise_form_error "You need to be carbon-based to do that" unless verify_authenticity_payload
+          raise_form_error 'Cannot skip authenticity check' if authenticity_payload.empty?
+          raise_form_error 'You need to be carbon-based to do that' unless verify_authenticity_payload
         end
       end
 
@@ -47,7 +46,7 @@ module V2
 
       def process
         @greenlighted = true
-        @msg = format_feedback_message
+        @msg          = format_feedback_message
         OT.ld [:receive_feedback, msg].inspect
 
         begin
@@ -59,11 +58,11 @@ module V2
             OT.ld "Colonel: #{colonel_email}"
             first_colonel = V2::Customer.find colonel_email
             next unless first_colonel
+
             OT.ld "[receive_feedback] Sending feedback to colonel: #{colonel_email} #{first_colonel}"
             send_feedback first_colonel, msg
             break
           end
-
         rescue StandardError => ex
           # We liberally rescue all StandError exceptions here because we don't
           # want to fail the user's feedback submission if we can't send an email.
@@ -82,10 +81,9 @@ module V2
       def success_data
         {
           success: greenlighted,
-          record: {
-          },
+          record: {},
           details: {
-            message: "Message received. Send as much as you like!",
+            message: 'Message received. Send as much as you like!',
           },
         }
       end
@@ -94,17 +92,16 @@ module V2
         OT.conf.dig(:site, :authenticity, :secret_key) # ALTCHA_HMAC_KEY
       end
 
-      def send_feedback cust, message
-        view = Onetime::Mail::FeedbackEmail.new cust, locale
-        view.display_domain = self.display_domain
-        view.domain_strategy = self.domain_strategy
-        view.message = message
+      def send_feedback(cust, message)
+        view                 = Onetime::Mail::FeedbackEmail.new cust, locale
+        view.display_domain  = display_domain
+        view.domain_strategy = domain_strategy
+        view.message         = message
 
         OT.ld "[send_feedback] Calling deliver_email #{message.gibbler}"
 
         begin
           view.deliver_email
-
         rescue StandardError => ex
           OT.le "Error sending feedback email: #{ex.message}", ex.backtrace
           # No need to notify the user of this error. The message is still
@@ -112,6 +109,5 @@ module V2
         end
       end
     end
-
   end
 end

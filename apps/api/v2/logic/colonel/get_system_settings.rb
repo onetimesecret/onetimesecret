@@ -18,7 +18,7 @@ module V2
 
         def process
           @current_record = fetch_current_system_settings
-          @merged_config = build_merged_configuration
+          @merged_config  = build_merged_configuration
 
           OT.ld "[GetSystemSettings#process] Retrieved system settings with #{@merged_config.keys.size} sections"
         end
@@ -36,7 +36,7 @@ module V2
         def fetch_current_system_settings
           SystemSettings.current
         rescue Onetime::RecordNotFound
-          OT.ld "[GetSystemSettings#fetch_current_system_settings] No system settings found, using base config only"
+          OT.ld '[GetSystemSettings#fetch_current_system_settings] No system settings found, using base config only'
           nil
         end
 
@@ -52,7 +52,7 @@ module V2
           OT.ld "[GetSystemSettings#build_merged_configuration] Colonel overrides (raw): #{colonel_overrides}"
 
           # Merge colonel overrides directly into base sections
-          merged = Onetime::Config.deep_merge(base_sections, colonel_overrides)
+          merged = OT::Configurator.deep_merge(base_sections, colonel_overrides)
           OT.ld "[GetSystemSettings#build_merged_configuration] Final merged result: #{merged}"
 
           merged

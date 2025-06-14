@@ -53,7 +53,7 @@ module Onetime
             debug "Customer #{custid} has empty planid"
 
             # Fix empty planid by setting to 'basic' if in actual run mode
-            execute_if_actual_run do
+            for_realsies? do
               redis_client.hset(key, 'planid', 'basic')
               track_stat(:changed_customers)
               info "Updated customer #{custid} to 'basic' plan"
@@ -71,7 +71,7 @@ module Onetime
             unique_deprecated_plans[normalized_planid] += 1
 
             # Fix deprecated plan by updating to 'basic' if in actual run mode
-            execute_if_actual_run do
+            for_realsies? do
               redis_client.hset(key, 'planid', 'basic')
               track_stat(:changed_customers)
               info "Updated customer #{custid} from '#{planid}' to 'basic' plan"

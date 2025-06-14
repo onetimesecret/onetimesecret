@@ -94,7 +94,7 @@ require_relative '../../../../lib/onetime'
 # Familia.debug = true
 
 # Use the default config file for tests
-OT::Config.path = File.join(__dir__, '../../../../etc', 'config.test.yaml')
+OT::Configurator.path = File.join(__dir__, '../../../../etc', 'config.test.yaml')
 OT.boot!
 
 ## Create a strand

@@ -86,18 +86,6 @@ repos:
       - id: forbid-submodules
         name: Check for submodules
 
-  # Full Rubocop check
-  - repo: local
-    hooks:
-      - id: local-rubocop-full
-        stages: [push]
-        name: Full Rubocop Check
-        entry: bundle exec rubocop --force-exclusion --config .rubocop.yml --format json --fail-level warning --no-server
-        language: system
-        types: [ruby]
-        files: \.(rb|rake|ru)$
-        pass_filenames: true
-
   # Full ESLint check
   - repo: local
     hooks:

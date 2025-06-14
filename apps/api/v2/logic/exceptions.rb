@@ -5,7 +5,6 @@ require_relative 'base'
 module V2::Logic
   # Handles incoming exception reports similar to Sentry's basic functionality
   class ReceiveException < V2::Logic::Base
-
     attr_reader :exception_data, :environment, :release, :greenlighted, :exception, :exception_key
 
     def process_params
@@ -26,7 +25,7 @@ module V2::Logic
     end
 
     def raise_concerns
-      raise_form_error "Exception data required" if @exception_data[:message].empty?
+      raise_form_error 'Exception data required' if @exception_data[:message].empty?
 
       limit_action :report_exception
 
@@ -39,9 +38,9 @@ module V2::Logic
       @greenlighted = true
 
       # Create new exception record
-      OT.ld("[Exception] Creating new exception record")
+      OT.ld('[Exception] Creating new exception record')
       @exception = V2::ExceptionInfo.new
-      OT.ld("[Exception] Applying exception data", @exception_data)
+      OT.ld('[Exception] Applying exception data', @exception_data)
       exception.apply_fields(**@exception_data)
       exception.save
 
@@ -57,16 +56,14 @@ module V2::Logic
       @exception_key = exception.identifier
     end
 
-
     def success_data
       {
         success: greenlighted,
         record: exception.safe_dump,
         details: {
-          message: "Exception logged",
+          message: 'Exception logged',
         },
       }
     end
-
   end
 end

@@ -46,12 +46,12 @@
 #
 
 # Establish the environment
-ENV['RACK_ENV'] ||= 'production'
+ENV['RACK_ENV']     ||= 'production'
 ENV['ONETIME_HOME'] ||= File.expand_path(__dir__).freeze
 
 require_relative 'apps/app_registry'
 
-# Discover and map application modules to their routes
+# Application models need to be loaded before booting
 AppRegistry.prepare_application_registry
 
 # Bootstrap the configuration and core components

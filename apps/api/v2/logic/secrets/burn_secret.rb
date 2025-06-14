@@ -2,16 +2,14 @@
 
 module V2::Logic
   module Secrets
-
     class BurnSecret < V2::Logic::Base
-      attr_reader :key, :passphrase, :continue
-      attr_reader :metadata, :secret, :correct_passphrase, :greenlighted
+      attr_reader :key, :passphrase, :continue, :metadata, :secret, :correct_passphrase, :greenlighted
 
       def process_params
-        @key = params[:key].to_s
-        @metadata = V2::Metadata.load key
+        @key        = params[:key].to_s
+        @metadata   = V2::Metadata.load key
         @passphrase = params[:passphrase].to_s
-        @continue = [true, 'true'].include?(params[:continue])
+        @continue   = [true, 'true'].include?(params[:continue])
       end
 
       def raise_concerns
@@ -22,29 +20,29 @@ module V2::Logic
       def process
         potential_secret = @metadata.load_secret
 
-        if potential_secret
-          # Rate limit all secret access attempts
-          limit_action :attempt_secret_access
+        return unless potential_secret
 
-          @correct_passphrase = !potential_secret.has_passphrase? || potential_secret.passphrase?(passphrase)
-          viewable = potential_secret.viewable?
-          continue_result = params[:continue]
-          @greenlighted = viewable && correct_passphrase && continue_result
+        # Rate limit all secret access attempts
+        limit_action :attempt_secret_access
 
-          if greenlighted
-            @secret = potential_secret
-            owner = secret.load_customer
-            secret.burned!
-            owner.increment_field :secrets_burned unless owner.anonymous?
-            V2::Customer.global.increment_field :secrets_burned
-            V2::Logic.stathat_count('Burned Secrets', 1)
+        @correct_passphrase = !potential_secret.has_passphrase? || potential_secret.passphrase?(passphrase)
+        viewable            = potential_secret.viewable?
+        continue_result     = params[:continue]
+        @greenlighted       = viewable && correct_passphrase && continue_result
 
-          elsif !correct_passphrase
-            limit_action :failed_passphrase if potential_secret.has_passphrase?
-            message = OT.locales.dig(locale, :web, :COMMON, :error_passphrase) || 'Incorrect passphrase'
-            raise_form_error message
+        if greenlighted
+          @secret = potential_secret
+          owner   = secret.load_customer
+          secret.burned!
+          owner.increment_field :secrets_burned unless owner.anonymous?
+          V2::Customer.global.increment_field :secrets_burned
+          V2::Logic.stathat_count('Burned Secrets', 1)
 
-          end
+        elsif !correct_passphrase
+          limit_action :failed_passphrase if potential_secret.has_passphrase?
+          message = OT.locales.dig(locale, :web, :COMMON, :error_passphrase) || 'Incorrect passphrase'
+          raise_form_error message
+
         end
       end
 
@@ -71,7 +69,7 @@ module V2::Logic
           record: attributes,
           details: {
             type: 'record',
-            title: "Secret burned",
+            title: 'Secret burned',
             display_lines: 0,
             display_feedback: false,
             no_cache: true,
@@ -90,8 +88,6 @@ module V2::Logic
           },
         }
       end
-
     end
-
   end
 end

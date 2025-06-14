@@ -1,4 +1,3 @@
-
 require 'json'
 require 'logger'
 require 'rack'
@@ -9,8 +8,8 @@ require 'rack'
 # raising an exception and returning a 400 Bad Request response.
 #
 class Rack::HandleInvalidUTF8
-  @default_content_type = 'application/json'
-  @default_charset      = 'utf-8'
+  @default_content_type = 'application/json'.freeze
+  @default_charset      = 'utf-8'.freeze
   @default_exception    = Encoding::InvalidByteSequenceError
   @input_sources        = %w[
     SCRIPT_NAME
@@ -26,20 +25,20 @@ class Rack::HandleInvalidUTF8
 
     # Body content
     rack.input
-  ]
+  ].freeze
 
   class << self
     attr_reader :default_content_type,
-                :default_charset,
-                :default_exception,
-                :input_sources
+      :default_charset,
+      :default_exception,
+      :input_sources
   end
 
   attr_reader :logger
 
   def initialize(app, io: $stdout, check_enabled: nil)
-    @app = app
-    @logger = Logger.new(io, level: :info)
+    @app           = app
+    @logger        = Logger.new(io, level: :info)
     @check_enabled = check_enabled  # override the check_enabled? method
   end
 
@@ -60,16 +59,15 @@ class Rack::HandleInvalidUTF8
     shallow_copy = env.dup
     self.class.input_sources.each do |key|
       next unless shallow_copy.key?(key)
+
       check_and_raise_for_invalid_utf8(shallow_copy[key], key)
     end
-
   rescue Encoding::InvalidByteSequenceError,
          Encoding::CompatibilityError,
-         Encoding::UndefinedConversionError => e
+         Encoding::UndefinedConversionError => ex
 
-    return handle_exception(env, e)
+    handle_exception(env, ex)
   else
-
     @app.call(env)
   end
 
@@ -83,10 +81,11 @@ class Rack::HandleInvalidUTF8
   def check_enabled?(app)
     return true if @check_enabled
     return false unless defined?(Otto) && app.is_a?(Otto)
-    name, route = app.route_definitions.first
+
+    name, route     = app.route_definitions.first
     setting_enabled = route.klass.respond_to?(:check_utf8) && route.klass.check_utf8
     logger.debug "[handle-invalid-utf8] #{name} has settings: #{has_settings}, enabled: #{setting_enabled}"
-    return setting_enabled
+    setting_enabled
   end
 
   # Validates that the input is valid UTF-8 and raises an exception if it's not.
@@ -120,17 +119,18 @@ class Rack::HandleInvalidUTF8
 
     testcase.force_encoding('UTF-8')
     return if testcase.valid_encoding?
+
     raise self.class.default_exception, "Invalid UTF-8 detected in env['#{key}']"
   end
 
-  def handle_exception(env, exception)
+  def handle_exception(_env, exception)
     message = "Invalid UTF-8 or null byte detected: #{exception.message}"
     logger.error "[handle-invalid-utf8] #{message}"
 
     status = 400
-    body = { error: 'Bad Request', message: message }.to_json
+    body   = { error: 'Bad Request', message: message }.to_json
 
-    cls = self.class
+    cls     = self.class
     headers = {
       'Content-Type': "#{cls.default_content_type}; charset=#{cls.default_charset}",
       'Content-Length': body.bytesize.to_s,

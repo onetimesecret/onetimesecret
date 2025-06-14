@@ -1,6 +1,5 @@
 # lib/onetime/ready.rb
 
-
 module Onetime
   class << self
     def ready?

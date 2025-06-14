@@ -2,7 +2,7 @@
 
 require_relative '../../spec_helper'
 
-RSpec.describe Onetime::Config::Utils do
+RSpec.describe Onetime::Configurator::Utils do
   describe '.apply_defaults_to_peers' do
     let(:basic_config) do
       {

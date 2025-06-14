@@ -190,34 +190,44 @@
   :incomplete:
     - bogus
 :diagnostics:
-  # If this is false, the rest of the settings are ignored
+  # Controls whether diagnostic reporting is enabled for the application.
+  # When disabled, all diagnostic features are turned off regardless of
+  # other settings in this section.
+  #
+  # Note: Diagnostics are left enabled for testing purposes but without valid
+  # DSN values, the diagnostic services will not actually initialize.
   :enabled: true
   :sentry:
-    # Default Sentry configuration that applies to both frontend and
-    # backend. Values set here are overridden by codebase-specific ones.
+    # Base Sentry configuration shared between frontend and backend components.
+    # These default values can be overridden by component-specific settings below.
     #
-    # `dsn` - Primary Sentry DSN.
-    # `sampleRate` - Percentage of events to sample (0.0 to 1.0)
-    # `maxBreadcrumbs` - Maximum number of breadcrumbs to capture
-    # `logErrors` - Whether to log errors to console
+    # Available options:
+    # - dsn: Sentry Data Source Name (DSN) for error reporting
+    # - sampleRate: Fraction of events to capture (0.0 = none, 1.0 = all)
+    # - maxBreadcrumbs: Maximum number of breadcrumb events to retain for context
+    # - logErrors: Whether to output errors to the console in addition to Sentry
     :defaults:
       :dsn: <%= ENV['SENTRY_DSN'] || nil %>
       :sampleRate: 0.11
       :maxBreadcrumbs: 22
       :logErrors: true
-    # Ruby backend-specific Sentry configuration
+    # Sentry configuration specific to the Ruby backend application.
+    # These settings override the defaults above for server-side error reporting.
     #
-    # `dsn` - Backend-specific Sentry DSN
+    # Available options:
+    # - dsn: Backend-specific Sentry DSN (falls back to default DSN if not set)
     :backend:
       :dsn: <%= ENV['SENTRY_DSN_BACKEND'] || nil %>
-    # Vue frontend-specific Sentry configuration
-    # Options here map directly to @sentry/vue client options
-    # These options are passed directly to @sentry/vue client initialization
-    # and to maintain type safety, they must be typed in
-    # src/types/diagnostics.ts DiagnosticsConfig interface.
+    # Sentry configuration specific to the Vue.js frontend application.
+    # These settings are passed directly to the @sentry/vue client during
+    # initialization. Any options added here must also be defined in the
+    # DiagnosticsConfig interface located in src/types/diagnostics.ts to
+    # maintain TypeScript type safety.
     #
-    # `dsn` - Frontend-specific Sentry DSN
-    # `trackComponents` - Enable automatic instrumentation of Vue components
+    # Available options:
+    # - dsn: Frontend-specific Sentry DSN (falls back to default DSN if not set)
+    # - trackComponents: Automatically instrument Vue components for
+    # performance monitoring
     :frontend:
       :dsn: <%= ENV['SENTRY_DSN_FRONTEND'] || nil %>
       :trackComponents: true

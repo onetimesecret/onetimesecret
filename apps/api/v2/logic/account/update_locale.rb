@@ -33,7 +33,7 @@ module V2::Logic
       end
 
       def field_specific_concerns
-        raise_form_error "Invalid locale" unless valid_locale?(new_locale)
+        raise_form_error 'Invalid locale' unless valid_locale?(new_locale)
       end
 
       def valid_update?

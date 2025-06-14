@@ -56,7 +56,7 @@ module V2
     # with hot reloading in dev mode will not work. You will need to restart the
     # server to see the changes.
     @safe_dump_fields = [
-      { :identifier => ->(obj) { obj.identifier } },
+      { identifier: ->(obj) { obj.identifier } },
       :custid,
       :email,
 
@@ -71,24 +71,24 @@ module V2
       :stripe_subscription_id,
       :stripe_checkout_email,
 
-      {:plan => ->(cust) { cust.load_plan } }, # safe_dump will be called automatically
+      { plan: ->(cust) { cust.load_plan } }, # safe_dump will be called automatically
 
       # NOTE: The secrets_created incrementer is null until the first secret
       # is created. See ConcealSecret for where the incrementer is called.
       #
-      {:secrets_created => ->(cust) { cust.secrets_created.to_s || 0 } },
-      {:secrets_burned => ->(cust) { cust.secrets_burned.to_s || 0 } },
-      {:secrets_shared => ->(cust) { cust.secrets_shared.to_s || 0 } },
-      {:emails_sent => ->(cust) { cust.emails_sent.to_s || 0 } },
+      { secrets_created: ->(cust) { cust.secrets_created.to_s || 0 } },
+      { secrets_burned: ->(cust) { cust.secrets_burned.to_s || 0 } },
+      { secrets_shared: ->(cust) { cust.secrets_shared.to_s || 0 } },
+      { emails_sent: ->(cust) { cust.emails_sent.to_s || 0 } },
 
       # We use the hash syntax here since `:active?` is not a valid symbol.
-      { :active => ->(cust) { cust.active? } },
-    ]
+      { active: ->(cust) { cust.active? } },
+    ].freeze
 
     def init
       self.custid ||= 'anon'
-      self.role ||= 'customer'
-      self.email ||= self.custid unless anonymous?
+      self.role   ||= 'customer'
+      self.email  ||= self.custid unless anonymous?
 
       # When an instance is first created, any field that doesn't have a
       # value set will be nil. We need to ensure that these fields are
@@ -102,36 +102,36 @@ module V2
       # contrast to the regular INCR command where a
       # non-existant key will simply be set to 1.
       self.secrets_created ||= 0
-      self.secrets_burned ||= 0
-      self.secrets_shared ||= 0
-      self.emails_sent ||= 0
+      self.secrets_burned  ||= 0
+      self.secrets_shared  ||= 0
+      self.emails_sent     ||= 0
     end
 
     def contributor?
-      self.contributor.to_s == "true"
+      contributor.to_s == 'true'
     end
 
     def locale?
       !locale.to_s.empty?
     end
 
-    def apitoken? guess
-      self.apitoken.to_s == guess.to_s
+    def apitoken?(guess)
+      apitoken.to_s == guess.to_s
     end
 
     def regenerate_apitoken
-      self.apitoken! [OT.instance, OT.now.to_f, :apitoken, custid].gibbler
-      self.apitoken # the fast writer bang methods don't return the value
+      apitoken! [OT.instance, OT.now.to_f, :apitoken, custid].gibbler
+      apitoken # the fast writer bang methods don't return the value
     end
 
     def load_plan
-      Onetime::Plan.plan(planid) || {:planid => planid, :source => 'parts_unknown'}
+      Onetime::Plan.plan(planid) || { planid: planid, source: 'parts_unknown' }
     end
 
     def get_stripe_customer
       get_stripe_customer_by_id || get_stripe_customer_by_email
-    rescue Stripe::StripeError => e
-      OT.le "[Customer.get_stripe_customer] Error: #{e.message}: #{e.backtrace}"
+    rescue Stripe::StripeError => ex
+      OT.le "[Customer.get_stripe_customer] Error: #{ex.message}: #{ex.backtrace}"
       nil
     end
 
@@ -139,14 +139,14 @@ module V2
       get_stripe_subscription_by_id || get_stripe_subscriptions&.first
     end
 
-    def get_stripe_customer_by_id customer_id=nil
+    def get_stripe_customer_by_id(customer_id = nil)
       customer_id ||= stripe_customer_id
       return if customer_id.to_s.empty?
+
       OT.info "[Customer.get_stripe_customer_by_id] Fetching customer: #{customer_id} #{custid}"
       @stripe_customer = Stripe::Customer.retrieve(customer_id)
-
-    rescue Stripe::StripeError => e
-      OT.le "[Customer.get_stripe_customer_by_id] Error: #{e.message}"
+    rescue Stripe::StripeError => ex
+      OT.le "[Customer.get_stripe_customer_by_id] Error: #{ex.message}"
       nil
     end
 
@@ -162,32 +162,31 @@ module V2
       end
 
       @stripe_customer
-
-    rescue Stripe::StripeError => e
-      OT.le "[Customer.get_stripe_customer_by_email] Error: #{e.message}"
+    rescue Stripe::StripeError => ex
+      OT.le "[Customer.get_stripe_customer_by_email] Error: #{ex.message}"
       nil
     end
 
-    def get_stripe_subscription_by_id subscription_id=nil
+    def get_stripe_subscription_by_id(subscription_id = nil)
       subscription_id ||= stripe_subscription_id
       return if subscription_id.to_s.empty?
+
       OT.info "[Customer.get_stripe_subscription_by_id] Fetching subscription: #{subscription_id} #{custid}"
       @stripe_subscription = Stripe::Subscription.retrieve(subscription_id)
-    rescue Stripe::StripeError => e
-      OT.le "[Customer.get_stripe_subscription_by_id] Error: #{e.message}"
+    rescue Stripe::StripeError => ex
+      OT.le "[Customer.get_stripe_subscription_by_id] Error: #{ex.message}"
       nil
     end
 
-    def get_stripe_subscriptions stripe_customer=nil
+    def get_stripe_subscriptions(stripe_customer = nil)
       stripe_customer ||= @stripe_customer
-      subscriptions = []
+      subscriptions     = []
       return subscriptions unless stripe_customer
 
       begin
         subscriptions = Stripe::Subscription.list(customer: stripe_customer.id, limit: 1)
-
-      rescue Stripe::StripeError => e
-        OT.le "Error: #{e.message}"
+      rescue Stripe::StripeError => ex
+        OT.le "Error: #{ex.message}"
       else
         if subscriptions.data.empty?
           OT.info "No subscriptions found for customer: #{stripe_customer.id}"
@@ -200,24 +199,25 @@ module V2
       subscriptions
     end
 
-    def get_persistent_value sess, n
+    def get_persistent_value(sess, n)
       (anonymous? ? sess : self)[n]
     end
 
-    def set_persistent_value sess, n, v
+    def set_persistent_value(sess, n, v)
       (anonymous? ? sess : self)[n] = v
     end
 
     def external_identifier
       if anonymous?
-        raise Onetime::Problem, "Anonymous customer has no external identifier"
+        raise Onetime::Problem, 'Anonymous customer has no external identifier'
       end
+
       # Changing the type, order or value of the elements in this array will
       # change the external identifier. This is used to identify customers
       # primarily in logs and other external systems where the actual customer
       # ID is not needed or otherwise not appropriate to use. Keeping the
       # value consistent is generally preferred.
-      elements = ['cust', role, custid]
+      elements               = ['cust', role, custid]
       @external_identifier ||= elements.gibbler
       @external_identifier
     end
@@ -238,7 +238,7 @@ module V2
       end
     end
 
-    def role? guess
+    def role?(guess)
       role.to_s.eql?(guess.to_s)
     end
 
@@ -259,16 +259,17 @@ module V2
       !anonymous? && !verified? && role?('customer')  # we modify the role when destroying
     end
 
-    def reset_secret? secret
+    def reset_secret?(secret)
       return false if secret.nil? || !secret.exists? || secret.key.to_s.empty?
-      Rack::Utils.secure_compare(self.reset_secret.to_s, secret.key)
+
+      Rack::Utils.secure_compare(reset_secret.to_s, secret.key)
     end
 
-    def valid_reset_secret! secret
+    def valid_reset_secret!(secret)
       if is_valid = reset_secret?(secret)
         OT.ld "[valid_reset_secret!] Reset secret is valid for #{custid} #{secret.shortkey}"
         secret.delete!
-        self.reset_secret.delete!
+        reset_secret.delete!
       end
       is_valid
     end
@@ -279,43 +280,44 @@ module V2
     # @raise [Onetime::Problem] if the customer is anonymous.
     # @return [V2::Session] The loaded or newly created session.
     def load_or_create_session(ip_address)
-      raise Onetime::Problem, "Customer is anonymous" if anonymous?
+      raise Onetime::Problem, 'Customer is anonymous' if anonymous?
+
       @sess = V2::Session.load(sessid) unless sessid.to_s.empty?
       if @sess.nil?
-        @sess = V2::Session.create(ip_address, custid)
+        @sess  = V2::Session.create(ip_address, custid)
         sessid = @sess.identifier
         OT.info "[load_or_create_session] adding sess #{sessid} to #{obscure_email}"
-        self.sessid!(sessid)
+        sessid!(sessid)
       end
       @sess
     end
 
     def metadata_list
       metadata.revmembers.collect do |key|
-        obj = V2::Metadata.load(key)
-      rescue Onetime::RecordNotFound => e
-        OT.le "[metadata_list] Error: #{e.message} (#{key} / #{self.custid})"
+        V2::Metadata.load(key)
+      rescue Onetime::RecordNotFound => ex
+        OT.le "[metadata_list] Error: #{ex.message} (#{key} / #{self.custid})"
       end.compact
     end
 
-    def add_metadata obj
+    def add_metadata(obj)
       metadata.add OT.now.to_i, obj.key
     end
 
     def custom_domains_list
       custom_domains.revmembers.collect do |domain|
         V2::CustomDomain.load domain, self.custid
-      rescue Onetime::RecordNotFound => e
-        OT.le "[custom_domains_list] Error: #{e.message} (#{domain} / #{self.custid})"
+      rescue Onetime::RecordNotFound => ex
+        OT.le "[custom_domains_list] Error: #{ex.message} (#{domain} / #{self.custid})"
       end.compact
     end
 
-    def add_custom_domain obj
+    def add_custom_domain(obj)
       OT.ld "[add_custom_domain] adding #{obj} to #{self}"
       custom_domains.add OT.now.to_i, obj.display_domain # not the object identifier
     end
 
-    def remove_custom_domain obj
+    def remove_custom_domain(obj)
       custom_domains.remove obj.display_domain # not the object identifier
     end
 
@@ -340,7 +342,7 @@ module V2
     #
     # @return [void]
     def destroy_requested!
-      self.destroy_requested
+      destroy_requested
       save
     end
 
@@ -355,11 +357,11 @@ module V2
       # For example if we need to send a pro-rated refund
       # or if we need to send a notification to the customer
       # to confirm the account deletion.
-      self.ttl = 365.days
-      self.regenerate_apitoken
+      self.ttl        = 365.days
+      regenerate_apitoken
       self.passphrase = ''
-      self.verified = 'false'
-      self.role = 'user_deleted_self'
+      self.verified   = 'false'
+      self.role       = 'user_deleted_self'
       save
     end
 
@@ -372,7 +374,8 @@ module V2
     # anonymous customers from being persisted to the database.
     def save **kwargs
       raise Onetime::Problem, "Anonymous cannot be saved #{self.class} #{rediskey}" if anonymous?
-      super(**kwargs)
+
+      super
     end
 
     def to_s
@@ -390,7 +393,7 @@ module V2
       identifier.to_s
     end
 
-    def increment_field field
+    def increment_field(field)
       if anonymous?
         whereami = caller(1..4)
         OT.le "[increment_field] Refusing to increment #{field} for anon customer #{whereami}"
@@ -405,26 +408,28 @@ module V2
 
     module ClassMethods
       attr_reader :values
-      def add cust
-        self.values.add OT.now.to_i, cust.identifier
+
+      def add(cust)
+        values.add OT.now.to_i, cust.identifier
       end
 
       def all
-        self.values.revrangeraw(0, -1).collect { |identifier| load(identifier) }
+        values.revrangeraw(0, -1).collect { |identifier| load(identifier) }
       end
 
-      def recent duration=30.days, epoint=OT.now.to_i
+      def recent(duration = 30.days, epoint = OT.now.to_i)
         spoint = OT.now.to_i-duration
-        self.values.rangebyscoreraw(spoint, epoint).collect { |identifier| load(identifier) }
+        values.rangebyscoreraw(spoint, epoint).collect { |identifier| load(identifier) }
       end
 
       def anonymous
         new('anon').freeze
       end
 
-      def create custid, email=nil
-        raise Onetime::Problem, "custid is required" if custid.to_s.empty?
-        raise Onetime::Problem, "Customer exists" if exists?(custid)
+      def create(custid, email = nil)
+        raise Onetime::Problem, 'custid is required' if custid.to_s.empty?
+        raise Onetime::Problem, 'Customer exists' if exists?(custid)
+
         cust = new custid: custid, email: email || custid, role: 'customer'
         cust.save
         add cust
@@ -438,17 +443,16 @@ module V2
 
       def increment_field(cust, field)
         return if cust.global?
+
         curval = cust.send(field)
         OT.info "[increment_field] cust.#{field} is #{curval} for #{cust}"
 
         cust.increment field
-
-      rescue Redis::CommandError => e
-
+      rescue Redis::CommandError => ex
         # For whatever reason, redis throws an error when trying to
         # increment a non-existent hashkey field (rather than setting
         # it to 1): "ERR hash value is not an integer"
-        OT.le "[increment_field] Redis error (#{curval}): #{e.message}"
+        OT.le "[increment_field] Redis error (#{curval}): #{ex.message}"
 
         # So we'll set it to 1 if it's empty. It's possible we're here
         # due to a different error, but this value needs to be

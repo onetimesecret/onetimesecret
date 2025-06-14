@@ -29,6 +29,7 @@ module Onetime
 
     def require_sudo
       return if Process.uid.zero?
+
       raise 'Must run as root or with sudo'
     end
   end

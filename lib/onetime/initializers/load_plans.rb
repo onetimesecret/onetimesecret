@@ -1,18 +1,9 @@
+# /Users/d/Projects/opensource/onetime/onetimesecret/lib/onetime/initializers/load_plans.rb
 # lib/onetime/initializers/load_plans.rb
-
-require 'onetime/refinements/hash_refinements'
-
 module Onetime
   module Initializers
-    module LoadPlans
-
-      using IndifferentHashAccess
-
-      def self.run(options = {})
-        OT::Plan.load_plans!
-        OT.ld "[initializer] Plans loaded"
-      end
-
+    def load_plans
+      OT::Plan.load_plans!
     end
   end
 end

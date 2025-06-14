@@ -7,7 +7,6 @@
 #
 # Environment detection and normalization
 module Onetime
-
   module ClassMethods
     # Replaces the global configuration instance with the provided data.
     def replace_config!(other)
@@ -21,7 +20,7 @@ module Onetime
     # @param override_config [Hash] Configuration data to merge with existing config
     def apply_config(override_config = nil)
       # Handle nil or empty override config
-      current_config = self.conf || {}
+      current_config    = conf || {}
       override_config ||= {}
 
       # Deep merge the configurations, with override_config taking precedence
@@ -66,7 +65,7 @@ module Onetime
     # @see Process.clock_gettime Ruby documentation for underlying
     #   implementation
     # @since Ruby 2.1.0 (when Process.clock_gettime was introduced)
-    def hnowµs
+    def hnowµs # rubocop:disable Naming/AsciiIdentifiers
       Process.clock_gettime(Process::CLOCK_REALTIME, :microsecond)
     end
 
@@ -105,7 +104,7 @@ module Onetime
     #   nowµs  #=> 1716825600123458 (called shortly after)
     #
     # @see Time.now Ruby documentation for underlying time source
-    def nowµs
+    def nowµs # rubocop:disable Naming/AsciiIdentifiers
       (Time.now.utc.to_f * 1_000_000).to_i
     end
 
@@ -182,49 +181,52 @@ module Onetime
 
     def info(*msgs)
       return unless mode?(:app) || mode?(:cli) # can reduce output in tryouts
+
       msg = msgs.join("#{$/}")
-      stdout("I", msg)
+      stdout('I', msg)
     end
 
     def li(*msgs)
       msg = msgs.join("#{$/}")
-      stdout("I", msg)
+      stdout('I', msg)
     end
 
     def lw(*msgs)
       msg = msgs.join("#{$/}")
-      stdout("W", msg)
+      stdout('W', msg)
     end
 
     def le(*msgs)
       msg = msgs.join("#{$/}")
-      stderr("E", msg)
+      stderr('E', msg)
     end
 
     def ld(*msgs)
       return unless Onetime.debug
+
       msg = msgs.join("#{$/}")
-      stderr("D", msg)
+      stderr('D', msg)
     end
 
     def stdout(prefix, msg)
       return if STDOUT.closed?
 
-      stamp = Time.now.to_i
-      logline = "%s(%s): %s" % [prefix, stamp, msg]
+      stamp   = Time.now.to_i
+      logline = format('%s(%s): %s', prefix, stamp, msg)
       STDOUT.puts(logline)
     end
 
     def stderr(prefix, msg)
       return if STDERR.closed?
 
-      stamp = Time.now.to_i
-      logline = "%s(%s): %s" % [prefix, stamp, msg]
-      STDERR.puts(logline)
+      stamp   = Time.now.to_i
+      logline = format('%s(%s): %s', prefix, stamp, msg)
+      warn(logline)
     end
 
     def with_diagnostics(&)
       return unless Onetime.d9s_enabled
+
       yield # call the block in its own context
     end
 

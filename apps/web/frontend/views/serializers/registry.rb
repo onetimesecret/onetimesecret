@@ -24,8 +24,11 @@ module Frontend
   module Views
     class SerializerRegistry
       extend TSort
-      @serializers = []
+      # These class instance vars are populated at start-time and then readonly.
+      # rubocop:disable ThreadSafety/MutableClassInstanceVariable
+      @serializers  = []
       @dependencies = {}
+      # rubocop:enable ThreadSafety/MutableClassInstanceVariable
 
       class << self
         attr_reader :serializers, :dependencies
@@ -47,7 +50,7 @@ module Frontend
         # @param i18n [Object] Internationalization instance
         # @return [Hash] Combined output from all serializers
         def run(serializer_list, vars, i18n)
-          ordered = sorted_serializers.select { |s| serializer_list.include?(s) }
+          ordered   = sorted_serializers.select { |s| serializer_list.include?(s) }
           seen_keys = {}
 
           ordered.reduce({}) do |result, serializer|
@@ -98,7 +101,6 @@ module Frontend
           dependencies.fetch(node, []).each(&)
         end
       end
-
     end
   end
 end

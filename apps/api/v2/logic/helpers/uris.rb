@@ -30,7 +30,7 @@ module V2
 
       def baseuri
         scheme = base_scheme
-        host = Onetime.conf[:site][:host]
+        host   = Onetime.conf[:site][:host]
         [scheme, host].join
       end
 
@@ -56,7 +56,6 @@ module V2
       def local?
         LOCAL_HOSTS.member?(req.env['SERVER_NAME']) && (req.client_ipaddress == '127.0.0.1')
       end
-
     end
   end
 end
