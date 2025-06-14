@@ -49,7 +49,7 @@ module Onetime
       OT.ld "[BOOT] Initializing in '#{OT.mode}' mode (instance: #{instance})"
 
       @configurator = OT::Configurator.load! do |config, scripts_dir|
-        OT.ld '[BOOT] A chance to modify the conf hash before it is frozen'
+        OT.ld '[BOOT] Processing hook - config transformations before final freeze'
         run_init_scripts(config,
           scripts_dir: scripts_dir,
           instance: instance,
@@ -73,7 +73,7 @@ module Onetime
       # and then responds with 400 and an angry [view_vars] "Site config is
       # missing field: host".
       @conf = configurator.configuration
-      require 'pry-byebug'; binding.pry;
+
       OT.ld '[BOOT] Completing initialization process...'
       Onetime.complete_initialization!
       OT.li "[BOOT] Startup completed successfully (instance: #{instance})"
@@ -108,6 +108,12 @@ module Onetime
 
     private
 
+    # Runs init.d scripts for each config section during the processing hook phase.
+    # Config is still mutable - these scripts can modify their section's config,
+    # register routes, set feature flags, etc. One script per config section.
+    #
+    # Different from onetime/initializers which run AFTER config is frozen and
+    # handle system-wide services (Redis, databases, emailer, etc).
     def run_init_scripts(config, scripts_dir:, **options)
       return unless Dir.exist?(scripts_dir)
 

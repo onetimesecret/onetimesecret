@@ -18,6 +18,8 @@ module Onetime
   # 1. Schema validation (declarative) - structure + defaults
   # 2. Business processing (imperative) - compatibility, auth, etc.
   # 3. Re-validation (declarative) - ensures processing didn't break schema
+  #
+  # Pipeline: ENV normalize → Read → ERB → YAML → Validate → Process → Revalidate → Freeze
   class Configurator
     using IndifferentHashAccess
     using ThenWithDiff
@@ -47,12 +49,12 @@ module Onetime
     # States:
     attr_reader :unprocessed_config, :validated_config, :schema, :parsed_template
 
-    # Typically called via `OT::Configurator.load!`. The block is passed to
-    # after_load after the config is first loaded and the validated against
-    # the schema (which also applies default values).
+    # Typically called via `OT::Configurator.load!`. The block is a processing
+    # hook that runs after initial validation but before final freeze, allowing
+    # config transformations (e.g., backwards compatibility, auth settings).
     #
-    # Using a combination of then and then_with_diff which tracks the chanegs to
-    # the configuration at each step in this load pipline.
+    # Using a combination of then and then_with_diff which tracks the changes to
+    # the configuration at each step in this load pipeline.
     def load!(&)
       @schema        = load_schema
       # We validate before returning the config so that we're not inadvertently
@@ -70,7 +72,7 @@ module Onetime
         .then { |template| render_erb_template(template) }
         .then { |yaml_content| parse_yaml(yaml_content) }
         .then_with_diff('initial') { |config| validate_with_defaults(config) }
-        .then_with_diff('processed') { |config| run_init_hook(config, &) }
+        .then_with_diff('processed') { |config| run_processing_hook(config, &) }
         .then_with_diff('validated') { |config| validate(config) }
         .then_with_diff('freezed') { |config| deep_freeze(config) }
 
@@ -125,18 +127,20 @@ module Onetime
       _validate(config, apply_defaults: true)
     end
 
-    # After loading the configuration, this method processes and validates the
-    # configuration, setting defaults and ensuring required elements are present.
-    # It also performs deep copy protection to prevent mutations from propagating
-    # to shared configuration instances.
+    # Processing hook - runs after initial validation but before final freeze.
+    # This is where imperative config transformations happen (backwards
+    # compatibility, derived values, etc). The config is mutable here.
     #
-    # Operates on the loaded, unprocessed configuration hash in raw form. This
-    # imperative logic deals with complex configuration processing that is
-    # beyond what can reasonably be handled by declarative validation (e.g.
-    # zod transformations).
+    # Within this hook:
+    # - etc/init.d scripts: Per-section setup (e.g., site.rb for 'site' config)
+    # - Can modify config, register routes, set feature flags
+    #
+    # After config is frozen:
+    # - onetime/initializers: System-wide services (Redis, i18n, emailer, etc.)
+    # - Cannot modify config, only read it to configure services
     #
     # @return [Hash] The processed configuration
-    def run_init_hook(config, &)
+    def run_processing_hook(config, &)
       scripts_dir = self.class.init_scripts_dir
       OT.ld("[config] Run init hook (has block: #{block_given?}) #{scripts_dir}")
       yield(config, scripts_dir) if block_given?
