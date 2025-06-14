@@ -63,7 +63,9 @@
     "type-check:tests": "pnpm run type-check:base -p ./tsconfig.tests.json",
     "type-check:base": "vue-tsc --noEmit",
     "type-check:parallel": "pnpm -r exec vue-tsc --build --noEmit",
-    "type-check:watch": "pnpm run type-check:base --watch"
+    "type-check:watch": "pnpm run type-check:base --watch",
+    "validate": "bundle exec scripts/ots validate",
+    "version:update": "bash scripts/update-version.sh"
   },
   "keywords": [],
   "author": "",
