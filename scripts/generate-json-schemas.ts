@@ -21,7 +21,7 @@ const __dirname = dirname(__filename);
 
 const OUTPUT_MAIN_SCHEMA = join(__dirname, '../etc/config.schema.yaml');
 const OUTPUT_TYPES = join(__dirname, '../src/types/config.ts');
-const OUTPUT_SCHEMAS_DIR = join(__dirname, '../support/schemas');
+const OUTPUT_SCHEMAS_DIR = join(__dirname, '../public/web/dist/schemas');
 
 // Combined configuration schema
 const combinedConfigSchema = z.object({
