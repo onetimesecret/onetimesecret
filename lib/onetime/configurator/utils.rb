@@ -1,10 +1,9 @@
-# lib/onetime/config/utils.rb
+# lib/onetime/configurator/utils.rb
 
 require 'json_schemer'
 
 module Onetime
-  class Config
-
+  class Configurator
     unless defined?(KNOWN_PATHS)
       KNOWN_PATHS = %w[/etc/onetime ./etc ~/.onetime].freeze
 
@@ -24,13 +23,14 @@ module Onetime
     module Utils
       extend self
 
-      def validate_with_schema(conf, schema)
+      def validate_with_schema(conf, schema, apply_defaults: false)
+        raise OT::ConfigError, 'Schema is nil' if schema.nil?
 
         # Create schema validator with defaults insertion enabled
         schemer = JSONSchemer.schema(
           schema,
           meta_schema: 'https://json-schema.org/draft/2020-12/schema',
-          insert_property_defaults: true,
+          insert_property_defaults: apply_defaults,
           format: true,
 
           # For fields that we validate as strings, if the value is a symbol
@@ -40,8 +40,8 @@ module Onetime
           # symbols to represent certain values.
           before_property_validation: proc do |data, property, property_schema, _parent|
             val = data[property]
-            case property_schema["type"]
-            when "string"
+            case property_schema['type']
+            when 'string'
               data[property] = val.to_s if val.is_a?(Symbol)
             end
           end,
@@ -79,11 +79,11 @@ module Onetime
           next if path_segments.empty?
 
           # Navigate to proper nesting level
-          current = error_paths
+          current         = error_paths
           parent_segments = path_segments[0..-2]
           parent_segments.each do |segment|
             current[segment] ||= {}
-            current = current[segment]
+            current            = current[segment]
           end
 
           # Add value at this path
@@ -122,7 +122,7 @@ module Onetime
       #   apply_defaults_to_peers({a: {x: 1}})                # => {a: {x: 1}}
       #   apply_defaults_to_peers({defaults: {x: 1}, b: {}})  # => {b: {x: 1}}
       #
-      def apply_defaults_to_peers(config={})
+      def apply_defaults_to_peers(config = {})
         return {} if config.nil? || config.empty?
 
         # Extract defaults from the configuration (handle both symbol and string keys)
@@ -132,7 +132,8 @@ module Onetime
         unless defaults.is_a?(Hash)
           result = {}
           config.each do |key, value|
-            next if key == :defaults || key == 'defaults'
+            next if [:defaults, 'defaults'].include?(key)
+
             # Normalize the value to string keys using deep_merge with empty hash
             result[key.to_s] = value.is_a?(Hash) ? OT::Utils.deep_merge({}, value) : value
           end
@@ -142,18 +143,13 @@ module Onetime
         # Process each section, applying defaults
         config.each_with_object({}) do |(section, values), result|
           # Skip the :defaults key (handle both symbol and string)
-          next if section == :defaults || section == 'defaults'
+          next if [:defaults, 'defaults'].include?(section)
           next unless values.is_a?(Hash) # Process only sections that are hashes
 
           # Apply defaults to each section, normalize section key to string
           result[section.to_s] = OT::Utils.deep_merge(defaults, values)
         end
       end
-
-
-
     end
-
-
   end
 end

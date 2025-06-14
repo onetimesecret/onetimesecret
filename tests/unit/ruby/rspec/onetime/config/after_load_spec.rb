@@ -3,10 +3,10 @@
 require_relative '../../spec_helper'
 
 RSpec.describe "Onetime::Config#after_load" do
-  let(:config_instance) { Onetime::Config.new }
+  let(:config_instance) { OT::Configurator.new }
 
   def process_config_with_after_load(raw_config)
-    config_instance = Onetime::Config.new
+    config_instance = OT::Configurator.new
     config_instance.instance_variable_set(:@unprocessed_config, raw_config)
     config_instance.send(:after_load)
   end

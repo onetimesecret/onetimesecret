@@ -7,8 +7,8 @@ module Onetime
       raise 'No target database supplied' unless sourcedb && targetdb
       raise 'No filter supplied' unless filter
 
-      source_uri = URI.parse Familia.uri.to_s
-      target_uri = URI.parse Familia.uri.to_s
+      source_uri    = URI.parse Familia.uri.to_s
+      target_uri    = URI.parse Familia.uri.to_s
       source_uri.db = sourcedb
       target_uri.db = targetdb
       Familia::Tools.move_keys filter, source_uri, target_uri do |idx, type, key, ttl|

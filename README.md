@@ -243,7 +243,7 @@ pnpm install
 
 ```bash
 git rev-parse --short HEAD > .commit_hash.txt
-cp -p ./etc/config.example.yaml ./etc/config.yaml
+cp -p ./etc/examples/config.example.yaml ./etc/config.yaml
 ```
 
 ##### 5. Choose Your Running Mode
@@ -343,7 +343,7 @@ OnetimeSecret requires a `config.yaml` file for all installations. Environment v
 1. Create the configuration file:
 
    ```bash
-   cp -p ./etc/config.example.yaml ./etc/config.yaml
+   cp -p ./etc/examples/config.example.yaml ./etc/config.yaml
    ```
 
 2. Review and edit `./etc/config.yaml` as needed. At minimum, update the secret key and back it up securely.

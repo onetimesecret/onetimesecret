@@ -44,6 +44,10 @@ jobs:
           echo Commit hash recorded
           head -4 .commit_hash.txt package.json
 
+      - name: Update package.json version from tag
+        if: startsWith(github.ref, 'refs/tags/v')
+        run: ./bin/update-version.sh
+
       - name: Set up QEMU
         uses: docker/setup-qemu-action@29109295f81e9208d7d86ff1c6c12d2833863392 # v3.6.0
         with:

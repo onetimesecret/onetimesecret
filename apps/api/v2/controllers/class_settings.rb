@@ -1,7 +1,6 @@
 # apps/api/v2/controllers/settings.rb
 
 module V2
-
   # ControllerSettings module provides configuration options for UTF-8 and URI
   # encoding middleware checks.
   #
@@ -10,7 +9,7 @@ module V2
   module Controllers
     module ClassSettings
       # Default settings for UTF-8 and URI encoding checks
-      @check_utf8 = nil
+      @check_utf8         = nil
       @check_uri_encoding = nil
 
       # When this module is included in a class, it extends that class
@@ -29,7 +28,7 @@ module V2
         #   @return [Boolean] Whether to check for valid UTF-8 encoding
         # @!attribute [rw] check_uri_encoding
         #   @return [Boolean] Whether to check for valid URI encoding
-        attr_accessor :check_utf8, :check_uri_encoding
+        attr_reader :check_utf8, :check_uri_encoding
       end
     end
   end

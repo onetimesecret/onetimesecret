@@ -3,29 +3,29 @@
 module Onetime
   class DomainsCommand < Drydock::Command
     def domains
-      puts '%d custom domains' % V2::CustomDomain.values.size
-      if option.list
-        literally_all_domain_ids = V2::CustomDomain.values.all
-        all_domains = literally_all_domain_ids.map do |did|
-          V2::CustomDomain.from_identifier(did)
-        end
+      puts format('%d custom domains', V2::CustomDomain.values.size)
+      return unless option.list
 
-        # Group domains by display_domain
-        grouped_domains = all_domains.group_by(&:display_domain)
+      literally_all_domain_ids = V2::CustomDomain.values.all
+      all_domains              = literally_all_domain_ids.map do |did|
+        V2::CustomDomain.from_identifier(did)
+      end
 
-        grouped_domains.sort.each do |display_domain, domains|
-          if domains.size == 1
-            domain = domains.first
-            puts '%s %s' % [display_domain, domain.rediskey]
-          else
-            rediskeys = domains.map(&:rediskey)
-            rediskeys_display = if rediskeys.size > 3
-                                  "#{rediskeys[0..2].join(', ')}, ..."
-                                else
-                                  rediskeys.join(', ')
-                                end
-            puts '%4d  %s (%s)' % [domains.size, display_domain, rediskeys_display]
-          end
+      # Group domains by display_domain
+      grouped_domains = all_domains.group_by(&:display_domain)
+
+      grouped_domains.sort.each do |display_domain, domains|
+        if domains.size == 1
+          domain = domains.first
+          puts format('%s %s', display_domain, domain.rediskey)
+        else
+          rediskeys         = domains.map(&:rediskey)
+          rediskeys_display = if rediskeys.size > 3
+                                "#{rediskeys[0..2].join(', ')}, ..."
+                              else
+                                rediskeys.join(', ')
+                              end
+          puts format('%4d  %s (%s)', domains.size, display_domain, rediskeys_display)
         end
       end
     end
@@ -35,7 +35,7 @@ module Onetime
       return unless domains_to_process
 
       total = domains_to_process.size
-      puts "Processing #{total} domain#{total == 1 ? '' : 's'}"
+      puts "Processing #{total} domain#{'s' unless total == 1}"
 
       process_domains_in_batches(domains_to_process)
 
@@ -57,13 +57,11 @@ module Onetime
     end
 
     def get_specific_domain
-      begin
         domain = V2::CustomDomain.load(option.domain, option.custid)
         [domain]
-      rescue Onetime::RecordNotFound
+    rescue Onetime::RecordNotFound
         puts "Domain #{option.domain} not found for customer #{option.custid}"
         nil
-      end
     end
 
     def get_customer_domains
@@ -97,7 +95,7 @@ module Onetime
     end
 
     def process_domains_in_batches(domains)
-      batch_size = 10
+      batch_size       = 10
       throttle_seconds = 4
 
       domains.each_slice(batch_size).with_index do |batch, batch_idx|
@@ -121,18 +119,16 @@ module Onetime
     end
 
     def revalidate_domain(domain)
-      begin
-        params = { domain: domain.display_domain }
-        verifier = V2::Logic::Domains::VerifyDomain.new(nil, domain.custid, params)
+        params           = { domain: domain.display_domain }
+        verifier         = V2::Logic::Domains::VerifyDomain.new(nil, domain.custid, params)
         verifier.raise_concerns
         verifier.process
-        status = domain.verification_state
+        status           = domain.verification_state
         resolving_status = domain.resolving == 'true' ? 'resolving' : 'not resolving'
         puts "#{status} (#{resolving_status})"
-      rescue => e
-        puts "error: #{e.message}"
-        $stderr.puts e.backtrace
-      end
+    rescue StandardError => ex
+        puts "error: #{ex.message}"
+        warn ex.backtrace
     end
   end
 end

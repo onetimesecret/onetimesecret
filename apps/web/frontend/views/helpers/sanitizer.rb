@@ -8,7 +8,6 @@
 module Frontend
   module Views
     module SanitizerHelpers
-
       # Normalizes values to prevent injection attacks and ensure consistent formatting.
       #
       # @param value [String, Array, Hash] The value to normalize
@@ -21,8 +20,8 @@ module Frontend
       #
       # @return [String] HTML script tag containing serialized data
       def serialized_to_script
-        data = serialized_data
-        nonce = view_vars[:nonce]
+        data       = serialized_data
+        nonce      = view_vars[:nonce]
         element_id = view_vars[:script_element_id]
         to_json_script(data, id: element_id, nonce: nonce)
       end
@@ -35,9 +34,9 @@ module Frontend
       # @return [String] HTML script tag with sanitized JSON
       def to_json_script(data, id: nil, nonce: nil)
         sanitized_json = to_sanitized_json(data)
-        attributes = ['type="application/json"']
-        attributes << %{id="#{Rack::Utils.escape_html(id)}"} if id
-        attributes << %{nonce="#{nonce}"} if nonce
+        attributes     = ['type="application/json"']
+        attributes << %(id="#{Rack::Utils.escape_html(id)}") if id
+        attributes << %(nonce="#{nonce}") if nonce
 
         "<script #{attributes.join(' ')}>#{sanitized_json}</script>"
       end
@@ -72,11 +71,11 @@ module Frontend
       # @note The cache key is prefixed with "template:global:" and stored in Redis db 0.
       # @note The default Time To Live (TTL) for the cache is 1 hour.
       #
-      def cached_method methname
-        rediskey = "template:global:#{methname}"
+      def cached_method(methname)
+        rediskey     = "template:global:#{methname}"
         cache_object = Familia::String.new rediskey, ttl: 1.hour, db: 0
         OT.ld "[cached_method] #{methname} #{cache_object.exists? ? 'hit' : 'miss'} #{rediskey}"
-        cached = cache_object.get
+        cached       = cache_object.get
         return cached if cached
 
         # Existing logic to generate assets...
@@ -87,8 +86,6 @@ module Frontend
 
         content
       end
-
     end
-
   end
 end

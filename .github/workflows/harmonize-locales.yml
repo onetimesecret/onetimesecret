@@ -46,23 +46,34 @@ jobs:
       - name: Check commit messages or file changes
         id: check
         run: |
+          echo "Event: ${{ github.event_name }}"
+
           # Always run if it's a manual trigger
           if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
             echo "should_run=true" >> $GITHUB_OUTPUT
             exit 0
           fi
 
-          # Validate repository state
-          if ! git rev-parse --verify "${{ github.event.before }}" > /dev/null 2>&1 || \
-             ! git rev-parse --verify "${{ github.event.after }}" > /dev/null 2>&1; then
-            echo "Error: Invalid git SHAs. Unable to proceed with diff operations."
+          # Get appropriate SHAs based on event type
+          if [[ "${{ github.event_name }}" == "push" ]]; then
+            BEFORE_SHA="${{ github.event.before }}"
+            AFTER_SHA="${{ github.event.after }}"
+          elif [[ "${{ github.event_name }}" == "pull_request" ]]; then
+            BEFORE_SHA="${{ github.event.pull_request.base.sha }}"
+            AFTER_SHA="${{ github.event.pull_request.head.sha }}"
+          fi
+
+          # Validate SHAs
+          if ! git rev-parse --verify "$BEFORE_SHA" > /dev/null 2>&1 || \
+             ! git rev-parse --verify "$AFTER_SHA" > /dev/null 2>&1; then
+            echo "Error: Invalid git SHAs"
             echo "should_run=false" >> $GITHUB_OUTPUT
             exit 1
           fi
 
-          # Always run if src/locales/en.json was changed on develop or i18n branches
+          # Check trigger conditions using correct SHAs
           if [ "${{ github.event_name }}" = "push" ]; then
-            if git diff --name-only "${{ github.event.before }}" "${{ github.event.after }}" | grep -q "src/locales/en.json"; then
+            if git diff --name-only "$BEFORE_SHA" "$AFTER_SHA" | grep -q "src/locales/en.json"; then
               if [[ "${{ github.ref }}" =~ ^refs/heads/(develop|i18n/) ]]; then
                 echo "should_run=true" >> $GITHUB_OUTPUT
                 exit 0
@@ -70,18 +81,15 @@ jobs:
             fi
           fi
 
-          # For PRs, check commit messages and file changes
           if [ "${{ github.event_name }}" = "pull_request" ]; then
-            PR_COMMITS=$(git log --format=%B "${{ github.event.pull_request.base.sha }}".."${{ github.event.pull_request.head.sha }}" || true)
+            PR_COMMITS=$(git log --format=%B "$BEFORE_SHA".."$AFTER_SHA" || true)
 
             if echo "$PR_COMMITS" | grep -q "\[i18n\]"; then
-              echo "Keyword [i18n] found in commit message"
               echo "should_run=true" >> $GITHUB_OUTPUT
               exit 0
             fi
 
-            if git diff --name-only "${{ github.event.pull_request.base.sha }}" "${{ github.event.pull_request.head.sha }}" | grep -q "src/locales/en.json"; then
-              echo "File src/locales/en.json was modified"
+            if git diff --name-only "$BEFORE_SHA" "$AFTER_SHA" | grep -q "src/locales/en.json"; then
               echo "should_run=true" >> $GITHUB_OUTPUT
               exit 0
             fi

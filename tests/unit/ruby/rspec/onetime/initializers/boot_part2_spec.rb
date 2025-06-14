@@ -63,7 +63,7 @@ RSpec.describe "Onetime global state after boot" do
     end
 
     # Ensure we use test config
-    Onetime::Config.path = source_config_path
+    OT::Configurator.path = source_config_path
   end
 
   describe "When Onetime.boot! completes" do
@@ -201,7 +201,7 @@ RSpec.describe "Onetime global state after boot" do
       # asserting that an exception is raised.
 
       it "handles configuration load errors by re-raising the error when not in CLI mode" do
-        # This simulates an error during OT::Config.load
+        # This simulates an error during OT::Configurator.load
         config_error = StandardError.new("Test configuration error")
         allow(Onetime::Config).to receive(:load).and_raise(config_error)
 

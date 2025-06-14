@@ -2,8 +2,6 @@
 
 module Frontend
   module Views
-
-
     # InitializeViewVars
     #
     # This module is meant to be extended and not included. That's why
@@ -15,7 +13,7 @@ module Frontend
       @safe_site_fields = [
         :host, :ssl, :plans, :interface, :domains,
         :secret_options, :authentication, :support, :regions
-      ]
+      ].freeze
 
       class << self
         attr_reader :safe_site_fields
@@ -30,9 +28,10 @@ module Frontend
       # @param locale [String] Current locale
       # @param i18n_instance [I18n] Current I18n instance
       # @return [Hash] Collection of initialized variables
+      # rubocop:disable Metrics/MethodLength
       def initialize_view_vars(req, sess, cust, locale, i18n_instance)
         # Return minimal defaults if OT.conf isn't loaded yet
-        return self.minimal_defaults(req, sess, cust, locale) unless OT.conf
+        return minimal_defaults(req, sess, cust, locale) unless OT.conf
 
         # Extract the top-level keys from the YAML configuration.
         #
@@ -46,7 +45,7 @@ module Frontend
         # - Internal infrastructure details
         #
         site_config = OT.conf.fetch(:site, {})
-        incoming = OT.conf.fetch(:incoming, {})
+        incoming    = OT.conf.fetch(:incoming, {})
         development = OT.conf.fetch(:development, {})
         diagnostics = OT.conf.fetch(:diagnostics, {})
 
@@ -68,34 +67,34 @@ module Frontend
         end
 
         # Additional filtering for nested sensitive data
-        if safe_site[:domains]
-          safe_site[:domains].delete(:cluster) if safe_site[:domains].is_a?(Hash)
+        if (safe_site[:domains]) && safe_site[:domains].is_a?(Hash)
+          safe_site[:domains].delete(:cluster)
         end
 
-        if safe_site[:authentication]
-          safe_site[:authentication].delete(:colonels) if safe_site[:authentication].is_a?(Hash)
+        if (safe_site[:authentication]) && safe_site[:authentication].is_a?(Hash)
+          safe_site[:authentication].delete(:colonels)
         end
 
         # Extract values from session
-        messages = sess.nil? ? [] : sess.get_messages
-        shrimp = sess.nil? ? nil : sess.add_shrimp
+        messages      = sess.nil? ? [] : sess.get_messages
+        shrimp        = sess.nil? ? nil : sess.add_shrimp
         authenticated = sess && sess.authenticated? && !cust.anonymous?
 
         # Extract values from rack request object
-        nonce = req.env.fetch('ots.nonce', nil) # TODO: Rename to onetime.nonce
+        nonce           = req.env.fetch('ots.nonce', nil) # TODO: Rename to onetime.nonce
         domain_strategy = req.env.fetch('onetime.domain_strategy', :default)
-        display_domain = req.env.fetch('onetime.display_domain', nil)
+        display_domain  = req.env.fetch('onetime.display_domain', nil)
 
         # HTML Tag vars. These are meant for the view templates themselves
         # and not the onetime state window data passed on to the Vue app (
         # although a serializer could still choose to include any of them).
-        description = i18n_instance[:COMMON][:description]
-        keywords = i18n_instance[:COMMON][:keywords]
-        page_title = "Onetime Secret" # TODO: Implement as config setting
-        no_cache = false
-        frontend_host = development[:frontend_host]
+        description          = i18n_instance.dig(:COMMON, :description)
+        keywords             = i18n_instance.dig(:COMMON, :keywords)
+        page_title           = OT.conf.dig(:user_interface, :header, :branding, :site_name) || 'OneTimeSecret'
+        no_cache             = false
+        frontend_host        = development[:frontend_host]
         frontend_development = development[:enabled]
-        script_element_id = 'onetime-state'
+        script_element_id    = 'onetime-state'
 
         # Return all view variables as a hash
         {
@@ -120,8 +119,9 @@ module Frontend
           site: safe_site,
         }
       end
+      # rubocop:enable Metrics/MethodLength
 
-      def minimal_defaults(req, sess, cust, locale)
+      def minimal_defaults(_req, sess, cust, locale)
         {
           authenticated: false,
           cust: cust,

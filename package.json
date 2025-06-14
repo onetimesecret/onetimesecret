@@ -1,6 +1,6 @@
 {
   "name": "onetimesecret",
-  "version": "0.0.0",
+  "version": "0.23.0-rc0",
   "description": "",
   "type": "module",
   "scripts": {
@@ -35,7 +35,12 @@
     "redis:stop": "redis-cli -p 2121 shutdown",
     "redis:clean": "REDIS_URL='redis://127.0.0.1:2121/0' ruby support/clean_redis.rb --all",
     "redis:status": "redis-cli -p 2121 ping",
-    "rubocop": "bundle exec rubocop --config .rubocop.yml --format json --fail-level warning",
+    "rubocop": "bundle exec rubocop --config .rubocop.yml --fail-level warning",
+    "rubocop:version": "bundle exec rubocop --config .rubocop.yml --verbose_version",
+    "rubocop:version:pnpm": "pnpm run rubocop:version",
+    "rubocop:json": "pnpm --silent run rubocop --format json",
+    "rubocop:autocorrect": "pnpm run rubocop --autocorrect",
+    "rubocop:regenerate": "pnpm run rubocop --regenerate-todo",
     "rubocop:pretty": "pnpm --silent run rubocop | jq",
     "schema:generate": "tsx scripts/generate-json-schemas.ts",
     "schema:generate:openapi": "tsx scripts/generate-json-schemas.ts --openapi",
@@ -58,7 +63,9 @@
     "type-check:tests": "pnpm run type-check:base -p ./tsconfig.tests.json",
     "type-check:base": "vue-tsc --noEmit",
     "type-check:parallel": "pnpm -r exec vue-tsc --build --noEmit",
-    "type-check:watch": "pnpm run type-check:base --watch"
+    "type-check:watch": "pnpm run type-check:base --watch",
+    "validate": "bundle exec scripts/ots validate",
+    "version:update": "bash scripts/update-version.sh"
   },
   "keywords": [],
   "author": "",
@@ -71,7 +78,6 @@
     "@codemirror/view": "^6.37.1",
     "@headlessui/vue": "1.7.23",
     "@intlify/core": "11.1.5",
-    "@prettier/plugin-ruby": "4.0.4",
     "@sentry/browser": "9.17.0",
     "@sentry/core": "9.17.0",
     "@sentry/vue": "9.17.0",
@@ -105,6 +111,7 @@
     "@intlify/eslint-plugin-vue-i18n": "3.2.0",
     "@pinia/testing": "1.0.1",
     "@playwright/test": "1.52.0",
+    "@prettier/plugin-ruby": "4.0.4",
     "@sentry/vite-plugin": "3.4.0",
     "@tailwindcss/forms": "0.5.10",
     "@tailwindcss/typography": "0.5.16",

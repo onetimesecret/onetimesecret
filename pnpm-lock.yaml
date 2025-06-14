@@ -29,9 +29,6 @@ importers:
       '@intlify/core':
         specifier: 11.1.5
         version: 11.1.5
-      '@prettier/plugin-ruby':
-        specifier: 4.0.4
-        version: 4.0.4(prettier@3.5.3)
       '@sentry/browser':
         specifier: 9.17.0
         version: 9.17.0
@@ -126,6 +123,9 @@ importers:
       '@playwright/test':
         specifier: 1.52.0
         version: 1.52.0
+      '@prettier/plugin-ruby':
+        specifier: 4.0.4
+        version: 4.0.4(prettier@3.5.3)
       '@sentry/vite-plugin':
         specifier: 3.4.0
         version: 3.4.0
@@ -7036,6 +7036,7 @@ snapshots:
       '@codemirror/lang-json': 6.0.1
       '@codemirror/lang-yaml': 6.1.2
       '@codemirror/theme-one-dark': 6.1.2
+      '@codemirror/view': 6.37.1
       '@headlessui/vue': 1.7.23(vue@3.5.13(typescript@5.8.3))
       '@intlify/core': 11.1.5
       '@prettier/plugin-ruby': 4.0.4(prettier@3.5.3)

@@ -4,7 +4,7 @@ require_relative '../../spec_helper'
 require 'tempfile'
 require 'fileutils'
 
-RSpec.describe Onetime::Config do
+RSpec.describe Onetime::Configurator do
   let(:temp_dir) { Dir.mktmpdir('onetime_config_test') }
   let(:test_config_path) { File.join(temp_dir, 'config.yaml') }
   let(:simple_yaml) do

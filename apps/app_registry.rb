@@ -2,11 +2,11 @@
 
 unless defined?(APPS_ROOT)
   # Know where we are; use the project home directory if set or relative to us.
-  project_root = ENV['ONETIME_HOME'] || File.expand_path("..", __dir__).freeze
+  project_root = ENV['ONETIME_HOME'] || File.expand_path('..', __dir__).freeze
 
   # Add each directory containing the rack applications to Ruby's load path.
   APPS_ROOT = File.join(project_root, 'apps').freeze
-  %w{api web}.each { |name| $LOAD_PATH.unshift(File.join(APPS_ROOT, name)) }
+  %w[api web].each { |name| $LOAD_PATH.unshift(File.join(APPS_ROOT, name)) }
 
   # Add the lib directory for the core project.
   LIB_ROOT = File.join(project_root, 'lib').freeze
@@ -16,12 +16,16 @@ unless defined?(APPS_ROOT)
   PUBLIC_DIR = File.join(project_root, '/public/web').freeze
 end
 
+# Require 'onetime' before requiring any gems so that bundler/setup
+# and friends can do their thang.
 require 'onetime'
 require 'onetime/middleware'
 
 module AppRegistry
+  # These class instance vars are populated at start-time and then readonly.
+  # rubocop:disable ThreadSafety/MutableClassInstanceVariable
   @application_classes = []
-  @mount_mappings = {}
+  @mount_mappings      = {}
 
   class << self
     attr_reader :application_classes, :mount_mappings
@@ -35,9 +39,9 @@ module AppRegistry
     def prepare_application_registry
       find_application_files
       create_mount_mappings
-    rescue => e
-      OT.le "[AppRegistry] ERROR: #{e.class}: #{e.message}"
-      OT.ld e.backtrace.join("\n")
+    rescue StandardError => ex
+      OT.le "[AppRegistry] ERROR: #{ex.class}: #{ex.message}"
+      OT.ld ex.backtrace.join("\n")
 
       Onetime.not_ready!
     end

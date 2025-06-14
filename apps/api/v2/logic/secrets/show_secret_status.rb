@@ -2,13 +2,11 @@
 
 module V2::Logic
   module Secrets
-
     class ShowSecretStatus < V2::Logic::Base
-      attr_reader :key, :realttl
-      attr_reader :secret, :verification
+      attr_reader :key, :realttl, :secret, :verification
 
       def process_params
-        @key = params[:key].to_s
+        @key    = params[:key].to_s
         @secret = V2::Secret.load key
       end
 
@@ -21,16 +19,12 @@ module V2::Logic
       end
 
       def success_data
-        ret = if secret.nil?
+        if secret.nil?
           { record: { state: 'unknown' } }
         else
           { record: secret.safe_dump, details: { realttl: realttl } }
         end
-
-        ret
       end
-
     end
-
   end
 end

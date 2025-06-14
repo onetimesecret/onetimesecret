@@ -2,53 +2,52 @@
 
 module Onetime
   class ChangeEmailCommand < Drydock::Command
-
     # CLI command to view email change reports
     def change_email_log
       # Default limit is 10 reports, can be overridden with --limit or -n option
-      limit = option.limit || 10
+      limit        = option.limit || 10
       email_filter = argv.first
 
-      puts "Viewing recent email change reports#{email_filter ? " for #{email_filter}" : ""} (limit: #{limit})"
-      puts "=" * 50
+      puts "Viewing recent email change reports#{" for #{email_filter}" if email_filter} (limit: #{limit})"
+      puts '=' * 50
 
       # Connect to Redis DB 0 where audit logs are stored
       redis = Familia.redis
 
       # Get keys matching the pattern
-      pattern = email_filter ? "change_email:#{email_filter}:*" : "change_email:*"
-      keys = redis.keys(pattern).sort_by { |k| k.split(':').last.to_i }.reverse.first(limit.to_i)
+      pattern = email_filter ? "change_email:#{email_filter}:*" : 'change_email:*'
+      keys    = redis.keys(pattern).sort_by { |k| k.split(':').last.to_i }.reverse.first(limit.to_i)
 
       if keys.empty?
-        puts "No email change reports found#{email_filter ? " for #{email_filter}" : ""}."
+        puts "No email change reports found#{" for #{email_filter}" if email_filter}."
         return
       end
 
       keys.each_with_index do |key, idx|
-        parts = key.split(':')
+        parts     = key.split(':')
         old_email = parts[1]
         new_email = parts[2]
         timestamp = Time.at(parts[3].to_i)
 
         puts "#{idx+1}. #{old_email} → #{new_email} (#{timestamp.strftime('%Y-%m-%d %H:%M:%S')})"
 
-        if global.verbose
-          # Show full report in verbose mode
-          report = redis.get(key)
-          if report
-            puts "-" * 40
-            puts report
-            puts "-" * 40
-          else
-            puts "  Report data not available"
-          end
+        next unless global.verbose
+
+        # Show full report in verbose mode
+        report = redis.get(key)
+        if report
+          puts '-' * 40
+          puts report
+          puts '-' * 40
+        else
+          puts '  Report data not available'
         end
       end
 
       # Provide instructions for viewing specific reports
       unless global.verbose
         puts "\nTo view a specific report in full:"
-        puts "  ots change-email-log --verbose OLDEMAIL"
+        puts '  ots change-email-log --verbose OLDEMAIL'
       end
     end
 
@@ -64,31 +63,37 @@ module Onetime
     #
     # @see Onetime::Services::ChangeEmail
     # Command to change customer email addresses
-    def change_email # rubocop:disable Metrics/MethodLength
+    # rubocop:disable Metrics/MethodLength
+    # rubocop:disable Metrics/PerceivedComplexity
+    def change_email
       if argv.length < 2
-        puts "Usage: ots change-email OLD_EMAIL NEW_EMAIL [REALM]"
+        puts 'Usage: ots change-email OLD_EMAIL NEW_EMAIL [REALM]'
         puts "  Change a customer's email address and update related records."
-        puts ""
-        puts "  Arguments:"
-        puts "    OLD_EMAIL    Current email address of the customer"
-        puts "    NEW_EMAIL    New email address to change to"
-        puts "    REALM        Optional: Geographic region (US/EU/CA/NZ), defaults to US"
-        puts ""
-        puts "  Example:"
-        puts "    ots change-email user@example.com new@example.com"
-        puts ""
-        puts "  Note: Custom domains associated with this customer will be"
-        puts "  automatically detected and updated."
+        puts ''
+        puts '  Arguments:'
+        puts '    OLD_EMAIL    Current email address of the customer'
+        puts '    NEW_EMAIL    New email address to change to'
+        puts '    REALM        Optional: Geographic region (US/EU/CA/NZ), defaults to US'
+        puts ''
+        puts '  Example:'
+        puts '    ots change-email user@example.com new@example.com'
+        puts ''
+        puts '  Note: Custom domains associated with this customer will be'
+        puts '  automatically detected and updated.'
         return
       end
 
       old_email = argv[0]
       new_email = argv[1]
-      realm = argv[2] || "US"
-      domains = []
+      realm     = argv[2] || 'US'
+      domains   = []
 
       # Load customer to check if exists
-      customer = V2::Customer.load(old_email) rescue nil
+      customer = begin
+                   V2::Customer.load(old_email)
+      rescue StandardError
+                   nil
+      end
       if customer.nil?
         puts "Error: Customer with email #{old_email} not found"
         exit 1
@@ -102,16 +107,16 @@ module Onetime
           puts "Found #{custom_domains.size} domain(s) associated with customer:"
           custom_domains.each_with_index do |domain, index|
             display_domain = domain.display_domain
-            old_id = domain.identifier
+            old_id         = domain.identifier
             puts "  #{index+1}. #{display_domain} (ID: #{old_id})"
-            domains << {domain: display_domain, old_id: old_id}
+            domains << { domain: display_domain, old_id: old_id }
           end
         else
-          puts "No custom domains associated with this customer."
+          puts 'No custom domains associated with this customer.'
         end
-      rescue => e
-        puts "Warning: Error detecting custom domains: #{e.message}"
-        puts e.backtrace.join("\n") if OT.debug?
+      rescue StandardError => ex
+        puts "Warning: Error detecting custom domains: #{ex.message}"
+        puts ex.backtrace.join("\n") if OT.debug?
       end
 
       # Initialize the email change service
@@ -124,14 +129,14 @@ module Onetime
       # First validate
       begin
         if service.validate!
-          puts "Validation passed. Ready to execute changes."
+          puts 'Validation passed. Ready to execute changes.'
 
           # Display summary of changes
           puts "\nPREVIEW OF CHANGES:"
           puts service.summarize_changes
           puts
 
-          print "Proceed with email change? (y/n): "
+          print 'Proceed with email change? (y/n): '
           confirm = STDIN.gets.chomp.downcase
 
           if confirm == 'y'
@@ -161,11 +166,11 @@ module Onetime
               # Check domains were migrated properly
               if domains.any?
                 all_domains_verified = true # Assume true initially for domain checks
-                puts "Checking domain mappings:"
+                puts 'Checking domain mappings:'
                 domains.each_with_index do |domain_info, index|
-                  domain = domain_info[:domain]
+                  domain        = domain_info[:domain]
                   # Check display_domains mapping
-                  new_domain_id = V2::CustomDomain.redis.hget("customdomain:display_domains", domain)
+                  new_domain_id = V2::CustomDomain.redis.hget('customdomain:display_domains', domain)
                   calculated_id = [domain, new_email].gibbler.shorten
 
                   if new_domain_id == calculated_id
@@ -176,14 +181,14 @@ module Onetime
                   end
                 end
                 # Final success depends on both customer and all domains being verified
-                verify_success = V2::Customer.exists?(new_email) && all_domains_verified
+                verify_success       = V2::Customer.exists?(new_email) && all_domains_verified
               end
 
               if verify_success
                 puts "\n✅ Verification successful! All records updated properly."
               else
                 puts "\n❌ Verification failed! Some records may not be properly updated."
-                puts "   This may indicate an issue with the update process."
+                puts '   This may indicate an issue with the update process.'
               end
 
               # Save report to Redis for permanent audit trail
@@ -195,19 +200,21 @@ module Onetime
               exit 1
             end
           else
-            puts "Operation cancelled."
+            puts 'Operation cancelled.'
           end
         end
-      rescue => e
+      rescue StandardError => ex
         # Handle validation and execution errors with descriptive messages
-        puts "Error during operation: #{e.message}"
+        puts "Error during operation: #{ex.message}"
         puts "Check the domain IDs carefully. If there's a mismatch between stored and calculated IDs,"
-        puts "this may indicate data corruption or manual changes to Redis keys."
+        puts 'this may indicate data corruption or manual changes to Redis keys.'
 
-        puts e.backtrace.join("\n") if OT.debug?
+        puts ex.backtrace.join("\n") if OT.debug?
         exit 1
       end
     end
+    # rubocop:enable Metrics/MethodLength
+    # rubocop:enable Metrics/PerceivedComplexity
 
     # Helper method to fetch a specific email change report from Redis
     # @param key [String] The Redis key for the report
