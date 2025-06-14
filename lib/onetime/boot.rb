@@ -11,8 +11,8 @@ module Onetime
   @debug = nil
 
   class << self
-    attr_accessor :mode, :d9s_enabled # rubocop:disable ThreadSafety/ClassAndModuleAttributes
-    attr_reader :configurator, :conf, :instance, :i18n_enabled, :locales, :supported_locales, :default_locale, :fallback_locale, :global_banner, :rotated_secrets, :emailer, :first_boot
+    attr_accessor :d9s_enabled # rubocop:disable ThreadSafety/ClassAndModuleAttributes
+    attr_reader :configurator, :conf, :instance, :i18n_enabled, :locales, :supported_locales, :default_locale, :fallback_locale, :global_banner, :rotated_secrets, :emailer, :first_boot, :mode
     attr_writer :debug, :env, :global_secret # rubocop:disable ThreadSafety/ClassAndModuleAttributes
 
     using IndifferentHashAccess
@@ -38,20 +38,24 @@ module Onetime
     # Result**: OT.conf evolves from file-only → merged config during boot,
     # maintaining compatibility with all existing code that expects `OT.conf`
     # to be the single source of truth.
-    def boot!(mode = :app, connect_to_db = true)
-      @mode = mode
+    def boot!(mode = nil, connect_to_db = true)
+      @mode ||= mode || :app
 
       # Sets a unique SHA hash every time this process starts. In a multi-
       # threaded environment (e.g. with Puma), this should be different for
       # each thread. See tests/unit/ruby/rspec/puma_multi_process_spec.rb.
       @instance = [Process.pid.to_s, OT::VERSION.to_s].gibbler.short.freeze
 
-      OT.ld "[BOOT] Initializing in '#{OT.mode}' mode (instance: #{@instance})"
+      OT.ld "[BOOT] Initializing in '#{OT.mode}' mode (instance: #{instance})"
 
-      @configurator = OT::Configurator.load! do |conf|
+      @configurator = OT::Configurator.load! do |config, scripts_dir|
         OT.ld '[BOOT] A chance to modify the conf hash before it is frozen'
-
-        conf # must return the configuration hash
+        run_init_scripts(config,
+          scripts_dir: scripts_dir,
+          instance: instance,
+          mode: self.mode,
+          connect_to_db: connect_to_db,
+        )
       end
 
       OT.li "[BOOT] Configuration loaded from #{configurator.config_path}"
@@ -69,36 +73,10 @@ module Onetime
       # and then responds with 400 and an angry [view_vars] "Site config is
       # missing field: host".
       @conf = configurator.configuration
-
-
-      # Initializers - simplified
-      #
-      # The registry was solving a problem you don't actually have. Your boot
-      # sequence is fundamentally sequential, not a complex dependency graph.
-      # The **module-per-initializer pattern** was solving the registry's
-      # needs, not your actual needs.
-      #
-      # Phase 1: Basic setup
-      # * Reads from file-based OT.conf (frozen)
-      # * Writes to global OT attributes.
-      require_relative 'initializers/phase1_before_database'
-      run_phase1_initializers
-
-      # Phase 2: Database + Config Merge
-      # * Reads from database
-      # * Replaces OT.conf with merged config
-      if connect_to_db
-        require_relative 'initializers/phase2_connect_database'
-        run_phase2_initializers
-      end
-
-      # Phase 3: Services (reads from merged OT.conf)
-      require_relative 'initializers/phase3_services'
-      run_phase3_initializers
-
+      require 'pry-byebug'; binding.pry;
       OT.ld '[BOOT] Completing initialization process...'
       Onetime.complete_initialization!
-      OT.li "[BOOT] Startup completed successfully (instance: #{@instance})"
+      OT.li "[BOOT] Startup completed successfully (instance: #{instance})"
 
       # Let's be clear about returning the prepared configruation. Previously
       # we returned @conf here which was confusing because already made it
@@ -129,6 +107,19 @@ module Onetime
     end
 
     private
+
+    def run_init_scripts(config, scripts_dir:, **options)
+      return unless Dir.exist?(scripts_dir)
+
+      config.keys.each do |section_key|
+        filename = "#{section_key}.rb"
+        script_path = File.join(scripts_dir, filename)
+        next unless File.exist?(script_path)
+
+        OT.ld("[BOOT] Initializing: #{section_key}")
+        OT::Configurator::Load.ruby_load_file(script_path)
+      end
+    end
 
     def handle_boot_error(error)
       case error
@@ -179,6 +170,32 @@ __END__
 # Work over these and at the bottom of config_module.rb.txt
 #
 
+
+      # Initializers - simplified
+      #
+      # The registry was solving a problem you don't actually have. Your boot
+      # sequence is fundamentally sequential, not a complex dependency graph.
+      # The **module-per-initializer pattern** was solving the registry's
+      # needs, not your actual needs.
+      #
+      # Phase 1: Basic setup
+      # # * Reads from file-based OT.conf (frozen)
+      # # * Writes to global OT attributes.
+      # require_relative 'initializers/phase1_before_database'
+      # run_phase1_initializers
+
+      # # Phase 2: Database + Config Merge
+      # # * Reads from database
+      # # * Replaces OT.conf with merged config
+      # if connect_to_db
+      #   require_relative 'initializers/phase2_connect_database'
+      #   run_phase2_initializers
+      # end
+
+      # # Phase 3: Services (reads from merged OT.conf)
+      # require_relative 'initializers/phase3_services'
+      # run_phase3_initializers
+      #
 def after_load
   # # Process colonels backwards compatibility
   # process_colonels_compatibility!(local_copy)

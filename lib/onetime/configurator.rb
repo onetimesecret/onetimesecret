@@ -34,6 +34,8 @@ module Onetime
     ].uniq.freeze
     @extensions = ['.yml', '.yaml', '.json', '.json5', ''].freeze
 
+    @init_scripts_dir = File.join(Onetime::HOME, 'etc', 'init.d')
+
     attr_accessor :config_path, :schema_path
     attr_reader :schema, :parsed_yaml, :config_template_str, :processed_config
 
@@ -68,7 +70,7 @@ module Onetime
         .then { |template| render_erb_template(template) }
         .then { |yaml_content| parse_yaml(yaml_content) }
         .then_with_diff('initial') { |config| validate_with_defaults(config) }
-        .then_with_diff('processed') { |config| after_load(config, &) }
+        .then_with_diff('processed') { |config| run_init_hook(config, &) }
         .then_with_diff('validated') { |config| validate(config) }
         .then_with_diff('freezed') { |config| deep_freeze(config) }
 
@@ -133,10 +135,12 @@ module Onetime
     # beyond what can reasonably be handled by declarative validation (e.g.
     # zod transformations).
     #
-    # @return [Hash] The processed configuration has
-    def after_load(config, &)
-      OT.ld("[config] After loading (has block: #{block_given?})")
-      block_given? ? yield(config) : config
+    # @return [Hash] The processed configuration
+    def run_init_hook(config, &)
+      scripts_dir = self.class.init_scripts_dir
+      OT.ld("[config] Run init hook (has block: #{block_given?}) #{scripts_dir}")
+      yield(config, scripts_dir) if block_given?
+      config # return the config back to the pipeline
     end
 
     def validate(config)
@@ -162,9 +166,8 @@ module Onetime
       end
 
       OT.ld <<~DEBUG
-        [config]
-          Template: `#{@template_str.to_s[0..50]}`
-          Parsed YAML: `#{@parsed_yaml.class}`
+        [config] Loaded `#{@parsed_yaml.class}`) from template:
+          #{@template_str.to_s[0..100]}`
       DEBUG
 
       if unprocessed_config
@@ -195,7 +198,7 @@ module Onetime
     end
 
     class << self
-      attr_reader :xdg, :paths, :extensions
+      attr_reader :xdg, :paths, :extensions, :init_scripts_dir
 
       # Instantiates a new configuration object, loads it, and it returns itself
       def load!(&) = new.load!(&)

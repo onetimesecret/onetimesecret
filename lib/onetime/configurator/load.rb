@@ -9,6 +9,7 @@ module Onetime
       # @return [Hash] Parsed JSON object (ditto for YAML)
       def json_load_file(path) = json_load(file_read(path))
       def yaml_load_file(path) = yaml_load(file_read(path))
+      def ruby_load_file(path) = ruby_load(path)
 
       # @param json [String] JSON string to parse
       # @return [Hash] Parsed JSON object
@@ -26,6 +27,18 @@ module Onetime
       rescue Psych::SyntaxError => ex
         OT.le "Error parsing YAML: #{ex.message}"
         raise OT::ConfigError, 'Invalid YAML schema'
+      end
+
+      # @param path [String] Path to Ruby file to load
+      # @return [Boolean] True if successful
+      def ruby_load(path)
+        load(path.to_s)
+      rescue LoadError => ex
+        OT.le "Error loading Ruby file: #{ex.message}"
+        raise OT::ConfigError, "Invalid Ruby file: #{path}"
+      rescue SyntaxError => ex
+        OT.le "Syntax error in Ruby file: #{ex.message}"
+        raise OT::ConfigError, "Ruby syntax error in: #{path}"
       end
 
       # NOTE: This method loads the entire file into memory at once.
