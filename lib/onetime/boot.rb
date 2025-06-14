@@ -51,7 +51,7 @@ module Onetime
 
     @init_scripts_dir = File.join(Onetime::HOME, 'etc', 'init.d').freeze
 
-    attr_reader :init_scripts_dir
+    attr_reader :init_scripts_dir, :configurator
 
     using IndifferentHashAccess
 
@@ -136,28 +136,80 @@ module Onetime
     #
     # Different from onetime/services/system which run AFTER config is frozen and
     # handle system-wide services (Redis, databases, emailer, etc).
-    def run_init_scripts(config, **)
+    def run_init_scripts(config_being_processed, **)
       base_path = init_scripts_dir
       return unless Dir.exist?(base_path)
 
-      global = OT::Utils.deep_freeze(config, clone: true)
-
       # Loop through each of the top-level config sections
+      #
+      # Only run scripts that exist
+      run_these_scripts = config_being_processed.keys
+        .map { |key| [key, File.join(base_path, "#{key}.rb")] }
+        .select { |_, path| File.exist?(path) }
+        .to_h
+
+      return if run_these_scripts.empty? # there were no actual files
+
+      OT.ld "[BOOT] Starting init script processing phase for: #{run_these_scripts.keys.join(', ')}."
+
+      # Runs init.d scripts for each config section during the processing hook phase.
+      # Config is still mutable - these scripts can modify their section's config,
+      # register routes, set feature flags, etc. One script per config section.
+      #
+      # Different from onetime/services/system which run AFTER config is frozen and
+      # handle system-wide services (Redis, databases, emailer, etc).
       # e.g. site, storage, i18n, ...
-      config.keys.each do |section_key|
-        filename  = "#{section_key}.rb"
-        file_path = File.join(base_path, filename)
-        next unless File.exist?(file_path)
+      run_these_scripts.each do |section_key, file_path|
+        run_init_script(config_being_processed, section_key, file_path, **)
 
-        OT.ld("[BOOT] Initializing: #{section_key}")
-
-        section_config = config[section_key] # still mutable
-
-        # Create context for script execution, passing along the
-        # variables that it'll have access to.
-        context = OT::Boot::InitScriptContext.new(section_config, section_key, global, **)
-        OT::Configurator::Load.ruby_load_file(file_path, context.script_binding)
+      rescue StandardError
+        OT.le <<~MSG
+          [BOOT] ERROR: Unhandled exception during init script processing.
+            Halting further init scripts.
+        MSG
+        # The specific error details (class, message, backtrace) will be
+        # logged by handle_boot_error
+        raise
       end
+
+      OT.li '[BOOT] Successfully completed init script processing phase.'
+    end
+
+    # File existence is already checked by the scripts_to_run filter
+    def run_init_script(config_being_processed, section_key, file_path, **)
+      OT.ld "[BOOT] Preparing to execute init script for section: '#{section_key}' (from #{file_path})"
+
+      # Create a frozen snapshot of the *current* state of the main config
+      # This snapshot includes changes from any previous scripts in this loop.
+      global_snapshot        = OT::Utils.deep_freeze(config_being_processed, clone: true)
+      current_section_config = config_being_processed[section_key] # still original reference
+
+      # Create context for script execution, passing along the
+      # variables that it'll have access to.
+      context = OT::Boot::InitScriptContext.new(
+        current_section_config, # mutable
+        section_key,
+        global_snapshot,        # includes updated previous section but immutable
+        ** # rubocop:disable Style/TrailingCommaInArguments
+      )
+
+      execute_script_with_context(file_path, context)
+      OT.ld "[BOOT] Finished processing init script for section: '#{section_key}'."
+    end
+
+    def execute_script_with_context(file_path, context)
+      # The load method hands rescuing SystemExit to prevent an init script
+      # from completely derailing the boot process (even by accident).
+      # Technically it's no less secure than reading a ruby file in a
+      # different branch of the project, but since it sits near the YAML
+      # configuration file, it is more exposed to tomfoolery.
+      OT.ld "[BOOT] Executing: #{context.section_key} (file: #{file_path})"
+      OT::Configurator::Load.ruby_load_file(file_path, context)
+
+    rescue SystemExit => ex
+      # Log that a script attempted to exit, then continue to the next script in the loop
+      OT.li "[BOOT] Init script '#{context.section_key}' (from #{file_path}) called exit(#{ex.status}). Handled; boot sequence continues."
+      # Any other StandardError will propagate up to run_init_scripts's rescue block
     end
 
     def handle_boot_error(error)
@@ -174,8 +226,14 @@ module Onetime
       when Redis::CannotConnectError
         OT.le "Cannot connect to Redis #{Familia.uri} (#{error.class})"
       else
-        OT.le "Unexpected error during boot: #{error.class} - #{error.message}"
-        OT.ld error.backtrace.join("\n")
+        codepath = OT.debug? ? error.backtrace : error.backtrace[0..0]
+        OT.le <<~MSG
+          Unexpected error during boot (#{error.class}):
+
+          #{error.message}
+          #{codepath.join("\n")}
+
+        MSG
       end
 
       # NOTE: Prefer `raise` over `exit` here. Previously we used

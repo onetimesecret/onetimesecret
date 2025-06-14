@@ -41,6 +41,7 @@ Layout/CommentIndentation:
 
 Layout/MultilineMethodCallBraceLayout:
   Enabled: true
+  EnforcedStyle: new_line # symmetrical, new_line, same_line
 
 Layout/TrailingWhitespace:
   Enabled: true

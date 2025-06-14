@@ -28,3 +28,7 @@ end
 
 # You can modify the configuration here if needed
 # config['middleware'] = Time.now.to_i if config['site']
+
+#config['host'] = 'dev.plop.dev'
+#
+#exit 5

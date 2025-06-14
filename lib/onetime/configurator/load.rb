@@ -30,21 +30,29 @@ module Onetime
       end
 
       # @param path [String] Path to Ruby file to load
-      # @param context [Binding, nil] Optional binding context for evaluation
+      # @param context [Object, nil] Optional binding context for evaluation
       # @return [Boolean] True if successful
       def ruby_load(path, context = nil)
+        content = file_read(path) # Read file content first
         if context
-          content = file_read(path)
-          eval(content, context, path)
+          # Execute in the context of the provided object
+          context.instance_eval(content, path.to_s)
         else
-          load(path.to_s)
+          # Fallback to global load if no context object is given
+          # This branch might be less common for init scripts but kept for flexibility
+          Kernel.load(path.to_s)
         end
+        true
       rescue LoadError => ex
         OT.le "Error loading Ruby file: #{ex.message}"
-        raise OT::ConfigError, "Invalid Ruby file: #{path}"
+        # Preserving original error class for specific LoadError issues if 'load' was used
+        # For instance_eval, this is less likely unless script itself has 'load' or 'require'
+        raise OT::ConfigError, "Invalid Ruby file (LoadError): #{path} - #{ex.message}"
       rescue SyntaxError => ex
         OT.le "Syntax error in Ruby file: #{ex.message}"
         raise OT::ConfigError, "Ruby syntax error in: #{path}"
+      else
+        false
       end
 
       # NOTE: This method loads the entire file into memory at once.
