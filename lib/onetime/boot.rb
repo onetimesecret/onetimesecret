@@ -49,12 +49,13 @@ module Onetime
 
       OT.ld "[BOOT] Initializing in '#{OT.mode}' mode (instance: #{instance})"
 
-      @configurator = OT::Configurator.load! do |config, scripts_dir|
+
+      OT.ld "[BOOT] Initializing in '#{OT.mode}' mode (instance: #{instanceid})"
+
+      @configurator = OT::Configurator.load! do |config|
         OT.ld '[BOOT] Processing hook - config transformations before final freeze'
         run_init_scripts(config,
-          scripts_dir: scripts_dir,
-          instance: instance,
-          mode: self.mode,
+          instanceid: instanceid, # these are passed directly to each script
           connect_to_db: connect_to_db,
         )
       end
@@ -115,19 +116,27 @@ module Onetime
     #
     # Different from onetime/services/system which run AFTER config is frozen and
     # handle system-wide services (Redis, databases, emailer, etc).
-    def run_init_scripts(config, scripts_dir:, **options)
-      return unless Dir.exist?(scripts_dir)
+    def run_init_scripts(config, **)
+      base_path = init_scripts_dir
+      return unless Dir.exist?(base_path)
 
+      global = OT::Utils.deep_freeze(config, clone: true)
+
+      # Loop through each of the top-level config sections
+      # e.g. site, storage, i18n, ...
       config.keys.each do |section_key|
-        filename = "#{section_key}.rb"
-        script_path = File.join(scripts_dir, filename)
-        next unless File.exist?(script_path)
+        filename  = "#{section_key}.rb"
+        file_path = File.join(base_path, filename)
+        next unless File.exist?(file_path)
 
         OT.ld("[BOOT] Initializing: #{section_key}")
 
-        # Create context for script execution
-        context = OT::Boot::InitScriptContext.new(config, section_key, **options)
-        OT::Configurator::Load.ruby_load_file(script_path, context.script_binding)
+        section_config = config[section_key] # still mutable
+
+        # Create context for script execution, passing along the
+        # variables that it'll have access to.
+        context = OT::Boot::InitScriptContext.new(section_config, section_key, global, **)
+        OT::Configurator::Load.ruby_load_file(file_path, context.script_binding)
       end
     end
 

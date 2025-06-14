@@ -36,8 +36,6 @@ module Onetime
     ].uniq.freeze
     @extensions = ['.yml', '.yaml', '.json', '.json5', ''].freeze
 
-    @init_scripts_dir = File.join(Onetime::HOME, 'etc', 'init.d')
-
     attr_accessor :config_path, :schema_path
     attr_reader :schema, :parsed_yaml, :config_template_str, :processed_config
 
@@ -141,9 +139,8 @@ module Onetime
     #
     # @return [Hash] The processed configuration
     def run_processing_hook(config, &)
-      scripts_dir = self.class.init_scripts_dir
-      OT.ld("[config] Run init hook (has block: #{block_given?}) #{scripts_dir}")
-      yield(config, scripts_dir) if block_given?
+      OT.ld("[config] Run init hook (has block: #{block_given?})")
+      yield(config) if block_given?
       config # return the config back to the pipeline
     end
 
