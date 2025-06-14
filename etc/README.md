@@ -11,8 +11,8 @@ This directory contains configuration files and processing logic for the applica
 ## Files
 
 ### Core Configuration
+- `examples/config.example.yaml` - Template with example values
 - `config.yaml` - Main application configuration
-- `config.example.yaml` - Template with example values
 - `config.schema.json` - Validation schema and defaults
 
 ### System Configuration

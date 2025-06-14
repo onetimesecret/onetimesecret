@@ -23,7 +23,7 @@
 # To build and use this image, you need to copy the example
 # configuration files into place:
 #
-#     $ cp --preserve --no-clobber ./etc/config.example.yaml ./etc/config
+#     $ cp --preserve --no-clobber ./etc/examples/config.example.yaml ./etc/config.yaml
 #     $ cp --preserve --no-clobber .env.example .env
 #
 # The default values work as-is but it's a good practice to have
@@ -243,7 +243,7 @@ WORKDIR $CODE_ROOT
 # (and modified) the "--no-clobber" argument prevents
 # those changes from being overwritten.
 RUN set -eux \
-  && cp --preserve --no-clobber etc/config.example.yaml etc/config.yaml
+  && cp --preserve --no-clobber etc/examples/config.example.yaml etc/config.yaml
 
 # About the interplay between the Dockerfile CMD, ENTRYPOINT,
 # and the Docker Compose command settings:

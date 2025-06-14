@@ -30,33 +30,6 @@ user_interface:
     enabled: <%= ENV['FOOTER_LINKS'] == 'true' || false %>
     # Organized groups of links
     groups:
-      - :name: legal
-        i18n_key: web.footer.legals
-        links:
-          - :text: Terms of Service
-            i18n_key: terms-of-service
-            # Replace with your own terms URL or use relative path like /terms
-            url: <%= ENV['TERMS_URL']  %>
-            external: <%= ENV['TERMS_EXTERNAL'] || false %>
-          - :text: Privacy Policy
-            i18n_key: privacy-policy
-            # Replace with your own privacy URL or use relative path like /privacy
-            url: <%= ENV['PRIVACY_URL']  %>
-            external: <%= ENV['PRIVACY_EXTERNAL'] || false %>
-      - :name: resources
-        i18n_key: web.footer.resources
-        links:
-          - :text: Status
-            i18n_key: status
-            # Replace with your status page URL if you have one
-            url: <%= ENV['STATUS_URL'] %>
-            external: <%= ENV['STATUS_EXTERNAL'] || true %>
-            icon: signal
-          - :text: About
-            i18n_key: web.COMMON.about
-            # Replace with your about page URL
-            url: <%= ENV['ABOUT_URL'] %>
-            external: <%= ENV['ABOUT_EXTERNAL'] || false %>
       - :name: support
         i18n_key: web.footer.support
         links:
@@ -64,6 +37,14 @@ user_interface:
             i18n_key: web.footer.contact
             url: <%= ENV['CONTACT_URL'] %>
             external: false
+      - :name: resources
+        i18n_key: web.footer.resources
+        links:
+          - :text: Status
+            i18n_key: status
+            url: <%= ENV['STATUS_URL'] %>
+            external: <%= ENV['STATUS_EXTERNAL'] || true %>
+            icon: signal
   signup: <%= ENV['AUTH_SIGNUP'] != 'false' %>
   signin: <%= ENV['AUTH_SIGNIN'] != 'false' %>
   autoverify: null
