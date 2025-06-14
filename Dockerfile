@@ -212,6 +212,7 @@ COPY apps $CODE_ROOT/apps
 COPY etc $CODE_ROOT/etc
 COPY lib $CODE_ROOT/lib
 COPY migrate $CODE_ROOT/migrate
+COPY scripts/entrypoint.sh $CODE_ROOT/bin/
 COPY package.json config.ru Gemfile Gemfile.lock $CODE_ROOT/
 
 # Copy build stage metadata files
@@ -261,4 +262,4 @@ RUN set -eux \
 # Rack app
 EXPOSE 3000
 
-CMD ["bin/entrypoint.sh"]
+CMD ["scripts/entrypoint.sh"]
