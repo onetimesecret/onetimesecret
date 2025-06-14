@@ -4,7 +4,7 @@ module Onetime
   module Boot
     # Context object that provides a clean interface for init scripts
     # to access configuration and boot options
-    class InitScriptContext
+    #
     # Single Responsibility**: Configurator loads/validates config. # InitScriptContext executes initialization logic - that's Boot's domain.
     #
     # 2. **Dependencies**: It requires boot-time context (`mode`, `instance`, # `connect_to_db`) that only Boot knows about.
