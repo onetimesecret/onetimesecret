@@ -39,7 +39,6 @@ node_modules/
 vendor/
 log/
 tmp/
-etc/caddy/
 coverage/
 dist/
 public/web/dist/
@@ -49,8 +48,7 @@ public/web/dist/
 .DS_Store
 !pr_agent.toml
 etc/config*
-!etc/config.example.yaml
-etc/schemas/
+etc/*.yaml
 support/schemas/
 etc/system_settings*
 !etc/system_settings.example.yaml
