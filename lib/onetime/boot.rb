@@ -16,6 +16,43 @@ module Onetime
     attr_reader :configurator, :conf, :instance, :i18n_enabled, :locales, :supported_locales, :default_locale, :fallback_locale, :global_banner, :rotated_secrets, :emailer, :first_boot, :mode
     attr_writer :debug, :env, :global_secret # rubocop:disable ThreadSafety/ClassAndModuleAttributes
 
+    def boot!(*)
+      Boot.boot!(*)
+    end
+
+    def safe_boot!(*)
+      boot!(*)
+      true
+    rescue StandardError
+      # Boot errors are already logged in handle_boot_error
+      OT.not_ready! # returns false
+    ensure
+      # We can't do much without the initial file-based configuration. If it's
+      # nil here it means that there's also no schema (which has the defaults).
+      if OT.conf.nil?
+        OT.le '-' * 70
+        OT.le '[BOOT] Configuration failed to load and validate'
+        OT.le '[BOOT] Has the schema been generated? Run `pnpm run schema:generate`'
+        OT.le '-' * 70
+        # return nil
+      end
+    end
+
+    def set_boot_state(mode, instanceid, env)
+      @mode       = mode
+      @instance   = instanceid # TODO: rename OT.instance -> instanceid
+      @env        = env || :production
+    end
+
+  end
+
+  module Boot
+    extend self
+
+    @init_scripts_dir = File.join(Onetime::HOME, 'etc', 'init.d').freeze
+
+    attr_reader :init_scripts_dir
+
     using IndifferentHashAccess
 
     # Boot reads and interprets the configuration and applies it to the
@@ -40,14 +77,15 @@ module Onetime
     # maintaining compatibility with all existing code that expects `OT.conf`
     # to be the single source of truth.
     def boot!(mode = nil, connect_to_db = true)
-      @mode ||= mode || :app
+
+      env = (ENV['RACK_ENV'] || 'production').downcase
 
       # Sets a unique SHA hash every time this process starts. In a multi-
       # threaded environment (e.g. with Puma), this should be different for
       # each thread. See tests/unit/ruby/rspec/puma_multi_process_spec.rb.
-      @instance = [Process.pid.to_s, OT::VERSION.to_s].gibbler.short.freeze
+      instanceid = [Process.pid.to_s, OT::VERSION.to_s].gibbler.short.freeze
 
-      OT.ld "[BOOT] Initializing in '#{OT.mode}' mode (instance: #{instance})"
+      Onetime.set_boot_state(mode, instanceid, env)
 
 
       OT.ld "[BOOT] Initializing in '#{OT.mode}' mode (instance: #{instanceid})"
@@ -88,24 +126,6 @@ module Onetime
       nil
     rescue StandardError => ex
       handle_boot_error(ex)
-    end
-
-    def safe_boot!(mode = nil, connect_to_db = true)
-      boot!(mode, connect_to_db)
-      true
-    rescue StandardError
-      # Boot errors are already logged in handle_boot_error
-      OT.not_ready! # returns false
-    ensure
-      # We can't do much without the initial file-based configuration. If it's
-      # nil here it means that there's also no schema (which has the defaults).
-      if OT.conf.nil?
-        OT.le '-' * 70
-        OT.le '[BOOT] Configuration failed to load and validate'
-        OT.le '[BOOT] Has the schema been generated? Run `pnpm run schema:generate`'
-        OT.le '-' * 70
-        # return nil
-      end
     end
 
     private
