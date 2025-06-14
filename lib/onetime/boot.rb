@@ -2,7 +2,8 @@
 
 require 'onetime/refinements/hash_refinements'
 
-require_relative 'initializers'
+require_relative 'boot/init_script_context'
+require_relative 'services/system'
 
 module Onetime
   @conf  = nil
@@ -112,7 +113,7 @@ module Onetime
     # Config is still mutable - these scripts can modify their section's config,
     # register routes, set feature flags, etc. One script per config section.
     #
-    # Different from onetime/initializers which run AFTER config is frozen and
+    # Different from onetime/services/system which run AFTER config is frozen and
     # handle system-wide services (Redis, databases, emailer, etc).
     def run_init_scripts(config, scripts_dir:, **options)
       return unless Dir.exist?(scripts_dir)
@@ -123,7 +124,10 @@ module Onetime
         next unless File.exist?(script_path)
 
         OT.ld("[BOOT] Initializing: #{section_key}")
-        OT::Configurator::Load.ruby_load_file(script_path)
+
+        # Create context for script execution
+        context = OT::Boot::InitScriptContext.new(config, section_key, **options)
+        OT::Configurator::Load.ruby_load_file(script_path, context.script_binding)
       end
     end
 
@@ -187,19 +191,19 @@ __END__
       # Phase 1: Basic setup
       # # * Reads from file-based OT.conf (frozen)
       # # * Writes to global OT attributes.
-      # require_relative 'initializers/phase1_before_database'
+      # require_relative 'services/system/phase1_before_database'
       # run_phase1_initializers
 
       # # Phase 2: Database + Config Merge
       # # * Reads from database
       # # * Replaces OT.conf with merged config
       # if connect_to_db
-      #   require_relative 'initializers/phase2_connect_database'
+      #   require_relative 'services/system/phase2_connect_database'
       #   run_phase2_initializers
       # end
 
       # # Phase 3: Services (reads from merged OT.conf)
-      # require_relative 'initializers/phase3_services'
+      # require_relative 'services/system/phase3_services'
       # run_phase3_initializers
       #
 def after_load

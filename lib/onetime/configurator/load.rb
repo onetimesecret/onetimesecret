@@ -9,7 +9,7 @@ module Onetime
       # @return [Hash] Parsed JSON object (ditto for YAML)
       def json_load_file(path) = json_load(file_read(path))
       def yaml_load_file(path) = yaml_load(file_read(path))
-      def ruby_load_file(path) = ruby_load(path)
+      def ruby_load_file(path, context = nil) = ruby_load(path, context)
 
       # @param json [String] JSON string to parse
       # @return [Hash] Parsed JSON object
@@ -30,9 +30,15 @@ module Onetime
       end
 
       # @param path [String] Path to Ruby file to load
+      # @param context [Binding, nil] Optional binding context for evaluation
       # @return [Boolean] True if successful
-      def ruby_load(path)
-        load(path.to_s)
+      def ruby_load(path, context = nil)
+        if context
+          content = file_read(path)
+          eval(content, context, path)
+        else
+          load(path.to_s)
+        end
       rescue LoadError => ex
         OT.le "Error loading Ruby file: #{ex.message}"
         raise OT::ConfigError, "Invalid Ruby file: #{path}"

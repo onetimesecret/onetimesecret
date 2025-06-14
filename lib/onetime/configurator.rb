@@ -136,7 +136,7 @@ module Onetime
     # - Can modify config, register routes, set feature flags
     #
     # After config is frozen:
-    # - onetime/initializers: System-wide services (Redis, i18n, emailer, etc.)
+    # - onetime/services/system: System-wide services (Redis, i18n, emailer, etc.)
     # - Cannot modify config, only read it to configure services
     #
     # @return [Hash] The processed configuration

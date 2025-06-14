@@ -8,7 +8,7 @@ the 'site' config). Scripts execute during the config processing phase with acce
 - Boot-time options (mode, instance, etc.)
 
 These scripts handle section-specific setup: modifying config, registering routes,
-setting feature flags. They run BEFORE config is frozen, unlike onetime/initializers
+setting feature flags. They run BEFORE config is frozen, unlike onetime/boot/services
 which configure system-wide services (Redis, databases, etc.) using frozen config.
 
 Scripts are optional - only sections with corresponding .rb files are initialized.
