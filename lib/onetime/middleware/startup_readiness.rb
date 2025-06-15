@@ -102,7 +102,7 @@ module Onetime
       end
 
       class << self
-        attr_accessor :default_response_type, :translations
+        attr_reader :default_response_type, :translations
 
         def response_type(type)
           OT.ld("[middleware] setting response type to #{type}")
@@ -123,21 +123,21 @@ module Onetime
         when :html
           false
         when :auto
-          detect_json_request?(env)
+          detect_json_api?(env)
         else
-          # Allow subclasses to override with custom logic
-          respond_to?(:custom_response_type_check?, true) ?
-            custom_response_type_check?(env) :
-            detect_json_request?(env)
+          if respond_to?(:custom_response_type_check?, true)
+            # Allows subclasses to override with custom logic
+            custom_response_type_check?(env)
+          else
+            false # default to HTML response
+          end
         end
       end
 
-      def detect_json_request?(env)
-        accept_header = env['HTTP_ACCEPT'] || ''
-        content_type = env['CONTENT_TYPE'] || ''
-
-        accept_header.include?('application/json') ||
-        content_type.include?('application/json')
+      def detect_json_api?(env)
+        # Access the application's mount point to make an educated guess
+        mount_point = env['SCRIPT_NAME']
+        mount_point.start_with?('/api')
       end
 
       def json_response(lang_code)
