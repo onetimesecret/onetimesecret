@@ -1,21 +1,28 @@
 # lib/onetime/boot/init_script_context.rb
 
-require 'onetime/refinements/hash_refinements'
+require 'extentions/flexible_key_access'
 
 module Onetime
   module Boot
     # Context object that provides a clean interface for init scripts
     # to access configuration and boot options
     #
+    # NOTE: Scripts must using strings when accessing global, config, options.
+    #
+    # DEBUGGING: To debug init scripts with access to all instance variables,
+    # add a breakpoint here in initialize() rather than in the script itself.
+    # This gives you access to @config, @global, @section_key, @options, etc.
+    #
+    # To target a specific script, use: `binding.pry if section?('section_key')`
+    #
     class InitScriptContext
-
       attr_reader :global, :config, :section_key, :options
 
       def initialize(config, section_key, global, **options)
         @config         = config # mutable
         @section_key    = section_key
         @global         = global # immutable
-        @options        = options
+        @options        = options.extend(Extensions::FlexibleKeyAccess)
       end
 
       # Helper methods available to init scripts
@@ -29,6 +36,10 @@ module Onetime
 
       def connect_to_db?
         options[:connect_to_db]
+      end
+
+      def section?(guess)
+        section_key.to_s.eql?(guess)
       end
 
       def debug?
