@@ -178,17 +178,17 @@ module Onetime
 
         def secret_display_domain(obj)
           scheme = base_scheme
-          host   = obj.share_domain || Onetime.conf[:site][:host]
+          host   = obj.share_domain || Onetime.conf&.dig(:site, :host)
           [scheme, host].join
         end
 
         def base_scheme
-          Onetime.conf[:site][:ssl] ? 'https://' : 'http://'
+          Onetime.conf&.dig(:site, :ssl) ? 'https://' : 'http://'
         end
 
         def baseuri
           scheme = base_scheme
-          host   = Onetime.conf[:site][:host]
+          host   = Onetime.conf&.dig(:site, :host)
           [scheme, host].join
         end
       end

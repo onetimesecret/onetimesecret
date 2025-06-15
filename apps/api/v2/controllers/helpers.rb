@@ -270,7 +270,7 @@ module V2
       sess.save
 
       # Only set the cookie after session is for sure saved to redis
-      is_secure = Onetime.conf[:site][:ssl]
+      is_secure = Onetime.conf&.dig(:site, :ssl) || false
 
       # Update the session cookie
       res.send_cookie :sess, sess.sessid, sess.ttl, is_secure
@@ -305,8 +305,8 @@ module V2
       # is missing, we assume that authentication is disabled and that accounts
       # are not used. This prevents situations where the app is running and
       # anyone accessing it can create an account without proper authentication.
-      authentication_enabled = OT.conf[:site][:authentication][:enabled] rescue false # rubocop:disable Style/RescueModifier
-      signin_enabled         = OT.conf[:site][:authentication][:signin] rescue false # rubocop:disable Style/RescueModifier
+      authentication_enabled = OT.conf&.dig(:site, :authentication, :enabled) || false
+      signin_enabled         = OT.conf&.dig(:site, :authentication, :signin) || false
 
       # The only condition that allows a request to be authenticated is if
       # the site has authentication enabled, and the user is signed in. If a
@@ -325,12 +325,12 @@ module V2
       return if res.header['Content-Security-Policy']
 
       # Skip the CSP header unless it's enabled in the experimental settings
-      return if OT.conf.dig(:experimental, :csp, :enabled) != true
+      return if OT.conf&.dig(:experimental, :csp, :enabled) != true
 
       # Skip the Content-Security-Policy header if the front is running in
       # development mode. We need to allow inline scripts and styles for
       # hot reloading to work.
-      csp = if OT.conf.dig(:development, :enabled)
+      csp = if OT.conf&.dig(:development, :enabled)
         [
           "default-src 'none';",                               # Restrict to same origin by default
           "script-src 'unsafe-inline' 'nonce-#{nonce}';",      # Allow Vite's dynamic module imports and source maps

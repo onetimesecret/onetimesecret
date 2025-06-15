@@ -70,7 +70,7 @@ module Frontend
         unless req.referrer.nil?
           OT.ld("[check-referrer] #{req.referrer} (#{req.referrer.class}) - #{req.path}")
         end
-        return if req.referrer.nil? || req.referrer.match(Onetime.conf[:site][:host])
+        return if req.referrer.nil? || req.referrer.match(Onetime.conf&.dig(:site, :host))
 
         sess.referrer ||= req.referrer
 

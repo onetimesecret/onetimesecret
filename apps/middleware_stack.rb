@@ -12,7 +12,7 @@ module MiddlewareStack
   class << self
     def configure(builder)
       builder.use Rack::ContentLength
-      builder.use Onetime::Middleware::StartupReadiness
+      # builder.use Onetime::Middleware::StartupReadiness
 
       # Apply minimal middleware if config not available
       unless Onetime.conf
@@ -21,7 +21,7 @@ module MiddlewareStack
       end
 
       # Load the logger early so it's ready to log request errors
-      unless Onetime.conf.dig(:logging, :http_requests).eql?(false)
+      unless Onetime.conf&.dig(:logging, :http_requests).eql?(false)
         builder.use Rack::CommonLogger
       end
 
@@ -41,7 +41,7 @@ module MiddlewareStack
       # Performance Optimization
       # Support running with code frozen in production-like environments
       # This reduces memory usage and prevents runtime modifications
-      if Onetime.conf.dig(:experimental, :freeze_app).eql?(true)
+      if Onetime.conf&.dig(:experimental, :freeze_app).eql?(true)
         Onetime.li "[experimental] Freezing app by request (env: #{Onetime.env})"
         builder.freeze_app
       end

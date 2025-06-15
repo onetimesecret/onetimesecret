@@ -153,13 +153,13 @@ module V2
       attr_writer :stathat_apikey, :stathat_enabled
 
       def stathat_apikey
-        @stathat_apikey ||= Onetime.conf[:stathat][:apikey]
+        @stathat_apikey ||= Onetime.conf&.dig(:stathat, :apikey)
       end
 
       def stathat_enabled
-        return unless Onetime.conf.key?(:stathat)
+        return unless Onetime.conf&.key?(:stathat)
 
-        @stathat_enabled = Onetime.conf[:stathat][:enabled] if @stathat_enabled.nil?
+        @stathat_enabled = Onetime.conf&.dig(:stathat, :enabled) if @stathat_enabled.nil?
         @stathat_enabled
       end
 
