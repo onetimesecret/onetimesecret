@@ -35,6 +35,8 @@ module Onetime
       def ruby_load(path, context = nil)
         content = file_read(path) # Read file content first
         if context
+          context.info_log(path)
+
           # Execute in the context of the provided object
           context.instance_eval(content, path.to_s)
         else

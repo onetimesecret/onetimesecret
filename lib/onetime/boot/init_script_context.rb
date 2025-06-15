@@ -7,6 +7,8 @@ module Onetime
     # Context object that provides a clean interface for init scripts
     # to access configuration and boot options
     #
+    # To exit from a script use `abort`. e.g. `abort "Stop what you are doing"`
+    #
     # NOTE: Scripts must using strings when accessing global, config, options.
     #
     # DEBUGGING: To debug init scripts with access to all instance variables,
@@ -44,6 +46,12 @@ module Onetime
 
       def debug?
         OT.debug?
+      end
+
+      def info_log(path)
+        info "Running #{section_key} script"
+        debug "Script path: #{path}"
+        debug "Instance: #{instance}, Mode: #{mode}, Connect to DB: #{connect_to_db?}"
       end
 
       def info(message)

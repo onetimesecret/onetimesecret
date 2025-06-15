@@ -91,11 +91,17 @@ module Onetime
 
       @configurator = OT::Configurator.load! do |config|
         OT.ld '[BOOT] Processing hook - config transformations before final freeze'
-        run_init_scripts(config,
+        unless run_init_scripts(config,
           mode: OT.mode,
           instanceid: instanceid, # these are passed directly to each script
           connect_to_db: connect_to_db,
         )
+          break
+        end
+      end
+
+      if configurator.nil?
+        return OT.le '[BOOT] Configuration loading failed.'
       end
 
       OT.li "[BOOT] Configuration loaded from #{configurator.config_path}"
@@ -171,9 +177,17 @@ module Onetime
         # The specific error details (class, message, backtrace) will be
         # logged by handle_boot_error
         raise
+
+      rescue SystemExit => ex
+        # Log that a script attempted to exit, then continue to the next script in the loop
+        OT.li <<~MSG
+          [BOOT] Init script '#{section_key}' (from #{file_path}) called exit(#{ex.status}). Skipping remaining scripts.
+        MSG
+        return false
       end
 
-      OT.li '[BOOT] Successfully completed init script processing phase.'
+      OT.li '[BOOT] Completed init script processing phase.'
+      true
     end
 
     # File existence is already checked by the scripts_to_run filter
@@ -207,10 +221,8 @@ module Onetime
       OT.ld "[BOOT] Executing: #{context.section_key} (file: #{file_path})"
       OT::Configurator::Load.ruby_load_file(file_path, context)
 
-    rescue SystemExit => ex
-      # Log that a script attempted to exit, then continue to the next script in the loop
-      OT.li "[BOOT] Init script '#{context.section_key}' (from #{file_path}) called exit(#{ex.status}). Handled; boot sequence continues."
-      # Any other StandardError will propagate up to run_init_scripts's rescue block
+      # Allow exceptions (including SystemExit) to be handled up the chain
+      # where it can decide whether to continue running the remaining scripts.
     end
 
     def handle_boot_error(error)
