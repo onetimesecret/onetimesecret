@@ -100,7 +100,11 @@ module Onetime
         end
       end
 
-      if configurator.nil?
+      # TODO: After the init scripts run and the configuration is valid, we
+      # to run the services and then confirm that all of those are ready before
+      # we deem OT.ready? => true.
+      must_be_true = [configurator.nil?, OT.locales.nil?, OT.conf.nil?, OT.d9s_enabled]
+      unless must_be_true.all?
         return OT.le '[BOOT] Configuration loading failed.'
       end
 
