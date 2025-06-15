@@ -90,9 +90,13 @@ module Onetime
       def call(env)
         return @app.call(env) if Onetime.ready?
 
+        require 'pry-byebug'; binding.pry;
+
+        # Check if JSON response is requested
+        return json_response(env) if json_request?(env)
+
         # Get preferred language from Accept-Language header
-        accept_language = env['HTTP_ACCEPT_LANGUAGE'] || ''
-        lang_code       = parse_accept_language(accept_language)
+        lang_code       = parse_accept_language(env)
 
         html = <<~HTML
           <html lang="#{lang_code}" class="light">
@@ -226,8 +230,36 @@ module Onetime
 
       private
 
+      def json_response(env)
+        accept_language = env['HTTP_ACCEPT_LANGUAGE'] || ''
+        lang_code       = parse_accept_language(accept_language)
+
+        response_body = {
+          status: 'not_ready',
+          error: {
+            code: 'CONFIGURATION_INCOMPLETE',
+            title: TRANSLATIONS[lang_code][:title],
+            message: TRANSLATIONS[lang_code][:message1],
+            details: TRANSLATIONS[lang_code][:message2],
+          },
+          timestamp: Time.now.utc.iso8601,
+        }
+
+        [503, { 'Content-Type' => 'application/json; charset=utf-8' },
+         [response_body.to_json]]
+      end
+
+      def json_request?(env)
+        accept_header = env['HTTP_ACCEPT'] || ''
+        content_type  = env['CONTENT_TYPE'] || ''
+        mime_type     = 'application/json'
+
+        accept_header.include?(mime_type) || content_type.include?(mime_type)
+      end
+
       # Parse Accept-Language header to get preferred language code
-      def parse_accept_language(accept_language)
+      def parse_accept_language(env)
+        accept_language = env['HTTP_ACCEPT_LANGUAGE'] || ''
         return :en if accept_language.empty?
 
         # Extract language code from Accept-Language header (e.g., "en-US,en;q=0.9")
