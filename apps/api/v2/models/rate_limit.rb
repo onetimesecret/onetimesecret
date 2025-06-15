@@ -58,6 +58,10 @@ module V2
     # @param event [Symbol] the type of event being limited
     # @return [Onetime::RateLimit]
     def init
+      unless self.class.ready?
+        return OT.le("#{self.class} is not properly initialized")
+      end
+
       redis.setnx(rediskey, 0) # nx = set if not exists
       update_expiration
     end
@@ -92,6 +96,10 @@ module V2
     # @return [Integer] the new count
     # @raise [Onetime::LimitExceeded] if the limit is exceeded
     def incr!
+      unless self.class.ready?
+        return OT.le("Not limiting #{event} events for #{self.class}")
+      end
+
       count = redis.incr(rediskey)
       update_expiration
       limit = self.class.event_limit(event)
@@ -125,6 +133,10 @@ module V2
       # @return [Integer] the new count
       # @raise [Onetime::LimitExceeded] if the limit is exceeded
       def incr!(identifier, event)
+        unless ready?
+          return OT.le("Not limiting #{event} events for #{self}")
+        end
+
         lmtr  = new identifier, event
         count = lmtr.incr!
 
@@ -192,6 +204,10 @@ module V2
         @events ||= {}
         events.merge! multiple_events
         freeze ? freeze_events : events
+      end
+
+      def ready?
+        @events&.present?
       end
 
       def freeze_events
