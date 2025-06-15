@@ -39,7 +39,7 @@ module Onetime
     end
 
     def set_boot_state(mode, instanceid, env)
-      @mode       = mode
+      @mode       = mode || :app
       @instance   = instanceid # TODO: rename OT.instance -> instanceid
       @env        = env || :production
     end
@@ -92,6 +92,7 @@ module Onetime
       @configurator = OT::Configurator.load! do |config|
         OT.ld '[BOOT] Processing hook - config transformations before final freeze'
         run_init_scripts(config,
+          mode: OT.mode,
           instanceid: instanceid, # these are passed directly to each script
           connect_to_db: connect_to_db,
         )
