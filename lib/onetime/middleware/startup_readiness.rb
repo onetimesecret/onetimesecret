@@ -83,198 +83,271 @@ module Onetime
         },
       }
 
-      def initialize(app)
+      def initialize(app, response_type: :auto, translations: nil)
         @app = app
+        @response_type = response_type
+        @translations = translations || self.class.translations || TRANSLATIONS
       end
 
       def call(env)
         return @app.call(env) if Onetime.ready?
 
-        require 'pry-byebug'; binding.pry;
+        lang_code = parse_accept_language(env)
 
-        # Check if JSON response is requested
-        return json_response(env) if json_request?(env)
+        if should_return_json?(env)
+          json_response(lang_code)
+        else
+          html_response(lang_code)
+        end
+      end
 
-        # Get preferred language from Accept-Language header
-        lang_code       = parse_accept_language(env)
+      class << self
+        attr_accessor :default_response_type, :translations
 
-        html = <<~HTML
-          <html lang="#{lang_code}" class="light">
-            <head>
-            <style>
-              :root {
-                --bg-color: #ffffff;
-                --text-color: rgb(17 24 39);
-              }
+        def response_type(type)
+          OT.ld("[middleware] setting response type to #{type}")
+          self.default_response_type = type
+        end
 
-              html.dark {
-                --bg-color: rgb(17 24 39);
-                --text-color: #ffffff;
-              }
-
-              body {
-                background-color: var(--bg-color);
-                color: var(--text-color);
-                padding: 1rem;
-                border-radius: 0.25rem;
-                text-align: center;
-                padding: 20px;
-
-                transition: background-color 0.3s ease, color 0.3s ease;
-              }
-            </style>
-            <script>
-              // Run immediately to avoid FOUC
-              (function() {
-                // Check for dark mode preference
-                var isDarkMode = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
-
-                // Apply class immediately
-                if (isDarkMode) {
-                  document.documentElement.classList.remove('light');
-                  document.documentElement.classList.add('dark');
-                }
-              })();
-
-              // Set up proper theme change detection
-              document.addEventListener('DOMContentLoaded', function() {
-                var darkModeMediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
-                var htmlElement = document.documentElement;
-
-                // Function to update theme
-                function updateTheme(isDark) {
-                  if (isDark) {
-                    htmlElement.classList.remove('light');
-                    htmlElement.classList.add('dark');
-                  } else {
-                    htmlElement.classList.remove('dark');
-                    htmlElement.classList.add('light');
-                  }
-                }
-
-                // Set up cross-browser compatible event listener
-                try {
-                  // Modern API (addEventListener)
-                  darkModeMediaQuery.addEventListener('change', function(e) {
-                    updateTheme(e.matches);
-                  });
-                } catch (e1) {
-                  try {
-                    // Fallback for Safari 13, iOS 13
-                    darkModeMediaQuery.addListener(function(e) {
-                      updateTheme(e.matches);
-                    });
-                  } catch (e2) {
-                    console.error('Could not set up theme change detection', e2);
-                  }
-                }
-
-                // Log for debugging
-                console.log('Theme detection initialized. Current mode:',
-                  darkModeMediaQuery.matches ? 'dark' : 'light');
-              });
-            </script>
-
-              <script>
-                // All available languages
-                const translations = #{TRANSLATIONS.to_json};
-                const languageCodes = Object.keys(translations);
-
-                // Initialize with the user's language
-                let currentLang = "#{lang_code}";
-
-                // Set up random font on load
-                document.addEventListener('DOMContentLoaded', function() {
-                  const fonts = [
-                    'Comic Sans MS', 'Papyrus', 'Impact', 'Brush Script MT',
-                    'Courier New', 'Monaco', 'Chalkduster', 'Copperplate',
-                    'Lucida Console', 'Futura', 'Bebas Neue', 'Creepster',
-                    'Chiller', 'Jokerman', 'cursive', 'fantasy', 'monospace'
-                  ];
-                  const randomFont = fonts[Math.floor(Math.random() * fonts.length)];
-                  document.body.style.fontFamily = randomFont;
-
-                  // Set up click handler for language switching
-                  document.body.addEventListener('click', function() {
-                    // Get a random language that's different from current
-                    let newLang;
-                    do {
-                      const randomIndex = Math.floor(Math.random() * languageCodes.length);
-                      newLang = languageCodes[randomIndex];
-                    } while (newLang === currentLang && languageCodes.length > 1);
-
-                    currentLang = newLang;
-
-                    // Update the text content
-                    document.getElementById('title').textContent = translations[newLang].title;
-                    document.getElementById('message1').textContent = translations[newLang].message1;
-                    document.getElementById('message2').textContent = translations[newLang].message2;
-
-                    // Also change the font when language changes
-                    const newRandomFont = fonts[Math.floor(Math.random() * fonts.length)];
-                    document.body.style.fontFamily = newRandomFont;
-                  });
-                });
-              </script>
-            </head>
-            <body>
-              <h2 id="title">#{TRANSLATIONS[lang_code][:title]}</h2>
-              <p id="message1">#{TRANSLATIONS[lang_code][:message1]}</p>
-              <p id="message2">#{TRANSLATIONS[lang_code][:message2]}</p>
-            </body>
-          </html>
-        HTML
-
-        [503, { 'Content-Type' => 'text/html; charset=utf-8' }, [html.encode('UTF-8')]]
+        def use_translations(translations)
+          self.translations = translations
+        end
       end
 
       private
 
-      def json_response(env)
-        accept_language = env['HTTP_ACCEPT_LANGUAGE'] || ''
-        lang_code       = parse_accept_language(accept_language)
+      def should_return_json?(env)
+        case @response_type
+        when :json
+          true
+        when :html
+          false
+        when :auto
+          detect_json_request?(env)
+        else
+          # Allow subclasses to override with custom logic
+          respond_to?(:custom_response_type_check?, true) ?
+            custom_response_type_check?(env) :
+            detect_json_request?(env)
+        end
+      end
 
+      def detect_json_request?(env)
+        accept_header = env['HTTP_ACCEPT'] || ''
+        content_type = env['CONTENT_TYPE'] || ''
+
+        accept_header.include?('application/json') ||
+        content_type.include?('application/json')
+      end
+
+      def json_response(lang_code)
         response_body = {
           status: 'not_ready',
           error: {
             code: 'CONFIGURATION_INCOMPLETE',
-            title: TRANSLATIONS[lang_code][:title],
-            message: TRANSLATIONS[lang_code][:message1],
-            details: TRANSLATIONS[lang_code][:message2],
+            title: @translations[lang_code][:title],
+            message: @translations[lang_code][:message1],
+            details: @translations[lang_code][:message2],
           },
           timestamp: Time.now.utc.iso8601,
         }
 
-        [503, { 'Content-Type' => 'application/json; charset=utf-8' },
+        [503,
+         { 'Content-Type' => 'application/json; charset=utf-8' },
          [response_body.to_json]]
       end
 
-      def json_request?(env)
-        accept_header = env['HTTP_ACCEPT'] || ''
-        content_type  = env['CONTENT_TYPE'] || ''
-        mime_type     = 'application/json'
+      def html_response(lang_code)
+        html = build_html_response(lang_code)
 
-        accept_header.include?(mime_type) || content_type.include?(mime_type)
+        [503,
+         { 'Content-Type' => 'text/html; charset=utf-8' },
+         [html.encode('UTF-8')]]
       end
 
-      # Parse Accept-Language header to get preferred language code
+      def build_html_response(lang_code)
+        <<~HTML
+          <!DOCTYPE html>
+          <html lang="#{lang_code}" class="light">
+            <head>
+              <meta charset="utf-8">
+              <meta name="viewport" content="width=device-width, initial-scale=1">
+              <title>#{@translations[lang_code][:title]}</title>
+              #{html_styles}
+              #{html_scripts(lang_code)}
+            </head>
+            <body>
+              <div class="container">
+                <h2 id="title">#{@translations[lang_code][:title]}</h2>
+                <p id="message1">#{@translations[lang_code][:message1]}</p>
+                <p id="message2">#{@translations[lang_code][:message2]}</p>
+              </div>
+            </body>
+          </html>
+        HTML
+      end
+
+      def html_styles
+        <<~CSS
+          <style>
+            :root {
+              --bg-color: #ffffff;
+              --text-color: rgb(17 24 39);
+            }
+
+            html.dark {
+              --bg-color: rgb(17 24 39);
+              --text-color: #ffffff;
+            }
+
+            body {
+              background-color: var(--bg-color);
+              color: var(--text-color);
+              font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+              margin: 0;
+              padding: 20px;
+              transition: background-color 0.3s ease, color 0.3s ease;
+            }
+
+            .container {
+              max-width: 600px;
+              margin: 0 auto;
+              text-align: center;
+              padding: 2rem;
+            }
+
+            h2 {
+              margin-bottom: 1rem;
+              font-size: 1.5rem;
+            }
+
+            p {
+              margin-bottom: 0.5rem;
+              line-height: 1.5;
+            }
+          </style>
+        CSS
+      end
+
+      def html_scripts(lang_code)
+        <<~JAVASCRIPT
+          <script>
+            // Run immediately to avoid FOUC
+            (function() {
+              // Check for dark mode preference
+              var isDarkMode = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+
+              // Apply class immediately
+              if (isDarkMode) {
+                document.documentElement.classList.remove('light');
+                document.documentElement.classList.add('dark');
+              }
+            })();
+
+            // Set up proper theme change detection
+            document.addEventListener('DOMContentLoaded', function() {
+              var darkModeMediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+              var htmlElement = document.documentElement;
+
+              // Function to update theme
+              function updateTheme(isDark) {
+                if (isDark) {
+                  htmlElement.classList.remove('light');
+                  htmlElement.classList.add('dark');
+                } else {
+                  htmlElement.classList.remove('dark');
+                  htmlElement.classList.add('light');
+                }
+              }
+
+              // Set up cross-browser compatible event listener
+              try {
+                // Modern API (addEventListener)
+                darkModeMediaQuery.addEventListener('change', function(e) {
+                  updateTheme(e.matches);
+                });
+              } catch (e1) {
+                try {
+                  // Fallback for Safari 13, iOS 13
+                  darkModeMediaQuery.addListener(function(e) {
+                    updateTheme(e.matches);
+                  });
+                } catch (e2) {
+                  console.error('Could not set up theme change detection', e2);
+                }
+              }
+
+              // Log for debugging
+              console.log('Theme detection initialized. Current mode:',
+                darkModeMediaQuery.matches ? 'dark' : 'light');
+            });
+          </script>
+          <script>
+            // All available languages
+            const translations = #{TRANSLATIONS.to_json};
+            const languageCodes = Object.keys(translations);
+
+            // Initialize with the user's language
+            let currentLang = "#{lang_code}";
+
+            // Set up random font on load
+            document.addEventListener('DOMContentLoaded', function() {
+
+              const fonts = [
+                'Comic Sans MS', 'Papyrus', 'Impact', 'Brush Script MT',
+                'Courier New', 'Monaco', 'Chalkduster', 'Copperplate',
+                'Lucida Console', 'Futura', 'Bebas Neue', 'Creepster',
+                'Chiller', 'Jokerman', 'cursive', 'fantasy', 'monospace'
+              ];
+              const randomFont = fonts[Math.floor(Math.random() * fonts.length)];
+              document.body.style.fontFamily = randomFont;
+
+              // Set up click handler for language switching by attaching
+              // to document directly (not document.body)
+              document.addEventListener('click', function(event) {
+
+                // Get a random language that's different from current
+                let newLang;
+                do {
+                  const randomIndex = Math.floor(Math.random() * languageCodes.length);
+                  newLang = languageCodes[randomIndex];
+                } while (newLang === currentLang && languageCodes.length > 1);
+
+                currentLang = newLang;
+
+                // Update the text content
+                document.getElementById('title').textContent = translations[newLang].title;
+                document.getElementById('message1').textContent = translations[newLang].message1;
+                document.getElementById('message2').textContent = translations[newLang].message2;
+
+                // Also change the font when language changes
+                const newRandomFont = fonts[Math.floor(Math.random() * fonts.length)];
+                document.body.style.fontFamily = newRandomFont;
+              });
+            });
+          </script>
+          <script>
+            /*
+            console.log('Script loading...');
+            console.log('Translations:', typeof translations, translations);
+            console.log('Current lang:', currentLang);
+            console.log('Language codes:', languageCodes); */
+          </script>
+        JAVASCRIPT
+      end
+
       def parse_accept_language(env)
         accept_language = env['HTTP_ACCEPT_LANGUAGE'] || ''
         return :en if accept_language.empty?
 
-        # Extract language code from Accept-Language header (e.g., "en-US,en;q=0.9")
-        lang = accept_language.split(',').first.split(';').first
+        lang = accept_language.split(',').first&.split(';')&.first
+        return :en unless lang
 
-        # Handle special case for de_AT (Austrian German)
-        if lang.downcase == 'de-at'
-          return :de_AT
-        end
+        # Handle special cases
+        return :de_AT if lang.downcase == 'de-at'
 
-        # Extract base language code
-        base_lang = lang.split('-').first.downcase.to_sym
-
-        # Return language if we have a translation, otherwise fall back to English
-        TRANSLATIONS.key?(base_lang) ? base_lang : :en
+        base_lang = lang.split('-').first&.downcase&.to_sym
+        @translations.key?(base_lang) ? base_lang : :en
       end
     end
     # rubocop:enable Metrics/MethodLength
