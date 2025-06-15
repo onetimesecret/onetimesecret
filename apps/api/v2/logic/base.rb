@@ -114,30 +114,30 @@ module V2
 
       # Requires the implementing class to have cust and session fields
       def send_verification_email(token = nil)
-      _, secret = V2::Secret.spawn_pair cust.custid, token
+        _, secret = V2::Secret.spawn_pair cust.custid, token
 
-      msg = <<~MSG.strip.format(OT::Utils.random_fortune)
-        Thanks for verifying your account. We got you a secret fortune cookie!
+        msg = <<~MSG.strip.format(OT::Utils.random_fortune)
+          Thanks for verifying your account. We got you a secret fortune cookie!
 
-        "%s"
-      MSG
+          "%s"
+        MSG
 
-      secret.encrypt_value msg
-      secret.verification = true
-      secret.custid       = cust.custid
-      secret.save
+        secret.encrypt_value msg
+        secret.verification = true
+        secret.custid       = cust.custid
+        secret.save
 
-      cust.reset_secret = secret.key # as a standalone rediskey, writes immediately
+        cust.reset_secret = secret.key # as a standalone rediskey, writes immediately
 
-      view = Onetime::Mail::Welcome.new cust, locale, secret
+        view = Onetime::Mail::Welcome.new cust, locale, secret
 
-      begin
-        view.deliver_email token
-      rescue StandardError => ex
-        errmsg = "Couldn't send the verification email. Let us know below."
-        OT.le "Error sending verification email: #{ex.message}", ex.backtrace
-        sess.set_info_message errmsg
-      end
+        begin
+          view.deliver_email token
+        rescue StandardError => ex
+          errmsg = "Couldn't send the verification email. Let us know below."
+          OT.le "Error sending verification email: #{ex.message}", ex.backtrace
+          sess.set_info_message errmsg
+        end
       end
 
       module ClassMethods

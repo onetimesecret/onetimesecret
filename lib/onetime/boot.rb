@@ -66,7 +66,7 @@ module Onetime
     # but otherwise doesn't do anything special (other than allow :cli to
     # continue even when it's cloudy with a chance of boot errors).
     #
-    # When `db` is false, the database connections won't be initialized. This
+    # When `connect_to_db` is false, the database connections won't be initialized. This
     # is useful for testing or when you want to run code without necessary
     # loading all or any of the models.
     #

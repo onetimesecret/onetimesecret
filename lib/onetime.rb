@@ -30,14 +30,6 @@ require_relative 'onetime/utils'
 # where locale settings may not be properly configured.
 Encoding.default_external = Encoding::UTF_8
 
-# Ensure immediate flushing of stdout to improve real-time logging visibility.
-# This is particularly useful in development and production environments where
-# timely log output is crucial for monitoring and debugging purposes.
-#
-# Enabling sync can have a performance impact in high-throughput environments.
-#
-# NOTE: Use STDOUT the immuntable constant here, not $stdout (global var).
-
 # Onetime is the core of the Onetime Secret application.
 # It contains the core classes and modules that make up
 # the app. It is the main namespace for the application.
@@ -45,10 +37,17 @@ Encoding.default_external = Encoding::UTF_8
 module Onetime
   unless defined?(Onetime::HOME)
     HOME        = File.expand_path(File.join(File.dirname(__FILE__), '..'))
+
+    # Ensure immediate flushing of stdout to improve real-time logging visibility.
+    # This is particularly useful in development and production environments where
+    # timely log output is crucial for monitoring and debugging purposes.
+    #
+    # Enabling sync can have a performance impact in high-throughput environments.
+    #
+    # NOTE: Use STDOUT the immuntable constant here, not $stdout (global var).
     STDOUT.sync = Onetime::Utils.yes?(ENV.fetch('STDOUT_SYNC', false))
   end
 end
-
 
 # Sets the SIGINT handler for a graceful shutdown and prevents Sentry from
 # trying to send events over the network when we're shutting down via ctrl-c.
