@@ -193,8 +193,8 @@ module Onetime
         raise ArgumentError, 'Invalid configuration format'
       end
 
-      # loggable_config = OT::Utils.type_structure(config)
-      # OT.ld "[config] Validating #{loggable_config.size} #{schema.size}"
+      loggable_config = OT::Utils.type_structure(config)
+      OT.ld "[config] Validating #{loggable_config.size} #{schema.size}"
       OT::Configurator::Utils.validate_with_schema(config, schema, **)
     end
 

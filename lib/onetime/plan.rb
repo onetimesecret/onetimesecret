@@ -40,6 +40,7 @@ module Onetime
       attr_accessor :plans
 
       def add_plan(planid, *)
+        @plans                             ||= {}
         new_plan                             = new(planid, *)
         plans[new_plan.planid]               = new_plan
         plans[new_plan.planid.gibbler.short] = new_plan

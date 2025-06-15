@@ -34,7 +34,7 @@ module Onetime
         OT.le '[BOOT] Configuration failed to load and validate'
         OT.le '[BOOT] Has the schema been generated? Run `pnpm run schema:generate`'
         OT.le '-' * 70
-        # return nil
+        nil
       end
     end
 
@@ -87,7 +87,6 @@ module Onetime
 
       Onetime.set_boot_state(mode, instanceid, env)
 
-
       OT.ld "[BOOT] Initializing in '#{OT.mode}' mode (instance: #{instanceid})"
 
       @configurator = OT::Configurator.load! do |config|
@@ -116,7 +115,7 @@ module Onetime
 
       OT.ld '[BOOT] Completing initialization process...'
       Onetime.complete_initialization!
-      OT.li "[BOOT] Startup completed successfully (instance: #{instance})"
+      OT.li "[BOOT] Startup completed successfully (instance: #{instanceid})"
 
       # Let's be clear about returning the prepared configruation. Previously
       # we returned @conf here which was confusing because already made it
@@ -164,7 +163,8 @@ module Onetime
 
       rescue StandardError
         OT.le <<~MSG
-          [BOOT] ERROR: Unhandled exception during init script processing.
+          [BOOT] ERROR:
+            Unhandled exception during init script processing.
             Halting further init scripts.
         MSG
         # The specific error details (class, message, backtrace) will be
