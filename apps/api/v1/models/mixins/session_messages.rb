@@ -56,7 +56,7 @@ module V1
       def get_form_fields!
         fields_json = self.form_fields
         return if fields_json.to_s.empty?
-        ret = V1::Utils.deep_indifferent_hash JSON.parse(fields_json)
+        ret = V1::Utils.indifferent_hash JSON.parse(fields_json)
         self.remove :form_fields
         ret
       rescue JSON::ParserError => ex
