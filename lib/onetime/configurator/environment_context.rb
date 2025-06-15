@@ -1,4 +1,4 @@
-# lib/onetime/configurator/environment.rb
+# lib/onetime/configurator/environment_context.rb
 
 module Onetime
   class Configurator

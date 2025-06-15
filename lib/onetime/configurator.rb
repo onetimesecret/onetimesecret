@@ -7,7 +7,7 @@ require 'pathname'
 require 'xdg'
 
 require_relative 'errors'
-require_relative 'configurator/environment'
+require_relative 'configurator/environment_context'
 require_relative 'configurator/load'
 require_relative 'configurator/utils'
 
