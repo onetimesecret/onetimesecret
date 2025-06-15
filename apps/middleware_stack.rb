@@ -12,7 +12,7 @@ module MiddlewareStack
   class << self
     def configure(builder)
       builder.use Rack::ContentLength
-      # builder.use Onetime::Middleware::StartupReadiness
+      builder.use Onetime::Middleware::StartupReadiness
 
       # Apply minimal middleware if config not available
       unless Onetime.conf
