@@ -1,6 +1,6 @@
 # lib/onetime/boot.rb
 
-require 'onetime/refinements/hash_refinements'
+require 'onetime/refinements/indifferent_hash_access'
 
 require_relative 'boot/init_script_context'
 require_relative 'services/system'

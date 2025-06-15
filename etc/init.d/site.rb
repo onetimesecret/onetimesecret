@@ -1,5 +1,6 @@
 # etc/init.d/site.rb
 
+
 info 'Initializing site configuration'
 debug "Script path: #{__FILE__}"
 debug "Instance: #{instance}, Mode: #{mode}, Connect to DB: #{connect_to_db?}"
@@ -20,11 +21,15 @@ if config
   end
 
   if config['ssl']
-    info "SSL enabled: #{config['ssl']}"
+    info "SSL enabled1: #{config['ssl']}"
+    info "SSL enabled2: #{config[:ssl]}"
   end
 else
   error 'No site configuration found'
 end
+
+pp options
+pp mode
 
 # You can modify the configuration here if needed
 # config['middleware'] = Time.now.to_i if config['site']

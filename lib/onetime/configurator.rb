@@ -11,7 +11,8 @@ require_relative 'configurator/environment_context'
 require_relative 'configurator/load'
 require_relative 'configurator/utils'
 
-require 'onetime/refinements/hash_refinements'
+require 'onetime/refinements/indifferent_hash_access'
+require 'onetime/refinements/then_with_diff'
 
 module Onetime
   # Configuration loader using two-stage validation pattern:

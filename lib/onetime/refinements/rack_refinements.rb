@@ -5,7 +5,7 @@ module Onetime
   # parameters and data structures commonly used in Rack-based applications.
   #
   # @deprecated This module duplicates functionality found in
-  # IndifferentHashAccess (hash_refinements.rb). Both provide string/symbol
+  # IndifferentHashAccess (indifferent_hash_access.rb). Both provide string/symbol
   # indifferent key access for Hash objects. This module should be consolidated
   # with IndifferentHashAccess in a future refactor.
   #

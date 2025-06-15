@@ -19,7 +19,7 @@ $LOAD_PATH.unshift(File.join(APP_DIR, 'web'))
 # Only load what's necessary for successful interactive startup
 require_relative '../onetime'
 require_relative '../onetime/models'
-require_relative '../onetime/refinements/hash_refinements'
+require_relative '../onetime/refinements/indifferent_hash_access'
 
 # # Create a custom workspace with your loaded environment
 # workspace = IRB::WorkSpace.new(binding)

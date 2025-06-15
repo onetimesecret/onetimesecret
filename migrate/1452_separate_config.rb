@@ -20,7 +20,7 @@ require 'onetime/migration'
 require 'yaml'
 require 'fileutils'
 
-require 'onetime/refinements/hash_refinements'
+require 'onetime/refinements/indifferent_hash_access'
 
 module Onetime
   class Migration < BaseMigration
