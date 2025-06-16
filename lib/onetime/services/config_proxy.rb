@@ -1,4 +1,4 @@
-# frozen_string_literal: true
+# lib/onetime/services/config_proxy.rb
 
 module Onetime
   module Services
@@ -11,14 +11,14 @@ module Onetime
     # This enables seamless access via OT.conf[:key] regardless of config source.
     #
     # @example Usage
-    #   OT.conf[:database_url]    # Static from YAML
-    #   OT.conf[:footer_links]    # Dynamic from Redis
+    #   OT.conf[:storage]         # Static from YAML
+    #   OT.conf[:user_interface]  # Dynamic from Redis
     #   OT.conf[:locales]         # Service state
     #
     class ConfigProxy
       def initialize(static_config)
         @static_config = static_config
-        @mutex = Mutex.new
+        @mutex         = Mutex.new
       end
 
       ##
@@ -30,7 +30,7 @@ module Onetime
       def [](key)
         key = key.to_sym if key.respond_to?(:to_sym)
 
-        # Static config takes precedence to prevent Redis overrides
+        # Static config takes precedence to prevent dynamic overrides
         static_value = @static_config[key]
         return static_value unless static_value.nil?
 
@@ -70,7 +70,7 @@ module Onetime
       #
       # @return [Array<Symbol>] All available configuration keys
       def keys
-        static_keys = @static_config.keys
+        static_keys  = @static_config.keys
         dynamic_keys = dynamic_keys_safe
         (static_keys + dynamic_keys).uniq
       end
@@ -105,15 +105,13 @@ module Onetime
         return nil if keys.empty?
 
         first_key = keys.first
-        value = self[first_key]
+        value     = self[first_key]
 
         return nil if value.nil?
         return value if keys.length == 1
 
         if value.respond_to?(:dig)
-          value.dig(*keys[1..-1])
-        else
-          nil
+          value.dig(*keys[1..])
         end
       end
 
@@ -136,7 +134,7 @@ module Onetime
         {
           static_keys: @static_config.keys.sort,
           dynamic_keys: dynamic_keys_safe.sort,
-          service_registry_available: service_registry_available?
+          service_registry_available: service_registry_available?,
         }
       end
 
@@ -150,10 +148,11 @@ module Onetime
       # @return [Object] Dynamic configuration value or nil
       def dynamic_value(key)
         return nil unless service_registry_available?
+
         ServiceRegistry.state(key)
-      rescue StandardError => e
+      rescue StandardError => ex
         # Log error but don't fail - graceful degradation
-        OT.logger&.warn "[ConfigProxy] Error accessing dynamic config: #{e.message}"
+        OT.lw "[ConfigProxy] Error accessing dynamic config: #{ex.message}"
         nil
       end
 
@@ -165,6 +164,7 @@ module Onetime
       # @return [Boolean] true if key exists in dynamic config
       def dynamic_key?(key)
         return false unless service_registry_available?
+
         !ServiceRegistry.state(key).nil?
       rescue StandardError
         false
@@ -208,6 +208,8 @@ module Onetime
       def service_registry_available?
         defined?(ServiceRegistry) && ServiceRegistry.respond_to?(:state)
       end
+
+      attr_reader :mutex
     end
   end
 end

@@ -1,4 +1,4 @@
-# lib/onetime/services/system/dynamic_config_provider.rb
+# lib/onetime/services/system/dynamic_config.rb
 
 require_relative '../service_provider'
 
