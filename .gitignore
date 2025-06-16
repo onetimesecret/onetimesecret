@@ -29,7 +29,6 @@ pnpm-debug.log*
 .idea/
 .cache/
 .temp/
-
 .appendonlydir/
 .bundle/
 .rspec
@@ -62,6 +61,9 @@ etc/system_settings*
 tsconfig.tsbuildinfo
 CLAUDE.md
 
+# Ignore WIP or temp dev files with uppercase names
+[A-Z]*.rb
+[A-Z]*.ts
 
 # Environment files
 .env*
