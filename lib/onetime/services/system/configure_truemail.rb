@@ -1,26 +1,23 @@
 # lib/onetime/services/system/configure_truemail.rb
 
-
 module Onetime
   module Services
     module System
-
       def configure_truemail(config)
-        validation_config = config['mail']['validation']['defaults']
+        # The static config arrives frozen in time so we need to make our
+        # own copy of it so we can modify it here locally.
+        validation_config = OT::Utils.deep_clone(
+          config['mail']['validation']['defaults'],
+        )
 
         # NOTE: We need to convert string-like values to Symbols here in the mail
         # validation provider. Because we use redis as the backend and because
-        # we use JSON schema validation and because we need common config conventions
-        # between Ruby code and Typescript code, all keys are stored as strings and
-        # all string-like values are stored as strings. The init scripts cannot
-        # enforce Symbol types, so we handle that conversion here.
-        if validation_config['default_validation_type']
-          validation_config['default_validation_type'] = validation_config['default_validation_type'].to_sym
-        end
-
-        if validation_config['logger']['tracking_event']
-          validation_config['logger']['tracking_event'] = validation_config['logger']['tracking_event'].to_sym
-        end
+        # we use JSON schema validation and because we need common config
+        # conventions between Ruby code and Typescript code, all keys are stored
+        # as strings and all string-like values are stored as strings. The init
+        # scripts cannot enforce Symbol types, so we handle that conversion here.
+        convert_validation_type_to_symbol(validation_config)
+        convert_tracking_event_to_symbol(validation_config)
 
         # Iterate over the keys in the mail/truemail config
         # and set the corresponding key in the Truemail config.
@@ -37,6 +34,21 @@ module Onetime
         end
       end
 
+      private
+
+      def convert_validation_type_to_symbol(conf)
+        default_type = conf['default_validation_type']
+        return unless default_type
+
+        conf['default_validation_type'] = default_type.to_sym
+      end
+
+      def convert_tracking_event_to_symbol(conf)
+        tracking_event = conf.dig('logger', 'tracking_event')
+        return unless tracking_event
+
+        conf['logger']['tracking_event'] = tracking_event.to_sym
+      end
     end
   end
 end
