@@ -100,32 +100,25 @@ module Onetime
       OT.li "[BOOT] Configuration loaded from #{configurator.config_path} is now frozen"
       # System services should start immediately after config freeze
 
-      # Configuration is now frozen
-      @conf = Services::ConfigProxy.new(configurator.configuration)
+      # The configuration hash we get back here is frozen, deep_clone of the
+      # original. In fact every call to configurator.configuration will return
+      # a new deep_clone of the original configuration hash.
+      config = configurator.configuration
 
       # Start system services with frozen configuration
       OT.ld '[BOOT] Starting system services...'
       require_relative 'services/system'
-      OT::Services::System.start_all(@conf, connect_to_db: connect_to_db)
+      OT::Services::System.start_all(config, connect_to_db: connect_to_db)
 
       # Check if services started successfully
       unless OT::Services::ServiceRegistry.ready?
         return OT.le '[BOOT] System services failed to start'
       end
 
-      # We have enough configuration to boot at this point. When do
-      # merge with the configuration from the database? Or is that the
-      # responsibility of the initializers? TODO: Find a way forward
-      # NOTE: We need to reduce the number of initializers and make the run hotter
-      #
-      # Somewhere between here and:
-      # apps/web/frontend/views/helpers/initialize_view_vars.rb
-      #
-      # In the current state of config that we have here, the app boots up
-      # and serves requests (not the error middleware, gets passed that),
-      # and then responds with 400 and an angry [view_vars] "Site config is
-      # missing field: host".
-      @conf = Services::ConfigProxy.new(configurator.configuration)
+      # With the services up and healthy, we can create a ConfigProxy and make
+      # it available system-wide via OT.conf. We prime it with the processed
+      # and validated static config.
+      @conf = Services::ConfigProxy.new(config)
 
       OT.ld '[BOOT] Completing initialization process...'
       Onetime.complete_initialization!

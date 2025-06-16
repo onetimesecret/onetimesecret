@@ -2,6 +2,7 @@
 
 require 'onetime/services/service_provider'
 require 'onetime/services/config_proxy'
+require 'onetime/services/service_registry'
 
 # Previously OT.globals:
 # :d9s_enabled, :i18n_enabled, :locales,
@@ -25,17 +26,26 @@ module Onetime
       def start_all(config, connect_to_db: true)
         OT.li '[BOOT] Starting system services...'
 
+        providers = []
+
         # Phase 1: Essential connections first
         if connect_to_db
-          connect_databases(config)
+          providers << System::ConnectDatabases.new
         else
           OT.ld '[BOOT] Skipping database connections'
         end
 
         # Phase 2: Dynamic configuration provider (high priority)
-        start_dynamic_config_provider(config)
+        providers << System::DynamicConfig.new
 
-        # Phase 3: Other service providers
+        # Start providers in priority order
+        providers.sort_by!(&:priority)
+        providers.each do |provider|
+          ServiceRegistry.register_provider(provider.name, provider)
+          provider.start_internal(config)
+        end
+
+        # Phase 3: Legacy services (TODO: Convert to ServiceProviders)
         start_remaining_providers(config)
 
         OT.li '[BOOT] System services started successfully'
@@ -44,14 +54,11 @@ module Onetime
       private
 
       ##
-      # Start dynamic configuration provider early in the sequence
-      def start_dynamic_config_provider(config)
-        return unless defined?(System::DynamicConfigProvider)
-
-        OT.ld '[BOOT] Starting dynamic configuration provider...'
-        provider = System::DynamicConfigProvider.new
+      # Legacy method - deprecated in favor of ServiceProvider orchestration
+      def connect_databases(config)
+        OT.ld '[BOOT] Using legacy connect_databases - consider migrating to ServiceProvider'
+        provider = System::ConnectDatabases.new
         provider.start_internal(config)
-        ServiceRegistry.register(:dynamic_config, provider)
       end
 
       ##

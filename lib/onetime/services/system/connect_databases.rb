@@ -1,11 +1,21 @@
 # lib/onetime/services/system/connect_databases.rb
 
+require 'onetime/refinements/indifferent_hash_access'
+require 'onetime/refinements/horreum_refinements'
+
 module Onetime
   module Services
     module System
 
       class ConnectDatabases < ServiceProvider
+        using Familia::HorreumRefinements
+        using IndifferentHashAccess
 
+        def initialize
+          super(:connect_databases, type: TYPE_CONNECTION, priority: 5) # High priority - other services depend on DB
+        end
+
+        ##
         # Connects each model to its configured Redis database.
         #
         # This method retrieves the Redis database configurations from the application
@@ -14,19 +24,19 @@ module Onetime
         # the connection by sending a ping command. Detailed logging is performed at each
         # step to facilitate debugging and monitoring.
         #
-        # @example
-        #   connect_databases
-        #
+        # @param config [Hash] Application configuration
         # @return [void]
         #
-        def connect_databases
-          Familia.uri = OT.conf[:redis][:uri]
+        def start(config)
+
+          db_settings = config.dig(:storage, :db)
+          Familia.uri = db_settings[:connection][:url]
 
           # Connect each model to its configured Redis database
-          dbs = OT.conf.dig(:redis, :dbs)
+          db_map = db_settings[:database_mapping]
 
-          OT.ld "[connect_databases] dbs: #{dbs}"
-          OT.ld "[connect_databases] models: #{Familia.members.map(&:to_s)}"
+          log "db_map: #{db_map}"
+          log "models: #{Familia.members.map(&:to_s)}"
 
           # Validate that models have been loaded before attempting to connect
           if Familia.members.empty?
@@ -36,14 +46,34 @@ module Onetime
           # Map model classes to their database numbers
           Familia.members.each do |model_class|
             model_sym = model_class.to_sym
-            db_index  = dbs[model_sym] || DATABASE_IDS[model_sym] || 0 # see models.rb
+            db_index  = db_map[model_sym] || DATABASE_IDS[model_sym] || 0 # see models.rb
 
             # Assign a Redis connection to the model class
             model_class.redis = Familia.redis(db_index)
             ping_result       = model_class.redis.ping
 
-            OT.ld "Connected #{model_sym} to DB #{db_index} (#{ping_result})"
+            log "Connected #{model_sym} to DB #{db_index} (#{ping_result})"
           end
+
+          # Register successful connection
+          register_connection(:databases, :connected)
+        end
+
+        ##
+        # Health check - verify database connections are still alive
+        #
+        # @return [Boolean] true if all connections are healthy
+        def healthy?
+          return false unless super
+
+          # Check a sample of connections to verify they're still alive
+          Familia.members.sample(3).all? do |model_class|
+            model_class.redis.ping == 'PONG'
+          rescue StandardError
+            false
+          end
+        rescue StandardError
+          false
         end
 
         # For backwards compatibility with v0.18.3 and earlier, these redis database
