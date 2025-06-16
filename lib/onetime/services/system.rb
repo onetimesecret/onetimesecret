@@ -24,7 +24,7 @@ module Onetime
 
       # Start all system services using service provider orchestration
       def start_all(config, connect_to_db: true)
-        OT.li '[BOOT.system] Starting system services...'
+        OT.li "[BOOT.system] Starting system services with frozen config (#{config.frozen?})..."
 
         providers = []
 

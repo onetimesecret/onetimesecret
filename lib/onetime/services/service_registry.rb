@@ -34,6 +34,14 @@ module Onetime
           @app_state[key.to_sym]
         end
 
+        def state_keys
+          @app_state.keys
+        end
+
+        def provider_keys
+          @providers.keys
+        end
+
         # Hot reload capability
         def reload_all(new_config)
           @providers.each_value do |provider|

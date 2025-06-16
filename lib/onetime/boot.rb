@@ -1,15 +1,22 @@
 # lib/onetime/boot.rb
 
-require 'onetime/refinements/indifferent_hash_access'
+require 'concurrent'
 
+require_relative 'refinements/indifferent_hash_access'
 require_relative 'boot/init_script_context'
 require_relative 'services/config_proxy'
 
 module Onetime
-  @conf  = nil
   @mode  = nil
   @env   = (ENV['RACK_ENV'] || 'production').downcase
   @debug = ENV['ONETIME_DEBUG'].to_s.match?(/^(true|1)$/i)
+
+  # Contains the global configuration hash via ConfigProxy.
+  # Provides unified access to both static and dynamic configuration.
+  #
+  # We use a Concurrent::AtomicReference to ensure thread-safe updates if we
+  # need to replace the ConfigProxy instance.
+  @conf  = Concurrent::AtomicReference.new
 
   class << self
 
@@ -35,6 +42,10 @@ module Onetime
         OT.le '-' * 70
         nil
       end
+    end
+
+    def set_conf(new_config_proxy)
+      @conf.set(new_config_proxy)
     end
 
     def set_boot_state(mode, instanceid)
@@ -103,7 +114,16 @@ module Onetime
       # The configuration hash we get back here is frozen, deep_clone of the
       # original. In fact every call to configurator.configuration will return
       # a new deep_clone of the original configuration hash.
+      #
+      # We pass the static config to the services since they don't need to go
+      # through the ConfigProxy on account of knowing how to access the
+      # ServiceRegistry.app_state if necessary.
       config = configurator.configuration
+
+      # With the services up and healthy, we can create a ConfigProxy and make
+      # it available system-wide via OT.conf. We prime it with the processed
+      # and validated static config.
+      Onetime.set_conf(Services::ConfigProxy.new(config))
 
       # Start system services with frozen configuration
       OT.ld '[BOOT] Starting system services...'
@@ -114,11 +134,6 @@ module Onetime
       unless OT::Services::ServiceRegistry.ready?
         return OT.le '[BOOT] System services failed to start'
       end
-
-      # With the services up and healthy, we can create a ConfigProxy and make
-      # it available system-wide via OT.conf. We prime it with the processed
-      # and validated static config.
-      @conf = Services::ConfigProxy.new(config)
 
       OT.ld '[BOOT] Completing initialization process...'
       Onetime.complete_initialization!
