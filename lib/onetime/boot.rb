@@ -76,8 +76,6 @@ module Onetime
     # to be the single source of truth.
     def boot!(mode = nil, connect_to_db = true)
 
-      env = (ENV['RACK_ENV'] || 'production').downcase
-
       # Sets a unique SHA hash every time this process starts. In a multi-
       # threaded environment (e.g. with Puma), this should be different for
       # each thread. See tests/unit/ruby/rspec/puma_multi_process_spec.rb.
@@ -107,6 +105,7 @@ module Onetime
       end
 
       OT.li "[BOOT] Configuration loaded from #{configurator.config_path}"
+      require_relative 'services/system'
 
       # We have enough configuration to boot at this point. When do
       # merge with the configuration from the database? Or is that the
