@@ -28,7 +28,7 @@ module Onetime
       # @param key [Symbol, String] Configuration key
       # @return [Object] Configuration value or nil
       def [](key)
-        key = key.to_sym if key.respond_to?(:to_sym)
+        key = key.to_s if key.respond_to?(:to_s)
 
         # Access merged config from ServiceRegistry
         merged_config = get_merged_config
@@ -43,7 +43,7 @@ module Onetime
       # @param key [Symbol, String] Configuration key
       # @param value [Object] Configuration value
       def []=(key, value)
-        key = key.to_sym if key.respond_to?(:to_sym)
+        key = key.to_s if key.respond_to?(:to_s)
 
         # Update merged config with new value
         merged_config = get_merged_config.dup
@@ -57,7 +57,7 @@ module Onetime
       # @param key [Symbol, String] Configuration key
       # @return [Boolean] true if key exists
       def key?(key)
-        key = key.to_sym if key.respond_to?(:to_sym)
+        key = key.to_s if key.respond_to?(:to_s)
         merged_config = get_merged_config
         merged_config.key?(key)
       end
