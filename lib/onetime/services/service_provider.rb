@@ -1,7 +1,5 @@
 # lib/onetime/services/service_provider.rb
 
-require 'mutex'
-
 require_relative 'service_registry'
 
 module Onetime

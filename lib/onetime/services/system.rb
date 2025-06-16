@@ -26,11 +26,11 @@ module Onetime
         OT.li '[BOOT] Starting system services...'
 
         # Phase 1: Essential connections first
-        # if connect_to_db
-        #   connect_databases(config)
-        # else
-        #   OT.ld '[BOOT] Skipping database connections'
-        # end
+        if connect_to_db
+          connect_databases(config)
+        else
+          OT.ld '[BOOT] Skipping database connections'
+        end
 
         # Phase 2: Dynamic configuration provider (high priority)
         start_dynamic_config_provider(config)

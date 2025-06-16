@@ -1,13 +1,11 @@
 # lib/onetime/services/system/connect_databases.rb
 
-require_relative '../../refinements/horreum_refinements'
-
 module Onetime
   module Services
     module System
 
       class ConnectDatabases < ServiceProvider
-        using Familia::HorreumRefinements
+
         # Connects each model to its configured Redis database.
         #
         # This method retrieves the Redis database configurations from the application
