@@ -22,8 +22,13 @@ module Onetime
       # A wrapper that ensures whatever the normalizers do this will always
       # return the same hash object that was provided to us.
       def normalize_env_vars(env)
+        normalize_rack_vars!(env)
         normalize_regions_compatibility!(env)
         env
+      end
+
+      def normalize_rack_vars!(env)
+        env['RACK_ENV'] = Onetime.env # the global env is normalized at boot
       end
 
       # In v0.20.6, REGIONS_ENABLE was renamed to REGIONS_ENABLED for
