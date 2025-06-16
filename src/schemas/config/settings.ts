@@ -255,9 +255,9 @@ const diagnosticsSchema = z.object({
 const limitsSchema = z.object(createRateLimitFields()).catchall(rateLimitValue);
 
 const individualMailValidationSchema = z.object({
-  default_validation_type: z.string().optional(),
-  verifier_email: z.email().optional(),
-  verifier_domain: z.string().optional(),
+  default_validation_type: z.string().default('mx'),
+  verifier_email: z.email().default('support@onetimesecret.dev'),
+  verifier_domain: z.string().default('onetimesecret.dev'),
   connection_timeout: z.number().optional(),
   response_timeout: z.number().optional(),
   connection_attempts: z.number().optional(),
@@ -274,9 +274,8 @@ const individualMailValidationSchema = z.object({
   not_rfc_mx_lookup_flow: z.boolean().optional(),
   logger: z
     .object({
-      // YAML :all
-      tracking_event: z.string().optional(),
-      stdout: z.boolean().optional(),
+      tracking_event: z.string().default('all'),
+      stdout: z.boolean().default(true),
       log_absolute_path: z.string().optional(),
     })
     .optional(),
@@ -396,14 +395,15 @@ const staticMailConnectionSchema = z.object({
   tls: z.boolean().nullable().optional(),
 });
 
-// The 'default' property within 'validation' is an object type
+// The 'defaults' property within 'validation' is an object type is
+// the same shape as recipient and accounts fields.
 const staticMailIndividualValidationSchema = individualMailValidationSchema; // Alias for clarity
 
 // 'validation' itself is a required property of 'mail'.
-// The 'default' property *within* 'validation' is optional.
+// The 'defaults' property *within* 'validation' is optional.
 // So staticMailValidationSchema refers to the structure for mail.validation.
 const staticMailValidationSchema = z.object({
-  default: staticMailIndividualValidationSchema.optional(), // 'default' key is optional
+  defaults: staticMailIndividualValidationSchema.optional(), // 'defaults' key is optional
 });
 
 // 'connection' and 'validation' are required for 'mail'

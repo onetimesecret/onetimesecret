@@ -64,7 +64,7 @@
     "type-check:base": "vue-tsc --noEmit",
     "type-check:parallel": "pnpm -r exec vue-tsc --build --noEmit",
     "type-check:watch": "pnpm run type-check:base --watch",
-    "validate": "bundle exec scripts/ots validate",
+    "validate": "bundle exec bin/ots validate",
     "version:update": "bash scripts/update-version.sh"
   },
   "keywords": [],

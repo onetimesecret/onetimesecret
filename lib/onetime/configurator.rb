@@ -176,8 +176,8 @@ module Onetime
           #{template_str.to_s[0..100]}`
       DEBUG
 
-      if unprocessed_config
-        loggable_config = OT::Utils.type_structure(unprocessed_config)
+      if parsed_yaml
+        loggable_config = OT::Utils.type_structure(parsed_yaml)
         OT.ld "[config] Parsed: #{loggable_config}"
       end
 
