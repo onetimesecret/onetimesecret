@@ -1,6 +1,7 @@
 # lib/onetime/configurator/utils.rb
 
 require 'json_schemer'
+require 'onetime/refinements/indifferent_hash_access'
 
 module Onetime
   class Configurator
@@ -22,6 +23,7 @@ module Onetime
 
     module Utils
       extend self
+      using IndifferentHashAccess
 
       def validate_with_schema(conf, schema, apply_defaults: false)
         raise OT::ConfigError, 'Schema is nil' if schema.nil?
@@ -126,7 +128,7 @@ module Onetime
         return {} if config.nil? || config.empty?
 
         # Extract defaults from the configuration (handle both symbol and string keys)
-        defaults = config[:defaults] || config['defaults']
+        defaults = config[:defaults] # using indifferent hash refinement
 
         # If no valid defaults exist, return config without the :defaults key
         unless defaults.is_a?(Hash)
