@@ -23,66 +23,61 @@ module Onetime
 
       ##
       # Access configuration value by key.
-      # Static config takes precedence over dynamic config.
+      # Uses merged config from ServiceRegistry which already prioritizes static over dynamic.
       #
       # @param key [Symbol, String] Configuration key
       # @return [Object] Configuration value or nil
       def [](key)
         key = key.to_sym if key.respond_to?(:to_sym)
 
-        # Static config takes precedence to prevent dynamic overrides
-        static_value = @static_config[key]
-        return static_value unless static_value.nil?
-
-        # Fall back to dynamic config from ServiceRegistry
-        dynamic_value(key)
+        # Access merged config from ServiceRegistry
+        merged_config = get_merged_config
+        merged_config[key]
       end
 
       ##
       # Set configuration value.
-      # Only allows setting dynamic values, not static config.
+      # This updates the merged config directly in ServiceRegistry.
+      # Note: This doesn't persist to SystemSettings - use admin UI for persistent changes.
       #
       # @param key [Symbol, String] Configuration key
       # @param value [Object] Configuration value
       def []=(key, value)
         key = key.to_sym if key.respond_to?(:to_sym)
 
-        # Prevent overriding static config
-        if @static_config.key?(key)
-          raise ArgumentError, "Cannot override static config key: #{key}"
-        end
-
-        ServiceRegistry.set_state(key, value)
+        # Update merged config with new value
+        merged_config = get_merged_config.dup
+        merged_config[key] = value
+        Onetime::Services::ServiceRegistry.set_state(:merged_config, merged_config)
       end
 
       ##
-      # Check if configuration key exists in either static or dynamic config.
+      # Check if configuration key exists in merged config.
       #
       # @param key [Symbol, String] Configuration key
       # @return [Boolean] true if key exists
       def key?(key)
         key = key.to_sym if key.respond_to?(:to_sym)
-        @static_config.key?(key) || dynamic_key?(key)
+        merged_config = get_merged_config
+        merged_config.key?(key)
       end
 
       ##
-      # Get all configuration keys from both static and dynamic sources.
+      # Get all configuration keys from merged config.
       #
       # @return [Array<Symbol>] All available configuration keys
       def keys
-        static_keys  = @static_config.keys
-        dynamic_keys = dynamic_keys_safe
-        (static_keys + dynamic_keys).uniq
+        merged_config = get_merged_config
+        merged_config.keys
       end
 
       ##
       # Get configuration as a hash.
-      # Static config values override dynamic ones.
+      # Returns the merged configuration from ServiceRegistry.
       #
-      # @return [Hash] Combined configuration hash
+      # @return [Hash] Merged configuration hash
       def to_h
-        dynamic_hash = dynamic_config_safe
-        dynamic_hash.merge(@static_config)
+        get_merged_config
       end
 
       ##
@@ -131,73 +126,31 @@ module Onetime
       #
       # @return [Hash] Debug information
       def debug_info
+        merged_config = get_merged_config
         {
           static_keys: @static_config.keys.sort,
-          dynamic_keys: dynamic_keys_safe.sort,
+          merged_keys: merged_config.keys.sort,
           service_registry_available: service_registry_available?,
+          has_merged_config: !merged_config.empty?,
         }
       end
 
       private
 
       ##
-      # Safely get dynamic configuration value from ServiceRegistry.
-      # Returns nil if ServiceRegistry is not available or key doesn't exist.
+      # Get merged configuration from ServiceRegistry.
+      # Falls back to static config if merged config is not available.
       #
-      # @param key [Symbol] Configuration key
-      # @return [Object] Dynamic configuration value or nil
-      def dynamic_value(key)
-        return nil unless service_registry_available?
+      # @return [Hash] Merged configuration or static config as fallback
+      def get_merged_config
+        return @static_config unless service_registry_available?
 
-        ServiceRegistry.state(key)
+        merged = Onetime::Services::ServiceRegistry.state(:merged_config)
+        merged.nil? ? @static_config : merged
       rescue StandardError => ex
         # Log error but don't fail - graceful degradation
-        OT.lw "[ConfigProxy] Error accessing dynamic config: #{ex.message}"
-        nil
-      end
-
-      ##
-      # Check if key exists in dynamic configuration.
-      # Returns false if ServiceRegistry is not available.
-      #
-      # @param key [Symbol] Configuration key
-      # @return [Boolean] true if key exists in dynamic config
-      def dynamic_key?(key)
-        return false unless service_registry_available?
-
-        !ServiceRegistry.state(key).nil?
-      rescue StandardError
-        false
-      end
-
-      ##
-      # Safely get all dynamic configuration keys.
-      # Returns empty array if ServiceRegistry is not available.
-      #
-      # @return [Array<Symbol>] Dynamic configuration keys
-      def dynamic_keys_safe
-        return [] unless service_registry_available?
-
-        # ServiceRegistry doesn't expose keys directly, so we can't enumerate them
-        # This is a limitation - we only know about keys we explicitly ask for
-        []
-      rescue StandardError
-        []
-      end
-
-      ##
-      # Safely get full dynamic configuration as hash.
-      # Returns empty hash if ServiceRegistry is not available.
-      #
-      # @return [Hash] Dynamic configuration hash
-      def dynamic_config_safe
-        return {} unless service_registry_available?
-
-        # ServiceRegistry doesn't expose all state as hash
-        # This is intentional - dynamic config should be accessed key-by-key
-        {}
-      rescue StandardError
-        {}
+        OT.lw "[ConfigProxy] Error accessing merged config: #{ex.message}"
+        @static_config
       end
 
       ##
@@ -206,7 +159,7 @@ module Onetime
       #
       # @return [Boolean] true if ServiceRegistry is available
       def service_registry_available?
-        defined?(ServiceRegistry) && ServiceRegistry.respond_to?(:state)
+        defined?(Onetime::Services::ServiceRegistry) && Onetime::Services::ServiceRegistry.respond_to?(:state)
       end
 
       attr_reader :mutex

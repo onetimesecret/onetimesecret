@@ -10,8 +10,13 @@ module Onetime
 
       class << self
         # Register a service provider
-        def register(name, provider)
+        def register_provider(name, provider)
           @providers[name.to_sym] = provider
+        end
+
+        # Legacy alias for backwards compatibility
+        def register(name, provider)
+          register_provider(name, provider)
         end
 
         # Get a service provider by name

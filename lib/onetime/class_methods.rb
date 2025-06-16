@@ -32,6 +32,14 @@ module Onetime
       replace_config!(merged_config)
     end
 
+    # Returns the global configuration instance via ConfigProxy.
+    # Provides unified access to both static and dynamic configuration.
+    #
+    # @return [Onetime::Services::ConfigProxy] Configuration proxy instance
+    def conf
+      @conf
+    end
+
     # Returns the current wall clock time as microseconds since Unix epoch
     # using the system's high-precision clock interface. This method provides
     # the most accurate and consistent timestamp available on the platform.
@@ -308,7 +316,7 @@ module Onetime
     # prevent external modification of the shared configuration state
     # after initialization.
     def conf=(value)
-      @conf = value.is_a?(Services::ConfigProxy) ? value : Services::ConfigProxy.new(value)
+      @conf = value.is_a?(Onetime::Services::ConfigProxy) ? value : Onetime::Services::ConfigProxy.new(value)
     end
   end
 

@@ -2,117 +2,119 @@
 
 require_relative '../service_provider'
 
+# Load SystemSettings model for dynamic configuration
+require_relative '../../../../apps/api/v2/models/system_settings'
+
 module Onetime
   module Services
     module System
       ##
       # Dynamic Configuration Provider
       #
-      # Loads runtime configuration from Redis and makes it available
-      # through the unified config interface. This provider runs early
-      # in the service startup sequence so other providers can access
-      # dynamic settings.
+      # Merges static configuration with dynamic SystemSettings from Redis
+      # and makes the merged result available through ServiceRegistry.
+      # This provider runs early in the service startup sequence so other
+      # providers can access the unified configuration.
       #
-      # Example dynamic settings:
-      # - Site footer links
-      # - Runtime feature flags
-      # - Custom branding settings
-      # - Admin announcements
+      # Dynamic settings managed by SystemSettings:
+      # - Interface configuration (branding, footer links)
+      # - Secret options (TTL settings)
+      # - Mail configuration
+      # - Rate limits
+      # - Diagnostics settings
       #
       class DynamicConfig < ServiceProvider
-        # Redis key prefix for dynamic configuration
-        REDIS_KEY_PREFIX = 'ots:config:'.freeze
-
-        # Default dynamic configuration values
-        DEFAULT_CONFIG = {
-          footer_links: [],
-          site_title: nil,
-          admin_announcement: nil,
-          maintenance_mode: false,
-        }.freeze
+        # No default config needed - SystemSettings handles defaults internally
 
         def initialize
           super(:dynamic_config, type: TYPE_CONFIG, priority: 10) # High priority - load early
         end
 
         ##
-        # Load dynamic configuration from Redis and populate ServiceRegistry state
+        # Merge static and dynamic configuration and store in ServiceRegistry
         #
-        # @param config [Hash] Static configuration (for Redis connection details)
+        # @param config [Hash] Static configuration
         def start(config)
-          log('Loading dynamic configuration from Redis...')
+          log('Merging static and dynamic configuration...')
 
-          # Load dynamic config with graceful fallback
-          dynamic_settings = load_dynamic_config(config)
+          # Merge static config with dynamic SystemSettings
+          merged_config = merge_static_and_dynamic_config(config)
 
-          # Store each setting in ServiceRegistry state
-          dynamic_settings.each do |key, value|
-            set_state(key, value)
-            OT.ld("Set dynamic config: #{key} = #{value.inspect}")
-          end
+          # Store merged config in ServiceRegistry for unified access
+          set_state(:merged_config, merged_config)
 
-          log("Dynamic configuration loaded successfully (#{dynamic_settings.size} settings)")
+          log('Configuration merge completed successfully')
         end
 
         ##
-        # Reload dynamic configuration (for hot reload capability)
+        # Reload and re-merge configuration (for hot reload capability)
         #
         # @param new_config [Hash] New static configuration
         def reload(new_config)
-          log('Reloading dynamic configuration...')
+          log('Reloading and re-merging configuration...')
           start(new_config)
         end
 
         ##
-        # Health check - verify Redis connectivity for dynamic config
+        # Health check - verify SystemSettings accessibility
         #
-        # @return [Boolean] true if Redis is accessible
+        # @return [Boolean] true if SystemSettings is accessible
         def healthy?
-          super && redis_available?
+          super && system_settings_available?
         end
 
         private
 
         ##
-        # Load dynamic configuration from Redis with fallback to defaults
+        # Merge static configuration with dynamic SystemSettings
         #
-        # @param config [Hash] Static configuration
-        # @return [Hash] Dynamic configuration settings
-        def load_dynamic_config(config)
-          # Try to load from Redis, fall back to defaults on any error
-          load_from_redis(config)
-        rescue StandardError => ex
-          error("Failed to load dynamic config from Redis: #{ex.message}")
-          log('Using default dynamic configuration values')
-          DEFAULT_CONFIG.dup
+        # @param static_config [Hash] Static configuration from YAML
+        # @return [Hash] Merged configuration
+        def merge_static_and_dynamic_config(static_config)
+          base_config = static_config.dup
+
+          begin
+            # Load current SystemSettings and convert to Onetime config format
+            current_settings = V2::SystemSettings.current
+            dynamic_config = current_settings.to_onetime_config
+
+            # Deep merge dynamic config over static config
+            merged = deep_merge(base_config, dynamic_config)
+
+            debug("Merged #{dynamic_config.keys.size} dynamic config sections")
+            merged
+          rescue Onetime::RecordNotFound
+            log('No SystemSettings found, using static configuration only')
+            base_config
+          rescue StandardError => ex
+            error("Failed to load SystemSettings: #{ex.message}")
+            log('Falling back to static configuration only')
+            base_config
+          end
         end
 
         ##
-        # Load configuration from Redis
+        # Deep merge two configuration hashes
         #
-        # @param config [Hash] Static configuration
-        # @return [Hash] Configuration loaded from Redis
-        def load_from_redis(config)
-          # This is a simplified implementation - in reality you'd:
-          # 1. Connect to Redis using config[:redis] settings
-          # 2. Load keys matching REDIS_KEY_PREFIX pattern
-          # 3. Parse/deserialize the values appropriately
-
-          # For now, return defaults since we don't have Redis integration
-          # TODO: Implement actual Redis loading when Redis client is available
-
-          OT.ld('Redis integration not yet implemented, using defaults')
-          DEFAULT_CONFIG.dup
+        # @param base [Hash] Base configuration
+        # @param overlay [Hash] Configuration to merge over base
+        # @return [Hash] Merged configuration
+        def deep_merge(base, overlay)
+          base.merge(overlay) do |_key, base_val, overlay_val|
+            if base_val.is_a?(Hash) && overlay_val.is_a?(Hash)
+              deep_merge(base_val, overlay_val)
+            else
+              overlay_val
+            end
+          end
         end
 
         ##
-        # Check if Redis is available for dynamic configuration
+        # Check if SystemSettings is available
         #
-        # @return [Boolean] true if Redis is accessible
-        def redis_available?
-          # TODO: Implement actual Redis connectivity check
-          # For now, assume it's available
-          true
+        # @return [Boolean] true if SystemSettings is accessible
+        def system_settings_available?
+          defined?(V2::SystemSettings) && V2::SystemSettings.respond_to?(:current)
         end
       end
     end

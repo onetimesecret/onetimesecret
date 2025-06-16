@@ -179,7 +179,7 @@ module Onetime
       # @param key [Symbol] Registry key
       # @param instance [Object] Service instance to register
       def register_instance(key, instance)
-        Onetime::Services::ServiceRegistry.register(key, instance)
+        Onetime::Services::ServiceRegistry.register_provider(key, instance)
       end
 
       ##
@@ -189,7 +189,7 @@ module Onetime
       # @param key [Symbol] Registry key
       # @param status [Object] Connection status/info
       def register_connection(key, status)
-        Onetime::Services::ServiceRegistry.register(key, status)
+        Onetime::Services::ServiceRegistry.register_provider(key, status)
       end
 
       ##
