@@ -1,6 +1,7 @@
 # lib/onetime/services/service_provider.rb
 
 require 'concurrent'
+require_relative 'service_registry'
 
 module OT
   module Services
@@ -177,7 +178,7 @@ module OT
       # @param key [Symbol] Registry key
       # @param instance [Object] Service instance to register
       def register_instance(key, instance)
-        ServiceRegistry.register_provider(key, instance)
+        Onetime::Services::ServiceRegistry.register(key, instance)
       end
 
       ##
@@ -187,7 +188,7 @@ module OT
       # @param key [Symbol] Registry key
       # @param status [Object] Connection status/info
       def register_connection(key, status)
-        ServiceRegistry.register_provider(key, status)
+        Onetime::Services::ServiceRegistry.register(key, status)
       end
 
       ##
@@ -197,7 +198,7 @@ module OT
       # @param key [Symbol] State key
       # @param value [Object] State value
       def set_state(key, value)
-        ServiceRegistry.set_state(key, value)
+        Onetime::Services::ServiceRegistry.set_state(key, value)
       end
 
       ##
@@ -206,7 +207,7 @@ module OT
       # @param key [Symbol] State key
       # @return [Object] State value or nil
       def get_state(key)
-        ServiceRegistry.state(key)
+        Onetime::Services::ServiceRegistry.state(key)
       end
 
       ##

@@ -18,25 +18,49 @@ module Onetime
         require_relative file
       end
 
-      # Start all system services
+      # Start all system services using service provider orchestration
       def start_all(config, connect_to_db: true)
         OT.li '[BOOT] Starting system services...'
 
-        # Start database services
+        # Phase 1: Essential connections first
         if connect_to_db
           connect_databases(config)
         else
           OT.ld '[BOOT] Skipping database connections'
         end
 
-        # Start other services
+        # Phase 2: Dynamic configuration provider (high priority)
+        start_dynamic_config_provider(config)
+
+        # Phase 3: Other service providers
+        start_remaining_providers(config)
+
+        OT.li '[BOOT] System services started successfully'
+      end
+
+      private
+
+      ##
+      # Start dynamic configuration provider early in the sequence
+      def start_dynamic_config_provider(config)
+        return unless defined?(System::DynamicConfigProvider)
+
+        OT.ld '[BOOT] Starting dynamic configuration provider...'
+        provider = System::DynamicConfigProvider.new
+        provider.start_internal(config)
+        ServiceRegistry.register(:dynamic_config, provider)
+      end
+
+      ##
+      # Start remaining service providers after dynamic config is loaded
+      def start_remaining_providers(config)
+        # Legacy method calls - TODO: Convert these to service providers
         configure_truemail(config) if defined?(Truemail)
         prepare_emailers(config)
         load_locales(config)
         setup_authentication(config)
-        # Add other service initializers
 
-        OT.li '[BOOT] System services started successfully'
+        OT.ld '[BOOT] Legacy service initialization completed'
       end
     end
   end

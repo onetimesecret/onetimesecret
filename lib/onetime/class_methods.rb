@@ -1,5 +1,7 @@
 # lib/onetime/class_methods.rb
 
+require_relative 'services/config_proxy'
+
 # Usage:
 # module Onetime
 #   extend EnvironmentHelper
@@ -306,7 +308,7 @@ module Onetime
     # prevent external modification of the shared configuration state
     # after initialization.
     def conf=(value)
-      @conf = value
+      @conf = value.is_a?(Services::ConfigProxy) ? value : Services::ConfigProxy.new(value)
     end
   end
 

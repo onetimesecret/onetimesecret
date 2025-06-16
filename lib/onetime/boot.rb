@@ -3,6 +3,7 @@
 require 'onetime/refinements/indifferent_hash_access'
 
 require_relative 'boot/init_script_context'
+require_relative 'services/config_proxy'
 
 module Onetime
   @conf  = nil
@@ -100,7 +101,7 @@ module Onetime
       # System services should start immediately after config freeze
 
       # Configuration is now frozen
-      @conf = configurator.configuration
+      @conf = Services::ConfigProxy.new(configurator.configuration)
 
       # Start system services with frozen configuration
       OT.ld '[BOOT] Starting system services...'
@@ -124,7 +125,7 @@ module Onetime
       # and serves requests (not the error middleware, gets passed that),
       # and then responds with 400 and an angry [view_vars] "Site config is
       # missing field: host".
-      @conf = configurator.configuration
+      @conf = Services::ConfigProxy.new(configurator.configuration)
 
       OT.ld '[BOOT] Completing initialization process...'
       Onetime.complete_initialization!
