@@ -85,27 +85,32 @@ module Onetime
 
       OT.ld "[BOOT] Initializing in '#{OT.mode}' mode (instance: #{instanceid})"
 
+      # These are passed directly to each script
+      script_options = {
+        mode: OT.mode,
+        instanceid: instanceid,
+        connect_to_db: connect_to_db,
+      }
+
       @configurator = OT::Configurator.load! do |config|
         OT.ld '[BOOT] Processing hook - config transformations before final freeze'
-        unless run_init_scripts(config,
-          mode: OT.mode,
-          instanceid: instanceid, # these are passed directly to each script
-          connect_to_db: connect_to_db,
-        )
+        unless run_init_scripts(config, script_options)
           break
         end
       end
 
+      OT.li "[BOOT] Configuration loaded from #{configurator.config_path}"
+
+      OT.ld '[BOOT] Loading services'
+      require_relative 'services/system'
+
       # TODO: After the init scripts run and the configuration is valid, we
-      # to run the services and then confirm that all of those are ready before
+      # run the services and then confirm that all of those are ready before
       # we deem OT.ready? => true.
       must_be_true = [configurator.nil?, OT.locales.nil?, OT.conf.nil?, OT.d9s_enabled]
       unless must_be_true.all?
         return OT.le '[BOOT] Configuration loading failed.'
       end
-
-      OT.li "[BOOT] Configuration loaded from #{configurator.config_path}"
-      require_relative 'services/system'
 
       # We have enough configuration to boot at this point. When do
       # merge with the configuration from the database? Or is that the
