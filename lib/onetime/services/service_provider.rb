@@ -3,7 +3,7 @@
 require 'concurrent'
 require_relative 'service_registry'
 
-module OT
+module Onetime
   module Services
     ##
     # Base class for service providers in the two-phase initialization system.

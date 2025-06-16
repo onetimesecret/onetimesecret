@@ -1,6 +1,7 @@
 # lib/onetime/services/system.rb
 
-require 'onetime/services/service_registry'
+require 'onetime/services/service_provider'
+require 'onetime/services/config_proxy'
 
 # Previously OT.globals:
 # :d9s_enabled, :i18n_enabled, :locales,

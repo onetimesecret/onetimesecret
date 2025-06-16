@@ -4,7 +4,7 @@ require_relative 'services/config_proxy'
 
 # Usage:
 # module Onetime
-#   extend EnvironmentHelper
+#   extend ClassMethods
 # end
 #
 # Environment detection and normalization
