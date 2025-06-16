@@ -1,9 +1,16 @@
 # lib/onetime/services/system/load_plans.rb
 
+
 module Onetime
-  module Initializers
-    def load_plans
-      OT::Plan.load_plans!
+  module Services
+    module System
+
+      class LoadPlans < ServiceProvider
+        def load_plans
+          OT::Plan.load_plans!
+        end
+      end
+
     end
   end
 end

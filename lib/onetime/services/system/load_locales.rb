@@ -7,7 +7,8 @@ require 'json'
 module Onetime
   module Services
     module System
-      class LocaleService
+
+      class LocaleService < ServiceProvider
         attr_reader :locales, :default_locale, :fallback_locale
 
         def initialize(config)

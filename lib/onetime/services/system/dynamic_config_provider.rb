@@ -1,7 +1,6 @@
 # lib/onetime/services/system/dynamic_config_provider.rb
 
 require_relative '../service_provider'
-require_relative '../service_registry'
 
 module Onetime
   module Services
@@ -20,7 +19,7 @@ module Onetime
       # - Custom branding settings
       # - Admin announcements
       #
-      class DynamicConfigProvider < ServiceProvider
+      class DynamicConfig < ServiceProvider
         # Redis key prefix for dynamic configuration
         REDIS_KEY_PREFIX = 'ots:config:'.freeze
 

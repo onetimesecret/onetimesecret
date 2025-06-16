@@ -15,6 +15,8 @@ module Onetime
 
       # Load system services dynamically
       Dir[File.join(File.dirname(__FILE__), 'system', '*.rb')].each do |file|
+        next if file.match?(/[A-Z_-]+\.rb/) # skip UPPER_CASE.rb files
+
         OT.ld "[system] Loading #{file}"
         require_relative file
       end
@@ -24,11 +26,11 @@ module Onetime
         OT.li '[BOOT] Starting system services...'
 
         # Phase 1: Essential connections first
-        if connect_to_db
-          connect_databases(config)
-        else
-          OT.ld '[BOOT] Skipping database connections'
-        end
+        # if connect_to_db
+        #   connect_databases(config)
+        # else
+        #   OT.ld '[BOOT] Skipping database connections'
+        # end
 
         # Phase 2: Dynamic configuration provider (high priority)
         start_dynamic_config_provider(config)
