@@ -231,12 +231,9 @@ const diagnosticsSentryDefaultsSchema = z.object({
   logErrors: z.boolean().optional(),
 });
 
-const diagnosticsSentryBackendSchema = z.object({
-  dsn: nullableString,
-});
+const diagnosticsSentryBackendSchema = diagnosticsSentryDefaultsSchema.extend({});
 
-const diagnosticsSentryFrontendSchema = z.object({
-  dsn: nullableString,
+const diagnosticsSentryFrontendSchema = diagnosticsSentryDefaultsSchema.extend({
   trackComponents: z.boolean().optional(),
 });
 
@@ -247,14 +244,13 @@ const diagnosticsSentrySchema = z.object({
 });
 
 const diagnosticsSchema = z.object({
-  // YAML: <%= ENV['DIAGNOSTICS_ENABLED'] == 'true' || false %>
-  enabled: z.boolean().optional(),
+  enabled: z.boolean().default(false),
   sentry: diagnosticsSentrySchema.optional(),
 });
 
 const limitsSchema = z.object(createRateLimitFields()).catchall(rateLimitValue);
 
-const individualMailValidationSchema = z.object({
+const mailValidationSchema = z.object({
   default_validation_type: z.string().default('mx'),
   verifier_email: z.email().default('support@onetimesecret.dev'),
   verifier_domain: z.string().default('onetimesecret.dev'),
@@ -282,8 +278,8 @@ const individualMailValidationSchema = z.object({
 });
 
 const dynamicMailValidationSchema = z.object({
-  recipients: individualMailValidationSchema.optional(),
-  accounts: individualMailValidationSchema.optional(),
+  recipients: mailValidationSchema.optional(),
+  accounts: mailValidationSchema.optional(),
 });
 
 const dynamicMailSchema = z.object({
@@ -295,7 +291,6 @@ export const systemSettingsSchema = z.object({
   api: apiSchema.optional(),
   secret_options: secretOptionsSchema.optional(),
   features: featuresSchema.optional(),
-  diagnostics: diagnosticsSchema.optional(),
   limits: limitsSchema.optional(),
   mail: dynamicMailSchema.optional(), // Updated mail schema
 });
@@ -397,7 +392,7 @@ const staticMailConnectionSchema = z.object({
 
 // The 'defaults' property within 'validation' is an object type is
 // the same shape as recipient and accounts fields.
-const staticMailIndividualValidationSchema = individualMailValidationSchema; // Alias for clarity
+const staticMailIndividualValidationSchema = mailValidationSchema; // Alias for clarity
 
 // 'validation' itself is a required property of 'mail'.
 // The 'defaults' property *within* 'validation' is optional.
@@ -441,6 +436,7 @@ export const staticConfigSchema = z.object({
   storage: staticStorageSchema, // storage itself gets a default empty object
   mail: staticMailSchema,
   logging: staticLoggingSchema,
+  diagnostics: diagnosticsSchema.optional(),
   i18n: staticI18nSchema,
   development: staticDevelopmentSchema,
   experimental: staticExperimentalSchema,

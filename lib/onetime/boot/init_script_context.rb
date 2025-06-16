@@ -36,6 +36,10 @@ module Onetime
         options[:mode]
       end
 
+      def utils
+        OT::Configurator::Utils
+      end
+
       def connect_to_db?
         options[:connect_to_db]
       end
