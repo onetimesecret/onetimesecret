@@ -24,7 +24,7 @@ module Onetime
 
       # Start all system services using service provider orchestration
       def start_all(config, connect_to_db: true)
-        OT.li '[BOOT] Starting system services...'
+        OT.li '[BOOT.system] Starting system services...'
 
         providers = []
 
@@ -32,15 +32,19 @@ module Onetime
         if connect_to_db
           providers << System::ConnectDatabases.new
         else
-          OT.ld '[BOOT] Skipping database connections'
+          OT.li '[BOOT.system] Skipping database connections and remaining providers'
+          return
         end
 
         # Phase 2: Dynamic configuration provider (high priority)
+        OT.ld '[BOOT.system] Starting dynamic configuration provider'
         providers << System::DynamicConfig.new
 
         # Start providers in priority order
+        OT.ld "[BOOT.system] Sorting #{providers.size} providers by priority"
         providers.sort_by!(&:priority)
         providers.each do |provider|
+          OT.ld "[BOOT.system] Starting #{provider.name} provider"
           ServiceRegistry.register_provider(provider.name, provider)
           provider.start_internal(config)
         end
@@ -48,29 +52,22 @@ module Onetime
         # Phase 3: Legacy services (TODO: Convert to ServiceProviders)
         start_remaining_providers(config)
 
-        OT.li '[BOOT] System services started successfully'
+        OT.li '[BOOT.system] System services started successfully'
       end
 
       private
 
       ##
-      # Legacy method - deprecated in favor of ServiceProvider orchestration
-      def connect_databases(config)
-        OT.ld '[BOOT] Using legacy connect_databases - consider migrating to ServiceProvider'
-        provider = System::ConnectDatabases.new
-        provider.start_internal(config)
-      end
-
-      ##
       # Start remaining service providers after dynamic config is loaded
       def start_remaining_providers(config)
+        OT.ld '[BOOT.system] Starting remaining providers'
         # Legacy method calls - TODO: Convert these to service providers
         configure_truemail(config) if defined?(Truemail)
         prepare_emailers(config)
         load_locales(config)
         setup_authentication(config)
 
-        OT.ld '[BOOT] Legacy service initialization completed'
+        OT.ld '[BOOT.system] Legacy service initialization completed'
       end
     end
   end
