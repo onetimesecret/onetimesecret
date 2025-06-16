@@ -38,15 +38,16 @@ module Onetime
     @extensions = ['.yml', '.yaml', '.json', '.json5', ''].freeze
 
     attr_accessor :config_path, :schema_path
-    attr_reader :schema, :parsed_yaml, :config_template_str, :processed_config
+
+    attr_reader :schema,
+      # States the configuration is at during the load pipeline
+      :template_str, :rendered_template, :parsed_yaml, :validated_with_defaults,
+      :processed, :validated, :validated_and_frozen
 
     def initialize(config_path: nil, schema_path: nil)
       @config_path = config_path || self.class.find_config('config')
       @schema_path = schema_path || self.class.find_config('config.schema')
     end
-
-    # States:
-    attr_reader :unprocessed_config, :validated_config, :schema, :parsed_template
 
     # Typically called via `OT::Configurator.load!`. The block is a processing
     # hook that runs after initial validation but before final freeze, allowing
@@ -78,7 +79,7 @@ module Onetime
       self
     rescue OT::ConfigError => ex
       log_debug_content(ex)
-      raise
+      raise # re-raise the same error
     rescue StandardError => ex
       log_debug_content(ex)
       raise OT::ConfigError, "Unhandled error: #{ex.message}"
@@ -123,7 +124,7 @@ module Onetime
     # Ensures structural integrity, applies defaults.
     def validate_with_defaults(config)
       OT.ld("[config] Validating w/ defaults (#{config.size} sections)")
-      _validate(config, apply_defaults: true)
+      @validated_with_defaults = _validate(config, apply_defaults: true)
     end
 
     # Processing hook - runs after initial validation but before final freeze.
@@ -142,17 +143,17 @@ module Onetime
     def run_processing_hook(config, &)
       OT.ld("[config] Run init hook (has block: #{block_given?})")
       yield(config) if block_given?
-      config # return the config back to the pipeline
+      @processed = config # return the config back to the pipeline
     end
 
     def validate(config)
       OT.ld("[config] Validating w/o defaults (#{config.size} sections)")
-      _validate(config, apply_defaults: false)
+      @validated = _validate(config, apply_defaults: false)
     end
 
     def deep_freeze(config)
       OT.ld("[config] Deep freezing (#{config.size} sections; already frozen: #{config.frozen?})")
-      OT::Utils.deep_freeze(config)
+      @validated_and_frozen = OT::Utils.deep_freeze(config)
     end
 
     def log_debug_content(err)
