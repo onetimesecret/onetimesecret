@@ -8,6 +8,11 @@ module Onetime
       @providers = Concurrent::Map.new
       @app_state = Concurrent::Map.new
 
+      # TODO: Question, do the service providers follow the same pattarn of
+      # each having a filename that corresponds to a top-level config section?
+      # I think the answers is sometimes, depending on what kind of provider
+      # it is. See the list of 3 types in this dir's README.md.
+
       class << self
         # Register a service provider
         def register(name, provider)

@@ -272,6 +272,7 @@ DEPENDENCIES
   bcrypt
   benchmark
   byebug
+  concurrent-ruby (~> 1.3.5)
   dotenv
   drydock
   encryptor (= 1.1.3)

@@ -18,10 +18,10 @@ Your two-phase initialization cleanly separates concerns that Rails conflates:
 - **Load dynamic configuration from Redis**
 
 ### ServiceRegistry Pattern
-Replaces scattered `OT.locales`, `OT.d9s_enabled` globals:
+Replaces scattered `Onetime.locales`, `Onetime.d9s_enabled` globals:
 
 ```ruby
-module OT::ServiceRegistry
+module Onetime::ServiceRegistry
   @providers = Concurrent::Map.new    # Service instances/connections
   @app_state = Concurrent::Map.new    # Runtime state values
 
@@ -35,10 +35,10 @@ end
 ### Dynamic Configuration
 - **Static config**: YAML file (database URLs, core settings)
 - **Dynamic config**: Redis-stored (footer links, runtime settings)
-- **Unified access**: `OT.conf[:key]` for both types
+- **Unified access**: `Onetime.conf[:key]` for both types
 
 ```ruby
-module OT
+module Onetime
   def self.conf
     @conf ||= ConfigProxy.new
   end
@@ -56,17 +56,17 @@ end
 - **Instance providers**: Return objects (LocaleService instance)
 - **Connection providers**: Configure modules (EmailerService sets up mailer)
 - **Dynamic config provider**: Loads Redis settings into ServiceRegistry state
-- All register via ServiceRegistry instead of polluting OT namespace
+- All register via ServiceRegistry instead of polluting Onetime namespace
 
 ### Orchestration Flow
 ```ruby
 def boot!
   run_init_scripts(config)           # Phase 1: Config normalization
   freeze_config()
-  OT::Services::System.start_all(config)  # Phase 2: Service providers
+  Onetime::Services::System.start_all(config)  # Phase 2: Service providers
 end
 
-def OT::Services::System.start_all(config)
+def Onetime::Services::System.start_all(config)
   start_database_connections(config)  # Essential connections first
   load_dynamic_configuration()        # Load Redis config early
   start_remaining_providers(config)   # Other services
@@ -76,9 +76,9 @@ end
 ### Configuration Access Patterns
 ```ruby
 # All config accessed via same interface:
-OT.conf[:database_url]    # Static from YAML
-OT.conf[:footer_links]    # Dynamic from Redis (via ServiceRegistry.state)
-OT.conf[:locales]         # Service state
+Onetime.conf[:database_url]    # Static from YAML
+Onetime.conf[:footer_links]    # Dynamic from Redis (via ServiceRegistry.state)
+Onetime.conf[:locales]         # Service state
 
 # Internal implementation routes to:
 # - ServiceRegistry.state() for dynamic/runtime values
