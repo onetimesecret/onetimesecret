@@ -3,7 +3,7 @@
 require_relative '../service_provider'
 require_relative '../service_registry'
 
-module OT
+module Onetime
   module Services
     module System
       ##
@@ -41,7 +41,7 @@ module OT
         #
         # @param config [Hash] Static configuration (for Redis connection details)
         def start(config)
-          log(:info, 'Loading dynamic configuration from Redis...')
+          log('Loading dynamic configuration from Redis...')
 
           # Load dynamic config with graceful fallback
           dynamic_settings = load_dynamic_config(config)
@@ -49,10 +49,10 @@ module OT
           # Store each setting in ServiceRegistry state
           dynamic_settings.each do |key, value|
             set_state(key, value)
-            log(:debug, "Set dynamic config: #{key} = #{value.inspect}")
+            OT.ld("Set dynamic config: #{key} = #{value.inspect}")
           end
 
-          log(:info, "Dynamic configuration loaded successfully (#{dynamic_settings.size} settings)")
+          log("Dynamic configuration loaded successfully (#{dynamic_settings.size} settings)")
         end
 
         ##
@@ -60,7 +60,7 @@ module OT
         #
         # @param new_config [Hash] New static configuration
         def reload(new_config)
-          log(:info, 'Reloading dynamic configuration...')
+          log('Reloading dynamic configuration...')
           start(new_config)
         end
 
@@ -83,8 +83,8 @@ module OT
           # Try to load from Redis, fall back to defaults on any error
           load_from_redis(config)
         rescue StandardError => ex
-          log(:warn, "Failed to load dynamic config from Redis: #{ex.message}")
-          log(:info, 'Using default dynamic configuration values')
+          error("Failed to load dynamic config from Redis: #{ex.message}")
+          log('Using default dynamic configuration values')
           DEFAULT_CONFIG.dup
         end
 
@@ -102,7 +102,7 @@ module OT
           # For now, return defaults since we don't have Redis integration
           # TODO: Implement actual Redis loading when Redis client is available
 
-          log(:debug, 'Redis integration not yet implemented, using defaults')
+          OT.ld('Redis integration not yet implemented, using defaults')
           DEFAULT_CONFIG.dup
         end
 

@@ -43,7 +43,7 @@ module Onetime
       # Get the commit hash from .commit_hash.txt
       commit_hash_file = File.join(Onetime::HOME, '.commit_hash.txt')
       commit_hash      = 'pristine'
-      if File.exist?(commit_hash_file)
+      if File.exist?(commit_hash_file) && File.readable?(commit_hash_file)
         commit_hash = File.read(commit_hash_file).strip
       else
         warn "Warning: Commit hash file not found. Using default value '#{commit_hash}'."

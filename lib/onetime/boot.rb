@@ -276,7 +276,7 @@ module Onetime
       #
       # Only re-raise in app mode to stop the server. In test/cli mode,
       # we continue with reduced functionality.
-      raise error unless mode?(:cli) || mode?(:test)
+      raise error unless OT.mode?(:cli) || OT.mode?(:test)
     end
   end
 end

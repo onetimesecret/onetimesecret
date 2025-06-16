@@ -136,11 +136,11 @@ module Onetime
           begin
             start(config)
             @status = STATUS_RUNNING
-            OT.logger.info "[ServiceProvider] Started #{@name} (#{@type})"
+            OT.li "[ServiceProvider] Started #{@name} (#{@type})"
           rescue StandardError => ex
             @status = STATUS_ERROR
             @error  = ex
-            OT.logger.error "[ServiceProvider] Failed to start #{@name}: #{ex.message}"
+            OT.le "[ServiceProvider] Failed to start #{@name}: #{ex.message}"
             raise
           end
         end
@@ -159,11 +159,11 @@ module Onetime
           begin
             stop
             @status = STATUS_STOPPED
-            OT.logger.info "[ServiceProvider] Stopped #{@name}"
+            OT.li "[ServiceProvider] Stopped #{@name}"
           rescue StandardError => ex
             @status = STATUS_ERROR
             @error  = ex
-            OT.logger.error "[ServiceProvider] Error stopping #{@name}: #{ex.message}"
+            OT.le "[ServiceProvider] Error stopping #{@name}: #{ex.message}"
             raise
           end
         end
@@ -222,10 +222,17 @@ module Onetime
       ##
       # Log provider-specific messages with context.
       #
-      # @param level [Symbol] Log level (:info, :warn, :error, :debug)
       # @param message [String] Log message
-      def log(level, message)
-        OT.logger.send(level, "[#{@name}] #{message}")
+      def log(message)
+        OT.li "[#{@name}] #{message}"
+      end
+
+      def error(message)
+        OT.le "[#{@name}] #{message}"
+      end
+
+      def debug(message)
+        OT.ld "[#{@name}] #{message}"
       end
 
       private
