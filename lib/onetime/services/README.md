@@ -1,4 +1,4 @@
-## System Design: Init Scripts, Service Providers, and Dynamic Configuration - rev2
+## System Design: Init Scripts, Service Providers, and Dynamic Configuration
 
 ### Architecture Overview
 Your two-phase initialization cleanly separates concerns that Rails conflates:
@@ -34,8 +34,9 @@ end
 
 ### Dynamic Configuration
 - **Static config**: YAML file (database URLs, core settings)
-- **Dynamic config**: Redis-stored (footer links, runtime settings)
-- **Unified access**: `Onetime.conf[:key]` for both types
+- **Dynamic config**: Redis-stored config sections (interface, mail, limits, etc.) via SystemSettings
+- **Merged config**: Combined static + dynamic loaded into ServiceRegistry
+- **Unified access**: `Onetime.conf[:key]` for all configuration
 
 ```ruby
 module Onetime
@@ -46,16 +47,30 @@ end
 
 class ConfigProxy
   def [](key)
-    # Static first to avoid dynamic config overrides
-    @static_config[key] || ServiceRegistry.state(key)
+    ServiceRegistry.state(:merged_config)[key]
   end
+end
+
+# Dynamic config provider merges static and dynamic config
+def load_dynamic_configuration
+  merged_config = merge_static_and_dynamic_config
+  ServiceRegistry.set_state(:merged_config, merged_config)
+end
+
+def merge_static_and_dynamic_config
+  base_config = @static_config.dup
+  # SystemSettings.current handles versioning/rollback internally
+  dynamic_config = SystemSettings.current.to_onetime_config
+  base_config.deep_merge(dynamic_config)
+rescue Onetime::RecordNotFound
+  base_config  # No dynamic config exists yet
 end
 ```
 
 ### Service Provider Types
 - **Instance providers**: Return objects (LocaleService instance)
 - **Connection providers**: Configure modules (EmailerService sets up mailer)
-- **Dynamic config provider**: Loads Redis settings into ServiceRegistry state
+- **Dynamic config provider**: Merges SystemSettings with static config into ServiceRegistry
 - All register via ServiceRegistry instead of polluting Onetime namespace
 
 ### Orchestration Flow
@@ -68,21 +83,20 @@ end
 
 def Onetime::Services::System.start_all(config)
   start_database_connections(config)  # Essential connections first
-  load_dynamic_configuration()        # Load Redis config early
+  load_dynamic_configuration()        # Merge static + dynamic config
   start_remaining_providers(config)   # Other services
 end
 ```
 
 ### Configuration Access Patterns
 ```ruby
-# All config accessed via same interface:
-Onetime.conf[:database_url]    # Static from YAML
-Onetime.conf[:footer_links]    # Dynamic from Redis (via ServiceRegistry.state)
+# All config accessed via unified interface:
+Onetime.conf[:storage]    # From static YAML
+Onetime.conf[:user_interface]       # Merged static + dynamic (SystemSettings) via ServiceRegistry.state[...]
 Onetime.conf[:locales]         # Service state
 
-# Internal implementation routes to:
-# - ServiceRegistry.state() for dynamic/runtime values
-# - Static YAML config for traditional settings
+# Hot reload after admin UI changes:
+ServiceRegistry.reload_dynamic_config  # Re-merges and updates
 ```
 
 ### Benefits Over Rails
@@ -92,5 +106,6 @@ Onetime.conf[:locales]         # Service state
 - Explicit service lifecycle management
 - Better separation of concerns than Rails initializers
 - **Unified config interface hiding static/dynamic complexity**
+- **SystemSettings versioning/rollback abstracted away from service layer**
 
-This architecture enables config reloading without restart while maintaining cleaner boundaries than Rails' single-phase approach. Dynamic configuration integrates seamlessly through the existing ServiceRegistry pattern.
+This architecture enables config reloading without restart while maintaining cleaner boundaries than Rails' single-phase approach. Dynamic configuration integrates seamlessly through the existing ServiceRegistry pattern, with SystemSettings handling versioning complexity internally.
