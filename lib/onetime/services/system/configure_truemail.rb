@@ -1,7 +1,7 @@
 # lib/onetime/initializers/configure_truemail.rb
 
 module Onetime
-  module Initializers
+  module Services
     def configure_truemail
       truemail_config = Onetime.conf&.dig(:mail, :truemail)
 

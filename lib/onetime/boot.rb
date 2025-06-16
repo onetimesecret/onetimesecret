@@ -11,11 +11,8 @@ module Onetime
   @debug = ENV['ONETIME_DEBUG'].to_s.match?(/^(true|1)$/i)
 
   class << self
-    attr_accessor :d9s_enabled # rubocop:disable ThreadSafety/ClassAndModuleAttributes
-    attr_reader :configurator, :conf, :instance, :i18n_enabled, :locales,
-      :supported_locales, :default_locale, :fallback_locale, :global_banner,
-      :rotated_secrets, :emailer, :first_boot, :mode, :debug, :env
-    attr_writer :global_secret # rubocop:disable ThreadSafety/ClassAndModuleAttributes
+
+    attr_reader :conf, :instance, :mode, :debug, :env
 
     def boot!(*)
       Boot.boot!(*)
@@ -94,22 +91,25 @@ module Onetime
 
       @configurator = OT::Configurator.load! do |config|
         OT.ld '[BOOT] Processing hook - config transformations before final freeze'
-        unless run_init_scripts(config, script_options)
-          break
+        unless run_init_scripts(config, **script_options)
+          raise OT::ConfigurationError, 'Initialization scripts failed'
         end
       end
 
-      OT.li "[BOOT] Configuration loaded from #{configurator.config_path}"
+      OT.li "[BOOT] Configuration loaded from #{configurator.config_path} is now frozen"
+      # System services should start immediately after config freeze
 
-      OT.ld '[BOOT] Loading services'
+      # Configuration is now frozen
+      @conf = configurator.configuration
+
+      # Start system services with frozen configuration
+      OT.ld '[BOOT] Starting system services...'
       require_relative 'services/system'
+      OT::Services::System.start_all(@conf, connect_to_db: connect_to_db)
 
-      # TODO: After the init scripts run and the configuration is valid, we
-      # run the services and then confirm that all of those are ready before
-      # we deem OT.ready? => true.
-      must_be_true = [configurator.nil?, OT.locales.nil?, OT.conf.nil?, OT.d9s_enabled]
-      unless must_be_true.all?
-        return OT.le '[BOOT] Configuration loading failed.'
+      # Check if services started successfully
+      unless OT::Services::ServiceRegistry.ready?
+        return OT.le '[BOOT] System services failed to start'
       end
 
       # We have enough configuration to boot at this point. When do

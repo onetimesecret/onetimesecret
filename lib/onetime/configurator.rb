@@ -78,10 +78,10 @@ module Onetime
 
       self
     rescue OT::ConfigError => ex
-      log_debug_content(ex)
+      log_error_with_debug_content(ex)
       raise # re-raise the same error
     rescue StandardError => ex
-      log_debug_content(ex)
+      log_error_with_debug_content(ex)
       raise OT::ConfigError, "Unhandled error: #{ex.message}"
     end
 
@@ -159,27 +159,30 @@ module Onetime
       @validated_and_frozen = OT::Utils.deep_freeze(config)
     end
 
-    def log_debug_content(err)
-      # DEBUGGING: Allow the contents of the parsed template to be logged.
+    def log_error_with_debug_content(err)
+      # NOTE: the following three debug outputs are very handy for diagnosing
+      # config problems but also very noisy. We don't have a way of setting
+      # the verbosity level so you'll need to uncomment when needed.
+      #
+      # OT.ld <<~DEBUG
+      #   [config] Loaded `#{parsed_yaml.class}`) from template:
+      #     #{template_str.to_s[0..500]}`
+      # DEBUG
+      #
       # This helps identify issues with template rendering and provides
       # context for the error, making it easier to diagnose config
       # problems, especially when the error involves environment vars.
-      if OT.debug? && rendered_template
-        template_lines = rendered_template.result.split("\n")
-        template_lines.each_with_index do |line, index|
-          OT.ld "Line #{index + 1}: #{line}"
-        end
-      end
-
-      OT.ld <<~DEBUG
-        [config] Loaded `#{parsed_yaml.class}`) from template:
-          #{template_str.to_s[0..100]}`
-      DEBUG
-
-      if parsed_yaml
-        loggable_config = OT::Utils.type_structure(parsed_yaml)
-        OT.ld "[config] Parsed: #{loggable_config}"
-      end
+      # if OT.debug? && rendered_template
+      #   template_lines = rendered_template.split("\n")
+      #   template_lines.each_with_index do |line, index|
+      #     OT.ld "Line #{index + 1}: #{line}"
+      #   end
+      # end
+      #
+      # if parsed_yaml
+      #   loggable_config = OT::Utils.type_structure(parsed_yaml)
+      #   OT.ld "[config] Parsed: #{loggable_config}"
+      # end
 
       OT.le err.message
       OT.ld err.backtrace.join("\n")

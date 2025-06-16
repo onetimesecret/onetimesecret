@@ -2,6 +2,59 @@
 
 require 'json'
 
+
+# lib/onetime/services/system/load_locales.rb
+module Onetime
+  module Services
+    module System
+      class LocaleService
+        attr_reader :locales, :default_locale, :fallback_locale
+
+        def initialize(config)
+          @config = config
+          @ready = false
+          setup_locales
+        end
+
+        def setup_locales
+          i18n_config = @config[:i18n]
+
+          @i18n_enabled = i18n_config[:enabled]
+          @locales = i18n_config[:locales]
+          @default_locale = i18n_config[:default_locale]
+          @fallback_locale = i18n_config[:fallback_locale]
+
+          # Register state in ServiceRegistry
+          OT::ServiceRegistry.set_state(:i18n_enabled, @i18n_enabled)
+          OT::ServiceRegistry.set_state(:locales, @locales)
+          OT::ServiceRegistry.set_state(:default_locale, @default_locale)
+          OT::ServiceRegistry.set_state(:fallback_locale, @fallback_locale)
+
+          @ready = true
+        end
+
+        def reload(new_config)
+          @config = new_config
+          setup_locales
+        end
+
+        def ready?
+          @ready
+        end
+      end
+
+      # Function to initialize the service
+      def load_locales(config)
+        service = LocaleService.new(config)
+        OT::ServiceRegistry.register(:locale_service, service)
+        service
+      end
+    end
+  end
+end
+
+
+__END__
 module Onetime
   module Initializers
     @i18n_enabled = false
