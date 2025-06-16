@@ -40,6 +40,8 @@ module Onetime
           # Merge static config with dynamic SystemSettings
           merged_config = merge_static_and_dynamic_config(config)
 
+          OT::Utils.deep_freeze(merged_config)
+
           # Store merged config in ServiceRegistry for unified access
           set_state(:merged_config, merged_config)
 
