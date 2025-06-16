@@ -1,5 +1,35 @@
 # etc/init.d/site.rb
 
+# Handle potential nil global secret
+# The global secret is critical for encrypting/decrypting secrets
+# Running without a global secret is only permitted in exceptional cases
+allow_nil     = global.dig('experimental', 'allow_nil_global_secret') || false # NOTE: 'global'
+
+global_secret = config.fetch('secret', nil)
+global_secret = nil if global_secret.to_s.strip == 'CHANGEME'
+
+if global_secret.nil?
+  unless allow_nil
+    # Fast fail when global secret is nil and not explicitly allowed
+    # This is a critical security check that prevents running without encryption
+    abort 'Global secret cannot be nil - set SECRET env var or site.secret in config'
+  end
+
+  # SAFETY MEASURE: Security Warnings for Dangerous Configurations
+  # Security warning when proceeding with nil global secret
+  # These warnings are prominently displayed to ensure administrators
+  # understand the security implications of their configuration
+  OT.li <<~MSG
+    #{'!' * 50}
+    SECURITY WARNING: Running with nil global secret!
+    This configuration presents serious security risks:
+    - Secret encryption will be compromised
+    - Data cannot be properly protected
+    - Only use during recovery or transition periods
+    Set valid SECRET env var or site.secret in config ASAP
+    #{'!' * 50}
+  MSG
+end
 
 # Disable all authentication sub-features when main feature is off for
 # consistency, security, and to prevent unexpected behavior. Ensures clean
@@ -39,40 +69,3 @@ end
 if default_ttl.is_a?(String)
   config['secret_options']['default_ttl'] = default_ttl.to_i
 end
-
-# SAFETY MEASURE: Critical Secret Validation
-# Handle potential nil global secret
-# The global secret is critical for encrypting/decrypting secrets
-# Running without a global secret is only permitted in exceptional cases
-allow_nil     = global.dig('experimental', 'allow_nil_global_secret') || false
-global_secret = config.fetch('secret', nil)
-global_secret = nil if global_secret.to_s.strip == 'CHANGEME'
-
-
-# Previously Onetime.global_secret is set in the initializer set_global_secret
-
-if global_secret.nil?
-  unless allow_nil
-    # Fast fail when global secret is nil and not explicitly allowed
-    # This is a critical security check that prevents running without encryption
-    raise OT::ConfigError, 'Global secret cannot be nil - set SECRET env var or site.secret in config'
-  end
-
-  # SAFETY MEASURE: Security Warnings for Dangerous Configurations
-  # Security warning when proceeding with nil global secret
-  # These warnings are prominently displayed to ensure administrators
-  # understand the security implications of their configuration
-  OT.li <<~MSG
-    #{'!' * 50}
-    SECURITY WARNING: Running with nil global secret!
-    This configuration presents serious security risks:
-    - Secret encryption will be compromised
-    - Data cannot be properly protected
-    - Only use during recovery or transition periods
-    Set valid SECRET env var or site.secret in config ASAP
-    #{'!' * 50}
-  MSG
-end
-
-# abort "Stop what you are doing"
-# exit 10
