@@ -117,9 +117,11 @@ module Onetime
     # to avoid deep trouble.
     #
     # @param obj [Object] The object to freeze
+    # @param clone [Boolean] Whether to clone the object before freezing
     # @return [Object] The frozen object
     # @security This ensures config values cannot be tampered with at runtime
-    def deep_freeze(obj)
+    def deep_freeze(obj, clone = false)
+      obj = deep_clone(obj) if clone # immediately forgets about the initial object
       case obj
       when Hash
         obj.each_value { |v| deep_freeze(v) }

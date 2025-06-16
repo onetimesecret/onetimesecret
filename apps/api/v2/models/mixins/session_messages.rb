@@ -1,7 +1,7 @@
 # apps/api/v2/models/mixins/session_messages.rb
 
 require 'json'
-require 'onetime/refinements/hash_refinements'
+require 'onetime/refinements/indifferent_hash_access'
 
 module V2
   module Mixins

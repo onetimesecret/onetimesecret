@@ -20,7 +20,7 @@ require 'onetime/migration'
 require 'yaml'
 require 'fileutils'
 
-require 'onetime/refinements/hash_refinements'
+require 'onetime/refinements/indifferent_hash_access'
 
 module Onetime
   class Migration < BaseMigration
@@ -39,7 +39,7 @@ module Onetime
         { 'from' => 'redis.uri', 'to' => 'storage.db.connection.url' },
         { 'from' => 'redis.dbs', 'to' => 'storage.db.database_mapping' },
         { 'from' => 'emailer', 'to' => 'mail.connection' },
-        { 'from' => 'mail.truemail', 'to' => 'mail.validation.default' },
+        { 'from' => 'mail.truemail', 'to' => 'mail.validation.defaults' },
         { 'from' => 'logging', 'to' => 'logging' },
         { 'from' => 'internationalization', 'to' => 'i18n' },
         { 'from' => 'development', 'to' => 'development' },

@@ -230,10 +230,6 @@ module Onetime
       yield # call the block in its own context
     end
 
-    def debug
-      @debug ||= ENV['ONETIME_DEBUG'].to_s.match?(/^(true|1)$/i)
-    end
-
     # Returns debug status and optionally executes block if enabled.
     #
     # @example Basic usage
@@ -275,24 +271,6 @@ module Onetime
 
     def staging?(&)
       env_matches?(%w[stage staging], &)
-    end
-
-    # Returns the normalized application environment
-    # Defaults to 'production' when uncertain for maximum security
-    # @return [String] environment name
-    def env
-      env = ENV['RACK_ENV'] || 'production'
-
-      # Normalize abbreviated environment names
-      case env
-      when 'dev'  then 'development'
-      when 'prod' then 'production'
-      when 'stage', 'staging' then 'staging'
-      when 'test', 'testing' then 'testing'
-      else
-        # Valid environment names pass through, unknown values become 'production'
-        %w[development production testing staging].include?(env) ? env : 'production'
-      end
     end
 
     private

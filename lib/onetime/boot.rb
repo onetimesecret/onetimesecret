@@ -1,21 +1,54 @@
 # lib/onetime/boot.rb
 
-require 'onetime/refinements/hash_refinements'
+require 'onetime/refinements/indifferent_hash_access'
 
-require_relative 'initializers'
+require_relative 'boot/init_script_context'
 
 module Onetime
   @conf  = nil
-  @env   = nil
   @mode  = nil
-  @debug = nil
+  @env   = (ENV['RACK_ENV'] || 'production').downcase
+  @debug = ENV['ONETIME_DEBUG'].to_s.match?(/^(true|1)$/i)
 
   class << self
-    attr_accessor :mode, :d9s_enabled # rubocop:disable ThreadSafety/ClassAndModuleAttributes
-    attr_reader :configurator, :conf, :instance, :i18n_enabled, :locales, :supported_locales, :default_locale, :fallback_locale, :global_banner, :rotated_secrets, :emailer, :first_boot
-    attr_writer :debug, :env, :global_secret # rubocop:disable ThreadSafety/ClassAndModuleAttributes
 
+    attr_reader :conf, :instance, :mode, :debug, :env
+
+    def boot!(*)
+      Boot.boot!(*)
+    end
+
+    def safe_boot!(*)
+      boot!(*)
+      true
+    rescue StandardError
+      # Boot errors are already logged in handle_boot_error
+      OT.not_ready! # returns false
+    ensure
+      # We can't do much without the initial file-based configuration. If it's
+      # nil here it means that there's also no schema (which has the defaults).
+      if OT.conf.nil?
+        OT.le '-' * 70
+        OT.le '[BOOT] Configuration failed to load and validate'
+        OT.le '[BOOT] Has the schema been generated? Run `pnpm run schema:generate`'
+        OT.le '-' * 70
+        nil
+      end
+    end
+
+    def set_boot_state(mode, instanceid)
+      @mode       = mode || :app
+      @instance   = instanceid # TODO: rename OT.instance -> instanceid
+    end
+  end
+
+  module Boot
+    extend self
     using IndifferentHashAccess
+
+    @init_scripts_dir = File.join(Onetime::HOME, 'etc', 'init.d').freeze
+
+    attr_reader :init_scripts_dir, :configurator
 
     # Boot reads and interprets the configuration and applies it to the
     # relevant features and services. Must be called after applications
@@ -28,7 +61,7 @@ module Onetime
     # but otherwise doesn't do anything special (other than allow :cli to
     # continue even when it's cloudy with a chance of boot errors).
     #
-    # When `db` is false, the database connections won't be initialized. This
+    # When `connect_to_db` is false, the database connections won't be initialized. This
     # is useful for testing or when you want to run code without necessary
     # loading all or any of the models.
     #
@@ -38,23 +71,46 @@ module Onetime
     # Result**: OT.conf evolves from file-only → merged config during boot,
     # maintaining compatibility with all existing code that expects `OT.conf`
     # to be the single source of truth.
-    def boot!(mode = :app, connect_to_db = true)
-      @mode = mode
+    def boot!(mode = nil, connect_to_db = true)
 
       # Sets a unique SHA hash every time this process starts. In a multi-
       # threaded environment (e.g. with Puma), this should be different for
       # each thread. See tests/unit/ruby/rspec/puma_multi_process_spec.rb.
-      @instance = [Process.pid.to_s, OT::VERSION.to_s].gibbler.short.freeze
+      instanceid = [OT::VERSION.to_s, Process.pid.to_s].gibbler.short.freeze
 
-      OT.ld "[BOOT] Initializing in '#{OT.mode}' mode (instance: #{@instance})"
+      Onetime.set_boot_state(mode, instanceid)
 
-      @configurator = OT::Configurator.load! do |conf|
-        OT.ld '[BOOT] A chance to modify the conf hash before it is frozen'
+      OT.ld "[BOOT] Initializing in '#{OT.mode}' mode (instance: #{instanceid})"
 
-        conf # must return the configuration hash
+      # These are passed directly to each script
+      script_options = {
+        mode: OT.mode,
+        instanceid: instanceid,
+        connect_to_db: connect_to_db,
+      }
+
+      @configurator = OT::Configurator.load! do |config|
+        OT.ld '[BOOT] Processing hook - config transformations before final freeze'
+        unless run_init_scripts(config, **script_options)
+          raise OT::ConfigurationError, 'Initialization scripts failed'
+        end
       end
 
-      OT.li "[BOOT] Configuration loaded from #{configurator.config_path}"
+      OT.li "[BOOT] Configuration loaded from #{configurator.config_path} is now frozen"
+      # System services should start immediately after config freeze
+
+      # Configuration is now frozen
+      @conf = configurator.configuration
+
+      # Start system services with frozen configuration
+      OT.ld '[BOOT] Starting system services...'
+      require_relative 'services/system'
+      OT::Services::System.start_all(@conf, connect_to_db: connect_to_db)
+
+      # Check if services started successfully
+      unless OT::Services::ServiceRegistry.ready?
+        return OT.le '[BOOT] System services failed to start'
+      end
 
       # We have enough configuration to boot at this point. When do
       # merge with the configuration from the database? Or is that the
@@ -70,35 +126,9 @@ module Onetime
       # missing field: host".
       @conf = configurator.configuration
 
-
-      # Initializers - simplified
-      #
-      # The registry was solving a problem you don't actually have. Your boot
-      # sequence is fundamentally sequential, not a complex dependency graph.
-      # The **module-per-initializer pattern** was solving the registry's
-      # needs, not your actual needs.
-      #
-      # Phase 1: Basic setup
-      # * Reads from file-based OT.conf (frozen)
-      # * Writes to global OT attributes.
-      require_relative 'initializers/phase1_before_database'
-      run_phase1_initializers
-
-      # Phase 2: Database + Config Merge
-      # * Reads from database
-      # * Replaces OT.conf with merged config
-      if connect_to_db
-        require_relative 'initializers/phase2_connect_database'
-        run_phase2_initializers
-      end
-
-      # Phase 3: Services (reads from merged OT.conf)
-      require_relative 'initializers/phase3_services'
-      run_phase3_initializers
-
       OT.ld '[BOOT] Completing initialization process...'
       Onetime.complete_initialization!
-      OT.li "[BOOT] Startup completed successfully (instance: #{@instance})"
+      OT.li "[BOOT] Startup completed successfully (instance: #{instanceid})"
 
       # Let's be clear about returning the prepared configruation. Previously
       # we returned @conf here which was confusing because already made it
@@ -110,25 +140,96 @@ module Onetime
       handle_boot_error(ex)
     end
 
-    def safe_boot!(mode = nil, connect_to_db = true)
-      boot!(mode, connect_to_db)
-      true
-    rescue StandardError
-      # Boot errors are already logged in handle_boot_error
-      OT.not_ready! # returns false
-    ensure
-      # We can't do much without the initial file-based configuration. If it's
-      # nil here it means that there's also no schema (which has the defaults).
-      if OT.conf.nil?
-        OT.le '-' * 70
-        OT.le '[BOOT] Configuration failed to load and validate'
-        OT.le '[BOOT] Has the schema been generated? Run `pnpm run schema:generate`'
-        OT.le '-' * 70
-        # return nil
+    private
+
+    # Runs init.d scripts for each config section during the processing hook phase.
+    # Config is still mutable - these scripts can modify their section's config,
+    # register routes, set feature flags, etc. One script per config section.
+    #
+    # Different from onetime/services/system which run AFTER config is frozen and
+    # handle system-wide services (Redis, databases, emailer, etc).
+    def run_init_scripts(config_being_processed, **)
+      base_path = init_scripts_dir
+      return unless Dir.exist?(base_path)
+
+      # Loop through each of the top-level config sections
+      #
+      # Only run scripts that exist
+      run_these_scripts = config_being_processed.keys
+        .map { |key| [key, File.join(base_path, "#{key}.rb")] }
+        .select { |_, path| File.exist?(path) }
+        .to_h
+
+      return if run_these_scripts.empty? # there were no actual files
+
+      OT.ld "[BOOT] Starting init script processing phase for: #{run_these_scripts.keys.join(', ')}."
+
+      # Runs init.d scripts for each config section during the processing hook phase.
+      # Config is still mutable - these scripts can modify their section's config,
+      # register routes, set feature flags, etc. One script per config section.
+      #
+      # Different from onetime/services/system which run AFTER config is frozen and
+      # handle system-wide services (Redis, databases, emailer, etc).
+      # e.g. site, storage, i18n, ...
+      run_these_scripts.each do |section_key, file_path|
+        run_init_script(config_being_processed, section_key, file_path, **)
+
+      rescue StandardError
+        OT.le <<~MSG
+          [BOOT] ERROR:
+            Unhandled exception during init script processing.
+            Halting further init scripts.
+        MSG
+        # The specific error details (class, message, backtrace) will be
+        # logged by handle_boot_error
+        raise
+
+      rescue SystemExit => ex
+        # Log that a script attempted to exit, then continue to the next script in the loop
+        OT.li <<~MSG
+          [BOOT] Init script '#{section_key}' (from #{file_path}) called exit(#{ex.status}). Skipping remaining scripts.
+        MSG
+        return false
       end
+
+      OT.li '[BOOT] Completed init script processing phase.'
+      true
     end
 
-    private
+    # File existence is already checked by the scripts_to_run filter
+    def run_init_script(config_being_processed, section_key, file_path, **)
+      OT.ld "[BOOT] Preparing to execute init script for section: '#{section_key}' (from #{file_path})"
+
+      # Create a frozen snapshot of the *current* state of the main config
+      # This snapshot includes changes from any previous scripts in this loop.
+      global_snapshot        = OT::Utils.deep_freeze(config_being_processed, clone: true)
+      current_section_config = config_being_processed[section_key] # still original reference
+
+      # Create context for script execution, passing along the
+      # variables that it'll have access to.
+      context = OT::Boot::InitScriptContext.new(
+        current_section_config, # mutable
+        section_key,
+        global_snapshot,        # includes updated previous section but immutable
+        ** # rubocop:disable Style/TrailingCommaInArguments
+      )
+
+      execute_script_with_context(file_path, context)
+      OT.ld "[BOOT] Finished processing init script for section: '#{section_key}'."
+    end
+
+    def execute_script_with_context(file_path, context)
+      # The load method hands rescuing SystemExit to prevent an init script
+      # from completely derailing the boot process (even by accident).
+      # Technically it's no less secure than reading a ruby file in a
+      # different branch of the project, but since it sits near the YAML
+      # configuration file, it is more exposed to tomfoolery.
+      OT.ld "[BOOT] Executing: #{context.section_key} (file: #{file_path})"
+      OT::Configurator::Load.ruby_load_file(file_path, context)
+
+      # Allow exceptions (including SystemExit) to be handled up the chain
+      # where it can decide whether to continue running the remaining scripts.
+    end
 
     def handle_boot_error(error)
       case error
@@ -144,8 +245,14 @@ module Onetime
       when Redis::CannotConnectError
         OT.le "Cannot connect to Redis #{Familia.uri} (#{error.class})"
       else
-        OT.le "Unexpected error during boot: #{error.class} - #{error.message}"
-        OT.ld error.backtrace.join("\n")
+        codepath = OT.debug? ? error.backtrace : error.backtrace[0..0]
+        OT.le <<~MSG
+          Unexpected error during boot (#{error.class}):
+
+          #{error.message}
+          #{codepath.join("\n")}
+
+        MSG
       end
 
       # NOTE: Prefer `raise` over `exit` here. Previously we used
@@ -170,60 +277,5 @@ module Onetime
       # we continue with reduced functionality.
       raise error unless mode?(:cli) || mode?(:test)
     end
-  end
-end
-
-__END__
-
-#
-# Work over these and at the bottom of config_module.rb.txt
-#
-
-def after_load
-  # # Process colonels backwards compatibility
-  # process_colonels_compatibility!(local_copy)
-
-  # # Validate critical configuration
-  # check_global_secret!(local_copy)
-
-  # # Process authentication settings
-  # process_authentication_settings!(local_copy)
-end
-
-def process_colonels_compatibility!(config)
-  # Ensure site.authentication exists (using string keys)
-  config['site'] ||= {}
-  config['site']['authentication'] ||= {}
-
-  # Handle colonels backwards compatibility (handle both symbol and string keys)
-  root_colonels = config.delete('colonels') || config.delete(:colonels)
-  auth_colonels = config['site']['authentication']['colonels']
-
-  if auth_colonels.nil?
-    # No colonels in authentication, use root colonels or empty array
-    config['site']['authentication']['colonels'] = root_colonels || []
-  elsif root_colonels
-    # Combine existing auth colonels with root colonels
-    config['site']['authentication']['colonels'] = auth_colonels + root_colonels
-  end
-end
-
-def check_global_secret!(config)
-  site_secret = config.dig('site', 'secret')
-  if site_secret.nil? || site_secret == 'CHANGEME'
-    raise OT::Problem, "Global secret cannot be nil or CHANGEME"
-  end
-end
-
-def process_authentication_settings!(config)
-  auth_config = config.dig('site', 'authentication')
-  return unless auth_config
-
-  # If authentication is disabled, set all auth sub-features to false
-  unless auth_config['enabled']
-    auth_config['colonels'] = false
-    auth_config['signup'] = false
-    auth_config['signin'] = false
-    auth_config['autoverify'] = false
   end
 end

@@ -7,17 +7,20 @@ require 'pathname'
 require 'xdg'
 
 require_relative 'errors'
-require_relative 'configurator/environment'
+require_relative 'configurator/environment_context'
 require_relative 'configurator/load'
 require_relative 'configurator/utils'
 
-require 'onetime/refinements/hash_refinements'
+require 'onetime/refinements/indifferent_hash_access'
+require 'onetime/refinements/then_with_diff'
 
 module Onetime
   # Configuration loader using two-stage validation pattern:
   # 1. Schema validation (declarative) - structure + defaults
   # 2. Business processing (imperative) - compatibility, auth, etc.
   # 3. Re-validation (declarative) - ensures processing didn't break schema
+  #
+  # Pipeline: ENV normalize → Read → ERB → YAML → Validate → Process → Revalidate → Freeze
   class Configurator
     using IndifferentHashAccess
     using ThenWithDiff
@@ -35,22 +38,23 @@ module Onetime
     @extensions = ['.yml', '.yaml', '.json', '.json5', ''].freeze
 
     attr_accessor :config_path, :schema_path
-    attr_reader :schema, :parsed_yaml, :config_template_str, :processed_config
+
+    attr_reader :schema,
+      # States the configuration is at during the load pipeline
+      :template_str, :rendered_template, :parsed_yaml, :validated_with_defaults,
+      :processed, :validated, :validated_and_frozen
 
     def initialize(config_path: nil, schema_path: nil)
       @config_path = config_path || self.class.find_config('config')
       @schema_path = schema_path || self.class.find_config('config.schema')
     end
 
-    # States:
-    attr_reader :unprocessed_config, :validated_config, :schema, :parsed_template
-
-    # Typically called via `OT::Configurator.load!`. The block is passed to
-    # after_load after the config is first loaded and the validated against
-    # the schema (which also applies default values).
+    # Typically called via `OT::Configurator.load!`. The block is a processing
+    # hook that runs after initial validation but before final freeze, allowing
+    # config transformations (e.g., backwards compatibility, auth settings).
     #
-    # Using a combination of then and then_with_diff which tracks the chanegs to
-    # the configuration at each step in this load pipline.
+    # Using a combination of then and then_with_diff which tracks the changes to
+    # the configuration at each step in this load pipeline.
     def load!(&)
       @schema        = load_schema
       # We validate before returning the config so that we're not inadvertently
@@ -68,16 +72,16 @@ module Onetime
         .then { |template| render_erb_template(template) }
         .then { |yaml_content| parse_yaml(yaml_content) }
         .then_with_diff('initial') { |config| validate_with_defaults(config) }
-        .then_with_diff('processed') { |config| after_load(config, &) }
+        .then_with_diff('processed') { |config| run_processing_hook(config, &) }
         .then_with_diff('validated') { |config| validate(config) }
         .then_with_diff('freezed') { |config| deep_freeze(config) }
 
       self
     rescue OT::ConfigError => ex
-      log_debug_content(ex)
-      raise
+      log_error_with_debug_content(ex)
+      raise # re-raise the same error
     rescue StandardError => ex
-      log_debug_content(ex)
+      log_error_with_debug_content(ex)
       raise OT::ConfigError, "Unhandled error: #{ex.message}"
     end
 
@@ -120,57 +124,65 @@ module Onetime
     # Ensures structural integrity, applies defaults.
     def validate_with_defaults(config)
       OT.ld("[config] Validating w/ defaults (#{config.size} sections)")
-      _validate(config, apply_defaults: true)
+      @validated_with_defaults = _validate(config, apply_defaults: true)
     end
 
-    # After loading the configuration, this method processes and validates the
-    # configuration, setting defaults and ensuring required elements are present.
-    # It also performs deep copy protection to prevent mutations from propagating
-    # to shared configuration instances.
+    # Processing hook - runs after initial validation but before final freeze.
+    # This is where imperative config transformations happen (backwards
+    # compatibility, derived values, etc). The config is mutable here.
     #
-    # Operates on the loaded, unprocessed configuration hash in raw form. This
-    # imperative logic deals with complex configuration processing that is
-    # beyond what can reasonably be handled by declarative validation (e.g.
-    # zod transformations).
+    # Within this hook:
+    # - etc/init.d scripts: Per-section setup (e.g., site.rb for 'site' config)
+    # - Can modify config, register routes, set feature flags
     #
-    # @return [Hash] The processed configuration has
-    def after_load(config, &)
-      OT.ld("[config] After loading (has block: #{block_given?})")
-      block_given? ? yield(config) : config
+    # After config is frozen:
+    # - onetime/services/system: System-wide services (Redis, i18n, emailer, etc.)
+    # - Cannot modify config, only read it to configure services
+    #
+    # @return [Hash] The processed configuration
+    def run_processing_hook(config, &)
+      OT.ld("[config] Run init hook (has block: #{block_given?})")
+      yield(config) if block_given?
+      @processed = config # return the config back to the pipeline
     end
 
     def validate(config)
       OT.ld("[config] Validating w/o defaults (#{config.size} sections)")
-      _validate(config, apply_defaults: false)
+      @validated = _validate(config, apply_defaults: false)
     end
 
+    # This is a convenience wrapper for the load! pipeline. It conforms to the
+    # expected inputs and outputs for the pipeline rather than rely on external
+    # methods.
     def deep_freeze(config)
       OT.ld("[config] Deep freezing (#{config.size} sections; already frozen: #{config.frozen?})")
-      OT::Utils.deep_freeze(config)
+      @validated_and_frozen = OT::Utils.deep_freeze(config)
     end
 
-    def log_debug_content(err)
-      # DEBUGGING: Allow the contents of the parsed template to be logged.
+    def log_error_with_debug_content(err)
+      # NOTE: the following three debug outputs are very handy for diagnosing
+      # config problems but also very noisy. We don't have a way of setting
+      # the verbosity level so you'll need to uncomment when needed.
+      #
+      # OT.ld <<~DEBUG
+      #   [config] Loaded `#{parsed_yaml.class}`) from template:
+      #     #{template_str.to_s[0..500]}`
+      # DEBUG
+      #
       # This helps identify issues with template rendering and provides
       # context for the error, making it easier to diagnose config
       # problems, especially when the error involves environment vars.
-      if OT.debug? && @parsed_template
-        template_lines = @parsed_template.result.split("\n")
-        template_lines.each_with_index do |line, index|
-          OT.ld "Line #{index + 1}: #{line}"
-        end
-      end
-
-      OT.ld <<~DEBUG
-        [config]
-          Template: `#{@template_str.to_s[0..50]}`
-          Parsed YAML: `#{@parsed_yaml.class}`
-      DEBUG
-
-      if unprocessed_config
-        loggable_config = OT::Utils.type_structure(unprocessed_config)
-        OT.ld "[config] Parsed: #{loggable_config}"
-      end
+      # if OT.debug? && rendered_template
+      #   template_lines = rendered_template.split("\n")
+      #   template_lines.each_with_index do |line, index|
+      #     OT.ld "Line #{index + 1}: #{line}"
+      #   end
+      # end
+      #
+      # if parsed_yaml
+      #   loggable_config = OT::Utils.type_structure(parsed_yaml)
+      #   OT.ld "[config] Parsed: #{loggable_config}"
+      # end
 
       OT.le err.message
       OT.ld err.backtrace.join("\n")
@@ -189,13 +201,13 @@ module Onetime
         raise ArgumentError, 'Invalid configuration format'
       end
 
-      # loggable_config = OT::Utils.type_structure(config)
-      # OT.ld "[config] Validating #{loggable_config.size} #{schema.size}"
+      loggable_config = OT::Utils.type_structure(config)
+      OT.ld "[config] Validating #{loggable_config.size} #{schema.size}"
       OT::Configurator::Utils.validate_with_schema(config, schema, **)
     end
 
     class << self
-      attr_reader :xdg, :paths, :extensions
+      attr_reader :xdg, :paths, :extensions, :init_scripts_dir
 
       # Instantiates a new configuration object, loads it, and it returns itself
       def load!(&) = new.load!(&)

@@ -63,7 +63,7 @@ module V1
       end
     end
 
-    # Creates a Hash with indifferent access.
+    # Creates a Hash with indifferent access (shallow).
     def indifferent_hash
       Hash.new { |hash, key| hash[key.to_s] if key.is_a?(Symbol) }
     end

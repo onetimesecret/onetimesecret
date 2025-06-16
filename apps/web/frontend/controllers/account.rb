@@ -108,7 +108,7 @@ module Frontend
 
           @cust = logic.cust
 
-          is_secure = Onetime.conf[:site][:ssl]
+          is_secure = Onetime.conf&.dig(:site, :ssl)
           res.send_cookie :sess, sess.sessid, sess.ttl, is_secure
 
           res.redirect '/account'
@@ -164,8 +164,8 @@ module Frontend
             # Get the Stripe Customer ID from our customer instance
             customer_id = cust.stripe_customer_id
 
-            site_host  = Onetime.conf[:site][:host]
-            is_secure  = Onetime.conf[:site][:ssl]
+            site_host  = Onetime.conf&.dig(:site, :host)
+            is_secure  = Onetime.conf&.dig(:site, :ssl)
             return_url = "#{is_secure ? 'https' : 'http'}://#{site_host}/account"
 
             # Create a Stripe Customer Portal session
@@ -219,7 +219,7 @@ module Frontend
               logic.process
               sess      = logic.sess
               cust      = logic.cust
-              is_secure = Onetime.conf[:site][:ssl]
+              is_secure = Onetime.conf&.dig(:site, :ssl)
               res.send_cookie :sess, sess.sessid, sess.ttl, is_secure
               if cust.role?(:colonel)
                 res.redirect '/colonel/'

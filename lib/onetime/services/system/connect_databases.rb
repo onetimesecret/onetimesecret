@@ -1,6 +1,6 @@
 # lib/onetime/initializers/connect_databases.rb
 
-require_relative '../refinements/horreum_refinements'
+require_relative '../../refinements/horreum_refinements'
 
 module Onetime
   module Initializers

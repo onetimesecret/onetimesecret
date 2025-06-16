@@ -1,9 +1,9 @@
 # lib/onetime/initializers/configure_truemail.rb
 
 module Onetime
-  module Initializers
+  module Services
     def configure_truemail
-      truemail_config = Onetime.conf[:mail][:truemail]
+      truemail_config = Onetime.conf&.dig(:mail, :truemail)
 
       # Iterate over the keys in the mail/truemail config
       # and set the corresponding key in the Truemail config.

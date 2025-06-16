@@ -1,6 +1,6 @@
 # lib/onetime/mail/mailer/base_mailer.rb
 
-require 'onetime/refinements/hash_refinements'
+require 'onetime/refinements/indifferent_hash_access'
 
 module Onetime
   module Mail

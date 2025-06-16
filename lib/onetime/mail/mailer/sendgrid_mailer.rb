@@ -2,7 +2,7 @@
 
 require 'sendgrid-ruby'
 
-require 'onetime/refinements/hash_refinements'
+require 'onetime/refinements/indifferent_hash_access'
 
 require_relative 'base_mailer'
 
