@@ -72,7 +72,7 @@ RSpec.describe "Onetime global state after boot" do
 
       expect(Onetime.conf).to be_a(Hash)
       expect(Onetime.conf).to be_frozen
-      expect(Onetime.conf&.dib(:site, :host)).to eq('127.0.0.1:3000')
+      expect(Onetime.conf&.dig(:site, :host)).to eq('127.0.0.1:3000')
     end
 
     it "sets OT.d9s_enabled based on configuration" do
