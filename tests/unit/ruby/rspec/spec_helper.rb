@@ -63,7 +63,7 @@ rescue LoadError => e
 end
 
 # Setup test environment
-OT.set_boot_state(:test, nil, nil)
+OT.set_boot_state(:test, nil)
 
 # Set up minimal test configuration
 minimal_test_config = {
