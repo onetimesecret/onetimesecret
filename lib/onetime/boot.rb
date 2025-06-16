@@ -3,18 +3,19 @@
 require 'onetime/refinements/indifferent_hash_access'
 
 require_relative 'boot/init_script_context'
-require_relative 'services/system'
 
 module Onetime
   @conf  = nil
-  @env   = nil
   @mode  = nil
-  @debug = nil
+  @env   = (ENV['RACK_ENV'] || 'production').downcase
+  @debug = ENV['ONETIME_DEBUG'].to_s.match?(/^(true|1)$/i)
 
   class << self
     attr_accessor :d9s_enabled # rubocop:disable ThreadSafety/ClassAndModuleAttributes
-    attr_reader :configurator, :conf, :instance, :i18n_enabled, :locales, :supported_locales, :default_locale, :fallback_locale, :global_banner, :rotated_secrets, :emailer, :first_boot, :mode
-    attr_writer :debug, :env, :global_secret # rubocop:disable ThreadSafety/ClassAndModuleAttributes
+    attr_reader :configurator, :conf, :instance, :i18n_enabled, :locales,
+      :supported_locales, :default_locale, :fallback_locale, :global_banner,
+      :rotated_secrets, :emailer, :first_boot, :mode, :debug, :env
+    attr_writer :global_secret # rubocop:disable ThreadSafety/ClassAndModuleAttributes
 
     def boot!(*)
       Boot.boot!(*)
@@ -38,22 +39,19 @@ module Onetime
       end
     end
 
-    def set_boot_state(mode, instanceid, env)
+    def set_boot_state(mode, instanceid)
       @mode       = mode || :app
       @instance   = instanceid # TODO: rename OT.instance -> instanceid
-      @env        = env || :production
     end
-
   end
 
   module Boot
     extend self
+    using IndifferentHashAccess
 
     @init_scripts_dir = File.join(Onetime::HOME, 'etc', 'init.d').freeze
 
     attr_reader :init_scripts_dir, :configurator
-
-    using IndifferentHashAccess
 
     # Boot reads and interprets the configuration and applies it to the
     # relevant features and services. Must be called after applications
@@ -83,9 +81,9 @@ module Onetime
       # Sets a unique SHA hash every time this process starts. In a multi-
       # threaded environment (e.g. with Puma), this should be different for
       # each thread. See tests/unit/ruby/rspec/puma_multi_process_spec.rb.
-      instanceid = [Process.pid.to_s, OT::VERSION.to_s].gibbler.short.freeze
+      instanceid = [OT::VERSION.to_s, Process.pid.to_s].gibbler.short.freeze
 
-      Onetime.set_boot_state(mode, instanceid, env)
+      Onetime.set_boot_state(mode, instanceid)
 
       OT.ld "[BOOT] Initializing in '#{OT.mode}' mode (instance: #{instanceid})"
 
