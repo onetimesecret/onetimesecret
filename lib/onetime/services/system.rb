@@ -1,13 +1,8 @@
 # lib/onetime/services/system.rb
 
-require 'onetime/services/service_provider'
-require 'onetime/services/config_proxy'
-require 'onetime/services/service_registry'
-
-# Previously OT.globals:
-# :d9s_enabled, :i18n_enabled, :locales,
-# :supported_locales, :default_locale, :fallback_locale, :global_banner,
-# :rotated_secrets, :emailer, :first_boot, :global_secret
+require_relative 'service_provider'
+require_relative 'config_proxy'
+require_relative 'service_registry'
 
 module Onetime
   module Services
@@ -59,5 +54,8 @@ module Onetime
       end
 
     end
+
+    # NOTE: To remove, delete this line and the legacy_globals.rb file.
+    require_relative 'legacy_globals'
   end
 end
