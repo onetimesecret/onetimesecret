@@ -141,6 +141,11 @@ module Onetime
       # Get merged configuration from ServiceRegistry.
       # Falls back to static config if merged config is not available.
       #
+      # TODO: The get_merged_config method catches all StandardError
+      # exceptions and falls back to static config, which might mask
+      # important configuration errors. Consider more specific exception
+      # handling or at least logging the specific error types. #1497
+      #
       # @return [Hash] Merged configuration or static config as fallback
       def get_merged_config
         return @static_config unless service_registry_available?
