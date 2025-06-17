@@ -16,7 +16,7 @@ module Onetime
   #
   # We use a Concurrent::AtomicReference to ensure thread-safe updates if we
   # need to replace the ConfigProxy instance.
-  @conf  = Concurrent::AtomicReference.new
+  @conf  = nil
 
   class << self
 
@@ -45,7 +45,7 @@ module Onetime
     end
 
     def set_conf(new_config_proxy)
-      @conf.set(new_config_proxy)
+      @conf = new_config_proxy
     end
 
     def set_boot_state(mode, instanceid)
