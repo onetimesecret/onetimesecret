@@ -1,12 +1,12 @@
 ---
-# etc/examples/config.example.yaml
+# etc/defaults/config.defaults.yaml
 
-# CONFIGURATION OVERVIEW
-# ======================
-# This configuration file has been updated to use a new static configuration approach.
-# Previously, this file contained the entire configuration object with all possible
-# settings and their default values. Now it follows a more streamlined approach.
+# Static Configuration - pristine
 #
+# This file is copied to etc/config.yaml for fresh installs (that
+# don't already have one). It's not necessarily exhaustive since
+# we use a JSON schema for both validation and applying defaults
+# values.
 
 site:
   host: <%= ENV['HOST'] || 'localhost:3000' %>
@@ -96,7 +96,7 @@ mail:
     auth: <%= ENV['SMTP_AUTH'] || 'login' %>
     tls: <%= ENV['SMTP_TLS'] %>
   validation:
-    default:
+    defaults:
       # Available validation types: :regex, :mx, :mx_blacklist, :smtp
       default_validation_type: :regex
       # Required for :smtp validation
