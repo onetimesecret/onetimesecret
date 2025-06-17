@@ -4,7 +4,6 @@ require 'onetime/refinements/indifferent_hash_access'
 
 require_relative '../service_provider'
 
-
 module Onetime
   module Services
     module System
@@ -32,7 +31,7 @@ module Onetime
         def start(config)
           log('Configuring authentication settings...')
 
-          site_config = config.fetch(:site, {})
+          site_config  = config.fetch(:site, {})
           @auth_config = site_config.fetch(:authentication, {})
 
           # Extract colonels (admin users) configuration

@@ -62,19 +62,16 @@ module Onetime
           redis_info   = Familia.redis.info
           colonels     = site_config.dig(:authentication, :colonels) || []
 
-          # Get service instances from registry
-          locales = get_state(:locales)
           emailer = get_state(:emailer)
 
           # Create a buffer to collect all output
           output = []
 
           # Header banner
-          output << "---  ONETIME #{OT.mode} v#{OT::VERSION.inspect}  #{'---' * 3}"
-          output << ''
+          output << build_header_banner
 
           # Add each section to output
-          system_rows = build_system_section(redis_info, locales)
+          system_rows = build_system_section(redis_info)
           output << render_section('Component', 'Value', system_rows)
 
           dev_rows = build_dev_section(config)
@@ -103,16 +100,17 @@ module Onetime
           end
 
           # Footer
-          output << "#{'-' * 75}"
+          output << build_footer_banner
 
           # Output everything with a single OT.li call
           OT.li output.join("\n")
         end
 
         # Builds system information section rows
-        def build_system_section(redis_info, locales)
-          platform_info = "#{RUBY_ENGINE} #{RUBY_VERSION} in #{OT.env} (#{RUBY_PLATFORM})"
-          configurator = OT::Boot.configurator
+        def build_system_section(redis_info)
+          platform_info = "#{RUBY_ENGINE} #{RUBY_VERSION} on #{RUBY_PLATFORM} (#{OT.env})"
+          configurator  = OT::Boot.configurator
+          locales       = OT.conf[:i18n][:locales]
 
           system_rows = [
             ['System', platform_info],
@@ -124,8 +122,8 @@ module Onetime
           ]
 
           # Add locales if i18n is enabled and locales service is available
-          if OT.i18n_enabled && locales.respond_to?(:keys)
-            system_rows << ['Locales', locales.keys.join(', ')]
+          if OT.i18n_enabled && !locales.empty?
+            system_rows << ['Locales', locales.join(', ')]
           end
 
           system_rows
@@ -337,10 +335,60 @@ module Onetime
           rendered = table.render(:unicode,
             padding: [0, 1],
             multiline: true,
-            column_widths: [15, 79])
+            column_widths: [15, 55],
+          )
 
           # Return rendered table with an extra newline
           rendered + "\n"
+        end
+
+        # Build distinctive header banner
+        def build_header_banner
+          width              = 75
+          border_char_closed = '═'
+          border_char_open   = ' '
+          corner_tl          = '╔'
+          corner_tr          = '╗'
+          vertical           = '║'
+
+          title     = "ONETIME #{OT.mode.upcase} v#{OT::VERSION}"
+          padding   = (width - 2 - title.length) / 2
+          left_pad  = ' ' * padding
+          right_pad = ' ' * (width - title.length - padding)
+
+          <<~HEADER
+
+            #{corner_tl}#{border_char_closed * width}#{corner_tr}
+            #{vertical}#{' ' * width}#{vertical}
+            #{vertical}#{left_pad}#{title}#{right_pad}#{vertical}
+            #{vertical}#{' ' * width}#{vertical}
+            #{vertical}#{border_char_open * width}#{vertical}
+
+          HEADER
+        end
+
+        # Build distinctive footer banner
+        def build_footer_banner
+          width              = 75
+          border_char_closed = '═'
+          border_char_open   = ' '
+          corner_bl          = '╚'
+          corner_br          = '╝'
+          vertical           = '║'
+
+          timestamp   = Time.now.strftime('%Y-%m-%d %H:%M:%S %Z')
+          footer_text = "System initialized at #{timestamp}"
+          padding     = (width - 2 - footer_text.length) / 2
+          left_pad    = ' ' * padding
+          right_pad   = ' ' * (width - footer_text.length - padding)
+
+          <<~FOOTER
+
+            #{vertical}#{border_char_open * width}#{vertical}
+            #{vertical}#{left_pad}#{footer_text}#{right_pad}#{vertical}
+            #{corner_bl}#{border_char_closed * width}#{corner_br}
+
+          FOOTER
         end
       end
     end

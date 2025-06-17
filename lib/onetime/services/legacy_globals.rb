@@ -1,5 +1,7 @@
 # lib/onetime/services/legacy_globals.rb
 
+require 'onetime/refinements/indifferent_hash_access'
+
 module Onetime
   module Services
     # LegacyGlobals
@@ -13,6 +15,7 @@ module Onetime
     # :rotated_secrets, :emailer, :first_boot, :global_secret
     #
     module LegacyGlobals
+      using IndifferentHashAccess
 
       def d9s_enabled
         @d9s_enabled ||= OT.conf[:diagnostics][:enabled]
