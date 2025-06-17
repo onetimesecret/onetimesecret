@@ -125,7 +125,7 @@ module Onetime
       # Get debug information about configuration sources.
       #
       # @return [Hash] Debug information
-      def debug_info
+      def debug_dump
         merged_config = get_merged_config
         {
           static_keys: @static_config.keys.sort,

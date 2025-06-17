@@ -1,20 +1,31 @@
 # lib/onetime/services/system/prepare_emailers.rb
 
+require_relative '../service_provider'
 
 module Onetime
   module Services
     module System
+      ##
+      # Emailer Provider
+      #
+      # Configures the email service based on the configured mode (sendgrid, ses, smtp).
+      # Sets up the appropriate mailer class and makes it available system-wide.
+      #
+      class EmailerProvider < ServiceProvider
+        attr_reader :emailer
 
-      class PrepareEmailers < ServiceProvider
-        # attr_reader :emailer
+        def initialize
+          super(:emailer, type: TYPE_INSTANCE, priority: 30)
+        end
 
-        # Prepares the emailer based on the configured mode.
+        ##
+        # Configure the emailer based on the configured mode
         #
-        # This method retrieves the Redis database configurations from the application
-        # settings and establishes connections for each model class within the Familia
-        #
-        def prepare_emailers
-          mail_mode = OT.conf[:emailer][:mode].to_s.to_sym
+        # @param config [Hash] Application configuration
+        def start(config)
+          log('Configuring email service...')
+
+          mail_mode = config.dig(:emailer, :mode).to_s.to_sym
 
           mailer_class = case mail_mode
           when :sendgrid
@@ -30,8 +41,18 @@ module Onetime
 
           mailer_class.setup
           @emailer = mailer_class
+
+          register_instance(:emailer, @emailer)
+          log("Email service configured with #{mail_mode} provider")
         end
       end
+
+      # Legacy method for backward compatibility
+      # def prepare_emailers(config)
+      #   provider = EmailerProvider.new
+      #   provider.start_internal(config)
+      #   provider.emailer
+      # end
 
     end
   end

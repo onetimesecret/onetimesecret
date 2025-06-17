@@ -187,13 +187,13 @@ RSpec.describe 'Service Provider System' do
       end
     end
 
-    describe '#debug_info' do
+    describe '#debug_dump' do
       before do
         Onetime::Services::ServiceRegistry.set_state(:test_key, 'value')
       end
 
       it 'returns debug information' do
-        info = proxy.debug_info
+        info = proxy.debug_dump
         expect(info).to include(:static_keys, :dynamic_keys, :service_registry_available)
         expect(info[:static_keys]).to include(:host, :port)
         expect(info[:service_registry_available]).to be true

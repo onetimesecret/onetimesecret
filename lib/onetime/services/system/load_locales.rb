@@ -1,55 +1,110 @@
-# lib/onetime/initializers/load_locales.rb
+# lib/onetime/services/system/load_locales.rb
 
 require 'json'
-
-
-# lib/onetime/services/system/load_locales.rb
+require_relative '../service_provider'
 module Onetime
   module Services
     module System
+      ##
+      # Locale Provider
+      #
+      # Loads and configures internationalization (i18n) support based on
+      # the i18n configuration section. Loads locale files and sets up
+      # default/fallback locales.
+      #
+      class LocaleProvider < ServiceProvider
+        attr_reader :locales, :default_locale, :fallback_locale, :i18n_enabled
 
-      class LocaleService < ServiceProvider
-        attr_reader :locales, :default_locale, :fallback_locale
-
-        def initialize(config)
-          @config = config
-          @ready = false
-          setup_locales
+        def initialize
+          super(:locales, type: TYPE_INSTANCE, priority: 20)
         end
 
-        def setup_locales
-          i18n_config = @config[:i18n]
+        ##
+        # Load and configure locales from configuration
+        #
+        # @param config [Hash] Application configuration
+        def start(config)
+          log('Loading internationalization settings...')
 
-          @i18n_enabled = i18n_config[:enabled]
-          @locales = i18n_config[:locales]
-          @default_locale = i18n_config[:default_locale]
-          @fallback_locale = i18n_config[:fallback_locale]
+          i18n_config   = config.fetch(:i18n, {})
+          @i18n_enabled = i18n_config[:enabled] || false
 
-          # Register state in ServiceRegistry
-          OT::ServiceRegistry.set_state(:i18n_enabled, @i18n_enabled)
-          OT::ServiceRegistry.set_state(:locales, @locales)
-          OT::ServiceRegistry.set_state(:default_locale, @default_locale)
-          OT::ServiceRegistry.set_state(:fallback_locale, @fallback_locale)
+          log('Parsing through i18n locales...')
 
-          @ready = true
+          # Load the locales from the config
+          locales_list = i18n_config.fetch(:locales, ['en']).map(&:to_s)
+
+          if @i18n_enabled
+            @supported_locales = locales_list
+            @default_locale    = i18n_config.fetch(:default_locale, locales_list.first) || 'en'
+            @fallback_locale   = i18n_config.fetch(:fallback_locale, nil)
+
+            unless locales_list.include?(@default_locale)
+              error("Default locale #{@default_locale} not in locales_list #{locales_list}")
+              @i18n_enabled = false
+            end
+          else
+            @default_locale    = 'en'
+            @supported_locales = [@default_locale]
+            @fallback_locale   = nil
+          end
+
+          # Load locale definitions from JSON files
+          @locales = load_locale_definitions(@supported_locales)
+
+          # Register with ServiceRegistry
+          register_instance(:locale_service, self)
+
+          # Set global state for backward compatibility
+          set_state(:i18n_enabled, @i18n_enabled)
+          set_state(:locales, @locales)
+          set_state(:supported_locales, @supported_locales)
+          set_state(:default_locale, @default_locale)
+          set_state(:fallback_locale, @fallback_locale)
+
+          log("Loaded #{@locales.size} locale(s): #{@supported_locales.join(', ')}")
         end
 
-        def reload(new_config)
-          @config = new_config
-          setup_locales
-        end
+        private
 
-        def ready?
-          @ready
+        def load_locale_definitions(supported_locales)
+          # Load JSON files for each supported locale
+          confs = supported_locales.collect do |loc|
+            path = File.join(Onetime::HOME, 'src', 'locales', "#{loc}.json")
+            debug("Loading #{loc}: #{File.exist?(path)}")
+
+            begin
+              contents = File.read(path)
+            rescue Errno::ENOENT
+              error("Missing locale file: #{path}")
+              next
+            end
+
+            conf = JSON.parse(contents, symbolize_names: true)
+            [loc, conf]
+          end
+
+          # Convert to hash and overlay locales on default for completeness
+          locales_defs       = confs.compact.to_h
+          default_locale_def = locales_defs.fetch(@default_locale, {})
+
+          # Overlay each locale on top of the default to fill missing keys
+          locales_defs.each do |key, locale|
+            next if @default_locale == key
+
+            locales_defs[key] = OT::Utils.deep_merge(default_locale_def, locale)
+          end
+
+          locales_defs
         end
       end
 
-      # Function to initialize the service
-      def load_locales(config)
-        service = LocaleService.new(config)
-        OT::ServiceRegistry.register(:locale_service, service)
-        service
-      end
+      # Legacy method for backward compatibility
+      # def load_locales(config)
+      #   provider = LocaleProvider.new
+      #   provider.start_internal(config)
+      #   provider
+      # end
     end
   end
 end

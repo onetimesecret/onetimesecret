@@ -37,8 +37,13 @@ module Onetime
         end
 
         # Phase 2: Dynamic configuration provider (high priority)
-        OT.ld '[BOOT.system] Starting dynamic configuration provider'
         providers << System::DynamicConfig.new
+
+        # Phase 3: Core service providers
+        providers << System::TruemailProvider.new
+        providers << System::EmailerProvider.new
+        providers << System::LocaleProvider.new
+        providers << System::AuthenticationProvider.new
 
         # Start providers in priority order
         OT.ld "[BOOT.system] Sorting #{providers.size} providers by priority"
@@ -49,26 +54,10 @@ module Onetime
           provider.start_internal(config)
         end
 
-        # Phase 3: Legacy services (TODO: Convert to ServiceProviders)
-        start_remaining_providers(config)
 
         OT.li '[BOOT.system] System services started successfully'
       end
 
-      private
-
-      ##
-      # Start remaining service providers after dynamic config is loaded
-      def start_remaining_providers(config)
-        OT.ld '[BOOT.system] Starting remaining providers'
-        # Legacy method calls - TODO: Convert these to service providers
-        configure_truemail(config) if defined?(Truemail)
-        prepare_emailers(config)
-        load_locales(config)
-        setup_authentication(config)
-
-        OT.ld '[BOOT.system] Legacy service initialization completed'
-      end
     end
   end
 end

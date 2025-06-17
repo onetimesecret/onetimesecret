@@ -100,6 +100,13 @@ module Onetime
           system_settings: 15,
         }
       end
+
+      # Legacy method for backward compatibility
+      # def connect_databases(config)
+      #   provider = ConnectDatabases.new
+      #   provider.start_internal(config)
+      #   provider
+      # end
     end
   end
 end
