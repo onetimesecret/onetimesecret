@@ -28,8 +28,8 @@ module MiddlewareStack
       # Error Monitoring Integration
       # Add Sentry exception tracking when available
       # This block only executes if Sentry was successfully initialized
-      Onetime.with_diagnostics do
-        Onetime.ld '[config.ru] Sentry enabled'
+      Onetime.with_diagnostics do |diagnostics_conf|
+        Onetime.ld "[config.ru] Sentry enabled #{diagnostics_conf}"
         # Position Sentry middleware early to capture exceptions throughout the stack
 
         builder.use Sentry::Rack::CaptureExceptions

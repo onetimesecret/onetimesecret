@@ -76,12 +76,13 @@ module Onetime::Mail
       end
 
       def self.setup
+        mail_settings
         # Configure AWS SES client
         @ses_client = Aws::SESV2::Client.new(
-          region: OT.conf[:emailer][:region] || raise('Region not configured'),
+          region: mail_settings[:region] || raise('Region not configured'),
           credentials: Aws::Credentials.new(
-            OT.conf[:emailer][:user],
-            OT.conf[:emailer][:pass],
+            mail_settings[:user],
+            mail_settings[:pass],
           ),
         )
       end

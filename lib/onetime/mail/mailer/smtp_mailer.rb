@@ -90,15 +90,18 @@ module Onetime::Mail
       end
 
       def self.setup
+        settings    = mail_settings
+        domain_name = mail_domain
+
         ::Mail.defaults do
           delivery_method :smtp, {
-            address: OT.conf[:emailer][:host] || 'localhost',
-            port: OT.conf[:emailer][:port] || 587,
-            domain: OT.conf[:site][:domain],
-            user_name: OT.conf[:emailer][:user],
-            password: OT.conf[:emailer][:pass],
-            authentication: OT.conf[:emailer][:auth],
-            enable_starttls_auto: OT.conf[:emailer][:tls].to_s == 'true',
+            address: settings[:host] || 'localhost',
+            port: settings[:port] || 587,
+            domain: domain_name,
+            user_name: settings[:user],
+            password: settings[:pass],
+            authentication: settings[:auth],
+            enable_starttls_auto: settings[:tls].to_s == 'true',
           }
         end
       end
