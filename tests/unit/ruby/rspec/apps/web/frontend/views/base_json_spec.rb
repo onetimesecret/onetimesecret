@@ -69,7 +69,6 @@ RSpec.xdescribe Frontend::Views::BaseView, "JSON Output" do
             },
             plans: { enabled: authenticated_json["plans_enabled"] },
             secret_options: authenticated_json["secret_options"],
-            support: { host: authenticated_json["support_host"] },
           },
           development: {
             enabled: true,
@@ -204,7 +203,6 @@ RSpec.xdescribe Frontend::Views::BaseView, "JSON Output" do
               },
               plans: { enabled: not_authenticated_json["plans_enabled"] },
               secret_options: not_authenticated_json["secret_options"],
-              support: { host: not_authenticated_json["support_host"] },
             },
             development: {
               enabled: true,

@@ -116,7 +116,6 @@ export interface OnetimeWindow {
   secret_options: SecretOptions;
 
   available_plans: AvailablePlans;
-  support_host?: string;
 
   plan: Plan;
   is_paid: boolean;

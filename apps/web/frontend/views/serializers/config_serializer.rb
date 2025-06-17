@@ -25,7 +25,6 @@ module Frontend
 
         output[:ui]             = site.dig(:interface, :ui)
         output[:authentication] = site.fetch(:authentication, nil)
-        output[:support_host]   = site.dig(:support, :host)
         output[:secret_options] = site[:secret_options]
         output[:site_host]      = site[:host]
         regions                 = site[:regions] || {}
@@ -77,7 +76,6 @@ module Frontend
             regions_enabled: nil,
             secret_options: nil,
             site_host: nil,
-            support_host: nil,
             ui: nil,
           }
         end

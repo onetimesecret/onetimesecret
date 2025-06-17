@@ -4,23 +4,21 @@ This directory contains configuration files and processing logic for the applica
 
 ## Directory Structure
 
-- **Configuration Data**: YAML files defining application behavior
-- **Processing Logic**: Ruby code that transforms configuration into runtime state
-- **Validation**: JSON Schema ensuring configuration correctness
+- `etc/` - **Configuration Data**: YAML files defining application behavior.
+- `etc/init.d` - **Processing Logic**: Ruby code that transforms configuration into runtime state.
+- `etc/defaults` - **Default Config Files**: Used as the starting point for new installs.
+- `etc/examples` - **Example Snippets**: Individual sections of the configuration demonstrating specific features.
 
 ## Files
 
-### Core Configuration
-- `examples/config.example.yaml` - Template with example values
+### Core/Static Configuration
+- `defaults/config.defaults.yaml` - Template with example values
 - `config.yaml` - Main application configuration
 - `config.schema.json` - Validation schema and defaults
 
-### System Configuration
+### System/Dynamic Configuration
 - `system_settings.example.yaml` - Default system settings
-- `redis.conf` - Redis server configuration
 
-### Application Data
-- `fortunes` - Messages used in signup verification process
 
 ## Configuration Schema
 
@@ -46,4 +44,4 @@ JSON::Validator.validate!(schema, config, insert_defaults: true)
 import schema from '../etc/config.schema.json'
 ```
 
-The Ruby backend uses the schema at startup for validation and default application. The Vue frontend references it for API interactions and the Colonel administrative interface.
+The Ruby backend uses the schema at startup to validate the static configuration (config.yaml) and to apply default values where needed. The Vue frontend references it for API interactions and the Colonel administrative interface.

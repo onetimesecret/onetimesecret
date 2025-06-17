@@ -1,3 +1,4 @@
+---
 user_interface:
   # Controls whether the web interface is enabled
   # When false, only a basic explanation page is shown
