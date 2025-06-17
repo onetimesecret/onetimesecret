@@ -76,27 +76,39 @@ module Onetime
       @dynamic_config = File.join(@base_path, 'etc', 'config.dynamic.yaml')
       @final_static_path = File.join(@base_path, 'etc', 'config.yaml')
       @final_dynamic_path = File.join(@base_path, 'etc', 'system_settings.defaults.yaml')
+
+      debug ''
+      debug "Paths:"
+      debug "Base path: #{@base_path}"
+      debug "Source file: #{@source_config}"
+      debug "Dynamic file: #{@final_dynamic_path}"
+      debug ''
     end
 
     def migration_needed?
-      return false unless File.exist?(@source_config)
 
-      begin
-        config = YAML.load_file(@source_config)
-
-        # Check if all static mapping source paths exist with non-nil values
-        ret = CONFIG_MAPPINGS['static'].all? do |mapping|
-          from_path = mapping['from']
-          value = get_nested_value(config, from_path.split('.'))
-          info("Checking setting: #{from_path} #{value.class}")
-          !value.nil?
-        end
-
-        ret
-      rescue => e
-        error "Failed to check migration status: #{e.message}"
-        false
+      unless File.exist?(@source_config)
+        raise "Source config file does not exist (#{@source_config})"
       end
+
+      config = YAML.load_file(@source_config)
+
+      if config.nil? || config.empty?
+        raise 'Source config file is empty'
+      end
+
+      # Check if all static mapping source paths exist with non-nil values
+      ret = CONFIG_MAPPINGS['static'].all? do |mapping|
+        from_path = mapping['from']
+        value = get_nested_value(config, from_path.split('.'))
+        info("Checking setting: #{from_path} #{value.class}")
+        !value.nil?
+      end
+
+      ret
+    rescue => e
+      error "Error: #{e.message}"
+      false
     end
 
     def migration_not_needed_banner
@@ -104,27 +116,35 @@ module Onetime
       # next
       source_file = File.basename(@source_config)
       dynamic_file = File.basename(@final_dynamic_path)
-      separator
-      info "Things to check:"
-      info ""
-      info "  1. Check if migration has already completed:"
-      info "     If you have #{dynamic_file}, the migration"
-      info "     has already run successfully and you're good to go!"
-      info ""
-      info "  2. Review the source configuration file:"
-      info "     Check #{source_file} for any missing or invalid settings."
-      info "     All required static configuration keys must exist with "
-      info "     non-nil values."
-      info ""
-      info "  3. Look for diagnostic hints in the output above:"
-      info "     Messages like `Checking setting: logging NilClass` indicate"
-      info "     that the 'logging' key is missing or null in your YAML file."
-      info ""
-      info "  4. Verify configuration format:"
-      info "     If the migration has already run, #{source_file} will"
-      info "     be in the updated static config format (not the original "
-      info "     monolithic format)."
-      separator
+
+      info <<~HEREDOC
+
+        #{separator}
+        Things to try:
+
+          1. Check if migration has already completed.
+             If you have etc/#{dynamic_file}
+             and etc/#{source_file} is in the new format, the migration
+             has already run successfully and you're good to go.
+
+          2. Review the source configuration file.
+             Check etc/#{source_file} for any missing or invalid settings.
+             In needs to be a working config file.
+
+          3. Look for diagnostic hints.
+             Re-run with debug output:
+
+              $ ONETIME_DEBUG=1 bin/ots migrate [--run] 1452_separate_config.rb
+
+          4. Try running with the example config.
+             Create a copy of etc/#{source_file}. Then copy
+             etc/config.example.config to etc/#{source_file} and try the
+             migration again.
+
+             If this works, you'll need to manually copy over your settings.
+
+        #{separator}
+      HEREDOC
     end
 
     def migrate
@@ -164,6 +184,10 @@ module Onetime
     end
 
     private
+
+    def separator
+      '-' * 60
+    end
 
     def get_nested_value(hash, keys)
       keys.reduce(hash) { |h, key| h&.dig(key) }
