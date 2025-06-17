@@ -1,6 +1,9 @@
 # lib/onetime/services/system/authentication.rb
 
+require 'onetime/refinements/indifferent_hash_access'
+
 require_relative '../service_provider'
+
 
 module Onetime
   module Services
@@ -14,6 +17,8 @@ module Onetime
       # system-wide.
       #
       class AuthenticationProvider < ServiceProvider
+        using IndifferentHashAccess
+
         attr_reader :colonels, :auth_config
 
         def initialize
