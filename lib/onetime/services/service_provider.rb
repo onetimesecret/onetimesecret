@@ -54,6 +54,7 @@ module Onetime
       TYPE_INSTANCE   = :instance
       TYPE_CONNECTION = :connection
       TYPE_CONFIG     = :config
+      TYPE_INFO       = :info
 
       def initialize(name, type: TYPE_INSTANCE, dependencies: [], priority: 50)
         @name         = name.to_sym

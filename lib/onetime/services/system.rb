@@ -40,6 +40,9 @@ module Onetime
         providers << System::LocaleProvider.new
         providers << System::AuthenticationProvider.new
 
+        # Phase 4: Information display (runs last)
+        providers << System::LogBannerProvider.new
+
         # Start providers in priority order
         OT.ld "[BOOT.system] Sorting #{providers.size} providers by priority"
         providers.sort_by!(&:priority)
