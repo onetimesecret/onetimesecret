@@ -1,310 +1,396 @@
-# lib/onetime/initializers/print_log_banner.rb
+# lib/onetime/services/system/print_log_banner.rb
 
 require 'tty-table'
 require 'json'
 
+require 'onetime/refinements/indifferent_hash_access'
+require_relative '../service_provider'
+
 module Onetime
-  module Initializers
-    # Prints a formatted banner with system and configuration information at startup.
-    # The banner is organized into logical sections, each rendered as a table.
-    #
-    # Structure:
-    # - All output is collected in an array and printed with a single OT.li call
-    # - Each section is rendered as a TTY::Table with consistent formatting
-    # - Sections are separated by newlines
-    #
-    # To add a new section to the banner:
-    # 1. Add a section comment: ====== New Section Name ======
-    # 2. Create an array to collect rows: `new_section_rows = []`
-    # 3. Add key/value pairs to the array: `new_section_rows << ['Key', 'Value']`
-    # 4. Check if the section has content: `unless new_section_rows.empty?`
-    # 5. Add rendered section to output: `output << render_section('Header1', 'Header2', new_section_rows)`
-    #
-    # Helper methods available:
-    # - render_section(header1, header2, rows): Creates a formatted table
-    # - feature_disabled?(config): Checks if a feature is disabled
-    # - format_config_value(config): Formats complex config values for display
-    # - format_duration(seconds): Converts seconds to human-readable format (e.g., "5m", "2h", "7d")
-    def print_log_banner
-      site_config  = OT.conf.fetch(:site) # if :site is missing we got real problems
-      email_config = OT.conf.fetch(:emailer, {})
-      redis_info   = Familia.redis.info
-      colonels     = site_config.dig(:authentication, :colonels) || []
+  module Services
+    module System
+      ##
+      # LogBannerProvider
+      #
+      # Prints a formatted banner with system and configuration information at startup.
+      # The banner is organized into logical sections, each rendered as a table.
+      #
+      # This is an info-type provider that runs late in the startup sequence to
+      # display comprehensive system status after all other services are initialized.
+      #
+      class LogBannerProvider < ServiceProvider
+        using IndifferentHashAccess
 
-      # Create a buffer to collect all output
-      output = []
+        def initialize
+          super(:log_banner, type: TYPE_INFO, priority: 90)
+        end
 
-      # Header banner
-      output << "---  ONETIME #{OT.mode} v#{OT::VERSION.inspect}  #{'---' * 3}"
-      output << ''
+        ##
+        # Print the system banner with configuration and status information
+        #
+        # @param config [Hash] Frozen application configuration
+        def start(config)
+          log('Printing system banner...')
+          print_log_banner(config)
+        end
 
-      # Add each section to output
-      system_rows = build_system_section(redis_info)
-      output << render_section('Component', 'Value', system_rows)
+        private
 
-      dev_rows = build_dev_section
-      unless dev_rows.empty?
-        output << render_section('Development', 'Settings', dev_rows)
-      end
+        # Prints a formatted banner with system and configuration information at startup.
+        # The banner is organized into logical sections, each rendered as a table.
+        #
+        # Structure:
+        # - All output is collected in an array and printed with a single OT.li call
+        # - Each section is rendered as a TTY::Table with consistent formatting
+        # - Sections are separated by newlines
+        #
+        # To add a new section to the banner:
+        # 1. Add a section comment: ====== New Section Name ======
+        # 2. Create an array to collect rows: `new_section_rows = []`
+        # 3. Add key/value pairs to the array: `new_section_rows << ['Key', 'Value']`
+        # 4. Check if the section has content: `unless new_section_rows.empty?`
+        # 5. Add rendered section to output: `output << render_section('Header1', 'Header2', new_section_rows)`
+        #
+        # Helper methods available:
+        # - render_section(header1, header2, rows): Creates a formatted table
+        # - feature_disabled?(config): Checks if a feature is disabled
+        # - format_config_value(config): Formats complex config values for display
+        # - format_duration(seconds): Converts seconds to human-readable format (e.g., "5m", "2h", "7d")
+        def print_log_banner(config)
+          site_config  = config.fetch(:site) # if :site is missing we got real problems
+          email_config = config.fetch(:emailer, {})
+          redis_info   = Familia.redis.info
+          colonels     = site_config.dig(:authentication, :colonels) || []
 
-      feature_rows = build_features_section(site_config)
-      unless feature_rows.empty?
-        output << render_section('Features', 'Configuration', feature_rows)
-      end
+          emailer = get_state(:emailer)
 
-      mail_rows = build_email_section(email_config)
-      unless mail_rows.empty?
-        output << render_section('Mail Config', 'Value', mail_rows)
-      end
+          # Create a buffer to collect all output
+          output = []
 
-      auth_rows = build_auth_section(site_config, colonels)
-      unless auth_rows.empty?
-        output << render_section('Authentication', 'Details', auth_rows)
-      end
+          # Header banner
+          output << build_header_banner
 
-      customization_rows = build_customization_section(site_config)
-      unless customization_rows.empty?
-        output << render_section('Customization', 'Configuration', customization_rows)
-      end
+          # Add each section to output
+          system_rows = build_system_section(redis_info)
+          output << render_section('Component', 'Value', system_rows)
 
-      # Footer
-      output << "#{'-' * 75}"
-
-      # Output everything with a single OT.li call
-      OT.li output.join("\n")
-    end
-
-    private
-
-    # Builds system information section rows
-    def build_system_section(redis_info)
-      system_rows = [
-        ['System', "#{@sysinfo.platform} (#{RUBY_ENGINE} #{RUBY_VERSION} in #{OT.env})"],
-        ['Config', OT::Configurator.path],
-        ['Redis', "#{redis_info['redis_version']} (#{Familia.uri.serverid})"],
-        ['Familia', "v#{Familia::VERSION}"],
-        ['I18n', OT.i18n_enabled],
-        ['Diagnostics', OT.d9s_enabled],
-      ]
-
-      # Add locales if i18n is enabled
-      if OT.i18n_enabled
-        system_rows << ['Locales', @locales.keys.join(', ')]
-      end
-
-      system_rows
-    end
-
-    # Builds development and experimental settings section rows
-    def build_dev_section
-      dev_rows = []
-
-      [:development, :experimental].each do |key|
-        next unless config_value = OT.conf.fetch(key, false)
-
-        dev_rows << if feature_disabled?(config_value)
-          [key.to_s.capitalize, 'disabled']
-        else
-          [key.to_s.capitalize, format_config_value(config_value)]
-                    end
-      end
-
-      dev_rows
-    end
-
-    # Builds features section rows
-    def build_features_section(site_config)
-      feature_rows = []
-
-      # Plans section
-      if site_config.key?(:plans)
-        plans_config = site_config[:plans]
-        if feature_disabled?(plans_config)
-          feature_rows << %w[Plans disabled]
-        else
-          begin
-            feature_rows << ['Plans', OT::Plan.plans.keys.join(', ')]
-          rescue StandardError => ex
-            feature_rows << ['Plans', "Error: #{ex.message}"]
+          dev_rows = build_dev_section(config)
+          unless dev_rows.empty?
+            output << render_section('Development', 'Settings', dev_rows)
           end
-        end
-      end
 
-      # Domains and regions
-      [:domains, :regions].each do |key|
-        next unless site_config.key?(key)
+          feature_rows = build_features_section(site_config)
+          unless feature_rows.empty?
+            output << render_section('Features', 'Configuration', feature_rows)
+          end
 
-        config = site_config[key]
-        if feature_disabled?(config)
-          feature_rows << [key.to_s.capitalize, 'disabled']
-        elsif !config.empty?
-          feature_rows << [key.to_s.capitalize, format_config_value(config)]
-        end
-      end
+          mail_rows = build_email_section(email_config, emailer)
+          unless mail_rows.empty?
+            output << render_section('Mail Config', 'Value', mail_rows)
+          end
 
-      feature_rows
-    end
+          auth_rows = build_auth_section(site_config, colonels)
+          unless auth_rows.empty?
+            output << render_section('Authentication', 'Details', auth_rows)
+          end
 
-    # Builds email configuration section rows
-    def build_email_section(email_config)
-      return [] if email_config.nil? || email_config.empty?
+          customization_rows = build_customization_section(site_config)
+          unless customization_rows.empty?
+            output << render_section('Customization', 'Configuration', customization_rows)
+          end
 
-      begin
-        if feature_disabled?(email_config)
-          [%w[Status disabled]]
-        else
-          [
-            ['Mailer', @emailer],
-            ['Mode', email_config[:mode]],
-            ['From', "'#{email_config[:fromname]} <#{email_config[:from]}>'"],
-            ['Host', "#{email_config[:host]}:#{email_config[:port]}"],
-            ['Region', email_config[:region]],
-            ['TLS', email_config[:tls]],
-            ['Auth', email_config[:auth]],
-          ].reject { |row| row[1].nil? || row[1].to_s.empty? }
-        end
-      rescue StandardError => ex
-        [['Error', "Error rendering mail config: #{ex.message}"]]
-      end
-    end
+          # Footer
+          output << build_footer_banner
 
-    # Builds authentication section rows
-    def build_auth_section(site_config, colonels)
-      auth_rows = []
-
-      auth_rows << if colonels.empty?
-        ['Colonels', 'No colonels configured ⚠️']
-      else
-        ['Colonels', colonels.join(', ')]
-                   end
-
-      if site_config.key?(:authentication)
-        auth_config = site_config[:authentication]
-        if feature_disabled?(auth_config)
-          auth_rows << ['Auth Settings', 'disabled']
-        else
-          auth_settings = auth_config.map { |k, v| "#{k}=#{v}" }.join(', ')
-          auth_rows << ['Auth Settings', auth_settings]
-        end
-      end
-
-      auth_rows
-    end
-
-    # Builds customization section rows
-    # rubocop:disable Metrics/PerceivedComplexity
-    def build_customization_section(site_config)
-      customization_rows = []
-
-      # Secret options
-      secret_options = OT.conf.dig(:site, :secret_options)
-      if secret_options
-        # Format default TTL
-        if secret_options[:default_ttl]
-          default_ttl = format_duration(secret_options[:default_ttl].to_i)
-          customization_rows << ['Default TTL', default_ttl]
+          # Output everything with a single OT.li call
+          OT.li output.join("\n")
         end
 
-        # Format TTL options
-        if secret_options[:ttl_options]
-          ttl_options = secret_options[:ttl_options].map { |seconds| format_duration(seconds) }.join(', ')
-          customization_rows << ['TTL Options', ttl_options]
+        # Builds system information section rows
+        def build_system_section(redis_info)
+          platform_info = "#{RUBY_ENGINE} #{RUBY_VERSION} on #{RUBY_PLATFORM} (#{OT.env})"
+          configurator  = OT::Boot.configurator
+          locales       = OT.conf[:i18n][:locales]
+
+          system_rows = [
+            ['System', platform_info],
+            ['Config', configurator.config_path],
+            ['Redis', "#{redis_info['redis_version']} (#{Familia.uri.serverid})"],
+            ['Familia', "v#{Familia::VERSION}"],
+            ['I18n', OT.i18n_enabled],
+            ['Diagnostics', OT.d9s_enabled],
+          ]
+
+          # Add locales if i18n is enabled and locales service is available
+          if OT.i18n_enabled && !locales.empty?
+            system_rows << ['Locales', locales.join(', ')]
+          end
+
+          system_rows
         end
-      end
 
-      # Interface configuration
-      if site_config.key?(:interface)
-        interface_config = site_config[:interface]
-        if feature_disabled?(interface_config)
-          customization_rows << %w[Interface disabled]
-        elsif interface_config.is_a?(Hash)
-          # Handle nested ui and api configs under interface
-          [:ui, :api].each do |key|
-            next unless interface_config.key?(key)
+        # Builds development and experimental settings section rows
+        def build_dev_section(config)
+          dev_rows = []
 
-            sub_config = interface_config[key]
-            if feature_disabled?(sub_config)
-              customization_rows << ["Interface > #{key.to_s.upcase}", 'disabled']
-            elsif !sub_config.nil? && (sub_config.is_a?(Hash) ? !sub_config.empty? : !sub_config.to_s.empty?)
-              customization_rows << ["Interface > #{key.to_s.upcase}", format_config_value(sub_config)]
+          [:development, :experimental].each do |key|
+            next unless config_value = config.fetch(key, false)
+
+            dev_rows << if feature_disabled?(config_value)
+              [key.to_s.capitalize, 'disabled']
+            else
+              [key.to_s.capitalize, format_config_value(config_value)]
+                        end
+          end
+
+          dev_rows
+        end
+
+        # Builds features section rows
+        def build_features_section(site_config)
+          feature_rows = []
+
+          # Plans section
+          if site_config.key?(:plans)
+            plans_config = site_config[:plans]
+            if feature_disabled?(plans_config)
+              feature_rows << %w[Plans disabled]
+            else
+              begin
+                feature_rows << ['Plans', OT::Plan.plans.keys.join(', ')]
+              rescue StandardError => ex
+                feature_rows << ['Plans', "Error: #{ex.message}"]
+              end
             end
           end
-        end
-      else
-        # Fallback: check for standalone ui and api configs
-        [:ui, :api].each do |key|
-          next unless site_config.key?(key)
 
-          config = site_config[key]
-          if feature_disabled?(config)
-            customization_rows << [key.to_s.upcase, 'disabled']
-          elsif !config.empty?
-            customization_rows << [key.to_s.upcase, format_config_value(config)]
+          # Domains and regions
+          [:domains, :regions].each do |key|
+            next unless site_config.key?(key)
+
+            config = site_config[key]
+            if feature_disabled?(config)
+              feature_rows << [key.to_s.capitalize, 'disabled']
+            elsif !config.empty?
+              feature_rows << [key.to_s.capitalize, format_config_value(config)]
+            end
+          end
+
+          feature_rows
+        end
+
+        # Builds email configuration section rows
+        def build_email_section(email_config, emailer)
+          return [] if email_config.nil? || email_config.empty?
+
+          begin
+            if feature_disabled?(email_config)
+              [%w[Status disabled]]
+            else
+              [
+                ['Mailer', emailer&.to_s || 'Unknown'],
+                ['Mode', email_config[:mode]],
+                ['From', "'#{email_config[:fromname]} <#{email_config[:from]}>'"],
+                ['Host', "#{email_config[:host]}:#{email_config[:port]}"],
+                ['Region', email_config[:region]],
+                ['TLS', email_config[:tls]],
+                ['Auth', email_config[:auth]],
+              ].reject { |row| row[1].nil? || row[1].to_s.empty? }
+            end
+          rescue StandardError => ex
+            [['Error', "Error rendering mail config: #{ex.message}"]]
           end
         end
+
+        # Builds authentication section rows
+        def build_auth_section(site_config, colonels)
+          auth_rows = []
+
+          auth_rows << if colonels.empty?
+            ['Colonels', 'No colonels configured ⚠️']
+          else
+            ['Colonels', colonels.join(', ')]
+                      end
+
+          if site_config.key?(:authentication)
+            auth_config = site_config[:authentication]
+            if feature_disabled?(auth_config)
+              auth_rows << ['Auth Settings', 'disabled']
+            else
+              auth_settings = auth_config.map { |k, v| "#{k}=#{v}" }.join(', ')
+              auth_rows << ['Auth Settings', auth_settings]
+            end
+          end
+
+          auth_rows
+        end
+
+        # Builds customization section rows
+        # rubocop:disable Metrics/PerceivedComplexity
+        def build_customization_section(site_config)
+          customization_rows = []
+
+          # Secret options
+          secret_options = site_config.dig(:secret_options)
+          if secret_options
+            # Format default TTL
+            if secret_options[:default_ttl]
+              default_ttl = format_duration(secret_options[:default_ttl].to_i)
+              customization_rows << ['Default TTL', default_ttl]
+            end
+
+            # Format TTL options
+            if secret_options[:ttl_options]
+              ttl_options = secret_options[:ttl_options].map { |seconds| format_duration(seconds) }.join(', ')
+              customization_rows << ['TTL Options', ttl_options]
+            end
+          end
+
+          # Interface configuration
+          if site_config.key?(:interface)
+            interface_config = site_config[:interface]
+            if feature_disabled?(interface_config)
+              customization_rows << %w[Interface disabled]
+            elsif interface_config.is_a?(Hash)
+              # Handle nested ui and api configs under interface
+              [:ui, :api].each do |key|
+                next unless interface_config.key?(key)
+
+                sub_config = interface_config[key]
+                if feature_disabled?(sub_config)
+                  customization_rows << ["Interface > #{key.to_s.upcase}", 'disabled']
+                elsif !sub_config.nil? && (sub_config.is_a?(Hash) ? !sub_config.empty? : !sub_config.to_s.empty?)
+                  customization_rows << ["Interface > #{key.to_s.upcase}", format_config_value(sub_config)]
+                end
+              end
+            end
+          else
+            # Fallback: check for standalone ui and api configs
+            [:ui, :api].each do |key|
+              next unless site_config.key?(key)
+
+              config = site_config[key]
+              if feature_disabled?(config)
+                customization_rows << [key.to_s.upcase, 'disabled']
+              elsif !config.empty?
+                customization_rows << [key.to_s.upcase, format_config_value(config)]
+              end
+            end
+          end
+
+          customization_rows
+        end
+        # rubocop:enable Metrics/PerceivedComplexity
+
+        # Helper method to check if a feature is disabled
+        def feature_disabled?(config)
+          config.is_a?(Hash) && config.key?(:enabled) && !config[:enabled]
+        end
+
+        # Helper method to format config values with special handling for hashes and arrays
+        def format_config_value(config)
+          if config.is_a?(Hash)
+            config.map do |k, v|
+              value_str = v.is_a?(Hash) || v.is_a?(Array) ? v.to_json : v.to_s
+              "#{k}=#{value_str}"
+            end.join(', ')
+          else
+            config.to_s
+          end
+        end
+
+        # Helper method to convert seconds to human-readable duration format
+        def format_duration(seconds)
+          seconds = seconds.to_i
+
+          case seconds
+          when 0...60
+            "#{seconds}s"
+          when 60...3600
+            minutes = seconds / 60
+            minutes == 1 ? '1m' : "#{minutes}m"
+          when 3600...86_400
+            hours = seconds / 3600
+            hours == 1 ? '1h' : "#{hours}h"
+          when 86_400...604_800
+            days = seconds / 86_400
+            days == 1 ? '1d' : "#{days}d"
+          when 604_800...2_592_000
+            weeks = seconds / 604_800
+            weeks == 1 ? '1w' : "#{weeks}w"
+          else
+            # For very large values, use days
+            days = seconds / 86_400
+            "#{days}d"
+          end
+        end
+
+        # Helper method to render a section as a table
+        def render_section(header1, header2, rows)
+          table = TTY::Table.new(
+            header: [header1, header2],
+            rows: rows,
+          )
+
+          rendered = table.render(:unicode,
+            padding: [0, 1],
+            multiline: true,
+            column_widths: [15, 55],
+          )
+
+          # Return rendered table with an extra newline
+          rendered + "\n"
+        end
+
+        # Build distinctive header banner
+        def build_header_banner
+          width              = 75
+          border_char_closed = '═'
+          border_char_open   = ' '
+          corner_tl          = '╔'
+          corner_tr          = '╗'
+          vertical           = '║'
+
+          title     = "ONETIME #{OT.mode.upcase} v#{OT::VERSION}"
+          padding   = (width - 2 - title.length) / 2
+          left_pad  = ' ' * padding
+          right_pad = ' ' * (width - title.length - padding)
+
+          <<~HEADER
+
+            #{corner_tl}#{border_char_closed * width}#{corner_tr}
+            #{vertical}#{' ' * width}#{vertical}
+            #{vertical}#{left_pad}#{title}#{right_pad}#{vertical}
+            #{vertical}#{' ' * width}#{vertical}
+            #{vertical}#{border_char_open * width}#{vertical}
+
+          HEADER
+        end
+
+        # Build distinctive footer banner
+        def build_footer_banner
+          width              = 75
+          border_char_closed = '═'
+          border_char_open   = ' '
+          corner_bl          = '╚'
+          corner_br          = '╝'
+          vertical           = '║'
+
+          timestamp   = Time.now.strftime('%Y-%m-%d %H:%M:%S %Z')
+          footer_text = "System initialized at #{timestamp}"
+          padding     = (width - 2 - footer_text.length) / 2
+          left_pad    = ' ' * padding
+          right_pad   = ' ' * (width - footer_text.length - padding)
+
+          <<~FOOTER
+
+            #{vertical}#{border_char_open * width}#{vertical}
+            #{vertical}#{left_pad}#{footer_text}#{right_pad}#{vertical}
+            #{corner_bl}#{border_char_closed * width}#{corner_br}
+
+          FOOTER
+        end
       end
-
-      customization_rows
-    end
-    # rubocop:enable Metrics/PerceivedComplexity
-
-    # Helper method to check if a feature is disabled
-    def feature_disabled?(config)
-      config.is_a?(Hash) && config.key?(:enabled) && !config[:enabled]
-    end
-
-    # Helper method to format config values with special handling for hashes and arrays
-    def format_config_value(config)
-      if config.is_a?(Hash)
-        config.map do |k, v|
-          value_str = v.is_a?(Hash) || v.is_a?(Array) ? v.to_json : v.to_s
-          "#{k}=#{value_str}"
-        end.join(', ')
-      else
-        config.to_s
-      end
-    end
-
-    # Helper method to convert seconds to human-readable duration format
-    def format_duration(seconds)
-      seconds = seconds.to_i
-
-      case seconds
-      when 0...60
-        "#{seconds}s"
-      when 60...3600
-        minutes = seconds / 60
-        minutes == 1 ? '1m' : "#{minutes}m"
-      when 3600...86_400
-        hours = seconds / 3600
-        hours == 1 ? '1h' : "#{hours}h"
-      when 86_400...604_800
-        days = seconds / 86_400
-        days == 1 ? '1d' : "#{days}d"
-      when 604_800...2_592_000
-        weeks = seconds / 604_800
-        weeks == 1 ? '1w' : "#{weeks}w"
-      else
-        # For very large values, use days
-        days = seconds / 86_400
-        "#{days}d"
-      end
-    end
-
-    # Helper method to render a section as a table
-    def render_section(header1, header2, rows)
-      table = TTY::Table.new(
-        header: [header1, header2],
-        rows: rows,
-      )
-
-      rendered = table.render(:unicode,
-        padding: [0, 1],
-        multiline: true,
-        column_widths: [15, 79])
-
-      # Return rendered table with an extra newline
-      rendered + "\n"
     end
   end
 end

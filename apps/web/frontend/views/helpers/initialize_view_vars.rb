@@ -1,5 +1,7 @@
 # apps/web/frontend/views/helpers/initialize_view_vars.rb
 
+require 'onetime/refinements/indifferent_hash_access'
+
 module Frontend
   module Views
     # InitializeViewVars
@@ -8,6 +10,8 @@ module Frontend
     # initialize_view_vars takes the arguments it does instead of relying on
     # instance variables and their attr_reader methods.
     module InitializeViewVars
+      using IndifferentHashAccess
+
       # Define fields that are safe to expose to the frontend
       # Explicitly excluding :secret and :authenticity which contain sensitive data
       @safe_site_fields = [
@@ -18,6 +22,7 @@ module Frontend
       class << self
         attr_reader :safe_site_fields
       end
+
       # Initialize core variables used throughout view rendering. These values
       # are the source of truth for te values that they represent. Any other
       # values that the serializers want can be derived from here.
@@ -45,7 +50,6 @@ module Frontend
         # - Internal infrastructure details
         #
         site_config = OT.conf.fetch(:site, {})
-        incoming    = OT.conf.fetch(:incoming, {})
         development = OT.conf.fetch(:development, {})
         diagnostics = OT.conf.fetch(:diagnostics, {})
 
@@ -107,7 +111,7 @@ module Frontend
           domain_strategy: domain_strategy,
           frontend_development: frontend_development,
           frontend_host: frontend_host,
-          incoming: incoming,
+          incoming: nil,
           keywords: keywords,
           locale: locale,
           messages: messages,

@@ -1,14 +1,22 @@
 # lib/onetime/boot.rb
 
-require 'onetime/refinements/indifferent_hash_access'
+require 'concurrent'
 
+require_relative 'refinements/indifferent_hash_access'
 require_relative 'boot/init_script_context'
+require_relative 'services/config_proxy'
 
 module Onetime
-  @conf  = nil
   @mode  = nil
   @env   = (ENV['RACK_ENV'] || 'production').downcase
   @debug = ENV['ONETIME_DEBUG'].to_s.match?(/^(true|1)$/i)
+
+  # Contains the global configuration hash via ConfigProxy.
+  # Provides unified access to both static and dynamic configuration.
+  #
+  # We use a Concurrent::AtomicReference to ensure thread-safe updates if we
+  # need to replace the ConfigProxy instance.
+  @conf  = nil
 
   class << self
 
@@ -34,6 +42,10 @@ module Onetime
         OT.le '-' * 70
         nil
       end
+    end
+
+    def set_conf(new_config_proxy)
+      @conf = new_config_proxy
     end
 
     def set_boot_state(mode, instanceid)
@@ -99,32 +111,29 @@ module Onetime
       OT.li "[BOOT] Configuration loaded from #{configurator.config_path} is now frozen"
       # System services should start immediately after config freeze
 
-      # Configuration is now frozen
-      @conf = configurator.configuration
+      # The configuration hash we get back here is frozen, deep_clone of the
+      # original. In fact every call to configurator.configuration will return
+      # a new deep_clone of the original configuration hash.
+      #
+      # We pass the static config to the services since they don't need to go
+      # through the ConfigProxy on account of knowing how to access the
+      # ServiceRegistry.app_state if necessary.
+      config = configurator.configuration
+
+      # With the services up and healthy, we can create a ConfigProxy and make
+      # it available system-wide via OT.conf. We prime it with the processed
+      # and validated static config.
+      Onetime.set_conf(Services::ConfigProxy.new(config))
 
       # Start system services with frozen configuration
       OT.ld '[BOOT] Starting system services...'
       require_relative 'services/system'
-      OT::Services::System.start_all(@conf, connect_to_db: connect_to_db)
+      OT::Services::System.start_all(config, connect_to_db: connect_to_db)
 
       # Check if services started successfully
       unless OT::Services::ServiceRegistry.ready?
         return OT.le '[BOOT] System services failed to start'
       end
-
-      # We have enough configuration to boot at this point. When do
-      # merge with the configuration from the database? Or is that the
-      # responsibility of the initializers? TODO: Find a way forward
-      # NOTE: We need to reduce the number of initializers and make the run hotter
-      #
-      # Somewhere between here and:
-      # apps/web/frontend/views/helpers/initialize_view_vars.rb
-      #
-      # In the current state of config that we have here, the app boots up
-      # and serves requests (not the error middleware, gets passed that),
-      # and then responds with 400 and an angry [view_vars] "Site config is
-      # missing field: host".
-      @conf = configurator.configuration
 
       OT.ld '[BOOT] Completing initialization process...'
       Onetime.complete_initialization!
@@ -275,7 +284,7 @@ module Onetime
       #
       # Only re-raise in app mode to stop the server. In test/cli mode,
       # we continue with reduced functionality.
-      raise error unless mode?(:cli) || mode?(:test)
+      raise error unless OT.mode?(:cli) || OT.mode?(:test)
     end
   end
 end

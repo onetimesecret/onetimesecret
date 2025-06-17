@@ -83,6 +83,11 @@ module Onetime
 
     # Standard deep_merge implementation with symbol/string key normalization
     #
+    # TODO: The deep_merge method performs recursive merging without depth
+    # limits or cycle detection. For large or deeply nested configurations,
+    # this could lead to performance issues or stack overflow. Consider
+    # adding safeguards. #1497
+    #
     # @param original [Hash] Base hash with default values
     # @param other [Hash] Hash with values that override defaults
     # @return [Hash] A new hash containing the merged result with string keys

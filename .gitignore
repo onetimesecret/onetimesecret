@@ -29,6 +29,7 @@ pnpm-debug.log*
 .idea/
 .cache/
 .temp/
+.zed/
 .appendonlydir/
 .bundle/
 .rspec

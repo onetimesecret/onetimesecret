@@ -22,6 +22,14 @@ module Onetime
           raise NotImplementedError
         end
 
+        def self.mail_settings
+          @mail_settings ||= OT.conf[:mail][:connection]
+        end
+
+        def self.mail_domain
+          @mail_domain ||= OT.conf[:site][:domain]
+        end
+
         def self.clear
           raise NotImplementedError
         end

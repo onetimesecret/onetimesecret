@@ -1,11 +1,8 @@
 # lib/onetime/services/system.rb
 
-require 'onetime/services/service_registry'
-
-# Previously OT.globals:
-# :d9s_enabled, :i18n_enabled, :locales,
-# :supported_locales, :default_locale, :fallback_locale, :global_banner,
-# :rotated_secrets, :emailer, :first_boot, :global_secret
+require_relative 'service_provider'
+require_relative 'config_proxy'
+require_relative 'service_registry'
 
 module Onetime
   module Services
@@ -14,30 +11,54 @@ module Onetime
 
       # Load system services dynamically
       Dir[File.join(File.dirname(__FILE__), 'system', '*.rb')].each do |file|
+        next if file.match?(/[A-Z_-]+\.rb/) # skip UPPER_CASE.rb files
+
         OT.ld "[system] Loading #{file}"
         require_relative file
       end
 
-      # Start all system services
+      # Start all system services using service provider orchestration
       def start_all(config, connect_to_db: true)
-        OT.li '[BOOT] Starting system services...'
+        OT.li "[BOOT.system] Starting system services with frozen config (#{config.frozen?})..."
 
-        # Start database services
+        providers = []
+
+        # Phase 1: Essential connections first
         if connect_to_db
-          connect_databases(config)
+          providers << System::ConnectDatabases.new
         else
-          OT.ld '[BOOT] Skipping database connections'
+          OT.li '[BOOT.system] Skipping database connections and remaining providers'
+          return
         end
 
-        # Start other services
-        configure_truemail(config) if defined?(Truemail)
-        prepare_emailers(config)
-        load_locales(config)
-        setup_authentication(config)
-        # Add other service initializers
+        # Phase 2: Dynamic configuration provider (high priority)
+        providers << System::DynamicConfig.new
 
-        OT.li '[BOOT] System services started successfully'
+        # Phase 3: Core service providers
+        providers << System::TruemailProvider.new
+        providers << System::EmailerProvider.new
+        providers << System::LocaleProvider.new
+        providers << System::AuthenticationProvider.new
+
+        # Phase 4: Information display (runs last)
+        providers << System::LogBannerProvider.new
+
+        # Start providers in priority order
+        OT.ld "[BOOT.system] Sorting #{providers.size} providers by priority"
+        providers.sort_by!(&:priority)
+        providers.each do |provider|
+          OT.ld "[BOOT.system] Starting #{provider.name} provider"
+          ServiceRegistry.register_provider(provider.name, provider)
+          provider.start_internal(config)
+        end
+
+
+        OT.li '[BOOT.system] System services started successfully'
       end
+
     end
+
+    # NOTE: To remove, delete this line and the legacy_globals.rb file.
+    require_relative 'legacy_globals'
   end
 end

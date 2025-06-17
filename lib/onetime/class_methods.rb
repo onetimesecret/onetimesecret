@@ -1,8 +1,10 @@
 # lib/onetime/class_methods.rb
 
+require_relative 'services/config_proxy'
+
 # Usage:
 # module Onetime
-#   extend EnvironmentHelper
+#   extend ClassMethods
 # end
 #
 # Environment detection and normalization
@@ -225,9 +227,10 @@ module Onetime
     end
 
     def with_diagnostics(&)
-      return unless Onetime.d9s_enabled
+      config = Onetime.conf[:diagnostics]
+      return unless config[:enabled]
 
-      yield # call the block in its own context
+      yield(config) # call the block in its own context
     end
 
     # Returns debug status and optionally executes block if enabled.
@@ -306,7 +309,7 @@ module Onetime
     # prevent external modification of the shared configuration state
     # after initialization.
     def conf=(value)
-      @conf = value
+      @conf = value.is_a?(Onetime::Services::ConfigProxy) ? value : Onetime::Services::ConfigProxy.new(value)
     end
   end
 

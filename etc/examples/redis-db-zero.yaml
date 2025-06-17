@@ -1,0 +1,29 @@
+---
+storage:
+  db:
+    connection:
+      url: <%= ENV['REDIS_URL'] || 'redis://CHANGEME@127.0.0.1:6379/0' %>
+    # Database mapping configuration for Redis
+    #
+    # Onetime Secret uses multiple Redis databases to organize different types of data.
+    # This is an uncommon pattern - most applications simply use database 0 for everything.
+    # If you're just getting started or have a simpler setup, you can safely keep all
+    # mappings set to 0 (the default Redis database). This won't affect functionality
+    # and will keep your data management straightforward.
+    #
+    # Note that most Redis-as-a-Service providers (like Redis Cloud, Upstash Redis,
+    # Heroku Redis, etc) only support database 0, so you can use this configuration
+    # in production environments without any modifications (other than possible the
+    # REDIS_URL).
+    database_mapping:
+      session: 0
+      custom_domain: 0
+      customer: 0
+      subdomain: 0
+      metadata: 0
+      email_receipt: 0
+      secret: 0
+      rate_limit: 0
+      feedback: 0
+      exception_info: 0
+      system_settings: 0

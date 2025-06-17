@@ -78,7 +78,7 @@ module Onetime::Mail
       end
 
       def self.setup
-        @sendgrid_api = SendGrid::API.new(api_key: OT.conf[:emailer][:pass])
+        @sendgrid_api = SendGrid::API.new(api_key: mail_settings[:pass])
       end
 
       def self.clear
