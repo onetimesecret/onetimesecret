@@ -75,24 +75,23 @@ module Onetime
         def merge_static_and_dynamic_config(static_config)
           base_config = static_config.dup
 
-          begin
-            # Load current SystemSettings and convert to Onetime config format
-            current_settings = V2::SystemSettings.current
-            dynamic_config = current_settings.to_onetime_config
+          # Load current SystemSettings and convert to Onetime config format
+          current_settings = V2::SystemSettings.current
+          dynamic_config   = current_settings.to_onetime_config
 
-            # Deep merge dynamic config over static config
-            merged = deep_merge(base_config, dynamic_config)
+          # Deep merge dynamic config over static config
+          merged = deep_merge(base_config, dynamic_config)
 
-            debug("Merged #{dynamic_config.keys.size} dynamic config sections")
-            merged
-          rescue Onetime::RecordNotFound
-            log('No SystemSettings found, using static configuration only')
-            base_config
-          rescue StandardError => ex
-            error("Failed to load SystemSettings: #{ex.message}")
-            log('Falling back to static configuration only')
-            base_config
-          end
+          debug("Merged #{dynamic_config.keys.size} dynamic config sections")
+          merged
+        rescue Onetime::RecordNotFound
+          log('No SystemSettings found, using static configuration only')
+          base_config
+        rescue StandardError => ex
+          error("Failed to load SystemSettings: #{ex.message}")
+          log('Falling back to static configuration only')
+          base_config
+
         end
 
         ##
