@@ -53,20 +53,18 @@ end
 # trying to send events over the network when we're shutting down via ctrl-c.
 trap('SIGINT') do
   OT.li 'Shutting down gracefully...'
-  #
-  # TODO: Re-enabled when dynamic config is available
-  #
-  # if OT.d9s_enabled
-  #   begin
-  #     Sentry.close  # Attempt graceful shutdown with a short timeout
-  #   rescue ThreadError => ex
-  #     OT.ld "Sentry shutdown interrupted: #{ex} (#{ex.class})"
-  #   rescue StandardError => ex
-  #     # Ignore Sentry errors during shutdown
-  #     OT.le "Error during shutdown: #{ex} (#{ex.class})"
-  #     OT.ld ex.backtrace.join("\n")
-  #   end
-  # end
+
+  if OT.conf[:d9s_enabled]
+    begin
+      Sentry.close  # Attempt graceful shutdown with a short timeout
+    rescue ThreadError => ex
+      OT.ld "Sentry shutdown interrupted: #{ex} (#{ex.class})"
+    rescue StandardError => ex
+      # Ignore Sentry errors during shutdown
+      OT.le "Error during shutdown: #{ex} (#{ex.class})"
+      OT.ld ex.backtrace.join("\n")
+    end
+  end
   exit
 end
 
