@@ -11,23 +11,20 @@ module Onetime
   @env   = (ENV['RACK_ENV'] || 'production').downcase
   @debug = ENV['ONETIME_DEBUG'].to_s.match?(/^(true|1)$/i)
 
-  # Contains the global configuration hash via ConfigProxy.
+  # Contains the global instance of ConfigProxy which is set at boot-time
+  # and lives for the duration of the process. Accessed externally via
+  # `Onetime.conf` method.
+  #
   # Provides unified access to both static and dynamic configuration.
   #
-  # We use a Concurrent::AtomicReference to ensure thread-safe updates if we
-  # need to replace the ConfigProxy instance.
-  @conf  = nil
+  @config_proxy = nil
 
   class << self
 
-    attr_reader :conf, :instance, :mode, :debug, :env
-
-    def boot!(*)
-      Boot.boot!(*)
-    end
+    attr_reader :instance, :mode, :debug, :env, :config_proxy
 
     def safe_boot!(*)
-      boot!(*)
+      Boot.boot!(*)
       true
     rescue StandardError
       # Boot errors are already logged in handle_boot_error
@@ -44,8 +41,22 @@ module Onetime
       end
     end
 
-    def set_conf(new_config_proxy)
-      @conf = new_config_proxy
+    # A convenience method for accessing the configuration proxy.
+    def conf
+      config_proxy
+    end
+
+    # A convenience method for accessing the ServiceRegistry application state.
+    def state
+      Onetime::Services::ServiceRegistry.state
+    end
+
+    def provider
+      Onetime::Services::ServiceRegistry.provider
+    end
+
+    def set_config_proxy(config_proxy)
+      @config_proxy = config_proxy
     end
 
     def set_boot_state(mode, instanceid)
