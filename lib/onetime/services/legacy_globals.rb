@@ -9,13 +9,15 @@ module Onetime
     # A temporary solution to ease the transition to the modular service
     # provider architecture.
     #
-    # Previously available globals (e.g. OT.d9s_enabled):
-    # :d9s_enabled, :i18n_enabled, :locales,
-    # :supported_locales, :default_locale, :fallback_locale, :global_banner,
-    # :rotated_secrets, :emailer, :first_boot, :global_secret
+    # Previously available as global methods (e.g. OT.d9s_enabled).
     #
     module LegacyGlobals
       using IndifferentHashAccess
+
+      def global_secret
+        LegacyGlobals.print_warning
+        @global_secret ||= OT.conf&.dig(:site, :secret)
+      end
 
       def d9s_enabled
         LegacyGlobals.print_warning
