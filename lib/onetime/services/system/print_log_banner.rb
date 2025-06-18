@@ -1,6 +1,5 @@
 # lib/onetime/services/system/print_log_banner.rb
 
-# require 'tty-table'
 require 'json'
 
 require 'onetime/refinements/indifferent_hash_access'
@@ -124,7 +123,7 @@ module Onetime
           ]
 
           # Add locales if i18n is enabled and locales service is available
-          if OT.i18n_enabled && !locales.empty?
+          if i18n_enabled && !locales.empty?
             system_rows << ['Locales', locales.join(', ')]
           end
 
@@ -142,7 +141,7 @@ module Onetime
               [key.to_s.capitalize, 'disabled']
             else
               [key.to_s.capitalize, format_config_value(config_value)]
-                        end
+            end
           end
 
           dev_rows
@@ -329,19 +328,56 @@ module Onetime
 
         # Helper method to render a section as a table
         def render_section(header1, header2, rows)
-          # table = TTY::Table.new(
-          #   header: [header1, header2],
-          #   rows: rows,
-          # )
+          # Calculate column widths
+          col1_width = 15
+          col2_width = 55
 
-          # rendered = table.render(:unicode,
-          #   padding: [0, 1],
-          #   multiline: true,
-          #   column_widths: [15, 55],
-          # )
+          # Build the table manually
+          lines = []
 
-          # # Return rendered table with an extra newline
-          # rendered + "\n"
+          # Top border
+          lines << "┌─#{'─' * col1_width}─┬─#{'─' * col2_width}─┐"
+
+          # Header row
+          header1_padded = header1.ljust(col1_width)
+          header2_padded = header2.ljust(col2_width)
+          lines << "│ #{header1_padded} │ #{header2_padded} │"
+
+          # Header separator
+          lines << "├─#{'─' * col1_width}─┼─#{'─' * col2_width}─┤"
+
+          # Data rows
+          rows.each_with_index do |row, index|
+            col1 = row[0].to_s
+            col2 = row[1].to_s
+
+            # Handle multiline content by splitting on newlines
+            col1_lines = col1.scan(/.{1,#{col1_width}}/)
+            col2_lines = col2.scan(/.{1,#{col2_width}}/)
+
+            # Ensure we have at least one line for each column
+            col1_lines = [''] if col1_lines.empty?
+            col2_lines = [''] if col2_lines.empty?
+
+            # Print each line of the multiline content
+            max_lines = [col1_lines.length, col2_lines.length].max
+            max_lines.times do |i|
+              c1 = (col1_lines[i] || '').ljust(col1_width)
+              c2 = (col2_lines[i] || '').ljust(col2_width)
+              lines << "│ #{c1} │ #{c2} │"
+            end
+
+            # Add row separator (except for last row)
+            if index < rows.length - 1
+              lines << "├─#{'─' * col1_width}─┼─#{'─' * col2_width}─┤"
+            end
+          end
+
+          # Bottom border
+          lines << "└─#{'─' * col1_width}─┴─#{'─' * col2_width}─┘"
+
+          # Join all lines and add extra newline
+          lines.join("\n") + "\n\n"
         end
 
         # Build distinctive header banner
