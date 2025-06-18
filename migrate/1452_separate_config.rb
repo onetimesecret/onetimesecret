@@ -75,7 +75,7 @@ module Onetime
       @static_config = File.join(@base_path, 'etc', 'config.static.yaml')
       @dynamic_config = File.join(@base_path, 'etc', 'config.dynamic.yaml')
       @final_static_path = File.join(@base_path, 'etc', 'config.yaml')
-      @final_dynamic_path = File.join(@base_path, 'etc', 'system_settings.defaults.yaml')
+      @final_dynamic_path = File.join(@base_path, 'etc', 'system_settings.yaml')
 
       debug ''
       debug "Paths:"
