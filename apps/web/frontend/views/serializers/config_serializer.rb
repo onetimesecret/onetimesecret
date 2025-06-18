@@ -1,5 +1,7 @@
 # apps/web/frontend/views/serializers/config_serializer.rb
 
+require 'onetime/refinements/indifferent_hash_access'
+
 module Frontend
   module Views
     # Serializes application configuration for the frontend
@@ -7,6 +9,8 @@ module Frontend
     # Responsible for transforming server-side configuration settings into
     # a consistent format that can be safely exposed to the frontend.
     module ConfigSerializer
+      using IndifferentHashAccess
+
       # Serializes configuration data from view variables
       #
       # Transforms server configuration including site settings, feature flags,
@@ -22,13 +26,14 @@ module Frontend
         incoming    = view_vars[:incoming] || {} # TODO: Update to features.incoming
         development = view_vars[:development] || {}
         diagnostics = view_vars[:diagnostics] || {}
+        features    = view_vars[:features] || {}
 
         output[:site_host]              = site[:host]
         output[:ui]                     = OT.conf[:user_interface]
-        output[:authentication_enabled] = OT.conf[:authentication_enabled]
+        output[:authenticated] = OT.conf[:authentication_enabled]
         output[:secret_options]         = OT.conf[:secret_options]
-        regions                         = OT.conf[:regions] || {}
-        domains                         = OT.conf[:domains] || {}
+        regions                         = features[:regions] || {}
+        domains                         = features[:domains] || {}
 
         # Only send the regions config when the feature is enabled.
         output[:regions_enabled] = regions.fetch(:enabled, false)
