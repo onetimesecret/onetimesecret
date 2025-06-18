@@ -9,7 +9,7 @@ module Onetime
       @app_state = Concurrent::Map.new
 
       class << self
-        # Register a service provider
+        # Register a service provider instance
         def register_provider(name, provider)
           @providers[name.to_sym] = provider
         end
@@ -19,7 +19,7 @@ module Onetime
           register_provider(name, provider)
         end
 
-        # Get a service provider by name
+        # Get a service provider instance by name
         def provider(name)
           @providers[name.to_sym]
         end

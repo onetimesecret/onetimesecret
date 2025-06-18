@@ -119,9 +119,6 @@ module Onetime
         end
       end
 
-      OT.li "[BOOT] Configuration loaded from #{configurator.config_path} is now frozen"
-      # System services should start immediately after config freeze
-
       # The configuration hash we get back here is frozen, deep_clone of the
       # original. In fact every call to configurator.configuration will return
       # a new deep_clone of the original configuration hash.
@@ -131,22 +128,28 @@ module Onetime
       # ServiceRegistry.app_state if necessary.
       config = configurator.configuration
 
-      # With the services up and healthy, we can create a ConfigProxy and make
-      # it available system-wide via OT.conf. We prime it with the processed
-      # and validated static config.
-      Onetime.set_conf(Services::ConfigProxy.new(config))
+      OT.li "[BOOT] Configuration loaded from #{configurator.config_path} is now frozen"
+      # System services should start immediately after config freeze
 
-      # Start system services with frozen configuration
+      # System services are designed to start with frozen configuration
       OT.ld '[BOOT] Starting system services...'
       require_relative 'services/system'
       OT::Services::System.start_all(config, connect_to_db: connect_to_db)
 
-      # Check if services started successfully
-      unless OT::Services::ServiceRegistry.ready?
-        return OT.le '[BOOT] System services failed to start'
+      if OT::Services::ServiceRegistry.ready?
+        OT.ld '[BOOT] Completing initialization process...'
+
+        # With the services up and healthy, we can create a ConfigProxy and make
+        # it available system-wide via OT.conf. The processed and validated merged
+        # configuration is now available application-wide.
+        Onetime.set_config_proxy(Services::ConfigProxy.new(config))
+
+      else
+        OT.le '[BOOT] System services failed to start'
+        OT.le '[BOOT] This means OT.conf and friends are not available'
+        return
       end
 
-      OT.ld '[BOOT] Completing initialization process...'
       Onetime.complete_initialization!
       OT.li "[BOOT] Startup completed successfully (instance: #{instanceid})"
 
