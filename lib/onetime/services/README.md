@@ -79,7 +79,7 @@ end
 def merge_static_and_dynamic_config
   base_config = @static_config.dup
   # SystemSettings.current handles versioning/rollback internally
-  dynamic_config = SystemSettings.current.to_onetime_config
+  dynamic_config = SystemSettings.current.to_h
   base_config.deep_merge(dynamic_config)
 rescue Onetime::RecordNotFound
   base_config  # No dynamic config exists yet

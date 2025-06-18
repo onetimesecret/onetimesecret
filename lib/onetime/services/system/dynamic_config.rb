@@ -77,7 +77,7 @@ module Onetime
 
           # Load current SystemSettings and convert to Onetime config format
           current_settings = V2::SystemSettings.current
-          dynamic_config   = current_settings.to_onetime_config
+          dynamic_config   = current_settings.safe_dump
 
           # Deep merge dynamic config over static config
           merged = deep_merge(base_config, dynamic_config)

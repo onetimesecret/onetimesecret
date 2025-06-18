@@ -16,11 +16,22 @@ module Onetime
       # available and then ping's the interested provider(s)? Concurrent
       # has an Observable class.
 
+
       class UserInterface < ServiceProvider
         # Process the authentication config to make
         # sure the settings make sense. For example,
         # the signup and signin flags should explicitly
         # be set to false if authentication is disabled.
+
+        def initialize
+          super(:log_banner, type: TYPE_CONFIG, priority: 20)
+        end
+
+        def start(*)
+          # Need to grab from SystemSettings
+          set_state(:user_interface, {})
+        end
+
       end
     end
   end

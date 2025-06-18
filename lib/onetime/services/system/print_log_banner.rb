@@ -17,7 +17,7 @@ module Onetime
       # This is an info-type provider that runs late in the startup sequence to
       # display comprehensive system status after all other services are initialized.
       #
-      class LogBannerProvider < ServiceProvider
+      class PrintLogBanner < ServiceProvider
         using IndifferentHashAccess
 
         def initialize
