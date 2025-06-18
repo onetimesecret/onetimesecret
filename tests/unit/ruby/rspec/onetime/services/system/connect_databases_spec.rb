@@ -1,43 +1,18 @@
 # tests/unit/ruby/rspec/onetime/services/system/connect_databases_spec.rb
 
 require_relative '../../../spec_helper'
+require_relative '../../../support/service_provider_context'
 
 # Load the service provider system components
 require 'onetime/services/service_provider'
 require 'onetime/services/system/connect_databases'
 
 RSpec.describe 'Service Provider System' do
-  let(:registry_klass) { Onetime::Services::ServiceRegistry }
-  let(:db_config) do
-    {
-      storage: {
-        db: {
-          connection: {
-            url: 'redis://localhost:6379'
-          },
-          database_mapping: {
-            session: 1,
-            customer: 6,
-            secret: 8,
-            metadata: 7
-          }
-        }
-      }
-    }
-  end
-
-  before do
-    # Clear ServiceRegistry state between tests
-    registry_klass.instance_variable_set(:@providers, Concurrent::Map.new)
-    registry_klass.instance_variable_set(:@app_state, Concurrent::Map.new)
-  end
+  include_context "service_provider_context"
+  include_context "database_connection_stubs"
 
   describe OT::Services::System::ConnectDatabases do
     subject(:provider) { described_class.new }
-
-    before do
-      allow(OT).to receive(:logger).and_return(double(info: nil, debug: nil, warn: nil))
-    end
 
     describe '#initialize' do
       it 'sets up database connection provider with high priority' do
@@ -48,18 +23,7 @@ RSpec.describe 'Service Provider System' do
     end
 
     describe '#start' do
-      let(:mock_redis_connection) { double('Redis', ping: 'PONG') }
-      let(:mock_model_class1) { double('ModelClass1', to_sym: :session, 'redis=': nil, redis: mock_redis_connection) }
-      let(:mock_model_class2) { double('ModelClass2', to_sym: :customer, 'redis=': nil, redis: mock_redis_connection) }
-      let(:mock_model_class3) { double('ModelClass3', to_sym: :unmapped_model, 'redis=': nil, redis: mock_redis_connection) }
-      let(:familia_members) { [mock_model_class1, mock_model_class2, mock_model_class3] }
-
       before do
-        # Stub Familia methods
-        allow(Familia).to receive(:uri=)
-        allow(Familia).to receive(:redis).and_return(mock_redis_connection)
-        allow(Familia).to receive(:members).and_return(familia_members)
-
         # Stub provider registration
         allow(provider).to receive(:register_provider)
       end
@@ -94,7 +58,7 @@ RSpec.describe 'Service Provider System' do
 
         provider.start(db_config)
 
-        # Should use DATABASE_IDS[:metadata] = 7, but config overrides to 7 anyway
+        # Should use DATABASE_IDS[:metadata] = 7 from config
         expect(Familia).to have_received(:redis).with(7)
         expect(mock_metadata_model).to have_received('redis=').with(mock_redis_connection)
       end

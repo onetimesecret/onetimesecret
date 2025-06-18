@@ -1,58 +1,21 @@
 # tests/unit/ruby/rspec/onetime/services/system/first_boot_spec.rb
 
 require_relative '../../../spec_helper'
+require_relative '../../../support/service_provider_context'
 
 # Load the service provider system components
 require 'onetime/services/service_provider'
 require 'onetime/services/system/first_boot'
 
 RSpec.describe 'Service Provider System' do
-  let(:registry_klass) { Onetime::Services::ServiceRegistry }
-  let(:base_config) do
-    {
-      'site' => {
-        'host' => 'localhost:3000',
-        'ssl' => false
-      },
-      'storage' => {
-        'db' => {
-          'connection' => {
-            'url' => 'redis://localhost:6379'
-          }
-        }
-      }
-    }
-  end
-  let(:default_mutable_settings) do
-    {
-      'user_interface' => {
-        'enabled' => true,
-        'header' => {
-          'branding' => {
-            'site_name' => 'OneTimeSecret'
-          }
-        }
-      },
-      'features' => {
-        'plans' => {
-          'enabled' => false
-        }
-      }
-    }
-  end
-
-  before do
-    # Clear ServiceRegistry state between tests
-    registry_klass.instance_variable_set(:@providers, Concurrent::Map.new)
-    registry_klass.instance_variable_set(:@app_state, Concurrent::Map.new)
-  end
+  include_context "service_provider_context"
+  include_context "first_boot_stubs"
+  include_context "mutable_settings_stubs"
 
   describe OT::Services::System::FirstBoot do
     subject(:provider) { described_class.new }
 
-    before do
-      allow(OT).to receive(:logger).and_return(double(info: nil, debug: nil, warn: nil))
-    end
+
 
     describe '#initialize' do
       it 'sets up first boot provider with correct configuration' do
@@ -77,18 +40,7 @@ RSpec.describe 'Service Provider System' do
     describe '#start' do
       let(:mock_existing_settings) { double('MutableSettings', rediskey: 'mutable_settings:abc123') }
 
-      before do
-        # Stub file loading
-        allow(OT::Configurator::Load).to receive(:yaml_load_file).and_return(default_mutable_settings)
 
-        # Stub model checking methods for detect_first_boot
-        allow(V2::Metadata).to receive(:redis).and_return(double(scan_each: double(first: nil)))
-        allow(V2::Customer).to receive(:values).and_return(double(element_count: 0))
-        allow(V2::Session).to receive(:values).and_return(double(element_count: 0))
-
-        # Stub MutableSettings create method
-        allow(V2::MutableSettings).to receive(:create).and_return(double(rediskey: 'mutable_settings:test123'))
-      end
 
       context 'when existing mutable settings are found' do
         before do
@@ -96,7 +48,7 @@ RSpec.describe 'Service Provider System' do
         end
 
         it 'uses existing mutable settings and skips creation' do
-          provider.start(base_config)
+          provider.start(base_service_config)
 
           expect(V2::MutableSettings).to have_received(:current).once
           expect(V2::MutableSettings).not_to have_received(:create)
@@ -106,7 +58,7 @@ RSpec.describe 'Service Provider System' do
         it 'logs found existing settings' do
           expect(OT).to receive(:li).with("[BOOT.first_boot] Found existing mutable settings: mutable_settings:abc123")
 
-          provider.start(base_config)
+          provider.start(base_service_config)
         end
       end
 
@@ -119,7 +71,7 @@ RSpec.describe 'Service Provider System' do
         end
 
         it 'creates initial mutable settings from YAML defaults' do
-          provider.start(base_config)
+          provider.start(base_service_config)
 
           expect(V2::MutableSettings).to have_received(:current).once
           expected_path = File.join(ENV.fetch('ONETIME_HOME'), 'etc', 'mutable_settings.yaml')
@@ -136,12 +88,12 @@ RSpec.describe 'Service Provider System' do
           expect(OT).to receive(:ld).with('[BOOT.first_boot] Creating initial mutable settings from YAML...')
           expect(OT).to receive(:ld).with('[BOOT.first_boot] Created initial mutable settings: mutable_settings:xyz789')
 
-          provider.start(base_config)
+          provider.start(base_service_config)
         end
 
         it 'detects first boot correctly when no existing data' do
           # All model checks should return falsy values for first boot
-          provider.start(base_config)
+          provider.start(base_service_config)
 
           # Verify first boot detection methods were called
           expect(V2::Metadata).to have_received(:redis)
@@ -161,7 +113,7 @@ RSpec.describe 'Service Provider System' do
 
           expect(OT).to receive(:lw).with(boot_warning)
 
-          provider.start(base_config)
+          provider.start(base_service_config)
         end
       end
 
@@ -174,7 +126,7 @@ RSpec.describe 'Service Provider System' do
         end
 
         it 'creates mutable settings without showing first boot warning' do
-          provider.start(base_config)
+          provider.start(base_service_config)
 
           expect(V2::MutableSettings).to have_received(:create)
           # Should not show the first boot warning since existing data was found
@@ -194,7 +146,7 @@ RSpec.describe 'Service Provider System' do
           expect(OT).to receive(:lw).with('[BOOT.first_boot] Falling back to YAML configuration only')
           expect(OT).to receive(:lw).with(kind_of(String)) # First boot warning message
 
-          expect { provider.start(base_config) }.not_to raise_error
+          expect { provider.start(base_service_config) }.not_to raise_error
         end
 
         it 'handles YAML file loading errors' do
@@ -205,7 +157,7 @@ RSpec.describe 'Service Provider System' do
           expect(OT).to receive(:lw).with('[BOOT.first_boot] Falling back to YAML configuration only')
           expect(OT).to receive(:lw).with(kind_of(String)) # First boot warning message
 
-          expect { provider.start(base_config) }.not_to raise_error
+          expect { provider.start(base_service_config) }.not_to raise_error
         end
 
         it 'handles empty default settings' do
@@ -215,7 +167,7 @@ RSpec.describe 'Service Provider System' do
           expect(OT).to receive(:lw).with('[BOOT.first_boot] Falling back to YAML configuration only')
           expect(OT).to receive(:lw).with(kind_of(String)) # First boot warning message
 
-          expect { provider.start(base_config) }.not_to raise_error
+          expect { provider.start(base_service_config) }.not_to raise_error
         end
 
         it 'handles nil default settings' do
@@ -225,7 +177,7 @@ RSpec.describe 'Service Provider System' do
           expect(OT).to receive(:lw).with('[BOOT.first_boot] Falling back to YAML configuration only')
           expect(OT).to receive(:lw).with(kind_of(String)) # First boot warning message
 
-          expect { provider.start(base_config) }.not_to raise_error
+          expect { provider.start(base_service_config) }.not_to raise_error
         end
 
         it 'handles MutableSettings creation errors' do
@@ -236,7 +188,7 @@ RSpec.describe 'Service Provider System' do
           expect(OT).to receive(:lw).with('[BOOT.first_boot] Falling back to YAML configuration only')
           expect(OT).to receive(:lw).with(kind_of(String)) # First boot warning message
 
-          expect { provider.start(base_config) }.not_to raise_error
+          expect { provider.start(base_service_config) }.not_to raise_error
         end
       end
     end
@@ -245,7 +197,6 @@ RSpec.describe 'Service Provider System' do
       before do
         allow(V2::MutableSettings).to receive(:current).and_raise(OT::RecordNotFound, 'No config stack found')
         allow(V2::MutableSettings).to receive(:create).and_return(double(rediskey: 'test'))
-        allow(OT::Configurator::Load).to receive(:yaml_load_file).and_return(default_mutable_settings)
       end
 
       it 'detects first boot when no existing data found' do
@@ -257,7 +208,7 @@ RSpec.describe 'Service Provider System' do
         # First boot warning should be shown
         expect(OT).to receive(:lw).with(kind_of(String))
 
-        provider.start(base_config)
+        provider.start(base_service_config)
       end
 
       it 'detects not first boot when existing metadata found' do
@@ -268,7 +219,7 @@ RSpec.describe 'Service Provider System' do
 
         # First boot warning should NOT be shown - no expectation needed
 
-        provider.start(base_config)
+        provider.start(base_service_config)
       end
 
       it 'detects not first boot when existing customers found' do
@@ -277,7 +228,7 @@ RSpec.describe 'Service Provider System' do
         allow(V2::Session).to receive(:values).and_return(double(element_count: 0))
 
         # First boot warning should NOT be shown - no expectation means it should not happen
-        provider.start(base_config)
+        provider.start(base_service_config)
       end
 
       it 'detects not first boot when existing sessions found' do
@@ -286,17 +237,12 @@ RSpec.describe 'Service Provider System' do
         allow(V2::Session).to receive(:values).and_return(double(element_count: 1))
 
         # First boot warning should NOT be shown - no expectation means it should not happen
-        provider.start(base_config)
+        provider.start(base_service_config)
       end
     end
 
     describe 'integration scenarios' do
       before do
-        # Stub file loading and model checking methods
-        allow(OT::Configurator::Load).to receive(:yaml_load_file).and_return(default_mutable_settings)
-        allow(V2::Metadata).to receive(:redis).and_return(double(scan_each: double(first: nil)))
-        allow(V2::Customer).to receive(:values).and_return(double(element_count: 0))
-        allow(V2::Session).to receive(:values).and_return(double(element_count: 0))
         allow(V2::MutableSettings).to receive(:create).and_return(double(rediskey: 'mutable_settings:test'))
       end
 
@@ -307,7 +253,7 @@ RSpec.describe 'Service Provider System' do
         # Expect first boot warning
         expect(OT).to receive(:lw).with(kind_of(String))
 
-        provider.start(base_config)
+        provider.start(base_service_config)
 
         # Verify complete flow
         expect(V2::MutableSettings).to have_received(:current).once
@@ -321,7 +267,7 @@ RSpec.describe 'Service Provider System' do
         existing_settings = double('ExistingSettings', rediskey: 'mutable_settings:existing_456')
         allow(V2::MutableSettings).to receive(:current).and_return(existing_settings)
 
-        provider.start(base_config)
+        provider.start(base_service_config)
 
         # Should skip creation entirely
         expect(V2::MutableSettings).to have_received(:current).once
