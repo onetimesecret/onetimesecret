@@ -28,7 +28,7 @@ module Onetime
 
         def initialize
           # High priority - load early
-          super(:dynamic_config, type: TYPE_CONFIG, priority: 10)
+          super(:runtime_config, type: TYPE_CONFIG, priority: 10)
         end
 
         ##
@@ -74,7 +74,7 @@ module Onetime
         #
         # @return [Boolean] true if MutableSettings is accessible
         def healthy?
-          super && mutable_settings_available?
+          super && redis_available?
         end
 
         private
@@ -111,6 +111,24 @@ module Onetime
         # @return [Boolean] true if MutableSettings is accessible
         def mutable_settings_available?
           defined?(V2::MutableSettings) && V2::MutableSettings.respond_to?(:current)
+        end
+
+        ##
+        # Check if Redis is available for MutableSettings operations
+        #
+        # @return [Boolean] true if Redis is accessible
+        def redis_available?
+          return false unless mutable_settings_available?
+
+          # Try to access MutableSettings to test Redis connectivity
+          V2::MutableSettings.current
+          true
+        rescue Onetime::RecordNotFound
+          # No current settings is fine - Redis is available
+          true
+        rescue StandardError => ex
+          debug("Redis unavailable: #{ex.message}")
+          false
         end
       end
     end
