@@ -178,7 +178,7 @@ module Onetime
       # @param key [Symbol] Registry key
       # @param instance [Object] Service instance to register
       def register_instance(key, instance)
-        Onetime::Services::ServiceRegistry.register_provider(key, instance)
+        Onetime::Services::ServiceRegistry.register_provider(key.to_s, instance)
       end
 
       ##
@@ -188,7 +188,7 @@ module Onetime
       # @param key [Symbol] Registry key
       # @param status [Object] Connection status/info
       def register_connection(key, status)
-        Onetime::Services::ServiceRegistry.register_provider(key, status)
+        Onetime::Services::ServiceRegistry.register_provider(key.to_s, status)
       end
 
       ##
@@ -198,7 +198,7 @@ module Onetime
       # @param key [Symbol] State key
       # @param value [Object] State value
       def set_state(key, value)
-        Onetime::Services::ServiceRegistry.set_state(key, value)
+        Onetime::Services::ServiceRegistry.set_state(key.to_s, value)
       end
 
       ##
@@ -207,7 +207,7 @@ module Onetime
       # @param key [Symbol] State key
       # @return [Object] State value or nil
       def get_state(key)
-        Onetime::Services::ServiceRegistry.state(key)
+        Onetime::Services::ServiceRegistry.state[key.to_s]
       end
 
       ##
@@ -216,7 +216,7 @@ module Onetime
       # @param key [Symbol] Configuration key
       # @return [Object] Configuration value
       def conf(key)
-        @config&.dig(key)
+        @config&.dig(key.to_s)
       end
 
       ##
