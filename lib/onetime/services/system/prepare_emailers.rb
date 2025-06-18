@@ -45,7 +45,7 @@ module Onetime
           set_state(:mailer_class, mailer_class)
           set_state(:emailer, @emailer)
 
-          register_instance(:emailer, self)
+          register_provider(:emailer, self)
           log("Email service configured with #{mail_mode} provider")
         end
       end

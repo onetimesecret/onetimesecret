@@ -19,7 +19,7 @@ module Onetime
     #   class LocaleProvider < ServiceProvider
     #     def start(config)
     #       locale_service = LocaleService.new(config[:locales])
-    #       register_instance(:locales, locale_service)
+    #       register_provider(:locales, locale_service)
     #     end
     #   end
     #
@@ -27,7 +27,7 @@ module Onetime
     #   class DatabaseProvider < ServiceProvider
     #     def start(config)
     #       setup_database_connection(config[:database_url])
-    #       register_connection(:database, :ready)
+    #       register_provider(:database, :ready)
     #     end
     #   end
     #
@@ -172,42 +172,39 @@ module Onetime
       protected
 
       ##
-      # Register an instance provider with ServiceRegistry.
-      # Used by instance-type providers that return service objects.
+      # Register a provider with ServiceRegistry.
+      #
+      # Used by poviders of all types (instance-type, connection, config, info)
+      #
+      # NOTE: This is a convenience wrapper for ServiceRegistry.register_provider.
       #
       # @param key [Symbol] Registry key
-      # @param instance [Object] Service instance to register
-      def register_instance(key, instance)
-        Onetime::Services::ServiceRegistry.register_provider(key.to_s, instance)
-      end
-
-      ##
-      # Register a connection provider with ServiceRegistry.
-      # Used by connection-type providers that configure modules.
-      #
-      # @param key [Symbol] Registry key
-      # @param status [Object] Connection status/info
-      def register_connection(key, status)
-        Onetime::Services::ServiceRegistry.register_provider(key.to_s, status)
+      # @param instance [Object] Service instance, config hash, connection status/info to register
+      def register_provider(*)
+        Onetime::Services::ServiceRegistry.register_provider(*)
       end
 
       ##
       # Set dynamic state in ServiceRegistry.
       # Used by config-type providers for dynamic configuration.
       #
+      # NOTE: This is a convenience wrapper for ServiceRegistry.set_state.
+      #
       # @param key [Symbol] State key
       # @param value [Object] State value
-      def set_state(key, value)
-        Onetime::Services::ServiceRegistry.set_state(key.to_s, value)
+      def set_state(*)
+        Onetime::Services::ServiceRegistry.set_state(*)
       end
 
       ##
       # Get dynamic state from ServiceRegistry.
       #
+      # NOTE: This is a convenience wrapper for ServiceRegistry.get_state.
+      #
       # @param key [Symbol] State key
       # @return [Object] State value or nil
-      def get_state(key)
-        Onetime::Services::ServiceRegistry.state[key.to_s]
+      def get_state(*)
+        Onetime::Services::ServiceRegistry.get_state(*)
       end
 
       ##
@@ -235,9 +232,6 @@ module Onetime
         OT.ld "[#{@name}] #{message}"
       end
 
-      private
-
-      attr_reader :mutex
     end
   end
 end

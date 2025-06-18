@@ -26,7 +26,7 @@ module Onetime
 
           log('Configuring Truemail email validation...')
           configure_truemail(config)
-          register_connection(:truemail, :configured)
+          register_provider(:truemail, :configured)
           log('Truemail configuration completed')
         end
 

@@ -64,7 +64,7 @@ module Onetime
           @locales = load_locale_definitions(@supported_locales)
 
           # Register with ServiceRegistry
-          register_instance(:locale_service, self)
+          register_provider(:locale_service, self)
 
           # Set global state for backward compatibility. Thanks to the
           # ConfigProxy, these are available via OT.conf[:i18n_enabled]
