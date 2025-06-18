@@ -21,6 +21,20 @@ module Onetime
         @mutex         = Mutex.new
       end
 
+      # Provide a way to access the static configuration directly.
+      #
+      # We generally prefer to avoid doing accessing the static config directly
+      # but there are good reasons to sometimes (e.g. ease of debugging is a
+      # great example, also testabilty, and code that works exclusively with
+      # the static config). By offering an official way to do it, we can more
+      # readily understand code that uses it.
+      #
+      # e.g. OT.conf.static['site']['host']
+      #
+      def static
+        @static_config
+      end
+
       ##
       # Access configuration value by key.
       # Uses merged config from ServiceRegistry which already prioritizes static over dynamic.
