@@ -35,7 +35,7 @@ export const useMutableSettingsStore = defineStore('colonel', () => {
   const _initialized = ref(false);
 
   /**
-   * Fetch system settings from the API
+   * Fetch mutable settings from the API
    * @returns Validated configuration object
    */
   async function fetch() {
@@ -45,7 +45,7 @@ export const useMutableSettingsStore = defineStore('colonel', () => {
       const validated = responseSchemas.mutableSettings.parse(response.data);
       details.value = validated.details as MutableSettingsDetails | null;
     } catch (validationError) {
-      console.warn('System settings validation warning:', validationError);
+      console.warn('Mutable settings validation warning:', validationError);
       // Gracefully handle validation errors by using response data directly
       // This allows for partial configurations and new fields not yet in schema
       details.value = (response.data.details || null) as MutableSettingsDetails | null;
@@ -55,7 +55,7 @@ export const useMutableSettingsStore = defineStore('colonel', () => {
   }
 
   /**
-   * Update system settings
+   * Update mutable settings
    * @param newConfig Updated configuration object
    */
   async function update(newConfig: MutableSettingsDetails) {

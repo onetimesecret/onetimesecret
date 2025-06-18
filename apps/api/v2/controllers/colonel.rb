@@ -27,8 +27,8 @@ module V2
       def update_config
         process_action(
           V2::Logic::Colonel::UpdateMutableSettings,
-          'System settings updated successfully.',
-          'System settings could not be updated.',
+          'Mutable settings updated successfully.',
+          'Mutable settings could not be updated.',
           auth_type: :colonels,
         )
       end

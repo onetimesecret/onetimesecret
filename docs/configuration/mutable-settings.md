@@ -2,7 +2,7 @@
 
 ## Overview
 
-System settings define operational parameters for OneTimeSecret that can be modified at runtime. These settings are loaded from `etc/mutable_settings.defaults.yaml` and control application features, user interface behavior, and operational limits. Unlike core configuration in `config.yaml` (which handles system-critical parameters like database connections and security settings), system settings focus on user-facing features and operational tweaks with lower blast radius.
+Mutable settings define operational parameters for OneTimeSecret that can be modified at runtime. These settings are loaded from `etc/mutable_settings.defaults.yaml` and control application features, user interface behavior, and operational limits. Unlike core configuration in `config.yaml` (which handles system-critical parameters like database connections and security settings), mutable settings focus on user-facing features and operational tweaks with lower blast radius.
 
 ## Configuration Structure
 
@@ -137,7 +137,7 @@ Following the [Config vs Settings architecture](../architecture/config-vs-settin
 2. **Environment Layer**: Environment variables override defaults
 3. **Runtime Layer**: Database settings can override configuration values
 
-System settings complement core configuration (`config.yaml`) which handles system-critical parameters requiring deploy-time changes.
+Mutable settings complement core configuration (`config.yaml`) which handles system-critical parameters requiring deploy-time changes.
 
 ## Security Considerations
 

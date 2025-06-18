@@ -38,8 +38,8 @@ function generateIndividualSchemas(): void {
   const schemas = [
     {
       schema: mutableSettingsSchema,
-      name: 'system-settings',
-      description: 'Dynamic system settings loaded from mutable_settings.defaults.yaml',
+      name: 'mutable-settings',
+      description: 'Dynamic mutable settings loaded from mutable_settings.defaults.yaml',
     },
     {
       schema: staticConfigSchema,
@@ -135,7 +135,7 @@ export { mutableSettingsSchema, staticConfigSchema };
  */
 function generateOpenAPISchemas(): void {
   const schemas = [
-    { schema: mutableSettingsSchema, name: 'system-settings' },
+    { schema: mutableSettingsSchema, name: 'mutable-settings' },
     { schema: staticConfigSchema, name: 'static-config' },
     { schema: combinedConfigSchema, name: 'combined-config' },
   ];

@@ -31,39 +31,39 @@ module Onetime
           @first_boot = nil
         end
 
-        # Sets up system settings by checking for existing override
+        # Sets up mutable settings by checking for existing override
         # configuration in Redis and merging it with YAML configuration.
-        # Creates initial system settings record on first boot.
+        # Creates initial mutable settings record on first boot.
         #
         def start(config)
-          OT.ld '[BOOT.first_boot] Setting up system settings...'
+          OT.ld '[BOOT.first_boot] Setting up mutable settings...'
 
           # Check if this is the first boot by looking for existing data
           is_first_boot = detect_first_boot
           OT.ld "[BOOT.first_boot] First boot detected: #{is_first_boot}"
 
-          # Check for existing system settings
+          # Check for existing mutable settings
           dynamic_config = begin
             V2::MutableSettings.current
           rescue OT::RecordNotFound => ex
-            OT.ld "[BOOT.first_boot] No existing system settings found: #{ex.message}"
+            OT.ld "[BOOT.first_boot] No existing mutable settings found: #{ex.message}"
             nil
           end
 
           if dynamic_config
-            OT.li "[BOOT.first_boot] Found existing system settings: #{dynamic_config.rediskey}"
-            # Merge existing system settings with YAML configuration
+            OT.li "[BOOT.first_boot] Found existing mutable settings: #{dynamic_config.rediskey}"
+            # Merge existing mutable settings with YAML configuration
             # merge_mutable_settings(dynamic_config)
 
           else
-            # Create initial system settings from current YAML configuration
+            # Create initial mutable settings from current YAML configuration
             create_initial_mutable_settings(config)
           end
         rescue Redis::CannotConnectError => ex
-          OT.lw "[BOOT.first_boot] Cannot connect to Redis for system settings setup: #{ex.message}"
+          OT.lw "[BOOT.first_boot] Cannot connect to Redis for mutable settings setup: #{ex.message}"
           OT.lw '[BOOT.first_boot] Falling back to YAML configuration only'
         rescue StandardError => ex
-          OT.le "[BOOT.first_boot] Error during system settings setup: #{ex.message}"
+          OT.le "[BOOT.first_boot] Error during mutable settings setup: #{ex.message}"
           OT.ld ex.backtrace.join("\n")
           OT.lw '[BOOT.first_boot] Falling back to YAML configuration only'
         ensure
@@ -95,9 +95,9 @@ module Onetime
           end
         end
 
-        # Creates initial system settings record from current YAML configuration
+        # Creates initial mutable settings record from current YAML configuration
         def create_initial_mutable_settings(_config)
-          OT.ld '[BOOT.first_boot] Creating initial system settings from YAML...'
+          OT.ld '[BOOT.first_boot] Creating initial mutable settings from YAML...'
 
           path             = self.class.mutable_settings_defaults_path
           default_settings = OT::Configurator::Load.yaml_load_file(path)
@@ -109,7 +109,7 @@ module Onetime
           default_settings[:custid]  = nil # No customer owner for initial config
 
           new_config = V2::MutableSettings.create(**default_settings)
-          OT.ld "[BOOT.first_boot] Created initial system settings: #{new_config.rediskey}"
+          OT.ld "[BOOT.first_boot] Created initial mutable settings: #{new_config.rediskey}"
         end
 
       end

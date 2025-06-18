@@ -12,7 +12,7 @@ The application uses a **two-part configuration system**:
   - Database connections (Redis, etc.)
   - Site identity (name, domain)
   - Authentication providers
-  - Core system settings
+  - Core mutable settings
   - Diagnostic settings
 - **Loading**: Processed at startup by `init.d/` Ruby modules
 - **Modification**: Requires application restart
@@ -42,10 +42,10 @@ The system merges both configurations at runtime, with dynamic settings taking p
 - `config.yaml` - Main application configuration
 - `config.schema.yaml` - Validation schema and defaults
 - `defaults/config.defaults.yaml` - Template with example values
-- `defaults/mutable_settings.defaults.yaml` - Default system settings template
+- `defaults/mutable_settings.defaults.yaml` - Default mutable settings template
 
 ### System/Dynamic Configuration
-- `mutable_settings.yaml` - Runtime system settings
+- `mutable_settings.yaml` - Runtime mutable settings
 
 ### Initialization scripts
 

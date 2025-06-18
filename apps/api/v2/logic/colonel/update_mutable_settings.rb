@@ -56,7 +56,7 @@ module V2
         end
 
         def process
-          OT.ld '[UpdateMutableSettings#process] Persisting system settings'
+          OT.ld '[UpdateMutableSettings#process] Persisting mutable settings'
 
           OT.li "[UpdateMutableSettings#process] Interface: #{interface.inspect}" if interface
           OT.li "[UpdateMutableSettings#process] Secret Options: #{secret_options.inspect}" if secret_options
@@ -72,15 +72,15 @@ module V2
             @record = MutableSettings.create(**update_fields)
 
             @greenlighted = true
-            OT.ld '[UpdateMutableSettings#process] System settings persisted successfully'
+            OT.ld '[UpdateMutableSettings#process] Mutable settings persisted successfully'
           rescue StandardError => ex
-            OT.le "[UpdateMutableSettings#process] Failed to persist system settings: #{ex.message}"
+            OT.le "[UpdateMutableSettings#process] Failed to persist mutable settings: #{ex.message}"
             raise_form_error "Failed to update configuration: #{ex.message}"
           end
         end
 
         def success_data
-          OT.ld '[UpdateMutableSettings#success_data] Returning updated system settings'
+          OT.ld '[UpdateMutableSettings#success_data] Returning updated mutable settings'
 
           # Return the record and the sections that were provided
           {

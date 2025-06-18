@@ -2,7 +2,7 @@
 
 ## Overview
 
-Core configuration manages OneTimeSecret's foundational infrastructure settings through `etc/config.yaml`. These parameters—including database connections, security middleware, authentication systems, and mail delivery—require application restart to modify and form the bedrock of system operations. This configuration layer focuses on infrastructure concerns that demand careful consideration during deployment, complementing the runtime-adjustable system settings that handle feature toggles and operational preferences.
+Core configuration manages OneTimeSecret's foundational infrastructure settings through `etc/config.yaml`. These parameters—including database connections, security middleware, authentication systems, and mail delivery—require application restart to modify and form the bedrock of system operations. This configuration layer focuses on infrastructure concerns that demand careful consideration during deployment, complementing the runtime-adjustable mutable settings that handle feature toggles and operational preferences.
 
 ## Configuration Structure
 
@@ -159,7 +159,7 @@ Following the [Config vs Settings architecture](../architecture/config-vs-settin
 2. **Environment Layer**: Environment variables override file values
 3. **Deploy Layer**: Configuration changes require application restart
 
-Core configuration complements system settings (`mutable_settings.defaults.yaml`) which handle operational parameters modifiable at runtime.
+Core configuration complements mutable settings (`mutable_settings.defaults.yaml`) which handle operational parameters modifiable at runtime.
 
 ## Validation and Security
 

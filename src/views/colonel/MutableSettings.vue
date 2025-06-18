@@ -31,7 +31,7 @@
   const { details: config } = storeToRefs(store);
   const { fetch } = store;
 
-  // Use the system settings composable
+  // Use the mutable settings composable
   const {
     activeSection,
     sectionEditors,

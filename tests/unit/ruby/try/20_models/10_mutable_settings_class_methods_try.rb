@@ -19,7 +19,7 @@ require_relative '../test_models'
 # Load the app
 OT.boot! :test, true
 
-# Clear any existing system settings to start fresh
+# Clear any existing mutable settings to start fresh
 V2::MutableSettings.values.clear
 V2::MutableSettings.stack.clear
 
@@ -92,39 +92,39 @@ V2::MutableSettings.stack.clear
 V2::MutableSettings.extract_mutable_settings(@test_config)
 #=> {:interface=>{:host=>"localhost", :port=>3000, :ssl=>false}, :secret_options=>{:max_size=>1024, :default_ttl=>3600}, :mail=>{:from=>"noreply@example.com", :smtp=>{:host=>"smtp.example.com", :port=>587}}, :limits=>{:create_secret=>250, :send_feedback=>10}, :diagnostics=>{:enabled=>true, :level=>"info"}}
 
-## Can construct onetime config structure from system settings hash
+## Can construct onetime config structure from mutable settings hash
 V2::MutableSettings.construct_onetime_config(@mutable_settings_hash)
 #=> {:site=>{:interface=>{:host=>"custom.example.com", :port=>8080, :ssl=>true}, :secret_options=>{:max_size=>2048}}, :mail=>{:from=>"custom@example.com"}, :limits=>{:create_secret=>500}, :diagnostics=>{:level=>"debug"}}
 
-## Can construct onetime config from partial system settings hash
+## Can construct onetime config from partial mutable settings hash
 partial_config = { interface: { host: 'partial.example.com' }, mail: { from: 'partial@example.com' } }
 V2::MutableSettings.construct_onetime_config(partial_config)
 #=> {:site=>{:interface=>{:host=>"partial.example.com"}}, :mail=>{:from=>"partial@example.com"}}
 
-## Can handle empty system settings hash
+## Can handle empty mutable settings hash
 V2::MutableSettings.construct_onetime_config({})
 #=> {}
 
-## Can handle nil values in system settings
+## Can handle nil values in mutable settings
 nil_config = { interface: { host: nil }, mail: nil }
 result = V2::MutableSettings.construct_onetime_config(nil_config)
 result.has_key?(:mail)
 #=> false
 
-## Can create a new system settings record
+## Can create a new mutable settings record
 @obj = V2::MutableSettings.create(**@obj_config_data)
 @obj.class
 #=> V2::MutableSettings
 
-## Created system settings has proper identifier
+## Created mutable settings has proper identifier
 @obj.identifier.length
 #=> 31
 
-## Created system settings exists in Redis
+## Created mutable settings exists in Redis
 V2::MutableSettings.exists?(@obj.identifier)
 #=> true
 
-## Cannot create duplicate system settings with same identifier
+## Cannot create duplicate mutable settings with same identifier
 begin
   duplicate = V2::MutableSettings.new
   duplicate.instance_variable_set(:@configid, @obj.identifier)
@@ -134,7 +134,7 @@ rescue OT::Problem => e
 end
 #=> true
 
-## Can check if customer owns a system settings
+## Can check if customer owns a mutable settings
 p [:owner, @obj.owner, @customer.custid]
 @obj.owner?(@customer)
 #=> true
@@ -149,21 +149,21 @@ other_email = "tryouts+other+#{Time.now.to_i}@onetimesecret.com"
 @obj.owner?(@other_customer)
 #=> false
 
-## Can add system settings to tracking sets
+## Can add mutable settings to tracking sets
 V2::MutableSettings.add(@obj)
 V2::MutableSettings.values.member?(@obj.identifier)
 #=> true
 
-## Can retrieve all system settings
+## Can retrieve all mutable settings
 all_configs = V2::MutableSettings.all
 all_configs.any? { |c| c.identifier == @obj.identifier }
 #=> true
 
-## Can get current system settings from stack
+## Can get current mutable settings from stack
 V2::MutableSettings.current.identifier
 #=> @obj.identifier
 
-## Can create second system settings and it becomes current
+## Can create second mutable settings and it becomes current
 @obj_config_data2 = {
   interface: { host: 'second.example.com', port: 8000 },
   mail: { from: 'second@example.com' },
@@ -175,16 +175,16 @@ p [@obj2.identifier, V2::MutableSettings.current.identifier]
 V2::MutableSettings.current.identifier
 #=> @obj2.identifier
 
-## Can get previous system settings from stack
+## Can get previous mutable settings from stack
 V2::MutableSettings.previous.identifier
 #=> @obj.identifier
 
-## Can retrieve recent system settings within time window
+## Can retrieve recent mutable settings within time window
 recent_configs = V2::MutableSettings.recent(1.hour)
 recent_configs.length >= 2
 #=> true
 
-## Can remove system settings from values set
+## Can remove mutable settings from values set
 V2::MutableSettings.rem(@obj2)
 V2::MutableSettings.values.member?(@obj2.identifier)
 #=> false

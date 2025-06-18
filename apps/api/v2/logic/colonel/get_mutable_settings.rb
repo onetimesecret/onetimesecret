@@ -20,7 +20,7 @@ module V2
           @current_record = fetch_current_mutable_settings
           @runtime_config  = build_runtime_configuration
 
-          OT.ld "[GetMutableSettings#process] Retrieved system settings with #{@runtime_config.keys.size} sections"
+          OT.ld "[GetMutableSettings#process] Retrieved mutable settings with #{@runtime_config.keys.size} sections"
         end
 
         def success_data
@@ -32,11 +32,11 @@ module V2
 
         private
 
-        # Safely fetch the current system settings, handling the case where none exists
+        # Safely fetch the current mutable settings, handling the case where none exists
         def fetch_current_mutable_settings
           MutableSettings.current
         rescue Onetime::RecordNotFound
-          OT.ld '[GetMutableSettings#fetch_current_mutable_settings] No system settings found, using base config only'
+          OT.ld '[GetMutableSettings#fetch_current_mutable_settings] No mutable settings found, using base config only'
           nil
         end
 

@@ -3,7 +3,7 @@
 # Mutable Settings
 #
 # Representation of the subset of the full YAML configuration that we
-# make available to be modified in the colonel. The system settings
+# make available to be modified in the colonel. The mutable settings
 # saved in Redis then supercedes the equivalent YAML configuration.
 module V2
   class MutableSettings < Familia::Horreum
@@ -24,7 +24,7 @@ module V2
     JSON_FIELDS = FIELD_MAPPINGS.keys.freeze
 
     class << self
-      # Extracts the sections that system settings manages from the full
+      # Extracts the sections that mutable settings manages from the full
       # single-file config (i.e. old format). this can still be useful in
       # future if we want to have a convertor around for a while to allow
       # for migrations to v0.23+.
@@ -34,7 +34,7 @@ module V2
         end
       end
 
-      # Takes a system settings hash or instance and constructs a new hash
+      # Takes a mutable settings hash or instance and constructs a new hash
       # with the same structure as the Onetime YAML configuration.
       #
       # TODO: Remove on account of having the new config opreational

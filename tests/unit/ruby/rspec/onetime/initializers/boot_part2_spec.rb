@@ -48,7 +48,7 @@ RSpec.describe "Onetime global state after boot" do
     allow(V2::Customer).to receive(:values).and_return(double('Values', element_count: 0))
     allow(V2::Session).to receive(:values).and_return(double('Values', element_count: 0))
 
-    # Mock system settings setup methods
+    # Mock mutable settings setup methods
     allow(V2::MutableSettings).to receive(:current).and_raise(OT::RecordNotFound.new("No config found"))
     allow(V2::MutableSettings).to receive(:extract_colonel_config).and_return({})
     allow(V2::MutableSettings).to receive(:create).and_return(double('MutableSettings', rediskey: 'test:config'))

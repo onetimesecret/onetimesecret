@@ -46,7 +46,7 @@ export function useMutableSettings() {
     setLoading: (loading) => (isSaving.value = loading),
     onError: (err) => {
       errorMessage.value = err.message || t('web.colonel.errorSavingConfig');
-      console.error('Error in system settings:', err);
+      console.error('Error in mutable settings:', err);
     },
   };
 
