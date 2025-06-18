@@ -189,6 +189,10 @@ module V1
         events.merge! multiple_events
       end
 
+      def ready?
+        @events && !@events.empty?
+      end
+
       # Get the current time window stamp
       # Time is rounded down to the nearest ttl interval
       # @return [String] formatted timestamp (HHMM)

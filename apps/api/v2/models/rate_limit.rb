@@ -207,7 +207,7 @@ module V2
       end
 
       def ready?
-        @events&.present?
+        @events && !@events.empty?
       end
 
       def freeze_events

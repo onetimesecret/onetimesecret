@@ -12,7 +12,7 @@ module V2
 
       def status
         publically do
-          json status: :nominal, locale: locale
+          json status: :nominal, locale: locale, version: OT::VERSION.to_a, api_version: 'v2'
         end
       end
 
