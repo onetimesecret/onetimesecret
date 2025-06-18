@@ -84,9 +84,9 @@ RSpec.describe 'Service Provider System' do
         expect(provider.config).to be_a(Hash)
         expect(provider.config['user_interface']).to be_a(Hash)
 
-        merged_config = registry_klass.get_state(:merged_config)
-        expect(merged_config).to be_a(Hash)
-        expect(merged_config['user_interface']).to be_a(Hash)
+        runtime_config = registry_klass.get_state(:runtime_config)
+        expect(runtime_config).to be_a(Hash)
+        expect(runtime_config['user_interface']).to be_a(Hash)
       end
 
       it 'handles Redis connection errors gracefully' do

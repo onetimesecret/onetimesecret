@@ -58,7 +58,7 @@ module Onetime
       # @return [Boolean] true if key exists
       def key?(key)
         key = key.to_s if key.respond_to?(:to_s)
-        get_merged_config.key?(key)
+        get_runtime_config.key?(key)
       end
 
       ##
@@ -66,7 +66,7 @@ module Onetime
       #
       # @return [Array<Symbol>] All available configuration keys
       def keys
-        get_merged_config.keys
+        get_runtime_config.keys
       end
 
       ##
@@ -75,7 +75,7 @@ module Onetime
       #
       # @return [Hash] Merged configuration hash
       def to_h
-        get_merged_config.to_h
+        get_runtime_config.to_h
       end
 
       ##
@@ -100,7 +100,7 @@ module Onetime
         #
         # val = @static_config[key] || Onetime::Services::ServiceRegistry.state[key]
 
-        val = get_merged_config[key.to_s]
+        val = get_runtime_config[key.to_s]
         val.nil? ? default : val
       end
 
@@ -139,12 +139,12 @@ module Onetime
       #
       # @return [Hash] Debug information
       def debug_dump
-        merged_config = get_merged_config
+        runtime_config = get_runtime_config
         {
           static_keys: @static_config.keys.sort,
-          merged_keys: merged_config.keys.sort,
+          merged_keys: runtime_config.keys.sort,
           service_registry_available: service_registry_available?,
-          has_merged_config: !merged_config.empty?,
+          has_runtime_config: !runtime_config.empty?,
         }
       end
 
@@ -154,16 +154,16 @@ module Onetime
       # Get merged configuration from ServiceRegistry.
       # Falls back to static config if merged config is not available.
       #
-      # TODO: The get_merged_config method catches all StandardError
+      # TODO: The get_runtime_config method catches all StandardError
       # exceptions and falls back to static config, which might mask
       # important configuration errors. Consider more specific exception
       # handling or at least logging the specific error types. #1497
       #
       # @return [Hash] Merged configuration or static config as fallback
-      def get_merged_config
+      def get_runtime_config
         return @static_config unless service_registry_available?
 
-        merged = Onetime::Services::ServiceRegistry.state['merged_config']
+        merged = Onetime::Services::ServiceRegistry.state['runtime_config']
         merged.nil? ? @static_config : merged
       rescue StandardError => ex
         # Log error but don't fail - graceful degradation

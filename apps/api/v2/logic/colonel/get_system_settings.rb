@@ -6,7 +6,7 @@ module V2
   module Logic
     module Colonel
       class GetSystemSettings < V2::Logic::Base
-        attr_reader :current_record, :merged_config
+        attr_reader :current_record, :runtime_config
 
         def process_params
           # No parameters needed for GET operation
@@ -18,15 +18,15 @@ module V2
 
         def process
           @current_record = fetch_current_system_settings
-          @merged_config  = build_merged_configuration
+          @runtime_config  = build_runtime_configuration
 
-          OT.ld "[GetSystemSettings#process] Retrieved system settings with #{@merged_config.keys.size} sections"
+          OT.ld "[GetSystemSettings#process] Retrieved system settings with #{@runtime_config.keys.size} sections"
         end
 
         def success_data
           {
             record: current_record&.safe_dump || {},
-            details: merged_config,
+            details: runtime_config,
           }
         end
 
@@ -41,19 +41,19 @@ module V2
         end
 
         # Build configuration by directly merging colonel overrides with base sections
-        def build_merged_configuration
+        def build_runtime_configuration
           base_sections = SystemSettings.extract_system_settings(OT.conf)
-          OT.ld "[GetSystemSettings#build_merged_configuration] Base sections: #{base_sections.keys}"
+          OT.ld "[GetSystemSettings#build_runtime_configuration] Base sections: #{base_sections.keys}"
 
           return base_sections unless current_record
 
           # Get the colonel overrides directly (with proper deserialization)
           colonel_overrides = current_record.filtered
-          OT.ld "[GetSystemSettings#build_merged_configuration] Colonel overrides (raw): #{colonel_overrides}"
+          OT.ld "[GetSystemSettings#build_runtime_configuration] Colonel overrides (raw): #{colonel_overrides}"
 
           # Merge colonel overrides directly into base sections
           merged = OT::Configurator.deep_merge(base_sections, colonel_overrides)
-          OT.ld "[GetSystemSettings#build_merged_configuration] Final merged result: #{merged}"
+          OT.ld "[GetSystemSettings#build_runtime_configuration] Final merged result: #{merged}"
 
           merged
         end

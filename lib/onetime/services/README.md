@@ -66,14 +66,14 @@ OT = Onetime
 
 class ConfigProxy
   def [](key)
-    ServiceRegistry.state[:merged_config][key]
+    ServiceRegistry.state[:runtime_config][key]
   end
 end
 
 # Dynamic config provider merges static and dynamic config
 def load_dynamic_configuration
-  merged_config = merge_static_and_dynamic_config
-  ServiceRegistry.set_state(:merged_config, merged_config)
+  runtime_config = merge_static_and_dynamic_config
+  ServiceRegistry.set_state(:runtime_config, runtime_config)
 end
 
 def merge_static_and_dynamic_config
@@ -116,7 +116,7 @@ OT.state[:mailer]                     # Service status
 ServiceRegistry.provider(:emailer)    # Service instance
 
 # Verbose fully-qualified syntax (avoid this)
-Onetime::Services::ServiceRegistry.state[:merged_config][:mail][:provider]
+Onetime::Services::ServiceRegistry.state[:runtime_config][:mail][:provider]
 ```
 
 ### Configuration Access Patterns
@@ -312,7 +312,7 @@ OT.conf.debug_dump                   # Show merged configuration source
 OT.conf[:mail][:provider]            # Clean config access
 OT.state[:locales]                   # Clean state access
 # vs verbose:
-Onetime::Services::ServiceRegistry.state[:merged_config][:mail][:provider]
+Onetime::Services::ServiceRegistry.state[:runtime_config][:mail][:provider]
 ```
 
 This architecture enables config reloading without restart while maintaining cleaner boundaries than Rails' single-phase approach. Dynamic configuration integrates seamlessly through the existing ServiceRegistry pattern, with SystemSettings handling versioning complexity internally. The two-phase initialization and service provider pattern provides better error handling, debugging capabilities, and operational visibility than traditional Rails initializers.

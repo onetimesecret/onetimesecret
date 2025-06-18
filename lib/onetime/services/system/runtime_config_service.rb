@@ -39,23 +39,23 @@ module Onetime
           @config = config
 
           log('Checking for existing merged configuration...')
-          merged_config = get_state(:merged_config)
+          runtime_config = get_state(:runtime_config)
 
-          unless merged_config.nil?
+          unless runtime_config.nil?
             return warn('Existing merged configuration found, exiting early')
           end
 
           log('Fetching SystemSettings from Redis.')
           # Merge static config with dynamic SystemSettings
-          merged_config = merge_static_and_dynamic_config(config)
+          runtime_config = merge_static_and_dynamic_config(config)
 
           # TOOD: Anything going in to set_state should be deep frozen
           # automatically. There are too many changes going on at the
           # moment to switch now but it conceivably could be done.
-          OT::Utils.deep_freeze(merged_config)
+          OT::Utils.deep_freeze(runtime_config)
 
           # Store merged config in ServiceRegistry for unified access
-          set_state(:merged_config, merged_config)
+          set_state(:runtime_config, runtime_config)
 
           log('Configuration merge completed successfully')
         end
