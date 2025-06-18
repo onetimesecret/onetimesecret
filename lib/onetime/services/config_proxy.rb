@@ -47,6 +47,8 @@ module Onetime
       # @return [Object] Configuration value or nil
       def [](key)
         fetch(key)
+      rescue KeyError
+        nil
       end
 
       ##
