@@ -11,7 +11,7 @@ module Onetime
       # sign up or sign in if authentication in general is disabled).
       # I'm pretty sure we don't need a user_interface provider though. Actually
       # when you throw the word provider in there it's starting to sound useful.
-      # When DynamicConfig loads the config from redis, do we include the
+      # When RuntimeConfigService loads the config from redis, do we include the
       # described UI logic there? Or does it just make the dynamic config
       # available and then ping's the interested provider(s)? Concurrent
       # has an Observable class.

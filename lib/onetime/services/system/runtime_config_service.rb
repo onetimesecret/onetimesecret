@@ -1,4 +1,4 @@
-# lib/onetime/services/system/dynamic_config.rb
+# lib/onetime/services/system/runtime_config_service.rb
 
 require_relative '../service_provider'
 
@@ -9,7 +9,7 @@ module Onetime
   module Services
     module System
       ##
-      # Dynamic Configuration Provider
+      # Runtime Configuration Service Provider
       #
       # Merges static configuration with dynamic SystemSettings from Redis
       # and makes the merged result available through ServiceRegistry.
@@ -23,7 +23,7 @@ module Onetime
       # - Rate limits
       # - Diagnostics settings
       #
-      class DynamicConfig < ServiceProvider
+      class RuntimeConfigService < ServiceProvider
         # No default config needed - SystemSettings handles defaults internally
 
         def initialize

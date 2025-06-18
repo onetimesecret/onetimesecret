@@ -85,7 +85,7 @@ RSpec.describe 'Service Provider System' do
 
         # Verify dynamic config provider was registered and started
         dynamic_provider = Onetime::Services::ServiceRegistry.provider(:dynamic_config)
-        expect(dynamic_provider).to be_a(OT::Services::System::DynamicConfigProvider)
+        expect(dynamic_provider).to be_a(OT::Services::System::RuntimeConfigServiceProvider)
         expect(dynamic_provider.status).to eq(:running)
       end
     end
@@ -96,7 +96,7 @@ RSpec.describe 'Service Provider System' do
         proxy = Onetime::Services::ConfigProxy.new(config)
 
         # Start dynamic config provider
-        provider = OT::Services::System::DynamicConfigProvider.new
+        provider = OT::Services::System::RuntimeConfigServiceProvider.new
         provider.start_internal(config)
 
         # Verify static config access

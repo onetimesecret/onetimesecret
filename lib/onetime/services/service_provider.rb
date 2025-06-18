@@ -32,7 +32,7 @@ module Onetime
     #   end
     #
     # @example Config Provider
-    #   class DynamicConfigProvider < ServiceProvider
+    #   class RuntimeConfigServiceProvider < ServiceProvider
     #     def start(config)
     #       redis_settings = load_from_redis()
     #       redis_settings.each { |k, v| set_state(k, v) }

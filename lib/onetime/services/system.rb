@@ -41,7 +41,7 @@ module Onetime
         providers << System::SetupDiagnostics.new
         # providers << System::CheckGlobalBanner.new
         providers << System::FirstBoot.new
-        providers << System::DynamicConfig.new
+        providers << System::RuntimeConfigService.new
         providers << System::TruemailProvider.new
         providers << System::PrepareEmailers.new
         providers << System::LocaleProvider.new

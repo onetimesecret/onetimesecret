@@ -1,9 +1,9 @@
-# tests/unit/ruby/rspec/onetime/services/system/dynamic_config_spec.rb
+# tests/unit/ruby/rspec/onetime/services/system/runtime_config_service_spec.rb
 
 require_relative '../../../spec_helper'
 
 # Load the service provider system components
-require 'onetime/services/system/dynamic_config'
+require 'onetime/services/system/runtime_config_service'
 
 RSpec.describe 'Service Provider System' do
   let(:registry_klass) { Onetime::Services::ServiceRegistry }
@@ -62,7 +62,7 @@ RSpec.describe 'Service Provider System' do
     registry_klass.instance_variable_set(:@app_state, Concurrent::Map.new)
   end
 
-  describe OT::Services::System::DynamicConfig do
+  describe OT::Services::System::RuntimeConfigService do
     subject(:provider) { described_class.new }
 
     before do
