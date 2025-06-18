@@ -26,7 +26,10 @@ module Onetime
 
         providers = []
 
-        # Phase 1: Essential connections first
+        # TODO: We can handle this a lot better by allowing the provider classes
+        # to self-register, giving us the priority and dependencies. Instead of
+        # just pulling the plug here, we could still be running the providers
+        # that aren't depdendent on the database connection.
         if connect_to_db
           providers << System::ConnectDatabases.new
         else
@@ -34,19 +37,26 @@ module Onetime
           return
         end
 
-        # Phase 2: Dynamic configuration provider (high priority)
+        # The order here is arbitrary. We sort them by priority next.
+        providers << System::SetupDiagnostics.new
+        # providers << System::CheckGlobalBanner.new
+        providers << System::FirstBoot.new
         providers << System::DynamicConfig.new
-
-        # Phase 3: Core service providers
         providers << System::TruemailProvider.new
-        providers << System::EmailerProvider.new
+        providers << System::PrepareEmailers.new
         providers << System::LocaleProvider.new
         providers << System::AuthenticationProvider.new
-
-        # Phase 4: Information display (runs last)
-        providers << System::LogBannerProvider.new
+        providers << System::PrintLogBanner.new
 
         # Start providers in priority order
+        allsorts_and_start(providers, config)
+
+        OT.li '[BOOT.system] System services started successfully'
+      end
+
+      private
+
+      def allsorts_and_start(providers, config)
         OT.ld "[BOOT.system] Sorting #{providers.size} providers by priority"
         providers.sort_by!(&:priority)
         providers.each do |provider|
@@ -54,11 +64,7 @@ module Onetime
           ServiceRegistry.register_provider(provider.name, provider)
           provider.start_internal(config)
         end
-
-
-        OT.li '[BOOT.system] System services started successfully'
       end
-
     end
 
     # NOTE: To remove, delete this line and the legacy_globals.rb file.
