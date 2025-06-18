@@ -1,3 +1,7 @@
+# apps/web/frontend/controllers/helpers.rb
+
+require 'onetime/refinements/indifferent_hash_access'
+
 module Frontend
   unless defined?(Frontend::BADAGENTS)
     BADAGENTS     = [:facebook, :google, :yahoo, :bing, :stella, :baidu, :bot, :curl, :wget]
@@ -6,6 +10,8 @@ module Frontend
   end
 
   module ControllerHelpers
+    using IndifferentHashAccess
+
     def plan
       @plan   = Onetime::Plan.plan(cust.planid) unless cust.nil?
       @plan ||= Onetime::Plan.plan('anonymous')
@@ -152,8 +158,11 @@ module Frontend
       locale ||= req.params[:locale]
       locale ||= cust.locale if cust&.locale
       locale ||= (req.env['rack.locale'] || []).first
-      support_locales = OT.conf[:supported_locales] || []
+
+      support_locales   = OT.conf[:supported_locales] || []
+      default_locale    = OT.conf[:default_locale] || 'en'
       have_translations = locale && support_locales.include?(locale)
+
       lmsg              = format(
         '[check_locale!] class=%s locale=%s cust=%s req=%s t=%s',
         self.class.name,
@@ -166,7 +175,7 @@ module Frontend
 
       # Set the locale in the request environment if it is
       # valid, otherwise use the default locale.
-      req.env['ots.locale'] = have_translations ? locale : OT.default_locale
+      req.env['ots.locale'] = have_translations ? locale : default_locale
 
       # Important! This sets the locale for the current request which
       # gets passed through to the logic class along with sess, cust.
@@ -282,10 +291,14 @@ module Frontend
       end
 
       # Should always report false and false when disabled.
-      unless cust.anonymous?
-        custref = cust.obscure_email
-        OT.ld "[sess.check_session(web)] #{sess.short_identifier} #{custref} authenabled=#{authentication_enabled?}, sess=#{sess.authenticated?}"
-      end
+      return if cust.anonymous?
+
+      custref = cust.obscure_email
+      OT.ld <<~LOG
+        [sess.check_session(web)] #{sess.short_identifier}
+          #{custref} authenabled=#{authentication_enabled?},
+          sess=#{sess.authenticated?}"
+      LOG
     end
 
     # Checks if authentication is enabled for the site.
@@ -302,8 +315,9 @@ module Frontend
       # is missing, we assume that authentication is disabled and that accounts
       # are not used. This prevents situations where the app is running and
       # anyone accessing it can create an account without proper authentication.
-      authentication_enabled = OT.conf[:site][:authentication][:enabled] rescue false # rubocop:disable Style/RescueModifier
-      signin_enabled         = OT.conf[:site][:authentication][:signin] rescue false # rubocop:disable Style/RescueModifier
+
+      authentication_enabled = OT.conf[:site][:authentication][:enabled]
+      signin_enabled         = OT.conf[:user_interface][:signin]
 
       # The only condition that allows a request to be authenticated is if
       # the site has authentication enabled, and the user is signed in. If a
@@ -312,6 +326,10 @@ module Frontend
       # before the session key expires in Redis, that user will be signed in
       # again. This is a security feature.
       authentication_enabled && signin_enabled
+    rescue OT::Problem => ex
+      OT.le "[authentication_enabled?] Error: #{ex.message}"
+      OT.ld ex.backtrace.join("\n")
+      false
     end
 
     def add_response_headers(content_type, nonce)
@@ -414,7 +432,7 @@ module Frontend
     # and :debug. The Sentry default, if not specified, is :error.
     #
     def capture_error(error, level = :error, &)
-      return unless OT.d9s_enabled # diagnostics are disabled by default
+      return unless OT.conf[:d9s_enabled] # diagnostics are disabled by default
 
       # Capture more detailed debugging information when Sentry errors occur
       begin
@@ -441,7 +459,7 @@ module Frontend
     end
 
     def capture_message(message, level = :log, &)
-      return unless OT.d9s_enabled # diagnostics are disabled by default
+      return unless OT.conf[:d9s_enabled] # diagnostics are disabled by default
 
       Sentry.capture_message(message, level: level, &)
     rescue StandardError => ex

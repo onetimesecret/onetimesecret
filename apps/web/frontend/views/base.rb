@@ -50,7 +50,7 @@ module Frontend
                   elsif !req.nil? && req.env['ots.locale']
                     req.env['ots.locale']
                   else
-                    OT.default_locale
+                    OT.conf[:default_locale]
                   end
 
         @i18n_instance = i18n

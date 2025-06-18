@@ -75,7 +75,7 @@ RSpec.describe "Onetime global state after boot" do
       expect(Onetime.conf&.dig(:site, :host)).to eq('127.0.0.1:3000')
     end
 
-    it "sets OT.d9s_enabled based on configuration" do
+    it "sets OT.conf[:d9s_enabled] based on configuration (see load_locales)" do
       Onetime.boot!(:test)
 
       if Onetime.conf&.dig(:diagnostics, :enabled) &&

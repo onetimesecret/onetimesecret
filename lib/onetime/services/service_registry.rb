@@ -27,6 +27,17 @@ module Onetime
           @app_state[key.to_s] = value
         end
 
+        # Typically we avoid getters and setters. These serve a helpful purpose
+        # in normalizing the keys to strings. It avoids scenarios where we're
+        # sure something should be working but the setting disappears only to
+        # realize that we were using a symbol instead of a string. Knowing
+        # get_state is available, it allows for a quick gut check. If we
+        # find ourselves plopping calls to get_state too much, we can
+        # trim them back to and or make adjustments to the design.
+        def get_state(key)
+          @app_state[key.to_s]
+        end
+
         # Access application state hash (Concurrent::Map)
         #
         # e.g. Onetime::Services::ServiceRegistry.state['locales']

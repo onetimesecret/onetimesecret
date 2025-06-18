@@ -99,7 +99,7 @@ OT.conf[:emailer][:host]              # From YAML
 OT.locales                            # Global attribute
 OT.emailer                            # Global attribute
 OT.d9s_enabled                        # Global attribute
-OT.default_locale                     # Global attribute
+OT.default_locale                    # Global attribute
 # ... dozens more global attributes
 ```
 
@@ -162,8 +162,9 @@ Regardless of type, all providers leverage the `ServiceRegistry` to make their r
 
 **Old System:**
 ```ruby
-class I18nProvider
-  def self.start(config)
+class Onetime::Config
+  def after_load
+    config = OT.conf
     locales = process_locales(config[:i18n][:locales])
     OT.locales = locales  # Creates global attribute
   end

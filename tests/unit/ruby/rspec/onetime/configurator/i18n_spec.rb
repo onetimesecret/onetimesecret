@@ -166,6 +166,8 @@ RSpec.describe "Internationalization config" do
         end.new(req, cust)
       end
 
+      # locales = OT.conf['locales']
+      # OT.locales and i18n_enabled are availably via LegacyGlobals
       context 'when OT.locales is nil' do
         before do
           @original_i18n_enabled = Onetime.i18n_enabled

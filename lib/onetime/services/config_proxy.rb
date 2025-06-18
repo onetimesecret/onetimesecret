@@ -87,7 +87,19 @@ module Onetime
       def fetch(key, default = nil)
         return default if key.nil?
 
+        # Originally this was the plan for ConfigProxy: to check the static
+        # config first followed by the dynamic config. The idea was to prevent
+        # accidentally clobbering the static config with dynamic config values.
+        #
+        # But there is a big drawback: it means that there is no one source of
+        # truth for configuration, except for the Ruby process' memory. Merging
+        # takes a bit of work and needs to be done in a mindful way so that
+        # we aren't constantly merging. The merged config functions like a
+        # cache as well. Unless the dynamic config is being modified in the
+        # colonel, there doesn't need to be anhy merging going on at all.
+        #
         # val = @static_config[key] || Onetime::Services::ServiceRegistry.state[key]
+
         val = get_merged_config[key.to_s]
         val.nil? ? default : val
       end
@@ -151,7 +163,7 @@ module Onetime
       def get_merged_config
         return @static_config unless service_registry_available?
 
-        merged = Onetime::Services::ServiceRegistry.state[:merged_config]
+        merged = Onetime::Services::ServiceRegistry.state['merged_config']
         merged.nil? ? @static_config : merged
       rescue StandardError => ex
         # Log error but don't fail - graceful degradation
