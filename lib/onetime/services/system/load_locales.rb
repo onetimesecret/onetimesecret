@@ -1,7 +1,8 @@
 # lib/onetime/services/system/load_locales.rb
 
-require 'json'
+require_relative '../../refinements/indifferent_hash_access'
 require_relative '../service_provider'
+
 module Onetime
   module Services
     module System
@@ -13,6 +14,8 @@ module Onetime
       # default/fallback locales.
       #
       class LocaleProvider < ServiceProvider
+        using IndifferentHashAccess
+
         attr_reader :locales, :default_locale, :fallback_locale, :i18n_enabled
 
         def initialize
@@ -55,7 +58,8 @@ module Onetime
           # Register with ServiceRegistry
           register_instance(:locale_service, self)
 
-          # Set global state for backward compatibility
+          # Set global state for backward compatibility. Thanks to the
+          # ConfigProxy, these are available via OT.conf[:i18n_enabled]
           set_state(:i18n_enabled, @i18n_enabled)
           set_state(:locales, @locales)
           set_state(:supported_locales, @supported_locales)
@@ -73,14 +77,8 @@ module Onetime
             path = File.join(Onetime::HOME, 'src', 'locales', "#{loc}.json")
             debug("Loading #{loc}: #{File.exist?(path)}")
 
-            begin
-              contents = File.read(path)
-            rescue Errno::ENOENT
-              error("Missing locale file: #{path}")
-              next
-            end
+            conf = OT::Configurator::Load.json_load_file(path, symbolize_names: true)
 
-            conf = JSON.parse(contents, symbolize_names: true)
             [loc, conf]
           end
 
