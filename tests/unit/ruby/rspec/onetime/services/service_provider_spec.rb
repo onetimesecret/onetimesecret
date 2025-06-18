@@ -6,7 +6,7 @@ require_relative '../../spec_helper'
 require 'onetime/services/system'
 
 RSpec.describe 'Service Provider System' do
-  let(:test_config) do
+  let(:immutable_config) do
     {
       database_url: 'redis://localhost:6379/0',
       host: 'localhost',

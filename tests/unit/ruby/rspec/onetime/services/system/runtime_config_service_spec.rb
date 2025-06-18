@@ -7,7 +7,7 @@ require 'onetime/services/system/runtime_config_service'
 
 RSpec.describe 'Service Provider System' do
   let(:registry_klass) { Onetime::Services::ServiceRegistry }
-  let(:static_config) do
+  let(:immutable_config) do
     {
       'site' => {
         'host' => 'localhost:3000',
@@ -31,7 +31,7 @@ RSpec.describe 'Service Provider System' do
       }
     }
   end
-  let(:dynamic_config) do
+  let(:mutable_config) do
     {
       'user_interface' => {
         'enabled' => true,
@@ -71,7 +71,7 @@ RSpec.describe 'Service Provider System' do
 
     describe '#initialize' do
       it 'sets up config provider with high priority' do
-        expect(provider.name).to eq(:dynamic_config)
+        expect(provider.name).to eq(:mutable_config)
         expect(provider.instance_variable_get(:@type)).to eq(:config)
         expect(provider.config).to be_nil()
         expect(provider.priority).to eq(10)
@@ -80,7 +80,7 @@ RSpec.describe 'Service Provider System' do
 
     describe '#start' do
       it 'accepts the config and starts the provider' do
-        provider.start(static_config)
+        provider.start(immutable_config)
         expect(provider.config).to be_a(Hash)
         expect(provider.config['user_interface']).to be_a(Hash)
 
@@ -92,14 +92,14 @@ RSpec.describe 'Service Provider System' do
       it 'handles Redis connection errors gracefully' do
         allow(provider).to receive(:load_from_redis).and_raise(StandardError, 'Redis error')
 
-        expect { provider.start(static_config) }.not_to raise_error
+        expect { provider.start(immutable_config) }.not_to raise_error
         expect(Onetime::Services::ServiceRegistry.state[:footer_links]).to eq([])
       end
     end
 
     describe '#healthy?' do
       before do
-        provider.start_internal(static_config)
+        provider.start_internal(immutable_config)
       end
 
       it 'returns true when provider is running and Redis available' do
@@ -115,12 +115,12 @@ RSpec.describe 'Service Provider System' do
 
     describe '#reload' do
       before do
-        provider.start_internal(static_config)
+        provider.start_internal(immutable_config)
       end
 
       it 'reloads configuration' do
-        expect(provider).to receive(:start).with(static_config)
-        provider.reload(static_config)
+        expect(provider).to receive(:start).with(immutable_config)
+        provider.reload(immutable_config)
       end
     end
   end
