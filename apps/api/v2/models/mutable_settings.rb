@@ -1,12 +1,12 @@
-# apps/api/v2/models/system_settings.rb
+# apps/api/v2/models/mutable_settings.rb
 
-# System Settings
+# Mutable Settings
 #
 # Representation of the subset of the full YAML configuration that we
 # make available to be modified in the colonel. The system settings
 # saved in Redis then supercedes the equivalent YAML configuration.
 module V2
-  class SystemSettings < Familia::Horreum
+  class MutableSettings < Familia::Horreum
     include Gibbler::Complex
 
     unless defined?(FIELD_MAPPINGS)
@@ -28,7 +28,7 @@ module V2
       # single-file config (i.e. old format). this can still be useful in
       # future if we want to have a convertor around for a while to allow
       # for migrations to v0.23+.
-      def extract_system_settings(config)
+      def extract_mutable_settings(config)
         FIELD_MAPPINGS.transform_values do |path|
           path.length == 1 ? config[path[0]] : config.dig(*path)
         end
@@ -39,13 +39,13 @@ module V2
       #
       # TODO: Remove on account of having the new config opreational
       def construct_onetime_config(config)
-        system_settings_hash = config.is_a?(Hash) ? config : config.to_h
-        system_settings_hash.transform_keys!(&:to_sym)
+        mutable_settings_hash = config.is_a?(Hash) ? config : config.to_h
+        mutable_settings_hash.transform_keys!(&:to_sym)
 
         result = {}
 
         FIELD_MAPPINGS.each do |field, path|
-          value = system_settings_hash[field]
+          value = mutable_settings_hash[field]
           # Skip empty/nil values to allow fallback to base config
           next unless value && !value.empty?
 
@@ -102,7 +102,7 @@ module V2
     def init
       @configid ||= generate_id
 
-      OT.ld "[SystemSettings.init] #{configid} #{rediskey}"
+      OT.ld "[MutableSettings.init] #{configid} #{rediskey}"
     end
 
     # Serialize complex data to JSON when setting fields
@@ -240,21 +240,21 @@ module V2
 
         obj  # Return the created object
       rescue Redis::BaseError => ex
-        OT.le "[SystemSettings.create] Redis error: #{ex.message}"
+        OT.le "[MutableSettings.create] Redis error: #{ex.message}"
         raise Onetime::Problem, 'Unable to create custom domain'
       end
 
-      # Simply instatiates a new SystemSettings object and checks if it exists.
+      # Simply instatiates a new MutableSettings object and checks if it exists.
       def exists?(identifier)
-        # The `parse`` method instantiates a new SystemSettings object but does
+        # The `parse`` method instantiates a new MutableSettings object but does
         # not save it to Redis. We do that here to piggyback on the inital
         # validation and parsing. We use the derived identifier to load
         # the object from Redis using
         obj = load(identifier)
-        OT.ld "[SystemSettings.exists?] Got #{obj} for #{identifier}"
+        OT.ld "[MutableSettings.exists?] Got #{obj} for #{identifier}"
         obj.exists?
       rescue Onetime::Problem => ex
-        OT.le "[SystemSettings.exists?] #{ex.message}"
+        OT.le "[MutableSettings.exists?] #{ex.message}"
         OT.ld ex.backtrace.join("\n")
         false
       end

@@ -1,34 +1,37 @@
-// stores/systemSettingsStore.ts
+// stores/mutableSettingsStore.ts
 
 import { responseSchemas } from '@/schemas/api';
-import { systemSettingsSchema, type SystemSettingsDetails } from '@/schemas/api/endpoints/colonel';
+import {
+  mutableSettingsSchema,
+  type MutableSettingsDetails,
+} from '@/schemas/api/endpoints/colonel';
 import { AxiosInstance } from 'axios';
 import { defineStore, PiniaCustomProperties } from 'pinia';
 import { inject, ref } from 'vue';
 import { z } from 'zod/v4';
 
 /**
- * Type definition for SystemSettingsStore.
+ * Type definition for MutableSettingsStore.
  */
-export type SystemSettingsStore = {
+export type MutableSettingsStore = {
   // State
   _initialized: boolean;
   record: {} | null; // response is empty object
-  details: SystemSettingsDetails;
+  details: MutableSettingsDetails;
 
   // Actions
-  fetch: () => Promise<SystemSettingsDetails>;
-  update: (config: SystemSettingsDetails) => Promise<void>;
+  fetch: () => Promise<MutableSettingsDetails>;
+  update: (config: MutableSettingsDetails) => Promise<void>;
   dispose: () => void;
   $reset: () => void;
 } & PiniaCustomProperties;
 
-export const useSystemSettingsStore = defineStore('colonel', () => {
+export const useMutableSettingsStore = defineStore('colonel', () => {
   const $api = inject('api') as AxiosInstance;
 
   // State
   const record = ref<{} | null>(null);
-  const details = ref<SystemSettingsDetails | null>(null);
+  const details = ref<MutableSettingsDetails | null>(null);
   const _initialized = ref(false);
 
   /**
@@ -39,13 +42,13 @@ export const useSystemSettingsStore = defineStore('colonel', () => {
     const response = await $api.get('/api/v2/colonel/config');
 
     try {
-      const validated = responseSchemas.systemSettings.parse(response.data);
-      details.value = validated.details as SystemSettingsDetails | null;
+      const validated = responseSchemas.mutableSettings.parse(response.data);
+      details.value = validated.details as MutableSettingsDetails | null;
     } catch (validationError) {
       console.warn('System settings validation warning:', validationError);
       // Gracefully handle validation errors by using response data directly
       // This allows for partial configurations and new fields not yet in schema
-      details.value = (response.data.details || null) as SystemSettingsDetails | null;
+      details.value = (response.data.details || null) as MutableSettingsDetails | null;
     }
 
     return response.data;
@@ -55,11 +58,11 @@ export const useSystemSettingsStore = defineStore('colonel', () => {
    * Update system settings
    * @param newConfig Updated configuration object
    */
-  async function update(newConfig: SystemSettingsDetails) {
+  async function update(newConfig: MutableSettingsDetails) {
     // Validate the config before sending to API, but allow partial configurations
     try {
       // Use partial validation to allow incomplete config objects
-      systemSettingsSchema.partial().parse(newConfig);
+      mutableSettingsSchema.partial().parse(newConfig);
     } catch (validationError) {
       if (validationError instanceof z.ZodError) {
         const firstError = validationError.issues[0];
@@ -71,15 +74,15 @@ export const useSystemSettingsStore = defineStore('colonel', () => {
     const response = await $api.post('/api/v2/colonel/config', { config: newConfig });
 
     try {
-      const validated = responseSchemas.systemSettings.parse(response.data);
+      const validated = responseSchemas.mutableSettings.parse(response.data);
       record.value = validated.record;
-      details.value = validated.details as SystemSettingsDetails | null;
+      details.value = validated.details as MutableSettingsDetails | null;
       return validated;
     } catch (validationError) {
       console.warn('Response validation warning:', validationError);
       // Fallback to using response data directly if validation fails
       record.value = response.data.record || {};
-      details.value = (response.data.details || null) as SystemSettingsDetails | null;
+      details.value = (response.data.details || null) as MutableSettingsDetails | null;
       return response.data;
     }
   }

@@ -26,4 +26,4 @@ storage:
       rate_limit: 0
       feedback: 0
       exception_info: 0
-      system_settings: 0
+      mutable_settings: 0

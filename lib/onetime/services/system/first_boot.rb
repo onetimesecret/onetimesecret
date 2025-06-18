@@ -8,22 +8,22 @@ module Onetime
       #
       # Responsible for detecting whether this is the first time this
       # app is booting up with an empty database. Or if not, but there
-      # is no existing SystemSettings record in redis, it will read the
-      # defaults from etc/system_settings.yaml and create one.
+      # is no existing MutableSettings record in redis, it will read the
+      # defaults from etc/mutable_settings.yaml and create one.
       #
       # If it is the first boot, it will print out some helpful information
       # to the user if there is any sort of error starting up.
       #
-      # After that it simply checks that SystemSettings.current record
+      # After that it simply checks that MutableSettings.current record
       # exists and is not empty. This provider is transitional and can
       # eventually be removed once there is a low chance any installs
       # still need to upgrade. Or after a sufficiently long time.
       class FirstBoot < ServiceProvider
         @base_path                     = ENV.fetch('ONETIME_HOME').freeze
-        @system_settings_defaults_path = File.join(@base_path, 'etc', 'system_settings.yaml').freeze
+        @mutable_settings_defaults_path = File.join(@base_path, 'etc', 'mutable_settings.yaml').freeze
 
         class << self
-          attr_reader :base_path, :system_settings_defaults_path
+          attr_reader :base_path, :mutable_settings_defaults_path
         end
 
         def initialize
@@ -44,7 +44,7 @@ module Onetime
 
           # Check for existing system settings
           dynamic_config = begin
-            V2::SystemSettings.current
+            V2::MutableSettings.current
           rescue OT::RecordNotFound => ex
             OT.ld "[BOOT.first_boot] No existing system settings found: #{ex.message}"
             nil
@@ -53,11 +53,11 @@ module Onetime
           if dynamic_config
             OT.li "[BOOT.first_boot] Found existing system settings: #{dynamic_config.rediskey}"
             # Merge existing system settings with YAML configuration
-            # merge_system_settings(dynamic_config)
+            # merge_mutable_settings(dynamic_config)
 
           else
             # Create initial system settings from current YAML configuration
-            create_initial_system_settings(config)
+            create_initial_mutable_settings(config)
           end
         rescue Redis::CannotConnectError => ex
           OT.lw "[BOOT.first_boot] Cannot connect to Redis for system settings setup: #{ex.message}"
@@ -72,7 +72,7 @@ module Onetime
               Have you run the 1452 migration yet? Run:
                     `bundle exec bin/ots migrate --run 1452`
 
-              If you have, make sure etc/config.yaml and system_settings.yaml
+              If you have, make sure etc/config.yaml and mutable_settings.yaml
               files exist. In a pinch you can copy the files from etc/defaults
               to etc/ (just remove the "defaults." in the name).
             BOOT
@@ -96,19 +96,19 @@ module Onetime
         end
 
         # Creates initial system settings record from current YAML configuration
-        def create_initial_system_settings(_config)
+        def create_initial_mutable_settings(_config)
           OT.ld '[BOOT.first_boot] Creating initial system settings from YAML...'
 
-          path             = self.class.system_settings_defaults_path
+          path             = self.class.mutable_settings_defaults_path
           default_settings = OT::Configurator::Load.yaml_load_file(path)
 
           raise 'Missing required settings' if (default_settings || {}).empty?
 
-          # system_settings_data           = V2::SystemSettings.extract_system_settings(OT.conf)
+          # mutable_settings_data           = V2::MutableSettings.extract_mutable_settings(OT.conf)
           default_settings[:comment] = "Initial configuration via #{path}"
           default_settings[:custid]  = nil # No customer owner for initial config
 
-          new_config = V2::SystemSettings.create(**default_settings)
+          new_config = V2::MutableSettings.create(**default_settings)
           OT.ld "[BOOT.first_boot] Created initial system settings: #{new_config.rediskey}"
         end
 

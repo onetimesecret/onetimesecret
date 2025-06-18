@@ -1,11 +1,11 @@
-# apps/api/v2/logic/colonel/update_system_settings.rb
+# apps/api/v2/logic/colonel/update_mutable_settings.rb
 
 require_relative '../base'
 
 module V2
   module Logic
     module Colonel
-      class UpdateSystemSettings < V2::Logic::Base
+      class UpdateMutableSettings < V2::Logic::Base
         @safe_fields = [:interface, :secret_options, :mail, :limits,
                         :diagnostics].freeze
 
@@ -13,7 +13,7 @@ module V2
           :diagnostics, :greenlighted, :record
 
         def process_params
-          OT.ld "[UpdateSystemSettings#process_params] params: #{params.inspect}"
+          OT.ld "[UpdateMutableSettings#process_params] params: #{params.inspect}"
           # Accept config either directly or wrapped in a :config key
           @config = params[:config]
 
@@ -33,7 +33,7 @@ module V2
             diagnostics: diagnostics,
           }
 
-          OT.ld '[UpdateSystemSettings#process_params] Extracted config sections: ' +
+          OT.ld '[UpdateMutableSettings#process_params] Extracted config sections: ' +
                 config_sections.map { |name, value| "#{name}=#{!!value}" }.join(', ')
         end
 
@@ -47,40 +47,40 @@ module V2
           # Ensure at least one valid field is present (not requiring all sections)
           present_fields = self.class.safe_fields & config_keys
 
-          OT.ld "[UpdateSystemSettings#raise_concerns] Present fields: #{present_fields.join(', ')}"
+          OT.ld "[UpdateMutableSettings#raise_concerns] Present fields: #{present_fields.join(', ')}"
           raise_form_error 'No valid configuration sections found' if present_fields.empty?
 
           # Log unsupported fields but don't error
           unsupported_fields = config_keys - self.class.safe_fields
-          OT.ld "[UpdateSystemSettings#raise_concerns] Ignoring unsupported fields: #{unsupported_fields.join(', ')}" unless unsupported_fields.empty?
+          OT.ld "[UpdateMutableSettings#raise_concerns] Ignoring unsupported fields: #{unsupported_fields.join(', ')}" unless unsupported_fields.empty?
         end
 
         def process
-          OT.ld '[UpdateSystemSettings#process] Persisting system settings'
+          OT.ld '[UpdateMutableSettings#process] Persisting system settings'
 
-          OT.li "[UpdateSystemSettings#process] Interface: #{interface.inspect}" if interface
-          OT.li "[UpdateSystemSettings#process] Secret Options: #{secret_options.inspect}" if secret_options
-          OT.li "[UpdateSystemSettings#process] Mail: #{mail.inspect}" if mail
-          OT.li "[UpdateSystemSettings#process] Limits: #{limits.inspect}" if limits
-          OT.li "[UpdateSystemSettings#process] Diagnostics: #{diagnostics.inspect}" if diagnostics
+          OT.li "[UpdateMutableSettings#process] Interface: #{interface.inspect}" if interface
+          OT.li "[UpdateMutableSettings#process] Secret Options: #{secret_options.inspect}" if secret_options
+          OT.li "[UpdateMutableSettings#process] Mail: #{mail.inspect}" if mail
+          OT.li "[UpdateMutableSettings#process] Limits: #{limits.inspect}" if limits
+          OT.li "[UpdateMutableSettings#process] Diagnostics: #{diagnostics.inspect}" if diagnostics
 
           begin
             # Build the update fields - only include non-nil values
             update_fields = build_update_fields
 
-            # Create a new SystemSettings record with the updated values
-            @record = SystemSettings.create(**update_fields)
+            # Create a new MutableSettings record with the updated values
+            @record = MutableSettings.create(**update_fields)
 
             @greenlighted = true
-            OT.ld '[UpdateSystemSettings#process] System settings persisted successfully'
+            OT.ld '[UpdateMutableSettings#process] System settings persisted successfully'
           rescue StandardError => ex
-            OT.le "[UpdateSystemSettings#process] Failed to persist system settings: #{ex.message}"
+            OT.le "[UpdateMutableSettings#process] Failed to persist system settings: #{ex.message}"
             raise_form_error "Failed to update configuration: #{ex.message}"
           end
         end
 
         def success_data
-          OT.ld '[UpdateSystemSettings#success_data] Returning updated system settings'
+          OT.ld '[UpdateMutableSettings#success_data] Returning updated system settings'
 
           # Return the record and the sections that were provided
           {

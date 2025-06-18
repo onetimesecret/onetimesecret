@@ -2,8 +2,8 @@
 
 require_relative '../service_provider'
 
-# Load SystemSettings model for dynamic configuration
-require 'v2/models/system_settings'
+# Load MutableSettings model for dynamic configuration
+require 'v2/models/mutable_settings'
 
 module Onetime
   module Services
@@ -11,12 +11,12 @@ module Onetime
       ##
       # Runtime Configuration Service Provider
       #
-      # Merges static configuration with dynamic SystemSettings from Redis
+      # Merges static configuration with dynamic MutableSettings from Redis
       # and makes the merged result available through ServiceRegistry.
       # This provider runs early in the service startup sequence so other
       # providers can access the unified configuration.
       #
-      # Dynamic settings managed by SystemSettings:
+      # Dynamic settings managed by MutableSettings:
       # - Interface configuration (branding, footer links)
       # - Secret options (TTL settings)
       # - Mail configuration
@@ -24,7 +24,7 @@ module Onetime
       # - Diagnostics settings
       #
       class RuntimeConfigService < ServiceProvider
-        # No default config needed - SystemSettings handles defaults internally
+        # No default config needed - MutableSettings handles defaults internally
 
         def initialize
           # High priority - load early
@@ -45,8 +45,8 @@ module Onetime
             return warn('Existing merged configuration found, exiting early')
           end
 
-          log('Fetching SystemSettings from Redis.')
-          # Merge static config with dynamic SystemSettings
+          log('Fetching MutableSettings from Redis.')
+          # Merge static config with dynamic MutableSettings
           runtime_config = merge_static_and_dynamic_config(config)
 
           # TOOD: Anything going in to set_state should be deep frozen
@@ -70,25 +70,25 @@ module Onetime
         end
 
         ##
-        # Health check - verify SystemSettings accessibility
+        # Health check - verify MutableSettings accessibility
         #
-        # @return [Boolean] true if SystemSettings is accessible
+        # @return [Boolean] true if MutableSettings is accessible
         def healthy?
-          super && system_settings_available?
+          super && mutable_settings_available?
         end
 
         private
 
         ##
-        # Merge static configuration with dynamic SystemSettings
+        # Merge static configuration with dynamic MutableSettings
         #
         # @param static_config [Hash] Static configuration from YAML
         # @return [Hash] Merged configuration
         def merge_static_and_dynamic_config(static_config)
           base_config = static_config.dup
 
-          # Load current SystemSettings and convert to Onetime config format
-          current_settings = V2::SystemSettings.current
+          # Load current MutableSettings and convert to Onetime config format
+          current_settings = V2::MutableSettings.current
           dynamic_config   = current_settings.safe_dump
 
           # Deep merge dynamic config over static config
@@ -97,20 +97,20 @@ module Onetime
           debug("Merged #{dynamic_config.keys.size} dynamic config sections")
           merged
         rescue Onetime::RecordNotFound
-          log('No SystemSettings found, using static configuration only')
+          log('No MutableSettings found, using static configuration only')
           base_config
         rescue StandardError => ex
-          error("Failed to load SystemSettings: #{ex.message}")
+          error("Failed to load MutableSettings: #{ex.message}")
           log('Falling back to static configuration only')
           base_config
         end
 
         ##
-        # Check if SystemSettings is available
+        # Check if MutableSettings is available
         #
-        # @return [Boolean] true if SystemSettings is accessible
-        def system_settings_available?
-          defined?(V2::SystemSettings) && V2::SystemSettings.respond_to?(:current)
+        # @return [Boolean] true if MutableSettings is accessible
+        def mutable_settings_available?
+          defined?(V2::MutableSettings) && V2::MutableSettings.respond_to?(:current)
         end
       end
     end

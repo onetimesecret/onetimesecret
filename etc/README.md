@@ -18,7 +18,7 @@ The application uses a **two-part configuration system**:
 - **Modification**: Requires application restart
 
 ### Dynamic Configuration
-- **Source**: Redis storage via `SystemSettings` model
+- **Source**: Redis storage via `MutableSettings` model
 - **Contains**: Runtime-modifiable settings
   - Interface customization
   - Secret handling options
@@ -42,10 +42,10 @@ The system merges both configurations at runtime, with dynamic settings taking p
 - `config.yaml` - Main application configuration
 - `config.schema.yaml` - Validation schema and defaults
 - `defaults/config.defaults.yaml` - Template with example values
-- `defaults/system_settings.defaults.yaml` - Default system settings template
+- `defaults/mutable_settings.defaults.yaml` - Default system settings template
 
 ### System/Dynamic Configuration
-- `system_settings.yaml` - Runtime system settings
+- `mutable_settings.yaml` - Runtime system settings
 
 ### Initialization scripts
 
@@ -99,11 +99,11 @@ The Ruby backend uses the schema at startup to validate the static configuration
 ## Configuration Flow
 
 1. **Startup**: Static configuration loaded from YAML files
-2. **Runtime**: Dynamic configuration retrieved from Redis via SystemSettings
+2. **Runtime**: Dynamic configuration retrieved from Redis via MutableSettings
 3. **Merging**: Dynamic settings override static ones for managed sections
 4. **Colonel UI**: Provides interface to modify dynamic configuration sections
 
-The SystemSettings model manages these dynamic sections:
+The MutableSettings model manages these dynamic sections:
 - `interface` - UI customization and site branding
 - `secret_options` - Secret handling policies
 - `mail` - Email delivery configuration

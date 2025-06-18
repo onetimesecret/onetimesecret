@@ -63,7 +63,7 @@ Redis database allocation by data type:
 - `rate_limit`: Rate limiting counters (DB 2)
 - `feedback`: User feedback submissions (DB 11)
 - `exception_info`: Error tracking data (DB 12)
-- `system_settings`: Runtime settings cache (DB 15)
+- `mutable_settings`: Runtime settings cache (DB 15)
 
 ### Mail Configuration (`mail`)
 
@@ -159,7 +159,7 @@ Following the [Config vs Settings architecture](../architecture/config-vs-settin
 2. **Environment Layer**: Environment variables override file values
 3. **Deploy Layer**: Configuration changes require application restart
 
-Core configuration complements system settings (`system_settings.defaults.yaml`) which handle operational parameters modifiable at runtime.
+Core configuration complements system settings (`mutable_settings.defaults.yaml`) which handle operational parameters modifiable at runtime.
 
 ## Validation and Security
 

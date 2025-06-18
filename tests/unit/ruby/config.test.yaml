@@ -83,7 +83,7 @@
     :feedback: 11
     :rate_limit: 2
     :exception_info: 12
-    :system_settings: 15
+    :mutable_settings: 15
 :features:
   :incoming:
     :enabled: false

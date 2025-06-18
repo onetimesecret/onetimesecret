@@ -28,7 +28,7 @@ module Onetime
         end
 
         def start(*)
-          # Need to grab from SystemSettings
+          # Need to grab from MutableSettings
           set_state(:user_interface, {})
         end
 

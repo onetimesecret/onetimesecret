@@ -2,7 +2,7 @@
 
 import { responseSchemas, type ColonelInfoDetails } from '@/schemas/api';
 import {
-  type SystemSettingsDetails,
+  type MutableSettingsDetails,
   type ColonelStatsDetails,
 } from '@/schemas/api/endpoints/colonel';
 import { AxiosInstance } from 'axios';
@@ -21,13 +21,13 @@ export type ColonelInfoStore = {
   record: {} | null; // response is empty object
   details: ColonelInfoDetails;
   stats: ColonelStats | null;
-  config: SystemSettingsDetails | null;
+  config: MutableSettingsDetails | null;
 
   // Actions
   fetchInfo: () => Promise<ColonelInfoDetails>;
   fetchStats: () => Promise<ColonelStats>;
-  fetchConfig: () => Promise<SystemSettingsDetails>;
-  updateConfig: (config: SystemSettingsDetails) => Promise<void>;
+  fetchConfig: () => Promise<MutableSettingsDetails>;
+  updateConfig: (config: MutableSettingsDetails) => Promise<void>;
   dispose: () => void;
   $reset: () => void;
 } & PiniaCustomProperties;
