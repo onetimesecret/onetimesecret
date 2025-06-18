@@ -18,33 +18,49 @@ module Onetime
       using IndifferentHashAccess
 
       def d9s_enabled
-        @d9s_enabled ||= OT.conf[:diagnostics][:enabled]
+        LegacyGlobals.print_warning
+        @d9s_enabled ||= OT.conf&.dig(:diagnostics, :enabled)
       end
 
       def locales
-        @locales ||= OT.conf[:i18n][:locales]
+        LegacyGlobals.print_warning
+        @locales ||= OT.conf&.dig(:i18n, :locales)
       end
 
       def default_locale
-        @default_locale ||= OT.conf[:i18n][:default_locale]
+        LegacyGlobals.print_warning
+        @default_locale ||= OT.conf&.dig(:i18n, :default_locale)
       end
 
       def fallback_locale
-        @fallback_locale ||= OT.conf[:i18n][:fallback_locale]
+        LegacyGlobals.print_warning
+        @fallback_locale ||= OT.conf&.dig(:i18n, :fallback_locale)
       end
 
       def supported_locales
-        @supported_locales ||= OT.conf[:i18n][:supported_locales]
+        LegacyGlobals.print_warning
+        @supported_locales ||= OT.conf&.dig(:i18n, :supported_locales)
       end
 
       def i18n_enabled
-        @i18n_enabled ||= OT.conf[:i18n][:enabled]
+        LegacyGlobals.print_warning
+        @i18n_enabled ||= OT.conf&.dig(:i18n, :enabled)
       end
 
       def global_banner
-        @global_banner ||= OT.conf[:global_banner]
+        LegacyGlobals.print_warning
+        @global_banner ||= OT.conf&.fetch(:global_banner, nil)
       end
 
+      def emailer
+        LegacyGlobals.print_warning
+        @emailer ||= OT.conf&.fetch(:emailer, nil)
+      end
+
+      def self.print_warning
+        code_path = caller(3..3).first
+        OT.lw "[LEGACY] Global method call from #{code_path}"
+      end
     end
   end
 
