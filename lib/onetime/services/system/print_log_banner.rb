@@ -232,7 +232,7 @@ module Onetime
           customization_rows = []
 
           # Secret options
-          secret_options = site_config.dig(:secret_options)
+          secret_options = site_config[:secret_options]
           if secret_options
             # Format default TTL
             if secret_options[:default_ttl]
@@ -377,7 +377,7 @@ module Onetime
           lines << "└─#{'─' * col1_width}─┴─#{'─' * col2_width}─┘"
 
           # Join all lines and add extra newline
-          lines.join("\n") + "\n\n"
+          lines.join("\n")
         end
 
         # Build distinctive header banner
@@ -401,7 +401,6 @@ module Onetime
             #{vertical}#{left_pad}#{title}#{right_pad}#{vertical}
             #{vertical}#{' ' * width}#{vertical}
             #{vertical}#{border_char_open * width}#{vertical}
-
           HEADER
         end
 
@@ -415,10 +414,10 @@ module Onetime
           vertical           = '║'
 
           timestamp   = Time.now.strftime('%Y-%m-%d %H:%M:%S %Z')
-          footer_text = "System initialized at #{timestamp}"
+          footer_text = "✨ System initialized at #{timestamp} ✨"
           padding     = (width - 2 - footer_text.length) / 2
           left_pad    = ' ' * padding
-          right_pad   = ' ' * (width - footer_text.length - padding)
+          right_pad   = ' ' * (width - 2 - footer_text.length - padding)
 
           <<~FOOTER
 
