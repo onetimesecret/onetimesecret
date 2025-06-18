@@ -10,6 +10,7 @@ module Onetime
   @mode  = nil
   @env   = (ENV['RACK_ENV'] || 'production').downcase
   @debug = ENV['ONETIME_DEBUG'].to_s.match?(/^(true|1)$/i)
+  @mutex = Mutex.new
 
   # Contains the global instance of ConfigProxy which is set at boot-time
   # and lives for the duration of the process. Accessed externally via
@@ -52,17 +53,22 @@ module Onetime
       Onetime::Services::ServiceRegistry.state
     end
 
+    # A convenience method for accessing the ServiceRegistry providers.
     def provider
       Onetime::Services::ServiceRegistry.provider
     end
 
     def set_config_proxy(config_proxy)
-      @config_proxy = config_proxy
+      @mutex.synchronize do
+        @config_proxy = config_proxy
+      end
     end
 
     def set_boot_state(mode, instanceid)
-      @mode       = mode || :app
-      @instance   = instanceid # TODO: rename OT.instance -> instanceid
+      @mutex.synchronize do
+        @mode       = mode || :app
+        @instance   = instanceid # TODO: rename OT.instance -> instanceid
+      end
     end
   end
 
