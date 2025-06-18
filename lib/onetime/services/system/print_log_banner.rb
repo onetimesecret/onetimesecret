@@ -152,8 +152,8 @@ module Onetime
           feature_rows = []
 
           # Plans section
-          if site_config.key?(:plans)
-            plans_config = site_config[:plans]
+          if site_config.key?('plans') # TODO: Needs to be a string or false
+            plans_config = site_config['plans']
             if feature_disabled?(plans_config)
               feature_rows << %w[Plans disabled]
             else
@@ -166,7 +166,7 @@ module Onetime
           end
 
           # Domains and regions
-          [:domains, :regions].each do |key|
+          %w[domains regions].each do |key|
             next unless site_config.key?(key)
 
             config = site_config[key]
@@ -213,8 +213,8 @@ module Onetime
             ['Colonels', colonels.join(', ')]
                       end
 
-          if site_config.key?(:authentication)
-            auth_config = site_config[:authentication]
+          if site_config.key?('authentication')
+            auth_config = site_config['authentication']
             if feature_disabled?(auth_config)
               auth_rows << ['Auth Settings', 'disabled']
             else
@@ -248,13 +248,13 @@ module Onetime
           end
 
           # Interface configuration
-          if site_config.key?(:interface)
+          if site_config.key?('user_interface')
             interface_config = site_config[:interface]
             if feature_disabled?(interface_config)
               customization_rows << %w[Interface disabled]
             elsif interface_config.is_a?(Hash)
               # Handle nested ui and api configs under interface
-              [:ui, :api].each do |key|
+              %w[ui api].each do |key|
                 next unless interface_config.key?(key)
 
                 sub_config = interface_config[key]
@@ -267,7 +267,7 @@ module Onetime
             end
           else
             # Fallback: check for standalone ui and api configs
-            [:ui, :api].each do |key|
+            %w[ui api].each do |key|
               next unless site_config.key?(key)
 
               config = site_config[key]
@@ -285,7 +285,7 @@ module Onetime
 
         # Helper method to check if a feature is disabled
         def feature_disabled?(config)
-          config.is_a?(Hash) && config.key?(:enabled) && !config[:enabled]
+          config.is_a?(Hash) && config.key?('enabled') && !config['enabled']
         end
 
         # Helper method to format config values with special handling for hashes and arrays
