@@ -1,6 +1,6 @@
 # lib/onetime/services/system/print_log_banner.rb
 
-require 'tty-table'
+# require 'tty-table'
 require 'json'
 
 require 'onetime/refinements/indifferent_hash_access'
@@ -110,15 +110,17 @@ module Onetime
         def build_system_section(redis_info)
           platform_info = "#{RUBY_ENGINE} #{RUBY_VERSION} on #{RUBY_PLATFORM} (#{OT.env})"
           configurator  = OT::Boot.configurator
-          locales       = OT.conf[:i18n][:locales]
+          locales       = config[:i18n][:locales]
+          i18n_enabled  = config[:i18n][:enabled]
+          d9s_enabled   = config[:diagnostics][:enabled]
 
           system_rows = [
             ['System', platform_info],
             ['Config', configurator.config_path],
             ['Redis', "#{redis_info['redis_version']} (#{Familia.uri.serverid})"],
             ['Familia', "v#{Familia::VERSION}"],
-            ['I18n', OT.i18n_enabled],
-            ['Diagnostics', OT.d9s_enabled],
+            ['I18n', i18n_enabled],
+            ['Diagnostics', d9s_enabled],
           ]
 
           # Add locales if i18n is enabled and locales service is available
@@ -327,19 +329,19 @@ module Onetime
 
         # Helper method to render a section as a table
         def render_section(header1, header2, rows)
-          table = TTY::Table.new(
-            header: [header1, header2],
-            rows: rows,
-          )
+          # table = TTY::Table.new(
+          #   header: [header1, header2],
+          #   rows: rows,
+          # )
 
-          rendered = table.render(:unicode,
-            padding: [0, 1],
-            multiline: true,
-            column_widths: [15, 55],
-          )
+          # rendered = table.render(:unicode,
+          #   padding: [0, 1],
+          #   multiline: true,
+          #   column_widths: [15, 55],
+          # )
 
-          # Return rendered table with an extra newline
-          rendered + "\n"
+          # # Return rendered table with an extra newline
+          # rendered + "\n"
         end
 
         # Build distinctive header banner
