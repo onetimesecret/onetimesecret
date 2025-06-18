@@ -16,7 +16,7 @@ module Frontend
         output = output_template
 
         output[:messages]      = view_vars&.fetch(:messages, nil)
-        output[:global_banner] = OT.global_banner if OT.global_banner # TODO
+        output[:global_banner] = OT.conf[:global_banner]
 
         output
       end

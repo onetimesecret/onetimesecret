@@ -152,8 +152,8 @@ module Frontend
       locale ||= req.params[:locale]
       locale ||= cust.locale if cust&.locale
       locale ||= (req.env['rack.locale'] || []).first
-
-      have_translations = locale && OT.locales&.key?(locale)
+      support_locales = OT.conf[:supported_locales] || []
+      have_translations = locale && support_locales.include?(locale)
       lmsg              = format(
         '[check_locale!] class=%s locale=%s cust=%s req=%s t=%s',
         self.class.name,

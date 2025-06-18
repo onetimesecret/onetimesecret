@@ -16,10 +16,10 @@ module Frontend
         output = output_template
 
         output[:locale]            = view_vars&.fetch(:locale, nil)
-        output[:default_locale]    = OT.default_locale # the application default
-        output[:fallback_locale]   = OT.fallback_locale
-        output[:supported_locales] = OT.supported_locales
-        output[:i18n_enabled]      = OT.i18n_enabled
+        output[:default_locale]    = OT.conf[:default_locale] # the application default
+        output[:fallback_locale]   = OT.conf[:fallback_locale]
+        output[:supported_locales] = OT.conf[:supported_locales]
+        output[:i18n_enabled]      = OT.conf[:i18n_enabled]
 
         output
       end
