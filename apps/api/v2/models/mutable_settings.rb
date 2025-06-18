@@ -9,6 +9,8 @@ module V2
   class MutableSettings < Familia::Horreum
     include Gibbler::Complex
 
+    # The top-level mutable settings mapped to their equivalents in
+    # the old YAML format (<v0.23.0).
     unless defined?(FIELD_MAPPINGS)
       FIELD_MAPPINGS = {
         user_interface: [:site, :interface, :ui],
@@ -17,50 +19,11 @@ module V2
         limits: [:limits],
         features: [:site, :features],
         api: [:site, :interface, :api],
-      }
+      }.freeze
     end
 
     # Fields that need JSON serialization/deserialization
     JSON_FIELDS = FIELD_MAPPINGS.keys.freeze
-
-    class << self
-      # Extracts the sections that mutable settings manages from the full
-      # single-file config (i.e. old format). this can still be useful in
-      # future if we want to have a convertor around for a while to allow
-      # for migrations to v0.23+.
-      def extract_mutable_settings(config)
-        FIELD_MAPPINGS.transform_values do |path|
-          path.length == 1 ? config[path[0]] : config.dig(*path)
-        end
-      end
-
-      # Takes a mutable settings hash or instance and constructs a new hash
-      # with the same structure as the Onetime YAML configuration.
-      #
-      # TODO: Remove on account of having the new config opreational
-      def construct_onetime_config(config)
-        mutable_settings_hash = config.is_a?(Hash) ? config : config.to_h
-        mutable_settings_hash.transform_keys!(&:to_sym)
-
-        result = {}
-
-        FIELD_MAPPINGS.each do |field, path|
-          value = mutable_settings_hash[field]
-          # Skip empty/nil values to allow fallback to base config
-          next unless value && !value.empty?
-
-          # Build nested hash structure based on path
-          current            = result
-          path[0..-2].each do |key|
-            current[key] ||= {}
-            current        = current[key]
-          end
-          current[path.last] = value
-        end
-
-        result
-      end
-    end
 
     feature :safe_dump
 
@@ -202,6 +165,45 @@ module V2
     #     updated: updated,
     #   ).compact
     # end
+
+    class << self
+      # Extracts the sections that mutable settings manages from the full
+      # single-file config (i.e. old format). this can still be useful in
+      # future if we want to have a convertor around for a while to allow
+      # for migrations to v0.23+.
+      def extract_mutable_settings(config)
+        FIELD_MAPPINGS.transform_values do |path|
+          path.length == 1 ? config[path[0]] : config.dig(*path)
+        end
+      end
+
+      # Takes a mutable settings hash or instance and constructs a new hash
+      # with the same structure as the Onetime YAML configuration.
+      #
+      # TODO: Remove on account of having the new config operational
+      def construct_onetime_config(config)
+        mutable_settings_hash = config.is_a?(Hash) ? config : config.to_h
+        mutable_settings_hash.transform_keys!(&:to_sym)
+
+        result = {}
+
+        FIELD_MAPPINGS.each do |field, path|
+          value = mutable_settings_hash[field]
+          # Skip empty/nil values to allow fallback to base config
+          next unless value && !value.empty?
+
+          # Build nested hash structure based on path
+          current            = result
+          path[0..-2].each do |key|
+            current[key] ||= {}
+            current        = current[key]
+          end
+          current[path.last] = value
+        end
+
+        result
+      end
+    end
 
     module ClassMethods
       attr_reader :db, :values, :owners
