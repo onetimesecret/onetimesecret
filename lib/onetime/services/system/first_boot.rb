@@ -1,48 +1,82 @@
 # lib/onetime/services/system/merge_config.rb
 
-
 module Onetime
   module Services
     module System
 
-      class MergeConfig < ServiceProvider
-        @first_boot = nil
+      # First Boot Provider
+      #
+      # Responsible for detecting whether this is the first time this
+      # app is booting up with an empty database. Or if not, but there
+      # is no existing SystemSettings record in redis, it will read the
+      # defaults from etc/system_settings.yaml and create one.
+      #
+      # If it is the first boot, it will print out some helpful information
+      # to the user if there is any sort of error starting up.
+      #
+      # After that it simply checks that SystemSettings.current record
+      # exists and is not empty. This provider is transitional and can
+      # eventually be removed once there is a low chance any installs
+      # still need to upgrade. Or after a sufficiently long time.
+      class FirstBoot < ServiceProvider
+        @base_path                     = ENV.fetch('ONETIME_HOME').freeze
+        @system_settings_defaults_path = File.join(@base_path, 'etc', 'system_settings.yaml').freeze
+
+        class << self
+          attr_reader :base_path, :system_settings_defaults_path
+        end
+
+        def initialize
+          super(:first_boot, type: TYPE_CONFIG, priority: 20)
+          @first_boot = nil
+        end
 
         # Sets up system settings by checking for existing override
         # configuration in Redis and merging it with YAML configuration.
         # Creates initial system settings record on first boot.
         #
-        def merge_config
-          OT.ld 'Setting up system settings...'
+        def start(config)
+          OT.ld '[BOOT.first_boot] Setting up system settings...'
 
           # Check if this is the first boot by looking for existing data
           is_first_boot = detect_first_boot
-          OT.ld "First boot detected: #{is_first_boot}"
+          OT.ld "[BOOT.first_boot] First boot detected: #{is_first_boot}"
 
           # Check for existing system settings
-          existing_config = begin
+          dynamic_config = begin
             V2::SystemSettings.current
           rescue OT::RecordNotFound => ex
-            OT.ld "No existing system settings found: #{ex.message}"
+            OT.ld "[BOOT.first_boot] No existing system settings found: #{ex.message}"
             nil
           end
 
-          if existing_config
-            OT.ld "Found existing system settings: #{existing_config.rediskey}"
+          if dynamic_config
+            OT.li "[BOOT.first_boot] Found existing system settings: #{dynamic_config.rediskey}"
             # Merge existing system settings with YAML configuration
-            merge_system_settings(existing_config)
+            # merge_system_settings(dynamic_config)
 
           else
             # Create initial system settings from current YAML configuration
-            create_initial_system_settings
+            create_initial_system_settings(config)
           end
         rescue Redis::CannotConnectError => ex
-          OT.lw "Cannot connect to Redis for system settings setup: #{ex.message}"
-          OT.lw 'Falling back to YAML configuration only'
+          OT.lw "[BOOT.first_boot] Cannot connect to Redis for system settings setup: #{ex.message}"
+          OT.lw '[BOOT.first_boot] Falling back to YAML configuration only'
         rescue StandardError => ex
-          OT.le "Error during system settings setup: #{ex.message}"
+          OT.le "[BOOT.first_boot] Error during system settings setup: #{ex.message}"
           OT.ld ex.backtrace.join("\n")
-          OT.lw 'Falling back to YAML configuration only'
+          OT.lw '[BOOT.first_boot] Falling back to YAML configuration only'
+        ensure
+          if is_first_boot
+            OT.lw <<~BOOT
+              Have you run the 1452 migration yet? Run:
+                    `bundle exec bin/ots migrate --run 1452`
+
+              If you have, make sure etc/config.yaml and system_settings.yaml
+              files exist. In a pinch you can copy the files from etc/defaults
+              to etc/ (just remove the "defaults." in the name).
+            BOOT
+          end
         end
 
         private
@@ -62,28 +96,23 @@ module Onetime
         end
 
         # Creates initial system settings record from current YAML configuration
-        def create_initial_system_settings
-          OT.ld 'Creating initial system settings from YAML...'
+        def create_initial_system_settings(_config)
+          OT.ld '[BOOT.first_boot] Creating initial system settings from YAML...'
 
-          system_settings_data           = V2::SystemSettings.extract_system_settings(OT.conf)
-          system_settings_data[:comment] = 'Initial configuration'
-          system_settings_data[:custid]  = nil # No customer owner for initial config
+          path             = self.class.system_settings_defaults_path
+          default_settings = OT::Configurator::Load.yaml_load_file(path)
 
-          new_config = V2::SystemSettings.create(**system_settings_data)
-          OT.ld "Created initial system settings: #{new_config.rediskey}"
+          raise 'Missing required settings' if (default_settings || {}).empty?
+
+          # system_settings_data           = V2::SystemSettings.extract_system_settings(OT.conf)
+          default_settings[:comment] = "Initial configuration via #{path}"
+          default_settings[:custid]  = nil # No customer owner for initial config
+
+          new_config = V2::SystemSettings.create(**default_settings)
+          OT.ld "[BOOT.first_boot] Created initial system settings: #{new_config.rediskey}"
         end
 
-        # Applies system settings on top of the main configuration, where the colonel
-        # config overrides the main configuration.
-        def apply_system_settings(system_settings)
-          onetime_config_data = system_settings.to_onetime_config
-
-          # Makes a deep copy of OT.conf, then merges the system settings data, and
-          # replaces OT.config with the merged data.
-          Onetime.apply_config(onetime_config_data)
-        end
       end
-
     end
   end
 end
