@@ -1,5 +1,7 @@
 # lib/onetime/services/config_proxy.rb
 
+require_relative '../refinements/indifferent_hash_access'
+
 module Onetime
   module Services
     ##
@@ -16,6 +18,8 @@ module Onetime
     #   OT.conf[:locales]         # Service state
     #
     class ConfigProxy
+      using IndifferentHashAccess
+
       def initialize(static_config)
         @static_config = static_config
         @mutex         = Mutex.new
@@ -42,27 +46,7 @@ module Onetime
       # @param key [Symbol, String] Configuration key
       # @return [Object] Configuration value or nil
       def [](key)
-        key = key.to_s if key.respond_to?(:to_s)
-
-        # Access merged config from ServiceRegistry
-        merged_config = get_merged_config
-        merged_config[key]
-      end
-
-      ##
-      # Set configuration value.
-      # This updates the merged config directly in ServiceRegistry.
-      # Note: This doesn't persist to SystemSettings - use admin UI for persistent changes.
-      #
-      # @param key [Symbol, String] Configuration key
-      # @param value [Object] Configuration value
-      def []=(key, value)
-        key = key.to_s if key.respond_to?(:to_s)
-
-        # Update merged config with new value
-        merged_config = get_merged_config.dup
-        merged_config[key] = value
-        Onetime::Services::ServiceRegistry.set_state(:merged_config, merged_config)
+        fetch(key)
       end
 
       ##
@@ -72,8 +56,7 @@ module Onetime
       # @return [Boolean] true if key exists
       def key?(key)
         key = key.to_s if key.respond_to?(:to_s)
-        merged_config = get_merged_config
-        merged_config.key?(key)
+        get_merged_config.key?(key)
       end
 
       ##
@@ -81,8 +64,7 @@ module Onetime
       #
       # @return [Array<Symbol>] All available configuration keys
       def keys
-        merged_config = get_merged_config
-        merged_config.keys
+        get_merged_config.keys
       end
 
       ##
@@ -91,7 +73,7 @@ module Onetime
       #
       # @return [Hash] Merged configuration hash
       def to_h
-        get_merged_config
+        get_merged_config.to_h
       end
 
       ##
@@ -101,8 +83,11 @@ module Onetime
       # @param default [Object] Default value if key not found
       # @return [Object] Configuration value or default
       def fetch(key, default = nil)
-        value = self[key]
-        value.nil? ? default : value
+        return default if key.nil?
+
+        # val = @static_config[key] || Onetime::Services::ServiceRegistry.state[key]
+        val = get_merged_config[key.to_s]
+        val.nil? ? default : val
       end
 
       ##
@@ -164,7 +149,7 @@ module Onetime
       def get_merged_config
         return @static_config unless service_registry_available?
 
-        merged = Onetime::Services::ServiceRegistry.state(:merged_config)
+        merged = Onetime::Services::ServiceRegistry.state[:merged_config]
         merged.nil? ? @static_config : merged
       rescue StandardError => ex
         # Log error but don't fail - graceful degradation
