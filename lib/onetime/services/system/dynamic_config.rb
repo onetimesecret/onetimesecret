@@ -3,7 +3,7 @@
 require_relative '../service_provider'
 
 # Load SystemSettings model for dynamic configuration
-require_relative '../../../../apps/api/v2/models/system_settings'
+require 'v2/models/system_settings'
 
 module Onetime
   module Services
@@ -27,7 +27,8 @@ module Onetime
         # No default config needed - SystemSettings handles defaults internally
 
         def initialize
-          super(:dynamic_config, type: TYPE_CONFIG, priority: 10) # High priority - load early
+          # High priority - load early
+          super(:dynamic_config, type: TYPE_CONFIG, priority: 10)
         end
 
         ##
@@ -35,11 +36,22 @@ module Onetime
         #
         # @param config [Hash] Static configuration
         def start(config)
-          log('Merging static and dynamic configuration...')
+          @config = config
 
+          log('Checking for existing merged configuration...')
+          merged_config = get_state(:merged_config)
+
+          unless merged_config.nil?
+            return warn('Existing merged configuration found, exiting early')
+          end
+
+          log('Fetching SystemSettings from Redis.')
           # Merge static config with dynamic SystemSettings
           merged_config = merge_static_and_dynamic_config(config)
 
+          # TOOD: Anything going in to set_state should be deep frozen
+          # automatically. There are too many changes going on at the
+          # moment to switch now but it conceivably could be done.
           OT::Utils.deep_freeze(merged_config)
 
           # Store merged config in ServiceRegistry for unified access
@@ -80,7 +92,7 @@ module Onetime
           dynamic_config   = current_settings.safe_dump
 
           # Deep merge dynamic config over static config
-          merged = deep_merge(base_config, dynamic_config)
+          merged = OT::Utils.deep_merge(base_config, dynamic_config)
 
           debug("Merged #{dynamic_config.keys.size} dynamic config sections")
           merged
@@ -91,23 +103,6 @@ module Onetime
           error("Failed to load SystemSettings: #{ex.message}")
           log('Falling back to static configuration only')
           base_config
-
-        end
-
-        ##
-        # Deep merge two configuration hashes
-        #
-        # @param base [Hash] Base configuration
-        # @param overlay [Hash] Configuration to merge over base
-        # @return [Hash] Merged configuration
-        def deep_merge(base, overlay)
-          base.merge(overlay) do |_key, base_val, overlay_val|
-            if base_val.is_a?(Hash) && overlay_val.is_a?(Hash)
-              deep_merge(base_val, overlay_val)
-            else
-              overlay_val
-            end
-          end
         end
 
         ##
