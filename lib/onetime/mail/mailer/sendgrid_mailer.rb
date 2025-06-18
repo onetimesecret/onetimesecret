@@ -9,9 +9,12 @@ require_relative 'base_mailer'
 module Onetime::Mail
   module Mailer
     class SendGridMailer < BaseMailer
-      include SendGrid
-
       using IndifferentHashAccess
+      include SendGrid # this makes the mail_settings instance method available
+
+      class << self
+        attr_reader :sendgrid_api
+      end
 
       def send_email(to_address, subject, html_content, text_content, test_mode = false)
         mailer_response  = nil
@@ -49,6 +52,9 @@ module Onetime::Mail
 
           # Enable sandbox mode for testing
           if test_mode
+            # NOTE: This is SendGrid specific, the other mailers don't have test
+            # mode functionality. That's why this `mail_settings` is not the same
+            # as the BaseMailer.mail_settings.
             mail_settings              = SendGrid::MailSettings.new
             sandbox_mode               = SendGrid::SandBoxMode.new(enable: true)
             mail_settings.sandbox_mode = sandbox_mode
@@ -77,16 +83,15 @@ module Onetime::Mail
         mailer_response
       end
 
-      def self.setup
-        @sendgrid_api = SendGrid::API.new(api_key: mail_settings[:pass])
+      def self.setup(config)
+        @mail_settings = config['mail']['connection']
+        @mail_domain   = config['site']['domain']
+
+        @sendgrid_api = SendGrid::API.new(api_key: mail_settings['pass'])
       end
 
       def self.clear
         @sendgrid_api = nil
-      end
-
-      class << self
-        attr_reader :sendgrid_api
       end
     end
   end

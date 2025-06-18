@@ -39,7 +39,7 @@ module Onetime
             Onetime::Mail::Mailer::SMTPMailer
           end
 
-          mailer_class.setup
+          mailer_class.setup(config)
           @emailer = mailer_class
 
           register_instance(:emailer, @emailer)
