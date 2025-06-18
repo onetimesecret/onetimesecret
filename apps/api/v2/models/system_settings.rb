@@ -11,11 +11,12 @@ module V2
 
     unless defined?(FIELD_MAPPINGS)
       FIELD_MAPPINGS = {
-        interface: [:site, :interface],
+        user_interface: [:site, :interface, :ui],
         secret_options: [:site, :secret_options],
         mail: [:mail],
         limits: [:limits],
-        diagnostics: [:diagnostics],
+        features: [:site, :features],
+        api: [:site, :interface, :api],
       }
     end
 
@@ -23,25 +24,20 @@ module V2
     JSON_FIELDS = FIELD_MAPPINGS.keys.freeze
 
     class << self
-      # Extracts the sections that system settings manages from the full config
+      # Extracts the sections that system settings manages from the full
+      # single-file config (i.e. old format). this can still be useful in
+      # future if we want to have a convertor around for a while to allow
+      # for migrations to v0.23+.
       def extract_system_settings(config)
         FIELD_MAPPINGS.transform_values do |path|
           path.length == 1 ? config[path[0]] : config.dig(*path)
         end
       end
 
-      # Returns a hash of only the fields in FIELD_MAPPINGS, with proper deserialization
-      def filter_system_settings(config)
-        config_data = config.is_a?(Hash) ? config : config.to_h
-        FIELD_MAPPINGS.keys.each_with_object({}) do |field, result|
-          value         = config_data[field]
-          # Only include non-empty values
-          result[field] = value if value && !value.empty?
-        end
-      end
-
       # Takes a system settings hash or instance and constructs a new hash
       # with the same structure as the Onetime YAML configuration.
+      #
+      # TODO: Remove on account of having the new config opreational
       def construct_onetime_config(config)
         system_settings_hash = config.is_a?(Hash) ? config : config.to_h
         system_settings_hash.transform_keys!(&:to_sym)
@@ -75,11 +71,12 @@ module V2
     class_sorted_set :audit_log
 
     field :configid
-    field :interface
+    field :user_interface
     field :secret_options
+    field :features
+    field :api
     field :mail
     field :limits
-    field :diagnostics
     field :custid
     field :comment
     field :created
@@ -90,11 +87,12 @@ module V2
 
     @safe_dump_fields = [
       { identifier: ->(obj) { obj.identifier } },
-      :interface,
+      :user_interface,
       :secret_options,
+      :api,
       :mail,
       :limits,
-      :diagnostics,
+      :features,
       :custid,
       :comment,
       :created,
@@ -187,26 +185,26 @@ module V2
       end
     end
 
-    def to_onetime_config
-      self.class.construct_onetime_config(filtered)
-    end
+    # def to_onetime_config
+    #   self.class.construct_onetime_config(filtered)
+    # end
 
     # Override to_h to use deserialized values
-    def to_h
-      JSON_FIELDS.each_with_object({}) do |field, hash|
-        value       = send(field) # Use the getter method which handles deserialization
-        hash[field] = value if value
-      end.merge(
-        configid: configid,
-        custid: custid,
-        comment: comment,
-        created: created,
-        updated: updated,
-      ).compact
-    end
+    # def to_h
+    #   JSON_FIELDS.each_with_object({}) do |field, hash|
+    #     value       = send(field) # Use the getter method which handles deserialization
+    #     hash[field] = value if value
+    #   end.merge(
+    #     configid: configid,
+    #     custid: custid,
+    #     comment: comment,
+    #     created: created,
+    #     updated: updated,
+    #   ).compact
+    # end
 
     module ClassMethods
-      attr_reader :db, :values, :owners, :txt_validation_prefix
+      attr_reader :db, :values, :owners
 
       # Creates a new record
       #
@@ -215,7 +213,7 @@ module V2
 
         # Fail fast if invalid fields are provided
         kwargs.each_with_index do |(key, _value), index|
-          next if fields.include?(key.to_s.to_sym)
+          next if fields.include?(key.to_s.to_sym) # Familia uses symbols
 
           raise Onetime::Problem, "Invalid field #{key} (#{index})"
         end
