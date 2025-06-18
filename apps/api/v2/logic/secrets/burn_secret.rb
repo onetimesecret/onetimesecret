@@ -40,7 +40,8 @@ module V2::Logic
 
         elsif !correct_passphrase
           limit_action :failed_passphrase if potential_secret.has_passphrase?
-          message = OT.locales.dig(locale, :web, :COMMON, :error_passphrase) || 'Incorrect passphrase'
+          locales = OT.conf['locales']
+          message = locales.dig(locale, 'web', 'COMMON', 'error_passphrase') || 'Incorrect passphrase'
           raise_form_error message
 
         end

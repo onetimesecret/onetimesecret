@@ -37,7 +37,7 @@ module ThenWithDiff
     # diffs to be useful. Consider sorting them prior to diffing.
   }.freeze
 
-  # NOTE: We recently added a valkey-backed settings model V2::SystemSettings
+  # NOTE: We recently added a valkey-backed settings model V2::MutableSettings
   # which may seen at odds with this approach or potentially overlap. They
   # use valkey for different purposes though: the settings model represents
   # a timeline of settings objects including the current state; here we are
@@ -47,7 +47,7 @@ module ThenWithDiff
   # The URL for this key: redis://host/2/system:then_with_diff:history
   #
   # Other differences:
-  # * SystemSettings:
+  # * MutableSettings:
   #   * modified manually in the colonel UI.
   #   * keeps track of every version of the settings object
   # * Core configuration:

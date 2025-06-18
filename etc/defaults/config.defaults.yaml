@@ -64,7 +64,7 @@ storage:
       rate_limit: <%= ENV['REDIS_DBS_RATE_LIMIT'] || 2 %>
       feedback: <%= ENV['REDIS_DBS_FEEDBACK'] || 11 %>
       exception_info: <%= ENV['REDIS_DBS_EXCEPTION_INFO'] || 12 %>
-      system_settings: <%= ENV['REDIS_DBS_SYSTEM_SETTINGS'] || 15 %>
+      mutable_settings: <%= ENV['REDIS_DBS_SYSTEM_SETTINGS'] || 15 %>
 mail:
   connection:
     # Local Development with Mailpit

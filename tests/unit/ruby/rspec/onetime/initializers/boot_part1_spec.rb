@@ -292,7 +292,7 @@ RSpec.describe "Onetime::Config during Onetime.boot!" do
       AppRegistry.find_application_files
       BaseApplication.register_applications
 
-      expect(V2::RateLimit).to have_received(:register_events).with(Onetime.conf&.dig(:limits)
+      expect(V2::RateLimit).to have_received(:register_events).with(Onetime.conf&.dig(:limits))
     end
 
     it "sets Familia.uri from the configuration" do

@@ -11,7 +11,7 @@ module Onetime
       # Configures the email service based on the configured mode (sendgrid, ses, smtp).
       # Sets up the appropriate mailer class and makes it available system-wide.
       #
-      class EmailerProvider < ServiceProvider
+      class PrepareEmailers < ServiceProvider
         attr_reader :emailer
 
         def initialize
@@ -25,7 +25,7 @@ module Onetime
         def start(config)
           log('Configuring email service...')
 
-          mail_mode = config.dig(:emailer, :mode).to_s.to_sym
+          mail_mode = config.dig(:mail, :connection, :mode).to_s.to_sym
 
           mailer_class = case mail_mode
           when :sendgrid
@@ -35,14 +35,17 @@ module Onetime
           when :smtp
             Onetime::Mail::Mailer::SMTPMailer
           else
-            OT.le "Unsupported mail mode: #{mail_mode}, falling back to SMTP"
+            OT.le "Unsupported mail mode: '#{mail_mode}', falling back to SMTP"
             Onetime::Mail::Mailer::SMTPMailer
           end
 
-          mailer_class.setup
+          mailer_class.setup(config)
           @emailer = mailer_class
 
-          register_instance(:emailer, @emailer)
+          set_state(:mailer_class, mailer_class)
+          set_state(:emailer, @emailer)
+
+          register_provider(:emailer, self)
           log("Email service configured with #{mail_mode} provider")
         end
       end

@@ -2514,7 +2514,7 @@
       "name": "Admins Only (keep out)",
       "item": [
         {
-          "name": "System Settings Copy",
+          "name": "Mutable Settings Copy",
           "item": [
             {
               "name": "/v2/colonel",

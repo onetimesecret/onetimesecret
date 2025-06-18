@@ -2,7 +2,7 @@
 
 ## Overview
 
-The distinction between **Config** and **Settings** provides semantic clarity based on blast radius, access control, modification mechanism, and timing. This convention resolves frontend/backend consistency issues and eliminates confusion between static Config and DynamicConfig classes.
+The distinction between **Config** and **Settings** provides semantic clarity based on blast radius, access control, modification mechanism, and timing. This convention resolves frontend/backend consistency issues and eliminates confusion between static Config and RuntimeConfigService classes.
 
 ## Definitions
 

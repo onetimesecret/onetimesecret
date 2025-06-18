@@ -125,7 +125,7 @@ limits:
   update_domain_brand: 50
   view_colonel: 100
   external_redirect: 100
-  update_system_settings: 50
+  update_mutable_settings: 50
 mail:
   validation:
     recipients:
