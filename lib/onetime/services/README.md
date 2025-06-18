@@ -43,7 +43,7 @@ module Onetime::ServiceRegistry
 
   def self.register_provider(name, provider)
   def self.set_state(key, value)      # Used for dynamic config storage
-  def self.state(key)                 # Access dynamic config/state
+  def self.state[key)]                # Access dynamic config/state
   def self.reload_all(new_config)     # Hot reload capability
 end
 ```
@@ -66,7 +66,7 @@ OT = Onetime
 
 class ConfigProxy
   def [](key)
-    ServiceRegistry.state(:merged_config)[key]
+    ServiceRegistry.state[:merged_config][key]
   end
 end
 
@@ -111,12 +111,12 @@ OT.conf[:mail][:connection][:host]    # Merged static + dynamic
 OT.conf[:user_interface][:theme]      # Dynamic config from admin UI
 
 # Service and state access
-OT.state(:locales)                    # Processed locale data
-OT.state(:mailer)                     # Service status
+OT.state[:locales]                    # Processed locale data
+OT.state[:mailer]                     # Service status
 ServiceRegistry.provider(:emailer)    # Service instance
 
 # Verbose fully-qualified syntax (avoid this)
-Onetime::Services::ServiceRegistry.state(:merged_config)[:mail][:provider]
+Onetime::Services::ServiceRegistry.state[:merged_config][:mail][:provider]
 ```
 
 ### Configuration Access Patterns
@@ -128,8 +128,8 @@ OT.conf[:storage]                     # Clean, familiar syntax
 Onetime.conf[:user_interface]         # Both OT and Onetime work
 
 # Runtime state and services (shortcut to ServiceRegistry.state)
-OT.state(:locales)                    # Processed/computed values
-OT.state(:emailer_configured)        # Service status flags
+OT.state[:locales]                    # Processed/computed values
+OT.state[:emailer_configured]        # Service status flags
 
 # Direct ServiceRegistry access (when needed)
 ServiceRegistry.provider(:emailer)    # Get service instances
@@ -137,10 +137,13 @@ ServiceRegistry.has_provider?(:db)   # Check service availability
 ```
 
 **Implementation of OT.state Shortcut:**
+
+Not exactly this, but functionally the same.
+
 ```ruby
 module OT
-  def self.state(key)
-    Onetime::Services::ServiceRegistry.state(key)
+  def self.state[key]
+    Onetime::Services::ServiceRegistry.state[key]
   end
 end
 ```
@@ -176,7 +179,7 @@ class I18nProvider < ServiceProvider
 
     # Register with ServiceRegistry instead of global attribute
     set_state(:locales, processed_locales)
-    # Accessible via: OT.state(:locales)
+    # Accessible via: OT.state[:locales]
   end
 end
 ```
@@ -254,8 +257,8 @@ OT.conf[:user_interface]             # Merged static + dynamic (SystemSettings)
 OT.conf[:mail]                       # Merged configuration for email settings
 
 # Runtime state and service access:
-OT.state(:locales)                   # Shortcut to ServiceRegistry.state(:locales)
-OT.state(:emailer_configured)        # Service status flags
+OT.state[:locales]                   # Shortcut to ServiceRegistry.state[:locales]
+OT.state[:emailer_configured]        # Service status flags
 ServiceRegistry.provider(:emailer)   # Get configured mailer instance
 ServiceRegistry.has_provider?(:db)   # Check if provider is registered
 
@@ -306,9 +309,9 @@ OT.conf.debug_dump                   # Show merged configuration source
 
 # Access pattern examples
 OT.conf[:mail][:provider]            # Clean config access
-OT.state(:locales)                   # Clean state access
+OT.state[:locales]                   # Clean state access
 # vs verbose:
-Onetime::Services::ServiceRegistry.state(:merged_config)[:mail][:provider]
+Onetime::Services::ServiceRegistry.state[:merged_config][:mail][:provider]
 ```
 
 This architecture enables config reloading without restart while maintaining cleaner boundaries than Rails' single-phase approach. Dynamic configuration integrates seamlessly through the existing ServiceRegistry pattern, with SystemSettings handling versioning complexity internally. The two-phase initialization and service provider pattern provides better error handling, debugging capabilities, and operational visibility than traditional Rails initializers.

@@ -83,7 +83,7 @@ RSpec.describe 'Service Provider System' do
     describe '#[]=' do
       it 'sets dynamic configuration via ServiceRegistry' do
         proxy[:new_setting] = 'test_value'
-        expect(Onetime::Services::ServiceRegistry.state(:new_setting)).to eq('test_value')
+        expect(Onetime::Services::ServiceRegistry.state[:new_setting]).to eq('test_value')
       end
 
       it 'prevents overriding static configuration' do
@@ -94,7 +94,7 @@ RSpec.describe 'Service Provider System' do
 
       it 'converts string keys to symbols' do
         proxy['dynamic_key'] = 'value'
-        expect(Onetime::Services::ServiceRegistry.state(:dynamic_key)).to eq('value')
+        expect(Onetime::Services::ServiceRegistry.state[:dynamic_key]).to eq('value')
       end
     end
 
@@ -205,13 +205,13 @@ RSpec.describe 'Service Provider System' do
     describe '.register' do
       it 'registers a service provider' do
         provider = double('provider')
-        described_class.register(:test_service, provider)
+        described_class.register_provider(:test_service, provider)
         expect(described_class.provider(:test_service)).to eq(provider)
       end
 
       it 'converts name to symbol' do
         provider = double('provider')
-        described_class.register('test_service', provider)
+        described_class.register_provider('test_service', provider)
         expect(described_class.provider(:test_service)).to eq(provider)
       end
     end
@@ -239,8 +239,8 @@ RSpec.describe 'Service Provider System' do
       let(:provider2) { double('provider2') }
 
       before do
-        described_class.register(:provider1, provider1)
-        described_class.register(:provider2, provider2)
+        described_class.register_provider(:provider1, provider1)
+        described_class.register_provider(:provider2, provider2)
       end
 
       it 'calls reload on providers that support it' do
@@ -258,14 +258,14 @@ RSpec.describe 'Service Provider System' do
       let(:no_ready_method_provider) { double('no_method') }
 
       it 'returns true when all providers are ready' do
-        described_class.register(:ready, ready_provider)
-        described_class.register(:no_method, no_ready_method_provider)
+        described_class.register_provider(:ready, ready_provider)
+        described_class.register_provider(:no_method, no_ready_method_provider)
         expect(described_class.ready?).to be true
       end
 
       it 'returns false when any provider is not ready' do
-        described_class.register(:ready, ready_provider)
-        described_class.register(:not_ready, not_ready_provider)
+        described_class.register_provider(:ready, ready_provider)
+        described_class.register_provider(:not_ready, not_ready_provider)
         expect(described_class.ready?).to be false
       end
     end
@@ -322,7 +322,7 @@ RSpec.describe 'Service Provider System' do
 
         expect(provider.status).to eq(:running)
         expect(provider.config).to eq(config)
-        expect(Onetime::Services::ServiceRegistry.state(:started_with)).to eq('test_value')
+        expect(Onetime::Services::ServiceRegistry.state[:started_with]).to eq('test_value')
       end
 
       it 'handles start errors gracefully' do
@@ -365,7 +365,7 @@ RSpec.describe 'Service Provider System' do
         provider.stop_internal
 
         expect(provider.status).to eq(:stopped)
-        expect(Onetime::Services::ServiceRegistry.state(:stopped)).to be true
+        expect(Onetime::Services::ServiceRegistry.state[:stopped]).to be true
       end
 
       it 'handles stop errors gracefully' do
@@ -447,7 +447,7 @@ RSpec.describe 'Service Provider System' do
 
       it 'allows setting state via #set_state' do
         provider.send(:set_state, :test_state, 'test_value')
-        expect(Onetime::Services::ServiceRegistry.state(:test_state)).to eq('test_value')
+        expect(Onetime::Services::ServiceRegistry.state[:test_state]).to eq('test_value')
       end
 
       it 'allows getting state via #get_state' do
@@ -484,15 +484,15 @@ RSpec.describe 'Service Provider System' do
       it 'loads default configuration when Redis unavailable' do
         provider.start(test_config)
 
-        expect(Onetime::Services::ServiceRegistry.state(:footer_links)).to eq([])
-        expect(Onetime::Services::ServiceRegistry.state(:maintenance_mode)).to be false
+        expect(Onetime::Services::ServiceRegistry.state[:footer_links]).to eq([])
+        expect(Onetime::Services::ServiceRegistry.state[:maintenance_mode]).to be false
       end
 
       it 'handles Redis connection errors gracefully' do
         allow(provider).to receive(:load_from_redis).and_raise(StandardError, 'Redis error')
 
         expect { provider.start(test_config) }.not_to raise_error
-        expect(Onetime::Services::ServiceRegistry.state(:footer_links)).to eq([])
+        expect(Onetime::Services::ServiceRegistry.state[:footer_links]).to eq([])
       end
     end
 
@@ -652,7 +652,7 @@ RSpec.describe 'Service Provider System' do
       10.times do |i|
         threads << Thread.new do
           registry.set_state(:"key_#{i}", "value_#{i}")
-          registry.register(:"provider_#{i}", "provider_#{i}")
+          registry.register_provider(:"provider_#{i}", "provider_#{i}")
         end
       end
 
@@ -687,7 +687,7 @@ RSpec.describe 'Service Provider System' do
 
       # Should only be started once
       expect(provider.status).to eq(:running)
-      expect(Onetime::Services::ServiceRegistry.state(:started)).to be true
+      expect(Onetime::Services::ServiceRegistry.state[:started]).to be true
     end
   end
 end
