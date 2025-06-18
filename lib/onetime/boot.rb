@@ -34,8 +34,9 @@ module Onetime
       # nil here it means that there's also no schema (which has the defaults).
       if OT.conf.nil?
         OT.le '-' * 70
-        OT.le '[BOOT] Configuration failed to load and validate'
-        OT.le '[BOOT] Has the schema been generated? Run `pnpm run schema:generate`'
+        OT.le '[BOOT] Configuration failed to load and validate. If there are no'
+        OT.le '[BOOT] error messages above, run again with ONETIME_DEBUG=1 and/or'
+        OT.le '[BOOT] make sure the config schema exists. Run `pnpm run schema:generate`'
         OT.le '-' * 70
         nil
       end
@@ -221,7 +222,8 @@ module Onetime
 
     # File existence is already checked by the scripts_to_run filter
     def run_init_script(config_being_processed, section_key, file_path, **)
-      OT.ld "[BOOT] Preparing to execute init script for section: '#{section_key}' (from #{file_path})"
+      pretty_path = Onetime::Utils.pretty_path(file_path)
+      OT.ld "[BOOT] Preparing '#{section_key}' init script (#{pretty_path})"
 
       # Create a frozen snapshot of the *current* state of the main config
       # This snapshot includes changes from any previous scripts in this loop.
@@ -238,7 +240,7 @@ module Onetime
       )
 
       execute_script_with_context(file_path, context)
-      OT.ld "[BOOT] Finished processing init script for section: '#{section_key}'."
+      OT.ld "[BOOT] Finished processing '#{section_key}' init script."
     end
 
     def execute_script_with_context(file_path, context)
@@ -247,7 +249,8 @@ module Onetime
       # Technically it's no less secure than reading a ruby file in a
       # different branch of the project, but since it sits near the YAML
       # configuration file, it is more exposed to tomfoolery.
-      OT.ld "[BOOT] Executing: #{context.section_key} (file: #{file_path})"
+      pretty_path = Onetime::Utils.pretty_path(file_path)
+      OT.ld "[BOOT] Executing '#{context.section_key}' init script (#{pretty_path})"
       OT::Configurator::Load.ruby_load_file(file_path, context)
 
       # Allow exceptions (including SystemExit) to be handled up the chain

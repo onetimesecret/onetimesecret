@@ -13,7 +13,10 @@ module Onetime
       Dir[File.join(File.dirname(__FILE__), 'system', '*.rb')].each do |file|
         next if file.match?(/[A-Z_-]+\.rb/) # skip UPPER_CASE.rb files
 
-        OT.ld "[system] Loading #{file}"
+        # Pretty path is the relative path to the provider file
+        pretty_path = Onetime::Utils.pretty_path(file)
+        OT.ld "[system] Loading #{pretty_path}"
+
         require_relative file
       end
 
