@@ -1,5 +1,6 @@
 # lib/onetime/services/system/prepare_emailers.rb
 
+require 'onetime/refinements/indifferent_hash_access'
 require_relative '../service_provider'
 
 module Onetime
@@ -12,6 +13,8 @@ module Onetime
       # Sets up the appropriate mailer class and makes it available system-wide.
       #
       class PrepareEmailers < ServiceProvider
+        using IndifferentHashAccess
+
         attr_reader :emailer
 
         def initialize
@@ -49,13 +52,6 @@ module Onetime
           log("Email service configured with #{mail_mode} provider")
         end
       end
-
-      # Legacy method for backward compatibility
-      # def prepare_emailers(config)
-      #   provider = EmailerProvider.new
-      #   provider.start_internal(config)
-      #   provider.emailer
-      # end
 
     end
   end

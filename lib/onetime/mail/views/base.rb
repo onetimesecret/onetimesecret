@@ -1,6 +1,8 @@
 # lib/onetime/mail/views/base.rb
 
 require 'chimera'
+require 'onetime/refinements/indifferent_hash_access'
+
 require_relative 'view_helpers'
 
 module Onetime
@@ -8,6 +10,7 @@ module Onetime
     module Views
       class Base < Chimera
         include Mail::ViewHelpers
+        using IndifferentHashAccess
 
         self.template_path  = './templates/mail'
         self.view_namespace = Onetime::Mail
