@@ -1,5 +1,7 @@
 # apps/api/v2/controllers/helpers.rb
 
+require 'onetime/refinements/indifferent_hash_access'
+
 module V2
   unless defined?(V2::BADAGENTS)
     BADAGENTS     = [:facebook, :google, :yahoo, :bing, :stella, :baidu, :bot, :curl, :wget]
@@ -8,6 +10,8 @@ module V2
   end
 
   module ControllerHelpers
+    using IndifferentHashAccess
+
     def plan
       @plan   = Onetime::Plan.plan(cust.planid) unless cust.nil?
       @plan ||= Onetime::Plan.plan('anonymous')
@@ -155,7 +159,8 @@ module V2
       locale ||= cust.locale if cust&.locale
       locale ||= (req.env['rack.locale'] || []).first
 
-      supported_locales = OT.conf['supported_locales']
+      supported_locales = OT.conf['supported_locales'] || []
+      default_locale    = OT.conf['default_locale'] || 'en'
 
       have_translations = locale && supported_locales.include?(locale)
       lmsg              = format(
@@ -170,7 +175,7 @@ module V2
 
       # Set the locale in the request environment if it is
       # valid, otherwise use the default locale.
-      req.env['ots.locale'] = have_translations ? locale : OT.conf[:default_locale]
+      req.env['ots.locale'] = have_translations ? locale : default_locale
 
       # Important! This sets the locale for the current request which
       # gets passed through to the logic class along with sess, cust.

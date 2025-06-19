@@ -10,7 +10,6 @@ module Onetime
   @mode  = nil
   @env   = (ENV['RACK_ENV'] || 'production').downcase
   @debug = ENV['ONETIME_DEBUG'].to_s.match?(/^(true|1)$/i)
-  @mutex = Mutex.new
 
   # Contains the global instance of ConfigProxy which is set at boot-time
   # and lives for the duration of the process. Accessed externally via
@@ -18,6 +17,15 @@ module Onetime
   #
   # Provides unified access to both static and dynamic configuration.
   #
+  # NOTE: The distinction between static configuration (essential settings
+  # needed for basic operation) and system readiness (fully initialized,
+  # validated, and operational state. These are separate concerns. OT.conf
+  # should always return some level of configuration. IOW, we generally
+  # shouldn't write code that deals with OT.conf being nil. The exception is
+  # the code that runs immediately at process start and the tests relevant
+  # to that specific behaviour.
+  #
+  @mutex        = Mutex.new
   @config_proxy = nil
 
   class << self
@@ -45,17 +53,18 @@ module Onetime
 
     # A convenience method for accessing the configuration proxy.
     def conf
-      config_proxy
+      ready? ? config_proxy : {} # i.e. don't do this
+      config_proxy || @conf || { i18n: {...} } # do something more like this
     end
 
     # A convenience method for accessing the ServiceRegistry application state.
     def state
-      Onetime::Services::ServiceRegistry.state
+      ready? ? Onetime::Services::ServiceRegistry.state : {}
     end
 
     # A convenience method for accessing the ServiceRegistry providers.
     def provider
-      Onetime::Services::ServiceRegistry.provider
+      ready? ? Onetime::Services::ServiceRegistry.provider : {}
     end
 
     def set_config_proxy(config_proxy)
