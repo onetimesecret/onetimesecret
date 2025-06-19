@@ -58,7 +58,7 @@ module Onetime
 
       def emailer
         LegacyGlobals.print_warning('emailer')
-        @emailer ||= OT.conf&.fetch('emailer', nil)
+        @emailer ||= Onetime::Services::ServiceRegistry.get_state(:mailer_class)
       end
 
       def self.print_warning(method_name)

@@ -42,8 +42,8 @@ module Onetime
           @mode = conf.fetch(:mode, 'smtp').to_s.to_sym
 
           # Create a new instance of the configured mailer class for this request
-          emailer  = OT.conf[:emailer]
-          @emailer = emailer.new(
+          emailer_class = Onetime::Services::ServiceRegistry.get_state(:mailer_class)
+          @emailer = emailer_class.new(
             conf.fetch(:from, nil),
             conf.fetch(:fromname, nil),
             cust&.email, # use for the reply-to field
