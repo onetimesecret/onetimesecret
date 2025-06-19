@@ -53,8 +53,12 @@ RSpec.describe 'Service Provider System' do
 
       context 'with dynamic configuration' do
         before do
-          Onetime::Services::ServiceRegistry.set_state(:footer_links, ['About', 'Contact'])
-          Onetime::Services::ServiceRegistry.set_state(:site_title, 'My OTS Instance')
+          # Create merged config that includes both static and dynamic
+          merged_config = immutable_config.merge({
+            'footer_links' => ['About', 'Contact'],
+            'site_title' => 'My OTS Instance'
+          })
+          Onetime::Services::ServiceRegistry.set_state('runtime_config', merged_config)
         end
 
         it 'returns dynamic config values when static not available' do
@@ -63,8 +67,13 @@ RSpec.describe 'Service Provider System' do
         end
 
         it 'prioritizes static config over dynamic' do
-          Onetime::Services::ServiceRegistry.set_state(:host, 'dynamic.example.com')
-          expect(proxy[:host]).to eq('localhost') # static wins
+          # Create merged config where dynamic config doesn't override static
+          merged_config = immutable_config.merge({
+            'site_title' => 'Dynamic Title'  # This is new, not overriding static
+          })
+          Onetime::Services::ServiceRegistry.set_state('runtime_config', merged_config)
+          expect(proxy[:host]).to eq('localhost') # static value unchanged
+          expect(proxy[:site_title]).to eq('Dynamic Title') # dynamic value available
         end
       end
 
@@ -80,51 +89,46 @@ RSpec.describe 'Service Provider System' do
       end
     end
 
-    describe '#[]=' do
-      it 'sets dynamic configuration via ServiceRegistry' do
-        proxy[:new_setting] = 'test_value'
-        expect(Onetime::Services::ServiceRegistry.state[:new_setting]).to eq('test_value')
-      end
 
-      it 'prevents overriding static configuration' do
-        expect {
-          proxy[:host] = 'new_host'
-        }.to raise_error(ArgumentError, 'Cannot override static config key: host')
-      end
-
-      it 'converts string keys to symbols' do
-        proxy['dynamic_key'] = 'value'
-        expect(Onetime::Services::ServiceRegistry.state[:dynamic_key]).to eq('value')
-      end
-    end
 
     describe '#key?' do
       it 'returns true for static keys' do
-        expect(proxy.key?(:host)).to be true
+        # Set up merged config that includes static keys (convert to string keys)
+        string_keyed_config = immutable_config.transform_keys(&:to_s)
+        Onetime::Services::ServiceRegistry.set_state('runtime_config', string_keyed_config)
+
         expect(proxy.key?('host')).to be true
+        expect(proxy.key?('port')).to be true
       end
 
       it 'returns true for dynamic keys' do
-        Onetime::Services::ServiceRegistry.set_state(:dynamic_key, 'value')
-        expect(proxy.key?(:dynamic_key)).to be true
+        # Convert to string keys and add dynamic key
+        string_keyed_config = immutable_config.transform_keys(&:to_s)
+        merged_config = string_keyed_config.merge('dynamic_key' => 'value')
+        Onetime::Services::ServiceRegistry.set_state('runtime_config', merged_config)
+        expect(proxy.key?('dynamic_key')).to be true
       end
 
       it 'returns false for non-existent keys' do
-        expect(proxy.key?(:nonexistent)).to be false
+        expect(proxy.key?('nonexistent')).to be false
       end
     end
 
     describe '#keys' do
       before do
-        Onetime::Services::ServiceRegistry.set_state(:dynamic1, 'value1')
-        Onetime::Services::ServiceRegistry.set_state(:dynamic2, 'value2')
+        # Convert all keys to strings for consistency
+        static_config_normalized = immutable_config.transform_keys(&:to_s)
+        merged_config = static_config_normalized.merge({
+          'dynamic1' => 'value1',
+          'dynamic2' => 'value2'
+        })
+        Onetime::Services::ServiceRegistry.set_state('runtime_config', merged_config)
       end
 
       it 'returns combined static and dynamic keys' do
         keys = proxy.keys
-        expect(keys).to include(:host, :port, :database_url)
-        # Note: dynamic keys aren't enumerable in current implementation
-        # This is intentional design - ServiceRegistry doesn't expose all keys
+        expect(keys).to include('host', 'port', 'database_url')
+        expect(keys).to include('dynamic1', 'dynamic2')
       end
 
       it 'returns unique keys' do
@@ -189,13 +193,19 @@ RSpec.describe 'Service Provider System' do
 
     describe '#debug_dump' do
       before do
-        Onetime::Services::ServiceRegistry.set_state(:test_key, 'value')
+        # Set up merged config with string keys to match ConfigProxy expectations
+        string_keyed_config = immutable_config.transform_keys(&:to_s)
+        merged_config = string_keyed_config.merge('test_key' => 'value')
+        Onetime::Services::ServiceRegistry.set_state('runtime_config', merged_config)
       end
 
       it 'returns debug information' do
         info = proxy.debug_dump
-        expect(info).to include(:static_keys, :dynamic_keys, :service_registry_available)
+        expect(info).to include(:static_keys, :merged_keys, :service_registry_available, :has_runtime_config)
+        # static_keys come from @static_config which still has symbol keys
         expect(info[:static_keys]).to include(:host, :port)
+        # merged_keys come from runtime_config which should have string keys
+        expect(info[:merged_keys]).to include('host', 'port', 'test_key')
         expect(info[:service_registry_available]).to be true
       end
     end

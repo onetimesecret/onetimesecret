@@ -4,6 +4,9 @@ require 'concurrent'
 
 module Onetime
   module Services
+
+    # NOTE: IndifferentHashAccess Limitations**: The refinement doesn't apply
+    # to hashes returned by ServiceRegistry, causing issues with key lookup
     module ServiceRegistry
 
       # No accessors for safety. The only code directly accessing these

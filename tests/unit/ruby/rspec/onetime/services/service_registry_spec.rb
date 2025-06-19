@@ -42,15 +42,15 @@ RSpec.describe 'Service Provider System' do
       end
     end
 
-    describe '.set_state/.state' do
+    describe '.set_state/.get_state' do
       it 'stores and retrieves application state' do
-        described_class.set_state(:test_key, 'test_value')
-        expect(described_class.state(:test_key)).to eq('test_value')
+        described_class.set_state('test_key', 'test_value')
+        expect(described_class.get_state('test_key')).to eq('test_value')
       end
 
-      it 'converts keys to symbols' do
-        described_class.set_state('string_key', 'value')
-        expect(described_class.state(:string_key)).to eq('value')
+      it 'converts keys to strings' do
+        described_class.set_state(:symbol_key, 'value')
+        expect(described_class.get_state('symbol_key')).to eq('value')
       end
     end
 

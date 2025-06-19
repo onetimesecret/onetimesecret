@@ -72,7 +72,7 @@ RSpec.describe 'Service Provider System' do
 
         expect(provider.status).to eq(:running)
         expect(provider.config).to eq(config)
-        expect(Onetime::Services::ServiceRegistry.state[:started_with]).to eq('test_value')
+        expect(Onetime::Services::ServiceRegistry.get_state('started_with')).to eq('test_value')
       end
 
       it 'handles start errors gracefully' do
@@ -115,7 +115,7 @@ RSpec.describe 'Service Provider System' do
         provider.stop_internal
 
         expect(provider.status).to eq(:stopped)
-        expect(Onetime::Services::ServiceRegistry.state[:stopped]).to be true
+        expect(Onetime::Services::ServiceRegistry.get_state('stopped')).to be true
       end
 
       it 'handles stop errors gracefully' do
@@ -184,7 +184,7 @@ RSpec.describe 'Service Provider System' do
     end
 
     describe 'protected helper methods' do
-      let(:config) { { test_key: 'value' } }
+      let(:config) { { 'test_key' => 'value' } }
 
       before do
         allow(OT).to receive(:logger).and_return(double(info: nil, error: nil))
@@ -192,12 +192,12 @@ RSpec.describe 'Service Provider System' do
       end
 
       it 'provides access to configuration via #conf' do
-        expect(provider.send(:conf, :test_key)).to eq('value')
+        expect(provider.send(:conf, 'test_key')).to eq('value')
       end
 
       it 'allows setting state via #set_state' do
         provider.send(:set_state, :test_state, 'test_value')
-        expect(Onetime::Services::ServiceRegistry.state[:test_state]).to eq('test_value')
+        expect(Onetime::Services::ServiceRegistry.get_state('test_state')).to eq('test_value')
       end
 
       it 'allows getting state via #get_state' do
@@ -206,11 +206,9 @@ RSpec.describe 'Service Provider System' do
       end
 
       it 'provides logging via #log' do
-        logger = double('logger')
-        allow(OT).to receive(:logger).and_return(logger)
-        expect(logger).to receive(:info).with('[test_provider] Test message')
+        expect(OT).to receive(:li).with('[test_provider] Test message')
 
-        provider.send(:log, :info, 'Test message')
+        provider.send(:log, 'Test message')
       end
     end
   end
