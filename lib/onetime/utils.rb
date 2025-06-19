@@ -81,6 +81,29 @@ module Onetime
       (1..len).collect { chars.sample }.join
     end
 
+    # Converts an absolute file path to a path relative to the application's
+    # base directory. This simplifies logging and error reporting by showing
+    # only the relevant parts of file paths instead of lengthy absolute paths.
+    #
+    # @param file [String, Pathname] The absolute file path to convert
+    # @return [Pathname] A relative path from application's base directory
+    #
+    # @example Using application base directory
+    #   # When ONETIME_HOME is set to "/app/onetime"
+    #   Utils.pretty_path("/app/onetime/lib/models/user.rb") # => "lib/models/user.rb"
+    #
+    # @example Using current directory as fallback
+    #   # When ONETIME_HOME is not set and __dir__ is "/home/dev/project/lib"
+    #   Utils.pretty_path("/home/dev/project/lib/config.rb") # => "config.rb"
+    #
+    # @note The method respects the ONETIME_HOME environment variable as the
+    #   base path, falling back to the current directory if not set
+    # @see Pathname#relative_path_from Ruby standard library documentation
+    def pretty_path(file)
+      basepath    = ENV.fetch('ONETIME_HOME', __dir__)
+      Pathname.new(file).relative_path_from(basepath)
+    end
+
     # Standard deep_merge implementation with symbol/string key normalization
     #
     # TODO: The deep_merge method performs recursive merging without depth

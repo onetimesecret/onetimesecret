@@ -18,17 +18,22 @@ module Onetime
       # - Breadcrumb logging for debugging context
       # - Environment-specific configuration
       #
-      class DiagnosticsProvider < ServiceProvider
+      class SetupDiagnostics < ServiceProvider
         # d9s: diagnostics is a boolean flag. If true, it will enable Sentry
-        # attr_accessor :d9s_enabled
+        attr_reader :d9s_enabled
 
-        def setup_diagnostics
-          OT.d9s_enabled = conf[:diagnostics][:enabled] || false
-          return unless OT.d9s_enabled
+        def initialize
+          super(:diagnostics, type: TYPE_INSTANCE, priority: 4) # make Sentry available early
+        end
 
-          backend   = conf[:diagnostics][:sentry][:backend]
-          dsn       = backend.fetch(:dsn, nil)
-          site_host = conf.dig(:site, :host)
+        def start(config)
+          @d9s_enabled = config['diagnostics']['enabled'] || false
+
+          return unless d9s_enabled
+
+          backend   = config['diagnostics']['sentry']['backend']
+          dsn       = backend['dsn']
+          site_host = config['site']['host']
 
           OT.ld "Setting up Sentry #{backend}..."
 
@@ -40,15 +45,18 @@ module Onetime
           # Early validation to prevent nil errors during initialization
           if dsn.nil?
             OT.ld '[sentry-init] Cannot initialize Sentry with nil DSN'
-            OT.d9s_enabled = false
+            @d9s_enabled = false
           elsif site_host.nil?
             OT.le '[sentry-init] Cannot initialize Sentry with nil site_host'
             OT.ld 'Falling back to default environment name'
             site_host = 'unknown-host'
           end
 
+          # Wait to set the state just incase we force it disabled
+          set_state(:d9s_enabled, @d9s_enabled)
+
           # Only proceed if we have valid configuration
-          return unless OT.d9s_enabled
+          return unless @d9s_enabled
 
           # Safely log first part of DSN for debugging
           dsn_preview = dsn ? "#{dsn[0..10]}..." : 'nil'
@@ -59,7 +67,7 @@ module Onetime
           Kernel.require 'sentry-ruby'
           Kernel.require 'stackprof'
 
-          Sentry.init do |config|
+          return_value = Sentry.init do |config|
             config.dsn         = dsn
             config.environment = "#{site_host} (#{OT.env})"
             config.release     = OT::VERSION.inspect
@@ -90,6 +98,8 @@ module Onetime
             end
           end
 
+          set_state(:sentry, Sentry)
+          set_state(:sentry_return_value, return_value)
           OT.ld "[sentry-init] Status: #{Sentry.initialized? ? 'OK' : 'Failed'}"
         end
       end

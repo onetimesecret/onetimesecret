@@ -1,6 +1,5 @@
 # lib/onetime/services/system/print_log_banner.rb
 
-require 'tty-table'
 require 'json'
 
 require 'onetime/refinements/indifferent_hash_access'
@@ -18,7 +17,7 @@ module Onetime
       # This is an info-type provider that runs late in the startup sequence to
       # display comprehensive system status after all other services are initialized.
       #
-      class LogBannerProvider < ServiceProvider
+      class PrintLogBanner < ServiceProvider
         using IndifferentHashAccess
 
         def initialize
@@ -110,19 +109,21 @@ module Onetime
         def build_system_section(redis_info)
           platform_info = "#{RUBY_ENGINE} #{RUBY_VERSION} on #{RUBY_PLATFORM} (#{OT.env})"
           configurator  = OT::Boot.configurator
-          locales       = OT.conf[:i18n][:locales]
+          locales       = config[:i18n][:locales]
+          i18n_enabled  = config[:i18n][:enabled]
+          d9s_enabled   = config[:diagnostics][:enabled]
 
           system_rows = [
             ['System', platform_info],
             ['Config', configurator.config_path],
             ['Redis', "#{redis_info['redis_version']} (#{Familia.uri.serverid})"],
             ['Familia', "v#{Familia::VERSION}"],
-            ['I18n', OT.i18n_enabled],
-            ['Diagnostics', OT.d9s_enabled],
+            ['I18n', i18n_enabled],
+            ['Diagnostics', d9s_enabled],
           ]
 
           # Add locales if i18n is enabled and locales service is available
-          if OT.i18n_enabled && !locales.empty?
+          if i18n_enabled && !locales.empty?
             system_rows << ['Locales', locales.join(', ')]
           end
 
@@ -140,7 +141,7 @@ module Onetime
               [key.to_s.capitalize, 'disabled']
             else
               [key.to_s.capitalize, format_config_value(config_value)]
-                        end
+            end
           end
 
           dev_rows
@@ -151,8 +152,8 @@ module Onetime
           feature_rows = []
 
           # Plans section
-          if site_config.key?(:plans)
-            plans_config = site_config[:plans]
+          if site_config.key?('plans') # TODO: Needs to be a string or false
+            plans_config = site_config['plans']
             if feature_disabled?(plans_config)
               feature_rows << %w[Plans disabled]
             else
@@ -165,7 +166,7 @@ module Onetime
           end
 
           # Domains and regions
-          [:domains, :regions].each do |key|
+          %w[domains regions].each do |key|
             next unless site_config.key?(key)
 
             config = site_config[key]
@@ -212,8 +213,8 @@ module Onetime
             ['Colonels', colonels.join(', ')]
                       end
 
-          if site_config.key?(:authentication)
-            auth_config = site_config[:authentication]
+          if site_config.key?('authentication')
+            auth_config = site_config['authentication']
             if feature_disabled?(auth_config)
               auth_rows << ['Auth Settings', 'disabled']
             else
@@ -231,7 +232,7 @@ module Onetime
           customization_rows = []
 
           # Secret options
-          secret_options = site_config.dig(:secret_options)
+          secret_options = site_config[:secret_options]
           if secret_options
             # Format default TTL
             if secret_options[:default_ttl]
@@ -247,13 +248,13 @@ module Onetime
           end
 
           # Interface configuration
-          if site_config.key?(:interface)
+          if site_config.key?('user_interface')
             interface_config = site_config[:interface]
             if feature_disabled?(interface_config)
               customization_rows << %w[Interface disabled]
             elsif interface_config.is_a?(Hash)
               # Handle nested ui and api configs under interface
-              [:ui, :api].each do |key|
+              %w[ui api].each do |key|
                 next unless interface_config.key?(key)
 
                 sub_config = interface_config[key]
@@ -266,7 +267,7 @@ module Onetime
             end
           else
             # Fallback: check for standalone ui and api configs
-            [:ui, :api].each do |key|
+            %w[ui api].each do |key|
               next unless site_config.key?(key)
 
               config = site_config[key]
@@ -284,7 +285,7 @@ module Onetime
 
         # Helper method to check if a feature is disabled
         def feature_disabled?(config)
-          config.is_a?(Hash) && config.key?(:enabled) && !config[:enabled]
+          config.is_a?(Hash) && config.key?('enabled') && !config['enabled']
         end
 
         # Helper method to format config values with special handling for hashes and arrays
@@ -327,19 +328,56 @@ module Onetime
 
         # Helper method to render a section as a table
         def render_section(header1, header2, rows)
-          table = TTY::Table.new(
-            header: [header1, header2],
-            rows: rows,
-          )
+          # Calculate column widths
+          col1_width = 15
+          col2_width = 55
 
-          rendered = table.render(:unicode,
-            padding: [0, 1],
-            multiline: true,
-            column_widths: [15, 55],
-          )
+          # Build the table manually
+          lines = []
 
-          # Return rendered table with an extra newline
-          rendered + "\n"
+          # Top border
+          lines << "┌─#{'─' * col1_width}─┬─#{'─' * col2_width}─┐"
+
+          # Header row
+          header1_padded = header1.ljust(col1_width)
+          header2_padded = header2.ljust(col2_width)
+          lines << "│ #{header1_padded} │ #{header2_padded} │"
+
+          # Header separator
+          lines << "├─#{'─' * col1_width}─┼─#{'─' * col2_width}─┤"
+
+          # Data rows
+          rows.each_with_index do |row, index|
+            col1 = row[0].to_s
+            col2 = row[1].to_s
+
+            # Handle multiline content by splitting on newlines
+            col1_lines = col1.scan(/.{1,#{col1_width}}/)
+            col2_lines = col2.scan(/.{1,#{col2_width}}/)
+
+            # Ensure we have at least one line for each column
+            col1_lines = [''] if col1_lines.empty?
+            col2_lines = [''] if col2_lines.empty?
+
+            # Print each line of the multiline content
+            max_lines = [col1_lines.length, col2_lines.length].max
+            max_lines.times do |i|
+              c1 = (col1_lines[i] || '').ljust(col1_width)
+              c2 = (col2_lines[i] || '').ljust(col2_width)
+              lines << "│ #{c1} │ #{c2} │"
+            end
+
+            # Add row separator (except for last row)
+            if index < rows.length - 1
+              lines << "├─#{'─' * col1_width}─┼─#{'─' * col2_width}─┤"
+            end
+          end
+
+          # Bottom border
+          lines << "└─#{'─' * col1_width}─┴─#{'─' * col2_width}─┘"
+
+          # Join all lines and add extra newline
+          lines.join("\n")
         end
 
         # Build distinctive header banner
@@ -363,7 +401,6 @@ module Onetime
             #{vertical}#{left_pad}#{title}#{right_pad}#{vertical}
             #{vertical}#{' ' * width}#{vertical}
             #{vertical}#{border_char_open * width}#{vertical}
-
           HEADER
         end
 
@@ -377,10 +414,10 @@ module Onetime
           vertical           = '║'
 
           timestamp   = Time.now.strftime('%Y-%m-%d %H:%M:%S %Z')
-          footer_text = "System initialized at #{timestamp}"
+          footer_text = "✨ System initialized at #{timestamp} ✨"
           padding     = (width - 2 - footer_text.length) / 2
           left_pad    = ' ' * padding
-          right_pad   = ' ' * (width - footer_text.length - padding)
+          right_pad   = ' ' * (width - 2 - footer_text.length - padding)
 
           <<~FOOTER
 

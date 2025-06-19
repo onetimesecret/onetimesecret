@@ -1,20 +1,23 @@
-// src/composables/useSystemSettings.ts
+// src/composables/useMutableSettings.ts
 
-import { systemSettingsSchema, type SystemSettingsDetails } from '@/schemas/api/endpoints/colonel';
+import {
+  mutableSettingsSchema,
+  type MutableSettingsDetails,
+} from '@/schemas/api/endpoints/colonel';
 import { useNotificationsStore } from '@/stores';
-import { useSystemSettingsStore } from '@/stores/systemSettingsStore';
+import { useMutableSettingsStore } from '@/stores/mutableSettingsStore';
 import { computed, nextTick, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { z } from 'zod/v4';
 import { useAsyncHandler, type AsyncHandlerOptions } from './useAsyncHandler';
 
-// Use the keys of the systemSettingsSchema.shape as ConfigSectionKey
-export type ConfigSectionKey = keyof typeof systemSettingsSchema.shape;
+// Use the keys of the mutableSettingsSchema.shape as ConfigSectionKey
+export type ConfigSectionKey = keyof typeof mutableSettingsSchema.shape;
 
 /* eslint-disable max-lines-per-function */
-export function useSystemSettings() {
+export function useMutableSettings() {
   const { t } = useI18n();
-  const store = useSystemSettingsStore();
+  const store = useMutableSettingsStore();
   const notifications = useNotificationsStore();
 
   // State
@@ -43,7 +46,7 @@ export function useSystemSettings() {
     setLoading: (loading) => (isSaving.value = loading),
     onError: (err) => {
       errorMessage.value = err.message || t('web.colonel.errorSavingConfig');
-      console.error('Error in system settings:', err);
+      console.error('Error in mutable settings:', err);
     },
   };
 
@@ -59,7 +62,7 @@ export function useSystemSettings() {
         parsedJsonForZod = JSON.parse(content);
       }
 
-      const sectionSchema = systemSettingsSchema.shape[section];
+      const sectionSchema = mutableSettingsSchema.shape[section];
       const validationResult = sectionSchema.safeParse(parsedJsonForZod);
 
       if (validationResult.success) {
@@ -137,7 +140,7 @@ export function useSystemSettings() {
 
   // Initialize section editors
   const initializeSectionEditors = (
-    configData: SystemSettingsDetails | null,
+    configData: MutableSettingsDetails | null,
     configSections: Array<{ key: ConfigSectionKey }>
   ) => {
     isProgrammaticChange.value = true; // <-- Set flag before programmatic changes
@@ -232,12 +235,12 @@ export function useSystemSettings() {
       }
 
       // Create a payload with only the current section's data
-      const payload: Partial<SystemSettingsDetails> = {};
+      const payload: Partial<MutableSettingsDetails> = {};
       payload[currentSection] = JSON.parse(sectionEditors.value[currentSection]);
 
       try {
         // Send only the current section for update
-        await store.update(payload as SystemSettingsDetails);
+        await store.update(payload as MutableSettingsDetails);
 
         // Remove from modified sections
         modifiedSections.value.delete(currentSection);
@@ -296,7 +299,7 @@ export function useSystemSettings() {
       }
 
       // Combine all section editors into a single config object
-      const combinedConfig: Partial<SystemSettingsDetails> = {};
+      const combinedConfig: Partial<MutableSettingsDetails> = {};
 
       for (const section of configSections) {
         const sectionContent = sectionEditors.value[section.key];
@@ -307,7 +310,7 @@ export function useSystemSettings() {
 
       // Validate the combined config against the schema
       try {
-        systemSettingsSchema.parse(combinedConfig);
+        mutableSettingsSchema.parse(combinedConfig);
       } catch (validationError) {
         if (validationError instanceof z.ZodError) {
           const firstError = validationError.issues[0];
@@ -320,7 +323,7 @@ export function useSystemSettings() {
       }
 
       // Update config and refetch
-      await store.update(combinedConfig as SystemSettingsDetails);
+      await store.update(combinedConfig as MutableSettingsDetails);
       // await store.fetch();
 
       // Clear all modified sections

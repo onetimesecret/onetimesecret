@@ -1,5 +1,7 @@
 # lib/onetime/services/config_proxy.rb
 
+require_relative '../refinements/indifferent_hash_access'
+
 module Onetime
   module Services
     ##
@@ -16,9 +18,25 @@ module Onetime
     #   OT.conf[:locales]         # Service state
     #
     class ConfigProxy
+      using IndifferentHashAccess
+
       def initialize(static_config)
         @static_config = static_config
         @mutex         = Mutex.new
+      end
+
+      # Provide a way to access the static configuration directly.
+      #
+      # We generally prefer to avoid doing accessing the static config directly
+      # but there are good reasons to sometimes (e.g. ease of debugging is a
+      # great example, also testabilty, and code that works exclusively with
+      # the static config). By offering an official way to do it, we can more
+      # readily understand code that uses it.
+      #
+      # e.g. OT.conf.static['site']['host']
+      #
+      def static
+        @static_config
       end
 
       ##
@@ -28,27 +46,9 @@ module Onetime
       # @param key [Symbol, String] Configuration key
       # @return [Object] Configuration value or nil
       def [](key)
-        key = key.to_s if key.respond_to?(:to_s)
-
-        # Access merged config from ServiceRegistry
-        merged_config = get_merged_config
-        merged_config[key]
-      end
-
-      ##
-      # Set configuration value.
-      # This updates the merged config directly in ServiceRegistry.
-      # Note: This doesn't persist to SystemSettings - use admin UI for persistent changes.
-      #
-      # @param key [Symbol, String] Configuration key
-      # @param value [Object] Configuration value
-      def []=(key, value)
-        key = key.to_s if key.respond_to?(:to_s)
-
-        # Update merged config with new value
-        merged_config = get_merged_config.dup
-        merged_config[key] = value
-        Onetime::Services::ServiceRegistry.set_state(:merged_config, merged_config)
+        fetch(key)
+      rescue KeyError
+        nil
       end
 
       ##
@@ -58,8 +58,7 @@ module Onetime
       # @return [Boolean] true if key exists
       def key?(key)
         key = key.to_s if key.respond_to?(:to_s)
-        merged_config = get_merged_config
-        merged_config.key?(key)
+        get_runtime_config.key?(key)
       end
 
       ##
@@ -67,8 +66,7 @@ module Onetime
       #
       # @return [Array<Symbol>] All available configuration keys
       def keys
-        merged_config = get_merged_config
-        merged_config.keys
+        get_runtime_config.keys
       end
 
       ##
@@ -77,7 +75,7 @@ module Onetime
       #
       # @return [Hash] Merged configuration hash
       def to_h
-        get_merged_config
+        get_runtime_config.to_h
       end
 
       ##
@@ -87,8 +85,23 @@ module Onetime
       # @param default [Object] Default value if key not found
       # @return [Object] Configuration value or default
       def fetch(key, default = nil)
-        value = self[key]
-        value.nil? ? default : value
+        return default if key.nil?
+
+        # Originally this was the plan for ConfigProxy: to check the static
+        # config first followed by the dynamic config. The idea was to prevent
+        # accidentally clobbering the static config with dynamic config values.
+        #
+        # But there is a big drawback: it means that there is no one source of
+        # truth for configuration, except for the Ruby process' memory. Merging
+        # takes a bit of work and needs to be done in a mindful way so that
+        # we aren't constantly merging. The merged config functions like a
+        # cache as well. Unless the dynamic config is being modified in the
+        # colonel, there doesn't need to be anhy merging going on at all.
+        #
+        # val = @static_config[key] || Onetime::Services::ServiceRegistry.state[key]
+
+        val = get_runtime_config[key.to_s]
+        val.nil? ? default : val
       end
 
       ##
@@ -126,12 +139,12 @@ module Onetime
       #
       # @return [Hash] Debug information
       def debug_dump
-        merged_config = get_merged_config
+        runtime_config = get_runtime_config
         {
           static_keys: @static_config.keys.sort,
-          merged_keys: merged_config.keys.sort,
+          merged_keys: runtime_config.keys.sort,
           service_registry_available: service_registry_available?,
-          has_merged_config: !merged_config.empty?,
+          has_runtime_config: !runtime_config.empty?,
         }
       end
 
@@ -141,16 +154,16 @@ module Onetime
       # Get merged configuration from ServiceRegistry.
       # Falls back to static config if merged config is not available.
       #
-      # TODO: The get_merged_config method catches all StandardError
+      # TODO: The get_runtime_config method catches all StandardError
       # exceptions and falls back to static config, which might mask
       # important configuration errors. Consider more specific exception
       # handling or at least logging the specific error types. #1497
       #
       # @return [Hash] Merged configuration or static config as fallback
-      def get_merged_config
+      def get_runtime_config
         return @static_config unless service_registry_available?
 
-        merged = Onetime::Services::ServiceRegistry.state(:merged_config)
+        merged = Onetime::Services::ServiceRegistry.state['runtime_config']
         merged.nil? ? @static_config : merged
       rescue StandardError => ex
         # Log error but don't fail - graceful degradation

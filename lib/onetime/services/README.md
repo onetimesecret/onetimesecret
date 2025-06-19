@@ -17,8 +17,24 @@ Your two-phase initialization cleanly separates concerns that Rails conflates:
 - Set application state
 - **Load dynamic configuration from Redis**
 
+### Problem: Global Attribute Proliferation
+
+The old system suffered from an ever-increasing number of attributes polluting the top-level `OT` namespace. Configuration processing worked like this:
+
+**Old System Flow:**
+1. Load YAML config: `OT.conf[:i18n][:locales]`
+2. Provider processes config during boot
+3. Creates global attribute: `OT.locales`
+4. Repeat for every service: `OT.d9s_enabled`, `OT.emailer`, etc.
+
+This pattern led to:
+- Dozens of global attributes scattered across the codebase
+- No clear lifecycle management for services
+- Difficulty tracking which globals were available when
+- Config changes required app restart
+
 ### ServiceRegistry Pattern
-Replaces scattered `Onetime.locales`, `Onetime.d9s_enabled` globals:
+Replaces scattered global attributes with centralized service and state management:
 
 ```ruby
 module Onetime::ServiceRegistry
@@ -27,16 +43,16 @@ module Onetime::ServiceRegistry
 
   def self.register_provider(name, provider)
   def self.set_state(key, value)      # Used for dynamic config storage
-  def self.state(key)                 # Access dynamic config/state
+  def self.state[key)]                # Access dynamic config/state
   def self.reload_all(new_config)     # Hot reload capability
 end
 ```
 
 ### Dynamic Configuration
 - **Static config**: YAML file (database URLs, core settings)
-- **Dynamic config**: Redis-stored config sections (interface, mail, limits, etc.) via SystemSettings
+- **Dynamic config**: Redis-stored config sections (interface, mail, limits, etc.) via MutableSettings
 - **Merged config**: Combined static + dynamic loaded into ServiceRegistry
-- **Unified access**: `Onetime.conf[:key]` for all configuration
+- **Unified access**: `OT.conf[:key]` or `Onetime.conf[:key]` for all configuration
 
 ```ruby
 module Onetime
@@ -45,25 +61,90 @@ module Onetime
   end
 end
 
+# OT is an alias for Onetime - both are used interchangeably
+OT = Onetime
+
 class ConfigProxy
   def [](key)
-    ServiceRegistry.state(:merged_config)[key]
+    ServiceRegistry.state[:runtime_config][key]
   end
 end
 
 # Dynamic config provider merges static and dynamic config
 def load_dynamic_configuration
-  merged_config = merge_static_and_dynamic_config
-  ServiceRegistry.set_state(:merged_config, merged_config)
+  runtime_config = merge_static_and_dynamic_config
+  ServiceRegistry.set_state(:runtime_config, runtime_config)
 end
 
 def merge_static_and_dynamic_config
   base_config = @static_config.dup
-  # SystemSettings.current handles versioning/rollback internally
-  dynamic_config = SystemSettings.current.to_onetime_config
+  # MutableSettings.current handles versioning/rollback internally
+  dynamic_config = MutableSettings.current.to_h
   base_config.deep_merge(dynamic_config)
 rescue Onetime::RecordNotFound
   base_config  # No dynamic config exists yet
+end
+```
+
+### Before/After Comparison
+
+**Old System (1000-line YAML + Global Attributes):**
+
+```ruby
+# Configuration access
+OT.conf[:i18n][:locales]              # From YAML
+OT.conf[:emailer][:host]              # From YAML
+
+# After provider processing
+OT.locales                            # Global attribute
+OT.emailer                            # Global attribute
+OT.d9s_enabled                        # Global attribute
+OT.default_locale                    # Global attribute
+# ... dozens more global attributes
+```
+
+**New System (Static + Dynamic Config + ServiceRegistry):**
+```ruby
+# Unified configuration access (works for both static and dynamic)
+OT.conf[:i18n][:locales]              # Merged static + dynamic
+OT.conf[:mail][:connection][:host]    # Merged static + dynamic
+OT.conf[:user_interface][:theme]      # Dynamic config from admin UI
+
+# Service and state access
+OT.state[:locales]                    # Processed locale data
+OT.state[:mailer]                     # Service status
+ServiceRegistry.provider(:emailer)    # Service instance
+
+# Verbose fully-qualified syntax (avoid this)
+Onetime::Services::ServiceRegistry.state[:runtime_config][:mail][:provider]
+```
+
+### Configuration Access Patterns
+
+**Shortcut Methods:**
+```ruby
+# Configuration (proxy to merged static + dynamic config)
+OT.conf[:storage]                     # Clean, familiar syntax
+Onetime.conf[:user_interface]         # Both OT and Onetime work
+
+# Runtime state and services (shortcut to ServiceRegistry.state)
+OT.state[:locales]                    # Processed/computed values
+OT.state[:emailer_configured]        # Service status flags
+
+# Direct ServiceRegistry access (when needed)
+ServiceRegistry.provider(:emailer)    # Get service instances
+ServiceRegistry.has_provider?(:db)   # Check service availability
+```
+
+**Implementation of OT.state Shortcut:**
+
+Not exactly this, but functionally the same.
+
+```ruby
+module OT
+  def self.state[key]
+    Onetime::Services::ServiceRegistry.state[key]
+  end
 end
 ```
 
@@ -73,9 +154,36 @@ Service providers are categorized by their primary role in initializing parts of
 
 -   **Instance Providers (`TYPE_INSTANCE`)**: These providers are responsible for creating an instance of a service object (e.g., a `LocaleService` object) and then registering that *object* with the `ServiceRegistry`. The application later retrieves this service object to interact with it.
 -   **Connection Providers (`TYPE_CONNECTION`)**: These providers focus on configuring external libraries, shared modules, or establishing connections to external systems (e.g., configuring an SMTP mailer library, setting up the primary database connection). They typically register the configured module/class itself or a status indicating its readiness.
--   **Config Providers (`TYPE_CONFIG`)**: These providers process, load, or compute configuration and runtime state, making it available through `ServiceRegistry.set_state(key, value)`. This includes merging dynamic settings (like those from `SystemSettings` in Redis) with static configuration, or deriving application state like feature flags or authentication parameters.
+-   **Config Providers (`TYPE_CONFIG`)**: These providers process, load, or compute configuration and runtime state, making it available through `ServiceRegistry.set_state(key, value)`. This includes merging dynamic settings (like those from `MutableSettings` in Redis) with static configuration, or deriving application state like feature flags or authentication parameters.
 
 Regardless of type, all providers leverage the `ServiceRegistry` to make their resulting services or state accessible system-wide, avoiding the need for global variables.
+
+**New Provider Behavior vs Old System:**
+
+**Old System:**
+```ruby
+class Onetime::Config
+  def after_load
+    config = OT.conf
+    locales = process_locales(config[:i18n][:locales])
+    OT.locales = locales  # Creates global attribute
+  end
+end
+```
+
+**New System:**
+```ruby
+class I18nProvider < ServiceProvider
+  def start
+    locale_config = OT.conf[:i18n][:locales]
+    processed_locales = process_locales(locale_config)
+
+    # Register with ServiceRegistry instead of global attribute
+    set_state(:locales, processed_locales)
+    # Accessible via: OT.state[:locales]
+  end
+end
+```
 
 **Why Instances, Not Classes?**
 
@@ -97,13 +205,12 @@ Currently, provider instances are explicitly created and started in a central lo
 
 This approach would allow new providers to be added to the system simply by creating their class file, without needing to modify a central list. The system would dynamically adapt its startup sequence based on the declared needs of each provider, making it more robust and easier to extend.
 
-
 #### Example Service Provider Implementation
 ```ruby
 class EmailerProvider < ServiceProvider
   def start
     # Capture config outside blocks to avoid context issues
-    mail_config = Onetime.conf[:mail]
+    mail_config = OT.conf[:mail]
 
     # Configure mailer based on provider type
     case mail_config[:provider]
@@ -146,14 +253,15 @@ end
 ### Configuration Access Patterns
 ```ruby
 # All config accessed via unified interface:
-Onetime.conf[:storage]              # From static YAML
-Onetime.conf[:user_interface]       # Merged static + dynamic (SystemSettings)
-Onetime.conf[:mail]                 # Merged configuration for email settings
+OT.conf[:storage]                    # From static YAML
+OT.conf[:user_interface]             # Merged static + dynamic (MutableSettings)
+OT.conf[:mail]                       # Merged configuration for email settings
 
-# Service provider access:
+# Runtime state and service access:
+OT.state[:locales]                   # Shortcut to ServiceRegistry.state[:locales]
+OT.state[:emailer_configured]        # Service status flags
 ServiceRegistry.provider(:emailer)   # Get configured mailer instance
-ServiceRegistry.state(:locales)     # Get runtime state values
-ServiceRegistry.has_provider?(:db)  # Check if provider is registered
+ServiceRegistry.has_provider?(:db)   # Check if provider is registered
 
 # Hot reload after admin UI changes:
 ServiceRegistry.reload_dynamic_config  # Re-merges and updates
@@ -198,7 +306,27 @@ ServiceRegistry.providers.keys        # List all registered providers
 ServiceRegistry.state.keys           # List all state values
 
 # Configuration debugging
-Onetime.conf.debug_dump              # Show merged configuration source
+OT.conf.debug_dump                   # Show merged configuration source
+
+# Access pattern examples
+OT.conf[:mail][:provider]            # Clean config access
+OT.state[:locales]                   # Clean state access
+# vs verbose:
+Onetime::Services::ServiceRegistry.state[:runtime_config][:mail][:provider]
 ```
 
-This architecture enables config reloading without restart while maintaining cleaner boundaries than Rails' single-phase approach. Dynamic configuration integrates seamlessly through the existing ServiceRegistry pattern, with SystemSettings handling versioning complexity internally. The two-phase initialization and service provider pattern provides better error handling, debugging capabilities, and operational visibility than traditional Rails initializers.
+This architecture enables config reloading without restart while maintaining cleaner boundaries than Rails' single-phase approach. Dynamic configuration integrates seamlessly through the existing ServiceRegistry pattern, with MutableSettings handling versioning complexity internally. The two-phase initialization and service provider pattern provides better error handling, debugging capabilities, and operational visibility than traditional Rails initializers.
+
+### Migration from 1000-Line YAML
+
+This system replaces a monolithic YAML configuration file that had grown to nearly 1000 lines. The key improvements:
+
+**Flexibility**: Dynamic config sections can be modified through admin UI without file changes or restarts
+
+**Maintainability**: Config is split into logical sections with clear ownership by service providers
+
+**Observability**: Clear separation between static config, dynamic config, computed state, and service instances
+
+**Lifecycle Management**: Services can be started, stopped, and reloaded independently with proper resource cleanup
+
+The trade-off is increased complexity, but this is justified by the operational benefits and the elimination of global attribute proliferation that was becoming unmanageable.

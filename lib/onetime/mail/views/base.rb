@@ -1,13 +1,13 @@
 # lib/onetime/mail/views/base.rb
 
 require 'chimera'
-require_relative 'view_helpers'
+require 'onetime/refinements/indifferent_hash_access'
 
 module Onetime
   module Mail
     module Views
       class Base < Chimera
-        include Mail::ViewHelpers
+        using IndifferentHashAccess
 
         self.template_path  = './templates/mail'
         self.view_namespace = Onetime::Mail
@@ -25,12 +25,13 @@ module Onetime
           # for example which we don't have a proper UX to handle letting the
           # user know that the email was not sent yet (and then having a way
           # to retry sending the email).
-          if OT.locales.key?(locale)
+          supported_locales = OT.conf[:supported_locales] || []
+          if supported_locales.include?(locale)
             OT.li "Initializing #{self.class} with locale: #{locale}"
           else
-            default_value = OT.default_locale
+            default_value = OT.conf[:default_locale]
             @locale       = default_value
-            available     = OT.supported_locales
+            available     = OT.conf[:supported_locales]
             OT.le "[views.i18n] Locale not found: #{locale} (continuing with #{default_value} / #{available})"
           end
 
@@ -41,7 +42,8 @@ module Onetime
           @mode = conf.fetch(:mode, 'smtp').to_s.to_sym
 
           # Create a new instance of the configured mailer class for this request
-          @emailer = OT.emailer.new(
+          emailer  = OT.conf[:emailer]
+          @emailer = emailer.new(
             conf.fetch(:from, nil),
             conf.fetch(:fromname, nil),
             cust&.email, # use for the reply-to field
@@ -91,13 +93,14 @@ module Onetime
         #
         def i18n
           @i18n_cache ||= {}
-          locale        = self.locale # || OT.default_locale || 'en'
+          locale        = self.locale # || OT.conf[:default_locale] || 'en'
 
           # Return cached value for this specific locale if it exists
           return @i18n_cache[locale] if @i18n_cache.key?(locale)
 
           # Safely get locale data with fallback
-          locale_data = OT.locales[locale] || OT.locales['en']
+          locales = OT.conf[:locales] || {}
+          locale_data = locales[locale] || locales['en']
 
           pagename = self.class.name.split('::').last.downcase.to_sym
           {

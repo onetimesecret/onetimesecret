@@ -4,7 +4,7 @@ module Onetime
   module Services
     module System
 
-      class GlobalBanner < ServiceProvider
+      class CheckGlobalBanner < ServiceProvider
         def set_global_secret
           @global_secret = OT.conf.dig(:site, :secret) || nil
           unless Gibbler.secret && Gibbler.secret.frozen?

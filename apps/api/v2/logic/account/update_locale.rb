@@ -45,7 +45,7 @@ module V2::Logic
       end
 
       def valid_locale?(locale)
-        OT.supported_locales.include?(locale)
+        OT.conf[:supported_locales].include?(locale)
       end
 
       def log_update

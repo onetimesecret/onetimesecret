@@ -11,6 +11,10 @@ module Onetime::Mail
     class SESMailer < BaseMailer
       using IndifferentHashAccess
 
+      class << self
+        attr_reader :ses_client
+      end
+
       def send_email(to_address, subject, html_content, text_content)
         mailer_response  = nil
         obscured_address = OT::Utils.obscure_email(to_address)
@@ -75,8 +79,10 @@ module Onetime::Mail
         mailer_response
       end
 
-      def self.setup
-        mail_settings
+      def self.setup(config)
+        @mail_settings = config['mail']['connection']
+        @mail_domain   = config['site']['domain']
+
         # Configure AWS SES client
         @ses_client = Aws::SESV2::Client.new(
           region: mail_settings[:region] || raise('Region not configured'),
@@ -91,9 +97,6 @@ module Onetime::Mail
         @ses_client = nil
       end
 
-      class << self
-        attr_reader :ses_client
-      end
     end
   end
 end

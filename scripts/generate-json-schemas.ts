@@ -14,7 +14,7 @@ import { writeFileSync, mkdirSync } from 'fs';
 import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
 import { z } from 'zod/v4';
-import { systemSettingsSchema, staticConfigSchema } from '../src/schemas/config/settings.ts';
+import { mutableSettingsSchema, staticConfigSchema } from '../src/schemas/config/settings.ts';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -26,7 +26,7 @@ const OUTPUT_SCHEMAS_DIR = join(__dirname, '../public/web/dist/schemas');
 // Combined configuration schema
 const combinedConfigSchema = z.object({
   static: staticConfigSchema.optional(),
-  dynamic: systemSettingsSchema.optional(),
+  dynamic: mutableSettingsSchema.optional(),
 });
 
 /**
@@ -37,9 +37,9 @@ function generateIndividualSchemas(): void {
 
   const schemas = [
     {
-      schema: systemSettingsSchema,
-      name: 'system-settings',
-      description: 'Dynamic system settings loaded from system_settings.defaults.yaml',
+      schema: mutableSettingsSchema,
+      name: 'mutable-settings',
+      description: 'Dynamic mutable settings loaded from mutable_settings.defaults.yaml',
     },
     {
       schema: staticConfigSchema,
@@ -113,17 +113,17 @@ function generateTypeDefinitions(): void {
  */
 
 import { z } from 'zod/v4';
-import { systemSettingsSchema, staticConfigSchema } from '@/schemas/config/settings';
+import { mutableSettingsSchema, staticConfigSchema } from '@/schemas/config/settings';
 
-export type SystemSettings = z.infer<typeof systemSettingsSchema>;
+export type MutableSettings = z.infer<typeof mutableSettingsSchema>;
 export type StaticConfig = z.infer<typeof staticConfigSchema>;
 
 export type ApplicationConfig = {
   static?: StaticConfig;
-  dynamic?: SystemSettings;
+  dynamic?: MutableSettings;
 };
 
-export { systemSettingsSchema, staticConfigSchema };
+export { mutableSettingsSchema, staticConfigSchema };
 `;
 
   writeFileSync(OUTPUT_TYPES, typeDefinitions);
@@ -135,7 +135,7 @@ export { systemSettingsSchema, staticConfigSchema };
  */
 function generateOpenAPISchemas(): void {
   const schemas = [
-    { schema: systemSettingsSchema, name: 'system-settings' },
+    { schema: mutableSettingsSchema, name: 'mutable-settings' },
     { schema: staticConfigSchema, name: 'static-config' },
     { schema: combinedConfigSchema, name: 'combined-config' },
   ];

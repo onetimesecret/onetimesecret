@@ -48,10 +48,10 @@ RSpec.describe "Onetime global state after boot" do
     allow(V2::Customer).to receive(:values).and_return(double('Values', element_count: 0))
     allow(V2::Session).to receive(:values).and_return(double('Values', element_count: 0))
 
-    # Mock system settings setup methods
-    allow(V2::SystemSettings).to receive(:current).and_raise(OT::RecordNotFound.new("No config found"))
-    allow(V2::SystemSettings).to receive(:extract_colonel_config).and_return({})
-    allow(V2::SystemSettings).to receive(:create).and_return(double('SystemSettings', rediskey: 'test:config'))
+    # Mock mutable settings setup methods
+    allow(V2::MutableSettings).to receive(:current).and_raise(OT::RecordNotFound.new("No config found"))
+    allow(V2::MutableSettings).to receive(:extract_colonel_config).and_return({})
+    allow(V2::MutableSettings).to receive(:create).and_return(double('MutableSettings', rediskey: 'test:config'))
 
     # Other common mocks
     allow(Onetime).to receive(:connect_databases).and_return(true)
@@ -75,7 +75,7 @@ RSpec.describe "Onetime global state after boot" do
       expect(Onetime.conf&.dig(:site, :host)).to eq('127.0.0.1:3000')
     end
 
-    it "sets OT.d9s_enabled based on configuration" do
+    it "sets OT.conf[:d9s_enabled] based on configuration (see load_locales)" do
       Onetime.boot!(:test)
 
       if Onetime.conf&.dig(:diagnostics, :enabled) &&

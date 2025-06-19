@@ -7,14 +7,14 @@ module Onetime
 
       # @params path [String] Path to file to read
       # @return [Hash] Parsed JSON object (ditto for YAML)
-      def json_load_file(path) = json_load(file_read(path))
+      def json_load_file(path, *) = json_load(file_read(path), *)
       def yaml_load_file(path) = yaml_load(file_read(path))
       def ruby_load_file(path, context = nil) = ruby_load(path, context)
 
       # @param json [String] JSON string to parse
       # @return [Hash] Parsed JSON object
-      def json_load(json)
-        JSON.parse(json)
+      def json_load(json, *)
+        JSON.parse(json, *)
       rescue JSON::ParserError => ex
         OT.le "Error parsing JSON: #{ex.message}"
         raise OT::ConfigError, 'Invalid JSON schema'
