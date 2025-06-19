@@ -60,7 +60,7 @@ if defined?(IRB)
   IRB.conf[:USE_PAGER]        = true if IRB.conf[:USE_PAGER].nil?
 end
 
-Onetime.boot! :cli
+Onetime.safe_boot! :cli
 
 # IRB.conf[:RC] indicates whether an RC file (.irbrc) was
 # loaded during IRB initialization
