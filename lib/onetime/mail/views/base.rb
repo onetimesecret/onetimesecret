@@ -3,13 +3,10 @@
 require 'chimera'
 require 'onetime/refinements/indifferent_hash_access'
 
-require_relative 'view_helpers'
-
 module Onetime
   module Mail
     module Views
       class Base < Chimera
-        include Mail::ViewHelpers
         using IndifferentHashAccess
 
         self.template_path  = './templates/mail'
