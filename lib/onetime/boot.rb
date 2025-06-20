@@ -53,17 +53,28 @@ module Onetime
 
     # A convenience method for accessing the configuration proxy.
     def conf
-      ready? ? config_proxy : {} # i.e. don't do this
-      config_proxy || @conf || { i18n: {...} } # do something more like this
+      # TODO: Need to provide static config asap before boot.
+      config_proxy || {}
     end
 
     # A convenience method for accessing the ServiceRegistry application state.
     def state
+      # TODO: Is it okay/reasonable to check the readiness here? I think so b/c
+      # the service registry state is 1) new, so older code doesn't depend on it
+      # and 2) it is a specific reason for and result of the full boot initialization
+      # process. There is no notion of a service registry state before boot. Or
+      # to put it another way, code that runs prior to boot should not be
+      # depending on the service registry state.
+      #
+      # So then the question becomes: should we check readiness here to decide
+      # what to return or simply return nil. It's the responsibility of the
+      # calling code to check readiness before accessing the state.
       ready? ? Onetime::Services::ServiceRegistry.state : {}
     end
 
     # A convenience method for accessing the ServiceRegistry providers.
     def provider
+      # Ditto
       ready? ? Onetime::Services::ServiceRegistry.provider : {}
     end
 
