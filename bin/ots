@@ -36,10 +36,14 @@ class OT::CLI::Definition
     puts $LOAD_PATH[0...5]
   end
 
+  option :B, :delay_boot, 'Bring up the console without initializing'
   about 'Ruby irb with Onetime preloaded'
-  command :console do
+  command :console do |obj|
     cmd = format('irb -I%s -ronetime/console', File.join(Onetime::HOME, 'lib'))
     OT.ld cmd
+
+    # Set the boot env var for the console process
+    ENV['DELAY_BOOT'] = obj.option.delay_boot.to_s
     Kernel.exec(cmd)
 
     # TODO: https://claude.ai/share/1ea04861-aec8-4872-bb5c-84bb87a16a9d
