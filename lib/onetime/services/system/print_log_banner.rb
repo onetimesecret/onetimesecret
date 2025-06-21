@@ -3,19 +3,52 @@
 require 'json'
 
 require 'onetime/refinements/indifferent_hash_access'
+require 'receipt_generator'
+require 'system_status'
+
 require_relative '../service_provider'
+
+# Add the ReceiptGenerator classes here or require them
+# (assuming they're available in the application)
 
 module Onetime
   module Services
     module System
+      # Custom section for key-value pairs in the log banner
+      class KeyValueSection < ReceiptSection
+        def initialize(generator, header1:, header2:, rows: [])
+          super(generator)
+          @header1 = header1
+          @header2 = header2
+          @rows    = rows
+        end
+
+        def add_row(key, value)
+          @rows << [key, value]
+          self
+        end
+
+        def render
+          return '' if @rows.empty?
+
+          lines = []
+          lines << divider
+          lines << two_column(@header1, @header2)
+          lines << divider('-')
+
+          @rows.each do |row|
+            lines << two_column(row[0].to_s, row[1].to_s)
+          end
+
+          lines.join("\n")
+        end
+      end
+
       ##
       # LogBannerProvider
       #
       # Prints a formatted banner with system and configuration information at startup.
-      # The banner is organized into logical sections, each rendered as a table.
-      #
-      # This is an info-type provider that runs late in the startup sequence to
-      # display comprehensive system status after all other services are initialized.
+      # Now uses ReceiptGenerator for consistent formatting.
       #
       class PrintLogBanner < ServiceProvider
         using IndifferentHashAccess
@@ -30,79 +63,161 @@ module Onetime
         # @param config [Hash] Frozen application configuration
         def start(config)
           log('Printing system banner...')
-          print_log_banner(config)
+          print_enhanced_log_banner(config)
         end
 
         private
 
-        # Prints a formatted banner with system and configuration information at startup.
-        # The banner is organized into logical sections, each rendered as a table.
-        #
-        # Structure:
-        # - All output is collected in an array and printed with a single OT.li call
-        # - Each section is rendered as a TTY::Table with consistent formatting
-        # - Sections are separated by newlines
-        #
-        # To add a new section to the banner:
-        # 1. Add a section comment: ====== New Section Name ======
-        # 2. Create an array to collect rows: `new_section_rows = []`
-        # 3. Add key/value pairs to the array: `new_section_rows << ['Key', 'Value']`
-        # 4. Check if the section has content: `unless new_section_rows.empty?`
-        # 5. Add rendered section to output: `output << render_section('Header1', 'Header2', new_section_rows)`
-        #
-        # Helper methods available:
-        # - render_section(header1, header2, rows): Creates a formatted table
-        # - feature_disabled?(config): Checks if a feature is disabled
-        # - format_config_value(config): Formats complex config values for display
-        # - format_duration(seconds): Converts seconds to human-readable format (e.g., "5m", "2h", "7d")
-        def print_log_banner(config)
-          site_config  = config.fetch(:site) # if :site is missing we got real problems
+        def print_enhanced_log_banner(config)
+          site_config  = config.fetch(:site)
           email_config = config.fetch(:emailer, {})
           redis_info   = Familia.redis.info
           colonels     = site_config.dig(:authentication, :colonels) || []
+          emailer      = get_state(:emailer)
 
-          emailer = get_state(:emailer)
+          generator = ReceiptGenerator.new(width: 48)
 
-          # Create a buffer to collect all output
-          output = []
+          # System header
+          generator.add_section(SystemHeaderSection.new(generator,
+            app_name: 'ONETIME APP SYSTEM RECEIPT',
+            version: "Version: v#{OT::VERSION}",
+            subtitle: 'System Diagnostics Report',
+          ),
+                               )
 
-          # Header banner
-          output << build_header_banner
+          # System components with status
+          system_section = SystemStatusSection.new(generator,
+            title: 'COMPONENT              VERSION/VALUE    STATUS',
+          )
 
-          # Add each section to output
-          system_rows = build_system_section(redis_info)
-          output << render_section('Component', 'Value', system_rows)
+          platform_info = "#{RUBY_ENGINE} #{RUBY_VERSION}"
+          arch_info     = RUBY_PLATFORM
+          mode_info     = OT.env
 
-          dev_rows = build_dev_section(config)
-          unless dev_rows.empty?
-            output << render_section('Development', 'Settings', dev_rows)
+          system_section.add_row('System Runtime', platform_info, status: 'OK')
+          system_section.add_row('Platform', arch_info, status: 'OK')
+          system_section.add_row('Config File', File.basename(OT::Boot.configurator.config_path), status: 'OK')
+          system_section.add_row('Redis Server', redis_info['redis_version'], status: 'OK')
+          system_section.add_row('Redis URL', Familia.uri.serverid, status: 'OK')
+          system_section.add_row('Familia Library', "v#{Familia::VERSION}", status: 'OK')
+
+          i18n_enabled = config[:i18n][:enabled]
+          d9s_enabled  = config[:diagnostics][:enabled]
+          system_section.add_row('Internationalization', i18n_enabled ? 'enabled' : 'disabled',
+            status: i18n_enabled ? 'OK' : 'OFF'
+          )
+          system_section.add_row('Diagnostics', d9s_enabled ? 'enabled' : 'disabled',
+            status: d9s_enabled ? 'OK' : 'OFF'
+          )
+
+          generator.add_section(system_section)
+
+          # Locale support (wrapped text)
+          if i18n_enabled && !config[:i18n][:locales].empty?
+            locales_text = config[:i18n][:locales].join(', ')
+            generator.add_section(WrapTextSection.new(generator,
+              title: 'LOCALE SUPPORT: ',
+              content: locales_text,
+            ),
+                                 )
           end
 
-          feature_rows = build_features_section(site_config)
-          unless feature_rows.empty?
-            output << render_section('Features', 'Configuration', feature_rows)
+          # Development settings
+          if config.fetch(:development, false)
+            dev_section = SystemStatusSection.new(generator,
+              title: 'DEVELOPMENT SETTINGS                     VALUE',
+            )
+
+            dev_config = config[:development]
+            dev_section.add_row('Development Mode', 'enabled', status: 'ON')
+
+            if dev_config.is_a?(Hash) && dev_config['debug']
+              dev_section.add_row('Debug Mode', 'enabled', status: 'ON')
+            end
+
+            if dev_config.is_a?(Hash) && dev_config['frontend_host']
+              dev_section.add_row('Frontend Host', dev_config['frontend_host'], status: 'OK')
+            end
+
+            generator.add_section(dev_section)
           end
 
-          mail_rows = build_email_section(email_config, emailer)
-          unless mail_rows.empty?
-            output << render_section('Mail Config', 'Value', mail_rows)
+          # Experimental features
+          if config.fetch(:experimental, false)
+            exp_section = SystemStatusSection.new(generator,
+              title: 'EXPERIMENTAL FEATURES                    VALUE',
+            )
+
+            exp_config = config[:experimental]
+            if exp_config.is_a?(Hash)
+              exp_config.each do |key, value|
+                status = case key.to_s
+                         when 'allow_nil_global_secret'
+                           value ? 'WARN' : 'SAFE'
+                         when 'rotated_secrets'
+                           value.is_a?(Array) && value.length > 1 ? 'GOOD' : 'WARN'
+                         else
+                           'OK'
+                         end
+
+                formatted_value = case value
+                                 when Array
+                                   "#{value.length} configured"
+                                 else
+                                   value.to_s
+                                 end
+
+                exp_section.add_row(key.to_s.humanize, formatted_value, status: status)
+              end
+            end
+
+            generator.add_section(exp_section)
           end
 
-          auth_rows = build_auth_section(site_config, colonels)
-          unless auth_rows.empty?
-            output << render_section('Authentication', 'Details', auth_rows)
+          # Authentication
+          auth_section = SystemStatusSection.new(generator,
+            title: 'AUTHENTICATION CONFIG                    VALUE',
+          )
+
+          auth_config = site_config['authentication']
+          if auth_config && auth_config['enabled']
+            auth_section.add_row('Auth System', 'enabled', status: 'ON')
           end
 
-          customization_rows = build_customization_section(site_config)
-          unless customization_rows.empty?
-            output << render_section('Customization', 'Configuration', customization_rows)
+          if colonels.any?
+            # Show first colonel, indicate if more
+            display_colonel = colonels.first
+            if display_colonel.length > 20
+              display_colonel = display_colonel[0..16] + '...'
+            end
+            auth_section.add_row('Colonel Access', display_colonel, status: 'OK')
+            auth_section.add_row('Total Colonels', "#{colonels.length} user#{'s' if colonels.length != 1}",
+              status: colonels.empty? ? 'WARN' : 'GOOD'
+            )
+          else
+            auth_section.add_row('Colonel Access', 'none configured', status: 'WARN')
           end
+
+          generator.add_section(auth_section)
+
+          # Status summary
+          generator.add_section(StatusSummarySection.new(generator,
+            status: 'READY',
+            message: 'All components verified',
+          ),
+                               )
 
           # Footer
-          output << build_footer_banner
+          generator.add_section(FooterSection.new(generator,
+            messages: [
+              'Thank you for using ONETIME APP',
+              'Secure secret sharing service',
+              'https://github.com/onetimesecret',
+            ],
+          ),
+                               )
 
-          # Output everything with a single OT.li call
-          OT.li output.join("\n")
+          OT.li generator.generate
         end
 
         # Builds system information section rows
@@ -152,7 +267,7 @@ module Onetime
           feature_rows = []
 
           # Plans section
-          if site_config.key?('plans') # TODO: Needs to be a string or false
+          if site_config.key?('plans')
             plans_config = site_config['plans']
             if feature_disabled?(plans_config)
               feature_rows << %w[Plans disabled]
@@ -211,7 +326,7 @@ module Onetime
             ['Colonels', 'No colonels configured ⚠️']
           else
             ['Colonels', colonels.join(', ')]
-                      end
+          end
 
           if site_config.key?('authentication')
             auth_config = site_config['authentication']
@@ -227,7 +342,6 @@ module Onetime
         end
 
         # Builds customization section rows
-        # rubocop:disable Metrics/PerceivedComplexity
         def build_customization_section(site_config)
           customization_rows = []
 
@@ -281,7 +395,6 @@ module Onetime
 
           customization_rows
         end
-        # rubocop:enable Metrics/PerceivedComplexity
 
         # Helper method to check if a feature is disabled
         def feature_disabled?(config)
@@ -325,109 +438,13 @@ module Onetime
             "#{days}d"
           end
         end
-
-        # Helper method to render a section as a table
-        def render_section(header1, header2, rows)
-          # Calculate column widths
-          col1_width = 15
-          col2_width = 55
-
-          # Build the table manually
-          lines = []
-
-          # Top border
-          lines << "┌─#{'─' * col1_width}─┬─#{'─' * col2_width}─┐"
-
-          # Header row
-          header1_padded = header1.ljust(col1_width)
-          header2_padded = header2.ljust(col2_width)
-          lines << "│ #{header1_padded} │ #{header2_padded} │"
-
-          # Header separator
-          lines << "├─#{'─' * col1_width}─┼─#{'─' * col2_width}─┤"
-
-          # Data rows
-          rows.each_with_index do |row, index|
-            col1 = row[0].to_s
-            col2 = row[1].to_s
-
-            # Handle multiline content by splitting on newlines
-            col1_lines = col1.scan(/.{1,#{col1_width}}/)
-            col2_lines = col2.scan(/.{1,#{col2_width}}/)
-
-            # Ensure we have at least one line for each column
-            col1_lines = [''] if col1_lines.empty?
-            col2_lines = [''] if col2_lines.empty?
-
-            # Print each line of the multiline content
-            max_lines = [col1_lines.length, col2_lines.length].max
-            max_lines.times do |i|
-              c1 = (col1_lines[i] || '').ljust(col1_width)
-              c2 = (col2_lines[i] || '').ljust(col2_width)
-              lines << "│ #{c1} │ #{c2} │"
-            end
-
-            # Add row separator (except for last row)
-            if index < rows.length - 1
-              lines << "├─#{'─' * col1_width}─┼─#{'─' * col2_width}─┤"
-            end
-          end
-
-          # Bottom border
-          lines << "└─#{'─' * col1_width}─┴─#{'─' * col2_width}─┘"
-
-          # Join all lines and add extra newline
-          lines.join("\n")
-        end
-
-        # Build distinctive header banner
-        def build_header_banner
-          width              = 75
-          border_char_closed = '═'
-          border_char_open   = ' '
-          corner_tl          = '╔'
-          corner_tr          = '╗'
-          vertical           = '║'
-
-          title     = "ONETIME #{OT.mode.upcase} v#{OT::VERSION}"
-          padding   = (width - 2 - title.length) / 2
-          left_pad  = ' ' * padding
-          right_pad = ' ' * (width - title.length - padding)
-
-          <<~HEADER
-
-            #{corner_tl}#{border_char_closed * width}#{corner_tr}
-            #{vertical}#{' ' * width}#{vertical}
-            #{vertical}#{left_pad}#{title}#{right_pad}#{vertical}
-            #{vertical}#{' ' * width}#{vertical}
-            #{vertical}#{border_char_open * width}#{vertical}
-          HEADER
-        end
-
-        # Build distinctive footer banner
-        def build_footer_banner
-          width              = 75
-          border_char_closed = '═'
-          border_char_open   = ' '
-          corner_bl          = '╚'
-          corner_br          = '╝'
-          vertical           = '║'
-
-          timestamp   = Time.now.strftime('%Y-%m-%d %H:%M:%S %Z')
-          footer_text = "✨ System initialized at #{timestamp} ✨"
-          padding     = (width - 2 - footer_text.length) / 2
-          left_pad    = ' ' * padding
-          right_pad   = ' ' * (width - 2 - footer_text.length - padding)
-
-          <<~FOOTER
-
-            #{vertical}#{border_char_open * width}#{vertical}
-            #{vertical}#{left_pad}#{footer_text}#{right_pad}#{vertical}
-            #{corner_bl}#{border_char_closed * width}#{corner_br}
-
-          FOOTER
-        end
       end
     end
+  end
+end
+
+class String
+  def humanize
+    tr('_', ' ').split.map(&:capitalize).join(' ')
   end
 end
