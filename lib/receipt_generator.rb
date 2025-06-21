@@ -108,7 +108,7 @@ class TransactionSection < ReceiptSection
     lines << two_column("Date: #{date_str}", "Time: #{time_str}")
     lines << two_column("Cashier: #{@cashier}", "Register: #{@register}") if @cashier || @register
     lines << "Transaction: #{@transaction_id}" if @transaction_id
-    lines << divider
+    lines << divider('-')
 
     lines.join("\n")
   end
@@ -297,10 +297,7 @@ class FooterSection < ReceiptSection
   end
 
   def render
-    lines = []
-    lines << divider
-
-    @messages.each { |msg| lines << center_text(msg) }
+    lines = @messages.map { |msg| center_text(msg) }
     lines << center_text(@website) if @website
     lines << '' if @return_policy
     lines << center_text(@return_policy) if @return_policy

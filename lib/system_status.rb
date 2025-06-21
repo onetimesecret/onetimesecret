@@ -15,8 +15,8 @@ class SystemStatusSection < ReceiptSection
     return '' if @rows.empty?
 
     lines = []
-    lines << divider
-    lines << center_text(@title)
+    lines << divider('-')
+    lines << format_title_line(@title)
     lines << center_text(@subtitle) if @subtitle
     lines << divider('-')
 
@@ -26,6 +26,38 @@ class SystemStatusSection < ReceiptSection
     end
 
     lines.join("\n")
+  end
+
+  def format_title_line(title_array)
+    return '' if title_array.empty?
+
+    if title_array.length == 2
+      left_text = title_array[0].to_s
+      right_text = title_array[1].to_s
+      padding = width - left_text.length - right_text.length
+      padding = [padding, 0].max
+      "#{left_text}#{' ' * padding}#{right_text}"
+    elsif title_array.length == 3
+      left_text = title_array[0].to_s
+      center_text = title_array[1].to_s
+      right_text = title_array[2].to_s
+
+      # Calculate spacing
+      total_text_length = left_text.length + center_text.length + right_text.length
+      remaining_space = width - total_text_length
+
+      if remaining_space >= 2
+        left_padding = remaining_space / 2
+        right_padding = remaining_space - left_padding
+        "#{left_text}#{' ' * left_padding}#{center_text}#{' ' * right_padding}#{right_text}"
+      else
+        # If not enough space, just concatenate with minimal spacing
+        "#{left_text} #{center_text} #{right_text}"[0, width]
+      end
+    else
+      # Fallback for single item or more than 3 items
+      center_text(title_array[0].to_s)
+    end
   end
 
   private
@@ -63,11 +95,12 @@ class SystemStatusSection < ReceiptSection
 end
 
 class SystemHeaderSection < ReceiptSection
-  def initialize(generator, app_name:, version:, subtitle: nil)
+  def initialize(generator, app_name:, version:, subtitle: nil, environment: nil)
     super(generator)
-    @app_name = app_name
-    @version  = version
-    @subtitle = subtitle
+    @app_name    = app_name
+    @version     = version
+    @subtitle    = subtitle
+    @environment = environment
   end
 
   def render
@@ -80,8 +113,17 @@ class SystemHeaderSection < ReceiptSection
     lines << divider
 
     # Add timestamp and basic system info
-    timestamp = Time.now.strftime('%Y-%m-%d          Time: %H:%M:%S %Z')
+    date_part = Time.now.strftime('%Y-%m-%d')
+    time_part = Time.now.strftime('%H:%M:%S %Z')
+    timestamp = format('%-s%sTime: %s', date_part, ' ' * (width - "Date: #{date_part}Time: #{time_part}".length), time_part)
     lines << "Date: #{timestamp}"
+
+    # Format: System: ruby 3.4.4        Arch: arm64-darwin24
+    platform_info = format('System: %s %s%sArch: %s', RUBY_ENGINE, RUBY_VERSION, ' ' * (width - "System: #{RUBY_ENGINE} #{RUBY_VERSION}Arch: #{RUBY_PLATFORM}".length), RUBY_PLATFORM)
+    lines << platform_info
+
+    environment_info = format('Environment: %s', @environment)
+    lines << environment_info
 
     lines.join("\n")
   end
@@ -116,7 +158,47 @@ class WrapTextSection < ReceiptSection
   def render
     lines = []
     lines << divider('-')
-    lines << "#{@title}#{@content}"
+
+    # Calculate available width for content after title
+    title_width   = @title.length
+    content_width = width - title_width
+
+    # Wrap the content to fit within the available width
+    wrapped_content = wrap_text(@content, content_width)
+
+    # Add title to first line, then continue with wrapped lines
+    wrapped_content.each_with_index do |line, index|
+      lines << if index.zero?
+        "#{@title}#{line}"
+      else
+        "#{' ' * title_width}#{line}"
+               end
+    end
+
     lines.join("\n")
+  end
+
+  private
+
+  def wrap_text(text, max_width)
+    return [text] if text.length <= max_width
+
+    words         = text.split(' ')
+    wrapped_lines = []
+    current_line  = ''
+
+    words.each do |word|
+      if current_line.empty?
+        current_line = word
+      elsif (current_line + ' ' + word).length <= max_width
+        current_line += ' ' + word
+      else
+        wrapped_lines << current_line
+        current_line = word
+      end
+    end
+
+    wrapped_lines << current_line unless current_line.empty?
+    wrapped_lines
   end
 end

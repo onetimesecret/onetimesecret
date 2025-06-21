@@ -75,22 +75,24 @@ module Onetime
           colonels     = site_config.dig(:authentication, :colonels) || []
           emailer      = get_state(:emailer)
 
-          generator = ReceiptGenerator.new(width: 48)
+          generator = ReceiptGenerator.new(width: 60)
 
           # System header
           generator.add_section(SystemHeaderSection.new(generator,
-            app_name: 'ONETIME APP SYSTEM RECEIPT',
+            app_name: 'ONETIME SECRET',
             version: "Version: v#{OT::VERSION}",
-            subtitle: 'System Diagnostics Report',
+            subtitle: 'System Initialization Report',
+            environment: OT.env,
           ),
                                )
 
           # System components with status
           system_section = SystemStatusSection.new(generator,
-            title: 'COMPONENT              VERSION/VALUE    STATUS',
+            title: %w[COMPONENT VERSION/VALUE STATUS],
           )
 
-          system_section.add_row('Config File', File.basename(OT::Boot.configurator.config_path), status: 'OK')
+          config_path = Onetime::Utils.pretty_path(OT::Boot.configurator.config_path)
+          system_section.add_row('Config File', config_path, status: 'OK')
           system_section.add_row('Redis Server', redis_info['redis_version'], status: 'OK')
           system_section.add_row('Redis URL', Familia.uri.serverid, status: 'OK')
           system_section.add_row('Familia Library', "v#{Familia::VERSION}", status: 'OK')
@@ -119,7 +121,7 @@ module Onetime
           # Development settings
           if config.fetch(:development, false)
             dev_section = SystemStatusSection.new(generator,
-              title: 'DEVELOPMENT SETTINGS                     VALUE',
+              title: ['DEVELOPMENT SETTINGS', 'VALUE'],
             )
 
             dev_config = config[:development]
@@ -139,7 +141,7 @@ module Onetime
           # Experimental features
           if config.fetch(:experimental, false)
             exp_section = SystemStatusSection.new(generator,
-              title: 'EXPERIMENTAL FEATURES                    VALUE',
+              title: ['EXPERIMENTAL FEATURES', 'VALUE'],
             )
 
             exp_config = config[:experimental]
@@ -170,7 +172,7 @@ module Onetime
 
           # Authentication
           auth_section = SystemStatusSection.new(generator,
-            title: 'AUTHENTICATION CONFIG                    VALUE',
+            title: ['AUTHENTICATION CONFIG', 'VALUE'],
           )
 
           auth_config = site_config['authentication']
@@ -194,10 +196,13 @@ module Onetime
 
           generator.add_section(auth_section)
 
+          status  = 'In progress'
+          message = 'System is initializing'
+
           # Status summary
           generator.add_section(StatusSummarySection.new(generator,
-            status: 'READY',
-            message: 'All components verified',
+            status: status,
+            message: message,
           ),
                                )
 
