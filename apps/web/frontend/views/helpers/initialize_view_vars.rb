@@ -6,6 +6,15 @@ module Frontend
   module Views
     # InitializeViewVars
     #
+    # TODO: This serialization stuff is a real monkey's lunch. The whole concept
+    # of opting in to accessing only safe fields was one of the main drivers for
+    # the new two pronged static and dynamic config. There are still a couple
+    # fields from static_conf['] that we want to expose to the frontend but
+    # the entire dynamic_conf['user_interface'] can be accessed safely. There
+    # is a lot of defensive fussing going here and after all the initialization
+    # work to get the runtime settings all cool and nice, we can cash in on some
+    # of that sweetness here.
+    #
     # This module is meant to be extended and not included. That's why
     # initialize_view_vars takes the arguments it does instead of relying on
     # instance variables and their attr_reader methods.
@@ -15,8 +24,7 @@ module Frontend
       # Define fields that are safe to expose to the frontend
       # Explicitly excluding :secret and :authenticity which contain sensitive data
       @safe_site_fields = [
-        :host, :ssl, :plans, :interface, :domains,
-        :secret_options, :authentication, :support, :regions
+        :host, :ssl, :authentication
       ].freeze
 
       class << self
@@ -53,6 +61,11 @@ module Frontend
         development = OT.conf.fetch(:development, {})
         diagnostics = OT.conf.fetch(:diagnostics, {})
 
+        user_interface = OT.conf['user_interface']
+        api            = OT.conf['api']
+        secret_options = OT.conf['secret_options']
+        features       = OT.conf['features']
+
         # Populate a new hash with the site config settings that are safe
         # to share with the front-end app (i.e. public).
         #
@@ -60,23 +73,17 @@ module Frontend
         # configuration values to share with the frontend while protecting
         # sensitive data. We copy only the whitelisted fields and then
         # filter specific nested sensitive data from complex structures.
-        safe_site = InitializeViewVars.safe_site_fields.each_with_object({}) do |field, hash|
+        safe_site = InitializeViewVars.safe_site_fields.each_with_object({}) do |field_sym, hash|
+          field = field_sym.to_s
           unless site_config.key?(field)
             OT.ld "[view_vars] Site config is missing field: #{field}"
             next
           end
 
-          # Perform deep copy to prevent unintended mutations to the original config
-          hash[field] = Marshal.load(Marshal.dump(site_config[field]))
-        end
-
-        # Additional filtering for nested sensitive data
-        if (safe_site[:domains]) && safe_site[:domains].is_a?(Hash)
-          safe_site[:domains].delete(:cluster)
-        end
-
-        if (safe_site[:authentication]) && safe_site[:authentication].is_a?(Hash)
-          safe_site[:authentication].delete(:colonels)
+          # Previously we would deep copy here to prevent unintended mutations
+          # to the original config but the entire static config is now deep
+          # frozen before being made available.
+          hash[field] = site_config[field]
         end
 
         # Extract values from session
@@ -100,7 +107,8 @@ module Frontend
         frontend_development = development[:enabled]
         script_element_id    = 'onetime-state'
 
-        # Return all view variables as a hash
+        # Return all view variables as a hash. Whatever is returned here
+        # is made available to the serializers as view_vars.
         {
           authenticated: authenticated,
           cust: cust,
@@ -121,6 +129,10 @@ module Frontend
           script_element_id: script_element_id,
           shrimp: shrimp,
           site: safe_site,
+          user_interface: user_interface,
+          api: api,
+          secret_options: secret_options,
+          features: features,
         }
       end
       # rubocop:enable Metrics/MethodLength

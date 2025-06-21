@@ -1,10 +1,22 @@
-# Core Configuration Documentation
+# Static Configuration
 
 ## Overview
 
-Core configuration manages OneTimeSecret's foundational infrastructure settings through `etc/config.yaml`. These parameters—including database connections, security middleware, authentication systems, and mail delivery—require application restart to modify and form the bedrock of system operations. This configuration layer focuses on infrastructure concerns that demand careful consideration during deployment, complementing the runtime-adjustable system settings that handle feature toggles and operational preferences.
+The static configuration is the core, essential configuration of OneTimeSecret and are managed through the `etc/config.yaml` file.  This configuration handles critical infrastructure elements like hostname, database connections, security protections, authentication, and email delivery. We use the term static to emphasize that once the system is up and running, these settings are immutable and cannot be modified without a restart.
+
+This contrasts the mutable settings (aka dynamic configuration) which are stored in the database and managed from the admin UI.
 
 ## Configuration Structure
+
+The top-level keys in the static configuration are:
+
+- `site`
+- `storage`
+- `mail`
+- `i18n`
+- `diagnostics`
+- `development`
+- `experimental`
 
 ### Site Configuration (`site`)
 
@@ -13,26 +25,27 @@ Establishes core application identity and security framework.
 #### Basic Settings
 - `host`: Primary hostname and port (e.g., 'localhost:3000', 'onetimesecret.com')
 - `ssl`: Enable HTTPS enforcement (boolean)
-- `secret`: Application secret key for cryptographic operations (**CRITICAL: Change from default**)
+- `secret`: Application secret key for cryptographic operations.
 
 #### Authentication (`authentication`)
-- `enabled`: Toggle authentication system (default: true)
-- `colonels`: Array of administrator email addresses with elevated privileges
+- `enabled`: Toggle authentication system (default: false)
+- `colonels`: Array of administrator email addresses with elevated privileges.
 
 #### Authenticity Protection (`authenticity`)
 
 Settings for [Altcha](https://github.com/altcha-org/altcha).
 
 - `type`: Anti-bot protection method ('altcha' or alternative)
-- `secret_key`: HMAC key for authenticity challenges (**CRITICAL: Replace default**)
+- `secret_key`: HMAC key for authenticity challenges. It's important for this value to be unique and kept secret.
 
-#### Security Middleware (`middleware`)
+
+#### Middleware Toggles (`middleware`)
 Collection of security protections that can be toggled individually. These come from:
 gem 'rack-contrib', '~> 2.5'
 gem 'rack-protection', '~> 3.2'
 gem 'rack-utf8_sanitizer', '~> 1.10.1'
 
-- `static_files`: Serve frontend Vue application assets
+- `static_files`: Serve frontend Vue application assets. Helpful during development and for simplified installs serving low traffic.
 - `utf8_sanitizer`: Sanitize request parameters for proper UTF-8 encoding
 - `http_origin`: CSRF protection via origin validation
 - `escaped_params`: HTML entity escaping in request parameters
@@ -53,7 +66,6 @@ Defines data persistence and caching infrastructure.
 #### Database Mapping (`db.database_mapping`)
 Redis database allocation by data type:
 - `session`: User session storage (DB 1)
-- `splittest`: A/B testing data (DB 1)
 - `custom_domain`: Custom domain configurations (DB 6)
 - `customer`: Customer account data (DB 6)
 - `subdomain`: Subdomain mappings (DB 6)
@@ -63,14 +75,14 @@ Redis database allocation by data type:
 - `rate_limit`: Rate limiting counters (DB 2)
 - `feedback`: User feedback submissions (DB 11)
 - `exception_info`: Error tracking data (DB 12)
-- `system_settings`: Runtime settings cache (DB 15)
+- `mutable_settings`: Runtime settings cache (DB 15)
 
 ### Mail Configuration (`mail`)
 
 Configures email delivery infrastructure and routing.
 
 #### Connection Settings (`connection`)
-- `mode`: Email delivery method ('ses', 'smtp', etc.)
+- `mode`: Email delivery method ('ses', 'smtp', 'sendgrid')
 - `region`: AWS SES region for cloud email delivery
 - `from`: Sender email address (**CRITICAL: Change from default**)
 - `fromname`: Sender display name
@@ -159,7 +171,7 @@ Following the [Config vs Settings architecture](../architecture/config-vs-settin
 2. **Environment Layer**: Environment variables override file values
 3. **Deploy Layer**: Configuration changes require application restart
 
-Core configuration complements system settings (`system_settings.defaults.yaml`) which handle operational parameters modifiable at runtime.
+Core configuration complements mutable settings (`mutable_settings.defaults.yaml`) which handle operational parameters modifiable at runtime.
 
 ## Validation and Security
 

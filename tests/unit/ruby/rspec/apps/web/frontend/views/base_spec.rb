@@ -167,7 +167,7 @@ RSpec.describe Frontend::Views::BaseView do
           dsn: 'https://test-dsn@sentry.example.com/1'
         }
       })
-      expect(subject.serialized_data[:d9s_enabled]).to be OT.d9s_enabled
+      expect(subject.serialized_data[:d9s_enabled]).to be OT.conf[:d9s_enabled]
     end
 
     it 'sets diagnostic to disabled when DSN not provided' do

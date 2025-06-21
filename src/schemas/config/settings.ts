@@ -62,7 +62,7 @@ const RATE_LIMIT_KEYS = [
   'check_status',
   'report_exception',
   'update_branding',
-  'update_system_settings',
+  'update_mutable_settings',
   'view_colonel',
   'external_redirect',
 
@@ -83,7 +83,7 @@ const createRateLimitFields = () => {
   return fields;
 };
 
-// --- Schemas for system_settings.defaults.yaml (Dynamic Settings) ---
+// --- Schemas for mutable_settings.defaults.yaml (Dynamic Settings) ---
 
 const userInterfaceLogoSchema = z.object({
   url: z.string().optional(),
@@ -286,7 +286,7 @@ const dynamicMailSchema = z.object({
   validation: dynamicMailValidationSchema.optional(),
 });
 
-export const systemSettingsSchema = z.object({
+export const mutableSettingsSchema = z.object({
   user_interface: userInterfaceSchema.optional(), // Renamed from interface
   api: apiSchema.optional(),
   secret_options: secretOptionsSchema.optional(),
@@ -295,8 +295,8 @@ export const systemSettingsSchema = z.object({
   mail: dynamicMailSchema.optional(), // Updated mail schema
 });
 
-export const systemSettingsDetailsSchema = systemSettingsSchema.extend({});
-export type SystemSettingsDetails = z.infer<typeof systemSettingsDetailsSchema>;
+export const mutableSettingsDetailsSchema = mutableSettingsSchema.extend({});
+export type MutableSettingsDetails = z.infer<typeof mutableSettingsDetailsSchema>;
 
 // --- Schemas for config.yaml (Static Settings) ---
 

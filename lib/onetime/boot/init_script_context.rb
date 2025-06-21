@@ -54,7 +54,8 @@ module Onetime
 
       def info_log(path)
         info "Running #{section_key} script"
-        debug "Script path: #{path}"
+        pretty_path = Onetime::Utils.pretty_path(path)
+        debug "Script path: #{pretty_path}"
         debug "Instance: #{instance}, Mode: #{mode}, Connect to DB: #{connect_to_db?}"
       end
 

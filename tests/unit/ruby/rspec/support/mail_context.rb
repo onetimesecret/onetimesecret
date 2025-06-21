@@ -135,6 +135,7 @@ RSpec.shared_context "mail_test_context" do
       .and_return(mailer)
 
     # Setup OT.emailer to return the correct mailer class
+    # NOTE: This is available via legacy_globals.
     allow(OT).to receive(:emailer).and_return(OT::Mail::Mailer::SMTPMailer)
 
     allow_any_instance_of(Onetime::Mail::Mailer::BaseMailer).to receive(:emailer).and_return(mailer)

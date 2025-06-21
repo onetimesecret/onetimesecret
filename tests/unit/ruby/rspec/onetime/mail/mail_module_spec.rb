@@ -10,9 +10,11 @@ RSpec.describe Onetime::Mail do
 
     # Mock the OT configuration
     allow(OT).to receive(:conf).and_return({
-      emailer: {
-        from: 'test@example.com',
-        fromname: 'Test Sender'
+      mail: {
+        connection: {
+          from: 'test@example.com',
+          fromname: 'Test Sender'
+        }
       }
     })
 
@@ -41,10 +43,12 @@ RSpec.describe Onetime::Mail do
     context 'with SendGrid configuration' do
       before do
         allow(OT).to receive(:conf).and_return({
-          emailer: {
-            provider: 'sendgrid',
-            from: 'test@example.com',
-            fromname: 'Test Sender'
+          mail: {
+            connection: {
+              provider: 'sendgrid',
+              from: 'test@example.com',
+              fromname: 'Test Sender'
+            }
           }
         })
       end
@@ -61,10 +65,12 @@ RSpec.describe Onetime::Mail do
     context 'with Amazon SES configuration' do
       before do
         allow(OT).to receive(:conf).and_return({
-          emailer: {
-            provider: 'ses',
-            from: 'test@example.com',
-            fromname: 'Test Sender'
+          mail: {
+            connection: {
+              provider: 'ses',
+              from: 'test@example.com',
+              fromname: 'Test Sender',
+            }
           }
         })
       end
@@ -81,10 +87,12 @@ RSpec.describe Onetime::Mail do
     context 'with case-insensitive provider configuration' do
       before do
         allow(OT).to receive(:conf).and_return({
-          emailer: {
-            provider: 'ses',
-            from: 'test@example.com',
-            fromname: 'Test Sender'
+          mail: {
+            connection: {
+              provider: 'ses',
+              from: 'test@example.com',
+              fromname: 'Test Sender'
+            }
           }
         })
       end
@@ -101,10 +109,12 @@ RSpec.describe Onetime::Mail do
     context 'with unknown provider configuration' do
       before do
         allow(OT).to receive(:conf).and_return({
-          emailer: {
-            provider: 'unknown_provider',
-            from: 'test@example.com',
-            fromname: 'Test Sender'
+          mail: {
+            connection: {
+              provider: 'unknown_provider',
+              from: 'test@example.com',
+              fromname: 'Test Sender'
+            }
           }
         })
       end

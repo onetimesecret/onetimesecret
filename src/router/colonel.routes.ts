@@ -31,8 +31,8 @@ const routes: Array<RouteRecordRaw> = [
   },
   {
     path: '/colonel/settings',
-    name: 'SystemSettings',
-    component: () => import('@/views/colonel/SystemSettings.vue'),
+    name: 'MutableSettings',
+    component: () => import('@/views/colonel/MutableSettings.vue'),
     meta: defaultMeta,
     props: true,
   },

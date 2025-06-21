@@ -1,12 +1,13 @@
 # lib/onetime/mail/views/common.rb
 
-require 'mustache'
-
+require 'onetime/refinements/indifferent_hash_access'
 require_relative 'base'
 
 module Onetime
   module Mail
     class Welcome < Mail::Views::Base
+      using IndifferentHashAccess
+
       def init(secret)
         self[:secret]        = secret
         self[:email_address] = cust.email
@@ -22,6 +23,8 @@ module Onetime
     end
 
     class SecretLink < Mail::Views::Base
+      using IndifferentHashAccess
+
       def init(secret, recipient)
         raise ArgumentError, 'Customer required' unless cust
         raise ArgumentError, 'Recipient required' unless recipient
@@ -52,6 +55,8 @@ module Onetime
     end
 
     class SupportMessage < Mail::Views::Base
+      using IndifferentHashAccess
+
       attr_reader :subject
 
       def init(from_name, subject)
@@ -84,6 +89,8 @@ module Onetime
     end
 
     class IncomingSupport < Mail::Views::Base
+      using IndifferentHashAccess
+
       attr_accessor :ticketno
 
       def init(secret, recipient)
@@ -102,6 +109,8 @@ module Onetime
     end
 
     class TestEmail < Mail::Views::Base
+      using IndifferentHashAccess
+
       def init
         self[:email_address] = cust.email
       end
@@ -116,6 +125,8 @@ module Onetime
     end
 
     class FeedbackEmail < Mail::Views::Base
+      using IndifferentHashAccess
+
       attr_accessor :message, :display_domain, :domain_strategy
 
       def init

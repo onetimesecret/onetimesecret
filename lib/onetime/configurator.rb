@@ -194,6 +194,14 @@ module Onetime
       OT::Configurator::Load.yaml_load_file(path)
     end
 
+    def load_with_impunity!(&)
+      config = self.class.find_config('config')
+        .then { |path| read_template_file(path) }
+        .then { |template| render_erb_template(template) }
+        .then { |yaml_content| parse_yaml(yaml_content) }
+      OT::Utils.deep_freeze(config)
+    end
+
     private
 
     def _validate(config, **)
@@ -211,6 +219,10 @@ module Onetime
 
       # Instantiates a new configuration object, loads it, and it returns itself
       def load!(&) = new.load!(&)
+
+      def load_with_impunity!(&)
+        new.load_with_impunity!(&)
+      end
 
       def find_configs(basename = 'config')
         paths.flat_map do |path|
