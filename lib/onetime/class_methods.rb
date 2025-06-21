@@ -228,7 +228,7 @@ module Onetime
 
     def with_diagnostics(&)
       config = Onetime.conf[:diagnostics]
-      return unless config[:enabled]
+      return unless config && config[:enabled]
 
       yield(config) # call the block in its own context
     end
