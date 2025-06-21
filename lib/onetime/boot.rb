@@ -142,7 +142,7 @@ module Onetime
       @configurator = OT::Configurator.load! do |config|
         OT.ld '[BOOT] Processing hook - config transformations before final freeze'
         unless run_init_scripts(config, **script_options)
-          raise OT::ConfigurationError, 'Initialization scripts failed'
+          raise OT::ConfigError, 'Initialization scripts failed'
         end
       end
 
@@ -329,5 +329,13 @@ module Onetime
       # we continue with reduced functionality.
       raise error unless OT.mode?(:cli) || OT.mode?(:test)
     end
+  end
+
+  # Immediate loading - config available as soon as module loads
+  @static_config = begin
+    Onetime::Configurator.load_with_impunity!
+  rescue StandardError => ex
+    puts "Failed to load static config: #{ex.message}"
+    exit 1
   end
 end
