@@ -38,11 +38,10 @@ gem 'familia', '~> 1.2.0'
 gem 'gibbler'
 gem 'otto', '~> 1.1.0.pre.alpha4'
 gem 'storable'
-gem 'tty-table', '~> 0.12.0'
 gem 'uri-redis', '~> 1.3.0'
 
-gem 'redis', '~> 5.4.0'
 gem 'concurrent-ruby', '~> 1.3.5'
+gem 'redis', '~> 5.4.0'
 
 gem 'bcrypt'
 gem 'encryptor', '= 1.1.3'

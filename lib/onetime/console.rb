@@ -60,30 +60,63 @@ if defined?(IRB)
   IRB.conf[:USE_PAGER]        = true if IRB.conf[:USE_PAGER].nil?
 end
 
-Onetime.boot! :cli
-
 # IRB.conf[:RC] indicates whether an RC file (.irbrc) was
 # loaded during IRB initialization
 has_settings = !IRB.conf[:RC].nil?
 has_history  = IRB.conf[:SAVE_HISTORY] > 0
 use_pager    = IRB.conf[:USE_PAGER]
-puts
-puts '╔═══════════════════════════════════════════════════════════════╗'
-puts '║                                                               ║'
-puts '║    ██████  ███    ██ ███████ ████████ ██ ███    ███ ███████   ║'
-puts '║   ██    ██ ████   ██ ██         ██    ██ ████  ████ ██        ║'
-puts '║   ██    ██ ██ ██  ██ █████      ██    ██ ██ ████ ██ █████     ║'
-puts '║   ██    ██ ██  ██ ██ ██         ██    ██ ██  ██  ██ ██        ║'
-puts '║    ██████  ██   ████ ███████    ██    ██ ██      ██ ███████   ║'
-puts '║                                                               ║'
-puts '╚═══════════════════════════════════════════════════════════════╝'
-puts
-puts '  Console Status:'
-puts "    → Settings: #{has_settings ? '✅ Applied (~/.irbrc)' : '❌ Default'}"
-puts "    → History:  #{has_history ? '✅ Enabled' : '❌ Disabled'}"
-puts "    → Pager:    #{use_pager ? '✅ Enabled' : '❌ Disabled'}"
-puts
-puts "  Use 'ctrl-d' to quit."
-puts
+
+content_width = 59
+lines         = [
+  ['SETTINGS', has_settings ? 'ACTIVE' : 'DEFAULT'],
+  ['HISTORY', has_history ? 'ENABLED' : 'DISABLED'],
+  ['PAGER', use_pager ? 'ENABLED' : 'DISABLED'],
+]
+
+banner = []
+banner << <<~BANNER
+  ╔═══════════════════════════════════════════════════════════════╗
+  ║                                                               ║
+  ║    ██████  ███    ██ ███████ ████████ ██ ███    ███ ███████   ║
+  ║   ██    ██ ████   ██ ██         ██    ██ ████  ████ ██        ║
+  ║   ██    ██ ██ ██  ██ █████      ██    ██ ██ ████ ██ █████     ║
+  ║   ██    ██ ██  ██ ██ ██         ██    ██ ██  ██  ██ ██        ║
+  ║    ██████  ██   ████ ███████    ██    ██ ██      ██ ███████   ║
+  ║                                                               ║
+  ╚═══════════════════════════════════════════════════════════════╝
+
+BANNER
+
+banner << "┌#{'─' * (content_width + 2)}┐"
+lines.each do |label, value|
+  banner << format("│ %-#{content_width - 8}s%8s │", "#{label}:", value)
+end
+banner << "└#{'─' * (content_width + 2)}┘"
+
+banner << <<~BANNER
+
+      SYSTEM STATUS: #{OT.ready? ? 'READY         ' : 'NOT BOOTED     '}
+
+BANNER
+
+puts banner
+
+unless ENV['DELAY_BOOT'].to_s.match?(/^(true|1)$/i)
+  Onetime.safe_boot! :cli
+
+  puts <<~BANNER
+
+      SYSTEM STATUS: #{OT.ready? ? 'READY         ' : 'NOT BOOTED     '}
+  BANNER
+
+end
+
+puts <<~BANNER
+
+EXECUTION MAY BE TERMINATED WITH CONTROL-D
+      AWAITING OPERATOR INSTRUCTIONS...
+
+BANNER
+
 
 using IndifferentHashAccess

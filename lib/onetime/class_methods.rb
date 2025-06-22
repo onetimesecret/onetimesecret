@@ -26,10 +26,10 @@ module Onetime
       override_config ||= {}
 
       # Deep merge the configurations, with override_config taking precedence
-      merged_config = OT::Utils.deep_merge(current_config, override_config)
+      runtime_config = OT::Utils.deep_merge(current_config, override_config)
 
       # Replace the global configuration
-      replace_config!(merged_config)
+      replace_config!(runtime_config)
     end
 
     # Returns the current wall clock time as microseconds since Unix epoch
@@ -228,7 +228,7 @@ module Onetime
 
     def with_diagnostics(&)
       config = Onetime.conf[:diagnostics]
-      return unless config[:enabled]
+      return unless config && config[:enabled]
 
       yield(config) # call the block in its own context
     end

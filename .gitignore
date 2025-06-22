@@ -50,8 +50,8 @@ public/web/dist/
 etc/config*
 etc/*.yaml
 support/schemas/
-etc/system_settings*
-!etc/system_settings.example.yaml
+etc/mutable_settings*
+!etc/mutable_settings.example.yaml
 !fly.toml
 .github/*md
 .eslintcache

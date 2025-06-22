@@ -35,19 +35,22 @@ module Frontend
       #   - :COMMON [Hash] Shared translations across pages
       def i18n
          # Return empty hash if locales not available yet
-         return {} unless OT.locales
+         locales = OT.conf['locales']
+         return {} unless locales
 
          locale        = self.locale
          @i18n_cache ||= {}
          return @i18n_cache[locale] if @i18n_cache.key?(locale)
 
+         default-locale = OT.conf['default_locale']
+         supported_locales = OT.conf['supported_locales']
          pagename = self.class.pagename
-         messages = OT.locales&.dig(locale) || {}
+         messages = locales&.dig(locale) || {}
 
          # Fall back to default locale if translations not available
          if messages.empty?
-           OT.le "[#{pagename}.i18n] #{locale} not found in #{OT.locales.keys} (#{OT.supported_locales})"
-           messages = OT.locales&.dig(OT.default_locale) || {}
+           OT.le "[#{pagename}.i18n] #{locale} not found in #{locales.keys} (#{supported_locales})"
+           messages = locales&.dig(default_locale) || {}
          end
 
          # Safe access to nested hash structure
@@ -57,7 +60,7 @@ module Frontend
 
          result = {
            locale: locale,
-           default: OT.default_locale,
+           default: OT.conf[:default_locale],
            page: page_messages,
            COMMON: common_messages,
          }

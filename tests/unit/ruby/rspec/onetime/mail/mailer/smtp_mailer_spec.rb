@@ -67,14 +67,16 @@ RSpec.describe Onetime::Mail::Mailer::SMTPMailer do
   before do
     # Mock the Mail configuration
     allow(OT).to receive(:conf).and_return({
-      emailer: {
-        from: 'system@onetimesecret.com',
-        host: 'smtp.example.com',
-        port: 587,
-        user: 'testuser',
-        pass: 'testpass',
-        auth: 'plain',
-        tls: 'true'
+      mail: {
+        connection: {
+          from: 'system@onetimesecret.com',
+          host: 'smtp.example.com',
+          port: 587,
+          user: 'testuser',
+          pass: 'testpass',
+          auth: 'plain',
+          tls: 'true'
+        },
       },
       site: {
         domain: 'onetimesecret.com'
@@ -111,111 +113,113 @@ RSpec.describe Onetime::Mail::Mailer::SMTPMailer do
   end
 
   describe '#send_email' do
-      it 'sends an email with the correct parameters' do
-        response = mailer.send_email(to_email, subject, html_content, text_content)
+    it 'sends an email with the correct parameters' do
+      response = mailer.send_email(to_email, subject, html_content, text_content)
 
-        # Verify mail_object was properly configured by the Mail.deliver block
-        expect(mail_attrs[:from]).to eq(["#{from_name} <#{from_email}>"])
-        expect(mail_attrs[:reply_to]).to eq([reply_to])
-        expect(mail_attrs[:to]).to eq([to_email])
-        expect(mail_attrs[:subject]).to eq(subject)
+      # Verify mail_object was properly configured by the Mail.deliver block
+      expect(mail_attrs[:from]).to eq(["#{from_name} <#{from_email}>"])
+      expect(mail_attrs[:reply_to]).to eq([reply_to])
+      expect(mail_attrs[:to]).to eq([to_email])
+      expect(mail_attrs[:subject]).to eq(subject)
 
-        # Verify both HTML and text parts are set
-        expect(mail_attrs[:html_body]).to eq(html_content)
-        expect(mail_attrs[:text_body]).to eq(text_content)
+      # Verify both HTML and text parts are set
+      expect(mail_attrs[:html_body]).to eq(html_content)
+      expect(mail_attrs[:text_body]).to eq(text_content)
 
-        # Verify response
-        expect(response).to eq(mail_object)
-      end
+      # Verify response
+      expect(response).to eq(mail_object)
+    end
 
-      it 'logs the email sending process' do
-        # Redefine the expectations with specific order
-        expect(OT).to receive(:li).with("> [send-start] [to: r***@example.com]").ordered
-        expect(OT).to receive(:info).with("> [send-success] Email sent successfully [to: r***@example.com]").ordered
-        expect(OT).to receive(:ld).at_least(5).times
+    it 'logs the email sending process' do
+      # Redefine the expectations with specific order
+      expect(OT).to receive(:li).with("> [send-start] [to: r***@example.com]").ordered
+      expect(OT).to receive(:info).with("> [send-success] Email sent successfully [to: r***@example.com]").ordered
+      expect(OT).to receive(:ld).at_least(5).times
 
-        mailer.send_email(to_email, subject, html_content, text_content)
-      end
+      mailer.send_email(to_email, subject, html_content, text_content)
+    end
 
-      context 'when from_email is nil or empty' do
-        let(:from_email) { nil }
+    context 'when from_email is nil or empty' do
+      let(:from_email) { nil }
 
-        it 'logs an error and returns nil' do
-          # The key issue is that we need to check for the correct condition
-          # The code is checking for "fromname <from>" being empty, not just from_email
-          # Let's configure our test to match this behavior
+      it 'logs an error and returns nil' do
+        # The key issue is that we need to check for the correct condition
+        # The code is checking for "fromname <from>" being empty, not just from_email
+        # Let's configure our test to match this behavior
 
-          # Ensure the fromname is also nil to trigger the condition
-          mailer.instance_variable_set(:@fromname, nil)
+        # Ensure the fromname is also nil to trigger the condition
+        mailer.instance_variable_set(:@fromname, nil)
 
-          # Now set the proper expectation
-          expect(OT).to receive(:le).with("> [send-exception] No from address [to: r***@example.com]")
+        # Now set the proper expectation
+        expect(OT).to receive(:le).with("> [send-exception] No from address [to: r***@example.com]")
 
-          # We need to use `allow` instead of `expect` with `not_to receive`
-          # because the method logic might actually try to call this
-          # but it will return early so the real delivery doesn't happen
-          allow(::Mail).to receive(:deliver).and_return(nil)
+        # We need to use `allow` instead of `expect` with `not_to receive`
+        # because the method logic might actually try to call this
+        # but it will return early so the real delivery doesn't happen
+        allow(::Mail).to receive(:deliver).and_return(nil)
 
-          result = mailer.send_email(to_email, subject, html_content, text_content)
-          expect(result).to be_nil
-        end
-      end
-
-      context 'when SMTP error occurs' do
-        before do
-          allow(::Mail).to receive(:deliver).and_raise(Net::SMTPFatalError.new('550 Mailbox not found'))
-        end
-
-        it 'catches the error and logs it' do
-          expect(OT).to receive(:le).with("> [send-exception-smtperror] 550 Mailbox not found [to: r***@example.com]")
-          expect(OT).to receive(:ld).with(/Net::SMTPFatalError 550 Mailbox not found/)
-
-          result = mailer.send_email(to_email, subject, html_content, text_content)
-          expect(result).to be_nil
-        end
-      end
-
-      context 'when other error occurs' do
-        before do
-          allow(::Mail).to receive(:deliver).and_raise(StandardError.new('Unknown error'))
-        end
-
-        it 'catches the error and logs it' do
-          expect(OT).to receive(:le).with("> [send-exception-sending] StandardError Unknown error [to: r***@example.com]")
-          expect(OT).to receive(:ld)
-
-          result = mailer.send_email(to_email, subject, html_content, text_content)
-          expect(result).to be_nil
-        end
-      end
-  end
-
-    describe '.setup' do
-      it 'configures Mail defaults with correct SMTP settings' do
-        smtp_settings = {
-          address: 'smtp.example.com',
-          port: 587,
-          domain: 'onetimesecret.com',
-          user_name: 'testuser',
-          password: 'testpass',
-          authentication: 'plain',
-          enable_starttls_auto: true
-        }
-
-        # Expect Mail.defaults to be called with a block
-        expect(::Mail).to receive(:defaults) do |&block|
-          # Create a context where delivery_method can be called
-          context = Object.new
-          allow(context).to receive(:delivery_method)
-
-          # Expect delivery_method to be called with the correct parameters
-          expect(context).to receive(:delivery_method).with(:smtp, smtp_settings)
-
-          # Execute the block in the context
-          context.instance_eval(&block)
-        end
-
-        described_class.setup
+        result = mailer.send_email(to_email, subject, html_content, text_content)
+        expect(result).to be_nil
       end
     end
+
+    context 'when SMTP error occurs' do
+      before do
+        allow(::Mail).to receive(:deliver).and_raise(Net::SMTPFatalError.new('550 Mailbox not found'))
+      end
+
+      it 'catches the error and logs it' do
+        expect(OT).to receive(:le).with("> [send-exception-smtperror] 550 Mailbox not found [to: r***@example.com]")
+        expect(OT).to receive(:ld).with(/Net::SMTPFatalError 550 Mailbox not found/)
+
+        result = mailer.send_email(to_email, subject, html_content, text_content)
+        expect(result).to be_nil
+      end
+    end
+
+    context 'when other error occurs' do
+      before do
+        allow(::Mail).to receive(:deliver).and_raise(StandardError.new('Unknown error'))
+      end
+
+      it 'catches the error and logs it' do
+        expect(OT).to receive(:le).with("> [send-exception-sending] StandardError Unknown error [to: r***@example.com]")
+        expect(OT).to receive(:ld)
+
+        result = mailer.send_email(to_email, subject, html_content, text_content)
+        expect(result).to be_nil
+      end
+    end
+  end
+
+  describe '.setup' do
+    it 'configures Mail defaults with correct SMTP settings' do
+      smtp_settings =  {
+        connection: {
+          from: 'system@onetimesecret.com',
+          host: 'smtp.example.com',
+          port: 587,
+          user: 'testuser',
+          pass: 'testpass',
+          auth: 'plain',
+          tls: 'true'
+        },
+      };
+
+      # Expect Mail.defaults to be called with a block
+      expect(::Mail).to receive(:defaults) do |&block|
+        # Create a context where delivery_method can be called
+        context = Object.new
+        allow(context).to receive(:delivery_method)
+
+        # Expect delivery_method to be called with the correct parameters
+        expect(context).to receive(:delivery_method).with(:smtp, smtp_settings)
+
+        # Execute the block in the context
+        context.instance_eval(&block)
+      end
+
+      described_class.setup(smtp_settings)
+    end
+  end
 end

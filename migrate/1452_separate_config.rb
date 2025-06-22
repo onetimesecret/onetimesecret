@@ -4,7 +4,7 @@
 # Configuration Separation Migration Script
 #
 # Purpose: Separates monolithic config.example.yaml into static and dynamic configuration files.
-# Static config goes to etc/config.yaml, dynamic config gets loaded into V2::SystemSettings.
+# Static config goes to etc/config.yaml, dynamic config gets loaded into V2::MutableSettings.
 #
 # Usage:
 #   ruby migrate/1452_separate_config.rb --dry-run  # Preview changes
@@ -75,7 +75,7 @@ module Onetime
       @static_config = File.join(@base_path, 'etc', 'config.static.yaml')
       @dynamic_config = File.join(@base_path, 'etc', 'config.dynamic.yaml')
       @final_static_path = File.join(@base_path, 'etc', 'config.yaml')
-      @final_dynamic_path = File.join(@base_path, 'etc', 'system_settings.defaults.yaml')
+      @final_dynamic_path = File.join(@base_path, 'etc', 'mutable_settings.yaml')
 
       debug ''
       debug "Paths:"

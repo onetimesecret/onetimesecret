@@ -39,12 +39,14 @@ export function createErrorBoundary(options: ErrorBoundaryOptions = {}): Plugin 
        * @see https://vuejs.org/api/application#app-config-errorhandler
        */
       app.config.errorHandler = (error, instance, info) => {
-        const { client, scope } = inject(SENTRY_KEY) as SentryInstance;
+        const sentryInstance = inject(SENTRY_KEY, null) as SentryInstance | null;
 
-        if (!client) {
+        if (!sentryInstance?.client) {
           console.debug('Sentry not initialized');
           return;
         }
+
+        const { scope } = sentryInstance;
 
         const classifiedError = classifyError(error);
         loggingService.error(error as Error);

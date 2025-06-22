@@ -89,15 +89,20 @@ module Onetime::Mail
         mailer_response
       end
 
-      def self.setup
-        settings    = mail_settings
-        domain_name = mail_domain
+      def self.setup(config)
+        @mail_settings = config['mail']['connection']
+        @mail_domain   = config['site']['domain']
+
+        # We need local references to use inside the Mail.defaults block
+        settings = mail_settings
+        domain   = mail_domain
 
         ::Mail.defaults do
+          # We are now inside Mail::Configuration
           delivery_method :smtp, {
             address: settings[:host] || 'localhost',
             port: settings[:port] || 587,
-            domain: domain_name,
+            domain: domain,
             user_name: settings[:user],
             password: settings[:pass],
             authentication: settings[:auth],

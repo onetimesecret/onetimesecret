@@ -110,10 +110,10 @@ RSpec.describe Onetime do
       end
 
       it 'preserves original values not overridden' do
-        expect(OT).to receive(:replace_config!) do |merged_config|
-          expect(merged_config['site']['interface']['api']['enabled']).to eq(true)
-          expect(merged_config['mail']['truemail']['verifier_email']).to eq('verifier@example.com')
-          expect(merged_config['limits']['send_feedback']).to eq(10)
+        expect(OT).to receive(:replace_config!) do |runtime_config|
+          expect(runtime_config['site']['interface']['api']['enabled']).to eq(true)
+          expect(runtime_config['mail']['truemail']['verifier_email']).to eq('verifier@example.com')
+          expect(runtime_config['limits']['send_feedback']).to eq(10)
         end
 
         Onetime.apply_config(override_config)
@@ -131,11 +131,11 @@ RSpec.describe Onetime do
           }
         }
 
-        expect(OT).to receive(:replace_config!) do |merged_config|
-          expect(merged_config['diagnostics']['enabled']).to eq(true)
-          expect(merged_config['diagnostics']['sentry']['backend']['dsn']).to eq('https://new-backend@sentry.example.com/1')
-          expect(merged_config['diagnostics']['sentry']['backend']['sampleRate']).to eq(0.5)
-          expect(merged_config['diagnostics']['sentry']['frontend']['dsn']).to eq('https://frontend@sentry.example.com/2')
+        expect(OT).to receive(:replace_config!) do |runtime_config|
+          expect(runtime_config['diagnostics']['enabled']).to eq(true)
+          expect(runtime_config['diagnostics']['sentry']['backend']['dsn']).to eq('https://new-backend@sentry.example.com/1')
+          expect(runtime_config['diagnostics']['sentry']['backend']['sampleRate']).to eq(0.5)
+          expect(runtime_config['diagnostics']['sentry']['frontend']['dsn']).to eq('https://frontend@sentry.example.com/2')
         end
 
         Onetime.apply_config(nested_override)
@@ -169,12 +169,12 @@ RSpec.describe Onetime do
           mail: nil
         }
 
-        expect(OT).to receive(:replace_config!) do |merged_config|
+        expect(OT).to receive(:replace_config!) do |runtime_config|
           # nil values in override should preserve original values
-          expect(merged_config['site']['interface']['ui']['enabled']).to eq(true)
+          expect(runtime_config['site']['interface']['ui']['enabled']).to eq(true)
           # Convert original config mail section to string keys for comparison
           original_mail_normalized = OT::Utils.deep_merge({}, { mail: original_config[:mail] })['mail']
-          expect(merged_config['mail']).to eq(original_mail_normalized)
+          expect(runtime_config['mail']).to eq(original_mail_normalized)
         end
 
         Onetime.apply_config(override_with_nils)
@@ -229,15 +229,15 @@ RSpec.describe Onetime do
           }
         }
 
-        expect(OT).to receive(:replace_config!) do |merged_config|
-          expect(merged_config['site']['host']).to eq('custom.example.com')
-          expect(merged_config['site']['interface']['ui']['enabled']).to eq(false)
-          expect(merged_config['site']['secret_options']['default_ttl']).to eq(7200)
-          expect(merged_config['mail']['truemail']['verifier_email']).to eq('custom@example.com')
-          expect(merged_config['mail']['truemail']['default_validation_type']).to eq('regex')
-          expect(merged_config['limits']['create_secret']).to eq(1000)
-          expect(merged_config['limits']['send_feedback']).to eq(50)
-          expect(merged_config['diagnostics']['enabled']).to eq(false)
+        expect(OT).to receive(:replace_config!) do |runtime_config|
+          expect(runtime_config['site']['host']).to eq('custom.example.com')
+          expect(runtime_config['site']['interface']['ui']['enabled']).to eq(false)
+          expect(runtime_config['site']['secret_options']['default_ttl']).to eq(7200)
+          expect(runtime_config['mail']['truemail']['verifier_email']).to eq('custom@example.com')
+          expect(runtime_config['mail']['truemail']['default_validation_type']).to eq('regex')
+          expect(runtime_config['limits']['create_secret']).to eq(1000)
+          expect(runtime_config['limits']['send_feedback']).to eq(50)
+          expect(runtime_config['diagnostics']['enabled']).to eq(false)
         end
 
         Onetime.apply_config(complete_override)

@@ -11,23 +11,29 @@ module Onetime
   @env   = (ENV['RACK_ENV'] || 'production').downcase
   @debug = ENV['ONETIME_DEBUG'].to_s.match?(/^(true|1)$/i)
 
-  # Contains the global configuration hash via ConfigProxy.
+  # Contains the global instance of ConfigProxy which is set at boot-time
+  # and lives for the duration of the process. Accessed externally via
+  # `Onetime.conf` method.
+  #
   # Provides unified access to both static and dynamic configuration.
   #
-  # We use a Concurrent::AtomicReference to ensure thread-safe updates if we
-  # need to replace the ConfigProxy instance.
-  @conf  = nil
+  # NOTE: The distinction between static configuration (essential settings
+  # needed for basic operation) and system readiness (fully initialized,
+  # validated, and operational state. These are separate concerns. OT.conf
+  # should always return some level of configuration. IOW, we generally
+  # shouldn't write code that deals with OT.conf being nil. The exception is
+  # the code that runs immediately at process start and the tests relevant
+  # to that specific behaviour.
+  #
+  @mutex        = Mutex.new
+  @config_proxy = nil
 
   class << self
 
-    attr_reader :conf, :instance, :mode, :debug, :env
-
-    def boot!(*)
-      Boot.boot!(*)
-    end
+    attr_reader :instance, :mode, :debug, :env, :config_proxy
 
     def safe_boot!(*)
-      boot!(*)
+      Boot.boot!(*)
       true
     rescue StandardError
       # Boot errors are already logged in handle_boot_error
@@ -37,20 +43,52 @@ module Onetime
       # nil here it means that there's also no schema (which has the defaults).
       if OT.conf.nil?
         OT.le '-' * 70
-        OT.le '[BOOT] Configuration failed to load and validate'
-        OT.le '[BOOT] Has the schema been generated? Run `pnpm run schema:generate`'
+        OT.le '[BOOT] Configuration failed to load and validate. If there are no'
+        OT.le '[BOOT] error messages above, run again with ONETIME_DEBUG=1 and/or'
+        OT.le '[BOOT] make sure the config schema exists. Run `pnpm run schema:generate`'
         OT.le '-' * 70
         nil
       end
     end
 
-    def set_conf(new_config_proxy)
-      @conf = new_config_proxy
+    # A convenience method for accessing the configuration proxy.
+    def conf
+      # TODO: Need to provide static config asap before boot.
+      config_proxy || {}
+    end
+
+    # A convenience method for accessing the ServiceRegistry application state.
+    def state
+      # TODO: Is it okay/reasonable to check the readiness here? I think so b/c
+      # the service registry state is 1) new, so older code doesn't depend on it
+      # and 2) it is a specific reason for and result of the full boot initialization
+      # process. There is no notion of a service registry state before boot. Or
+      # to put it another way, code that runs prior to boot should not be
+      # depending on the service registry state.
+      #
+      # So then the question becomes: should we check readiness here to decide
+      # what to return or simply return nil. It's the responsibility of the
+      # calling code to check readiness before accessing the state.
+      ready? ? Onetime::Services::ServiceRegistry.state : {}
+    end
+
+    # A convenience method for accessing the ServiceRegistry providers.
+    def provider
+      # Ditto
+      ready? ? Onetime::Services::ServiceRegistry.provider : {}
+    end
+
+    def set_config_proxy(config_proxy)
+      @mutex.synchronize do
+        @config_proxy = config_proxy
+      end
     end
 
     def set_boot_state(mode, instanceid)
-      @mode       = mode || :app
-      @instance   = instanceid # TODO: rename OT.instance -> instanceid
+      @mutex.synchronize do
+        @mode       = mode || :app
+        @instance   = instanceid # TODO: rename OT.instance -> instanceid
+      end
     end
   end
 
@@ -104,12 +142,9 @@ module Onetime
       @configurator = OT::Configurator.load! do |config|
         OT.ld '[BOOT] Processing hook - config transformations before final freeze'
         unless run_init_scripts(config, **script_options)
-          raise OT::ConfigurationError, 'Initialization scripts failed'
+          raise OT::ConfigError, 'Initialization scripts failed'
         end
       end
-
-      OT.li "[BOOT] Configuration loaded from #{configurator.config_path} is now frozen"
-      # System services should start immediately after config freeze
 
       # The configuration hash we get back here is frozen, deep_clone of the
       # original. In fact every call to configurator.configuration will return
@@ -120,22 +155,28 @@ module Onetime
       # ServiceRegistry.app_state if necessary.
       config = configurator.configuration
 
-      # With the services up and healthy, we can create a ConfigProxy and make
-      # it available system-wide via OT.conf. We prime it with the processed
-      # and validated static config.
-      Onetime.set_conf(Services::ConfigProxy.new(config))
+      OT.li "[BOOT] Configuration loaded from #{configurator.config_path} is now frozen"
+      # System services should start immediately after config freeze
 
-      # Start system services with frozen configuration
+      # System services are designed to start with frozen configuration
       OT.ld '[BOOT] Starting system services...'
       require_relative 'services/system'
       OT::Services::System.start_all(config, connect_to_db: connect_to_db)
 
-      # Check if services started successfully
-      unless OT::Services::ServiceRegistry.ready?
-        return OT.le '[BOOT] System services failed to start'
+      if OT::Services::ServiceRegistry.ready?
+        OT.ld '[BOOT] Completing initialization process...'
+
+        # With the services up and healthy, we can create a ConfigProxy and make
+        # it available system-wide via OT.conf. The processed and validated merged
+        # configuration is now available application-wide.
+        Onetime.set_config_proxy(Services::ConfigProxy.new(config))
+
+      else
+        OT.le '[BOOT] System services failed to start'
+        OT.le '[BOOT] This means OT.conf and friends are not available'
+        return
       end
 
-      OT.ld '[BOOT] Completing initialization process...'
       Onetime.complete_initialization!
       OT.li "[BOOT] Startup completed successfully (instance: #{instanceid})"
 
@@ -207,7 +248,8 @@ module Onetime
 
     # File existence is already checked by the scripts_to_run filter
     def run_init_script(config_being_processed, section_key, file_path, **)
-      OT.ld "[BOOT] Preparing to execute init script for section: '#{section_key}' (from #{file_path})"
+      pretty_path = Onetime::Utils.pretty_path(file_path)
+      OT.ld "[BOOT] Preparing '#{section_key}' init script (#{pretty_path})"
 
       # Create a frozen snapshot of the *current* state of the main config
       # This snapshot includes changes from any previous scripts in this loop.
@@ -224,7 +266,7 @@ module Onetime
       )
 
       execute_script_with_context(file_path, context)
-      OT.ld "[BOOT] Finished processing init script for section: '#{section_key}'."
+      OT.ld "[BOOT] Finished processing '#{section_key}' init script."
     end
 
     def execute_script_with_context(file_path, context)
@@ -233,7 +275,8 @@ module Onetime
       # Technically it's no less secure than reading a ruby file in a
       # different branch of the project, but since it sits near the YAML
       # configuration file, it is more exposed to tomfoolery.
-      OT.ld "[BOOT] Executing: #{context.section_key} (file: #{file_path})"
+      pretty_path = Onetime::Utils.pretty_path(file_path)
+      OT.ld "[BOOT] Executing '#{context.section_key}' init script (#{pretty_path})"
       OT::Configurator::Load.ruby_load_file(file_path, context)
 
       # Allow exceptions (including SystemExit) to be handled up the chain
@@ -286,5 +329,13 @@ module Onetime
       # we continue with reduced functionality.
       raise error unless OT.mode?(:cli) || OT.mode?(:test)
     end
+  end
+
+  # Immediate loading - config available as soon as module loads
+  @static_config = begin
+    Onetime::Configurator.load_with_impunity!
+  rescue StandardError => ex
+    puts "Failed to load static config: #{ex.message}"
+    exit 1
   end
 end

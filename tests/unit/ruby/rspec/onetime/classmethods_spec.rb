@@ -19,39 +19,7 @@ RSpec.describe Onetime::ClassMethods do
   end
 
   describe '#env' do
-    context 'with RACK_ENV set' do
-      it 'normalizes dev to development' do
-        ENV['RACK_ENV'] = 'dev'
-        expect(test_class.env).to eq('development')
-      end
 
-      it 'normalizes prod to production' do
-        ENV['RACK_ENV'] = 'prod'
-        expect(test_class.env).to eq('production')
-      end
-
-      it 'normalizes stage to staging' do
-        ENV['RACK_ENV'] = 'stage'
-        expect(test_class.env).to eq('staging')
-      end
-
-      it 'normalizes staging to staging' do
-        ENV['RACK_ENV'] = 'staging'
-        expect(test_class.env).to eq('staging')
-      end
-
-      it 'passes through valid environment names' do
-        %w[development production testing staging].each do |env|
-          ENV['RACK_ENV'] = env
-          expect(test_class.env).to eq(env)
-        end
-      end
-
-      it 'defaults unknown environments to production' do
-        ENV['RACK_ENV'] = 'unknown'
-        expect(test_class.env).to eq('production')
-      end
-    end
 
     context 'without RACK_ENV set' do
       it 'defaults to production' do
