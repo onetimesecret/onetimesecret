@@ -5,6 +5,7 @@ require_relative '../../base_application'
 require_relative 'models'
 require_relative 'logic'
 require_relative 'controllers'
+require_relative 'utils'
 
 module V1
   class Application < ::BaseApplication

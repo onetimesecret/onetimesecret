@@ -2,6 +2,8 @@
 
 require 'onetime/refinements/rack_refinements'
 
+require_relative '../../utils'
+
 module V1::Logic
   module Secrets
 
