@@ -76,12 +76,15 @@ minimal_test_config = {
   },
   development: {},
   mail: {
-    truemail: {}
+    connection: {},
+    validation: {
+      defaults: {},
+    },
   }
 }
 
 # Set the configuration directly for tests
-OT.send(:conf=, minimal_test_config)
+OT.instance_variable_set(:@static_config, minimal_test_config)
 
 # Configure RSpec
 RSpec.configure do |config|
