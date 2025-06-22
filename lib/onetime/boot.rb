@@ -32,6 +32,11 @@ module Onetime
 
     attr_reader :instance, :mode, :debug, :env, :config_proxy
 
+    def boot!(*)
+      Boot.boot!(*)
+      self
+    end
+
     def safe_boot!(*)
       Boot.boot!(*)
       true
