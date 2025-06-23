@@ -21,11 +21,11 @@ require_relative '../onetime'
 require_relative '../onetime/models'
 require_relative '../onetime/refinements/indifferent_hash_access'
 
-# # Create a custom workspace with your loaded environment
+# Create a custom workspace with your loaded environment
 # workspace = IRB::WorkSpace.new(binding)
 # irb = IRB::Irb.new(workspace)
 
-# # Start the session
+# Start the session
 # IRB.conf[:MAIN_CONTEXT] = irb.context
 # irb.eval_input
 
@@ -33,11 +33,11 @@ require_relative '../onetime/refinements/indifferent_hash_access'
 if defined?(IRB)
   require 'irb/completion'
   IRB.conf[:PROMPT][:ONETIME] = {
-    PROMPT_I: 'onetime> ',    # The main prompt
-    PROMPT_S: '%l ',   # The prompt for continuing strings
+    PROMPT_I: 'ONETIME> ',    # The main prompt
+    PROMPT_S: '%l ',     # The prompt for continuing strings
     PROMPT_C: '↳  ',    # The prompt for continuing statements
     PROMPT_N: '⇢  ',    # The prompt for nested statements
-    RETURN: "⮑  %s\n",         # The format for return values
+    RETURN: "⮑  %s\n",  # The format for return values
   }
   IRB.conf[:IRB_RC]           = proc do |context|
     context.workspace.binding.eval('using IndifferentHashAccess')
@@ -95,28 +95,28 @@ banner << "└#{'─' * (content_width + 2)}┘"
 
 banner << <<~BANNER
 
-      SYSTEM STATUS: #{OT.ready? ? 'READY         ' : 'NOT BOOTED     '}
+  SYSTEM STATUS: #{OT.ready? ? 'READY         ' : 'NOT BOOTED     '}
 
 BANNER
 
 puts banner
 
+# Boot up
 unless ENV['DELAY_BOOT'].to_s.match?(/^(true|1)$/i)
   Onetime.safe_boot! :cli
 
   puts <<~BANNER
 
-      SYSTEM STATUS: #{OT.ready? ? 'READY         ' : 'NOT BOOTED     '}
+    SYSTEM STATUS: #{OT.ready? ? 'READY         ' : 'NOT BOOTED     '}
   BANNER
 
 end
 
 puts <<~BANNER
 
-EXECUTION MAY BE TERMINATED WITH CONTROL-D
-      AWAITING OPERATOR INSTRUCTIONS...
+  USE CTRL-D TO EXIT
+  AWAITING OPERATOR INSTRUCTIONS...
 
 BANNER
-
 
 using IndifferentHashAccess
