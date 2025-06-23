@@ -201,7 +201,7 @@ module Onetime
         return
       end
 
-      for_realsies? do
+      for_realsies_this_time? do
         FileUtils.cp(@source_config, backup_path)
         track_stat(:backup_created)
         info "Created backup: #{backup_path}"
@@ -214,7 +214,7 @@ module Onetime
         return
       end
 
-      for_realsies? do
+      for_realsies_this_time? do
         # Use perl to convert symbol keys to strings
         cmd = "perl -pe 's/^(\\s*):([a-zA-Z_][a-zA-Z0-9_]*)/\\1\\2/g' '#{@source_config}' > '#{@converted_config}'"
         success = system(cmd)
