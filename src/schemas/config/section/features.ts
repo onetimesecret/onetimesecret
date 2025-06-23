@@ -10,12 +10,6 @@ const featuresIncomingSchema = z.object({
   regex: z.string().optional(),
 });
 
-const featuresStathatSchema = z.object({
-  enabled: z.boolean().optional(),
-  apikey: z.string().optional(),
-  default_chart: z.string().optional(),
-});
-
 const featuresRegionJurisdictionIconSchema = z.object({
   collection: z.string().optional(),
   name: z.string().optional(),
@@ -72,7 +66,6 @@ const featuresDomainsSchema = z.object({
 
 const featuresSchema = z.object({
   incoming: featuresIncomingSchema.optional(),
-  stathat: featuresStathatSchema.optional(),
   regions: featuresRegionsSchema.optional(),
   plans: featuresPlansSchema.optional(),
   domains: featuresDomainsSchema.optional(),
