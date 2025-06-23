@@ -277,13 +277,13 @@ const mailValidationSchema = z.object({
     .optional(),
 });
 
-const dynamicMailValidationSchema = z.object({
+const mutableMailValidationSchema = z.object({
   recipients: mailValidationSchema.optional(),
   accounts: mailValidationSchema.optional(),
 });
 
-const dynamicMailSchema = z.object({
-  validation: dynamicMailValidationSchema.optional(),
+const mutableMailSchema = z.object({
+  validation: mutableMailValidationSchema.optional(),
 });
 
 export const mutableSettingsSchema = z.object({
@@ -292,7 +292,7 @@ export const mutableSettingsSchema = z.object({
   secret_options: secretOptionsSchema.optional(),
   features: featuresSchema.optional(),
   limits: limitsSchema.optional(),
-  mail: dynamicMailSchema.optional(), // Updated mail schema
+  mail: mutableMailSchema.optional(), // Updated mail schema
 });
 
 export const mutableSettingsDetailsSchema = mutableSettingsSchema.extend({});
