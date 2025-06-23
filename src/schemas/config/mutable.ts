@@ -1,7 +1,16 @@
 // src/schemas/config/runtime.ts
 
+/**
+ * Mutable Configuration Schema
+ *
+ * This module defines the schema for mutable configuration settings that
+ * can be modified during operation. It includes mutable settings that can
+ * be modified during operation, while respecting the boundaries (infrastructure
+ * topology and business rules) established by the static configuration.
+ *
+ */
+
 import { z } from 'zod/v4';
-import { nullableString } from './shared/primitives';
 
 import { userInterfaceSchema } from './section/ui';
 import { featuresSchema } from './section/features';

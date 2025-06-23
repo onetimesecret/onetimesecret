@@ -1,42 +1,17 @@
 // src/schemas/config/index.ts
 
 /**
- * Configuration Schema Architecture
+ * Static Configuration Schema
  *
- * This module defines two complementary schema types for application configuration:
  *
- * Static Config Schema (staticConfigSchema):
- * - Defines infrastructure topology and system capabilities
- * - Establishes the bounds of what's possible in the application
- * - Represents bootstrap configuration that sets up foundational services
- *
- * Mutable Settings Schema (mutableSettingsSchema):
- * - Defines business policies and runtime behavior
- * - Operates within the bounds established by static configuration
- * - Represents dynamic settings that can be modified during operation
- *
- * Static + Mutable -> Runtime Config.
- *
- * Design Principle:
- * Separate concerns during authoring, unify for consumption. The configuration
- * system merges these schemas at runtime, with merge priority ensuring that
- * runtime policies cannot break infrastructure constraints. This creates a
- * capability-based configuration where the runtime settings object becomes
- * the operational source of truth while respecting both infrastructure
- * topology and business rules.
  */
 
 import { z } from 'zod/v4';
-import { nullableString } from './shared/primitives';
 
 import { siteSchema } from './section/site';
 import { storageSchema } from './section/storage';
 import { mailConnectionSchema, mailValidationSchema } from './section/mail';
 import { diagnosticsSchema } from './section/diagnostics';
-
-const apiSchema = z.object({
-  enabled: z.boolean().default(true),
-});
 
 // 'connection' and 'validation' are required for 'mail'
 // The 'defaults' property within 'validation' is an object type is
@@ -83,6 +58,6 @@ const configSchema = z.object({
   experimental: experimentalSchema,
 });
 
-export type StaticConfig = z.infer<typeof configSchema>;
+export type Config = z.infer<typeof configSchema>;
 
 export { configSchema };

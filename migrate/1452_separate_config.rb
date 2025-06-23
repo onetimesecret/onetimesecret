@@ -50,7 +50,7 @@ module Onetime
         { 'from' => 'experimental.middleware', 'to' => 'site.middleware' },
       ],
       'dynamic' => [
-        { 'from' => 'site.interface.ui', 'to' => 'user_interface' },
+        { 'from' => 'site.interface.ui', 'to' => 'ui' },
         { 'from' => 'site.authentication.signup', 'to' => 'user_interface.signup' },
         { 'from' => 'site.authentication.signin', 'to' => 'user_interface.signin' },
         { 'from' => 'site.authentication.verify', 'to' => 'user_interface.autoverify' },
