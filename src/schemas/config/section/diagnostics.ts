@@ -1,7 +1,7 @@
 // src/schemas/config/diagnostics.ts
 
 import { z } from 'zod/v4';
-import { nullableString } from './shared/primitives';
+import { nullableString } from '../shared/primitives';
 
 const diagnosticsSentryDefaultsSchema = z.object({
   dsn: nullableString,
@@ -22,7 +22,9 @@ const diagnosticsSentrySchema = z.object({
   frontend: diagnosticsSentryFrontendSchema.optional(),
 });
 
-const sectionDiagnosticsSchema = z.object({
+const diagnosticsSchema = z.object({
   enabled: z.boolean().default(false),
   sentry: diagnosticsSentrySchema.optional(),
 });
+
+export { diagnosticsSchema };

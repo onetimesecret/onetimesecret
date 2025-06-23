@@ -1,7 +1,7 @@
 // src/schemas/config/features.ts
 
 import { z } from 'zod/v4';
-import { nullableString } from './shared/primitives';
+import { nullableString } from '../shared/primitives';
 
 const featuresIncomingSchema = z.object({
   enabled: z.boolean().optional(),
@@ -70,10 +70,12 @@ const featuresDomainsSchema = z.object({
   cluster: featuresDomainsClusterSchema.optional(),
 });
 
-const sectionFeaturesSchema = z.object({
+const featuresSchema = z.object({
   incoming: featuresIncomingSchema.optional(),
   stathat: featuresStathatSchema.optional(),
   regions: featuresRegionsSchema.optional(),
   plans: featuresPlansSchema.optional(),
   domains: featuresDomainsSchema.optional(),
 });
+
+export { featuresSchema };

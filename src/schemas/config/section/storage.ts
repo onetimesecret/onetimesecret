@@ -1,7 +1,6 @@
 // src/schemas/config/storage.ts
 
 import { z } from 'zod/v4';
-import { nullableString } from './shared/primitives';
 
 const storageDbConnectionSchema = z.object({
   url: z.string().default('redis://localhost:6379'),
@@ -41,8 +40,10 @@ const storageDbSchema = z.object({
  * The Ruby default generator will only create database configuration when
  * explicitly specified, preventing unnecessary Redis connection attempts.
  */
-const sectionStorageSchema = z.object({
+const storageSchema = z.object({
   // Kept optional per existing JSON schema. If db were required for storage,
   // it would need .default({})
   db: storageDbSchema.optional(),
 });
+
+export { storageSchema };

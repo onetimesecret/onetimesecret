@@ -1,7 +1,7 @@
 // src/schemas/config/ui.ts
 
 import { z } from 'zod/v4';
-import { nullableString } from './shared/primitives';
+import { nullableString } from '../shared/primitives';
 
 const userInterfaceLogoSchema = z.object({
   url: z.string().optional(),
@@ -53,3 +53,5 @@ const userInterfaceSchema = z.object({
   signin: z.boolean().optional(), // Added
   autoverify: z.null().optional(), // Added, YAML has 'null'
 });
+
+export { userInterfaceSchema };

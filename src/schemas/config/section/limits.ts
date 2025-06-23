@@ -82,9 +82,11 @@ const createRateLimitFields = () => {
   return fields;
 };
 
-const sectionLimitsSchema = z.object(createRateLimitFields()).catchall(rateLimitValue);
+const limitsSchema = z.object(createRateLimitFields()).catchall(rateLimitValue);
 
 // Rate limit types for better type safety
 export type RateLimitKey = (typeof RATE_LIMIT_KEYS)[number] | string;
-export type RateLimits = z.infer<typeof sectionLimitsSchema>;
+export type RateLimits = z.infer<typeof limitsSchema>;
 export { RATE_LIMIT_KEYS };
+
+export { limitsSchema };

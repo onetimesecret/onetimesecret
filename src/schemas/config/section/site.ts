@@ -1,7 +1,6 @@
 // src/schemas/config/site.ts
 
 import { z } from 'zod/v4';
-import { nullableString } from './shared/primitives';
 
 const siteAuthenticationSchema = z.object({
   enabled: z.boolean().default(false),
@@ -27,7 +26,7 @@ const siteMiddlewareSchema = z.object({
   strict_transport: z.boolean().optional(),
 });
 
-const sectionSiteSchema = z.object({
+const siteSchema = z.object({
   host: z.string().default('localhost:3000'),
   ssl: z.boolean().default(false),
   secret: z.string().default('CHANGEME'),
@@ -35,3 +34,5 @@ const sectionSiteSchema = z.object({
   authenticity: siteAuthenticitySchema,
   middleware: siteMiddlewareSchema,
 });
+
+export { siteSchema };

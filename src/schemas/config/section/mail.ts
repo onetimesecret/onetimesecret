@@ -31,12 +31,7 @@ const mailValidationSchema = z.object({
     .optional(),
 });
 
-const mutableMailValidationSchema = z.object({
-  recipients: mailValidationSchema.optional(),
-  accounts: mailValidationSchema.optional(),
-});
-
-const staticMailConnectionSchema = z.object({
+const mailConnectionSchema = z.object({
   mode: z.string().default('smtp'),
   auth: z.string().default('login'),
   region: z.string().optional(),
@@ -49,23 +44,4 @@ const staticMailConnectionSchema = z.object({
   tls: z.boolean().nullable().optional(),
 });
 
-// The 'defaults' property within 'validation' is an object type is
-// the same shape as recipient and accounts fields.
-const staticMailIndividualValidationSchema = mailValidationSchema; // Alias for clarity
-
-// 'validation' itself is a required property of 'mail'.
-// The 'defaults' property *within* 'validation' is optional.
-// So mailValidationSchema refers to the structure for mail.validation.
-const mailValidationSchema = z.object({
-  defaults: staticMailIndividualValidationSchema.optional(), // 'defaults' key is optional
-});
-
-const mutableMailSchema = z.object({
-  validation: mutableMailValidationSchema.optional(),
-});
-
-// 'connection' and 'validation' are required for 'mail'
-const staticMailSchema = z.object({
-  connection: staticMailConnectionSchema, // Ensure connection object is created
-  validation: mailValidationSchema, // Ensure validation object is created
-});
+export { mailConnectionSchema, mailValidationSchema };

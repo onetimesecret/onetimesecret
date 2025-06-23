@@ -2,6 +2,6 @@
 
 import { z } from 'zod/v4';
 
-export const nullableString = z.string().nullable().optional();
+const nullableString = z.string().nullable().optional();
 
-export { z };
+export { nullableString };
