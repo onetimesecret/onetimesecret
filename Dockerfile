@@ -96,13 +96,14 @@
 # Ruby 3 base image.
 #
 ARG CODE_ROOT=/app
-ARG ONETIME_HOME=/opt/onetime
+ARG ONETIME_HOME=/app
 ARG VERSION
 
 FROM docker.io/library/ruby:3.4-slim-bookworm@sha256:93664239ae7e485147c2fa83397fdc24bf7b7f1e15c3ad9d48591828a50a50e7 AS base
 
 # Limit to packages needed for the system itself
 ARG PACKAGES="build-essential rsync netcat-openbsd libffi-dev libyaml-dev git"
+# ARG EXTRA_PACKAGES="yq"
 
 # Fast fail on errors while installing system packages
 RUN set -eux \
@@ -139,11 +140,6 @@ ARG CODE_ROOT
 ARG ONETIME_HOME
 ARG VERSION
 
-# Create the directories that we need in the following image
-RUN set -eux \
-  && echo "Creating directories" \
-  && mkdir -p $CODE_ROOT $ONETIME_HOME/{log,tmp}
-
 WORKDIR $CODE_ROOT
 
 ENV NODE_PATH=$CODE_ROOT/node_modules
@@ -166,8 +162,14 @@ RUN set -eux \
 # BUILD LAYER
 #
 FROM app_deps AS build
+ARG ONETIME_HOME
 ARG CODE_ROOT
 ARG VERSION
+
+# Create the directories that we need in the following image
+RUN set -eux \
+  && echo "Creating directories" \
+  && mkdir -p $ONETIME_HOME/etc
 
 WORKDIR $CODE_ROOT
 
@@ -197,6 +199,7 @@ RUN VERSION=$(node -p "require('./package.json').version") \
 #
 FROM ruby:3.4-slim-bookworm@sha256:93664239ae7e485147c2fa83397fdc24bf7b7f1e15c3ad9d48591828a50a50e7 AS final
 ARG CODE_ROOT
+ARG ONETIME_HOME
 ARG VERSION
 LABEL org.opencontainers.image.version=$VERSION
 
@@ -204,6 +207,7 @@ WORKDIR $CODE_ROOT
 
 ## Copy only necessary files from previous stages
 COPY --from=build /usr/local/bundle /usr/local/bundle
+COPY --from=build $CODE_ROOT/etc/ $CODE_ROOT/etc/
 COPY --from=build $CODE_ROOT/public $CODE_ROOT/public
 COPY --from=build $CODE_ROOT/templates $CODE_ROOT/templates
 COPY --from=build $CODE_ROOT/src $CODE_ROOT/src
@@ -213,6 +217,7 @@ COPY etc $CODE_ROOT/etc
 COPY lib $CODE_ROOT/lib
 COPY migrate $CODE_ROOT/migrate
 COPY scripts/entrypoint.sh $CODE_ROOT/bin/
+COPY scripts/update-version.sh $CODE_ROOT/bin/
 COPY package.json config.ru Gemfile Gemfile.lock $CODE_ROOT/
 
 # Copy build stage metadata files
@@ -235,16 +240,18 @@ ENV RUBY_YJIT_ENABLE=1
 #   ➜  press h + enter to show help
 #
 ENV RACK_ENV=production
+ENV ONETIME_HOME="$ONETIME_HOME"
 
 WORKDIR $CODE_ROOT
 
-# Copy the default config file into place if it doesn't
-# already exist. If it does exist, nothing happens. For
+# Copy the default config files into place if the don't
+# already exist. If a file does exist, nothing happens. For
 # example, if the config file has been previously copied
 # (and modified) the "--no-clobber" argument prevents
 # those changes from being overwritten.
 RUN set -eux \
-  && cp --preserve --no-clobber etc/examples/config.example.yaml etc/config.yaml
+  && cp --preserve --no-clobber etc/defaults/config.defaults.yaml etc/config.yaml \
+  && cp --preserve --no-clobber etc/defaults/mutable.defaults.yaml etc/mutable.yaml
 
 # About the interplay between the Dockerfile CMD, ENTRYPOINT,
 # and the Docker Compose command settings:
@@ -262,4 +269,4 @@ RUN set -eux \
 # Rack app
 EXPOSE 3000
 
-CMD ["scripts/entrypoint.sh"]
+CMD ["bin/entrypoint.sh"]

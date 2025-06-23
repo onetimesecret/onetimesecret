@@ -36,12 +36,12 @@ function generateIndividualSchemas(): void {
   const schemas = [
     {
       schema: mutableConfigSchema,
-      name: 'mutable.schema',
+      name: 'mutable-config.schema',
       description: 'Dynamic mutable config loaded from mutable.yaml',
     },
     {
       schema: staticConfigSchema,
-      name: 'static.schema',
+      name: 'static-config.schema',
       description: 'Static configuration settings loaded from config.yaml',
     },
     {

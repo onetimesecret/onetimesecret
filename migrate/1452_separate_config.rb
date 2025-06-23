@@ -3,8 +3,8 @@
 #
 # Configuration Separation Migration Script
 #
-# Purpose: Separates monolithic config.example.yaml into static and dynamic configuration files.
-# Static config goes to etc/config.yaml, dynamic config gets loaded into V2::MutableSettings.
+# Purpose: Separates monolithic config.example.yaml into static and mutable configuration files.
+# Static config goes to etc/config.yaml, mutable config gets loaded into V2::MutableSettings.
 #
 # Usage:
 #   ruby migrate/1452_separate_config.rb --dry-run  # Preview changes
@@ -49,7 +49,7 @@ module Onetime
         { 'from' => 'experimental.freeze_app', 'to' => 'experimental.freeze_app' },
         { 'from' => 'experimental.middleware', 'to' => 'site.middleware' },
       ],
-      'dynamic' => [
+      'mutable' => [
         { 'from' => 'site.interface.ui', 'to' => 'ui' },
         { 'from' => 'site.authentication.signup', 'to' => 'user_interface.signup' },
         { 'from' => 'site.authentication.signin', 'to' => 'user_interface.signin' },
@@ -73,15 +73,15 @@ module Onetime
       @backup_suffix = Time.now.strftime('%Y%m%d%H%M%S')
       @converted_config = File.join(@base_path, 'etc', 'config.converted.yaml')
       @static_config = File.join(@base_path, 'etc', 'config.static.yaml')
-      @dynamic_config = File.join(@base_path, 'etc', 'config.dynamic.yaml')
+      @mutable_config = File.join(@base_path, 'etc', 'config.mutable.yaml')
       @final_static_path = File.join(@base_path, 'etc', 'config.yaml')
-      @final_dynamic_path = File.join(@base_path, 'etc', 'mutable_settings.yaml')
+      @final_mutable_path = File.join(@base_path, 'etc', 'mutable.yaml')
 
       debug ''
       debug "Paths:"
       debug "Base path: #{@base_path}"
       debug "Source file: #{@source_config}"
-      debug "Dynamic file: #{@final_dynamic_path}"
+      debug "Mutable file: #{@final_mutable_path}"
       debug ''
     end
 
@@ -115,7 +115,7 @@ module Onetime
       # Print help message for things to check to give a clue as to what to do
       # next
       source_file = File.basename(@source_config)
-      dynamic_file = File.basename(@final_dynamic_path)
+      mutable_file = File.basename(@final_mutable_path)
 
       info <<~HEREDOC
 
@@ -123,7 +123,7 @@ module Onetime
         Things to try:
 
           1. Check if migration has already completed.
-             If you have etc/#{dynamic_file}
+             If you have etc/#{mutable_file}
              and etc/#{source_file} is in the new format, the migration
              has already run successfully and you're good to go.
 
@@ -165,7 +165,7 @@ module Onetime
       # Step 2: Convert symbol keys to strings if needed
       convert_symbols_to_strings
 
-      # Step 3: Separate config into static and dynamic parts
+      # Step 3: Separate config into static and mutable parts
       separate_configuration
 
       # Step 4: Move files to final locations
@@ -174,7 +174,7 @@ module Onetime
       print_summary do
         info "Configuration separation completed successfully"
         info "Static config: #{@final_static_path}"
-        info "Dynamic config: #{@final_dynamic_path}"
+        info "Mutable config: #{@final_mutable_path}"
         separator
         info "Files processed: #{@stats[:files_processed]}"
         info "Errors encountered: #{@stats[:errors]}"
@@ -230,11 +230,11 @@ module Onetime
     end
 
     def separate_configuration
-      return if File.exist?(@static_config) && File.exist?(@dynamic_config)
+      return if File.exist?(@static_config) && File.exist?(@mutable_config)
 
-      for_realsies? do
+      for_realsies_this_time? do
         generate_static_config_with_yq
-        generate_dynamic_config_with_yq
+        generate_mutable_config_with_yq
         track_stat(:configs_separated)
       end
     end
@@ -256,21 +256,21 @@ module Onetime
       show_config_structure(@static_config, "Static")
     end
 
-    def generate_dynamic_config_with_yq
-      info "Creating dynamic configuration with yq (preserving comments)..."
+    def generate_mutable_config_with_yq
+      info "Creating mutable configuration with yq (preserving comments)..."
 
       # Initialize empty config
-      system("yq eval 'del(.[])' <<< '{}' > '#{@dynamic_config}'")
+      system("yq eval 'del(.[])' <<< '{}' > '#{@mutable_config}'")
 
-      CONFIG_MAPPINGS['dynamic'].each do |mapping|
+      CONFIG_MAPPINGS['mutable'].each do |mapping|
         from_path = mapping['from']
         to_path = mapping['to']
 
-        generate_yq_command(@dynamic_config, from_path, to_path)
+        generate_yq_command(@mutable_config, from_path, to_path)
       end
 
-      info "Generated dynamic config: #{@dynamic_config}"
-      show_config_structure(@dynamic_config, "Dynamic")
+      info "Generated mutable config: #{@mutable_config}"
+      show_config_structure(@mutable_config, "Mutable")
     end
 
     def generate_yq_command(output_file, from_path, to_path)
@@ -313,33 +313,33 @@ module Onetime
     def finalize_configuration
       # Move static config to final location (replace existing)
       if File.exist?(@static_config)
-        for_realsies? do
+        for_realsies_this_time? do
           FileUtils.mv(@static_config, @final_static_path)
           track_stat(:static_finalized)
           info "Replaced static config at: #{@final_static_path}"
         end
       end
 
-      # Move dynamic config to final location
-      if File.exist?(@dynamic_config)
+      # Move mutable config to final location
+      if File.exist?(@mutable_config)
         # Ensure target directory exists
-        FileUtils.mkdir_p(File.dirname(@final_dynamic_path))
+        FileUtils.mkdir_p(File.dirname(@final_mutable_path))
 
-        for_realsies? do
-          FileUtils.mv(@dynamic_config, @final_dynamic_path)
-          track_stat(:dynamic_finalized)
-          info "Created dynamic config at: #{@final_dynamic_path}"
+        for_realsies_this_time? do
+          FileUtils.mv(@mutable_config, @final_mutable_path)
+          track_stat(:mutable_finalized)
+          info "Created mutable config at: #{@final_mutable_path}"
         end
       end
 
       # Clean up temporary files in actual run
-      for_realsies? do
+      for_realsies_this_time? do
         cleanup_temp_files
       end
     end
 
     def cleanup_temp_files
-      [@converted_config, @static_config, @dynamic_config].each do |file|
+      [@converted_config, @static_config, @mutable_config].each do |file|
         if File.exist?(file)
           FileUtils.rm(file)
           debug "Cleaned up: #{file}"
