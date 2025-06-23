@@ -1,7 +1,6 @@
 # lib/onetime/mail/views/base.rb
 
 require 'chimera'
-require_relative 'view_helpers'
 
 module Onetime
   module Mail
