@@ -62,61 +62,70 @@ end
 
 # IRB.conf[:RC] indicates whether an RC file (.irbrc) was
 # loaded during IRB initialization
-has_settings = !IRB.conf[:RC].nil?
-has_history  = IRB.conf[:SAVE_HISTORY] > 0
-use_pager    = IRB.conf[:USE_PAGER]
+# Configuration and Constants
+CONTENT_WIDTH = 59
+SPACING       = 8
 
-content_width = 59
-lines         = [
-  ['SETTINGS', has_settings ? 'ACTIVE' : 'DEFAULT'],
-  ['HISTORY', has_history ? 'ENABLED' : 'DISABLED'],
-  ['PAGER', use_pager ? 'ENABLED' : 'DISABLED'],
-]
-
-banner = []
-banner << <<~BANNER
-  ╔═══════════════════════════════════════════════════════════════╗
-  ║                                                               ║
-  ║    ██████  ███    ██ ███████ ████████ ██ ███    ███ ███████   ║
-  ║   ██    ██ ████   ██ ██         ██    ██ ████  ████ ██        ║
-  ║   ██    ██ ██ ██  ██ █████      ██    ██ ██ ████ ██ █████     ║
-  ║   ██    ██ ██  ██ ██ ██         ██    ██ ██  ██  ██ ██        ║
-  ║    ██████  ██   ████ ███████    ██    ██ ██      ██ ███████   ║
-  ║                                                               ║
-  ╚═══════════════════════════════════════════════════════════════╝
-
-BANNER
-
-banner << "┌#{'─' * (content_width + 2)}┐"
-lines.each do |label, value|
-  banner << format("│ %-#{content_width - 8}s%8s │", "#{label}:", value)
+# System status checks
+def system_status
+  {
+    settings: IRB.conf[:RC].nil? ? 'DEFAULT' : 'ACTIVE',
+    history: IRB.conf[:SAVE_HISTORY] > 0 ? 'ENABLED' : 'DISABLED',
+    pager: IRB.conf[:USE_PAGER] ? 'ENABLED' : 'DISABLED',
+  }
 end
-banner << "└#{'─' * (content_width + 2)}┘"
 
-banner << <<~BANNER
+def boot_status
+  OT.ready? ? 'READY' : 'NOT BOOTED'
+end
 
-  SYSTEM STATUS: #{OT.ready? ? 'READY         ' : 'NOT BOOTED     '}
+# Banner generation
+def ascii_header
+  <<~HEADER
+    ╔═══════════════════════════════════════════════════════════════╗
+    ║                                                               ║
+    ║    ██████  ███    ██ ███████ ████████ ██ ███    ███ ███████   ║
+    ║   ██    ██ ████   ██ ██         ██    ██ ████  ████ ██        ║
+    ║   ██    ██ ██ ██  ██ █████      ██    ██ ██ ████ ██ █████     ║
+    ║   ██    ██ ██  ██ ██ ██         ██    ██ ██  ██  ██ ██        ║
+    ║    ██████  ██   ████ ███████    ██    ██ ██      ██ ███████   ║
+    ║                                                               ║
+    ╚═══════════════════════════════════════════════════════════════╝
+  HEADER
+end
 
-BANNER
+def status_table(status_data)
+  table = ["┌#{'─' * (CONTENT_WIDTH + 2)}┐"]
 
-puts banner
+  status_data.each do |label, value|
+    label_width = CONTENT_WIDTH - SPACING
+    table << (format("│ %-#{label_width}s%#{SPACING}s │", "#{label.upcase}:", value))
+  end
 
-# Boot up
+  table << "└#{'─' * (CONTENT_WIDTH + 2)}┘"
+  table.join("\n")
+end
+
+def display_system_status
+  puts "\n  SYSTEM STATUS: #{boot_status.ljust(15)}\n"
+end
+
+# Main execution
+puts ascii_header
+puts status_table(system_status)
+display_system_status
+
+# Boot sequence
 unless ENV['DELAY_BOOT'].to_s.match?(/^(true|1)$/i)
   Onetime.safe_boot! :cli
-
-  puts <<~BANNER
-
-    SYSTEM STATUS: #{OT.ready? ? 'READY         ' : 'NOT BOOTED     '}
-  BANNER
-
+  display_system_status
 end
 
-puts <<~BANNER
+puts <<~INSTRUCTIONS
 
   USE CTRL-D TO EXIT
   AWAITING OPERATOR INSTRUCTIONS...
 
-BANNER
+INSTRUCTIONS
 
 using IndifferentHashAccess
