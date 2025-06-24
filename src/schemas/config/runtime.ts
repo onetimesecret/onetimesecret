@@ -3,10 +3,11 @@
 /**
  * Runtime Configuration Schema
  *
- * This module defines the schema for the runtime configuration of the application.
- * It includes mutable settings that can be modified during operation, while respecting
- * the infrastructure topology and business rules established by the static configuration.
- *
+ * The runtime configuration combines static settings that define the application's
+ * structure and capabilities with mutable settings that control behavior and rules.
+ * Static settings take precedence in conflicts, creating a unified configuration
+ * that serves as the single source of truth for both what the system can do and
+ * how it should operate.
  */
 
 import { z } from 'zod/v4';

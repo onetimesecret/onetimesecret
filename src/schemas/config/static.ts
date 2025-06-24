@@ -3,7 +3,11 @@
 /**
  * Static Configuration Schema
  *
- *
+ * This schema defines the static configuration that sets up the basic structure
+ * and capabilities of the application. It determines what features are available
+ * and how different components connect to each other. The configuration is
+ * loaded once when the application starts up and remains unchanged until the
+ * application is restarted.
  */
 
 import { z } from 'zod/v4';

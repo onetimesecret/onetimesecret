@@ -6,24 +6,26 @@
  * This module defines two complementary schema types for application configuration:
  *
  * Static Config Schema (staticConfigSchema):
- * - Defines infrastructure topology and system capabilities
- * - Establishes the bounds of what's possible in the application
- * - Represents bootstrap configuration that sets up foundational services
+ * - Sets up the basic structure and what the application can do
+ * - Decides what features are available and how things connect
+ * - Gets loaded when the app starts up and doesn't change until restarted
  *
- * Mutable Settings Schema (mutableSettingsSchema):
- * - Defines business policies and runtime behavior
- * - Operates within the bounds established by static configuration
- * - Represents dynamic settings that can be modified during operation
+ * Mutable Config Schema (mutableSettingsSchema):
+ * - Controls how the application behaves and what rules it follows
+ * - Works within the limits set by the static config
+ * - Can be changed while the app is running (without restarting)
  *
- * Static + Mutable -> Runtime Config.
+ * How configuration flows through the system:
+ *
+ *    Static + Mutable → (merge) → Runtime Config → (filter) → Client Config
  *
  * Design Principle:
- * Separate concerns during authoring, unify for consumption. The configuration
- * system merges these schemas at runtime, with merge priority ensuring that
- * runtime policies cannot break infrastructure constraints. This creates a
- * capability-based configuration where the runtime settings object becomes
- * the operational source of truth while respecting both infrastructure
- * topology and business rules.
+ * The configuration system keeps static and mutable settings separate,
+ * then combines them when the app runs. Static settings always win if
+ * there's a conflict - mutable settings can't override them. The final
+ * combined configuration becomes the single source of truth that contains
+ * both what the system can do and how it should behave.
+ *
  */
 
 export * from './runtime';

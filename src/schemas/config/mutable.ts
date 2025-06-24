@@ -3,10 +3,10 @@
 /**
  * Mutable Configuration Schema
  *
- * This module defines the schema for mutable configuration settings that
- * can be modified during operation. It includes mutable settings that can
- * be modified during operation, while respecting the boundaries (infrastructure
- * topology and business rules) established by the static configuration.
+ * This schema defines configuration settings that control how the application
+ * behaves and what rules it follows. These settings work within the boundaries
+ * established by the static configuration and can be modified while the
+ * application is running without requiring a restart.
  *
  */
 
