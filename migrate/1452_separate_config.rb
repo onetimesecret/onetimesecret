@@ -37,6 +37,13 @@ USER_TYPES_CAPABILITIES = {
       'custom_domains' => false
     },
 }.freeze
+
+SECRET_OPTION_BOUNDARIES = {
+  'default_ttl' => nil, # 7.days
+  'ttl_options' => nil,
+  'size' => nil,
+}.freeze
+
 module Onetime
   class Migration < BaseMigration
 
@@ -45,52 +52,47 @@ module Onetime
     # Configuration mapping for splitting monolithic config
     CONFIG_MAPPINGS = {
       'static' => [
-        { 'from' => 'site.host', 'to' => 'site.host' },
-        { 'from' => 'site.ssl', 'to' => 'site.ssl' },
-        { 'from' => 'site.secret', 'to' => 'site.secret' },
-        { 'from' => 'site.authentication.enabled', 'to' => 'site.authentication.enabled' },
-        { 'from' => 'site.authentication.colonels', 'to' => 'site.authentication.colonels' },
-        { 'from' => 'site.authentication.verify', 'to' => 'ui.autoverify' },
+          { 'from' => 'site.host', 'to' => 'site.host' },
+          { 'from' => 'site.ssl', 'to' => 'site.ssl' },
+          { 'from' => 'site.secret', 'to' => 'site.secret' },
+          { 'from' => 'site.authentication.enabled', 'to' => 'site.authentication.enabled' },
+          { 'from' => 'site.authentication.colonels', 'to' => 'site.authentication.colonels' },
           { 'from' => 'site.authentication.autoverify', 'to' => 'site.authentication.autoverify' },
-        { 'from' => 'site.authenticity', 'to' => 'site.authenticity' },
+          { 'from' => 'site.authenticity', 'to' => 'site.authenticity' },
           { 'from' => 'doesnotexist', 'to' => 'user_types', 'default' => USER_TYPES_CAPABILITIES },
-        { 'from' => 'redis.uri', 'to' => 'storage.db.connection.url' },
-        { 'from' => 'redis.dbs', 'to' => 'storage.db.database_mapping' },
-        { 'from' => 'emailer', 'to' => 'mail.connection' },
-        { 'from' => 'mail.truemail', 'to' => 'mail.validation.defaults' },
+          { 'from' => 'redis.uri', 'to' => 'storage.db.connection.url' },
+          { 'from' => 'redis.dbs', 'to' => 'storage.db.database_mapping' },
+          { 'from' => 'emailer', 'to' => 'mail.connection' },
+          { 'from' => 'mail.truemail', 'to' => 'mail.validation.defaults' },
           { 'from' => 'features', 'to' => 'features', 'default' => {} },
           { 'from' => 'site.regions', 'to' => 'features.regions', 'default' => { 'enabled' => false} },
           { 'from' => 'site.domains', 'to' => 'features.domains', 'default' => { 'enabled' => false} },
-        { 'from' => 'logging', 'to' => 'logging' },
-        { 'from' => 'diagnostics', 'to' => 'diagnostics' },
-        { 'from' => 'internationalization', 'to' => 'i18n' },
-        { 'from' => 'development', 'to' => 'development' },
+          { 'from' => 'logging', 'to' => 'logging' },
+          { 'from' => 'diagnostics', 'to' => 'diagnostics' },
+          { 'from' => 'internationalization', 'to' => 'i18n' },
           { 'from' => 'development', 'to' => 'development', 'default' => {} },
-        { 'from' => 'experimental.allow_nil_global_secret', 'to' => 'experimental.allow_nil_global_secret', 'default' => false },
-        { 'from' => 'experimental.rotated_secrets', 'to' => 'experimental.rotated_secrets', 'default' => [] },
-        { 'from' => 'experimental.freeze_app', 'to' => 'experimental.freeze_app', 'default' => false },
-        { 'from' => 'experimental.middleware', 'to' => 'site.middleware', 'default' => {
-        'static_files': true,
-        'utf8_sanitizer': true} },
+          { 'from' => 'experimental.allow_nil_global_secret', 'to' => 'experimental.allow_nil_global_secret', 'default' => false },
+          { 'from' => 'experimental.rotated_secrets', 'to' => 'experimental.rotated_secrets', 'default' => [] },
+          { 'from' => 'experimental.freeze_app', 'to' => 'experimental.freeze_app', 'default' => false },
+          { 'from' => 'experimental.middleware', 'to' => 'site.middleware', 'default' => {
+            'static_files': true,
             'utf8_sanitizer': true}
           },
           { 'from' => 'site.plans', 'to' => 'billing', 'default' => nil },
-      ],
-      'mutable' => [
-        { 'from' => 'site.interface.ui', 'to' => 'ui' },
-        { 'from' => 'site.authentication.signup', 'to' => 'ui.signup' },
-        { 'from' => 'site.authentication.signin', 'to' => 'ui.signin' },
-        { 'from' => 'site.interface.api', 'to' => 'api' },
-        { 'from' => 'site.secret_options', 'to' => 'secret_options' },
-        { 'from' => 'features', 'to' => 'features' },
-        { 'from' => 'site.regions', 'to' => 'features.regions' },
-        { 'from' => 'site.plans', 'to' => 'features.plans' },
-        { 'from' => 'site.domains', 'to' => 'features.domains' },
-        { 'from' => 'limits', 'to' => 'limits' },
-        { 'from' => 'mail.truemail', 'to' => 'mail.validation.recipients' },
-        { 'from' => 'mail.truemail', 'to' => 'mail.validation.accounts' },
-      ],
-    }.freeze
+        ],
+        'mutable' => [
+          { 'from' => 'site.interface.ui', 'to' => 'ui' },
+          { 'from' => 'site.authentication.signup', 'to' => 'ui.signup' },
+          { 'from' => 'site.authentication.signin', 'to' => 'ui.signin' },
+          { 'from' => 'site.interface.api', 'to' => 'api' },
+          { 'from' => 'site.secret_options', 'to' => 'secret_options.anonymous' },
+          { 'from' => 'doesnotexist', 'to' => 'secret_options.standard', 'default' => SECRET_OPTION_BOUNDARIES },
+          { 'from' => 'doesnotexist', 'to' => 'secret_options.enhanced', 'default' => SECRET_OPTION_BOUNDARIES },
+          { 'from' => 'limits', 'to' => 'limits' },
+          { 'from' => 'mail.truemail', 'to' => 'mail.validation.recipients' },
+          { 'from' => 'mail.truemail', 'to' => 'mail.validation.accounts' },
+        ],
+      }.freeze
 
     def prepare
       info("Preparing migration")
