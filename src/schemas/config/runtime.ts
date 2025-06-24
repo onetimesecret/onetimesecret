@@ -16,7 +16,9 @@ import { configSchema as staticConfigSchema } from './static';
 import { configSchema as mutableConfigSchema } from './mutable';
 
 /**
- * SPECIALE WAARSCHUWING
+ * configSchema - Defines the shape of the mutable configuration.
+ *
+ * **SPECIALE WAARSCHUWING**
  *
  * From the docs for `extend`:
  *    This API can be used to overwrite existing fields! Be careful with

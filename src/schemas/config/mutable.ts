@@ -39,6 +39,10 @@ const mutableMailSchema = z.object({
   }),
 });
 
+/**
+ * configSchema - Defines the shape of the mutable configuration.
+ *
+ */
 const configSchema = z.object({
   ui: userInterfaceSchema.optional(), // Renamed from interface
   api: apiSchema.optional(),

@@ -57,6 +57,10 @@ const experimentalSchema = z.object({
   freeze_app: z.boolean().default(false),
 });
 
+/**
+ * configSchema - Defines the shape of the static configuration.
+ *
+ */
 const configSchema = z.object({
   site: siteSchema,
   storage: storageSchema,
