@@ -185,7 +185,6 @@ module Onetime
       #   OT.ld "[config] Parsed: #{loggable_config}"
       # end
 
-      OT.le err.message
       OT.ld err.backtrace.join("\n")
     end
 

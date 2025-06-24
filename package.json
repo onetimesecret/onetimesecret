@@ -6,8 +6,9 @@
   "scripts": {
     "build": "vite build --config vite.config.ts",
     "build:local": "vite build --config vite.config.local.ts",
-    "config": "pnpm run schema:generate && bundle exec bin/ots config",
-    "config:validate": "pnpm run schema:generate && bundle exec bin/ots validate",
+    "config": "bundle exec bin/ots config",
+    "config:validate": "bundle exec bin/ots validate",
+    "config:generate_and_validate": "pnpm run schema:generate && bundle exec bin/ots validate",
     "clean": "rimraf public/web/dist",
     "dev": "vite --host",
     "dev:local": "vite --config vite.config.local.ts --host",
