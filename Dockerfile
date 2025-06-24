@@ -38,7 +38,7 @@
 #
 # 3. Run the application:
 #     $ docker run -p 3000:3000 -d --name onetimesecret \
-#         -e SECRET="$SECRET" \
+#         -e SECRET=$SECRET \
 #         -e REDIS_URL=redis://host.docker.internal:6379/0 \
 #         onetimesecret
 #
