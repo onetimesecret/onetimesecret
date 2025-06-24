@@ -1,4 +1,4 @@
-// src/schemas/config/runtime.ts
+// src/schemas/config/mutable.ts
 
 /**
  * Mutable Configuration Schema
@@ -18,7 +18,7 @@ import { userInterfaceSchema } from './section/ui';
 import { featuresSchema } from './section/features';
 import { mailValidationSchema } from './section/mail';
 import { limitsSchema } from './section/limits';
-import { secretOptionsSchema, ValidKeys as SecretOptionsKeys } from './section/secret_options';
+import { secretOptionsSchema } from './section/secret_options';
 
 const apiSchema = z.object({
   enabled: z.boolean().default(true),
@@ -38,9 +38,9 @@ const mailSchema = z.object({
  *
  */
 const configSchema = z.object({
-  ui: userInterfaceSchema.optional(), // Renamed from interface
+  ui: userInterfaceSchema.optional(), // Renamed from site.interface
   api: apiSchema.optional(),
-  secret_options: z.record(SecretOptionsKeys, secretOptionsSchema),
+  secret_options: secretOptionsSchema,
   mail: mailSchema.optional(),
   features: featuresSchema.optional(),
   limits: limitsSchema.optional(),

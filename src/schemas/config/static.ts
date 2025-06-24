@@ -1,4 +1,4 @@
-// src/schemas/config/index.ts
+// src/schemas/config/static.ts
 
 /**
  * Static Configuration Schema
@@ -18,7 +18,7 @@ import { mailConnectionSchema, mailValidationSchema } from './section/mail';
 import { diagnosticsSchema } from './section/diagnostics';
 import { billingSchema } from './section/billing';
 import { featuresSchema } from './section/features';
-import { userTypesSchema, ValidKeys as UserTypesKeys } from './section/user_types';
+import { capabilitiesSchema } from './section/capabilities';
 
 // import { planOptionsSchema } from '@/schemas/models/plan';
 
@@ -64,7 +64,7 @@ const configSchema = z.object({
   site: siteSchema,
   storage: storageSchema,
   features: featuresSchema,
-  user_types: z.record(UserTypesKeys, userTypesSchema),
+  capabilities: capabilitiesSchema,
   mail: mailSchema,
   logging: loggingSchema,
   i18n: i18nSchema,

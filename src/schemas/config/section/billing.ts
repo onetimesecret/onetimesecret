@@ -1,4 +1,4 @@
-// src/schemas/config/billing.ts
+// src/schemas/config/section/billing.ts
 
 /**
  * Billing (optional)

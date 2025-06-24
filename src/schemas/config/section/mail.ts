@@ -1,4 +1,4 @@
-// src/schemas/config/mail.ts
+// src/schemas/config/section/mail.ts
 
 import { z } from 'zod/v4';
 

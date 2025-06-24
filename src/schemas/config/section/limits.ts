@@ -1,4 +1,4 @@
-// src/schemas/config/limits.ts
+// src/schemas/config/section/limits.ts
 
 /**
  * Rate Limits Management:

@@ -59,7 +59,7 @@ module Onetime
           { 'from' => 'site.authentication.colonels', 'to' => 'site.authentication.colonels' },
           { 'from' => 'site.authentication.autoverify', 'to' => 'site.authentication.autoverify' },
           { 'from' => 'site.authenticity', 'to' => 'site.authenticity' },
-          { 'from' => 'doesnotexist', 'to' => 'user_types', 'default' => USER_TYPES_CAPABILITIES },
+          { 'from' => 'doesnotexist', 'to' => 'capabilities', 'default' => USER_TYPES_CAPABILITIES },
           { 'from' => 'redis.uri', 'to' => 'storage.db.connection.url' },
           { 'from' => 'redis.dbs', 'to' => 'storage.db.database_mapping' },
           { 'from' => 'emailer', 'to' => 'mail.connection' },

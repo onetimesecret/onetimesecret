@@ -1,4 +1,4 @@
-// src/schemas/config/secret_options.ts
+// src/schemas/config/section/secret_options.ts
 
 /**
  * User Types
@@ -8,9 +8,9 @@
 
 import { z } from 'zod/v4';
 
-const ValidKeys = z.enum(['anonymous', 'authenticated', 'standard', 'enhanced']);
+import { ValidKeys as UserTypeKeys } from '../shared/user_types';
 
-const secretOptionsSchema = z.object({
+const secretOptionBoundariessSchema = z.object({
   /**
    * Default Time-To-Live (TTL) for secrets in seconds
    *
@@ -45,4 +45,8 @@ const secretOptionsSchema = z.object({
     .default(102400), // 100KB
 });
 
-export { secretOptionsSchema, ValidKeys };
+// @see Zod v4 note about using enums for record keys:
+//  https://zod.dev/api?id=records
+const secretOptionsSchema = z.record(UserTypeKeys, secretOptionBoundariessSchema);
+
+export { secretOptionsSchema };

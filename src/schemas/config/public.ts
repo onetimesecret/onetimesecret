@@ -1,4 +1,6 @@
-// src/schemas/models/public.ts
+// src/schemas/config/public.ts
+
+// NOTE: THIS IS A WIP
 
 import { z } from 'zod/v4';
 
