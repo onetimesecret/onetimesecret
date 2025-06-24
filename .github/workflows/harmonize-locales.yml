@@ -1,0 +1,409 @@
+# .github/workflows/harmonize-locales.yml
+
+name: Harmonize Locales
+
+on:
+  # Run on push to main branch
+  push:
+    branches:
+      - develop
+      - 'i18n/**'
+    paths:
+      - 'src/locales/en.json'
+
+  # Run when a PR is created or updated with specific keyword in commit
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+  # Allow manual trigger
+  workflow_dispatch:
+    inputs:
+      copy_english:
+        description: 'Copy English phrases for new keys instead of empty strings'
+        type: boolean
+        default: true
+      generate_report:
+        description: 'Generate diff report for translation needs'
+        type: boolean
+        default: true
+
+# https://github.com/onetimesecret/onetimesecret/security/code-scanning/107
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  check_commit:
+    runs-on: ubuntu-latest
+    outputs:
+      should_run: ${{ steps.check.outputs.should_run }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
+        with:
+          fetch-depth: 0
+
+      - name: Check commit messages or file changes
+        id: check
+        run: |
+          echo "Event: ${{ github.event_name }}"
+
+          # Always run if it's a manual trigger
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "should_run=true" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+
+          # Get appropriate SHAs based on event type
+          if [[ "${{ github.event_name }}" == "push" ]]; then
+            BEFORE_SHA="${{ github.event.before }}"
+            AFTER_SHA="${{ github.event.after }}"
+          elif [[ "${{ github.event_name }}" == "pull_request" ]]; then
+            BEFORE_SHA="${{ github.event.pull_request.base.sha }}"
+            AFTER_SHA="${{ github.event.pull_request.head.sha }}"
+          fi
+
+          # Validate SHAs
+          if ! git rev-parse --verify "$BEFORE_SHA" > /dev/null 2>&1 || \
+             ! git rev-parse --verify "$AFTER_SHA" > /dev/null 2>&1; then
+            echo "Error: Invalid git SHAs"
+            echo "should_run=false" >> $GITHUB_OUTPUT
+            exit 1
+          fi
+
+          # Check trigger conditions using correct SHAs
+          if [ "${{ github.event_name }}" = "push" ]; then
+            if git diff --name-only "$BEFORE_SHA" "$AFTER_SHA" | grep -q "src/locales/en.json"; then
+              if [[ "${{ github.ref }}" =~ ^refs/heads/(develop|i18n/) ]]; then
+                echo "should_run=true" >> $GITHUB_OUTPUT
+                exit 0
+              fi
+            fi
+          fi
+
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            PR_COMMITS=$(git log --format=%B "$BEFORE_SHA".."$AFTER_SHA" || true)
+
+            if echo "$PR_COMMITS" | grep -q "\[i18n\]"; then
+              echo "should_run=true" >> $GITHUB_OUTPUT
+              exit 0
+            fi
+
+            if git diff --name-only "$BEFORE_SHA" "$AFTER_SHA" | grep -q "src/locales/en.json"; then
+              echo "should_run=true" >> $GITHUB_OUTPUT
+              exit 0
+            fi
+          fi
+
+          echo "No trigger conditions met"
+          echo "should_run=false" >> $GITHUB_OUTPUT
+          exit 0
+
+  harmonize:
+    needs: check_commit
+    if: needs.check_commit.outputs.should_run == 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+      actions: read
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
+
+      - name: Set up environment
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y jq
+
+      - name: Run harmonize-locale-files script
+        id: harmonize
+        shell: bash
+        env:
+          COPY_ENGLISH: ${{ github.event_name != 'workflow_dispatch' || github.event.inputs.copy_english == 'true' }}
+        run: |
+          # Check if the harmonize script exists
+          if [ ! -f "${GITHUB_WORKSPACE}/src/locales/scripts/github-action-harmonize.sh" ]; then
+            echo "Error: Harmonize script not found at src/locales/scripts/github-action-harmonize.sh"
+            exit 1
+          fi
+
+          # Make wrapper script executable
+          chmod +x "${GITHUB_WORKSPACE}/src/locales/scripts/github-action-harmonize.sh"
+
+          # Run the wrapper script
+          "${GITHUB_WORKSPACE}/src/locales/scripts/github-action-harmonize.sh"
+
+      - name: Create reports directory
+        if: steps.harmonize.outputs.changes_made == 'true'
+        run: |
+          mkdir -p ./reports
+          echo "Created reports directory"
+
+      - name: Generate enhanced translation templates and report
+        if: |
+          (steps.harmonize.outputs.changes_made == 'true') &&
+          ((github.event_name == 'workflow_dispatch' && github.event.inputs.generate_report == 'true') ||
+           github.event_name == 'push' || github.event_name == 'pull_request')
+        id: report
+        continue-on-error: true
+        run: |
+          echo "=== Starting report generation ==="
+          echo "Changed files detected: ${{ steps.harmonize.outputs.changes_made }}"
+
+          # Make translation template script executable
+          chmod +x "${GITHUB_WORKSPACE}/src/locales/scripts/generate-translation-template.sh"
+
+          # Source the enhanced reporting functions
+          source "${GITHUB_WORKSPACE}/src/locales/scripts/generate-translation-template.sh"
+
+          # Generate templates
+          echo "Generating translation templates..."
+          generate_translation_template
+          echo "Template generation completed"
+
+          # Create comprehensive report
+          echo "# 🌍 Translation Needs Report" > enhanced-report.md
+          echo "" >> enhanced-report.md
+          echo "**Generated:** $(date -u +%Y-%m-%dT%H:%M:%SZ)" >> enhanced-report.md
+          echo "**Workflow:** ${{ github.workflow }}" >> enhanced-report.md
+          echo "**Commit:** ${{ github.sha }}" >> enhanced-report.md
+          echo "" >> enhanced-report.md
+
+          # Add instructions
+          cat >> enhanced-report.md << 'EOF'
+          ## 📋 Translation Instructions
+
+          1. Download the translation templates from the workflow artifacts
+          2. Translate the English phrases while keeping JSON structure intact
+          3. Submit translations via PR or issue comment with the translated JSON
+          4. Use the automated integration script to apply translations
+
+          ## 🔧 Integration Commands
+
+          To apply translations programmatically:
+          ```bash
+          chmod +x ./src/locales/scripts/apply-translations.sh
+          ./src/locales/scripts/apply-translations.sh <translation-file> <locale>
+          ```
+
+          ## 📁 Template Files
+
+          Each locale that needs translation has two files generated:
+          - `{locale}-translation-needed.json` - JSON template with keys needing translation
+          - `{locale}-report.md` - Individual locale report with instructions
+
+          EOF
+
+          # Include summary of changes
+          echo "" >> enhanced-report.md
+          echo "## 📊 Translation Summary" >> enhanced-report.md
+          echo "| Locale | Keys Added | Template File | Status |" >> enhanced-report.md
+          echo "|--------|------------|---------------|--------|" >> enhanced-report.md
+
+          # Check if translation templates were generated
+          if [ -d "translation-templates" ]; then
+            for template_file in translation-templates/*-translation-needed.json; do
+              if [ -f "$template_file" ]; then
+                locale=$(basename "$template_file" -translation-needed.json)
+                key_count=$(jq 'keys | length' "$template_file" 2>/dev/null || echo "0")
+                echo "| $locale | $key_count | $template_file | 🔄 Needs translation |" >> enhanced-report.md
+              fi
+            done
+          else
+            echo "| - | 0 | - | ✅ No translations needed |" >> enhanced-report.md
+          fi
+
+          echo "" >> enhanced-report.md
+          echo "## 📄 Changed Files" >> enhanced-report.md
+          echo "The following locale files were modified:" >> enhanced-report.md
+          echo '```' >> enhanced-report.md
+          git diff --name-only | grep 'src/locales/' | grep -v 'en.json' >> enhanced-report.md
+          echo '```' >> enhanced-report.md
+
+          # Copy enhanced report to reports directory
+          cp enhanced-report.md ./reports/
+
+          # Copy translation templates to reports if they exist
+          if [ -d "translation-templates" ]; then
+            echo "Copying translation templates to reports directory..."
+            cp -r translation-templates ./reports/
+            echo "Templates copied successfully"
+          else
+            echo "No translation-templates directory found"
+          fi
+
+          # List what's in reports directory for debugging
+          echo "=== Reports directory contents ==="
+          ls -la ./reports/ || echo "Reports directory is empty or doesn't exist"
+
+          # Set output for artifact upload
+          echo "reports_generated=true" >> $GITHUB_OUTPUT
+          echo "Report generation step completed"
+
+      - name: Ensure minimal report exists
+        if: steps.harmonize.outputs.changes_made == 'true'
+        run: |
+          # Ensure reports directory exists with at least basic content
+          mkdir -p ./reports
+
+          # Create a basic report if none exists
+          if [ ! -f "./reports/enhanced-report.md" ]; then
+            echo "# 🌍 Harmonization Report" > ./reports/enhanced-report.md
+            echo "" >> ./reports/enhanced-report.md
+            echo "**Generated:** $(date -u +%Y-%m-%dT%H:%M:%SZ)" >> ./reports/enhanced-report.md
+            echo "**Status:** Harmonization completed but detailed report generation failed" >> ./reports/enhanced-report.md
+            echo "" >> ./reports/enhanced-report.md
+            echo "## Files Modified" >> ./reports/enhanced-report.md
+            echo '```' >> ./reports/enhanced-report.md
+            git diff --name-only | grep 'src/locales/' | grep -v 'en.json' >> ./reports/enhanced-report.md || echo "Unable to determine modified files" >> ./reports/enhanced-report.md
+            echo '```' >> ./reports/enhanced-report.md
+          fi
+
+          # List final contents for debugging
+          echo "=== Final reports directory contents ==="
+          ls -la ./reports/
+
+      - name: Upload translation templates and reports
+        if: always() && steps.harmonize.outputs.changes_made == 'true'
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: translation-templates-and-reports
+          path: ./reports/
+          retention-days: 7
+        continue-on-error: true
+
+      - name: Upload fallback reports (minimal)
+        if: always() && steps.harmonize.outputs.changes_made == 'true' && failure()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: fallback-harmonization-report
+          path: |
+            enhanced-report.md
+            translation-templates/
+          retention-days: 7
+        continue-on-error: true
+
+      - name: Create Pull Request for changes
+        if: steps.harmonize.outputs.changes_made == 'true'
+        id: create-pr
+        continue-on-error: true
+        run: |
+          # Debug Git state
+          echo "=== Git Debug Information ==="
+          echo "Current branch: $(git branch --show-current)"
+          echo "Current ref: ${{ github.ref }}"
+          echo "Current ref name: ${{ github.ref_name }}"
+          echo "Default branch: ${{ github.event.repository.default_branch }}"
+          echo "Head SHA: ${{ github.sha }}"
+          git status --porcelain
+          echo "=========================="
+
+          # Configure git
+          git config --global user.name "GitHub Action"
+          git config --global user.email "action@github.com"
+
+          # Check if there are actually changes to commit
+          git add src/locales/*.json
+          if git diff --cached --quiet; then
+            echo "No changes to commit"
+            echo "pr_created=false" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+
+          # Create a unique branch name
+          BRANCH_NAME="i18n/harmonize-locales-$(date +%Y%m%d-%H%M%S)"
+          echo "branch_name=$BRANCH_NAME" >> $GITHUB_OUTPUT
+
+          # Create and switch to new branch from current HEAD
+          git checkout -b "$BRANCH_NAME"
+
+          # Commit changes on the new branch
+          git commit -m "[i18n] Harmonize locale files" -m "Synchronized locale files structure with en.json
+
+          This automated change ensures all locale files have the same key structure as en.json.
+
+          Please review the changes to ensure:
+          - No existing translations were accidentally removed
+          - New keys are appropriately marked for translation
+          - The structure changes make sense for all locales"
+
+          # Push the branch
+          git push -u origin "$BRANCH_NAME"
+
+          echo "pr_created=true" >> $GITHUB_OUTPUT
+
+      - name: Create PR using GitHub CLI
+        if: steps.create-pr.outputs.pr_created == 'true'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # Count modified files and translation needs
+          MODIFIED_FILES=$(git diff --name-only HEAD~1 | grep 'src/locales/' | grep -v 'en.json' | wc -l)
+          TRANSLATION_COUNT=0
+
+          if [ -d "translation-templates" ]; then
+            TRANSLATION_COUNT=$(find translation-templates -name "*-translation-needed.json" | wc -l)
+          fi
+
+          # Create concise PR body
+          cat > pr-body.md << EOF
+          ## 🌍 Locale Files Harmonization
+
+          This PR synchronizes all locale files with the structure of \`en.json\`.
+
+          ### 📊 Summary
+          - **Files modified:** $MODIFIED_FILES locale file(s)
+          - **Translation templates:** $TRANSLATION_COUNT generated
+          - **Copy mode:** $(if [ "${{ env.COPY_ENGLISH }}" == "true" ]; then echo "English phrases for new keys"; else echo "Empty strings for new keys"; fi)
+
+          ### 📁 Artifacts Available
+          - 📥 **translation-templates-and-reports** - Download translation templates and detailed reports
+          - 📋 Individual locale reports with translation instructions
+          - 🔧 Integration scripts for applying completed translations
+
+          ### 🔧 Quick Integration
+          \`\`\`bash
+          # Download artifacts, then apply translations:
+          ./src/locales/scripts/apply-translations.sh <translation-file> <locale>
+          \`\`\`
+          EOF
+
+          # Add translation summary table if templates exist
+          if [ -d "translation-templates" ] && [ $TRANSLATION_COUNT -gt 0 ]; then
+            echo "" >> pr-body.md
+            echo "### 📋 Translation Summary" >> pr-body.md
+            echo "| Locale | Keys Added | Template File | Status |" >> pr-body.md
+            echo "|--------|------------|---------------|--------|" >> pr-body.md
+
+            for template_file in translation-templates/*-translation-needed.json; do
+              if [ -f "$template_file" ]; then
+                locale=$(basename "$template_file" -translation-needed.json)
+                key_count=$(jq 'keys | length' "$template_file" 2>/dev/null || echo "0")
+                echo "| $locale | $key_count | $template_file | 🔄 Needs translation |" >> pr-body.md
+              fi
+            done
+          fi
+
+          cat >> pr-body.md << EOF
+
+          ### ✅ Review Checklist
+          - [ ] Verify no existing translations were removed
+          - [ ] Confirm new keys are ready for translation
+          - [ ] Check that all locale files have consistent structure
+          - [ ] Download and review translation templates if needed
+
+          ---
+          **Auto-generated by:** Harmonize Locale Files workflow
+          **Workflow run:** ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          **Commit:** ${{ github.sha }}
+          EOF
+
+          # Create the PR with file-based body
+          gh pr create \
+            --title "🌍 Harmonize locale files structure" \
+            --body-file pr-body.md \
+            --head "${{ steps.create-pr.outputs.branch_name }}" \
+            --base "${{ github.head_ref || github.ref_name }}" \
+            --label "i18n"

@@ -27,7 +27,7 @@ module Onetime
       #
       # @param app [#call] The Rack application to wrap
       def initialize(app)
-        @app = app
+        @app      = app
         @rack_app = setup_proxy
       end
 
@@ -61,13 +61,13 @@ module Onetime
           use Rack::Lint
 
           # Retrieve development configuration settings
-          config = Onetime.conf.fetch(:development, {})
+          config = Onetime.conf&.dig(:development) || {}
 
           # Configure Vite proxy based on settings
           case config
-          in {enabled: true, frontend_host: String => frontend_host}
+          in { enabled: true, frontend_host: String => frontend_host }
             if frontend_host.strip.empty?
-              Onetime.ld "[ViteProxy] No frontend host configured to proxy"
+              Onetime.ld '[ViteProxy] No frontend host configured to proxy'
             else
               Onetime.li "[ViteProxy] Using frontend proxy for /dist to #{frontend_host}"
               require 'rack/proxy'
@@ -87,7 +87,7 @@ module Onetime
               use proxy_klass, backend: frontend_host
             end
           else
-            Onetime.ld "[ViteProxy] Frontend proxy disabled"
+            Onetime.ld '[ViteProxy] Frontend proxy disabled'
           end
 
           # Enable automatic code reloading with 1 second check interval

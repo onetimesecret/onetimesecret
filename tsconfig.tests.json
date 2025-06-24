@@ -1,0 +1,17 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "isolatedModules": true,
+    "verbatimModuleSyntax": true
+  },
+  "include": [
+    "**/*.config.*s",
+    "src/**/*.ts",
+    "src/**/*.vue",
+    "src/content/*.md",
+    "src/types/**/*.ts",
+    "src/types/declarations/*.d.ts",
+    "tests/**/*.ts",
+    "tests/**/*.vue"
+  ]
+}

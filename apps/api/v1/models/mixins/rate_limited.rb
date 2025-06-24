@@ -5,6 +5,10 @@ module V1
 
     module RateLimited
       def event_incr! event
+        unless V1::RateLimit.ready?
+          return OT.le("Not limiting #{event} events for #{self.class}")
+        end
+
         # Uses the external identifier of the implementing class to keep
         # track of the event count. e.g. sess.external_identifier.
         V1::RateLimit.incr! external_identifier, event

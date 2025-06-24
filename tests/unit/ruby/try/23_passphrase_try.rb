@@ -14,7 +14,7 @@
 
 
 require_relative './test_models'
-require 'core/controllers/settings'
+require 'frontend/controllers/settings'
 
 #Familia.debug = false
 

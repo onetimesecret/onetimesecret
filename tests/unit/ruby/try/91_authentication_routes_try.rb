@@ -69,7 +69,7 @@ new_conf = {
   }
 }
 OT.instance_variable_set(:@conf, new_conf)
-processed_conf = OT::Config.after_load(OT.conf)
+processed_conf = OT::Configurator.after_load(OT.conf)
 OT.instance_variable_set(:@conf, old_conf)
 processed_conf[:site][:authentication][:signin]
 #=> false

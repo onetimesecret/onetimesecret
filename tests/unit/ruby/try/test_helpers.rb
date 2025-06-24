@@ -26,7 +26,7 @@ $LOAD_PATH.unshift(File.join(app_root, 'web'))
 
 require 'onetime'
 
-OT::Config.path = File.join(project_root, 'tests', 'unit', 'ruby', 'config.test.yaml')
+OT::Configurator.path = File.join(project_root, 'tests', 'unit', 'ruby', 'config.test.yaml')
 
 class IndifferentHash
   # Initializes a new IndifferentHash.

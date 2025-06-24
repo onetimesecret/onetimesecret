@@ -1,6 +1,6 @@
 import { metadataBaseSchema } from '@/schemas/models';
 import { transforms } from '@/schemas/transforms';
-import { z } from 'zod';
+import { z } from 'zod/v4';
 
 // Metadata shape in list view
 export const metadataRecordsSchema = metadataBaseSchema.merge(

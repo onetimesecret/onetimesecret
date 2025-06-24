@@ -1,0 +1,264 @@
+---
+user_interface:
+  # Controls whether the web interface is enabled
+  # When false, only a basic explanation page is shown
+  enabled: <%= ENV['UI_ENABLED'] != 'false' %>
+  # Header configuration
+  # Controls branding and navigation in the site header
+  header:
+    # Control switch to enable/disable header customization
+    enabled: <%= ENV['HEADER_ENABLED'] != 'false' %>
+    # Branding configuration for logo and company name
+    branding:
+      # Logo configuration
+      logo:
+        # URL to logo image file
+        url: <%= ENV['LOGO_URL'] || 'DefaultLogo.vue' %>
+        # Alt text for logo image
+        alt: <%= ENV['LOGO_ALT'] || 'Share a Secret One-Time' %>
+        # Where the logo links to when clicked
+        href: <%= ENV['LOGO_LINK'] || '/' %>
+      # Company name override (falls back to i18n if not set)
+      site_name: <%= ENV['SITE_NAME'] || 'One-Time Secret' %>
+    # Navigation configuration
+    navigation:
+      # Enable/disable header navigation entirely
+      enabled: <%= ENV['HEADER_NAV_ENABLED'] != 'false' %>
+  # Footer link configuration
+  # These links appear in the footer of each page
+  footer_links:
+    # Master switch to enable/disable all footer links
+    enabled: <%= ENV['FOOTER_LINKS'] == 'true' || false %>
+    # Organized groups of links
+    # groups:
+    #   - :name: support
+    #     i18n_key: web.footer.support
+    #     links:
+    #       - :text: Contact
+    #         i18n_key: web.footer.contact
+    #         url: <%= ENV['CONTACT_URL'] %>
+    #         external: false
+    #   - :name: resources
+    #     i18n_key: web.footer.resources
+    #     links:
+    #       - :text: Status
+    #         i18n_key: status
+    #         url: <%= ENV['STATUS_URL'] %>
+    #         external: <%= ENV['STATUS_EXTERNAL'] || true %>
+    #         icon: signal
+  signup: <%= ENV['AUTH_SIGNUP'] != 'false' %>
+  signin: <%= ENV['AUTH_SIGNIN'] != 'false' %>
+  autoverify: null
+api:
+  enabled: <%= ENV['API_ENABLED'] != 'false' %>
+secret_options:
+  # Default Time-To-Live (TTL) for secrets in seconds
+  # This value is used if no specific TTL is provided when creating a secret
+  default_ttl: <%= ENV['DEFAULT_TTL'] || nil %>
+  # Available TTL options for secret creation (in seconds)
+  # These options will be presented to users when they create a new secret
+  # Format: String of integers representing seconds
+  ttl_options: <%= (ENV['TTL_OPTIONS'] || nil) %>
+features:
+  incoming:
+    enabled: false
+    email: CHANGEME@example.com
+    passphrase: abacus
+  regions:
+    enabled: <%= ENV['REGIONS_ENABLED'] == 'true' || false %>
+    current_jurisdiction: <%= ENV['JURISDICTION'] || nil %>
+  plans:
+    enabled: <%= ENV['PLANS_ENABLED'] == 'true' || false %>
+    stripe_key: <%= ENV['STRIPE_KEY'] || nil %>
+  domains:
+    enabled: <%= ENV['DOMAINS_ENABLED'] == 'true' || false %>
+    # The default domain used for link URLs. When not set or empty,
+    # site.host is used.
+    default: <%= ENV['DEFAULT_DOMAIN'] || nil %>
+    # The cluster type determines how the application will support
+    # multiple domains. The default is nil which means that the
+    # application itself is responsible for handling multiple domains.
+    cluster:
+      type: <%= ENV['CLUSTER_TYPE'] || nil %>
+      api_key: <%= ENV['APPROXIMATED_API_KEY'] || nil %>
+      cluster_ip: <%= ENV['APPROXIMATED_PROXY_CLUSTER_IP'] || '<CLUSTER_IP>' %>
+      cluster_host: <%= ENV['APPROXIMATED_PROXY_CLUSTER_HOST'] || '<CLUSTER_HOST>' %>
+      cluster_name: <%= ENV['APPROXIMATED_PROXY_CLUSTER_NAME'] || '<CLUSTER_NAME>' %>
+      vhost_target: <%= ENV['APPROXIMATED_PROXY_VHOST_TARGET'] || '<VHOST_TARGET>' %>
+limits:
+  # This section defines rate limits for various events per user
+  # per a rolling 20 minute period. Each key is an event name
+  # and the value is the max count allowed. Changes require
+  # restart of the app.
+  check_status: 10000
+  create_secret: 1000
+  create_account: 10
+  update_account: 10
+  email_recipient: 50
+  send_feedback: 10
+  authenticate_session: 5
+  get_page: 1000
+  dashboard: 1000
+  failed_passphrase: 5
+  show_metadata: 1000
+  show_secret: 1000
+  burn_secret: 1000
+  destroy_account: 2
+  forgot_password_request: 2
+  forgot_password_reset: 3
+  generate_apitoken: 10
+  add_domain: 30
+  remove_domain: 30
+  list_domains: 100
+  get_domain: 100
+  verify_domain: 25
+  report_exception: 50
+  attempt_secret_access: 10
+  update_branding: 50
+  destroy_session: 5
+  get_domain_brand: 1000
+  get_domain_logo: 1000
+  get_image: 1000
+  remove_domain_logo: 20
+  show_account: 100
+  stripe_webhook: 25
+  update_domain_brand: 50
+  view_colonel: 100
+  external_redirect: 100
+  update_mutable_settings: 50
+mail:
+  validation:
+    recipients:
+      # Available validation types: :regex, :mx, :mx_blacklist, :smtp
+      default_validation_type: :regex
+      # Required for :smtp validation
+      verifier_email: <%= ENV['VERIFIER_EMAIL'] || 'CHANGEME@example.com' %>
+      #verifier_domain: <%= ENV['VERIFIER_DOMAIN'] || 'example.com' %>
+      #connection_timeout: 2
+      #response_timeout: 2
+      #connection_attempts: 3
+      #validation_type_for:
+      #  'example.com': :regex
+      #
+      # Truemail will only validate email addresses that match the
+      # domains listed in :allowed_domains. If the domain is not
+      # listed, the email address will always be considered invalid.
+      allowed_domains_only: false
+      #
+      # Email addresses in this list will always be valid.
+      #allowed_emails: []
+      #
+      # Email addresses in this list will always be invalid.
+      #blocked_emails: []
+      #
+      # Addresses with these domains will always be valid
+      #allowed_domains: []
+      #
+      # Addresses with these domains will always be invalid
+      #blocked_domains: []
+      #
+      # Exclude these IP addresses from the MX lookup process.
+      #blocked_mx_ip_addresses: []
+      #
+      # Name servers to use for MX et al record lookup.
+      # Default is CloudFlare, Google, Oracle/OpenDNS servers.
+      dns:
+        - 1.1.1.1
+        - 8.8.4.4
+        - 208.67.220.220
+      #smtp_port: 25
+      #
+      # End smtp validation after the first invalid response rather than
+      # retrying, followed by trying the next server. Can reduce the time
+      # time to validate an email address, but may not catch all issues.
+      smtp_fail_fast: false
+      #
+      # Parse the content of the SMTP error message to determine if the
+      # email address is valid. This can be useful for some SMTP servers
+      # that don't return exact answers.
+      smtp_safe_check: true
+      #
+      # Whether to disable the RFC MX lookup flow. When true, only DNS
+      # validation will be performed on MX and Null MX records.
+      not_rfc_mx_lookup_flow: false
+      #
+      # Override default regular expression pattern for email addresses
+      # and/or the content in SMTP error messages.
+      #email_pattern: /regex_pattern/
+      #smtp_error_body_pattern: /regex_pattern/
+      #
+      # Log to the console, a file, or both. The ruby process must have
+      # write access to the log file. The log file will be created if it
+      # does not exist. Log file rotation is not handled by the app.
+      logger:
+        # One of: :error (default), :unrecognized_error, :recognized_error, :all.
+        tracking_event: :error
+        stdout: true
+        # log_absolute_path: '/home/app/log/truemail.log'
+    accounts:
+      # Available validation types: :regex, :mx, :mx_blacklist, :smtp
+      default_validation_type: :regex
+      # Required for :smtp validation
+      verifier_email: <%= ENV['VERIFIER_EMAIL'] || 'CHANGEME@example.com' %>
+      #verifier_domain: <%= ENV['VERIFIER_DOMAIN'] || 'example.com' %>
+      #connection_timeout: 2
+      #response_timeout: 2
+      #connection_attempts: 3
+      #validation_type_for:
+      #  'example.com': :regex
+      #
+      # Truemail will only validate email addresses that match the
+      # domains listed in :allowed_domains. If the domain is not
+      # listed, the email address will always be considered invalid.
+      allowed_domains_only: false
+      #
+      # Email addresses in this list will always be valid.
+      #allowed_emails: []
+      #
+      # Email addresses in this list will always be invalid.
+      #blocked_emails: []
+      #
+      # Addresses with these domains will always be valid
+      #allowed_domains: []
+      #
+      # Addresses with these domains will always be invalid
+      #blocked_domains: []
+      #
+      # Exclude these IP addresses from the MX lookup process.
+      #blocked_mx_ip_addresses: []
+      #
+      # Name servers to use for MX et al record lookup.
+      # Default is CloudFlare, Google, Oracle/OpenDNS servers.
+      dns:
+        - 1.1.1.1
+        - 8.8.4.4
+        - 208.67.220.220
+      #smtp_port: 25
+      #
+      # End smtp validation after the first invalid response rather than
+      # retrying, followed by trying the next server. Can reduce the time
+      # time to validate an email address, but may not catch all issues.
+      smtp_fail_fast: false
+      #
+      # Parse the content of the SMTP error message to determine if the
+      # email address is valid. This can be useful for some SMTP servers
+      # that don't return exact answers.
+      smtp_safe_check: true
+      #
+      # Whether to disable the RFC MX lookup flow. When true, only DNS
+      # validation will be performed on MX and Null MX records.
+      not_rfc_mx_lookup_flow: false
+      #
+      # Override default regular expression pattern for email addresses
+      # and/or the content in SMTP error messages.
+      #email_pattern: /regex_pattern/
+      #smtp_error_body_pattern: /regex_pattern/
+      #
+      # Log to the console, a file, or both. The ruby process must have
+      # write access to the log file. The log file will be created if it
+      # does not exist. Log file rotation is not handled by the app.
+      logger:
+        # One of: :error (default), :unrecognized_error, :recognized_error, :all.
+        tracking_event: :error
+        stdout: true
+        # log_absolute_path: '/home/app/log/truemail.log'

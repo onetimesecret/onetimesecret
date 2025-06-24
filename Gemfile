@@ -16,6 +16,7 @@ ruby '>= 3.1.5'
 source 'https://rubygems.org/'
 
 gem 'truemail'
+gem 'xdg'
 
 gem 'addressable'
 gem 'altcha', '~> 0.2.1'
@@ -26,29 +27,28 @@ gem 'rack-protection', '~> 3.2'
 gem 'rack-utf8_sanitizer', '~> 1.10.1'
 
 gem 'dotenv'
+gem 'json_schemer'
 gem 'multi_json'
 gem 'mustache'
 gem 'public_suffix'
 gem 'thin'
 
 gem 'drydock'
-#gem 'familia', path: '/Users/d/Projects/opensource/d/familia'
 gem 'familia', '~> 1.2.0'
 gem 'gibbler'
 gem 'otto', '~> 1.1.0.pre.alpha4'
 gem 'storable'
-gem 'sysinfo'
-gem 'tty-table', '~> 0.12.0'
 gem 'uri-redis', '~> 1.3.0'
 
+gem 'concurrent-ruby', '~> 1.3.5'
 gem 'redis', '~> 5.4.0'
 
 gem 'bcrypt'
 gem 'encryptor', '= 1.1.3'
 
+gem 'fastimage', '~> 2.4'
+gem 'hashdiff'
 gem 'httparty'
-
-gem "fastimage", "~> 2.4"
 gem 'mail'
 gem 'net-imap', '~> 0.5.7'
 
@@ -76,32 +76,34 @@ gem 'reline'
 # Third-party services
 gem 'aws-sdk-sesv2', '~> 1.74'
 gem 'sendgrid-ruby'
-gem "sentry-ruby", require: false
+gem 'sentry-ruby', require: false
 gem 'stripe', require: false
-
-gem 'rubocop', require: false
-gem 'stackprof', require: false
 
 group :development do
   gem 'byebug', require: false
-  gem 'byebug-dap', require: false
+  # Enable for Debug Adapter Protocol. Not included with the development group
+  # group because it lags on byebug version.
+  # gem 'byebug-dap', require: false
   gem 'pry', require: false
   gem 'pry-byebug', require: false
   gem 'rack-proxy', require: false
+  gem 'rubocop', require: false
   gem 'rubocop-performance', require: false
   gem 'rubocop-rspec', require: false
   gem 'rubocop-thread_safety', require: false
-  gem 'tryouts', require: false
+  gem 'stackprof', require: false
+  gem 'syntax_tree', require: false
 end
 
 group :test do
-  gem "fakeredis", :require => "fakeredis/rspec"
+  gem 'fakeredis', require: 'fakeredis/rspec'
   gem 'rack-test', require: false
-  gem 'rspec', git: "https://github.com/rspec/rspec"
+  gem 'rspec', git: 'https://github.com/rspec/rspec'
   gem 'simplecov', require: false
   %w[rspec-core rspec-expectations rspec-mocks rspec-support].each do |lib|
-    gem lib, git: "https://github.com/rspec/rspec", glob: "#{lib}/#{lib}.gemspec"
+    gem lib, git: 'https://github.com/rspec/rspec', glob: "#{lib}/#{lib}.gemspec"
   end
+  gem 'tryouts', require: false
 end
 
 # Optional alternate server - install with: bundle install --with optional

@@ -1,0 +1,11 @@
+---
+mail:
+  connection:
+    # Production Settings (for reference)
+    # ----------------------------------
+    mode: :ses
+    region: <%= ENV['EMAILER_REGION'] || 'ca-central-1' %>
+    from: validated@example.com
+    fromname: Support Team
+    user: <%= ENV['AWS_ACCESS_KEY'] || 'AKIA......' %>
+    pass: <%= ENV['AWS_SECRET_ACCESS_KEY'] %>

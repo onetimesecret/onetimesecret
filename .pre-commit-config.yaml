@@ -76,19 +76,6 @@ repos:
       - id: no-commit-to-branch # Prevent direct commits to critical branches
         args: ['--branch', 'develop', '--branch', 'rel/.*']
 
-  # Local Ruby linting: syntax and basic style checks
-  - repo: local
-    hooks:
-      - id: local-rubocop-fast
-        stages: [pre-commit]
-        name: Quick Rubocop
-        description: Lightweight Ruby syntax and layout validation
-        entry: bundle exec rubocop --force-exclusion --config .rubocop.yml --format json --fail-level error --only Syntax,Layout --no-server
-        language: system
-        types: [ruby]
-        files: \.(rb|rake)$
-        pass_filenames: true
-
   # Commit message issue tracking integration
   - repo: https://github.com/avilaton/add-msg-issue-prefix-hook
     rev: v0.0.11

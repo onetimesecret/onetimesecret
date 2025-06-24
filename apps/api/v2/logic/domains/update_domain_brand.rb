@@ -40,7 +40,7 @@ module V2::Logic
       def process
         @greenlighted = true
 
-        return error("Custom domain not found") unless @custom_domain
+        return error('Custom domain not found') unless @custom_domain
 
         update_brand_settings
       end
@@ -70,6 +70,7 @@ module V2::Logic
         # Step 2: Update remaining values
         brand_settings.each do |key, value| # rubocop:disable Style/CombinableLoops
           next if value.nil?
+
           OT.ld "[UpdateDomainBrand] Updating brand setting: #{key} => #{value} (#{value.class})"
           custom_domain.brand[key.to_s] = value.to_s # everything in redis is a string
         end
@@ -90,21 +91,21 @@ module V2::Logic
 
       def validate_domain
         if @domain_id.nil? || @domain_id.empty?
-          OT.ld "[UpdateDomainBrand] Error: Missing domain ID"
-          raise_form_error "Please provide a domain ID"
+          OT.ld '[UpdateDomainBrand] Error: Missing domain ID'
+          raise_form_error 'Please provide a domain ID'
         end
 
         @custom_domain = V2::CustomDomain.load(@domain_id, @cust.custid)
         unless custom_domain&.exists?
           OT.ld "[UpdateDomainBrand] Error: Domain #{@domain_id} not found for customer #{@cust.custid}"
-          raise_form_error "Domain not found"
+          raise_form_error 'Domain not found'
         end
       end
 
       def validate_brand_settings
         unless @brand_settings.is_a?(Hash)
           OT.ld "[UpdateDomainBrand] Error: Invalid brand settings format - got #{@brand_settings.class}"
-          raise_form_error "Please provide valid brand settings"
+          raise_form_error 'Please provide valid brand settings'
         end
       end
 
@@ -120,7 +121,7 @@ module V2::Logic
 
         unless valid_color?(color)
           OT.ld "[UpdateDomainBrand] Error: Invalid color format '#{color}'"
-          raise_form_error "Invalid primary color format - must be hex code (e.g. #FF0000)"
+          raise_form_error 'Invalid primary color format - must be hex code (e.g. #FF0000)'
         end
       end
 
@@ -130,7 +131,7 @@ module V2::Logic
 
         unless valid_font_family?(font)
           OT.ld "[UpdateDomainBrand] Error: Invalid font family '#{font}'"
-          raise_form_error "Invalid font family - must be one of: sans, serif, mono"
+          raise_form_error 'Invalid font family - must be one of: sans, serif, mono'
         end
       end
 
@@ -140,10 +141,9 @@ module V2::Logic
 
         unless valid_corner_style?(style)
           OT.ld "[UpdateDomainBrand] Error: Invalid corner style '#{style}'"
-          raise_form_error "Invalid corner style - must be one of: rounded, square, pill"
+          raise_form_error 'Invalid corner style - must be one of: rounded, square, pill'
         end
       end
-
 
       # Validate color format (hex code)
       def valid_color?(color)

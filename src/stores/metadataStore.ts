@@ -97,7 +97,7 @@ export const useMetadataStore = defineStore('metadata', () => {
     const response = await $api.get(`/api/v2/receipt/${key}`);
     const validated = responseSchemas.metadata.parse(response.data);
     record.value = validated.record;
-    details.value = validated.details;
+    details.value = validated.details as MetadataDetails | null;
     return validated;
   }
 
@@ -124,7 +124,7 @@ export const useMetadataStore = defineStore('metadata', () => {
 
     const validated = responseSchemas.metadata.parse(response.data);
     record.value = validated.record;
-    details.value = validated.details;
+    details.value = validated.details as MetadataDetails | null;
 
     return validated;
   }

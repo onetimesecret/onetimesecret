@@ -1,15 +1,15 @@
 # lib/onetime/mail/views/common.rb
 
-require 'mustache'
-
+require 'onetime/refinements/indifferent_hash_access'
 require_relative 'base'
 
 module Onetime
   module Mail
-
     class Welcome < Mail::Views::Base
-      def init secret
-        self[:secret] = secret
+      using IndifferentHashAccess
+
+      def init(secret)
+        self[:secret]        = secret
         self[:email_address] = cust.email
       end
 
@@ -23,21 +23,24 @@ module Onetime
     end
 
     class SecretLink < Mail::Views::Base
-      def init secret, recipient
-        raise ArgumentError, "Customer required" unless cust
-        raise ArgumentError, "Recipient required" unless recipient
-        raise ArgumentError, "Secret required" unless secret
+      using IndifferentHashAccess
 
-        self[:secret] = secret
-        self[:custid] = cust.custid
-        self[:sender_email] = cust.email
-        self[:email_address] = recipient
-        self[:from_name] = OT.conf[:emailer][:fromname]
-        self[:from] = OT.conf[:emailer][:from]
+      def init(secret, recipient)
+        raise ArgumentError, 'Customer required' unless cust
+        raise ArgumentError, 'Recipient required' unless recipient
+        raise ArgumentError, 'Secret required' unless secret
+
+        self[:secret]         = secret
+        self[:custid]         = cust.custid
+        self[:sender_email]   = cust.email
+        self[:email_address]  = recipient
+        self[:from_name]      = OT.conf[:emailer][:fromname]
+        self[:from]           = OT.conf[:emailer][:from]
         self[:signature_link] = 'https://onetimesecret.com/'
       end
+
       def subject
-        i18n[:email][:subject] % [self[:sender_email]] # e.g. "ABC" sent you a secret
+        format(i18n[:email][:subject], self[:sender_email]) # e.g. "ABC" sent you a secret
       end
 
       def display_domain
@@ -45,19 +48,23 @@ module Onetime
       end
 
       def uri_path
-        raise ArgumentError, "Invalid secret key" unless self[:secret]&.key
+        raise ArgumentError, 'Invalid secret key' unless self[:secret]&.key
+
         secret_uri self[:secret]
       end
     end
 
     class SupportMessage < Mail::Views::Base
+      using IndifferentHashAccess
+
       attr_reader :subject
-      def init from_name, subject
-        @subject = subject
-        self[:custid] = cust.custid
-        self[:email_address] = cust.custid
-        self[:from_name] = from_name
-        self[:from] = OT.conf[:emailer][:from]
+
+      def init(from_name, subject)
+        @subject              = subject
+        self[:custid]         = cust.custid
+        self[:email_address]  = cust.custid
+        self[:from_name]      = from_name
+        self[:from]           = OT.conf[:emailer][:from]
         self[:signature_link] = baseuri
       end
 
@@ -67,50 +74,65 @@ module Onetime
     end
 
     class PasswordRequest < Mail::Views::Base
-      def init secret
-        self[:secret] = secret
+      def init(secret)
+        self[:secret]        = secret
         self[:email_address] = cust.email
       end
+
       def subject
-        "Reset your password (OnetimeSecret.com)"
+        'Reset your password (OnetimeSecret.com)'
       end
+
       def forgot_path
-        '/forgot/%s' % self[:secret].key
+        format('/forgot/%s', self[:secret].key)
       end
     end
 
     class IncomingSupport < Mail::Views::Base
+      using IndifferentHashAccess
+
       attr_accessor :ticketno
-      def init secret, recipient
-        self[:secret] = secret
-        self[:custid] = cust.custid
+
+      def init(secret, recipient)
+        self[:secret]        = secret
+        self[:custid]        = cust.custid
         self[:email_address] = recipient
       end
+
       def subject
-        i18n[:email][:subject] % [self[:ticketno]]
+        format(i18n[:email][:subject], self[:ticketno])
       end
+
       def verify_uri
         secret_uri self[:secret]
       end
     end
 
     class TestEmail < Mail::Views::Base
+      using IndifferentHashAccess
+
       def init
         self[:email_address] = cust.email
       end
+
       def subject
-        "This is a test email #{OT.now}"
+        format('This is a test email %s', OT.now)
       end
+
       def test_variable
         'test_value'
       end
     end
 
     class FeedbackEmail < Mail::Views::Base
+      using IndifferentHashAccess
+
       attr_accessor :message, :display_domain, :domain_strategy
+
       def init
         self[:email_address] = cust.email
       end
+
       def subject
         stamp = OT.now.strftime('%b %d, %Y') # in UTC
         "Feedback on #{stamp} via #{display_domain} (#{domain_strategy})"

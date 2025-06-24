@@ -42,7 +42,7 @@ describe('CSRF Store', () => {
   describe('Initialization', () => {
     it('initializes with empty shrimp when window.shrimp is not available', () => {
       // Explicitly ensure window.shrimp is undefined
-      const windowMock = setupWindowState({ shrimp: undefined });
+      const windowMock = setupWindowState({ shrimp: '' });
       vi.stubGlobal('window', windowMock);
 
       const store = useCsrfStore();
@@ -93,6 +93,16 @@ describe('CSRF Store', () => {
     beforeEach(async () => {
       vi.stubGlobal('window', setupWindowState()); // defaults to window fixture
 
+      // Add a default mock for the /api/v2/validate-shrimp endpoint
+      // This will handle calls made during store.init() via initVisibilityCheck
+      if (axiosMock) {
+        // axiosMock is initialized in the parent describe's beforeEach
+        axiosMock.onPost('/api/v2/validate-shrimp').reply(200, {
+          isValid: false, // Default state, can be adjusted
+          shrimp: 'default-init-shrimp',
+        });
+      }
+
       // Initialize the store
       store = useCsrfStore();
       store.init();
@@ -105,7 +115,7 @@ describe('CSRF Store', () => {
       store.updateShrimp(newShrimp);
 
       expect(store.shrimp).toBe(newShrimp); // Shrimp should update
-      expect(window.__ONETIME_STATE__.shrimp).not.toBe(newShrimp); // Window.shrimp should not change
+      expect(window.__ONETIME_STATE__!.shrimp).not.toBe(newShrimp); // Window.shrimp should not change
       expect(store.isValid).toBe(initialValidity); // Validity should not change
     });
 
@@ -115,7 +125,7 @@ describe('CSRF Store', () => {
       store.updateShrimp(newShrimp);
 
       // Mock successful validation response
-      axiosMock.onPost('/api/v2/validate-shrimp').reply(200, {
+      axiosMock!.onPost('/api/v2/validate-shrimp').reply(200, {
         isValid: true,
         shrimp: newShrimp,
       });
@@ -131,7 +141,7 @@ describe('CSRF Store', () => {
       store.shrimp = 'initial-shrimp';
 
       // Mock the API response
-      axiosMock.onPost('/api/v2/validate-shrimp').reply((config) => {
+      axiosMock!.onPost('/api/v2/validate-shrimp').reply((config) => {
         // Verify request headers
         expect(config.headers?.['Content-Type']).toBe('application/json');
         expect(config.headers?.['O-Shrimp']).toBe('initial-shrimp');
@@ -154,14 +164,14 @@ describe('CSRF Store', () => {
       expect(store.shrimp).toBe('new-shrimp-token');
 
       // Verify request was made
-      expect(axiosMock.history.post.length).toBe(1);
-      expect(axiosMock.history.post[0].url).toBe('/api/v2/validate-shrimp');
+      expect(axiosMock!.history.post.length).toBe(1);
+      expect(axiosMock!.history.post[0].url).toBe('/api/v2/validate-shrimp');
     });
 
     it('handles shrimp validity check failure', async () => {
       store.shrimp = 'initial-shrimp';
 
-      axiosMock.onPost('/api/v2/validate-shrimp').reply(200, {
+      axiosMock!.onPost('/api/v2/validate-shrimp').reply(200, {
         isValid: false,
         shrimp: store.shrimp,
       });
@@ -170,7 +180,7 @@ describe('CSRF Store', () => {
 
       expect(store.isValid).toBe(false);
 
-      const request = axiosMock.history.post[0];
+      const request = axiosMock!.history.post[0];
       expect(request.headers).toMatchObject({
         'Content-Type': 'application/json',
         'O-Shrimp': 'initial-shrimp',
@@ -192,7 +202,7 @@ describe('CSRF Store', () => {
       store.isValid = true;
 
       // Mock network error
-      axiosMock.onPost('/api/v2/validate-shrimp').networkError();
+      axiosMock!.onPost('/api/v2/validate-shrimp').networkError();
 
       // Act & Assert
       await expect(store.checkShrimpValidity()).rejects.toThrow();
@@ -204,7 +214,7 @@ describe('CSRF Store', () => {
 
     it('starts periodic check correctly', async () => {
       // Mock successful validation response ahead of time
-      axiosMock.onPost('/api/v2/validate-shrimp').reply(200, {
+      axiosMock!.onPost('/api/v2/validate-shrimp').reply(200, {
         isValid: true,
         shrimp: 'test-shrimp',
       });
@@ -220,8 +230,8 @@ describe('CSRF Store', () => {
       vi.advanceTimersByTime(30000);
       await vi.waitFor(() => {
         // Verify the API call was made
-        expect(axiosMock.history.post.length).toBe(1);
-        expect(axiosMock.history.post[0].url).toBe('/api/v2/validate-shrimp');
+        expect(axiosMock!.history.post.length).toBe(1);
+        expect(axiosMock!.history.post[0].url).toBe('/api/v2/validate-shrimp');
       });
 
       // Verify store was updated

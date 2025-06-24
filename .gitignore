@@ -29,7 +29,7 @@ pnpm-debug.log*
 .idea/
 .cache/
 .temp/
-
+.zed/
 .appendonlydir/
 .bundle/
 .rspec
@@ -39,7 +39,6 @@ node_modules/
 vendor/
 log/
 tmp/
-etc/caddy/
 coverage/
 dist/
 public/web/dist/
@@ -49,10 +48,10 @@ public/web/dist/
 .DS_Store
 !pr_agent.toml
 etc/config*
-!etc/config.example.yaml
-!etc/config.schema.yaml
-etc/system_settings*
-!etc/system_settings.example.yaml
+etc/*.yaml
+support/schemas/
+etc/mutable_settings*
+!etc/mutable_settings.example.yaml
 !fly.toml
 .github/*md
 .eslintcache
@@ -63,6 +62,9 @@ etc/system_settings*
 tsconfig.tsbuildinfo
 CLAUDE.md
 
+# Ignore WIP or temp dev files with uppercase names
+[A-Z]*.rb
+[A-Z]*.ts
 
 # Environment files
 .env*

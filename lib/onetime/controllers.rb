@@ -2,4 +2,4 @@
 
 require 'v1/controllers'
 require 'v2/controllers'
-require 'core/controllers'
+require 'frontend/controllers'

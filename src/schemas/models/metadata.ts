@@ -1,6 +1,6 @@
 import { createModelSchema } from '@/schemas/models/base';
 import { transforms } from '@/schemas/transforms';
-import { z } from 'zod';
+import { z } from 'zod/v4';
 
 /**
  * @fileoverview Metadata schema with unified transformations

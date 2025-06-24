@@ -1,26 +1,35 @@
 # tests/unit/ruby/rspec/onetime/config/spec_helper.rb
 
 require 'rspec'
-require 'yaml'
 require 'tempfile'
 require 'fileutils'
 # require 'fakeredis'
 
-base_path = File.expand_path('../../../../..', __FILE__)
-apps_root = File.join(base_path, 'apps').freeze
+# Establish the environment
+ENV['RACK_ENV'] ||= 'production'
+ENV['ONETIME_HOME'] ||= File.expand_path('../../../../..', __FILE__).freeze
 
-# Add the apps dirs to the load path. This allows us to require
-# 'v2/logic' naturally (without needing the 'apps/api' prefix).
-$LOAD_PATH.unshift(File.join(apps_root, 'api'))
-$LOAD_PATH.unshift(File.join(apps_root, 'web'))
+Warning[:deprecated] = true if ['development', 'dev', 'test'].include?(ENV['RACK_ENV'])
 
-# Adds the 'lib' directory to the load path to ensure that the Onetime
-# library can be required.
-$LOAD_PATH.unshift File.join(base_path, 'lib')
+unless defined?(APPS_ROOT)
+  project_root = ENV['ONETIME_HOME']
+  APPS_ROOT = File.join(project_root, 'apps').freeze
 
-# Add spec directory to load path
-spec_path = File.expand_path('../..', __FILE__)
-$LOAD_PATH.unshift(spec_path)
+  # Add the apps dirs to the load path. This allows us to require
+  # 'v2/logic' naturally (without needing the 'apps/api' prefix).
+  %w{api web}.each { |name| $LOAD_PATH.unshift(File.join(APPS_ROOT, name)) }
+
+  # Add the lib directory for the core project.
+  LIB_ROOT = File.join(project_root, 'lib').freeze
+  $LOAD_PATH.unshift(LIB_ROOT)
+
+  # Define the directory for static web assets like images, CSS, and JS files.
+  PUBLIC_DIR = File.join(project_root, '/public/web').freeze
+
+  # Add spec directory to load path
+  spec_path = File.expand_path('../..', __FILE__)
+  $LOAD_PATH.unshift(spec_path)
+end
 
 require_relative './support/mail_context'
 require_relative './support/rack_context'
@@ -38,7 +47,7 @@ begin
 
   # Due to how Familia::Horreum defines model classes we need to create
   # an instance of each model class to ensure that they are loaded and
-  # available for testing. Part of ##1185.
+  # available for testing. Part of #1185.
   #
   # From Horreum#initialize:
   #   "Automatically add a 'key' field if it's not already defined."
@@ -54,10 +63,25 @@ rescue LoadError => e
 end
 
 # Setup test environment
-OT.mode = :test
+OT.set_boot_state(:test, nil)
 
-# Set config path for tests
-OT::Config.path = File.join(Onetime::HOME, 'tests', 'unit', 'ruby', 'config.test.yaml')
+# Set up minimal test configuration
+minimal_test_config = {
+  site: {
+    secret: 'test-secret-key-for-tests',
+    authentication: {
+      enabled: true,
+      colonels: []
+    }
+  },
+  development: {},
+  mail: {
+    truemail: {}
+  }
+}
+
+# Set the configuration directly for tests
+OT.send(:conf=, minimal_test_config)
 
 # Configure RSpec
 RSpec.configure do |config|

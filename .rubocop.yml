@@ -1,17 +1,11 @@
-##
+# .rubocop.yml
+#
 # This is the RuboCop configuration file.
 # It contains the rules and settings for the RuboCop linter.
 #
 # Enable/disable the cops individually. For more information,
 # refer to the RuboCop documentation:
 # https://docs.rubocop.org/rubocop/cops.html
-#
-# Running `rubocop --regenerate-todo` will update the todo file
-# with the latest state of the onion (using the same options
-# as those documented at the top of the todo file). This is
-# useful for a gradual migration of the codebase.
-#
-inherit_from: .rubocop_todo.yml
 
 plugins:
   - rubocop-thread_safety
@@ -20,19 +14,85 @@ plugins:
 
 AllCops:
   NewCops: enable
+  DisabledByDefault: false # flip to true for a good autocorrect time
   UseCache: true
-  MaxFilesInCache: 100
-  TargetRubyVersion: 3.1
+  MaxFilesInCache: 1000
+  TargetRubyVersion: 3.2
   Exclude:
+    # The V1 API is in maintenance mode. No changes allowed 🚭
+    - 'apps/api/v1/**/*'
+    - 'bin/bundle'
     - 'migrate/**/*'
     - 'node_modules/**/*'
+    - 'support/**/*'
     - 'tests/unit/ruby/try/**/*'
     - 'tests/unit/ruby/rspec/**/*'
+    - 'tmp/**/*'
     - 'vendor/**/*'
+
+Layout/CaseIndentation:
+  Enabled: true
+  EnforcedStyle: end # case, end
+  IndentOneStep: false
+  IndentationWidth: 2
+
+Layout/CommentIndentation:
+  Enabled: true
+
+Layout/MultilineMethodCallBraceLayout:
+  Enabled: true
+  EnforcedStyle: new_line # symmetrical, new_line, same_line
+
+Layout/TrailingWhitespace:
+  Enabled: true
+
+Layout/SpaceAroundEqualsInParameterDefault:
+  Enabled: true
+
+Layout/SpaceAroundOperators:
+  Enabled: false
+
+# Use parentheses around a logical expression if it makes easier to read.
+Style/RedundantParentheses:
+  Enabled: false
+
+Lint/UnusedMethodArgument:
+  Enabled: true
+
+Lint/UselessAssignment:
+  Enabled: true
+
+Lint/DuplicateBranch:
+  Enabled: true
+  IgnoreLiteralBranches: false
+  IgnoreConstantBranches: false
+  IgnoreDuplicateElseBranch: false
+
+# Offense count: 3
+# Configuration parameters: AllowedMethods, AllowedPatterns.
+Metrics/PerceivedComplexity:
+  Max: 20
+
+# Offense count: 186
+# Configuration parameters: AllowedConstants.
+Style/Documentation:
+  Enabled: false
+
+Style/RescueStandardError:
+  Enabled: true
+  EnforcedStyle: explicit
+
+# When true: Use match? instead of =~ when MatchData is not used. True is preferred but not for autocorrection. Regexs are too picky. Need to manually check every time.
+Performance/RegexpMatch:
+  Enabled: false
 
 Style/TrailingCommaInHashLiteral:
   Enabled: true
   EnforcedStyleForMultiline: comma
+
+Style/StringLiterals:
+  Enabled: true
+  EnforcedStyle: single_quotes
 
 # The Style/DoubleNegation cop is disabled because double negation provides
 # a concise, idiomatic way to convert values to boolean in Ruby. Alternative
@@ -42,8 +102,71 @@ Style/TrailingCommaInHashLiteral:
 Style/DoubleNegation:
   Enabled: false
 
+# Offense count: non-0
+Style/FormatString:
+  EnforcedStyle: format
+  Enabled: true
+
+Style/FormatStringToken:
+  EnforcedStyle: unannotated
+  Enabled: true
+
+Style/RedundantReturn:
+  Enabled: true
+  AllowMultipleReturnValues: false
+
+Style/IfUnlessModifier:
+  Enabled: false
+
+# We prefer `extend self` and `class << self`.
+Style/ModuleFunction:
+  Enabled: true
+  AutoCorrect: false
+  EnforcedStyle: extend_self
+
+# Prefer 3 line if/else over one-liner
+Style/GuardClause:
+  Enabled: true
+  MinBodyLength: 3
+  AllowConsecutiveConditionals: false
+
+Style/SymbolArray:
+  EnforcedStyle: brackets
+  Enabled: true
+
+Style/StringLiteralsInInterpolation:
+  Enabled: true
+
+Style/BlockDelimiters:
+  Enabled: true
+
+Naming/PredicateMethod:
+  Enabled: pending
+  Mode: ''
+  AllowedMethods:
+    - validate!
+
+# We use class instance variables quite a bit, mostly for readonly values set
+# at boot time. Except for our models with have redis-rb Redis instances
+# connected on their associated db via ModelClass.redis. We're well aware
+# so keeping this disabled reduces warning noise.
+ThreadSafety/ClassInstanceVariable:
+  Enabled: false
+
+Naming/RescuedExceptionsVariableName:
+  Enabled: true
+  PreferredName: ex # Default is 'e'
+
+Naming/PredicatePrefix:
+  Enabled: true
+  ForbiddenPrefixes: [is_, has_, have_]
+  AllowedMethods: [
+      has_passphrase?, # correlates with the REST API field `has_passphrase`
+    ]
+
 Layout/MultilineMethodCallIndentation:
   EnforcedStyle: indented
+  IndentationWidth: 2
 
 Gemspec/DeprecatedAttributeAssignment:
   Enabled: true
@@ -51,23 +174,105 @@ Gemspec/DeprecatedAttributeAssignment:
 Gemspec/DevelopmentDependencies:
   Enabled: true
 
-Layout/HashAlignment:
+Layout/ElseAlignment:
   Enabled: false
+
+Layout/EndAlignment:
+  Enabled: false
+  # Severity: low
+  # SupportedStylesAlignWith: 2
+  # Leave commented out. When we set align with, endless "error occurred"
+  # EnforcedStyle: keyword # keyword, variable, start_of_line
+
+Layout/ExtraSpacing:
+  Enabled: true
+  AllowForAlignment: true
+  AllowBeforeTrailingComments: true
+  ForceEqualSignAlignment: true
+
+Layout/IndentationConsistency:
+  EnforcedStyle: indented_internal_methods
+  Enabled: true
+
+Layout/IndentationWidth:
+  # We don't want to enforce indentation width because it's doing weird things
+  # with if/else statements that capture values. The `if` expression is aligned
+  # with the right side of the `test` but the `else` expression is aligned with
+  # the start of the line.
+  Width: 2
+  Enabled: false
+
+Layout/HashAlignment:
+  Enabled: true
 
 Layout/FirstHashElementIndentation:
-  Enabled: false
+  Enabled: true
 
 Lint/Void:
-  Enabled: false
+  Enabled: true
 
+Lint/CopDirectiveSyntax:
+  Enabled: true
+
+# Offense count: 122
+# Assignment Branch Condition size
 Metrics/AbcSize:
   Enabled: false
   Max: 20
+
+# Offense count: 217
+Layout/LineLength:
+  Enabled: false
+  AllowHeredoc: true
+  AllowURI: true
+  URISchemes:
+    - https
+  IgnoreCopDirectives: true
+  AllowedPatterns: []
+  SplitStrings: false
+  Max: 100
+
+# Align the arguments of a method call if they span more than one line.
+Layout/ArgumentAlignment:
+  Enabled: true
+  EnforcedStyle: with_fixed_indentation # with_first_argument, with_fixed_indentation
+  IndentationWidth: 2
+
+Layout/EmptyLineAfterGuardClause:
+  Enabled: true
+
+Layout/EmptyLineBetweenDefs:
+  Enabled: true
+
+Layout/EmptyLines:
+  Enabled: true
+
+Layout/EmptyLinesAroundAccessModifier:
+  Enabled: true
+
+Layout/EmptyLinesAroundAttributeAccessor:
+  Enabled: true
+
+Layout/EmptyLinesAroundBlockBody:
+  Enabled: true
+
+Layout/EmptyLinesAroundClassBody:
+  Enabled: true
+
+Layout/EmptyLinesAroundExceptionHandlingKeywords:
+  Enabled: true
+
+Layout/EmptyLinesAroundMethodBody:
+  Enabled: true
+
+Layout/EmptyLinesAroundModuleBody:
+  Enabled: true
 
 Metrics/ClassLength:
   Enabled: true
   Max: 350
 
+# Offense count: non-0
 Metrics/MethodLength:
   Enabled: true
   Max: 50
@@ -83,7 +288,7 @@ Performance/Size:
   Exclude: []
 
 Naming/AsciiIdentifiers:
-  Enabled: false
+  Enabled: true
 
 Metrics/CyclomaticComplexity:
   Enabled: false
@@ -98,3 +303,120 @@ Style/TrailingCommaInArguments:
 Style/TrailingCommaInArrayLiteral:
   Enabled: true
   EnforcedStyleForMultiline: comma
+
+# Use #empty? when testing for objects of length 0.
+Style/ZeroLengthPredicate:
+  Enabled: true
+  Safe: true
+
+Style/MethodDefParentheses:
+  Enabled: true
+
+Style/FrozenStringLiteralComment:
+  Enabled: true
+  EnforcedStyle: never
+
+Style/SuperArguments:
+  Enabled: true
+
+# Offense count: non-0
+ThreadSafety/ClassAndModuleAttributes:
+  Description: Avoid mutating class and module attributes.
+  Enabled: true
+  ActiveSupportClassAttributeAllowed: false
+
+ThreadSafety/DirChdir:
+  Description: Avoid using `Dir.chdir` due to its process-wide effect.
+  Enabled: true
+  AllowCallWithBlock: false
+
+# Do not assign mutable objects to class instance variables.
+ThreadSafety/MutableClassInstanceVariable:
+  Description:
+  Enabled: true
+  EnforcedStyle: literals # one of literals, strict
+  SafeAutoCorrect: false
+
+# Avoid starting new threads. Let a framework like Sidekiq handle the threads.
+ThreadSafety/NewThread:
+  Enabled: true
+
+# Avoid instance variables in Rack middleware.
+ThreadSafety/RackMiddlewareInstanceVariable:
+  Description:
+  Enabled: true
+  Include:
+    - lib/middleware/*.rb
+    - lib/middleware/onetime/*.rb
+
+# Unsafe autocorrect:
+Performance/MapCompact:
+  Enabled: false
+Performance/StringInclude:
+  Enabled: false
+Style/ClassAndModuleChildren:
+  Enabled: false
+Style/GlobalStdStream:
+  Enabled: false
+Style/HashConversion:
+  Enabled: false
+Style/HashEachMethods:
+  Enabled: false
+Style/IdenticalConditionalBranches:
+  Enabled: false
+Style/MinMaxComparison:
+  Enabled: false
+Style/MutableConstant:
+  Enabled: false
+Style/NumericPredicate:
+  Enabled: false
+Style/RaiseArgs:
+  Enabled: false
+Style/RedundantInterpolation:
+  Enabled: false
+Style/SafeNavigation:
+  Enabled: false
+Style/SpecialGlobalVars:
+  Enabled: false
+Style/StringConcatenation:
+  Enabled: false
+Style/SymbolProc:
+  Enabled: false
+
+# warnings
+Lint/RedundantCopDisableDirective:
+  Enabled: false
+Lint/AssignmentInCondition:
+  Enabled: false
+
+# Manual corrections
+Metrics/BlockLength:
+  Enabled: false
+Metrics/BlockNesting:
+  Enabled: false
+Metrics/ParameterLists:
+  Enabled: false
+Naming/AccessorMethodName:
+  Enabled: false
+Naming/MethodParameterName:
+  Enabled: false
+Performance/CollectionLiteralInLoop:
+  Enabled: false
+Style/OptionalBooleanParameter:
+  Enabled: false
+
+# warnings
+Lint/DuplicateMethods:
+  Enabled: false
+Lint/UselessOr:
+  Enabled: false
+Lint/UnreachableLoop:
+  Enabled: false
+Lint/MissingCopEnableDirective:
+  Enabled: false
+Lint/MissingSuper:
+  Enabled: false
+Lint/EmptyFile:
+  Enabled: false
+Lint/RescueException:
+  Enabled: false

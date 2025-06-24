@@ -17,7 +17,7 @@ module V2
       end
 
       def base_scheme
-        Onetime.conf[:site][:ssl] ? 'https://' : 'http://'
+        Onetime.conf&.dig(:site, :ssl) ? 'https://' : 'http://'
       end
 
       def server_port
@@ -25,12 +25,12 @@ module V2
       end
 
       def site_host
-        Onetime.conf[:site][:host]
+        Onetime.conf&.dig(:site, :host)
       end
 
       def baseuri
         scheme = base_scheme
-        host = Onetime.conf[:site][:host]
+        host   = Onetime.conf&.dig(:site, :host)
         [scheme, host].join
       end
 
@@ -56,7 +56,6 @@ module V2
       def local?
         LOCAL_HOSTS.member?(req.env['SERVER_NAME']) && (req.client_ipaddress == '127.0.0.1')
       end
-
     end
   end
 end

@@ -1,24 +1,23 @@
 # lib/onetime/mail/views/base.rb
 
 require 'chimera'
-require_relative 'view_helpers'
+require 'onetime/refinements/indifferent_hash_access'
 
 module Onetime
   module Mail
     module Views
-
       class Base < Chimera
-        include Mail::ViewHelpers
+        using IndifferentHashAccess
 
-        self.template_path = './templates/mail'
+        self.template_path  = './templates/mail'
         self.view_namespace = Onetime::Mail
-        self.view_path = './onetime/email'
+        self.view_path      = './onetime/email'
 
         attr_reader :cust, :locale, :emailer, :mode, :from, :to
         attr_accessor :token, :text_template
 
-        def initialize cust, locale, *args
-          @cust = cust
+        def initialize(cust, locale, *)
+          @cust   = cust
           @locale = locale
 
           # We quietly continue if we're given an unknown locale and continue
@@ -26,30 +25,32 @@ module Onetime
           # for example which we don't have a proper UX to handle letting the
           # user know that the email was not sent yet (and then having a way
           # to retry sending the email).
-          if OT.locales.key?(locale)
-            OT.li "Initializing #{self.class} with locale: #{locale.to_s}"
+          supported_locales = OT.conf[:supported_locales] || []
+          if supported_locales.include?(locale)
+            OT.li "Initializing #{self.class} with locale: #{locale}"
           else
-            default_value = OT.default_locale
-            @locale = default_value
-            available = OT.supported_locales
+            default_value = OT.conf[:default_locale]
+            @locale       = default_value
+            available     = OT.conf[:supported_locales]
             OT.le "[views.i18n] Locale not found: #{locale} (continuing with #{default_value} / #{available})"
           end
 
-          OT.ld "#{self.class} locale is: #{locale.to_s}"
+          OT.ld "#{self.class} locale is: #{locale}"
 
           conf = OT.conf.fetch(:emailer, {})
 
           @mode = conf.fetch(:mode, 'smtp').to_s.to_sym
 
           # Create a new instance of the configured mailer class for this request
-          @emailer = OT.emailer.new(
+          emailer_class = Onetime::Services::ServiceRegistry.get_state(:mailer_class)
+          @emailer = emailer_class.new(
             conf.fetch(:from, nil),
             conf.fetch(:fromname, nil),
             cust&.email, # use for the reply-to field
           )
 
           password_is_present = conf.fetch(:pass, nil).to_s.length.positive?
-          logsafe_config = {
+          logsafe_config      = {
             from: conf.fetch(:from, nil),
             fromname: conf.fetch(:fromname, nil),
             host: conf.fetch(:host, nil),
@@ -63,7 +64,7 @@ module Onetime
           }
 
           OT.info "[mailer] #{mode} #{logsafe_config.to_json}"
-          init(*args) if respond_to? :init
+          init(*) if respond_to? :init
         end
 
         # Retrieves internationalization data for the current view context.
@@ -92,13 +93,14 @@ module Onetime
         #
         def i18n
           @i18n_cache ||= {}
-          locale = self.locale #|| OT.default_locale || 'en'
+          locale        = self.locale # || OT.conf[:default_locale] || 'en'
 
           # Return cached value for this specific locale if it exists
           return @i18n_cache[locale] if @i18n_cache.key?(locale)
 
           # Safely get locale data with fallback
-          locale_data = OT.locales[locale] || OT.locales['en']
+          locales = OT.conf[:locales] || {}
+          locale_data = locales[locale] || locales['en']
 
           pagename = self.class.name.split('::').last.downcase.to_sym
           {
@@ -108,7 +110,7 @@ module Onetime
           }
         end
 
-        def deliver_email token=nil
+        def deliver_email(token = nil)
           errmsg = "Your message wasn't sent because we have an email problem"
 
           email_address_obscured = OT::Utils.obscure_email self[:email_address]
@@ -129,14 +131,12 @@ module Onetime
             unless token
               emailer.send_email self[:email_address], subject, render_html, render_text
             end
-
           rescue SocketError => ex
-          internal_emsg = "Cannot send mail: #{ex.message}\n#{ex.backtrace}"
-            OT.le internal_emsg
+          internal_emsg   = "Cannot send mail: #{ex.message}\n#{ex.backtrace}"
+          OT.le internal_emsg
 
-            V2::EmailReceipt.create self[:cust].identifier, message_identifier, internal_emsg
-            raise OT::Problem, errmsg
-
+          V2::EmailReceipt.create self[:cust].identifier, message_identifier, internal_emsg
+          raise OT::Problem, errmsg
           rescue Exception => ex
             internal_emsg = "Cannot send mail: #{ex.message}\n#{ex.backtrace}"
             OT.le internal_emsg
@@ -160,10 +160,10 @@ module Onetime
         end
 
         def render_text
-          clone = self.clone
+          clone                     = self.clone
           # Create a new options hash if none exists, or duplicate the existing one
-          opts = clone.instance_variable_get(:@options)
-          opts = opts ? opts.dup : {}
+          opts                      = clone.instance_variable_get(:@options)
+          opts                      = opts ? opts.dup : {}
           # Set template extension
           opts[:template_extension] = 'txt'
           # Update the options in the cloned instance
@@ -181,22 +181,20 @@ module Onetime
 
         def secret_display_domain(obj)
           scheme = base_scheme
-          host = obj.share_domain || Onetime.conf[:site][:host]
+          host   = obj.share_domain || Onetime.conf&.dig(:site, :host)
           [scheme, host].join
         end
 
         def base_scheme
-          Onetime.conf[:site][:ssl] ? 'https://' : 'http://'
+          Onetime.conf&.dig(:site, :ssl) ? 'https://' : 'http://'
         end
 
         def baseuri
           scheme = base_scheme
-          host = Onetime.conf[:site][:host]
+          host   = Onetime.conf&.dig(:site, :host)
           [scheme, host].join
         end
-
       end
-
     end
   end
 end

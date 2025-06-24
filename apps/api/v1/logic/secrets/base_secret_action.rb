@@ -76,7 +76,7 @@ module V1::Logic
         @ttl = payload.fetch(:ttl, nil)
 
         # Get configuration options. We can rely on these values existing
-        # because that are guaranteed by OT::Config.after_load.
+        # because that are guaranteed by OT::Configurator.after_load.
         secret_options = OT.conf[:site].fetch(:secret_options, {
           default_ttl: 7.days,
           ttl_options: [1.minute, 1.hour, 1.day, 7.days]
@@ -117,7 +117,7 @@ module V1::Logic
           next if email_address.to_s.empty?
           email_address.scan(r).uniq.first
         }.compact.uniq
-        @recipient_safe = recipient.collect { |r| OT::Utils.obscure_email(r) }
+        @recipient_safe = recipient.collect { |r| V1::Utils.obscure_email(r) }
       end
 
       # Capture the selected domain the link is meant for, as long as it's

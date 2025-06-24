@@ -2,7 +2,7 @@
 
 import { feedbackSchema } from '@/schemas/models';
 import { transforms } from '@/schemas/transforms';
-import { z } from 'zod';
+import { z } from 'zod/v4';
 
 // Common types
 // More flexible type validation that can handle missing values
@@ -160,15 +160,15 @@ const limitsSchema = z.object({
   update_domain_brand: z.number().optional(),
   view_colonel: z.number().optional(),
   external_redirect: z.number().optional(),
-  update_system_settings: z.number().optional(),
+  update_mutable_settings: z.number().optional(),
 });
 
 /**
- * SystemSettingsSchema defines the top-level structure of the settings.
+ * MutableSettingsSchema defines the top-level structure of the settings.
  * Each section references deeper schemas defined elsewhere.
  * Using .optional() to handle partial settings data during initialization.
  */
-export const systemSettingsSchema = z.object({
+export const mutableSettingsSchema = z.object({
   interface: interfaceSchema.optional(),
   secret_options: secretOptionsSchema.optional(),
   mail: mailSchema.optional(),
@@ -183,7 +183,7 @@ export const systemSettingsSchema = z.object({
   // internationalization: z.record(z.any()).optional(),
 });
 
-export const systemSettingsDetailsSchema = systemSettingsSchema.extend({
+export const mutableSettingsDetailsSchema = mutableSettingsSchema.extend({
   // This extension allows for additional fields in the future without breaking changes
   // All fields are optional with defaults to handle missing data
 });
@@ -247,5 +247,5 @@ export const colonelInfoDetailsSchema = z.object({
 // Export types
 export type ColonelStatsDetails = z.infer<typeof colonelStatsDetailsSchema>;
 export type ColonelInfoDetails = z.infer<typeof colonelInfoDetailsSchema>;
-export type SystemSettingsDetails = z.infer<typeof systemSettingsDetailsSchema>;
+export type MutableSettingsDetails = z.infer<typeof mutableSettingsDetailsSchema>;
 export type RecentCustomer = z.infer<typeof recentCustomerSchema>;

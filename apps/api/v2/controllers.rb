@@ -1,5 +1,3 @@
-
-
 require_relative 'controllers/account'
 require_relative 'controllers/challenges'
 require_relative 'controllers/colonel'

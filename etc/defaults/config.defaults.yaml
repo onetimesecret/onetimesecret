@@ -1,0 +1,287 @@
+---
+# etc/defaults/config.defaults.yaml
+
+# Static Configuration - pristine
+#
+# This file is copied to etc/config.yaml for fresh installs (that
+# don't already have one). It's not necessarily exhaustive since
+# we use a JSON schema for both validation and applying defaults
+# values.
+
+site:
+  host: <%= ENV['HOST'] || 'localhost:3000' %>
+  ssl: <%= ENV['SSL'] == 'true' || false %>
+  secret: <%= ENV['SECRET'] || nil %>
+  authentication:
+    enabled: <%= ENV['AUTH_ENABLED'] != 'false' %>
+    colonels:
+      - <%= ENV['COLONEL'] || 'CHANGEME@example.com' %>
+  authenticity:
+    type: <%= ENV['AUTHENTICITY_TYPE'] || 'altcha' %>
+    secret_key: <%= ENV['AUTHENTICITY_SECRET_KEY'] || '<REPLACE_WITH_STRONG_HMAC_KEY>' %>
+  middleware:
+    # Serve static files for frontend vue application
+    static_files: true
+    # Sanitizes request parameters to ensure proper UTF-8 encoding
+    # Prevents encoding-based attacks and malformed input
+    utf8_sanitizer: true
+    # Protects against Cross-Site Request Forgery (CSRF) attacks
+    # Validates that requests originate from the same site
+    http_origin: false
+    # Escapes HTML entities in request parameters
+    # Helps prevent XSS attacks via request parameters
+    escaped_params: false
+    # Sets X-XSS-Protection header to enable browser XSS filtering
+    # Modern browsers rely less on this as CSP becomes standard
+    xss_header: false
+    # Prevents your site from being embedded in frames (clickjacking protection)
+    # Sets X-Frame-Options header to SAMEORIGIN or DENY
+    frame_options: false
+    # Blocks directory traversal attacks using "../" in paths
+    # Critical for preventing unauthorized file access
+    path_traversal: false
+    # Protects against cookie tossing attacks
+    # Prevents session fixation via manipulated cookies
+    cookie_tossing: false
+    # Prevents IP spoofing attacks by validating IP addresses
+    # Useful when IP-based access controls are implemented
+    ip_spoofing: false
+    # Forces all connections to use HTTPS via HSTS headers
+    # Disable only for development or when behind a secure proxy
+    strict_transport: false
+storage:
+  db:
+    connection:
+      url: <%= ENV['REDIS_URL'] || 'redis://CHANGEME@127.0.0.1:6379/0' %>
+    database_mapping:
+      session: <%= ENV['REDIS_DBS_SESSION'] || 1 %>
+      custom_domain: <%= ENV['REDIS_DBS_CUSTOM_DOMAIN'] || 6 %>
+      customer: <%= ENV['REDIS_DBS_CUSTOMER'] || 6 %>
+      subdomain: <%= ENV['REDIS_DBS_SUBDOMAIN'] || 6 %>
+      metadata: <%= ENV['REDIS_DBS_METADATA'] || 7 %>
+      email_receipt: <%= ENV['REDIS_DBS_EMAIL_RECEIPT'] || 8 %>
+      secret: <%= ENV['REDIS_DBS_SECRET'] || 8 %>
+      rate_limit: <%= ENV['REDIS_DBS_RATE_LIMIT'] || 2 %>
+      feedback: <%= ENV['REDIS_DBS_FEEDBACK'] || 11 %>
+      exception_info: <%= ENV['REDIS_DBS_EXCEPTION_INFO'] || 12 %>
+      mutable_settings: <%= ENV['REDIS_DBS_MUTABLE_SETTINGS'] || 15 %>
+mail:
+  connection:
+    # Local Development with Mailpit
+    # -----------------------------
+    # Mailpit is a dev SMTP server that captures emails for testing
+    # Install: brew install mailpit
+    # Start: mailpit
+    # Web UI: http://localhost:8025
+    #
+    #  mode: smtp                     # Use SMTP mode for local testing
+    #  from: secure@onetimesecret.com # Sender address
+    #  fromname: OTS Support          # Sender name
+    #  host: 127.0.0.1                # Mailpit host
+    #  port: 1025                     # Mailpit default SMTP port
+    #  user: ~                        # No auth needed for Mailpit
+    #  pass: ~                        # No auth needed for Mailpit
+    #  auth: false                    # Disable SMTP auth for Mailpit
+    #  tls: false                     # Disable TLS for local testing
+
+    # Production Settings (for reference)
+    # ----------------------------------
+    mode: <%= ENV['EMAILER_MODE'] || 'smtp' %>
+    from: <%= ENV['FROM_EMAIL'] || ENV['FROM'] || 'CHANGEME@example.com' %>
+    fromname: <%= ENV['FROMNAME'] || 'Support' %>
+    host: <%= ENV['SMTP_HOST'] || 'smtp.provider.com' %>
+    port: <%= ENV['SMTP_PORT'] || 587 %>
+    user: <%= ENV['SMTP_USERNAME'] %>
+    pass: <%= ENV['SMTP_PASSWORD'] %>
+    auth: <%= ENV['SMTP_AUTH'] || 'login' %>
+    tls: <%= ENV['SMTP_TLS'] %>
+  validation:
+    defaults:
+      # Available validation types: :regex, :mx, :mx_blacklist, :smtp
+      default_validation_type: :regex
+      # Required for :smtp validation
+      verifier_email: <%= ENV['VERIFIER_EMAIL'] || 'CHANGEME@example.com' %>
+      #verifier_domain: <%= ENV['VERIFIER_DOMAIN'] || 'example.com' %>
+      #connection_timeout: 2
+      #response_timeout: 2
+      #connection_attempts: 3
+      #validation_type_for:
+      #  'example.com': :regex
+      #
+      # Truemail will only validate email addresses that match the
+      # domains listed in :allowed_domains. If the domain is not
+      # listed, the email address will always be considered invalid.
+      allowed_domains_only: false
+      #
+      # Email addresses in this list will always be valid.
+      #allowed_emails: []
+      #
+      # Email addresses in this list will always be invalid.
+      #blocked_emails: []
+      #
+      # Addresses with these domains will always be valid
+      #allowed_domains: []
+      #
+      # Addresses with these domains will always be invalid
+      #blocked_domains: []
+      #
+      # Exclude these IP addresses from the MX lookup process.
+      #blocked_mx_ip_addresses: []
+      #
+      # Name servers to use for MX et al record lookup.
+      # Default is CloudFlare, Google, Oracle/OpenDNS servers.
+      dns:
+        - 1.1.1.1
+        - 8.8.4.4
+        - 208.67.220.220
+      #smtp_port: 25
+      #
+      # End smtp validation after the first invalid response rather than
+      # retrying, followed by trying the next server. Can reduce the time
+      # time to validate an email address, but may not catch all issues.
+      smtp_fail_fast: false
+      #
+      # Parse the content of the SMTP error message to determine if the
+      # email address is valid. This can be useful for some SMTP servers
+      # that don't return exact answers.
+      smtp_safe_check: true
+      #
+      # Whether to disable the RFC MX lookup flow. When true, only DNS
+      # validation will be performed on MX and Null MX records.
+      not_rfc_mx_lookup_flow: false
+      #
+      # Override default regular expression pattern for email addresses
+      # and/or the content in SMTP error messages.
+      #email_pattern: /regex_pattern/
+      #smtp_error_body_pattern: /regex_pattern/
+      #
+      # Log to the console, a file, or both. The ruby process must have
+      # write access to the log file. The log file will be created if it
+      # does not exist. Log file rotation is not handled by the app.
+      logger:
+        # One of: :error (default), :unrecognized_error, :recognized_error, :all.
+        tracking_event: :error
+        stdout: true
+        # log_absolute_path: '/home/app/log/truemail.log'
+logging:
+  # HTTP request logs (Rack::CommonLogger)
+  http_requests: <%= ENV['LOG_HTTP_REQUESTS'] != 'false' %>
+diagnostics:
+  # If this is false, the rest of the settings are ignored
+  enabled: <%= ENV['DIAGNOSTICS_ENABLED'] == 'true' || false %>
+  sentry:
+    # Default Sentry configuration that applies to both frontend and
+    # backend. Values set here are overridden by codebase-specific ones.
+    #
+    # `dsn` - Primary Sentry DSN.
+    # `sampleRate` - Percentage of events to sample (0.0 to 1.0)
+    # `maxBreadcrumbs` - Maximum number of breadcrumbs to capture
+    # `logErrors` - Whether to log errors to console
+    defaults:
+      dsn: <%= ENV['SENTRY_DSN'] || nil %>
+      sampleRate: <%= ENV['SENTRY_SAMPLE_RATE'] || '0.10' %>
+      maxBreadcrumbs: <%= ENV['SENTRY_MAX_BREADCRUMBS'] || 5 %>
+      logErrors: <%= ENV['SENTRY_LOG_ERRORS'] != 'false' %>
+    # Ruby backend-specific Sentry configuration
+    #
+    # `dsn` - Backend-specific Sentry DSN
+    backend:
+      dsn: <%= ENV['SENTRY_DSN_BACKEND'] || nil %>
+    # Vue frontend-specific Sentry configuration
+    # Options here map directly to @sentry/vue client options
+    # These options are passed directly to @sentry/vue client initialization
+    # and to maintain type safety, they must be typed in
+    # src/types/diagnostics.ts DiagnosticsConfig interface.
+    #
+    # `dsn` - Frontend-specific Sentry DSN
+    # `trackComponents` - Enable automatic instrumentation of Vue components
+    frontend:
+      dsn: <%= ENV['SENTRY_DSN_FRONTEND'] || nil %>
+      trackComponents: <%= ENV['SENTRY_VUE_TRACK_COMPONENTS'] != 'false' %>
+i18n:
+  enabled: <%= ENV['I18N_ENABLED'] == 'true' || false %>
+  default_locale: <%= ENV['I18N_DEFAULT_LOCALE'] || 'en' %>
+  fallback_locale:
+    fr-CA: [fr_CA, fr_FR, en]
+    fr: [fr_FR, fr_CA, en]
+    de-AT: [de_AT, de, en]
+    de: [de, de_AT, en]
+    it: [it_IT, en]
+    pt: [pt_BR, en]
+    default: [en]
+  # A list of ISO language codes (e.g., 'en' for English, 'es'
+  # for Spanish, etc.). There is a corresponding file in src/locales
+  # with the same name containing the translated text. If it's not
+  # selected automatically, users are able to select their preferred
+  # language by using the toggle in the footer or in the settings
+  # modal if they're logged in.
+  locales:
+    - bg
+    - da_DK
+    - de
+    - de_AT
+    - el_GR
+    - en
+    - es
+    - fr_CA
+    - fr_FR
+    - it_IT
+    - ja
+    - ko
+    - mi_NZ
+    - nl
+    - tr
+    - uk
+    - pl
+    - pt_BR
+    - sv_SE
+  incomplete:
+    - ar
+    - ca_ES
+    - cs
+    - he
+    - hu
+    - pt_PT
+    - ru
+    - sl_SI
+    - vi
+    - zh
+development:
+  # Development Mode Configuration
+  #
+  # There are two ways to run the frontend in development:
+  #
+  # 1. Behind a reverse proxy (e.g., Caddy, nginx)
+  #    - Set :enabled to true
+  #    - Leave :frontend_host empty
+  #    - Configure your reverse proxy to handle /dist/* routes
+  #
+  # 2. Using the built-in rack-proxy (new)
+  #    - Set :enabled to true
+  #    - Set :frontend_host to 'http://localhost:5173'
+  #    - The application will proxy /dist/* requests to the Vite dev server
+  #
+  # When development mode is enabled, the application expects a Vite
+  # development server to be running. This allows live-reloading of frontend
+  # changes without rebuilding:
+  #
+  #   $ pnpm run dev
+  #   VITE v5.3.4  ready in 38 ms
+  #
+  #   -> Local:   http://localhost:5173/dist/
+  #   -> Network: use --host to expose
+  #   -> press h + enter to show help
+  #
+  # When disabled (or in production), the application serves pre-built assets
+  # from public/web/dist instead.
+  #
+  enabled: <%= ['development', 'dev'].include?(ENV['RACK_ENV']) %>
+  debug: <%= ['true', '1', 'yes'].include?(ENV['ONETIME_DEBUG']) %>
+  # Frontend host configuration:
+  # - Set to 'http://localhost:5173' to use built-in proxy
+  # - Leave empty when using a reverse proxy (like nginx, caddy, etc)
+  frontend_host: <%= ENV['FRONTEND_HOST'] || 'http://localhost:5173' %>
+experimental:
+  allow_nil_global_secret: <%= ENV['ALLOW_NIL_GLOBAL_SECRET'] == 'true' || false %>
+  rotated_secrets: []
+  freeze_app: false

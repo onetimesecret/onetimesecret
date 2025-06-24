@@ -8,13 +8,6 @@
   "jsxSingleQuote": false,
   "overrides": [
     {
-      "files": "*.rb",
-      "options": {
-        "parser": "ruby",
-        "printWidth": 80
-      }
-    },
-    {
       "files": "*.svg",
       "options": {
         "parser": "html",

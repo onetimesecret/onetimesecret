@@ -61,7 +61,7 @@ export const useMetadataListStore = defineStore('metadataList', () => {
     const validated = responseSchemas.metadataList.parse(response.data);
 
     records.value = validated.records ?? [];
-    details.value = validated.details ?? {};
+    details.value = (validated.details || null) as MetadataRecordsDetails | null;
     count.value = validated.count ?? 0;
 
     return validated;

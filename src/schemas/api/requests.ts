@@ -1,5 +1,5 @@
 import { brandSettingschema } from '@/schemas/models/domain/brand';
-import { z } from 'zod';
+import { z } from 'zod/v4';
 import { concealPayloadSchema, generatePayloadSchema } from './payloads/index';
 
 export const updateDomainBrandRequestSchema = z.object({

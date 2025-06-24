@@ -13,9 +13,9 @@ module Onetime
     # only after it's been modified but some hot reloading logic is extra spicy).
     #
     module Features
-      @type = nil
-      @api_key = nil
-      @cluster_ip = nil
+      @type         = nil
+      @api_key      = nil
+      @cluster_ip   = nil
       @cluster_name = nil
       @cluster_host = nil
       @vhost_target = nil
@@ -145,7 +145,7 @@ module Onetime
           exact_match: false,
           keep_host: nil,
         }
-        post_options = default_options.merge(options)
+        post_options    = default_options.merge(options)
 
         response = post('/vhosts',
           headers: { 'api-key' => api_key },
@@ -163,7 +163,7 @@ module Onetime
         when 422
           raise HTTParty::ResponseError, response.parsed_response['errors']
         when 401
-          raise HTTParty::ResponseError, "Invalid API key"
+          raise HTTParty::ResponseError, 'Invalid API key'
         end
 
         response
@@ -210,10 +210,10 @@ module Onetime
       #    "target_ports" => "443",
       #    "user_message" => "..."
       #  }
-      #}
+      # }
       #
       def self.get_vhost_by_incoming_address(api_key, incoming_address, force = false)
-        url_path = "/vhosts/by/incoming/#{incoming_address}"
+        url_path  = "/vhosts/by/incoming/#{incoming_address}"
         url_path += '/force-check' if force
 
         response = get(url_path, headers: { 'api-key' => api_key })
@@ -222,7 +222,7 @@ module Onetime
         when 404
           raise HTTParty::ResponseError, "Could not find Virtual Host: #{incoming_address}"
         when 401
-          raise HTTParty::ResponseError, "Invalid API key"
+          raise HTTParty::ResponseError, 'Invalid API key'
         end
 
         response
@@ -268,7 +268,7 @@ module Onetime
           exact_match: false,
           keep_host: nil,
         }
-        post_options = default_options.merge(options)
+        post_options    = default_options.merge(options)
 
         response = post('/vhosts/update/by/incoming',
           headers: { 'api-key' => api_key },
@@ -287,7 +287,7 @@ module Onetime
         when 404
           raise HTTParty::ResponseError, "Could not find an existing Virtual Host: #{current_incoming_address}"
         when 401
-          raise HTTParty::ResponseError, "Invalid API key"
+          raise HTTParty::ResponseError, 'Invalid API key'
         end
 
         response
@@ -317,12 +317,11 @@ module Onetime
         when 404
           raise HTTParty::ResponseError, "Could not find Virtual Host: #{incoming_address}"
         when 401
-          raise HTTParty::ResponseError, "Invalid API key"
+          raise HTTParty::ResponseError, 'Invalid API key'
         end
 
         response
       end
     end
-
   end
 end

@@ -1,0 +1,16 @@
+---
+mail:
+  validation:
+    defaults:
+      # Available validation types: :regex, :mx, :mx_blacklist, :smtp
+      default_validation_type: :mx
+      # Required for :smtp validation
+      verifier_email: <%= ENV['VERIFIER_EMAIL'] || 'CHANGEME@example.com' %>
+      verifier_domain: <%= ENV['VERIFIER_DOMAIN'] || 'example.com' %>
+      # Truemail will only validate email addresses that match the
+      # domains listed in :allowed_domains. If the domain is not
+      # listed, the email address will always be considered invalid.
+      allowed_domains_only: true
+      allowed_domains: ['example.com']
+      allowed_emails: ['welcome@example.net']
+      blocked_emails: ['leave@example.com']

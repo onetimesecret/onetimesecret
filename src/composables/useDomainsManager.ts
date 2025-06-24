@@ -72,7 +72,7 @@ export function useDomainsManager() {
 
       return {
         domain,
-        cluster: domainData?.details?.cluster,
+        cluster: (domainData?.details as Record<string, any>)?.cluster, // Added type assertion
         canVerify,
       };
     });

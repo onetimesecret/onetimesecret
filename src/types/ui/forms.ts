@@ -1,6 +1,6 @@
-import type { z } from 'zod';
+import type { z } from 'zod/v4';
 
-export type FormSubmissionOptions<ResponseSchema extends z.ZodType = z.ZodAny> = {
+export type FormSubmissionOptions<ResponseSchema extends z.ZodTypeAny = z.ZodAny> = {
   /**
    * URL to submit the form to. If not provided, form's action attribute will be used
    */
