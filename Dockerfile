@@ -149,7 +149,6 @@ COPY package.json pnpm-lock.yaml tsconfig.json vite.config.ts \
 # Build application and generate schema
 RUN set -eux && \
     pnpm run build && \
-    pnpm run schema:generate && \
     pnpm prune --prod && \
     rm -rf node_modules ~/.npm ~/.pnpm-store && \
     npm uninstall -g pnpm

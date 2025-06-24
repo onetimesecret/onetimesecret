@@ -4,8 +4,8 @@
   "description": "",
   "type": "module",
   "scripts": {
-    "build": "pnpm run schema:generate && vite build --config vite.config.ts",
-    "build:local": "pnpm run schema:generate && vite build --config vite.config.local.ts",
+    "build": "vite build --config vite.config.ts",
+    "build:local": "vite build --config vite.config.local.ts",
     "config": "pnpm run schema:generate && bundle exec bin/ots config",
     "config:validate": "pnpm run schema:generate && bundle exec bin/ots validate",
     "clean": "rimraf public/web/dist",
