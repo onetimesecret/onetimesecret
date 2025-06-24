@@ -6,6 +6,9 @@
 # Purpose: Separates monolithic config.example.yaml into static and mutable configuration files.
 # Static config goes to etc/config.yaml, mutable config gets loaded into V2::MutableSettings.
 #
+# **NOTE**: The reason we use `yq` even though it adds a system dependency is that
+# it can transform YAML _with_ comments and preserve their structure.
+#
 # Usage:
 #   ruby migrate/1452_separate_config.rb --dry-run  # Preview changes
 #   ruby migrate/1452_separate_config.rb --run      # Execute migration
@@ -45,9 +48,6 @@ module Onetime
         { 'from' => 'internationalization', 'to' => 'i18n' },
         { 'from' => 'development', 'to' => 'development' },
         { 'from' => 'experimental.allow_nil_global_secret', 'to' => 'experimental.allow_nil_global_secret', 'default' => false },
-        { 'from' => 'experimental.rotated_secrets', 'to' => 'experimental.rotated_secrets' },
-        { 'from' => 'experimental.freeze_app', 'to' => 'experimental.freeze_app' },
-        { 'from' => 'experimental.middleware', 'to' => 'site.middleware' },
         { 'from' => 'experimental.rotated_secrets', 'to' => 'experimental.rotated_secrets', 'default' => [] },
         { 'from' => 'experimental.freeze_app', 'to' => 'experimental.freeze_app', 'default' => false },
         { 'from' => 'experimental.middleware', 'to' => 'site.middleware', 'default' => {
@@ -56,9 +56,9 @@ module Onetime
       ],
       'mutable' => [
         { 'from' => 'site.interface.ui', 'to' => 'ui' },
-        { 'from' => 'site.authentication.signup', 'to' => 'user_interface.signup' },
-        { 'from' => 'site.authentication.signin', 'to' => 'user_interface.signin' },
-        { 'from' => 'site.authentication.verify', 'to' => 'user_interface.autoverify' },
+        { 'from' => 'site.authentication.signup', 'to' => 'ui.signup' },
+        { 'from' => 'site.authentication.signin', 'to' => 'ui.signin' },
+        { 'from' => 'site.authentication.verify', 'to' => 'ui.autoverify' },
         { 'from' => 'site.interface.api', 'to' => 'api' },
         { 'from' => 'site.secret_options', 'to' => 'secret_options' },
         { 'from' => 'features', 'to' => 'features' },
@@ -181,12 +181,14 @@ module Onetime
       finalize_configuration
 
       print_summary do
+        info ''
         info "Configuration separation completed successfully"
         info "Static config: #{@final_static_path}"
         info "Mutable config: #{@final_mutable_path}"
-        separator
+        info separator
         info "Files processed: #{@stats[:files_processed]}"
         info "Errors encountered: #{@stats[:errors]}"
+        info ''
       end
 
       true
@@ -293,7 +295,7 @@ module Onetime
       # Generate yq command with optional default value
       if default_value.nil?
         # No default - use original behavior
-      cmd = "yq eval '.#{to_yq} = load(\"#{@converted_config}\").#{from_yq}' -i '#{output_file}'"
+        cmd = "yq eval '.#{to_yq} = load(\"#{@converted_config}\").#{from_yq}' -i '#{output_file}'"
       else
         # Use default value as fallback
         formatted_default = format_default_for_yq(default_value)
