@@ -448,7 +448,7 @@ export default [
       parserOptions: {
         ecmaVersion: 'latest',
         sourceType: 'module',
-        project: ['./tsconfig.json', './tsconfig.test.json'],
+        project: ['./tsconfig.json', './tsconfig.tests.json'],
         extraFileExtensions: ['.vue'],
       },
       globals: {
