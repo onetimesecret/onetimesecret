@@ -2,6 +2,9 @@
 
 The "lite" image is a self-contained container with both the Onetime Secret application and a Redis server. It is ephemeral by design, meaning all data is lost when the container stops. This is a security feature, not a bug.
 
+> [!NOTE]
+> A pre-built image is available from [GitHub Container Registry](https://github.com/onetimesecret/onetimesecret/pkgs/container/onetimesecret-lite). Most users can skip the "Building the Image" section.
+
 ## Building the Image
 
 To build the lite image from the source repository, use the `Dockerfile-lite` file:

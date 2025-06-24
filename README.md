@@ -66,14 +66,10 @@ We strongly recommend using the latest release with Ruby 3+ for the best perform
 
 * Any recent linux distro (we use debian) or *BSD or MacOS
 * System dependencies:
-  * Ruby 3.1+ (3.0 may work but is not officially supported)
-  * Redis server 5+
+  * Ruby 3.4+ (3.1-3.3 may work but is not officially supported; 3.0 does not work)
+  * Valkey/Redis server 5+
   * Node.js 22+ (for front-end development)
-  * pnpm 9.0.0+
-* Additional packages:
-  * build-essential
-  * libyaml-dev
-  * libffi-dev
+  * pnpm 10.0.0+
 * Minimum specs:
   * 2 core CPU (or equivalent)
   * 1GB memory
@@ -81,89 +77,26 @@ We strongly recommend using the latest release with Ruby 3+ for the best perform
 
 ### Docker Installation
 
-There are multiple ways to run OnetimeSecret using Docker. Choose the method that best suits your needs:
+The recommended way to run Onetime Secret is with Docker.
 
-#### 1. Using Pre-built Images
+#### Using Pre-built Images
 
-We offer pre-built images on both GitHub Container Registry and Docker Hub.
+For most users, the quickest way to get started is by using our pre-built images, available from:
 
+- **[GitHub Container Registry](https://github.com/onetimesecret/onetimesecret/pkgs/container/onetimesecret)**: `ghcr.io/onetimesecret/onetimesecret`
+- **[Docker Hub](https://hub.docker.com/r/onetimesecret/onetimesecret)**: `onetimesecret/onetimesecret`
+
+To pull the latest image from GitHub:
 ```bash
-# Pull from GitHub Container Registry
 docker pull ghcr.io/onetimesecret/onetimesecret:latest
-
-# OR, pull from Docker Hub
-docker pull onetimesecret/onetimesecret:latest
 ```
 
-#### 2. Building the Image Locally
+#### Running and Configuration
 
-If you prefer to build the image yourself:
+For comprehensive instructions on how to run and configure the images, and for advanced topics like building the image yourself, please see our detailed guides:
 
-```bash
-git clone https://github.com/onetimesecret/onetimesecret.git
-cd onetimesecret
-docker build -t onetimesecret .
-```
-
-#### 3. Multi-platform Builds
-
-For environments requiring multi-architecture support:
-
-```bash
-git clone https://github.com/onetimesecret/onetimesecret.git
-cd onetimesecret
-docker buildx build --platform=linux/amd64,linux/arm64 . -t onetimesecret
-```
-
-#### 4. Lite Docker Image
-
-We also offer a "lite" version of the Docker image, which is optimized for quicker deployment and reduced resource usage. To use the lite version:
-
-```bash
-# Pull the lite image
-docker pull ghcr.io/onetimesecret/onetimesecret-lite:latest
-
-# OR, build it locally
-docker build -f Dockerfile-lite -t onetimesecret:lite .
-```
-
-For more information on the lite Docker image, refer to the [DOCKER-lite.md](docs/DOCKER-lite.md) documentation.
-
-### Running the Container
-
-Regardless of how you obtained or built the image, follow these steps to run OnetimeSecret:
-
-1. Start a Redis container:
-
-   ```bash
-   docker run -p 6379:6379 -d redis:bookworm
-   ```
-
-2. Set essential environment variables:
-
-   ```bash
-   export HOST=localhost:3000
-   export SSL=false
-   export SECRET=CHANGE_THIS_VALUE
-   export REDIS_URL=redis://host.docker.internal:6379/0
-   export RACK_ENV=production
-   ```
-
-3. Run the OnetimeSecret container:
-
-   ```bash
-   docker run -p 3000:3000 -d --name onetimesecret \
-     -e REDIS_URL=$REDIS_URL \
-     -e SECRET=$SECRET \
-     -e HOST=$HOST \
-     -e SSL=$SSL \
-     -e RACK_ENV=$RACK_ENV \
-     onetimesecret/onetimesecret:latest
-   ```
-
-   Note: Replace `onetimesecret/onetimesecret:latest` with your image name if you built it locally.
-
-OnetimeSecret should now be running and accessible at `http://localhost:3000`.
+- **[Main Docker Guide](docs/DOCKER.md)**: For most use cases, including production deployments.
+- **[Lite Docker Guide](docs/DOCKER-lite.md)**: For our self-contained, ephemeral image.
 
 ### Manual Installation
 

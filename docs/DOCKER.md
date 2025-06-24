@@ -3,6 +3,9 @@
 Onetime Secret is a service that allows you to share sensitive information securely using single-use URLs. This guide provides instructions for deploying Onetime Secret using Docker.
 
 > [!NOTE]
+> Pre-built images are available from [GitHub Container Registry](https://github.com/onetimesecret/onetimesecret/pkgs/container/onetimesecret) and [Docker Hub](https://hub.docker.com/r/onetimesecret/onetimesecret). Most users can skip the "Building the Image" section.
+
+> [!NOTE]
 > For information on our "lite" Docker image, which offers an ephemeral "leave no trace" option, see [DOCKER-lite.md](DOCKER-lite.md).
 
 ## Building the Image
