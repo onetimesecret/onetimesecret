@@ -101,14 +101,29 @@ ARG VERSION
 FROM docker.io/library/ruby:3.4-slim-bookworm@sha256:93664239ae7e485147c2fa83397fdc24bf7b7f1e15c3ad9d48591828a50a50e7 AS base
 
 # Limit to packages needed for the system itself
-ARG PACKAGES="build-essential rsync netcat-openbsd libffi-dev libyaml-dev git"
+ARG PACKAGES="build-essential libffi-dev libyaml-dev git"
+ARG EXTRA_PACKAGES="curl" # rsync less netcat-openbsd yq
 
 # Fast fail on errors while installing system packages
 RUN set -eux \
   && apt-get update \
-  && apt-get install -y $PACKAGES \
+  && apt-get install -y $PACKAGES
+
+# Install extras if any are specified. This is a helpful placeholder
+# that does nothing by default but supports adding more packages
+# without having to install all of the PACKAGES every time it changes.
+RUN set -eux \
+  && test $EXTRA_PACKAGES \
+  && apt-get install -y $EXTRA_PACKAGES \
   && apt-get clean \
-  && rm -rf /var/lib/apt/lists/*
+  && rm -rf /var/lib/apt/lists/* \
+  && case "$(uname -m)" in \
+    "x86_64") PLATFORM_ARCH="amd64" ;; \
+    "aarch64") PLATFORM_ARCH="arm64" ;; \
+    *) PLATFORM_ARCH="amd64" ;; \
+  esac \
+  && curl -L "https://github.com/mikefarah/yq/releases/latest/download/yq_linux_${PLATFORM_ARCH}" -o /usr/local/bin/yq \
+  && chmod +x /usr/local/bin/yq
 
 # Copy Node.js and npm from the official image
 COPY --from=docker.io/library/node:22@sha256:0b5b940c21ab03353de9042f9166c75bcfc53c4cd0508c7fd88576646adbf875 /usr/local/bin/node /usr/local/bin/
@@ -203,6 +218,7 @@ LABEL org.opencontainers.image.version=$VERSION
 WORKDIR $CODE_ROOT
 
 ## Copy only necessary files from previous stages
+COPY --from=dependencies /usr/local/bin/yq /usr/local/bin/yq
 COPY --from=build /usr/local/bundle /usr/local/bundle
 COPY --from=build $CODE_ROOT/etc/ ./etc/
 COPY --from=build $CODE_ROOT/public ./public
