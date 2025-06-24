@@ -1,8 +1,8 @@
-# .github/workflows/ruby-tests.yml
+# .github/workflows/ci.yml
 
-name: Ruby Tests
+name: CI
 
-# This GitHub Actions workflow runs Ruby tests using RSpec and tryouts.
+# Main CI workflow that runs Ruby tests using RSpec and tryouts.
 #
 # The workflow is triggered by push events on branches starting with "fix/" or
 # "rel/", pull requests on main/develop/feature/* branches, and manual dispatch.

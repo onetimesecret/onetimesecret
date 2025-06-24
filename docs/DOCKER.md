@@ -32,10 +32,23 @@ After building the image, you can run Onetime Secret with a few commands. This m
     docker run -d --name valkey -p 6379:6379 valkey/valkey
     ```
 
-2.  **Run the application container.** You will be prompted to enter a secret, which will not be displayed on screen.
+2.  **Set a unique secret:**
+
+    ```bash
+    openssl rand -hex 24
+    ```
+
+    Copy the output from above command and save it somewhere safe.
 
     ```bash
     echo -n "Enter a secret and press [ENTER]: "; read -s SECRET
+    ```
+
+    Paste the secret you copied from the openssl command above.
+
+3.  **Run the application:**
+
+    ```bash
     docker run -p 3000:3000 -d --name onetimesecret \
         -e SECRET=$SECRET \
         -e REDIS_URL=redis://host.docker.internal:6379/0 \
