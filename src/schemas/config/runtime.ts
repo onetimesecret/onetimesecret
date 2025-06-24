@@ -15,9 +15,23 @@ import { z } from 'zod/v4';
 import { configSchema as staticConfigSchema } from './static';
 import { configSchema as mutableConfigSchema } from './mutable';
 
-// const runtimeMailSchema = z.union([staticMailSchema, mutableMailSchema]);
-
-const configSchema = z.union([staticConfigSchema, mutableConfigSchema]);
+/**
+ * SPECIALE WAARSCHUWING
+ *
+ * From the docs for `extend`:
+ *    This API can be used to overwrite existing fields! Be careful with
+ *    this power! If the two schemas share keys, B will override A.
+ *
+ * A = mutableConfigSchema
+ * B = staticConfigSchema
+ *
+ * @see https://zod.dev/api?id=extend
+ *
+ */
+const configSchema = z.object({
+  ...mutableConfigSchema.shape,
+  ...staticConfigSchema.shape,
+});
 
 export type Config = z.infer<typeof configSchema>;
 

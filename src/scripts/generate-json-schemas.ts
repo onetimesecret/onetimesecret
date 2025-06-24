@@ -15,26 +15,12 @@ import { join } from 'path';
 import { z } from 'zod/v4';
 import { configSchema as mutableConfigSchema } from '../schemas/config/mutable';
 import { configSchema as staticConfigSchema } from '../schemas/config/static';
+import { configSchema as runtimeConfigSchema } from '../schemas/config/runtime';
 
 const ONETIME_HOME = process.env.ONETIME_HOME || process.cwd();
 
 const OUTPUT_MAIN_SCHEMA = join(ONETIME_HOME, 'public/web/dist/schemas/runtime.schema.json');
 const OUTPUT_SCHEMAS_DIR = join(ONETIME_HOME, 'etc/schemas');
-
-/**
- * Combined runtime schema
- *
- * From the docs for `extend`:
- *    This API can be used to overwrite existing fields! Be careful with
- *    this power! If the two schemas share keys, B will override A.
- *
- * A = mutableConfigSchema
- * B = staticConfigSchema
- */
-const runtimeConfigSchema = z.object({
-  ...mutableConfigSchema.shape,
-  ...staticConfigSchema.shape,
-});
 
 /**
  * Generate individual JSON schema files
