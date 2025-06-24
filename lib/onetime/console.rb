@@ -1,5 +1,12 @@
 # lib/onetime/console.rb
 
+##
+# Onetime Console
+#
+# This file contains the console setup and is run standalone (i.e. executed
+# directly by IRB).
+#
+
 ENV['RACK_ENV']   ||= 'production'
 ENV['ONETIME_HOME'] = File.expand_path(File.join(__dir__, '..', '..')).freeze
 app_root            = ENV.fetch('ONETIME_HOME')

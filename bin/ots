@@ -1,16 +1,14 @@
 #!/usr/bin/env ruby
 
-base_path = File.expand_path File.join(File.dirname(__FILE__), '..')
+base_path             = File.expand_path('..', __dir__)
 $LOAD_PATH.unshift File.join(base_path, 'lib')
+ENV['ONETIME_HOME'] ||= base_path.freeze
 
 APPS_ROOT = File.join(base_path, 'apps').freeze
 $LOAD_PATH.unshift(File.join(APPS_ROOT, 'api'))
 $LOAD_PATH.unshift(File.join(APPS_ROOT, 'web'))
 
-# TODO: Replace with bundle install --standalone (Bundler v1.1)
-ENV['BUNDLE_GEMFILE'] ||= File.join(base_path, 'Gemfile')
-
-require 'onetime'
+require 'onetime' # loads bundler/setup
 require 'onetime/cli'
 require 'rubygems'
 require 'drydock'
