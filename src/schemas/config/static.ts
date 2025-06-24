@@ -75,4 +75,4 @@ const configSchema = z.object({
 
 export type Config = z.infer<typeof configSchema>;
 
-export { configSchema };
+export { configSchema, mailSchema };

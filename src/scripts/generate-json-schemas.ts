@@ -1,4 +1,5 @@
 #!/usr/bin/env -S pnpm exec tsx
+
 /**
  * Generate JSON Schemas and TypeScript types from Zod configuration schemas
  *

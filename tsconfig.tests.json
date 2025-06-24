@@ -4,6 +4,10 @@
     "isolatedModules": true,
     "verbatimModuleSyntax": true
   },
+  "paths": {
+    "@/*": ["./src/*"],
+    "@tests/*": ["./tests/*"]
+  },
   "include": [
     "**/*.config.*s",
     "src/**/*.ts",
