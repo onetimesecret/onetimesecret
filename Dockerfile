@@ -23,7 +23,6 @@
 # To build and use this image, you need to copy the example
 # configuration files into place:
 #
-#     $ cp --preserve --no-clobber ./etc/examples/config.example.yaml ./etc/config.yaml
 #     $ cp --preserve --no-clobber .env.example .env
 #
 # The default values work as-is but it's a good practice to have
@@ -89,7 +88,7 @@
 # For more detailed configuration options, refer to the README.md file.
 
 ##
-# BUILDER LAYER
+# BASE LAYER
 #
 # Installs system packages, updates RubyGems, and prepares the
 # application's package management dependencies using a Debian
@@ -134,7 +133,7 @@ RUN set -eux \
 # system packages for userland, and installs the application's
 # dependencies using the Base Layer as a starting point.
 #
-FROM base AS app_deps
+FROM base AS dependencies
 ARG CODE_ROOT
 ARG ONETIME_HOME
 ARG VERSION
@@ -165,7 +164,8 @@ RUN set -eux \
 ##
 # BUILD LAYER
 #
-FROM app_deps AS build
+FROM dependencies AS build
+ARG ONETIME_HOME
 ARG CODE_ROOT
 ARG VERSION
 
@@ -204,21 +204,25 @@ WORKDIR $CODE_ROOT
 
 ## Copy only necessary files from previous stages
 COPY --from=build /usr/local/bundle /usr/local/bundle
-COPY --from=build $CODE_ROOT/public $CODE_ROOT/public
-COPY --from=build $CODE_ROOT/templates $CODE_ROOT/templates
-COPY --from=build $CODE_ROOT/src $CODE_ROOT/src
-COPY bin $CODE_ROOT/bin
-COPY apps $CODE_ROOT/apps
-COPY etc $CODE_ROOT/etc
-COPY lib $CODE_ROOT/lib
-COPY migrate $CODE_ROOT/migrate
-COPY scripts/entrypoint.sh $CODE_ROOT/bin/
-COPY package.json config.ru Gemfile Gemfile.lock $CODE_ROOT/
+COPY --from=build $CODE_ROOT/etc/ ./etc/
+COPY --from=build $CODE_ROOT/public ./public
+COPY --from=build $CODE_ROOT/templates ./templates
+COPY --from=build $CODE_ROOT/src ./src
+COPY bin ./bin
+COPY apps ./apps
+COPY etc ./etc
+COPY lib ./lib
+COPY migrate ./migrate
+COPY scripts/entrypoint.sh ./bin/
+COPY scripts/update-version.sh ./bin/
+COPY package.json config.ru Gemfile Gemfile.lock ./
 
 # Copy build stage metadata files
-COPY --from=build /tmp/build-meta/commit_hash.txt $CODE_ROOT/.commit_hash.txt
+COPY --from=build /tmp/build-meta/commit_hash.txt ./.commit_hash.txt
 
-# See: https://fly.io/docs/rails/cookbooks/deploy/
+# Enable Ruby's YJIT compiler for improved performance in Ruby 3.4+
+# YJIT is a lightweight, minimalistic Ruby JIT built inside CRuby that
+# provides significant performance improvements for most Ruby applications.
 ENV RUBY_YJIT_ENABLE=1
 
 # Explicitly setting the Rack environment to production directs
