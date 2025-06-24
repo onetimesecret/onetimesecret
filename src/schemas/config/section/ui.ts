@@ -51,7 +51,6 @@ const userInterfaceSchema = z.object({
   footer_links: userInterfaceFooterLinksSchema.optional(),
   signup: z.boolean().optional(), // Added
   signin: z.boolean().optional(), // Added
-  autoverify: z.null().optional(), // Added, YAML has 'null'
 });
 
 export { userInterfaceSchema };

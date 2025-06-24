@@ -5,6 +5,7 @@ import { z } from 'zod/v4';
 const siteAuthenticationSchema = z.object({
   enabled: z.boolean().default(false),
   colonels: z.array(z.string()).default([]),
+  autoverify: z.boolean().default(false),
 });
 
 const siteAuthenticitySchema = z.object({

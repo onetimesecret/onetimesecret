@@ -33,11 +33,16 @@
               "items": {
                 "type": "string"
               }
+            },
+            "autoverify": {
+              "default": false,
+              "type": "boolean"
             }
           },
           "required": [
             "enabled",
-            "colonels"
+            "colonels",
+            "autoverify"
           ],
           "additionalProperties": false
         },
