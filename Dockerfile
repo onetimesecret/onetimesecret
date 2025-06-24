@@ -67,8 +67,9 @@ RUN set -eux \
   && apt-get install -y $PACKAGES
 
 # Install extras if any are specified. This is a helpful placeholder
-# that does nothing by default but supports adding more packages
-# without having to install all of the PACKAGES every time it changes.
+# that does nothing if EXTRA_PACKAGES is empty. This approach supports
+# adding packages without having to install all of the PACKAGES every
+# time it changes.
 RUN set -eux \
   && test $EXTRA_PACKAGES \
   && apt-get install -y $EXTRA_PACKAGES \
@@ -183,7 +184,6 @@ COPY --from=build $CODE_ROOT/templates ./templates
 COPY --from=build $CODE_ROOT/src ./src
 COPY bin ./bin
 COPY apps ./apps
-COPY etc ./etc
 COPY lib ./lib
 COPY migrate ./migrate
 COPY scripts/entrypoint.sh ./bin/

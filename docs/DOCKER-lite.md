@@ -18,7 +18,7 @@ docker build -t onetimesecret-lite -f Dockerfile-lite .
 Run the container using the `--rm` flag to ensure it is automatically removed on exit, fulfilling its ephemeral purpose.
 
 ```bash
-docker run --rm -p 7143:3000 --name onetimesecret-lite onetimesecret-lite
+docker run --rm -p 7143:3000 --name onetimesecret-lite onetimesecret-lite:latest
 ```
 
 The application will be available at `http://localhost:7143`.
