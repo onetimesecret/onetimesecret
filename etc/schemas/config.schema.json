@@ -162,6 +162,206 @@
       },
       "additionalProperties": false
     },
+    "features": {
+      "type": "object",
+      "properties": {
+        "incoming": {
+          "type": "object",
+          "properties": {
+            "enabled": {
+              "type": "boolean"
+            },
+            "email": {
+              "type": "string",
+              "format": "email",
+              "pattern": "^(?!\\.)(?!.*\\.\\.)([A-Za-z0-9_'+\\-\\.]*)[A-Za-z0-9_+-]@([A-Za-z0-9][A-Za-z0-9\\-]*\\.)+[A-Za-z]{2,}$"
+            },
+            "passphrase": {
+              "type": "string"
+            },
+            "regex": {
+              "type": "string"
+            }
+          },
+          "additionalProperties": false
+        },
+        "regions": {
+          "type": "object",
+          "properties": {
+            "enabled": {
+              "type": "boolean"
+            },
+            "current_jurisdiction": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "jurisdictions": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "identifier": {
+                    "type": "string"
+                  },
+                  "display_name": {
+                    "type": "string"
+                  },
+                  "domain": {
+                    "type": "string"
+                  },
+                  "icon": {
+                    "type": "object",
+                    "properties": {
+                      "collection": {
+                        "type": "string"
+                      },
+                      "name": {
+                        "type": "string"
+                      }
+                    },
+                    "additionalProperties": false
+                  }
+                },
+                "additionalProperties": false
+              }
+            }
+          },
+          "additionalProperties": false
+        },
+        "stathat": {
+          "type": "object",
+          "properties": {},
+          "additionalProperties": {}
+        },
+        "domains": {
+          "type": "object",
+          "properties": {
+            "enabled": {
+              "type": "boolean"
+            },
+            "default": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "cluster": {
+              "type": "object",
+              "properties": {
+                "type": {
+                  "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "api_key": {
+                  "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "cluster_ip": {
+                  "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "cluster_host": {
+                  "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "cluster_name": {
+                  "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "vhost_target": {
+                  "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                }
+              },
+              "additionalProperties": false
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "required": [
+        "stathat"
+      ],
+      "additionalProperties": false
+    },
+    "capabilities": {
+      "type": "object",
+      "propertyNames": {
+        "type": "string",
+        "enum": [
+          "anonymous",
+          "authenticated",
+          "standard",
+          "enhanced"
+        ]
+      },
+      "additionalProperties": {
+        "type": "object",
+        "properties": {
+          "api": {
+            "type": "boolean"
+          },
+          "email": {
+            "type": "boolean"
+          },
+          "custom_domains": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "api",
+          "email",
+          "custom_domains"
+        ],
+        "additionalProperties": false
+      }
+    },
     "mail": {
       "type": "object",
       "properties": {
@@ -353,219 +553,6 @@
       ],
       "additionalProperties": false
     },
-    "plans": {
-      "type": "object",
-      "properties": {
-        "anonymous": {
-          "type": "object",
-          "properties": {
-            "ttl": {
-              "anyOf": [
-                {
-                  "type": "number"
-                },
-                {
-                  "type": "null"
-                }
-              ]
-            },
-            "size": {
-              "anyOf": [
-                {
-                  "type": "number"
-                },
-                {
-                  "type": "null"
-                }
-              ]
-            },
-            "api": {
-              "type": "boolean"
-            },
-            "name": {
-              "type": "string"
-            },
-            "email": {
-              "type": "boolean"
-            },
-            "custom_domains": {
-              "type": "boolean"
-            },
-            "dark_mode": {
-              "type": "boolean"
-            },
-            "cname": {
-              "type": "boolean"
-            },
-            "private": {
-              "type": "boolean"
-            }
-          },
-          "required": [
-            "ttl",
-            "size",
-            "api",
-            "name"
-          ],
-          "additionalProperties": false
-        },
-        "authenticated": {
-          "type": "object",
-          "properties": {
-            "ttl": {
-              "anyOf": [
-                {
-                  "type": "number"
-                },
-                {
-                  "type": "null"
-                }
-              ]
-            },
-            "size": {
-              "anyOf": [
-                {
-                  "type": "number"
-                },
-                {
-                  "type": "null"
-                }
-              ]
-            },
-            "api": {
-              "type": "boolean"
-            },
-            "name": {
-              "type": "string"
-            },
-            "email": {
-              "type": "boolean"
-            },
-            "custom_domains": {
-              "type": "boolean"
-            },
-            "dark_mode": {
-              "type": "boolean"
-            },
-            "cname": {
-              "type": "boolean"
-            },
-            "private": {
-              "type": "boolean"
-            }
-          },
-          "required": [
-            "ttl",
-            "size",
-            "api",
-            "name"
-          ],
-          "additionalProperties": false
-        }
-      },
-      "required": [
-        "anonymous",
-        "authenticated"
-      ],
-      "additionalProperties": false
-    },
-    "diagnostics": {
-      "type": "object",
-      "properties": {
-        "enabled": {
-          "default": false,
-          "type": "boolean"
-        },
-        "sentry": {
-          "type": "object",
-          "properties": {
-            "defaults": {
-              "type": "object",
-              "properties": {
-                "dsn": {
-                  "anyOf": [
-                    {
-                      "type": "string"
-                    },
-                    {
-                      "type": "null"
-                    }
-                  ]
-                },
-                "sampleRate": {
-                  "type": "number"
-                },
-                "maxBreadcrumbs": {
-                  "type": "number"
-                },
-                "logErrors": {
-                  "type": "boolean"
-                }
-              },
-              "additionalProperties": false
-            },
-            "backend": {
-              "type": "object",
-              "properties": {
-                "dsn": {
-                  "anyOf": [
-                    {
-                      "type": "string"
-                    },
-                    {
-                      "type": "null"
-                    }
-                  ]
-                },
-                "sampleRate": {
-                  "type": "number"
-                },
-                "maxBreadcrumbs": {
-                  "type": "number"
-                },
-                "logErrors": {
-                  "type": "boolean"
-                }
-              },
-              "additionalProperties": false
-            },
-            "frontend": {
-              "type": "object",
-              "properties": {
-                "dsn": {
-                  "anyOf": [
-                    {
-                      "type": "string"
-                    },
-                    {
-                      "type": "null"
-                    }
-                  ]
-                },
-                "sampleRate": {
-                  "type": "number"
-                },
-                "maxBreadcrumbs": {
-                  "type": "number"
-                },
-                "logErrors": {
-                  "type": "boolean"
-                },
-                "trackComponents": {
-                  "type": "boolean"
-                }
-              },
-              "additionalProperties": false
-            }
-          },
-          "additionalProperties": false
-        }
-      },
-      "required": [
-        "enabled"
-      ],
-      "additionalProperties": false
-    },
     "logging": {
       "type": "object",
       "properties": {
@@ -673,11 +660,218 @@
         "freeze_app"
       ],
       "additionalProperties": false
+    },
+    "diagnostics": {
+      "type": "object",
+      "properties": {
+        "enabled": {
+          "default": false,
+          "type": "boolean"
+        },
+        "sentry": {
+          "type": "object",
+          "properties": {
+            "defaults": {
+              "type": "object",
+              "properties": {
+                "dsn": {
+                  "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "sampleRate": {
+                  "type": "number"
+                },
+                "maxBreadcrumbs": {
+                  "type": "number"
+                },
+                "logErrors": {
+                  "type": "boolean"
+                }
+              },
+              "additionalProperties": false
+            },
+            "backend": {
+              "type": "object",
+              "properties": {
+                "dsn": {
+                  "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "sampleRate": {
+                  "type": "number"
+                },
+                "maxBreadcrumbs": {
+                  "type": "number"
+                },
+                "logErrors": {
+                  "type": "boolean"
+                }
+              },
+              "additionalProperties": false
+            },
+            "frontend": {
+              "type": "object",
+              "properties": {
+                "dsn": {
+                  "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "sampleRate": {
+                  "type": "number"
+                },
+                "maxBreadcrumbs": {
+                  "type": "number"
+                },
+                "logErrors": {
+                  "type": "boolean"
+                },
+                "trackComponents": {
+                  "type": "boolean"
+                }
+              },
+              "additionalProperties": false
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "required": [
+        "enabled"
+      ],
+      "additionalProperties": false
+    },
+    "billing": {
+      "type": "object",
+      "properties": {
+        "enabled": {
+          "default": false,
+          "type": "boolean"
+        },
+        "stripe_key": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "webhook_signing_secret": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "payment_links": {
+          "type": "object",
+          "properties": {
+            "identity": {
+              "type": "object",
+              "properties": {
+                "tierid": {
+                  "type": "string"
+                },
+                "month": {
+                  "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "year": {
+                  "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "tierid"
+              ],
+              "additionalProperties": false
+            },
+            "dedicated": {
+              "type": "object",
+              "properties": {
+                "tierid": {
+                  "type": "string"
+                },
+                "month": {
+                  "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "year": {
+                  "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "tierid"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "required": [
+            "identity",
+            "dedicated"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "required": [
+        "enabled",
+        "payment_links"
+      ],
+      "additionalProperties": false
     }
   },
   "required": [
     "site",
     "storage",
+    "features",
+    "capabilities",
     "mail",
     "logging",
     "i18n",

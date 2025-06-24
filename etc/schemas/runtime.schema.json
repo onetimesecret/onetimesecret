@@ -132,39 +132,58 @@
     },
     "secret_options": {
       "type": "object",
-      "properties": {
-        "default_ttl": {
-          "default": 604800,
-          "type": "integer",
-          "exclusiveMinimum": 0,
-          "maximum": 9007199254740991
-        },
-        "ttl_options": {
-          "default": [
-            300,
-            1800,
-            3600,
-            14400,
-            43200,
-            86400,
-            259200,
-            604800,
-            1209600,
-            2592000
-          ],
-          "type": "array",
-          "items": {
-            "type": "integer",
-            "minimum": 60,
-            "maximum": 2592000
-          }
-        }
+      "propertyNames": {
+        "type": "string",
+        "enum": [
+          "anonymous",
+          "authenticated",
+          "standard",
+          "enhanced"
+        ]
       },
-      "required": [
-        "default_ttl",
-        "ttl_options"
-      ],
-      "additionalProperties": false
+      "additionalProperties": {
+        "type": "object",
+        "properties": {
+          "default_ttl": {
+            "default": 604800,
+            "type": "integer",
+            "exclusiveMinimum": 0,
+            "maximum": 9007199254740991
+          },
+          "ttl_options": {
+            "default": [
+              300,
+              1800,
+              3600,
+              14400,
+              43200,
+              86400,
+              259200,
+              604800,
+              1209600,
+              2592000
+            ],
+            "type": "array",
+            "items": {
+              "type": "integer",
+              "minimum": 60,
+              "maximum": 2592000
+            }
+          },
+          "size": {
+            "default": 102400,
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 10485760
+          }
+        },
+        "required": [
+          "default_ttl",
+          "ttl_options",
+          "size"
+        ],
+        "additionalProperties": false
+      }
     },
     "mail": {
       "type": "object",
@@ -429,91 +448,10 @@
           },
           "additionalProperties": false
         },
-        "plans": {
+        "stathat": {
           "type": "object",
-          "properties": {
-            "enabled": {
-              "type": "boolean"
-            },
-            "stripe_key": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "null"
-                }
-              ]
-            },
-            "webhook_signing_secret": {
-              "type": "string"
-            },
-            "payment_links": {
-              "type": "object",
-              "properties": {
-                "identity": {
-                  "type": "object",
-                  "properties": {
-                    "tierid": {
-                      "type": "string"
-                    },
-                    "month": {
-                      "anyOf": [
-                        {
-                          "type": "string"
-                        },
-                        {
-                          "type": "null"
-                        }
-                      ]
-                    },
-                    "year": {
-                      "anyOf": [
-                        {
-                          "type": "string"
-                        },
-                        {
-                          "type": "null"
-                        }
-                      ]
-                    }
-                  },
-                  "additionalProperties": false
-                },
-                "dedicated": {
-                  "type": "object",
-                  "properties": {
-                    "tierid": {
-                      "type": "string"
-                    },
-                    "month": {
-                      "anyOf": [
-                        {
-                          "type": "string"
-                        },
-                        {
-                          "type": "null"
-                        }
-                      ]
-                    },
-                    "year": {
-                      "anyOf": [
-                        {
-                          "type": "string"
-                        },
-                        {
-                          "type": "null"
-                        }
-                      ]
-                    }
-                  },
-                  "additionalProperties": false
-                }
-              },
-              "additionalProperties": false
-            }
-          },
-          "additionalProperties": false
+          "properties": {},
+          "additionalProperties": {}
         },
         "domains": {
           "type": "object",
@@ -601,6 +539,9 @@
           "additionalProperties": false
         }
       },
+      "required": [
+        "stathat"
+      ],
       "additionalProperties": false
     },
     "limits": {
@@ -876,218 +817,37 @@
       },
       "additionalProperties": false
     },
-    "plans": {
+    "capabilities": {
       "type": "object",
-      "properties": {
-        "anonymous": {
-          "type": "object",
-          "properties": {
-            "ttl": {
-              "anyOf": [
-                {
-                  "type": "number"
-                },
-                {
-                  "type": "null"
-                }
-              ]
-            },
-            "size": {
-              "anyOf": [
-                {
-                  "type": "number"
-                },
-                {
-                  "type": "null"
-                }
-              ]
-            },
-            "api": {
-              "type": "boolean"
-            },
-            "name": {
-              "type": "string"
-            },
-            "email": {
-              "type": "boolean"
-            },
-            "custom_domains": {
-              "type": "boolean"
-            },
-            "dark_mode": {
-              "type": "boolean"
-            },
-            "cname": {
-              "type": "boolean"
-            },
-            "private": {
-              "type": "boolean"
-            }
-          },
-          "required": [
-            "ttl",
-            "size",
-            "api",
-            "name"
-          ],
-          "additionalProperties": false
-        },
-        "authenticated": {
-          "type": "object",
-          "properties": {
-            "ttl": {
-              "anyOf": [
-                {
-                  "type": "number"
-                },
-                {
-                  "type": "null"
-                }
-              ]
-            },
-            "size": {
-              "anyOf": [
-                {
-                  "type": "number"
-                },
-                {
-                  "type": "null"
-                }
-              ]
-            },
-            "api": {
-              "type": "boolean"
-            },
-            "name": {
-              "type": "string"
-            },
-            "email": {
-              "type": "boolean"
-            },
-            "custom_domains": {
-              "type": "boolean"
-            },
-            "dark_mode": {
-              "type": "boolean"
-            },
-            "cname": {
-              "type": "boolean"
-            },
-            "private": {
-              "type": "boolean"
-            }
-          },
-          "required": [
-            "ttl",
-            "size",
-            "api",
-            "name"
-          ],
-          "additionalProperties": false
-        }
+      "propertyNames": {
+        "type": "string",
+        "enum": [
+          "anonymous",
+          "authenticated",
+          "standard",
+          "enhanced"
+        ]
       },
-      "required": [
-        "anonymous",
-        "authenticated"
-      ],
-      "additionalProperties": false
-    },
-    "diagnostics": {
-      "type": "object",
-      "properties": {
-        "enabled": {
-          "default": false,
-          "type": "boolean"
-        },
-        "sentry": {
-          "type": "object",
-          "properties": {
-            "defaults": {
-              "type": "object",
-              "properties": {
-                "dsn": {
-                  "anyOf": [
-                    {
-                      "type": "string"
-                    },
-                    {
-                      "type": "null"
-                    }
-                  ]
-                },
-                "sampleRate": {
-                  "type": "number"
-                },
-                "maxBreadcrumbs": {
-                  "type": "number"
-                },
-                "logErrors": {
-                  "type": "boolean"
-                }
-              },
-              "additionalProperties": false
-            },
-            "backend": {
-              "type": "object",
-              "properties": {
-                "dsn": {
-                  "anyOf": [
-                    {
-                      "type": "string"
-                    },
-                    {
-                      "type": "null"
-                    }
-                  ]
-                },
-                "sampleRate": {
-                  "type": "number"
-                },
-                "maxBreadcrumbs": {
-                  "type": "number"
-                },
-                "logErrors": {
-                  "type": "boolean"
-                }
-              },
-              "additionalProperties": false
-            },
-            "frontend": {
-              "type": "object",
-              "properties": {
-                "dsn": {
-                  "anyOf": [
-                    {
-                      "type": "string"
-                    },
-                    {
-                      "type": "null"
-                    }
-                  ]
-                },
-                "sampleRate": {
-                  "type": "number"
-                },
-                "maxBreadcrumbs": {
-                  "type": "number"
-                },
-                "logErrors": {
-                  "type": "boolean"
-                },
-                "trackComponents": {
-                  "type": "boolean"
-                }
-              },
-              "additionalProperties": false
-            }
+      "additionalProperties": {
+        "type": "object",
+        "properties": {
+          "api": {
+            "type": "boolean"
           },
-          "additionalProperties": false
-        }
-      },
-      "required": [
-        "enabled"
-      ],
-      "additionalProperties": false
+          "email": {
+            "type": "boolean"
+          },
+          "custom_domains": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "api",
+          "email",
+          "custom_domains"
+        ],
+        "additionalProperties": false
+      }
     },
     "logging": {
       "type": "object",
@@ -1196,12 +956,220 @@
         "freeze_app"
       ],
       "additionalProperties": false
+    },
+    "diagnostics": {
+      "type": "object",
+      "properties": {
+        "enabled": {
+          "default": false,
+          "type": "boolean"
+        },
+        "sentry": {
+          "type": "object",
+          "properties": {
+            "defaults": {
+              "type": "object",
+              "properties": {
+                "dsn": {
+                  "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "sampleRate": {
+                  "type": "number"
+                },
+                "maxBreadcrumbs": {
+                  "type": "number"
+                },
+                "logErrors": {
+                  "type": "boolean"
+                }
+              },
+              "additionalProperties": false
+            },
+            "backend": {
+              "type": "object",
+              "properties": {
+                "dsn": {
+                  "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "sampleRate": {
+                  "type": "number"
+                },
+                "maxBreadcrumbs": {
+                  "type": "number"
+                },
+                "logErrors": {
+                  "type": "boolean"
+                }
+              },
+              "additionalProperties": false
+            },
+            "frontend": {
+              "type": "object",
+              "properties": {
+                "dsn": {
+                  "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "sampleRate": {
+                  "type": "number"
+                },
+                "maxBreadcrumbs": {
+                  "type": "number"
+                },
+                "logErrors": {
+                  "type": "boolean"
+                },
+                "trackComponents": {
+                  "type": "boolean"
+                }
+              },
+              "additionalProperties": false
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "required": [
+        "enabled"
+      ],
+      "additionalProperties": false
+    },
+    "billing": {
+      "type": "object",
+      "properties": {
+        "enabled": {
+          "default": false,
+          "type": "boolean"
+        },
+        "stripe_key": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "webhook_signing_secret": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "payment_links": {
+          "type": "object",
+          "properties": {
+            "identity": {
+              "type": "object",
+              "properties": {
+                "tierid": {
+                  "type": "string"
+                },
+                "month": {
+                  "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "year": {
+                  "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "tierid"
+              ],
+              "additionalProperties": false
+            },
+            "dedicated": {
+              "type": "object",
+              "properties": {
+                "tierid": {
+                  "type": "string"
+                },
+                "month": {
+                  "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "year": {
+                  "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "tierid"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "required": [
+            "identity",
+            "dedicated"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "required": [
+        "enabled",
+        "payment_links"
+      ],
+      "additionalProperties": false
     }
   },
   "required": [
+    "secret_options",
     "mail",
+    "features",
     "site",
     "storage",
+    "capabilities",
     "logging",
     "i18n",
     "development",
