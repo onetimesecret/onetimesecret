@@ -102,13 +102,14 @@ ARG VERSION
 FROM docker.io/library/ruby:3.4-slim-bookworm@sha256:93664239ae7e485147c2fa83397fdc24bf7b7f1e15c3ad9d48591828a50a50e7 AS base
 
 # Limit to packages needed for the system itself
-ARG PACKAGES="build-essential rsync netcat-openbsd libffi-dev libyaml-dev git"
-# ARG EXTRA_PACKAGES="yq"
+ARG PACKAGES="build-essential rsync netcat-openbsd libffi-dev libyaml-dev git less"
+ARG EXTRA_PACKAGES="yq"
 
 # Fast fail on errors while installing system packages
 RUN set -eux \
   && apt-get update \
   && apt-get install -y $PACKAGES \
+  && apt-get install -y $EXTRA_PACKAGES \
   && apt-get clean \
   && rm -rf /var/lib/apt/lists/*
 
@@ -180,8 +181,8 @@ COPY package.json pnpm-lock.yaml tsconfig.json vite.config.ts postcss.config.mjs
 
 # Remove pnpm after use
 RUN set -eux \
-  && pnpm run schema:generate \
   && pnpm run build \
+  && pnpm run schema:generate \
   && pnpm prune --prod \
   && rm -rf node_modules \
   && npm uninstall -g pnpm

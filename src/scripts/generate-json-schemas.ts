@@ -18,13 +18,22 @@ import { configSchema as staticConfigSchema } from '../schemas/config/static';
 
 const ONETIME_HOME = process.env.ONETIME_HOME || process.cwd();
 
-const OUTPUT_MAIN_SCHEMA = join(ONETIME_HOME, 'etc/config.schema.yaml');
-const OUTPUT_SCHEMAS_DIR = join(ONETIME_HOME, 'public/web/dist/schemas');
+const OUTPUT_MAIN_SCHEMA = join(ONETIME_HOME, 'public/web/dist/schemas/runtime.schema.json');
+const OUTPUT_SCHEMAS_DIR = join(ONETIME_HOME, 'etc/schemas');
 
-// Combined configuration schema
-const combinedConfigSchema = z.object({
-  static: staticConfigSchema.optional(),
-  mutable: mutableConfigSchema.optional(),
+/**
+ * Combined runtime schema
+ *
+ * From the docs for `extend`:
+ *    This API can be used to overwrite existing fields! Be careful with
+ *    this power! If the two schemas share keys, B will override A.
+ *
+ * A = mutableConfigSchema
+ * B = staticConfigSchema
+ */
+const runtimeConfigSchema = z.object({
+  ...mutableConfigSchema.shape,
+  ...staticConfigSchema.shape,
 });
 
 /**
@@ -35,18 +44,18 @@ function generateIndividualSchemas(): void {
 
   const schemas = [
     {
-      schema: mutableConfigSchema,
-      name: 'mutable-config.schema',
-      description: 'Dynamic mutable config loaded from mutable.yaml',
-    },
-    {
       schema: staticConfigSchema,
-      name: 'static-config.schema',
+      name: 'config.schema',
       description: 'Static configuration settings loaded from config.yaml',
     },
     {
-      schema: combinedConfigSchema,
-      name: 'runtime-config',
+      schema: mutableConfigSchema,
+      name: 'mutable.schema',
+      description: 'Dynamic mutable config loaded from mutable.yaml',
+    },
+    {
+      schema: runtimeConfigSchema,
+      name: 'runtime.schema',
       description: 'Combined configuration schema for both static and mutable config',
     },
   ];
@@ -71,7 +80,7 @@ function generateIndividualSchemas(): void {
     };
 
     const outputPath = join(OUTPUT_SCHEMAS_DIR, `${name}.json`);
-    writeFileSync(outputPath, JSON.stringify(schemaWithMeta, null, 2));
+    writeFileSync(outputPath, JSON.stringify(schemaWithMeta, null, 2) + '\n');
     console.log(`Generated: ${outputPath}`);
   });
 }
@@ -95,7 +104,8 @@ function generateMainSchema(): void {
     ...jsonSchema,
   };
 
-  writeFileSync(OUTPUT_MAIN_SCHEMA, JSON.stringify(schemaWithMeta, null, 2));
+  mkdirSync(join(OUTPUT_MAIN_SCHEMA, '..'), { recursive: true });
+  writeFileSync(OUTPUT_MAIN_SCHEMA, JSON.stringify(schemaWithMeta, null, 2) + '\n');
   console.log(`Generated: ${OUTPUT_MAIN_SCHEMA}`);
 }
 
@@ -104,9 +114,9 @@ function generateMainSchema(): void {
  */
 function generateOpenAPISchemas(): void {
   const schemas = [
-    { schema: mutableConfigSchema, name: 'mutable-settings' },
-    { schema: staticConfigSchema, name: 'static-config' },
-    { schema: combinedConfigSchema, name: 'combined-config' },
+    { schema: staticConfigSchema, name: 'static' },
+    { schema: mutableConfigSchema, name: 'mutable' },
+    { schema: runtimeConfigSchema, name: 'runtime' },
   ];
 
   schemas.forEach(({ schema, name }) => {
@@ -127,7 +137,7 @@ function generateOpenAPISchemas(): void {
     };
 
     const outputPath = join(OUTPUT_SCHEMAS_DIR, `${name}.openapi.json`);
-    writeFileSync(outputPath, JSON.stringify(schemaWithMeta, null, 2));
+    writeFileSync(outputPath, JSON.stringify(schemaWithMeta, null, 2) + '\n');
     console.log(`Generated: ${outputPath}`);
   });
 }
