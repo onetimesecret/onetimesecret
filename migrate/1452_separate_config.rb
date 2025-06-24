@@ -44,10 +44,15 @@ module Onetime
         { 'from' => 'diagnostics', 'to' => 'diagnostics' },
         { 'from' => 'internationalization', 'to' => 'i18n' },
         { 'from' => 'development', 'to' => 'development' },
-        { 'from' => 'experimental.allow_nil_global_secret', 'to' => 'experimental.allow_nil_global_secret' },
+        { 'from' => 'experimental.allow_nil_global_secret', 'to' => 'experimental.allow_nil_global_secret', 'default' => false },
         { 'from' => 'experimental.rotated_secrets', 'to' => 'experimental.rotated_secrets' },
         { 'from' => 'experimental.freeze_app', 'to' => 'experimental.freeze_app' },
         { 'from' => 'experimental.middleware', 'to' => 'site.middleware' },
+        { 'from' => 'experimental.rotated_secrets', 'to' => 'experimental.rotated_secrets', 'default' => [] },
+        { 'from' => 'experimental.freeze_app', 'to' => 'experimental.freeze_app', 'default' => false },
+        { 'from' => 'experimental.middleware', 'to' => 'site.middleware', 'default' => {
+        'static_files': true,
+        'utf8_sanitizer': true} },
       ],
       'mutable' => [
         { 'from' => 'site.interface.ui', 'to' => 'ui' },
@@ -100,9 +105,11 @@ module Onetime
       # Check if all static mapping source paths exist with non-nil values
       ret = CONFIG_MAPPINGS['static'].all? do |mapping|
         from_path = mapping['from']
+        default_value = mapping.fetch('default', nil)
         value = get_nested_value(config, from_path.split('.'))
-        info("Checking setting: #{from_path} #{value.class}")
-        !value.nil?
+        info("Checking setting (is nil: #{value.nil?}): #{from_path} #{value.class}")
+        # If there is a value or a default value, all is good
+        !value.nil? || !default_value.nil?
       end
 
       ret
@@ -248,10 +255,7 @@ module Onetime
       system("yq eval 'del(.[])' <<< '{}' > '#{@static_config}'")
 
       CONFIG_MAPPINGS['static'].each do |mapping|
-        from_path = mapping['from']
-        to_path = mapping['to']
-
-        generate_yq_command(@static_config, from_path, to_path)
+        generate_yq_command(@static_config, mapping)
       end
 
       info "Generated static config: #{@static_config}"
@@ -265,17 +269,18 @@ module Onetime
       system("yq eval 'del(.[])' <<< '{}' > '#{@mutable_config}'")
 
       CONFIG_MAPPINGS['mutable'].each do |mapping|
-        from_path = mapping['from']
-        to_path = mapping['to']
-
-        generate_yq_command(@mutable_config, from_path, to_path)
+        generate_yq_command(@mutable_config, mapping)
       end
 
       info "Generated mutable config: #{@mutable_config}"
       show_config_structure(@mutable_config, "Mutable")
     end
 
-    def generate_yq_command(output_file, from_path, to_path)
+    def generate_yq_command(output_file, mapping)
+      from_path = mapping['from']
+      to_path = mapping['to']
+      default_value = mapping['default']
+
       # Handle wildcard mappings (ending with .)
       if from_path.end_with?('.')
         from_path = from_path.chomp('.')
@@ -285,10 +290,17 @@ module Onetime
       from_yq = convert_to_yq_path(from_path)
       to_yq = convert_to_yq_path(to_path)
 
-      # Generate and execute yq command
+      # Generate yq command with optional default value
+      if default_value.nil?
+        # No default - use original behavior
       cmd = "yq eval '.#{to_yq} = load(\"#{@converted_config}\").#{from_yq}' -i '#{output_file}'"
+      else
+        # Use default value as fallback
+        formatted_default = format_default_for_yq(default_value)
+        cmd = "yq eval '.#{to_yq} = (load(\"#{@converted_config}\").#{from_yq} // #{formatted_default})' -i '#{output_file}'"
+      end
 
-      info "  Mapping: #{from_path} -> #{to_path}"
+      info "  Mapping: #{from_path} -> #{to_path}" + (default_value.nil? ? "" : " (default: #{default_value})")
 
       # Execute the command
       success = system(cmd)
@@ -303,6 +315,23 @@ module Onetime
       # yq uses dot notation, but we need to handle array indices and special characters
       # For now, keeping it simple since the paths in the mapping are already dot notation
       path
+    end
+
+    def format_default_for_yq(value)
+      case value
+      when String
+        "\"#{value.gsub('"', '\\"')}\""
+      when TrueClass, FalseClass
+        value.to_s
+      when Numeric
+        value.to_s
+      when NilClass
+        "null"
+      when Array, Hash
+        value.to_json
+      else
+        "\"#{value}\""
+      end
     end
 
     def show_config_structure(config_file, config_type)
