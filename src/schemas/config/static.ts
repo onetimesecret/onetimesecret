@@ -16,6 +16,7 @@ import { siteSchema } from './section/site';
 import { storageSchema } from './section/storage';
 import { mailConnectionSchema, mailValidationSchema } from './section/mail';
 import { diagnosticsSchema } from './section/diagnostics';
+import { planOptionsSchema } from '@/schemas/models/plan';
 
 // 'connection' and 'validation' are required for 'mail'
 // The 'defaults' property within 'validation' is an object type is
@@ -25,6 +26,11 @@ const mailSchema = z.object({
   validation: z.object({
     defaults: mailValidationSchema.optional(),
   }),
+});
+
+const plansSchema = z.object({
+  anonymous: planOptionsSchema,
+  authenticated: planOptionsSchema,
 });
 
 const loggingSchema = z.object({
@@ -55,6 +61,7 @@ const configSchema = z.object({
   site: siteSchema,
   storage: storageSchema,
   mail: mailSchema,
+  plans: plansSchema.optional(),
   diagnostics: diagnosticsSchema.optional(), // TODO: revisit to confirm "optional" here
   logging: loggingSchema,
   i18n: i18nSchema,

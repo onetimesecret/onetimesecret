@@ -31,9 +31,10 @@ module Onetime
     # override system defaults. It's the standard precedence.
     @paths      = [
       File.join(Dir.pwd, 'etc'), # 1. current working directory
-      File.join(Onetime::HOME, 'etc'), # 2. onetimesecret/etc
-      File.join(@xdg.config_home, 'onetime'), # 3. ~/.config/onetime
-      File.join(File::SEPARATOR, 'etc', 'onetime'), # 4. /etc/onetime
+      File.join(Dir.pwd, 'etc', 'schemas'), # 2. current working directory
+      File.join(Onetime::HOME, 'etc'), # 3. onetimesecret/etc
+      File.join(@xdg.config_home, 'onetime'), # 4. ~/.config/onetime
+      File.join(File::SEPARATOR, 'etc', 'onetime'), # 5. /etc/onetime
     ].uniq.freeze
     @extensions = ['.yml', '.yaml', '.json', '.json5', ''].freeze
 

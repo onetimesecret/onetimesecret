@@ -348,6 +348,122 @@
       ],
       "additionalProperties": false
     },
+    "plans": {
+      "type": "object",
+      "properties": {
+        "anonymous": {
+          "type": "object",
+          "properties": {
+            "ttl": {
+              "anyOf": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "size": {
+              "anyOf": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "api": {
+              "type": "boolean"
+            },
+            "name": {
+              "type": "string"
+            },
+            "email": {
+              "type": "boolean"
+            },
+            "custom_domains": {
+              "type": "boolean"
+            },
+            "dark_mode": {
+              "type": "boolean"
+            },
+            "cname": {
+              "type": "boolean"
+            },
+            "private": {
+              "type": "boolean"
+            }
+          },
+          "required": [
+            "ttl",
+            "size",
+            "api",
+            "name"
+          ],
+          "additionalProperties": false
+        },
+        "authenticated": {
+          "type": "object",
+          "properties": {
+            "ttl": {
+              "anyOf": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "size": {
+              "anyOf": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "api": {
+              "type": "boolean"
+            },
+            "name": {
+              "type": "string"
+            },
+            "email": {
+              "type": "boolean"
+            },
+            "custom_domains": {
+              "type": "boolean"
+            },
+            "dark_mode": {
+              "type": "boolean"
+            },
+            "cname": {
+              "type": "boolean"
+            },
+            "private": {
+              "type": "boolean"
+            }
+          },
+          "required": [
+            "ttl",
+            "size",
+            "api",
+            "name"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "required": [
+        "anonymous",
+        "authenticated"
+      ],
+      "additionalProperties": false
+    },
     "diagnostics": {
       "type": "object",
       "properties": {
