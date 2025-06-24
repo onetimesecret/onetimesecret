@@ -7,7 +7,7 @@ Onetime Secret is configured through a primary YAML file, which can be dynamical
 The `etc/config.yaml` file is the source of truth for all application settings and is **required** for the application to run. On a fresh installation, you must create this file by copying the provided example:
 
 ```bash
-cp -p ./etc/examples/config.example.yaml ./etc/config.yaml
+cp -p ./etc/defaults/config.defaults.yaml ./etc/config.yaml
 ```
 
 After creating the file, review and edit `./etc/config.yaml` as needed. At minimum, update the secret key and back it up securely.
