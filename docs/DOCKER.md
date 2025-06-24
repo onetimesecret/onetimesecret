@@ -5,41 +5,42 @@ Onetime Secret is a service that allows you to share sensitive information secur
 > [!NOTE]
 > For information on our "lite" Docker image, which offers an ephemeral "leave no trace" option, see [DOCKER-lite.md](DOCKER-lite.md).
 
+## Building the Image
+
+First, build the Docker image from the source repository:
+
+```bash
+docker build -t onetimesecret .
+```
+
+For multi-platform builds (e.g., for `linux/amd64` and `linux/arm64`), you can use `buildx`:
+
+```bash
+docker buildx build --platform=linux/amd64,linux/arm64 . -t onetimesecret
+```
+
 ## Quick Start
 
-To run Onetime Secret using Docker:
+After building the image, you can run Onetime Secret with a few simple commands.
 
-1. Start a Redis container:
+1.  **Start a Valkey/Redis container.** Onetime Secret requires a Valkey or Redis server (v5+).
 
-   ```bash
-   docker run -p 6379:6379 -d redis:bookworm
-   ```
+    ```bash
+    docker run -d --name valkey -p 6379:6379 valkey/valkey
+    ```
 
-2. Set essential environment variables:
+2.  **Configure and run the application container.** Create and edit a `.env` file as described in the Configuration section, ensuring `REDIS_URL` is set to `redis://host.docker.internal:6379/0`. Then, run the container:
 
-   ```bash
-   export HOST=localhost:3000
-   export SSL=false
-   export COLONEL=admin@example.com
-   export REDIS_URL=redis://host.docker.internal:6379/0
-   export RACK_ENV=production
-   ```
+    ```bash
+    docker run -p 3000:3000 -d --name onetimesecret \
+        --env-file .env \
+        onetimesecret
+    ```
 
-   Note: `host.docker.internal` is specific to Docker Desktop for Mac and Windows. For Linux, use the host's IP address or `172.17.0.1` instead.
+    > [!NOTE]
+    > `host.docker.internal` is supported in Docker 20.10+ on all platforms (Mac, Windows, Linux). For older versions on Linux, you may need to use `--add-host=host.docker.internal:host-gateway` or the host's IP address.
 
-3. Run the Onetime Secret container:
-
-   ```bash
-   docker run -p 3000:3000 -d --name onetimesecret \
-     -e REDIS_URL=$REDIS_URL \
-     -e COLONEL=$COLONEL \
-     -e HOST=$HOST \
-     -e SSL=$SSL \
-     -e RACK_ENV=$RACK_ENV \
-     onetimesecret/onetimesecret:latest
-   ```
-
-Onetime Secret should now be accessible at `http://localhost:3000`.
+Onetime Secret will be accessible at `http://localhost:3000`.
 
 ## Docker Compose
 
@@ -49,13 +50,28 @@ Visit our [Docker Compose repository](https://github.com/onetimesecret/docker-co
 
 ## Configuration
 
-Onetime Secret can be configured using environment variables. Key variables include:
+Onetime Secret is configured using environment variables. The recommended approach is to use an environment file (`.env`), which keeps your configuration organized and separate from your run commands.
 
-- `HOST`: The hostname where the service will be accessible
-- `SSL`: Whether to use SSL (true/false)
-- `COLONEL`: Admin account email
-- `REDIS_URL`: URL for Redis connection
-- `RACK_ENV`: Application environment (production/development)
+1.  **Create a `.env` file.** Copy the provided example file:
+
+    ```bash
+    cp --preserve --no-clobber .env.example .env
+    ```
+
+2.  **Edit `.env`.** Open the `.env` file and customize the variables. At a minimum, set a unique `SECRET`. You can generate one with `openssl rand -hex 24`.
+
+3.  **Run the container with the `.env` file.** Use the `--env-file` flag to pass your configuration to Docker. This prevents exposing secrets in your shell history or process list.
+
+### Key Environment Variables
+
+Key variables (all of which are in `.env.example`):
+
+- `SECRET`: A long, random, and unique string for encryption. **Required.**
+- `REDIS_URL`: URL for your Valkey/Redis instance.
+- `HOST`: The hostname where the service will be accessible.
+- `SSL`: Whether to use SSL (`true`/`false`).
+- `COLONEL`: Admin account email.
+- `RACK_ENV`: Application environment (`production`/`development`).
 
 For more detailed configuration options, refer to the [GitHub README](https://github.com/onetimesecret/onetimesecret#configuration).
 
@@ -76,19 +92,11 @@ When deploying to production, ensure you:
 
 Example:
 
-```bash
-export HOST=example.com
-export SSL=true
-export COLONEL=admin@example.com
-export REDIS_URL=redis://username:password@hostname:6379/0
-export RACK_ENV=production
+Update your `.env` file with your production settings (e.g., `HOST`, `REDIS_URL`, `SSL=true`). Then, run the container:
 
+```bash
 docker run -p 3000:3000 -d --name onetimesecret \
-  -e REDIS_URL=$REDIS_URL \
-  -e COLONEL=$COLONEL \
-  -e HOST=$HOST \
-  -e SSL=$SSL \
-  -e RACK_ENV=$RACK_ENV \
+  --env-file .env \
   onetimesecret/onetimesecret:latest
 ```
 
@@ -115,15 +123,16 @@ To update your Onetime Secret Docker deployment to the latest version:
 
 Onetime Secret Docker images are tagged for different versions:
 
+- `v0.23.0` (and similar version numbers): A specific stable release. (Recommended)
 - `latest`: The most recent stable release
-- `v0.18.3` (and similar version numbers): Specific release versions
+- `next`: The most recent release candidate. These are updated during development and are generally not recommended unless there is a specific feature or bug fix that you need. In some cases `latest` will be newer than `next` if there has been a stable release but a new release candidate has not been tagged yet.
 
-These version numbers (e.g., v0.18.3) correspond to the releases on our GitHub repository. You can find the full list of releases and their details at <https://github.com/onetimesecret/onetimesecret/releases>.
+These version numbers (e.g., v0.23.0) correspond to the releases and tags available on our GitHub repository. You can find the full list of releases and their details at <https://github.com/onetimesecret/onetimesecret/releases>.
 
 To use a specific version, replace `onetimesecret/onetimesecret:latest` with the desired tag, for example:
 
 ```bash
-docker run ... onetimesecret/onetimesecret:v0.18.3
+docker run ... onetimesecret/onetimesecret:v0.23.0
 ```
 
 Using a specific version tag allows you to maintain consistency across deployments and easily roll back if needed.
@@ -136,6 +145,7 @@ To use the lite version, replace the image tag in your Docker commands with `lat
 
 ```bash
 docker run -p 3000:3000 -d --name onetimesecret \
+  -e SECRET=$SECRET \
   -e REDIS_URL=$REDIS_URL \
   -e COLONEL=$COLONEL \
   -e HOST=$HOST \

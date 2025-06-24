@@ -2,90 +2,43 @@
 # check=error=true
 
 ##
-# ONETIME SECRET - DOCKER IMAGE - 2025-05-15
+# ONETIME SECRET - DOCKER IMAGE
 #
-# For detailed instructions on building, running, and deploying this Docker image,
-# please refer to our comprehensive Docker guide:
+# This Dockerfile defines the build process for the OneTime Secret application.
 #
-#     docs/DOCKER.md
+# For comprehensive instructions on building, running, configuring, and deploying
+# this Docker image, please refer to our detailed guides:
 #
-# This guide includes information on:
-# - Quick start instructions
-# - Configuration options
-# - Production deployment considerations
-# - Updating the Docker image
-# - Using specific version tags
-#
-# For more detailed configuration options, you can also refer to the README.md file.
+#     - docs/DOCKER.md
+#     - README.md (for general configuration)
 #
 # GETTING STARTED:
 #
-# To build and use this image, you need to copy the example
-# configuration files into place:
-#
-#     $ cp --preserve --no-clobber .env.example .env
-#
-# The default values work as-is but it's a good practice to have
-# a look and customize as you like (particularly the main secret
-# `SECRET` and redis password in `REDIS_URL`).
+# See `docs/DOCKER.md` for full instructions on getting started.
 #
 # BUILDING:
 #
+# Build the Docker image:
+#
 #     $ docker build -t onetimesecret .
 #
-# For multi-platform builds:
-#
-#     $ docker buildx build --platform=linux/amd64,linux/arm64 . -t onetimesecret
 #
 # RUNNING:
 #
-# First, start a Redis server (version 5+) with persistence enabled:
+# OneTime Secret requires a Redis/Valkey server (v5+). For a quick start,
+# run Valkey in Docker:
 #
-#     $ docker run -p 6379:6379 -d redis:bookworm
+#     $ docker run -d --name valkey -p 6379:6379 valkey/valkey
 #
-# Then set essential environment variables:
+# Then run the application, connecting to Valkey:
 #
-#     $ export HOST=localhost:3000
-#     $ export SSL=false
-#     $ export SECRET=MUST_BE_UNIQUE
-#     $ export REDIS_URL=redis://host.docker.internal:6379/0
-#     $ export RACK_ENV=production
-#
-# Run the OnetimeSecret container:
-#
+#     $ export SECRET=$(openssl rand -hex 24)
 #     $ docker run -p 3000:3000 -d --name onetimesecret \
-#       -e REDIS_URL=$REDIS_URL \
-#       -e SECRET=$SECRET \
-#       -e HOST=$HOST \
-#       -e SSL=$SSL \
-#       -e RACK_ENV=$RACK_ENV \
-#       onetimesecret
+#         -e SECRET=$SECRET \
+#         -e REDIS_URL=redis://host.docker.internal:6379/0 \
+#         onetimesecret
 #
-# It will be accessible on http://localhost:3000.
-#
-# PRODUCTION DEPLOYMENT:
-#
-# When deploying to production, protect your Redis instance with
-# authentication and enable persistence. Also, change the secret and
-# specify the domain it will be deployed on. For example:
-#
-#   $ openssl rand -hex 32
-#   [copy value to set SECRET]
-#   $ export HOST=example.com
-#   $ export SSL=true
-#   $ export SECRET=COPIED_VALUE
-#   $ export REDIS_URL=redis://username:password@hostname:6379/0
-#   $ export RACK_ENV=production
-#
-#   $ docker run -p 3000:3000 -d --name onetimesecret \
-#     -e REDIS_URL=$REDIS_URL \
-#     -e SECRET=$SECRET \
-#     -e HOST=$HOST \
-#     -e SSL=$SSL \
-#     -e RACK_ENV=$RACK_ENV \
-#     onetimesecret
-#
-# For more detailed configuration options, refer to the README.md file.
+# The app will be at http://localhost:3000. See docs/DOCKER.md for more.
 
 ##
 # BASE LAYER
