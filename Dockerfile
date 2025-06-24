@@ -51,8 +51,7 @@
 # application's package management dependencies using a Debian
 # Ruby 3.4 base image.
 #
-ARG CODE_ROOT=/app
-ARG ONETIME_HOME=/app
+ARG APP_DIR=/app
 ARG VERSION
 
 FROM docker.io/library/ruby:3.4-slim-bookworm@sha256:93664239ae7e485147c2fa83397fdc24bf7b7f1e15c3ad9d48591828a50a50e7 AS base
@@ -107,13 +106,12 @@ RUN set -eux \
 # dependencies using the Base Layer as a starting point.
 #
 FROM base AS dependencies
-ARG CODE_ROOT
-ARG ONETIME_HOME
+ARG APP_DIR
 ARG VERSION
 
-WORKDIR $CODE_ROOT
+WORKDIR $APP_DIR
 
-ENV NODE_PATH=$CODE_ROOT/node_modules
+ENV NODE_PATH=$APP_DIR/node_modules
 
 # Install the dependencies into the environment image
 COPY Gemfile Gemfile.lock ./
@@ -133,20 +131,19 @@ RUN set -eux \
 # BUILD LAYER
 #
 FROM dependencies AS build
-ARG ONETIME_HOME
-ARG CODE_ROOT
+ARG APP_DIR
 ARG VERSION
 
 # Create the directories that we need in the following image
 RUN set -eux \
   && echo "Creating directories" \
-  && mkdir -p $ONETIME_HOME/etc
+  && mkdir -p $APP_DIR/etc
 
-WORKDIR $CODE_ROOT
+WORKDIR $APP_DIR
 
-COPY public $CODE_ROOT/public
-COPY templates $CODE_ROOT/templates
-COPY src $CODE_ROOT/src
+COPY public ./public
+COPY templates ./templates
+COPY src ./src
 COPY package.json pnpm-lock.yaml tsconfig.json vite.config.ts postcss.config.mjs tailwind.config.ts eslint.config.ts ./
 
 # Remove pnpm after use
@@ -169,20 +166,19 @@ RUN VERSION=$(node -p "require('./package.json').version") \
 # APPLICATION LAYER (FINAL)
 #
 FROM ruby:3.4-slim-bookworm@sha256:93664239ae7e485147c2fa83397fdc24bf7b7f1e15c3ad9d48591828a50a50e7 AS final
-ARG CODE_ROOT
-ARG ONETIME_HOME
+ARG APP_DIR
 ARG VERSION
 LABEL org.opencontainers.image.version=$VERSION
 
-WORKDIR $CODE_ROOT
+WORKDIR $APP_DIR
 
 ## Copy only necessary files from previous stages
 COPY --from=dependencies /usr/local/bin/yq /usr/local/bin/yq
 COPY --from=build /usr/local/bundle /usr/local/bundle
-COPY --from=build $CODE_ROOT/etc/ ./etc/
-COPY --from=build $CODE_ROOT/public ./public
-COPY --from=build $CODE_ROOT/templates ./templates
-COPY --from=build $CODE_ROOT/src ./src
+COPY --from=build $APP_DIR/etc/ ./etc/
+COPY --from=build $APP_DIR/public ./public
+COPY --from=build $APP_DIR/templates ./templates
+COPY --from=build $APP_DIR/src ./src
 COPY bin ./bin
 COPY apps ./apps
 COPY lib ./lib
@@ -213,9 +209,9 @@ ENV RUBY_YJIT_ENABLE=1
 #   ➜  press h + enter to show help
 #
 ENV RACK_ENV=production
-ENV ONETIME_HOME="$ONETIME_HOME"
+ENV ONETIME_HOME="$APP_DIR"
 
-WORKDIR $CODE_ROOT
+WORKDIR $APP_DIR
 
 # Copy the default config files into place if the don't
 # already exist. If a file does exist, nothing happens. For
