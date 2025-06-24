@@ -42,11 +42,6 @@ Controls frontend appearance and behavior.
 - `passphrase`: Email processing passphrase
 - `regex`: Validation pattern for incoming content
 
-#### Analytics (`stathat`)
-- `enabled`: Toggle StatHat integration
-- `apikey`: StatHat API key
-- `default_chart`: Default chart configuration
-
 #### Regions (`regions`)
 - `enabled`: Toggle multi-region support
 - `current_jurisdiction`: Current jurisdiction identifier
