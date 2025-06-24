@@ -133,8 +133,6 @@ const authenticitySchema = z
  */
 const plansSchema = z.object({
   enabled: transforms.fromString.boolean,
-  stripe_key: z.string().optional(),
-  webook_signing_secret: z.string().optional(),
   payment_links: z.any().optional(),
 });
 

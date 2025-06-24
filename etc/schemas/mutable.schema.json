@@ -484,7 +484,7 @@
                 }
               ]
             },
-            "webook_signing_secret": {
+            "webhook_signing_secret": {
               "type": "string"
             },
             "payment_links": {

@@ -44,7 +44,7 @@ const featuresPlansSchema = z.object({
   // YAML: <%= ENV['PLANS_ENABLED'] == 'true' || false %>
   enabled: z.boolean().optional(),
   stripe_key: nullableString,
-  webook_signing_secret: z.string().optional(), // Typo 'webook' from YAML
+  webhook_signing_secret: z.string().optional(), // Typo 'webook' from YAML
   payment_links: featuresPlansPaymentLinksSchema.optional(),
 });
 
