@@ -25,6 +25,18 @@ require 'fileutils'
 
 require 'onetime/refinements/indifferent_hash_access'
 
+USER_TYPES_CAPABILITIES = {
+    'anonymous' => {
+      'api' => true,
+      'email' => false,
+      'custom_domains' => false
+    },
+    'authenticated' => {
+      'api' => true,
+      'email' => true,
+      'custom_domains' => false
+    },
+}.freeze
 module Onetime
   class Migration < BaseMigration
 
@@ -39,21 +51,30 @@ module Onetime
         { 'from' => 'site.authentication.enabled', 'to' => 'site.authentication.enabled' },
         { 'from' => 'site.authentication.colonels', 'to' => 'site.authentication.colonels' },
         { 'from' => 'site.authentication.verify', 'to' => 'ui.autoverify' },
+          { 'from' => 'site.authentication.autoverify', 'to' => 'site.authentication.autoverify' },
         { 'from' => 'site.authenticity', 'to' => 'site.authenticity' },
+          { 'from' => 'doesnotexist', 'to' => 'user_types', 'default' => USER_TYPES_CAPABILITIES },
         { 'from' => 'redis.uri', 'to' => 'storage.db.connection.url' },
         { 'from' => 'redis.dbs', 'to' => 'storage.db.database_mapping' },
         { 'from' => 'emailer', 'to' => 'mail.connection' },
         { 'from' => 'mail.truemail', 'to' => 'mail.validation.defaults' },
+          { 'from' => 'features', 'to' => 'features', 'default' => {} },
+          { 'from' => 'site.regions', 'to' => 'features.regions', 'default' => { 'enabled' => false} },
+          { 'from' => 'site.domains', 'to' => 'features.domains', 'default' => { 'enabled' => false} },
         { 'from' => 'logging', 'to' => 'logging' },
         { 'from' => 'diagnostics', 'to' => 'diagnostics' },
         { 'from' => 'internationalization', 'to' => 'i18n' },
         { 'from' => 'development', 'to' => 'development' },
+          { 'from' => 'development', 'to' => 'development', 'default' => {} },
         { 'from' => 'experimental.allow_nil_global_secret', 'to' => 'experimental.allow_nil_global_secret', 'default' => false },
         { 'from' => 'experimental.rotated_secrets', 'to' => 'experimental.rotated_secrets', 'default' => [] },
         { 'from' => 'experimental.freeze_app', 'to' => 'experimental.freeze_app', 'default' => false },
         { 'from' => 'experimental.middleware', 'to' => 'site.middleware', 'default' => {
         'static_files': true,
         'utf8_sanitizer': true} },
+            'utf8_sanitizer': true}
+          },
+          { 'from' => 'site.plans', 'to' => 'billing', 'default' => nil },
       ],
       'mutable' => [
         { 'from' => 'site.interface.ui', 'to' => 'ui' },
@@ -185,9 +206,6 @@ module Onetime
         info "Configuration separation completed successfully"
         info "Static config: #{@final_static_path}"
         info "Mutable config: #{@final_mutable_path}"
-        info separator
-        info "Files processed: #{@stats[:files_processed]}"
-        info "Errors encountered: #{@stats[:errors]}"
         info ''
       end
 

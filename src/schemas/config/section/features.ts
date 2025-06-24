@@ -29,25 +29,6 @@ const featuresRegionsSchema = z.object({
   jurisdictions: z.array(featuresRegionJurisdictionSchema).optional(),
 });
 
-const featuresPlansPaymentLinksDetailSchema = z.object({
-  tierid: z.string().optional(),
-  month: nullableString,
-  year: nullableString,
-});
-
-const featuresPlansPaymentLinksSchema = z.object({
-  identity: featuresPlansPaymentLinksDetailSchema.optional(),
-  dedicated: featuresPlansPaymentLinksDetailSchema.optional(),
-});
-
-const featuresPlansSchema = z.object({
-  // YAML: <%= ENV['PLANS_ENABLED'] == 'true' || false %>
-  enabled: z.boolean().optional(),
-  stripe_key: nullableString,
-  webhook_signing_secret: z.string().optional(), // Typo 'webook' from YAML
-  payment_links: featuresPlansPaymentLinksSchema.optional(),
-});
-
 const featuresDomainsClusterSchema = z.object({
   type: nullableString,
   api_key: nullableString,
@@ -67,7 +48,7 @@ const featuresDomainsSchema = z.object({
 const featuresSchema = z.object({
   incoming: featuresIncomingSchema.optional(),
   regions: featuresRegionsSchema.optional(),
-  plans: featuresPlansSchema.optional(),
+  stathat: z.object().loose(),
   domains: featuresDomainsSchema.optional(),
 });
 
