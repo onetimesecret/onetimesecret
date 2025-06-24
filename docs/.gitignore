@@ -9,3 +9,6 @@
 !examples/*
 !DOCKER*.md
 !README*.md
+!DEVELOPMENT.md
+!MANUAL_INSTALL.md
+!CONFIGURATION.md

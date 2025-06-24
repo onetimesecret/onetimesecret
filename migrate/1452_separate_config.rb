@@ -136,12 +136,14 @@ module Onetime
 
               $ ONETIME_DEBUG=1 bin/ots migrate [--run] 1452_separate_config.rb
 
-          4. Try running with the example config.
-             Create a copy of etc/#{source_file}. Then copy
-             etc/config.example.config to etc/#{source_file} and try the
-             migration again.
+          4. Try running with the default config.
+             Copy etc/defaults/config.defaults.yaml to etc/#{source_file} and
+             try to run the application:
 
-             If this works, you'll need to manually copy over your settings.
+              $ bin/ots console
+
+             If the console starts and boots successfully, you will need to
+             manually copy over your settings from your original etc/config.yaml.
 
         #{separator}
       HEREDOC
