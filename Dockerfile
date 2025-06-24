@@ -6,15 +6,16 @@
 #
 # This Dockerfile defines the build process for the OneTime Secret application.
 #
-# For comprehensive instructions on building, running, configuring, and deploying
-# this Docker image, please refer to our detailed guides:
-#
-#     - docs/DOCKER.md
-#     - README.md (for general configuration)
 #
 # GETTING STARTED:
 #
-# See `docs/DOCKER.md` for full instructions on getting started.
+# For comprehensive instructions on building, running, and configuring
+# this image, please see our detailed guide:
+#
+#     docs/DOCKER.md
+#
+# For general project information, see README.md.
+#
 #
 # BUILDING:
 #
@@ -25,27 +26,30 @@
 #
 # RUNNING:
 #
-# OneTime Secret requires a Redis/Valkey server (v5+). For a quick start,
-# run Valkey in Docker:
-#
+# 1. Start a Valkey/Redis container:
 #     $ docker run -d --name valkey -p 6379:6379 valkey/valkey
 #
-# Then run the application, connecting to Valkey:
+# 2. Set a unique secret:
+#     $ openssl rand -hex 24
+#    (Copy the output from above command and save it somewhere safe)
 #
-#     $ export SECRET=$(openssl rand -hex 24)
+#     $ echo -n "Enter a secret and press [ENTER]: "; read -s SECRET
+#     (Paste the secret you copied from the openssl command above)
+#
+# 3. Run the application:
 #     $ docker run -p 3000:3000 -d --name onetimesecret \
-#         -e SECRET=$SECRET \
+#         -e SECRET="$SECRET" \
 #         -e REDIS_URL=redis://host.docker.internal:6379/0 \
 #         onetimesecret
 #
-# The app will be at http://localhost:3000. See docs/DOCKER.md for more.
+# The app will be at http://localhost:3000. For more, see docs/DOCKER.md.
 
 ##
 # BASE LAYER
 #
 # Installs system packages, updates RubyGems, and prepares the
 # application's package management dependencies using a Debian
-# Ruby 3 base image.
+# Ruby 3.4 base image.
 #
 ARG CODE_ROOT=/app
 ARG ONETIME_HOME=/opt/onetime
