@@ -30,7 +30,11 @@ module V2
 
     field :custid
     field :email
-    field :role
+
+    field :role # customer, colonel
+    field :user_type # 'anonymous', 'authenticated', 'standard', 'enhanced'
+    field :api_version # v2
+
     field :sessid
     field :apitoken # TODO: use sorted set?
     field :verified
@@ -43,6 +47,7 @@ module V2
     field :emails_sent
 
     field :planid
+
     field :created
     field :updated
     field :last_login
@@ -60,7 +65,10 @@ module V2
       :custid,
       :email,
 
+      :api_version,
       :role,
+      :user_type,
+
       :verified,
       :last_login,
       :locale,
@@ -71,7 +79,9 @@ module V2
       :stripe_subscription_id,
       :stripe_checkout_email,
 
-      { plan: ->(cust) { cust.load_plan } }, # safe_dump will be called automatically
+      # Removed for #1508 on 2025-06-24. Use user_type for functional logic.
+      #
+      # { plan: ->(cust) { cust.load_plan } },
 
       # NOTE: The secrets_created incrementer is null until the first secret
       # is created. See ConcealSecret for where the incrementer is called.
@@ -86,8 +96,13 @@ module V2
     ].freeze
 
     def init
-      self.custid ||= 'anon'
-      self.role   ||= 'customer'
+      self.custid      ||= 'anon'
+      self.objid       ||= self.class.generate_objid
+      self.api_version ||= 'v2'
+
+      self.role        ||= 'customer'
+      self.user_type   ||= 'anonymous'
+
       self.email  ||= self.custid unless anonymous?
 
       # When an instance is first created, any field that doesn't have a
@@ -223,7 +238,7 @@ module V2
     end
 
     def anonymous?
-      custid.to_s.eql?('anon')
+      user_type.to_s.eql?('anonymous') || custid.to_s.eql?('anon')
     end
 
     def global?
@@ -409,6 +424,10 @@ module V2
     module ClassMethods
       attr_reader :values
 
+      def generate_objid
+        ['c', Familia::Utils.generate_id(length: 16, encoding: 36)].join
+      end
+
       def add(cust)
         values.add OT.now.to_i, cust.identifier
       end
@@ -423,14 +442,22 @@ module V2
       end
 
       def anonymous
-        new('anon').freeze
+        new({ custid: 'anon', user_type: 'anonymous' }).freeze
       end
 
       def create(custid, email = nil)
         raise Onetime::Problem, 'custid is required' if custid.to_s.empty?
         raise Onetime::Problem, 'Customer exists' if exists?(custid)
 
-        cust = new custid: custid, email: email || custid, role: 'customer'
+        attrs = {
+          custid: custid,
+          email: email || custid,
+          role: 'customer',
+          api_version: 'v2',
+          user_type: 'authenticated',
+        }
+
+        cust = new attrs
         cust.save
         add cust
         cust
