@@ -171,10 +171,13 @@ module Onetime
         return unless needs_objid || needs_user_type
 
         @customers_needing_update += 1
+        unique_objid = MODEL_KLASS.generate_objid
 
         # Log what we're about to update
         updates = []
-        updates << "objid=#{custid}" if needs_objid
+        if needs_objid
+          updates << "custid=#{custid} objid:#{unique_objid}"
+        end
         updates << "user_type=authenticated" if needs_user_type
 
         info("Customer #{custid}: #{updates.join(', ')}")
@@ -182,7 +185,7 @@ module Onetime
         # Apply updates if in actual run mode
         for_realsies_this_time? do
           update_fields = {}
-          update_fields['objid'] = MODEL_KLASS.generate_id if needs_objid
+          update_fields['objid'] = unique_objid if needs_objid
           update_fields['user_type'] = 'authenticated' if needs_user_type
 
           @redis_client.hmset(key, *update_fields.to_a.flatten)

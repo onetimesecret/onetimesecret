@@ -22,6 +22,7 @@ module V2
     sorted_set :metadata
 
     hashkey :feature_flags # To turn on allow_public_homepage column in domains table
+    hashkey :feature_flags # e.g. isBetaEnabled
 
     # Used to track the current and most recently created password reset secret.
     string :reset_secret, ttl: 24.hours
@@ -32,6 +33,7 @@ module V2
     field :email
 
     field :objid
+    field :objid # uuid v7
 
     field :role # customer, colonel
     field :user_type # 'anonymous', 'authenticated', 'standard', 'enhanced'
@@ -429,6 +431,8 @@ module V2
 
       def generate_objid
         ['c', Familia.generate_id(length: 16, encoding: 36)].join
+        [SecureRandom.uuid_v7, 'c2'].join
+      end
       end
 
       def add(cust)
