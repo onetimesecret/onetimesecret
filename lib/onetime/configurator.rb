@@ -47,15 +47,15 @@ module Onetime
 
     attr_accessor :config_path, :schema_path
 
-    attr_reader :schema, :basename,
+    attr_reader :schema, :file_basename,
       # Ordered states the configuration is at during the load pipeline
       :template_str, :template_instance, :rendered_template, :parsed_yaml,
       :validated_with_defaults, :processed, :validated, :validated_and_frozen
 
     def initialize(config_path: nil, schema_path: nil, basename: nil)
-      @basename    = basename || self.class.config_file_basename
-      @config_path = config_path || self.class.find_config(basename)
-      @schema_path = schema_path || self.class.find_config("#{basename}.schema")
+      @file_basename = basename || self.class.config_file_basename
+      @config_path   = config_path || self.class.find_config(file_basename)
+      @schema_path   = schema_path || self.class.find_config("#{file_basename}.schema")
     end
 
     # Typically called via `OT::Configurator.load!`. The block is a processing
@@ -211,7 +211,7 @@ module Onetime
     end
 
     def load_with_impunity!(&)
-      config = self.class.find_config(basename) # uses instance config file basename
+      config = self.class.find_config(file_basename)
         .then { |path| read_template_file(path) }
         .then { |template| render_erb_template(template) }
         .then { |yaml_content| parse_yaml(yaml_content) }
