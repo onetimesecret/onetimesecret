@@ -342,6 +342,7 @@ module Onetime
     Onetime::Configurator.load_with_impunity!
   rescue StandardError => ex
     puts "Failed to load static config: #{ex.message}"
+    OT.ld(ex.backtrace)
     exit 1
   end
 end

@@ -27,26 +27,33 @@ module Onetime
 
     @xdg = XDG::Environment.new
 
+    # Use an override config file basename if one is set. The basename is part
+    # of the filename to the left of the .yaml extension. The canonical example
+    # is the 'config' in etc/config.yaml.
+    @config_file_basename = ENV.fetch('ONETIME_CONFIG_FILE_BASENAME', 'config').freeze
+
     # This lets local project settings override user settings, which
-    # override system defaults. It's the standard precedence.
+    # override system defaults. It's the standard precedence with
+    # the addition of a test directory.
     @paths      = [
       File.join(Dir.pwd, 'etc'), # 1. current working directory
       File.join(Dir.pwd, 'etc', 'schemas'), # 2. current working directory
       File.join(Onetime::HOME, 'etc'), # 3. onetimesecret/etc
       File.join(@xdg.config_home, 'onetime'), # 4. ~/.config/onetime
       File.join(File::SEPARATOR, 'etc', 'onetime'), # 5. /etc/onetime
+	  File.join(Onetime::HOME, 'tests', 'unit', 'ruby'), # 6. ./tests/unit/ruby
     ].uniq.freeze
     @extensions = ['.yml', '.yaml', '.json', '.json5', ''].freeze
 
     attr_accessor :config_path, :schema_path
 
-    attr_reader :schema,
+    attr_reader :schema, :basename,
       # Ordered states the configuration is at during the load pipeline
       :template_str, :template_instance, :rendered_template, :parsed_yaml,
       :validated_with_defaults, :processed, :validated, :validated_and_frozen
 
     def initialize(config_path: nil, schema_path: nil, basename: nil)
-      basename   ||= 'config' # e.g. etc/config.yaml
+      @basename    = basename || self.class.config_file_basename
       @config_path = config_path || self.class.find_config(basename)
       @schema_path = schema_path || self.class.find_config("#{basename}.schema")
     end
@@ -197,7 +204,7 @@ module Onetime
     end
 
     def load_with_impunity!(&)
-      config = self.class.find_config('config')
+      config = self.class.find_config(basename) # uses instance config file basename
         .then { |path| read_template_file(path) }
         .then { |template| render_erb_template(template) }
         .then { |yaml_content| parse_yaml(yaml_content) }
@@ -217,7 +224,7 @@ module Onetime
     end
 
     class << self
-      attr_reader :xdg, :paths, :extensions, :init_scripts_dir
+      attr_reader :xdg, :paths, :extensions, :init_scripts_dir, :config_file_basename
 
       # Instantiates a new configuration object, loads it, and it returns itself
       def load!(&) = new.load!(&)
@@ -226,7 +233,8 @@ module Onetime
         new.load_with_impunity!(&)
       end
 
-      def find_configs(basename = 'config')
+      def find_configs(basename = nil)
+        basename ||= config_file_basename
         paths.flat_map do |path|
           extensions.filter_map do |ext|
             file = File.join(path, "#{basename}#{ext}")

@@ -29,26 +29,16 @@ app_root = File.join(project_root, '/apps').freeze
 $LOAD_PATH.unshift(File.join(app_root, 'api'))
 $LOAD_PATH.unshift(File.join(app_root, 'web'))
 
+# This tells OT::Configurator#load_with_impunity! to look in the preset list
+# of paths to look for a config file and find one that matches this basename.
+# See ./tests/unit/ruby/rspec/onetime/configurator_spec.rb
+ENV['ONETIME_CONFIG_FILE_BASENAME'] = 'config.test'
+
 require 'onetime'
 
-test_config_path = File.join(project_root, 'tests', 'unit', 'ruby', 'config.test.yaml')
-
-##
-# Setup test environment
-#
-# In lieu of calling OT.boot! we can set the state and prepoulate the static config.
-OT.set_boot_state(:test, nil)
-#
-# Set the configuration directly for tests
-test_config = OT::Configurator::Load.yaml_load_file(test_config_path)
-OT.instance_variable_set(:@static_config, test_config)
-##
-
-global_secret = test_config.dig('site', 'secret') || nil
-
+global_secret = OT.conf.dig('site', 'secret') || nil
 OT.li("[TRY] Setting global secret: #{global_secret}")
 Gibbler.secret = global_secret.freeze unless Gibbler.secret
-
 
 class IndifferentHash
   # Initializes a new IndifferentHash.
