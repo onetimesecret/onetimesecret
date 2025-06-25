@@ -31,6 +31,8 @@ module V2
     field :custid
     field :email
 
+    field :objid
+
     field :role # customer, colonel
     field :user_type # 'anonymous', 'authenticated', 'standard', 'enhanced'
     field :api_version # v2
@@ -64,6 +66,7 @@ module V2
       { identifier: ->(obj) { obj.identifier } },
       :custid,
       :email,
+      :objid,
 
       :api_version,
       :role,
@@ -425,7 +428,7 @@ module V2
       attr_reader :values
 
       def generate_objid
-        ['c', Familia::Utils.generate_id(length: 16, encoding: 36)].join
+        ['c', Familia.generate_id(length: 16, encoding: 36)].join
       end
 
       def add(cust)
