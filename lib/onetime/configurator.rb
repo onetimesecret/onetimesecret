@@ -65,7 +65,6 @@ module Onetime
     # Using a combination of then and then_with_diff which tracks the changes to
     # the configuration at each step in this load pipeline.
     def load!(&)
-      @schema        = load_schema
       # We validate before returning the config so that we're not inadvertently
       # sending back configuration of unknown provenance. This is Stage 1 of
       # our two-stage validation process. In addition to confirming the
@@ -80,12 +79,16 @@ module Onetime
         .then { |path| read_template_file(path) }
         .then { |template| render_erb_template(template) }
         .then { |yaml_content| parse_yaml(yaml_content) }
+        .then { |config| resolve_and_load_schema(config) }
         .then_with_diff('initial') { |config| validate_with_defaults(config) }
         .then_with_diff('processed') { |config| run_processing_hook(config, &) }
         .then_with_diff('validated') { |config| validate(config) }
         .then_with_diff('freezed') { |config| deep_freeze(config) }
 
       self
+    rescue OT::ConfigValidationError
+      # Re-raise without debug logging
+      raise
     rescue OT::ConfigError => ex
       log_error_with_debug_content(ex)
       raise # re-raise the same error
@@ -197,10 +200,14 @@ module Onetime
       OT.ld err.backtrace.join("\n")
     end
 
-    def load_schema(path = nil)
-      path ||= schema_path
-      OT.ld "[config] Loading schema from #{path.inspect}"
-      OT::Configurator::Load.yaml_load_file(path)
+    def resolve_and_load_schema(config)
+      @schema_path = _resolve_schema(config)
+
+      OT.ld "[config] Loading schema from #{schema_path.inspect}"
+      @schema = OT::Configurator::Load.yaml_load_file(schema_path)
+
+      # Remove $schema from config
+      config.reject { |k| k.to_s == '$schema' }
     end
 
     def load_with_impunity!(&)
@@ -221,6 +228,29 @@ module Onetime
       loggable_config = OT::Utils.type_structure(config)
       OT.ld "[config] Validating #{loggable_config.size} #{schema.size}"
       OT::Configurator::Utils.validate_with_schema(config, schema, **)
+    end
+
+    def _resolve_schema(config)
+      # Extract schema reference from parsed config
+      schema_ref = config['$schema'] || config[:$schema]
+
+      # No need to autodetect schema if it's already set
+      if schema_ref && schema_ref != schema_path
+        OT.ld("[config] Auto-detected schema: #{schema_ref}")
+
+        # Try Load module's resolution first (direct + relative paths)
+        resolved_path = Load.resolve_schema_path(schema_ref, config_path)
+
+        # Fall back to basename search in predefined paths if not found
+        if resolved_path.nil?
+          basename = File.basename(schema_ref, File.extname(schema_ref))
+          resolved_path = self.class.find_config(basename) || schema_ref
+        end
+
+        @schema_path = resolved_path
+      end
+
+      @schema_path
     end
 
     class << self

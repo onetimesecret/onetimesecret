@@ -293,7 +293,6 @@ module Onetime
       case error
       when OT::ConfigValidationError
         # ConfigValidationError includes detailed information about the error
-        OT.le 'Configuration validation failed during boot'
         OT.le error.message
       when OT::ConfigError
         OT.le "Configuration error during boot: #{error.message}"
