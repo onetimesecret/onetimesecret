@@ -51,6 +51,27 @@ export default defineConfig({
 
 > **Security Warning:** Never set `server.hmr.host` to a public IP or expose the Vite dev server to the internet, as this can create security vulnerabilities.
 
+## Redis/Valkey Setup
+
+The application supports both Redis and Valkey servers. Use environment variables to specify which server and CLI tools to use:
+
+```bash
+# Set these in your shell profile or .env file
+export REDIS_SERVER=redis-server  # or valkey-server
+export REDIS_CLI=redis-cli        # or valkey-cli
+```
+
+If not set, defaults to `valkey-server` and `valkey-cli`.
+
+**Package.json scripts:**
+```bash
+pnpm run redis:start     # Start server in daemon mode
+pnpm run redis:start:fg  # Start server in foreground
+pnpm run redis:stop      # Stop server
+pnpm run redis:status    # Check if server is running
+pnpm run redis:clean     # Clean Redis data
+```
+
 ## Setting up Pre-commit Hooks
 
 We use the `pre-commit` framework to maintain code quality and consistency.
