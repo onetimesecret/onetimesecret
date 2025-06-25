@@ -44,6 +44,11 @@ test_config = OT::Configurator::Load.yaml_load_file(test_config_path)
 OT.instance_variable_set(:@static_config, test_config)
 ##
 
+global_secret = test_config.dig('site', 'secret') || nil
+
+OT.li("[TRY] Setting global secret: #{global_secret}")
+Gibbler.secret = global_secret.freeze unless Gibbler.secret
+
 
 class IndifferentHash
   # Initializes a new IndifferentHash.
