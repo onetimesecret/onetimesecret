@@ -6,7 +6,7 @@ This guide covers installing OnetimeSecret manually, whether you're working with
 
 Required components:
 - [Redis Server](https://redis.io/download) (version 5 or higher)
-- [Ruby](https://www.ruby-lang.org/en/downloads/) (version 3.1 or higher)
+- [Ruby](https://www.ruby-lang.org/en/downloads/) (version 3.1 or higher, ideally 3.4)
 - [Bundler](https://bundler.io/) (version 2.5.x)
 - [Node.js](https://nodejs.org/en/download/) (version 20 or higher)
 - [pnpm](https://pnpm.io/installation) (version 9.2 or higher)
