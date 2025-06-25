@@ -13,11 +13,10 @@ module V2
     # the old YAML format (<v0.23.0).
     unless defined?(FIELD_MAPPINGS)
       FIELD_MAPPINGS = {
-        user_interface: [:site, :interface, :ui],
+        ui: [:site, :interface, :ui],
         secret_options: [:site, :secret_options],
         mail: [:mail],
         limits: [:limits],
-        features: [:site, :features],
         api: [:site, :interface, :api],
       }.freeze
     end
@@ -34,12 +33,12 @@ module V2
     class_sorted_set :audit_log
 
     field :configid
-    field :user_interface
-    field :secret_options
-    field :features
+    field :ui
     field :api
+    field :secret_options
     field :mail
     field :limits
+    field :features
     field :custid
     field :comment
     field :created
@@ -50,7 +49,7 @@ module V2
 
     @safe_dump_fields = [
       { identifier: ->(obj) { obj.identifier } },
-      :user_interface,
+      :ui,
       :secret_options,
       :api,
       :mail,

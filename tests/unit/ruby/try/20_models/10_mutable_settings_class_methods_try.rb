@@ -25,18 +25,38 @@ V2::MutableSettings.stack.clear
 
 @test_config = {
   site: {
+    host: 'localhost',
+    port: 3000,
+    ssl: false,
     interface: {
-      host: 'localhost',
-      port: 3000,
-      ssl: false
+      ui: {
+        enabled: true,
+      },
+      api: {
+        enabled: true
+      }
+    },
+    authentication: {
+      signup: {
+        enabled: true
+      },
+      signin: {
+        enabled: true
+      }
     },
     secret_options: {
       max_size: 1024,
       default_ttl: 3600
+    },
+    features: {
+      beta_ui: false
     }
   },
   mail: {
     from: 'noreply@example.com',
+    truemail: {
+      validation: true
+    },
     smtp: {
       host: 'smtp.example.com',
       port: 587
@@ -45,36 +65,41 @@ V2::MutableSettings.stack.clear
   limits: {
     create_secret: 250,
     send_feedback: 10
-  },
-  experimental: {
-    enabled: false
-  },
-  diagnostics: {
-    enabled: true,
-    level: 'info'
   }
 }
 
 @mutable_settings_hash = {
-  interface: {
-    host: 'custom.example.com',
-    port: 8080,
-    ssl: true
+  ui: {
+    enabled: true,
+    signup: {
+      enabled: false
+    },
+    signin: {
+      enabled: true
+    }
+  },
+  api: {
+    enabled: true
   },
   secret_options: {
-    max_size: 2048
+    anonymous: {
+      max_size: 1024
+    },
+    standard: {
+      max_size: 2048
+    },
+    enhanced: {
+      max_size: 4096
+    }
   },
   mail: {
-    from: 'custom@example.com'
+    validation: {
+      recipients: true,
+      accounts: true
+    }
   },
   limits: {
     create_secret: 500
-  },
-  experimental: {
-    enabled: true
-  },
-  diagnostics: {
-    level: 'debug'
   }
 }
 
@@ -82,31 +107,32 @@ V2::MutableSettings.stack.clear
 @customer = V1::Customer.create @email
 
 @obj_config_data = {
-  interface: { host: 'create.example.com', port: 9000 },
-  mail: { from: 'create@example.com' },
+  ui: { enabled: true },
+  api: { enabled: true },
+  mail: { validation: { recipients: true } },
   custid: @customer.custid,
   comment: 'Test config creation'
 }
 
 ## Can extract settings sections from full config using FIELD_MAPPINGS
 V2::MutableSettings.extract_mutable_settings(@test_config)
-#=> {:interface=>{:host=>"localhost", :port=>3000, :ssl=>false}, :secret_options=>{:max_size=>1024, :default_ttl=>3600}, :mail=>{:from=>"noreply@example.com", :smtp=>{:host=>"smtp.example.com", :port=>587}}, :limits=>{:create_secret=>250, :send_feedback=>10}, :diagnostics=>{:enabled=>true, :level=>"info"}}
+#=> {:ui=>{:enabled=>true}, :secret_options=>{:max_size=>1024, :default_ttl=>3600}, :mail=>{:from=>"noreply@example.com", :truemail=>{:validation=>true}, :smtp=>{:host=>"smtp.example.com", :port=>587}}, :limits=>{:create_secret=>250, :send_feedback=>10}, :features=>{:beta_ui=>false}, :api=>{:enabled=>true}}
 
 ## Can construct onetime config structure from mutable settings hash
 V2::MutableSettings.construct_onetime_config(@mutable_settings_hash)
-#=> {:site=>{:interface=>{:host=>"custom.example.com", :port=>8080, :ssl=>true}, :secret_options=>{:max_size=>2048}}, :mail=>{:from=>"custom@example.com"}, :limits=>{:create_secret=>500}, :diagnostics=>{:level=>"debug"}}
+#=> {:site=>{:interface=>{:ui=>{:enabled=>true}}, :secret_options=>{:anonymous=>{:max_size=>1024}, :standard=>{:max_size=>2048}, :enhanced=>{:max_size=>4096}}}, :mail=>{:validation=>{:recipients=>true, :accounts=>true}}, :limits=>{:create_secret=>500}}
 
 ## Can construct onetime config from partial mutable settings hash
-partial_config = { interface: { host: 'partial.example.com' }, mail: { from: 'partial@example.com' } }
+partial_config = { ui: { enabled: false }, mail: { validation: { recipients: false } } }
 V2::MutableSettings.construct_onetime_config(partial_config)
-#=> {:site=>{:interface=>{:host=>"partial.example.com"}}, :mail=>{:from=>"partial@example.com"}}
+#=> {:site=>{:interface=>{:ui=>{:enabled=>false}}}, :mail=>{:validation=>{:recipients=>false}}}
 
 ## Can handle empty mutable settings hash
 V2::MutableSettings.construct_onetime_config({})
 #=> {}
 
 ## Can handle nil values in mutable settings
-nil_config = { interface: { host: nil }, mail: nil }
+nil_config = { ui: { enabled: nil }, mail: nil }
 result = V2::MutableSettings.construct_onetime_config(nil_config)
 result.has_key?(:mail)
 #=> false
@@ -165,8 +191,9 @@ V2::MutableSettings.current.identifier
 
 ## Can create second mutable settings and it becomes current
 @obj_config_data2 = {
-  interface: { host: 'second.example.com', port: 8000 },
-  mail: { from: 'second@example.com' },
+  ui: { enabled: false },
+  api: { enabled: false },
+  mail: { validation: { accounts: false } },
   custid: @customer.custid,
   comment: 'Second test config'
 }
@@ -202,7 +229,7 @@ V2::MutableSettings.stack.member?(@obj2.identifier)
 #=> false
 
 ## Extract settings sections handles missing nested keys gracefully
-incomplete_config = { site: { interface: { host: 'test' } } }
+incomplete_config = { site: { interface: { ui: { enabled: true } } } }
 result = V2::MutableSettings.extract_mutable_settings(incomplete_config)
 result[:secret_options]
 #=> nil
@@ -210,11 +237,11 @@ result[:secret_options]
 ## Extract settings sections handles completely missing sections
 minimal_config = { other_section: { value: 'test' } }
 result = V2::MutableSettings.extract_mutable_settings(minimal_config)
-[result[:interface], result[:mail], result[:limits]]
+[result[:ui], result[:mail], result[:limits]]
 #=> [nil, nil, nil]
 
 ## Construct onetime config skips nil values appropriately
-config_with_nils = { interface: nil, mail: { from: 'test@example.com' } }
+config_with_nils = { ui: nil, mail: { validation: { recipients: true } } }
 result = V2::MutableSettings.construct_onetime_config(config_with_nils)
 p [:plop, result]
 [result.has_key?(:site), result.dig(:site, :interface).nil?]
@@ -222,14 +249,14 @@ p [:plop, result]
 
 ## FIELD_MAPPINGS constant is properly defined
 V2::MutableSettings::FIELD_MAPPINGS.keys.sort
-#=> [:diagnostics, :interface, :limits, :mail, :secret_options]
+#=> [:api, :features, :limits, :mail, :secret_options, :ui]
 
 ## FIELD_MAPPINGS has correct paths for nested site sections
 [
-  V2::MutableSettings::FIELD_MAPPINGS[:interface],
+  V2::MutableSettings::FIELD_MAPPINGS[:ui],
   V2::MutableSettings::FIELD_MAPPINGS[:secret_options]
 ]
-#=> [[:site, :interface], [:site, :secret_options]]
+#=> [[:site, :interface, :ui], [:site, :secret_options]]
 
 ## FIELD_MAPPINGS has correct paths for top-level sections
 [
