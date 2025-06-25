@@ -192,6 +192,7 @@ module Onetime
       # code in the application has access to the processed configuration
       # is from within this boot! method.
       nil
+
     rescue StandardError => ex
       handle_boot_error(ex)
     end

@@ -41,7 +41,7 @@ module Onetime
       File.join(Onetime::HOME, 'etc'), # 3. onetimesecret/etc
       File.join(@xdg.config_home, 'onetime'), # 4. ~/.config/onetime
       File.join(File::SEPARATOR, 'etc', 'onetime'), # 5. /etc/onetime
-	  File.join(Onetime::HOME, 'tests', 'unit', 'ruby'), # 6. ./tests/unit/ruby
+      File.join(Onetime::HOME, 'tests', 'unit', 'ruby'), # 6. ./tests/unit/ruby
     ].uniq.freeze
     @extensions = ['.yml', '.yaml', '.json', '.json5', ''].freeze
 
@@ -222,7 +222,7 @@ module Onetime
 
     def _validate(config, **)
       unless config.is_a?(Hash) && schema.is_a?(Hash)
-        raise ArgumentError, 'Invalid configuration format'
+        raise ArgumentError, "Cannot validate #{config.class} with #{schema.class}"
       end
 
       loggable_config = OT::Utils.type_structure(config)
