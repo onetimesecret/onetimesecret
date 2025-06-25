@@ -317,7 +317,7 @@ DEPENDENCIES
   xdg
 
 RUBY VERSION
-   ruby 3.3.5p100
+   ruby 3.4.4p34
 
 BUNDLED WITH
    2.6.6

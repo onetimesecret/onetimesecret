@@ -19,11 +19,11 @@ Required components:
 First, verify if you have the required dependencies:
 
 ```bash
-ruby --version       # Should be 3.1+
-bundler --version    # Should be 2.5.x
-node --version       # Should be 20+
-pnpm --version       # Should be 9.2+
-redis-server -v      # Should be 5+
+ruby --version       # Ideally 3.4+
+bundler --version    # Ideally 2.6.x
+node --version       # Ideally 22+
+pnpm --version       # Ideally 10.11+
+valkey-server -v     # Ideally 5+, or redis-server
 ```
 
 For a fresh system installation, follow these steps:
@@ -41,7 +41,7 @@ Install system dependencies:
 ```bash
 # For Debian/Ubuntu systems:
 sudo apt update
-sudo apt install -y git curl build-essential libyaml-dev libffi-dev redis-server ruby3.1 ruby3.1-dev
+sudo apt install -y git curl build-essential libyaml-dev libffi-dev valkey-server ruby3.1 ruby3.1-dev
 
 # Install package managers
 sudo gem install bundler
@@ -50,10 +50,13 @@ sudo apt install -y nodejs
 sudo npm install -g pnpm@latest
 
 # Start Redis server
-sudo service redis-server start
+sudo service valkey-server start
 ```
+> [!WARNING]
+> Ruby 3.4 is probably not available via the Debian package manager. Keep 3.1 as the system version and use [rbenv](https://github.com/rbenv/rbenv) or [asdf](https://asdf-vm.com/) to install Ruby 3.4.
 
-> **Note:** If you see audit-related errors when installing pnpm with sudo, this is normal in containers or minimal systems where audit capabilities are limited.
+> [!INFO]
+> If you see audit-related errors when installing pnpm with sudo, this is normal in containers or minimal systems where audit capabilities are limited.
 
 ### 2. Get the Source Code
 
