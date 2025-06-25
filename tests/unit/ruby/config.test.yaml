@@ -32,6 +32,21 @@ storage:
       rate_limit: 2
       exception_info: 12
       mutable_settings: 15
+features:
+  incoming:
+    enabled: true
+    email: incoming@onetimesecret.com
+    passphrase: o1fghw
+    regex: '\A[a-zA-Z0-9]{6}\z'
+capabilities:
+  anonymous:
+    api: true
+    email: false
+    custom_domains: false
+  authenticated:
+    api: true
+    email: true
+    custom_domains: false
 mail:
   connection:
     mode: <%= ENV['EMAILER_MODE'] || 'smtp' %>

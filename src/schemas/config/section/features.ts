@@ -48,7 +48,7 @@ const featuresDomainsSchema = z.object({
 const featuresSchema = z.object({
   incoming: featuresIncomingSchema.optional(),
   regions: featuresRegionsSchema.optional(),
-  stathat: z.object().loose(),
+  stathat: z.object().loose().optional(),
   domains: featuresDomainsSchema.optional(),
 });
 
