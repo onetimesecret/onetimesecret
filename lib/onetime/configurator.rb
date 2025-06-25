@@ -45,9 +45,10 @@ module Onetime
       :template_str, :rendered_template, :parsed_yaml, :validated_with_defaults,
       :processed, :validated, :validated_and_frozen
 
-    def initialize(config_path: nil, schema_path: nil)
-      @config_path = config_path || self.class.find_config('config')
-      @schema_path = schema_path || self.class.find_config('config.schema')
+    def initialize(config_path: nil, schema_path: nil, basename: nil)
+      basename   ||= 'config' # e.g. etc/config.yaml
+      @config_path = config_path || self.class.find_config(basename)
+      @schema_path = schema_path || self.class.find_config("#{basename}.schema")
     end
 
     # Typically called via `OT::Configurator.load!`. The block is a processing

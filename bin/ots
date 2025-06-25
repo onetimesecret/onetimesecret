@@ -30,7 +30,7 @@ class OT::CLI::Definition
     OT.debug = true
   end
 
-  command :load_path, 'Add a path to the load path' do
+  command :load_path, 'Lists the first 5 paths in the load path' do
     puts $LOAD_PATH[0...5]
   end
 
@@ -128,6 +128,7 @@ class OT::CLI::Definition
   option :f, :full, 'Run validation checks and raise concerns'
   option :show, 'Show validated configuration'
   option :s, :schema, String, 'Path to custom JSON schema file'
+  option :n, :basename, String, 'Base name for validation (e.g. "config" in "config.yaml")'
   command validate: OT::ValidateCommand
 
   usage 'ots config'
