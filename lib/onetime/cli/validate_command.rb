@@ -23,11 +23,6 @@ module Onetime
         exit 1
       end
 
-      if config.schema_path.nil?
-        OT.li 'No schema file found'
-        exit 1
-      end
-
       OT.li "Validating #{Onetime::Utils.pretty_path(config.config_path)}"
       OT.li "Schema: #{Onetime::Utils.pretty_path(config.schema_path)}"
 
@@ -74,7 +69,7 @@ module Onetime
         OT.ld "\nUse --verbose to see detailed error information"
       end
 
-      1 # Validation failure exit code
+      exit 1 # Validation failure exit code
     rescue OT::ConfigError => ex
       OT.le "❌ Configuration error: #{ex.message}"
       exit 2 # Config error exit code
