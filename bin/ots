@@ -122,9 +122,13 @@ class OT::CLI::Definition
   option :d, :dependencies, 'Show dependencies for each initializer'
   command initializers: OT::InitializersCommand
 
+  usage 'ots validate'
   usage 'ots validate [CONFIG_PATH]'
-  about 'Validate configuration file against JSON schema'
-  about 'Use --verbose for error details and --verbose --verbose for full error paths'
+  usage 'ots validate --basename mutable'
+  usage 'ots validate --full'
+  about 'Validate configuration file against JSON schema. Without'
+  about 'arguments, validates the static config file: etc/config.yaml'
+  about 'Use global -v for error details and -v -v for full error paths'
   option :f, :full, 'Run validation checks and raise concerns'
   option :show, 'Show validated configuration'
   option :s, :schema, String, 'Path to custom JSON schema file'
