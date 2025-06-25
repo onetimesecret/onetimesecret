@@ -24,10 +24,17 @@ module Onetime
       end
 
       OT.li "Validating #{Onetime::Utils.pretty_path(config.config_path)}"
-      OT.li "Schema: #{Onetime::Utils.pretty_path(config.schema_path)}"
+      printed_schema_path = unless config.schema_path.nil?
+        OT.li "Schema: #{Onetime::Utils.pretty_path(config.schema_path)}"
+        true
+      end
 
       # Load and validate - this automatically validates against schema
       config.load!
+
+      unless printed_schema_path || config.schema_path.nil?
+        OT.li "Schema: #{Onetime::Utils.pretty_path(config.schema_path)} (via $schema reference)"
+      end
 
       # Show processed content if extra verbose
       if option.show && config.template_instance

@@ -236,7 +236,7 @@ module Onetime
 
       # No need to autodetect schema if it's already set
       if schema_ref && schema_ref != schema_path
-        OT.ld("[config] Auto-detected schema: #{schema_ref}")
+        OT.ld("[config] Found $schema ref: #{schema_ref}")
 
         # Try Load module's resolution first (direct + relative paths)
         resolved_path = Load.resolve_schema_path(schema_ref, config_path)
