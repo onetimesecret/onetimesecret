@@ -46,7 +46,7 @@ module Onetime
         providers << System::PrepareEmailers.new
         providers << System::LocaleProvider.new
         providers << System::AuthenticationProvider.new
-        providers << System::PrintLogBanner.new
+        providers << System::PrintBootReceipt.new
 
         # Start providers in priority order
         allsorts_and_start(providers, config)

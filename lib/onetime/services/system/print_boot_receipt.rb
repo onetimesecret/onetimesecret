@@ -1,4 +1,4 @@
-# lib/onetime/services/system/print_log_banner.rb
+# lib/onetime/services/system/print_boot_receipt.rb
 
 require 'json'
 
@@ -45,12 +45,12 @@ module Onetime
       end
 
       ##
-      # LogBannerProvider
+      # PrintBootReceipt
       #
       # Prints a formatted banner with system and configuration information at startup.
       # Now uses ReceiptGenerator for consistent formatting.
       #
-      class PrintLogBanner < ServiceProvider
+      class PrintBootReceipt < ServiceProvider
         using IndifferentHashAccess
 
         def initialize
@@ -210,7 +210,8 @@ module Onetime
           generator.add_section(FooterSection.new(generator,
             messages: [
               'Thank you for using ONETIME APP',
-              'Secure secret sharing service',
+              # 'Secure secret sharing service',
+              'Your own private secret service',
               'https://github.com/onetimesecret',
             ],
           ),
