@@ -41,9 +41,9 @@ module Onetime
     attr_accessor :config_path, :schema_path
 
     attr_reader :schema,
-      # States the configuration is at during the load pipeline
-      :template_str, :rendered_template, :parsed_yaml, :validated_with_defaults,
-      :processed, :validated, :validated_and_frozen
+      # Ordered states the configuration is at during the load pipeline
+      :template_str, :template_instance, :rendered_template, :parsed_yaml,
+      :validated_with_defaults, :processed, :validated, :validated_and_frozen
 
     def initialize(config_path: nil, schema_path: nil, basename: nil)
       basename   ||= 'config' # e.g. etc/config.yaml
@@ -104,7 +104,8 @@ module Onetime
     def render_erb_template(template)
       OT.ld("[config] Rendering ERB template (#{template.size} bytes)")
       context            = Onetime::Configurator::EnvironmentContext.template_binding
-      @rendered_template = ERB.new(template).result(context)
+      @template_instance = ERB.new(template)
+      @rendered_template = @template_instance.result(context)
     end
 
     # Load a YAML configuration file, allowing for ERB templating within the file.

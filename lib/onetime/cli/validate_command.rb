@@ -35,15 +35,15 @@ module Onetime
       config.load!
 
       # Show processed content if extra verbose
-      if option.show && config.parsed_template
+      if option.show && config.template_instance
         OT.ld 'Template:'
-        template_lines = config.parsed_template.result.split("\n")
+        template_lines = config.template_instance.result.split("\n")
         template_lines.each_with_index do |line, index|
           OT.ld "Line #{index + 1}: #{line}"
         end
 
         OT.ld 'Processed configuration:'
-        config.rendered_yaml.lines.each_with_index do |line, idx|
+        config.rendered_template.lines.each_with_index do |line, idx|
           OT.ld "  #{idx + 1}: #{line}"
         end
       end
@@ -52,13 +52,13 @@ module Onetime
       if verbose_mode?
         props = config.schema.dig('properties', 'static', 'properties')&.keys&.inspect
         OT.ld "\nActual config structure being validated:"
-        OT.ld "Top-level keys: #{config.unprocessed_config.keys.inspect}"
+        OT.ld "Top-level keys: #{config.rendered_template.keys.inspect}"
         OT.ld "Schema expects keys under 'static': #{props}"
       end
 
       # Show parsed config in verbose mode
       if option.show
-        OT.li "\nStructure:", JSON.pretty_generate(config.unprocessed_config)
+        OT.li "\nStructure:", JSON.pretty_generate(config.parsed_yaml)
       elsif verbose_mode?
         OT.li "\nStructure:", JSON.pretty_generate(OT::Utils.type_structure(config.configuration))
       end
