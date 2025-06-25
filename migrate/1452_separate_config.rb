@@ -4,7 +4,7 @@
 # Configuration Separation Migration Script
 #
 # Purpose: Separates monolithic config.example.yaml into static and mutable configuration files.
-# Static config goes to etc/config.yaml, mutable config gets loaded into V2::MutableSettings.
+# Static config goes to etc/config.yaml, mutable config gets loaded into V2::MutableConfig.
 #
 # **NOTE**: The reason we use `yq` even though it adds a system dependency is that
 # it can transform YAML _with_ comments and preserve their structure.

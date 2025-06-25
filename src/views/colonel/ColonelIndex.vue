@@ -71,8 +71,8 @@
       color: 'bg-blue-500',
     },
     {
-      name: t('web.colonel.actions.mutableSettings'),
-      description: t('web.colonel.actions.mutableSettingsDesc'),
+      name: t('web.colonel.actions.mutableConfig'),
+      description: t('web.colonel.actions.mutableConfigDesc'),
       href: '/colonel/settings',
       icon: { collection: 'material-symbols', name: 'settings-outline' },
       color: 'bg-orange-500',

@@ -4,14 +4,15 @@
  */
 
 import { z } from 'zod/v4';
-import { mutableSettingsSchema, staticConfigSchema } from '@/schemas/config/settings';
+import { configSchema as mutableConfigSchema } from '@/schemas/config/mutable';
+import { configSchema as staticConfigSchema } from '@/schemas/config/static';
 
-export type MutableSettings = z.infer<typeof mutableSettingsSchema>;
+export type MutableConfig = z.infer<typeof mutableConfigSchema>;
 export type StaticConfig = z.infer<typeof staticConfigSchema>;
 
 export type ApplicationConfig = {
   static?: StaticConfig;
-  dynamic?: MutableSettings;
+  dynamic?: MutableConfig;
 };
 
-export { mutableSettingsSchema, staticConfigSchema };
+export { mutableConfigSchema, staticConfigSchema };

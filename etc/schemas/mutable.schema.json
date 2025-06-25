@@ -725,7 +725,7 @@
         "update_branding": {
           "type": "number"
         },
-        "update_mutable_settings": {
+        "update_mutable_config": {
           "type": "number"
         },
         "view_colonel": {

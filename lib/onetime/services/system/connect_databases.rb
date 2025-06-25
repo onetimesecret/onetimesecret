@@ -97,7 +97,7 @@ module Onetime
           secret: 8,
           feedback: 11,
           exception_info: 12,
-          mutable_settings: 15,
+          mutable_config: 15,
         }
       end
 

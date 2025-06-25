@@ -160,15 +160,15 @@ const limitsSchema = z.object({
   update_domain_brand: z.number().optional(),
   view_colonel: z.number().optional(),
   external_redirect: z.number().optional(),
-  update_mutable_settings: z.number().optional(),
+  update_mutable_config: z.number().optional(),
 });
 
 /**
- * MutableSettingsSchema defines the top-level structure of the settings.
+ * MutableConfigSchema defines the top-level structure of the settings.
  * Each section references deeper schemas defined elsewhere.
  * Using .optional() to handle partial settings data during initialization.
  */
-export const mutableSettingsSchema = z.object({
+export const mutableConfigSchema = z.object({
   interface: interfaceSchema.optional(),
   secret_options: secretOptionsSchema.optional(),
   mail: mailSchema.optional(),
@@ -183,7 +183,7 @@ export const mutableSettingsSchema = z.object({
   // internationalization: z.record(z.any()).optional(),
 });
 
-export const mutableSettingsDetailsSchema = mutableSettingsSchema.extend({
+export const mutableConfigDetailsSchema = mutableConfigSchema.extend({
   // This extension allows for additional fields in the future without breaking changes
   // All fields are optional with defaults to handle missing data
 });
@@ -247,5 +247,5 @@ export const colonelInfoDetailsSchema = z.object({
 // Export types
 export type ColonelStatsDetails = z.infer<typeof colonelStatsDetailsSchema>;
 export type ColonelInfoDetails = z.infer<typeof colonelInfoDetailsSchema>;
-export type MutableSettingsDetails = z.infer<typeof mutableSettingsDetailsSchema>;
+export type MutableConfigDetails = z.infer<typeof mutableConfigDetailsSchema>;
 export type RecentCustomer = z.infer<typeof recentCustomerSchema>;

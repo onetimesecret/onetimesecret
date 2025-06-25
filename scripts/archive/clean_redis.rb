@@ -30,7 +30,7 @@
 #   # Clear only OneTimeSecret keys
 #   $ ruby support/clean_redis.rb --pattern "onetime:*" --force
 #
-#   # Clear mutable settings keys only
+#   # Clear mutable config keys only
 #   $ ruby support/clean_redis.rb --pattern "*colonelconfig*" --force
 #
 #   # Clear test environment

@@ -9,7 +9,7 @@ require 'onetime/services/system/runtime_config_service'
 RSpec.describe 'Service Provider System' do
   include_context "service_provider_context"
   include_context "service_provider_registry_stubs"
-  include_context "mutable_settings_stubs"
+  include_context "mutable_config_stubs"
 
   describe OT::Services::System::RuntimeConfigService do
     subject(:provider) { described_class.new }
@@ -29,7 +29,7 @@ RSpec.describe 'Service Provider System' do
       before do
         # Stub registry methods specifically for runtime_config
         allow(registry_klass).to receive(:get_state).with(:runtime_config).and_return(nil)
-        allow(mock_mutable_settings).to receive(:safe_dump).and_return(runtime_mutable_settings)
+        allow(mock_mutable_config).to receive(:safe_dump).and_return(runtime_mutable_config)
       end
 
       it 'accepts the config and starts the provider' do
@@ -41,9 +41,9 @@ RSpec.describe 'Service Provider System' do
         expect(provider.config['storage']).to be_a(Hash)
         expect(provider.config).to include('site', 'storage')
 
-        # Verify V2::MutableSettings.current was called to fetch dynamic config
-        expect(V2::MutableSettings).to have_received(:current).once
-        expect(mock_mutable_settings).to have_received(:safe_dump).once
+        # Verify V2::MutableConfig.current was called to fetch dynamic config
+        expect(V2::MutableConfig).to have_received(:current).once
+        expect(mock_mutable_config).to have_received(:safe_dump).once
 
         # Verify merged config was stored in registry with frozen hash
         expect(registry_klass).to have_received(:set_state).with(:runtime_config, kind_of(Hash)).once
@@ -53,9 +53,9 @@ RSpec.describe 'Service Provider System' do
       end
 
       it 'handles Redis connection errors gracefully' do
-        # Stub MutableSettings.current to raise error
+        # Stub MutableConfig.current to raise error
         redis_error = StandardError.new('Redis connection failed')
-        allow(V2::MutableSettings).to receive(:current).and_raise(redis_error)
+        allow(V2::MutableConfig).to receive(:current).and_raise(redis_error)
 
         expect { provider.start(base_service_config) }.not_to raise_error
 
@@ -66,7 +66,7 @@ RSpec.describe 'Service Provider System' do
         expect(provider.config).to eq(base_service_config)
 
         # Verify Redis error was attempted but handled gracefully
-        expect(V2::MutableSettings).to have_received(:current).once
+        expect(V2::MutableConfig).to have_received(:current).once
       end
 
       it 'exits early if runtime config already exists' do
@@ -76,8 +76,8 @@ RSpec.describe 'Service Provider System' do
 
         provider.start(base_service_config)
 
-        # Should not call MutableSettings or set_state again
-        expect(V2::MutableSettings).not_to have_received(:current)
+        # Should not call MutableConfig or set_state again
+        expect(V2::MutableConfig).not_to have_received(:current)
         expect(registry_klass).not_to have_received(:set_state)
 
         # Should still store the static config in provider
@@ -87,10 +87,10 @@ RSpec.describe 'Service Provider System' do
         expect(registry_klass).to have_received(:get_state).with(:runtime_config).once
       end
 
-      it 'handles missing MutableSettings gracefully' do
-        # Stub MutableSettings.current to raise RecordNotFound
+      it 'handles missing MutableConfig gracefully' do
+        # Stub MutableConfig.current to raise RecordNotFound
         record_not_found_error = Onetime::RecordNotFound.new('No config stack found')
-        allow(V2::MutableSettings).to receive(:current).and_raise(record_not_found_error)
+        allow(V2::MutableConfig).to receive(:current).and_raise(record_not_found_error)
 
         expect { provider.start(base_service_config) }.not_to raise_error
 
@@ -100,8 +100,8 @@ RSpec.describe 'Service Provider System' do
         # Verify provider stores the static config
         expect(provider.config).to eq(base_service_config)
 
-        # Should have attempted to load MutableSettings
-        expect(V2::MutableSettings).to have_received(:current).once
+        # Should have attempted to load MutableConfig
+        expect(V2::MutableConfig).to have_received(:current).once
       end
     end
 
