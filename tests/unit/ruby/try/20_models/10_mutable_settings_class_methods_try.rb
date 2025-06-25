@@ -47,9 +47,6 @@ V2::MutableSettings.stack.clear
     secret_options: {
       max_size: 1024,
       default_ttl: 3600
-    },
-    features: {
-      beta_ui: false
     }
   },
   mail: {
@@ -116,11 +113,11 @@ V2::MutableSettings.stack.clear
 
 ## Can extract settings sections from full config using FIELD_MAPPINGS
 V2::MutableSettings.extract_mutable_settings(@test_config)
-#=> {:ui=>{:enabled=>true}, :secret_options=>{:max_size=>1024, :default_ttl=>3600}, :mail=>{:from=>"noreply@example.com", :truemail=>{:validation=>true}, :smtp=>{:host=>"smtp.example.com", :port=>587}}, :limits=>{:create_secret=>250, :send_feedback=>10}, :features=>{:beta_ui=>false}, :api=>{:enabled=>true}}
+#=> {:ui=>{:enabled=>true}, :secret_options=>{:max_size=>1024, :default_ttl=>3600}, :mail=>{:from=>"noreply@example.com", :truemail=>{:validation=>true}, :smtp=>{:host=>"smtp.example.com", :port=>587}}, :limits=>{:create_secret=>250, :send_feedback=>10}, :api=>{:enabled=>true}}
 
 ## Can construct onetime config structure from mutable settings hash
 V2::MutableSettings.construct_onetime_config(@mutable_settings_hash)
-#=> {:site=>{:interface=>{:ui=>{:enabled=>true}}, :secret_options=>{:anonymous=>{:max_size=>1024}, :standard=>{:max_size=>2048}, :enhanced=>{:max_size=>4096}}}, :mail=>{:validation=>{:recipients=>true, :accounts=>true}}, :limits=>{:create_secret=>500}}
+#=> {:site=>{:interface=>{:ui=>{:enabled=>true, :signup=>{:enabled=>false}, :signin=>{:enabled=>true}}, :api=>{:enabled=>true}}, :secret_options=>{:anonymous=>{:max_size=>1024}, :standard=>{:max_size=>2048}, :enhanced=>{:max_size=>4096}}}, :mail=>{:validation=>{:recipients=>true, :accounts=>true}}, :limits=>{:create_secret=>500}}
 
 ## Can construct onetime config from partial mutable settings hash
 partial_config = { ui: { enabled: false }, mail: { validation: { recipients: false } } }
@@ -249,7 +246,7 @@ p [:plop, result]
 
 ## FIELD_MAPPINGS constant is properly defined
 V2::MutableSettings::FIELD_MAPPINGS.keys.sort
-#=> [:api, :features, :limits, :mail, :secret_options, :ui]
+#=> [:api, :limits, :mail, :secret_options, :ui]
 
 ## FIELD_MAPPINGS has correct paths for nested site sections
 [
