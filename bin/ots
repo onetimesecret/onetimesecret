@@ -1,16 +1,14 @@
 #!/usr/bin/env ruby
 
-base_path = File.expand_path File.join(File.dirname(__FILE__), '..')
+base_path             = File.expand_path('..', __dir__)
 $LOAD_PATH.unshift File.join(base_path, 'lib')
+ENV['ONETIME_HOME'] ||= base_path.freeze
 
 APPS_ROOT = File.join(base_path, 'apps').freeze
 $LOAD_PATH.unshift(File.join(APPS_ROOT, 'api'))
 $LOAD_PATH.unshift(File.join(APPS_ROOT, 'web'))
 
-# TODO: Replace with bundle install --standalone (Bundler v1.1)
-ENV['BUNDLE_GEMFILE'] ||= File.join(base_path, 'Gemfile')
-
-require 'onetime'
+require 'onetime' # loads bundler/setup
 require 'onetime/cli'
 require 'rubygems'
 require 'drydock'
@@ -32,7 +30,7 @@ class OT::CLI::Definition
     OT.debug = true
   end
 
-  command :load_path, 'Add a path to the load path' do
+  command :load_path, 'Lists the first 5 paths in the load path' do
     puts $LOAD_PATH[0...5]
   end
 
@@ -124,12 +122,17 @@ class OT::CLI::Definition
   option :d, :dependencies, 'Show dependencies for each initializer'
   command initializers: OT::InitializersCommand
 
+  usage 'ots validate'
   usage 'ots validate [CONFIG_PATH]'
-  about 'Validate configuration file against JSON schema'
-  about 'Use --verbose for error details and --verbose --verbose for full error paths'
+  usage 'ots validate --basename mutable'
+  usage 'ots validate --full'
+  about 'Validate configuration file against JSON schema. Without'
+  about 'arguments, validates the static config file: etc/config.yaml'
+  about 'Use global -v for error details and -v -v for full error paths'
   option :f, :full, 'Run validation checks and raise concerns'
   option :show, 'Show validated configuration'
   option :s, :schema, String, 'Path to custom JSON schema file'
+  option :n, :basename, String, 'Base name for validation (e.g. "config" in "config.yaml")'
   command validate: OT::ValidateCommand
 
   usage 'ots config'

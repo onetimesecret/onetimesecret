@@ -1,4 +1,5 @@
 #!/usr/bin/env -S pnpm exec tsx
+
 /**
  * Generate JSON Schemas and TypeScript types from Zod configuration schemas
  *
@@ -11,23 +12,16 @@
  */
 
 import { writeFileSync, mkdirSync } from 'fs';
-import { join, dirname } from 'path';
-import { fileURLToPath } from 'url';
+import { join } from 'path';
 import { z } from 'zod/v4';
-import { mutableSettingsSchema, staticConfigSchema } from '../src/schemas/config/settings.ts';
+import { configSchema as mutableConfigSchema } from '../schemas/config/mutable';
+import { configSchema as staticConfigSchema } from '../schemas/config/static';
+import { configSchema as runtimeConfigSchema } from '../schemas/config/runtime';
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
+const ONETIME_HOME = process.env.ONETIME_HOME || process.cwd();
 
-const OUTPUT_MAIN_SCHEMA = join(__dirname, '../etc/config.schema.yaml');
-const OUTPUT_TYPES = join(__dirname, '../src/types/config.ts');
-const OUTPUT_SCHEMAS_DIR = join(__dirname, '../public/web/dist/schemas');
-
-// Combined configuration schema
-const combinedConfigSchema = z.object({
-  static: staticConfigSchema.optional(),
-  dynamic: mutableSettingsSchema.optional(),
-});
+const OUTPUT_MAIN_SCHEMA = join(ONETIME_HOME, 'public/web/dist/schemas/runtime.schema.json');
+const OUTPUT_SCHEMAS_DIR = join(ONETIME_HOME, 'etc/schemas');
 
 /**
  * Generate individual JSON schema files
@@ -37,19 +31,19 @@ function generateIndividualSchemas(): void {
 
   const schemas = [
     {
-      schema: mutableSettingsSchema,
-      name: 'mutable-settings',
-      description: 'Dynamic mutable settings loaded from mutable_settings.defaults.yaml',
-    },
-    {
       schema: staticConfigSchema,
-      name: 'static-config',
+      name: 'config.schema',
       description: 'Static configuration settings loaded from config.yaml',
     },
     {
-      schema: combinedConfigSchema,
-      name: 'combined-config',
-      description: 'Combined configuration schema for both static and dynamic settings',
+      schema: mutableConfigSchema,
+      name: 'mutable.schema',
+      description: 'Dynamic mutable config loaded from mutable.yaml',
+    },
+    {
+      schema: runtimeConfigSchema,
+      name: 'runtime.schema',
+      description: 'Combined configuration schema for both static and mutable config',
     },
   ];
 
@@ -73,7 +67,7 @@ function generateIndividualSchemas(): void {
     };
 
     const outputPath = join(OUTPUT_SCHEMAS_DIR, `${name}.json`);
-    writeFileSync(outputPath, JSON.stringify(schemaWithMeta, null, 2));
+    writeFileSync(outputPath, JSON.stringify(schemaWithMeta, null, 2) + '\n');
     console.log(`Generated: ${outputPath}`);
   });
 }
@@ -91,43 +85,15 @@ function generateMainSchema(): void {
 
   const schemaWithMeta = {
     $schema: 'https://json-schema.org/draft/2020-12/schema',
-    $id: 'https://onetimesecret.com/schemas/config.json',
+    $id: 'https://onetimesecret.com/schemas/config.schema.json',
     title: 'OneTimeSecret Configuration',
     description: 'Configuration schema for OneTimeSecret application',
     ...jsonSchema,
   };
 
-  writeFileSync(OUTPUT_MAIN_SCHEMA, JSON.stringify(schemaWithMeta, null, 2));
+  mkdirSync(join(OUTPUT_MAIN_SCHEMA, '..'), { recursive: true });
+  writeFileSync(OUTPUT_MAIN_SCHEMA, JSON.stringify(schemaWithMeta, null, 2) + '\n');
   console.log(`Generated: ${OUTPUT_MAIN_SCHEMA}`);
-}
-
-/**
- * Generate TypeScript type definitions
- */
-function generateTypeDefinitions(): void {
-  mkdirSync(dirname(OUTPUT_TYPES), { recursive: true });
-
-  const typeDefinitions = `/**
- * Configuration type definitions
- * Auto-generated from Zod schemas
- */
-
-import { z } from 'zod/v4';
-import { mutableSettingsSchema, staticConfigSchema } from '@/schemas/config/settings';
-
-export type MutableSettings = z.infer<typeof mutableSettingsSchema>;
-export type StaticConfig = z.infer<typeof staticConfigSchema>;
-
-export type ApplicationConfig = {
-  static?: StaticConfig;
-  dynamic?: MutableSettings;
-};
-
-export { mutableSettingsSchema, staticConfigSchema };
-`;
-
-  writeFileSync(OUTPUT_TYPES, typeDefinitions);
-  console.log(`Generated: ${OUTPUT_TYPES}`);
 }
 
 /**
@@ -135,9 +101,9 @@ export { mutableSettingsSchema, staticConfigSchema };
  */
 function generateOpenAPISchemas(): void {
   const schemas = [
-    { schema: mutableSettingsSchema, name: 'mutable-settings' },
-    { schema: staticConfigSchema, name: 'static-config' },
-    { schema: combinedConfigSchema, name: 'combined-config' },
+    { schema: staticConfigSchema, name: 'static' },
+    { schema: mutableConfigSchema, name: 'mutable' },
+    { schema: runtimeConfigSchema, name: 'runtime' },
   ];
 
   schemas.forEach(({ schema, name }) => {
@@ -158,7 +124,7 @@ function generateOpenAPISchemas(): void {
     };
 
     const outputPath = join(OUTPUT_SCHEMAS_DIR, `${name}.openapi.json`);
-    writeFileSync(outputPath, JSON.stringify(schemaWithMeta, null, 2));
+    writeFileSync(outputPath, JSON.stringify(schemaWithMeta, null, 2) + '\n');
     console.log(`Generated: ${outputPath}`);
   });
 }
@@ -177,7 +143,6 @@ function main(): void {
 
   generateMainSchema();
   generateIndividualSchemas();
-  generateTypeDefinitions();
 
   if (includeOpenAPI) {
     generateOpenAPISchemas();
@@ -190,9 +155,4 @@ if (import.meta.url === `file://${process.argv[1]}`) {
   main();
 }
 
-export {
-  generateMainSchema,
-  generateIndividualSchemas,
-  generateTypeDefinitions,
-  generateOpenAPISchemas,
-};
+export { generateMainSchema, generateIndividualSchemas, generateOpenAPISchemas };

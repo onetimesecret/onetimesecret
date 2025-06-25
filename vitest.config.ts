@@ -49,7 +49,7 @@ export default defineConfig({
     },
     typecheck: {
       enabled: true,
-      tsconfig: './tsconfig.test.json',
+      tsconfig: './tsconfig.tests.json',
     },
   },
   resolve: {

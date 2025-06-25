@@ -32,6 +32,11 @@ module Onetime
 
     attr_reader :instance, :mode, :debug, :env, :config_proxy
 
+    def boot!(*)
+      Boot.boot!(*)
+      self
+    end
+
     def safe_boot!(*)
       Boot.boot!(*)
       true
@@ -52,9 +57,10 @@ module Onetime
     end
 
     # A convenience method for accessing the configuration proxy.
+    #
+    # Before ConfigProxy instance is available, fails over to static config.
     def conf
-      # TODO: Need to provide static config asap before boot.
-      config_proxy || {}
+      config_proxy || @static_config || {}
     end
 
     # A convenience method for accessing the ServiceRegistry application state.

@@ -48,7 +48,7 @@ vendor
 !pr_agent.toml
 Caddyfile
 fly.toml
-etc/examples/*
+etc/examples
 etc/config*
 etc/*.yaml
 !etc/config.test.yaml

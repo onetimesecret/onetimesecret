@@ -31,22 +31,24 @@ module Onetime
     # override system defaults. It's the standard precedence.
     @paths      = [
       File.join(Dir.pwd, 'etc'), # 1. current working directory
-      File.join(Onetime::HOME, 'etc'), # 2. onetimesecret/etc
-      File.join(@xdg.config_home, 'onetime'), # 3. ~/.config/onetime
-      File.join(File::SEPARATOR, 'etc', 'onetime'), # 4. /etc/onetime
+      File.join(Dir.pwd, 'etc', 'schemas'), # 2. current working directory
+      File.join(Onetime::HOME, 'etc'), # 3. onetimesecret/etc
+      File.join(@xdg.config_home, 'onetime'), # 4. ~/.config/onetime
+      File.join(File::SEPARATOR, 'etc', 'onetime'), # 5. /etc/onetime
     ].uniq.freeze
     @extensions = ['.yml', '.yaml', '.json', '.json5', ''].freeze
 
     attr_accessor :config_path, :schema_path
 
     attr_reader :schema,
-      # States the configuration is at during the load pipeline
-      :template_str, :rendered_template, :parsed_yaml, :validated_with_defaults,
-      :processed, :validated, :validated_and_frozen
+      # Ordered states the configuration is at during the load pipeline
+      :template_str, :template_instance, :rendered_template, :parsed_yaml,
+      :validated_with_defaults, :processed, :validated, :validated_and_frozen
 
-    def initialize(config_path: nil, schema_path: nil)
-      @config_path = config_path || self.class.find_config('config')
-      @schema_path = schema_path || self.class.find_config('config.schema')
+    def initialize(config_path: nil, schema_path: nil, basename: nil)
+      basename   ||= 'config' # e.g. etc/config.yaml
+      @config_path = config_path || self.class.find_config(basename)
+      @schema_path = schema_path || self.class.find_config("#{basename}.schema")
     end
 
     # Typically called via `OT::Configurator.load!`. The block is a processing
@@ -102,7 +104,8 @@ module Onetime
     def render_erb_template(template)
       OT.ld("[config] Rendering ERB template (#{template.size} bytes)")
       context            = Onetime::Configurator::EnvironmentContext.template_binding
-      @rendered_template = ERB.new(template).result(context)
+      @template_instance = ERB.new(template)
+      @rendered_template = @template_instance.result(context)
     end
 
     # Load a YAML configuration file, allowing for ERB templating within the file.
@@ -184,7 +187,6 @@ module Onetime
       #   OT.ld "[config] Parsed: #{loggable_config}"
       # end
 
-      OT.le err.message
       OT.ld err.backtrace.join("\n")
     end
 

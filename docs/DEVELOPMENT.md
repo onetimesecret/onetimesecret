@@ -86,7 +86,11 @@ docker run --name onetimesecret-new ...
 To inspect the layers of a Docker image and identify opportunities for optimization, use the `docker history` command:
 
 ```bash
-docker history your-image-name
+docker history onetimesecret --format "table {{.CreatedBy}}\t{{.Size}}"
+
+# Or use dive for a more detailed analysis:
+# brew install dive
+# dive onetimesecret
 ```
 
 ### Docker Compose

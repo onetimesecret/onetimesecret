@@ -49,4 +49,3 @@ Each layer has a distinct responsibility:
 - [Frontend Architecture](./frontend-architecture.md) - Vue 3 layered approach
 - [Type Safety](./type-safety.md) - Managing types across the stack
 - [Error Handling](./error-handling.md) - Patterns for robust error management
-- [Config vs Settings](./config-vs-settings.md) - Configuration management conventions

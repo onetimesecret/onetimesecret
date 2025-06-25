@@ -16,6 +16,7 @@ site:
     enabled: <%= ENV['AUTH_ENABLED'] != 'false' %>
     colonels:
       - <%= ENV['COLONEL'] || 'CHANGEME@example.com' %>
+    autoverify: false
   authenticity:
     type: <%= ENV['AUTHENTICITY_TYPE'] || 'altcha' %>
     secret_key: <%= ENV['AUTHENTICITY_SECRET_KEY'] || '<REPLACE_WITH_STRONG_HMAC_KEY>' %>

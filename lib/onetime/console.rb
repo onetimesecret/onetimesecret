@@ -1,5 +1,12 @@
 # lib/onetime/console.rb
 
+##
+# Onetime Console
+#
+# This file contains the console setup and is run standalone (i.e. executed
+# directly by IRB).
+#
+
 ENV['RACK_ENV']   ||= 'production'
 ENV['ONETIME_HOME'] = File.expand_path(File.join(__dir__, '..', '..')).freeze
 app_root            = ENV.fetch('ONETIME_HOME')
@@ -21,11 +28,11 @@ require_relative '../onetime'
 require_relative '../onetime/models'
 require_relative '../onetime/refinements/indifferent_hash_access'
 
-# # Create a custom workspace with your loaded environment
+# Create a custom workspace with your loaded environment
 # workspace = IRB::WorkSpace.new(binding)
 # irb = IRB::Irb.new(workspace)
 
-# # Start the session
+# Start the session
 # IRB.conf[:MAIN_CONTEXT] = irb.context
 # irb.eval_input
 
@@ -33,11 +40,11 @@ require_relative '../onetime/refinements/indifferent_hash_access'
 if defined?(IRB)
   require 'irb/completion'
   IRB.conf[:PROMPT][:ONETIME] = {
-    PROMPT_I: 'onetime> ',    # The main prompt
-    PROMPT_S: '%l ',   # The prompt for continuing strings
+    PROMPT_I: 'ONETIME> ',    # The main prompt
+    PROMPT_S: '%l ',     # The prompt for continuing strings
     PROMPT_C: '↳  ',    # The prompt for continuing statements
     PROMPT_N: '⇢  ',    # The prompt for nested statements
-    RETURN: "⮑  %s\n",         # The format for return values
+    RETURN: "⮑  %s\n",  # The format for return values
   }
   IRB.conf[:IRB_RC]           = proc do |context|
     context.workspace.binding.eval('using IndifferentHashAccess')
@@ -62,61 +69,69 @@ end
 
 # IRB.conf[:RC] indicates whether an RC file (.irbrc) was
 # loaded during IRB initialization
-has_settings = !IRB.conf[:RC].nil?
-has_history  = IRB.conf[:SAVE_HISTORY] > 0
-use_pager    = IRB.conf[:USE_PAGER]
+# Configuration and Constants
+CONTENT_WIDTH = 59
+SPACING       = 8
 
-content_width = 59
-lines         = [
-  ['SETTINGS', has_settings ? 'ACTIVE' : 'DEFAULT'],
-  ['HISTORY', has_history ? 'ENABLED' : 'DISABLED'],
-  ['PAGER', use_pager ? 'ENABLED' : 'DISABLED'],
-]
-
-banner = []
-banner << <<~BANNER
-  ╔═══════════════════════════════════════════════════════════════╗
-  ║                                                               ║
-  ║    ██████  ███    ██ ███████ ████████ ██ ███    ███ ███████   ║
-  ║   ██    ██ ████   ██ ██         ██    ██ ████  ████ ██        ║
-  ║   ██    ██ ██ ██  ██ █████      ██    ██ ██ ████ ██ █████     ║
-  ║   ██    ██ ██  ██ ██ ██         ██    ██ ██  ██  ██ ██        ║
-  ║    ██████  ██   ████ ███████    ██    ██ ██      ██ ███████   ║
-  ║                                                               ║
-  ╚═══════════════════════════════════════════════════════════════╝
-
-BANNER
-
-banner << "┌#{'─' * (content_width + 2)}┐"
-lines.each do |label, value|
-  banner << format("│ %-#{content_width - 8}s%8s │", "#{label}:", value)
+# System status checks
+def system_status
+  {
+    settings: IRB.conf[:RC].nil? ? 'DEFAULT' : 'ACTIVE',
+    history: IRB.conf[:SAVE_HISTORY] > 0 ? 'ENABLED' : 'DISABLED',
+    pager: IRB.conf[:USE_PAGER] ? 'ENABLED' : 'DISABLED',
+  }
 end
-banner << "└#{'─' * (content_width + 2)}┘"
 
-banner << <<~BANNER
+def boot_status
+  OT.ready? ? 'READY' : 'NOT BOOTED'
+end
 
-      SYSTEM STATUS: #{OT.ready? ? 'READY         ' : 'NOT BOOTED     '}
+# Banner generation
+def ascii_header
+  <<~HEADER
+    ╔═══════════════════════════════════════════════════════════════╗
+    ║                                                               ║
+    ║    ██████  ███    ██ ███████ ████████ ██ ███    ███ ███████   ║
+    ║   ██    ██ ████   ██ ██         ██    ██ ████  ████ ██        ║
+    ║   ██    ██ ██ ██  ██ █████      ██    ██ ██ ████ ██ █████     ║
+    ║   ██    ██ ██  ██ ██ ██         ██    ██ ██  ██  ██ ██        ║
+    ║    ██████  ██   ████ ███████    ██    ██ ██      ██ ███████   ║
+    ║                                                               ║
+    ╚═══════════════════════════════════════════════════════════════╝
+  HEADER
+end
 
-BANNER
+def status_table(status_data)
+  table = ["┌#{'─' * (CONTENT_WIDTH + 2)}┐"]
 
-puts banner
+  status_data.each do |label, value|
+    label_width = CONTENT_WIDTH - SPACING
+    table << (format("│ %-#{label_width}s%#{SPACING}s │", "#{label.upcase}:", value))
+  end
 
+  table << "└#{'─' * (CONTENT_WIDTH + 2)}┘"
+  table.join("\n")
+end
+
+def display_system_status
+  puts "\n  SYSTEM STATUS: #{boot_status.ljust(15)}\n"
+end
+
+# Main execution
+puts ascii_header
+puts status_table(system_status)
+display_system_status
+
+# Boot sequence
 unless ENV['DELAY_BOOT'].to_s.match?(/^(true|1)$/i)
   Onetime.safe_boot! :cli
-
-  puts <<~BANNER
-
-      SYSTEM STATUS: #{OT.ready? ? 'READY         ' : 'NOT BOOTED     '}
-  BANNER
-
+  display_system_status
 end
 
-puts <<~BANNER
+puts <<~INSTRUCTIONS
 
-EXECUTION MAY BE TERMINATED WITH CONTROL-D
-      AWAITING OPERATOR INSTRUCTIONS...
+  USE CTRL-D TO EXIT
 
-BANNER
-
+INSTRUCTIONS
 
 using IndifferentHashAccess

@@ -48,7 +48,6 @@ user_interface:
     #         icon: signal
   signup: <%= ENV['AUTH_SIGNUP'] != 'false' %>
   signin: <%= ENV['AUTH_SIGNIN'] != 'false' %>
-  autoverify: null
 api:
   enabled: <%= ENV['API_ENABLED'] != 'false' %>
 secret_options:

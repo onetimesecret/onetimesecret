@@ -100,7 +100,7 @@ module Onetime
           OT.ld '[BOOT.first_boot] Creating initial mutable settings from YAML...'
 
           path             = self.class.mutable_settings_defaults_path
-          default_settings = OT::Configurator::Load.yaml_load_file(path)
+          default_settings = OT::Configurator.load_with_impunity!(path)
 
           raise 'Missing required settings' if (default_settings || {}).empty?
 

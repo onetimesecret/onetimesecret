@@ -100,6 +100,8 @@ module Onetime
     #   base path, falling back to the current directory if not set
     # @see Pathname#relative_path_from Ruby standard library documentation
     def pretty_path(file)
+      return nil if file.nil?
+
       basepath    = ENV.fetch('ONETIME_HOME', __dir__)
       Pathname.new(file).relative_path_from(basepath)
     end

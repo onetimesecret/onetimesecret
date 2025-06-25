@@ -3,8 +3,11 @@
 #
 # Configuration Separation Migration Script
 #
-# Purpose: Separates monolithic config.example.yaml into static and dynamic configuration files.
-# Static config goes to etc/config.yaml, dynamic config gets loaded into V2::MutableSettings.
+# Purpose: Separates monolithic config.example.yaml into static and mutable configuration files.
+# Static config goes to etc/config.yaml, mutable config gets loaded into V2::MutableSettings.
+#
+# **NOTE**: The reason we use `yq` even though it adds a system dependency is that
+# it can transform YAML _with_ comments and preserve their structure.
 #
 # Usage:
 #   ruby migrate/1452_separate_config.rb --dry-run  # Preview changes
@@ -22,6 +25,25 @@ require 'fileutils'
 
 require 'onetime/refinements/indifferent_hash_access'
 
+USER_TYPES_CAPABILITIES = {
+    'anonymous' => {
+      'api' => true,
+      'email' => false,
+      'custom_domains' => false
+    },
+    'authenticated' => {
+      'api' => true,
+      'email' => true,
+      'custom_domains' => false
+    },
+}.freeze
+
+SECRET_OPTION_BOUNDARIES = {
+  'default_ttl' => nil, # 7.days
+  'ttl_options' => nil,
+  'size' => nil,
+}.freeze
+
 module Onetime
   class Migration < BaseMigration
 
@@ -30,41 +52,47 @@ module Onetime
     # Configuration mapping for splitting monolithic config
     CONFIG_MAPPINGS = {
       'static' => [
-        { 'from' => 'site.host', 'to' => 'site.host' },
-        { 'from' => 'site.ssl', 'to' => 'site.ssl' },
-        { 'from' => 'site.secret', 'to' => 'site.secret' },
-        { 'from' => 'site.authentication.enabled', 'to' => 'site.authentication.enabled' },
-        { 'from' => 'site.authentication.colonels', 'to' => 'site.authentication.colonels' },
-        { 'from' => 'site.authenticity', 'to' => 'site.authenticity' },
-        { 'from' => 'redis.uri', 'to' => 'storage.db.connection.url' },
-        { 'from' => 'redis.dbs', 'to' => 'storage.db.database_mapping' },
-        { 'from' => 'emailer', 'to' => 'mail.connection' },
-        { 'from' => 'mail.truemail', 'to' => 'mail.validation.defaults' },
-        { 'from' => 'logging', 'to' => 'logging' },
-        { 'from' => 'diagnostics', 'to' => 'diagnostics' },
-        { 'from' => 'internationalization', 'to' => 'i18n' },
-        { 'from' => 'development', 'to' => 'development' },
-        { 'from' => 'experimental.allow_nil_global_secret', 'to' => 'experimental.allow_nil_global_secret' },
-        { 'from' => 'experimental.rotated_secrets', 'to' => 'experimental.rotated_secrets' },
-        { 'from' => 'experimental.freeze_app', 'to' => 'experimental.freeze_app' },
-        { 'from' => 'experimental.middleware', 'to' => 'site.middleware' },
-      ],
-      'dynamic' => [
-        { 'from' => 'site.interface.ui', 'to' => 'user_interface' },
-        { 'from' => 'site.authentication.signup', 'to' => 'user_interface.signup' },
-        { 'from' => 'site.authentication.signin', 'to' => 'user_interface.signin' },
-        { 'from' => 'site.authentication.verify', 'to' => 'user_interface.autoverify' },
-        { 'from' => 'site.interface.api', 'to' => 'api' },
-        { 'from' => 'site.secret_options', 'to' => 'secret_options' },
-        { 'from' => 'features', 'to' => 'features' },
-        { 'from' => 'site.regions', 'to' => 'features.regions' },
-        { 'from' => 'site.plans', 'to' => 'features.plans' },
-        { 'from' => 'site.domains', 'to' => 'features.domains' },
-        { 'from' => 'limits', 'to' => 'limits' },
-        { 'from' => 'mail.truemail', 'to' => 'mail.validation.recipients' },
-        { 'from' => 'mail.truemail', 'to' => 'mail.validation.accounts' },
-      ],
-    }.freeze
+          { 'from' => 'site.host', 'to' => 'site.host' },
+          { 'from' => 'site.ssl', 'to' => 'site.ssl' },
+          { 'from' => 'site.secret', 'to' => 'site.secret' },
+          { 'from' => 'site.authentication.enabled', 'to' => 'site.authentication.enabled' },
+          { 'from' => 'site.authentication.colonels', 'to' => 'site.authentication.colonels' },
+          { 'from' => 'site.authentication.autoverify', 'to' => 'site.authentication.autoverify' },
+          { 'from' => 'site.authenticity', 'to' => 'site.authenticity' },
+          { 'from' => 'doesnotexist', 'to' => 'capabilities', 'default' => USER_TYPES_CAPABILITIES },
+          { 'from' => 'redis.uri', 'to' => 'storage.db.connection.url' },
+          { 'from' => 'redis.dbs', 'to' => 'storage.db.database_mapping' },
+          { 'from' => 'emailer', 'to' => 'mail.connection' },
+          { 'from' => 'mail.truemail', 'to' => 'mail.validation.defaults' },
+          { 'from' => 'features', 'to' => 'features', 'default' => {} },
+          { 'from' => 'site.regions', 'to' => 'features.regions', 'default' => { 'enabled' => false} },
+          { 'from' => 'site.domains', 'to' => 'features.domains', 'default' => { 'enabled' => false} },
+          { 'from' => 'logging', 'to' => 'logging' },
+          { 'from' => 'diagnostics', 'to' => 'diagnostics' },
+          { 'from' => 'internationalization', 'to' => 'i18n' },
+          { 'from' => 'development', 'to' => 'development', 'default' => {} },
+          { 'from' => 'experimental.allow_nil_global_secret', 'to' => 'experimental.allow_nil_global_secret', 'default' => false },
+          { 'from' => 'experimental.rotated_secrets', 'to' => 'experimental.rotated_secrets', 'default' => [] },
+          { 'from' => 'experimental.freeze_app', 'to' => 'experimental.freeze_app', 'default' => false },
+          { 'from' => 'experimental.middleware', 'to' => 'site.middleware', 'default' => {
+            'static_files': true,
+            'utf8_sanitizer': true}
+          },
+          { 'from' => 'site.plans', 'to' => 'billing', 'default' => nil },
+        ],
+        'mutable' => [
+          { 'from' => 'site.interface.ui', 'to' => 'ui' },
+          { 'from' => 'site.authentication.signup', 'to' => 'ui.signup' },
+          { 'from' => 'site.authentication.signin', 'to' => 'ui.signin' },
+          { 'from' => 'site.interface.api', 'to' => 'api' },
+          { 'from' => 'site.secret_options', 'to' => 'secret_options.anonymous' },
+          { 'from' => 'doesnotexist', 'to' => 'secret_options.standard', 'default' => SECRET_OPTION_BOUNDARIES },
+          { 'from' => 'doesnotexist', 'to' => 'secret_options.enhanced', 'default' => SECRET_OPTION_BOUNDARIES },
+          { 'from' => 'limits', 'to' => 'limits' },
+          { 'from' => 'mail.truemail', 'to' => 'mail.validation.recipients' },
+          { 'from' => 'mail.truemail', 'to' => 'mail.validation.accounts' },
+        ],
+      }.freeze
 
     def prepare
       info("Preparing migration")
@@ -73,15 +101,15 @@ module Onetime
       @backup_suffix = Time.now.strftime('%Y%m%d%H%M%S')
       @converted_config = File.join(@base_path, 'etc', 'config.converted.yaml')
       @static_config = File.join(@base_path, 'etc', 'config.static.yaml')
-      @dynamic_config = File.join(@base_path, 'etc', 'config.dynamic.yaml')
+      @mutable_config = File.join(@base_path, 'etc', 'config.mutable.yaml')
       @final_static_path = File.join(@base_path, 'etc', 'config.yaml')
-      @final_dynamic_path = File.join(@base_path, 'etc', 'mutable_settings.yaml')
+      @final_mutable_path = File.join(@base_path, 'etc', 'mutable.yaml')
 
       debug ''
       debug "Paths:"
       debug "Base path: #{@base_path}"
       debug "Source file: #{@source_config}"
-      debug "Dynamic file: #{@final_dynamic_path}"
+      debug "Mutable file: #{@final_mutable_path}"
       debug ''
     end
 
@@ -100,9 +128,11 @@ module Onetime
       # Check if all static mapping source paths exist with non-nil values
       ret = CONFIG_MAPPINGS['static'].all? do |mapping|
         from_path = mapping['from']
+        default_value = mapping.fetch('default', nil)
         value = get_nested_value(config, from_path.split('.'))
-        info("Checking setting: #{from_path} #{value.class}")
-        !value.nil?
+        info("Checking setting (is nil: #{value.nil?}): #{from_path} #{value.class}")
+        # If there is a value or a default value, all is good
+        !value.nil? || !default_value.nil?
       end
 
       ret
@@ -115,7 +145,7 @@ module Onetime
       # Print help message for things to check to give a clue as to what to do
       # next
       source_file = File.basename(@source_config)
-      dynamic_file = File.basename(@final_dynamic_path)
+      mutable_file = File.basename(@final_mutable_path)
 
       info <<~HEREDOC
 
@@ -123,7 +153,7 @@ module Onetime
         Things to try:
 
           1. Check if migration has already completed.
-             If you have etc/#{dynamic_file}
+             If you have etc/#{mutable_file}
              and etc/#{source_file} is in the new format, the migration
              has already run successfully and you're good to go.
 
@@ -167,19 +197,18 @@ module Onetime
       # Step 2: Convert symbol keys to strings if needed
       convert_symbols_to_strings
 
-      # Step 3: Separate config into static and dynamic parts
+      # Step 3: Separate config into static and mutable parts
       separate_configuration
 
       # Step 4: Move files to final locations
       finalize_configuration
 
       print_summary do
+        info ''
         info "Configuration separation completed successfully"
         info "Static config: #{@final_static_path}"
-        info "Dynamic config: #{@final_dynamic_path}"
-        separator
-        info "Files processed: #{@stats[:files_processed]}"
-        info "Errors encountered: #{@stats[:errors]}"
+        info "Mutable config: #{@final_mutable_path}"
+        info ''
       end
 
       true
@@ -203,7 +232,7 @@ module Onetime
         return
       end
 
-      for_realsies? do
+      for_realsies_this_time? do
         FileUtils.cp(@source_config, backup_path)
         track_stat(:backup_created)
         info "Created backup: #{backup_path}"
@@ -216,7 +245,7 @@ module Onetime
         return
       end
 
-      for_realsies? do
+      for_realsies_this_time? do
         # Use perl to convert symbol keys to strings
         cmd = "perl -pe 's/^(\\s*):([a-zA-Z_][a-zA-Z0-9_]*)/\\1\\2/g' '#{@source_config}' > '#{@converted_config}'"
         success = system(cmd)
@@ -232,11 +261,11 @@ module Onetime
     end
 
     def separate_configuration
-      return if File.exist?(@static_config) && File.exist?(@dynamic_config)
+      return if File.exist?(@static_config) && File.exist?(@mutable_config)
 
-      for_realsies? do
+      for_realsies_this_time? do
         generate_static_config_with_yq
-        generate_dynamic_config_with_yq
+        generate_mutable_config_with_yq
         track_stat(:configs_separated)
       end
     end
@@ -248,34 +277,32 @@ module Onetime
       system("yq eval 'del(.[])' <<< '{}' > '#{@static_config}'")
 
       CONFIG_MAPPINGS['static'].each do |mapping|
-        from_path = mapping['from']
-        to_path = mapping['to']
-
-        generate_yq_command(@static_config, from_path, to_path)
+        generate_yq_command(@static_config, mapping)
       end
 
       info "Generated static config: #{@static_config}"
       show_config_structure(@static_config, "Static")
     end
 
-    def generate_dynamic_config_with_yq
-      info "Creating dynamic configuration with yq (preserving comments)..."
+    def generate_mutable_config_with_yq
+      info "Creating mutable configuration with yq (preserving comments)..."
 
       # Initialize empty config
-      system("yq eval 'del(.[])' <<< '{}' > '#{@dynamic_config}'")
+      system("yq eval 'del(.[])' <<< '{}' > '#{@mutable_config}'")
 
-      CONFIG_MAPPINGS['dynamic'].each do |mapping|
-        from_path = mapping['from']
-        to_path = mapping['to']
-
-        generate_yq_command(@dynamic_config, from_path, to_path)
+      CONFIG_MAPPINGS['mutable'].each do |mapping|
+        generate_yq_command(@mutable_config, mapping)
       end
 
-      info "Generated dynamic config: #{@dynamic_config}"
-      show_config_structure(@dynamic_config, "Dynamic")
+      info "Generated mutable config: #{@mutable_config}"
+      show_config_structure(@mutable_config, "Mutable")
     end
 
-    def generate_yq_command(output_file, from_path, to_path)
+    def generate_yq_command(output_file, mapping)
+      from_path = mapping['from']
+      to_path = mapping['to']
+      default_value = mapping['default']
+
       # Handle wildcard mappings (ending with .)
       if from_path.end_with?('.')
         from_path = from_path.chomp('.')
@@ -285,10 +312,17 @@ module Onetime
       from_yq = convert_to_yq_path(from_path)
       to_yq = convert_to_yq_path(to_path)
 
-      # Generate and execute yq command
-      cmd = "yq eval '.#{to_yq} = load(\"#{@converted_config}\").#{from_yq}' -i '#{output_file}'"
+      # Generate yq command with optional default value
+      if default_value.nil?
+        # No default - use original behavior
+        cmd = "yq eval '.#{to_yq} = load(\"#{@converted_config}\").#{from_yq}' -i '#{output_file}'"
+      else
+        # Use default value as fallback
+        formatted_default = format_default_for_yq(default_value)
+        cmd = "yq eval '.#{to_yq} = (load(\"#{@converted_config}\").#{from_yq} // #{formatted_default})' -i '#{output_file}'"
+      end
 
-      info "  Mapping: #{from_path} -> #{to_path}"
+      info "  Mapping: #{from_path} -> #{to_path}" + (default_value.nil? ? "" : " (default: #{default_value})")
 
       # Execute the command
       success = system(cmd)
@@ -305,6 +339,23 @@ module Onetime
       path
     end
 
+    def format_default_for_yq(value)
+      case value
+      when String
+        "\"#{value.gsub('"', '\\"')}\""
+      when TrueClass, FalseClass
+        value.to_s
+      when Numeric
+        value.to_s
+      when NilClass
+        "null"
+      when Array, Hash
+        value.to_json
+      else
+        "\"#{value}\""
+      end
+    end
+
     def show_config_structure(config_file, config_type)
       if File.exist?(config_file)
         info "#{config_type} config structure:"
@@ -315,33 +366,33 @@ module Onetime
     def finalize_configuration
       # Move static config to final location (replace existing)
       if File.exist?(@static_config)
-        for_realsies? do
+        for_realsies_this_time? do
           FileUtils.mv(@static_config, @final_static_path)
           track_stat(:static_finalized)
           info "Replaced static config at: #{@final_static_path}"
         end
       end
 
-      # Move dynamic config to final location
-      if File.exist?(@dynamic_config)
+      # Move mutable config to final location
+      if File.exist?(@mutable_config)
         # Ensure target directory exists
-        FileUtils.mkdir_p(File.dirname(@final_dynamic_path))
+        FileUtils.mkdir_p(File.dirname(@final_mutable_path))
 
-        for_realsies? do
-          FileUtils.mv(@dynamic_config, @final_dynamic_path)
-          track_stat(:dynamic_finalized)
-          info "Created dynamic config at: #{@final_dynamic_path}"
+        for_realsies_this_time? do
+          FileUtils.mv(@mutable_config, @final_mutable_path)
+          track_stat(:mutable_finalized)
+          info "Created mutable config at: #{@final_mutable_path}"
         end
       end
 
       # Clean up temporary files in actual run
-      for_realsies? do
+      for_realsies_this_time? do
         cleanup_temp_files
       end
     end
 
     def cleanup_temp_files
-      [@converted_config, @static_config, @dynamic_config].each do |file|
+      [@converted_config, @static_config, @mutable_config].each do |file|
         if File.exist?(file)
           FileUtils.rm(file)
           debug "Cleaned up: #{file}"

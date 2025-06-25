@@ -93,7 +93,7 @@ module V2
         attr_accessor :payload, :stripe_signature
 
         def process_params
-          @endpoint_secret = OT.conf.dig(:site, :plans, :webook_signing_secret)
+          @endpoint_secret = OT.conf.dig(:site, :plans, :webhook_signing_secret)
           @event           = nil
         end
 

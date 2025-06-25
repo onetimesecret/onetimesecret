@@ -8,7 +8,6 @@ export * from './base';
 export * from './customer';
 export * from './feedback';
 export * from './jurisdiction';
-export * from './public';
 export * from './secret';
 export * from './plan';
 

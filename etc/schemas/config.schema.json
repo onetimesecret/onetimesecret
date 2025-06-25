@@ -1,0 +1,882 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://onetimesecret.com/schemas/config.schema.json",
+  "title": "Config.schema",
+  "description": "Static configuration settings loaded from config.yaml",
+  "type": "object",
+  "properties": {
+    "site": {
+      "type": "object",
+      "properties": {
+        "host": {
+          "default": "localhost:3000",
+          "type": "string"
+        },
+        "ssl": {
+          "default": false,
+          "type": "boolean"
+        },
+        "secret": {
+          "default": "CHANGEME",
+          "type": "string"
+        },
+        "authentication": {
+          "type": "object",
+          "properties": {
+            "enabled": {
+              "default": false,
+              "type": "boolean"
+            },
+            "colonels": {
+              "default": [],
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "autoverify": {
+              "default": false,
+              "type": "boolean"
+            }
+          },
+          "required": [
+            "enabled",
+            "colonels",
+            "autoverify"
+          ],
+          "additionalProperties": false
+        },
+        "authenticity": {
+          "type": "object",
+          "properties": {
+            "enabled": {
+              "default": false,
+              "type": "boolean"
+            },
+            "type": {
+              "type": "string"
+            },
+            "secret_key": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "enabled"
+          ],
+          "additionalProperties": false
+        },
+        "middleware": {
+          "type": "object",
+          "properties": {
+            "static_files": {
+              "default": true,
+              "type": "boolean"
+            },
+            "utf8_sanitizer": {
+              "default": true,
+              "type": "boolean"
+            },
+            "http_origin": {
+              "type": "boolean"
+            },
+            "escaped_params": {
+              "type": "boolean"
+            },
+            "xss_header": {
+              "type": "boolean"
+            },
+            "frame_options": {
+              "type": "boolean"
+            },
+            "path_traversal": {
+              "type": "boolean"
+            },
+            "cookie_tossing": {
+              "type": "boolean"
+            },
+            "ip_spoofing": {
+              "type": "boolean"
+            },
+            "strict_transport": {
+              "type": "boolean"
+            }
+          },
+          "required": [
+            "static_files",
+            "utf8_sanitizer"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "required": [
+        "host",
+        "ssl",
+        "secret",
+        "authentication",
+        "authenticity",
+        "middleware"
+      ],
+      "additionalProperties": false
+    },
+    "storage": {
+      "type": "object",
+      "properties": {
+        "db": {
+          "type": "object",
+          "properties": {
+            "connection": {
+              "type": "object",
+              "properties": {
+                "url": {
+                  "default": "redis://localhost:6379",
+                  "type": "string"
+                }
+              },
+              "required": [
+                "url"
+              ],
+              "additionalProperties": false
+            },
+            "database_mapping": {
+              "type": "object",
+              "propertyNames": {
+                "type": "string"
+              },
+              "additionalProperties": {
+                "anyOf": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              }
+            }
+          },
+          "required": [
+            "connection"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "features": {
+      "type": "object",
+      "properties": {
+        "incoming": {
+          "type": "object",
+          "properties": {
+            "enabled": {
+              "type": "boolean"
+            },
+            "email": {
+              "type": "string",
+              "format": "email",
+              "pattern": "^(?!\\.)(?!.*\\.\\.)([A-Za-z0-9_'+\\-\\.]*)[A-Za-z0-9_+-]@([A-Za-z0-9][A-Za-z0-9\\-]*\\.)+[A-Za-z]{2,}$"
+            },
+            "passphrase": {
+              "type": "string"
+            },
+            "regex": {
+              "type": "string"
+            }
+          },
+          "additionalProperties": false
+        },
+        "regions": {
+          "type": "object",
+          "properties": {
+            "enabled": {
+              "type": "boolean"
+            },
+            "current_jurisdiction": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "jurisdictions": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "identifier": {
+                    "type": "string"
+                  },
+                  "display_name": {
+                    "type": "string"
+                  },
+                  "domain": {
+                    "type": "string"
+                  },
+                  "icon": {
+                    "type": "object",
+                    "properties": {
+                      "collection": {
+                        "type": "string"
+                      },
+                      "name": {
+                        "type": "string"
+                      }
+                    },
+                    "additionalProperties": false
+                  }
+                },
+                "additionalProperties": false
+              }
+            }
+          },
+          "additionalProperties": false
+        },
+        "stathat": {
+          "type": "object",
+          "properties": {},
+          "additionalProperties": {}
+        },
+        "domains": {
+          "type": "object",
+          "properties": {
+            "enabled": {
+              "type": "boolean"
+            },
+            "default": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "cluster": {
+              "type": "object",
+              "properties": {
+                "type": {
+                  "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "api_key": {
+                  "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "cluster_ip": {
+                  "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "cluster_host": {
+                  "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "cluster_name": {
+                  "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "vhost_target": {
+                  "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                }
+              },
+              "additionalProperties": false
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "required": [
+        "stathat"
+      ],
+      "additionalProperties": false
+    },
+    "capabilities": {
+      "type": "object",
+      "propertyNames": {
+        "type": "string",
+        "enum": [
+          "anonymous",
+          "authenticated",
+          "standard",
+          "enhanced"
+        ]
+      },
+      "additionalProperties": {
+        "type": "object",
+        "properties": {
+          "api": {
+            "type": "boolean"
+          },
+          "email": {
+            "type": "boolean"
+          },
+          "custom_domains": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "api",
+          "email",
+          "custom_domains"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "mail": {
+      "type": "object",
+      "properties": {
+        "connection": {
+          "type": "object",
+          "properties": {
+            "mode": {
+              "default": "smtp",
+              "type": "string"
+            },
+            "auth": {
+              "default": "login",
+              "type": "string"
+            },
+            "region": {
+              "type": "string"
+            },
+            "from": {
+              "default": "noreply@example.com",
+              "type": "string",
+              "format": "email",
+              "pattern": "^(?!\\.)(?!.*\\.\\.)([A-Za-z0-9_'+\\-\\.]*)[A-Za-z0-9_+-]@([A-Za-z0-9][A-Za-z0-9\\-]*\\.)+[A-Za-z]{2,}$"
+            },
+            "fromname": {
+              "default": "OneTimeSecret",
+              "type": "string"
+            },
+            "host": {
+              "type": "string"
+            },
+            "port": {
+              "type": "number"
+            },
+            "user": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "pass": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "tls": {
+              "anyOf": [
+                {
+                  "type": "boolean"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            }
+          },
+          "required": [
+            "mode",
+            "auth",
+            "from",
+            "fromname"
+          ],
+          "additionalProperties": false
+        },
+        "validation": {
+          "type": "object",
+          "properties": {
+            "defaults": {
+              "type": "object",
+              "properties": {
+                "default_validation_type": {
+                  "default": "mx",
+                  "type": "string"
+                },
+                "verifier_email": {
+                  "default": "example@onetimesecret.dev",
+                  "type": "string",
+                  "format": "email",
+                  "pattern": "^(?!\\.)(?!.*\\.\\.)([A-Za-z0-9_'+\\-\\.]*)[A-Za-z0-9_+-]@([A-Za-z0-9][A-Za-z0-9\\-]*\\.)+[A-Za-z]{2,}$"
+                },
+                "verifier_domain": {
+                  "default": "onetimesecret.dev",
+                  "type": "string"
+                },
+                "connection_timeout": {
+                  "type": "number"
+                },
+                "response_timeout": {
+                  "type": "number"
+                },
+                "connection_attempts": {
+                  "type": "number"
+                },
+                "allowed_domains_only": {
+                  "type": "boolean"
+                },
+                "allowed_emails": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                "blocked_emails": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                "allowed_domains": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                "blocked_domains": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                "blocked_mx_ip_addresses": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                "dns": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                "smtp_port": {
+                  "type": "number"
+                },
+                "smtp_fail_fast": {
+                  "type": "boolean"
+                },
+                "smtp_safe_check": {
+                  "type": "boolean"
+                },
+                "not_rfc_mx_lookup_flow": {
+                  "type": "boolean"
+                },
+                "logger": {
+                  "type": "object",
+                  "properties": {
+                    "tracking_event": {
+                      "default": "all",
+                      "type": "string"
+                    },
+                    "stdout": {
+                      "default": true,
+                      "type": "boolean"
+                    },
+                    "log_absolute_path": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "tracking_event",
+                    "stdout"
+                  ],
+                  "additionalProperties": false
+                }
+              },
+              "required": [
+                "default_validation_type",
+                "verifier_email",
+                "verifier_domain"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "required": [
+        "connection",
+        "validation"
+      ],
+      "additionalProperties": false
+    },
+    "logging": {
+      "type": "object",
+      "properties": {
+        "http_requests": {
+          "default": true,
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "http_requests"
+      ],
+      "additionalProperties": false
+    },
+    "i18n": {
+      "type": "object",
+      "properties": {
+        "enabled": {
+          "default": false,
+          "type": "boolean"
+        },
+        "default_locale": {
+          "default": "en",
+          "type": "string"
+        },
+        "fallback_locale": {
+          "type": "object",
+          "propertyNames": {
+            "type": "string"
+          },
+          "additionalProperties": {
+            "anyOf": [
+              {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              {
+                "type": "string"
+              }
+            ]
+          }
+        },
+        "locales": {
+          "default": [],
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "incomplete": {
+          "default": [],
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "required": [
+        "enabled",
+        "default_locale",
+        "fallback_locale",
+        "locales",
+        "incomplete"
+      ],
+      "additionalProperties": false
+    },
+    "development": {
+      "type": "object",
+      "properties": {
+        "enabled": {
+          "type": "boolean"
+        },
+        "debug": {
+          "type": "boolean"
+        },
+        "frontend_host": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "experimental": {
+      "type": "object",
+      "properties": {
+        "allow_nil_global_secret": {
+          "default": false,
+          "type": "boolean"
+        },
+        "rotated_secrets": {
+          "default": [],
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "freeze_app": {
+          "default": false,
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "allow_nil_global_secret",
+        "rotated_secrets",
+        "freeze_app"
+      ],
+      "additionalProperties": false
+    },
+    "diagnostics": {
+      "type": "object",
+      "properties": {
+        "enabled": {
+          "default": false,
+          "type": "boolean"
+        },
+        "sentry": {
+          "type": "object",
+          "properties": {
+            "defaults": {
+              "type": "object",
+              "properties": {
+                "dsn": {
+                  "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "sampleRate": {
+                  "type": "number"
+                },
+                "maxBreadcrumbs": {
+                  "type": "number"
+                },
+                "logErrors": {
+                  "type": "boolean"
+                }
+              },
+              "additionalProperties": false
+            },
+            "backend": {
+              "type": "object",
+              "properties": {
+                "dsn": {
+                  "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "sampleRate": {
+                  "type": "number"
+                },
+                "maxBreadcrumbs": {
+                  "type": "number"
+                },
+                "logErrors": {
+                  "type": "boolean"
+                }
+              },
+              "additionalProperties": false
+            },
+            "frontend": {
+              "type": "object",
+              "properties": {
+                "dsn": {
+                  "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "sampleRate": {
+                  "type": "number"
+                },
+                "maxBreadcrumbs": {
+                  "type": "number"
+                },
+                "logErrors": {
+                  "type": "boolean"
+                },
+                "trackComponents": {
+                  "type": "boolean"
+                }
+              },
+              "additionalProperties": false
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "required": [
+        "enabled"
+      ],
+      "additionalProperties": false
+    },
+    "billing": {
+      "type": "object",
+      "properties": {
+        "enabled": {
+          "default": false,
+          "type": "boolean"
+        },
+        "stripe_key": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "webhook_signing_secret": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "payment_links": {
+          "type": "object",
+          "properties": {
+            "identity": {
+              "type": "object",
+              "properties": {
+                "tierid": {
+                  "type": "string"
+                },
+                "month": {
+                  "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "year": {
+                  "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "tierid"
+              ],
+              "additionalProperties": false
+            },
+            "dedicated": {
+              "type": "object",
+              "properties": {
+                "tierid": {
+                  "type": "string"
+                },
+                "month": {
+                  "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "year": {
+                  "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "tierid"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "required": [
+            "identity",
+            "dedicated"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "required": [
+        "enabled",
+        "payment_links"
+      ],
+      "additionalProperties": false
+    }
+  },
+  "required": [
+    "site",
+    "storage",
+    "features",
+    "capabilities",
+    "mail",
+    "logging",
+    "i18n",
+    "development",
+    "experimental"
+  ],
+  "additionalProperties": false
+}
