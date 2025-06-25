@@ -52,7 +52,7 @@ module Onetime
             model_class.redis = Familia.redis(db_index)
             ping_result       = model_class.redis.ping
 
-            log "Connected #{model_sym} to DB #{db_index} (#{ping_result})"
+            debug "Connected #{model_sym} to DB #{db_index} (#{ping_result})"
           end
 
           # Register successful connection

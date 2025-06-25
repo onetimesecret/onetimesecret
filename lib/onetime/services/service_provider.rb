@@ -134,9 +134,9 @@ module Onetime
           @error  = nil
 
           begin
+            OT.li "[ServiceProvider] Started #{@name} (#{@type})"
             start(config)
             @status = STATUS_RUNNING
-            OT.li "[ServiceProvider] Started #{@name} (#{@type})"
           rescue StandardError => ex
             @status = STATUS_ERROR
             @error  = ex
