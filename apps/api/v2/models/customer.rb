@@ -21,7 +21,6 @@ module V2
     sorted_set :custom_domains, suffix: 'custom_domain'
     sorted_set :metadata
 
-    hashkey :feature_flags # To turn on allow_public_homepage column in domains table
     hashkey :feature_flags # e.g. isBetaEnabled
 
     # Used to track the current and most recently created password reset secret.
@@ -32,8 +31,8 @@ module V2
     field :custid
     field :email
 
-    field :objid
     field :objid # uuid v7
+    field :extid # sha256(objid)
 
     field :role # customer, colonel
     field :user_type # 'anonymous', 'authenticated', 'standard', 'enhanced'
@@ -103,6 +102,7 @@ module V2
     def init
       self.custid      ||= 'anon'
       self.objid       ||= self.class.generate_objid
+      self.extid       ||= derive_extid
       self.api_version ||= 'v2'
 
       self.role        ||= 'customer'
@@ -426,13 +426,21 @@ module V2
       self.class.increment_field(self, field)
     end
 
+    def derive_extid
+      raise ArgumentError, 'objid cannot be nil' if objid.nil?
+
+      Digest::SHA256.hexdigest(objid)
+    end
+
     module ClassMethods
       attr_reader :values
 
       def generate_objid
-        ['c', Familia.generate_id(length: 16, encoding: 36)].join
         [SecureRandom.uuid_v7, 'c2'].join
       end
+
+      def derive_extid(objid)
+        Digest::SHA256.hexdigest(objid)
       end
 
       def add(cust)
