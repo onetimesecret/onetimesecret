@@ -17,7 +17,12 @@
 #     http_response[:error]   # => 'Forbidden'
 #     http_response['body']   # => 'You are not allowed to access this resource.'
 #
-ENV['ONETIME_HOME'] ||= File.expand_path(File.join(__dir__, '..', '..', '..', '..')).freeze
+# Establish the environment
+ENV['RACK_ENV'] ||= 'production'
+ENV['ONETIME_HOME'] ||= File.expand_path('../../../../..', __FILE__).freeze
+
+Warning[:deprecated] = true if ['development', 'dev', 'test'].include?(ENV['RACK_ENV'])
+
 project_root = ENV['ONETIME_HOME']
 app_root = File.join(project_root, '/apps').freeze
 
@@ -26,7 +31,19 @@ $LOAD_PATH.unshift(File.join(app_root, 'web'))
 
 require 'onetime'
 
-OT::Configurator.path = File.join(project_root, 'tests', 'unit', 'ruby', 'config.test.yaml')
+test_config_path = File.join(project_root, 'tests', 'unit', 'ruby', 'config.test.yaml')
+
+##
+# Setup test environment
+#
+# In lieu of calling OT.boot! we can set the state and prepoulate the static config.
+OT.set_boot_state(:test, nil)
+#
+# Set the configuration directly for tests
+test_config = OT::Configurator::Load.yaml_load_file(test_config_path)
+OT.instance_variable_set(:@static_config, test_config)
+##
+
 
 class IndifferentHash
   # Initializes a new IndifferentHash.
