@@ -25,7 +25,7 @@ module Onetime
       # @return [Hash] Parsed JSON object (ditto for YAML)
       def json_load_file(path, *) = json_load(file_read(path), *)
       def yaml_load_file(path) = yaml_load(file_read(path))
-      def ruby_load_file(path, context = nil) = ruby_load(file_read(path), path, context)
+      def ruby_load_file(path, context = nil) = ruby_load(path, context)
 
       # @param json [String] JSON string to parse
       # @return [Hash] Parsed JSON object
@@ -48,8 +48,9 @@ module Onetime
       # @param path [String] Path to Ruby file to load
       # @param context [Object, nil] Optional binding context for evaluation
       # @return [Boolean] True if successful
-      def ruby_load(content, path, context = nil)
+      def ruby_load(path, context = nil)
         if context
+          content = file_read(path)
           context.info_log(path)
 
           # Execute in the context of the provided object
