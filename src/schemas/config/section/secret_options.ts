@@ -16,7 +16,7 @@ const secretOptionBoundariessSchema = z.object({
    *
    * @default 604800 (7 days in seconds)
    */
-  default_ttl: z.number().int().positive().default(604800),
+  default_ttl: z.number().int().positive().nullable().default(604800),
 
   /**
    * Available TTL options for secret creation (in seconds)
@@ -34,6 +34,7 @@ const secretOptionBoundariessSchema = z.object({
   ttl_options: z
     .array(z.number().int().positive().min(60).max(2592000))
     // .transform((arr) => arr.map((val) => transforms.fromString.number.parse(val)))
+    .nullable()
     .default([300, 1800, 3600, 14400, 43200, 86400, 259200, 604800, 1209600, 2592000]),
 
   size: z
@@ -42,6 +43,7 @@ const secretOptionBoundariessSchema = z.object({
     .positive()
     .min(1)
     .max(10485760) // 10MB
+    .nullable()
     .default(102400), // 100KB
 });
 
