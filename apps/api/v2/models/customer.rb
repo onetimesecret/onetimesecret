@@ -436,7 +436,7 @@ module V2
       attr_reader :values
 
       def generate_objid
-        [SecureRandom.uuid_v7, 'c2'].join
+        SecureRandom.uuid_v7
       end
 
       def derive_extid(objid)

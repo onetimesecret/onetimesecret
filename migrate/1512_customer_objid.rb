@@ -19,10 +19,13 @@ $:.unshift File.join(base_path, 'lib')
 require 'onetime'
 require 'onetime/migration'
 
+require 'onetime/refinements/uuidv7_refinements'
+
 MODEL_KLASS = V2::Customer
 
 module Onetime
   class Migration < BaseMigration
+    using Onetime::UUIDv7Refinements
 
     def prepare
       info("[1512_customer_objid] Preparing customer objid and user_type migration")
@@ -57,34 +60,11 @@ module Onetime
     def migration_needed?
       info("[1512_customer_objid] Checking if migration is needed...")
 
-      # Quick scan to see if any customers are missing objid or user_type
-      cursor = "0"
-      sample_size = 100
-      missing_fields = 0
-
-      loop do
-        cursor, keys = @redis_client.scan(cursor, match: @scan_pattern, count: sample_size)
-
-        keys.each do |key|
-          record_data = @redis_client.hgetall(key)
-          custid = record_data['custid']
-
-          next if custid.to_s.empty?
-
-          objid = record_data['objid']
-          user_type = record_data['user_type']
-
-          if objid.to_s.empty? || user_type.to_s.empty?
-            missing_fields += 1
-          end
-        end
-
-        break if cursor == "0" || missing_fields > 0 # Early exit!
-      end
-
-      needed = missing_fields > 0
-      info("Migration needed: #{needed} (found #{missing_fields} customers with missing fields)")
-      needed
+      # We want to run always so that if there is an error or issue we can run
+      # again. NOTE: B/c of the idempotent expectation, we are careful to not
+      # re-generate objid values. If there is one set, we will use that
+      # otherwise each run, each customer would have a different ID.
+      true
     end
 
     def migration_not_needed_banner
@@ -161,31 +141,34 @@ module Onetime
         end
 
         # Check current field values
+        current_created = record_data['created']
         current_objid = record_data['objid']
         current_user_type = record_data['user_type']
         email = record_data['email']
 
-        needs_objid = current_objid.to_s.empty?
+        needs_objid = current_objid.to_s.empty? || true
         needs_user_type = current_user_type.to_s.empty?
 
         return unless needs_objid || needs_user_type
 
         @customers_needing_update += 1
-        unique_objid = MODEL_KLASS.generate_objid
+        unique_objid = current_objid || SecureRandom.uuid_v7_from(current_created)
+        unique_extid = OT::Utils.secure_shorten_id(Digest::SHA256.hexdigest(unique_objid))
 
         # Log what we're about to update
         updates = []
         if needs_objid
-          updates << "custid=#{custid} objid:#{unique_objid}"
+          updates << "objid:#{unique_objid} extid: #{unique_extid} custid=#{custid}"
         end
         updates << "user_type=authenticated" if needs_user_type
 
-        info("Customer #{custid}: #{updates.join(', ')}")
+        info("Customer (#{current_created}): #{updates.join(', ')}")
 
         # Apply updates if in actual run mode
         for_realsies_this_time? do
           update_fields = {}
           update_fields['objid'] = unique_objid if needs_objid
+          update_fields['extid'] = unique_extid if needs_objid
           update_fields['user_type'] = 'authenticated' if needs_user_type
 
           @redis_client.hmset(key, *update_fields.to_a.flatten)
