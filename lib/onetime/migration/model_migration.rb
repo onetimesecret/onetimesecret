@@ -188,5 +188,18 @@ module Onetime
       super
       @records_updated += increment if key == :records_updated
     end
+
+    protected
+
+    def track_stat_and_log_reason(obj, decision, field)
+      str = "#{decision} #{_format_record_str(obj, field)}"
+      track_stat(:decision)
+      track_stat("#{decision}_#{field}")
+      info(str)
+    end
+
+    def _format_record_str(obj, field)
+      "objid=#{obj.objid} #{field}=#{obj.send(field)}"
+    end
   end
 end
