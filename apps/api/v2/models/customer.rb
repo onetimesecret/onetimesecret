@@ -38,6 +38,8 @@ module V2
     prefix :customer
 
     class_sorted_set :values, key: 'onetime:customer'
+    class_sorted_set :object_ids
+
     class_hashkey :domains, key: 'onetime:customers:domain'
 
     sorted_set :custom_domains, suffix: 'custom_domain'
@@ -123,12 +125,23 @@ module V2
 
     def init
       # Default to anonymous state
+      #
       self.user_type   ||= 'anonymous'
-      self.custid      ||= 'anon'
       self.role        ||= 'customer'
 
       # Set email only for non-anonymous users
-      self.email  ||= self.custid unless anonymous?
+      if !anonymous? && email.to_s.empty? && !custid.to_s.empty?
+        self.email = custid
+      end
+
+      # Set custid only for non-anonymous users
+      if !anonymous? && custid.to_s.empty? && !email.to_s.empty?
+        self.custid = email
+      end
+
+      # We use user_type now but leaving this behaviour untouched until
+      # we remove the custid field altogether to avoid unexpected behavior.
+      self.custid      ||= 'anon'
 
       self.objid       ||= self.class.generate_objid
       self.extid       ||= derive_extid
@@ -168,9 +181,9 @@ module V2
       apitoken # the fast writer bang methods don't return the value
     end
 
-    def load_plan
-      Onetime::Plan.plan(planid) || { planid: planid, source: 'parts_unknown' }
-    end
+    # def load_plan
+    #   Onetime::Plan.plan(planid) || { planid: planid, source: 'parts_unknown' }
+    # end
 
     def get_stripe_customer
       get_stripe_customer_by_id || get_stripe_customer_by_email
@@ -267,7 +280,7 @@ module V2
     end
 
     def anonymous?
-      user_type.to_s.eql?('anonymous') || custid.to_s.eql?('anon')
+      user_type.to_s.eql?('anonymous')
     end
 
     def global?
@@ -394,6 +407,8 @@ module V2
       role?('user_deleted_self')
     end
 
+    # Updates the customer record in memory for account deletion but
+    # does not save the changes to the redis. Use #destroy_requested!
     def destroy_requested
       # NOTE: we don't use cust.destroy! here since we want to keep the
       # customer record around for a grace period to take care of any
@@ -410,7 +425,7 @@ module V2
       self.passphrase = ''
       self.verified   = 'false'
       self.role       = 'user_deleted_self'
-      save
+      # Does not call save.
     end
 
     # Saves the customer object to the database.
@@ -460,100 +475,7 @@ module V2
       Digest::SHA256.hexdigest(objid)
     end
 
-    module ClassMethods
-      attr_reader :values
-
-      def generate_objid
-        SecureRandom.uuid_v7
-      end
-
-      def derive_extid(objid)
-        Digest::SHA256.hexdigest(objid)
-      end
-
-      def add(cust)
-        values.add OT.now.to_i, cust.identifier
-      end
-
-      def all
-        values.revrangeraw(0, -1).collect { |identifier| load(identifier) }
-      end
-
-      def recent(duration = 30.days, epoint = OT.now.to_i)
-        spoint = OT.now.to_i-duration
-        values.rangebyscoreraw(spoint, epoint).collect { |identifier| load(identifier) }
-      end
-
-      def anonymous
-        new({ custid: 'anon', user_type: 'anonymous' }).freeze
-      end
-
-      def create(custid, email = nil)
-        raise Onetime::Problem, 'custid is required' if custid.to_s.empty?
-        raise Onetime::Problem, 'Customer exists' if exists?(custid)
-
-        attrs = {
-          custid: custid,
-          email: email || custid,
-          role: 'customer',
-          api_version: 'v2',
-          user_type: 'authenticated',
-        }
-
-        cust = new attrs
-        cust.save
-        add cust
-        cust
-      end
-
-      def global
-        @global ||= from_identifier(:GLOBAL) || create(:GLOBAL)
-        @global
-      end
-
-      def increment_field(cust, field)
-        return if cust.global?
-
-        curval = cust.send(field)
-        OT.info "[increment_field] cust.#{field} is #{curval} for #{cust}"
-
-        cust.increment field
-      rescue Redis::CommandError => ex
-        # For whatever reason, redis throws an error when trying to
-        # increment a non-existent hashkey field (rather than setting
-        # it to 1): "ERR hash value is not an integer"
-        OT.le "[increment_field] Redis error (#{curval}): #{ex.message}"
-
-        # So we'll set it to 1 if it's empty. It's possible we're here
-        # due to a different error, but this value needs to be
-        # initialized either way.
-        cust.send("#{field}!", 1) if curval.to_i.zero? # nil and '' cast to 0
-      end
-    end
-
-    # Mixin Placement for Field Order Control
-    #
-    # We include the Passphrase mixin at the end of this class definition
-    # for a specific reason related to how Familia::Horreum handles fields.
-    #
-    # In Familia::Horreum subclasses (like this Customer class), fields are processed
-    # in the order they are defined. When creating a new instance with Session.new,
-    # any provided positional arguments correspond to these fields in the same order.
-    #
-    # By including Passphrase last, we ensure that:
-    # 1. Its additional fields appear at the end of the field list.
-    # 2. These fields don't unexpectedly consume positional arguments in Session.new.
-    #
-    # e.g. `Customer.new('my@example.com')`. If we included thePassphrase
-    # module at the top, instead of populating the custid field (as the
-    # first field defined in this file), this email address would get
-    # written to the (automatically inserted) passphrase field.
-    #
-    require_relative 'mixins/passphrase'
-    require_relative 'mixins/maintenance'
-
-    include V2::Mixins::Passphrase
-    include V2::Mixins::ModelMaintenance
-    extend ClassMethods
   end
 end
+
+require_relative 'customer/class_methods'
