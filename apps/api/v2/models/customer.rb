@@ -366,6 +366,10 @@ module V2
       save
     end
 
+    def user_deleted_self?
+      role?('user_deleted_self')
+    end
+
     def destroy_requested
       # NOTE: we don't use cust.destroy! here since we want to keep the
       # customer record around for a grace period to take care of any
