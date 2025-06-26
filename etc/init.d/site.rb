@@ -19,7 +19,8 @@ if global_secret.nil?
   # Security warning when proceeding with nil global secret
   # These warnings are prominently displayed to ensure administrators
   # understand the security implications of their configuration
-  OT.li <<~MSG
+  warn <<~MSG
+
     #{'!' * 50}
     SECURITY WARNING: Running with nil global secret!
     This configuration presents serious security risks:
@@ -28,6 +29,7 @@ if global_secret.nil?
     - Only use during recovery or transition periods
     Set valid SECRET env var or site.secret in config ASAP
     #{'!' * 50}
+
   MSG
 end
 
