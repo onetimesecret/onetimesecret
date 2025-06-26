@@ -26,7 +26,7 @@ module Onetime
   #   end
   class ModelMigration < BaseMigration
     attr_reader :model_class, :batch_size, :total_records, :total_scanned,
-      :records_needing_update, :records_updated, :error_count, :interactive
+      :records_needing_update, :records_updated, :error_count
 
     def initialize
       super
@@ -51,10 +51,6 @@ module Onetime
     # Main migration implementation - handles the Redis SCAN loop
     def migrate # rubocop:disable Naming/PredicateMethod
       validate_model_class!
-
-      # Set `@interactive = true` in the implementing migration class
-      # for an interactive debug session on a per-record basis.
-      require 'pry-byebug' if interactive
 
       run_mode_banner
 
@@ -136,29 +132,17 @@ module Onetime
         # Load the model instance
         obj = model_class.find_by_key(key)
 
-        # Track if this record needed processing
-        records_updated_before = @records_updated
-        would_update_before    = @stats[:records_would_update] || 0
+        # Every record that gets processed is considered as needing update
+        # The idempotent operations in process_record will handle whether changes are actually made
+        @records_needing_update += 1
 
         # Call the subclass implementation
         process_record(obj)
 
-        # Check if record was processed (either updated or would be updated in dry-run)
-        records_actually_updated = @records_updated > records_updated_before
-        records_would_be_updated = (@stats[:records_would_update] || 0) > would_update_before
-
-        if records_actually_updated || records_would_be_updated
-          @records_needing_update      += 1
-          # Reset the would-update counter after using it
-          @stats[:records_would_update] = would_update_before if records_would_be_updated
-        end
     rescue StandardError => ex
         @error_count += 1
         error("Error processing #{key}: #{ex.message}")
-        debug(%(Stack trace: #{ex.backtrace.first(5).join("\n")}))
-
-        binding.pry if interactive # rubocop:disable Lint/Debugger
-
+        debug("Stack trace: #{ex.backtrace.first(3).join('; ')}")
         track_stat(:errors)
     end
 
@@ -174,7 +158,7 @@ module Onetime
           info('')
           info('Additional statistics:')
           @stats.each do |key, value|
-            next if [:errors, :records_updated, :records_would_update].include?(key)
+            next if [:errors, :records_updated].include?(key)
 
             info("  #{key}: #{value}")
           end
@@ -196,25 +180,6 @@ module Onetime
     def track_stat(key, increment = 1)
       super
       @records_updated += increment if key == :records_updated
-    end
-
-    # Helper method for migrations to indicate a record would be updated in dry-run
-    def would_update_record
-      track_stat(:records_would_update) if dry_run?
-      track_stat(:records_updated) if actual_run?
-    end
-
-    # Helper method to get record data from Redis
-    # Useful when you need raw hash access
-    def get_record_data(key)
-      @redis_client.hgetall(key)
-    end
-
-    # Helper to update multiple fields atomically
-    def update_record_fields(key, fields)
-      return if fields.empty?
-
-      @redis_client.hmset(key, *fields.to_a.flatten)
     end
   end
 end

@@ -33,18 +33,15 @@ module Onetime
     def process_record(obj)
       return track_stat(:skipped_empty_custid) if obj.custid.to_s.empty?
 
-      would_update_record
-
       for_realsies_this_time? do
         obj.objid = obj.objid || SecureRandom.uuid_v7_from(obj.created)
         obj.extid = obj.extid || OT::Utils.secure_shorten_id(Digest::SHA256.hexdigest(obj.objid))
-        obj.user_type = 'authenticated'
+        obj.user_type = obj.user_type || 'authenticated'
 
         obj.save
         track_stat(:customers_updated)
       end
     end
-
   end
 end
 
