@@ -40,6 +40,9 @@ module V2
     class_sorted_set :values, key: 'onetime:customer'
     class_sorted_set :object_ids
 
+    class_hashkey :email_to_objid # While migrating we'll need to maintain
+    class_hashkey :objid_to_email # indexes in both directions.
+
     class_hashkey :domains, key: 'onetime:customers:domain'
 
     sorted_set :custom_domains, suffix: 'custom_domain'
