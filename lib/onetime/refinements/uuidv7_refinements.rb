@@ -18,8 +18,10 @@ module Onetime
         timestamp_ms   = (time.to_f * 1000).to_i
         hex            = timestamp_ms.to_s(16).rjust(12, '0')
         timestamp_part = "#{hex[0, 8]}-#{hex[8, 4]}-7"
-        random_part    = SecureRandom.hex(9)
-        "#{timestamp_part}#{random_part[0, 3]}-#{random_part[3, 4]}-#{random_part[7, 12]}"
+        # random_part    = SecureRandom.hex(9)
+        base_uuid      = SecureRandom.uuid_v7
+        base_parts     = base_uuid.split('-')
+        "#{timestamp_part}#{base_parts[2][1..]}-#{base_parts[3]}-#{base_parts[4]}"
       end
     end
 
