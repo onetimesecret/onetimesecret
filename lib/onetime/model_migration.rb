@@ -56,7 +56,7 @@ module Onetime
 
       info("[#{self.class.name.split('::').last}] Starting #{model_class.name} migration")
       info("Processing up to #{total_records} records")
-      info("Will show progress every 100 records and log each update")
+      info('Will show progress every 100 records and log each update')
 
       scan_and_process_records
 
@@ -66,6 +66,8 @@ module Onetime
     end
 
     # Default implementation - always returns true
+    # Always return true to allow re-running for error recovery
+    # The migration is idempotent - it won't overwrite existing values
     # Override if you need conditional migration logic
     def migration_needed?
       info("[#{self.class.name.split('::').last}] Checking if migration is needed...")
@@ -116,7 +118,7 @@ module Onetime
         end
 
         # Show batch info for debugging
-        info("Processing batch of #{keys.size} keys...") if keys.size > 0
+        info("Processing batch of #{keys.size} keys...") unless keys.empty?
 
         keys.each do |key|
           process_single_record(key)
@@ -127,13 +129,12 @@ module Onetime
     end
 
     def process_single_record(key)
-      begin
         # Load the model instance
         obj = model_class.find_by_key(key)
 
         # Track if this record needed processing
         records_updated_before = @records_updated
-        would_update_before = @stats[:records_would_update] || 0
+        would_update_before    = @stats[:records_would_update] || 0
 
         # Call the subclass implementation
         process_record(obj)
@@ -143,17 +144,15 @@ module Onetime
         records_would_be_updated = (@stats[:records_would_update] || 0) > would_update_before
 
         if records_actually_updated || records_would_be_updated
-          @records_needing_update += 1
+          @records_needing_update      += 1
           # Reset the would-update counter after using it
           @stats[:records_would_update] = would_update_before if records_would_be_updated
         end
-
-      rescue => ex
+    rescue StandardError => ex
         @error_count += 1
         error("Error processing #{key}: #{ex.message}")
         debug("Stack trace: #{ex.backtrace.first(3).join('; ')}")
         track_stat(:errors)
-      end
     end
 
     def print_migration_summary
@@ -165,22 +164,23 @@ module Onetime
 
         # Print any custom stats
         if @stats.any?
-          info("")
-          info("Additional statistics:")
+          info('')
+          info('Additional statistics:')
           @stats.each do |key, value|
             next if [:errors, :records_updated, :records_would_update].include?(key)
+
             info("  #{key}: #{value}")
           end
         end
 
         if @error_count > 0
-          info("")
-          info("Check logs for error details")
+          info('')
+          info('Check logs for error details')
         end
 
         if dry_run? && @records_needing_update > 0
-          info("")
-          info("Run with --run to apply these updates")
+          info('')
+          info('Run with --run to apply these updates')
         end
       end
     end

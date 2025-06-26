@@ -12,7 +12,7 @@ module Onetime
   class CLI < Drydock::Command
     def init
       # Make sure all the models are loaded before calling boot
-      OT.boot! :cli
+      OT.boot! :cli unless OT.ready?
     end
 
     private
