@@ -131,23 +131,6 @@ module Onetime
       OT.li(message.upcase)
     end
 
-    # Print informational message
-    # @param message [String] text to display
-    def info(message)
-      OT.li(message)
-    end
-
-    # Print debug message (only shown in debug mode)
-    # @param message [String] text to display
-    def debug(message)
-      OT.ld(message)
-    end
-
-    # Add a visual separator line
-    def separator
-      '-' * 60
-    end
-
     # Show progress for long-running operations
     # @param current [Integer] current item number
     # @param total [Integer] total items to process
@@ -183,6 +166,29 @@ module Onetime
     # @return [Redis] configured Redis connection
     def redis
       @redis ||= Familia.redis(6)
+    end
+
+    # Print informational message
+    # @param message [String] text to display
+    def info(message)
+      OT.li(message)
+    end
+
+    # Print debug message (only shown in debug mode)
+    # @param message [String] text to display
+    def debug(message)
+      OT.ld(message)
+    end
+
+    # Print warning message
+    # @param message [String] text to display
+    def warn(message)
+      OT.lw(message)
+    end
+
+    # Add a visual separator line
+    def separator
+      '-' * 60
     end
 
     # Standard error logging for migrations
