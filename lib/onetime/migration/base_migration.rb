@@ -110,9 +110,18 @@ module Onetime
       else
         false
       end
-    # rescue StandardError => e
-    #   error("[MIGRATE] #{e.class}: #{e.message}")
-    #   false
+    end
+
+    # Execute block only if in dry run mode.
+    # Use this to wrap additional logging that can be helpful to see
+    # prior to deciding to proceed with actual run mode.
+    def dry_run_only?
+      if dry_run?
+        yield
+        true
+      else
+        false
+      end
     end
 
     # Increment a named counter for migration statistics
