@@ -304,6 +304,24 @@ module Onetime
   module TimeUtils
     extend self
 
+    def extract_time_from_uuid_v7(uuid)
+      # Remove hyphens and take first 12 hex characters
+      timestamp_hex = uuid.delete('-')[0, 12]
+      # Convert to milliseconds since Unix epoch
+      timestamp_ms  = timestamp_hex.to_i(16)
+      # Convert to Time object
+      Time.at(timestamp_ms / 1000.0)
+    end
+
+    def time_to_uuid_v7_timestamp(time)
+      # Convert to milliseconds since Unix epoch
+      timestamp_ms = (time.to_f * 1000).to_i
+      # Convert to 12-character hex string
+      hex = timestamp_ms.to_s(16).rjust(12, '0')
+      # Format with hyphen after 8 characters
+      "#{hex[0, 8]}-#{hex[8, 4]}"
+    end
+
     def epochdate(time_in_s)
       time_parsed = Time.at time_in_s.to_i
       dformat time_parsed.utc
