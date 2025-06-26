@@ -11,7 +11,7 @@ module V2
     module ModelMaintenance
 
       def self.included(base)
-        base.sorted_set :maintenants_notes # Sorted by time UTC in seconds
+        base.sorted_set :maintenance_notes # Sorted by time UTC in seconds
       end
 
       def flag_for_permanent_removal!(reason)
@@ -29,11 +29,11 @@ module V2
       end
 
       def add_note(note)
-        maintenants_notes.add(OT.now.to_i, note)
+        maintenance_notes.add(OT.now.to_i, note)
       end
 
       def notes
-        maintenants_notes.rangeraw(0, -1, withscores: true)
+        maintenance_notes.rangeraw(0, -1, withscores: true)
       end
 
     end
