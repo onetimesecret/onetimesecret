@@ -34,6 +34,7 @@ module Onetime
       return track_stat(:skipped_empty_custid) if obj.custid.to_s.empty?
       return track_stat(:skipped_anonymous) if obj.anonymous?
       return track_stat(:skipped_empty_email) if obj.email.to_s.empty?
+      return track_stat(:skipped_empty_created) if obj.created.to_s.empty?
 
       for_realsies_this_time? do
         obj.objid = obj.objid || SecureRandom.uuid_v7_from(obj.created)
@@ -41,7 +42,7 @@ module Onetime
         obj.user_type = obj.user_type || 'authenticated'
 
         obj.save
-        track_stat(:customers_updated)
+        track_stat(:records_updated)
       end
     end
 

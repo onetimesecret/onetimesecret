@@ -133,15 +133,15 @@ module Onetime
     end
 
     def process_single_record(key)
-        # Load the model instance
-        obj = model_class.find_by_key(key)
+      # Load the model instance
+      obj = model_class.find_by_key(key)
 
-        # Every record that gets processed is considered as needing update
-        # The idempotent operations in process_record will handle whether changes are actually made
-        @records_needing_update += 1
+      # Every record that gets processed is considered as needing update
+      # The idempotent operations in process_record will handle whether changes are actually made
+      @records_needing_update += 1
 
-        # Call the subclass implementation
-        process_record(obj)
+      # Call the subclass implementation
+      process_record(obj)
 
     rescue StandardError => ex
       @error_count += 1
