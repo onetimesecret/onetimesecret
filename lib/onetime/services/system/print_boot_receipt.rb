@@ -54,7 +54,7 @@ module Onetime
         using IndifferentHashAccess
 
         def initialize
-          super(:log_banner, type: TYPE_INFO, priority: 90)
+          super(:boot_receipt, type: TYPE_INFO, priority: 90)
         end
 
         ##
@@ -62,13 +62,13 @@ module Onetime
         #
         # @param config [Hash] Frozen application configuration
         def start(config)
-          log('Printing system banner...')
-          print_enhanced_log_banner(config)
+          log('Printing boot receipt...')
+          print_enhanced_boot_receipt(config)
         end
 
         private
 
-        def print_enhanced_log_banner(config)
+        def print_enhanced_boot_receipt(config)
           site_config  = config.fetch(:site)
           email_config = config.fetch(:emailer, {})
           redis_info   = Familia.redis.info

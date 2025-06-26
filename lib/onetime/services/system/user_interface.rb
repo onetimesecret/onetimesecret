@@ -24,7 +24,7 @@ module Onetime
         # be set to false if authentication is disabled.
 
         def initialize
-          super(:log_banner, type: TYPE_CONFIG, priority: 20)
+          super(:boot_receipt, type: TYPE_CONFIG, priority: 20)
         end
 
         def start(*)
