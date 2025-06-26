@@ -1,6 +1,6 @@
-# lib/onetime/model_migration.rb
+# lib/onetime/migration/model_migration.rb
 
-require 'onetime/migration'
+require_relative 'base_migration'
 
 module Onetime
   # Base class for migrations that operate on Familia::Horreum models
@@ -26,7 +26,7 @@ module Onetime
   #   end
   class ModelMigration < BaseMigration
     attr_reader :model_class, :batch_size, :total_records, :total_scanned,
-      :records_needing_update, :records_updated, :error_count
+      :records_needing_update, :records_updated, :error_count, :interactive
 
     def initialize
       super
@@ -51,6 +51,10 @@ module Onetime
     # Main migration implementation - handles the Redis SCAN loop
     def migrate # rubocop:disable Naming/PredicateMethod
       validate_model_class!
+
+      # Set `@interactive = true` in the implementing migration class
+      # for an interactive debug session on a per-record basis.
+      require 'pry-byebug' if interactive
 
       run_mode_banner
 
@@ -151,7 +155,10 @@ module Onetime
     rescue StandardError => ex
         @error_count += 1
         error("Error processing #{key}: #{ex.message}")
-        debug("Stack trace: #{ex.backtrace.first(3).join('; ')}")
+        debug(%(Stack trace: #{ex.backtrace.first(5).join("\n")}))
+
+        binding.pry if interactive # rubocop:disable Lint/Debugger
+
         track_stat(:errors)
     end
 
