@@ -96,7 +96,7 @@ module Onetime
       info("Model class: #{@model_class.name}")
       info("Redis connection: #{@redis_client.connection[:id]}")
       info("Scan pattern: #{@scan_pattern}")
-      info("Total records: #{@total_records}")
+      info("Total records (#{@model_class.name}.values.size): #{@total_records} (expected)")
       info("Batch size: #{@batch_size}")
 
       # Test Redis connection
@@ -136,8 +136,9 @@ module Onetime
       # Load the model instance
       obj = model_class.find_by_key(key)
 
-      # Every record that gets processed is considered as needing update
-      # The idempotent operations in process_record will handle whether changes are actually made
+      # Every record that gets processed is considered as needing update. The
+      # idempotent operations in process_record determine whether changes are
+      # actually made.
       @records_needing_update += 1
 
       # Call the subclass implementation
@@ -154,9 +155,9 @@ module Onetime
 
     def print_migration_summary
       print_summary do
-        info("Total #{model_class.name.split('::').last} records scanned: #{@total_scanned}")
-        info("Records needing update: #{@records_needing_update}")
-        info("Records #{actual_run? ? 'updated' : 'that would be updated'}: #{@records_updated}")
+        info("Total #{model_class.name.split('::').last} records scanned: #{@total_scanned} (actual)")
+        info("Records that met basic criteria: #{@records_needing_update}")
+        info("Records #{actual_run? ? 'updated' : 'that would be updated on actual run'}: #{@records_updated}")
         info("Errors encountered: #{@error_count}")
 
         # Print any custom stats

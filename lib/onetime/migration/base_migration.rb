@@ -160,14 +160,6 @@ module Onetime
       info 'This usually means that the migration has already been applied.'
     end
 
-    protected
-
-    # Access to Redis database (defaults to DB 6)
-    # @return [Redis] configured Redis connection
-    def redis
-      @redis ||= Familia.redis(6)
-    end
-
     # Print informational message
     # @param message [String] text to display
     def info(message)
@@ -196,5 +188,14 @@ module Onetime
     def error(message)
       OT.le(message)
     end
+
+    protected
+
+    # Access to Redis database (defaults to DB 6)
+    # @return [Redis] configured Redis connection
+    def redis
+      @redis ||= Familia.redis(6)
+    end
+
   end
 end
