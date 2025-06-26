@@ -5,6 +5,30 @@ require 'rack/utils'
 require_relative 'mixins/passphrase'
 
 module V2
+
+  # Customer Model (aka User)
+  #
+  # IMPORTANT API CHANGES:
+  # Previously, anonymous users were identified by custid='anon'.
+  # Now we use user_type='anonymous' as the primary indicator.
+  #
+  # USAGE:
+  # - Authenticated: Customer.create(custid, email)
+  # - Anonymous: Customer.anonymous
+  # - Explicit: Customer.new(custid: 'email', user_type: 'authenticated')
+  #
+  # AVOID: Customer.new('email@example.com') - creates anonymous user with email
+  #
+  # STATES:
+  # - anonymous?: user_type == 'anonymous' || custid == 'anon'
+  # - verified?: authenticated + verified == 'true'
+  # - active?: verified + role == 'customer'
+  # - pending?: authenticated + !verified + role == 'customer'
+  #
+  # The init method sets user_type: 'anonymous' by default to maintain
+  # backwards compatibility, but business logic should use the explicit
+  # factory methods above to avoid state inconsistencies.
+  #
   class Customer < Familia::Horreum
     include Gibbler::Complex
 
@@ -100,15 +124,17 @@ module V2
     ].freeze
 
     def init
+      # Default to anonymous state
+      self.user_type   ||= 'anonymous'
       self.custid      ||= 'anon'
+      self.role        ||= 'customer'
+
+      # Set email only for non-anonymous users
+      self.email  ||= self.custid unless anonymous?
+
       self.objid       ||= self.class.generate_objid
       self.extid       ||= derive_extid
-      self.api_version ||= 'v2'
-
-      self.role        ||= 'customer'
-      self.user_type   ||= 'anonymous'
-
-      self.email  ||= self.custid unless anonymous?
+      self.api_version ||= 'v2' # we want to know in the data which class
 
       # When an instance is first created, any field that doesn't have a
       # value set will be nil. We need to ensure that these fields are
