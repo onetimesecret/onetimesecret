@@ -67,7 +67,6 @@ module Onetime
         progress(@total_scanned, @total_customers, "Scanning customers") if @total_scanned % 500 == 0
 
         keys.each do |key|
-          obj = MODEL_KLASS.from_key(key)
           process_record(obj)
         end
 
