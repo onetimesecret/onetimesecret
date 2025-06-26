@@ -2,8 +2,6 @@
 
 require 'rack/utils'
 
-require_relative 'mixins/passphrase'
-
 module V2
 
   # Customer Model (aka User)
@@ -535,14 +533,14 @@ module V2
 
     # Mixin Placement for Field Order Control
     #
-    # We include the SessionMessages mixin at the end of this class definition
+    # We include the Passphrase mixin at the end of this class definition
     # for a specific reason related to how Familia::Horreum handles fields.
     #
     # In Familia::Horreum subclasses (like this Customer class), fields are processed
     # in the order they are defined. When creating a new instance with Session.new,
     # any provided positional arguments correspond to these fields in the same order.
     #
-    # By including SessionMessages last, we ensure that:
+    # By including Passphrase last, we ensure that:
     # 1. Its additional fields appear at the end of the field list.
     # 2. These fields don't unexpectedly consume positional arguments in Session.new.
     #
@@ -551,7 +549,11 @@ module V2
     # first field defined in this file), this email address would get
     # written to the (automatically inserted) passphrase field.
     #
+    require_relative 'mixins/passphrase'
+    require_relative 'mixins/maintenance'
+
     include V2::Mixins::Passphrase
+    include V2::Mixins::ModelMaintenance
     extend ClassMethods
   end
 end

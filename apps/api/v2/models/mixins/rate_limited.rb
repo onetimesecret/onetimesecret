@@ -2,6 +2,9 @@
 
 module V2
   module Mixins
+
+    # RateLimited
+    #
     module RateLimited
       def event_incr!(event)
         unless V2::RateLimit.ready?
@@ -26,5 +29,6 @@ module V2
         raise "TODO: Implement #{self.class}.external_identifier"
       end
     end
+
   end
 end
