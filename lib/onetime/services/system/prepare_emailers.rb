@@ -26,7 +26,7 @@ module Onetime
         #
         # @param config [Hash] Application configuration
         def start(config)
-          log('Configuring email service...')
+          debug('Configuring email service...')
 
           mail_mode = config.dig(:mail, :connection, :mode).to_s.to_sym
 
@@ -49,7 +49,7 @@ module Onetime
           set_state(:emailer, @emailer)
 
           register_provider(:emailer, self)
-          log("Email service configured with #{mail_mode} provider")
+          debug("Email service configured with #{mail_mode} provider")
         end
       end
 

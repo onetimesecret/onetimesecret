@@ -2,9 +2,11 @@
 
 require 'onetime'
 
-APPS_ROOT = File.join(OT::HOME, 'apps').freeze
-$LOAD_PATH.unshift(File.join(APPS_ROOT, 'api'))
-$LOAD_PATH.unshift(File.join(APPS_ROOT, 'web'))
+unless defined?(APPS_ROOT)
+  APPS_ROOT = File.join(OT::HOME, 'apps').freeze
+  $LOAD_PATH.unshift(File.join(APPS_ROOT, 'api'))
+  $LOAD_PATH.unshift(File.join(APPS_ROOT, 'web'))
+end
 
 require 'onetime/models'
 

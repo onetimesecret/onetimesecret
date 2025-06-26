@@ -62,7 +62,7 @@ module Onetime
         #
         # @param config [Hash] Frozen application configuration
         def start(config)
-          log('Printing boot receipt...')
+          debug('Printing boot receipt...')
           print_enhanced_boot_receipt(config)
         end
 
@@ -70,10 +70,10 @@ module Onetime
 
         def print_enhanced_boot_receipt(config)
           site_config  = config.fetch(:site)
-          email_config = config.fetch(:emailer, {})
           redis_info   = Familia.redis.info
           colonels     = site_config.dig(:authentication, :colonels) || []
-          emailer      = get_state(:emailer)
+          # email_config = config.fetch(:emailer, {})
+          # emailer      = get_state(:emailer)
 
           generator = ReceiptGenerator.new(width: 60)
 

@@ -38,14 +38,14 @@ module Onetime
         def start(config)
           @config = config
 
-          log('Checking for existing merged configuration...')
+          debug('Checking for existing merged configuration...')
           runtime_config = get_state(:runtime_config)
 
           unless runtime_config.nil?
-            return warn('Existing merged configuration found, exiting early')
+            return debug('Existing merged configuration found, exiting early')
           end
 
-          log('Fetching MutableConfig from Redis.')
+          debug('Fetching MutableConfig from Redis.')
           # Merge static config with dynamic MutableConfig
           runtime_config = merge_static_and_dynamic_config(config)
 
@@ -57,7 +57,7 @@ module Onetime
           # Store merged config in ServiceRegistry for unified access
           set_state(:runtime_config, runtime_config)
 
-          log('Configuration merge completed successfully')
+          debug('Configuration merge completed successfully')
         end
 
         ##

@@ -35,8 +35,8 @@ module Onetime
           # Connect each model to its configured Redis database
           db_map = db_settings[:database_mapping]
 
-          log "db_map: #{db_map}"
-          log "models: #{Familia.members.map(&:to_s)}"
+          debug "db_map: #{db_map}"
+          debug "models: #{Familia.members.map(&:to_s)}"
 
           # Validate that models have been loaded before attempting to connect
           if Familia.members.empty?
