@@ -27,11 +27,13 @@ module Onetime
       @model_class = V2::Customer
       @batch_size = 1000
 
-      @interactive = true
+      # @interactive = true
     end
 
     def process_record(obj)
       return track_stat(:skipped_empty_custid) if obj.custid.to_s.empty?
+      return track_stat(:skipped_anonymous) if obj.anonymous?
+      return track_stat(:skipped_empty_email) if obj.email.to_s.empty?
 
       for_realsies_this_time? do
         obj.objid = obj.objid || SecureRandom.uuid_v7_from(obj.created)
@@ -42,6 +44,7 @@ module Onetime
         track_stat(:customers_updated)
       end
     end
+
   end
 end
 
