@@ -56,6 +56,19 @@ module Onetime
       'A house is full of games and puzzles.'
     end
 
+    def generate_short_id(*)
+      input = SecureRandom.hex(32) # generate with all 256 bits
+      hash  = Digest::SHA256.hexdigest(input)
+
+      secure_shorten_id(hash, *)
+    end
+
+    def secure_shorten_id(hash, bits: 192, encoding: 36)
+      # Truncate to desired bit length
+      truncated = hash.to_i(16) >> (256 - bits)
+      truncated.to_s(encoding)
+    end
+
     # Generates a random string of specified length using predefined
     # character sets. Offers both safe and standard character sets for
     # different use cases, with the safe set excluding visually similar
@@ -298,6 +311,7 @@ module Onetime
       rescue URI::InvalidURIError
         false
       end
+
     end
   end
 
