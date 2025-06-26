@@ -97,7 +97,7 @@ module V2
     # @raise [Onetime::LimitExceeded] if the limit is exceeded
     def incr!
       unless self.class.ready?
-        return OT.le("Not limiting #{event} events for #{self.class}")
+        return OT.lw("Not limiting #{event} events for #{self.class}")
       end
 
       count = redis.incr(rediskey)
@@ -134,7 +134,7 @@ module V2
       # @raise [Onetime::LimitExceeded] if the limit is exceeded
       def incr!(identifier, event)
         unless ready?
-          return OT.le("Not limiting #{event} events for #{self}")
+          return OT.lw("Not limiting #{event} events for #{self}")
         end
 
         lmtr  = new identifier, event

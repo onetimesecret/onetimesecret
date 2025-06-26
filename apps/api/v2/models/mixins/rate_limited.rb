@@ -5,7 +5,7 @@ module V2
     module RateLimited
       def event_incr!(event)
         unless V2::RateLimit.ready?
-          return OT.le("Not limiting #{event} events for #{self.class}")
+          return OT.lw("Not limiting #{event} events for #{self.class}")
         end
 
         # Uses the external identifier of the implementing class to keep
