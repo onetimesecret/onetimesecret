@@ -23,6 +23,7 @@ module Onetime
     using Onetime::UUIDv7Refinements
 
     def prepare
+      raise "Use the cleaner, meaner 1512_customer_objid.rb migration. This is for reference only."
       info("[1512_customer_objid] Preparing customer objid and user_type migration")
 
       # Get total customer count using Familia::SortedSet
