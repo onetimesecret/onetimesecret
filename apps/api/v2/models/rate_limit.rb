@@ -199,10 +199,12 @@ module V2
       # @param events [Hash] map of event names to limits
       # @param freeze [Boolean] whether to freeze the events hash
       # @return [Hash] the updated events hash
-      def register_events(multiple_events, freeze: true)
-        OT.ld "[register_events] #{multiple_events.inspect}"
+      def register_events(elements, freeze: true)
+        raise ArgumentError, 'Invalid events' unless elements.is_a?(Hash)
+
+        OT.ld "[register_events] #{elements.inspect}"
         @events ||= {}
-        events.merge! multiple_events
+        @events.merge! elements
         freeze ? freeze_events : events
       end
 
