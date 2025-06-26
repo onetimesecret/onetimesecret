@@ -19,7 +19,7 @@ module Onetime
       # eventually be removed once there is a low chance any installs
       # still need to upgrade. Or after a sufficiently long time.
       class FirstBoot < ServiceProvider
-        @base_path                     = ENV.fetch('ONETIME_HOME').freeze
+        @base_path                     = OT::HOME.freeze
         @mutable_config_defaults_path = File.join(@base_path, 'etc', 'mutable_config.yaml').freeze
 
         class << self

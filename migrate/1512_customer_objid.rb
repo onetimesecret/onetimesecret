@@ -8,17 +8,12 @@
 # - user_type: Set to 'authenticated' (default user type)
 #
 # Usage:
-#   ruby migrate/1512_customer_objid.rb --dry-run  # Preview changes
-#   ruby migrate/1512_customer_objid.rb --run      # Execute migration
+#   ruby -I./lib migrate/1512_customer_objid.rb --dry-run  # Preview changes
+#   ruby -I./lib migrate/1512_customer_objid.rb --run      # Execute migration
 #
 #   bin/ots migrate 1512_customer_objid.rb
 
-base_path = File.expand_path File.join(File.dirname(__FILE__), '..')
-$:.unshift File.join(base_path, 'lib')
-
-require 'onetime'
 require 'onetime/migration'
-
 require 'onetime/refinements/uuidv7_refinements'
 
 MODEL_KLASS = V2::Customer
@@ -57,37 +52,6 @@ module Onetime
       end
     end
 
-    def migration_needed?
-      info("[1512_customer_objid] Checking if migration is needed...")
-
-      # We want to run always so that if there is an error or issue we can run
-      # again. NOTE: B/c of the idempotent expectation, we are careful to not
-      # re-generate objid values. If there is one set, we will use that
-      # otherwise each run, each customer would have a different ID.
-      true
-    end
-
-    def migration_not_needed_banner
-      info <<~HEREDOC
-
-        #{separator}
-        Migration not needed. This usually means:
-
-          1. All customer records already have objid and user_type fields
-          2. The migration has already been successfully applied
-          3. There are no customer records in the system
-
-        To verify customer record status:
-          $ bin/ots console
-          > MODEL_KLASS.values.size
-          > customer = MODEL_KLASS.load('some_customer_id')
-          > customer.objid
-          > customer.user_type
-
-        #{separator}
-      HEREDOC
-    end
-
     def migrate
       run_mode_banner
 
@@ -103,7 +67,8 @@ module Onetime
         progress(@total_scanned, @total_customers, "Scanning customers") if @total_scanned % 500 == 0
 
         keys.each do |key|
-          process_customer_record(key)
+          obj = MODEL_KLASS.from_key(key)
+          process_record(obj)
         end
 
         break if cursor == "0"
@@ -127,9 +92,40 @@ module Onetime
       @error_count == 0
     end
 
+    def migration_needed?
+      info("[1512_customer_objid] Checking if migration is needed...")
+
+      # We want to run always so that if there is an error or issue we can run
+      # again. NOTE: B/c of the idempotent expectation, we are careful to not
+      # re-generate objid values. If there is one set, we will use that
+      # otherwise each run, each customer would have a different ID.
+      true
+    end
+
+    def migration_not_needed_banner
+      info <<~HEREDOC
+
+        #{separator}
+        Migration not needed. This usually means:
+
+          1. All customer records already have objid and user_type fields
+          2. The migration has already been successfully applied
+          3. There are no customer records in the system
+
+        To verify customer record status:
+          $ bin/ots console
+          > #{MODEL_KLASS}.values.size
+          > customer = #{MODEL_KLASS}.load('some_customer_id')
+          > customer.objid
+          > customer.user_type
+
+        #{separator}
+      HEREDOC
+    end
+
     private
 
-    def process_customer_record(key)
+    def process_record(key)
       begin
         record_data = @redis_client.hgetall(key)
         custid = record_data['custid']
@@ -185,9 +181,6 @@ module Onetime
       end
     end
 
-    def separator
-      '-' * 60
-    end
   end
 end
 

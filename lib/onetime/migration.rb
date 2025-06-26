@@ -1,5 +1,13 @@
 # lib/onetime/migration.rb
 
+require 'onetime'
+
+APPS_ROOT = File.join(OT::HOME, 'apps').freeze
+$LOAD_PATH.unshift(File.join(APPS_ROOT, 'api'))
+$LOAD_PATH.unshift(File.join(APPS_ROOT, 'web'))
+
+require 'onetime/models'
+
 module Onetime
   # Base class for OneTimeSecret data migrations
   #
@@ -26,6 +34,8 @@ module Onetime
     def initialize
       @options = {}
       @stats   = Hash.new(0)  # Auto-incrementing counter for tracking migration stats
+
+      OT.boot! unless OT.ready?
     end
 
     # Main entry point - orchestrates the full migration process
@@ -130,9 +140,9 @@ module Onetime
       OT.ld(message)
     end
 
-    # Print visual separator line
+    # Add a visual separator line
     def separator
-      OT.li('------------------------------------------------------------')
+      '-' * 60
     end
 
     # Show progress for long-running operations
@@ -149,7 +159,7 @@ module Onetime
     # Display final migration summary
     # Yields to block for custom summary content
     def print_summary
-      separator
+      OT.li separator
       if dry_run?
         header('DRY RUN SUMMARY')
         yield(:dry_run) if block_given?

@@ -216,10 +216,6 @@ module Onetime
 
     private
 
-    def separator
-      '-' * 60
-    end
-
     def get_nested_value(hash, keys)
       keys.reduce(hash) { |h, key| h&.dig(key) }
     end
