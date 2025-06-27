@@ -10,9 +10,19 @@ module Onetime
       objects.each { |obj| process_record(obj) }
     end
 
-    # Override this to return true for pipeline-enabled migrations
-    def use_batch_processing?
-      false
+    # In PipelineMigration
+    def process_batch(objects)
+      @redis_client.pipelined do |pipe|
+        objects.each do |obj|
+          next unless should_process?(obj)
+
+          fields = build_update_fields(obj)
+          next unless fields&.any?
+
+          execute_update(pipe, obj, fields)
+          track_stat(:records_updated)
+        end
+      end
     end
 
     private
@@ -33,16 +43,12 @@ module Onetime
           obj                      = model_class.find_by_key(key)
           @records_needing_update += 1
 
-          if use_batch_processing?
-            batch_objects << obj
+          batch_objects << obj
 
-            # Process batch when full
-            if batch_objects.size >= @batch_size
-              process_batch_safely(batch_objects)
-              batch_objects.clear
-            end
-          else
-            process_single_record(key)
+          # Process batch when full
+          if batch_objects.size >= @batch_size
+            process_batch_safely(batch_objects)
+            batch_objects.clear
           end
         end
 
@@ -50,7 +56,26 @@ module Onetime
       end
 
       # Process remaining objects in batch
-      process_batch_safely(batch_objects) if use_batch_processing? && batch_objects.any?
+      process_batch_safely(batch_objects) if batch_objects.any?
+    end
+
+    def execute_update(pipe, obj, fields)
+      for_realsies_this_time? do
+        pipe.hmset(obj.rediskey, fields.flatten)
+      end
+
+      dry_run_only? do
+        debug("Would update #{obj.class.name.split('::').last} #{obj.custid}: #{fields}")
+      end
+    end
+
+    # These methods must be implemented by subclasses
+    def should_process?(obj)
+      raise NotImplementedError, "#{self.class} must implement #should_process?"
+    end
+
+    def build_update_fields(obj)
+      raise NotImplementedError, "#{self.class} must implement #build_update_fields"
     end
 
     def process_batch_safely(objects)

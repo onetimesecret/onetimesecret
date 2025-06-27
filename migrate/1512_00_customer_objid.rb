@@ -27,33 +27,7 @@ module Onetime
       @batch_size  = 100  # Smaller batches for pipeline
     end
 
-    def use_batch_processing?
-      true
-    end
-
-    def process_batch(objects)
-      @redis_client.pipelined do |pipe|
-        objects.each do |obj|
-          next unless should_update?(obj)
-
-          fields = build_update_fields(obj)
-
-          for_realsies_this_time? do
-            pipe.hmset(obj.rediskey, fields.flatten)
-          end
-
-          dry_run_only? do
-            p fields
-          end
-
-          track_stat(:records_updated)
-        end
-      end
-    end
-
-    private
-
-    def should_update?(obj)
+    def should_process?(obj)
       return track_stat(:skipped_empty_custid) if obj.custid.to_s.empty?
       return track_stat(:skipped_anonymous) if obj.anonymous?
       return track_stat(:skipped_empty_email) if obj.email.to_s.empty?
