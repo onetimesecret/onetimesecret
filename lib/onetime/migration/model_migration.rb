@@ -26,15 +26,24 @@ module Onetime
   #   end
   class ModelMigration < BaseMigration
     attr_reader :model_class, :batch_size, :total_records, :total_scanned,
-      :records_needing_update, :records_updated, :error_count, :interactive
+      :records_needing_update, :records_updated, :error_count, :interactive,
+      :scan_pattern, :redis_client
 
     def initialize
       super
-      @batch_size             = 1000
+
+      # Reset counters
       @total_scanned          = 0
       @records_needing_update = 0
       @records_updated        = 0
       @error_count            = 0
+
+      # These are meant to be set by subclasses
+      @batch_size   = 1000
+      @model_class  = nil
+      @scan_pattern = nil
+      @interactive  = false
+      @redis_client = nil
     end
 
     # Override to set @model_class and optionally @batch_size
@@ -46,6 +55,24 @@ module Onetime
     # @param obj [Familia::Horreum] The model instance to process
     def process_record(obj)
       raise NotImplementedError, "#{self.class} must implement #process_record"
+    end
+
+    # Loads a Familia::Horeum object instance from a redis key
+    #
+    # NOTE: Override this method to customize the loading behavior. For example,
+    # with a custom @scan_pattern, the migration might be looping through
+    # the relation keys of a horreum model (e.g. a customer that has a custom
+    # domain configured will have its customer:ID:object key as well as a
+    # customer:ID:custom_domain key).
+    #
+    # Typically a migration will iterate over the objects themselves, but that
+    # won't work if there are dangling "orphan" keys that don't have a
+    # corresponding object. To address that, provide a load_from_key method
+    # in the migration to load the customer:ID:custom_domain sorted set. Then
+    # the process_record method will receive an instance of Familia::SortedSet.
+    #
+    def load_from_key(key)
+      model_class.find_by_key(key)
     end
 
     # Main migration implementation - handles the Redis SCAN loop
@@ -95,24 +122,11 @@ module Onetime
         raise 'Model class must be a Familia::Horreum subclass'
       end
 
-      @total_records = @model_class.values.size
-      @redis_client  = @model_class.redis
-      @scan_pattern  = "#{@model_class.prefix}:*:object"
+      @total_records  = @model_class.values.size
+      @redis_client ||= @model_class.redis
+      @scan_pattern ||= "#{@model_class.prefix}:*:object"
 
-      info("Model class: #{@model_class.name}")
-      info("Redis connection: #{@redis_client.connection[:id]}")
-      info("Scan pattern: #{@scan_pattern}")
-      info("Total records (#{@model_class.name}.values.size): #{@total_records} (expected)")
-      info("Batch size: #{@batch_size}")
-
-      # Test Redis connection
-      begin
-        @redis_client.ping
-        debug('Redis connection verified')
-      rescue StandardError => ex
-        error("Cannot connect to Redis: #{ex.message}")
-        raise ex
-      end
+      nil
     end
 
     def scan_and_process_records
@@ -140,7 +154,8 @@ module Onetime
 
     def process_single_record(key)
       # Load the model instance
-      obj = model_class.find_by_key(key)
+
+      obj = load_from_key(key) # can be overridden by the actual migration
 
       # Every record that gets processed is considered as needing update. The
       # idempotent operations in process_record determine whether changes are
