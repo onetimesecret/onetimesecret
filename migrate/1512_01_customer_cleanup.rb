@@ -1,18 +1,15 @@
-# migrate/1512_customer_cleanup.rb
+# migrate/1512_01_customer_cleanup.rb
 #
-# Customer Cleanup - Remove anonymous, known test users
+# Customer Cleanup - Remove anonymous, known test users - Pipeline
 #
-# Purpose: Removes Custom records based on the following criteria
-# - custid: is empty, anon, or matches "Tryouts*onetimesecret.com" -> remove
-# - email: is empty or matches "Tryouts*onetimesecret.com" -> remove
-# - role: missing -> 'customer'
+# Purpose: Removes Customer records based on the following criteria:
+# - custid: is empty, anon, or matches "tryouts*onetimesecret.com" -> remove
+# - email: is empty or matches "tryouts*onetimesecret.com" -> remove
+# - created: missing or before 2010 -> remove
 #
 # Usage:
 #   bin/ots migrate 1512_customer_cleanup.rb # Preview changes
 #   bin/ots migrate --run 1512_customer_cleanup.rb
-#
-#   ruby -I./lib migrate/1512_customer_cleanup.rb --dry-run  # Preview changes
-#   ruby -I./lib migrate/1512_customer_cleanup.rb --run
 #
 
 require 'onetime/migration'
@@ -22,48 +19,73 @@ module Onetime
     def prepare
       @model_class = V2::Customer
       @batch_size  = 1000
-      # @scan_pattern = "#{@model_class.prefix}:*:custom_domain"
-      # @interactive = true
     end
 
-    def process_record(obj)
-      # Skip records that don't meet any removal criteria
+    # Override to handle deletions instead of field updates
+    def process_batch(objects)
+      objects.each do |obj, key|
+        next unless should_process?(obj)
+
+        info "Deleting record #{key}"
+        for_realsies_this_time? do
+          redis_client.del key
+        end
+
+        track_stat(:records_updated)
+      end
+    end
+
+    private
+
+    def should_process?(obj)
       should_remove = false
 
-      # Check custid: empty, anon, or matches tryouts pattern
-      if obj.custid.to_s.empty? ||
-         obj.custid.to_s.downcase == 'anon' ||
-         obj.custid.to_s.match?(/tryouts.*onetimesecret\.com/i)
-
+      # Check custid: empty, anon, or tryouts pattern
+      if !should_remove && invalid_custid?(obj.custid)
         should_remove = true
-        track_stat_and_log_reason(obj, :should_update, :custid)
+        track_removal_reason(obj, :custid)
       end
 
-      # Check email: empty or matches tryouts pattern
-      if obj.email.to_s.empty? ||
-         obj.email.to_s.match?(/tryouts.*onetimesecret\.com/i)
-
+      # Check email: empty or tryouts pattern
+      if !should_remove && invalid_email?(obj.email)
         should_remove = true
-        track_stat_and_log_reason(obj, :should_update, :email)
+        track_removal_reason(obj, :email)
       end
 
-      # Check created date: missing or should_update
-      if obj.created.nil? ||
-         obj.created.to_i < Time.new(2010, 1, 1).to_i
-
+      # Check created date: missing or too old
+      if !should_remove && invalid_created_date?(obj.created)
         should_remove = true
-        track_stat_and_log_reason(obj, :should_update, :created)
+        track_removal_reason(obj, :created)
       end
 
-      return unless should_remove
-
-      track_stat(:records_updated)
-
-      for_realsies_this_time? do
-        obj.flag_for_permanent_removal!("Migration #{__FILE__} at #{OT.now}")
-      end
+      should_remove
     end
 
+    def build_update_fields(*)
+      # Not used for deletion migration. Instead this migration
+      # defines its own process_batch.
+      {}
+    end
+
+    def invalid_custid?(custid)
+      custid.to_s.empty? ||
+        custid.to_s.downcase == 'anon' ||
+        custid.to_s.match?(/tryouts.*onetimesecret\.com/i)
+    end
+
+    def invalid_email?(email)
+      email.to_s.empty? ||
+        email.to_s.match?(/tryouts.*onetimesecret\.com/i)
+    end
+
+    def invalid_created_date?(created)
+      created.nil? || created.to_i < Time.new(2010, 1, 1).to_i
+    end
+
+    def track_removal_reason(obj, field)
+      track_stat("removal_#{field}")
+      debug("Removing objid=#{obj.objid} #{field}=#{obj.send(field)}")
+    end
   end
 end
 
