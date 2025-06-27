@@ -7,7 +7,7 @@ RSpec.describe IndifferentHashAccess
 
 RSpec.describe ThenWithDiff, :allow_redis do
   # Use the refinement within this test scope
-  using ThenWithDiff
+  using Onetime::ThenWithDiff
 
   before(:each) do
     # Clear history before each test to ensure clean state

@@ -19,7 +19,7 @@ module Frontend
     # initialize_view_vars takes the arguments it does instead of relying on
     # instance variables and their attr_reader methods.
     module InitializeViewVars
-      using IndifferentHashAccess
+      using Onetime::IndifferentHashAccess
 
       # Define fields that are safe to expose to the frontend
       # Explicitly excluding :secret and :authenticity which contain sensitive data

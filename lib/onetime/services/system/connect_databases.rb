@@ -9,7 +9,7 @@ module Onetime
 
       class ConnectDatabases < ServiceProvider
         using Familia::HorreumRefinements
-        using IndifferentHashAccess
+        using Onetime::IndifferentHashAccess
 
         def initialize
           super(:connect_databases, type: TYPE_CONNECTION, priority: 5) # High priority - other services depend on DB

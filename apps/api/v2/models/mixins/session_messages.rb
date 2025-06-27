@@ -29,7 +29,7 @@ module V2
     #   as `messages` array of objects.
     # - 20 minute TTL on message persistence
     module SessionMessages
-      using IndifferentHashAccess
+      using Onetime::IndifferentHashAccess
 
       def self.included(base)
         # In some UI flows, we temporarily store form values after a form

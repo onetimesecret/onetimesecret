@@ -47,7 +47,7 @@ if defined?(IRB)
     RETURN: "⮑  %s\n",  # The format for return values
   }
   IRB.conf[:IRB_RC]           = proc do |context|
-    context.workspace.binding.eval('using IndifferentHashAccess')
+    context.workspace.binding.eval('using Onetime::IndifferentHashAccess')
   end
   # Set the global prompt mode to :ONETIME
   IRB.conf[:PROMPT_MODE]      = :ONETIME
@@ -134,4 +134,4 @@ puts <<~INSTRUCTIONS
 
 INSTRUCTIONS
 
-using IndifferentHashAccess
+using Onetime::IndifferentHashAccess

@@ -7,7 +7,7 @@ module Onetime
   module Mail
     module Views
       class Base < Chimera
-        using IndifferentHashAccess
+        using Onetime::IndifferentHashAccess
 
         self.template_path  = './templates/mail'
         self.view_namespace = Onetime::Mail

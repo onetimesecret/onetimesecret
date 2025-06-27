@@ -9,7 +9,7 @@ module Frontend
     # Responsible for transforming server-side configuration settings into
     # a consistent format that can be safely exposed to the frontend.
     module ConfigSerializer
-      using IndifferentHashAccess
+      using Onetime::IndifferentHashAccess
 
       # Serializes configuration data from view variables
       #

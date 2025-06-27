@@ -18,7 +18,7 @@ module Onetime
     #   OT.conf[:locales]         # Service state
     #
     class ConfigProxy
-      using IndifferentHashAccess
+      using Onetime::IndifferentHashAccess
 
       def initialize(static_config)
         @static_config = static_config
