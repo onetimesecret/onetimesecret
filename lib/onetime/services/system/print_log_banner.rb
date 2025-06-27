@@ -51,7 +51,7 @@ module Onetime
       # Now uses ReceiptGenerator for consistent formatting.
       #
       class PrintLogBanner < ServiceProvider
-        using IndifferentHashAccess
+        using Onetime::IndifferentHashAccess
 
         def initialize
           super(:log_banner, type: TYPE_INFO, priority: 90)

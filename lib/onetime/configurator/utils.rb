@@ -23,7 +23,7 @@ module Onetime
 
     module Utils
       extend self
-      using IndifferentHashAccess
+      using Onetime::IndifferentHashAccess
 
       def validate_with_schema(conf, schema, apply_defaults: false)
         raise OT::ConfigError, 'Schema is nil' if schema.nil?

@@ -14,7 +14,7 @@ module Onetime
     # NOTE: We intentionally use OT.conf here and not direct to the system
     # state so that we're not circumventing Boot.boot! initialization steps.
     module LegacyGlobals
-      using IndifferentHashAccess
+      using Onetime::IndifferentHashAccess
 
       def global_secret
         LegacyGlobals.print_warning('global_secret')

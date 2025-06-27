@@ -13,7 +13,7 @@ module Onetime
       # Sets up the appropriate mailer class and makes it available system-wide.
       #
       class PrepareEmailers < ServiceProvider
-        using IndifferentHashAccess
+        using Onetime::IndifferentHashAccess
 
         attr_reader :emailer
 

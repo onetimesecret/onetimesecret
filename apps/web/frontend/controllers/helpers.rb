@@ -10,7 +10,7 @@ module Frontend
   end
 
   module ControllerHelpers
-    using IndifferentHashAccess
+    using Onetime::IndifferentHashAccess
 
     def plan
       @plan   = Onetime::Plan.plan(cust.planid) unless cust.nil?

@@ -22,8 +22,8 @@ module Onetime
   #
   # Pipeline: ENV normalize → Read → ERB → YAML → Validate → Process → Revalidate → Freeze
   class Configurator
-    using IndifferentHashAccess
-    using ThenWithDiff
+    using Onetime::IndifferentHashAccess
+    using Onetime::ThenWithDiff
 
     @xdg = XDG::Environment.new
 

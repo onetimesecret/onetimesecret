@@ -2,6 +2,8 @@
 
 require 'json'
 
+require 'onetime/refinements/time_extensions'
+
 module V1
   module Mixins
 
@@ -29,6 +31,7 @@ module V1
     #   as `messages` array of objects.
     # - 20 minute TTL on message persistence
     module SessionMessages
+      using Onetime::TimeExtensions
 
       def self.included base
         # In some UI flows, we temporarily store form values after a form

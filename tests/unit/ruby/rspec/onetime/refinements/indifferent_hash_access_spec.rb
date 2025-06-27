@@ -4,9 +4,9 @@ require_relative '../../spec_helper'
 
 require 'onetime/refinements/indifferent_hash_access'
 
-RSpec.describe IndifferentHashAccess do
+RSpec.describe Onetime::IndifferentHashAccess do
   # Use the refinement within this test scope
-  using IndifferentHashAccess
+  using Onetime::IndifferentHashAccess
 
   context 'with [] access' do
     it 'provides symbol/string indifferent access' do
