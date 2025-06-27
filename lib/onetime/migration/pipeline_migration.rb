@@ -28,20 +28,25 @@ module Onetime
   class PipelineMigration < ModelMigration
 
     # Main batch processor - executes Redis operations in pipeline
+    #
+    # @param objects [Array<Array>] Array of tuples: [obj, original_redis_key]
+    #   The original Redis key is preserved because records with missing/empty
+    #   identifier fields cannot reconstitute their Redis key via obj.rediskey.
+    #   Only the original key from SCAN guarantees we can operate on the record.
     def process_batch(objects)
       @redis_client.pipelined do |pipe|
-        objects.each do |obj, _| # obj and key
+        objects.each do |obj, original_key|
           next unless should_process?(obj)
 
           fields = build_update_fields(obj)
           next unless fields&.any?
 
-          execute_update(pipe, obj, fields)
-
+          execute_update(pipe, obj, fields, original_key)
           track_stat(:records_updated)
         end
       end
     end
+
 
     # Override scanning to collect batches instead of individual processing
     private
@@ -79,12 +84,15 @@ module Onetime
       process_batch_safely(batch_objects) if batch_objects.any?
     end
 
-    def execute_update(pipe, obj, fields)
+    def execute_update(pipe, obj, fields, original_key = nil)
+      # Use original_key for records that can't generate valid keys
+      redis_key = original_key || obj.rediskey
+
       for_realsies_this_time? do
-        pipe.hmset(obj.rediskey, fields.flatten)
+        pipe.hmset(redis_key, fields.flatten)
       end
       dry_run_only? do
-        debug("Would update #{obj.class.name.split('::').last} #{obj.send(obj.class.identifier)}: #{fields}")
+        debug("Would update #{obj.class.name.split('::').last}: #{fields}")
       end
     end
 
