@@ -26,16 +26,18 @@ module Onetime
   #     end
   #   end
   class PipelineMigration < ModelMigration
+
     # Main batch processor - executes Redis operations in pipeline
     def process_batch(objects)
       @redis_client.pipelined do |pipe|
-        objects.each do |obj|
+        objects.each do |obj, _| # obj and key
           next unless should_process?(obj)
 
           fields = build_update_fields(obj)
           next unless fields&.any?
 
           execute_update(pipe, obj, fields)
+
           track_stat(:records_updated)
         end
       end
@@ -61,7 +63,7 @@ module Onetime
         keys.each do |key|
           obj                      = load_from_key(key)
           @records_needing_update += 1
-          batch_objects << obj
+          batch_objects << [obj, key]
 
           # Process when batch is full
           if batch_objects.size >= @batch_size
