@@ -4,7 +4,11 @@ require 'stathat'
 require 'timeout'
 
 require 'onetime/refinements/rack_refinements'
+require 'onetime/refinements/time_extensions'
+
 require_relative 'helpers'
+
+using Onetime::TimeExtensions
 
 module V1
   module Logic

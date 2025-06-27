@@ -9,7 +9,7 @@ require_relative 'base_mailer'
 module Onetime::Mail
   module Mailer
     class SMTPMailer < BaseMailer
-      using IndifferentHashAccess
+      using Onetime::IndifferentHashAccess
 
       def send_email(to_address, subject, html_content, text_content)
         mailer_response  = nil

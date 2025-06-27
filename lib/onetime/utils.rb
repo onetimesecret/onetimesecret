@@ -407,7 +407,7 @@ module Onetime
       return if time_in_s.nil?
 
       val = Time.now.utc.to_i - time_in_s.to_i
-      # puts val
+
       if val < 10
         result = 'a moment ago'
       elsif val < 40

@@ -9,7 +9,7 @@ require_relative 'base_mailer'
 module Onetime::Mail
   module Mailer
     class SESMailer < BaseMailer
-      using IndifferentHashAccess
+      using Onetime::IndifferentHashAccess
 
       class << self
         attr_reader :ses_client

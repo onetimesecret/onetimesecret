@@ -16,7 +16,7 @@ module Onetime
       # system-wide.
       #
       class AuthenticationProvider < ServiceProvider
-        using IndifferentHashAccess
+        using Onetime::IndifferentHashAccess
 
         attr_reader :colonels, :auth_config
 

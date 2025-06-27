@@ -6,7 +6,7 @@ module Onetime
   module Mail
     module Mailer
       class BaseMailer
-        using IndifferentHashAccess
+        using Onetime::IndifferentHashAccess
 
         attr_accessor :reply_to
         attr_reader :from, :fromname

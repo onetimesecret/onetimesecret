@@ -100,7 +100,7 @@ module Onetime
 
   module Boot
     extend self
-    using IndifferentHashAccess
+    using Onetime::IndifferentHashAccess
 
     @init_scripts_dir = File.join(Onetime::HOME, 'etc', 'init.d').freeze
 

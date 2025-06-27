@@ -14,7 +14,7 @@ module Onetime
       # default/fallback locales.
       #
       class LocaleProvider < ServiceProvider
-        using IndifferentHashAccess
+        using Onetime::IndifferentHashAccess
 
         attr_reader :locales, :default_locale, :fallback_locale, :i18n_enabled
 

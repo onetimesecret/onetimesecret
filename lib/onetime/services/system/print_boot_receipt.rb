@@ -51,7 +51,7 @@ module Onetime
       # Now uses ReceiptGenerator for consistent formatting.
       #
       class PrintBootReceipt < ServiceProvider
-        using IndifferentHashAccess
+        using Onetime::IndifferentHashAccess
 
         def initialize
           super(:boot_receipt, type: TYPE_INFO, priority: 90)

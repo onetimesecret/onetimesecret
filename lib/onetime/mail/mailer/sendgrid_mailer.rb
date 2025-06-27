@@ -9,7 +9,7 @@ require_relative 'base_mailer'
 module Onetime::Mail
   module Mailer
     class SendGridMailer < BaseMailer
-      using IndifferentHashAccess
+      using Onetime::IndifferentHashAccess
       include SendGrid # this makes the mail_settings instance method available
 
       class << self
