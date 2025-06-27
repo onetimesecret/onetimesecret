@@ -13,8 +13,33 @@ module Onetime
     PER_WEEK        = 604_800.0
     PER_YEAR        = 31_536_000.0 # 365 days
 
+    UNIT_METHODS = {
+      'y' => :years,
+      'year' => :years,
+      'years' => :years,
+      'w' => :weeks,
+      'week' => :weeks,
+      'weeks' => :weeks,
+      'd' => :days,
+      'day' => :days,
+      'days' => :days,
+      'h' => :hours,
+      'hour' => :hours,
+      'hours' => :hours,
+      'm' => :minutes,
+      'minute' => :minutes,
+      'minutes' => :minutes,
+      'ms' => :milliseconds,
+      'millisecond' => :milliseconds,
+      'milliseconds' => :milliseconds,
+      'us' => :microseconds,
+      'microsecond' => :microseconds,
+      'microseconds' => :microseconds,
+      'μs' => :microseconds,
+    }.freeze
+
     refine Numeric do
-      # Base time units -> seconds
+
       def microseconds = seconds * PER_MICROSECOND
       def milliseconds = seconds * PER_MILLISECOND
       def seconds      = self
@@ -62,16 +87,19 @@ module Onetime
       # @param u [String, Symbol] Unit to convert to
       # @return [Float] Converted time value
       def in_seconds(u = nil)
-        case u.to_s
-        when /\A(y)|(years?)\z/        then years
-        when /\A(w)|(weeks?)\z/        then weeks
-        when /\A(d)|(days?)\z/         then days
-        when /\A(h)|(hours?)\z/        then hours
-        when /\A(m)|(minutes?)\z/      then minutes
-        when /\A(ms)|(milliseconds?)\z/ then milliseconds
-        when /\A(us)|(microseconds?)|(μs)\z/ then microseconds
+        return self unless u
+
+        case UNIT_METHODS.fetch(u.to_s.downcase, nil)
+        when :milliseconds then self * PER_MILLISECOND
+        when :microseconds then self * PER_MICROSECOND
+        when :minutes then self * PER_MINUTE
+        when :hours then self * PER_HOUR
+        when :days then self * PER_DAY
+        when :weeks then self * PER_WEEK
+        when :years then self * PER_YEAR
         else self
         end
+
       end
 
       # Converts the number to a human-readable string representation

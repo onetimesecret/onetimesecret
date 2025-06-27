@@ -175,14 +175,14 @@ RSpec.describe Onetime::TimeExtensions do
       end
 
       it 'converts to milliseconds when specified' do
-        expect(base_value.in_seconds(:milliseconds)).to eq(2.minutes) # 'm' matches first in regex
-        expect(base_value.in_seconds('millisecond')).to eq(2.minutes) # 'm' matches first in regex
-        expect(base_value.in_seconds('ms')).to eq(2.minutes) # 'ms' matches 'm' in minutes pattern first
+        expect(base_value.in_seconds(:milliseconds)).to eq(2.milliseconds)
+        expect(base_value.in_seconds('millisecond')).to eq(2.milliseconds)
+        expect(base_value.in_seconds('ms')).to eq(2.milliseconds)
       end
 
       it 'converts to microseconds when specified' do
-        expect(base_value.in_seconds(:microseconds)).to eq(2.minutes) # 'm' matches first in regex
-        expect(base_value.in_seconds('microsecond')).to eq(2.minutes) # 'm' matches first in regex
+        expect(base_value.in_seconds(:microseconds)).to eq(2.microseconds)
+        expect(base_value.in_seconds('microsecond')).to eq(2.microseconds)
         expect(base_value.in_seconds('us')).to eq(2.microseconds)
         expect(base_value.in_seconds('μs')).to eq(2.microseconds)
       end
@@ -192,18 +192,12 @@ RSpec.describe Onetime::TimeExtensions do
         expect(base_value.in_seconds(nil)).to eq(2)
       end
 
-      it 'demonstrates regex precedence behavior' do
-        # The case statement uses regex matching where 'm' pattern comes before 'ms' pattern
-        # This causes unexpected behavior where 'ms' matches minutes instead of milliseconds
-        expect(base_value.in_seconds('ms')).to eq(2.minutes) # matches /\A(m)|(minutes?)\z/ first
-        expect(base_value.in_seconds('milliseconds')).to eq(2.minutes) # 'm' at start matches minutes
-        expect(base_value.in_seconds('microseconds')).to eq(2.minutes) # 'm' at start matches minutes
-
+      it 'demonstrates exactness behaviour' do
         # Only exact matches work as expected
-        expect(base_value.in_seconds('s')).to eq(2.seconds)
-        expect(base_value.in_seconds('h')).to eq(2.hours)
-        expect(base_value.in_seconds('us')).to eq(2.microseconds)
-        expect(base_value.in_seconds('μs')).to eq(2.microseconds)
+        expect(base_value.in_seconds('m')).to eq(2.minutes)
+        expect(base_value.in_seconds('m ')).to eq(base_value)
+        expect(base_value.in_seconds('mm')).to eq(base_value)
+        expect(base_value.in_seconds('min')).to eq(base_value)
       end
     end
 
