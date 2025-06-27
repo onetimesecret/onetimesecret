@@ -13,7 +13,7 @@ module V2::Logic
       def raise_concerns
         @raised_concerns_was_called = true
 
-        # It's vitally important for the limiter to run prior to any
+        # It's important for the limiter to run prior to any
         # other concerns. This prevents a malicious user from
         # attempting to brute force the password.
         #

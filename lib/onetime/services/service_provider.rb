@@ -134,9 +134,9 @@ module Onetime
           @error  = nil
 
           begin
+            OT.ld "[ServiceProvider] Started #{@name} (#{@type})"
             start(config)
             @status = STATUS_RUNNING
-            OT.li "[ServiceProvider] Started #{@name} (#{@type})"
           rescue StandardError => ex
             @status = STATUS_ERROR
             @error  = ex
@@ -159,7 +159,7 @@ module Onetime
           begin
             stop
             @status = STATUS_STOPPED
-            OT.li "[ServiceProvider] Stopped #{@name}"
+            OT.ld "[ServiceProvider] Stopped #{@name}"
           rescue StandardError => ex
             @status = STATUS_ERROR
             @error  = ex
@@ -226,6 +226,10 @@ module Onetime
 
       def error(message)
         OT.le "[#{@name}] #{message}"
+      end
+
+      def warn(message)
+        OT.lw "[#{@name}] #{message}"
       end
 
       def debug(message)

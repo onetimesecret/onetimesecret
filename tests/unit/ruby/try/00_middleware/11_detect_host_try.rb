@@ -19,7 +19,7 @@ require 'middleware/detect_host'
 @log_output = StringIO.new
 @app = ->(env) { [200, {}, ['OK']] }
 @original_value = OT.debug?
-OT.debug = true  # log messages are only avalable in debug mode
+OT.instance_variable_set(:@debug, true)  # log messages are only avalable in debug mode
 @middleware = Rack::DetectHost.new(@app, io: @log_output)
 
 ## X-Forwarded-Host takes precedence over Host header
@@ -87,4 +87,4 @@ status, _, body = @middleware.call(env)
 
 
 # Put everything back the way we found it
-OT.debug = @original_value
+OT.instance_variable_set(:@debug, @original_value)

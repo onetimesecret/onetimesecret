@@ -27,7 +27,7 @@ class OT::CLI::Definition
   end
 
   global :D, :debug do
-    OT.debug = true
+    OT.instance_variable_set(:@debug, true)
   end
 
   command :load_path, 'Lists the first 5 paths in the load path' do

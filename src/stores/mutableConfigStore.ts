@@ -1,68 +1,65 @@
-// stores/mutableSettingsStore.ts
+// stores/mutableConfigStore.ts
 
 import { responseSchemas } from '@/schemas/api';
-import {
-  mutableSettingsSchema,
-  type MutableSettingsDetails,
-} from '@/schemas/api/endpoints/colonel';
+import { mutableConfigSchema, type MutableConfigDetails } from '@/schemas/api/endpoints/colonel';
 import { AxiosInstance } from 'axios';
 import { defineStore, PiniaCustomProperties } from 'pinia';
 import { inject, ref } from 'vue';
 import { z } from 'zod/v4';
 
 /**
- * Type definition for MutableSettingsStore.
+ * Type definition for MutableConfigStore.
  */
-export type MutableSettingsStore = {
+export type MutableConfigStore = {
   // State
   _initialized: boolean;
   record: {} | null; // response is empty object
-  details: MutableSettingsDetails;
+  details: MutableConfigDetails;
 
   // Actions
-  fetch: () => Promise<MutableSettingsDetails>;
-  update: (config: MutableSettingsDetails) => Promise<void>;
+  fetch: () => Promise<MutableConfigDetails>;
+  update: (config: MutableConfigDetails) => Promise<void>;
   dispose: () => void;
   $reset: () => void;
 } & PiniaCustomProperties;
 
-export const useMutableSettingsStore = defineStore('colonel', () => {
+export const useMutableConfigStore = defineStore('colonel', () => {
   const $api = inject('api') as AxiosInstance;
 
   // State
   const record = ref<{} | null>(null);
-  const details = ref<MutableSettingsDetails | null>(null);
+  const details = ref<MutableConfigDetails | null>(null);
   const _initialized = ref(false);
 
   /**
-   * Fetch mutable settings from the API
+   * Fetch mutable config from the API
    * @returns Validated configuration object
    */
   async function fetch() {
     const response = await $api.get('/api/v2/colonel/config');
 
     try {
-      const validated = responseSchemas.mutableSettings.parse(response.data);
-      details.value = validated.details as MutableSettingsDetails | null;
+      const validated = responseSchemas.mutableConfig.parse(response.data);
+      details.value = validated.details as MutableConfigDetails | null;
     } catch (validationError) {
-      console.warn('Mutable settings validation warning:', validationError);
+      console.warn('Mutable Config validation warning:', validationError);
       // Gracefully handle validation errors by using response data directly
       // This allows for partial configurations and new fields not yet in schema
-      details.value = (response.data.details || null) as MutableSettingsDetails | null;
+      details.value = (response.data.details || null) as MutableConfigDetails | null;
     }
 
     return response.data;
   }
 
   /**
-   * Update mutable settings
+   * Update mutable config
    * @param newConfig Updated configuration object
    */
-  async function update(newConfig: MutableSettingsDetails) {
+  async function update(newConfig: MutableConfigDetails) {
     // Validate the config before sending to API, but allow partial configurations
     try {
       // Use partial validation to allow incomplete config objects
-      mutableSettingsSchema.partial().parse(newConfig);
+      mutableConfigSchema.partial().parse(newConfig);
     } catch (validationError) {
       if (validationError instanceof z.ZodError) {
         const firstError = validationError.issues[0];
@@ -74,15 +71,15 @@ export const useMutableSettingsStore = defineStore('colonel', () => {
     const response = await $api.post('/api/v2/colonel/config', { config: newConfig });
 
     try {
-      const validated = responseSchemas.mutableSettings.parse(response.data);
+      const validated = responseSchemas.mutableConfig.parse(response.data);
       record.value = validated.record;
-      details.value = validated.details as MutableSettingsDetails | null;
+      details.value = validated.details as MutableConfigDetails | null;
       return validated;
     } catch (validationError) {
       console.warn('Response validation warning:', validationError);
       // Fallback to using response data directly if validation fails
       record.value = response.data.record || {};
-      details.value = (response.data.details || null) as MutableSettingsDetails | null;
+      details.value = (response.data.details || null) as MutableConfigDetails | null;
       return response.data;
     }
   }

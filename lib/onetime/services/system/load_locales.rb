@@ -31,12 +31,12 @@ module Onetime
         #
         # @param config [Hash] Application configuration
         def start(config)
-          log('Loading internationalization settings...')
+          debug('Loading internationalization settings...')
 
           i18n_config   = config.fetch(:i18n, {})
           @i18n_enabled = i18n_config[:enabled] || false
 
-          log('Parsing through i18n locales...')
+          debug('Parsing through i18n locales...')
 
           # Load the locales from the config in both the current and
           # legacy locations. If the locales are not set in the config,
@@ -74,7 +74,7 @@ module Onetime
           set_state(:default_locale, @default_locale)
           set_state(:fallback_locale, @fallback_locale)
 
-          log("Loaded #{@locales.size} locale(s): #{@supported_locales.join(', ')}")
+          debug("Loaded #{@locales.size} locale(s): #{@supported_locales.join(', ')}")
         end
 
         private

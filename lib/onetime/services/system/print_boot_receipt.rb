@@ -1,4 +1,4 @@
-# lib/onetime/services/system/print_log_banner.rb
+# lib/onetime/services/system/print_boot_receipt.rb
 
 require 'json'
 
@@ -45,16 +45,16 @@ module Onetime
       end
 
       ##
-      # LogBannerProvider
+      # PrintBootReceipt
       #
       # Prints a formatted banner with system and configuration information at startup.
       # Now uses ReceiptGenerator for consistent formatting.
       #
-      class PrintLogBanner < ServiceProvider
+      class PrintBootReceipt < ServiceProvider
         using IndifferentHashAccess
 
         def initialize
-          super(:log_banner, type: TYPE_INFO, priority: 90)
+          super(:boot_receipt, type: TYPE_INFO, priority: 90)
         end
 
         ##
@@ -62,18 +62,18 @@ module Onetime
         #
         # @param config [Hash] Frozen application configuration
         def start(config)
-          log('Printing system banner...')
-          print_enhanced_log_banner(config)
+          debug('Printing boot receipt...')
+          print_enhanced_boot_receipt(config)
         end
 
         private
 
-        def print_enhanced_log_banner(config)
+        def print_enhanced_boot_receipt(config)
           site_config  = config.fetch(:site)
-          email_config = config.fetch(:emailer, {})
           redis_info   = Familia.redis.info
           colonels     = site_config.dig(:authentication, :colonels) || []
-          emailer      = get_state(:emailer)
+          # email_config = config.fetch(:emailer, {})
+          # emailer      = get_state(:emailer)
 
           generator = ReceiptGenerator.new(width: 60)
 
@@ -210,7 +210,8 @@ module Onetime
           generator.add_section(FooterSection.new(generator,
             messages: [
               'Thank you for using ONETIME APP',
-              'Secure secret sharing service',
+              # 'Secure secret sharing service',
+              'Your own private secret service',
               'https://github.com/onetimesecret',
             ],
           ),

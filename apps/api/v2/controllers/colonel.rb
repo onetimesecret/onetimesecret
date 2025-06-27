@@ -21,14 +21,14 @@ module V2
       end
 
       def get_config
-        retrieve_records(V2::Logic::Colonel::GetMutableSettings, auth_type: :colonels)
+        retrieve_records(V2::Logic::Colonel::GetMutableConfig, auth_type: :colonels)
       end
 
       def update_config
         process_action(
-          V2::Logic::Colonel::UpdateMutableSettings,
-          'Mutable settings updated successfully.',
-          'Mutable settings could not be updated.',
+          V2::Logic::Colonel::UpdateMutableConfig,
+          'Mutable Config updated successfully.',
+          'Mutable Config could not be updated.',
           auth_type: :colonels,
         )
       end

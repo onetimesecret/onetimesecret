@@ -11,6 +11,7 @@ const mailValidationSchema = z.object({
   connection_timeout: z.number().optional(),
   response_timeout: z.number().optional(),
   connection_attempts: z.number().optional(),
+  validation_type_for: z.record(z.string(), z.union([z.string(), z.symbol()])).optional(),
   allowed_domains_only: z.boolean().optional(),
   allowed_emails: z.array(z.string()).optional(),
   blocked_emails: z.array(z.string()).optional(),
