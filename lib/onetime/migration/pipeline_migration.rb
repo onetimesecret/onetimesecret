@@ -1,16 +1,32 @@
-# lib/onetime/migration/model_migration.rb
+# lib/onetime/migration/pipeline_migration.rb
 
 require_relative 'model_migration'
 
 module Onetime
+  # Pipeline-based migration for batch Redis operations
+  #
+  # Inherits all ModelMigration functionality but processes records in batches
+  # using Redis pipelining for improved performance on large datasets.
+  #
+  # Usage:
+  #   class MyPipelineMigration < PipelineMigration
+  #     def prepare
+  #       @model_class = V2::Customer
+  #       @batch_size = 100  # Smaller batches recommended for pipelines
+  #     end
+  #
+  #     def should_process?(obj)
+  #       # Return false to skip, true to process
+  #       # Use track_stat() for skip counters
+  #     end
+  #
+  #     def build_update_fields(obj)
+  #       # Return hash of fields to update
+  #       { field_name: new_value }
+  #     end
+  #   end
   class PipelineMigration < ModelMigration
-    # In ModelMigration class
-    def process_batch(objects)
-      # Default: process individually (backward compatibility)
-      objects.each { |obj| process_record(obj) }
-    end
-
-    # In PipelineMigration
+    # Main batch processor - executes Redis operations in pipeline
     def process_batch(objects)
       @redis_client.pipelined do |pipe|
         objects.each do |obj|
@@ -25,6 +41,7 @@ module Onetime
       end
     end
 
+    # Override scanning to collect batches instead of individual processing
     private
 
     def scan_and_process_records
@@ -35,17 +52,18 @@ module Onetime
         cursor, keys    = @redis_client.scan(cursor, match: @scan_pattern, count: @batch_size)
         @total_scanned += keys.size
 
+        # Progress reporting
         if @total_scanned <= 500 || @total_scanned % 100 == 0
           progress(@total_scanned, @total_records, "Scanning #{model_class.name.split('::').last} records")
         end
 
+        # Collect objects for batch processing
         keys.each do |key|
-          obj                      = model_class.find_by_key(key)
+          obj                      = load_from_key(key)
           @records_needing_update += 1
-
           batch_objects << obj
 
-          # Process batch when full
+          # Process when batch is full
           if batch_objects.size >= @batch_size
             process_batch_safely(batch_objects)
             batch_objects.clear
@@ -55,7 +73,7 @@ module Onetime
         break if cursor == '0'
       end
 
-      # Process remaining objects in batch
+      # Process remaining objects
       process_batch_safely(batch_objects) if batch_objects.any?
     end
 
@@ -63,27 +81,62 @@ module Onetime
       for_realsies_this_time? do
         pipe.hmset(obj.rediskey, fields.flatten)
       end
-
       dry_run_only? do
-        debug("Would update #{obj.class.name.split('::').last} #{obj.custid}: #{fields}")
+        debug("Would update #{obj.class.name.split('::').last} #{obj.send(obj.class.identifier)}: #{fields}")
       end
     end
 
-    # These methods must be implemented by subclasses
-    def should_process?(obj)
-      raise NotImplementedError, "#{self.class} must implement #should_process?"
-    end
-
-    def build_update_fields(obj)
-      raise NotImplementedError, "#{self.class} must implement #build_update_fields"
-    end
-
     def process_batch_safely(objects)
+      return if objects.empty?
+
+      info("Processing batch of #{objects.size} objects...")
       process_batch(objects)
     rescue StandardError => ex
       @error_count += objects.size
       error("Error processing batch of #{objects.size}: #{ex.message}")
-      objects.each { |obj| track_stat(:errors) }
+      debug("Stack trace: #{ex.backtrace.first(10).join('; ')}")
+      objects.each { track_stat(:errors) }
+    end
+
+    protected
+
+    # Determine if object should be processed
+    # @param obj [Familia::Horreum] The model instance
+    # @return [Boolean] true to process, false to skip
+    def should_process?(obj)
+      raise NotImplementedError, "#{self.class} must implement #should_process?"
+    end
+
+    # Build fields hash for Redis update
+    # @param obj [Familia::Horreum] The model instance
+    # @return [Hash] field_name => value pairs for Redis HMSET
+    def build_update_fields(obj)
+      raise NotImplementedError, "#{self.class} must implement #build_update_fields"
     end
   end
 end
+
+# Example usage:
+#
+# class CustomerObjidMigration < PipelineMigration
+#   def prepare
+#     @model_class = V2::Customer
+#     @batch_size = 100
+#   end
+#
+#   private
+#
+#   def should_process?(obj)
+#     return track_stat(:skipped_empty_custid) && false if obj.custid.to_s.empty?
+#     return track_stat(:skipped_anonymous) && false if obj.anonymous?
+#     return track_stat(:skipped_empty_email) && false if obj.email.to_s.empty?
+#     true
+#   end
+#
+#   def build_update_fields(obj)
+#     {
+#       objid: obj.objid || SecureRandom.uuid_v7_from(obj.created),
+#       user_type: 'authenticated'
+#     }
+#   end
+# end

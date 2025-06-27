@@ -3,13 +3,10 @@
 require_relative 'base_migration'
 
 module Onetime
-  # Base class for migrations that operate on Familia::Horreum models
+  # Base class for individual record migrations on Familia::Horreum models
   #
-  # Provides standardized patterns for:
-  # - Redis SCAN-based iteration over model records
-  # - Progress tracking and reporting
-  # - Error handling and recovery
-  # - Dry-run/actual-run modes
+  # Provides Redis SCAN-based iteration with progress tracking, error handling,
+  # and dry-run/actual-run modes.
   #
   # Usage:
   #   class MyModelMigration < ModelMigration
@@ -24,37 +21,51 @@ module Onetime
   #       # Wrap updates in for_realsies_this_time? block
   #     end
   #   end
+  #
+  # RULE: Deploy schema changes and logic changes separately. This prevents
+  # new model logic from breaking migration logic. It can also be confusing.
+  #
   class ModelMigration < BaseMigration
     attr_reader :model_class, :batch_size, :total_records, :total_scanned,
-      :records_needing_update, :records_updated, :error_count, :interactive,
-      :scan_pattern, :redis_client
+      :records_needing_update, :records_updated, :error_count,
+      :interactive, :scan_pattern, :redis_client
 
     def initialize
       super
-
-      # Reset counters
-      @total_scanned          = 0
-      @records_needing_update = 0
-      @records_updated        = 0
-      @error_count            = 0
-
-      # These are meant to be set by subclasses
-      @batch_size   = 1000
-      @model_class  = nil
-      @scan_pattern = nil
-      @interactive  = false
-      @redis_client = nil
+      reset_counters
+      set_defaults
     end
 
-    # Override to set @model_class and optionally @batch_size
-    def prepare
-      raise NotImplementedError, "#{self.class} must set @model_class in #prepare"
+    # Main migration entry point
+    def migrate
+      validate_model_class!
+
+      # Set `@interactive = true` in the implementing migration class
+      # for an interactive debug session on a per-record basis.
+      require 'pry-byebug' if interactive
+
+      print_redis_details
+      run_mode_banner
+
+      info("[#{self.class.name.split('::').last}] Starting #{model_class.name} migration")
+      info("Processing up to #{total_records} records")
+      info('Will show progress every 100 records and log each update')
+
+      scan_and_process_records
+      print_redis_details
+      print_migration_summary
+
+      @error_count == 0
     end
 
-    # Process a single record. Must be implemented by subclasses.
-    # @param obj [Familia::Horreum] The model instance to process
-    def process_record(obj)
-      raise NotImplementedError, "#{self.class} must implement #process_record"
+    # Default: always migrate (override for conditional logic)
+    #
+    # Always return true to allow re-running for error recovery
+    # The migration is idempotent - it won't overwrite existing values
+    # Override if you need conditional migration logic
+    def migration_needed?
+      debug("[#{self.class.name.split('::').last}] Checking if migration is needed...")
+      true
     end
 
     # Loads a Familia::Horeum object instance from a redis key
@@ -75,58 +86,59 @@ module Onetime
       model_class.find_by_key(key)
     end
 
-    # Main migration implementation - handles the Redis SCAN loop
-    def migrate # rubocop:disable Naming/PredicateMethod
-      validate_model_class!
+    protected
 
-      # Set `@interactive = true` in the implementing migration class
-      # for an interactive debug session on a per-record basis.
-      require 'pry-byebug' if interactive
-
-      print_redis_details
-
-      run_mode_banner
-
-      info("[#{self.class.name.split('::').last}] Starting #{model_class.name} migration")
-      info("Processing up to #{total_records} records")
-      info('Will show progress every 100 records and log each update')
-
-      scan_and_process_records
-
-      # It's helpful to print this redis info again for migrations
-      # with lots of records.
-      print_redis_details
-
-      print_migration_summary
-
-      @error_count == 0
+    # Set @model_class and optionally @batch_size
+    def prepare
+      raise NotImplementedError, "#{self.class} must set @model_class in #prepare"
     end
 
-    # Default implementation - always returns true
-    # Always return true to allow re-running for error recovery
-    # The migration is idempotent - it won't overwrite existing values
-    # Override if you need conditional migration logic
-    def migration_needed?
-      info("[#{self.class.name.split('::').last}] Checking if migration is needed...")
-      true
+    # Process a single record (implement in subclass)
+    # @param obj [Familia::Horreum] The model instance to process
+    def process_record(obj)
+      raise NotImplementedError, "#{self.class} must implement #process_record"
+    end
+
+    # Override to track record updates automatically
+    def track_stat(key, increment = 1)
+      super
+      @records_updated += increment if key == :records_updated
+    end
+
+    def track_stat_and_log_reason(obj, decision, field)
+      track_stat(:decision)
+      track_stat("#{decision}_#{field}")
+      info("#{decision} objid=#{obj.objid} #{field}=#{obj.send(field)}")
     end
 
     private
 
-    def validate_model_class!
-      unless defined?(@model_class) && @model_class
-        raise 'Model class not set. Define @model_class in your #prepare method'
-      end
+    def reset_counters
+      @total_scanned          = 0
+      @records_needing_update = 0
+      @records_updated        = 0
+      @error_count            = 0
+    end
 
-      unless @model_class.respond_to?(:redis) && @model_class.respond_to?(:prefix)
-        raise 'Model class must be a Familia::Horreum subclass'
-      end
+    def set_defaults
+      @batch_size   = 1000
+      @model_class  = nil
+      @scan_pattern = nil
+      @interactive  = false
+      @redis_client = nil
+    end
+
+    def validate_model_class!
+      raise 'Model class not set. Define @model_class in your #prepare method' unless @model_class
+      raise 'Model class must be a Familia::Horreum subclass' unless familia_horreum_class?
 
       @total_records  = @model_class.values.size
       @redis_client ||= @model_class.redis
       @scan_pattern ||= "#{@model_class.prefix}:*:object"
+    end
 
-      nil
+    def familia_horreum_class?
+      @model_class.respond_to?(:redis) && @model_class.respond_to?(:prefix)
     end
 
     def scan_and_process_records
@@ -136,26 +148,24 @@ module Onetime
         cursor, keys    = @redis_client.scan(cursor, match: @scan_pattern, count: @batch_size)
         @total_scanned += keys.size
 
-        # Always show progress for first few batches, then every 100 records
-        if @total_scanned <= 500 || @total_scanned % 100 == 0
-          progress(@total_scanned, @total_records, "Scanning #{model_class.name.split('::').last} records")
-        end
-
-        # Show batch info for debugging
+        show_progress if should_show_progress?
         info("Processing batch of #{keys.size} keys...") unless keys.empty?
 
-        keys.each do |key|
-          process_single_record(key)
-        end
-
+        keys.each { |key| process_single_record(key) }
         break if cursor == '0'
       end
     end
 
-    def process_single_record(key)
-      # Load the model instance
+    def should_show_progress?
+      @total_scanned <= 500 || @total_scanned % 100 == 0
+    end
 
-      obj = load_from_key(key) # can be overridden by the actual migration
+    def show_progress
+      progress(@total_scanned, @total_records, "Scanning #{model_class.name.split('::').last} records")
+    end
+
+    def process_single_record(key)
+      obj = load_from_key(key)
 
       # Every record that gets processed is considered as needing update. The
       # idempotent operations in process_record determine whether changes are
@@ -165,9 +175,13 @@ module Onetime
       # Call the subclass implementation
       process_record(obj)
     rescue StandardError => ex
+      handle_record_error(key, ex)
+    end
+
+    def handle_record_error(key, ex)
       @error_count += 1
       error("Error processing #{key}: #{ex.message}")
-      debug("Stack trace: #{ex.backtrace.first(100).join('; ')}")
+      debug("Stack trace: #{ex.backtrace.first(10).join('; ')}")
       track_stat(:errors)
 
       binding.pry if interactive # rubocop:disable Lint/Debugger
@@ -180,33 +194,33 @@ module Onetime
         info("Records #{actual_run? ? 'updated' : 'that would be updated on actual run'}: #{@records_updated}")
         info("Errors encountered: #{@error_count}")
 
-        # Print any custom stats
-        if @stats.any?
-          info('')
-          info('Additional statistics:')
-          @stats.each do |key, value|
-            next if [:errors, :records_updated].include?(key)
-
-            info("  #{key}: #{value}")
-          end
-        end
-
-        if @error_count > 0
-          info('')
-          info('Check logs for error details')
-        end
-
-        if dry_run? && @records_needing_update > 0
-          info('')
-          info('Run with --run to apply these updates')
-        end
+        print_custom_stats
+        print_error_guidance
+        print_dry_run_guidance
       end
     end
 
-    # Override to track record updates automatically
-    def track_stat(key, increment = 1)
-      super
-      @records_updated += increment if key == :records_updated
+    def print_custom_stats
+      return unless @stats.any?
+
+      info('')
+      info('Additional statistics:')
+      @stats.each do |key, value|
+        next if [:errors, :records_updated].include?(key)
+
+        info("  #{key}: #{value}")
+      end
+    end
+
+    def print_error_guidance
+      info('', 'Check logs for error details') if @error_count > 0
+    end
+
+    def print_dry_run_guidance
+      return unless dry_run? && @records_needing_update > 0
+
+      info ''
+      info 'Run with --run to apply these updates'
     end
 
     def print_redis_details
@@ -216,29 +230,16 @@ module Onetime
         info("Scan pattern: #{@scan_pattern}")
         info("Total records (#{@model_class.name}.values.size): #{@total_records} (expected)")
         info("Batch size: #{@batch_size}")
-
-        # Test Redis connection
-        begin
-          @redis_client.ping
-          debug('Redis connection verified')
-        rescue StandardError => ex
-          error("Cannot connect to Redis: #{ex.message}")
-          raise ex
-        end
+        verify_redis_connection
       end
     end
 
-    protected
-
-    def track_stat_and_log_reason(obj, decision, field)
-      str = "#{decision} #{_format_record_str(obj, field)}"
-      track_stat(:decision)
-      track_stat("#{decision}_#{field}")
-      info(str)
-    end
-
-    def _format_record_str(obj, field)
-      "objid=#{obj.objid} #{field}=#{obj.send(field)}"
+    def verify_redis_connection
+      @redis_client.ping
+      debug('Redis connection verified')
+    rescue StandardError => ex
+      error("Cannot connect to Redis: #{ex.message}")
+      raise ex
     end
   end
 end

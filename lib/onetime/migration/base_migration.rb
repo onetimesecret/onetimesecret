@@ -13,9 +13,9 @@ require 'onetime/models'
 module Onetime
   # Base class for OneTimeSecret data migrations
   #
-  # Migrations are idempotent scripts that modify application data or configuration.
-  # Unlike traditional database migrations, these don't track execution state -
-  # instead they detect if changes are needed via migration_needed?.
+  # Idempotent scripts that modify application data or configuration.
+  # Unlike database migrations, these don't track execution state - instead
+  # they detect if changes are needed via migration_needed?.
   #
   # Usage:
   #   class MyMigration < BaseMigration
@@ -28,7 +28,7 @@ module Onetime
   #     end
   #   end
   #
-  # Run via CLI: `bin/ots migrate [--run] my_migration.rb`
+  # CLI: `bin/ots migrate [--run] my_migration.rb`
   class BaseMigration
     attr_accessor :options
     attr_reader :stats
@@ -38,7 +38,7 @@ module Onetime
       @stats   = Hash.new(0)  # Auto-incrementing counter for tracking migration stats
     end
 
-    # Main entry point - orchestrates the full migration process
+    # Main entry point - orchestrates full migration process
     # @param options [Hash] CLI options, typically { run: true/false }
     # @return [Boolean] true if migration completed successfully
     def self.run(options = {})
@@ -46,85 +46,65 @@ module Onetime
       migration.options = options
       migration.prepare
 
-      is_needed = migration.migration_needed?
-      migration.info ''
-      migration.info("Migration needed? #{is_needed}.")
-      unless is_needed
-        migration.info ''
-        migration.migration_not_needed_banner
-        return false
-      end
+      return migration.handle_migration_not_needed unless migration.migration_needed?
 
       migration.migrate
     end
 
-    # Hook for subclasses to initialize instance variables and validate preconditions
-    # Called before migration_needed? check
+    # Hook for subclass initialization and validation
     def prepare
       debug('Preparing migration - default implementation')
     end
 
-    # Perform the actual migration work
-    # Must be implemented by subclasses
+    # Perform actual migration work (implement in subclass)
     # @return [Boolean] true if migration succeeded
     def migrate
       raise NotImplementedError, "#{self.class} must implement #migrate"
     end
 
-    # Detect if this migration needs to run
-    # Should return false if migration has already been applied
-    # Must be implemented by subclasses
+    # Detect if migration needs to run (implement in subclass)
     # @return [Boolean] true if migration should proceed
     def migration_needed?
       raise NotImplementedError, "#{self.class} must implement #migration_needed?"
     end
 
     # === Run Mode Control ===
-    # Migrations support dry-run mode (default) and actual-run mode (--run flag)
 
-    # @return [Boolean] true if running in preview mode (no changes made)
     def dry_run?
       !options[:run]
     end
 
-    # @return [Boolean] true if changes will actually be applied
     def actual_run?
       options[:run]
     end
 
-    # Display banner indicating current run mode
     def run_mode_banner
       header("Running in #{dry_run? ? 'DRY RUN' : 'ACTUAL RUN'} mode")
-      info("#{dry_run? ? 'No changes will be made' : 'Changes WILL be applied to the database'}")
-      separator
+      info(dry_run? ? 'No changes will be made' : 'Changes WILL be applied to the database')
+      info(separator)
     end
 
-    # Execute block only if in actual run mode
-    # Use this to wrap destructive operations
+    # Execute block only in actual run mode
     # @yield Block to execute if in actual run mode
     # @return [Boolean] true if block was executed
     def for_realsies_this_time?
-      if actual_run?
-        yield
-        true
-      else
-        false
-      end
+      return false unless actual_run?
+
+      yield
+      true
     end
 
-    # Execute block only if in dry run mode.
-    # Use this to wrap additional logging that can be helpful to see
-    # prior to deciding to proceed with actual run mode.
+    # Execute block only in dry run mode
     def dry_run_only?
-      if dry_run?
-        yield
-        true
-      else
-        false
-      end
+      return false unless dry_run?
+
+      yield
+      true
     end
 
-    # Increment a named counter for migration statistics
+    # === Statistics Tracking ===
+
+    # Increment named counter for migration statistics
     # @param key [Symbol] stat name to increment
     # @param increment [Integer] amount to add (default 1)
     def track_stat(key, increment = 1)
@@ -132,71 +112,54 @@ module Onetime
       nil
     end
 
-    # === Logging Methods ===
-    # Consistent output formatting for migration scripts
+    # === Logging Interface ===
 
-    # Print prominent header message
-    # @param message [String] text to display as header
     def header(message)
-      OT.li(message.upcase)
+      info ''
+      info separator
+      info( message.upcase)
     end
 
-    # Show progress for long-running operations
-    # @param current [Integer] current item number
-    # @param total [Integer] total items to process
-    # @param message [String] operation description
-    # @param step [Integer] how often to show progress (every N items)
-    def progress(current, total, message = 'Processing', step = 100)
-      if current % step == 0 || current == total
-        OT.li "#{message} #{current}/#{total}..."
-      end
+    def info(*)
+      OT.li(*)
     end
 
-    # Display final migration summary
-    # Yields to block for custom summary content
-    def print_summary(title=nil)
-      OT.li separator
-      if dry_run?
-        header(title || 'DRY RUN SUMMARY')
-        yield(:dry_run) if block_given?
-        info('To make actual changes, run with the --run option')
-      else
-        header(title || 'ACTUAL RUN SUMMARY')
-        yield(:actual_run) if block_given?
-      end
+    def debug(*)
+      OT.ld(*)
     end
 
-    def migration_not_needed_banner
-      info 'This usually means that the migration has already been applied.'
+    def warn(*)
+      OT.lw(*)
     end
 
-    # Print informational message
-    # @param message [String] text to display
-    def info(message)
-      OT.li(message)
+    def error(*)
+      OT.le(*)
     end
 
-    # Print debug message (only shown in debug mode)
-    # @param message [String] text to display
-    def debug(message)
-      OT.ld(message)
-    end
-
-    # Print warning message
-    # @param message [String] text to display
-    def warn(message)
-      OT.lw(message)
-    end
-
-    # Add a visual separator line
     def separator
       '-' * 60
     end
 
-    # Standard error logging for migrations
-    # @param message [String] error description
-    def error(message)
-      OT.le(message)
+    # Progress indicator for long operations
+    # @param current [Integer] current item number
+    # @param total [Integer] total items to process
+    # @param message [String] operation description
+    # @param step [Integer] progress reporting frequency
+    def progress(current, total, message = 'Processing', step = 100)
+      return unless current % step == 0 || current == total
+
+      OT.li "#{message} #{current}/#{total}..."
+    end
+
+    # Display migration summary with custom content block
+    def print_summary(title = nil)
+      if dry_run?
+        header(title || 'DRY RUN SUMMARY')
+        yield(:dry_run) if block_given?
+      else
+        header(title || 'ACTUAL RUN SUMMARY')
+        yield(:actual_run) if block_given?
+      end
     end
 
     protected
@@ -207,5 +170,14 @@ module Onetime
       @redis ||= Familia.redis(6)
     end
 
+    private
+
+    def handle_migration_not_needed
+      info('')
+      info('Migration needed? false.')
+      info('')
+      info('This usually means that the migration has already been applied.')
+      nil
+    end
   end
 end
