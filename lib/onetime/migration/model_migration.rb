@@ -15,7 +15,7 @@ module Onetime
   #       @batch_size = 1000  # optional, defaults to 1000
   #     end
   #
-  #     def process_record(obj)
+  #     def process_record(obj, key)
   #       # Implement record processing logic
   #       # Use track_stat() to count operations
   #       # Wrap updates in for_realsies_this_time? block
@@ -94,21 +94,29 @@ module Onetime
     end
 
     # Process a single record (implement in subclass)
-    # @param obj [Familia::Horreum] The model instance to process
-    def process_record(obj)
+    # @param obj [Familia::Horreum, Familia::RedisType] The familia class
+    # instance to process
+    # @param key [String] The redis key of the record
+    def process_record(obj, key)
       raise NotImplementedError, "#{self.class} must implement #process_record"
     end
 
-    # Override to track record updates automatically
-    def track_stat(key, increment = 1)
+    # Call this to track a stat or count record updates automatically
+    #
+    # @param statname [Symbol] The name of the statistic to track (can be anything)
+    # @param increment [Integer] The amount to increment the statistic by
+    def track_stat(statname, increment = 1)
       super
-      @records_updated += increment if key == :records_updated
+      @records_updated += increment if statname == :records_updated
     end
 
+    # A convenience method to track a stat and log a reason for the decision
+    # in one line.
     def track_stat_and_log_reason(obj, decision, field)
       track_stat(:decision)
       track_stat("#{decision}_#{field}")
       info("#{decision} objid=#{obj.objid} #{field}=#{obj.send(field)}")
+      nil
     end
 
     private
@@ -135,6 +143,7 @@ module Onetime
       @total_records  = @model_class.values.size
       @redis_client ||= @model_class.redis
       @scan_pattern ||= "#{@model_class.prefix}:*:object"
+      nil
     end
 
     def familia_horreum_class?
@@ -173,7 +182,8 @@ module Onetime
       @records_needing_update += 1
 
       # Call the subclass implementation
-      process_record(obj)
+      process_record(obj, key)
+
     rescue StandardError => ex
       handle_record_error(key, ex)
     end
