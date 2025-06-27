@@ -30,7 +30,7 @@ module V1
       if group_idx >= values.size || group_idx < 0
         raise RuntimeError, "group_idx must be within the range of available groups"
       end
-      counter_key = Familia.join :counter, OT.now.quantize(1.day).to_i, group_idx
+      counter_key = Familia.join :counter, self.class.quantize(OT.now, 1.day).to_i, group_idx
       increment counter_key
       group_values group_idx
     end
@@ -51,6 +51,12 @@ module V1
 
     module ClassMethods
       attr_reader :tests
+
+      def quantize(stamp, quantum)
+        stamp = is_a?(Integer) ? stamp : stamp.to_i
+        stamp - (stamp % quantum)
+      end
+
       def from_config conf
         conf ||= {}
         conf.each_pair do |name,groups|
