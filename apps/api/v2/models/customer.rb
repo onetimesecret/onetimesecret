@@ -127,8 +127,11 @@ module V2
     ].freeze
 
     def init
-      # Default to anonymous state
+      # Default to anonymous state. That way we're always explicitly
+      # setting the role when it needs to be set.
       #
+      # Previously we used custid=anon and all it would do is prevent
+      # the record from being saved.
       self.user_type   ||= 'anonymous'
       self.role        ||= 'customer'
 
@@ -141,10 +144,6 @@ module V2
       if !anonymous? && custid.to_s.empty? && !email.to_s.empty?
         self.custid = email
       end
-
-      # We use user_type now but leaving this behaviour untouched until
-      # we remove the custid field altogether to avoid unexpected behavior.
-      self.custid      ||= 'anon'
 
       self.objid       ||= self.class.generate_objid
       self.extid       ||= derive_extid
