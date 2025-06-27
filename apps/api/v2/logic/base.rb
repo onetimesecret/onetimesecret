@@ -5,8 +5,11 @@ require 'timeout'
 
 require 'onetime/refinements/rack_refinements'
 require 'onetime/refinements/stripe_refinements'
+require 'onetime/refinements/time_extensions'
 
 require_relative 'helpers'
+
+using Onetime::TimeExtensions
 
 module V2
   module Logic

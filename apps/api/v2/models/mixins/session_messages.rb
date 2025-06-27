@@ -1,7 +1,11 @@
 # apps/api/v2/models/mixins/session_messages.rb
 
 require 'json'
+
 require 'onetime/refinements/indifferent_hash_access'
+require 'onetime/refinements/time_extensions'
+
+using Onetime::TimeExtensions
 
 module V2
   module Mixins
