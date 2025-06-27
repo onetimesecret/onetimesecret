@@ -24,7 +24,7 @@ module Onetime
 
     def prepare
       @model_class = V2::Customer
-      @batch_size = 1000
+      @batch_size  = 1000
 
       # @interactive = true
     end
@@ -37,14 +37,14 @@ module Onetime
       return track_stat(:skipped_tryouts_test_record) if obj.email.to_s.start_with?('tryouts+')
       return track_stat(:skipped_empty_created) if obj.created.to_s.empty?
 
-      obj.objid = obj.objid || SecureRandom.uuid_v7_from(obj.created)
-      obj.extid = obj.extid || OT::Utils.secure_shorten_id(Digest::SHA256.hexdigest(obj.objid))
+      obj.objid     = obj.objid || SecureRandom.uuid_v7_from(obj.created)
+      obj.extid     = obj.extid || OT::Utils.secure_shorten_id(Digest::SHA256.hexdigest(obj.objid))
       # Force them all to be user_type=authenticated. If not set, it can be saved
       # as anonymous which then triggers the guard above as well as an error when
       # trying to call obj.save.
       obj.user_type = 'authenticated'
 
-      info "[process_record] objid:#{obj.objid} extid: #{obj.extid} custid=#{obj.custid} role=#{obj.role}"
+      # info "[process_record] objid:#{obj.objid} extid: #{obj.extid} custid=#{obj.custid} role=#{obj.role}"
       track_stat(:records_updated)
 
       for_realsies_this_time? do
