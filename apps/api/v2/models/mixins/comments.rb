@@ -12,7 +12,11 @@ module V2
       end
 
       def add_comment(comment)
-        comments.push(comment)
+        comments.add(OT.now.to_i, comment)
+      end
+
+      def notes
+        comments.rangeraw(0, -1, withscores: true)
       end
     end
   end

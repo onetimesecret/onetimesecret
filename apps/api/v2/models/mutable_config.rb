@@ -350,6 +350,9 @@ module V2
       end
     end
 
+    require_relative 'mixins/comments'
+    include V2::Mixins::ModelComments
+
     extend ClassMethods
   end
 end
