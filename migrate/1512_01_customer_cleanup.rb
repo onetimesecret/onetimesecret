@@ -22,16 +22,16 @@ module Onetime
     end
 
     # Override to handle deletions instead of field updates
-    def process_batch(objects)
-      objects.each do |obj, key|
-        next unless should_process?(obj)
+    def execute_update(pipe, obj, fields, original_key = nil)
+      # Use original_key for records that can't generate valid keys
+      redis_key = original_key || obj.rediskey
 
-        info "Deleting record #{key}"
-        for_realsies_this_time? do
-          redis_client.del key
-        end
+      for_realsies_this_time? do
+        pipe.del redis_key
+      end
 
-        track_stat(:records_updated)
+      dry_run_only? do
+        debug("Would update #{obj.class.name.split('::').last}: #{fields}")
       end
     end
 

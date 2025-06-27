@@ -26,7 +26,6 @@ module Onetime
   #     end
   #   end
   class PipelineMigration < ModelMigration
-
     # Main batch processor - executes Redis operations in pipeline
     #
     # @param objects [Array<Array>] Array of tuples: [obj, original_redis_key]
@@ -39,14 +38,22 @@ module Onetime
           next unless should_process?(obj)
 
           fields = build_update_fields(obj)
-          next unless fields&.any?
+
+          # Previously we skipped here when the migration returned no fields
+          # to update. We're not always here to update though. Sometimes we
+          # delete or update expirations of do other stuff. If we skip ahead
+          # here, we never get to the execute_update method which migrations
+          # can override to do whatever they want.
+          #
+          # Now, we simply return inside the default execute_update. The end
+          # result is the same but it gives us the opportunity to perform
+          # additional operations on the record.
 
           execute_update(pipe, obj, fields, original_key)
           track_stat(:records_updated)
         end
       end
     end
-
 
     # Override scanning to collect batches instead of individual processing
     private
@@ -85,14 +92,22 @@ module Onetime
     end
 
     def execute_update(pipe, obj, fields, original_key = nil)
+      klass_name = obj.class.name.split('::').last
+
+      unless fields&.any?
+        return debug("Would skip #{klass_name} b/c empty fields (#{original_key})")
+      end
+
       # Use original_key for records that can't generate valid keys
       redis_key = original_key || obj.rediskey
 
       for_realsies_this_time? do
+        # USE THE PIPELINE AND NOT THE regular redis connection.
         pipe.hmset(redis_key, fields.flatten)
       end
+
       dry_run_only? do
-        debug("Would update #{obj.class.name.split('::').last}: #{fields}")
+        debug("Would update #{klass_name}: #{fields}")
       end
     end
 
