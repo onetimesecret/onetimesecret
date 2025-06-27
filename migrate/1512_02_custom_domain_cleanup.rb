@@ -1,18 +1,14 @@
-# migrate/1512_customer_cleanup.rb
+# migrate/1512_02_custom_domain_cleanup.rb
 #
-# Customer Cleanup - Remove anonymous, known test users
+# Custom Domain Cleanup - Remove test user domains
 #
-# Purpose: Removes Custom records based on the following criteria
-# - custid: is empty, anon, or matches "Tryouts*onetimesecret.com" -> remove
-# - email: is empty or matches "Tryouts*onetimesecret.com" -> remove
-# - role: missing -> 'customer'
+# Purpose: Removes custom domain records for test users:
+# - Domains matching "tryouts*onetimesecret.com" pattern -> remove
+# - Verifies no related customer object exists before deletion
 #
 # Usage:
-#   bin/ots migrate 1512_customer_cleanup.rb # Preview changes
-#   bin/ots migrate --run 1512_customer_cleanup.rb
-#
-#   ruby -I./lib migrate/1512_customer_cleanup.rb --dry-run  # Preview changes
-#   ruby -I./lib migrate/1512_customer_cleanup.rb --run
+#   bin/ots migrate 1512_02_custom_domain_cleanup.rb # Preview changes
+#   bin/ots migrate --run 1512_02_custom_domain_cleanup.rb
 #
 
 require 'onetime/migration'
@@ -20,45 +16,59 @@ require 'onetime/migration'
 module Onetime
   class Migration < ModelMigration
     def prepare
-      @model_class  = V2::Customer
-      @batch_size   = 1000
+      @model_class = V2::Customer
+      @batch_size = 1000
       @scan_pattern = "#{@model_class.prefix}:*:custom_domain"
-      # @interactive = true
-      # There's a bug in Familia, where the Familia::SortedSet uses the
-      # Familia.redis instance instead of the one passed in on instantiation.
+
+      # Workaround: Familia::SortedSet ignores redis parameter, uses Familia.redis
       Familia.redis(6)
     end
 
     def load_from_key(key)
-      # Replaces everything after the last colon with :object
-      @related_key = key.sub(/:[^:]*$/, ':object')
-      Familia::SortedSet.new(key, redis: redis_client) # see note in prepare method
+      # Store related object key for safety checking
+      @related_object_key = key.sub(/:[^:]*$/, ':object')
+
+      # Load the custom domain SortedSet
+      Familia::SortedSet.new(key, redis: redis_client)
     end
 
-    def process_record(obj)
-      # Only process records where should_remove is true
-      should_remove = false
+    def process_record(custom_domain_set)
+      return unless should_remove_domain?(custom_domain_set)
 
-      # Check custid: empty, anon, or matches tryouts pattern
-      if obj.rediskey.to_s.match?(/tryouts.*onetimesecret\.com/i)
-        should_remove = true
-        track_stat(:should_remove_test_custid)
-      end
-
-      return unless should_remove
-
+      verify_no_related_object
+      delete_custom_domain(custom_domain_set)
       track_stat(:records_updated)
+    end
 
-      ret = redis_client.exists?(@related_key)
-      info("Double checking that there is no related object: #{@related_key} (#{ret})")
+    private
 
+    def should_remove_domain?(custom_domain_set)
+      if test_domain_pattern?(custom_domain_set.rediskey)
+        track_stat(:should_remove_test_domain)
+        info("Found test domain: #{custom_domain_set.rediskey}")
+        true
+      else
+        false
+      end
+    end
+
+    def test_domain_pattern?(redis_key)
+      redis_key.to_s.match?(/tryouts.*onetimesecret\.com/i)
+    end
+
+    def verify_no_related_object
+      exists = redis_client.exists?(@related_object_key)
+      info("Verifying no related customer object: #{@related_object_key} (exists: #{exists})")
+    end
+
+    def delete_custom_domain(custom_domain_set)
       for_realsies_this_time? do
-        ret = obj.delete!
-        info("Deleting #{obj.class} (ret: #{ret}): #{obj.rediskey} from #{obj.redis.connection}")
+        result = custom_domain_set.delete!
+        info("Deleted custom domain (result: #{result}): #{custom_domain_set.rediskey}")
       end
 
       dry_run_only? do
-        info("Dry run: #{obj.rediskey} from #{obj.redis.connection}")
+        info("Would delete: #{custom_domain_set.rediskey}")
       end
     end
   end
