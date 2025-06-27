@@ -61,7 +61,7 @@ const RATE_LIMIT_KEYS = [
   'check_status',
   'report_exception',
   'update_branding',
-  'update_mutable_settings',
+  'update_mutable_config',
   'view_colonel',
   'external_redirect',
 

@@ -307,6 +307,20 @@
                 "connection_attempts": {
                   "type": "number"
                 },
+                "validation_type_for": {
+                  "type": "object",
+                  "propertyNames": {
+                    "type": "string"
+                  },
+                  "additionalProperties": {
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {}
+                    ]
+                  }
+                },
                 "allowed_domains_only": {
                   "type": "boolean"
                 },
@@ -560,9 +574,6 @@
           "additionalProperties": false
         }
       },
-      "required": [
-        "stathat"
-      ],
       "additionalProperties": false
     },
     "limits": {
@@ -664,7 +675,7 @@
         "update_branding": {
           "type": "number"
         },
-        "update_mutable_settings": {
+        "update_mutable_config": {
           "type": "number"
         },
         "view_colonel": {

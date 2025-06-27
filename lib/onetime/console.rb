@@ -63,21 +63,36 @@ if defined?(IRB)
   IRB.conf[:ECHO]             = true
   IRB.conf[:HISTORY_FILE]     = nil if IRB.conf[:HISTORY_FILE].nil?
   IRB.conf[:IGNORE_EOF]       = false
-  IRB.conf[:SAVE_HISTORY]     = 0 if IRB.conf[:SAVE_HISTORY].nil?
   IRB.conf[:USE_PAGER]        = true if IRB.conf[:USE_PAGER].nil?
+
+  # History must be enabled explicitly
+  #
+  # Either no RC file, or SAVE_HISTORY unchanged from default, so we err
+  # on the side of caution and disable history saving altogether.
+  if IRB.conf[:SAVE_HISTORY].nil? || IRB.conf[:SAVE_HISTORY].eql?(1000)
+    IRB.conf[:SAVE_HISTORY] = 0
+  end
 end
 
 # IRB.conf[:RC] indicates whether an RC file (.irbrc) was
 # loaded during IRB initialization
 # Configuration and Constants
-CONTENT_WIDTH = 59
-SPACING       = 8
+CONTENT_WIDTH = 61
 
 # System status checks
 def system_status
+  history_status = case IRB.conf[:SAVE_HISTORY]
+                   when 0
+                     'DISABLED'
+                   when 1..10
+                     "LIMITED (#{IRB.conf[:SAVE_HISTORY]})"
+                   else
+                     "ENABLED (#{IRB.conf[:SAVE_HISTORY]})"
+                   end
+
   {
     settings: IRB.conf[:RC].nil? ? 'DEFAULT' : 'ACTIVE',
-    history: IRB.conf[:SAVE_HISTORY] > 0 ? 'ENABLED' : 'DISABLED',
+    history: history_status,
     pager: IRB.conf[:USE_PAGER] ? 'ENABLED' : 'DISABLED',
   }
 end
@@ -105,8 +120,10 @@ def status_table(status_data)
   table = ["┌#{'─' * (CONTENT_WIDTH + 2)}┐"]
 
   status_data.each do |label, value|
-    label_width = CONTENT_WIDTH - SPACING
-    table << (format("│ %-#{label_width}s%#{SPACING}s │", "#{label.upcase}:", value))
+    label_text  = "#{label.upcase}:"
+    # Calculate remaining space for value, accounting for borders and one space
+    value_width = CONTENT_WIDTH - label_text.length
+    table << "│ #{label_text}#{value.to_s.rjust(value_width)} │"
   end
 
   table << "└#{'─' * (CONTENT_WIDTH + 2)}┘"
@@ -114,7 +131,11 @@ def status_table(status_data)
 end
 
 def display_system_status
-  puts "\n  SYSTEM STATUS: #{boot_status.ljust(15)}\n"
+  puts <<~INSTRUCTIONS
+
+    SYSTEM STATUS: #{boot_status.ljust(15)}
+
+  INSTRUCTIONS
 end
 
 # Main execution

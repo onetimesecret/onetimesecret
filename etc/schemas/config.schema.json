@@ -325,9 +325,6 @@
           "additionalProperties": false
         }
       },
-      "required": [
-        "stathat"
-      ],
       "additionalProperties": false
     },
     "capabilities": {
@@ -462,6 +459,20 @@
                 },
                 "connection_attempts": {
                   "type": "number"
+                },
+                "validation_type_for": {
+                  "type": "object",
+                  "propertyNames": {
+                    "type": "string"
+                  },
+                  "additionalProperties": {
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {}
+                    ]
+                  }
                 },
                 "allowed_domains_only": {
                   "type": "boolean"

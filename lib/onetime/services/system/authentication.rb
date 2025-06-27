@@ -29,7 +29,7 @@ module Onetime
         #
         # @param config [Hash] Application configuration
         def start(config)
-          log('Configuring authentication settings...')
+          debug('Configuring authentication settings...')
 
           site_config  = config.fetch(:site, {})
           @auth_config = site_config.fetch(:authentication, {})
@@ -69,22 +69,22 @@ module Onetime
         def validate_auth_config
           # Warn if no colonels are configured
           if @colonels.empty?
-            log('Warning: No colonels (admin users) configured')
+            warn('Warning: No colonels (admin users) configured')
           else
             debug("Configured colonels: #{@colonels.join(', ')}")
           end
 
           # Validate authentication settings consistency
           if authentication_enabled? && @auth_config.empty?
-            log('Warning: Authentication enabled but no configuration provided')
+            warn('Warning: Authentication enabled but no configuration provided')
           end
         end
 
         def log_auth_status
           if authentication_enabled?
-            log("Authentication enabled with #{@colonels.size} colonel(s)")
+            debug("Authentication enabled with #{@colonels.size} colonel(s)")
           else
-            log('Authentication disabled')
+            debug('Authentication disabled')
           end
         end
 

@@ -53,7 +53,7 @@ module Onetime
       end
 
       def info_log(path)
-        info "Running #{section_key} script"
+        debug "Running #{section_key} script"
         pretty_path = Onetime::Utils.pretty_path(path)
         debug "Script path: #{pretty_path}"
         debug "Instance: #{instance}, Mode: #{mode}, Connect to DB: #{connect_to_db?}"
@@ -61,6 +61,10 @@ module Onetime
 
       def info(message)
         OT.li "[BOOT:#{section_key}] #{message}"
+      end
+
+      def warn(message)
+        OT.lw "[BOOT:#{section_key}] #{message}"
       end
 
       def debug(message)
