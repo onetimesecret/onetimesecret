@@ -53,7 +53,7 @@ module V1
       attr_reader :tests
 
       def quantize(stamp, quantum)
-        stamp = is_a?(Integer) ? stamp : stamp.to_i
+        stamp = stamp.is_a?(Integer) ? stamp : stamp.to_i
         stamp - (stamp % quantum)
       end
 
