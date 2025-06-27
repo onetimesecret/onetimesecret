@@ -3,16 +3,16 @@
 require_relative '../../spec_helper'
 require 'onetime/refinements/then_with_diff'
 
-RSpec.describe IndifferentHashAccess
+RSpec.describe Onetime::IndifferentHashAccess
 
-RSpec.describe ThenWithDiff, :allow_redis do
+RSpec.describe Onetime::ThenWithDiff, :allow_redis do
   # Use the refinement within this test scope
   using Onetime::ThenWithDiff
 
   before(:each) do
     # Clear history before each test to ensure clean state
     begin
-      ThenWithDiff.history.clear
+      Onetime::ThenWithDiff.history.clear
     rescue => e
       # If Redis isn't available, create a mock history for testing
       mock_history = double('mock_history')
@@ -22,7 +22,7 @@ RSpec.describe ThenWithDiff, :allow_redis do
       allow(mock_history).to receive(:size).and_return(0)
       allow(mock_history).to receive(:members).and_return([])
       allow(mock_history).to receive(:remrangebyscore)
-      allow(ThenWithDiff).to receive(:history).and_return(mock_history)
+      allow(Onetime::ThenWithDiff).to receive(:history).and_return(mock_history)
     end
   end
 
@@ -33,14 +33,14 @@ RSpec.describe ThenWithDiff, :allow_redis do
         .then_with_diff('add cache') { |c| c.merge(cache: 'redis') }
 
       expect(config).to eq({ env: 'dev', db: 'postgres', cache: 'redis' })
-      expect(ThenWithDiff.history.size).to eq(2)
+      expect(Onetime::ThenWithDiff.history.size).to eq(2)
     end
 
     it 'stores diff records with correct structure' do
       { name: 'test' }
         .then_with_diff('add email') { |c| c.merge(email: 'test@example.com') }
 
-      record_json = ThenWithDiff.history.last
+      record_json = Onetime::ThenWithDiff.history.last
       record = JSON.parse(record_json)
 
       expect(record).to have_key('step_name')
@@ -57,7 +57,7 @@ RSpec.describe ThenWithDiff, :allow_redis do
         .then_with_diff('increment') { |c| c.merge(count: 2) }
         .then_with_diff('add name') { |c| c.merge(name: 'test') }
 
-      records = ThenWithDiff.history.members.map { |json| JSON.parse(json) }
+      records = Onetime::ThenWithDiff.history.members.map { |json| JSON.parse(json) }
 
       # Records are returned in sorted order, so we need to find them by step name
       increment_record = records.find { |r| r['step_name'] == 'increment' }
@@ -98,12 +98,12 @@ RSpec.describe ThenWithDiff, :allow_redis do
   context 'cleanup and memory management' do
     it 'removes old records beyond 14 days' do
       # Skip this test if using mock history (no Redis cleanup possible)
-      skip "Cleanup test requires real Redis" unless ThenWithDiff.history.respond_to?(:remrangebyscore)
+      skip "Cleanup test requires real Redis" unless Onetime::ThenWithDiff.history.respond_to?(:remrangebyscore)
 
       # Just verify that cleanup doesn't crash
       { test: true }.then_with_diff('cleanup test') { |c| c.merge(processed: true) }
 
-      expect(ThenWithDiff.history.size).to be >= 1
+      expect(Onetime::ThenWithDiff.history.size).to be >= 1
     end
   end
 
@@ -137,7 +137,7 @@ RSpec.describe ThenWithDiff, :allow_redis do
       end
 
       # History should contain records from all threads (20 records total)
-      expect(ThenWithDiff.history.size).to be >= 20
+      expect(Onetime::ThenWithDiff.history.size).to be >= 20
     end
 
     it 'maintains data integrity under concurrent modifications' do
@@ -160,7 +160,7 @@ RSpec.describe ThenWithDiff, :allow_redis do
 
       # While the final count might not be exactly 50 due to race conditions
       # in the shared_counter updates, the history should be complete
-      records = ThenWithDiff.history.members
+      records = Onetime::ThenWithDiff.history.members
       expect(records.size).to eq(50) # 5 threads * 10 increments each
     end
 
@@ -177,7 +177,7 @@ RSpec.describe ThenWithDiff, :allow_redis do
       threads.each(&:join)
 
       # All records should be present and valid JSON
-      records = ThenWithDiff.history.members
+      records = Onetime::ThenWithDiff.history.members
       expect(records.size).to eq(20)
 
       # Every record should be valid JSON
@@ -201,7 +201,7 @@ RSpec.describe ThenWithDiff, :allow_redis do
           .then_with_diff("rapid_#{i}") { |c| c.merge(processed: true) }
       end
 
-      records = ThenWithDiff.history.members
+      records = Onetime::ThenWithDiff.history.members
       expect(records.size).to eq(100)
 
       # Verify ordering is maintained (sorted set should keep chronological order)
@@ -216,7 +216,7 @@ RSpec.describe ThenWithDiff, :allow_redis do
       result = {}.then_with_diff('add first') { |c| c.merge(first: true) }
 
       expect(result).to eq({ first: true })
-      expect(ThenWithDiff.history.size).to eq(1)
+      expect(Onetime::ThenWithDiff.history.size).to eq(1)
     end
 
     it 'handles nil transformations gracefully' do
@@ -228,7 +228,7 @@ RSpec.describe ThenWithDiff, :allow_redis do
 
       expect(result).to eq({ value: 1 })
 
-      records = ThenWithDiff.history.members.map { |json| JSON.parse(json) }
+      records = Onetime::ThenWithDiff.history.members.map { |json| JSON.parse(json) }
       last_record = records.last
       expect(last_record['diff']).to be_empty # No changes detected between identical states
     end
@@ -261,7 +261,7 @@ RSpec.describe ThenWithDiff, :allow_redis do
 
       expect(result['users'][0]['profile']['settings']['theme']).to eq('light')
 
-      record = JSON.parse(ThenWithDiff.history.last)
+      record = JSON.parse(Onetime::ThenWithDiff.history.last)
       # The diff should show the theme change somewhere in the structure
       expect(record['diff']).not_to be_empty
     end
