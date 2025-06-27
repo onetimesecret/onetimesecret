@@ -1,4 +1,4 @@
-# migrate/1512_customer_cleanup_pipeline.rb
+# migrate/1512_00_customer_objid.rb
 #
 # Customer Object ID and User Type Migration - Pipeline
 #
