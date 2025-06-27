@@ -211,7 +211,7 @@ module Onetime
     end
 
     def load_with_impunity!(&)
-      config = self.class.find_config(file_basename)
+      config = config_path
         .then { |path| read_template_file(path) }
         .then { |template| render_erb_template(template) }
         .then { |yaml_content| parse_yaml(yaml_content) }
