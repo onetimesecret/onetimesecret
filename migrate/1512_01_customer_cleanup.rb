@@ -31,7 +31,7 @@ module Onetime
       end
 
       dry_run_only? do
-        debug("Would update #{obj.class.name.split('::').last}: #{fields}")
+        debug("Would update #{@model_class}: #{fields}")
       end
     end
 
@@ -63,7 +63,7 @@ module Onetime
 
     def build_update_fields(*)
       # Not used for deletion migration. Instead this migration
-      # defines its own process_batch.
+      # defines its own execute_update.
       {}
     end
 
