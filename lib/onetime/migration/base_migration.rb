@@ -129,6 +129,7 @@ module Onetime
     # @param increment [Integer] amount to add (default 1)
     def track_stat(key, increment = 1)
       @stats[key] += increment
+      nil
     end
 
     # === Logging Methods ===
