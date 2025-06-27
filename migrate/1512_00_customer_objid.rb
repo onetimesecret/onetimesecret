@@ -28,8 +28,8 @@ module Onetime
     end
 
     def should_process?(obj)
+      obj.user_type = 'authenticated'
       return track_stat(:skipped_empty_custid) if obj.custid.to_s.empty?
-      return track_stat(:skipped_anonymous) if obj.anonymous?
       return track_stat(:skipped_empty_email) if obj.email.to_s.empty?
       return track_stat(:skipped_user_deleted_self) if obj.user_deleted_self?
       return track_stat(:skipped_tryouts_test_record) if obj.email.to_s.start_with?('tryouts+')
