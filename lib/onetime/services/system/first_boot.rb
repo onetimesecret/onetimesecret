@@ -20,7 +20,7 @@ module Onetime
       # still need to upgrade. Or after a sufficiently long time.
       class FirstBoot < ServiceProvider
         @base_path                     = OT::HOME.freeze
-        @mutable_config_defaults_path = File.join(@base_path, 'etc', 'mutable_config.yaml').freeze
+        @mutable_config_defaults_path = File.join(@base_path, 'etc', 'mutable.yaml').freeze
 
         class << self
           attr_reader :base_path, :mutable_config_defaults_path
@@ -99,17 +99,16 @@ module Onetime
         def create_initial_mutable_config(_config)
           OT.ld '[BOOT.first_boot] Creating initial mutable config from YAML...'
 
-          path             = self.class.mutable_config_defaults_path
-          default_settings = OT::Configurator.load_with_impunity!(path)
+          path                   = self.class.mutable_config_defaults_path
 
-          raise 'Missing required settings' if (default_settings || {}).empty?
+          config                 = OT::Configurator.new(config_path: path)
+          default_mutable_config = config.load_with_impunity!
 
-          # mutable_config_data           = V2::MutableConfig.extract_mutable_config(OT.conf)
-          default_settings[:comment] = "Initial configuration via #{path}"
-          default_settings[:custid]  = nil # No customer owner for initial config
+          raise 'Missing required settings' if (default_mutable_config || {}).empty?
 
-          new_config = V2::MutableConfig.create(**default_settings)
-          OT.ld "[BOOT.first_boot] Created initial mutable config: #{new_config.rediskey}"
+          new_config = V2::MutableConfig.create(**default_mutable_config)
+          OT.li "[BOOT.first_boot] Created initial mutable config: #{new_config.rediskey}"
+          new_config.add_comment("Initial configuration via #{path} by first_boot")
         end
 
       end
