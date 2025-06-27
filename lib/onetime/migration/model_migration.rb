@@ -56,6 +56,8 @@ module Onetime
       # for an interactive debug session on a per-record basis.
       require 'pry-byebug' if interactive
 
+      print_redis_details
+
       run_mode_banner
 
       info("[#{self.class.name.split('::').last}] Starting #{model_class.name} migration")
@@ -63,6 +65,10 @@ module Onetime
       info('Will show progress every 100 records and log each update')
 
       scan_and_process_records
+
+      # It's helpful to print this redis info again for migrations
+      # with lots of records.
+      print_redis_details
 
       print_migration_summary
 
@@ -143,11 +149,10 @@ module Onetime
 
       # Call the subclass implementation
       process_record(obj)
-
     rescue StandardError => ex
       @error_count += 1
       error("Error processing #{key}: #{ex.message}")
-      debug("Stack trace: #{ex.backtrace.first(3).join('; ')}")
+      debug("Stack trace: #{ex.backtrace.first(100).join('; ')}")
       track_stat(:errors)
 
       binding.pry if interactive # rubocop:disable Lint/Debugger
@@ -187,6 +192,25 @@ module Onetime
     def track_stat(key, increment = 1)
       super
       @records_updated += increment if key == :records_updated
+    end
+
+    def print_redis_details
+      print_summary('Redis Details') do
+        info("Model class: #{@model_class.name}")
+        info("Redis connection: #{@redis_client.connection[:id]}")
+        info("Scan pattern: #{@scan_pattern}")
+        info("Total records (#{@model_class.name}.values.size): #{@total_records} (expected)")
+        info("Batch size: #{@batch_size}")
+
+        # Test Redis connection
+        begin
+          @redis_client.ping
+          debug('Redis connection verified')
+        rescue StandardError => ex
+          error("Cannot connect to Redis: #{ex.message}")
+          raise ex
+        end
+      end
     end
 
     protected

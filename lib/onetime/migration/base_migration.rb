@@ -153,14 +153,14 @@ module Onetime
 
     # Display final migration summary
     # Yields to block for custom summary content
-    def print_summary
+    def print_summary(title=nil)
       OT.li separator
       if dry_run?
-        header('DRY RUN SUMMARY')
+        header(title || 'DRY RUN SUMMARY')
         yield(:dry_run) if block_given?
         info('To make actual changes, run with the --run option')
       else
-        header('ACTUAL RUN SUMMARY')
+        header(title || 'ACTUAL RUN SUMMARY')
         yield(:actual_run) if block_given?
       end
     end
