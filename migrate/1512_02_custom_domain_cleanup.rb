@@ -20,51 +20,47 @@ require 'onetime/migration'
 module Onetime
   class Migration < ModelMigration
     def prepare
-      @model_class = V2::Customer
-      @batch_size  = 1000
-
+      @model_class  = V2::Customer
+      @batch_size   = 1000
+      @scan_pattern = "#{@model_class.prefix}:*:custom_domain"
       # @interactive = true
+      # There's a bug in Familia, where the Familia::SortedSet uses the
+      # Familia.redis instance instead of the one passed in on instantiation.
+      Familia.redis(6)
+    end
+
+    def load_from_key(key)
+      # Replaces everything after the last colon with :object
+      @related_key = key.sub(/:[^:]*$/, ':object')
+      Familia::SortedSet.new(key, redis: redis_client) # see note in prepare method
     end
 
     def process_record(obj)
-      # Skip records that don't meet any removal criteria
+      # Only process records where should_remove is true
       should_remove = false
 
       # Check custid: empty, anon, or matches tryouts pattern
-      if obj.custid.to_s.empty? ||
-         obj.custid.to_s.downcase == 'anon' ||
-         obj.custid.to_s.match?(/tryouts.*onetimesecret\.com/i)
-
+      if obj.rediskey.to_s.match?(/tryouts.*onetimesecret\.com/i)
         should_remove = true
-        track_stat_and_log_reason(obj, :invalid, :custid)
-      end
-
-      # Check email: empty or matches tryouts pattern
-      if obj.email.to_s.empty? ||
-         obj.email.to_s.match?(/tryouts.*onetimesecret\.com/i)
-
-        should_remove = true
-        track_stat_and_log_reason(obj, :invalid, :email)
-      end
-
-      # Check created date: missing or invalid
-      if obj.created.nil? ||
-         obj.created.to_i < Time.new(2010, 1, 1).to_i
-
-        should_remove = true
-        track_stat_and_log_reason(obj, :invalid, :created)
+        track_stat(:should_remove_test_custid)
       end
 
       return unless should_remove
 
       track_stat(:records_updated)
 
+      ret = redis_client.exists?(@related_key)
+      info("Double checking that there is no related object: #{@related_key} (#{ret})")
+
       for_realsies_this_time? do
-        warn 'Save is disabled'
-        # obj.save
+        ret = obj.delete!
+        info("Deleting #{obj.class} (ret: #{ret}): #{obj.rediskey} from #{obj.redis.connection}")
+      end
+
+      dry_run_only? do
+        info("Dry run: #{obj.rediskey} from #{obj.redis.connection}")
       end
     end
-
   end
 end
 
