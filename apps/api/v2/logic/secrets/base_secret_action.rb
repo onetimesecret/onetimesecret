@@ -1,14 +1,13 @@
 # apps/api/v2/logic/secrets/base_secret_action.rb
 
-require 'onetime/refinements/rack_refinements'
-
 module V2::Logic
   module Secrets
     class BaseSecretAction < V2::Logic::Base
       attr_reader :passphrase, :secret_value, :kind, :ttl, :recipient, :recipient_safe, :greenlighted, :metadata, :secret, :share_domain, :custom_domain, :payload
       attr_accessor :token
 
-      using Onetime::RackRefinements
+      # NOTE: Onetime::RackRefinements was recently removed. Making a note in
+      # case weird behaviour pops up. -- delano (2025-06-28)
 
       # Process methods populate instance variables with the values. The
       # raise_concerns and process methods deal with the values in the instance

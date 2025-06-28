@@ -2,8 +2,6 @@
 
 require 'concurrent'
 
-require_relative 'refinements/indifferent_hash_access'
-
 require_relative 'boot/init_script_context'
 require_relative 'services/config_proxy'
 

@@ -1,6 +1,6 @@
 # apps/api/v1/refinements.rb
 
-module Onetime
+module V1
   # RackRefinements provides enhanced Hash methods for handling web request
   # parameters and data structures commonly used in Rack-based applications.
   #

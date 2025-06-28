@@ -45,7 +45,6 @@ require_relative './support/model_test_helper'
 begin
   require 'onetime'
   require 'onetime/alias' # allows using OT::Mail
-  require 'onetime/refinements/rack_refinements'
   require 'onetime/logic'
   require 'onetime/models'
   require 'onetime/controllers'
