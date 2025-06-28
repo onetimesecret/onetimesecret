@@ -18,7 +18,7 @@ module Onetime
 
       def global_secret
         LegacyGlobals.print_warning('global_secret')
-        @global_secret ||= OT.conf&.dig('site', 'secret')
+        @global_secret ||= OT.state[:global_state]
       end
 
       def d9s_enabled

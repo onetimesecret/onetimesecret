@@ -1,7 +1,9 @@
 # tests/unit/ruby/rspec/onetime/experimental_config_spec.rb
 
-require_relative '../spec_helper'
 require 'openssl'
+
+require_relative '../spec_helper'
+require_relative '../support/boot_context'
 
 RSpec.describe "Experimental config settings" do
   let(:source_config_path) { File.expand_path(File.join(Onetime::HOME, 'tests', 'unit', 'ruby', 'config.test.yaml')) }
@@ -13,43 +15,36 @@ RSpec.describe "Experimental config settings" do
     let(:nil_secret) { nil }
 
     # Load the YAML content after ERB processing
-    let(:test_config) {
-      config_instance = OT::Configurator.new(config_path: source_config_path)
-      config_instance.send(:load_config)
+    let(:configurator) {
+      OT::Configurator.new(config_path: source_config_path)
     }
     let(:processed_config) {
-      config_instance = OT::Configurator.new
-      config_instance.instance_variable_set(:@unprocessed_config, test_config)
-      config_instance.send(:after_load)
+      configurator.load_with_impunity!
     }
 
     before(:each) do
     end
 
     after(:each) do
-      OT.instance_variable_set(:@conf, nil)
-      OT.instance_variable_set(:@global_secret, nil)
     end
 
     context "when allow_nil_global_secret is false (default)" do
       before do
-        @context_config = OT::Configurator.deep_clone(processed_config)
-        @context_config[:experimental][:allow_nil_global_secret] = false
+        OT.conf[:experimental][:allow_nil_global_secret] = false
 
-        OT.instance_variable_set(:@conf, @context_config)
       end
 
       it "successfully encrypts and decrypts with a non-nil global secret" do
         # Create a new secret instance for this test
-        secret = V2::Secret.new
+        secret = TestSecret.new
         secret.key = "regular_key_test"
 
         # Set a non-nil global secret
-        OT.instance_variable_set(:@global_secret, regular_secret)
+        OT.state[:global_secret] = regular_secret
 
         # Manually construct this secret to simulate it was encrypted with a regular global secret
         secret.passphrase_temp = passphrase
-        encryption_key = V2::Secret.encryption_key(regular_secret, secret.key, passphrase)
+        encryption_key = TestSecret.encryption_key(regular_secret, secret.key, passphrase)
         secret.value = test_value.encrypt(key: encryption_key)
         secret.value_encryption = 2
         secret.value_checksum = test_value.gibbler
@@ -61,21 +56,21 @@ RSpec.describe "Experimental config settings" do
 
       it "raises CipherError when decrypting with nil global secret" do
         # Create a new secret instance for this test
-        secret = V2::Secret.new
+        secret = TestSecret.new
         secret.key = "error_key_test"
 
         # First encrypt with a non-nil global secret
-        OT.instance_variable_set(:@global_secret, regular_secret)
+        OT.state[:global_secret] = regular_secret
 
         # Manually construct this secret to simulate it was encrypted with a regular global secret
         secret.passphrase_temp = passphrase
-        encryption_key = V2::Secret.encryption_key(regular_secret, secret.key, passphrase)
+        encryption_key = TestSecret.encryption_key(regular_secret, secret.key, passphrase)
         secret.value = test_value.encrypt(key: encryption_key)
         secret.value_encryption = 2
         secret.value_checksum = test_value.gibbler
 
         # Then try to decrypt with a nil global secret
-        OT.instance_variable_set(:@global_secret, nil)
+        OT.state[:global_secret] = nil
         secret.passphrase_temp = passphrase
 
         expect { secret.decrypted_value }.to raise_error(OpenSSL::Cipher::CipherError)
@@ -92,11 +87,11 @@ RSpec.describe "Experimental config settings" do
 
       it "successfully encrypts and decrypts with a non-nil global secret" do
         # Create a completely new secret instance for this test
-        secret = V2::Secret.new
+        secret = TestSecret.new
         secret.key = "special_test_key"
 
         # Set a non-nil global secret
-        OT.instance_variable_set(:@global_secret, regular_secret)
+        OT.state[:global_secret] = regular_secret
 
         # Set passphrase for encryption
         secret.passphrase_temp = passphrase
@@ -114,17 +109,17 @@ RSpec.describe "Experimental config settings" do
 
       it "successfully encrypts with nil global secret and decrypts with nil global secret" do
         # Create a new secret instance for this test
-        secret = V2::Secret.new
+        secret = TestSecret.new
         secret.key = "nil_encryption_key"
 
         # Set nil global secret
-        OT.instance_variable_set(:@global_secret, nil)
+        OT.state[:global_secret] = nil
 
         # Set passphrase for encryption
         secret.passphrase_temp = passphrase
 
         # Manually construct this secret to simulate it was encrypted with a nil global secret
-        encryption_key = V2::Secret.encryption_key(nil, secret.key, passphrase)
+        encryption_key = TestSecret.encryption_key(nil, secret.key, passphrase)
         secret.value = test_value.encrypt(key: encryption_key)
         secret.value_encryption = 2
         secret.value_checksum = test_value.gibbler
@@ -139,21 +134,21 @@ RSpec.describe "Experimental config settings" do
 
       it "successfully decrypts a regular-secret-encrypted value with nil global secret" do
         # Create a new secret instance for this test
-        secret = V2::Secret.new
+        secret = TestSecret.new
         secret.key = "special_fallback_key"
 
         # First encrypt with a non-nil global secret
-        OT.instance_variable_set(:@global_secret, regular_secret)
+        OT.state[:global_secret] = regular_secret
 
         # Manually construct this secret to simulate it was encrypted with a regular global secret
         secret.passphrase_temp = passphrase
-        encryption_key = V2::Secret.encryption_key(regular_secret, secret.key, passphrase)
+        encryption_key = TestSecret.encryption_key(regular_secret, secret.key, passphrase)
         secret.value = test_value.encrypt(key: encryption_key)
         secret.value_encryption = 2
         secret.value_checksum = test_value.gibbler
 
         # Switch to nil global secret for decryption
-        OT.instance_variable_set(:@global_secret, nil)
+        OT.state[:global_secret] = nil
 
         # Enable fallback mechanism
         @context_config[:experimental][:allow_nil_global_secret] = true
@@ -169,15 +164,15 @@ RSpec.describe "Experimental config settings" do
 
       it "still raises CipherError when decrypting with wrong passphrase" do
         # Create a new secret instance for this test
-        secret = V2::Secret.new
+        secret = TestSecret.new
         secret.key = "passphrase_test_key"
 
         # Set a non-nil global secret
-        OT.instance_variable_set(:@global_secret, regular_secret)
+        OT.state[:global_secret] = regular_secret
 
         # Manually construct this secret to simulate it was encrypted with a specific passphrase
         secret.passphrase_temp = passphrase
-        encryption_key = V2::Secret.encryption_key(regular_secret, secret.key, passphrase)
+        encryption_key = TestSecret.encryption_key(regular_secret, secret.key, passphrase)
         secret.value = test_value.encrypt(key: encryption_key)
         secret.value_encryption = 2
         secret.value_checksum = test_value.gibbler
@@ -199,11 +194,11 @@ RSpec.describe "Experimental config settings" do
 
       it "fails to decrypt values encrypted with non-nil secret using nil secret without special handling" do
         # Create a new secret instance for this test
-        secret = V2::Secret.new
+        secret = TestSecret.new
         secret.key = "no_fallback_key"
 
         # First encrypt with a non-nil global secret
-        OT.instance_variable_set(:@global_secret, regular_secret)
+        OT.state[:global_secret] = regular_secret
 
         # Manually construct this secret to simulate it was encrypted with a regular global secret
         secret.passphrase_temp = passphrase
@@ -213,7 +208,7 @@ RSpec.describe "Experimental config settings" do
         secret.value_checksum = test_value.gibbler
 
         # Then try to decrypt with a nil global secret
-        OT.instance_variable_set(:@global_secret, nil)
+        OT.state[:global_secret] = nil
 
         # Enable fallback mechanism but mock it to fail
         @context_config[:experimental][:allow_nil_global_secret] = true
@@ -226,23 +221,23 @@ RSpec.describe "Experimental config settings" do
 
       it "fails to decrypt values encrypted with nil secret using non-nil secret" do
         # Create a new secret instance for this test
-        secret = V2::Secret.new
+        secret = TestSecret.new
         secret.key = "nil_secret_key"
 
         # First encrypt with a nil global secret
-        OT.instance_variable_set(:@global_secret, nil)
+        OT.state[:global_secret] = nil
 
         # Generate the encryption key with nil global secret
         secret.passphrase_temp = passphrase
 
         # Manually construct this secret to simulate it was encrypted with a nil global secret
-        encryption_key = V2::Secret.encryption_key(nil, secret.key, passphrase)
+        encryption_key = TestSecret.encryption_key(nil, secret.key, passphrase)
         secret.value = test_value.encrypt(key: encryption_key)
         secret.value_encryption = 2
         secret.value_checksum = test_value.gibbler
 
         # Then try to decrypt with a non-nil global secret
-        OT.instance_variable_set(:@global_secret, regular_secret)
+        OT.state[:global_secret] = regular_secret
 
         # IMPORTANT: Completely disable the fallback
         @context_config[:experimental][:allow_nil_global_secret] = false
