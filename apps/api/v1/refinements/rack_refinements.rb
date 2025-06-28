@@ -1,8 +1,14 @@
-# lib/onetime/refinements/rack_refinements.rb
+# apps/api/v1/refinements.rb
 
-module Onetime
+module V1
   # RackRefinements provides enhanced Hash methods for handling web request
   # parameters and data structures commonly used in Rack-based applications.
+  #
+  # NOTE: This code although deprecated is still kept for v1 compatibility. The
+  # legacy v1 API is in maintenance mode warts and all. It's been around for
+  # over 10 years so there are a lot of inbound integrations with other systems.
+  # Until we have a specific migration plan in place, this module will continue
+  # to be maintained for the society of creative anachronisms.
   #
   # @deprecated This module duplicates functionality found in
   # IndifferentHashAccess (indifferent_hash_access.rb). Both provide string/symbol
@@ -21,7 +27,6 @@ module Onetime
   #    IndifferentHashAccess uses has_key? checks before conversion
   # 3. **Coverage**: IndifferentHashAccess also overrides [] operator
   #
-  # **TODO**: Replace usage with IndifferentHashAccess and remove this module
   module RackRefinements
     refine Hash do
       # Enhanced fetch method that tries both string and symbol versions of keys.
