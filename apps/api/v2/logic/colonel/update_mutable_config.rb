@@ -1,11 +1,11 @@
-# apps/api/v2/logic/colonel/update_mutable_settings.rb
+# apps/api/v2/logic/colonel/update_mutable_config.rb
 
 require_relative '../base'
 
 module V2
   module Logic
     module Colonel
-      class UpdateMutableSettings < V2::Logic::Base
+      class UpdateMutableConfig < V2::Logic::Base
         @safe_fields = [:interface, :secret_options, :mail, :limits,
                         :diagnostics].freeze
 
@@ -13,7 +13,7 @@ module V2
           :diagnostics, :greenlighted, :record
 
         def process_params
-          OT.ld "[UpdateMutableSettings#process_params] params: #{params.inspect}"
+          OT.ld "[UpdateMutableConfig#process_params] params: #{params.inspect}"
           # Accept config either directly or wrapped in a :config key
           @config = params[:config]
 
@@ -33,7 +33,7 @@ module V2
             diagnostics: diagnostics,
           }
 
-          OT.ld '[UpdateMutableSettings#process_params] Extracted config sections: ' +
+          OT.ld '[UpdateMutableConfig#process_params] Extracted config sections: ' +
                 config_sections.map { |name, value| "#{name}=#{!!value}" }.join(', ')
         end
 
@@ -47,40 +47,40 @@ module V2
           # Ensure at least one valid field is present (not requiring all sections)
           present_fields = self.class.safe_fields & config_keys
 
-          OT.ld "[UpdateMutableSettings#raise_concerns] Present fields: #{present_fields.join(', ')}"
+          OT.ld "[UpdateMutableConfig#raise_concerns] Present fields: #{present_fields.join(', ')}"
           raise_form_error 'No valid configuration sections found' if present_fields.empty?
 
           # Log unsupported fields but don't error
           unsupported_fields = config_keys - self.class.safe_fields
-          OT.ld "[UpdateMutableSettings#raise_concerns] Ignoring unsupported fields: #{unsupported_fields.join(', ')}" unless unsupported_fields.empty?
+          OT.ld "[UpdateMutableConfig#raise_concerns] Ignoring unsupported fields: #{unsupported_fields.join(', ')}" unless unsupported_fields.empty?
         end
 
         def process
-          OT.ld '[UpdateMutableSettings#process] Persisting mutable settings'
+          OT.ld '[UpdateMutableConfig#process] Persisting mutable config'
 
-          OT.li "[UpdateMutableSettings#process] Interface: #{interface.inspect}" if interface
-          OT.li "[UpdateMutableSettings#process] Secret Options: #{secret_options.inspect}" if secret_options
-          OT.li "[UpdateMutableSettings#process] Mail: #{mail.inspect}" if mail
-          OT.li "[UpdateMutableSettings#process] Limits: #{limits.inspect}" if limits
-          OT.li "[UpdateMutableSettings#process] Diagnostics: #{diagnostics.inspect}" if diagnostics
+          OT.li "[UpdateMutableConfig#process] Interface: #{interface.inspect}" if interface
+          OT.li "[UpdateMutableConfig#process] Secret Options: #{secret_options.inspect}" if secret_options
+          OT.li "[UpdateMutableConfig#process] Mail: #{mail.inspect}" if mail
+          OT.li "[UpdateMutableConfig#process] Limits: #{limits.inspect}" if limits
+          OT.li "[UpdateMutableConfig#process] Diagnostics: #{diagnostics.inspect}" if diagnostics
 
           begin
             # Build the update fields - only include non-nil values
             update_fields = build_update_fields
 
-            # Create a new MutableSettings record with the updated values
-            @record = MutableSettings.create(**update_fields)
+            # Create a new MutableConfig record with the updated values
+            @record = MutableConfig.create(**update_fields)
 
             @greenlighted = true
-            OT.ld '[UpdateMutableSettings#process] Mutable settings persisted successfully'
+            OT.ld '[UpdateMutableConfig#process] Mutable Config persisted successfully'
           rescue StandardError => ex
-            OT.le "[UpdateMutableSettings#process] Failed to persist mutable settings: #{ex.message}"
+            OT.le "[UpdateMutableConfig#process] Failed to persist mutable config: #{ex.message}"
             raise_form_error "Failed to update configuration: #{ex.message}"
           end
         end
 
         def success_data
-          OT.ld '[UpdateMutableSettings#success_data] Returning updated mutable settings'
+          OT.ld '[UpdateMutableConfig#success_data] Returning updated mutable config'
 
           # Return the record and the sections that were provided
           {

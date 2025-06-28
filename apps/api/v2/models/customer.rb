@@ -2,9 +2,31 @@
 
 require 'rack/utils'
 
-require_relative 'mixins/passphrase'
-
 module V2
+
+  # Customer Model (aka User)
+  #
+  # IMPORTANT API CHANGES:
+  # Previously, anonymous users were identified by custid='anon'.
+  # Now we use user_type='anonymous' as the primary indicator.
+  #
+  # USAGE:
+  # - Authenticated: Customer.create(custid, email)
+  # - Anonymous: Customer.anonymous
+  # - Explicit: Customer.new(custid: 'email', user_type: 'authenticated')
+  #
+  # AVOID: Customer.new('email@example.com') - creates anonymous user with email
+  #
+  # STATES:
+  # - anonymous?: user_type == 'anonymous' || custid == 'anon'
+  # - verified?: authenticated + verified == 'true'
+  # - active?: verified + role == 'customer'
+  # - pending?: authenticated + !verified + role == 'customer'
+  #
+  # The init method sets user_type: 'anonymous' by default to maintain
+  # backwards compatibility, but business logic should use the explicit
+  # factory methods above to avoid state inconsistencies.
+  #
   class Customer < Familia::Horreum
     include Gibbler::Complex
 
@@ -16,12 +38,17 @@ module V2
     prefix :customer
 
     class_sorted_set :values, key: 'onetime:customer'
+    class_sorted_set :object_ids
+
+    class_hashkey :email_to_objid # While migrating we'll need to maintain
+    class_hashkey :objid_to_email # indexes in both directions.
+
     class_hashkey :domains, key: 'onetime:customers:domain'
 
     sorted_set :custom_domains, suffix: 'custom_domain'
     sorted_set :metadata
 
-    hashkey :feature_flags # To turn on allow_public_homepage column in domains table
+    hashkey :feature_flags # e.g. isBetaEnabled
 
     # Used to track the current and most recently created password reset secret.
     string :reset_secret, ttl: 24.hours
@@ -30,7 +57,14 @@ module V2
 
     field :custid
     field :email
-    field :role
+
+    field :objid # uuid v7
+    field :extid # sha256(objid)
+
+    field :role # customer, colonel
+    field :user_type # 'anonymous', 'authenticated', 'standard', 'enhanced'
+    field :api_version # v2
+
     field :sessid
     field :apitoken # TODO: use sorted set?
     field :verified
@@ -43,6 +77,7 @@ module V2
     field :emails_sent
 
     field :planid
+
     field :created
     field :updated
     field :last_login
@@ -59,8 +94,12 @@ module V2
       { identifier: ->(obj) { obj.identifier } },
       :custid,
       :email,
+      :objid,
 
+      :api_version,
       :role,
+      :user_type,
+
       :verified,
       :last_login,
       :locale,
@@ -71,7 +110,9 @@ module V2
       :stripe_subscription_id,
       :stripe_checkout_email,
 
-      { plan: ->(cust) { cust.load_plan } }, # safe_dump will be called automatically
+      # Removed for #1508 on 2025-06-24. Use user_type for functional logic.
+      #
+      # { plan: ->(cust) { cust.load_plan } },
 
       # NOTE: The secrets_created incrementer is null until the first secret
       # is created. See ConcealSecret for where the incrementer is called.
@@ -86,9 +127,27 @@ module V2
     ].freeze
 
     def init
-      self.custid ||= 'anon'
-      self.role   ||= 'customer'
-      self.email  ||= self.custid unless anonymous?
+      # Default to anonymous state. That way we're always explicitly
+      # setting the role when it needs to be set.
+      #
+      # Previously we used custid=anon and all it would do is prevent
+      # the record from being saved.
+      self.user_type   ||= 'anonymous'
+      self.role        ||= 'customer'
+
+      # Set email only for non-anonymous users
+      if !anonymous? && email.to_s.empty? && !custid.to_s.empty?
+        self.email = custid
+      end
+
+      # Set custid only for non-anonymous users
+      if !anonymous? && custid.to_s.empty? && !email.to_s.empty?
+        self.custid = email
+      end
+
+      self.objid       ||= self.class.generate_objid
+      self.extid       ||= derive_extid
+      self.api_version ||= 'v2' # we want to know in the data which class
 
       # When an instance is first created, any field that doesn't have a
       # value set will be nil. We need to ensure that these fields are
@@ -124,9 +183,9 @@ module V2
       apitoken # the fast writer bang methods don't return the value
     end
 
-    def load_plan
-      Onetime::Plan.plan(planid) || { planid: planid, source: 'parts_unknown' }
-    end
+    # def load_plan
+    #   Onetime::Plan.plan(planid) || { planid: planid, source: 'parts_unknown' }
+    # end
 
     def get_stripe_customer
       get_stripe_customer_by_id || get_stripe_customer_by_email
@@ -223,7 +282,7 @@ module V2
     end
 
     def anonymous?
-      custid.to_s.eql?('anon')
+      user_type.to_s.eql?('anonymous')
     end
 
     def global?
@@ -346,6 +405,12 @@ module V2
       save
     end
 
+    def user_deleted_self?
+      role?('user_deleted_self')
+    end
+
+    # Updates the customer record in memory for account deletion but
+    # does not save the changes to the redis. Use #destroy_requested!
     def destroy_requested
       # NOTE: we don't use cust.destroy! here since we want to keep the
       # customer record around for a grace period to take care of any
@@ -362,7 +427,7 @@ module V2
       self.passphrase = ''
       self.verified   = 'false'
       self.role       = 'user_deleted_self'
-      save
+      # Does not call save.
     end
 
     # Saves the customer object to the database.
@@ -373,7 +438,7 @@ module V2
     # This method overrides the default save behavior to prevent
     # anonymous customers from being persisted to the database.
     def save **kwargs
-      raise Onetime::Problem, "Anonymous cannot be saved #{self.class} #{rediskey}" if anonymous?
+      raise Onetime::Problem, "Cannot save anonymous #{self.class} #{identifier}" if anonymous?
 
       super
     end
@@ -406,80 +471,13 @@ module V2
       self.class.increment_field(self, field)
     end
 
-    module ClassMethods
-      attr_reader :values
+    def derive_extid
+      raise ArgumentError, 'objid cannot be nil' if objid.nil?
 
-      def add(cust)
-        values.add OT.now.to_i, cust.identifier
-      end
-
-      def all
-        values.revrangeraw(0, -1).collect { |identifier| load(identifier) }
-      end
-
-      def recent(duration = 30.days, epoint = OT.now.to_i)
-        spoint = OT.now.to_i-duration
-        values.rangebyscoreraw(spoint, epoint).collect { |identifier| load(identifier) }
-      end
-
-      def anonymous
-        new('anon').freeze
-      end
-
-      def create(custid, email = nil)
-        raise Onetime::Problem, 'custid is required' if custid.to_s.empty?
-        raise Onetime::Problem, 'Customer exists' if exists?(custid)
-
-        cust = new custid: custid, email: email || custid, role: 'customer'
-        cust.save
-        add cust
-        cust
-      end
-
-      def global
-        @global ||= from_identifier(:GLOBAL) || create(:GLOBAL)
-        @global
-      end
-
-      def increment_field(cust, field)
-        return if cust.global?
-
-        curval = cust.send(field)
-        OT.info "[increment_field] cust.#{field} is #{curval} for #{cust}"
-
-        cust.increment field
-      rescue Redis::CommandError => ex
-        # For whatever reason, redis throws an error when trying to
-        # increment a non-existent hashkey field (rather than setting
-        # it to 1): "ERR hash value is not an integer"
-        OT.le "[increment_field] Redis error (#{curval}): #{ex.message}"
-
-        # So we'll set it to 1 if it's empty. It's possible we're here
-        # due to a different error, but this value needs to be
-        # initialized either way.
-        cust.send("#{field}!", 1) if curval.to_i.zero? # nil and '' cast to 0
-      end
+      Digest::SHA256.hexdigest(objid)
     end
 
-    # Mixin Placement for Field Order Control
-    #
-    # We include the SessionMessages mixin at the end of this class definition
-    # for a specific reason related to how Familia::Horreum handles fields.
-    #
-    # In Familia::Horreum subclasses (like this Customer class), fields are processed
-    # in the order they are defined. When creating a new instance with Session.new,
-    # any provided positional arguments correspond to these fields in the same order.
-    #
-    # By including SessionMessages last, we ensure that:
-    # 1. Its additional fields appear at the end of the field list.
-    # 2. These fields don't unexpectedly consume positional arguments in Session.new.
-    #
-    # e.g. `Customer.new('my@example.com')`. If we included thePassphrase
-    # module at the top, instead of populating the custid field (as the
-    # first field defined in this file), this email address would get
-    # written to the (automatically inserted) passphrase field.
-    #
-    include V2::Mixins::Passphrase
-    extend ClassMethods
   end
 end
+
+require_relative 'customer/class_methods'

@@ -1,7 +1,14 @@
 # lib/onetime/cli/migrate_command.rb
 
 module Onetime
-  class MigrateCommand < Drydock::Command
+
+  # Migrate Command
+  #
+  # NOTE: It's important to subclass Onetime::CLI in order to call OT.boot!
+  # automatically. Unless you're writing a command that does not want to
+  # boot right away, then use Drydock::Command.
+  #
+  class MigrateCommand < Onetime::CLI
     def migrate
       migration_file = argv.first
 

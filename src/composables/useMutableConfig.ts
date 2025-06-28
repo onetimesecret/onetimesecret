@@ -1,23 +1,19 @@
-// src/composables/useMutableSettings.ts
+// src/composables/useMutableConfig.ts
 
-import {
-  mutableSettingsSchema,
-  type MutableSettingsDetails,
-} from '@/schemas/api/endpoints/colonel';
-import { useNotificationsStore } from '@/stores';
-import { useMutableSettingsStore } from '@/stores/mutableSettingsStore';
+import { mutableConfigSchema, type MutableConfigDetails } from '@/schemas/api/endpoints/colonel';
+import { useNotificationsStore, useMutableConfigStore } from '@/stores';
 import { computed, nextTick, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { z } from 'zod/v4';
 import { useAsyncHandler, type AsyncHandlerOptions } from './useAsyncHandler';
 
-// Use the keys of the mutableSettingsSchema.shape as ConfigSectionKey
-export type ConfigSectionKey = keyof typeof mutableSettingsSchema.shape;
+// Use the keys of the mutableConfigSchema.shape as ConfigSectionKey
+export type ConfigSectionKey = keyof typeof mutableConfigSchema.shape;
 
 /* eslint-disable max-lines-per-function */
-export function useMutableSettings() {
+export function useMutableConfig() {
   const { t } = useI18n();
-  const store = useMutableSettingsStore();
+  const store = useMutableConfigStore();
   const notifications = useNotificationsStore();
 
   // State
@@ -46,7 +42,7 @@ export function useMutableSettings() {
     setLoading: (loading) => (isSaving.value = loading),
     onError: (err) => {
       errorMessage.value = err.message || t('web.colonel.errorSavingConfig');
-      console.error('Error in mutable settings:', err);
+      console.error('Error in mutable config:', err);
     },
   };
 
@@ -62,7 +58,7 @@ export function useMutableSettings() {
         parsedJsonForZod = JSON.parse(content);
       }
 
-      const sectionSchema = mutableSettingsSchema.shape[section];
+      const sectionSchema = mutableConfigSchema.shape[section];
       const validationResult = sectionSchema.safeParse(parsedJsonForZod);
 
       if (validationResult.success) {
@@ -140,7 +136,7 @@ export function useMutableSettings() {
 
   // Initialize section editors
   const initializeSectionEditors = (
-    configData: MutableSettingsDetails | null,
+    configData: MutableConfigDetails | null,
     configSections: Array<{ key: ConfigSectionKey }>
   ) => {
     isProgrammaticChange.value = true; // <-- Set flag before programmatic changes
@@ -235,12 +231,12 @@ export function useMutableSettings() {
       }
 
       // Create a payload with only the current section's data
-      const payload: Partial<MutableSettingsDetails> = {};
+      const payload: Partial<MutableConfigDetails> = {};
       payload[currentSection] = JSON.parse(sectionEditors.value[currentSection]);
 
       try {
         // Send only the current section for update
-        await store.update(payload as MutableSettingsDetails);
+        await store.update(payload as MutableConfigDetails);
 
         // Remove from modified sections
         modifiedSections.value.delete(currentSection);
@@ -299,7 +295,7 @@ export function useMutableSettings() {
       }
 
       // Combine all section editors into a single config object
-      const combinedConfig: Partial<MutableSettingsDetails> = {};
+      const combinedConfig: Partial<MutableConfigDetails> = {};
 
       for (const section of configSections) {
         const sectionContent = sectionEditors.value[section.key];
@@ -310,7 +306,7 @@ export function useMutableSettings() {
 
       // Validate the combined config against the schema
       try {
-        mutableSettingsSchema.parse(combinedConfig);
+        mutableConfigSchema.parse(combinedConfig);
       } catch (validationError) {
         if (validationError instanceof z.ZodError) {
           const firstError = validationError.issues[0];
@@ -323,7 +319,7 @@ export function useMutableSettings() {
       }
 
       // Update config and refetch
-      await store.update(combinedConfig as MutableSettingsDetails);
+      await store.update(combinedConfig as MutableConfigDetails);
       // await store.fetch();
 
       // Clear all modified sections

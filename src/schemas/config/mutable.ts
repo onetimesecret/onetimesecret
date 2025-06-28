@@ -46,8 +46,8 @@ const configSchema = z.object({
   limits: limitsSchema.optional(),
 });
 
-export const mutableSettingsDetailsSchema = configSchema.extend({}); // TODO: Revisit and remove
-export type MutableSettingsDetails = z.infer<typeof mutableSettingsDetailsSchema>;
+export const mutableConfigDetailsSchema = configSchema.extend({}); // TODO: Revisit and remove
+export type MutableConfigDetails = z.infer<typeof mutableConfigDetailsSchema>;
 
 export type Config = z.infer<typeof configSchema>;
 

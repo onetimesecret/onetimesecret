@@ -213,7 +213,7 @@ RSpec.describe 'Service Provider System' do
           secret: 8,
           feedback: 11,
           exception_info: 12,
-          mutable_settings: 15,
+          mutable_config: 15,
         }
 
         expect(described_class::DATABASE_IDS).to eq(expected_mappings)

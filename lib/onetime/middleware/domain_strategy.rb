@@ -128,7 +128,7 @@ module Onetime
         end
 
         # Any one of the following
-        def canonical?(d)
+        def canonical?(d, canonical_domain)
           (
             equal_to?(d, canonical_domain) ||
             peer_of?(d, canonical_domain) ||

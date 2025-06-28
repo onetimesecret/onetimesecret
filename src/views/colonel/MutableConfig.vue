@@ -1,11 +1,11 @@
-<!-- src/views/colonel/MutableSettings.vue -->
+<!-- src/views/colonel/MutableConfig.vue -->
 
 <script setup lang="ts">
   import OIcon from '@/components/icons/OIcon.vue';
-  import { useMutableSettings, type ConfigSectionKey } from '@/composables/useMutableSettings';
+  import { useMutableConfig, type ConfigSectionKey } from '@/composables/useMutableConfig';
   import { useTheme } from '@/composables/useTheme';
-  import { type MutableSettingsDetails } from '@/schemas/api/endpoints/colonel';
-  import { useMutableSettingsStore } from '@/stores/mutableSettingsStore';
+  import { type MutableConfigDetails } from '@/schemas/api/endpoints/colonel';
+  import { useMutableConfigStore } from '@/stores/mutableConfigStore';
   import { json } from '@codemirror/lang-json';
   import { oneDark } from '@codemirror/theme-one-dark';
   import { EditorView } from '@codemirror/view';
@@ -27,11 +27,11 @@
     { key: 'limits' as ConfigSectionKey, label: 'Limits' },
   ];
 
-  const store = useMutableSettingsStore();
+  const store = useMutableConfigStore();
   const { details: config } = storeToRefs(store);
   const { fetch } = store;
 
-  // Use the mutable settings composable
+  // Use the mutable config composable
   const {
     activeSection,
     sectionEditors,
@@ -52,7 +52,7 @@
     switchToSection,
     isProgrammaticChange,
     setInitialActiveSection,
-  } = useMutableSettings();
+  } = useMutableConfig();
 
   // Editor configuration
   const lang = json();
@@ -87,7 +87,7 @@
         initializeSectionEditors(config.value, configSections);
       } else {
         // Only initialize with empty if no config was returned
-        initializeSectionEditors({} as MutableSettingsDetails, configSections);
+        initializeSectionEditors({} as MutableConfigDetails, configSections);
       }
 
       // Set active section after initialization using the programmatic method

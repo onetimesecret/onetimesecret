@@ -50,7 +50,7 @@ end
 
 ### Dynamic Configuration
 - **Static config**: YAML file (database URLs, core settings)
-- **Dynamic config**: Redis-stored config sections (interface, mail, limits, etc.) via MutableSettings
+- **Dynamic config**: Redis-stored config sections (interface, mail, limits, etc.) via MutableConfig
 - **Merged config**: Combined static + dynamic loaded into ServiceRegistry
 - **Unified access**: `OT.conf[:key]` or `Onetime.conf[:key]` for all configuration
 
@@ -78,8 +78,8 @@ end
 
 def merge_static_and_dynamic_config
   base_config = @static_config.dup
-  # MutableSettings.current handles versioning/rollback internally
-  dynamic_config = MutableSettings.current.to_h
+  # MutableConfig.current handles versioning/rollback internally
+  dynamic_config = MutableConfig.current.to_h
   base_config.deep_merge(dynamic_config)
 rescue Onetime::RecordNotFound
   base_config  # No dynamic config exists yet
@@ -154,7 +154,7 @@ Service providers are categorized by their primary role in initializing parts of
 
 -   **Instance Providers (`TYPE_INSTANCE`)**: These providers are responsible for creating an instance of a service object (e.g., a `LocaleService` object) and then registering that *object* with the `ServiceRegistry`. The application later retrieves this service object to interact with it.
 -   **Connection Providers (`TYPE_CONNECTION`)**: These providers focus on configuring external libraries, shared modules, or establishing connections to external systems (e.g., configuring an SMTP mailer library, setting up the primary database connection). They typically register the configured module/class itself or a status indicating its readiness.
--   **Config Providers (`TYPE_CONFIG`)**: These providers process, load, or compute configuration and runtime state, making it available through `ServiceRegistry.set_state(key, value)`. This includes merging dynamic settings (like those from `MutableSettings` in Redis) with static configuration, or deriving application state like feature flags or authentication parameters.
+-   **Config Providers (`TYPE_CONFIG`)**: These providers process, load, or compute configuration and runtime state, making it available through `ServiceRegistry.set_state(key, value)`. This includes merging dynamic settings (like those from `MutableConfig` in Redis) with static configuration, or deriving application state like feature flags or authentication parameters.
 
 Regardless of type, all providers leverage the `ServiceRegistry` to make their resulting services or state accessible system-wide, avoiding the need for global variables.
 
@@ -254,7 +254,7 @@ end
 ```ruby
 # All config accessed via unified interface:
 OT.conf[:storage]                    # From static YAML
-OT.conf[:user_interface]             # Merged static + dynamic (MutableSettings)
+OT.conf[:user_interface]             # Merged static + dynamic (MutableConfig)
 OT.conf[:mail]                       # Merged configuration for email settings
 
 # Runtime state and service access:
@@ -315,7 +315,7 @@ OT.state[:locales]                   # Clean state access
 Onetime::Services::ServiceRegistry.state[:runtime_config][:mail][:provider]
 ```
 
-This architecture enables config reloading without restart while maintaining cleaner boundaries than Rails' single-phase approach. Dynamic configuration integrates seamlessly through the existing ServiceRegistry pattern, with MutableSettings handling versioning complexity internally. The two-phase initialization and service provider pattern provides better error handling, debugging capabilities, and operational visibility than traditional Rails initializers.
+This architecture enables config reloading without restart while maintaining cleaner boundaries than Rails' single-phase approach. Dynamic configuration integrates seamlessly through the existing ServiceRegistry pattern, with MutableConfig handling versioning complexity internally. The two-phase initialization and service provider pattern provides better error handling, debugging capabilities, and operational visibility than traditional Rails initializers.
 
 ### Migration from 1000-Line YAML
 
