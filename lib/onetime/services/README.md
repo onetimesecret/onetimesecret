@@ -108,7 +108,7 @@ OT.default_locale                    # Global attribute
 # Unified configuration access (works for both static and dynamic)
 OT.conf[:i18n][:locales]              # Merged static + dynamic
 OT.conf[:mail][:connection][:host]    # Merged static + dynamic
-OT.conf[:user_interface][:theme]      # Dynamic config from admin UI
+OT.conf[:ui][:theme]      # Dynamic config from admin UI
 
 # Service and state access
 OT.state[:locales]                    # Processed locale data
@@ -125,7 +125,7 @@ Onetime::Services::ServiceRegistry.state[:runtime_config][:mail][:provider]
 ```ruby
 # Configuration (proxy to merged static + dynamic config)
 OT.conf[:storage]                     # Clean, familiar syntax
-Onetime.conf[:user_interface]         # Both OT and Onetime work
+Onetime.conf[:ui]         # Both OT and Onetime work
 
 # Runtime state and services (shortcut to ServiceRegistry.state)
 OT.state[:locales]                    # Processed/computed values
@@ -254,7 +254,7 @@ end
 ```ruby
 # All config accessed via unified interface:
 OT.conf[:storage]                    # From static YAML
-OT.conf[:user_interface]             # Merged static + dynamic (MutableConfig)
+OT.conf[:ui]             # Merged static + dynamic (MutableConfig)
 OT.conf[:mail]                       # Merged configuration for email settings
 
 # Runtime state and service access:
