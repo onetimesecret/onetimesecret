@@ -56,9 +56,16 @@ RSpec.describe 'Puma Multi-Process Integration', type: :integration do
     # Test Rack application that exposes OT.instance and process info
     # Using Dir.pwd assumes test is run from project root
     lib_path = File.join(Dir.pwd, 'lib')
+    apps_root = File.join(Dir.pwd, 'apps')
     test_app_content_content = <<~RUBY
       # Minimal test app for OT.instance verification
       $LOAD_PATH.unshift('#{lib_path}')
+
+      # Add apps directories to load path for v2 models
+      apps_root = '#{apps_root}'
+      $LOAD_PATH.unshift(File.join(apps_root, 'api'))
+      $LOAD_PATH.unshift(File.join(apps_root, 'web'))
+
       require 'onetime'
 
       # Boot once per worker - generates unique OT.instance per process
@@ -127,15 +134,15 @@ RSpec.describe 'Puma Multi-Process Integration', type: :integration do
       response = make_request('/instance')
       expect(response.code).to eq('200')
       instance_value = response.body.strip
-      expect(instance_value).to match(/\A[a-f0-9]{40}\z/)
-      expect(instance_value.length).to eq(40)
+      expect(instance_value).to match(/\A[a-f0-9]{20}\z/)
+      expect(instance_value.length).to eq(20)
     end
 
     it 'provides process and version information' do
       response = make_request('/info')
       expect(response.code).to eq('200')
       info = response.body.strip
-      expect(info).to match(/\APID:\d+\|Instance:[a-f0-9]{40}\|Version:/)
+      expect(info).to match(/\APID:\d+\|Instance:[a-f0-9]{20}\|Version:/)
       parts = info.split('|')
       pid_part, instance_part, version_part = parts
       expect(pid_part).to start_with('PID:')

@@ -44,7 +44,7 @@ module Onetime
       # Sets a unique SHA hash every time this process starts. In a multi-
       # threaded environment (e.g. with Puma), this should be different for
       # each thread. See tests/unit/ruby/rspec/puma_multi_process_spec.rb.
-      instanceid = [OT::VERSION.to_s, Process.pid.to_s].gibbler.short.freeze
+      instanceid = [OT::VERSION.to_s, Process.pid.to_s].gibbler.shorten.freeze
 
       Onetime.set_boot_state(mode, instanceid)
 
