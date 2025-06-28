@@ -3,17 +3,20 @@
 name: Harmonize Locales
 
 on:
-  # Run on push to main branch
-  push:
-    branches:
-      - develop
-      - 'i18n/**'
-    paths:
-      - 'src/locales/en.json'
+  ##
+  # Disabled except for manual trigger.
+  #
+  # # Run on push to main branch
+  # push:
+  #   branches:
+  #     - develop
+  #     - 'i18n/**'
+  #   paths:
+  #     - 'src/locales/en.json'
 
-  # Run when a PR is created or updated with specific keyword in commit
-  pull_request:
-    types: [opened, synchronize, reopened]
+  # # Run when a PR is created or updated with specific keyword in commit
+  # pull_request:
+  #   types: [opened, synchronize, reopened]
 
   # Allow manual trigger
   workflow_dispatch:

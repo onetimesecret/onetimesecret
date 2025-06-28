@@ -2,10 +2,13 @@
 
 module V2
   module Mixins
+
+    # RateLimited
+    #
     module RateLimited
       def event_incr!(event)
         unless V2::RateLimit.ready?
-          return OT.le("Not limiting #{event} events for #{self.class}")
+          return OT.lw("Not limiting #{event} events for #{self.class}")
         end
 
         # Uses the external identifier of the implementing class to keep
@@ -26,5 +29,6 @@ module V2
         raise "TODO: Implement #{self.class}.external_identifier"
       end
     end
+
   end
 end

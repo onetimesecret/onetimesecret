@@ -35,8 +35,8 @@ module Onetime
           # Connect each model to its configured Redis database
           db_map = db_settings[:database_mapping]
 
-          log "db_map: #{db_map}"
-          log "models: #{Familia.members.map(&:to_s)}"
+          debug "db_map: #{db_map}"
+          debug "models: #{Familia.members.map(&:to_s)}"
 
           # Validate that models have been loaded before attempting to connect
           if Familia.members.empty?
@@ -52,7 +52,7 @@ module Onetime
             model_class.redis = Familia.redis(db_index)
             ping_result       = model_class.redis.ping
 
-            log "Connected #{model_sym} to DB #{db_index} (#{ping_result})"
+            debug "Connected #{model_sym} to DB #{db_index} (#{ping_result})"
           end
 
           # Register successful connection
@@ -97,7 +97,7 @@ module Onetime
           secret: 8,
           feedback: 11,
           exception_info: 12,
-          mutable_settings: 15,
+          mutable_config: 15,
         }
       end
 

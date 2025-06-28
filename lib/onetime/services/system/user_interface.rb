@@ -24,12 +24,12 @@ module Onetime
         # be set to false if authentication is disabled.
 
         def initialize
-          super(:log_banner, type: TYPE_CONFIG, priority: 20)
+          super(:boot_receipt, type: TYPE_CONFIG, priority: 20)
         end
 
         def start(*)
-          # Need to grab from MutableSettings
-          set_state(:user_interface, {})
+          # Need to grab from MutableConfig
+          set_state(:ui, {})
         end
 
       end

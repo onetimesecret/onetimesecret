@@ -14,7 +14,7 @@ module Onetime
     #
     # @example Usage
     #   OT.conf[:storage]         # Static from YAML
-    #   OT.conf[:user_interface]  # Dynamic from Redis
+    #   OT.conf[:ui]  # Dynamic from Redis
     #   OT.conf[:locales]         # Service state
     #
     class ConfigProxy

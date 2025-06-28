@@ -33,7 +33,7 @@ RSpec.shared_context "service_provider_context" do
             'subdomain' => 6,
             'email_receipt' => 8,
             'exception_info' => 12,
-            'mutable_settings' => 15,
+            'mutable_config' => 15,
             'splittest' => 1
           }
         }
@@ -41,7 +41,7 @@ RSpec.shared_context "service_provider_context" do
     }
   end
 
-  let(:default_mutable_settings) do
+  let(:default_mutable_config) do
     {
       'user_interface' => {
         'enabled' => true,
@@ -71,7 +71,7 @@ RSpec.shared_context "service_provider_context" do
     }
   end
 
-  let(:runtime_mutable_settings) do
+  let(:runtime_mutable_config) do
     {
       'user_interface' => {
         'enabled' => true,
@@ -118,11 +118,11 @@ RSpec.shared_context "service_provider_context" do
   # Mock Redis connection for database tests
   let(:mock_redis_connection) { double('Redis', ping: 'PONG') }
 
-  # Mock MutableSettings for runtime config tests
-  let(:mock_mutable_settings) do
-    double('MutableSettings',
-      rediskey: 'mutable_settings:test123',
-      safe_dump: runtime_mutable_settings
+  # Mock MutableConfig for runtime config tests
+  let(:mock_mutable_config) do
+    double('MutableConfig',
+      rediskey: 'mutable_config:test123',
+      safe_dump: runtime_mutable_config
     )
   end
 
@@ -153,18 +153,18 @@ RSpec.shared_context "service_provider_registry_stubs" do
   end
 end
 
-RSpec.shared_context "mutable_settings_stubs" do
+RSpec.shared_context "mutable_config_stubs" do
   before do
-    # Default stubbing for V2::MutableSettings
-    allow(V2::MutableSettings).to receive(:current).and_return(mock_mutable_settings)
-    allow(V2::MutableSettings).to receive(:create).and_return(mock_mutable_settings)
+    # Default stubbing for V2::MutableConfig
+    allow(V2::MutableConfig).to receive(:current).and_return(mock_mutable_config)
+    allow(V2::MutableConfig).to receive(:create).and_return(mock_mutable_config)
   end
 end
 
 RSpec.shared_context "first_boot_stubs" do
   before do
     # Stub file loading for first boot tests
-    allow(OT::Configurator::Load).to receive(:yaml_load_file).and_return(default_mutable_settings)
+    allow(OT::Configurator::Load).to receive(:yaml_load_file).and_return(default_mutable_config)
 
     # Stub model checking methods for detect_first_boot
     allow(V2::Metadata).to receive(:redis).and_return(double(scan_each: double(first: nil)))

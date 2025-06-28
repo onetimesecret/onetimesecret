@@ -2,6 +2,11 @@
 
 module V2
   module Mixins
+
+    # Passphrase
+    #
+    # Adds a passphrase field to the model.
+    #
     module Passphrase
       def self.included(base)
         base.field :passphrase

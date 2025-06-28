@@ -161,7 +161,7 @@ module Onetime
       # ServiceRegistry.app_state if necessary.
       config = configurator.configuration
 
-      OT.li "[BOOT] Configuration loaded from #{configurator.config_path} is now frozen"
+      OT.ld "[BOOT] Configuration loaded from #{configurator.config_path} is now frozen"
       # System services should start immediately after config freeze
 
       # System services are designed to start with frozen configuration
@@ -184,7 +184,7 @@ module Onetime
       end
 
       Onetime.complete_initialization!
-      OT.li "[BOOT] Startup completed successfully (instance: #{instanceid})"
+      OT.ld "[BOOT] Startup completed successfully (instance: #{instanceid})"
 
       # Let's be clear about returning the prepared configruation. Previously
       # we returned @conf here which was confusing because already made it
@@ -192,6 +192,7 @@ module Onetime
       # code in the application has access to the processed configuration
       # is from within this boot! method.
       nil
+
     rescue StandardError => ex
       handle_boot_error(ex)
     end
@@ -248,7 +249,7 @@ module Onetime
         return false
       end
 
-      OT.li '[BOOT] Completed init script processing phase.'
+      OT.ld '[BOOT] Completed init script processing phase.'
       true
     end
 
@@ -293,7 +294,6 @@ module Onetime
       case error
       when OT::ConfigValidationError
         # ConfigValidationError includes detailed information about the error
-        OT.le 'Configuration validation failed during boot'
         OT.le error.message
       when OT::ConfigError
         OT.le "Configuration error during boot: #{error.message}"
@@ -342,6 +342,7 @@ module Onetime
     Onetime::Configurator.load_with_impunity!
   rescue StandardError => ex
     puts "Failed to load static config: #{ex.message}"
+    OT.ld(ex.backtrace)
     exit 1
   end
 end

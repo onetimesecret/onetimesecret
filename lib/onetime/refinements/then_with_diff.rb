@@ -77,11 +77,11 @@ module Onetime
         result = yield(self)
 
         # Get previous state from last record
-        last_record_json = ThenWithDiff.history.last
+        last_record_json = Onetime::ThenWithDiff.history.last
         last_record      = last_record_json ? JSON.parse(last_record_json) : {}
         previous_state   = last_record['content'] || {}
 
-        diff = Hashdiff.diff(previous_state, result, ThenWithDiff.options)
+        diff = Hashdiff.diff(previous_state, result, Onetime::ThenWithDiff.options)
         OT.ld "[then_with_diff] #{step_name}: #{diff.size} changes" unless diff.empty?
 
         # Store as simple hash, serialized to JSON
@@ -94,11 +94,11 @@ module Onetime
           created: OT.now.to_i,
         }
 
-        ThenWithDiff.history << record.to_json
+        Onetime::ThenWithDiff.history << record.to_json
 
         # Cleanup old records (older than 14 days)
         cutoff_time = OT.now.to_i - 14.days
-        ThenWithDiff.history.remrangebyscore(0, cutoff_time)
+        Onetime::ThenWithDiff.history.remrangebyscore(0, cutoff_time)
 
         deep_clone ? OT::Utils.deep_clone(result) : result
       end

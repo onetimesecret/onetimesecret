@@ -17,16 +17,28 @@
 #     http_response[:error]   # => 'Forbidden'
 #     http_response['body']   # => 'You are not allowed to access this resource.'
 #
-ENV['ONETIME_HOME'] ||= File.expand_path(File.join(__dir__, '..', '..', '..', '..')).freeze
+# Establish the environment
+ENV['RACK_ENV'] ||= 'production'
+ENV['ONETIME_HOME'] ||= File.expand_path('../../../../..', __FILE__).freeze
+
+Warning[:deprecated] = true if ['development', 'dev', 'test'].include?(ENV['RACK_ENV'])
+
 project_root = ENV['ONETIME_HOME']
 app_root = File.join(project_root, '/apps').freeze
 
 $LOAD_PATH.unshift(File.join(app_root, 'api'))
 $LOAD_PATH.unshift(File.join(app_root, 'web'))
 
+# This tells OT::Configurator#load_with_impunity! to look in the preset list
+# of paths to look for a config file and find one that matches this basename.
+# See ./tests/unit/ruby/rspec/onetime/configurator_spec.rb
+ENV['ONETIME_CONFIG_FILE_BASENAME'] = 'config.test'
+
 require 'onetime'
 
-OT::Configurator.path = File.join(project_root, 'tests', 'unit', 'ruby', 'config.test.yaml')
+global_secret = OT.conf.dig('site', 'secret') || nil
+OT.li("[TRY] Setting global secret: #{global_secret}")
+Gibbler.secret = global_secret.freeze unless Gibbler.secret
 
 class IndifferentHash
   # Initializes a new IndifferentHash.

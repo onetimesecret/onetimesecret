@@ -427,8 +427,8 @@
         "manageAccountsDesc": "User account administration",
         "configureDomains": "Configure Domains",
         "configureDomainsDesc": "Domain and DNS settings",
-        "mutableSettings": "Mutable Settings",
-        "mutableSettingsDesc": "Application configuration"
+        "mutableConfig": "Mutable Configuration",
+        "mutableConfigDesc": "Application configuration"
       }
     },
     "feedback": {
