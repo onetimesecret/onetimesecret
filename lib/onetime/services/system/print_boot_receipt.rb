@@ -2,7 +2,6 @@
 
 require 'json'
 
-require 'onetime/refinements/indifferent_hash_access'
 require 'receipt_generator'
 require 'system_status'
 

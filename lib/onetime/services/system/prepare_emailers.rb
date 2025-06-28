@@ -1,6 +1,5 @@
 # lib/onetime/services/system/prepare_emailers.rb
 
-require 'onetime/refinements/indifferent_hash_access'
 require_relative '../service_provider'
 
 module Onetime
