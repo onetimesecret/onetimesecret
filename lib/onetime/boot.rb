@@ -3,101 +3,14 @@
 require 'concurrent'
 
 require_relative 'refinements/indifferent_hash_access'
+
 require_relative 'boot/init_script_context'
 require_relative 'services/config_proxy'
 
 module Onetime
-  @mode  = nil
-  @env   = (ENV['RACK_ENV'] || 'production').downcase
-  @debug = ENV['ONETIME_DEBUG'].to_s.match?(/^(true|1)$/i)
-
-  # Contains the global instance of ConfigProxy which is set at boot-time
-  # and lives for the duration of the process. Accessed externally via
-  # `Onetime.conf` method.
-  #
-  # Provides unified access to both static and dynamic configuration.
-  #
-  # NOTE: The distinction between static configuration (essential settings
-  # needed for basic operation) and system readiness (fully initialized,
-  # validated, and operational state. These are separate concerns. OT.conf
-  # should always return some level of configuration. IOW, we generally
-  # shouldn't write code that deals with OT.conf being nil. The exception is
-  # the code that runs immediately at process start and the tests relevant
-  # to that specific behaviour.
-  #
-  @mutex        = Mutex.new
-  @config_proxy = nil
-
-  class << self
-
-    attr_reader :instance, :mode, :debug, :env, :config_proxy
-
-    def boot!(*)
-      Boot.boot!(*)
-      self
-    end
-
-    def safe_boot!(*)
-      Boot.boot!(*)
-      true
-    rescue StandardError
-      # Boot errors are already logged in handle_boot_error
-      OT.not_ready! # returns false
-    ensure
-      # We can't do much without the initial file-based configuration. If it's
-      # nil here it means that there's also no schema (which has the defaults).
-      if OT.conf.nil?
-        OT.le '-' * 70
-        OT.le '[BOOT] Configuration failed to load and validate. If there are no'
-        OT.le '[BOOT] error messages above, run again with ONETIME_DEBUG=1 and/or'
-        OT.le '[BOOT] make sure the config schema exists. Run `pnpm run schema:generate`'
-        OT.le '-' * 70
-        nil
-      end
-    end
-
-    # A convenience method for accessing the configuration proxy.
-    #
-    # Before ConfigProxy instance is available, fails over to static config.
-    def conf
-      config_proxy || @static_config || {}
-    end
-
-    # A convenience method for accessing the ServiceRegistry application state.
-    def state
-      # TODO: Is it okay/reasonable to check the readiness here? I think so b/c
-      # the service registry state is 1) new, so older code doesn't depend on it
-      # and 2) it is a specific reason for and result of the full boot initialization
-      # process. There is no notion of a service registry state before boot. Or
-      # to put it another way, code that runs prior to boot should not be
-      # depending on the service registry state.
-      #
-      # So then the question becomes: should we check readiness here to decide
-      # what to return or simply return nil. It's the responsibility of the
-      # calling code to check readiness before accessing the state.
-      ready? ? Onetime::Services::ServiceRegistry.state : {}
-    end
-
-    # A convenience method for accessing the ServiceRegistry providers.
-    def provider
-      # Ditto
-      ready? ? Onetime::Services::ServiceRegistry.provider : {}
-    end
-
-    def set_config_proxy(config_proxy)
-      @mutex.synchronize do
-        @config_proxy = config_proxy
-      end
-    end
-
-    def set_boot_state(mode, instanceid)
-      @mutex.synchronize do
-        @mode       = mode || :app
-        @instance   = instanceid # TODO: rename OT.instance -> instanceid
-      end
-    end
-  end
-
+  # Boot orchestrates the application startup sequence, handling configuration
+  # loading, init script execution, and service initialization. Think of it as
+  # the emcee for getting your Onetime instance up and running.
   module Boot
     extend self
     using Onetime::IndifferentHashAccess
@@ -128,7 +41,6 @@ module Onetime
     # maintaining compatibility with all existing code that expects `OT.conf`
     # to be the single source of truth.
     def boot!(mode = nil, connect_to_db = true)
-
       # Sets a unique SHA hash every time this process starts. In a multi-
       # threaded environment (e.g. with Puma), this should be different for
       # each thread. See tests/unit/ruby/rspec/puma_multi_process_spec.rb.
@@ -192,7 +104,6 @@ module Onetime
       # code in the application has access to the processed configuration
       # is from within this boot! method.
       nil
-
     rescue StandardError => ex
       handle_boot_error(ex)
     end
@@ -230,7 +141,6 @@ module Onetime
       # e.g. site, storage, i18n, ...
       run_these_scripts.each do |section_key, file_path|
         run_init_script(config_being_processed, section_key, file_path, **)
-
       rescue StandardError
         OT.le <<~MSG
           [BOOT] ERROR:
@@ -240,7 +150,6 @@ module Onetime
         # The specific error details (class, message, backtrace) will be
         # logged by handle_boot_error
         raise
-
       rescue SystemExit => ex
         # Log that a script attempted to exit, then continue to the next script in the loop
         OT.li <<~MSG
@@ -253,6 +162,7 @@ module Onetime
       true
     end
 
+    # Executes a single init script for the given config section.
     # File existence is already checked by the scripts_to_run filter
     def run_init_script(config_being_processed, section_key, file_path, **)
       pretty_path = Onetime::Utils.pretty_path(file_path)
@@ -276,6 +186,8 @@ module Onetime
       OT.ld "[BOOT] Finished processing '#{section_key}' init script."
     end
 
+    # Safely loads and executes a Ruby init script within the provided context.
+    # Handles SystemExit gracefully to prevent init scripts from derailing boot.
     def execute_script_with_context(file_path, context)
       # The load method hands rescuing SystemExit to prevent an init script
       # from completely derailing the boot process (even by accident).
@@ -290,6 +202,8 @@ module Onetime
       # where it can decide whether to continue running the remaining scripts.
     end
 
+    # Graceful error handling during boot - logs appropriately and decides
+    # whether to halt or continue based on the error type and runtime mode.
     def handle_boot_error(error)
       case error
       when OT::ConfigValidationError
