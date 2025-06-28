@@ -30,11 +30,11 @@ module Onetime
         def start(config)
           debug('Configuring authentication settings...')
 
-          site_config  = config.fetch(:site, {})
-          @auth_config = site_config.fetch(:authentication, {})
+          site_config  = config.fetch('site', {})
+          @auth_config = site_config.fetch('authentication', {})
 
           # Extract colonels (admin users) configuration
-          @colonels = @auth_config.fetch(:colonels, [])
+          @colonels = @auth_config.fetch('colonels', [])
 
           # Validate authentication configuration
           validate_auth_config

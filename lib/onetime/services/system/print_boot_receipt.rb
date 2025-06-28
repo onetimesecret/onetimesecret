@@ -67,10 +67,10 @@ module Onetime
         private
 
         def print_enhanced_boot_receipt(config)
-          site_config  = config.fetch(:site)
+          site_config  = config.fetch('site')
           redis_info   = Familia.redis.info
           colonels     = site_config.dig(:authentication, :colonels) || []
-          # email_config = config.fetch(:emailer, {})
+          # email_config = config.fetch('emailer', {})
           # emailer      = get_state(:emailer)
 
           generator = ReceiptGenerator.new(width: 60)
@@ -117,7 +117,7 @@ module Onetime
           end
 
           # Development settings
-          if config.fetch(:development, false)
+          if config.fetch('development', false)
             dev_section = SystemStatusSection.new(generator,
               title: ['DEVELOPMENT SETTINGS', 'VALUE'],
             )

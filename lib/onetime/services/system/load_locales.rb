@@ -46,8 +46,8 @@ module Onetime
             # First look for the default locale in the i18n config, then
             # legacy the locales config approach of using the first one.
             @supported_locales = locales_list
-            @default_locale    = i18n_config.fetch(:default_locale, locales_list.first) || 'en'
-            @fallback_locale   = i18n_config.fetch(:fallback_locale, nil)
+            @default_locale    = i18n_config.fetch('default_locale', locales_list.first) || 'en'
+            @fallback_locale   = i18n_config.fetch('fallback_locale', nil)
 
             unless locales_list.include?(@default_locale)
               error("Default locale #{@default_locale} not in locales_list #{locales_list}")
