@@ -1,6 +1,8 @@
 # tests/unit/ruby/rspec/onetime/configurator/i18n_spec.rb
 
 require_relative '../../spec_helper'
+require 'onetime/services/legacy_globals'
+require 'onetime/services/service_registry'
 
 RSpec.describe "Internationalization config" do
   describe "Onetime legacy global methods" do
@@ -8,21 +10,38 @@ RSpec.describe "Internationalization config" do
     # is not loaded in the test environment. The module is loaded via the
     # system services in production but not in unit tests.
 
-    it 'has legacy global methods available in production' do
-      pending 'LegacyGlobals module not loaded in test environment'
+    it 'has legacy global methods available when LegacyGlobals is loaded' do
+      # Mock the state to simulate a booted system
+      mock_state = {
+        i18n_enabled: true,
+        locales: { 'en' => {}, 'fr' => {} },
+        default_locale: 'en',
+        fallback_locale: nil,
+        supported_locales: ['en', 'fr'],
+        global_banner: nil,
+        d9s_enabled: false
+      }
 
-      # These methods should be available when the system is fully loaded:
-      # - Onetime.i18n_enabled
-      # - Onetime.locales
-      # - Onetime.default_locale
-      # - Onetime.fallback_locale
-      # - Onetime.supported_locales
-      # - Onetime.global_banner
-      # - Onetime.emailer
-      # - Onetime.global_secret
-      # - Onetime.d9s_enabled
+      allow(Onetime).to receive(:state).and_return(mock_state)
+      allow(Onetime::Services::ServiceRegistry).to receive(:get_state).with(:mailer_class).and_return('MockMailer')
+      allow(Onetime::Services::LegacyGlobals).to receive(:print_warning) # Suppress warning output
 
+      # These methods should be available when LegacyGlobals is loaded:
       expect(Onetime).to respond_to(:i18n_enabled)
+      expect(Onetime).to respond_to(:locales)
+      expect(Onetime).to respond_to(:default_locale)
+      expect(Onetime).to respond_to(:fallback_locale)
+      expect(Onetime).to respond_to(:supported_locales)
+      expect(Onetime).to respond_to(:global_banner)
+      expect(Onetime).to respond_to(:emailer)
+      expect(Onetime).to respond_to(:global_secret)
+      expect(Onetime).to respond_to(:d9s_enabled)
+
+      # Test that the methods return expected values
+      expect(Onetime.i18n_enabled).to be(true)
+      expect(Onetime.locales).to eq({ 'en' => {}, 'fr' => {} })
+      expect(Onetime.default_locale).to eq('en')
+      expect(Onetime.supported_locales).to eq(['en', 'fr'])
     end
   end
 
