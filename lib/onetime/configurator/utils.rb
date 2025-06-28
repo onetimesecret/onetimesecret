@@ -130,7 +130,7 @@ module Onetime
         return {} if config.nil? || config.empty?
 
         # Extract defaults from the configuration (handle both symbol and string keys)
-        defaults = config[:defaults] # using indifferent hash refinement
+        defaults = config['defaults'] || config[:defaults]
 
         # If no valid defaults exist, return config without the :defaults key
         unless defaults.is_a?(Hash)
