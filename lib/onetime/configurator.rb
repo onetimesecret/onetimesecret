@@ -17,13 +17,17 @@ require 'onetime/refinements/then_with_diff'
 module Onetime
   # Configuration loader using two-stage validation pattern:
   # 1. Schema validation (declarative) - structure + defaults
-  # 2. Business processing (imperative) - compatibility, auth, etc.
+  # 2. Business processing (imperative) - capabilities, auth, etc.
   # 3. Re-validation (declarative) - ensures processing didn't break schema
   #
   # Pipeline: ENV normalize → Read → ERB → YAML → Validate → Process → Revalidate → Freeze
   class Configurator
     using Onetime::IndifferentHashAccess
     using Onetime::ThenWithDiff
+
+    # TODO: Add resolve_and_validate_home in onetime/constants.rb and maybe
+    # rename to onetime/setup.rb.
+    @home = defined?(Onetime::HOME) ? Onetime::HOME : Pathname(__dir__).parent.parent.freeze
 
     @xdg = XDG::Environment.new
 
@@ -38,10 +42,10 @@ module Onetime
     @paths      = [
       File.join(Dir.pwd, 'etc'), # 1. current working directory
       File.join(Dir.pwd, 'etc', 'schemas'), # 2. current working directory
-      File.join(Onetime::HOME, 'etc'), # 3. onetimesecret/etc
+      File.join(@home, 'etc'), # 3. onetimesecret/etc
       File.join(@xdg.config_home, 'onetime'), # 4. ~/.config/onetime
       File.join(File::SEPARATOR, 'etc', 'onetime'), # 5. /etc/onetime
-      File.join(Onetime::HOME, 'tests', 'unit', 'ruby'), # 6. ./tests/unit/ruby
+      File.join(@home, 'tests', 'unit', 'ruby'), # 6. ./tests/unit/ruby
     ].uniq.freeze
     @extensions = ['.yml', '.yaml', '.json', '.json5', ''].freeze
 
