@@ -26,6 +26,9 @@ module Onetime
     end
 
     # Override to handle deletions instead of field updates
+    #
+    # NOTE: Don't call `track_stat(:records_updated)` here (or anywhere in
+    # a pipline migration). It's called automatically in process_batch.
     def execute_update(pipe, obj, _, original_key)
       # Use original_key for records that can't generate valid keys
       redis_key = original_key || obj.rediskey
@@ -37,6 +40,7 @@ module Onetime
       dry_run_only? do
         debug("Would update #{@model_class}: #{original_key} (created: #{obj.to_h})")
       end
+
     end
 
     private
@@ -47,6 +51,7 @@ module Onetime
     # This method can be implemented however you like. It just needs to
     # return a boolean value.
     def should_process?(obj)
+      should_process = false
       criteria = [
         obj.realttl.to_i.negative?,
         obj.created.to_i.older_than?(7.days),
@@ -55,10 +60,10 @@ module Onetime
       if criteria.all?
         track_stat('removal_ttl_and_older_than_7d')
         debug("Should process sessid=#{obj.sessid} ttl=#{obj.ttl} realttl=#{obj.realttl}")
-        true
+        should_process = true
       end
 
-      false
+      should_process
     end
 
     def build_update_fields(*)

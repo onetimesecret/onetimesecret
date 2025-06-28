@@ -50,6 +50,7 @@ module Onetime
           # additional operations on the record.
 
           execute_update(pipe, obj, fields, original_key)
+
           track_stat(:records_updated)
         end
       end
@@ -91,6 +92,9 @@ module Onetime
       process_batch_safely(batch_objects) if batch_objects.any?
     end
 
+    # NOTE: Don't call `track_stat(:records_updated)` here (or anywhere else
+    # in a pipeline migration). It's called automatically in process_batch,
+    # immediately after execute_update returns.
     def execute_update(pipe, obj, fields, original_key = nil)
       klass_name = obj.class.name.split('::').last
 
