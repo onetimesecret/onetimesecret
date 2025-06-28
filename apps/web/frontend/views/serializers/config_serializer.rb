@@ -31,6 +31,7 @@ module Frontend
         output[:site_host]              = site[:host]
         output[:ui]                     = OT.conf[:user_interface]
         output[:authenticated] = OT.conf[:authentication_enabled]
+        output[:authenticated]          = OT.state[:authentication_enabled]
         output[:secret_options]         = OT.conf[:secret_options]
         regions                         = features[:regions] || {}
         domains                         = features[:domains] || {}
