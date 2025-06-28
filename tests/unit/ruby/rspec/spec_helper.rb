@@ -39,6 +39,7 @@ end
 require_relative './support/mail_context'
 require_relative './support/rack_context'
 require_relative './support/view_context'
+require_relative './support/test_models'
 require_relative './support/model_test_helper'
 
 begin
@@ -85,7 +86,10 @@ minimal_test_config = {
     validation: {
       defaults: {},
     },
-  }
+  },
+  experimental: {
+    allow_nil_global_secret: false,
+  },
 }
 
 # Set the configuration directly for tests
