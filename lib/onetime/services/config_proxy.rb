@@ -1,6 +1,6 @@
 # lib/onetime/services/config_proxy.rb
 
-require_relative '../refinements/indifferent_hash_access'
+
 
 module Onetime
   module Services
@@ -18,7 +18,6 @@ module Onetime
     #   OT.conf[:locales]         # Service state
     #
     class ConfigProxy
-      using Onetime::IndifferentHashAccess
 
       def initialize(static_config)
         @static_config = static_config

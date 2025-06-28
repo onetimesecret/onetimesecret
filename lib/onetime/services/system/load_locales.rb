@@ -1,6 +1,6 @@
 # lib/onetime/services/system/load_locales.rb
 
-require_relative '../../refinements/indifferent_hash_access'
+
 require_relative '../service_provider'
 
 module Onetime
@@ -14,7 +14,6 @@ module Onetime
       # default/fallback locales.
       #
       class LocaleProvider < ServiceProvider
-        using Onetime::IndifferentHashAccess
 
         attr_reader :locales, :default_locale, :fallback_locale, :i18n_enabled
 
@@ -33,15 +32,15 @@ module Onetime
         def start(config)
           debug('Loading internationalization settings...')
 
-          i18n_config   = config.fetch(:i18n, {})
-          @i18n_enabled = i18n_config[:enabled] || false
+          i18n_config   = config.fetch('i18n', {})
+          @i18n_enabled = i18n_config['enabled'] || false
 
           debug('Parsing through i18n locales...')
 
           # Load the locales from the config in both the current and
           # legacy locations. If the locales are not set in the config,
           # we fallback to english.
-          locales_list = i18n_config.fetch(:locales, ['en']).map(&:to_s)
+          locales_list = i18n_config.fetch('locales', ['en']).map(&:to_s)
 
           if @i18n_enabled
             # First look for the default locale in the i18n config, then
@@ -68,11 +67,11 @@ module Onetime
 
           # Set global state for backward compatibility. Thanks to the
           # ConfigProxy, these are available via OT.conf[:i18n_enabled]
-          set_state(:i18n_enabled, @i18n_enabled)
-          set_state(:locales, @locales)
-          set_state(:supported_locales, @supported_locales)
-          set_state(:default_locale, @default_locale)
-          set_state(:fallback_locale, @fallback_locale)
+          set_state('i18n_enabled', @i18n_enabled)
+          set_state('locales', @locales)
+          set_state('supported_locales', @supported_locales)
+          set_state('default_locale', @default_locale)
+          set_state('fallback_locale', @fallback_locale)
 
           debug("Loaded #{@locales.size} locale(s): #{@supported_locales.join(', ')}")
         end

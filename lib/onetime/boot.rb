@@ -2,7 +2,7 @@
 
 require 'concurrent'
 
-require_relative 'refinements/indifferent_hash_access'
+
 require_relative 'boot/init_script_context'
 require_relative 'services/config_proxy'
 
@@ -100,7 +100,6 @@ module Onetime
 
   module Boot
     extend self
-    using Onetime::IndifferentHashAccess
 
     @init_scripts_dir = File.join(Onetime::HOME, 'etc', 'init.d').freeze
 

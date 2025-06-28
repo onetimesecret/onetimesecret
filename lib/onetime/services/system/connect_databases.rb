@@ -1,6 +1,6 @@
 # lib/onetime/services/system/connect_databases.rb
 
-require 'onetime/refinements/indifferent_hash_access'
+
 require 'onetime/refinements/horreum_refinements'
 
 module Onetime
@@ -9,7 +9,6 @@ module Onetime
 
       class ConnectDatabases < ServiceProvider
         using Familia::HorreumRefinements
-        using Onetime::IndifferentHashAccess
 
         def initialize
           super(:connect_databases, type: TYPE_CONNECTION, priority: 5) # High priority - other services depend on DB
@@ -29,11 +28,11 @@ module Onetime
         #
         def start(config)
 
-          db_settings = config.dig(:storage, :db)
-          Familia.uri = db_settings[:connection][:url]
+          db_settings = config.dig('storage', 'db')
+          Familia.uri = db_settings['connection']['url']
 
           # Connect each model to its configured Redis database
-          db_map = db_settings[:database_mapping]
+          db_map = db_settings['database_mapping']
 
           debug "db_map: #{db_map}"
           debug "models: #{Familia.members.map(&:to_s)}"

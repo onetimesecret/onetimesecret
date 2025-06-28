@@ -11,8 +11,7 @@ require_relative 'configurator/environment_context'
 require_relative 'configurator/load'
 require_relative 'configurator/utils'
 
-require 'onetime/refinements/indifferent_hash_access'
-require 'onetime/refinements/then_with_diff'
+require_relative 'refinements/then_with_diff'
 
 module Onetime
   # Configuration loader using two-stage validation pattern:
@@ -22,7 +21,6 @@ module Onetime
   #
   # Pipeline: ENV normalize → Read → ERB → YAML → Validate → Process → Revalidate → Freeze
   class Configurator
-    using Onetime::IndifferentHashAccess
     using Onetime::ThenWithDiff
 
     # TODO: Add resolve_and_validate_home in onetime/constants.rb and maybe

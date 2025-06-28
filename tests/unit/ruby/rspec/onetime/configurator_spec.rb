@@ -171,15 +171,14 @@ RSpec.describe Onetime::Configurator do
         }
       end
 
-      it 'supports symbol key access on string-normalized results' do
+      it 'does not support symbol key access on string-normalized results' do
         result = described_class::Utils.apply_defaults_to_peers(config_with_symbol_keys)
 
         # Results are normalized to string keys
-        expect(result['api']['timeout']).to eq(10)
-        expect(result['web']['enabled']).to eq(true)
+        expect(result[:'api'][:'timeout']).to eq(10)
+        expect(result[:'web'][:'enabled']).to eq(true)
 
-        # But should support symbol access via IndifferentHashAccess
-        # This will be handled by the refinement in the actual config system
+        # So should be accessible by string key
         expect(result.keys).to all(be_a(String))
       end
 

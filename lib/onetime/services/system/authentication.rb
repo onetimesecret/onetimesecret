@@ -1,6 +1,6 @@
 # lib/onetime/services/system/authentication.rb
 
-require 'onetime/refinements/indifferent_hash_access'
+
 
 require_relative '../service_provider'
 
@@ -16,7 +16,6 @@ module Onetime
       # system-wide.
       #
       class AuthenticationProvider < ServiceProvider
-        using Onetime::IndifferentHashAccess
 
         attr_reader :colonels, :auth_config
 
@@ -90,7 +89,7 @@ module Onetime
 
         def feature_disabled?(config)
           # Check if feature is explicitly disabled
-          config.is_a?(Hash) && config[:enabled] == false
+          config.is_a?(Hash) && config['enabled'] == false
         end
       end
 

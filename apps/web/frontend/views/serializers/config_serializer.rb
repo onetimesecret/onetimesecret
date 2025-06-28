@@ -1,6 +1,6 @@
 # apps/web/frontend/views/serializers/config_serializer.rb
 
-require 'onetime/refinements/indifferent_hash_access'
+
 
 module Frontend
   module Views
@@ -9,7 +9,6 @@ module Frontend
     # Responsible for transforming server-side configuration settings into
     # a consistent format that can be safely exposed to the frontend.
     module ConfigSerializer
-      using Onetime::IndifferentHashAccess
 
       # Serializes configuration data from view variables
       #
@@ -22,40 +21,40 @@ module Frontend
       def self.serialize(view_vars, _i18n)
         output = output_template
 
-        site        = view_vars[:site] || {}
-        incoming    = view_vars[:incoming] || {} # TODO: Update to features.incoming
-        development = view_vars[:development] || {}
-        diagnostics = view_vars[:diagnostics] || {}
-        features    = view_vars[:features] || {}
+        site        = view_vars['site'] || {}
+        incoming    = view_vars['incoming'] || {} # TODO: Update to features.incoming
+        development = view_vars['development'] || {}
+        diagnostics = view_vars['diagnostics'] || {}
+        features    = view_vars['features'] || {}
 
-        output[:site_host]              = site[:host]
-        output[:ui]                     = OT.conf[:ui]
-        output[:authenticated]          = OT.state[:authentication_enabled]
-        output[:secret_options]         = OT.conf[:secret_options]
-        regions                         = features[:regions] || {}
-        domains                         = features[:domains] || {}
+        output[:site_host]              = site['host']
+        output[:ui]                     = OT.conf['ui']
+        output[:authenticated]          = OT.state['authentication_enabled']
+        output[:secret_options]         = OT.conf['secret_options']
+        regions                         = features['regions'] || {}
+        domains                         = features['domains'] || {}
 
         # Only send the regions config when the feature is enabled.
-        output[:regions_enabled] = regions.fetch(:enabled, false)
+        output[:regions_enabled] = regions.fetch('enabled', false)
         output[:regions]         = regions if output[:regions_enabled]
 
-        output[:domains_enabled] = domains.fetch(:enabled, false)
+        output[:domains_enabled] = domains.fetch('enabled', false)
         output[:domains]         = domains if output[:domains_enabled]
 
-        output[:incoming_recipient] = incoming.fetch(:email, nil)
+        output[:incoming_recipient] = incoming.fetch('email', nil)
 
         # Link to the pricing page can be seen regardless of authentication status
-        output[:plans_enabled] = site.dig(:plans, :enabled) || false
+        output[:plans_enabled] = site.dig('plans', 'enabled') || false
 
-        output[:frontend_development] = development[:enabled] || false
-        output[:frontend_host]        = development[:frontend_host] || ''
+        output[:frontend_development] = development['enabled'] || false
+        output[:frontend_host]        = development['frontend_host'] || ''
 
-        sentry               = diagnostics.fetch(:sentry, {})
-        output[:d9s_enabled] = Onetime.conf[:d9s_enabled]
+        sentry               = diagnostics.fetch('sentry', {})
+        output[:d9s_enabled] = Onetime.conf['d9s_enabled']
         Onetime.with_diagnostics do
           output[:diagnostics] = {
             # e.g. {dsn: "https://...", ...}
-            sentry: sentry.fetch(:frontend, {}),
+            sentry: sentry.fetch('frontend', {}),
           }
         end
 

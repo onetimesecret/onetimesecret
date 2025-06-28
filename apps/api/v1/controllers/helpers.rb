@@ -319,8 +319,8 @@ module V1
       # is missing, we assume that authentication is disabled and that accounts
       # are not used. This prevents situations where the app is running and
       # anyone accessing it can create an account without proper authentication.
-      authentication_enabled = OT.conf[:site][:authentication][:enabled] rescue false # rubocop:disable Style/RescueModifier
-      signin_enabled = OT.conf[:site][:authentication][:signin] rescue false # rubocop:disable Style/RescueModifier
+      authentication_enabled = OT.conf['site']['authentication']['enabled'] rescue false # rubocop:disable Style/RescueModifier
+      signin_enabled = OT.conf['site']['authentication']['signin'] rescue false # rubocop:disable Style/RescueModifier
 
       # The only condition that allows a request to be authenticated is if
       # the site has authentication enabled, and the user is signed in. If a

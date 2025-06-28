@@ -47,8 +47,6 @@ SECRET_OPTION_BOUNDARIES = {
 module Onetime
   class Migration < BaseMigration
 
-    using Onetime::IndifferentHashAccess
-
     # Configuration mapping for splitting monolithic config
     CONFIG_MAPPINGS = {
       'static' => [
