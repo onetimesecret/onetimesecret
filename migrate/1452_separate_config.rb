@@ -23,8 +23,6 @@ require 'onetime/migration'
 require 'yaml'
 require 'fileutils'
 
-require 'onetime/refinements/indifferent_hash_access'
-
 USER_TYPES_CAPABILITIES = {
     'anonymous' => {
       'api' => true,
