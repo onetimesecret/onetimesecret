@@ -243,7 +243,7 @@ module Onetime
       # @return [String, nil] The canonical domain or nil
       def get_canonical_domain(config)
         default_domain = @domains_enabled ? config.dig(:domains, :default) : nil
-        site_host      = config.fetch(:host, nil)
+        site_host      = config.fetch('host', nil)
         default_domain || site_host
       end
 

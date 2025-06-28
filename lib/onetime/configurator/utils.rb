@@ -9,16 +9,17 @@ module Onetime
       KNOWN_PATHS = %w[/etc/onetime ./etc ~/.onetime].freeze
 
       KEY_MAP = {
-        allowed_domains_only: :whitelist_validation,
-        allowed_emails: :whitelisted_emails,
-        blocked_emails: :blacklisted_emails,
-        allowed_domains: :whitelisted_domains,
-        blocked_domains: :blacklisted_domains,
-        blocked_mx_ip_addresses: :blacklisted_mx_ip_addresses,
+        # Truemail keys are symbols
+        'allowed_domains_only' => :whitelist_validation,
+        'allowed_emails' => :whitelisted_emails,
+        'blocked_emails' => :blacklisted_emails,
+        'allowed_domains' => :whitelisted_domains,
+        'blocked_domains' => :blacklisted_domains,
+        'blocked_mx_ip_addresses' => :blacklisted_mx_ip_addresses,
 
         # An example mapping for testing.
-        example_internal_key: :example_external_key,
-      }
+        'example_internal_key' => 'example_external_key',
+      }.freeze
     end
 
     module Utils
@@ -94,9 +95,11 @@ module Onetime
       end
 
       def mapped_key(key)
-        # `key` is a symbol. Returns a symbol.
-        # If the key is not in the KEY_MAP, return the key itself.
-        KEY_MAP[key] || key
+        # Our keys are string but the target mapped key may be a string or
+        # a symbol depending on the 3rd party library's conventions. If the
+        # key is not in the KEY_MAP, return the key itself so that the method
+        # operates as a passive pass-through for unmapped keys.
+        KEY_MAP[key.to_s] || key
       end
 
       # Applies default values to its config level peers
@@ -127,7 +130,7 @@ module Onetime
         return {} if config.nil? || config.empty?
 
         # Extract defaults from the configuration (handle both symbol and string keys)
-        defaults = config[:defaults] # using indifferent hash refinement
+        defaults = config['defaults'] || config[:defaults]
 
         # If no valid defaults exist, return config without the :defaults key
         unless defaults.is_a?(Hash)

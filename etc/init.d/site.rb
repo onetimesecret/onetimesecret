@@ -1,9 +1,29 @@
 # etc/init.d/site.rb
 
-# Handle potential nil global secret
-# The global secret is critical for encrypting/decrypting secrets
-# Running without a global secret is only permitted in exceptional cases
-allow_nil     = global.dig('experimental', 'allow_nil_global_secret') || false # NOTE: 'global'
+# INIT SCRIPT CONFIGURATION GUIDE
+# ================================
+#
+# This init script corresponds to the top-level `site` key in the static config.
+#
+# Two key variables are available:
+#
+# `global` - The complete, frozen configuration hash (read-only)
+#            Use: global.dig('other_section', 'setting')
+#            Access any configuration value across all sections
+#
+# `config` - The mutable configuration hash for THIS section only
+#            Use: config['setting'] = value
+#            Modify settings within this section's scope
+#
+# Example:
+#   global.dig('experimental', 'allow_nil')   # read from other sections
+#   config['host'] = 'http://127.0.0.1:9000'  # set values in current section
+#   config.dig('authentication', 'enabled')   # read from current section
+#
+# @see InitScriptContext.
+
+# Running without a global secret is only permitted vi opt-in
+allow_nil     = global.dig('experimental', 'allow_nil_global_secret') || false
 
 global_secret = config.fetch('secret', nil)
 global_secret = nil if global_secret.to_s.strip == 'CHANGEME'
@@ -33,6 +53,9 @@ if global_secret.nil?
   MSG
 end
 
+# Set the state key for global secret, even if nil.
+OT.state['global_state'] = global_secret
+
 # Disable all authentication sub-features when main feature is off for
 # consistency, security, and to prevent unexpected behavior. Ensures clean
 # config state.
@@ -46,28 +69,15 @@ end
 # Combine colonels from root level and authentication section
 # This handles the legacy config where colonels were at the root level
 # while ensuring we don't lose any colonels from either location
-root_colonels                        = config.fetch('colonels', [])
-auth_colonels                        = config.dig('authentication', 'colonels') || []
-config['authentication']['colonels'] = (auth_colonels + root_colonels).compact.uniq
+legacy_colonels = config.fetch('colonels', [])
+modern_colonels = config.dig('authentication', 'colonels') || []
 
-# Clear colonels and set to false if authentication is disabled
+config['authentication']['colonels'] = (modern_colonels + legacy_colonels).compact.uniq
+
 unless config.dig('authentication', 'enabled')
+  # Clear colonels and set to false if authentication is disabled
   config['authentication']['colonels'] = false
-end
 
-ttl_options = config.dig('secret_options', 'ttl_options')
-default_ttl = config.dig('secret_options', 'default_ttl')
-
-# if the ttl_options setting is a string, we want to split it into an
-# array of integers.
-if ttl_options.is_a?(String)
-  config['secret_options']['ttl_options'] = ttl_options.split(/\s+/)
-end
-ttl_options = config.dig('secret_options', 'ttl_options')
-if ttl_options.is_a?(Array)
-  config['secret_options']['ttl_options'] = ttl_options.map(&:to_i)
-end
-
-if default_ttl.is_a?(String)
-  config['secret_options']['default_ttl'] = default_ttl.to_i
+  # Also force autoverify to false.
+  config['authentication']['autoverify'] = false
 end

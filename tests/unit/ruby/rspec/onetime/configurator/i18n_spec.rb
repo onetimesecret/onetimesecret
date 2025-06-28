@@ -1,6 +1,8 @@
 # tests/unit/ruby/rspec/onetime/configurator/i18n_spec.rb
 
 require_relative '../../spec_helper'
+require 'onetime/services/legacy_globals'
+require 'onetime/services/service_registry'
 
 RSpec.describe "Internationalization config" do
   describe "Onetime legacy global methods" do
@@ -8,21 +10,42 @@ RSpec.describe "Internationalization config" do
     # is not loaded in the test environment. The module is loaded via the
     # system services in production but not in unit tests.
 
-    it 'has legacy global methods available in production' do
-      pending 'LegacyGlobals module not loaded in test environment'
+    it 'has legacy global methods available when LegacyGlobals is loaded' do
+      # Mock OT.conf (not Onetime.state) since LegacyGlobals uses OT.conf
+      mock_config = {
+        'i18n' => { 'enabled' => true, 'default_locale' => 'en', 'fallback_locale' => nil },
+        'locales' => { 'en' => {}, 'fr' => {} },
+        'supported_locales' => ['en', 'fr'],
+        'global_banner' => nil,
+        'diagnostics' => { 'enabled' => false },
+        'site' => { 'secret' => 'test_secret' }
+      }
 
-      # These methods should be available when the system is fully loaded:
-      # - Onetime.i18n_enabled
-      # - Onetime.locales
-      # - Onetime.default_locale
-      # - Onetime.fallback_locale
-      # - Onetime.supported_locales
-      # - Onetime.global_banner
-      # - Onetime.emailer
-      # - Onetime.global_secret
-      # - Onetime.d9s_enabled
+      allow(OT).to receive(:conf).and_return(mock_config)
+      allow(Onetime::Services::ServiceRegistry).to receive(:get_state).with(:mailer_class).and_return('MockMailer')
+      allow(Onetime::Services::LegacyGlobals).to receive(:print_warning) # Suppress warning output
 
+      # These methods should be available when LegacyGlobals is loaded:
       expect(Onetime).to respond_to(:i18n_enabled)
+      expect(Onetime).to respond_to(:locales)
+      expect(Onetime).to respond_to(:default_locale)
+      expect(Onetime).to respond_to(:fallback_locale)
+      expect(Onetime).to respond_to(:supported_locales)
+      expect(Onetime).to respond_to(:global_banner)
+      expect(Onetime).to respond_to(:emailer)
+      expect(Onetime).to respond_to(:global_secret)
+      expect(Onetime).to respond_to(:d9s_enabled)
+
+      # Test that the methods return expected values
+      expect(Onetime.i18n_enabled).to be(true)
+      expect(Onetime.locales).to eq({ 'en' => {}, 'fr' => {} })
+      expect(Onetime.default_locale).to eq('en')
+      expect(Onetime.supported_locales).to eq(['en', 'fr'])
+      expect(Onetime.fallback_locale).to be_nil
+      expect(Onetime.global_banner).to be_nil
+      expect(Onetime.d9s_enabled).to be(false)
+      expect(Onetime.global_secret).to eq('test_secret')
+      expect(Onetime.emailer).to eq('MockMailer')
     end
   end
 
@@ -50,17 +73,22 @@ RSpec.describe "Internationalization config" do
         end
 
         it 'handles nil locales gracefully without raising errors' do
-          # pending 'Bug: check_locale! method does not handle nil OT.conf gracefully'
           # This test verifies that check_locale! doesn't crash when
           # the locales configuration is not available
           expect { helper.check_locale! }.not_to raise_error
+
+          # Verify the method completed and set a locale
+          expect(req.env).to have_key('ots.locale')
+          expect(helper.instance_variable_get(:@locale)).not_to be_nil
         end
 
         it 'sets a default locale in the environment' do
-          # pending 'Bug: check_locale! method does not handle nil OT.conf gracefully'
           helper.check_locale!
+
           # Should set some default locale even when config is nil
           expect(req.env['ots.locale']).not_to be_nil
+          expect(req.env['ots.locale']).to eq('en') # Should default to 'en'
+          expect(helper.instance_variable_get(:@locale)).to eq('en')
         end
       end
 
@@ -88,16 +116,49 @@ RSpec.describe "Internationalization config" do
         end
 
         it 'uses the configured default locale' do
-          # pending 'Bug: check_locale! method access pattern needs fixing for symbol/string keys'
           helper.check_locale!
+
           expect(req.env['ots.locale']).to eq('en')
+          expect(helper.instance_variable_get(:@locale)).to eq('en')
         end
 
         it 'handles locale parameter from request' do
-          # pending 'Bug: check_locale! method access pattern needs fixing for symbol/string keys'
-          allow(req).to receive(:params).and_return({ 'locale' => 'fr' })
+          # Fix: Use symbol key since check_locale! accesses req.params[:locale]
+          allow(req).to receive(:params).and_return({ locale: 'fr' })
+
           helper.check_locale!
+
           expect(req.env['ots.locale']).to eq('fr')
+          expect(helper.instance_variable_get(:@locale)).to eq('fr')
+        end
+
+        it 'falls back to default when unsupported locale is requested' do
+          allow(req).to receive(:params).and_return({ locale: 'unsupported' })
+
+          helper.check_locale!
+
+          expect(req.env['ots.locale']).to eq('en') # Should fall back to default
+          expect(helper.instance_variable_get(:@locale)).to eq('en')
+        end
+
+        it 'prioritizes request parameter over customer locale' do
+          allow(req).to receive(:params).and_return({ locale: 'fr' })
+          allow(cust).to receive(:locale).and_return('en')
+
+          helper.check_locale!
+
+          expect(req.env['ots.locale']).to eq('fr') # Request parameter wins
+          expect(helper.instance_variable_get(:@locale)).to eq('fr')
+        end
+
+        it 'uses customer locale when no request parameter is provided' do
+          allow(req).to receive(:params).and_return({})
+          allow(cust).to receive(:locale).and_return('fr')
+
+          helper.check_locale!
+
+          expect(req.env['ots.locale']).to eq('fr') # Customer locale used
+          expect(helper.instance_variable_get(:@locale)).to eq('fr')
         end
       end
     end
