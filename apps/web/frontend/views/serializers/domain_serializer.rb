@@ -19,14 +19,14 @@ module Frontend
       # @return [Hash] Serialized domain data
       def self.serialize(view_vars, _i18n)
         output          = output_template
-        site            = view_vars[:site] || {}
-        domains_enabled = site.dig(:domains, :enabled)
+        site            = view_vars['site'] || {}
+        domains_enabled = site.dig('domains', 'enabled')
 
-        is_authenticated = view_vars[:authenticated]
-        view_vars[:site].fetch(:domains, {})
-        cust             = view_vars[:cust]
+        is_authenticated = view_vars['authenticated']
+        view_vars['site'].fetch('domains', {})
+        cust             = view_vars['cust']
 
-        output[:domain_strategy] = view_vars[:domain_strategy]
+        output[:domain_strategy] = view_vars['domain_strategy']
 
         require 'v2/models/custom_domain' unless defined?(V2::CustomDomain)
 

@@ -1,71 +1,68 @@
 # lib/onetime/mail/views/common.rb
 
-require 'onetime/refinements/indifferent_hash_access'
+
 require_relative 'base'
 
 module Onetime
   module Mail
     class Welcome < Mail::Views::Base
-      using Onetime::IndifferentHashAccess
 
       def init(secret)
-        self[:secret]        = secret
-        self[:email_address] = cust.email
+        self['secret']        = secret
+        self['email_address'] = cust.email
       end
 
       def subject
-        i18n[:email][:subject]
+        i18n['email']['subject']
       end
 
       def verify_uri
-        secret_uri self[:secret]
+        secret_uri self['secret']
       end
     end
 
     class SecretLink < Mail::Views::Base
-      using Onetime::IndifferentHashAccess
 
       def init(secret, recipient)
         raise ArgumentError, 'Customer required' unless cust
         raise ArgumentError, 'Recipient required' unless recipient
         raise ArgumentError, 'Secret required' unless secret
 
-        self[:secret]         = secret
-        self[:custid]         = cust.custid
-        self[:sender_email]   = cust.email
-        self[:email_address]  = recipient
-        self[:from_name]      = OT.conf[:emailer][:fromname]
-        self[:from]           = OT.conf[:emailer][:from]
-        self[:signature_link] = 'https://onetimesecret.com/'
+        self['secret']         = secret
+        self['custid']         = cust.custid
+        self['sender_email']   = cust.email
+        self['email_address']  = recipient
+        self['from_name']      = OT.conf['emailer']['fromname']
+        self['from']           = OT.conf['emailer']['from']
+        self['signature_link'] = 'https://onetimesecret.com/'
       end
 
       def subject
-        format(i18n[:email][:subject], self[:sender_email]) # e.g. "ABC" sent you a secret
+        format(i18n['email']['subject'], self['sender_email']) # e.g. "ABC" sent you a secret
       end
 
       def display_domain
-        secret_display_domain self[:secret]
+        secret_display_domain self['secret']
       end
 
       def uri_path
-        raise ArgumentError, 'Invalid secret key' unless self[:secret]&.key
+        raise ArgumentError, 'Invalid secret key' unless self['secret']&.key
 
-        secret_uri self[:secret]
+        secret_uri self['secret']
       end
     end
 
     class SupportMessage < Mail::Views::Base
-      using Onetime::IndifferentHashAccess
 
       attr_reader :subject
 
       def init(from_name, subject)
         @subject              = subject
-        self[:custid]         = cust.custid
-        self[:email_address]  = cust.custid
-        self[:from_name]      = from_name
-        self[:from]           = OT.conf[:emailer][:from]
-        self[:signature_link] = baseuri
+        self['custid']         = cust.custid
+        self['email_address']  = cust.custid
+        self['from_name']      = from_name
+        self['from']           = OT.conf['emailer']['from']
+        self['signature_link'] = 'https://onetimesecret.com/'
       end
 
       def special_fortune
@@ -89,14 +86,13 @@ module Onetime
     end
 
     class IncomingSupport < Mail::Views::Base
-      using Onetime::IndifferentHashAccess
 
       attr_accessor :ticketno
 
       def init(secret, recipient)
-        self[:secret]        = secret
-        self[:custid]        = cust.custid
-        self[:email_address] = recipient
+        self['secret']        = secret
+        self['custid']        = cust.custid
+        self['email_address'] = recipient
       end
 
       def subject
@@ -109,10 +105,9 @@ module Onetime
     end
 
     class TestEmail < Mail::Views::Base
-      using Onetime::IndifferentHashAccess
 
       def init
-        self[:email_address] = cust.email
+        self['email_address'] = cust.email
       end
 
       def subject
@@ -125,12 +120,11 @@ module Onetime
     end
 
     class FeedbackEmail < Mail::Views::Base
-      using Onetime::IndifferentHashAccess
 
       attr_accessor :message, :display_domain, :domain_strategy
 
       def init
-        self[:email_address] = cust.email
+        self['email_address'] = cust.email
       end
 
       def subject

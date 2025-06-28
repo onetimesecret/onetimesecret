@@ -1,6 +1,6 @@
 # lib/onetime/services/legacy_globals.rb
 
-require 'onetime/refinements/indifferent_hash_access'
+
 
 module Onetime
   module Services
@@ -22,7 +22,6 @@ module Onetime
     #     OT.state['global_secret']
     #
     module LegacyGlobals
-      using Onetime::IndifferentHashAccess
 
       def global_secret
         LegacyGlobals.print_warning('global_secret')

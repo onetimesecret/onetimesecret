@@ -13,7 +13,6 @@ module Onetime
   # the emcee for getting your Onetime instance up and running.
   module Boot
     extend self
-    using Onetime::IndifferentHashAccess
 
     @init_scripts_dir = File.join(Onetime::HOME, 'etc', 'init.d').freeze
 

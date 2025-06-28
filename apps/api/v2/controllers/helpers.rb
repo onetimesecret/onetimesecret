@@ -1,6 +1,6 @@
 # apps/api/v2/controllers/helpers.rb
 
-require 'onetime/refinements/indifferent_hash_access'
+
 
 module V2
   unless defined?(V2::BADAGENTS)
@@ -10,7 +10,6 @@ module V2
   end
 
   module ControllerHelpers
-    using Onetime::IndifferentHashAccess
 
     def plan
       @plan   = Onetime::Plan.plan(cust.planid) unless cust.nil?

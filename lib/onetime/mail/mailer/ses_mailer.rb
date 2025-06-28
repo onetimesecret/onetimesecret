@@ -2,14 +2,13 @@
 
 require 'aws-sdk-sesv2'
 
-require 'onetime/refinements/indifferent_hash_access'
+
 
 require_relative 'base_mailer'
 
 module Onetime::Mail
   module Mailer
     class SESMailer < BaseMailer
-      using Onetime::IndifferentHashAccess
 
       class << self
         attr_reader :ses_client
@@ -85,10 +84,10 @@ module Onetime::Mail
 
         # Configure AWS SES client
         @ses_client = Aws::SESV2::Client.new(
-          region: mail_settings[:region] || raise('Region not configured'),
+          region: mail_settings['region'] || raise('Region not configured'),
           credentials: Aws::Credentials.new(
-            mail_settings[:user],
-            mail_settings[:pass],
+            mail_settings['user'],
+            mail_settings['pass'],
           ),
         )
       end

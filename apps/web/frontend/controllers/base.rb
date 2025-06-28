@@ -102,9 +102,9 @@ module Frontend
           OT.le "[validate_url] Invalid URI: #{uri}"
         else
           # Set a default host if the host is missing
-          uri.host ||= OT.conf[:site][:host]
+          uri.host ||= OT.conf['site']['host']
           # Ensure the scheme is HTTPS if SSL is enabled in the configuration
-          if (OT.conf[:site][:ssl]) && (uri.scheme.nil? || uri.scheme != 'https')
+          if (OT.conf['site']['ssl']) && (uri.scheme.nil? || uri.scheme != 'https')
             uri.scheme = 'https'
           end
           # Set uri to nil if it is not an HTTP or HTTPS URI

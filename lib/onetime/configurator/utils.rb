@@ -1,7 +1,7 @@
 # lib/onetime/configurator/utils.rb
 
 require 'json_schemer'
-require 'onetime/refinements/indifferent_hash_access'
+
 
 module Onetime
   class Configurator
@@ -23,7 +23,6 @@ module Onetime
 
     module Utils
       extend self
-      using Onetime::IndifferentHashAccess
 
       def validate_with_schema(conf, schema, apply_defaults: false)
         raise OT::ConfigError, 'Schema is nil' if schema.nil?

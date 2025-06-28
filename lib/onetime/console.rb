@@ -26,7 +26,7 @@ $LOAD_PATH.unshift(File.join(APP_DIR, 'web'))
 # Only load what's necessary for successful interactive startup
 require_relative '../onetime'
 require_relative '../onetime/models'
-require_relative '../onetime/refinements/indifferent_hash_access'
+
 require_relative '../onetime/refinements/time_extensions'
 
 # Create a custom workspace with your loaded environment
@@ -48,7 +48,6 @@ if defined?(IRB)
     RETURN: "⮑  %s\n",  # The format for return values
   }
   IRB.conf[:IRB_RC]           = proc do |context|
-    context.workspace.binding.eval('using Onetime::IndifferentHashAccess')
     context.workspace.binding.eval('using Onetime::TimeExtensions')
   end
   # Set the global prompt mode to :ONETIME
