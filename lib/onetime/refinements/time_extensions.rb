@@ -101,28 +101,33 @@ module Onetime
         when :years then self * PER_YEAR
         else self
         end
-
       end
 
-      # Converts the number to a human-readable string representation
-      #
-      # @return [String] A formatted string e.g. "1 day" or "10 seconds"
-      #
-      # @example
-      #   10.to_humanize #=> "10 seconds"
-      #   60.to_humanize #=> "1 minute"
-      #   3600.to_humanize #=> "1 hour"
-      #   86400.to_humanize #=> "1 day"
-      def humanize
-        gte_zero = positive? || zero?
-        duration = (gte_zero ? self : -self) # let's keep it positive up in here
-        text = case (s = duration.to_i)
-        in 0..59       then "#{s} second#{'s' if s != 1}"
-        in 60..3599    then "#{s  /= 60} minute#{'s' if s != 1}"
-        in 3600..86_399 then "#{s /= 3600} hour#{'s' if s != 1}"
-        else "#{s /= 86_400} day#{'s' if s != 1}"
+      def age_in(unit, from_time = nil)
+        from_time ||= Time.now.utc
+        age_seconds = from_time.to_i - to_i
+        case UNIT_METHODS.fetch(unit.to_s.downcase, nil)
+        when :days then age_seconds / PER_DAY
+        when :hours then age_seconds / PER_HOUR
+        when :minutes then age_seconds / PER_MINUTE
+        when :weeks then age_seconds / PER_WEEK
+        else age_seconds
         end
-        gte_zero ? text : "#{text} ago"
+      end
+
+      def days_old(*) = age_in(:days, *)
+      def hours_old(*) = age_in(:hours, *)
+      def minutes_old(*) = age_in(:minutes, *)
+      def weeks_old(*) = age_in(:weeks, *)
+      def months_old(*) = age_in(:months, *)
+      def years_old(*) = age_in(:years, *)
+
+      def older_than?(duration)
+        self < (Time.now.utc.to_i - duration)
+      end
+
+      def newer_than?(duration)
+        self >= (Time.now.utc.to_i + duration)
       end
 
       # Converts the number to a human-readable byte representation using binary units
