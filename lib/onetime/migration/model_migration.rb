@@ -199,10 +199,10 @@ module Onetime
 
     def print_migration_summary
       print_summary do
-        info("Total #{model_class.name.split('::').last} records scanned: #{@total_scanned} (actual)")
-        info("Records that met basic criteria: #{@records_needing_update}")
-        info("Records #{actual_run? ? 'updated' : 'that would be updated on actual run'}: #{@records_updated}")
-        info("Errors encountered: #{@error_count}")
+        info("Redis SCAN found: #{@total_scanned} #{model_class} records")
+        info("Passed migration filter: #{@records_needing_update} records")
+        info("#{actual_run? ? 'Processed' : 'Would be processed'}: #{@records_updated} records")
+        info("Errors: #{@error_count}")
 
         print_custom_stats
         print_error_guidance
@@ -238,7 +238,7 @@ module Onetime
         info("Model class: #{@model_class.name}")
         info("Redis connection: #{@redis_client.connection[:id]}")
         info("Scan pattern: #{@scan_pattern}")
-        info("Total records (#{@model_class.name}.values.size): #{@total_records} (expected)")
+        info("Indexed records: #{@total_records} (#{@model_class.name}.values)")
         info("Batch size: #{@batch_size}")
         verify_redis_connection
       end
@@ -246,7 +246,7 @@ module Onetime
 
     def verify_redis_connection
       @redis_client.ping
-      debug('Redis connection verified')
+      debug('Redis connection: verified')
     rescue StandardError => ex
       error("Cannot connect to Redis: #{ex.message}")
       raise ex
