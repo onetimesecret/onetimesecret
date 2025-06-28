@@ -19,11 +19,11 @@ module Frontend
       # @return [Hash] Serialized domain data
       def self.serialize(view_vars, _i18n)
         output          = output_template
-        site            = view_vars['site'] || {}
-        domains_enabled = site.dig('domains', 'enabled')
+        features        = view_vars['features'] || {}
+        domains_enabled = features.dig('domains', 'enabled')
 
         is_authenticated = view_vars['authenticated']
-        view_vars['site'].fetch('domains', {})
+        features.fetch('domains', {})
         cust             = view_vars['cust']
 
         output[:domain_strategy] = view_vars['domain_strategy']
