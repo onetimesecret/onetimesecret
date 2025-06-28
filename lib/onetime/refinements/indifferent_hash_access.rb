@@ -24,6 +24,7 @@ module Onetime
   # @note Only affects reading operations - writing maintains original key types
   # @note In future versions, this logic may be moved upstream to Familia's FlexibleHashAccess
   #
+  # https://github.com/sinatra/sinatra/blob/main/lib/sinatra/indifferent_hash.rb
   module IndifferentHashAccess
     refine Hash do
       def [](key)
