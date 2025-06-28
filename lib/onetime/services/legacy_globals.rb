@@ -11,14 +11,22 @@ module Onetime
     #
     # Previously available as global methods (e.g. OT.d9s_enabled).
     #
-    # NOTE: We intentionally use OT.conf here and not direct to the system
-    # state so that we're not circumventing Boot.boot! initialization steps.
+    # NOTE: We intentionally use OT.conf here which makes the static config
+    # available immediately at start and not OT.state which is only available
+    # after Boot.boot! initialization steps.
+    #
+    # So this:
+    #     OT.conf['site]['secret']
+    #
+    # Not this:
+    #     OT.state['global_secret']
+    #
     module LegacyGlobals
       using Onetime::IndifferentHashAccess
 
       def global_secret
         LegacyGlobals.print_warning('global_secret')
-        @global_secret ||= OT.state[:global_state]
+        @global_secret ||= OT.conf&.dig('site', 'secret')
       end
 
       def d9s_enabled
