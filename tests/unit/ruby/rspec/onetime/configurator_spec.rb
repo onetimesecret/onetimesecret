@@ -246,22 +246,12 @@ RSpec.describe Onetime::Configurator do
 
       it 'finds schema_path when not provided' do
         instance = described_class.new
+        config = instance.load_with_impunity!
+        instance.resolve_and_load_schema(config)
         expect(instance.schema_path).to be_a(String)
+        expect(instance.schema).to be_a(Hash)
       end
     end
 
-    describe '#load_schema' do
-      before do
-        allow(OT::Configurator::Load).to receive(:yaml_load_file).and_return({ type: 'object' })
-      end
-
-      it 'loads schema from file' do
-        result = config_instance.send(:load_schema)
-
-        expect(result).to eq({ type: 'object' })
-        # Note: schema is set as an instance variable in load! pipeline
-        # expect(config_instance.schema).to eq({ type: 'object' })
-      end
-    end
   end
 end

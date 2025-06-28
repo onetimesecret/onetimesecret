@@ -92,9 +92,6 @@ minimal_test_config = {
   },
 }
 
-# Set the configuration directly for tests
-OT.instance_variable_set(:@static_config, minimal_test_config)
-
 # Configure RSpec
 RSpec.configure do |config|
   # Configures RSpec to include chain clauses in custom matcher descriptions for better readability.
@@ -135,6 +132,10 @@ RSpec.configure do |config|
 
   # Global before hooks
   config.before(:each) do
+    # Set up default test configuration mock
+    # Individual tests can override this as needed
+    allow(OT).to receive(:conf).and_return(minimal_test_config) unless OT.conf.is_a?(Hash)
+
     # Suppress logging during tests
     allow(OT).to receive(:ld).and_return(nil)
     allow(OT).to receive(:li).and_return(nil)

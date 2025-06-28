@@ -4,8 +4,8 @@ require_relative 'onetime/constants'
 
 module Onetime
   @mode  = nil
-  @env   = (ENV['RACK_ENV'] || 'production').downcase
-  @debug = ENV['ONETIME_DEBUG'].to_s.match?(/^(true|1)$/i)
+  @env   = (ENV['RACK_ENV'] || 'production').downcase.freeze
+  @debug = ENV['ONETIME_DEBUG'].to_s.match?(/^(true|1)$/i).freeze
 
   # Contains the global instance of ConfigProxy which is set at boot-time
   # and lives for the duration of the process. Accessed externally via

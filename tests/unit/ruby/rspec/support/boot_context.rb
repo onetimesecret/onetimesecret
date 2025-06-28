@@ -25,12 +25,21 @@ RSpec.shared_context "boot_context" do
   end
 
   before(:each) do
-    # Ensure OT.conf returns the configured test values
+    # Mock OT.conf to return the configured test values
     allow(OT).to receive(:conf).and_return(load_with_impunity_config)
+
+    # Mock OT.state to return an empty hash by default
+    # Individual tests can override this as needed
+    allow(OT).to receive(:state).and_return({})
   end
 
   after(:each) do
-    OT.instance_variable_set(:@conf, nil)
-    OT.instance_variable_set(:@global_secret, nil)
+    # Reset any state that may have been set during tests
+    # Since we're mocking, we don't need to clean up instance variables
+
+    # If any tests modified the global state directly, reset it
+    if OT.respond_to?(:state) && OT.state.is_a?(Hash)
+      OT.state.clear
+    end
   end
 end
