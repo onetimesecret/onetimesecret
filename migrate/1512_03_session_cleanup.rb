@@ -14,9 +14,12 @@
 #
 
 require 'onetime/migration'
+require 'onetime/refinements/time_extensions'
 
 module Onetime
   class Migration < PipelineMigration
+    using Onetime::TimeExtensions
+
     def prepare
       @model_class = V2::Session
       @batch_size  = 1000
@@ -38,18 +41,24 @@ module Onetime
 
     private
 
-    # Check ttl: is it a negative value? Is the record older than 7 days?
+    # Check ttl: is it a negative value?
+    # Check created: Is the record older than 7 days?
     #
     # This method can be implemented however you like. It just needs to
     # return a boolean value.
     def should_process?(obj)
-      return false unless obj.realttl.to_i.negative?
+      criteria = [
+        obj.realttl.to_i.negative?,
+        obj.created.to_i.older_than?(7.days),
+      ]
 
-      # return false unless obj.created_at < 7.days.ago # TODO
+      if criteria.all?
+        track_stat('removal_ttl_and_older_than_7d')
+        debug("Should process sessid=#{obj.sessid} ttl=#{obj.ttl} realttl=#{obj.realttl}")
+        true
+      end
 
-      track_stat('removal_ttl')
-      debug("Should remove sessid=#{obj.sessid} ttl=#{obj.ttl} realttl=#{obj.realttl}")
-      true
+      false
     end
 
     def build_update_fields(*)
