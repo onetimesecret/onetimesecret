@@ -87,10 +87,24 @@ RSpec.describe Onetime::Configurator do
     context 'with automatic path discovery' do
       before do
         # Mock the find_config method to return our test files
+        # Need to handle any possible basename that might be passed
+        allow(described_class).to receive(:find_config).and_call_original
+
         allow(described_class).to receive(:find_config)
-          .with('config').and_return(test_config_path)
+          .with('config')
+          .and_return(test_config_path)
+
         allow(described_class).to receive(:find_config)
-          .with('config.schema').and_return(test_schema_path)
+          .with('config.schema')
+          .and_return(test_schema_path)
+
+        allow(described_class).to receive(:find_config)
+          .with('config.test')
+          .and_return(test_config_path)
+
+        allow(described_class).to receive(:find_config)
+          .with('config.test.schema')
+          .and_return(test_schema_path)
       end
 
       it 'finds config and schema automatically when no paths provided' do
