@@ -71,10 +71,12 @@ module Onetime
       def in_minutes      = seconds / PER_MINUTE
       def in_milliseconds = seconds / PER_MILLISECOND
       def in_microseconds = seconds / PER_MICROSECOND
+      # For semantic purposes
+      def in_seconds      = seconds
 
       # Time manipulation
-      def ago         = Time.now - seconds
-      def from_now    = Time.now + seconds
+      def ago         = Time.now.utc - seconds
+      def from_now    = Time.now.utc + seconds
       def before(time) = time - seconds
       def after(time)  = time + seconds
       def in_time = Time.at(seconds).utc
