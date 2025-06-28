@@ -114,7 +114,7 @@ module Onetime
       #   86400.to_humanize #=> "1 day"
       def humanize
         gte_zero = positive? || zero?
-        duration = (gte_zero ? self : -self) # let's keep it positive up in here
+        duration = (gte_zero ? self : abs) # let's keep it positive up in here
         text = case (s = duration.to_i)
         in 0..59       then "#{s} second#{'s' if s != 1}"
         in 60..3599    then "#{s  /= 60} minute#{'s' if s != 1}"
@@ -145,6 +145,75 @@ module Onetime
 
         format('%3.2f %s', size, units[unit])
       end
+
+      # Calculates age of timestamp in specified unit from reference time
+      #
+      # @param unit [String, Symbol] Time unit ('days', 'hours', 'minutes', 'weeks')
+      # @param from_time [Time, nil] Reference time (defaults to Time.now.utc)
+      # @return [Float] Age in specified unit
+      # @example
+      #   timestamp = 2.days.ago.to_i
+      #   timestamp.age_in(:days)         #=> ~2.0
+      #   timestamp.age_in('hours')       #=> ~48.0
+      #   timestamp.age_in(:days, 1.day.ago) #=> ~1.0
+      def age_in(unit, from_time = nil)
+        from_time ||= Time.now.utc
+        age_seconds = from_time.to_f - to_f
+        case UNIT_METHODS.fetch(unit.to_s.downcase, nil)
+        when :days then age_seconds / PER_DAY
+        when :hours then age_seconds / PER_HOUR
+        when :minutes then age_seconds / PER_MINUTE
+        when :weeks then age_seconds / PER_WEEK
+        else age_seconds
+        end
+      end
+
+      # Convenience methods for `age_in(unit)` calls.
+      #
+      # @param from_time [Time, nil] Reference time (defaults to Time.now.utc)
+      # @return [Float] Age in days
+      # @example
+      #   timestamp.days_old    #=> 2.5
+      def days_old(*) = age_in(:days, *)
+      def hours_old(*) = age_in(:hours, *)
+      def minutes_old(*) = age_in(:minutes, *)
+      def weeks_old(*) = age_in(:weeks, *)
+      def months_old(*) = age_in(:months, *)
+      def years_old(*) = age_in(:years, *)
+
+      # Checks if timestamp is older than specified duration in seconds
+      #
+      # @param duration [Numeric] Duration in seconds to compare against
+      # @return [Boolean] true if timestamp is older than duration
+      # @note Both older_than? and newer_than? can return false when timestamp
+      #   is within the same second. Use within? to check this case.
+      #
+      # @example
+      #   Time.now.older_than?(1.second)    #=> false
+      def older_than?(duration)
+        self < (Time.now.utc.to_f - duration)
+      end
+
+      # Checks if timestamp is newer than specified duration in the future
+      #
+      # @example
+      #   Time.now.newer_than?(1.second)    #=> false
+      def newer_than?(duration)
+        self > (Time.now.utc.to_f + duration)
+      end
+
+      # Checks if timestamp is within specified duration of now (past or future)
+      #
+      # @param duration [Numeric] Duration in seconds to compare against
+      # @return [Boolean] true if timestamp is within duration of now
+      # @example
+      #   30.minutes.ago.to_i.within?(1.hour)     #=> true
+      #   30.minutes.from_now.to_i.within?(1.hour) #=> true
+      #   2.hours.ago.to_i.within?(1.hour)        #=> false
+      def within?(duration)
+        (self - Time.now.utc.to_f).abs <= duration
+      end
+
     end
 
     refine String do
