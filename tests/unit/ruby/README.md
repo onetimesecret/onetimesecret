@@ -30,7 +30,6 @@ Key test configurations:
 
 Test suite components:
 - Config validation specs
-- Rack refinements specs
 - Utils module specs
 
 Test files location: `tests/unit/ruby/rspec/`
