@@ -26,6 +26,8 @@ module V1
 
       V1::RateLimit.register_events OT.conf&.dig(:limits) || {}
 
+      V1::Plan.load_plans!
+
       # Log warmup completion
       Onetime.li "V1 warmup completed"
     end

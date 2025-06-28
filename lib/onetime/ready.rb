@@ -108,7 +108,7 @@ module Onetime
     # - Discrete functionality operates independently of readiness state
     def complete_initialization!
       # Load plans
-      Plan.load_plans!
+
 
       # TODO: Add additional service initialization steps:
       # - Validate configuration completeness
