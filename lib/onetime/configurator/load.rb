@@ -5,6 +5,22 @@ module Onetime
     module Load
       extend self
 
+      # Resolve schema path from reference
+      # @param schema_ref [String] Schema reference from $schema
+      # @param config_path [String] Path to the config file (for relative resolution)
+      # @return [String, nil] Resolved schema path or nil if not found
+      def resolve_schema_path(schema_ref, config_path)
+        return schema_ref if File.exist?(schema_ref)
+
+        # Try relative to config file directory
+        config_dir = File.dirname(config_path)
+        candidate  = File.join(config_dir, schema_ref)
+        return candidate if File.exist?(candidate)
+
+        # Let caller handle fallback
+        nil
+      end
+
       # @params path [String] Path to file to read
       # @return [Hash] Parsed JSON object (ditto for YAML)
       def json_load_file(path, *) = json_load(file_read(path), *)
@@ -33,8 +49,8 @@ module Onetime
       # @param context [Object, nil] Optional binding context for evaluation
       # @return [Boolean] True if successful
       def ruby_load(path, context = nil)
-        content = file_read(path) # Read file content first
         if context
+          content = file_read(path)
           context.info_log(path)
 
           # Execute in the context of the provided object

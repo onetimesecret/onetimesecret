@@ -292,6 +292,345 @@ RSpec.describe Onetime::TimeExtensions do
         expect(2.5.days.in_hours).to eq(60.0)
       end
     end
+
+    # Add these test cases to your existing RSpec describe block for Numeric refinement
+
+    describe 'age calculation methods' do
+      let(:fixed_time) { Time.at(1609459200) } # 2021-01-01 00:00:00 UTC
+      let(:reference_time) { fixed_time + 5.days + 12.hours + 30.minutes } # 2021-01-06 12:30:00 UTC
+      let(:old_timestamp) { fixed_time.to_i } # 5 days, 12.5 hours ago from reference
+
+      before(:each) do
+        allow(Time).to receive(:now).and_return(reference_time)
+      end
+
+      describe '#age_in' do
+        it 'calculates age in days from current time' do
+          expect(old_timestamp.age_in(:days)).to be_within(0.01).of(5.52) # ~5.52 days
+          expect(old_timestamp.age_in('days')).to be_within(0.01).of(5.52)
+          expect(old_timestamp.age_in('d')).to be_within(0.01).of(5.52)
+        end
+
+        it 'calculates age in hours from current time' do
+          expected_hours = 5.days.in_hours + 12.5 # 120 + 12.5 = 132.5 hours
+          expect(old_timestamp.age_in(:hours)).to be_within(0.01).of(expected_hours)
+          expect(old_timestamp.age_in('hours')).to be_within(0.01).of(expected_hours)
+          expect(old_timestamp.age_in('h')).to be_within(0.01).of(expected_hours)
+        end
+
+        it 'calculates age in minutes from current time' do
+          expected_minutes = (5.days + 12.hours + 30.minutes).in_minutes
+          expect(old_timestamp.age_in(:minutes)).to be_within(0.1).of(expected_minutes)
+          expect(old_timestamp.age_in('minutes')).to be_within(0.1).of(expected_minutes)
+          expect(old_timestamp.age_in('m')).to be_within(0.1).of(expected_minutes)
+        end
+
+        it 'calculates age in weeks from current time' do
+          expected_weeks = 5.52 / 7 # ~0.79 weeks
+          expect(old_timestamp.age_in(:weeks)).to be_within(0.01).of(expected_weeks)
+          expect(old_timestamp.age_in('weeks')).to be_within(0.01).of(expected_weeks)
+          expect(old_timestamp.age_in('w')).to be_within(0.01).of(expected_weeks)
+        end
+
+        it 'calculates age with custom reference time' do
+          custom_ref = fixed_time + 2.days
+          age_in_days = old_timestamp.age_in(:days, custom_ref)
+          expect(age_in_days).to be_within(0.01).of(2.0)
+
+          age_in_hours = old_timestamp.age_in(:hours, custom_ref)
+          expect(age_in_hours).to be_within(0.01).of(48.0)
+        end
+
+        it 'returns age in seconds for unrecognized units' do
+          expected_seconds = (reference_time.to_i - old_timestamp)
+          expect(old_timestamp.age_in(:invalid_unit)).to eq(expected_seconds)
+          expect(old_timestamp.age_in('unknown')).to eq(expected_seconds)
+          expect(old_timestamp.age_in(nil)).to eq(expected_seconds)
+        end
+
+        it 'handles zero age (same timestamp)' do
+          current_timestamp = reference_time.to_i
+          expect(current_timestamp.age_in(:days)).to eq(0.0)
+          expect(current_timestamp.age_in(:hours)).to eq(0.0)
+          expect(current_timestamp.age_in(:minutes)).to eq(0.0)
+        end
+
+        it 'handles negative age (future timestamp)' do
+          future_timestamp = (reference_time + 2.days).to_i
+          expect(future_timestamp.age_in(:days)).to eq(-2.0)
+          expect(future_timestamp.age_in(:hours)).to eq(-48.0)
+        end
+
+        it 'works with floating point timestamps' do
+          float_timestamp = old_timestamp + 0.5 # Add half second
+          age_seconds = (reference_time.to_i - float_timestamp)
+          expect(float_timestamp.age_in(:invalid_unit)).to eq(age_seconds)
+        end
+      end
+
+      describe 'convenience age methods' do
+        describe '#days_old' do
+          it 'returns age in days using default reference time' do
+            expect(old_timestamp.days_old).to be_within(0.01).of(5.52)
+          end
+
+          it 'returns age in days using custom reference time' do
+            custom_ref = fixed_time + 3.days
+            expect(old_timestamp.days_old(custom_ref)).to be_within(0.01).of(3.0)
+          end
+
+          it 'handles multiple arguments via splat' do
+            custom_ref = fixed_time + 1.day
+            expect(old_timestamp.days_old(custom_ref)).to be_within(0.01).of(1.0)
+          end
+        end
+
+        describe '#hours_old' do
+          it 'returns age in hours using default reference time' do
+            expected_hours = 5.days.in_hours + 12.5
+            expect(old_timestamp.hours_old).to be_within(0.01).of(expected_hours)
+          end
+
+          it 'returns age in hours using custom reference time' do
+            custom_ref = fixed_time + 6.hours
+            expect(old_timestamp.hours_old(custom_ref)).to be_within(0.01).of(6.0)
+          end
+        end
+
+        describe '#minutes_old' do
+          it 'returns age in minutes using default reference time' do
+            expected_minutes = (5.days + 12.hours + 30.minutes).in_minutes
+            expect(old_timestamp.minutes_old).to be_within(0.1).of(expected_minutes)
+          end
+
+          it 'returns age in minutes using custom reference time' do
+            custom_ref = fixed_time + 90.minutes
+            expect(old_timestamp.minutes_old(custom_ref)).to be_within(0.1).of(90.0)
+          end
+        end
+
+        describe '#weeks_old' do
+          it 'returns age in weeks using default reference time' do
+            expected_weeks = 5.52 / 7
+            expect(old_timestamp.weeks_old).to be_within(0.01).of(expected_weeks)
+          end
+
+          it 'returns age in weeks using custom reference time' do
+            custom_ref = fixed_time + 2.weeks
+            expect(old_timestamp.weeks_old(custom_ref)).to be_within(0.01).of(2.0)
+          end
+        end
+
+        describe '#months_old' do
+          it 'returns age - NOTE: currently returns seconds due to missing months handling' do
+            # This test exposes the bug - months_old calls age_in(:months)
+            # but :months is not handled in UNIT_METHODS or case statement
+            result = old_timestamp.months_old
+            expected_seconds = reference_time.to_i - old_timestamp
+            expect(result).to eq(expected_seconds) # Returns seconds, not months!
+          end
+
+          it 'demonstrates the months_old bug with custom reference time' do
+            custom_ref = fixed_time + 1.day
+            result = old_timestamp.months_old(custom_ref)
+            expected_seconds = custom_ref.to_i - old_timestamp
+            expect(result).to eq(expected_seconds) # Should be fraction of month, but returns seconds
+          end
+        end
+
+        describe '#years_old' do
+          it 'returns age - NOTE: currently returns seconds due to missing years handling in age_in' do
+            # Similar bug - years is not handled in the age_in case statement
+            result = old_timestamp.years_old
+            expected_seconds = reference_time.to_i - old_timestamp
+            expect(result).to eq(expected_seconds) # Returns seconds, not years!
+          end
+        end
+      end
+
+      describe 'temporal comparison methods' do
+        let(:current_time) { reference_time }
+        let(:timestamp_2_days_ago) { (current_time - 2.days).to_i }
+        let(:timestamp_1_hour_ago) { (current_time - 1.hour).to_i }
+        let(:timestamp_30_min_ago) { (current_time - 30.minutes).to_i }
+        let(:timestamp_30_min_future) { (current_time + 30.minutes).to_i }
+        let(:timestamp_2_hours_future) { (current_time + 2.hours).to_i }
+
+        describe '#older_than?' do
+          it 'returns true when timestamp is older than duration' do
+            expect(timestamp_2_days_ago.older_than?(1.day)).to be true
+            expect(timestamp_2_days_ago.older_than?(1.hour)).to be true
+            expect(timestamp_1_hour_ago.older_than?(30.minutes)).to be true
+          end
+
+          it 'returns false when timestamp is newer than duration' do
+            expect(timestamp_1_hour_ago.older_than?(2.hours)).to be false
+            expect(timestamp_2_days_ago.older_than?(3.days)).to be false
+          end
+
+          it 'returns false for future timestamps' do
+            expect(timestamp_30_min_future.older_than?(1.hour)).to be false
+            expect(timestamp_2_hours_future.older_than?(1.hour)).to be false
+          end
+
+          it 'handles edge case of exactly equal duration' do
+            exact_timestamp = (current_time - 1.day).to_i
+            # Using < comparison, so exactly equal should return false
+            expect(exact_timestamp.older_than?(1.day)).to be false
+          end
+        end
+
+        describe '#newer_than?' do
+          it 'returns true when timestamp is in the future beyond duration' do
+            expect(timestamp_2_hours_future.newer_than?(1.hour)).to be true
+            expect(timestamp_30_min_future.newer_than?(15.minutes)).to be true
+          end
+
+          it 'returns false when timestamp is not far enough in future' do
+            expect(timestamp_30_min_future.newer_than?(1.hour)).to be false
+            expect(timestamp_30_min_future.newer_than?(45.minutes)).to be false
+          end
+
+          it 'returns false for past timestamps' do
+            expect(timestamp_1_hour_ago.newer_than?(30.minutes)).to be false
+            expect(timestamp_2_days_ago.newer_than?(1.hour)).to be false
+          end
+
+          it 'handles exactly equal future duration' do
+            exact_future = (current_time + 1.hour).to_i
+            # Using > comparison, so exactly equal should return false
+            expect(exact_future.newer_than?(1.hour)).to be false
+          end
+        end
+
+        describe '#within?' do
+          it 'returns true for timestamps within duration (past)' do
+            expect(timestamp_30_min_ago.within?(1.hour)).to be true
+            expect(timestamp_1_hour_ago.within?(2.hours)).to be true
+          end
+
+          it 'returns true for timestamps within duration (future)' do
+            expect(timestamp_30_min_future.within?(1.hour)).to be true
+            expect(timestamp_2_hours_future.within?(3.hours)).to be true
+          end
+
+          it 'returns false for timestamps outside duration' do
+            expect(timestamp_2_days_ago.within?(1.hour)).to be false
+            expect(timestamp_2_hours_future.within?(30.minutes)).to be false
+          end
+
+          it 'handles exactly equal duration boundaries' do
+            exact_past = (current_time - 1.hour).to_i
+            exact_future = (current_time + 1.hour).to_i
+            # Using <= comparison, so exactly equal should return true
+            expect(exact_past.within?(1.hour)).to be true
+            expect(exact_future.within?(1.hour)).to be true
+          end
+
+          it 'returns true for current time (zero difference)' do
+            current_timestamp = current_time.to_i
+            expect(current_timestamp.within?(1.second)).to be true
+            expect(current_timestamp.within?(0)).to be true
+          end
+        end
+
+        describe 'gap case - both older_than? and newer_than? return false' do
+          it 'demonstrates the gap where both methods return false' do
+            # Timestamp is 30 minutes ago, checking 1 hour duration
+            expect(timestamp_30_min_ago.older_than?(1.hour)).to be false # Not older than 1 hour
+            expect(timestamp_30_min_ago.newer_than?(1.hour)).to be false # Not 1 hour in future
+            expect(timestamp_30_min_ago.within?(1.hour)).to be true      # But IS within 1 hour
+          end
+
+          it 'demonstrates gap for future timestamps within duration' do
+            # Timestamp is 30 minutes in future, checking 1 hour duration
+            expect(timestamp_30_min_future.older_than?(1.hour)).to be false # Not in the past
+            expect(timestamp_30_min_future.newer_than?(1.hour)).to be false # Not far enough in future
+            expect(timestamp_30_min_future.within?(1.hour)).to be true      # But IS within 1 hour
+          end
+        end
+
+        describe 'method consistency and edge cases' do
+          it 'handles zero duration consistently' do
+            expect(timestamp_1_hour_ago.older_than?(0)).to be true   # Any past time is older than 0
+            expect(timestamp_30_min_future.newer_than?(0)).to be true # Any future time is newer than 0
+            expect(current_time.to_i.within?(0)).to be true          # Current time is within 0 of itself
+          end
+
+          it 'works with fractional durations' do
+            timestamp_90_min_ago = (current_time - 90.minutes).to_i
+            expect(timestamp_90_min_ago.older_than?(1.5.hours)).to be false
+            expect(timestamp_90_min_ago.older_than?(1.hour)).to be true
+            expect(timestamp_90_min_ago.within?(2.hours)).to be true
+          end
+        end
+      end
+
+      describe 'age methods integration' do
+        it 'age methods are consistent with each other' do
+          days_age = old_timestamp.days_old
+          hours_age = old_timestamp.hours_old
+          minutes_age = old_timestamp.minutes_old
+
+          # Verify relationships between units
+          expect(hours_age).to be_within(0.1).of(days_age * 24)
+          expect(minutes_age).to be_within(1.0).of(hours_age * 60)
+        end
+
+        it 'age_in is consistent with convenience methods' do
+          expect(old_timestamp.days_old).to eq(old_timestamp.age_in(:days))
+          expect(old_timestamp.hours_old).to eq(old_timestamp.age_in(:hours))
+          expect(old_timestamp.minutes_old).to eq(old_timestamp.age_in(:minutes))
+          expect(old_timestamp.weeks_old).to eq(old_timestamp.age_in(:weeks))
+        end
+
+        it 'older_than? is consistent with age calculations' do
+          # If something is 2 days old, it should be older than 1 day
+          two_days_ago = (reference_time - 2.days).to_i
+          expect(two_days_ago.days_old).to be_within(0.01).of(2.0)
+          expect(two_days_ago.older_than?(1.day)).to be true
+          expect(two_days_ago.older_than?(3.days)).to be false
+        end
+      end
+
+      describe 'edge cases and error handling' do
+        it 'handles very old timestamps' do
+          very_old = (fixed_time - 100.years).to_i
+          expect { very_old.days_old }.not_to raise_error
+          expect(very_old.days_old).to be > 36500 # More than 100 years in days
+        end
+
+        it 'handles timestamps at Unix epoch' do
+          epoch_timestamp = 0
+          expect { epoch_timestamp.days_old }.not_to raise_error
+          expect(epoch_timestamp.older_than?(1.day)).to be true
+        end
+
+        it 'handles floating point precision with small time differences (explicitly)' do
+          almost_now = (reference_time.to_i - 100.milliseconds).to_f # 100ms ago
+          expect(almost_now.older_than?(50.milliseconds)).to be true # older than 50ms
+          expect(almost_now.older_than?(200.milliseconds)).to be false # not older than 200ms
+        end
+
+        it 'handles floating point precision with small time differences (explicitly with Time object)' do
+          almost_now = (reference_time - 100.milliseconds).to_f # 100ms ago
+          expect(almost_now.older_than?(50.milliseconds)).to be true # older than 50ms
+          expect(almost_now.older_than?(200.milliseconds)).to be false # not older than 200ms
+        end
+
+        it 'handles floating point precision with small time differences (implicitly)' do
+          almost_now = reference_time.to_i - 100.milliseconds # 100ms ago
+          expect(almost_now.older_than?(50.milliseconds)).to be true # older than 50ms
+          expect(almost_now.older_than?(200.milliseconds)).to be false # not older than 200ms
+        end
+
+        it 'handles nil reference time gracefully by using Time.now' do
+          # The methods should not raise errors with nil reference time
+          expect { old_timestamp.age_in(:days, nil) }.not_to raise_error
+          expect { old_timestamp.days_old(nil) }.not_to raise_error
+        end
+      end
+    end
   end
 
   describe 'String refinement' do

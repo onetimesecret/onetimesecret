@@ -8,24 +8,24 @@ require 'onetime'
 require 'onetime/migration'
 
 # Set of valid plan IDs
-VALID_PLANS = ['anonymous', 'basic', 'identity'].freeze
+VALID_PLANS = %w[anonymous basic identity].freeze
 
 module Onetime
   class Migration < BaseMigration
     def migrate
       run_mode_banner
 
-      deprecated_customers = []
-      empty_planid_customers = []
+      deprecated_customers    = []
+      empty_planid_customers  = []
       unique_deprecated_plans = Hash.new(0) # Track count of each deprecated plan
 
       # Use Redis scan for non-blocking iteration over customer keys
-      cursor = "0"
-      pattern = "customer:*:object"
-      batch_size = 1000
+      cursor       = '0'
+      pattern      = 'customer:*:object'
+      batch_size   = 1000
       redis_client = redis
 
-      info "Starting scan of customer records..."
+      info 'Starting scan of customer records...'
 
       loop do
         track_stat(:loops)
@@ -36,7 +36,11 @@ module Onetime
           track_stat(:total_keys)
 
           # Extract customer ID from key
-          custid = key.split(':')[1] rescue nil
+          custid = begin
+                     key.split(':')[1]
+          rescue StandardError
+                     nil
+          end
           next unless custid
 
           keytype = redis_client.type(key)
@@ -65,32 +69,32 @@ module Onetime
           normalized_planid = Onetime::Plan.normalize(planid)
 
           # Check if plan is deprecated
-          unless VALID_PLANS.include?(normalized_planid)
-            track_stat(:deprecated_count)
-            deprecated_customers << { custid: custid, planid: planid }
-            unique_deprecated_plans[normalized_planid] += 1
+          next if VALID_PLANS.include?(normalized_planid)
 
-            # Fix deprecated plan by updating to 'basic' if in actual run mode
-            for_realsies_this_time? do
-              redis_client.hset(key, 'planid', 'basic')
-              track_stat(:changed_customers)
-              info "Updated customer #{custid} from '#{planid}' to 'basic' plan"
-            end
+          track_stat(:deprecated_count)
+          deprecated_customers << { custid: custid, planid: planid }
+          unique_deprecated_plans[normalized_planid] += 1
 
-            # Print progress for large datasets
-            progress(stats[:deprecated_count], stats[:total_keys], "Found deprecated plans", batch_size)
+          # Fix deprecated plan by updating to 'basic' if in actual run mode
+          for_realsies_this_time? do
+            redis_client.hset(key, 'planid', 'basic')
+            track_stat(:changed_customers)
+            info "Updated customer #{custid} from '#{planid}' to 'basic' plan"
           end
+
+          # Print progress for large datasets
+          progress(stats[:deprecated_count], stats[:total_keys], 'Found deprecated plans', batch_size)
         end
 
         # Exit loop when scan is complete
-        break if cursor == "0"
+        break if cursor == '0'
       end
 
       info "Total keys scanned: #{stats[:total_keys]} in #{stats[:loops]} loops"
 
       # Report empty planid customers
       if empty_planid_customers.empty?
-        info "No customers found with empty plan IDs."
+        info 'No customers found with empty plan IDs.'
       else
         info "Found #{stats[:empty_count]} customers with empty plan IDs"
         empty_planid_customers.each do |customer|
@@ -100,7 +104,7 @@ module Onetime
 
       # Report unique deprecated plans
       if unique_deprecated_plans.empty?
-        info "No deprecated plan types found."
+        info 'No deprecated plan types found.'
       else
         info "Found #{unique_deprecated_plans.size} unique deprecated plan types:"
         unique_deprecated_plans.sort_by { |_, count| -count }.each do |plan_id, count|
@@ -110,7 +114,7 @@ module Onetime
 
       # Report deprecated plan customers
       if deprecated_customers.empty?
-        info "No customers found on deprecated plans."
+        info 'No customers found on deprecated plans.'
       else
         info "Found #{stats[:deprecated_count]} customers on deprecated plans:"
         deprecated_customers.each do |customer|
@@ -130,6 +134,7 @@ module Onetime
 
       true # Return success
     end
+
     def migration_needed?
       true
     end

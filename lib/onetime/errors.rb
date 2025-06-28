@@ -30,15 +30,33 @@ module Onetime
   class ConfigValidationError < ConfigError
     attr_reader :messages, :paths
 
-    def initialize(messages:, paths:)
-      @messages = Array(messages)
+    def initialize(messages:, paths: nil)
+      @messages = Array(messages).compact.reject(&:empty?)
       @paths    = paths
       super(formatted_message)
     end
 
+    private
+
     def formatted_message
-      paths_json = JSON.pretty_generate(OT::Utils.type_structure(@paths))
-      "Configuration validation failed:\n#{@messages.join("\n")}\nProblematic config:\n#{paths_json}"
+      return 'Configuration validation failed' if @messages.empty?
+
+      parts = [
+        'Configuration validation failed:',
+        *@messages.each_with_index.map { |msg, i| "  #{i + 1}. #{msg}" },
+      ]
+
+      if @paths&.any?
+        parts << ''
+        parts << 'Affected paths:'
+        parts << JSON.pretty_generate(OT::Utils.type_structure(@paths))
+          .lines
+          .map { |line| "  #{line}" }
+          .join
+          .chomp
+      end
+
+      parts.join("\n")
     end
   end
 

@@ -22,7 +22,7 @@ module Onetime
 
       # Start all system services using service provider orchestration
       def start_all(config, connect_to_db: true)
-        OT.li "[BOOT.system] Starting system services with frozen config (#{config.frozen?})..."
+        OT.ld "[BOOT.system] Starting system services with frozen config (#{config.frozen?})..."
 
         providers = []
 
@@ -33,7 +33,7 @@ module Onetime
         if connect_to_db
           providers << System::ConnectDatabases.new
         else
-          OT.li '[BOOT.system] Skipping database connections and remaining providers'
+          OT.ld '[BOOT.system] Skipping database connections and remaining providers'
           return
         end
 
@@ -46,12 +46,12 @@ module Onetime
         providers << System::PrepareEmailers.new
         providers << System::LocaleProvider.new
         providers << System::AuthenticationProvider.new
-        providers << System::PrintLogBanner.new
+        providers << System::PrintBootReceipt.new
 
         # Start providers in priority order
         allsorts_and_start(providers, config)
 
-        OT.li '[BOOT.system] System services started successfully'
+        OT.ld '[BOOT.system] System services started successfully'
       end
 
       private

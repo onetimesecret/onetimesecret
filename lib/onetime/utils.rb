@@ -56,6 +56,19 @@ module Onetime
       'A house is full of games and puzzles.'
     end
 
+    def generate_short_id(*)
+      input = SecureRandom.hex(32) # generate with all 256 bits
+      hash  = Digest::SHA256.hexdigest(input)
+
+      secure_shorten_id(hash, *)
+    end
+
+    def secure_shorten_id(hash, bits: 192, encoding: 36)
+      # Truncate to desired bit length
+      truncated = hash.to_i(16) >> (256 - bits)
+      truncated.to_s(encoding)
+    end
+
     # Generates a random string of specified length using predefined
     # character sets. Offers both safe and standard character sets for
     # different use cases, with the safe set excluding visually similar
@@ -298,11 +311,30 @@ module Onetime
       rescue URI::InvalidURIError
         false
       end
+
     end
   end
 
   module TimeUtils
     extend self
+
+    def extract_time_from_uuid_v7(uuid)
+      # Remove hyphens and take first 12 hex characters
+      timestamp_hex = uuid.delete('-')[0, 12]
+      # Convert to milliseconds since Unix epoch
+      timestamp_ms  = timestamp_hex.to_i(16)
+      # Convert to Time object
+      Time.at(timestamp_ms / 1000.0)
+    end
+
+    def time_to_uuid_v7_timestamp(time)
+      # Convert to milliseconds since Unix epoch
+      timestamp_ms = (time.to_f * 1000).to_i
+      # Convert to 12-character hex string
+      hex = timestamp_ms.to_s(16).rjust(12, '0')
+      # Format with hyphen after 8 characters
+      "#{hex[0, 8]}-#{hex[8, 4]}"
+    end
 
     def epochdate(time_in_s)
       time_parsed = Time.at time_in_s.to_i

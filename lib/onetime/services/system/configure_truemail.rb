@@ -24,10 +24,10 @@ module Onetime
         def start(config)
           return unless defined?(Truemail)
 
-          log('Configuring Truemail email validation...')
+          debug('Configuring Truemail email validation...')
           configure_truemail(config)
           register_provider(:truemail, :configured)
-          log('Truemail configuration completed')
+          debug('Truemail configuration completed')
         end
 
         private

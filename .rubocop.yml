@@ -22,9 +22,8 @@ AllCops:
     # The V1 API is in maintenance mode. No changes allowed 🚭
     - 'apps/api/v1/**/*'
     - 'bin/bundle'
-    - 'migrate/**/*'
     - 'node_modules/**/*'
-    - 'support/**/*'
+    - 'scripts/archive/*'
     - 'tests/unit/ruby/try/**/*'
     - 'tests/unit/ruby/rspec/**/*'
     - 'tmp/**/*'
@@ -141,10 +140,11 @@ Style/BlockDelimiters:
   Enabled: true
 
 Naming/PredicateMethod:
-  Enabled: pending
-  Mode: ''
+  Enabled: true
+  Mode: 'aggressive'
   AllowedMethods:
     - validate!
+    - migrate
 
 # We use class instance variables quite a bit, mostly for readonly values set
 # at boot time. Except for our models with have redis-rb Redis instances

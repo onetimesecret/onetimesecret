@@ -20,14 +20,12 @@ require_relative '../test_logic'
 # Load the app
 OT.boot! :test, false
 
-V2::RateLimit.register_events(OT.conf[:limits])
-
 # Setup some variables for these tryouts
 @email_address = 'changeme@example.com'
 @now = DateTime.now
 @sess = V2::Session.new '255.255.255.255', 'anon'
 @sess.event_clear! :destroy_account
-@cust = V2::Customer.new @email_address
+@cust = V2::Customer.new @email_address, 'user_type': 'authenticated'
 @sess.event_clear! :send_feedback
 @params = {
   confirmation: 'pa55w0rd'
@@ -90,7 +88,7 @@ end
 
 
 ## Raises an error if the password is incorrect
-cust = V2::Customer.new generate_random_email
+cust = V2::Customer.new email: generate_random_email, 'user_type': 'authenticated'
 obj = V2::Logic::Account::DestroyAccount.new @sess, cust, @params
 cust.update_passphrase 'wrong password'
 begin
@@ -102,7 +100,7 @@ end
 
 
 ## No errors are raised as long as the password is correct
-cust = V2::Customer.new generate_random_email
+cust = V2::Customer.new email: generate_random_email, 'user_type': 'authenticated'
 password_guess = @params[:confirmation]
 obj = V2::Logic::Account::DestroyAccount.new @sess, cust, @params
 cust.update_passphrase password_guess # update the password to be correct
@@ -114,7 +112,7 @@ obj.raise_concerns
 V1::RateLimit.register_event :destroy_account, 5
 V2::RateLimit.register_event :destroy_account, 5
 
-cust = V2::Customer.new generate_random_email
+cust = V2::Customer.new email: generate_random_email, 'user_type': 'authenticated'
 password_guess = @params[:confirmation]
 obj = V2::Logic::Account::DestroyAccount.new @sess, cust, @params
 cust.update_passphrase password_guess
@@ -146,7 +144,7 @@ end
 #=> [Onetime::FormError, "We have concerns about that request."]
 
 ## Process the request and destroy the account
-cust = V2::Customer.new generate_random_email
+cust = V2::Customer.new email: generate_random_email, 'user_type': 'authenticated'
 obj = V2::Logic::Account::DestroyAccount.new @sess, cust, @params
 cust.update_passphrase @params[:confirmation] # set the passphrase
 obj.raise_concerns
@@ -166,10 +164,11 @@ puts [cust.role, cust.verified, post_destroy_passphrase]
 #=> ['user_deleted_self', 'false', '']
 
 ## Destroyed account gets a new api key
-cust = V2::Customer.new generate_random_email
+cust = V2::Customer.new email: generate_random_email, 'user_type': 'authenticated'
 first_token = cust.regenerate_apitoken  # first we need to set an api key
 obj = V2::Logic::Account::DestroyAccount.new @sess, cust, @params
 cust.update_passphrase @params[:confirmation]
+p cust.to_h
 obj.raise_concerns
 obj.process
 

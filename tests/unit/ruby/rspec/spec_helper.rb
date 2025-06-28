@@ -9,6 +9,11 @@ require 'fileutils'
 ENV['RACK_ENV'] ||= 'production'
 ENV['ONETIME_HOME'] ||= File.expand_path('../../../../..', __FILE__).freeze
 
+# This tells OT::Configurator#load_with_impunity! to look in the preset list
+# of paths to look for config, find a config that matches this basename.
+# See ./tests/unit/ruby/rspec/onetime/configurator_spec.rb
+ENV['ONETIME_CONFIG_FILE_BASENAME'] = 'config.test'
+
 Warning[:deprecated] = true if ['development', 'dev', 'test'].include?(ENV['RACK_ENV'])
 
 unless defined?(APPS_ROOT)
