@@ -25,7 +25,7 @@ module Onetime
   @config_proxy = nil
 
   class << self
-    attr_reader :mode, :debug, :env, :config_proxy, :instance
+    attr_reader :mode, :debug, :env, :config_proxy, :instance, :static_config
 
     def boot!(*)
       Boot.boot!(*)
