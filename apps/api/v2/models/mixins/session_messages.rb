@@ -2,7 +2,7 @@
 
 require 'json'
 
-require 'onetime/refinements/indifferent_hash_access'
+
 require 'onetime/refinements/time_extensions'
 
 using Onetime::TimeExtensions
@@ -33,7 +33,6 @@ module V2
     #   as `messages` array of objects.
     # - 20 minute TTL on message persistence
     module SessionMessages
-      using Onetime::IndifferentHashAccess
 
       def self.included(base)
         # In some UI flows, we temporarily store form values after a form

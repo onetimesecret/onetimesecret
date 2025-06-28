@@ -1,6 +1,6 @@
 # apps/web/frontend/views/helpers/initialize_view_vars.rb
 
-require 'onetime/refinements/indifferent_hash_access'
+
 
 module Frontend
   module Views
@@ -19,7 +19,6 @@ module Frontend
     # initialize_view_vars takes the arguments it does instead of relying on
     # instance variables and their attr_reader methods.
     module InitializeViewVars
-      using Onetime::IndifferentHashAccess
 
       # Define fields that are safe to expose to the frontend
       # Explicitly excluding :secret and :authenticity which contain sensitive data

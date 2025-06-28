@@ -1,13 +1,12 @@
 # lib/onetime/mail/views/base.rb
 
 require 'chimera'
-require 'onetime/refinements/indifferent_hash_access'
+
 
 module Onetime
   module Mail
     module Views
       class Base < Chimera
-        using Onetime::IndifferentHashAccess
 
         self.template_path  = './templates/mail'
         self.view_namespace = Onetime::Mail
@@ -25,13 +24,13 @@ module Onetime
           # for example which we don't have a proper UX to handle letting the
           # user know that the email was not sent yet (and then having a way
           # to retry sending the email).
-          supported_locales = OT.conf[:supported_locales] || []
+          supported_locales = OT.conf['supported_locales'] || []
           if supported_locales.include?(locale)
             OT.li "Initializing #{self.class} with locale: #{locale}"
           else
-            default_value = OT.conf[:default_locale]
+            default_value = OT.conf['default_locale']
             @locale       = default_value
-            available     = OT.conf[:supported_locales]
+            available     = OT.conf['supported_locales']
             OT.le "[views.i18n] Locale not found: #{locale} (continuing with #{default_value} / #{available})"
           end
 
@@ -99,14 +98,14 @@ module Onetime
           return @i18n_cache[locale] if @i18n_cache.key?(locale)
 
           # Safely get locale data with fallback
-          locales = OT.conf[:locales] || {}
+          locales = OT.conf['locales'] || {}
           locale_data = locales[locale] || locales['en']
 
           pagename = self.class.name.split('::').last.downcase.to_sym
           {
             locale: locale,
-            email: locale_data[:email][pagename],
-            COMMON: locale_data[:web][:COMMON],
+            email: locale_data['email'][pagename],
+            COMMON: locale_data['web']['COMMON'],
           }
         end
 

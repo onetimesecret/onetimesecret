@@ -2,14 +2,13 @@
 
 require 'mail'  # gem 'mail', here referred to as ::Mail
 
-require 'onetime/refinements/indifferent_hash_access'
+
 
 require_relative 'base_mailer'
 
 module Onetime::Mail
   module Mailer
     class SMTPMailer < BaseMailer
-      using Onetime::IndifferentHashAccess
 
       def send_email(to_address, subject, html_content, text_content)
         mailer_response  = nil
@@ -100,13 +99,13 @@ module Onetime::Mail
         ::Mail.defaults do
           # We are now inside Mail::Configuration
           delivery_method :smtp, {
-            address: settings[:host] || 'localhost',
-            port: settings[:port] || 587,
+            address: settings['host'] || 'localhost',
+            port: settings['port'] || 587,
             domain: domain,
-            user_name: settings[:user],
-            password: settings[:pass],
-            authentication: settings[:auth],
-            enable_starttls_auto: settings[:tls].to_s == 'true',
+            user_name: settings['user'],
+            password: settings['pass'],
+            authentication: settings['auth'],
+            enable_starttls_auto: settings['tls'].to_s == 'true',
           }
         end
       end

@@ -15,14 +15,14 @@ module V2
         def process_params
           OT.ld "[UpdateMutableConfig#process_params] params: #{params.inspect}"
           # Accept config either directly or wrapped in a :config key
-          @config = params[:config]
+          @config = params['config']
 
           # Extract configuration sections
-          @interface      = config[:interface]
-          @secret_options = config[:secret_options]
-          @mail           = config[:mail]
-          @limits         = config[:limits]
-          @diagnostics    = config[:diagnostics]
+          @interface      = config['interface']
+          @secret_options = config['secret_options']
+          @mail           = config['mail']
+          @limits         = config['limits']
+          @diagnostics    = config['diagnostics']
 
           # Log which configuration sections were extracted
           config_sections = {

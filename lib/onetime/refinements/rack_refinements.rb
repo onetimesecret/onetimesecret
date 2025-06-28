@@ -6,8 +6,8 @@ module Onetime
   #
   # @deprecated This module duplicates functionality found in
   # IndifferentHashAccess (indifferent_hash_access.rb). Both provide string/symbol
-  # indifferent key access for Hash objects. This module should be consolidated
-  # with IndifferentHashAccess in a future refactor.
+  # indifferent key access for Hash objects. IndifferentHashAccess has since
+  # been removed and this one should as well.
   #
   # **Comparison with IndifferentHashAccess:**
   # - Both enable string/symbol indifferent key access

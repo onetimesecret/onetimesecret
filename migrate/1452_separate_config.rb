@@ -23,8 +23,6 @@ require 'onetime/migration'
 require 'yaml'
 require 'fileutils'
 
-require 'onetime/refinements/indifferent_hash_access'
-
 USER_TYPES_CAPABILITIES = {
     'anonymous' => {
       'api' => true,
@@ -46,8 +44,6 @@ SECRET_OPTION_BOUNDARIES = {
 
 module Onetime
   class Migration < BaseMigration
-
-    using Onetime::IndifferentHashAccess
 
     # Configuration mapping for splitting monolithic config
     CONFIG_MAPPINGS = {

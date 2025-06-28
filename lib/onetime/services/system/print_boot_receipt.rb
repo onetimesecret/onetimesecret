@@ -2,7 +2,6 @@
 
 require 'json'
 
-require 'onetime/refinements/indifferent_hash_access'
 require 'receipt_generator'
 require 'system_status'
 
@@ -51,7 +50,6 @@ module Onetime
       # Now uses ReceiptGenerator for consistent formatting.
       #
       class PrintBootReceipt < ServiceProvider
-        using Onetime::IndifferentHashAccess
 
         def initialize
           super(:boot_receipt, type: TYPE_INFO, priority: 90)
@@ -97,8 +95,8 @@ module Onetime
           system_section.add_row('Redis URL', Familia.uri.serverid, status: 'OK')
           system_section.add_row('Familia Library', "v#{Familia::VERSION}", status: 'OK')
 
-          i18n_enabled = config[:i18n][:enabled]
-          d9s_enabled  = config[:diagnostics][:enabled]
+          i18n_enabled = config['i18n']['enabled']
+          d9s_enabled  = config['diagnostics']['enabled']
           system_section.add_row('Internationalization', i18n_enabled ? 'enabled' : 'disabled',
             status: i18n_enabled ? 'OK' : 'OFF'
           )
@@ -109,8 +107,8 @@ module Onetime
           generator.add_section(system_section)
 
           # Locale support (wrapped text)
-          if i18n_enabled && !config[:i18n][:locales].empty?
-            locales_text = config[:i18n][:locales].join(', ')
+          if i18n_enabled && !config['i18n']['locales'].empty?
+            locales_text = config['i18n']['locales'].join(', ')
             generator.add_section(WrapTextSection.new(generator,
               title: 'LOCALE SUPPORT: ',
               content: locales_text,
@@ -124,7 +122,7 @@ module Onetime
               title: ['DEVELOPMENT SETTINGS', 'VALUE'],
             )
 
-            dev_config = config[:development]
+            dev_config = config['development']
             dev_section.add_row('Development Mode', 'enabled', status: 'ON')
 
             if dev_config.is_a?(Hash) && dev_config['debug']
@@ -139,12 +137,12 @@ module Onetime
           end
 
           # Experimental features
-          if config.fetch(:experimental, false)
+          if config.fetch('experimental', false)
             exp_section = SystemStatusSection.new(generator,
               title: ['EXPERIMENTAL FEATURES', 'VALUE'],
             )
 
-            exp_config = config[:experimental]
+            exp_config = config['experimental']
             if exp_config.is_a?(Hash)
               exp_config.each do |key, value|
                 status = case key.to_s
