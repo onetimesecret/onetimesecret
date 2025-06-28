@@ -1,5 +1,7 @@
 # apps/web/frontend/views/serializers/plan_serializer.rb
 
+__END__
+
 module Frontend
   module Views
     # Serializes subscription plan data for the frontend
@@ -21,8 +23,8 @@ module Frontend
           plan.safe_dump
         end
 
-        plan   = Onetime::Plan.plan(cust.planid) unless cust.nil?
-        plan ||= Onetime::Plan.plan('anonymous')
+        # plan   = Onetime::Plan.plan(cust.planid) unless cust.nil?
+        # plan ||= Onetime::Plan.plan('anonymous')
 
         output[:plan]           = plan&.safe_dump
         output[:is_paid]        = plan&.paid? || false

@@ -1,5 +1,7 @@
 # apps/api/v1/controllers/helpers.rb
 
+require_relative '../plan'
+
 module V1
 
   unless defined?(V1::BADAGENTS)
@@ -11,8 +13,8 @@ module V1
   module ControllerHelpers
 
     def plan
-      @plan = Onetime::Plan.plan(cust.planid) unless cust.nil?
-      @plan ||= Onetime::Plan.plan('anonymous')
+      @plan = V1::Plan.plan(cust.planid) unless cust.nil?
+      @plan ||= V1::Plan.plan('anonymous')
       @plan
     end
 

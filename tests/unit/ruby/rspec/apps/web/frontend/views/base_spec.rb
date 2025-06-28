@@ -21,7 +21,7 @@ RSpec.describe Frontend::Views::BaseView do
       Frontend::Views::DomainSerializer,
       Frontend::Views::I18nSerializer,
       Frontend::Views::MessagesSerializer,
-      Frontend::Views::PlanSerializer,
+      # Frontend::Views::PlanSerializer,
       Frontend::Views::SystemSerializer,
     )
   end

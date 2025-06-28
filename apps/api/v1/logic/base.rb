@@ -7,6 +7,7 @@ require 'v1/refinements/rack_refinements'
 require 'onetime/refinements/time_extensions'
 
 require_relative 'helpers'
+require_relative '../plan'
 
 using Onetime::TimeExtensions
 
@@ -93,8 +94,8 @@ module V1
       end
 
       def plan
-        @plan = Onetime::Plan.plan(cust.planid) unless cust.nil?
-        @plan ||= Onetime::Plan.plan('anonymous')
+        @plan = V1::Plan.plan(cust.planid) unless cust.nil?
+        @plan ||= V1::Plan.plan('anonymous')
         @plan
       end
 

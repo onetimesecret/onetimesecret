@@ -21,7 +21,7 @@ module Frontend
         DomainSerializer,
         I18nSerializer,
         MessagesSerializer,
-        PlanSerializer,
+        # PlanSerializer,
         SystemSerializer,
       )
 
@@ -37,7 +37,7 @@ module Frontend
         DomainSerializer,
         I18nSerializer,
         MessagesSerializer,
-        PlanSerializer,
+        # PlanSerializer,
         SystemSerializer,
       )
 

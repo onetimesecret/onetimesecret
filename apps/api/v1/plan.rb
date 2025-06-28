@@ -1,6 +1,6 @@
-# lib/onetime/plan.rb
+# apps/api/v1/plan.rb
 
-module Onetime
+module V1
   class Plan
     extend Familia::Features::SafeDump::ClassMethods
 

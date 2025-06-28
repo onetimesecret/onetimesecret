@@ -94,14 +94,14 @@ module V2
         raise ex
       end
 
-      def plan
-        @plan   = Onetime::Plan.plan(cust.planid) unless cust.nil?
-        @plan ||= Onetime::Plan.plan('anonymous')
-        @plan
-      end
+      # def plan
+      #   @plan   = Onetime::Plan.plan(cust.planid) unless cust.nil?
+      #   @plan ||= Onetime::Plan.plan('anonymous')
+      #   @plan
+      # end
 
       def limit_action(event)
-        disable_for_paid = plan && plan.paid?
+        disable_for_paid = cust && !cust.planid.nil?
         # This method is called a lot so we don't even attempt to log unless we're debugging
         OT.ld "[limit_action] #{event} (disable:#{disable_for_paid};sess:#{sess.class})" if OT.debug?
         return if disable_for_paid
