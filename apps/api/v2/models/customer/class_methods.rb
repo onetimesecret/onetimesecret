@@ -1,37 +1,12 @@
 # apps/api/v2/models/customer/class_methods.rb
 
-require_relative '../mixins/passphrase'
-require_relative '../mixins/maintenance'
+require 'familia/horreum'
 
 module V2
 
   # Customer Model - Class Methods
   #
   class Customer < Familia::Horreum
-    # Mixin Placement for Field Order Control
-    #
-    # We include mixins at the end of the model definition (e.g. if in the same
-    # file, then at the very end of the class before it closes) so that if they
-    # add new fields or relationships, the order of fields is maintained.
-    #
-    # In Familia::Horreum subclasses (like this Customer class), fields are
-    # processed in the order they are defined. When creating a new instance
-    # with Session.new, any provided positional arguments correspond to
-    # these fields in the same order.
-    #
-    # By including Passphrase last, we ensure that:
-    # 1. Its additional fields appear at the end of the field list.
-    # 2. These fields don't unexpectedly consume positional arguments
-    # in Session.new.
-    #
-    # e.g. `Customer.new('my@example.com')`. If we included thePassphrase
-    # module at the top, instead of populating the custid field (as the
-    # first field defined in this file), this email address would get
-    # written to the (automatically inserted) passphrase field.
-    #
-
-    include V2::Mixins::Passphrase
-    include V2::Mixins::ModelMaintenance
 
     module ClassMethods
       attr_reader :values
