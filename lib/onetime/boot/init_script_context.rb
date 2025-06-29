@@ -1,7 +1,5 @@
 # lib/onetime/boot/init_script_context.rb
 
-require 'extentions/flexible_key_access'
-
 module Onetime
   module Boot
     # Context object that provides a clean interface for init scripts
@@ -24,7 +22,7 @@ module Onetime
         @config         = config # mutable
         @section_key    = section_key
         @global         = global # immutable
-        @options        = options.extend(Extensions::FlexibleKeyAccess)
+        @options        = options
       end
 
       # Helper methods available to init scripts
