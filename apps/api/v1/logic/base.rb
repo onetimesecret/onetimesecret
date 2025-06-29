@@ -3,7 +3,7 @@
 require 'stathat'
 require 'timeout'
 
-require 'v1/refinements/rack_refinements'
+require 'v1/refinements/flexible_hash_access'
 require 'onetime/refinements/time_extensions'
 
 require_relative 'helpers'

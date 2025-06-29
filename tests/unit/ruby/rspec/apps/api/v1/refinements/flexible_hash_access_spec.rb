@@ -1,12 +1,12 @@
-# tests/unit/ruby/rspec/apps/api/v1/refinements/rack_refinements_spec.rb
+# tests/unit/ruby/rspec/apps/api/v1/refinements/flexible_hash_access_spec.rb
 
 require_relative '../../spec_helper'
 
-require 'v1/refinements/rack_refinements'
+require 'v1/refinements/flexible_hash_access'
 
-RSpec.describe V1::RackRefinements do
+RSpec.describe V1::FlexibleHashAccess do
   module RefineTest
-    using V1::RackRefinements
+    using V1::FlexibleHashAccess
 
     def self.fetch_with_refinements(hash, key, ...)
       hash.fetch(key, ...)

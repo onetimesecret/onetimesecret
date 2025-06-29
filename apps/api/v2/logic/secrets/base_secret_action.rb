@@ -6,7 +6,7 @@ module V2::Logic
       attr_reader :passphrase, :secret_value, :kind, :ttl, :recipient, :recipient_safe, :greenlighted, :metadata, :secret, :share_domain, :custom_domain, :payload
       attr_accessor :token
 
-      # NOTE: Onetime::RackRefinements was recently removed. Making a note in
+      # NOTE: Onetime::FlexibleHashAccess was recently removed. Making a note in
       # case weird behaviour pops up. -- delano (2025-06-28)
 
       # Process methods populate instance variables with the values. The

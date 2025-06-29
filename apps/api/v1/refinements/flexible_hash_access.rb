@@ -1,7 +1,7 @@
-# apps/api/v1/refinements.rb
+# apps/api/v1/refinements/flexible_hash_access.rb
 
 module V1
-  # RackRefinements provides enhanced Hash methods for handling web request
+  # FlexibleHashAccess provides enhanced Hash methods for handling web request
   # parameters and data structures commonly used in Rack-based applications.
   #
   # NOTE: This code although deprecated is still kept for v1 compatibility. The
@@ -13,7 +13,8 @@ module V1
   # @deprecated This module duplicates functionality found in
   # IndifferentHashAccess (indifferent_hash_access.rb). Both provide string/symbol
   # indifferent key access for Hash objects. IndifferentHashAccess has since
-  # been removed and this one should as well.
+  # been removed and this one should as well. The previous name for this
+  # module was FlexibleHashAccess.
   #
   # **Comparison with IndifferentHashAccess:**
   # - Both enable string/symbol indifferent key access
@@ -21,13 +22,13 @@ module V1
   # - Both handle the same core use case for web parameters
   #
   # **Key Differences:**
-  # 1. **Error handling**: RackRefinements has explicit KeyError raising,
+  # 1. **Error handling**: FlexibleHashAccess has explicit KeyError raising,
   #    while IndifferentHashAccess delegates to original method
-  # 2. **Implementation**: RackRefinements converts keys then checks existence;
+  # 2. **Implementation**: FlexibleHashAccess converts keys then checks existence;
   #    IndifferentHashAccess uses has_key? checks before conversion
   # 3. **Coverage**: IndifferentHashAccess also overrides [] operator
   #
-  module RackRefinements
+  module FlexibleHashAccess
     refine Hash do
       # Enhanced fetch method that tries both string and symbol versions of keys.
       #
