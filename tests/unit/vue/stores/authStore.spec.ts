@@ -39,7 +39,8 @@ const mockCustomer: Customer = {
   custid: '1',
   role: 'customer', // Changed from 'user' to valid enum value
   planid: 'basic',
-  plan: mockPlan,
+  // plan: mockPlan
+  user_type: 'authenticated',
   verified: true,
   secrets_burned: 0,
   secrets_shared: 0,

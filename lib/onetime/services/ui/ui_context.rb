@@ -3,7 +3,7 @@
 module Onetime
   module Services
     module Frontend
-      # FrontendContext
+      # UIContext
       #
       # TODO: This serialization stuff is a real monkey's lunch. The whole concept
       # of opting in to accessing only safe fields was one of the main drivers for
@@ -17,7 +17,7 @@ module Onetime
       # This module is meant to be extended and not included. That's why
       # template_vars takes the arguments it does instead of relying on
       # instance variables and their attr_reader methods.
-      module FrontendContext
+      module UIContext
 
         # Define fields that are safe to expose to the frontend
         # Explicitly excluding :secret and :authenticity which contain sensitive data
@@ -71,7 +71,7 @@ module Onetime
           # configuration values to share with the frontend while protecting
           # sensitive data. We copy only the whitelisted fields and then
           # filter specific nested sensitive data from complex structures.
-          safe_site = FrontendContext.safe_site_fields.each_with_object({}) do |field_sym, hash|
+          safe_site = UIContext.safe_site_fields.each_with_object({}) do |field_sym, hash|
             field = field_sym.to_s
             unless site_config.key?(field)
               OT.ld "[view_vars] Site config is missing field: #{field}"

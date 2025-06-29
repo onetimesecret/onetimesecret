@@ -16,13 +16,13 @@ module Frontend
       self.template_name = 'index'
 
       use_serializers(
-        ConfigSerializer,
-        AuthenticationSerializer,
-        DomainSerializer,
-        I18nSerializer,
-        MessagesSerializer,
-        # PlanSerializer,
-        SystemSerializer,
+        # ConfigSerializer,
+        # AuthenticationSerializer,
+        # DomainSerializer,
+        # I18nSerializer,
+        # MessagesSerializer,
+        # # PlanSerializer,
+        # SystemSerializer,
       )
 
       def init *args; end
@@ -32,13 +32,13 @@ module Frontend
       self.template_name = nil
 
       use_serializers(
-        ConfigSerializer,
-        AuthenticationSerializer,
-        DomainSerializer,
-        I18nSerializer,
-        MessagesSerializer,
+        # ConfigSerializer,
+        # AuthenticationSerializer,
+        # DomainSerializer,
+        # I18nSerializer,
+        # MessagesSerializer,
         # PlanSerializer,
-        SystemSerializer,
+        # SystemSerializer,
       )
 
       def init *args; end

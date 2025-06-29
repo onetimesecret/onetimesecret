@@ -4,6 +4,7 @@ require_relative '../../base_application'
 
 require_relative 'controllers'
 
+# TODO: Rename. UI? Spigot? Manifold? Pylon? Ferrule? Abutment? Rootstock?
 module Frontend
   class Application < ::BaseApplication
     @uri_prefix = '/'.freeze

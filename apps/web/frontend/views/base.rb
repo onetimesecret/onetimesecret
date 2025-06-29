@@ -3,10 +3,9 @@
 require 'chimera'
 
 require 'onetime/middleware'
-require 'onetime/services/frontend/frontend_context'
+require 'onetime/services/ui/ui_context'
 
 require_relative 'helpers'
-require_relative 'serializers'
 
 # Core view framework with helpers and serializers
 #
@@ -14,12 +13,11 @@ require_relative 'serializers'
 # It provides:
 #
 # - **Helpers**: Utility methods for view rendering and data manipulation
-# - **Serializers**: Transform internal view state for frontend consumption
 #
 module Frontend
   module Views
     class BaseView < Chimera
-      extend OT::Services::Frontend::FrontendContext
+      # extend OT::Services::UI::UIContext
       include Frontend::Views::SanitizerHelpers
       include Frontend::Views::I18nHelpers
       include Frontend::Views::ViteManifest

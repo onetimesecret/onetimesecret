@@ -1,5 +1,6 @@
 // tests/unit/vue/fixtures/window.fixture.ts
 import { OnetimeWindow } from '@/types/declarations/window';
+import { ValidKeys as UserTypes } from '@/schemas/config/shared/user_types';
 // import { vi } from 'vitest';
 
 // const setIntervalMock = vi.fn().mockReturnValue(123);
@@ -39,18 +40,19 @@ export const stateFixture: OnetimeWindow = {
     ttl_options: [60, 3600, 86400, 604800, 1209600, 2592000],
   },
   available_plans: {},
-  plan: {
-    identifier: 'anonymous',
-    planid: 'anonymous',
-    price: 0,
-    discount: 0,
-    options: {
-      ttl: 604800.0,
-      size: 100000,
-      api: false,
-      name: 'Anonymous',
-    },
-  },
+  // plan: {
+  //   identifier: 'basic',
+  //   planid: 'basic',
+  //   price: 0,
+  //   discount: 0,
+  //   options: {
+  //     ttl: 604800.0,
+  //     size: 100000,
+  //     api: false,
+  //     name: 'Anonymous',
+  //   },
+  // },
+  user_type: UserTypes.authenticated,
   is_paid: false,
   default_planid: 'basic',
   regions: {
