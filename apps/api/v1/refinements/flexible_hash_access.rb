@@ -14,7 +14,7 @@ module V1
   # IndifferentHashAccess (indifferent_hash_access.rb). Both provide string/symbol
   # indifferent key access for Hash objects. IndifferentHashAccess has since
   # been removed and this one should as well. The previous name for this
-  # module was FlexibleHashAccess.
+  # module was RackRefinements.
   #
   # **Comparison with IndifferentHashAccess:**
   # - Both enable string/symbol indifferent key access
