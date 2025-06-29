@@ -14,7 +14,8 @@ require_relative 'configurator/utils'
 require_relative 'refinements/then_with_diff'
 
 module Onetime
-  # Configuration loader using two-stage validation pattern:
+  # Configuration loader using two-stage validation pattern
+  #
   # 1. Schema validation (declarative) - structure + defaults
   # 2. Business processing (imperative) - capabilities, auth, etc.
   # 3. Re-validation (declarative) - ensures processing didn't break schema

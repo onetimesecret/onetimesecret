@@ -1,7 +1,5 @@
 # lib/onetime/services/config_proxy.rb
 
-
-
 module Onetime
   module Services
     ##

@@ -1,8 +1,9 @@
-# apps/web/frontend/views/base.rb
+# apps/web/ui/views/base.rb
 
 require 'chimera'
 
 require 'onetime/middleware'
+require 'onetime/services/frontend/frontend_context'
 
 require_relative 'helpers'
 require_relative 'serializers'
@@ -18,7 +19,7 @@ require_relative 'serializers'
 module Frontend
   module Views
     class BaseView < Chimera
-      extend Frontend::Views::InitializeViewVars
+      extend OT::Services::Frontend::FrontendContext
       include Frontend::Views::SanitizerHelpers
       include Frontend::Views::I18nHelpers
       include Frontend::Views::ViteManifest
@@ -39,7 +40,7 @@ module Frontend
         @cust = cust || anonymous_customer
 
         # We determine locale here because it's used for i18n. Otherwise we couldn't
-        # determine the i18n messages until inside or after initialize_view_vars.
+        # determine the i18n messages until inside or after template_vars.
         #
         # Determine locale with this priority:
         # 1. Explicitly provided locale
@@ -56,32 +57,23 @@ module Frontend
         @i18n_instance = i18n
         @messages      = []
 
-        update_view_vars
-
-        init(*) if respond_to?(:init)
-
-        update_serialized_data
-      end
-
-      def anonymous_customer
-        # Lazy-load the model here if we need to. This avoids having to
-        # load models at interpretation time. Running tests for example,
-        # in some cases won't have a database connection.
-        require 'v2/models/customer' unless defined?(V2::Customer)
-        @cust = V2::Customer.anonymous
-      end
-
-      def update_serialized_data
-        @serialized_data = run_serializers
-      end
-
-      def update_view_vars
-        @view_vars = self.class.initialize_view_vars(req, sess, cust, locale, i18n_instance)
+        @view_vars = self.class.template_vars(req, sess, cust, locale, i18n_instance)
 
         # Make the view-relevant variables available to the view and HTML template
         @view_vars.each do |key, value|
           self[key] = value
         end
+
+        init(*) if respond_to?(:init)
+
+        @serialized_data = run_serializers
+      end
+
+      def anonymous_customer
+        # Lazy-load the model here if we need to. Running tests for example,
+        # in some cases won't have a database connection.
+        require 'v2/models/customer' unless defined?(V2::Customer)
+        @cust = V2::Customer.anonymous
       end
 
       # Add notification message to be displayed in StatusBar component

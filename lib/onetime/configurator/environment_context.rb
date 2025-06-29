@@ -2,8 +2,8 @@
 
 module Onetime
   class Configurator
-    # Normalizes environment variables prior to loading and rendering the YAML
-    # configuration. In some cases, this might include setting default values
+    # Provides a context with normalized environment variables for rendering the YAML
+    # configuration template. In some cases, this might include setting default values
     # and ensuring necessary environment variables are present.
     #
     # Runs BEFORE config exists - normalizes ENV vars for ERB template rendering.
