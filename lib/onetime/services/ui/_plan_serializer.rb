@@ -1,8 +1,8 @@
-# apps/web/frontend/views/serializers/plan_serializer.rb
+# apps/web/manifold/views/serializers/plan_serializer.rb
 
 __END__
 
-module Frontend
+module Manifold
   module Views
     # Serializes subscription plan data for the frontend
     #

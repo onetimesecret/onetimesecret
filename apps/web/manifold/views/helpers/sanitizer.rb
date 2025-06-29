@@ -1,11 +1,11 @@
-# apps/web/frontend/views/helpers/sanitizer.rb
+# apps/web/manifold/views/helpers/sanitizer.rb
 
 # SanitizerHelpers provides methods for sanitizing data before rendering in views.
 #
 # This module handles JSON serialization, HTML escaping, and caching to prevent
 # common security issues like XSS attacks and ensure proper data rendering.
 #
-module Frontend
+module Manifold
   module Views
     module SanitizerHelpers
       # Normalizes values to prevent injection attacks and ensure consistent formatting.

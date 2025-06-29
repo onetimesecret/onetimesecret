@@ -14,19 +14,19 @@ require_relative 'helpers'
 #
 # - **Helpers**: Utility methods for view rendering and data manipulation
 #
-module Frontend
+module Manifold
   module Views
     class BaseView < Chimera
       # extend OT::Services::UI::UIContext
-      include Frontend::Views::SanitizerHelpers
-      include Frontend::Views::I18nHelpers
-      include Frontend::Views::ViteManifest
+      include Manifold::Views::SanitizerHelpers
+      include Manifold::Views::I18nHelpers
+      include Manifold::Views::ViteManifest
       include Onetime::TimeUtils
 
       self.template_path      = './templates/web'
       self.template_extension = 'html'
-      self.view_namespace     = Frontend::Views
-      self.view_path          = './app/web/frontend/views'
+      self.view_namespace     = Manifold::Views
+      self.view_path          = './app/web/manifold/views'
 
       attr_accessor :req, :sess, :cust, :locale, :form_fields, :pagename
       attr_reader :i18n_instance, :view_vars, :serialized_data, :messages

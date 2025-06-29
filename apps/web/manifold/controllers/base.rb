@@ -1,12 +1,12 @@
-# apps/web/frontend/controllers/base.rb
+# apps/web/manifold/controllers/base.rb
 
 require_relative 'helpers'
 require 'v2/controllers/class_settings'
 
-module Frontend
+module Manifold
   module Controllers
     module Base
-      include Frontend::ControllerHelpers
+      include Manifold::ControllerHelpers
       include V2::Controllers::ClassSettings
 
       attr_reader :req, :res, :sess, :cust, :locale, :ignoreshrimp
@@ -126,7 +126,7 @@ module Frontend
       end
 
       def secret_not_found_response
-        view       = Frontend::Views::UnknownSecret.new req, sess, cust, locale
+        view       = Manifold::Views::UnknownSecret.new req, sess, cust, locale
         res.status = 404
         res.body   = view.render
       end
@@ -177,14 +177,14 @@ module Frontend
       # - Simplifies server configuration and maintenance.
       # - Allows for proper handling of 404s within the Vue.js application.
       def not_found_response(message, **)
-        view       = Frontend::Views::VuePoint.new(req, sess, cust, locale)
+        view       = Manifold::Views::VuePoint.new(req, sess, cust, locale)
         view.add_error(message) unless message&.empty?
         res.status = 404
         res.body   = view.render  # Render the entrypoint HTML
       end
 
       def not_authorized_error(_hsh = {})
-        view       = Frontend::Views::Error.new req, sess, cust, locale
+        view       = Manifold::Views::Error.new req, sess, cust, locale
         view.add_error 'Not authorized'
         res.status = 401
         res.body   = view.render
@@ -196,14 +196,14 @@ module Frontend
         # cases a server-side error occurs that isn't the fault of the
         # client, and in those cases we want to provide a fresh shrimp
         # so that the client can try again (without a full page refresh).
-        view       = Frontend::Views::Error.new req, sess, cust, locale
+        view       = Manifold::Views::Error.new req, sess, cust, locale
         view.add_error message
         res.status = 400
         res.body   = view.render
       end
 
       def throttle_response(message)
-        view       = Frontend::Views::Error.new req, sess, cust, locale
+        view       = Manifold::Views::Error.new req, sess, cust, locale
         view.add_error message
         res.status = 429
         res.body   = view.render

@@ -58,17 +58,17 @@ end
 @sess = MockSession.new
 
 ## Can create a VuePoint view with all arguments
-view = Frontend::Views::VuePoint.new(@req, @sess, @cust, 'en', @metadata)
+view = Manifold::Views::VuePoint.new(@req, @sess, @cust, 'en', @metadata)
 [view.req, view.sess, view.cust, view.locale]
 #=> [@req, @sess, @cust, 'en']
 
 ## Correctly sets basic properties
-view = Frontend::Views::VuePoint.new(@req, @sess, @cust, 'en', @metadata)
+view = Manifold::Views::VuePoint.new(@req, @sess, @cust, 'en', @metadata)
 [view[:page_title], view[:frontend_host], view[:frontend_development], view[:no_cache]]
 #=> ["Onetime Secret", "http://localhost:5173", false, false]
 
 ## Sets authentication status correctly
-view = Frontend::Views::VuePoint.new(@req, @sess, @cust, 'en', @metadata)
+view = Manifold::Views::VuePoint.new(@req, @sess, @cust, 'en', @metadata)
 authenticated_value = view.serialized_data[:authenticated]
 authenticated_value
 #=> true
@@ -76,18 +76,18 @@ authenticated_value
 ## Handles unauthenticated user correctly
 unauthenticated_sess = MockSession.new
 def unauthenticated_sess.authenticated?; false; end
-view = Frontend::Views::VuePoint.new(@req, unauthenticated_sess, V1::Customer.anonymous, 'en', @metadata)
+view = Manifold::Views::VuePoint.new(@req, unauthenticated_sess, V1::Customer.anonymous, 'en', @metadata)
 authenticated_value = view.serialized_data[:authenticated]
 authenticated_value
 #=> false
 
 ## Sets locale correctly
-view = Frontend::Views::VuePoint.new(@req, @sess, @cust, 'es', @metadata)
+view = Manifold::Views::VuePoint.new(@req, @sess, @cust, 'es', @metadata)
 view.locale
 #=> 'es'
 
 ## Falls back to default locale if not provided
-view = Frontend::Views::VuePoint.new(@req, @sess, @cust, nil, @metadata)
+view = Manifold::Views::VuePoint.new(@req, @sess, @cust, nil, @metadata)
 view.locale
 #=> 'en'
 

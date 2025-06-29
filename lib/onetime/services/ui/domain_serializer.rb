@@ -1,8 +1,8 @@
-# apps/web/frontend/views/serializers/domain_serializer.rb
+# apps/web/manifold/views/serializers/domain_serializer.rb
 
 require 'onetime/middleware/domain_strategy'
 
-module Frontend
+module Manifold
   module Views
     # Serializes domain-related information for the frontend
     #

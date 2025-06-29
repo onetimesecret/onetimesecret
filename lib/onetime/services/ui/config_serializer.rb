@@ -1,8 +1,8 @@
-# apps/web/frontend/views/serializers/config_serializer.rb
+# apps/web/manifold/views/serializers/config_serializer.rb
 
 
 
-module Frontend
+module Manifold
   module Views
     # Serializes application configuration for the frontend
     #

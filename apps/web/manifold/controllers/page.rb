@@ -1,6 +1,6 @@
 require_relative 'base'
 
-module Frontend
+module Manifold
   module Controllers
     class Page
       include Controllers::Base
@@ -25,7 +25,7 @@ module Frontend
       def index
         publically do
           OT.ld "[index] authenticated? #{sess.authenticated?}"
-          view     = Frontend::Views::VuePoint.new req, sess, cust, locale
+          view     = Manifold::Views::VuePoint.new req, sess, cust, locale
           sess.event_incr! :get_page
           res.body = view.render
         end
@@ -34,7 +34,7 @@ module Frontend
       def customers_only
         authenticated do
           OT.ld "[customers_only] authenticated? #{sess.authenticated?}"
-          view     = Frontend::Views::VuePoint.new req, sess, cust, locale
+          view     = Manifold::Views::VuePoint.new req, sess, cust, locale
           sess.event_incr! :get_page
           res.body = view.render
         end
@@ -43,7 +43,7 @@ module Frontend
       def colonels_only
         colonels do
           OT.ld "[colonels_only] authenticated? #{sess.authenticated?}"
-          view     = Frontend::Views::VuePoint.new req, sess, cust, locale
+          view     = Manifold::Views::VuePoint.new req, sess, cust, locale
           sess.event_incr! :get_page
           res.body = view.render
         end
@@ -51,7 +51,7 @@ module Frontend
 
       def robots_txt
         publically do
-          view                       = Frontend::Views::RobotsTxt.new req, sess, cust, locale
+          view                       = Manifold::Views::RobotsTxt.new req, sess, cust, locale
           sess.event_incr! :robots_txt
           res.header['Content-Type'] = 'text/plain'
           res.body                   = view.render

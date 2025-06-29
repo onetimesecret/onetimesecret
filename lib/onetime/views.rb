@@ -1,3 +1,3 @@
 # lib/onetime/views.rb
 
-require 'frontend/views'
+require 'manifold/views'

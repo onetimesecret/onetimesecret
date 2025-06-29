@@ -1,6 +1,6 @@
-# apps/web/frontend/views/serializers/i18n_serializer.rb
+# apps/web/manifold/views/serializers/i18n_serializer.rb
 
-module Frontend
+module Manifold
   module Views
     # Serializes internationalization data for the frontend
     #

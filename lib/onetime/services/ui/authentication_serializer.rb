@@ -1,8 +1,8 @@
-# apps/web/frontend/views/serializers/authentication_serializer.rb
+# apps/web/manifold/views/serializers/authentication_serializer.rb
 
 require 'onetime/utils'
 
-module Frontend
+module Manifold
   module Views
     # Serializes authentication-related data for the frontend
     #

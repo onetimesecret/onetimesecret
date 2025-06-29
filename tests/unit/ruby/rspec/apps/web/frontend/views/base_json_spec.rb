@@ -1,9 +1,9 @@
-# tests/unit/ruby/rspec/apps/web/frontend/views/base_json_spec.rb
+# tests/unit/ruby/rspec/apps/web/manifold/views/base_json_spec.rb
 
 require 'json'
 require_relative '../../../../spec_helper'
 
-RSpec.xdescribe Frontend::Views::BaseView, "JSON Output" do
+RSpec.xdescribe Manifold::Views::BaseView, "JSON Output" do
   include_context "rack_test_context"
 
   let(:authenticated_json) do
@@ -253,7 +253,7 @@ RSpec.xdescribe Frontend::Views::BaseView, "JSON Output" do
         allow(Onetime::DomainStrategy).to receive(:canonical_domain).and_return(authenticated_json["canonical_domain"])
 
         # For epochdom method
-        allow_any_instance_of(Frontend::Views::BaseView).to receive(:epochdom)
+        allow_any_instance_of(Manifold::Views::BaseView).to receive(:epochdom)
           .with(authenticated_json["cust"]["created"].to_i)
           .and_return(authenticated_json["customer_since"])
       end

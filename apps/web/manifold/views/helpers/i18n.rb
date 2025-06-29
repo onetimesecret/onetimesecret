@@ -1,4 +1,4 @@
-# apps/web/frontend/views/helpers/i18n.rb
+# apps/web/manifold/views/helpers/i18n.rb
 
 # I18nHelpers provides localization functionality for view templates.
 #
@@ -6,12 +6,12 @@
 # fallback behavior when requested locales aren't available.
 #
 # @example
-#   include Frontend::Views::I18nHelpers
+#   include Manifold::Views::I18nHelpers
 #
 #   # Access translations
 #   i18n[:page][:welcome_message]
 #
-module Frontend
+module Manifold
   module Views
     module I18nHelpers
       attr_reader :i18n_enabled

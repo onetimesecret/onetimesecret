@@ -1,6 +1,6 @@
-# apps/web/frontend/views/serializers/messages_serializer.rb
+# apps/web/manifold/views/serializers/messages_serializer.rb
 
-module Frontend
+module Manifold
   module Views
     # Serializes flash messages and global notifications for the frontend
     #

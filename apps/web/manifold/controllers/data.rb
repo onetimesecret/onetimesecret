@@ -1,8 +1,8 @@
-# apps/web/frontend/controllers/data.rb
+# apps/web/manifold/controllers/data.rb
 
 require_relative 'base'
 
-module Frontend
+module Manifold
   module Controllers
     class Data
       include Controllers::Base
@@ -10,7 +10,7 @@ module Frontend
       def export_window
         publically do
           OT.ld "[export_window] authenticated? #{sess.authenticated?}"
-          view                       = Frontend::Views::ExportWindow.new req, sess, cust, locale
+          view                       = Manifold::Views::ExportWindow.new req, sess, cust, locale
           sess.event_incr! :get_page
           res.header['Content-Type'] = 'application/json; charset=utf-8'
           res.body                   = view.serialized_data.to_json
@@ -24,7 +24,7 @@ module Frontend
             logic.raise_concerns
             logic.process
             req.params.clear
-            view     = Frontend::Views::Incoming.new req, sess, cust, locale
+            view     = Manifold::Views::Incoming.new req, sess, cust, locale
             view.add_message view.i18n[:page][:incoming_success_message]
             res.body = view.render
           else

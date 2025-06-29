@@ -1,8 +1,8 @@
-# apps/web/frontend/controllers/account.rb
+# apps/web/manifold/controllers/account.rb
 
 require_relative 'base'
 
-module Frontend
+module Manifold
   module Controllers
     class Account
       include Controllers::Base

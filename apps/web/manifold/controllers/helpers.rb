@@ -1,9 +1,9 @@
-# apps/web/frontend/controllers/helpers.rb
+# apps/web/manifold/controllers/helpers.rb
 
 
 
-module Frontend
-  unless defined?(Frontend::BADAGENTS)
+module Manifold
+  unless defined?(Manifold::BADAGENTS)
     BADAGENTS     = [:facebook, :google, :yahoo, :bing, :stella, :baidu, :bot, :curl, :wget]
     LOCAL_HOSTS   = ['localhost', '127.0.0.1'].freeze  # TODO: Add config
     HEADER_PREFIX = ENV.fetch('HEADER_PREFIX', 'X_SECRET_').upcase

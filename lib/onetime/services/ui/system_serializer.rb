@@ -1,6 +1,6 @@
-# apps/web/frontend/views/serializers/system_serializer.rb
+# apps/web/manifold/views/serializers/system_serializer.rb
 
-module Frontend
+module Manifold
   module Views
     # Serializes system-level information for the frontend
     #

@@ -2,7 +2,7 @@
 
 module Onetime
   module Services
-    module Frontend
+    module Manifold
       # UIContext
       #
       # TODO: This serialization stuff is a real monkey's lunch. The whole concept

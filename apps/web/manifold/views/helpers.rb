@@ -1,4 +1,4 @@
-# apps/web/frontend/views/helpers.rb
+# apps/web/manifold/views/helpers.rb
 
 require_relative 'helpers/sanitizer'
 require_relative 'helpers/i18n'

@@ -14,7 +14,7 @@
 
 
 require_relative './test_models'
-require 'frontend/controllers/settings'
+require 'manifold/controllers/settings'
 
 #Familia.debug = false
 
