@@ -1,8 +1,9 @@
 <!-- templates/web/head.rue -->
 
 <!--
-  RSFC rev3 File
+  RSFC rev4 File
 -->
+
 
 <data window="data" schema="@/src/schemas/head.ts">
 {
