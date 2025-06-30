@@ -54,7 +54,7 @@ if global_secret.nil?
 end
 
 # Set the state key for global secret, even if nil.
-OT.state['global_state'] = global_secret
+OT.state['global_secret'] = global_secret
 
 # Disable all authentication sub-features when main feature is off for
 # consistency, security, and to prevent unexpected behavior. Ensures clean
