@@ -1,9 +1,13 @@
 # apps/web/manifold/views.rb
 
+require 'onetime/refinements/require_refinements'
+
 require_relative 'views/base'
 
 module Manifold
   module Views
+    using Onetime::Ruequire
+
     ##
     # The VuePoint class serves as a bridge between the Ruby Rack application
     # and the Vue.js frontend. It is responsible for initializing and passing
@@ -15,15 +19,6 @@ module Manifold
     class VuePoint < Manifold::Views::BaseView
       self.template_name = 'index'
 
-      use_serializers(
-        # ConfigSerializer,
-        # AuthenticationSerializer,
-        # DomainSerializer,
-        # I18nSerializer,
-        # MessagesSerializer,
-        # # PlanSerializer,
-        # SystemSerializer,
-      )
 
       def init *args; end
     end
@@ -31,15 +26,7 @@ module Manifold
     class ExportWindow < Manifold::Views::BaseView
       self.template_name = nil
 
-      use_serializers(
-        # ConfigSerializer,
-        # AuthenticationSerializer,
-        # DomainSerializer,
-        # I18nSerializer,
-        # MessagesSerializer,
-        # PlanSerializer,
-        # SystemSerializer,
-      )
+      require 'views/example.rue'
 
       def init *args; end
     end

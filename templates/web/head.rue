@@ -1,0 +1,106 @@
+<!-- templates/web/partial/head.rue -->
+
+<!--
+  RSFC rev2 File
+-->
+<data schema="@/src/schemas/head.ts">
+  "page_title": "One Time Secret",
+  "description": "Securely share sensitive information with a single-use link",
+  "keywords": "secret sharing, secure messaging, one-time link",
+  "baseuri": "https://onetimesecret.com",
+  "site_host": "onetimesecret.com",
+  "frontend_development": true,
+  "vite_assets": {
+      "assets/fonts/zs/ZillaSlab-Regular.woff2": {
+        "file": "assets/ZillaSlab-Regular.CpTS5Ubm.woff2",
+        "src": "assets/fonts/zs/ZillaSlab-Regular.woff2"
+      },
+      "main.ts": {
+        "file": "assets/main.BLg8yeuJ.js",
+        "name": "main",
+        "src": "main.ts",
+        "isEntry": true,
+        "assets": [
+          "assets/ZillaSlab-Regular.CpTS5Ubm.woff2",
+          "assets/ZillaSlab-Regular.2Acx4doP.woff",
+          "assets/ZillaSlab-Bold.CZCnI8e7.woff2",
+          "assets/ZillaSlab-Bold.BSphAb8W.woff",
+          "assets/ZillaSlab-Italic.DQuJfL-3.woff2",
+          "assets/ZillaSlab-Italic.B4KlKyMb.woff",
+          "assets/ZillaSlab-BoldItalic.q1iItYoI.woff2",
+          "assets/ZillaSlab-BoldItalic.BG1CNiCK.woff"
+        ]
+      },
+      "style.css": {
+        "file": "assets/style.I5AeOD3i.css",
+        "src": "style.css"
+      }
+    }
+  }
+</data>
+
+<template>
+  <meta charset="UTF-8">
+  <meta name="referrer" content="no-referrer">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <title>{{page_title}}</title>
+  <meta name="description" content="{{description}}">
+  <meta name="keywords" content="{{keywords}}">
+
+  <!-- OpenGraph Meta Tags -->
+  <meta property="og:url" content="{{baseuri}}">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="{{page_title}}">
+  <meta property="og:description" content="{{description}}">
+  <meta property="og:image" content="{{baseuri}}/img/social-preview.png">
+
+  <!-- X Meta Tags -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta property="twitter:domain" content="{{site_host}}">
+  <meta property="twitter:url" content="{{baseuri}}">
+  <meta name="twitter:title" content="{{page_title}}">
+  <meta name="twitter:description" content="{{description}}">
+  <meta name="twitter:image" content="{{baseuri}}/img/social-preview.png">
+
+  <meta name="msapplication-TileColor" content="#dc4a22">
+  <meta name="theme-color" content="#dc4a22">
+  <meta name="apple-mobile-web-app-title" content="{{page_title}}">
+  <meta name="application-name" content="{{page_title}}">
+  <link nonce="{{ nonce }}" rel="icon" type="image/png" href="/img/favicon.png" />
+  <link nonce="{{ nonce }}" rel="icon" type="image/svg+xml" href="/img/favicon.svg" />
+  <link nonce="{{ nonce }}" rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png?v=3">
+  <link nonce="{{ nonce }}" rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png?v=3">
+  <link nonce="{{ nonce }}" rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png?v=3">
+  <link nonce="{{ nonce }}" rel="manifest" href="/site.webmanifest?v=3">
+  <link nonce="{{ nonce }}" rel="mask-icon" href="/safari-pinned-tab.svg?v=3" color="#dc4a22">
+  <link nonce="{{ nonce }}" rel="shortcut icon" href="/favicon.ico?v=3">
+
+  {{#no_cache}}
+    <meta http-equiv="pragma" content="no-cache">
+    <meta http-equiv="expires" content="-1">
+  {{/no_cache}}
+
+  <script id="initial-data" type="application/json" nonce="{{ nonce }}">
+    /**
+     * Automatically dumps <data></data> as JSON. We intentionally use
+     * JSON.stringify to ensure safe output rather than pass it in
+     * directly as a javascript object.
+     */
+  </script>
+
+  <!-- Hydrating the JSON similar to what you find in App.vue or main.ts -->
+  <script lang="javascript" nonce="{{ nonce }}">
+    var initialData = document.getElementById('initial-data')?.textContent;
+    window.__ONETIME_STATE__ = (initialData) ? JSON.parse(initialData) : [];
+  </script>
+
+  {{#frontend_development}}
+    <script type="module" nonce="{{ nonce }}" src="/dist/main.ts"></script>
+    <script type="module" nonce="{{ nonce }}" src="/dist/@vite/client"></script>
+  {{/frontend_development}}
+
+  {{^frontend_development}}
+    {{vite_assets}}
+  {{/frontend_development}}
+</template>

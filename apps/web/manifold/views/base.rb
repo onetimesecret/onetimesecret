@@ -55,16 +55,16 @@ module Manifold
         @i18n_instance = i18n
         @messages      = []
 
-        @view_vars = self.class.template_vars(req, sess, cust, locale, i18n_instance)
+        # @view_vars = self.class.template_vars(req, sess, cust, locale, i18n_instance)
 
         # Make the view-relevant variables available to the view and HTML template
-        @view_vars.each do |key, value|
-          self[key] = value
-        end
+        # @view_vars.each do |key, value|
+        #   self[key] = value
+        # end
 
         init(*) if respond_to?(:init)
 
-        @serialized_data = run_serializers
+        # @serialized_data = run_serializers
       end
 
       def anonymous_customer
@@ -72,34 +72,6 @@ module Manifold
         # in some cases won't have a database connection.
         require 'v2/models/customer' unless defined?(V2::Customer)
         @cust = V2::Customer.anonymous
-      end
-
-      # Add notification message to be displayed in StatusBar component
-      #
-      # @param msg [String] Message content to be displayed
-      # @param type [String] Type of message, one of: info, error, success, warning
-      # @return [Array<Hash>] Array containing all message objects
-      def add_message(msg, type = 'info')
-        messages << { type: type, content: msg }
-      end
-
-      # Add error message to be displayed in StatusBar component
-      #
-      # @param msg [String] error message content to be displayed
-      # @return [Array<Hash>] array containing all message objects
-      def add_error(msg)
-        add_message(msg, 'error')
-      end
-
-      # Run all registered serializers to transform view data for frontend consumption
-      #
-      # Executes each serializer registered for this view in dependency order,
-      # merging their results into a single data structure that can be safely
-      # passed to the frontend.
-      #
-      # @return [Hash] The serialized data
-      def run_serializers
-        SerializerRegistry.run(self.class.serializers, view_vars, i18n_instance)
       end
 
       class << self
@@ -115,23 +87,6 @@ module Manifold
           # is more important than clever design. Instead, a safer practice is to
           # set the class instance variable here in the class definition.
           @pagename ||= name.split('::').last.downcase.to_sym
-        end
-
-        # Class-level serializers list
-        #
-        # @return [Array<Module>] List of serializers to use with this view
-        def serializers
-          @serializers ||= []
-        end
-
-        # Add serializers to this view
-        #
-        # @param serializer_list [Array<Module>] List of serializers to add to this view
-        # @return [Array<Module>] Updated list of serializers
-        def use_serializers(*serializer_list)
-          serializer_list.each do |serializer|
-            serializers << serializer unless serializers.include?(serializer)
-          end
         end
       end
     end
