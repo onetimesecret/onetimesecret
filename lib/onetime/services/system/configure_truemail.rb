@@ -61,7 +61,6 @@ module Onetime
               conf.send("#{actual_key}=", value)
             rescue NoMethodError => e
               OT.le "Error setting Truemail config key #{key}: #{e.message}"
-              require 'pry-byebug'; binding.pry;
             end
           end
         end

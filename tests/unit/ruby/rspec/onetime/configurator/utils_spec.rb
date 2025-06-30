@@ -383,7 +383,7 @@ RSpec.describe Onetime::Configurator::Utils do
       it 'returns mapped key for example_internal_key' do
         result = described_class.mapped_key(:example_internal_key)
 
-        expect(result).not_to eq(:example_external_key)
+        expect(result).to eq('example_external_key')
       end
     end
 
