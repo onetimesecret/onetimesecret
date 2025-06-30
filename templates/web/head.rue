@@ -1,42 +1,24 @@
-<!-- templates/web/partial/head.rue -->
+<!-- templates/web/head.rue -->
 
 <!--
-  RSFC rev2 File
+  RSFC rev3 File
 -->
-<data schema="@/src/schemas/head.ts">
+
+<data window="data" schema="@/src/schemas/head.ts">
+{
   "page_title": "One Time Secret",
   "description": "Securely share sensitive information with a single-use link",
-  "keywords": "secret sharing, secure messaging, one-time link",
   "baseuri": "https://onetimesecret.com",
   "site_host": "onetimesecret.com",
-  "frontend_development": true,
-  "vite_assets": {
-      "assets/fonts/zs/ZillaSlab-Regular.woff2": {
-        "file": "assets/ZillaSlab-Regular.CpTS5Ubm.woff2",
-        "src": "assets/fonts/zs/ZillaSlab-Regular.woff2"
-      },
-      "main.ts": {
-        "file": "assets/main.BLg8yeuJ.js",
-        "name": "main",
-        "src": "main.ts",
-        "isEntry": true,
-        "assets": [
-          "assets/ZillaSlab-Regular.CpTS5Ubm.woff2",
-          "assets/ZillaSlab-Regular.2Acx4doP.woff",
-          "assets/ZillaSlab-Bold.CZCnI8e7.woff2",
-          "assets/ZillaSlab-Bold.BSphAb8W.woff",
-          "assets/ZillaSlab-Italic.DQuJfL-3.woff2",
-          "assets/ZillaSlab-Italic.B4KlKyMb.woff",
-          "assets/ZillaSlab-BoldItalic.q1iItYoI.woff2",
-          "assets/ZillaSlab-BoldItalic.BG1CNiCK.woff"
-        ]
-      },
-      "style.css": {
-        "file": "assets/style.I5AeOD3i.css",
-        "src": "style.css"
-      }
-    }
+  "theme_config": {
+    "default_mode": "light",
+    "allow_user_override": true
+  },
+  "asset_manifest": {
+    "main_js": "/assets/main.BLg8yeuJ.js",
+    "main_css": "/assets/style.I5AeOD3i.css"
   }
+}
 </data>
 
 <template>
@@ -46,7 +28,7 @@
 
   <title>{{page_title}}</title>
   <meta name="description" content="{{description}}">
-  <meta name="keywords" content="{{keywords}}">
+  <meta name="keywords" content="secret sharing, secure messaging, one-time link">
 
   <!-- OpenGraph Meta Tags -->
   <meta property="og:url" content="{{baseuri}}">
@@ -63,44 +45,33 @@
   <meta name="twitter:description" content="{{description}}">
   <meta name="twitter:image" content="{{baseuri}}/img/social-preview.png">
 
-  <meta name="msapplication-TileColor" content="#dc4a22">
   <meta name="theme-color" content="#dc4a22">
-  <meta name="apple-mobile-web-app-title" content="{{page_title}}">
-  <meta name="application-name" content="{{page_title}}">
-  <link nonce="{{ nonce }}" rel="icon" type="image/png" href="/img/favicon.png" />
-  <link nonce="{{ nonce }}" rel="icon" type="image/svg+xml" href="/img/favicon.svg" />
-  <link nonce="{{ nonce }}" rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png?v=3">
-  <link nonce="{{ nonce }}" rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png?v=3">
-  <link nonce="{{ nonce }}" rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png?v=3">
-  <link nonce="{{ nonce }}" rel="manifest" href="/site.webmanifest?v=3">
-  <link nonce="{{ nonce }}" rel="mask-icon" href="/safari-pinned-tab.svg?v=3" color="#dc4a22">
-  <link nonce="{{ nonce }}" rel="shortcut icon" href="/favicon.ico?v=3">
+  <link nonce="{{nonce}}" rel="icon" type="image/png" href="/img/favicon.png" />
+  <link nonce="{{nonce}}" rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+  <link nonce="{{nonce}}" rel="manifest" href="/site.webmanifest">
 
   {{#no_cache}}
     <meta http-equiv="pragma" content="no-cache">
     <meta http-equiv="expires" content="-1">
   {{/no_cache}}
 
-  <script id="initial-data" type="application/json" nonce="{{ nonce }}">
-    /**
-     * Automatically dumps <data></data> as JSON. We intentionally use
-     * JSON.stringify to ensure safe output rather than pass it in
-     * directly as a javascript object.
-     */
-  </script>
+  <!-- Client hydration data -->
+  <!-- No need to do this manually. Automatically populates `window.data` based on <data> -->
+  <!--
+    <script id="initial-data" type="application/json" nonce="{{nonce}}">
+      {{data_json}}
+    </script>
+  -->
 
-  <!-- Hydrating the JSON similar to what you find in App.vue or main.ts -->
-  <script lang="javascript" nonce="{{ nonce }}">
-    var initialData = document.getElementById('initial-data')?.textContent;
-    window.__ONETIME_STATE__ = (initialData) ? JSON.parse(initialData) : [];
-  </script>
-
-  {{#frontend_development}}
+  <!-- Development assets -->
+  {{#development}}
     <script type="module" nonce="{{ nonce }}" src="/dist/main.ts"></script>
     <script type="module" nonce="{{ nonce }}" src="/dist/@vite/client"></script>
-  {{/frontend_development}}
+  {{/development}}
 
-  {{^frontend_development}}
-    {{vite_assets}}
-  {{/frontend_development}}
+  <!-- Production assets -->
+  {{^development}}
+    <link nonce="{{nonce}}" rel="stylesheet" href="{{asset_manifest.main_css}}">
+    <script nonce="{{nonce}}" src="{{asset_manifest.main_js}}" defer></script>
+  {{/development}}
 </template>

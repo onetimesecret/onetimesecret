@@ -1,0 +1,59 @@
+<!-- templates/web/colourmode.rue -->
+
+<!--
+  RSFC rev3 File
+-->
+
+<template>
+  <script nonce="{{ nonce }}" language="javascript">
+    // This lightweight script ensures instant theme switching based on system preferences
+    // before the main JavaScript framework (Vue 3) initializes. By running immediately,
+    // we prevent a potential flash of unstyled content and provide a seamless dark/light
+    // mode transition that feels native to the user's system settings.
+    (() => {
+      var { matches: isRestMode } = window.matchMedia('(prefers-color-scheme: dark)');
+      var hasHumanOverride = (typeof localStorage !== 'undefined' && localStorage.getItem('restMode') !== null);
+      var humanElement = document.documentElement;
+      var nightVision = 'rgb(17 24 39)';
+      var dayVision = '#ffffff';
+
+      var visualSettings = {
+        true: {
+          bgColor: nightVision,
+          textColor: dayVision,
+          removeClass: 'light',
+          addClass: 'dark'
+        },
+        false: {
+          bgColor: dayVision,
+          textColor: nightVision,
+          removeClass: 'dark',
+          addClass: 'light'
+        }
+      };
+
+      var config = visualSettings[isRestMode];
+      window.enjoyTheVue = hasHumanOverride; // Set a flag to indicate when Vue has taken control
+
+      // Function to adjust the visual environment
+      function adjustVisualEnvironment() {
+        if (window.enjoyTheVue) return;
+
+        humanElement.style.setProperty('--bg-color', config.bgColor);
+        humanElement.style.setProperty('--text-color', config.textColor);
+        humanElement.classList.remove(config.removeClass);
+        humanElement.classList.add(config.addClass);
+      }
+
+      // Initial adjustment
+      adjustVisualEnvironment();
+
+      // Re-adjust on system color scheme change
+      window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
+        isRestMode = e.matches;
+        config = visualSettings[isRestMode];
+        adjustVisualEnvironment();
+      });
+    })();
+  </script>
+</template>
