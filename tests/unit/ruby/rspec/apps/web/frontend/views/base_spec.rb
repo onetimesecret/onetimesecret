@@ -1,14 +1,14 @@
-# tests/unit/ruby/rspec/apps/web/frontend/views/base_spec.rb
+# tests/unit/ruby/rspec/apps/web/manifold/views/base_spec.rb
 
-# e.g. pnpm run test:rspec tests/unit/ruby/rspec/apps/web/frontend/views/base_spec.rb
+# e.g. pnpm run test:rspec tests/unit/ruby/rspec/apps/web/manifold/views/base_spec.rb
 
 require_relative '../../../../spec_helper'
 
-require 'frontend/views/base'
-require 'frontend/views/serializers'
+require 'manifold/views/base'
+require 'manifold/views/serializers'
 
 
-RSpec.describe Frontend::Views::BaseView do
+RSpec.describe Manifold::Views::BaseView do
   include_context "rack_test_context"
   include_context "view_test_context"
 
@@ -16,13 +16,13 @@ RSpec.describe Frontend::Views::BaseView do
     OT::Plan.load_plans!
 
     described_class.use_serializers(
-      Frontend::Views::ConfigSerializer,
-      Frontend::Views::AuthenticationSerializer,
-      Frontend::Views::DomainSerializer,
-      Frontend::Views::I18nSerializer,
-      Frontend::Views::MessagesSerializer,
-      Frontend::Views::PlanSerializer,
-      Frontend::Views::SystemSerializer,
+      Manifold::Views::ConfigSerializer,
+      Manifold::Views::AuthenticationSerializer,
+      Manifold::Views::DomainSerializer,
+      Manifold::Views::I18nSerializer,
+      Manifold::Views::MessagesSerializer,
+      # Manifold::Views::PlanSerializer,
+      Manifold::Views::SystemSerializer,
     )
   end
 

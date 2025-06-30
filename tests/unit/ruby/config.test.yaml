@@ -164,7 +164,7 @@ diagnostics:
     # maintain TypeScript type safety.
     #
     # Available options:
-    # - dsn: Frontend-specific Sentry DSN (falls back to default DSN if not set)
+    # - dsn: Manifold-specific Sentry DSN (falls back to default DSN if not set)
     # - trackComponents: Automatically instrument Vue components for
     # performance monitoring
     frontend:

@@ -59,6 +59,8 @@ module Onetime
               end
               OT.ld "Setting Truemail config key #{key} to #{value}"
               conf.send("#{actual_key}=", value)
+            rescue NoMethodError => e
+              OT.le "Error setting Truemail config key #{key}: #{e.message}"
             end
           end
         end

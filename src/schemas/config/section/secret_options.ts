@@ -3,7 +3,7 @@
 /**
  * User Types
  *
- * Previously defined in Onetime::Plan.load_plans!
+ * Now here. Previously defined in Onetime::Plan.load_plans!
  */
 
 import { z } from 'zod/v4';

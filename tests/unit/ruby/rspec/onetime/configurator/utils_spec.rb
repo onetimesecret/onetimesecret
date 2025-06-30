@@ -363,7 +363,7 @@ RSpec.describe Onetime::Configurator::Utils do
         expect(result).to eq(:blacklisted_emails)
       end
 
-      it 'returns mapped key for example_internal_key' do
+      it 'returns mapped key for example_internal_key (symbol input)' do
         result = described_class.mapped_key(:example_internal_key)
 
         puts "\n=== DEBUGGING: Example mapping ==="
@@ -372,7 +372,18 @@ RSpec.describe Onetime::Configurator::Utils do
         puts "Expected: :example_external_key"
         puts "=================================\n"
 
-        expect(result).to eq(:example_external_key)
+        expect(result).to eq('example_external_key')
+      end
+
+      it 'returns mapped key for example_internal_key (string input)' do
+        result = described_class.mapped_key('example_internal_key')
+        expect(result).to eq('example_external_key')
+      end
+
+      it 'returns mapped key for example_internal_key' do
+        result = described_class.mapped_key(:example_internal_key)
+
+        expect(result).to eq('example_external_key')
       end
     end
 
@@ -450,15 +461,12 @@ RSpec.describe Onetime::Configurator::Utils do
       puts "==================================\n"
 
       expect(key_map).to be_a(Hash)
-      expect(key_map.keys).to all(be_a(Symbol))
-      expect(key_map.values).to all(be_a(Symbol))
+      expect(key_map.keys).to all(be_a(String))
+      expect(key_map.values).to all(satisfy { |v| v.is_a?(Symbol) || v.is_a?(String) })
 
-      # NOTE: This is a security issue - KEY_MAP should be frozen but isn't
-      # Unlike KNOWN_PATHS which is properly frozen, KEY_MAP can be modified
-      expect(key_map).not_to be_frozen  # Current behavior (should be fixed)
+      # NOTE: This is a security issue - KEY_MAP should always be frozen
+      expect(key_map).to be_frozen
 
-      puts "SECURITY ISSUE: KEY_MAP is not frozen and can be modified!"
-      puts "This allows potential runtime modification of key mappings."
     end
   end
 
@@ -595,26 +603,29 @@ RSpec.describe Onetime::Configurator::Utils do
   end
 
   describe 'security and immutability concerns' do
-    it 'documents the KEY_MAP mutability security issue' do
-      # This test demonstrates a security vulnerability
+    it 'verifies the KEY_MAP is properly frozen and immutable' do
+      # This test verifies that KEY_MAP is frozen and cannot be modified
       original_mapping = described_class.mapped_key(:allowed_domains_only)
 
-      # Attempt to modify the KEY_MAP (this should not be possible)
-      Onetime::Configurator::KEY_MAP[:allowed_domains_only] = :hijacked_value
-      modified_mapping = described_class.mapped_key(:allowed_domains_only)
+      # Attempt to modify the KEY_MAP - this should raise FrozenError
+      expect {
+        Onetime::Configurator::KEY_MAP[:allowed_domains_only] = :hijacked_value
+      }.to raise_error(FrozenError)
 
-      puts "\n=== DEBUGGING: Security vulnerability ==="
+      # Verify the mapping remains unchanged after failed modification attempt
+      unchanged_mapping = described_class.mapped_key(:allowed_domains_only)
+
+      puts "\n=== DEBUGGING: Security protection ==="
       puts "Original mapping: #{original_mapping}"
-      puts "After modification: #{modified_mapping}"
-      puts "KEY_MAP was modified: #{modified_mapping == :hijacked_value}"
-      puts "This demonstrates a security issue!"
+      puts "After failed modification: #{unchanged_mapping}"
+      puts "KEY_MAP is frozen: #{Onetime::Configurator::KEY_MAP.frozen?}"
+      puts "Mapping unchanged: #{unchanged_mapping == original_mapping}"
+      puts "Security protection working correctly!"
       puts "====================================\n"
 
-      # Clean up the modification
-      Onetime::Configurator::KEY_MAP[:allowed_domains_only] = :whitelist_validation
-
-      # This test documents that the mapping can be changed at runtime
-      expect(modified_mapping).to eq(:hijacked_value)
+      # This test verifies that the mapping cannot be changed at runtime
+      expect(unchanged_mapping).to eq(original_mapping)
+      expect(Onetime::Configurator::KEY_MAP).to be_frozen
     end
 
     it 'verifies KNOWN_PATHS is properly frozen and immutable' do

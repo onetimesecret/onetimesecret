@@ -10,7 +10,7 @@ import { useAccountStore } from '@/stores/accountStore';
 import { storeToRefs } from 'pinia';
 
 // Grabbing values from the window properties is a convenient way to get
-// preformatted template variables (i.e. the serialized_data from Frontend::Views::BaseView)
+// preformatted template variables (i.e. the serialized_data from Manifold::Views::BaseView)
 // rather than re-implement them here in Vue. We'll replace all of them
 // eventually, but for now, this is a good way to keep momentum going.
 const windowProps = WindowService.getMultiple({

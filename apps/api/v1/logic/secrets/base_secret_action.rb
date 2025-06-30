@@ -1,6 +1,6 @@
 # apps/api/v1/logic/secrets/base_secret_action.rb
 
-require 'v1/refinements/rack_refinements'
+require 'v1/refinements/flexible_hash_access'
 
 require_relative '../../utils'
 
@@ -11,7 +11,7 @@ module V1::Logic
       attr_reader :passphrase, :secret_value, :kind, :ttl, :recipient, :recipient_safe, :greenlighted
       attr_reader :metadata, :secret, :share_domain, :custom_domain, :payload
       attr_accessor :token
-      using V1::RackRefinements
+      using V1::FlexibleHashAccess
 
       # Process methods populate instance variables with the values. The
       # raise_concerns and process methods deal with the values in the instance

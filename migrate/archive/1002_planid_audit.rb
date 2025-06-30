@@ -66,7 +66,7 @@ module Onetime
             next
           end
 
-          normalized_planid = Onetime::Plan.normalize(planid)
+          normalized_planid = cust.planid # TODO: Revisit normalization
 
           # Check if plan is deprecated
           next if VALID_PLANS.include?(normalized_planid)

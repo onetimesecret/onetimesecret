@@ -2,15 +2,14 @@
 
 import {
   AuthenticationSettings,
-  AvailablePlans,
   BrandSettings,
   Customer,
   ImageProps,
   Locale,
-  Plan,
   RegionsConfig,
   SecretOptions,
 } from '@/schemas/models';
+import { ValidKeys as UserTypes } from '@/schemas/config/shared/user_types';
 import { Stripe } from 'stripe';
 import { FallbackLocale } from 'vue-i18n';
 import { DiagnosticsConfig } from '../diagnostics';
@@ -22,7 +21,7 @@ import { DiagnosticsConfig } from '../diagnostics';
  * each time a full page load is performed.
  *
  * The corresponding Ruby backend code can be found in:
- * lib/onetime/app/web/frontend/views/base.rb
+ * lib/onetime/app/web/manifold/views/base.rb
  *
  * Implementation:
  * - Backend injects data via JSON <script> tag in the HTML header
@@ -112,14 +111,11 @@ export interface OnetimeWindow {
   site_host: string;
   stripe_customer?: Stripe.Customer;
   stripe_subscriptions?: Stripe.Subscriptions[];
-  authentication: AuthenticationSettings; // TODO: May need to offer default values
+  authentication: AuthenticationSettings;
   secret_options: SecretOptions;
 
-  available_plans: AvailablePlans;
-
-  plan: Plan;
+  user_type: UserTypes;
   is_paid: boolean;
-  default_planid: string;
 
   regions: RegionsConfig;
 

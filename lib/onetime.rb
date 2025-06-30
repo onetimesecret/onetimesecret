@@ -1,71 +1,97 @@
 # lib/onetime.rb
 
-Warning[:deprecated] = %w[development dev test].include?(ENV['RACK_ENV'].to_s)
+require_relative 'onetime/constants'
 
-require 'bundler/setup'
-
-require 'erb'
-require 'securerandom'
-require 'syslog'
-require 'truemail'
-
-require 'encryptor'
-require 'bcrypt'
-
-require 'rack'
-require 'otto'
-require 'gibbler/mixins'
-require 'familia'
-require 'storable'
-
-require_relative 'onetime/core_ext'
-require_relative 'onetime/utils'
-
-# Character Encoding Configuration
-# Set UTF-8 as the default external encoding to ensure consistent text handling:
-# - Standardizes file and network I/O operations
-# - Normalizes STDIN/STDOUT/STDERR encoding
-# - Provides default encoding for strings from external sources
-# This prevents encoding-related bugs, especially on fresh OS installations
-# where locale settings may not be properly configured.
-Encoding.default_external = Encoding::UTF_8
-
-# Onetime is the core of the Onetime Secret application.
-# It contains the core classes and modules that make up
-# the app. It is the main namespace for the application.
-#
 module Onetime
-  unless defined?(Onetime::HOME)
-    HOME        = File.expand_path(File.join(File.dirname(__FILE__), '..'))
+  @mode  = nil
+  @env   = (ENV['RACK_ENV'] || 'production').downcase.freeze
+  @debug = ENV['ONETIME_DEBUG'].to_s.match?(/^(true|1)$/i).freeze
 
-    # Ensure immediate flushing of stdout to improve real-time logging visibility.
-    # This is particularly useful in development and production environments where
-    # timely log output is crucial for monitoring and debugging purposes.
+  # Contains the global instance of ConfigProxy which is set at boot-time
+  # and lives for the duration of the process. Accessed externally via
+  # `Onetime.conf` method.
+  #
+  # Provides unified access to both static and dynamic configuration.
+  #
+  # NOTE: The distinction between static configuration (essential settings
+  # needed for basic operation) and system readiness (fully initialized,
+  # validated, and operational state. These are separate concerns. OT.conf
+  # should always return some level of configuration. IOW, we generally
+  # shouldn't write code that deals with OT.conf being nil. The exception is
+  # the code that runs immediately at process start and the tests relevant
+  # to that specific behaviour.
+  #
+  @mutex        = Mutex.new
+  @config_proxy = nil
+
+  class << self
+    attr_reader :mode, :debug, :env, :config_proxy, :instance, :static_config
+
+    def boot!(*)
+      Boot.boot!(*)
+      self
+    end
+
+    def safe_boot!(*)
+      Boot.boot!(*)
+      true
+    rescue StandardError
+      # Boot errors are already logged in handle_boot_error
+      OT.not_ready! # returns false
+    ensure
+      # We can't do much without the initial file-based configuration. If it's
+      # nil here it means that there's also no schema (which has the defaults).
+      if OT.conf.nil?
+        OT.le '-' * 70
+        OT.le '[BOOT] Configuration failed to load and validate. If there are no'
+        OT.le '[BOOT] error messages above, run again with ONETIME_DEBUG=1 and/or'
+        OT.le '[BOOT] make sure the config schema exists. Run `pnpm run schema:generate`'
+        OT.le '-' * 70
+        nil
+      end
+    end
+
+    # A convenience method for accessing the configuration proxy.
     #
-    # Enabling sync can have a performance impact in high-throughput environments.
-    #
-    # NOTE: Use STDOUT the immuntable constant here, not $stdout (global var).
-    STDOUT.sync = Onetime::Utils.yes?(ENV.fetch('STDOUT_SYNC', false))
-  end
-end
+    # Before ConfigProxy instance is available, fails over to static config.
+    def conf
+      config_proxy || @static_config || {}
+    end
 
-# Sets the SIGINT handler for a graceful shutdown and prevents Sentry from
-# trying to send events over the network when we're shutting down via ctrl-c.
-trap('SIGINT') do
-  OT.li 'Shutting down gracefully...'
+    # A convenience method for accessing the ServiceRegistry application state.
+    def state
+      # TODO: Is it okay/reasonable to check the readiness here? I think so b/c
+      # the service registry state is 1) new, so older code doesn't depend on it
+      # and 2) it is a specific reason for and result of the full boot initialization
+      # process. There is no notion of a service registry state before boot. Or
+      # to put it another way, code that runs prior to boot should not be
+      # depending on the service registry state.
+      #
+      # So then the question becomes: should we check readiness here to decide
+      # what to return or simply return nil. It's the responsibility of the
+      # calling code to check readiness before accessing the state.
+      ready? ? Onetime::Services::ServiceRegistry.state : {}
+    end
 
-  if OT.conf[:d9s_enabled]
-    begin
-      Sentry.close  # Attempt graceful shutdown with a short timeout
-    rescue ThreadError => ex
-      OT.ld "Sentry shutdown interrupted: #{ex} (#{ex.class})"
-    rescue StandardError => ex
-      # Ignore Sentry errors during shutdown
-      OT.le "Error during shutdown: #{ex} (#{ex.class})"
-      OT.ld ex.backtrace.join("\n")
+    # A convenience method for accessing the ServiceRegistry providers.
+    def provider
+      # Ditto
+      ready? ? Onetime::Services::ServiceRegistry.provider : {}
+    end
+
+    def set_config_proxy(config_proxy)
+      @mutex.synchronize do
+        @config_proxy = config_proxy
+      end
+    end
+
+    def set_boot_state(mode, instanceid)
+      @mutex.synchronize do
+        @mode       = mode || :app
+        @instance   = instanceid # TODO: rename OT.instance -> instanceid
+      end
     end
   end
-  exit
 end
 
 require_relative 'onetime/class_methods'
@@ -73,7 +99,6 @@ require_relative 'onetime/errors'
 require_relative 'onetime/version'
 require_relative 'onetime/cluster'
 require_relative 'onetime/configurator'
-require_relative 'onetime/plan'
 require_relative 'onetime/mail'
 require_relative 'onetime/alias'
 require_relative 'onetime/ready'

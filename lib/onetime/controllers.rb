@@ -2,4 +2,4 @@
 
 require 'v1/controllers'
 require 'v2/controllers'
-require 'frontend/controllers'
+require 'manifold/controllers'

@@ -2,6 +2,8 @@
 
 require 'rack/utils'
 
+require_relative '../plan'
+
 module V1
   class Customer < Familia::Horreum
     include Gibbler::Complex
@@ -122,7 +124,7 @@ module V1
     end
 
     def load_plan
-      Onetime::Plan.plan(planid) || {:planid => planid, :source => 'parts_unknown'}
+      V1::Plan.plan(planid) || {:planid => planid, :source => 'parts_unknown'}
     end
 
     def get_stripe_customer

@@ -1,6 +1,6 @@
 # tests/unit/ruby/try/23_app_settings_try.rb
 
-# These tryouts test the functionality of the AppSettings module in the Frontend::Views::BaseView class.
+# These tryouts test the functionality of the AppSettings module in the Manifold::Views::BaseView class.
 # The AppSettings module provides configuration options for UTF-8 and URI encoding
 # middleware checks.
 #
@@ -19,13 +19,13 @@
 # of this specific functionality.
 
 require_relative './test_models'
-require 'frontend/controllers/settings'
+require 'manifold/controllers/settings'
 
 # Use the default config file for tests
 OT.boot! :test, false
 
 class TestApp
-  include Frontend::ControllerSettings
+  include Manifold::ControllerSettings
 end
 
 ## Default values for check_utf8 and check_uri_encoding are nil
@@ -47,7 +47,7 @@ TestApp.check_uri_encoding
 
 ## Settings are independent for different classes
 class AnotherTestApp
-  include Frontend::ControllerSettings
+  include Manifold::ControllerSettings
 end
 
 AnotherTestApp.check_utf8

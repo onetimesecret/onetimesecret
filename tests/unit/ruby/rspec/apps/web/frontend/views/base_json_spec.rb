@@ -1,9 +1,9 @@
-# tests/unit/ruby/rspec/apps/web/frontend/views/base_json_spec.rb
+# tests/unit/ruby/rspec/apps/web/manifold/views/base_json_spec.rb
 
 require 'json'
 require_relative '../../../../spec_helper'
 
-RSpec.xdescribe Frontend::Views::BaseView, "JSON Output" do
+RSpec.xdescribe Manifold::Views::BaseView, "JSON Output" do
   include_context "rack_test_context"
 
   let(:authenticated_json) do
@@ -77,6 +77,10 @@ RSpec.xdescribe Frontend::Views::BaseView, "JSON Output" do
         })
 
         # Set up internationalization
+        #
+        # TODO: These are now testing legacy_globals functionality. Should be
+        # updated to test against OT.state.
+        #
         allow(OT).to receive(:default_locale).and_return(not_authenticated_json["default_locale"])
         allow(OT).to receive(:fallback_locale).and_return(not_authenticated_json["fallback_locale"])
         allow(OT).to receive(:supported_locales).and_return(not_authenticated_json["supported_locales"])
@@ -110,14 +114,9 @@ RSpec.xdescribe Frontend::Views::BaseView, "JSON Output" do
           mocked_plans[planid] = plan_mock
         end
 
-        # Set up the plans
-        allow(Onetime::Plan).to receive(:plans).and_return(mocked_plans)
 
-        # Individual plan mock for the current user's plan
         plan_mock = double('Plan')
-        allow(plan_mock).to receive(:safe_dump).and_return(authenticated_json["plan"])
-        allow(plan_mock).to receive(:paid?).and_return(authenticated_json["is_paid"])
-        allow(Onetime::Plan).to receive(:plan).and_return(plan_mock)
+
 
         # For domain strategy
         allow(Onetime::DomainStrategy).to receive(:canonical_domain).and_return(not_authenticated_json["canonical_domain"])
@@ -248,20 +247,13 @@ RSpec.xdescribe Frontend::Views::BaseView, "JSON Output" do
           mocked_plans[planid] = plan_mock
         end
 
-        # Set up the plans
-        allow(Onetime::Plan).to receive(:plans).and_return(mocked_plans)
-
-        # Individual plan mock for the current user's plan
         plan_mock = double('Plan')
-        allow(plan_mock).to receive(:safe_dump).and_return(not_authenticated_json["plan"])
-        allow(plan_mock).to receive(:paid?).and_return(not_authenticated_json["is_paid"])
-        allow(Onetime::Plan).to receive(:plan).and_return(plan_mock)
 
         # For domain strategy
         allow(Onetime::DomainStrategy).to receive(:canonical_domain).and_return(authenticated_json["canonical_domain"])
 
         # For epochdom method
-        allow_any_instance_of(Frontend::Views::BaseView).to receive(:epochdom)
+        allow_any_instance_of(Manifold::Views::BaseView).to receive(:epochdom)
           .with(authenticated_json["cust"]["created"].to_i)
           .and_return(authenticated_json["customer_since"])
       end

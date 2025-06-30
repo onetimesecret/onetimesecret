@@ -6,35 +6,35 @@ RSpec.describe Onetime::Configurator::Utils do
   describe '.apply_defaults_to_peers' do
     let(:basic_config) do
       {
-        defaults: { timeout: 5, enabled: true },
-        api: { timeout: 10 },
-        web: {},
+        'defaults' => { 'timeout' => 5, 'enabled' => true },
+        'api' => { 'timeout' => 10 },
+        'web' => {},
       }
     end
 
     let(:sentry_config) do
       {
-        defaults: {
-          dsn: 'default-dsn',
-          environment: 'test',
-          enabled: true
+        'defaults' => {
+          'dsn' => 'default-dsn',
+          'environment' => 'test',
+          'enabled' => true
         },
-        backend: {
-          dsn: 'backend-dsn',
-          traces_sample_rate: 0.1
+        'backend' => {
+          'dsn' => 'backend-dsn',
+          'traces_sample_rate' => 0.1
         },
-        frontend: {
-          path: '/web',
-          profiles_sample_rate: 0.2
+        'frontend' => {
+          'path' => '/web',
+          'profiles_sample_rate' => 0.2
         }
       }
     end
 
     let(:service_config) do
       {
-        defaults: { dsn: 'default-dsn', environment: 'test' },
-        backend: { dsn: 'backend-dsn' },
-        frontend: { path: '/web' }
+        'defaults' => { 'dsn' => 'default-dsn', 'environment' => 'test' },
+        'backend' => { 'dsn' => 'backend-dsn' },
+        'frontend' => { 'path' => '/web' }
       }
     end
 
@@ -90,7 +90,7 @@ RSpec.describe Onetime::Configurator::Utils do
       end
 
       it 'handles empty config' do
-        expect(described_class.apply_defaults_to_peers({defaults: {}})).to eq({})
+        expect(described_class.apply_defaults_to_peers({'defaults' => {}})).to eq({})
       end
 
       it 'handles empty defaults' do
@@ -98,32 +98,32 @@ RSpec.describe Onetime::Configurator::Utils do
       end
 
       it 'handles missing defaults section' do
-        config = { api: { timeout: 10 } }
+        config = { 'api' => { 'timeout' => 10 } }
         result = described_class.apply_defaults_to_peers(config)
         expect(result).to eq({ 'api' => { 'timeout' => 10 } })
       end
 
       it 'skips non-hash section values' do
         config = {
-          defaults: { timeout: 5 },
-          api: "invalid",
-          web: { port: 3000 }
+          'defaults' => { 'timeout' => 5 },
+          'api' => "invalid",
+          'web' => { 'port' => 3000 }
         }
         result = described_class.apply_defaults_to_peers(config)
         expect(result.keys).to contain_exactly('web')
       end
 
       it 'preserves original defaults' do
-        original = sentry_config[:defaults].dup
+        original = sentry_config['defaults'].dup
         described_class.apply_defaults_to_peers(sentry_config)
-        expect(sentry_config[:defaults]).to eq(original)
+        expect(sentry_config['defaults']).to eq(original)
       end
 
       it "applies default values when a section's corresponding key is present but has a nil value" do
         config = {
-          defaults: { dsn: 'default-dsn' },
-          backend: { dsn: nil },
-          frontend: { dsn: nil }
+          'defaults' => { 'dsn' => 'default-dsn' },
+          'backend' => { 'dsn' => nil },
+          'frontend' => { 'dsn' => nil }
         }
         result = described_class.apply_defaults_to_peers(config)
         expect(result['backend']['dsn']).to eq('default-dsn')
@@ -131,19 +131,19 @@ RSpec.describe Onetime::Configurator::Utils do
       end
 
       it 'does not modify the original defaults hash passed as an argument' do
-        original_defaults = service_config[:defaults].dup
+        original_defaults = service_config['defaults'].dup
         described_class.apply_defaults_to_peers(service_config)
 
-        expect(service_config[:defaults]).to eq(original_defaults)
+        expect(service_config['defaults']).to eq(original_defaults)
       end
     end
 
     context 'with complex configurations' do
       let(:config_with_defaults) do
         {
-          defaults: { timeout: 5, enabled: true },
-          api: { timeout: 10 },
-          web: {}
+          'defaults' => { 'timeout' => 5, 'enabled' => true },
+          'api' => { 'timeout' => 10 },
+          'web' => {}
         }
       end
 
@@ -156,15 +156,15 @@ RSpec.describe Onetime::Configurator::Utils do
 
       it 'handles nested hash structures properly' do
         config = {
-          defaults: {
-            database: { timeout: 5 },
-            cache: { ttl: 3600 }
+          'defaults' => {
+            'database' => { 'timeout' => 5 },
+            'cache' => { 'ttl' => 3600 }
           },
-          production: {
-            database: { host: 'prod-db' }
+          'production' => {
+            'database' => { 'host' => 'prod-db' }
           },
-          staging: {
-            cache: { ttl: 1800 }
+          'staging' => {
+            'cache' => { 'ttl' => 1800 }
           }
         }
 
@@ -181,11 +181,11 @@ RSpec.describe Onetime::Configurator::Utils do
         })
       end
 
-      it 'supports indifferent access patterns' do
+      it 'normalizes all keys to strings consistently' do
         config = {
-          defaults: { timeout: 5, enabled: true },
-          api: { timeout: 10 },
-          web: {},
+          'defaults' => { 'timeout' => 5, 'enabled' => true },
+          'api' => { 'timeout' => 10 },
+          'web' => {},
         }
 
         result = described_class.apply_defaults_to_peers(config)
@@ -202,7 +202,7 @@ RSpec.describe Onetime::Configurator::Utils do
 
       it 'handles mixed symbol/string input keys consistently' do
         mixed_config = {
-          'defaults' => { timeout: 5, 'enabled' => true },
+          'defaults' => { 'timeout' => 5, 'enabled' => true },
           :api => { 'timeout' => 10 },
           'web' => {},
         }

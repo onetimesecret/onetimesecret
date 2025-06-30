@@ -11,11 +11,11 @@ module V2
 
   module ControllerHelpers
 
-    def plan
-      @plan   = Onetime::Plan.plan(cust.planid) unless cust.nil?
-      @plan ||= Onetime::Plan.plan('anonymous')
-      @plan
-    end
+    # def plan
+    #   @plan   = Onetime::Plan.plan(cust.planid) unless cust.nil?
+    #   @plan ||= Onetime::Plan.plan('anonymous')
+    #   @plan
+    # end
 
     # `carefully` is a wrapper around the main web application logic. We
     # handle errors, redirects, and other exceptions here to ensure that
@@ -158,8 +158,8 @@ module V2
       locale ||= cust.locale if cust&.locale
       locale ||= (req.env['rack.locale'] || []).first
 
-      supported_locales = OT.conf['supported_locales'] || []
-      default_locale    = OT.conf['default_locale'] || 'en'
+      supported_locales = OT.conf&.dig('supported_locales') || []
+      default_locale    = OT.conf&.dig('i18n', 'default_locale') || 'en'
 
       have_translations = locale && supported_locales.include?(locale)
       lmsg              = format(
