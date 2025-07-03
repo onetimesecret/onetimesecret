@@ -1,75 +1,87 @@
-# apps/web/ui/views/base.rb
+# apps/web/manifold/views/base.rb
 
 require 'onetime/middleware'
-require 'onetime/services/ui/ui_context'
+require 'onetime/rsfc/view'
 
 require_relative 'helpers'
 
-# Core view framework with helpers and serializers
+# Core view framework with RSFC template support
 #
 # This file defines the BaseView class which serves as the foundation for all views in the application.
-# It provides:
+# Migrated from Mustache to RSFC (Ruby Single File Components) for better server-to-client data flow.
 #
-# - **Helpers**: Utility methods for view rendering and data manipulation
+# Key changes from Mustache version:
+# - Extends RSFC::View instead of Mustache
+# - Removed Mustache-specific configurations (template_path, template_extension, etc.)
+# - Maintains compatibility with existing helpers and patterns
+# - Supports .rue template files with automatic data hydration
 #
 module Manifold
   module Views
-    class BaseView < Mustache
-      # extend OT::Services::UI::UIContext
+    class BaseView < Onetime::RSFC::View
       include Manifold::Views::SanitizerHelpers
       include Manifold::Views::I18nHelpers
       include Manifold::Views::ViteManifest
       include Onetime::TimeUtils
 
-      self.template_path      = './templates/web'
-      self.template_extension = 'html'
-      self.view_namespace     = Manifold::Views
-      self.view_path          = './app/web/manifold/views'
+      attr_accessor :form_fields, :pagename
+      attr_reader :i18n_instance, :messages
 
-      attr_accessor :req, :sess, :cust, :locale, :form_fields, :pagename
-      attr_reader :i18n_instance, :view_vars, :serialized_data, :messages
+      def initialize(req, sess = nil, cust = nil, locale_override = nil, business_data: {})
+        # Determine locale with same priority as before
+        resolved_locale = if locale_override
+                            locale_override
+                          elsif !req.nil? && req.env['ots.locale']
+                            req.env['ots.locale']
+                          else
+                            OT.conf[:default_locale]
+                          end
 
-      def initialize(req, sess = nil, cust = nil, locale_override = nil, *)
-        @req  = req
-        @sess = sess
+        # Call parent RSFC::View constructor
+        super(req, sess, cust, resolved_locale, business_data: business_data)
 
-        @cust = cust || anonymous_customer
-
-        # We determine locale here because it's used for i18n. Otherwise we couldn't
-        # determine the i18n messages until inside or after template_vars.
-        #
-        # Determine locale with this priority:
-        # 1. Explicitly provided locale
-        # 2. Locale from request environment (if available)
-        # 3. Application default locale as set in yaml configuration
-        @locale = if locale_override
-                    locale_override
-                  elsif !req.nil? && req.env['ots.locale']
-                    req.env['ots.locale']
-                  else
-                    OT.conf[:default_locale]
-                  end
-
+        # Initialize i18n and messages
         @i18n_instance = i18n
-        @messages      = []
+        @messages      = sess&.get_messages || []
 
-        # @view_vars = self.class.template_vars(req, sess, cust, locale, i18n_instance)
-
-        # Make the view-relevant variables available to the view and HTML template
-        # @view_vars.each do |key, value|
-        #   self[key] = value
-        # end
-
-        init(*) if respond_to?(:init)
-
-        # @serialized_data = run_serializers
+        # Call init hook if present (maintains compatibility)
+        init if respond_to?(:init)
       end
 
-      def anonymous_customer
-        # Lazy-load the model here if we need to. Running tests for example,
-        # in some cases won't have a database connection.
-        require 'v2/models/customer' unless defined?(V2::Customer)
-        @cust = V2::Customer.anonymous
+      # Override RSFC::View render to include i18n and message context
+      def render(template_name = nil)
+        # Add i18n and messages to business data
+        enhanced_business_data = @business_data.merge(
+          i18n: @i18n_instance,
+          messages: @messages,
+          pagename: self.class.pagename,
+        )
+
+        # Create new context with enhanced data
+        @rsfc_context = Onetime::RSFC::Context.for_view(@req, @sess, @cust, @locale, **enhanced_business_data)
+
+        # Render with enhanced context
+        super
+      end
+
+      # Access to i18n data for templates
+      def i18n
+        @i18n_instance ||= begin
+          require 'onetime/utils/i18n'
+
+          i18n_data = if OT.conf && OT.conf['i18n']
+            OT.conf['i18n']
+          else
+            {}
+          end
+
+          # Add locale-specific data
+          locale_data = i18n_data[@locale] || i18n_data[@locale.to_s] || {}
+
+          # Merge common and locale-specific data
+          common_data = i18n_data['COMMON'] || {}
+          common_data.merge(locale_data)
+        end
       end
 
       class << self
@@ -77,14 +89,13 @@ module Manifold
         # provides the locale strings specifically for this view. For that to
         # work, the view being used has a matching name in the locales file.
         def pagename
-          # NOTE: There's some speculation that setting a class instance variable
-          # inside the class method could present a race condition in between the
-          # check for nil and running the expression to set it. It's possible but
-          # every thread will produce the same result. Winning by technicality is
-          # one thing but the reality of software development is another. Process
-          # is more important than clever design. Instead, a safer practice is to
-          # set the class instance variable here in the class definition.
           @pagename ||= name.split('::').last.downcase.to_sym
+        end
+
+        # Convenience method to render with business data (maintains API compatibility)
+        def render_with_context(req, sess, cust, locale, **business_data)
+          view = new(req, sess, cust, locale, business_data: business_data)
+          view.render
         end
       end
     end
