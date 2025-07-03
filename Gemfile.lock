@@ -118,6 +118,7 @@ GEM
       net-smtp
     method_source (1.1.0)
     mini_mime (1.1.5)
+    minitest (5.25.5)
     multi_json (1.15.0)
     multi_xml (0.7.1)
       bigdecimal (~> 3.1)
@@ -239,8 +240,10 @@ GEM
     timeout (0.4.3)
     truemail (3.3.1)
       simpleidn (~> 0.2.1)
-    tryouts (2.4.1)
-      sysinfo (~> 0.10)
+    tryouts (3.0.0.pre2)
+      minitest (~> 5.0)
+      rspec (~> 3.0)
+      sysinfo (>= 0.8, < 1.0)
     unicode-display_width (2.6.0)
     uri-redis (1.3.0)
     xdg (9.2.0)
@@ -312,7 +315,7 @@ DEPENDENCIES
   syslog (~> 0.3.0)
   thin
   truemail
-  tryouts
+  tryouts (~> 3.0.0.pre2)
   uri-redis (~> 1.3.0)
   xdg
 

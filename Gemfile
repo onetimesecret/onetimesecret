@@ -103,7 +103,7 @@ group :test do
   %w[rspec-core rspec-expectations rspec-mocks rspec-support].each do |lib|
     gem lib, git: 'https://github.com/rspec/rspec', glob: "#{lib}/#{lib}.gemspec"
   end
-  gem 'tryouts', require: false
+  gem 'tryouts', '~> 3.0.0.pre2', require: false
 end
 
 # Optional alternate server - install with: bundle install --with optional
