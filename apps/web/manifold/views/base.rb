@@ -14,7 +14,7 @@ require_relative 'helpers'
 #
 module Manifold
   module Views
-    class BaseView
+    class BaseView < Mustache
       # extend OT::Services::UI::UIContext
       include Manifold::Views::SanitizerHelpers
       include Manifold::Views::I18nHelpers

@@ -42,8 +42,6 @@ RSFC variable lookup:
   Use handlebars syntax. When the rue file is parsed, it creates an all ruby file where the <template> content is processed using the existing handlebars gem.
 -->
 
-<!-- templates/web/index.rue -->
-
 <data window="data" schema="@/src/schemas/index.ts">
 {
   "user": {
