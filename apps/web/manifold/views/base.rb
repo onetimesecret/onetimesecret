@@ -1,7 +1,5 @@
 # apps/web/ui/views/base.rb
 
-require 'chimera'
-
 require 'onetime/middleware'
 require 'onetime/services/ui/ui_context'
 
@@ -16,7 +14,7 @@ require_relative 'helpers'
 #
 module Manifold
   module Views
-    class BaseView < Chimera
+    class BaseView
       # extend OT::Services::UI::UIContext
       include Manifold::Views::SanitizerHelpers
       include Manifold::Views::I18nHelpers
