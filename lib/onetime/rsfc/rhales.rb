@@ -18,6 +18,7 @@ module Onetime
     # - {{#unless condition}} ... {{/unless}} - Negated conditionals
     # - {{#each items}} ... {{/each}} - Iteration
     # - {{> partial_name}} - Partial inclusion
+    # rubocop:disable Style/RegexpLiteral
     class Rhales
       class RenderError < StandardError; end
       class PartialNotFoundError < RenderError; end
@@ -96,7 +97,7 @@ module Onetime
 
       # Process {{#if condition}} ... {{/if}} blocks
       def process_if_blocks(content)
-        content.gsub(%r{\{\{\s*#if\s+([^}]+)\s*\}\}(.*?)\{\{\s*/if\s*\}\}}m) do |match|
+        content.gsub(/\{\{\s*#if\s+([^}]+)\s*\}\}(.*?)\{\{\s*\/if\s*\}\}/m) do |match|
           condition     = ::Regexp.last_match(1).strip
           block_content = ::Regexp.last_match(2)
 
@@ -110,7 +111,7 @@ module Onetime
 
       # Process {{#unless condition}} ... {{/unless}} blocks
       def process_unless_blocks(content)
-        content.gsub(%r{\{\{\s*#unless\s+([^}]+)\s*\}\}(.*?)\{\{\s*/unless\s*\}\}}m) do |match|
+        content.gsub(/\{\{\s*#unless\s+([^}]+)\s*\}\}(.*?)\{\{\s*\/unless\s*\}\}/m) do |match|
           condition     = ::Regexp.last_match(1).strip
           block_content = ::Regexp.last_match(2)
 
@@ -124,7 +125,7 @@ module Onetime
 
       # Process {{#each items}} ... {{/each}} blocks
       def process_each_blocks(content)
-        content.gsub(%r{\{\{\s*#each\s+([^}]+)\s*\}\}(.*?)\{\{\s*/each\s*\}\}}m) do |match|
+        content.gsub(/\{\{\s*#each\s+([^}]+)\s*\}\}(.*?)\{\{\s*\/each\s*\}\}/m) do |match|
           items_var     = ::Regexp.last_match(1).strip
           block_content = ::Regexp.last_match(2)
 
@@ -156,7 +157,7 @@ module Onetime
         content.gsub(/\{\{\s*([^}]+)\s*\}\}/) do |match|
           variable_name = ::Regexp.last_match(1).strip
           # Skip if it's a block statement or partial
-          next match if variable_name.match?(%r{^(#|/|>)})
+          next match if variable_name.match?(/^(#|\/|>)/)
 
           value = get_variable_value(variable_name)
           escape_html(value.to_s)
@@ -290,5 +291,6 @@ module Onetime
         end
       end
     end
+    # rubocop:enable Style/RegexpLiteral
   end
 end

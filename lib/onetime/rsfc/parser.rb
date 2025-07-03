@@ -14,6 +14,7 @@ module Onetime
     #
     # Uses Prism for all parsing to avoid external dependencies on unmaintained
     # handlebars libraries while providing a clean handlebars subset.
+    # rubocop:disable Style/RegexpLiteral
     class Parser
       class ParseError < StandardError; end
       class SectionMissingError < ParseError; end
@@ -141,7 +142,7 @@ module Onetime
 
         variables = []
         # Extract {{variable}} patterns (but not {{> partials}} or {{#if}} blocks)
-        @sections['template'].scan(%r{\{\{\s*([^>#/\s][^}]*?)\s*\}\}}) do |match|
+        @sections['template'].scan(/\{\{\s*([^>#\/\s][^}]*?)\s*\}\}/) do |match|
           var_name = match[0].strip
           # Skip handlebars helpers and block statements
           next if var_name.match?(/^(if|unless|each|with)\s/)
@@ -180,6 +181,7 @@ module Onetime
           File.extname(file_path) == '.rue'
         end
       end
+      # rubocop:enable Style/RegexpLiteral
     end
   end
 end
