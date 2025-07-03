@@ -1,4 +1,45 @@
-class SystemStatusSection < ReceiptSection
+# lib/onetime/services/system/print_boot_receipt/boot_receipt_sections.rb
+
+require_relative 'boot_receipt_generator'
+
+# System header section for application information
+class SystemHeaderSection < BootReceiptSection
+  def initialize(generator, app_name:, version:, subtitle: nil, environment: nil)
+    super(generator)
+    @app_name    = app_name
+    @version     = version
+    @subtitle    = subtitle
+    @environment = environment
+  end
+
+  def render
+    lines = []
+    lines << ''
+    lines << divider
+    lines << center_text("#{@app_name}")
+    lines << center_text("#{@version}")
+    lines << center_text(@subtitle) if @subtitle
+    lines << divider
+
+    # Add timestamp and basic system info
+    date_part = Time.now.strftime('%Y-%m-%d')
+    time_part = Time.now.strftime('%H:%M:%S %Z')
+    timestamp = format('%-s%sTime: %s', date_part, ' ' * (width - "Date: #{date_part}Time: #{time_part}".length), time_part)
+    lines << "Date: #{timestamp}"
+
+    # Format: System: ruby 3.4.4        Arch: arm64-darwin24
+    platform_info = format('System: %s %s%sArch: %s', RUBY_ENGINE, RUBY_VERSION, ' ' * (width - "System: #{RUBY_ENGINE} #{RUBY_VERSION}Arch: #{RUBY_PLATFORM}".length), RUBY_PLATFORM)
+    lines << platform_info
+
+    environment_info = format('Environment: %s', @environment)
+    lines << environment_info
+
+    lines.join("\n")
+  end
+end
+
+# System status section with component information
+class SystemStatusSection < BootReceiptSection
   def initialize(generator, title:, subtitle: nil, rows: [])
     super(generator)
     @title    = title
@@ -32,22 +73,22 @@ class SystemStatusSection < ReceiptSection
     return '' if title_array.empty?
 
     if title_array.length == 2
-      left_text = title_array[0].to_s
+      left_text  = title_array[0].to_s
       right_text = title_array[1].to_s
-      padding = width - left_text.length - right_text.length
-      padding = [padding, 0].max
+      padding    = width - left_text.length - right_text.length
+      padding    = [padding, 0].max
       "#{left_text}#{' ' * padding}#{right_text}"
     elsif title_array.length == 3
-      left_text = title_array[0].to_s
+      left_text   = title_array[0].to_s
       center_text = title_array[1].to_s
-      right_text = title_array[2].to_s
+      right_text  = title_array[2].to_s
 
       # Calculate spacing
       total_text_length = left_text.length + center_text.length + right_text.length
-      remaining_space = width - total_text_length
+      remaining_space   = width - total_text_length
 
       if remaining_space >= 2
-        left_padding = remaining_space / 2
+        left_padding  = remaining_space / 2
         right_padding = remaining_space - left_padding
         "#{left_text}#{' ' * left_padding}#{center_text}#{' ' * right_padding}#{right_text}"
       else
@@ -94,42 +135,8 @@ class SystemStatusSection < ReceiptSection
   end
 end
 
-class SystemHeaderSection < ReceiptSection
-  def initialize(generator, app_name:, version:, subtitle: nil, environment: nil)
-    super(generator)
-    @app_name    = app_name
-    @version     = version
-    @subtitle    = subtitle
-    @environment = environment
-  end
-
-  def render
-    lines = []
-    lines << ''
-    lines << divider
-    lines << center_text("#{@app_name}")
-    lines << center_text("#{@version}")
-    lines << center_text(@subtitle) if @subtitle
-    lines << divider
-
-    # Add timestamp and basic system info
-    date_part = Time.now.strftime('%Y-%m-%d')
-    time_part = Time.now.strftime('%H:%M:%S %Z')
-    timestamp = format('%-s%sTime: %s', date_part, ' ' * (width - "Date: #{date_part}Time: #{time_part}".length), time_part)
-    lines << "Date: #{timestamp}"
-
-    # Format: System: ruby 3.4.4        Arch: arm64-darwin24
-    platform_info = format('System: %s %s%sArch: %s', RUBY_ENGINE, RUBY_VERSION, ' ' * (width - "System: #{RUBY_ENGINE} #{RUBY_VERSION}Arch: #{RUBY_PLATFORM}".length), RUBY_PLATFORM)
-    lines << platform_info
-
-    environment_info = format('Environment: %s', @environment)
-    lines << environment_info
-
-    lines.join("\n")
-  end
-end
-
-class StatusSummarySection < ReceiptSection
+# Status summary section for overall system status
+class StatusSummarySection < BootReceiptSection
   def initialize(generator, status: 'READY', message: 'All components verified')
     super(generator)
     @status  = status
@@ -147,7 +154,8 @@ class StatusSummarySection < ReceiptSection
   end
 end
 
-class WrapTextSection < ReceiptSection
+# Text wrapping section for long content
+class WrapTextSection < BootReceiptSection
   def initialize(generator, title:, content:, line_prefix: '')
     super(generator)
     @title       = title
@@ -200,5 +208,35 @@ class WrapTextSection < ReceiptSection
 
     wrapped_lines << current_line unless current_line.empty?
     wrapped_lines
+  end
+end
+
+# Key-value section for configuration data
+class KeyValueSection < BootReceiptSection
+  def initialize(generator, header1:, header2:, rows: [])
+    super(generator)
+    @header1 = header1
+    @header2 = header2
+    @rows    = rows
+  end
+
+  def add_row(key, value)
+    @rows << [key, value]
+    self
+  end
+
+  def render
+    return '' if @rows.empty?
+
+    lines = []
+    lines << divider
+    lines << two_column(@header1, @header2)
+    lines << divider('-')
+
+    @rows.each do |row|
+      lines << two_column(row[0].to_s, row[1].to_s)
+    end
+
+    lines.join("\n")
   end
 end

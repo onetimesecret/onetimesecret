@@ -2,47 +2,13 @@
 
 require 'json'
 
-require 'receipt_generator'
-require 'system_status'
-
+require_relative 'print_boot_receipt/boot_receipt_generator'
+require_relative 'print_boot_receipt/boot_receipt_sections'
 require_relative '../service_provider'
-
-# Add the ReceiptGenerator classes here or require them
-# (assuming they're available in the application)
 
 module Onetime
   module Services
     module System
-      # Custom section for key-value pairs in the log banner
-      class KeyValueSection < ReceiptSection
-        def initialize(generator, header1:, header2:, rows: [])
-          super(generator)
-          @header1 = header1
-          @header2 = header2
-          @rows    = rows
-        end
-
-        def add_row(key, value)
-          @rows << [key, value]
-          self
-        end
-
-        def render
-          return '' if @rows.empty?
-
-          lines = []
-          lines << divider
-          lines << two_column(@header1, @header2)
-          lines << divider('-')
-
-          @rows.each do |row|
-            lines << two_column(row[0].to_s, row[1].to_s)
-          end
-
-          lines.join("\n")
-        end
-      end
-
       ##
       # PrintBootReceipt
       #
@@ -50,7 +16,6 @@ module Onetime
       # Now uses ReceiptGenerator for consistent formatting.
       #
       class PrintBootReceipt < ServiceProvider
-
         def initialize
           super(:boot_receipt, type: TYPE_INFO, priority: 90)
         end
@@ -73,7 +38,7 @@ module Onetime
           # email_config = config.fetch('emailer', {})
           # emailer      = get_state(:emailer)
 
-          generator = ReceiptGenerator.new(width: 60)
+          generator = BootReceiptGenerator.new(width: 60)
 
           # System header
           generator.add_section(SystemHeaderSection.new(generator,
@@ -262,11 +227,5 @@ module Onetime
         end
       end
     end
-  end
-end
-
-class String
-  def humanize
-    tr('_', ' ').split.map(&:capitalize).join(' ')
   end
 end
