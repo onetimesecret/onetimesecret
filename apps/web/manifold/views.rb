@@ -17,16 +17,13 @@ module Manifold
     #   view = Manifold::Views::VuePoint.new
     #
     class VuePoint < Manifold::Views::BaseView
-      self.template_name = 'index'
 
 
       def init *args; end
     end
 
     class ExportWindow < Manifold::Views::BaseView
-      self.template_name = nil
-
-      require 'views/example.rue'
+      # require 'views/example.rue'
 
       def init *args; end
     end
@@ -39,12 +36,11 @@ module Manifold
 
     # The robots.txt file
     class RobotsTxt < Manifold::Views::BaseView
-      self.template_name      = 'robots'
-      self.template_extension = 'txt'
+
     end
 
     class UnknownSecret < Manifold::Views::BaseView
-      self.template_name = :index
+
     end
   end
 end

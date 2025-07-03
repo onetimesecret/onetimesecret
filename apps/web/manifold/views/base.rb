@@ -67,7 +67,7 @@ module Manifold
       # Access to i18n data for templates
       def i18n
         @i18n_instance ||= begin
-          require 'onetime/utils/i18n'
+          # require 'onetime/utils/i18n' # TODO: Where did this file go?
 
           i18n_data = if OT.conf && OT.conf['i18n']
             OT.conf['i18n']
