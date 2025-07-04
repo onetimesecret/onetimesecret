@@ -1,0 +1,22 @@
+<!-- templates/web/robots.rue -->
+
+<template>
+  # Updated: 2025-06-02
+
+  User-agent: *
+  Allow: /
+  Allow: /forgot
+  Allow: /signin
+  Allow: /signup
+  Allow: /feedback
+  Disallow: /private
+  Disallow: /secret
+  Disallow: /shared
+  Disallow: /account
+  Disallow: /dashboard
+  Disallow: /admin
+  Disallow: /api
+  #Sitemap: https://{{site.host}}/sitemap.xml
+
+  Crawl-delay: 1
+</template>

@@ -126,9 +126,7 @@ module Manifold
       end
 
       def secret_not_found_response
-        view       = Manifold::Views::UnknownSecret.new req, sess, cust, locale
-        res.status = 404
-        res.body   = view.render
+        render_view(Manifold::Views::UnknownSecret)
       end
 
       def not_found
@@ -213,27 +211,37 @@ module Manifold
       # These methods provide different rendering modes for RSFC templates
 
       # Render as SPA - returns JSON data for Vue frontend
-      def render_spa(view_class = nil, **business_data)
+      def render_spa(view_class = nil, **)
         view_class               ||= Manifold::Views::VuePoint
         res.header['Content-Type'] = 'application/json'
         res.body                   = view_class.render_spa(req, sess, cust, locale)
       end
 
       # Render full RSFC page with template and data hydration
-      def render_page(view_class = nil, **business_data)
+      def render_page(view_class = nil, **)
         view_class ||= Manifold::Views::VuePoint
-        res.body     = view_class.render_page(req, sess, cust, locale, **business_data)
+        res.body     = view_class.render_page(req, sess, cust, locale, **)
       end
 
       # Enhanced render with OnetimeWindow data integration
-      def render_with_data(view_class = nil, **business_data)
+      def render_with_data(view_class = nil, **)
         view_class ||= Manifold::Views::VuePoint
-        res.body     = view_class.render_with_data(req, sess, cust, locale, **business_data)
+        res.body     = view_class.render_with_data(req, sess, cust, locale, **)
       end
 
       # Legacy compatibility - render with specific view class
       def render_view(view_class, **business_data)
-        view     = view_class.new(req, sess, cust, locale, business_data: business_data)
+        view = view_class.new(req, sess, cust, locale, business_data: business_data)
+
+        # Set content type and status if view class specifies them
+        if view_class.respond_to?(:content_type)
+          res.header['Content-Type'] = view_class.content_type
+        end
+
+        if view_class.respond_to?(:status_code)
+          res.status = view_class.status_code
+        end
+
         res.body = view.render
       end
     end

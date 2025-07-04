@@ -21,21 +21,21 @@ module Onetime
         def build_rsfc_data(req, sess, cust, locale)
           # Get basic template vars from existing UIContext
           template_vars = build_template_vars(req, sess, cust, locale)
-          
+
           # Build serialized data (this would normally use the registry)
           serialized_data = build_serialized_data(template_vars)
-          
+
           # Return combined structure
           {
             # Original serialized data (for OnetimeWindow compatibility)
             **serialized_data,
-            
+
             # Additional RSFC-specific data
             rsfc_meta: {
               version: '1.0',
               generated_at: Time.current.iso8601,
-              template_engine: 'rhales'
-            }
+              template_engine: 'rhales',
+            },
           }
         end
 
@@ -57,13 +57,13 @@ module Onetime
         def build_template_vars(req, sess, cust, locale)
           # Use existing UIContext to build template vars
           i18n_instance = build_i18n_instance(locale)
-          
+
           begin
             # Use the existing template_vars method if available
-            OT::Services::Manifold::UIContext.template_vars(req, sess, cust, locale, i18n_instance)
-          rescue => e
+            Onetime::Services::Manifold::UIContext.template_vars(req, sess, cust, locale, i18n_instance)
+          rescue StandardError => ex
             # Fallback to minimal structure if UIContext fails
-            OT.ld "[OnetimeWindowBridge] UIContext failed, using fallback: #{e.message}"
+            OT.ld "[OnetimeWindowBridge] UIContext failed, using fallback: #{ex.message}"
             build_fallback_template_vars(req, sess, cust, locale)
           end
         end
@@ -72,7 +72,7 @@ module Onetime
         def build_serialized_data(template_vars)
           # For now, we'll build a simplified version of the expected structure
           # In the future, this could integrate with the actual SerializerRegistry
-          
+
           {
             # Basic authentication and user data
             authenticated: template_vars[:authenticated] || false,
@@ -80,7 +80,7 @@ module Onetime
             custid: template_vars[:cust]&.custid || '',
             email: template_vars[:cust]&.email || '',
             customer_since: template_vars[:cust]&.created&.iso8601,
-            
+
             # Site and domain information
             baseuri: build_base_uri(template_vars),
             site_host: template_vars[:site]&.dig('host') || 'localhost',
@@ -88,39 +88,39 @@ module Onetime
             domain_strategy: template_vars[:domain_strategy] || 'default',
             domain_id: template_vars[:domain_id] || 'default',
             display_domain: template_vars[:display_domain] || 'localhost',
-            
+
             # Security tokens
             shrimp: template_vars[:shrimp] || '',
-            
+
             # Internationalization
             i18n_enabled: true,
             locale: template_vars[:locale] || 'en',
             supported_locales: ['en'], # TODO: Get from config
             fallback_locale: 'en',
             default_locale: 'en',
-            
+
             # System information
             ot_version: defined?(OT::VERSION) ? OT::VERSION.to_s : '0.0.0',
             ot_version_long: defined?(OT::VERSION) ? OT::VERSION.inspect : '0.0.0',
             ruby_version: RUBY_VERSION,
-            
+
             # Feature flags
             plans_enabled: false,
             regions_enabled: false,
             domains_enabled: false,
             d9s_enabled: false,
-            
+
             # Frontend configuration
             frontend_host: template_vars[:frontend_host] || 'localhost:3000',
             enjoyTheVue: false,
-            
+
             # User type and permissions
             user_type: 'anonymous',
             is_paid: false,
-            
+
             # Messages and notifications
             messages: template_vars[:messages] || [],
-            
+
             # Application configuration
             authentication: build_authentication_config(template_vars),
             secret_options: build_secret_options(template_vars),
@@ -128,13 +128,13 @@ module Onetime
             ui: build_ui_config(template_vars),
             regions: {},
             diagnostics: {},
-            
+
             # Additional fields
             incoming_recipient: '',
             available_jurisdictions: [],
             global_banner: nil,
             domain_branding: {},
-            domain_logo: {}
+            domain_logo: {},
           }
         end
 
@@ -155,26 +155,26 @@ module Onetime
             nonce: req&.env&.fetch('ots.nonce', ''),
             site: { 'host' => 'localhost' },
             display_domain: 'localhost',
-            domain_strategy: 'default'
+            domain_strategy: 'default',
           }
         end
 
         # Serialize customer data
         def serialize_customer(cust)
           return nil unless cust && !cust.anonymous?
-          
+
           {
             custid: cust.custid,
             email: cust.email,
-            created: cust.created&.iso8601
+            created: cust.created&.iso8601,
           }
         end
 
         # Build base URI from template vars
         def build_base_uri(template_vars)
-          site = template_vars[:site] || {}
+          site     = template_vars[:site] || {}
           protocol = site['ssl'] ? 'https' : 'http'
-          host = site['host'] || 'localhost'
+          host     = site['host'] || 'localhost'
           "#{protocol}://#{host}"
         end
 
@@ -182,7 +182,7 @@ module Onetime
         def build_authentication_config(template_vars)
           {
             enabled: true,
-            signup_enabled: true
+            signup_enabled: true,
           }
         end
 
@@ -190,14 +190,14 @@ module Onetime
         def build_secret_options(template_vars)
           {
             default_ttl: 3600,
-            max_ttl: 86400
+            max_ttl: 86_400,
           }
         end
 
         # Build features configuration
         def build_features_config(template_vars)
           {
-            markdown: false
+            markdown: false,
           }
         end
 
@@ -206,12 +206,12 @@ module Onetime
           {
             enabled: true,
             header: {
-              enabled: true
+              enabled: true,
             },
             footer_links: {
               enabled: false,
-              groups: []
-            }
+              groups: [],
+            },
           }
         end
       end

@@ -10,10 +10,9 @@ module Manifold
       def export_window
         publically do
           OT.ld "[export_window] authenticated? #{sess.authenticated?}"
-          view                       = Manifold::Views::ExportWindow.new req, sess, cust, locale
           sess.event_incr! :get_page
-          res.header['Content-Type'] = 'application/json; charset=utf-8'
-          res.body                   = view.serialized_data.to_json
+          # ExportWindow automatically returns JSON via its render method
+          render_view(Manifold::Views::ExportWindow)
         end
       end
 

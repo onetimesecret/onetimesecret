@@ -131,13 +131,13 @@ module Manifold
         # Render full page with RSFC template and OnetimeWindow compatibility
         def render_page(req, sess, cust, locale, **business_data)
           view = new(req, sess, cust, locale, business_data: business_data)
-          
+
           # Get OnetimeWindow data for hydration
           onetime_data = Onetime::RSFC::OnetimeWindowBridge.build_onetime_window_data(req, sess, cust, locale)
-          
+
           # Add to business data for template access
           view.instance_variable_set(:@onetime_window_data, onetime_data)
-          
+
           view.render
         end
 
@@ -146,7 +146,7 @@ module Manifold
           # Combine RSFC data with OnetimeWindow data
           rsfc_data = Onetime::RSFC::OnetimeWindowBridge.build_rsfc_data(req, sess, cust, locale)
           combined_data = business_data.merge(rsfc_data)
-          
+
           view = new(req, sess, cust, locale, business_data: combined_data)
           view.render
         end

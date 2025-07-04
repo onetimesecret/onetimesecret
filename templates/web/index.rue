@@ -53,46 +53,46 @@ RSFC variable lookup:
   "custid": "{{onetime_window.custid}}",
   "email": "{{onetime_window.email}}",
   "customer_since": "{{onetime_window.customer_since}}",
-  
+
   "baseuri": "{{onetime_window.baseuri}}",
   "site_host": "{{onetime_window.site_host}}",
   "canonical_domain": "{{onetime_window.canonical_domain}}",
   "domain_strategy": "{{onetime_window.domain_strategy}}",
   "domain_id": "{{onetime_window.domain_id}}",
   "display_domain": "{{onetime_window.display_domain}}",
-  
+
   "shrimp": "{{onetime_window.shrimp}}",
-  
+
   "i18n_enabled": {{onetime_window.i18n_enabled}},
   "locale": "{{onetime_window.locale}}",
   "supported_locales": {{onetime_window.supported_locales}},
   "fallback_locale": "{{onetime_window.fallback_locale}}",
   "default_locale": "{{onetime_window.default_locale}}",
-  
+
   "ot_version": "{{onetime_window.ot_version}}",
   "ot_version_long": "{{onetime_window.ot_version_long}}",
   "ruby_version": "{{onetime_window.ruby_version}}",
-  
+
   "plans_enabled": {{onetime_window.plans_enabled}},
   "regions_enabled": {{onetime_window.regions_enabled}},
   "domains_enabled": {{onetime_window.domains_enabled}},
   "d9s_enabled": {{onetime_window.d9s_enabled}},
-  
+
   "frontend_host": "{{onetime_window.frontend_host}}",
   "enjoyTheVue": {{onetime_window.enjoyTheVue}},
-  
+
   "user_type": "{{onetime_window.user_type}}",
   "is_paid": {{onetime_window.is_paid}},
-  
+
   "messages": {{onetime_window.messages}},
-  
+
   "authentication": {{onetime_window.authentication}},
   "secret_options": {{onetime_window.secret_options}},
   "features": {{onetime_window.features}},
   "ui": {{onetime_window.ui}},
   "regions": {{onetime_window.regions}},
   "diagnostics": {{onetime_window.diagnostics}},
-  
+
   "incoming_recipient": "{{onetime_window.incoming_recipient}}",
   "available_jurisdictions": {{onetime_window.available_jurisdictions}},
   "global_banner": {{onetime_window.global_banner}},
@@ -119,7 +119,7 @@ RSFC variable lookup:
       <!-- The data section above will be converted to: -->
       <!-- <script id="onetime-script" type="application/json">{...}</script> -->
       <!-- <script>window.onetime = JSON.parse(document.getElementById('onetime-script').textContent);</script> -->
-      
+
       <!-- Vue application bootstrap -->
       {{#if frontend_host}}
       <script nonce="{{nonce}}" type="module" src="{{frontend_host}}/src/main.ts"></script>
