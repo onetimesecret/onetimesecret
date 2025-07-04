@@ -10,6 +10,8 @@ module Onetime
     # while allowing RSFC templates to access the data. It reuses the existing serializer
     # system to ensure the frontend receives the exact structure it expects.
     class OnetimeWindowBridge
+      extend Onetime::Services::Manifold::UIContext
+
       class << self
         # Build RSFC-compatible data using existing serializers
         #
@@ -60,10 +62,11 @@ module Onetime
 
           begin
             # Use the existing template_vars method if available
-            Onetime::Services::Manifold::UIContext.template_vars(req, sess, cust, locale, i18n_instance)
+            template_vars(req, sess, cust, locale, i18n_instance) # via UIContext
           rescue StandardError => ex
             # Fallback to minimal structure if UIContext fails
             OT.ld "[OnetimeWindowBridge] UIContext failed, using fallback: #{ex.message}"
+            OT.ld ex.backtrace[0..6].join("\n") if OT.debug?
             build_fallback_template_vars(req, sess, cust, locale)
           end
         end
@@ -117,6 +120,9 @@ module Onetime
             # User type and permissions
             user_type: 'anonymous',
             is_paid: false,
+            plan: {},
+            available_plans: [],
+            default_planid: '',
 
             # Messages and notifications
             messages: template_vars[:messages] || [],

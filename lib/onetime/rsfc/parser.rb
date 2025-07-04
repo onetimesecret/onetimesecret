@@ -46,13 +46,20 @@ module Onetime
 
       # Extract sections from the .rue file content
       def extract_sections!
-        section_regex = %r{<(#{ALL_SECTIONS.join('|')})\s*([^>]*)>(.*?)</\1>}m
-
-        @content.scan(section_regex) do |section_name, attributes, section_content|
-          raise SectionDuplicateError, "Duplicate <#{section_name}> section in #{@file_path}" if @sections.key?(section_name)
-
+        # Process each section type individually to avoid regex conflicts
+        ALL_SECTIONS.each do |section_name|
+          section_regex = %r{<#{section_name}\s*([^>]*)>(.*?)</#{section_name}>}m
+          
+          matches = @content.scan(section_regex)
+          next if matches.empty?
+          
+          if matches.length > 1
+            raise SectionDuplicateError, "Duplicate <#{section_name}> section in #{@file_path}"
+          end
+          
+          attributes, section_content = matches.first
           @sections[section_name] = section_content.strip
-
+          
           # Store attributes for data section
           if section_name == 'data'
             @data_attributes = parse_attributes(attributes)

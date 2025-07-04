@@ -3,6 +3,8 @@
 <!--
   RSFC rev4 File
 -->
+<data>{}
+</data>
 
 <template>
   <script nonce="{{ nonce }}" language="javascript">

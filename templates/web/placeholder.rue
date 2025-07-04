@@ -3,6 +3,8 @@
 <!--
   RSFC rev4 File
 -->
+<data>{}
+</data>
 
 <template>
   <header class="border-b border-gray-200 dark:border-gray-700">
