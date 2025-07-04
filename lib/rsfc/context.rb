@@ -1,10 +1,8 @@
 # lib/rsfc/context.rb
 
-begin
-  require 'onetime/middleware'
-rescue LoadError
-  # Middleware not available in test environment
-end
+require_relative 'configuration'
+require_relative 'adapters/base_auth'
+require_relative 'adapters/base_session'
 
 module RSFC
     # RSFCContext provides a clean interface for RSFC templates to access
@@ -19,12 +17,13 @@ module RSFC
     # One RSFCContext instance is created per page render and shared across
     # the main template and all partials to maintain security boundaries.
     class Context
-      attr_reader :req, :sess, :cust, :locale, :runtime_data, :business_data, :computed_data
+      attr_reader :req, :sess, :cust, :locale, :runtime_data, :business_data, :computed_data, :config
 
-      def initialize(req, sess = nil, cust = nil, locale_override = nil, business_data: {})
+      def initialize(req, sess = nil, cust = nil, locale_override = nil, business_data: {}, config: nil)
         @req           = req
-        @sess          = sess
-        @cust          = cust || anonymous_customer
+        @sess          = sess || default_session
+        @cust          = cust || default_customer
+        @config        = config || RSFC.configuration
         @locale        = determine_locale(locale_override)
         @business_data = business_data.freeze
 
@@ -76,7 +75,7 @@ module RSFC
 
       # Get list of all available variable paths (for validation)
       def available_variables
-        @available_variables ||= collect_variable_paths(all_data)
+        collect_variable_paths(all_data)
       end
 
       # Resolve variable (alias for get method for hydrator compatibility)
@@ -90,10 +89,10 @@ module RSFC
       def determine_locale(locale_override)
         if locale_override
           locale_override
-        elsif !req.nil? && req.env['ots.locale']
+        elsif !req.nil? && req.env && req.env['ots.locale']
           req.env['ots.locale']
         else
-          (defined?(OT) && OT.respond_to?(:conf) && OT.conf && OT.conf[:default_locale]) || 'en'
+          @config.default_locale
         end
       end
 
@@ -101,17 +100,17 @@ module RSFC
       def build_runtime_data
         runtime = {}
 
-        if req
-          runtime['csrf_token']      = req.env.fetch('ots.csrf_token', nil)
-          runtime['nonce']           = req.env.fetch('ots.nonce', nil)
-          runtime['request_id']      = req.env.fetch('ots.request_id', nil)
-          runtime['domain_strategy'] = req.env.fetch('onetime.domain_strategy', :default)
-          runtime['display_domain']  = req.env.fetch('onetime.display_domain', nil)
+        if req && req.respond_to?(:env) && req.env
+          runtime['csrf_token']      = req.env.fetch(@config.csrf_token_name, nil)
+          runtime['nonce']           = req.env.fetch(@config.nonce_header_name, nil)
+          runtime['request_id']      = req.env.fetch('request_id', nil)
+          runtime['domain_strategy'] = req.env.fetch('domain_strategy', :default)
+          runtime['display_domain']  = req.env.fetch('display_domain', nil)
         end
 
         # Add basic app environment info
-        runtime['app_environment'] = defined?(Onetime) && Onetime.respond_to?(:env) ? Onetime.env : 'test'
-        runtime['api_base_url']    = build_api_base_url
+        runtime['app_environment'] = @config.app_environment
+        runtime['api_base_url']    = @config.api_base_url
 
         runtime
       end
@@ -125,27 +124,17 @@ module RSFC
         computed['authenticated'] = authenticated?
 
         # Feature flags from configuration
-        if defined?(OT) && OT.respond_to?(:conf) && OT.conf && OT.conf['features']
-          computed['features'] = OT.conf['features']
-        end
+        computed['features'] = @config.features
 
         # Development mode flags
-        if defined?(OT) && OT.respond_to?(:conf) && OT.conf && OT.conf['development']
-          computed['development'] = OT.conf['development']['enabled']
-        end
+        computed['development'] = @config.development?
 
         computed
       end
 
-      # Build API base URL from configuration
+      # Build API base URL from configuration (deprecated - moved to config)
       def build_api_base_url
-        return nil unless defined?(OT) && OT.respond_to?(:conf) && OT.conf && OT.conf['site']
-
-        site_config = OT.conf['site']
-        protocol    = site_config['ssl'] ? 'https' : 'http'
-        host        = site_config['host']
-
-        "#{protocol}://#{host}/api" if host
+        @config.api_base_url
       end
 
       # Determine theme class for CSS
@@ -165,24 +154,14 @@ module RSFC
         sess && sess.authenticated? && cust && !cust.anonymous?
       end
 
-      # Get anonymous customer instance
-      def anonymous_customer
-          require 'v2/models/customer' unless defined?(V2::Customer)
-          V2::Customer.anonymous
-      rescue LoadError
-          # Return mock customer for testingk
-          MockCustomer.new
+      # Get default session instance
+      def default_session
+        RSFC::Adapters::AnonymousSession.new
       end
 
-      # Mock customer for testing environments
-      class MockCustomer
-        def anonymous?
-          true
-        end
-
-        def theme_preference
-          'light'
-        end
+      # Get default customer instance
+      def default_customer
+        RSFC::Adapters::AnonymousAuth.new
       end
 
       # Recursively collect all variable paths from nested data
@@ -216,13 +195,13 @@ module RSFC
 
       class << self
         # Create context with business data for a specific view
-        def for_view(req, sess, cust, locale, **business_data)
-          new(req, sess, cust, locale, business_data: business_data)
+        def for_view(req, sess, cust, locale, config: nil, **business_data)
+          new(req, sess, cust, locale, business_data: business_data, config: config)
         end
 
         # Create minimal context for testing
-        def minimal(business_data: {})
-          new(nil, nil, nil, 'en', business_data: business_data)
+        def minimal(business_data: {}, config: nil)
+          new(nil, nil, nil, 'en', business_data: business_data, config: config)
         end
       end
   end

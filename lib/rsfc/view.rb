@@ -4,7 +4,7 @@ require_relative 'context'
 require_relative 'parser'
 require_relative 'rhales'
 require_relative 'hydrator'
-require_relative '../refinements/require_refinements'
+require_relative 'refinements/require_refinements'
 
 using Onetime::Ruequire
 
@@ -22,14 +22,15 @@ module RSFC
     class RenderError < StandardError; end
     class TemplateNotFoundError < RenderError; end
 
-    attr_reader :req, :sess, :cust, :locale, :rsfc_context, :business_data
+    attr_reader :req, :sess, :cust, :locale, :rsfc_context, :business_data, :config
 
-    def initialize(req, sess = nil, cust = nil, locale_override = nil, business_data: {})
+    def initialize(req, sess = nil, cust = nil, locale_override = nil, business_data: {}, config: nil)
       @req           = req
       @sess          = sess
       @cust          = cust
       @locale        = locale_override
       @business_data = business_data
+      @config        = config || RSFC.configuration
 
       # Create context using the specified context class
       @rsfc_context = create_context
@@ -80,7 +81,7 @@ module RSFC
     # Create the appropriate context for this view
     # Subclasses can override this to use different context types
     def create_context
-      context_class.for_view(@req, @sess, @cust, @locale, **@business_data)
+      context_class.for_view(@req, @sess, @cust, @locale, config: @config, **@business_data)
     end
 
     # Return the context class to use
@@ -105,6 +106,15 @@ module RSFC
 
     # Resolve template path
     def resolve_template_path(template_name)
+      # Check configured template paths first
+      if @config && @config.template_paths && !@config.template_paths.empty?
+        @config.template_paths.each do |path|
+          template_path = File.join(path, "#{template_name}.rue")
+          return template_path if File.exist?(template_path)
+        end
+      end
+
+      # Fallback to default template structure
       # First try templates/web directory
       web_path = File.join(templates_root, 'web', "#{template_name}.rue")
       return web_path if File.exist?(web_path)
@@ -113,8 +123,12 @@ module RSFC
       templates_path = File.join(templates_root, "#{template_name}.rue")
       return templates_path if File.exist?(templates_path)
 
-      # Return first path for error message
-      web_path
+      # Return first configured path or web path for error message
+      if @config && @config.template_paths && !@config.template_paths.empty?
+        File.join(@config.template_paths.first, "#{template_name}.rue")
+      else
+        web_path
+      end
     end
 
     # Get templates root directory
@@ -184,14 +198,14 @@ module RSFC
       end
 
       # Render template with business data
-      def render_with_data(req, sess, cust, locale, template_name: nil, **business_data)
-        view = new(req, sess, cust, locale, business_data: business_data)
+      def render_with_data(req, sess, cust, locale, template_name: nil, config: nil, **business_data)
+        view = new(req, sess, cust, locale, business_data: business_data, config: config)
         view.render(template_name)
       end
 
       # Create view instance with business data
-      def with_data(req, sess, cust, locale, **business_data)
-        new(req, sess, cust, locale, business_data: business_data)
+      def with_data(req, sess, cust, locale, config: nil, **business_data)
+        new(req, sess, cust, locale, business_data: business_data, config: config)
       end
     end
   end
