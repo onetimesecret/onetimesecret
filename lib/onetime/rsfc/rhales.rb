@@ -50,8 +50,6 @@ module RSFC
 
         # Process variable interpolations
         process_variables(content)
-
-
       end
 
       # Process {{> partial_name}} inclusions
@@ -161,8 +159,6 @@ module RSFC
           value = get_variable_value(variable_name)
           escape_html(value.to_s)
         end
-
-
       end
 
       # Get variable value from context
@@ -290,5 +286,5 @@ module RSFC
         end
       end
     end
-    # rubocop:enable Style/RegexpLiteral
+  # rubocop:enable Style/RegexpLiteral
 end

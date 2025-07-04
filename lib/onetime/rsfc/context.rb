@@ -84,7 +84,7 @@ module RSFC
         get(variable_path)
       end
 
-      private
+    private
 
       # Determine locale with priority order
       def determine_locale(locale_override)

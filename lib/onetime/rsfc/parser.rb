@@ -57,7 +57,7 @@ module RSFC
           end
 
           attributes, section_content = matches.first
-          @sections[section_name] = section_content.strip
+          @sections[section_name]     = section_content.strip
 
           # Store attributes for data section
           if section_name == 'data'
@@ -187,6 +187,6 @@ module RSFC
           File.extname(file_path) == '.rue'
         end
       end
-      # rubocop:enable Style/RegexpLiteral
+    # rubocop:enable Style/RegexpLiteral
   end
 end

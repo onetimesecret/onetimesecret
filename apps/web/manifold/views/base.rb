@@ -29,19 +29,19 @@ module Manifold
       attr_reader :i18n_instance, :messages
 
       def initialize(req, sess = nil, cust = nil, locale_override = nil, business_data: {})
-        # Use Manifold::UIContext instead of RSFC::Context
+        # Use Onetime::Services::UIContext instead of RSFC::Context
         @rsfc_context = Manifold::UIContext.for_view(req, sess, cust, locale_override, **business_data)
 
         # Set instance variables for compatibility
-        @req = req
-        @sess = sess
-        @cust = @rsfc_context.cust
-        @locale = @rsfc_context.locale
+        @req           = req
+        @sess          = sess
+        @cust          = @rsfc_context.cust
+        @locale        = @rsfc_context.locale
         @business_data = business_data
 
         # Initialize i18n and messages
         @i18n_instance = i18n
-        @messages = @rsfc_context.get('onetime_window.messages') || []
+        @messages      = @rsfc_context.get('onetime_window.messages') || []
 
         # Call init hook if present (maintains compatibility)
         init if respond_to?(:init)
@@ -112,7 +112,7 @@ module Manifold
 
         # Render for SPA mode (Vue frontend) - returns JSON data only
         def render_spa(req, sess, cust, locale)
-          ui_context = Manifold::UIContext.new(req, sess, cust, locale)
+          ui_context   = Onetime::Services::UIContext.new(req, sess, cust, locale)
           onetime_data = ui_context.get('onetime_window')
           JSON.pretty_generate(onetime_data)
         end
