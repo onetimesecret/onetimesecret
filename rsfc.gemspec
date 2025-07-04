@@ -7,17 +7,17 @@ Gem::Specification.new do |spec|
   spec.version       = RSFC::VERSION
   spec.authors       = ["OneTime Secret"]
   spec.email         = ["support@onetimesecret.com"]
-  
+
   spec.summary       = "Ruby Single File Components - Server-rendered components with client-side hydration"
   spec.description   = <<~DESC
-    RSFC (Ruby Single File Components) is a framework for building server-rendered 
-    components with client-side data hydration using .rue files. Similar to Vue.js 
+    RSFC (Ruby Single File Components) is a framework for building server-rendered
+    components with client-side data hydration using .rue files. Similar to Vue.js
     single file components but for Ruby applications.
-    
-    Features include Handlebars-style templating, JSON data injection, partial support, 
+
+    Features include Handlebars-style templating, JSON data injection, partial support,
     pluggable authentication adapters, and security-first design.
   DESC
-  
+
   spec.homepage      = "https://github.com/onetimesecret/onetimesecret"
   spec.license       = "MIT"
   spec.required_ruby_version = ">= 3.0.0"
@@ -31,7 +31,7 @@ Gem::Specification.new do |spec|
   spec.files = Dir.chdir(__dir__) do
     Dir["{lib}/**/*", "*.md", "*.txt", "*.gemspec"].select { |f| File.file?(f) }
   end
-  
+
   spec.bindir        = "exe"
   spec.executables   = spec.files.grep(%r{\Aexe/}) { |f| File.basename(f) }
   spec.require_paths = ["lib"]

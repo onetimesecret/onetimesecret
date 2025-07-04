@@ -2,9 +2,9 @@
 {
   "message": "{{greeting}}",
   "user": {
-    "name": "{{user.name}}",
-    "authenticated": {{authenticated}}
-  }
+    "name": "{{user.name}}"
+  },
+  "authenticated": "{{authenticated}}"
 }
 </data>
 

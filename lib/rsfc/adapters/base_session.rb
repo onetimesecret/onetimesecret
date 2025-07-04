@@ -76,7 +76,7 @@ module RSFC
 
       def valid?
         return false unless @session_data[:created_at] || @session_data['created_at']
-        
+
         # Add session validation logic here (expiry, etc.)
         true
       end

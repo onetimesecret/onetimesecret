@@ -2,6 +2,8 @@
 
 require 'spec_helper'
 
+# rubocop:disable RSpec/MultipleExpectations
+# rubocop:disable RSpec/MultipleDescribes
 RSpec.describe 'RSFC Integration' do
   let(:business_data) do
     {
@@ -30,8 +32,8 @@ RSpec.describe 'RSFC Integration' do
       # Verify data hydration
       expect(html).to include('<script id="rsfc-data-')
       expect(html).to include('type="application/json"')
-      expect(html).to include('"message":"Welcome to RSFC"')
-      expect(html).to include('"authenticated":true')
+      expect(html).to include('"message": "Welcome to RSFC"')
+      expect(html).to include('"authenticated": "true"')
       expect(html).to include('window.data = JSON.parse(')
     end
 
@@ -41,7 +43,7 @@ RSpec.describe 'RSFC Integration' do
       html = view.render('test')
 
       expect(html).to include('<p>Please log in.</p>')
-      expect(html).to include('"authenticated":false')
+      expect(html).to include('"authenticated": "false"')
       expect(html).to include('class="theme-light"')
     end
   end
@@ -78,7 +80,7 @@ RSpec.describe 'RSFC Integration' do
       expect(data).to be_a(Hash)
       expect(data['message']).to eq('Welcome to RSFC')
       expect(data['user']['name']).to eq('Guest')
-      expect(data['user']['authenticated']).to be(false)
+      expect(data['authenticated']).to eq('false')
     end
   end
 

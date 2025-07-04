@@ -25,14 +25,16 @@ module RSFC
         @cust          = cust || default_customer
         @config        = config || RSFC.configuration
         @locale        = determine_locale(locale_override)
-        @business_data = business_data.freeze
+        # Normalize business data keys to strings for consistent access
+        @business_data = normalize_keys(business_data).freeze
 
         # Build context layers
         @runtime_data  = build_runtime_data.freeze
         @computed_data = build_computed_data.freeze
 
         # Pre-compute all_data before freezing
-        @all_data = @runtime_data.merge(@business_data).merge(@computed_data).freeze
+        # Business data takes precedence over computed data
+        @all_data = @runtime_data.merge(@computed_data).merge(@business_data).freeze
 
         # Make context immutable after creation
         freeze
@@ -46,7 +48,13 @@ module RSFC
         path_parts.each do |part|
           case current_value
           when Hash
-            current_value = current_value[part] || current_value[part.to_sym]
+            if current_value.key?(part)
+              current_value = current_value[part]
+            elsif current_value.key?(part.to_sym)
+              current_value = current_value[part.to_sym]
+            else
+              return nil
+            end
           when Object
             if current_value.respond_to?(part)
               current_value = current_value.public_send(part)
@@ -162,6 +170,20 @@ module RSFC
       # Get default customer instance
       def default_customer
         RSFC::Adapters::AnonymousAuth.new
+      end
+
+      # Normalize hash keys to strings recursively
+      def normalize_keys(data)
+        case data
+        when Hash
+          data.each_with_object({}) do |(key, value), result|
+            result[key.to_s] = normalize_keys(value)
+          end
+        when Array
+          data.map { |item| normalize_keys(item) }
+        else
+          data
+        end
       end
 
       # Recursively collect all variable paths from nested data

@@ -19,7 +19,7 @@ module RSFC
     # Template settings
     attr_accessor :template_paths, :template_root, :cache_templates
 
-    # Security settings  
+    # Security settings
     attr_accessor :csrf_token_name, :nonce_header_name
 
     # Feature flags

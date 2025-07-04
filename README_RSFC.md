@@ -70,7 +70,7 @@ Create `app/templates/welcome.rue`:
   {{else}}
     <p>Please sign in to continue.</p>
   {{/if}}
-  
+
   {{#if features.dark_mode}}
     <button onclick="toggleTheme()">Toggle Theme</button>
   {{/if}}
@@ -89,9 +89,9 @@ html = view.render('welcome', page_title: 'Welcome to RSFC')
 Or use the convenience method:
 
 ```ruby
-html = RSFC.render('welcome', 
+html = RSFC.render('welcome',
   request: request,
-  session: session, 
+  session: session,
   user: current_user,
   page_title: 'Welcome to RSFC'
 )

@@ -23,7 +23,7 @@ module RSFC
         nil
       end
 
-      # Get user display name (optional)  
+      # Get user display name (optional)
       def display_name
         nil
       end

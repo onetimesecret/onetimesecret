@@ -92,16 +92,27 @@ module RSFC
         content
       end
 
-      # Process {{#if condition}} ... {{/if}} blocks
+      # Process {{#if condition}} ... {{/if}} blocks with optional {{else}}
       def process_if_blocks(content)
         content.gsub(/\{\{\s*#if\s+([^}]+)\s*\}\}(.*?)\{\{\s*\/if\s*\}\}/m) do |match|
           condition     = ::Regexp.last_match(1).strip
           block_content = ::Regexp.last_match(2)
 
-          if evaluate_condition(condition)
-            process_template(block_content)
+          # Check for {{else}} clause
+          if block_content.include?('{{else}}')
+            if_part, else_part = block_content.split(/\{\{\s*else\s*\}\}/, 2)
+            if evaluate_condition(condition)
+              process_template(if_part)
+            else
+              process_template(else_part)
+            end
           else
-            ''
+            # No else clause
+            if evaluate_condition(condition)
+              process_template(block_content)
+            else
+              ''
+            end
           end
         end
       end

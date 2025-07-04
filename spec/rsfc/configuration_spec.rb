@@ -2,6 +2,8 @@
 
 require 'spec_helper'
 
+# rubocop:disable RSpec/MultipleExpectations
+# rubocop:disable RSpec/MultipleDescribes
 RSpec.describe RSFC::Configuration do
   describe '#initialize' do
     subject { described_class.new }

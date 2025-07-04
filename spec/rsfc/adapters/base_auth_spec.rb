@@ -2,6 +2,8 @@
 
 require 'spec_helper'
 
+# rubocop:disable RSpec/MultipleExpectations
+# rubocop:disable RSpec/MultipleDescribes
 RSpec.describe RSFC::Adapters::BaseAuth do
   describe '#anonymous?' do
     it 'raises NotImplementedError' do

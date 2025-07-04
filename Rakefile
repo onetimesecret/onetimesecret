@@ -22,7 +22,7 @@ namespace :rsfc do
   desc "Validate RSFC templates in examples"
   task :validate do
     require 'rsfc'
-    
+
     examples_dir = File.join(__dir__, 'examples', 'templates')
     if Dir.exist?(examples_dir)
       Dir.glob(File.join(examples_dir, '**', '*.rue')).each do |file|

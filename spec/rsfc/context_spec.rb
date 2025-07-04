@@ -2,6 +2,8 @@
 
 require 'spec_helper'
 
+# rubocop:disable RSpec/MultipleExpectations
+# rubocop:disable RSpec/MultipleDescribes
 RSpec.describe RSFC::Context do
   let(:mock_request) { double('request', env: { 'csrf_token' => 'test-csrf', 'nonce' => 'test-nonce' }) }
   let(:mock_session) { RSFC::Adapters::AuthenticatedSession.new(id: 'session123', created_at: Time.now) }
@@ -16,7 +18,8 @@ RSpec.describe RSFC::Context do
       expect(subject.sess).to eq(mock_session)
       expect(subject.cust).to eq(mock_user)
       expect(subject.locale).to eq('en')
-      expect(subject.business_data).to eq(business_data)
+      # Business data is normalized to string keys
+      expect(subject.business_data).to eq({ 'page_title' => 'Test Page', 'content' => 'Hello World' })
     end
 
     it 'uses default values when not provided' do
