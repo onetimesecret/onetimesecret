@@ -46,7 +46,7 @@ public/web/dist/
 
 # Files
 .DS_Store
-!pr_agent.toml
+!.pr_agent.toml
 etc/config*
 etc/*.yaml
 support/schemas/
