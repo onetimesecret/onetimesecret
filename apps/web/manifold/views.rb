@@ -14,23 +14,22 @@ module Manifold
     # JavaScript variables from the backend to the frontend.
     #
     # Example usage:
-    #   view = Manifold::Views::VuePoint.new
+    #   view = Manifold::Views::VuePoint.new(req, sess, cust, locale)
     #
     class VuePoint < Manifold::Views::BaseView
-
-
-      def init *args; end
+      # No init method needed - uses BaseView constructor
     end
 
     class ExportWindow < Manifold::Views::BaseView
       # require 'views/example.rue'
-
-      def init *args; end
+      # No init method needed - uses BaseView constructor
     end
 
     class Error < Manifold::Views::BaseView
-      def init *_args
-        self[:title] = "I'm afraid there's been an error"
+      def initialize(req, sess = nil, cust = nil, locale_override = nil, business_data: {})
+        # Add default title to business data
+        error_data = { title: "I'm afraid there's been an error" }.merge(business_data)
+        super(req, sess, cust, locale_override, business_data: error_data)
       end
     end
 
