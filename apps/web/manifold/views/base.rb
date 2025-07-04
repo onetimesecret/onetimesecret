@@ -29,15 +29,12 @@ module Manifold
       attr_reader :i18n_instance, :messages
 
       def initialize(req, sess = nil, cust = nil, locale_override = nil, business_data: {})
-        # Use Onetime::Services::UIContext instead of RSFC::Context
-        @rsfc_context = Onetime::Services::UIContext.for_view(req, sess, cust, locale_override, **business_data)
+        # Call parent constructor which will create the appropriate context
+        super
 
-        # Set instance variables for compatibility
-        @req           = req
-        @sess          = sess
-        @cust          = @rsfc_context.cust
-        @locale        = @rsfc_context.locale
-        @business_data = business_data
+        # Update instance variables from context
+        @cust   = @rsfc_context.cust
+        @locale = @rsfc_context.locale
 
         # Initialize i18n and messages
         @i18n_instance = i18n
@@ -47,11 +44,9 @@ module Manifold
         init if respond_to?(:init)
       end
 
-      # Override RSFC::View render to use UIContext
-      def render(template_name = nil)
-        # UIContext already contains all the business logic and OnetimeWindow data
-        # Just render directly using the parent implementation
-        super
+      # Use Onetime::Services::UIContext instead of RSFC::Context
+      def context_class
+        Onetime::Services::UIContext
       end
 
       # Access to i18n data for templates
