@@ -3,8 +3,7 @@
 require 'json'
 require 'securerandom'
 
-module Onetime
-  module RSFC
+module RSFC
     # Data Hydrator for RSFC client-side data injection
     #
     # Processes the <data> section of .rue files and generates:
@@ -77,8 +76,8 @@ module Onetime
       private
 
       # Process variable interpolations in data section
+      # Uses Rhales consistently for all template processing
       def process_data_variables(data_content)
-        # Use Rhales to process the data section as a template
         rhales = Rhales.new(data_content, @context)
         rhales.render
       end
@@ -123,5 +122,4 @@ module Onetime
         end
       end
     end
-  end
 end

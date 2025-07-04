@@ -3,8 +3,7 @@
 require 'prism'
 require 'erb'
 
-module Onetime
-  module RSFC
+module RSFC
     # Rhales - Ruby Handlebars-style template engine
     #
     # A lightweight handlebars subset implementation using Prism for parsing.
@@ -292,5 +291,4 @@ module Onetime
       end
     end
     # rubocop:enable Style/RegexpLiteral
-  end
 end

@@ -2,7 +2,7 @@
 
 require 'onetime/middleware'
 require 'onetime/rsfc/view'
-require 'onetime/rsfc/onetime_window_bridge'
+require 'onetime/services/ui/ui_context'
 
 require_relative 'helpers'
 
@@ -19,7 +19,7 @@ require_relative 'helpers'
 #
 module Manifold
   module Views
-    class BaseView < Onetime::RSFC::View
+    class BaseView < RSFC::View
       include Manifold::Views::SanitizerHelpers
       include Manifold::Views::I18nHelpers
       include Manifold::Views::ViteManifest
@@ -29,40 +29,28 @@ module Manifold
       attr_reader :i18n_instance, :messages
 
       def initialize(req, sess = nil, cust = nil, locale_override = nil, business_data: {})
-        # Determine locale with same priority as before
-        resolved_locale = if locale_override
-                            locale_override
-                          elsif !req.nil? && req.env['ots.locale']
-                            req.env['ots.locale']
-                          else
-                            OT.conf[:default_locale]
-                          end
+        # Use Manifold::UIContext instead of RSFC::Context
+        @rsfc_context = Manifold::UIContext.for_view(req, sess, cust, locale_override, **business_data)
 
-        # Call parent RSFC::View constructor
-        super(req, sess, cust, resolved_locale, business_data: business_data)
+        # Set instance variables for compatibility
+        @req = req
+        @sess = sess
+        @cust = @rsfc_context.cust
+        @locale = @rsfc_context.locale
+        @business_data = business_data
 
         # Initialize i18n and messages
         @i18n_instance = i18n
-        @messages      = sess&.get_messages || []
+        @messages = @rsfc_context.get('onetime_window.messages') || []
 
         # Call init hook if present (maintains compatibility)
         init if respond_to?(:init)
       end
 
-      # Override RSFC::View render to include i18n, messages, and OnetimeWindow context
+      # Override RSFC::View render to use UIContext
       def render(template_name = nil)
-        # Add i18n, messages, and OnetimeWindow data to business data
-        enhanced_business_data = @business_data.merge(
-          i18n: @i18n_instance,
-          messages: @messages,
-          pagename: self.class.pagename,
-          onetime_window: onetime_window_data,
-        )
-
-        # Create new context with enhanced data
-        @rsfc_context = Onetime::RSFC::Context.for_view(@req, @sess, @cust, @locale, **enhanced_business_data)
-
-        # Render with enhanced context
+        # UIContext already contains all the business logic and OnetimeWindow data
+        # Just render directly using the parent implementation
         super
       end
 
@@ -86,26 +74,26 @@ module Manifold
         end
       end
 
-      # Access to OnetimeWindow data from templates
+      # Access to OnetimeWindow data from UIContext
       def onetime_window_data
-        @onetime_window_data ||= Onetime::RSFC::OnetimeWindowBridge.build_onetime_window_data(@req, @sess, @cust, @locale)
+        @rsfc_context.get('onetime_window')
       end
 
       # Provide direct access to specific OnetimeWindow fields commonly used in templates
       def authenticated?
-        onetime_window_data[:authenticated]
+        @rsfc_context.get('onetime_window.authenticated')
       end
 
       def site_host
-        onetime_window_data[:site_host]
+        @rsfc_context.get('onetime_window.site_host')
       end
 
       def baseuri
-        onetime_window_data[:baseuri]
+        @rsfc_context.get('onetime_window.baseuri')
       end
 
       def shrimp
-        onetime_window_data[:shrimp]
+        @rsfc_context.get('onetime_window.shrimp')
       end
 
       class << self
@@ -124,30 +112,20 @@ module Manifold
 
         # Render for SPA mode (Vue frontend) - returns JSON data only
         def render_spa(req, sess, cust, locale)
-          onetime_data = Onetime::RSFC::OnetimeWindowBridge.build_onetime_window_data(req, sess, cust, locale)
+          ui_context = Manifold::UIContext.new(req, sess, cust, locale)
+          onetime_data = ui_context.get('onetime_window')
           JSON.pretty_generate(onetime_data)
         end
 
         # Render full page with RSFC template and OnetimeWindow compatibility
         def render_page(req, sess, cust, locale, **business_data)
           view = new(req, sess, cust, locale, business_data: business_data)
-
-          # Get OnetimeWindow data for hydration
-          onetime_data = Onetime::RSFC::OnetimeWindowBridge.build_onetime_window_data(req, sess, cust, locale)
-
-          # Add to business data for template access
-          view.instance_variable_set(:@onetime_window_data, onetime_data)
-
           view.render
         end
 
         # Enhanced render method that includes OnetimeWindow data
         def render_with_data(req, sess, cust, locale, **business_data)
-          # Combine RSFC data with OnetimeWindow data
-          rsfc_data = Onetime::RSFC::OnetimeWindowBridge.build_rsfc_data(req, sess, cust, locale)
-          combined_data = business_data.merge(rsfc_data)
-
-          view = new(req, sess, cust, locale, business_data: combined_data)
+          view = new(req, sess, cust, locale, business_data: business_data)
           view.render
         end
       end

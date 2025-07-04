@@ -8,8 +8,7 @@ require_relative '../refinements/require_refinements'
 
 using Onetime::Ruequire
 
-module Onetime
-  module RSFC
+module RSFC
     # Base view class for RSFC template rendering
     #
     # Replaces Mustache-based views with RSFC template processing.
@@ -28,8 +27,8 @@ module Onetime
         @locale        = locale_override
         @business_data = business_data
 
-        # Create RSFC context
-        @rsfc_context = Context.for_view(req, sess, cust, locale, **business_data)
+        # Create RSFC context (will be overridden by subclasses like BaseView)
+        @rsfc_context = Context.for_view(req, sess, cust, locale_override, **business_data)
       end
 
       # Render RSFC template
@@ -178,5 +177,4 @@ module Onetime
         end
       end
     end
-  end
 end

@@ -6,8 +6,7 @@ rescue LoadError
   # Middleware not available in test environment
 end
 
-module Onetime
-  module RSFC
+module RSFC
     # RSFCContext provides a clean interface for RSFC templates to access
     # server-side data. Follows the established pattern from InitScriptContext
     # and EnvironmentContext for focused, single-responsibility context objects.
@@ -78,6 +77,11 @@ module Onetime
       # Get list of all available variable paths (for validation)
       def available_variables
         @available_variables ||= collect_variable_paths(all_data)
+      end
+
+      # Resolve variable (alias for get method for hydrator compatibility)
+      def resolve_variable(variable_path)
+        get(variable_path)
       end
 
       private
@@ -221,6 +225,5 @@ module Onetime
           new(nil, nil, nil, 'en', business_data: business_data)
         end
       end
-    end
   end
 end

@@ -111,7 +111,7 @@ class RSFCTest
       rue_file = File.join(dir, 'test.rue')
       File.write(rue_file, rue_content)
 
-      parser = Onetime::RSFC::Parser.parse_file(rue_file)
+      parser = RSFC::Parser.parse_file(rue_file)
 
       assert parser.has_section?('data'), 'Parser should find data section'
       assert parser.has_section?('template'), 'Parser should find template section'
@@ -134,7 +134,7 @@ class RSFCTest
       },
     }
 
-    context = Onetime::RSFC::Context.minimal(business_data: business_data)
+    context = RSFC::Context.minimal(business_data: business_data)
 
     assert context.get('user.id') == '123', 'Context should resolve nested variables'
     assert context.get('user.name') == 'Test User', 'Context should resolve string values'
@@ -154,19 +154,19 @@ class RSFCTest
                              )
 
     # Simple variable
-    result = Onetime::RSFC::Rhales.render('Hello {{name}}!', context)
+    result = RSFC::Rhales.render('Hello {{name}}!', context)
     assert result == 'Hello World!', 'Should interpolate simple variables'
 
     # HTML escaping
-    result = Onetime::RSFC::Rhales.render('Content: {{html}}', context)
+    result = RSFC::Rhales.render('Content: {{html}}', context)
     assert result.include?('&lt;script&gt;'), 'Should escape HTML by default'
 
     # Raw HTML
-    result = Onetime::RSFC::Rhales.render('Raw: {{{html}}}', context)
+    result = RSFC::Rhales.render('Raw: {{{html}}}', context)
     assert result.include?('<script>'), 'Should not escape raw variables'
 
     # Nested properties
-    result = Onetime::RSFC::Rhales.render('Hi {{user.first_name}}', context)
+    result = RSFC::Rhales.render('Hi {{user.first_name}}', context)
     assert result == 'Hi John', 'Should resolve nested properties'
   end
 
@@ -181,15 +181,15 @@ class RSFCTest
                              )
 
     # If block (truthy)
-    result = Onetime::RSFC::Rhales.render('{{#if show_welcome}}Welcome!{{/if}}', context)
+    result = RSFC::Rhales.render('{{#if show_welcome}}Welcome!{{/if}}', context)
     assert result == 'Welcome!', 'Should render if block when condition is true'
 
     # If block (falsy)
-    result = Onetime::RSFC::Rhales.render('{{#if hide_footer}}Footer{{/if}}', context)
+    result = RSFC::Rhales.render('{{#if hide_footer}}Footer{{/if}}', context)
     assert result == '', 'Should not render if block when condition is false'
 
     # Unless block
-    result = Onetime::RSFC::Rhales.render('{{#unless hide_footer}}Footer{{/unless}}', context)
+    result = RSFC::Rhales.render('{{#unless hide_footer}}Footer{{/unless}}', context)
     assert result == 'Footer', 'Should render unless block when condition is false'
   end
 
@@ -206,11 +206,11 @@ class RSFCTest
                              )
 
     # Simple each
-    result = Onetime::RSFC::Rhales.render('{{#each items}}{{this}}, {{/each}}', context)
+    result = RSFC::Rhales.render('{{#each items}}{{this}}, {{/each}}', context)
     assert result.include?('apple, banana, cherry'), 'Should iterate over simple array'
 
     # Object each
-    result = Onetime::RSFC::Rhales.render('{{#each users}}{{name}} ({{age}}), {{/each}}', context)
+    result = RSFC::Rhales.render('{{#each users}}{{name}} ({{age}}), {{/each}}', context)
     assert result.include?('Alice (30)') && result.include?('Bob (25)'), 'Should iterate over object array'
   end
 
@@ -236,14 +236,14 @@ class RSFCTest
       rue_file = File.join(dir, 'hydrator_test.rue')
       File.write(rue_file, rue_content)
 
-      parser  = Onetime::RSFC::Parser.parse_file(rue_file)
+      parser  = RSFC::Parser.parse_file(rue_file)
       context = MockContext.new({
         'user' => { 'id' => '456' },
         'features' => { 'enabled' => true },
       },
                                )
 
-      hydration_html = Onetime::RSFC::Hydrator.generate(parser, context)
+      hydration_html = RSFC::Hydrator.generate(parser, context)
 
       assert hydration_html.include?('window.appData'), 'Should generate correct window assignment'
       assert hydration_html.include?('application/json'), 'Should use JSON script type'
@@ -309,7 +309,7 @@ class RSFCTest
           },
         }
 
-        view   = Onetime::RSFC::View.new(nil, nil, nil, 'en', business_data: business_data)
+        view   = RSFC::View.new(nil, nil, nil, 'en', business_data: business_data)
         result = view.render('integration_test')
 
         assert result.include?('Hello Integration User!'), 'Should render template with user name'
