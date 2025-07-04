@@ -30,7 +30,7 @@ module Manifold
 
       def initialize(req, sess = nil, cust = nil, locale_override = nil, business_data: {})
         # Use Onetime::Services::UIContext instead of RSFC::Context
-        @rsfc_context = Manifold::UIContext.for_view(req, sess, cust, locale_override, **business_data)
+        @rsfc_context = Onetime::Services::UIContext.for_view(req, sess, cust, locale_override, **business_data)
 
         # Set instance variables for compatibility
         @req           = req
