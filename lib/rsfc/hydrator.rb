@@ -1,4 +1,4 @@
-# lib/onetime/rsfc/hydrator.rb
+# lib/rsfc/hydrator.rb
 
 require 'json'
 require 'securerandom'

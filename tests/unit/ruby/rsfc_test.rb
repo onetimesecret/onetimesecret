@@ -31,12 +31,12 @@ module OT
 end
 
 # Load RSFC modules
-require_relative '../../../lib/onetime/rsfc/parser'
-require_relative '../../../lib/onetime/rsfc/context'
-require_relative '../../../lib/onetime/rsfc/rhales'
-require_relative '../../../lib/onetime/rsfc/hydrator'
-require_relative '../../../lib/onetime/refinements/require_refinements'
-require_relative '../../../lib/onetime/rsfc/view'
+require_relative '../../../lib/rsfc/parser'
+require_relative '../../../lib/rsfc/context'
+require_relative '../../../lib/rsfc/rhales'
+require_relative '../../../lib/rsfc/hydrator'
+require_relative '../../../lib/refinements/require_refinements'
+require_relative '../../../lib/rsfc/view'
 
 # Enable RSFC refinements globally for test
 using Onetime::Ruequire

@@ -1,4 +1,4 @@
-# lib/onetime/rsfc/rhales.rb
+# lib/rsfc/rhales.rb
 
 require 'prism'
 require 'erb'

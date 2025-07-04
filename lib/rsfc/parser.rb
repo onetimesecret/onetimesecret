@@ -1,4 +1,4 @@
-# lib/onetime/rsfc/parser.rb
+# lib/rsfc/parser.rb
 
 require 'prism'
 require 'json'

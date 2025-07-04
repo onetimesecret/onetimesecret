@@ -1,4 +1,4 @@
-# lib/onetime/rsfc/view.rb
+# lib/rsfc/view.rb
 
 require_relative 'context'
 require_relative 'parser'

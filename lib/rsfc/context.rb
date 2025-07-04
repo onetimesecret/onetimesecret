@@ -1,4 +1,4 @@
-# lib/onetime/rsfc/context.rb
+# lib/rsfc/context.rb
 
 begin
   require 'onetime/middleware'
@@ -170,7 +170,7 @@ module RSFC
           require 'v2/models/customer' unless defined?(V2::Customer)
           V2::Customer.anonymous
       rescue LoadError
-          # Return mock customer for testing
+          # Return mock customer for testingk
           MockCustomer.new
       end
 

@@ -1,7 +1,7 @@
 # apps/web/manifold/views/base.rb
 
 require 'onetime/middleware'
-require 'onetime/rsfc/view'
+require 'rsfc/view'
 require 'onetime/services/ui/ui_context'
 
 require_relative 'helpers'
