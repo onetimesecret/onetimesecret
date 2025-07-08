@@ -1,5 +1,7 @@
 # apps/web/manifold/application.rb
 
+require 'rhales'
+
 require_relative '../../base_application'
 
 require_relative 'controllers'
@@ -19,6 +21,12 @@ module Manifold
     warmup do
       # Expensive initialization tasks go here
 
+      # Configure Rhales with Tilt integration
+      Rhales.configure do |config|
+        config.template_paths  = [File.join(ONETIME::HOME, 'templates', 'web')]
+        config.cache_templates = false
+      end
+
       # Log warmup completion
       Onetime.li 'Manifold warmup completed'
     end
@@ -26,7 +34,7 @@ module Manifold
     protected
 
     def build_router
-      routes_path = File.join(ENV.fetch('ONETIME_HOME'), 'apps/web/manifold/routes')
+      routes_path = File.join(ONETIME::HOME, 'apps/web/manifold/routes')
       router      = Otto.new(routes_path)
 
       # Default error responses
