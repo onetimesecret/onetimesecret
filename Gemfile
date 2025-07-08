@@ -1,6 +1,8 @@
 # Gemfile
 # typed: false
 
+gem 'rhales', path: '/Users/d/Projects/opensource/onetime/rhales'
+
 #
 # Recommended: Ruby 3.4+
 #

@@ -40,6 +40,11 @@ GIT
   specs:
     rspec-support (3.14.0.pre)
 
+PATH
+  remote: /Users/d/Projects/opensource/onetime/rhales
+  specs:
+    rhales (0.2.0)
+
 GEM
   remote: https://rubygems.org/
   specs:
@@ -295,6 +300,7 @@ DEPENDENCIES
   rdoc
   redis (~> 5.4.0)
   reline
+  rhales!
   rspec!
   rspec-core!
   rspec-expectations!
