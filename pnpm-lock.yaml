@@ -12,16 +12,16 @@ importers:
         specifier: 7.27.1
         version: 7.27.1
       '@codemirror/lang-json':
-        specifier: ^6.0.1
+        specifier: 6.0.1
         version: 6.0.1
       '@codemirror/lang-yaml':
-        specifier: ^6.1.2
+        specifier: 6.1.2
         version: 6.1.2
       '@codemirror/theme-one-dark':
-        specifier: ^6.1.2
+        specifier: 6.1.2
         version: 6.1.2
       '@codemirror/view':
-        specifier: ^6.37.1
+        specifier: 6.37.1
         version: 6.37.1
       '@headlessui/vue':
         specifier: 1.7.23
