@@ -165,7 +165,7 @@ module Onetime
         jsvars[:nonce] = req&.env&.fetch('ots.nonce', nil)
 
         # Add global banner if present
-        jsvars[:global_banner] = '' #OT.global_banner if defined?(OT) && OT.respond_to?(') && OT.global_banner
+        jsvars[:global_banner] = '' # OT.global_banner if defined?(OT) && OT.respond_to?(:) &&OT.global_banner
 
         # Add UI settings
         jsvars[:ui] = interface[:ui]
@@ -192,13 +192,13 @@ module Onetime
           jsvars[:custid]         = cust.custid
           jsvars[:cust]           = cust.safe_dump
           jsvars[:email]          = cust.email
-          jsvars[:customer_since] = epochdom(cust.created) if respond_to?('epochdom')
+          jsvars[:customer_since] = epochdom(cust.created) if respond_to?(:epochdom)
 
           # Custom domains for authenticated users
           if domains_enabled
             custom_domains          = cust.custom_domains_list.filter_map do |obj|
               # Log unverified domains but allow them for now
-              if !obj.ready? && defined?(OT) && OT.respond_to?('li')
+              if !obj.ready? && defined?(OT) && OT.respond_to?(:li)
                 OT.li "[custom_domains] Allowing unverified domain: #{obj.display_domain} (#{obj.verified}/#{obj.resolving})"
               end
               obj.display_domain
@@ -239,10 +239,10 @@ module Onetime
         return unless defined?(OT)
 
         # TODO2: i18n configuration
-        jsvars[:default_locale]    = 'en' # OT.default_locale if OT.respond_to?(')
-        jsvars[:fallback_locale]   = 'en' # OT.fallback_locale if OT.respond_to?(')
-        jsvars[:supported_locales] = %w[en de_AT fr_CA fr_FR] # OT.supported_locales if OT.respond_to?(')
-        jsvars[:i18n_enabled]      = true # OT.i18n_enabled if OT.respond_to?(')
+        jsvars[:default_locale]    = 'en' # OT.default_locale if OT.respond_to?(:default_locale)
+        jsvars[:fallback_locale]   = 'en' # OT.fallback_locale if OT.respond_to?(:fallback_locale)
+        jsvars[:supported_locales] = %w[en de_AT fr_CA fr_FR] # OT.supported_locales if OT.respond_to?(:supported_locales)
+        jsvars[:i18n_enabled]      = true # OT.i18n_enabled if OT.respond_to?(:i18n_enabled)
       end
 
       # Add diagnostics and monitoring data
@@ -251,7 +251,7 @@ module Onetime
 
         # TODO2: diannostics config
         sentry               = OT.conf.dig('diagnostics', :sentry) || {}
-        jsvars[:d9s_enabled] = false # OT.d9s_enabled if OT.respond_to?(')
+        jsvars[:d9s_enabled] = false # OT.d9s_enabled if OT.respond_to?(:d9s_enabled)
 
         return unless defined?(Onetime) && Onetime.respond_to?(:with_diagnostics)
 
@@ -276,7 +276,7 @@ module Onetime
       # Add plan and version information
       def add_plan_and_version_data(jsvars)
         # Available plans
-        # if defined?(Onetime::Plan) && Onetime::Plan.respond_to?(')
+        # if defined?(Onetime::Plan) && Onetime::Plan.respond_to?(:plans)
         #   # plans                    = Onetime::Plan.plans.transform_values do |plan|
         #   #   plan.safe_dump
         #   # end
@@ -295,7 +295,7 @@ module Onetime
           jsvars[:ot_version] = OT::VERSION.inspect
         end
 
-        if defined?(OT) && OT.respond_to?('sysinfo')
+        if defined?(OT) && OT.respond_to?(:sysinfo)
           jsvars[:ruby_version] = "#{OT.sysinfo.vm}-#{OT.sysinfo.ruby.join}"
         end
       end
