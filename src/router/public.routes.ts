@@ -25,7 +25,7 @@ const routes: Array<RouteRecordRaw> = [
         displayNavigation: true,
         displayFooterLinks: true,
         displayFeedback: true,
-        displayPoweredBy: true,
+        displayPoweredBy: false,
         displayVersion: true,
         displayToggles: true,
       },
@@ -43,7 +43,7 @@ const routes: Array<RouteRecordRaw> = [
           displayFooterLinks: false,
           displayFeedback: false,
           displayVersion: true,
-          displayPoweredBy: true,
+          displayPoweredBy: false,
           displayToggles: true,
         };
       }

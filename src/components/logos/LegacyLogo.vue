@@ -54,7 +54,7 @@ import { type LogoConfig } from '@/types/ui/layouts';
       <div
         v-if="props.showSiteName && props.siteName"
         class="relative flex flex-col">
-        <div :class="[textSize, 'font-bold leading-tight']">
+        <div :class="[textSize, 'font-bold font-brand leading-tight']">
           {{ props.siteName }}
         </div>
         <!-- Colonel Overlay -->
