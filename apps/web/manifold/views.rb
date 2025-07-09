@@ -1,12 +1,9 @@
 # apps/web/manifold/views.rb
 
-require 'onetime/refinements/require_refinements'
-
 require_relative 'views/base'
 
 module Manifold
   module Views
-    using Onetime::Ruequire
 
     ##
     # Standard view class for simple templates with automatic configuration
@@ -65,10 +62,10 @@ module Manifold
     # Error page with custom title
     #
     class Error < StandardView
-      def initialize(req, sess = nil, cust = nil, locale_override = nil, business_data: {})
+      def initialize(req, sess = nil, cust = nil, locale_override = nil, props: {})
         # Add default title to business data
-        error_data = { title: "I'm afraid there's been an error" }.merge(business_data)
-        super(req, sess, cust, locale_override, business_data: error_data)
+        error_data = { title: "I'm afraid there's been an error" }.merge(props)
+        super(req, sess, cust, locale_override, props: error_data)
       end
     end
 

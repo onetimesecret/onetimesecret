@@ -1,10 +1,10 @@
 # lib/onetime/services/ui/ui_context.rb
 
-require_relative '../../rsfc/context'
+require 'rhales'
 
 module Onetime
   module Services
-    # UIContext extends RSFC::Context with OneTimeSecret-specific business logic
+    # UIContext extends Rhales::Context with OneTimeSecret-specific business logic
     #
     # This class contains the authoritative business logic ported from
     # Core::Views::BaseView#initialize. It serves as the single source of truth
@@ -18,21 +18,21 @@ module Onetime
     # - Site branding and UI configuration
     # - Development and diagnostics settings
     #
-    class UIContext < RSFC::Context
+    class UIContext < Rhales::Context
       attr_reader :plan, :is_paid, :canonical_domain, :display_domain,
         :domain_strategy, :domain_id, :domain_branding, :domain_logo, :custom_domain
 
-      def initialize(req, sess = nil, cust = nil, locale_override = nil, business_data: {})
+      def initialize(req, sess = nil, cust = nil, locale_override = nil, props: {})
         # Set up domain and customer information first
         setup_domain_info(req)
         setup_customer_info(req, sess, cust)
 
         # Build the complete business data with OnetimeWindow structure
         onetime_window         = build_onetime_window_data(req, sess, @cust, locale_override)
-        enhanced_business_data = business_data.merge(onetime_window: onetime_window)
+        enhanced_props = props.merge(onetime_window: onetime_window)
 
         # Call parent constructor with enhanced data
-        super(req, sess, @cust, locale_override, business_data: enhanced_business_data)
+        super(req, sess, @cust, locale_override, props: enhanced_props)
       end
 
       private
@@ -344,14 +344,14 @@ module Onetime
       end
 
       class << self
-        # Factory method matching RSFC::Context.for_view signature
-        def for_view(req, sess, cust, locale, **business_data)
-          new(req, sess, cust, locale, business_data: business_data)
+        # Factory method matching Rhales::Context.for_view signature
+        def for_view(req, sess, cust, locale, **props)
+          new(req, sess, cust, locale, props: props)
         end
 
         # Factory method for minimal testing context
-        def minimal(business_data: {})
-          new(nil, nil, nil, 'en', business_data: business_data)
+        def minimal(props: {})
+          new(nil, nil, nil, 'en', props: props)
         end
       end
     end

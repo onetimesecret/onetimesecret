@@ -207,8 +207,8 @@ module Manifold
         res.body   = view.render
       end
 
-      # RSFC Rendering Helper Methods
-      # These methods provide different rendering modes for RSFC templates
+      # Rhales Rendering Helper Methods
+      # These methods provide different rendering modes for Rhales templates
 
       # Render as SPA - returns JSON data for Vue frontend
       def render_spa(view_class = nil, **)
@@ -217,7 +217,7 @@ module Manifold
         res.body                   = view_class.render_spa(req, sess, cust, locale)
       end
 
-      # Render full RSFC page with template and data hydration
+      # Render full Rhales page with template and data hydration
       def render_page(view_class = nil, **)
         view_class ||= Manifold::Views::VuePoint
         res.body     = view_class.render_page(req, sess, cust, locale, **)
@@ -230,8 +230,8 @@ module Manifold
       end
 
       # Legacy compatibility - render with specific view class
-      def render_view(view_class, **business_data)
-        view = view_class.new(req, sess, cust, locale, business_data: business_data)
+      def render_view(view_class, **props)
+        view = view_class.new(req, sess, cust, locale, props: props)
 
         # Set content type and status if view class specifies them
         if view_class.respond_to?(:content_type)

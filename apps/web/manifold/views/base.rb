@@ -1,25 +1,25 @@
 # apps/web/manifold/views/base.rb
 
 require 'onetime/middleware'
-require 'rsfc/view'
+require 'rhales'
 require 'onetime/services/ui/ui_context'
 
 require_relative 'helpers'
 
-# Core view framework with RSFC template support
+# Core view framework with Rhales template support
 #
 # This file defines the BaseView class which serves as the foundation for all views in the application.
-# Migrated from Mustache to RSFC (Ruby Single File Components) for better server-to-client data flow.
+# Migrated from Mustache to Rhales (Ruby Single File Components) for better server-to-client data flow.
 #
 # Key changes from Mustache version:
-# - Extends RSFC::View instead of Mustache
+# - Extends Rhales::View instead of Mustache
 # - Removed Mustache-specific configurations (template_path, template_extension, etc.)
 # - Maintains compatibility with existing helpers and patterns
-# - Supports .rue template files with automatic data hydration
+# - Supports .rue template files with automatic data hydration and CSP support
 #
 module Manifold
   module Views
-    class BaseView < RSFC::View
+    class BaseView < Rhales::View
       include Manifold::Views::SanitizerHelpers
       include Manifold::Views::I18nHelpers
       include Manifold::Views::ViteManifest
@@ -28,7 +28,7 @@ module Manifold
       attr_accessor :form_fields, :pagename
       attr_reader :i18n_instance, :messages
 
-      def initialize(req, sess = nil, cust = nil, locale_override = nil, business_data: {})
+      def initialize(req, sess = nil, cust = nil, locale_override = nil, props: {})
         # Call parent constructor which will create the appropriate context
         super
 
@@ -100,8 +100,8 @@ module Manifold
         end
 
         # Convenience method to render with business data (maintains API compatibility)
-        def render_with_context(req, sess, cust, locale, **business_data)
-          view = new(req, sess, cust, locale, business_data: business_data)
+        def render_with_context(req, sess, cust, locale, **props)
+          view = new(req, sess, cust, locale, props: props)
           view.render
         end
 
@@ -113,14 +113,14 @@ module Manifold
         end
 
         # Render full page with RSFC template and OnetimeWindow compatibility
-        def render_page(req, sess, cust, locale, **business_data)
-          view = new(req, sess, cust, locale, business_data: business_data)
+        def render_page(req, sess, cust, locale, **props)
+          view = new(req, sess, cust, locale, props: props)
           view.render
         end
 
         # Enhanced render method that includes OnetimeWindow data
-        def render_with_data(req, sess, cust, locale, **business_data)
-          view = new(req, sess, cust, locale, business_data: business_data)
+        def render_with_data(req, sess, cust, locale, **props)
+          view = new(req, sess, cust, locale, props: props)
           view.render
         end
       end

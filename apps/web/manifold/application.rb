@@ -21,10 +21,31 @@ module Manifold
     warmup do
       # Expensive initialization tasks go here
 
-      # Configure Rhales with Tilt integration
+      # Configure Rhales with CSP and manifold-specific settings
       Rhales.configure do |config|
-        config.template_paths  = [File.join(ONETIME::HOME, 'templates', 'web')]
+        config.template_paths  = [File.join(Onetime::HOME, 'templates', 'web')]
         config.cache_templates = false
+        config.default_locale  = 'en'
+
+        # CSP configuration for security by default
+        config.csp_enabled = true
+        config.auto_nonce = true
+        config.nonce_header_name = 'ots.nonce'
+
+        # Custom CSP policy for onetimesecret
+        config.csp_policy = {
+          'default-src' => ["'self'"],
+          'script-src' => ["'self'", "'nonce-{{nonce}}'"],
+          'style-src' => ["'self'", "'nonce-{{nonce}}'", "'unsafe-hashes'"],
+          'img-src' => ["'self'", 'data:', 'https:'],
+          'font-src' => ["'self'", 'https:'],
+          'connect-src' => ["'self'"],
+          'base-uri' => ["'self'"],
+          'form-action' => ["'self'"],
+          'frame-ancestors' => ["'none'"],
+          'object-src' => ["'none'"],
+          'upgrade-insecure-requests' => []
+        }
       end
 
       # Log warmup completion
@@ -34,7 +55,7 @@ module Manifold
     protected
 
     def build_router
-      routes_path = File.join(ONETIME::HOME, 'apps/web/manifold/routes')
+      routes_path = File.join(Onetime::HOME, 'apps/web/manifold/routes')
       router      = Otto.new(routes_path)
 
       # Default error responses
