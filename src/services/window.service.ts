@@ -1,7 +1,7 @@
 // src/services/window.service.ts
 import type { OnetimeWindow } from '@/types/declarations/window';
 
-const STATE_KEY = '__ONETIME_STATE__';
+const STATE_KEY: string = 'onetime';
 
 /**
  * Service for accessing typed window properties defined in window.d.ts.

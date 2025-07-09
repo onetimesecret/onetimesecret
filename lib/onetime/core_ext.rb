@@ -10,6 +10,10 @@ class String
 
     self[0..len] + '...'
   end
+
+  def humanize
+    tr('_', ' ').split.map(&:capitalize).join(' ')
+  end
 end
 
 module Rack

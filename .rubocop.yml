@@ -17,7 +17,7 @@ AllCops:
   DisabledByDefault: false # flip to true for a good autocorrect time
   UseCache: true
   MaxFilesInCache: 1000
-  TargetRubyVersion: 3.2
+  TargetRubyVersion: 3.4
   Exclude:
     # The V1 API is in maintenance mode. No changes allowed 🚭
     - 'apps/api/v1/**/*'
@@ -141,7 +141,7 @@ Style/BlockDelimiters:
 
 Naming/PredicateMethod:
   Enabled: true
-  Mode: 'aggressive'
+  Mode: 'conservative'
   AllowedMethods:
     - validate!
     - migrate

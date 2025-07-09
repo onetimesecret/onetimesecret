@@ -161,21 +161,21 @@ module Manifold
       #
       def customer_portal_redirect
         authenticated do
-            # Get the Stripe Customer ID from our customer instance
-            customer_id = cust.stripe_customer_id
+          # Get the Stripe Customer ID from our customer instance
+          customer_id = cust.stripe_customer_id
 
-            site_host  = Onetime.conf&.dig(:site, :host)
-            is_secure  = Onetime.conf&.dig(:site, :ssl)
-            return_url = "#{is_secure ? 'https' : 'http'}://#{site_host}/account"
+          site_host  = Onetime.conf&.dig(:site, :host)
+          is_secure  = Onetime.conf&.dig(:site, :ssl)
+          return_url = "#{is_secure ? 'https' : 'http'}://#{site_host}/account"
 
-            # Create a Stripe Customer Portal session
-            session = Stripe::BillingPortal::Session.create({
-              customer: customer_id,
-              return_url: return_url,
-            })
+          # Create a Stripe Customer Portal session
+          session = Stripe::BillingPortal::Session.create({
+            customer: customer_id,
+            return_url: return_url,
+          })
 
-            # Continue the redirect
-            res.redirect session.url
+          # Continue the redirect
+          res.redirect session.url
         rescue Stripe::StripeError => ex
             OT.le "[customer_portal_redirect] Stripe error: #{ex.message}"
             raise_form_error(ex.message)
@@ -259,7 +259,7 @@ module Manifold
       private
 
       def _auth_settings
-        OT.conf.dig(:site, :authentication)
+        OT.conf.dig(:ui, :authentication)
       end
     end
   end

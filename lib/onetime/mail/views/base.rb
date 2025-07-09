@@ -1,13 +1,11 @@
 # lib/onetime/mail/views/base.rb
 
-require 'chimera'
-
+require_relative 'chimera'
 
 module Onetime
   module Mail
     module Views
-      class Base < Chimera
-
+      class Base < Onetime::Mail::Chimera
         self.template_path  = './templates/mail'
         self.view_namespace = Onetime::Mail
         self.view_path      = './onetime/email'
@@ -42,7 +40,7 @@ module Onetime
 
           # Create a new instance of the configured mailer class for this request
           emailer_class = Onetime::Services::ServiceRegistry.get_state(:mailer_class)
-          @emailer = emailer_class.new(
+          @emailer      = emailer_class.new(
             conf.fetch(:from, nil),
             conf.fetch(:fromname, nil),
             cust&.email, # use for the reply-to field
@@ -98,7 +96,7 @@ module Onetime
           return @i18n_cache[locale] if @i18n_cache.key?(locale)
 
           # Safely get locale data with fallback
-          locales = OT.conf['locales'] || {}
+          locales     = OT.conf['locales'] || {}
           locale_data = locales[locale] || locales['en']
 
           pagename = self.class.name.split('::').last.downcase.to_sym

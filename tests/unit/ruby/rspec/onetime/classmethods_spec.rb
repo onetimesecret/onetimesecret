@@ -197,8 +197,8 @@ RSpec.describe Onetime::ClassMethods do
       end
 
       it 'does not output when STDERR is closed' do
-        allow(STDERR).to receive(:closed?).and_return(true)
-        expect(STDERR).not_to receive(:puts)
+        allow($stderr).to receive(:closed?).and_return(true)
+        expect($stderr).not_to receive(:puts)
         test_class.stderr('E', 'error message')
       end
     end

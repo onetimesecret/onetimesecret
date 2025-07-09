@@ -1,0 +1,68 @@
+<!-- templates/web/head.rue -->
+
+<!--
+  RSFC rev4 File
+-->
+
+
+<data window="data" schema="@/src/schemas/head.ts">
+{
+  "page_title": "One Time Secret",
+  "description": "Securely share sensitive information with a single-use link",
+  "baseuri": "https://onetimesecret.com",
+  "site_host": "onetimesecret.com",
+  "theme_config": {
+    "default_mode": "light",
+    "allow_user_override": true
+  },
+  "asset_manifest": {
+    "main_js": "/assets/main.BLg8yeuJ.js",
+    "main_css": "/assets/style.I5AeOD3i.css"
+  }
+}
+</data>
+
+<template>
+  <meta charset="UTF-8">
+  <meta name="referrer" content="no-referrer">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <title>{{page_title}}</title>
+  <meta name="description" content="{{description}}">
+  <meta name="keywords" content="secret sharing, secure messaging, one-time link">
+
+  <!-- OpenGraph Meta Tags -->
+  <meta property="og:url" content="{{baseuri}}">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="{{page_title}}">
+  <meta property="og:description" content="{{description}}">
+  <meta property="og:image" content="{{baseuri}}/img/social-preview.png">
+
+  <!-- X Meta Tags -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta property="twitter:domain" content="{{site_host}}">
+  <meta property="twitter:url" content="{{baseuri}}">
+  <meta name="twitter:title" content="{{page_title}}">
+  <meta name="twitter:description" content="{{description}}">
+  <meta name="twitter:image" content="{{baseuri}}/img/social-preview.png">
+
+  <meta name="theme-color" content="#dc4a22">
+  <link nonce="{{nonce}}" rel="icon" type="image/png" href="/img/favicon.png" />
+  <link nonce="{{nonce}}" rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+  <link nonce="{{nonce}}" rel="manifest" href="/site.webmanifest">
+
+  <!-- TODO2: Revisit after fixing if -->
+  {{#if no_cache}}
+    <meta http-equiv="pragma" content="no-cache">
+    <meta http-equiv="expires" content="-1">
+  {{/if}}
+
+  {{#if development}}
+    <script type="module" nonce="{{ nonce }}" src="{{frontend_host}}/dist/main.ts"></script>
+    <script type="module" nonce="{{ nonce }}" src="{{frontend_host}}/dist/@vite/client"></script>
+  {{else}}
+    <!-- Production assets -->
+    <link nonce="{{nonce}}" rel="stylesheet" href="{{asset_manifest.main_css}}">
+    <script nonce="{{nonce}}" src="{{asset_manifest.main_js}}" defer></script>
+  {{/if}}
+</template>

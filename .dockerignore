@@ -45,7 +45,7 @@ vendor
 
 # Files
 .DS_Store
-!pr_agent.toml
+!.pr_agent.toml
 Caddyfile
 fly.toml
 etc/examples

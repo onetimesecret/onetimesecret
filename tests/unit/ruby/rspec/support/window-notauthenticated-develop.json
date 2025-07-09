@@ -159,5 +159,5 @@
     "options": { "ttl": 604800.0, "size": 100000, "api": false, "name": "Anonymous" }
   },
   "is_paid": false,
-  "default_planid": "basic"
+  "default_planid": "anonymous"
 }

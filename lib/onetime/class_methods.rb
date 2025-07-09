@@ -211,15 +211,15 @@ module Onetime
     end
 
     def stdout(prefix, msg)
-      return if STDOUT.closed?
+      return if $stdout.closed?
 
       stamp   = Time.now.to_i
       logline = format('%s(%s): %s', prefix, stamp, msg)
-      STDOUT.puts(logline)
+      $stdout.puts(logline)
     end
 
     def stderr(prefix, msg)
-      return if STDERR.closed?
+      return if $stderr.closed?
 
       stamp   = Time.now.to_i
       logline = format('%s(%s): %s', prefix, stamp, msg)

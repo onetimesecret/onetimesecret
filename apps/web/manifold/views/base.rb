@@ -1,105 +1,94 @@
-# apps/web/ui/views/base.rb
-
-require 'chimera'
+# apps/web/manifold/views/base.rb
 
 require 'onetime/middleware'
+require 'rhales'
 require 'onetime/services/ui/ui_context'
 
 require_relative 'helpers'
 
-# Core view framework with helpers and serializers
+# Core view framework with Rhales template support
 #
 # This file defines the BaseView class which serves as the foundation for all views in the application.
-# It provides:
+# Migrated from Mustache to Rhales (Ruby Single File Components) for better server-to-client data flow.
 #
-# - **Helpers**: Utility methods for view rendering and data manipulation
+# Key changes from Mustache version:
+# - Extends Rhales::View instead of Mustache
+# - Removed Mustache-specific configurations (template_path, template_extension, etc.)
+# - Maintains compatibility with existing helpers and patterns
+# - Supports .rue template files with automatic data hydration and CSP support
 #
 module Manifold
   module Views
-    class BaseView < Chimera
-      # extend OT::Services::UI::UIContext
+    class BaseView < Rhales::View
       include Manifold::Views::SanitizerHelpers
       include Manifold::Views::I18nHelpers
       include Manifold::Views::ViteManifest
       include Onetime::TimeUtils
 
-      self.template_path      = './templates/web'
-      self.template_extension = 'html'
-      self.view_namespace     = Manifold::Views
-      self.view_path          = './app/web/manifold/views'
+      attr_accessor :form_fields, :pagename
+      attr_reader :i18n_instance, :messages
 
-      attr_accessor :req, :sess, :cust, :locale, :form_fields, :pagename
-      attr_reader :i18n_instance, :view_vars, :serialized_data, :messages
+      def initialize(req, sess = nil, cust = nil, locale_override = nil, props: {})
+        # Call parent constructor which will create the appropriate context
+        super
 
-      def initialize(req, sess = nil, cust = nil, locale_override = nil, *)
-        @req  = req
-        @sess = sess
+        # Update instance variables from context
+        @cust   = @rsfc_context.cust
+        @locale = @rsfc_context.locale
 
-        @cust = cust || anonymous_customer
-
-        # We determine locale here because it's used for i18n. Otherwise we couldn't
-        # determine the i18n messages until inside or after template_vars.
-        #
-        # Determine locale with this priority:
-        # 1. Explicitly provided locale
-        # 2. Locale from request environment (if available)
-        # 3. Application default locale as set in yaml configuration
-        @locale = if locale_override
-                    locale_override
-                  elsif !req.nil? && req.env['ots.locale']
-                    req.env['ots.locale']
-                  else
-                    OT.conf[:default_locale]
-                  end
-
+        # Initialize i18n and messages
         @i18n_instance = i18n
-        @messages      = []
+        @messages      = @rsfc_context.get('onetime_window.messages') || []
 
-        @view_vars = self.class.template_vars(req, sess, cust, locale, i18n_instance)
+        # Call init hook if present (maintains compatibility)
+        init if respond_to?(:init)
+      end
 
-        # Make the view-relevant variables available to the view and HTML template
-        @view_vars.each do |key, value|
-          self[key] = value
+      # Use Onetime::Services::UIContext instead of RSFC::Context
+      def context_class
+        Onetime::Services::UIContext
+      end
+
+      # Access to i18n data for templates
+      def i18n
+        @i18n_instance ||= begin
+          # require 'onetime/utils/i18n' # TODO: Where did this file go?
+
+          i18n_data = if OT.conf && OT.conf['i18n']
+            OT.conf['i18n']
+          else
+            {}
+          end
+
+          # Add locale-specific data
+          locale_data = i18n_data[@locale] || i18n_data[@locale.to_s] || {}
+
+          # Merge common and locale-specific data
+          common_data = i18n_data['COMMON'] || {}
+          common_data.merge(locale_data)
         end
-
-        init(*) if respond_to?(:init)
-
-        @serialized_data = run_serializers
       end
 
-      def anonymous_customer
-        # Lazy-load the model here if we need to. Running tests for example,
-        # in some cases won't have a database connection.
-        require 'v2/models/customer' unless defined?(V2::Customer)
-        @cust = V2::Customer.anonymous
+      # Access to OnetimeWindow data from UIContext
+      def onetime_window_data
+        @rsfc_context.get('onetime_window')
       end
 
-      # Add notification message to be displayed in StatusBar component
-      #
-      # @param msg [String] Message content to be displayed
-      # @param type [String] Type of message, one of: info, error, success, warning
-      # @return [Array<Hash>] Array containing all message objects
-      def add_message(msg, type = 'info')
-        messages << { type: type, content: msg }
+      # Provide direct access to specific OnetimeWindow fields commonly used in templates
+      def authenticated?
+        @rsfc_context.get('onetime_window.authenticated')
       end
 
-      # Add error message to be displayed in StatusBar component
-      #
-      # @param msg [String] error message content to be displayed
-      # @return [Array<Hash>] array containing all message objects
-      def add_error(msg)
-        add_message(msg, 'error')
+      def site_host
+        @rsfc_context.get('onetime_window.site_host')
       end
 
-      # Run all registered serializers to transform view data for frontend consumption
-      #
-      # Executes each serializer registered for this view in dependency order,
-      # merging their results into a single data structure that can be safely
-      # passed to the frontend.
-      #
-      # @return [Hash] The serialized data
-      def run_serializers
-        SerializerRegistry.run(self.class.serializers, view_vars, i18n_instance)
+      def baseuri
+        @rsfc_context.get('onetime_window.baseuri')
+      end
+
+      def shrimp
+        @rsfc_context.get('onetime_window.shrimp')
       end
 
       class << self
@@ -107,31 +96,32 @@ module Manifold
         # provides the locale strings specifically for this view. For that to
         # work, the view being used has a matching name in the locales file.
         def pagename
-          # NOTE: There's some speculation that setting a class instance variable
-          # inside the class method could present a race condition in between the
-          # check for nil and running the expression to set it. It's possible but
-          # every thread will produce the same result. Winning by technicality is
-          # one thing but the reality of software development is another. Process
-          # is more important than clever design. Instead, a safer practice is to
-          # set the class instance variable here in the class definition.
           @pagename ||= name.split('::').last.downcase.to_sym
         end
 
-        # Class-level serializers list
-        #
-        # @return [Array<Module>] List of serializers to use with this view
-        def serializers
-          @serializers ||= []
+        # Convenience method to render with business data (maintains API compatibility)
+        def render_with_context(req, sess, cust, locale, **props)
+          view = new(req, sess, cust, locale, props: props)
+          view.render
         end
 
-        # Add serializers to this view
-        #
-        # @param serializer_list [Array<Module>] List of serializers to add to this view
-        # @return [Array<Module>] Updated list of serializers
-        def use_serializers(*serializer_list)
-          serializer_list.each do |serializer|
-            serializers << serializer unless serializers.include?(serializer)
-          end
+        # Render for SPA mode (Vue frontend) - returns JSON data only
+        def render_spa(req, sess, cust, locale)
+          ui_context   = Onetime::Services::UIContext.new(req, sess, cust, locale)
+          onetime_data = ui_context.get('onetime_window')
+          JSON.pretty_generate(onetime_data)
+        end
+
+        # Render full page with Rhales template and OnetimeWindow compatibility
+        def render_page(req, sess, cust, locale, **props)
+          view = new(req, sess, cust, locale, props: props)
+          view.render
+        end
+
+        # Enhanced render method that includes OnetimeWindow data
+        def render_with_data(req, sess, cust, locale, **props)
+          view = new(req, sess, cust, locale, props: props)
+          view.render
         end
       end
     end

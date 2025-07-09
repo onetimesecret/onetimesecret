@@ -46,17 +46,20 @@ public/web/dist/
 
 # Files
 .DS_Store
-!pr_agent.toml
-etc/config*
-etc/*.yaml
-support/schemas/
-!fly.toml
+!.pr_agent.toml
 .github/*md
 .eslintcache
 .claude
 .rspec*
 .qodo
 .continuerc.json
+bin/bundle
+bin/rspec
+bin/rubocop
+etc/config*
+etc/*.yaml
+!fly.toml
+support/schemas/
 tsconfig.tsbuildinfo
 CLAUDE.md
 

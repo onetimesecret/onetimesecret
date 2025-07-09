@@ -51,10 +51,8 @@ module Manifold
 
       def robots_txt
         publically do
-          view                       = Manifold::Views::RobotsTxt.new req, sess, cust, locale
           sess.event_incr! :robots_txt
-          res.header['Content-Type'] = 'text/plain'
-          res.body                   = view.render
+          render_view(Manifold::Views::RobotsTxt)
         end
       end
     end

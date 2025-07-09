@@ -1,149 +1,362 @@
-# lib/onetime/services/frontend/frontend_context.rb
+# lib/onetime/services/ui/ui_context.rb
+
+require 'rhales'
 
 module Onetime
   module Services
-    module Manifold
-      # UIContext
-      #
-      # TODO: This serialization stuff is a real monkey's lunch. The whole concept
-      # of opting in to accessing only safe fields was one of the main drivers for
-      # the new two pronged static and dynamic config. There are still a couple
-      # fields from static_conf['] that we want to expose to the frontend but
-      # the entire dynamic_conf['user_interface'] can be accessed safely. There
-      # is a lot of defensive fussing going here and after all the initialization
-      # work to get the runtime settings all cool and nice, we can cash in on some
-      # of that sweetness here.
-      #
-      # This module is meant to be extended and not included. That's why
-      # template_vars takes the arguments it does instead of relying on
-      # instance variables and their attr_reader methods.
-      module UIContext
+    # UIContext extends Rhales::Context with OneTimeSecret-specific business logic
+    #
+    # This class contains the authoritative business logic ported from
+    # Core::Views::BaseView#initialize. It serves as the single source of truth
+    # for all template variables and OnetimeWindow data generation.
+    #
+    # Key responsibilities:
+    # - Customer authentication and plan information
+    # - Domain strategy and custom domain handling
+    # - Feature flags and configuration exposure
+    # - Internationalization settings
+    # - Site branding and UI configuration
+    # - Development and diagnostics settings
+    #
+    class UIContext < Rhales::Context
+      attr_reader :plan, :is_paid, :canonical_domain, :display_domain,
+        :domain_strategy, :domain_id, :domain_branding, :domain_logo, :custom_domain
 
-        # Define fields that are safe to expose to the frontend
-        # Explicitly excluding :secret and :authenticity which contain sensitive data
-        @safe_site_fields = [
-          :host, :ssl, :authentication
-        ].freeze
+      def initialize(req, sess = nil, cust = nil, locale_override = nil, props: {})
+        # Set up domain and customer information first
+        setup_domain_info(req)
+        setup_customer_info(req, sess, cust)
 
-        class << self
-          attr_reader :safe_site_fields
+        # Build the complete business data with OnetimeWindow structure
+        onetime_window         = build_onetime_window_data(req, sess, @cust, locale_override)
+        enhanced_props = props.merge(onetime_window: onetime_window)
+
+        # Call parent constructor with enhanced data
+        super(req, sess, @cust, locale_override, props: enhanced_props)
+      end
+
+      private
+
+      # Set up domain-related instance variables
+      def setup_domain_info(req)
+        return unless req
+
+        @canonical_domain = Onetime::DomainStrategy.canonical_domain
+        @domain_strategy  = req.env.fetch('onetime.domain_strategy', :default)
+        @display_domain   = req.env.fetch('onetime.display_domain', nil)
+
+        return unless @domain_strategy == :custom
+
+        @custom_domain   = V2::CustomDomain.from_display_domain(@display_domain)
+        @domain_id       = @custom_domain&.domainid
+        @domain_branding = (@custom_domain&.brand&.hgetall || {}).to_h
+        @domain_logo     = (@custom_domain&.logo&.hgetall || {}).to_h
+      end
+
+      # Set up customer and plan information
+      def setup_customer_info(req, sess, cust)
+        @cust         = cust || V2::Customer.anonymous
+        authenticated = sess && sess.authenticated? && !@cust.anonymous?
+        @is_authenticated = authenticated
+
+        # if authenticated
+        #   @plan = Onetime::Plan.plan(@cust.planid)
+        # end
+        # @plan  ||= Onetime::Plan.plan('anonymous')
+        # @is_paid = @plan.paid?
+      end
+
+      # Build complete OnetimeWindow data structure
+      # This is the authoritative business logic ported from Core::Views::BaseView#initialize
+      def build_onetime_window_data(req, sess, cust, locale_override)
+        # Return minimal defaults if OT.conf isn't loaded yet
+        return minimal_onetime_window(req, sess, cust, locale_override) unless defined?(OT) && OT.conf
+
+        locale      = determine_final_locale(req, locale_override)
+        site        = OT.conf.fetch('site', {})
+        development = OT.conf.fetch('development', {})
+
+        # Extract configuration sections
+        interface          = site.fetch('interface', {})
+        secret_options     = site.fetch('secret_options', {})
+        domains            = site.fetch('domains', {})
+        regions            = site.fetch('regions', {})
+        authentication     = site.fetch('authentication', {})
+        support_host       = site.dig('support', :host)
+        incoming_recipient = OT.conf.dig('incoming', :email)
+
+        # Frontend development settings
+        frontend_development = development['enabled'] || false
+        frontend_host        = development['frontend_host'] || 'plop'
+
+        # Authentication and customer state
+        authenticated   = sess && sess.authenticated? && !cust.anonymous?
+        domains_enabled = domains['enabled'] || false
+        regions_enabled = regions['enabled'] || false
+
+        # Get locale information
+        display_locale    = determine_display_locale(locale)
+        is_default_locale = display_locale == locale
+
+        # Get messages and shrimp
+        messages = sess&.get_messages || []
+        shrimp   = sess&.add_shrimp
+
+        # Build the complete jsvars structure (OnetimeWindow format)
+        jsvars = build_base_jsvars(req, interface, authentication, frontend_host, frontend_development)
+
+        # Add authentication-dependent data
+        add_authentication_data(jsvars, authenticated, cust, domains_enabled)
+
+        # Add configuration and feature flags
+        add_configuration_data(
+          jsvars,
+          site,
+          secret_options,
+          regions,
+          regions_enabled,
+          incoming_recipient,
+          support_host,
+        )
+
+        # Add locale and i18n data
+        add_locale_data(jsvars, display_locale, is_default_locale)
+
+        # Add diagnostics data
+        add_diagnostics_data(jsvars)
+
+        # Add domain and branding data
+        add_domain_data(jsvars)
+
+        # Add plan and version data
+        add_plan_and_version_data(jsvars)
+
+        # Add messages
+        jsvars[:messages] = messages
+
+        jsvars
+      end
+
+      # Determine the final locale to use
+      def determine_final_locale(req, locale_override)
+        if locale_override
+          locale_override
+        elsif req && req.env['ots.locale']
+          req.env['ots.locale']
+        else
+          OT.default_locale || 'en'
+        end
+      end
+
+      # Determine display locale (considering custom domain branding)
+      def determine_display_locale(locale)
+        if @domain_strategy == :custom && @domain_branding
+          domain_locale = @domain_branding.fetch('locale', nil)
+          return domain_locale if domain_locale
+        end
+        locale
+      end
+
+      # Build base jsvars with core settings
+      def build_base_jsvars(req, interface, authentication, frontend_host, frontend_development)
+        jsvars = {}
+
+        # Add the nonce if it exists
+        jsvars[:nonce] = req&.env&.fetch('ots.nonce', nil)
+
+        # Add global banner if present
+        jsvars[:global_banner] = '' # OT.global_banner if defined?(OT) && OT.respond_to?(:) &&OT.global_banner
+
+        # Add UI settings
+        jsvars[:ui] = interface[:ui]
+
+        # Authentication settings
+        jsvars[:authentication] = authentication
+
+        # Frontend settings
+        jsvars[:frontend_host]        = frontend_host
+        jsvars[:frontend_development] = frontend_development
+
+        jsvars
+      end
+
+      # Add authentication-dependent customer data
+      def add_authentication_data(jsvars, authenticated, cust, domains_enabled)
+        # Keys that should always exist (even if nil)
+        ensure_exist = [:domains_enabled, :custid, :cust, :email, :customer_since, :custom_domains]
+
+        jsvars[:domains_enabled] = domains_enabled
+        jsvars[:authenticated]   = authenticated
+
+        if authenticated && cust
+          jsvars[:custid]         = cust.custid
+          jsvars[:cust]           = cust.safe_dump
+          jsvars[:email]          = cust.email
+          jsvars[:customer_since] = epochdom(cust.created) if respond_to?(:epochdom)
+
+          # Custom domains for authenticated users
+          if domains_enabled
+            custom_domains          = cust.custom_domains_list.filter_map do |obj|
+              # Log unverified domains but allow them for now
+              if !obj.ready? && defined?(OT) && OT.respond_to?(:li)
+                OT.li "[custom_domains] Allowing unverified domain: #{obj.display_domain} (#{obj.verified}/#{obj.resolving})"
+              end
+              obj.display_domain
+            end
+            jsvars[:custom_domains] = custom_domains.sort
+          end
+        else
+          # Set ensure_exist keys to nil for unauthenticated users
+          ensure_exist.each do |key|
+            jsvars[key] = nil
+          end
+        end
+      end
+
+      # Add configuration and feature data
+      def add_configuration_data(jsvars, site, secret_options, regions, regions_enabled, incoming_recipient, support_host)
+        # Plans and pricing
+        jsvars[:plans_enabled] = site.dig('plans', 'enabled') || false
+
+        # Regions (only when enabled)
+        jsvars[:regions_enabled] = regions_enabled
+        jsvars[:regions]         = regions if regions_enabled
+
+        # Contact and support
+        jsvars[:incoming_recipient] = incoming_recipient
+        jsvars[:support_host]       = support_host
+        jsvars[:secret_options]     = secret_options
+
+        # Site host
+        jsvars[:site_host] = site[:host]
+      end
+
+      # Add locale and internationalization data
+      def add_locale_data(jsvars, display_locale, is_default_locale)
+        jsvars[:locale]            = display_locale
+        jsvars[:is_default_locale] = is_default_locale
+
+        return unless defined?(OT)
+
+        # TODO2: i18n configuration
+        jsvars[:default_locale]    = 'en' # OT.default_locale if OT.respond_to?(:default_locale)
+        jsvars[:fallback_locale]   = 'en' # OT.fallback_locale if OT.respond_to?(:fallback_locale)
+        jsvars[:supported_locales] = %w[en de_AT fr_CA fr_FR] # OT.supported_locales if OT.respond_to?(:supported_locales)
+        jsvars[:i18n_enabled]      = true # OT.i18n_enabled if OT.respond_to?(:i18n_enabled)
+      end
+
+      # Add diagnostics and monitoring data
+      def add_diagnostics_data(jsvars)
+        return unless defined?(OT) && OT.conf
+
+        # TODO2: diannostics config
+        sentry               = OT.conf.dig('diagnostics', :sentry) || {}
+        jsvars[:d9s_enabled] = false # OT.d9s_enabled if OT.respond_to?(:d9s_enabled)
+
+        return unless defined?(Onetime) && Onetime.respond_to?(:with_diagnostics)
+
+        Onetime.with_diagnostics do
+          config               = sentry.fetch('frontend', {})
+          jsvars[:diagnostics] = {
+            sentry: config,
+          }
+        end
+      end
+
+      # Add domain strategy and branding data
+      def add_domain_data(jsvars)
+        jsvars[:canonical_domain] = @canonical_domain
+        jsvars[:domain_strategy]  = @domain_strategy
+        jsvars[:domain_id]        = @domain_id
+        jsvars[:domain_branding]  = @domain_branding
+        jsvars[:domain_logo]      = @domain_logo
+        jsvars[:display_domain]   = @display_domain
+      end
+
+      # Add plan and version information
+      def add_plan_and_version_data(jsvars)
+        # Available plans
+        # if defined?(Onetime::Plan) && Onetime::Plan.respond_to?(:plans)
+        #   # plans                    = Onetime::Plan.plans.transform_values do |plan|
+        #   #   plan.safe_dump
+        #   # end
+        #
+        #   # Used only in src/stores/customerStore.ts
+        #   #
+        #   # jsvars[:available_plans] = plans
+        # end
+
+        # Current plan
+        # jsvars[:plan]           = @plan.safe_dump if @plan
+        jsvars[:is_paid]        = @is_paid || false
+
+        # Version information
+        if defined?(OT::VERSION)
+          jsvars[:ot_version] = OT::VERSION.inspect
         end
 
-        # Initialize core variables used throughout view rendering. These values
-        # are the source of truth for the values that they represent. Any other
-        # values that the serializers want can be derived from here.
-        #
-        # @param req [Rack::Request] Current request object
-        # @param sess [Session] Current session
-        # @param cust [Customer] Current customer
-        # @param locale [String] Current locale
-        # @param i18n_instance [I18n] Current I18n instance
-        # @return [Hash] Collection of initialized variables
-        # rubocop:disable Metrics/MethodLength
-        def template_vars(req, sess, cust, locale, i18n_instance)
-          # Return minimal defaults if OT.conf isn't loaded yet
-          return minimal_defaults(req, sess, cust, locale) unless OT.conf
+        if defined?(OT) && OT.respond_to?(:sysinfo)
+          jsvars[:ruby_version] = "#{OT.sysinfo.vm}-#{OT.sysinfo.ruby.join}"
+        end
+      end
 
-          # Extract the top-level keys from the YAML configuration.
-          #
-          # SECURITY: This implementation follows an opt-in approach for configuration filtering.
-          # We explicitly whitelist fields that are safe to share and filter nested sensitive data.
-          # This prevents accidental exposure of sensitive information to the frontend.
-          #
-          # Sensitive data types being protected:
-          # - Secret keys and credentials (:secret, nested :cluster, :colonels)
-          # - Authentication tokens (:authenticity)
-          # - Internal infrastructure details
-          #
-          site_config = OT.conf.fetch('site', {})
-          development = OT.conf.fetch('development', {})
-          diagnostics = OT.conf.fetch('diagnostics', {})
+      # Minimal fallback when OT.conf is not available
+      def minimal_onetime_window(req, sess, cust, locale)
+        {
+          authenticated: false,
+          cust: cust,
+          locale: locale || 'en',
+          messages: sess&.get_messages || [],
+          nonce: req&.env&.fetch('ots.nonce', nil),
+          site_host: nil,
+          frontend_host: '',
+          frontend_development: false,
+        }
+      end
 
-          user_interface = OT.conf['ui']
-          api            = OT.conf['api']
-          secret_options = OT.conf['secret_options']
-          features       = OT.conf['features']
+      # Get variable value with onetime_window prefix support
+      def resolve_variable(variable_path)
+        # Handle direct onetime_window reference
+        if variable_path == 'onetime_window'
+          return get('onetime_window')
+        end
 
-          # Populate a new hash with the site config settings that are safe
-          # to share with the front-end app (i.e. public).
-          #
-          # SECURITY: This is an opt-in approach that explicitly selects which
-          # configuration values to share with the frontend while protecting
-          # sensitive data. We copy only the whitelisted fields and then
-          # filter specific nested sensitive data from complex structures.
-          safe_site = UIContext.safe_site_fields.each_with_object({}) do |field_sym, hash|
-            field = field_sym.to_s
-            unless site_config.key?(field)
-              OT.ld "[view_vars] Site config is missing field: #{field}"
-              next
+        # Handle nested onetime_window paths like onetime_window.authenticated
+        if variable_path.start_with?('onetime_window.')
+          nested_path  = variable_path.sub('onetime_window.', '')
+          onetime_data = get('onetime_window')
+          return nil unless onetime_data.is_a?(Hash)
+
+          # Navigate nested path in onetime_window data
+          path_parts    = nested_path.split('.')
+          current_value = onetime_data
+
+          path_parts.each do |part|
+            case current_value
+            when Hash
+              current_value = current_value[part] || current_value[part.to_sym]
+            else
+              return nil
             end
-
-            # Previously we would deep copy here to prevent unintended mutations
-            # to the original config but the entire static config is now deep
-            # frozen before being made available.
-            hash[field] = site_config[field]
+            return nil if current_value.nil?
           end
 
-          # Extract values from session
-          messages      = sess.nil? ? [] : sess.get_messages
-          shrimp        = sess.nil? ? nil : sess.add_shrimp
-          authenticated = sess && sess.authenticated? && !cust.anonymous?
-
-          # Extract values from rack request object
-          nonce           = req.env.fetch('ots.nonce', nil) # TODO: Rename to onetime.nonce
-          domain_strategy = req.env.fetch('onetime.domain_strategy', :default)
-          display_domain  = req.env.fetch('onetime.display_domain', nil)
-
-          # HTML Tag vars. These are meant for the view templates themselves
-          # and not the onetime state window data passed on to the Vue app (
-          # although a serializer could still choose to include any of them).
-          description          = i18n_instance.dig(:COMMON, :description)
-          keywords             = i18n_instance.dig(:COMMON, :keywords)
-          page_title           = OT.conf.dig(:ui, :header, :branding, :site_name) || 'OneTimeSecret'
-          no_cache             = false
-          frontend_host        = development[:frontend_host]
-          frontend_development = development[:enabled]
-          script_element_id    = 'onetime-state'
-
-          # Return all view variables as a hash. Whatever is returned here
-          # is made available to the serializers as view_vars.
-          {
-            authenticated: authenticated,
-            cust: cust,
-            description: description,
-            development: development,
-            diagnostics: diagnostics,
-            display_domain: display_domain,
-            domain_strategy: domain_strategy,
-            frontend_development: frontend_development,
-            frontend_host: frontend_host,
-            incoming: nil,
-            keywords: keywords,
-            locale: locale,
-            messages: messages,
-            no_cache: no_cache,
-            nonce: nonce,
-            page_title: page_title,
-            script_element_id: script_element_id,
-            shrimp: shrimp,
-            site: safe_site,
-            user_interface: user_interface,
-            api: api,
-            secret_options: secret_options,
-            features: features,
-          }
+          return current_value
         end
-        # rubocop:enable Metrics/MethodLength
 
-        def minimal_defaults(_req, sess, cust, locale)
-          {
-            authenticated: false,
-            cust: cust,
-            locale: locale,
-            messages: sess&.get_messages || [],
-            no_cache: false,
-            site: {},
-          }
+        # Fall back to parent implementation
+        get(variable_path)
+      end
+
+      class << self
+        # Factory method matching Rhales::Context.for_view signature
+        def for_view(req, sess, cust, locale, **props)
+          new(req, sess, cust, locale, props: props)
+        end
+
+        # Factory method for minimal testing context
+        def minimal(props: {})
+          new(nil, nil, nil, 'en', props: props)
         end
       end
     end

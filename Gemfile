@@ -37,6 +37,7 @@ gem 'drydock'
 gem 'familia', '~> 1.2.0'
 gem 'gibbler'
 gem 'otto', '~> 1.1.0.pre.alpha4'
+gem 'rhales', '~> 0.3.0'
 gem 'storable'
 gem 'uri-redis', '~> 1.3.0'
 
@@ -65,7 +66,6 @@ gem 'base64'
 gem 'syslog', '~> 0.3.0'
 
 # As of Ruby 3.5, these are no longer in the standard library
-gem 'benchmark' # Used in tests
 gem 'fiddle'    # Fiddle library for handling dynamic libraries (required by reline)
 gem 'irb'       # IRB
 gem 'logger'    # Logger library for logging messages (required by truemail)
@@ -78,6 +78,10 @@ gem 'aws-sdk-sesv2', '~> 1.74'
 gem 'sendgrid-ruby'
 gem 'sentry-ruby', require: false
 gem 'stripe', require: false
+
+group :development, :test do
+  gem 'benchmark'
+end
 
 group :development do
   gem 'byebug', require: false
@@ -103,7 +107,7 @@ group :test do
   %w[rspec-core rspec-expectations rspec-mocks rspec-support].each do |lib|
     gem lib, git: 'https://github.com/rspec/rspec', glob: "#{lib}/#{lib}.gemspec"
   end
-  gem 'tryouts', require: false
+  gem 'tryouts', '~> 3.0.0', require: false
 end
 
 # Optional alternate server - install with: bundle install --with optional

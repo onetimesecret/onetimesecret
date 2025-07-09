@@ -46,8 +46,9 @@ default_install_hook_types:
 # Default execution stage
 default_stages: [pre-commit]
 
-# Terminate checks on first failure
-fail_fast: true
+# Allow all hooks to run even if one (or more fails). This avoids
+# the commit->fail->fix->commit->fail->fix->commit routine.
+fail_fast: false
 
 # Ignore generated and dependency directories
 exclude: '^$'
