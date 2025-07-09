@@ -40,11 +40,6 @@ GIT
   specs:
     rspec-support (3.14.0.pre)
 
-PATH
-  remote: /Users/d/Projects/opensource/onetime/rhales
-  specs:
-    rhales (0.2.0)
-
 GEM
   remote: https://rubygems.org/
   specs:
@@ -189,6 +184,7 @@ GEM
     reline (0.6.1)
       io-console (~> 0.5)
     rexml (3.4.1)
+    rhales (0.3.0)
     rubocop (1.76.1)
       json (~> 2.3)
       language_server-protocol (~> 3.17.0.2)
@@ -300,7 +296,7 @@ DEPENDENCIES
   rdoc
   redis (~> 5.4.0)
   reline
-  rhales!
+  rhales (~> 0.3.0)
   rspec!
   rspec-core!
   rspec-expectations!
