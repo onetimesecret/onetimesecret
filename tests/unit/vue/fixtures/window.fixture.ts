@@ -54,7 +54,7 @@ export const stateFixture: OnetimeWindow = {
   // },
   user_type: UserTypes.authenticated,
   is_paid: false,
-  default_planid: 'basic',
+  default_planid: 'anonymous',
   regions: {
     identifier: 'EU',
     enabled: true,

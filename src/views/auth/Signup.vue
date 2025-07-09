@@ -4,7 +4,6 @@
   import AlternateSignUpMethods from '@/components/auth/AlternateSignUpMethods.vue';
   import AuthView from '@/components/auth/AuthView.vue';
   import SignUpForm from '@/components/auth/SignUpForm.vue';
-  import { WindowService } from '@/services/window.service';
   import { useJurisdictionStore } from '@/stores/jurisdictionStore';
   import { useLanguageStore } from '@/stores/languageStore';
   import { storeToRefs } from 'pinia';
@@ -15,11 +14,9 @@
   const jurisdictionStore = useJurisdictionStore();
   const { getCurrentJurisdiction } = storeToRefs(jurisdictionStore);
 
-  const default_planid = WindowService.get('default_planid') ?? 'basic';
-
   const languageStore = useLanguageStore();
 
-  const currentPlanId = ref(default_planid);
+  const currentPlanId = ref('standard');
 
   const currentJurisdiction = computed(
     () =>
