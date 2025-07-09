@@ -126,6 +126,5 @@ export const stateFixture: OnetimeWindow = {
 
 // Export the window fixture with the new structure
 export const windowFixture = {
-  __ONETIME_STATE__: stateFixture,
+  onetime: stateFixture,
 } as unknown as Window;
-// } as OnetimeWindow & typeof globalThis;

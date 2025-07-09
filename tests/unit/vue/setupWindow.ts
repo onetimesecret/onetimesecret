@@ -13,9 +13,9 @@ export const windowMock = {
 export function setupWindowState(newState: Partial<OnetimeWindow> = {}) {
   // Start with the full fixture, then merge existing global state (if any), then new state.
   // This ensures all keys are present.
-  window.__ONETIME_STATE__ = {
+  (window as any).onetime = {
     ...stateFixture, // Base with all required fields
-    ...(window.__ONETIME_STATE__ || {}), // Merge existing state if any
+    ...((window as any).onetime || {}), // Merge existing state if any
     ...newState, // Override with the new partial state
   } as OnetimeWindow;
   return window;
@@ -30,8 +30,8 @@ export function setupEmptyWindowState() {
     locale: 'en',
   };
 
-  window.__ONETIME_STATE__ = minimalState as OnetimeWindow;
-  // console.debug('setupEmptyWindowState', window.__ONETIME_STATE__);
+  (window as any).onetime = minimalState as OnetimeWindow;
+  // console.debug('setupEmptyWindowState', (window as any).onetime);
   return window;
 }
 
