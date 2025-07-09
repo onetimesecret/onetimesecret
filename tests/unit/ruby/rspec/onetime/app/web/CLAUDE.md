@@ -1,97 +1,102 @@
 # Ruby Backend Testing Guidelines - Window State Generation
 
-## Critical Security Boundaries
+**PROCESSING NOTE**: Content up to "DETAILED SECTIONS INDEX" contains CRITICAL context for immediate testing decisions. Content below that section provides detailed reference material - consult only when specific implementation details are needed.
 
-### Sensitive Data Protection
-These configuration values must **NEVER** be exposed to the frontend:
+## 🚨 CRITICAL SECURITY BOUNDARIES - MUST NEVER BE EXPOSED
 
-#### Database & Infrastructure Secrets
+### FORBIDDEN Configuration Paths
 ```ruby
-# FORBIDDEN - Never expose these config paths:
-config.dig(:site, :secret)                    # Global secret key
-config.dig(:database, :password)              # Database password
-config.dig(:database, :url)                   # Full connection string
-config.dig(:redis, :password)                 # Redis password
-config.dig(:redis, :url)                      # Redis connection string
-config.dig(:mail, :smtp, :password)           # SMTP password
+# These secrets would compromise the entire system if exposed:
+config.dig(:site, :secret)            # Global secret key - encrypts all data
+config.dig(:database, :password)      # Database access
+config.dig(:redis, :password)         # Session store access
+config.dig(:stripe, :secret_key)      # Payment processing
+config.dig(:api, :admin_secret)       # Admin API access
+
+# SAFE to expose (designed for frontend):
+config.dig(:site, :host)              # Public domain
+config.dig(:stripe, :publishable_key) # Public Stripe key
+config.dig(:sentry, :dsn)             # Error tracking endpoint
 ```
 
-#### Payment & API Secrets
+## UIContext Generation Pipeline - Security Critical Path
+
+1. **Load Config** → 2. **Inject User Data** → 3. **FILTER SECRETS** → 4. **Serialize to JSON**
+
+### Authentication State - Core Security Context
 ```ruby
-# FORBIDDEN - Never expose these:
-config.dig(:stripe, :secret_key)              # Stripe secret key
-config.dig(:stripe, :webhook_secret)          # Stripe webhook secret
-config.dig(:sentry, :auth_token)              # Sentry auth token (not DSN)
-config.dig(:api, :admin_secret)               # Admin API secrets
-```
-
-#### Safe Configuration Exposure
-```ruby
-# SAFE - These can be exposed to frontend:
-config.dig(:site, :host)                      # Public site host
-config.dig(:sentry, :dsn)                     # Sentry DSN (public)
-config.dig(:stripe, :publishable_key)         # Stripe publishable key
-config.dig(:site, :authentication, :enabled)  # Feature flags
-```
-
-## UIContext Generation Logic
-
-### Data Transformation Pipeline
-The Ruby backend transforms configuration into UIContext through these steps:
-
-1. **Configuration Loading**: YAML → validated config hash
-2. **User Context Injection**: Database/session data → user-specific values
-3. **Security Filtering**: Remove sensitive data
-4. **Type Normalization**: Ensure JSON-safe types
-5. **Serialization**: Hash → JSON string → `<script>` tag
-
-### Critical Transformation Points
-
-#### Authentication State Logic
-```ruby
-# User authentication status drives many other fields
+# This determines what data the user can access:
 authenticated = session[:authenticated] || false
 custid = authenticated ? session[:custid] : nil
-cust = authenticated ? load_customer_data(custid) : anonymous_customer_stub
 
-# Anonymous customer stub structure:
-anonymous_customer_stub = {
-  identifier: 'anon',
-  custid: 'anon',
-  email: nil,
-  role: 'customer',
-  verified: nil,
-  active: false,
-  # ... other nil/default fields
+# Anonymous users get stub data only:
+cust = authenticated ? load_customer_data(custid) : {
+  identifier: 'anon', custid: 'anon', email: nil,
+  role: 'customer', active: false
 }
 ```
 
-#### Feature Flag Derivation
+### Essential Transformation Logic
 ```ruby
-# Feature flags often derived from config presence:
-d9s_enabled = config.dig(:diagnostics, :sentry, :dsn).present? &&
-              config.dig(:diagnostics, :sentry, :logErrors)
+# Feature flags derived from config + user state:
+d9s_enabled = config.dig(:diagnostics, :sentry, :dsn).present?
+plans_enabled = config.dig(:stripe, :publishable_key).present?
 
-domains_enabled = config.dig(:domains, :enabled) &&
-                  config.dig(:domains, :custom_domains).present?
-
-plans_enabled = config.dig(:plans).present? &&
-                config.dig(:stripe, :publishable_key).present?
-```
-
-#### Plan Information Logic
-```ruby
-# Plan information depends on user state:
-if authenticated && customer.plan_id.present?
-  plan = customer.current_plan.to_frontend_hash
-  available_plans = Plan.available_for_customer(customer).to_frontend_hash
-  is_paid = customer.paid_plan?
+# Plan access depends on authentication:
+if authenticated && customer.paid_plan?
+  plan = customer.current_plan  # Full plan details
 else
-  plan = Plan.anonymous.to_frontend_hash
-  available_plans = Plan.public_plans.to_frontend_hash
-  is_paid = false
+  plan = Plan.anonymous         # Limited features only
 end
 ```
+
+### Required Window Keys (Frontend Contract)
+```ruby
+REQUIRED_KEYS = %w[
+  authenticated custid cust                    # User context
+  authentication d9s_enabled plans_enabled     # Feature flags
+  site_host frontend_host                      # URLs
+  locale supported_locales                     # i18n
+  shrimp nonce                                 # Security tokens
+  plan is_paid available_plans                 # Subscription
+]
+```
+
+### Key Validation Areas
+1. **Security Filtering**: Verify NO forbidden paths reach frontend
+2. **Type Safety**: All values must be JSON-serializable
+3. **Structure Completeness**: All required keys present
+4. **Authentication Consistency**: User state matches data access
+
+### Critical Test Patterns
+```ruby
+# Test security boundaries:
+expect(window[:site_secret]).to be_nil  # Must never exist
+
+# Test authentication state:
+context 'anonymous user' do
+  expect(window[:authenticated]).to eq(false)
+  expect(window[:cust][:custid]).to eq('anon')
+end
+
+# Test feature derivation:
+expect(window[:plans_enabled]).to eq(
+  config.dig(:stripe, :publishable_key).present?
+)
+```
+
+---
+
+## 📑 DETAILED SECTIONS INDEX
+
+- **[Test Data Architecture](#test-data-architecture)**: Mock strategies and user state variations
+- **[Validation Requirements](#validation-requirements)**: Complete field lists and structure rules
+- **[Type Safety & Serialization](#type-safety--serialization)**: JSON compatibility and coercion
+- **[Branch Migration Guide](#branch-migration-guide)**: Old vs new system differences
+- **[Error Handling Patterns](#error-handling-patterns)**: Graceful degradation strategies
+- **[Debugging Guide](#debugging-guide)**: Common issues and solutions
+
+---
 
 ## Test Data Architecture
 
@@ -152,31 +157,46 @@ Tests must cover different user authentication states:
 }
 ```
 
-## Critical Validation Areas
+## Validation Requirements
 
-### Top-Level Key Completeness
-The test validates all required top-level keys that frontend expects:
-
+### Complete Top-Level Key List
 ```ruby
 REQUIRED_WINDOW_KEYS = %w[
+  # User Context
   authenticated custid cust email customer_since
+
+  # Feature Flags
   authentication d9s_enabled diagnostics domains domains_enabled
-  frontend_development frontend_host incoming_recipient plans_enabled
-  regions regions_enabled secret_options site_host support_host ui
+  plans_enabled regions regions_enabled
+
+  # URLs & Hosts
+  frontend_development frontend_host site_host support_host
+
+  # Domain Configuration
   canonical_domain custom_domains display_domain domain_branding
   domain_id domain_locale domain_logo domain_strategy
+
+  # Localization
   locale default_locale fallback_locale supported_locales i18n_enabled
-  ot_version ot_version_long ruby_version shrimp nonce
+
+  # System Info
+  ot_version ot_version_long ruby_version
+
+  # Security
+  shrimp nonce
+
+  # Plans
   plan is_paid default_planid available_plans
-  messages global_banner
+
+  # UI State
+  incoming_recipient secret_options ui messages global_banner
 ].freeze
 ```
 
-### Nested Object Structure Validation
+### Nested Object Structure Requirements
 
-#### Customer Object Requirements
+#### Customer Object (Complete Field List)
 ```ruby
-# Customer object must have consistent structure:
 customer_required_fields = %w[
   identifier custid email role verified last_login locale
   updated created stripe_customer_id stripe_subscription_id
@@ -185,143 +205,102 @@ customer_required_fields = %w[
 ]
 ```
 
-#### Authentication Object Requirements
+#### Authentication Object (All Booleans)
 ```ruby
-# Authentication must be complete boolean set:
 authentication_required_fields = %w[enabled signin signup autoverify]
-# All must be true/false, never nil
+# CRITICAL: All must be true/false, NEVER nil
 ```
 
-### Data Type Consistency Rules
+## Type Safety & Serialization
 
-#### Security Token Generation
+### Security Token Requirements
 ```ruby
-# CSRF token (shrimp) generation:
-# - Must be present and non-empty string
-# - Changes on each request
-# - Safe to expose (designed for frontend CSRF protection)
+# CSRF Token (shrimp):
+# - Non-empty string, changes per request
+# - Safe to expose (for CSRF protection)
 
-# CSP nonce generation:
-# - Must be present and non-empty string
-# - Unique per request
-# - Safe to expose (designed for CSP headers)
+# CSP Nonce:
+# - Non-empty string, unique per request
+# - Safe to expose (for Content Security Policy)
 ```
 
-#### Version Information Format
+### Version String Patterns
 ```ruby
-# Version strings must follow pattern:
-ot_version: /\A\d+\.\d+\.\d+\z/           # "0.22.3"
-ot_version_long: /\A\d+\.\d+\.\d+ \(.+\)\z/ # "0.22.3 (e16fe4ac)"
-ruby_version: /\Aruby-\d+\z/              # "ruby-341"
+ot_version: /\A\d+\.\d+\.\d+\z/              # "0.22.3"
+ot_version_long: /\A\d+\.\d+\.\d+ \(.+\)\z/  # "0.22.3 (e16fe4ac)"
+ruby_version: /\Aruby-\d+\z/                 # "ruby-341"
 ```
 
-### JSON Serialization Safety
-
-#### Type Coercion Rules
+### JSON Serialization Rules
 ```ruby
-# Ensure all data is JSON-safe:
-# - No Symbol keys (use string keys)
-# - No complex objects (serialize to hashes)
-# - No infinite recursion
-# - Handle nil vs false distinctions properly
+# Type Safety:
+# - NO Symbol keys → use String keys
+# - NO complex objects → serialize to Hash
+# - NO Time objects → use ISO 8601 strings
+# - Distinguish nil vs false correctly
 
-# Date/Time serialization:
-# - Always use ISO 8601 strings: "2024-01-01T00:00:00Z"
-# - Never serialize Time/DateTime objects directly
+# Date Format: "2024-01-01T00:00:00Z"
 ```
 
-## Branch Migration Considerations
+## Branch Migration Guide
 
-### Old System vs New System Differences
+### Key System Differences
 
-#### Configuration Loading Changes
-- **Old**: Simple YAML loading with minimal validation
-- **New**: Schema-based validation with two-stage processing
-- **Impact**: Config structure more consistent, but validation stricter
-
-#### UIContext Generation Changes
-- **Old**: Direct hash manipulation in view helpers
-- **New**: Structured UIContext class with transformation methods
-- **Impact**: More predictable data structure, easier to test
-
-#### Init Script Impact
-- **New System**: Init.d scripts can modify config before UIContext generation
-- **Testing**: Must account for config transformations during boot process
-- **Validation**: Test both pre-init and post-init config states
+| Component | Old System | New System | Testing Impact |
+|-----------|------------|------------|----------------|
+| Config Loading | Simple YAML | Schema-validated | Stricter validation |
+| UIContext | Hash manipulation | UIContext class | More predictable |
+| Init Scripts | Not supported | Modify config | Test pre/post states |
 
 ### Cross-Branch Testing Strategy
 
-#### Structure-Based Testing
-Focus on data structure rather than specific values:
 ```ruby
-# Good - tests structure
+# Test structure, not values:
 expect(ui_context[:authentication]).to be_a(Hash)
 expect(ui_context[:authentication]).to have_key(:enabled)
 
-# Avoid - tests specific values (may differ between branches)
-expect(ui_context[:site_host]).to eq('specific.domain.com')
-```
-
-#### Configuration Path Changes
-Some config paths may change between branches:
-```ruby
-# Old path: config[:site][:branding][:logo_url]
-# New path: config[:ui][:header][:branding][:logo][:url]
-
-# Tests should use helper methods to abstract path differences
+# Abstract path differences:
 def extract_logo_url(config)
-  # Try new path first, fall back to old path
-  config.dig(:ui, :header, :branding, :logo, :url) ||
-  config.dig(:site, :branding, :logo_url)
+  config.dig(:ui, :header, :branding, :logo, :url) ||    # New
+  config.dig(:site, :branding, :logo_url)                # Old
 end
 ```
 
 ## Error Handling Patterns
 
-### Configuration Missing/Invalid
+### Graceful Degradation Examples
 ```ruby
-# Graceful degradation for missing config sections:
-authentication_config = config.dig(:site, :authentication) || {}
+# Missing config sections:
+auth = config.dig(:site, :authentication) || {}
 ui_context[:authentication] = {
-  enabled: authentication_config[:enabled] || false,
-  signin: authentication_config[:signin] || false,
-  signup: authentication_config[:signup] || false,
-  autoverify: authentication_config[:autoverify] || false
+  enabled: auth[:enabled] || false,
+  signin: auth[:signin] || false,
+  signup: auth[:signup] || false,
+  autoverify: auth[:autoverify] || false
 }
+
+# Service failures:
+# Sentry missing → d9s_enabled: false
+# Stripe missing → plans_enabled: false
+# Redis down → anonymous session
+# Database down → anonymous customer stub
 ```
 
-### Database Connection Issues
+## Debugging Guide
+
+### Common Issues Checklist
+
+| Issue | Check These | Solution |
+|-------|-------------|----------|
+| Missing frontend property | 1. Backend generates it<br>2. Not filtered as secret<br>3. JSON serializable | Add to UIContext generation |
+| Type mismatch | Ruby → JSON → JS mapping | Use correct type coercion |
+| Authentication bugs | Session state consistency | Verify auth flow |
+| Performance | Database queries, memoization | Cache per request |
+
+### Type Conversion Reference
 ```ruby
-# When database unavailable:
-# - Customer data should fall back to anonymous
-# - Plan data should use defaults
-# - No database-dependent fields should cause crashes
+Ruby nil    → JSON null  → JavaScript null
+Ruby false  → JSON false → JavaScript false
+Ruby Symbol → JSON error → Convert to String first
+Ruby Time   → JSON error → Use ISO 8601 string
 ```
-
-### Service Failures
-```ruby
-# When external services fail:
-# - Sentry DSN missing → d9s_enabled: false
-# - Stripe keys missing → plans_enabled: false
-# - Redis unavailable → sessions fall back to anonymous
-```
-
-## Debugging Common Issues
-
-### Missing Frontend Properties
-1. Check if Ruby backend generates the property
-2. Verify security filtering doesn't remove it
-3. Confirm JSON serialization doesn't break it
-4. Test with different user authentication states
-
-### Type Mismatches
-1. Ruby nil → JSON null → JavaScript null
-2. Ruby false → JSON false → JavaScript false
-3. Ruby Symbol → JSON string → JavaScript string
-4. Empty arrays vs nil handling
-
-### Performance Considerations
-1. UIContext generation happens on every page load
-2. Database queries should be minimal and cached
-3. Configuration should be memoized per request
-4. Large plan/jurisdiction data should be paginated

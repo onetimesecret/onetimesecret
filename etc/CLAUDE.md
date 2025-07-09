@@ -1,250 +1,417 @@
+# Configuration System Reference - OneTimeSecret
 
-# NEW CONFIGURATION SYSTEM ANALYSIS
+**PROCESSING NOTE**: Content up to "Schema Structure Deep Dive" section contains CRITICAL context for immediate decisions. Content below that section provides detailed reference material - consult only when specific implementation details are needed.
 
-## Overview of New Configuration Architecture
 
-The new configuration system represents a fundamental shift from a simple YAML-based approach to a sophisticated, schema-validated, two-stage validation system with service-based architecture. This analysis covers the critical components and testing implications for the JSON payload structure and window property injection.
+## 🚨 CRITICAL: Schema Validation & Security Boundaries
 
-## Key Components
+### Schema-Based Validation System
+OneTimeSecret uses a **two-stage validation pattern** for configuration:
 
-### 1. Configurator Class (`lib/onetime/configurator.rb`)
+1. **Stage 1: Schema Validation** (Declarative)
+   - JSON Schema defines structure, types, and defaults
+   - Located at `etc/schemas/config.schema.json`
+   - Validates YAML structure before any processing
+   - Applies default values automatically
 
-**Core Pipeline**: ENV normalize → Read → ERB → YAML → Validate → Process → Revalidate → Freeze
+2. **Stage 2: Business Processing** (Imperative)
+   - Init.d scripts modify config for business logic
+   - Located in `etc/init.d/*.rb`
+   - Runs AFTER schema validation, BEFORE final freeze
+   - Handles dynamic values, security checks, feature flags
 
-**Two-Stage Validation Pattern:**
-- Stage 1: Schema validation with defaults (declarative)
-- Stage 2: Business processing (imperative)
-- Stage 3: Re-validation to ensure processing didn't break schema
+### Security-Critical Configuration Paths
 
-**Critical Features:**
-- Uses JSONSchemer for schema validation
-- Supports ERB templating in YAML configuration
-- Applies defaults during initial validation
-- Tracks configuration changes at each pipeline stage using `then_with_diff`
-- Deep freezes final configuration to prevent runtime mutations
+#### FORBIDDEN - Never Expose to Frontend
+```yaml
+site.secret: "CHANGEME"          # Global encryption key
+storage.db.connection.url        # Redis credentials
+mail.connection.pass             # SMTP password
+```
 
-### 2. Boot Orchestration (`lib/onetime/boot.rb`)
+#### Init.d Script Security Example (`etc/init.d/site.rb`)
+```ruby
+# CRITICAL: Global secret validation
+global_secret = config.fetch('secret', nil)
+global_secret = nil if global_secret.to_s.strip == 'CHANGEME'
 
-**Initialization Sequence:**
-1. Load configuration via Configurator
-2. Run init.d scripts during processing hook (config still mutable)
-3. Start system services after config freeze
-4. Create ConfigProxy for application-wide access
+if global_secret.nil? && !allow_nil
+  abort 'Global secret cannot be nil - set SECRET env var or site.secret in config'
+end
 
-**Key Security Feature:**
-- Configuration becomes immutable after processing hook
-- Init scripts run with mutable config, services run with frozen config
-- Graceful error handling with mode-specific behavior
+# Store in state, NOT in config that goes to frontend
+OT.state['global_secret'] = global_secret
+```
 
-### 3. Init.d Script System (`etc/init.d/`)
+### Config-to-Frontend Data Flow
 
-**Section-Based Processing:**
-- One script per top-level config section (e.g., `site.rb` for `site:` section)
-- Scripts execute during mutable phase, can modify their section's config
-- Context provides access to `config` (mutable) and `global` (immutable snapshot)
-- Security validation (e.g., `site.rb` checks for nil global secret)
+```
+YAML → ERB → Configurator → Init Scripts → UIContext → JSON → window.onetime
+  ↓      ↓        ↓             ↓            ↓         ↓          ↓
+Disk  Template  Schema     Business    Security   Browser    Vue.js
+      Render   Validate    Processing  Filter    Injection  Access
+```
 
-**Script Context (`lib/onetime/boot/init_script_context.rb`):**
-- Provides controlled access to configuration sections
-- Includes helper methods for logging and debugging
-- Enforces string-based access patterns for consistency
+**Security Boundary**: UIContext filters ALL sensitive data before frontend exposure
 
-### 4. Service Registry & Config Proxy (`lib/onetime/services/`)
+## 📋 Init.d Script System - Dynamic Configuration
 
-**ServiceRegistry (`service_registry.rb`):**
-- Thread-safe configuration and service state management
-- Uses Concurrent::Map for safe multi-threaded access
-- Provides hot-reload capability for configuration changes
+### Purpose & Execution Order
+Init.d scripts modify configuration during boot, similar to Unix init scripts:
 
-**ConfigProxy (`config_proxy.rb`):**
-- Unified access to static (YAML) and dynamic (Redis) configuration
-- Automatic fallback to static config when dynamic unavailable
-- Supports nested configuration access via `dig` method
-- Available globally as `OT.conf`
+1. Scripts correspond to top-level config sections (e.g., `site.rb` → `site:` config)
+2. Execute during config processing phase with mutable config
+3. Run BEFORE config is frozen
+4. Can access other sections via `global` (read-only) and modify own section via `config`
 
-**RuntimeConfigService (`system/runtime_config_service.rb`):**
-- Merges static YAML config with dynamic MutableConfig from Redis
-- Provides unified configuration view across application
-- Handles Redis connectivity gracefully
+### Available Variables in Scripts
+```ruby
+global  # Complete frozen config (all sections) - READ ONLY
+config  # Mutable config for THIS section only - READ/WRITE
 
-### 5. Schema Validation (`etc/-config.schema.yaml`)
+# Example from site.rb:
+allow_nil = global.dig('experimental', 'allow_nil_global_secret')
+config['authentication']['enabled'] = false  # Modify current section
+```
 
-**JSON Schema 2020-12 Specification:**
-- Comprehensive validation for all configuration sections
-- Default value injection during validation
-- Type coercion (symbols to strings for backward compatibility)
-- Structured error reporting with path information
+### Common Init.d Patterns
 
-**Validation Utilities (`lib/onetime/configurator/utils.rb`):**
-- Format validation errors into user-friendly messages
-- Extract problematic paths for debugging
-- Apply defaults to configuration peers
-- Symbol-to-string coercion for YAML compatibility
+#### Feature Flag Derivation
+```ruby
+# diagnostics.rb - Derive d9s_enabled from config presence
+has_dsn = config.dig('sentry', 'dsn').present?
+logging = config.dig('sentry', 'logErrors')
+OT.state['d9s_enabled'] = has_dsn && logging
+```
 
-### 6. Frontend Data Injection
+#### Authentication Consistency
+```ruby
+# site.rb - Disable sub-features when main feature is off
+if config.dig('authentication', 'enabled') != true
+  config['authentication'].each_key do |key|
+    config['authentication'][key] = false
+  end
+end
+```
 
-**Window Property System:**
-- Configuration data flows through UIContext to frontend
-- Data injected via `<data window="onetime">` tags in Rhales templates
-- TypeScript definitions in `src/types/declarations/window.d.ts`
-- Accessed via `WindowService.get()` with type safety
+## 🔄 Configuration Pipeline Details
 
-**UIContext (`lib/onetime/services/ui/ui_context.rb`):**
-- Authoritative source for all frontend data
-- Builds complete `onetime_window` data structure
-- Handles authentication, branding, localization, diagnostics
-- Provides structured access to merged configuration
+### 1. Environment Variable Normalization
+```ruby
+# ENV vars override config values
+ONETIME_SITE_HOST=example.com → site.host: "example.com"
+ONETIME_SITE_SSL=true → site.ssl: true
+```
 
-## Critical Testing Implications
+### 2. ERB Template Processing
+```erb
+# config.yaml can use ERB for dynamic values
+site:
+  host: <%= ENV.fetch('SITE_HOST', 'localhost:3000') %>
+  secret: <%= ENV['SECRET'] || SecureRandom.hex(32) %>
+```
 
-### 1. Configuration Validation Testing
+### 3. Schema Validation with Defaults
+```json
+// config.schema.json snippet
+"host": {
+  "default": "localhost:3000",
+  "type": "string"
+}
+```
 
-**Schema Validation:**
-- Test all configuration sections against schema
-- Verify default value injection works correctly
-- Test type coercion (symbols to strings)
-- Validate error reporting includes correct paths
+### 4. Init Script Processing
+Each section's init script runs with access to:
+- Frozen complete config (`global`)
+- Mutable section config (`config`)
+- Boot context (mode, instance info)
 
-**Two-Stage Validation:**
-- Test that initial validation applies defaults
-- Verify processing hook can modify configuration
-- Ensure re-validation catches processing errors
-- Test deep freezing prevents runtime mutations
+### 5. Final Validation & Deep Freeze
+- Re-validate against schema after init scripts
+- Deep freeze entire configuration
+- Configuration becomes immutable
 
-### 2. Init Script Testing
+## 🎯 Configuration Sections Quick Reference
 
-**Script Execution:**
-- Test each init.d script with various configuration states
-- Verify mutable vs immutable access patterns
-- Test error handling and graceful degradation
-- Validate security checks (e.g., nil global secret handling)
+### Core Sections with Init Scripts
+- **site.rb**: Authentication, secret validation, colonels management
+- **storage.rb**: Database connections, Redis configuration
+- **mail.rb**: Email validation, SMTP settings
+- **logging.rb**: HTTP request logging configuration
+- **i18n.rb**: Locale settings, translation paths
+- **diagnostics.rb**: Sentry integration, error tracking
+- **experimental.rb**: Feature flags, A/B testing
 
-**Context Access:**
-- Test string-based configuration access
-- Verify global vs config scope isolation
-- Test helper methods (logging, debugging)
-- Validate script failure handling
+### Key Configuration Patterns
 
-### 3. Service Registry Testing
+#### Capabilities System
+```yaml
+capabilities:
+  anonymous:
+    api: false
+    email: false
+    custom_domains: false
+  authenticated:
+    api: true
+    email: true
+    custom_domains: false
+```
 
-**Thread Safety:**
-- Test concurrent access to configuration state
-- Verify Concurrent::Map behavior under load
-- Test hot-reload functionality
-- Validate service provider registration/deregistration
+#### Feature Flags
+```yaml
+features:
+  domains:
+    enabled: true
+  regions:
+    enabled: false
+```
 
-**State Management:**
-- Test static vs dynamic configuration merging
-- Verify fallback behavior when Redis unavailable
-- Test configuration refresh mechanisms
-- Validate service health checking
+---
 
-### 4. Frontend Data Injection Testing
+## 📑 Schema Structure Deep Dive (Detailed Reference)
 
-**Window Property Structure:**
-- Test complete onetime_window data structure
-- Verify type safety in TypeScript definitions
-- Test data serialization/deserialization
-- Validate CSP compliance with nonce handling
+### Schema Organization
+The configuration schema (`etc/schemas/config.schema.json`) is a JSON Schema (draft 2020-12) that defines:
+- Required top-level sections
+- Type constraints for each field
+- Default values
+- Validation patterns (e.g., email format)
+- Conditional requirements
 
-**UIContext Data Flow:**
-- Test authentication-dependent data injection
-- Verify domain strategy and branding handling
-- Test localization data structure
-- Validate diagnostics configuration exposure
+### Key Schema Features
 
-### 5. Error Handling Testing
+#### Default Value Application
+```json
+"site": {
+  "properties": {
+    "host": {
+      "default": "localhost:3000",
+      "type": "string"
+    }
+  }
+}
+```
+If `site.host` is not specified in YAML, the default is applied during validation.
 
-**Structured Error Classes:**
-- Test ConfigValidationError with paths and messages
-- Verify error propagation through pipeline
-- Test graceful degradation in different modes
-- Validate error logging and debugging output
+#### Pattern Validation
+```json
+"email": {
+  "type": "string",
+  "format": "email",
+  "pattern": "^(?!\\.)(?!.*\\.\\.)([A-Za-z0-9_'+\\-\\.]*)[A-Za-z0-9_+-]@([A-Za-z0-9][A-Za-z0-9\\-]*\\.)+[A-Za-z]{2,}$"
+}
+```
 
-**Boot Error Handling:**
-- Test different error types during boot
-- Verify mode-specific error handling (app vs cli vs test)
-- Test exit vs raise behavior
-- Validate error reporting completeness
+#### Enum Constraints
+```json
+"capabilities": {
+  "propertyNames": {
+    "enum": ["anonymous", "authenticated", "standard", "enhanced"]
+  }
+}
+```
 
-## Security Considerations
+## 📂 Init.d Script Examples
 
-### 1. Configuration Security
+### Complete `site.rb` Walkthrough
+```ruby
+# 1. Access other sections via 'global'
+allow_nil = global.dig('experimental', 'allow_nil_global_secret') || false
 
-**Secret Management:**
-- Global secret validation and nil checks
-- Rotated secrets support in experimental section
-- Environment variable-based secret injection
-- Secure defaults for all security-related settings
+# 2. Validate critical security settings
+global_secret = config.fetch('secret', nil)
+global_secret = nil if global_secret.to_s.strip == 'CHANGEME'
 
-**Input Validation:**
-- Schema-based validation prevents malformed input
-- Type coercion prevents injection attacks
-- Path validation in error reporting
-- Sanitization of user-provided configuration
+# 3. Abort on security violations
+if global_secret.nil? && !allow_nil && !OT.mode?(:cli)
+  abort 'Global secret cannot be nil - set SECRET env var or site.secret in config'
+end
 
-### 2. Frontend Security
+# 4. Store sensitive data in state (not config)
+OT.state['global_secret'] = global_secret
 
-**CSP Compliance:**
-- Nonce-based script execution
-- Type-safe window property access
-- Structured data injection prevents XSS
-- Validation of frontend-bound data
+# 5. Enforce consistency rules
+if config.dig('authentication', 'enabled') != true
+  config['authentication'].each_key do |key|
+    config['authentication'][key] = false
+  end
+end
 
-**Data Exposure:**
-- Controlled exposure of configuration to frontend
-- Filtering of sensitive backend configuration
-- Authentication-dependent data access
-- Secure handling of diagnostic information
+# 6. Handle legacy config migration
+legacy_colonels = config.fetch('colonels', [])
+modern_colonels = config.dig('authentication', 'colonels') || []
+config['authentication']['colonels'] = (modern_colonels + legacy_colonels).compact.uniq
+```
 
-## Differences from Old System
+### State vs Config Storage
+- **Config**: Data that can be exposed to frontend (after filtering)
+- **State**: Sensitive runtime data that must NEVER reach frontend
 
-### 1. Configuration Loading
+```ruby
+# WRONG - Exposes secret to frontend
+config['secret'] = generate_secret()
 
-**Old System:**
-- Simple YAML loading with minimal validation
-- Direct access to configuration hash
-- No schema validation or type checking
-- Limited error handling
+# RIGHT - Keeps secret in backend-only state
+OT.state['secret'] = generate_secret()
+```
 
-**New System:**
-- Multi-stage pipeline with validation
-- Schema-driven defaults and type safety
-- Structured error reporting
-- Comprehensive validation at multiple stages
+## 🔐 UIContext & Frontend Integration
 
-### 2. Service Architecture
+### UIContext Class Structure
+The `UIContext` class (`lib/onetime/services/ui/ui_context.rb`) is responsible for:
+1. Loading configuration
+2. Merging with user session data
+3. Filtering sensitive information
+4. Generating `window.onetime` data
 
-**Old System:**
-- Direct configuration access throughout codebase
-- No service registry or provider pattern
-- Limited hot-reload capability
-- Monolithic configuration handling
+### Data Transformation Pipeline
+```ruby
+def build_onetime_window_data(req, sess, cust, locale_override)
+  # 1. Extract safe config sections
+  site = OT.conf.fetch('site', {})
 
-**New System:**
-- Service-based architecture with registry
-- Provider pattern for system services
-- Hot-reload capability with graceful fallback
-- Separation of concerns between configuration and services
+  # 2. Apply security filters
+  authentication = site.fetch('authentication', {})
+  # Never include: site['secret']
 
-### 3. Frontend Integration
+  # 3. Derive feature flags
+  jsvars[:d9s_enabled] = diagnostics_enabled?
 
-**Old System:**
-- Manual data preparation in view classes
-- Limited type safety
-- Direct configuration exposure
-- Minimal structure validation
+  # 4. Add user-specific data
+  if authenticated
+    jsvars[:custid] = cust.custid
+    jsvars[:email] = cust.email
+  end
 
-**New System:**
-- Structured UIContext with business logic
-- Full TypeScript integration
-- Controlled data exposure
-- Comprehensive data validation
+  # 5. Return filtered data
+  jsvars
+end
+```
 
-This new system provides significantly better testability, security, and maintainability while supporting complex deployment scenarios and dynamic configuration management.
+### Security Filtering Implementation
+```ruby
+# UIContext never accesses these paths:
+FORBIDDEN_PATHS = [
+  [:site, :secret],
+  [:storage, :db, :connection, :url],
+  [:mail, :connection, :pass]
+]
+```
 
-# important-instruction-reminders
-Do what has been asked; nothing more, nothing less.
-NEVER create files unless they're absolutely necessary for achieving your goal.
-ALWAYS prefer editing an existing file to creating a new one.
-NEVER proactively create documentation files (*.md) or README files. Only create documentation files if explicitly requested by the User.
+## 🧪 Testing & Validation Patterns
+
+### Configuration Test Patterns
+```ruby
+RSpec.describe 'Configuration validation' do
+  it 'applies schema defaults' do
+    config = Onetime::Configurator.new.load!
+    expect(config[:site][:host]).to eq('localhost:3000')
+  end
+
+  it 'validates required fields' do
+    expect {
+      Onetime::Configurator.new(config_path: 'invalid.yaml').load!
+    }.to raise_error(OT::ConfigValidationError)
+  end
+end
+```
+
+### Init Script Testing
+```ruby
+RSpec.describe 'Init script processing' do
+  it 'modifies config during boot' do
+    config = load_config_with_init_scripts
+
+    # Test that authentication sub-features are disabled
+    expect(config[:site][:authentication][:enabled]).to eq(false)
+    expect(config[:site][:authentication][:signin]).to eq(false)
+  end
+end
+```
+
+### Integration Test Example
+```ruby
+it 'filters sensitive data from UIContext' do
+  ui_context = UIContext.new(req, sess, cust)
+  window_data = ui_context.to_frontend_json
+
+  # Verify secrets are filtered
+  expect(window_data).not_to include('secret')
+  expect(window_data).not_to include('password')
+end
+```
+
+## 🔧 Troubleshooting Guide
+
+### Common Configuration Errors
+
+#### 1. Schema Validation Failures
+```
+Error: Configuration validation failed: site.host: type mismatch
+```
+**Solution**: Check data types match schema expectations
+
+#### 2. Missing Required Fields
+```
+Error: Required field 'site.secret' not found
+```
+**Solution**: Ensure all required fields are present or have ENV overrides
+
+#### 3. Init Script Failures
+```
+Error: Init script site.rb failed: undefined method
+```
+**Solution**: Check Ruby syntax and available methods in init context
+
+### Debug Techniques
+
+#### Enable Verbose Logging
+```bash
+ONETIME_DEBUG=1 bundle exec app
+```
+
+#### Inspect Processed Config
+```ruby
+# In console
+pp OT.conf.to_h
+```
+
+#### Trace Init Script Execution
+```ruby
+# Add to init script
+OT.info "[init] Processing #{config.keys}"
+```
+
+### Migration from Old Config Format
+
+#### Old Format
+```yaml
+:site:
+  :secret: <%= ENV['SECRET'] %>
+  :host: localhost:3000
+```
+
+#### New Format
+```yaml
+site:
+  secret: <%= ENV['SECRET'] %>
+  host: localhost:3000
+```
+
+**Key Changes**:
+- No leading colons on keys
+- Proper YAML syntax (not Ruby hash syntax)
+- Schema validation enforced
+
+### Performance Considerations
+
+#### Configuration Loading
+- Schema validation adds ~50ms to boot time
+- Init scripts add ~10ms per script
+- Deep freeze adds ~5ms
+
+#### Optimization Tips
+1. Minimize ERB template usage
+2. Keep init scripts focused
+3. Cache configuration in development
+4. Use schema defaults instead of init script defaults

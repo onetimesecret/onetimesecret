@@ -1,84 +1,109 @@
 # Integration Testing Guidelines - Config to Frontend Data Flow
 
-## End-to-End Data Boundary Validation
+**PROCESSING NOTE**: Content up to "Quick Reference Index" contains CRITICAL context for immediate testing decisions. Content below "Detailed Implementation Guidelines" provides detailed reference material - consult only when specific implementation details are needed.
 
-### Critical Integration Points
+## CRITICAL: End-to-End Data Flow Security
 
-#### Configuration → UIContext → Window State Flow
+### Security Boundary Rules (MUST VERIFY)
 ```
 YAML Config → Configurator → Init Scripts → UIContext → JSON → window.onetime
      ↓              ↓            ↓          ↓         ↓         ↓
-  Schema         Boot         Section    Security   Browser   Vue
-Validation    Processing   Processing  Filtering  Parsing   Access
+  Secrets       Process       Filter    SECURITY   Browser   Type-safe
+  Present      & Derive     Sections   BOUNDARY   Parsing     Access
 ```
 
-### Security Boundary Testing
-
-#### Data Transformation Safety
-At each stage, sensitive data must be filtered:
-
-1. **Config Stage**: Secrets present for app functionality
-2. **UIContext Stage**: Secrets removed, only safe data flows through
-3. **JSON Stage**: Serialization-safe types only
-4. **Window Stage**: Frontend-safe data structure
-5. **Vue Stage**: Type-safe access through WindowService
-
-#### Cross-Boundary Validation Rules
+**CRITICAL VALIDATION**: At UIContext stage, ALL sensitive data MUST be filtered:
 ```ruby
-# Integration test must verify:
-sensitive_keys = %w[database_password redis_password stripe_secret_key mail_password global_secret]
+# These keys MUST exist in config but NEVER appear in UIContext/JSON/window:
+SENSITIVE_KEYS = %w[
+  database_password redis_password stripe_secret_key mail_password global_secret
+  aws_secret_key stripe_webhook_secret sentry_server_dsn jwt_secret
+]
 
-# 1. Sensitive keys present in config (for app function)
-sensitive_keys.each do |key|
-  expect(config_contains_path?(config, key)).to be_true, "Config missing #{key}"
+# Integration test MUST verify each boundary:
+SENSITIVE_KEYS.each do |key|
+  expect(config_contains_path?(config, key)).to be_true    # Present in config
+  expect(ui_context.to_s).not_to include(key)             # NOT in UIContext
+  expect(JSON.generate(ui_context)).not_to include(key)   # NOT in JSON
 end
+```
 
-# 2. Sensitive keys NOT in UIContext (security boundary)
-sensitive_keys.each do |key|
-  expect(ui_context_contains_key?(ui_context, key)).to be_false, "UIContext exposes #{key}"
-end
+### Cross-Boundary Validation Rules
 
-# 3. Sensitive keys NOT in JSON (serialization safety)
+#### 1. Feature Flag Consistency (CRITICAL)
+Feature flags MUST be derived consistently from config values:
+```ruby
+# d9s_enabled = Sentry DSN present AND logging enabled
+dsn_present = config.dig(:diagnostics, :sentry, :dsn).present?
+logging_on = config.dig(:diagnostics, :sentry, :logErrors) == true
+expect(ui_context[:d9s_enabled]).to eq(dsn_present && logging_on)
+
+# domains_enabled = domains.enabled AND custom_domains present
+domains_on = config.dig(:domains, :enabled) == true
+has_domains = config.dig(:domains, :custom_domains).present?
+expect(ui_context[:domains_enabled]).to eq(domains_on && has_domains)
+```
+
+#### 2. JSON Serialization Safety (CRITICAL)
+ALL data MUST survive JSON round-trip without type corruption:
+```ruby
 json_string = JSON.generate(ui_context)
-sensitive_keys.each do |key|
-  expect(json_string).not_to include(key), "JSON contains sensitive #{key}"
+parsed = JSON.parse(json_string)
+
+# Booleans MUST remain booleans (not strings/nil)
+%w[authenticated d9s_enabled domains_enabled].each do |field|
+  expect(parsed[field]).to be_in([true, false])
 end
+
+# Numbers MUST remain numbers (not strings)
+expect(parsed.dig('secret_options', 'default_ttl')).to be_a(Numeric)
+
+# Arrays MUST remain arrays (not nil/strings)
+expect(parsed['supported_locales']).to be_a(Array)
 ```
 
-### Configuration Consistency Validation
-
-#### Feature Flag Derivation Logic
-Integration tests must verify feature flags are consistently derived:
-
+#### 3. Authentication State Validation (CRITICAL)
+Authentication config MUST flow consistently to frontend:
 ```ruby
-# d9s_enabled logic consistency:
-sentry_configured = config.dig(:diagnostics, :sentry, :dsn).present?
-sentry_logging = config.dig(:diagnostics, :sentry, :logErrors)
-expected_d9s = sentry_configured && sentry_logging
-
-expect(ui_context[:d9s_enabled]).to eq(expected_d9s),
-  "d9s_enabled derivation inconsistent with config"
-
-# domains_enabled logic consistency:
-domains_config = config.dig(:domains, :enabled)
-custom_domains = config.dig(:domains, :custom_domains).present?
-expected_domains = domains_config && custom_domains
-
-expect(ui_context[:domains_enabled]).to eq(expected_domains),
-  "domains_enabled derivation inconsistent with config"
-```
-
-#### Authentication Flow Consistency
-```ruby
-# Authentication configuration must flow through correctly:
+# Config values MUST match UIContext exactly
 auth_config = config.dig(:site, :authentication)
 ui_auth = ui_context[:authentication]
 
 %w[enabled signin signup autoverify].each do |field|
-  expect(ui_auth[field.to_sym]).to eq(auth_config[field.to_sym]),
-    "Authentication #{field} inconsistent between config and UI context"
+  expect(ui_auth[field.to_sym]).to eq(auth_config[field.to_sym])
+end
+
+# User state MUST be complete and type-safe
+if session_exists?
+  expect(ui_context[:authenticated]).to eq(true)
+  expect(ui_context[:custid]).to match(/^[a-z0-9]{24}$/)
+  expect(ui_context[:email]).to match(/@/)
+else
+  expect(ui_context[:authenticated]).to eq(false)
+  expect(ui_context[:custid]).to be_nil
+  expect(ui_context[:email]).to be_nil
 end
 ```
+
+## Quick Reference Index
+
+### Detailed Sections Below:
+- **User State Variations** (Line 106): Anonymous vs Authenticated user contexts
+- **JSON Serialization Details** (Line 146): Type preservation and safety checks
+- **Cross-Branch Compatibility** (Line 191): Migration and version-agnostic helpers
+- **Performance Testing** (Line 247): UIContext generation benchmarks
+- **Error Condition Handling** (Line 277): Graceful degradation scenarios
+- **Maintenance Guidelines** (Line 306): Adding new fields and debugging
+
+### Key Test Helpers:
+- `test_json_serialization_safety()` - Validates type preservation
+- `extract_authentication_config()` - Cross-version config extraction
+- `validate_ui_context_structure()` - Version-agnostic validation
+- `test_ui_context_generation_performance()` - Performance benchmarks
+
+---
+
+## Detailed Implementation Guidelines
 
 ### User State Variations
 
@@ -120,7 +145,7 @@ required_authenticated_fields.each do |field, expected_value|
 end
 ```
 
-### JSON Serialization Integration
+### JSON Serialization Details
 
 #### Type Safety Through Serialization
 ```ruby

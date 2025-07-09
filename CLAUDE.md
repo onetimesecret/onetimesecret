@@ -1,103 +1,66 @@
 # CLAUDE.md - Agent Guidelines for OneTimeSecret
 
-BE CONCISE. Remember this is currently a one-person project. All scope needs to consider: I can only do one thing at a time -- is this important to spend time on? To spend time on now?
+BE CONCISE. One-person project: focus on what's important NOW.
 
-## Common Commands
+**PROCESSING NOTE**: Lines 1-56 contain CRITICAL context for immediate decisions. Lines 57+ provide detailed reference material - consult only when specific details are needed.
 
-NOTE: Assume the dev server is already up and running locally at http://localhost:5173/dist
+## Essential Commands
+- Dev: `pnpm dev` (local: `pnpm dev:local`)
+- Build: `pnpm build` (dev: `pnpm build:local`)
+- Test: `pnpm test` (Ruby: `pnpm rspec`, E2E: `pnpm playwright`)
+- Validate: `pnpm lint`, `pnpm type-check`
+- Git: `gh issue view [number]`, `gh pr create`
 
-- Dev server: `pnpm dev` or `pnpm dev:local` (with local config)
-- Build: `pnpm build` (production) or `pnpm build:local` (development)
-- Lint: `pnpm lint` or `pnpm lint:fix` (auto-fix issues)
-- Type check: `pnpm type-check` or `pnpm type-check:watch` (watch mode)
-- Vue tests: `pnpm test` (all) or `pnpm test:base run --filter=<test-name>` (single)
-- Ruby tests: `pnpm rspec` or `bundle exec rspec <file_path>`
-- E2E tests: `pnpm playwright` or `pnpm exec playwright test <test-file>`
-- gh issue view [number]: Review GitHub issue details
-- gh pr create: Create pull request with context-aware commit message
+## Critical Workflow
+1. **Research First**: Read files, understand patterns, plan before coding
+2. **TDD**: Write tests → fail → implement → pass → commit
+3. **Validate**: Test suite → type-check → lint → accessibility
 
-## Workflow: Feature Implementation
+## Code Style (Non-Negotiable)
+- **Vue**: Composition API `<script setup lang="ts">`, Pinia stores, i18n `$t()`
+- **TypeScript**: Strict mode, explicit types, max 100 chars
+- **Testing**: Vitest (max 300 lines), mock Pinia stores
+- **Styling**: Tailwind classes, WCAG compliance
+- **Minimal Changes**: Preserve patterns, use existing utilities
 
-### 1. Research & Planning Phase
-IMPORTANT: Always research and plan before coding. Use "think" or "think hard" for complex features.
+## Tech Stack
+**Backend**: Ruby 3.4, Rack 2.3.1, Redis 6
+**Frontend**: Vue 3.5.13, Pinia 3.0.1, Vue Router 4.4.5, TypeScript 5.6.3
+**Build**: Vite 5.4.11, Vitest 2.1.8, Tailwind 3.4.14
+**Validation**: Zod 3.24.1, i18n 11.1.2
 
-- Read relevant files and documentation WITHOUT writing code yet
-- Understand the Vue.js component structure and state management patterns
-- Review existing components and utility functions
-- Create implementation plan in markdown file or GitHub issue
-- Document security implications and edge cases
+## i18n Requirements
+- All text via `$t('key.path')` from `src/locales/en.json`
+- Hierarchical keys (e.g., `web.secrets.enterPassphrase`)
+- NO hardcoded text
 
-### 2. Implementation Phase
-Follow test-driven development when possible:
+## Project Structure
+- Components: `src/components/`, `src/views/`
+- State: `src/stores/` (Pinia)
+- Types: `src/types/`
+- Utils: `src/utils/`
+- Tests: `src/components/__tests__/`, `tests/`
 
-1. Write Vitest tests first (mark with "TDD - no implementation yet")
-2. Confirm tests fail appropriately
-3. Commit tests
-4. Implement code to pass tests WITHOUT modifying tests
-5. Ensure proper i18n integration and accessibility
-6. Verify TypeScript types and error handling
-7. Commit implementation
+## Security & Testing
+- JSON payload validation: `src/utils/__tests__/windowBootstrapValidation.test.ts`
+- XSS protection, HTML escaping validation
+- Mock Ruby ERB templates, Zod schema validation
 
-### 3. Validation & Review
-- Run full test suite: `pnpm test`
-- Check TypeScript compilation: `pnpm type-check`
-- Run linting: `pnpm lint`
-- Verify accessibility compliance
-- Test in multiple browsers/devices
-- Update documentation if needed
-- Use `gh` to create descriptive pull request
+---
 
-## Code Style Guidelines
-- **Commit Messages**: Use imperative mood, prefix with issue number `[#123]`
-- **TypeScript**: Strict mode, explicit types, max 100 chars per line
-- **Vue Components**: Use Composition API with `<script setup>`, camelCase props
-- **Error Handling**: Use typed error handling with Zod for validations
-- **State Management**: Use Pinia stores with `storeToRefs()` for reactive props
-- **Imports**: Group imports (builtin → external → internal), alphabetize
-- **Testing**: Max 300 lines per test file, use descriptive test names
-- **API Logic**: Prefer small, focused functions (max 50 lines)
-- **Styling**: Use Tailwind classes with consistent ordering
-- **Accessibility**: Ensure all components are accessible, a11y, and follow WCAG guidelines
-- Vue components should be written in a consistent style, using the Composition API with `<script setup lang="ts>`.
-- Vue components should be styled using Tailwind classes with class lists should wrap long lines.
-- Avoid deep nesting (max 3 levels) and limit function parameters (max 3).
+## Detailed Guidelines (Line 101+)
+- [File Locations](#file-locations-detail)
+- [Testing Patterns](#testing-patterns-detail)
+- [Component Patterns](#component-patterns-detail)
+- [Validation Testing](#validation-testing-detail)
+- [Multi-Task Guidelines](#multi-task-guidelines-detail)
+- [Dependency Details](#dependency-details)
 
-## Code Style
-- CRITICAL: Make MINIMAL changes to existing patterns
-- Preserve existing naming conventions and file organization
-- Use existing utility functions - avoid duplication
-- Use dependency injection over global state
+---
 
-### Project Version Reference
+## Dependency Details
 
-#### Backend Framework Versions
-
-Ruby 3.4
-Rack 2.3.1
-redis-rb 5.0.2
-Redis Server 6
-
-## Vuejs 3 Frontend Framework Versions
-```json
-{
-  "vue": "^3.5.13",
-  "vue-router": "^4.4.5",
-  "pinia": "^3.0.1",
-  "vue-i18n": "^11.1.2",
-  "zod": "^3.24.1",
-  "vite": "^5.4.11",
-  "typescript": "^5.6.3",
-  "vue-tsc": "^2.1.10",
-  "vitest": "^2.1.8",
-  "tailwindcss": "^3.4.14",
-  "@headlessui/vue": "^1.7.23",
-  "@vitejs/plugin-vue": "^5.1.4",
-  "eslint": "^9.15.0",
-  "axios": "^1.7.7"
-}
-```
-
-## Additional Dependencies
+### Additional Dependencies
 ```json
 {
   "@sentry/vue": "^9.9.0",
@@ -106,60 +69,93 @@ Redis Server 6
   "marked": "^15.0.7",
   "altcha": "^1.1.0"
 }
+```
 
+## File Locations Detail
 
-Vue - Composition API (setup, lang="ts")
-Pinia - Setup Stores
-Vue Router - Named components, route guards
+### Configuration Files
+- **Vite**: `vite.config.ts`
+- **Tailwind**: `tailwind.config.js`
+- **TypeScript**: `tsconfig.json`
+- **Locales**: `src/locales/en.json`
 
+### Test Structure
+- **Component Tests**: `src/components/__tests__/`
+- **Integration Tests**: `tests/`
+- **Fixtures**: `tests/fixtures/`
+- **E2E Tests**: `tests/e2e/`
 
-## i18n
+## Component Patterns Detail
 
-The default english translation is provided in the `src/locales/en.json` file.
-Look at the heirarchical keys in the JSON file to understand the structure and
-how properly reference them in Vue components (e.g. `$t('web.secrets.enterPassphrase')`).
+### Vue Component Structure
+```vue
+<script setup lang="ts">
+import { storeToRefs } from 'pinia'
+import { useStore } from '@/stores/store'
 
-DO NOT ADD TEXT unless using the i18n system. Use existing keys or create new ones.
+const store = useStore()
+const { state } = storeToRefs(store)
+</script>
 
-## Multi-Task Guidelines
-For complex features requiring parallel work:
-- Use git worktrees for independent components
-- Keep frontend changes separate from backend changes
-- Use /clear between unrelated tasks to optimize context
-- Document progress in commit messages
+<template>
+  <div class="p-4 bg-white">{{ $t('key.path') }}</div>
+</template>
+```
 
-## Project-Specific Notes
+### State Management Patterns
+- Use `storeToRefs()` for reactive destructuring
+- Pinia setup stores with typed actions
+- Avoid global state, prefer dependency injection
 
-### Core Components to Consider
-- **Vue Components**: Composition API with `<script setup>`, reactive state management
-- **State Management**: Pinia stores with typed actions and getters
-- **Routing**: Vue Router with route guards and navigation
-- **i18n**: Vue I18n with hierarchical translation keys
-- **Validation**: Zod schemas for form and API validation
-- **Styling**: Tailwind CSS with consistent class ordering
-- **Testing**: Vitest for unit tests, Playwright for E2E
+### Form Handling
+- Zod schemas for validation
+- Typed error handling
+- i18n error messages
 
-### Key File Locations
-- **Vue Components**: `src/components/`, `src/views/`
-- **Pinia Stores**: `src/stores/`
-- **Types**: `src/types/`
-- **Utilities**: `src/utils/`
-- **Locales**: `src/locales/`
-- **Configuration**: `vite.config.ts`, `tailwind.config.js`
-- **Tests**: `src/components/__tests__/`, `tests/`
+## Testing Patterns Detail
 
-### Key Patterns
-- **Component Structure**: Use Composition API with `<script setup lang="ts">`
-- **State Management**: Pinia stores with `storeToRefs()` for reactive props
-- **i18n Integration**: Use `$t()` for all text, organize keys hierarchically
-- **Form Handling**: Zod validation with typed error handling
-- **API Integration**: Axios with proper error handling and loading states
-- **Accessibility**: ARIA attributes, semantic HTML, keyboard navigation
+### Component Testing
+```typescript
+import { mount } from '@vue/test-utils'
+import { createTestingPinia } from '@pinia/testing'
 
-### Testing Patterns
-- Mock Pinia stores for component testing
-- Use fixtures in `tests/fixtures/` for consistent test data
-- Test all component props and events
-- Verify i18n keys and translations
-- Test form validation and error states
-- Check accessibility compliance with automated tools
+const wrapper = mount(Component, {
+  global: {
+    plugins: [createTestingPinia()]
+  }
+})
+```
+
+### Test Organization
+- Max 300 lines per test file
+- Descriptive test names
+- Mock Pinia stores
+- Test props, events, i18n keys
+- Accessibility compliance
+
+## Validation Testing Detail
+
+### JSON Payload Validation
+- **Critical File**: `src/utils/__tests__/windowBootstrapValidation.test.ts`
+- **Purpose**: Validate Ruby backend → Vue frontend data flow
+- **Security**: XSS protection, HTML escaping validation
+- **Coverage**: Mock ERB templates, Zod schemas, window.OneTime initialization
+
+### Security Considerations
+- Validate against XSS in window data
+- Ensure HTML escaping of user content
+- Maintain JSON structure integrity
+- Type safety validation
+
+## Multi-Task Guidelines Detail
+
+### Git Workflow
+- Use worktrees for independent components
+- Separate frontend/backend changes
+- Clear commit messages with issue numbers
+- Use `/clear` between unrelated tasks
+
+### Branch Management
+- Keep features isolated
+- Document progress in commits
+- Test thoroughly before merge
