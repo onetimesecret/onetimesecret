@@ -43,7 +43,7 @@ RSFC variable lookup:
 -->
 
 <data window="onetime" schema="@/src/types/declarations/window.d.ts">
-{{onetime_window}}
+{{{onetime_window}}}
 </data>
 
 <template>
@@ -59,18 +59,6 @@ RSFC variable lookup:
         <!-- Server-rendered content for SEO/initial load -->
         {{> placeholder}}
       </div>
-
-      <!-- Client hydration data is automatically injected by RSFC hydrator -->
-      <!-- The data section above will be converted to: -->
-      <!-- <script id="onetime-script" type="application/json">{...}</script> -->
-      <!-- <script>window.onetime = JSON.parse(document.getElementById('onetime-script').textContent);</script> -->
-
-      <!-- Vue application bootstrap -->
-      {{#if frontend_host}}
-      <script nonce="{{nonce}}" type="module" src="{{frontend_host}}/src/main.ts"></script>
-      {{else}}
-      <script nonce="{{nonce}}" type="module" src="/assets/main.js"></script>
-      {{/if}}
     </body>
   </html>
 </template>

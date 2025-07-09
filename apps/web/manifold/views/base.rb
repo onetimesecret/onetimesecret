@@ -112,7 +112,7 @@ module Manifold
           JSON.pretty_generate(onetime_data)
         end
 
-        # Render full page with RSFC template and OnetimeWindow compatibility
+        # Render full page with Rhales template and OnetimeWindow compatibility
         def render_page(req, sess, cust, locale, **props)
           view = new(req, sess, cust, locale, props: props)
           view.render

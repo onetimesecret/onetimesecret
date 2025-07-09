@@ -51,28 +51,18 @@
   <link nonce="{{nonce}}" rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
   <link nonce="{{nonce}}" rel="manifest" href="/site.webmanifest">
 
-  {{#no_cache}}
+  <!-- TODO2: Revisit after fixing if -->
+  {{#if no_cache}}
     <meta http-equiv="pragma" content="no-cache">
     <meta http-equiv="expires" content="-1">
-  {{/no_cache}}
+  {{/if}}
 
-  <!-- Client hydration data -->
-  <!-- No need to do this manually. Automatically populates `window.data` based on <data> -->
-  <!--
-    <script id="initial-data" type="application/json" nonce="{{nonce}}">
-      {{data_json}}
-    </script>
-  -->
-
-  <!-- Development assets -->
-  {{#development}}
-    <script type="module" nonce="{{ nonce }}" src="/dist/main.ts"></script>
-    <script type="module" nonce="{{ nonce }}" src="/dist/@vite/client"></script>
-  {{/development}}
-
-  <!-- Production assets -->
-  {{^development}}
+  {{#if development}}
+    <script type="module" nonce="{{ nonce }}" src="{{frontend_host}}/dist/main.ts"></script>
+    <script type="module" nonce="{{ nonce }}" src="{{frontend_host}}/dist/@vite/client"></script>
+  {{else}}
+    <!-- Production assets -->
     <link nonce="{{nonce}}" rel="stylesheet" href="{{asset_manifest.main_css}}">
     <script nonce="{{nonce}}" src="{{asset_manifest.main_js}}" defer></script>
-  {{/development}}
+  {{/if}}
 </template>

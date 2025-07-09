@@ -195,7 +195,10 @@ module Manifold
         # client, and in those cases we want to provide a fresh shrimp
         # so that the client can try again (without a full page refresh).
         view       = Manifold::Views::Error.new req, sess, cust, locale
-        view.add_error message
+
+        # TODO2: No where to send error message
+        #view.add_error message
+
         res.status = 400
         res.body   = view.render
       end

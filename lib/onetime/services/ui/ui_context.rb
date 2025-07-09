@@ -57,12 +57,13 @@ module Onetime
       def setup_customer_info(req, sess, cust)
         @cust         = cust || V2::Customer.anonymous
         authenticated = sess && sess.authenticated? && !@cust.anonymous?
+        @is_authenticated = authenticated
 
-        if authenticated
-          @plan = Onetime::Plan.plan(@cust.planid)
-        end
-        @plan  ||= Onetime::Plan.plan('anonymous')
-        @is_paid = @plan.paid?
+        # if authenticated
+        #   @plan = Onetime::Plan.plan(@cust.planid)
+        # end
+        # @plan  ||= Onetime::Plan.plan('anonymous')
+        # @is_paid = @plan.paid?
       end
 
       # Build complete OnetimeWindow data structure
@@ -72,26 +73,26 @@ module Onetime
         return minimal_onetime_window(req, sess, cust, locale_override) unless defined?(OT) && OT.conf
 
         locale      = determine_final_locale(req, locale_override)
-        site        = OT.conf.fetch(:site, {})
-        development = OT.conf.fetch(:development, {})
+        site        = OT.conf.fetch('site', {})
+        development = OT.conf.fetch('development', {})
 
         # Extract configuration sections
-        interface          = site.fetch(:interface, {})
-        secret_options     = site.fetch(:secret_options, {})
-        domains            = site.fetch(:domains, {})
-        regions            = site.fetch(:regions, {})
-        authentication     = site.fetch(:authentication, {})
-        support_host       = site.dig(:support, :host)
-        incoming_recipient = OT.conf.dig(:incoming, :email)
+        interface          = site.fetch('interface', {})
+        secret_options     = site.fetch('secret_options', {})
+        domains            = site.fetch('domains', {})
+        regions            = site.fetch('regions', {})
+        authentication     = site.fetch('authentication', {})
+        support_host       = site.dig('support', :host)
+        incoming_recipient = OT.conf.dig('incoming', :email)
 
         # Frontend development settings
-        frontend_development = development[:enabled] || false
-        frontend_host        = development[:frontend_host] || ''
+        frontend_development = development['enabled'] || false
+        frontend_host        = development['frontend_host'] || 'plop'
 
         # Authentication and customer state
         authenticated   = sess && sess.authenticated? && !cust.anonymous?
-        domains_enabled = domains[:enabled] || false
-        regions_enabled = regions[:enabled] || false
+        domains_enabled = domains['enabled'] || false
+        regions_enabled = regions['enabled'] || false
 
         # Get locale information
         display_locale    = determine_display_locale(locale)
@@ -164,7 +165,7 @@ module Onetime
         jsvars[:nonce] = req&.env&.fetch('ots.nonce', nil)
 
         # Add global banner if present
-        jsvars[:global_banner] = OT.global_banner if defined?(OT) && OT.respond_to?(:global_banner) && OT.global_banner
+        jsvars[:global_banner] = '' #OT.global_banner if defined?(OT) && OT.respond_to?(') && OT.global_banner
 
         # Add UI settings
         jsvars[:ui] = interface[:ui]
@@ -191,13 +192,13 @@ module Onetime
           jsvars[:custid]         = cust.custid
           jsvars[:cust]           = cust.safe_dump
           jsvars[:email]          = cust.email
-          jsvars[:customer_since] = epochdom(cust.created) if respond_to?(:epochdom)
+          jsvars[:customer_since] = epochdom(cust.created) if respond_to?('epochdom')
 
           # Custom domains for authenticated users
           if domains_enabled
             custom_domains          = cust.custom_domains_list.filter_map do |obj|
               # Log unverified domains but allow them for now
-              if !obj.ready? && defined?(OT) && OT.respond_to?(:li)
+              if !obj.ready? && defined?(OT) && OT.respond_to?('li')
                 OT.li "[custom_domains] Allowing unverified domain: #{obj.display_domain} (#{obj.verified}/#{obj.resolving})"
               end
               obj.display_domain
@@ -215,7 +216,7 @@ module Onetime
       # Add configuration and feature data
       def add_configuration_data(jsvars, site, secret_options, regions, regions_enabled, incoming_recipient, support_host)
         # Plans and pricing
-        jsvars[:plans_enabled] = site.dig(:plans, :enabled) || false
+        jsvars[:plans_enabled] = site.dig('plans', 'enabled') || false
 
         # Regions (only when enabled)
         jsvars[:regions_enabled] = regions_enabled
@@ -237,23 +238,25 @@ module Onetime
 
         return unless defined?(OT)
 
-        jsvars[:default_locale]    = OT.default_locale if OT.respond_to?(:default_locale)
-        jsvars[:fallback_locale]   = OT.fallback_locale if OT.respond_to?(:fallback_locale)
-        jsvars[:supported_locales] = OT.supported_locales if OT.respond_to?(:supported_locales)
-        jsvars[:i18n_enabled]      = OT.i18n_enabled if OT.respond_to?(:i18n_enabled)
+        # TODO2: i18n configuration
+        jsvars[:default_locale]    = 'en' # OT.default_locale if OT.respond_to?(')
+        jsvars[:fallback_locale]   = 'en' # OT.fallback_locale if OT.respond_to?(')
+        jsvars[:supported_locales] = %w[en de_AT fr_CA fr_FR] # OT.supported_locales if OT.respond_to?(')
+        jsvars[:i18n_enabled]      = true # OT.i18n_enabled if OT.respond_to?(')
       end
 
       # Add diagnostics and monitoring data
       def add_diagnostics_data(jsvars)
         return unless defined?(OT) && OT.conf
 
-        sentry               = OT.conf.dig(:diagnostics, :sentry) || {}
-        jsvars[:d9s_enabled] = OT.d9s_enabled if OT.respond_to?(:d9s_enabled)
+        # TODO2: diannostics config
+        sentry               = OT.conf.dig('diagnostics', :sentry) || {}
+        jsvars[:d9s_enabled] = false # OT.d9s_enabled if OT.respond_to?(')
 
         return unless defined?(Onetime) && Onetime.respond_to?(:with_diagnostics)
 
         Onetime.with_diagnostics do
-          config               = sentry.fetch(:frontend, {})
+          config               = sentry.fetch('frontend', {})
           jsvars[:diagnostics] = {
             sentry: config,
           }
@@ -273,24 +276,26 @@ module Onetime
       # Add plan and version information
       def add_plan_and_version_data(jsvars)
         # Available plans
-        if defined?(Onetime::Plan) && Onetime::Plan.respond_to?(:plans)
-          plans                    = Onetime::Plan.plans.transform_values do |plan|
-            plan.safe_dump
-          end
-          jsvars[:available_plans] = plans
-        end
+        # if defined?(Onetime::Plan) && Onetime::Plan.respond_to?(')
+        #   # plans                    = Onetime::Plan.plans.transform_values do |plan|
+        #   #   plan.safe_dump
+        #   # end
+        #
+        #   # Used only in src/stores/customerStore.ts
+        #   #
+        #   # jsvars[:available_plans] = plans
+        # end
 
         # Current plan
-        jsvars[:plan]           = @plan.safe_dump if @plan
-        jsvars[:is_paid]        = @is_paid
-        jsvars[:default_planid] = 'basic'
+        # jsvars[:plan]           = @plan.safe_dump if @plan
+        jsvars[:is_paid]        = @is_paid || false
 
         # Version information
         if defined?(OT::VERSION)
           jsvars[:ot_version] = OT::VERSION.inspect
         end
 
-        if defined?(OT) && OT.respond_to?(:sysinfo)
+        if defined?(OT) && OT.respond_to?('sysinfo')
           jsvars[:ruby_version] = "#{OT.sysinfo.vm}-#{OT.sysinfo.ruby.join}"
         end
       end

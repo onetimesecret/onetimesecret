@@ -55,6 +55,34 @@
           </p>
         </div>
       </div>
+    <div style="background-color: #fff; color: #fff; a.color: #fff;">
+      <header class="border-b border-gray-200 dark:border-gray-700">
+        <nav class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div class="flex justify-between h-16">
+            <div class="flex items-center">
+              <h1 class="text-xl font-bold text-orange-600">
+                <a href="/" style="color: #fff;">One Time Secret</a>
+              </h1>
+            </div>
+            <div class="flex items-center space-x-4">
+              {{#if user.authenticated?}}
+                <a href="/dashboard" style="color: #fff;" class="text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white">
+                  Dashboard
+                </a>
+                <a href="/logout" style="color: #fff;" class="text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white">
+                  Logout
+                </a>
+              {{else}}
+                <a href="/signin" style="color: #fff;" class="text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white">
+                  Sign In
+                </a>
+                <a href="/signup" style="color: #fff;" class="bg-orange-600 text-white px-4 py-2 rounded hover:bg-orange-700">
+                  Create Account
+                </a>
+              {{/if }}
+            </div>
+          </div>
+        </nav>
+      </header>
     </div>
-  </main>
 </template>

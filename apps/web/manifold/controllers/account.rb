@@ -260,6 +260,7 @@ module Manifold
 
       def _auth_settings
         OT.conf.dig(:site, :authentication)
+        OT.conf.dig(:ui, :authentication)
       end
     end
   end
