@@ -279,7 +279,7 @@
       "each-secret-can-only-be-viewed-once-after-viewin": "Każdą wiadomość można wyświetlić tylko raz. Po wyświetleniu jest ona trwale usuwana z naszych serwerów. Gwarantuje to, że Twoje poufne informacje nie zostaną przypadkowo ujawnione przez historię przeglądarki lub błędnie udostępnione prywatne linki.",
       "one-time-access": "Dostęp jednorazowy",
       "core-security-features": "Podstawowe funkcje bezpieczeństwa",
-      "expires-in-record_natural_expiration": "Wygasa za {0}",
+      "expires-in-record-natural_expiration": "Expires in {0}",
       "send-feedback": "Wyślij opinię"
     },
     "shared": {
@@ -361,82 +361,8 @@
       "send-feedback": "Wyślij opinię",
       "sending-ellipses": "Wysyłanie..."
     },
-    "security": {
-      "thank-you-for-helping-us-keep-onetime-secret-sec": "Dziękujemy za pomoc w utrzymaniu bezpieczeństwa i doskonałości Onetime Secret!",
-      "we-take-your-privacy-seriously-all-reports-will-": "Poważnie traktujemy Twoją prywatność. Wszystkie zgłoszenia będą traktowane jako poufne i będziemy współpracować z Tobą, aby upewnić się, że żadne szczegóły luki nie zostaną ujawnione do czasu wprowadzenia poprawki.",
-      "confidentiality": "Poufność",
-      "if-the-vulnerability-is-declined-we-will-provide": ": Jeśli luka zostanie odrzucona, przedstawimy szczegółowe wyjaśnienie, dlaczego nie została zaakceptowana.",
-      "declined-vulnerabilities": "Odrzucone luki",
-      "if-the-vulnerability-is-accepted-we-will-work-on": ": Jeśli luka zostanie zaakceptowana, będziemy pracować nad poprawką i postaramy się ją wydać jak najszybciej. Zostaniesz powiadomiony po wdrożeniu poprawki.",
-      "accepted-vulnerabilities": "Zaakceptowane luki",
-      "resolution-process": "Proces rozwiązywania",
-      "you-can-expect-to-receive-updates-on-the-status-": ": Możesz oczekiwać aktualizacji statusu swojego zgłoszenia co najmniej raz na 7 dni, aż problem zostanie rozwiązany lub zostanie podjęta decyzja.",
-      "updates": "Aktualizacje",
-      "we-will-conduct-an-initial-assessment-of-the-vul": ": Przeprowadzimy wstępną ocenę luki w ciągu 14 dni roboczych.",
-      "initial-assessment": "Wstępna ocena",
-      "you-will-receive-an-acknowledgment-of-your-repor": ": Otrzymasz potwierdzenie otrzymania zgłoszenia w ciągu 5 dni roboczych.",
-      "acknowledgment": "Potwierdzenie",
-      "what-to-expect": "Czego się spodziewać",
-      "your-contact-information-for-follow-up-questions": "Twoje dane kontaktowe do pytań uzupełniających.",
-      "any-potential-impact": "Wszelki potencjalny wpływ.",
-      "steps-to-reproduce-the-issue": "Kroki do odtworzenia problemu.",
-      "a-detailed-description-of-the-vulnerability": "Szczegółowy opis luki.",
-      "include-as-much-information-as-possible-about-th": ": Podaj jak najwięcej informacji o luce. Powinno to obejmować:",
-      "with-the-subject-line-vulnerability-report-brief": "z tematem „Zgłoszenie luki: [Krótki opis]”.",
-      "send-an-email-to": ": Wyślij e-mail na adres",
-      "how-to-report": "Jak zgłaszać",
-      "if-you-discover-a-security-vulnerability-within-": "Jeśli odkryjesz lukę bezpieczeństwa w tym projekcie, zachęcamy do jak najszybszego jej zgłoszenia. Oto jak możesz to zrobić:",
-      "reporting-a-vulnerability": "Zgłaszanie luki",
-      "if-you-are-using-an-unsupported-version-we-stron": "Jeśli używasz nieobsługiwanej wersji, zdecydowanie zalecamy aktualizację do jednej z obsługiwanych wersji, aby zapewnić otrzymywanie najnowszych aktualizacji zabezpieczeń.",
-      "we-provide-security-updates-for-the-following-ve": "Zapewniamy aktualizacje zabezpieczeń dla następujących wersji naszego projektu:",
-      "supported-versions": "Obsługiwane wersje",
-      "we-take-the-security-of-this-project-seriously-a": "Poważnie traktujemy bezpieczeństwo tego projektu i doceniamy Twoje wysiłki w zakresie odpowiedzialnego ujawniania luk. Ten dokument przedstawia naszą politykę bezpieczeństwa i zawiera wytyczne dotyczące zgłaszania luk.",
-      "security-policy": "Polityka bezpieczeństwa"
-    },
     "site": {
       "website-version": "Wersja strony internetowej"
-    },
-    "about": {
-      "title": "O nas",
-      "faq": {
-        "trust_points": [
-          "Nie mamy dostępu do Twoich informacji, nawet gdybyśmy chcieli (a nie chcemy). Na przykład, jeśli udostępniasz hasło, nie znamy nazwy użytkownika ani nawet aplikacji, do której ono służy.",
-          "Jeśli używasz frazy dostępowej (dostępnej w „Opcjach prywatności”), uwzględniamy ją w kluczu szyfrowania wiadomości. Przechowujemy tylko hash bcrypt frazy dostępowej, co uniemożliwia nam odszyfrowanie Twojej wiadomości po jej zapisaniu.",
-          "Nasz kod jest {openSourceLink}. Możesz go przejrzeć samodzielnie lub nawet uruchomić własną instancję, jeśli wolisz.",
-          "Stosujemy standardowe praktyki bezpieczeństwa, w tym HTTPS dla wszystkich połączeń i szyfrowanie przechowywanych danych (at rest)."
-        ],
-        "passphrase_points": [
-          "Nigdy nie przechowujemy niezaszyfrowanej wiadomości ani frazy dostępowej.",
-          "Hash bcrypt nie może być użyty do odszyfrowania wiadomości.",
-          "Bez oryginalnej frazy dostępowej zaszyfrowana wiadomość nie może zostać odszyfrowana, nawet przez nas.",
-          "Oznacza to, że nawet jeśli nasze serwery zostałyby naruszone, Twoja wiadomość pozostałaby bezpieczna, o ile fraza dostępowa pozostanie nieznana."
-        ],
-        "why_use_title": "Dlaczego miałbym tego używać?",
-        "why_use_description": "Gdy wysyłasz ludziom hasła i prywatne linki e-mailem lub na czacie, kopie tych informacji są przechowywane w wielu miejscach. Jeśli zamiast tego użyjesz linku Onetime, informacja istnieje tylko do jednorazowego wyświetlenia, co oznacza, że nie może zostać odczytana przez kogoś innego później. Pozwala to na bezpieczne wysyłanie poufnych informacji, wiedząc, że zobaczy je tylko jedna osoba. Pomyśl o tym jak o wiadomości ulegającej samozniszczeniu.",
-        "file_limitation_title": "Dlaczego nie mogę wysyłać zdjęć ani innych rodzajów plików?",
-        "file_limitation_description": "Nasza usługa jest zaprojektowana specjalnie dla wiadomości tekstowych, aby zapewnić maksymalne bezpieczeństwo i prostotę. Pliki, zwłaszcza obrazy, mogą zawierać metadane, które mogą nieumyślnie ujawnić informacje o nadawcy lub odbiorcy. Koncentrując się na tekście, możemy zagwarantować, że żadne dodatkowe dane nie są przesyłane poza tym, co jawnie wpiszesz. Jeśli potrzebujesz bezpiecznie udostępnić plik, zalecamy skorzystanie z dedykowanej usługi bezpiecznego transferu plików. Możemy rozważyć dodanie obsługi plików w przyszłości, jeśli pojawią się ku temu przekonujące przypadki użycia.",
-        "text_copy_title": "Ale mogę skopiować tekst wiadomości. Jaka jest różnica?",
-        "text_copy_description": "Prawda, ale masz tylko tekst. Obrazy i inne typy plików mogą zawierać metadane i inne potencjalnie ujawniające informacje o nadawcy lub odbiorcy. Ponownie, ma to na celu zapewnienie, że żadne prywatne informacje nie zostaną udostępnione poza zamierzonym odbiorcą.",
-        "secret_retrieval_title": "Czy mogę odzyskać wiadomość, która została już udostępniona?",
-        "secret_retrieval_description": "Nie. Wyświetlamy ją raz, a następnie usuwamy. Potem znika na zawsze.",
-        "account_difference_title": "Jaka jest różnica między anonimowym użyciem a posiadaniem darmowego konta?",
-        "account_difference_description": "Anonimowi użytkownicy mogą tworzyć wiadomości ważne do {anonymousTtlDays} dni i o maksymalnym rozmiarze {anonymousSizeKB} KB. Posiadacze darmowych kont otrzymują rozszerzone korzyści: wiadomości mogą być ważne do {defaultTtlDays} dni i mieć rozmiar do {defaultSizeKB} KB. Posiadacze kont mają również dostęp do dodatkowych funkcji, takich jak opcje unieważnienia przed odczytem, które pozwalają nadawcom usuwać wiadomości, zanim zostaną odebrane.",
-        "law_enforcement_title": "Jak obsługujecie żądania danych od organów ścigania lub innych stron trzecich?",
-        "law_enforcement_description": "Zaprojektowaliśmy nasz system z myślą o prywatności. Nie przechowujemy wiadomości po ich wyświetleniu i nie przechowujemy logów dostępu poza niezbędnym minimum. Oznacza to, że w większości przypadków po prostu nie mamy żadnych danych do przekazania w odpowiedzi na takie żądania. Aby uzyskać więcej szczegółów, zapoznaj się z naszą {privacyPolicyLink}.",
-        "trust_title": "Dlaczego powinienem Wam ufać?",
-        "trust_description": "Zaprojektowaliśmy nasz system, traktując prywatność i bezpieczeństwo jako najwyższe priorytety. Oto dlaczego możesz nam zaufać:",
-        "passphrase_title": "Jak działa opcja frazy dostępowej?",
-        "passphrase_description": "Gdy używasz frazy dostępowej, szyfrujemy Twoją wiadomość na naszych serwerach przy użyciu podanej przez Ciebie frazy. Nie przechowujemy samej frazy dostępowej, a jedynie jej hash bcrypt. Ten hash służy do weryfikacji frazy dostępowej, gdy odbiorca ją wprowadzi. Oto dlaczego jest to bezpieczne:",
-        "passphrase_final_note": "Pamiętaj, bezpieczeństwo Twojej wiadomości zależy od siły Twojej frazy dostępowej i tego, jak bezpiecznie przekażesz ją odbiorcy."
-      },
-      "intro": {
-        "paragraph1": "Cześć, jestem {name}, twórca Onetime Secret. To, co zaczęło się w 2012 roku jako prosty, bezpieczny sposób udostępniania poufnych informacji, przerosło nasze najśmielsze oczekiwania. Ponad dekadę później umożliwiamy bezpieczne udostępnianie milionów wiadomości miesięcznie, w przypadkach użycia, których nigdy sobie nie wyobrażaliśmy.",
-        "paragraph2": "Pierwsza połowa 2024 roku była naszym najbardziej pracowitym okresem. Jesteśmy wdzięczni, że ludzie nadal używają i udostępniają nasz produkt od ponad dekady. Obecnie pracujemy nad ulepszeniami, które naszym zdaniem uczynią usługę jeszcze bardziej użyteczną — wkrótce podzielimy się szczegółami.",
-        "paragraph3": "Wierni naszym korzeniom, {githubLink} na GitHubie. Poruszając się po ewoluującym krajobrazie cyfrowej prywatności i bezpieczeństwa, jesteśmy zaangażowani w przejrzystość i ciągłe doskonalenie.",
-        "paragraph4": "Dziękujemy, że jesteś częścią naszej podróży. Za kolejną dekadę bezpiecznego, efemerycznego udostępniania.",
-        "feedback_hint": "Jeśli masz jakieś pytania, na dole (prawie) każdej strony znajduje się formularz opinii.",
-        "signature": "Miłego udostępniania,\n{name}"
-      }
     },
     "meta": {
       "were-making-onetime-secret-available-in-multiple": "Udostępniamy {onetime-secret} w wielu językach. Ponieważ jest to nowa funkcja, możesz napotkać błędy w tłumaczeniu lub niezręczne sformułowania. Twoja opinia pomaga nam się doskonalić - jeśli zauważysz jakiekolwiek problemy, prosimy {send-feedback}",

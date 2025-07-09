@@ -78,7 +78,7 @@ export function useSecretConcealer(options?: SecretConcealerOptions) {
         ? secretStore.conceal(payload as ConcealPayload)
         : secretStore.generate(payload as GeneratePayload));
 
-      if (options?.onSuccess) {
+      if (response && typeof response === 'object' && options?.onSuccess) {
         await options.onSuccess(response);
       }
 

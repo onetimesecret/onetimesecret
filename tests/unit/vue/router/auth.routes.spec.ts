@@ -172,7 +172,7 @@ describe('Auth Routes Configuration', () => {
       expect(route?.meta?.layoutProps).toEqual({
         displayMasthead: false,
         displayNavigation: false,
-        displayLinks: false,
+        displayFooterLinks: false,
         displayFeedback: false,
         displayVersion: true,
         displayToggles: true,
@@ -184,7 +184,7 @@ describe('Auth Routes Configuration', () => {
       expect(route?.meta?.layoutProps).toEqual({
         displayMasthead: false,
         displayNavigation: false,
-        displayLinks: false,
+        displayFooterLinks: false,
         displayFeedback: false,
         displayVersion: true,
       });
@@ -195,7 +195,7 @@ describe('Auth Routes Configuration', () => {
       expect(route?.meta?.layoutProps).toEqual({
         displayMasthead: true,
         displayNavigation: false,
-        displayLinks: false,
+        displayFooterLinks: false,
         displayFeedback: true,
         displayVersion: false,
       });

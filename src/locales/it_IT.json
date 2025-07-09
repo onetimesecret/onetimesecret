@@ -5,7 +5,7 @@
       "secret_view_faq": {
         "what_am_i_looking_at": {
           "title": "Cosa sto guardando?",
-          "description": "Stai visualizzando un messaggio protetto che è stato condiviso con te tramite OneTime Secret. Questo contenuto viene visualizzato solo una volta e poi viene eliminato definitivamente dai nostri server"
+          "description": "Stai visualizzando un messaggio protetto che è stato condiviso con te tramite Onetime Secret. Questo contenuto viene visualizzato solo una volta e poi viene eliminato definitivamente dai nostri server"
         },
         "can_i_view_again": {
           "title": "Posso visualizzare nuovamente questo segreto in un secondo momento?",
@@ -361,82 +361,8 @@
       "send-feedback": "Invia un feedback",
       "sending-ellipses": "Invio..."
     },
-    "security": {
-      "thank-you-for-helping-us-keep-onetime-secret-sec": "Grazie per averci aiutato a mantenere Onetime Secret sicuro ed eccellente!",
-      "we-take-your-privacy-seriously-all-reports-will-": "Prendiamo sul serio la vostra privacy. Tutte le segnalazioni saranno mantenute riservate e lavoreremo con voi per garantire che tutti i dettagli della vulnerabilità non siano divulgati fino a quando non sarà stata apportata una correzione.",
-      "confidentiality": "Riservatezza",
-      "if-the-vulnerability-is-declined-we-will-provide": ": Se la vulnerabilità viene rifiutata, forniremo una spiegazione dettagliata del motivo per cui non è stata accettata.",
-      "declined-vulnerabilities": "Vulnerabilità rifiutate",
-      "if-the-vulnerability-is-accepted-we-will-work-on": ": Se la vulnerabilità viene accettata, lavoreremo a una correzione e cercheremo di rilasciarla il prima possibile. Sarete informati una volta che la correzione sarà distribuita.",
-      "accepted-vulnerabilities": "Vulnerabilità accettate",
-      "resolution-process": "Processo di risoluzione",
-      "you-can-expect-to-receive-updates-on-the-status-": ": Potete aspettarvi di ricevere aggiornamenti sullo stato della vostra segnalazione almeno una volta ogni 7 giorni, finché il problema non sarà risolto o non verrà presa una decisione.",
-      "updates": "Aggiornamenti",
-      "we-will-conduct-an-initial-assessment-of-the-vul": "Condurremo una valutazione iniziale della vulnerabilità entro 14 giorni lavorativi.",
-      "initial-assessment": "Valutazione iniziale",
-      "you-will-receive-an-acknowledgment-of-your-repor": ": Riceverete una conferma della vostra segnalazione entro 5 giorni lavorativi.",
-      "acknowledgment": "Acknowledgment",
-      "what-to-expect": "Cosa aspettarsi",
-      "your-contact-information-for-follow-up-questions": "Le vostre informazioni di contatto per le domande successive",
-      "any-potential-impact": "Qualsiasi impatto potenziale",
-      "steps-to-reproduce-the-issue": "Passi per riprodurre il problema",
-      "a-detailed-description-of-the-vulnerability": "Una descrizione dettagliata della vulnerabilità",
-      "include-as-much-information-as-possible-about-th": ": Includere quante più informazioni possibili sulla vulnerabilità. Questo dovrebbe includere:",
-      "with-the-subject-line-vulnerability-report-brief": "con l'oggetto \"Rapporto di vulnerabilità: [Breve descrizione]\"",
-      "send-an-email-to": ": Invia un'e-mail a",
-      "how-to-report": "Come segnalare",
-      "if-you-discover-a-security-vulnerability-within-": "Se scoprite una vulnerabilità di sicurezza all'interno di questo progetto, vi invitiamo a segnalarla il prima possibile. Ecco come fare:",
-      "reporting-a-vulnerability": "Segnalazione di una vulnerabilità",
-      "if-you-are-using-an-unsupported-version-we-stron": "Se state utilizzando una versione non supportata, vi consigliamo vivamente di passare a una delle versioni supportate per assicurarvi di ricevere gli ultimi aggiornamenti di sicurezza.",
-      "we-provide-security-updates-for-the-following-ve": "Forniamo aggiornamenti di sicurezza per le seguenti versioni del nostro progetto:",
-      "supported-versions": "Versioni supportate",
-      "we-take-the-security-of-this-project-seriously-a": "Prendiamo sul serio la sicurezza di questo progetto e apprezziamo i vostri sforzi per divulgare responsabilmente le vulnerabilità. Questo documento illustra la nostra politica di sicurezza e fornisce le linee guida su come segnalare le vulnerabilità",
-      "security-policy": "Politica di sicurezza"
-    },
     "site": {
       "website-version": "Versione del sito web"
-    },
-    "about": {
-      "title": "Informazioni",
-      "faq": {
-        "trust_points": [
-          "Non possiamo accedere alle tue informazioni anche se volessimo (cosa che non vogliamo). Ad esempio, se condividi una password, non conosciamo il nome utente o nemmeno l'applicazione a cui si riferisce.",
-          "Se utilizzi una passphrase (disponibile sotto \"Opzioni Privacy\"), la includiamo nella chiave di crittografia per il segreto. Memorizziamo solo un hash bcrypt della passphrase, rendendo impossibile per noi decrittografare il tuo segreto una volta salvato.",
-          "Il nostro codice è {openSourceLink}. Puoi esaminarlo tu stesso o persino eseguire la tua istanza se preferisci.",
-          "Utilizziamo pratiche di sicurezza standard del settore, tra cui HTTPS per tutte le connessioni e la crittografia a riposo per i dati memorizzati."
-        ],
-        "passphrase_points": [
-          "Non memorizziamo mai il segreto non crittografato o la passphrase.",
-          "L'hash bcrypt non può essere utilizzato per decrittografare il segreto.",
-          "Senza la passphrase originale, il segreto crittografato non può essere decrittografato, nemmeno da noi.",
-          "Ciò significa che anche se i nostri server fossero compromessi, il tuo segreto rimarrebbe sicuro finché la passphrase rimane sconosciuta."
-        ],
-        "why_use_title": "Perché dovrei usarlo?",
-        "why_use_description": "Quando si inviano alle persone password e link privati via e-mail o chat, ci sono copie di tali informazioni memorizzate in molti luoghi. Se invece si utilizza un link Onetime, le informazioni permangono per una singola visualizzazione, il che significa che non possono essere lette da qualcun altro in seguito. Ciò consente di inviare informazioni sensibili in modo sicuro, sapendo che saranno viste da una sola persona. È come un messaggio che si autodistrugge",
-        "file_limitation_title": "Perché non posso inviare immagini o altri tipi di file?",
-        "file_limitation_description": "Il nostro servizio è stato progettato specificamente per i segreti basati sul testo per garantire la massima sicurezza e semplicità. I file, soprattutto le immagini, possono contenere metadati che potrebbero involontariamente rivelare informazioni sul mittente o sul destinatario. Concentrandoci sul testo, possiamo garantire che non vengano trasmessi altri dati oltre a quelli digitati esplicitamente. Se avete bisogno di condividere un file in modo sicuro, vi consigliamo di utilizzare un servizio di trasferimento sicuro di file dedicato. Potremmo prendere in considerazione l'aggiunta del supporto per i file in futuro, se ci sono casi d'uso convincenti.",
-        "text_copy_title": "Ma posso copiare il testo segreto. Qual è la differenza?",
-        "text_copy_description": "È vero, ma tutto ciò che hai è testo. Le immagini e altri tipi di file possono contenere metadati e altre informazioni potenzialmente rivelatrici sul mittente o sul destinatario. Anche in questo caso, si tratta semplicemente di garantire che nessuna informazione privata venga condivisa al di fuori del destinatario.",
-        "secret_retrieval_title": "Posso recuperare un segreto che è già stato condiviso?",
-        "secret_retrieval_description": "No. Lo visualizziamo una volta e poi lo cancelliamo. Dopo di che, è sparito per sempre",
-        "account_difference_title": "Qual è la differenza tra l'uso anonimo e l'avere un account gratuito?",
-        "account_difference_description": "Gli utenti anonimi possono creare segreti che durano fino a {anonymousTtlDays} giorni e hanno una dimensione massima di {anonymousSizeKB}. KB. I titolari di un account gratuito possono usufruire di vantaggi più ampi: i segreti possono durare fino a {defaultTtlDays} giorni e avere dimensioni massime di {defaultSizeKB} KB. I titolari di account hanno inoltre accesso a funzioni aggiuntive come le opzioni di masterizzazione prima della lettura, che consentono ai mittenti di eliminare i segreti prima che vengano ricevuti.",
-        "law_enforcement_title": "Come gestite le richieste di dati da parte delle forze dell'ordine o di altre terze parti?",
-        "law_enforcement_description": "Abbiamo progettato il nostro sistema tenendo conto della privacy. Non memorizziamo i segreti dopo che sono stati visualizzati e non conserviamo i registri di accesso oltre il minimo necessario. Ciò significa che nella maggior parte dei casi non abbiamo alcun dato da fornire in risposta a tali richieste. Per maggiori dettagli, consultare la nostra {privacyPolicyLink}",
-        "trust_title": "Perché dovrei fidarmi di voi?",
-        "trust_description": "Abbiamo progettato il nostro sistema tenendo conto della privacy e della sicurezza come priorità assolute. Ecco perché puoi fidarti di noi:",
-        "passphrase_title": "Come funziona l'opzione passphrase?",
-        "passphrase_description": "Quando si utilizza una passphrase, il segreto viene crittografato sui nostri server utilizzando la passphrase fornita. Non memorizziamo la passphrase stessa, ma solo un hash di bcrypt. Questo hash viene utilizzato per verificare la passphrase quando il destinatario la inserisce. Ecco perché è sicuro:",
-        "passphrase_final_note": "Ricordate, la sicurezza del vostro segreto dipende dalla forza della vostra passphrase e dalla sicurezza con cui la comunicate al destinatario"
-      },
-      "intro": {
-        "paragraph1": "Ciao, sono {nome}, il creatore di Onetime Secret. Quello che è iniziato nel 2012 come un modo semplice e sicuro per condividere informazioni sensibili è cresciuto oltre le nostre più rosee aspettative. Più di dieci anni dopo, stiamo facilitando la condivisione sicura di milioni di segreti al mese, con casi d'uso che non avremmo mai immaginato",
-        "paragraph2": "La prima metà del 2024 è stato il nostro periodo più intenso. Siamo grati che le persone abbiano continuato a usare e condividere il nostro prodotto per più di un decennio. Attualmente stiamo lavorando a miglioramenti che pensiamo renderanno il servizio ancora più utile - condivideremo presto maggiori dettagli.",
-        "paragraph3": "Fedeli alle nostre radici, {githubLink} su GitHub. Mentre navighiamo nel panorama in evoluzione della privacy e della sicurezza digitale, siamo impegnati nella trasparenza e nel miglioramento continuo.",
-        "paragraph4": "Grazie per aver fatto parte del nostro viaggio. Brindiamo a un altro decennio di condivisione sicura ed effimera",
-        "feedback_hint": "Se avete domande, c'è un modulo di feedback in fondo a (quasi) ogni pagina",
-        "signature": "Buona condivisione, n{n{nome}"
-      }
     },
     "meta": {
       "were-making-onetime-secret-available-in-multiple": "Stiamo rendendo {onetime-secret} disponibile in più lingue. Poiché si tratta di una nuova funzionalità, è possibile che si verifichino errori di traduzione o frasi imbarazzanti. Il tuo feedback ci aiuta a migliorare: se noti qualche problema, ti preghiamo di {send-feedback}",

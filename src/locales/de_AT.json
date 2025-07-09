@@ -361,82 +361,8 @@
       "send-feedback": "Rückmeldung senden",
       "sending-ellipses": "Ich schicke..."
     },
-    "security": {
-      "thank-you-for-helping-us-keep-onetime-secret-sec": "Vielen Dank, dass Sie uns helfen, Onetime Secret sicher und ausgezeichnet zu halten!",
-      "we-take-your-privacy-seriously-all-reports-will-": "Wir nehmen Ihre Privatsphäre ernst. Alle Meldungen werden vertraulich behandelt, und wir werden mit Ihnen zusammenarbeiten, um sicherzustellen, dass keine Details der Schwachstelle veröffentlicht werden, bis eine Lösung gefunden ist.",
-      "confidentiality": "Vertraulichkeit",
-      "if-the-vulnerability-is-declined-we-will-provide": ": Wenn die Anfälligkeit abgelehnt wird, geben wir eine ausführliche Erklärung, warum sie nicht akzeptiert wurde.",
-      "declined-vulnerabilities": "Abgelehnte Schwachstellen",
-      "if-the-vulnerability-is-accepted-we-will-work-on": ": Wenn die Schwachstelle akzeptiert wird, werden wir an einer Lösung arbeiten und versuchen, diese so schnell wie möglich zu veröffentlichen. Sie werden benachrichtigt, sobald die Lösung bereitgestellt wurde.",
-      "accepted-vulnerabilities": "Akzeptierte Schwachstellen",
-      "resolution-process": "Auflösungsprozess",
-      "you-can-expect-to-receive-updates-on-the-status-": ": Sie können davon ausgehen, dass Sie mindestens einmal alle 7 Tage über den Zustand Ihrer Meldung informiert werden, bis das Problem gelöst oder eine Entscheidung getroffen ist.",
-      "updates": "Aktualisierungen",
-      "we-will-conduct-an-initial-assessment-of-the-vul": ": Wir werden innerhalb von 14 Werktagen eine erste Bewertung der Schwachstelle vornehmen.",
-      "initial-assessment": "Erste Bewertung",
-      "you-will-receive-an-acknowledgment-of-your-repor": ": Sie erhalten innerhalb von 5 Werktagen eine Bestätigung Ihrer Meldung.",
-      "acknowledgment": "Danksagung",
-      "what-to-expect": "Was zu erwarten ist",
-      "your-contact-information-for-follow-up-questions": "Ihre Kontaktinformationen für weitere Fragen.",
-      "any-potential-impact": "Mögliche Auswirkungen.",
-      "steps-to-reproduce-the-issue": "Schritte zur Reproduktion des Problems.",
-      "a-detailed-description-of-the-vulnerability": "Eine detaillierte Beschreibung der Schwachstelle.",
-      "include-as-much-information-as-possible-about-th": ": Geben Sie so viele Informationen wie möglich über die Schwachstelle an. Dies sollte umfassen:",
-      "with-the-subject-line-vulnerability-report-brief": "mit der Betreffzeile \"Schwachstellenbericht: [Kurzbeschreibung]\".",
-      "send-an-email-to": ": Senden Sie eine E-Mail an",
-      "how-to-report": "Wie melden",
-      "if-you-discover-a-security-vulnerability-within-": "Wenn Sie eine Sicherheitslücke in diesem Projekt entdecken, bitten wir Sie, diese so schnell wie möglich zu melden. Hier ist, wie Sie es tun können:",
-      "reporting-a-vulnerability": "Melden einer Schwachstelle",
-      "if-you-are-using-an-unsupported-version-we-stron": "Wenn Sie eine nicht unterstützte Version verwenden, empfehlen wir dringend ein Upgrade auf eine der unterstützten Versionen, um sicherzustellen, dass Sie die neuesten Sicherheitsupdates erhalten.",
-      "we-provide-security-updates-for-the-following-ve": "Wir bieten Sicherheitsupdates für die folgenden Versionen unseres Projekts an:",
-      "supported-versions": "Unterstützte Versionen",
-      "we-take-the-security-of-this-project-seriously-a": "Wir nehmen die Sicherheit dieses Projekts ernst und schätzen Ihre Bemühungen, Schwachstellen verantwortungsbewusst zu melden. Dieses Dokument umreißt unsere Sicherheitsrichtlinien und enthält Richtlinien für die Meldung von Schwachstellen.",
-      "security-policy": "Sicherheitspolitik"
-    },
     "site": {
       "website-version": "Website-Version"
-    },
-    "about": {
-      "title": "Über uns",
-      "faq": {
-        "trust_points": [
-          "Wir können nicht auf Ihre Daten zugreifen, selbst wenn wir es wollten (was wir nicht tun). Wenn Sie zum Beispiel ein Systemkennwort weitergeben, kennen wir weder die Benutzerkennung noch die Anwendung, für die es bestimmt ist.",
-          "Bei Verwendung einer Sicherheitsphrase (verfügbar unter \"Datenschutzoptionen\"), wird diese in den Datenverschlüsselungsschlüssel für das Geheimnis eingebunden. Wir speichern ausschließlich einen BCrypt-Prüfwert der Sicherheitsphrase, wodurch eine Entschlüsselung Ihres Geheimnisses nach der Speicherung technisch ausgeschlossen ist.",
-          "Unser Quellcode ist {openSourceLink}. Sie können diesen selbst prüfen oder eine eigene Instanz betreiben.",
-          "Wir setzen normierte Sicherheitsstandards ein, einschließlich TLS-Sicherheitsprotokolle für alle Verbindungen und Datenverschlüsselung im Ruhezustand für gespeicherte Informationen."
-        ],
-        "passphrase_points": [
-          "Wir speichern zu keinem Zeitpunkt unverschlüsselte Geheimnisse oder Sicherheitsphrasen.",
-          "Der BCrypt-Prüfwert kann nicht zur Entschlüsselung des Geheimnisses herangezogen werden.",
-          "Ohne die ursprüngliche Sicherheitsphrase ist eine Entschlüsselung des verschlüsselten Geheimnisses technisch unmöglich, auch für uns nicht.",
-          "Dies bedeutet, selbst bei einem unbefugten Zugriff auf unsere Systeme bleibt Ihr Geheimnis geschützt, solange die Sicherheitsphrase unbekannt bleibt."
-        ],
-        "why_use_title": "Warum sollte ich das verwenden?",
-        "why_use_description": "Wenn Sie Passwörter und private Links per E-Mail oder Chat an andere Personen senden, werden Kopien dieser Informationen an vielen Orten gespeichert. Wenn Sie stattdessen einen Onetime-Link verwenden, werden die Informationen nur einmal angezeigt, so dass sie später nicht mehr von anderen Personen gelesen werden können. Auf diese Weise können Sie vertrauliche Informationen auf sichere Weise versenden und wissen, dass sie nur von einer Person gesehen werden. Stellen Sie sich das wie eine sich selbst zerstörende Nachricht vor.",
-        "file_limitation_title": "Warum kann ich keine Bilder oder andere Dateien senden?",
-        "file_limitation_description": "Unser Dienst ist speziell für textbasierte Geheimnisse konzipiert, um maximale Sicherheit und Einfachheit zu gewährleisten. Dateien, insbesondere Bilder, können Metadaten enthalten, die ungewollt Informationen über den Absender oder Empfänger preisgeben könnten. Da wir uns auf Text konzentrieren, können wir garantieren, dass keine zusätzlichen Daten über das hinaus, was Sie ausdrücklich eingeben, übertragen werden. Wenn Sie eine Datei auf sichere Weise weitergeben möchten, empfehlen wir Ihnen die Verwendung eines speziellen sicheren Dateiübertragungsdienstes. Möglicherweise werden wir in Zukunft die Unterstützung von Dateien hinzufügen, wenn es zwingende Anwendungsfälle dafür gibt.",
-        "text_copy_title": "Aber ich kann den geheimen Text kopieren. Worin liegt der Unterschied?",
-        "text_copy_description": "Stimmt, aber Sie haben nur Text. Bilder und andere Dateitypen können Metadaten und andere potenziell aufschlussreiche Informationen über den Absender oder Empfänger enthalten. Auch hier geht es nur darum, sicherzustellen, dass keine privaten Informationen außerhalb des vorgesehenen Empfängers weitergegeben werden.",
-        "secret_retrieval_title": "Kann ich ein Geheimnis abrufen, das bereits weitergegeben wurde?",
-        "secret_retrieval_description": "Nein. Wir zeigen sie einmal an und löschen sie dann. Danach ist es für immer verschwunden.",
-        "account_difference_title": "Was ist der Unterschied zwischen anonymer Nutzung und einem kostenlosen Konto?",
-        "account_difference_description": "Anonyme Benutzer können Geheimnisse erstellen, die bis zu {anonymousTtlDays} Tage dauern und eine maximale Größe von {anonymousSizeKB} KB HABEN. Inhaber eines kostenlosen Kontos erhalten erweiterte Vorteile: Geheimnisse können bis zu {defaultTtlDays} Tage dauern und bis zu {defaultSizeKB} KB groß sein. Kontoinhaber erhalten außerdem Zugriff auf zusätzliche Funktionen wie die \"Brennen-vor-Lesen\"-Option, die es Absendern ermöglicht, Geheimnisse zu löschen, bevor sie sie erhalten.",
-        "law_enforcement_title": "Wie gehen Sie mit Datenanfragen von Strafverfolgungsbehörden oder anderen Dritten um?",
-        "law_enforcement_description": "Wir haben unser System unter Berücksichtigung des Datenschutzes entwickelt. Wir speichern keine Geheimnisse, nachdem sie angesehen wurden, und wir führen keine Zugriffsprotokolle, die über das erforderliche Minimum hinausgehen. Das bedeutet, dass wir in den meisten Fällen einfach keine Daten haben, die wir als Antwort auf solche Anfragen zur Verfügung stellen können. Weitere Einzelheiten finden Sie in unserer {privacyPolicyLink}.",
-        "trust_title": "Warum sollte ich Ihnen vertrauen?",
-        "trust_description": "Wir haben unser System so konzipiert, dass Datenschutz und Sicherheit oberste Priorität haben. Hier ist der Grund, warum Sie uns vertrauen können:",
-        "passphrase_title": "Wie funktioniert die Sicherheitsphrase-Option?",
-        "passphrase_description": "Wenn Sie eine Sicherheitsphrase verwenden, verschlüsseln wir Ihr Geheimnis auf unseren Servern mit der von Ihnen angegebenen Sicherheitsphrase. Wir speichern nicht die Sicherheitsphrase selbst, sondern nur einen bcrypt-Prüfwert davon. Dieser Hash wird verwendet, um die Sicherheitsphrase zu verifizieren, wenn der Empfänger sie eingibt. Dies ist der Grund, warum dies sicher ist:",
-        "passphrase_final_note": "Denken Sie daran, dass die Sicherheit Ihres Geheimnisses davon abhängt, wie stark Ihre Sicherheitsphrase ist und wie sicher Sie sie dem Empfänger mitteilen."
-      },
-      "intro": {
-        "paragraph1": "Hallo, ich bin {name}, der Erfinder von Onetime Secret. Was 2012 als einfache, sichere Möglichkeit zum Austausch vertraulicher Informationen begann, hat unsere kühnsten Erwartungen übertroffen. Mehr als ein Jahrzehnt später ermöglichen wir den sicheren Austausch von Millionen von Geheimnissen pro Monat, mit Anwendungsfällen, die wir uns nie vorstellen konnten.",
-        "paragraph2": "Die erste Hälfte des Jahres 2024 war unsere bisher arbeitsreichste Zeit. Wir sind dankbar, dass die Menschen unser Produkt seit mehr als einem Jahrzehnt nutzen und weitergeben. Wir arbeiten derzeit an Verbesserungen, die den Dienst noch nützlicher machen werden - wir werden bald weitere Details bekannt geben.",
-        "paragraph3": "Getreu unseren Wurzeln, {githubLink} auf GitHub. Wir navigieren durch die sich entwickelnde Landschaft des digitalen Datenschutzes und der Sicherheit und haben uns zu Transparenz und kontinuierlicher Verbesserung verpflichtet.",
-        "paragraph4": "Danke, dass Sie Teil unserer Reise waren. Auf ein weiteres Jahrzehnt des sicheren, flüchtigen Austauschs.",
-        "feedback_hint": "Wenn Sie Fragen haben, finden Sie am Ende (fast) jeder Seite ein Rückmeldung-Formular.",
-        "signature": "Fröhliches Teilen,\n{name}"
-      }
     },
     "meta": {
       "were-making-onetime-secret-available-in-multiple": "Wir stellen {onetime-secret} in mehreren Sprachen zur Verfügung. Da dies eine neue Funktion ist, können Übersetzungsfehler oder umständliche Formulierungen auftreten. Ihr Feedback hilft uns bei der Verbesserung – wenn Sie Probleme entdecken, bitte {send-feedback}",

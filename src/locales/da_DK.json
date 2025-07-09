@@ -5,7 +5,7 @@
       "secret_view_faq": {
         "what_am_i_looking_at": {
           "title": "Hvad kigger jeg på?",
-          "description": "Du ser en sikker besked, som blev delt med dig via OneTime Secret. Dette indhold vises kun én gang og slettes derefter permanent fra vores servere."
+          "description": "Du ser en sikker besked, som blev delt med dig via Onetime Secret. Dette indhold vises kun én gang og slettes derefter permanent fra vores servere."
         },
         "can_i_view_again": {
           "title": "Kan jeg se denne hemmelighed igen senere?",
@@ -361,82 +361,8 @@
       "send-feedback": "Send feedback",
       "sending-ellipses": "Sender ..."
     },
-    "security": {
-      "thank-you-for-helping-us-keep-onetime-secret-sec": "Tak, fordi du hjælper os med at holde Onetime Secret sikker og fremragende!",
-      "we-take-your-privacy-seriously-all-reports-will-": "Vi tager dit privatliv alvorligt. Alle rapporter vil blive behandlet fortroligt, og vi vil samarbejde med dig for at sikre, at alle detaljer om sårbarheden ikke afsløres, før der er en løsning på plads.",
-      "confidentiality": "Fortrolighed",
-      "if-the-vulnerability-is-declined-we-will-provide": ": Hvis sårbarheden afvises, vil vi give en detaljeret forklaring på, hvorfor den ikke blev accepteret.",
-      "declined-vulnerabilities": "Afviste sårbarheder",
-      "if-the-vulnerability-is-accepted-we-will-work-on": ": Hvis sårbarheden accepteres, vil vi arbejde på en rettelse og forsøge at frigive den så hurtigt som muligt. Du får besked, når rettelsen er implementeret.",
-      "accepted-vulnerabilities": "Accepterede sårbarheder",
-      "resolution-process": "Løsningsproces",
-      "you-can-expect-to-receive-updates-on-the-status-": ": Du kan forvente at modtage opdateringer om status for din rapport mindst en gang hver 7. dag, indtil problemet er løst, eller der er truffet en beslutning.",
-      "updates": "Opdateringer",
-      "we-will-conduct-an-initial-assessment-of-the-vul": ": Vi foretager en indledende vurdering af sårbarheden inden for 14 arbejdsdage.",
-      "initial-assessment": "Indledende vurdering",
-      "you-will-receive-an-acknowledgment-of-your-repor": ": Du vil modtage en bekræftelse på din rapport inden for 5 arbejdsdage.",
-      "acknowledgment": "Bekræftelse",
-      "what-to-expect": "Hvad du kan forvente",
-      "your-contact-information-for-follow-up-questions": "Dine kontaktoplysninger til opfølgende spørgsmål.",
-      "any-potential-impact": "Enhver potentiel påvirkning.",
-      "steps-to-reproduce-the-issue": "Skridt til at reproducere problemet.",
-      "a-detailed-description-of-the-vulnerability": "En detaljeret beskrivelse af sårbarheden.",
-      "include-as-much-information-as-possible-about-th": ": Inkluder så meget information som muligt om sårbarheden. Dette bør omfatte:",
-      "with-the-subject-line-vulnerability-report-brief": "med emnelinjen \"Sårbarhedsrapport: [Kort beskrivelse]\".",
-      "send-an-email-to": ": Send en e-mail til",
-      "how-to-report": "Hvordan man rapporterer",
-      "if-you-discover-a-security-vulnerability-within-": "Hvis du opdager en sikkerhedssårbarhed i dette projekt, opfordrer vi dig til at rapportere det så hurtigt som muligt. Her er, hvordan du kan gøre det:",
-      "reporting-a-vulnerability": "Rapportering af en sårbarhed",
-      "if-you-are-using-an-unsupported-version-we-stron": "Hvis du bruger en ikke-understøttet version, anbefaler vi kraftigt, at du opgraderer til en af de understøttede versioner for at sikre, at du modtager de seneste sikkerhedsopdateringer.",
-      "we-provide-security-updates-for-the-following-ve": "Vi leverer sikkerhedsopdateringer til følgende versioner af vores projekt:",
-      "supported-versions": "Understøttede versioner",
-      "we-take-the-security-of-this-project-seriously-a": "Vi tager sikkerheden i dette projekt alvorligt og sætter pris på din indsats for at afsløre sårbarheder på en ansvarlig måde. Dette dokument beskriver vores sikkerhedspolitik og giver retningslinjer for, hvordan man rapporterer sårbarheder.",
-      "security-policy": "Sikkerhedspolitik"
-    },
     "site": {
       "website-version": "Webstedsversion"
-    },
-    "about": {
-      "title": "Om os",
-      "faq": {
-        "trust_points": [
-          "Vi kan ikke få adgang til dine oplysninger, selv hvis vi ville (hvilket vi ikke gør). Hvis du f.eks. deler en adgangskode, kender vi ikke brugernavnet eller den applikation, det er til.",
-          "Hvis du bruger en passphrase (tilgængelig under \"Privacy Options\"), inkluderer vi den i krypteringsnøglen for hemmeligheden. Vi gemmer kun en bcrypt-hash af adgangssætningen, hvilket gør det umuligt for os at dekryptere din hemmelighed, når den er gemt.",
-          "Vores kode er {openSourceLink}. Du kan selv gennemgå den eller endda køre din egen instans, hvis du foretrækker det.",
-          "Vi bruger industristandard sikkerhedspraksis, herunder HTTPS for alle forbindelser og kryptering i hvile for lagrede data."
-        ],
-        "passphrase_points": [
-          "Vi gemmer aldrig den ukrypterede hemmelighed eller adgangssætningen.",
-          "bcrypt-hash kan ikke bruges til at dekryptere hemmeligheden.",
-          "Uden den oprindelige passphrase kan den krypterede hemmelighed ikke dekrypteres, selv ikke af os.",
-          "Det betyder, at selv hvis vores servere blev kompromitteret, ville din hemmelighed forblive sikker, så længe adgangssætningen forbliver ukendt."
-        ],
-        "why_use_title": "Hvorfor skulle jeg bruge dette?",
-        "why_use_description": "Når du sender folk adgangskoder og private links via e-mail eller chat, gemmes der kopier af disse oplysninger mange steder. Hvis du i stedet bruger et Onetime-link, gemmes oplysningerne til en enkelt visning, hvilket betyder, at de ikke kan læses af andre senere. Det giver dig mulighed for at sende følsomme oplysninger på en sikker måde, velvidende at de kun kan ses af én person. Tænk på det som en selvdestruerende besked.",
-        "file_limitation_title": "Hvorfor kan jeg ikke sende billeder eller andre slags filer?",
-        "file_limitation_description": "Vores tjeneste er designet specifikt til tekstbaserede hemmeligheder for at sikre maksimal sikkerhed og enkelhed. Filer, især billeder, kan indeholde metadata, som utilsigtet kan afsløre oplysninger om afsenderen eller modtageren. Ved at fokusere på tekst kan vi garantere, at der ikke overføres yderligere data ud over det, du eksplicit skriver. Hvis du har brug for at dele en fil sikkert, anbefaler vi, at du bruger en dedikeret sikker filoverførselstjeneste. Vi kan overveje at tilføje understøttelse af filer i fremtiden, hvis der er overbevisende brugssager for det.",
-        "text_copy_title": "Men jeg kan kopiere den hemmelige tekst. Hvad er forskellen?",
-        "text_copy_description": "Ja, men du har kun tekst. Billeder og andre filtyper kan indeholde metadata og andre potentielt afslørende oplysninger om afsenderen eller modtageren. Igen er dette blot for at sikre, at ingen private oplysninger deles uden for den tilsigtede modtager.",
-        "secret_retrieval_title": "Kan jeg hente en hemmelighed, der allerede er blevet delt?",
-        "secret_retrieval_description": "Nej. Vi viser den én gang og sletter den derefter. Derefter er den væk for altid.",
-        "account_difference_title": "Hvad er forskellen på anonym brug og at have en gratis konto?",
-        "account_difference_description": "Anonyme brugere kan oprette hemmeligheder, der varer op til {anonymousTtlDays} dage og har en maksimal størrelse på {anonymousSizeKB}. KB. Indehavere af gratis konti får udvidede fordele: Hemmeligheder kan vare op til {defaultTtlDays} dage og kan være op til {defaultSizeKB} KB store. KB i størrelse. Kontohavere får også adgang til yderligere funktioner som burn-before-reading, som giver afsendere mulighed for at slette hemmeligheder, før de modtages.",
-        "law_enforcement_title": "Hvordan håndterer du dataanmodninger fra retshåndhævende myndigheder eller andre tredjeparter?",
-        "law_enforcement_description": "Vi har designet vores system med tanke på privatlivets fred. Vi gemmer ikke hemmeligheder, efter at de er blevet set, og vi opbevarer ikke adgangslogs ud over det nødvendige minimum. Det betyder, at vi i de fleste tilfælde simpelthen ikke har nogen data at give som svar på sådanne anmodninger. For flere detaljer, se venligst vores {privacyPolicyLink}.",
-        "trust_title": "Hvorfor skal jeg stole på dig?",
-        "trust_description": "Vi har designet vores system med privatlivets fred og sikkerhed som topprioritet. Her er, hvorfor du kan stole på os:",
-        "passphrase_title": "Hvordan fungerer passphrase-indstillingen?",
-        "passphrase_description": "Når du bruger en adgangssætning, krypterer vi din hemmelighed på vores servere ved hjælp af den adgangssætning, du angiver. Vi gemmer ikke selve adgangssætningen, men kun et bcrypt-hash af den. Denne hash bruges til at verificere passphrasen, når modtageren indtaster den. Her er grunden til, at det er sikkert:",
-        "passphrase_final_note": "Husk, at sikkerheden af din hemmelighed afhænger af styrken af din passphrase, og hvor sikkert du kommunikerer den til modtageren."
-      },
-      "intro": {
-        "paragraph1": "Hej, jeg er {navn}, skaberen af Onetime Secret. Det, der startede i 2012 som en enkel og sikker måde at dele følsomme oplysninger på, er vokset ud over vores vildeste forventninger. Over et årti senere faciliterer vi sikker deling af millioner af hemmeligheder hver måned med anvendelsesmuligheder, vi aldrig havde forestillet os.",
-        "paragraph2": "Den første halvdel af 2024 har været vores travleste periode hidtil. Vi er taknemmelige for, at folk er blevet ved med at bruge og dele vores produkt i mere end et årti. Vi arbejder i øjeblikket på forbedringer, som vi tror vil gøre tjenesten endnu mere nyttig - vi vil snart dele flere detaljer.",
-        "paragraph3": "Tro mod vores rødder, {githubLink} på GitHub. Mens vi navigerer i det udviklende landskab af digitalt privatliv og sikkerhed, er vi forpligtet til gennemsigtighed og løbende forbedringer.",
-        "paragraph4": "Tak, fordi du har været en del af vores rejse. Skål for endnu et årti med sikker, flygtig deling.",
-        "feedback_hint": "Hvis du har spørgsmål, er der en feedbackformular nederst på (næsten) alle sider.",
-        "signature": "God fornøjelse med at dele, \n{navn}"
-      }
     },
     "meta": {
       "were-making-onetime-secret-available-in-multiple": "Vi gør {onetime-secret} tilgængelig på flere sprog. Da dette er en ny funktion, kan du støde på oversættelsesfejl eller akavede formuleringer. Din feedback hjælper os med at forbedre os - hvis du opdager problemer, bedes du {send-feedback}",

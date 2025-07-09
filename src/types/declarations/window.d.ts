@@ -11,9 +11,9 @@ import {
   RegionsConfig,
   SecretOptions,
 } from '@/schemas/models';
-import { DiagnosticsConfig } from '../diagnostics';
 import { Stripe } from 'stripe';
 import { FallbackLocale } from 'vue-i18n';
+import { DiagnosticsConfig } from '../diagnostics';
 
 /**
  * TypeScript declarations for custom window properties injected by
@@ -31,6 +31,52 @@ import { FallbackLocale } from 'vue-i18n';
  */
 
 type Message = { type: 'success' | 'error' | 'info'; content: string };
+
+export interface FooterLink {
+  text?: string;
+  i18n_key?: string;
+  url: string;
+  external?: boolean;
+  icon?: string;
+}
+
+export interface FooterGroup {
+  name?: string;
+  i18n_key?: string;
+  links: FooterLink[];
+}
+
+export interface FooterLinksConfig {
+  enabled: boolean;
+  groups: FooterGroup[];
+}
+
+export interface HeaderLogo {
+  url: string;
+  alt: string;
+  link_to: string;
+}
+
+export interface HeaderBranding {
+  logo: HeaderLogo;
+  site_name?: string;
+}
+
+export interface HeaderNavigation {
+  enabled: boolean;
+}
+
+export interface HeaderConfig {
+  enabled: boolean;
+  branding?: HeaderBranding;
+  navigation?: HeaderNavigation;
+}
+
+export interface UiInterface {
+  enabled: boolean;
+  header?: HeaderConfig;
+  footer_links?: FooterLinksConfig;
+}
 
 export interface OnetimeWindow {
   apitoken?: string;
@@ -51,6 +97,7 @@ export interface OnetimeWindow {
   default_locale: Locale;
 
   ot_version: string;
+  ot_version_long: string;
   plans_enabled: boolean;
   regions_enabled: boolean;
   ruby_version: string;
@@ -105,4 +152,6 @@ export interface OnetimeWindow {
   features: {
     markdown: boolean;
   };
+
+  ui: UiInterface;
 }

@@ -5,7 +5,7 @@
       "secret_view_faq": {
         "what_am_i_looking_at": {
           "title": "これは何ですか？",
-          "description": "OneTime Secret を通じて共有された安全なメッセージを閲覧しています。このコンテンツは一度だけ表示され、その後サーバーから完全に削除されます。"
+          "description": "Onetime Secret を通じて共有された安全なメッセージを閲覧しています。このコンテンツは一度だけ表示され、その後サーバーから完全に削除されます。"
         },
         "can_i_view_again": {
           "title": "このシークレットを後でもう一度見ることはできますか？",
@@ -361,77 +361,8 @@
       "send-feedback": "フィードバックを送信",
       "sending-ellipses": "送信中..."
     },
-    "security": {
-      "thank-you-for-helping-us-keep-onetime-secret-sec": "Onetime Secret の安全性と優れた品質を維持するためにご協力いただきありがとうございます！",
-      "we-take-your-privacy-seriously-all-reports-will-": "お客様のプライバシーを重視しています。すべての報告は機密として扱われ、修正が行われるまで脆弱性の詳細が開示されないようにお客様と協力します。",
-      "confidentiality": "機密性",
-      "if-the-vulnerability-is-declined-we-will-provide": ": 脆弱性が拒否された場合、なぜ受け入れられなかったかについて詳細な説明を提供します。",
-      "declined-vulnerabilities": "拒否された脆弱性",
-      "if-the-vulnerability-is-accepted-we-will-work-on": ": 脆弱性が受け入れられた場合、修正に取り組み、できるだけ早くリリースすることを目指します。修正がデプロイされると通知されます。",
-      "accepted-vulnerabilities": "受け入れられた脆弱性",
-      "resolution-process": "解決プロセス",
-      "you-can-expect-to-receive-updates-on-the-status-": ": 問題が解決されるか決定が下されるまで、少なくとも7日ごとにレポートのステータスに関する更新を受け取ることができます。",
-      "updates": "更新",
-      "we-will-conduct-an-initial-assessment-of-the-vul": ": 14営業日以内に脆弱性の初期評価を実施します。",
-      "initial-assessment": "初期評価",
-      "you-will-receive-an-acknowledgment-of-your-repor": ": 5営業日以内にレポートの確認を受け取ります。",
-      "acknowledgment": "確認",
-      "what-to-expect": "期待できること",
-      "your-contact-information-for-follow-up-questions": "フォローアップの質問のための連絡先情報。",
-      "any-potential-impact": "潜在的な影響。",
-      "steps-to-reproduce-the-issue": "問題を再現する手順。",
-      "a-detailed-description-of-the-vulnerability": "脆弱性の詳細な説明。",
-      "include-as-much-information-as-possible-about-th": ": 脆弱性についてできるだけ多くの情報を含めてください。これには以下が含まれるべきです:",
-      "with-the-subject-line-vulnerability-report-brief": "件名「脆弱性レポート: [簡単な説明]」で",
-      "send-an-email-to": ": メールを送信",
-      "how-to-report": "報告方法",
-      "if-you-discover-a-security-vulnerability-within-": "このプロジェクト内でセキュリティの脆弱性を発見した場合は、できるだけ早く報告することをお勧めします。報告方法は次のとおりです:",
-      "reporting-a-vulnerability": "脆弱性の報告",
-      "if-you-are-using-an-unsupported-version-we-stron": "サポートされていないバージョンを使用している場合は、最新のセキュリティアップデートを確実に受け取るために、サポートされているバージョンのいずれかにアップグレードすることを強くお勧めします。",
-      "we-provide-security-updates-for-the-following-ve": "次のバージョンのプロジェクトに対してセキュリティアップデートを提供します:",
-      "supported-versions": "サポートされているバージョン",
-      "we-take-the-security-of-this-project-seriously-a": "このプロジェクトのセキュリティを真剣に考え、脆弱性を責任を持って開示していただくことに感謝します。このドキュメントでは、セキュリティポリシーの概要と脆弱性の報告方法に関するガイドラインを提供します。",
-      "security-policy": "セキュリティポリシー"
-    },
     "site": {
       "website-version": "サイトバージョン"
-    },
-    "about": {
-      "title": "私たちについて",
-      "faq": {
-        "trust_points": [
-          "私たちは、すべての接続に HTTPS を使用し、保存されたデータには保存時の暗号化を含む業界標準のセキュリティ プラクティスを使用しています。"
-        ],
-        "passphrase_points": [
-          "bcrypt ハッシュは秘密を復号化するために使用できません。",
-          "元のパスフレーズがないと、暗号化された秘密は私たちでも復号できません。"
-        ],
-        "why_use_title": "なぜこれを使うのですか？",
-        "why_use_description": "パスワードやプライベートリンクをメールやチャットで送信すると、その情報のコピーが多くの場所に保存されます。代わりにOnetime Secretリンクを使用すると、情報は一度の閲覧のみ保持され、後で他の誰かに読まれることはありません。これにより、機密情報を安全な方法で送信でき、一人だけに見られることを保証します。自己破壊メッセージのようなものと考えてください。",
-        "file_limitation_title": "なぜ写真やその他のファイルを送信できないのですか？",
-        "file_limitation_description": "当社のサービスは、最大限のセキュリティとシンプルさを確保するために、テキストベースの秘密専用に設計されています。ファイル、特に画像には、送信者や受信者に関する情報を意図せず明らかにする可能性のあるメタデータが含まれている場合があります。テキストに焦点を当てることで、明示的に入力したもの以外の追加データが送信されないことを保証できます。ファイルを安全に共有する必要がある場合は、専用の安全なファイル転送サービスを使用することをお勧めします。将来的に、説得力のあるユースケースがあれば、ファイルのサポートを追加することを検討する可能性があります。",
-        "text_copy_title": "しかし、秘密のテキストをコピーすることができます。違いは何ですか？",
-        "text_copy_description": "確かにそうですが、手元にあるのはテキストだけです。画像やその他のファイルタイプには、送信者や受信者に関するメタデータやその他の潜在的に明らかになる情報が含まれている可能性があります。繰り返しになりますが、これは意図した受信者以外に個人情報が共有されないようにするためです。",
-        "secret_retrieval_title": "すでに共有された秘密を取得できますか？",
-        "secret_retrieval_description": "いいえ。一度表示して削除します。その後は永久に失われます。",
-        "account_difference_title": "匿名利用と無料アカウントの違いは何ですか？",
-        "account_difference_description": "匿名ユーザーは最大 {anonymousTtlDays} 日間有効で、最大サイズ {anonymousSizeKB} KB の秘密を作成できます。無料アカウント所有者は、拡張された特典を利用できます。秘密は最大 {defaultTtlDays} 日間有効で、最大 {defaultSizeKB} KB のサイズにすることができます。アカウント所有者は、送信者が受信前に秘密を削除できる「閲覧前破棄」オプションなどの追加機能にもアクセスできます。",
-        "law_enforcement_title": "法執行機関やその他の第三者からのデータ要求にどのように対応しますか？",
-        "law_enforcement_description": "私たちはプライバシーを念頭に置いてシステムを設計しました。秘密は閲覧後に保存せず、必要最低限を超えるアクセスログも保持しません。これは、ほとんどの場合、そのような要求に応答するためのデータが単に存在しないことを意味します。詳細については、{privacyPolicyLink} をご確認ください。",
-        "trust_title": "なぜあなたを信頼すべきですか？",
-        "trust_description": "私たちはプライバシーとセキュリティを最優先事項としてシステムを設計しました。私たちを信頼できる理由は次のとおりです：",
-        "passphrase_title": "パスフレーズオプションはどのように機能しますか？",
-        "passphrase_description": "パスフレーズを使用すると、提供されたパスフレーズを使用してサーバー上で秘密を暗号化します。パスフレーズ自体は保存せず、その bcrypt ハッシュのみを保存します。このハッシュは、受信者がパスフレーズを入力したときに検証するために使用されます。これが安全な理由は次のとおりです：",
-        "passphrase_final_note": "覚えておいてください。秘密のセキュリティは、パスフレーズの強度と、それを受信者にどれだけ安全に伝えるかに依存します。"
-      },
-      "intro": {
-        "paragraph1": "こんにちは、私は {name} です。Onetime Secret の作成者です。2012 年にシンプルで安全な機密情報の共有方法として始まったものが、私たちの想像を超えて成長しました。10 年以上経った今、私たちは毎月何百万もの秘密の安全な共有を促進しており、想像もしなかった使用例が生まれています。",
-        "paragraph2": "2024年前半は、これまでで最も忙しい時期でした。10年以上にわたり、人々が私たちの製品を使い続け、共有してくださっていることに感謝しています。現在、サービスをさらに便利にすると思われる改善に取り組んでいます — 詳細は近日中にお知らせします。",
-        "paragraph3": "私たちのルーツに忠実に、{githubLink} on GitHub。デジタル プライバシーとセキュリティの進化する状況をナビゲートする中で、私たちは透明性と継続的な改善に取り組んでいます。",
-        "paragraph4": "私たちの旅にご参加いただきありがとうございます。安全で一時的な共有の次の10年に乾杯。",
-        "feedback_hint": "ご不明な点がある場合は、（ほぼ）すべてのページの下部にフィードバックフォームがあります。",
-        "signature": "共有を楽しんでください。\n{name}"
-      }
     },
     "meta": {
       "were-making-onetime-secret-available-in-multiple": "私たちは{onetime-secret}を複数の言語で提供しています。これは新機能のため、翻訳エラーや不自然な表現に遭遇する可能性があります。あなたのフィードバックは私たちの改善に役立ちます - 問題を見つけた場合は、{send-feedback}してください",

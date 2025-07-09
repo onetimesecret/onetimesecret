@@ -19,7 +19,7 @@
 :mail: include(':mail')
 :internationalization: include(':internationalization')
 :diagnostics: include(':diagnostics')
-:logging: include(':logging')
+:logging: include(':logging', required=False)
 :limits: include(':limits')
 :development: include(':development')
 :experimental: include(':experimental')
@@ -32,6 +32,8 @@
   :interface:
     :ui:
       :enabled: any(bool(), str())
+      :header: include(':header', required=False)
+      :footer_links: include(':footer_links', required=False)
     :api:
       :enabled: any(bool(), str())
   :secret_options:
@@ -175,6 +177,8 @@
   :stripe_webhook: int()
   :update_domain_brand: int()
   :view_colonel: int()
+  :external_redirect: int()
+  :update_colonel_settings: int()
 :development:
   :enabled: any()
   :debug: any()
@@ -192,3 +196,39 @@
   :icon:
     :collection: str()
     :name: str()
+
+---
+
+:footer_links:
+  :enabled: any(bool(), str())
+  :groups: list(include(':footer_link_group'), required=False)
+
+:footer_link_group:
+  :name: str()
+  :i18n_key: str(required=False)
+  :links: list(include(':footer_link'))
+
+:footer_link:
+  :text: str()
+  :i18n_key: str(required=False)
+  :url: str()
+  :external: any(bool(), str(), required=False)
+  :icon: str(required=False)
+  :visible: bool(required=False)
+
+:header:
+  :enabled: any(bool(), str())
+  :branding: include(':header_branding', required=False)
+  :navigation: include(':header_navigation', required=False)
+
+:header_branding:
+  :logo: include(':header_logo', required=False)
+  :site_name: str(required=False)
+
+:header_logo:
+  :url: str(required=False)
+  :alt: str(required=False)
+  :href: str(required=False)
+
+:header_navigation:
+  :enabled: any(bool(), str())

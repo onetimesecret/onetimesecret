@@ -22,7 +22,8 @@ export const stateFixture: OnetimeWindow = {
   locale: 'en',
   supported_locales: ['en', 'es', 'fr'],
 
-  ot_version: '0.20.0 (abcd)',
+  ot_version: '0.20.0',
+  ot_version_long: '0.20.0 (abcd)',
   plans_enabled: true,
   regions_enabled: true,
   ruby_version: 'ruby-335',

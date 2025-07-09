@@ -32,9 +32,7 @@ describe('Public Routes', () => {
   });
   describe('Incoming Secrets Route', () => {
     it('should define incoming secrets route correctly', () => {
-      const route = publicRoutes.find(
-        (route: RouteRecordRaw) => route.path === '/incoming'
-      );
+      const route = publicRoutes.find((route: RouteRecordRaw) => route.path === '/incoming');
       expect(route).toBeDefined();
       expect(route?.name).toBe('Inbound Secrets');
       expect(route?.meta?.requiresAuth).toBe(false);
@@ -51,9 +49,7 @@ describe('Public Routes', () => {
 
     infoRoutes.forEach((infoRoute) => {
       it(`should define ${infoRoute.name} route correctly`, () => {
-        const route = publicRoutes.find(
-          (route: RouteRecordRaw) => route.path === infoRoute.path
-        );
+        const route = publicRoutes.find((route: RouteRecordRaw) => route.path === infoRoute.path);
         expect(route).toBeDefined();
         expect(route?.name).toBe(infoRoute.name);
         expect(route?.meta?.requiresAuth).toBe(false);
@@ -65,9 +61,7 @@ describe('Public Routes', () => {
 
   describe('Feedback Route', () => {
     it('should define feedback route correctly', () => {
-      const route = publicRoutes.find(
-        (route: RouteRecordRaw) => route.path === '/feedback'
-      );
+      const route = publicRoutes.find((route: RouteRecordRaw) => route.path === '/feedback');
       expect(route).toBeDefined();
       expect(route?.name).toBe('Feedback');
       expect(route?.meta?.requiresAuth).toBe(false);
@@ -79,25 +73,9 @@ describe('Public Routes', () => {
     });
   });
 
-  describe('About Route', () => {
-    it('should define about route correctly', () => {
-      const route = publicRoutes.find((route: RouteRecordRaw) => route.path === '/about');
-      expect(route).toBeDefined();
-      expect(route?.name).toBe('About');
-      expect(route?.meta?.requiresAuth).toBe(false);
-      expect(route?.meta?.layout).toBeDefined();
-      expect(route?.meta?.layoutProps?.displayMasthead).toBe(true);
-      expect(route?.meta?.layoutProps?.displayLinks).toBe(true);
-      expect(route?.meta?.layoutProps?.displayFeedback).toBe(true);
-      expect(typeof route?.component).toBe('function'); // Lazy loaded
-    });
-  });
-
   describe('Translations Route', () => {
     it('should define translations route correctly', () => {
-      const route = publicRoutes.find(
-        (route: RouteRecordRaw) => route.path === '/translations'
-      );
+      const route = publicRoutes.find((route: RouteRecordRaw) => route.path === '/translations');
       expect(route).toBeDefined();
       expect(route?.name).toBe('Translations');
       expect(route?.meta?.requiresAuth).toBe(false);

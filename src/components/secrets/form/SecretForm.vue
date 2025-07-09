@@ -63,6 +63,7 @@
 
   const { form, validation, operations, isSubmitting, submit } = useSecretConcealer({
     onSuccess: async (response) => {
+      if (!response) throw 'Response is missing';
       const newMessage: ConcealedMessage = {
         id: nanoid(),
         metadata_key: response.record.metadata.key,
@@ -128,8 +129,7 @@
     <!-- Enhanced Alert Display -->
     <BasicFormAlerts
       :errors="Array.from(validation.errors.values())"
-      class="sticky top-4 z-50"
-    />
+      class="sticky top-4 z-50" />
 
     <form
       ref="form1"
@@ -173,8 +173,7 @@
           <div
             v-show="selectedAction === 'generate-password'"
             :class="[cornerClass]"
-            class="rounded-lg border border-gray-200 bg-gray-50
-              dark:border-gray-700 dark:bg-slate-800/50"
+            class="rounded-lg border border-gray-200 bg-gray-50 dark:border-gray-700 dark:bg-slate-800/50"
             aria-labelledby="generatedPasswordHeader"
             aria-describedby="generatedPasswordDesc"
             role="region"
@@ -310,12 +309,6 @@
                     {{ $t('web.UNITS.ttl.noOptionsAvailable') }}
                   </option>
                 </select>
-                <div class="pointer-events-none absolute inset-y-0 right-3 flex items-center">
-                  <OIcon
-                    collection="heroicons"
-                    name="chevron-down"
-                    class="size-4 text-gray-400" />
-                </div>
               </div>
             </div>
             <div

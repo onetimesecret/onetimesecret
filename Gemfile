@@ -33,11 +33,12 @@ gem 'thin'
 
 gem 'drydock'
 #gem 'familia', path: '/Users/d/Projects/opensource/d/familia'
-gem 'familia', '~> 1.1.0.pre.rc1'
+gem 'familia', '~> 1.2.0'
 gem 'gibbler'
 gem 'otto', '~> 1.1.0.pre.alpha4'
 gem 'storable'
 gem 'sysinfo'
+gem 'tty-table', '~> 0.12.0'
 gem 'uri-redis', '~> 1.3.0'
 
 gem 'redis', '~> 5.4.0'
@@ -47,9 +48,9 @@ gem 'encryptor', '= 1.1.3'
 
 gem 'httparty'
 
+gem "fastimage", "~> 2.4"
 gem 'mail'
 gem 'net-imap', '~> 0.5.7'
-gem "fastimage", "~> 2.4"
 
 gem 'psych', '~> 5.2.3'
 gem 'stringio', '~> 3.1.6'
@@ -94,6 +95,7 @@ group :development do
 end
 
 group :test do
+  gem "fakeredis", :require => "fakeredis/rspec"
   gem 'rack-test', require: false
   gem 'rspec', git: "https://github.com/rspec/rspec"
   gem 'simplecov', require: false

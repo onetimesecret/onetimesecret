@@ -25,6 +25,10 @@ RSpec.describe V1::Logic::Secrets::ShowSecret do
 
   subject { described_class.new(session, customer, base_params) }
 
+  before(:all) do
+    OT.boot!(:test)
+  end
+
   before do
     allow(V1::Secret).to receive(:load).with('secret123').and_return(secret)
     allow(secret).to receive(:load_customer).and_return(owner)

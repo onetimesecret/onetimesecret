@@ -165,8 +165,6 @@ custom_domain = V2::CustomDomain.create(domain_to_delete, @customer.custid)
 redis_keys_before = custom_domain.redis.keys("#{custom_domain.rediskey}*")
 custom_domain.destroy!(@customer)
 redis_keys_after = custom_domain.redis.keys("#{custom_domain.rediskey}*")
-p [1, redis_keys_before]
-p [2, redis_keys_after]
 [redis_keys_before.empty?, redis_keys_after.empty?]
 #=> [false, true]
 
@@ -187,7 +185,6 @@ conflicting_domain = "conflict-domain-#{SecureRandom.hex(4)}.example.com"
 # First, create the domain with the original customer
 cd1 = V2::CustomDomain.create(conflicting_domain, @customer.custid)
 cd2 = V2::CustomDomain.create(conflicting_domain, @other_customer.custid)
-p cd1.txt_validation_host, cd2.txt_validation_host
 [
   cd1.txt_validation_host == cd2.txt_validation_host,
   cd1.txt_validation_value == cd2.txt_validation_value
@@ -305,13 +302,21 @@ end
 #=> "Domain too long (max: 253)"
 
 ## Validate that default_domain? method works correctly 1 of 2
-OT.conf[:site] = { host: 'default.example.com' }
-V2::CustomDomain.default_domain?('default.example.com')
+old_conf = OT.instance_variable_get(:@conf)
+new_conf = { site: { host: 'default.example.com' } }
+OT.instance_variable_set(:@conf, new_conf)
+success = V2::CustomDomain.default_domain?('default.example.com')
+OT.instance_variable_set(:@conf, old_conf)
+success
 #=> true
 
 ## Validate that default_domain? method works correctly 2 of 3
-OT.conf[:site] = { host: 'default.example.com' }
-V2::CustomDomain.default_domain?('non-default.example.com')
+old_conf = OT.instance_variable_get(:@conf)
+new_conf = { site: { host: 'default.example.com' } }
+OT.instance_variable_set(:@conf, new_conf)
+success = V2::CustomDomain.default_domain?('non-default.example.com')
+OT.instance_variable_set(:@conf, old_conf)
+success
 #=> false
 
 # Tear down

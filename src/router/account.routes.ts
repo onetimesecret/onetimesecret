@@ -1,3 +1,5 @@
+// src/router/account.routes.ts
+
 import DefaultFooter from '@/components/layout/DefaultFooter.vue';
 import DefaultHeader from '@/components/layout/DefaultHeader.vue';
 import { RouteRecordRaw } from 'vue-router';
@@ -13,23 +15,10 @@ const routes: Array<RouteRecordRaw> = [
     },
     meta: {
       requiresAuth: true,
-      displayPoweredBy: false,
+      layoutProps: {
+        displayPoweredBy: false,
+      },
     },
-  },
-  {
-    path: '/colonel',
-    name: 'Colonel',
-    components: {
-      default: () => import('@/views/colonel/ColonelIndex.vue'),
-      header: DefaultHeader,
-      footer: DefaultFooter,
-    },
-    meta: {
-      isAdmin: true,
-      requiresAuth: true,
-      displayPoweredBy: false,
-    },
-    props: true,
   },
 ];
 

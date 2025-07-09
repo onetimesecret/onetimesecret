@@ -1,25 +1,27 @@
 // types/ui/layouts.ts
 
-import { AuthenticationSettings, Customer } from '@/schemas/models';
-
 /**
- * Core application configuration passed from server
- *
- * @deprecated Components use WindowService to access this data
- * now. Keeping for reference until all components are updated.
- *
+ * Logo configuration for masthead and other layout components
  */
-export interface WindowConfig {
-  authenticated: boolean;
-  colonel: boolean;
-  cust?: Customer;
-  onetimeVersion: string;
-  authentication?: AuthenticationSettings;
-  plansEnabled: boolean;
-  supportHost: string;
-  globalBanner?: string;
-  hasGlobalBanner?: boolean;
-  primaryColor?: string;
+export interface LogoConfig {
+  /** Logo URL (image path or component name ending with .vue) */
+  url?: string;
+  /** Logo alt text (falls back to i18n key) */
+  alt?: string;
+  /** Link destination for logo (defaults to '/') */
+  href?: string;
+  /** Logo size in pixels (defaults to 64) */
+  size?: number;
+  /** Whether to show company name next to logo */
+  showSiteName?: boolean;
+  /** Company name override (falls back to config or i18n) */
+  siteName?: string;
+  /** Tagline override (falls back to config or i18n) */
+  tagLine?: string;
+  /** Custom aria label override */
+  ariaLabel?: string;
+  /** Whether to identify that we are in the colonel area */
+  isColonelArea?: boolean;
 }
 
 /**
@@ -29,7 +31,7 @@ export interface LayoutDisplay {
   displayGlobalBroadcast: boolean;
   displayMasthead: boolean;
   displayNavigation: boolean;
-  displayLinks: boolean;
+  displayFooterLinks: boolean;
   displayFeedback: boolean;
   displayVersion: boolean;
   displayPoweredBy: boolean;
@@ -40,4 +42,9 @@ export interface LayoutDisplay {
  * Single interface for all layout properties.
  * Update as new fields become necessary.
  */
-export type LayoutProps = Partial<LayoutDisplay>;
+export interface LayoutProps extends Partial<LayoutDisplay> {
+  /** Logo configuration for the layout */
+  logo?: LogoConfig;
+  /** Colonel mode enables admin features */
+  colonel?: boolean;
+}

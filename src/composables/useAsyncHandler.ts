@@ -1,11 +1,11 @@
 // src/composables/useAsyncHandler.ts
+import { SENTRY_KEY, SentryInstance } from '@/plugins/core/enableDiagnostics';
 import type { ApplicationError } from '@/schemas/errors';
 import { classifyError, createError, errorGuards, wrapError } from '@/schemas/errors';
 import { loggingService } from '@/services/logging.service';
 import type {} from '@/stores/notificationsStore';
 import type { NotificationSeverity } from '@/types/ui/notifications';
 import { inject } from 'vue';
-import { SENTRY_KEY, SentryInstance } from '@/plugins/core/enableDiagnostics';
 
 export interface AsyncHandlerOptions {
   /**
@@ -150,6 +150,15 @@ export function useAsyncHandler(options: AsyncHandlerOptions = {}) {
         }
       }
 
+      // Always notify the user, but use a generic message for technical/security errors
+      if (handlers.notify) {
+        const isHuman = errorGuards.isOfHumanInterest(classifiedError);
+        const message = isHuman
+          ? classifiedError.message
+          : 'web.COMMON.unexpected_error';
+        handlers.notify(message, classifiedError.severity);
+      }
+
       // Only log technical and security errors
       if (!errorGuards.isOfHumanInterest(classifiedError)) {
         handlers.log?.(classifiedError);
@@ -157,11 +166,6 @@ export function useAsyncHandler(options: AsyncHandlerOptions = {}) {
         if (sentry) {
           sentry.scope.captureException(error);
         }
-      }
-
-      // Notify for human-facing errors, but don't log
-      if (errorGuards.isOfHumanInterest(classifiedError) && handlers.notify) {
-        handlers.notify(classifiedError.message, classifiedError.severity);
       }
 
       return undefined;

@@ -1,5 +1,7 @@
 <!-- src/components/layout/QuietHeader.vue -->
 
+<!-- TODO: Rename "quiet" layout components to "identity" (e.g. IdentityHeader) -->
+
 <script setup lang="ts">
   import BrandedMasthead from '@/components/layout/BrandedMastHead.vue';
   import MastHead from '@/components/layout/MastHead.vue';

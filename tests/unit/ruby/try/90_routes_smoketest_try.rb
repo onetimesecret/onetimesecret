@@ -40,8 +40,8 @@ response = @mock_request.get('/dashboard')
 [response.status, response.headers["Location"]]
 #=> [302, "/"]
 
-## Can access the about page
-response = @mock_request.get('/about')
+## Can access the feedback page
+response = @mock_request.get('/feedback')
 response.status
 #=> 200
 
@@ -104,6 +104,6 @@ has_msg = content.slice('error').eql?({'error' => 'Not Found'})
 # API v2 Routes
 
 ## Cannot access the colonel dashboard when not authenticated
-response = @mock_request.get('/api/v2/colonel')
+response = @mock_request.get('/api/v2/colonel/info')
 response.status
 #=> 403

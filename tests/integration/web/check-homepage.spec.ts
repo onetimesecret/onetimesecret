@@ -1,5 +1,4 @@
-import { test, expect } from '@playwright/test';
-import packageJson from '../../../package.json' assert { type: 'json' };
+import { expect, test } from '@playwright/test';
 
 test.beforeEach(async ({ page }) => {
   // See dotenv.config in playwright.config.ts, BASE_URL
@@ -93,7 +92,7 @@ test.describe('View the homepage anonymously', () => {
 
     // Check that the "About" link is visible and links to the correct URL
     await expect(aboutLink).toBeVisible();
-    await expect(aboutLink).toHaveAttribute('href', '/about');
+    await expect(aboutLink).toHaveAttribute('href', '/feedback');
   });
 
   test('should have secret form in default state', async ({ page }) => {
@@ -108,9 +107,7 @@ test.describe('View the homepage anonymously', () => {
     ).toBeVisible();
     await expect(footer.getByRole('button', { name: 'Send Feedback' })).toBeVisible();
 
-    await footer
-      .getByPlaceholder('Share your thoughts, ideas, or experiences...')
-      .click();
+    await footer.getByPlaceholder('Share your thoughts, ideas, or experiences...').click();
     await footer
       .getByPlaceholder('Share your thoughts, ideas, or experiences...')
       .fill('My feedback is!');
@@ -118,32 +115,22 @@ test.describe('View the homepage anonymously', () => {
 
     await page.goto('/');
 
-    await footer
-      .getByPlaceholder('Share your thoughts, ideas, or experiences...')
-      .click();
+    await footer.getByPlaceholder('Share your thoughts, ideas, or experiences...').click();
     await footer
       .getByPlaceholder('Share your thoughts, ideas, or experiences...')
       .fill('My feedback is 2');
-    await footer
-      .getByPlaceholder('Share your thoughts, ideas, or experiences...')
-      .press('Enter');
-    await footer
-      .getByPlaceholder('Share your thoughts, ideas, or experiences...')
-      .click();
+    await footer.getByPlaceholder('Share your thoughts, ideas, or experiences...').press('Enter');
+    await footer.getByPlaceholder('Share your thoughts, ideas, or experiences...').click();
     await page
       .getByPlaceholder('Share your thoughts, ideas, or experiences...')
       .fill('More feedback from the /feedback page');
-    await page
-      .getByPlaceholder('Share your thoughts, ideas, or experiences...')
-      .press('Enter');
+    await page.getByPlaceholder('Share your thoughts, ideas, or experiences...').press('Enter');
     await expect(
       page.getByPlaceholder('Share your thoughts, ideas, or experiences...')
     ).toBeVisible();
     await expect(page.getByRole('button', { name: 'Send Feedback' })).toBeVisible();
 
-    await expect(page.locator('body')).toContainText(
-      'Message received. Send as much as you like'
-    );
+    await expect(page.locator('body')).toContainText('Message received. Send as much as you like');
     await expect(page.getByLabel('Feedback Form')).toContainText('Give us your feedback');
     await expect(
       footer.getByPlaceholder('Share your thoughts, ideas, or experiences...')

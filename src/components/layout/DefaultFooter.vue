@@ -4,18 +4,20 @@
   import FeedbackToggle from '@/components/FeedbackToggle.vue';
   import JurisdictionToggle from '@/components/JurisdictionToggle.vue';
   import LanguageToggle from '@/components/LanguageToggle.vue';
-  import FooterLinkLists from '@/components/layout/FooterLinkLists.vue';
+  import FooterLinks from '@/components/layout/FooterLinks.vue';
+
   import ThemeToggle from '@/components/ThemeToggle.vue';
+
   import { WindowService } from '@/services/window.service';
+
   import type { LayoutProps } from '@/types/ui/layouts';
-  import { ref } from 'vue';
 
   withDefaults(defineProps<LayoutProps>(), {
     displayFeedback: true,
-    displayLinks: true,
+    displayFooterLinks: true,
     displayVersion: true,
     displayToggles: true,
-    displayPoweredBy: false,
+    displayPoweredBy: true,
   });
 
   const windowProps = WindowService.getMultiple([
@@ -23,9 +25,9 @@
     'regions',
     'authentication',
     'i18n_enabled',
+    'ot_version',
+    'ui',
   ]);
-
-  const companyName = ref('OnetimeSecret.com');
 </script>
 
 <template>
@@ -38,45 +40,59 @@
     duration-300 dark:bg-gray-800"
     :aria-label="$t('site-footer')">
     <div class="container mx-auto max-w-2xl px-4">
-      <FooterLinkLists
-        v-if="displayLinks"
-        v-bind="$props" />
+      <!-- Footer Links Section -->
+      <FooterLinks v-if="displayFooterLinks" />
 
+      <!-- Existing Footer Content -->
       <!-- prettier-ignore-attribute class -->
       <div
         class="
-        mt-6 flex
+        flex
         flex-col-reverse items-center
         justify-between
         space-y-6 space-y-reverse md:flex-row
-        md:space-y-0">
+        md:space-y-0"
+        :class="
+          displayFooterLinks && windowProps.ui?.footer_links?.enabled
+            ? 'mt-8 border-t border-gray-200 pt-8 dark:border-gray-700'
+            : ''
+        ">
+        <!-- Version and Powered By -->
         <!-- prettier-ignore-attribute class -->
         <div
           class="
           flex w-full
           flex-wrap items-center justify-center
-          gap-4 text-center
-          text-sm text-gray-500 dark:text-gray-400 md:w-auto md:justify-start md:text-left">
-          <span v-if="displayVersion">
-            &copy; {{ new Date().getFullYear() }} {{ companyName }}.
+          text-center
+          text-xs text-gray-500 dark:text-gray-400 md:w-auto md:justify-start md:text-left">
+          <span
+            v-if="displayVersion"
+            :title="`${$t('onetime-secret-literal')} Version`">
+            <a
+              :href="`https://github.com/onetimesecret/onetimesecret/releases/tag/v${windowProps.ot_version}`"
+              :aria-label="$t('release-notes')">
+              v{{ windowProps.ot_version }}
+            </a>
           </span>
-          <div
-            v-if="!displayLinks"
-            class="text-inherit">
-            <router-link
-              to="/info/terms"
-              class="transition-colors duration-200 hover:text-gray-800 dark:hover:text-gray-100">
-              {{ $t('terms') }}
-            </router-link>
-            <span class="mx-2">·</span>
-            <router-link
-              to="/info/privacy"
-              class="transition-colors duration-200 hover:text-gray-800 dark:hover:text-gray-100">
-              {{ $t('privacy') }}
-            </router-link>
-          </div>
+          <span
+            v-if="displayVersion && displayPoweredBy"
+            class="flex items-center justify-center px-2">
+            -
+          </span>
+          <span
+            v-if="displayPoweredBy"
+            :title="`${$t('onetime-secret-literal')} Version`">
+            <a
+              :href="$t('web.COMMON.website_url')"
+              target="_blank"
+              rel="noopener noreferrer">
+              {{ $t('web.COMMON.powered_by') }}
+              {{ $t('onetime-secret-literal') }}
+            </a>
+          </span>
         </div>
 
+        <!-- Toggles Section -->
         <!-- prettier-ignore-attribute class -->
         <div
           v-if="displayToggles"
