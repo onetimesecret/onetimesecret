@@ -11,8 +11,8 @@ import { DEBUG } from './src/utils/debug';
 
 //import { createHtmlPlugin } from 'vite-plugin-html'
 //import checker from 'vite-plugin-checker';
-//import vueDevTools from 'vite-plugin-vue-devtools';
-//import Inspector from 'vite-plugin-vue-inspector'; // OR vite-plugin-vue-inspector
+import vueDevTools from 'vite-plugin-vue-devtools';
+import Inspector from 'vite-plugin-vue-inspector'; // OR vite-plugin-vue-inspector
 
 // Remember, for security reasons, only variables prefixed with VITE_ are
 // available here to prevent accidental exposure of sensitive
@@ -107,8 +107,8 @@ export default defineConfig({
     // }),
 
     // Enable Vue Devtools
-    //vueDevTools(),
-    //Inspector(),
+    vueDevTools(),
+    Inspector(),
 
     // https://github.com/unplugin/unplugin-vue-markdown
     Markdown({

@@ -3,6 +3,9 @@
 BE CONCISE. Remember this is currently a one-person project. All scope needs to consider: I can only do one thing at a time -- is this important to spend time on? To spend time on now?
 
 ## Common Commands
+
+NOTE: Assume the dev server is already up and running locally at http://localhost:5173/dist
+
 - Dev server: `pnpm dev` or `pnpm dev:local` (with local config)
 - Build: `pnpm build` (production) or `pnpm build:local` (development)
 - Lint: `pnpm lint` or `pnpm lint:fix` (auto-fix issues)

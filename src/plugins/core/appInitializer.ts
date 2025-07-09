@@ -47,7 +47,9 @@ function initializeApp(app: App, options: AppInitializerOptions = {}) {
   const router = createAppRouter();
   const pinia = createPinia();
   const api = options.api ?? createApi();
-
+  console.log(
+    `Initializing app with options: ${JSON.stringify(options, null, 2)}`
+  );
   if (d9sEnabled) {
     // Create plugin instances
     const diagnosticsPlugin = createDiagnostics({
