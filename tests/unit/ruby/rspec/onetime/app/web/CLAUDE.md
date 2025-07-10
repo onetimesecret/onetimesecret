@@ -170,7 +170,7 @@ REQUIRED_WINDOW_KEYS = %w[
   plans_enabled regions regions_enabled
 
   # URLs & Hosts
-  frontend_development frontend_host site_host support_host
+  frontend_development frontend_host site_host
 
   # Domain Configuration
   canonical_domain custom_domains display_domain domain_branding
