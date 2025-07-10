@@ -1,6 +1,6 @@
 # tests/unit/ruby/rspec/onetime/app/web/window_state_schema_spec.rb
 
-require_relative '../../../../spec_helper'
+require_relative '../../../spec_helper'
 
 RSpec.describe 'Window State Schema Validation' do
   let(:config) { OT.conf }
@@ -179,7 +179,7 @@ RSpec.describe 'Window State Schema Validation' do
     it 'has correct data types for core fields' do
       aggregate_failures 'checking data types' do
         # Core user data
-        expect(mock_ui_context[:authenticated]).to be_in([true, false])
+        expect(mock_ui_context[:authenticated]).to be(true).or be(false)
         expect(mock_ui_context[:custid]).to be_nil.or(be_a(String))
         expect(mock_ui_context[:cust]).to be_a(Hash)
         expect(mock_ui_context[:email]).to be_nil.or(be_a(String))
@@ -198,11 +198,11 @@ RSpec.describe 'Window State Schema Validation' do
         expect(mock_ui_context[:nonce]).to be_a(String)
 
         # Feature flags
-        expect(mock_ui_context[:d9s_enabled]).to be_in([true, false])
-        expect(mock_ui_context[:domains_enabled]).to be_in([true, false])
-        expect(mock_ui_context[:regions_enabled]).to be_in([true, false])
-        expect(mock_ui_context[:plans_enabled]).to be_in([true, false])
-        expect(mock_ui_context[:i18n_enabled]).to be_in([true, false])
+        expect(mock_ui_context[:d9s_enabled]).to be(true).or be(false)
+        expect(mock_ui_context[:domains_enabled]).to be(true).or be(false)
+        expect(mock_ui_context[:regions_enabled]).to be(true).or be(false)
+        expect(mock_ui_context[:plans_enabled]).to be(true).or be(false)
+        expect(mock_ui_context[:i18n_enabled]).to be(true).or be(false)
 
         # Internationalization
         expect(mock_ui_context[:locale]).to be_a(String)
@@ -211,7 +211,7 @@ RSpec.describe 'Window State Schema Validation' do
 
         # Business logic
         expect(mock_ui_context[:plan]).to be_a(Hash)
-        expect(mock_ui_context[:is_paid]).to be_in([true, false])
+        expect(mock_ui_context[:is_paid]).to be(true).or be(false)
         expect(mock_ui_context[:available_plans]).to be_a(Hash)
 
         # Arrays
@@ -257,10 +257,10 @@ RSpec.describe 'Window State Schema Validation' do
 
       it 'has boolean values for authentication flags' do
         aggregate_failures 'checking authentication flag types' do
-          expect(auth[:enabled]).to be_in([true, false])
-          expect(auth[:signin]).to be_in([true, false])
-          expect(auth[:signup]).to be_in([true, false])
-          expect(auth[:autoverify]).to be_in([true, false])
+          expect(auth[:enabled]).to be(true).or be(false)
+          expect(auth[:signin]).to be(true).or be(false)
+          expect(auth[:signup]).to be(true).or be(false)
+          expect(auth[:autoverify]).to be(true).or be(false)
         end
       end
     end
@@ -285,7 +285,7 @@ RSpec.describe 'Window State Schema Validation' do
 
       it 'has required ui fields' do
         expect(ui).to have_key(:enabled)
-        expect(ui[:enabled]).to be_in([true, false])
+        expect(ui[:enabled]).to be(true).or be(false)
       end
 
       it 'has valid header structure when present' do
@@ -375,7 +375,7 @@ RSpec.describe 'Window State Schema Validation' do
     end
 
     it 'has consistent payment status' do
-      expect(mock_ui_context[:is_paid]).to be_in([true, false])
+      expect(mock_ui_context[:is_paid]).to be(true).or be(false)
       expect(mock_ui_context[:available_plans]).to be_a(Hash)
     end
   end

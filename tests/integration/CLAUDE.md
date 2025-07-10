@@ -52,7 +52,7 @@ parsed = JSON.parse(json_string)
 
 # Booleans MUST remain booleans (not strings/nil)
 %w[authenticated d9s_enabled domains_enabled].each do |field|
-  expect(parsed[field]).to be_in([true, false])
+  expect(parsed[field]).to be(true).or be(false)
 end
 
 # Numbers MUST remain numbers (not strings)
@@ -159,7 +159,7 @@ def test_json_serialization_safety(ui_context)
   boolean_fields.each do |field|
     original = ui_context[field.to_sym]
     roundtrip = parsed_back[field]
-    expect(roundtrip).to be_in([true, false]), "#{field} not boolean after JSON roundtrip"
+    expect(roundtrip).to be(true).or be(false), "#{field} not boolean after JSON roundtrip"
     expect(roundtrip).to eq(original), "#{field} value changed during JSON roundtrip"
   end
 
@@ -230,7 +230,7 @@ def validate_ui_context_structure(ui_context)
   end
 
   # Type tests (must be consistent regardless of values):
-  expect(ui_context[:authenticated]).to be_in([true, false])
+  expect(ui_context[:authenticated]).to be(true).or be(false)
   expect(ui_context[:locale]).to be_a(String)
   expect(ui_context[:ot_version]).to be_a(String)
   expect(ui_context[:shrimp]).to be_a(String)
@@ -276,8 +276,8 @@ def test_missing_config_sections(incomplete_config)
   ui_context = generate_ui_context(incomplete_config, nil)
 
   # Should not crash, should provide sensible defaults:
-  expect(ui_context[:authentication][:enabled]).to be_in([true, false])
-  expect(ui_context[:d9s_enabled]).to be_in([true, false])
+  expect(ui_context[:authentication][:enabled]).to be(true).or be(false)
+  expect(ui_context[:d9s_enabled]).to be(true).or be(false)
   expect(ui_context[:locale]).to be_a(String)
   expect(ui_context[:supported_locales]).to be_a(Array)
   expect(ui_context[:supported_locales]).not_to be_empty
