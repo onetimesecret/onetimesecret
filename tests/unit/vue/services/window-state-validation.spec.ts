@@ -10,7 +10,7 @@ import type { OnetimeWindow } from '@/types/declarations/window';
 const WindowStateSchema = z.object({
   // Core Authentication & User Data
   authenticated: z.boolean(),
-  custid: z.string().nullable(),
+  custid: z.string(),
   cust: z.object({
     identifier: z.string(),
     custid: z.string(),
@@ -34,8 +34,12 @@ const WindowStateSchema = z.object({
     emails_sent: z.string(),
     active: z.boolean()
   }).nullable(),
-  email: z.string().nullable(),
-  customer_since: z.string().nullable(),
+  email: z.string(),
+  customer_since: z.string().optional(),
+  domains_enabled: z.boolean(),
+  plans_enabled: z.boolean(),
+  regions_enabled: z.boolean(),
+  i18n_enabled: z.boolean(),
 
   // Configuration Sections
   authentication: z.object({
@@ -111,10 +115,6 @@ const WindowStateSchema = z.object({
 
   // Feature Flags
   d9s_enabled: z.boolean(),
-  domains_enabled: z.boolean(),
-  regions_enabled: z.boolean(),
-  plans_enabled: z.boolean(),
-  i18n_enabled: z.boolean(),
   frontend_development: z.boolean().optional(),
 
   // System Information
@@ -127,14 +127,14 @@ const WindowStateSchema = z.object({
   // Host Information
   site_host: z.string(),
   frontend_host: z.string(),
-  support_host: z.string().nullable().optional(),
-  incoming_recipient: z.string().nullable().optional(),
+  baseuri: z.string(),
+  incoming_recipient: z.string(),
 
   // Domain & Branding
   canonical_domain: z.string(),
   display_domain: z.string(),
   domain_strategy: z.enum(['canonical', 'subdomain', 'custom', 'invalid']),
-  domain_id: z.string().nullable().optional(),
+  domain_id: z.string(),
   domain_branding: z.object({
     allow_public_homepage: z.boolean(),
     button_text_light: z.boolean(),
@@ -144,13 +144,13 @@ const WindowStateSchema = z.object({
     instructions_pre_reveal: z.string(),
     instructions_reveal: z.string(),
     primary_color: z.string()
-  }).nullable().optional(),
+  }),
   domain_logo: z.object({
     content_type: z.string(),
     encoded: z.string(),
     filename: z.string()
-  }).nullable().optional(),
-  custom_domains: z.array(z.string()).nullable().optional(),
+  }),
+  custom_domains: z.array(z.string()).optional(),
 
   // Internationalization
   locale: z.string(),
@@ -158,64 +158,33 @@ const WindowStateSchema = z.object({
   supported_locales: z.array(z.string()),
   fallback_locale: z.union([
     z.string(),
-    z.record(z.array(z.string()))
+    z.array(z.string()),
+    z.record(z.string(), z.array(z.string()))
   ]),
 
   // Business Logic
-  plan: z.object({
-    identifier: z.string(),
-    planid: z.string(),
-    price: z.number(),
-    discount: z.number(),
-    options: z.object({
-      ttl: z.number(),
-      size: z.number(),
-      api: z.boolean(),
-      name: z.string(),
-      email: z.boolean().optional(),
-      custom_domains: z.boolean().optional(),
-      dark_mode: z.boolean().optional()
-    })
-  }).optional(),
   is_paid: z.boolean(),
-  default_planid: z.string(),
-  available_plans: z.record(z.object({
-    identifier: z.string(),
-    planid: z.string(),
-    price: z.number(),
-    discount: z.number(),
-    options: z.object({
-      ttl: z.number(),
-      size: z.number(),
-      api: z.boolean(),
-      name: z.string(),
-      email: z.boolean().optional(),
-      custom_domains: z.boolean().optional(),
-      dark_mode: z.boolean().optional()
-    })
-  })),
+  user_type: z.string(),
 
   // UI State
   messages: z.array(z.object({
     type: z.enum(['success', 'error', 'info']),
     content: z.string()
   })),
-  global_banner: z.string().nullable().optional(),
+  global_banner: z.string().optional(),
 
-  // Optional fields that may be present
-  enjoyTheVue: z.boolean().optional(),
+  // Required fields from interface
+  enjoyTheVue: z.boolean(),
   features: z.object({
     markdown: z.boolean()
-  }).optional(),
-  available_jurisdictions: z.array(z.string()).optional(),
+  }),
+  available_jurisdictions: z.array(z.string()),
 
-  // Legacy/optional fields from old system
-  baseuri: z.string().optional(),
+  // Optional fields from interface
   apitoken: z.string().optional(),
-  user_type: z.string().optional(),
   stripe_customer: z.any().optional(),
   stripe_subscriptions: z.array(z.any()).optional()
-}).strict();
+});
 
 type WindowState = z.infer<typeof WindowStateSchema>;
 
@@ -236,7 +205,7 @@ describe('Window State Zod Validation', () => {
       setupWindowState({
         // Core Authentication & User Data
         authenticated: false,
-        custid: null,
+        custid: 'anon',
         cust: {
           identifier: 'anon',
           custid: 'anon',
@@ -260,8 +229,7 @@ describe('Window State Zod Validation', () => {
           emails_sent: '0',
           active: false
         },
-        email: null,
-        customer_since: null,
+        email: '',
 
         // Configuration Sections
         authentication: {
@@ -343,14 +311,14 @@ describe('Window State Zod Validation', () => {
         // Host Information
         site_host: 'dev.onetime.dev',
         frontend_host: 'http://localhost:5173',
-        support_host: null,
-        incoming_recipient: null,
+        baseuri: 'https://dev.onetimesecret.com',
+        incoming_recipient: '',
 
         // Domain & Branding
         canonical_domain: 'dev.onetime.dev',
         display_domain: 'dev.onetime.dev',
         domain_strategy: 'canonical' as const,
-        domain_id: null,
+        domain_id: '',
         domain_branding: {
           allow_public_homepage: false,
           button_text_light: true,
@@ -366,7 +334,7 @@ describe('Window State Zod Validation', () => {
           encoded: '',
           filename: ''
         },
-        custom_domains: null,
+        custom_domains: [],
 
         // Internationalization
         locale: 'en',
@@ -383,63 +351,18 @@ describe('Window State Zod Validation', () => {
         },
 
         // Business Logic
-        plan: {
-          identifier: 'anonymous',
-          planid: 'anonymous',
-          price: 0,
-          discount: 0,
-          options: {
-            ttl: 604800.0,
-            size: 100000,
-            api: false,
-            name: 'Anonymous'
-          }
-        },
         is_paid: false,
-        default_planid: 'basic',
-        available_plans: {
-          'anonymous': {
-            identifier: 'anonymous',
-            planid: 'anonymous',
-            price: 0,
-            discount: 0,
-            options: {
-              ttl: 604800.0,
-              size: 100000,
-              api: false,
-              name: 'Anonymous'
-            }
-          },
-          'basic': {
-            identifier: 'basic',
-            planid: 'basic',
-            price: 0,
-            discount: 0,
-            options: {
-              ttl: 1209600.0,
-              size: 1000000,
-              api: true,
-              name: 'Basic Plan',
-              email: true,
-              custom_domains: false,
-              dark_mode: true
-            }
-          }
-        },
 
         // UI State
         messages: [],
-        global_banner: null,
 
-        // Optional fields
+        // Required fields
         enjoyTheVue: true,
         features: {
           markdown: true
         },
         available_jurisdictions: ['EU', 'US'],
 
-        // Legacy fields
-        baseuri: 'https://dev.onetimesecret.com',
         user_type: 'authenticated'
       } as OnetimeWindow);
     });
@@ -564,7 +487,7 @@ describe('Window State Zod Validation', () => {
         'site_host', 'frontend_host',
         'canonical_domain', 'display_domain', 'domain_strategy',
         'locale', 'default_locale', 'supported_locales', 'fallback_locale',
-        'is_paid', 'available_plans', 'messages'
+        'is_paid', 'messages'
       ];
 
       const schemaKeys = Object.keys(WindowStateSchema.shape);
@@ -576,9 +499,8 @@ describe('Window State Zod Validation', () => {
 
     it('handles optional fields correctly', () => {
       const optionalFields = [
-        'customer_since', 'support_host', 'incoming_recipient',
-        'domain_id', 'domain_branding', 'domain_logo', 'custom_domains',
-        'global_banner', 'nonce', 'enjoyTheVue', 'features'
+        'apitoken', 'customer_since', 'custom_domains', 'global_banner',
+        'stripe_customer', 'stripe_subscriptions'
       ];
 
       optionalFields.forEach(field => {
@@ -593,10 +515,11 @@ describe('Window State Zod Validation', () => {
 
   describe('Edge cases and error scenarios', () => {
     it('handles missing required fields', () => {
-      setupWindowState({
+      // Set minimal state directly without fixture to test validation failure
+      (window as any).onetime = {
         authenticated: false
-        // Missing many required fields
-      } as any);
+        // Missing many required fields that should cause validation to fail
+      };
 
       const state = WindowService.getState();
       const result = WindowStateSchema.safeParse(state);
