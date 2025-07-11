@@ -239,7 +239,8 @@ module V2
     end
 
     def encryption_key_v2 *_ignored
-      V2::Secret.encryption_key OT.global_secret, key, passphrase_temp
+      site_secret = OT.conf['site']['secret'] # aka previously called global_secret
+      V2::Secret.encryption_key site_secret, key, passphrase_temp
     end
 
     # Used as a failover key when experimental.allow_nil_global_secret is true.

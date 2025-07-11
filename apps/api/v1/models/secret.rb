@@ -161,7 +161,8 @@ module V1
     end
 
     def encryption_key_v2 *ignored
-      V1::Secret.encryption_key OT.global_secret, self.key, self.passphrase_temp
+      site_secret = OT.conf['site']['secret'] # aka previously "global_secret"
+      V1::Secret.encryption_key site_secret, self.key, self.passphrase_temp
     end
 
     def load_customer
