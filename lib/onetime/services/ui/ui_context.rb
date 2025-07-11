@@ -27,8 +27,9 @@ module Onetime
         setup_domain_info(req)
         setup_customer_info(req, sess, cust)
 
+        OT.li "[UIContext] Initializing UIContext (#{req.env['ots.nonce']})"
         # Build the complete business data with OnetimeWindow structure
-        onetime_window         = build_onetime_window_data(req, sess, @cust, locale_override)
+        onetime_window = build_onetime_window_data(req, sess, @cust, locale_override)
         enhanced_props = props.merge(onetime_window: onetime_window)
 
         # Call parent constructor with enhanced data
@@ -54,20 +55,15 @@ module Onetime
       end
 
       # Set up customer and plan information
-      def setup_customer_info(req, sess, cust)
-        @cust         = cust || V2::Customer.anonymous
-        authenticated = sess && sess.authenticated? && !@cust.anonymous?
+      def setup_customer_info(_req, sess, cust)
+        @cust             = cust || V2::Customer.anonymous
+        authenticated     = sess && sess.authenticated? && !@cust.anonymous?
         @is_authenticated = authenticated
-
-        # if authenticated
-        #   @plan = Onetime::Plan.plan(@cust.planid)
-        # end
-        # @plan  ||= Onetime::Plan.plan('anonymous')
-        # @is_paid = @plan.paid?
       end
 
       # Build complete OnetimeWindow data structure
       # This is the authoritative business logic ported from Core::Views::BaseView#initialize
+      # rubocop:disable Lint/UselessAssignment
       def build_onetime_window_data(req, sess, cust, locale_override)
         # Return minimal defaults if OT.conf isn't loaded yet
         return minimal_onetime_window(req, sess, cust, locale_override) unless defined?(OT) && OT.conf
@@ -100,7 +96,7 @@ module Onetime
 
         # Get messages and shrimp
         messages = sess&.get_messages || []
-        shrimp   = sess&.add_shrimp
+        sess&.add_shrimp
 
         # Build the complete jsvars structure (OnetimeWindow format)
         jsvars = build_base_jsvars(req, interface, authentication, frontend_host, frontend_development)
@@ -116,7 +112,6 @@ module Onetime
           regions,
           regions_enabled,
           incoming_recipient,
-          support_host,
         )
 
         # Add locale and i18n data
@@ -136,6 +131,7 @@ module Onetime
 
         jsvars
       end
+      # rubocop:enable Lint/UselessAssignment
 
       # Determine the final locale to use
       def determine_final_locale(req, locale_override)
@@ -224,7 +220,6 @@ module Onetime
 
         # Contact and support
         jsvars[:incoming_recipient] = incoming_recipient
-        jsvars[:support_host]       = support_host
         jsvars[:secret_options]     = secret_options
 
         # Site host
