@@ -43,7 +43,7 @@ gem 'uri-redis', '~> 1.3.0'
 if ENV['RACK_ENV'] == 'development' && ENV['CI'].to_s.empty?
   gem 'rhales', path: '../rhales'
 else
-  gem 'rhales', '~> 0.3.0'
+  gem 'rhales', '~> 0.4.0'
 end
 
 gem 'concurrent-ruby', '~> 1.3.5'
