@@ -1,0 +1,23 @@
+<!-- templates/web/error.rue -->
+
+<!--
+  500 page for the unexpected
+-->
+
+<data window="onetime" schema="@/src/types/declarations/window.d.ts">
+{{{onetime_window}}}
+</data>
+
+<template>
+  <!doctype html>
+  <html lang="{{locale}}">
+    <head>
+      {{> head}}
+      <title>Server Error - {{site_host}}</title>
+    </head>
+
+    <body class="font-serif bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100">
+      <div id="app"></div>
+    </body>
+  </html>
+</template>

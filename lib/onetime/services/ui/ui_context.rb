@@ -19,6 +19,8 @@ module Onetime
     # - Development and diagnostics settings
     #
     class UIContext < Rhales::Context
+      # include V2::Logic::UriHelpers # TODO2: Some window state values come from these methods
+
       attr_reader :plan, :is_paid, :canonical_domain, :display_domain,
         :domain_strategy, :domain_id, :domain_branding, :domain_logo, :custom_domain
 
@@ -136,6 +138,8 @@ module Onetime
           incoming_recipient,
         )
 
+        jsvars[:baseuri] = baseuri(site)
+
         # Add locale and i18n data
         add_locale_data(jsvars, display_locale, is_default_locale)
 
@@ -154,6 +158,12 @@ module Onetime
         jsvars
       end
       # rubocop:enable Lint/UselessAssignment
+
+      def baseuri(site)
+        scheme = site['ssl'] ? 'https://' : 'http://'
+        host   = site['host']
+        [scheme, host].join
+      end
 
       # Determine the final locale to use
       def determine_final_locale(req, locale_override)
