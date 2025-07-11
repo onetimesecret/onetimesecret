@@ -18,9 +18,8 @@ module V2
 
         def process
           @current_record = fetch_current_mutable_config
-          @runtime_config  = build_runtime_configuration
 
-          OT.ld "[GetMutableConfig#process] Retrieved mutable config with #{@runtime_config.keys.size} sections"
+          OT.ld "[GetMutableConfig#process] Retrieved mutable config with #{@current_record.keys.size} sections"
         end
 
         def success_data
@@ -40,23 +39,6 @@ module V2
           nil
         end
 
-        # Build configuration by directly merging colonel overrides with base sections
-        def build_runtime_configuration
-          base_sections = MutableConfig.extract_mutable_config(OT.conf)
-          OT.ld "[GetMutableConfig#build_runtime_configuration] Base sections: #{base_sections.keys}"
-
-          return base_sections unless current_record
-
-          # Get the colonel overrides directly (with proper deserialization)
-          colonel_overrides = current_record.filtered
-          OT.ld "[GetMutableConfig#build_runtime_configuration] Colonel overrides (raw): #{colonel_overrides}"
-
-          # Merge colonel overrides directly into base sections
-          merged = OT::Utils.deep_merge(base_sections, colonel_overrides)
-          OT.ld "[GetMutableConfig#build_runtime_configuration] Final merged result: #{merged}"
-
-          merged
-        end
       end
     end
   end
