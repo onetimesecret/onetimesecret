@@ -7,32 +7,69 @@
 </data>
 
 <template>
-  <header class="border-b border-gray-200 dark:border-gray-700">
-    <nav class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-      <div class="flex justify-between h-16">
-        <div class="flex items-center">
-          <h1 class="text-xl font-bold text-orange-600">
-            <a href="/">One Time Secret</a>
-          </h1>
-        </div>
-        <div class="flex items-center space-x-4">
-          {{#if user.authenticated?}}
-            <a href="/dashboard" class="text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white">
-              Dashboard
-            </a>
-            <a href="/logout" class="text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white">
-              Logout
-            </a>
-          {{else}}
-            <a href="/login" class="text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white">
-              Sign In
-            </a>
-            <a href="/signup" class="bg-orange-600 text-white px-4 py-2 rounded hover:bg-orange-700">
-              Create Account
-            </a>
-          {{/if}}
+  <!-- Progress bar to match Vue app -->
+  <div class="fixed left-0 top-0 z-50 h-1 w-full bg-brand-500"></div>
+
+  <!-- Header matching Vue app structure -->
+  <header class="bg-white dark:bg-gray-900">
+    <div class="container mx-auto min-w-[320px] max-w-2xl p-4">
+      <div class="w-full">
+        <div class="flex flex-col items-center justify-between sm:flex-row">
+          <!-- Logo lockup matching Vue structure -->
+          <div class="mb-4 flex items-center justify-between gap-3 sm:mb-0">
+            <div>
+              <div class="flex items-center gap-3 transition-transform" aria-label="One-Time Secret" id="logo">
+                <a href="/" class="flex items-center gap-3">
+                  <!-- Logo Mark - simplified SVG placeholder -->
+                  <div class="block shrink-0 text-brand-500 dark:text-white size-16 bg-brand-500 rounded-lg flex items-center justify-center">
+                    <span class="text-white font-bold text-lg">秘</span>
+                  </div>
+                  <!-- Company Name -->
+                  <div class="relative flex flex-col">
+                    <div class="text-lg font-bold font-brand leading-tight">
+                      One Time Secret
+                    </div>
+                    <div class="text-xs text-gray-500 transition-colors dark:text-gray-400" aria-hidden="true">
+                      Keep sensitive info out of logs
+                    </div>
+                  </div>
+                </a>
+              </div>
+            </div>
+          </div>
+
+          <!-- Navigation matching Vue structure -->
+          <nav role="navigation" aria-label="Main navigation" class="flex flex-wrap items-center justify-center gap-4 font-brand text-sm sm:justify-end sm:text-base">
+              <a href="/signup" class="font-bold text-gray-600 transition-colors duration-200 hover:text-gray-800 dark:text-gray-300 dark:hover:text-white">
+                Create Account
+              </a>
+              <span class="text-gray-400" aria-hidden="true" role="separator">|</span>
+              <a href="/signin" class="text-gray-600 transition-colors duration-200 hover:text-gray-800 dark:text-gray-300 dark:hover:text-white">
+                Sign In
+              </a>
+          </nav>
         </div>
       </div>
-    </nav>
+    </div>
   </header>
+
+  <!-- Main content container matching Vue structure -->
+  <main class="container mx-auto min-w-[320px] max-w-2xl px-4 py-8" name="DefaultLayout">
+    <div class="homepage-container rounded-md">
+      <div class="container mx-auto min-w-[320px] max-w-2xl py-4">
+        <div class="flex flex-col items-center text-center mb-6">
+          <h1 class="mb-2 text-2xl text-gray-600 dark:text-gray-100 sm:mx-12 sm:block md:mx-2">
+            Keep sensitive info out of your email and chat logs.
+          </h1>
+          <p class="mx-12 mb-6 text-base text-gray-600 dark:text-gray-300 sm:mx-2">
+            Paste a password, secret message or private link below.
+          </p>
+        </div>
+        <!-- Placeholder for form content -->
+        <div class="bg-gray-50 dark:bg-gray-800 rounded-lg p-6 text-center">
+          <p class="text-gray-500 dark:text-gray-400">Loading...</p>
+        </div>
+      </div>
+    </div>
+  </main>
 </template>
