@@ -52,6 +52,12 @@
   // Helper function to get validation errors
   const getError = (field: keyof typeof form) => validation.errors.get(field);
 
+  // Format validation errors with field names for BasicFormAlerts
+  const formattedErrors = computed(() => {
+    return Array.from(validation.errors.entries())
+      .map(([field, error]) => `${field}: ${error}`);
+  });
+
   // Generate unique IDs for form fields to ensure proper label associations
   const uniqueId = computed(() => `secret-form-${Math.random().toString(36).substring(2, 9)}`);
   const passphraseId = computed(() => `passphrase-${uniqueId.value}`);
@@ -113,14 +119,14 @@
 
   // Watch for domain changes and update form
   watch(selectedDomain, (domain) => {
-    operations.updateField('share_domain', domain);
+    operations.updateField('share_domain', domain  );
   });
 
   // Focus management when switching between Create Link and Generate Password modes
   const generatePasswordSection = ref<HTMLElement | null>(null);
 
   onMounted(() => {
-    operations.updateField('share_domain', selectedDomain.value);
+    operations.updateField('share_domain', selectedDomain.value  );
   });
 </script>
 
@@ -128,7 +134,7 @@
   <div class="mx-auto min-w-[320px] max-w-2xl space-y-6">
     <!-- Enhanced Alert Display -->
     <BasicFormAlerts
-      :errors="Array.from(validation.errors.values())"
+      :errors="formattedErrors"
       class="sticky top-4 z-50" />
 
     <form
