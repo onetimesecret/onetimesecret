@@ -317,7 +317,7 @@ module Manifold
       # anyone accessing it can create an account without proper authentication.
 
       authentication_enabled = OT.conf['site']['authentication']['enabled']
-      signin_enabled         = OT.conf['ui']['signin']
+      signin_enabled         = OT.conf.dig('ui', 'signin')
 
       # The only condition that allows a request to be authenticated is if
       # the site has authentication enabled, and the user is signed in. If a
