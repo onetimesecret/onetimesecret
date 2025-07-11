@@ -120,7 +120,8 @@ module Onetime
 
         # Get messages and shrimp
         messages = sess&.get_messages || []
-        sess&.add_shrimp
+        shrimp = sess&.add_shrimp
+
 
         # Build the complete jsvars structure (OnetimeWindow format)
         jsvars = build_base_jsvars(req, ui, authentication, frontend_host, frontend_development)
@@ -152,8 +153,9 @@ module Onetime
         # Add plan and version data
         add_plan_and_version_data(jsvars)
 
-        # Add messages
+        # Add messages and shrimp
         jsvars[:messages] = messages
+        jsvars[:shrimp] = shrimp
 
         jsvars
       end
@@ -186,7 +188,7 @@ module Onetime
       end
 
       # Build base jsvars with core settings
-      def build_base_jsvars(req, interface, authentication, frontend_host, frontend_development)
+      def build_base_jsvars(req, ui, authentication, frontend_host, frontend_development)
         jsvars = {}
 
         # Add the nonce if it exists
@@ -196,7 +198,7 @@ module Onetime
         jsvars[:global_banner] = '' # OT.global_banner if defined?(OT) && OT.respond_to?(:) &&OT.global_banner
 
         # Add UI settings
-        jsvars[:ui] = interface[:ui]
+        jsvars[:ui] = ui
 
         # Authentication settings
         jsvars[:authentication] = authentication

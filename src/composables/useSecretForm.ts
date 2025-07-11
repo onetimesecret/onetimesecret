@@ -40,9 +40,29 @@ function getDefaultFormState(): SecretFormData {
   // Get system configuration for default TTL
   const secretOptions = WindowService.get('secret_options');
 
+  // Handle different secret_options structures and missing data
+  let defaultTtl = 3600 * 24 * 7; // Default to 7 days
+
+  if (secretOptions) {
+    // Try direct access first (old structure)
+    if (secretOptions.default_ttl) {
+      defaultTtl = secretOptions.default_ttl;
+    }
+    // Try nested structure (new structure)
+    else if (secretOptions.anonymous?.default_ttl) {
+      defaultTtl = secretOptions.anonymous.default_ttl;
+    }
+    else if (secretOptions.standard?.default_ttl) {
+      defaultTtl = secretOptions.standard.default_ttl;
+    }
+    else if (secretOptions.enhanced?.default_ttl) {
+      defaultTtl = secretOptions.enhanced.default_ttl;
+    }
+  }
+
   return {
     secret: '',
-    ttl: secretOptions.default_ttl ?? 3600 * 24 * 7,
+    ttl: defaultTtl,
     passphrase: '',
     recipient: '',
     share_domain: '',

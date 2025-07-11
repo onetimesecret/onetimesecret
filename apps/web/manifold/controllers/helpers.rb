@@ -242,7 +242,7 @@ module Manifold
         V2::Session.load req.cookie(:sess)
       else
         V2::Session.create req.client_ipaddress, 'anon', req.user_agent
-              end
+      end
 
       # Set the session to rack.session
       #
@@ -275,7 +275,7 @@ module Manifold
       # Update the session fields in redis (including updated timestamp)
       sess.save
 
-      is_secure = Onetime.conf&.dig(:site, :ssl) || true
+      is_secure = OT.conf&.dig('site', 'ssl') || true
 
       # Only set the cookie after session is for sure saved to redis
       res.send_cookie :sess, sess.sessid, sess.ttl, is_secure
@@ -291,6 +291,7 @@ module Manifold
 
       # Should always report false and false when disabled.
       return if cust.anonymous?
+
 
       custref = cust.obscure_email
       OT.ld <<~LOG
@@ -341,12 +342,13 @@ module Manifold
       return if OT.conf.nil?
 
       # Skip the CSP header unless it's enabled in the experimental settings
-      return if OT.conf.dig(:experimental, :csp, :enabled) != true
+      return if OT.conf.dig('experimental', 'csp', 'enabled') != true
 
+      # TODO2: Let Rhales handle CSP headers
       # Skip the Content-Security-Policy header if the front is running in
       # development mode. We need to allow inline scripts and styles for
       # hot reloading to work.
-      csp = if OT.conf.dig(:development, :enabled)
+      csp = if OT.conf.dig('development', 'enabled')
         [
           "default-src 'none';",                               # Restrict to same origin by default
           "script-src 'unsafe-inline' 'nonce-#{nonce}';",      # Allow Vite's dynamic module imports and source maps
@@ -378,7 +380,7 @@ module Manifold
           # "require-trusted-types-for 'script';",
           "worker-src 'self' data:;",
         ]
-            end
+      end
 
       OT.ld "[CSP] #{csp.join(' ')}" if OT.debug?
 
@@ -390,7 +392,7 @@ module Manifold
 
       reqstr  = stringify_request_details(req)
       custref = cust.obscure_email
-      OT.info "[carefully] #{sess.short_identifier} #{custref} at #{reqstr}"
+      OT.info "[carefully] #{sess&.short_identifier} #{custref} at #{reqstr}"
     end
 
     # Collectes request details in a single string for logging purposes.
