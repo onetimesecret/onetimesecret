@@ -43,7 +43,7 @@ GIT
 PATH
   remote: ../rhales
   specs:
-    rhales (0.3.0)
+    rhales (0.4.0)
 
 GEM
   remote: https://rubygems.org/

@@ -157,6 +157,14 @@ module Onetime
         jsvars[:messages] = messages
         jsvars[:shrimp] = shrimp
 
+        # Add Vue-specific flags
+        jsvars[:enjoyTheVue] = true
+
+        # Add feature flags
+        jsvars[:features] = {
+          markdown: features.fetch('markdown', true),
+        }
+
         jsvars
       end
       # rubocop:enable Lint/UselessAssignment
@@ -213,7 +221,7 @@ module Onetime
       # Add authentication-dependent customer data
       def add_authentication_data(jsvars, cust, domains_enabled)
         # Keys that should always exist (even if nil)
-        ensure_exist = [:domains_enabled, :custid, :cust, :email, :customer_since, :custom_domains]
+        ensure_exist = [:domains_enabled, :custid, :cust, :email, :customer_since, :custom_domains, :apitoken, :stripe_customer, :stripe_subscriptions]
 
         authenticated = @is_authenticated
 
@@ -225,6 +233,16 @@ module Onetime
           jsvars[:cust]           = cust.safe_dump
           jsvars[:email]          = cust.email
           jsvars[:customer_since] = epochdom(cust.created) if respond_to?(:epochdom)
+
+          # API token for authenticated users
+          jsvars[:apitoken] = cust.apitoken if cust.respond_to?(:apitoken)
+
+          # Stripe billing information for authenticated users
+          if cust.respond_to?(:stripe_customer_id) && !cust.stripe_customer_id.nil?
+            # TODO2: Load actual Stripe customer and subscription data
+            jsvars[:stripe_customer] = nil # cust.stripe_customer
+            jsvars[:stripe_subscriptions] = nil # cust.stripe_subscriptions
+          end
 
           # Custom domains for authenticated users
           if domains_enabled
@@ -324,11 +342,13 @@ module Onetime
         # Version information
         if defined?(OT::VERSION)
           jsvars[:ot_version] = OT::VERSION.inspect
+          jsvars[:ot_version_long] = OT::VERSION.inspect
         end
 
-        if defined?(OT) && OT.respond_to?(:sysinfo)
-          jsvars[:ruby_version] = "#{OT.sysinfo.vm}-#{OT.sysinfo.ruby.join}"
-        end
+        jsvars[:ruby_version] = RUBY_VERSION
+
+        # Available jurisdictions - TODO2: Replace with actual config
+        jsvars[:available_jurisdictions] = %w[us eu]
       end
 
       # Minimal fallback when OT.conf is not available
