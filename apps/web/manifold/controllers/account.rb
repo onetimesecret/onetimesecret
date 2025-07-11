@@ -202,38 +202,31 @@ module Manifold
       end
 
       def authenticate
-        pp [:DEBUG_SESSION0, sess, cust]
         publically do
-          pp [:DEBUG_SESSION1, sess, cust]
 
           unless _auth_settings[:enabled] && _auth_settings[:signin]
             return disabled_response(req.path)
           end
 
-          pp [:DEBUG_SESSION2, sess, cust]
           # If the request is halted, say for example rate limited, we don't want to
           # allow the browser to refresh and re-submit the form with the login
           # credentials.
           no_cache!
 
-          pp [:DEBUG_SESSION3, sess, cust]
           logic = V2::Logic::Authentication::AuthenticateSession.new sess, cust, req.params, locale
 
-          pp [:DEBUG_SESSION3, sess, cust]
           if sess.authenticated?
             sess.set_info_message 'You are already logged in.'
             res.redirect '/'
           else
             if req.post? # rubocop:disable Style/IfInsideElse
-              pp [:DEBUG_SESSION4, sess, cust]
               logic.raise_concerns
               logic.process
-              pp [:DEBUG_SESSION5, sess, cust]
               sess      = logic.sess
               cust      = logic.cust
               is_secure = OT.conf&.dig('site', 'ssl') || true
               res.send_cookie :sess, sess.sessid, sess.ttl, is_secure
-              pp [:DEBUG_SESSION6, sess, cust]
+
               if cust.role?(:colonel)
                 res.redirect '/colonel/'
               else
@@ -272,8 +265,9 @@ module Manifold
       private
 
       def _auth_settings
-        site = OT.conf['site']
-        ui = OT.conf['ui']
+        # These settings can be nil on first load before the mutu
+        site = OT.conf['site'] || {}
+        ui = OT.conf['ui'] || {}
         {
           enabled: site['authentication']['enabled'],
           signin: ui['signin'],
