@@ -69,24 +69,46 @@ module Onetime
         return minimal_onetime_window(req, sess, cust, locale_override) unless defined?(OT) && OT.conf
 
         locale      = determine_final_locale(req, locale_override)
-        site        = OT.conf.fetch('site', {})
-        development = OT.conf.fetch('development', {})
+
+        # From static config
+        site                     = OT.conf.fetch('site', {})
+        capabilities             = OT.conf.fetch('capabilities', {})
+        storage                  = OT.conf.fetch('storage', {})
+        mail_validation_defaults = OT.conf.dig('mail', 'validation', 'defaults') || {}
+        features                 = OT.conf.fetch('features', {})
+        logging                  = OT.conf.fetch('logging', {})
+        i18n                     = OT.conf.fetch('i18n', {})
+        development              = OT.conf.fetch('development', {})
+        experimental             = OT.conf.fetch('experimental', {})
+        billing                  = OT.conf.fetch('billing', {})
+
+        # From mutable config
+        ui              = OT.conf.fetch('ui', {})
+        api             = OT.conf.fetch('api', {})
+        secret_options  = OT.conf.fetch('secret_options', {})
+        limits          = OT.conf.fetch('limits', {})
+        mail_validation = OT.conf.dig('mail', 'validation') || {}
 
         # Extract configuration sections
-        interface          = site.fetch('interface', {})
-        secret_options     = site.fetch('secret_options', {})
-        domains            = site.fetch('domains', {})
-        regions            = site.fetch('regions', {})
-        authentication     = site.fetch('authentication', {})
-        support_host       = site.dig('support', :host)
-        incoming_recipient = OT.conf.dig('incoming', :email)
+        domains                = features.fetch('domains', {})
+        regions                = features.fetch('regions', {})
+        incoming               = features.fetch('incoming', {})
+        static_authentication  = site.fetch('authentication', {})
+        mutable_authentication = ui.fetch('authentication', {})
 
         # Frontend development settings
         frontend_development = development['enabled'] || false
-        frontend_host        = development['frontend_host'] || 'plop'
+        frontend_host        = development['frontend_host'] || ''
 
         # Authentication and customer state
-        authenticated   = sess && sess.authenticated? && !cust.anonymous?
+        authentication = {
+          'enabled' => static_authentication['enabled'],
+          'signin' => mutable_authentication['signin'],
+          'signup' => mutable_authentication['signup'],
+        }
+
+        # Features
+        incoming_recipient = incoming.fetch('email', nil)
         domains_enabled = domains['enabled'] || false
         regions_enabled = regions['enabled'] || false
 
@@ -99,10 +121,10 @@ module Onetime
         sess&.add_shrimp
 
         # Build the complete jsvars structure (OnetimeWindow format)
-        jsvars = build_base_jsvars(req, interface, authentication, frontend_host, frontend_development)
+        jsvars = build_base_jsvars(req, ui, authentication, frontend_host, frontend_development)
 
         # Add authentication-dependent data
-        add_authentication_data(jsvars, authenticated, cust, domains_enabled)
+        add_authentication_data(jsvars, cust, domains_enabled)
 
         # Add configuration and feature flags
         add_configuration_data(
@@ -177,9 +199,11 @@ module Onetime
       end
 
       # Add authentication-dependent customer data
-      def add_authentication_data(jsvars, authenticated, cust, domains_enabled)
+      def add_authentication_data(jsvars, cust, domains_enabled)
         # Keys that should always exist (even if nil)
         ensure_exist = [:domains_enabled, :custid, :cust, :email, :customer_since, :custom_domains]
+
+        authenticated = @is_authenticated
 
         jsvars[:domains_enabled] = domains_enabled
         jsvars[:authenticated]   = authenticated
@@ -210,7 +234,7 @@ module Onetime
       end
 
       # Add configuration and feature data
-      def add_configuration_data(jsvars, site, secret_options, regions, regions_enabled, incoming_recipient, support_host)
+      def add_configuration_data(jsvars, site, secret_options, regions, regions_enabled, incoming_recipient)
         # Plans and pricing
         jsvars[:plans_enabled] = site.dig('plans', 'enabled') || false
 
