@@ -37,9 +37,14 @@ gem 'drydock'
 gem 'familia', '~> 1.2.0'
 gem 'gibbler'
 gem 'otto', '~> 1.1.0.pre.alpha4'
-gem 'rhales', '~> 0.3.0'
 gem 'storable'
 gem 'uri-redis', '~> 1.3.0'
+
+if ENV['RACK_ENV'] == 'development' && ENV['CI'].to_s.empty?
+  gem 'rhales', path: '../rhales'
+else
+  gem 'rhales', '~> 0.4.0'
+end
 
 gem 'concurrent-ruby', '~> 1.3.5'
 gem 'redis', '~> 5.4.0'

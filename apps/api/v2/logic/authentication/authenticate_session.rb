@@ -63,7 +63,7 @@ module V2::Logic
           end
 
         else
-          OT.ld "[login-failure] #{sess.short_identifier} #{cust.obscure_email} #{cust.role} (failed)"
+          OT.ld "[v2.login-failure] #{sess.short_identifier} #{cust.obscure_email} #{cust.role} (failed)"
           raise_form_error 'Try again'
         end
       end

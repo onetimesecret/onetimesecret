@@ -7,6 +7,30 @@ module Manifold
     class Data
       include Controllers::Base
 
+      def rhales_hydration
+        publically do
+          template_name = req.params[:template] || 'index' # e.g. templates/index.rue
+
+          # Build Rhales context from your app's current state
+          ui_context = Onetime::Services::UIContext.new(req, sess, cust, locale)
+          endpoint = Rhales::HydrationEndpoint.new(Rhales.configuration, ui_context)
+
+          # Handle different formats like the README example
+          result = case req.env['HTTP_ACCEPT']
+                   when /application\/javascript/
+                     endpoint.render_module(template_name)
+                   else
+                     endpoint.render_json(template_name)
+                   end
+
+          # Set response content type and headers
+          res.header['Content-Type'] = result[:content_type]
+
+          # Return the content
+          res.body = result[:content]
+        end
+      end
+
       def export_window
         publically do
           OT.ld "[export_window] authenticated? #{sess.authenticated?}"

@@ -26,7 +26,7 @@ module Manifold
       #       authenticated users. For authenticated users, it pre-fills the email
       #       in the Stripe checkout process.
       #
-      # @see OT.conf[:site][:plans][:payment_links] For the configuration of Stripe Payment Links
+      # @see OT.conf[:billing] (via config.yaml) For the configuration of Stripe Payment Links
       #
       # @see https://docs.stripe.com/api/payment-link/object For API reference
       #
@@ -37,11 +37,11 @@ module Manifold
           tierid        = req.params[:tier] ||= 'free'
           billing_cycle = req.params[:billing_cycle] ||= 'month' # year or month
 
-          plans         = OT.conf.dig(:site, :plans)
-          payment_links = plans.fetch(:payment_links, {})
+          billing_settings = OT.conf['billing'] || {}
+          payment_links = billing_settings.fetch(:payment_links, {})
           payment_link  = payment_links.dig(tierid.to_sym, billing_cycle.to_sym)
 
-          OT.ld "[plan_redirect] plans: #{plans}"
+          OT.ld "[plan_redirect] plans: #{billing_settings}"
           OT.ld "[plan_redirect] payment_links: #{payment_links}"
           OT.ld "[plan_redirect] payment_link: #{payment_link}"
 
@@ -108,7 +108,7 @@ module Manifold
 
           @cust = logic.cust
 
-          is_secure = Onetime.conf&.dig(:site, :ssl)
+          is_secure = OT.conf&.dig(:site, :ssl)
           res.send_cookie :sess, sess.sessid, sess.ttl, is_secure
 
           res.redirect '/account'
@@ -164,8 +164,10 @@ module Manifold
           # Get the Stripe Customer ID from our customer instance
           customer_id = cust.stripe_customer_id
 
-          site_host  = Onetime.conf&.dig(:site, :host)
-          is_secure  = Onetime.conf&.dig(:site, :ssl)
+          site = OT.conf['site']
+
+          site_host  = site['host']
+          is_secure  = site['ssl']
           return_url = "#{is_secure ? 'https' : 'http'}://#{site_host}/account"
 
           # Create a Stripe Customer Portal session
@@ -201,6 +203,7 @@ module Manifold
 
       def authenticate
         publically do
+
           unless _auth_settings[:enabled] && _auth_settings[:signin]
             return disabled_response(req.path)
           end
@@ -209,7 +212,9 @@ module Manifold
           # allow the browser to refresh and re-submit the form with the login
           # credentials.
           no_cache!
+
           logic = V2::Logic::Authentication::AuthenticateSession.new sess, cust, req.params, locale
+
           if sess.authenticated?
             sess.set_info_message 'You are already logged in.'
             res.redirect '/'
@@ -219,8 +224,9 @@ module Manifold
               logic.process
               sess      = logic.sess
               cust      = logic.cust
-              is_secure = Onetime.conf&.dig(:site, :ssl)
+              is_secure = OT.conf&.dig('site', 'ssl') || true
               res.send_cookie :sess, sess.sessid, sess.ttl, is_secure
+
               if cust.role?(:colonel)
                 res.redirect '/colonel/'
               else
@@ -259,7 +265,14 @@ module Manifold
       private
 
       def _auth_settings
-        OT.conf.dig(:ui, :authentication)
+        # These settings can be nil on first load before the mutu
+        site = OT.conf['site'] || {}
+        ui = OT.conf['ui'] || {}
+        {
+          enabled: site['authentication']['enabled'],
+          signin: ui['signin'],
+          signup: ui['signup'],
+        }
       end
     end
   end

@@ -242,7 +242,7 @@ module V2
         V2::Session.load req.cookie(:sess)
       else
         V2::Session.create req.client_ipaddress, 'anon', req.user_agent
-              end
+      end
 
       # Set the session to rack.session
       #
@@ -276,7 +276,7 @@ module V2
       sess.save
 
       # Only set the cookie after session is for sure saved to redis
-      is_secure = Onetime.conf&.dig(:site, :ssl) || false
+      is_secure = Onetime.conf['site']['ssl'] || false
 
       # Update the session cookie
       res.send_cookie :sess, sess.sessid, sess.ttl, is_secure
@@ -311,8 +311,8 @@ module V2
       # is missing, we assume that authentication is disabled and that accounts
       # are not used. This prevents situations where the app is running and
       # anyone accessing it can create an account without proper authentication.
-      authentication_enabled = OT.conf&.dig(:site, :authentication, :enabled) || false
-      signin_enabled         = OT.conf&.dig(:site, :authentication, :signin) || false
+      authentication_enabled = OT.conf['site']['authentication']['enabled'] || false
+      signin_enabled         = OT.conf['ui']['signin'] || false
 
       # The only condition that allows a request to be authenticated is if
       # the site has authentication enabled, and the user is signed in. If a
@@ -331,12 +331,12 @@ module V2
       return if res.header['Content-Security-Policy']
 
       # Skip the CSP header unless it's enabled in the experimental settings
-      return if OT.conf&.dig(:experimental, :csp, :enabled) != true
+      return if OT.conf.dig('experimental', 'csp', 'enabled') != true
 
       # Skip the Content-Security-Policy header if the front is running in
       # development mode. We need to allow inline scripts and styles for
       # hot reloading to work.
-      csp = if OT.conf&.dig(:development, :enabled)
+      csp = if OT.conf.dig('development', 'enabled')
         [
           "default-src 'none';",                               # Restrict to same origin by default
           "script-src 'unsafe-inline' 'nonce-#{nonce}';",      # Allow Vite's dynamic module imports and source maps
@@ -421,7 +421,7 @@ module V2
     # and :debug. The Sentry default, if not specified, is :error.
     #
     def capture_error(error, level = :error, &)
-      return unless OT.conf[:d9s_enabled] # diagnostics are disabled by default
+      return unless OT.conf&.dig('diagnostics', 'enabled') # diagnostics are disabled by default
 
       # Capture more detailed debugging information when Sentry errors occur
       begin
@@ -447,7 +447,7 @@ module V2
     end
 
     def capture_message(message, level = :log, &)
-      return unless OT.conf[:d9s_enabled] # diagnostics are disabled by default
+      return unless OT.conf&.dig('diagnostics', 'enabled') # diagnostics are disabled by default
 
       Sentry.capture_message(message, level: level, &)
     rescue StandardError => ex

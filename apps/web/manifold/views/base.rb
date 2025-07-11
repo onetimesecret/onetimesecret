@@ -46,6 +46,8 @@ module Manifold
 
       # Use Onetime::Services::UIContext instead of RSFC::Context
       def context_class
+        OT.ld "[BaseView] context_class from #{caller[1..1]}" if OT.debug?
+
         Onetime::Services::UIContext
       end
 

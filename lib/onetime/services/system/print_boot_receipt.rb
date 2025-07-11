@@ -84,7 +84,7 @@ module Onetime
           # Development settings
           if config.fetch('development', false)
             dev_section = SystemStatusSection.new(generator,
-              title: ['DEVELOPMENT SETTINGS', 'VALUE'],
+              title: ['DEVELOPMENT SETTINGS', 'VALUE', 'STATUS'],
             )
 
             dev_config = config['development']
@@ -104,7 +104,7 @@ module Onetime
           # Experimental features
           if config.fetch('experimental', false)
             exp_section = SystemStatusSection.new(generator,
-              title: ['EXPERIMENTAL FEATURES', 'VALUE'],
+              title: ['EXPERIMENTAL FEATURES', 'VALUE', 'STATUS'],
             )
 
             exp_config = config['experimental']
@@ -135,7 +135,7 @@ module Onetime
 
           # Authentication
           auth_section = SystemStatusSection.new(generator,
-            title: ['AUTHENTICATION CONFIG', 'VALUE'],
+            title: ['AUTHENTICATION CONFIG', 'VALUE', 'STATUS'],
           )
 
           auth_config = site_config['authentication']
@@ -158,6 +158,94 @@ module Onetime
           end
 
           generator.add_section(auth_section)
+
+          # Features: Domains and Regions
+          features_section = SystemStatusSection.new(generator,
+            title: ['FEATURES', 'STATUS/CONFIG', 'STATUS'],
+          )
+
+          # Domains configuration - look under features.domains
+          domains_config = config.dig('features', 'domains') || {}
+          domains_enabled = domains_config['enabled'] || false
+          if domains_enabled
+            features_section.add_row('Custom Domains', 'enabled', status: 'ON')
+          else
+            features_section.add_row('Custom Domains', 'disabled', status: 'OFF')
+          end
+
+          # Regions configuration - look under features.regions
+          regions_config = config.dig('features', 'regions') || {}
+          regions_enabled = regions_config['enabled'] || false
+          if regions_enabled
+            features_section.add_row('Regions', 'enabled', status: 'ON')
+            # Show jurisdiction count
+            jurisdictions = regions_config.dig('jurisdictions') || []
+            if jurisdictions.is_a?(Array) && jurisdictions.any?
+              features_section.add_row('Jurisdictions', "#{jurisdictions.length} configured", status: 'OK')
+            end
+          else
+            features_section.add_row('Regions', 'disabled', status: 'OFF')
+          end
+
+          generator.add_section(features_section)
+
+          # Show detailed configuration for enabled features
+          if domains_enabled && domains_config.is_a?(Hash) && domains_config.size > 1
+            domain_details = domains_config.reject { |k,v| k == 'enabled' }
+                                           .map { |k,v| "#{k}=#{v}" }
+                                           .join(', ')
+            unless domain_details.empty?
+              generator.add_section(WrapTextSection.new(generator,
+                title: 'DOMAIN CONFIG: ',
+                content: domain_details,
+              ))
+            end
+          end
+
+          # Show jurisdiction details if regions are enabled
+          if regions_enabled && jurisdictions.is_a?(Array) && jurisdictions.any?
+            jurisdiction_details = jurisdictions.map do |j|
+              if j.is_a?(Hash)
+                id = j[:identifier] || j['identifier']
+                name = j['display_name'] || j[:display_name]
+                domain = j['domain'] || j[:domain]
+                "#{id}: #{name} (#{domain})"
+              else
+                j.to_s
+              end
+            end.join(', ')
+
+            generator.add_section(WrapTextSection.new(generator,
+              title: 'JURISDICTIONS: ',
+              content: jurisdiction_details,
+            ))
+          end
+
+          # Billing configuration
+          billing_config = config.dig('billing') || {}
+          billing_enabled = billing_config['enabled'] || false
+          if billing_enabled
+            billing_section = SystemStatusSection.new(generator,
+              title: ['BILLING CONFIG', 'VALUE', 'STATUS'],
+            )
+
+            billing_section.add_row('Plans/Billing', 'enabled', status: 'ON')
+
+            if billing_config['stripe_key']
+              stripe_key_preview = billing_config['stripe_key'].to_s
+              if stripe_key_preview.length > 20
+                stripe_key_preview = stripe_key_preview[0..16] + '...'
+              end
+              billing_section.add_row('Stripe Key', stripe_key_preview, status: 'OK')
+            end
+
+            payment_links = billing_config.dig('payment_links') || {}
+            if payment_links.any?
+              billing_section.add_row('Payment Links', "#{payment_links.keys.length} tiers", status: 'OK')
+            end
+
+            generator.add_section(billing_section)
+          end
 
           status  = 'In progress'
           message = 'System is initializing'

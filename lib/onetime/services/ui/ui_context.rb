@@ -19,6 +19,8 @@ module Onetime
     # - Development and diagnostics settings
     #
     class UIContext < Rhales::Context
+      # include V2::Logic::UriHelpers # TODO2: Some window state values come from these methods
+
       attr_reader :plan, :is_paid, :canonical_domain, :display_domain,
         :domain_strategy, :domain_id, :domain_branding, :domain_logo, :custom_domain
 
@@ -27,8 +29,9 @@ module Onetime
         setup_domain_info(req)
         setup_customer_info(req, sess, cust)
 
+        OT.li "[UIContext] Initializing UIContext (#{req.env['ots.nonce']})"
         # Build the complete business data with OnetimeWindow structure
-        onetime_window         = build_onetime_window_data(req, sess, @cust, locale_override)
+        onetime_window = build_onetime_window_data(req, sess, @cust, locale_override)
         enhanced_props = props.merge(onetime_window: onetime_window)
 
         # Call parent constructor with enhanced data
@@ -54,43 +57,60 @@ module Onetime
       end
 
       # Set up customer and plan information
-      def setup_customer_info(req, sess, cust)
-        @cust         = cust || V2::Customer.anonymous
-        authenticated = sess && sess.authenticated? && !@cust.anonymous?
+      def setup_customer_info(_req, sess, cust)
+        @cust             = cust || V2::Customer.anonymous
+        authenticated     = sess && sess.authenticated? && !@cust.anonymous?
         @is_authenticated = authenticated
-
-        # if authenticated
-        #   @plan = Onetime::Plan.plan(@cust.planid)
-        # end
-        # @plan  ||= Onetime::Plan.plan('anonymous')
-        # @is_paid = @plan.paid?
       end
 
       # Build complete OnetimeWindow data structure
       # This is the authoritative business logic ported from Core::Views::BaseView#initialize
+      # rubocop:disable Lint/UselessAssignment
       def build_onetime_window_data(req, sess, cust, locale_override)
         # Return minimal defaults if OT.conf isn't loaded yet
         return minimal_onetime_window(req, sess, cust, locale_override) unless defined?(OT) && OT.conf
 
         locale      = determine_final_locale(req, locale_override)
-        site        = OT.conf.fetch('site', {})
-        development = OT.conf.fetch('development', {})
+
+        # From static config
+        site                     = OT.conf.fetch('site', {})
+        capabilities             = OT.conf.fetch('capabilities', {})
+        storage                  = OT.conf.fetch('storage', {})
+        mail_validation_defaults = OT.conf.dig('mail', 'validation', 'defaults') || {}
+        features                 = OT.conf.fetch('features', {})
+        logging                  = OT.conf.fetch('logging', {})
+        i18n                     = OT.conf.fetch('i18n', {})
+        development              = OT.conf.fetch('development', {})
+        experimental             = OT.conf.fetch('experimental', {})
+        billing                  = OT.conf.fetch('billing', {})
+
+        # From mutable config
+        ui              = OT.conf.fetch('ui', {})
+        api             = OT.conf.fetch('api', {})
+        secret_options  = OT.conf.fetch('secret_options', {})
+        limits          = OT.conf.fetch('limits', {})
+        mail_validation = OT.conf.dig('mail', 'validation') || {}
 
         # Extract configuration sections
-        interface          = site.fetch('interface', {})
-        secret_options     = site.fetch('secret_options', {})
-        domains            = site.fetch('domains', {})
-        regions            = site.fetch('regions', {})
-        authentication     = site.fetch('authentication', {})
-        support_host       = site.dig('support', :host)
-        incoming_recipient = OT.conf.dig('incoming', :email)
+        domains                = features.fetch('domains', {})
+        regions                = features.fetch('regions', {})
+        incoming               = features.fetch('incoming', {})
+        static_authentication  = site.fetch('authentication', {})
+        mutable_authentication = ui.fetch('authentication', {})
 
         # Frontend development settings
         frontend_development = development['enabled'] || false
-        frontend_host        = development['frontend_host'] || 'plop'
+        frontend_host        = development['frontend_host'] || ''
 
         # Authentication and customer state
-        authenticated   = sess && sess.authenticated? && !cust.anonymous?
+        authentication = {
+          'enabled' => static_authentication['enabled'],
+          'signin' => mutable_authentication['signin'],
+          'signup' => mutable_authentication['signup'],
+        }
+
+        # Features
+        incoming_recipient = incoming.fetch('email', nil)
         domains_enabled = domains['enabled'] || false
         regions_enabled = regions['enabled'] || false
 
@@ -100,13 +120,14 @@ module Onetime
 
         # Get messages and shrimp
         messages = sess&.get_messages || []
-        shrimp   = sess&.add_shrimp
+        shrimp = sess&.add_shrimp
+
 
         # Build the complete jsvars structure (OnetimeWindow format)
-        jsvars = build_base_jsvars(req, interface, authentication, frontend_host, frontend_development)
+        jsvars = build_base_jsvars(req, ui, authentication, frontend_host, frontend_development)
 
         # Add authentication-dependent data
-        add_authentication_data(jsvars, authenticated, cust, domains_enabled)
+        add_authentication_data(jsvars, cust, domains_enabled)
 
         # Add configuration and feature flags
         add_configuration_data(
@@ -116,8 +137,9 @@ module Onetime
           regions,
           regions_enabled,
           incoming_recipient,
-          support_host,
         )
+
+        jsvars[:baseuri] = baseuri(site)
 
         # Add locale and i18n data
         add_locale_data(jsvars, display_locale, is_default_locale)
@@ -131,10 +153,26 @@ module Onetime
         # Add plan and version data
         add_plan_and_version_data(jsvars)
 
-        # Add messages
+        # Add messages and shrimp
         jsvars[:messages] = messages
+        jsvars[:shrimp] = shrimp
+
+        # Add Vue-specific flags
+        jsvars[:enjoyTheVue] = true
+
+        # Add feature flags
+        jsvars[:features] = {
+          markdown: features.fetch('markdown', true),
+        }
 
         jsvars
+      end
+      # rubocop:enable Lint/UselessAssignment
+
+      def baseuri(site)
+        scheme = site['ssl'] ? 'https://' : 'http://'
+        host   = site['host']
+        [scheme, host].join
       end
 
       # Determine the final locale to use
@@ -158,7 +196,7 @@ module Onetime
       end
 
       # Build base jsvars with core settings
-      def build_base_jsvars(req, interface, authentication, frontend_host, frontend_development)
+      def build_base_jsvars(req, ui, authentication, frontend_host, frontend_development)
         jsvars = {}
 
         # Add the nonce if it exists
@@ -168,7 +206,7 @@ module Onetime
         jsvars[:global_banner] = '' # OT.global_banner if defined?(OT) && OT.respond_to?(:) &&OT.global_banner
 
         # Add UI settings
-        jsvars[:ui] = interface[:ui]
+        jsvars[:ui] = ui
 
         # Authentication settings
         jsvars[:authentication] = authentication
@@ -181,9 +219,11 @@ module Onetime
       end
 
       # Add authentication-dependent customer data
-      def add_authentication_data(jsvars, authenticated, cust, domains_enabled)
+      def add_authentication_data(jsvars, cust, domains_enabled)
         # Keys that should always exist (even if nil)
-        ensure_exist = [:domains_enabled, :custid, :cust, :email, :customer_since, :custom_domains]
+        ensure_exist = [:domains_enabled, :custid, :cust, :email, :customer_since, :custom_domains, :apitoken, :stripe_customer, :stripe_subscriptions]
+
+        authenticated = @is_authenticated
 
         jsvars[:domains_enabled] = domains_enabled
         jsvars[:authenticated]   = authenticated
@@ -193,6 +233,16 @@ module Onetime
           jsvars[:cust]           = cust.safe_dump
           jsvars[:email]          = cust.email
           jsvars[:customer_since] = epochdom(cust.created) if respond_to?(:epochdom)
+
+          # API token for authenticated users
+          jsvars[:apitoken] = cust.apitoken if cust.respond_to?(:apitoken)
+
+          # Stripe billing information for authenticated users
+          if cust.respond_to?(:stripe_customer_id) && !cust.stripe_customer_id.nil?
+            # TODO2: Load actual Stripe customer and subscription data
+            jsvars[:stripe_customer] = nil # cust.stripe_customer
+            jsvars[:stripe_subscriptions] = nil # cust.stripe_subscriptions
+          end
 
           # Custom domains for authenticated users
           if domains_enabled
@@ -214,7 +264,7 @@ module Onetime
       end
 
       # Add configuration and feature data
-      def add_configuration_data(jsvars, site, secret_options, regions, regions_enabled, incoming_recipient, support_host)
+      def add_configuration_data(jsvars, site, secret_options, regions, regions_enabled, incoming_recipient)
         # Plans and pricing
         jsvars[:plans_enabled] = site.dig('plans', 'enabled') || false
 
@@ -224,7 +274,6 @@ module Onetime
 
         # Contact and support
         jsvars[:incoming_recipient] = incoming_recipient
-        jsvars[:support_host]       = support_host
         jsvars[:secret_options]     = secret_options
 
         # Site host
@@ -293,11 +342,13 @@ module Onetime
         # Version information
         if defined?(OT::VERSION)
           jsvars[:ot_version] = OT::VERSION.inspect
+          jsvars[:ot_version_long] = OT::VERSION.inspect
         end
 
-        if defined?(OT) && OT.respond_to?(:sysinfo)
-          jsvars[:ruby_version] = "#{OT.sysinfo.vm}-#{OT.sysinfo.ruby.join}"
-        end
+        jsvars[:ruby_version] = RUBY_VERSION
+
+        # Available jurisdictions - TODO2: Replace with actual config
+        jsvars[:available_jurisdictions] = %w[us eu]
       end
 
       # Minimal fallback when OT.conf is not available

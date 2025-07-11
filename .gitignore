@@ -61,7 +61,6 @@ etc/*.yaml
 !fly.toml
 support/schemas/
 tsconfig.tsbuildinfo
-CLAUDE.md
 
 # Ignore WIP or temp dev files with uppercase names
 [A-Z]*.rb

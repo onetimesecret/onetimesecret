@@ -85,7 +85,7 @@ module V2::Logic
 
         # Get min/max values safely
         min_ttl = ttl_options.min || 1.minute      # Fallback to 1 minute
-        max_ttl = plan.options[:ttl] || ttl_options.max || 7.days  # Fallback to 7 days
+        max_ttl = ttl_options.max || 7.days  # Fallback to 7 days
 
         # Apply default if nil
         @ttl = default_ttl || 7.days if ttl.nil?
@@ -94,7 +94,7 @@ module V2::Logic
         @ttl = ttl.to_i
 
         # Apply plan constraints
-        @ttl = plan.options[:ttl] if ttl && ttl >= plan.options[:ttl]
+        # @ttl = plan.options[:ttl] if ttl && ttl >= plan.options[:ttl]
 
         # Enforce bounds
         @ttl = min_ttl if ttl < min_ttl
@@ -178,7 +178,7 @@ module V2::Logic
       end
 
       def save_secret
-        secret.encrypt_value secret_value, size: plan.options[:size]
+        secret.encrypt_value(secret_value, size: 1_000_000) # 1MB
         metadata.ttl             = ttl*2
         secret.ttl               = ttl
         metadata.lifespan        = metadata.ttl.to_i

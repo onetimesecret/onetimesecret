@@ -1,12 +1,14 @@
 // src/composables/useSecretConcealer.ts
 
 import { ref } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { useSecretForm } from './useSecretForm';
 import { useSecretStore } from '@/stores/secretStore';
 import { useNotificationsStore } from '@/stores/notificationsStore';
+import { loggingService } from '@/services/logging.service';
 import {
   AsyncHandlerOptions,
-  createError,
+  wrapError,
   useAsyncHandler,
 } from '@/composables/useAsyncHandler';
 import { ConcealPayload, GeneratePayload } from '@/schemas/api/payloads';
@@ -34,6 +36,7 @@ type SubmitType = 'conceal' | 'generate';
  */
 /* eslint-disable max-lines-per-function */
 export function useSecretConcealer(options?: SecretConcealerOptions) {
+  const { t } = useI18n();
   const secretStore = useSecretStore();
   const notifications = useNotificationsStore();
 
@@ -44,6 +47,16 @@ export function useSecretConcealer(options?: SecretConcealerOptions) {
   const asyncHandlerOptions: AsyncHandlerOptions = {
     notify: (message, severity) => notifications.show(message, severity),
     setLoading: (loading) => (isSubmitting.value = loading),
+    debug: true, // Enable debug mode
+    onError: (error) => {
+      // Log detailed context when errors occur
+      if (error.message.includes('validation failed')) {
+        // Convert Map entries to a plain object for better logging compatibility
+        const validationErrors = Object.fromEntries(validation.errors.entries());
+        loggingService.debug('Form validation errors:', validationErrors);
+        loggingService.debug('Current form state:', form);
+      }
+    },
   };
 
   const { wrap } = useAsyncHandler(asyncHandlerOptions);
@@ -59,18 +72,47 @@ export function useSecretConcealer(options?: SecretConcealerOptions) {
     ttl: form.ttl,
     passphrase: form.passphrase,
     recipient: form.recipient,
-    share_domain: form.share_domain,
+    share_domain: form.share_domain || '',
   });
 
   /**
    * Handles form submission for both conceal and generate operations
    */
-  const submit = async (type: SubmitType = 'conceal') =>
-    wrap(async () => {
-      // Skip validation for generate operations
-      if (type === 'conceal' && !validation.validate()) {
-        throw createError('Please check the form for errors', 'human');
-      }
+   const submit = async (type: SubmitType = 'conceal') =>
+     wrap(async () => {
+       // Skip validation for "generate" operations since there is no user
+       // input.
+       if (type === 'conceal' && !validation.validate()) {
+         const validationDetails = {
+           errors: Object.fromEntries(validation.errors),
+           formData: { ...form }
+         };
+
+         // Create a user-friendly error message for form validation
+         const fieldCount = validation.errors.size;
+         let errorMessage: string;
+
+         if (fieldCount === 1) {
+           // Single field error - show the specific field error
+           const [fieldError] = validation.errors.values();
+           errorMessage = fieldError;
+         } else if (fieldCount > 1) {
+           // Multiple field errors - show general message
+           errorMessage = t('web.COMMON.form_validation.form_invalid');
+         } else {
+           // No specific errors found - fallback
+           errorMessage = t('web.COMMON.form_validation.form_invalid');
+         }
+
+         throw wrapError(
+           errorMessage,
+           'human',
+           'error',
+           new Error('Form validation failed'),
+           null,
+           validationDetails
+         );
+       }
 
       const payload = createPayload(type);
 

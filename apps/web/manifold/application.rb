@@ -27,6 +27,10 @@ module Manifold
         config.cache_templates = false
         config.default_locale  = 'en'
 
+        config.hydration.injection_strategy = :earliest
+        # config.hydration.fallback_to_late = true # injects at the end of the document
+        # config.hydration.mount_point_selectors = ['#app', '#root', '[data-mount]']
+
         # CSP configuration for security by default
         config.csp_enabled = true
         config.auto_nonce = true
@@ -44,7 +48,7 @@ module Manifold
           'form-action' => ["'self'"],
           'frame-ancestors' => ["'none'"],
           'object-src' => ["'none'"],
-          'upgrade-insecure-requests' => []
+          'upgrade-insecure-requests' => [],
         }
       end
 

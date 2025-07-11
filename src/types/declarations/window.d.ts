@@ -75,6 +75,8 @@ export interface UiInterface {
   enabled: boolean;
   header?: HeaderConfig;
   footer_links?: FooterLinksConfig;
+  signin?: boolean;
+  signup?: boolean;
 }
 
 export interface OnetimeWindow {

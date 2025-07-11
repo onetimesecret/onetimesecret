@@ -28,7 +28,7 @@ export function useDomainDropdown() {
     selectedDomain.value =
       savedDomain && availableDomains.value.includes(savedDomain)
         ? savedDomain
-        : availableDomains.value[0];
+        : availableDomains.value[0]    ;
   }
 
   const updateSelectedDomain = (domain: string) => {

@@ -284,7 +284,8 @@ module V2
     end
 
     def encryption_key
-      V2::Secret.encryption_key OT.global_secret, custid
+      site_secret = OT.conf['site']['secret'] # aka previously "global_secret"
+      V2::Secret.encryption_key site_secret, custid
     end
 
     # Marks the customer account as requested for destruction.

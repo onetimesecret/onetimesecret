@@ -20,10 +20,10 @@
 
   // Config section tabs with typed keys
   const configSections = [
-    { key: 'interface' as ConfigSectionKey, label: 'Interface' },
+    { key: 'ui' as ConfigSectionKey, label: 'UI' },
+    { key: 'api' as ConfigSectionKey, label: 'API' },
     { key: 'secret_options' as ConfigSectionKey, label: 'Secret Options' },
     { key: 'mail' as ConfigSectionKey, label: 'Mail' },
-    { key: 'diagnostics' as ConfigSectionKey, label: 'Diagnostics' },
     { key: 'limits' as ConfigSectionKey, label: 'Limits' },
   ];
 

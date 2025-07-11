@@ -1,6 +1,7 @@
 // src/schemas/errors/classifier.ts
 
 import { NavigationFailure, NavigationFailureType } from 'vue-router';
+import { globalComposer } from '@/i18n';
 
 import type { ApplicationError, ErrorType, ErrorSeverity, HttpErrorLike } from './types';
 import { errorGuards } from './guards';
@@ -79,29 +80,75 @@ export const errorClassifier = {
   },
 
   classifyValidation(error: ZodError): ApplicationError {
-    // Get a more user-friendly message from the ZodError
-    const formattedMessage = this.formatZodError(error);
+      // Get a more user-friendly message from the ZodError
+      const formattedMessage = this.formatZodError(error);
 
-    return wrapError(formattedMessage, 'human', 'error', error);
-  },
+      // Include the original issues in the details for debugging
+      const details = {
+        validationErrors: error.issues.map(issue => ({
+          field: issue.path.join('.'),
+          code: issue.code,
+          message: issue.message,
+          // expected and received are not guaranteed properties on ZodIssue,
+          // so include them only if they exist
+          expected: 'expected' in issue ? issue.expected : undefined,
+          received: 'received' in issue ? issue.received : undefined,
+        }))
+      };
+
+      return wrapError(formattedMessage, 'human', 'error', error, null, details);
+    },
 
   formatZodError(error: ZodError): string {
     if (!error.issues || error.issues.length === 0) {
-      return 'Validation Error';
+      return globalComposer.t('web.COMMON.form_validation.form_invalid');
     }
 
-    // Get the first error message
-    const firstError = error.issues[0];
+    // Create user-friendly field messages
+    const fieldMessages = error.issues.map(issue => {
+      const fieldPath = issue.path.length > 0 ? issue.path.join('.') : 'form';
+      return this.getFieldErrorMessage(fieldPath, issue);
+    });
 
-    if (firstError.code === 'invalid_type') {
-      // Format the invalid_type error nicely
-      const expected = firstError.expected;
-      const received = firstError.received;
-      return `Invalid data received. Expected ${expected} but got ${received}.`;
+    // If multiple fields, provide a general message
+    if (fieldMessages.length > 1) {
+      return globalComposer.t('web.COMMON.form_validation.form_invalid');
     }
 
-    // Default to the error message
-    return firstError.message || 'Validation Error';
+    return fieldMessages[0];
+  },
+
+  getFieldErrorMessage(field: string, issue: any): string {
+    const { t } = globalComposer;
+
+    // Handle specific validation types with i18n
+    switch (field) {
+      case 'secret':
+        if (issue.code === 'too_small') {
+          return t('web.COMMON.form_validation.secret_required');
+        }
+        break;
+      case 'ttl':
+        return t('web.COMMON.form_validation.ttl_required');
+      case 'share_domain':
+        if (issue.code === 'invalid_type') {
+          return t('web.COMMON.form_validation.share_domain_invalid');
+        }
+        break;
+      case 'passphrase':
+        if (issue.code === 'too_small') {
+          return t('web.COMMON.form_validation.passphrase_too_short');
+        }
+        break;
+      case 'recipient':
+        if (issue.code === 'invalid_string') {
+          return t('web.COMMON.form_validation.recipient_invalid');
+        }
+        break;
+    }
+
+    // Use i18n fallback or the original issue message
+    return issue.message || t('web.COMMON.unexpected_error');
   },
 
   getTypeFromStatus(status: number): ErrorType {

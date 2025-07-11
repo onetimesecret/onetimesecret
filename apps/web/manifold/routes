@@ -8,6 +8,7 @@ GET   /robots.txt                                Manifold::Controllers::Page#rob
 
 POST  /incoming                                  Manifold::Controllers::Data#create_incoming
 GET   /window                                    Manifold::Controllers::Data#export_window
+GET   /hydrate/:template                         Manifold::Controllers::Data#rhales_hydration
 
 GET   /plans/:tier                               Manifold::Controllers::Account#plan_redirect
 GET   /plans/:tier/:billing_cycle                Manifold::Controllers::Account#plan_redirect
