@@ -43,6 +43,7 @@ MAPPINGS = {
 }
 
 # Process directories first
+unmapped_files = []
 if Dir.exist?('tests/unit/ruby/try')
   Dir.glob('tests/unit/ruby/try/*/').each do |dir|
     dirname = File.basename(dir)
@@ -61,6 +62,18 @@ if Dir.exist?('tests/unit/ruby/try')
 
         puts "Moving #{file} → #{dest}"
         system("git mv '#{file}' '#{dest}' 2>/dev/null") || FileUtils.mv(file, dest)
+      end
+    else
+      # Handle unmapped directories
+      puts "No mapping found for directory #{dirname}, moving to unmapped/"
+      FileUtils.mkdir_p('tryouts/unmapped')
+
+      Dir.glob("#{dir}*.rb").each do |file|
+        filename = File.basename(file)
+        dest = "tryouts/unmapped/#{dirname}_#{filename}"
+        puts "Moving unmapped #{file} → #{dest}"
+        system("git mv '#{file}' '#{dest}' 2>/dev/null") || FileUtils.mv(file, dest)
+        unmapped_files << dest
       end
     end
   end
@@ -92,7 +105,13 @@ if Dir.exist?('tests/unit/ruby/try')
       puts "Moving #{file} → #{dest}"
       system("git mv '#{file}' '#{dest}' 2>/dev/null") || FileUtils.mv(file, dest)
     else
-      puts "WARNING: No mapping found for #{basename}"
+      # Handle unmapped individual files
+      puts "No mapping found for #{basename}, moving to unmapped/"
+      FileUtils.mkdir_p('tryouts/unmapped')
+      dest = "tryouts/unmapped/#{basename}"
+      puts "Moving unmapped #{file} → #{dest}"
+      system("git mv '#{file}' '#{dest}' 2>/dev/null") || FileUtils.mv(file, dest)
+      unmapped_files << dest
     end
   end
 end
@@ -123,8 +142,31 @@ if File.exist?('tests/unit/ruby/config.test.yaml')
   FileUtils.cp('tests/unit/ruby/config.test.yaml', 'tryouts/config.test.yaml')
 end
 
+# Generate unmapped files report
+if unmapped_files.any?
+  puts "\n⚠ UNMAPPED FILES REPORT"
+  puts "The following files were moved to tryouts/unmapped/ for manual review:"
+  unmapped_files.each { |file| puts "  #{file}" }
+  puts ""
+  puts "Please review these files and:"
+  puts "1. Determine appropriate categories for them"
+  puts "2. Update the MAPPINGS hash in this script if needed"
+  puts "3. Move them to proper locations manually"
+  puts ""
+
+  # Write unmapped files list to a file for easy reference
+  File.write('tryouts/UNMAPPED_FILES.txt', unmapped_files.join("\n"))
+  puts "List saved to: tryouts/UNMAPPED_FILES.txt"
+end
+
 puts "\n✓ Tryouts migration completed"
 puts "\nNext steps:"
 puts "1. Review moved files in tryouts/ directory"
-puts "2. Test tryouts with: bundle exec try tryouts/**/*_try.rb"
-puts "3. Run ./4_update_ci.sh to update CI configuration"
+if unmapped_files.any?
+  puts "2. Review and categorize unmapped files in tryouts/unmapped/"
+  puts "3. Test tryouts with: bundle exec try tryouts/**/*_try.rb"
+  puts "4. Run ./4_update_ci.sh to update CI configuration"
+else
+  puts "2. Test tryouts with: bundle exec try tryouts/**/*_try.rb"
+  puts "3. Run ./4_update_ci.sh to update CI configuration"
+end

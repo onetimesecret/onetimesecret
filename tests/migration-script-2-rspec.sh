@@ -54,14 +54,49 @@ fi
 
 # Update require statements in spec files
 echo "Updating require statements..."
-find spec -name "*.rb" -type f | while read -r file; do
-    # Update spec_helper requires
-    sed -i.bak 's|require_relative.*spec_helper.*|require "spec_helper"|g' "$file"
-    sed -i.bak 's|require.*tests/unit/ruby/rspec/spec_helper.*|require "spec_helper"|g' "$file"
+REQUIRE_ERRORS=""
 
-    # Clean up backup files
-    rm -f "${file}.bak"
+find spec -name "*.rb" -type f | while read -r file; do
+    echo "Processing requires in $file..."
+
+    # Create backup first
+    cp "$file" "${file}.bak"
+
+    # More robust require statement updates
+    ruby -i -pe '
+      # Update spec_helper requires (various patterns)
+      gsub(/require_relative\s+["\']\.\.\/.*?spec_helper["\']/, %{require "spec_helper"})
+      gsub(/require_relative\s+["\'].*?\/spec_helper["\']/, %{require "spec_helper"})
+      gsub(/require\s+["\'].*?tests\/unit\/ruby\/rspec\/spec_helper["\']/, %{require "spec_helper"})
+
+      # Update other relative requires that point to old test structure
+      gsub(/require_relative\s+["\']\.\.\/\.\.\/\.\.\/tests\/unit\/ruby\//, %{require_relative "../../../tests/unit/ruby/"})
+      gsub(/require_relative\s+["\']\.\.\/tests\/unit\/ruby\//, %{require_relative "../../tests/unit/ruby/"})
+
+      # Update any remaining broken test paths
+      gsub(/require.*["\']tests\/unit\/ruby\/rspec\//, %{require "})
+    ' "$file"
+
+    # Verify syntax after changes
+    if ! ruby -c "$file" >/dev/null 2>&1; then
+        echo "WARNING: Syntax error in $file after require updates"
+        # Restore backup
+        mv "${file}.bak" "$file"
+        REQUIRE_ERRORS="$REQUIRE_ERRORS\n  $file"
+    else
+        # Clean up backup if successful
+        rm -f "${file}.bak"
+    fi
 done
+
+# Report any files that couldn't be updated
+if [ -n "$REQUIRE_ERRORS" ]; then
+    echo ""
+    echo "⚠ WARNING: Could not update require statements in these files:"
+    echo -e "$REQUIRE_ERRORS"
+    echo "Please review these files manually."
+    echo ""
+fi
 
 # Move the existing spec_helper if it exists in old location
 if [ -f "tests/unit/ruby/rspec/spec_helper.rb" ]; then
