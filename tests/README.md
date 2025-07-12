@@ -77,3 +77,19 @@ GitHub Actions workflows in `.github/workflows/`:
 - Tests are currently being updated due to major code restructuring
 - Playwright tests require Ruby, Caddy, and Redis running locally
 - See individual test directories for specific documentation
+
+## Migration
+
+To migrate from old test structure to current organization:
+```bash
+./migration-script-runner.sh
+```
+
+Migration includes:
+- Move RSpec tests to `spec/` directory
+- Reorganize tryouts by category in `tryouts/`
+- Co-locate frontend tests under `src/`
+- Update CI configuration
+
+For rollback: `./migration-script-rollback.sh`
+See `TROUBLESHOOTING.md` for issues.
