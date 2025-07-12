@@ -16,10 +16,10 @@ if [[ ! $REPLY =~ ^[Yy]$ ]]; then
 fi
 
 # Make all scripts executable
-chmod +x [1-5]_*.sh 3_migrate_tryouts.rb
+chmod +x migration-script-[1-5]-*.sh migration-script-3-tryouts.rb
 
 # Run each script
-for script in 1_create_structure.sh 2_migrate_rspec.sh 3_migrate_tryouts.rb 4_update_ci.sh 5_verify_migration.sh; do
+for script in migration-script-1-structure.sh migration-script-2-rspec.sh migration-script-3-tryouts.rb migration-script-4-ci.sh migration-script-5-verify.sh; do
     echo ""
     echo "Running $script..."
     ./"$script"
