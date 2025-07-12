@@ -1,6 +1,6 @@
-# frozen_string_literal: true
+# tests/unit/ruby/try/11_cached_method_try.rb
 
-# These tryouts test the functionality of the cached_method in the Onetime::App::Views::ViewHelpers module.
+# These tryouts test the functionality of the cached_method in the Core::ViewHelpers module.
 # The cached_method provides a caching mechanism for method results using Redis.
 #
 # We're testing various aspects of the cached_method, including:
@@ -15,18 +15,19 @@
 # without needing to run the full application, allowing for targeted
 # testing of this specific functionality.
 
-require 'onetime'
+require_relative './test_helpers'
+
+require 'core/views'
 
 # Familia.debug = true
 
 # Use the default config file for tests
-OT::Config.path = File.join(Onetime::HOME, 'tests', 'unit', 'ruby', 'config.test.yaml')
-OT.boot! :test
+OT.boot! :test, false
 
 @num = rand(1000)
 
 class TestHelper
-  include Onetime::App::Views::ViewHelpers
+  include Core::Views::SanitizerHelpers
   attr_reader :num
 
   def initialize(num)

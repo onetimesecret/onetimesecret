@@ -1,18 +1,19 @@
 <!-- src/layouts/DefaultLayout.vue -->
 <script setup lang="ts">
-import type { LayoutProps } from '@/types/ui/layouts';
-import DefaultFooter from '@/components/layout/DefaultFooter.vue';
-import DefaultHeader from '@/components/layout/DefaultHeader.vue';
-import BaseLayout from './BaseLayout.vue';
+  import DefaultFooter from '@/components/layout/DefaultFooter.vue';
+  import DefaultHeader from '@/components/layout/DefaultHeader.vue';
+  import type { LayoutProps } from '@/types/ui/layouts';
+  import BaseLayout from './BaseLayout.vue';
 
-const props = withDefaults(defineProps<LayoutProps>(), {
-  displayFeedback: true,
-  displayLinks: true,
-  displayMasthead: true,
-  displayNavigation: true,
-  displayVersion: true,
-  displayToggles: true,
-});
+  const props = withDefaults(defineProps<LayoutProps>(), {
+    displayFeedback: true,
+    displayFooterLinks: true,
+    displayMasthead: true,
+    displayNavigation: true,
+    displayVersion: true,
+    displayToggles: true,
+    displayPoweredBy: true,
+  });
 </script>
 
 <template>

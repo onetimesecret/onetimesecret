@@ -1,20 +1,25 @@
+<!-- src/views/BrandedHomepage.vue -->
+
 <script setup lang="ts">
   import SecretForm from '@/components/secrets/form/SecretForm.vue';
-
   import { useProductIdentity } from '@/stores/identityStore';
 
-  const { allowPublicHomepage, primaryColor, cornerClass } = useProductIdentity();
+  const { allowPublicHomepage, primaryColor, cornerClass, buttonTextLight } = useProductIdentity();
 </script>
 
 <template>
-  <div class="container mx-auto min-w-[320px] max-w-2xl py-1 mb-28">
-
+  <div class="container mx-auto mb-28 min-w-[320px] max-w-2xl py-1">
+    <!-- Start of the branded homepage form -->
     <SecretForm
       v-if="allowPublicHomepage"
       class="mb-8"
+      :primary-color="primaryColor"
+      :button-text-light="buttonTextLight"
+      :corner-class="cornerClass"
       :with-recipient="false"
       :with-asterisk="false"
-      :with-generate="false" />
+      :with-generate="false"
+    />
 
     <!--
       BrandedHomepage.vue
@@ -36,39 +41,26 @@
       - Messaging must work for all audiences simultaneously since authentication state is unknown
     -->
 
-    <div v-else
-      class="bg-white dark:bg-gray-800 rounded-xl shadow-lg overflow-hidden border-t-4"
+    <div
+      v-else
+      class="overflow-hidden rounded-xl border-t-4 bg-white shadow-lg dark:bg-gray-800"
       :style="{ borderColor: primaryColor }">
       <!-- Brand Identity Section -->
-      <!-- <div
-        class="border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50 px-6 py-8">
-        <div class="text-center space-y-4">
-          <h1
-            class="text-2xl font-semibold">
-            Title
-          </h1>
-          <p class="text-base text-gray-600 dark:text-gray-300 max-w-md mx-auto">
-          Subtitle
-          </p>
-        </div>
-      </div> -->
-
       <!-- Main Content Area -->
       <div
         :class="[cornerClass]"
-        class="px-6 py-8 bg-white dark:bg-gray-800">
-
+        class="bg-white px-6 py-8 dark:bg-gray-800">
         <div
           class="mb-6 rounded-lg border"
           :style="{
             backgroundColor: `${primaryColor}10`,
             borderColor: `${primaryColor}30`,
           }">
-          <div class="px-4 py-4">
+          <div class="p-4">
             <div class="flex items-center">
-              <div class="flex-shrink-0">
+              <div class="shrink-0">
                 <svg
-                  class="h-5 w-5"
+                  class="size-5"
                   :style="{ color: primaryColor }"
                   xmlns="http://www.w3.org/2000/svg"
                   viewBox="0 0 20 20"
@@ -81,8 +73,7 @@
                 </svg>
               </div>
               <div class="ml-3">
-                <p
-                  class="text-sm">
+                <p class="text-sm">
                   {{ $t('this-is-a-private-instance-only-authorized-team-') }}
                 </p>
               </div>
@@ -92,11 +83,11 @@
 
         <!-- Trust Elements -->
         <div class="space-y-6 text-center">
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div class="p-4 rounded-lg bg-gray-50 dark:bg-gray-700/50">
+          <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+            <div class="rounded-lg bg-gray-50 p-4 dark:bg-gray-700/50">
               <div class="flex flex-col items-center space-y-2">
                 <svg
-                  class="h-6 w-6 text-gray-600 dark:text-gray-300"
+                  class="size-6 text-gray-600 dark:text-gray-300"
                   xmlns="http://www.w3.org/2000/svg"
                   fill="none"
                   viewBox="0 0 24 24"
@@ -108,14 +99,14 @@
                     d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z" />
                 </svg>
                 <p class="text-sm text-gray-600 dark:text-gray-300">
-                {{ $t('secure-encrypted-storage') }}
+                  {{ $t('secure-encrypted-storage') }}
                 </p>
               </div>
             </div>
-            <div class="p-4 rounded-lg bg-gray-50 dark:bg-gray-700/50">
+            <div class="rounded-lg bg-gray-50 p-4 dark:bg-gray-700/50">
               <div class="flex flex-col items-center space-y-2">
                 <svg
-                  class="h-6 w-6 text-gray-600 dark:text-gray-300"
+                  class="size-6 text-gray-600 dark:text-gray-300"
                   xmlns="http://www.w3.org/2000/svg"
                   fill="none"
                   viewBox="0 0 24 24"
@@ -136,8 +127,10 @@
       </div>
 
       <!-- Footer Information -->
+      <!-- prettier-ignore-attribute class -->
       <!-- <div
-        class="border-t border-gray-200 dark:border-gray-700 px-6 py-4 bg-gray-50 dark:bg-gray-800/50">
+        class="border-t border-gray-200 dark:border-gray-700 px-6 py-4
+          bg-gray-50 dark:bg-gray-800/50">
         <p class="text-sm text-gray-500 dark:text-gray-400 text-center">
           Links from {{ displayDomain }} are managed by {{ name }}.<br />
           Contact your {{ name }} representative to share sensitive information.
@@ -145,5 +138,4 @@
       </div> -->
     </div>
   </div>
-
 </template>

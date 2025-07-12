@@ -129,7 +129,7 @@ const iconToShow = computed((): IconConfig => {
           <span
             v-if="jurisdictionStore.enabled"
             class="mr-1">
-            {{ $t('serving-you-from-the') }} <span lang="en">{{ currentJurisdiction.identifier }}</span>
+            {{ $t('serving-you-from-the') }}: <span lang="en">{{ currentJurisdiction.display_name }}</span>
           </span>
         </p>
       </div>

@@ -94,7 +94,7 @@ export const useMetadataStore = defineStore('metadata', () => {
    * @throws {AxiosError} When request fails
    */
   async function fetch(key: string) {
-    const response = await $api.get(`/api/v2/private/${key}`);
+    const response = await $api.get(`/api/v2/receipt/${key}`);
     const validated = responseSchemas.metadata.parse(response.data);
     record.value = validated.record;
     details.value = validated.details;
@@ -117,7 +117,7 @@ export const useMetadataStore = defineStore('metadata', () => {
       throw createError('Cannot burn this metadata', 'human', 'error');
     }
 
-    const response = await $api.post(`/api/v2/private/${key}/burn`, {
+    const response = await $api.post(`/api/v2/receipt/${key}/burn`, {
       passphrase,
       continue: true,
     });

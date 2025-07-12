@@ -1,3 +1,5 @@
+<!-- src/components/secrets/canonical/BaseSecretDisplay.vue -->
+
 <script setup lang="ts">
 
 interface Props {}
@@ -8,14 +10,14 @@ defineProps<Props>();
 
 <template>
   <div>
+    <slot name="header"></slot>
+
     <slot name="content"></slot>
 
     <slot name="warnings"></slot>
 
     <slot name="cta"></slot>
 
-    <slot name="footer">
-
-    </slot>
+    <slot name="footer"></slot>
   </div>
 </template>

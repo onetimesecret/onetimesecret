@@ -11,18 +11,72 @@ import {
   RegionsConfig,
   SecretOptions,
 } from '@/schemas/models';
-import { DiagnosticsConfig } from '../diagnostics';
 import { Stripe } from 'stripe';
 import { FallbackLocale } from 'vue-i18n';
+import { DiagnosticsConfig } from '../diagnostics';
 
 /**
- * TypeScript declarations for custom window properties injected by the Ruby backend.
- * Extends the global Window interface to provide type safety for server-injected data.
+ * TypeScript declarations for custom window properties injected by
+ * the Ruby backend. These properties are used to pass data from the
+ * backend to the frontend. The properties are added to the window object
+ * each time a full page load is performed.
  *
- * The backend injects data as json via <script> tag in the HTML header.
+ * The corresponding Ruby backend code can be found in:
+ * lib/onetime/app/web/views/base.rb
+ *
+ * Implementation:
+ * - Backend injects data via JSON <script> tag in the HTML header
+ * - Properties are added to window.__ONETIME_STATE__
+ * - This declaration file enables TypeScript type checking and IDE support
  */
 
 type Message = { type: 'success' | 'error' | 'info'; content: string };
+
+export interface FooterLink {
+  text?: string;
+  i18n_key?: string;
+  url: string;
+  external?: boolean;
+  icon?: string;
+}
+
+export interface FooterGroup {
+  name?: string;
+  i18n_key?: string;
+  links: FooterLink[];
+}
+
+export interface FooterLinksConfig {
+  enabled: boolean;
+  groups: FooterGroup[];
+}
+
+export interface HeaderLogo {
+  url: string;
+  alt: string;
+  link_to: string;
+}
+
+export interface HeaderBranding {
+  logo: HeaderLogo;
+  site_name?: string;
+}
+
+export interface HeaderNavigation {
+  enabled: boolean;
+}
+
+export interface HeaderConfig {
+  enabled: boolean;
+  branding?: HeaderBranding;
+  navigation?: HeaderNavigation;
+}
+
+export interface UiInterface {
+  enabled: boolean;
+  header?: HeaderConfig;
+  footer_links?: FooterLinksConfig;
+}
 
 export interface OnetimeWindow {
   apitoken?: string;
@@ -38,12 +92,12 @@ export interface OnetimeWindow {
 
   i18n_enabled: boolean;
   locale: string;
-  is_default_locale: boolean;
   supported_locales: Locale[];
   fallback_locale: FallbackLocale;
   default_locale: Locale;
 
   ot_version: string;
+  ot_version_long: string;
   plans_enabled: boolean;
   regions_enabled: boolean;
   ruby_version: string;
@@ -94,4 +148,10 @@ export interface OnetimeWindow {
 
   d9s_enabled: boolean;
   diagnostics: DiagnosticsConfig;
+
+  features: {
+    markdown: boolean;
+  };
+
+  ui: UiInterface;
 }

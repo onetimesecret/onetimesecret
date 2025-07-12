@@ -1,8 +1,8 @@
-# syntax=docker/dockerfile:1.10
+# syntax=docker/dockerfile:1.15@sha256:9857836c9ee4268391bb5b09f9f157f3c91bb15821bb77969642813b0d00518d
 # check=error=true
 
 ##
-# ONETIME SECRET - DOCKER IMAGE - 2025-01-15
+# ONETIME SECRET - DOCKER IMAGE - 2025-05-15
 #
 # For detailed instructions on building, running, and deploying this Docker image,
 # please refer to our comprehensive Docker guide:
@@ -48,7 +48,7 @@
 #
 #     $ export HOST=localhost:3000
 #     $ export SSL=false
-#     $ export COLONEL=admin@example.com
+#     $ export SECRET=MUST_BE_UNIQUE
 #     $ export REDIS_URL=redis://host.docker.internal:6379/0
 #     $ export RACK_ENV=production
 #
@@ -56,7 +56,7 @@
 #
 #     $ docker run -p 3000:3000 -d --name onetimesecret \
 #       -e REDIS_URL=$REDIS_URL \
-#       -e COLONEL=$COLONEL \
+#       -e SECRET=$SECRET \
 #       -e HOST=$HOST \
 #       -e SSL=$SSL \
 #       -e RACK_ENV=$RACK_ENV \
@@ -70,15 +70,17 @@
 # authentication and enable persistence. Also, change the secret and
 # specify the domain it will be deployed on. For example:
 #
+#   $ openssl rand -hex 32
+#   [copy value to set SECRET]
 #   $ export HOST=example.com
 #   $ export SSL=true
-#   $ export COLONEL=admin@example.com
+#   $ export SECRET=COPIED_VALUE
 #   $ export REDIS_URL=redis://username:password@hostname:6379/0
 #   $ export RACK_ENV=production
 #
 #   $ docker run -p 3000:3000 -d --name onetimesecret \
 #     -e REDIS_URL=$REDIS_URL \
-#     -e COLONEL=$COLONEL \
+#     -e SECRET=$SECRET \
 #     -e HOST=$HOST \
 #     -e SSL=$SSL \
 #     -e RACK_ENV=$RACK_ENV \
@@ -97,7 +99,7 @@ ARG CODE_ROOT=/app
 ARG ONETIME_HOME=/opt/onetime
 ARG VERSION
 
-FROM docker.io/library/ruby:3.4-slim-bookworm AS base
+FROM docker.io/library/ruby:3.4-slim-bookworm@sha256:93664239ae7e485147c2fa83397fdc24bf7b7f1e15c3ad9d48591828a50a50e7 AS base
 
 # Limit to packages needed for the system itself
 ARG PACKAGES="build-essential rsync netcat-openbsd libffi-dev libyaml-dev git"
@@ -110,8 +112,8 @@ RUN set -eux \
   && rm -rf /var/lib/apt/lists/*
 
 # Copy Node.js and npm from the official image
-COPY --from=docker.io/library/node:22 /usr/local/bin/node /usr/local/bin/
-COPY --from=docker.io/library/node:22 /usr/local/lib/node_modules /usr/local/lib/node_modules
+COPY --from=docker.io/library/node:22@sha256:0b5b940c21ab03353de9042f9166c75bcfc53c4cd0508c7fd88576646adbf875 /usr/local/bin/node /usr/local/bin/
+COPY --from=docker.io/library/node:22@sha256:0b5b940c21ab03353de9042f9166c75bcfc53c4cd0508c7fd88576646adbf875 /usr/local/lib/node_modules /usr/local/lib/node_modules
 
 # Create necessary symlinks
 RUN ln -s /usr/local/lib/node_modules/npm/bin/npm-cli.js /usr/local/bin/npm \
@@ -176,8 +178,7 @@ COPY package.json pnpm-lock.yaml tsconfig.json vite.config.ts postcss.config.mjs
 
 # Remove pnpm after use
 RUN set -eux \
-  && pnpm run type-check \
-  && pnpm run build-only \
+  && pnpm run build \
   && pnpm prune --prod \
   && rm -rf node_modules \
   && npm uninstall -g pnpm
@@ -193,7 +194,7 @@ RUN VERSION=$(node -p "require('./package.json').version") \
 ##
 # APPLICATION LAYER (FINAL)
 #
-FROM ruby:3.4-slim-bookworm AS final
+FROM ruby:3.4-slim-bookworm@sha256:93664239ae7e485147c2fa83397fdc24bf7b7f1e15c3ad9d48591828a50a50e7 AS final
 ARG CODE_ROOT
 ARG VERSION
 LABEL org.opencontainers.image.version=$VERSION
@@ -206,6 +207,7 @@ COPY --from=build $CODE_ROOT/public $CODE_ROOT/public
 COPY --from=build $CODE_ROOT/templates $CODE_ROOT/templates
 COPY --from=build $CODE_ROOT/src $CODE_ROOT/src
 COPY bin $CODE_ROOT/bin
+COPY apps $CODE_ROOT/apps
 COPY etc $CODE_ROOT/etc
 COPY lib $CODE_ROOT/lib
 COPY migrate $CODE_ROOT/migrate

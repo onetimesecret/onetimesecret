@@ -4,6 +4,43 @@ import re
 from pathlib import Path
 from typing import Optional
 
+"""
+Translation Key Analysis and Migration Template Generator
+
+This script analyzes existing translation keys to generate standardized structure
+templates and migration mappings. It uses pattern recognition and file location
+analysis to categorize translation keys into a logical hierarchy.
+
+Usage:
+    python migrate-keys.py
+
+Input:
+    - keys_sorted.json: File containing translation keys with file usage information
+
+Output:
+    - nested.json: Template structure for i18n hierarchy with categorized keys
+    - migrations.json: Mapping from old translation keys to new hierarchical paths
+
+Dependencies:
+    - Python 3.6+
+    - Standard library only (json, re, pathlib)
+
+The categorization system organizes keys into functional groups:
+- status: State indicators and condition labels
+- buttons: Interactive UI elements
+- actions: User operations and commands
+- feedback: Success, error, and information messages
+- labels: Text display elements
+- features: Feature-specific translations
+- time: Date and time related text
+- formats: Number and date formatting rules
+
+Keys are categorized using:
+1. View file location patterns
+2. Key name prefixes and patterns
+3. Semantic content analysis
+"""
+
 
 """
     Category Rules (in order of precedence):

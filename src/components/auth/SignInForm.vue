@@ -8,10 +8,12 @@ const csrfStore = useCsrfStore();
 
 export interface Props {
   enabled?: boolean;
+  locale?: string;
 }
 
 withDefaults(defineProps<Props>(), {
   enabled: true,
+  locale: 'en',
 })
 
 const email = ref('');
@@ -33,6 +35,11 @@ const togglePasswordVisibility = () => {
       type="hidden"
       name="utf8"
       value="✓"
+    />
+    <input
+      type="hidden"
+      name="locale"
+      :value="locale"
     />
     <input
       type="hidden"

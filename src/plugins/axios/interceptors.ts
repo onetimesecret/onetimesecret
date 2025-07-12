@@ -1,5 +1,6 @@
 // src/plugins/axios/interceptors.ts
 import type { ApiErrorResponse } from '@/schemas/api';
+import { useLanguageStore } from '@/stores';
 import { useCsrfStore } from '@/stores/csrfStore';
 import type { AxiosError, AxiosResponse, InternalAxiosRequestConfig } from 'axios';
 
@@ -36,6 +37,7 @@ const isValidShrimp = (shrimp: unknown): shrimp is string =>
  */
 export const requestInterceptor = (config: InternalAxiosRequestConfig) => {
   const csrfStore = useCsrfStore();
+  const languageStore = useLanguageStore();
 
   // console.debug('[debug] Request config:', {
   //   url: config.url,
@@ -46,6 +48,7 @@ export const requestInterceptor = (config: InternalAxiosRequestConfig) => {
   // Set CSRF token in headers
   config.headers = config.headers || {};
   config.headers['O-Shrimp'] = csrfStore.shrimp;
+  config.headers['Accept-Language'] = languageStore.getCurrentLocale;
 
   return config;
 };

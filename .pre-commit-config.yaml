@@ -97,8 +97,8 @@ repos:
         stages: [prepare-commit-msg]
         description: Automatically prefix commits with issue numbers
         args:
-          - '--default=[FIX]'
-          - '--pattern=[a-zA-Z0-9]{0,10}-?[0-9]{1,5}'
+          - '--default='
+          - '--pattern=(?:i18n(?=\/)|[a-zA-Z0-9]{0,10}-?[0-9]{1,5})'
           - '--template=[#{}]'
 
   # Local JavaScript linting: quick syntax checks
@@ -108,7 +108,7 @@ repos:
         stages: [pre-commit]
         name: Quick ESLint
         description: Lightweight TypeScript/Vue syntax validation
-        entry: node_modules/.bin/eslint --quiet --flag unstable_ts_config --config eslint.config.ts
+        entry: node_modules/.bin/eslint --quiet --config eslint.config.ts
         language: system
         pass_filenames: true
         files: (^src/.*\.(mjs|ts|vue)$|^.*\.(mjs|ts|vue)$)

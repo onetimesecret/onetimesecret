@@ -1,4 +1,22 @@
+# lib/onetime/console.rb
+
+ENV['RACK_ENV'] ||= 'production'
+ENV['ONETIME_HOME'] = File.expand_path(File.join(__dir__, '..', '..')).freeze
+app_root = ENV['ONETIME_HOME']
+
+# Directory Constants
+unless defined?(PUBLIC_DIR)
+  PUBLIC_DIR = File.join(app_root, '/public/web').freeze
+  APP_DIR = File.join(app_root, '/apps').freeze
+end
+
+# Load Paths
+$LOAD_PATH.unshift(File.join(APP_DIR, 'api'))
+$LOAD_PATH.unshift(File.join(APP_DIR, 'web'))
+
+# Only load what's necessary for successful interactive startup
 require_relative '../onetime'
+require_relative '../onetime/models'
 
 Onetime.info 'Calling Onetime.boot!...'
 Onetime.boot! :cli
@@ -11,7 +29,7 @@ if defined?(IRB)
     PROMPT_S: "%l ",   # The prompt for continuing strings
     PROMPT_C: "↳  ",    # The prompt for continuing statements
     PROMPT_N: "⇢  ",    # The prompt for nested statements
-    RETURN: "⮑  %s\n"         # The format for return values
+    RETURN: "⮑  %s\n",         # The format for return values
   }
 
   # Set the global prompt mode to :ONETIME

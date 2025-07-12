@@ -13,9 +13,18 @@ module Onetime
     end
     attr_accessor :fortunes
 
-    def self.random_fortune
-      @fortunes.random.to_s.strip
-    rescue StandardError
+    def random_fortune
+      raise OT::Problem, "No fortunes" if fortunes.nil?
+      raise OT::Problem, "#{fortunes.class} is not an Array" unless fortunes.is_a?(Array)
+      fortune = fortunes.sample.to_s.strip
+      raise OT::Problem, "No fortune found" if fortune.empty?
+      fortune
+    rescue OT::Problem => e
+      OT.le "#{e.message}"
+      'Unexpected outcomes bring valuable lessons.'
+    rescue StandardError => e
+      OT.le "#{e.message} (#{fortunes.class})"
+      OT.ld "#{e.backtrace.join("\n")}"
       'A house is full of games and puzzles.'
     end
 
@@ -64,7 +73,7 @@ module Onetime
 
       # Converts a Ruby value into a JavaScript-friendly string or JSON.
       # This ensures special characters are properly escaped or converted to JSON.
-      def jsvar(value)
+      def normalize_value(value)
         case value.class.to_s
         when 'String', 'Gibbler::Digest', 'Symbol', 'Integer', 'Float'
           if is_https?(value)
@@ -84,25 +93,6 @@ module Onetime
           OT.le "Unsupported type: #{value.class} (#{value})"
           ''
         end
-      end
-
-      # Collects data and returns a script tag for embedding.
-      def serialize_to_script(data, id: nil, nonce: nil)
-        sanitized_json = to_sanitized_json(data)
-        attributes = ['type="application/json"']
-        attributes << %{id="#{Rack::Utils.escape_html(id)}"} if id
-        attributes << %{nonce="#{nonce}"} if nonce
-
-        "<script #{attributes.join(' ')}>#{sanitized_json}</script>"
-      end
-
-      # Converts data to JSON and sanitizes it to reduce risk of injection attacks.
-      # Escapes certain special characters and script tags.
-      def to_sanitized_json(data)
-        data.to_json
-            .gsub(%r{</script}i, '<\/script')
-            .gsub(/[\u0000-\u001F]/, '')
-            .gsub(/[^\x20-\x7E]/) { |c| "\\u#{c.ord.to_s(16).rjust(4, '0')}" }
       end
 
       def is_https?(str)

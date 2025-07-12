@@ -1,5 +1,27 @@
 {
   "web": {
+    "help": {
+      "learn_more": "En savoir plus",
+      "secret_view_faq": {
+        "what_am_i_looking_at": {
+          "title": "Que suis-je en train de regarder?",
+          "description": "Vous consultez un message sécurisé qui a été partagé avec vous via Onetime Secret. Ce contenu n'est affiché qu'une seule fois, puis supprimé définitivement de nos serveurs."
+        },
+        "can_i_view_again": {
+          "title": "Puis-je consulter ce message à nouveau plus tard?",
+          "description": "Non. Pour des raisons de sécurité, ce message n'est visible qu'une seule fois. Après avoir fermé cette page, le contenu sera définitivement supprimé et ne pourra être récupéré par personne, y compris nous."
+        },
+        "how_to_copy": {
+          "title": "Comment puis-je sauvegarder cette information?",
+          "description": "Utilisez le bouton 'Copier dans le presse-papiers' pour copier l'intégralité du message. Pour les messages plus longs, assurez-vous de vérifier que vous avez copié le contenu complet avant de quitter cette page."
+        },
+        "is_my_viewing_tracked": {
+          "title": "Est-ce que ma consultation de ce message est suivie?",
+          "description": "L'expéditeur sera informé que son message a été consulté, mais nous ne suivons pas qui l'a consulté ni depuis quel endroit. Votre confidentialité est protégée."
+        },
+        "one_time_warning": "Une fois que vous quittez ou actualisez cette page, ce message sera définitivement supprimé et ne pourra être récupéré par personne."
+      }
+    },
     "COMMON": {
       "broadcast": "",
       "button_generate_secret_short": "Générer un mot de passe",
@@ -10,12 +32,12 @@
       "custom_domains_description": "Renforcez vos connexions et établissez la confiance avec vos liens secrets personnalisés.",
       "get_started_button": "Commencer",
       "confirm_password_placeholder": "Confirmez votre mot de passe",
-      "skill_placeholder": "",
       "header_settings": "Paramètres",
       "submit_with": "Soumettre",
       "submitting": "Soumission en cours",
       "processing": "Traitement en cours",
       "description": "Ne stockez aucune information confidentielle dans vos emails ou fils de discussion. Partagez un lien secret, disponible qu'une seule fois.",
+      "incorrect_passphrase": "Phrase secrète incorrecte",
       "keywords": "secret, générateur de mot de passe, usage unique",
       "button_create_secret": "Créer un lien secret",
       "button_generate_secret": "Ou générer un mot de passe aléatoire",
@@ -32,6 +54,7 @@
       "secret": "Secret",
       "recent": "Récent",
       "received": "Reçu",
+      "burn": "",
       "burned": "Supprimé",
       "expires_in": "Expire dans",
       "burn_this_secret": "Supprimer ce secret",
@@ -58,7 +81,6 @@
       "button_create_account": "Créer un compte",
       "share_a_secret": "Partager un secret",
       "title_home": "Accueil",
-      "title_recent_secrets": "Secrets récents",
       "word_none": "Aucun",
       "word_burned": "supprimé",
       "word_received": "reçu",
@@ -74,7 +96,10 @@
       "burn_security_notice": "La suppression d'un secret l'effacera avant qu'il n'ait été reçu.",
       "share_link_securely": "Pour la sécurité, partagez ce lien séparément des autres détails.",
       "copied_to_clipboard": "Copié dans le presse-papiers",
-      "button_create_incoming": "Envoyer un message"
+      "button_create_incoming": "Envoyer un message",
+      "faq_title": "F.A.Q.",
+      "verification_not_valid": "La vérification n'est pas valide",
+      "verification_already_logged_in": "Impossible de vérifier un compte lorsque vous êtes déjà connecté"
     },
     "LABELS": {
       "view_toggle": {
@@ -82,28 +107,47 @@
         "hide": "Masquer"
       },
       "timeline": "Chronologie",
+      "lifespan": "Durée de vie",
+      "expiration_time": "Délai d'expiration",
       "close": "Fermer",
       "loading": "Chargement...",
       "cancel": "Annuler",
       "saving": "Enregistrement en cours",
       "saved": "Enregistré",
       "save": "Enregistrer",
+      "save_all": "Tout enregistrer",
+      "details": "Détails",
       "encrypted": "Chiffré",
       "secret_status": "État du secret",
       "need_help": "Besoin d'aide?",
       "create_new_secret": "Créer un nouveau secret",
       "actions": "Actions",
       "no_passphrase": "Aucune phrase de passe requise",
+      "copy_to_clipboard": "Copier dans le presse-papiers",
+      "receipts": "Reçus",
+      "share": "Partager",
       "secret_link": "Lien secret",
+      "dismiss": "Rejeter",
       "security_details": "Détails de sécurité",
+      "items_count": "{count} Items",
       "recipients_count": "{count} destinataires",
+      "view": "View",
       "views": "Consultations",
       "times_viewed": "fois consulté",
       "view_progress": "Progression des consultations",
       "help_section": "Section d'aide",
       "passphrase_protected": "Protégé par phrase de passe",
       "feedback-received": "Retour d'information reçu",
-      "sending-ellipses": "Envoi..."
+      "sending-ellipses": "Envoi...",
+      "title_recent_secrets": "Secrets récents",
+      "pricing": "Tarification",
+      "refresh": "Actualiser",
+      "reload": "Recharger",
+      "caption_recent_secrets": "Liens secrets créés durant cette session",
+      "create-link-short": "Créer un lien",
+      "create-link": "Créer un lien secret",
+      "create-request-short": "Créer une demande",
+      "create-request": "Créer un lien de demande"
     },
     "STATUS": {
       "new": "Nouveau",
@@ -114,12 +158,12 @@
       "destroyed": "Détruit",
       "expiring_soon": "Expiration imminente",
       "created": "Créé",
-      "created_description": "",
       "expires": "Expire",
       "expired": "Expiré",
       "orphaned": "Orphelin",
       "secured": "Sécurisé",
       "securing": "Sécurisation",
+      "copied": "Copié",
       "time_remaining": "Temps restant",
       "new_description": "Le lien secret a été créé et n'a pas encore été consulté",
       "unread_description": "Le lien secret a été créé et n'a pas été consulté",
@@ -132,7 +176,7 @@
       "expired_description": "Le secret a expiré avant d'être consulté",
       "success": "Succès",
       "delivered": "Livré",
-      "dns-incorrect": "DNS Incorrect",
+      "dns-incorrect": "Système DNS incorrect",
       "active": "Actif",
       "inactive": "Inactif"
     },
@@ -152,6 +196,16 @@
         },
         "noOptionsAvailable": "---"
       },
+      "ttl_remaining": {
+        "duration": "{count} {unit} restant",
+        "time": {
+          "day": "jour restant | jours restants",
+          "hour": "heure restante | heures restantes",
+          "minute": "minute restante | minutes restantes",
+          "second": "seconde restante | secondes restantes"
+        },
+        "noOptionsAvailable": "---"
+      },
       "limited_views": "Limite de {count} consultation(s)",
       "days_remaining": "{count} jour(s) restant(s)",
       "hours_remaining": "{count} heure(s) restante(s)",
@@ -163,10 +217,14 @@
       "share_passphrase_instruction": "Partagez la phrase de passe séparément via un canal sécurisé",
       "secure_channel_instruction": "Utilisez un canal sécurisé différent pour partager les informations sensibles"
     },
+    "ARIA": {
+      "focus-is-now-in-the-main-text-area": "Focus is now in the main text area"
+    },
     "secrets": {
       "privacyOptions": "Options de confidentialité",
       "selectDuration": "Sélectionner la durée",
-      "expiresIn": "Expire dans {duration}"
+      "expiresIn": "Expire dans {duration}",
+      "enterPassphrase": "Saisir la phrase secrète"
     },
     "homepage": {
       "tagline1": "Collez votre mot de passe, message secret ou lien privé ci-dessous",
@@ -183,7 +241,10 @@
       "explore_premium_plans": "Découvrir les forfaits Premium",
       "need_free_account": "Vous débutez ?",
       "sign_up_free": "Créer un compte gratuit",
-      "visit-onetime-secret-home": ""
+      "visit-onetime-secret-home": "",
+      "password_generation_title": "",
+      "password_generation_description": "",
+      "protip1": ""
     },
     "private": {
       "pretext": "Partager ce lien :",
@@ -199,6 +260,7 @@
       "destroyed_ago": "Détruit il y a {time}",
       "burned": "Supprimé",
       "viewed": "Consulté",
+      "view_metadata": "",
       "destroyed": "Détruit",
       "have-more-questions-visit-our": "Vous avez d'autres questions ? Visitez notre",
       "the-burn-feature-lets-you-permanently-delete-a-s": "La fonction de brûlage vous permet de supprimer définitivement un secret avant que quiconque ne le consulte. Cette fonction est utile si vous devez révoquer l'accès à un secret ou si vous avez partagé des informations erronées. Une fois brûlé, le secret ne peut plus être récupéré.",
@@ -226,8 +288,9 @@
       "you_created_this_secret": "Vous avez créé ce secret. Si vous le voyez, le destinateur ne pourra plus le voir.",
       "your_secret_message": "Votre message secret :",
       "this_message_for_you": "Ce message est pour vous :",
+      "your_message_is_ready": "Votre message sécurisé est prêt.",
       "reply_with_secret": "Répondre avec un autre secret",
-      "pre_reveal_default": "Click the button below to reveal your secure message.",
+      "pre_reveal_default": "Cliquez ci-dessous pour afficher votre message sécurisé.",
       "post_reveal_default": "Your secure message is shown below.",
       "secret_was_truncated": "Le secret a été accordé"
     },
@@ -245,8 +308,8 @@
       "remember_me": "Remember me"
     },
     "signup": {
-      "create-your-account": "",
-      "have_an_account": "Or, sign in to your account"
+      "create-your-account": "Créer votre compte",
+      "have_an_account": "Déjà inscrit ? Connectez-vous"
     },
     "incoming": {
       "tagline1": "Collez un mot de passe, message secret ou lien privé ci-dessous",
@@ -260,16 +323,6 @@
       "incoming_recipient_address": "Destinataire du support",
       "incoming_success_message": "Votre courriel a été envoyé",
       "incoming_button_creating": "Création"
-    },
-    "page": {
-      "cta_title": "",
-      "cta_subtitle": "",
-      "cta_feature1": "",
-      "cta_feature2": "",
-      "cta_feature3": "",
-      "explore_premium_plans": "",
-      "need_free_account": "",
-      "sign_up_free": "e"
     },
     "account": {
       "subscription_title": "Abonnement",
@@ -308,83 +361,8 @@
       "send-feedback": "Envoyer un retour d'information",
       "sending-ellipses": "Envoi..."
     },
-    "security": {
-      "thank-you-for-helping-us-keep-onetime-secret-sec": "Merci de nous aider à préserver la sécurité et l'excellence de Onetime Secret !",
-      "we-take-your-privacy-seriously-all-reports-will-": "Nous prenons votre vie privée au sérieux. Tous les rapports resteront confidentiels et nous travaillerons avec vous pour nous assurer que les détails de la vulnérabilité ne sont pas divulgués jusqu'à ce qu'un correctif soit mis en place.",
-      "confidentiality": "Confidentialité",
-      "if-the-vulnerability-is-declined-we-will-provide": ": Si la vulnérabilité est refusée, nous fournirons une explication détaillée de la raison pour laquelle elle n'a pas été acceptée.",
-      "declined-vulnerabilities": "Vulnérabilités déclassées",
-      "if-the-vulnerability-is-accepted-we-will-work-on": ": Si la vulnérabilité est acceptée, nous travaillerons sur un correctif et nous nous efforcerons de le publier dès que possible. Vous serez averti dès que le correctif sera déployé.",
-      "accepted-vulnerabilities": "Vulnérabilités acceptées",
-      "resolution-process": "Processus de résolution",
-      "you-can-expect-to-receive-updates-on-the-status-": ": Vous pouvez vous attendre à recevoir des mises à jour sur le statut de votre rapport au moins une fois tous les 7 jours jusqu'à ce que le problème soit résolu ou qu'une décision soit prise.",
-      "updates": "Mises à jour",
-      "we-will-conduct-an-initial-assessment-of-the-vul": ": Nous procéderons à une première évaluation de la vulnérabilité dans un délai de 14 jours ouvrables.",
-      "initial-assessment": "Évaluation initiale",
-      "you-will-receive-an-acknowledgment-of-your-repor": ": Vous recevrez un accusé de réception de votre rapport dans les 5 jours ouvrables.",
-      "acknowledgment": "Remerciements",
-      "what-to-expect": "À quoi s'attendre",
-      "your-contact-information-for-follow-up-questions": "Vos coordonnées pour les questions de suivi.",
-      "any-potential-impact": "Tout impact potentiel.",
-      "steps-to-reproduce-the-issue": "Marche à suivre pour reproduire le problème.",
-      "a-detailed-description-of-the-vulnerability": "Description détaillée de la vulnérabilité.",
-      "include-as-much-information-as-possible-about-th": ": Inclure autant d'informations que possible sur la vulnérabilité. Il s'agit notamment de",
-      "details": "Détails",
-      "with-the-subject-line-vulnerability-report-brief": "avec pour objet \"Rapport de vulnérabilité : [Brève description]\".",
-      "send-an-email-to": ": Envoyer un courriel à",
-      "how-to-report": "Comment rapporter",
-      "if-you-discover-a-security-vulnerability-within-": "Si vous découvrez une faille de sécurité dans ce projet, nous vous encourageons à la signaler dès que possible. Voici comment procéder :",
-      "reporting-a-vulnerability": "Signaler une vulnérabilité",
-      "if-you-are-using-an-unsupported-version-we-stron": "Si vous utilisez une version non prise en charge, nous vous recommandons vivement d'effectuer une mise à niveau vers l'une des versions prises en charge afin de recevoir les dernières mises à jour de sécurité.",
-      "we-provide-security-updates-for-the-following-ve": "Nous fournissons des mises à jour de sécurité pour les versions suivantes de notre projet :",
-      "supported-versions": "Versions prises en charge",
-      "we-take-the-security-of-this-project-seriously-a": "Nous prenons la sécurité de ce projet au sérieux et apprécions vos efforts pour divulguer les vulnérabilités de manière responsable. Ce document décrit notre politique de sécurité et fournit des lignes directrices sur la manière de signaler les vulnérabilités.",
-      "security-policy": "Politique de sécurité"
-    },
     "site": {
       "website-version": "Version du site web"
-    },
-    "about": {
-      "title": "À propos de nous",
-      "faq": {
-        "trust_points": [
-          "Nous ne pouvons pas accéder à vos informations même si nous le voulions (ce qui n'est pas le cas). Par exemple, si vous partagez un mot de passe, nous ne connaissons pas le nom d'utilisateur ni même l'application à laquelle il est destiné.",
-          "Si vous utilisez une phrase de passe (disponible sous \"Options de confidentialité\"), nous l'incluons dans la clé de cryptage du secret. Nous ne stockons qu'un hachage bcrypt de la phrase de passe, ce qui rend impossible le décryptage de votre secret une fois qu'il est sauvegardé.",
-          "Notre code est {openSourceLink}. Vous pouvez l'examiner vous-même ou même exécuter votre propre instance si vous le préférez.",
-          "Nous utilisons des pratiques de sécurité conformes aux normes industrielles, notamment le protocole HTTPS pour toutes les connexions et le cryptage au repos pour les données stockées."
-        ],
-        "passphrase_points": [
-          "Nous ne stockons jamais le secret non chiffré ou la phrase de passe.",
-          "Le hachage bcrypt ne peut pas être utilisé pour déchiffrer le secret.",
-          "Sans la phrase de passe originale, le secret chiffré ne peut pas être déchiffré, même par nous.",
-          "Cela signifie que même si nos serveurs étaient compromis, votre secret resterait sécurisé tant que la phrase de passe reste inconnue."
-        ],
-        "why_use_title": "Pourquoi l'utiliser ?",
-        "why_use_description": "Lorsque vous envoyez des mots de passe et des liens privés par courrier électronique ou par chat, des copies de ces informations sont stockées dans de nombreux endroits. Si vous utilisez plutôt un lien Onetime, les informations sont conservées pour une seule consultation, ce qui signifie qu'elles ne peuvent pas être lues par quelqu'un d'autre par la suite. Cela vous permet d'envoyer des informations sensibles en toute sécurité, en sachant qu'elles ne seront vues que par une seule personne. C'est un peu comme un message autodestructeur.",
-        "file_limitation_title": "Pourquoi ne puis-je pas envoyer des images ou d'autres types de fichiers ?",
-        "file_limitation_description": "Notre service est conçu spécifiquement pour les secrets textuels afin de garantir une sécurité et une simplicité maximales. Les fichiers, en particulier les images, peuvent contenir des métadonnées susceptibles de révéler involontairement des informations sur l'expéditeur ou le destinataire. En nous concentrant sur le texte, nous pouvons garantir qu'aucune donnée supplémentaire n'est transmise au-delà de ce que vous tapez explicitement. Si vous devez partager un fichier en toute sécurité, nous vous recommandons d'utiliser un service de transfert de fichiers sécurisé. Nous pourrons envisager d'ajouter la prise en charge des fichiers à l'avenir si des cas d'utilisation convaincants le justifient.",
-        "text_copy_title": "Mais je peux copier le texte secret. Quelle est la différence ?",
-        "text_copy_description": "C'est vrai, mais vous n'avez que du texte. Les images et autres types de fichiers peuvent contenir des métadonnées et d'autres informations potentiellement révélatrices sur l'expéditeur ou le destinataire. Là encore, il s'agit simplement de s'assurer qu'aucune information privée n'est partagée en dehors du destinataire prévu.",
-        "secret_retrieval_title": "Puis-je récupérer un secret qui a déjà été partagé ?",
-        "secret_retrieval_description": "Non. Nous l'affichons une fois, puis nous le supprimons. Après cela, il disparaît à jamais.",
-        "account_difference_title": "Quelle est la différence entre une utilisation anonyme et un compte gratuit ?",
-        "account_difference_description": "Les utilisateurs anonymes peuvent créer des secrets d'une durée maximale de {anonymousTtlDays} jours et d'une taille maximale de {anonymousSizeKB} KO. Les titulaires d'un compte gratuit bénéficient d'avantages supplémentaires : les secrets peuvent durer jusqu'à {defaultTtlDays} jours et avoir une taille maximale de {defaultSizeKB} Ko. Les titulaires de comptes ont également accès à des fonctionnalités supplémentaires telles que les options de gravure avant lecture, qui permettent aux expéditeurs de supprimer les secrets avant qu'ils ne soient reçus.",
-        "law_enforcement_title": "Comment gérez-vous les demandes de données émanant des forces de l'ordre ou d'autres tiers ?",
-        "law_enforcement_description": "Nous avons conçu notre système en tenant compte de la protection de la vie privée. Nous ne stockons pas les secrets après qu'ils ont été consultés et nous ne conservons pas les journaux d'accès au-delà du minimum nécessaire. Cela signifie que, dans la plupart des cas, nous n'avons tout simplement pas de données à fournir en réponse à de telles demandes. Pour plus de détails, veuillez consulter notre {privacyPolicyLink}.",
-        "trust_title": "Pourquoi devrais-je vous faire confiance ?",
-        "trust_description": "Nous avons conçu notre système en plaçant la protection de la vie privée et la sécurité en tête de nos priorités. Voici pourquoi vous pouvez nous faire confiance :",
-        "passphrase_title": "Comment fonctionne l'option de phrase secrète ?",
-        "passphrase_description": "Lorsque vous utilisez une phrase de passe, nous cryptons votre secret sur nos serveurs à l'aide de la phrase de passe que vous nous fournissez. Nous ne stockons pas la phrase de passe elle-même, mais seulement un hachage bcrypt de celle-ci. Ce hachage est utilisé pour vérifier la phrase de passe lorsque le destinataire la saisit. Voici pourquoi cette méthode est sûre :",
-        "passphrase_final_note": "N'oubliez pas que la sécurité de votre secret dépend de la force de votre phrase de passe et de la sécurité avec laquelle vous la communiquez au destinataire."
-      },
-      "intro": {
-        "paragraph1": "Bonjour, je suis {nom}, le créateur de Onetime Secret. Ce qui a commencé en 2012 comme un moyen simple et sécurisé de partager des informations sensibles s'est développé au-delà de nos attentes les plus folles. Plus d'une décennie plus tard, nous facilitons le partage sécurisé de millions de secrets chaque mois, avec des cas d'utilisation que nous n'aurions jamais imaginés.",
-        "paragraph2": "Le premier semestre 2024 a été notre période la plus chargée. Nous sommes reconnaissants que les gens continuent à utiliser et à partager notre produit depuis plus de dix ans. Nous travaillons actuellement sur des améliorations qui, selon nous, rendront le service encore plus utile.",
-        "paragraph3": "Fidèles à nos racines, {githubLink} sur GitHub. Alors que nous naviguons dans le paysage en constante évolution de la protection de la vie privée et de la sécurité numérique, nous nous engageons à faire preuve de transparence et à nous améliorer continuellement.",
-        "paragraph4": "Merci d'avoir participé à notre aventure. Voici une nouvelle décennie de partage sécurisé et éphémère.",
-        "feedback_hint": "Si vous avez des questions, vous trouverez un formulaire de retour d'information au bas de (presque) toutes les pages.",
-        "signature": "Joyeux partage,\n{nom}"
-      }
     },
     "meta": {
       "were-making-onetime-secret-available-in-multiple": "",
@@ -438,9 +416,6 @@
   "escape": "Quitter",
   "active": "Actif",
   "theyll-appear-here-once-youve-shared-them": "Ils apparaîtront ici après leur partage",
-  "copy-to-clipboard": "Copier dans le presse-papiers",
-  "copied": "Copié",
-  "pricing": "Tarification",
   "meets-and-exceeds-compliance-standards": "Respecter et dépasser les normes de conformité",
   "start-today": "Commencez dès aujourd'hui",
   "start-today-with-identity-plus": "Commencez dès aujourd'hui avec Identity Plus",
@@ -518,9 +493,12 @@
   "added-formatdistancetonow-domain-created-addsuffix-true": "Ajouté {0}",
   "press-esc-to-close": "Appuyez sur ESC pour fermer",
   "charactercount-500-characters": "{0}/500 caractères",
-  "use-your-phone-to-scan-the-qr-code": "Utilisez votre téléphone pour scanner le code QR",
+  "example-pre-reveal-instructions": "Utilisez votre téléphone pour scanner le code QR",
+  "example-post-reveal-instructions": "Contactez onboarding{'@'}example.com pour toute question",
   "these-instructions-will-be-shown-to-recipients-before": "",
+  "these-instructions-will-be-shown-to-recipients-after": "Ces instructions seront affichées aux destinataires après qu'ils auront révélé le secret",
   "pre-reveal-instructions": "Instructions préalables au dévoilement",
+  "post-reveal-instructions": "Instructions post-révélation",
   "instructions": "Instructions",
   "enter": "Entrer",
   "hide-secret-message": "Masquer le contenu confidentiel",
@@ -573,19 +551,23 @@
   "this-regulatory-framework-is-determined-by-your-": "Ce cadre réglementaire est déterminé par votre domaine d'accès :",
   "your-account-and-data-are-protected-under-the-la": "Votre compte et vos données sont protégés par les lois et règlements des pays suivants",
   "current": "Actuel",
-  "jurisdiction-display_name-iscurrentjurisdiction-": "",
+  "jurisdiction-display_name-iscurrentjurisdiction-": "{0} {1}",
   "available-regions": "Régions disponibles",
   "account-id-customerid": "ID du compte",
   "jurisdiction": "Compétence",
   "data-center-location-currentjurisdiction-identif": "Emplacement du centre de données : {0}",
   "data-region": "Région de données",
-  "all-feedback-welcome": ". Tous les commentaires sont les bienvenus !",
-  "help-us-improve": "Aidez-nous à nous améliorer",
+  "all-feedback-welcome": "Tous les commentaires sont les bienvenus !",
+  "help-us-improve": "Aidez-nous à nous améliorer.",
   "close-feedback-modal": "Fermer la modalité de retour d'information",
   "share-your-feedback": "Faites-nous part de vos commentaires",
   "delano-mandelbaum": "Delano Mandelbaum",
   "delano": "Delano",
   "help-content-goes-here": "Le contenu de l'aide se trouve ici.",
+  "why-is-this-secret-unavailable": "Pourquoi ce secret n'est-il pas disponible?",
+  "secrets-are-designed-to-be-viewed-only-once": "Les secrets sont conçus pour être consultés une seule fois. Ce lien a peut-être déjà été accédé, est expiré ou a été supprimé manuellement par l'expéditeur.",
+  "what-should-i-do-now": "Que dois-je faire maintenant?",
+  "contact-the-person-who-sent-you-this-link": "Contactez la personne qui vous a envoyé ce lien et demandez-lui d'en créer un nouveau. Faites-lui savoir que vous n'avez pas pu accéder à l'information originale.",
   "done": "Terminé",
   "loading-settings-content": "Chargement du contenu des paramètres...",
   "settings-sections-0": "Sections des paramètres",
@@ -609,6 +591,7 @@
   "t-ai-generated-testimonial": "{0}:",
   "t-benefits-of-identity-plus": "{0} : Identité Plus",
   "upgrade-to": "Passer à",
+  "upgrade-for-yourdomain": "",
   "secret-access-form": "Formulaire d'accès secret",
   "content-status": "Statut du contenu",
   "secret-content-copied-to-clipboard": "Contenu du secret copié dans le presse-papiers",
@@ -655,7 +638,6 @@
   "request-password-reset": "Demander la réinitialisation du mot de passe",
   "forgot-password": "Mot de passe oublié",
   "google": "Google",
-  "unknown-jurisdiction-0": "Juridiction inconnue",
   "unknown-jurisdiction": "Juridiction inconnue",
   "redis-info": "Informations sur Redis",
   "customer-secrets_created-customer-secrets_shared": "{0}/{1}/{2} [{3}]",
@@ -720,6 +702,7 @@
   "visit-onetime-secret-homepage": "Visitez la page d'accueil de Onetime Secret",
   "footer-navigation": "Navigation en bas de page",
   "includes-all-features-and-unlimited-sharing-capa": "Comprend toutes les fonctionnalités et une capacité de partage illimitée",
+  "includes-all-data-locality-options": "Tous les forfaits incluent le choix de l'emplacement des données : régions {0}",
   "get-started": "Commencer",
   "frequency-value-annually-annual-monthly-subscrip": "{0} souscription",
   "features": "Caractéristiques",
@@ -784,7 +767,7 @@
   "please-be-advised": "Veuillez noter que",
   "account-deleted-successfully": "Compte supprimé avec succès.",
   "secret-viewing-page": "Page de visualisation des secrets",
-  "serving-you-from-the": "A votre service depuis le",
+  "serving-you-from-the": "A votre service depuis",
   "create-account": "Créer un compte",
   "i-agree-to-the": "J'accepte les",
   "it-may-take-a-few-minutes-for-your-ssl-certifica": "Quelques minutes peuvent s'écouler avant que votre certificat SSL ne prenne effet.",
@@ -808,7 +791,6 @@
   "follow-these-steps-to-verify-domain-ownership-an": "Suivez ces étapes pour vérifier la propriété du domaine et améliorer votre présence en ligne :",
   "domain-verification-steps": "Étapes de vérification du domaine",
   "domain-verification-initiated-successfully": "La vérification du domaine a été lancée avec succès.",
-  "dismiss": "Rejeter",
   "deactivate": "Désactiver",
   "are-you-sure-you-want-to-deactivate-your-account": "Êtes-vous sûr de vouloir désactiver votre compte ? Toutes vos données seront définitivement supprimées de nos serveurs. Cette action ne peut être annulée.",
   "deactivate-account": "Désactiver le compte",
@@ -848,5 +830,6 @@
   "an-error-occurred": "Une erreur s'est produite",
   "copy-secret-to-clipboard": "Copier le secret dans le presse-papiers",
   "secret-copied-to-clipboard": "Secret copié dans le presse-papiers",
-  "Double check that passphrase": "Vérifier à nouveau la phrase de passe"
+  "Double check that passphrase": "Vérifier à nouveau la phrase de passe",
+  "press_copy_button_below": "Press the copy button below."
 }

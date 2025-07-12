@@ -1,10 +1,10 @@
-import DefaultLayout from '@/layouts/DefaultLayout.vue';
 import QuietFooter from '@/components/layout/QuietFooter.vue';
 import QuietHeader from '@/components/layout/QuietHeader.vue';
+import DefaultLayout from '@/layouts/DefaultLayout.vue';
+import { WindowService } from '@/services/window.service';
 import BurnSecret from '@/views/secrets/BurnSecret.vue';
 import ShowMetadata from '@/views/secrets/ShowMetadata.vue';
 import { RouteLocationNormalized, RouteRecordMultipleViews } from 'vue-router';
-import { WindowService } from '@/services/window.service';
 
 /**
  * Type guard that validates a metadata key.
@@ -33,7 +33,7 @@ const withValidatedMetadataKey = {
         ...to.meta.layoutProps,
         displayMasthead: true,
         displayNavigation: false,
-        displayLinks: false,
+        displayFooterLinks: false,
         displayFeedback: false,
         displayVersion: true,
         displayPoweredBy: true,
@@ -58,7 +58,9 @@ const withValidatedMetadataKey = {
 /**
  * Routes for viewing and managing metadata/secrets:
  * - /private/:metadataKey - View metadata and secret details
+ * - /receipt/:metadataKey - Alternative path for viewing metadata and secret details
  * - /private/:metadataKey/burn - Permanently delete a secret
+ * - /receipt/:metadataKey/burn - Alternative path for permanently deleting a secret
  */
 const routes: Array<RouteRecordMultipleViews> = [
   {
@@ -74,7 +76,28 @@ const routes: Array<RouteRecordMultipleViews> = [
       layoutProps: {
         displayMasthead: true,
         displayNavigation: true,
-        displayLinks: true,
+        displayFooterLinks: true,
+        displayFeedback: true,
+        displayPoweredBy: false,
+        displayVersion: true,
+        displayToggles: true,
+      },
+    },
+  },
+  {
+    path: '/receipt/:metadataKey',
+    name: 'Receipt link',
+    components: {
+      default: ShowMetadata,
+      header: QuietHeader,
+      footer: QuietFooter,
+    },
+    ...withValidatedMetadataKey,
+    meta: {
+      layoutProps: {
+        displayMasthead: true,
+        displayNavigation: true,
+        displayFooterLinks: true,
         displayFeedback: true,
         displayPoweredBy: false,
         displayVersion: true,
@@ -96,7 +119,28 @@ const routes: Array<RouteRecordMultipleViews> = [
       layoutProps: {
         displayMasthead: false,
         displayNavigation: false,
-        displayLinks: false,
+        displayFooterLinks: false,
+        displayFeedback: false,
+        displayVersion: true,
+        displayPoweredBy: true,
+      },
+    },
+  },
+  {
+    path: '/receipt/:metadataKey/burn',
+    name: 'Burn receipt',
+    components: {
+      default: BurnSecret,
+      header: QuietHeader,
+      footer: QuietFooter,
+    },
+    ...withValidatedMetadataKey,
+    meta: {
+      layout: DefaultLayout,
+      layoutProps: {
+        displayMasthead: false,
+        displayNavigation: false,
+        displayFooterLinks: false,
         displayFeedback: false,
         displayVersion: true,
         displayPoweredBy: true,

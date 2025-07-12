@@ -15,6 +15,7 @@ pnpm-debug.log*
 
 # Directories
 .certs/
+.claude
 .continue/
 .devcontainer
 .history
@@ -22,6 +23,8 @@ pnpm-debug.log*
 .pnpm-store/
 .prompts/
 .prompts*
+.pytest_cache/
+.ruby-lsp/
 .vscode/
 .idea/
 .cache/
@@ -48,11 +51,18 @@ public/web/dist/
 etc/config*
 !etc/config.example.yaml
 !etc/config.schema.yaml
+etc/system_settings*
+!etc/system_settings.example.yaml
 !fly.toml
 .github/*md
 .eslintcache
+.claude
+.rspec*
+.qodo
 .continuerc.json
 tsconfig.tsbuildinfo
+CLAUDE.md
+
 
 # Environment files
 .env*

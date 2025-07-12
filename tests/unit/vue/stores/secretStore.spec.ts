@@ -1,40 +1,56 @@
 // tests/unit/vue/stores/secretStore.spec.ts
-import { useSecretStore } from '@/stores/secretStore';
-import axios from 'axios';
-import AxiosMockAdapter from 'axios-mock-adapter';
-import { createPinia, setActivePinia } from 'pinia';
-import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 
+import { useSecretStore } from '@/stores/secretStore';
+import AxiosMockAdapter from 'axios-mock-adapter';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { App, ComponentPublicInstance } from 'vue';
+
+import { AxiosInstance } from 'axios';
 import { mockSecretRecord, mockSecretResponse } from '../fixtures/metadata.fixture';
+import { setupTestPinia } from '../setup';
+import { setupWindowState } from '../setupWindow';
 
 describe('secretStore', () => {
-  let axiosMock: AxiosMockAdapter;
+  let axiosMock: AxiosMockAdapter | null;
+  let api: AxiosInstance;
+  let app: App<Element>;
+  let appInstance: ComponentPublicInstance | null;
   let store: ReturnType<typeof useSecretStore>;
 
-  beforeEach(() => {
-    setActivePinia(createPinia());
-    const axiosInstance = axios.create();
-    axiosMock = new AxiosMockAdapter(axiosInstance);
-    // Inject mocked axios instance into the store's API
+  beforeEach(async () => {
+    // Use the utility function
+    const setup = await setupTestPinia();
+    axiosMock = setup.axiosMock;
+    api = setup.api;
+    appInstance = setup.appInstance;
+
+    // Create mock adapter
+    axiosMock = new AxiosMockAdapter(api);
+
+    const windowMock = setupWindowState({ shrimp: undefined });
+    vi.stubGlobal('window', windowMock);
+
+    // Initialize store
     store = useSecretStore();
-    store.init();
   });
 
   afterEach(() => {
-    axiosMock.reset();
+    vi.restoreAllMocks();
+    vi.useRealTimers();
+    vi.unstubAllGlobals();
+    if (axiosMock) axiosMock.reset();
   });
 
   describe('Initialization', () => {
     it('initializes correctly', () => {
       expect(store.record).toBeNull();
       expect(store.details).toBeNull();
-      expect(store.isLoading).toBe(false);
     });
   });
 
   describe('fetch', () => {
     it('debug response transformation', async () => {
-      axiosMock.onGet('/api/v2/secret/abc123').reply(200, mockSecretResponse);
+      axiosMock?.onGet('/api/v2/secret/abc123').reply(200, mockSecretResponse);
 
       // // Log the mock response
       // console.log('Mock Response:', JSON.stringify(mockSecretResponse, null, 2));
@@ -44,13 +60,16 @@ describe('secretStore', () => {
       // // Log what's in the store
       // console.log('Store Record:', JSON.stringify(store.record, null, 2));
 
+      expect(store.record).toEqual(mockSecretResponse.record);
+      expect(store.details).toEqual(mockSecretResponse.details);
+
       // Test individual fields
       expect(store.record?.lifespan).toBe(mockSecretResponse.record.lifespan);
       // Other fields...
     });
 
     it('loads secret details successfully (everything except lifespan)', async () => {
-      axiosMock.onGet('/api/v2/secret/abc123').reply(200, mockSecretResponse);
+      axiosMock?.onGet('/api/v2/secret/abc123').reply(200, mockSecretResponse);
 
       await store.fetch('abc123');
 
@@ -62,23 +81,21 @@ describe('secretStore', () => {
       // Test that lifespan exists and is a string
       expect(typeof store.record?.lifespan).toBe('string');
       expect(store.details).toEqual(mockSecretResponse.details);
-      expect(store.isLoading).toBe(false);
     });
 
     it('loads secret details successfully (original)', async () => {
-      axiosMock.onGet('/api/v2/secret/abc123').reply(200, mockSecretResponse);
+      axiosMock?.onGet('/api/v2/secret/abc123').reply(200, mockSecretResponse);
 
       await store.fetch('abc123');
 
       expect(store.record).toEqual(mockSecretResponse.record);
       expect(store.details).toEqual(mockSecretResponse.details);
-      expect(store.isLoading).toBe(false);
       // add: expect error to be null
     });
 
     // Test the transformed values exactly (more brittle but more precise)
     it('loads secret details successfully (strict values)', async () => {
-      axiosMock.onGet('/api/v2/secret/abc123').reply(200, mockSecretResponse);
+      axiosMock?.onGet('/api/v2/secret/abc123').reply(200, mockSecretResponse);
 
       await store.fetch('abc123');
 
@@ -89,12 +106,11 @@ describe('secretStore', () => {
 
       expect(store.record).toEqual(expectedRecord);
       expect(store.details).toEqual(mockSecretResponse.details);
-      expect(store.isLoading).toBe(false);
     });
 
     // Test for shape and types rather than exact values for transformed fields
     it('loads secret details successfully (looser values)', async () => {
-      axiosMock.onGet('/api/v2/secret/abc123').reply(200, mockSecretResponse);
+      axiosMock?.onGet('/api/v2/secret/abc123').reply(200, mockSecretResponse);
 
       await store.fetch('abc123');
 
@@ -106,27 +122,52 @@ describe('secretStore', () => {
       expect(typeof store.record?.lifespan).toBe('string');
       expect(store.record?.lifespan).toMatch(/\d+\s+\w+/); // Basic format check
       expect(store.details).toEqual(mockSecretResponse.details);
-      expect(store.isLoading).toBe(false);
     });
 
     it('handles validation errors', async () => {
-      axiosMock.onGet('/api/v2/secret/abc123').reply(200, { invalid: 'data' });
+      axiosMock?.onGet('/api/v2/secret/abc123').reply(200, { invalid: 'data' });
 
       await expect(store.fetch('abc123')).rejects.toThrow();
       // add: expect error to be raised
     });
 
     it('handles network errors', async () => {
-      axiosMock.onGet('/api/v2/secret/abc123').networkError();
+      axiosMock?.onGet('/api/v2/secret/abc123').networkError();
 
       await expect(store.fetch('abc123')).rejects.toThrow();
-      expect(store.isLoading).toBe(false);
+    });
+
+    it('loads secret details successfully', async () => {
+      axiosMock?.onGet('/api/v2/secret/abc123').reply(200, mockSecretResponse);
+
+      await store.fetch('abc123');
+
+      expect(store.record).toEqual(mockSecretResponse.record);
+      expect(store.details).toEqual(mockSecretResponse.details);
+      // No isLoading checks - that belongs in composable tests
+    });
+
+    // For error tests, focus on store state integrity
+    it('preserves state on error', async () => {
+      // Setup initial state
+      axiosMock?.onGet('/api/v2/secret/abc123').reply(200, mockSecretResponse);
+      await store.fetch('abc123');
+      const initialState = { record: store.record, details: store.details };
+
+      // Force error on reveal
+      axiosMock?.onPost('/api/v2/secret/abc123/reveal').networkError();
+
+      await expect(store.reveal('abc123', 'wrong')).rejects.toThrow();
+
+      // Verify store state integrity
+      expect(store.record).toEqual(initialState.record);
+      expect(store.details).toEqual(initialState.details);
     });
   });
 
   describe('reveal', () => {
     it('reveals secret with passphrase', async () => {
-      axiosMock.onPost('/api/v2/secret/abc123/reveal').reply(200, {
+      axiosMock?.onPost('/api/v2/secret/abc123/reveal').reply(200, {
         success: true,
         record: {
           ...mockSecretRecord,
@@ -146,17 +187,16 @@ describe('secretStore', () => {
 
       expect(store.record?.secret_value).toBe('revealed secret');
       expect(store.details?.show_secret).toBe(true);
-      expect(store.isLoading).toBe(false);
     });
 
     it('preserves state on error', async () => {
       // Setup initial state
-      axiosMock.onGet('/api/v2/secret/abc123').reply(200, mockSecretResponse);
+      axiosMock?.onGet('/api/v2/secret/abc123').reply(200, mockSecretResponse);
       await store.fetch('abc123');
       const initialState = { record: store.record, details: store.details };
 
       // Force error on reveal
-      axiosMock.onPost('/api/v2/secret/abc123/reveal').networkError();
+      axiosMock?.onPost('/api/v2/secret/abc123/reveal').networkError();
 
       await expect(store.reveal('abc123', 'wrong')).rejects.toThrow();
       expect(store.record).toEqual(initialState.record);
@@ -166,7 +206,7 @@ describe('secretStore', () => {
 
   describe('clearSecret', () => {
     it('resets store state', async () => {
-      axiosMock.onGet('/api/v2/secret/abc123').reply(200, mockSecretResponse);
+      axiosMock?.onGet('/api/v2/secret/abc123').reply(200, mockSecretResponse);
 
       await store.fetch('abc123');
       store.clear();
@@ -188,7 +228,7 @@ describe('secretStore', () => {
           },
         };
 
-        axiosMock.onGet('/api/v2/secret/abc123').reply(200, ownerResponse);
+        axiosMock?.onGet('/api/v2/secret/abc123').reply(200, ownerResponse);
         await store.fetch('abc123');
 
         expect(store.details?.is_owner).toBe(true);
@@ -203,7 +243,7 @@ describe('secretStore', () => {
           },
         };
 
-        axiosMock.onGet('/api/v2/secret/abc123').reply(200, nonOwnerResponse);
+        axiosMock?.onGet('/api/v2/secret/abc123').reply(200, nonOwnerResponse);
         await store.fetch('abc123');
 
         expect(store.details?.is_owner).toBe(false);
@@ -218,7 +258,7 @@ describe('secretStore', () => {
           },
         };
 
-        axiosMock.onGet('/api/v2/secret/abc123').reply(200, responseWithoutOwner);
+        axiosMock?.onGet('/api/v2/secret/abc123').reply(200, responseWithoutOwner);
         await store.fetch('abc123');
 
         // Schema should default undefined to false
@@ -236,7 +276,7 @@ describe('secretStore', () => {
           },
         };
 
-        axiosMock.onGet('/api/v2/secret/abc123').reply(200, response);
+        axiosMock?.onGet('/api/v2/secret/abc123').reply(200, response);
         await store.fetch('abc123');
 
         // Test that lifespan exists and follows expected format
@@ -255,7 +295,7 @@ describe('secretStore', () => {
           },
         };
 
-        axiosMock.onGet('/api/v2/secret/abc123').reply(200, response);
+        axiosMock?.onGet('/api/v2/secret/abc123').reply(200, response);
         await store.fetch('abc123');
 
         expect(store.record?.lifespan).toBeNull();
@@ -270,7 +310,7 @@ describe('secretStore', () => {
           },
         };
 
-        axiosMock.onGet('/api/v2/secret/abc123').reply(200, staticLifespanResponse);
+        axiosMock?.onGet('/api/v2/secret/abc123').reply(200, staticLifespanResponse);
         await store.fetch('abc123');
 
         expect(typeof store.record?.lifespan).toBe('string');
@@ -286,7 +326,7 @@ describe('secretStore', () => {
           },
         };
 
-        axiosMock.onGet('/api/v2/secret/abc123').reply(200, nullLifespanResponse);
+        axiosMock?.onGet('/api/v2/secret/abc123').reply(200, nullLifespanResponse);
         await store.fetch('abc123');
 
         expect(store.record?.lifespan).toBeNull();
@@ -301,7 +341,7 @@ describe('secretStore', () => {
           },
         };
 
-        axiosMock.onGet('/api/v2/secret/abc123').reply(200, responseWithoutLifespan);
+        axiosMock?.onGet('/api/v2/secret/abc123').reply(200, responseWithoutLifespan);
 
         await expect(store.fetch('abc123')).rejects.toThrow();
 
@@ -318,9 +358,7 @@ describe('secretStore', () => {
           },
         };
 
-        axiosMock
-          .onGet('/api/v2/secret/abc123')
-          .reply(200, responseWithUndefinedLifespan);
+        axiosMock?.onGet('/api/v2/secret/abc123').reply(200, responseWithUndefinedLifespan);
 
         // Should fail validation since undefined is not allowed by schema
         await expect(store.fetch('abc123')).rejects.toThrow();
@@ -341,9 +379,7 @@ describe('secretStore', () => {
           },
         };
 
-        axiosMock
-          .onGet('/api/v2/secret/abc123')
-          .reply(200, responseWithUndefinedLifespan);
+        axiosMock?.onGet('/api/v2/secret/abc123').reply(200, responseWithUndefinedLifespan);
 
         // Should fail validation since schema requires string | null
         await expect(store.fetch('abc123')).rejects.toThrow();

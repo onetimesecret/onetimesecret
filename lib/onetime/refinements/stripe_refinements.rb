@@ -1,6 +1,4 @@
-# rubocop:disable
-
-# lives in lib/onetime/refinements
+# lib/onetime/refinements/stripe_refinements.rb
 
 require 'stripe' # ensures Stripe namespace is loaded
 
@@ -28,7 +26,7 @@ module Onetime::StripeRefinements
           {
             price_id: item.price.id,
             price_nickname: item.price.nickname,
-            quantity: item.quantity
+            quantity: item.quantity,
           }
         end
       }},
@@ -47,9 +45,9 @@ module Onetime::StripeRefinements
           nickname: sub.plan.nickname,
           amount: sub.plan.amount,
           interval: sub.plan.interval,
-          interval_count: sub.plan.interval_count
+          interval_count: sub.plan.interval_count,
         } : nil
-      }}
+      }},
     ]
   end
 
@@ -92,7 +90,7 @@ module Onetime::StripeRefinements
           line1: cust.address.line1,
           line2: cust.address.line2,
           postal_code: cust.address.postal_code,
-          state: cust.address.state
+          state: cust.address.state,
         } : nil
       }},
 
@@ -104,7 +102,7 @@ module Onetime::StripeRefinements
         # Only include safe metadata fields
         safe_metadata_keys = [:public_note, :preferred_language]
         cust.metadata_list.select { |k, _| safe_metadata_keys.include?(k.to_sym) }
-      }}
+      }},
     ]
   end
 end

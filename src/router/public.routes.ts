@@ -1,9 +1,8 @@
 // src/router/public.routes.ts
 
-import QuietFooter from '@/components/layout/QuietFooter.vue';
-import QuietHeader from '@/components/layout/QuietHeader.vue';
+import DefaultFooter from '@/components/layout/DefaultFooter.vue';
+import DefaultHeader from '@/components/layout/DefaultHeader.vue';
 import DefaultLayout from '@/layouts/DefaultLayout.vue';
-import QuietLayout from '@/layouts/QuietLayout.vue';
 import { WindowService } from '@/services/window.service';
 import HomepageContainer from '@/views/HomepageContainer.vue';
 import IncomingSupportSecret from '@/views/secrets/IncomingSupportSecret.vue';
@@ -15,16 +14,16 @@ const routes: Array<RouteRecordRaw> = [
     name: 'Home',
     components: {
       default: HomepageContainer,
-      header: QuietHeader,
-      footer: QuietFooter,
+      header: DefaultHeader,
+      footer: DefaultFooter,
     },
     meta: {
       requiresAuth: false,
-      layout: QuietLayout,
+      layout: DefaultLayout,
       layoutProps: {
         displayMasthead: true,
         displayNavigation: true,
-        displayLinks: true,
+        displayFooterLinks: true,
         displayFeedback: true,
         displayPoweredBy: false,
         displayVersion: true,
@@ -41,10 +40,10 @@ const routes: Array<RouteRecordRaw> = [
           ...to.meta.layoutProps,
           displayMasthead: true,
           displayNavigation: false,
-          displayLinks: false,
+          displayFooterLinks: false,
           displayFeedback: false,
           displayVersion: true,
-          displayPoweredBy: true,
+          displayPoweredBy: false,
           displayToggles: true,
         };
       }
@@ -59,34 +58,6 @@ const routes: Array<RouteRecordRaw> = [
       layout: DefaultLayout,
     },
   },
-
-  {
-    path: '/info/privacy',
-    name: 'Privacy Policy',
-    component: () => import('@/views/info/PrivacyDoc.vue'),
-    meta: {
-      requiresAuth: false,
-      layout: DefaultLayout,
-    },
-  },
-  {
-    path: '/info/terms',
-    name: 'Terms of Use',
-    component: () => import('@/views/info/TermsDoc.vue'),
-    meta: {
-      requiresAuth: false,
-      layout: DefaultLayout,
-    },
-  },
-  {
-    path: '/info/security',
-    name: 'Security Policy',
-    component: () => import('@/views/info/SecurityDoc.vue'),
-    meta: {
-      requiresAuth: false,
-      layout: DefaultLayout,
-    },
-  },
   {
     path: '/feedback',
     name: 'Feedback',
@@ -96,50 +67,8 @@ const routes: Array<RouteRecordRaw> = [
       layout: DefaultLayout,
       layoutProps: {
         displayMasthead: true,
-        displayLinks: true,
+        displayFooterLinks: true,
         displayFeedback: false,
-      },
-    },
-  },
-  {
-    path: '/about',
-    name: 'About',
-    component: () => import('@/views/About.vue'),
-    meta: {
-      requiresAuth: false,
-      layout: DefaultLayout,
-      layoutProps: {
-        displayMasthead: true,
-        displayLinks: true,
-        displayFeedback: true,
-      },
-    },
-  },
-  {
-    path: '/translations',
-    name: 'Translations',
-    component: () => import('@/views/Translations.vue'),
-    meta: {
-      requiresAuth: false,
-      layout: DefaultLayout,
-      layoutProps: {
-        displayMasthead: true,
-        displayLinks: true,
-        displayFeedback: true,
-      },
-    },
-  },
-  {
-    path: '/info/icons',
-    name: 'Icons',
-    component: () => import('@/views/info/IconsInfo.vue'),
-    meta: {
-      requiresAuth: false,
-      layout: DefaultLayout,
-      layoutProps: {
-        displayMasthead: true,
-        displayLinks: true,
-        displayFeedback: true,
       },
     },
   },

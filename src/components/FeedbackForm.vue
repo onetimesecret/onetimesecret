@@ -1,66 +1,63 @@
 <script setup lang="ts">
-import AltchaChallenge from '@/components/AltchaChallenge.vue';
-import { useFormSubmission } from '@/composables/useFormSubmission';
-import { WindowService } from '@/services/window.service';
-import { useCsrfStore } from '@/stores/csrfStore';
-import { onMounted, ref } from 'vue';
-import { useI18n } from 'vue-i18n';
-const { t } = useI18n();
+  import AltchaChallenge from '@/components/AltchaChallenge.vue';
+  import { useFormSubmission } from '@/composables/useFormSubmission';
+  import { WindowService } from '@/services/window.service';
+  import { useCsrfStore } from '@/stores/csrfStore';
+  import { onMounted, ref } from 'vue';
+  import { useI18n } from 'vue-i18n';
+  const { t } = useI18n();
 
-const csrfStore = useCsrfStore();
+  const csrfStore = useCsrfStore();
 
-export interface Props {
-  enabled?: boolean;
-  showRedButton: boolean | null;
-}
+  export interface Props {
+    enabled?: boolean;
+    showRedButton: boolean | null;
+  }
 
-withDefaults(defineProps<Props>(), {
-  enabled: true,
-  showRedButton: false,
-})
+  withDefaults(defineProps<Props>(), {
+    enabled: true,
+    showRedButton: false,
+  });
 
-const userTimezone = ref('');
-const feedbackMessage = ref('');
+  const altchaPayload = ref('');
+  const userTimezone = ref('');
+  const feedbackMessage = ref('');
 
-const resetForm = () => {
-  feedbackMessage.value = '';
-  // Reset other non-hidden form fields here if you have any
-};
+  // Reset in form reset function
+  const resetForm = () => {
+    feedbackMessage.value = '';
+    altchaPayload.value = '';
+  };
 
-onMounted(() => {
-  userTimezone.value = Intl.DateTimeFormat().resolvedOptions().timeZone;
-});
+  onMounted(() => {
+    userTimezone.value = Intl.DateTimeFormat().resolvedOptions().timeZone;
+  });
 
-// We use this to determine whether to include the authenticity check
-const windowProps = WindowService.getMultiple({
-  cust: null,
-  ot_version: '',
-});
+  // We use this to determine whether to include the authenticity check
+  const windowProps = WindowService.getMultiple({
+    cust: null,
+    ot_version_long: '',
+  });
 
-const emit = defineEmits(['feedback-sent']);
+  const emit = defineEmits(['feedback-sent']);
 
-const submitWithCheck = async (event?: Event) => {
-  console.debug('Submitting exception form');
+  const submitWithCheck = async (event?: Event) => {
+    console.debug('Submitting exception form');
 
-  await submitForm(event);
-};
+    await submitForm(event);
+  };
 
-const {
-  isSubmitting,
-  error,
-  success,
-  submitForm
-} = useFormSubmission({
-  url: '/api/v2/feedback',
-  successMessage: t('web.LABELS.feedback-received'),
-  onSuccess: () => {
-    emit('feedback-sent');
-    resetForm();
-  },
-  onError: (data: unknown) => {
-    console.error('Error sending feedback:', data);
-  },
-});
+  const { isSubmitting, error, success, submitForm } = useFormSubmission({
+    url: '/api/v2/feedback',
+    successMessage: t('web.LABELS.feedback-received'),
+    onSuccess: () => {
+      emit('feedback-sent');
+      resetForm();
+    },
+    onError: (data: unknown) => {
+      console.error('Error sending feedback:', data);
+    },
+  });
 </script>
 
 <template>
@@ -74,38 +71,38 @@ const {
           <input
             type="hidden"
             name="utf8"
-            value="✓"
-          />
+            value="✓" />
+          <input
+            type="hidden"
+            name="authenticity_payload"
+            :value="altchaPayload" />
           <input
             type="hidden"
             name="shrimp"
-            :value="csrfStore.shrimp"
-          />
+            :value="csrfStore.shrimp" />
 
           <div class="flex flex-col gap-4">
             <div class="grow">
               <label
                 for="feedback-message"
-                class="sr-only">{{ $t('your-feedback') }}</label>
+                class="sr-only"
+                >{{ $t('your-feedback') }}</label
+              >
               <textarea
                 id="feedback-message"
                 v-model="feedbackMessage"
                 name="msg"
                 rows="3"
-                class="w-full resize-y rounded-md border border-gray-300 px-4 py-2
-                  focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500
-                  dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200"
+                class="w-full resize-y rounded-md border border-gray-300 px-4 py-2 focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200"
                 :placeholder="$t('web.COMMON.feedback_text')"></textarea>
               <input
                 type="hidden"
                 name="tz"
-                :value="userTimezone"
-              />
+                :value="userTimezone" />
               <input
                 type="hidden"
                 name="version"
-                :value="windowProps.ot_version"
-              />
+                :value="windowProps.ot_version_long" />
             </div>
 
             <div class="flex justify-end">
@@ -117,15 +114,22 @@ const {
                   showRedButton
                     ? 'bg-brand-600 hover:bg-brand-700 focus:ring-brand-500'
                     : 'bg-gray-500 hover:bg-gray-600 focus:ring-gray-400',
-                  isSubmitting ? 'cursor-not-allowed opacity-50' : ''
+                  isSubmitting ? 'cursor-not-allowed opacity-50' : '',
                 ]"
                 :aria-label="$t('web.feedback.send-feedback')">
-                {{ isSubmitting ? $t('web.feedback.sending-ellipses') : $t('web.COMMON.button_send_feedback') }}
+                {{
+                  isSubmitting
+                    ? $t('web.feedback.sending-ellipses')
+                    : $t('web.COMMON.button_send_feedback')
+                }}
               </button>
             </div>
           </div>
 
-          <AltchaChallenge v-if="!windowProps.cust" />
+          <AltchaChallenge
+            v-if="!windowProps.cust || windowProps.cust.identifier == 'anon'"
+            v-model:payload="altchaPayload"
+            :is-floating="true" />
         </form>
 
         <div
@@ -148,7 +152,7 @@ const {
         </h3>
         <ul class="space-y-2 text-sm text-gray-600 dark:text-gray-400">
           <li
-            v-if="windowProps.cust"
+            v-if="windowProps.cust && windowProps.cust.identifier !== 'anon'"
             class="flex items-center">
             <svg
               class="mr-2 size-4 text-brand-500"
@@ -159,8 +163,7 @@ const {
                 stroke-linecap="round"
                 stroke-linejoin="round"
                 stroke-width="2"
-                d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
-              />
+                d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
             </svg>
             {{ $t('web.account.customer-id') }}: {{ windowProps.cust?.custid }}
           </li>
@@ -174,10 +177,9 @@ const {
                 stroke-linecap="round"
                 stroke-linejoin="round"
                 stroke-width="2"
-                d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
-              />
+                d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
-            {{ $t('web.account.timezone', [userTimezone]) }}
+            {{ $t('web.account.timezone') }}: {{ userTimezone }}
           </li>
           <li class="flex items-center">
             <svg
@@ -189,10 +191,9 @@ const {
                 stroke-linecap="round"
                 stroke-linejoin="round"
                 stroke-width="2"
-                d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"
-              />
+                d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
             </svg>
-            {{ $t('web.site.website-version') }}: v{{ windowProps.ot_version }}
+            {{ $t('web.site.website-version') }}: v{{ windowProps.ot_version_long }}
           </li>
         </ul>
       </div>

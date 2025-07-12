@@ -1,4 +1,4 @@
-# frozen_string_literal: true
+# tests/unit/ruby/try/05_logging_sync_try.rb
 
 #
 # Capture STDOUT and STDERR for testing
@@ -9,14 +9,11 @@
 # demonstration and debugging purposes.
 #
 
-require 'onetime'
-
+require_relative './test_helpers'
 
 @original_env = ENV.to_h
 @sync_values = %w[true yes 1]
 
-
-# TRYOUTS
 
 ## Sanity check
 %w[true yes 1].include?(ENV['STDOUT_SYNC'])

@@ -1,5 +1,27 @@
 {
   "web": {
+    "help": {
+      "learn_more": "Meer informatie",
+      "secret_view_faq": {
+        "what_am_i_looking_at": {
+          "title": "Wat bekijk ik?",
+          "description": "U bekijkt een beveiligde bericht dat met u is gedeeld via Onetime Secret. Deze inhoud wordt slechts één keer weergegeven en vervolgens permanent van onze servers verwijderd."
+        },
+        "can_i_view_again": {
+          "title": "Kan ik dit bericht later opnieuw bekijken?",
+          "description": "Nee. Om veiligheidsredenen is dit bericht slechts één keer te bekijken. Na het sluiten van deze pagina wordt de inhoud permanent verwijderd en kan deze door niemand, ook niet door ons, worden teruggehaald."
+        },
+        "how_to_copy": {
+          "title": "Hoe bewaar ik deze informatie?",
+          "description": "Gebruik de knop 'Kopiëren naar klembord' om het volledige bericht te kopiëren. Controleer bij langere berichten of u de volledige inhoud heeft gekopieerd voordat u deze pagina verlaat."
+        },
+        "is_my_viewing_tracked": {
+          "title": "Wordt mijn weergave van dit bericht bijgehouden?",
+          "description": "De afzender wordt op de hoogte gebracht dat zijn bericht is bekeken, maar we houden niet bij wie het heeft bekeken of vanaf welke locatie. Uw privacy wordt beschermd."
+        },
+        "one_time_warning": "Zodra u deze pagina verlaat of vernieuwt, wordt dit bericht permanent verwijderd en kan het door niemand worden teruggehaald."
+      }
+    },
     "COMMON": {
       "broadcast": "",
       "button_generate_secret_short": "Genereer wachtwoord",
@@ -32,6 +54,7 @@
       "secret": "Bericht",
       "recent": "Recent",
       "received": "Ontvangen",
+      "burn": "",
       "burned": "Verwijderd",
       "expires_in": "Verloopt in",
       "burn_this_secret": "Verwijder dit bericht",
@@ -74,7 +97,10 @@
       "burn_security_notice": "Het verwijderen van een bericht zal het verwijderen voordat het is ontvangen.",
       "share_link_securely": "Deel deze link om veiligheidsredenen apart van andere details.",
       "copied_to_clipboard": "Gekopieerd naar klembord",
-      "button_create_incoming": "Verstuur naar support"
+      "button_create_incoming": "Verstuur naar support",
+      "faq_title": "FAQ",
+      "verification_not_valid": "Verificatie is niet geldig",
+      "verification_already_logged_in": "Kan geen account verifiëren wanneer u al bent ingelogd"
     },
     "LABELS": {
       "view_toggle": {
@@ -82,28 +108,47 @@
         "hide": "Verbergen"
       },
       "timeline": "Tijdlijn",
+      "lifespan": "Levensduur",
+      "expiration_time": "Vervaltijd",
       "close": "Sluiten",
       "loading": "Laden...",
       "cancel": "Annuleren",
       "saving": "Opslaan...",
       "saved": "Opgeslagen",
       "save": "Opslaan",
+      "save_all": "Alles opslaan",
+      "details": "Details",
       "encrypted": "Versleuteld",
       "secret_status": "Berichtstatus",
       "need_help": "Hulp nodig?",
       "create_new_secret": "Nieuw bericht maken",
       "actions": "Acties",
       "no_passphrase": "Geen wachtwoordzin vereist",
+      "copy_to_clipboard": "Kopiëren naar klembord",
+      "receipts": "Ontvangstbewijzen",
+      "share": "Delen",
       "secret_link": "Geheime link",
+      "dismiss": "Negeren",
       "security_details": "Beveiligingsdetails",
+      "items_count": "{count} items",
       "recipients_count": "{count} ontvangers",
+      "view": "View",
       "views": "Weergaven",
       "times_viewed": "keer bekeken",
       "view_progress": "Voortgang bekijken",
       "help_section": "Hulpsectie",
       "passphrase_protected": "Beveiligd met wachtwoordzin",
       "feedback-received": "Feedback ontvangen.",
-      "sending-ellipses": "Versturen..."
+      "sending-ellipses": "Versturen...",
+      "title_recent_secrets": "Recente berichten",
+      "pricing": "Prijzen",
+      "refresh": "Vernieuwen",
+      "reload": "Herladen",
+      "caption_recent_secrets": "Berichtlinks aangemaakt in deze sessie",
+      "create-link-short": "Link aanmaken",
+      "create-link": "Geheime link aanmaken",
+      "create-request-short": "Verzoek aanmaken",
+      "create-request": "Verzoeklink aanmaken"
     },
     "STATUS": {
       "new": "Nieuw",
@@ -120,6 +165,7 @@
       "orphaned": "Onbeheerd",
       "secured": "Beveiligd",
       "securing": "Beveiligen",
+      "copied": "Gekopieerd",
       "time_remaining": "Resterende tijd",
       "new_description": "Geheime link is aangemaakt en nog niet bekeken",
       "unread_description": "Geheime link is aangemaakt en is nog niet bekeken",
@@ -152,6 +198,16 @@
         },
         "noOptionsAvailable": "---"
       },
+      "ttl_remaining": {
+        "duration": "Nog {count} {unit}",
+        "time": {
+          "day": "dag resterend | dagen resterend",
+          "hour": "uur resterend | uren resterend",
+          "minute": "minuut resterend | minuten resterend",
+          "second": "seconde resterend | seconden resterend"
+        },
+        "noOptionsAvailable": "---"
+      },
       "limited_views": "{count} keer bekijken",
       "days_remaining": "{count} dagen resterend",
       "hours_remaining": "{count} uren resterend",
@@ -163,10 +219,14 @@
       "share_passphrase_instruction": "Deel de wachtwoordzin apart via een beveiligd kanaal",
       "secure_channel_instruction": "Gebruik een ander beveiligd kanaal om gevoelige informatie te delen"
     },
+    "ARIA": {
+      "focus-is-now-in-the-main-text-area": "Focus is now in the main text area"
+    },
     "secrets": {
       "privacyOptions": "Privacy opties",
       "selectDuration": "Selecteer duur",
-      "expiresIn": "Verloopt in {duration}"
+      "expiresIn": "Verloopt in {duration}",
+      "enterPassphrase": "Wachtwoordzin invoeren"
     },
     "homepage": {
       "tagline1": "Plak het wachtwoord, geheime bericht of privé link hieronder",
@@ -183,7 +243,10 @@
       "explore_premium_plans": "Verken premium-abonnementen",
       "need_free_account": "Net begonnen?",
       "sign_up_free": "Maak een gratis account aan",
-      "visit-onetime-secret-home": "Bezoek Onetime Secret homepage"
+      "visit-onetime-secret-home": "Bezoek Onetime Secret homepage",
+      "password_generation_title": "",
+      "password_generation_description": "",
+      "protip1": ""
     },
     "private": {
       "pretext": "Deel een link:",
@@ -199,6 +262,7 @@
       "destroyed_ago": "Vernietigd {time}",
       "burned": "Verwijderd",
       "viewed": "Link geopend",
+      "view_metadata": "",
       "destroyed": "Vernietigd",
       "have-more-questions-visit-our": "Meer vragen? Bezoek onze",
       "the-burn-feature-lets-you-permanently-delete-a-s": "Met de verwijderfunctie kunt u een bericht permanent verwijderen voordat iemand het bekijkt. Dit is handig als u de toegang moet intrekken of verkeerde informatie hebt gedeeld. Eenmaal verwijderd kan het bericht niet worden hersteld.",
@@ -226,6 +290,7 @@
       "you_created_this_secret": "U heeft dit bericht aangemaakt. Als u het bekijkt, kan de ontvanger het niet meer lezen.",
       "your_secret_message": "Uw geheime bericht:",
       "this_message_for_you": "Dit bericht is voor u:",
+      "your_message_is_ready": "Uw geheime bericht is klaar.",
       "reply_with_secret": "Beantwoord met een ander geheim bericht",
       "pre_reveal_default": "Klik op de knop hieronder om uw beveiligde bericht te bekijken.",
       "post_reveal_default": "Uw beveiligde bericht wordt hieronder weergegeven.",
@@ -260,16 +325,6 @@
       "incoming_recipient_address": "Support ontvanger",
       "incoming_success_message": "Uw e-mailbericht is verstuurd.",
       "incoming_button_creating": "Aanmaken"
-    },
-    "page": {
-      "cta_title": "",
-      "cta_subtitle": "",
-      "cta_feature1": "",
-      "cta_feature2": "",
-      "cta_feature3": "",
-      "explore_premium_plans": "",
-      "need_free_account": "",
-      "sign_up_free": ""
     },
     "account": {
       "subscription_title": "Abonnement",
@@ -308,51 +363,8 @@
       "send-feedback": "Feedback versturen",
       "sending-ellipses": "Versturen..."
     },
-    "security": "Beveiliging",
     "site": {
       "website-version": "Website versie"
-    },
-    "about": {
-      "title": "Over ons",
-      "faq": {
-        "trust_points": [
-          "We kunnen uw informatie niet inzien, zelfs als we dat zouden willen (wat we niet willen). Als u bijvoorbeeld een wachtwoord deelt, weten we niet de gebruikersnaam of zelfs de toepassing waarvoor het is.",
-          "Als u een wachtwoordzin gebruikt (beschikbaar onder \"Privacy opties\"), nemen we die op in de versleutelingssleutel voor het bericht. We slaan alleen een bcrypt-hash van de wachtwoordzin op, waardoor het voor ons onmogelijk is om uw bericht te ontsleutelen zodra het is opgeslagen.",
-          "Onze code is {openSourceLink}. U kunt deze zelf beoordelen of zelfs uw eigen instantie draaien als u dat prefereert.",
-          "We gebruiken industriestandaard beveiligingspraktijken, waaronder HTTPS voor alle verbindingen en versleuteling voor opgeslagen gegevens."
-        ],
-        "passphrase_points": [
-          "We slaan nooit het onversleutelde bericht of de wachtwoordzin op.",
-          "De bcrypt-hash kan niet worden gebruikt om het bericht te ontsleutelen.",
-          "Zonder de originele wachtwoordzin kan het versleutelde bericht niet worden ontsleuteld, zelfs niet door ons.",
-          "Dit betekent dat zelfs als onze servers gecompromitteerd zouden worden, uw bericht veilig blijft zolang de wachtwoordzin onbekend blijft."
-        ],
-        "why_use_title": "Waarom zou ik dit gebruiken?",
-        "why_use_description": "Wanneer u wachtwoorden en privélinks via e-mail of chat naar mensen stuurt, worden er kopieën van die informatie op veel plaatsen opgeslagen. Als u in plaats daarvan een Onetime link gebruikt, blijft de informatie slechts beschikbaar voor één keer bekijken, wat betekent dat het later niet door iemand anders kan worden gelezen. Hierdoor kunt u gevoelige informatie op een veilige manier verzenden, wetende dat het door slechts één persoon wordt gezien. Zie het als een zelfvernietigend bericht.",
-        "file_limitation_title": "Waarom kan ik geen afbeeldingen of andere soorten bestanden versturen?",
-        "file_limitation_description": "Onze service is specifiek ontworpen voor tekstgebaseerde berichten om maximale veiligheid en eenvoud te garanderen. Bestanden, vooral afbeeldingen, kunnen metadata bevatten die onbedoeld informatie over de afzender of ontvanger kan onthullen. Door ons te concentreren op tekst, kunnen we garanderen dat er geen aanvullende gegevens worden verzonden buiten wat u expliciet typt. Als u veilig een bestand wilt delen, raden we aan een speciale beveiligde bestandsoverdrachtservice te gebruiken. We kunnen in de toekomst ondersteuning voor bestanden overwegen als er overtuigende gebruikssituaties voor zijn.",
-        "text_copy_title": "Maar ik kan de geheime tekst kopiëren. Wat is het verschil?",
-        "text_copy_description": "Dat klopt, maar alles wat u heeft is tekst. Afbeeldingen en andere bestandstypen kunnen metadata en andere potentieel onthullende informatie over de afzender of ontvanger bevatten. Dit is simpelweg om ervoor te zorgen dat er geen privé-informatie wordt gedeeld buiten de beoogde ontvanger.",
-        "secret_retrieval_title": "Kan ik een bericht terughalen dat al is gedeeld?",
-        "secret_retrieval_description": "Nee. We tonen het één keer en verwijderen het dan. Daarna is het voor altijd verdwenen.",
-        "account_difference_title": "Wat is het verschil tussen anoniem gebruik en een gratis account hebben?",
-        "account_difference_description": "Anonieme gebruikers kunnen berichten maken die maximaal {anonymousTtlDays} dagen meegaan en een maximale grootte van {anonymousSizeKB} KB hebben. Houders van een gratis account krijgen extra voordelen: berichten kunnen tot {defaultTtlDays} dagen meegaan en kunnen tot {defaultSizeKB} KB groot zijn. Accounthouders hebben ook toegang tot extra functies zoals verwijder-voor-lezen opties, waarmee afzenders berichten kunnen verwijderen voordat ze worden ontvangen.",
-        "law_enforcement_title": "Hoe gaat u om met gegevensverzoeken van wetshandhavingsinstanties of andere derden?",
-        "law_enforcement_description": "We hebben ons systeem ontworpen met privacy in gedachten. We slaan berichten niet op nadat ze zijn bekeken, en we houden geen toegangslogboeken bij buiten het minimum noodzakelijke. Dit betekent dat we in de meeste gevallen simpelweg geen gegevens hebben om te verstrekken in reactie op dergelijke verzoeken. Voor meer details kunt u onze {privacyPolicyLink} bekijken.",
-        "trust_title": "Waarom zou ik u vertrouwen?",
-        "trust_description": "We hebben ons systeem ontworpen met privacy en veiligheid als topprioriteiten. Hier is waarom u ons kunt vertrouwen:",
-        "passphrase_title": "Hoe werkt de wachtwoordzin-optie?",
-        "passphrase_description": "Wanneer u een wachtwoordzin gebruikt, versleutelen we uw bericht op onze servers met de wachtwoordzin die u opgeeft. We slaan de wachtwoordzin zelf niet op, alleen een bcrypt-hash ervan. Deze hash wordt gebruikt om de wachtwoordzin te verifiëren wanneer de ontvanger deze invoert. Hier is waarom dit veilig is:",
-        "passphrase_final_note": "Onthoud dat de veiligheid van uw bericht afhangt van de sterkte van uw wachtwoordzin en hoe veilig u deze communiceert aan de ontvanger."
-      },
-      "intro": {
-        "paragraph1": "Hallo, ik ben {name}, de maker van Onetime Secret. Wat in 2012 begon als een eenvoudige, veilige manier om gevoelige informatie te delen, is uitgegroeid tot meer dan we ooit hadden verwacht. Meer dan tien jaar later faciliteren we het veilig delen van miljoenen berichten per maand, met toepassingen die we ons nooit hadden voorgesteld.",
-        "paragraph2": "De eerste helft van 2024 is onze drukste periode tot nu toe geweest. We zijn dankbaar dat mensen ons product al meer dan tien jaar blijven gebruiken en delen. We werken momenteel aan verbeteringen waarvan we denken dat ze de service nog nuttiger zullen maken — we zullen binnenkort meer details delen.",
-        "paragraph3": "Trouw aan onze roots, {githubLink} op GitHub. Terwijl we door het veranderende landschap van digitale privacy en veiligheid navigeren, blijven we toegewijd aan transparantie en voortdurende verbetering.",
-        "paragraph4": "Bedankt dat u deel uitmaakt van onze reis. Op naar nog een decennium van veilig, tijdelijk delen.",
-        "feedback_hint": "Als u vragen heeft, is er een feedbackformulier onderaan (bijna) elke pagina.",
-        "signature": "Fijn delen,\n{name}"
-      }
     },
     "meta": {
       "were-making-onetime-secret-available-in-multiple": "We maken {onetime-secret} beschikbaar in meerdere talen. Aangezien dit een nieuwe functie is, kunt u vertaalfouten of onhandige formuleringen tegenkomen. Uw feedback helpt ons te verbeteren - als u problemen opmerkt, {send-feedback}",
@@ -489,9 +501,12 @@
   "added-formatdistancetonow-domain-created-addsuffix-true": "Toegevoegd {0}",
   "press-esc-to-close": "Druk op ESC om te sluiten",
   "charactercount-500-characters": "{0}/500 tekens",
-  "use-your-phone-to-scan-the-qr-code": "Gebruik uw telefoon om de QR-code te scannen",
+  "example-pre-reveal-instructions": "Gebruik uw telefoon om de QR-code te scannen",
+  "example-post-reveal-instructions": "Neem contact op met onboarding{'@'}example.com bij vragen",
   "these-instructions-will-be-shown-to-recipients-before": "Deze instructies worden aan ontvangers getoond voordat ze de geheime inhoud bekijken",
+  "these-instructions-will-be-shown-to-recipients-after": "Deze instructies worden aan ontvangers getoond nadat ze het geheim hebben onthuld",
   "pre-reveal-instructions": "Instructies vóór onthulling",
+  "post-reveal-instructions": "Instructies na onthulling",
   "instructions": "Instructies",
   "enter": "Invoeren",
   "hide-secret-message": "Bericht verbergen",
@@ -550,13 +565,17 @@
   "jurisdiction": "Jurisdictie",
   "data-center-location-currentjurisdiction-identif": "Datacentrum locatie: {0}",
   "data-region": "Dataregio",
-  "all-feedback-welcome": ". Alle feedback welkom!",
+  "all-feedback-welcome": "Alle feedback welkom!",
   "help-us-improve": "Help ons verbeteren",
   "close-feedback-modal": "Feedbackvenster sluiten",
   "share-your-feedback": "Deel uw feedback",
   "delano-mandelbaum": "Delano Mandelbaum",
   "delano": "Delano",
   "help-content-goes-here": "Hulpinhoud komt hier.",
+  "why-is-this-secret-unavailable": "Waarom is dit geheim niet beschikbaar?",
+  "secrets-are-designed-to-be-viewed-only-once": "Geheimen zijn ontworpen om slechts één keer bekeken te worden. Deze link is mogelijk al geopend, verlopen of handmatig verwijderd door de afzender.",
+  "what-should-i-do-now": "Wat moet ik nu doen?",
+  "contact-the-person-who-sent-you-this-link": "Neem contact op met de persoon die je deze link heeft gestuurd en vraag om een nieuw geheim aan te maken. Laat hen weten dat je geen toegang had tot de oorspronkelijke informatie.",
   "done": "Klaar",
   "loading-settings-content": "Instellingen laden...",
   "settings-sections-0": "Instellingensecties",
@@ -580,6 +599,7 @@
   "t-ai-generated-testimonial": "{0}:",
   "t-benefits-of-identity-plus": "{0}: Identity Plus",
   "upgrade-to": "Upgraden naar",
+  "upgrade-for-yourdomain": "",
   "secret-access-form": "Berichttoegangsformulier",
   "content-status": "Inhoudsstatus",
   "secret-content-copied-to-clipboard": "Berichtinhoud gekopieerd naar klembord",
@@ -626,7 +646,6 @@
   "request-password-reset": "Wachtwoordreset aanvragen",
   "forgot-password": "Wachtwoord vergeten",
   "google": "Google",
-  "unknown-jurisdiction-0": "Onbekende jurisdictie",
   "unknown-jurisdiction": "Onbekende jurisdictie",
   "redis-info": "Redis info",
   "customer-secrets_created-customer-secrets_shared": "{0}/{1}/{2} [{3}]",
@@ -691,6 +710,7 @@
   "visit-onetime-secret-homepage": "Bezoek Onetime Secret homepage",
   "footer-navigation": "Footer navigatie",
   "includes-all-features-and-unlimited-sharing-capa": "Inclusief alle functies en onbeperkte deelmogelijkheden",
+  "includes-all-data-locality-options": "Alle abonnementen bevatten keuze van datalocatie: {0} regio's",
   "get-started": "Aan de slag",
   "frequency-value-annually-annual-monthly-subscrip": "{0} abonnement",
   "features": "Functies",
@@ -779,7 +799,6 @@
   "follow-these-steps-to-verify-domain-ownership-an": "Volg deze stappen om domeineigendom te verifiëren en uw online aanwezigheid te verbeteren:",
   "domain-verification-steps": "Domeinverificatiestappen",
   "domain-verification-initiated-successfully": "Domeinverificatie succesvol gestart.",
-  "dismiss": "Negeren",
   "deactivate": "Deactiveren",
   "are-you-sure-you-want-to-deactivate-your-account": "Weet u zeker dat u uw account wilt deactiveren? Al uw gegevens worden permanent van onze servers verwijderd. Deze actie kan niet ongedaan worden gemaakt.",
   "deactivate-account": "Account deactiveren",
@@ -819,5 +838,6 @@
   "an-error-occurred": "Er is een fout opgetreden",
   "copy-secret-to-clipboard": "Bericht kopiëren naar klembord",
   "secret-copied-to-clipboard": "Bericht gekopieerd naar klembord",
-  "Double check that passphrase": "Controleer die wachtwoordzin nogmaals"
+  "Double check that passphrase": "Controleer die wachtwoordzin nogmaals",
+  "press_copy_button_below": "Press the copy button below."
 }

@@ -47,7 +47,7 @@
     // Enable strict, or at the very least, noImplicitThis, and Pinia will infer
     // the type of your state automatically (sometimes hints helps).
     "noImplicitAny": true,
-    "noImplicitThis": null,
+    "noImplicitThis": true,
     "allowJs": false,
     "allowImportingTsExtensions": false,
     "resolvePackageJsonExports": false,
@@ -67,11 +67,7 @@
     "src/**/*.vue",
     "src/content/*.md",
     "src/types/**/*.ts",
-    "src/types/declarations/*.d.ts",
+    "src/types/declarations/*.d.ts"
   ],
-  "exclude": [
-    "node_modules",
-    "dist",
-    "build"
-  ]
+  "exclude": ["node_modules", "dist", "build"]
 }

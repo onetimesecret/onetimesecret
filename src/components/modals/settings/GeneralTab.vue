@@ -2,6 +2,7 @@
 import LanguageToggle from '@/components/LanguageToggle.vue';
 import ThemeToggle from '@/components/ThemeToggle.vue';
 import OIcon from '@/components/icons/OIcon.vue';
+import { WindowService } from '@/services/window.service';
 import { ref } from 'vue';
 
 const isLoading = ref(false);
@@ -14,6 +15,10 @@ const emit = defineEmits<{
 const handleMenuToggled = () => {
   emit('menuToggled');
 };
+
+const windowProps = WindowService.getMultiple([
+  'i18n_enabled',
+]);
 
 const handleThemeChange = async (isDark: boolean) => {
   isLoading.value = true;
@@ -31,7 +36,7 @@ const handleThemeChange = async (isDark: boolean) => {
 <template>
   <div class="mx-auto max-w-3xl space-y-8 p-4 sm:p-6">
     <section
-      role="region"
+      role="theme"
       aria-labelledby="appearance-heading"
       class="space-y-4">
       <h3
@@ -67,7 +72,8 @@ const handleThemeChange = async (isDark: boolean) => {
       aria-hidden="true"></div>
 
     <section
-      role="region"
+      v-if="windowProps.i18n_enabled"
+      role="language"
       aria-labelledby="language-heading"
       class="space-y-4">
       <h3

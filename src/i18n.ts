@@ -1,12 +1,17 @@
 // src/i18n.ts
 
+import da_DK from '@/locales/da_DK.json';
+import de_AT from '@/locales/de_AT.json';
+import el_GR from '@/locales/el_GR.json';
 import en from '@/locales/en.json';
 import fr_CA from '@/locales/fr_CA.json';
 import fr_FR from '@/locales/fr_FR.json';
-import de_AT from '@/locales/de_AT.json';
+import it_IT from '@/locales/it_IT.json';
+import nl from '@/locales/nl.json';
+import uk from '@/locales/uk.json';
+import { type Locale } from '@/schemas/i18n/locale';
 import { WindowService } from '@/services/window.service';
 import { createI18n, type Composer } from 'vue-i18n';
-import { type Locale } from '@/schemas/i18n/locale';
 
 /**
  * Internationalization configuration and utilities.
@@ -19,10 +24,11 @@ type GlobalComposer = Composer<{}, {}, {}, Locale>;
 /**
  * The list of supported locales comes directly from etc/config.yaml.
  */
+const domainBranding = WindowService.get('domain_branding');
 const supportedLocales = WindowService.get('supported_locales') || [];
 const fallbackLocale = WindowService.get('fallback_locale') || {};
 const defaultLocale = WindowService.get('default_locale') || 'en';
-const displayLocale = WindowService.get('locale');
+const displayLocale = domainBranding?.locale ?? WindowService.get('locale');
 
 /**
  * Creates a completely independent i18n instance with its own locale state and message
@@ -56,9 +62,14 @@ export function createI18nInstance(initialLocale: string = defaultLocale) {
     fallbackWarn: true, // and are removed from prod builds.
     messages: {
       en, // Always include default messages
-      fr_FR,
-      fr_CA,
+      da_DK,
       de_AT,
+      el_GR,
+      fr_CA,
+      fr_FR,
+      it_IT,
+      nl,
+      uk,
     },
     availableLocales: supportedLocales,
   });

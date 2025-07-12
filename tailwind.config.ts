@@ -1,9 +1,14 @@
+// ./tailwind.config.ts
+
 import forms from '@tailwindcss/forms';
 import typography from '@tailwindcss/typography';
 import defaultTheme from 'tailwindcss/defaultTheme';
 
 /**
  * Tailwind CSS Configuration
+ *
+ * npx prettier path/2/ComponentFile.vue --write --log-level debug
+ * <!-- prettier-ignore-attribute class -->
  *
  **/
 
@@ -54,7 +59,22 @@ export default {
     './src/**/*.{vue,js,ts,jsx,tsx,mjs}',
     './templates/web/**/*.html',
   ],
-
+  safelist: [
+    'rounded-l-sm',
+    'rounded-r-sm',
+    'rounded-l-md',
+    'rounded-r-md',
+    'rounded-l-lg',
+    'rounded-r-lg',
+    'rounded-l-xl',
+    'rounded-r-xl',
+    'rounded-l-2xl',
+    'rounded-r-2xl',
+    'rounded-l-3xl',
+    'rounded-r-3xl',
+    'rounded-l-full',
+    'rounded-r-full',
+  ],
   darkMode: 'class',
   theme: {
     fontFamily: {
@@ -145,17 +165,6 @@ export default {
         '200%': '200% 100%',
       },
     },
-    // Don't mess with the scaling. rem == root em (ie. <html>). Everything is relative to that.
-    //fontSize: {
-    //  'sm': '0.9rem',
-    //  'base': '1rem',
-    //  'lg': '1.25rem',
-    //  'xl': '1.30rem',
-    //  '2xl': '1.563rem',
-    //  '3xl': '1.953rem',
-    //  '4xl': '2.441rem',
-    //  '5xl': '3.052rem',
-    //}
   },
   plugins: [
     forms(),

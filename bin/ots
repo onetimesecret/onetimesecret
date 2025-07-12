@@ -1,7 +1,11 @@
 #!/usr/bin/env ruby
 
 base_path = File.expand_path File.join(File.dirname(__FILE__), '..')
-$:.unshift File.join(base_path, 'lib')
+$LOAD_PATH.unshift File.join(base_path, 'lib')
+
+apps_root = File.join(base_path, 'apps').freeze
+$LOAD_PATH.unshift(File.join(apps_root, 'api'))
+$LOAD_PATH.unshift(File.join(apps_root, 'web'))
 
 # TODO: Replace with bundle install --standalone (Bundler v1.1)
 ENV['BUNDLE_GEMFILE'] ||= File.join(base_path, 'Gemfile')
@@ -28,9 +32,13 @@ class OT::CLI::Definition
     OT.debug = true
   end
 
+  command :load_path, 'Add a path to the load path' do
+    puts $LOAD_PATH[0...5]
+  end
+
   about 'Ruby irb with Onetime preloaded'
   command :console do
-    cmd = format('irb -I%s -ronetime/console', File.join(OT::HOME, 'lib'))
+    cmd = format('irb -I%s -ronetime/console', File.join(Onetime::HOME, 'lib'))
     OT.ld cmd
     Kernel.exec cmd
   end
@@ -41,8 +49,10 @@ class OT::CLI::Definition
   end
   alias_command :build, :version
 
-  usage 'ots migrate MIGRATION_SCRIPT'
+  # In OT::CLI::Definition in bin/ots
+  usage 'ots migrate MIGRATION_SCRIPT [--run]'
   about 'Run a migration script from the migrate/ directory'
+  option :r, :run, "Actually apply changes (default is dry run mode)"
   command migrate: OT::CLI
 
   usage 'ots move-keys SOURCEDB TARGETDB [filter]'
@@ -62,6 +72,30 @@ class OT::CLI::Definition
   option :d, :domain, String, "Domain to revalidate"
   option :c, :custid, String, "Customer ID to revalidate"
   command revalidate_domains: OT::CLI
+
+  usage "ots change-email OLD_EMAIL NEW_EMAIL [REALM]"
+  about "Change customer email address and update all related records"
+  about "Usage: ots change-email OLD_EMAIL NEW_EMAIL [REALM]"
+  about "  Change a customer's email address and update related records."
+  about ""
+  about "  Arguments:"
+  about "    OLD_EMAIL    Current email address of the customer"
+  about "    NEW_EMAIL    New email address to change to"
+  about "    REALM        Optional: Geographic region (US/EU/CA/NZ), defaults to US"
+  about ""
+  about "  Example:"
+  about "    ots change-email user@example.com new@example.com"
+  about ""
+  about "  Note: Custom domains associated with this customer will be"
+  about "  automatically detected and updated."
+  about ""
+  command change_email: OT::CLI
+
+  usage "ots change-email-log [EMAIL] [--verbose] [--limit N]"
+  about "View history of email address changes"
+  option :v, :verbose, "Display full change reports"
+  option :n, :limit, Integer, "Limit number of reports to show (default: 10)"
+  command change_email_log: OT::CLI
 end
 
 begin

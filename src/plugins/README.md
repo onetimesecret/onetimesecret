@@ -58,7 +58,8 @@ const useUserStore = defineStore('user', {
   }
 })
 ```
-## Our Error Handling Architecture
+
+## Error Handling
 
 The application implements a three-layer error handling architecture:
 
@@ -146,6 +147,67 @@ export default {
     }
   }
 }
+```
+
+## Dependency Injection
+
+We use Vue's built-in dependency injection system rather than passing dependencies through Pinia plugins:
+
+```typescript
+// Application initialization
+const api = createApi();
+app.provide('api', api);
+
+// In stores and components
+const $api = inject('api') as AxiosInstance;
+```
+This approach maintains separation of concerns and follows Vue's idiomatic patterns.
+
+
+### Store Initialization Pattern
+
+Stores follow a two-phase initialization pattern:
+
+1. **Synchronous Initialization**: Setup store structure only
+   ```typescript
+   function init() {
+     // Structure setup only (no API calls)
+     return { isInitialized: true };
+   }
+   ```
+
+2. **Asynchronous Data Loading**: Explicitly triggered after initialization
+   ```typescript
+   async function loadData() {
+     // Data fetching with proper loading state management
+   }
+   ```
+
+### Pinia Auto-Init Plugin
+
+The `autoInitPlugin` handles calling each store's `init()` method when the store is first instantiated:
+
+```typescript
+pinia.use(autoInitPlugin());
+```
+
+This ensures consistent initialization across all stores without requiring manual calls to `init()`.
+
+### Testing Store Architecture
+
+When testing stores:
+
+1. Always provide mock services through Vue's DI system
+2. Test initialization and data loading separately
+3. Use `createTestingPinia` with `stubActions: false` to test real actions
+
+```typescript
+// Example test setup
+beforeEach(() => {
+  const app = createApp();
+  app.provide('api', mockApiInstance);
+  setActivePinia(createTestingPinia({ stubActions: false }));
+});
 ```
 
 ## Related Resources

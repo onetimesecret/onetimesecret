@@ -1,5 +1,27 @@
 {
   "web": {
+    "help": {
+      "learn_more": "Mehr erfahren",
+      "secret_view_faq": {
+        "what_am_i_looking_at": {
+          "title": "Was sehe ich hier?",
+          "description": "Sie betrachten eine sichere Nachricht, die über Onetime Secret mit Ihnen geteilt wurde. Dieser Inhalt wird nur einmal angezeigt und dann dauerhaft von unseren Servern gelöscht."
+        },
+        "can_i_view_again": {
+          "title": "Kann ich diese Nachricht später noch einmal ansehen?",
+          "description": "Nein. Aus Sicherheitsgründen ist diese Nachricht nur einmal einsehbar. Nach dem Schließen dieser Seite wird der Inhalt dauerhaft gelöscht und kann von niemandem, auch nicht von uns, wiederhergestellt werden."
+        },
+        "how_to_copy": {
+          "title": "Wie speichere ich diese Information?",
+          "description": "Verwenden Sie die Schaltfläche 'In die Zwischenablage kopieren', um die gesamte Nachricht zu kopieren. Bei längeren Nachrichten sollten Sie überprüfen, ob Sie den vollständigen Inhalt kopiert haben, bevor Sie diese Seite verlassen."
+        },
+        "is_my_viewing_tracked": {
+          "title": "Wird meine Betrachtung dieser Nachricht verfolgt?",
+          "description": "Der Absender wird benachrichtigt, dass seine Nachricht angesehen wurde, aber wir verfolgen nicht, wer sie angesehen hat oder von welchem Standort aus. Ihre Privatsphäre wird geschützt."
+        },
+        "one_time_warning": "Sobald Sie diese Seite verlassen oder aktualisieren, wird diese Nachricht dauerhaft gelöscht und kann von niemandem wiederhergestellt werden."
+      }
+    },
     "COMMON": {
       "broadcast": "",
       "button_generate_secret_short": "Passwort erstellen",
@@ -10,12 +32,12 @@
       "custom_domains_description": "Stärken Sie Verbindungen und schaffen Sie Vertrauen mit Ihren eigenen geheimen Links.",
       "get_started_button": "Los geht's",
       "confirm_password_placeholder": "Bestätigen Sie Ihr Passwort",
-      "skill_placeholder": "",
       "header_settings": "Einstellungen",
       "submit_with": "Einreichen",
       "submitting": "Verarbeitung",
       "processing": "Verarbeitung",
       "description": "Halten Sie sensible Informationen aus Ihren Chat-Protokollen und E-Mails heraus. Geben Sie einen geheimen Link weiter, der nur einmalig verfügbar ist.",
+      "incorrect_passphrase": "Falsche Passphrase",
       "keywords": "geheimnis, Passwortgenerator, Geheimnis teilen, einmalig",
       "button_create_secret": "Einen geheimen Link erstellen",
       "button_generate_secret": "Oder generieren Sie ein zufälliges Passwort",
@@ -32,6 +54,7 @@
       "secret": "Geheimnis | Geheimnisse",
       "recent": "Jüngste | Jüngste",
       "received": "Empfangen",
+      "burn": "",
       "burned": "Verbrannt",
       "expires_in": "Läuft ab in",
       "burn_this_secret": "Dieses Geheimnis verbrennen",
@@ -58,7 +81,6 @@
       "button_create_account": "Konto erstellen",
       "share_a_secret": "Ein Geheimnis teilen",
       "title_home": "Startseite",
-      "title_recent_secrets": "Neueste Geheimnisse",
       "word_none": "Keine",
       "word_burned": "verbrannt",
       "word_received": "erhalten",
@@ -74,7 +96,10 @@
       "burn_security_notice": "Wenn Sie ein Geheimnis verbrennen, wird es gelöscht, bevor es empfangen wurde.",
       "share_link_securely": "Geben Sie diesen Link aus Sicherheitsgründen getrennt von anderen Angaben weiter.",
       "copied_to_clipboard": "In die Zwischenablage kopiert",
-      "button_create_incoming": "Nachricht senden"
+      "button_create_incoming": "Nachricht senden",
+      "faq_title": "FAQ",
+      "verification_not_valid": "Verifizierung ist nicht gültig",
+      "verification_already_logged_in": "Ein Konto kann nicht verifiziert werden, wenn Sie bereits angemeldet sind."
     },
     "LABELS": {
       "view_toggle": {
@@ -82,28 +107,47 @@
         "hide": "Ausblenden"
       },
       "timeline": "Zeitleiste",
+      "lifespan": "Lebensdauer",
+      "expiration_time": "Ablaufzeit",
       "close": "Schließen Sie",
       "loading": "Laden...",
       "cancel": "Abbrechen",
       "saving": "Retten...",
       "saved": "Gerettet",
       "save": "Speichern",
+      "save_all": "Alles speichern",
+      "details": "Einzelheiten",
       "encrypted": "Verschlüsselt",
       "secret_status": "Geheimstatus",
       "need_help": "Brauchen Sie Hilfe?",
       "create_new_secret": "Neues Geheimnis erstellen",
       "actions": "Aktionen",
       "no_passphrase": "Keine Sicherheitsphrase erforderlich",
+      "copy_to_clipboard": "In die Zwischenablage kopieren",
+      "receipts": "Empfangsbestätigungen",
+      "share": "Teilen",
       "secret_link": "Geheime Verbindung",
+      "dismiss": "Ablehnen",
       "security_details": "Details zur Sicherheit",
+      "items_count": "{count} Einträge",
       "recipients_count": "{count} Empfänger",
+      "view": "View",
       "views": "Ansichten",
       "times_viewed": "mal angesehen",
       "view_progress": "Fortschritte anzeigen",
       "help_section": "Hilfe-Bereich",
       "passphrase_protected": "Geschützt mit Sicherheitsphrase",
       "feedback-received": "Rückmeldung erhalten.",
-      "sending-ellipses": "Ich schicke..."
+      "sending-ellipses": "Ich schicke...",
+      "title_recent_secrets": "Neueste Geheimnisse",
+      "pricing": "Preisgestaltung",
+      "refresh": "Aktualisieren",
+      "reload": "Neu laden",
+      "caption_recent_secrets": "In dieser Sitzung erstellte Geheimlinks",
+      "create-link-short": "Link erstellen",
+      "create-link": "Geheimen Link erstellen",
+      "create-request-short": "Anfrage erstellen",
+      "create-request": "Anfrage-Link erstellen"
     },
     "STATUS": {
       "new": "Neu",
@@ -114,12 +158,12 @@
       "destroyed": "Zerstörte",
       "expiring_soon": "Bald ablaufend",
       "created": "Erstellt",
-      "created_description": "",
       "expires": "Abgelaufen",
       "expired": "Abgelaufen",
       "orphaned": "Verwaist",
       "secured": "Gesichert",
       "securing": "Sichern",
+      "copied": "Kopiert",
       "time_remaining": "Verbleibende Zeit",
       "new_description": "Der geheime Link wurde erstellt und noch nicht angesehen",
       "unread_description": "Der geheime Link wurde erstellt und wurde noch nicht angesehen",
@@ -132,7 +176,7 @@
       "expired_description": "Das Geheimnis ist abgelaufen, bevor es angezeigt wurde",
       "success": "Erfolg",
       "delivered": "Geliefert",
-      "dns-incorrect": "DNS Incorrect",
+      "dns-incorrect": "Namensserver ist nicht korrekt",
       "active": "Aktiv",
       "inactive": "Inaktiv"
     },
@@ -152,6 +196,16 @@
         },
         "noOptionsAvailable": "---"
       },
+      "ttl_remaining": {
+        "duration": "Noch {count} {unit}",
+        "time": {
+          "day": "Tag übrig | Tage übrig",
+          "hour": "Stunde übrig | Stunden übrig",
+          "minute": "Minute übrig | Minuten übrig",
+          "second": "Sekunde übrig | Sekunden übrig"
+        },
+        "noOptionsAvailable": "---"
+      },
       "limited_views": "{count} Ansichtsgrenze",
       "days_remaining": "{count} Verbleibende Tage",
       "hours_remaining": "{count} Verbleibende Stunden",
@@ -163,10 +217,14 @@
       "share_passphrase_instruction": "Geben Sie die Sicherheitsphrase separat über einen sicheren Kanal weiter",
       "secure_channel_instruction": "Verwenden Sie einen anderen sicheren Kanal für den Austausch vertraulicher Informationen"
     },
+    "ARIA": {
+      "focus-is-now-in-the-main-text-area": "Focus is now in the main text area"
+    },
     "secrets": {
       "privacyOptions": "Datenschutz-Optionen",
       "selectDuration": "Dauer auswählen",
-      "expiresIn": "Läuft ab in {duration}"
+      "expiresIn": "Läuft ab in {duration}",
+      "enterPassphrase": "Passphrase eingeben"
     },
     "homepage": {
       "tagline1": "Fügen Sie unten ein Passwort, eine geheime Nachricht oder einen privaten Link ein.",
@@ -183,7 +241,10 @@
       "explore_premium_plans": "Mit benutzerdefinierten Bereiche",
       "need_free_account": "Sie haben gerade erst angefangen? Versenden Sie E-Mails mit einem kostenlosen Konto.",
       "sign_up_free": "Kostenlose Anmeldung",
-      "visit-onetime-secret-home": "Besuchen Sie die Homepage von Onetime Secret"
+      "visit-onetime-secret-home": "Besuchen Sie die Homepage von Onetime Secret",
+      "password_generation_title": "Passwortgenerator",
+      "password_generation_description": "Klicken Sie auf \"Passwort generieren\", um ein sicheres Zufallspasswort zu erstellen, das Sie teilen können.",
+      "protip1": "Ihre Nachricht zerstört sich nach dem Ansehen selbst. Der Link kann nur einmal aufgerufen werden."
     },
     "private": {
       "pretext": "Teilen Sie diesen Link:",
@@ -199,6 +260,7 @@
       "destroyed_ago": "Zerstört {Zeit}",
       "burned": "Verbrannt",
       "viewed": "Aufgerufen",
+      "view_metadata": "",
       "destroyed": "Zerstörte",
       "have-more-questions-visit-our": "Haben Sie weitere Fragen? Besuchen Sie unser",
       "the-burn-feature-lets-you-permanently-delete-a-s": "Mit der Brennfunktion können Sie ein Geheimnis dauerhaft löschen, bevor es jemand sieht. Dies ist nützlich, wenn Sie den Zugriff widerrufen oder die falschen Informationen weitergeben möchten. Einmal gebrannt, kann das Geheimnis nicht wiederhergestellt werden.",
@@ -226,6 +288,7 @@
       "you_created_this_secret": "Sie haben dieses Geheimnis erstellt. Wenn Sie es einsehen, kann der Empfänger es nicht sehen.",
       "your_secret_message": "Ihre geheime Nachricht:",
       "this_message_for_you": "Diese Nachricht ist für Sie bestimmt:",
+      "your_message_is_ready": "Ihre sichere Nachricht ist bereit",
       "reply_with_secret": "Antwort mit einem anderen Geheimnis",
       "pre_reveal_default": "Zum Anzeigen der geschützten Nachricht klicken Sie bitte auf die Schaltfläche.",
       "post_reveal_default": "Ihre sichere Nachricht wird unten angezeigt.",
@@ -260,16 +323,6 @@
       "incoming_recipient_address": "Empfänger der Unterstützung",
       "incoming_success_message": "Ihre E-Mail wurde gesendet",
       "incoming_button_creating": "Erstellen von"
-    },
-    "page": {
-      "cta_title": "",
-      "cta_subtitle": "",
-      "cta_feature1": "",
-      "cta_feature2": "",
-      "cta_feature3": "",
-      "explore_premium_plans": "",
-      "need_free_account": "",
-      "sign_up_free": ""
     },
     "account": {
       "subscription_title": "Abonnement",
@@ -308,89 +361,14 @@
       "send-feedback": "Rückmeldung senden",
       "sending-ellipses": "Ich schicke..."
     },
-    "security": {
-      "thank-you-for-helping-us-keep-onetime-secret-sec": "Vielen Dank, dass Sie uns helfen, Onetime Secret sicher und ausgezeichnet zu halten!",
-      "we-take-your-privacy-seriously-all-reports-will-": "Wir nehmen Ihre Privatsphäre ernst. Alle Meldungen werden vertraulich behandelt, und wir werden mit Ihnen zusammenarbeiten, um sicherzustellen, dass keine Details der Schwachstelle veröffentlicht werden, bis eine Lösung gefunden ist.",
-      "confidentiality": "Vertraulichkeit",
-      "if-the-vulnerability-is-declined-we-will-provide": ": Wenn die Anfälligkeit abgelehnt wird, geben wir eine ausführliche Erklärung, warum sie nicht akzeptiert wurde.",
-      "declined-vulnerabilities": "Abgelehnte Schwachstellen",
-      "if-the-vulnerability-is-accepted-we-will-work-on": ": Wenn die Schwachstelle akzeptiert wird, werden wir an einer Lösung arbeiten und versuchen, diese so schnell wie möglich zu veröffentlichen. Sie werden benachrichtigt, sobald die Lösung bereitgestellt wurde.",
-      "accepted-vulnerabilities": "Akzeptierte Schwachstellen",
-      "resolution-process": "Auflösungsprozess",
-      "you-can-expect-to-receive-updates-on-the-status-": ": Sie können davon ausgehen, dass Sie mindestens einmal alle 7 Tage über den Zustand Ihrer Meldung informiert werden, bis das Problem gelöst oder eine Entscheidung getroffen ist.",
-      "updates": "Aktualisierungen",
-      "we-will-conduct-an-initial-assessment-of-the-vul": ": Wir werden innerhalb von 14 Werktagen eine erste Bewertung der Schwachstelle vornehmen.",
-      "initial-assessment": "Erste Bewertung",
-      "you-will-receive-an-acknowledgment-of-your-repor": ": Sie erhalten innerhalb von 5 Werktagen eine Bestätigung Ihrer Meldung.",
-      "acknowledgment": "Danksagung",
-      "what-to-expect": "Was zu erwarten ist",
-      "your-contact-information-for-follow-up-questions": "Ihre Kontaktinformationen für weitere Fragen.",
-      "any-potential-impact": "Mögliche Auswirkungen.",
-      "steps-to-reproduce-the-issue": "Schritte zur Reproduktion des Problems.",
-      "a-detailed-description-of-the-vulnerability": "Eine detaillierte Beschreibung der Schwachstelle.",
-      "include-as-much-information-as-possible-about-th": ": Geben Sie so viele Informationen wie möglich über die Schwachstelle an. Dies sollte umfassen:",
-      "details": "Einzelheiten",
-      "with-the-subject-line-vulnerability-report-brief": "mit der Betreffzeile \"Schwachstellenbericht: [Kurzbeschreibung]\".",
-      "send-an-email-to": ": Senden Sie eine E-Mail an",
-      "how-to-report": "Wie melden",
-      "if-you-discover-a-security-vulnerability-within-": "Wenn Sie eine Sicherheitslücke in diesem Projekt entdecken, bitten wir Sie, diese so schnell wie möglich zu melden. Hier ist, wie Sie es tun können:",
-      "reporting-a-vulnerability": "Melden einer Schwachstelle",
-      "if-you-are-using-an-unsupported-version-we-stron": "Wenn Sie eine nicht unterstützte Version verwenden, empfehlen wir dringend ein Upgrade auf eine der unterstützten Versionen, um sicherzustellen, dass Sie die neuesten Sicherheitsupdates erhalten.",
-      "we-provide-security-updates-for-the-following-ve": "Wir bieten Sicherheitsupdates für die folgenden Versionen unseres Projekts an:",
-      "supported-versions": "Unterstützte Versionen",
-      "we-take-the-security-of-this-project-seriously-a": "Wir nehmen die Sicherheit dieses Projekts ernst und schätzen Ihre Bemühungen, Schwachstellen verantwortungsbewusst zu melden. Dieses Dokument umreißt unsere Sicherheitsrichtlinien und enthält Richtlinien für die Meldung von Schwachstellen.",
-      "security-policy": "Sicherheitspolitik"
-    },
     "site": {
       "website-version": "Website-Version"
     },
-    "about": {
-      "title": "Über uns",
-      "faq": {
-        "trust_points": [
-          "Wir können nicht auf Ihre Daten zugreifen, selbst wenn wir es wollten (was wir nicht tun). Wenn Sie zum Beispiel ein Systemkennwort weitergeben, kennen wir weder die Benutzerkennung noch die Anwendung, für die es bestimmt ist.",
-          "Bei Verwendung einer Sicherheitsphrase (verfügbar unter \"Datenschutzoptionen\"), wird diese in den Datenverschlüsselungsschlüssel für das Geheimnis eingebunden. Wir speichern ausschließlich einen BCrypt-Prüfwert der Sicherheitsphrase, wodurch eine Entschlüsselung Ihres Geheimnisses nach der Speicherung technisch ausgeschlossen ist.",
-          "Unser Quellcode ist {openSourceLink}. Sie können diesen selbst prüfen oder eine eigene Instanz betreiben.",
-          "Wir setzen normierte Sicherheitsstandards ein, einschließlich TLS-Sicherheitsprotokolle für alle Verbindungen und Datenverschlüsselung im Ruhezustand für gespeicherte Informationen."
-        ],
-        "passphrase_points": [
-          "Wir speichern zu keinem Zeitpunkt unverschlüsselte Geheimnisse oder Sicherheitsphrasen.",
-          "Der BCrypt-Prüfwert kann nicht zur Entschlüsselung des Geheimnisses herangezogen werden.",
-          "Ohne die ursprüngliche Sicherheitsphrase ist eine Entschlüsselung des verschlüsselten Geheimnisses technisch unmöglich, auch für uns nicht.",
-          "Dies bedeutet, selbst bei einem unbefugten Zugriff auf unsere Systeme bleibt Ihr Geheimnis geschützt, solange die Sicherheitsphrase unbekannt bleibt."
-        ],
-        "why_use_title": "Warum sollte ich das verwenden?",
-        "why_use_description": "Wenn Sie Passwörter und private Links per E-Mail oder Chat an andere Personen senden, werden Kopien dieser Informationen an vielen Orten gespeichert. Wenn Sie stattdessen einen Onetime-Link verwenden, werden die Informationen nur einmal angezeigt, so dass sie später nicht mehr von anderen Personen gelesen werden können. Auf diese Weise können Sie vertrauliche Informationen auf sichere Weise versenden und wissen, dass sie nur von einer Person gesehen werden. Stellen Sie sich das wie eine sich selbst zerstörende Nachricht vor.",
-        "file_limitation_title": "Warum kann ich keine Bilder oder andere Dateien senden?",
-        "file_limitation_description": "Unser Dienst ist speziell für textbasierte Geheimnisse konzipiert, um maximale Sicherheit und Einfachheit zu gewährleisten. Dateien, insbesondere Bilder, können Metadaten enthalten, die ungewollt Informationen über den Absender oder Empfänger preisgeben könnten. Da wir uns auf Text konzentrieren, können wir garantieren, dass keine zusätzlichen Daten über das hinaus, was Sie ausdrücklich eingeben, übertragen werden. Wenn Sie eine Datei auf sichere Weise weitergeben möchten, empfehlen wir Ihnen die Verwendung eines speziellen sicheren Dateiübertragungsdienstes. Möglicherweise werden wir in Zukunft die Unterstützung von Dateien hinzufügen, wenn es zwingende Anwendungsfälle dafür gibt.",
-        "text_copy_title": "Aber ich kann den geheimen Text kopieren. Worin liegt der Unterschied?",
-        "text_copy_description": "Stimmt, aber Sie haben nur Text. Bilder und andere Dateitypen können Metadaten und andere potenziell aufschlussreiche Informationen über den Absender oder Empfänger enthalten. Auch hier geht es nur darum, sicherzustellen, dass keine privaten Informationen außerhalb des vorgesehenen Empfängers weitergegeben werden.",
-        "secret_retrieval_title": "Kann ich ein Geheimnis abrufen, das bereits weitergegeben wurde?",
-        "secret_retrieval_description": "Nein. Wir zeigen sie einmal an und löschen sie dann. Danach ist es für immer verschwunden.",
-        "account_difference_title": "Was ist der Unterschied zwischen anonymer Nutzung und einem kostenlosen Konto?",
-        "account_difference_description": "Anonyme Benutzer können Geheimnisse erstellen, die bis zu {anonymousTtlDays} Tage dauern und eine maximale Größe von {anonymousSizeKB} KB HABEN. Inhaber eines kostenlosen Kontos erhalten erweiterte Vorteile: Geheimnisse können bis zu {defaultTtlDays} Tage dauern und bis zu {defaultSizeKB} KB groß sein. Kontoinhaber erhalten außerdem Zugriff auf zusätzliche Funktionen wie die \"Brennen-vor-Lesen\"-Option, die es Absendern ermöglicht, Geheimnisse zu löschen, bevor sie sie erhalten.",
-        "law_enforcement_title": "Wie gehen Sie mit Datenanfragen von Strafverfolgungsbehörden oder anderen Dritten um?",
-        "law_enforcement_description": "Wir haben unser System unter Berücksichtigung des Datenschutzes entwickelt. Wir speichern keine Geheimnisse, nachdem sie angesehen wurden, und wir führen keine Zugriffsprotokolle, die über das erforderliche Minimum hinausgehen. Das bedeutet, dass wir in den meisten Fällen einfach keine Daten haben, die wir als Antwort auf solche Anfragen zur Verfügung stellen können. Weitere Einzelheiten finden Sie in unserer {privacyPolicyLink}.",
-        "trust_title": "Warum sollte ich Ihnen vertrauen?",
-        "trust_description": "Wir haben unser System so konzipiert, dass Datenschutz und Sicherheit oberste Priorität haben. Hier ist der Grund, warum Sie uns vertrauen können:",
-        "passphrase_title": "Wie funktioniert die Sicherheitsphrase-Option?",
-        "passphrase_description": "Wenn Sie eine Sicherheitsphrase verwenden, verschlüsseln wir Ihr Geheimnis auf unseren Servern mit der von Ihnen angegebenen Sicherheitsphrase. Wir speichern nicht die Sicherheitsphrase selbst, sondern nur einen bcrypt-Prüfwert davon. Dieser Hash wird verwendet, um die Sicherheitsphrase zu verifizieren, wenn der Empfänger sie eingibt. Dies ist der Grund, warum dies sicher ist:",
-        "passphrase_final_note": "Denken Sie daran, dass die Sicherheit Ihres Geheimnisses davon abhängt, wie stark Ihre Sicherheitsphrase ist und wie sicher Sie sie dem Empfänger mitteilen."
-      },
-      "intro": {
-        "paragraph1": "Hallo, ich bin {name}, der Erfinder von Onetime Secret. Was 2012 als einfache, sichere Möglichkeit zum Austausch vertraulicher Informationen begann, hat unsere kühnsten Erwartungen übertroffen. Mehr als ein Jahrzehnt später ermöglichen wir den sicheren Austausch von Millionen von Geheimnissen pro Monat, mit Anwendungsfällen, die wir uns nie vorstellen konnten.",
-        "paragraph2": "Die erste Hälfte des Jahres 2024 war unsere bisher arbeitsreichste Zeit. Wir sind dankbar, dass die Menschen unser Produkt seit mehr als einem Jahrzehnt nutzen und weitergeben. Wir arbeiten derzeit an Verbesserungen, die den Dienst noch nützlicher machen werden - wir werden bald weitere Details bekannt geben.",
-        "paragraph3": "Getreu unseren Wurzeln, {githubLink} auf GitHub. Wir navigieren durch die sich entwickelnde Landschaft des digitalen Datenschutzes und der Sicherheit und haben uns zu Transparenz und kontinuierlicher Verbesserung verpflichtet.",
-        "paragraph4": "Danke, dass Sie Teil unserer Reise waren. Auf ein weiteres Jahrzehnt des sicheren, flüchtigen Austauschs.",
-        "feedback_hint": "Wenn Sie Fragen haben, finden Sie am Ende (fast) jeder Seite ein Rückmeldung-Formular.",
-        "signature": "Fröhliches Teilen,\n{name}"
-      }
-    },
     "meta": {
-      "were-making-onetime-secret-available-in-multiple": "",
-      "translations-are-new-spotted-an-error": "",
-      "we-recently-added-translations": "",
-      "privacy-and-security-should-be-accessible": ""
+      "were-making-onetime-secret-available-in-multiple": "Wir stellen {onetime-secret} in mehreren Sprachen zur Verfügung. Da dies eine neue Funktion ist, können Übersetzungsfehler oder umständliche Formulierungen auftreten. Ihr Feedback hilft uns bei der Verbesserung – wenn Sie Probleme entdecken, bitte {send-feedback}",
+      "translations-are-new-spotted-an-error": "Übersetzungen sind neu. Fehler entdeckt? {send-feedback}",
+      "we-recently-added-translations": "Wir haben kürzlich Übersetzungen hinzugefügt. Fehler entdeckt? {send-feedback}",
+      "privacy-and-security-should-be-accessible": "Datenschutz und Sicherheit sollten für jeden zugänglich sein, unabhängig von der Sprache. Wir fügen Übersetzungen hinzu, um sowohl unseren Benutzern als auch den Empfängern ihrer Nachrichten zu helfen, besser zu verstehen, wie sie sichere Nachrichten und Links sicher verwenden und darauf zugreifen können. Da dies eine neue Funktion ist, können Übersetzungsfehler oder unklare Anweisungen auftreten. Um die Klarheit und Genauigkeit unserer Übersetzungen zu verbessern, insbesondere bei kritischen sicherheitsrelevanten Inhalten, bitte {send-feedback}, wenn Sie Probleme entdecken"
     },
     "domains": "Bereiche"
   },
@@ -438,9 +416,6 @@
   "escape": "Flucht",
   "active": "Aktiv",
   "theyll-appear-here-once-youve-shared-them": "Sie werden hier erscheinen, sobald Sie sie geteilt haben.",
-  "copy-to-clipboard": "In die Zwischenablage kopieren",
-  "copied": "Kopiert",
-  "pricing": "Preisgestaltung",
   "meets-and-exceeds-compliance-standards": "Erfüllt und übertrifft die Konformitätsstandards",
   "start-today": "Heute beginnen",
   "start-today-with-identity-plus": "Beginnen Sie noch heute mit Identity Plus",
@@ -518,9 +493,12 @@
   "added-formatdistancetonow-domain-created-addsuffix-true": "Hinzugefügt {0}",
   "press-esc-to-close": "Zum Schließen ESC drücken",
   "charactercount-500-characters": "{0}/500 Zeichen",
-  "use-your-phone-to-scan-the-qr-code": "Scannen Sie mit Ihrem Handy den QR-Kennung",
+  "example-pre-reveal-instructions": "Scannen Sie mit Ihrem Handy den QR-Kennung",
+  "example-post-reveal-instructions": "Kontaktieren Sie onboarding{'@'}example.com bei Fragen",
   "these-instructions-will-be-shown-to-recipients-before": "Diese Anweisungen werden den Empfängern angezeigt, bevor sie den geheimen Inhalt preisgeben",
+  "these-instructions-will-be-shown-to-recipients-after": "Diese Anweisungen werden den Empfängern angezeigt, nachdem sie das Geheimnis enthüllt haben.",
   "pre-reveal-instructions": "Anweisungen vor der Enthüllung",
+  "post-reveal-instructions": "Anweisungen nach der Enthüllung",
   "instructions": "Anweisungen",
   "enter": "Eingabe",
   "hide-secret-message": "Vertraulichen Inhalt ausblenden",
@@ -573,19 +551,23 @@
   "this-regulatory-framework-is-determined-by-your-": "Dieser Rechtsrahmen wird durch Ihren Zugangsbereich bestimmt:",
   "your-account-and-data-are-protected-under-the-la": "Ihr Konto und Ihre Daten sind durch die Gesetze und Vorschriften folgender Länder geschützt",
   "current": "Aktuell",
-  "jurisdiction-display_name-iscurrentjurisdiction-": "",
+  "jurisdiction-display_name-iscurrentjurisdiction-": "{0} {1}",
   "available-regions": "Verfügbare Regionen",
   "account-id-customerid": "Konto-ID",
   "jurisdiction": "Zuständigkeitsbereich",
   "data-center-location-currentjurisdiction-identif": "Standort des Rechenzentrums: {0}",
   "data-region": "Daten Region",
-  "all-feedback-welcome": ". Jedes Rückmeldung ist willkommen!",
+  "all-feedback-welcome": "Jedes Rückmeldung ist willkommen!",
   "help-us-improve": "Helfen Sie uns zu verbessern",
   "close-feedback-modal": "Rückmeldung-Modal schließen",
   "share-your-feedback": "Teilen Sie Ihr Rückmeldung mit",
   "delano-mandelbaum": "Delano Mandelbaum",
   "delano": "Delano",
   "help-content-goes-here": "Hilfe-Inhalte finden Sie hier.",
+  "why-is-this-secret-unavailable": "Warum ist dieses Geheimnis nicht verfügbar?",
+  "secrets-are-designed-to-be-viewed-only-once": "Geheimnisse sind so konzipiert, dass sie nur einmal angesehen werden können. Dieser Link wurde möglicherweise bereits aufgerufen, ist abgelaufen oder wurde vom Absender manuell gelöscht.",
+  "what-should-i-do-now": "Was soll ich jetzt tun?",
+  "contact-the-person-who-sent-you-this-link": "Kontaktieren Sie die Person, die Ihnen diesen Link gesendet hat, und bitten Sie sie, ein neues Geheimnis zu erstellen. Teilen Sie ihr mit, dass Sie nicht auf die ursprünglichen Informationen zugreifen konnten.",
   "done": "Erledigt",
   "loading-settings-content": "Inhalt der Einstellungen laden...",
   "settings-sections-0": "Abschnitte \"Einstellungen",
@@ -609,6 +591,7 @@
   "t-ai-generated-testimonial": "{0}:",
   "t-benefits-of-identity-plus": "{0}: Identität Plus",
   "upgrade-to": "Upgrade auf",
+  "upgrade-for-yourdomain": "",
   "secret-access-form": "Formular für den geheimen Zugang",
   "content-status": "Inhaltlicher Zustand",
   "secret-content-copied-to-clipboard": "Geheimer Inhalt in die Zwischenablage kopiert",
@@ -655,7 +638,6 @@
   "request-password-reset": "Passwort zurücksetzen anfordern",
   "forgot-password": "Passwort vergessen",
   "google": "Google",
-  "unknown-jurisdiction-0": "Unbekannte Gerichtsbarkeit",
   "unknown-jurisdiction": "Unbekannte Gerichtsbarkeit",
   "redis-info": "Redis-Informationen",
   "customer-secrets_created-customer-secrets_shared": "{0}/{1}/{2} [{3}]",
@@ -720,6 +702,7 @@
   "visit-onetime-secret-homepage": "Besuchen Sie die Homepage von Onetime Secret",
   "footer-navigation": "Navigation in der Fußzeile",
   "includes-all-features-and-unlimited-sharing-capa": "Enthält alle Funktionen und unbegrenzte Freigabekapazität",
+  "includes-all-data-locality-options": "Alle Pläne beinhalten die Wahl des Datenstandorts: {0} Regionen",
   "get-started": "Los geht's",
   "frequency-value-annually-annual-monthly-subscrip": "{0} Abonnement",
   "features": "Eigenschaften",
@@ -808,7 +791,6 @@
   "follow-these-steps-to-verify-domain-ownership-an": "Befolgen Sie diese Schritte, um die Bereichinhaberschaft zu überprüfen und Ihre Online-Präsenz zu verbessern:",
   "domain-verification-steps": "Schritte der Domänenüberprüfung",
   "domain-verification-initiated-successfully": "Die Domänenüberprüfung wurde erfolgreich eingeleitet.",
-  "dismiss": "Ablehnen",
   "deactivate": "Deaktivieren Sie",
   "are-you-sure-you-want-to-deactivate-your-account": "Sind Sie sicher, dass Sie Ihr Konto deaktivieren möchten? Alle Ihre Daten werden dauerhaft und für immer von unseren Servern entfernt. Diese Aktion kann nicht rückgängig gemacht werden.",
   "deactivate-account": "Konto deaktivieren",
@@ -848,5 +830,6 @@
   "an-error-occurred": "Es ist ein Fehler aufgetreten",
   "copy-secret-to-clipboard": "Geheimnis in die Zwischenablage kopieren",
   "secret-copied-to-clipboard": "Geheimnis in die Zwischenablage kopiert",
-  "Double check that passphrase": "Überprüfen Sie die Sicherheitsphrase doppelt"
+  "Double check that passphrase": "Überprüfen Sie die Sicherheitsphrase doppelt",
+  "press_copy_button_below": "Press the copy button below."
 }

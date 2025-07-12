@@ -1,4 +1,4 @@
-# frozen_string_literal: true
+# tests/unit/ruby/try/60_logic/02_logic_base_try.rb
 
 # These tryouts test the base logic of the Onetime application,
 # specifically focusing on the CreateAccount functionality.
@@ -15,27 +15,27 @@
 # logic without needing to run the full application, allowing for
 # targeted testing of this specific functionality.
 
+require 'securerandom'
 
-require 'onetime'
+require_relative '../test_logic'
 
 # Load the app
-OT::Config.path = File.join(Onetime::HOME, 'tests', 'unit', 'ruby', 'config.test.yaml')
-OT.boot! :test
+OT.boot! :test, false
 
 # Setup some variables for these tryouts
 @now = DateTime.now
 @from_address = OT.conf.dig(:emailer, :from)
 @email_address = 'tryouts@onetimesecret.com'
-@sess = OT::Session.new '255.255.255.255', 'anon'
-@cust = OT::Customer.new @email_address
+@sess = Session.new '255.255.255.255', 'anon'
+@cust = Customer.new @email_address
 @sess.event_clear! :send_feedback
 @params = {}
 @locale = 'en'
-@obj = OT::Logic::Account::CreateAccount.new @sess, @cust
+@obj = V2::Logic::Account::CreateAccount.new @sess, @cust
 
 # A generator for valid params for creating an account
 @valid_params = lambda do
-  entropy = OT.entropy[0..6]
+  entropy = SecureRandom.hex[0..6]
   email = "tryouts+60+#{entropy}@onetimesecret.com"
   pword = 'loopersucks'
   {
@@ -54,7 +54,7 @@ end
 
 ## Can create CreateAccount instance
 @obj.class
-#=> Onetime::Logic::Account::CreateAccount
+#=> V2::Logic::Account::CreateAccount
 
 ## Knows an invalid address
 @obj.valid_email?('bogusjourney')
@@ -74,20 +74,30 @@ end
 #=> true
 
 ## Can create account and it's not verified by default.
-sess = OT::Session.create '255.255.255.255', 'anon'
-cust = OT::Customer.new
-logic = OT::Logic::Account::CreateAccount.new sess, cust, @valid_params.call, 'en'
+sess = Session.create '255.255.255.255', 'anon'
+cust = Customer.new
+logic = V2::Logic::Account::CreateAccount.new sess, cust, @valid_params.call, 'en'
 logic.raise_concerns
 logic.process
 [logic.autoverify, logic.cust.verified, OT.conf.dig(:site, :authentication, :autoverify)]
 #=> [false, 'false', false]
 
 ## Can create account and have it auto-verified.
-sess = OT::Session.create '255.255.255.255', 'anon'
-cust = OT::Customer.new
-OT.conf[:site][:authentication][:autoverify] = true # force the config to be true
-logic = OT::Logic::Account::CreateAccount.new sess, cust, @valid_params.call, 'en'
+sess = Session.create '255.255.255.255', 'anon'
+cust = Customer.new
+old_conf = OT.instance_variable_get(:@conf)
+new_conf = {
+  site: {
+    authentication: {
+      autoverify: true # force the config to be true
+    }
+  }
+}
+OT.instance_variable_set(:@conf, new_conf)
+logic = V2::Logic::Account::CreateAccount.new sess, cust, @valid_params.call, 'en'
 logic.raise_concerns
 logic.process
-[logic.autoverify, logic.cust.verified, OT.conf.dig(:site, :authentication, :autoverify)]
+ret = [logic.autoverify, logic.cust.verified, OT.conf.dig(:site, :authentication, :autoverify)]
+OT.instance_variable_set(:@conf, old_conf)
+ret
 #=> [true, 'true', true]

@@ -33,16 +33,16 @@
     return getDisplayStatus(state);
   });
 
-  // Status styling maps
+  // Status styling maps with enhanced design
   const statusClasses: Record<DisplayStatus, string> = {
-    new: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300',
-    unread: 'bg-slate-100 text-slate-800 dark:bg-slate-900 dark:text-slate-300',
-    viewed: 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300',
-    burned: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300',
-    received: 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300',
-    expiring_soon: 'bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-300',
-    orphaned: 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-300',
-    expired: 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-300',
+    new: 'bg-gradient-to-r from-green-50 to-green-100 text-green-800 dark:from-green-900/60 dark:to-green-800/40 dark:text-green-300 border border-green-200 dark:border-green-800/50',
+    unread: 'bg-gradient-to-r from-slate-50 to-slate-100 text-slate-800 dark:from-slate-900/60 dark:to-slate-800/40 dark:text-slate-300 border border-slate-200 dark:border-slate-800/50',
+    viewed: 'bg-gradient-to-r from-blue-50 to-blue-100 text-blue-800 dark:from-blue-900/60 dark:to-blue-800/40 dark:text-blue-300 border border-blue-200 dark:border-blue-800/50',
+    burned: 'bg-gradient-to-r from-yellow-50 to-yellow-100 text-yellow-800 dark:from-yellow-900/60 dark:to-yellow-800/40 dark:text-yellow-300 border border-yellow-200 dark:border-yellow-800/50',
+    received: 'bg-gradient-to-r from-red-50 to-red-100 text-red-800 dark:from-red-900/60 dark:to-red-800/40 dark:text-red-300 border border-red-200 dark:border-red-800/50',
+    expiring_soon: 'bg-gradient-to-r from-orange-50 to-orange-100 text-orange-800 dark:from-orange-900/60 dark:to-orange-800/40 dark:text-orange-300 border border-orange-200 dark:border-orange-800/50',
+    orphaned: 'bg-gradient-to-r from-purple-50 to-purple-100 text-purple-800 dark:from-purple-900/60 dark:to-purple-800/40 dark:text-purple-300 border border-purple-200 dark:border-purple-800/50',
+    expired: 'bg-gradient-to-r from-purple-50 to-purple-100 text-purple-800 dark:from-purple-900/60 dark:to-purple-800/40 dark:text-purple-300 border border-purple-200 dark:border-purple-800/50',
   };
 
   const statusIcon: Record<DisplayStatus, string> = {
@@ -70,12 +70,12 @@
 
 <template>
 <span
-  class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium transition-all duration-200"
+  class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium shadow-sm transition-all duration-200"
   :class="[
     statusClasses[status],
     {
       'animate-pulse': status === 'expiring_soon',
-      'hover:scale-105': status !== 'expired',
+      'transform hover:scale-105': status !== 'expired',
       'opacity-75': status === 'expired'
     }
   ]"
@@ -85,35 +85,24 @@
   <OIcon
     collection="material-symbols"
     :name="statusIcon[status]"
-    class="w-4 h-4 mr-1"
+    class="w-4 h-4 mr-1.5"
   />
   {{ displayStatus.text }}
 </span>
 </template>
 
 <style scoped>
-/* Ensure high contrast in dark mode */
-:deep(.dark) .text-green-800 {
-  color: rgb(22, 101, 52);
+/* Ensure high contrast in dark mode with enhanced styling */
+.animate-pulse {
+  animation: statusPulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 }
 
-:deep(.dark) .text-blue-800 {
-  color: rgb(30, 64, 175);
-}
-
-:deep(.dark) .text-yellow-800 {
-  color: rgb(133, 77, 14);
-}
-
-:deep(.dark) .text-red-800 {
-  color: rgb(153, 27, 27);
-}
-
-:deep(.dark) .text-orange-800 {
-  color: rgb(154, 52, 18);
-}
-
-:deep(.dark) .text-purple-800 {
-  color: rgb(107, 33, 168);
+@keyframes statusPulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.7;
+  }
 }
 </style>

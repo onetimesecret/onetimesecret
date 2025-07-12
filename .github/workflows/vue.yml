@@ -1,3 +1,5 @@
+# .github/workflows/vue.yml
+
 name: Vue Tests
 
 # This GitHub Action does the following:
@@ -6,7 +8,7 @@ name: Vue Tests
 #     the `main` branch.
 #  2. It uses Ubuntu as the runner environment.
 #  3. It checks out your code and sets up Node.js version 18.
-#  4. It installs pnpm version 9, as specified in your `package.json`.
+#  4. It installs pnpm version 10, as specified in your `package.json`.
 #  5. It installs the project dependencies using `pnpm install`.
 #  6. It runs the tests using the `pnpm test` command, which corresponds to
 #     the `"test": "vitest run"` script in your `package.json`.
@@ -41,25 +43,29 @@ on:
         description: 'Run the build with tmate debugging enabled (https://github.com/marketplace/actions/debugging-with-tmate)'
         required: false
         default: false
+
+permissions:
+  contents: read
+
 jobs:
   test:
     runs-on: ubuntu-24.04
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
 
       - name: Use Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
-          node-version: '18'
+          node-version: '22'
 
       - name: Install pnpm
-        uses: pnpm/action-setup@v4
+        uses: pnpm/action-setup@a7487c7e89a18df4991f7f222e4898a00d66ddda # v4
         with:
-          version: 9
+          version: 10
 
       - name: Install dependencies
-        run: pnpm install
+        run: pnpm install --no-frozen-lockfile
 
       - name: Run type check
         run: pnpm run type-check

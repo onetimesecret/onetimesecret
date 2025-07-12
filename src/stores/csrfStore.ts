@@ -3,8 +3,11 @@ import { PiniaPluginOptions } from '@/plugins/pinia';
 import { responseSchemas } from '@/schemas/api/responses';
 import { WindowService } from '@/services/window.service';
 import { AxiosInstance } from 'axios';
+import { useDocumentVisibility } from '@vueuse/core';
 import { defineStore, PiniaCustomProperties } from 'pinia';
-import { handleError, inject, ref } from 'vue';
+import { handleError, inject, ref, watch } from 'vue';
+
+const DEFAULT_PERIODIC_INTERVAL_MS = 60000 * 15; // Check every 15 minutes
 
 interface StoreOptions extends PiniaPluginOptions {
   shrimp?: string;
@@ -24,7 +27,7 @@ interface StoreOptions extends PiniaPluginOptions {
  * const csrfStore = useCsrfStore();
  *
  * // Start periodic validation
- * csrfStore.startPeriodicCheck(60000); // Check every minute
+ * csrfStore.startPeriodicCheck(60000); // Check every minute (?!)
  *
  * // Stop validation when no longer needed
  * csrfStore.stopPeriodicCheck();
@@ -73,6 +76,10 @@ export const useCsrfStore = defineStore('csrf', () => {
     if (_initialized.value) return;
     shrimp.value = (options?.shrimp || WindowService.get('shrimp')) ?? '';
     _initialized.value = true;
+
+    startPeriodicCheck();
+    initVisibilityCheck();
+
     return _initialized;
   }
 
@@ -97,7 +104,21 @@ export const useCsrfStore = defineStore('csrf', () => {
     return validated;
   }
 
-  function startPeriodicCheck(intervalMs: number = 60000) {
+  function initVisibilityCheck() {
+    // console.debug(`[csrfStore] Init initVisibilityCheck...`);
+
+    const visibility = useDocumentVisibility();
+
+    watch(visibility, async (currentVisibility) => {
+      if (currentVisibility === 'visible') {
+        await checkShrimpValidity();
+      }
+    });
+  }
+
+  function startPeriodicCheck(intervalMs: number = DEFAULT_PERIODIC_INTERVAL_MS) {
+    // console.debug(`[csrfStore] Init startPeriodicCheck... ${DEFAULT_PERIODIC_INTERVAL_MS}`);
+
     stopPeriodicCheck();
     intervalChecker.value = window.setInterval(() => {
       checkShrimpValidity();
@@ -136,6 +157,7 @@ export const useCsrfStore = defineStore('csrf', () => {
     checkShrimpValidity,
     startPeriodicCheck,
     stopPeriodicCheck,
+    initVisibilityCheck,
     $reset,
   };
 });

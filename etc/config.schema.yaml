@@ -13,84 +13,78 @@
 #
 
 :site: include(':site')
+:features: include(':features')
 :redis: include(':redis')
-:colonels: list(str(), required=True)
-:incoming: include(':incoming')
 :emailer: include(':emailer')
 :mail: include(':mail')
-:locales: list(str())
-:services: include(':services')
+:internationalization: include(':internationalization')
+:diagnostics: include(':diagnostics')
+:logging: include(':logging', required=False)
 :limits: include(':limits')
 :development: include(':development')
+:experimental: include(':experimental')
 
 ---
 :site:
   :host: str()
-  :domains: include(':domains')
   :ssl: any()
   :secret: str()
-  :authentication: include(':authentication')
-  :authenticity: include(':authenticity')
-  :plans: include(':plans')
-  :support: include(':support')
-  :regions: include(':regions')
-  :secret_options: include(':secret_options')
+  :interface:
+    :ui:
+      :enabled: any(bool(), str())
+      :header: include(':header', required=False)
+      :footer_links: include(':footer_links', required=False)
+    :api:
+      :enabled: any(bool(), str())
+  :secret_options:
+    :default_ttl: any(str(), int())
+    :ttl_options: str()
+  :authentication:
+    :enabled: any()
+    :signup: any()
+    :signin: any()
+    :autoverify: any()
+    :colonels: list(str(), required=True)  # Remove this line
+  :authenticity:
+    :type: any(str(), int())
+    :secret_key: any(str(), int())
+  :support:
+    :host: str(required=False)
+  :plans:
+    :enabled: any()
+    :stripe_key: str(required=False)
+    :webook_signing_secret: str(required=False)
+    :payment_links: any(required=False)
+  :regions:
+    :enabled: any(str(), bool())
+    :current_jurisdiction: str(required=False)
+    :jurisdictions: list(include(':jurisdiction'), required=False)
+  :domains:
+    :enabled: any()
+    :default: str(required=False)
+    :cluster:
+      :type: str(required=False)
+      :api_key: str(required=False)
+      :cluster_ip: str(required=False)
+      :cluster_host: str(required=False)
+      :cluster_name: str(required=False)
+      :vhost_target: str(required=False)
 
-:domains:
-  :enabled: any()
-  :default: str(required=False)
-  :cluster:
-    :type: str(required=False)
-    :api_key: str(required=False)
-    :cluster_ip: str(required=False)
-    :cluster_host: str(required=False)
-    :cluster_name: str()
-    :vhost_target: str()
-
-:authentication:
-  :enabled: any()
-  :signup: any()
-  :signin: any()
-  :autoverify: any()
-
-:authenticity:
-  :type: str()
-  :secret_key: str()
-
-:secret_options:
-  :default_ttl: str()
-  :ttl_options: any(str(), list(str()))
-
-:plans:
-  :enabled: any()
-  :stripe_key: str(required=False)
-  :webook_signing_secret: str(required=False)
-  :payment_links: any(required=False)
-
-:support:
-  :host: str(required=False)
-
-:regions:
-  :enabled: bool()
-  :current_jurisdiction: str(required=False)
-  :jurisdictions: list(include(':jurisdiction'), required=False)
-
-:jurisdiction:
-  :identifier: str()
-  :display_name: str()
-  :domain: str()
-  :icon: str()
-
-:incoming:
-  :enabled: bool()
-  :email: str()
-  :passphrase: str()
+:features:
+  :incoming:
+    :enabled: any(str(), bool())
+    :email: any(str(), null())
+    :passphrase: any(str(), null())
+    :regex: str(required=False)
+  :stathat: map(required=False)
 
 :redis:
   :uri: str()
+  :dbs: map(int(), str())
 
 :emailer:
   :mode: str()
+  :region: str(required=False)
   :from: str()
   :fromname: str()
   :host: str()
@@ -122,15 +116,31 @@
     :not_rfc_mx_lookup_flow: bool()
     :email_pattern: str(required=False)
     :smtp_error_body_pattern: str(required=False)
-    :logger:
-      :tracking_event: str()
-      :stdout: bool()
-      :log_absolute_path: str(required=False)
+    :logger: map()
 
-:services:
+:internationalization:
+  :enabled: any(str(), bool())
+  :default_locale: str()
+  :fallback_locale: map(list(str()))
+  :locales: list(str())
+  :incomplete: list(str())
+
+:diagnostics:
+  :enabled: any(str(), bool())
   :sentry:
-    :dsn: str()
-    :enabled: any()
+    :defaults:
+      :dsn: str(required=False)
+      :sampleRate: any(str(), num())
+      :maxBreadcrumbs: any(str(), int())
+      :logErrors: any(str(), bool())
+    :backend:
+      :dsn: str(required=False)
+    :frontend:
+      :dsn: str(required=False)
+      :trackComponents: any(str(), bool())
+
+:logging:
+  :http_requests: any(str(), bool())
 
 :limits:
   :create_secret: int()
@@ -154,13 +164,71 @@
   :list_domains: int()
   :get_domain: int()
   :verify_domain: int()
-
+  :report_exception: int()
+  :attempt_secret_access: int()
+  :check_status: int()
+  :update_branding: int()
+  :destroy_session: int()
+  :get_domain_brand: int()
+  :get_domain_logo: int()
+  :get_image: int()
+  :remove_domain_logo: int()
+  :show_account: int()
+  :stripe_webhook: int()
+  :update_domain_brand: int()
+  :view_colonel: int()
+  :external_redirect: int()
+  :update_colonel_settings: int()
 :development:
   :enabled: any()
   :debug: any()
   :frontend_host: str()
 
-:experimental:
-  freeze_app: bool()
-  csp:
-    :enabled: str()
+:experimental: map(required=False)
+
+---
+
+# site.regions.jurisdictions -> jurisdiction
+:jurisdiction:
+  :identifier: str()
+  :display_name: str()
+  :domain: str()
+  :icon:
+    :collection: str()
+    :name: str()
+
+---
+
+:footer_links:
+  :enabled: any(bool(), str())
+  :groups: list(include(':footer_link_group'), required=False)
+
+:footer_link_group:
+  :name: str()
+  :i18n_key: str(required=False)
+  :links: list(include(':footer_link'))
+
+:footer_link:
+  :text: str()
+  :i18n_key: str(required=False)
+  :url: str()
+  :external: any(bool(), str(), required=False)
+  :icon: str(required=False)
+  :visible: bool(required=False)
+
+:header:
+  :enabled: any(bool(), str())
+  :branding: include(':header_branding', required=False)
+  :navigation: include(':header_navigation', required=False)
+
+:header_branding:
+  :logo: include(':header_logo', required=False)
+  :site_name: str(required=False)
+
+:header_logo:
+  :url: str(required=False)
+  :alt: str(required=False)
+  :href: str(required=False)
+
+:header_navigation:
+  :enabled: any(bool(), str())

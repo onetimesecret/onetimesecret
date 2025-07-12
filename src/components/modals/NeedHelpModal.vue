@@ -1,4 +1,7 @@
+<!-- src/components/modals/NeedHelpModal.vue -->
+
 <script setup lang="ts">
+  import OIcon from '@/components/icons/OIcon.vue';
   import {
     Dialog,
     DialogPanel,
@@ -6,27 +9,73 @@
     TransitionChild,
     TransitionRoot,
   } from '@headlessui/vue';
-  import OIcon from '@/components/icons/OIcon.vue';
-  import { ref } from 'vue';
+  import { ref, watch, nextTick } from 'vue';
+  import { useI18n } from 'vue-i18n';
+
   const showHelp = ref(false);
+  const { t } = useI18n();
 
-  interface Props {};
+  // Track the trigger button element and modal element for focus management
+  const triggerRef = ref<HTMLButtonElement | null>(null);
+  // The ref for DialogPanel will hold the underlying HTMLDivElement
+  const modalRef = ref<HTMLDivElement | null>(null);
 
-  defineProps<Props>();
+  // Handle focus management
+  watch(showHelp, (newVal) => {
+    if (newVal) {
+      // Set focus to the modal when opened
+      nextTick(() => {
+        // Access the underlying DOM element directly via .value (No $el
+        // needed for native elements).
+        const panelElement = modalRef.value;
+        if (panelElement instanceof HTMLElement) {
+          // Find the first focusable element within the panel
+          const firstFocusable = panelElement.querySelector<HTMLElement>(
+            'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+          );
+          if (firstFocusable) {
+            firstFocusable.focus();
+          }
+        }
+      });
+    } else {
+      // Return focus to trigger button when closed
+      nextTick(() => {
+        triggerRef.value?.focus();
+      });
+    }
+  });
+
+  interface Props {
+    linkTextLabel?: string;
+    linkIconName?: string;
+  };
+
+  withDefaults(defineProps<Props>(), {
+    linkTextLabel: 'web.LABELS.need_help',
+    linkIconName: 'information-circle-20-solid',
+  });
+
 </script>
 
 <template>
   <div>
     <button
+      ref="triggerRef"
       type="button"
       @click="showHelp = !showHelp"
-      class="text-sm text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 flex items-center gap-2 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-500 rounded-md p-1">
+      class="flex items-center gap-2 rounded-md p-1
+        text-sm text-gray-500 hover:text-gray-700
+        focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2
+        dark:text-gray-400 dark:hover:text-gray-300">
       <OIcon
-        collection="mdi"
-        name="information"
-        class="w-5 h-5"
-        aria-hidden="true" />
-      <span>{{ $t('web.LABELS.need_help') }}</span>
+        collection="heroicons"
+        :name="linkIconName"
+        class="size-5"
+        aria-hidden="true"
+      />
+      <span v-if="linkTextLabel">{{ t(linkTextLabel) }}</span>
+      <span v-else class="sr-only">{{ t('web.LABELS.need_help') }}</span>
     </button>
 
     <TransitionRoot
@@ -36,7 +85,11 @@
       <Dialog
         as="div"
         @close="showHelp = false"
-        class="relative z-50">
+        class="relative z-50"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="modal-title"
+        aria-describedby="modal-content">
         <!-- Backdrop -->
         <TransitionChild
           enter="ease-out duration-300"
@@ -45,7 +98,7 @@
           leave="ease-in duration-200"
           leave-from="opacity-100"
           leave-to="opacity-0">
-          <div class="fixed inset-0 bg-black/25"></div>
+          <div class="fixed inset-0 bg-black/50"></div>
         </TransitionChild>
 
         <!-- Content -->
@@ -58,38 +111,51 @@
               leave="ease-in duration-200"
               leave-from="opacity-100 scale-100"
               leave-to="opacity-0 scale-95">
+              <!-- Attach the ref directly to the DialogPanel -->
               <DialogPanel
-                class="w-full max-w-md transform overflow-hidden rounded-2xl bg-white p-6 dark:bg-gray-800">
+                ref="modalRef"
+                class="w-full max-w-md overflow-hidden rounded-2xl bg-white p-6 dark:bg-gray-800">
                 <!-- Header with close button -->
-                <div class="flex justify-between items-center mb-4">
+                <div class="mb-4 flex items-center justify-between">
                   <DialogTitle
+                    id="modal-title"
                     class="text-lg font-medium text-gray-900 dark:text-gray-100">
                     {{ $t('web.LABELS.help_section') }}
                   </DialogTitle>
                   <button
                     type="button"
                     @click="showHelp = false"
-                    class="rounded-md text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-brand-500">
+                    class="rounded-md p-1 text-gray-400 hover:text-gray-500
+                      focus:outline-none focus:ring-2 focus:ring-brand-500"
+                    :aria-label="$t('web.LABELS.close')">
                     <span class="sr-only">{{ $t('web.LABELS.close') }}</span>
                     <OIcon
                       collection="mdi"
                       name="close"
-                      class="h-6 w-6"
-                      aria-hidden="true" />
+                      class="size-6"
+                      aria-hidden="true"
+                    />
                   </button>
                 </div>
 
                 <!-- Content -->
-                <slot name="content">
-                  {{ $t('help-content-goes-here') }}
-                </slot>
+                <div id="modal-content" class="text-gray-700 dark:text-gray-300">
+                  <slot name="content">
+                    {{ $t('web.help.default_content', 'Please contact support for assistance') }}
+                  </slot>
+                </div>
 
                 <!-- Footer with close button -->
                 <div class="mt-6 flex justify-end">
+                  <!-- prettier-ignore-attribute class -->
                   <button
                     type="button"
                     @click="showHelp = false"
-                    class="inline-flex justify-center rounded-md border border-transparent bg-brand-100 px-4 py-2 text-sm font-medium text-brand-900 hover:bg-brand-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2">
+                    class="inline-flex justify-center rounded-md border border-transparent
+                      bg-brand-100 px-4 py-2 text-sm font-medium text-brand-900
+                      hover:bg-brand-200
+                      focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2"
+                    :aria-label="$t('web.LABELS.close')">
                     {{ $t('web.LABELS.close') }}
                   </button>
                 </div>

@@ -22,7 +22,7 @@ export function useFormSubmission<ResponseSchema extends z.ZodType>(
   const success = ref('');
 
   /* eslint-disable max-lines-per-function */
-  const submitForm = async (event?: Event) => {
+  async function submitForm(event?: Event) {
     isSubmitting.value = true;
     error.value = '';
     success.value = '';
@@ -58,9 +58,7 @@ export function useFormSubmission<ResponseSchema extends z.ZodType>(
       }
 
       const urlSearchParams =
-        formData instanceof URLSearchParams
-          ? formData
-          : new URLSearchParams(formData as never);
+        formData instanceof URLSearchParams ? formData : new URLSearchParams(formData as never);
 
       const csrfStore = useCsrfStore();
       urlSearchParams.append('shrimp', csrfStore.shrimp);
@@ -131,7 +129,7 @@ export function useFormSubmission<ResponseSchema extends z.ZodType>(
     } finally {
       isSubmitting.value = false;
     }
-  };
+  }
 
   return {
     isSubmitting,

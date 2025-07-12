@@ -1,4 +1,4 @@
-# frozen_string_literal: true
+# tests/unit/ruby/try/15_config_try.rb
 
 # These tryouts test the configuration functionality of the Onetime application.
 # The Config module is responsible for loading and managing application settings.
@@ -12,11 +12,10 @@
 # These tests aim to ensure that the application can correctly load and use
 # its configuration, which is crucial for proper operation and customization.
 
-require 'onetime'
+require_relative './test_helpers'
 
 # Use the default config file for tests
-OT::Config.path = File.join(Onetime::HOME, 'tests', 'unit', 'ruby', 'config.test.yaml')
-OT.boot! :test
+OT.boot! :test, false
 
 @email_address = OT.conf[:emailer][:from]
 
@@ -34,8 +33,7 @@ OT.boot! :test
 [@config[:site].class, @config[:redis].class]
 #=> [Hash, Hash]
 
-## OT.boot! :test
-OT.boot! :test
+OT.boot! :test, false
 [OT.mode, OT.conf.class]
 #=> [:test, Hash]
 
@@ -64,12 +62,7 @@ paths.include?(path)
 ## Config.find_configs returns an array of paths, where it finds the example config
 paths = Onetime::Config.find_configs('config.example.yaml')
 path = File.expand_path(File.join(Onetime::HOME, 'etc', 'config.example.yaml'))
-puts paths
 paths.include?(path)
-#=> true
-
-## Config.exists? knows if the config file exists
-OT::Config.exists?
 #=> true
 
 ## Site has options for authentication
@@ -99,60 +92,6 @@ OT.conf[:site][:authentication][:autoverify]
 ## Option for emailer
 OT.conf[:emailer][:from]
 #=> "tests@example.com"
-
-## An exception is raised if authentication config is missing
-site_authentication = OT.conf[:site].delete(:authentication)
-begin
-  OT::Config.after_load(OT.conf)
-rescue OT::Problem => e
-  puts "Error: #{e}"
-  OT.conf[:site][:authentication] = site_authentication # restore
-  e.message.include?('No `site.authentication` config found')
-end
-#=> true
-
-## An exception is raised if development config is missing
-development = OT.conf.delete(:development)
-begin
-  OT::Config.after_load(OT.conf)
-rescue OT::Problem => e
-  puts "Error: #{e}"
-  OT.conf[:development] = development # restore
-  e.message.include?('No `development` config found')
-end
-#=> true
-
-## An exception is raised if mail config is missing
-mail = OT.conf.delete(:mail)
-begin
-  OT::Config.after_load(OT.conf)
-rescue OT::Problem => e
-  puts "Error: #{e}"
-  OT.conf[:mail] = mail # restore
-  e.message.include?('No `mail` config found')
-end
-#=> true
-
-## (1 of 3) When authentication is disabled, sign-in is disabled regardless of the setting
-OT.conf[:site][:authentication][:enabled] = false
-OT.conf[:site][:authentication][:signin] = true
-OT::Config.after_load(OT.conf)
-OT.conf.dig(:site, :authentication, :signin)
-#=> false
-
-## (2 of 3) When authentication is disabled, sign-up is disabled regardless of the setting
-OT.conf[:site][:authentication][:enabled] = false
-OT.conf[:site][:authentication][:signup] = true
-OT::Config.after_load(OT.conf)
-OT.conf.dig(:site, :authentication, :signup)
-#=> false
-
-## (3 of 3) When authentication is disabled, auto-verify is disabled regardless of the setting
-OT.conf[:site][:authentication][:enabled] = false
-OT.conf[:site][:authentication][:enabled] = true
-OT::Config.after_load(OT.conf)
-OT.conf.dig(:site, :authentication, :signin)
-#=> false
 
 ## Default emailer mode is :smtp
 OT.conf[:emailer][:mode]

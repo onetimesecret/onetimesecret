@@ -1,17 +1,18 @@
-# frozen_string_literal: true
+# tests/unit/ruby/try/60_logic/65_logic_exception_info_try.rb
 
-require 'onetime'
+require_relative '../test_logic'
 require 'securerandom'
 
+# NOTE: ReceiveException is only in V2
+
 # Setup
-OT::Config.path = File.join(Onetime::HOME, 'tests', 'unit', 'ruby', 'config.test.yaml')
-OT.boot! :test
+OT.boot! :test, false
 
 @now = DateTime.now
 @email = "test#{SecureRandom.uuid}@onetimesecret.com"
-@sess = OT::Session.new '255.255.255.255', 'anon'
+@sess = Session.new '255.255.255.255', 'anon'
 @environment = 'test'
-@cust = OT::Customer.new @email
+@cust = Customer.new @email
 @cust.save
 
 ## Basic Exception Logging
@@ -27,7 +28,7 @@ OT.boot! :test
   environment: @environment,
   release: '1.0.0'
 }
-logic = OT::Logic::Misc::ReceiveException.new @sess, @cust, @exception_params
+logic = V2::Logic::ReceiveException.new @sess, @cust, @exception_params
 logic.process
 [
   logic.greenlighted,
@@ -50,7 +51,7 @@ params = {
   environment: @environment,
   release: "1.0.0"
 }
-logic = OT::Logic::Misc::ReceiveException.new @sess, @cust, params
+logic = V2::Logic::ReceiveException.new @sess, @cust, params
 logic.process_params
 logic.process
 [
@@ -69,7 +70,7 @@ long_params = {
   stack: "z" * 20000,
   url: "u" * 2000
 }
-logic = OT::Logic::Misc::ReceiveException.new @sess, @cust, long_params
+logic = V2::Logic::ReceiveException.new @sess, @cust, long_params
 logic.process_params
 data = logic.instance_variable_get(:@exception_data)
 [
@@ -81,13 +82,13 @@ data = logic.instance_variable_get(:@exception_data)
 #=> [256, 100, 2500, 256]
 
 ## Test rate limiting
-
+V1::RateLimit.register_event(:report_exception, 3)
+V2::RateLimit.register_event(:report_exception, 3)
 params = { message: "Test", type: "Error", url: "https://status.onetime.co" }
-
 begin
   # Submit multiple exceptions quickly
-  10.times do
-    logic = OT::Logic::Misc::ReceiveException.new @sess, @cust, params
+  4.times do
+    logic = V2::Logic::ReceiveException.new @sess, @cust, params
     logic.process_params
     logic.raise_concerns
   end
@@ -101,7 +102,7 @@ end
 # Prevent empty exception message
 begin
   empty_params = @exception_params.merge(message: '')
-  logic = OT::Logic::Misc::ReceiveException.new @sess, @cust, empty_params
+  logic = V2::Logic::ReceiveException.new @sess, @cust, empty_params
   logic.raise_concerns
 rescue OT::FormError => e
   [e.class.name, e.message]
@@ -111,7 +112,7 @@ end
 ## Exception Model Serialization
 
 # Verify ExceptionInfo safe dump fields
-exception = OT::ExceptionInfo.new
+exception = V2::ExceptionInfo.new
 exception.apply_fields(**@exception_params)
 exception.save
 
@@ -128,8 +129,7 @@ p [:keys, dumped_data.keys]
 ## Exception Querying
 
 # Query recent exceptions
-ret = OT::ExceptionInfo.recent(1.minute)
-pp [:recent, ret]
+ret = V2::ExceptionInfo.recent(1.minute)
 ret.any?
 #=> true
 

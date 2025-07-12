@@ -1,16 +1,18 @@
 // src/stores/secretStore.ts
+
 import { PiniaPluginOptions } from '@/plugins/pinia';
 import {
   ConcealDataResponse,
+  ConcealPayload,
+  GeneratePayload,
   responseSchemas,
   type SecretResponse,
 } from '@/schemas/api';
-import { type Secret, type SecretDetails } from '@/schemas/models/secret';
+import { type Secret, type SecretDetails, type SecretState } from '@/schemas/models/secret';
 import { loggingService } from '@/services/logging.service';
 import { AxiosInstance } from 'axios';
 import { defineStore, PiniaCustomProperties } from 'pinia';
 import { computed, inject, ref } from 'vue';
-import { GeneratePayload, ConcealPayload } from '@/schemas/api';
 
 interface StoreOptions extends PiniaPluginOptions {}
 
@@ -21,6 +23,7 @@ export type SecretStore = {
   // State
   record: Secret | null;
   details: SecretDetails | null;
+  status: SecretState | null;
   _initialized: boolean;
 
   // Getters
@@ -30,6 +33,7 @@ export type SecretStore = {
   init: () => { isInitialized: boolean };
   fetch: (secretKey: string) => Promise<void>;
   reveal: (secretKey: string, passphrase?: string) => Promise<void>;
+  getStatus: (secretKey: string) => Promise<SecretState>;
   clear: () => void;
   $reset: () => void;
 } & PiniaCustomProperties;
@@ -40,9 +44,11 @@ export type SecretStore = {
 /* eslint-disable max-lines-per-function */
 export const useSecretStore = defineStore('secrets', () => {
   const $api = inject('api') as AxiosInstance;
+
   // State
   const record = ref<Secret | null>(null);
   const details = ref<SecretDetails | null>(null);
+  const status = ref<SecretState | null>(null);
   const _initialized = ref(false);
 
   // Getters
@@ -53,8 +59,7 @@ export const useSecretStore = defineStore('secrets', () => {
   function init(options?: StoreOptions) {
     if (_initialized.value) return { isInitialized };
 
-    if (options?.api)
-      loggingService.warn('API instance provided in options, ignoring.');
+    if (options?.api) loggingService.warn('API instance provided in options, ignoring.');
 
     _initialized.value = true;
 
@@ -96,18 +101,14 @@ export const useSecretStore = defineStore('secrets', () => {
    * and composable validation. This is an open question. Response validation
    * should remain the responsibility of this store.
    */
-  async function conceal(
-    payload: ConcealPayload
-  ): Promise<ConcealDataResponse> {
+  async function conceal(payload: ConcealPayload): Promise<ConcealDataResponse> {
     const response = await $api.post('/api/v2/secret/conceal', {
       secret: payload,
     });
     return response.data;
   }
 
-  async function generate(
-    payload: GeneratePayload
-  ): Promise<ConcealDataResponse> {
+  async function generate(payload: GeneratePayload): Promise<ConcealDataResponse> {
     const response = await $api.post('/api/v2/secret/generate', {
       secret: payload,
     });
@@ -125,13 +126,10 @@ export const useSecretStore = defineStore('secrets', () => {
    * @returns Validated secret response
    */
   async function reveal(secretKey: string, passphrase?: string) {
-    const response = await $api.post<SecretResponse>(
-      `/api/v2/secret/${secretKey}/reveal`,
-      {
-        passphrase,
-        continue: true,
-      }
-    );
+    const response = await $api.post<SecretResponse>(`/api/v2/secret/${secretKey}/reveal`, {
+      passphrase,
+      continue: true,
+    });
 
     const validated = responseSchemas.secret.parse(response.data);
     record.value = validated.record;
@@ -143,6 +141,7 @@ export const useSecretStore = defineStore('secrets', () => {
   function clear() {
     record.value = null;
     details.value = null;
+    status.value = null;
   }
 
   /**
@@ -151,6 +150,7 @@ export const useSecretStore = defineStore('secrets', () => {
   function $reset() {
     record.value = null;
     details.value = null;
+    status.value = null;
     _initialized.value = false;
   }
 
@@ -158,6 +158,11 @@ export const useSecretStore = defineStore('secrets', () => {
     // State
     record,
     details,
+    status,
+    _initialized,
+
+    // Getters
+    isInitialized,
 
     // Actions
     init,

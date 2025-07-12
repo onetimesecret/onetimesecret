@@ -1,3 +1,5 @@
+# lib/stathat.rb
+
 require 'net/http'
 require 'uri'
 

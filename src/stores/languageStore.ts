@@ -7,6 +7,7 @@ import { WindowService } from '@/services/window.service';
 import type { AxiosInstance } from 'axios';
 import { defineStore } from 'pinia';
 import { computed, inject, ref, watch } from 'vue';
+import { localeCodes } from '@/sources/languages';
 
 export const SESSION_STORAGE_KEY = 'selected.locale';
 export const DEFAULT_LOCALE = 'en';
@@ -16,7 +17,7 @@ interface StoreOptions extends PiniaPluginOptions {
   storageKey?: string;
 }
 
-/* eslint-disable max-lines-per-function */
+/* eslint-disable max-lines-per-function, max-statements */
 export const useLanguageStore = defineStore('language', () => {
   const $api = inject('api') as AxiosInstance;
 
@@ -33,6 +34,22 @@ export const useLanguageStore = defineStore('language', () => {
   const getCurrentLocale = computed(() => currentLocale.value ?? DEFAULT_LOCALE);
   const getStorageKey = computed(() => storageKey.value ?? SESSION_STORAGE_KEY);
   const getSupportedLocales = computed(() => supportedLocales.value);
+
+  const acceptLanguages = computed(() => getBrowserAcceptLanguage(getCurrentLocale.value));
+  const acceptLanguageHeader = computed(() => acceptLanguages.value.join(','));
+
+  // Map supported locale codes to their display names
+  const supportedLocalesWithNames = computed(() => {
+    const result: Record<string, string> = {};
+    for (const localeCode of supportedLocales.value) {
+      if (localeCode in localeCodes) {
+        result[localeCode] = localeCodes[localeCode as keyof typeof localeCodes];
+      } else {
+        console.warn(`[languageStore] Locale code "${localeCode}" not found in localeCodes map.`);
+      }
+    }
+    return result;
+  });
 
   // Actions
   function init(options?: StoreOptions) {
@@ -99,6 +116,11 @@ export const useLanguageStore = defineStore('language', () => {
     }
   }
 
+  function getBrowserAcceptLanguage(selectedLocale: string): Array<string> {
+    // Use a Set to remove duplicates
+    return [...new Set([selectedLocale, navigator.language])];
+  }
+
   async function updateLanguage(newLocale: string) {
     const validatedLocale = validateAndNormalizeLocale(newLocale);
     if (!supportedLocales.value.includes(validatedLocale)) {
@@ -160,6 +182,7 @@ export const useLanguageStore = defineStore('language', () => {
     deviceLocale,
     storageKey,
     supportedLocales,
+    supportedLocalesWithNames,
     storedLocale,
     currentLocale,
 
@@ -175,6 +198,8 @@ export const useLanguageStore = defineStore('language', () => {
     determineLocale,
     updateLanguage,
     setCurrentLocale,
+    acceptLanguages,
+    acceptLanguageHeader,
 
     $reset,
   };

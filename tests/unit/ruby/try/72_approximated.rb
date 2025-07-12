@@ -1,4 +1,4 @@
-# frozen_string_literal: true
+# tests/unit/ruby/try/72_approximated.rb
 
 # These tryouts test the functionality of Approximated and the
 # Approximate API. Note that this tryouts file has no _try
@@ -17,12 +17,10 @@ require 'dotenv'
 
 Dotenv.load('.env')
 
-require 'onetime'
-require_relative './test_helpers'
+require_relative './test_models'
 
 # Use the default config file for tests
-OT::Config.path = File.join(Onetime::HOME, 'tests', 'unit', 'ruby', 'config.test.yaml')
-OT.boot! :test
+OT.boot! :test, false
 
 @api_key = ENV.fetch('APPROXIMATED_API_KEY', '')
 @dns_records = [

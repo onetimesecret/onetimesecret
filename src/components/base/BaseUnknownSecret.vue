@@ -1,6 +1,8 @@
-<!-- BaseUnknownSecret.vue -->
+<!-- src/components/base/BaseUnknownSecret.vue -->
+
 <script setup lang="ts">
   import type { BrandSettings } from '@/schemas/models/domain/brand';
+  import { fontFamilyClasses, FontFamily } from '@/schemas/models/domain/brand';
 
   export interface Props {
     branded?: boolean;
@@ -19,19 +21,12 @@
 
 <template>
   <div
-    class="unknown-secret"
+    class="rounded-lg bg-white p-8 dark:bg-gray-800"
     :class="[
-      'bg-white dark:bg-gray-800 rounded-lg p-8',
-      branded ? 'shadow-xl w-full' : 'shadow-md',
+      branded ? 'w-full shadow-xl' : 'shadow-md',
       branded && brandSettings?.corner_style === 'sharp' ? 'rounded-none' : '',
-    ]"
-    :style="
-      branded && brandSettings
-        ? {
-            fontFamily: brandSettings.font_family || 'inherit',
-          }
-        : {}
-    ">
+      branded && brandSettings?.font_family ? fontFamilyClasses[brandSettings.font_family as FontFamily] : ''
+    ]">
     <!-- Header slot for icon and title -->
     <slot
       name="header"

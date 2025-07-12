@@ -13,9 +13,10 @@
 #
 inherit_from: .rubocop_todo.yml
 
-require:
-  - rubocop-performance
+plugins:
   - rubocop-thread_safety
+  - rubocop-performance
+  - rubocop-rspec
 
 AllCops:
   NewCops: enable
@@ -23,9 +24,26 @@ AllCops:
   MaxFilesInCache: 100
   TargetRubyVersion: 3.1
   Exclude:
-    - 'migrate/**/*.rb'
+    - 'migrate/**/*'
+    - 'node_modules/**/*'
     - 'tests/unit/ruby/try/**/*'
+    - 'tests/unit/ruby/rspec/**/*'
     - 'vendor/**/*'
+
+Style/TrailingCommaInHashLiteral:
+  Enabled: true
+  EnforcedStyleForMultiline: comma
+
+# The Style/DoubleNegation cop is disabled because double negation provides
+# a concise, idiomatic way to convert values to boolean in Ruby. Alternative
+# approaches like ternary expressions or comparison with nil create unnecessary
+# verbosity without adding clarity. In cases where boolean coercion is the
+# explicit intent, !! clearly communicates this purpose to other Ruby developers.
+Style/DoubleNegation:
+  Enabled: false
+
+Layout/MultilineMethodCallIndentation:
+  EnforcedStyle: indented
 
 Gemspec/DeprecatedAttributeAssignment:
   Enabled: true
@@ -48,25 +66,27 @@ Metrics/AbcSize:
 
 Metrics/ClassLength:
   Enabled: true
-  Max: 200
-
-Metrics/CyclomaticComplexity:
-  Enabled: false
+  Max: 350
 
 Metrics/MethodLength:
   Enabled: true
-  Max: 40
+  Max: 50
   CountAsOne: ['method_call']
 
 Metrics/ModuleLength:
   Enabled: true
-  Max: 250
+  Max: 350
   CountAsOne: ['method_call']
 
 Performance/Size:
   Enabled: true
-  Exclude:
-  #   - lib/example.rb
+  Exclude: []
+
+Naming/AsciiIdentifiers:
+  Enabled: false
+
+Metrics/CyclomaticComplexity:
+  Enabled: false
 
 Style/NegatedIfElseCondition:
   Enabled: true

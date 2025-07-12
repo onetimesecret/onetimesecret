@@ -1,10 +1,8 @@
 <script setup lang="ts">
+  import OIcon from '@/components/icons/OIcon.vue';
   import { useDomainStatus } from '@/composables/useDomainStatus';
   import { CustomDomain } from '@/schemas/models';
-  import OIcon from '@/components/icons/OIcon.vue';
-  import { useI18n } from 'vue-i18n';
 
-  const { t } = useI18n();
   const props = defineProps<{
     domain: CustomDomain;
     hasUnsavedChanges: boolean;
@@ -20,9 +18,12 @@
     <div class="mx-auto max-w-7xl p-4 sm:px-6 lg:px-8">
       <!-- Back button section -->
       <div class="flex items-center space-x-4">
+        <!-- prettier-ignore-attribute class -->
         <RouterLink
           to="/domains"
-          class="inline-flex items-center text-sm text-gray-600 transition-colors hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-100"
+          class="inline-flex items-center text-sm
+            text-gray-600 transition-colors hover:text-gray-900
+            dark:text-gray-400 dark:hover:text-gray-100"
           :aria-label="$t('return-to-domains-list')">
           <svg
             class="mr-2 size-5"
@@ -46,15 +47,20 @@
         class="mt-4 flex flex-col gap-1">
         <div class="flex items-center justify-between gap-2">
           <div class="flex min-w-0 items-center gap-2">
+            <!-- prettier-ignore-attribute class -->
             <h1
-              class="flex min-w-0 items-center truncate text-2xl font-bold text-gray-900 dark:text-white sm:text-3xl">
+              class="flex min-w-0 items-center truncate text-2xl font-bold
+                text-gray-900 dark:text-white sm:text-3xl">
               <span class="truncate">{{ domain.display_domain }}</span>
+              <!-- prettier-ignore-attribute class -->
               <a
                 :href="`https://${domain.display_domain}`"
                 target="_blank"
                 v-show="!hasUnsavedChanges"
                 rel="noopener noreferrer"
-                class="ml-1 text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300"
+                class="ml-1
+                  text-gray-400 hover:text-gray-600
+                  dark:text-gray-500 dark:hover:text-gray-300"
                 :title="$t('open-domain-in-new-tab')">
                 <OIcon
                   collection="mdi"
@@ -63,8 +69,10 @@
               </a>
             </h1>
           </div>
+          <!-- prettier-ignore-attribute class -->
           <div
-            class="flex-shrink-0 flex items-center rounded-md bg-gray-100 px-3 py-1.5 dark:bg-gray-700">
+            class="flex shrink-0 items-center rounded-md
+              bg-gray-100 px-3 py-1.5 dark:bg-gray-700">
             <RouterLink
               :to="`/domains/${domain?.display_domain}/verify`"
               class="inline-flex items-center gap-1.5"
@@ -72,13 +80,13 @@
               <OIcon
                 collection="mdi"
                 :name="statusIcon"
-                class="size-4 flex-shrink-0"
+                class="size-4 shrink-0"
                 :class="{
                   'text-emerald-600 dark:text-emerald-400': isActive,
                   'text-amber-500 dark:text-amber-400': isWarning,
                   'text-rose-600 dark:text-rose-500': isError,
                 }" />
-              <span class="text-sm font-brand leading-none">{{ t(displayStatus) }}</span>
+              <span class="font-brand text-sm leading-none">{{ displayStatus }}</span>
             </RouterLink>
           </div>
         </div>
