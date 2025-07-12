@@ -1,4 +1,4 @@
-# tests/integration/config-to-frontend-flow.spec.rb
+# tests/unit/ruby/rspec/configuration_manifold_spec.rb
 
 require_relative '../unit/ruby/rspec/spec_helper'
 
