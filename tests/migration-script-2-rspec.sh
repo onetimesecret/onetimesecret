@@ -65,16 +65,13 @@ find spec -name "*.rb" -type f | while read -r file; do
     # More robust require statement updates
     ruby -i -pe '
       # Update spec_helper requires (various patterns)
-      gsub(/require_relative\s+["\']\.\.\/.*?spec_helper["\']/, %{require "spec_helper"})
-      gsub(/require_relative\s+["\'].*?\/spec_helper["\']/, %{require "spec_helper"})
-      gsub(/require\s+["\'].*?tests\/unit\/ruby\/rspec\/spec_helper["\']/, %{require "spec_helper"})
+      gsub(/require_relative\s+["\''\'']\.\.\/.*?spec_helper["\''\'']/, %{require "spec_helper"})
+      gsub(/require_relative\s+["\''\''].*?\/spec_helper["\''\'']/, %{require "spec_helper"})
+      gsub(/require\s+["\''\''].*?tests\/unit\/ruby\/rspec\/spec_helper["\''\'']/, %{require "spec_helper"})
 
       # Update other relative requires that point to old test structure
-      gsub(/require_relative\s+["\']\.\.\/\.\.\/\.\.\/tests\/unit\/ruby\//, %{require_relative "../../../tests/unit/ruby/"})
-      gsub(/require_relative\s+["\']\.\.\/tests\/unit\/ruby\//, %{require_relative "../../tests/unit/ruby/"})
-
-      # Update any remaining broken test paths
-      gsub(/require.*["\']tests\/unit\/ruby\/rspec\//, %{require "})
+      gsub(/require_relative\s+["\''\'']\.\.\/\.\.\/\.\.\/tests\/unit\/ruby\//, %{require_relative "../../../tests/unit/ruby/"})
+      gsub(/require_relative\s+["\''\'']\.\.\/tests\/unit\/ruby\//, %{require_relative "../../tests/unit/ruby/"})
     ' "$file"
 
     # Verify syntax after changes

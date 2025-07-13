@@ -1,0 +1,5 @@
+# Tryouts configuration
+require_relative 'helpers/test_helpers'
+
+# Set up test environment
+ENV['RACK_ENV'] = 'test'

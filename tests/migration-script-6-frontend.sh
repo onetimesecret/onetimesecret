@@ -44,8 +44,8 @@ colocate_tests() {
 
     # Find all test files in the test directory
     find "$test_dir" -name "*.spec.ts" -o -name "*.test.ts" | while read -r test_file; do
-        # Get relative path from test directory
-        rel_path=$(realpath --relative-to="$test_dir" "$test_file")
+        # Get relative path from test directory (macOS compatible)
+        rel_path="${test_file#$test_dir/}"
 
         # Create corresponding directory structure in src
         src_dest_dir="$src_dir/$(dirname "$rel_path")"
