@@ -1,4 +1,4 @@
-# tests/unit/ruby/try/19_safe_dump_try.rb
+# tryouts/utils/safe_dump_try.rb
 
 # These tryouts test the safe dumping functionality.
 

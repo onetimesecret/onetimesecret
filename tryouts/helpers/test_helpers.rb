@@ -1,8 +1,8 @@
-# tests/unit/ruby/try/test_helpers.rb
+# tryouts/helpers/test_helpers.rb
 
 # Establish the environment
 ENV['RACK_ENV'] ||= 'production'
-ENV['ONETIME_HOME'] ||= File.expand_path('../../../../..', __FILE__).freeze
+ENV['ONETIME_HOME'] ||= File.expand_path('../../../', __FILE__).freeze
 
 Warning[:deprecated] = true if ['development', 'dev', 'test'].include?(ENV['RACK_ENV'])
 

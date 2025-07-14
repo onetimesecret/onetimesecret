@@ -1,4 +1,4 @@
-# tests/unit/ruby/try/test_models.rb
+# tryouts/helpers/test_models.rb
 #
 # This file provides convenient access to model classes for testing purposes.
 # It creates top-level constants (e.g., Customer) to versioned namespaces

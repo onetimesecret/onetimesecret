@@ -1,6 +1,6 @@
-# tests/unit/ruby/try/test_logic.rb
+# tryouts/helpers/test_logic.rb
 
-require_relative '../helpers/test_models'
+require_relative 'test_models'
 
 require 'onetime/logic'
 
