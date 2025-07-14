@@ -2,7 +2,6 @@
 
 require 'json_schemer'
 
-
 module Onetime
   class Configurator
     unless defined?(KNOWN_PATHS)
@@ -25,7 +24,7 @@ module Onetime
     module Utils
       extend self
 
-      def validate_with_schema(conf, schema, apply_defaults: false)
+      def validate_against_schema(conf, schema, apply_defaults: false)
         raise OT::ConfigError, 'Schema is nil' if schema.nil?
 
         # Create schema validator with defaults insertion enabled

@@ -4,7 +4,7 @@ require_relative '../../../spec_helper'
 require 'json_schemer'
 
 RSpec.describe Onetime::Configurator::Utils do
-  describe '.validate_with_schema' do
+  describe '.validate_against_schema' do
     let(:valid_schema) do
       {
         'type' => 'object',
@@ -27,7 +27,7 @@ RSpec.describe Onetime::Configurator::Utils do
 
     context 'with valid inputs' do
       it 'validates and returns config when valid' do
-        result = described_class.validate_with_schema(valid_config, valid_schema)
+        result = described_class.validate_against_schema(valid_config, valid_schema)
 
         puts "\n=== DEBUGGING: Valid validation ==="
         puts "Input config: #{valid_config.inspect}"
@@ -42,7 +42,7 @@ RSpec.describe Onetime::Configurator::Utils do
 
       it 'applies defaults when apply_defaults is true' do
         config_without_default = { 'name' => 'test' }
-        result = described_class.validate_with_schema(
+        result = described_class.validate_against_schema(
           config_without_default,
           valid_schema,
           apply_defaults: true
@@ -62,7 +62,7 @@ RSpec.describe Onetime::Configurator::Utils do
 
       it 'converts symbols to strings for string type fields' do
         config_with_symbol = { 'name' => :test_symbol, 'age' => 25 }
-        result = described_class.validate_with_schema(config_with_symbol, valid_schema)
+        result = described_class.validate_against_schema(config_with_symbol, valid_schema)
 
         puts "\n=== DEBUGGING: Symbol conversion ==="
         puts "Input config: #{config_with_symbol.inspect}"
@@ -80,14 +80,14 @@ RSpec.describe Onetime::Configurator::Utils do
     context 'with invalid inputs' do
       it 'raises ConfigError when schema is nil' do
         expect {
-          described_class.validate_with_schema(valid_config, nil)
+          described_class.validate_against_schema(valid_config, nil)
         }.to raise_error(OT::ConfigError, 'Schema is nil')
       end
 
       it 'raises ConfigValidationError with detailed error info for invalid config' do
         error = nil
         begin
-          described_class.validate_with_schema(invalid_config, valid_schema)
+          described_class.validate_against_schema(invalid_config, valid_schema)
         rescue OT::ConfigValidationError => e
           error = e
         end
@@ -143,7 +143,7 @@ RSpec.describe Onetime::Configurator::Utils do
 
         error = nil
         begin
-          described_class.validate_with_schema(nested_invalid_config, nested_schema)
+          described_class.validate_against_schema(nested_invalid_config, nested_schema)
         rescue OT::ConfigValidationError => e
           error = e
         end
@@ -166,7 +166,7 @@ RSpec.describe Onetime::Configurator::Utils do
       it 'handles empty config with required fields' do
         error = nil
         begin
-          described_class.validate_with_schema({}, valid_schema)
+          described_class.validate_against_schema({}, valid_schema)
         rescue OT::ConfigValidationError => e
           error = e
         end
@@ -183,7 +183,7 @@ RSpec.describe Onetime::Configurator::Utils do
 
       it 'handles config with extra properties not in schema' do
         config_with_extra = valid_config.merge('extra_field' => 'value')
-        result = described_class.validate_with_schema(config_with_extra, valid_schema)
+        result = described_class.validate_against_schema(config_with_extra, valid_schema)
 
         puts "\n=== DEBUGGING: Extra properties ==="
         puts "Config with extra: #{config_with_extra.inspect}"
@@ -476,7 +476,7 @@ RSpec.describe Onetime::Configurator::Utils do
 
       # This test verifies the integration works with our chosen draft version
       expect {
-        described_class.validate_with_schema({}, schema)
+        described_class.validate_against_schema({}, schema)
       }.not_to raise_error
 
       puts "\n=== DEBUGGING: Schema integration ==="
@@ -497,12 +497,12 @@ RSpec.describe Onetime::Configurator::Utils do
       invalid_email_config = { 'email' => 'not-an-email' }
 
       # Valid email should pass
-      result = described_class.validate_with_schema(valid_email_config, email_schema)
+      result = described_class.validate_against_schema(valid_email_config, email_schema)
       expect(result).to eq(valid_email_config)
 
       # Invalid email should fail
       expect {
-        described_class.validate_with_schema(invalid_email_config, email_schema)
+        described_class.validate_against_schema(invalid_email_config, email_schema)
       }.to raise_error(OT::ConfigValidationError)
 
       puts "\n=== DEBUGGING: Format validation ==="
@@ -528,7 +528,7 @@ RSpec.describe Onetime::Configurator::Utils do
         'number_field' => 42
       }
 
-      result = described_class.validate_with_schema(mixed_config, mixed_schema)
+      result = described_class.validate_against_schema(mixed_config, mixed_schema)
 
       puts "\n=== DEBUGGING: Mixed types ==="
       puts "Input config: #{mixed_config.inspect}"
@@ -553,7 +553,7 @@ RSpec.describe Onetime::Configurator::Utils do
       }
 
       expect {
-        described_class.validate_with_schema(original_config, schema)
+        described_class.validate_against_schema(original_config, schema)
       }.to raise_error(OT::ConfigValidationError)
 
       puts "\n=== DEBUGGING: Config preservation ==="
@@ -584,7 +584,7 @@ RSpec.describe Onetime::Configurator::Utils do
 
       error = nil
       begin
-        described_class.validate_with_schema(multi_error_config, multi_error_schema)
+        described_class.validate_against_schema(multi_error_config, multi_error_schema)
       rescue OT::ConfigValidationError => e
         error = e
       end

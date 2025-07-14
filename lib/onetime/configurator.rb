@@ -230,7 +230,7 @@ module Onetime
 
       loggable_config = OT::Utils.type_structure(config)
       OT.ld "[config] Validating #{loggable_config.size} #{schema.size}"
-      OT::Configurator::Utils.validate_with_schema(config, schema, **)
+      OT::Configurator::Utils.validate_against_schema(config, schema, **)
     end
 
     def _resolve_schema(config)
