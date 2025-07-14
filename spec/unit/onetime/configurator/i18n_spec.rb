@@ -1,6 +1,6 @@
 # tests/unit/ruby/rspec/onetime/configurator/i18n_spec.rb
 
-require_relative '../../spec_helper'
+require_relative '../../../spec_helper'
 require 'onetime/services/legacy_globals'
 require 'onetime/services/service_registry'
 

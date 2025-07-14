@@ -1,6 +1,6 @@
 # tests/unit/ruby/rspec/onetime/mail/mailer/smtp_mailer_spec.rb
 
-require_relative '../../../spec_helper'
+require_relative '../../../../spec_helper'
 require 'onetime/mail/mailer/smtp_mailer'
 
 RSpec.describe Onetime::Mail::Mailer::SMTPMailer do

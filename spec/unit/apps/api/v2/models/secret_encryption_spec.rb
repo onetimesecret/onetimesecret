@@ -1,6 +1,6 @@
-# tests/unit/ruby/rspec/apps/api/v2/models/secret_encryption_spec.rb
+# spec/unit/apps/api/v2/models/secret_encryption_spec.rb
 
-require_relative '../../../../spec_helper'
+require_relative '../../../../../spec_helper'
 
 RSpec.describe V2::Secret, allow_redis: false do
   describe 'encryption functionality' do

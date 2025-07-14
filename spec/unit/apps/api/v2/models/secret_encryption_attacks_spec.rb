@@ -1,6 +1,6 @@
 # tests/unit/ruby/rspec/apps/api/v2/models/secret_encryption_attacks_spec.rb
 
-require_relative '../../../../spec_helper'
+require_relative '../../../../../spec_helper'
 
 RSpec.describe V2::Secret, 'security hardening' do
   let(:secret) { create_stubbed_v2_secret(key: "test-secret-key-12345") }

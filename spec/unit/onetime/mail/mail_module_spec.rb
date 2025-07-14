@@ -1,6 +1,6 @@
 # tests/unit/ruby/rspec/onetime/mail/mail_module_spec.rb
 
-require_relative '../../spec_helper'
+require_relative '../../../spec_helper'
 require 'onetime/mail'
 
 RSpec.describe Onetime::Mail do

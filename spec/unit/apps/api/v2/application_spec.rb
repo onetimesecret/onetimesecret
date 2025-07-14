@@ -1,6 +1,6 @@
 # tests/unit/ruby/rspec/apps/api/v2/application_spec.rb
 
-require_relative '../../../spec_helper'
+require_relative '../../../../spec_helper'
 require 'v2/application'
 
 # Attempt to test that the v2 rack app includes JSONBodyParser middleware

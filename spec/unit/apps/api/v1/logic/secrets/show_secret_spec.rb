@@ -1,6 +1,6 @@
 # tests/unit/ruby/rspec/apps/api/v1/logic/secrets/show_secret_spec.rb
 
-require_relative '../../../../../spec_helper' # correct depth - Mar 22
+require_relative '../../../../../../spec_helper' # correct depth - Mar 22
 
 RSpec.describe V1::Logic::Secrets::ShowSecret do
   let(:session) { double('V1::Session') }

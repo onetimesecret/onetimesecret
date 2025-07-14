@@ -1,6 +1,6 @@
 # tests/unit/ruby/rspec/onetime/mail/mailer/sendgrid_mailer_spec.rb
 
-require_relative '../../../spec_helper'
+require_relative '../../../../spec_helper'
 require 'onetime/mail/mailer/sendgrid_mailer'
 
 RSpec.describe Onetime::Mail::Mailer::SendGridMailer do

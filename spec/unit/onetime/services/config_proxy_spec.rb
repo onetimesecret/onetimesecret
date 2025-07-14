@@ -1,6 +1,6 @@
 # tests/unit/ruby/rspec/onetime/services/config_proxy_spec.rb
 
-require_relative '../../spec_helper'
+require_relative '../../../spec_helper'
 
 # Load the service provider system components
 require 'onetime/services/system'

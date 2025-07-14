@@ -1,6 +1,6 @@
 # tests/unit/ruby/rspec/apps/api/v1/controllers/index_spec.rb
 
-require_relative '../../../../spec_helper'
+require_relative '../../../../../spec_helper'
 require 'v1/controllers'
 
 RSpec.describe V1::Controllers::Index, type: :request do

@@ -2,10 +2,10 @@
 
 # e.g. pnpm run test:rspec tests/unit/ruby/rspec/apps/web/manifold/views/base_spec.rb
 
-require_relative '../../../../spec_helper'
+require_relative '../../../../../spec_helper'
 
 require 'manifold/views/base'
-require 'manifold/views/serializers'
+# require 'manifold/views/serializers'
 
 
 RSpec.describe Manifold::Views::BaseView do
@@ -15,15 +15,6 @@ RSpec.describe Manifold::Views::BaseView do
   before(:all) do
     OT::Plan.load_plans!
 
-    described_class.use_serializers(
-      Manifold::Views::ConfigSerializer,
-      Manifold::Views::AuthenticationSerializer,
-      Manifold::Views::DomainSerializer,
-      Manifold::Views::I18nSerializer,
-      Manifold::Views::MessagesSerializer,
-      # Manifold::Views::PlanSerializer,
-      Manifold::Views::SystemSerializer,
-    )
   end
 
   before(:each) do

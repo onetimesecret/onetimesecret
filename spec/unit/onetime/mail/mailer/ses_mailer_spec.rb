@@ -1,6 +1,6 @@
 # tests/unit/ruby/rspec/onetime/mail/mailer/ses_mailer_spec.rb
 
-require_relative '../../../spec_helper'
+require_relative '../../../../spec_helper'
 require 'aws-sdk-sesv2'
 require 'onetime/mail/mailer/ses_mailer'
 

@@ -1,6 +1,6 @@
 # tests/unit/ruby/rspec/onetime/app/web/window_state_schema_spec.rb
 
-require_relative '../../../spec_helper'
+require_relative '../../../../spec_helper'
 
 RSpec.describe 'Window State Schema Validation' do
   let(:config) { OT.conf }

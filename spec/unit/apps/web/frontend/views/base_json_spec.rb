@@ -1,7 +1,7 @@
 # tests/unit/ruby/rspec/apps/web/manifold/views/base_json_spec.rb
 
 require 'json'
-require_relative '../../../../spec_helper'
+require_relative '../../../../../spec_helper'
 
 RSpec.xdescribe Manifold::Views::BaseView, "JSON Output" do
   include_context "rack_test_context"

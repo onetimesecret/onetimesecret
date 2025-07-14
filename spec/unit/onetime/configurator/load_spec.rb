@@ -1,6 +1,6 @@
 # tests/unit/ruby/rspec/onetime/configurator/load_spec.rb
 
-require_relative '../../spec_helper'
+require_relative '../../../spec_helper'
 require 'tempfile'
 require 'fileutils'
 

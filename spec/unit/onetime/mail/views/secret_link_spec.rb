@@ -1,6 +1,6 @@
 # tests/unit/ruby/rspec/onetime/mail/views/secret_link_spec.rb
 
-require_relative '../../../spec_helper'
+require_relative '../../../../spec_helper'
 
 RSpec.describe Onetime::Mail::SecretLink do
   include_context "mail_test_context"

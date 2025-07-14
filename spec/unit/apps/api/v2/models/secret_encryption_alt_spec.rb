@@ -1,6 +1,6 @@
 # tests/unit/ruby/rspec/apps/api/v2/models/secret_encryption_alt_spec.rb
 
-require_relative '../../../../spec_helper'
+require_relative '../../../../../spec_helper'
 
 RSpec.describe V2::Secret, allow_redis: false do
   let(:customer_id) { 'test-customer-123' }

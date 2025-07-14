@@ -9,7 +9,7 @@ module Onetime
       # Responsible for detecting whether this is the first time this
       # app is booting up with an empty database. Or if not, but there
       # is no existing MutableConfig record in redis, it will read the
-      # defaults from etc/mutable_config.yaml and create one.
+      # defaults from etc/mutable.yaml and create one.
       #
       # If it is the first boot, it will print out some helpful information
       # to the user if there is any sort of error starting up.
@@ -72,7 +72,7 @@ module Onetime
               Have you run the 1452 migration yet? Run:
                     `bundle exec bin/ots migrate --run 1452`
 
-              If you have, make sure etc/config.yaml and mutable_config.yaml
+              If you have, make sure etc/config.yaml and mutable.yaml
               files exist. In a pinch you can copy the files from etc/defaults
               to etc/ (just remove the "defaults." in the name).
             BOOT

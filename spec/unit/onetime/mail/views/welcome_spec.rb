@@ -1,6 +1,6 @@
 # tests/unit/ruby/rspec/onetime/mail/views/welcome_spec.rb
 
-require_relative '../../../spec_helper'
+require_relative '../../../../spec_helper'
 
 RSpec.describe Onetime::Mail::Welcome do
   include_context "mail_test_context"

@@ -1,7 +1,7 @@
 # tests/unit/ruby/rspec/onetime/services/system/connect_databases_spec.rb
 
-require_relative '../../../spec_helper'
-require_relative '../../../support/service_provider_context'
+require_relative '../../../../spec_helper'
+require_relative '../../../../support/service_provider_context'
 
 # Load the service provider system components
 require 'onetime/services/service_provider'

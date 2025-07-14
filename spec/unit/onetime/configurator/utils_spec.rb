@@ -1,6 +1,6 @@
 # tests/unit/ruby/rspec/onetime/configurator/utils_spec.rb
 
-require_relative '../../spec_helper'
+require_relative '../../../spec_helper'
 require 'json_schemer'
 
 RSpec.describe Onetime::Configurator::Utils do

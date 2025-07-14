@@ -1,4 +1,4 @@
-# tests/unit/ruby/rspec/support/service_provider_context.rb
+# spec/support/service_provider_context.rb
 
 RSpec.shared_context "service_provider_context" do
   let(:registry_klass) { Onetime::Services::ServiceRegistry }
@@ -131,16 +131,12 @@ RSpec.shared_context "service_provider_context" do
     registry_klass.instance_variable_set(:@providers, Concurrent::Map.new)
     registry_klass.instance_variable_set(:@app_state, Concurrent::Map.new)
 
-    # Stub common OT logger methods
-    allow(OT).to receive(:logger).and_return(double(info: nil, debug: nil, warn: nil))
-    allow(OT).to receive(:li)
-    allow(OT).to receive(:ld)
-    allow(OT).to receive(:lw)
-    allow(OT).to receive(:le)
-    allow(OT).to receive(:info)
-    allow(OT).to receive(:debug)
-    allow(OT).to receive(:warn)
-    allow(OT).to receive(:error)
+    # Stub common OT logging methods (updated for new logging system)
+    allow(OT).to receive(:li)    # info logging
+    allow(OT).to receive(:ld)    # debug logging
+    allow(OT).to receive(:lw)    # warning logging
+    allow(OT).to receive(:le)    # error logging
+    allow(OT).to receive(:info)  # alternate info method
   end
 end
 

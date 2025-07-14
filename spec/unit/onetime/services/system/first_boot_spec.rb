@@ -1,7 +1,7 @@
 # tests/unit/ruby/rspec/onetime/services/system/first_boot_spec.rb
 
-require_relative '../../../spec_helper'
-require_relative '../../../support/service_provider_context'
+require_relative '../../../../spec_helper'
+require_relative '../../../../support/service_provider_context'
 
 # Load the service provider system components
 require 'onetime/services/service_provider'
@@ -32,7 +32,7 @@ RSpec.describe 'Service Provider System' do
       end
 
       it 'sets correct mutable config defaults path' do
-        expected_path = File.join(ENV.fetch('ONETIME_HOME'), 'etc', 'mutable_config.yaml')
+        expected_path = File.join(ENV.fetch('ONETIME_HOME'), 'etc', 'mutable.yaml')
         expect(described_class.mutable_config_defaults_path).to eq(expected_path)
       end
     end
@@ -74,7 +74,7 @@ RSpec.describe 'Service Provider System' do
           provider.start(base_service_config)
 
           expect(V2::MutableConfig).to have_received(:current).once
-          expected_path = File.join(ENV.fetch('ONETIME_HOME'), 'etc', 'mutable_config.yaml')
+          expected_path = File.join(ENV.fetch('ONETIME_HOME'), 'etc', 'mutable.yaml')
           expect(OT::Configurator::Load).to have_received(:yaml_load_file).with(expected_path)
 
           expected_create_args = default_mutable_config.merge(
@@ -106,7 +106,7 @@ RSpec.describe 'Service Provider System' do
             Have you run the 1452 migration yet? Run:
                   `bundle exec bin/ots migrate --run 1452`
 
-            If you have, make sure etc/config.yaml and mutable_config.yaml
+            If you have, make sure etc/config.yaml and mutable.yaml
             files exist. In a pinch you can copy the files from etc/defaults
             to etc/ (just remove the "defaults." in the name).
           BOOT
