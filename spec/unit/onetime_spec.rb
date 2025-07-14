@@ -1,6 +1,6 @@
 # tests/unit/ruby/rspec/onetime_spec.rb
 
-require_relative 'spec_helper'
+require_relative '../spec_helper'
 
 RSpec.describe Onetime do
   describe '.env' do

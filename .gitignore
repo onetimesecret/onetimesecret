@@ -33,6 +33,7 @@ pnpm-debug.log*
 .appendonlydir/
 .bundle/
 .rspec
+.rspec_status
 appendonlydir/
 data/
 node_modules/

@@ -1,6 +1,6 @@
 # tests/unit/ruby/rspec/onetime/classmethods_spec.rb
 
-require_relative '../spec_helper'
+require_relative '../../spec_helper'
 
 RSpec.describe Onetime::ClassMethods do
   let(:test_class) do

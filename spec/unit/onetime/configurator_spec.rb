@@ -12,7 +12,7 @@
 # NOTE: 'after_load method removed - functionality moved to
 # processing hooks in etc/init.d/site.rb'
 
-require_relative '../spec_helper'
+require_relative '../../spec_helper'
 
 RSpec.describe Onetime::Configurator do
   let(:test_config_path) { File.join(Onetime::HOME, 'tests', 'unit', 'ruby', 'config.test.yaml') }

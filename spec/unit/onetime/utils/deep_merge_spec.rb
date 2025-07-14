@@ -1,6 +1,6 @@
 # tests/unit/ruby/rspec/onetime/utils/deep_merge_spec.rb
 
-require_relative '../../spec_helper'
+require_relative '../../../spec_helper'
 
 RSpec.describe Onetime::Utils do
   # Since deep_merge is private, we need to use send to test it directly

@@ -1,11 +1,14 @@
-# frozen_string_literal: true
+# spec/spec_helper.rb
 
 require 'bundler/setup'
 require_relative '../lib/onetime'
 
-# Use test configuration
-OT::Configurator.path = File.join(__dir__, '../tests/unit/ruby/config.test.yaml')
-OT.boot! :test
+# This tells OT::Configurator#load_with_impunity! to look in the preset list
+# of paths to look for config, find a config that matches this basename.
+# See ./tests/unit/ruby/rspec/onetime/configurator_spec.rb
+ENV['ONETIME_CONFIG_FILE_BASENAME'] = 'config.test'
+
+Warning[:deprecated] = true if ['development', 'dev', 'test'].include?(ENV['RACK_ENV'])
 
 RSpec.configure do |config|
   config.expect_with :rspec do |expectations|
@@ -16,18 +19,17 @@ RSpec.configure do |config|
     mocks.verify_partial_doubles = true
   end
 
-  config.shared_context_metadata_behavior = :apply_to_host_groups
+  config.warnings                             = true
+  config.shared_context_metadata_behavior     = :apply_to_host_groups
+  config.example_status_persistence_file_path = 'spec/.rspec_status'
   config.filter_run_when_matching :focus
-  config.example_status_persistence_file_path = "spec/.rspec_status"
   config.disable_monkey_patching!
-  config.warnings = true
 
-  if config.files_to_run.one?
-    config.default_formatter = "doc"
-  end
+
+  config.default_formatter = 'doc' if config.files_to_run.one?
 
   config.profile_examples = 10
-  config.order = :random
+  config.order            = :random
   Kernel.srand config.seed
 
   # Load support files

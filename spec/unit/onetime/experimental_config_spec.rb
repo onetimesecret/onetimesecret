@@ -2,8 +2,8 @@
 
 require 'openssl'
 
-require_relative '../spec_helper'
-require_relative '../support/boot_context'
+require_relative '../../spec_helper'
+require_relative '../../support/boot_context'
 
 RSpec.describe "Experimental config settings" do
   let(:source_config_path) { File.expand_path(File.join(Onetime::HOME, 'tests', 'unit', 'ruby', 'config.test.yaml')) }

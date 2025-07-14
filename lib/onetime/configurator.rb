@@ -44,7 +44,7 @@ module Onetime
       File.join(@home, 'etc'), # 3. onetimesecret/etc
       File.join(@xdg.config_home, 'onetime'), # 4. ~/.config/onetime
       File.join(File::SEPARATOR, 'etc', 'onetime'), # 5. /etc/onetime
-      File.join(@home, 'tests', 'unit', 'ruby'), # 6. ./tests/unit/ruby
+      File.join(@home, 'spec'), # 6. ./spec
     ].uniq.freeze
     @extensions = ['.yml', '.yaml', '.json', '.json5', ''].freeze
 
@@ -246,7 +246,7 @@ module Onetime
 
         # Fall back to basename search in predefined paths if not found
         if resolved_path.nil?
-          basename = File.basename(schema_ref, File.extname(schema_ref))
+          basename      = File.basename(schema_ref, File.extname(schema_ref))
           resolved_path = self.class.find_config(basename) || schema_ref
         end
 

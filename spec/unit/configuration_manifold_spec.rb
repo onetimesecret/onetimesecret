@@ -1,6 +1,6 @@
 # tests/unit/ruby/rspec/configuration_manifold_spec.rb
 
-require_relative '../unit/ruby/rspec/spec_helper'
+require_relative '../spec_helper'
 
 RSpec.describe 'Configuration to Frontend Flow Integration' do
   let(:minimal_config) do

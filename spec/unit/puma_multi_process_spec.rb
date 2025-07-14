@@ -18,7 +18,7 @@
 # - Load balancing identification
 # - Process-specific logging and monitoring
 #
-require_relative 'spec_helper'
+require_relative '../spec_helper'
 require 'net/http'
 require 'timeout'
 require 'tempfile'

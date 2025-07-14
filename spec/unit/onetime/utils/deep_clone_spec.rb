@@ -1,6 +1,6 @@
 # tests/unit/ruby/rspec/onetime/utils/deep_clone_spec.rb
 
-require_relative '../../spec_helper'
+require_relative '../../../spec_helper'
 
 RSpec.describe Onetime::Utils do
   describe '#deep_clone' do
