@@ -6,6 +6,9 @@
 # Purpose: Separates monolithic config.example.yaml into static and mutable configuration files.
 # Static config goes to etc/config.yaml, mutable config gets loaded into V2::MutableConfig.
 #
+# Symbols vs Strings: the old config file used symbols for keys, while the new config file uses
+# strings.
+#
 # **NOTE**: The reason we use `yq` even though it adds a system dependency is that
 # it can transform YAML _with_ comments and preserve their structure.
 #
@@ -115,12 +118,14 @@ module Onetime
         raise "Source config file does not exist (#{@source_config})"
       end
 
-      config = YAML.load_file(@source_config)
+      # The "old" config file that we are migrating from already has symbolized
+      # keys in the actual file, so in order to load it safely we need to
+      # explicitly permit Symbols.
+      config = YAML.safe_load_file(@source_config, permitted_classes: [Symbol])
 
       if config.nil? || config.empty?
         raise 'Source config file is empty'
       end
-
       # Check if all static mapping source paths exist with non-nil values
       ret = CONFIG_MAPPINGS['static'].all? do |mapping|
         from_path = mapping['from']
@@ -213,7 +218,7 @@ module Onetime
     private
 
     def get_nested_value(hash, keys)
-      keys.reduce(hash) { |h, key| h&.dig(key) }
+      keys.reduce(hash) { |h, key| h&.dig(key.to_sym) }
     end
 
     def backup_config
