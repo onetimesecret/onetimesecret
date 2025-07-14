@@ -162,6 +162,14 @@ module Onetime
       end
     end
 
+    def handle_migration_not_needed
+      info('')
+      info('Migration needed? false.')
+      info('')
+      info('This usually means that the migration has already been applied.')
+      nil
+    end
+
     protected
 
     # Access to Redis database (defaults to DB 6)
@@ -170,14 +178,5 @@ module Onetime
       @redis ||= Familia.redis(6)
     end
 
-    private
-
-    def handle_migration_not_needed
-      info('')
-      info('Migration needed? false.')
-      info('')
-      info('This usually means that the migration has already been applied.')
-      nil
-    end
   end
 end
