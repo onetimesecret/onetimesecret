@@ -39,10 +39,10 @@ export default defineConfig({
       '**/.{idea,git,cache,output,temp}/**',
     ],
     setupFiles: [
-      'tests/unit/vue/setup-env.ts',
-      'tests/unit/vue/setup.ts',
-      'tests/unit/vue/setupWindow.ts',
-      'tests/unit/vue/setupRouter.ts',
+      'src/tests/setup/setup-env.ts',
+      'src/tests/setup/setup.ts',
+      'src/tests/setup/setupWindow.ts',
+      'src/tests/setup/setupRouter.ts',
     ],
     sequence: {
       hooks: 'list', // runs beforeEachand afterEach in the order defined
@@ -55,7 +55,7 @@ export default defineConfig({
   resolve: {
     alias: {
       '@': resolve(process.cwd(), './src'),
-      '@tests': resolve(process.cwd(), './tests'),
+      '@tests': resolve(process.cwd(), './src/tests'),
     },
   },
 });

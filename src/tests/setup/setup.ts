@@ -11,6 +11,7 @@ const autoInitPlugin = () => {
     };
   }) as unknown as PiniaPlugin;
 };
+
 // Mock createApi function
 const createApi = (): AxiosInstance => {
   return {

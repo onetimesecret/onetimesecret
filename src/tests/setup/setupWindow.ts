@@ -1,7 +1,7 @@
 // tests/unit/vue/setupWindow.ts
 
 import { vi } from 'vitest';
-import { stateFixture } from './fixtures/window.fixture';
+import { stateFixture } from '@/tests/fixtures/window.fixture';
 import { type OnetimeWindow } from '@/types/declarations/window';
 
 export const windowMock = {

@@ -2,8 +2,8 @@
 
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { WindowService } from '@/services/window.service';
-import { setupWindowState, setupEmptyWindowState } from '../setupWindow';
-import { stateFixture } from '../fixtures/window.fixture';
+import { setupWindowState, setupEmptyWindowState } from '@/tests/setup/setupWindow';
+import { stateFixture } from '@/tests/fixtures/window.fixture';
 import type { OnetimeWindow } from '@/types/declarations/window';
 
 describe('WindowService Integration Tests', () => {
