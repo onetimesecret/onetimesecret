@@ -271,7 +271,7 @@ DEPENDENCIES
   byebug
   concurrent-ruby (~> 1.3.5)
   dotenv
-  drydock (= 1.0.0)
+  drydock (~> 1.0.0)
   encryptor (= 1.1.3)
   fakeredis
   familia (~> 1.2.1)

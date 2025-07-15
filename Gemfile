@@ -39,12 +39,12 @@ gem 'otto', '~> 1.1.0.pre.alpha4'
 gem 'storable'
 gem 'uri-redis', '~> 1.3.0'
 
-if ENV['RACK_ENV'] == 'development' && ENV['CI'].to_s.empty?
+if ENV['LOCAL_DEV'] && ENV['RACK_ENV'] == 'development' && ENV['CI'].to_s.empty?
   gem 'rhales', path: '../rhales'
   gem 'drydock', path: '../../d/drydock'
 else
   gem 'rhales', '~> 0.4.0'
-  gem 'drydock', '1.0.0'
+  gem 'drydock', '~> 1.0.0'
 end
 
 gem 'concurrent-ruby', '~> 1.3.5'
