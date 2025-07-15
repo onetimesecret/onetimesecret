@@ -21,6 +21,7 @@
     "lint:quick": "pnpm run lint:base --cache-location ./node_modules/.cache/eslint --cache 'src/**/*.{mjs,ts}' './*.{mjs,ts,js}'",
     "lint:quick:fix": "pnpm run lint:base --fix 'src/**/*.{mjs,ts}' './*.{mjs,ts,d.ts,js}'",
     "lint:tests": "pnpm run lint:base 'tests/**/*.{mjs,ts,vue}'",
+    "mailpit": "mailpit --smtp-tls-cert .certs/mailpit.crt --smtp-tls-key .certs/mailpit.key",
     "optimize": "vite optimize",
     "optimize:local": "vite optimize --config vite.config.local.ts",
     "oursync": "rsync -av --ignore-existing public/web/ /var/www/public/",
