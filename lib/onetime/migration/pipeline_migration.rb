@@ -134,29 +134,6 @@ module Onetime
       process_batch_safely(batch_objects) if batch_objects.any?
     end
 
-    # NOTE: Don't call `track_stat(:records_updated)` here (or anywhere else
-    # in a pipeline migration). It's called automatically in process_batch,
-    # immediately after execute_update returns.
-    def execute_update(pipe, obj, fields, original_key = nil)
-      klass_name = obj.class.name.split('::').last
-
-      unless fields&.any?
-        return debug("Would skip #{klass_name} b/c empty fields (#{original_key})")
-      end
-
-      # Use original_key for records that can't generate valid keys
-      redis_key = original_key || obj.rediskey
-
-      for_realsies_this_time? do
-        # USE THE PIPELINE AND NOT THE regular redis connection.
-        pipe.hmset(redis_key, fields.flatten)
-      end
-
-      dry_run_only? do
-        debug("Would update #{klass_name}: #{fields}")
-      end
-    end
-
     def process_batch_safely(objects)
       return if objects.empty?
 
@@ -199,8 +176,6 @@ module Onetime
       raise NotImplementedError, "#{self.class} must implement #build_update_fields"
     end
 
-    private
-
     # Execute pipeline update operation
     #
     # Override this method to customize pipeline operations beyond simple
@@ -209,6 +184,10 @@ module Onetime
     #
     # **Important**: Use the provided `pipe` parameter, not the regular
     # Redis connection, to ensure operations are pipelined.
+    #
+    # NOTE: The `track_stat(:records_updated)` method should not be called here
+    # (or anywhere else in a pipeline migration actually) as it is called by the
+    # pipeline migration framework itself.
     #
     # @param pipe [Redis::Pipeline] Redis pipeline instance
     # @param obj [Familia::Horreum] object being updated
