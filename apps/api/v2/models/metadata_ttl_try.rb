@@ -14,7 +14,7 @@
 # processes metadata objects and produces the expected structured
 # hash output for the API response.
 
-require_relative '../helpers/test_models'
+require_relative '../../../../tests/helpers/test_models'
 
 require 'onetime/controllers'
 

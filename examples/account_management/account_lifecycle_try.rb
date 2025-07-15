@@ -12,7 +12,7 @@
 # 4. Account retrieval
 # 5. Account deletion
 
-require_relative '../helpers/test_logic'
+require_relative '../../tests/helpers/test_logic'
 require 'securerandom'
 
 # Load the app with test configuration

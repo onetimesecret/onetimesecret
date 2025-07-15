@@ -12,7 +12,7 @@
 # 3. Domain listing
 # 4. Domain retrieval
 
-require_relative '../helpers/test_logic'
+require_relative '../../tests/helpers/test_logic'
 
 # Load the app with test configuration
 OT.boot! :test, false

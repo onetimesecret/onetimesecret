@@ -1,6 +1,6 @@
 # ./tryouts/utils/onetime_utils_fortunes_try.rb
 
-require_relative '../helpers/test_helpers'
+require_relative '../../tests/helpers/test_helpers'
 
 OT.boot! :test, false
 

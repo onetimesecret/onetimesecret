@@ -24,7 +24,7 @@ Dotenv.load('.env')
 #
 # e.g. Make sure to set these in your .env file:
 
-require_relative '../helpers/test_helpers'
+require_relative 'helpers/test_helpers'
 OT.boot! :test, false
 
 @now = DateTime.now

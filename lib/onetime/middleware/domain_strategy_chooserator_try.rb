@@ -1,6 +1,6 @@
 # ./tryouts/middleware/domain_strategy_chooserator_try.rb
 
-require_relative '../helpers/test_helpers'
+require_relative '../../../tests/helpers/test_helpers'
 
 require 'middleware/detect_host'
 require 'onetime/middleware/domain_strategy'

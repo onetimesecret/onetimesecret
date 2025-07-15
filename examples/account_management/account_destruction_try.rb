@@ -15,7 +15,7 @@
 # The tryouts use the V2::Logic::Account::DestroyAccount class to simulate different account destruction
 # scenarios, allowing for targeted testing of this critical functionality without affecting real user accounts.
 
-require_relative '../helpers/test_logic'
+require_relative '../../tests/helpers/test_logic'
 
 # Load the app
 OT.boot! :test, false

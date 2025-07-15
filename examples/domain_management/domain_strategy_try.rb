@@ -3,7 +3,7 @@
 # These tryouts test the DomainStrategy middleware class that handles
 # domain strategy determination and validation using a state machine
 
-require_relative '../helpers/test_models'
+require_relative '../../tests/helpers/test_models'
 
 require 'middleware/detect_host'
 require 'onetime/middleware/domain_strategy'

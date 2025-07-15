@@ -13,8 +13,8 @@
 # allowing for targeted testing of these specific scenarios without needing to run the full application.
 
 
-require_relative '../helpers/test_models'
-require 'manifold/controllers/settings'
+require_relative '../../../../../tests/helpers/test_models'
+# require_relative '../../../api/v1/controllers/settings'
 
 #Familia.debug = false
 

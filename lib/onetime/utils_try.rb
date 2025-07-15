@@ -16,7 +16,7 @@
 # without needing to run the full application, allowing for targeted
 # testing of these specific functionalities.
 
-require_relative '../helpers/test_helpers'
+require_relative '../../tests/helpers/test_helpers'
 
 # Familia.debug = true
 

@@ -2,7 +2,7 @@
 
 require 'securerandom'
 
-require_relative '../helpers/test_models'
+require_relative '../../tests/helpers/test_models'
 
 # Load the app
 OT.boot! :test, false

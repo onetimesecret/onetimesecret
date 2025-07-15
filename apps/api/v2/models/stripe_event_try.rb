@@ -14,7 +14,7 @@
 # These tests aim to verify the correct behavior of the V2::StripeEvent class,
 # which is essential for managing Stripe-related events in the application.
 
-require_relative '../helpers/test_helpers'
+require_relative '../../../../tests/helpers/test_helpers'
 require 'v2/models/stripe_event'
 
 # Load the app

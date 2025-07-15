@@ -11,7 +11,7 @@
 # These tests ensure that email templates are correctly generated and localized,
 # and that the share_domain feature is properly handled in the email content.
 
-require_relative '../helpers/test_models'
+require_relative '../../../../tests/helpers/test_models'
 # Use the default config file for tests
 OT.boot! :test, false
 

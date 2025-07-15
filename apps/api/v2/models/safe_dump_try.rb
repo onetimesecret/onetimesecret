@@ -2,7 +2,7 @@
 
 # These tryouts test the safe dumping functionality.
 
-require_relative '../helpers/test_models'
+require_relative '../../../../tests/helpers/test_models'
 
 # Use the default config file for tests
 OT.boot! :test, true

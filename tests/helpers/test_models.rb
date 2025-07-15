@@ -11,7 +11,7 @@
 
 # Make sure the test helpers are loaded before the models. This makes it
 # possible for the tryouts to need only one require statement.
-require_relative '../helpers/test_helpers'
+require_relative 'test_helpers'
 
 require 'onetime/models'
 

@@ -15,7 +15,7 @@
 # The tryouts use the V2::Logic::ReceiveFeedback class to simulate different feedback submission
 # scenarios, allowing for targeted testing of this feature without affecting the actual feedback database.
 
-require_relative '../helpers/test_models'
+require_relative '../../tests/helpers/test_models'
 require 'v2/logic/feedback'
 require 'v2/controllers/challenges'
 

@@ -12,7 +12,7 @@
 # These tests aim to ensure that the application can correctly load and use
 # its configuration, which is crucial for proper operation and customization.
 
-require_relative '../helpers/test_helpers'
+require_relative '../../tests/helpers/test_helpers'
 
 # Use the default config file for tests
 OT.boot! :test, false

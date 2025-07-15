@@ -12,7 +12,7 @@
 # These tests ensure that the ShowMetadata logic correctly handles different scenarios
 # and properly initializes based on the provided arguments.
 
-require_relative '../helpers/test_logic'
+require_relative '../../tests/helpers/test_logic'
 
 # Use the default config file for tests
 OT.boot! :test, false

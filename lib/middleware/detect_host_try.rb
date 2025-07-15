@@ -10,7 +10,7 @@
 # 4. Multiple host handling
 # 5. Empty and missing header handling
 
-require_relative '../helpers/test_helpers'
+require_relative '../../tests/helpers/test_helpers'
 
 require 'stringio'
 require 'middleware/detect_host'

@@ -10,7 +10,7 @@
 require 'securerandom'
 require 'fakeredis'
 
-require_relative '../helpers/test_models'
+require_relative '../../tests/helpers/test_models'
 
 #Familia.debug = true
 

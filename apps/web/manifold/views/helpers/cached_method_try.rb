@@ -15,7 +15,7 @@
 # without needing to run the full application, allowing for targeted
 # testing of this specific functionality.
 
-require_relative '../helpers/test_helpers'
+require_relative '../../../../../tests/helpers/test_helpers'
 
 require 'manifold/views'
 

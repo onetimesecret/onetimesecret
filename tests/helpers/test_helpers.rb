@@ -14,7 +14,7 @@ $LOAD_PATH.unshift(File.join(app_root, 'web'))
 
 # This tells OT::Configurator#load_with_impunity! to look in the preset list
 # of paths to look for a config file and find one that matches this basename.
-# See ./tests/unit/ruby/rspec/onetime/configurator_spec.rb
+# See ./spec/unit/onetime/configurator_spec.rb
 ENV['ONETIME_CONFIG_FILE_BASENAME'] = 'config.test'
 
 require 'onetime'

@@ -1,6 +1,6 @@
 # ./tryouts/logic/logic_exception_info_try.rb
 
-require_relative '../helpers/test_logic'
+require_relative '../../tests/helpers/test_logic'
 require 'securerandom'
 
 # NOTE: ReceiveException is only in V2

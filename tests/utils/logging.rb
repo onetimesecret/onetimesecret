@@ -11,7 +11,7 @@
 
 require 'securerandom'
 
-require_relative '../helpers/test_helpers'
+require_relative 'helpers/test_helpers'
 
 SYSLOG = Syslog.open('onetime') unless defined?(SYSLOG)
 

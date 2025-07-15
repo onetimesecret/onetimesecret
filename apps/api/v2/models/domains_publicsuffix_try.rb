@@ -4,7 +4,7 @@
 
 require 'public_suffix'
 
-require_relative '../helpers/test_helpers'
+require_relative '../../../../tests/helpers/test_helpers'
 
 # Load the app
 OT.boot! :test, false

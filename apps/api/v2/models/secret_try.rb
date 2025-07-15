@@ -16,7 +16,7 @@
 
 require 'set'
 
-require_relative '../helpers/test_models'
+require_relative '../../../../tests/helpers/test_models'
 
 # Use the default config file for tests
 @iterations = 1000

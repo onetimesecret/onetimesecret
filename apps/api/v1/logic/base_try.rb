@@ -17,7 +17,7 @@
 
 require 'securerandom'
 
-require_relative '../helpers/test_logic'
+require_relative '../../../../tests/helpers/test_logic'
 
 # Load the app
 OT.boot! :test, false

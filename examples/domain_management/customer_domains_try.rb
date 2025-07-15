@@ -2,7 +2,7 @@
 
 # These tryouts test the customer custom domain relations
 
-require_relative '../helpers/test_models'
+require_relative '../../tests/helpers/test_models'
 
 OT.boot! :test, true # if this is false, all models will have db 0
 
