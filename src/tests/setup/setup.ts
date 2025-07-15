@@ -1,4 +1,4 @@
-// tests/unit/vue/setup.ts
+// src/tests/setup/setup.ts
 
 // Mock autoInitPlugin since it can't be found
 const autoInitPlugin = () => {

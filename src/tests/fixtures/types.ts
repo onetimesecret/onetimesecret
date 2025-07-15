@@ -1,4 +1,4 @@
-// tests/unit/vue/fixtures/types.ts
+// src/tests/fixtures/types.ts
 
 import { Secret, SecretDetails } from '@/schemas/models/secret';
 

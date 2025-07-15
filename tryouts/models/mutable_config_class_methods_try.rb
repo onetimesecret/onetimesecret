@@ -1,4 +1,4 @@
-# tests/unit/ruby/try/20_models/10_mutable_config_class_methods_try.rb
+# ./tryouts/models/mutable_config_class_methods_try.rb
 
 # redis-server --port 2121 --save "" --appendonly no
 # clear && ONETIME_DEBUG=1 REDIS_URL='redis://127.0.0.1:2121/0' bundle exec try -vf tests/unit/ruby/try/20_models/10_mutable_config_class_methods_try.rb

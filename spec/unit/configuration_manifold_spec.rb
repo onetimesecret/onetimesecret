@@ -1,4 +1,4 @@
-# tests/unit/ruby/rspec/configuration_manifold_spec.rb
+# spec/unit/configuration_manifold_spec.rb
 
 require_relative '../spec_helper'
 

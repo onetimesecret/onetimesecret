@@ -1,4 +1,4 @@
-// tests/unit/vue/stores/secretStore.spec.ts
+// src/stores/secretStore.spec.ts
 
 import { useSecretStore } from '@/stores/secretStore';
 import AxiosMockAdapter from 'axios-mock-adapter';

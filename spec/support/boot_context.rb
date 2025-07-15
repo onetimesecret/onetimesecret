@@ -1,4 +1,4 @@
-# tests/unit/ruby/rspec/support/boot_context.rb
+# spec/support/boot_context.rb
 
 RSpec.shared_context "boot_context" do
 

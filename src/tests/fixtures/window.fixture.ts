@@ -1,4 +1,4 @@
-// tests/unit/vue/fixtures/window.fixture.ts
+// src/tests/fixtures/window.fixture.ts
 import { OnetimeWindow } from '@/types/declarations/window';
 import { ValidKeys as UserTypes } from '@/schemas/config/shared/user_types';
 // import { vi } from 'vitest';

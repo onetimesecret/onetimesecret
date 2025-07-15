@@ -1,4 +1,4 @@
-// tests/unit/vue/composables/useDismissableBanner.spec.ts
+// src/composables/useDismissableBanner.spec.ts
 
 import { useDismissableBanner, generateBannerId } from '@/composables/useDismissableBanner';
 import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';

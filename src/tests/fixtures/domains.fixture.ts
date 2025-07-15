@@ -1,4 +1,4 @@
-// tests/unit/fixtures/domains.fixture.ts
+// src/tests/fixtures/domains.fixture.ts
 import type { CustomDomain } from '@/schemas/models';
 
 const BASE_DOMAIN = {

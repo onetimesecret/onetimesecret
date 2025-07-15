@@ -1,4 +1,4 @@
-// tests/unit/vue/composables/useTheme.spec.ts
+// src/composables/useTheme.spec.ts
 
 import { useTheme } from '@/composables/useTheme';
 import { describe, it, expect, beforeEach, vi } from 'vitest';

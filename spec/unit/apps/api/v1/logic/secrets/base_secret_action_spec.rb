@@ -1,4 +1,4 @@
-# tests/unit/ruby/rspec/apps/api/v1/logic/secrets/base_secret_action_spec.rb
+# spec/unit/apps/api/v1/logic/secrets/base_secret_action_spec.rb
 
 require_relative '../../../../../../spec_helper'
 require 'v1/logic'

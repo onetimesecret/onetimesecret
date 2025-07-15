@@ -1,4 +1,4 @@
-// tests/unit/vue/stores/metadataListStore.spec.ts
+// src/stores/metadataListStore.spec.ts
 import { useMetadataListStore } from '@/stores/metadataListStore';
 import { createTestingPinia } from '@pinia/testing';
 import axios from 'axios';

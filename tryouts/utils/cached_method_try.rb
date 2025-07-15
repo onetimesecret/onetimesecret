@@ -1,4 +1,4 @@
-# tests/unit/ruby/try/11_cached_method_try.rb
+# ./tryouts/utils/cached_method_try.rb
 
 # These tryouts test the functionality of the cached_method in the Manifold::ViewHelpers module.
 # The cached_method provides a caching mechanism for method results using Redis.

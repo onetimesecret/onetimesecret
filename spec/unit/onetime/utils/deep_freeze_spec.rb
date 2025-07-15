@@ -1,4 +1,4 @@
-# tests/unit/ruby/rspec/onetime/utils/deep_freeze_spec.rb
+# spec/unit/onetime/utils/deep_freeze_spec.rb
 
 require_relative '../../../spec_helper'
 

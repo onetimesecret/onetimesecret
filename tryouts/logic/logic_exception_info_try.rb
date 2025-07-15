@@ -1,4 +1,4 @@
-# tests/unit/ruby/try/60_logic/65_logic_exception_info_try.rb
+# ./tryouts/logic/logic_exception_info_try.rb
 
 require_relative '../helpers/test_logic'
 require 'securerandom'

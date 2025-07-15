@@ -1,4 +1,4 @@
-// tests/unit/vue/stores/secretStore.spec.ts
+// src/stores/secretStore-alt.spec.ts
 
 // Import dependencies
 import { defineStore } from 'pinia';

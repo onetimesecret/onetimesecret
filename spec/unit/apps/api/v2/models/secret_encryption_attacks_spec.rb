@@ -1,4 +1,4 @@
-# tests/unit/ruby/rspec/apps/api/v2/models/secret_encryption_attacks_spec.rb
+# spec/unit/apps/api/v2/models/secret_encryption_attacks_spec.rb
 
 require_relative '../../../../../spec_helper'
 

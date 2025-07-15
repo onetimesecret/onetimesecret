@@ -1,4 +1,4 @@
-// tests/unit/vue/composables/useHash.spec.ts
+// src/composables/useHash.spec.ts
 /**
  * Unit tests for useHash composable
  *

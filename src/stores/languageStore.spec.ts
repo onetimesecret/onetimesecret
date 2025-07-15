@@ -1,4 +1,4 @@
-// tests/unit/vue/stores/languageStore.spec.ts
+// src/stores/languageStore.spec.ts
 import { ApplicationError } from '@/schemas';
 import { SESSION_STORAGE_KEY, useLanguageStore } from '@/stores/languageStore';
 import { createApi } from '@/api';

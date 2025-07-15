@@ -1,4 +1,4 @@
-// tests/unit/vue/services/window-service-integration.spec.ts
+// src/services/window-service-integration.spec.ts
 
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { WindowService } from '@/services/window.service';

@@ -1,4 +1,4 @@
-# tests/unit/ruby/rspec/support/model_test_helper.rb
+# spec/support/model_test_helper.rb
 
 module ModelTestHelper
   # Factory method to create a fully stubbed V1::Secret instance

@@ -1,4 +1,4 @@
-// tests/unit/vue/stores/secrets/secretStoreFieldHandling.spec.ts
+// src/stores/secrets/secretStoreFieldHandling.spec.ts
 
 // tests/unit/vue/stores/secretStore.spec.ts
 import { useSecretStore } from '@/stores/secretStore';

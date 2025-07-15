@@ -1,4 +1,4 @@
-// tests/unit/vue/stores/metadataStore.spec.ts
+// src/stores/metadataStore.spec.ts
 import { isApplicationError } from '@/schemas/errors';
 import { useMetadataStore } from '@/stores/metadataStore';
 import { createTestingPinia } from '@pinia/testing';

@@ -1,4 +1,4 @@
-# tests/unit/ruby/rspec/support/mail_context.rb
+# spec/support/mail_context.rb
 
 def with_emailer(mail)
   mail.tap { |m| m.instance_variable_set(:@emailer, mail_emailer) }

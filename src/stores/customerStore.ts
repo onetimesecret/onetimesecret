@@ -1,4 +1,4 @@
-// stores/customerStore.ts
+// src/stores/customerStore.ts
 import { createError } from '@/composables/useAsyncHandler';
 import { PiniaPluginOptions } from '@/plugins/pinia';
 import { responseSchemas } from '@/schemas/api/responses';

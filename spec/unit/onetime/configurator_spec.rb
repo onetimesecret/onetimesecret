@@ -1,4 +1,4 @@
-# tests/unit/ruby/rspec/onetime/configurator_spec.rb
+# spec/unit/onetime/configurator_spec.rb
 
 # Zed task for running rspec on the whole file:
 # , t f

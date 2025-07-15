@@ -1,4 +1,4 @@
-# tests/unit/ruby/rspec/apps/api/v2/application_spec.rb
+# spec/unit/apps/api/v2/application_spec.rb
 
 require_relative '../../../../spec_helper'
 require 'v2/application'

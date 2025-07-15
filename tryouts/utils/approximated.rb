@@ -1,4 +1,4 @@
-# tests/unit/ruby/try/72_approximated.rb
+# ./tryouts/utils/approximated.rb
 
 # These tryouts test the functionality of Approximated and the
 # Approximate API. Note that this tryouts file has no _try

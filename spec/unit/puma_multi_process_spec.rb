@@ -1,4 +1,4 @@
-# tests/integration/ruby/puma_multi_process_spec.rb
+# ./spec/unit/puma_multi_process_spec.rb
 #
 # Puma Multi-Process Integration Test for OT.instance
 #

@@ -1,4 +1,4 @@
-// tests/unit/vue/stores/csrfStore.spec.ts
+// src/stores/csrfStore.spec.ts
 
 import { setupTestPinia } from '../setup';
 import { mockVisibility } from '../setupDocument';

@@ -1,4 +1,4 @@
-// src/schemas/config/plans.ts
+// src/schemas/config/section/plans.ts
 
 // import { z } from 'zod/v4';
 // import { nullableString } from './shared/primitives';

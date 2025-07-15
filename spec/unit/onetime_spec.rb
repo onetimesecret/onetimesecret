@@ -1,4 +1,4 @@
-# tests/unit/ruby/rspec/onetime_spec.rb
+# spec/unit/onetime_spec.rb
 
 require_relative '../spec_helper'
 

@@ -1,4 +1,4 @@
-# tests/unit/ruby/rspec/onetime/configurator/utils_spec.rb
+# spec/unit/onetime/configurator/utils_spec.rb
 
 require_relative '../../../spec_helper'
 require 'json_schemer'

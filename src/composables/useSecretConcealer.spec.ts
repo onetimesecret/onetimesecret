@@ -1,4 +1,4 @@
-// tests/unit/vue/composables/useSecretConcealer.spec.ts
+// src/composables/useSecretConcealer.spec.ts
 import { useSecretConcealer } from '@/composables/useSecretConcealer';
 import { useSecretStore } from '@/stores/secretStore';
 import { Router, useRouter } from 'vue-router';

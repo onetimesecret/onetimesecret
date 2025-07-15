@@ -1,4 +1,4 @@
-# tests/unit/ruby/try/16_config_secret_options_try.rb
+# ./tryouts/config/config_secret_options_try.rb
 
 # These tryouts test the secret_options configuration of the Onetime application.
 # We're testing various aspects of the secret_options configuration, including:

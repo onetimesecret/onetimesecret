@@ -1,4 +1,5 @@
-// tests/unit/vue/composables/useBranding.spec.ts
+// src/composables/useBranding.spec.ts
+
 import {
   mockCustomBrandingRed,
   mockDefaultBranding,

@@ -1,4 +1,4 @@
-# tests/unit/ruby/try/50_middleware/20_domain_strategy_basics_try.rb
+# ./tryouts/middleware/domain_strategy_basics_try.rb
 
 require_relative '../helpers/test_helpers'
 

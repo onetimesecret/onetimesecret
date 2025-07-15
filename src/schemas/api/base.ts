@@ -1,4 +1,4 @@
-// onetimesecret/src/schemas/api/base.ts
+// src/schemas/api/base.ts
 import { transforms } from '@/schemas/transforms';
 import { z } from 'zod/v4';
 

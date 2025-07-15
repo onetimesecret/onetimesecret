@@ -1,4 +1,4 @@
-// schemas/errors/classifier.test.ts
+// src/schemas/errors/classifier.spec.ts
 import { classifyError, createError, errorGuards } from '@/schemas/errors/classifier';
 import { describe, expect, it } from 'vitest';
 import type { AxiosError } from 'axios';

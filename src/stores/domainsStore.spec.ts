@@ -1,4 +1,4 @@
-// tests/unit/vue/stores/domainsStore.spec.ts
+// src/stores/domainsStore.spec.ts
 import { useDomainsStore } from '@/stores/domainsStore';
 import { createTestingPinia } from '@pinia/testing';
 import axios from 'axios';

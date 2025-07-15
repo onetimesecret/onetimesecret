@@ -1,4 +1,4 @@
-# apps/web/manifold/views/serializers/registry.rb
+# lib/onetime/services/ui/registry.rb
 
 require 'tsort'
 

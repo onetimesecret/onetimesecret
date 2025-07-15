@@ -1,4 +1,4 @@
-# lib/onetime/cli/validate.rb
+# lib/onetime/cli/config_command.rb
 
 module Onetime
   class ConfigCommand < Drydock::Command

@@ -1,4 +1,4 @@
-// tests/unit/vue/setupRouter.ts
+// src/tests/setup/setupRouter.ts
 
 /**
  * By default:

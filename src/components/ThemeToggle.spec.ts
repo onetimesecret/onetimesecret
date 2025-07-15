@@ -1,4 +1,4 @@
-// tests/unit/vue/components/ThemeToggle.spec.ts
+// src/components/ThemeToggle.spec.ts
 
 import { mount } from '@vue/test-utils';
 import { describe, it, expect, vi } from 'vitest';

@@ -1,4 +1,4 @@
-# tests/unit/ruby/rspec/support/view_context.rb
+# spec/support/view_context.rb
 
 RSpec.shared_context "view_test_context" do
   let(:rack_request) do

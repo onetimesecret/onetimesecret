@@ -1,4 +1,4 @@
-// tests/unit/vue/stores/authStore.spec.ts
+// src/stores/authStore.spec.ts
 import { Customer, Plan } from '@/schemas/models';
 import { AUTH_CHECK_CONFIG, useAuthStore } from '@/stores/authStore';
 import { createApi } from '@/api';

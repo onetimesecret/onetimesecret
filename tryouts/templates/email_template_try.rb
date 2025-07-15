@@ -1,4 +1,4 @@
-# tests/unit/ruby/try/40_email_template_try.rb
+# ./tryouts/templates/email_template_try.rb
 
 # These tryouts test the email template functionality in the Onetime application,
 # specifically for secret link emails with and without share_domain.

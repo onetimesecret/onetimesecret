@@ -1,4 +1,4 @@
-// tests/unit/vue/composables/useDomainsManager.spec.ts
+// src/composables/useDomainsManager.spec.ts
 import { useDomainsManager } from '@/composables/useDomainsManager';
 import { ApplicationError } from '@/schemas/errors';
 import { mockDomains, newDomainData } from '@tests/unit/vue/fixtures/domains.fixture';

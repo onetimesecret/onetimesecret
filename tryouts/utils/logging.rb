@@ -1,4 +1,4 @@
-# tests/unit/ruby/try/05_logging.rb
+# ./tryouts/utils/logging.rb
 
 #
 # Capture STDOUT and STDERR for testing

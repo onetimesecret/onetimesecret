@@ -1,4 +1,4 @@
-# tests/unit/ruby/try/60_logic/03_logic_secrets_try.rb
+# ./tryouts/logic/logic_secrets_try.rb
 
 # These tests cover the Secrets logic classes which handle
 # the core secret management functionality of the application.

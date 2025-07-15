@@ -1,4 +1,4 @@
-// tests/unit/vue/schemas/config/runtime.spec.ts
+// src/schemas/config/runtime.spec.ts
 
 import { describe, expect, it } from 'vitest';
 import { configSchema, type Config } from '@/schemas/config/runtime';

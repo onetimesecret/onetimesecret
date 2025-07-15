@@ -1,4 +1,4 @@
-// tests/unit/vue/utils/parse.spec.ts
+// src/utils/parse.spec.ts
 import { parseDateValue } from '@/utils/parse/date';
 import { describe, expect, it } from 'vitest';
 

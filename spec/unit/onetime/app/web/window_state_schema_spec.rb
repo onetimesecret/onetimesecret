@@ -1,4 +1,4 @@
-# tests/unit/ruby/rspec/onetime/app/web/window_state_schema_spec.rb
+# spec/unit/onetime/app/web/window_state_schema_spec.rb
 
 require_relative '../../../../spec_helper'
 

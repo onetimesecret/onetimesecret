@@ -1,4 +1,4 @@
-# tests/unit/ruby/try/60_logic/22_logic_secrets_show_secret_try.rb
+# ./tryouts/logic/logic_secrets_show_secret_try.rb
 
 # These tryouts test the ShowSecret logic functionality in the Onetime application,
 # with a focus on the initialization process and its arguments.

@@ -1,4 +1,4 @@
-# tests/unit/ruby/try/22_value_encryption_try.rb
+# ./tryouts/logic/value_encryption_try.rb
 
 # These tryouts test the encryption and decryption functionality
 # of the V2::Secret class.

@@ -1,4 +1,4 @@
-# tests/unit/ruby/rspec/onetime/experimental_config_spec.rb
+# spec/unit/onetime/experimental_config_spec.rb
 
 require 'openssl'
 

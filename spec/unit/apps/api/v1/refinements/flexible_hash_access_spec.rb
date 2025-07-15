@@ -1,4 +1,4 @@
-# tests/unit/ruby/rspec/apps/api/v1/refinements/flexible_hash_access_spec.rb
+# spec/unit/apps/api/v1/refinements/flexible_hash_access_spec.rb
 
 require_relative '../../../../../spec_helper'
 

@@ -1,4 +1,4 @@
-# lib/onetime/services/system/merge_config.rb
+# lib/onetime/services/system/first_boot.rb
 
 module Onetime
   module Services

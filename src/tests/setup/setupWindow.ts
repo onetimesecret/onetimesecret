@@ -1,4 +1,4 @@
-// tests/unit/vue/setupWindow.ts
+// src/tests/setup/setupWindow.ts
 
 import { vi } from 'vitest';
 import { stateFixture } from '@/tests/fixtures/window.fixture';

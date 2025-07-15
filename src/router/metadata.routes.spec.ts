@@ -1,4 +1,4 @@
-// tests/unit/vue/router/metadata.routes.spec.ts
+// src/router/metadata.routes.spec.ts
 
 import routes from '@/router/metadata.routes';
 import { describe, expect, it, vi } from 'vitest';

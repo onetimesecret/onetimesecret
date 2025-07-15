@@ -1,4 +1,4 @@
-// tests/unit/vue/stores/metadataStoreDateHandling.spec.ts
+// src/stores/metadataStoreDateHandling.spec.ts
 
 // todo: before deleting opus files, review to add the blank testcases
 

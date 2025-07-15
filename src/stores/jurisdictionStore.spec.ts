@@ -1,4 +1,4 @@
-// tests/unit/vue/stores/jurisdictionStore.spec.ts
+// src/stores/jurisdictionStore.spec.ts
 
 import { ApiError, ApplicationError } from '@/schemas';
 import type { Jurisdiction, RegionsConfig } from '@/schemas/models';

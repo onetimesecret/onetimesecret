@@ -1,4 +1,4 @@
-# tests/unit/ruby/try/31_session_extended_try.rb
+# ./tryouts/models/session_extended_try.rb
 
 require 'benchmark'
 

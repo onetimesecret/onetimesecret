@@ -1,4 +1,4 @@
-// src/schemas/config/storage.ts
+// src/schemas/config/section/storage.ts
 
 import { z } from 'zod/v4';
 

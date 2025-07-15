@@ -1,4 +1,4 @@
-# tests/unit/ruby/rspec/apps/web/manifold/views/base_spec.rb
+# spec/unit/apps/web/frontend/views/base_spec.rb
 
 # e.g. pnpm run test:rspec tests/unit/ruby/rspec/apps/web/manifold/views/base_spec.rb
 

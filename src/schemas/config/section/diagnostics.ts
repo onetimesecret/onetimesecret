@@ -1,4 +1,4 @@
-// src/schemas/config/diagnostics.ts
+// src/schemas/config/section/diagnostics.ts
 
 import { z } from 'zod/v4';
 import { nullableString } from '../shared/primitives';

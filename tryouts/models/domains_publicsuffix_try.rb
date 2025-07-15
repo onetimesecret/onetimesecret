@@ -1,4 +1,4 @@
-# tests/unit/ruby/try/20_models/27_domains_publicsuffix_try.rb
+# ./tryouts/models/domains_publicsuffix_try.rb
 
 # These tryouts test domain-related functionality using the PublicSuffix gem
 

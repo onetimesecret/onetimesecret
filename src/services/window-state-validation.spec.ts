@@ -1,4 +1,4 @@
-// tests/unit/vue/services/window-state-validation.spec.ts
+// src/services/window-state-validation.spec.ts
 
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { z } from 'zod/v4';

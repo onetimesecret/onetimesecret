@@ -1,4 +1,4 @@
-# tests/unit/ruby/try/17_mail_validation.rb
+# ./tryouts/utils/mail_validation.rb
 
 # These tryouts test the email validation functionality using the Truemail gem.
 # Email validation is crucial for ensuring that user-provided email addresses

@@ -1,4 +1,4 @@
-# tests/unit/ruby/rspec/onetime/services/config_proxy_spec.rb
+# spec/unit/onetime/services/config_proxy_spec.rb
 
 require_relative '../../../spec_helper'
 

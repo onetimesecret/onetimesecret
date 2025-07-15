@@ -1,4 +1,4 @@
-# tests/unit/ruby/rspec/onetime/refinements/then_with_diff_spec.rb
+# spec/unit/onetime/refinements/then_with_diff_spec.rb
 
 require_relative '../../../spec_helper'
 require 'onetime/refinements/then_with_diff'

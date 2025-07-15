@@ -1,4 +1,4 @@
-# tests/unit/ruby/rspec/support/rack_context.rb
+# spec/support/rack_context.rb
 
 RSpec.shared_context "rack_test_context" do
   let(:rack_request) do

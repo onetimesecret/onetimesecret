@@ -1,4 +1,4 @@
-# tests/unit/ruby/try/00_middleware/12_detect_host_instances_try.rb
+# ./tryouts/middleware/detect_host_instances_try.rb
 
 # These tryouts verify whether Rack instantiates a new middleware instance per
 # request or reuses the same instance across requests using real Rack requests.

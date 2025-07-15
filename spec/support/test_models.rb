@@ -1,4 +1,4 @@
-# tests/unit/ruby/rspec/support/test_models.rb
+# spec/support/test_models.rb
 
 # Test double for V2::Secret that doesn't require Redis
 class TestSecret

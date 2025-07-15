@@ -1,4 +1,4 @@
-# tests/unit/ruby/rspec/apps/web/manifold/views/base_json_spec.rb
+# spec/unit/apps/web/frontend/views/base_json_spec.rb
 
 require 'json'
 require_relative '../../../../../spec_helper'

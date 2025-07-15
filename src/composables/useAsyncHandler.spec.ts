@@ -1,4 +1,4 @@
-// tests/unit/composables/useAsyncHandler.spec.ts
+// src/composables/useAsyncHandler.spec.ts
 import { useAsyncHandler } from '@/composables/useAsyncHandler';
 import { createError } from '@/schemas/errors/classifier';
 import { beforeEach, describe, expect, it, vi } from 'vitest';

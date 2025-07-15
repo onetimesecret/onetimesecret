@@ -1,4 +1,4 @@
-// tests/unit/vue/router/secret.routes.spec.ts
+// src/router/secret.routes.spec.ts
 
 import routes from '@/router/secret.routes';
 import ShowSecretContainer from '@/views/secrets/ShowSecretContainer.vue';
