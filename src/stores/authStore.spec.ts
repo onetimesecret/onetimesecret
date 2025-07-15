@@ -532,7 +532,7 @@ describe('authStore', () => {
       const delays: number[] = [];
 
       // Spy on setTimeout to capture the actual delays
-      const setTimeoutSpy = vi.spyOn(vi, 'setSystemTime');
+      const setTimeoutSpy = vi.spyOn(global, 'setTimeout');
 
       for (let i = 0; i < samples; i++) {
         store.$scheduleNextCheck();
@@ -601,7 +601,6 @@ describe('authStore', () => {
     });
 
     afterEach(() => {
-      console.log('failures', store.failureCount);
       axiosMock.restore();
       store.$reset();
     });

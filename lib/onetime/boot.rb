@@ -64,7 +64,7 @@ module Onetime
         end
       end
 
-      # `configurator.configuration` returns a fresh, froze  deep_clone of the
+      # `configurator.configuration` returns a fresh, frozen  deep_clone of the
       # processed configuration hash.
       config = configurator.configuration
 

@@ -34,6 +34,7 @@ module Onetime
       # @raise [OT::ConfigError] If the schema is nil
       # @raise [OT::ConfigValidationError] If the configuration fails schema validation
       def validate_against_schema(conf, schema, apply_defaults: false)
+        raise OT::ConfigError, 'Configuration is nil' if conf.nil?
         raise OT::ConfigError, 'Schema is nil' if schema.nil?
 
         # Create schema validator with defaults insertion enabled
