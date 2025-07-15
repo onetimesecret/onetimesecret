@@ -44,7 +44,8 @@ module Onetime
       File.join(@home, 'etc'), # 3. onetimesecret/etc
       File.join(@xdg.config_home, 'onetime'), # 4. ~/.config/onetime
       File.join(File::SEPARATOR, 'etc', 'onetime'), # 5. /etc/onetime
-      File.join(@home, 'tests', 'unit', 'ruby'), # 6. ./tests/unit/ruby
+      File.join(@home, 'spec'), # 6. onetimesecret/spec
+      File.join(@home, 'tryouts'), # 7. onetimesecret/tryouts
     ].uniq.freeze
     @extensions = ['.yml', '.yaml', '.json', '.json5', ''].freeze
 
@@ -67,6 +68,23 @@ module Onetime
     #
     # Using a combination of then and then_with_diff which tracks the changes to
     # the configuration at each step in this load pipeline.
+    # Loads and validates the configuration through a multi-stage pipeline
+    #
+    # @yield [config] Optional processing block for configuration transformation
+    # @return [Configurator] Self, with fully loaded and validated configuration
+    #
+    # The method follows a pipeline of steps:
+    # 1. Read configuration template
+    # 2. Render ERB template
+    # 3. Parse YAML
+    # 4. Resolve and load schema
+    # 5. Validate with defaults
+    # 6. Run processing hook
+    # 7. Validate final configuration
+    # 8. Deep freeze configuration
+    #
+    # @raise [OT::ConfigValidationError] If configuration fails validation
+    # @raise [OT::ConfigError] If configuration loading encounters an error
     def load!(&)
       # We validate before returning the config so that we're not inadvertently
       # sending back configuration of unknown provenance. This is Stage 1 of
@@ -105,6 +123,11 @@ module Onetime
       OT::Utils.deep_clone(@configuration).freeze
     end
 
+    # Reads a configuration template file
+    #
+    # @param path [String] Path to the configuration template file
+    # @return [String] Contents of the template file
+    # @raise [StandardError] If file reading fails
     def read_template_file(path)
       OT.ld("[config] Reading template file: #{path}")
       @template_str = OT::Configurator::Load.file_read(path)
@@ -114,6 +137,13 @@ module Onetime
     # and make it available to ERB during the rendering process. It's
     # all self-contained and does not rely on external dependencies or
     # affect the global ENV.
+    # Renders an ERB template using a normalized environment context
+    #
+    # @param template [String] The ERB template string to render
+    # @return [String] The rendered template with environment variables processed
+    #
+    # Creates a self-contained environment context without affecting global ENV
+    # Processes any embedded Ruby (ERB) code within the template
     def render_erb_template(template)
       OT.ld("[config] Rendering ERB template (#{template.size} bytes)")
       context            = Onetime::Configurator::EnvironmentContext.template_binding
@@ -167,14 +197,28 @@ module Onetime
       @validated = _validate(config, apply_defaults: false)
     end
 
-    # This is a convenience wrapper for the load! pipeline. It conforms to the
-    # expected inputs and outputs for the pipeline rather than rely on external
-    # methods.
+    # Performs a deep freeze on the configuration to prevent further modifications
+    #
+    # # This is a convenience wrapper so that the util with the same name can
+    # be used in the load! pipeline.
+    #
+    # @param config [Hash] The configuration hash to freeze
+    # @return [Hash] A deeply frozen configuration
+    #
+    # Recursively freezes all nested objects within the configuration
+    # Prevents any further modifications to the configuration after processing
     def deep_freeze(config)
       OT.ld("[config] Deep freezing (#{config.size} sections; already frozen: #{config.frozen?})")
       @validated_and_frozen = OT::Utils.deep_freeze(config)
     end
 
+    # Logs detailed error information for configuration loading errors
+    #
+    # @param err [Exception] The error encountered during configuration loading
+    #
+    # Logs the backtrace of the error for debugging purposes
+    # Commented-out sections provide additional diagnostic information
+    # that can be uncommented for more detailed error investigation
     def log_error_with_debug_content(err)
       # NOTE: the following three debug outputs are very handy for diagnosing
       # config problems but also very noisy. We don't have a way of setting
@@ -213,6 +257,18 @@ module Onetime
       config.reject { |k| k.to_s == '$schema' }
     end
 
+    # Loads configuration without strict validation, primarily for testing or fallback scenarios
+    #
+    # @yield [config] Optional block for configuration processing (currently unused)
+    # @return [Hash] A deep-frozen configuration hash
+    #
+    # This method provides a more lenient configuration loading process:
+    # 1. Reads the template file
+    # 2. Renders ERB template
+    # 3. Parses YAML
+    # 4. Deep freezes the configuration
+    #
+    # Skips schema validation and processing hooks for quick configuration retrieval
     def load_with_impunity!(&)
       config = config_path
         .then { |path| read_template_file(path) }
@@ -223,6 +279,13 @@ module Onetime
 
     private
 
+    # Validates the configuration against the loaded schema
+    #
+    # @param config [Hash] The configuration to validate
+    # @param ** [Hash] Additional options to pass to schema validation
+    # @return [Hash] The validated configuration
+    # @raise [ArgumentError] If config or schema is not a Hash
+    # @raise [OT::ConfigValidationError] If configuration fails schema validation
     def _validate(config, **)
       unless config.is_a?(Hash) && schema.is_a?(Hash)
         raise ArgumentError, "Cannot validate #{config.class} with #{schema.class}"
@@ -230,9 +293,19 @@ module Onetime
 
       loggable_config = OT::Utils.type_structure(config)
       OT.ld "[config] Validating #{loggable_config.size} #{schema.size}"
-      OT::Configurator::Utils.validate_with_schema(config, schema, **)
+      OT::Configurator::Utils.validate_against_schema(config, schema, **)
     end
 
+    # Resolves the schema path for configuration validation
+    #
+    # Attempts to find the schema path through multiple methods:
+    # 1. Check for explicit $schema reference in config
+    # 2. Use Load module's path resolution
+    # 3. Fallback to searching predefined paths by basename
+    #
+    # @param config [Hash] The parsed configuration
+    # @return [String] The resolved schema path
+    # @note Modifies @schema_path instance variable
     def _resolve_schema(config)
       # Extract schema reference from parsed config
       schema_ref = config['$schema'] || config[:$schema]
@@ -246,7 +319,7 @@ module Onetime
 
         # Fall back to basename search in predefined paths if not found
         if resolved_path.nil?
-          basename = File.basename(schema_ref, File.extname(schema_ref))
+          basename      = File.basename(schema_ref, File.extname(schema_ref))
           resolved_path = self.class.find_config(basename) || schema_ref
         end
 
@@ -259,13 +332,25 @@ module Onetime
     class << self
       attr_reader :xdg, :paths, :extensions, :init_scripts_dir, :config_file_basename
 
-      # Instantiates a new configuration object, loads it, and it returns itself
+      # Instantiates a new configuration object, loads it, and returns itself
+      #
+      # @yield [config] Optional block for configuration processing
+      # @return [Configurator] A fully loaded configuration object
+      # @raise [OT::ConfigValidationError] If configuration validation fails
       def load!(&) = new.load!(&)
 
+      # Loads configuration with minimal validation, primarily for testing
+      #
+      # @yield [config] Optional block for configuration processing (currently unused)
+      # @return [Configurator] A loaded configuration object with minimal error checking
       def load_with_impunity!(&)
         new.load_with_impunity!(&)
       end
 
+      # Finds all existing configuration files matching a given basename
+      #
+      # @param basename [String, nil] The base filename to search for (defaults to config_file_basename)
+      # @return [Array<String>] List of full paths to existing configuration files
       def find_configs(basename = nil)
         basename ||= config_file_basename
         paths.flat_map do |path|
@@ -276,6 +361,10 @@ module Onetime
         end
       end
 
+      # Finds the first existing configuration file matching a given basename
+      #
+      # @param ... Variadic arguments passed to find_configs
+      # @return [String, nil] The path to the first found configuration file
       def find_config(...)
         find_configs(...).first
       end

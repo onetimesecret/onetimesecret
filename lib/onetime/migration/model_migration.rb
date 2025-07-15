@@ -6,29 +6,99 @@ module Onetime
   # Base class for individual record migrations on Familia::Horreum models
   #
   # Provides Redis SCAN-based iteration with progress tracking, error handling,
-  # and dry-run/actual-run modes.
+  # and dry-run/actual-run modes for processing records one at a time.
   #
-  # Usage:
-  #   class MyModelMigration < ModelMigration
+  # ## When to Use ModelMigration vs PipelineMigration
+  #
+  # Use **ModelMigration** when:
+  # - Complex logic is needed for each record
+  # - Error handling per record is important
+  # - Records need individual validation
+  # - Updates vary significantly between records
+  #
+  # Use **PipelineMigration** when:
+  # - Simple bulk updates across many records
+  # - Performance is critical for large datasets
+  # - All records get similar field updates
+  # - Redis pipelining can be utilized effectively
+  #
+  # ## Subclassing Requirements
+  #
+  # Subclasses must implement:
+  # - {#prepare} - Set @model_class and optionally @batch_size
+  # - {#process_record} - Handle individual record processing
+  #
+  # Subclasses may override:
+  # - {#migration_needed?} - Default returns true (always migrate)
+  # - {#load_from_key} - Custom object loading from Redis keys
+  #
+  # ## Usage Example
+  #
+  #   class CustomerEmailMigration < ModelMigration
   #     def prepare
   #       @model_class = V2::Customer
   #       @batch_size = 1000  # optional, defaults to 1000
   #     end
   #
   #     def process_record(obj, key)
-  #       # Implement record processing logic
-  #       # Use track_stat() to count operations
-  #       # Wrap updates in for_realsies_this_time? block
+  #       return unless obj.email.blank?
+  #
+  #       for_realsies_this_time? do
+  #         obj.email = "#{obj.custid}@example.com"
+  #         obj.save
+  #       end
+  #       track_stat(:emails_updated)
   #     end
   #   end
   #
-  # RULE: Deploy schema changes and logic changes separately. This prevents
-  # new model logic from breaking migration logic. It can also be confusing.
+  # ## Development Rule
   #
+  # **IMPORTANT**: Deploy schema changes and logic changes separately.
+  # This prevents new model logic from breaking migration logic and
+  # reduces debugging complexity.
+  #
+  # @abstract Subclass and implement {#prepare} and {#process_record}
+  # @see PipelineMigration For bulk processing with Redis pipelining
   class ModelMigration < BaseMigration
-    attr_reader :model_class, :batch_size, :total_records, :total_scanned,
-      :records_needing_update, :records_updated, :error_count,
-      :interactive, :scan_pattern, :redis_client
+    # Model class being migrated
+    # @return [Class] Familia::Horreum subclass
+    attr_reader :model_class
+
+    # Number of keys to scan per Redis SCAN operation
+    # @return [Integer] batch size for scanning
+    attr_reader :batch_size
+
+    # Total number of indexed records in the model
+    # @return [Integer] count from model_class.values
+    attr_reader :total_records
+
+    # Number of keys found by Redis SCAN
+    # @return [Integer] actual keys discovered
+    attr_reader :total_scanned
+
+    # Records that passed through process_record
+    # @return [Integer] count of records needing updates
+    attr_reader :records_needing_update
+
+    # Records successfully updated
+    # @return [Integer] count of records modified
+    attr_reader :records_updated
+
+    # Number of processing errors encountered
+    # @return [Integer] error count
+    attr_reader :error_count
+
+    # Interactive debugging mode flag
+    # @return [Boolean] whether to drop into pry on errors
+    attr_reader :interactive
+
+    # Redis SCAN pattern for finding records
+    # @return [String] pattern like "customer:*:object"
+    attr_reader :scan_pattern
+
+    # Redis client instance for the model
+    # @return [Redis] model's Redis connection
+    attr_reader :redis_client
 
     def initialize
       super
@@ -37,6 +107,12 @@ module Onetime
     end
 
     # Main migration entry point
+    #
+    # Validates configuration, displays run mode information,
+    # executes the SCAN-based record processing, and displays
+    # a comprehensive summary.
+    #
+    # @return [Boolean] true if no errors occurred
     def migrate
       validate_model_class!
 
@@ -58,30 +134,30 @@ module Onetime
       @error_count == 0
     end
 
-    # Default: always migrate (override for conditional logic)
+    # Default migration check - always returns true
     #
-    # Always return true to allow re-running for error recovery
-    # The migration is idempotent - it won't overwrite existing values
-    # Override if you need conditional migration logic
+    # Always return true to allow re-running for error recovery.
+    # The migration should be idempotent - it won't overwrite existing values.
+    # Override if you need conditional migration logic.
+    #
+    # @return [Boolean] true to proceed with migration
     def migration_needed?
       debug("[#{self.class.name.split('::').last}] Checking if migration is needed...")
       true
     end
 
-    # Loads a Familia::Horeum object instance from a redis key
+    # Load Familia::Horreum object instance from Redis key
     #
-    # NOTE: Override this method to customize the loading behavior. For example,
-    # with a custom @scan_pattern, the migration might be looping through
-    # the relation keys of a horreum model (e.g. a customer that has a custom
-    # domain configured will have its customer:ID:object key as well as a
-    # customer:ID:custom_domain key).
+    # Override this method to customize loading behavior. For example,
+    # with a custom @scan_pattern, the migration might loop through
+    # relation keys of a horreum model (e.g. customer:ID:custom_domain).
     #
-    # Typically a migration will iterate over the objects themselves, but that
-    # won't work if there are dangling "orphan" keys that don't have a
-    # corresponding object. To address that, provide a load_from_key method
-    # in the migration to load the customer:ID:custom_domain sorted set. Then
-    # the process_record method will receive an instance of Familia::SortedSet.
+    # Typically migrations iterate over objects themselves, but this
+    # won't work if there are dangling "orphan" keys without corresponding
+    # objects. Override this method to handle such cases.
     #
+    # @param key [String] Redis key to load from
+    # @return [Familia::Horreum, Familia::RedisType] loaded object instance
     def load_from_key(key)
       model_class.find_by_key(key)
     end
@@ -89,29 +165,55 @@ module Onetime
     protected
 
     # Set @model_class and optionally @batch_size
+    #
+    # **Required for subclasses** - must set @model_class to a
+    # Familia::Horreum subclass. Can optionally set @batch_size
+    # to override the default of 1000.
+    #
+    # @abstract Subclasses must implement this method
+    # @return [void]
+    # @raise [NotImplementedError] if not implemented
     def prepare
       raise NotImplementedError, "#{self.class} must set @model_class in #prepare"
     end
 
-    # Process a single record (implement in subclass)
-    # @param obj [Familia::Horreum, Familia::RedisType] The familia class
-    # instance to process
+    # Process a single record
+    #
+    # **Required for subclasses** - implement the core logic for
+    # processing each record. Use {#track_stat} to count operations
+    # and {#for_realsies_this_time?} to wrap actual changes.
+    #
+    # @abstract Subclasses must implement this method
+    # @param obj [Familia::Horreum, Familia::RedisType] The familia class instance to process
     # @param key [String] The redis key of the record
+    # @return [void]
+    # @raise [NotImplementedError] if not implemented
     def process_record(obj, key)
       raise NotImplementedError, "#{self.class} must implement #process_record"
     end
 
-    # Call this to track a stat or count record updates automatically
+    # Track statistics and auto-increment records_updated counter
     #
-    # @param statname [Symbol] The name of the statistic to track (can be anything)
-    # @param increment [Integer] The amount to increment the statistic by
+    # Automatically increments @records_updated when statname is :records_updated.
+    # Use this to maintain consistent counting across migrations.
+    #
+    # @param statname [Symbol] The name of the statistic to track
+    # @param increment [Integer] The amount to increment by
+    # @return [void]
     def track_stat(statname, increment = 1)
       super
       @records_updated += increment if statname == :records_updated
     end
 
-    # A convenience method to track a stat and log a reason for the decision
-    # in one line.
+    # Track stat and log decision reason in one call
+    #
+    # Convenience method for logging migration decisions with consistent
+    # formatting and automatic statistic tracking.
+    #
+    # @param obj [Familia::Horreum] object being processed
+    # @param decision [String] decision made (e.g., 'skipped', 'updated')
+    # @param field [String] field name involved in decision
+    # @return [nil]
     def track_stat_and_log_reason(obj, decision, field)
       track_stat(:decision)
       track_stat("#{decision}_#{field}")

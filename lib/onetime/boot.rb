@@ -2,14 +2,14 @@
 
 require 'concurrent'
 
-
 require_relative 'boot/init_script_context'
 require_relative 'services/config_proxy'
+require_relative 'services/system'
 
 module Onetime
-  # Boot orchestrates the application startup sequence, handling configuration
-  # loading, init script execution, and service initialization. Think of it as
-  # the emcee for getting your Onetime instance up and running.
+  # Boot orchestrates the application startup sequence: configuration loading,
+  # init script execution, and service initialization. Think of it as the
+  # emcee for getting your Onetime instance up and running.
   module Boot
     extend self
 
@@ -17,38 +17,40 @@ module Onetime
 
     attr_reader :init_scripts_dir, :configurator
 
-    # Boot reads and interprets the configuration and applies it to the
-    # relevant features and services. Must be called after applications
-    # are loaded so that models have been required which is a pre-req
-    # for attempting the database connection. Prior to that, Familia.members
-    # is empty so we don't have any central list of models to work off
-    # of.
+    # Boots the Onetime application.
     #
-    # `mode` is a symbol, one of: :app, :cli, :test. It's used for logging
-    # but otherwise doesn't do anything special (other than allow :cli to
-    # continue even when it's cloudy with a chance of boot errors).
+    # This method must be called after application models are loaded so that
+    # database connections can be established for all known models.
     #
-    # When `connect_to_db` is false, the database connections won't be initialized. This
-    # is useful for testing or when you want to run code without necessary
-    # loading all or any of the models.
+    # The configuration evolves from file-only to a merged, validated config
+    # during boot, eventually made available application-wide via `OT.conf`.
     #
-    # Application models need to be loaded before booting so that each one gets
-    # a database connection. It can't connect models it doesn't know about.
+    # @param mode [Symbol, nil] The runtime mode (:app, :cli, :test). Affects
+    #   logging and error handling (e.g., :cli allows continuing on boot errors).
+    # @param connect_to_db [Boolean] Whether to initialize database connections.
+    #   Useful for testing or when models are not needed.
+    # @return [nil]
+    # @raise [OT::ConfigError] If initialization scripts fail.
     #
-    # Result**: OT.conf evolves from file-only → merged config during boot,
-    # maintaining compatibility with all existing code that expects `OT.conf`
-    # to be the single source of truth.
+    # This method orchestrates the entire application startup sequence:
+    # 1. Generates a unique instance ID
+    # 2. Sets the boot state
+    # 3. Loads configuration
+    # 4. Runs initialization scripts
+    # 5. Starts system services
+    # 6. Sets up global configuration proxy (`OT.conf`)
+    #
+    # @example
+    #   Onetime::Boot.boot!(:app)  # Boot in application mode
+    #   Onetime::Boot.boot!(:test, false)  # Boot in test mode without DB connection
     def boot!(mode = nil, connect_to_db = true)
-      # Sets a unique SHA hash every time this process starts. In a multi-
-      # threaded environment (e.g. with Puma), this should be different for
-      # each thread. See tests/unit/ruby/rspec/puma_multi_process_spec.rb.
+      # Sets a unique SHA hash for this process instance.
       instanceid = [OT::VERSION.to_s, Process.pid.to_s].gibbler.shorten.freeze
 
       Onetime.set_boot_state(mode, instanceid)
 
       OT.ld "[BOOT] Initializing in '#{OT.mode}' mode (instance: #{instanceid})"
 
-      # These are passed directly to each script
       script_options = {
         mode: OT.mode,
         instanceid: instanceid,
@@ -62,29 +64,23 @@ module Onetime
         end
       end
 
-      # The configuration hash we get back here is frozen, deep_clone of the
-      # original. In fact every call to configurator.configuration will return
-      # a new deep_clone of the original configuration hash.
-      #
-      # We pass the static config to the services since they don't need to go
-      # through the ConfigProxy on account of knowing how to access the
-      # ServiceRegistry.app_state if necessary.
+      # `configurator.configuration` returns a fresh, frozen  deep_clone of the
+      # processed configuration hash.
       config = configurator.configuration
 
-      OT.ld "[BOOT] Configuration loaded from #{configurator.config_path} is now frozen"
-      # System services should start immediately after config freeze
+      OT.ld "[BOOT] Configuration from #{configurator.config_path} is now frozen"
 
-      # System services are designed to start with frozen configuration
       OT.ld '[BOOT] Starting system services...'
-      require_relative 'services/system'
+
+      # We pass the static `config` to the services since they don't need to go
+      # through the ConfigProxy on account of knowing how to access the
+      # ServiceRegistry.app_state if necessary.
       OT::Services::System.start_all(config, connect_to_db: connect_to_db)
 
       if OT::Services::ServiceRegistry.ready?
         OT.ld '[BOOT] Completing initialization process...'
 
-        # With the services up and healthy, we can create a ConfigProxy and make
-        # it available system-wide via OT.conf. The processed and validated merged
-        # configuration is now available application-wide.
+        # With services healthy, create ConfigProxy and make `OT.conf` available.
         Onetime.set_config_proxy(Services::ConfigProxy.new(config))
 
       else
@@ -94,13 +90,12 @@ module Onetime
       end
 
       Onetime.complete_initialization!
+
       OT.ld "[BOOT] Startup completed successfully (instance: #{instanceid})"
 
-      # Let's be clear about returning the prepared configruation. Previously
-      # we returned @conf here which was confusing because already made it
-      # available above. Now it is clear that the only way the rest of the
-      # code in the application has access to the processed configuration
-      # is from within this boot! method.
+      # The processed configuration is already made available globally via
+      # `OT.conf`. Returning nil reinforces that the return value of `boot!`
+      # is not the config itself.
       nil
     rescue StandardError => ex
       handle_boot_error(ex)
@@ -108,19 +103,21 @@ module Onetime
 
     private
 
-    # Runs init.d scripts for each config section during the processing hook phase.
-    # Config is still mutable - these scripts can modify their section's config,
-    # register routes, set feature flags, etc. One script per config section.
+    # Runs initialization scripts for each configuration section.
     #
-    # Different from onetime/services/system which run AFTER config is frozen and
-    # handle system-wide services (Redis, databases, emailer, etc).
+    # This method handles a processing hook phase where:
+    # - Configuration is still mutable, allowing scripts to modify config sections.
+    # - Scripts can register routes or set feature flags.
+    # This differs from system services, which run *after* config is frozen.
+    #
+    # @param config_being_processed [Hash] The mutable configuration during processing.
+    # @param ** [Hash] Additional options to pass to init scripts.
+    # @return [Boolean] Whether all init scripts ran successfully.
+    # @note Only runs scripts that correspond to existing config sections.
     def run_init_scripts(config_being_processed, **)
       base_path = init_scripts_dir
       return unless Dir.exist?(base_path)
 
-      # Loop through each of the top-level config sections
-      #
-      # Only run scripts that exist
       run_these_scripts = config_being_processed.keys
         .map { |key| [key, File.join(base_path, "#{key}.rb")] }
         .select { |_, path| File.exist?(path) }
@@ -128,14 +125,15 @@ module Onetime
 
       return if run_these_scripts.empty? # there were no actual files
 
-      OT.ld "[BOOT] Starting init script processing phase for: #{run_these_scripts.keys.join(', ')}."
+      OT.ld "[BOOT] Starting init script phase for: #{run_these_scripts.keys.join(', ')}."
 
-      # Runs init.d scripts for each config section during the processing hook phase.
-      # Config is still mutable - these scripts can modify their section's config,
-      # register routes, set feature flags, etc. One script per config section.
+      # Runs etc/init.d scripts for each config section during the processing
+      # hook phase. Config is still mutable - these scripts can modify their
+      # section's config, register routes, set feature flags, etc. One script
+      # per config section.
       #
-      # Different from onetime/services/system which run AFTER config is frozen and
-      # handle system-wide services (Redis, databases, emailer, etc).
+      # Different from onetime/services/system which run AFTER config is frozen
+      # and handle system-wide services (Redis, databases, emailer, etc).
       # e.g. site, storage, i18n, ...
       run_these_scripts.each do |section_key, file_path|
         run_init_script(config_being_processed, section_key, file_path, **)
@@ -145,13 +143,13 @@ module Onetime
             Unhandled exception during init script processing.
             Halting further init scripts.
         MSG
-        # The specific error details (class, message, backtrace) will be
-        # logged by handle_boot_error
+        # The specific error details will be logged by handle_boot_error
         raise
       rescue SystemExit => ex
         # Log that a script attempted to exit, then continue to the next script in the loop
         OT.li <<~MSG
-          [BOOT] Init script '#{section_key}' (from #{file_path}) called exit(#{ex.status}). Skipping remaining scripts.
+          [BOOT] Init script '#{section_key}' (from #{file_path}) called exit(#{ex.status}).
+                 Skipping remaining scripts.
         MSG
         return false
       end
@@ -161,22 +159,20 @@ module Onetime
     end
 
     # Executes a single init script for the given config section.
-    # File existence is already checked by the scripts_to_run filter
     def run_init_script(config_being_processed, section_key, file_path, **)
       pretty_path = Onetime::Utils.pretty_path(file_path)
       OT.ld "[BOOT] Preparing '#{section_key}' init script (#{pretty_path})"
 
-      # Create a frozen snapshot of the *current* state of the main config
-      # This snapshot includes changes from any previous scripts in this loop.
+      # Create a frozen snapshot of the *current* state of the main config,
+      # including changes from any previous scripts in this loop.
       global_snapshot        = OT::Utils.deep_freeze(config_being_processed, clone: true)
       current_section_config = config_being_processed[section_key] # still original reference
 
-      # Create context for script execution, passing along the
-      # variables that it'll have access to.
+      # Create context for script execution, passing along accessible variables.
       context = OT::Boot::InitScriptContext.new(
         current_section_config, # mutable
         section_key,
-        global_snapshot,        # includes updated previous section but immutable
+        global_snapshot,        # immutable snapshot of global config
         ** # rubocop:disable Style/TrailingCommaInArguments
       )
 
@@ -184,14 +180,11 @@ module Onetime
       OT.ld "[BOOT] Finished processing '#{section_key}' init script."
     end
 
-    # Safely loads and executes a Ruby init script within the provided context.
-    # Handles SystemExit gracefully to prevent init scripts from derailing boot.
+    # Loads and executes a Ruby init script within the provided context.
+    # Handles SystemExit to prevent scripts from derailing boot.
     def execute_script_with_context(file_path, context)
-      # The load method hands rescuing SystemExit to prevent an init script
+      # The `ruby_load_file` method rescues `SystemExit` to prevent a script
       # from completely derailing the boot process (even by accident).
-      # Technically it's no less secure than reading a ruby file in a
-      # different branch of the project, but since it sits near the YAML
-      # configuration file, it is more exposed to tomfoolery.
       pretty_path = Onetime::Utils.pretty_path(file_path)
       OT.ld "[BOOT] Executing '#{context.section_key}' init script (#{pretty_path})"
       OT::Configurator::Load.ruby_load_file(file_path, context)
@@ -200,14 +193,23 @@ module Onetime
       # where it can decide whether to continue running the remaining scripts.
     end
 
-    # Graceful error handling during boot - logs appropriately and decides
-    # whether to halt or continue based on the error type and runtime mode.
+    # Handles errors that occur during the application boot process.
+    #
+    # Provides graceful error handling with different logging strategies:
+    # - Logs configuration validation errors.
+    # - Handles specific error types with appropriate logging.
+    # - Provides detailed error information in debug mode.
+    #
+    # Error handling behavior varies based on runtime mode:
+    # - In CLI or test mode: Continues with reduced functionality.
+    # - In app mode: Stops the server by re-raising the error.
+    #
+    # @param error [StandardError] The error encountered during boot.
+    # @raise [StandardError] Re-raises the error in `:app` mode.
+    # @note Prefers raising errors over exiting to preserve test and logging behavior.
     def handle_boot_error(error)
       case error
-      when OT::ConfigValidationError
-        # ConfigValidationError includes detailed information about the error
-        OT.le error.message
-      when OT::ConfigError
+      when OT::ConfigValidationError, OT::ConfigError
         OT.le "Configuration error during boot: #{error.message}"
       when OT::Problem
         OT.le "Problem booting: #{error}"
@@ -225,31 +227,11 @@ module Onetime
         MSG
       end
 
-      # NOTE: Prefer `raise` over `exit` here. Previously we used
-      # exit and it caused unexpected behaviour in tests, where
-      # rspec for example would report all 5 examples passed even
-      # though there were 30+ testcases defined in the file. There
-      # were no log messages to indicate where the problem occurred
-      # possibly because:
-      #
-      # 1. RSpec captures each example's STDOUT/STDERR and only prints it
-      #    once the example finishes.
-      # 2. Calling `exit` in the middle of an example kills the process
-      #    immediately—any pending output (your `OT.le` message, buffered
-      #    IO, etc.) never gets flushed back through RSpec's reporter.
-      #
-      # We were fortunate to find the issue via rspec. We had mocked
-      # the connect_database method but also called the original:
-      #
-      # allow(Onetime).to receive(:connect_databases).and_call_original
-      #
-      # Only re-raise in app mode to stop the server. In test/cli mode,
-      # we continue with reduced functionality.
       raise error unless OT.mode?(:cli) || OT.mode?(:test)
     end
   end
 
-  # Immediate loading - config available as soon as module loads
+  # Immediate loading - static configuration is available as soon as the module loads.
   @static_config = begin
     Onetime::Configurator.load_with_impunity!
   rescue StandardError => ex

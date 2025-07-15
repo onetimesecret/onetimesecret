@@ -1,4 +1,4 @@
-// src/schemas/config/ui.ts
+// src/schemas/config/section/ui.ts
 
 import { z } from 'zod/v4';
 import { nullableString } from '../shared/primitives';

@@ -1,4 +1,4 @@
-# lib/onetime/cli/initializers.rb
+# lib/onetime/cli/initializers_command.rb
 
 # Standalone command that doesn't inherit from Onetime::CLI
 # to avoid the automatic boot process

@@ -2,7 +2,6 @@
 
 require 'json_schemer'
 
-
 module Onetime
   class Configurator
     unless defined?(KNOWN_PATHS)
@@ -25,7 +24,17 @@ module Onetime
     module Utils
       extend self
 
-      def validate_with_schema(conf, schema, apply_defaults: false)
+
+      # Validates a configuration against a JSON schema with optional default value insertion
+      #
+      # @param conf [Hash] The configuration hash to validate
+      # @param schema [Hash] The JSON schema to validate against
+      # @param apply_defaults [Boolean] Whether to insert default values from the schema (default: false)
+      # @return [Hash] The validated configuration (potentially modified with defaults)
+      # @raise [OT::ConfigError] If the schema is nil
+      # @raise [OT::ConfigValidationError] If the configuration fails schema validation
+      def validate_against_schema(conf, schema, apply_defaults: false)
+        raise OT::ConfigError, 'Configuration is nil' if conf.nil?
         raise OT::ConfigError, 'Schema is nil' if schema.nil?
 
         # Create schema validator with defaults insertion enabled
@@ -66,14 +75,20 @@ module Onetime
         )
       end
 
-      # Formats validation errors into user-friendly messages
+      # Formats validation errors into a collection of error messages
+      #
+      # @param errors [Array] An array of validation error objects
+      # @return [Array<String>] An array of error message strings
       def format_validation_errors(errors)
         errors.map do |err|
           err['error']
         end
       end
 
-      # Extracts the paths and values that failed validation
+      # Extracts detailed information about validation error paths and their corresponding values
+      #
+      # @param errors [Array] An array of validation error objects
+      # @return [Hash] A nested hash representing the paths and values that failed validation
       def extract_error_paths(errors)
         error_paths = {}
         errors.each do |err|
@@ -94,6 +109,11 @@ module Onetime
         error_paths
       end
 
+      # Maps configuration keys based on predefined key mappings
+      #
+      # @param key [String, Symbol] The input key to be mapped
+      # @return [String, Symbol] The mapped key, or the original key if no mapping exists
+      # @note This method supports mapping for third-party library conventions
       def mapped_key(key)
         # Our keys are string but the target mapped key may be a string or
         # a symbol depending on the 3rd party library's conventions. If the

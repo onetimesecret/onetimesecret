@@ -1,7 +1,6 @@
 # lib/onetime/cli/migrate_command.rb
 
 module Onetime
-
   # Migrate Command
   #
   # NOTE: It's important to subclass Onetime::CLI in order to call OT.boot!

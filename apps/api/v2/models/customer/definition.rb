@@ -1,4 +1,4 @@
-# apps/api/v2/models/customer/class_methods.rb
+# apps/api/v2/models/customer/definition.rb
 
 require_relative '../mixins/passphrase'
 require_relative '../mixins/maintenance'

@@ -1,4 +1,4 @@
-# lib/onetime/initializers/setup_diagnostics.rb
+# lib/onetime/services/system/setup_diagnostics.rb
 
 module Onetime
   module Services

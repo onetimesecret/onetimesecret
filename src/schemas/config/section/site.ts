@@ -1,4 +1,4 @@
-// src/schemas/config/site.ts
+// src/schemas/config/section/site.ts
 
 import { z } from 'zod/v4';
 

@@ -33,8 +33,7 @@ gem 'mustache'
 gem 'public_suffix'
 gem 'thin'
 
-gem 'drydock'
-gem 'familia', '~> 1.2.0'
+gem 'familia', '~> 1.2.1'
 gem 'gibbler'
 gem 'otto', '~> 1.1.0.pre.alpha4'
 gem 'storable'
@@ -42,8 +41,10 @@ gem 'uri-redis', '~> 1.3.0'
 
 if ENV['RACK_ENV'] == 'development' && ENV['CI'].to_s.empty?
   gem 'rhales', path: '../rhales'
+  gem 'drydock', path: '../../d/drydock'
 else
   gem 'rhales', '~> 0.4.0'
+  gem 'drydock', '1.0.0'
 end
 
 gem 'concurrent-ruby', '~> 1.3.5'
@@ -74,7 +75,7 @@ gem 'syslog', '~> 0.3.0'
 gem 'fiddle'    # Fiddle library for handling dynamic libraries (required by reline)
 gem 'irb'       # IRB
 gem 'logger'    # Logger library for logging messages (required by truemail)
-gem 'ostruct'   # OpenStruct library for creating data objects (required by json)
+gem 'ostruct', '~> 0.6.2'   # OpenStruct library for creating data objects (required by json)
 gem 'rdoc'      # IRB
 gem 'reline'
 
@@ -100,6 +101,7 @@ group :development do
   gem 'rubocop-performance', require: false
   gem 'rubocop-rspec', require: false
   gem 'rubocop-thread_safety', require: false
+  gem 'ruby-lsp', require: false
   gem 'stackprof', require: false
   gem 'syntax_tree', require: false
 end

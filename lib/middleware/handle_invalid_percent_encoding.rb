@@ -40,7 +40,7 @@ class Rack::HandleInvalidPercentEncoding
 
     logger.debug "[handle-invalid-uri-encoding] Checking #{request_uri}"
 
-    # If the route doesn't include the AppSettings module, we can't
+    # If the route doesn't include the ClassSettings module, we can't
     # determine if the app wants to check for invalid percent encoding.
     return @app.call(env) unless check_enabled?(@app)
 

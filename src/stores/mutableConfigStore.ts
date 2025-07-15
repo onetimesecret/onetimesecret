@@ -1,4 +1,4 @@
-// stores/mutableConfigStore.ts
+// src/stores/mutableConfigStore.ts
 
 import { responseSchemas } from '@/schemas/api';
 import { mutableConfigSchema, type MutableConfigDetails } from '@/schemas/api/endpoints/colonel';

@@ -1,4 +1,4 @@
-//  src/composables/useDomainDropdown.ts
+// src/composables/useDomainDropdown.ts
 
 import { WindowService } from '@/services/window.service';
 import { ref } from 'vue';

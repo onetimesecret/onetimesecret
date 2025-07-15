@@ -1,4 +1,4 @@
-# apps/api/v2/controllers/settings.rb
+# apps/api/v2/controllers/class_settings.rb
 
 module V2
   # ControllerSettings module provides configuration options for UTF-8 and URI
