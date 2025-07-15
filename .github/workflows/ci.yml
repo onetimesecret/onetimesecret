@@ -2,22 +2,17 @@
 
 name: CI
 
-# Main CI workflow that runs Ruby tests using RSpec and tryouts.
+# Main CI workflow that runs Ruby tests using RSpec and tryouts, plus TypeScript
+# tests using Vitest and validation steps (linting, type-checking).
 #
 # The workflow is triggered by push events on branches starting with "fix/" or
 # "rel/", pull requests on main/develop/feature/* branches, and manual dispatch.
 #
-# The workflow has a single job named "test" that runs on Ubuntu 24.04
-# with a strategy matrix to test multiple Ruby versions.
+# The workflow has jobs for:
+# - Ruby testing (RSpec and tryouts) across multiple Ruby versions
+# - TypeScript testing (Vitest) and validation (linting, type-checking)
 #
-# The steps in the job are:
-# 1. Checkout code using the actions/checkout@v4 action.
-# 2. Set up the specified version of Ruby using the ruby/setup-ruby@v1 action.
-# 3. Install dependencies using Bundler.
-# 4. Run RSpec tests with JSON output for reporting.
-# 5. Run tryouts for additional testing.
-#
-# This workflow ensures that Ruby tests pass across supported Ruby versions.
+# This workflow ensures comprehensive testing across the full stack.
 
 on:
   push:
@@ -41,7 +36,7 @@ permissions:
   contents: read
 
 jobs:
-  test:
+  test-ruby:
     timeout-minutes: 15 # prevent hung jobs
 
     # Can also be set to `self-hosted` if worker is running. Possible
@@ -112,4 +107,49 @@ jobs:
         if: always()
         run: |
           echo "## Test Results" >> $GITHUB_STEP_SUMMARY
-          echo "$(bundle exec rspec
+          echo "$(bundle exec rspec \
+            --dry-run \
+            --format documentation \
+            $(find ./spec -name '*_spec.rb' ! -name 'spec_helper.rb'))" >> $GITHUB_STEP_SUMMARY
+          echo "Total tests: $(jq '.summary.example_count' tmp/rspec_results.json)" >> $GITHUB_STEP_SUMMARY
+
+      - name: Run tryouts
+        continue-on-error: ${{ matrix.continue-on-error }}
+        run: |
+          pnpm run test:tryouts {apps,lib,examples}/**/*_try.rb
+
+  test-typescript:
+    timeout-minutes: 15
+    runs-on: ubuntu-24.04
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: latest
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Run type checking
+        run: pnpm type-check
+
+      - name: Run linting
+        run: pnpm lint
+
+      - name: Run TypeScript tests
+        run: pnpm test
+
+      - name: Generate TypeScript test summary
+        if: always()
+        run: |
+          echo "## TypeScript Test Results" >> $GITHUB_STEP_SUMMARY
+          echo "Type checking, linting, and unit tests completed." >> $GITHUB_STEP_SUMMARY
