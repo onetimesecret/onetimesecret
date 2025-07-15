@@ -157,7 +157,7 @@ RSpec.describe 'Window State Schema Validation' do
         authenticated custid cust email customer_since
         authentication d9s_enabled diagnostics domains domains_enabled
         frontend_development frontend_host incoming_recipient plans_enabled
-        regions regions_enabled secret_options site_host support_host ui
+        regions regions_enabled secret_options site_host ui
         canonical_domain custom_domains display_domain domain_branding
         domain_id domain_locale domain_logo domain_strategy
         locale default_locale fallback_locale supported_locales i18n_enabled
