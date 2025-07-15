@@ -9,20 +9,13 @@ module V2
   class MutableConfig < Familia::Horreum
     include Gibbler::Complex
 
-    # The top-level mutable config mapped to their equivalents in
-    # the old YAML format (<v0.23.0).
-    unless defined?(FIELD_MAPPINGS)
-      FIELD_MAPPINGS = {
-        ui: [:site, :interface, :ui],
-        secret_options: [:site, :secret_options],
-        mail: [:mail],
-        limits: [:limits],
-        api: [:site, :interface, :api],
-      }.freeze
-    end
-
-    # Fields that need JSON serialization/deserialization
-    JSON_FIELDS = FIELD_MAPPINGS.keys.freeze
+    JSON_FIELDS = [
+      :ui,
+      :api,
+      :secret_options,
+      :mail,
+      :limits,
+    ].freeze
 
     feature :safe_dump
 
@@ -45,8 +38,6 @@ module V2
     field :updated
     field :_original_value
 
-    @txt_validation_prefix = '_onetime-challenge'.freeze
-
     @safe_dump_fields = [
       { identifier: ->(obj) { obj.identifier } },
       :ui,
@@ -54,7 +45,6 @@ module V2
       :api,
       :mail,
       :limits,
-      :features,
       :custid,
       :comment,
       :created,
@@ -67,52 +57,14 @@ module V2
       OT.ld "[MutableConfig.init] #{configid} #{rediskey}"
     end
 
-    # Serialize complex data to JSON when setting fields
-    def serialize_field_value(value)
-      if value.is_a?(Hash) || value.is_a?(Array)
-        JSON.generate(value)
-      else
-        value
-      end
-    end
-
-    # Deserialize JSON strings back to Ruby objects when getting fields
-    def deserialize_field_value(field_name, raw_value)
-      return nil if raw_value.nil? || raw_value.empty?
-
-      if JSON_FIELDS.include?(field_name.to_sym) && raw_value.is_a?(String)
-        begin
-          JSON.parse(raw_value)
-        rescue JSON::ParserError
-          raw_value
-        end
-      else
-        raw_value
-      end
-    end
-
-    # Override field setters to handle JSON serialization
-    JSON_FIELDS.each do |field|
-      define_method("#{field}=") do |value|
-        serialized_value = serialize_field_value(value)
-        instance_variable_set("@#{field}", serialized_value)
-      end
-
-      # Override field getters to handle JSON deserialization
-      define_method(field) do
-        raw_value = instance_variable_get("@#{field}")
-        deserialize_field_value(field, raw_value)
-      end
-    end
-
     # This method overrides the default save behavior to enforce saving
     # a new record and not updating an existing one. This ensures we
     # have a complete history of configuration objects.
-    def save **kwargs
+    def save(**)
       raise OT::Problem, "Cannot clobber #{self.class} #{rediskey}" if exists?
 
       redis.multi do |multi|
-        super(**kwargs)
+        super(**)
         self.class.add(self, multi)
       end
     end
@@ -139,220 +91,9 @@ module V2
       @key
     end
 
-    def filtered
-      # Use the deserialized getter methods
-      JSON_FIELDS.each_with_object({}) do |field, result|
-        value         = send(field) # This now uses the overridden getter
-        result[field] = value if value && !value.empty?
-      end
-    end
-
-    # def to_onetime_config
-    #   self.class.construct_onetime_config(filtered)
-    # end
-
-    # Override to_h to use deserialized values
-    # def to_h
-    #   JSON_FIELDS.each_with_object({}) do |field, hash|
-    #     value       = send(field) # Use the getter method which handles deserialization
-    #     hash[field] = value if value
-    #   end.merge(
-    #     configid: configid,
-    #     custid: custid,
-    #     comment: comment,
-    #     created: created,
-    #     updated: updated,
-    #   ).compact
-    # end
-
-    class << self
-      # Extracts the sections that mutable config manages from the full
-      # single-file config (i.e. old format). this can still be useful in
-      # future if we want to have a convertor around for a while to allow
-      # for migrations to v0.23+.
-      def extract_mutable_config(config)
-        FIELD_MAPPINGS.transform_values do |path|
-          path.length == 1 ? config[path[0]] : config.dig(*path)
-        end
-      end
-
-      # Takes a mutable config hash or instance and constructs a new hash
-      # with the same structure as the Onetime YAML configuration.
-      #
-      # TODO: Remove on account of having the new config operational
-      def construct_onetime_config(config)
-        mutable_config_hash = config.is_a?(Hash) ? config : config.to_h
-        mutable_config_hash.transform_keys!(&:to_sym)
-
-        result = {}
-
-        FIELD_MAPPINGS.each do |field, path|
-          value = mutable_config_hash[field]
-          # Skip empty/nil values to allow fallback to base config
-          next unless value && !value.empty?
-
-          # Build nested hash structure based on path
-          current            = result
-          path[0..-2].each do |key|
-            current[key] ||= {}
-            current        = current[key]
-          end
-          current[path.last] = value
-        end
-
-        result
-      end
-    end
-
-    module ClassMethods
-      attr_reader :db, :values, :owners
-
-      # Creates a new record
-      #
-      def create(**kwargs)
-        obj = new(**kwargs)
-
-        # Fail fast if invalid fields are provided
-        kwargs.each_with_index do |(key, _value), index|
-          next if fields.include?(key.to_s.to_sym) # Familia uses symbols
-
-          raise Onetime::Problem, "Invalid field #{key} (#{index})"
-        end
-
-        redis.watch(obj.rediskey) do
-          if obj.exists?
-            redis.unwatch
-            raise Onetime::Problem, "Duplicate record #{obj.rediskey}"
-          end
-
-          redis.multi do |multi|
-            # Use the object's field values which are properly serialized
-            kwargs.each do |key, _value|
-              # Get the serialized value from the object's instance variable
-              serialized_value = obj.instance_variable_get("@#{key}")
-              multi.hset(obj.rediskey, key, serialized_value) if serialized_value
-            end
-            multi.hset(obj.rediskey, :configid, obj.identifier)
-            multi.hset(obj.rediskey, :created_at, Time.now.to_i)
-            multi.hset(obj.rediskey, :updated_at, Time.now.to_i)
-            add(obj.identifier, multi) # keep track of instances via class_list :values
-          end
-        end
-
-        obj  # Return the created object
-      rescue Redis::BaseError => ex
-        OT.le "[MutableConfig.create] Redis error: #{ex.message}"
-        raise Onetime::Problem, 'Unable to create custom domain'
-      end
-
-      # Simply instatiates a new MutableConfig object and checks if it exists.
-      def exists?(identifier)
-        # The `parse`` method instantiates a new MutableConfig object but does
-        # not save it to Redis. We do that here to piggyback on the inital
-        # validation and parsing. We use the derived identifier to load
-        # the object from Redis using
-        obj = load(identifier)
-        OT.ld "[MutableConfig.exists?] Got #{obj} for #{identifier}"
-        obj.exists?
-      rescue Onetime::Problem => ex
-        OT.le "[MutableConfig.exists?] #{ex.message}"
-        OT.ld ex.backtrace.join("\n")
-        false
-      end
-
-      def add(fobj, multi = nil)
-        now = self.now
-
-        if multi
-          # Use the provided multi instance for atomic operations
-          multi.zadd(values.rediskey, now, fobj.to_s)
-          multi.zadd(stack.rediskey, now, fobj.to_s)
-          multi.zadd(audit_log.rediskey, now, fobj.to_s)
-        else
-          # Fall back to individual operations for backward compatibility
-          values.add now, fobj.to_s
-          stack.add now, fobj.to_s
-          audit_log.add now, fobj.to_s
-        end
-      end
-
-      def rem(fobj)
-        values.remove fobj.to_s
-        # don't arbitrarily remove from stack, only for rollbacks/reversions.
-        # never remove from audit_log
-      end
-
-      def remove_bad_config(fobj)
-        values.remove fobj.to_s
-        stack.remove fobj.to_s
-      end
-
-      def all
-        # Load all instances from the sorted set. No need
-        # to involve the owners HashKey here.
-        values.revrangeraw(0, -1).collect { |identifier| from_identifier(identifier) }
-      end
-
-      def recent(duration = 7.days)
-        spoint = now-duration
-        epoint = now
-        values.rangebyscoreraw(spoint, epoint).collect { |identifier| load(identifier) }
-      end
-
-      def current
-        # Get the most recent config by retrieving the element with the highest score
-        # (using revrange 0, 0 to get just the highest-scored element)
-        objid = stack.revrangeraw(0, 0).first
-        raise Onetime::RecordNotFound.new('No config stack found') unless objid
-
-        load(objid)
-      end
-
-      def previous
-        # Get the previous config by retrieving the element with the second-highest score
-        # (using revrange 1, 1 to get just the second-highest-scored element)
-        objid = stack.revrangeraw(1, 1).first
-        raise Onetime::RecordNotFound.new('No previous config found') unless objid
-
-        load(objid)
-      end
-
-      def rollback!
-        rollback_key = rediskey(:rollback)
-        redis.watch(rollback_key) do
-          redis.multi do |multi|
-            multi.zpopmax(stack.rediskey, 1).first&.first
-            multi.revrangeraw(0, 0).first
-          end
-
-          OT.li "[#{self} removed #{removed_identifier}; current is #{current_identifier}]"
-        end
-      end
-
-      def history
-        history.revrangeraw(0, -1).collect { |identifier| load(identifier) }
-      end
-
-      # Using precision time (float) is critical for sorted set scores because it ensures
-      # proper ordering of configuration records in chronological sequence. Without
-      # precision, multiple configs created within the same second would have identical
-      # integer scores, making their order in the sorted set non-deterministic.
-      #
-      # This precise ordering is essential for:
-      # - current: Finding the most recent config reliably
-      # - previous: Identifying the correct second-most-recent config for rollbacks
-      # - rollback!: Ensuring we remove the actual latest config, not an arbitrary one
-      #
-      # Float timestamps provide microsecond precision, virtually eliminating the
-      # possibility of score collisions even with rapid sequential operations.
-      def now
-        OT.hnow # use precision scores
-      end
-    end
-
     require_relative 'mixins/comments'
     include V2::Mixins::ModelComments
-
-    extend ClassMethods
   end
 end
+
+require_relative 'mutable_config/class_methods'

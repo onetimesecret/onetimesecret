@@ -97,32 +97,6 @@ const mailSchema = z.object({
     .optional(),
 });
 
-// Diagnostics schema
-const diagnosticsSchema = z.object({
-  enabled: booleanOrString.optional(),
-  sentry: z
-    .object({
-      backend: z
-        .object({
-          dsn: z.string().optional(),
-          sampleRate: z.union([z.string(), z.number()]).optional(),
-          maxBreadcrumbs: z.union([z.string(), z.number()]).optional(),
-          logErrors: booleanOrString.optional(),
-        })
-        .optional(),
-      frontend: z
-        .object({
-          dsn: z.string().optional(),
-          sampleRate: z.union([z.string(), z.number()]).optional(),
-          maxBreadcrumbs: z.union([z.string(), z.number()]).optional(),
-          logErrors: booleanOrString.optional(),
-          trackComponents: booleanOrString.optional(),
-        })
-        .optional(),
-    })
-    .optional(),
-});
-
 // Limits schema
 const limitsSchema = z.object({
   create_secret: z.number().optional(),
@@ -169,10 +143,14 @@ const limitsSchema = z.object({
  * Using .optional() to handle partial settings data during initialization.
  */
 export const mutableConfigSchema = z.object({
-  interface: interfaceSchema.optional(),
+  ui: interfaceSchema.optional(),
+  api: z
+    .object({
+      enabled: booleanOrString.optional(),
+    })
+    .optional(),
   secret_options: secretOptionsSchema.optional(),
   mail: mailSchema.optional(),
-  diagnostics: diagnosticsSchema.optional(),
   limits: limitsSchema.optional(),
   // development: developmentSchema.optional(),
   // experimental: z.record(z.any()).optional(),

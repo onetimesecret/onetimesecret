@@ -45,7 +45,7 @@ module Onetime
       File.join(@xdg.config_home, 'onetime'), # 4. ~/.config/onetime
       File.join(File::SEPARATOR, 'etc', 'onetime'), # 5. /etc/onetime
       File.join(@home, 'spec'), # 6. onetimesecret/spec
-      File.join(@home, 'tryouts'), # 7. onetimesecret/tryouts
+      File.join(@home, 'tests'), # 7. onetimesecret/tests
     ].uniq.freeze
     @extensions = ['.yml', '.yaml', '.json', '.json5', ''].freeze
 

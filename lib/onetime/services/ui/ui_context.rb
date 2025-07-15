@@ -11,7 +11,7 @@ module Onetime
     # for all template variables and OnetimeWindow data generation.
     #
     # Key responsibilities:
-    # - Customer authentication and plan information
+    # - Customer authentication details
     # - Domain strategy and custom domain handling
     # - Feature flags and configuration exposure
     # - Internationalization settings
@@ -31,8 +31,8 @@ module Onetime
 
         OT.li "[UIContext] Initializing UIContext (#{req.env['ots.nonce']})"
         # Build the complete business data with OnetimeWindow structure
-        onetime_window = build_onetime_window_data(req, sess, @cust, locale_override)
-        enhanced_props = props.merge(onetime_window: onetime_window)
+        jsvars = build_jsvars(req, sess, @cust, locale_override)
+        enhanced_props = props.merge(jsvars)
 
         # Call parent constructor with enhanced data
         super(req, sess, @cust, locale_override, props: enhanced_props)
@@ -66,7 +66,7 @@ module Onetime
       # Build complete OnetimeWindow data structure
       # This is the authoritative business logic ported from Core::Views::BaseView#initialize
       # rubocop:disable Lint/UselessAssignment
-      def build_onetime_window_data(req, sess, cust, locale_override)
+      def build_jsvars(req, sess, cust, locale_override)
         # Return minimal defaults if OT.conf isn't loaded yet
         return minimal_onetime_window(req, sess, cust, locale_override) unless defined?(OT) && OT.conf
 
