@@ -33,8 +33,12 @@ end
 # Load the main library
 require_relative '../lib/onetime'
 
+
 # Load support files (if they exist)
-Dir[File.join(__dir__, 'support', '**', '*.rb')].sort.each { |f| require f }
+Dir[File.join(__dir__, 'support', '**', '*.rb')].sort.each { |f|
+  $stderr.puts "Loading #{f}"
+  require f
+}
 
 # Load onetime modules after support files
 begin
