@@ -13,10 +13,13 @@
 # email addresses, which is important for user registration and communication.
 
 require 'digest'
-require 'dotenv'
 require 'truemail'
 
-Dotenv.load('.env')
+# TODO2: Removed dotenv since we only use it in tests and we should be mocking
+# the env vars and settings generally.
+#
+# require 'dotenv'
+# Dotenv.load('.env')
 
 # Relys on environment variables:
 # - VERIFIER_EMAIL
