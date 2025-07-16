@@ -28,7 +28,7 @@ gem 'rack-utf8_sanitizer', '~> 1.10.1'
 
 gem 'dotenv'
 gem 'json_schemer'
-gem 'multi_json'
+gem 'json'
 gem 'mustache'
 gem 'public_suffix'
 gem 'thin'
