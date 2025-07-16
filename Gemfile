@@ -36,7 +36,6 @@ gem 'thin'
 gem 'familia', '~> 1.2.1'
 gem 'gibbler'
 gem 'otto', '~> 1.1.0.pre.alpha4'
-gem 'storable'
 gem 'uri-redis', '~> 1.3.0'
 
 if ENV['LOCAL_DEV'] && ENV['RACK_ENV'] == 'development' && ENV['CI'].to_s.empty?
