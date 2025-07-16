@@ -57,7 +57,6 @@ gem 'fastimage', '~> 2.4'
 gem 'hashdiff'
 gem 'httparty'
 gem 'mail'
-gem 'net-imap', '~> 0.5.7'
 
 gem 'psych', '~> 5.2.3'
 gem 'stringio', '~> 3.1.6'

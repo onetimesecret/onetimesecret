@@ -286,7 +286,6 @@ DEPENDENCIES
   mail
   multi_json
   mustache
-  net-imap (~> 0.5.7)
   ostruct (~> 0.6.2)
   otto (~> 1.1.0.pre.alpha4)
   pry
