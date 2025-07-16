@@ -65,12 +65,10 @@ gem 'stringio', '~> 3.1.6'
 gem 'base64'
 
 # As of Ruby 3.5, these are no longer in the standard library
-gem 'fiddle'    # Fiddle library for handling dynamic libraries (required by reline)
 gem 'irb'       # IRB
 gem 'logger'    # Logger library for logging messages (required by truemail)
 gem 'ostruct', '~> 0.6.2'   # OpenStruct library for creating data objects (required by json)
 gem 'rdoc'      # IRB
-gem 'reline'
 
 # Third-party services
 gem 'aws-sdk-sesv2', '~> 1.74'
