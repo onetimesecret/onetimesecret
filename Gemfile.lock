@@ -240,10 +240,11 @@ GEM
       storable
     syslog (0.3.0)
       logger
-    thin (1.8.2)
+    thin (2.0.1)
       daemons (~> 1.0, >= 1.0.9)
       eventmachine (~> 1.0, >= 1.0.4)
-      rack (>= 1, < 3)
+      logger
+      rack (>= 1, < 4)
     timeout (0.4.3)
     truemail (3.3.1)
       simpleidn (~> 0.2.1)
