@@ -5,7 +5,7 @@ require 'tempfile'
 require 'fileutils'
 
 # Establish the environment
-ENV['RACK_ENV'] ||= 'test'
+ENV['RACK_ENV'] ||= 'production'
 ENV['ONETIME_HOME'] ||= File.expand_path('..', __dir__).freeze
 
 # This tells OT::Configurator#load_with_impunity! to look in the preset list
