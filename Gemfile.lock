@@ -261,7 +261,6 @@ PLATFORMS
   x86_64-linux
 
 DEPENDENCIES
-  addressable
   altcha (~> 0.2.1)
   aws-sdk-sesv2 (~> 1.74)
   base64
@@ -316,7 +315,6 @@ DEPENDENCIES
   sentry-ruby
   simplecov
   stackprof
-  storable
   stringio (~> 3.1.6)
   stripe
   syntax_tree
