@@ -17,9 +17,9 @@ RSpec.describe V1::Logic::Secrets::ShowSecret do
 
   let(:base_params) do
     {
-      key: 'secret123',
-      passphrase: 'pass123',
-      continue: 'true'
+      'key' => 'secret123',
+      'passphrase' => 'pass123',
+      'continue' => 'true'
     }
   end
 

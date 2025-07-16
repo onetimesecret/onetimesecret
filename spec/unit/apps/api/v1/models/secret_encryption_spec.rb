@@ -9,7 +9,7 @@ RSpec.describe V1::Secret do
     let(:passphrase) { "test-passphrase-123" }
 
     before do
-      allow(OT).to receive(:global_secret).and_return("global-test-secret")
+      allow(OT).to receive(:conf).and_return({'site' => {'secret' => "global-test-secret"}})
     end
 
     describe '#encrypt_value' do
