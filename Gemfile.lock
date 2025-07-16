@@ -121,7 +121,6 @@ GEM
     minitest (5.25.5)
     multi_xml (0.7.1)
       bigdecimal (~> 3.1)
-    mustache (1.1.1)
     net-imap (0.5.8)
       date
       net-protocol
@@ -282,7 +281,6 @@ DEPENDENCIES
   json_schemer
   logger
   mail
-  mustache
   ostruct (~> 0.6.2)
   otto (~> 1.1.0.pre.alpha4)
   pry

@@ -26,7 +26,6 @@ gem 'rack-utf8_sanitizer', '~> 1.10.1'
 gem 'dotenv'
 gem 'json_schemer'
 gem 'json'
-gem 'mustache'
 gem 'public_suffix'
 gem 'puma', '~> 6.6'
 

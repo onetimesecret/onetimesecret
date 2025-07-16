@@ -2,11 +2,12 @@
 
 ## Templates
 
+We use Rhales Single File Component templates, indicated by the .rue file extension.
 
 ### Password Request
 
 
-The following mustache tags are used in the template:
+The following handlebars tags are used in the template:
 
 1. `{{baseuri}}` - Base URL of the website
 2. `{{forgot_path}}` - Path to the password reset page
@@ -26,7 +27,7 @@ P.S. This email was sent to {{email_address}}. If you did not make this request,
 
 ### Secret Link
 
-The following mustache tags are used in the template:
+The following handlebars tags are used in the template:
 
 1. `{{ i18n.email.body1 }}` - Internationalized text for the first part of the email body
 2. `{{ custid }}` - Customer ID or username
@@ -46,7 +47,7 @@ The following mustache tags are used in the template:
 
 ### Feedback
 
-The following mustache tags are used in the template:
+The following handlebars tags are used in the template:
 
 1. `{{message}}` - The main email message content
 2. `{{baseuri}}` - Base URL of the website, used twice (once as link text and once as href)
@@ -76,7 +77,7 @@ Secret Support
 
 ### Test Email
 
-The following mustache tags are used in the template:
+The following handlebars tags are used in the template:
 
 1. `{{test_variable}}` - A test variable value
 2. `{{baseuri}}` - Base URL of the application
