@@ -13,8 +13,6 @@ require 'securerandom'
 
 require_relative 'helpers/test_helpers'
 
-SYSLOG = Syslog.open('onetime') unless defined?(SYSLOG)
-
 def capture_io
   old_stdout = $stdout
   old_stderr = $stderr
@@ -38,15 +36,6 @@ SecureRandom.hex.class
 initial_val = SecureRandom.hex
 initial_val != SecureRandom.hex
 #=> true
-
-## SYSLOG is defined
-defined?(SYSLOG)
-#=> "constant"
-
-## SYSLOG is just a module returned by Syslog.open
-[SYSLOG.is_a?(Syslog), SYSLOG.class]
-#=> [false, Module]
-
 
 ## Onetime.info logs to STDOUT
 output = capture_io { Onetime.info("Test message") }

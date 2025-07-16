@@ -1,6 +1,6 @@
-require 'syslog'
+require 'logger'
 
-SYSLOG = Syslog.open('onetime') unless defined?(SYSLOG)
+LOGGER = Logger.new(STDOUT) unless defined?(LOGGER)
 
 # Rack::HeaderLoggerMiddleware
 #
@@ -22,7 +22,7 @@ SYSLOG = Syslog.open('onetime') unless defined?(SYSLOG)
 class Rack::HeaderLoggerMiddleware
   def initialize(app)
     @app = app
-    OT.ld('HeaderLoggerMiddleware initialized')
+    LOGGER.debug('HeaderLoggerMiddleware initialized')
   end
 
   def call(env)
@@ -33,13 +33,13 @@ class Rack::HeaderLoggerMiddleware
   private
 
   def log_headers(env)
-    OT.info("Request Headers for #{env['REQUEST_METHOD']} #{env['PATH_INFO']}:")
+    LOGGER.info("Request Headers for #{env['REQUEST_METHOD']} #{env['PATH_INFO']}:")
     env.each do |key, value|
       if key.start_with?('HTTP_')
         header_name = key.sub(/^HTTP_/, '').split('_').map(&:capitalize).join('-')
-        OT.info(">  #{header_name}: #{value}")
+        LOGGER.info(">  #{header_name}: #{value}")
       end
     end
-    OT.info("\n")  # Add a blank line for readability between requests
+    LOGGER.info("\n")  # Add a blank line for readability between requests
   end
 end
