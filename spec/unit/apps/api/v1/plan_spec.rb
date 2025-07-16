@@ -40,8 +40,9 @@ RSpec.describe V1::Plan, type: :model do
       end
 
       it 'returns the not authenticated plan details' do
-        expect(V1::Plan.plan.safe_dump).to eq(not_authenticated_json['plan'])
-        expect(V1::Plan.plan.paid?).to eq(not_authenticated_json['is_paid'])
+        plan = V1::Plan.plan(:anonymous)
+        expect(plan.safe_dump).to eq(not_authenticated_json['plan'])
+        expect(plan.paid?).to eq(not_authenticated_json['is_paid'])
       end
     end
 
@@ -53,8 +54,9 @@ RSpec.describe V1::Plan, type: :model do
       end
 
       it 'returns the authenticated plan details' do
-        expect(V1::Plan.plan.safe_dump).to eq(authenticated_json['plan'])
-        expect(V1::Plan.plan.paid?).to eq(authenticated_json['is_paid'])
+        plan = V1::Plan.plan(:identity)
+        expect(plan.safe_dump).to eq(authenticated_json['plan'])
+        expect(plan.paid?).to eq(authenticated_json['is_paid'])
       end
     end
   end
