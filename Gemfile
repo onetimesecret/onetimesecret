@@ -18,8 +18,6 @@ source 'https://rubygems.org/'
 gem 'truemail'
 gem 'xdg'
 
-gem 'altcha', '~> 0.2.1'
-
 gem 'rack', '>= 2.2.12', '< 3.0'
 gem 'rack-contrib', '~> 2.5'
 gem 'rack-protection', '~> 3.2'

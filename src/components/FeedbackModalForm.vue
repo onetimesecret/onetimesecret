@@ -1,7 +1,6 @@
 <!-- src/components/FeedbackModalForm.vue -->
 
 <script setup lang="ts">
-  import AltchaChallenge from '@/components/AltchaChallenge.vue';
 import { useFormSubmission } from '@/composables/useFormSubmission';
 import { WindowService } from '@/services/window.service';
 import { useCsrfStore } from '@/stores/csrfStore';
@@ -24,11 +23,9 @@ import { useI18n } from 'vue-i18n';
 
   const userTimezone = ref('');
   const feedbackMessage = ref('');
-  const altchaPayload = ref('');
 
   const resetForm = () => {
     feedbackMessage.value = '';
-    altchaPayload.value = '';
     // Reset other non-hidden form fields here if you have any
   };
 
@@ -80,7 +77,6 @@ import { useI18n } from 'vue-i18n';
 
   const submitWithCheck = async (event?: Event) => {
     console.debug('Submitting feedback form');
-    console.debug('Altcha payload:', altchaPayload.value);
 
     await submitForm(event);
   };
@@ -105,11 +101,6 @@ import { useI18n } from 'vue-i18n';
         type="hidden"
         name="shrimp"
         :value="csrfStore.shrimp" />
-      <input
-        type="hidden"
-        name="authenticity_payload"
-        :value="altchaPayload" />
-
       <div>
         <label
           for="feedback-message"
@@ -154,11 +145,6 @@ import { useI18n } from 'vue-i18n';
         :aria-label="$t('web.feedback.send-feedback')">
         {{ buttonText }}
       </button>
-
-      <AltchaChallenge
-        v-if="!cust || cust.identifier == 'anon'"
-        v-model:payload="altchaPayload"
-        :is-floating="true" />
     </form>
 
     <div class="h-6">

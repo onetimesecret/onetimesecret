@@ -45,7 +45,6 @@ GEM
   specs:
     addressable (2.8.7)
       public_suffix (>= 2.0.2, < 7.0)
-    altcha (0.2.1)
     ast (2.4.3)
     attic (1.0.1)
       rake (~> 13.0.6)
@@ -262,7 +261,6 @@ PLATFORMS
   x86_64-linux
 
 DEPENDENCIES
-  altcha (~> 0.2.1)
   aws-sdk-sesv2 (~> 1.74)
   base64
   bcrypt
