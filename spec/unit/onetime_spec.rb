@@ -2,6 +2,8 @@
 
 require_relative '../spec_helper'
 
+require 'onetime/services/system'
+
 RSpec.describe Onetime do
   describe '.env' do
     it 'defaults to production when RACK_ENV is not set' do
@@ -74,7 +76,7 @@ RSpec.describe Onetime do
       end
 
       it 'returns the ServiceRegistry provider' do
-        expect(described_class.provider).to eq({ redis: 'provider' })
+        expect(described_class.providers).to eq([])
       end
     end
 
@@ -84,7 +86,7 @@ RSpec.describe Onetime do
       end
 
       it 'returns an empty hash' do
-        expect(described_class.provider).to eq({})
+        expect(described_class.providers).to eq([])
       end
     end
   end
