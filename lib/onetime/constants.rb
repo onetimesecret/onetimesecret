@@ -14,6 +14,26 @@ require 'bcrypt'
 
 require 'rack'
 require 'otto'
+
+#
+# Workaround for attic gem IRB.conf issue in debug environments
+# The attic gem (gibbler dependency) assumes IRB.conf exists if IRB is defined
+# but in debug environments, IRB may be loaded but not fully initialized
+if defined?(IRB)
+  begin
+    # Check if conf method/constant exists, if not initialize IRB
+    unless IRB.respond_to?(:conf) || defined?(IRB.conf)
+      require 'irb'
+      IRB.setup(__FILE__)
+    end
+  rescue => e
+    # Fallback: create minimal conf if setup fails
+    unless defined?(IRB.conf)
+      IRB.const_set(:conf, {}) unless IRB.const_defined?(:conf)
+    end
+  end
+end
+
 require 'gibbler/mixins'
 require 'familia'
 require 'storable'
