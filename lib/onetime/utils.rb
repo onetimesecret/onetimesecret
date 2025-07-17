@@ -34,9 +34,95 @@ module Onetime
       (1..len).collect { chars[rand(chars.size - 1)] }.join
     end
 
-    def deep_merge(default, overlay)
-      merger = proc { |_key, v1, v2| v1.is_a?(Hash) && v2.is_a?(Hash) ? v1.merge(v2, &merger) : v2 }
-      default.merge(overlay, &merger)
+    def indifferent_params(params)
+      if params.is_a?(Hash)
+        params = indifferent_hash.merge(params)
+        params.each do |key, value|
+          next unless value.is_a?(Hash) || value.is_a?(Array)
+
+          params[key] = indifferent_params(value)
+        end
+      elsif params.is_a?(Array)
+        params.collect! do |value|
+          if value.is_a?(Hash) || value.is_a?(Array)
+            indifferent_params(value)
+          else
+            value
+          end
+        end
+      end
+    end
+
+    # Creates a Hash with indifferent access.
+    def indifferent_hash
+      Hash.new { |hash, key| hash[key.to_s] if key.is_a?(Symbol) }
+    end
+
+    # Creates a complete deep copy of a configuration hash using YAML
+    # serialization. This ensures all nested objects are properly duplicated,
+    # preventing unintended sharing of references that could lead to data
+    # corruption if modified.
+    #
+    # @param config_hash [Hash] The configuration hash to be cloned
+    # @return [Hash] A deep copy of the original configuration hash
+    # @raise [OT::Problem] When YAML serialization fails due to unserializable
+    #   objects
+    # @security Prevents configuration mutations from affecting multiple
+    #   components
+    #
+    # @security_note YAML Deserialization Restrictions
+    #   Ruby's YAML parser (Psych) restricts object loading to prevent
+    #   deserialization attacks. Only basic types are allowed by default:
+    #   String, Integer, Float, Array, Hash, Symbol, Date, Time. Custom
+    #   objects will raise Psych::DisallowedClass errors. Malicious alias
+    #   references will raise Psych::BadAlias errors. These restrictions are
+    #   intentional and provide security benefits by preventing malicious
+    #   object deserialization and YAML bomb attacks in configuration data.
+    #
+    # @limitations
+    #   - Only works with basic Ruby data types (String, Integer, Hash,
+    #     Array, Symbol)
+    #   - Custom objects, Struct instances, and complex classes are blocked
+    #     for security
+    #   - Objects with singleton methods or custom serialization will fail
+    #   - Performance can degrade with deeply nested or large object
+    #     structures
+    #
+    #   For configuration use cases, these limitations are beneficial as they
+    #   ensure data integrity and prevent security vulnerabilities. Use
+    #   recursive approaches for custom object cloning outside of
+    #   configuration contexts.
+    #
+    def deep_clone(config_hash)
+      # Since we know we only expect a regular hash here without any methods,
+      # procs etc, we use YAML instead to accomplish the same thing (JSON is
+      # another option but it turns all the symbol keys into strings).
+      YAML.load(YAML.dump(config_hash)) # TODO: Use oj for perf and string gains
+    rescue TypeError, Psych::DisallowedClass, Psych::BadAlias => ex
+      raise OT::Problem, "[deep_clone] #{ex.message}"
+    end
+
+    # Dump structure with types instead of values. Used for safe logging of
+    # configuration data to help debugging.
+    # @param obj [Object] Any Ruby object
+    # @return [Hash,Array,String] Structure with class names instead of values
+    def type_structure(obj)
+      case obj
+      when Hash
+        obj.transform_values { |v| type_structure(v) }
+          .transform_values { |v| v.is_a?(Hash) ? v : v.to_s }
+      when Array
+        if obj.empty?
+          'Array<empty>'
+        else
+          sample = type_structure(obj.first)
+          "Array<#{sample.class.name}>"
+        end
+      when NilClass
+        'nil'
+      else
+        obj.class.name
+      end
     end
 
     def obscure_email(text)

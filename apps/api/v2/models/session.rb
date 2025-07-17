@@ -127,10 +127,10 @@ module V2
       sessid
     end
 
-    def shrimp? guess
+    def shrimp?(guess)
       shrimp = self.shrimp.to_s
-      guess = guess.to_s
-      OT.ld "[Sess#shrimp?] Checking with a constant time comparison"
+      guess  = guess.to_s
+      OT.ld '[Sess#shrimp?] Checking with a constant time comparison'
       (!shrimp.empty?) && Rack::Utils.secure_compare(shrimp, guess)
     end
 
@@ -139,12 +139,12 @@ module V2
       # we only add it if it's not already set ao that we don't accidentally
       # dispose of perfectly good piece of shrimp. Because of this guard, the
       # method is idempotent and can be called multiple times without side effects.
-      self.shrimp! self.class.generate_id if self.shrimp.to_s.empty?
-      self.shrimp # fast writer bang methods don't return the value
+      shrimp! self.class.generate_id if shrimp.to_s.empty?
+      shrimp # fast writer bang methods don't return the value
     end
 
     def replace_shrimp!
-      self.shrimp! self.class.generate_id
+      shrimp! self.class.generate_id
     end
 
     def authenticated?
@@ -157,6 +157,7 @@ module V2
 
     def load_customer
       return V2::Customer.anonymous if anonymous?
+
       cust = V2::Customer.load custid
       cust.nil? ? V2::Customer.anonymous : cust
     end
@@ -193,21 +194,5 @@ module V2
       end
     end
 
-    # Mixin Placement for Field Order Control
-    #
-    # We include the SessionMessages mixin at the end of this class definition
-    # for a specific reason related to how Familia::Horreum handles fields.
-    #
-    # In Familia::Horreum subclasses (like this Session class), fields are processed
-    # in the order they are defined. When creating a new instance with Session.new,
-    # any provided positional arguments correspond to these fields in the same order.
-    #
-    # By including SessionMessages last, we ensure that:
-    # 1. Its additional fields appear at the end of the field list.
-    # 2. These fields don't unexpectedly consume positional arguments in Session.new.
-    #
-    include V2::Mixins::SessionMessages
-
-    extend ClassMethods
   end
 end

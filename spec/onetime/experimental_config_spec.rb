@@ -45,7 +45,6 @@ RSpec.describe "Experimental config settings" do
         encryption_key = V2::Secret.encryption_key(regular_secret, secret.key, passphrase)
         secret.value = test_value.encrypt(key: encryption_key)
         secret.value_encryption = 2
-        secret.value_checksum = test_value.gibbler
 
         # Decrypt with the same global secret
         secret.passphrase_temp = passphrase
@@ -65,7 +64,6 @@ RSpec.describe "Experimental config settings" do
         encryption_key = V2::Secret.encryption_key(regular_secret, secret.key, passphrase)
         secret.value = test_value.encrypt(key: encryption_key)
         secret.value_encryption = 2
-        secret.value_checksum = test_value.gibbler
 
         # Then try to decrypt with a nil global secret
         OT.instance_variable_set(:@global_secret, nil)
@@ -120,7 +118,6 @@ RSpec.describe "Experimental config settings" do
         encryption_key = V2::Secret.encryption_key(nil, secret.key, passphrase)
         secret.value = test_value.encrypt(key: encryption_key)
         secret.value_encryption = 2
-        secret.value_checksum = test_value.gibbler
 
         # Verify the encryption worked
         expect(secret.value).not_to be_nil
@@ -143,7 +140,6 @@ RSpec.describe "Experimental config settings" do
         encryption_key = V2::Secret.encryption_key(regular_secret, secret.key, passphrase)
         secret.value = test_value.encrypt(key: encryption_key)
         secret.value_encryption = 2
-        secret.value_checksum = test_value.gibbler
 
         # Switch to nil global secret for decryption
         OT.instance_variable_set(:@global_secret, nil)
@@ -173,7 +169,6 @@ RSpec.describe "Experimental config settings" do
         encryption_key = V2::Secret.encryption_key(regular_secret, secret.key, passphrase)
         secret.value = test_value.encrypt(key: encryption_key)
         secret.value_encryption = 2
-        secret.value_checksum = test_value.gibbler
 
         # Try decrypting with wrong passphrase
         secret.passphrase_temp = "wrong-passphrase"
@@ -203,7 +198,6 @@ RSpec.describe "Experimental config settings" do
         encryption_key = V2::Secret.encryption_key(regular_secret, secret.key, passphrase)
         secret.value = test_value.encrypt(key: encryption_key)
         secret.value_encryption = 2
-        secret.value_checksum = test_value.gibbler
 
         # Then try to decrypt with a nil global secret
         OT.instance_variable_set(:@global_secret, nil)
@@ -232,7 +226,6 @@ RSpec.describe "Experimental config settings" do
         encryption_key = V2::Secret.encryption_key(nil, secret.key, passphrase)
         secret.value = test_value.encrypt(key: encryption_key)
         secret.value_encryption = 2
-        secret.value_checksum = test_value.gibbler
 
         # Then try to decrypt with a non-nil global secret
         OT.instance_variable_set(:@global_secret, regular_secret)
