@@ -29,7 +29,6 @@ gem 'public_suffix'
 gem 'puma', '~> 6.6'
 
 gem 'familia', '~> 1.2.1'
-gem 'gibbler'
 gem 'otto', '~> 1.1.0.pre.alpha4'
 gem 'uri-redis', '~> 1.3.0'
 
