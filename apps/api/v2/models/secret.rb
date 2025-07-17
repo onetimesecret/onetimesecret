@@ -17,7 +17,6 @@ module V2
     field :state
     field :value
     field :metadata_key
-    field :value_checksum
     field :value_encryption
     field :lifespan
     field :share_domain
@@ -117,7 +116,6 @@ module V2
       # strings like the more progressive 3.2+ Rubies.
       if original_value.to_s.empty?
         self.value_encryption = -1
-        self.value_checksum   = ''.gibbler
         return
       end
 
@@ -138,9 +136,8 @@ module V2
       else
         storable_value = original_value
       end
-      # Secure the value with cryptographic checksum and encryption
-      self.value_checksum   = storable_value.gibbler
-      self.value_encryption = 2  # Current encryption version
+      # Secure the value with cryptographic encryption
+      self.value_encryption = 2 # Current encryption version
 
       encryption_options = opts.merge(key: encryption_key)
       self.value         = storable_value.encrypt encryption_options

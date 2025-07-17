@@ -43,7 +43,6 @@ module V1
         @plans                             ||= {}
         new_plan                             = new(planid, *)
         plans[new_plan.planid]               = new_plan
-        plans[new_plan.planid.gibbler.short] = new_plan
       end
 
       def normalize(planid)

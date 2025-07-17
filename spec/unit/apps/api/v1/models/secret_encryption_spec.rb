@@ -19,7 +19,6 @@ RSpec.describe V1::Secret do
         expect(secret.value).not_to eq(secret_value)
         # NOTE: value_encryption is stored as integer 2, not string "2"
         expect(secret.value_encryption).to eq(2)
-        expect(secret.value_checksum).to eq(secret_value.gibbler)
       end
 
       it 'truncates content when size limit is specified' do
@@ -41,12 +40,6 @@ RSpec.describe V1::Secret do
 
         expect(secret.truncated?).to be false
         expect(secret.decrypted_value).to eq(secret_value)
-      end
-
-      it 'generates correct checksum' do
-        secret.encrypt_value(secret_value)
-
-        expect(secret.value_checksum).to eq(secret_value.gibbler)
       end
     end
 
@@ -287,7 +280,7 @@ RSpec.describe V1::Secret do
       begin
         secret.encrypt_value("")
         # If we get here, we're on Ruby 3.2+ which allows empty strings
-        expect(secret.value_checksum).to eq("".gibbler)
+        expect(secret.value).not_to be_nil
       rescue ArgumentError => e
         # If we get here, we're on Ruby 3.1 which rejects empty strings
         expect(e.message).to eq("data must not be empty")

@@ -8,7 +8,7 @@
 # generates unique identifiers when running in Puma's multi-process environment.
 #
 # Key Findings:
-# 1. OT.instance is generated per-process using [Process.pid, OT::VERSION].gibbler
+# 1. OT.instance is a unique string generated per-process
 # 2. Each Puma worker process gets a unique PID, therefore unique OT.instance
 # 3. The instance value remains consistent within a worker's lifetime
 # 4. CLI boot mode allows testing without full application dependencies

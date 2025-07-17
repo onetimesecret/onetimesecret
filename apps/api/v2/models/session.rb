@@ -177,25 +177,38 @@ module V2
     cust = V2::Customer.load custid
     cust.nil? ? V2::Customer.anonymous : cust
   end
-
   module ClassMethods
+    # @return [Object] the class-level values sorted set
     attr_reader :values
 
+    # Add session to the class-level sorted set and remove old entries
+    # @param sess [Session] the session to add
+    # @return [void]
     def add(sess)
       values.add OT.now.to_i, sess.identifier
       values.remrangebyscore 0, OT.now.to_i-2.days
     end
 
+    # Retrieve all sessions from the sorted set
+    # @return [Array<Session>] all sessions in reverse chronological order
     def all
       values.revrangeraw(0, -1).collect { |identifier| load(identifier) }
     end
 
+    # Retrieve sessions within a specified duration
+    # @param duration [ActiveSupport::Duration] time range to query (default: 30.days)
+    # @return [Array<Session>] sessions within the specified duration
     def recent(duration = 30.days)
       spoint = OT.now.to_i-duration
       epoint = OT.now.to_i
       values.rangebyscoreraw(spoint, epoint).collect { |identifier| load(identifier) }
     end
 
+    # Create and persist a new session
+    # @param ipaddress [String] client IP address
+    # @param custid [String] customer ID
+    # @param useragent [String, nil] user agent string
+    # @return [Session] the created session
     def create(ipaddress, custid, useragent = nil)
       sess = new ipaddress: ipaddress, custid: custid, useragent: useragent
 
@@ -204,9 +217,10 @@ module V2
       sess
     end
 
+    # Generate a unique session ID with 32 bytes of random data
+    # @return [String] base-36 encoded SHA256 hash
     def generate_id
       input = SecureRandom.hex(32)  # 16=128 bits, 32=256 bits
-      # Not using gibbler to make sure it's always SHA256
       Digest::SHA256.hexdigest(input).to_i(16).to_s(36) # base-36 encoding
     end
   end

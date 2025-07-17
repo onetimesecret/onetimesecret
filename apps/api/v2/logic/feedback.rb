@@ -97,7 +97,7 @@ module V2
         view.domain_strategy = domain_strategy
         view.message         = message
 
-        OT.ld "[send_feedback] Calling deliver_email #{message.gibbler}"
+        OT.ld "[send_feedback] Calling deliver_email (#{message.size} chars)"
 
         begin
           view.deliver_email

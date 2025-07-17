@@ -210,10 +210,8 @@ module Onetime
     #   configuration contexts.
     #
     def deep_clone(config_hash)
-      # Previously used Marshal here. But in Ruby 3.1 it died cryptically with
-      # a singleton error. It seems like it's related to gibbler but since we
-      # know we only expect a regular hash here without any methods, procs
-      # etc, we use YAML instead to accomplish the same thing (JSON is
+      # Since we know we only expect a regular hash here without any methods,
+      # procs etc, we use YAML instead to accomplish the same thing (JSON is
       # another option but it turns all the symbol keys into strings).
       YAML.load(YAML.dump(config_hash)) # TODO: Use oj for perf and string gains
     rescue TypeError, Psych::DisallowedClass, Psych::BadAlias => ex
