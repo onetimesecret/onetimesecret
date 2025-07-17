@@ -2,7 +2,6 @@
 
 module V1
   class Feedback < Familia::Horreum
-    include Gibbler::Complex
 
     class_sorted_set :values, key: 'onetime:feedback' # naming for legacy compatibility
 

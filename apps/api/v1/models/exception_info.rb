@@ -4,7 +4,6 @@ require 'logger'
 
 module V1
   class ExceptionInfo < Familia::Horreum
-    include Gibbler::Complex
 
     feature :safe_dump
     feature :expiration

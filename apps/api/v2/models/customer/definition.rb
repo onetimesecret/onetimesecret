@@ -31,8 +31,6 @@ module V2
     include V2::Mixins::Passphrase
     include V2::Mixins::ModelMaintenance
 
-    include Gibbler::Complex
-
     @global = nil
 
     feature :safe_dump

@@ -6,7 +6,6 @@ require_relative '../plan'
 
 module V1
   class Customer < Familia::Horreum
-    include Gibbler::Complex
 
     feature :safe_dump
     feature :expiration

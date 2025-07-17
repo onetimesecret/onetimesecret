@@ -4,7 +4,6 @@ require 'openssl'
 
 module V2
   class Secret < Familia::Horreum
-    include Gibbler::Complex
 
     feature :safe_dump
     feature :expiration
