@@ -286,7 +286,7 @@ module Onetime
       # This ensures special characters are properly escaped or converted to JSON.
       def normalize_value(value)
         case value.class.to_s
-        when 'String', 'Gibbler::Digest', 'Symbol', 'Integer', 'Float'
+        when 'String', 'Symbol', 'Integer', 'Float'
           if https?(value)
             value
           else
