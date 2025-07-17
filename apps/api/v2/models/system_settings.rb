@@ -7,7 +7,6 @@
 # saved in Redis then supercedes the equivalent YAML configuration.
 module V2
   class SystemSettings < Familia::Horreum
-    include Gibbler::Complex
 
     unless defined?(FIELD_MAPPINGS)
       FIELD_MAPPINGS = {

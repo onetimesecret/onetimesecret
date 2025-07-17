@@ -6,7 +6,6 @@ require_relative 'mixins/passphrase'
 
 module V2
   class Customer < Familia::Horreum
-    include Gibbler::Complex
 
     @global = nil
 

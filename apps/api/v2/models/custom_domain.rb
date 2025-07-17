@@ -33,7 +33,6 @@ require 'public_suffix'
 #
 module V2
   class CustomDomain < Familia::Horreum
-    include Gibbler::Complex
 
     unless defined?(MAX_SUBDOMAIN_DEPTH)
       MAX_SUBDOMAIN_DEPTH = 10 # e.g., a.b.c.d.e.f.g.h.i.j.example.com
