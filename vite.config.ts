@@ -91,29 +91,16 @@ export default defineConfig({
          * Reference: Discovered via stack trace to Pinia devtools initialization:
          * $subscribe @ pinia.js -> devtoolsInitApp @ chunk-LR5MW2GB.js -> mount
          */
-        compilerOptions: {
-          // Be cool and chill about 3rd party components. Alternatvely can use
-          // `app.config.compilerOptions.isCustomElement = tag => tag.startsWith('altcha-')`
-          // in main.ts.
-          isCustomElement: (tag: string | string[]) => tag.includes('altcha-'),
-        },
+        compilerOptions: {},
       },
     }),
-
-    // // Enable type checking and linting w/o blocking hmr
-    // checker({
-    //   typescript: true,
-    //   vueTsc: true,
-    // }),
 
     // Enable Vue Devtools
     vueDevTools(),
     Inspector(),
 
     // https://github.com/unplugin/unplugin-vue-markdown
-    Markdown({
-      /* options */
-    }),
+    Markdown({}),
 
     /**
      * Makes sure all text output files have a trailing newline.

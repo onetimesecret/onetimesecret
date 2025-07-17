@@ -6,7 +6,6 @@ require 'bundler/setup'
 
 require 'erb'
 require 'securerandom'
-require 'syslog'
 require 'truemail'
 
 require 'encryptor'

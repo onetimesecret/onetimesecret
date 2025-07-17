@@ -1,6 +1,5 @@
 # apps/api/v2/logic/feedback.rb
 
-require 'altcha'
 require_relative 'base'
 
 module V2

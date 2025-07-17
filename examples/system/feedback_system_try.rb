@@ -17,7 +17,6 @@
 
 require_relative '../../tests/helpers/test_models'
 require 'v2/logic/feedback'
-require 'v2/controllers/challenges'
 
 # Load the app
 OT.boot! :test, true

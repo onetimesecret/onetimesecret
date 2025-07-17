@@ -66,8 +66,7 @@ BE CONCISE. One-person project: focus on what's important NOW.
   "@sentry/vue": "^9.9.0",
   "date-fns": "^4.1.0",
   "dompurify": "^3.1.7",
-  "marked": "^15.0.7",
-  "altcha": "^1.1.0"
+  "marked": "^15.0.7"
 }
 ```
 

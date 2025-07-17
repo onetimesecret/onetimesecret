@@ -9,9 +9,11 @@
 $LOAD_PATH.unshift(File.expand_path("../../lib", __FILE__))
 
 require 'net/smtp'
-require 'dotenv'
-
-Dotenv.load
+# TODO2: Removed dotenv since we only use it in tests and we should be mocking
+# the env vars and settings generally.
+#
+# require 'dotenv'
+# Dotenv.load
 
 timestamp = Time.now.strftime('%Y-%m-%d %H:%M:%S')
 

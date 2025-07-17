@@ -45,10 +45,6 @@ POST   /validate-shrimp                           V2::Controllers::Meta#get_vali
 POST   /feedback                                  V2::Controllers::Meta#receive_feedback
 POST   /exception                                 V2::Controllers::Meta#receive_exception
 
-GET    /altcha/challenge                          V2::Controllers::Challenges#altcha_challenge
-POST   /altcha/verify                             V2::Controllers::Challenges#altcha_verify
-POST   /altcha/verify-spam                        V2::Controllers::Challenges#altcha_verify_spam
-
 GET    /colonel/config                            V2::Controllers::Colonel#get_config
 POST   /colonel/config                            V2::Controllers::Colonel#update_config
 GET    /colonel/info                              V2::Controllers::Colonel#get_info
