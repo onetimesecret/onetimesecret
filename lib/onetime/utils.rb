@@ -56,13 +56,50 @@ module Onetime
       'A house is full of games and puzzles.'
     end
 
-    def generate_short_id(*)
+    # Generates a cryptographically secure short identifier using SHA256 hashing
+    # and configurable bit truncation. Creates a random input, hashes it with
+    # SHA256, then truncates to the desired bit length for a shorter but still
+    # secure identifier.
+    #
+    # @param args [Hash] Optional arguments passed to secure_shorten_id
+    # @option args [Integer] :bits (192) Number of bits to retain after truncation
+    # @option args [Integer] :encoding (36) Base encoding for final string (2-36)
+    # @return [String] A shortened secure identifier in the specified encoding
+    #
+    # @example Generate default 192-bit ID in base-36
+    #   Utils.generate_id # => "a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5"
+    #
+    # @example Generate 128-bit ID in base-16 (hex)
+    #   Utils.generate_id(bits: 128, encoding: 16) # => "a1b2c3d4e5f6g7h8i9j0k1l2m3n4"
+    #
+    # @security Uses SecureRandom for entropy and SHA256 for cryptographic strength
+    # @see #secure_shorten_id for bit truncation and encoding details
+    def generate_id(*)
       input = SecureRandom.hex(32) # generate with all 256 bits
       hash  = Digest::SHA256.hexdigest(input)
 
       secure_shorten_id(hash, *)
     end
 
+    # Truncates a SHA256 hash to specified bit length and encodes in desired base.
+    # Takes the most significant bits from the hash to maintain randomness
+    # distribution while reducing the identifier length for practical use.
+    #
+    # @param hash [String] A hexadecimal SHA256 hash string (64 characters)
+    # @param bits [Integer] Number of bits to retain (default: 192, max: 256)
+    # @param encoding [Integer] Base encoding for output string (2-36, default: 36)
+    # @return [String] Truncated hash encoded in the specified base
+    #
+    # @example Truncate to 128 bits in base-16
+    #   hash = "a1b2c3d4..." # 64-char SHA256 hash
+    #   Utils.secure_shorten_id(hash, bits: 128, encoding: 16) # => "a1b2c3d4e5f6g7h8"
+    #
+    # @example Default 192-bit truncation in base-36
+    #   Utils.secure_shorten_id(hash) # => "k8x2m9n4p7q1r5s3t6u0v2w8x1y4z7"
+    #
+    # @note Higher bit counts provide more security but longer identifiers
+    # @note Base-36 encoding uses 0-9 and a-z for compact, URL-safe strings
+    # @security Bit truncation preserves cryptographic properties of original hash
     def secure_shorten_id(hash, bits: 192, encoding: 36)
       # Truncate to desired bit length
       truncated = hash.to_i(16) >> (256 - bits)
