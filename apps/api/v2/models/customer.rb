@@ -115,7 +115,7 @@ module V2
     end
 
     def regenerate_apitoken
-      self.apitoken! [OT.instance, OT.now.to_f, :apitoken, custid].gibbler
+      self.apitoken! OT::Utils.generate_id
       self.apitoken # the fast writer bang methods don't return the value
     end
 
