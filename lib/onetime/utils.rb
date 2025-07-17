@@ -85,6 +85,11 @@ module Onetime
     # Takes the most significant bits from the hash to maintain randomness
     # distribution while reducing the identifier length for practical use.
     #
+    # Most significant bits are the leftmost bits in the binary representation,
+    # which correspond to the higher-order digits in the hexadecimal hash string.
+    # These bits carry more "weight" in the numeric value and preserve the
+    # cryptographic properties better than arbitrary bit selection.
+    #
     # @param hash [String] A hexadecimal SHA256 hash string (64 characters)
     # @param bits [Integer] Number of bits to retain (default: 192, max: 256)
     # @param encoding [Integer] Base encoding for output string (2-36, default: 36)
@@ -101,9 +106,34 @@ module Onetime
     # @note Base-36 encoding uses 0-9 and a-z for compact, URL-safe strings
     # @security Bit truncation preserves cryptographic properties of original hash
     def secure_shorten_id(hash, bits: 192, encoding: 36)
-      # Truncate to desired bit length
-      truncated = hash.to_i(16) >> (256 - bits)
-      truncated.to_s(encoding)
+      # Convert hash from base 16 to integer, then truncate to keep most significant bits.
+      # Right-shifting by (256 - bits) removes the least significant bits, keeping the most significant.
+      full_integer = hash.to_i(16)
+      truncated_integer = full_integer >> (256 - bits)
+
+      # Convert the truncated integer (implicitly base 10) to the desired encoding.
+      # The `convert_base_string` method takes string input, so we convert the integer
+      # to its base-10 string representation before passing it, and specify the
+      # `from_base` as 10 to ensure correct re-interpretation.
+      convert_base_string(truncated_integer.to_s, from_base: 10, to_base: encoding)
+    end
+
+    private
+
+    # Converts a string representation of a number from one base to another.
+    # This utility method is flexible, allowing conversions between any bases
+    # supported by Ruby's `to_i` and `to_s` methods (i.e., 2 to 36).
+    #
+    # @param value_str [String] The string representation of the number to convert.
+    # @param from_base [Integer] The base of the input `value_str` (default: 16).
+    # @param to_base [Integer] The target base for the output string (default: 36).
+    # @return [String] The string representation of the number in the `to_base`.
+    # @raise [ArgumentError] If `from_base` or `to_base` are outside the valid range (2-36).
+    def convert_base_string(value_str, from_base: 16, to_base: 36)
+      unless from_base.between?(2, 36) && to_base.between?(2, 36)
+        raise ArgumentError, "Bases must be between 2 and 36"
+      end
+      value_str.to_i(from_base).to_s(to_base)
     end
 
     # Generates a random string of specified length using predefined
