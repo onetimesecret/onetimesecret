@@ -2,6 +2,9 @@
 
 This directory contains the API definition for the Onetime Secret API in OpenAPI 3.0 format.
 
+> [!NOTE]
+> The OpenAPI JSON files in this directory are maintained via our Postman collection. Changes are pushed to `integrations/postman` and merged via PR and generally not merged directly.
+
 ## Overview
 
 Onetime Secret provides two versions of its API:

@@ -8,7 +8,7 @@ module V1
   #
   # @see metadata_hsh method
   #
-  using FlexibleHashAccess
+  using V1::FlexibleHashAccess
 
   module Controllers
     module ClassMethods

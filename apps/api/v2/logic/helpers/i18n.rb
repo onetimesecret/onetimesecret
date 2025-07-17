@@ -3,7 +3,6 @@
 module V2
   module Logic
     module I18nHelpers
-
       # Retrieves and caches localized content for the current locale with fallback behavior.
       #
       # This implementation uses per-locale caching to prevent state conflicts when
@@ -23,14 +22,16 @@ module V2
       #   - :web [Hash] Web UI translation content
       #
       def i18n
-        locale = self.locale #|| OT.default_locale || 'en'
+        locale        = self.locale # || OT.conf[:default_locale] || 'en'
         @i18n_cache ||= {}
 
         # Return cached value for this specific locale if it exists
         return @i18n_cache[locale] if @i18n_cache.key?(locale)
 
+        locales = OT.conf['locales']
+
         # Safely get locale data with fallback
-        locale_data = OT.locales[locale] || OT.locales['en'] || {}
+        locale_data = locales[locale] || locales['en'] || {}
 
         # Create the i18n data
         result = {
@@ -44,7 +45,6 @@ module V2
 
         result
       end
-
     end
   end
 end

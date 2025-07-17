@@ -1,4 +1,4 @@
-// utils.ts - helper functions
+// src/schemas/errors/utils.ts
 import { errorGuards } from './guards';
 
 export function extractErrorDetails(error: unknown) {

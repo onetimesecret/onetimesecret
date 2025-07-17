@@ -1,0 +1,64 @@
+<!-- templates/web/index.rue -->
+
+<!--
+  RSFC rev4 File
+-->
+
+<!--
+RSFC variable lookup:
+1. Runtime: Request metadata (CSRF, nonce, request ID)
+1. Context: Business data (user, product, content)
+1. Data: Client-bound subset of context
+-->
+<!--
+  ## Merge Behavior
+
+  **Last-wins shallow merge**: Later files override earlier files at the key level.
+
+  ```ruby
+  # Parent data
+  { "theme" => "dark", "user" => { "id" => 123 } }
+
+  # Child data
+  { "theme" => "light", "page" => "home" }
+
+  # Result
+  { "theme" => "light", "user" => { "id" => 123 }, "page" => "home" }
+  ```
+
+  **Key conflict resolution**: Child completely replaces parent value (no deep merging).
+
+  ```ruby
+  # Parent: { "user" => { "id" => 123, "name" => "Alice" } }
+  # Child:  { "user" => { "id" => 456 } }
+  # Result: { "user" => { "id" => 456 } }  # name is lost
+  ```
+
+  This matches Ruby's `Hash#merge` behavior, which developers already understand. Much clearer than referencing JavaScript semantics.
+-->
+<!--
+  Template rendering
+
+  Use handlebars syntax. When the rue file is parsed, it creates an all ruby file where the <template> content is processed using the existing handlebars gem.
+-->
+
+<data window="onetime" schema="@/src/types/declarations/window.d.ts">
+{{{onetime_window}}}
+</data>
+
+<template>
+  <!doctype html>
+  <html lang="{{locale}}" class="{{theme_class}}">
+    <head>
+      {{> colourmode}}
+      {{> head}}
+    </head>
+
+    <body class="font-serif bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100">
+      <div id="app">
+        <!-- Server-rendered content for SEO/initial load -->
+        {{> placeholder}}
+      </div>
+    </body>
+  </html>
+</template>

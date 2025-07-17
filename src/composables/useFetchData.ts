@@ -63,18 +63,17 @@ export function useFetchData<T extends BaseApiRecord>({
         throw new Error(`Failed to fetch data from ${url}`);
       }
 
-      const jsonData: ApiRecordResponse<T> | ApiRecordsResponse<T> =
-        await response.json();
+      const jsonData: ApiRecordResponse<T> | ApiRecordsResponse<T> = await response.json();
 
       if ('record' in jsonData) {
         records.value = [jsonData.record as T];
         count.value = 1;
-        details.value = jsonData.details || undefined;
+        details.value = jsonData.details ? (jsonData.details as DetailsType) : undefined;
       } else if ('records' in jsonData) {
         records.value = jsonData.records;
         count.value = jsonData.count ?? 0;
         custid.value = jsonData.custid || null;
-        details.value = jsonData.details || undefined;
+        details.value = jsonData.details ? (jsonData.details as DetailsType) : undefined;
       } else {
         throw new Error('Unexpected response format');
       }
@@ -110,9 +109,7 @@ export function useFetchData<T extends BaseApiRecord>({
   };
 }
 
-export function useFetchDataRecord<T extends BaseApiRecord>(
-  options: FetchDataOptions<T>
-) {
+export function useFetchDataRecord<T extends BaseApiRecord>(options: FetchDataOptions<T>) {
   const { records, details, isLoading, count, custid, status, fetchData, error } =
     useFetchData<T>(options);
 

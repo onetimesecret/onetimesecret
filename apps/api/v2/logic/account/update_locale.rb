@@ -33,7 +33,7 @@ module V2::Logic
       end
 
       def field_specific_concerns
-        raise_form_error "Invalid locale" unless valid_locale?(new_locale)
+        raise_form_error 'Invalid locale' unless valid_locale?(new_locale)
       end
 
       def valid_update?
@@ -45,7 +45,7 @@ module V2::Logic
       end
 
       def valid_locale?(locale)
-        OT.supported_locales.include?(locale)
+        OT.conf[:supported_locales].include?(locale)
       end
 
       def log_update

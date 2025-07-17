@@ -3,8 +3,13 @@
 require 'stathat'
 require 'timeout'
 
-require 'onetime/refinements/rack_refinements'
+require 'v1/refinements/flexible_hash_access'
+require 'onetime/refinements/time_extensions'
+
 require_relative 'helpers'
+require_relative '../plan'
+
+using Onetime::TimeExtensions
 
 module V1
   module Logic
@@ -89,8 +94,8 @@ module V1
       end
 
       def plan
-        @plan = Onetime::Plan.plan(cust.planid) unless cust.nil?
-        @plan ||= Onetime::Plan.plan('anonymous')
+        @plan = V1::Plan.plan(cust.planid) unless cust.nil?
+        @plan ||= V1::Plan.plan('anonymous')
         @plan
       end
 
@@ -111,7 +116,7 @@ module V1
       def send_verification_email token=nil
       _, secret = V1::Secret.spawn_pair cust.custid, token
 
-        msg = "Thanks for verifying your account. We got you a secret fortune cookie!\n\n\"%s\"" % OT::Utils.random_fortune
+        msg = "Thanks for verifying your account. We got you a secret fortune cookie!\n\n\"%s\"" % V1::Utils.random_fortune
 
         secret.encrypt_value msg
         secret.verification = true
@@ -145,13 +150,16 @@ module V1
       attr_writer :stathat_apikey, :stathat_enabled
 
       def stathat_apikey
-        @stathat_apikey ||= Onetime.conf[:stathat][:apikey]
+        @stathat_apikey ||= Onetime.conf&.dig(:stathat, :apikey)
       end
 
       def stathat_enabled
-        return unless Onetime.conf.has_key?(:stathat)
+        return unless Onetime.conf&.has_key?(:stathat)
 
-        @stathat_enabled = Onetime.conf[:stathat][:enabled] if @stathat_enabled.nil?
+        if @stathat_enabled.nil?
+          @stathat_enabled = Onetime.conf&.dig(:stathat, :enabled)
+        end
+
         @stathat_enabled
       end
 

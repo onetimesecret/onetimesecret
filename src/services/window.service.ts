@@ -1,7 +1,7 @@
 // src/services/window.service.ts
 import type { OnetimeWindow } from '@/types/declarations/window';
 
-const STATE_KEY = '__ONETIME_STATE__';
+const STATE_KEY: string = 'onetime';
 
 /**
  * Service for accessing typed window properties defined in window.d.ts.
@@ -62,8 +62,13 @@ export const WindowService = {
       return Object.fromEntries(input.map((key) => [key, this.get(key)])) as Pick<OnetimeWindow, K>;
     }
 
-    return Object.fromEntries(
-      Object.entries(input).map(([key, defaultValue]) => [key, this.get(key as K) ?? defaultValue])
-    ) as Pick<OnetimeWindow, K>;
+    const result = {} as Pick<OnetimeWindow, K>;
+    const keys = Object.keys(input) as K[];
+    for (const key of keys) {
+      const value = this.get(key);
+      const fallback = input[key];
+      result[key] = value ?? fallback as OnetimeWindow[K];
+    }
+    return result;
   },
 };

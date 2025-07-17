@@ -1,16 +1,14 @@
 #!/usr/bin/env ruby
 
-base_path = File.expand_path File.join(File.dirname(__FILE__), '..')
+base_path             = File.expand_path('..', __dir__)
 $LOAD_PATH.unshift File.join(base_path, 'lib')
+ENV['ONETIME_HOME'] ||= base_path.freeze
 
-apps_root = File.join(base_path, 'apps').freeze
-$LOAD_PATH.unshift(File.join(apps_root, 'api'))
-$LOAD_PATH.unshift(File.join(apps_root, 'web'))
+APPS_ROOT = File.join(base_path, 'apps').freeze
+$LOAD_PATH.unshift(File.join(APPS_ROOT, 'api'))
+$LOAD_PATH.unshift(File.join(APPS_ROOT, 'web'))
 
-# TODO: Replace with bundle install --standalone (Bundler v1.1)
-ENV['BUNDLE_GEMFILE'] ||= File.join(base_path, 'Gemfile')
-
-require 'onetime'
+require 'onetime' # loads bundler/setup
 require 'onetime/cli'
 require 'rubygems'
 require 'drydock'
@@ -20,27 +18,48 @@ class OT::CLI::Definition
   extend Drydock
 
   before do
-    puts "" # separate our content from the bootstrapping banner
+    puts '' # separate our content from the bootstrapping banner
   end
 
   global :v, :verbose, 'Increase output' do
     @verbose ||= 0
-    @verbose += 1
+    @verbose  += 1
   end
 
   global :D, :debug do
-    OT.debug = true
+    OT.instance_variable_set(:@debug, true)
   end
 
-  command :load_path, 'Add a path to the load path' do
+  command :load_path, 'Lists the first 5 paths in the load path' do
     puts $LOAD_PATH[0...5]
   end
 
+  option :B, :delay_boot, 'Bring up the console without initializing'
   about 'Ruby irb with Onetime preloaded'
-  command :console do
+  command :console do |obj|
     cmd = format('irb -I%s -ronetime/console', File.join(Onetime::HOME, 'lib'))
     OT.ld cmd
-    Kernel.exec cmd
+
+    # Set the boot env var for the console process
+    ENV['DELAY_BOOT'] = obj.option.delay_boot.to_s
+    Kernel.exec(cmd)
+
+    # TODO: https://claude.ai/share/1ea04861-aec8-4872-bb5c-84bb87a16a9d
+    # Then instead of exec, use:
+    # require 'irb'
+    # Create a custom workspace with your loaded environment
+    # workspace = IRB::WorkSpace.new(binding)
+    # irb = IRB::Irb.new #(workspace)
+
+    # # Start the session
+    # IRB.conf[:MAIN_CONTEXT] = irb.context
+    # irb.eval_input
+
+    # require 'onetime/console'
+    # Your custom prompt and configuration is already set up above
+
+    # Start IRB in the current context
+    # IRB.start(__FILE__)
   end
 
   usage 'ots version'
@@ -52,58 +71,83 @@ class OT::CLI::Definition
   # In OT::CLI::Definition in bin/ots
   usage 'ots migrate MIGRATION_SCRIPT [--run]'
   about 'Run a migration script from the migrate/ directory'
-  option :r, :run, "Actually apply changes (default is dry run mode)"
-  command migrate: OT::CLI
+  option :r, :run, 'Actually apply changes (default is dry run mode)'
+  command migrate: OT::MigrateCommand
 
   usage 'ots move-keys SOURCEDB TARGETDB [filter]'
-  command move_keys: OT::CLI
+  command move_keys: OT::MoveKeysCommand
 
   usage 'ots customers'
-  option :l, :list, "List customer domains (by count)"
-  option :c, :check, "Show customer records where custid and email do not match (obscured)"
-  command customers: OT::CLI
+  option :l, :list, 'List customer domains (by count)'
+  option :c, :check, 'Show customer records where custid and email do not match (obscured)'
+  command customers: OT::CustomersCommand
 
   usage 'ots domains'
-  option :l, :list, "List domains"
-  command domains: OT::CLI
+  option :l, :list, 'List domains'
+  command domains: OT::DomainsCommand
 
   usage 'ots revalidate-domains'
   about 'Revalidate domain verification status. Optionally specify a domain and/or customer_id.'
-  option :d, :domain, String, "Domain to revalidate"
-  option :c, :custid, String, "Customer ID to revalidate"
-  command revalidate_domains: OT::CLI
+  option :d, :domain, String, 'Domain to revalidate'
+  option :c, :custid, String, 'Customer ID to revalidate'
+  command revalidate_domains: OT::DomainsCommand
 
-  usage "ots change-email OLD_EMAIL NEW_EMAIL [REALM]"
-  about "Change customer email address and update all related records"
-  about "Usage: ots change-email OLD_EMAIL NEW_EMAIL [REALM]"
+  usage 'ots change-email OLD_EMAIL NEW_EMAIL [REALM]'
+  about 'Change customer email address and update all related records'
+  about 'Usage: ots change-email OLD_EMAIL NEW_EMAIL [REALM]'
   about "  Change a customer's email address and update related records."
-  about ""
-  about "  Arguments:"
-  about "    OLD_EMAIL    Current email address of the customer"
-  about "    NEW_EMAIL    New email address to change to"
-  about "    REALM        Optional: Geographic region (US/EU/CA/NZ), defaults to US"
-  about ""
-  about "  Example:"
-  about "    ots change-email user@example.com new@example.com"
-  about ""
-  about "  Note: Custom domains associated with this customer will be"
-  about "  automatically detected and updated."
-  about ""
-  command change_email: OT::CLI
+  about ''
+  about '  Arguments:'
+  about '    OLD_EMAIL    Current email address of the customer'
+  about '    NEW_EMAIL    New email address to change to'
+  about '    REALM        Optional: Geographic region (US/EU/CA/NZ), defaults to US'
+  about ''
+  about '  Example:'
+  about '    ots change-email user@example.com new@example.com'
+  about ''
+  about '  Note: Custom domains associated with this customer will be'
+  about '  automatically detected and updated.'
+  about ''
+  command change_email: OT::ChangeEmailCommand
 
-  usage "ots change-email-log [EMAIL] [--verbose] [--limit N]"
-  about "View history of email address changes"
-  option :v, :verbose, "Display full change reports"
-  option :n, :limit, Integer, "Limit number of reports to show (default: 10)"
-  command change_email_log: OT::CLI
+  usage 'ots change-email-log [EMAIL] [--limit N]'
+  about 'View history of email address changes'
+  about 'Use global --verbose to display full change reports'
+  option :n, :limit, Integer, 'Limit number of reports to show (default: 10)'
+  command change_email_log: OT::ChangeEmailCommand
+
+  usage 'ots initializers [--dependencies]'
+  about 'Display boot-time initializers in order'
+  about 'Use global --verbose for full module names'
+  option :d, :dependencies, 'Show dependencies for each initializer'
+  command initializers: OT::InitializersCommand
+
+  usage 'ots validate'
+  usage 'ots validate [CONFIG_PATH]'
+  usage 'ots validate --basename mutable'
+  usage 'ots validate --full'
+  about 'Validate configuration file against JSON schema. Without'
+  about 'arguments, validates the static config file: etc/config.yaml'
+  about 'Use global -v for error details and -v -v for full error paths'
+  option :f, :full, 'Run validation checks and raise concerns'
+  option :show, 'Show validated configuration'
+  option :s, :schema, String, 'Path to custom JSON schema file'
+  option :n, :basename, String, 'Base name for validation (e.g. "config" in "config.yaml")'
+  command validate: OT::ValidateCommand
+
+  usage 'ots config'
+  about 'Parse, resolve, and render configuration'
+  about 'Use global --verbose for full configuration details'
+  option :t, :types, 'Show types for each configuration key'
+  command config: OT::ConfigCommand
 end
 
 begin
   Drydock.run! ARGV, STDIN
-rescue RuntimeError => e
-  warn e.message
-rescue StandardError => e
-  puts e.message
-  puts e.backtrace
+rescue RuntimeError => ex
+  warn ex.message
+rescue StandardError => ex
+  puts ex.message
+  puts ex.backtrace
   exit 1
 end

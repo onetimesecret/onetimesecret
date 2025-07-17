@@ -1,7 +1,6 @@
-
+require 'json'
 
 module Onetime
-
   # The Problem class inherits from RuntimeError, which is a subclass of StandardError.
   # Both RuntimeError and StandardError are standard exception classes in Ruby, but
   # RuntimeError is used for errors that are typically caused by the program's logic
@@ -13,7 +12,7 @@ module Onetime
     attr_accessor :message
 
     def initialize(message = nil)
-      super(message)
+      super
       @message = message
     end
   end
@@ -24,6 +23,41 @@ module Onetime
   # correctly and needs to be reviewed and corrected before normal operation
   # can proceed.
   class ConfigError < Problem
+  end
+
+  # Specific error for schema validation failures with structured information
+  # about which paths in the configuration are problematic
+  class ConfigValidationError < ConfigError
+    attr_reader :messages, :paths
+
+    def initialize(messages:, paths: nil)
+      @messages = Array(messages).compact.reject(&:empty?)
+      @paths    = paths
+      super(formatted_message)
+    end
+
+    private
+
+    def formatted_message
+      return 'Configuration validation failed' if @messages.empty?
+
+      parts = [
+        'Configuration validation failed:',
+        *@messages.each_with_index.map { |msg, i| "  #{i + 1}. #{msg}" },
+      ]
+
+      if @paths&.any?
+        parts << ''
+        parts << 'Affected paths:'
+        parts << JSON.pretty_generate(OT::Utils.type_structure(@paths))
+          .lines
+          .map { |line| "  #{line}" }
+          .join
+          .chomp
+      end
+
+      parts.join("\n")
+    end
   end
 
   class RecordNotFound < Problem
@@ -40,9 +74,9 @@ module Onetime
     attr_reader :path, :user, :got, :wanted
 
     def initialize(path, user, got, wanted)
-      @path = path
-      @user = user
-      @got = got.to_s
+      @path   = path
+      @user   = user
+      @got    = got.to_s
       @wanted = wanted.to_s
     end
 
@@ -61,8 +95,8 @@ module Onetime
 
     def initialize(identifier, event, count)
       @identifier = identifier
-      @event = event
-      @count = count
+      @event      = event
+      @count      = count
     end
 
     def message
@@ -75,9 +109,10 @@ module Onetime
 
   class Redirect < RuntimeError
     attr_reader :location, :status
-    def initialize l, s=302
-      @location, @status = l, s
+
+    def initialize(l, s = 302)
+      @location = l
+      @status   = s
     end
   end
-
 end

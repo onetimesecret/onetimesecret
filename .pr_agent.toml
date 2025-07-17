@@ -1,0 +1,63 @@
+# Global configuration for the Codium PR Agent.
+#
+# Change only what's needed to ease upstream merges. Be concise.
+#
+# @see https://github.com/qodo-ai/pr-agent/blob/main/pr_agent/settings/configuration.toml
+
+[config]
+
+# model="o4-mini"
+# fallback_models=["gpt-4.1"]
+# git_provider="github"
+patch_extra_lines = 1
+response_language="en-CA" # Language locales code for PR responses in ISO 3166 and ISO 639 format (e.g., "en-US", "it-IT", "zh-CN", ...)
+log_level="INFO"
+large_patch_policy = "skip" # "clip", "skip"
+
+
+[pr_reviewer] # /review #
+# general options
+publish_output_no_suggestions=false # Set to "false" if you only need the reviewer's remarks (not labels, not "security audit", etc.) and want to avoid noisy "No major issues detected" comments.
+num_code_suggestions=0
+inline_code_comments = true
+inline_code_comments_max_lines = 25
+ask_and_reflect=true
+automatic_review=true
+num_max_findings = 4
+
+# specific configurations for incremental review (/review -i)
+require_all_thresholds_for_incremental_review=true
+minimal_commits_for_incremental_review=1
+minimal_minutes_for_incremental_review=5
+enable_help_text=false # Determines whether to include help text in the PR review. Enabled by default.
+# auto approval
+enable_auto_approval=false
+maximal_review_effort=9
+
+[pr_description] # /describe #
+publish_labels=false
+generate_ai_title=true
+keep_original_user_title=true
+use_bullet_points=true
+extra_instructions = ""
+enable_pr_type=true
+final_update_message = true
+enable_help_text=false
+enable_help_comment=true
+inline_file_summary='table' # false, true, 'table'
+# markers
+use_description_markers=true
+include_generated_by_header=true
+
+[pr_questions] # /ask #
+enable_help_text=true
+
+[pr_add_docs] # /add_docs #
+extra_instructions = ""
+docs_style = "Sphinx Style" # "Google Style with Args, Returns, Attributes...etc", "Numpy Style", "Sphinx Style", "PEP257", "reStructuredText"
+
+[pr_update_changelog] # /update_changelog #
+push_changelog_changes=true
+
+[pr_test] # /test #
+enable_help_text=true

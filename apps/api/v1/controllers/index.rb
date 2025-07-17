@@ -18,7 +18,7 @@ module V1
       #
       # @see metadata_hsh method
       #
-      using FlexibleHashAccess
+      using V1::FlexibleHashAccess
 
       def status
         authorized(true) do

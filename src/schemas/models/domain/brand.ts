@@ -2,7 +2,7 @@
 
 import { localeSchema } from '@/schemas/i18n/locale';
 import { transforms } from '@/schemas/transforms';
-import { z } from 'zod';
+import { z } from 'zod/v4';
 
 /**
  * @fileoverview Brand settings schema for API transformation boundaries

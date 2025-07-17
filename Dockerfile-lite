@@ -1,21 +1,23 @@
-# Dockerfile-lite: Onetime Secret All-in-One Container
 #
-# This Dockerfile creates a single container image with both Onetime Secret and Redis.
+# ONETIME SECRET - LITE IMAGE
 #
-# Benefits:
-# 1. Simplicity: Start entire app with one command
-# 2. Ephemeral: Aligns with temporary nature of one-time secrets
-# 3. Self-contained: All components included and configured
-# 4. Data privacy: Container removal deletes all secrets
+# This Dockerfile creates a self-contained, all-in-one container with both
+# the Onetime Secret application and a Redis server.
 #
-# Usage:
+# It is ephemeral by design: all data is lost when the container stops.
+# This is a security feature, not a bug.
 #
-#     $ docker build -t localhost/onetimesecret-lite:latest -f Dockerfile-lite .
+# For more detailed documentation, see docs/DOCKER-lite.md.
 #
-#     $ docker run --rm -p 7143:3000 --name onetimesecret-lite localhost/onetimesecret-lite:latest
+# BUILDING:
 #
-# Note: Ideal for quick deployment and testing. For production with specific
-# security or scalability needs, use separate containers for app and database.
+#     $ docker build -t onetimesecret-lite -f Dockerfile-lite .
+#
+# RUNNING:
+#
+#     $ docker run --rm -p 7143:3000 --name onetimesecret-lite onetimesecret-lite
+#
+# The application will be available at http://localhost:7143.
 #
 
 FROM ghcr.io/onetimesecret/onetimesecret@sha256:4b9ea5f55386e8919f93b0f594f811e0f64777ea2953ac260ea31c1d3fcebfef
@@ -73,6 +75,10 @@ until redis-cli ping; do
   sleep 1
 done
 echo "Redis is ready!"
+
+# Generate JSON schemas
+echo "Generating JSON schemas..."
+cd /app && pnpm run schema:generate
 
 # Start Onetime Secret
 echo "Starting Onetime Secret..."

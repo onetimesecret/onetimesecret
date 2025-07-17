@@ -11,8 +11,8 @@ import { DEBUG } from './src/utils/debug';
 
 //import { createHtmlPlugin } from 'vite-plugin-html'
 //import checker from 'vite-plugin-checker';
-//import vueDevTools from 'vite-plugin-vue-devtools';
-//import Inspector from 'vite-plugin-vue-inspector'; // OR vite-plugin-vue-inspector
+import vueDevTools from 'vite-plugin-vue-devtools';
+import Inspector from 'vite-plugin-vue-inspector'; // OR vite-plugin-vue-inspector
 
 // Remember, for security reasons, only variables prefixed with VITE_ are
 // available here to prevent accidental exposure of sensitive
@@ -39,6 +39,10 @@ const viteAdditionalServerAllowedHosts =
  * - Separate style.css entry
  * - Simplified manifest format
  *
+ * The single-bundle approach enables strict Content Security Policy (CSP)
+ * implementation with nonces, as each script chunk would otherwise require
+ * its own unique nonce attribute.
+ *
  * Manifest Output Example:
  * {
  *   "main.ts": {
@@ -51,36 +55,13 @@ const viteAdditionalServerAllowedHosts =
  * }
  *
  * @see 29ffd790d74599bbbe3755d0fcba2b59c2f59ed7
- *
- * Previously used Vite's default code splitting behavior, producing:
- * - Multiple JS chunks for dynamic imports
- * - Separate CSS files
- * - Standard Vite manifest format with CSS files listed in main entry
- *
- * Manifest Output Example:
- * {
- *   "main.ts": {
- *     "file": "assets/main.[hash].js",
- *     "css": ["assets/style.[hash].css"],
- *     "imports": ["_vendor.[hash].js"]
- *   }
- * }
  */
 export default defineConfig({
-  // Sets project root to ./src directory
-  // - All imports will be resolved relative to ./src
-  // - Static assets should be placed in ./src/public
-  // - Index.html should be in ./src
+  // Project root is ./src (imports resolve from here, index.html lives here)
   root: './src',
-  // If root is NOT set:
-  // - Project root will be the directory with vite.config.ts
-  // - Static assets go in ./public
-  // - Index.html should be in project root
+
   plugins: [
-    // re: order of plugins
-    // - Vue plugin should be early in the chain
-    // - Transformation/checking plugins follow framework plugins
-    // - Plugins that modify code should precede diagnostic plugins
+    // Plugin order matters: Vue first, then transformations, then diagnostics
     Vue({
       include: [/\.vue$/, /\.md$/], // <-- allows Vue to compile Markdown files
       template: {
@@ -126,8 +107,8 @@ export default defineConfig({
     // }),
 
     // Enable Vue Devtools
-    //vueDevTools(),
-    //Inspector(),
+    vueDevTools(),
+    Inspector(),
 
     // https://github.com/unplugin/unplugin-vue-markdown
     Markdown({
@@ -184,42 +165,13 @@ export default defineConfig({
     // (or be manually deleted). The key is template:global:vite_assets in db 0.
     emptyOutDir: true,
 
-    // Code Splitting vs Combined Files
+    // Single Bundle Strategy
     //
-    // Code Splitting:
-    // Advantages:
-    // 1. Improved Initial Load Time: Only the necessary code for the initial page
-    // is loaded, with additional code loaded as needed.
-    // 2. Better Caching: Smaller, more granular files can be cached more
-    // effectively. Changes in one part of the application only require updating
-    // the corresponding file.
-    // 3. Parallel Loading: Modern browsers can download multiple files in
-    // parallel, speeding up the overall loading process.
-    //
-    // Disadvantages:
-    // 1. Increased Complexity: Managing multiple files can be more complex,
-    // especially with dependencies and ensuring correct load order.
-    // 2. More HTTP Requests: More files mean more HTTP requests, which can be a
-    // performance bottleneck on slower networks.
-    //
-    // Combined Files:
-    // Advantages:
-    // 1. Simplicity: A single file is easier to manage and deploy, with no
-    // concerns about missing files or incorrect load orders.
-    // 2. Fewer HTTP Requests: Combining everything into a single file reduces the
-    // number of HTTP requests, beneficial for performance on slower networks.
-    //
-    // Disadvantages:
-    // 1. Longer Initial Load Time: The entire application needs to be downloaded
-    // before it can be used, increasing initial load time.
-    // 2. Inefficient Caching: Any change in the application requires the entire
-    // bundle to be re-downloaded.
-    //
-    // Conclusion:
-    // The conventional approach in modern web development is to use code
-    // splitting for better performance and caching. However, the best approach
-    // depends on the specific use case. For larger applications, code splitting
-    // is usually preferred, while for smaller applications, combining files might
+    // We intentionally disable code splitting to support CSP nonces.
+    // While this increases initial load time, it simplifies nonce
+    // management by requiring only one script tag. Code splitting would
+    // require generating and tracking nonces for each chunk, adding
+    // complexity without significant benefit for our use case.
     manifest: true,
     rollupOptions: {
       input: {
@@ -236,17 +188,9 @@ export default defineConfig({
       },
     },
 
-    // Pollyfill preloads are disabled while we establish our
-    // strict CSP headers. We will revisit again whether these
-    // are still useful or to remove.
-    // https://guybedford.com/es-module-preloading-integrity
-    // https://github.com/vitejs/vite/issues/5120#issuecomment-971952210
-    //modulePreload: {
-    //  polyfill: true,
-    //},
-
     cssCodeSplit: false,
     sourcemap: true,
+    chunkSizeWarningLimit: 3000, // up from default 500 KB to accommodate single bundle
   },
 
   css: {

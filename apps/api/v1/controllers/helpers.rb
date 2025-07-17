@@ -1,5 +1,7 @@
 # apps/api/v1/controllers/helpers.rb
 
+require_relative '../plan'
+
 module V1
 
   unless defined?(V1::BADAGENTS)
@@ -11,8 +13,8 @@ module V1
   module ControllerHelpers
 
     def plan
-      @plan = Onetime::Plan.plan(cust.planid) unless cust.nil?
-      @plan ||= Onetime::Plan.plan('anonymous')
+      @plan = V1::Plan.plan(cust.planid) unless cust.nil?
+      @plan ||= V1::Plan.plan('anonymous')
       @plan
     end
 
@@ -48,7 +50,7 @@ module V1
       obscured = if cust.anonymous?
         'anonymous'
       else
-        OT::Utils.obscure_email(cust.custid)
+        V1::Utils.obscure_email(cust.custid)
       end
 
       return_value
@@ -167,8 +169,9 @@ module V1
       locale ||= req.params[:locale]
       locale ||= cust.locale if cust&.locale
       locale ||= (req.env['rack.locale'] || []).first
+      locales = OT.conf['locales']
 
-      have_translations = locale && OT.locales.has_key?(locale)
+      have_translations = locale && locales.has_key?(locale)
       lmsg = format(
         '[check_locale!] class=%s locale=%s cust=%s req=%s t=%s',
         self.class.name,
@@ -181,7 +184,7 @@ module V1
 
       # Set the locale in the request environment if it is
       # valid, otherwise use the default locale.
-      req.env['ots.locale'] = have_translations ? locale : OT.default_locale
+      req.env['ots.locale'] = have_translations ? locale : OT.conf[:default_locale]
 
       # Important! This sets the locale for the current request which
       # gets passed through to the logic class along with sess, cust.
@@ -281,7 +284,7 @@ module V1
       sess.save
 
       # Only set the cookie after session is for sure saved to redis
-      is_secure = Onetime.conf[:site][:ssl]
+      is_secure = Onetime.conf&.dig(:site, :ssl)
 
       # Update the session cookie
       res.send_cookie :sess, sess.sessid, sess.ttl, is_secure
@@ -318,8 +321,8 @@ module V1
       # is missing, we assume that authentication is disabled and that accounts
       # are not used. This prevents situations where the app is running and
       # anyone accessing it can create an account without proper authentication.
-      authentication_enabled = OT.conf[:site][:authentication][:enabled] rescue false # rubocop:disable Style/RescueModifier
-      signin_enabled = OT.conf[:site][:authentication][:signin] rescue false # rubocop:disable Style/RescueModifier
+      authentication_enabled = OT.conf['site']['authentication']['enabled'] rescue false # rubocop:disable Style/RescueModifier
+      signin_enabled = OT.conf['site']['authentication']['signin'] rescue false # rubocop:disable Style/RescueModifier
 
       # The only condition that allows a request to be authenticated is if
       # the site has authentication enabled, and the user is signed in. If a
@@ -427,7 +430,7 @@ module V1
     # and :debug. The Sentry default, if not specified, is :error.
     #
     def capture_error(error, level=:error, &)
-      return unless OT.d9s_enabled # diagnostics are disabled by default
+      return unless OT.conf[:d9s_enabled] # diagnostics are disabled by default
 
       # Capture more detailed debugging information when Sentry errors occur
       begin
@@ -455,7 +458,7 @@ module V1
     end
 
     def capture_message(message, level=:log, &)
-      return unless OT.d9s_enabled # diagnostics are disabled by default
+      return unless OT.conf[:d9s_enabled] # diagnostics are disabled by default
       Sentry.capture_message(message, level: level, &)
     rescue StandardError => ex
       OT.le "[capture_message] #{ex.class}: #{ex.message}"

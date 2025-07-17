@@ -4,7 +4,6 @@ import OIcon from '@/components/icons/OIcon.vue';
 
 defineProps<{
   jurisdiction: Jurisdiction;
-  supportHost?: string;
 }>();
 </script>
 
@@ -37,13 +36,13 @@ defineProps<{
 
       <p class="m-0 text-center text-gray-600 dark:text-gray-300 sm:text-left">
         {{ $t('to-understand-the-specific-regulations-and-prote') }}
-        <a
-          :href="`${supportHost}/docs`"
+        <RouterLink
+          to="/docs"
           class="font-medium text-brand-600 hover:text-brand-500 dark:text-brand-400 dark:hover:text-brand-300"
           target="_blank"
           rel="noopener noreferrer">
           {{ $t('review-our-documentation') }}
-        </a>
+        </RouterLink>
         or
         <RouterLink
           to="/feedback"

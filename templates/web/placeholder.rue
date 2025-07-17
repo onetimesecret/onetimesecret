@@ -1,0 +1,130 @@
+<!-- templates/web/placeholder.rue -->
+
+<!--
+  RSFC rev4 File
+-->
+<data>{}
+</data>
+
+<template>
+  <!-- Progress bar to match Vue app -->
+  <div style="position: fixed; left: 0; top: 0; z-index: 50; height: 4px; width: 100%; background-color: #dc4a22;"></div>
+
+  <!-- Header matching Vue app structure -->
+  <header style="background-color: #ffffff;">
+    <div style="max-width: 672px; margin: 0 auto; min-width: 320px; padding: 16px;">
+      <div style="width: 100%;">
+        <div class="header-flex" style="display: flex; flex-direction: column; align-items: center; justify-content: space-between;">
+          <!-- Logo lockup matching Vue structure -->
+          <div class="logo-mb" style="margin-bottom: 16px; display: flex; align-items: center; justify-content: space-between; gap: 12px;">
+            <div>
+              <div style="display: flex; align-items: center; gap: 12px; transition: transform 0.2s;" aria-label="One-Time Secret" id="logo">
+                <a href="/" style="display: flex; align-items: center; gap: 12px; text-decoration: none;">
+                  <!-- Logo Mark - simplified placeholder -->
+                  <div style="display: block; flex-shrink: 0; width: 64px; height: 64px; background-color: #dc4a22; border-radius: 8px; display: flex; align-items: center; justify-content: center;">
+                    <span style="color: white; font-weight: bold; font-size: 18px;">秘</span>
+                  </div>
+                  <!-- Company Name -->
+                  <div style="position: relative; display: flex; flex-direction: column;">
+                    <div style="font-size: 18px; font-weight: bold; line-height: 1.2; color: #111827;">
+                      One Time Secret
+                    </div>
+                    <div style="font-size: 12px; color: #6b7280;" aria-hidden="true">
+                      Keep sensitive info out of logs
+                    </div>
+                  </div>
+                </a>
+              </div>
+            </div>
+          </div>
+
+          <!-- Navigation matching Vue structure -->
+          <nav class="nav-justify nav-size" role="navigation" aria-label="Main navigation" style="display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 16px; font-size: 14px;">
+            {{#if user.authenticated?}}
+              <a href="/dashboard" style="color: #4b5563; text-decoration: none; transition: color 0.2s;" onmouseover="this.style.color='#111827'" onmouseout="this.style.color='#4b5563'">
+                Dashboard
+              </a>
+              <span style="color: #9ca3af;" role="separator">|</span>
+              <a href="/logout" style="color: #4b5563; text-decoration: none; transition: color 0.2s;" onmouseover="this.style.color='#111827'" onmouseout="this.style.color='#4b5563'">
+                Logout
+              </a>
+            {{else}}
+              <a href="/signup" style="font-weight: bold; color: #4b5563; text-decoration: none; transition: color 0.2s;" onmouseover="this.style.color='#111827'" onmouseout="this.style.color='#4b5563'">
+                Create Account
+              </a>
+              <span style="color: #9ca3af;" aria-hidden="true" role="separator">|</span>
+              <a href="/signin" style="color: #4b5563; text-decoration: none; transition: color 0.2s;" onmouseover="this.style.color='#111827'" onmouseout="this.style.color='#4b5563'">
+                Sign In
+              </a>
+            {{/if}}
+          </nav>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main content container matching Vue structure -->
+  <main style="max-width: 672px; margin: 0 auto; min-width: 320px; padding: 16px 16px 32px 16px;">
+    <div style="border-radius: 6px;">
+      <div style="max-width: 672px; margin: 0 auto; min-width: 320px; padding: 16px 0;">
+        <div style="display: flex; flex-direction: column; align-items: center; text-align: center; margin-bottom: 24px;">
+          <h1 style="margin-bottom: 8px; font-size: 24px; color: #4b5563; margin: 0 48px 8px 48px;">
+            Keep sensitive info out of your email and chat logs.
+          </h1>
+          <p style="margin: 0 48px 24px 48px; font-size: 16px; color: #4b5563;">
+            Paste a password, secret message or private link below.
+          </p>
+        </div>
+        <!-- Placeholder for form content -->
+        <div style="background-color: #f9fafb; border-radius: 8px; padding: 24px; text-align: center;">
+          <p style="color: #6b7280; margin: 0;">Loading...</p>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- Add media query for responsive behavior -->
+  <style>
+    @media (min-width: 640px) {
+      .header-flex {
+        flex-direction: row !important;
+      }
+      .logo-mb {
+        margin-bottom: 0 !important;
+      }
+      .nav-justify {
+        justify-content: flex-end !important;
+      }
+      .nav-size {
+        font-size: 16px !important;
+      }
+    }
+  </style>
+
+  <script>
+    // Add responsive classes via JavaScript since we can't use Tailwind
+    document.addEventListener('DOMContentLoaded', function() {
+      var headerFlex = document.querySelector('.header-flex');
+      var logoMb = document.querySelector('.logo-mb');
+      var navJustify = document.querySelector('.nav-justify');
+      var navSize = document.querySelector('.nav-size');
+
+      function applyResponsiveStyles() {
+        if (window.innerWidth >= 640) {
+          if (headerFlex) headerFlex.style.flexDirection = 'row';
+          if (logoMb) logoMb.style.marginBottom = '0';
+          if (navJustify) navJustify.style.justifyContent = 'flex-end';
+          if (navSize) navSize.style.fontSize = '16px';
+        } else {
+          if (headerFlex) headerFlex.style.flexDirection = 'column';
+          if (logoMb) logoMb.style.marginBottom = '16px';
+          if (navJustify) navJustify.style.justifyContent = 'center';
+          if (navSize) navSize.style.fontSize = '14px';
+        }
+      }
+
+      applyResponsiveStyles();
+      window.addEventListener('resize', applyResponsiveStyles);
+    });
+  </script>
+</template>

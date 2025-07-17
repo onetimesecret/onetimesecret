@@ -8,7 +8,7 @@
 
 **Frontend Complexity**: Multiple schema definitions, nested transformations, and discriminated unions for simple data structures.
 
-## Recommended Approach
+## What we're working towards
 
 ### Simplify API Responses
 Standardize backend serialization:

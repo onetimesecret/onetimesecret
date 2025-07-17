@@ -45,12 +45,12 @@ vendor
 
 # Files
 .DS_Store
-!pr_agent.toml
+!.pr_agent.toml
 Caddyfile
 fly.toml
-etc/config
-etc/config.yaml
-!etc/config.example.yaml
+etc/examples
+etc/config*
+etc/*.yaml
 !etc/config.test.yaml
 !.env.empty
 !.env.example

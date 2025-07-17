@@ -2,6 +2,8 @@
 
 require 'json'
 
+require 'onetime/refinements/time_extensions'
+
 module V1
   module Mixins
 
@@ -29,6 +31,7 @@ module V1
     #   as `messages` array of objects.
     # - 20 minute TTL on message persistence
     module SessionMessages
+      using Onetime::TimeExtensions
 
       def self.included base
         # In some UI flows, we temporarily store form values after a form
@@ -56,7 +59,7 @@ module V1
       def get_form_fields!
         fields_json = self.form_fields
         return if fields_json.to_s.empty?
-        ret = OT::Utils.indifferent_params JSON.parse(fields_json) # TODO: Use refinement
+        ret = V1::Utils.indifferent_hash JSON.parse(fields_json)
         self.remove :form_fields
         ret
       rescue JSON::ParserError => ex

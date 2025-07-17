@@ -69,5 +69,5 @@
     "src/types/**/*.ts",
     "src/types/declarations/*.d.ts"
   ],
-  "exclude": ["node_modules", "dist", "build"]
+  "exclude": ["node_modules", "dist", "public/web/dist"]
 }

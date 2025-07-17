@@ -2,6 +2,8 @@
 
 require 'rack/utils'
 
+require_relative '../plan'
+
 module V1
   class Customer < Familia::Horreum
     include Gibbler::Complex
@@ -122,7 +124,7 @@ module V1
     end
 
     def load_plan
-      Onetime::Plan.plan(planid) || {:planid => planid, :source => 'parts_unknown'}
+      V1::Plan.plan(planid) || {:planid => planid, :source => 'parts_unknown'}
     end
 
     def get_stripe_customer
@@ -231,7 +233,7 @@ module V1
       if anonymous?
         'anon'
       else
-        OT::Utils.obscure_email(custid)
+        V1::Utils.obscure_email(custid)
       end
     end
 
@@ -317,7 +319,8 @@ module V1
     end
 
     def encryption_key
-      V1::Secret.encryption_key OT.global_secret, custid
+      site_secret = OT.conf['site']['secret'] # aka previously "global_secret"
+      V1::Secret.encryption_key site_secret, custid
     end
 
     # Marks the customer account as requested for destruction.

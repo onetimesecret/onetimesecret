@@ -6,7 +6,7 @@
 // compacetic via diligence and testing.
 //import { metadataSchema, secretSchema } from '@/schemas/models';
 
-import { z } from 'zod';
+import { z } from 'zod/v4';
 
 import { baseSecretPayloadSchema } from './base';
 

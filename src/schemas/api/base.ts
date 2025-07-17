@@ -1,5 +1,6 @@
+// src/schemas/api/base.ts
 import { transforms } from '@/schemas/transforms';
-import { z } from 'zod';
+import { z } from 'zod/v4';
 
 const resolveDetailsSchema = <T extends z.ZodTypeAny | undefined>(schema?: T) =>
   schema ?? z.record(z.string(), z.unknown());
@@ -44,11 +45,11 @@ const apiResponseBaseSchema = z.object({
 });
 
 export const createApiResponseSchema = <
-  TRecord extends z.ZodTypeAny,
-  TDetails extends z.ZodTypeAny | undefined = undefined,
+  TRecordSchema extends z.ZodTypeAny, // Renamed for clarity
+  TDetailsSchema extends z.ZodTypeAny | undefined = undefined, // Renamed for clarity
 >(
-  recordSchema: TRecord,
-  detailsSchema?: TDetails
+  recordSchema: TRecordSchema,
+  detailsSchema?: TDetailsSchema
 ) =>
   apiResponseBaseSchema.extend({
     record: recordSchema,
@@ -56,11 +57,11 @@ export const createApiResponseSchema = <
   });
 
 export const createApiListResponseSchema = <
-  TRecord extends z.ZodTypeAny,
-  TDetails extends z.ZodTypeAny | undefined = undefined,
+  TRecordSchema extends z.ZodTypeAny, // Renamed for clarity
+  TDetailsSchema extends z.ZodTypeAny | undefined = undefined, // Renamed for clarity
 >(
-  recordSchema: TRecord,
-  detailsSchema?: TDetails
+  recordSchema: TRecordSchema,
+  detailsSchema?: TDetailsSchema
 ) =>
   apiResponseBaseSchema.extend({
     records: z.array(recordSchema),
@@ -79,9 +80,15 @@ export const apiErrorResponseSchema = apiResponseBaseSchema.extend({
 // Type exports for API responses
 export type ApiBaseResponse = z.infer<typeof apiResponseBaseSchema>;
 export type ApiErrorResponse = z.infer<typeof apiErrorResponseSchema>;
-export type ApiRecordResponse<T> = z.infer<
-  ReturnType<typeof createApiResponseSchema<z.ZodType<T>>>
->;
-export type ApiRecordsResponse<T> = z.infer<
-  ReturnType<typeof createApiListResponseSchema<z.ZodType<T>>>
+
+export type ApiRecordResponse<
+  TRecordData, // The data type for the record
+  TDetailsZodSchema extends z.ZodTypeAny | undefined = undefined, // Use Zod schema, or undefined
+> = z.infer<ReturnType<typeof createApiResponseSchema<z.ZodType<TRecordData>, TDetailsZodSchema>>>;
+
+export type ApiRecordsResponse<
+  TRecordData, // The data type for the records in the array
+  TDetailsZodSchema extends z.ZodTypeAny | undefined = undefined, // Use Zod schema, or undefined
+> = z.infer<
+  ReturnType<typeof createApiListResponseSchema<z.ZodType<TRecordData>, TDetailsZodSchema>>
 >;

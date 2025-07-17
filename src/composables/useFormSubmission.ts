@@ -1,9 +1,9 @@
-// src/utils/formSubmission.ts
+// src/composables/useFormSubmission.ts
 
 import { useCsrfStore } from '@/stores/csrfStore';
 import type { FormSubmissionOptions } from '@/types/ui';
 import { ref } from 'vue';
-import { z } from 'zod';
+import { z } from 'zod/v4';
 
 /**
  *
@@ -14,7 +14,7 @@ import { z } from 'zod';
  */
 /* eslint-disable max-lines-per-function */
 /* eslint-disable complexity */
-export function useFormSubmission<ResponseSchema extends z.ZodType>(
+export function useFormSubmission<ResponseSchema extends z.ZodTypeAny>(
   options: FormSubmissionOptions<ResponseSchema>
 ) {
   const isSubmitting = ref(false);
@@ -74,11 +74,8 @@ export function useFormSubmission<ResponseSchema extends z.ZodType>(
       let jsonData: z.infer<ResponseSchema>;
       try {
         const rawData = await response.json();
-        // Use the provided schema or fallback to any
         const responseSchema = (options.schema || z.any()) as ResponseSchema;
         jsonData = responseSchema.parse(rawData);
-        //console.debug(rawData);
-        //console.debug(jsonData);
       } catch (error) {
         const message = `Server returned an invalid response (${submissionUrl})`;
         console.error(message, error);
@@ -87,8 +84,13 @@ export function useFormSubmission<ResponseSchema extends z.ZodType>(
 
       // If the json response includes a new shrimp,
       // let's update our shrimp state to reflect it.
-      if ('shrimp' in jsonData && typeof jsonData.shrimp === 'string') {
-        csrfStore.updateShrimp(jsonData.shrimp);
+      if (
+        typeof jsonData === 'object' &&
+        jsonData !== null &&
+        'shrimp' in jsonData &&
+        typeof (jsonData as any).shrimp === 'string'
+      ) {
+        csrfStore.updateShrimp((jsonData as { shrimp: string }).shrimp);
       }
 
       if (!response.ok) {
@@ -97,11 +99,16 @@ export function useFormSubmission<ResponseSchema extends z.ZodType>(
         }
 
         if (response.headers.get('content-type')?.includes('application/json')) {
-          throw new Error(
-            'message' in jsonData
-              ? (jsonData.message as string)
-              : 'Request was not successful. Please try again later.'
-          );
+          if (
+            typeof jsonData === 'object' &&
+            jsonData !== null &&
+            'message' in jsonData &&
+            typeof (jsonData as any).message === 'string'
+          ) {
+            throw new Error((jsonData as { message: string }).message);
+          } else {
+            throw new Error('Request was not successful. Please try again later.');
+          }
         } else {
           throw new Error('Please refresh the page and try again.');
         }

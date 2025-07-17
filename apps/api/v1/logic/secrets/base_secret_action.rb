@@ -1,6 +1,8 @@
 # apps/api/v1/logic/secrets/base_secret_action.rb
 
-require 'onetime/refinements/rack_refinements'
+require 'v1/refinements/flexible_hash_access'
+
+require_relative '../../utils'
 
 module V1::Logic
   module Secrets
@@ -9,7 +11,7 @@ module V1::Logic
       attr_reader :passphrase, :secret_value, :kind, :ttl, :recipient, :recipient_safe, :greenlighted
       attr_reader :metadata, :secret, :share_domain, :custom_domain, :payload
       attr_accessor :token
-      using Onetime::RackRefinements
+      using V1::FlexibleHashAccess
 
       # Process methods populate instance variables with the values. The
       # raise_concerns and process methods deal with the values in the instance
@@ -76,17 +78,17 @@ module V1::Logic
         @ttl = payload.fetch(:ttl, nil)
 
         # Get configuration options. We can rely on these values existing
-        # because that are guaranteed by OT::Config.after_load.
-        secret_options = OT.conf[:site].fetch(:secret_options, {
-          default_ttl: 7.days,
-          ttl_options: [1.minute, 1.hour, 1.day, 7.days]
+        # because that are guaranteed by OT::Configurator.after_load.
+        secret_options = OT.conf['site'].fetch('secret_options', {
+          'default_ttl' => 7.days,
+          'ttl_options' => [1.minute, 1.hour, 1.day, 7.days]
         })
-        default_ttl = secret_options[:default_ttl]
-        ttl_options = secret_options[:ttl_options]
+        default_ttl = secret_options['default_ttl']
+        ttl_options = secret_options['ttl_options']
 
         # Get min/max values safely
         min_ttl = ttl_options.min || 1.minute      # Fallback to 1 minute
-        max_ttl = plan.options[:ttl] || ttl_options.max || 7.days  # Fallback to 7 days
+        max_ttl = ttl_options.max || 7.days  # Fallback to 7 days
 
         # Apply default if nil
         @ttl = default_ttl || 7.days if ttl.nil?
@@ -95,7 +97,7 @@ module V1::Logic
         @ttl = ttl.to_i
 
         # Apply plan constraints
-        @ttl = plan.options[:ttl] if ttl && ttl >= plan.options[:ttl]
+        # @ttl = plan.options[:ttl] if ttl && ttl >= plan.options[:ttl]
 
         # Enforce bounds
         @ttl = min_ttl if ttl < min_ttl
@@ -117,7 +119,7 @@ module V1::Logic
           next if email_address.to_s.empty?
           email_address.scan(r).uniq.first
         }.compact.uniq
-        @recipient_safe = recipient.collect { |r| OT::Utils.obscure_email(r) }
+        @recipient_safe = recipient.collect { |r| V1::Utils.obscure_email(r) }
       end
 
       # Capture the selected domain the link is meant for, as long as it's
@@ -177,7 +179,7 @@ module V1::Logic
       end
 
       def save_secret
-        secret.encrypt_value secret_value, :size => plan.options[:size]
+        secret.encrypt_value(secret_value, size: 1_000_000)
         metadata.ttl, secret.ttl = ttl*2, ttl
         metadata.lifespan = metadata.ttl.to_i
         metadata.secret_ttl = secret.ttl.to_i

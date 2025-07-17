@@ -4,10 +4,9 @@ import { computed, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { WindowService } from '@/services/window.service';
 import type { SecretFormData } from './useSecretForm';
-import type { Plan, SecretOptions } from '@/schemas/models';
+import type { SecretOptions } from '@/schemas/config/public';
 
 interface PrivacyConfig {
-  plan: Plan | null;
   secretOptions: SecretOptions;
 }
 
@@ -41,7 +40,6 @@ export function usePrivacyOptions(formOperations?: {
   const { t } = useI18n();
 
   const config: PrivacyConfig = {
-    plan: WindowService.get('plan') ?? null,
     secretOptions: WindowService.get('secret_options'),
   };
 
@@ -82,14 +80,33 @@ export function usePrivacyOptions(formOperations?: {
    * Available lifetime options based on plan limits
    */
   const lifetimeOptions = computed<LifetimeOption[]>(() => {
-    const planTtl = config.plan?.options?.ttl ?? Infinity;
+    // NOTE: this used to be limited based on the plan. We don't bandy that
+    // around like we used to so this is just set to the max value for everyone.
+    const maxTtl = 3600 * 24 * 30; // 30 days.
 
-    return config.secretOptions.ttl_options
+    // Get ttl_options from the appropriate user type (fallback to anonymous)
+    const userTypeOptions =
+      config.secretOptions.anonymous ||
+      config.secretOptions.standard ||
+      config.secretOptions.enhanced;
+
+    // NOTE: These come from the mutable config now. Is they are saved with
+    // null for each of anonymous, standard, enhanced we will be left with
+    // an empty array here which currently breaks the secret form altogether
+    // b/c it then submits an empty ttl value which is not allowed (also
+    // visually the dropdown in the form looks bad empty). In the colonel
+    // when saving, we protect against this by validating the input before
+    // saving (which applys the defaults defined in zod). If we validate the
+    // OnetimeWindow JSON object then we will be able to remove these hardcoded
+    // values.
+    const ttlOptions = userTypeOptions?.ttl_options || [60, 3600, 86400, 604800, 2592000];
+
+    return ttlOptions
       .filter(
         (seconds): seconds is number =>
-          seconds !== null && typeof seconds === 'number' && seconds <= planTtl
+          seconds !== null && typeof seconds === 'number' && seconds <= maxTtl
       )
-      .map((seconds) => ({
+      .map((seconds: number) => ({
         value: seconds,
         label: formatDuration(seconds),
       }));

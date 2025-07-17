@@ -1,23 +1,30 @@
 # lib/onetime/mail/mailer/ses_mailer.rb
 
 require 'aws-sdk-sesv2'
+
+
+
 require_relative 'base_mailer'
 
 module Onetime::Mail
   module Mailer
     class SESMailer < BaseMailer
 
+      class << self
+        attr_reader :ses_client
+      end
+
       def send_email(to_address, subject, html_content, text_content)
-        mailer_response = nil
+        mailer_response  = nil
         obscured_address = OT::Utils.obscure_email(to_address)
-        sender_email = self.from
-        to_email = to_address
-        reply_to = self.reply_to
+        sender_email     = from
+        to_email         = to_address
+        reply_to         = self.reply_to
 
         OT.ld "[email-send-start] sender:#{sender_email}; reply-to:#{reply_to}"
 
         # Return early if there is no system email address to send from
-        if self.from.to_s.empty?
+        if from.to_s.empty?
           OT.le "> [send-exception] No from address [to: #{obscured_address}]"
           return
         end
@@ -54,12 +61,10 @@ module Onetime::Mail
 
           # Send the email
           mailer_response = self.class.ses_client.send_email(email_params)
-
         rescue Aws::SESV2::Errors::ServiceError => ex
           OT.le "> [send-exception-ses-error] #{ex.message} [to: #{obscured_address}]"
           OT.ld "#{ex.backtrace}"
-
-        rescue => ex
+        rescue StandardError => ex
           OT.le "> [send-exception-sending] #{ex.class} #{ex.message} [to: #{obscured_address}]"
           OT.ld ex.backtrace
         end
@@ -73,13 +78,16 @@ module Onetime::Mail
         mailer_response
       end
 
-      def self.setup
+      def self.setup(config)
+        @mail_settings = config['mail']['connection']
+        @mail_domain   = config['site']['domain']
+
         # Configure AWS SES client
         @ses_client = Aws::SESV2::Client.new(
-          region: OT.conf[:emailer][:region] || raise("Region not configured"),
+          region: mail_settings['region'] || raise('Region not configured'),
           credentials: Aws::Credentials.new(
-            OT.conf[:emailer][:user],
-            OT.conf[:emailer][:pass],
+            mail_settings['user'],
+            mail_settings['pass'],
           ),
         )
       end
@@ -88,10 +96,6 @@ module Onetime::Mail
         @ses_client = nil
       end
 
-      class << self
-        attr_reader :ses_client
-      end
     end
-
   end
 end

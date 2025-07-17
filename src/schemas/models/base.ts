@@ -1,5 +1,5 @@
 import { transforms } from '@/schemas/transforms';
-import { z } from 'zod';
+import { z } from 'zod/v4';
 
 /**
  * Base Model Schema
@@ -40,7 +40,7 @@ export type BaseModel = z.infer<typeof baseModelSchema>;
  * ```
  * export const userSchema = createModelSchema({
  *   name: z.string(),
- *   email: z.string().email()
+ *   email: z.email()
  * })
  * ```
  *

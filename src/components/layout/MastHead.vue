@@ -24,22 +24,23 @@ import { shallowRef } from 'vue';
     'ui',
   ]);
 
+  console.log(windowProps);
   const isColonel = computed(() => windowProps.cust?.role === 'colonel');
 
   // i18n setup
   const { t } = useI18n();
 
   // Header configuration
-  const headerConfig = computed(() => windowProps.ui?.header);
+  const headerConfig = computed(() => windowProps.ui?.header ?? {enabled: true, branding: {}, signin: false, signup: true});
 
   // Default logo component for fallback
   const DEFAULT_LOGO = 'DefaultLogo.vue';
 
   // Simplified logo configuration with prop override support
   const logoConfig = computed(() => ({
-    url: props.logo?.url || headerConfig.value?.branding?.logo?.url || DEFAULT_LOGO,
-    alt: props.logo?.alt || headerConfig.value?.branding?.logo?.alt || t('one-time-secret-literal'),
-    href: props.logo?.href || headerConfig.value?.branding?.logo?.link_to || '/',
+    url: props.logo?.url || headerConfig.value.branding?.logo?.url || DEFAULT_LOGO,
+    alt: props.logo?.alt || headerConfig.value.branding?.logo?.alt || t('one-time-secret-literal'),
+    href: props.logo?.href || headerConfig.value.branding?.logo?.link_to || '/',
     size: props.logo?.size || 64,
     showSiteName: props.logo?.showSiteName ?? !!headerConfig.value?.branding?.site_name,
     siteName: props.logo?.siteName || headerConfig.value?.branding?.site_name || t('one-time-secret-literal'),
@@ -195,7 +196,7 @@ import { shallowRef } from 'vue';
               {{ t('web.COMMON.header_create_account') }}
             </router-link>
             <span
-              v-if="windowProps.authentication.signup && windowProps.authentication.signin"
+              v-if="windowProps.ui.signup && windowProps.ui.signin"
               class="text-gray-400"
               aria-hidden="true"
               role="separator">
@@ -203,7 +204,7 @@ import { shallowRef } from 'vue';
             </span>
             <!-- prettier-ignore-attribute class -->
             <router-link
-              v-if="windowProps.authentication.signin"
+              v-if="windowProps.ui.signin"
               to="/signin"
               :title="t('log-in-to-onetime-secret')"
               class="text-gray-600 transition-colors duration-200

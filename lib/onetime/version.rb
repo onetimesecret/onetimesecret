@@ -16,7 +16,7 @@ module Onetime
     def self.inspect
       load_config
       build = (@version || {}).fetch(:BUILD, nil).to_s
-      build.empty? ? to_s : "#{to_s} (#{build})"
+      build.empty? ? to_s : "#{self} (#{build})"
     end
 
     def self.load_config
@@ -24,10 +24,10 @@ module Onetime
 
       # Load version from package.json
       package_json_path = File.join(Onetime::HOME, 'package.json')
-      package_json = JSON.parse(File.read(package_json_path))
+      package_json      = JSON.parse(File.read(package_json_path))
 
       # Split the version string into main version and pre-release parts
-      version_parts = package_json['version'].split('-')
+      version_parts      = package_json['version'].split('-')
       main_version_parts = version_parts[0].split('.')
 
       @version = {
@@ -35,18 +35,18 @@ module Onetime
         MINOR: main_version_parts[1],
         PATCH: main_version_parts[2],
         PRE: version_parts[1], # Pre-release version if present
-        BUILD: get_build_info,
+        BUILD: build_info,
       }
     end
 
-    def self.get_build_info
+    def self.build_info
       # Get the commit hash from .commit_hash.txt
       commit_hash_file = File.join(Onetime::HOME, '.commit_hash.txt')
-      commit_hash = 'pristine'
-      if File.exist?(commit_hash_file)
+      commit_hash      = 'pristine'
+      if File.exist?(commit_hash_file) && File.readable?(commit_hash_file)
         commit_hash = File.read(commit_hash_file).strip
       else
-        $stderr.puts "Warning: Commit hash file not found. Using default value '#{commit_hash}'."
+        warn "Warning: Commit hash file not found. Using default value '#{commit_hash}'."
       end
       commit_hash
     end

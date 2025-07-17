@@ -1,6 +1,8 @@
 # lib/onetime/refinements/horreum_refinements.rb
 
 module Familia
+  # Temporary workarounds for Familia::Horreum models in
+  # between Familia releases.
   module HorreumRefinements
     refine Familia::Horreum.singleton_class do
       # Converts the class name into a symbol that can be used to look up

@@ -1,6 +1,6 @@
-// schemas/api/endpoints/secrets.ts
+// src/schemas/api/endpoints/conceal.ts
 import { metadataSchema, secretSchema } from '@/schemas/models';
-import { z } from 'zod';
+import { z } from 'zod/v4';
 
 /**
  * Schema for combined secret and metadata (conceal data)

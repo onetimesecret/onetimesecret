@@ -1,3 +1,3 @@
 # lib/onetime/views.rb
 
-require 'core/views'
+require 'manifold/views'

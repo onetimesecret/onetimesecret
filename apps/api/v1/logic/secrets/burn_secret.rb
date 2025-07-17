@@ -30,6 +30,7 @@ module V1::Logic
           viewable = potential_secret.viewable?
           continue_result = params[:continue]
           @greenlighted = viewable && correct_passphrase && continue_result
+          locales = OT.conf['locales']
 
           if greenlighted
             @secret = potential_secret
@@ -41,7 +42,7 @@ module V1::Logic
 
           elsif !correct_passphrase
             limit_action :failed_passphrase if potential_secret.has_passphrase?
-            message = OT.locales.dig(locale, :web, :COMMON, :error_passphrase) || 'Incorrect passphrase'
+            message = locales.dig(locale, 'web', 'COMMON', 'error_passphrase') || 'Incorrect passphrase'
             raise_form_error message
 
           end

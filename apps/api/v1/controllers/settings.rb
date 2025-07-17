@@ -29,7 +29,7 @@ module V1
       #   @return [Boolean] Whether to check for valid UTF-8 encoding
       # @!attribute [rw] check_uri_encoding
       #   @return [Boolean] Whether to check for valid URI encoding
-      attr_accessor :check_utf8, :check_uri_encoding
+      attr_reader :check_utf8, :check_uri_encoding
     end
   end
 end

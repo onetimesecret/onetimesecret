@@ -1,47 +1,20 @@
-
-
-module QuantizeTime
-  def quantize quantum
-    stamp = self.is_a?(Integer) ? self : to_i
-    Time.at(stamp - (stamp % quantum)).utc
-  end
-  def on_the_next quantum
-    Time.at(quantize(quantum)+quantum).utc
-  end
-end
-
-
-module QuantizeInteger
-  def quantize quantum
-    stamp = self.is_a?(Integer) ? self : to_i
-    stamp - (stamp % quantum)
-  end
-  def on_the_next quantum
-    quantize(quantum)+quantum
-  end
-end
-
-
-class Time
-  include QuantizeTime
-end
-
-
-class Integer
-  include QuantizeInteger
-end
-
+# lib/onetime/core_ext.rb
 
 class String
-  def plural(int=1)
+  def plural(int = 1)
     int > 1 || int.zero? ? "#{self}s" : self
   end
-  def shorten(len=50)
+
+  def shorten(len = 50)
     return self if size <= len
-    self[0..len] + "..."
+
+    self[0..len] + '...'
+  end
+
+  def humanize
+    tr('_', ' ').split.map(&:capitalize).join(' ')
   end
 end
-
 
 module Rack
   class Files
@@ -54,9 +27,9 @@ module Rack
     # don't print out the literal filename for 404s
     def not_found
       body = "File not found\n"
-      [404, {"Content-Type" => "text/plain",
-         "Content-Length" => body.size.to_s,
-         "X-Cascade" => "pass"},
+      [404, { 'Content-Type' => 'text/plain',
+              'Content-Length' => body.size.to_s,
+              'X-Cascade' => 'pass' },
        [body]]
     end
   end

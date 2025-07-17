@@ -1,0 +1,14 @@
+---
+mail:
+  connection:
+    # Production Settings (for reference)
+    # ----------------------------------
+    mode: <%= ENV['EMAILER_MODE'] || 'smtp' %>
+    from: <%= ENV['FROM_EMAIL'] || ENV['FROM'] || 'CHANGEME@example.com' %>
+    fromname: <%= ENV['FROMNAME'] || 'Support' %>
+    host: <%= ENV['SMTP_HOST'] || 'smtp.provider.com' %>
+    port: <%= ENV['SMTP_PORT'] || 587 %>
+    user: <%= ENV['SMTP_USERNAME'] %>
+    pass: <%= ENV['SMTP_PASSWORD'] %>
+    auth: <%= ENV['SMTP_AUTH'] || 'login' %>
+    tls: <%= ENV['SMTP_TLS'] %>

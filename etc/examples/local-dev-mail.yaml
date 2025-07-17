@@ -1,0 +1,22 @@
+---
+mail:
+  connection:
+    # Local Development with Mailpit
+    # -----------------------------
+    # Mailpit is a dev SMTP server that captures emails for testing. All
+    # emails sent from the application will be available in the Mailpit
+    # Web UI which behaves like an email inbox.
+    #
+    # Install: brew install mailpit
+    # Start: mailpit
+    # Web UI: http://localhost:8025
+    #
+    mode: smtp                     # Use SMTP mode for local testing
+    from: secure@example.com       # Sender address
+    fromname: OTS Support          # Sender name
+    host: 127.0.0.1                # Mailpit host
+    port: 1025                     # Mailpit default SMTP port
+    user: ~                        # No auth needed for Mailpit
+    pass: ~                        # No auth needed for Mailpit
+    auth: false                    # Disable SMTP auth for Mailpit
+    tls: false                     # Disable TLS for local testing
