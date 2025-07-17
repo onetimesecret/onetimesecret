@@ -82,8 +82,8 @@ module V2
     end
 
     def regenerate_apitoken
-      apitoken! [OT.instance, OT.now.to_f, :apitoken, custid].gibbler
-      apitoken # the fast writer bang methods don't return the value
+      self.apitoken! OT::Utils.generate_id
+      self.apitoken # the fast writer bang methods don't return the value
     end
 
     # def load_plan
@@ -174,13 +174,7 @@ module V2
         raise Onetime::Problem, 'Anonymous customer has no external identifier'
       end
 
-      # Changing the type, order or value of the elements in this array will
-      # change the external identifier. This is used to identify customers
-      # primarily in logs and other external systems where the actual customer
-      # ID is not needed or otherwise not appropriate to use. Keeping the
-      # value consistent is generally preferred.
-      elements               = ['cust', role, custid]
-      @external_identifier ||= elements.gibbler
+      @external_identifier ||= OT::Utils.generate_id
       @external_identifier
     end
 
