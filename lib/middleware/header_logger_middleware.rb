@@ -1,7 +1,5 @@
 require 'logger'
 
-LOGGER = Logger.new(STDOUT) unless defined?(LOGGER)
-
 # Rack::HeaderLoggerMiddleware
 #
 # Logs all HTTP headers for each request to the system log.
@@ -20,9 +18,10 @@ LOGGER = Logger.new(STDOUT) unless defined?(LOGGER)
 #     use HeaderLoggerMiddleware
 #
 class Rack::HeaderLoggerMiddleware
-  def initialize(app)
+  def initialize(app, logger: nil)
     @app = app
-    LOGGER.debug('HeaderLoggerMiddleware initialized')
+    @logger = logger || Logger.new($stdout)
+    @logger.debug('HeaderLoggerMiddleware initialized')
   end
 
   def call(env)
@@ -33,13 +32,13 @@ class Rack::HeaderLoggerMiddleware
   private
 
   def log_headers(env)
-    LOGGER.info("Request Headers for #{env['REQUEST_METHOD']} #{env['PATH_INFO']}:")
+    @logger.info("Request Headers for #{env['REQUEST_METHOD']} #{env['PATH_INFO']}:")
     env.each do |key, value|
       if key.start_with?('HTTP_')
         header_name = key.sub(/^HTTP_/, '').split('_').map(&:capitalize).join('-')
-        LOGGER.info(">  #{header_name}: #{value}")
+        @logger.info(">  #{header_name}: #{value}")
       end
     end
-    LOGGER.info("\n")  # Add a blank line for readability between requests
+    @logger.info("\n")  # Add a blank line for readability between requests
   end
 end
