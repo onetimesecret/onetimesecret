@@ -39,7 +39,6 @@ module Onetime
 
         # The order here is arbitrary. We sort them by priority next.
         providers << System::SetupDiagnostics.new
-        # providers << System::CheckGlobalBanner.new
         providers << System::FirstBoot.new
         providers << System::RuntimeConfigService.new
         providers << System::TruemailProvider.new

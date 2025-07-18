@@ -1,4 +1,4 @@
-# ./tryouts/models/session_try.rb
+# apps/api/v2/models/session_try.rb
 
 # These tryouts test the session management functionality in the Onetime application.
 # They cover various aspects of session handling, including:

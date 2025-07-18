@@ -11,26 +11,22 @@ module V2
     module ClassMethods
       attr_reader :values
 
-      def generate_objid
-        SecureRandom.uuid_v7
-      end
+      def create(custid, email = nil)
+        raise Onetime::Problem, 'custid is required' if custid.to_s.empty?
+        raise Onetime::Problem, 'Customer exists' if exists?(custid)
 
-      def derive_extid(objid)
-        Digest::SHA256.hexdigest(objid)
-      end
+        attrs = {
+          custid: custid,
+          email: email || custid,
+          role: 'customer',
+          api_version: 'v2',
+          user_type: 'authenticated',
+        }
 
-      def find_by_objid(objid)
-        return nil if objid.to_s.empty?
-
-        # self.obj
-
-        Familia.ld "[.find_by_objid] #{self} from key #{objkey})"
-        if Familia.debug?
-          reference = caller(1..1).first
-          Familia.trace :FIND_BY_OBJID, Familia.redis(uri), objkey, reference
-        end
-
-        find_by_key objkey
+        cust = new attrs
+        cust.save
+        add cust
+        cust
       end
 
       def add(cust)
@@ -49,24 +45,6 @@ module V2
 
       def anonymous
         new({ custid: 'anon', user_type: 'anonymous' }).freeze
-      end
-
-      def create(custid, email = nil)
-        raise Onetime::Problem, 'custid is required' if custid.to_s.empty?
-        raise Onetime::Problem, 'Customer exists' if exists?(custid)
-
-        attrs = {
-          custid: custid,
-          email: email || custid,
-          role: 'customer',
-          api_version: 'v2',
-          user_type: 'authenticated',
-        }
-
-        cust = new attrs
-        cust.save
-        add cust
-        cust
       end
 
       def global

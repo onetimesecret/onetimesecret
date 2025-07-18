@@ -2,14 +2,13 @@
 
 # Test double for V2::Secret that doesn't require Redis
 class TestSecret
-  attr_accessor :key, :passphrase_temp, :value, :value_encryption, :value_checksum
+  attr_accessor :key, :passphrase_temp, :value, :value_encryption
 
   def initialize
     @key = nil
     @passphrase_temp = nil
     @value = nil
     @value_encryption = nil
-    @value_checksum = nil
   end
 
   def self.encryption_key(global_secret, key, passphrase)
@@ -23,7 +22,6 @@ class TestSecret
     encryption_key = self.class.encryption_key(global_secret, @key, passphrase)
     @value = value.encrypt(key: encryption_key)
     @value_encryption = 2
-    @value_checksum = value.gibbler
   end
 
   def decrypted_value

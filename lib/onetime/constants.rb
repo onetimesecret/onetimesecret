@@ -13,7 +13,6 @@ require 'bcrypt'
 
 require 'rack'
 require 'otto'
-require 'gibbler/mixins'
 require 'familia'
 require 'storable'
 

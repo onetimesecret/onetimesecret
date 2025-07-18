@@ -2,7 +2,6 @@
 
 module V1
   class Metadata < Familia::Horreum
-    include Gibbler::Complex
 
     feature :safe_dump
     feature :expiration
@@ -99,7 +98,7 @@ module V1
 
     def natural_duration
       # Colloquial representation of the TTL. e.g. "1 day"
-      OT::TimeUtils.natural_duration metadata_ttl
+      V1::TimeUtils.natural_duration metadata_ttl
     end
     alias :natural_ttl :natural_duration
 
@@ -114,7 +113,7 @@ module V1
 
     def secret_natural_duration
       # Colloquial representation of the TTL. e.g. "1 day"
-      OT::TimeUtils.natural_duration secret_ttl.to_i if secret_ttl
+      V1::TimeUtils.natural_duration secret_ttl.to_i if secret_ttl
     end
     alias :secret_natural_ttl :secret_natural_duration
 

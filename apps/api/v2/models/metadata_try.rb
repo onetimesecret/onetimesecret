@@ -1,4 +1,4 @@
-# ./tryouts/models/metadata_try.rb
+# apps/api/v2/models/metadata_try.rb
 
 # These tryouts test the V2::Metadata class functionality.
 # The Metadata class is responsible for managing metadata associated

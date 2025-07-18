@@ -19,9 +19,17 @@ ENV['ONETIME_CONFIG_FILE_BASENAME'] = 'config.test'
 
 require 'onetime'
 
-global_secret = OT.conf.dig('site', 'secret') || nil
-OT.li("[TRY] Setting global secret: #{global_secret}")
-Gibbler.secret = global_secret.freeze unless Gibbler.secret
+# We used to set the global secret here which Gibbler would use as the first value
+# in the list of values when generating a digest (through a process similar to how
+# git works/used to work). The global_secret was a unique value per installation
+# that was in other parts of the application as well. I'm leaving this note here
+# for historical context when we circle back to this test suite. Any test that
+# relies on matching a sha hash digest will need its expected values updated;
+# not because the code broke, but because the global secret was removed.
+#
+# global_secret = OT.conf.dig('site', 'secret') || nil
+# OT.li("[TRY] Setting global secret: #{global_secret}")
+# Gibbler.secret = global_secret.freeze unless Gibbler.secret
 
 class IndifferentHash
   # Initializes a new IndifferentHash.

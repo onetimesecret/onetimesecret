@@ -5,7 +5,7 @@ require 'onetime/utils'
 module V2
   module Logic
     module UriHelpers
-      include Onetime::TimeUtils
+      include Onetime::Utils::TimeUtils
 
       def receipt_uri(obj)
         format('/receipt/%s', obj.key)

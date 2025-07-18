@@ -1,4 +1,4 @@
-# tryouts/utils/safe_dump_try.rb
+# apps/api/v2/models/customer_safe_dump_try.rb
 
 # These tryouts test the safe dumping functionality.
 

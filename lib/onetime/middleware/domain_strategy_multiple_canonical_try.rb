@@ -1,4 +1,4 @@
-# ./tryouts/middleware/domain_strategy_multiple_canonical_try.rb
+# lib/onetime/middleware/domain_strategy_multiple_canonical_try.rb
 
 require_relative '../../../tests/helpers/test_helpers'
 

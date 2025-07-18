@@ -23,7 +23,7 @@ module Manifold
       include Manifold::Views::SanitizerHelpers
       include Manifold::Views::I18nHelpers
       include Manifold::Views::ViteManifest
-      include Onetime::TimeUtils
+      include Onetime::Utils::TimeUtils
 
       attr_accessor :form_fields, :pagename
       attr_reader :i18n_instance, :messages

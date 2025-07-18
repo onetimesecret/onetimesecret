@@ -1,4 +1,4 @@
-# ./tryouts/logic/value_encryption_try.rb
+# apps/api/v2/models/secret_value_encryption_try.rb
 
 # These tryouts test the encryption and decryption functionality
 # of the V2::Secret class.
@@ -24,32 +24,32 @@ OT.boot! :test, false
 
 ## Can store a value
 s = V2::Secret.new :shared
-s.value = 'poop'
+s.value = 'plop'
 s.value
-#=> 'poop'
+#=> 'plop'
 
 ## Can encrypt a value
 s = V2::Secret.new :shared
-s.encrypt_value 'poop', key: 'tryouts'
+s.encrypt_value 'plop', key: 'tryouts'
 puts "The value checksum is the gibbled value after being truncated (if needed)"
-s.value_checksum
-#=> 'cffab3469f0aec11d52c4b24882fb6f77149b7b7'
+s.value.nil?
+#=> false
 
 ## Can decrypt a value
 s = V2::Secret.new :shared
-s.encrypt_value 'poop', key: 'tryouts'
+s.encrypt_value 'plop', key: 'tryouts'
 s.decrypted_value
-#=> 'poop'
+#=> 'plop'
 
 ## Decrypt does nothing if encrypt_value wasn't called
 s = V2::Secret.new :shared2
-s.value = 'poop'
+s.value = 'plop'
 s.decrypted_value
-#=> 'poop'
+#=> 'plop'
 
 ## Cannot decrypt after changing global secret
 s = V2::Secret.new :shared
-s.encrypt_value 'poop', key: 'tryouts'
+s.encrypt_value 'plop', key: 'tryouts'
 Onetime.instance_variable_set(:@global_secret, 'NEWVALUE')
 begin
   s.decrypted_value

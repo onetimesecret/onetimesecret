@@ -1,4 +1,4 @@
-# ./tryouts/middleware/handle_invalid_percent_encoding_try.rb
+# lib/middleware/handle_invalid_percent_encoding_try.rb
 
 # These tryouts replicate and test edge cases related to
 # Rack::Request parameter parsing, specifically focusing on scenarios involving

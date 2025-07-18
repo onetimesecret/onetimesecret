@@ -1,4 +1,4 @@
-# ./tryouts/utils/onetime_utils_fortunes_try.rb
+# lib/onetime/utils_fortunes_try.rb
 
 require_relative '../../tests/helpers/test_helpers'
 

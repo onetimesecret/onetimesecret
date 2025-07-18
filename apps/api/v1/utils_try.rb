@@ -1,4 +1,4 @@
-# ./tryouts/utils/v1_utils_try.rb
+# apps/api/v1/utils_try.rb
 
 # These tryouts test the functionality of the V1::Utils module.
 # The Utils module provides various utility functions used throughout

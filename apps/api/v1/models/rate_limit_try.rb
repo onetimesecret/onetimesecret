@@ -1,4 +1,4 @@
-# ./tryouts/logic/ratelimit_try.rb
+# apps/api/v1/models/rate_limit_try.rb
 
 # These tryouts test the rate limiting functionality in the Onetime application.
 # They cover various aspects of rate limiting, including:

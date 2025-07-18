@@ -29,46 +29,6 @@ module V2
   #
   class Customer < Familia::Horreum
 
-    def init
-      # Default to anonymous state. That way we're always explicitly
-      # setting the role when it needs to be set.
-      #
-      # Previously we used custid=anon and all it would do is prevent
-      # the record from being saved.
-      self.user_type   ||= 'anonymous'
-      self.role        ||= 'customer'
-
-      # Set email only for non-anonymous users
-      if !anonymous? && email.to_s.empty? && !custid.to_s.empty?
-        self.email = custid
-      end
-
-      # Set custid only for non-anonymous users
-      if !anonymous? && custid.to_s.empty? && !email.to_s.empty?
-        self.custid = email
-      end
-
-      self.objid       ||= self.class.generate_objid
-      self.extid       ||= derive_extid
-      self.api_version ||= 'v2' # we want to know in the data which class
-
-      # When an instance is first created, any field that doesn't have a
-      # value set will be nil. We need to ensure that these fields are
-      # set to an empty string to match the default values when loading
-      # from redis (i.e. all values in core redis data types are strings).
-      self.locale ||= ''
-
-      # Initialze auto-increment fields. We do this since Redis
-      # gets grumpy about trying to increment a hashkey field
-      # that doesn't have any value at all yet. This is in
-      # contrast to the regular INCR command where a
-      # non-existant key will simply be set to 1.
-      self.secrets_created ||= 0
-      self.secrets_burned  ||= 0
-      self.secrets_shared  ||= 0
-      self.emails_sent     ||= 0
-    end
-
     def contributor?
       contributor.to_s == 'true'
     end
@@ -82,8 +42,8 @@ module V2
     end
 
     def regenerate_apitoken
-      apitoken! [OT.instance, OT.now.to_f, :apitoken, custid].gibbler
-      apitoken # the fast writer bang methods don't return the value
+      self.apitoken! OT::Utils.generate_id
+      self.apitoken # the fast writer bang methods don't return the value
     end
 
     # def load_plan
@@ -159,29 +119,6 @@ module V2
       end
 
       subscriptions
-    end
-
-    def get_persistent_value(sess, n)
-      (anonymous? ? sess : self)[n]
-    end
-
-    def set_persistent_value(sess, n, v)
-      (anonymous? ? sess : self)[n] = v
-    end
-
-    def external_identifier
-      if anonymous?
-        raise Onetime::Problem, 'Anonymous customer has no external identifier'
-      end
-
-      # Changing the type, order or value of the elements in this array will
-      # change the external identifier. This is used to identify customers
-      # primarily in logs and other external systems where the actual customer
-      # ID is not needed or otherwise not appropriate to use. Keeping the
-      # value consistent is generally preferred.
-      elements               = ['cust', role, custid]
-      @external_identifier ||= elements.gibbler
-      @external_identifier
     end
 
     def anonymous?
@@ -373,12 +310,6 @@ module V2
       # class. There's a small benefit to being able grep for "cust.method_name"
       # which this approach affords as well. Although it's a small benefit.
       self.class.increment_field(self, field)
-    end
-
-    def derive_extid
-      raise ArgumentError, 'objid cannot be nil' if objid.nil?
-
-      Digest::SHA256.hexdigest(objid)
     end
 
   end

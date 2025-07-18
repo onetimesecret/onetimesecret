@@ -2,7 +2,6 @@
 
 module V2
   class Metadata < Familia::Horreum
-    include Gibbler::Complex
 
     feature :safe_dump
     feature :expiration

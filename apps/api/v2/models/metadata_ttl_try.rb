@@ -1,4 +1,4 @@
-# ./tryouts/models/metadata_ttl_try.rb
+# apps/api/v2/models/metadata_ttl_try.rb
 
 # These tryouts test the V1::Controllers::Index.metadata_hsh method functionality.
 # The metadata_hsh method is responsible for transforming metadata

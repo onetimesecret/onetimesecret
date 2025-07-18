@@ -7,7 +7,6 @@
 # saved in Redis then supercedes the equivalent YAML configuration.
 module V2
   class MutableConfig < Familia::Horreum
-    include Gibbler::Complex
 
     JSON_FIELDS = [
       :ui,
