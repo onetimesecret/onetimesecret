@@ -197,28 +197,6 @@ module V2
       subscriptions
     end
 
-    def get_persistent_value sess, n
-      (anonymous? ? sess : self)[n]
-    end
-
-    def set_persistent_value sess, n, v
-      (anonymous? ? sess : self)[n] = v
-    end
-
-    def external_identifier
-      if anonymous?
-        raise Onetime::Problem, "Anonymous customer has no external identifier"
-      end
-      # Changing the type, order or value of the elements in this array will
-      # change the external identifier. This is used to identify customers
-      # primarily in logs and other external systems where the actual customer
-      # ID is not needed or otherwise not appropriate to use. Keeping the
-      # value consistent is generally preferred.
-      elements = ['cust', role, custid]
-      @external_identifier ||= elements.gibbler
-      @external_identifier
-    end
-
     def anonymous?
       custid.to_s.eql?('anon')
     end
