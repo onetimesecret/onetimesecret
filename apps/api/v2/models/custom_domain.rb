@@ -19,7 +19,7 @@ require 'public_suffix'
 # domain, sometimes the part that is directly after the "dot" symbol. For
 # example, mozilla.org, the .org portion is the tld.
 #
-# `sld` = Second lev'el domain, a domain that is directly below a top-level
+# `sld` = Second level domain, a domain that is directly below a top-level
 # domain. For example, in https://www.mozilla.org/en-US/, mozilla is the
 # second-level domain of the .org tld.
 #
@@ -33,16 +33,6 @@ require 'public_suffix'
 #
 module V2
   class CustomDomain < Familia::Horreum
-
-    # Check if the given customer is the owner of this domain
-    #
-    # @param cust [V2::Customer, String] The customer object or customer ID to check
-    # @return [Boolean] true if the customer is the owner, false otherwise
-    def owner?(cust)
-      matching_class = cust.is_a?(V2::Customer)
-      # TODO: Use class owners hash
-      (matching_class ? cust.email : cust).eql?(custid)
-    end
 
     # Parses the vhost JSON string into a Ruby hash
     #

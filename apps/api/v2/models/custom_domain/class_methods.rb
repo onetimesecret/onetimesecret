@@ -142,6 +142,11 @@ module V2
         false
       end
 
+      def owned?(input)
+        obj = parse(input)
+        obj.exists? && obj.owned?
+      end
+
       # Simply instatiates a new CustomDomain object and checks if it exists.
       def exists?(input, custid)
         # The `parse`` method instantiates a new CustomDomain object but does

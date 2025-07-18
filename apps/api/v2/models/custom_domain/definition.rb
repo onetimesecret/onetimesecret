@@ -26,7 +26,6 @@ module V2
     # "onetime:customdomain". We'll want to rename those at some point.
     class_sorted_set :values
     class_hashkey :display_domains
-    class_hashkey :owners
 
     field :display_domain
     field :custid

@@ -2,13 +2,19 @@
 
 module V2
   module Features
+    class RelatableObjectError < Familia::Problem; end
+
     # RelatableObject
     #
     # Provides the standard core object fields and methods.
     #
     module RelatableObject
+      klass = self
+      err_klass = V2::Features::RelatableObjectError
+
       def self.included(base)
         base.class_sorted_set :object_ids # rename relatable_object_ids?
+        base.class_hashkey :owners
         base.field :objid
         base.field :extid
         base.field :api_version
@@ -39,7 +45,7 @@ module V2
         end
 
         def objid
-          @objid ||= begin
+          @objid ||= begin # lazy loader
             generated_id = self.class.generate_objid
             # Using the attr_writer method ensures any future Familia
             # enhancements to the setter are properly invoked (as opposed
@@ -47,17 +53,48 @@ module V2
             self.objid   = generated_id
           end
         end
+        alias_method :object_identifier, :objid
 
         def extid
-          @extid ||= begin
+          @extid ||= begin # lazy loader
             generated_id = self.class.generate_extid
             self.extid   = generated_id
           end
         end
         alias_method :external_identifier, :extid
+
+        # Check if the given customer is the owner of this domain
+        #
+        # @param cust [V2::Customer, String] The customer object or customer ID to check
+        # @return [Boolean] true if the customer is the owner, false otherwise
+        def owner?(related_object)
+          self.class.relatable?(related_object) do
+            # Check the hash (our objid => related_object's objid)
+            owner_objid = self.class.owners.get(objid).to_s
+            return false if owner_objid.empty?
+
+            owner_objid.eql?(related_object.objid)
+          end
+        end
+
+        def owned?
+          # We can only have an owner if we are relatable ourselves.
+          self.class.relatable?(self) do
+            # If our object identifier is present, we have an owner
+            self.class.owners.key?(objid)
+          end
+        end
       end
 
       module ClassMethods
+        def relatable?(obj, &)
+          is_relatable = obj.is_a?(klass)
+          err_klass = V2::Features::RelatableObjectError
+          raise err_klass, 'Not relatable object' unless is_relatable
+          raise err_klass, 'No self-ownership' if cust.is_a?(self.class)
+          block_given? ? yield : is_relatable
+        end
+
         def find_by_objid(objid)
           return nil if objid.to_s.empty?
 
@@ -81,5 +118,6 @@ module V2
       # Self-register the kids for martial arts classes
       Familia::Base.add_feature(V2::Features::RelatableObject, :relatable_object)
     end
+
   end
 end
