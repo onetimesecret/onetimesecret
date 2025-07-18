@@ -5,56 +5,35 @@ require 'httparty'
 module Onetime
   module Utils
     extend self
+
     unless defined?(VALID_CHARS)
+      # Symbols used in character sets for random string generation.
+      # Includes common special characters that are generally safe for use
+      # in generated identifiers and passwords.
+      SYMBOLS = %w[* $ ! ? ( ) @ # % ^]
+
+      # Complete character set for random string generation.
+      # Includes lowercase letters (a-z), uppercase letters (A-Z),
+      # digits (0-9), and symbols for maximum entropy in generated strings.
       VALID_CHARS = [
         ('a'..'z').to_a,
         ('A'..'Z').to_a,
         ('0'..'9').to_a,
-        %w[* $ ! ? ( )],
-      ].flatten
+        SYMBOLS,
+      ].flatten.freeze
 
-      VALID_CHARS_SAFE = VALID_CHARS.clone
-      VALID_CHARS_SAFE.delete_if { |char| %w[i l o 1 0].include?(char) }
+      # Unambiguous character set that excludes visually similar characters.
+      # Removes potentially confusing characters (i, l, o, 1, I, O, 0) to
+      # improve readability and reduce user errors when manually entering
+      # generated strings.
+      VALID_CHARS_SAFE = VALID_CHARS.reject { |char| %w[i l o 1 I O 0].include?(char) }.freeze
 
+      SYMBOLS.freeze
       VALID_CHARS.freeze
       VALID_CHARS_SAFE.freeze
     end
+
     attr_accessor :fortunes
-
-    # Returns a random fortune from the configured fortunes array.
-    # Provides graceful degradation with fallback messages when fortunes
-    # are unavailable or malformed, ensuring the application never fails
-    # due to fortune retrieval issues.
-    #
-    # @return [String] A random fortune string, or a fallback message
-    # @raise [OT::Problem] Never raised - all errors are caught and logged
-    #
-    # @example Normal usage
-    #   Utils.fortunes = ["Good luck!", "Fortune favors the bold"]
-    #   Utils.random_fortune # => "Good luck!" or "Fortune favors the bold"
-    #
-    # @example Graceful degradation
-    #   Utils.fortunes = nil
-    #   Utils.random_fortune # => "Unexpected outcomes bring valuable lessons."
-    #
-    # @note All errors are logged but never propagated to maintain system stability
-    # @security Validates input type to prevent injection of malicious objects
-    def random_fortune
-      raise OT::Problem, 'No fortunes' if fortunes.nil?
-      raise OT::Problem, "#{fortunes.class} is not an Array" unless fortunes.is_a?(Array)
-
-      fortune = fortunes.sample.to_s.strip
-      raise OT::Problem, 'No fortune found' if fortune.empty?
-
-      fortune
-    rescue OT::Problem => ex
-      OT.le "#{ex.message}"
-      'Unexpected outcomes bring valuable lessons.'
-    rescue StandardError => ex
-      OT.le "#{ex.message} (#{fortunes.class})"
-      OT.ld "#{ex.backtrace.join("\n")}"
-      'A house is full of games and puzzles.'
-    end
 
     # Generates a cryptographically secure identifier using SecureRandom.
     # Creates a random hexadecimal string and converts it to base-36 encoding
@@ -131,32 +110,68 @@ module Onetime
     end
 
     # Generates a random string of specified length using predefined
-    # character sets. Offers both safe and standard character sets for
-    # different use cases, with the safe set excluding visually similar
-    # characters to improve readability.
+    # character sets. Offers both unambiguous and standard character sets for
+    # different use cases.
     #
     # @param len [Integer] Length of the generated string (default: 12)
-    # @param safe [Boolean] Whether to use the safe character set
+    # @param unambiguous [Boolean] Whether to use the unambiguous character set
     #   (default: true)
     # @return [String] A randomly generated string of the specified length
     #
-    # @example Generate a safe 12-character string
+    # @example Generate a unambiguous 12-character string
     #   Utils.strand         # => "kF8mN2qR9xPw"
     #   Utils.strand(8)      # => "kF8mN2qR"
     #
     # @example Generate using full character set
     #   Utils.strand(8, false) # => "il0O1o$!"
     #
-    # @note Safe mode excludes potentially confusing characters: i, l, o, 1, 0
-    # @note Character sets include: a-z, A-Z, 0-9, and symbols: * $ ! ? ( )
-    # @security NOT cryptographically secure - uses Array#sample which relies
-    #   on Ruby's standard PRNG. While suitable for password generation where
-    #   users will replace with their own secrets, this should NOT be used for
-    #   cryptographic keys, tokens, or other security-critical identifiers.
-    #   Use SecureRandom methods for cryptographically secure generation.
-    def strand(len = 12, safe = true)
-      chars = safe ? VALID_CHARS_SAFE : VALID_CHARS
-      (1..len).collect { chars.sample }.join
+    # @see VALID_CHARS for details on the complete character set
+    # @see VALID_CHARS_SAFE for details on the unambiguous character set
+    # @security Cryptographically secure - uses SecureRandom.random_number which
+    #   provides cryptographically secure random number generation. Suitable for
+    #   generating secure tokens, passwords, and other security-critical identifiers.
+    def strand(len = 12, unambiguous = true)
+      raise ArgumentError, "Length must be positive" unless len.positive?
+
+      chars = unambiguous ? VALID_CHARS_SAFE : VALID_CHARS
+      charset_size = chars.length
+
+      Array.new(len) { chars[SecureRandom.random_number(charset_size)] }.join
+    end
+
+    # Returns a random fortune from the configured fortunes array.
+    # Provides graceful degradation with fallback messages when fortunes
+    # are unavailable or malformed, ensuring the application never fails
+    # due to fortune retrieval issues.
+    #
+    # @return [String] A random fortune string, or a fallback message
+    # @raise [OT::Problem] Never raised - all errors are caught and logged
+    #
+    # @example Normal usage
+    #   Utils.fortunes = ["Good luck!", "Fortune favors the bold"]
+    #   Utils.random_fortune # => "Good luck!" or "Fortune favors the bold"
+    #
+    # @example Graceful degradation
+    #   Utils.fortunes = nil
+    #   Utils.random_fortune # => "Unexpected outcomes bring valuable lessons."
+    #
+    # @note All errors are logged but never propagated to maintain system stability
+    # @security Validates input type to prevent injection of malicious objects
+    def random_fortune
+      raise OT::Problem, 'No fortunes' if fortunes.nil?
+      raise OT::Problem, "#{fortunes.class} is not an Array" unless fortunes.is_a?(Array)
+
+      fortune = fortunes.sample.to_s.strip
+      raise OT::Problem, 'No fortune found' if fortune.empty?
+
+      fortune
+    rescue OT::Problem => ex
+      OT.le "#{ex.message}"
+      'Unexpected outcomes bring valuable lessons.'
+    rescue StandardError => ex
+      OT.le "#{ex.message} (#{fortunes.class})"
+      OT.ld "#{ex.backtrace.join("\n")}"
+      'A house is full of games and puzzles.'
     end
 
     # Converts an absolute file path to a path relative to the application's
