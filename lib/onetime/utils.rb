@@ -35,6 +35,36 @@ module Onetime
 
     attr_accessor :fortunes
 
+    # Generates a random string of specified length using predefined
+    # character sets. Offers both unambiguous and standard character sets for
+    # different use cases.
+    #
+    # @param len [Integer] Length of the generated string (default: 12)
+    # @param unambiguous [Boolean] Whether to use the unambiguous character set
+    #   (default: true)
+    # @return [String] A randomly generated string of the specified length
+    #
+    # @example Generate a unambiguous 12-character string
+    #   Utils.strand         # => "kF8mN2qR9xPw"
+    #   Utils.strand(8)      # => "kF8mN2qR"
+    #
+    # @example Generate using full character set
+    #   Utils.strand(8, false) # => "il0O1o$!"
+    #
+    # @see VALID_CHARS for details on the complete character set
+    # @see VALID_CHARS_SAFE for details on the unambiguous character set
+    # @security Cryptographically secure - uses SecureRandom.random_number which
+    #   provides cryptographically secure random number generation. Suitable for
+    #   generating secure tokens, passwords, and other security-critical identifiers.
+    def strand(len = 12, unambiguous = true)
+      raise ArgumentError, "Length must be positive" unless len.positive?
+
+      chars = unambiguous ? VALID_CHARS_SAFE : VALID_CHARS
+      charset_size = chars.length
+
+      Array.new(len) { chars[SecureRandom.random_number(charset_size)] }.join
+    end
+
     # Generates a cryptographically secure identifier using SecureRandom.
     # Creates a random hexadecimal string and converts it to base-36 encoding
     # for a compact, URL-safe identifier.
@@ -107,36 +137,6 @@ module Onetime
       end
 
       value_str.to_i(from_base).to_s(base)
-    end
-
-    # Generates a random string of specified length using predefined
-    # character sets. Offers both unambiguous and standard character sets for
-    # different use cases.
-    #
-    # @param len [Integer] Length of the generated string (default: 12)
-    # @param unambiguous [Boolean] Whether to use the unambiguous character set
-    #   (default: true)
-    # @return [String] A randomly generated string of the specified length
-    #
-    # @example Generate a unambiguous 12-character string
-    #   Utils.strand         # => "kF8mN2qR9xPw"
-    #   Utils.strand(8)      # => "kF8mN2qR"
-    #
-    # @example Generate using full character set
-    #   Utils.strand(8, false) # => "il0O1o$!"
-    #
-    # @see VALID_CHARS for details on the complete character set
-    # @see VALID_CHARS_SAFE for details on the unambiguous character set
-    # @security Cryptographically secure - uses SecureRandom.random_number which
-    #   provides cryptographically secure random number generation. Suitable for
-    #   generating secure tokens, passwords, and other security-critical identifiers.
-    def strand(len = 12, unambiguous = true)
-      raise ArgumentError, "Length must be positive" unless len.positive?
-
-      chars = unambiguous ? VALID_CHARS_SAFE : VALID_CHARS
-      charset_size = chars.length
-
-      Array.new(len) { chars[SecureRandom.random_number(charset_size)] }.join
     end
 
     # Returns a random fortune from the configured fortunes array.
