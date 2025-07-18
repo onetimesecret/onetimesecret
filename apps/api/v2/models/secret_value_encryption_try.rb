@@ -1,4 +1,4 @@
-# ./tryouts/logic/value_encryption_try.rb
+# apps/api/v2/models/secret_value_encryption_try.rb
 
 # These tryouts test the encryption and decryption functionality
 # of the V2::Secret class.

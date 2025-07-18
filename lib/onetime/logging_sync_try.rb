@@ -1,4 +1,4 @@
-# ./tryouts/utils/logging_sync_try.rb
+# lib/onetime/logging_sync_try.rb
 
 #
 # Capture STDOUT and STDERR for testing

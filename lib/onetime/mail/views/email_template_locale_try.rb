@@ -1,4 +1,4 @@
-# ./tryouts/templates/email_template_locale_try.rb
+# lib/onetime/mail/views/email_template_locale_try.rb
 
 # These tryouts test the email template functionality in the Onetime application.
 # They cover various aspects of email template handling, including:

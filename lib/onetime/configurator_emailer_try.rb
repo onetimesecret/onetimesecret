@@ -1,4 +1,4 @@
-# ./tryouts/config/config_emailer_try.rb
+# lib/onetime/configurator_emailer_try.rb
 
 require_relative '../../tests/helpers/test_helpers'
 

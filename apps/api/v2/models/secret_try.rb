@@ -1,4 +1,4 @@
-# ./tryouts/models/secret_try.rb
+# apps/api/v2/models/secret_try.rb
 
 # These tryouts test the V2::Secret class functionality.
 # The Secret class is responsible for managing secrets in the

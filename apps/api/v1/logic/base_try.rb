@@ -1,4 +1,4 @@
-# ./tryouts/logic/logic_base_try.rb
+# apps/api/v1/logic/base_try.rb
 
 # These tryouts test the base logic of the Onetime application,
 # specifically focusing on the CreateAccount functionality.
