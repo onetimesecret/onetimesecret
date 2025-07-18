@@ -1,9 +1,9 @@
 
-require_relative 'utils/sanitize'
-require_relative 'utils/time_utils'
-require_relative 'utils/numbers'
-require_relative 'utils/strings'
 require_relative 'utils/enumerables'
+require_relative 'utils/numbers'
+require_relative 'utils/sanitation'
+require_relative 'utils/strings'
+require_relative 'utils/time_utils'
 
 module Onetime
   module Utils
