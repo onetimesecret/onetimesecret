@@ -49,7 +49,7 @@ module V2
       end
 
       self.objid       ||= self.class.generate_objid
-      self.extid       ||= derive_extid
+      self.extid       ||= OT::Utils.generate_id(to_base: 16)
       self.api_version ||= 'v2' # we want to know in the data which class
 
       # When an instance is first created, any field that doesn't have a
@@ -367,12 +367,6 @@ module V2
       # class. There's a small benefit to being able grep for "cust.method_name"
       # which this approach affords as well. Although it's a small benefit.
       self.class.increment_field(self, field)
-    end
-
-    def derive_extid
-      raise ArgumentError, 'objid cannot be nil' if objid.nil?
-
-      Digest::SHA256.hexdigest(objid)
     end
 
   end

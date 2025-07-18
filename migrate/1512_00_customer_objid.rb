@@ -41,7 +41,7 @@ module Onetime
     def build_update_fields(obj)
       {
         objid: obj.objid || SecureRandom.uuid_v7_from(obj.created),
-        extid: obj.extid || OT::Utils.secure_shorten_id(Digest::SHA256.hexdigest(obj.objid)),
+        extid: obj.extid || SecureRandom.hex(32)
         # Force them all to be user_type=authenticated. If not set, it can be saved
         # as anonymous which then triggers the guard above as well as an error when
         # trying to call obj.save.
