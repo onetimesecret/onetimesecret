@@ -100,7 +100,7 @@ module V2
 
     def natural_duration
       # Colloquial representation of the TTL. e.g. "1 day"
-      OT::Utils::TimeUtils.natural_duration metadata_ttl
+      OT::TimeUtils.natural_duration metadata_ttl
     end
     alias natural_ttl natural_duration
 
@@ -115,7 +115,7 @@ module V2
 
     def secret_natural_duration
       # Colloquial representation of the TTL. e.g. "1 day"
-      OT::Utils::TimeUtils.natural_duration secret_ttl.to_i if secret_ttl
+      OT::TimeUtils.natural_duration secret_ttl.to_i if secret_ttl
     end
     alias secret_natural_ttl secret_natural_duration
 
