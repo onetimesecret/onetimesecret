@@ -33,6 +33,10 @@ module V2
         SecureRandom.uuid_v7
       end
 
+      def generate_extid
+        OT::Utils.generate_id
+      end
+
       def find_by_objid(objid)
         return nil if objid.to_s.empty?
 
