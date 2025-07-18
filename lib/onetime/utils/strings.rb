@@ -7,27 +7,24 @@ module Onetime
         # Symbols used in character sets for random string generation.
         # Includes common special characters that are generally safe for use
         # in generated identifiers and passwords.
-        SYMBOLS = %w[* $ ! ? ( ) @ # % ^]
+        SYMBOLS = %w[* $ ! ? ( ) @ # % ^].freeze
+        AMBIGUOUS_CHARS = %w[i l o 1 I O 0].freeze
 
         # Complete character set for random string generation.
         # Includes lowercase letters (a-z), uppercase letters (A-Z),
-        # digits (0-9), and symbols for maximum entropy in generated strings.
+        # digits (0-9), and symbols for maximum effect in generated strings.
         VALID_CHARS = [
           ('a'..'z').to_a,
           ('A'..'Z').to_a,
           ('0'..'9').to_a,
-          SYMBOLS,
+          *SYMBOLS,
         ].flatten.freeze
 
         # Unambiguous character set that excludes visually similar characters.
         # Removes potentially confusing characters (i, l, o, 1, I, O, 0) to
         # improve readability and reduce user errors when manually entering
         # generated strings.
-        VALID_CHARS_SAFE = VALID_CHARS.reject { |char| %w[i l o 1 I O 0].include?(char) }.freeze
-
-        SYMBOLS.freeze
-        VALID_CHARS.freeze
-        VALID_CHARS_SAFE.freeze
+        VALID_CHARS_SAFE = VALID_CHARS.reject { |char| AMBIGUOUS_CHARS.include?(char) }.freeze
       end
 
       # Generates a random string of specified length using predefined
@@ -60,12 +57,27 @@ module Onetime
         Array.new(len) { chars[SecureRandom.random_number(charset_size)] }.join
       end
 
+      # Obscures email addresses by replacing most characters with asterisks
+      # while preserving the first few and last characters of both the local
+      # and domain parts for partial readability.
+      #
+      # @param text [String] Text containing email addresses to obscure
+      # @return [String] Text with email addresses obscured in the format:
+      #   "ab*****c@d*****com" where visible characters are preserved from
+      #   the beginning and end of each part
+      #
+      # @example
+      #   obscure_email("Contact john.doe@example.com for help")
+      #   # => "Contact jo*****e@e******.com for help"
+      #
+      # @note The method uses a regex to identify email patterns and replaces
+      #   the middle portions with asterisks while keeping structural elements
+      #   visible for context.
       def obscure_email(text)
         regex = /(\b(([A-Z0-9]{1,2})[A-Z0-9._%-]*)([A-Z0-9])?(@([A-Z0-9])[A-Z0-9.-]+(\.[A-Z]{2,4}\b)))/i
         text.split('@')
         text.gsub regex, '\\3*****\\4@\\6*****\\7'
       end
-      # rubocop:enable Layout/LineLength
 
       # Checks if a value represents a truthy boolean value
       # @param value [Object] Value to check
