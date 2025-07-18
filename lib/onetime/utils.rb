@@ -62,23 +62,18 @@ module Onetime
     # secure identifier.
     #
     # @param args [Hash] Optional arguments passed to secure_shorten_id
-    # @option args [Integer] :bits (192) Number of bits to retain after truncation
-    # @option args [Integer] :encoding (36) Base encoding for final string (2-36)
-    # @return [String] A shortened secure identifier in the specified encoding
+    # @option args [Integer] :bits (256) Number of bits to retain after truncation
+    # @option args [Integer] :base (36) Base encoding for final string (2-36)
+    # @return [String] A secure identifier in the specified encoding
     #
-    # @example Generate default 192-bit ID in base-36
-    #   Utils.generate_id # => "a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5"
-    #
-    # @example Generate 128-bit ID in base-16 (hex)
-    #   Utils.generate_id(bits: 128, encoding: 16) # => "a1b2c3d4e5f6g7h8i9j0k1l2m3n4"
+    # @example Generate default 256-bit ID in base-36
+    #   Utils.generate_id # => "25nkfebno45yy36z47ffxef2a7vpg4qk06ylgxzwgpnz4q3os4"
     #
     # @security Uses SecureRandom for entropy and SHA256 for cryptographic strength
     # @see #secure_shorten_id for bit truncation and encoding details
-    def generate_id(*)
-      input = SecureRandom.hex(32) # generate with all 256 bits
-      hash  = Digest::SHA256.hexdigest(input)
-
-      secure_shorten_id(hash, *)
+    def generate_id(**)
+      hexstr = SecureRandom.hex(32) # generate with all 256 bits
+      convert_base_string(hexstr, **)
     end
 
     # Truncates a SHA256 hash to specified bit length and encodes in desired base.
@@ -86,24 +81,41 @@ module Onetime
     # distribution while reducing the identifier length for practical use.
     #
     # @param hash [String] A hexadecimal SHA256 hash string (64 characters)
-    # @param bits [Integer] Number of bits to retain (default: 192, max: 256)
-    # @param encoding [Integer] Base encoding for output string (2-36, default: 36)
+    # @param bits [Integer] Number of bits to retain (default: 256, max: 256)
+    # @param base [Integer] Base encoding for output string (2-36, default: 36)
     # @return [String] Truncated hash encoded in the specified base
     #
     # @example Truncate to 128 bits in base-16
     #   hash = "a1b2c3d4..." # 64-char SHA256 hash
-    #   Utils.secure_shorten_id(hash, bits: 128, encoding: 16) # => "a1b2c3d4e5f6g7h8"
+    #   Utils.secure_shorten_id(hash, bits: 128, base: 16) # => "a1b2c3d4e5f6e7c8"
     #
-    # @example Default 192-bit truncation in base-36
+    # @example Default 256-bit truncation in base-36
     #   Utils.secure_shorten_id(hash) # => "k8x2m9n4p7q1r5s3t6u0v2w8x1y4z7"
     #
     # @note Higher bit counts provide more security but longer identifiers
     # @note Base-36 encoding uses 0-9 and a-z for compact, URL-safe strings
     # @security Bit truncation preserves cryptographic properties of original hash
-    def secure_shorten_id(hash, bits: 192, encoding: 36)
+    def secure_shorten_id(hash, bits: 256, base: 36)
       # Truncate to desired bit length
       truncated = hash.to_i(16) >> (256 - bits)
-      truncated.to_s(encoding)
+      convert_base_string(truncated.to_s, to_base: base)
+    end
+
+    # Converts a string representation of a number from one base to another.
+    # This utility method is flexible, allowing conversions between any bases
+    # supported by Ruby's `to_i` and `to_s` methods (i.e., 2 to 36).
+    #
+    # @param value_str [String] The string representation of the number to convert.
+    # @param from_base [Integer] The base of the input `value_str` (default: 16).
+    # @param to_base [Integer] The target base for the output string (default: 36).
+    # @return [String] The string representation of the number in the `to_base`.
+    # @raise [ArgumentError] If `from_base` or `to_base` are outside the valid range (2-36).
+    def convert_base_string(value_str, from_base: 16, to_base: 36)
+      unless from_base.between?(2, 36) && to_base.between?(2, 36)
+        raise ArgumentError, 'Bases must be between 2 and 36'
+      end
+
+      value_str.to_i(from_base).to_s(to_base)
     end
 
     # Generates a random string of specified length using predefined
@@ -346,7 +358,6 @@ module Onetime
       rescue URI::InvalidURIError
         false
       end
-
     end
   end
 
@@ -366,7 +377,7 @@ module Onetime
       # Convert to milliseconds since Unix epoch
       timestamp_ms = (time.to_f * 1000).to_i
       # Convert to 12-character hex string
-      hex = timestamp_ms.to_s(16).rjust(12, '0')
+      hex          = timestamp_ms.to_s(16).rjust(12, '0')
       # Format with hyphen after 8 characters
       "#{hex[0, 8]}-#{hex[8, 4]}"
     end
