@@ -5,7 +5,7 @@ require 'onetime/utils'
 module V1
   module Logic
     module UriHelpers
-      include Onetime::TimeUtils
+      include V1::TimeUtils
 
       def private_uri(obj)
         format('/private/%s', obj.key)

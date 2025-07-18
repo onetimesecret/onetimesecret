@@ -92,19 +92,7 @@ module V1
     # The session data is permanent and must be kept separate to avoid leaking
     # data between users.
     def external_identifier
-      return @external_identifier if @external_identifier
-      elements = []
-      elements << ipaddress || 'UNKNOWNIP'
-      elements << custid || 'anon'
-      @external_identifier ||= elements.gibbler.base(36)
-
-      # This is a very busy method so we can avoid generating and logging this
-      # string only for it to be dropped when not in debug mode by simply only
-      # generating and logging it when we're in debug mode.
-      # if Onetime.debug
-      #   OT.ld "[Session.external_identifier] sess identifier input: #{elements.inspect} (result: #{@external_identifier})"
-      # end
-
+      @external_identifier ||= self.class.generate_id
       @external_identifier
     end
 
@@ -217,8 +205,7 @@ module V1
       # Generate a unique session ID with 32 bytes of random data
       # @return [String] base-36 encoded SHA256 hash
       def generate_id
-        input = SecureRandom.hex(32)  # 16=128 bits, 32=256 bits
-        Digest::SHA256.hexdigest(input).to_i(16).to_s(36) # base-36 encoding
+        OT::Utils.generate_id
       end
     end
 

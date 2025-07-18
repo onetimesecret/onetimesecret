@@ -1,6 +1,7 @@
 # lib/onetime/services/change_email.rb
 
 module Onetime
+  # rubocop:disable Layout/LineLength
   module Services
     # Service class for managing customer email address changes.
     #
@@ -402,5 +403,5 @@ module Onetime
       end
     end
   end
-    # rubocop:enable Layout/LineLength
-  end
+  # rubocop:enable Layout/LineLength
+end

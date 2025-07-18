@@ -33,10 +33,6 @@ module V2
         SecureRandom.uuid_v7
       end
 
-      def derive_extid(objid)
-        Digest::SHA256.hexdigest(objid)
-      end
-
       def find_by_objid(objid)
         return nil if objid.to_s.empty?
 

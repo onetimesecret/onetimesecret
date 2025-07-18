@@ -24,7 +24,7 @@ module V2
   field :updated
   field :created
   field :authenticated
-  field :external_identifier
+  field :extid
 
   field :shrimp # as string?
 
@@ -35,7 +35,7 @@ module V2
   @safe_dump_fields = [
     { identifier: ->(obj) { obj.identifier } },
     :sessid,
-    :external_identifier,
+    :extid,
     :authenticated,
     :stale,
     :created,
@@ -74,16 +74,16 @@ module V2
   end
 
   def to_s
-    "#{sessid}/#{external_identifier}"
+    "#{sessid}/#{extid}"
   end
 
   # The external identifier is used by the rate limiter to estimate a unique
   # client. We can't use the session ID b/c the request agent can choose to
   # not send cookies, or the user can clear their cookies (in both cases the
   # session ID would change which would circumvent the rate limiter). The
-  # external identifier is a hash of the IP address and the customer ID
-  # which means that anonymous users from the same IP address are treated
-  # as the same client (as far as the limiter is concerned). Not ideal.
+  # external identifier is now a randomly generated ID that remains consistent
+  # for the session lifecycle, providing rate limiting without relying on
+  # potentially unreliable data like IP addresses or customer IDs.
   #
   # To put it another way, the risk of colliding external identifiers is
   # acceptable for the rate limiter, but not for the session data. Acceptable
@@ -91,23 +91,11 @@ module V2
   # worse case scenario is that a user is rate limited when they shouldn't be.
   # The session data is permanent and must be kept separate to avoid leaking
   # data between users.
-  def external_identifier
-    return @external_identifier if @external_identifier
-
-    elements               = []
-    (elements << ipaddress) || 'UNKNOWNIP'
-    (elements << custid) || 'anon'
-    @external_identifier ||= elements.gibbler.base(36)
-
-    # This is a very busy method so we can avoid generating and logging this
-    # string only for it to be dropped when not in debug mode by simply only
-    # generating and logging it when we're in debug mode.
-    # if Onetime.debug
-    #   OT.ld "[Session.external_identifier] sess identifier input: #{elements.inspect} (result: #{@external_identifier})"
-    # end
-
-    @external_identifier
+  def extid
+    @extid ||= self.class.generate_id
+    @extid
   end
+  alias_method :external_identifier, :extid
 
   def short_identifier
     identifier.slice(0, 12)
@@ -155,7 +143,7 @@ module V2
     # we only add it if it's not already set ao that we don't accidentally
     # dispose of perfectly good piece of shrimp. Because of this guard, the
     # method is idempotent and can be called multiple times without side effects.
-    shrimp! self.class.generate_id if shrimp.to_s.empty?
+    replace_shrimp! if shrimp.to_s.empty?
     shrimp # fast writer bang methods don't return the value
   end
 
@@ -177,6 +165,7 @@ module V2
     cust = V2::Customer.load custid
     cust.nil? ? V2::Customer.anonymous : cust
   end
+
   module ClassMethods
     # @return [Object] the class-level values sorted set
     attr_reader :values
@@ -218,10 +207,9 @@ module V2
     end
 
     # Generate a unique session ID with 32 bytes of random data
-    # @return [String] base-36 encoded SHA256 hash
+    # @return [String] base-36 encoded random string
     def generate_id
-      input = SecureRandom.hex(32)  # 16=128 bits, 32=256 bits
-      Digest::SHA256.hexdigest(input).to_i(16).to_s(36) # base-36 encoding
+      OT::Utils.generate_id
     end
   end
 
