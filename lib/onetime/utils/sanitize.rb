@@ -3,8 +3,6 @@
 module Onetime
   module Utils
     module Sanitation
-      extend self
-
       # Converts a Ruby value into a JavaScript-friendly string or JSON.
       # This ensures special characters are properly escaped or converted to JSON.
       def normalize_value(value)
@@ -35,6 +33,5 @@ module Onetime
         false
       end
     end
-
   end
 end

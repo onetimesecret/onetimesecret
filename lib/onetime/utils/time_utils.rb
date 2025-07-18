@@ -3,8 +3,6 @@
 module Onetime
   module Utils
     module TimeUtils
-      extend self
-
       def extract_time_from_uuid_v7(uuid)
         # Remove hyphens and take first 12 hex characters
         timestamp_hex = uuid.delete('-')[0, 12]
