@@ -1,6 +1,6 @@
 # lib/onetime/constants.rb
 
-Warning[:deprecated] = %w[development dev test].include?(ENV['RACK_ENV'].to_s)
+Warning[:deprecated] = %w[development dev test].include?(ENV['RACK_ENV'].downcase.to_s)
 
 require 'bundler/setup'
 
