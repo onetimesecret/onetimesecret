@@ -1,4 +1,4 @@
-# lib/onetime/utils/sanitize.rb
+# lib/onetime/utils/sanitation.rb
 
 module Onetime
   module Utils
