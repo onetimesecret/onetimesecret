@@ -1,14 +1,14 @@
-# apps/api/v2/models/features/core_object.rb
+# apps/api/v2/models/features/relatable_object.rb
 
 module V2
   module Features
-    # CoreObject
+    # RelatableObject
     #
     # Provides the standard core object fields and methods.
     #
-    module CoreObject
+    module RelatableObject
       def self.included(base)
-        base.class_sorted_set :object_ids
+        base.class_sorted_set :object_ids # rename relatable_object_ids?
         base.field :objid
         base.field :extid
         base.field :api_version
@@ -67,7 +67,7 @@ module V2
       end
 
       # Self-register the kids for martial arts classes
-      Familia::Base.add_feature(V2::Features::CoreObject, :core_object)
+      Familia::Base.add_feature(V2::Features::RelatableObject, :relatable_object)
     end
   end
 end

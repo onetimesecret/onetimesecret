@@ -33,7 +33,7 @@ module V2
 
     @global = nil
 
-    feature :core_object
+    feature :relatable_object
     feature :safe_dump
     feature :expiration
 

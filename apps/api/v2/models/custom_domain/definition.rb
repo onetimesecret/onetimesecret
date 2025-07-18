@@ -19,7 +19,7 @@ module V2
 
     prefix :customdomain
 
-    feature :core_object
+    feature :relatable_object
     feature :safe_dump
 
     # NOTE: The redis key used by older models for values is simply
