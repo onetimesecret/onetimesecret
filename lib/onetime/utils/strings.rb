@@ -67,16 +67,19 @@ module Onetime
       #   the beginning and end of each part
       #
       # @example
-      #   obscure_email("Contact john.doe@example.com for help")
-      #   # => "Contact jo*****e@e******.com for help"
+      #   obscure_email("Contact tom@myspace.com for help")
+      #   # => "Contact to*****e@m******.com for help"
       #
       # @note The method uses a regex to identify email patterns and replaces
       #   the middle portions with asterisks while keeping structural elements
       #   visible for context.
       def obscure_email(text)
-        regex = /(\b(([A-Z0-9]{1,2})[A-Z0-9._%-]*)([A-Z0-9])?(@([A-Z0-9])[A-Z0-9.-]+(\.[A-Z]{2,4}\b)))/i
-        text.split('@')
-        text.gsub regex, '\\3*****\\4@\\6*****\\7'
+        email_pattern = /\b([A-Z0-9]{1,2})([A-Z0-9._%-]*)([A-Z0-9])?@([A-Z0-9])([A-Z0-9.-]+)(\.[A-Z]{2,4}\b)/i
+
+        text.gsub(email_pattern) do |match|
+          local_start, _, local_end, domain_start, _, domain_end = $1, $2, $3, $4, $5, $6
+          "#{local_start}*****#{local_end}@#{domain_start}*****#{domain_end}"
+        end
       end
 
       # Checks if a value represents a truthy boolean value
