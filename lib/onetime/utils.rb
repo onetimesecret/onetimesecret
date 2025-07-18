@@ -34,19 +34,21 @@ module Onetime
     # SHA256, then truncates to the desired bit length for a shorter but still
     # secure identifier.
     #
-    # @param args [Hash] Optional arguments passed to secure_shorten_id
-    # @option args [Integer] :bits (256) Number of bits to retain after truncation
-    # @option args [Integer] :base (36) Base encoding for final string (2-36)
     # @return [String] A secure identifier in the specified encoding
     #
     # @example Generate default 256-bit ID in base-36
     #   Utils.generate_id # => "25nkfebno45yy36z47ffxef2a7vpg4qk06ylgxzwgpnz4q3os4"
     #
     # @security Uses SecureRandom for entropy and SHA256 for cryptographic strength
-    # @see #secure_shorten_id for bit truncation and encoding details
-    def generate_id(**)
+    # @see #shorten_securely for bit truncation and encoding details
+    def generate_id
+      hexstr = SecureRandom.hex(32)
+      convert_base_string(hexstr)
+    end
+
+    def generate_short_id
       hexstr = SecureRandom.hex(32) # generate with all 256 bits
-      convert_base_string(hexstr, **)
+      shorten_securely(hexstr, bits: 64) # and then shorten
     end
 
     # Truncates a SHA256 hash to specified bit length and encodes in desired base.
@@ -59,19 +61,19 @@ module Onetime
     # @return [String] Truncated hash encoded in the specified base
     #
     # @example Truncate to 128 bits in base-16
-    #   hash = "a1b2c3d4..." # 64-char SHA256 hash
-    #   Utils.secure_shorten_id(hash, bits: 128, base: 16) # => "a1b2c3d4e5f6e7c8"
+    #   hash = "a1b2c3d4..." # 64-char hexadecimal hash
+    #   Utils.shorten_securely(hash, bits: 128, base: 16) # => "a1b2c3d4e5f6e7c8"
     #
     # @example Default 256-bit truncation in base-36
-    #   Utils.secure_shorten_id(hash) # => "k8x2m9n4p7q1r5s3t6u0v2w8x1y4z7"
+    #   Utils.shorten_securely(hash) # => "k8x2m9n4p7q1r5s3t6u0v2w8x1y4z7"
     #
     # @note Higher bit counts provide more security but longer identifiers
     # @note Base-36 encoding uses 0-9 and a-z for compact, URL-safe strings
     # @security Bit truncation preserves cryptographic properties of original hash
-    def secure_shorten_id(hash, bits: 256, base: 36)
+    def shorten_securely(hash, bits: 256, base: 36)
       # Truncate to desired bit length
       truncated = hash.to_i(16) >> (256 - bits)
-      convert_base_string(truncated.to_s, to_base: base)
+      convert_base_string(truncated.to_s, base: base)
     end
 
     # Converts a string representation of a number from one base to another.
@@ -80,15 +82,15 @@ module Onetime
     #
     # @param value_str [String] The string representation of the number to convert.
     # @param from_base [Integer] The base of the input `value_str` (default: 16).
-    # @param to_base [Integer] The target base for the output string (default: 36).
-    # @return [String] The string representation of the number in the `to_base`.
-    # @raise [ArgumentError] If `from_base` or `to_base` are outside the valid range (2-36).
-    def convert_base_string(value_str, from_base: 16, to_base: 36)
-      unless from_base.between?(2, 36) && to_base.between?(2, 36)
+    # @param base [Integer] The target base for the output string (default: 36).
+    # @return [String] The string representation of the number in the `base`.
+    # @raise [ArgumentError] If `from_base` or `base` are outside the valid range (2-36).
+    def convert_base_string(value_str, from_base: 16, base: 36)
+      unless from_base.between?(2, 36) && base.between?(2, 36)
         raise ArgumentError, 'Bases must be between 2 and 36'
       end
 
-      value_str.to_i(from_base).to_s(to_base)
+      value_str.to_i(from_base).to_s(base)
     end
 
     # Generates a random string of specified length using predefined
