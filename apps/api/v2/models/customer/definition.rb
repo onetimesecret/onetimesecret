@@ -33,13 +33,13 @@ module V2
 
     @global = nil
 
+    feature :core_object
     feature :safe_dump
     feature :expiration
 
     prefix :customer
 
     class_sorted_set :values, key: 'onetime:customer'
-    class_sorted_set :object_ids
 
     class_hashkey :email_to_objid # While migrating we'll need to maintain
     class_hashkey :objid_to_email # indexes in both directions.
@@ -54,17 +54,11 @@ module V2
     # Used to track the current and most recently created password reset secret.
     string :reset_secret, ttl: 24.hours
 
-    identifier :custid
-
     field :custid
     field :email
 
-    field :objid # uuid v7
-    field :extid # sha256(objid)
-
     field :role # customer, colonel
     field :user_type # 'anonymous', 'authenticated', 'standard', 'enhanced'
-    field :api_version # v2
 
     field :sessid
     field :apitoken # TODO: use sorted set?
@@ -96,6 +90,7 @@ module V2
       :custid,
       :email,
       :objid,
+      :extid,
 
       :api_version,
       :role,
@@ -128,44 +123,42 @@ module V2
       { active: ->(cust) { cust.active? } },
     ].freeze
 
-  def init
-    # Default to anonymous state. That way we're always explicitly
-    # setting the role when it needs to be set.
-    #
-    # Previously we used custid=anon and all it would do is prevent
-    # the record from being saved.
-    self.user_type   ||= 'anonymous'
-    self.role        ||= 'customer'
+    def init
+      super if defined?(super)
 
-    # Set email only for non-anonymous users
-    if !anonymous? && email.to_s.empty? && !custid.to_s.empty?
-      self.email = custid
+      # Default to anonymous state. That way we're always explicitly
+      # setting the role when it needs to be set.
+      #
+      # Previously we used custid=anon and all it would do is prevent
+      # the record from being saved.
+      self.user_type   ||= 'anonymous'
+      self.role        ||= 'customer'
+
+      # Set email only for non-anonymous users
+      if !anonymous? && email.to_s.empty? && !custid.to_s.empty?
+        self.email = custid
+      end
+
+      # Set custid only for non-anonymous users
+      if !anonymous? && custid.to_s.empty? && !email.to_s.empty?
+        self.custid = email
+      end
+
+      # When an instance is first created, any field that doesn't have a
+      # value set will be nil. We need to ensure that these fields are
+      # set to an empty string to match the default values when loading
+      # from redis (i.e. all values in core redis data types are strings).
+      self.locale ||= ''
+
+      # Initialze auto-increment fields. We do this since Redis
+      # gets grumpy about trying to increment a hashkey field
+      # that doesn't have any value at all yet. This is in
+      # contrast to the regular INCR command where a
+      # non-existant key will simply be set to 1.
+      self.secrets_created ||= 0
+      self.secrets_burned  ||= 0
+      self.secrets_shared  ||= 0
+      self.emails_sent     ||= 0
     end
-
-    # Set custid only for non-anonymous users
-    if !anonymous? && custid.to_s.empty? && !email.to_s.empty?
-      self.custid = email
-    end
-
-    self.objid       ||= self.class.generate_objid # uuid v7
-    self.extid       ||= self.class.generate_extid # hex
-
-    self.api_version ||= 'v2' # we want to know in the data which class
-
-    # When an instance is first created, any field that doesn't have a
-    # value set will be nil. We need to ensure that these fields are
-    # set to an empty string to match the default values when loading
-    # from redis (i.e. all values in core redis data types are strings).
-    self.locale ||= ''
-
-    # Initialze auto-increment fields. We do this since Redis
-    # gets grumpy about trying to increment a hashkey field
-    # that doesn't have any value at all yet. This is in
-    # contrast to the regular INCR command where a
-    # non-existant key will simply be set to 1.
-    self.secrets_created ||= 0
-    self.secrets_burned  ||= 0
-    self.secrets_shared  ||= 0
-    self.emails_sent     ||= 0
   end
 end

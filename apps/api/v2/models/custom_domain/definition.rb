@@ -1,6 +1,15 @@
 # apps/api/v2/models/custom_domain/definition.rb
 
 module V2
+
+  # CustomDomain
+  #
+  # From a customer's perspective, the display_domain is what they see
+  # in their browser's address bar. We use display_domain in the identifier,
+  # b/c it's totally reasonable for a user to have multiple custom domains,
+  # like secrets.example.com and linx.example.com, and they want to be able
+  # to distinguish them from each other.
+  #
   class CustomDomain < Familia::Horreum
 
     unless defined?(MAX_SUBDOMAIN_DEPTH)
@@ -10,9 +19,8 @@ module V2
 
     prefix :customdomain
 
+    feature :core_object
     feature :safe_dump
-
-    identifier :derive_id
 
     # NOTE: The redis key used by older models for values is simply
     # "onetime:customdomain". We'll want to rename those at some point.
@@ -68,7 +76,9 @@ module V2
     ].freeze
 
     def init
-      @domainid = identifier
+      super if defined?(super)
+
+      @domainid ||= identifier
 
       # Display domain and cust should already be set and accessible
       # via accessor methods so we should see a valid identifier logged.
@@ -78,37 +88,16 @@ module V2
       ps_domain = PublicSuffix.parse(display_domain, default_rule: nil)
 
       # Store the individual domain parts that PublicSuffix parsed out
-      @base_domain = ps_domain.domain.to_s
-      @subdomain   = ps_domain.subdomain.to_s
-      @trd         = ps_domain.trd.to_s
-      @tld         = ps_domain.tld.to_s
-      @sld         = ps_domain.sld.to_s
+      @base_domain ||= ps_domain.domain.to_s
+      @subdomain   ||= ps_domain.subdomain.to_s
+      @trd         ||= ps_domain.trd.to_s
+      @tld         ||= ps_domain.tld.to_s
+      @sld         ||= ps_domain.sld.to_s
 
       # Don't call generate_txt_validation_record here otherwise we'll
       # create a new validation record every time we instantiate a
       # custom domain object. Instead, we'll call it when we're ready
       # to verify the domain.
-    end
-
-    # Generate a unique identifier for this customer's custom domain.
-    #
-    # From a customer's perspective, the display_domain is what they see
-    # in their browser's address bar. We use display_domain in the identifier,
-    # b/c it's totally reasonable for a user to have multiple custom domains,
-    # like secrets.example.com and linx.example.com, and they want to be able
-    # to distinguish them from each other.
-    #
-    # The fact that we rely on this generating the same identifier for a
-    # given domain + customer is important b/c it's a means of making
-    # sure that the same domain can only be added once per customer.
-    #
-    # @return [String] A shortened hash of the domain name and custid.
-    def derive_id
-      if @display_domain.to_s.empty? || @custid.to_s.empty?
-        raise Onetime::Problem, 'Cannot generate identifier with emptiness'
-      end
-
-      [@display_domain, @custid].gibbler.shorten
     end
 
   end
