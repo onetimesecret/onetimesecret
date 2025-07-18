@@ -24,7 +24,7 @@ module Core
       include Core::Views::SanitizerHelpers
       include Core::Views::I18nHelpers
       include Core::Views::ViteManifest
-      include Onetime::TimeUtils
+      include Onetime::Utils::TimeUtils
 
       self.template_path = './templates/web'
       self.template_extension = 'html'
