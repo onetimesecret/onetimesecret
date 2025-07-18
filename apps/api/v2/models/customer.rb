@@ -42,6 +42,14 @@ module V2
       self.apitoken # the fast writer bang methods don't return the value
     end
 
+    def external_identifier
+      if anonymous?
+        raise OT::Problem, 'Anonymous customer has no external identifier'
+      end
+
+      @external_identifier ||= OT::Utils.generate_id # generate but don't save
+      @external_identifier
+    end
 
     def get_stripe_customer
       get_stripe_customer_by_id || get_stripe_customer_by_email
