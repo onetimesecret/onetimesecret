@@ -92,13 +92,7 @@ module V1
     # The session data is permanent and must be kept separate to avoid leaking
     # data between users.
     def external_identifier
-      return @external_identifier if @external_identifier
-
-      elements = []
-      elements << ipaddress || 'UNKNOWNIP'
-      elements << custid || 'anon'
       @external_identifier ||= self.class.generate_id
-
       @external_identifier
     end
 

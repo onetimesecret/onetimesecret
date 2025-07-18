@@ -81,9 +81,9 @@ module V2
   # client. We can't use the session ID b/c the request agent can choose to
   # not send cookies, or the user can clear their cookies (in both cases the
   # session ID would change which would circumvent the rate limiter). The
-  # external identifier is a hash of the IP address and the customer ID
-  # which means that anonymous users from the same IP address are treated
-  # as the same client (as far as the limiter is concerned). Not ideal.
+  # external identifier is now a randomly generated ID that remains consistent
+  # for the session lifecycle, providing rate limiting without relying on
+  # potentially unreliable data like IP addresses or customer IDs.
   #
   # To put it another way, the risk of colliding external identifiers is
   # acceptable for the rate limiter, but not for the session data. Acceptable
@@ -92,13 +92,7 @@ module V2
   # The session data is permanent and must be kept separate to avoid leaking
   # data between users.
   def external_identifier
-    return @external_identifier if @external_identifier
-
-    elements               = []
-    (elements << ipaddress) || 'UNKNOWNIP'
-    (elements << custid) || 'anon'
     @external_identifier ||= self.class.generate_id
-
     @external_identifier
   end
 
