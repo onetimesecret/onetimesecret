@@ -11,6 +11,24 @@ module V2
     module ClassMethods
       attr_reader :values
 
+      def create(custid, email = nil)
+        raise Onetime::Problem, 'custid is required' if custid.to_s.empty?
+        raise Onetime::Problem, 'Customer exists' if exists?(custid)
+
+        attrs = {
+          custid: custid,
+          email: email || custid,
+          role: 'customer',
+          api_version: 'v2',
+          user_type: 'authenticated',
+        }
+
+        cust = new attrs
+        cust.save
+        add cust
+        cust
+      end
+
       def generate_objid
         SecureRandom.uuid_v7
       end
@@ -49,24 +67,6 @@ module V2
 
       def anonymous
         new({ custid: 'anon', user_type: 'anonymous' }).freeze
-      end
-
-      def create(custid, email = nil)
-        raise Onetime::Problem, 'custid is required' if custid.to_s.empty?
-        raise Onetime::Problem, 'Customer exists' if exists?(custid)
-
-        attrs = {
-          custid: custid,
-          email: email || custid,
-          role: 'customer',
-          api_version: 'v2',
-          user_type: 'authenticated',
-        }
-
-        cust = new attrs
-        cust.save
-        add cust
-        cust
       end
 
       def global
