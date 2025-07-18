@@ -29,39 +29,49 @@ module Onetime
       'A house is full of games and puzzles.'
     end
 
-    # Generates a cryptographically secure short identifier using SHA256 hashing
-    # and configurable bit truncation. Creates a random input, hashes it with
-    # SHA256, then truncates to the desired bit length for a shorter but still
-    # secure identifier.
+    # Generates a cryptographically secure identifier using SecureRandom.
+    # Creates a random hexadecimal string and converts it to base-36 encoding
+    # for a compact, URL-safe identifier.
     #
-    # @return [String] A secure identifier in the specified encoding
+    # @return [String] A secure identifier in base-36 encoding
     #
-    # @example Generate default 256-bit ID in base-36
+    # @example Generate a 256-bit ID in base-36
     #   Utils.generate_id # => "25nkfebno45yy36z47ffxef2a7vpg4qk06ylgxzwgpnz4q3os4"
     #
-    # @security Uses SecureRandom for entropy and SHA256 for cryptographic strength
-    # @see #shorten_securely for bit truncation and encoding details
+    # @security Uses SecureRandom for cryptographic entropy
+    # @see #convert_base_string for base conversion details
     def generate_id
       hexstr = SecureRandom.hex(32)
       convert_base_string(hexstr)
     end
 
+    # Generates a cryptographically secure short identifier by creating
+    # a 256-bit random value and then truncating it to 64 bits for a
+    # shorter but still secure identifier.
+    #
+    # @return [String] A secure short identifier in base-36 encoding
+    #
+    # @example Generate a 64-bit short ID
+    #   Utils.generate_short_id # => "k8x2m9n4p7q1"
+    #
+    # @security Uses SecureRandom for entropy with secure bit truncation
+    # @see #shorten_securely for truncation details
     def generate_short_id
       hexstr = SecureRandom.hex(32) # generate with all 256 bits
       shorten_securely(hexstr, bits: 64) # and then shorten
     end
 
-    # Truncates a SHA256 hash to specified bit length and encodes in desired base.
-    # Takes the most significant bits from the hash to maintain randomness
+    # Truncates a hexadecimal string to specified bit length and encodes in desired base.
+    # Takes the most significant bits from the hex string to maintain randomness
     # distribution while reducing the identifier length for practical use.
     #
-    # @param hash [String] A hexadecimal SHA256 hash string (64 characters)
+    # @param hash [String] A hexadecimal string (64 characters for 256 bits)
     # @param bits [Integer] Number of bits to retain (default: 256, max: 256)
     # @param base [Integer] Base encoding for output string (2-36, default: 36)
-    # @return [String] Truncated hash encoded in the specified base
+    # @return [String] Truncated value encoded in the specified base
     #
     # @example Truncate to 128 bits in base-16
-    #   hash = "a1b2c3d4..." # 64-char hexadecimal hash
+    #   hash = "a1b2c3d4..." # 64-char hexadecimal string
     #   Utils.shorten_securely(hash, bits: 128, base: 16) # => "a1b2c3d4e5f6e7c8"
     #
     # @example Default 256-bit truncation in base-36
@@ -69,7 +79,7 @@ module Onetime
     #
     # @note Higher bit counts provide more security but longer identifiers
     # @note Base-36 encoding uses 0-9 and a-z for compact, URL-safe strings
-    # @security Bit truncation preserves cryptographic properties of original hash
+    # @security Bit truncation preserves cryptographic properties of original value
     def shorten_securely(hash, bits: 256, base: 36)
       # Truncate to desired bit length
       truncated = hash.to_i(16) >> (256 - bits)
@@ -112,7 +122,11 @@ module Onetime
     #
     # @note Safe mode excludes potentially confusing characters: i, l, o, 1, 0
     # @note Character sets include: a-z, A-Z, 0-9, and symbols: * $ ! ? ( )
-    # @security Uses cryptographically secure random generation
+    # @security NOT cryptographically secure - uses Array#sample which relies
+    #   on Ruby's standard PRNG. While suitable for password generation where
+    #   users will replace with their own secrets, this should NOT be used for
+    #   cryptographic keys, tokens, or other security-critical identifiers.
+    #   Use SecureRandom methods for cryptographically secure generation.
     def strand(len = 12, safe = true)
       chars = safe ? VALID_CHARS_SAFE : VALID_CHARS
       (1..len).collect { chars[rand(chars.size - 1)] }.join
