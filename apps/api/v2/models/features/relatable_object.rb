@@ -44,19 +44,31 @@ module V2
             # Using the attr_writer method ensures any future Familia
             # enhancements to the setter are properly invoked (as opposed
             # to directly assigning @objid).
-            self.objid = generated_id
+            self.objid   = generated_id
           end
         end
 
         def extid
           @extid ||= begin
             generated_id = self.class.generate_extid
-            self.extid = generated_id
+            self.extid   = generated_id
           end
         end
+        alias_method :external_identifier, :extid
       end
 
       module ClassMethods
+        def find_by_objid(objid)
+          return nil if objid.to_s.empty?
+
+          if Familia.debug?
+            reference = caller(1..1).first
+            Familia.trace :FIND_BY_OBJID, Familia.redis(uri), objkey, reference
+          end
+
+          find_by_key objkey
+        end
+
         def generate_objid
           SecureRandom.uuid_v7
         end

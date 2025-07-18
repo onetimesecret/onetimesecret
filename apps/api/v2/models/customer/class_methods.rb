@@ -29,22 +29,6 @@ module V2
         cust
       end
 
-
-
-      def find_by_objid(objid)
-        return nil if objid.to_s.empty?
-
-        # self.obj
-
-        Familia.ld "[.find_by_objid] #{self} from key #{objkey})"
-        if Familia.debug?
-          reference = caller(1..1).first
-          Familia.trace :FIND_BY_OBJID, Familia.redis(uri), objkey, reference
-        end
-
-        find_by_key objkey
-      end
-
       def add(cust)
         values.add OT.now.to_i, cust.identifier
         object_ids.add OT.now.to_f, cust.objid
