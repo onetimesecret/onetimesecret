@@ -30,6 +30,9 @@ module Onetime
       OT.mode = mode unless mode.nil?
       OT.env = ENV['RACK_ENV'] || 'production'
 
+      # Sets a unique, 64-bit hexadecimal ID for this process instance.
+      instanceid = Onetime::Utils.generate_short_id
+
       # Default to diagnostics disabled. FYI: in test mode, the test config
       # YAML has diagnostics enabled. But the DSN values are nil so it
       # doesn't get enabled even after loading config.
