@@ -97,14 +97,7 @@ module V2
     elements               = []
     (elements << ipaddress) || 'UNKNOWNIP'
     (elements << custid) || 'anon'
-    @external_identifier ||= OT::Utils.generate_id
-
-    # This is a very busy method so we can avoid generating and logging this
-    # string only for it to be dropped when not in debug mode by simply only
-    # generating and logging it when we're in debug mode.
-    # if Onetime.debug
-    #   OT.ld "[Session.external_identifier] sess identifier input: #{elements.inspect} (result: #{@external_identifier})"
-    # end
+    @external_identifier ||= self.class.generate_id
 
     @external_identifier
   end
@@ -155,7 +148,7 @@ module V2
     # we only add it if it's not already set ao that we don't accidentally
     # dispose of perfectly good piece of shrimp. Because of this guard, the
     # method is idempotent and can be called multiple times without side effects.
-    shrimp! self.class.generate_id if shrimp.to_s.empty?
+    replace_shrimp! if shrimp.to_s.empty?
     shrimp # fast writer bang methods don't return the value
   end
 
@@ -177,6 +170,7 @@ module V2
     cust = V2::Customer.load custid
     cust.nil? ? V2::Customer.anonymous : cust
   end
+
   module ClassMethods
     # @return [Object] the class-level values sorted set
     attr_reader :values
@@ -218,9 +212,9 @@ module V2
     end
 
     # Generate a unique session ID with 32 bytes of random data
-    # @return [String] base-36 encoded SHA256 hash
+    # @return [String] base-36 encoded random string
     def generate_id
-      OT::Utils.generate_id(bits=32, encoding=36)
+      OT::Utils.generate_id
     end
   end
 
