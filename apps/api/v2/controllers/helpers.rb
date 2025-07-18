@@ -509,9 +509,6 @@ module V2
       end.join(' ')
     end
 
-    def secure_request?
-      !local? || secure?
-    end
 
     def secure?
       # It's crucial to only accept header values set by known, trusted

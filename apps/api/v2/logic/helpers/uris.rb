@@ -42,9 +42,6 @@ module V2
         [domain, path].flatten.join('/')
       end
 
-      def secure_request?
-        !local? || secure?
-      end
 
       # TODO: secure ad local are already in Otto
       def secure?
