@@ -6,6 +6,7 @@ module V2
   class Session < Familia::Horreum
   include V2::Mixins::RateLimited
 
+  feature :relatable_object
   feature :safe_dump
   feature :expiration
 
@@ -24,7 +25,6 @@ module V2
   field :updated
   field :created
   field :authenticated
-  field :extid
 
   field :shrimp # as string?
 
@@ -35,6 +35,14 @@ module V2
   @safe_dump_fields = [
     { identifier: ->(obj) { obj.identifier } },
     :sessid,
+    # The external identifier is used by the rate limiter to estimate a unique
+    # client. We can't use the session ID b/c the request agent can choose to
+    # not send cookies, or the user can clear their cookies (in both cases the
+    # session ID would change which would circumvent the rate limiter). The
+    # external identifier is now a randomly generated ID that remains consistent
+    # for the session lifecycle, providing rate limiting without relying on
+    # potentially unreliable data like IP addresses or customer IDs.
+    #
     :extid,
     :authenticated,
     :stale,
@@ -60,7 +68,7 @@ module V2
     # This regular attribute that gets set on each request (if necessary). When
     # true this instance will report authenticated? -> false regardless of what
     # the authenticated field is set to.
-    @disable_auth = false
+    @disable_auth = false if @disable_auth.nil?
 
     # Don't call the sessid accessor in here. We intentionally allow
     # instantiating a session without a sessid. It's a distinction
@@ -69,33 +77,12 @@ module V2
   end
 
   def sessid
-    @sessid ||= self.class.generate_id
-    @sessid
+    objid
   end
 
   def to_s
-    "#{sessid}/#{extid}"
+    "#{extid}"
   end
-
-  # The external identifier is used by the rate limiter to estimate a unique
-  # client. We can't use the session ID b/c the request agent can choose to
-  # not send cookies, or the user can clear their cookies (in both cases the
-  # session ID would change which would circumvent the rate limiter). The
-  # external identifier is now a randomly generated ID that remains consistent
-  # for the session lifecycle, providing rate limiting without relying on
-  # potentially unreliable data like IP addresses or customer IDs.
-  #
-  # To put it another way, the risk of colliding external identifiers is
-  # acceptable for the rate limiter, but not for the session data. Acceptable
-  # b/c the rate limiter is a temporary measure to prevent abuse, and the
-  # worse case scenario is that a user is rate limited when they shouldn't be.
-  # The session data is permanent and must be kept separate to avoid leaking
-  # data between users.
-  def extid
-    @extid ||= self.class.generate_id
-    @extid
-  end
-  alias_method :external_identifier, :extid
 
   def short_identifier
     identifier.slice(0, 12)
@@ -170,6 +157,19 @@ module V2
     # @return [Object] the class-level values sorted set
     attr_reader :values
 
+    # Create and persist a new session
+    # @param ipaddress [String] client IP address
+    # @param custid [String] customer ID
+    # @param useragent [String, nil] user agent string
+    # @return [Session] the created session
+    def create(ipaddress, custid, useragent = nil)
+      sess = new ipaddress: ipaddress, custid: custid, useragent: useragent
+
+      sess.save
+      add sess # to the class-level values relation (sorted set)
+      sess
+    end
+
     # Add session to the class-level sorted set and remove old entries
     # @param sess [Session] the session to add
     # @return [void]
@@ -191,19 +191,6 @@ module V2
       spoint = OT.now.to_i-duration
       epoint = OT.now.to_i
       values.rangebyscoreraw(spoint, epoint).collect { |identifier| load(identifier) }
-    end
-
-    # Create and persist a new session
-    # @param ipaddress [String] client IP address
-    # @param custid [String] customer ID
-    # @param useragent [String, nil] user agent string
-    # @return [Session] the created session
-    def create(ipaddress, custid, useragent = nil)
-      sess = new ipaddress: ipaddress, custid: custid, useragent: useragent
-
-      sess.save
-      add sess # to the class-level values relation (sorted set)
-      sess
     end
 
     # Generate a unique session ID with 32 bytes of random data

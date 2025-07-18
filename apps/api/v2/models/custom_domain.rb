@@ -34,46 +34,14 @@ require 'public_suffix'
 module V2
   class CustomDomain < Familia::Horreum
 
-    # Generate a unique identifier for this customer's custom domain.
-    #
-    # From a customer's perspective, the display_domain is what they see
-    # in their browser's address bar. We use display_domain in the identifier,
-    # b/c it's totally reasonable for a user to have multiple custom domains,
-    # like secrets.example.com and linx.example.com, and they want to be able
-    # to distinguish them from each other.
-    #
-    # The fact that we rely on this generating the same identifier for a
-    # given domain + customer is important b/c it's a means of making
-    # sure that the same domain can only be added once per customer.
-    #
-    # @return [String] A shortened hash of the domain name and custid.
-    def derive_id
-      if @display_domain.to_s.empty? || @custid.to_s.empty?
-        raise Onetime::Problem, 'Cannot generate identifier with emptiness'
-      end
-
-      [@display_domain, @custid].gibbler.shorten
-    end
-
     # Check if the given customer is the owner of this domain
     #
     # @param cust [V2::Customer, String] The customer object or customer ID to check
     # @return [Boolean] true if the customer is the owner, false otherwise
     def owner?(cust)
       matching_class = cust.is_a?(V2::Customer)
+      # TODO: Use class owners hash
       (matching_class ? cust.email : cust).eql?(custid)
-    end
-
-    # Destroy the custom domain record
-    #
-    # Removes the domain identifier from the CustomDomain values
-    # and then calls the superclass destroy method
-    #
-    # @param args [Array] Additional arguments to pass to the superclass destroy method
-    # @return [Object] The result of the superclass destroy method
-    def delete!(*args)
-      V2::CustomDomain.rem self
-      super # we may prefer to call self.clear here instead
     end
 
     # Parses the vhost JSON string into a Ruby hash
@@ -111,6 +79,18 @@ module V2
       if identifier.to_s.empty?
         raise "Identifier cannot be empty for #{self.class}"
       end
+    end
+
+    # Destroy the custom domain record
+    #
+    # Removes the domain identifier from the CustomDomain values
+    # and then calls the superclass destroy method
+    #
+    # @param args [Array] Additional arguments to pass to the superclass destroy method
+    # @return [Object] The result of the superclass destroy method
+    def delete!(*args)
+      V2::CustomDomain.rem self
+      super # we may prefer to call self.clear here instead
     end
 
     # Removes all Redis keys associated with this custom domain.
