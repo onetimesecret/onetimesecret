@@ -97,7 +97,7 @@ module V2
     elements               = []
     (elements << ipaddress) || 'UNKNOWNIP'
     (elements << custid) || 'anon'
-    @external_identifier ||= elements.gibbler.base(36)
+    @external_identifier ||= OT::Utils.generate_id
 
     # This is a very busy method so we can avoid generating and logging this
     # string only for it to be dropped when not in debug mode by simply only
@@ -220,8 +220,7 @@ module V2
     # Generate a unique session ID with 32 bytes of random data
     # @return [String] base-36 encoded SHA256 hash
     def generate_id
-      input = SecureRandom.hex(32)  # 16=128 bits, 32=256 bits
-      Digest::SHA256.hexdigest(input).to_i(16).to_s(36) # base-36 encoding
+      OT::Utils.generate_id(bits=32, encoding=36)
     end
   end
 
