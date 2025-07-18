@@ -49,7 +49,7 @@ module V2
       end
 
       self.objid       ||= self.class.generate_objid
-      self.extid       ||= OT::Utils.generate_id(to_base: 16)
+      self.extid       ||= OT::Utils.generate_id
       self.api_version ||= 'v2' # we want to know in the data which class
 
       # When an instance is first created, any field that doesn't have a

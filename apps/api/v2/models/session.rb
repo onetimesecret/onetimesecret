@@ -24,7 +24,7 @@ module V2
   field :updated
   field :created
   field :authenticated
-  field :external_identifier
+  field :extid
 
   field :shrimp # as string?
 
@@ -35,7 +35,7 @@ module V2
   @safe_dump_fields = [
     { identifier: ->(obj) { obj.identifier } },
     :sessid,
-    :external_identifier,
+    :extid,
     :authenticated,
     :stale,
     :created,
@@ -74,7 +74,7 @@ module V2
   end
 
   def to_s
-    "#{sessid}/#{external_identifier}"
+    "#{sessid}/#{extid}"
   end
 
   # The external identifier is used by the rate limiter to estimate a unique
@@ -91,10 +91,11 @@ module V2
   # worse case scenario is that a user is rate limited when they shouldn't be.
   # The session data is permanent and must be kept separate to avoid leaking
   # data between users.
-  def external_identifier
-    @external_identifier ||= self.class.generate_id
-    @external_identifier
+  def extid
+    @extid ||= self.class.generate_id
+    @extid
   end
+  alias_method :external_identifier, :extid
 
   def short_identifier
     identifier.slice(0, 12)
