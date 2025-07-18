@@ -121,23 +121,6 @@ module V2
       subscriptions
     end
 
-    def get_persistent_value(sess, n)
-      (anonymous? ? sess : self)[n]
-    end
-
-    def set_persistent_value(sess, n, v)
-      (anonymous? ? sess : self)[n] = v
-    end
-
-    def external_identifier
-      if anonymous?
-        raise Onetime::Problem, 'Anonymous customer has no external identifier'
-      end
-
-      @external_identifier ||= OT::Utils.generate_id
-      @external_identifier
-    end
-
     def anonymous?
       user_type.to_s.eql?('anonymous')
     end
