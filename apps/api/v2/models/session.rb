@@ -78,19 +78,10 @@ module V2
 
     def external_identifier
       return @external_identifier if @external_identifier
-      elements = []
-      elements << ipaddress || 'UNKNOWNIP'
-      elements << custid || 'anon'
-      @external_identifier ||= elements.gibbler.base(36)
-
-      # This is a very busy method so we can avoid generating and logging this
-      # string only for it to be dropped when not in debug mode by simply only
-      # generating and logging it when we're in debug mode.
-      # if Onetime.debug
-      #   OT.ld "[Session.external_identifier] sess identifier input: #{elements.inspect} (result: #{@external_identifier})"
-      # end
-
-      @external_identifier
+      elements               = []
+      (elements << ipaddress) || 'UNKNOWNIP'
+      (elements << custid) || 'anon'
+      @external_identifier ||= OT::Utils.generate_id
     end
 
     def short_identifier
@@ -188,9 +179,7 @@ module V2
       end
 
       def generate_id
-        input = SecureRandom.hex(32)  # 16=128 bits, 32=256 bits
-        # Not using gibbler to make sure it's always SHA256
-        Digest::SHA256.hexdigest(input).to_i(16).to_s(36) # base-36 encoding
+        OT::Utils.generate_id(bits=32, encoding=36)
       end
     end
 
