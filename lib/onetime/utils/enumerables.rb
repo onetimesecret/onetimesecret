@@ -51,7 +51,7 @@ module Onetime
       # @security This ensures config values cannot be tampered with at runtime
       # @note When clone=false, operates on the object itself. When clone=true,
       #   operates on a deep copy, leaving the original untouched.
-      def deep_freeze(obj, clone = false, max_depth: DEFAULT_MAX_DEPTH)
+      def deep_freeze(obj, clone: false, max_depth: DEFAULT_MAX_DEPTH)
         obj = deep_clone(obj) if clone
         _deep_freeze_recursive(obj, 0, max_depth)
       end
@@ -148,8 +148,10 @@ module Onetime
 
         # Recursively normalizes hash keys with depth limiting
         #
-        # This method is already private, so adding depth parameters doesn't
-        # pollute the public API.
+        # This method is already private, so adding depth parameters as
+        # positional args doesn't pollute the public API. This is a common
+        # pattern - public API uses keywords for clarity, internal
+        # implementation uses positional for efficiency.
         def normalize_keys(obj, depth = 0, max_depth = DEFAULT_MAX_DEPTH)
           _check_max_depth(depth, max_depth)
 

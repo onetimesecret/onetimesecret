@@ -12,7 +12,7 @@ module Manifold
           logic.raise_concerns
           logic.process
 
-          res['Content-Type'] = logic.content_type
+          res['content-type'] = logic.content_type
 
           # Return the response with appropriate headers
           res['Content-Length'] = logic.content_length

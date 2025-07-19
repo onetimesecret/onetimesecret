@@ -47,9 +47,9 @@
   <meta name="twitter:image" content="{{baseuri}}/img/social-preview.png">
 
   <meta name="theme-color" content="#dc4a22">
-  <link nonce="{{nonce}}" rel="icon" type="image/png" href="/img/favicon.png" />
-  <link nonce="{{nonce}}" rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
-  <link nonce="{{nonce}}" rel="manifest" href="/site.webmanifest">
+  <link nonce="{{app.nonce}}" rel="icon" type="image/png" href="/img/favicon.png" />
+  <link nonce="{{app.nonce}}" rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+  <link nonce="{{app.nonce}}" rel="manifest" href="/site.webmanifest">
 
   <!-- TODO2: Revisit after fixing if -->
   {{#if no_cache}}
@@ -58,8 +58,8 @@
   {{/if}}
 
   {{#if development}}
-    <script type="module" nonce="{{ nonce }}" src="{{frontend_host}}/dist/main.ts"></script>
-    <script type="module" nonce="{{ nonce }}" src="{{frontend_host}}/dist/@vite/client"></script>
+    <script type="module" nonce="{{ app.nonce }}" src="{{frontend_host}}/dist/main.ts"></script>
+    <script type="module" nonce="{{ app.nonce }}" src="{{frontend_host}}/dist/@vite/client"></script>
   {{else}}
     <!-- Production assets -->
     <link nonce="{{nonce}}" rel="stylesheet" href="{{asset_manifest.main_css}}">

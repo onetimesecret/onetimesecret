@@ -533,11 +533,6 @@
           },
           "additionalProperties": false
         },
-        "stathat": {
-          "type": "object",
-          "properties": {},
-          "additionalProperties": {}
-        },
         "domains": {
           "type": "object",
           "properties": {

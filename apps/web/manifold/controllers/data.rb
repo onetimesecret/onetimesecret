@@ -24,7 +24,7 @@ module Manifold
                    end
 
           # Set response content type and headers
-          res.header['Content-Type'] = result[:content_type]
+          res.header['content-type'] = result[:content_type]
 
           # Return the content
           res.body = result[:content]
