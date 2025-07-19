@@ -125,7 +125,7 @@ export const useDomainsStore = defineStore('domains', () => {
     formData.append('image', file);
 
     const response = await $api.post(`/api/v2/domains/${domain}/logo`, formData, {
-      headers: { 'Content-Type': 'multipart/form-data' },
+      headers: { 'content-type': 'multipart/form-data' },
     });
 
     // Validate upload response

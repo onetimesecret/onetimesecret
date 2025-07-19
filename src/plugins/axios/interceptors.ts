@@ -47,8 +47,8 @@ export const requestInterceptor = (config: InternalAxiosRequestConfig) => {
 
   // Set CSRF token in headers
   config.headers = config.headers || {};
-  config.headers['O-Shrimp'] = csrfStore.shrimp;
-  config.headers['Accept-Language'] = languageStore.getCurrentLocale;
+  config.headers['o-shrimp'] = csrfStore.shrimp;
+  config.headers['accept-language'] = languageStore.getCurrentLocale;
 
   return config;
 };

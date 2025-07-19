@@ -66,7 +66,7 @@ export function useFormSubmission<ResponseSchema extends z.ZodType>(
       const response = await fetch(submissionUrl, {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/x-www-form-urlencoded',
+          'content-type': 'application/x-www-form-urlencoded',
         },
         body: urlSearchParams.toString(),
       });

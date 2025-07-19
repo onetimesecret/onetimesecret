@@ -102,13 +102,13 @@ const createApi = (config: ApiConfig = {}): AxiosInstance => {
     withCredentials: true,
     headers: {
       Accept: 'application/json',
-      'Content-Type': 'application/json',
+      'content-type': 'application/json',
     },
   });
 
   // Only set locale if specified. Seems obvious and it is, but it
   // also means we don't mess with the browser's default locale.
-  if (config.locale) api.defaults.headers['Accept-Language'] = config.locale;
+  if (config.locale) api.defaults.headers['accept-language'] = config.locale;
 
   api.interceptors.request.use(requestInterceptor);
   api.interceptors.response.use(responseInterceptor, errorInterceptor);
