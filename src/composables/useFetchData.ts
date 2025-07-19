@@ -53,7 +53,7 @@ export function useFetchData<T extends BaseApiRecord>({
       const response = await fetch(url, {
         method: 'GET',
         headers: {
-          'Content-Type': 'application/json',
+          'content-type': 'application/json',
         },
       });
 

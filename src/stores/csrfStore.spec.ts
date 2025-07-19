@@ -143,7 +143,7 @@ describe('CSRF Store', () => {
       // Mock the API response
       axiosMock!.onPost('/api/v2/validate-shrimp').reply((config) => {
         // Verify request headers
-        expect(config.headers?.['Content-Type']).toBe('application/json');
+        expect(config.headers?.['content-type']).toBe('application/json');
         expect(config.headers?.['O-Shrimp']).toBe('initial-shrimp');
 
         // Return successful response
@@ -182,7 +182,7 @@ describe('CSRF Store', () => {
 
       const request = axiosMock!.history.post[0];
       expect(request.headers).toMatchObject({
-        'Content-Type': 'application/json',
+        'content-type': 'application/json',
         'O-Shrimp': 'initial-shrimp',
       });
     });
