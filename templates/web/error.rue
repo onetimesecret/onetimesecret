@@ -1,22 +1,58 @@
-<!-- templates/web/error.rue -->
+<!-- templates/web/error_with_partials.rue -->
 
 <!--
-  500 page for the unexpected
+  Error page for application-level errors (404, 403, etc.)
+  Uses head partial for full site functionality
 -->
 
 <data window="onetime" schema="@/src/types/declarations/window.d.ts">
-{{{onetime_window}}}
+{
+  "error_code": "{{error_code}}"
+}
 </data>
 
 <template>
   <!doctype html>
-  <html lang="{{locale}}">
+  <html lang="{{locale}}" class="{{theme_class}}">
     <head>
+      {{> colourmode}}
       {{> head}}
-      <title>Server Error - {{site_host}}</title>
+      <title>{{error_title}} - {{site_host}}</title>
     </head>
 
     <body class="font-serif bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100">
+      <main class="container mx-auto px-4 py-16 text-center">
+        <div class="max-w-2xl mx-auto">
+          <!-- Error Display -->
+          <div class="mb-8">
+            <h1 class="text-6xl font-bold text-red-500 mb-4">{{error_code}}</h1>
+            <h2 class="text-3xl font-semibold mb-4">{{error_title}}</h2>
+            <p class="text-lg text-gray-600 dark:text-gray-400 mb-8">
+              {{error_message}}
+            </p>
+          </div>
+
+          <!-- Action Buttons -->
+          <div class="flex flex-wrap justify-center gap-4 mb-8">
+            <a href="/" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-medium transition-colors">
+              Go Home
+            </a>
+            <button onclick="window.history.back()" class="bg-gray-200 hover:bg-gray-300 text-gray-800 dark:bg-gray-700 dark:hover:bg-gray-600 dark:text-gray-200 px-6 py-3 rounded-lg font-medium transition-colors">
+              Go Back
+            </button>
+          </div>
+
+          <!-- Additional Help -->
+          <div class="text-sm text-gray-500 dark:text-gray-400">
+            <p>
+              Need help? Visit our
+              <a href="/help" class="text-blue-600 hover:text-blue-800 dark:text-blue-400">help center</a>
+              or <a href="/contact" class="text-blue-600 hover:text-blue-800 dark:text-blue-400">contact support</a>.
+            </p>
+          </div>
+        </div>
+      </main>
+
       <div id="app"></div>
     </body>
   </html>
