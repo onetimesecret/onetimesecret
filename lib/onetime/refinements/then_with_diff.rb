@@ -63,7 +63,6 @@ module Onetime
     # we'll want want to setup this history sorted set at boot-time to so
     # we can access it in other parts of the codebase.
     @history = Familia::SortedSet.new 'then_with_diff',
-      db: 2,
       ttl: 14.days,
       prefix: 'system',
       suffix: 'history'

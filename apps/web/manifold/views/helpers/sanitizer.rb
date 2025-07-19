@@ -73,7 +73,7 @@ module Manifold
       #
       def cached_method(methname)
         rediskey     = "template:global:#{methname}"
-        cache_object = Familia::String.new rediskey, ttl: 1.hour, db: 0
+        cache_object = Familia::String.new rediskey, ttl: 1.hour
         OT.ld "[cached_method] #{methname} #{cache_object.exists? ? 'hit' : 'miss'} #{rediskey}"
         cached       = cache_object.get
         return cached if cached
