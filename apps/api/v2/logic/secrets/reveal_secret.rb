@@ -72,7 +72,6 @@ module V2::Logic
             # pluck out of the secret object before this is called.
             secret.received!
 
-            V2::Logic.stathat_count('Viewed Secrets', 1)
           end
 
         elsif secret.has_passphrase? && !correct_passphrase
