@@ -60,7 +60,6 @@ module V2::Logic
         cust.save
 
         OT.info "[new-customer] #{cust.custid} #{cust.role} #{sess.ipaddress} #{planid} #{sess.short_identifier}"
-        V2::Logic.stathat_count("New Customers (OTS)", 1)
 
         success_message = if autoverify
           "Account created."

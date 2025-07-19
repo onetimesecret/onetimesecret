@@ -30,13 +30,12 @@ module V2::Logic
           continue_result = params[:continue]
           @greenlighted = viewable && correct_passphrase && continue_result
 
-          if greenlighted
-            @secret = potential_secret
-            owner = secret.load_customer
-            secret.burned!
-            owner.increment_field :secrets_burned unless owner.anonymous?
-            V2::Customer.global.increment_field :secrets_burned
-            V2::Logic.stathat_count('Burned Secrets', 1)
+        if greenlighted
+          @secret = potential_secret
+          owner   = secret.load_customer
+          secret.burned!
+          owner.increment_field :secrets_burned unless owner.anonymous?
+          V2::Customer.global.increment_field :secrets_burned
 
           elsif !correct_passphrase
 

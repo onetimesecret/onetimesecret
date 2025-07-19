@@ -57,7 +57,6 @@ module V2
             unless recipient.nil? || recipient.empty?
               metadata.deliver_by_email cust, locale, secret, recipient.first, Onetime::Mail::IncomingSupport, ticketno
             end
-            V2::Logic.stathat_count("Secrets", 1)
           else
             raise_form_error "Could not store your secret"
           end

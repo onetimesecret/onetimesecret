@@ -1,6 +1,5 @@
 # apps/api/v1/logic/base.rb
 
-require 'stathat'
 require 'timeout'
 
 require 'onetime/refinements/rack_refinements'
@@ -125,50 +124,5 @@ module V1
 
       extend ClassMethods
     end
-
-    module ClassMethods
-      attr_writer :stathat_apikey, :stathat_enabled
-
-      def stathat_apikey
-        @stathat_apikey ||= Onetime.conf['stathat']['apikey']
-      end
-
-      def stathat_enabled
-        return unless Onetime.conf.has_key?('stathat')
-
-        @stathat_enabled = Onetime.conf['stathat']['enabled'] if @stathat_enabled.nil?
-        @stathat_enabled
-      end
-
-      def stathat_count(name, count, wait = 0.500)
-        return false unless stathat_enabled
-
-        begin
-          Timeout.timeout(wait) do
-            StatHat::API.ez_post_count(name, stathat_apikey, count)
-          end
-        rescue SocketError => e
-          OT.info "Cannot connect to StatHat: #{e.message}"
-        rescue Timeout::Error
-          OT.info 'timeout calling stathat'
-        end
-      end
-
-      def stathat_value(name, value, wait = 0.500)
-        return false unless stathat_enabled
-
-        begin
-          Timeout.timeout(wait) do
-            StatHat::API.ez_post_value(name, stathat_apikey, value)
-          end
-        rescue SocketError => e
-          OT.info "Cannot connect to StatHat: #{e.message}"
-        rescue Timeout::Error
-          OT.info 'timeout calling stathat'
-        end
-      end
-    end
-
-    extend ClassMethods
   end
 end
