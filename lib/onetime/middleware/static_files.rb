@@ -59,6 +59,7 @@ module Onetime
           # Only serve specific paths that contain static assets
           if middleware_settings[:static_files]
             Onetime.ld '[StaticFiles] Enabling StaticFiles middleware'
+            require 'rack/static'
             use Rack::Static,
               urls: ['/dist', '/img', '/v3', '/site.webmanifest', '/favicon.ico'],
               root: 'public/web'

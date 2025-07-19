@@ -12,6 +12,7 @@ require 'encryptor'
 require 'bcrypt'
 
 require 'rack'
+# require 'rack/session'
 require 'otto'
 require 'familia'
 require 'storable'
