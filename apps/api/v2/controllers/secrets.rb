@@ -32,7 +32,7 @@ module V2
       def generate_secret_options
         # Return a response for an HTTP OPTIONS request
         headers = {
-          'Content-Type' => 'application/json',
+          'content-type' => 'application/json',
           'Allow' => 'GET, POST, OPTIONS',
           'Access-Control-Allow-Origin' => '*',
           'Access-Control-Allow-Methods' => 'GET, POST, OPTIONS',

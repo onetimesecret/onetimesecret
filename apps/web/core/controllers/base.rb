@@ -139,7 +139,7 @@ module Core
 
       def server_error(status = 500, _message = nil)
         res.status          = status
-        res['Content-Type'] = 'text/html'
+        res['content-type'] = 'text/html'
         res.body            = <<-HTML
         <!DOCTYPE html>
         <html lang="en">

@@ -51,7 +51,7 @@ module Rack
     # don't print out the literal filename for 404s
     def not_found
       body = "File not found\n"
-      [404, { 'Content-Type' => 'text/plain',
+      [404, { 'content-type' => 'text/plain',
               'Content-Length' => body.size.to_s,
               'X-Cascade' => 'pass' },
        [body]]

@@ -50,7 +50,7 @@ module Core
       not_authorized_error
     rescue OT::BadShrimp
       # If it's a json response, no need to set an error message on the session
-      if res.header['Content-Type'] == 'application/json'
+      if res.header['content-type'] == 'application/json'
         error_response 'Please refresh the page and try again', reason: 'Bad shrimp 🍤'
       else
         sess.set_error_message 'Please go back, refresh the page, and try again.'
@@ -305,7 +305,7 @@ module Core
 
     def add_response_headers(content_type, nonce)
       # Set the Content-Type header if it's not already set by the application
-      res.header['Content-Type'] ||= content_type
+      res.header['content-type'] ||= content_type
 
       # Skip the Content-Security-Policy header if it's already set
       return if res.header['Content-Security-Policy']
