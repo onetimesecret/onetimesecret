@@ -18,9 +18,10 @@ source 'https://rubygems.org/'
 gem 'truemail'
 gem 'xdg'
 
-gem 'rack', '>= 2.2.12', '< 3.0'
-gem 'rack-contrib', '~> 2.5'
-gem 'rack-protection', '~> 3.2'
+gem 'rack', '>= 3.1.16', '< 4.0'
+gem 'rack-contrib', '~> 2.5.0'
+gem 'rack-session', '~> 2.1.1'
+gem 'rack-protection', '~> 4.1'
 gem 'rack-utf8_sanitizer', '~> 1.10.1'
 
 gem 'json_schemer'
@@ -29,15 +30,16 @@ gem 'public_suffix'
 gem 'puma', '~> 6.6'
 
 gem 'familia', '~> 1.2.1'
-gem 'otto', '~> 1.1.0.pre.alpha4'
 gem 'uri-redis', '~> 1.3.0'
 
 if ENV['LOCAL_DEV'] && ENV['RACK_ENV'] == 'development' && ENV['CI'].to_s.empty?
   gem 'rhales', path: '../rhales'
   gem 'drydock', path: '../../d/drydock'
+  gem 'otto', path: '../../d/otto'
 else
   gem 'rhales', '~> 0.4.0'
   gem 'drydock', '~> 1.0.0'
+  gem 'otto', '~> 1.2.0'
 end
 
 gem 'concurrent-ruby', '~> 1.3.5'
