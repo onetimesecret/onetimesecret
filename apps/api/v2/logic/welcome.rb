@@ -138,7 +138,7 @@ module V2
           end
 
           response_status  = 200
-          response_headers = { 'Content-Type' => 'application/json' }
+          response_headers = { 'content-type' => 'application/json' }
           response_content = { welcome: 'thank you' }
 
           [response_status, response_headers, [response_content.to_json]]

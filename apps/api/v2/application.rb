@@ -36,7 +36,7 @@ module V2
       router      = Otto.new(routes_path)
 
       # Default error responses
-      headers             = { 'Content-Type' => 'application/json' }
+      headers             = { 'content-type' => 'application/json' }
       router.not_found    = [404, headers, [{ error: 'Not Found' }.to_json]]
       router.server_error = [500, headers, [{ error: 'Internal Server Error' }.to_json]]
 

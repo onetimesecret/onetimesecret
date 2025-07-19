@@ -45,7 +45,7 @@ module Onetime
     module Approximated
       include HTTParty
       base_uri 'https://cloud.approximated.app/api'
-      headers 'Content-Type' => 'application/json'
+      headers 'content-type' => 'application/json'
 
       # Checks the existence of specified DNS records.
       #

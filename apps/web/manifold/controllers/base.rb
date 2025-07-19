@@ -137,7 +137,7 @@ module Manifold
 
       def server_error(status = 500, _message = nil)
         res.status          = status
-        res['Content-Type'] = 'text/html'
+        res['content-type'] = 'text/html'
         res.body            = <<-HTML
         <!DOCTYPE html>
         <html lang="en">
@@ -216,7 +216,7 @@ module Manifold
       # Render as SPA - returns JSON data for Vue frontend
       def render_spa(view_class = nil, **)
         view_class               ||= Manifold::Views::VuePoint
-        res.header['Content-Type'] = 'application/json'
+        res.header['content-type'] = 'application/json'
         res.body                   = view_class.render_spa(req, sess, cust, locale)
       end
 
@@ -238,7 +238,7 @@ module Manifold
 
         # Set content type and status if view class specifies them
         if view_class.respond_to?(:content_type)
-          res.header['Content-Type'] = view_class.content_type
+          res.header['content-type'] = view_class.content_type
         end
 
         if view_class.respond_to?(:status_code)

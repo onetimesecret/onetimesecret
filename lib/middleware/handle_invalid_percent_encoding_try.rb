@@ -66,7 +66,7 @@ require 'middleware/handle_invalid_percent_encoding'
 
 # Demonstrate how the HandleInvalidPercentEncoding
 # middleware can resolve these issues.
-@app = lambda { |env| [200, {'Content-Type' => 'text/plain'}, ['OK']] }
+@app = lambda { |env| [200, {'content-type' => 'text/plain'}, ['OK']] }
 @middleware = Rack::HandleInvalidPercentEncoding.new(@app, check_enabled: true)
 
 
@@ -155,7 +155,7 @@ status, headers, body = @middleware.call(env)
 env = @env_url_encoded_multiple.call
 env['HTTP_ACCEPT'] = 'application/xml'
 status, headers, body = @middleware.call(env)
-"Content-Type: #{headers[:'Content-Type']}"
+"Content-Type: #{headers[:'content-type']}"
 #=> "Content-Type: application/json; charset=utf-8"
 
 
