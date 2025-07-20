@@ -31,11 +31,11 @@ module V2
 
       def add(cust)
         values.add OT.now.to_i, cust.identifier
-        object_ids.add OT.now.to_f, cust.objid
+        relatable_object_ids.add OT.now.to_f, cust.objid
       end
 
       def all
-        object_ids.revrangeraw(0, -1).collect { |identifier| load(identifier) }
+        relatable_object_ids.revrangeraw(0, -1).collect { |identifier| load(identifier) }
       end
 
       def recent(duration = 30.days, epoint = OT.now.to_i)
