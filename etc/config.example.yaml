@@ -29,13 +29,13 @@
           # Logo configuration
           :logo:
             # URL to logo image file
-            :url: <%= ENV['LOGO_URL'] || 'DefaultLogo.vue' %>
+            :url: 'https://booking.time-matters.com/assets/tmui-customer-theme/img/time-matters-logo.svg'
             # Alt text for logo image
             :alt: <%= ENV['LOGO_ALT'] || 'Share a Secret One-Time' %>
             # Where the logo links to when clicked
             :href: <%= ENV['LOGO_LINK'] || '/' %>
           # Company name override (falls back to i18n if not set)
-          :site_name: <%= ENV['SITE_NAME'] || 'One-Time Secret' %>
+          :site_name: <%= ENV['SITE_NAME'] || 't:m One-Time Secret' %>
         # Navigation configuration
         :navigation:
           # Enable/disable header navigation entirely
@@ -97,16 +97,16 @@
   # Registration and Authentication settings
   :authentication:
     # Can be disabled altogether, including API authentication.
-    :enabled: <%= ENV['AUTH_ENABLED'] != 'false' %>
+    :enabled: false
     # Allow users to create accounts. This can be disabled if you plan
     # to create accounts manually or enable during setup when accounts
     # can be created and then disabled to prevent any new users from
     # creating accounts.
-    :signup: <%= ENV['AUTH_SIGNUP'] != 'false' %>
+    :signup: false
     # Generally if you allow registration, you allow signin. But there
     # are circumstances where it's helpful to turn off authentication
     # temporarily.
-    :signin: <%= ENV['AUTH_SIGNIN'] != 'false' %>
+    :signin: false
     # By default, new accounts need to verify their email address before
     # they can sign in. This is a security measure to prevent spamming
     # and abuse of the system. If you're running a private instance or

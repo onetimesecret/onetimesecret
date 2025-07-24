@@ -1,0 +1,128 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ots
+  namespace: default
+spec:
+  replicas: 1
+  revisionHistoryLimit: 0
+  selector:
+    matchLabels:
+      app: ots
+  template:
+    metadata:
+      namespace: default
+      labels:
+        app: ots
+        api-version: v1
+        tier: app
+    spec:
+      containers:
+        - name: ots
+          image: tmregistry.azurecr.io/onetimesecret:0.0.5
+          imagePullPolicy: Always
+          resources:
+            requests:
+              memory: '128Mi'
+              cpu: '100m'
+            limits:
+              memory: '256Mi'
+              cpu: '200m'
+          env:
+            - name: HOST
+              value: ots.dev.time-matters.com
+            - name: RACK_ENV
+              value: production
+            - name: REDIS_URL
+              value: redis://ots-redis-service-v1:6379/0
+            - name: SECRET
+              value: 723e00c25253f8d7461dccd6ae0b9b70c80cfd9c6ebb9b95b39db5fa45791bf2
+          ports:
+            - containerPort: 3000
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ots-redis
+  labels:
+    app: redis
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: redis
+  template:
+    metadata:
+      labels:
+        app: redis
+    spec:
+      containers:
+        - name: ots-redis
+          image: redis:alpine
+          ports:
+            - containerPort: 6379
+          resources:
+            requests:
+              cpu: '1m'
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ots-redis-service-v1
+  namespace: default
+  labels:
+    app: redis
+spec:
+  selector:
+    app: redis
+  ports:
+    - name: redis
+      protocol: TCP
+      port: 6379
+      targetPort: 6379
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ots-service-v1
+  namespace: default
+  labels:
+    app: ots
+    api-version: v1
+spec:
+  selector:
+    app: ots
+    api-version: v1
+  ports:
+    - name: ots
+      protocol: TCP
+      port: 3000
+      targetPort: 3000
+  type: ClusterIP
+  sessionAffinity: None
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: ots-ingress
+  namespace: default
+  annotations:
+    nginx.ingress.kubernetes.io/enable-cors: 'true'
+    nginx.ingress.kubernetes.io/rewrite-target: /
+spec:
+  ingressClassName: nginx
+  tls:
+    - hosts:
+        - ots.dev.time-matters.com
+      secretName: tls-secret
+  rules:
+    - host: ots.dev.time-matters.com
+      http:
+        paths:
+          - path: /
+            pathType: ImplementationSpecific
+            backend:
+              service:
+                name: ots-service-v1
+                port:
+                  number: 3000
