@@ -109,8 +109,6 @@ obj.raise_concerns
 
 
 ## Too many attempts is throttled by rate limiting
-V1::RateLimit.register_event :destroy_account, 5
-V2::RateLimit.register_event :destroy_account, 5
 
 cust = V2::Customer.new email: generate_random_email, 'user_type': 'authenticated'
 password_guess = @params[:confirmation]

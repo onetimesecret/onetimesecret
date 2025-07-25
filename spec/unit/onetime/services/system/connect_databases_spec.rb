@@ -203,16 +203,12 @@ RSpec.describe 'Service Provider System' do
       it 'defines expected database mappings for backward compatibility' do
         expected_mappings = {
           session: 1,
-          splittest: 1,
-          ratelimit: 2,
           custom_domain: 6,
           customer: 6,
           subdomain: 6,
           metadata: 7,
-          email_receipt: 8,
           secret: 8,
           feedback: 11,
-          exception_info: 12,
           mutable_config: 15,
         }
 

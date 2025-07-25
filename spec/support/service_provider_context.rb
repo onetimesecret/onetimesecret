@@ -28,13 +28,9 @@ RSpec.shared_context "service_provider_context" do
             'secret' => 8,
             'metadata' => 7,
             'feedback' => 11,
-            'ratelimit' => 2,
             'custom_domain' => 6,
             'subdomain' => 6,
-            'email_receipt' => 8,
-            'exception_info' => 12,
             'mutable_config' => 15,
-            'splittest' => 1
           }
         }
       }

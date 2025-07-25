@@ -22,9 +22,6 @@ module V2
       require_relative 'logic'
       require_relative 'models'
 
-      # See note in v1/application.rb
-      # V2::RateLimit.register_events OT.conf&.dig(:limits) || {}
-
       # Log warmup completion
       Onetime.li 'V2 warmup completed'
     end

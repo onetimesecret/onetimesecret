@@ -25,4 +25,3 @@ Session = TestVersion::Session
 Metadata = TestVersion::Metadata
 Secret = TestVersion::Secret
 Feedback = TestVersion::Feedback
-RateLimit = TestVersion::RateLimit

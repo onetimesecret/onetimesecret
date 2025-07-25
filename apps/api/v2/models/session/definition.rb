@@ -3,8 +3,6 @@
 module V2
   class Session < Familia::Horreum
 
-    include V2::Mixins::RateLimited
-
     feature :relatable_object
     feature :safe_dump
     feature :expiration

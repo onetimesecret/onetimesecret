@@ -4,7 +4,6 @@ require_relative 'mixins/session_messages'
 
 module V1
   class Session < Familia::Horreum
-    include V1::Mixins::RateLimited
 
     feature :safe_dump
     feature :expiration

@@ -395,22 +395,11 @@ describe('useAsyncHandler', () => {
       }
     });
 
-    it('handles API rate limiting as a human error', async () => {
-      const { wrap } = useAsyncHandler(mockOptions);
-      const rateLimitError = createError(
-        'Too many requests, please try again in 5 minutes',
-        'human',
-        'warning',
-        { retryAfter: 300 }
-      );
-      const mockApiCall = vi.fn().mockRejectedValue(rateLimitError);
 
-      await expect(wrap(mockApiCall)).rejects.toMatchObject({
+        'warning',
+
         type: 'human',
-        details: { retryAfter: 300 },
-      });
-      expect(mockOptions.notify).toHaveBeenCalledWith(rateLimitError.message, 'warning');
-    });
+
   });
 
   describe('loading state management during API calls', () => {
