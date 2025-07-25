@@ -20,26 +20,28 @@ gem 'xdg'
 
 gem 'rack', '>= 3.1.16', '< 4.0'
 gem 'rack-contrib', '~> 2.5.0'
-gem 'rack-session', '~> 2.1.1'
 gem 'rack-protection', '~> 4.1'
+gem 'rack-session', '~> 2.1.1'
 gem 'rack-utf8_sanitizer', '~> 1.10.1'
 
-gem 'json_schemer'
 gem 'json'
+gem 'json_schemer'
 gem 'public_suffix'
 gem 'puma', '~> 6.6'
 
-gem 'familia', '~> 1.2.1'
+
 gem 'uri-redis', '~> 1.3.0'
 
 if ENV['LOCAL_DEV'] && ENV['RACK_ENV'] == 'development' && ENV['CI'].to_s.empty?
-  gem 'rhales', path: '../rhales'
   gem 'drydock', path: '../../d/drydock'
+  gem 'familia', path: '../../d/familia'
   gem 'otto', path: '../../d/otto'
+  gem 'rhales', path: '../rhales'
 else
-  gem 'rhales', '~> 0.4.0'
   gem 'drydock', '~> 1.0.0'
+  gem 'familia', '~> 2.0.0.pre.pre'
   gem 'otto', '~> 1.2.0'
+  gem 'rhales', '~> 0.4.0'
 end
 
 gem 'concurrent-ruby', '~> 1.3.5'
@@ -105,7 +107,7 @@ group :test do
   %w[rspec-core rspec-expectations rspec-mocks rspec-support].each do |lib|
     gem lib, git: 'https://github.com/rspec/rspec', glob: "#{lib}/#{lib}.gemspec"
   end
-  gem 'tryouts', '~> 3.0.0', require: false
+  gem 'tryouts', '~> 3.1.1', require: false
 end
 
 # Optional alternate server - install with: bundle install --with optional
