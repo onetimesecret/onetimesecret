@@ -24,7 +24,5 @@ CustomDomain = TestVersion::CustomDomain
 Session = TestVersion::Session
 Metadata = TestVersion::Metadata
 Secret = TestVersion::Secret
-EmailReceipt = TestVersion::EmailReceipt
 Feedback = TestVersion::Feedback
-ExceptionInfo = TestVersion::ExceptionInfo
 RateLimit = TestVersion::RateLimit
