@@ -30,7 +30,7 @@ gem 'public_suffix'
 gem 'puma', '~> 6.6'
 
 
-gem 'uri-redis', '~> 1.3.0'
+gem 'uri-valkey', '~> 1.4.0'
 
 if ENV['LOCAL_DEV'] && ENV['RACK_ENV'] == 'development' && ENV['CI'].to_s.empty?
   gem 'drydock', path: '../../d/drydock'
@@ -39,7 +39,7 @@ if ENV['LOCAL_DEV'] && ENV['RACK_ENV'] == 'development' && ENV['CI'].to_s.empty?
   gem 'rhales', path: '../rhales'
 else
   gem 'drydock', '~> 1.0.0'
-  gem 'familia', '~> 2.0.0.pre.pre'
+  gem 'familia', '~> 2.0.0.pre2'
   gem 'otto', '~> 1.2.0'
   gem 'rhales', '~> 0.4.0'
 end

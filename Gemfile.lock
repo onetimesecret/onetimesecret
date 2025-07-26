@@ -78,14 +78,14 @@ GEM
     encryptor (1.1.3)
     eventmachine (1.2.7)
     fakeredis (0.1.4)
-    familia (2.0.0.pre.pre)
+    familia (2.0.0.pre2)
       benchmark
       connection_pool
       csv
       logger
       redis (>= 4.8.1, < 6.0)
       stringio (~> 3.1.1)
-      uri-redis (~> 1.3)
+      uri-valkey (~> 1.4)
     fastimage (2.4.0)
     hana (1.3.7)
     hashdiff (1.2.0)
@@ -252,7 +252,7 @@ GEM
       rspec (~> 3.0)
       sysinfo (>= 0.8, < 1.0)
     unicode-display_width (2.6.0)
-    uri-redis (1.3.0)
+    uri-valkey (1.4.0)
     xdg (9.2.0)
 
 PLATFORMS
@@ -270,7 +270,7 @@ DEPENDENCIES
   drydock (~> 1.0.0)
   encryptor (= 1.1.3)
   fakeredis
-  familia (~> 2.0.0.pre.pre)
+  familia (~> 2.0.0.pre2)
   fastimage (~> 2.4)
   hashdiff
   httparty
@@ -316,7 +316,7 @@ DEPENDENCIES
   thin
   truemail
   tryouts (~> 3.1.1)
-  uri-redis (~> 1.3.0)
+  uri-valkey (~> 1.4.0)
   xdg
 
 RUBY VERSION
