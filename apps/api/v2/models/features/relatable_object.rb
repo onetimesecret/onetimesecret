@@ -13,7 +13,7 @@ module V2
       err_klass = V2::Features::RelatableObjectError
 
       def self.included(base)
-        base.class_sorted_set :object_ids # rename relatable_object_ids?
+        base.class_sorted_set :relatable_object_ids # rename relatable_object_ids?
         base.class_hashkey :owners
         base.field :objid
         base.field :extid
