@@ -27,7 +27,6 @@ OT.boot! :test, true
 @email_address = "tryouts+#{@now}@onetimesecret.com"
 @sess = V1::Session.new '255.255.255.255', 'anon'
 @cust = V1::Customer.new @email_address
-@sess.event_clear! :send_feedback
 @params = {
   msg: 'This is a test feedback'
 }
@@ -98,7 +97,6 @@ count_after - count_before
 ## Sending feedback as an anonymous user without verification raises a concern
 cust = V1::Customer.anonymous
 sess = V2::Session.new 'id123', cust, "tryouts"
-sess.event_clear! :send_feedback
 params = { msg: 'This is a test feedback' }
 obj = V2::Logic::ReceiveFeedback.new sess, cust, params
 begin
@@ -111,7 +109,6 @@ end
 ## Sending feedback as an anonymous user with a bad verification raises a concern
 cust = V1::Customer.anonymous
 sess = V2::Session.new 'id123', cust, "tryouts"
-sess.event_clear! :send_feedback
 params = { msg: 'This is a test feedback', authenticity_payload: "123" }
 obj = V2::Logic::ReceiveFeedback.new sess, cust, params
 begin
@@ -124,7 +121,6 @@ end
 ## Sending feedback as an anonymous user with a verification works
 cust = V1::Customer.anonymous
 sess = V2::Session.new 'id123', cust, "tryouts"
-sess.event_clear! :send_feedback
 challenge = V2::Controllers::Challenges.generate_authenticity_challenge(5000) # very low
 solution = V2::Controllers::Challenges.solve_authenticity_challenge(challenge.challenge, challenge.salt, challenge.algorithm, challenge.maxnumber, 0)
 payload = V2::Controllers::Challenges._authenticity_challenge_payload(challenge, solution.number)
@@ -153,4 +149,3 @@ most_recent_pair[0]
 
 # Cleanup
 puts 'clearing limiters'
-@sess.event_clear! :send_feedback

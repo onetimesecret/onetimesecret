@@ -24,9 +24,7 @@ OT.boot! :test, false
 @email_address = 'changeme@example.com'
 @now = DateTime.now
 @sess = V2::Session.new '255.255.255.255', 'anon'
-@sess.event_clear! :destroy_account
 @cust = V2::Customer.new @email_address, 'user_type': 'authenticated'
-@sess.event_clear! :send_feedback
 @params = {
   confirmation: 'pa55w0rd'
 }
@@ -116,7 +114,6 @@ obj = V2::Logic::Account::DestroyAccount.new @sess, cust, @params
 cust.update_passphrase password_guess
 
 # Make sure we start from 0
-@sess.event_clear! :destroy_account
 
 last_error = nil
 6.times do
@@ -126,7 +123,6 @@ last_error = nil
     last_error = [e.class, e.message]
   end
 end
-@sess.event_clear! :destroy_account
 last_error
 #=> [OT::LimitExceeded, '[limit-exceeded] 3ytjp10tjtosfj7ljcscmblz1sc6ds9 for destroy_account (6)']
 
@@ -179,6 +175,3 @@ end
 
 first_token.eql?(post_destroy_apitoken)
 #=> false
-
-
-@sess.event_clear! :destroy_account

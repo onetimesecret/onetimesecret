@@ -28,7 +28,6 @@ OT.boot! :test, false
 @email_address = 'tryouts@onetimesecret.com'
 @sess = Session.new '255.255.255.255', 'anon'
 @cust = Customer.new @email_address
-@sess.event_clear! :send_feedback
 @params = {}
 @locale = 'en'
 @obj = V2::Logic::Account::CreateAccount.new @sess, @cust
