@@ -37,7 +37,25 @@ module Onetime
           return
         end
 
-        # The order here is arbitrary. We sort them by priority next.
+        # SERVICE PROVIDER ORDERING (PHASE 2)
+        #
+        # Providers are listed here in roughly the order they'll run, but the actual
+        # order is determined by their priority values (see allsorts_and_start below).
+        # Lower priority numbers run first.
+        #
+        # Current priorities:
+        # - SetupDiagnostics:      4  (early - capture errors from other providers)
+        # - ConnectDatabases:      5  (early - other providers need DB access)
+        # - RuntimeConfigService: 10  (early - merges static + dynamic config)
+        # - FirstBoot:           20  (mid - ensures MutableConfig exists)
+        # - LocaleProvider:       20  (mid - needs config, provides locale data)
+        # - AuthenticationProvider: 25 (mid - needs config, sets auth state)
+        # - PrepareEmailers:      30  (mid - needs config, may need auth)
+        # - TruemailProvider:     40  (late - optional email validation)
+        # - PrintBootReceipt:    100  (last - summarizes boot results)
+        #
+        # The explicit list here (vs auto-registration) makes boot order clear and
+        # allows conditional loading based on configuration.
         providers << System::SetupDiagnostics.new
         providers << System::FirstBoot.new
         providers << System::RuntimeConfigService.new
@@ -62,6 +80,15 @@ module Onetime
           OT.ld "[BOOT.system] Starting #{provider.name} provider"
           ServiceRegistry.register_provider(provider.name, provider)
           provider.start_internal(config)
+
+          # Track in boot manifest if available
+          if defined?(Onetime::Boot) && Onetime::Boot.boot_manifest
+            Onetime::Boot.boot_manifest[:providers_started] << {
+              name: provider.name,
+              priority: provider.priority,
+              status: provider.status
+            }
+          end
         end
       end
     end

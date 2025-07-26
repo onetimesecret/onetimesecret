@@ -53,7 +53,7 @@ module Onetime
           end
 
           # Wait to set the state just incase we force it disabled
-          set_state(:d9s_enabled, @d9s_enabled)
+          ServiceRegistry.set_state(:d9s_enabled, @d9s_enabled)
 
           # Only proceed if we have valid configuration
           return unless @d9s_enabled
@@ -98,8 +98,8 @@ module Onetime
             end
           end
 
-          set_state(:sentry, Sentry)
-          set_state(:sentry_return_value, return_value)
+          ServiceRegistry.set_state(:sentry, Sentry)
+          ServiceRegistry.set_state(:sentry_return_value, return_value)
           OT.ld "[sentry-init] Status: #{Sentry.initialized? ? 'OK' : 'Failed'}"
         end
       end

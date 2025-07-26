@@ -26,7 +26,7 @@ module Onetime
 
           debug('Configuring Truemail email validation...')
           configure_truemail(config)
-          register_provider(:truemail, :configured)
+          ServiceRegistry.register_provider(:truemail, :configured)
           debug('Truemail configuration completed')
         end
 

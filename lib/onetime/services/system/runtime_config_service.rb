@@ -39,7 +39,7 @@ module Onetime
           @config = config
 
           debug('Checking for existing merged configuration...')
-          runtime_config = get_state(:runtime_config)
+          runtime_config = ServiceRegistry.get_state(:runtime_config)
 
           unless runtime_config.nil?
             return debug('Existing merged configuration found, exiting early')
@@ -55,7 +55,7 @@ module Onetime
           OT::Utils.deep_freeze(runtime_config)
 
           # Store merged config in ServiceRegistry for unified access
-          set_state(:runtime_config, runtime_config)
+          ServiceRegistry.set_state(:runtime_config, runtime_config)
 
           debug('Configuration merge completed successfully')
         end

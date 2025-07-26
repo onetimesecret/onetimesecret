@@ -58,7 +58,7 @@ module Onetime
           end
 
           # Register successful connection
-          register_provider(:databases, :connected)
+          ServiceRegistry.register_provider(:databases, :connected)
         end
 
         ##

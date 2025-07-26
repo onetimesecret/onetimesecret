@@ -40,9 +40,9 @@ module Onetime
           validate_auth_config
 
           # Register authentication state in ServiceRegistry
-          set_state(:colonels, @colonels)
-          set_state(:auth_config, @auth_config)
-          set_state(:authentication_enabled, authentication_enabled?)
+          ServiceRegistry.set_state(:colonels, @colonels)
+          ServiceRegistry.set_state(:auth_config, @auth_config)
+          ServiceRegistry.set_state(:authentication_enabled, authentication_enabled?)
 
           log_auth_status
         end

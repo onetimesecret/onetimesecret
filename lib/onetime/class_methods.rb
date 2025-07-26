@@ -246,6 +246,22 @@ module Onetime
       result
     end
 
+    # Direct access to ServiceRegistry runtime state.
+    #
+    # @param key [Symbol, String] State key to access
+    # @return [Object, nil] State value or nil if not found
+    #
+    # @note Prefer OT.conf for configuration access. Use OT.state only for
+    #   runtime state values that aren't part of configuration.
+    #
+    # @example
+    #   OT.state[:locales]            # Processed locale data
+    #   OT.state[:emailer_configured] # Service status flag
+    def state
+      return {} unless defined?(Services::ServiceRegistry)
+      Services::ServiceRegistry.state
+    end
+
     # Compares current mode and optionally executes block if matched.
     #
     # @example Basic usage

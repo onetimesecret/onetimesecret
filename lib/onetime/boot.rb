@@ -10,12 +10,40 @@ module Onetime
   # Boot orchestrates the application startup sequence: configuration loading,
   # init script execution, and service initialization. Think of it as the
   # emcee for getting your Onetime instance up and running.
+  #
+  # TWO-PHASE BOOT ARCHITECTURE:
+  #
+  # This system uses a two-phase boot process to cleanly separate concerns:
+  #
+  # PHASE 1 - Init Scripts (config is mutable):
+  # - Run during configuration processing, before config is frozen
+  # - Located in etc/init.d/*.rb - one script per config section
+  # - Can normalize, validate, and modify their config section
+  # - Can set derived config values and feature flags
+  # - Cannot start services or access ServiceRegistry
+  # - Examples: validate URLs, set defaults, enable/disable features
+  #
+  # PHASE 2 - Service Providers (config is frozen):
+  # - Run after configuration is frozen and immutable
+  # - Located in lib/onetime/services/system/*.rb
+  # - Initialize services, connections, and runtime state
+  # - Register with ServiceRegistry for system-wide access
+  # - Can load dynamic config from Redis via MutableConfig
+  # - Examples: connect to databases, configure emailers, load locales
+  #
+  # WHY TWO PHASES?
+  # - Init scripts need mutable config to set feature flags and normalize data
+  # - Service providers need immutable config for thread safety and predictability
+  # - Clear separation makes debugging easier - config changes only in Phase 1
+  # - Enables hot-reload of services without touching configuration
+  #
   module Boot
     extend self
 
     @init_scripts_dir = File.join(Onetime::HOME, 'etc', 'init.d').freeze
+    @boot_manifest = {}
 
-    attr_reader :init_scripts_dir, :configurator
+    attr_reader :init_scripts_dir, :configurator, :boot_manifest
 
     # Boots the Onetime application.
     #
@@ -44,12 +72,25 @@ module Onetime
     #   Onetime::Boot.boot!(:app)  # Boot in application mode
     #   Onetime::Boot.boot!(:test, false)  # Boot in test mode without DB connection
     def boot!(mode = nil, connect_to_db = true)
+      # Track boot start time for manifest
+      boot_start_time = Time.now
+
       # Sets a unique, 64-bit hexadecimal ID for this process instance.
       instanceid = Onetime::Utils.generate_short_id
 
       Onetime.set_boot_state(mode, instanceid)
 
       OT.ld "[BOOT] Initializing in '#{OT.mode}' mode (instance: #{instanceid})"
+
+      # Initialize boot manifest
+      @boot_manifest = {
+        instance_id: instanceid,
+        mode: OT.mode,
+        start_time: boot_start_time,
+        init_scripts_run: [],
+        providers_started: [],
+        errors: []
+      }
 
       script_options = {
         mode: OT.mode,
@@ -93,6 +134,12 @@ module Onetime
 
       OT.ld "[BOOT] Startup completed successfully (instance: #{instanceid})"
 
+      # Complete boot manifest
+      @boot_manifest[:end_time] = Time.now
+      @boot_manifest[:boot_duration] = @boot_manifest[:end_time] - @boot_manifest[:start_time]
+      @boot_manifest[:success] = true
+      @boot_manifest[:config_path] = configurator.config_path if configurator
+
       # The processed configuration is already made available globally via
       # `OT.conf`. Returning nil reinforces that the return value of `boot!`
       # is not the config itself.
@@ -103,12 +150,16 @@ module Onetime
 
     private
 
-    # Runs initialization scripts for each configuration section.
+    # Runs initialization scripts for each configuration section (PHASE 1).
     #
     # This method handles a processing hook phase where:
     # - Configuration is still mutable, allowing scripts to modify config sections.
     # - Scripts can register routes or set feature flags.
     # This differs from system services, which run *after* config is frozen.
+    #
+    # Scripts in etc/init.d/ run in this phase to prepare configuration before
+    # it's frozen. Each script corresponds to a config section (e.g., site.rb
+    # for config['site'], i18n.rb for config['i18n'], etc.)
     #
     # @param config_being_processed [Hash] The mutable configuration during processing.
     # @param ** [Hash] Additional options to pass to init scripts.
@@ -178,6 +229,9 @@ module Onetime
 
       execute_script_with_context(file_path, context)
       OT.ld "[BOOT] Finished processing '#{section_key}' init script."
+
+      # Track in boot manifest
+      @boot_manifest[:init_scripts_run] << section_key
     end
 
     # Loads and executes a Ruby init script within the provided context.
@@ -208,6 +262,18 @@ module Onetime
     # @raise [StandardError] Re-raises the error in `:app` mode.
     # @note Prefers raising errors over exiting to preserve test and logging behavior.
     def handle_boot_error(error)
+      # Track error in boot manifest
+      if @boot_manifest
+        @boot_manifest[:success] = false
+        @boot_manifest[:errors] << {
+          type: error.class.name,
+          message: error.message,
+          time: Time.now
+        }
+        @boot_manifest[:end_time] = Time.now
+        @boot_manifest[:boot_duration] = @boot_manifest[:end_time] - @boot_manifest[:start_time]
+      end
+
       case error
       when OT::ConfigValidationError, OT::ConfigError
         OT.le "Configuration error during boot: #{error.message}"

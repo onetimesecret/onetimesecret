@@ -172,42 +172,6 @@ module Onetime
       protected
 
       ##
-      # Register a provider with ServiceRegistry.
-      #
-      # Used by poviders of all types (instance-type, connection, config, info)
-      #
-      # NOTE: This is a convenience wrapper for ServiceRegistry.register_provider.
-      #
-      # @param key [Symbol] Registry key
-      # @param instance [Object] Service instance, config hash, connection status/info to register
-      def register_provider(*)
-        Onetime::Services::ServiceRegistry.register_provider(*)
-      end
-
-      ##
-      # Set dynamic state in ServiceRegistry.
-      # Used by config-type providers for dynamic configuration.
-      #
-      # NOTE: This is a convenience wrapper for ServiceRegistry.set_state.
-      #
-      # @param key [Symbol] State key
-      # @param value [Object] State value
-      def set_state(*)
-        Onetime::Services::ServiceRegistry.set_state(*)
-      end
-
-      ##
-      # Get dynamic state from ServiceRegistry.
-      #
-      # NOTE: This is a convenience wrapper for ServiceRegistry.get_state.
-      #
-      # @param key [Symbol] State key
-      # @return [Object] State value or nil
-      def get_state(*)
-        Onetime::Services::ServiceRegistry.get_state(*)
-      end
-
-      ##
       # Access frozen configuration passed to start().
       #
       # @param key [Symbol] Configuration key

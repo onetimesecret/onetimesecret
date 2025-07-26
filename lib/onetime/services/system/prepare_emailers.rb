@@ -43,10 +43,10 @@ module Onetime
           mailer_class.setup(config)
           @emailer = mailer_class
 
-          set_state(:mailer_class, mailer_class)
-          set_state(:emailer, @emailer)
+          ServiceRegistry.set_state(:mailer_class, mailer_class)
+          ServiceRegistry.set_state(:emailer, @emailer)
 
-          register_provider(:emailer, self)
+          ServiceRegistry.register_provider(:emailer, self)
           debug("Email service configured with #{mail_mode} provider")
         end
       end

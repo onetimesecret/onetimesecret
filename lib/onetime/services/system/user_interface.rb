@@ -29,7 +29,7 @@ module Onetime
 
         def start(*)
           # Need to grab from MutableConfig
-          set_state(:ui, {})
+          ServiceRegistry.set_state(:ui, {})
         end
 
       end

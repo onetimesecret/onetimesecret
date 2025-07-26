@@ -10,10 +10,28 @@ module Onetime
     #
     # This enables seamless access via OT.conf[:key] regardless of config source.
     #
+    # UNDERSTANDING OT.conf vs OT.state:
+    #
+    # OT.conf - Unified configuration access (THIS CLASS)
+    # - Provides merged view of static YAML + dynamic Redis config
+    # - Read-only interface to configuration values
+    # - Examples: OT.conf[:storage], OT.conf[:mail], OT.conf[:ui]
+    # - Automatically falls back to static config if dynamic unavailable
+    #
+    # OT.state - Direct ServiceRegistry state access
+    # - Raw access to runtime state and computed values
+    # - Used internally by service providers
+    # - Examples: OT.state[:locales], OT.state[:emailer_configured]
+    # - No fallback - returns nil if key doesn't exist
+    #
+    # For application code, use OT.conf for all configuration needs.
+    # Only use OT.state when you specifically need runtime state values
+    # that aren't part of configuration (e.g., processed locale data).
+    #
     # @example Usage
     #   OT.conf[:storage]         # Static from YAML
-    #   OT.conf[:ui]  # Dynamic from Redis
-    #   OT.conf[:locales]         # Service state
+    #   OT.conf[:ui][:theme]      # Dynamic from Redis
+    #   OT.conf[:mail][:provider] # Merged config
     #
     class ConfigProxy
 

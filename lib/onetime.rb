@@ -35,6 +35,16 @@ module Onetime
   class << self
     attr_reader :mode, :debug, :env, :config_proxy, :instance, :static_config
 
+    # Returns the boot manifest showing what happened during initialization.
+    #
+    # @return [Hash, nil] Boot manifest with init scripts run, providers started, timing, etc.
+    def boot_manifest
+      Boot.boot_manifest if defined?(Boot)
+    end
+
+    # Alias for config_proxy to maintain OT.conf pattern
+    alias conf config_proxy
+
     # Boots the application with full initialization
     #
     # @param args [Array] Arguments to pass to the boot process
