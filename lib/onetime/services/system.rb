@@ -65,15 +65,14 @@ module Onetime
         providers << System::AuthenticationProvider.new
         providers << System::PrintBootReceipt.new
 
-        # Start providers in priority order
-        allsorts_and_start(providers, config)
+        sort_by_priority_and_start(providers, config)
 
         OT.ld '[BOOT.system] System services started successfully'
       end
 
       private
 
-      def allsorts_and_start(providers, config)
+      def sort_by_priority_and_start(providers, config)
         OT.ld "[BOOT.system] Sorting #{providers.size} providers by priority"
         providers.sort_by!(&:priority)
         providers.each do |provider|

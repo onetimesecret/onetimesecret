@@ -8,6 +8,18 @@ RSpec.describe V1::Secret do
   let(:secret_value) { "This is a test secret" }
   let(:passphrase) { "secure-passphrase" }
 
+  before do
+    allow(OT).to receive(:conf).and_return({
+      'site' => {
+        'secret' => 'shhh'
+      },
+      'experimental' => {
+        'allow_nil_global_secret' => false,
+        'rotated_secrets' => []
+      }
+    })
+  end
+
   let(:secret_pair) { create_stubbed_secret_pair(custid: customer_id, token: token) }
   let(:metadata) { secret_pair[0] }
   let(:secret) { secret_pair[1] }
@@ -121,7 +133,7 @@ RSpec.describe V1::Secret do
       allow(lifecycle_secret).to receive(:load_metadata).and_return(lifecycle_metadata)
     end
 
-    it 'transitions from new to received' do
+    it 'from new to received' do
       expect(lifecycle_secret.state).to eq('new')
 
       lifecycle_secret.received!
@@ -131,7 +143,7 @@ RSpec.describe V1::Secret do
       expect(lifecycle_secret.instance_variable_get(:@value)).to be_nil
     end
 
-    it 'transitions from new to burned' do
+    it 'from new to burned' do
       lifecycle_secret.burned!
 
       expect(lifecycle_metadata.state).to eq('burned')

@@ -8,7 +8,7 @@ RSpec.describe V1::Secret, 'security hardening' do
   let(:secret_value) { "Sensitive information 123" }
 
   before do
-    allow(OT).to receive(:global_secret).and_return("global-test-secret")
+    allow(OT).to receive(:conf).and_return({'site' => {'secret' => "global-test-secret"}})
   end
 
   describe 'timing attack resistance' do
@@ -141,7 +141,7 @@ RSpec.describe V1::Secret, 'security hardening' do
 
       # Change global secret slightly
       allow(secret).to receive(:key).and_return("test-secret-key-12345") # Original
-      allow(OT).to receive(:global_secret).and_return("global-test-secret-")
+      allow(OT).to receive(:conf).and_return({'site' => {'secret' => "global-test-secret"}})
       modified_key2 = secret.encryption_key_v2
 
       # Keys should be completely different

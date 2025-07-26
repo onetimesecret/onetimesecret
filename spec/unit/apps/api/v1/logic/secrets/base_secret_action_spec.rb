@@ -23,12 +23,12 @@ RSpec.describe V1::Logic::Secrets::BaseSecretAction do
 
   let(:base_params) {
      {
-    secret: {
-      ttl: '7',
-      recipient: ['test@example.com'],
-      share_domain: 'example.com'
+       'secret': {
+         'ttl': '7',
+         'recipient': ['test@example.com'],
+         'share_domain': 'example.com'
+       }
     }
-  }
   }
 
   subject { TestSecretAction.new(session, customer, base_params) }

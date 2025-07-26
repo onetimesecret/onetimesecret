@@ -118,8 +118,8 @@ module Onetime
     # @note Returns an empty hash if the application is not fully initialized
     #
     # Similar design principles to #state method
-    def provider
-      ready? ? Onetime::Services::ServiceRegistry.provider : {}
+    def providers
+      ready? ? Onetime::Services::ServiceRegistry.provider_keys : []
     end
 
     # Sets the global configuration proxy in a thread-safe manner

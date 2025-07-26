@@ -5,7 +5,7 @@ require 'tempfile'
 require 'fileutils'
 
 # Establish the environment
-ENV['RACK_ENV'] ||= 'test'
+ENV['RACK_ENV'] ||= 'production'
 ENV['ONETIME_HOME'] ||= File.expand_path('..', __dir__).freeze
 
 # This tells OT::Configurator#load_with_impunity! to look in the preset list
@@ -33,8 +33,12 @@ end
 # Load the main library
 require_relative '../lib/onetime'
 
+
 # Load support files (if they exist)
-Dir[File.join(__dir__, 'support', '**', '*.rb')].sort.each { |f| require f }
+Dir[File.join(__dir__, 'support', '**', '*.rb')].sort.each { |f|
+  $stderr.puts "Loading #{f}"
+  require f
+}
 
 # Load onetime modules after support files
 begin
