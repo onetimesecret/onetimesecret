@@ -33,7 +33,6 @@ RSpec.describe V1::Logic::Secrets::ShowSecret do
     allow(V1::Secret).to receive(:load).with('secret123').and_return(secret)
     allow(secret).to receive(:load_customer).and_return(owner)
     allow(V1::Customer).to receive(:global).and_return(double('Global', increment_field: true))
-    allow(V1::Logic).to receive(:stathat_count)
   end
 
   describe '#process' do

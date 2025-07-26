@@ -92,19 +92,7 @@ module V1
     # The session data is permanent and must be kept separate to avoid leaking
     # data between users.
     def external_identifier
-      return @external_identifier if @external_identifier
-      elements = []
-      elements << ipaddress || 'UNKNOWNIP'
-      elements << custid || 'anon'
-      @external_identifier ||= elements.gibbler.base(36)
-
-      # This is a very busy method so we can avoid generating and logging this
-      # string only for it to be dropped when not in debug mode by simply only
-      # generating and logging it when we're in debug mode.
-      # if Onetime.debug
-      #   OT.ld "[Session.external_identifier] sess identifier input: #{elements.inspect} (result: #{@external_identifier})"
-      # end
-
+      @external_identifier ||= self.class.generate_id
       @external_identifier
     end
 
@@ -179,20 +167,33 @@ module V1
     module ClassMethods
       attr_reader :values
 
+      # Add session to tracking set and clean up old entries
+      # @param sess [Session] session to add
+      # @return [void]
       def add sess
         self.values.add OT.now.to_i, sess.identifier
         self.values.remrangebyscore 0, OT.now.to_i-2.days
       end
 
+      # Get all tracked sessions
+      # @return [Array<Session>] all sessions in reverse chronological order
       def all
         self.values.revrangeraw(0, -1).collect { |identifier| load(identifier) }
       end
 
+      # Get sessions within specified time duration
+      # @param duration [ActiveSupport::Duration] time period to look back (default: 30 days)
+      # @return [Array<Session>] sessions within the duration
       def recent duration=30.days
         spoint, epoint = OT.now.to_i-duration, OT.now.to_i
         self.values.rangebyscoreraw(spoint, epoint).collect { |identifier| load(identifier) }
       end
 
+      # Create and save a new session
+      # @param ipaddress [String] client IP address
+      # @param custid [String] customer ID
+      # @param useragent [String, nil] client user agent string
+      # @return [Session] the created session
       def create ipaddress, custid, useragent=nil
         sess = new ipaddress: ipaddress, custid: custid, useragent: useragent
 
@@ -201,10 +202,10 @@ module V1
         sess
       end
 
+      # Generate a unique session ID with 32 bytes of random data
+      # @return [String] base-36 encoded SHA256 hash
       def generate_id
-        input = SecureRandom.hex(32)  # 16=128 bits, 32=256 bits
-        # Not using gibbler to make sure it's always SHA256
-        Digest::SHA256.hexdigest(input).to_i(16).to_s(36) # base-36 encoding
+        OT::Utils.generate_id
       end
     end
 

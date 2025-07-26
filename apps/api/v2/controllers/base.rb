@@ -2,7 +2,6 @@
 
 require_relative 'class_settings'
 require_relative 'helpers'
-require 'altcha'
 
 module V2
   module Controllers::Base
@@ -213,7 +212,7 @@ module V2
     end
 
     def json(hsh)
-      res.header['Content-Type'] = 'application/json; charset=utf-8'
+      res.header['content-type'] = 'application/json; charset=utf-8'
       res.body                   = hsh.to_json
     end
 

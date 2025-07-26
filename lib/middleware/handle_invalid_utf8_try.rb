@@ -1,4 +1,4 @@
-# ./tryouts/middleware/handle_invalid_utf8_try.rb
+# lib/middleware/handle_invalid_utf8_try.rb
 
 # These tryouts test the Rack::HandleInvalidUTF8 middleware,
 # focusing on scenarios involving invalid UTF-8 characters in
@@ -60,7 +60,7 @@ end
 }}
 
 # Set up the middleware
-@app = lambda { |env| [200, {'Content-Type' => 'text/plain'}, ['OK']] }
+@app = lambda { |env| [200, {'content-type' => 'text/plain'}, ['OK']] }
 @middleware = Rack::HandleInvalidUTF8.new(@app, check_enabled: true)
 
 ## Middleware allows valid UTF-8 request to pass through
@@ -92,7 +92,7 @@ status, headers, body = @middleware.call(env)
 ## Middleware sets correct content type in error response
 env = @env_invalid_utf8_header.call
 status, headers, body = @middleware.call(env)
-"Content-Type: #{headers[:'Content-Type']}"
+"Content-Type: #{headers[:'content-type']}"
 #=> "Content-Type: application/json; charset=utf-8"
 
 ## Middleware logs error message

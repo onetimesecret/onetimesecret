@@ -1,4 +1,4 @@
-# ./tryouts/logic/email_receipt_try.rb
+# apps/api/v1/models/email_receipt_try.rb
 
 # These tryouts cover various aspects of the EmailReceipt model, including:
 #

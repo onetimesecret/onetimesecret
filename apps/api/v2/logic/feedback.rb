@@ -1,6 +1,5 @@
 # apps/api/v2/logic/feedback.rb
 
-require 'altcha'
 require_relative 'base'
 
 module V2
@@ -98,7 +97,7 @@ module V2
         view.domain_strategy = domain_strategy
         view.message         = message
 
-        OT.ld "[send_feedback] Calling deliver_email #{message.gibbler}"
+        OT.ld "[send_feedback] Calling deliver_email (#{message.size} chars)"
 
         begin
           view.deliver_email

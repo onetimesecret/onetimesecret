@@ -13,7 +13,7 @@ module Manifold
       # @param value [String, Array, Hash] The value to normalize
       # @return [String, Array, Hash] The normalized value
       def normalize_value(value)
-        Onetime::Utils::Sanitation.normalize_value(value)
+        Onetime::Utils.normalize_value(value)
       end
 
       # Serializes view data to a script tag for frontend consumption.
@@ -73,7 +73,7 @@ module Manifold
       #
       def cached_method(methname)
         rediskey     = "template:global:#{methname}"
-        cache_object = Familia::String.new rediskey, ttl: 1.hour, db: 0
+        cache_object = Familia::String.new rediskey, ttl: 1.hour
         OT.ld "[cached_method] #{methname} #{cache_object.exists? ? 'hit' : 'miss'} #{rediskey}"
         cached       = cache_object.get
         return cached if cached

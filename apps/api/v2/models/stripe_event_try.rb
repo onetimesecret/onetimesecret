@@ -1,4 +1,4 @@
-# ./tryouts/logic/stripe_event_try.rb
+# apps/api/v2/models/stripe_event_try.rb
 
 # frozen_string_literal: true
 

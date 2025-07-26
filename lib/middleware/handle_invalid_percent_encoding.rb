@@ -94,7 +94,7 @@ class Rack::HandleInvalidPercentEncoding
 
     cls     = self.class
     headers = {
-      'Content-Type': "#{cls.default_content_type}; charset=#{cls.default_charset}",
+      'content-type': "#{cls.default_content_type}; charset=#{cls.default_charset}",
       'Content-Length': body.bytesize.to_s,
     }
 

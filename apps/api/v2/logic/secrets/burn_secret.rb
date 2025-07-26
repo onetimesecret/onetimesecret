@@ -36,7 +36,6 @@ module V2::Logic
           secret.burned!
           owner.increment_field :secrets_burned unless owner.anonymous?
           V2::Customer.global.increment_field :secrets_burned
-          V2::Logic.stathat_count('Burned Secrets', 1)
 
         elsif !correct_passphrase
           limit_action :failed_passphrase if potential_secret.has_passphrase?

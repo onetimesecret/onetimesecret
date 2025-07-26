@@ -1,14 +1,17 @@
 # lib/onetime/mail/views/base.rb
 
-require_relative 'chimera'
+require 'rhales'
 
 module Onetime
   module Mail
     module Views
-      class Base < Onetime::Mail::Chimera
-        self.template_path  = './templates/mail'
-        self.view_namespace = Onetime::Mail
-        self.view_path      = './onetime/email'
+      class Base < Rhales::View
+        # TODO2: Use Rhales.configure to replace these mustache specific
+        # settings. See apps/web/manifold/application.rb
+        #
+        # self.template_path  = './templates/mail'
+        # self.view_namespace = Onetime::Mail
+        # self.view_path      = './onetime/email'
 
         attr_reader :cust, :locale, :emailer, :mode, :from, :to
         attr_accessor :token, :text_template

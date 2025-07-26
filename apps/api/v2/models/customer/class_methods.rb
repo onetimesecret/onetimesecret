@@ -11,46 +11,6 @@ module V2
     module ClassMethods
       attr_reader :values
 
-      def generate_objid
-        SecureRandom.uuid_v7
-      end
-
-      def derive_extid(objid)
-        Digest::SHA256.hexdigest(objid)
-      end
-
-      def find_by_objid(objid)
-        return nil if objid.to_s.empty?
-
-        # self.obj
-
-        Familia.ld "[.find_by_objid] #{self} from key #{objkey})"
-        if Familia.debug?
-          reference = caller(1..1).first
-          Familia.trace :FIND_BY_OBJID, Familia.redis(uri), objkey, reference
-        end
-
-        find_by_key objkey
-      end
-
-      def add(cust)
-        values.add OT.now.to_i, cust.identifier
-        object_ids.add OT.now.to_f, cust.objid
-      end
-
-      def all
-        object_ids.revrangeraw(0, -1).collect { |identifier| load(identifier) }
-      end
-
-      def recent(duration = 30.days, epoint = OT.now.to_i)
-        spoint = OT.now.to_i-duration
-        values.rangebyscoreraw(spoint, epoint).collect { |identifier| load(identifier) }
-      end
-
-      def anonymous
-        new({ custid: 'anon', user_type: 'anonymous' }).freeze
-      end
-
       def create(custid, email = nil)
         raise Onetime::Problem, 'custid is required' if custid.to_s.empty?
         raise Onetime::Problem, 'Customer exists' if exists?(custid)
@@ -67,6 +27,24 @@ module V2
         cust.save
         add cust
         cust
+      end
+
+      def add(cust)
+        values.add OT.now.to_i, cust.identifier
+        relatable_object_ids.add OT.now.to_f, cust.objid
+      end
+
+      def all
+        relatable_object_ids.revrangeraw(0, -1).collect { |identifier| load(identifier) }
+      end
+
+      def recent(duration = 30.days, epoint = OT.now.to_i)
+        spoint = OT.now.to_i-duration
+        values.rangebyscoreraw(spoint, epoint).collect { |identifier| load(identifier) }
+      end
+
+      def anonymous
+        new({ custid: 'anon', user_type: 'anonymous' }).freeze
       end
 
       def global

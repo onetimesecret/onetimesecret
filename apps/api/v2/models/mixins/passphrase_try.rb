@@ -1,4 +1,4 @@
-# ./tryouts/logic/passphrase_try.rb
+# apps/api/v2/models/mixins/passphrase_try.rb
 
 # These tryouts test the functionality of passphrase handling in the Onetime application.
 # Specifically, they focus on:

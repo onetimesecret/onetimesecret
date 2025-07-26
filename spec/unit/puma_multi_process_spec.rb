@@ -8,7 +8,7 @@
 # generates unique identifiers when running in Puma's multi-process environment.
 #
 # Key Findings:
-# 1. OT.instance is generated per-process using [Process.pid, OT::VERSION].gibbler
+# 1. OT.instance is a unique string generated per-process
 # 2. Each Puma worker process gets a unique PID, therefore unique OT.instance
 # 3. The instance value remains consistent within a worker's lifetime
 # 4. CLI boot mode allows testing without full application dependencies
@@ -75,18 +75,18 @@ RSpec.describe 'Puma Multi-Process Integration', type: :integration do
       app = proc do |env|
         case env['PATH_INFO']
         when '/instance'
-          [200, {'Content-Type' => 'text/plain'}, [Onetime.instance.to_s]]
+          [200, {'content-type' => 'text/plain'}, [Onetime.instance.to_s]]
         when '/pid'
-          [200, {'Content-Type' => 'text/plain'}, [Process.pid.to_s]]
+          [200, {'content-type' => 'text/plain'}, [Process.pid.to_s]]
         when '/info'
           # Ensure OT::VERSION is available, use a fallback if not (e.g. during early boot)
           version_string = defined?(OT::VERSION) ? OT::VERSION.to_s : 'unknown'
           info = "PID:\#{Process.pid}|Instance:\#{Onetime.instance}|Version:\#{version_string}"
-          [200, {'Content-Type' => 'text/plain'}, [info]]
+          [200, {'content-type' => 'text/plain'}, [info]]
         when '/health'
-          [200, {'Content-Type' => 'text/plain'}, ['OK']]
+          [200, {'content-type' => 'text/plain'}, ['OK']]
         else
-          [404, {'Content-Type' => 'text/plain'}, ['Not Found']]
+          [404, {'content-type' => 'text/plain'}, ['Not Found']]
         end
       end
 

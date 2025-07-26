@@ -1,4 +1,4 @@
-# tryouts/config/app_settings_try.rb
+# apps/api/v2/controllers/class_settings_try.rb
 
 # These tryouts test the functionality ofthe V2::Controllers::ClassSettings class.
 #

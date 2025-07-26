@@ -17,9 +17,6 @@ site:
     colonels:
       - <%= ENV['COLONEL'] || 'CHANGEME@example.com' %>
     autoverify: false
-  authenticity:
-    type: <%= ENV['AUTHENTICITY_TYPE'] || 'altcha' %>
-    secret_key: <%= ENV['AUTHENTICITY_SECRET_KEY'] || '<REPLACE_WITH_STRONG_HMAC_KEY>' %>
   middleware:
     # Serve static files for frontend vue application
     static_files: true
@@ -55,17 +52,17 @@ storage:
     connection:
       url: <%= ENV['REDIS_URL'] || 'redis://CHANGEME@127.0.0.1:6379/0' %>
     database_mapping:
-      session: <%= ENV['REDIS_DBS_SESSION'] || 1 %>
-      custom_domain: <%= ENV['REDIS_DBS_CUSTOM_DOMAIN'] || 6 %>
-      customer: <%= ENV['REDIS_DBS_CUSTOMER'] || 6 %>
-      subdomain: <%= ENV['REDIS_DBS_SUBDOMAIN'] || 6 %>
-      metadata: <%= ENV['REDIS_DBS_METADATA'] || 7 %>
-      email_receipt: <%= ENV['REDIS_DBS_EMAIL_RECEIPT'] || 8 %>
-      secret: <%= ENV['REDIS_DBS_SECRET'] || 8 %>
-      rate_limit: <%= ENV['REDIS_DBS_RATE_LIMIT'] || 2 %>
-      feedback: <%= ENV['REDIS_DBS_FEEDBACK'] || 11 %>
-      exception_info: <%= ENV['REDIS_DBS_EXCEPTION_INFO'] || 12 %>
-      mutable_config: <%= ENV['REDIS_DBS_MUTABLE_CONFIG'] || 15 %>
+      session: <%= ENV['REDIS_DBS_SESSION'] || 0 %>
+      custom_domain: <%= ENV['REDIS_DBS_CUSTOM_DOMAIN'] || 0 %>
+      customer: <%= ENV['REDIS_DBS_CUSTOMER'] || 0 %>
+      subdomain: <%= ENV['REDIS_DBS_SUBDOMAIN'] || 0 %>
+      metadata: <%= ENV['REDIS_DBS_METADATA'] || 0 %>
+      email_receipt: <%= ENV['REDIS_DBS_EMAIL_RECEIPT'] || 0 %>
+      secret: <%= ENV['REDIS_DBS_SECRET'] || 0 %>
+      rate_limit: <%= ENV['REDIS_DBS_RATE_LIMIT'] || 0 %>
+      feedback: <%= ENV['REDIS_DBS_FEEDBACK'] || 0 %>
+      exception_info: <%= ENV['REDIS_DBS_EXCEPTION_INFO'] || 0 %>
+      mutable_config: <%= ENV['REDIS_DBS_MUTABLE_CONFIG'] || 0 %>
 mail:
   connection:
     # Local Development with Mailpit

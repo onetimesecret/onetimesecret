@@ -63,7 +63,7 @@ module Manifold
       router      = Otto.new(routes_path)
 
       # Default error responses
-      headers             = { 'Content-Type' => 'text/html' }
+      headers             = { 'content-type' => 'text/html' }
       router.not_found    = [404, headers, ['Not Found']]
       router.server_error = [500, headers, ['Internal Server Error']]
 

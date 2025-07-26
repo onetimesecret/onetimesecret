@@ -1,4 +1,4 @@
-# ./tryouts/logic/subdomain_try.rb
+# apps/api/v1/models/subdomain_try.rb
 
 # These tryouts test the subdomain functionality in the Onetime application.
 # They cover various aspects of subdomain management, including:

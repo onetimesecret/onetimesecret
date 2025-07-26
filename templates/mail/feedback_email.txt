@@ -1,5 +1,0 @@
-
-{{message}}
-
-Secret Support
-{{baseuri}}

@@ -14,10 +14,10 @@ module V2
         obj = new(**kwargs)
 
         # Fail fast if invalid fields are provided
-        kwargs.each_with_index do |(key, _value), index|
-          next if fields.include?(key.to_s.to_sym) # Familia uses symbols
+        kwargs.each do |(key, _value)|
+          next if fields.include?(key.to_sym) # Familia tracks fields as symbols
 
-          raise Onetime::Problem, "Invalid field #{key} (#{index})"
+          raise Onetime::Problem, "#{self.name}##{key} is not a valid field (#{_value.class})"
         end
 
         redis.watch(obj.rediskey) do
@@ -26,11 +26,13 @@ module V2
             raise Onetime::Problem, "Duplicate record #{obj.rediskey}"
           end
 
+          serialized_values = obj.to_h
+
           redis.multi do |multi|
             # Use the object's field values which are properly serialized
             kwargs.each do |key, _value|
               # Get the serialized value from the object's instance variable
-              serialized_value = obj.instance_variable_get("@#{key}")
+              serialized_value = serialized_values.fetch(key.to_sym, nil)
               multi.hset(obj.rediskey, key, serialized_value) if serialized_value
             end
             multi.hset(obj.rediskey, :configid, obj.identifier)

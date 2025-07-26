@@ -2,7 +2,6 @@ require 'logger'
 
 module V2
   class ExceptionInfo < Familia::Horreum
-    include Gibbler::Complex
 
     feature :safe_dump
     feature :expiration

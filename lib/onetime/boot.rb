@@ -44,8 +44,8 @@ module Onetime
     #   Onetime::Boot.boot!(:app)  # Boot in application mode
     #   Onetime::Boot.boot!(:test, false)  # Boot in test mode without DB connection
     def boot!(mode = nil, connect_to_db = true)
-      # Sets a unique SHA hash for this process instance.
-      instanceid = [OT::VERSION.to_s, Process.pid.to_s].gibbler.shorten.freeze
+      # Sets a unique, 64-bit hexadecimal ID for this process instance.
+      instanceid = Onetime::Utils.generate_short_id
 
       Onetime.set_boot_state(mode, instanceid)
 

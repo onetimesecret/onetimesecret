@@ -24,7 +24,13 @@ module V1
       require_relative 'logic'
       require_relative 'models'
 
-      V1::RateLimit.register_events OT.conf&.dig(:limits) || {}
+      # NOTE: When the mutual config is saved to redis incorrectly, it can come
+      # out here as a serialized JSON string, leading to:
+      #
+      # rate_limit.rb:189:in 'Hash#merge!':
+      #   no implicit conversion of String into Hash
+      #
+      # V1::RateLimit.register_events OT.conf&.dig(:limits) || {}
 
       V1::Plan.load_plans!
 
@@ -39,7 +45,7 @@ module V1
       router = Otto.new(routes_path)
 
       # Default error responses
-      headers = { 'Content-Type' => 'application/json' }
+      headers = { 'content-type' => 'application/json' }
       router.not_found = [404, headers, [{ error: 'Not Found' }.to_json]]
       router.server_error = [500, headers, [{ error: 'Internal Server Error' }.to_json]]
 

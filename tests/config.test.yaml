@@ -10,9 +10,6 @@ site:
     colonels:
       - 'CHANGEME@EXAMPLE.com'
     autoverify: false
-  authenticity:
-    type: <%= ENV['AUTHENTICITY_TYPE'] || 'altcha' %>
-    secret_key: <%= ENV['AUTHENTICITY_SECRET_KEY'] || 'your-secret-key' %>
   middleware:
     static_files: true
     utf8_sanitizer: true

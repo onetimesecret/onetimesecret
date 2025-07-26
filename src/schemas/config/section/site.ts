@@ -8,12 +8,6 @@ const siteAuthenticationSchema = z.object({
   autoverify: z.boolean().default(false),
 });
 
-const siteAuthenticitySchema = z.object({
-  enabled: z.boolean().default(false),
-  type: z.string().optional(),
-  secret_key: z.string().optional(),
-});
-
 const siteMiddlewareSchema = z.object({
   static_files: z.boolean().default(true),
   utf8_sanitizer: z.boolean().default(true),
@@ -32,7 +26,6 @@ const siteSchema = z.object({
   ssl: z.boolean().default(false),
   secret: z.string().default('CHANGEME'),
   authentication: siteAuthenticationSchema,
-  authenticity: siteAuthenticitySchema,
   middleware: siteMiddlewareSchema,
 });
 

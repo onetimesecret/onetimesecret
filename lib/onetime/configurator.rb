@@ -113,9 +113,22 @@ module Onetime
     rescue OT::ConfigError => ex
       log_error_with_debug_content(ex)
       raise # re-raise the same error
-    rescue StandardError => ex
-      log_error_with_debug_content(ex)
-      raise OT::ConfigError, "Unhandled error: #{ex.message}"
+
+      # NOTE: We revisited handling StandardError here in favour of letting it
+      # bubble up to OT::Boot.boot!. Reasoning: dumping the debug contents from
+      # here is. We get here when for errors running etc/init.d scripts for
+      # example, which produces the message "Unhandled exception during init
+      # script processing", followed by the log_error_with_debug_content ourput
+      # (when OT.debug?); then finally the actual error message from the init
+      # script.
+      #
+      # Leaving this note and the rescue block just in case it causing other,
+      # unintended confusing situations. To re-enable, uncomment the following
+      # rescue block:
+      #
+      #   rescue StandardError => ex
+      #     log_error_with_debug_content(ex)
+      #     raise OT::ConfigError, "Unhandled error: #{ex.message}"
     end
 
     # The accessor creates a new config hash every time and returns it frozen

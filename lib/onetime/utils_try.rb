@@ -1,4 +1,4 @@
-# ./tryouts/utils/onetime_utils_try.rb
+# lib/onetime/utils_try.rb
 
 # These tryouts test the functionality of the Onetime::Utils module.
 # The Utils module provides various utility functions used throughout

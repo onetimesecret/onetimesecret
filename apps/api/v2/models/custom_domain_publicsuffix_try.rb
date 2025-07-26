@@ -1,4 +1,4 @@
-# ./tryouts/models/domains_publicsuffix_try.rb
+# apps/api/v2/models/custom_domain_publicsuffix_try.rb
 
 # These tryouts test domain-related functionality using the PublicSuffix gem
 

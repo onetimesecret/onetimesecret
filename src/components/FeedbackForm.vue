@@ -1,5 +1,4 @@
 <script setup lang="ts">
-  import AltchaChallenge from '@/components/AltchaChallenge.vue';
   import { useFormSubmission } from '@/composables/useFormSubmission';
   import { WindowService } from '@/services/window.service';
   import { useCsrfStore } from '@/stores/csrfStore';
@@ -19,14 +18,12 @@
     showRedButton: false,
   });
 
-  const altchaPayload = ref('');
   const userTimezone = ref('');
   const feedbackMessage = ref('');
 
   // Reset in form reset function
   const resetForm = () => {
     feedbackMessage.value = '';
-    altchaPayload.value = '';
   };
 
   onMounted(() => {
@@ -72,10 +69,6 @@
             type="hidden"
             name="utf8"
             value="✓" />
-          <input
-            type="hidden"
-            name="authenticity_payload"
-            :value="altchaPayload" />
           <input
             type="hidden"
             name="shrimp"
@@ -125,11 +118,6 @@
               </button>
             </div>
           </div>
-
-          <AltchaChallenge
-            v-if="!windowProps.cust || windowProps.cust.identifier == 'anon'"
-            v-model:payload="altchaPayload"
-            :is-floating="true" />
         </form>
 
         <div

@@ -13,9 +13,11 @@
 #
 # NOTE: These tryouts send real requests to the Approximated API.
 
-require 'dotenv'
-
-Dotenv.load('.env')
+# TODO2: Removed dotenv since we only use it in tests and we should be mocking
+# the env vars and settings generally.
+#
+# require 'dotenv'
+# Dotenv.load('.env')
 
 require_relative 'helpers/test_models'
 

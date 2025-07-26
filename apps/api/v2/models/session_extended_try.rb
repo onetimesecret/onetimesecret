@@ -1,4 +1,4 @@
-# ./tryouts/models/session_extended_try.rb
+# apps/api/v2/models/session_extended_try.rb
 
 require 'benchmark'
 

@@ -1,4 +1,4 @@
-# ./tryouts/models/customer_try.rb
+# apps/api/v2/models/customer_try.rb
 
 # These tryouts test the customer model functionality in the Onetime application.
 # They cover various aspects of customer management, including:

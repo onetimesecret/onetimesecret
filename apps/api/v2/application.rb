@@ -22,7 +22,8 @@ module V2
       require_relative 'logic'
       require_relative 'models'
 
-      V1::RateLimit.register_events OT.conf&.dig(:limits) || {}
+      # See note in v1/application.rb
+      # V2::RateLimit.register_events OT.conf&.dig(:limits) || {}
 
       # Log warmup completion
       Onetime.li 'V2 warmup completed'
@@ -35,7 +36,7 @@ module V2
       router      = Otto.new(routes_path)
 
       # Default error responses
-      headers             = { 'Content-Type' => 'application/json' }
+      headers             = { 'content-type' => 'application/json' }
       router.not_found    = [404, headers, [{ error: 'Not Found' }.to_json]]
       router.server_error = [500, headers, [{ error: 'Internal Server Error' }.to_json]]
 

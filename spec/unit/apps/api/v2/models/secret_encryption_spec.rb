@@ -27,7 +27,6 @@ RSpec.describe V2::Secret, allow_redis: false do
         expect(secret.value).not_to eq(secret_value)
         # NOTE: value_encryption is stored as integer 2, not string "2"
         expect(secret.value_encryption).to eq(2)
-        expect(secret.value_checksum).to eq(secret_value.gibbler)
       end
 
       it 'truncates content when size limit is specified' do
@@ -48,12 +47,6 @@ RSpec.describe V2::Secret, allow_redis: false do
 
         expect(secret.truncated?).to be false
         expect(secret.decrypted_value).to eq(secret_value)
-      end
-
-      it 'generates correct checksum' do
-        secret.encrypt_value(secret_value)
-
-        expect(secret.value_checksum).to eq(secret_value.gibbler)
       end
     end
 
@@ -290,7 +283,6 @@ RSpec.describe V2::Secret, allow_redis: false do
     it 'handles empty content' do
       secret.encrypt_value("")
 
-      expect(secret.value_checksum).to eq("".gibbler)
       expect(secret.value_encryption).to eq(-1) # Special flag for empty content
       expect(secret.decrypted_value).to eq("")
     end

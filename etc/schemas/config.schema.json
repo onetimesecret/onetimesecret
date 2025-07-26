@@ -46,25 +46,6 @@
           ],
           "additionalProperties": false
         },
-        "authenticity": {
-          "type": "object",
-          "properties": {
-            "enabled": {
-              "default": false,
-              "type": "boolean"
-            },
-            "type": {
-              "type": "string"
-            },
-            "secret_key": {
-              "type": "string"
-            }
-          },
-          "required": [
-            "enabled"
-          ],
-          "additionalProperties": false
-        },
         "middleware": {
           "type": "object",
           "properties": {
@@ -113,7 +94,6 @@
         "ssl",
         "secret",
         "authentication",
-        "authenticity",
         "middleware"
       ],
       "additionalProperties": false
@@ -233,11 +213,6 @@
             }
           },
           "additionalProperties": false
-        },
-        "stathat": {
-          "type": "object",
-          "properties": {},
-          "additionalProperties": {}
         },
         "domains": {
           "type": "object",

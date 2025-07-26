@@ -191,7 +191,7 @@ RSpec.shared_examples "mail delivery behavior" do
   end
 end
 
-RSpec.shared_examples "mustache template behavior" do |template_name, options = {}|
+RSpec.shared_examples "handlebars template behavior" do |template_name, options = {}|
   # Requires let(:subject) to be defined in including context
   # Requires let(:expected_content) to be defined as hash of expected key/value pairs
 
@@ -222,7 +222,7 @@ RSpec.shared_examples "mustache template behavior" do |template_name, options = 
           "Template path mismatch:\nExpected: #{expected_path}\nActual: #{actual_path}"
       end
 
-      it "contains valid mustache syntax" do
+      it "contains valid handlebars syntax" do
         template_content = File.read(template_path)
         expect(template_content).to include('{{')
       end
