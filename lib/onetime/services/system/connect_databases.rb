@@ -8,7 +8,7 @@ module Onetime
     module System
 
       class ConnectDatabases < ServiceProvider
-        using Familia::HorreumRefinements
+        using Familia::HorreumRefinements # for `model_class.to_s`, see below
 
         def initialize
           super(:connect_databases, type: TYPE_CONNECTION, priority: 5) # High priority - other services depend on DB
@@ -31,27 +31,30 @@ module Onetime
           db_settings = config.dig('storage', 'db')
           Familia.uri = db_settings['connection']['url']
 
-          # Connect each model to its configured Redis database
-          db_map = db_settings['database_mapping']
-
-          debug "db_map: #{db_map}"
-          debug "models: #{Familia.members.map(&:to_s)}"
-
           # Validate that models have been loaded before attempting to connect
-          if Familia.members.empty?
+          familia_members = Familia.members
+          if familia_members.empty?
             raise Onetime::Problem, 'No known Familia members. Models need to load before calling boot!'
           end
 
+          # Connect each model to its configured Redis database.
+          # We normalize to strings instead of symbols to be consistent with
+          # the rest of the codebase that interacts with config.
+          db_map = db_settings['database_mapping'].transform_keys(&:to_s)
+
+          debug "models: #{familia_members}"
+          debug "db_map: #{db_map}"
+
           # Map model classes to their database numbers
-          Familia.members.each do |model_class|
-            model_sym = model_class.to_sym
-            db_index  = db_map[model_sym] || DATABASE_IDS[model_sym] || 0 # see models.rb
+          familia_members.each do |model_class|
+            model_str = model_class.config_name
+            db_index  = db_map[model_str] || 0 # If not specified in config, use zero
 
             # Assign a Redis connection to the model class
             model_class.dbclient = Familia.dbclient(db_index)
             ping_result       = model_class.dbclient.ping
 
-            debug "Connected #{model_sym} to DB #{db_index} (#{ping_result})"
+            debug "Connected #{model_str} to DB #{db_index} (#{ping_result})"
           end
 
           # Register successful connection
@@ -74,25 +77,6 @@ module Onetime
         rescue StandardError
           false
         end
-
-        # For backwards compatibility with v0.18.3 and earlier, these database
-        # IDs had been hardcoded in their respective model classes which we maintain
-        # here for existing installs. If they haven't had a chance to update their
-        # etc/config.yaml files OR
-        #
-        # For installs running via docker image + environment vars, this change should
-        # be a non-issue as long as the default config (etc/examples/config.example.yaml) is
-        # used (which it is in the official images).
-        #
-        DATABASE_IDS = {
-          session: 1,
-          custom_domain: 6,
-          customer: 6,
-          metadata: 7,
-          secret: 8,
-          feedback: 11,
-          mutable_config: 15,
-        }
       end
 
       # Legacy method for backward compatibility

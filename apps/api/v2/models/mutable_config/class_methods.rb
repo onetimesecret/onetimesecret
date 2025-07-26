@@ -14,10 +14,10 @@ module V2
         obj = new(**kwargs)
 
         # Fail fast if invalid fields are provided
-        kwargs.each_with_index do |(key, _value), index|
-          next if fields.include?(key.to_s.to_sym) # Familia uses symbols
+        kwargs.each do |(key, _value)|
+          next if fields.include?(key.to_sym) # Familia tracks fields as symbols
 
-          raise Onetime::Problem, "Invalid field #{key} (#{index})"
+          raise Onetime::Problem, "#{self.name}##{key} is not a valid field (#{_value.class})"
         end
 
         dbclient.watch(obj.dbkey) do
