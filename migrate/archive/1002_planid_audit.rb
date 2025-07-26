@@ -23,14 +23,14 @@ module Onetime
       cursor       = '0'
       pattern      = 'customer:*:object'
       batch_size   = 1000
-      redis_client = redis
+      dbclient = redis
 
       info 'Starting scan of customer records...'
 
       loop do
         track_stat(:loops)
 
-        cursor, keys = redis_client.scan(cursor, match: pattern, count: batch_size)
+        cursor, keys = dbclient.scan(cursor, match: pattern, count: batch_size)
 
         keys.each do |key|
           track_stat(:total_keys)
@@ -43,12 +43,12 @@ module Onetime
           end
           next unless custid
 
-          keytype = redis_client.type(key)
+          keytype = dbclient.type(key)
           debug "Customer ID: #{custid} (#{key})"
           debug "Key type: #{keytype}"
 
           # Get planid directly from Redis hash
-          planid = redis_client.hget(key, 'planid')
+          planid = dbclient.hget(key, 'planid')
 
           # Handle empty planid case
           if planid.nil? || planid.strip.empty?
@@ -58,7 +58,7 @@ module Onetime
 
             # Fix empty planid by setting to 'basic' if in actual run mode
             for_realsies_this_time? do
-              redis_client.hset(key, 'planid', 'basic')
+              dbclient.hset(key, 'planid', 'basic')
               track_stat(:changed_customers)
               info "Updated customer #{custid} to 'basic' plan"
             end
@@ -77,7 +77,7 @@ module Onetime
 
           # Fix deprecated plan by updating to 'basic' if in actual run mode
           for_realsies_this_time? do
-            redis_client.hset(key, 'planid', 'basic')
+            dbclient.hset(key, 'planid', 'basic')
             track_stat(:changed_customers)
             info "Updated customer #{custid} from '#{planid}' to 'basic' plan"
           end

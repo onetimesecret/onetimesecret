@@ -20,8 +20,8 @@ module Onetime
       @batch_size   = 1000
       @scan_pattern = "#{@model_class.prefix}:*:custom_domain"
 
-      # Workaround: Familia::SortedSet ignores redis parameter, uses Familia.redis
-      Familia.redis(6)
+      # Workaround: Familia::SortedSet ignores redis parameter, uses Familia.dbclient
+      Familia.dbclient(6)
     end
 
     # This is an optional overload. We're cleaning up customer:*:custom_domain
@@ -39,7 +39,7 @@ module Onetime
       @related_object_key = key.sub(/:[^:]*$/, ':object')
 
       # Load the custom domain SortedSet
-      Familia::SortedSet.new(key, redis: redis_client)
+      Familia::SortedSet.new(key, redis: dbclient)
     end
 
     # This is the ModelMethod#process_record method to override to perform
@@ -63,18 +63,18 @@ module Onetime
     def delete_custom_domain(custom_domain_set)
       for_realsies_this_time? do
         result = custom_domain_set.delete!
-        info("Deleted custom domain (result: #{result}): #{custom_domain_set.rediskey}")
+        info("Deleted custom domain (result: #{result}): #{custom_domain_set.dbkey}")
       end
 
       dry_run_only? do
-        info("Would delete: #{custom_domain_set.rediskey}")
+        info("Would delete: #{custom_domain_set.dbkey}")
       end
     end
 
     def should_remove_domain?(custom_domain_set)
-      if test_domain_pattern?(custom_domain_set.rediskey)
+      if test_domain_pattern?(custom_domain_set.dbkey)
         track_stat(:should_remove_test_domain)
-        info("Found test domain: #{custom_domain_set.rediskey}")
+        info("Found test domain: #{custom_domain_set.dbkey}")
         true
       else
         false
@@ -82,12 +82,12 @@ module Onetime
     end
 
     def verify_no_related_object
-      exists = redis_client.exists?(@related_object_key)
+      exists = dbclient.exists?(@related_object_key)
       info("Verifying no related customer object: #{@related_object_key} (exists: #{exists})")
     end
 
-    def test_domain_pattern?(redis_key)
-      redis_key.to_s.match?(/tryouts.*onetimesecret\.com/i)
+    def test_domain_pattern?(dbkey)
+      dbkey.to_s.match?(/tryouts.*onetimesecret\.com/i)
     end
   end
 end

@@ -37,7 +37,7 @@ result = V1::Controllers::Index.metadata_hsh(@metadata)
 result[:metadata_ttl].is_a?(Integer) && result[:metadata_ttl] > 0
 #=> true
 
-## TTL handling - ttl is set to the static value from redis hash field
+## TTL handling - ttl is set to the static value from db hash field
 @metadata.secret_ttl = 3600
 result = V1::Controllers::Index.metadata_hsh(@metadata)
 result[:ttl]

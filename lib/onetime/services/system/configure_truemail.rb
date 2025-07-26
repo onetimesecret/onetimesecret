@@ -38,13 +38,12 @@ module Onetime
           validation_config = OT::Utils.deep_clone(
             config['mail']['validation']['defaults'],
           )
-
           # NOTE: We need to convert string-like values to Symbols here in the mail
-          # validation provider. Because we use redis as the backend and because
-          # we use JSON schema validation and because we need common config
-          # conventions between Ruby code and Typescript code, all keys are stored
-          # as strings and all string-like values are stored as strings. The init
-          # scripts cannot enforce Symbol types, so we handle that conversion here.
+          # validation provider. Because we use JSON schema validation and need
+          # common config conventions between Ruby code and Typescript code, all
+          # keys are stored as strings and all string-like values are stored as
+          # strings. The init scripts cannot enforce Symbol types, so we handle
+          # that conversion here.
           convert_validation_type_to_symbol(validation_config)
           convert_tracking_event_to_symbol(validation_config)
 

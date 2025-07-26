@@ -18,7 +18,7 @@ module V2
 
     feature :safe_dump
 
-    identifier :configid
+    identifier_field :configid
 
     class_sorted_set :values
     class_sorted_set :stack
@@ -53,16 +53,16 @@ module V2
     def init
       @configid ||= generate_id
 
-      OT.ld "[MutableConfig.init] #{configid} #{rediskey}"
+      OT.ld "[MutableConfig.init] #{configid} #{dbkey}"
     end
 
     # This method overrides the default save behavior to enforce saving
     # a new record and not updating an existing one. This ensures we
     # have a complete history of configuration objects.
     def save(**)
-      raise OT::Problem, "Cannot clobber #{self.class} #{rediskey}" if exists?
+      raise OT::Problem, "Cannot clobber #{self.class} #{dbkey}" if exists?
 
-      redis.multi do |multi|
+      dbclient.multi do |multi|
         super(**)
         self.class.add(self, multi)
       end

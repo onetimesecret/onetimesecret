@@ -33,7 +33,7 @@ module Onetime
 
         def print_enhanced_boot_receipt(config)
           site_config  = config.fetch('site')
-          redis_info   = Familia.redis.info
+          redis_info   = Familia.dbclient.info
           colonels     = site_config.dig(:authentication, :colonels) || []
           # email_config = config.fetch('emailer', {})
           # emailer      = get_state(:emailer)

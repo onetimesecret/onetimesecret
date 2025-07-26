@@ -162,10 +162,10 @@ end
 ## Deleting custom domain removes associated keys in Redis
 domain_to_delete = "delete-test-#{SecureRandom.hex(4)}.example.com"
 custom_domain = V2::CustomDomain.create(domain_to_delete, @customer.custid)
-redis_keys_before = custom_domain.redis.keys("#{custom_domain.rediskey}*")
+dbkeys_before = custom_domain.dbclient.keys("#{custom_domain.dbkey}*")
 custom_domain.destroy!(@customer)
-redis_keys_after = custom_domain.redis.keys("#{custom_domain.rediskey}*")
-[redis_keys_before.empty?, redis_keys_after.empty?]
+dbkeys_after = custom_domain.dbclient.keys("#{custom_domain.dbkey}*")
+[dbkeys_before.empty?, dbkeys_after.empty?]
 #=> [false, true]
 
 ## Custom domain is removed from customer's domains upon destruction

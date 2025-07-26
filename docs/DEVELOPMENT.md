@@ -57,19 +57,19 @@ The application supports both Redis and Valkey servers. Use environment variable
 
 ```bash
 # Set these in your shell profile or .env file
-export REDIS_SERVER=redis-server  # or valkey-server
-export REDIS_CLI=redis-cli        # or valkey-cli
+export VALKEY_SERVER=valkey-server  # or redis-server
+export VALKEY_CLI=valkey-cli        # or redis-cli
 ```
 
 If not set, defaults to `valkey-server` and `valkey-cli`.
 
 **Package.json scripts:**
 ```bash
-pnpm run redis:start     # Start server in daemon mode
-pnpm run redis:start:fg  # Start server in foreground
-pnpm run redis:stop      # Stop server
-pnpm run redis:status    # Check if server is running
-pnpm run redis:clean     # Clean Redis data
+pnpm run database:start     # Start server in daemon mode
+pnpm run database:start:fg  # Start server in foreground
+pnpm run database:stop      # Stop server
+pnpm run database:status    # Check if server is running
+pnpm run database:clean     # Clean database
 ```
 
 ## Setting up Pre-commit Hooks

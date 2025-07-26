@@ -42,8 +42,8 @@ module V1
       def metadata_hsh md, opts={}
 
         # The to_h method comes from Familia::Horreum which is concerned with
-        # preparing values for storage in redis. As a result, the hash returned
-        # has had its values passed through `to_redis` where everything becomes
+        # preparing values for storage in the db. As a result, the hash returned
+        # has had its values passed through `serialize_value` where everything becomes
         # a string. e.g. nil becomes ''. We not only allow but encourage this
         # behaviour since the values will become strings in Redis anyway so
         # better to be explicit about it.
@@ -67,13 +67,13 @@ module V1
         # Show the secret's actual real ttl as of now if we have it.
         secret_realttl = opts[:secret_ttl]&.to_i
 
-        # md.realttl is a redis command method. This makes a call to the redis server
+        # md.current_expiration is a db command method. This makes a call to the db server
         # to get the current value of the ttl for the metadata object. This is the
-        # actual time left before the metadata object is deleted from the redis server.
+        # actual time left before the metadata object is deleted from the db server.
         #
         # For the v1 API, this real value is what gets returned a "metadata_ttl". If
         # you don't find that confusing, take another look through the code.
-        metadata_realttl = md.realttl&.to_i
+        metadata_realttl = md.current_expiration&.to_i
 
         recipient = [hsh['recipients']]
           .flatten
@@ -85,7 +85,7 @@ module V1
           :custid => hsh['custid'],
           :metadata_key => hsh['key'],
           :secret_key => hsh['secret_key'],
-          :ttl => metadata_ttl, # static value from redis hash field
+          :ttl => metadata_ttl, # static value from db hash field
           :metadata_ttl => metadata_realttl, # actual number of seconds left to live
           :secret_ttl => secret_realttl, # ditto, actual number
           :state => hsh['state'] || 'new',

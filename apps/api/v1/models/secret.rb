@@ -6,10 +6,10 @@ module V1
     feature :safe_dump
     feature :expiration
 
-    ttl 7.days # default only, can be overridden at create time
+    default_expiration 7.days # default only, can be overridden at create time
     prefix :secret
 
-    identifier :generate_id
+    identifier_field :key
 
     field :custid
     field :state
@@ -28,7 +28,7 @@ module V1
     # See note on V2::Secret
     field :key
 
-    counter :view_count, ttl: 14.days # out lives the secret itself
+    counter :view_count, default_expiration: 14.days # out lives the secret itself
 
     # NOTE: this field is a nullop. It's only populated if a value was entered
     # into a hidden field which is something a regular person would not do.
@@ -88,7 +88,6 @@ module V1
       # Colloquial representation of the TTL. e.g. "1 day"
       V1::TimeUtils.natural_duration lifespan
     end
-    alias :natural_ttl :natural_duration
 
     def older_than? seconds
       age > seconds

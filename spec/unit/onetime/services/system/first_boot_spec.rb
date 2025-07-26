@@ -38,7 +38,7 @@ RSpec.describe 'Service Provider System' do
     end
 
     describe '#start' do
-      let(:mock_existing_settings) { double('MutableConfig', rediskey: 'mutable_config:abc123') }
+      let(:mock_existing_settings) { double('MutableConfig', dbkey: 'mutable_config:abc123') }
 
 
 
@@ -63,7 +63,7 @@ RSpec.describe 'Service Provider System' do
       end
 
       context 'when no existing mutable config are found (first boot)' do
-        let(:mock_created_settings) { double('CreatedSettings', rediskey: 'mutable_config:xyz789') }
+        let(:mock_created_settings) { double('CreatedSettings', dbkey: 'mutable_config:xyz789') }
 
         before do
           allow(V2::MutableConfig).to receive(:current).and_raise(OT::RecordNotFound, 'No config stack found')
@@ -122,7 +122,7 @@ RSpec.describe 'Service Provider System' do
           # Simulate existing data (not first boot)
           allow(V2::Customer).to receive(:values).and_return(double(element_count: 5))
           allow(V2::MutableConfig).to receive(:current).and_raise(OT::RecordNotFound, 'No config stack found')
-          allow(V2::MutableConfig).to receive(:create).and_return(double(rediskey: 'mutable_config:new123'))
+          allow(V2::MutableConfig).to receive(:create).and_return(double(dbkey: 'mutable_config:new123'))
         end
 
         it 'creates mutable config without showing first boot warning' do
@@ -196,7 +196,7 @@ RSpec.describe 'Service Provider System' do
     describe '#detect_first_boot (tested indirectly)' do
       before do
         allow(V2::MutableConfig).to receive(:current).and_raise(OT::RecordNotFound, 'No config stack found')
-        allow(V2::MutableConfig).to receive(:create).and_return(double(rediskey: 'test'))
+        allow(V2::MutableConfig).to receive(:create).and_return(double(dbkey: 'test'))
       end
 
       it 'detects first boot when no existing data found' do
@@ -243,7 +243,7 @@ RSpec.describe 'Service Provider System' do
 
     describe 'integration scenarios' do
       before do
-        allow(V2::MutableConfig).to receive(:create).and_return(double(rediskey: 'mutable_config:test'))
+        allow(V2::MutableConfig).to receive(:create).and_return(double(dbkey: 'mutable_config:test'))
       end
 
       it 'handles complete successful first boot flow' do
@@ -264,7 +264,7 @@ RSpec.describe 'Service Provider System' do
       it 'handles existing installation with mutable config' do
         # Setup existing installation
         allow(V2::Customer).to receive(:values).and_return(double(element_count: 10))
-        existing_settings = double('ExistingSettings', rediskey: 'mutable_config:existing_456')
+        existing_settings = double('ExistingSettings', dbkey: 'mutable_config:existing_456')
         allow(V2::MutableConfig).to receive(:current).and_return(existing_settings)
 
         provider.start(base_service_config)

@@ -84,7 +84,7 @@ count_after = @model_class.recent.count
 count_after - count_before
 #=> 0
 
-## Sending populates the Feedback model's sorted set key in redis
+## Sending populates the Feedback model's sorted set key in the database
 count_before = @model_class.recent.count
 email_address = "tryouts2+#{@now}@onetimesecret.com"
 sess = V2::Session.new '255.255.255.255', 'anon'

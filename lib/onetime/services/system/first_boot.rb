@@ -8,7 +8,7 @@ module Onetime
       #
       # Responsible for detecting whether this is the first time this
       # app is booting up with an empty database. Or if not, but there
-      # is no existing MutableConfig record in redis, it will read the
+      # is no existing MutableConfig record in the database, it will read the
       # defaults from etc/mutable.yaml and create one.
       #
       # If it is the first boot, it will print out some helpful information
@@ -51,7 +51,7 @@ module Onetime
           end
 
           if dynamic_config
-            OT.li "[BOOT.first_boot] Found existing mutable config: #{dynamic_config.rediskey}"
+            OT.li "[BOOT.first_boot] Found existing mutable config: #{dynamic_config.dbkey}"
             # Merge existing mutable config with YAML configuration
             # merge_mutable_config(dynamic_config)
 
@@ -86,7 +86,7 @@ module Onetime
         # there are existing records so the system is not in its initial state.
         def detect_first_boot
           model_checks = [
-            -> { V2::Metadata.redis.scan_each(match: 'metadata:*').first },
+            -> { V2::Metadata.dbclient.scan_each(match: 'metadata:*').first },
             -> { V2::Customer.values.element_count > 0 },
             -> { V2::Session.values.element_count > 0 },
           ]
@@ -107,7 +107,7 @@ module Onetime
           raise 'Missing required settings' if (default_mutable_config || {}).empty?
 
           new_config = V2::MutableConfig.create(**default_mutable_config)
-          OT.li "[BOOT.first_boot] Created initial mutable config: #{new_config.rediskey}"
+          OT.li "[BOOT.first_boot] Created initial mutable config: #{new_config.dbkey}"
           new_config.add_comment("Initial configuration via #{path} by first_boot")
         end
 

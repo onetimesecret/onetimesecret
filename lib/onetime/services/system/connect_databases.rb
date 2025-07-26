@@ -48,8 +48,8 @@ module Onetime
             db_index  = db_map[model_sym] || DATABASE_IDS[model_sym] || 0 # see models.rb
 
             # Assign a Redis connection to the model class
-            model_class.redis = Familia.redis(db_index)
-            ping_result       = model_class.redis.ping
+            model_class.dbclient = Familia.dbclient(db_index)
+            ping_result       = model_class.dbclient.ping
 
             debug "Connected #{model_sym} to DB #{db_index} (#{ping_result})"
           end
@@ -67,7 +67,7 @@ module Onetime
 
           # Check a sample of connections to verify they're still alive
           Familia.members.sample(3).all? do |model_class|
-            model_class.redis.ping == 'PONG'
+            model_class.dbclient.ping == 'PONG'
           rescue StandardError
             false
           end
@@ -75,7 +75,7 @@ module Onetime
           false
         end
 
-        # For backwards compatibility with v0.18.3 and earlier, these redis database
+        # For backwards compatibility with v0.18.3 and earlier, these database
         # IDs had been hardcoded in their respective model classes which we maintain
         # here for existing installs. If they haven't had a chance to update their
         # etc/config.yaml files OR

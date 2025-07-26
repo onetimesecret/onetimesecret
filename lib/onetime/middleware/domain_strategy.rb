@@ -180,7 +180,7 @@ module Onetime
         # subdomain_of?('deep.sub.example.com', 'example.com') # => true
         # subdomain_of?('example.com', 'example.com') # => false
 
-        # Checks data in redis
+        # Checks data in the database
         def known_custom_domain?(potential_custom_domain)
           # This will load the model if it hasn't been loaded yet
           # and avoid circular references between lib and v2.

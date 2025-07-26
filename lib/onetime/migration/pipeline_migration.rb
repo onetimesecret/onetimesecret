@@ -69,13 +69,13 @@ module Onetime
     # performance. Each object is checked via {#should_process?} and
     # updated via {#execute_update} if processing is needed.
     #
-    # @param objects [Array<Array>] Array of tuples: [obj, original_redis_key]
+    # @param objects [Array<Array>] Array of tuples: [obj, original_dbkey]
     #   The original Redis key is preserved because records with missing/empty
-    #   identifier fields cannot reconstitute their Redis key via obj.rediskey.
+    #   identifier fields cannot reconstitute their Redis key via obj.dbkey.
     #   Only the original key from SCAN guarantees we can operate on the record.
     # @return [void]
     def process_batch(objects)
-      @redis_client.pipelined do |pipe|
+      @dbclient.pipelined do |pipe|
         objects.each do |obj, original_key|
           next unless should_process?(obj)
 
@@ -106,7 +106,7 @@ module Onetime
       batch_objects = []
 
       loop do
-        cursor, keys    = @redis_client.scan(cursor, match: @scan_pattern, count: @batch_size)
+        cursor, keys    = @dbclient.scan(cursor, match: @scan_pattern, count: @batch_size)
         @total_scanned += keys.size
 
         # Progress reporting
@@ -202,11 +202,11 @@ module Onetime
       end
 
       # Use original_key for records that can't generate valid keys
-      redis_key = original_key || obj.rediskey
+      dbkey = original_key || obj.dbkey
 
       for_realsies_this_time? do
         # USE THE PIPELINE AND NOT THE regular redis connection.
-        pipe.hmset(redis_key, fields.flatten)
+        pipe.hmset(dbkey, fields.flatten)
       end
 
       dry_run_only? do

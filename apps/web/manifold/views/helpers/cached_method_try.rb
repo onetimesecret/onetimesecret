@@ -65,7 +65,7 @@ result3 == @result1
 #=> false
 
 ## Manually expire the cache
-Familia::String.new("template:global:test_method", ttl: 1.hour, db: 0).delete!
+Familia::String.new("template:global:test_method", default_expiration: 1.hour, logical_database: 0).delete!
 #=> true
 
 ## Call after expiration should generate a new result
@@ -75,4 +75,4 @@ p @result1
 content == @result1
 #=> true
 
-Familia::String.new("template:global:test_method", ttl: 1.hour, db: 0).delete!
+Familia::String.new("template:global:test_method", default_expiration: 1.hour, logical_database: 0).delete!

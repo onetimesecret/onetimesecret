@@ -18,7 +18,7 @@ module V2
         base.field :objid
         base.field :extid
         base.field :api_version
-        base.identifier :objid
+        # base.identifier_field :objid
         base.extend(ClassMethods)
 
         # prepend ensures our methods execute BEFORE field-generated accessors
@@ -100,7 +100,7 @@ module V2
 
           if Familia.debug?
             reference = caller(1..1).first
-            Familia.trace :FIND_BY_OBJID, Familia.redis(uri), objkey, reference
+            Familia.trace :FIND_BY_OBJID, Familia.dbclient(uri), objkey, reference
           end
 
           find_by_key objkey

@@ -31,10 +31,10 @@ module Onetime
     # a pipline migration). It's called automatically in process_batch.
     def execute_update(pipe, obj, _, original_key)
       # Use original_key for records that can't generate valid keys
-      redis_key = original_key || obj.rediskey
+      dbkey = original_key || obj.dbkey
 
       for_realsies_this_time? do
-        pipe.del redis_key
+        pipe.del dbkey
       end
 
       dry_run_only? do
@@ -53,13 +53,13 @@ module Onetime
     def should_process?(obj)
       should_process = false
       criteria = [
-        obj.realttl.to_i.negative?,
+        obj.current_expiration.to_i.negative?,
         obj.created.to_i.older_than?(7.days),
       ]
 
       if criteria.all?
         track_stat('removal_ttl_and_older_than_7d')
-        debug("Should process sessid=#{obj.sessid} ttl=#{obj.ttl} realttl=#{obj.realttl}")
+        debug("Should process sessid=#{obj.sessid} ttl=#{obj.ttl} realttl=#{obj.current_expiration}")
         should_process = true
       end
 

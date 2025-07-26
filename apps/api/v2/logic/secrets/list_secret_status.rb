@@ -23,7 +23,7 @@ module V2::Logic
 
       def process
         # We don't get the actual TTL value for batches of secrets
-        # since that would double the calls to redis.
+        # since that would double the calls to the database.
       end
 
       def success_data

@@ -49,7 +49,7 @@ module V1
         #
         # We give them a very short shelf life so they don't linger
         # around and confuse the user.
-        base.list :messages, ttl: 15.seconds
+        base.list :messages, default_expiration: 15.seconds
       end
 
       def set_form_fields hsh

@@ -20,22 +20,22 @@ module V2
           raise Onetime::Problem, "Invalid field #{key} (#{index})"
         end
 
-        redis.watch(obj.rediskey) do
+        dbclient.watch(obj.dbkey) do
           if obj.exists?
-            redis.unwatch
-            raise Onetime::Problem, "Duplicate record #{obj.rediskey}"
+            dbclient.unwatch
+            raise Onetime::Problem, "Duplicate record #{obj.dbkey}"
           end
 
-          redis.multi do |multi|
+          dbclient.multi do |multi|
             # Use the object's field values which are properly serialized
             kwargs.each do |key, _value|
               # Get the serialized value from the object's instance variable
               serialized_value = obj.instance_variable_get("@#{key}")
-              multi.hset(obj.rediskey, key, serialized_value) if serialized_value
+              multi.hset(obj.dbkey, key, serialized_value) if serialized_value
             end
-            multi.hset(obj.rediskey, :configid, obj.identifier)
-            multi.hset(obj.rediskey, :created_at, Time.now.to_i)
-            multi.hset(obj.rediskey, :updated_at, Time.now.to_i)
+            multi.hset(obj.dbkey, :configid, obj.identifier)
+            multi.hset(obj.dbkey, :created_at, Time.now.to_i)
+            multi.hset(obj.dbkey, :updated_at, Time.now.to_i)
             add(obj.identifier, multi) # keep track of instances via class_list :values
           end
         end
@@ -66,9 +66,9 @@ module V2
 
         if multi
           # Use the provided multi instance for atomic operations
-          multi.zadd(values.rediskey, now, fobj.to_s)
-          multi.zadd(stack.rediskey, now, fobj.to_s)
-          multi.zadd(audit_log.rediskey, now, fobj.to_s)
+          multi.zadd(values.dbkey, now, fobj.to_s)
+          multi.zadd(stack.dbkey, now, fobj.to_s)
+          multi.zadd(audit_log.dbkey, now, fobj.to_s)
         else
           # Fall back to individual operations for backward compatibility
           values.add now, fobj.to_s
@@ -119,10 +119,10 @@ module V2
       end
 
       def rollback!
-        rollback_key = rediskey(:rollback)
-        redis.watch(rollback_key) do
-          redis.multi do |multi|
-            multi.zpopmax(stack.rediskey, 1).first&.first
+        rollback_key = dbkey(:rollback)
+        dbclient.watch(rollback_key) do
+          dbclient.multi do |multi|
+            multi.zpopmax(stack.dbkey, 1).first&.first
             multi.revrangeraw(0, 0).first
           end
 

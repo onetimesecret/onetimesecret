@@ -98,7 +98,7 @@ module Onetime
 
     # Redis client instance for the model
     # @return [Redis] model's Redis connection
-    attr_reader :redis_client
+    attr_reader :dbclient
 
     def initialize
       super
@@ -120,7 +120,7 @@ module Onetime
       # for an interactive debug session on a per-record basis.
       require 'pry-byebug' if interactive
 
-      print_redis_details
+      print_database_details
       run_mode_banner
 
       info("[#{self.class.name.split('::').last}] Starting #{model_class.name} migration")
@@ -128,7 +128,7 @@ module Onetime
       info('Will show progress every 100 records and log each update')
 
       scan_and_process_records
-      print_redis_details
+      print_database_details
       print_migration_summary
 
       @error_count == 0
@@ -184,8 +184,8 @@ module Onetime
     # and {#for_realsies_this_time?} to wrap actual changes.
     #
     # @abstract Subclasses must implement this method
-    # @param obj [Familia::Horreum, Familia::RedisType] The familia class instance to process
-    # @param key [String] The redis key of the record
+    # @param obj [Familia::Horreum, Familia::DataType] The familia class instance to process
+    # @param key [String] The dbkey of the record
     # @return [void]
     # @raise [NotImplementedError] if not implemented
     def process_record(obj, key)
@@ -235,7 +235,7 @@ module Onetime
       @model_class  = nil
       @scan_pattern = nil
       @interactive  = false
-      @redis_client = nil
+      @dbclient = nil
     end
 
     def validate_model_class!
@@ -243,7 +243,7 @@ module Onetime
       raise 'Model class must be a Familia::Horreum subclass' unless familia_horreum_class?
 
       @total_records  = @model_class.values.size
-      @redis_client ||= @model_class.redis
+      @dbclient ||= @model_class.dbclient
       @scan_pattern ||= "#{@model_class.prefix}:*:object"
       nil
     end
@@ -256,7 +256,7 @@ module Onetime
       cursor = '0'
 
       loop do
-        cursor, keys    = @redis_client.scan(cursor, match: @scan_pattern, count: @batch_size)
+        cursor, keys    = @dbclient.scan(cursor, match: @scan_pattern, count: @batch_size)
         @total_scanned += keys.size
 
         show_progress if should_show_progress?
@@ -335,19 +335,19 @@ module Onetime
       info 'Run with --run to apply these updates'
     end
 
-    def print_redis_details
+    def print_database_details
       print_summary('Redis Details') do
         info("Model class: #{@model_class.name}")
-        info("Redis connection: #{@redis_client.connection[:id]}")
+        info("Redis connection: #{@dbclient.connection[:id]}")
         info("Scan pattern: #{@scan_pattern}")
         info("Indexed records: #{@total_records} (#{@model_class.name}.values)")
         info("Batch size: #{@batch_size}")
-        verify_redis_connection
+        verify_database_connection
       end
     end
 
-    def verify_redis_connection
-      @redis_client.ping
+    def verify_database_connection
+      @dbclient.ping
       debug('Redis connection: verified')
     rescue StandardError => ex
       error("Cannot connect to Redis: #{ex.message}")

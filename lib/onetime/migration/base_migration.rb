@@ -277,14 +277,14 @@ module Onetime
 
     protected
 
-    # Access to Redis database (defaults to DB 6)
+    # Access to database client (defaults to DB 6)
     #
-    # Provides a Redis connection for migrations that need to
-    # access data outside of Familia models.
+    # Provides a database connection for migrations
+    # that need to access data outside of Familia models.
     #
     # @return [Redis] configured Redis connection
-    def redis
-      @redis ||= Familia.redis(6)
+    def dbclient
+      @dbclient ||= Familia.dbclient(6)
     end
 
   end

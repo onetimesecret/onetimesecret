@@ -6,11 +6,12 @@ module V1
     feature :safe_dump
     feature :expiration
 
-    ttl 14.days
+    default_expiration 14.days
     prefix :metadata
 
-    identifier :generate_id
+    identifier_field :key
 
+    field :key
     field :custid
     field :state
     field :secret_key
@@ -100,7 +101,6 @@ module V1
       # Colloquial representation of the TTL. e.g. "1 day"
       V1::TimeUtils.natural_duration metadata_ttl
     end
-    alias :natural_ttl :natural_duration
 
     alias :secret_expiration_in_seconds :secret_ttl
 
@@ -115,7 +115,6 @@ module V1
       # Colloquial representation of the TTL. e.g. "1 day"
       V1::TimeUtils.natural_duration secret_ttl.to_i if secret_ttl
     end
-    alias :secret_natural_ttl :secret_natural_duration
 
     def secret_expired?
       Time.now.utc.to_i >= (secret_expiration || 0)
@@ -172,7 +171,7 @@ module V1
     # we pass update_expiration: false to save so that changing this metdata
     # objects state doesn't affect its original expiration time.
     #
-    # TODO: Replace with transaction (i.e. redis multi command)
+    # TODO: Replace with transaction (i.e. MULTI/EXEC command)
     def viewed!
       # A guard to allow only a fresh, new secret to be viewed. Also ensures
       # that we don't support going from viewed back to something else.

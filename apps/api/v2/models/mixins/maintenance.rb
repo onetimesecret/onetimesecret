@@ -11,7 +11,7 @@ module V2
      #
      # FAMILIA QUIRK: Records with empty identifiers cause stack overflow
      # in exists?, save, and other model operations due to infinite loops
-     # in key generation (identifier → rediskey → identifier). Always
+     # in key generation (identifier → dbkey → identifier). Always
      # validate identifier before calling maintenance methods.
      #
      module ModelMaintenance

@@ -72,9 +72,9 @@ module Manifold
       # @note The default Time To Live (TTL) for the cache is 1 hour.
       #
       def cached_method(methname)
-        rediskey     = "template:global:#{methname}"
-        cache_object = Familia::String.new rediskey, ttl: 1.hour, db: 0
-        OT.ld "[cached_method] #{methname} #{cache_object.exists? ? 'hit' : 'miss'} #{rediskey}"
+        dbkey     = "template:global:#{methname}"
+        cache_object = Familia::String.new dbkey, default_expiration: 1.hour, logical_database: 0
+        OT.ld "[cached_method] #{methname} #{cache_object.exists? ? 'hit' : 'miss'} #{dbkey}"
         cached       = cache_object.get
         return cached if cached
 

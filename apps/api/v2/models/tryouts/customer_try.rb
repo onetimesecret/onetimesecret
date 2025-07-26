@@ -39,9 +39,9 @@ p @cust.to_h
 @cust.custid
 #=> @email_address
 
-## New instance of customer has a rediskey
+## New instance of customer has a dbkey
 p [:email, @email_address]
-@cust.rediskey
+@cust.dbkey
 #=> "customer:#{@email_address}:object"
 
 ## Can "create" an anonymous user (more like simulate)
@@ -74,11 +74,11 @@ rescue OT::Problem => e
 end
 #=> [Onetime::Problem, "Anonymous cannot be saved V2::Customer customer:anon:object"]
 
-## Object name and rediskey are no longer equivalent.
+## Object name and dbkey are no longer equivalent.
 ## This is a reference back to Familia v0.10.2 era which
 ## used to have a name method that returned the key.
 @cust.respond_to?(:name) ||
-(@cust.respond_to?(:name) && @cust.name.eql?(@cust.rediskey))
+(@cust.respond_to?(:name) && @cust.name.eql?(@cust.dbkey))
 #=> false
 
 ## New un-saved instance of customer has a role of 'customer'
@@ -142,12 +142,12 @@ ttl = @cust.ttl
 @cust.verified?
 #=> false
 
-## Customer.values has the correct rediskey
-V2::Customer.values.rediskey
+## Customer.values has the correct dbkey
+V2::Customer.values.dbkey
 #=> "onetime:customer"
 
-## Customer.domains has the correct rediskey
-V2::Customer.domains.rediskey
+## Customer.domains has the correct dbkey
+V2::Customer.domains.dbkey
 #=> "onetime:customers:domain"
 
 ## Customer.values is a Familia::SortedSet

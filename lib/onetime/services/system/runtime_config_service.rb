@@ -74,7 +74,7 @@ module Onetime
         #
         # @return [Boolean] true if MutableConfig is accessible
         def healthy?
-          super && redis_available?
+          super && database_available?
         end
 
         private
@@ -117,7 +117,7 @@ module Onetime
         # Check if Redis is available for MutableConfig operations
         #
         # @return [Boolean] true if Redis is accessible
-        def redis_available?
+        def database_available?
           return false unless mutable_config_available?
 
           # Try to access MutableConfig to test Redis connectivity

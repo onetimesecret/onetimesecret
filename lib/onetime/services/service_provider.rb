@@ -34,8 +34,8 @@ module Onetime
     # @example Config Provider
     #   class RuntimeConfigServiceProvider < ServiceProvider
     #     def start(config)
-    #       redis_settings = load_from_redis()
-    #       redis_settings.each { |k, v| set_state(k, v) }
+    #       database_settings = load_from_redis()
+    #       database_settings.each { |k, v| set_state(k, v) }
     #     end
     #   end
     #

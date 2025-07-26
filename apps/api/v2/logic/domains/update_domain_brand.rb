@@ -72,7 +72,7 @@ module V2::Logic
           next if value.nil?
 
           OT.ld "[UpdateDomainBrand] Updating brand setting: #{key} => #{value} (#{value.class})"
-          custom_domain.brand[key.to_s] = value.to_s # everything in redis is a string
+          custom_domain.brand[key.to_s] = value.to_s # everything in the database is a string
         end
 
         custom_domain.updated = Time.now.to_i

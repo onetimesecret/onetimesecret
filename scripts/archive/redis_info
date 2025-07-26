@@ -11,4 +11,4 @@ $:.unshift(::File.join(ENV['ONETIME_HOME'], 'lib'))
 
 require 'onetime'
 require 'json'
-y V1::Secret.redis.info
+y V1::Secret.dbclient.info

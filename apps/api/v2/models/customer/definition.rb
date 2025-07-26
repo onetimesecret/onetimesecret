@@ -52,7 +52,7 @@ module V2
     hashkey :feature_flags # e.g. isBetaEnabled
 
     # Used to track the current and most recently created password reset secret.
-    string :reset_secret, ttl: 24.hours
+    string :reset_secret, default_expiration: 24.hours
 
     field :custid
     field :email
@@ -147,7 +147,7 @@ module V2
       # When an instance is first created, any field that doesn't have a
       # value set will be nil. We need to ensure that these fields are
       # set to an empty string to match the default values when loading
-      # from redis (i.e. all values in core redis data types are strings).
+      # from the db (i.e. all values in core data types are strings).
       self.locale ||= ''
 
       # Initialze auto-increment fields. We do this since Redis

@@ -99,7 +99,7 @@ module Manifold
 
       throttle_response 'Cripes! You have been rate limited.'
     rescue Familia::HighRiskFactor => ex
-      OT.le "[attempt-saving-non-string-to-redis] #{obscured} (#{sess.ipaddress}): #{sess.identifier.shorten(10)} (#{req.current_absolute_uri})"
+      OT.le "[attempt-saving-non-string-to-db] #{obscured} (#{sess.ipaddress}): #{sess.identifier.shorten(10)} (#{req.current_absolute_uri})"
 
       # Track attempts to save non-string data to Redis as a warning error
       capture_error ex, :warning
@@ -237,7 +237,7 @@ module Manifold
 
       @check_session_ran = true
 
-      # Load from redis or create the session
+      # Load from the db or create the session
       @sess = if req.cookie?(:sess) && V2::Session.exists?(req.cookie(:sess))
         V2::Session.load req.cookie(:sess)
       else
@@ -272,12 +272,12 @@ module Manifold
       # rest of the data. This is a security feature.
       sess.disable_auth = !authentication_enabled?
 
-      # Update the session fields in redis (including updated timestamp)
+      # Update the session fields in the database (including updated timestamp)
       sess.save
 
       is_secure = OT.conf&.dig('site', 'ssl') || true
 
-      # Only set the cookie after session is for sure saved to redis
+      # Only set the cookie after session is for sure saved to the database
       res.send_cookie :sess, sess.sessid, sess.ttl, is_secure
 
       # Re-hydrate the customer object

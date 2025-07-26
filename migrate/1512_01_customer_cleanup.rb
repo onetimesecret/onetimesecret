@@ -24,10 +24,10 @@ module Onetime
     # Override to handle deletions instead of field updates
     def execute_update(pipe, obj, fields, original_key = nil)
       # Use original_key for records that can't generate valid keys
-      redis_key = original_key || obj.rediskey
+      dbkey = original_key || obj.dbkey
 
       for_realsies_this_time? do
-        pipe.del redis_key
+        pipe.del dbkey
       end
 
       dry_run_only? do

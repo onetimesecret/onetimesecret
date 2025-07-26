@@ -122,7 +122,7 @@ module V1
         secret.custid = cust.custid
         secret.save
 
-        cust.reset_secret = secret.key # as a standalone rediskey, writes immediately
+        cust.reset_secret = secret.key # as a standalone dbkey, writes immediately
 
         view = Onetime::Mail::Welcome.new cust, locale, secret
 

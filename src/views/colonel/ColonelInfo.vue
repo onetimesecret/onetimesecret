@@ -216,7 +216,7 @@
         </h3>
         <div class="rounded-lg bg-white shadow dark:bg-gray-800">
           <div class="max-h-64 overflow-y-auto p-4">
-            <pre class="text-xs text-gray-800 dark:text-gray-200">{{ details?.redis_info }}</pre>
+            <pre class="text-xs text-gray-800 dark:text-gray-200">{{ details?.dbclient_info }}</pre>
           </div>
         </div>
       </div>

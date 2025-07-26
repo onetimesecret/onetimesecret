@@ -17,15 +17,15 @@ module Onetime
       grouped_domains.sort.each do |display_domain, domains|
         if domains.size == 1
           domain = domains.first
-          puts format('%s %s', display_domain, domain.rediskey)
+          puts format('%s %s', display_domain, domain.dbkey)
         else
-          rediskeys         = domains.map(&:rediskey)
-          rediskeys_display = if rediskeys.size > 3
-                                "#{rediskeys[0..2].join(', ')}, ..."
+          dbkeys         = domains.map(&:dbkey)
+          dbkeys_display = if dbkeys.size > 3
+                                "#{dbkeys[0..2].join(', ')}, ..."
                               else
-                                rediskeys.join(', ')
+                                dbkeys.join(', ')
                               end
-          puts format('%4d  %s (%s)', domains.size, display_domain, rediskeys_display)
+          puts format('%4d  %s (%s)', domains.size, display_domain, dbkeys_display)
         end
       end
     end

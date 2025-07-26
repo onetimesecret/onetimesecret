@@ -112,12 +112,12 @@ RSpec.shared_context "service_provider_context" do
   end
 
   # Mock Redis connection for database tests
-  let(:mock_redis_connection) { double('Redis', ping: 'PONG') }
+  let(:mock_database_connection) { double('Redis', ping: 'PONG') }
 
   # Mock MutableConfig for runtime config tests
   let(:mock_mutable_config) do
     double('MutableConfig',
-      rediskey: 'mutable_config:test123',
+      dbkey: 'mutable_config:test123',
       safe_dump: runtime_mutable_config
     )
   end
@@ -166,15 +166,15 @@ RSpec.shared_context "first_boot_stubs" do
 end
 
 RSpec.shared_context "database_connection_stubs" do
-  let(:mock_model_class1) { double('ModelClass1', to_sym: :session, 'redis=': nil, redis: mock_redis_connection) }
-  let(:mock_model_class2) { double('ModelClass2', to_sym: :customer, 'redis=': nil, redis: mock_redis_connection) }
-  let(:mock_model_class3) { double('ModelClass3', to_sym: :unmapped_model, 'redis=': nil, redis: mock_redis_connection) }
+  let(:mock_model_class1) { double('ModelClass1', to_sym: :session, 'redis=': nil, redis: mock_database_connection) }
+  let(:mock_model_class2) { double('ModelClass2', to_sym: :customer, 'redis=': nil, redis: mock_database_connection) }
+  let(:mock_model_class3) { double('ModelClass3', to_sym: :unmapped_model, 'redis=': nil, redis: mock_database_connection) }
   let(:familia_members) { [mock_model_class1, mock_model_class2, mock_model_class3] }
 
   before do
     # Stub Familia methods for database connection tests
     allow(Familia).to receive(:uri=)
-    allow(Familia).to receive(:redis).and_return(mock_redis_connection)
+    allow(Familia).to receive(:redis).and_return(mock_database_connection)
     allow(Familia).to receive(:members).and_return(familia_members)
   end
 end
@@ -196,13 +196,13 @@ RSpec.shared_examples "service_provider_health_check" do
       end
 
       it 'returns true when healthy' do
-        allow(subject).to receive(:redis_available?).and_return(true) if subject.respond_to?(:redis_available?)
+        allow(subject).to receive(:database_available?).and_return(true) if subject.respond_to?(:database_available?)
         expect(subject.healthy?).to be true
       end
 
       it 'returns false when Redis unavailable' do
-        allow(subject).to receive(:redis_available?).and_return(false) if subject.respond_to?(:redis_available?)
-        expect(subject.healthy?).to be false if subject.respond_to?(:redis_available?)
+        allow(subject).to receive(:database_available?).and_return(false) if subject.respond_to?(:database_available?)
+        expect(subject.healthy?).to be false if subject.respond_to?(:database_available?)
       end
     end
 

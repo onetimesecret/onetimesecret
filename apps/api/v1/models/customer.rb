@@ -23,9 +23,9 @@ module V1
     hashkey :feature_flags # To turn on allow_public_homepage column in domains table
 
     # Used to track the current and most recently created password reset secret.
-    string :reset_secret, ttl: 24.hours
+    string :reset_secret, default_expiration: 24.hours
 
-    identifier :custid
+    identifier_field :custid
 
     field :custid
     field :email
@@ -91,7 +91,7 @@ module V1
       # When an instance is first created, any field that doesn't have a
       # value set will be nil. We need to ensure that these fields are
       # set to an empty string to match the default values when loading
-      # from redis (i.e. all values in core redis data types are strings).
+      # from the db (i.e. all values in core data types are strings).
       self.locale ||= ''
 
       # Initialze auto-increment fields. We do this since Redis
@@ -364,7 +364,7 @@ module V1
     # This method overrides the default save behavior to prevent
     # anonymous customers from being persisted to the database.
     def save **kwargs
-      raise OT::Problem, "Anonymous cannot be saved #{self.class} #{rediskey}" if anonymous?
+      raise OT::Problem, "Anonymous cannot be saved #{self.class} #{dbkey}" if anonymous?
       super(**kwargs)
     end
 
@@ -438,7 +438,7 @@ module V1
 
       rescue Redis::CommandError => e
 
-        # For whatever reason, redis throws an error when trying to
+        # For whatever reason, the database throws an error when trying to
         # increment a non-existent hashkey field (rather than setting
         # it to 1): "ERR hash value is not an integer"
         OT.le "[increment_field] Redis error (#{curval}): #{e.message}"

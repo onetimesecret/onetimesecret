@@ -20,9 +20,9 @@ module Onetime
   #
   #   config = { env: 'dev' }
   #     .then_with_diff('set database') { |c| c.merge(db: 'postgres') }
-  #     .then_with_diff('add cache') { |c| c.merge(cache: 'redis') }
+  #     .then_with_diff('add cache') { |c| c.merge(cache: 'valkey') }
   #   # Logs: [diff] set database: [["+", "db", "postgres"]]
-  #   # Logs: [diff] add cache: [["+", "cache", "redis"]]
+  #   # Logs: [diff] add cache: [["+", "cache", "valkey"]]
   #
   # @note Uses deep cloning by default to prevent reference issues
   # @note Diff options configured for strict type checking and symbol/string indifference
@@ -63,8 +63,8 @@ module Onetime
     # we'll want want to setup this history sorted set at boot-time to so
     # we can access it in other parts of the codebase.
     @history = Familia::SortedSet.new 'then_with_diff',
-      db: 2,
-      ttl: 14.days,
+      logical_database: 2,
+      default_expiration: 14.days,
       prefix: 'system',
       suffix: 'history'
 

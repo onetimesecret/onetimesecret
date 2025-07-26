@@ -8,12 +8,12 @@ module V1
     feature :safe_dump
     feature :expiration
 
-    ttl 20.minutes
+    default_expiration 20.minutes
     prefix :session
 
     class_sorted_set :values, key: "onetime:session"
 
-    identifier :sessid
+    identifier_field :sessid
 
     field :ipaddress
     field :custid
@@ -112,12 +112,12 @@ module V1
         begin
           self.delete!
         rescue => ex
-          OT.le "[Session.replace!] Failed to delete key #{rediskey}: #{ex.message}"
+          OT.le "[Session.replace!] Failed to delete key #{dbkey}: #{ex.message}"
         end
       end
 
       # This update is important b/c it ensures that the
-      # data gets written to redis.
+      # data gets written to the database.
       self.sessid = newid
 
       # Familia doesn't automatically keep the key in sync with the

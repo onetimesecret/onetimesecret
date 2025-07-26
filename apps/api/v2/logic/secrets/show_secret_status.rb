@@ -15,14 +15,14 @@ module V2::Logic
       end
 
       def process
-        @realttl = secret.realttl unless secret.nil?
+        @realttl = secret.current_expiration unless secret.nil?
       end
 
       def success_data
         if secret.nil?
           { record: { state: 'unknown' } }
         else
-          { record: secret.safe_dump, details: { realttl: realttl } }
+          { record: secret.safe_dump, details: { current_expiration: current_expiration } }
         end
       end
     end

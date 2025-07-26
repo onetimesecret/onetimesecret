@@ -40,12 +40,12 @@ RSpec.describe 'Service Provider System' do
         expect(Familia).to have_received(:redis).with(0) # unmapped_model -> 0 (default)
 
         # Verify redis connections were assigned to models
-        expect(mock_model_class1).to have_received('redis=').with(mock_redis_connection)
-        expect(mock_model_class2).to have_received('redis=').with(mock_redis_connection)
-        expect(mock_model_class3).to have_received('redis=').with(mock_redis_connection)
+        expect(mock_model_class1).to have_received('redis=').with(mock_database_connection)
+        expect(mock_model_class2).to have_received('redis=').with(mock_database_connection)
+        expect(mock_model_class3).to have_received('redis=').with(mock_database_connection)
 
         # Verify ping was called on each connection
-        expect(mock_redis_connection).to have_received(:ping).exactly(3).times
+        expect(mock_database_connection).to have_received(:ping).exactly(3).times
 
         # Verify provider was registered as connected
         expect(provider).to have_received(:register_provider).with(:databases, :connected)
@@ -53,38 +53,38 @@ RSpec.describe 'Service Provider System' do
 
       it 'uses DATABASE_IDS fallback when model not in config mapping' do
         # Add a model that exists in DATABASE_IDS but not in config
-        mock_metadata_model = double('MetadataModel', to_sym: :metadata, 'redis=': nil, redis: mock_redis_connection)
+        mock_metadata_model = double('MetadataModel', to_sym: :metadata, 'redis=': nil, redis: mock_database_connection)
         allow(Familia).to receive(:members).and_return([mock_metadata_model])
 
         provider.start(db_config)
 
         # Should use DATABASE_IDS[:metadata] = 7 from config
         expect(Familia).to have_received(:redis).with(7)
-        expect(mock_metadata_model).to have_received('redis=').with(mock_redis_connection)
+        expect(mock_metadata_model).to have_received('redis=').with(mock_database_connection)
       end
 
       it 'uses DATABASE_IDS when model not in config but exists in constants' do
         # Test with a model only in DATABASE_IDS
-        mock_feedback_model = double('FeedbackModel', to_sym: :feedback, 'redis=': nil, redis: mock_redis_connection)
+        mock_feedback_model = double('FeedbackModel', to_sym: :feedback, 'redis=': nil, redis: mock_database_connection)
         allow(Familia).to receive(:members).and_return([mock_feedback_model])
 
         provider.start(db_config)
 
         # Should use DATABASE_IDS[:feedback] = 11
         expect(Familia).to have_received(:redis).with(11)
-        expect(mock_feedback_model).to have_received('redis=').with(mock_redis_connection)
+        expect(mock_feedback_model).to have_received('redis=').with(mock_database_connection)
       end
 
       it 'defaults to database 0 when model not found anywhere' do
         # Test with completely unmapped model
-        mock_unknown_model = double('UnknownModel', to_sym: :unknown_model, 'redis=': nil, redis: mock_redis_connection)
+        mock_unknown_model = double('UnknownModel', to_sym: :unknown_model, 'redis=': nil, redis: mock_database_connection)
         allow(Familia).to receive(:members).and_return([mock_unknown_model])
 
         provider.start(db_config)
 
         # Should default to database 0
         expect(Familia).to have_received(:redis).with(0)
-        expect(mock_unknown_model).to have_received('redis=').with(mock_redis_connection)
+        expect(mock_unknown_model).to have_received('redis=').with(mock_database_connection)
       end
 
       it 'raises error when no Familia members are loaded' do
@@ -114,12 +114,12 @@ RSpec.describe 'Service Provider System' do
       end
 
       it 'handles ping failures during verification' do
-        allow(mock_redis_connection).to receive(:ping).and_raise(Redis::TimeoutError, 'Timeout')
+        allow(mock_database_connection).to receive(:ping).and_raise(Redis::TimeoutError, 'Timeout')
 
         expect { provider.start(db_config) }.to raise_error(Redis::TimeoutError)
 
         # Should have assigned connections but failed on ping
-        expect(mock_model_class1).to have_received('redis=').with(mock_redis_connection)
+        expect(mock_model_class1).to have_received('redis=').with(mock_database_connection)
       end
     end
 

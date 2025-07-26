@@ -25,7 +25,7 @@ module V1
 
     # CustomDomain records can only be created via V2 so we use the existing
     # domainid field as the identifier.
-    identifier :domainid
+    identifier_field :domainid
 
     field :display_domain
     field :custid
@@ -126,7 +126,7 @@ module V1
     #
     # @return [Boolean] true if the domain exists in Redis
     def exists?
-      redis.exists?(rediskey)
+      dbclient.exists?(dbkey)
     end
 
     # Returns the current verification state of the custom domain

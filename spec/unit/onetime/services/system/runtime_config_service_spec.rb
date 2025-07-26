@@ -111,21 +111,21 @@ RSpec.describe 'Service Provider System' do
       end
 
       it 'returns true when provider is running and Redis available' do
-        allow(provider).to receive(:redis_available?).and_return(true)
+        allow(provider).to receive(:database_available?).and_return(true)
 
         result = provider.healthy?
 
         expect(result).to be true
-        expect(provider).to have_received(:redis_available?).once
+        expect(provider).to have_received(:database_available?).once
       end
 
       it 'returns false when Redis unavailable' do
-        allow(provider).to receive(:redis_available?).and_return(false)
+        allow(provider).to receive(:database_available?).and_return(false)
 
         result = provider.healthy?
 
         expect(result).to be false
-        expect(provider).to have_received(:redis_available?).once
+        expect(provider).to have_received(:database_available?).once
       end
 
       it 'returns false when provider is not running' do

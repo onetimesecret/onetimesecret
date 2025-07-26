@@ -93,9 +93,9 @@ module V2::Logic
 
         # Add the encoded image and metadata to the custom domain
         # image field (e.g. logo, icon, etc). These fields are their
-        # own redis hash keys and not in the main custom domain
+        # own db hash keys and not in the main custom domain
         # object hash. That means these attribtues are being
-        # directly saved into redis and we do not need to call
+        # directly saved into the database and we do not need to call
         # custom_domain.save to persist these changes.
         _image_field['encoded']      = encoded_content
         _image_field['filename']     = @filename

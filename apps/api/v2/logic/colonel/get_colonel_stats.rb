@@ -24,8 +24,8 @@ module V2
         def process_statistics
           @session_count   = V2::Session.recent(15.minutes).size
           @customer_count  = V2::Customer.values.size
-          @metadata_count  = V2::Metadata.new.redis.keys('metadata*:object').count
-          @secret_count    = V2::Secret.new.redis.keys('secret*:object').count
+          @metadata_count  = V2::Metadata.new.dbclient.keys('metadata*:object').count
+          @secret_count    = V2::Secret.new.dbclient.keys('secret*:object').count
           @secrets_created = V2::Customer.global.secrets_created.to_s
           @secrets_shared  = V2::Customer.global.secrets_shared.to_s
           @emails_sent     = V2::Customer.global.emails_sent.to_s
