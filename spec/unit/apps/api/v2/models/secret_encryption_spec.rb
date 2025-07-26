@@ -9,11 +9,13 @@ RSpec.describe V2::Secret, allow_redis: false do
     let(:passphrase) { "test-passphrase-123" }
 
     before do
-      allow(OT).to receive(:global_secret).and_return("global-test-secret")
       allow(OT).to receive(:conf).and_return({
-        experimental: {
-          allow_nil_global_secret: false,
-          rotated_secrets: []
+        'site' => {
+          'secret' => 'global-test-secret'
+        },
+        'experimental' => {
+          'allow_nil_global_secret' => false,
+          'rotated_secrets' => []
         }
       })
     end
