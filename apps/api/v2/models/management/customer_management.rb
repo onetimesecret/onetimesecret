@@ -49,7 +49,7 @@ module V2
 
         cust.increment field
       rescue Redis::CommandError => ex
-        # For whatever reason, redis throws an error when trying to
+        # For whatever reason, the database throws an error when trying to
         # increment a non-existent hashkey field (rather than setting
         # it to 1): "ERR hash value is not an integer"
         OT.le "[increment_field] Redis error (#{curval}): #{ex.message}"

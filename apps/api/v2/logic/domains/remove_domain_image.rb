@@ -32,7 +32,7 @@ module V2::Logic
       end
 
       def process
-        _image_field.delete! # delete the entire redis hash key
+        _image_field.delete! # delete the entire db hash key
         @custom_domain.save
       end
 

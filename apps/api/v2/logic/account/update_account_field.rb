@@ -25,7 +25,7 @@ module V2::Logic
 
         @greenlighted = true
         log_update
-        # TODO: Run in redis transaction
+        # TODO: Run in the database transaction
         perform_update
         @modified << field_name
       end

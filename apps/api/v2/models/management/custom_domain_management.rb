@@ -33,13 +33,13 @@ module V2
       def create(input, custid)
         obj = parse(input, custid)
 
-        redis.watch(obj.rediskey) do
+        dbclient.watch(obj.dbkey) do
           if obj.exists?
-            redis.unwatch
+            dbclient.unwatch
             raise Onetime::Problem, 'Duplicate domain for customer'
           end
 
-          redis.multi do |_multi|
+          dbclient.multi do |_multi|
             obj.generate_txt_validation_record
             obj.save
             # Create minimal customer instance for Redis key

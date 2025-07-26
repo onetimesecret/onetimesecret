@@ -26,7 +26,7 @@
 # Technical Details
 # ----------------
 #
-# - Redis Database: Uses DB 6 (accessed via Familia.redis)
+# - Redis Database: Uses DB 6 (accessed via Familia.dbclient)
 # - Key Pattern: Scans for keys matching 'customdomain:*:object'
 # - Hash Fields: Extracts 'display_domain' and 'domainid' from each domain object
 # - Target Hash: Stores mappings in 'customdomain:display_domains'
@@ -62,12 +62,12 @@ module Onetime
       begin
         # First pass: collect all display_domains and their IDs
         loop do
-          cursor, keys = redis.scan(cursor, match: pattern, count: 1000)
+          cursor, keys = dbclient.scan(cursor, match: pattern, count: 1000)
 
           keys.each do |key|
-            total_count += 1
-            display_domain = redis.hget(key, "display_domain")
-            domain_id = redis.hget(key, "domainid")
+            total_count   += 1
+            display_domain = dbclient.hget(key, 'display_domain')
+            domain_id      = dbclient.hget(key, 'domainid')
 
             if display_domain && domain_id
               domain_mappings[display_domain] = domain_id
@@ -85,7 +85,7 @@ module Onetime
         log "Beginning atomic update..."
 
         # Second pass: add all mappings in a single transaction
-        redis.multi do |multi|
+        dbclient.multi do |multi|
           # First delete any existing hash to ensure clean state
           multi.del("customdomain:display_domains")
 
@@ -97,7 +97,7 @@ module Onetime
         end
 
         # Verify the hash size
-        hash_size = redis.hlen("customdomain:display_domains")
+        hash_size = dbclient.hlen('customdomain:display_domains')
         log "\nPopulation complete!"
         log "Processed #{total_count} custom domain records"
         log "Added #{domain_mappings.length} mappings to the hash"
@@ -106,7 +106,7 @@ module Onetime
         # Optional: Print first few mappings as verification
         if hash_size > 0
           log "\nSample mappings:"
-          redis.hscan_each("customdomain:display_domains", count: 5).take(5).each do |domain, id|
+          dbclient.hscan_each('customdomain:display_domains', count: 5).take(5).each do |domain, id|
             log "  #{domain} -> #{id}"
           end
         end

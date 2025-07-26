@@ -244,6 +244,16 @@ module V2
       save
     end
 
+    def user_deleted_self?
+      role?('user_deleted_self')
+    end
+
+    # Updates the customer record in memory for account deletion but
+    # does not save the changes to the database. This separates the
+    # modification process from the actual deletion which is a
+    # helpful pattern for testing and debugging.
+    #
+    # Use #destroy_requested! for permanent deletion.
     def destroy_requested
       # NOTE: we don't use cust.destroy! here since we want to keep the
       # customer record around for a grace period to take care of any
@@ -255,7 +265,7 @@ module V2
       # For example if we need to send a pro-rated refund
       # or if we need to send a notification to the customer
       # to confirm the account deletion.
-      self.ttl        = 365.days
+      self.default_expiration = 365.days
       regenerate_apitoken
       self.passphrase = ''
       self.verified   = 'false'
@@ -274,21 +284,6 @@ module V2
       raise Onetime::Problem, "Anonymous cannot be saved #{self.class} #{rediskey}" if anonymous?
 
       super
-    end
-
-    def to_s
-      # If we can treat familia objects as strings, then passing them as method
-      # arguments we don't need to check whether it is_a? RedisObject or not;
-      # we can simply call `custid.to_s`. In both cases the result is the unqiue
-      # ID of the familia object. Usually that is all we need to maintain the
-      # relation records -- we don't actually need the instance of the familia
-      # object itself. So there's no need to hydrate the familia object from the
-      # unless we need to access the object's attributes (e.g., for logging or
-      # debugging purposes or modifying/manipulating the object's attributes).
-      #
-      # As a pilot for the project, CustomDomain has the equivalent method and
-      # comment. See the CustomDomain class methods for usage details.
-      identifier.to_s
     end
 
     def increment_field(field)

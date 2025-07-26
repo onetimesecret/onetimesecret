@@ -7,12 +7,12 @@ module V2
     feature :safe_dump
     feature :expiration
 
-    ttl 20.minutes
+    default_expiration 20.minutes
     prefix :session
 
     class_sorted_set :values, key: 'onetime:session'
 
-    identifier :sessid
+    identifier_field :sessid
 
     field :ipaddress
     field :custid

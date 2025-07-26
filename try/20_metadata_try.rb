@@ -26,13 +26,13 @@ OT.boot! :test, true
 
 ## Can create a Metadata
 m = V2::Metadata.new :private
-[m.class, m.redis.connection[:db], m.secret_key]
+[m.class, m.dbclient.connection[:db], m.secret_key]
 #=> [V2::Metadata, 7, nil]
 
 ## Can explicitly set the secret key
 m = V2::Metadata.new :private
 m.secret_key = 'hihi'
-[m.class, m.redis.connection[:db], m.secret_key]
+[m.class, m.dbclient.connection[:db], m.secret_key]
 #=> [V2::Metadata, 7, 'hihi']
 
 ## Keys are always unique for Metadata
@@ -41,7 +41,7 @@ m.secret_key = 'hihi'
 unique_values = Set.new
 @iterations.times do
   s = V2::Metadata.new state: :metadata
-  unique_values.add(s.rediskey)
+  unique_values.add(s.dbkey)
 end
 unique_values.size
 #=> @iterations
@@ -52,7 +52,7 @@ unique_values.size
 unique_values = Set.new
 @iterations.times do
   s = V2::Metadata.new state: %i[some fixed values]
-  unique_values.add(s.rediskey)
+  unique_values.add(s.dbkey)
 end
 unique_values.size
 #=> @iterations
@@ -65,7 +65,7 @@ unique_values.size
 ## Does exist
 @metadata.save
 p @metadata.to_h # from ruby memory to hash
-p @metadata.hgetall # from redis memory to hash
+p @metadata.hgetall # from db memory to hash
 @metadata.exists?
 #=> true
 

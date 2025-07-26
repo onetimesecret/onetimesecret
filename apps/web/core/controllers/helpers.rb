@@ -80,7 +80,7 @@ module Core
       OT.ld "[carefully] RecordNotFound: #{ex.message} (#{req.path}) redirect:#{redirect || 'n/a'}"
       not_found_response ex.message, shrimp: sess.add_shrimp
     rescue Familia::HighRiskFactor => ex
-      OT.le "[attempt-saving-non-string-to-redis] #{obscured} (#{sess.ipaddress}): #{sess.identifier.shorten(10)} (#{req.current_absolute_uri})"
+      OT.le "[attempt-saving-non-string-to-db] #{obscured} (#{sess.ipaddress}): #{sess.identifier.shorten(10)} (#{req.current_absolute_uri})"
 
       # Track attempts to save non-string data to Redis as a warning error
       capture_error ex, :warning

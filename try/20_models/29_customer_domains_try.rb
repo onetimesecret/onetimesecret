@@ -42,7 +42,7 @@ OT.boot! :test, true # if this is false, all models will have db 0
 #=> Array
 
 ## Customer's custom domain list is empty to start
-pp @cust.custom_domains.redis.zcard @cust.custom_domains.rediskey
+pp @cust.custom_domains.dbclient.zcard @cust.custom_domains.dbkey
 pp @cust.custom_domains.all
 [@cust.custom_domains.class, @cust.custom_domains.empty?]
 #=> [Familia::SortedSet, true]
@@ -107,7 +107,7 @@ custom_domain = @cust.custom_domains_list.first
 #=> true
 
 ## CustomDomain uses the correct Redis database
-CustomDomain.redis.connection[:db]
+CustomDomain.dbclient.connection[:db]
 #=> 6
 
 ## CustomDomain has the correct prefix
@@ -123,9 +123,9 @@ CustomDomain.owners.class
 #=> Familia::HashKey
 
 ## CustomDomain.values Redis key is correctly prefixed
-CustomDomain.values.rediskey
+CustomDomain.values.dbkey
 #=> "customdomain:values"
 
 ## CustomDomain.owners Redis key is correctly prefixed
-CustomDomain.owners.rediskey
+CustomDomain.owners.dbkey
 #=> "customdomain:owners"

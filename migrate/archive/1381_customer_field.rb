@@ -14,7 +14,7 @@
 
 
 report_field = 'email'
-redis_client = V2::Customer.redis
+dbclient = V2::Customer.dbclient
 scan_pattern = "#{V2::Customer.prefix}:*:object"
 cursor = "0"
 batch_size = 5000
@@ -32,7 +32,7 @@ puts "Scanning for customers with empty #{report_field} fields... (dry_run: #{dr
 
 # Verification step - test Redis connection
 begin
-  redis_client.ping
+  dbclient.ping
   puts "Redis connection verified"
 rescue => ex
   puts "ERROR: Cannot connect to Redis: #{ex.message}"
@@ -41,13 +41,13 @@ end
 
 loop do
   # Quick Redis scan to find customers with missing/empty email fields
-  cursor, keys = redis_client.scan(cursor, match: scan_pattern, count: batch_size)
+  cursor, keys = dbclient.scan(cursor, match: scan_pattern, count: batch_size)
   total_scanned += keys.size
   print "." # Progress indicator
 
   keys.each do |key|
     # How the record is identified/stored in Redis
-    redis_key_identifier = begin
+    dbkey_identifier = begin
       key.split(':')[1]
     rescue => ex
       error_count += 1
@@ -57,7 +57,7 @@ loop do
     end
 
     record_data = begin
-      redis_client.hgetall(key)
+      dbclient.hgetall(key)
 
     rescue => ex
       error_count += 1
@@ -73,7 +73,7 @@ loop do
       next
     end
 
-    if redis_key_identifier != record_identifier
+    if dbkey_identifier != record_identifier
       puts "Mismatch #{key} (mismatched custid field: #{record_identifier})"
       total_skipped += 1
       cursor = "0"
@@ -85,7 +85,7 @@ loop do
       problem_customers << { id: record_identifier, key: key }
       next if dry_run
       modified_count += 1
-      redis_client.hset(key, report_field.to_s, record_identifier)
+      dbclient.hset(key, report_field.to_s, record_identifier)
     end
   end
 
@@ -108,10 +108,10 @@ if modified_count > 0
     list_key = "missing_email_customers:#{Time.now.strftime('%Y%m%d')}"
 
     # Delete any existing list with this key
-    Familia.redis.del(list_key)
+    Familia.dbclient.del(list_key)
 
     # Add all customer IDs to the list (RPUSH adds multiple values efficiently)
-    Familia.redis.rpush(list_key, problem_customers.map { |c| c[:id] })
+    Familia.dbclient.rpush(list_key, problem_customers.map { |c| c[:id] })
 
     puts "Saved #{problem_customers.size} customer IDs to Redis list '#{list_key}'"
     puts "To retrieve: LRANGE #{list_key} 0 -1"

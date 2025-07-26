@@ -37,7 +37,7 @@ module V1::Logic
 
         # Default the recipients to an empty string. When a Familia::Horreum
         # object is loaded, the fields that have no values (or that don't
-        # exist in the redis hash yet) will have a value of "" (empty string).
+        # exist in the db hash yet) will have a value of "" (empty string).
         # But for a newly instantiated object, the fields will have a value
         # of nil. Later on, we rely on being able to check for emptiness
         # like: `@recipients.empty?`.
@@ -76,7 +76,7 @@ module V1::Logic
           end
         else
           @secret_state = secret.state
-          @secret_realttl = secret.realttl
+          @secret_realttl = secret.current_expiration
           @maxviews = secret.maxviews
           @has_maxviews = @maxviews > 1
           @view_count = nil

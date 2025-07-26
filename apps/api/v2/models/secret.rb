@@ -41,7 +41,6 @@ module V2
       # Colloquial representation of the TTL. e.g. "1 day"
       OT::Utils::TimeUtils.natural_duration lifespan
     end
-    alias natural_ttl natural_duration
 
     def older_than?(seconds)
       age > seconds

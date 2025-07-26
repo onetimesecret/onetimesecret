@@ -226,7 +226,7 @@ module V1::Logic
       def validate_domain_access(domain)
         return if domain.nil?
 
-        # e.g. rediskey -> customdomain:display_domains -> hash -> key: value
+        # e.g. dbkey -> customdomain:display_domains -> hash -> key: value
         # where key is the domain and value is the domainid
         domain_record = V1::CustomDomain.from_display_domain(domain)
         raise_form_error "Unknown domain: #{domain}" if domain_record.nil?
