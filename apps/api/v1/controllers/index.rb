@@ -2,6 +2,7 @@
 
 require_relative 'base'
 require_relative 'settings'
+require_relative '../refinements/flexible_hash_access'
 
 module V1
   module Controllers

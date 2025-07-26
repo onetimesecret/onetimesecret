@@ -153,6 +153,7 @@ const wrapper = mount(Component, {
 - Separate frontend/backend changes
 - Clear commit messages with issue numbers
 - Use `/clear` between unrelated tasks
+- Use `git mv` for renaming files. Do not just move or copy files without proper version control.
 
 ### Branch Management
 - Keep features isolated

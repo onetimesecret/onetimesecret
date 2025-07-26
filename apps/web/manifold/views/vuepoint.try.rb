@@ -12,7 +12,7 @@
 # These tests ensure that the VuePoint view correctly handles different scenarios
 # and properly initializes based on the provided arguments.
 
-require_relative '../../../../tests/helpers/test_models'
+require 'tests/helpers/test_models'
 
 # Use the default config file for tests
 OT.boot! :test, false

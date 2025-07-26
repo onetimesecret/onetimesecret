@@ -29,7 +29,6 @@ gem 'json_schemer'
 gem 'public_suffix'
 gem 'puma', '~> 6.6'
 
-
 gem 'uri-valkey', '~> 1.4.0'
 
 if ENV['LOCAL_DEV'] && ENV['RACK_ENV'] == 'development' && ENV['CI'].to_s.empty?
@@ -107,7 +106,7 @@ group :test do
   %w[rspec-core rspec-expectations rspec-mocks rspec-support].each do |lib|
     gem lib, git: 'https://github.com/rspec/rspec', glob: "#{lib}/#{lib}.gemspec"
   end
-  gem 'tryouts', '~> 3.1.1', require: false
+  gem 'tryouts', '~> 3.1.2', require: false
 end
 
 # Optional alternate server - install with: bundle install --with optional

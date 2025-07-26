@@ -19,7 +19,7 @@
 # without needing to run the full application, allowing for targeted testing
 # of this specific functionality.
 
-require_relative '../../../../tests/helpers/test_models'
+require 'tests/helpers/test_models'
 require 'v2/controllers/class_settings'
 
 # Use the default config file for tests

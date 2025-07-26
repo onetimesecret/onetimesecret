@@ -231,14 +231,10 @@ GEM
     simplecov_json_formatter (0.1.4)
     simpleidn (0.2.3)
     stackprof (0.2.27)
-    storable (0.10.0)
     stringio (3.1.7)
     stripe (15.0.0)
     syntax_tree (6.2.0)
       prettier_print (>= 1.2.0)
-    sysinfo (0.8.1)
-      drydock
-      storable
     thin (2.0.1)
       daemons (~> 1.0, >= 1.0.9)
       eventmachine (~> 1.0, >= 1.0.4)
@@ -247,10 +243,9 @@ GEM
     timeout (0.4.3)
     truemail (3.3.1)
       simpleidn (~> 0.2.1)
-    tryouts (3.1.1)
+    tryouts (3.1.2)
       minitest (~> 5.0)
       rspec (~> 3.0)
-      sysinfo (>= 0.8, < 1.0)
     unicode-display_width (2.6.0)
     uri-valkey (1.4.0)
     xdg (9.2.0)
@@ -315,7 +310,7 @@ DEPENDENCIES
   syntax_tree
   thin
   truemail
-  tryouts (~> 3.1.1)
+  tryouts (~> 3.1.2)
   uri-valkey (~> 1.4.0)
   xdg
 

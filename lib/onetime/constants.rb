@@ -15,7 +15,6 @@ require 'rack'
 # require 'rack/session'
 require 'otto'
 require 'familia'
-require 'storable'
 
 require_relative 'core_ext'
 require_relative 'utils'
