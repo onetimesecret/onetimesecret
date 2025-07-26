@@ -216,7 +216,7 @@ module Manifold
       # Render as SPA - returns JSON data for Vue frontend
       def render_spa(view_class = nil, **)
         view_class               ||= Manifold::Views::VuePoint
-        res.header['content-type'] = 'application/json'
+        res.headers['content-type'] = 'application/json'
         res.body                   = view_class.render_spa(req, sess, cust, locale)
       end
 
@@ -238,7 +238,7 @@ module Manifold
 
         # Set content type and status if view class specifies them
         if view_class.respond_to?(:content_type)
-          res.header['content-type'] = view_class.content_type
+          res.headers['content-type'] = view_class.content_type
         end
 
         if view_class.respond_to?(:status_code)

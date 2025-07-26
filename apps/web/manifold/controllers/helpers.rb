@@ -61,7 +61,7 @@ module Manifold
       not_authorized_error
     rescue OT::BadShrimp
       # If it's a json response, no need to set an error message on the session
-      if res.header['content-type'] == 'application/json'
+      if res.headers['content-type'] == 'application/json'
         error_response 'Please refresh the page and try again', reason: 'Bad shrimp 🍤'
       else
         sess.set_error_message 'Please go back, refresh the page, and try again.'
@@ -334,10 +334,10 @@ module Manifold
 
     def add_response_headers(content_type, nonce)
       # Set the Content-Type header if it's not already set by the application
-      res.header['content-type'] ||= content_type
+      res.headers['content-type'] ||= content_type
 
       # Skip the Content-Security-Policy header if it's already set
-      return if res.header['Content-Security-Policy']
+      return if res.headers['Content-Security-Policy']
 
       return if OT.conf.nil?
 
@@ -384,7 +384,7 @@ module Manifold
 
       OT.ld "[CSP] #{csp.join(' ')}" if OT.debug?
 
-      res.header['Content-Security-Policy'] = csp.join(' ')
+      res.headers['Content-Security-Policy'] = csp.join(' ')
     end
 
     def log_customer_activity
@@ -544,9 +544,9 @@ module Manifold
     end
 
     def no_cache!
-      res.header['Cache-Control'] = 'no-store, no-cache, must-revalidate, max-age=0'
-      res.header['Expires']       = 'Mon, 7 Nov 2011 00:00:00 UTC'
-      res.header['Pragma']        = 'no-cache'
+      res.headers['Cache-Control'] = 'no-store, no-cache, must-revalidate, max-age=0'
+      res.headers['Expires']       = 'Mon, 7 Nov 2011 00:00:00 UTC'
+      res.headers['Pragma']        = 'no-cache'
     end
 
     def app_path *paths
