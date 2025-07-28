@@ -40,6 +40,7 @@ export default defineConfig({
     ],
     setupFiles: [
       'tests/unit/vue/setup-env.ts',
+      'tests/unit/vue/setup-stores.ts',
       'tests/unit/vue/setup.ts',
       'tests/unit/vue/setupWindow.ts',
       'tests/unit/vue/setupRouter.ts',

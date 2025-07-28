@@ -32,10 +32,11 @@ const createApi = (): AxiosInstance => {
 };
 import type { PiniaPluginContext } from 'pinia';
 import { createI18n } from 'vue-i18n';
-import { createTestingPinia } from '@pinia/testing';
-import { vi } from 'vitest';
+import { createTestingPinia, TestingPinia } from '@pinia/testing';
+import { vi, beforeEach, afterEach } from 'vitest';
 import { createApp, h } from 'vue';
 import type { ComponentPublicInstance } from 'vue';
+import { setActivePinia } from 'pinia';
 
 //import type { OnetimeWindow } from '@/types/declarations/window';
 
@@ -149,20 +150,17 @@ export async function setupTestPinia(options: SetupTestPiniaOptions = {}): Promi
     // Create Vue app context
     const { app } = createVueWrapper();
 
-    // Provide API to Vue context (critical for dependency injection)
-    app.provide('api', api);
-
-    // Create and register Pinia
-    //
-    // `createTestingPinia()` creates a testing version of Pinia that mocks all
-    // actions by default. Use `createTestingPinia({ stubActions: false })` if
-    // you want to test actions. Otherwise they don't actually get called.
+    // Create and register Pinia FIRST (before providing dependencies)
     const pinia = createTestingPinia({
       stubActions,
       plugins: [autoInitPlugin()],
+      createSpy: vi.fn, // Use Vitest's spy function
     });
 
     app.use(pinia);
+
+    // Provide API to Vue context AFTER Pinia is installed
+    app.provide('api', api);
 
     // Optionally mount the app to activate full Vue context
     let appInstance: ComponentPublicInstance | null = null;
@@ -170,6 +168,9 @@ export async function setupTestPinia(options: SetupTestPiniaOptions = {}): Promi
       const el = document.createElement('div');
       appInstance = app.mount(el);
     }
+
+    // Set active pinia instance for proper injection context
+    setActivePinia(pinia);
 
     // Allow async operations to complete
     await Promise.resolve();
