@@ -11,24 +11,11 @@ const autoInitPlugin = () => {
     };
   }) as unknown as PiniaPlugin;
 };
-// Mock createApi function
+import { createSharedApiInstance } from './setup-stores';
+
+// Use the shared axios instance that works with AxiosMockAdapter
 const createApi = (): AxiosInstance => {
-  return {
-    defaults: {},
-    getUri: () => '',
-    request: () => Promise.resolve({ data: {} }),
-    get: () => Promise.resolve({ data: {} }),
-    delete: () => Promise.resolve({ data: {} }),
-    head: () => Promise.resolve({ data: {} }),
-    post: () => Promise.resolve({ data: {} }),
-    put: () => Promise.resolve({ data: {} }),
-    patch: () => Promise.resolve({ data: {} }),
-    options: () => Promise.resolve({ data: {} }),
-    interceptors: {
-      request: { use: () => 0, eject: () => {} },
-      response: { use: () => 0, eject: () => {} },
-    },
-  } as unknown as AxiosInstance;
+  return createSharedApiInstance();
 };
 import type { PiniaPluginContext } from 'pinia';
 import { createI18n } from 'vue-i18n';
@@ -52,7 +39,7 @@ interface OnetimeWindow {
   default_locale?: string;
   [key: string]: any;
 }
-import { AxiosInstance } from 'axios';
+import axios, { AxiosInstance } from 'axios';
 import AxiosMockAdapter from 'axios-mock-adapter';
 import { PiniaPlugin } from 'pinia';
 
