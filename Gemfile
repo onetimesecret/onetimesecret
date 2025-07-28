@@ -91,7 +91,7 @@ group :development do
   gem 'rubocop-performance', require: false
   gem 'rubocop-rspec', require: false
   gem 'rubocop-thread_safety', require: false
-  gem 'tryouts', require: false
+  gem 'tryouts', '~> 3.1', require: false
 end
 
 group :test do
