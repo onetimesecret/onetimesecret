@@ -26,7 +26,7 @@ const subscriptionDetails = computed(() => {
     amount: subscription.items.data[0]?.price?.unit_amount ?? 0,
     quantity: subscription.items.data[0]?.quantity ?? 1,
     interval: subscription.items.data[0]?.price?.recurring?.interval ?? 'month',
-    currentPeriodEnd: subscription.current_period_end
+    currentPeriodEnd: subscription.items.data[0]?.current_period_end
   }));
 });
 </script>
