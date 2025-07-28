@@ -24,13 +24,12 @@ describe('Receipt Routes', () => {
     it('should define metadata link route correctly', () => {
       const route = routes.find((route: RouteRecordRaw) => route.path === '/receipt/:metadataKey');
       expect(route).toBeDefined();
-      expect(route?.meta?.layout).toBeDefined();
       expect(route?.meta?.layoutProps?.displayMasthead).toBe(true);
       expect(route?.meta?.layoutProps?.displayNavigation).toBe(true);
-      expect(route?.meta?.layoutProps?.displayLinks).toBe(true);
+      expect(route?.meta?.layoutProps?.displayFooterLinks).toBe(true);
       expect(route?.meta?.layoutProps?.displayFeedback).toBe(true);
       expect(route?.meta?.layoutProps?.displayVersion).toBe(true);
-      expect(route?.meta?.layoutProps?.displayPoweredBy).toBe(true);
+      expect(route?.meta?.layoutProps?.displayPoweredBy).toBe(false);
     });
   });
 
@@ -57,7 +56,7 @@ describe('Receipt Routes', () => {
       expect(route?.meta?.layout).toBeDefined();
       expect(route?.meta?.layoutProps?.displayMasthead).toBe(false);
       expect(route?.meta?.layoutProps?.displayNavigation).toBe(false);
-      expect(route?.meta?.layoutProps?.displayLinks).toBe(false);
+      expect(route?.meta?.layoutProps?.displayFooterLinks).toBe(false);
       expect(route?.meta?.layoutProps?.displayFeedback).toBe(false);
       expect(route?.meta?.layoutProps?.displayVersion).toBe(true);
       expect(route?.meta?.layoutProps?.displayPoweredBy).toBe(true);

@@ -64,7 +64,17 @@ describe('Router Guards', () => {
     setupRouterGuards(router);
 
     const guard = vi.mocked(router.beforeEach).mock.calls[0][0];
-    const to = { meta: { isAuthRoute: true } };
+    const to = {
+      meta: { isAuthRoute: true },
+      query: {},
+      path: '/auth',
+      name: 'Auth',
+      params: {},
+      hash: '',
+      fullPath: '/auth',
+      matched: [],
+      redirectedFrom: undefined
+    };
 
     const authStore = { isAuthenticated: true };
     vi.mocked(useAuthStore).mockReturnValue(authStore as any);
@@ -78,7 +88,17 @@ describe('Router Guards', () => {
     setupRouterGuards(router);
 
     const guard = vi.mocked(router.beforeEach).mock.calls[0][0];
-    const to = { path: '/' };
+    const to = {
+      path: '/',
+      query: {},
+      name: 'Home',
+      params: {},
+      hash: '',
+      fullPath: '/',
+      matched: [],
+      redirectedFrom: undefined,
+      meta: {}
+    };
 
     const authStore = { isAuthenticated: true };
     vi.mocked(useAuthStore).mockReturnValue(authStore as any);
