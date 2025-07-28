@@ -1,3 +1,15 @@
+# Only run on specific branch patterns
+on:
+  push:
+    branches:
+      - 'feature/*'
+      - 'fix/*'
+      - 'delano/*'
+  pull_request:
+    branches:
+      - 'feature/*'
+      - 'fix/*'
+      - 'delano/*'
 name: Claude Code
 
 on:

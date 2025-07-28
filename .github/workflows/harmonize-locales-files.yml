@@ -13,6 +13,8 @@ on:
 
   # Run when a PR is created or updated with specific keyword in commit
   pull_request:
+    branches:
+      - 'i18n/**'
     types: [opened, synchronize, reopened]
 
   # Allow manual trigger
