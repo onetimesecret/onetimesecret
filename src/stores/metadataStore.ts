@@ -1,4 +1,4 @@
-// stores/metadataStore.ts
+// src/stores/metadataStore.ts
 import { createError } from '@/composables/useAsyncHandler';
 import { PiniaPluginOptions } from '@/plugins/pinia';
 import { responseSchemas } from '@/schemas/api/responses';
