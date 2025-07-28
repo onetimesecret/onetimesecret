@@ -1,0 +1,284 @@
+---
+:site:
+  :host: '127.0.0.1:3000'
+  # Turns https/http on or off when generating links
+  :ssl: true
+  :secret: SuP0r_53cRU7
+  :interface:
+    # Controls whether the web user interface is available. When disabled, the
+    # homepage becomes a basic, readonly page with the logo and a brief
+    # explanation of the site and how it works. This is helpful for link
+    # recipients who may do some light investigation to see if the site is legit.
+    :ui:
+      :enabled: true
+    # Controls whether the API endpoints are available. When disabled, the API
+    # is compltely disabled. Requests to /api/* will return 404.
+    :api:
+      :enabled: true
+  :secret_options:
+    :default_ttl: <%= ENV['DEFAULT_TTL'] || '43200' %> # 12 hours in seconds
+    :ttl_options: <%= (ENV['TTL_OPTIONS'] || '1800 43200 604800') %> # 30m, 12h, 7d
+  # Registration and Authentication settings
+  :authentication:
+    # Can be disabled altogether, including API authentication.
+    :enabled: true
+    # Allow users to create accounts. This can be disabled if you plan
+    # to create accounts manually or enable during setup when accounts
+    # can be created and then disabled to prevent any new users from
+    # creating accounts.
+    :signup: true
+    # Generally if you allow registration, you allow signin. But there
+    # are circumstances where it's helpful to turn off authentication
+    # temporarily.
+    :signin: true
+    # By default, new accounts need to verify their email address before
+    # they can sign in. This is a security measure to prevent spamming
+    # and abuse of the system. If you're running a private instance or
+    # an instance for your team or company, you can disable this feature
+    # to make it easier for users to sign in.
+    :autoverify: false
+    :colonels:
+      - 'CHANGEME@EXAMPLE.com'
+  :authenticity:
+    :type: <%= ENV['AUTHENTICITY_TYPE'] || 'altcha' %>
+    :secret_key: <%= ENV['AUTHENTICITY_SECRET_KEY'] || 'your-secret-key' %>
+  :plans:
+    :enabled: false
+  :regions:
+    :enabled: <%= ENV['REGIONS_ENABLED'] || false %>
+    :current_jurisdiction: <%= ENV['JURISDICTION'] || 'EU' %>
+    :jurisdictions:
+      - :identifier: AT
+        :display_name: Atat Region
+        :domain: at.example.com
+        :icon:
+          :collection: heroicon
+          :name: inbox
+      - :identifier: CE
+        :display_name: CECE Region
+        :domain: ce.example.com
+        :icon:
+          :collection: heroicon
+          :name: mail
+  :domains:
+    :enabled: false
+    # The default domain used for link URLs. When not set or empty,
+    # site.host is used.
+    :default: <%= ENV['DEFAULT_DOMAIN'] || nil %>
+    # The cluster type determines how the application will support
+    # multiple domains. The default is nil which means that the
+    # application itself is responsible for handling multiple domains.
+    :cluster:
+      :type: <%= ENV['CLUSTER_TYPE'] || nil %>
+  :support:
+    :host: <%= ENV['SUPPORT_HOST'] || nil %>
+:redis:
+  :uri: <%= ENV['REDIS_URL'] || 'redis://CHANGEME@127.0.0.1:2121/0' %>
+  :dbs:
+    :session: 1
+    :custom_domain: 6
+    :customer: 6
+    :subdomain: 6
+    :metadata: 7
+    :email_receipt: 8
+    :secret: 8
+    :feedback: 11
+    :rate_limit: 2
+    :exception_info: 12
+    :system_settings: 15
+:features:
+  :incoming:
+    :enabled: false
+    :email:
+    :passphrase:
+:emailer:
+  :mode: <%= ENV['EMAILER_MODE'] || 'smtp' %>
+  :from: <%= ENV['FROM_EMAIL'] || ENV['FROM_EMAIL'] || 'tests@example.com' %>
+  :fromname: <%= ENV['FROMNAME'] || 'Jan' %>
+  :host: <%= ENV['SMTP_HOST'] || 'localhost' %>
+  :port: <%= ENV['SMTP_PORT'] || 587 %>
+  :user: <%= ENV['SMTP_USERNAME'] || 'user' %>
+  :pass: <%= ENV['SMTP_PASSWORD'] || 'pass' %>
+  :auth: <%= ENV['SMTP_AUTH'] || 'login' %>
+  :tls: <%= ENV['SMTP_TLS'] || true %>
+:mail:
+  :truemail:
+    # Available validation types: :regex, :mx, :mx_blacklist, :smtp
+    :default_validation_type: :mx
+    # Required for :smtp validation
+    :verifier_email: <%= ENV['VERIFIER_EMAIL'] || 'CHANGEME@example.com' %>
+    :verifier_domain: <%= ENV['VERIFIER_DOMAIN'] || 'example.com' %>
+    :connection_timeout: 1
+    :response_timeout: 1
+    :connection_attempts: 1
+    :validation_type_for:
+      'example.com': :regex
+    # Truemail will only validate email addresses that match the
+    # domains listed in :allowed_domains. If the domain is not
+    # listed, the email address will always be considered invalid.
+    :allowed_domains_only: false
+    #
+    # Email addresses in this list will always be valid.
+    #:allowed_emails: []
+    #
+    # Email addresses in this list will always be invalid.
+    #:blocked_emails: []
+    #
+    # Addresses with these domains will always be valid
+    #:allowed_domains: []
+    #
+    # Addresses with these domains will always be invalid
+    #:blocked_domains: []
+    #
+    # Exclude these IP addresses from the MX lookup process.
+    #:blocked_mx_ip_addresses: []
+    #
+    # Name servers to use for MX et al record lookup.
+    # Default is CloudFlare, Google, Oracle/OpenDNS servers.
+    :dns:
+      - 1.1.1.1
+      - 8.8.4.4
+      - 208.67.220.220
+    #:smtp_port: 25
+    #
+    # End smtp validation after the first invalid response rather than
+    # retrying, followed by trying the next server. Can reduce the time
+    # time to validate an email address, but may not catch all issues.
+    :smtp_fail_fast: true
+    #
+    # Parse the content of the SMTP error message to determine if the
+    # email address is valid. This can be useful for some SMTP servers
+    # that don't return exact answers.
+    :smtp_safe_check: true
+    #
+    # Whether to disable the RFC MX lookup flow. When true, only DNS
+    # validation will be performed on MX and Null MX records.
+    :not_rfc_mx_lookup_flow: false
+    #
+    # Override default regular expression pattern for email addresses
+    # and/or the content in SMTP error messages.
+    #:email_pattern: /regex_pattern/
+    #:smtp_error_body_pattern: /regex_pattern/
+    #
+    # Log to the console, a file, or both. The ruby process must have
+    # write access to the log file. The log file will be created if it
+    # does not exist. Log file rotation is not handled by the app.
+    :logger:
+      # One of: :error (default), :unrecognized_error,
+      # :recognized_error, :all.
+      tracking_event: :unrecognized_error
+      stdout: true
+      # log_absolute_path: '/home/app/log/truemail.log'
+:internationalization:
+  :enabled: true
+  :default_locale: en
+  :fallback_locale:
+    fr-CA: [fr_CA, fr_FR, en]
+    fr: [fr_FR, fr_CA, en]
+    'fr-*': [fr_FR, en]
+    default: [en]
+  # A list of ISO language codes (e.g., 'en' for English, 'es'
+  # for Spanish, etc.). There is a corresponding file in src/locales
+  # with the same name containing the translated text. If it's not
+  # selected automatically, users are able to select their preferred
+  # language by using the toggle in the footer or in the settings
+  # modal if they're logged in.
+  :locales:
+    - en
+    - fr_CA
+    - fr_FR
+  :incomplete:
+    - bogus
+:diagnostics:
+  # If this is false, the rest of the settings are ignored
+  :enabled: true
+  :sentry:
+    # Default Sentry configuration that applies to both frontend and
+    # backend. Values set here are overridden by codebase-specific ones.
+    #
+    # `dsn` - Primary Sentry DSN.
+    # `sampleRate` - Percentage of events to sample (0.0 to 1.0)
+    # `maxBreadcrumbs` - Maximum number of breadcrumbs to capture
+    # `logErrors` - Whether to log errors to console
+    :defaults:
+      :dsn: <%= ENV['SENTRY_DSN'] || nil %>
+      :sampleRate: 0.11
+      :maxBreadcrumbs: 22
+      :logErrors: true
+    # Ruby backend-specific Sentry configuration
+    #
+    # `dsn` - Backend-specific Sentry DSN
+    :backend:
+      :dsn: <%= ENV['SENTRY_DSN_BACKEND'] || nil %>
+    # Vue frontend-specific Sentry configuration
+    # Options here map directly to @sentry/vue client options
+    # These options are passed directly to @sentry/vue client initialization
+    # and to maintain type safety, they must be typed in
+    # src/types/diagnostics.ts DiagnosticsConfig interface.
+    #
+    # `dsn` - Frontend-specific Sentry DSN
+    # `trackComponents` - Enable automatic instrumentation of Vue components
+    :frontend:
+      :dsn: <%= ENV['SENTRY_DSN_FRONTEND'] || nil %>
+      :trackComponents: true
+:logging:
+  :http_requests: true
+:limits:
+  :create_secret: 250
+  :create_account: 100
+  :update_account: 10
+  :email_recipient: 50
+  :send_feedback: 10
+  :authenticate_session: 5
+  :get_page: 1000
+  :dashboard: 1000
+  :failed_passphrase: 5
+  :show_metadata: 1000
+  :show_secret: 1000
+  :burn_secret: 1000
+  :destroy_account: 5
+  :forgot_password_request: 2
+  :forgot_password_reset: 3
+  :generate_apitoken: 3
+  :add_domain: 100
+  :report_exception: 5
+  :attempt_secret_access: 10
+  :remove_domain: 25
+  :list_domains: 25
+  :get_domain: 25
+  :verify_domain: 25
+  :check_status: 25
+  :update_branding: 25
+  :destroy_session: 5
+  :get_domain_brand: 1000
+  :get_domain_logo: 1000
+  :get_image: 1000
+  :remove_domain_logo: 20
+  :show_account: 100
+  :stripe_webhook: 25
+  :update_domain_brand: 50
+  :view_colonel: 100
+  :external_redirect: 100
+  :update_colonel_settings: 50
+:development:
+  :enabled: <%= ['development', 'dev'].include?(ENV['RACK_ENV']) %>
+  :debug: <%= ['true', '1', 'yes'].include?(ENV['ONETIME_DEBUG']) %>
+  :frontend_host: <%= ENV['FRONTEND_HOST'] || 'http://localhost:5173' %>
+# Settings for experimental features that are still being tested.
+# All of these features are turned off by default and may not work as expected.
+:experimental:
+  # When set to true, the Rack::Builder#freeze_app freezes the middleware stack
+  # after initialization to prevent any runtime modifications to the app middleware chain.
+  # This is a security measure that prevents malicious code from injecting new middleware.
+  #
+  # Effects:
+  # - Freezes the middleware stack, preventing adding/removing middleware after boot
+  # - Freezes the app object passed to Rack::Builder
+  # - Does not affect request/response object mutability
+  #
+  # Note: This setting can help make your application more secure by preventing
+  # middleware chain manipulation at runtime. For most applications, this should
+  # be enabled in production environments.
+  :freeze_app: true
+  :csp:
+    :enabled: false

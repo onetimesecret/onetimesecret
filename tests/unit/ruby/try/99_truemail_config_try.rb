@@ -13,7 +13,7 @@
 require 'onetime'
 
 # Use the default config file for tests
-OT::Config.path = File.join(Onetime::HOME, 'tests', 'unit', 'ruby', 'config.test.yaml')
+OT::Config.path = File.join(Onetime::HOME, 'spec', 'config.test.yaml')
 OT.boot! :test
 
 ## mapped_key converts allowed_domains_only to whitelist_validation
