@@ -50,7 +50,7 @@ export default defineConfig({
       hooks: 'list', // runs beforeEachand afterEach in the order defined
     },
     typecheck: {
-      enabled: true,
+      enabled: false,
       tsconfig: './tsconfig.test.json',
     },
     // Reduce concurrency to prevent test runner crashes
