@@ -6,7 +6,7 @@
   import { useProductIdentity } from '@/stores/identityStore';
   import type { LayoutProps } from '@/types/ui/layouts';
   import { isColorValue } from '@/utils/color-utils';
-  import { computed, defineProps } from 'vue';
+  import { computed } from 'vue';
 
   defineProps<LayoutProps>();
 
