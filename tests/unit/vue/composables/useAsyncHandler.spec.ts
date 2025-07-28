@@ -54,11 +54,10 @@ describe('useAsyncHandler', () => {
       const applicationError = createError('known error', 'human', 'warning');
       const mockOperation = vi.fn().mockRejectedValue(applicationError);
 
-      await expect(wrap(mockOperation)).rejects.toMatchObject({
-        message: 'known error',
-        type: 'human',
-        severity: 'warning',
-      });
+      const result = await wrap(mockOperation);
+
+      expect(result).toBeUndefined();
+      expect(mockOptions.notify).toHaveBeenCalledWith('known error', 'warning');
     });
   });
 
@@ -68,8 +67,9 @@ describe('useAsyncHandler', () => {
       const humanError = createError('user message', 'human', 'warning');
       const mockOperation = vi.fn().mockRejectedValue(humanError);
 
-      await expect(wrap(mockOperation)).rejects.toThrow();
+      const result = await wrap(mockOperation);
 
+      expect(result).toBeUndefined();
       expect(mockOptions.notify).toHaveBeenCalledWith('user message', 'warning');
     });
 
@@ -78,10 +78,11 @@ describe('useAsyncHandler', () => {
       const technicalError = createError('system error', 'technical', 'error');
       const mockOperation = vi.fn().mockRejectedValue(technicalError);
 
-      await expect(wrap(mockOperation)).rejects.toThrow();
+      const result = await wrap(mockOperation);
 
+      expect(result).toBeUndefined();
       expect(mockOptions.log).toHaveBeenCalled();
-      expect(mockOptions.notify).not.toHaveBeenCalled();
+      expect(mockOptions.notify).toHaveBeenCalledWith('web.COMMON.unexpected_error', 'error');
     });
 
     it('handles notification failures gracefully', async () => {
