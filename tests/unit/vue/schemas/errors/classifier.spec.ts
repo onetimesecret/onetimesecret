@@ -1,5 +1,6 @@
 // schemas/errors/classifier.test.ts
-import { classifyError, createError, errorGuards } from '@/schemas/errors/classifier';
+import { classifyError, createError } from '@/schemas/errors/classifier';
+import { errorGuards } from '@/schemas/errors/guards';
 import { describe, expect, it } from 'vitest';
 import type { AxiosError } from 'axios';
 import axios from 'axios';
@@ -7,15 +8,20 @@ import axios from 'axios';
 describe('error classifier', () => {
   describe('classifyError', () => {
     it('classifies 403 as security error', () => {
-      const error = classifyError({
+      // Create a proper AxiosError-like object
+      const axiosError = new Error('Forbidden') as AxiosError;
+      axiosError.isAxiosError = true;
+      axiosError.status = 403;
+      axiosError.code = '403';
+      axiosError.response = {
         status: 403,
         statusText: 'Forbidden',
-        message: 'Forbidden',
-        response: {
-          status: 403,
-          data: { message: 'Forbidden' },
-        },
-      });
+        data: { message: 'Forbidden' },
+        headers: {},
+        config: {} as any,
+      };
+
+      const error = classifyError(axiosError);
 
       expect(error).toMatchObject({
         type: 'security',
@@ -25,14 +31,20 @@ describe('error classifier', () => {
     });
 
     it('classifies 404 as human error', () => {
-      const error = classifyError({
-        message: 'Not Found',
+      // Create a proper AxiosError-like object
+      const axiosError = new Error('Not Found') as AxiosError;
+      axiosError.isAxiosError = true;
+      axiosError.status = 404;
+      axiosError.code = '404';
+      axiosError.response = {
         status: 404,
-        response: {
-          status: 404,
-          data: { message: 'Not Found' },
-        },
-      });
+        statusText: 'Not Found',
+        data: { message: 'Not Found' },
+        headers: {},
+        config: {} as any,
+      };
+
+      const error = classifyError(axiosError);
 
       expect(error).toMatchObject({
         message: 'Not Found',
@@ -42,14 +54,20 @@ describe('error classifier', () => {
     });
 
     it('classifies unknown status codes as technical errors', () => {
-      const error = classifyError({
-        message: 'Internal Server Error',
+      // Create a proper AxiosError-like object
+      const axiosError = new Error('Internal Server Error') as AxiosError;
+      axiosError.isAxiosError = true;
+      axiosError.status = 500;
+      axiosError.code = '500';
+      axiosError.response = {
         status: 500,
-        response: {
-          status: 500,
-          data: { message: 'Internal Server Error' },
-        },
-      });
+        statusText: 'Internal Server Error',
+        data: { message: 'Internal Server Error' },
+        headers: {},
+        config: {} as any,
+      };
+
+      const error = classifyError(axiosError);
 
       expect(error).toMatchObject({
         message: 'Internal Server Error',

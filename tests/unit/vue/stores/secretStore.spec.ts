@@ -78,8 +78,8 @@ describe('secretStore', () => {
       const { lifespan: __, ...expectedWithoutLifespan } = mockSecretResponse.record;
 
       expect(recordWithoutLifespan).toEqual(expectedWithoutLifespan);
-      // Test that lifespan exists and is a string
-      expect(typeof store.record?.lifespan).toBe('string');
+      // Test that lifespan exists and is a number (transformed by schema)
+      expect(typeof store.record?.lifespan).toBe('number');
       expect(store.details).toEqual(mockSecretResponse.details);
     });
 
@@ -101,7 +101,7 @@ describe('secretStore', () => {
 
       const expectedRecord = {
         ...mockSecretResponse.record,
-        lifespan: '24 hours', // Match exatly
+        lifespan: 86400, // Schema transforms to number
       };
 
       expect(store.record).toEqual(expectedRecord);
@@ -119,8 +119,8 @@ describe('secretStore', () => {
       const { lifespan: __, ...expectedWithoutLifespan } = mockSecretResponse.record;
 
       expect(recordWithoutLifespan).toEqual(expectedWithoutLifespan);
-      expect(typeof store.record?.lifespan).toBe('string');
-      expect(store.record?.lifespan).toMatch(/\d+\s+\w+/); // Basic format check
+      expect(typeof store.record?.lifespan).toBe('number');
+      expect(store.record?.lifespan).toBeGreaterThan(0); // Positive number check
       expect(store.details).toEqual(mockSecretResponse.details);
     });
 
@@ -279,10 +279,10 @@ describe('secretStore', () => {
         axiosMock?.onGet('/api/v2/secret/abc123').reply(200, response);
         await store.fetch('abc123');
 
-        // Test that lifespan exists and follows expected format
+        // Test that lifespan exists and is transformed to number
         expect(store.record?.lifespan).toBeDefined();
-        expect(typeof store.record?.lifespan).toBe('string');
-        expect(store.record?.lifespan).toMatch(/\d+\s+(seconds?|minutes?|hours?|days?)/);
+        expect(typeof store.record?.lifespan).toBe('number');
+        expect(store.record?.lifespan).toBe(86400);
       });
 
       it('handles null TTL values', async () => {
@@ -306,15 +306,15 @@ describe('secretStore', () => {
           ...mockSecretResponse,
           record: {
             ...mockSecretResponse.record,
-            lifespan: '24 hours',
+            lifespan: '86400', // String that can be converted to number
           },
         };
 
         axiosMock?.onGet('/api/v2/secret/abc123').reply(200, staticLifespanResponse);
         await store.fetch('abc123');
 
-        expect(typeof store.record?.lifespan).toBe('string');
-        expect(store.record?.lifespan).toMatch(/\d+\s+(seconds?|minutes?|hours?|days?)/);
+        expect(typeof store.record?.lifespan).toBe('number');
+        expect(store.record?.lifespan).toBe(86400);
       });
 
       it('handles null lifespan from API', async () => {
@@ -343,13 +343,13 @@ describe('secretStore', () => {
 
         axiosMock?.onGet('/api/v2/secret/abc123').reply(200, responseWithoutLifespan);
 
-        await expect(store.fetch('abc123')).rejects.toThrow();
+        await store.fetch('abc123');
 
-        // Schema should handle undefined appropriately
-        expect(store.record?.lifespan).toBeUndefined();
+        // Schema transforms undefined to null
+        expect(store.record?.lifespan).toBeNull();
       });
 
-      it('should fail if lifespan is undefined', async () => {
+      it('should handle undefined lifespan gracefully', async () => {
         const responseWithUndefinedLifespan = {
           ...mockSecretResponse,
           record: {
@@ -360,14 +360,14 @@ describe('secretStore', () => {
 
         axiosMock?.onGet('/api/v2/secret/abc123').reply(200, responseWithUndefinedLifespan);
 
-        // Should fail validation since undefined is not allowed by schema
-        await expect(store.fetch('abc123')).rejects.toThrow();
+        // Schema transforms undefined to null, which is valid
+        await store.fetch('abc123');
 
-        // Store record should remain unchanged
-        expect(store.record).toBeNull();
+        // Store should have the record with lifespan as null
+        expect(store.record?.lifespan).toBeNull();
       });
 
-      it('rejects undefined lifespan from API and keeps store unchanged', async () => {
+      it('handles undefined lifespan consistently across calls', async () => {
         // Start with null store state
         expect(store.record).toBeNull();
 
@@ -381,11 +381,11 @@ describe('secretStore', () => {
 
         axiosMock?.onGet('/api/v2/secret/abc123').reply(200, responseWithUndefinedLifespan);
 
-        // Should fail validation since schema requires string | null
-        await expect(store.fetch('abc123')).rejects.toThrow();
+        // Schema transforms undefined to null successfully
+        await store.fetch('abc123');
 
-        // Store should remain in initial state after failed validation
-        expect(store.record).toBeNull();
+        // Store should have the record with consistent null handling
+        expect(store.record?.lifespan).toBeNull();
       });
     });
   });
