@@ -53,6 +53,11 @@ global.Response = {
   prototype: Response.prototype,
 } as unknown as typeof Response;
 
+// Mock the altcha worker module to avoid import.meta.url issues
+vi.mock('@/workers/altcha-worker', () => ({
+  altchaWorkerUrl: '/mock/worker.js'
+}));
+
 export function createVueWrapper() {
   const app = createApp({
     render() {
