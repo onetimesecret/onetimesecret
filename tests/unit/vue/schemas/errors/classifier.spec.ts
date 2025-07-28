@@ -8,18 +8,20 @@ import axios from 'axios';
 describe('error classifier', () => {
   describe('classifyError', () => {
     it('classifies 403 as security error', () => {
-      // Create a proper AxiosError-like object
-      const axiosError = new Error('Forbidden') as AxiosError;
-      axiosError.isAxiosError = true;
-      axiosError.status = 403;
-      axiosError.code = '403';
-      axiosError.response = {
-        status: 403,
-        statusText: 'Forbidden',
-        data: { message: 'Forbidden' },
-        headers: {},
-        config: {} as any,
-      };
+      // Create a proper AxiosError instance
+      const axiosError = new axios.AxiosError(
+        'Forbidden',
+        '403',
+        undefined,
+        undefined,
+        {
+          status: 403,
+          statusText: 'Forbidden',
+          data: { message: 'Forbidden' },
+          headers: {},
+          config: {} as any,
+        }
+      );
 
       const error = classifyError(axiosError);
 
@@ -31,18 +33,20 @@ describe('error classifier', () => {
     });
 
     it('classifies 404 as human error', () => {
-      // Create a proper AxiosError-like object
-      const axiosError = new Error('Not Found') as AxiosError;
-      axiosError.isAxiosError = true;
-      axiosError.status = 404;
-      axiosError.code = '404';
-      axiosError.response = {
-        status: 404,
-        statusText: 'Not Found',
-        data: { message: 'Not Found' },
-        headers: {},
-        config: {} as any,
-      };
+      // Create a proper AxiosError instance
+      const axiosError = new axios.AxiosError(
+        'Not Found',
+        '404',
+        undefined,
+        undefined,
+        {
+          status: 404,
+          statusText: 'Not Found',
+          data: { message: 'Not Found' },
+          headers: {},
+          config: {} as any,
+        }
+      );
 
       const error = classifyError(axiosError);
 
@@ -54,18 +58,20 @@ describe('error classifier', () => {
     });
 
     it('classifies unknown status codes as technical errors', () => {
-      // Create a proper AxiosError-like object
-      const axiosError = new Error('Internal Server Error') as AxiosError;
-      axiosError.isAxiosError = true;
-      axiosError.status = 500;
-      axiosError.code = '500';
-      axiosError.response = {
-        status: 500,
-        statusText: 'Internal Server Error',
-        data: { message: 'Internal Server Error' },
-        headers: {},
-        config: {} as any,
-      };
+      // Create a proper AxiosError instance
+      const axiosError = new axios.AxiosError(
+        'Internal Server Error',
+        '500',
+        undefined,
+        undefined,
+        {
+          status: 500,
+          statusText: 'Internal Server Error',
+          data: { message: 'Internal Server Error' },
+          headers: {},
+          config: {} as any,
+        }
+      );
 
       const error = classifyError(axiosError);
 
