@@ -44,7 +44,7 @@ describe('jurisdictionStore', () => {
 
   describe('initialization', () => {
     it('initializes with valid config', () => {
-      store.init(mockRegionConfig);
+      store.init({ regions: mockRegionConfig });
 
       // Test full jurisdiction object structure
       expect(store.currentJurisdiction).toEqual({
@@ -65,7 +65,7 @@ describe('jurisdictionStore', () => {
         enabled: false,
       };
 
-      store.init(disabledConfig);
+      store.init({ regions: disabledConfig });
 
       expect(store.enabled).toBe(false);
       expect(store.jurisdictions).toHaveLength(1); // Should only have default jurisdiction
@@ -80,7 +80,7 @@ describe('jurisdictionStore', () => {
         jurisdictions: [mockJurisdictions[0]],
       };
 
-      store.init(singleJurisdictionConfig);
+      store.init({ regions: singleJurisdictionConfig });
 
       expect(store.jurisdictions).toHaveLength(1);
       expect(store.currentJurisdiction).toEqual(mockJurisdictions[0]);
@@ -89,7 +89,7 @@ describe('jurisdictionStore', () => {
 
   describe('findJurisdiction', () => {
     beforeEach(() => {
-      store.init(mockRegionConfig);
+      store.init({ regions: mockRegionConfig });
     });
 
     it('finds existing jurisdiction by identifier', () => {
@@ -110,7 +110,7 @@ describe('jurisdictionStore', () => {
     });
 
     it('throws descriptive ApplicationError for non-existent jurisdiction', () => {
-      store.init(mockRegionConfig);
+      store.init({ regions: mockRegionConfig });
 
       let thrownError: ApplicationError;
       try {
@@ -130,7 +130,7 @@ describe('jurisdictionStore', () => {
 
     // Add a test for case sensitivity
     it('throws ApplicationError with correct details for case-sensitive match', () => {
-      store.init(mockRegionConfig);
+      store.init({ regions: mockRegionConfig });
 
       let thrownError: ApplicationError;
       try {
@@ -173,7 +173,7 @@ describe('jurisdictionStore', () => {
       }
 
       try {
-        store.init(null as any);
+        store.init({ regions: null } as any);
       } catch (e) {
         errorTypes.add((e as ApplicationError).type);
       }
@@ -189,7 +189,7 @@ describe('jurisdictionStore', () => {
 
     it('handles null config gracefully', () => {
       expect(() => {
-        store.init(null as any);
+        store.init({ regions: null } as any);
       }).not.toThrow();
 
       expect(store.enabled).toBe(false);
@@ -202,7 +202,7 @@ describe('jurisdictionStore', () => {
       };
 
       expect(() => {
-        store.init(malformedConfig as any);
+        store.init({ regions: malformedConfig } as any);
       }).toThrow();
     });
 
@@ -213,7 +213,7 @@ describe('jurisdictionStore', () => {
       };
 
       expect(() => {
-        store.init(invalidConfig as any);
+        store.init({ regions: invalidConfig } as any);
       }).toThrow();
     });
 
@@ -225,7 +225,7 @@ describe('jurisdictionStore', () => {
 
       let thrownError: ApplicationError;
       try {
-        store.init(malformedConfig as any);
+        store.init({ regions: malformedConfig } as any);
       } catch (e) {
         thrownError = e as ApplicationError;
       }
@@ -244,7 +244,7 @@ describe('jurisdictionStore', () => {
 
       let thrownError: ApplicationError;
       try {
-        store.init(invalidConfig as any);
+        store.init({ regions: invalidConfig } as any);
       } catch (e) {
         thrownError = e as ApplicationError;
       }
@@ -268,7 +268,7 @@ describe('jurisdictionStore', () => {
 
       // Handle the error in a synchronous way (changed from rejects.toThrow())
       expect(() => {
-        store.init(emptyConfig);
+        store.init({ regions: emptyConfig });
       }).toThrow(); //
 
       expect(store.jurisdictions).toHaveLength(0);
@@ -285,7 +285,7 @@ describe('jurisdictionStore', () => {
 
       let thrownError: Error;
       try {
-        store.init(emptyConfig);
+        store.init({ regions: emptyConfig });
       } catch (e) {
         thrownError = e as Error;
       }
@@ -307,7 +307,7 @@ describe('jurisdictionStore', () => {
 
       let thrownError: ApplicationError;
       try {
-        store.init(emptyConfig);
+        store.init({ regions: emptyConfig });
       } catch (e) {
         thrownError = e as ApplicationError;
       }
@@ -328,7 +328,7 @@ describe('jurisdictionStore', () => {
         ],
       };
 
-      store.init(configWithDisabled);
+      store.init({ regions: configWithDisabled });
       expect(store.jurisdictions).toHaveLength(2);
       expect(store.jurisdictions[0].enabled).toBe(false);
     });
@@ -342,7 +342,7 @@ describe('jurisdictionStore', () => {
       };
 
       expect(() => {
-        store.init(invalidConfig);
+        store.init({ regions: invalidConfig });
       }).toThrow();
     });
 
@@ -353,15 +353,19 @@ describe('jurisdictionStore', () => {
       // Test both bounds
       expect(() =>
         store.init({
-          ...mockRegionConfig,
-          jurisdictions: [tooShortId],
+          regions: {
+            ...mockRegionConfig,
+            jurisdictions: [tooShortId],
+          }
         })
       ).toThrow(/Jurisdiction "us-east" not found/i);
 
       expect(() =>
         store.init({
-          ...mockRegionConfig,
-          jurisdictions: [tooLongId],
+          regions: {
+            ...mockRegionConfig,
+            jurisdictions: [tooLongId],
+          }
         })
       ).toThrow(/Jurisdiction "us-east" not found/i);
     });
@@ -369,7 +373,7 @@ describe('jurisdictionStore', () => {
 
   describe('getters', () => {
     beforeEach(() => {
-      store.init(mockRegionConfig);
+      store.init({ regions: mockRegionConfig });
     });
 
     it('getCurrentJurisdiction returns correct jurisdiction', () => {
