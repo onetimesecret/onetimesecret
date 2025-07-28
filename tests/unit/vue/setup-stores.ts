@@ -3,32 +3,23 @@
 import { vi, beforeEach } from 'vitest';
 import { createTestingPinia } from '@pinia/testing';
 import { setActivePinia } from 'pinia';
-import { AxiosInstance } from 'axios';
+import axios, { AxiosInstance } from 'axios';
 import { stateFixture } from './fixtures/window.fixture';
 import type { OnetimeWindow } from '@/types/declarations/window';
 
-// Mock createApi function
-const createApi = (): AxiosInstance => {
-  return {
-    defaults: {},
-    getUri: () => '',
-    request: () => Promise.resolve({ data: {} }),
-    get: () => Promise.resolve({ data: {} }),
-    delete: () => Promise.resolve({ data: {} }),
-    head: () => Promise.resolve({ data: {} }),
-    post: () => Promise.resolve({ data: {} }),
-    put: () => Promise.resolve({ data: {} }),
-    patch: () => Promise.resolve({ data: {} }),
-    options: () => Promise.resolve({ data: {} }),
-    interceptors: {
-      request: { use: () => 0, eject: () => {} },
-      response: { use: () => 0, eject: () => {} },
-    },
-  } as unknown as AxiosInstance;
-};
+// Create global test API instance that will be shared across tests
+// This gets the mock adapter applied to it in individual test setups
+let globalApi: AxiosInstance;
 
-// Create global test API instance
-const globalApi = createApi();
+export function createSharedApiInstance(): AxiosInstance {
+  if (!globalApi) {
+    globalApi = axios.create({
+      baseURL: 'http://localhost:3000',
+      timeout: 5000,
+    });
+  }
+  return globalApi;
+}
 
 // Mock Vue's inject function to return our test API
 vi.mock('vue', async () => {
@@ -37,7 +28,7 @@ vi.mock('vue', async () => {
     ...actual,
     inject: vi.fn((key: string) => {
       if (key === 'api') {
-        return globalApi;
+        return createSharedApiInstance();
       }
       // For other injection keys, return undefined or call original
       return undefined;

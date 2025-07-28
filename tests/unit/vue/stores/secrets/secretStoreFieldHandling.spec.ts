@@ -1,58 +1,50 @@
 // tests/unit/vue/stores/secrets/secretStoreFieldHandling.spec.ts
 
-// tests/unit/vue/stores/secretStore.spec.ts
+// IMPORTANT: This test uses centralized test setup pattern
+// DO NOT revert to individual axios.create() - use setupTestPinia() instead
 import { useSecretStore } from '@/stores/secretStore';
-import axios from 'axios';
-import AxiosMockAdapter from 'axios-mock-adapter';
-import { createPinia, setActivePinia } from 'pinia';
-import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+import { setupTestPinia } from '../../setup';
+import type AxiosMockAdapter from 'axios-mock-adapter';
+import type { AxiosInstance } from 'axios';
+import type { ComponentPublicInstance } from 'vue';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import {
-    mockSecretRecord,
-    mockSecretResponse,
-    mockSecretRevealed,
+  mockSecretRecord,
+  mockSecretResponse,
+  mockSecretRevealed,
 } from '../../fixtures/metadata.fixture';
 
 describe('secretStore', () => {
-  let axiosMock: AxiosMockAdapter;
+  let axiosMock: AxiosMockAdapter | null;
+  let api: AxiosInstance;
   let store: ReturnType<typeof useSecretStore>;
+  let appInstance: ComponentPublicInstance | null;
 
-  beforeEach(() => {
-    setActivePinia(createPinia());
-    const axiosInstance = axios.create();
-    axiosMock = new AxiosMockAdapter(axiosInstance);
-    // Inject mocked axios instance into the store's API
+  beforeEach(async () => {
+    // Setup testing environment with all needed components
+    const setup = await setupTestPinia();
+    axiosMock = setup.axiosMock;
+    api = setup.api;
+    appInstance = setup.appInstance;
+
+    // Initialize the store
     store = useSecretStore();
- });
+  });
 
   afterEach(() => {
-    axiosMock.reset();
+    if (axiosMock) axiosMock.reset();
+    vi.clearAllMocks();
   });
 
   describe('secretStore field handling', () => {
-    let axiosMock: AxiosMockAdapter;
-    let store: ReturnType<typeof useSecretStore>;
-
-    beforeEach(() => {
-      setActivePinia(createPinia());
-      const axiosInstance = axios.create();
-      axiosMock = new AxiosMockAdapter(axiosInstance);
-      store = useSecretStore();
-      store.init();
-    });
-
-    afterEach(() => {
-      axiosMock.reset();
-      store.$reset();
-    });
-
     describe('is_owner field', () => {
       it('preserves true value from API', async () => {
         const response = {
           ...mockSecretResponse,
           details: { ...mockSecretResponse.details, is_owner: true },
         };
-        axiosMock.onGet('/api/v2/secret/abc123').reply(200, response);
+        axiosMock?.onGet('/api/v2/secret/abc123').reply(200, response);
 
         await store.fetch('abc123');
         expect(store.details?.is_owner).toBe(true);
@@ -63,7 +55,7 @@ describe('secretStore', () => {
           ...mockSecretResponse,
           details: { ...mockSecretResponse.details, is_owner: false },
         };
-        axiosMock.onGet('/api/v2/secret/abc123').reply(200, response);
+        axiosMock?.onGet('/api/v2/secret/abc123').reply(200, response);
 
         await store.fetch('abc123');
         expect(store.details?.is_owner).toBe(false);
@@ -91,9 +83,7 @@ describe('secretStore', () => {
         };
 
         // Use consistent API endpoint
-        axiosMock
-          .onGet(`/api/v2/secret/${testKey}`)
-          .reply(200, mockResponseWithoutLifespan);
+        axiosMock?.onGet(`/api/v2/secret/${testKey}`).reply(200, mockResponseWithoutLifespan);
 
         await store.fetch(testKey);
 
@@ -106,7 +96,7 @@ describe('secretStore', () => {
           ...mockSecretResponse,
           details: { ...mockSecretResponse.details, is_owner: true },
         };
-        axiosMock.onGet('/api/v2/secret/abc123').reply(200, initialResponse);
+        axiosMock?.onGet('/api/v2/secret/abc123').reply(200, initialResponse);
         await store.fetch('abc123');
 
         // Then reveal the secret
@@ -114,7 +104,7 @@ describe('secretStore', () => {
           ...mockSecretRevealed,
           details: { ...mockSecretRevealed.details, is_owner: true },
         };
-        axiosMock.onPost('/api/v2/secret/abc123/reveal').reply(200, revealResponse);
+        axiosMock?.onPost('/api/v2/secret/abc123/reveal').reply(200, revealResponse);
 
         await store.reveal('abc123', 'password');
         expect(store.details?.is_owner).toBe(true);
@@ -129,7 +119,7 @@ describe('secretStore', () => {
             is_owner: undefined,
           },
         };
-        axiosMock.onGet('/api/v2/secret/abc123').reply(200, response);
+        axiosMock?.onGet('/api/v2/secret/abc123').reply(200, response);
 
         await store.fetch('abc123');
         expect(store.details?.is_owner).toBe(false);
@@ -142,14 +132,14 @@ describe('secretStore', () => {
           ...mockSecretResponse,
           record: {
             ...mockSecretResponse.record,
-            lifespan: '24 hours',
+            lifespan: 86400, // Schema expects number (seconds), not string
             secret_ttl: 86400, // 24 hours in seconds
           },
         };
-        axiosMock.onGet('/api/v2/secret/abc123').reply(200, response);
+        axiosMock?.onGet('/api/v2/secret/abc123').reply(200, response);
 
         await store.fetch('abc123');
-        expect(store.record?.lifespan).toBe('24 hours'); // Test exact match
+        expect(store.record?.lifespan).toBe(86400); // Test exact numeric match
         expect(store.record?.secret_ttl).toBe(86400); // Verify TTL is preserved
       });
 
@@ -162,7 +152,7 @@ describe('secretStore', () => {
             secret_ttl: null,
           },
         };
-        axiosMock.onGet('/api/v2/secret/abc123').reply(200, response);
+        axiosMock?.onGet('/api/v2/secret/abc123').reply(200, response);
 
         await store.fetch('abc123');
         expect(store.record?.lifespan).toBeNull();
@@ -175,11 +165,11 @@ describe('secretStore', () => {
           ...mockSecretResponse,
           record: {
             ...mockSecretResponse.record,
-            lifespan: '24 hours',
+            lifespan: 86400, // Schema expects number (seconds)
             secret_ttl: 86400,
           },
         };
-        axiosMock.onGet('/api/v2/secret/abc123').reply(200, initialResponse);
+        axiosMock?.onGet('/api/v2/secret/abc123').reply(200, initialResponse);
         await store.fetch('abc123');
         const initialLifespan = store.record?.lifespan;
 
@@ -188,11 +178,11 @@ describe('secretStore', () => {
           ...mockSecretRevealed,
           record: {
             ...mockSecretRevealed.record,
-            lifespan: '24 hours',
+            lifespan: 86400, // Schema expects number (seconds)
             secret_ttl: 86400,
           },
         };
-        axiosMock.onPost('/api/v2/secret/abc123/reveal').reply(200, revealResponse);
+        axiosMock?.onPost('/api/v2/secret/abc123/reveal').reply(200, revealResponse);
 
         await store.reveal('abc123', 'password');
         expect(store.record?.lifespan).toBe(initialLifespan);
@@ -207,7 +197,7 @@ describe('secretStore', () => {
             secret_ttl: null,
           },
         };
-        axiosMock.onGet('/api/v2/secret/abc123').reply(200, response);
+        axiosMock?.onGet('/api/v2/secret/abc123').reply(200, response);
 
         await store.fetch('abc123');
         expect(store.record?.lifespan).toBeNull();
@@ -219,13 +209,13 @@ describe('secretStore', () => {
           record: {
             ...mockSecretResponse.record,
             secret_ttl: 3600, // 1 hour
-            lifespan: '1 hour',
+            lifespan: 3600, // Schema expects number (seconds), not string
           },
         };
-        axiosMock.onGet('/api/v2/secret/abc123').reply(200, response);
+        axiosMock?.onGet('/api/v2/secret/abc123').reply(200, response);
 
         await store.fetch('abc123');
-        expect(store.record?.lifespan).toBe('1 hour');
+        expect(store.record?.lifespan).toBe(3600); // Test exact numeric match
         expect(store.record?.secret_ttl).toBe(3600);
       });
     });
@@ -237,7 +227,7 @@ describe('secretStore', () => {
           ...mockSecretResponse,
           record: {
             ...mockSecretResponse.record,
-            lifespan: '24 hours',
+            lifespan: 86400, // Schema expects number (seconds)
             secret_ttl: 86400,
           },
           details: {
@@ -245,12 +235,12 @@ describe('secretStore', () => {
             is_owner: true,
           },
         };
-        axiosMock.onGet('/api/v2/secret/abc123').reply(200, initialResponse);
+        axiosMock?.onGet('/api/v2/secret/abc123').reply(200, initialResponse);
         await store.fetch('abc123');
 
         // Verify both fields
         expect(store.details?.is_owner).toBe(true);
-        expect(store.record?.lifespan).toMatch(/24 hours/);
+        expect(store.record?.lifespan).toBe(86400); // Schema expects number, not string
         expect(store.record?.secret_ttl).toBe(86400);
 
         // Clear and verify reset
@@ -261,7 +251,7 @@ describe('secretStore', () => {
         // Fetch again and verify restoration
         await store.fetch('abc123');
         expect(store.details?.is_owner).toBe(true);
-        expect(store.record?.lifespan).toMatch(/24 hours/);
+        expect(store.record?.lifespan).toBe(86400); // Schema expects number, not string
       });
     });
   });

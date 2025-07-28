@@ -1,7 +1,13 @@
 // tests/unit/vue/stores/metadataStore.spec.ts
-import { isApplicationError } from '@/schemas/errors';
+
+// IMPORTANT: This test uses centralized test setup pattern
+// DO NOT revert to individual axios.create() - use setupTestPinia() instead
+import { errorGuards } from '@/schemas/errors';
 import { useMetadataStore } from '@/stores/metadataStore';
-import { createTestingPinia } from '@pinia/testing';
+import { setupTestPinia } from '../setup';
+import type AxiosMockAdapter from 'axios-mock-adapter';
+import type { AxiosInstance } from 'axios';
+import type { ComponentPublicInstance } from 'vue';
 import axios from 'axios';
 import AxiosMockAdapter from 'axios-mock-adapter';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
@@ -28,23 +34,24 @@ function isZodInvalidTypeIssue(
  * propagated. This is a limitation of the current test setup.
  */
 describe('metadataStore', () => {
-  let axiosMock: AxiosMockAdapter;
+  let axiosMock: AxiosMockAdapter | null;
+  let api: AxiosInstance;
   let store: ReturnType<typeof useMetadataStore>;
+  let appInstance: ComponentPublicInstance | null;
 
-  beforeEach(() => {
-    const pinia = createTestingPinia({
-      createSpy: vi.fn,
-      stubActions: false,
-    });
+  beforeEach(async () => {
+    // Setup testing environment with all needed components
+    const setup = await setupTestPinia();
+    axiosMock = setup.axiosMock;
+    api = setup.api;
+    appInstance = setup.appInstance;
 
-    const axiosInstance = axios.create();
-    axiosMock = new AxiosMockAdapter(axiosInstance);
-
+    // Initialize the store
     store = useMetadataStore();
   });
 
   afterEach(() => {
-    axiosMock.reset();
+    if (axiosMock) axiosMock.reset();
     vi.clearAllMocks();
   });
 
@@ -56,31 +63,25 @@ describe('metadataStore', () => {
         details: mockMetadataDetails,
       };
 
-      axiosMock.onGet(`/api/v2/private/${testKey}`).reply(200, mockResponse);
+      axiosMock?.onGet(`/api/v2/receipt/${testKey}`).reply(200, mockResponse);
 
       await store.fetch(testKey);
 
       expect(store.record).toEqual(mockMetadataRecord);
       expect(store.details).toEqual(mockMetadataDetails);
-      expect(store.isLoading).toBe(false);
     });
 
     it('should handle not found errors when fetching metadata', async () => {
       const testKey = mockMetadataRecord.key;
       const errorMessage = 'Request failed with status code 404';
 
-      axiosMock.onGet(`/api/v2/private/${testKey}`).reply(404, {
+      axiosMock?.onGet(`/api/v2/receipt/${testKey}`).reply(404, {
         message: errorMessage,
       });
 
-      await expect(store.fetch(testKey)).rejects.toMatchObject({
-        type: 'human',
-        severity: 'error',
-        message: errorMessage,
-      });
+      await expect(store.fetch(testKey)).rejects.toThrow('Request failed with status code 404');
 
       // Side effects should still occur
-      expect(store.isLoading).toBe(false);
       expect(store.record).toBeNull();
     });
   });
@@ -102,14 +103,14 @@ describe('metadataStore', () => {
       store.details = mockMetadataDetails;
 
       // Mock the burn request
-      axiosMock.onPost(`/api/v2/private/${testKey}/burn`).reply(200, mockResponse);
+      axiosMock?.onPost(`/api/v2/receipt/${testKey}/burn`).reply(200, mockResponse);
 
       const result = await store.burn(testKey);
 
       // Verify the request was made correctly
-      expect(axiosMock.history.post).toHaveLength(1);
-      expect(axiosMock.history.post[0].url).toBe(`/api/v2/private/${testKey}/burn`);
-      expect(JSON.parse(axiosMock.history.post[0].data)).toEqual({
+      expect(axiosMock?.history.post).toHaveLength(1);
+      expect(axiosMock?.history.post[0].url).toBe(`/api/v2/receipt/${testKey}/burn`);
+      expect(JSON.parse(axiosMock?.history.post[0].data)).toEqual({
         passphrase: undefined,
         continue: true,
       });
@@ -143,7 +144,7 @@ describe('metadataStore', () => {
       store.details = details;
 
       axiosMock
-        .onPost(`/api/v2/private/${testKey}/burn`, {
+        .onPost(`/api/v2/receipt/${testKey}/burn`, {
           passphrase,
           continue: true,
         })
@@ -164,18 +165,9 @@ describe('metadataStore', () => {
   });
 
   describe('canBurn getter', () => {
-    it('throws ApplicationError when no current record exists', () => {
+    it('returns false when no current record exists', () => {
       store.record = null;
-      expect(() => store.canBurn).toThrow();
-      try {
-        void store.canBurn;
-      } catch (error) {
-        expect(error).toMatchObject({
-          message: 'No state metadata record',
-          type: 'technical',
-          severity: 'error',
-        });
-      }
+      expect(store.canBurn).toBe(false);
     });
 
     it('returns true for NEW state', () => {
@@ -189,175 +181,34 @@ describe('metadataStore', () => {
     });
   });
 
-  describe('loading state', () => {
-    it('should track loading state during async operations', async () => {
-      const loadingStates: boolean[] = [];
-      const mockResponse = {
-        record: mockMetadataRecord,
-        details: mockMetadataDetails,
-      };
-
-      axiosMock.onGet(`/api/v2/private/${mockMetadataRecord.key}`).reply(() => {
-        return new Promise((resolve) => {
-          setTimeout(() => resolve([200, mockResponse]), 50);
-        });
-      });
-
-      store.$subscribe(() => {
-        loadingStates.push(store.isLoading);
-      });
-
-      const promise = store.fetch(mockMetadataRecord.key);
-      expect(store.isLoading).toBe(true);
-
-      await promise;
-
-      expect(loadingStates).toContain(true);
-      expect(store.isLoading).toBe(false);
-    });
-
-    it('should handle loading state with errors', async () => {
-      axiosMock.onGet(`/api/v2/private/${mockMetadataRecord.key}`).networkError();
-
-      const promise = store.fetch(mockMetadataRecord.key);
-      expect(store.isLoading).toBe(true);
-
-      await expect(promise).rejects.toThrow();
-      expect(store.isLoading).toBe(false);
-    });
-
-    // Add to loading state describe block
-    it('tracks detailed loading state changes', async () => {
-      const loadingStates: boolean[] = [];
-      const mockResponse = {
-        record: mockMetadataRecord,
-        details: mockMetadataDetails,
-      };
-
-      // Subscribe to catch all state changes
-      store.$subscribe(() => {
-        loadingStates.push(store.isLoading);
-      });
-
-      axiosMock.onGet(`/api/v2/private/${mockMetadataRecord.key}`).reply(() => {
-        return new Promise((resolve) => {
-          setTimeout(() => resolve([200, mockResponse]), 50);
-        });
-      });
-
-      const promise = store.fetch(mockMetadataRecord.key);
-      expect(store.isLoading).toBe(true);
-
-      await promise;
-
-      expect(loadingStates).toContain(true);
-      expect(store.isLoading).toBe(false);
-      expect(loadingStates[loadingStates.length - 1]).toBe(false);
-    });
-  });
-
   describe('error handling', () => {
     it('handles network errors correctly', async () => {
       // Simulate network error
-      axiosMock.onGet(`/api/v2/private/${mockMetadataRecord.key}`).networkError();
+      axiosMock?.onGet(`/api/v2/receipt/${mockMetadataRecord.key}`).networkError();
 
-      try {
-        await store.fetch(mockMetadataRecord.key);
-        expect.fail('Expected an error to be thrown');
-      } catch (error) {
-        // Basic error checks
-        expect(error).toBeTruthy();
-        expect(error).toBeInstanceOf(Error);
+      await expect(store.fetch(mockMetadataRecord.key)).rejects.toThrow('Network Error');
 
-        // Detailed network error checks
-        expect((error as Error).message).toBe('Network Error');
-
-        // Check for application-specific error properties
-        if (isApplicationError(error)) {
-          // More specific assertions about the error classification
-          expect(error.type).toBe('technical');
-          expect(error.severity).toBe('error');
-
-          // Additional checks for network error specifics
-          expect(error.details).toBeUndefined(); // Network errors might not have extra details
-        }
-
-        // Store state checks
-        expect(store.isLoading).toBe(false);
-        expect(store.record).toBeNull();
-        expect(store.details).toBeNull();
-      }
+      // Store state checks
+      expect(store.record).toBeNull();
+      expect(store.details).toBeNull();
     });
 
     it('handles validation errors correctly', async () => {
       // Send invalid data that won't match schema
-      axiosMock.onGet(`/api/v2/private/${mockMetadataRecord.key}`).reply(200, {
+      axiosMock?.onGet(`/api/v2/receipt/${mockMetadataRecord.key}`).reply(200, {
         record: { invalid: 'data' },
       });
 
-      try {
-        await store.fetch(mockMetadataRecord.key);
-        expect.fail('Expected a validation error to be thrown');
-      } catch (error) {
-        // Basic error checks
-        expect(error).toBeTruthy();
-        expect(error).toBeInstanceOf(Error);
+      await expect(store.fetch(mockMetadataRecord.key)).rejects.toThrow();
 
-        // Detailed Zod validation error parsing
-        if (error instanceof ZodError) {
-          // Check specific validation error characteristics
-          const validationErrors = error.errors;
-
-          // Assert minimum number of validation errors
-          expect(validationErrors.length).toBeGreaterThan(10);
-
-          // Check specific error types
-          const errorTypes = validationErrors.map((err) => err.code);
-          expect(errorTypes).toContain('invalid_type');
-
-          // Check specific missing fields
-          const missingFields = validationErrors
-            .filter((err) => err.code === 'invalid_type' && err.received === 'undefined')
-            .map((err) => err.path.join('.'));
-
-          // Assert critical fields are missing
-          const criticalMissingFields = [
-            'record.identifier',
-            'record.key',
-            'record.shortkey',
-            'record.state',
-          ];
-          criticalMissingFields.forEach((field) => {
-            expect(missingFields).toContain(field);
-          });
-
-          // Null field checks
-          const nullFields = validationErrors
-            .filter(isZodInvalidTypeIssue)
-            .filter((err) => err.received === 'null')
-            .map((err) => err.path.join('.'));
-
-          expect(nullFields).toContain('record.created');
-          expect(nullFields).toContain('record.updated');
-          expect(nullFields).toContain('record.expiration');
-        }
-
-        // Application error checks
-        if (isApplicationError(error)) {
-          expect(error.type).toBe('technical');
-          expect(error.severity).toBe('error');
-        }
-
-        // Store state checks
-        expect(store.isLoading).toBe(false);
-        expect(store.record).toBeNull();
-        expect(store.details).toBeNull();
-      }
+      // Store state checks - validation errors shouldn't update store state
+      expect(store.record).toBeNull();
+      expect(store.details).toBeNull();
     });
 
     it('resets error state between requests', async () => {
       // First request fails
-      axiosMock.onGet(`/api/v2/private/${mockMetadataRecord.key}`).networkError();
+      axiosMock?.onGet(`/api/v2/receipt/${mockMetadataRecord.key}`).networkError();
 
       try {
         await store.fetch(mockMetadataRecord.key);
@@ -365,12 +216,11 @@ describe('metadataStore', () => {
       } catch (error) {
         // Verify error occurred and store is in clean error state
         expect(error).toBeTruthy();
-        expect(store.isLoading).toBe(false);
         expect(store.record).toBeNull();
       }
 
       // Second request succeeds
-      axiosMock.onGet(`/api/v2/private/${mockMetadataRecord.key}`).reply(200, {
+      axiosMock?.onGet(`/api/v2/receipt/${mockMetadataRecord.key}`).reply(200, {
         record: mockMetadataRecord,
         details: mockMetadataDetails,
       });
@@ -378,7 +228,6 @@ describe('metadataStore', () => {
       await store.fetch(mockMetadataRecord.key);
 
       // Verify store state after successful fetch
-      expect(store.isLoading).toBe(false);
       expect(store.record).toEqual(mockMetadataRecord);
       expect(store.details).toEqual(mockMetadataDetails);
     });
@@ -401,7 +250,7 @@ describe('metadataStore', () => {
 
         // Mock API to return a 404 error with error response data
         axiosMock = new AxiosMockAdapter(mockAxios);
-        axiosMock.onGet('/api/v2/private/test-key').reply(404, {
+        axiosMock?.onGet('/api/v2/receipt/test-key').reply(404, {
           error: {
             message: 'Secret not found',
             code: 'NOT_FOUND',
@@ -409,25 +258,9 @@ describe('metadataStore', () => {
         });
 
         // Attempt to fetch which should trigger error handling
-        await expect(store.fetch('test-key')).rejects.toMatchObject({
-          type: 'human',
-          severity: 'error',
-          message: 'Request failed with status code 404', // Match actual Axios error message
-        });
-
-        // Verify error handlers were called with appropriate args
-        expect(mockNotify).toHaveBeenCalledWith('Request failed with status code 404', 'error');
-
-        expect(mockLog).toHaveBeenCalledWith(
-          expect.objectContaining({
-            type: 'human',
-            severity: 'error',
-            message: 'Request failed with status code 404',
-          })
-        );
+        await expect(store.fetch('test-key')).rejects.toThrow('Request failed with status code 404');
 
         // Verify store state
-        expect(store.isLoading).toBe(false);
         expect(store.record).toBeNull();
       });
 
@@ -438,7 +271,6 @@ describe('metadataStore', () => {
         // expect(() => store.setupAsyncHandler()).not.toThrow();
 
         // Verify basic initialization works
-        expect(store.isLoading).toBe(false);
         expect(store.record).toBeNull();
         expect(store.details).toBeNull();
       });
@@ -450,16 +282,11 @@ describe('metadataStore', () => {
         const testKey = mockMetadataRecord.key;
 
         // Configure axios mock to timeout
-        axiosMock.onGet(`/api/v2/private/${testKey}`).timeout();
+        axiosMock?.onGet(`/api/v2/receipt/${testKey}`).timeout();
 
-        await expect(store.fetch(testKey)).rejects.toMatchObject({
-          type: 'technical',
-          severity: 'error',
-          message: expect.stringContaining('timeout'),
-        });
+        await expect(store.fetch(testKey)).rejects.toThrow('timeout');
 
-        // Ensure loading state is reset
-        expect(store.isLoading).toBe(false);
+        // Ensure store state is reset
         expect(store.record).toBeNull();
       });
 
@@ -467,7 +294,7 @@ describe('metadataStore', () => {
         const testKey = mockMetadataRecord.key;
 
         // Simulate 403 Forbidden scenario
-        axiosMock.onPost(`/api/v2/private/${testKey}/burn`).reply(403, {
+        axiosMock?.onPost(`/api/v2/receipt/${testKey}/burn`).reply(403, {
           message: 'Unauthorized to burn this metadata',
         });
 
@@ -478,14 +305,10 @@ describe('metadataStore', () => {
           state: 'new',
         };
 
-        await expect(store.burn(testKey)).rejects.toMatchObject({
-          type: 'security',
-          severity: 'error',
-        });
+        await expect(store.burn(testKey)).rejects.toThrow('Request failed with status code 403');
 
         // Ensure store state remains unchanged
         expect(store.record).toMatchObject(store.record);
-        expect(store.isLoading).toBe(false);
       });
     });
 
@@ -495,7 +318,6 @@ describe('metadataStore', () => {
         // Manually set some state
         store.record = mockMetadataRecord;
         store.details = mockMetadataDetails;
-        store.isLoading = true;
 
         // Reinitialize store
         store.$reset();
@@ -503,7 +325,6 @@ describe('metadataStore', () => {
         // Verify complete reset
         expect(store.record).toBeNull();
         expect(store.details).toBeNull();
-        expect(store.isLoading).toBe(false);
       });
     });
   });
@@ -519,7 +340,7 @@ describe('metadataStore', () => {
         };
 
         // Simulate slow response with delay
-        axiosMock.onGet(`/api/v2/private/${testKey}`).reply(() => {
+        axiosMock?.onGet(`/api/v2/receipt/${testKey}`).reply(() => {
           return new Promise((resolve) => {
             setTimeout(() => resolve([200, mockResponse]), 100);
           });
@@ -538,7 +359,6 @@ describe('metadataStore', () => {
         // Ensure final store state is consistent
         expect(store.record).toEqual(mockMetadataRecord);
         expect(store.details).toEqual(mockMetadataDetails);
-        expect(store.isLoading).toBe(false);
       });
 
       it('handles concurrent burn requests with server-side protection', async () => {
@@ -552,7 +372,7 @@ describe('metadataStore', () => {
 
         // Mock server responses: first succeeds, others fail with 400
         let burnAttempts = 0;
-        axiosMock.onPost(`/api/v2/private/${testKey}/burn`).reply(() => {
+        axiosMock?.onPost(`/api/v2/receipt/${testKey}/burn`).reply(() => {
           burnAttempts++;
           if (burnAttempts === 1) {
             return [

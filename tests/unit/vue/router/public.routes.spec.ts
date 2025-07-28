@@ -21,7 +21,7 @@ describe('Public Routes', () => {
       expect(route?.meta?.requiresAuth).toBe(false);
       expect(route?.meta?.layout).toBeDefined();
       expect(route?.meta?.layoutProps?.displayMasthead).toBe(true);
-      expect(route?.meta?.layoutProps?.displayLinks).toBe(true);
+      expect(route?.meta?.layoutProps?.displayFooterLinks).toBe(true);
       expect(route?.meta?.layoutProps?.displayFeedback).toBe(true);
     });
 
@@ -40,50 +40,9 @@ describe('Public Routes', () => {
     });
   });
 
-  describe('Info Routes', () => {
-    const infoRoutes = [
-      { path: '/info/privacy', name: 'Privacy Policy' },
-      { path: '/info/terms', name: 'Terms of Use' },
-      { path: '/info/security', name: 'Security Policy' },
-    ];
+  // NOTE: Info routes (privacy, terms, security) have been removed and are no longer available
 
-    infoRoutes.forEach((infoRoute) => {
-      it(`should define ${infoRoute.name} route correctly`, () => {
-        const route = publicRoutes.find((route: RouteRecordRaw) => route.path === infoRoute.path);
-        expect(route).toBeDefined();
-        expect(route?.name).toBe(infoRoute.name);
-        expect(route?.meta?.requiresAuth).toBe(false);
-        expect(route?.meta?.layout).toBeDefined();
-        expect(typeof route?.component).toBe('function'); // Lazy loaded
-      });
-    });
-  });
+  // NOTE: Feedback route has been removed and is no longer available
 
-  describe('Feedback Route', () => {
-    it('should define feedback route correctly', () => {
-      const route = publicRoutes.find((route: RouteRecordRaw) => route.path === '/feedback');
-      expect(route).toBeDefined();
-      expect(route?.name).toBe('Feedback');
-      expect(route?.meta?.requiresAuth).toBe(false);
-      expect(route?.meta?.layout).toBeDefined();
-      expect(route?.meta?.layoutProps?.displayMasthead).toBe(true);
-      expect(route?.meta?.layoutProps?.displayLinks).toBe(true);
-      expect(route?.meta?.layoutProps?.displayFeedback).toBe(false);
-      expect(typeof route?.component).toBe('function'); // Lazy loaded
-    });
-  });
-
-  describe('Translations Route', () => {
-    it('should define translations route correctly', () => {
-      const route = publicRoutes.find((route: RouteRecordRaw) => route.path === '/translations');
-      expect(route).toBeDefined();
-      expect(route?.name).toBe('Translations');
-      expect(route?.meta?.requiresAuth).toBe(false);
-      expect(route?.meta?.layout).toBeDefined();
-      expect(route?.meta?.layoutProps?.displayMasthead).toBe(true);
-      expect(route?.meta?.layoutProps?.displayLinks).toBe(true);
-      expect(route?.meta?.layoutProps?.displayFeedback).toBe(true);
-      expect(typeof route?.component).toBe('function'); // Lazy loaded
-    });
-  });
+  // NOTE: Translations route has been removed and is no longer available
 });

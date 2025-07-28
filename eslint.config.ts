@@ -477,7 +477,10 @@ export default [
       'max-nested-callbacks': ['error', 6], // Prevent test suite organization from becoming too granular and hard to navigate.
       // Deep nesting often indicates over-categorization - prefer clear, descriptive test names instead.
       'max-lines-per-function': ['warn', { max: 300 }], // Keep test cases focused
-      // ... existing code ...
+
+      // Disable import ordering in test files to preserve manual test infrastructure setup
+      'import/order': 'off', // Allow manual import organization for test setup patterns
+
       'padding-line-between-statements': [
         'error',
         { blankLine: 'always', prev: '*', next: 'block' },
