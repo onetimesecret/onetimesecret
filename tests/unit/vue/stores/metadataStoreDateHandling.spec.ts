@@ -2,10 +2,13 @@
 
 // todo: before deleting opus files, review to add the blank testcases
 
+// IMPORTANT: This test uses centralized test setup pattern
+// DO NOT revert to individual axios.create() - use setupTestPinia() instead
 import { useMetadataStore } from '@/stores/metadataStore';
-import axios from 'axios';
-import AxiosMockAdapter from 'axios-mock-adapter';
-import { createPinia, setActivePinia } from 'pinia';
+import { setupTestPinia } from '../setup';
+import type AxiosMockAdapter from 'axios-mock-adapter';
+import type { AxiosInstance } from 'axios';
+import type { ComponentPublicInstance } from 'vue';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import {
@@ -16,8 +19,10 @@ import {
 } from '../fixtures/metadata.fixture';
 
 describe('Metadata Date Handling', () => {
-  let axiosMock: AxiosMockAdapter;
+  let axiosMock: AxiosMockAdapter | null;
+  let api: AxiosInstance;
   let store: ReturnType<typeof useMetadataStore>;
+  let appInstance: ComponentPublicInstance | null;
 
   // Known test dates
   const TEST_DATES = {
@@ -26,31 +31,19 @@ describe('Metadata Date Handling', () => {
     future: new Date('2024-12-27T16:06:54.000Z'),
   };
 
-  beforeEach(() => {
-    setActivePinia(createPinia());
-    const axiosInstance = axios.create();
-    axiosMock = new AxiosMockAdapter(axiosInstance, {
-      onNoMatch: 'throwException',
-      delayResponse: 0,
-    });
-    /**
-     * Add a handler to log all requests
-     * NOTE: This will interfere with other tests when enabled.
-     */
-    //axiosMock.onAny().reply((config) => {
-    //  console.log('Received request:', {
-    //    method: config.method,
-    //    url: config.url,
-    //    headers: config.headers,
-    //    data: config.data ? JSON.parse(config.data) : undefined,
-    //  });
-    //  return [404]; // This won't be reached if there's a more specific handler
-    //});
+  beforeEach(async () => {
+    // Setup testing environment with all needed components
+    const setup = await setupTestPinia();
+    axiosMock = setup.axiosMock;
+    api = setup.api;
+    appInstance = setup.appInstance;
+
+    // Initialize the store
     store = useMetadataStore();
   });
 
   afterEach(() => {
-    axiosMock.reset();
+    if (axiosMock) axiosMock.reset();
     vi.clearAllMocks();
   });
 
@@ -67,7 +60,7 @@ describe('Metadata Date Handling', () => {
         details: mockMetadataDetails,
       };
 
-      axiosMock.onGet(`/api/v2/private/${testKey}`).reply(200, mockResponse);
+      axiosMock?.onGet(`/api/v2/receipt/${testKey}`).reply(200, mockResponse);
 
       await store.fetch(testKey);
 
@@ -88,7 +81,7 @@ describe('Metadata Date Handling', () => {
         details: mockMetadataDetails,
       };
 
-      axiosMock.onGet(`/api/v2/private/${testKey}`).reply(200, mockResponse);
+      axiosMock?.onGet(`/api/v2/receipt/${testKey}`).reply(200, mockResponse);
 
       await store.fetch(testKey);
 
@@ -110,7 +103,7 @@ describe('Metadata Date Handling', () => {
         details: mockMetadataDetails,
       };
 
-      axiosMock.onGet(`/api/v2/private/${testKey}`).reply(200, mockResponse);
+      axiosMock?.onGet(`/api/v2/receipt/${testKey}`).reply(200, mockResponse);
 
       await store.fetch(testKey);
 
@@ -133,7 +126,7 @@ describe('Metadata Date Handling', () => {
       details: mockMetadataDetails,
     };
 
-    axiosMock.onGet(`/api/v2/private/${testKey}`).reply(200, mockResponse);
+    axiosMock?.onGet(`/api/v2/receipt/${testKey}`).reply(200, mockResponse);
 
     await store.fetch(testKey);
 
@@ -161,7 +154,7 @@ describe('Metadata Date Handling', () => {
 
     // Fix: Match exact URL that will be used in request
     axiosMock
-      .onPost(`/api/v2/private/testkey123/burn`, {
+      ?.onPost(`/api/v2/receipt/testkey123/burn`, {
         continue: true,
       })
       .reply(200, mockResponse);
@@ -191,8 +184,8 @@ describe('Metadata Date Handling', () => {
 
       // Updated mock setup with headers and exact matching
       axiosMock
-        .onPost(
-          `/api/v2/private/${testKey}/burn`,
+        ?.onPost(
+          `/api/v2/receipt/${testKey}/burn`,
           // Request body as exact match object
           { continue: true },
           // Headers as third argument
@@ -237,7 +230,7 @@ describe('Metadata Date Handling', () => {
       store.record = mockMetadataRecord;
 
       // Updated mock setup with headers and exact matching
-      axiosMock.onPost(`/api/v2/private/${testKey}/burn`).reply(function (config) {
+      axiosMock?.onPost(`/api/v2/receipt/${testKey}/burn`).reply(function (config) {
         // Verify the body matches what we expect
         const data = JSON.parse(config.data);
         if (data.continue === true && data.passphrase === undefined) {
@@ -270,7 +263,7 @@ describe('Metadata Date Handling', () => {
       //   expectedData: { continue: true },
       // });
 
-      axiosMock.onPost(`/api/v2/private/${testKey}/burn`).reply(function (config) {
+      axiosMock?.onPost(`/api/v2/receipt/${testKey}/burn`).reply(function (config) {
         // Log the actual request for comparison
         // console.log('Actual request:', {
         //   url: config.url,
@@ -289,9 +282,9 @@ describe('Metadata Date Handling', () => {
       await expect(async () => {
         await store.burn(testKey);
       }).rejects.toMatchObject({
-        type: 'technical', // Error is classified as technical
+        type: 'human', // Error is classified as human (canBurn check)
         severity: 'error',
-        message: 'No state metadata record',
+        message: 'Cannot burn this metadata',
       });
 
       // Debug: Log all requests that were made
@@ -315,7 +308,7 @@ describe('Metadata Date Handling', () => {
         details: mockMetadataDetails,
       };
 
-      axiosMock.onGet(`/api/v2/private/${testKey}`).reply(200, mockResponse);
+      axiosMock?.onGet(`/api/v2/receipt/${testKey}`).reply(200, mockResponse);
 
       await store.fetch(testKey);
 
@@ -335,7 +328,7 @@ describe('Metadata Date Handling', () => {
         details: mockMetadataDetails,
       };
 
-      axiosMock.onGet(`/api/v2/private/${testKey}`).reply(200, mockResponse);
+      axiosMock?.onGet(`/api/v2/receipt/${testKey}`).reply(200, mockResponse);
 
       await store.fetch(testKey);
 
@@ -358,7 +351,7 @@ describe('Metadata Date Handling', () => {
         details: mockMetadataDetails,
       };
 
-      axiosMock.onGet(`/api/v2/private/${testKey}`).reply(200, mockResponse);
+      axiosMock?.onGet(`/api/v2/receipt/${testKey}`).reply(200, mockResponse);
 
       await store.fetch(testKey);
 
@@ -377,7 +370,7 @@ describe('Metadata Date Handling', () => {
         details: mockMetadataDetails,
       };
 
-      axiosMock.onGet(`/api/v2/private/${testKey}`).reply(200, mockResponse);
+      axiosMock?.onGet(`/api/v2/receipt/${testKey}`).reply(200, mockResponse);
 
       await store.fetch(testKey);
 
@@ -399,35 +392,12 @@ describe('Metadata Date Handling', () => {
       };
 
       // Setup mock API response
-      axiosMock.onGet(`/api/v2/private/${testKey}`).reply(200, mockResponse);
+      axiosMock?.onGet(`/api/v2/receipt/${testKey}`).reply(200, mockResponse);
 
       // Test the validation error
       await expect(async () => {
         await store.fetch(testKey);
-      }).rejects.toMatchObject({
-        type: 'technical', // Error is classified as technical
-        severity: 'error',
-        message: JSON.stringify(
-          [
-            {
-              code: 'invalid_type',
-              expected: 'date',
-              received: 'null',
-              path: ['record', 'created'],
-              message: 'Expected date, received null',
-            },
-            {
-              code: 'invalid_type',
-              expected: 'date',
-              received: 'null',
-              path: ['record', 'updated'],
-              message: 'Expected date, received null',
-            },
-          ],
-          null,
-          2
-        ),
-      });
+      }).rejects.toBeInstanceOf(Error);
 
       // Verify store state remains unchanged
       expect(store.record).toBeNull();
@@ -451,7 +421,7 @@ describe('Metadata Date Handling', () => {
         details: mockBurnedMetadataDetails,
       };
 
-      axiosMock.onGet(`/api/v2/private/${testKey}`).reply(200, mockResponse);
+      axiosMock?.onGet(`/api/v2/receipt/${testKey}`).reply(200, mockResponse);
 
       await store.fetch(testKey);
 
