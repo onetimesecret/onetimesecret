@@ -17,7 +17,7 @@
 #     http_response[:error]   # => 'Forbidden'
 #     http_response['body']   # => 'You are not allowed to access this resource.'
 #
-ENV['ONETIME_HOME'] ||= File.expand_path(File.join(__dir__, '..', '..', '..', '..')).freeze
+ENV['ONETIME_HOME'] ||= File.expand_path(File.join(__dir__, '..')).freeze
 project_root = ENV['ONETIME_HOME']
 app_root = File.join(project_root, '/apps').freeze
 
@@ -26,7 +26,7 @@ $LOAD_PATH.unshift(File.join(app_root, 'web'))
 
 require 'onetime'
 
-OT::Config.path = File.join(project_root, 'tests', 'unit', 'ruby', 'config.test.yaml')
+OT::Config.path = File.join(project_root, 'spec', 'config.test.yaml')
 
 class IndifferentHash
   # Initializes a new IndifferentHash.

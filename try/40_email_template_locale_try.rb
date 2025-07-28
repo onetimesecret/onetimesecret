@@ -16,7 +16,7 @@
 # NOTE: Only locales that are configured in test config.test.yaml are
 # available for use in testing. See the humphreybogus example below.
 
-require_relative './test_models'
+require_relative 'test_models'
 # Use the default config file for tests
 OT.boot! :test, false
 

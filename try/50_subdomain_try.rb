@@ -16,7 +16,7 @@
 # of these specific features.
 
 
-require_relative './test_helpers'
+require_relative 'test_helpers'
 require 'v1/models/subdomain'
 
 # Use the default config file for tests

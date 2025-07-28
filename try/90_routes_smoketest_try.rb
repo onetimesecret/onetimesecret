@@ -6,7 +6,7 @@
 # The tryouts use Rack::MockRequest to simulate HTTP requests to the application
 # and verify that the routes exist and return appropriate status codes.
 
-require_relative './test_helpers'
+require_relative 'test_helpers'
 
 require 'v1/application'
 

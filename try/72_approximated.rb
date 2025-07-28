@@ -17,7 +17,7 @@ require 'dotenv'
 
 Dotenv.load('.env')
 
-require_relative './test_models'
+require_relative 'test_models'
 
 # Use the default config file for tests
 OT.boot! :test, false

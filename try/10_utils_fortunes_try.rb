@@ -1,6 +1,6 @@
 # tests/unit/ruby/try/10_utils_fortunes_try.rb
 
-require_relative './test_helpers'
+require_relative 'test_helpers'
 
 OT.boot! :test, false
 

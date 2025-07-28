@@ -1,6 +1,6 @@
 # tests/unit/ruby/try/16_config_emailer_try.rb
 
-require_relative './test_helpers'
+require_relative 'test_helpers'
 
 # Use the default config file for tests
 OT.boot! :test, false

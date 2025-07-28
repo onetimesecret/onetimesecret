@@ -9,7 +9,7 @@
 # demonstration and debugging purposes.
 #
 
-require_relative './test_helpers'
+require_relative 'test_helpers'
 
 @original_env = ENV.to_h
 @sync_values = %w[true yes 1]
