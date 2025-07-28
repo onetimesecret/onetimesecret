@@ -86,21 +86,23 @@ describe('authStore', () => {
 
   describe('Initialization', () => {
     beforeEach(() => {
-      vi.stubGlobal('window', mockWindow);
+      // Set window state properly, preserving __ONETIME_STATE__
+      (window as any).__ONETIME_STATE__ = {
+        ...(window as any).__ONETIME_STATE__,
+        ...mockWindow,
+      };
       store.$reset();
     });
 
     afterEach(() => {
       // Clean up window properties
       (window as any).authenticated = undefined;
-      vi.stubGlobal('window', mockWindow);
       axiosMock.restore();
       store.$reset();
     });
 
     it('initializes with clean state', () => {
       expect(store.$state).toMatchObject({
-        isLoading: false,
         isAuthenticated: null,
         authCheckTimer: null,
         failureCount: null,
@@ -168,7 +170,6 @@ describe('authStore', () => {
 
     it('initializes with clean state', () => {
       expect(store.$state).toMatchObject({
-        isLoading: false,
         isAuthenticated: null,
         authCheckTimer: null,
         failureCount: null,

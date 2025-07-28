@@ -2,6 +2,10 @@ name: Claude Code Review
 
 on:
   pull_request:
+    branches:
+      - 'feature/*'
+      - 'fix/*'
+      - 'delano/*'
     types: [opened, synchronize]
     # Optional: Only run on specific file changes
     # paths:
@@ -17,7 +21,7 @@ jobs:
     #   github.event.pull_request.user.login == 'external-contributor' ||
     #   github.event.pull_request.user.login == 'new-developer' ||
     #   github.event.pull_request.author_association == 'FIRST_TIME_CONTRIBUTOR'
-
+    # if: ${{ !startsWith(github.head_ref, 'deps/') }}
     runs-on: ubuntu-latest
     permissions:
       contents: read

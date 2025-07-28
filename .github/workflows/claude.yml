@@ -1,6 +1,17 @@
+# Only run on specific branch patterns
 name: Claude Code
 
 on:
+  push:
+    branches:
+      - 'feature/*'
+      - 'fix/*'
+      - 'delano/*'
+  pull_request:
+    branches:
+      - 'feature/*'
+      - 'fix/*'
+      - 'delano/*'
   issue_comment:
     types: [created]
   pull_request_review_comment:

@@ -29,17 +29,17 @@ pnpm-debug.log*
 .idea/
 .cache/
 .temp/
-
+.zed/
 .appendonlydir/
 .bundle/
 .rspec
+.rspec_status
 appendonlydir/
 data/
 node_modules/
 vendor/
 log/
 tmp/
-etc/caddy/
 coverage/
 dist/
 public/web/dist/
@@ -47,22 +47,25 @@ public/web/dist/
 
 # Files
 .DS_Store
-!pr_agent.toml
-etc/config*
-!etc/config.example.yaml
-!etc/config.schema.yaml
-etc/system_settings*
-!etc/system_settings.example.yaml
-!fly.toml
+!.pr_agent.toml
 .github/*md
 .eslintcache
 .claude
 .rspec*
 .qodo
 .continuerc.json
+bin/bundle
+bin/rspec
+bin/rubocop
+etc/config*
+etc/*.yaml
+!fly.toml
+support/schemas/
 tsconfig.tsbuildinfo
-CLAUDE.md
 
+# Ignore WIP or temp dev files with uppercase names
+[A-Z]*.rb
+[A-Z]*.ts
 
 # Environment files
 .env*
