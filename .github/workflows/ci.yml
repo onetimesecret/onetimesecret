@@ -116,7 +116,7 @@ jobs:
       - name: Run tryouts
         continue-on-error: ${{ matrix.continue-on-error }}
         run: |
-          pnpm run test:tryouts try
+          bundle exec tryouts -vf try
 
   test-typescript:
     timeout-minutes: 15
