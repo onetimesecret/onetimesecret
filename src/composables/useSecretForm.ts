@@ -83,7 +83,7 @@ export function useSecretForm() {
         const result = formSchema.safeParse(form);
         errors.clear();
         if (!result.success) {
-          result.error.errors.forEach((err) => {
+          result.error.issues.forEach((err: any) => {
             if (err.path[0]) {
               errors.set(err.path[0] as keyof SecretFormData, err.message);
             }

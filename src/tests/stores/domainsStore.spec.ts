@@ -41,7 +41,15 @@ describe('domainsStore', () => {
       txt_validation_value: 'validate123',
       is_apex: false,
       verified: false,
-      brand: {}, // Added expected brand field
+      brand: {
+        primary_color: '#dc4a22',
+        font_family: 'sans',
+        corner_style: 'rounded',
+        button_text_light: false,
+        allow_public_api: false,
+        allow_public_homepage: false,
+        locale: 'en',
+      }, // Added expected brand field
       vhost: {}, // Added expected vhost field
     };
 

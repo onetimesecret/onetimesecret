@@ -37,7 +37,7 @@ export const customerSchema = withFeatureFlags(
       CustomerRole.RECIPIENT,
       CustomerRole.USER_DELETED_SELF,
     ]),
-    email: z.string().email(),
+    email: z.email(),
 
     // Boolean fields from API
     verified: transforms.fromString.boolean,
