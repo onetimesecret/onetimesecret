@@ -7,12 +7,10 @@ on:
       - 'fix/*'
       - 'delano/*'
     types: [opened, synchronize]
-    # Optional: Only run on specific file changes
-    # paths:
-    #   - "src/**/*.ts"
-    #   - "src/**/*.tsx"
-    #   - "src/**/*.js"
-    #   - "src/**/*.jsx"
+  workflow_dispatch:
+
+permissions:
+  contents: read
 
 jobs:
   claude-review:
