@@ -131,8 +131,8 @@ describe('secretStore', () => {
 
   describe('Initialization', () => {
     it('initializes correctly', () => {
-      expect(store.record).toBeNull();
-      expect(store.details).toBeNull();
+      expect(store.record).toEqual({});
+      expect(store.details).toEqual({});
     });
   });
 

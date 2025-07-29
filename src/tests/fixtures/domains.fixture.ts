@@ -30,8 +30,8 @@ export const mockDomains: Record<string, CustomDomain> = {
     is_apex: true,
     brand: {
       primary_color: '#ff4400',
-      font_family: 'Poppins, sans-serif',
-      corner_style: 'sharp',
+      font_family: 'sans',
+      corner_style: 'square',
       button_text_light: false,
     },
     vhost: {},
@@ -51,7 +51,7 @@ export const mockDomains: Record<string, CustomDomain> = {
     updated: new Date('2024-01-02T00:00:00Z'),
     brand: {
       primary_color: '#007bff',
-      font_family: 'Roboto, sans-serif',
+      font_family: 'sans',
       corner_style: 'rounded',
       button_text_light: true,
     },
@@ -74,7 +74,7 @@ export const newDomainData: CustomDomain = {
   updated: new Date('2024-01-03T00:00:00Z'),
   brand: {
     primary_color: '#007bff',
-    font_family: 'Roboto, sans-serif',
+    font_family: 'sans',
     corner_style: 'rounded',
     button_text_light: true,
   },
