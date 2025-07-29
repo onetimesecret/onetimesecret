@@ -142,7 +142,7 @@ export const useAuthStore = defineStore('auth', () => {
       const response = await $api.get(AUTH_CHECK_CONFIG.ENDPOINT);
       const validated = responseSchemas.checkAuth.parse(response.data);
 
-      isAuthenticated.value = validated.details.authenticated;
+      isAuthenticated.value = (validated.details as any).authenticated;
       failureCount.value = 0;
       lastCheckTime.value = Date.now(); // This exists but isn't getting called
 

@@ -10,7 +10,7 @@ export interface BaseApiRecord {
 }
 
 // Generic details type used in API responses
-export type DetailsType = Record<string, unknown>;
+export type DetailsType = Record<string, any>;
 
 interface FetchDataOptions<T extends BaseApiRecord> {
   url: string;
@@ -69,12 +69,12 @@ export function useFetchData<T extends BaseApiRecord>({
       if ('record' in jsonData) {
         records.value = [jsonData.record as T];
         count.value = 1;
-        details.value = jsonData.details || undefined;
+        details.value = (jsonData.details || undefined) as DetailsType;
       } else if ('records' in jsonData) {
         records.value = jsonData.records;
         count.value = jsonData.count ?? 0;
         custid.value = jsonData.custid || null;
-        details.value = jsonData.details || undefined;
+        details.value = (jsonData.details || undefined) as DetailsType;
       } else {
         throw new Error('Unexpected response format');
       }
