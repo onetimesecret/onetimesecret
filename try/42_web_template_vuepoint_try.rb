@@ -14,6 +14,10 @@
 
 require_relative 'test_models'
 
+require 'onetime/logic'
+
+require 'core/views'
+
 # Use the default config file for tests
 OT.boot! :test, false
 

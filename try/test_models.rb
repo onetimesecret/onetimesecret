@@ -13,6 +13,8 @@
 # possible for the tryouts to need only one require statement.
 require_relative 'test_helpers'
 
+require 'v1/models'
+require 'v2/models'
 require 'onetime/models'
 
 # Reference current API version for consistent model access across tests
