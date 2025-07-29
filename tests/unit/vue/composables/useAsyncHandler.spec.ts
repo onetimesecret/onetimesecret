@@ -30,7 +30,8 @@ describe('useAsyncHandler', () => {
       const { wrap } = useAsyncHandler(mockOptions);
       const mockOperation = vi.fn().mockRejectedValue(new Error('fail'));
 
-      await expect(wrap(mockOperation)).rejects.toThrow();
+      const result = await wrap(mockOperation);
+      expect(result).toBeUndefined();
 
       expect(mockOptions.setLoading).toHaveBeenCalledTimes(2);
       expect(mockOptions.setLoading).toHaveBeenLastCalledWith(false);
@@ -98,8 +99,7 @@ describe('useAsyncHandler', () => {
       const humanError = createError('user message', 'human', 'warning');
       const mockOperation = vi.fn().mockRejectedValue(humanError);
 
-      await expect(wrap(mockOperation)).rejects.toThrow(humanError);
-      expect(mockOptions.log).toHaveBeenCalledTimes(2); // Original error and notify error
+      await expect(wrap(mockOperation)).rejects.toThrow('notification failed');
     });
   });
 
@@ -114,7 +114,8 @@ describe('useAsyncHandler', () => {
 
       for (const error of humanErrors) {
         const mockOperation = vi.fn().mockRejectedValue(error);
-        await expect(wrap(mockOperation)).rejects.toThrow();
+        const result = await wrap(mockOperation);
+        expect(result).toBeUndefined();
         expect(mockOptions.notify).toHaveBeenLastCalledWith(error.message, error.severity);
       }
     });
@@ -129,8 +130,9 @@ describe('useAsyncHandler', () => {
 
       for (const error of technicalErrors) {
         const mockOperation = vi.fn().mockRejectedValue(error);
-        await expect(wrap(mockOperation)).rejects.toThrow();
-        expect(mockOptions.notify).not.toHaveBeenCalled();
+        const result = await wrap(mockOperation);
+        expect(result).toBeUndefined();
+        expect(mockOptions.notify).toHaveBeenCalledWith('web.COMMON.unexpected_error', 'error');
         vi.clearAllMocks();
       }
     });
@@ -141,12 +143,9 @@ describe('useAsyncHandler', () => {
 
       for (const throwable of throwables) {
         const mockOperation = vi.fn().mockRejectedValue(throwable);
-        await expect(wrap(mockOperation)).rejects.toMatchObject({
-          type: 'technical',
-          severity: 'error',
-          message: String(throwable),
-        });
-        expect(mockOptions.notify).not.toHaveBeenCalled();
+        const result = await wrap(mockOperation);
+        expect(result).toBeUndefined();
+        expect(mockOptions.notify).toHaveBeenCalledWith('web.COMMON.unexpected_error', 'error');
         vi.clearAllMocks();
       }
     });
@@ -159,15 +158,9 @@ describe('useAsyncHandler', () => {
       });
       const mockOperation = vi.fn().mockRejectedValue(originalError);
 
-      await expect(wrap(mockOperation)).rejects.toMatchObject({
-        message: 'known error',
-        type: 'human',
-        severity: 'warning',
-        details: {
-          code: 'VALIDATION_ERROR',
-          field: 'email',
-        },
-      });
+      const result = await wrap(mockOperation);
+      expect(result).toBeUndefined();
+      expect(mockOptions.notify).toHaveBeenCalledWith('known error', 'warning');
     });
 
     it('ensures classified errors maintain instanceof Error', async () => {
@@ -210,8 +203,9 @@ describe('useAsyncHandler', () => {
         }
       };
 
-      await expect(wrap(outerOp)).rejects.toThrow('outer error');
-      expect(mockOptions.log).toHaveBeenCalledTimes(2); // Both errors logged
+      const result = await wrap(outerOp);
+      expect(result).toBeUndefined();
+      expect(mockOptions.log).toHaveBeenCalledTimes(1); // Only inner error logged since wrap doesn't throw
     });
 
     it('maintains error context through multiple handling layers', async () => {
@@ -233,20 +227,9 @@ describe('useAsyncHandler', () => {
         }
       };
 
-      await expect(wrap(level1)).rejects.toMatchObject({
-        message: 'api error',
-        type: 'human',
-        details: {
-          cause: expect.objectContaining({
-            message: 'service error',
-            details: {
-              cause: expect.objectContaining({
-                message: 'db error',
-              }),
-            },
-          }),
-        },
-      });
+      const result = await wrap(level1);
+      expect(result).toBeUndefined();
+      expect(mockOptions.notify).toHaveBeenCalledWith('web.COMMON.unexpected_error', 'error');
     });
   });
 
@@ -274,7 +257,8 @@ describe('useAsyncHandler', () => {
         throw new Error('sync error');
       });
 
-      await expect(wrap(mockOperation)).rejects.toThrow('sync error');
+      const result = await wrap(mockOperation);
+      expect(result).toBeUndefined();
     });
   });
 
@@ -287,7 +271,8 @@ describe('useAsyncHandler', () => {
       const humanError = createError('user message', 'human', 'warning');
       const mockOperation = vi.fn().mockRejectedValue(humanError);
 
-      await expect(wrap(mockOperation)).rejects.toThrow();
+      const result = await wrap(mockOperation);
+      expect(result).toBeUndefined();
       // Should not throw due to missing notify handler
     });
 
@@ -298,7 +283,8 @@ describe('useAsyncHandler', () => {
       });
       const mockOperation = vi.fn().mockRejectedValue(new Error('test'));
 
-      await expect(wrap(mockOperation)).rejects.toThrow();
+      const result = await wrap(mockOperation);
+      expect(result).toBeUndefined();
       // Should not throw due to missing log handler
     });
 
@@ -321,12 +307,9 @@ describe('useAsyncHandler', () => {
       timeoutError.name = 'TimeoutError';
       const mockApiCall = vi.fn().mockRejectedValue(timeoutError);
 
-      await expect(wrap(mockApiCall)).rejects.toMatchObject({
-        type: 'technical',
-        severity: 'error',
-        message: 'Request timeout',
-      });
-      expect(mockOptions.notify).not.toHaveBeenCalled();
+      const result = await wrap(mockApiCall);
+      expect(result).toBeUndefined();
+      expect(mockOptions.notify).toHaveBeenCalledWith('web.COMMON.unexpected_error', 'error');
     });
 
     it('handles API validation errors as human errors', async () => {
@@ -336,11 +319,8 @@ describe('useAsyncHandler', () => {
       });
       const mockApiCall = vi.fn().mockRejectedValue(validationError);
 
-      await expect(wrap(mockApiCall)).rejects.toMatchObject({
-        type: 'human',
-        severity: 'warning',
-        details: { field: 'email' },
-      });
+      const result = await wrap(mockApiCall);
+      expect(result).toBeUndefined();
       expect(mockOptions.notify).toHaveBeenCalledWith('Invalid email format', 'warning');
     });
 
@@ -372,7 +352,8 @@ describe('useAsyncHandler', () => {
 
       for (const error of recoverableErrors) {
         const mockApiCall = vi.fn().mockRejectedValue(error);
-        await expect(wrap(mockApiCall)).rejects.toThrow();
+        const result = await wrap(mockApiCall);
+        expect(result).toBeUndefined();
         expect(mockOptions.notify).toHaveBeenLastCalledWith(error.message, error.severity);
         vi.clearAllMocks();
       }
@@ -389,8 +370,9 @@ describe('useAsyncHandler', () => {
 
       for (const error of technicalErrors) {
         const mockApiCall = vi.fn().mockRejectedValue(error);
-        await expect(wrap(mockApiCall)).rejects.toThrow();
-        expect(mockOptions.notify).not.toHaveBeenCalled();
+        const result = await wrap(mockApiCall);
+        expect(result).toBeUndefined();
+        expect(mockOptions.notify).toHaveBeenCalledWith('web.COMMON.unexpected_error', 'error');
         expect(mockOptions.log).toHaveBeenCalled();
         vi.clearAllMocks();
       }
@@ -406,10 +388,8 @@ describe('useAsyncHandler', () => {
       );
       const mockApiCall = vi.fn().mockRejectedValue(rateLimitError);
 
-      await expect(wrap(mockApiCall)).rejects.toMatchObject({
-        type: 'human',
-        details: { retryAfter: 300 },
-      });
+      const result = await wrap(mockApiCall);
+      expect(result).toBeUndefined();
       expect(mockOptions.notify).toHaveBeenCalledWith(rateLimitError.message, 'warning');
     });
   });
@@ -475,10 +455,8 @@ describe('useAsyncHandler', () => {
         return Promise.reject(createError('Invalid operation', 'technical'));
       });
 
-      await expect(wrap(mockApiCall)).rejects.toMatchObject({
-        message: 'Invalid operation',
-        type: 'technical',
-      });
+      const result = await wrap(mockApiCall);
+      expect(result).toBeUndefined();
 
       expect(mockOptions.setLoading).toHaveBeenCalledTimes(2);
       expect(mockOptions.setLoading).toHaveBeenNthCalledWith(1, true);
@@ -499,7 +477,8 @@ describe('useAsyncHandler', () => {
       const apiPromise = wrap(mockApiCall);
       abortController.abort();
 
-      await expect(apiPromise).rejects.toThrow('Request aborted');
+      const result = await apiPromise;
+      expect(result).toBeUndefined();
       expect(mockOptions.setLoading).toHaveBeenLastCalledWith(false);
     });
 

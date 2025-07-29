@@ -95,8 +95,10 @@ describe('authStore', () => {
     });
 
     afterEach(() => {
-      // Clean up window properties
-      (window as any).authenticated = undefined;
+      // Clean up window state properties
+      if ((window as any).__ONETIME_STATE__) {
+        (window as any).__ONETIME_STATE__.authenticated = mockWindow.authenticated;
+      }
       axiosMock.restore();
       store.$reset();
     });
@@ -118,43 +120,44 @@ describe('authStore', () => {
     });
 
     it('initializes correctly (when undefined)', () => {
-      Object.assign(window, { authenticated: undefined });
+      (window as any).__ONETIME_STATE__.authenticated = undefined;
       expect(store.isAuthenticated).toBe(null);
       store.init();
       expect(store.isAuthenticated).toBe(false);
     });
 
     it('initializes correctly (when null)', () => {
-      Object.assign(window, { authenticated: null });
+      (window as any).__ONETIME_STATE__.authenticated = null;
       store.init();
       expect(store.isAuthenticated).toBe(false);
     });
 
     it('initializes correctly (when false)', () => {
-      Object.assign(window, { authenticated: false });
+      (window as any).__ONETIME_STATE__.authenticated = false;
       store.init();
       expect(store.isAuthenticated).toBe(false);
     });
 
     it('initializes correctly (when bad data)', () => {
-      Object.assign(window, { authenticated: 123 });
+      (window as any).__ONETIME_STATE__.authenticated = 123;
       store.init();
       expect(store.isAuthenticated).toBe(false);
     });
 
     it('initializes correctly (when true)', () => {
-      Object.assign(window, { authenticated: true });
+      (window as any).__ONETIME_STATE__.authenticated = true;
       store.init();
       expect(store.isAuthenticated).toBe(true);
     });
 
     it('initializes correctly (when "true")', () => {
-      Object.assign(window, { authenticated: 'true' });
+      (window as any).__ONETIME_STATE__.authenticated = 'true';
       store.init();
       expect(store.isAuthenticated).toBe(false);
     });
 
     it('initializes correctly', () => {
+      (window as any).__ONETIME_STATE__.authenticated = false;
       store.init();
       expect(store.isAuthenticated).toBe(false);
       expect(store.failureCount).toBe(null);
@@ -164,7 +167,11 @@ describe('authStore', () => {
 
   describe('Core Functionality', () => {
     beforeEach(() => {
-      vi.stubGlobal('window', mockWindow);
+      // Set window state properly, preserving __ONETIME_STATE__
+      (window as any).__ONETIME_STATE__ = {
+        ...(window as any).__ONETIME_STATE__,
+        ...mockWindow,
+      };
       store.$reset();
     });
 
@@ -244,7 +251,11 @@ describe('authStore', () => {
 
   describe('Authentication Status Management', () => {
     beforeEach(() => {
-      vi.stubGlobal('window', mockWindow);
+      // Set window state properly, preserving __ONETIME_STATE__
+      (window as any).__ONETIME_STATE__ = {
+        ...(window as any).__ONETIME_STATE__,
+        ...mockWindow,
+      };
       store.init();
       store.$patch({ isAuthenticated: true });
     });
@@ -326,7 +337,11 @@ describe('authStore', () => {
 
   describe('Schema Validation', () => {
     beforeEach(() => {
-      vi.stubGlobal('window', mockWindow);
+      // Set window state properly, preserving __ONETIME_STATE__
+      (window as any).__ONETIME_STATE__ = {
+        ...(window as any).__ONETIME_STATE__,
+        ...mockWindow,
+      };
       store.init();
       store.$patch({ isAuthenticated: true });
     });
@@ -380,7 +395,11 @@ describe('authStore', () => {
 
   describe('Window State Synchronization', () => {
     beforeEach(() => {
-      vi.stubGlobal('window', mockWindow);
+      // Set window state properly, preserving __ONETIME_STATE__
+      (window as any).__ONETIME_STATE__ = {
+        ...(window as any).__ONETIME_STATE__,
+        ...mockWindow,
+      };
       store.init();
       store.$patch({ isAuthenticated: true });
     });
@@ -398,18 +417,25 @@ describe('authStore', () => {
     });
 
     it('initializes correctly from window state', () => {
-      vi.stubGlobal('window', { authenticated: true });
+      // Set up window state with authenticated: true
+      (window as any).__ONETIME_STATE__ = {
+        ...(window as any).__ONETIME_STATE__,
+        authenticated: true,
+      };
 
+      store.$reset(); // Reset store to test initialization
       store.init();
       expect(store.isAuthenticated).toBe(true);
-
-      vi.unstubAllGlobals();
     });
   });
 
   describe('Timer & Visibility Handling', () => {
     beforeEach(() => {
-      vi.stubGlobal('window', mockWindow);
+      // Set window state properly, preserving __ONETIME_STATE__
+      (window as any).__ONETIME_STATE__ = {
+        ...(window as any).__ONETIME_STATE__,
+        ...mockWindow,
+      };
 
       vi.useFakeTimers();
     });
@@ -597,7 +623,11 @@ describe('authStore', () => {
 
   describe('Error Handling', () => {
     beforeEach(() => {
-      vi.stubGlobal('window', mockWindow);
+      // Set window state properly, preserving __ONETIME_STATE__
+      (window as any).__ONETIME_STATE__ = {
+        ...(window as any).__ONETIME_STATE__,
+        ...mockWindow,
+      };
     });
 
     afterEach(() => {

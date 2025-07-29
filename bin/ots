@@ -52,8 +52,8 @@ class OT::CLI::Definition
   # In OT::CLI::Definition in bin/ots
   usage 'ots migrate MIGRATION_SCRIPT [--run]'
   about 'Run a migration script from the migrate/ directory'
-  option :r, :run, "Actually apply changes (default is dry run mode)"
-  command migrate: OT::CLI
+  option :r, :run, 'Actually apply changes (default is dry run mode)'
+  command migrate: OT::MigrateCommand
 
   usage 'ots move-keys SOURCEDB TARGETDB [filter]'
   command move_keys: OT::CLI

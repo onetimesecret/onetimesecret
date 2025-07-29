@@ -244,7 +244,7 @@ export const mockSecretRecord: Secret = {
   verification: true,
   secret_value: 'test-secret',
   secret_ttl: 86400,
-  // Schema expects number, not string
+  // Schema transforms from string to number
   lifespan: 86400,
 };
 
