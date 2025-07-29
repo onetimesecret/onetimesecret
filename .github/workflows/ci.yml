@@ -148,6 +148,9 @@ jobs:
       - name: Run TypeScript tests
         run: pnpm test
 
+      - name: Run type checking tests
+        run: pnpm type-check:tests
+
       - name: Generate TypeScript test summary
         if: always()
         run: |
