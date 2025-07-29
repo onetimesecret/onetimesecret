@@ -33,12 +33,10 @@
   const hasSecrets = computed(() => props.concealedMessages.length > 0);
 
   // Sort secrets by creation time (most recent first)
-  const sortedSecrets = computed(() => {
-    return [...props.concealedMessages].sort((a, b) => {
+  const sortedSecrets = computed(() => [...props.concealedMessages].sort((a, b) =>
       // Sort by creation time, newest first
-      return b.clientInfo.createdAt.getTime() - a.clientInfo.createdAt.getTime();
-    });
-  });
+       b.clientInfo.createdAt.getTime() - a.clientInfo.createdAt.getTime()
+    ));
 
   const handleCopy = () => {
     // Copy feedback is now handled by the tooltip in SecretLinksTableRow

@@ -136,11 +136,9 @@ describe('metadataListStore', () => {
         details: mockMetadataRecent.details,
       };
 
-      axiosMock.onGet('/api/v2/receipt/recent').reply(() => {
-        return new Promise((resolve) => {
+      axiosMock.onGet('/api/v2/receipt/recent').reply(() => new Promise((resolve) => {
           setTimeout(() => resolve([200, mockResponse]), 50);
-        });
-      });
+        }));
 
       await store.fetchList();
 

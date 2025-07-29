@@ -20,8 +20,7 @@ import AxiosMockAdapter from 'axios-mock-adapter';
  * This approach bypasses axios mocking complexity by directly
  * implementing the store functionality with mock data
  */
-const createTestStore = () => {
-  return defineStore('secrets', () => {
+const createTestStore = () => defineStore('secrets', () => {
     // Internal reactive state
     const record = ref(null);
     const details = ref(null);
@@ -98,7 +97,6 @@ const createTestStore = () => {
       clear,
     };
   });
-};
 
 describe('secretStore', () => {
   let axiosMock;

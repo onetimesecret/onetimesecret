@@ -7,17 +7,11 @@
 
   const windowProps = WindowService.getMultiple(['ui']);
 
-  const footerConfig = computed((): FooterLinksConfig | null => {
-    return windowProps.ui?.footer_links || null;
-  });
+  const footerConfig = computed((): FooterLinksConfig | null => windowProps.ui?.footer_links || null);
 
-  const isEnabled = computed((): boolean => {
-    return footerConfig.value?.enabled === true;
-  });
+  const isEnabled = computed((): boolean => footerConfig.value?.enabled === true);
 
-  const linkGroups = computed(() => {
-    return footerConfig.value?.groups || [];
-  });
+  const linkGroups = computed(() => footerConfig.value?.groups || []);
 </script>
 
 <template>

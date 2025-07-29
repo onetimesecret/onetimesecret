@@ -61,9 +61,7 @@
   const rightButtonFocusClass = computed(() => `${corners.value.rightCorner}`);
 
   // Compute the ring color based on primaryColor availability
-  const ringColorStyle = computed(() => {
-    return props.primaryColor ? props.primaryColor : 'var(--color-brand-600)';
-  });
+  const ringColorStyle = computed(() => props.primaryColor ? props.primaryColor : 'var(--color-brand-600)');
 
   // Button labels and icons based on selected action
   const buttonConfig = computed(() => {

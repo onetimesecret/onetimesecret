@@ -49,9 +49,7 @@
     isModalVisible.value = false;
   };
 
-  const modalClasses = computed(() => {
-    return `${props.color} border-2 border-dashed`;
-  });
+  const modalClasses = computed(() => `${props.color} border-2 border-dashed`);
 </script>
 
 <template>

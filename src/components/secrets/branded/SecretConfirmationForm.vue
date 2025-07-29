@@ -72,9 +72,7 @@
     hasImageError.value = true;
   };
 
-  const buttonText = computed(() => {
-    return props.isSubmitting ? t('web.COMMON.submitting') : t('click-to-continue');
-  });
+  const buttonText = computed(() => props.isSubmitting ? t('web.COMMON.submitting') : t('click-to-continue'));
   // Prepare the standardized path to the logo image.
   // Note that the file extension needs to be present but is otherwise not used.
   const logoImage = ref<string>(`/imagine/${props.domainId}/logo.png`);

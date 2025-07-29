@@ -320,9 +320,7 @@ describe('authStore', () => {
       const logoutSpy = vi.spyOn(store, 'logout');
 
       // Configure mock to fail, with a specific error response
-      axiosMock.onGet('/api/v2/authcheck').reply(() => {
-        return [500, { error: 'Auth check failed' }];
-      });
+      axiosMock.onGet('/api/v2/authcheck').reply(() => [500, { error: 'Auth check failed' }]);
 
       // Simulate MAX_FAILURES consecutive failures
       for (let i = 0; i < AUTH_CHECK_CONFIG.MAX_FAILURES; i++) {

@@ -22,16 +22,18 @@ const linkClass = computed(() => {
   return [baseClass, stateClass];
 });
 
-const linkTitle = computed(() => props.secretMetadata.is_destroyed
-  ? t('web.STATUS.expired')
-  : props.secretMetadata.is_received
-    ? t('web.COMMON.received')
-    : ''
+const linkTitle = computed(() => {
+  if (props.secretMetadata.is_destroyed) {
+    return t('web.STATUS.expired');
+  }
+  if (props.secretMetadata.is_received) {
+    return t('web.COMMON.received');
+  }
+  return '';
+}
 );
 
-const displayKey = computed(() => {
-  return `${props.secretMetadata.secret_shortkey}`;
-});
+const displayKey = computed(() => `${props.secretMetadata.secret_shortkey}`);
 
 const formattedDate = computed(() =>
   formatRelativeTime(props.secretMetadata.created)
