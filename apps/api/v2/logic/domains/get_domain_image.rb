@@ -22,9 +22,6 @@ module V2::Logic
           raise_form_error "Not a valid public domain"
         end
 
-        # Add rate limiting after basic value validation, before data access
-        limit_action :get_domain_logo
-
         @custom_domain = V2::CustomDomain.load(@domain_input, @cust.custid)
         raise_form_error "Domain not found" unless custom_domain
 

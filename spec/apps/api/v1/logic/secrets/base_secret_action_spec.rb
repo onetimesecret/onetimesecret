@@ -13,7 +13,6 @@ RSpec.describe V1::Logic::Secrets::BaseSecretAction do
     end
   end
 
-  let(:session) { double('V1::Session', event_incr!: nil) }
   let(:customer) {
     double('Customer',
     anonymous?: false,

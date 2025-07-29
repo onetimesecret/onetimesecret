@@ -21,7 +21,6 @@ require 'v2/controllers/challenges'
 
 # Load the app
 OT.boot! :test, true
-V1::RateLimit.register_events OT.conf[:limits]
 
 # Setup some variables for these tryouts
 @now = DateTime.now

@@ -17,7 +17,7 @@ module V2
       end
 
       def raise_concerns
-        limit_action :send_feedback
+
 
         raise_form_error "You can be more original than that!" if @msg.empty?
 

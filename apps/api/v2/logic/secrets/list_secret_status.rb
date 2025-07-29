@@ -17,7 +17,7 @@ module V2::Logic
       end
 
       def raise_concerns
-        limit_action :show_secret
+
       end
 
       def process

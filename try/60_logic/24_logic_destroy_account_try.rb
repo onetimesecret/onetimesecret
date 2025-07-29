@@ -5,9 +5,8 @@
 #
 # 1. Validating user input for account destruction
 # 2. Handling password confirmation
-# 3. Rate limiting destruction attempts
-# 4. Processing account destruction
-# 5. Verifying the state of destroyed accounts
+# 3. Processing account destruction
+# 4. Verifying the state of destroyed accounts
 #
 # These tests aim to ensure that the account destruction process is secure, properly validated,
 # and correctly updates the user's account state.
@@ -19,8 +18,6 @@ require_relative '../test_logic'
 
 # Load the app
 OT.boot! :test, false
-
-V2::RateLimit.register_events(OT.conf[:limits])
 
 # Setup some variables for these tryouts
 @email_address = 'changeme@example.com'
@@ -108,31 +105,6 @@ obj = V2::Logic::Account::DestroyAccount.new @sess, cust, @params
 cust.update_passphrase password_guess # update the password to be correct
 obj.raise_concerns
 #=> nil
-
-
-## Too many attempts is throttled by rate limiting
-V1::RateLimit.register_event :destroy_account, 5
-V2::RateLimit.register_event :destroy_account, 5
-
-cust = V2::Customer.new generate_random_email
-password_guess = @params[:confirmation]
-obj = V2::Logic::Account::DestroyAccount.new @sess, cust, @params
-cust.update_passphrase password_guess
-
-# Make sure we start from 0
-@sess.event_clear! :destroy_account
-
-last_error = nil
-6.times do
-  begin
-    obj.raise_concerns
-  rescue => e
-    last_error = [e.class, e.message]
-  end
-end
-@sess.event_clear! :destroy_account
-last_error
-#=> [OT::LimitExceeded, '[limit-exceeded] 3ytjp10tjtosfj7ljcscmblz1sc6ds9 for destroy_account (6)']
 
 ## Attempt to process the request without calling raise_concerns first
 

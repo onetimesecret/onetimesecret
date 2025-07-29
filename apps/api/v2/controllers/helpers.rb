@@ -95,15 +95,6 @@ module V2
       OT.ld "[carefully] RecordNotFound: #{ex.message} (#{req.path}) redirect:#{redirect || 'n/a'}"
       not_found_response ex.message, shrimp: sess.add_shrimp
 
-    rescue OT::LimitExceeded => ex
-      msg = "#{ex.event}(#{ex.count}) #{sess.identifier.shorten(10)}"
-      OT.le "[limit-exceeded] #{obscured} (#{sess.ipaddress}): #{msg} (#{req.current_absolute_uri})"
-
-      # Track rate limiting as a warning message
-      capture_message "#{ex.message}: #{msg}", :warning
-
-      throttle_response "Cripes! You have been rate limited."
-
     rescue Familia::HighRiskFactor => ex
       OT.le "[attempt-saving-non-string-to-redis] #{obscured} (#{sess.ipaddress}): #{sess.identifier.shorten(10)} (#{req.current_absolute_uri})"
 

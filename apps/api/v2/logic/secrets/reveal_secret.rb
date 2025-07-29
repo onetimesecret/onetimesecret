@@ -20,7 +20,7 @@ module V2::Logic
       end
 
       def raise_concerns
-        limit_action :show_secret
+
         raise OT::MissingSecret if secret.nil? || !secret.viewable?
       end
 
@@ -81,7 +81,7 @@ module V2::Logic
 
         elsif secret.has_passphrase? && !correct_passphrase
           OT.le "[reveal_secret] Failed passphrase attempt for secret #{secret.shortkey} #{sess.short_identifier} #{sess.ipaddress}"
-          limit_action :failed_passphrase if secret.has_passphrase?
+
           message = i18n.dig(:web, :COMMON, :incorrect_passphrase) || 'Incorrect passphrase'
           raise_form_error message
         end

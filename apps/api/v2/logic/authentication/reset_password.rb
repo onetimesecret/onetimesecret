@@ -14,7 +14,7 @@ module V2::Logic
         raise OT::MissingSecret if secret.nil?
         raise OT::MissingSecret if secret.custid.to_s == 'anon'
 
-        limit_action :forgot_password_reset # limit reset attempts
+
 
         raise_form_error "New passwords do not match" unless is_confirmed
         raise_form_error "New password is too short" unless @newp.size >= 6
@@ -49,7 +49,7 @@ module V2::Logic
 
           # Destroy the secret on successful attempt only. Otherwise
           # the user will need to make a new request if the passwords
-          # don't match. We use rate limiting to discourage abuse.
+          # don't match.
           secret.destroy!
 
           # Log the success message

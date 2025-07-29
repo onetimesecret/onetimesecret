@@ -74,7 +74,7 @@ RSpec.describe V1::Logic::Secrets::ShowSecret do
       it 'handles incorrect passphrase' do
         allow(secret).to receive(:passphrase?).with('pass123').and_return(false)
 
-        expect(subject).to receive(:limit_action).with(:failed_passphrase)
+
         subject.process
 
         expect(subject.correct_passphrase).to be false

@@ -27,7 +27,6 @@ module Core
         publically do
           OT.ld "[index] authenticated? #{sess.authenticated?}"
           view = Core::Views::VuePoint.new req, sess, cust, locale
-          sess.event_incr! :get_page
           res.body = view.render
         end
       end
@@ -36,7 +35,6 @@ module Core
         authenticated do
           OT.ld "[customers_only] authenticated? #{sess.authenticated?}"
           view = Core::Views::VuePoint.new req, sess, cust, locale
-          sess.event_incr! :get_page
           res.body = view.render
         end
       end
@@ -45,7 +43,6 @@ module Core
         colonels do
           OT.ld "[colonels_only] authenticated? #{sess.authenticated?}"
           view = Core::Views::VuePoint.new req, sess, cust, locale
-          sess.event_incr! :get_page
           res.body = view.render
         end
       end
@@ -53,7 +50,6 @@ module Core
       def robots_txt
         publically do
           view = Core::Views::RobotsTxt.new req, sess, cust, locale
-          sess.event_incr! :robots_txt
           res.header['Content-Type'] = 'text/plain'
           res.body = view.render
         end

@@ -7,10 +7,6 @@ module V2::Logic
   module Domains
     class VerifyDomain < GetDomain
       def raise_concerns
-        # Run this limiter before calling super which in turn runs
-        # the get_domain limiter since verify is a more restrictive. No
-        # sense running the get logic more than we need to.
-        limit_action :verify_domain
 
         if Onetime::Cluster::Features.api_key.to_s.empty?
           OT.le "[VerifyDomain.raise_concerns] Approximated API key not set"

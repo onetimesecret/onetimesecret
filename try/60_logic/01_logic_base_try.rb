@@ -79,7 +79,6 @@ end
 #=> 0
 
 ## Action limiting works for non-paid plans
-@obj.send(:limit_action, :test_action)
 @sess.event_get(:test_action).to_i
 #=> 1
 

@@ -33,7 +33,7 @@ module V2::Logic
 
         validate_domain
         validate_brand_settings
-        limit_action :update_domain_brand
+
         validate_brand_values
       end
 

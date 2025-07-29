@@ -18,7 +18,7 @@ module V2::Logic
       end
 
       def raise_concerns
-        limit_action :show_secret
+
         raise OT::MissingSecret if secret.nil? || !secret.viewable?
       end
 
@@ -66,7 +66,7 @@ module V2::Logic
           end
 
         elsif continue && secret.has_passphrase? && !correct_passphrase
-          limit_action :failed_passphrase
+
         end
 
         domain = if domains_enabled && !secret.share_domain.to_s.empty?

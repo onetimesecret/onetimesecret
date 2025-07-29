@@ -22,7 +22,7 @@ module V2::Logic
       end
 
       def raise_concerns
-        limit_action :show_metadata
+
         raise OT::MissingSecret if metadata.nil?
       end
 

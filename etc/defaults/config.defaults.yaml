@@ -180,7 +180,6 @@
     :metadata: <%= ENV['REDIS_DBS_METADATA'] || 7 %>
     :email_receipt: <%= ENV['REDIS_DBS_EMAIL_RECEIPT'] || 8 %>
     :secret: <%= ENV['REDIS_DBS_SECRET'] || 8 %>
-    :rate_limit: <%= ENV['REDIS_DBS_RATE_LIMIT'] || 2 %>
     :feedback: <%= ENV['REDIS_DBS_FEEDBACK'] || 11 %>
     :exception_info: <%= ENV['REDIS_DBS_EXCEPTION_INFO'] || 12 %>
     :system_settings: <%= ENV['REDIS_DBS_SYSTEM_SETTINGS'] || 15 %>
@@ -368,47 +367,6 @@
     :frontend:
       :dsn: <%= ENV['SENTRY_DSN_FRONTEND'] || nil %>
       :trackComponents: <%= ENV['SENTRY_VUE_TRACK_COMPONENTS'] != 'false' %>
-:limits:
-  # This section defines rate limits for various events per user
-  # per a rolling 20 minute period. Each key is an event name
-  # and the value is the max count allowed. Changes require
-  # restart of the app.
-  :check_status: 10000
-  :create_secret: 1000
-  :create_account: 10
-  :update_account: 10
-  :email_recipient: 50
-  :send_feedback: 10
-  :authenticate_session: 5
-  :get_page: 1000
-  :dashboard: 1000
-  :failed_passphrase: 5
-  :show_metadata: 1000
-  :show_secret: 1000
-  :burn_secret: 1000
-  :destroy_account: 2
-  :forgot_password_request: 2
-  :forgot_password_reset: 3
-  :generate_apitoken: 10
-  :add_domain: 30
-  :remove_domain: 30
-  :list_domains: 100
-  :get_domain: 100
-  :verify_domain: 25
-  :report_exception: 50
-  :attempt_secret_access: 10
-  :update_branding: 50
-  :destroy_session: 5
-  :get_domain_brand: 1000
-  :get_domain_logo: 1000
-  :get_image: 1000
-  :remove_domain_logo: 20
-  :show_account: 100
-  :stripe_webhook: 25
-  :update_domain_brand: 50
-  :view_colonel: 100
-  :external_redirect: 100
-  :update_colonel_settings: 50
 :development:
   # Development Mode Configuration
   #

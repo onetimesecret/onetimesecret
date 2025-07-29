@@ -15,7 +15,7 @@ module V2::Logic
       end
 
       def raise_concerns
-        limit_action :burn_secret
+
         raise OT::MissingSecret if metadata.nil?
       end
 
@@ -23,8 +23,7 @@ module V2::Logic
         potential_secret = @metadata.load_secret
 
         if potential_secret
-          # Rate limit all secret access attempts
-          limit_action :attempt_secret_access
+
 
           @correct_passphrase = !potential_secret.has_passphrase? || potential_secret.passphrase?(passphrase)
           viewable = potential_secret.viewable?
@@ -40,7 +39,7 @@ module V2::Logic
             V2::Logic.stathat_count('Burned Secrets', 1)
 
           elsif !correct_passphrase
-            limit_action :failed_passphrase if potential_secret.has_passphrase?
+
             message = OT.locales.dig(locale, :web, :COMMON, :error_passphrase) || 'Incorrect passphrase'
             raise_form_error message
 

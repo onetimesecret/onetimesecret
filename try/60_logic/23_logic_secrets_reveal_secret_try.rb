@@ -63,9 +63,6 @@ class MockSession
   def get_form_fields!
     {}
   end
-  def event_incr!(event)
-    "mock_event: #{event}"
-  end
 end
 
 @sess = MockSession.new

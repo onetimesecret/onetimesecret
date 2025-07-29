@@ -81,21 +81,6 @@ data = logic.instance_variable_get(:@exception_data)
 ]
 #=> [256, 100, 2500, 256]
 
-## Test rate limiting
-V1::RateLimit.register_event(:report_exception, 3)
-V2::RateLimit.register_event(:report_exception, 3)
-params = { message: "Test", type: "Error", url: "https://status.onetime.co" }
-begin
-  # Submit multiple exceptions quickly
-  4.times do
-    logic = V2::Logic::ReceiveException.new @sess, @cust, params
-    logic.process_params
-    logic.raise_concerns
-  end
-rescue OT::LimitExceeded => e
-  e.class.name
-end
-#=> 'Onetime::LimitExceeded'
 
 ## Exception Data Validation
 

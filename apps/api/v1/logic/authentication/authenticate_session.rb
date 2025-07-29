@@ -23,7 +23,7 @@ module V1::Logic
       end
 
       def raise_concerns
-        limit_action :authenticate_session
+
         if @cust.nil?
           @cust ||= V1::Customer.anonymous
           raise_form_error "Try again"

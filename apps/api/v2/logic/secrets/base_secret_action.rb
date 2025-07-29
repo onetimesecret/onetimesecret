@@ -26,8 +26,8 @@ module V2::Logic
       end
 
       def raise_concerns
-        limit_action :create_secret
-        limit_action :email_recipient unless recipient.empty?
+
+
         raise_form_error "Unknown type of secret" if kind.nil?
         validate_recipient
         validate_share_domain

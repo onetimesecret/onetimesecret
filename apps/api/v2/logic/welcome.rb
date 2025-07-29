@@ -102,7 +102,7 @@ module V2
         end
 
         def raise_concerns
-          #limit_action :stripe_webhook
+
           raise_form_error "No endpoint secret set" unless @endpoint_secret
           raise_form_error "No Stripe payload" unless payload
           raise_form_error "No Stripe signature" unless stripe_signature

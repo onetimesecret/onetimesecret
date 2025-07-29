@@ -52,7 +52,6 @@ RSpec.describe "Onetime::Config during Onetime.boot!" do
     allow(Onetime).to receive(:load_locales).and_call_original # Changed from simple stub
     allow(Onetime).to receive(:set_global_secret).and_call_original
     allow(Onetime).to receive(:prepare_emailers).and_call_original
-    allow(Onetime).to receive(:prepare_rate_limits).and_call_original
     allow(Onetime).to receive(:load_fortunes).and_call_original # Ensure actual method is called
     allow(Onetime).to receive(:load_plans)
     allow(Onetime).to receive(:connect_databases).and_call_original
@@ -290,10 +289,6 @@ RSpec.describe "Onetime::Config during Onetime.boot!" do
       expect(Onetime::Mail::Mailer::SMTPMailer).to have_received(:setup)
     end
 
-    it "configures rate limits based on @conf", skip: "Move to V2::Application tests" do
-      allow(V2::RateLimit).to receive(:register_events)
-
-      # Load application-specific components
       require 'app_registry'
       require 'v2/application'
 
@@ -301,10 +296,7 @@ RSpec.describe "Onetime::Config during Onetime.boot!" do
       # -------------------------------
       # Load all application modules from the registry
       AppRegistry.load_applications
-      BaseApplication.register_applications
 
-      expect(V2::RateLimit).to have_received(:register_events).with(Onetime.conf[:limits])
-    end
 
     it "sets Familia.uri from the configuration" do
       Onetime.boot!(:test)
