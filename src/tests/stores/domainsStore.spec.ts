@@ -68,27 +68,28 @@ describe('domainsStore', () => {
   });
 
   describe('Domain Operations', () => {
-    it.skip('should add a new domain (schema validation issues)', async () => {
+    it('should add a new domain (schema validation issues)', async () => {
       axiosMock.onPost('/api/v2/domains/add').reply(200, {
         record: newDomainData,
       });
 
       const result = await store.addDomain(newDomainData.name);
       expect(result).toMatchObject(newDomainData);
-      expect(store.domains).toContainEqual(expect.objectContaining(newDomainData));
+      expect(store.records).toContainEqual(expect.objectContaining(newDomainData));
     });
 
-    it.skip('should refresh domain records (schema validation issues)', async () => {
+    it('should refresh domain records (schema validation issues)', async () => {
       // Use mockDomains from the fixture instead of undefined mockDomainsList
       axiosMock.onGet('/api/v2/domains').reply(200, {
-        records: Object.values(mockDomains), // Fixed: Use mockDomains from fixture
+        records: Object.values(mockDomains),
+        count: Object.keys(mockDomains).length,
       });
 
       await store.refreshRecords();
 
       // Verify the domains were loaded into the store
-      expect(store.domains).toHaveLength(Object.keys(mockDomains).length);
-      expect(store.recordCount).toBe(Object.keys(mockDomains).length);
+      expect(store.records).toHaveLength(Object.keys(mockDomains).length);
+      expect(store.recordCount()).toBe(Object.keys(mockDomains).length);
 
       // Verify the domains match the fixture data
       expect(store.domains).toEqual(expect.arrayContaining(Object.values(mockDomains)));
@@ -103,14 +104,12 @@ describe('domainsStore', () => {
       // console.log('Brand update:', JSON.stringify(brandUpdate, null, 2));
 
       // Setup mock response
-      axiosMock
-        .onPut(`/api/v2/domains/${domain.display_domain}/brand`)
-        .reply(200, {
-          record: {
-            ...domain, // Use all fields from correct fixture
-            brand: mockCustomBranding,
-          },
-        });
+      axiosMock.onPut(`/api/v2/domains/${domain.display_domain}/brand`).reply(200, {
+        record: {
+          ...domain, // Use all fields from correct fixture
+          brand: mockCustomBranding,
+        },
+      });
 
       // Debug mock setup
       console.log('Mock URL:', `/api/v2/domains/${domain.display_domain}/brand`);
@@ -136,18 +135,16 @@ describe('domainsStore', () => {
 
     it('should delete a domain', async () => {
       const domain = mockDomains['domain-1'];
-      store.domains = [domain];
+      store.records = [domain];
 
       // Fix: Use display_domain instead of name
-      axiosMock
-        .onPost(`/api/v2/domains/${domain.display_domain}/remove`)
-        .reply(200);
+      axiosMock.onPost(`/api/v2/domains/${domain.display_domain}/remove`).reply(200);
 
       await store.deleteDomain(domain.display_domain);
       expect(store.domains).toHaveLength(0);
     });
 
-    it.skip('should update brand settings and validate response format', async () => {
+    it('should update brand settings and validate response format', async () => {
       const domain = mockDomains['domain-1'];
       const newSettings = {
         primary_color: '#ff0000',
@@ -155,22 +152,39 @@ describe('domainsStore', () => {
       };
 
       // Mock the exact response format expected by the brandSettings schema
-      axiosMock
-        .onPut(`/api/v2/domains/${domain.display_domain}/brand`)
-        .reply(200, {
-          // This shape matches what the schema expects directly
-          brand: {
-            ...mockCustomBranding,
-            ...newSettings,
-          },
-        });
+      axiosMock.onPut(`/api/v2/domains/${domain.display_domain}/brand`).reply(200, {
+        // This shape matches what the schema expects directly
+        record: {
+          ...mockCustomBranding,
+          ...newSettings,
+        },
+      });
 
       const result = await store.updateBrandSettings(domain.display_domain, newSettings);
 
       // Update assertion to match actual response shape
-      expect(result.brand).toMatchObject(newSettings);
+      expect(result.record).toMatchObject(newSettings);
     });
 
+    /**
+     * The issue here is that `updateBrandSettings` doesn't update the store state -
+     * it only makes the API call and returns the result. Looking at the store
+     * implementation, there are two different functions:
+     *
+     * 1. `updateBrandSettings` - makes API call, returns result, doesn't update store
+     * 2. `updateDomainBrand` - makes API call AND updates the store state
+     *
+     * There are a few problems with this test:
+     *
+     * 1. `store.domains = [domain]` doesn't work (should be `store.records = [domain]`)
+     * 2. `updateBrandSettings` doesn't update the store state
+     * 3. The mock response format is wrong for `updateBrandSettings`
+     *
+     * Looking at the test name "should update brand settings in store state", it seems like either:
+     * - The test should use `updateDomainBrand` instead of `updateBrandSettings`
+     * - Or the test shouldn't expect store state to be updated
+     *
+     */
     it.skip('should update brand settings in store state', async () => {
       const domain = mockDomains['domain-1'];
       const newSettings = {
@@ -180,24 +194,20 @@ describe('domainsStore', () => {
 
       store.domains = [domain]; // Set initial state
 
-      axiosMock
-        .onPut(`/api/v2/domains/${domain.display_domain}/brand`)
-        .reply(200, {
-          record: {
-            ...domain,
-            brand: {
-              ...mockCustomBranding,
-              ...newSettings,
-            },
+      axiosMock.onPut(`/api/v2/domains/${domain.display_domain}/brand`).reply(200, {
+        record: {
+          ...domain,
+          brand: {
+            ...mockCustomBranding,
+            ...newSettings,
           },
-        });
+        },
+      });
 
       await store.updateBrandSettings(domain.display_domain, newSettings);
 
       // Verify store state was updated
-      const updatedDomain = store.domains.find(
-        (d) => d.display_domain === domain.display_domain
-      );
+      const updatedDomain = store.domains.find((d) => d.display_domain === domain.display_domain);
       expect(updatedDomain?.brand).toMatchObject(newSettings);
     });
   });
