@@ -3,7 +3,7 @@ import {
   mockCustomBrandingRed,
   mockDefaultBranding,
   mockDomains,
-} from '@/../tests/unit/vue/fixtures/domainBranding.fixture';
+} from '@/tests/fixtures/domainBranding.fixture';
 import { useBranding } from '@/composables/useBranding';
 import { createPinia, setActivePinia } from 'pinia';
 import { beforeEach, describe, expect, it, vi } from 'vitest';

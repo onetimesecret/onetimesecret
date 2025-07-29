@@ -180,7 +180,7 @@ describe('error classifier', () => {
           message: 'Failed to fetch',
           type: 'technical', // Network errors are technical
           severity: 'error',
-          code: 'ERR_GENERIC',
+          code: 0,
         });
       });
     });

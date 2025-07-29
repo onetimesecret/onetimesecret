@@ -1,33 +1,19 @@
 // src/tests/stores/domainsStore.spec.ts
 import { useDomainsStore } from '@/stores/domainsStore';
-import { createTestingPinia } from '@pinia/testing';
-import axios from 'axios';
 import AxiosMockAdapter from 'axios-mock-adapter';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { mockCustomBranding } from '../fixtures/domainBranding.fixture';
 import { mockDomains, newDomainData } from '../fixtures/domains.fixture'; // <-- CORRECT fixture import
+import { setupTestPinia } from '../setup';
 
 describe('domainsStore', () => {
   let axiosMock: AxiosMockAdapter;
   let store: ReturnType<typeof useDomainsStore>;
-  let notifySpy: ReturnType<typeof vi.fn>;
-  let logSpy: ReturnType<typeof vi.fn>;
-  let axiosInstance: ReturnType<typeof axios.create>;
-  let errorCallback: ReturnType<typeof vi.fn>;
 
-  beforeEach(() => {
-    axiosInstance = axios.create();
-    axiosMock = new AxiosMockAdapter(axiosInstance);
-    notifySpy = vi.fn();
-    logSpy = vi.fn();
-    errorCallback = vi.fn();
-
-    const pinia = createTestingPinia({
-      createSpy: vi.fn,
-      stubActions: false,
-    });
-
+  beforeEach(async () => {
+    const { axiosMock: mock } = await setupTestPinia();
+    axiosMock = mock!;
     store = useDomainsStore();
   });
 
