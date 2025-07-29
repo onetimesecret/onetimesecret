@@ -1,33 +1,15 @@
 # config.ru
 #
-# Main Rack configuration file for the Onetime Secret application.
-# This file orchestrates the entire application stack, sets up middleware,
-# and defines the application's runtime environment.
-#
 # Usage:
+#
 #   $ thin -e dev -R config.ru -p 3000 start
 #
 # Application Structure:
 # ```
 # /
 # ├── config.ru               # Main Rack configuration
-# ├── lib/
-# │   ├── app_registry.rb     # Application registry implementation
-# │   └── onetime.rb          # Core Onetime Secret library
-# └── apps/
-#     ├── api/
-#     │   ├── v1/
-#     │   │   ├── config.ru   # V1 API registration
-#     │   │   └── application.rb
-#     │   ├── v2/
-#     │   │   ├── config.ru   # V2 API registration
-#     │   │   └── application.rb
-#     │   └── v3/
-#     │       ├── config.ru   # Roda app registration
-#     │       └── roda_app.rb
-#     └── web/
-#         ├── config.ru       # Web app registration
-#         └── application.rb
+# ├── apps/                   # API (v1, v2, v3) and web applications
+# └── lib/                    # Core libraries and app registry
 # ```
 #
 

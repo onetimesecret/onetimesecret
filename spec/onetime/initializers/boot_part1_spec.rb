@@ -289,7 +289,7 @@ RSpec.describe "Onetime::Config during Onetime.boot!" do
       expect(Onetime::Mail::Mailer::SMTPMailer).to have_received(:setup)
     end
 
-      require 'app_registry'
+      require_relative '../../../apps/app_registry'
       require 'v2/application'
 
       # Application Initialization
