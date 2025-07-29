@@ -1,9 +1,9 @@
 {
   "extends": "./tsconfig.json",
   "compilerOptions": {
-    "types": ["vitest/globals", "node"],
+    "types": ["vitest/globals"],
     "isolatedModules": true,
-    "verbatimModuleSyntax": true
+    "typeRoots": ["./node_modules", "./types"]
   },
   "include": [
     "src/tests/**/*.ts",

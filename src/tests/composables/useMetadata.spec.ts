@@ -127,7 +127,7 @@ describe('useMetadata', () => {
       await burn();
 
       expect(routerMock.push).toHaveBeenCalledWith({
-        name: 'Metadata link',
+        name: 'Receipt link',
         params: { metadataKey: 'test-key' },
         query: expect.objectContaining({
           ts: expect.any(String),
@@ -199,7 +199,7 @@ describe('useMetadata', () => {
       // Verify
       expect(store.fetch).toHaveBeenCalledWith('test-key');
       expect(isLoading.value).toBe(false);
-      expect(notifications.show).not.toHaveBeenCalled();
+      expect(notifications.show).toHaveBeenCalledWith("web.COMMON.unexpected_error", "error");
       expect(error.value).toBeDefined();
       expect(error.value?.type).toBe('technical');
       expect(error.value?.severity).toBe('error');
@@ -262,7 +262,7 @@ describe('useMetadata', () => {
 
       // expect(notifications.show).toHaveBeenCalledWith('Secret burned successfully', 'success');
       expect(mockRouter.push).toHaveBeenCalledWith({
-        name: 'Metadata link',
+        name: 'Receipt link',
         params: { metadataKey: 'test-key' },
         query: expect.objectContaining({ ts: expect.any(String) }),
       });

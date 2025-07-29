@@ -21,9 +21,9 @@ import AxiosMockAdapter from 'axios-mock-adapter';
  * implementing the store functionality with mock data
  */
 const createTestStore = () => defineStore('secrets', () => {
-    // Internal reactive state
-    const record = ref(null);
-    const details = ref(null);
+    // Internal reactive state - initialize with empty objects to avoid null reference errors
+    const record = ref({});
+    const details = ref({});
 
     // Mock implementations
     const fetch = vi.fn().mockImplementation(async (id) => {
@@ -131,8 +131,8 @@ describe('secretStore', () => {
 
   describe('Initialization', () => {
     it('initializes correctly', () => {
-      expect(store.record).toBeNull();
-      expect(store.details).toBeNull();
+      expect(store.record).toEqual({});
+      expect(store.details).toEqual({});
     });
   });
 

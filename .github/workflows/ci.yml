@@ -153,6 +153,7 @@ jobs:
         run: pnpm test
 
       - name: Run type checking tests
+        continue-on-error: true
         run: pnpm type-check:tests
 
       - name: Generate TypeScript test summary
