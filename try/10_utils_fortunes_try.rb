@@ -1,4 +1,4 @@
-# tests/unit/ruby/try/10_utils_fortunes_try.rb
+# try/10_utils_fortunes_try.rb
 
 require_relative 'test_helpers'
 

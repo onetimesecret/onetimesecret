@@ -1,4 +1,4 @@
-# tests/unit/ruby/try/60_logic/24_logic_destroy_account_try.rb
+# try/60_logic/24_logic_destroy_account_try.rb
 
 # These tryouts test the account destruction functionality in the Onetime application.
 # They cover various aspects of the account destruction process, including:

@@ -1,4 +1,4 @@
-# tests/unit/ruby/try/05_logging_sync_try.rb
+# try/05_logging_sync_try.rb
 
 #
 # Capture STDOUT and STDERR for testing

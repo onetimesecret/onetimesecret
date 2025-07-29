@@ -1,4 +1,4 @@
-# tests/unit/ruby/try/20_metadata_try.rb
+# try/20_metadata_try.rb
 
 # These tryouts test the V2::Metadata class functionality.
 # The Metadata class is responsible for managing metadata associated

@@ -1,4 +1,4 @@
-# tests/unit/ruby/try/60_logic/23_logic_secrets_reveal_secret_try.rb
+# try/60_logic/23_logic_secrets_reveal_secret_try.rb
 
 # These tryouts test the RevealSecret logic functionality in the Onetime application,
 # with a focus on the initialization process and its arguments.

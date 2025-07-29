@@ -1,4 +1,4 @@
-# tests/unit/ruby/try/test_logic.rb
+# try/test_logic.rb
 
 require_relative 'test_models'
 

@@ -1,4 +1,4 @@
-# tests/unit/ruby/try/60_logic/41_logic_domains_add_try.rb
+# try/60_logic/41_logic_domains_add_try.rb
 
 # NOTE: Domain logic is only in V2. V1 includes domains that are related
 # to secrets but otherwise does not have domains funtionality.

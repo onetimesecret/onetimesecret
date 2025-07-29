@@ -1,4 +1,4 @@
-# tests/unit/ruby/try/60_logic/04_logic_account_try.rb
+# try/60_logic/04_logic_account_try.rb
 
 # NOTE: V1 has no account api functionality.
 

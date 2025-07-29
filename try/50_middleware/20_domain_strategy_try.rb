@@ -1,4 +1,4 @@
-# tests/unit/ruby/try/50_middleware/20_domain_strategy_try.rb
+# try/50_middleware/20_domain_strategy_try.rb
 
 # These tryouts test the DomainStrategy middleware class that handles
 # domain strategy determination and validation using a state machine

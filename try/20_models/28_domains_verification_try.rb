@@ -1,4 +1,4 @@
-# tests/unit/ruby/try/20_models/28_domains_verification_try.rb
+# try/20_models/28_domains_verification_try.rb
 # frozen_string_literal: true
 
 # These tryouts test the validation and verification status functionality of custom domains

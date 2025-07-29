@@ -1,4 +1,4 @@
-# tests/unit/ruby/try/test_helpers.rb
+# try/test_helpers.rb
 
 # A custom hash class that allows indifferent access to keys.
 # Keys can be accessed using strings, symbols, or methods.

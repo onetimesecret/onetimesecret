@@ -1,4 +1,4 @@
-# tests/unit/ruby/try/60_logic/01_logic_base_try.rb
+# try/60_logic/01_logic_base_try.rb
 
 # These tests cover the core functionality of the Logic::Base class,
 # which serves as the foundation for all logic classes in the application.
