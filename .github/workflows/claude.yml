@@ -1,4 +1,5 @@
-# Only run on specific branch patterns
+# .github/workflows/claude.yml
+
 name: Claude Code
 
 on:
@@ -6,7 +7,9 @@ on:
     branches:
       - 'feature/*'
       - 'fix/*'
-      - 'delano/*'
+      - 'wip/*'
+      - 'rel/*'
+      - 'develop'
   issue_comment:
     types: [created]
   pull_request_review_comment:
