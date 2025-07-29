@@ -264,7 +264,10 @@ RSpec.describe "Onetime::Config during Onetime.boot!" do
       expect(conf.dig(:site, :host)).to eq('127.0.0.1:3000')
       expect(conf.dig(:site, :secret_options, :default_ttl)).to eq('43200'.to_i)
       expect(conf.dig(:site, :secret_options, :ttl_options)).to eq(['1800', '43200', '604800'].map(&:to_i))
-      expect(conf.dig(:redis, :uri)).to eq('redis://CHANGEME@127.0.0.1:2121/0')
+
+      # Run with the env var set:
+      #    REDIS_URL=redis://127.0.0.1:2121/0 pnpm test:rspec
+      expect(conf.dig(:redis, :uri)).to eq('redis://127.0.0.1:2121/0')
       expect(conf.dig(:development, :enabled)).to be(false)
       expect(Onetime.env).to eq('test')
     end

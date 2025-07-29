@@ -77,11 +77,6 @@ module Onetime
         check_global_banner
       end
 
-      # Setup system settings - check for existing override configuration
-      # and merge with YAML config if present. Must happen before other
-      # initializers that depend on the final merged configuration.
-      setup_system_settings
-
       print_log_banner unless mode?(:test)
 
       # Let's be clear about returning the prepared configruation. Previously
