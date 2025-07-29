@@ -24,12 +24,10 @@ const props = defineProps<{
 }>();
 
 // Computed property to validate logo data
-const isValidLogo = computed(() => {
-  return props.logoImage &&
+const isValidLogo = computed(() => props.logoImage &&
     typeof props.logoImage === 'object' &&
     props.logoImage.encoded &&
-    props.logoImage.content_type;
-});
+    props.logoImage.content_type);
 
 // Computed property to generate the logo source URL
 const logoSrc = computed(() => {

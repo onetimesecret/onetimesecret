@@ -1,4 +1,4 @@
-// src/router/guards.ts
+// src/router/guards.routes.ts
 
 import { WindowService } from '@/services/window.service';
 import { useAuthStore } from '@/stores/authStore';

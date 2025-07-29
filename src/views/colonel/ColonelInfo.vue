@@ -7,8 +7,7 @@
   import { useI18n } from 'vue-i18n';
   const { t } = useI18n();
 
-  const feedbackSections = computed(() => {
-    return [
+  const feedbackSections = computed(() => [
       {
         title: t('today'),
         count: details?.value?.counts.today_feedback_count,
@@ -24,8 +23,7 @@
         count: details?.value?.counts.older_feedback_count,
         feedback: details?.value?.older_feedback,
       },
-    ];
-  });
+    ]);
 
   const store = useColonelInfoStore();
   const { details, isLoading } = storeToRefs(store);

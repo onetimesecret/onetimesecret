@@ -40,9 +40,7 @@
   const { isCopied, copyToClipboard } = useClipboard();
 
   // Use different translation keys for copy button text based on state
-  const copyButtonText = computed(() => {
-    return isCopied.value ? t('web.STATUS.copied') : t('web.LABELS.copy_to_clipboard');
-  });
+  const copyButtonText = computed(() => isCopied.value ? t('web.STATUS.copied') : t('web.LABELS.copy_to_clipboard'));
 
   const copySecretContent = async () => {
     if (props.record?.secret_value === undefined) {

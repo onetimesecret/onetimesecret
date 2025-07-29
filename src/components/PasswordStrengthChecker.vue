@@ -20,9 +20,7 @@ const strengthText = computed(() => {
   return strengthLabels[strength.value];
 });
 
-const strengthClass = computed(() => {
-  return strength.value > 2 ? 'text-green-500-dark-text-green-400' : 'text-red-500-dark-text-red-400';
-});
+const strengthClass = computed(() => strength.value > 2 ? 'text-green-500-dark-text-green-400' : 'text-red-500-dark-text-red-400');
 
 const checkPasswordStrength = (pass: string) => {
   let score = 0;

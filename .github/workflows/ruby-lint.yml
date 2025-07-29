@@ -1,0 +1,78 @@
+# .github/workflows/ruby-lint.yml
+
+name: Ruby Lint
+
+# This GitHub Actions workflow runs Ruby linting using Rubocop.
+#
+# The workflow is triggered by push events on branches starting with "fix/" or
+# "rel/", pull requests on main/develop/feature/* branches, and manual dispatch.
+#
+# The workflow has a single job named "lint" that runs on Ubuntu 24.04
+# with a strategy matrix to test multiple Ruby versions.
+#
+# The steps in the job are:
+# 1. Checkout code using the actions/checkout@v4 action.
+# 2. Set up the specified version of Ruby using the ruby/setup-ruby@v1 action.
+# 3. Install dependencies using Bundler.
+# 4. Run Rubocop linting with JSON output and warning-level failures.
+#
+# This workflow ensures that Ruby code follows style guidelines and best practices.
+
+on:
+  push:
+    branches:
+      - fix/*
+      - rel/*
+  pull_request:
+    branches:
+      - main
+      - develop
+      - feature/*
+  workflow_dispatch:
+    inputs:
+      debug_enabled:
+        type: boolean
+        description: 'Run the build with tmate debugging enabled (https://github.com/marketplace/actions/debugging-with-tmate)'
+        required: false
+        default: false
+
+permissions:
+  contents: read
+
+jobs:
+  lint:
+    timeout-minutes: 10 # prevent hung jobs
+
+    runs-on: ubuntu-24.04
+
+    strategy:
+      fail-fast: true
+      matrix:
+        ruby: ['3.4', '3.5']
+        continue-on-error: [true]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
+
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: ${{ matrix.ruby }}
+          bundler-cache: true
+
+      - name: Setup tmate session
+        uses: mxschmitt/action-tmate@7b6a61a73bbb9793cb80ad69b8dd8ac19261834c # v3
+        if: ${{ github.event_name == 'workflow_dispatch' && inputs.debug_enabled }}
+        with:
+          detached: true
+
+      - name: Install dependencies
+        continue-on-error: ${{ matrix.continue-on-error }}
+        run: |
+          bundle config path vendor/bundle
+          bundle install --jobs 4 --retry 3
+
+      - name: Run Rubocop
+        continue-on-error: ${{ matrix.continue-on-error }}
+        run: |
+          bundle exec rubocop --config .rubocop.yml --format json --fail-level warning

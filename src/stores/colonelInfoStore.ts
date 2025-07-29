@@ -1,4 +1,4 @@
-// stores/colonelInfoStore.ts
+// src/stores/colonelInfoStore.ts
 
 import { responseSchemas, type ColonelInfoDetails } from '@/schemas/api';
 import { type SystemSettingsDetails, type ColonelStatsDetails } from '@/schemas/api/endpoints/colonel';

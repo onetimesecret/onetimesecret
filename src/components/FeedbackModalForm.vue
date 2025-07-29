@@ -69,9 +69,7 @@ import { useI18n } from 'vue-i18n';
   /**
    * Computed property to determine the submit key combination text based on the platform
    */
-  const submitWithText = computed(() => {
-    return navigator.platform.includes(t('mac')) ? t('enter-0') : t('ctrl-enter');
-  });
+  const submitWithText = computed(() => navigator.platform.includes(t('mac')) ? t('enter-0') : t('ctrl-enter'));
 
   /**
    * State to track if the device is a desktop using useMediaQuery

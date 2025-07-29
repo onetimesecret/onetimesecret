@@ -6,13 +6,11 @@
     "verbatimModuleSyntax": true
   },
   "include": [
-    "src/**/*.ts",
-    "src/**/*.vue",
-    "src/content/*.md",
+    "src/tests/**/*.ts",
+    "src/tests/**/*.vue",
+    "src/tests/**/*.d.ts",
     "src/types/**/*.ts",
-    "src/types/declarations/*.d.ts",
-    "tests/**/*.ts",
-    "tests/**/*.vue"
+    "src/types/declarations/*.d.ts"
   ],
-  "exclude": ["node_modules", "public/web/dist", "dist"]
+  "exclude": ["node_modules", "src/node_modules", "public/web/dist", "dist"]
 }

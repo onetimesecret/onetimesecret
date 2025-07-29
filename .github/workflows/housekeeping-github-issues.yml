@@ -1,0 +1,39 @@
+# .github/workflows/housekeeping-github-issues.yml
+
+# Onetime Secret Ops
+#
+# This workflow notifies and closes issues and PRs that have had no activity for a specified amount of time.
+#
+# Documentation:
+# https://github.com/actions/stale
+
+name: Github Issues - Housekeeping
+
+on:
+  schedule:
+    - cron: '27 4 * * *'
+  workflow_dispatch:
+
+jobs:
+  stale:
+    runs-on: ubuntu-24.04
+    permissions:
+      issues: write
+      pull-requests: write
+
+    steps:
+      - uses: actions/stale@5bef64f19d7facfb25b37b414482c7164d639639 # v9
+        with:
+          stale-issue-message: 'Just a heads up -- this issue is being marked stale (open 90 days with no activity). It will close automatically in a few weeks. You can comment or remove the stale label to restart the clock.'
+          close-issue-message: 'This issue is now closed. 🌻'
+          stale-pr-message: 'Just a heads up -- this PR is being marked stale (open 45 days with no activity). It will close automatically in a couple weeks. You can comment or remove the stale label to restart the clock.'
+          close-pr-message: 'This PR is now closed.'
+          days-before-issue-stale: 90
+          days-before-issue-close: 28
+          days-before-pr-stale: 45
+          days-before-pr-close: 14
+          exempt-pr-labels: auto-update,dependencies,security
+          exempt-issue-labels: security,improvement,bug
+          exempt-draft-pr: true
+          stale-issue-label: Stale Boetticher
+          stale-pr-label: Stale Boetticher

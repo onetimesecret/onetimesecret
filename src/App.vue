@@ -24,9 +24,7 @@
   };
 
   // Bring the layout and route together
-  const layout = computed(() => {
-    return route.meta.layout || QuietLayout;
-  });
+  const layout = computed(() => route.meta.layout || QuietLayout);
   const layoutProps = computed(() => ({
     ...defaultProps,
     ...(route.meta.layoutProps ?? {}),
