@@ -65,7 +65,7 @@ export default [
    * Excludes all files except source and config files
    */
   {
-    ignores: ['**/*', '!src/**', '!tests/**', '!*.config.ts', '!*.config.*js'],
+    ignores: ['**/*', '!src/**', '!*.config.ts', '!*.config.*js'],
   },
 
   /**
@@ -76,7 +76,7 @@ export default [
   {
     files: [
       'src/**/*.{js,mjs,cjs,ts,vue}',
-      //'tests/**/*.{js,mjs,cjs,ts,vue}',
+      '!src/tests/**',
       'eslint.config.ts',
       'tailwind.config.ts',
       'vite.config.ts',
@@ -118,7 +118,7 @@ export default [
           vue: 'always',
         },
       ], // Add this rule configuration
-      'vue/component-tags-order': [
+      'vue/block-order': [
         'error',
         {
           order: ['script', 'template', 'style'],
@@ -144,7 +144,7 @@ export default [
    * Configures TypeScript, i18n
    */
   {
-    files: ['src/**/*.{ts,d.ts}'],
+    files: ['src/**/*.{ts,d.ts}', '!src/tests/**'],
     languageOptions: {
       parserOptions: {
         parser: parserTs,
@@ -270,7 +270,7 @@ export default [
    * Specific rules for Vue single-file components
    */
   {
-    files: ['src/**/*.vue', 'tests/**/*.{vue}'],
+    files: ['src/**/*.vue', '!src/tests/**'],
     languageOptions: {
       parser: vueEslintParser,
       parserOptions: {
@@ -442,7 +442,7 @@ export default [
    * Relaxes naming conventions and adds specific rules for test files
    */
   {
-    files: ['tests/**/*.spec.{ts,vue,d.ts}', 'tests/**/*.{vue,d.ts}'],
+    files: ['src/tests/**/*.{ts,vue,d.ts}'],
     languageOptions: {
       parser: parserTs,
       parserOptions: {

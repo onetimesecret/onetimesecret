@@ -1,4 +1,4 @@
-// stores/concealedMetadataStore.ts
+// src/stores/concealedMetadataStore.ts
 import { PiniaPluginOptions } from '@/plugins/pinia';
 import { loggingService } from '@/services/logging.service';
 import { type ConcealedMessage } from '@/types/ui/concealed-message';

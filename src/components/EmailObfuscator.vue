@@ -13,16 +13,12 @@ const props = withDefaults(defineProps<Props>(), {
 });
 const { t } = useI18n();
 
-const obfuscateEmail = (email: string): string => {
-  return email.replace('@', ' &#65;&#84; ').replace('.', ' D0T ');
-};
+const obfuscateEmail = (email: string): string => email.replace('@', ' &#65;&#84; ').replace('.', ' D0T ');
 
-const deobfuscateEmail = (email: string): string => {
-  return email
+const deobfuscateEmail = (email: string): string => email
     .replace(/ &#65;&#84; /g, "@")
     .replace(/ AT /g, "@")
     .replace(/ D0T /g, ".");
-};
 
 const displayedEmail = ref(obfuscateEmail(props.email));
 

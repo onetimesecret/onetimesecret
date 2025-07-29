@@ -35,17 +35,30 @@ import { shallowRef } from 'vue';
   // Default logo component for fallback
   const DEFAULT_LOGO = 'DefaultLogo.vue';
 
+  // Helper functions for logo configuration
+  const getLogoUrl = () => props.logo?.url || headerConfig.value?.branding?.logo?.url || DEFAULT_LOGO;
+  const getLogoAlt = () => props.logo?.alt || headerConfig.value?.branding?.logo?.alt || t('one-time-secret-literal');
+  const getLogoHref = () => props.logo?.href || headerConfig.value?.branding?.logo?.link_to || '/';
+  const getLogoSize = () => props.logo?.size || 64;
+  const getShowSiteName = () => props.logo?.showSiteName ?? !!headerConfig.value?.branding?.site_name;
+  const getSiteName = () => props.logo?.siteName || headerConfig.value?.branding?.site_name || t('one-time-secret-literal');
+  const getAriaLabel = () => props.logo?.ariaLabel;
+  const getIsColonelArea = () => props.logo?.isColonelArea ?? props.colonel;
+
+  // Helper function to get logo configuration
+  const getLogoConfig = () => ({
+    url: getLogoUrl(),
+    alt: getLogoAlt(),
+    href: getLogoHref(),
+    size: getLogoSize(),
+    showSiteName: getShowSiteName(),
+    siteName: getSiteName(),
+    ariaLabel: getAriaLabel(),
+    isColonelArea: getIsColonelArea(),
+  });
+
   // Simplified logo configuration with prop override support
-  const logoConfig = computed(() => ({
-    url: props.logo?.url || headerConfig.value?.branding?.logo?.url || DEFAULT_LOGO,
-    alt: props.logo?.alt || headerConfig.value?.branding?.logo?.alt || t('one-time-secret-literal'),
-    href: props.logo?.href || headerConfig.value?.branding?.logo?.link_to || '/',
-    size: props.logo?.size || 64,
-    showSiteName: props.logo?.showSiteName ?? !!headerConfig.value?.branding?.site_name,
-    siteName: props.logo?.siteName || headerConfig.value?.branding?.site_name || t('one-time-secret-literal'),
-    ariaLabel: props.logo?.ariaLabel,
-    isColonelArea: props.logo?.isColonelArea ?? props.colonel,
-  }));
+  const logoConfig = computed(getLogoConfig);
 
   const navigationEnabled = computed(() =>
     headerConfig.value?.navigation?.enabled !== false
@@ -59,34 +72,43 @@ import { shallowRef } from 'vue';
       : null
   );
 
-  // Watch for changes to logoUrl and load Vue component if needed
-  watch(() => logoConfig.value.url, async (newLogoUrl) => {
-    if (newLogoUrl.endsWith('.vue')) {
-      try {
-        const componentName = newLogoUrl.replace('.vue', '');
-        const module = await import(`@/components/logos/${componentName}.vue`);
-        logoComponent.value = module.default;
-      } catch (error) {
-        console.warn(`Failed to load logo component: ${newLogoUrl}`, error);
-        // Fall back to default logo if specified logo fails to load
-        if (newLogoUrl !== DEFAULT_LOGO) {
-          try {
-            const defaultComponent = DEFAULT_LOGO.replace('.vue', '');
-            const module = await import(`@/components/logos/${defaultComponent}.vue`);
-            logoComponent.value = module.default;
-            console.info(`Loaded fallback logo: ${defaultComponent}`);
-          } catch (fallbackError) {
-            console.error(`Failed to load fallback logo: ${DEFAULT_LOGO}`, fallbackError);
-            logoComponent.value = null;
-          }
-        } else {
-          logoComponent.value = null;
-        }
-      }
-    } else {
+  // Helper function to load logo component
+  const loadLogoComponent = async (logoUrl: string) => {
+    if (!logoUrl.endsWith('.vue')) {
+      logoComponent.value = null;
+      return;
+    }
+
+    const componentName = logoUrl.replace('.vue', '');
+    try {
+      const module = await import(`@/components/logos/${componentName}.vue`);
+      logoComponent.value = module.default;
+    } catch (error) {
+      console.warn(`Failed to load logo component: ${logoUrl}`, error);
+      await loadDefaultLogo(logoUrl);
+    }
+  };
+
+  // Helper function to load default logo as fallback
+  const loadDefaultLogo = async (originalUrl: string) => {
+    if (originalUrl === DEFAULT_LOGO) {
+      logoComponent.value = null;
+      return;
+    }
+
+    try {
+      const defaultComponent = DEFAULT_LOGO.replace('.vue', '');
+      const module = await import(`@/components/logos/${defaultComponent}.vue`);
+      logoComponent.value = module.default;
+      console.info(`Loaded fallback logo: ${defaultComponent}`);
+    } catch (fallbackError) {
+      console.error(`Failed to load fallback logo: ${DEFAULT_LOGO}`, fallbackError);
       logoComponent.value = null;
     }
-  }, { immediate: true });
+  };
+
+  // Watch for changes to logoUrl and load Vue component if needed
+  watch(() => logoConfig.value.url, loadLogoComponent, { immediate: true });
 
   // Reactive state
   const isSettingsModalOpen = ref(false);

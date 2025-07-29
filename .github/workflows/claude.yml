@@ -2,11 +2,6 @@
 name: Claude Code
 
 on:
-  push:
-    branches:
-      - 'feature/*'
-      - 'fix/*'
-      - 'delano/*'
   pull_request:
     branches:
       - 'feature/*'
@@ -20,6 +15,10 @@ on:
     types: [opened, assigned]
   pull_request_review:
     types: [submitted]
+  workflow_dispatch:
+
+permissions:
+  contents: read
 
 jobs:
   claude:

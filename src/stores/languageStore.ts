@@ -56,7 +56,12 @@ export const useLanguageStore = defineStore('language', () => {
     if (_initialized.value) return getCurrentLocale.value;
 
     if (options?.deviceLocale) {
-      deviceLocale.value = validateAndNormalizeLocale(options.deviceLocale);
+      try {
+        deviceLocale.value = validateAndNormalizeLocale(options.deviceLocale);
+      } catch (error) {
+        console.warn(`Invalid device locale: ${options.deviceLocale}`, error);
+        deviceLocale.value = null;
+      }
     }
     if (options?.storageKey) {
       storageKey.value = options.storageKey;
@@ -90,9 +95,15 @@ export const useLanguageStore = defineStore('language', () => {
         currentLocale.value = storedLocale.value;
       } else if (deviceLocale.value) {
         const primaryLocale = deviceLocale.value.split('-')[0];
-        currentLocale.value = supportedLocales.value.includes(primaryLocale)
-          ? primaryLocale
-          : DEFAULT_LOCALE;
+        if (supportedLocales.value.includes(primaryLocale)) {
+          currentLocale.value = primaryLocale;
+        } else if (supportedLocales.value.includes(deviceLocale.value)) {
+          currentLocale.value = deviceLocale.value;
+        } else {
+          currentLocale.value = DEFAULT_LOCALE;
+        }
+      } else {
+        currentLocale.value = DEFAULT_LOCALE;
       }
 
       _initialized.value = true;
@@ -105,14 +116,20 @@ export const useLanguageStore = defineStore('language', () => {
   }
 
   function setCurrentLocale(locale: string) {
-    const normalizedLocale = validateAndNormalizeLocale(locale);
-    if (supportedLocales.value.includes(normalizedLocale)) {
-      currentLocale.value = normalizedLocale;
-      try {
-        sessionStorage.setItem(getStorageKey.value, normalizedLocale);
-      } catch (error) {
-        console.error('Failed to save locale to session storage:', error);
+    try {
+      const normalizedLocale = validateAndNormalizeLocale(locale);
+      if (supportedLocales.value.includes(normalizedLocale)) {
+        currentLocale.value = normalizedLocale;
+        try {
+          sessionStorage.setItem(getStorageKey.value, normalizedLocale);
+        } catch (error) {
+          console.error('Failed to save locale to session storage:', error);
+        }
+      } else {
+        console.warn(`Unsupported locale: ${locale}`);
       }
+    } catch {
+      console.warn(`Invalid locale format: ${locale}`);
     }
   }
 
@@ -122,7 +139,13 @@ export const useLanguageStore = defineStore('language', () => {
   }
 
   async function updateLanguage(newLocale: string) {
-    const validatedLocale = validateAndNormalizeLocale(newLocale);
+    let validatedLocale: string;
+    try {
+      validatedLocale = validateAndNormalizeLocale(newLocale);
+    } catch {
+      throw new Error(`Invalid locale format: ${newLocale}`);
+    }
+
     if (!supportedLocales.value.includes(validatedLocale)) {
       throw new Error(`Unsupported locale: ${validatedLocale}`);
     }
@@ -136,20 +159,21 @@ export const useLanguageStore = defineStore('language', () => {
   function determineLocale(preferredLocale?: string): string {
     if (!preferredLocale) return getCurrentLocale.value;
 
-    const normalizedLocale = validateAndNormalizeLocale(preferredLocale);
-    return supportedLocales.value.includes(normalizedLocale)
-      ? normalizedLocale
-      : getCurrentLocale.value;
+    try {
+      const normalizedLocale = validateAndNormalizeLocale(preferredLocale);
+      return supportedLocales.value.includes(normalizedLocale)
+        ? normalizedLocale
+        : getCurrentLocale.value;
+    } catch {
+      return getCurrentLocale.value;
+    }
   }
 
   // Private methods
   const validateAndNormalizeLocale = (locale: string): string => {
-    try {
-      return localeSchema.parse(locale);
-    } catch (error) {
-      console.warn(`Invalid locale format: ${locale}`, error);
-      return DEFAULT_LOCALE;
-    }
+    const validatedLocale = localeSchema.parse(locale);
+    // Normalize by taking the primary language code (e.g., 'fr-FR' -> 'fr')
+    return validatedLocale.split('-')[0].toLowerCase();
   };
 
   const loadSupportedLocales = () => {

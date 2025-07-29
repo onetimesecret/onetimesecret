@@ -12,9 +12,7 @@
   const { isCustom, displayDomain, siteHost } = useProductIdentity();
 
   // Simple approach: use direct component with transition
-  const currentComponent = computed(() => {
-    return isCustom ? BrandedHomepage : Homepage;
-  });
+  const currentComponent = computed(() => isCustom ? BrandedHomepage : Homepage);
 </script>
 
 <template>

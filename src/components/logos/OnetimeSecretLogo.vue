@@ -38,13 +38,9 @@
   );
 
   // Jurisdiction icon helper functions
-  const getIconCollection = (jurisdiction: Jurisdiction | null): string => {
-    return jurisdiction?.icon?.collection || 'fa6-solid';
-  };
+  const getIconCollection = (jurisdiction: Jurisdiction | null): string => jurisdiction?.icon?.collection || 'fa6-solid';
 
-  const getIconName = (jurisdiction: Jurisdiction | null): string => {
-    return jurisdiction?.icon?.name || 'globe';
-  };
+  const getIconName = (jurisdiction: Jurisdiction | null): string => jurisdiction?.icon?.name || 'globe';
 
   // Jurisdiction menu state and handlers
   const tooltipVisible = ref(false);
