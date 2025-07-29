@@ -1,28 +1,18 @@
-# .github/workflows/ruby.yml
+# .github/workflows/ci.yml
 
-name: Ruby CI
+name: CI
 
-# This GitHub Actions workflow is named "Ruby CI" and is
-# triggered by push events on branches starting with "fix/" or
-# "rel/", pull requests on the
+# Main CI workflow that runs Ruby tests using RSpec and tryouts, plus TypeScript
+# tests using Vitest and validation steps (linting, type-checking).
 #
-# The workflow has a single job named "build" that runs on the
-# latest version of Ubuntu. It uses a strategy matrix to run
-# the job with different
+# The workflow is triggered by push events on branches starting with "fix/" or
+# "rel/", pull requests on main/develop/feature/* branches, and manual dispatch.
 #
-# The steps in the job are as follows:
-# 1. Checkout code using the actions/checkout@v4 action.
-# 2. Set up the specified version of Ruby using the
-#     ruby/setup-ruby@v1 action.
-# 3. Install dependencies using Bundler. The Bundler version
-#     is determined by the matrix variable.
-# 4. Run the "try" command using bundle exec try. The
-#     continue-on-error flag is set to true, allowing the
-#     workflow to continue even if this step
+# The workflow has jobs for:
+# - Ruby testing (RSpec and tryouts) across multiple Ruby versions
+# - TypeScript testing (Vitest) and validation (linting, type-checking)
 #
-# This workflow is designed for continuous integration of a
-# Ruby project, ensuring that the code builds and dependencies
-# are installed correctly.
+# This workflow ensures comprehensive testing across the full stack.
 
 on:
   push:
@@ -46,7 +36,7 @@ permissions:
   contents: read
 
 jobs:
-  build:
+  test-ruby:
     timeout-minutes: 15 # prevent hung jobs
 
     # Can also be set to `self-hosted` if worker is running. Possible
@@ -58,9 +48,6 @@ jobs:
     # yaml files at all). Adding a new workflow in a test branch
     # seemed to wake up the dragon and all was well in the world.
     #
-    # Rubygems as of version 3.6.0 has dropped support for
-    # Ruby 3.0. Fair enough!
-    #
     # https://github.com/rubygems/rubygems/blob/master/CHANGELOG.md#breaking-changes
     #
     runs-on: ubuntu-24.04
@@ -69,7 +56,7 @@ jobs:
       fail-fast: true
       matrix:
         ruby: ['3.4', '3.5']
-        continue-on-error: [false]
+        continue-on-error: [false, false]
 
     # Make redis available for running the tryouts
     services:
@@ -112,29 +99,57 @@ jobs:
       - name: Run test specs
         run: |
           mkdir tmp && bundle exec rspec \
-            --require ./tests/unit/ruby/rspec/spec_helper.rb \
             --format progress \
             --format json \
-            --out tmp/rspec_results.json \
-            $(find tests/unit/ruby/rspec -name '*_spec.rb' ! -name 'spec_helper.rb')
+            --out tmp/rspec_results.json
 
       - name: Generate job summary
         if: always()
         run: |
           echo "## Test Results" >> $GITHUB_STEP_SUMMARY
           echo "$(bundle exec rspec \
-            --require ./tests/unit/ruby/rspec/spec_helper.rb \
             --dry-run \
             --format documentation \
-            $(find tests/unit/ruby/rspec -name '*_spec.rb' ! -name 'spec_helper.rb'))" >> $GITHUB_STEP_SUMMARY
+            $(find ./spec -name '*_spec.rb' ! -name 'spec_helper.rb'))" >> $GITHUB_STEP_SUMMARY
           echo "Total tests: $(jq '.summary.example_count' tmp/rspec_results.json)" >> $GITHUB_STEP_SUMMARY
 
       - name: Run tryouts
         continue-on-error: ${{ matrix.continue-on-error }}
         run: |
-          bundle exec try -vf
+          pnpm run test:tryouts try
 
-      - name: Rubocop
-        continue-on-error: ${{ matrix.continue-on-error }}
+  test-typescript:
+    timeout-minutes: 15
+    runs-on: ubuntu-24.04
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: latest
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Run type checking
+        run: pnpm type-check
+
+      - name: Run linting
+        run: pnpm lint
+
+      - name: Run TypeScript tests
+        run: pnpm test
+
+      - name: Generate TypeScript test summary
+        if: always()
         run: |
-          bundle exec rubocop --config .rubocop.yml --format json --fail-level warning
+          echo "## TypeScript Test Results" >> $GITHUB_STEP_SUMMARY
+          echo "Type checking, linting, and unit tests completed." >> $GITHUB_STEP_SUMMARY

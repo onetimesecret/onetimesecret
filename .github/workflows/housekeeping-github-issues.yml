@@ -1,4 +1,4 @@
-# .github/workflows/housekeeping.yml
+# .github/workflows/housekeeping-github-issues.yml
 
 # Onetime Secret Ops
 #
@@ -6,11 +6,13 @@
 #
 # Documentation:
 # https://github.com/actions/stale
-name: Surface stale issues and pull requests
+
+name: Github Issues - Housekeeping
 
 on:
   schedule:
     - cron: '27 4 * * *'
+  workflow_dispatch:
 
 jobs:
   stale:
