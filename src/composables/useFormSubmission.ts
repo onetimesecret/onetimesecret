@@ -87,8 +87,8 @@ export function useFormSubmission<ResponseSchema extends z.ZodType>(
 
       // If the json response includes a new shrimp,
       // let's update our shrimp state to reflect it.
-      if ('shrimp' in jsonData && typeof jsonData.shrimp === 'string') {
-        csrfStore.updateShrimp(jsonData.shrimp);
+      if ('shrimp' in (jsonData as any) && typeof (jsonData as any).shrimp === 'string') {
+        csrfStore.updateShrimp((jsonData as any).shrimp);
       }
 
       if (!response.ok) {
@@ -98,8 +98,8 @@ export function useFormSubmission<ResponseSchema extends z.ZodType>(
 
         if (response.headers.get('content-type')?.includes('application/json')) {
           throw new Error(
-            'message' in jsonData
-              ? (jsonData.message as string)
+            'message' in (jsonData as any)
+              ? ((jsonData as any).message as string)
               : 'Request was not successful. Please try again later.'
           );
         } else {

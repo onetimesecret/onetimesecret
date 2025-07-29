@@ -96,17 +96,17 @@ export const errorClassifier = {
   },
 
   formatZodError(error: ZodError): string {
-    if (!error.errors || error.errors.length === 0) {
+    if (!error.issues || error.issues.length === 0) {
       return 'Validation Error';
     }
 
     // Get the first error message
-    const firstError = error.errors[0];
+    const firstError = error.issues[0];
 
     if (firstError.code === 'invalid_type') {
       // Format the invalid_type error nicely
-      const expected = firstError.expected;
-      const received = firstError.received;
+      const expected = (firstError as any).expected;
+      const received = (firstError as any).received;
       return `Invalid data received. Expected ${expected} but got ${received}.`;
     }
 
