@@ -1,10 +1,10 @@
 #!/usr/bin/env ruby
-# support/clean_redis.rb
+# support/clean_database.rb
 #
 # Clear Redis databases with safety checks and options
 #
 # Usage:
-#   ruby support/clean_redis.rb [options]
+#   ruby support/clean_database.rb [options]
 #
 # Options:
 #   --db N          Clear specific database number (default: current config)
@@ -16,31 +16,31 @@
 #
 #   # Clear current database (dry run first). These are equivalent
 #   # because dry-run is the default behaviour.
-#   $ ruby support/clean_redis.rb --dry-run
+#   $ ruby support/clean_database.rb --dry-run
 #
 #   # Clear current database
-#   $ ruby support/clean_redis.rb --force
+#   $ ruby support/clean_database.rb --force
 #
 #   # Clear specific database
-#   $ ruby support/clean_redis.rb --db 1 --force
+#   $ ruby support/clean_database.rb --db 1 --force
 #
 #   # Clear all databases
-#   $ ruby support/clean_redis.rb --all --force
+#   $ ruby support/clean_database.rb --all --force
 #
 #   # Clear only OneTimeSecret keys
-#   $ ruby support/clean_redis.rb --pattern "onetime:*" --force
+#   $ ruby support/clean_database.rb --pattern "onetime:*" --force
 #
-#   # Clear system settings keys only
-#   $ ruby support/clean_redis.rb --pattern "*colonelconfig*" --force
+#   # Clear mutable config keys only
+#   $ ruby support/clean_database.rb --pattern "*mutableconfig*" --force
 #
 #   # Clear test environment
-#   $ ruby support/clean_redis.rb --env test --force
+#   $ ruby support/clean_database.rb --env test --force
 #
 
 require 'redis'
 require 'optparse'
 
-class RedisCleaner
+class DatabaseCleaner
   attr_reader :options
 
   def initialize
@@ -54,18 +54,18 @@ class RedisCleaner
     }
 
     parse_options
-    @redis_config = load_redis_config
+    @database_config = load_database_config
   end
 
   def run
-    puts "Redis Cleaner - Environment: #{@options[:env]}"
-    puts "Redis Config: #{@redis_config}"
+    puts "Database Cleaner - Environment: #{@options[:env]}"
+    puts "Database Config: #{@database_config}"
     puts
 
     if @options[:all]
       clear_all_databases
     else
-      clear_single_database(@options[:db] || @redis_config[:db] || 0)
+      clear_single_database(@options[:db] || @database_config[:db] || 0)
     end
   end
 
@@ -106,12 +106,12 @@ class RedisCleaner
     end.parse!
   end
 
-  def load_redis_config
-    redis_url = ENV['REDIS_URL']
+  def load_database_config
+    database_url = ENV['DATABASE_URL'] || ENV['VALKEY_URL'] || ENV['REDIS_URL']
 
-    if redis_url
-      # Parse REDIS_URL (e.g., redis://localhost:6379/0)
-      uri = URI.parse(redis_url)
+    if database_url
+      # Parse environment variable (e.g., redis://localhost:6379/0)
+      uri = URI.parse(database_url)
       return {
         host: uri.host || 'localhost',
         port: uri.port || 6379,
@@ -134,9 +134,9 @@ class RedisCleaner
   end
 
   def clear_single_database(db_num)
-    redis = connect_to_db(db_num)
+    dbclient = connect_to_db(db_num)
 
-    keys = redis.keys(@options[:pattern])
+    keys = dbclient.keys(@options[:pattern])
 
     puts "Database #{db_num}:"
     puts "  Keys matching '#{@options[:pattern]}': #{keys.length}"
@@ -160,29 +160,29 @@ class RedisCleaner
 
     if @options[:pattern] == '*'
       # More efficient for clearing entire database
-      redis.flushdb
+      dbclient.flushdb
       puts "  Flushed entire database"
     else
       # Delete specific keys
       deleted = 0
       keys.each_slice(1000) do |key_batch|
-        deleted += redis.del(*key_batch)
+        deleted += dbclient.del(*key_batch)
       end
       puts "  Deleted #{deleted} keys"
     end
 
   rescue Redis::CannotConnectError => e
-    puts "  Cannot connect to Redis: #{e.message}"
+    puts "  Cannot connect to database: #{e.message}"
   rescue => e
     puts "  Error: #{e.message}"
   ensure
-    redis&.quit
+    dbclient&.quit
   end
 
   def connect_to_db(db_num)
     Redis.new(
-      host: @redis_config[:host],
-      port: @redis_config[:port],
+      host: @database_config[:host],
+      port: @database_config[:port],
       db: db_num,
       timeout: 5,
     )
@@ -191,5 +191,5 @@ end
 
 # Run the cleaner if called directly
 if __FILE__ == $0
-  RedisCleaner.new.run
+  DatabaseCleaner.new.run
 end

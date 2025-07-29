@@ -26,7 +26,10 @@ def test_decrypt(encrypted_value, secret_key, encryption_mode, passphrase=nil, g
   global_secrets.each do |global_secret|
     begin
       # Temporarily override global secret
-      original_secret = OT.global_secret
+      original_secret =  OT.conf['site']['secret']
+      # NOTE: As of v0.23.0 there is no OT.global_secret. Need to find another
+      # way of modifying the value used. Try passing it in as an override. For
+      # the upcoming v3 style, let's keep that in mind.
       OT.instance_variable_set(:@global_secret, global_secret)
 
       # Try decryption
@@ -92,7 +95,7 @@ def test_problematic_secret(secret_key, additional_global_secrets=[], potential_
 
   # List of potential global secrets to try
   potential_global_secrets = [
-    OT.global_secret,  # Current global secret
+     OT.conf['site']['secret'],  # Current global secret
     nil,               # No global secret
     # Add other potential global secrets that might have been used
     "old_global_secret_value",
@@ -183,7 +186,7 @@ end
 # test_encryption_key_generation(
 #   "abc123secretkey",
 #   "optional_passphrase",
-#   [OT.global_secret, "old_global_secret"]
+#   [ OT.conf['site']['secret'], "old_global_secret"]
 # )
 
 # 5. Create test encryptions to compare different encryption methods:
@@ -192,5 +195,5 @@ end
 #   "This is my secret message",
 #   "abc123secretkey",
 #   "optional_passphrase",
-#   [OT.global_secret, nil]
+#   [ OT.conf['site']['secret'], nil]
 # )

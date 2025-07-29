@@ -253,6 +253,7 @@ RSpec.describe "Onetime::Config during Onetime.boot!" do
       ENV['SMTP_TLS'] = nil
       ENV['VERIFIER_EMAIL'] = nil
       ENV['VERIFIER_DOMAIN'] = nil
+      ENV['REDIS_URL'] = 'redis://127.0.0.1:2121/0'
       OT::Utils.instance_variable_set(:@fortunes, nil) # Reset fortunes for each test
     end
 

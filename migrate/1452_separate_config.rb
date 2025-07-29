@@ -3,7 +3,7 @@
 #
 # Configuration Separation Migration Script
 #
-# Purpose: Separates monolithic config.example.yaml into static and mutable configuration files.
+# Purpose: Separates monolithic config.defaults.yaml into static and mutable configuration files.
 # Static config goes to etc/config.yaml, mutable config gets loaded into V2::MutableConfig.
 #
 # Symbols vs Strings: the old config file used symbols for keys, while the new config file uses

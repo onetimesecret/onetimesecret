@@ -137,8 +137,8 @@ RSpec.describe Onetime::Config do
   end
 
   describe '.find_configs' do
-    let(:service_paths) { ['/etc/onetime', './etc'] }
-    let(:utility_paths) { ['~/.onetime', '/etc/onetime', './etc'] }
+    let(:service_paths) { ['/etc/onetime', './etc', './etc/defaults'] }
+    let(:utility_paths) { ['~/.onetime', '/etc/onetime', './etc', './etc/defaults'] }
 
     context 'in service mode' do
       before do

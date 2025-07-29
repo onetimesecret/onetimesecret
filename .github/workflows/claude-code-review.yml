@@ -1,3 +1,5 @@
+# .github/workflows/claude-code-review.yml
+
 name: Claude Code Review
 
 on:
@@ -5,7 +7,9 @@ on:
     branches:
       - 'feature/*'
       - 'fix/*'
-      - 'delano/*'
+      - 'wip/*'
+      - 'rel/*'
+      - 'develop'
     types: [opened, synchronize]
   workflow_dispatch:
 

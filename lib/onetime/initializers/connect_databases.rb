@@ -53,7 +53,7 @@ module Onetime
     # etc/config.yaml files OR
     #
     # For installs running via docker image + environment vars, this change should
-    # be a non-issue as long as the default config (etc/config.example.yaml) is
+    # be a non-issue as long as the default config (etc/defaults/config.defaults.yaml) is
     # used (which it is in the official images).
     #
     DATABASE_IDS = {
