@@ -16,7 +16,8 @@ on:
   # This ensures code reviews before deployment, enhancing security
   pull_request:
     branches:
-      - develop
+      - 'feature/*'
+      - 'wip/*'
     types:
       - closed
       - opened
@@ -27,8 +28,7 @@ on:
   # Allows for continuous integration and testing of new features
   push:
     branches:
-      - 'feature/*'
-      - 'wip/*'
+      - develop
 
 permissions:
   contents: read
