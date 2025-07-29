@@ -1,4 +1,4 @@
-# tests/unit/ruby/try/23_passphrase_try.rb
+# try/23_passphrase_try.rb
 
 # These tryouts test the functionality of passphrase handling in the Onetime application.
 # Specifically, they focus on:
@@ -14,7 +14,6 @@
 
 
 require_relative 'test_models'
-require 'core/controllers/settings'
 
 #Familia.debug = false
 
