@@ -122,13 +122,9 @@
   useClickOutside(dropdownRef, closeDropdown);
 
   // Safety functions for icon props
-  const getIconCollection = (jurisdiction: Jurisdiction | null): string => {
-    return jurisdiction?.icon?.collection || 'fa6-solid';
-  };
+  const getIconCollection = (jurisdiction: Jurisdiction | null): string => jurisdiction?.icon?.collection || 'fa6-solid';
 
-  const getIconName = (jurisdiction: Jurisdiction | null): string => {
-    return jurisdiction?.icon?.name || 'globe';
-  };
+  const getIconName = (jurisdiction: Jurisdiction | null): string => jurisdiction?.icon?.name || 'globe';
 </script>
 
 <template>

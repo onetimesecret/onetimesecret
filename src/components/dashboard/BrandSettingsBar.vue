@@ -45,13 +45,9 @@
     });
   };
 
-  const isDisabled = computed(() => {
-    return props.isLoading || !props.hasUnsavedChanges;
-  });
+  const isDisabled = computed(() => props.isLoading || !props.hasUnsavedChanges);
 
-  const buttonText = computed(() => {
-    return props.isLoading ? t('web.LABELS.saving') : t('web.LABELS.save');
-  });
+  const buttonText = computed(() => props.isLoading ? t('web.LABELS.saving') : t('web.LABELS.save'));
   const handleSubmit = () => emit('submit');
 </script>
 

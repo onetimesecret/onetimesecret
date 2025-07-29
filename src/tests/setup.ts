@@ -1,22 +1,18 @@
 // src/tests/setup.ts
 
 // Mock autoInitPlugin since it can't be found
-const autoInitPlugin = () => {
-  return ((_context: PiniaPluginContext) => {
+const autoInitPlugin = () => ((_context: PiniaPluginContext) =>
     // Basic mock implementation
-    return {
+     ({
       install: () => {
         /* mock implementation */
       },
-    };
-  }) as unknown as PiniaPlugin;
-};
+    })
+  ) as unknown as PiniaPlugin;
 import { createSharedApiInstance } from './setup-stores';
 
 // Use the shared axios instance that works with AxiosMockAdapter
-const createApi = (): AxiosInstance => {
-  return createSharedApiInstance();
-};
+const createApi = (): AxiosInstance => createSharedApiInstance();
 import type { PiniaPluginContext } from 'pinia';
 import { createI18n } from 'vue-i18n';
 import { createTestingPinia, TestingPinia } from '@pinia/testing';

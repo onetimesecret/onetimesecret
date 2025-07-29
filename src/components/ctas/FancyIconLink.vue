@@ -11,12 +11,12 @@
     colonel?: boolean;
   }>();
 
-  const showUpgradeNudge = computed(() => {
+  const showUpgradeNudge = computed(() =>
     // Logic to determine if the user should see the upgrade nudge
     // For example, check if the user is on a free plan
     //return !cust.value.isPremium
-    return true;
-  });
+     true
+  );
 
   const isUpgradeModalOpen = ref(false);
 

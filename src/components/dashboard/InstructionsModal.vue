@@ -46,9 +46,7 @@
 
   const characterCount = (value: string) => value?.length ?? 0;
 
-  const getPlaceholderExample = (placeholderKey: string) => {
-    return `${props.previewI18n.t('e-g-example')} ${placeholderKey}`;
-  };
+  const getPlaceholderExample = (placeholderKey: string) => `${props.previewI18n.t('e-g-example')} ${placeholderKey}`;
 
   const updateValue = (key: string, event: Event) => {
     const target = event.target as HTMLTextAreaElement;

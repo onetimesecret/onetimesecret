@@ -48,9 +48,7 @@
   };
 
   // Format creation date to be more readable
-  const formattedDate = computed(() => {
-    return formatDistanceToNow(props.concealedMessage.clientInfo.createdAt, { addSuffix: true });
-  });
+  const formattedDate = computed(() => formatDistanceToNow(props.concealedMessage.clientInfo.createdAt, { addSuffix: true }));
 
   // Compute security status and time remaining
   const hasPassphrase = computed(() => props.concealedMessage.clientInfo.hasPassphrase);
@@ -108,9 +106,7 @@
   });
 
   // Display key (shortened for clarity)
-  const displayKey = computed(() => {
-    return props.concealedMessage.response.record.secret.shortkey;
-  });
+  const displayKey = computed(() => props.concealedMessage.response.record.secret.shortkey);
 </script>
 
 <template>

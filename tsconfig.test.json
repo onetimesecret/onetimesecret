@@ -6,9 +6,9 @@
     "verbatimModuleSyntax": true
   },
   "include": [
-    "src/**/*.ts",
-    "src/**/*.vue",
-    "src/content/*.md",
+    "src/tests/**/*.ts",
+    "src/tests/**/*.vue",
+    "src/tests/**/*.d.ts",
     "src/types/**/*.ts",
     "src/types/declarations/*.d.ts"
   ],

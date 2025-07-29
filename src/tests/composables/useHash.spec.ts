@@ -44,8 +44,7 @@ describe('useHash', () => {
     const { generateHash, isHashing } = useHash();
 
     // Mock subtle.digest to delay completion
-    const mockDigest = vi.fn().mockImplementation(() => {
-      return new Promise((resolve) => {
+    const mockDigest = vi.fn().mockImplementation(() => new Promise((resolve) => {
         setTimeout(() => {
           // Create a mock hash buffer
           const buffer = new ArrayBuffer(32);
@@ -55,8 +54,7 @@ describe('useHash', () => {
           }
           resolve(buffer);
         }, 10);
-      });
-    });
+      }));
 
     // Replace crypto.subtle.digest with our mock implementation
     Object.defineProperty(crypto.subtle, 'digest', {

@@ -87,9 +87,7 @@ describe('Metadata Fixtures Integrity', () => {
     });
     it('rejects invalid metadata state', () => {
       // Assuming MetadataState is an enum or a union type
-      const isValidState = (state: any): state is MetadataState => {
-        return Object.values(MetadataState).includes(state);
-      };
+      const isValidState = (state: any): state is MetadataState => Object.values(MetadataState).includes(state);
 
       expect(() => {
         const invalidRecord = {

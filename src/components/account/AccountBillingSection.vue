@@ -1,34 +1,37 @@
 <script setup lang="ts">
-import OIcon from '@/components/icons/OIcon.vue';
-import type Stripe from 'stripe';
-import { computed } from 'vue';
+  import OIcon from '@/components/icons/OIcon.vue';
+  import type Stripe from 'stripe';
+  import { computed } from 'vue';
 
-interface Props {
-  stripeCustomer: Stripe.Customer | null;
-  stripeSubscriptions?: Stripe.Subscription[] | null;
-}
+  interface Props {
+    stripeCustomer: Stripe.Customer | null;
+    stripeSubscriptions?: Stripe.Subscription[] | null;
+  }
 
-const props = withDefaults(defineProps<Props>(), {
-  stripeCustomer: null,
-  stripeSubscriptions: () => []
-});
+  const props = withDefaults(defineProps<Props>(), {
+    stripeCustomer: null,
+    stripeSubscriptions: () => [],
+  });
 
-const formatDate = (timestamp: number) => new Date(timestamp * 1000).toLocaleDateString();
+  const formatDate = (timestamp: number) => new Date(timestamp * 1000).toLocaleDateString();
 
-const defaultPaymentMethod = computed(() => {
-  return props.stripeCustomer?.invoice_settings?.default_payment_method as Stripe.PaymentMethod | undefined;
-});
+  const defaultPaymentMethod = computed(
+    () =>
+      props.stripeCustomer?.invoice_settings?.default_payment_method as
+        | Stripe.PaymentMethod
+        | undefined
+  );
 
-const subscriptionDetails = computed(() => {
-  return props?.stripeSubscriptions?.map(subscription => ({
-    id: subscription.id,
-    status: subscription.status,
-    amount: subscription.items.data[0]?.price?.unit_amount ?? 0,
-    quantity: subscription.items.data[0]?.quantity ?? 1,
-    interval: subscription.items.data[0]?.price?.recurring?.interval ?? 'month',
-    currentPeriodEnd: subscription.items.data[0]?.current_period_end
-  }));
-});
+  const subscriptionDetails = computed(() =>
+    props?.stripeSubscriptions?.map((subscription) => ({
+      id: subscription.id,
+      status: subscription.status,
+      amount: subscription.items.data[0]?.price?.unit_amount ?? 0,
+      quantity: subscription.items.data[0]?.quantity ?? 1,
+      interval: subscription.items.data[0]?.price?.recurring?.interval ?? 'month',
+      currentPeriodEnd: subscription.items.data[0]?.current_period_end,
+    }))
+  );
 </script>
 
 <template>
@@ -40,8 +43,7 @@ const subscriptionDetails = computed(() => {
         <OIcon
           collection="mdi"
           name="credit-card-outline"
-          class="mr-2 size-6 text-brandcomp-500"
-        />
+          class="mr-2 size-6 text-brandcomp-500" />
         {{ $t('web.account.subscription_title') }}
       </h2>
       <a
@@ -57,12 +59,17 @@ const subscriptionDetails = computed(() => {
           {{ $t('web.account.customer_information') }}
         </h3>
         <ul class="space-y-2 text-sm text-gray-600 dark:text-gray-400">
-          <li>{{ $t('web.account.customer_since') }} {{ formatDate(props.stripeCustomer.created) }}</li>
+          <li
+            >{{ $t('web.account.customer_since') }}
+            {{ formatDate(props.stripeCustomer.created) }}</li
+          >
           <li v-if="props.stripeCustomer.email">
             {{ $t('web.account.email') }} {{ props.stripeCustomer.email }}
           </li>
           <li v-if="props.stripeCustomer.balance !== 0">
-            {{ $t('web.account.account_balance') }} ${{ (props.stripeCustomer.balance / 100).toFixed(2) }}
+            {{ $t('web.account.account_balance') }} ${{
+              (props.stripeCustomer.balance / 100).toFixed(2)
+            }}
           </li>
         </ul>
       </div>
@@ -77,8 +84,7 @@ const subscriptionDetails = computed(() => {
           <OIcon
             collection="mdi"
             name="credit-card"
-            class="mr-2 size-8 text-gray-400"
-          />
+            class="mr-2 size-8 text-gray-400" />
           {{ defaultPaymentMethod.card.brand }}
           {{ $t('web.account.card_ending') }} {{ defaultPaymentMethod.card.last4 }}
         </div>
@@ -97,19 +103,27 @@ const subscriptionDetails = computed(() => {
           <span
             :class="[
               'rounded-full px-2 py-1 text-xs font-semibold',
-              subscription.status === 'active' ? 'bg-green-100 text-green-800 dark:bg-green-800 dark:text-green-100' : 'bg-yellow-100 text-yellow-800 dark:bg-yellow-800 dark:text-yellow-100'
+              subscription.status === 'active'
+                ? 'bg-green-100 text-green-800 dark:bg-green-800 dark:text-green-100'
+                : 'bg-yellow-100 text-yellow-800 dark:bg-yellow-800 dark:text-yellow-100',
             ]">
             {{ subscription.status.charAt(0).toUpperCase() + subscription.status.slice(1) }}
           </span>
           <span class="text-sm font-medium text-gray-700 dark:text-gray-300">
-            ${{ ((subscription.amount * subscription.quantity) / 100).toFixed(2) }} / {{ subscription.interval }}
+            ${{ ((subscription.amount * subscription.quantity) / 100).toFixed(2) }} /
+            {{ subscription.interval }}
           </span>
         </div>
         <div class="text-sm text-gray-600 dark:text-gray-400">
           <p v-if="subscription.quantity > 1">
-            {{ $t('web.account.quantity') }} {{ subscription.quantity }} x ${{ (subscription.amount / 100).toFixed(2) }}
+            {{ $t('web.account.quantity') }} {{ subscription.quantity }} x ${{
+              (subscription.amount / 100).toFixed(2)
+            }}
           </p>
-          <p>{{ $t('web.account.next_billing_date') }} {{ formatDate(subscription.currentPeriodEnd) }}</p>
+          <p
+            >{{ $t('web.account.next_billing_date') }}
+            {{ formatDate(subscription.currentPeriodEnd) }}</p
+          >
         </div>
       </div>
     </section>

@@ -340,11 +340,9 @@ describe('metadataStore', () => {
         };
 
         // Simulate slow response with delay
-        axiosMock?.onGet(`/api/v2/receipt/${testKey}`).reply(() => {
-          return new Promise((resolve) => {
+        axiosMock?.onGet(`/api/v2/receipt/${testKey}`).reply(() => new Promise((resolve) => {
             setTimeout(() => resolve([200, mockResponse]), 100);
-          });
-        });
+          }));
 
         // Trigger multiple simultaneous requests
         const fetchPromises = [store.fetch(testKey), store.fetch(testKey), store.fetch(testKey)];

@@ -34,9 +34,7 @@
     record.value?.expiration_in_seconds ?? 0
   );
 
-  const isAvailable = computed(() => {
-    return !(record.value?.is_destroyed || record.value?.is_burned || record.value?.is_received);
-  });
+  const isAvailable = computed(() => !(record.value?.is_destroyed || record.value?.is_burned || record.value?.is_received));
 
   const goBack = () => {
     window.history.back();

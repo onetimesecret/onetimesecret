@@ -14,9 +14,7 @@
   /**
    * Computes background color with 15% opacity for branded icon container
    */
-  const getBackgroundColor = (color?: string): string => {
-    return color ? `${color}15` : '';
-  };
+  const getBackgroundColor = (color?: string): string => color ? `${color}15` : '';
 </script>
 
 <template>
