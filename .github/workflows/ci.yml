@@ -56,7 +56,7 @@ jobs:
       fail-fast: true
       matrix:
         ruby: ['3.4', '3.5']
-        continue-on-error: [false, false]
+        continue-on-error: [false]
 
     # Make redis available for running the tryouts
     services:
