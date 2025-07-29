@@ -5,8 +5,8 @@ module Onetime
     extend self
 
     unless defined?(SERVICE_PATHS)
-      SERVICE_PATHS = %w[/etc/onetime ./etc].freeze
-      UTILITY_PATHS = %w[~/.onetime /etc/onetime ./etc].freeze
+      SERVICE_PATHS = %w[/etc/onetime ./etc ./etc/defaults].freeze
+      UTILITY_PATHS = %w[~/.onetime /etc/onetime ./etc ./etc/defaults].freeze
       DEFAULTS = {
         site: {
           secret: nil,

@@ -60,8 +60,8 @@ paths.include?(path)
 #=> false
 
 ## Config.find_configs returns an array of paths, where it finds the example config
-paths = Onetime::Config.find_configs('config.example.yaml')
-path = File.expand_path(File.join(Onetime::HOME, 'etc', 'config.example.yaml'))
+paths = Onetime::Config.find_configs('config.defaults.yaml')
+path = File.expand_path(File.join(Onetime::HOME, 'etc', 'defaults', 'config.defaults.yaml'))
 paths.include?(path)
 #=> true
 
