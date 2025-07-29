@@ -50,7 +50,7 @@ Caddyfile
 fly.toml
 etc/config
 etc/config.yaml
-!etc/config.example.yaml
+!etc/defaults
 !etc/config.test.yaml
 !.env.empty
 !.env.example
