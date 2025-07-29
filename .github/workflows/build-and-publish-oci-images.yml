@@ -1,9 +1,9 @@
-# .github/workflows/docker-publish.yml
+# .github/workflows/build-and-publish-oci-images.yml
 
-name: Docker Build and Publish
+name: Build and Publish OCI Images
 
 #
-# Docker image tagging strategy:
+# OCI image tagging strategy:
 #
 # Release tags (v1.0.0):        {version}, latest
 # Release candidates (v1.0.0-rc1): {version}, next
@@ -31,7 +31,7 @@ permissions:
 
 jobs:
   build-and-publish-main:
-    uses: ./.github/workflows/.docker-build-publish-reusable.yml
+    uses: ./.github/workflows/.build-and-publish-oci-images-reusable.yml
     with:
       image-suffix: ''
       dockerfile: 'Dockerfile'
