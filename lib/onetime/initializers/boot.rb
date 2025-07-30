@@ -6,6 +6,7 @@ module Onetime
   module Initializers
     @sysinfo = nil
     @conf = nil
+    @ready = nil
 
     attr_reader :conf, :instance, :sysinfo
 
@@ -75,6 +76,8 @@ module Onetime
 
       print_log_banner unless mode?(:test)
 
+      @ready = true
+
       # Let's be clear about returning the prepared configruation. Previously
       # we returned @conf here which was confusing because already made it
       # available above. Now it is clear that the only way the rest of the
@@ -120,6 +123,10 @@ module Onetime
     def replace_config!(other)
       # TODO: Validate the new configuration data before replacing it
       self.conf = other
+    end
+
+    def ready?
+      @ready == true
     end
 
     private
