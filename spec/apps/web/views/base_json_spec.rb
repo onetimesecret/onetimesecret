@@ -67,7 +67,6 @@ RSpec.xdescribe Core::Views::BaseView, "JSON Output" do
               current_jurisdiction: authenticated_json["regions"]["current_jurisdiction"],
               jurisdictions: authenticated_json["regions"]["jurisdictions"],
             },
-            plans: { enabled: authenticated_json["billing_enabled"] },
             secret_options: authenticated_json["secret_options"],
           },
           development: {
@@ -99,25 +98,6 @@ RSpec.xdescribe Core::Views::BaseView, "JSON Output" do
         allow(OT).to receive(:global_banner).and_return(nil)
 
         allow(OT).to receive(:VERSION).and_return("0.20.4 ()")
-
-        # For plans
-        mocked_plans = {}
-        authenticated_json["available_plans"].each do |planid, plan_data|
-          plan_mock = double("Plan-#{planid}")
-          allow(plan_mock).to receive(:safe_dump).and_return(plan_data)
-          allow(plan_mock).to receive(:paid?).and_return(plan_data["price"] && plan_data["price"] > 0)
-          allow(plan_mock).to receive(:planid).and_return(planid)
-          mocked_plans[planid] = plan_mock
-        end
-
-        # Set up the plans
-        allow(Onetime::Plan).to receive(:plans).and_return(mocked_plans)
-
-        # Individual plan mock for the current user's plan
-        plan_mock = double('Plan')
-        allow(plan_mock).to receive(:safe_dump).and_return(authenticated_json["plan"])
-        allow(plan_mock).to receive(:paid?).and_return(authenticated_json["is_paid"])
-        allow(Onetime::Plan).to receive(:plan).and_return(plan_mock)
 
         # For domain strategy
         allow(Onetime::DomainStrategy).to receive(:canonical_domain).and_return(not_authenticated_json["canonical_domain"])
@@ -164,7 +144,7 @@ RSpec.xdescribe Core::Views::BaseView, "JSON Output" do
           custid: authenticated_json["custid"],
           email: authenticated_json["email"],
           anonymous?: false,
-          planid: authenticated_json["plan"]["planid"],
+          planid: authenticated_json["cust"]["planid"],
           created: authenticated_json["cust"]["created"].to_i,
           safe_dump: authenticated_json["cust"],
           custom_domains_list: custom_domains,
@@ -201,7 +181,6 @@ RSpec.xdescribe Core::Views::BaseView, "JSON Output" do
                 current_jurisdiction: not_authenticated_json["regions"]["current_jurisdiction"],
                 jurisdictions: not_authenticated_json["regions"]["jurisdictions"],
               },
-              plans: { enabled: not_authenticated_json["billing_enabled"] },
               secret_options: not_authenticated_json["secret_options"],
             },
             development: {
@@ -233,29 +212,6 @@ RSpec.xdescribe Core::Views::BaseView, "JSON Output" do
         allow(OT).to receive(:global_banner).and_return(nil)
 
         allow(OT).to receive(:VERSION).and_return("0.20.4 (plop)")
-
-        # For plans
-        plan_mock = double('Plan')
-        allow(plan_mock).to receive(:safe_dump).and_return(authenticated_json["plan"])
-        allow(plan_mock).to receive(:paid?).and_return(authenticated_json["is_paid"])
-
-        mocked_plans = {}
-        not_authenticated_json["available_plans"].each do |planid, plan_data|
-          plan_mock = double("Plan-#{planid}")
-          allow(plan_mock).to receive(:safe_dump).and_return(plan_data)
-          allow(plan_mock).to receive(:paid?).and_return(plan_data["price"] && plan_data["price"] > 0)
-          allow(plan_mock).to receive(:planid).and_return(planid)
-          mocked_plans[planid] = plan_mock
-        end
-
-        # Set up the plans
-        allow(Onetime::Plan).to receive(:plans).and_return(mocked_plans)
-
-        # Individual plan mock for the current user's plan
-        plan_mock = double('Plan')
-        allow(plan_mock).to receive(:safe_dump).and_return(not_authenticated_json["plan"])
-        allow(plan_mock).to receive(:paid?).and_return(not_authenticated_json["is_paid"])
-        allow(Onetime::Plan).to receive(:plan).and_return(plan_mock)
 
         # For domain strategy
         allow(Onetime::DomainStrategy).to receive(:canonical_domain).and_return(authenticated_json["canonical_domain"])

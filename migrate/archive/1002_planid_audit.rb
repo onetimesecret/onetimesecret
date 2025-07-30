@@ -8,7 +8,7 @@ require 'onetime'
 require 'onetime/migration'
 
 # Set of valid plan IDs
-VALID_PLANS = ['anonymous', 'basic', 'identity'].freeze
+VALID_PLANS = ['anonymous', 'basic', 'identity'].freeze # ignore
 
 module Onetime
   class Migration < BaseMigration

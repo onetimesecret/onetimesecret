@@ -48,7 +48,7 @@ logic.raise_concerns
 logic.process
 [
   logic.cust.class,
-  logic.plan.planid,
+  logic.planid,
   logic.autoverify,
   logic.customer_role
 ]

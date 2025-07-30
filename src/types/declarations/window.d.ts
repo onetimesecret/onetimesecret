@@ -2,12 +2,10 @@
 
 import {
   AuthenticationSettings,
-  AvailablePlans,
   BrandSettings,
   Customer,
   ImageProps,
   Locale,
-  Plan,
   RegionsConfig,
   SecretOptions,
 } from '@/schemas/models';
@@ -114,12 +112,6 @@ export interface OnetimeWindow {
   stripe_subscriptions?: Stripe.Subscriptions[];
   authentication: AuthenticationSettings; // TODO: May need to offer default values
   secret_options: SecretOptions;
-
-  available_plans: AvailablePlans;
-
-  plan: Plan;
-  is_paid: boolean;
-  default_planid: string;
 
   regions: RegionsConfig;
 

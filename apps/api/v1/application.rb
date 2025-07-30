@@ -24,8 +24,6 @@ module V1
       require_relative 'logic'
       require_relative 'models'
 
-      Onetime::Plan.load_billing!
-
       # Log warmup completion
       Onetime.li "V1 warmup completed"
     end

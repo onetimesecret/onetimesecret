@@ -5,7 +5,6 @@ import { withFeatureFlags } from '@/schemas/utils/feature_flags';
 import { z } from 'zod';
 
 import { createModelSchema } from './base';
-import { planSchema } from './plan';
 
 /**
  * @fileoverview Customer schema with simplified type boundaries
@@ -56,9 +55,6 @@ export const customerSchema = withFeatureFlags(
     // Optional fields
     locale: z.string().nullable(),
     planid: z.string().nullable().optional(),
-
-    // Plan data
-    plan: planSchema,
 
     // Stripe-related fields
     stripe_customer_id: z.string().nullable(),

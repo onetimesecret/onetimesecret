@@ -9,11 +9,6 @@ module Core
 
   module ControllerHelpers
 
-    def plan
-      @plan = Onetime::Plan.plan(cust.planid) unless cust.nil?
-      @plan ||= Onetime::Plan.plan('anonymous')
-      @plan
-    end
 
     # `carefully` is a wrapper around the main web application logic. We
     # handle errors, redirects, and other exceptions here to ensure that

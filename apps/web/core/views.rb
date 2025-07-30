@@ -22,7 +22,6 @@ module Core
         DomainSerializer,
         I18nSerializer,
         MessagesSerializer,
-        BillingSerializer,
         SystemSerializer,
       )
 
@@ -39,7 +38,6 @@ module Core
         DomainSerializer,
         I18nSerializer,
         MessagesSerializer,
-        BillingSerializer,
         SystemSerializer,
       )
 

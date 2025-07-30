@@ -20,7 +20,6 @@ module V2::Logic
       end
 
       def process
-
         if billing_enabled
           @stripe_customer = cust.get_stripe_customer
           @stripe_subscription = cust.get_stripe_subscription

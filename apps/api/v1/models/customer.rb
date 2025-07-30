@@ -68,7 +68,7 @@ module V1
       :stripe_subscription_id,
       :stripe_checkout_email,
 
-      {:plan => ->(cust) { cust.load_plan } }, # safe_dump will be called automatically
+      :planid,
 
       # NOTE: The secrets_created incrementer is null until the first secret
       # is created. See ConcealSecret for where the incrementer is called.
@@ -119,10 +119,6 @@ module V1
     def regenerate_apitoken
       self.apitoken! [OT.instance, OT.now.to_f, :apitoken, custid].gibbler
       self.apitoken # the fast writer bang methods don't return the value
-    end
-
-    def load_plan
-      Onetime::Plan.plan(planid) || {:planid => planid, :source => 'parts_unknown'}
     end
 
     def get_stripe_customer

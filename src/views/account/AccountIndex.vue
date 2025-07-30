@@ -14,7 +14,6 @@ import { storeToRefs } from 'pinia';
 // rather than re-implement them here in Vue. We'll replace all of them
 // eventually, but for now, this is a good way to keep momentum going.
 const windowProps = WindowService.getMultiple({
-  plan: null,
   cust: null,
   customer_since: null,
 });
@@ -35,7 +34,7 @@ onMounted(accountStore.fetch);
       {{ $t('your-account') }}
     </h1>
     <p class="mb-4 text-lg dark:text-gray-300">
-      {{ $t('account-type-windowprops-plan-options-name', [windowProps.plan?.options?.name]) }}
+     <!-- was: Translated Plan Name -->
     </p>
 
     <!-- API KEY -->

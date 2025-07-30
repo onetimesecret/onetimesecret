@@ -7,10 +7,10 @@ import EmptyState from '@/components/EmptyState.vue';
 import { useDomainsManager } from '@/composables/useDomainsManager';
 import { WindowService } from '@/services/window.service';
 import { computed, onMounted, ref } from 'vue';
-import type { Plan, CustomDomain } from '@/schemas/models';
+import type { Customer, CustomDomain } from '@/schemas/models';
 import TableSkeleton from '@/components/closet/TableSkeleton.vue'
 
-const plan = ref<Plan>(WindowService.get('plan'));
+const cust = ref<Customer | null>(WindowService.get('cust'));
 
 const {
   isLoading,
@@ -20,7 +20,7 @@ const {
   refreshRecords,
 } = useDomainsManager();
 
-const planAllowsCustomDomains = computed(() => plan.value.options?.custom_domains === true);
+const showUpgradeCta = computed(() => cust?.value?.planid === 'anonymous' || cust?.value?.planid === 'basic');
 
 const domains = computed(() => {
   if (records.value) {
@@ -44,7 +44,7 @@ onMounted(() => {
     </div>
 
     <div
-      v-else-if="!planAllowsCustomDomains"
+      v-else-if="showUpgradeCta"
       class="w-full">
       <CustomDomainsCTA />
     </div>

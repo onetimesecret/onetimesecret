@@ -71,7 +71,7 @@ end
 
 ## Plan defaults to anonymous for nil customer
 @obj_no_cust = TestLogic.new(@sess, nil)
-@obj_no_cust.send(:plan).planid
+@obj_no_cust.planid
 #=> 'anonymous'
 
 
