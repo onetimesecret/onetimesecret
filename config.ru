@@ -48,6 +48,7 @@ require 'rack/content_length'
 require 'rack/contrib'
 require 'rack/protection'
 require 'rack/utf8_sanitizer'
+require 'rack/attack'
 
 # Load application-specific components
 require_relative 'apps/app_registry'    # Application registry for mounting apps
@@ -76,6 +77,7 @@ if !Onetime.conf.dig(:logging, :http_requests).eql?(false)
   use Rack::CommonLogger  # Log HTTP requests in standard format
 end
 use Rack::ContentLength  # Automatically set Content-Length header
+use Rack::Attack
 
 # Error Monitoring Integration
 # Add Sentry exception tracking when available
