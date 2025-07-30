@@ -206,6 +206,9 @@ RSpec.describe "Onetime boot configuration process" do
           host: 'example.com',
           secret: 'test_secret',
         },
+        billing: {
+          enabled: false,
+        },
         redis: { uri: 'redis://localhost:6379/0' },
       }
     end
