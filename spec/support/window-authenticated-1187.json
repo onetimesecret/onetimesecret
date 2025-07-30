@@ -68,7 +68,6 @@
     "ttl_options": [60, 300, 1800, 3600, 14400, 43200, 86400, 259200, 604800, 1209600, 2592000]
   },
   "site_host": "dev.onetime.dev",
-  "support_host": "https://docs.onetime.dev",
   "ui": { "enabled": false },
   "canonical_domain": "dev.onetime.dev",
   "display_domain": "dev.onetime.dev",

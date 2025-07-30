@@ -8,7 +8,6 @@ import JurisdictionInfo from './JurisdictionInfo.vue';
 import JurisdictionList from './JurisdictionList.vue';
 
 const cust = WindowService.get('cust');
-const supportHost = WindowService.get('support_host');
 
 const jurisdictionStore = useJurisdictionStore();
 const currentJurisdiction = computed(() => jurisdictionStore.getCurrentJurisdiction);
@@ -73,7 +72,6 @@ const customerId = computed(() => cust?.custid);
           <JurisdictionInfo
             v-if="currentJurisdiction"
             :jurisdiction="currentJurisdiction"
-            :support-host="supportHost"
           />
         </div>
       </div>

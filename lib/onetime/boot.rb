@@ -1,16 +1,13 @@
 # lib/onetime/boot.rb
 
-require 'sysinfo'
-
 require_relative 'initializers'
 
 module Onetime
   module Initializers
-    @sysinfo = nil
     @conf = nil
     @ready = nil
 
-    attr_reader :conf, :instance, :sysinfo
+    attr_reader :conf, :instance
 
     # Boot reads and interprets the configuration and applies it to the
     # relevant features and services. Must be called after applications
@@ -38,12 +35,10 @@ module Onetime
       # doesn't get enabled even after loading config.
       OT.d9s_enabled = false
 
-      @sysinfo ||= SysInfo.new.freeze
-
       # Sets a unique SHA hash every time this process starts. In a multi-
       # threaded environment (e.g. with Puma), this could different for
       # each thread.
-      @instance ||= [OT.sysinfo.hostname, OT.sysinfo.user, Process.pid, OT::VERSION.to_s, OT.now.to_i].gibbler.freeze
+      @instance ||= [Process.pid, OT::VERSION.to_s, OT.now.to_i].gibbler.freeze
 
       # Normalize environment variables prior to loading the YAML config
       OT::Config.before_load

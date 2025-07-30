@@ -68,8 +68,6 @@
     # application itself is responsible for handling multiple domains.
     :cluster:
       :type: <%= ENV['CLUSTER_TYPE'] || nil %>
-  :support:
-    :host: <%= ENV['SUPPORT_HOST'] || nil %>
 :redis:
   :uri: <%= ENV['REDIS_URL'] || 'redis://CHANGEME@127.0.0.1:2121/0' %>
   :dbs:

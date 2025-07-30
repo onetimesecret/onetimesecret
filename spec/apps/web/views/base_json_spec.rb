@@ -69,7 +69,6 @@ RSpec.xdescribe Core::Views::BaseView, "JSON Output" do
             },
             plans: { enabled: authenticated_json["billing_enabled"] },
             secret_options: authenticated_json["secret_options"],
-            support: { host: authenticated_json["support_host"] },
           },
           development: {
             enabled: true,
@@ -98,11 +97,6 @@ RSpec.xdescribe Core::Views::BaseView, "JSON Output" do
 
         # Mock version info - Use double instead of OpenStruct
         allow(OT).to receive(:global_banner).and_return(nil)
-
-        sysinfo_mock = double('SysInfo')
-        allow(sysinfo_mock).to receive(:vm).and_return('ruby')
-        allow(sysinfo_mock).to receive(:ruby).and_return(['341'])
-        allow(OT).to receive(:sysinfo).and_return(sysinfo_mock)
 
         allow(OT).to receive(:VERSION).and_return("0.20.4 ()")
 
@@ -209,7 +203,6 @@ RSpec.xdescribe Core::Views::BaseView, "JSON Output" do
               },
               plans: { enabled: not_authenticated_json["billing_enabled"] },
               secret_options: not_authenticated_json["secret_options"],
-              support: { host: not_authenticated_json["support_host"] },
             },
             development: {
               enabled: true,
@@ -238,11 +231,6 @@ RSpec.xdescribe Core::Views::BaseView, "JSON Output" do
 
         # Mock version info - Use double instead of OpenStruct
         allow(OT).to receive(:global_banner).and_return(nil)
-
-        sysinfo_mock = double('SysInfo')
-        allow(sysinfo_mock).to receive(:vm).and_return('ruby')
-        allow(sysinfo_mock).to receive(:ruby).and_return(['341'])
-        allow(OT).to receive(:sysinfo).and_return(sysinfo_mock)
 
         allow(OT).to receive(:VERSION).and_return("0.20.4 (plop)")
 

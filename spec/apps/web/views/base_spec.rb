@@ -12,8 +12,7 @@ RSpec.describe Core::Views::BaseView do
   include_context "view_test_context"
 
   before(:all) do
-    OT::Plan.load_billing!
-    @sysinfo ||= SysInfo.new.freeze
+    OT::Plan.load_plans!
 
     described_class.use_serializers(
       Core::Views::ConfigSerializer,

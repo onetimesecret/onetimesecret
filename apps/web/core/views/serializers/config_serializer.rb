@@ -79,7 +79,6 @@ module Core
             regions_enabled: nil,
             secret_options: nil,
             site_host: nil,
-            support_host: nil,
             ui: nil,
           }
         end
