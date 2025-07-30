@@ -2,9 +2,6 @@
 
 <script setup lang="ts">
   import { Metadata, MetadataDetails } from '@/schemas/models';
-  import { WindowService } from '@/services/window.service';
-
-  const windowProps = WindowService.getMultiple(['support_host']);
 
   interface Props {
     record: Metadata;
@@ -119,17 +116,16 @@
     <div class="mt-6 text-xs">
       <p
         >{{ $t('web.private.have-more-questions-visit-our') }}
-        <a
-          :href="`${windowProps.support_host}/docs`"
+        <RouterLink
+          to="/docs"
           class="text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 hover:underline"
-          >documentation</a
+          >documentation</RouterLink
         >
         or
-        <a
-          href="/feedback"
+        <RouterLink
+          to="/feedback"
           class="text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 hover:underline"
-          >{{ $t('web.private.send-feedback') }}</a
-        >.
+          >{{ $t('web.private.send-feedback') }}</RouterLink>.
       </p>
     </div>
   </div>
