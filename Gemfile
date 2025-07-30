@@ -24,7 +24,6 @@ gem 'rack', '>= 2.2.12', '< 3.0'
 gem 'rack-contrib', '~> 2.5'
 gem 'rack-protection', '~> 3.2'
 gem 'rack-utf8_sanitizer', '~> 1.10.1'
-gem 'rack-attack'
 
 gem 'dotenv'
 gem 'multi_json'

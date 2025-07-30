@@ -71,7 +71,6 @@ module Onetime
       if connect_to_db
         connect_databases
         check_global_banner
-        setup_rack_attack
       end
 
       print_log_banner unless mode?(:test)
