@@ -41,11 +41,6 @@ RSpec.describe Onetime::Config do
             default_validation_type: 'mx'
           }
         },
-        limits: {
-          create_secret: 250,
-          send_feedback: 10,
-          get_page: 100
-        },
         diagnostics: {
           enabled: true,
           sentry: {
@@ -77,9 +72,6 @@ RSpec.describe Onetime::Config do
             default_ttl: 7200
           }
         },
-        limits: {
-          create_secret: 500
-        }
       }
     end
 
@@ -101,9 +93,6 @@ RSpec.describe Onetime::Config do
               default_ttl: 7200
             )
           ),
-          limits: hash_including(
-            create_secret: 500
-          )
         ))
 
         described_class.apply_config(override_config)
@@ -113,7 +102,6 @@ RSpec.describe Onetime::Config do
         expect(OT).to receive(:replace_config!) do |merged_config|
           expect(merged_config[:site][:interface][:api][:enabled]).to eq(true)
           expect(merged_config[:mail][:truemail][:verifier_email]).to eq('verifier@example.com')
-          expect(merged_config[:limits][:send_feedback]).to eq(10)
         end
 
         described_class.apply_config(override_config)
@@ -212,10 +200,6 @@ RSpec.describe Onetime::Config do
               default_validation_type: 'regex'
             }
           },
-          limits: {
-            create_secret: 1000,
-            send_feedback: 50
-          },
           diagnostics: {
             enabled: false
           }
@@ -227,8 +211,6 @@ RSpec.describe Onetime::Config do
           expect(merged_config[:site][:secret_options][:default_ttl]).to eq(7200)
           expect(merged_config[:mail][:truemail][:verifier_email]).to eq('custom@example.com')
           expect(merged_config[:mail][:truemail][:default_validation_type]).to eq('regex')
-          expect(merged_config[:limits][:create_secret]).to eq(1000)
-          expect(merged_config[:limits][:send_feedback]).to eq(50)
           expect(merged_config[:diagnostics][:enabled]).to eq(false)
         end
 

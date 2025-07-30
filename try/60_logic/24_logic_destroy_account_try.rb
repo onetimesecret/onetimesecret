@@ -23,9 +23,7 @@ OT.boot! :test, false
 @email_address = 'changeme@example.com'
 @now = DateTime.now
 @sess = V2::Session.new '255.255.255.255', 'anon'
-@sess.event_clear! :destroy_account
 @cust = V2::Customer.new @email_address
-@sess.event_clear! :send_feedback
 @params = {
   confirmation: 'pa55w0rd'
 }
@@ -154,6 +152,3 @@ end
 
 first_token.eql?(post_destroy_apitoken)
 #=> false
-
-
-@sess.event_clear! :destroy_account

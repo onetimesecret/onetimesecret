@@ -209,8 +209,6 @@ RSpec.describe "Onetime::Config during Onetime.boot!" do
                 :dsn:
               :frontend:
                 :dsn:
-          :limits:
-            :create_secret: 1
           :experimental:
             :freeze_app: false
             csp: {enabled: false}
