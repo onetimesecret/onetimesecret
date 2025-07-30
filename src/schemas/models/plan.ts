@@ -12,7 +12,6 @@ export const planOptionsSchema = z.object({
   name: z.string(),
   email: transforms.fromString.boolean.optional(),
   custom_domains: transforms.fromString.boolean.optional(),
-  dark_mode: transforms.fromString.boolean.optional(),
   cname: transforms.fromString.boolean.optional(),
   private: transforms.fromString.boolean.optional(),
 });
@@ -25,8 +24,6 @@ export type PlanOptions = z.infer<typeof planOptionsSchema>;
 export const planSchema = z.object({
   identifier: z.string(),
   planid: z.string(),
-  price: transforms.fromString.number,
-  discount: transforms.fromString.number,
   options: planOptionsSchema,
 });
 
@@ -38,8 +35,6 @@ export type Plan = z.infer<typeof planSchema>;
 export const billingSchema = z.object({
   identifier: z.string(),
   billingid: z.string(),
-  price: transforms.fromString.number,
-  discount: transforms.fromString.number,
   options: planOptionsSchema,
 });
 

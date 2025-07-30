@@ -3,7 +3,7 @@
 module Onetime
   module Initializers
     def load_billing
-      OT::Plan.load_billing
+      OT::Plan.load_billing!
     end
   end
 end

@@ -58,12 +58,41 @@ module Onetime
       end
 
       def load_billing
-        add_plan :anonymous, 0, 0, ttl: 7.days, size: 100_000, api: false, name: 'Anonymous'
-        add_plan :basic, 0, 0, ttl: 14.days, size: 1_000_000, api: true, name: 'Basic Plan', email: true, custom_domains: false, dark_mode: true
-        add_plan :identity, 35, 0, ttl: 30.days, size: 10_000_000, api: true, name: 'Identity', email: true, custom_domains: true, dark_mode: true
+
+        plans_data = OT.conf&.dig(:billing, :plans) || {}
+
+        plans_data.each do |planid, plan_data|
+          add_plan planid, plan_data[:options]
+        end
       end
     end
 
     extend ClassMethods
   end
 end
+
+__END__
+
+:plans:
+  :anonymous:
+    :options:
+      :ttl: 7.days
+      :size: 100_000
+      :api: false
+      :name: 'Anonymous'
+  :basic:
+    :options:
+      :ttl: 14.days
+      :size: 1_000_000
+      :api: true
+      :name: 'Basic Plan'
+      :email: true
+      :custom_domains: false
+  :identity:
+    :options:
+      :ttl: 30.days
+      :size: 10_000_000
+      :api: true
+      :name: 'Identity'
+      :email: true
+      :custom_domains: true
