@@ -25,7 +25,7 @@ module V2::Logic
       end
 
       def raise_concerns
-        limit_action :create_account
+
         raise OT::FormError, "You're already signed up" if sess.authenticated?
         raise_form_error "Please try another email address" if V2::Customer.exists?(custid)
         raise_form_error "Is that a valid email address?" unless valid_email?(custid)

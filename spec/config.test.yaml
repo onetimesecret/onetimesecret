@@ -223,43 +223,6 @@
       :trackComponents: true
 :logging:
   :http_requests: true
-:limits:
-  :create_secret: 250
-  :create_account: 100
-  :update_account: 10
-  :email_recipient: 50
-  :send_feedback: 10
-  :authenticate_session: 5
-  :get_page: 1000
-  :dashboard: 1000
-  :failed_passphrase: 5
-  :show_metadata: 1000
-  :show_secret: 1000
-  :burn_secret: 1000
-  :destroy_account: 5
-  :forgot_password_request: 2
-  :forgot_password_reset: 3
-  :generate_apitoken: 3
-  :add_domain: 100
-  :report_exception: 5
-  :attempt_secret_access: 10
-  :remove_domain: 25
-  :list_domains: 25
-  :get_domain: 25
-  :verify_domain: 25
-  :check_status: 25
-  :update_branding: 25
-  :destroy_session: 5
-  :get_domain_brand: 1000
-  :get_domain_logo: 1000
-  :get_image: 1000
-  :remove_domain_logo: 20
-  :show_account: 100
-  :stripe_webhook: 25
-  :update_domain_brand: 50
-  :view_colonel: 100
-  :external_redirect: 100
-  :update_colonel_settings: 50
 :development:
   :enabled: <%= ['development', 'dev'].include?(ENV['RACK_ENV']) %>
   :debug: <%= ['true', '1', 'yes'].include?(ENV['ONETIME_DEBUG']) %>

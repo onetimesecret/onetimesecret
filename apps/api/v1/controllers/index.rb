@@ -22,14 +22,12 @@ module V1
 
       def status
         authorized(true) do
-          sess.event_incr! :check_status
           json :status => :nominal, :locale => locale
         end
       end
 
       def authcheck
         authorized(false) do
-          sess.event_incr! :check_status
           json :status => :nominal, :locale => locale
         end
       end

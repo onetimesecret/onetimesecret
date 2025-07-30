@@ -10,7 +10,7 @@ module V2::Logic
       end
 
       def raise_concerns
-        limit_action :list_domains
+
       end
 
       def process

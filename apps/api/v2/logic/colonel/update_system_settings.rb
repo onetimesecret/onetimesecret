@@ -6,10 +6,10 @@ module V2
   module Logic
     module Colonel
       class UpdateSystemSettings < V2::Logic::Base
-        @safe_fields = [:interface, :secret_options, :mail, :limits,
+        @safe_fields = [:interface, :secret_options, :mail,
                         :diagnostics]
 
-        attr_reader :config, :interface, :secret_options, :mail, :limits,
+        attr_reader :config, :interface, :secret_options, :mail,
                     :diagnostics, :greenlighted, :record
 
         def process_params
@@ -21,7 +21,6 @@ module V2
           @interface = config[:interface]
           @secret_options = config[:secret_options]
           @mail = config[:mail]
-          @limits = config[:limits]
           @diagnostics = config[:diagnostics]
 
           # Log which configuration sections were extracted
@@ -29,7 +28,6 @@ module V2
             interface: interface,
             secret_options: secret_options,
             mail: mail,
-            limits: limits,
             diagnostics: diagnostics,
           }
 
@@ -38,7 +36,7 @@ module V2
         end
 
         def raise_concerns
-          limit_action :update_colonel_settings
+
           raise_form_error "`config` was empty" if config.empty?
 
           # Normalize keys to symbols for comparison
@@ -61,7 +59,6 @@ module V2
           OT.li "[UpdateSystemSettings#process] Interface: #{interface.inspect}" if interface
           OT.li "[UpdateSystemSettings#process] Secret Options: #{secret_options.inspect}" if secret_options
           OT.li "[UpdateSystemSettings#process] Mail: #{mail.inspect}" if mail
-          OT.li "[UpdateSystemSettings#process] Limits: #{limits.inspect}" if limits
           OT.li "[UpdateSystemSettings#process] Diagnostics: #{diagnostics.inspect}" if diagnostics
 
           begin
@@ -98,7 +95,6 @@ module V2
           fields[:interface] = interface if interface && !interface.empty?
           fields[:secret_options] = secret_options if secret_options && !secret_options.empty?
           fields[:mail] = mail if mail && !mail.empty?
-          fields[:limits] = limits if limits && !limits.empty?
           fields[:diagnostics] = diagnostics if diagnostics && !diagnostics.empty?
 
           # Add metadata

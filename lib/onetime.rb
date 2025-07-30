@@ -41,7 +41,7 @@ module Onetime
   end
 
   require_relative 'onetime/classmethods'
-  require_relative 'onetime/initializers'
+  require_relative 'onetime/boot'
   extend ClassMethods
   extend Initializers
 end

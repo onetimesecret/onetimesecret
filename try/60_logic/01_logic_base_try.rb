@@ -74,14 +74,6 @@ end
 @obj_no_cust.send(:plan).planid
 #=> 'anonymous'
 
-## Action limiting works for non-paid plans
-@sess.event_get(:test_action).to_i
-#=> 0
-
-## Action limiting works for non-paid plans
-@obj.send(:limit_action, :test_action)
-@sess.event_get(:test_action).to_i
-#=> 1
 
 ## Form error includes form fields
 begin
@@ -99,4 +91,3 @@ end
 #=> [false, false]
 
 # Cleanup
-@sess.event_clear! :test_action

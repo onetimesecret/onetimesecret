@@ -1,11 +1,14 @@
-# lib/onetime/initializers/boot.rb
+# lib/onetime/boot.rb
 
 require 'sysinfo'
+
+require_relative 'initializers'
 
 module Onetime
   module Initializers
     @sysinfo = nil
     @conf = nil
+    @ready = nil
 
     attr_reader :conf, :instance, :sysinfo
 
@@ -55,11 +58,6 @@ module Onetime
       # of the initializers (via OT.conf).
       @conf = OT::Config.after_load(raw_conf)
 
-      # OT.conf is deeply frozen at this point which means that the
-      # initializers are meant to read from it, set other values, but
-      # not modify it.
-      # TODO: Consider leaving unfrozen until the end of boot!
-
       # NOTE: We could benefit from tsort to make sure these
       # initializers are loaded in the correct order.
       load_locales
@@ -72,12 +70,15 @@ module Onetime
       prepare_emailers
       load_fortunes
       load_plans
+
       if connect_to_db
         connect_databases
         check_global_banner
       end
 
       print_log_banner unless mode?(:test)
+
+      @ready = true
 
       # Let's be clear about returning the prepared configruation. Previously
       # we returned @conf here which was confusing because already made it
@@ -124,6 +125,10 @@ module Onetime
     def replace_config!(other)
       # TODO: Validate the new configuration data before replacing it
       self.conf = other
+    end
+
+    def ready?
+      @ready == true
     end
 
     private

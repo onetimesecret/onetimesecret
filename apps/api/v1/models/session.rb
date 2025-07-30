@@ -4,7 +4,6 @@ require_relative 'mixins/session_messages'
 
 module V1
   class Session < Familia::Horreum
-    include V1::Mixins::RateLimited
 
     feature :safe_dump
     feature :expiration
@@ -77,20 +76,6 @@ module V1
       "#{sessid}/#{external_identifier}"
     end
 
-    # The external identifier is used by the rate limiter to estimate a unique
-    # client. We can't use the session ID b/c the request agent can choose to
-    # not send cookies, or the user can clear their cookies (in both cases the
-    # session ID would change which would circumvent the rate limiter). The
-    # external identifier is a hash of the IP address and the customer ID
-    # which means that anonymous users from the same IP address are treated
-    # as the same client (as far as the limiter is concerned). Not ideal.
-    #
-    # To put it another way, the risk of colliding external identifiers is
-    # acceptable for the rate limiter, but not for the session data. Acceptable
-    # b/c the rate limiter is a temporary measure to prevent abuse, and the
-    # worse case scenario is that a user is rate limited when they shouldn't be.
-    # The session data is permanent and must be kept separate to avoid leaking
-    # data between users.
     def external_identifier
       return @external_identifier if @external_identifier
       elements = []

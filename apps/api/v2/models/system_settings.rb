@@ -14,7 +14,6 @@ module V2
         interface: [:site, :interface],
         secret_options: [:site, :secret_options],
         mail: [:mail],
-        limits: [:limits],
         diagnostics: [:diagnostics],
       }
     end
@@ -78,7 +77,6 @@ module V2
     field :interface
     field :secret_options
     field :mail
-    field :limits
     field :diagnostics
     field :custid
     field :comment
@@ -93,7 +91,6 @@ module V2
       :interface,
       :secret_options,
       :mail,
-      :limits,
       :diagnostics,
       :custid,
       :comment,

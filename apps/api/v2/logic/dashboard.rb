@@ -10,7 +10,7 @@ module V2
         def process_params
         end
         def raise_concerns
-          limit_action :dashboard
+
         end
         def process
         end
@@ -23,7 +23,7 @@ module V2
           @metadata = cust.metadata_list
         end
         def raise_concerns
-          limit_action :show_metadata
+
           raise V2::MissingSecret if metadata.nil?
         end
         def process

@@ -1,6 +1,5 @@
 # lib/onetime/initializers.rb
 
-require_relative 'initializers/boot'
 require_relative 'initializers/set_global_secret'   # TODO: Combine into
 require_relative 'initializers/set_rotated_secrets' # set_secrets
 require_relative 'initializers/load_locales'

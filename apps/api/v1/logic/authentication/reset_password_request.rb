@@ -12,7 +12,7 @@ module V1::Logic
       end
 
       def raise_concerns
-        limit_action :forgot_password_request # limit requests
+
 
         raise_form_error "Not a valid email address" unless valid_email?(@custid)
         raise_form_error "No account found" unless V1::Customer.exists?(@custid)

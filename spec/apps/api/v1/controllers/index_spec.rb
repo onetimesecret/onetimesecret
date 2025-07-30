@@ -18,7 +18,6 @@ RSpec.describe V1::Controllers::Index, type: :request do
   let(:session) do
     instance_double(V1::Session,
       sessid: session_id,
-      event_incr!: true,
       authenticated?: true,
       anonymous?: false,
       ipaddress: ip_address,
@@ -155,10 +154,7 @@ RSpec.describe V1::Controllers::Index, type: :request do
       app.status
     end
 
-    it 'increments status check counter' do
-      expect(session).to receive(:event_incr!).with(:check_status)
-      app.status
-    end
+
   end
 
   describe '#authcheck' do

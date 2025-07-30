@@ -55,21 +55,6 @@ module Onetime
     end
   end
 
-  class LimitExceeded < RuntimeError
-    attr_accessor :event, :message, :cust
-    attr_reader :identifier, :event, :count
-
-    def initialize(identifier, event, count)
-      @identifier = identifier
-      @event = event
-      @count = count
-    end
-
-    def message
-      "[limit-exceeded] #{identifier} for #{event} (#{count})"
-    end
-  end
-
   class Unauthorized < RuntimeError
   end
 

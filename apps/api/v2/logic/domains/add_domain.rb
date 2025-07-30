@@ -22,7 +22,7 @@ module V2::Logic
         raise_form_error "Please enter a domain" if @domain_input.empty?
         raise_form_error "Not a valid public domain" unless V2::CustomDomain.valid?(@domain_input)
 
-        limit_action :add_domain
+
         # Only store a valid, parsed input value to @domain
         @parsed_domain = V2::CustomDomain.parse(@domain_input, @cust.custid)
         @display_domain = @parsed_domain.display_domain

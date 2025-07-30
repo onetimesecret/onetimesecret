@@ -14,7 +14,7 @@ module V2::Logic
         raise_form_error "Please enter a domain" if @domain_input.empty?
         raise_form_error "Not a valid public domain" unless V2::CustomDomain.valid?(@domain_input)
 
-        limit_action :get_domain_brand
+
 
         @custom_domain = V2::CustomDomain.load(@domain_input, @cust.custid)
 

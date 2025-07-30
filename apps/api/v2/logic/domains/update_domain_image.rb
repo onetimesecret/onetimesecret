@@ -55,7 +55,7 @@ module V2::Logic
       # Validate the input parameters
       # Sets error messages if any parameter is invalid
       def raise_concerns
-        limit_action :update_domain_brand
+
 
         raise_form_error "Domain is required" if @domain_input.empty?
 

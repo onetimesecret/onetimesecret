@@ -17,7 +17,7 @@ module V2::Logic
       end
 
       def raise_concerns
-        limit_action :update_account
+
         field_specific_concerns
       end
 

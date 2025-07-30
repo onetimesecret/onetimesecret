@@ -36,7 +36,7 @@ module V2::Logic
       end
 
       def raise_concerns
-        limit_action :get_image
+
 
         raise_not_found "Missing domain ID" if custom_domain_id.empty?
 

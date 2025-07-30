@@ -14,7 +14,7 @@ module V2
         end
 
         def raise_concerns
-          limit_action :view_colonel
+
         end
 
         def process

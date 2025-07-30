@@ -59,7 +59,6 @@ module Onetime
     DATABASE_IDS = {
       session: 1,
       splittest: 1,
-      ratelimit: 2,
       custom_domain: 6,
       customer: 6,
       subdomain: 6,

@@ -123,45 +123,6 @@ const diagnosticsSchema = z.object({
     .optional(),
 });
 
-// Limits schema
-const limitsSchema = z.object({
-  create_secret: z.number().optional(),
-  create_account: z.number().optional(),
-  update_account: z.number().optional(),
-  email_recipient: z.number().optional(),
-  send_feedback: z.number().optional(),
-  authenticate_session: z.number().optional(),
-  get_page: z.number().optional(),
-  dashboard: z.number().optional(),
-  failed_passphrase: z.number().optional(),
-  show_metadata: z.number().optional(),
-  show_secret: z.number().optional(),
-  burn_secret: z.number().optional(),
-  destroy_account: z.number().optional(),
-  forgot_password_request: z.number().optional(),
-  forgot_password_reset: z.number().optional(),
-  generate_apitoken: z.number().optional(),
-  add_domain: z.number().optional(),
-  remove_domain: z.number().optional(),
-  list_domains: z.number().optional(),
-  get_domain: z.number().optional(),
-  verify_domain: z.number().optional(),
-  report_exception: z.number().optional(),
-  attempt_secret_access: z.number().optional(),
-  check_status: z.number().optional(),
-  update_branding: z.number().optional(),
-  destroy_session: z.number().optional(),
-  get_domain_brand: z.number().optional(),
-  get_domain_logo: z.number().optional(),
-  get_image: z.number().optional(),
-  remove_domain_logo: z.number().optional(),
-  show_account: z.number().optional(),
-  stripe_webhook: z.number().optional(),
-  update_domain_brand: z.number().optional(),
-  view_colonel: z.number().optional(),
-  external_redirect: z.number().optional(),
-  update_system_settings: z.number().optional(),
-});
 
 /**
  * SystemSettingsSchema defines the top-level structure of the settings.
@@ -173,7 +134,6 @@ export const systemSettingsSchema = z.object({
   secret_options: secretOptionsSchema.optional(),
   mail: mailSchema.optional(),
   diagnostics: diagnosticsSchema.optional(),
-  limits: limitsSchema.optional(),
   // development: developmentSchema.optional(),
   // experimental: z.record(z.any()).optional(),
   // features: z.record(z.any()).optional(),

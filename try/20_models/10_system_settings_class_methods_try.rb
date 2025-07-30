@@ -42,10 +42,6 @@ V2::SystemSettings.stack.clear
       port: 587
     }
   },
-  limits: {
-    create_secret: 250,
-    send_feedback: 10
-  },
   experimental: {
     enabled: false
   },
@@ -67,9 +63,6 @@ V2::SystemSettings.stack.clear
   mail: {
     from: 'custom@example.com'
   },
-  limits: {
-    create_secret: 500
-  },
   experimental: {
     enabled: true
   },
@@ -90,11 +83,11 @@ V2::SystemSettings.stack.clear
 
 ## Can extract settings sections from full config using FIELD_MAPPINGS
 V2::SystemSettings.extract_system_settings(@test_config)
-#=> {:interface=>{:host=>"localhost", :port=>3000, :ssl=>false}, :secret_options=>{:max_size=>1024, :default_ttl=>3600}, :mail=>{:from=>"noreply@example.com", :smtp=>{:host=>"smtp.example.com", :port=>587}}, :limits=>{:create_secret=>250, :send_feedback=>10}, :diagnostics=>{:enabled=>true, :level=>"info"}}
+#=> {:interface=>{:host=>"localhost", :port=>3000, :ssl=>false}, :secret_options=>{:max_size=>1024, :default_ttl=>3600}, :mail=>{:from=>"noreply@example.com", :smtp=>{:host=>"smtp.example.com", :port=>587}}, :diagnostics=>{:enabled=>true, :level=>"info"}}
 
 ## Can construct onetime config structure from system settings hash
 V2::SystemSettings.construct_onetime_config(@system_settings_hash)
-#=> {:site=>{:interface=>{:host=>"custom.example.com", :port=>8080, :ssl=>true}, :secret_options=>{:max_size=>2048}}, :mail=>{:from=>"custom@example.com"}, :limits=>{:create_secret=>500}, :diagnostics=>{:level=>"debug"}}
+#=> {:site=>{:interface=>{:host=>"custom.example.com", :port=>8080, :ssl=>true}, :secret_options=>{:max_size=>2048}}, :mail=>{:from=>"custom@example.com"}, :diagnostics=>{:level=>"debug"}}
 
 ## Can construct onetime config from partial system settings hash
 partial_config = { interface: { host: 'partial.example.com' }, mail: { from: 'partial@example.com' } }
@@ -210,8 +203,8 @@ result[:secret_options]
 ## Extract settings sections handles completely missing sections
 minimal_config = { other_section: { value: 'test' } }
 result = V2::SystemSettings.extract_system_settings(minimal_config)
-[result[:interface], result[:mail], result[:limits]]
-#=> [nil, nil, nil]
+[result[:interface], result[:mail]]
+#=> [nil, nil]
 
 ## Construct onetime config skips nil values appropriately
 config_with_nils = { interface: nil, mail: { from: 'test@example.com' } }
@@ -222,7 +215,7 @@ p [:plop, result]
 
 ## FIELD_MAPPINGS constant is properly defined
 V2::SystemSettings::FIELD_MAPPINGS.keys.sort
-#=> [:diagnostics, :interface, :limits, :mail, :secret_options]
+#=> [:diagnostics, :interface, :mail, :secret_options]
 
 ## FIELD_MAPPINGS has correct paths for nested site sections
 [
@@ -233,10 +226,9 @@ V2::SystemSettings::FIELD_MAPPINGS.keys.sort
 
 ## FIELD_MAPPINGS has correct paths for top-level sections
 [
-  V2::SystemSettings::FIELD_MAPPINGS[:mail],
-  V2::SystemSettings::FIELD_MAPPINGS[:limits]
+  V2::SystemSettings::FIELD_MAPPINGS[:mail]
 ]
-#=> [[:mail], [:limits]]
+#=> [[:mail]]
 
 # Cleanup
 @customer.destroy!

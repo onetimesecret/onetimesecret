@@ -15,12 +15,6 @@ module V2::Logic
       def raise_concerns
         @raised_concerns_was_called = true
 
-        # It's vitally important for the limiter to run prior to any
-        # other concerns. This prevents a malicious user from
-        # attempting to brute force the password.
-        #
-        limit_action :destroy_account
-
         if @confirmation&.empty?
           raise_form_error "Password confirmation is required."
         else

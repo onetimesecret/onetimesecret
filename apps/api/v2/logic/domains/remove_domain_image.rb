@@ -18,7 +18,7 @@ module V2::Logic
 
       def raise_concerns
         OT.ld "[#{self.class}] Raising concerns for domain_input: #{@domain_input}"
-        limit_action :remove_domain_logo
+
 
         raise_form_error "Domain is required" if @domain_input.empty?
 

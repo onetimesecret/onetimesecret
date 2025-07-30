@@ -10,7 +10,7 @@ module V2::Logic
       end
 
       def raise_concerns
-        limit_action :generate_apitoken
+
 
         if (!sess.authenticated?) || (cust.anonymous?)
           raise_form_error "Sorry, we don't support that"
