@@ -16,8 +16,9 @@ module V2
                     :has_split_tests, :redis_info
 
         def process_params
+          billing = OT.conf.fetch(:billing, {})
           site = OT.conf.fetch(:site, {})
-          @billing_enabled = site.dig(:billing, :enabled) || false
+          @billing_enabled = billing.fetch(:enabled, false)
         end
 
         def raise_concerns

@@ -12,7 +12,6 @@ module Onetime
           secret: nil,
           domains: { enabled: false },
           regions: { enabled: false },
-          plans: { enabled: false },
           secret_options: {
             default_ttl: 7.days,
             ttl_options: [
@@ -46,6 +45,9 @@ module Onetime
         internationalization: {
           enabled: false,
           default_locale: 'en',
+        },
+        billing: {
+          enabled: false,
         },
         mail: {},
         logging: {
@@ -179,7 +181,7 @@ module Onetime
       if conf.dig(:billing, :enabled).to_s == "true"
         stripe_key = conf.dig(:billing, :stripe_key)
         unless stripe_key
-          raise OT::Problem, "No `site.plans.stripe_key` found in #{path}"
+          raise OT::Problem, "No `billing.stripe_key` found in #{path}"
         end
 
         require 'stripe'
