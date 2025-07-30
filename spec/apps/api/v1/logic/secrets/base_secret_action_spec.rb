@@ -20,6 +20,12 @@ RSpec.describe V1::Logic::Secrets::BaseSecretAction do
     planid: 'anonymous')
   }
 
+  let(:session) {
+    double('Session',
+    anonymous?: false,
+    custid: 'cust123')
+  }
+
   let(:base_params) {
      {
     secret: {

@@ -1,5 +1,7 @@
 # lib/onetime/boot.rb
 
+require 'sysinfo'
+
 require_relative 'initializers'
 
 module Onetime

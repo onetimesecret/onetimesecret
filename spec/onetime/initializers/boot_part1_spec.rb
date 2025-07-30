@@ -292,12 +292,6 @@ RSpec.describe "Onetime::Config during Onetime.boot!" do
       require_relative '../../../apps/app_registry'
       require 'v2/application'
 
-      # Application Initialization
-      # -------------------------------
-      # Load all application modules from the registry
-      AppRegistry.load_applications
-
-
     it "sets Familia.uri from the configuration" do
       Onetime.boot!(:test)
       expect(Familia).to have_received(:uri=).with(loaded_config.dig(:redis, :uri))
