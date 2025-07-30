@@ -42,7 +42,6 @@ export const stateFixture: OnetimeWindow = {
     ttl_options: [60, 3600, 86400, 604800, 1209600, 2592000],
   },
   available_plans: {},
-  support_host: 'https://docs.onetime.co',
   plan: {
     identifier: 'anonymous',
     planid: 'anonymous',
