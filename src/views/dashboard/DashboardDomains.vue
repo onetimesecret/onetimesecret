@@ -20,7 +20,10 @@ const {
   refreshRecords,
 } = useDomainsManager();
 
-const showUpgradeCta = computed(() => cust?.value?.planid === 'anonymous' || cust?.value?.planid === 'basic');
+const showUpgradeCta = computed(() => {
+  const planid = cust?.value?.planid;
+  return !planid || planid === '' || planid === 'anonymous' || planid === 'basic';
+});
 
 const domains = computed(() => {
   if (records.value) {
@@ -37,7 +40,6 @@ onMounted(() => {
 <template>
   <div>
     <DashboardTabNav />
-
     <ErrorDisplay v-if="error" :error="error" />
     <div v-if="isLoading">
       <TableSkeleton/>

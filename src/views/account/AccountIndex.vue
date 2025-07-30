@@ -34,7 +34,7 @@ onMounted(accountStore.fetch);
       {{ $t('your-account') }}
     </h1>
     <p class="mb-4 text-lg dark:text-gray-300">
-     <!-- was: Translated Plan Name -->
+      {{ $t('account-type-windowprops-plan-options-name', [windowProps.cust?.planid]) }}
     </p>
 
     <!-- API KEY -->
