@@ -14,7 +14,7 @@ module Core
       # Explicitly excluding :secret and :authenticity which contain sensitive data
       @safe_site_fields = [
         :host, :ssl, :interface, :domains,
-        :secret_options, :authentication, :support, :regions
+        :secret_options, :authentication, :regions
       ]
 
       class << self

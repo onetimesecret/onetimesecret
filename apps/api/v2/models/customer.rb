@@ -423,6 +423,8 @@ module V2
         raise Onetime::Problem, "custid is required" if custid.to_s.empty?
         raise Onetime::Problem, "Customer exists" if exists?(custid)
         cust = new custid: custid, email: email || custid, role: 'customer'
+        cust.planid = 'basic'
+        OT.ld "[create] custid: #{custid}, #{cust.safe_dump}"
         cust.save
         add cust
         cust

@@ -214,7 +214,7 @@
   :port: <%= ENV['SMTP_PORT'] || 587 %>
   :user: <%= ENV['SMTP_USERNAME'] %>
   :pass: <%= ENV['SMTP_PASSWORD'] %>
-  :auth: <%= ENV['SMTP_AUTH'] || 'login' %>
+  :auth: <%= ENV['SMTP_AUTH'] || nil %>
   :tls: <%= ENV['SMTP_TLS'] %>
 :mail:
   :truemail:
