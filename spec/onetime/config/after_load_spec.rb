@@ -25,7 +25,6 @@ RSpec.describe "Onetime boot configuration process" do
     @original_mode = Onetime.mode
     @original_env = Onetime.env
     @original_emailer = Onetime.instance_variable_get(:@emailer)
-    @original_sysinfo = Onetime.instance_variable_get(:@sysinfo)
     @original_instance = Onetime.instance_variable_get(:@instance)
     @original_d9s_enabled = Onetime.d9s_enabled
 
@@ -77,7 +76,6 @@ RSpec.describe "Onetime boot configuration process" do
     Onetime.env = @original_env
     Onetime.instance_variable_set(:@conf, nil)
     Onetime.instance_variable_set(:@emailer, @original_emailer)
-    Onetime.instance_variable_set(:@sysinfo, @original_sysinfo)
     Onetime.instance_variable_set(:@instance, @original_instance)
     Onetime.d9s_enabled = @original_d9s_enabled
 
@@ -133,10 +131,7 @@ RSpec.describe "Onetime boot configuration process" do
         expect(Onetime).to have_received(:connect_databases)
       end
 
-      it 'initializes system info' do
-        Onetime.boot!(:test)
-        expect(Onetime.sysinfo).not_to be_nil
-      end
+
 
       it 'generates a unique instance identifier' do
         Onetime.boot!(:test)

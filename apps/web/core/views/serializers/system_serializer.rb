@@ -19,11 +19,7 @@ module Core
 
         output[:ot_version] = OT::VERSION.to_s
         output[:ot_version_long] = OT::VERSION.inspect
-        output[:ruby_version] = if OT.sysinfo.nil?
-          RUBY_VERSION.to_s
-        else
-           "#{OT.sysinfo.vm}-#{OT.sysinfo.ruby.join}"
-        end
+        output[:ruby_version] = RUBY_VERSION.to_s
 
         output[:shrimp] = view_vars[:shrimp]
         output[:nonce] = view_vars[:nonce]
