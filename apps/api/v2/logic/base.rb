@@ -20,7 +20,7 @@ module V2
       include V2::Logic::UriHelpers
 
       attr_reader :sess, :cust, :params, :locale, :processed_params
-      attr_reader :site, :authentication, :domains_enabled
+      attr_reader :site, :authentication, :domains_enabled, :planid
 
       attr_accessor :domain_strategy, :display_domain
 

@@ -15,7 +15,7 @@ Familia::Features::SafeDump.safe_dump_fields
 
 ## Implementing models like Customer can define safe dump fields
 Customer.safe_dump_fields
-#=> [:identifier, :custid, :email, :role, :verified, :last_login, :locale, :updated, :created, :stripe_customer_id, :stripe_subscription_id, :stripe_checkout_email, :planid :secrets_created, :secrets_burned, :secrets_shared, :emails_sent, :active]
+#=> [:identifier, :custid, :email, :role, :verified, :last_login, :locale, :updated, :created, :stripe_customer_id, :stripe_subscription_id, :stripe_checkout_email, :planid, :secrets_created, :secrets_burned, :secrets_shared, :emails_sent, :active]
 
 ## Implementing models like Customer can safely dump their fields
 cust = Customer.new
