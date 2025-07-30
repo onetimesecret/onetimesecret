@@ -34,7 +34,6 @@ RSpec.describe "Onetime boot configuration process" do
     allow(Onetime).to receive(:le)
     allow(Familia).to receive(:redis).and_return(double('Redis').as_null_object)
     allow(Gibbler).to receive(:secret=)
-    allow(OT::Plan).to receive(:load_billing)
 
     # Mock redis operations
     redis_double = double('Redis')
@@ -49,8 +48,6 @@ RSpec.describe "Onetime boot configuration process" do
     allow(V2::Metadata).to receive(:redis).and_return(redis_double)
     allow(V2::Customer).to receive(:values).and_return(double('Values', element_count: 0))
     allow(V2::Session).to receive(:values).and_return(double('Values', element_count: 0))
-
-    allow(OT::Plan).to receive(:load_billing)
 
     # Mock system settings setup methods
     allow(V2::SystemSettings).to receive(:current).and_raise(OT::RecordNotFound.new("No config found"))
@@ -95,7 +92,6 @@ RSpec.describe "Onetime boot configuration process" do
         allow(Onetime).to receive(:set_global_secret)
         allow(Onetime).to receive(:prepare_emailers)
         allow(Onetime).to receive(:load_fortunes)
-        allow(Onetime).to receive(:load_billing)
         allow(Onetime).to receive(:connect_databases)
         allow(Onetime).to receive(:check_global_banner)
         allow(Onetime).to receive(:print_log_banner)
@@ -155,7 +151,6 @@ RSpec.describe "Onetime boot configuration process" do
         expect(Onetime).to receive(:set_global_secret).ordered
         expect(Onetime).to receive(:prepare_emailers).ordered
         expect(Onetime).to receive(:load_fortunes).ordered
-        expect(Onetime).to receive(:load_billing).ordered
         expect(Onetime).to receive(:connect_databases).ordered
         expect(Onetime).to receive(:check_global_banner).ordered
         expect(Onetime).not_to receive(:print_log_banner) # print_log_banner unless mode?(:test)

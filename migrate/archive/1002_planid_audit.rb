@@ -62,7 +62,7 @@ module Onetime
             next
           end
 
-          normalized_planid = Onetime::Plan.normalize(planid)
+          normalized_planid = planid.to_s.downcase
 
           # Check if plan is deprecated
           unless VALID_PLANS.include?(normalized_planid)

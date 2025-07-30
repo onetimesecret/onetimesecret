@@ -47,7 +47,6 @@ RSpec.describe "Onetime::Config during Onetime.boot!" do
     allow(Onetime).to receive(:set_global_secret).and_call_original
     allow(Onetime).to receive(:prepare_emailers).and_call_original
     allow(Onetime).to receive(:load_fortunes).and_call_original # Ensure actual method is called
-    allow(Onetime).to receive(:load_billing)
     allow(Onetime).to receive(:connect_databases).and_call_original
     allow(Onetime).to receive(:check_global_banner).and_call_original # Ensure actual method is called
     allow(Onetime).to receive(:print_log_banner)
