@@ -176,8 +176,7 @@ module Onetime
         conf[:site][:secret_options][:default_ttl] = default_ttl.to_i
       end
 
-      # TODO: Move to an initializer
-      if conf.dig(:site, :billing, :enabled).to_s == "true"
+      if conf.dig(:billing, :enabled).to_s == "true"
         stripe_key = conf.dig(:billing, :stripe_key)
         unless stripe_key
           raise OT::Problem, "No `site.plans.stripe_key` found in #{path}"
