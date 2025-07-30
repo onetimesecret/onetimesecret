@@ -42,8 +42,6 @@
   :authenticity:
     :type: <%= ENV['AUTHENTICITY_TYPE'] || 'altcha' %>
     :secret_key: <%= ENV['AUTHENTICITY_SECRET_KEY'] || 'your-secret-key' %>
-  :plans:
-    :enabled: false
   :regions:
     :enabled: <%= ENV['REGIONS_ENABLED'] || false %>
     :current_jurisdiction: <%= ENV['JURISDICTION'] || 'EU' %>
@@ -101,6 +99,8 @@
   :pass: <%= ENV['SMTP_PASSWORD'] || 'pass' %>
   :auth: <%= ENV['SMTP_AUTH'] || 'login' %>
   :tls: <%= ENV['SMTP_TLS'] || true %>
+:billing:
+  :enabled: false
 :mail:
   :truemail:
     # Available validation types: :regex, :mx, :mx_blacklist, :smtp

@@ -69,7 +69,7 @@ module Onetime
       configure_truemail
       prepare_emailers
       load_fortunes
-      load_plans
+      load_billing
 
       if connect_to_db
         connect_databases

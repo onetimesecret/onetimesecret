@@ -45,7 +45,7 @@
   "frontend_development": true,
   "frontend_host": "http://localhost:5173",
   "incoming_recipient": null,
-  "plans_enabled": true,
+  "billing_enabled": true,
   "regions": {
     "enabled": true,
     "current_jurisdiction": "EU",

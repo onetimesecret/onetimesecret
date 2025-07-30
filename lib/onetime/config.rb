@@ -177,8 +177,8 @@ module Onetime
       end
 
       # TODO: Move to an initializer
-      if conf.dig(:site, :plans, :enabled).to_s == "true"
-        stripe_key = conf.dig(:site, :plans, :stripe_key)
+      if conf.dig(:site, :billing, :enabled).to_s == "true"
+        stripe_key = conf.dig(:billing, :stripe_key)
         unless stripe_key
           raise OT::Problem, "No `site.plans.stripe_key` found in #{path}"
         end

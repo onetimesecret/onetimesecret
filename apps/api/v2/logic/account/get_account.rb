@@ -5,14 +5,14 @@ module V2::Logic
   module Account
 
     class GetAccount < V2::Logic::Base
-      attr_accessor :plans_enabled
+      attr_accessor :billing_enabled
       attr_reader :stripe_subscription, :stripe_customer
       using Onetime::StripeRefinements
 
       def process_params
         OT.ld "[GetAccount#process_params] params: #{params.inspect}"
         site = OT.conf.fetch(:site, {})
-        @plans_enabled = site.dig(:plans, :enabled) || false
+        @billing_enabled = site.dig(:billing, :enabled) || false
       end
 
       def raise_concerns
@@ -21,7 +21,7 @@ module V2::Logic
 
       def process
 
-        if plans_enabled
+        if billing_enabled
           @stripe_customer = cust.get_stripe_customer
           @stripe_subscription = cust.get_stripe_subscription
 
@@ -53,7 +53,7 @@ module V2::Logic
       end
 
       def show_stripe_section?
-        plans_enabled && !stripe_customer.nil?
+        billing_enabled && !stripe_customer.nil?
       end
 
       def safe_stripe_customer_dump

@@ -132,9 +132,6 @@
   # docs.onetimesecret.com.
   :support:
     :host: <%= ENV['SUPPORT_HOST'] || nil %>
-  :plans:
-    :enabled: <%= ENV['PLANS_ENABLED'] == 'true' || false %>
-    :stripe_key: <%= ENV['STRIPE_KEY'] || nil %>
   :regions:
     :enabled: <%= ENV['REGIONS_ENABLED'] == 'true' || false %>
     :current_jurisdiction: <%= ENV['JURISDICTION'] || nil %>

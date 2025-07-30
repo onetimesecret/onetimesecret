@@ -1,4 +1,4 @@
-# apps/web/core/views/serializers/plan_serializer.rb
+# apps/web/core/views/serializers/billing_serializer.rb
 
 module Core
   module Views
@@ -7,7 +7,7 @@ module Core
     #
     # Responsible for transforming customer plan information, available plans,
     # and plan-related settings into a consistent format for frontend consumption.
-    module PlanSerializer
+    module BillingSerializer
 
       # Serializes plan data from view variables
       #

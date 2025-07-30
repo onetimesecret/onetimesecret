@@ -17,7 +17,7 @@ const mockWindow = {
   baseuri: 'https://example.com',
   is_paid: true,
   domains_enabled: true,
-  plans_enabled: true,
+  billing_enabled: true,
 };
 
 const mockPlan: Plan = {

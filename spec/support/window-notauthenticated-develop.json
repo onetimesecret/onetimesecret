@@ -45,7 +45,7 @@
   "email": null,
   "customer_since": null,
   "custom_domains": null,
-  "plans_enabled": true,
+  "billing_enabled": true,
   "locale": "en",
   "is_default_locale": true,
   "default_locale": "en",

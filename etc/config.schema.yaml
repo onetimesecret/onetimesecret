@@ -17,6 +17,7 @@
 :redis: include(':redis')
 :emailer: include(':emailer')
 :mail: include(':mail')
+:billing: include(':billing')
 :internationalization: include(':internationalization')
 :diagnostics: include(':diagnostics')
 :logging: include(':logging', required=False)
@@ -49,11 +50,6 @@
     :secret_key: any(str(), int())
   :support:
     :host: str(required=False)
-  :plans:
-    :enabled: any()
-    :stripe_key: str(required=False)
-    :webook_signing_secret: str(required=False)
-    :payment_links: any(required=False)
   :regions:
     :enabled: any(str(), bool())
     :current_jurisdiction: str(required=False)
@@ -116,6 +112,12 @@
     :email_pattern: str(required=False)
     :smtp_error_body_pattern: str(required=False)
     :logger: map()
+
+:billing:
+  :enabled: any()
+  :stripe_key: str(required=False)
+  :webook_signing_secret: str(required=False)
+  :payment_links: any(required=False)
 
 :internationalization:
   :enabled: any(str(), bool())

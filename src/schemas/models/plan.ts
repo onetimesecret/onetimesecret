@@ -31,3 +31,16 @@ export const planSchema = z.object({
 });
 
 export type Plan = z.infer<typeof planSchema>;
+
+/**
+ * Billing schema for customer billings
+ */
+export const billingSchema = z.object({
+  identifier: z.string(),
+  billingid: z.string(),
+  price: transforms.fromString.number,
+  discount: transforms.fromString.number,
+  options: planOptionsSchema,
+});
+
+export type Billing = z.infer<typeof billingSchema>;
