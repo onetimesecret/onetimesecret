@@ -116,7 +116,7 @@
 :billing:
   :enabled: any()
   :stripe_key: str(required=False)
-  :webook_signing_secret: str(required=False)
+  :webhook_signing_secret: str(required=False)
   :payment_links: any(required=False)
 
 :internationalization:
