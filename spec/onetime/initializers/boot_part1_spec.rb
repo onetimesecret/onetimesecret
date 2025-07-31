@@ -101,22 +101,20 @@ RSpec.describe "Onetime::Config during Onetime.boot!" do
 
       conf = Onetime::Config.after_load(test_config)
 
-      expect(conf.dig(:site, :secret_options, :default_ttl)).to eq('43200'.to_i) # 12 hours
-      expect(conf.dig(:site, :secret_options, :ttl_options)).to eq(['1800', '43200', '604800'].map(&:to_i))
+      expect(conf.dig('site', 'secret_options', 'default_ttl')).to eq('43200'.to_i) # 12 hours
+      expect(conf.dig('site', 'secret_options', 'ttl_options')).to eq(%w[1800 43200 604800].map(&:to_i))
     end
-
     it "ensures required keys are present and defaults applied" do
       test_config = Onetime::Config.load(source_config_path)
 
       conf = Onetime::Config.after_load(test_config)
 
-      expect(conf.dig(:development, :enabled)).to be(false)
-      expect(conf.dig(:development, :frontend_host)).to eq('http://localhost:5173')
-      expect(conf.dig(:site, :authentication, :enabled)).to be(true)
-      expect(conf.dig(:site, :secret_options)).to have_key(:default_ttl)
-      expect(conf.dig(:site, :secret_options)).to have_key(:ttl_options)
-      expect(conf.dig(:diagnostics, :sentry)).to be_a(Hash)
-
+      expect(conf.dig('development', 'enabled')).to be(false)
+      expect(conf.dig('development', 'frontend_host')).to eq('http://localhost:5173')
+      expect(conf.dig('site', 'authentication', 'enabled')).to be(true)
+      expect(conf.dig('site', 'secret_options')).to have_key('default_ttl')
+      expect(conf.dig('site', 'secret_options')).to have_key('ttl_options')
+      expect(conf.dig('diagnostics', 'sentry')).to be_a(Hash)
       # In after_load, when we call `merged = apply_defaults_to_peers(diagnostics[:sentry])`
       # :default is nil and no longer a hash. Details:
       # Notice that line with `next if section == :defaults` - this
@@ -144,16 +142,16 @@ RSpec.describe "Onetime::Config during Onetime.boot!" do
 
         conf = Onetime::Config.after_load(loaded_config)
 
-        diagnostics_config = conf.fetch(:diagnostics)
-        expect(diagnostics_config.dig(:sentry, :backend, :dsn)).to be_nil
-        expect(diagnostics_config.dig(:enabled)).to eq(true) # matches what is in test_config
+        diagnostics_config = conf.fetch('diagnostics')
+        expect(diagnostics_config.dig('sentry', 'backend', 'dsn')).to be_nil
+        expect(diagnostics_config['enabled']).to be(true) # matches what is in test_config
         expect(Onetime.d9s_enabled).to be(false) # after_load makes it false
       end
 
       it "handles :autoverify correctly based on config" do
         conf = Onetime::Config.after_load(loaded_config)
 
-        expect(conf.dig(:site, :authentication, :autoverify)).to be(false)
+        expect(conf.dig('site', 'authentication', 'autoverify')).to be(false)
       end
     end
 
@@ -215,9 +213,9 @@ RSpec.describe "Onetime::Config during Onetime.boot!" do
 
         conf = Onetime::Config.after_load(test_config)
 
-        auth_config = conf.dig(:site, :authentication)
-        expect(auth_config[:enabled]).to be(false)
-        expect(auth_config[:signup]).to be(false)
+        auth_config = conf.dig('site', 'authentication')
+        expect(auth_config['enabled']).to be(false)
+        expect(auth_config['signup']).to be(false)
         expect(auth_config[:signin]).to be(false)
         expect(auth_config[:autoverify]).to be(false)
       end
@@ -252,9 +250,9 @@ RSpec.describe "Onetime::Config during Onetime.boot!" do
       conf = Onetime.conf
 
       expect(conf).not_to be_nil
-      expect(conf.dig(:site, :host)).to eq('127.0.0.1:3000')
-      expect(conf.dig(:site, :secret_options, :default_ttl)).to eq('43200'.to_i)
-      expect(conf.dig(:site, :secret_options, :ttl_options)).to eq(['1800', '43200', '604800'].map(&:to_i))
+      expect(conf.dig('site', 'host')).to eq('127.0.0.1:3000')
+      expect(conf.dig('site', 'secret_options', 'default_ttl')).to eq('43200'.to_i)
+      expect(conf.dig('site', 'secret_options', 'ttl_options')).to eq(%w[1800 43200 604800].map(&:to_i))
 
       # Run with the env var set:
       #    REDIS_URL=redis://127.0.0.1:2121/0 pnpm test:rspec

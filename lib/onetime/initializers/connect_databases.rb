@@ -24,7 +24,7 @@ module Onetime
       Familia.uri = OT.conf['redis']['uri']
 
       # Connect each model to its configured Redis database
-      dbs = OT.conf.dig(:redis, :dbs)
+      dbs = OT.conf.dig('redis', 'dbs')
 
       OT.ld "[connect_databases] dbs: #{dbs}"
       OT.ld "[connect_databases] models: #{Familia.members.map(&:to_s)}"
@@ -36,14 +36,14 @@ module Onetime
 
       # Map model classes to their database numbers
       Familia.members.each do |model_class|
-        model_sym = model_class.to_sym # TODO: renamed to config_name in Familia 2. Need to fix after standardizing symbol keys to strings
-        db_index = dbs[model_sym] || DATABASE_IDS[model_sym] || 0 # see models.rb
+        model_config_name = model_class.config_name
+        db_index = dbs[model_config_name] || DATABASE_IDS[model_config_name] || 0 # see models.rb
 
         # Assign a Redis connection to the model class
         model_class.redis = Familia.redis(db_index)
         ping_result = model_class.redis.ping
 
-        OT.ld "Connected #{model_sym} to DB #{db_index} (#{ping_result})"
+        OT.ld "Connected #{model_config_name} to DB #{db_index} (#{ping_result})"
       end
     end
 
@@ -57,17 +57,17 @@ module Onetime
     # used (which it is in the official images).
     #
     DATABASE_IDS = {
-      session: 1,
-      splittest: 1,
-      custom_domain: 6,
-      customer: 6,
-      subdomain: 6,
-      metadata: 7,
-      email_receipt: 8,
-      secret: 8,
-      feedback: 11,
-      exception_info: 12,
-      system_settings: 15,
+      'session' => 1,
+      'splittest' => 1,
+      'custom_domain' => 6,
+      'customer' => 6,
+      'subdomain' => 6,
+      'metadata' => 7,
+      'email_receipt' => 8,
+      'secret' => 8,
+      'feedback' => 11,
+      'exception_info' => 12,
+      'system_settings' => 15,
     }
   end
 end

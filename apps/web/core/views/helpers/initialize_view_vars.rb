@@ -43,10 +43,10 @@ module Core
         # - Authentication tokens (:authenticity)
         # - Internal infrastructure details
         #
-        site_config = OT.conf.fetch(:site, {})
-        incoming = OT.conf.fetch(:incoming, {})
-        development = OT.conf.fetch(:development, {})
-        diagnostics = OT.conf.fetch(:diagnostics, {})
+        site_config = OT.conf.fetch('site', {})
+        incoming = OT.conf.fetch('incoming', {})
+        development = OT.conf.fetch('development', {})
+        diagnostics = OT.conf.fetch('diagnostics', {})
 
         # Populate a new hash with the site config settings that are safe
         # to share with the front-end app (i.e. public).

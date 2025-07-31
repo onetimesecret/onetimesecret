@@ -209,10 +209,9 @@ result = V2::SystemSettings.extract_system_settings(minimal_config)
 ## Construct onetime config skips nil values appropriately
 config_with_nils = { interface: nil, mail: { from: 'test@example.com' } }
 result = V2::SystemSettings.construct_onetime_config(config_with_nils)
-p [:plop, result]
-[result.has_key?(:site), result.dig(:site, :interface).nil?]
+p ["plop", result]
+[result.has_key?("site"), result.dig("site", "interface").nil?]
 #=> [false, true]
-
 ## FIELD_MAPPINGS constant is properly defined
 V2::SystemSettings::FIELD_MAPPINGS.keys.sort
 #=> [:diagnostics, :interface, :mail, :secret_options]

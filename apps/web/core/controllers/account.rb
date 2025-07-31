@@ -261,7 +261,7 @@ module Core
       private
 
       def _auth_settings
-        OT.conf.dig(:site, :authentication)
+        OT.conf.dig('site', 'authentication')
       end
 
     end

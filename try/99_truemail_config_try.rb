@@ -17,31 +17,31 @@ OT::Config.path = File.join(Onetime::HOME, 'spec', 'config.test.yaml')
 OT.boot! :test
 
 ## mapped_key converts allowed_domains_only to whitelist_validation
-Onetime::Config.mapped_key(:allowed_domains_only)
-#=> :whitelist_validation
+Onetime::Config.mapped_key('allowed_domains_only')
+#=> 'whitelist_validation'
 
 ## mapped_key converts allowed_emails to whitelisted_emails
-Onetime::Config.mapped_key(:allowed_emails)
-#=> :whitelisted_emails
+Onetime::Config.mapped_key('allowed_emails')
+#=> 'whitelisted_emails'
 
 ## mapped_key converts blocked_emails to blacklisted_emails
-Onetime::Config.mapped_key(:blocked_emails)
-#=> :blacklisted_emails
+Onetime::Config.mapped_key('blocked_emails')
+#=> 'blacklisted_emails'
 
 ## mapped_key converts allowed_domains to whitelisted_domains
-Onetime::Config.mapped_key(:allowed_domains)
-#=> :whitelisted_domains
+Onetime::Config.mapped_key('allowed_domains')
+#=> 'whitelisted_domains'
 
 ## mapped_key converts blocked_domains to blacklisted_domains
-Onetime::Config.mapped_key(:blocked_domains)
-#=> :blacklisted_domains
+Onetime::Config.mapped_key('blocked_domains')
+#=> 'blacklisted_domains'
 
 ## mapped_key converts blocked_mx_ip_addresses to blacklisted_mx_ip_addresses
-Onetime::Config.mapped_key(:blocked_mx_ip_addresses)
-#=> :blacklisted_mx_ip_addresses
+Onetime::Config.mapped_key('blocked_mx_ip_addresses')
+#=> 'blacklisted_mx_ip_addresses'
 
 ## mapped_key returns unmapped keys as-is
-Onetime::Config.mapped_key(:unmapped_key)
+Onetime::Config.mapped_key('unmapped_key')
 #=> :unmapped_key
 
 ## Config contains expected TrueMail settings from test config

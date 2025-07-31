@@ -78,7 +78,7 @@ cust = Customer.new
 logic = V2::Logic::Account::CreateAccount.new sess, cust, @valid_params.call, 'en'
 logic.raise_concerns
 logic.process
-[logic.autoverify, logic.cust.verified, OT.conf.dig(:site, :authentication, :autoverify)]
+[logic.autoverify, logic.cust.verified, OT.conf.dig('site', 'authentication', 'autoverify')]
 #=> [false, 'false', false]
 
 ## Can create account and have it auto-verified.
@@ -96,7 +96,7 @@ OT.instance_variable_set(:@conf, new_conf)
 logic = V2::Logic::Account::CreateAccount.new sess, cust, @valid_params.call, 'en'
 logic.raise_concerns
 logic.process
-ret = [logic.autoverify, logic.cust.verified, OT.conf.dig(:site, :authentication, :autoverify)]
+ret = [logic.autoverify.to_s, logic.cust.verified.to_s, OT.conf.dig(:site, :authentication, :autoverify).to_s]
 OT.instance_variable_set(:@conf, old_conf)
 ret
 #=> [true, 'true', true]

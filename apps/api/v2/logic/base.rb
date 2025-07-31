@@ -42,9 +42,9 @@ module V2
       end
 
       def process_settings
-        @site = OT.conf.fetch(:site, {})
-        domains = site.fetch(:domains, {})
-        @authentication = site.fetch(:authentication, {})
+        @site = OT.conf.fetch('site', {})
+        domains = site.fetch('domains', {})
+        @authentication = site.fetch('authentication', {})
         domains = site.fetch(:domains, {})
         @domains_enabled = domains[:enabled] || false
       end

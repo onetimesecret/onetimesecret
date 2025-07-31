@@ -43,8 +43,8 @@ module Core
         output[:incoming_recipient] = incoming.fetch(:email, nil)
 
         # Link to the pricing page can be seen regardless of authentication status
-        billing = OT.conf.fetch(:billing, {})
-        output[:billing_enabled] = billing.fetch(:enabled, false)
+        billing = OT.conf.fetch('billing', {})
+        output[:billing_enabled] = billing.fetch('enabled', false)
 
         output[:frontend_development] = development[:enabled] || false
         output[:frontend_host] = development[:frontend_host] || ''

@@ -79,7 +79,7 @@ module V2
 
       module ClassMethods
         def secret_key
-          OT.conf.dig(:site, :authenticity, :secret_key)
+          OT.conf.dig('site', 'authenticity', 'secret_key')
         end
 
         # This challenge is then serializd into a JSON string and base64 encoded

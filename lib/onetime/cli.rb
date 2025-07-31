@@ -2,7 +2,6 @@
 
 require 'drydock'
 require 'onetime'
-require 'familia/tools'
 require 'onetime/migration'
 
 require 'v2/models'
