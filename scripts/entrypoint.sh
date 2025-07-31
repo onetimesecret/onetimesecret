@@ -62,6 +62,43 @@ basename=$(basename "${location}")
 # Leave nothing but footprints
 unset datestamp location basename
 
+# Check for v0.23.0 migration requirement
+# This migration is required for users with custom etc/config.yaml files
+if [ -f "etc/config.yaml" ] && [ -f "migrate/20250727-1523_standardize_config_symbols_to_strings.rb" ]; then
+  # Check if migration is needed by looking for symbol keys in config
+  if grep -q "^[[:space:]]*:[a-zA-Z_][a-zA-Z0-9_]*:" etc/config.yaml 2>/dev/null; then
+    cat >&2 <<EOF
+
+===============================================================================
+ MIGRATION REQUIRED - Onetime Secret v0.23.0
+===============================================================================
+
+Your custom config file (etc/config.yaml) needs to be updated for v0.23.0.
+
+This migration converts YAML symbol keys (:key:) to string keys (key:).
+
+TO RUN THE MIGRATION:
+
+  1. Stop this container
+  2. Run the migration:
+     docker run --rm -v "\$(pwd)/etc:/app/etc" onetimesecret \\
+       bin/ots migrate 20250727-1523_standardize_config_symbols_to_strings.rb --run
+  3. Restart your container
+
+FOR MORE HELP:
+  - See the v0.23.0 release notes
+  - Run migration with --dry-run to preview changes
+  - Backup your config file before running migration
+
+===============================================================================
+
+EOF
+    >&2 echo "ERROR: Migration required before starting. Container will exit in 10 seconds..."
+    sleep 10
+    exit 1
+  fi
+fi
+
 # Run bundler again so that new dependencies added to the
 # Gemfile are installed at up time (i.e. avoids a rebuild).
 # Check if BUNDLE_INSTALL is set to "true" (case-insensitive)
