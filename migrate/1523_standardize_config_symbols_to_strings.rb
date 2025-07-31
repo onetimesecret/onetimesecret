@@ -1,5 +1,5 @@
 #!/usr/bin/env ruby
-# migrate/1452_separate_config.rb
+# migrate/1523_standardize_config_symbols_to_strings.rb
 #
 # Configuration Separation Migration Script
 #
@@ -13,8 +13,8 @@
 # it can transform YAML _with_ comments and preserve their structure.
 #
 # Usage:
-#   ruby migrate/1452_separate_config.rb --dry-run  # Preview changes
-#   ruby migrate/1452_separate_config.rb --run      # Execute migration
+#   ruby migrate/1523_standardize_config_symbols_to_strings.rb --dry-run  # Preview changes
+#   ruby migrate/1523_standardize_config_symbols_to_strings.rb --run      # Execute migration
 #
 #   bin/ots migrate 1452_separate_config.rb
 
@@ -63,6 +63,10 @@ module Onetime
         { 'from' => 'development', 'to' => 'development' },
         { 'from' => 'experimental', 'to' => 'experimental' },
       ]
+
+      # For historical purposes, this was the original mapping for this migration
+      # that can be used to split the YMLA config file into two separate files.
+      #
       # 'static' => [
       #     { 'from' => 'site.host', 'to' => 'site.host' },
       #     { 'from' => 'site.ssl', 'to' => 'site.ssl' },
@@ -104,7 +108,7 @@ module Onetime
       #     { 'from' => 'mail.truemail', 'to' => 'mail.validation.recipients' },
       #     { 'from' => 'mail.truemail', 'to' => 'mail.validation.accounts' },
       #   ],
-      }.freeze
+      }.!freeze
 
     def prepare
       info("Preparing migration")
