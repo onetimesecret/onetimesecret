@@ -56,6 +56,7 @@ module Onetime
         { 'from' => 'redis', 'to' => 'redis' },
         { 'from' => 'logging', 'to' => 'logging' },
         { 'from' => 'emailer', 'to' => 'emailer' },
+        { 'from' => 'billing', 'to' => 'billing', 'default' => {} },
         { 'from' => 'mail', 'to' => 'mail' },
         { 'from' => 'internationalization', 'to' => 'internationalization' },
         { 'from' => 'diagnostics', 'to' => 'diagnostics' },
@@ -120,7 +121,7 @@ module Onetime
       debug "Paths:"
       debug "Base path: #{@base_path}"
       debug "Source file: #{@source_config}"
-      debug "Mutable file: #{@final_mutable_path}"
+      debug "Mutable file: #{@final_mutable_path}" if File.exist?(@final_mutable_path)
       debug ''
     end
 
@@ -294,6 +295,8 @@ module Onetime
     end
 
     def generate_mutable_config_with_yq
+      return unless CONFIG_MAPPINGS.keys.include?('mutable')
+
       info "Creating mutable configuration with yq (preserving comments)..."
 
       # Initialize empty config
