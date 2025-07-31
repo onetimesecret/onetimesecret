@@ -1,5 +1,5 @@
 #!/usr/bin/env ruby
-# migrate/1523_standardize_config_symbols_to_strings.rb
+# migrate/20250727-1523_standardize_config_symbols_to_strings.rb
 #
 # Configuration Standardization Migration
 #
@@ -10,10 +10,10 @@
 # it can transform YAML _with_ comments and preserve their structure.
 #
 # Usage:
-#   ruby migrate/1523_standardize_config_symbols_to_strings.rb --dry-run  # Preview changes
-#   ruby migrate/1523_standardize_config_symbols_to_strings.rb --run      # Execute migration
+#   ruby migrate/20250727-1523_standardize_config_symbols_to_strings.rb --dry-run  # Preview changes
+#   ruby migrate/20250727-1523_standardize_config_symbols_to_strings.rb --run      # Execute migration
 #
-#   bin/ots migrate 1452_separate_config.rb
+#   bin/ots migrate 20250731-1523_standardize_config_symbols_to_strings.rb
 
 base_path = File.expand_path File.join(File.dirname(__FILE__), '..')
 $:.unshift File.join(base_path, 'lib')
@@ -109,7 +109,7 @@ module Onetime
           3. Look for diagnostic hints.
              Re-run with debug output:
 
-              $ ONETIME_DEBUG=1 bin/ots migrate [--run] 1523_standardize_config_symbols_to_strings.rb
+              $ ONETIME_DEBUG=1 bin/ots migrate [--run] 20250731-1523_standardize_config_symbols_to_strings.rb
 
           4. Try running with the default config.
              Copy etc/defaults/config.defaults.yaml to etc/#{source_file} and
@@ -135,6 +135,9 @@ module Onetime
 
       info "Starting configuration separation migration"
       info "Source: #{@source_config}"
+      debug "Source config top-level keys:"
+      system("yq eval 'keys' '#{@source_config}'")
+      debug ""
 
       # Step 1: Create backup if it doesn't exist
       backup_config
@@ -186,8 +189,9 @@ module Onetime
       end
 
       for_realsies_this_time? do
-        # Use perl to convert symbol keys to strings
-        cmd = "perl -pe 's/^(\\s*):([a-zA-Z_][a-zA-Z0-9_]*)/\\1\\2/g' '#{@source_config}' > '#{@converted_config}'"
+        # Convert YAML symbol keys (like :key: and - :key:) to string keys (like key: and - key:)
+        cmd = "perl -pe 's/^(\\s*)(-\\s*)?:([a-zA-Z_][a-zA-Z0-9_]*)/\\1\\2\\3/g' '#{@source_config}' > '#{@converted_config}'"
+
         success = system(cmd)
 
         unless success
@@ -197,8 +201,43 @@ module Onetime
 
         track_stat(:symbols_converted)
         info "Converted symbols to strings: #{@converted_config}"
+
+        # Validate the conversion worked
+        unless validate_conversion
+          error "Symbol to string conversion failed validation"
+          return false
+        end
       end
     end
+
+    def validate_conversion
+      return true unless File.exist?(@converted_config)
+
+      info "Validating symbol to string conversion..."
+
+      # Check for remaining symbol keys in the file (both top-level and array items)
+      remaining_symbols = `grep -n "^[[:space:]]*:[a-zA-Z_][a-zA-Z0-9_]*:" '#{@converted_config}'`
+      remaining_symbols += `grep -n "^[[:space:]]*-[[:space:]]*:[a-zA-Z_][a-zA-Z0-9_]*:" '#{@converted_config}'`
+
+      if remaining_symbols.strip.empty?
+        info "✓ No symbol keys found - conversion successful"
+        return true
+      else
+        error "✗ Found remaining symbol keys:"
+        puts remaining_symbols
+
+        # Try to load and show structure
+        begin
+          config = YAML.safe_load_file(@converted_config)
+          info "Converted config top-level keys: #{config.keys.join(', ')}"
+        rescue => e
+          error "Failed to parse converted config: #{e.message}"
+        end
+
+        return false
+      end
+    end
+
 
     def separate_configuration
       return if File.exist?(@static_config)
