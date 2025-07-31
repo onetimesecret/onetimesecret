@@ -4,10 +4,10 @@ module Onetime
   module Initializers
 
     def configure_domains
-      is_enabled = conf.dig(:site, :domains, :enabled).to_s == "true"
+      is_enabled = conf.dig("site", "domains", "enabled").to_s == "true"
       return unless is_enabled
 
-      cluster = conf.dig(:site, :domains, :cluster)
+      cluster = conf.dig("site", "domains", "cluster")
       OT.ld "Setting OT::Cluster::Features #{cluster}"
       klass = OT::Cluster::Features
       klass.api_key = cluster[:api_key]

@@ -37,9 +37,9 @@ module Core
           tierid = req.params[:tier] ||= 'free'
           billing_cycle = req.params[:billing_cycle] ||= 'month' # year or month
 
-          billing = OT.conf.dig(:billing)
-          payment_links = billing.fetch(:payment_links, {})
-          payment_link = payment_links.dig(tierid.to_sym, billing_cycle.to_sym)
+          billing = OT.conf['billing']
+          payment_links = billing.fetch('payment_links', {})
+          payment_link = payment_links.dig(tierid, billing_cycle)
 
           OT.ld "[plan_redirect] billing: #{billing}"
           OT.ld "[plan_redirect] payment_links: #{payment_links}"

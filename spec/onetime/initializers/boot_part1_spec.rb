@@ -119,13 +119,13 @@ RSpec.describe "Onetime::Config during Onetime.boot!" do
       # :default is nil and no longer a hash. Details:
       # Notice that line with `next if section == :defaults` - this
       # explicitly skips adding the `:defaults` section to the result hash.
-      # This is intentional as the `:defaults` section has fulfilled its
+      # This is intentional as the 'defaults' section has fulfilled its
       # purpose once merged with the other sections.
-      expect(conf.dig(:diagnostics, :sentry, :defaults)).to be_nil
-      expect(test_config.dig(:diagnostics, :sentry, :defaults)).to be_a(Hash)
+      expect(conf.dig('diagnostics', 'sentry', 'defaults')).to be_nil
+      expect(test_config.dig('diagnostics', 'sentry', 'defaults')).to be_a(Hash)
 
-      expect(conf.dig(:diagnostics, :sentry, :backend)).to be_a(Hash)
-      expect(conf.dig(:diagnostics, :sentry, :frontend)).to be_a(Hash)
+      expect(conf.dig('diagnostics', 'sentry', 'backend')).to be_a(Hash)
+      expect(conf.dig('diagnostics', 'sentry', 'frontend')).to be_a(Hash)
     end
 
     context "when we set OT.conf manually" do
@@ -256,8 +256,8 @@ RSpec.describe "Onetime::Config during Onetime.boot!" do
 
       # Run with the env var set:
       #    REDIS_URL=redis://127.0.0.1:2121/0 pnpm test:rspec
-      expect(conf.dig(:redis, :uri)).to eq('redis://127.0.0.1:2121/0')
-      expect(conf.dig(:development, :enabled)).to be(false)
+      expect(conf.dig('redis', 'uri')).to eq('redis://127.0.0.1:2121/0')
+      expect(conf.dig('development', 'enabled')).to be(false)
       expect(Onetime.env).to eq('test')
     end
 

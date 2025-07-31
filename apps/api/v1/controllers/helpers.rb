@@ -323,12 +323,12 @@ module V1
       return if res.header['Content-Security-Policy']
 
       # Skip the CSP header unless it's enabled in the experimental settings
-      return if OT.conf.dig(:experimental, :csp, :enabled) != true
+      return if OT.conf.dig('experimental', 'csp', 'enabled') != true
 
       # Skip the Content-Security-Policy header if the front is running in
       # development mode. We need to allow inline scripts and styles for
       # hot reloading to work.
-      if OT.conf.dig(:development, :enabled)
+      if OT.conf.dig('development', 'enabled')
         csp = [
           "default-src 'none';",                               # Restrict to same origin by default
           "script-src 'unsafe-inline' 'nonce-#{nonce}';",      # Allow Vite's dynamic module imports and source maps

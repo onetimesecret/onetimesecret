@@ -53,7 +53,7 @@ module Onetime
 
       # Configure the security middleware stack based on application settings
       #
-      # Reads configuration from Onetime.conf.dig(:experimental, :middleware)
+      # Reads configuration from Onetime.conf.dig("experimental", "middleware")
       # and conditionally enables corresponding Rack::Protection middleware.
       #
       # @return [#call] Configured Rack application with security middleware
@@ -61,7 +61,7 @@ module Onetime
         # Store reference to original app for use inside builder block
         # This is necessary because the Rack::Builder block runs in a different context
         app_instance = @app
-        middleware_settings = Onetime.conf.dig(:experimental, :middleware) || {}
+        middleware_settings = Onetime.conf.dig("experimental", "middleware") || {}
 
         # Define middleware components with their corresponding settings keys
         components = self.class.middleware_components

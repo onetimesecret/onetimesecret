@@ -118,8 +118,6 @@ RSpec.describe "Onetime global state after boot" do
     end
 
     context "regarding system information" do
-
-
       it "initializes and freezes Onetime.instance" do
         Onetime.boot!(:test)
 
@@ -149,7 +147,8 @@ RSpec.describe "Onetime global state after boot" do
         expect(Onetime.fallback_locale).to be_a(Hash)
       end
 
-      it "sets Onetime's i18n default settings when disabled in config", skip: "TODO: Implement in a test file where we can control the config and not locked in to whatever is in config.test.yaml" do
+      it "sets Onetime's i18n default settings when disabled in config",
+skip: "TODO: Implement in a test file where we can control the config and not locked in to whatever is in config.test.yaml" do
       end
     end
 

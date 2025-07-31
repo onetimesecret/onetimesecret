@@ -71,7 +71,7 @@ module Onetime
       end
 
       print_log_banner unless mode?(:test)
-
+      require 'pry-byebug'; binding.pry;
       @ready = true
 
       # Let's be clear about returning the prepared configruation. Previously

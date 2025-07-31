@@ -224,10 +224,8 @@ module Onetime
       # The global secret is critical for encrypting/decrypting secrets
       # Running without a global secret is only permitted in exceptional cases
       allow_nil = conf.dig('experimental', 'allow_nil_global_secret') || false
-      global_secret = conf['site'].fetch('secret', nil)
+      global_secret = conf.dig('site', 'secret') || nil
       global_secret = nil if global_secret.to_s.strip == 'CHANGEME'
-
-      # Onetime.global_secret is set in the initializer set_global_secret
 
       if global_secret.nil?
         unless allow_nil
