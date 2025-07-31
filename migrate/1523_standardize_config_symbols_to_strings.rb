@@ -1,10 +1,7 @@
 #!/usr/bin/env ruby
 # migrate/1523_standardize_config_symbols_to_strings.rb
 #
-# Configuration Separation Migration Script
-#
-# Purpose: Separates monolithic config.defaults.yaml into static and mutable configuration files.
-# Static config goes to etc/config.yaml, mutable config gets loaded into V2::MutableConfig.
+# Configuration Standardization Migration
 #
 # Symbols vs Strings: the old config file used symbols for keys, while the new config file uses
 # strings.
@@ -26,25 +23,6 @@ require 'onetime/migration'
 require 'yaml'
 require 'fileutils'
 
-USER_TYPES_CAPABILITIES = {
-    'anonymous' => {
-      'api' => true,
-      'email' => false,
-      'custom_domains' => false
-    },
-    'authenticated' => {
-      'api' => true,
-      'email' => true,
-      'custom_domains' => false
-    },
-}.freeze
-
-SECRET_OPTION_BOUNDARIES = {
-  'default_ttl' => nil, # 7.days
-  'ttl_options' => nil,
-  'size' => nil,
-}.freeze
-
 module Onetime
   class Migration < BaseMigration
 
@@ -63,52 +41,7 @@ module Onetime
         { 'from' => 'development', 'to' => 'development' },
         { 'from' => 'experimental', 'to' => 'experimental' },
       ]
-
-      # For historical purposes, this was the original mapping for this migration
-      # that can be used to split the YMLA config file into two separate files.
-      #
-      # 'static' => [
-      #     { 'from' => 'site.host', 'to' => 'site.host' },
-      #     { 'from' => 'site.ssl', 'to' => 'site.ssl' },
-      #     { 'from' => 'site.secret', 'to' => 'site.secret' },
-      #     { 'from' => 'site.authentication.enabled', 'to' => 'site.authentication.enabled' },
-      #     { 'from' => 'site.authentication.colonels', 'to' => 'site.authentication.colonels' },
-      #     { 'from' => 'site.authentication.autoverify', 'to' => 'site.authentication.autoverify' },
-      #     { 'from' => 'site.authenticity', 'to' => 'site.authenticity' },
-      #     { 'from' => 'doesnotexist', 'to' => 'capabilities', 'default' => USER_TYPES_CAPABILITIES },
-      #     { 'from' => 'redis.uri', 'to' => 'storage.db.connection.url' },
-      #     { 'from' => 'redis.dbs', 'to' => 'storage.db.database_mapping' },
-      #     { 'from' => 'emailer', 'to' => 'mail.connection' },
-      #     { 'from' => 'mail.truemail', 'to' => 'mail.validation.defaults' },
-      #     { 'from' => 'features', 'to' => 'features', 'default' => {} },
-      #     { 'from' => 'site.regions', 'to' => 'features.regions', 'default' => { 'enabled' => false} },
-      #     { 'from' => 'site.domains', 'to' => 'features.domains', 'default' => { 'enabled' => false} },
-      #     { 'from' => 'logging', 'to' => 'logging' },
-      #     { 'from' => 'diagnostics', 'to' => 'diagnostics' },
-      #     { 'from' => 'internationalization', 'to' => 'i18n' },
-      #     { 'from' => 'development', 'to' => 'development', 'default' => {} },
-      #     { 'from' => 'experimental.allow_nil_global_secret', 'to' => 'experimental.allow_nil_global_secret', 'default' => false },
-      #     { 'from' => 'experimental.rotated_secrets', 'to' => 'experimental.rotated_secrets', 'default' => [] },
-      #     { 'from' => 'experimental.freeze_app', 'to' => 'experimental.freeze_app', 'default' => false },
-      #     { 'from' => 'experimental.middleware', 'to' => 'site.middleware', 'default' => {
-      #       'static_files': true,
-      #       'utf8_sanitizer': true}
-      #     },
-      #     { 'from' => 'site.plans', 'to' => 'billing', 'default' => nil },
-      #   ],
-      #   'mutable' => [
-      #     { 'from' => 'site.interface.ui', 'to' => 'ui' },
-      #     { 'from' => 'site.authentication.signup', 'to' => 'ui.signup' },
-      #     { 'from' => 'site.authentication.signin', 'to' => 'ui.signin' },
-      #     { 'from' => 'site.interface.api', 'to' => 'api' },
-      #     { 'from' => 'site.secret_options', 'to' => 'secret_options.anonymous' },
-      #     { 'from' => 'doesnotexist', 'to' => 'secret_options.standard', 'default' => SECRET_OPTION_BOUNDARIES },
-      #     { 'from' => 'doesnotexist', 'to' => 'secret_options.enhanced', 'default' => SECRET_OPTION_BOUNDARIES },
-      #     { 'from' => 'limits', 'to' => 'limits' },
-      #     { 'from' => 'mail.truemail', 'to' => 'mail.validation.recipients' },
-      #     { 'from' => 'mail.truemail', 'to' => 'mail.validation.accounts' },
-      #   ],
-      }.!freeze
+    }.freeze
 
     def prepare
       info("Preparing migration")
@@ -117,20 +50,16 @@ module Onetime
       @backup_suffix = Time.now.strftime('%Y%m%d%H%M%S')
       @converted_config = File.join(@base_path, 'etc', 'config.converted.yaml')
       @static_config = File.join(@base_path, 'etc', 'config.static.yaml')
-      @mutable_config = File.join(@base_path, 'etc', 'config.mutable.yaml')
       @final_static_path = File.join(@base_path, 'etc', 'config.yaml')
-      @final_mutable_path = File.join(@base_path, 'etc', 'mutable.yaml')
 
       debug ''
       debug "Paths:"
       debug "Base path: #{@base_path}"
       debug "Source file: #{@source_config}"
-      debug "Mutable file: #{@final_mutable_path}" if File.exist?(@final_mutable_path)
       debug ''
     end
 
     def migration_needed?
-
       unless File.exist?(@source_config)
         raise "Source config file does not exist (#{@source_config})"
       end
@@ -163,7 +92,6 @@ module Onetime
       # Print help message for things to check to give a clue as to what to do
       # next
       source_file = File.basename(@source_config)
-      mutable_file = File.basename(@final_mutable_path)
 
       info <<~HEREDOC
 
@@ -171,8 +99,7 @@ module Onetime
         Things to try:
 
           1. Check if migration has already completed.
-             If you have etc/#{mutable_file}
-             and etc/#{source_file} is in the new format, the migration
+             If you have etc/#{source_file} and the keys are strings, the migration
              has already run successfully and you're good to go.
 
           2. Review the source configuration file.
@@ -182,7 +109,7 @@ module Onetime
           3. Look for diagnostic hints.
              Re-run with debug output:
 
-              $ ONETIME_DEBUG=1 bin/ots migrate [--run] 1452_separate_config.rb
+              $ ONETIME_DEBUG=1 bin/ots migrate [--run] 1523_standardize_config_symbols_to_strings.rb
 
           4. Try running with the default config.
              Copy etc/defaults/config.defaults.yaml to etc/#{source_file} and
@@ -223,9 +150,8 @@ module Onetime
 
       print_summary do
         info ''
-        info "Configuration separation completed successfully"
+        info "Configuration standardization completed successfully"
         info "Static config: #{@final_static_path}"
-        info "Mutable config: #{@final_mutable_path}"
         info ''
       end
 
@@ -275,12 +201,11 @@ module Onetime
     end
 
     def separate_configuration
-      return if File.exist?(@static_config) && File.exist?(@mutable_config)
+      return if File.exist?(@static_config)
 
       for_realsies_this_time? do
         generate_static_config_with_yq
-        generate_mutable_config_with_yq
-        track_stat(:configs_separated)
+        track_stat(:configs_standardized)
       end
     end
 
@@ -296,22 +221,6 @@ module Onetime
 
       info "Generated static config: #{@static_config}"
       show_config_structure(@static_config, "Static")
-    end
-
-    def generate_mutable_config_with_yq
-      return unless CONFIG_MAPPINGS.keys.include?('mutable')
-
-      info "Creating mutable configuration with yq (preserving comments)..."
-
-      # Initialize empty config
-      system("yq eval 'del(.[])' <<< '{}' > '#{@mutable_config}'")
-
-      CONFIG_MAPPINGS['mutable'].each do |mapping|
-        generate_yq_command(@mutable_config, mapping)
-      end
-
-      info "Generated mutable config: #{@mutable_config}"
-      show_config_structure(@mutable_config, "Mutable")
     end
 
     def generate_yq_command(output_file, mapping)
@@ -389,18 +298,6 @@ module Onetime
         end
       end
 
-      # Move mutable config to final location
-      if File.exist?(@mutable_config)
-        # Ensure target directory exists
-        FileUtils.mkdir_p(File.dirname(@final_mutable_path))
-
-        for_realsies_this_time? do
-          FileUtils.mv(@mutable_config, @final_mutable_path)
-          track_stat(:mutable_finalized)
-          info "Created mutable config at: #{@final_mutable_path}"
-        end
-      end
-
       # Clean up temporary files in actual run
       for_realsies_this_time? do
         cleanup_temp_files
@@ -408,8 +305,8 @@ module Onetime
     end
 
     def cleanup_temp_files
-      [@converted_config, @static_config, @mutable_config].each do |file|
-        if File.exist?(file)
+      [@converted_config, @static_config].each do |file|
+        if file && File.exist?(file)
           FileUtils.rm(file)
           debug "Cleaned up: #{file}"
         end
