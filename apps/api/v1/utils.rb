@@ -44,30 +44,6 @@ module V1
       (1..len).collect { chars[rand(chars.size - 1)] }.join
     end
 
-    def indifferent_params(params)
-      if params.is_a?(Hash)
-        params = indifferent_hash.merge(params)
-        params.each do |key, value|
-          next unless value.is_a?(Hash) || value.is_a?(Array)
-
-          params[key] = indifferent_params(value)
-        end
-      elsif params.is_a?(Array)
-        params.collect! do |value|
-          if value.is_a?(Hash) || value.is_a?(Array)
-            indifferent_params(value)
-          else
-            value
-          end
-        end
-      end
-    end
-
-    # Creates a Hash with indifferent access (shallow).
-    def indifferent_hash
-      Hash.new { |hash, key| hash[key.to_s] if key.is_a?(Symbol) }
-    end
-
     def obscure_email(text)
       regex = /(\b(([A-Z0-9]{1,2})[A-Z0-9._%-]*)([A-Z0-9])?(@([A-Z0-9])[A-Z0-9.-]+(\.[A-Z]{2,4}\b)))/i
       el = text.split('@')

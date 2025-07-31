@@ -1,7 +1,7 @@
 # lib/onetime/refinements/rack_refinements.rb
 
 module Onetime
-  module RackRefinements
+  module RackRefinements # TODO: Remove when upgrading to Rack 3
     refine Hash do
       def fetch(key, *args)
         string_key = key.to_s

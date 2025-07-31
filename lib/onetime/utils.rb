@@ -33,30 +33,6 @@ module Onetime
       (1..len).collect { chars[rand(chars.size - 1)] }.join
     end
 
-    def indifferent_params(params)
-      if params.is_a?(Hash)
-        params = indifferent_hash.merge(params)
-        params.each do |key, value|
-          next unless value.is_a?(Hash) || value.is_a?(Array)
-
-          params[key] = indifferent_params(value)
-        end
-      elsif params.is_a?(Array)
-        params.collect! do |value|
-          if value.is_a?(Hash) || value.is_a?(Array)
-            indifferent_params(value)
-          else
-            value
-          end
-        end
-      end
-    end
-
-    # Creates a Hash with indifferent access.
-    def indifferent_hash
-      Hash.new { |hash, key| hash[key.to_s] if key.is_a?(Symbol) }
-    end
-
     def deep_merge(default, overlay)
       merger = proc { |_key, v1, v2| v1.is_a?(Hash) && v2.is_a?(Hash) ? v1.merge(v2, &merger) : v2 }
       default.merge(overlay, &merger)

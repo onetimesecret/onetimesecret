@@ -76,10 +76,10 @@ ret = @sess.set_form_fields custid: 'tryouts', planid: :testing
 ret.class
 #=> Integer
 
-## Can get form fields, with indifferent access via symbol or string
+## Cannot get form fields with indifferent access via symbol or string
 ret = @sess.get_form_fields!
 [ret.class, ret[:custid], ret['custid']]
-#=> [Hash, 'tryouts', 'tryouts']
+#=> [Hash, nil, 'tryouts']
 
 ## By default sessions do not have auth disabled
 sess = V2::Session.create @ipaddress, @custid, @useragent
