@@ -13,7 +13,7 @@
   "frontend_development": true,
   "frontend_host": "http://localhost:5173",
   "incoming_recipient": null,
-  "plans_enabled": true,
+  "billing_enabled": true,
   "regions": {
     "enabled": true,
     "current_jurisdiction": "EU",
@@ -69,91 +69,6 @@
   "i18n_enabled": true,
   "messages": [],
   "global_banner": null,
-  "available_plans": {
-    "anonymous": {
-      "identifier": "anonymous",
-      "planid": "anonymous",
-      "price": 0,
-      "discount": 0,
-      "options": { "ttl": 604800.0, "size": 100000, "api": false, "name": "Anonymous" }
-    },
-    "f422637b": {
-      "identifier": "anonymous",
-      "planid": "anonymous",
-      "price": 0,
-      "discount": 0,
-      "options": { "ttl": 604800.0, "size": 100000, "api": false, "name": "Anonymous" }
-    },
-    "basic": {
-      "identifier": "basic",
-      "planid": "basic",
-      "price": 0,
-      "discount": 0,
-      "options": {
-        "ttl": 1209600.0,
-        "size": 1000000,
-        "api": true,
-        "name": "Basic Plan",
-        "email": true,
-        "custom_domains": false,
-        "dark_mode": true
-      }
-    },
-    "b0f9a4f9": {
-      "identifier": "basic",
-      "planid": "basic",
-      "price": 0,
-      "discount": 0,
-      "options": {
-        "ttl": 1209600.0,
-        "size": 1000000,
-        "api": true,
-        "name": "Basic Plan",
-        "email": true,
-        "custom_domains": false,
-        "dark_mode": true
-      }
-    },
-    "identity": {
-      "identifier": "identity",
-      "planid": "identity",
-      "price": 35,
-      "discount": 0,
-      "options": {
-        "ttl": 2592000.0,
-        "size": 10000000,
-        "api": true,
-        "name": "Identity",
-        "email": true,
-        "custom_domains": true,
-        "dark_mode": true
-      }
-    },
-    "64629795": {
-      "identifier": "identity",
-      "planid": "identity",
-      "price": 35,
-      "discount": 0,
-      "options": {
-        "ttl": 2592000.0,
-        "size": 10000000,
-        "api": true,
-        "name": "Identity",
-        "email": true,
-        "custom_domains": true,
-        "dark_mode": true
-      }
-    }
-  },
-  "plan": {
-    "identifier": "anonymous",
-    "planid": "anonymous",
-    "price": 0,
-    "discount": 0,
-    "options": { "ttl": 604800.0, "size": 100000, "api": false, "name": "Anonymous" }
-  },
-  "is_paid": false,
-  "default_planid": "basic",
   "ot_version": "0.20.4",
   "ot_version_long": "0.20.4 (45fb50aa)",
   "ruby_version": "ruby-341",

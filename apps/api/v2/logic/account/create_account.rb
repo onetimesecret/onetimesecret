@@ -4,7 +4,7 @@ module V2::Logic
   module Account
 
     class CreateAccount < V2::Logic::Base
-      attr_reader :cust, :plan, :autoverify, :customer_role
+      attr_reader :cust, :autoverify, :customer_role
       attr_reader :planid, :custid, :password, :skill
       attr_accessor :token
 
@@ -31,9 +31,7 @@ module V2::Logic
         raise_form_error "Is that a valid email address?" unless valid_email?(custid)
         raise_form_error "Password is too short" unless password.size >= 6
 
-        unless Onetime::Plan.plan?(planid)
-          @planid = 'basic'
-        end
+        @planid ||= 'basic'
 
         # Quietly redirect suspected bots to the home page.
         unless skill.empty?
@@ -43,7 +41,6 @@ module V2::Logic
 
       def process
 
-        @plan = Onetime::Plan.plan(planid)
         @cust = V2::Customer.create custid
 
         cust.update_passphrase password
@@ -57,14 +54,13 @@ module V2::Logic
                            'customer'
                          end
 
-        cust.planid = @plan.planid
+        cust.planid = planid
         cust.verified = @autoverify.to_s
         cust.role = @customer_role.to_s
         cust.save
 
-        OT.info "[new-customer] #{cust.custid} #{cust.role} #{sess.ipaddress} #{plan.planid} #{sess.short_identifier}"
+        OT.info "[new-customer] #{cust.custid} #{cust.role} #{sess.ipaddress} #{planid} #{sess.short_identifier}"
         V2::Logic.stathat_count("New Customers (OTS)", 1)
-
 
         success_message = if autoverify
           "Account created."

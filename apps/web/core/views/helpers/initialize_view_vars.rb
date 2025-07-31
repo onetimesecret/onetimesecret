@@ -13,8 +13,8 @@ module Core
       # Define fields that are safe to expose to the frontend
       # Explicitly excluding :secret and :authenticity which contain sensitive data
       @safe_site_fields = [
-        :host, :ssl, :plans, :interface, :domains,
-        :secret_options, :authentication, :support, :regions
+        :host, :ssl, :interface, :domains,
+        :secret_options, :authentication, :regions
       ]
 
       class << self

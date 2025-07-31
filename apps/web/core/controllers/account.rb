@@ -26,7 +26,7 @@ module Core
       #       authenticated users. For authenticated users, it pre-fills the email
       #       in the Stripe checkout process.
       #
-      # @see OT.conf[:site][:plans][:payment_links] For the configuration of Stripe Payment Links
+      # @see OT.conf[:billing][:payment_links] For the configuration of Stripe Payment Links
       #
       # @see https://docs.stripe.com/api/payment-link/object For API reference
       #
@@ -37,11 +37,11 @@ module Core
           tierid = req.params[:tier] ||= 'free'
           billing_cycle = req.params[:billing_cycle] ||= 'month' # year or month
 
-          plans = OT.conf.dig(:site, :plans)
-          payment_links = plans.fetch(:payment_links, {})
+          billing = OT.conf.dig(:billing)
+          payment_links = billing.fetch(:payment_links, {})
           payment_link = payment_links.dig(tierid.to_sym, billing_cycle.to_sym)
 
-          OT.ld "[plan_redirect] plans: #{plans}"
+          OT.ld "[plan_redirect] billing: #{billing}"
           OT.ld "[plan_redirect] payment_links: #{payment_links}"
           OT.ld "[plan_redirect] payment_link: #{payment_link}"
 

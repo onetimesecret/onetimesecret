@@ -8,7 +8,7 @@ module V2
   module Logic
     module Colonel
       class GetColonelInfo < V2::Logic::Base
-        attr_reader :plans_enabled, :title, :stathat_chart, :session_count,
+        attr_reader :billing_enabled, :title, :stathat_chart, :session_count,
                     :today_feedback, :yesterday_feedback, :older_feedback, :feedback_count,
                     :today_feedback_count, :yesterday_feedback_count, :older_feedback_count,
                     :recent_customers, :customer_count, :recent_customer_count, :metadata_count,
@@ -16,8 +16,9 @@ module V2
                     :has_split_tests, :redis_info
 
         def process_params
+          billing = OT.conf.fetch(:billing, {})
           site = OT.conf.fetch(:site, {})
-          @plans_enabled = site.dig(:plans, :enabled) || false
+          @billing_enabled = billing.fetch(:enabled, false)
         end
 
         def raise_concerns
@@ -110,7 +111,7 @@ module V2
               yesterday_feedback: yesterday_feedback,
               older_feedback: older_feedback,
               redis_info: redis_info,
-              plans_enabled: plans_enabled,
+              billing_enabled: billing_enabled,
               counts: {
                 session_count: session_count,
                 customer_count: customer_count,

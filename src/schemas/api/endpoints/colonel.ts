@@ -123,7 +123,6 @@ const diagnosticsSchema = z.object({
     .optional(),
 });
 
-
 /**
  * SystemSettingsSchema defines the top-level structure of the settings.
  * Each section references deeper schemas defined elsewhere.
@@ -187,7 +186,7 @@ export const colonelInfoDetailsSchema = z.object({
   yesterday_feedback: z.array(feedbackSchema).default([]),
   older_feedback: z.array(feedbackSchema).nullable().default(null),
   redis_info: z.string().optional().default(''),
-  plans_enabled: z.boolean().optional().default(false),
+  billing_enabled: z.boolean().optional().default(false),
   counts: z.object({
     customer_count: transforms.fromString.number,
     emails_sent: transforms.fromString.number,

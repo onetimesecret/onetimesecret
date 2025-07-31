@@ -48,7 +48,7 @@ logic.raise_concerns
 logic.process
 [
   logic.cust.class,
-  logic.plan.planid,
+  logic.planid,
   logic.autoverify,
   logic.customer_role
 ]
@@ -92,7 +92,7 @@ logic.process
 
 ## Test account retrieval
 logic = V2::Logic::Account::GetAccount.new @sess, @cust, {}
-[logic.plans_enabled, logic.stripe_customer, logic.stripe_subscription]
+[logic.billing_enabled, logic.stripe_customer, logic.stripe_subscription]
 #=> [false, nil, nil]
 
 # DestroyAccount Tests

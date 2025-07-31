@@ -1,5 +1,5 @@
 // src/tests/stores/authStore.spec.ts
-import { Customer, Plan } from '@/schemas/models';
+import { Customer } from '@/schemas/models';
 import { AUTH_CHECK_CONFIG, useAuthStore } from '@/stores/authStore';
 import { createApi } from '@/api';
 import AxiosMockAdapter from 'axios-mock-adapter';
@@ -17,20 +17,7 @@ const mockWindow = {
   baseuri: 'https://example.com',
   is_paid: true,
   domains_enabled: true,
-  plans_enabled: true,
-};
-
-const mockPlan: Plan = {
-  identifier: 'basic-plan',
-  planid: 'basic',
-  price: 0,
-  discount: 0,
-  options: {
-    ttl: 7 * 24 * 60 * 60, // 7 days in seconds
-    size: 1024 * 1024, // 1MB in bytes
-    api: false,
-    name: 'Basic Plan',
-  },
+  billing_enabled: true,
 };
 
 // Create a mock Customer object that matches the actual Customer type
@@ -39,7 +26,6 @@ const mockCustomer: Customer = {
   custid: '1',
   role: 'customer', // Changed from 'user' to valid enum value
   planid: 'basic',
-  plan: mockPlan,
   verified: true,
   secrets_burned: 0,
   secrets_shared: 0,

@@ -117,20 +117,6 @@ module Onetime
     def build_features_section(site_config)
       feature_rows = []
 
-      # Plans section
-      if site_config.key?(:plans)
-        plans_config = site_config[:plans]
-        if is_feature_disabled?(plans_config)
-          feature_rows << ['Plans', 'disabled']
-        else
-          begin
-            feature_rows << ['Plans', OT::Plan.plans.keys.join(', ')]
-          rescue => e
-            feature_rows << ['Plans', "Error: #{e.message}"]
-          end
-        end
-      end
-
       # Domains and regions
       [:domains, :regions].each do |key|
         next unless site_config.key?(key)

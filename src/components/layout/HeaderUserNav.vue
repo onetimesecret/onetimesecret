@@ -8,11 +8,10 @@
   import { WindowService } from '@/services/window.service';
 
   // Access the necessary window properties with defaults
-  const windowProps = WindowService.getMultiple(['domains_enabled', 'plan']);
+  const windowProps = WindowService.getMultiple(['domains_enabled']);
 
   const domainsEnabled = windowProps.domains_enabled;
-  const planAllowsCustomDomains = windowProps.plan.options?.custom_domains === true;
-  const showUpgrade = computed(() => domainsEnabled && !planAllowsCustomDomains);
+  const showUpgrade = computed(() => domainsEnabled);
 
   // Allows for highlighting feature to user just one
   // time to false after user has seen it once. Setting

@@ -71,7 +71,7 @@ module V2
       :stripe_subscription_id,
       :stripe_checkout_email,
 
-      {:plan => ->(cust) { cust.load_plan } }, # safe_dump will be called automatically
+      :planid,
 
       # NOTE: The secrets_created incrementer is null until the first secret
       # is created. See ConcealSecret for where the incrementer is called.
@@ -124,9 +124,6 @@ module V2
       self.apitoken # the fast writer bang methods don't return the value
     end
 
-    def load_plan
-      Onetime::Plan.plan(planid) || {:planid => planid, :source => 'parts_unknown'}
-    end
 
     def get_stripe_customer
       get_stripe_customer_by_id || get_stripe_customer_by_email
@@ -426,6 +423,8 @@ module V2
         raise Onetime::Problem, "custid is required" if custid.to_s.empty?
         raise Onetime::Problem, "Customer exists" if exists?(custid)
         cust = new custid: custid, email: email || custid, role: 'customer'
+        cust.planid = 'basic'
+        OT.ld "[create] custid: #{custid}, #{cust.safe_dump}"
         cust.save
         add cust
         cust

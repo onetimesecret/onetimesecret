@@ -43,9 +43,6 @@ RSpec.describe V1::Logic::Secrets::BaseSecretAction do
   end
 
   before do
-    allow(Onetime::Plan).to receive(:plan).and_return(double('Plan',
-      paid?: false,
-      options: {size: 1024, ttl: 7.days}))
     allow(Truemail).to receive(:validate).and_return(
       double('Validator', result: double('Result', valid?: true), as_json: '{}'),
     )

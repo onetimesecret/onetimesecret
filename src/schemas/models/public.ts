@@ -129,16 +129,6 @@ const authenticitySchema = z
   .strip();
 
 /**
- * Schema for the :plans section
- */
-const plansSchema = z.object({
-  enabled: transforms.fromString.boolean,
-  stripe_key: z.string().optional(),
-  webook_signing_secret: z.string().optional(),
-  payment_links: z.any().optional(),
-});
-
-/**
  * Schema for the :support section
  */
 const supportSchema = z.object({
@@ -156,7 +146,6 @@ export const publicSettingsSchema = z
     authentication: authenticationSchema,
     // secret: z.string(),
     authenticity: authenticitySchema,
-    plans: plansSchema,
     support: supportSchema,
     regions: regionsSchema,
     secret_options: secretOptionsSchema,

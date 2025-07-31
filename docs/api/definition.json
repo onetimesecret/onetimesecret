@@ -2968,7 +2968,7 @@
               "redis_info": {
                 "type": "string"
               },
-              "plans_enabled": {
+              "billing_enabled": {
                 "type": "boolean"
               },
               "counts": {
@@ -3033,7 +3033,7 @@
               "yesterday_feedback",
               "older_feedback",
               "redis_info",
-              "plans_enabled",
+              "billing_enabled",
               "counts"
             ]
           }

@@ -8,7 +8,7 @@ require 'onetime'
 require 'onetime/migration'
 
 # Set of valid plan IDs
-VALID_PLANS = ['anonymous', 'basic', 'identity'].freeze
+VALID_PLANS = ['anonymous', 'basic', 'identity'].freeze # ignore
 
 module Onetime
   class Migration < BaseMigration
@@ -62,7 +62,7 @@ module Onetime
             next
           end
 
-          normalized_planid = Onetime::Plan.normalize(planid)
+          normalized_planid = planid.to_s.downcase
 
           # Check if plan is deprecated
           unless VALID_PLANS.include?(normalized_planid)

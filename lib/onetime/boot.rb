@@ -64,7 +64,6 @@ module Onetime
       configure_truemail
       prepare_emailers
       load_fortunes
-      load_plans
 
       if connect_to_db
         connect_databases
@@ -124,6 +123,10 @@ module Onetime
 
     def ready?
       @ready == true
+    end
+
+    def not_ready!
+      @ready = false
     end
 
     private

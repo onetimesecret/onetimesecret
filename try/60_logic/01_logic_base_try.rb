@@ -71,8 +71,8 @@ end
 
 ## Plan defaults to anonymous for nil customer
 @obj_no_cust = TestLogic.new(@sess, nil)
-@obj_no_cust.send(:plan).planid
-#=> 'anonymous'
+@obj_no_cust.planid
+#=> nil
 
 
 ## Form error includes form fields

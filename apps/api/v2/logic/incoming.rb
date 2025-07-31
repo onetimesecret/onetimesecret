@@ -43,7 +43,7 @@ module V2
             secret.update_passphrase passphrase
             metadata.passphrase = secret.passphrase
           end
-          secret.encrypt_value secret_value, :size => plan.options[:size]
+          secret.encrypt_value secret_value
           metadata.ttl, secret.ttl = ttl, ttl
           metadata.secret_shortkey = secret.shortkey
           secret.save

@@ -12,7 +12,6 @@ RSpec.describe Core::Views::BaseView do
   include_context "view_test_context"
 
   before(:all) do
-    OT::Plan.load_plans!
 
     described_class.use_serializers(
       Core::Views::ConfigSerializer,
@@ -20,7 +19,6 @@ RSpec.describe Core::Views::BaseView do
       Core::Views::DomainSerializer,
       Core::Views::I18nSerializer,
       Core::Views::MessagesSerializer,
-      Core::Views::PlanSerializer,
       Core::Views::SystemSerializer,
     )
   end
@@ -109,7 +107,6 @@ RSpec.describe Core::Views::BaseView do
             "stripe_customer_id" => nil,
             "stripe_subscription_id" => nil,
             "stripe_checkout_email" => nil,
-            "plan" => {"planid" => nil, "source" => "parts_unknown"},
             "secrets_created" => "0",
             "secrets_burned" => "0",
             "secrets_shared" => "0",
@@ -282,7 +279,6 @@ RSpec.describe Core::Views::BaseView do
             "stripe_customer_id" => nil,
             "stripe_subscription_id" => nil,
             "stripe_checkout_email" => nil,
-            "plan" => {"planid" => nil, "source" => "parts_unknown"},
             "secrets_created" => "0",
             "secrets_burned" => "0",
             "secrets_shared" => "0",

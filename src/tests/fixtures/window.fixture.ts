@@ -24,7 +24,7 @@ export const stateFixture: OnetimeWindow = {
 
   ot_version: '0.20.0',
   ot_version_long: '0.20.0 (abcd)',
-  plans_enabled: true,
+  billing_enabled: true,
   regions_enabled: true,
   ruby_version: 'ruby-335',
   shrimp: 'test-shrimp-token',
@@ -41,21 +41,6 @@ export const stateFixture: OnetimeWindow = {
     default_ttl: 604800.0,
     ttl_options: [60, 3600, 86400, 604800, 1209600, 2592000],
   },
-  available_plans: {},
-  plan: {
-    identifier: 'anonymous',
-    planid: 'anonymous',
-    price: 0,
-    discount: 0,
-    options: {
-      ttl: 604800.0,
-      size: 100000,
-      api: false,
-      name: 'Anonymous',
-    },
-  },
-  is_paid: false,
-  default_planid: 'basic',
   regions: {
     identifier: 'EU',
     enabled: true,

@@ -4,7 +4,6 @@ import { PiniaPluginOptions } from '@/plugins/pinia';
 import { responseSchemas } from '@/schemas/api/responses';
 import type { Customer } from '@/schemas/models/customer';
 import { loggingService } from '@/services/logging.service';
-import { WindowService } from '@/services/window.service';
 import { AxiosInstance } from 'axios';
 import { defineStore, PiniaCustomProperties } from 'pinia';
 import { computed, handleError, inject, ref } from 'vue';
@@ -17,9 +16,6 @@ export type CustomerStore = {
   currentCustomer: Customer | null;
   abortController: AbortController | null;
   _initialized: boolean;
-
-  // Getters
-  getPlanSize: number;
 
   // Actions
   abort: () => void;
@@ -39,15 +35,9 @@ export const useCustomerStore = defineStore('customer', () => {
   const currentCustomer = ref<Customer | null>(null);
   const abortController = ref<AbortController | null>(null);
   const _initialized = ref(false);
-  const available_plans = WindowService.get('available_plans');
 
   // Getters
   const isInitialized = computed(() => _initialized.value);
-  const getPlanSize = computed(() => {
-    const DEFAULT_SIZE = 10000;
-    const customerPlan = currentCustomer.value?.plan ?? available_plans?.anonymous;
-    return customerPlan?.options?.size ?? DEFAULT_SIZE;
-  });
 
   // Actions
 
@@ -127,9 +117,6 @@ export const useCustomerStore = defineStore('customer', () => {
     currentCustomer,
     abortController,
     _initialized,
-
-    // Getters
-    getPlanSize,
 
     // Actions
     handleError,
