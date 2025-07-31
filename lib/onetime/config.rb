@@ -8,13 +8,13 @@ module Onetime
       SERVICE_PATHS = %w[/etc/onetime ./etc ./etc/defaults].freeze
       UTILITY_PATHS = %w[~/.onetime /etc/onetime ./etc ./etc/defaults].freeze
       DEFAULTS = {
-        site: {
-          secret: nil,
-          domains: { enabled: false },
-          regions: { enabled: false },
-          secret_options: {
-            default_ttl: 7.days,
-            ttl_options: [
+        'site' => {
+          'secret' => nil,
+          'domains' => { 'enabled' => false },
+          'regions' => { 'enabled' => false },
+          'secret_options' => {
+            'default_ttl' => 7.days,
+            'ttl_options' => [
               60.seconds,     # 60 seconds (was missing from v0.20.5)
               5.minutes,      # 300 seconds
               30.minutes,     # 1800
@@ -28,41 +28,41 @@ module Onetime
               30.days,        # 2592000
             ]
           },
-          interface: {
-            ui: { enabled: true },
-            api: { enabled: true },
+          'interface' => {
+            'ui' => { 'enabled' => true },
+            'api' => { 'enabled' => true },
           },
           # All keys that we want to explicitly be set to false when enabled
           # is false, should be represented in this hash.
-          authentication: {
-            enabled: false,
-            signin: false,
-            signup: false,
-            autoverify: false,
-            colonels: [],
+          'authentication' => {
+            'enabled' => false,
+            'signin' => false,
+            'signup' => false,
+            'autoverify' => false,
+            'colonels' => [],
           },
         },
-        internationalization: {
-          enabled: false,
-          default_locale: 'en',
+        'internationalization' => {
+          'enabled' => false,
+          'default_locale' => 'en',
         },
-        billing: {
-          enabled: false,
+        'billing' => {
+          'enabled' => false,
         },
-        mail: {},
-        logging: {
-          http_requests: true,
+        'mail' => {},
+        'logging' => {
+          'http_requests' => true,
         },
-        diagnostics: {
-          enabled: false,
+        'diagnostics' => {
+          'enabled' => false,
         },
-        development: {
-          enabled: false,
-          frontend_host: '',
+        'development' => {
+          'enabled' => false,
+          'frontend_host' => '',
         },
-        experimental: {
-          allow_nil_global_secret: false, # defaults to a secure setting
-          rotated_secrets: [],
+        'experimental' => {
+          'allow_nil_global_secret' => false, # defaults to a secure setting
+          'rotated_secrets' => [],
         },
       }
 
@@ -143,43 +143,43 @@ module Onetime
       # consistency, security, and to prevent unexpected behavior. Ensures clean
       # config state.
       # NOTE: Needs to run after other site.authentication logic
-      if conf.dig(:site, :authentication, :enabled) != true
-        conf[:site][:authentication].each_key do |key|
-          conf[:site][:authentication][key] = false
+      if conf.dig('site', 'authentication', 'enabled') != true
+        conf['site']['authentication'].each_key do |key|
+          conf['site']['authentication'][key] = false
         end
       end
 
       # Combine colonels from root level and authentication section
       # This handles the legacy config where colonels were at the root level
       # while ensuring we don't lose any colonels from either location
-      root_colonels = conf.fetch(:colonels, [])
-      auth_colonels = conf.dig(:site, :authentication, :colonels) || []
-      conf[:site][:authentication][:colonels] = (auth_colonels + root_colonels).compact.uniq
+      root_colonels = conf.fetch('colonels', [])
+      auth_colonels = conf.dig('site', 'authentication', 'colonels') || []
+      conf['site']['authentication']['colonels'] = (auth_colonels + root_colonels).compact.uniq
 
       # Clear colonels and set to false if authentication is disabled
-      unless conf.dig(:site, :authentication, :enabled)
-        conf[:site][:authentication][:colonels] = false
+      unless conf.dig('site', 'authentication', 'enabled')
+        conf['site']['authentication']['colonels'] = false
       end
 
-      ttl_options = conf.dig(:site, :secret_options, :ttl_options)
-      default_ttl = conf.dig(:site, :secret_options, :default_ttl)
+      ttl_options = conf.dig('site', 'secret_options', 'ttl_options')
+      default_ttl = conf.dig('site', 'secret_options', 'default_ttl')
 
       # if the ttl_options setting is a string, we want to split it into an
       # array of integers.
       if ttl_options.is_a?(String)
-        conf[:site][:secret_options][:ttl_options] = ttl_options.split(/\s+/)
+        conf['site']['secret_options']['ttl_options'] = ttl_options.split(/\s+/)
       end
-      ttl_options = conf.dig(:site, :secret_options, :ttl_options)
+      ttl_options = conf.dig('site', 'secret_options', 'ttl_options')
       if ttl_options.is_a?(Array)
-        conf[:site][:secret_options][:ttl_options] = ttl_options.map(&:to_i)
+        conf['site']['secret_options']['ttl_options'] = ttl_options.map(&:to_i)
       end
 
       if default_ttl.is_a?(String)
-        conf[:site][:secret_options][:default_ttl] = default_ttl.to_i
+        conf['site']['secret_options']['default_ttl'] = default_ttl.to_i
       end
 
-      if conf.dig(:billing, :enabled).to_s == "true"
-        stripe_key = conf.dig(:billing, :stripe_key)
+      if conf.dig('billing', 'enabled').to_s == "true"
+        stripe_key = conf.dig('billing', 'stripe_key')
         unless stripe_key
           raise OT::Problem, "No `billing.stripe_key` found in #{path}"
         end
@@ -190,19 +190,19 @@ module Onetime
 
       # Apply the defaults to sentry backend and frontend configs
       # and set our local config with the merged values.
-      diagnostics = incoming_config.fetch(:diagnostics, {})
-      conf[:diagnostics] = {
-        enabled: diagnostics[:enabled] || false,
-        sentry: apply_defaults_to_peers(diagnostics[:sentry]),
+      diagnostics = incoming_config.fetch('diagnostics', {})
+      conf['diagnostics'] = {
+        'enabled' => diagnostics['enabled'] || false,
+        'sentry' => apply_defaults_to_peers(diagnostics['sentry']),
       }
-      conf[:diagnostics][:sentry][:backend] ||= {}
+      conf['diagnostics']['sentry']['backend'] ||= {}
 
       # Update global diagnostic flag based on config
-      backend_dsn = conf.dig(:diagnostics, :sentry, :backend, :dsn)
-      frontend_dsn = conf.dig(:diagnostics, :sentry, :frontend, :dsn)
+      backend_dsn = conf.dig('diagnostics', 'sentry', 'backend', 'dsn')
+      frontend_dsn = conf.dig('diagnostics', 'sentry', 'frontend', 'dsn')
 
       # It's disabled when no DSN is present, regardless of enabled setting
-      Onetime.d9s_enabled = !!(conf.dig(:diagnostics, :enabled) && (backend_dsn || frontend_dsn))
+      Onetime.d9s_enabled = !!(conf.dig('diagnostics', 'enabled') && (backend_dsn || frontend_dsn))
 
       # SECURITY MEASURE #4: Configuration Immutability
       # Freeze the entire configuration recursively to prevent modifications
@@ -223,8 +223,8 @@ module Onetime
       # Handle potential nil global secret
       # The global secret is critical for encrypting/decrypting secrets
       # Running without a global secret is only permitted in exceptional cases
-      allow_nil = conf.dig(:experimental, :allow_nil_global_secret) || false
-      global_secret = conf[:site].fetch(:secret, nil)
+      allow_nil = conf.dig('experimental', 'allow_nil_global_secret') || false
+      global_secret = conf['site'].fetch('secret', nil)
       global_secret = nil if global_secret.to_s.strip == 'CHANGEME'
 
       # Onetime.global_secret is set in the initializer set_global_secret
@@ -250,7 +250,7 @@ module Onetime
         OT.li "!" * 50
       end
 
-      unless conf[:mail].key?(:truemail)
+      unless conf['mail'].key?('truemail')
         raise OT::ConfigError, "No TrueMail config found"
       end
     end
@@ -264,7 +264,7 @@ module Onetime
     end
 
     def mapped_key(key)
-      # `key` is a symbol. Returns a symbol.
+      # `key` is a string. Returns a string.
       # If the key is not in the KEY_MAP, return the key itself.
       KEY_MAP[key] || key
     end
@@ -325,40 +325,40 @@ module Onetime
 
     # Applies default values to its config level peers
     #
-    # @param config [Hash] Configuration with top-level section keys, including a :defaults key
-    # @return [Hash] Configuration with defaults applied to each section, with :defaults removed
+    # @param config [Hash] Configuration with top-level section keys, including a 'defaults' key
+    # @return [Hash] Configuration with defaults applied to each section, with 'defaults' removed
     #
-    # This method extracts defaults from the :defaults key and applies them to each section:
+    # This method extracts defaults from the 'defaults' key and applies them to each section:
     # - Section values override defaults (except nil values, which use defaults)
-    # - The :defaults section is removed from the result
+    # - The 'defaults' section is removed from the result
     # - Only Hash-type sections receive defaults
     #
     # @example Basic usage
     #   config = {
-    #     defaults: { timeout: 5, enabled: true },
-    #     api: { timeout: 10 },
-    #     web: { theme: 'dark' }
+    #     'defaults' => { 'timeout' => 5, 'enabled' => true },
+    #     'api' => { 'timeout' => 10 },
+    #     'web' => { 'theme' => 'dark' }
     #   }
     #   apply_defaults_to_peers(config)
-    #   # => { api: { timeout: 10, enabled: true },
-    #   #      web: { theme: 'dark', timeout: 5, enabled: true } }
+    #   # => { 'api' => { 'timeout' => 10, 'enabled' => true },
+    #   #      'web' => { 'theme' => 'dark', 'timeout' => 5, 'enabled' => true } }
     #
     # @example Edge cases
-    #   apply_defaults_to_peers({a: {x: 1}})                # => {a: {x: 1}}
-    #   apply_defaults_to_peers({defaults: {x: 1}, b: {}})  # => {b: {x: 1}}
+    #   apply_defaults_to_peers({'a' => {'x' => 1}})                # => {'a' => {'x' => 1}}
+    #   apply_defaults_to_peers({'defaults' => {'x' => 1}, 'b' => {}})  # => {'b' => {'x' => 1}}
     #
     def apply_defaults_to_peers(config={})
       return {} if config.nil? || config.empty?
 
       # Extract defaults from the configuration
-      defaults = config[:defaults]
+      defaults = config['defaults']
 
-      # If no valid defaults exist, return config without the :defaults key
-      return config.except(:defaults) unless defaults.is_a?(Hash)
+      # If no valid defaults exist, return config without the 'defaults' key
+      return config.except('defaults') unless defaults.is_a?(Hash)
 
       # Process each section, applying defaults
       config.each_with_object({}) do |(section, values), result|
-        next if section == :defaults   # Skip the :defaults key
+        next if section == 'defaults'   # Skip the 'defaults' key
         next unless values.is_a?(Hash) # Process only sections that are hashes
 
         # Apply defaults to each section
@@ -424,16 +424,14 @@ module Onetime
   # to the names that are used by other libraries. This makes it easier
   # for us to have our own consistent naming conventions.
   KEY_MAP = {
-    allowed_domains_only: :whitelist_validation,
-    allowed_emails: :whitelisted_emails,
-    blocked_emails: :blacklisted_emails,
-    allowed_domains: :whitelisted_domains,
-    blocked_domains: :blacklisted_domains,
-    blocked_mx_ip_addresses: :blacklisted_mx_ip_addresses,
+    'allowed_domains_only' => 'whitelist_validation',
+    'allowed_emails' => 'whitelisted_emails',
+    'blocked_emails' => 'blacklisted_emails',
+    'allowed_domains' => 'whitelisted_domains',
+    'blocked_domains' => 'blacklisted_domains',
+    'blocked_mx_ip_addresses' => 'blacklisted_mx_ip_addresses',
 
     # An example mapping for testing.
-    example_internal_key: :example_external_key,
+    'example_internal_key' => 'example_external_key',
   }
-
-
 end

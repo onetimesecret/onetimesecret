@@ -21,7 +21,7 @@ module Onetime
     # @return [void]
     #
     def connect_databases
-      Familia.uri = OT.conf[:redis][:uri]
+      Familia.uri = OT.conf['redis']['uri']
 
       # Connect each model to its configured Redis database
       dbs = OT.conf.dig(:redis, :dbs)
@@ -36,7 +36,7 @@ module Onetime
 
       # Map model classes to their database numbers
       Familia.members.each do |model_class|
-        model_sym = model_class.to_sym
+        model_sym = model_class.to_sym # TODO: renamed to config_name in Familia 2. Need to fix after standardizing symbol keys to strings
         db_index = dbs[model_sym] || DATABASE_IDS[model_sym] || 0 # see models.rb
 
         # Assign a Redis connection to the model class

@@ -7,12 +7,12 @@ module Onetime
 
     def setup_diagnostics
 
-      OT.d9s_enabled = conf[:diagnostics][:enabled] || false
+      OT.d9s_enabled = conf['diagnostics']['enabled'] || false
       return unless OT.d9s_enabled
 
-      backend = conf[:diagnostics][:sentry][:backend]
-      dsn = backend.fetch(:dsn, nil)
-      site_host = conf.dig(:site, :host)
+      backend = conf['diagnostics']['sentry']['backend']
+      dsn = backend.fetch('dsn', nil)
+      site_host = conf.dig('site', 'host')
 
       OT.ld "Setting up Sentry #{backend}..."
 

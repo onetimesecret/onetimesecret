@@ -18,7 +18,7 @@ module Core
 
       def create_incoming
         publically(req.request_path) do
-          if OT.conf[:incoming] && OT.conf[:incoming][:enabled]
+          if OT.conf['incoming'] && OT.conf['incoming']['enabled']
             logic = V2::Logic::Incoming::CreateIncoming.new sess, cust, req.params, locale
             logic.raise_concerns
             logic.process

@@ -17,7 +17,7 @@ require_relative 'test_helpers'
 # Use the default config file for tests
 OT.boot! :test, false
 
-@email_address = OT.conf[:emailer][:from]
+@email_address = OT.conf['emailer']['from']
 
 
 ## Finds a config path
@@ -30,7 +30,7 @@ OT.boot! :test, false
 #=> Hash
 
 ## Has basic config
-[@config[:site].class, @config[:redis].class]
+[@config['site'].class, @config['redis'].class]
 #=> [Hash, Hash]
 
 OT.boot! :test, false
@@ -66,65 +66,65 @@ paths.include?(path)
 #=> true
 
 ## Site has options for authentication
-OT.conf[:site].key? :authentication
+OT.conf['site'].key? 'authentication'
 #=> true
 
 ## Authentication has options for enabled
-OT.conf[:site][:authentication].key? :enabled
+OT.conf['site']['authentication'].key? 'enabled'
 #=> true
 
 ## Authentication is enabled by default
-OT.conf[:site][:authentication][:enabled]
+OT.conf['site']['authentication']['enabled']
 #=> true
 
 ## Signup is enabled by default
-OT.conf[:site][:authentication][:signup]
+OT.conf['site']['authentication']['signup']
 #=> true
 
 ## Signin is enabled by default
-OT.conf[:site][:authentication][:signin]
+OT.conf['site']['authentication']['signin']
 #=> true
 
 ## Auto-verification is disabled by default
-OT.conf[:site][:authentication][:autoverify]
+OT.conf['site']['authentication']['autoverify']
 #=> false
 
 ## Option for emailer
-OT.conf[:emailer][:from]
+OT.conf['emailer']['from']
 #=> "tests@example.com"
 
 ## Default emailer mode is :smtp
-OT.conf[:emailer][:mode]
+OT.conf['emailer']['mode']
 #=> "smtp"
 
 ## Default emailer from address is "CHANGEME@example.com"
-OT.conf[:emailer][:from]
+OT.conf['emailer']['from']
 #=> "tests@example.com"
 
 ## Default emailer fromname is "Jan"
-OT.conf[:emailer][:fromname]
+OT.conf['emailer']['fromname']
 #=> "Jan"
 
 ## Default SMTP host is "localhost"
-OT.conf[:emailer][:host]
+OT.conf['emailer']['host']
 #=> "localhost"
 
 ## Default SMTP port is 587
-OT.conf[:emailer][:port]
+OT.conf['emailer']['port']
 #=> 587
 
 ## Default SMTP username is "CHANGEME"
-OT.conf[:emailer][:user]
+OT.conf['emailer']['user']
 #=> "user"
 
 ## Default SMTP password is "CHANGEME"
-OT.conf[:emailer][:pass]
+OT.conf['emailer']['pass']
 #=> "pass"
 
 ## Default SMTP auth is "login"
-OT.conf[:emailer][:auth]
+OT.conf['emailer']['auth']
 #=> "login"
 
 ## Default SMTP TLS is true
-OT.conf[:emailer][:tls]
+OT.conf['emailer']['tls']
 #=> true

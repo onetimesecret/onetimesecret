@@ -24,7 +24,7 @@ OT.boot! :test, false
 # Web Routes (default settings)
 
 ## Authentication is enabled
-OT.conf[:site][:authentication][:signin]
+OT.conf['site']['authentication']['signin']
 #=> true
 
 ## With default configuration, can access the sign-in page
@@ -71,7 +71,7 @@ new_conf = {
 OT.instance_variable_set(:@conf, new_conf)
 processed_conf = OT::Config.after_load(OT.conf)
 OT.instance_variable_set(:@conf, old_conf)
-processed_conf[:site][:authentication][:signin]
+processed_conf['site']['authentication']['signin']
 #=> false
 
 ## With auth disabled, can access the sign-in page

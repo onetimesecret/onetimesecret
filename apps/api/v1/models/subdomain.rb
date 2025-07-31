@@ -58,7 +58,7 @@ module V1
 
     def fulldomain
       # Previously was:
-      #   '%s.%s' % [self['cname'], OT.conf[:site][:domain]]
+      #   '%s.%s' % [self['cname'], OT.conf['site']['domain']]
       #
       raise NotImplementedError
     end
