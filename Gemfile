@@ -134,8 +134,8 @@ group :development do
   gem 'ruby-lsp', require: false
   gem 'syntax_tree', require: false
 
-  # Enable for Debug Adapter Protocol. Not included with the development group
-  # group because it lags on byebug version.
+  # Enable for Debug Adapter Protocol. Not included with the
+  # development group because it lags on byebug version.
   # gem 'byebug-dap', require: false
 end
 
