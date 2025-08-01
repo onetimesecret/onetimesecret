@@ -1,6 +1,4 @@
-require 'syslog'
-
-SYSLOG = Syslog.open('onetime') unless defined?(SYSLOG)
+# lib/middleware/header_logger_middleware.rb
 
 # Rack::HeaderLoggerMiddleware
 #

@@ -234,8 +234,6 @@ GEM
       unicode_utils (~> 1.4)
     strings-ansi (0.2.0)
     stripe (15.4.0)
-    syslog (0.3.0)
-      logger
     thin (2.0.1)
       daemons (~> 1.0, >= 1.0.9)
       eventmachine (~> 1.0, >= 1.0.4)
@@ -324,7 +322,6 @@ DEPENDENCIES
   storable
   stringio (~> 3.1.6)
   stripe
-  syslog (~> 0.3.0)
   thin
   truemail
   tryouts (~> 3.2.1)
