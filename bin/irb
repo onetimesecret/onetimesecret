@@ -1,0 +1,3 @@
+#!/bin/bash
+
+irb -Ilib -r onetime -Iapps/api -Iapps/web -Itry -r test_helpers -r test_models -r test_logic
