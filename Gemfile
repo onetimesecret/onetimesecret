@@ -17,7 +17,6 @@ source 'https://rubygems.org/'
 
 gem 'truemail'
 
-gem 'addressable'
 gem 'altcha', '~> 0.2.1'
 
 gem 'rack', '>= 2.2.12', '< 3.0'
@@ -32,7 +31,6 @@ gem 'public_suffix'
 gem 'thin'
 
 gem 'drydock'
-#gem 'familia', path: '/Users/d/Projects/opensource/d/familia'
 gem 'familia', '~> 1.2.0'
 gem 'gibbler'
 gem 'otto', '~> 1.1.0.pre.alpha4'
@@ -49,7 +47,6 @@ gem 'httparty'
 
 gem "fastimage", "~> 2.4"
 gem 'mail'
-gem 'net-imap', '~> 0.5.7'
 
 gem 'psych', '~> 5.2.3'
 gem 'stringio', '~> 3.1.6'
