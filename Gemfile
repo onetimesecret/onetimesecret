@@ -57,7 +57,6 @@ gem 'uri-valkey', '~> 1.4.0'
 # Security & Encryption
 # ====================================
 
-gem 'altcha', '~> 0.2.1'
 gem 'bcrypt'
 gem 'encryptor', '= 1.1.3'
 

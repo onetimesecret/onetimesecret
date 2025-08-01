@@ -39,9 +39,6 @@ site:
     autoverify: false
     colonels:
       - 'CHANGEME@EXAMPLE.com'
-  authenticity:
-    type: <%= ENV['AUTHENTICITY_TYPE'] || 'altcha' %>
-    secret_key: <%= ENV['AUTHENTICITY_SECRET_KEY'] || 'your-secret-key' %>
   regions:
     enabled: <%= ENV['REGIONS_ENABLED'] || false %>
     current_jurisdiction: <%= ENV['JURISDICTION'] || 'EU' %>

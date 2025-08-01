@@ -2,7 +2,6 @@
 
 require_relative 'class_settings'
 require_relative 'helpers'
-require 'altcha'
 
 module V2
   module Controllers::Base
