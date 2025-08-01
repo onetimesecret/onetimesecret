@@ -1,8 +1,8 @@
-# lib/onetime/utils/numbers.rb
+# lib/onetime/utils/secure_numbers.rb
 
 module Onetime
   module Utils
-    module Numbers
+    module SecureNumbers
       # Generates a cryptographically secure identifier using SecureRandom.
       # Creates a random hexadecimal string and converts it to base-36 encoding
       # for a compact, URL-safe identifier.

@@ -1,17 +1,17 @@
 
 require_relative 'utils/enumerables'
-require_relative 'utils/numbers'
 require_relative 'utils/sanitation'
+require_relative 'utils/secure_numbers'
 require_relative 'utils/strings'
 require_relative 'utils/time_utils'
 
 module Onetime
   module Utils
-    extend Sanitation
-    extend TimeUtils
-    extend Numbers
-    extend Strings
     extend Enumerables
+    extend Sanitation
+    extend SecureNumbers
+    extend Strings
+    extend TimeUtils
 
     class << self
       attr_accessor :fortunes
