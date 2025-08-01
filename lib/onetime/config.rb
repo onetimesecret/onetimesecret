@@ -122,18 +122,18 @@ module Onetime
     # It also performs deep copy protection to prevent mutations from propagating
     # to shared configuration instances.
     #
-    # @param incoming_config [Hash] The loaded, unprocessed configuration hash in raw form
+    # @param loaded_config [Hash] The loaded, unprocessed configuration hash in raw form
     # @return [Hash] The processed configuration hash with defaults applied and security measures in place
-    def after_load(incoming_config)
+    def after_load(loaded_config)
 
       # SAFETY MEASURE: Deep Copy Protection
       # Create a deep copy of the configuration to prevent unintended mutations
       # This protects against side effects when multiple components access the same config
       # Without this, modifications to the config in one component could affect others.
-      conf = if incoming_config.nil?
+      conf = if loaded_config.nil?
         {}
       else
-        deep_clone(incoming_config)
+        deep_clone(loaded_config)
       end
 
       # SAFETY MEASURE: Validation and Default Security Settings
@@ -193,7 +193,7 @@ module Onetime
 
       # Apply the defaults to sentry backend and frontend configs
       # and set our local config with the merged values.
-      diagnostics = incoming_config.fetch('diagnostics', {})
+      diagnostics = loaded_config.fetch('diagnostics', {})
       conf['diagnostics'] = {
         'enabled' => diagnostics['enabled'] || false,
         'sentry' => apply_defaults_to_peers(diagnostics['sentry']),
