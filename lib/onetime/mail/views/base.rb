@@ -61,7 +61,7 @@ module Onetime
           }
 
           OT.info "[mailer] #{mode} #{logsafe_config.to_json}"
-          init(*args) if respond_to? :init
+          init(*) if respond_to? :init
         end
 
         # Retrieves internationalization data for the current view context.
