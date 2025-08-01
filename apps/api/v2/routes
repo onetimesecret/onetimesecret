@@ -43,7 +43,6 @@ GET    /version                                   V2::Controllers::Meta#version
 POST   /validate-shrimp                           V2::Controllers::Meta#get_validate_shrimp
 
 POST   /feedback                                  V2::Controllers::Meta#receive_feedback
-POST   /exception                                 V2::Controllers::Meta#receive_exception
 
 GET    /colonel/config                            V2::Controllers::Colonel#get_config
 POST   /colonel/config                            V2::Controllers::Colonel#update_config
