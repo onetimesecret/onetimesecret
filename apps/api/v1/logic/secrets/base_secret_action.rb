@@ -205,7 +205,6 @@ module V1::Logic
           cust.increment_field :secrets_created
         end
         V1::Customer.global.increment_field :secrets_created
-        V1::Logic.stathat_count("Secrets", 1)
       end
 
       def send_email_to_recipient

@@ -8,7 +8,7 @@ module V2
   module Logic
     module Colonel
       class GetColonelInfo < V2::Logic::Base
-        attr_reader :billing_enabled, :title, :stathat_chart, :session_count,
+        attr_reader :billing_enabled, :title, :session_count,
                     :today_feedback, :yesterday_feedback, :older_feedback, :feedback_count,
                     :today_feedback_count, :yesterday_feedback_count, :older_feedback_count,
                     :recent_customers, :customer_count, :recent_customer_count, :metadata_count,
@@ -26,8 +26,7 @@ module V2
         end
 
         def process
-          @title = "Home"
-          @stathat_chart = OT.conf['stathat']['default_chart'] if OT.conf['stathat']
+          @title         = 'Home'
           @session_count = V2::Session.recent(15.minutes).size
 
           process_feedback

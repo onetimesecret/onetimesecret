@@ -9,7 +9,6 @@
 # 3. Plan handling
 # 4. Action limiting
 # 5. Password normalization
-# 6. StatHat integration
 
 require_relative '../test_logic'
 
@@ -65,7 +64,7 @@ end
 [
   Logic::Base.normalize_password('  password  '),
   Logic::Base.normalize_password('a' * 200),
-  Logic::Base.normalize_password(nil)
+  Logic::Base.normalize_password(nil),
 ]
 #=> ['password', 'a' * 128, '']
 
@@ -74,7 +73,6 @@ end
 @obj_no_cust.planid
 #=> nil
 
-
 ## Form error includes form fields
 begin
   @obj.send(:raise_form_error, 'test error')
@@ -82,12 +80,3 @@ rescue OT::FormError => e
   [e.message, e.form_fields]
 end
 #=> ['test error', { test: 'field' }]
-
-## StatHat integration respects enabled setting
-[
-  Logic.stathat_count('test', 1),
-  Logic.stathat_value('test', 100)
-]
-#=> [false, false]
-
-# Cleanup
