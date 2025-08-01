@@ -2,6 +2,8 @@
 
 require 'rack/utils'
 
+require_relative 'mixins/passphrase'
+
 module V1
   class Customer < Familia::Horreum
     include Gibbler::Complex
@@ -200,15 +202,6 @@ module V1
       end.compact
     end
 
-    def add_custom_domain obj
-      OT.ld "[add_custom_domain] adding #{obj} to #{self}"
-      custom_domains.add OT.now.to_i, obj.display_domain # not the object identifier
-    end
-
-    def remove_custom_domain obj
-      custom_domains.remove obj.display_domain # not the object identifier
-    end
-
     def encryption_key
       V1::Secret.encryption_key OT.global_secret, custid
     end
@@ -293,10 +286,6 @@ module V1
     end
 
     module ClassMethods
-      attr_reader :values
-      def add cust
-        self.values.add OT.now.to_i, cust.identifier
-      end
 
       def all
         self.values.revrangeraw(0, -1).collect { |identifier| load(identifier) }
@@ -309,20 +298,6 @@ module V1
 
       def anonymous
         new('anon').freeze
-      end
-
-      def create custid, email=nil
-        raise OT::Problem, "custid is required" if custid.to_s.empty?
-        raise OT::Problem, "Customer exists" if exists?(custid)
-        cust = new custid: custid, email: email || custid, role: 'customer'
-        cust.save
-        add cust
-        cust
-      end
-
-      def global
-        @global ||= from_identifier(:GLOBAL) || create(:GLOBAL)
-        @global
       end
 
       def increment_field(cust, field)

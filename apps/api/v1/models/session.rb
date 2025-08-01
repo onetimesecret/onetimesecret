@@ -193,21 +193,6 @@ module V1
       end
     end
 
-    # Mixin Placement for Field Order Control
-    #
-    # We include the SessionMessages mixin at the end of this class definition
-    # for a specific reason related to how Familia::Horreum handles fields.
-    #
-    # In Familia::Horreum subclasses (like this Session class), fields are processed
-    # in the order they are defined. When creating a new instance with Session.new,
-    # any provided positional arguments correspond to these fields in the same order.
-    #
-    # By including SessionMessages last, we ensure that:
-    # 1. Its additional fields appear at the end of the field list.
-    # 2. These fields don't unexpectedly consume positional arguments in Session.new.
-    #
-    include V1::Mixins::SessionMessages
-
     extend ClassMethods
   end
 end
