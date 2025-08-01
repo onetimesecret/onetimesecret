@@ -28,7 +28,6 @@ module Core
 
         output['ui'] = site.dig('interface', 'ui')
         output['authentication'] = site.fetch('authentication', nil)
-        output['support_host'] = site.dig('support', 'host')
         output['secret_options'] = site['secret_options']
         output['site_host'] = site['host']
         regions = site['regions'] || {}
