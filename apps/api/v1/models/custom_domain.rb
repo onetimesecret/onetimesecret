@@ -187,6 +187,12 @@ module V1
         false
       end
 
+      # Returns boolean, whether the domain is a valid public suffix
+      # which checks without actually parsing it.
+      def valid? input
+        PublicSuffix.valid?(input, default_rule: nil)
+      end
+
       # Simply instatiates a new CustomDomain object and checks if it exists.
       def exists? input, custid
         # The `parse`` method instantiates a new CustomDomain object but does
