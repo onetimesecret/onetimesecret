@@ -7,12 +7,12 @@ RSpec.xdescribe Core::Views::BaseView, "JSON Output" do
   include_context "rack_test_context"
 
   let(:authenticated_json) do
-    json_path = File.expand_path('../../../../support/window-authenticated.json', __FILE__)
+    json_path = File.expand_path('spec/support/window-authenticated-develop.json')
     JSON.parse(File.read(json_path))
   end
 
   let(:not_authenticated_json) do
-    json_path = File.expand_path('../../../../support/window-notauthenticated.json', __FILE__)
+    json_path = File.expand_path('spec/support/window-notauthenticated-develop.json')
     JSON.parse(File.read(json_path))
   end
 
@@ -105,7 +105,7 @@ RSpec.xdescribe Core::Views::BaseView, "JSON Output" do
 
       it "generates expected JSON structure for anonymous user" do
         view = described_class.new(rack_request, session, customer)
-        json_output = JSON.parse(view[:window])
+        json_output = view[:serialized_data]
 
         # Compare key fields
         expect(json_output["authenticated"]).to eq(false)
