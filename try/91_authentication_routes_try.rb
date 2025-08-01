@@ -96,15 +96,15 @@ response = @mock_request.post('/signup')
 ## With auth disabled, dashboard returns 401
 old_conf = OT.instance_variable_get(:@conf)
 new_conf = {
-  site: {
-    secret: 'notnil',
-    authentication: {
-      enabled: false,
-    }
+  'site' => {
+    'secret' => 'notnil',
+    'authentication' => {
+      'enabled' => false,
+    },
   },
-  mail: {
-    truemail: {},
-  }
+  'mail' => {
+    'truemail' => {},
+  },
 }
 OT.instance_variable_set(:@conf, new_conf)
 response = @mock_request.get('/dashboard')
