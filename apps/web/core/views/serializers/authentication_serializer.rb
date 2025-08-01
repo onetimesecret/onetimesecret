@@ -17,15 +17,15 @@ module Core
       def self.serialize(view_vars, i18n)
         output = self.output_template
 
-        output[:authenticated] = view_vars[:authenticated]
-        cust = view_vars[:cust] || V2::Customer.anonymous
+        output['authenticated'] = view_vars['authenticated']
+        cust = view_vars['cust'] || V2::Customer.anonymous
 
-        output[:cust] = cust.safe_dump
+        output['cust'] = cust.safe_dump
 
-        if output[:authenticated]
-          output[:custid] = cust.custid
-          output[:email] = cust.email
-          output[:customer_since] = OT::TimeUtils.epochdom(cust.created)
+        if output['authenticated']
+          output['custid'] = cust.custid
+          output['email'] = cust.email
+          output['customer_since'] = OT::TimeUtils.epochdom(cust.created)
         end
 
         output
@@ -37,11 +37,11 @@ module Core
         # @return [Hash] Template with all possible authentication output fields
         def output_template
           {
-            authenticated: nil,
-            custid: nil,
-            cust: nil,
-            email: nil,
-            customer_since: nil,
+            'authenticated' => nil,
+            'custid' => nil,
+            'cust' => nil,
+            'email' => nil,
+            'customer_since' => nil,
           }
         end
       end

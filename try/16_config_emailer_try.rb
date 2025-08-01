@@ -2,43 +2,42 @@
 
 require_relative 'test_helpers'
 
-# Use the default config file for tests
 OT.boot! :test, false
 
 ## Default emailer mode is :smtp
-OT.conf[:emailer][:mode]
+OT.conf['emailer']['mode']
 #=> 'smtp'
 
 ## Default emailer from address is "CHANGEME@example.com"
-OT.conf[:emailer][:from]
+OT.conf['emailer']['from']
 #=> "tests@example.com"
 
 ## Default emailer fromname is "Jan"
-OT.conf[:emailer][:fromname]
+OT.conf['emailer']['fromname']
 #=> "Jan"
 
 ## Default SMTP host is "localhost"
-OT.conf[:emailer][:host]
+OT.conf['emailer']['host']
 #=> "localhost"
 
 ## Default SMTP port is 587
-OT.conf[:emailer][:port]
+OT.conf['emailer']['port']
 #=> 587
 
 ## Default SMTP username is "CHANGEME"
-OT.conf[:emailer][:user]
+OT.conf['emailer']['user']
 #=> "user"
 
 ## Default SMTP password is "CHANGEME"
-OT.conf[:emailer][:pass]
+OT.conf['emailer']['pass']
 #=> "pass"
 
 ## Default SMTP auth is "login"
-OT.conf[:emailer][:auth]
+OT.conf['emailer']['auth']
 #=> "login"
 
 ## Default SMTP TLS is true
-OT.conf[:emailer][:tls]
+OT.conf['emailer']['tls']
 #=> true
 
 ## Emailer raises an exception when the mode is not valid
@@ -62,15 +61,15 @@ Onetime::Config.load
 OT.boot! :test, false
 
 [
-  OT.conf[:emailer][:mode],
-  OT.conf[:emailer][:from],
-  OT.conf[:emailer][:fromname],
-  OT.conf[:emailer][:host],
-  OT.conf[:emailer][:port],
-  OT.conf[:emailer][:user],
-  OT.conf[:emailer][:pass],
-  OT.conf[:emailer][:auth],
-  OT.conf[:emailer][:tls]
+  OT.conf['emailer']['mode'],
+  OT.conf['emailer']['from'],
+  OT.conf['emailer']['fromname'],
+  OT.conf['emailer']['host'],
+  OT.conf['emailer']['port'],
+  OT.conf['emailer']['user'],
+  OT.conf['emailer']['pass'],
+  OT.conf['emailer']['auth'],
+  OT.conf['emailer']['tls']
 ]
 #=> ["sendgrid", "tests@example.com", "Test User", "smtp.example.com", 465, "testuser", "testpass", "plain", false]
 
@@ -89,14 +88,14 @@ Onetime::Config.load
 OT.boot! :test, false
 
 [
-  OT.conf[:emailer][:mode],
-  OT.conf[:emailer][:from],
-  OT.conf[:emailer][:fromname],
-  OT.conf[:emailer][:host],
-  OT.conf[:emailer][:port],
-  OT.conf[:emailer][:user],
-  OT.conf[:emailer][:pass],
-  OT.conf[:emailer][:auth],
-  OT.conf[:emailer][:tls]
+  OT.conf['emailer']['mode'],
+  OT.conf['emailer']['from'],
+  OT.conf['emailer']['fromname'],
+  OT.conf['emailer']['host'],
+  OT.conf['emailer']['port'],
+  OT.conf['emailer']['user'],
+  OT.conf['emailer']['pass'],
+  OT.conf['emailer']['auth'],
+  OT.conf['emailer']['tls']
 ]
 #=> ["smtp", "tests@example.com", "Jan", "localhost", 587, "user", "pass", "login", true]

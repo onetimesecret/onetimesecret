@@ -11,10 +11,10 @@ module V2
 
     unless defined?(FIELD_MAPPINGS)
       FIELD_MAPPINGS = {
-        interface: [:site, :interface],
-        secret_options: [:site, :secret_options],
-        mail: [:mail],
-        diagnostics: [:diagnostics],
+        'interface' => ['site', 'interface'],
+        'secret_options' => ['site', 'secret_options'],
+        'mail' => ['mail'],
+        'diagnostics' => ['diagnostics'],
       }
     end
 
@@ -198,7 +198,7 @@ module V2
         custid: custid,
         comment: comment,
         created: created,
-        updated: updated
+        updated: updated,
       ).compact
     end
 
@@ -316,7 +316,6 @@ module V2
       def rollback!
         rollback_key = rediskey(:rollback)
         redis.watch(rollback_key) do
-
           redis.multi do |multi|
             removed_identifier = multi.zpopmax(self.stack.rediskey, 1).first&.first
             current_identifier = multi.revrangeraw(0, 0).first

@@ -6,26 +6,26 @@ RSpec.describe Onetime::Config do
   describe '#apply_defaults_to_peers' do
       let(:basic_config) do
         {
-          defaults: { timeout: 5, enabled: true },
-          api: { timeout: 10 },
-          web: {},
+          'defaults' => { 'timeout' => 5, 'enabled' => true },
+          'api' => { 'timeout' => 10 },
+          'web' => {},
         }
       end
 
       let(:sentry_config) do
         {
-          defaults: {
-            dsn: 'default-dsn',
-            environment: 'test',
-            enabled: true
+          'defaults' => {
+            'dsn' => 'default-dsn',
+            'environment' => 'test',
+            'enabled' => true
           },
-          backend: {
-            dsn: 'backend-dsn',
-            traces_sample_rate: 0.1
+          'backend' => {
+            'dsn' => 'backend-dsn',
+            'traces_sample_rate' => 0.1
           },
-          frontend: {
-            path: '/web',
-            profiles_sample_rate: 0.2
+          'frontend' => {
+            'path' => '/web',
+            'profiles_sample_rate' => 0.2
           }
         }
       end
@@ -33,26 +33,26 @@ RSpec.describe Onetime::Config do
       context 'with valid inputs' do
         it 'merges defaults into sections' do
           result = described_class.apply_defaults_to_peers(basic_config)
-          expect(result[:api]).to eq({ timeout: 10, enabled: true })
-          expect(result[:web]).to eq({ timeout: 5, enabled: true })
+          expect(result['api']).to eq({ 'timeout' => 10, 'enabled' => true })
+          expect(result['web']).to eq({ 'timeout' => 5, 'enabled' => true })
         end
 
         it 'handles sentry-specific configuration' do
           result = described_class.apply_defaults_to_peers(sentry_config)
 
-          expect(result[:backend]).to eq({
-            dsn: 'backend-dsn',
-            environment: 'test',
-            enabled: true,
-            traces_sample_rate: 0.1
+          expect(result['backend']).to eq({
+            'dsn' => 'backend-dsn',
+            'environment' => 'test',
+            'enabled' => true,
+            'traces_sample_rate' => 0.1
           })
 
-          expect(result[:frontend]).to eq({
-            dsn: 'default-dsn',
-            environment: 'test',
-            enabled: true,
-            path: '/web',
-            profiles_sample_rate: 0.2
+          expect(result['frontend']).to eq({
+            'dsn' => 'default-dsn',
+            'environment' => 'test',
+            'enabled' => true,
+            'path' => '/web',
+            'profiles_sample_rate' => 0.2
           })
         end
       end
@@ -67,7 +67,7 @@ RSpec.describe Onetime::Config do
         end
 
         it 'handles empty config' do
-          expect(described_class.apply_defaults_to_peers({defaults: {}})).to eq({})
+          expect(described_class.apply_defaults_to_peers({'defaults' => {}})).to eq({})
         end
 
         it 'handles empty defaults' do
@@ -75,25 +75,25 @@ RSpec.describe Onetime::Config do
         end
 
         it 'handles missing defaults section' do
-          config = { api: { timeout: 10 } }
+          config = { 'api' => { 'timeout' => 10 } }
           result = described_class.apply_defaults_to_peers(config)
-          expect(result).to eq({ api: { timeout: 10 } })
+          expect(result).to eq({ 'api' => { 'timeout' => 10 } })
         end
 
         it 'skips non-hash section values' do
           config = {
-            defaults: { timeout: 5 },
-            api: "invalid",
-            web: { port: 3000 }
+            'defaults' => { 'timeout' => 5 },
+            'api' => "invalid",
+            'web' => { 'port' => 3000 }
           }
           result = described_class.apply_defaults_to_peers(config)
-          expect(result.keys).to contain_exactly(:web)
+          expect(result.keys).to contain_exactly('web')
         end
 
         it 'preserves original defaults' do
-          original = sentry_config[:defaults].dup
+          original = sentry_config['defaults'].dup
           described_class.apply_defaults_to_peers(sentry_config)
-          expect(sentry_config[:defaults]).to eq(original)
+          expect(sentry_config['defaults']).to eq(original)
         end
       end
     end
@@ -101,9 +101,9 @@ RSpec.describe Onetime::Config do
   describe '#apply_defaults_to_peers' do
     let(:config_with_defaults) do
       {
-        defaults: { timeout: 5, enabled: true },
-        api: { timeout: 10 },
-        web: {}
+        'defaults' => { 'timeout' => 5, 'enabled' => true },
+        'api' => { 'timeout' => 10 },
+        'web' => {}
       }
     end
 
@@ -112,50 +112,50 @@ RSpec.describe Onetime::Config do
 
     let(:service_config) do
       {
-        defaults: { dsn: 'default-dsn', environment: 'test' },
-        backend: { dsn: 'backend-dsn' },
-        frontend: { path: '/web' }
+        'defaults' => { 'dsn' => 'default-dsn', 'environment' => 'test' },
+        'backend' => { 'dsn' => 'backend-dsn' },
+        'frontend' => { 'path' => '/web' }
       }
     end
 
     it 'merges defaults into sections, allowing section-specific values to override defaults' do
       result = described_class.apply_defaults_to_peers(config_with_defaults)
 
-      expect(result[:api]).to eq({ timeout: 10, enabled: true })
-      expect(result[:web]).to eq({ timeout: 5, enabled: true })
+      expect(result['api']).to eq({ 'timeout' => 10, 'enabled' => true })
+      expect(result['web']).to eq({ 'timeout' => 5, 'enabled' => true })
     end
 
     it "applies default values when a section's corresponding key is present but has a nil value" do
       config = {
-        defaults: { dsn: 'default-dsn' },
-        backend: { dsn: nil },
-        frontend: { dsn: nil }
+        'defaults' => { 'dsn' => 'default-dsn' },
+        'backend' => { 'dsn' => nil },
+        'frontend' => { 'dsn' => nil }
       }
       result = described_class.apply_defaults_to_peers(config)
-      expect(result[:backend][:dsn]).to eq('default-dsn')
-      expect(result[:frontend][:dsn]).to eq('default-dsn')
+      expect(result['backend']['dsn']).to eq('default-dsn')
+      expect(result['frontend']['dsn']).to eq('default-dsn')
     end
 
     it 'correctly applies defaults to a typical service configuration with multiple sections' do
       result = described_class.apply_defaults_to_peers(service_config)
 
-      expect(result[:backend]).to eq({
-        dsn: 'backend-dsn',
-        environment: 'test'
+      expect(result['backend']).to eq({
+        'dsn' => 'backend-dsn',
+        'environment' => 'test'
       })
 
-      expect(result[:frontend]).to eq({
-        dsn: 'default-dsn',
-        environment: 'test',
-        path: '/web'
+      expect(result['frontend']).to eq({
+        'dsn' => 'default-dsn',
+        'environment' => 'test',
+        'path' => '/web'
       })
     end
 
     it 'does not modify the original defaults hash passed as an argument' do
-      original_defaults = service_config[:defaults].dup
+      original_defaults = service_config['defaults'].dup
       described_class.apply_defaults_to_peers(service_config)
 
-      expect(service_config[:defaults]).to eq(original_defaults)
+      expect(service_config['defaults']).to eq(original_defaults)
     end
   end
 end

@@ -78,7 +78,7 @@ gem 'sendgrid-ruby'
 gem "sentry-ruby", require: false
 gem 'stripe', require: false
 
-gem 'rubocop', require: false
+gem 'rubocop', '~> 1.79', require: false
 gem 'stackprof', require: false
 
 group :development do
@@ -90,7 +90,7 @@ group :development do
   gem 'rubocop-performance', require: false
   gem 'rubocop-rspec', require: false
   gem 'rubocop-thread_safety', require: false
-  gem 'tryouts', '~> 3.1', require: false
+  gem 'tryouts', '~> 3.2.1', require: false
 end
 
 group :test do

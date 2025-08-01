@@ -16,9 +16,9 @@ module V2
                     :has_split_tests, :redis_info
 
         def process_params
-          billing = OT.conf.fetch(:billing, {})
-          site = OT.conf.fetch(:site, {})
-          @billing_enabled = billing.fetch(:enabled, false)
+          billing = OT.conf.fetch('billing', {})
+          site = OT.conf.fetch('site', {})
+          @billing_enabled = billing.fetch('enabled', false)
         end
 
         def raise_concerns
@@ -27,7 +27,7 @@ module V2
 
         def process
           @title = "Home"
-          @stathat_chart = OT.conf[:stathat][:default_chart] if OT.conf[:stathat]
+          @stathat_chart = OT.conf['stathat']['default_chart'] if OT.conf['stathat']
           @session_count = V2::Session.recent(15.minutes).size
 
           process_feedback

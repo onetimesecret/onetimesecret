@@ -71,7 +71,7 @@ module Core
         unless req.referrer.nil?
           OT.ld("[check-referrer] #{req.referrer} (#{req.referrer.class}) - #{req.path}")
         end
-        return if req.referrer.nil? || req.referrer.match(Onetime.conf[:site][:host])
+        return if req.referrer.nil? || req.referrer.match(Onetime.conf['site']['host'])
         sess.referrer ||= req.referrer
 
         # Don't allow a pesky error here from preventing the
@@ -102,9 +102,9 @@ module Core
           OT.le "[validate_url] Invalid URI: #{uri}"
         else
           # Set a default host if the host is missing
-          uri.host ||= OT.conf[:site][:host]
+          uri.host ||= OT.conf['site']['host']
           # Ensure the scheme is HTTPS if SSL is enabled in the configuration
-          if OT.conf[:site][:ssl]
+          if OT.conf['site']['ssl']
             uri.scheme = 'https' if uri.scheme.nil? || uri.scheme != 'https'
           end
           # Set uri to nil if it is not an HTTP or HTTPS URI

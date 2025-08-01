@@ -51,7 +51,7 @@ module V2
         OT.ld [:receive_feedback, msg].inspect
 
         begin
-          configured_colonels = OT.conf.dig(:site, :authentication, :colonels) || []
+          configured_colonels = OT.conf.dig('site', 'authentication', 'colonels') || []
           OT.ld "[ReceiveFeedback] Configured colonels #{configured_colonels.inspect}"
 
           first_colonel = nil
@@ -91,7 +91,7 @@ module V2
       end
 
       def secret_key
-        OT.conf.dig(:site, :authenticity, :secret_key) # ALTCHA_HMAC_KEY
+        OT.conf.dig('site', 'authenticity', 'secret_key') # ALTCHA_HMAC_KEY
       end
 
       def send_feedback cust, message

@@ -15,7 +15,7 @@ module V2::Logic
 
         @password = self.class.normalize_password(params[:p])
 
-        autoverify_setting = OT.conf&.dig(:site, :authentication, :autoverify)
+        autoverify_setting = OT.conf&.dig("site", "authentication", "autoverify")
         @autoverify = autoverify_setting.to_s.eql?("true") || false
 
         # This is a hidden field, so it should be empty. If it has a value, it's
@@ -47,7 +47,7 @@ module V2::Logic
         sess.custid = cust.custid
         sess.save
 
-        colonels = OT.conf.dig(:site, :authentication, :colonels)
+        colonels = OT.conf.dig("site", "authentication", "colonels")
         @customer_role = if colonels&.member?(cust.custid)
                            'colonel'
                          else

@@ -10,7 +10,7 @@ module Onetime
       # the list of previously used global secrets. Happens easily
       # when using environment vars in the config.yaml that aren't
       # set or are set to an empty string.
-      @rotated_secrets = OT.conf[:experimental].fetch(:rotated_secrets, []).compact
+      @rotated_secrets = OT.conf['experimental'].fetch('rotated_secrets', []).compact
 
     end
   end

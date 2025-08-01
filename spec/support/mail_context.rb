@@ -14,21 +14,21 @@ end
 RSpec.shared_context "mail_test_context" do
   let(:mail_config) do
     {
-      emailer: {
-        mode: :smtp,
-        from: 'sender@example.com',
-        fromname: 'Test Sender',
-        host: 'smtp.example.com',
-        port: 587,
-        user: 'testuser',
-        tls: true,
-        auth: true
+      'emailer' => {
+        'mode' => :smtp,
+        'from' => 'sender@example.com',
+        'fromname' => 'Test Sender',
+        'host' => 'smtp.example.com',
+        'port' => 587,
+        'user' => 'testuser',
+        'tls' => true,
+        'auth' => true,
       },
-      site: {
-        host: 'example.com',
-        ssl: true,
-        domains_enabled: true
-      }
+      'site' => {
+        'host' => 'example.com',
+        'ssl' => true,
+        'domains_enabled' => true,
+      },
     }
   end
 
@@ -120,16 +120,16 @@ RSpec.shared_context "mail_test_context" do
     # Update these stubs to accept the third reply_to parameter
     allow(OT::Mail::Mailer::SMTPMailer).to receive(:new)
       .with(
-        mail_config[:emailer][:from],
-        mail_config[:emailer][:fromname],
+        mail_config['emailer']['from'],
+        mail_config['emailer']['fromname'],
         anything,  # This allows any third parameter for reply_to
       )
       .and_return(mailer)
 
     allow(OT::Mail::Mailer::SendGridMailer).to receive(:new)
       .with(
-        mail_config[:emailer][:from],
-        mail_config[:emailer][:fromname],
+        mail_config['emailer']['from'],
+        mail_config['emailer']['fromname'],
         anything,  # This allows any third parameter for reply_to
       )
       .and_return(mailer)

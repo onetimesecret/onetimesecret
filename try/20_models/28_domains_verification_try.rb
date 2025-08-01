@@ -303,7 +303,7 @@ end
 
 ## Validate that default_domain? method works correctly 1 of 2
 old_conf = OT.instance_variable_get(:@conf)
-new_conf = { site: { host: 'default.example.com' } }
+new_conf = { 'site' => { 'host' => 'default.example.com' } }
 OT.instance_variable_set(:@conf, new_conf)
 success = V2::CustomDomain.default_domain?('default.example.com')
 OT.instance_variable_set(:@conf, old_conf)
@@ -312,7 +312,7 @@ success
 
 ## Validate that default_domain? method works correctly 2 of 3
 old_conf = OT.instance_variable_get(:@conf)
-new_conf = { site: { host: 'default.example.com' } }
+new_conf = { 'site' => { 'host' => 'default.example.com' } }
 OT.instance_variable_set(:@conf, new_conf)
 success = V2::CustomDomain.default_domain?('non-default.example.com')
 OT.instance_variable_set(:@conf, old_conf)

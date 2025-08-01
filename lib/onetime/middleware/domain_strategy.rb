@@ -65,7 +65,7 @@ module Onetime
     # @param app [Object] The Rack application.
     def initialize(app)
       @app = app
-      site_config = OT.conf.fetch(:site, {})
+      site_config = OT.conf.fetch('site', {})
       self.class.initialize_from_config(site_config)
       OT.info "[DomainStrategy]: canonical_domain=#{canonical_domain} enabled=#{domains_enabled?}"
     end

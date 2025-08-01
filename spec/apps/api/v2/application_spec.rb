@@ -4,13 +4,14 @@ require_relative '../../../spec_helper'
 require 'v2/application'
 
 # Attempt to test that the v2 rack app includes JSONBodyParser middleware
-RSpec.xdescribe V2::Application do
+RSpec.describe V2::Application do
   describe 'middleware stack' do
     # Create mock middleware classes that might not be loaded in test env
     before(:all) do
       unless defined?(Rack::JSONBodyParser)
         module Rack
-          class JSONBodyParser; end
+          class JSONBodyParser
+          end
         end
       end
     end

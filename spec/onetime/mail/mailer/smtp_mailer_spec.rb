@@ -67,18 +67,18 @@ RSpec.describe Onetime::Mail::Mailer::SMTPMailer do
   before do
     # Mock the Mail configuration
     allow(OT).to receive(:conf).and_return({
-      emailer: {
-        from: 'system@onetimesecret.com',
-        host: 'smtp.example.com',
-        port: 587,
-        user: 'testuser',
-        pass: 'testpass',
-        auth: 'plain',
-        tls: 'true'
+      'emailer' => {
+        'from' => 'system@onetimesecret.com',
+        'host' => 'smtp.example.com',
+        'port' => 587,
+        'user' => 'testuser',
+        'pass' => 'testpass',
+        'auth' => 'plain',
+        'tls' => 'true',
       },
-      site: {
-        domain: 'onetimesecret.com'
-      }
+      'site' => {
+        'domain' => 'onetimesecret.com',
+      },
     })
 
     # Mock the obscure_email utility

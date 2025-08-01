@@ -12,6 +12,7 @@ module V1
   #
   module Utils
     extend self
+
     unless defined?(VALID_CHARS)
       VALID_CHARS = [('a'..'z').to_a, ('A'..'Z').to_a, ('0'..'9').to_a, %w[* $ ! ? ( )]].flatten
       VALID_CHARS_SAFE = VALID_CHARS.clone
@@ -42,30 +43,6 @@ module V1
     def strand(len = 12, safe = true)
       chars = safe ? VALID_CHARS_SAFE : VALID_CHARS
       (1..len).collect { chars[rand(chars.size - 1)] }.join
-    end
-
-    def indifferent_params(params)
-      if params.is_a?(Hash)
-        params = indifferent_hash.merge(params)
-        params.each do |key, value|
-          next unless value.is_a?(Hash) || value.is_a?(Array)
-
-          params[key] = indifferent_params(value)
-        end
-      elsif params.is_a?(Array)
-        params.collect! do |value|
-          if value.is_a?(Hash) || value.is_a?(Array)
-            indifferent_params(value)
-          else
-            value
-          end
-        end
-      end
-    end
-
-    # Creates a Hash with indifferent access (shallow).
-    def indifferent_hash
-      Hash.new { |hash, key| hash[key.to_s] if key.is_a?(Symbol) }
     end
 
     def obscure_email(text)
@@ -178,6 +155,6 @@ module V1
         end
         result
       end
-      # rubocop:enable Metrics/PerceivedComplexity, Metrics/AbcSize
+    # rubocop:enable Metrics/PerceivedComplexity, Metrics/AbcSize
   end
 end

@@ -26,8 +26,9 @@ AllCops:
   Exclude:
     - 'migrate/**/*'
     - 'node_modules/**/*'
-    - 'tests/unit/ruby/try/**/*'
-    - 'tests/unit/ruby/rspec/**/*'
+    - 'spec/**/*'
+    - 'tests/**/*'
+    - 'try/**/*'
     - 'vendor/**/*'
 
 Style/TrailingCommaInHashLiteral:
@@ -41,6 +42,10 @@ Style/TrailingCommaInHashLiteral:
 # explicit intent, !! clearly communicates this purpose to other Ruby developers.
 Style/DoubleNegation:
   Enabled: false
+
+RSpec/MultipleExpectations:
+  Enabled: true
+  Max: 5
 
 Layout/MultilineMethodCallIndentation:
   EnforcedStyle: indented

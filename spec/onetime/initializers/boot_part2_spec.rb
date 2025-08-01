@@ -72,14 +72,14 @@ RSpec.describe "Onetime global state after boot" do
 
       expect(Onetime.conf).to be_a(Hash)
       expect(Onetime.conf).to be_frozen
-      expect(Onetime.conf[:site][:host]).to eq('127.0.0.1:3000')
+      expect(Onetime.conf['site']['host']).to eq('127.0.0.1:3000')
     end
 
     it "sets OT.d9s_enabled based on configuration" do
       Onetime.boot!(:test)
-
-      if Onetime.conf[:diagnostics] && Onetime.conf[:diagnostics][:enabled] &&
-         !Onetime.conf[:diagnostics][:dsn].to_s.strip.empty?
+      diagnostics_enabled =  Onetime.conf.dig('diagnostics', 'enabled')
+      diagnostics_dsn = Onetime.conf.dig('diagnostics', 'sentry', 'backend', 'dsn') || ''
+      if diagnostics_enabled && !diagnostics_dsn.to_s.strip.empty?
         expect(Onetime.d9s_enabled).to be true
       else
         expect(Onetime.d9s_enabled).to be false
@@ -119,8 +119,6 @@ RSpec.describe "Onetime global state after boot" do
     end
 
     context "regarding system information" do
-
-
       it "initializes and freezes Onetime.instance" do
         Onetime.boot!(:test)
 
@@ -141,16 +139,13 @@ RSpec.describe "Onetime global state after boot" do
 
       it "initializes i18n settings from config" do
         Onetime.boot!(:test)
-        expect(Onetime.conf[:internationalization][:enabled]).to be(true)
-        expect(Onetime.conf[:internationalization][:fallback_locale]).to be_a(Hash)
+        expect(Onetime.conf['internationalization']['enabled']).to be(true)
+        expect(Onetime.conf['internationalization']['fallback_locale']).to be_a(Hash)
 
-        expect(Onetime.supported_locales).to match_array(Onetime.conf[:internationalization][:locales])
+        expect(Onetime.supported_locales).to match_array(Onetime.conf['internationalization']['locales'])
         expect(Onetime.supported_locales).to include(Onetime.default_locale)
         expect(Onetime.i18n_enabled).to be(true)
         expect(Onetime.fallback_locale).to be_a(Hash)
-      end
-
-      it "sets Onetime's i18n default settings when disabled in config", skip: "TODO: Implement in a test file where we can control the config and not locked in to whatever is in config.test.yaml" do
       end
     end
 

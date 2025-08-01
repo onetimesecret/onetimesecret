@@ -19,7 +19,6 @@
 # targeted testing of this specific functionality.
 
 require_relative 'test_models'
-# Use the default config file for tests
 OT.boot! :test, false
 
 ## Can store a value

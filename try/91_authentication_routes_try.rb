@@ -13,7 +13,6 @@ require 'rack'
 require 'rack/mock'
 
 require_relative 'test_models'
-# Use the default config file for tests
 OT.boot! :test, false
 
 # Initialize the Rack application and create a mock request
@@ -24,7 +23,7 @@ OT.boot! :test, false
 # Web Routes (default settings)
 
 ## Authentication is enabled
-OT.conf[:site][:authentication][:signin]
+OT.conf['site']['authentication']['signin']
 #=> true
 
 ## With default configuration, can access the sign-in page
@@ -57,21 +56,21 @@ response = @mock_request.get('/dashboard')
 ## Disable authentication for all routes
 old_conf = OT.instance_variable_get(:@conf)
 new_conf = {
-  site: {
-    secret: 'notnil',
-    authentication: {
-      enabled: false,
-      signin: true,
+  'site' => {
+    'secret' => 'notnil',
+    'authentication' => {
+      'enabled' => false,
+      'signin' => true,
     }
   },
-  mail: {
-    truemail: {},
+  'mail' => {
+    'truemail' => {},
   }
 }
 OT.instance_variable_set(:@conf, new_conf)
 processed_conf = OT::Config.after_load(OT.conf)
 OT.instance_variable_set(:@conf, old_conf)
-processed_conf[:site][:authentication][:signin]
+processed_conf['site']['authentication']['signin']
 #=> false
 
 ## With auth disabled, can access the sign-in page
@@ -97,15 +96,15 @@ response = @mock_request.post('/signup')
 ## With auth disabled, dashboard returns 401
 old_conf = OT.instance_variable_get(:@conf)
 new_conf = {
-  site: {
-    secret: 'notnil',
-    authentication: {
-      enabled: false,
-    }
+  'site' => {
+    'secret' => 'notnil',
+    'authentication' => {
+      'enabled' => false,
+    },
   },
-  mail: {
-    truemail: {},
-  }
+  'mail' => {
+    'truemail' => {},
+  },
 }
 OT.instance_variable_set(:@conf, new_conf)
 response = @mock_request.get('/dashboard')

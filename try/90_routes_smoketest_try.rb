@@ -8,18 +8,14 @@
 
 require_relative 'test_helpers'
 
-require 'v1/application'
-
-# Load the app
 OT.boot! :test, false
 
 require 'rack'
 require 'rack/mock'
 
-# Initialize the Rack application and create a mock request
 builder = Rack::Builder.parse_file('config.ru')
 @app = builder.first
-mapped = Rack::URLMap.new(AppRegistry.build)
+mapped = AppRegistry.generate_rack_url_map
 @mock_request = Rack::MockRequest.new(mapped)
 
 # NOTE: Careful when flushing the Redis database, as it will remove

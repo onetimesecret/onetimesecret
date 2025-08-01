@@ -19,7 +19,6 @@ Dotenv.load('.env')
 
 require_relative 'test_models'
 
-# Use the default config file for tests
 OT.boot! :test, false
 
 @api_key = ENV.fetch('APPROXIMATED_API_KEY', '')
@@ -58,7 +57,7 @@ OT.boot! :test, false
   target_ports: "443"
 }
 @mock_response = {
-  check_records_exist: lambda {IndifferentHash.new(
+  check_records_exist: lambda {Hash.new(
     "code" => 200,
     "body" => {
       "records" => [

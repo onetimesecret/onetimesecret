@@ -35,11 +35,11 @@ module V1
       end
 
       def process_settings
-        @site = OT.conf.fetch(:site, {})
-        domains = site.fetch(:domains, {})
-        @authentication = site.fetch(:authentication, {})
-        domains = site.fetch(:domains, {})
-        @domains_enabled = domains[:enabled] || false
+        @site = OT.conf.fetch('site', {})
+        domains = site.fetch('domains', {})
+        @authentication = site.fetch('authentication', {})
+        domains = site.fetch('domains', {})
+        @domains_enabled = domains['enabled'] || false
       end
 
       def valid_email?(guess)
@@ -130,13 +130,13 @@ module V1
       attr_writer :stathat_apikey, :stathat_enabled
 
       def stathat_apikey
-        @stathat_apikey ||= Onetime.conf[:stathat][:apikey]
+        @stathat_apikey ||= Onetime.conf['stathat']['apikey']
       end
 
       def stathat_enabled
-        return unless Onetime.conf.has_key?(:stathat)
+        return unless Onetime.conf.has_key?('stathat')
 
-        @stathat_enabled = Onetime.conf[:stathat][:enabled] if @stathat_enabled.nil?
+        @stathat_enabled = Onetime.conf['stathat']['enabled'] if @stathat_enabled.nil?
         @stathat_enabled
       end
 

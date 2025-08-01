@@ -512,7 +512,7 @@ module V1
 
       def default_domain? input
         display_domain = V1::CustomDomain.display_domain(input)
-        site_host = OT.conf.dig(:site, :host)
+        site_host = OT.conf.dig('site', 'host')
         OT.ld "[CustomDomain.default_domain?] #{display_domain} == #{site_host}"
         display_domain.eql?(site_host)
       rescue PublicSuffix::Error => e

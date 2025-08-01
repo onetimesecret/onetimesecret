@@ -24,84 +24,83 @@ V2::SystemSettings.values.clear
 V2::SystemSettings.stack.clear
 
 @test_config = {
-  site: {
-    interface: {
-      host: 'localhost',
-      port: 3000,
-      ssl: false
+  'site' => {
+    'interface' => {
+      'host' => 'localhost',
+      'port' => 3000,
+      'ssl' => false,
     },
-    secret_options: {
-      max_size: 1024,
-      default_ttl: 3600
-    }
+    'secret_options' => {
+      'max_size' => 1024,
+      'default_ttl' => 3600,
+    },
   },
-  mail: {
-    from: 'noreply@example.com',
-    smtp: {
-      host: 'smtp.example.com',
-      port: 587
-    }
+  'mail' => {
+    'from' => 'noreply@example.com',
+    'smtp' => {
+      'host' => 'smtp.example.com',
+      'port' => 587,
+    },
   },
-  experimental: {
-    enabled: false
+  'experimental' => {
+    'enabled' => false,
   },
-  diagnostics: {
-    enabled: true,
-    level: 'info'
-  }
+  'diagnostics' => {
+    'enabled' => true,
+    'level' => 'info',
+  },
 }
 
 @system_settings_hash = {
-  interface: {
-    host: 'custom.example.com',
-    port: 8080,
-    ssl: true
+  'interface' => {
+    'host' => 'custom.example.com',
+    'port' => 8080,
+    'ssl' => true,
   },
-  secret_options: {
-    max_size: 2048
+  'secret_options' => {
+    'max_size' => 2048,
   },
-  mail: {
-    from: 'custom@example.com'
+  'mail' => {
+    'from' => 'custom@example.com',
   },
-  experimental: {
-    enabled: true
+  'experimental' => {
+    'enabled' => true,
   },
-  diagnostics: {
-    level: 'debug'
-  }
+  'diagnostics' => {
+    'level' => 'debug',
+  },
 }
 
 @email = "tryouts+colonel+#{Time.now.to_i}@onetimesecret.com"
 @customer = V1::Customer.create @email
-
 @obj_config_data = {
-  interface: { host: 'create.example.com', port: 9000 },
-  mail: { from: 'create@example.com' },
-  custid: @customer.custid,
-  comment: 'Test config creation'
+  'interface' => { 'host' => 'create.example.com', 'port' => 9000 },
+  'mail' => { 'from' => 'create@example.com' },
+  'custid' => @customer.custid,
+  'comment' => 'Test config creation',
 }
 
 ## Can extract settings sections from full config using FIELD_MAPPINGS
 V2::SystemSettings.extract_system_settings(@test_config)
-#=> {:interface=>{:host=>"localhost", :port=>3000, :ssl=>false}, :secret_options=>{:max_size=>1024, :default_ttl=>3600}, :mail=>{:from=>"noreply@example.com", :smtp=>{:host=>"smtp.example.com", :port=>587}}, :diagnostics=>{:enabled=>true, :level=>"info"}}
+##=> {"interface"=>{"host"=>"localhost", "port"=>3000, "ssl"=>false}, "secret_options"=>{"max_size"=>1024, "default_ttl"=>3600}, "mail"=>{"from"=>"noreply@example.com", "smtp"=>{"host"=>"smtp.example.com", "port"=>587}}, "diagnostics"=>{"enabled"=>true, "level"=>"info"}}
 
 ## Can construct onetime config structure from system settings hash
 V2::SystemSettings.construct_onetime_config(@system_settings_hash)
-#=> {:site=>{:interface=>{:host=>"custom.example.com", :port=>8080, :ssl=>true}, :secret_options=>{:max_size=>2048}}, :mail=>{:from=>"custom@example.com"}, :diagnostics=>{:level=>"debug"}}
+##=> {"site"=>{"interface"=>{"host"=>"custom.example.com", "port"=>8080, "ssl"=>true}, "secret_options"=>{"max_size"=>2048}}, "mail"=>{"from"=>"custom@example.com"}, "diagnostics"=>{"level"=>"debug"}}
 
 ## Can construct onetime config from partial system settings hash
-partial_config = { interface: { host: 'partial.example.com' }, mail: { from: 'partial@example.com' } }
+partial_config = { 'interface' => { 'host' => 'partial.example.com' }, 'mail' => { 'from' => 'partial@example.com' } }
 V2::SystemSettings.construct_onetime_config(partial_config)
-#=> {:site=>{:interface=>{:host=>"partial.example.com"}}, :mail=>{:from=>"partial@example.com"}}
+##=> {"site"=>{"interface"=>{"host"=>"partial.example.com"}}, "mail"=>{"from"=>"partial@example.com"}}
 
 ## Can handle empty system settings hash
 V2::SystemSettings.construct_onetime_config({})
-#=> {}
+##=> {}
 
 ## Can handle nil values in system settings
-nil_config = { interface: { host: nil }, mail: nil }
+nil_config = { 'interface' => { 'host' => nil }, 'mail' => nil }
 result = V2::SystemSettings.construct_onetime_config(nil_config)
-result.has_key?(:mail)
+result.has_key?('mail')
 #=> false
 
 ## Can create a new system settings record
@@ -128,7 +127,6 @@ end
 #=> true
 
 ## Can check if customer owns a system settings
-p [:owner, @obj.owner, @customer.custid]
 @obj.owner?(@customer)
 #=> true
 
@@ -187,48 +185,44 @@ V2::SystemSettings.values.member?(@obj2.identifier)
 #=> true
 
 ## Can remove bad config from both values and stack
-p [:working_on, @obj2.identifier]
-p [:before, V2::SystemSettings.stack.all]
 V2::SystemSettings.remove_bad_config(@obj2)
-p [:after, V2::SystemSettings.stack.all]
 V2::SystemSettings.stack.member?(@obj2.identifier)
 #=> false
 
 ## Extract settings sections handles missing nested keys gracefully
-incomplete_config = { site: { interface: { host: 'test' } } }
+incomplete_config = { 'site' => { 'interface' => { 'host' => 'test' } } }
 result = V2::SystemSettings.extract_system_settings(incomplete_config)
-result[:secret_options]
+result['secret_options']
 #=> nil
 
 ## Extract settings sections handles completely missing sections
-minimal_config = { other_section: { value: 'test' } }
+minimal_config = { 'other_section' => { 'value' => 'test' } }
 result = V2::SystemSettings.extract_system_settings(minimal_config)
-[result[:interface], result[:mail]]
+[result['interface'], result['mail']]
 #=> [nil, nil]
 
 ## Construct onetime config skips nil values appropriately
-config_with_nils = { interface: nil, mail: { from: 'test@example.com' } }
+config_with_nils = { 'interface' => nil, 'mail' => { 'from' => 'test@example.com' } }
 result = V2::SystemSettings.construct_onetime_config(config_with_nils)
-p [:plop, result]
-[result.has_key?(:site), result.dig(:site, :interface).nil?]
+p ["plop", result]
+[result.has_key?("site"), result.dig("site", "interface").nil?]
 #=> [false, true]
-
 ## FIELD_MAPPINGS constant is properly defined
 V2::SystemSettings::FIELD_MAPPINGS.keys.sort
-#=> [:diagnostics, :interface, :mail, :secret_options]
+#=> ["diagnostics", "interface", "mail", "secret_options"]
 
 ## FIELD_MAPPINGS has correct paths for nested site sections
 [
-  V2::SystemSettings::FIELD_MAPPINGS[:interface],
-  V2::SystemSettings::FIELD_MAPPINGS[:secret_options]
+  V2::SystemSettings::FIELD_MAPPINGS['interface'],
+  V2::SystemSettings::FIELD_MAPPINGS['secret_options'],
 ]
-#=> [[:site, :interface], [:site, :secret_options]]
+#=> [["site", "interface"], ["site", "secret_options"]]
 
 ## FIELD_MAPPINGS has correct paths for top-level sections
 [
-  V2::SystemSettings::FIELD_MAPPINGS[:mail]
+  V2::SystemSettings::FIELD_MAPPINGS['mail']
 ]
-#=> [[:mail]]
+#=> [['mail']]
 
 # Cleanup
 @customer.destroy!

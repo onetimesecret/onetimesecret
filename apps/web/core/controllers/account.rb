@@ -26,7 +26,7 @@ module Core
       #       authenticated users. For authenticated users, it pre-fills the email
       #       in the Stripe checkout process.
       #
-      # @see OT.conf[:billing][:payment_links] For the configuration of Stripe Payment Links
+      # @see OT.conf['billing']['payment_links'] For the configuration of Stripe Payment Links
       #
       # @see https://docs.stripe.com/api/payment-link/object For API reference
       #
@@ -37,9 +37,9 @@ module Core
           tierid = req.params[:tier] ||= 'free'
           billing_cycle = req.params[:billing_cycle] ||= 'month' # year or month
 
-          billing = OT.conf.dig(:billing)
-          payment_links = billing.fetch(:payment_links, {})
-          payment_link = payment_links.dig(tierid.to_sym, billing_cycle.to_sym)
+          billing = OT.conf['billing']
+          payment_links = billing.fetch('payment_links', {})
+          payment_link = payment_links.dig(tierid, billing_cycle)
 
           OT.ld "[plan_redirect] billing: #{billing}"
           OT.ld "[plan_redirect] payment_links: #{payment_links}"
@@ -108,7 +108,7 @@ module Core
 
           @cust = logic.cust
 
-          is_secure = Onetime.conf[:site][:ssl]
+          is_secure = Onetime.conf['site']['ssl']
           res.send_cookie :sess, sess.sessid, sess.ttl, is_secure
 
           res.redirect '/account'
@@ -165,8 +165,8 @@ module Core
             # Get the Stripe Customer ID from our customer instance
             customer_id = cust.stripe_customer_id
 
-            site_host = Onetime.conf[:site][:host]
-            is_secure = Onetime.conf[:site][:ssl]
+            site_host = Onetime.conf['site']['host']
+            is_secure = Onetime.conf['site']['ssl']
             return_url = "#{is_secure ? 'https' : 'http'}://#{site_host}/account"
 
             # Create a Stripe Customer Portal session
@@ -191,7 +191,7 @@ module Core
 
       def create_account
         publically do
-          unless _auth_settings[:enabled] && _auth_settings[:signup]
+          unless _auth_settings['enabled'] && _auth_settings['signup']
             return disabled_response(req.path)
           end
           deny_agents!
@@ -204,7 +204,7 @@ module Core
 
       def authenticate # rubocop:disable Metrics/AbcSize
         publically do
-          unless _auth_settings[:enabled] && _auth_settings[:signin]
+          unless _auth_settings['enabled'] && _auth_settings['signin']
             return disabled_response(req.path)
           end
           # If the request is halted, say for example rate limited, we don't want to
@@ -221,7 +221,7 @@ module Core
               logic.process
               sess = logic.sess
               cust = logic.cust
-              is_secure = Onetime.conf[:site][:ssl]
+              is_secure = Onetime.conf['site']['ssl']
               res.send_cookie :sess, sess.sessid, sess.ttl, is_secure
               if cust.role?(:colonel)
                 res.redirect '/colonel/'
@@ -261,7 +261,7 @@ module Core
       private
 
       def _auth_settings
-        OT.conf.dig(:site, :authentication)
+        OT.conf.dig('site', 'authentication')
       end
 
     end

@@ -30,7 +30,7 @@ OT.boot! :test, false
 @now = DateTime.now
 @unique_random_inbox = Digest::SHA2.hexdigest(@now.to_s)
 
-@from_address = OT.conf[:emailer][:from]
+@from_address = OT.conf['emailer']['from']
 @valid_exists = 'tryouts@onetimesecret.com'
 @user_does_not_exist = "#{@unique_random_inbox}@yahoo.com"
 
@@ -53,11 +53,11 @@ Truemail.configuration.verifier_email.nil?
 
 ## Truemail has the configured verifier email
 Truemail.configuration.verifier_email
-#=> OT.conf[:mail][:truemail][:verifier_email]
+#=> OT.conf['mail']['truemail']['verifier_email']
 
 ## Truemail has the configured verifier domain
 Truemail.configuration.verifier_domain
-#=> OT.conf[:mail][:truemail][:verifier_domain]
+#=> OT.conf['mail']['truemail']['verifier_domain']
 
 ## Truemail connection_timeout
 Truemail.configuration.connection_timeout

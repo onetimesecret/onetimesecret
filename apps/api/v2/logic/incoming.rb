@@ -15,8 +15,8 @@ module V2
           @ttl = 7.days
           @secret_value = params[:secret]
           @ticketno = params[:ticketno].strip
-          @passphrase = OT.conf[:incoming][:passphrase].strip
-          params[:recipient] = [OT.conf[:incoming][:email]]
+          @passphrase = OT.conf['incoming']['passphrase'].strip
+          params[:recipient] = [OT.conf['incoming']['email']]
           r = Regexp.new(/\b[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}\b/)
           @recipient = params[:recipient].collect { |email_address|
             next if email_address.to_s.empty?
@@ -28,7 +28,7 @@ module V2
         def raise_concerns
 
 
-          regex = Regexp.new(OT.conf[:incoming][:regex] || '\A[a-zA-Z0-9]{1,32}\z')
+          regex = Regexp.new(OT.conf['incoming']['regex'] || '\A[a-zA-Z0-9]{1,32}\z')
           if secret_value.to_s.empty?
             raise_form_error "You did not provide any information to share"
           end

@@ -178,7 +178,7 @@ module V2
         end
 
         # If all secrets fail, try nil secret if allowed
-        allow_nil = OT.conf[:experimental].fetch(:allow_nil_global_secret, false)
+        allow_nil = OT.conf['experimental'].fetch('allow_nil_global_secret', false)
         if allow_nil
           OT.li "[decrypted_value] m:#{metadata_key} s:#{key} Trying nil global secret"
           decryption_options = opts.merge(:key => encryption_key_v2_with_nil)
@@ -192,14 +192,14 @@ module V2
 
     # Check if there are additional global secrets configured beyond the primary one
     def has_fallback_secrets?
-      rotated_secrets = OT.conf[:experimental].fetch(:rotated_secrets, [])
+      rotated_secrets = OT.conf['experimental'].fetch('rotated_secrets', [])
       rotated_secrets.is_a?(Array) && rotated_secrets.length > 1
     end
 
     # Try to decrypt using each fallback secret
     def try_fallback_secrets(encrypted_value, opts)
       return nil unless has_fallback_secrets?
-      rotated_secrets = OT.conf[:experimental].fetch(:rotated_secrets, [])
+      rotated_secrets = OT.conf['experimental'].fetch('rotated_secrets', [])
       OT.ld "[try_fallback_secrets] m:#{metadata_key} s:#{key} Trying rotated secrets (#{rotated_secrets.length})"
       rotated_secrets.each_with_index do |fallback_secret, index|
         begin

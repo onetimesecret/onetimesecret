@@ -37,29 +37,29 @@ module Onetime
 
           OT.ld "#{self.class} locale is: #{locale.to_s}"
 
-          conf = OT.conf.fetch(:emailer, {})
+          conf = OT.conf.fetch('emailer', {})
 
-          @mode = conf.fetch(:mode, 'smtp').to_s.to_sym
+          @mode = conf.fetch('mode', 'smtp').to_s.to_sym
 
           # Create a new instance of the configured mailer class for this request
           @emailer = OT.emailer.new(
-            conf.fetch(:from, nil),
-            conf.fetch(:fromname, nil),
+            conf.fetch('from', nil),
+            conf.fetch('fromname', nil),
             cust&.email, # use for the reply-to field
           )
 
-          password_is_present = conf.fetch(:pass, nil).to_s.length.positive?
+          password_is_present = conf.fetch('pass', nil).to_s.length.positive?
           logsafe_config = {
-            from: conf.fetch(:from, nil),
-            fromname: conf.fetch(:fromname, nil),
-            host: conf.fetch(:host, nil),
-            port: conf.fetch(:port, nil),
-            user: conf.fetch(:user, nil),
-            tls: conf.fetch(:tls, nil),
-            auth: conf.fetch(:auth, nil), # auth type
-            region: conf.fetch(:region, nil),
-            pass: "has password: #{password_is_present}",
-            locale: locale.to_s,
+            'from' => conf.fetch('from', nil),
+            'fromname' => conf.fetch('fromname', nil),
+            'host' => conf.fetch('host', nil),
+            'port' => conf.fetch('port', nil),
+            'user' => conf.fetch('user', nil),
+            'tls' => conf.fetch('tls', nil),
+            'auth' => conf.fetch('auth', nil), # auth type
+            'region' => conf.fetch('region', nil),
+            'pass' => "has password: #{password_is_present}",
+            'locale' => locale.to_s,
           }
 
           OT.info "[mailer] #{mode} #{logsafe_config.to_json}"
@@ -181,17 +181,17 @@ module Onetime
 
         def secret_display_domain(obj)
           scheme = base_scheme
-          host = obj.share_domain || Onetime.conf[:site][:host]
+          host = obj.share_domain || Onetime.conf['site']['host']
           [scheme, host].join
         end
 
         def base_scheme
-          Onetime.conf[:site][:ssl] ? 'https://' : 'http://'
+          Onetime.conf['site']['ssl'] ? 'https://' : 'http://'
         end
 
         def baseuri
           scheme = base_scheme
-          host = Onetime.conf[:site][:host]
+          host = Onetime.conf['site']['host']
           [scheme, host].join
         end
 

@@ -58,7 +58,7 @@ module V1::Logic
           sess.save
           cust.save
 
-          colonels = OT.conf.dig(:site, :authentication, :colonels) || []
+          colonels = OT.conf.dig("site", "authentication", "colonels") || []
           if colonels.member?(cust.custid)
             cust.role = :colonel
           else

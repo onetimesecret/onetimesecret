@@ -22,8 +22,8 @@ module Core
       # @return [String] HTML script tag containing serialized data
       def serialized_to_script
         data = serialized_data
-        nonce = view_vars[:nonce]
-        element_id = view_vars[:script_element_id]
+        nonce = view_vars['nonce']
+        element_id = view_vars['script_element_id']
         to_json_script(data, id: element_id, nonce: nonce)
       end
 

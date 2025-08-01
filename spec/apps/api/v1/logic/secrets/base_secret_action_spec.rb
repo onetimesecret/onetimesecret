@@ -52,13 +52,13 @@ RSpec.describe V1::Logic::Secrets::BaseSecretAction do
     it 'sets default TTL when none provided' do
       subject.instance_variable_set(:@payload, {})
       subject.send(:process_ttl)
-      expect(subject.ttl).to eq(12.hours)
+      expect(subject.ttl).to eq(7.days) # was 12.hours
     end
 
     it 'enforces minimum TTL' do
       subject.instance_variable_set(:@payload, {ttl: '30'}) # 30 seconds
       subject.send(:process_ttl)
-      expect(subject.ttl).to eq(30.minutes)
+      expect(subject.ttl).to eq(30.minutes) # was 30.minutes
     end
 
     it 'enforces minimum TTL' do

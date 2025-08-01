@@ -10,9 +10,9 @@ RSpec.describe V2::Secret, 'security hardening' do
   before do
     allow(OT).to receive(:global_secret).and_return("global-test-secret")
     allow(OT).to receive(:conf).and_return({
-      experimental: {
-        allow_nil_global_secret: false,
-        rotated_secrets: []
+      'experimental' => {
+        'allow_nil_global_secret' => false,
+        'rotated_secrets' => []
       }
     })
   end

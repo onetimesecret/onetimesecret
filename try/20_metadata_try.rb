@@ -20,7 +20,6 @@ require_relative 'test_models'
 
 #Familia.debug = true
 
-# Use the default config file for tests
 OT.boot! :test, true
 
 @iterations = 1000

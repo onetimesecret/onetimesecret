@@ -1,4 +1,4 @@
-# migrate/1512_00_customer_objid.rb
+# migrate/20250728-1512_00_customer_objid.rb
 #
 # Customer Object ID and User Type Migration - Pipeline
 #
@@ -8,11 +8,11 @@
 # - user_type: Set to 'authenticated' (default user type)
 #
 # Usage:
-#   bin/ots migrate 1512_customer_objid_aspirational.rb # Preview changes
-#   bin/ots migrate --run 1512_customer_objid_aspirational.rb
+#   bin/ots migrate 20250728-1512_00_customer_objid.rb # Preview changes
+#   bin/ots migrate --run 20250728-1512_00_customer_objid.rb
 #
-#   ruby -I./lib migrate/1512_customer_objid_aspirational.rb --dry-run  # Preview changes
-#   ruby -I./lib migrate/1512_customer_objid_aspirational.rb --run
+#   ruby -I./lib migrate/20250728-1512_00_customer_objid.rb --dry-run  # Preview changes
+#   ruby -I./lib migrate/20250728-1512_00_customer_objid.rb --run
 #
 
 require 'onetime/migration'

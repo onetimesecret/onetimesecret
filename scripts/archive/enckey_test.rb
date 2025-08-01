@@ -95,7 +95,7 @@ def test_problematic_secret(secret_key, additional_global_secrets=[], potential_
 
   # List of potential global secrets to try
   potential_global_secrets = [
-     OT.conf['site']['secret'],  # Current global secret
+    OT.conf['site']['secret'],  # Current global secret
     nil,               # No global secret
     # Add other potential global secrets that might have been used
     "old_global_secret_value",
