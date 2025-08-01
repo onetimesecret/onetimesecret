@@ -31,17 +31,12 @@ module Onetime
       OT.env = ENV['RACK_ENV'] || 'production'
 
       # Sets a unique, 64-bit hexadecimal ID for this process instance.
-      instanceid = Onetime::Utils.generate_short_id
+      @instance ||= Onetime::Utils.generate_short_id
 
       # Default to diagnostics disabled. FYI: in test mode, the test config
       # YAML has diagnostics enabled. But the DSN values are nil so it
       # doesn't get enabled even after loading config.
       OT.d9s_enabled = false
-
-      # Sets a unique SHA hash every time this process starts. In a multi-
-      # threaded environment (e.g. with Puma), this could different for
-      # each thread.
-      # @instance ||= [Process.pid, OT::VERSION.to_s, OT.now.to_i].gibbler.freeze
 
       # Normalize environment variables prior to loading the YAML config
       OT::Config.before_load

@@ -33,7 +33,6 @@ RSpec.describe "Onetime boot configuration process" do
     allow(Onetime).to receive(:li)
     allow(Onetime).to receive(:le)
     allow(Familia).to receive(:redis).and_return(double('Redis').as_null_object)
-    allow(Gibbler).to receive(:secret=)
 
     # Mock redis operations
     redis_double = double('Redis')
