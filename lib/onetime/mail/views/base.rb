@@ -1,14 +1,12 @@
 # lib/onetime/mail/views/base.rb
 
 require 'chimera'
-require_relative 'view_helpers'
 
 module Onetime
   module Mail
     module Views
 
       class Base < Chimera
-        include Mail::ViewHelpers
 
         self.template_path = './templates/mail'
         self.view_namespace = Onetime::Mail
@@ -17,7 +15,7 @@ module Onetime
         attr_reader :cust, :locale, :emailer, :mode, :from, :to
         attr_accessor :token, :text_template
 
-        def initialize cust, locale, *args
+        def initialize(cust, locale, *)
           @cust = cust
           @locale = locale
 
@@ -63,7 +61,7 @@ module Onetime
           }
 
           OT.info "[mailer] #{mode} #{logsafe_config.to_json}"
-          init(*args) if respond_to? :init
+          init(*) if respond_to? :init
         end
 
         # Retrieves internationalization data for the current view context.
@@ -134,7 +132,7 @@ module Onetime
           internal_emsg = "Cannot send mail: #{ex.message}\n#{ex.backtrace}"
             OT.le internal_emsg
 
-            V2::EmailReceipt.create self[:cust].identifier, message_identifier, internal_emsg
+
             raise OT::Problem, errmsg
 
           rescue Exception => ex
@@ -142,14 +140,14 @@ module Onetime
             OT.le internal_emsg
             OT.le errmsg
 
-            V2::EmailReceipt.create self[:cust].identifier, message_identifier, internal_emsg.to_json
+
             raise OT::Problem, errmsg
           end
 
           # Nothing left to do here if we didn't send an email
           return unless mailer_response
 
-          V2::EmailReceipt.create self[:cust].identifier, message_identifier, mailer_response.to_json
+
 
           OT.info "[email-sent] to #{email_address_obscured} #{self[:cust].identifier} #{message_identifier}"
           mailer_response

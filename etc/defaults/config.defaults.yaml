@@ -169,10 +169,8 @@ redis:
     customer: <%= ENV['REDIS_DBS_CUSTOMER'] || 6 %>
     subdomain: <%= ENV['REDIS_DBS_SUBDOMAIN'] || 6 %>
     metadata: <%= ENV['REDIS_DBS_METADATA'] || 7 %>
-    email_receipt: <%= ENV['REDIS_DBS_EMAIL_RECEIPT'] || 8 %>
     secret: <%= ENV['REDIS_DBS_SECRET'] || 8 %>
     feedback: <%= ENV['REDIS_DBS_FEEDBACK'] || 11 %>
-    exception_info: <%= ENV['REDIS_DBS_EXCEPTION_INFO'] || 12 %>
     system_settings: <%= ENV['REDIS_DBS_SYSTEM_SETTINGS'] || 15 %>
 logging:
   # HTTP request logs (Rack::CommonLogger)

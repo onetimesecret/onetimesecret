@@ -41,15 +41,6 @@ module V2
         )
       end
 
-      def receive_exception
-        process_action(
-          V2::Logic::ReceiveException,
-          "Exception received. No offense taken.",
-          "Sorry we were not able to receive your exception (it's us, not you).",
-          allow_anonymous: true,
-        )
-      end
-
       def get_supported_locales
         publically do
           supported_locales = OT.supported_locales.map(&:to_s)

@@ -112,7 +112,6 @@ RSpec.shared_context "mail_test_context" do
     allow(OT).to receive(:info)
     allow(OT).to receive(:ld)
     allow(OT).to receive(:le)
-    allow(V2::EmailReceipt).to receive(:create)
 
     # Mock the emailer creation instead of trying to replace it after
     mailer = mail_emailer
@@ -176,15 +175,12 @@ RSpec.shared_examples "mail delivery behavior" do
           subject.deliver_email
         }.to raise_error(OT::Problem)
 
-        expect(V2::EmailReceipt).to have_received(:create)
-          .with(mail_customer.identifier, anything, include('Connection failed'))
       end
 
       it "skips delivery with token present" do
         subject.deliver_email('skip_token')
 
         expect(mail_emailer).not_to have_received(:send_email)
-        expect(V2::EmailReceipt).not_to have_received(:create)
       end
     end
   end

@@ -38,7 +38,7 @@ module Onetime
     HOME = File.expand_path(File.join(File.dirname(__FILE__), '..'))
   end
 
-  require_relative 'onetime/classmethods'
+  require_relative 'onetime/class_methods'
   require_relative 'onetime/boot'
   extend ClassMethods
   extend Initializers

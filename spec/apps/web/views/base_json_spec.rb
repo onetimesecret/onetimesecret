@@ -170,23 +170,23 @@ RSpec.xdescribe Core::Views::BaseView, "JSON Output" do
       before do
         # Configure all OT settings to match JSON sample
         allow(OT).to receive('conf').and_return({
-            site: {
-              host: not_authenticated_json["site_host"],
-              interface: { ui: not_authenticated_json["ui"] },
-              authentication: not_authenticated_json["authentication"],
-              domains: { enabled: not_authenticated_json["domains_enabled"] },
-              # Ensure regions has direct enabled property
-              regions: {
-                enabled: not_authenticated_json["regions_enabled"],
-                current_jurisdiction: not_authenticated_json["regions"]["current_jurisdiction"],
-                jurisdictions: not_authenticated_json["regions"]["jurisdictions"],
-              },
-              secret_options: not_authenticated_json["secret_options"],
+          'site' => {
+            'host' => not_authenticated_json["site_host"],
+            'interface' => { 'ui' => not_authenticated_json["ui"] },
+            'authentication' => not_authenticated_json["authentication"],
+            'domains' => { 'enabled' => not_authenticated_json["domains_enabled"] },
+            # Ensure regions has direct enabled property
+            'regions' => {
+              'enabled' => not_authenticated_json["regions_enabled"],
+              'current_jurisdiction' => not_authenticated_json["regions"]["current_jurisdiction"],
+              'jurisdictions' => not_authenticated_json["regions"]["jurisdictions"],
             },
-            development: {
-              enabled: true,
-              frontend_host: not_authenticated_json["frontend_host"],
-            },
+            'secret_options' => not_authenticated_json["secret_options"],
+          },
+          'development' => {
+            'enabled' => true,
+            'frontend_host' => not_authenticated_json["frontend_host"],
+          },
           })
 
         # Set up internationalization
