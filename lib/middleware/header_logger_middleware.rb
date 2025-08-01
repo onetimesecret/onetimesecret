@@ -10,6 +10,14 @@ require 'logger'
 # authorization headers. It's particularly helpful for debugging proxies and
 # load balancers that may be modifying headers.
 #
+# SECURITY WARNING: This middleware will log sensitive headers that may contain:
+# - Session cookies (Cookie header)
+# - Authentication tokens (Authorization header: "Bearer abc123...")
+# - API keys (X-Api-Key, X-Auth-Token headers)
+# - User tracking data (various custom headers)
+# Logs containing this information could be exposed through log aggregation
+# systems, shared development environments, or accidental inclusion in bug reports.
+#
 # To use HeaderLoggerMiddleware, add the following line to your config.ru file
 # after the require statements:
 #
