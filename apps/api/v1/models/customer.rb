@@ -104,93 +104,12 @@ module V1
       self.emails_sent ||= 0
     end
 
-    def contributor?
-      self.contributor.to_s == "true"
-    end
-
     def locale?
       !locale.to_s.empty?
     end
 
     def apitoken? guess
       self.apitoken.to_s == guess.to_s
-    end
-
-    def regenerate_apitoken
-      self.apitoken! [OT.instance, OT.now.to_f, :apitoken, custid].gibbler
-      self.apitoken # the fast writer bang methods don't return the value
-    end
-
-    def get_stripe_customer
-      get_stripe_customer_by_id || get_stripe_customer_by_email
-    rescue Stripe::StripeError => e
-      OT.le "[Customer.get_stripe_customer] Error: #{e.message}: #{e.backtrace}"
-      nil
-    end
-
-    def get_stripe_subscription
-      get_stripe_subscription_by_id || get_stripe_subscriptions&.first
-    end
-
-    def get_stripe_customer_by_id customer_id=nil
-      customer_id ||= stripe_customer_id
-      return unless customer_id
-      OT.info "[Customer.get_stripe_customer_by_id] Fetching customer: #{customer_id} #{custid}"
-      @stripe_customer = Stripe::Customer.retrieve(customer_id)
-
-    rescue Stripe::StripeError => e
-      OT.le "[Customer.get_stripe_customer_by_id] Error: #{e.message}"
-      nil
-    end
-
-    def get_stripe_customer_by_email
-      customers = Stripe::Customer.list(email: email, limit: 1)
-
-      if customers.data.empty?
-        OT.info "[Customer.get_stripe_customer_by_email] No customer found with email: #{email}"
-
-      else
-        @stripe_customer = customers.data.first
-        OT.info "[Customer.get_stripe_customer_by_email] Customer found: #{@stripe_customer.id}"
-      end
-
-      @stripe_customer
-
-    rescue Stripe::StripeError => e
-      OT.le "[Customer.get_stripe_customer_by_email] Error: #{e.message}"
-      nil
-    end
-
-    def get_stripe_subscription_by_id subscription_id=nil
-      subscription_id ||= stripe_subscription_id
-      return unless subscription_id
-      OT.info "[Customer.get_stripe_subscription_by_id] Fetching subscription: #{subscription_id} #{custid}"
-      @stripe_subscription = Stripe::Subscription.retrieve(subscription_id)
-    rescue Stripe::StripeError => e
-      OT.le "[Customer.get_stripe_subscription_by_id] Error: #{e.message}"
-      nil
-    end
-
-    def get_stripe_subscriptions stripe_customer=nil
-      stripe_customer ||= @stripe_customer
-      subscriptions = []
-      return subscriptions unless stripe_customer
-
-      begin
-        subscriptions = Stripe::Subscription.list(customer: stripe_customer.id, limit: 1)
-
-      rescue Stripe::StripeError => e
-        OT.le "Error: #{e.message}"
-      else
-        if subscriptions.data.empty?
-          OT.info "No subscriptions found for customer: #{stripe_customer.id}"
-        else
-          OT.info "Found #{subscriptions.data.length} subscriptions"
-          subscriptions = subscriptions.data
-        end
-      end
-
-      subscriptions
     end
 
     def anonymous?

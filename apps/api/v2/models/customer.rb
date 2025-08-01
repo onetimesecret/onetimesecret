@@ -107,10 +107,6 @@ module V2
       self.emails_sent ||= 0
     end
 
-    def contributor?
-      self.contributor.to_s == "true"
-    end
-
     def locale?
       !locale.to_s.empty?
     end
