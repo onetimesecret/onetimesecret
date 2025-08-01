@@ -228,7 +228,7 @@ module Onetime
     end
 
     customization_rows
-  end
+    end
 
   # Helper method to check if a feature is disabled
   def is_feature_disabled?(config)
@@ -245,7 +245,7 @@ module Onetime
       else
         config.to_s
       end
-    end
+  end
 
     # Helper method to convert seconds to human-readable duration format
     def format_duration(seconds)

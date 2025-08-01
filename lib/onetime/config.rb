@@ -26,7 +26,7 @@ module Onetime
               1.week,         # 604800
               2.weeks,        # 1209600
               30.days,        # 2592000
-            ]
+            ],
           },
           'interface' => {
             'ui' => { 'enabled' => true },

@@ -12,6 +12,7 @@ module V1
   #
   module Utils
     extend self
+
     unless defined?(VALID_CHARS)
       VALID_CHARS = [('a'..'z').to_a, ('A'..'Z').to_a, ('0'..'9').to_a, %w[* $ ! ? ( )]].flatten
       VALID_CHARS_SAFE = VALID_CHARS.clone
@@ -154,6 +155,6 @@ module V1
         end
         result
       end
-      # rubocop:enable Metrics/PerceivedComplexity, Metrics/AbcSize
+    # rubocop:enable Metrics/PerceivedComplexity, Metrics/AbcSize
   end
 end

@@ -12,9 +12,9 @@ module Core
     module InitializeViewVars
       # Define fields that are safe to expose to the frontend
       # Explicitly excluding :secret and :authenticity which contain sensitive data
-      @safe_site_fields = [
-        'host', 'ssl', 'interface', 'domains',
-        'secret_options', 'authentication', 'regions'
+      @safe_site_fields = %w[
+        host ssl interface domains
+        secret_options authentication regions
       ]
 
       class << self
