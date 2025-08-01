@@ -266,7 +266,7 @@ module V2
       sess.save
 
       # Only set the cookie after session is for sure saved to redis
-      is_secure = Onetime.conf['site']['ssl']
+      is_secure = Onetime.conf&.dig('site', 'ssl') || true
 
       # Update the session cookie
       res.send_cookie :sess, sess.sessid, sess.ttl, is_secure
