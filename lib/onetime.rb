@@ -16,7 +16,6 @@ require 'rack'
 require 'otto'
 require 'gibbler/mixins'
 require 'familia'
-require 'storable'
 
 require_relative 'onetime/core_ext'
 
