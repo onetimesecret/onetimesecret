@@ -8,7 +8,6 @@ module Onetime
     module Views
 
       class Base < Chimera
-        include Mail::ViewHelpers
 
         self.template_path = './templates/mail'
         self.view_namespace = Onetime::Mail
@@ -17,7 +16,7 @@ module Onetime
         attr_reader :cust, :locale, :emailer, :mode, :from, :to
         attr_accessor :token, :text_template
 
-        def initialize cust, locale, *args
+        def initialize(cust, locale, *)
           @cust = cust
           @locale = locale
 
