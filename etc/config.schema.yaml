@@ -71,7 +71,6 @@ features:
     email: any(str(), null())
     passphrase: any(str(), null())
     regex: str(required=False)
-  stathat: map(required=False)
 
 redis:
   uri: str()
