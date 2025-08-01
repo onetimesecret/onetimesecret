@@ -73,16 +73,24 @@ module V2
       :planid,
 
       # NOTE: The secrets_created incrementer is null until the first secret
-      # is created. See ConcealSecret for where the incrementer is called.
+      # is created. See ConcealSecret for where the incrementer is called. This
+      # actually applies to all fields used as incrementers. We use the
+      # `counter_field_handler` lambda to return 0 if the field is nil or empty.
       #
-      {:secrets_created => ->(cust) { cust.secrets_created.to_s || 0 } },
-      {:secrets_burned => ->(cust) { cust.secrets_burned.to_s || 0 } },
-      {:secrets_shared => ->(cust) { cust.secrets_shared.to_s || 0 } },
-      {:emails_sent => ->(cust) { cust.emails_sent.to_s || 0 } },
+      {:secrets_created => ->(cust) { counter_field_handler.call(cust, :secrets_created) } },
+      {:secrets_burned => ->(cust) { counter_field_handler.call(cust, :secrets_burned) } },
+      {:secrets_shared => ->(cust) { counter_field_handler.call(cust, :secrets_shared) } },
+      {:emails_sent => ->(cust) { counter_field_handler.call(cust, :emails_sent) } },
 
       # We use the hash syntax here since `:active?` is not a valid symbol.
       { :active => ->(cust) { cust.active? } },
     ]
+
+    # Lambda to handle counter fields that may be nil/empty - returns '0' if empty, otherwise the string value
+    counter_field_handler = ->(cust, field_name) {
+      value = cust.send(field_name).to_s
+      value.empty? ? '0' : value
+    }
 
     def init
       self.custid ||= 'anon'
@@ -101,9 +109,9 @@ module V2
       # contrast to the regular INCR command where a
       # non-existant key will simply be set to 1.
       self.secrets_created ||= 0
-      self.secrets_burned ||= 0
-      self.secrets_shared ||= 0
-      self.emails_sent ||= 0
+      self.secrets_burned  ||= 0
+      self.secrets_shared  ||= 0
+      self.emails_sent     ||= 0
     end
 
     # Mixin Placement for Field Order Control
