@@ -56,15 +56,15 @@ response = @mock_request.get('/dashboard')
 ## Disable authentication for all routes
 old_conf = OT.instance_variable_get(:@conf)
 new_conf = {
-  site: {
-    secret: 'notnil',
-    authentication: {
-      enabled: false,
-      signin: true,
+  'site' => {
+    'secret' => 'notnil',
+    'authentication' => {
+      'enabled' => false,
+      'signin' => true,
     }
   },
-  mail: {
-    truemail: {},
+  'mail' => {
+    'truemail' => {},
   }
 }
 OT.instance_variable_set(:@conf, new_conf)
