@@ -74,7 +74,7 @@ module Onetime
           raise ArgumentError, 'Bases must be between 2 and 36'
         end
 
-        value_str.to_i(from_base).to_s(base)
+        value_str.to_i(from_base).to_s(base).freeze
       end
     end
   end
