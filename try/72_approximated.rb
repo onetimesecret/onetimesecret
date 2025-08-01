@@ -13,10 +13,6 @@
 #
 # NOTE: These tryouts send real requests to the Approximated API.
 
-require 'dotenv'
-
-Dotenv.load('.env')
-
 require_relative 'test_models'
 
 OT.boot! :test, false

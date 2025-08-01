@@ -1,14 +1,14 @@
 // src/tests/setup.ts
 
 // Mock autoInitPlugin since it can't be found
-const autoInitPlugin = () => ((_context: PiniaPluginContext) =>
+const autoInitPlugin = () =>
+  ((_context: PiniaPluginContext) =>
     // Basic mock implementation
-     ({
+    ({
       install: () => {
         /* mock implementation */
       },
-    })
-  ) as unknown as PiniaPlugin;
+    })) as unknown as PiniaPlugin;
 import { createSharedApiInstance } from './setup-stores';
 
 // Use the shared axios instance that works with AxiosMockAdapter
@@ -48,11 +48,6 @@ global.Response = {
   redirect: vi.fn(),
   prototype: Response.prototype,
 } as unknown as typeof Response;
-
-// Mock the altcha worker module to avoid import.meta.url issues
-vi.mock('@/workers/altcha-worker', () => ({
-  altchaWorkerUrl: '/mock/worker.js'
-}));
 
 export function createVueWrapper() {
   const app = createApp({

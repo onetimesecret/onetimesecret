@@ -14,9 +14,8 @@ require_relative 'test_helpers'
 @original_env = ENV.to_h
 @sync_values = %w[true yes 1]
 
-
 ## Sanity check
-%w[true yes 1].include?(ENV['STDOUT_SYNC'])
+@sync_values.include?(ENV['STDOUT_SYNC'])
 #=> false
 
 ## Setting STDOUT_SYNC to 'true' enables sync

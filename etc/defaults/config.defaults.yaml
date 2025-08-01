@@ -123,11 +123,6 @@ site:
     # that target common admin URLs or role names.
     colonels:
       - <%= ENV['COLONEL'] || 'CHANGEME@example.com' %>
-  # A captcha-like feature that protects the feedback form
-  # from bots and other tomfoolery.
-  authenticity:
-    type: <%= ENV['AUTHENTICITY_TYPE'] || 'altcha' %>
-    secret_key: <%= ENV['AUTHENTICITY_SECRET_KEY'] || '<REPLACE_WITH_STRONG_HMAC_KEY>' %>
   # Links to documentation. For onetimesecret.com, this is
   # docs.onetimesecret.com.
   support:

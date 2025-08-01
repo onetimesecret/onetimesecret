@@ -6,7 +6,6 @@ require 'securerandom'
 require 'truemail'
 
 require 'erb'
-require 'syslog'
 
 require 'encryptor'
 require 'bcrypt'
@@ -17,7 +16,6 @@ require 'rack'
 require 'otto'
 require 'gibbler/mixins'
 require 'familia'
-require 'storable'
 
 require_relative 'onetime/core_ext'
 
