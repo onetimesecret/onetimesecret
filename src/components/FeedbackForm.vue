@@ -18,7 +18,6 @@
     showRedButton: false,
   });
 
-;
   const userTimezone = ref('');
   const feedbackMessage = ref('');
 
