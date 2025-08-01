@@ -43,11 +43,8 @@ module V2
     # sure that the same domain can only be added once per customer.
     #
     # @return [String] A shortened hash of the domain name and custid.
-    def derive_id
-      if @display_domain.to_s.empty? || @custid.to_s.empty?
-        raise Onetime::Problem, 'Cannot generate identifier with emptiness'
-      end
-      [@display_domain, @custid].gibbler.shorten
+    def generate_id
+      self.class.generate_id
     end
 
     # Check if the given customer is the owner of this domain

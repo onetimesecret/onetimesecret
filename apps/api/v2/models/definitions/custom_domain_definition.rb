@@ -18,7 +18,7 @@ module V2
 
     feature :safe_dump
 
-    identifier :derive_id
+    identifier :generate_id
 
     # NOTE: The redis key used by older models for values is simply
     # "onetime:customdomain". We'll want to rename those at some point.
