@@ -113,7 +113,7 @@ RSpec.describe Onetime::Config do
             'sentry' => {
               'backend' => {
                 'dsn' => 'https://new-backend@sentry.example.com/1',
-                sampleRate: 0.5,
+                'sampleRate' => 0.5,
               },
             },
           },
@@ -156,7 +156,7 @@ RSpec.describe Onetime::Config do
         expect(OT).to receive(:replace_config!) do |merged_config|
           # nil values in override should preserve original values
           expect(merged_config['site']['interface']['ui']['enabled']).to eq(true)
-          expect(merged_config['mail']).to eq(original_config[:mail])
+          expect(merged_config['mail']).to eq(original_config['mail'])
         end
 
         described_class.apply_config(override_with_nils)

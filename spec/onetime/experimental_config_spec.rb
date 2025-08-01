@@ -27,7 +27,7 @@ RSpec.describe "Experimental config settings" do
     context "when allow_nil_global_secret is false (default)" do
       before do
         @context_config = OT::Config.deep_clone(processed_config)
-        @context_config[:experimental][:allow_nil_global_secret] = false
+        @context_config['experimental']['allow_nil_global_secret'] = false
 
         OT.instance_variable_set(:@conf, @context_config)
       end
@@ -78,7 +78,7 @@ RSpec.describe "Experimental config settings" do
     context "when allow_nil_global_secret is true" do
       before do
         @context_config = OT::Config.deep_clone(processed_config)
-        @context_config[:experimental][:allow_nil_global_secret] = true
+        @context_config['experimental']['allow_nil_global_secret'] = true
 
         OT.instance_variable_set(:@conf, @context_config)
       end
@@ -149,7 +149,7 @@ RSpec.describe "Experimental config settings" do
         OT.instance_variable_set(:@global_secret, nil)
 
         # Enable fallback mechanism
-        @context_config[:experimental][:allow_nil_global_secret] = true
+        @context_config['experimental']['allow_nil_global_secret'] = true
 
         # We need to know exactly what encryption key was used during encryption
         # So we can return it during the mock of encryption_key_v2_with_nil
@@ -185,7 +185,7 @@ RSpec.describe "Experimental config settings" do
     context "when switching between nil and non-nil global secrets" do
       before do
         @context_config = OT::Config.deep_clone(processed_config)
-        @context_config[:experimental][:allow_nil_global_secret] = true
+        @context_config['experimental']['allow_nil_global_secret'] = true
 
         OT.instance_variable_set(:@conf, @context_config)
       end
@@ -209,7 +209,7 @@ RSpec.describe "Experimental config settings" do
         OT.instance_variable_set(:@global_secret, nil)
 
         # Enable fallback mechanism but mock it to fail
-        @context_config[:experimental][:allow_nil_global_secret] = true
+        @context_config['experimental']['allow_nil_global_secret'] = true
         allow(secret).to receive(:encryption_key_v2_with_nil).and_raise(OpenSSL::Cipher::CipherError)
 
         # Decryption should fail with CipherError
@@ -238,7 +238,7 @@ RSpec.describe "Experimental config settings" do
         OT.instance_variable_set(:@global_secret, regular_secret)
 
         # IMPORTANT: Completely disable the fallback
-        @context_config[:experimental][:allow_nil_global_secret] = false
+        @context_config['experimental']['allow_nil_global_secret'] = false
 
         # The decryption should fail since the key material is different
         secret.passphrase_temp = passphrase

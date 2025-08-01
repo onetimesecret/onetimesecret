@@ -89,7 +89,7 @@ RSpec.describe Core::Views::BaseView do
 
     context 'with anonymous user' do
       let(:customer) do
-        instance_double('V2::Customer',
+        instance_double(V2::Customer,
           anonymous?: true,
           planid: 'anonymous',
           custid: nil,
@@ -145,14 +145,14 @@ RSpec.describe Core::Views::BaseView do
       before do
         allow(OT).to receive('d9s_enabled').and_return(true)
         allow(OT).to receive('conf').and_return(config.merge(
-          'diagnostics' => {
-            'sentry' => {
-              'frontend' => {
-                'dsn' => 'https://test-dsn@sentry.example.com/1',
-              },
-            },
-          },
-        ))
+                                                  'diagnostics' => {
+                                                    'sentry' => {
+                                                      'frontend' => {
+                                                        'dsn' => 'https://test-dsn@sentry.example.com/1',
+                                                      },
+                                                    },
+                                                  },
+                                                ))
       end
 
       it 'sets diagnostic variables when enabled and DSN provided' do
@@ -170,14 +170,14 @@ RSpec.describe Core::Views::BaseView do
       before do
         allow(OT).to receive('d9s_enabled').and_return(false)
         allow(OT).to receive('conf').and_return(config.merge(
-          'diagnostics' => {
-            'sentry' => {
-              'frontend' => {
-                'dsn' => nil,
-              },
-            },
-          },
-        ))
+                                                  'diagnostics' => {
+                                                    'sentry' => {
+                                                      'frontend' => {
+                                                        'dsn' => nil,
+                                                      },
+                                                    },
+                                                  },
+                                                ))
       end
 
       it 'sets diagnostic to disabled when DSN not provided' do
@@ -243,8 +243,8 @@ RSpec.describe Core::Views::BaseView do
     it 'includes regions config when enabled' do
       expect(subject.serialized_data['regions_enabled']).to be true
       expect(subject.serialized_data['regions']).to include(
-        enabled: true,
-        current_jurisdiction: 'EU',
+        'enabled' => true,
+        'current_jurisdiction' => 'EU',
       )
     end
 
@@ -266,7 +266,7 @@ RSpec.describe Core::Views::BaseView do
 
   context 'with required serialized_data keys' do
     let(:ensure_exist_keys) do
-      [:domains_enabled, :custid, :cust, :email, :customer_since]
+      %w[domains_enabled custid cust email customer_since]
     end
 
     it 'includes all required keys' do
@@ -396,7 +396,6 @@ RSpec.describe Core::Views::BaseView do
 
       it 'falls back to default locale' do
         vars = subject.serialized_data
-        pp vars
         expect(vars['locale']).to eq('en')
       end
     end

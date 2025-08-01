@@ -523,22 +523,22 @@ RSpec.describe "Onetime boot configuration process" do
 
   describe '.mapped_key' do
     it 'maps custom keys to TrueMail keys' do
-      expect(Onetime::Config.mapped_key(:allowed_domains_only)).to eq(:whitelist_validation)
-      expect(Onetime::Config.mapped_key(:allowed_emails)).to eq(:whitelisted_emails)
-      expect(Onetime::Config.mapped_key(:blocked_emails)).to eq(:blacklisted_emails)
-      expect(Onetime::Config.mapped_key(:allowed_domains)).to eq(:whitelisted_domains)
-      expect(Onetime::Config.mapped_key(:blocked_domains)).to eq(:blacklisted_domains)
-      expect(Onetime::Config.mapped_key(:blocked_mx_ip_addresses)).to eq(:blacklisted_mx_ip_addresses)
+      expect(Onetime::Config.mapped_key('allowed_domains_only')).to eq('whitelist_validation')
+      expect(Onetime::Config.mapped_key('allowed_emails')).to eq('whitelisted_emails')
+      expect(Onetime::Config.mapped_key('blocked_emails')).to eq('blacklisted_emails')
+      expect(Onetime::Config.mapped_key('allowed_domains')).to eq('whitelisted_domains')
+      expect(Onetime::Config.mapped_key('blocked_domains')).to eq('blacklisted_domains')
+      expect(Onetime::Config.mapped_key('blocked_mx_ip_addresses')).to eq('blacklisted_mx_ip_addresses')
     end
 
     it 'returns the original key when no mapping exists' do
-      expect(Onetime::Config.mapped_key(:unmapped_key)).to eq(:unmapped_key)
-      expect(Onetime::Config.mapped_key(:default_validation_type)).to eq(:default_validation_type)
-      expect(Onetime::Config.mapped_key(:verifier_email)).to eq(:verifier_email)
+      expect(Onetime::Config.mapped_key('unmapped_key')).to eq('unmapped_key')
+      expect(Onetime::Config.mapped_key('default_validation_type')).to eq('default_validation_type')
+      expect(Onetime::Config.mapped_key('verifier_email')).to eq('verifier_email')
     end
 
     it 'maps test example key' do
-      expect(Onetime::Config.mapped_key(:example_internal_key)).to eq(:example_external_key)
+      expect(Onetime::Config.mapped_key('example_internal_key')).to eq('example_external_key')
     end
   end
 

@@ -150,65 +150,65 @@ RSpec.describe Onetime::Config do
 
       it 'correctly handles deeply nested security configuration' do
         original = {
-          site: {
-            authentication: {
-              enabled: true,
-              methods: ['password', 'totp'],
-              password: {
-                min_length: 8,
-                require_special: true
+          'site' => {
+            'authentication' => {
+              'enabled' => true,
+              'methods' => ['password', 'totp'],
+              'password' => {
+                'min_length' => 8,
+                'require_special' => true
               }
             },
-            ssl: {
-              enabled: true,
-              protocols: ['TLSv1.2', 'TLSv1.3']
+            'ssl' => {
+              'enabled' => true,
+              'protocols' => ['TLSv1.2', 'TLSv1.3']
             }
           }
         }
 
         other = {
-          site: {
-            authentication: {
-              methods: ['password', 'saml'],
-              password: {
-                min_length: 12,
-                max_age: 90
+          'site' => {
+            'authentication' => {
+              'methods' => ['password', 'saml'],
+              'password' => {
+                'min_length' => 12,
+                'max_age' => 90
               },
-              saml: {
-                idp_url: 'https://example.com/saml'
+              'saml' => {
+                'idp_url' => 'https://example.com/saml'
               }
             },
-            ssl: {
-              protocols: ['TLSv1.3']
+            'ssl' => {
+              'protocols' => ['TLSv1.3']
             },
-            cors: {
-              enabled: true,
-              allowed_origins: ['example.com']
+            'cors' => {
+              'enabled' => true,
+              'allowed_origins' => ['example.com']
             }
           }
         }
 
         expected = {
-          site: {
-            authentication: {
-              enabled: true,
-              methods: ['password', 'saml'],
-              password: {
-                min_length: 12,
-                require_special: true,
-                max_age: 90
+          'site' => {
+            'authentication' => {
+              'enabled' => true,
+              'methods' => ['password', 'saml'],
+              'password' => {
+                'min_length' => 12,
+                'require_special' => true,
+                'max_age' => 90
               },
-              saml: {
-                idp_url: 'https://example.com/saml'
+              'saml' => {
+                'idp_url' => 'https://example.com/saml'
               }
             },
-            ssl: {
-              enabled: true,
-              protocols: ['TLSv1.3']
+            'ssl' => {
+              'enabled' => true,
+              'protocols' => ['TLSv1.3']
             },
-            cors: {
-              enabled: true,
-              allowed_origins: ['example.com']
+            'cors' => {
+              'enabled' => true,
+              'allowed_origins' => ['example.com']
             }
           }
         }

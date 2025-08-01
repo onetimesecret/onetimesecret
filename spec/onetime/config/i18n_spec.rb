@@ -12,7 +12,7 @@ RSpec.describe "Internationalization config" do
           {
             i18n_enabled: described_class.i18n_enabled,
             locales: described_class.instance_variable_get(:@locales),
-            default_locale: described_class.default_locale
+            default_locale: described_class.default_locale,
           }
         end
 
@@ -48,7 +48,7 @@ RSpec.describe "Internationalization config" do
              i18n_enabled: described_class.i18n_enabled,
              locales: described_class.instance_variable_get(:@locales),
              default_locale: described_class.default_locale,
-             supported_locales: described_class.supported_locales
+             supported_locales: described_class.supported_locales,
            }
         end
 
@@ -96,7 +96,7 @@ RSpec.describe "Internationalization config" do
             locales: described_class.instance_variable_get(:@locales),
             default_locale: described_class.default_locale,
             supported_locales: described_class.supported_locales,
-            fallback_locale: described_class.fallback_locale
+            fallback_locale: described_class.fallback_locale,
           }
         end
 
@@ -111,7 +111,7 @@ RSpec.describe "Internationalization config" do
           test_locales = {
             'en' => {greeting: 'Hello'},
             'fr_FR' => {greeting: 'Bonjour'},
-            'de_AT' => {greeting: 'Grüß Gott'}
+            'de_AT' => {greeting: 'Grüß Gott'},
           }
           described_class.instance_variable_set(:@locales, test_locales)
         end
@@ -157,6 +157,7 @@ RSpec.describe "Internationalization config" do
       let(:helper) do
         Class.new do
           include V2::ControllerHelpers
+
           attr_accessor :req, :cust
 
           def initialize(req, cust)

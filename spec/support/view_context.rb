@@ -6,7 +6,7 @@ RSpec.shared_context "view_test_context" do
       'REMOTE_ADDR' => '127.0.0.1',
       'HTTP_HOST' => 'example.com',
       'rack.session' => {},
-      'ots.locale' => 'en'
+      'ots.locale' => 'en',
     }
 
     # Create a properly configured double that responds to env access
@@ -24,29 +24,32 @@ RSpec.shared_context "view_test_context" do
         'host' => 'test.domain.com',
         'secret_options' => {
           'default_ttl' => 86_400,
-          'ttl_options' => [3600, 86_400]
+          'ttl_options' => [3600, 86_400],
         },
         'authentication' => {
           'enabled' => true,
-          'signup' => true
-        }
+          'signup' => true,
+        },
+      },
+      'features' => {
+        'incoming' => {},
       },
       'development' => {
         'enabled' => false,
-        'frontend_host' => ''
-      }
+        'frontend_host' => '',
+      },
     }
   end
 
   let(:session) do
-    instance_double('V1::Session',
+    instance_double(V1::Session,
       authenticated?: true,
       add_shrimp: 'test_shrimp',
       get_messages: [])
   end
 
   let(:customer) do
-    instance_double('V1::Customer',
+    instance_double(V1::Customer,
       custid: 'test@example.com',
       email: 'test@example.com',
       anonymous?: false,
@@ -54,7 +57,7 @@ RSpec.shared_context "view_test_context" do
       created: Time.now.to_i,
       safe_dump: {
         'identifier' => 'test@example.com',
-        'role' => 'customer'
+        'role' => 'customer',
       })
   end
 
@@ -72,10 +75,10 @@ RSpec.shared_context "view_test_context" do
         web: {
           COMMON: {
             description: 'Test Description',
-            keywords: 'test,keywords'
-          }
-        }
-      }
+            keywords: 'test,keywords',
+          },
+        },
+      },
     })
   end
 end

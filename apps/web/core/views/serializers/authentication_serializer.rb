@@ -18,7 +18,7 @@ module Core
         output = self.output_template
 
         output['authenticated'] = view_vars['authenticated']
-        cust = view_vars[:cust] || V2::Customer.anonymous
+        cust = view_vars['cust'] || V2::Customer.anonymous
 
         output['cust'] = cust.safe_dump
 

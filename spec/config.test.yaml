@@ -74,7 +74,7 @@ features:
     email:
     passphrase:
 redis:
-  uri: <%= ENV['REDIS_URL'] || 'redis://CHANGEME@127.0.0.1:2121/0' %>
+  uri: 'redis://127.0.0.1:2121/0'
   dbs:
     session: 1
     custom_domain: 6
@@ -201,7 +201,7 @@ diagnostics:
     # `maxBreadcrumbs` - Maximum number of breadcrumbs to capture
     # `logErrors` - Whether to log errors to console
     defaults:
-      dsn: <%= ENV['SENTRY_DSN'] || nil %>
+      dsn: <%= nil %>
       sampleRate: 0.11
       maxBreadcrumbs: 22
       logErrors: true
@@ -209,7 +209,7 @@ diagnostics:
     #
     # `dsn` - Backend-specific Sentry DSN
     backend:
-      dsn: <%= ENV['SENTRY_DSN_BACKEND'] || nil %>
+      dsn: <%= nil %>
     # Vue frontend-specific Sentry configuration
     # Options here map directly to @sentry/vue client options
     # These options are passed directly to @sentry/vue client initialization
@@ -219,12 +219,12 @@ diagnostics:
     # `dsn` - Frontend-specific Sentry DSN
     # `trackComponents` - Enable automatic instrumentation of Vue components
     frontend:
-      dsn: <%= ENV['SENTRY_DSN_FRONTEND'] || nil %>
+      dsn: <%= nil %>
       trackComponents: true
 development:
-  enabled: <%= ['development', 'dev'].include?(ENV['RACK_ENV']) %>
-  debug: <%= ['true', '1', 'yes'].include?(ENV['ONETIME_DEBUG']) %>
-  frontend_host: <%= ENV['FRONTEND_HOST'] || 'http://localhost:5173' %>
+  enabled: false
+  debug: false
+  frontend_host: 'http://localhost:5173'
 experimental:
   allow_nil_global_secret: false
   # When set to true, the Rack::Builder#freeze_app freezes the middleware stack

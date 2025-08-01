@@ -80,14 +80,14 @@ RSpec.describe "Onetime::Initializers#setup_diagnostics" do
     it "enables diagnostics and initializes Sentry" do
       # Setup config with diagnostics enabled and valid DSN
       config = loaded_config.dup
-      config[:diagnostics] = {
-        enabled: true,
-        sentry: {
-          backend: { dsn: "https://example-dsn@sentry.io/12345" },
-          frontend: { dsn: "https://example-dsn@sentry.io/67890" }
+      config['diagnostics'] = {
+        'enabled' => true,
+        'sentry' => {
+          'backend' => { 'dsn' => "https://example-dsn@sentry.io/12345" },
+          'frontend' => { 'dsn' => "https://example-dsn@sentry.io/67890" }
         }
       }
-      config[:site] = { host: "test.example.com" }
+      config['site'] = { 'host' => "test.example.com" }
 
       # Set expectations - we should require sentry-ruby when enabled with DSN
       expect(Kernel).to receive(:require).with('sentry-ruby').ordered
@@ -105,11 +105,11 @@ RSpec.describe "Onetime::Initializers#setup_diagnostics" do
   context "when diagnostics are disabled" do
     it "does not initialize Sentry even with a DSN" do
       config = loaded_config.dup
-      config[:diagnostics] = {
-        enabled: false,
-        sentry: {
-          backend: { dsn: "https://example-dsn@sentry.io/12345" },
-          frontend: { dsn: "https://example-dsn@sentry.io/67890" }
+      config['diagnostics'] = {
+        'enabled' => false,
+        'sentry' => {
+          'backend' => { 'dsn' => "https://example-dsn@sentry.io/12345" },
+          'frontend' => { 'dsn' => "https://example-dsn@sentry.io/67890" }
         }
       }
 
@@ -127,11 +127,11 @@ RSpec.describe "Onetime::Initializers#setup_diagnostics" do
   context "when diagnostics are enabled but DSN is missing" do
     it "disables diagnostics and does not initialize Sentry" do
       config = loaded_config.dup
-      config[:diagnostics] = {
-        enabled: true,
-        sentry: {
-          backend: { dsn: nil },
-          frontend: { dsn: nil }
+      config['diagnostics'] = {
+        'enabled' => true,
+        'sentry' => {
+          'backend' => { 'dsn' => nil },
+          'frontend' => { 'dsn' => nil }
         }
       }
 
@@ -149,13 +149,13 @@ RSpec.describe "Onetime::Initializers#setup_diagnostics" do
   context "when site host is missing" do
     it "initializes Sentry with a default host name" do
       config = loaded_config.dup
-      config[:diagnostics] = {
-        enabled: true,
-        sentry: {
-          backend: { dsn: "https://example-dsn@sentry.io/12345" }
+      config['diagnostics'] = {
+        'enabled' => true,
+        'sentry' => {
+          'backend' => { 'dsn' => "https://example-dsn@sentry.io/12345" }
         }
       }
-      config[:site] = {} # No host
+      config['site'] = {} # No host
 
       # Should still require sentry since we have a DSN
       expect(Kernel).to receive(:require).with('sentry-ruby').ordered
@@ -171,14 +171,14 @@ RSpec.describe "Onetime::Initializers#setup_diagnostics" do
   context "when using the Sentry init block" do
     it "configures Sentry with correct environment and release values" do
       config = loaded_config.dup
-      config[:diagnostics] = {
-        enabled: true,
-        sentry: {
-          backend: { dsn: "https://example-dsn@sentry.io/12345" },
-          frontend: { dsn: nil }
+      config['diagnostics'] = {
+        'enabled' => true,
+        'sentry' => {
+          'backend' => { 'dsn' => "https://example-dsn@sentry.io/12345" },
+          'frontend' => { 'dsn' => nil }
         }
       }
-      config[:site] = { host: "test.example.com" }
+      config['site'] = { 'host' => "test.example.com" }
 
       # Set up test expectations
         # Test the config block passed to Sentry.init
@@ -206,14 +206,14 @@ RSpec.describe "Onetime::Initializers#setup_diagnostics" do
   context "when testing the before_send hook" do
     it "filters out invalid events" do
       config = loaded_config.dup
-      config[:diagnostics] = {
-        enabled: true,
-        sentry: {
-          backend: { dsn: "https://example-dsn@sentry.io/12345" },
-          frontend: { dsn: nil }
+      config['diagnostics'] = {
+        'enabled' => true,
+        'sentry' => {
+          'backend' => { 'dsn' => "https://example-dsn@sentry.io/12345" },
+          'frontend' => { 'dsn' => nil }
         }
       }
-      config[:site] = { host: "test.example.com" }
+      config['site'] = { 'host' => "test.example.com" }
 
       before_send_proc = nil
 
@@ -269,11 +269,11 @@ RSpec.describe "Onetime::Initializers#setup_diagnostics" do
 
     it "properly initializes diagnostics when enabled in config", allow_redis: true do
       modified_config = loaded_config.dup
-      modified_config[:diagnostics] = {
-        enabled: true,
-        sentry: {
-          backend: { dsn: "https://example-dsn@sentry.io/12345" },
-          frontend: { dsn: nil }
+      modified_config['diagnostics'] = {
+        'enabled' => true,
+        'sentry' => {
+          'backend' => { 'dsn' => "https://example-dsn@sentry.io/12345" },
+          'frontend' => { 'dsn' => nil }
         }
       }
       allow(Onetime::Config).to receive(:load).and_return(modified_config)
@@ -290,11 +290,11 @@ RSpec.describe "Onetime::Initializers#setup_diagnostics" do
 
     it "does not initialize Sentry when diagnostics are disabled in config", allow_redis: true do
       modified_config = loaded_config.dup
-      modified_config[:diagnostics] = {
-        enabled: false,
-        sentry: {
-          backend: { dsn: "https://example-dsn@sentry.io/12345" },
-          frontend: { dsn: nil }
+      modified_config['diagnostics'] = {
+        'enabled' => false,
+        'sentry' => {
+          'backend' => { 'dsn' => "https://example-dsn@sentry.io/12345" },
+          'frontend' => { 'dsn' => nil }
         }
       }
       allow(Onetime::Config).to receive(:load).and_return(modified_config)

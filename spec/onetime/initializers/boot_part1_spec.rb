@@ -136,9 +136,9 @@ RSpec.describe "Onetime::Config during Onetime.boot!" do
       end
 
       it "ensures diagnostics are disabled when there is no dsn" do
-        loaded_config[:diagnostics][:sentry][:backend][:dsn] = nil
+        loaded_config['diagnostics']['sentry']['backend']['dsn'] = nil
         # Frontend DSN might also need to be nil if it alone can enable diagnostics
-        loaded_config[:diagnostics][:sentry][:frontend][:dsn] = nil
+        loaded_config['diagnostics']['sentry']['frontend']['dsn'] = nil
 
         conf = Onetime::Config.after_load(loaded_config)
 
@@ -158,51 +158,51 @@ RSpec.describe "Onetime::Config during Onetime.boot!" do
     context "when site.authentication.enabled is false" do
       let(:auth_disabled_config_content) do
         <<~YAML
-          ---
-          :site:
-            :host: 'localhost:7171'
-            :secret: 'securesecret'
-            :authentication:
-              :enabled: false
-              :signup: true # Should be overridden
-              :signin: true # Should be overridden
-              :autoverify: true # Should be overridden
-            :domains: {enabled: false}
-            :regions: {enabled: false}
-            :secret_options: {}
-          :redis:
-            :uri: 'redis://127.0.0.1:6379/15'
-            :dbs: {session: 15}
-          :colonels: ['colonel@example.com']
-          :emailer:
-            :mode: 'smtp'
-            :from: 'x@y.z'
-            :fromname: 'N'
-            :host: 'h'
-            :port: 1
-            :user: ''
-            :pass: ''
-            :auth: false
-            :tls: false}
-          :development: {enabled: false, frontend_host: ''}
-          :billing: {enabled: false}
-          :mail:
-            :truemail:
-              :default_validation_type: :regex
-              :verifier_email: 'v@e.c'
-          :internationalization: {enabled: false, default_locale: 'en', locales: ['en']}
-          :diagnostics:
-            :enabled: false
-            :sentry:
-              :defaults:
-                :dsn:
-              :backend:
-                :dsn:
-              :frontend:
-                :dsn:
-          :experimental:
-            :freeze_app: false
-            csp: {enabled: false}
+        ---
+        site:
+          host: 'localhost:7171'
+          secret: 'securesecret'
+          authentication:
+            enabled: false
+            signup: true # Should be overridden
+            signin: true # Should be overridden
+            autoverify: true # Should be overridden
+          domains: {enabled: false}
+          regions: {enabled: false}
+          secret_options: {}
+        redis:
+          uri: 'redis://127.0.0.1:6379/15'
+          dbs: {session: 15}
+        colonels: ['colonel@example.com']
+        emailer:
+          mode: 'smtp'
+          from: 'x@y.z'
+          fromname: 'N'
+          host: 'h'
+          port: 1
+          user: ''
+          pass: ''
+          auth: false
+          tls: false
+        development: {enabled: false, frontend_host: ''}
+        billing: {enabled: false}
+        mail:
+          truemail:
+            default_validation_type: :regex
+            verifier_email: 'v@e.c'
+        internationalization: {enabled: false, default_locale: 'en', locales: ['en']}
+        diagnostics:
+          enabled: false
+          sentry:
+            defaults:
+              dsn:
+            backend:
+              dsn:
+            frontend:
+              dsn:
+        experimental:
+          freeze_app: false
+          csp: {enabled: false}
         YAML
       end
 
@@ -216,8 +216,8 @@ RSpec.describe "Onetime::Config during Onetime.boot!" do
         auth_config = conf.dig('site', 'authentication')
         expect(auth_config['enabled']).to be(false)
         expect(auth_config['signup']).to be(false)
-        expect(auth_config[:signin]).to be(false)
-        expect(auth_config[:autoverify]).to be(false)
+        expect(auth_config['signin']).to be(false)
+        expect(auth_config['autoverify']).to be(false)
       end
     end
   end
@@ -283,7 +283,7 @@ RSpec.describe "Onetime::Config during Onetime.boot!" do
 
     it "sets Familia.uri from the configuration" do
       Onetime.boot!(:test)
-      expect(Familia).to have_received(:uri=).with(loaded_config.dig(:redis, :uri))
+      expect(Familia).to have_received(:uri=).with(loaded_config.dig('redis', 'uri'))
     end
 
     it "loads fortunes into OT::Utils.fortunes" do
@@ -339,7 +339,7 @@ RSpec.describe "Onetime::Config during Onetime.boot!" do
 
       it "disables i18n and uses defaults if config has internationalization.enabled = false" do
         modified_config = YAML.load(ERB.new(File.read(source_config_path)).result) # Deep copy
-        modified_config[:internationalization][:enabled] = false
+        modified_config['internationalization']['enabled'] = false
         allow(Onetime::Config).to receive(:load).and_return(modified_config)
 
         Onetime.boot!(:test)

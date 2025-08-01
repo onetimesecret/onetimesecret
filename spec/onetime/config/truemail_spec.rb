@@ -6,18 +6,18 @@ RSpec.describe "Onetime TrueMail configuration" do
   describe "integration in Config.after_load" do
     let(:minimal_config) do
       {
-        development: { enabled: false },
-        site: {
-          authentication: { enabled: true },
-          host: 'example.com',
-          secret: 'test_secret'
+        'development' => { 'enabled' => false },
+        'site' => {
+          'authentication' => { 'enabled' => true },
+          'host' => 'example.com',
+          'secret' => 'test_secret'
         },
-        mail: {
-          truemail: {
-            default_validation_type: :regex,
-            verifier_email: 'verify@example.com',
-            allowed_domains_only: false,
-            dns: ['1.1.1.1', '8.8.8.8']
+        'mail' => {
+          'truemail' => {
+            'default_validation_type' => :regex,
+            'verifier_email' => 'verify@example.com',
+            'allowed_domains_only' => false,
+            'dns' => ['1.1.1.1', '8.8.8.8']
           }
         }
       }
@@ -25,26 +25,26 @@ RSpec.describe "Onetime TrueMail configuration" do
 
     let(:full_truemail_config) do
       {
-        default_validation_type: :regex,
-        verifier_email: 'verify@example.com',
-        verifier_domain: 'example.com',
-        connection_timeout: 2,
-        response_timeout: 2,
-        connection_attempts: 3,
-        allowed_domains_only: true,
-        allowed_emails: ['allowed@example.com'],
-        blocked_emails: ['blocked@example.com'],
-        allowed_domains: ['gooddomain.com'],
-        blocked_domains: ['baddomain.com'],
-        blocked_mx_ip_addresses: ['10.0.0.1'],
-        smtp_port: 25,
-        smtp_fail_fast: false,
-        smtp_safe_check: true,
-        not_rfc_mx_lookup_flow: false,
-        dns: ['1.1.1.1', '8.8.8.8'],
-        logger: {
-          tracking_event: :error,
-          stdout: true
+        'default_validation_type' => :regex,
+        'verifier_email' => 'verify@example.com',
+        'verifier_domain' => 'example.com',
+        'connection_timeout' => 2,
+        'response_timeout' => 2,
+        'connection_attempts' => 3,
+        'allowed_domains_only' => true,
+        'allowed_emails' => ['allowed@example.com'],
+        'blocked_emails' => ['blocked@example.com'],
+        'allowed_domains' => ['gooddomain.com'],
+        'blocked_domains' => ['baddomain.com'],
+        'blocked_mx_ip_addresses' => ['10.0.0.1'],
+        'smtp_port' => 25,
+        'smtp_fail_fast' => false,
+        'smtp_safe_check' => true,
+        'not_rfc_mx_lookup_flow' => false,
+        'dns' => ['1.1.1.1', '8.8.8.8'],
+        'logger' => {
+          'tracking_event' => :error,
+          'stdout' => true
         }
       }
     end
@@ -70,7 +70,7 @@ RSpec.describe "Onetime TrueMail configuration" do
 
     it 'requires a configuration' do
       config = minimal_config.dup
-      config[:mail].delete(:truemail)
+      config['mail'].delete('truemail')
 
       expect { Onetime::Config.after_load(config) }
         .to raise_error(OT::Problem, /No TrueMail config found/)
@@ -78,13 +78,13 @@ RSpec.describe "Onetime TrueMail configuration" do
 
     it 'configures with minimal settings' do
       config = minimal_config.dup
-      truemail_settings = config[:mail][:truemail]
+      truemail_settings = config['mail']['truemail']
 
       # Expectations for each setting in minimal config
-      expect(@truemail_config).to receive(:default_validation_type=).with(truemail_settings[:default_validation_type])
-      expect(@truemail_config).to receive(:verifier_email=).with(truemail_settings[:verifier_email])
-      expect(@truemail_config).to receive(:whitelist_validation=).with(truemail_settings[:allowed_domains_only])
-      expect(@truemail_config).to receive(:dns=).with(truemail_settings[:dns])
+      expect(@truemail_config).to receive(:default_validation_type=).with(truemail_settings['default_validation_type'])
+      expect(@truemail_config).to receive(:verifier_email=).with(truemail_settings['verifier_email'])
+      expect(@truemail_config).to receive(:whitelist_validation=).with(truemail_settings['allowed_domains_only'])
+      expect(@truemail_config).to receive(:dns=).with(truemail_settings['dns'])
 
       conf = Onetime::Config.after_load(config)
       Onetime.instance_variable_set(:@conf, conf)
@@ -93,7 +93,7 @@ RSpec.describe "Onetime TrueMail configuration" do
 
     it 'logs error when Truemail config key does not exist' do
       test_config = minimal_config.dup
-      test_config[:mail][:truemail][:invalid_key] = 'value'
+      test_config['mail']['truemail']['invalid_key'] = 'value'
 
       # Expect the error to be logged
       expect(Onetime).to receive(:le).with('config.invalid_key does not exist')
@@ -119,10 +119,10 @@ RSpec.describe "Onetime TrueMail configuration" do
 
     it 'maps custom key names to Truemail configuration keys' do
       test_config = minimal_config.dup
-      test_config[:mail][:truemail] = {
-        allowed_domains_only: true,
-        allowed_emails: ['test@example.com'],
-        blocked_domains: ['bad.com']
+      test_config['mail']['truemail'] = {
+        'allowed_domains_only' => true,
+        'allowed_emails' => ['test@example.com'],
+        'blocked_domains' => ['bad.com'],
       }
 
       # Set expectations for the mapped keys
@@ -137,27 +137,27 @@ RSpec.describe "Onetime TrueMail configuration" do
 
     it 'configures with all possible settings' do
       test_config = minimal_config.dup
-      test_config[:mail][:truemail] = full_truemail_config
+      test_config['mail']['truemail'] = full_truemail_config
 
       # Set expectations for all keys
-      expect(@truemail_config).to receive(:default_validation_type=).with(full_truemail_config[:default_validation_type])
-      expect(@truemail_config).to receive(:verifier_email=).with(full_truemail_config[:verifier_email])
-      expect(@truemail_config).to receive(:verifier_domain=).with(full_truemail_config[:verifier_domain])
-      expect(@truemail_config).to receive(:connection_timeout=).with(full_truemail_config[:connection_timeout])
-      expect(@truemail_config).to receive(:response_timeout=).with(full_truemail_config[:response_timeout])
-      expect(@truemail_config).to receive(:connection_attempts=).with(full_truemail_config[:connection_attempts])
-      expect(@truemail_config).to receive(:whitelist_validation=).with(full_truemail_config[:allowed_domains_only])
-      expect(@truemail_config).to receive(:whitelisted_emails=).with(full_truemail_config[:allowed_emails])
-      expect(@truemail_config).to receive(:blacklisted_emails=).with(full_truemail_config[:blocked_emails])
-      expect(@truemail_config).to receive(:whitelisted_domains=).with(full_truemail_config[:allowed_domains])
-      expect(@truemail_config).to receive(:blacklisted_domains=).with(full_truemail_config[:blocked_domains])
-      expect(@truemail_config).to receive(:blacklisted_mx_ip_addresses=).with(full_truemail_config[:blocked_mx_ip_addresses])
-      expect(@truemail_config).to receive(:smtp_port=).with(full_truemail_config[:smtp_port])
-      expect(@truemail_config).to receive(:smtp_fail_fast=).with(full_truemail_config[:smtp_fail_fast])
-      expect(@truemail_config).to receive(:smtp_safe_check=).with(full_truemail_config[:smtp_safe_check])
-      expect(@truemail_config).to receive(:not_rfc_mx_lookup_flow=).with(full_truemail_config[:not_rfc_mx_lookup_flow])
-      expect(@truemail_config).to receive(:dns=).with(full_truemail_config[:dns])
-      expect(@truemail_config).to receive(:logger=).with(full_truemail_config[:logger])
+      expect(@truemail_config).to receive(:default_validation_type=).with(full_truemail_config['default_validation_type'])
+      expect(@truemail_config).to receive(:verifier_email=).with(full_truemail_config['verifier_email'])
+      expect(@truemail_config).to receive(:verifier_domain=).with(full_truemail_config['verifier_domain'])
+      expect(@truemail_config).to receive(:connection_timeout=).with(full_truemail_config['connection_timeout'])
+      expect(@truemail_config).to receive(:response_timeout=).with(full_truemail_config['response_timeout'])
+      expect(@truemail_config).to receive(:connection_attempts=).with(full_truemail_config['connection_attempts'])
+      expect(@truemail_config).to receive(:whitelist_validation=).with(full_truemail_config['allowed_domains_only'])
+      expect(@truemail_config).to receive(:whitelisted_emails=).with(full_truemail_config['allowed_emails'])
+      expect(@truemail_config).to receive(:blacklisted_emails=).with(full_truemail_config['blocked_emails'])
+      expect(@truemail_config).to receive(:whitelisted_domains=).with(full_truemail_config['allowed_domains'])
+      expect(@truemail_config).to receive(:blacklisted_domains=).with(full_truemail_config['blocked_domains'])
+      expect(@truemail_config).to receive(:blacklisted_mx_ip_addresses=).with(full_truemail_config['blocked_mx_ip_addresses'])
+      expect(@truemail_config).to receive(:smtp_port=).with(full_truemail_config['smtp_port'])
+      expect(@truemail_config).to receive(:smtp_fail_fast=).with(full_truemail_config['smtp_fail_fast'])
+      expect(@truemail_config).to receive(:smtp_safe_check=).with(full_truemail_config['smtp_safe_check'])
+      expect(@truemail_config).to receive(:not_rfc_mx_lookup_flow=).with(full_truemail_config['not_rfc_mx_lookup_flow'])
+      expect(@truemail_config).to receive(:dns=).with(full_truemail_config['dns'])
+      expect(@truemail_config).to receive(:logger=).with(full_truemail_config['logger'])
 
       conf = Onetime::Config.after_load(test_config)
       OT.instance_variable_set(:@conf, conf)
@@ -168,18 +168,18 @@ RSpec.describe "Onetime TrueMail configuration" do
       it 'correctly maps all special keys' do
         # Define a config with all special keys that need mapping
         mapped_keys_config = {
-          allowed_domains_only: true,
-          allowed_emails: ['good@example.com'],
-          blocked_emails: ['bad@example.com'],
-          allowed_domains: ['gooddomain.com'],
-          blocked_domains: ['baddomain.com'],
-          blocked_mx_ip_addresses: ['10.0.0.1'],
-          example_internal_key: 'test_value'
+          'allowed_domains_only' => true,
+          'allowed_emails' => ['good@example.com'],
+          'blocked_emails' => ['bad@example.com'],
+          'allowed_domains' => ['gooddomain.com'],
+          'blocked_domains' => ['baddomain.com'],
+          'blocked_mx_ip_addresses' => ['10.0.0.1'],
+          'example_internal_key' => 'test_value'
         }
 
         # Set up minimal config with these special keys
         test_config = minimal_config.dup
-        test_config[:mail][:truemail] = mapped_keys_config
+        test_config['mail']['truemail'] = mapped_keys_config
 
         # Set expectations for mapped keys
         expect(@truemail_config).to receive(:whitelist_validation=).with(true)
@@ -200,21 +200,21 @@ RSpec.describe "Onetime TrueMail configuration" do
   describe 'Onetime::Config::KEY_MAP' do
     it 'contains expected mapping keys' do
       expect(Onetime::KEY_MAP).to include(
-        allowed_domains_only: :whitelist_validation,
-        allowed_emails: :whitelisted_emails,
-        blocked_emails: :blacklisted_emails,
-        allowed_domains: :whitelisted_domains,
-        blocked_domains: :blacklisted_domains,
-        blocked_mx_ip_addresses: :blacklisted_mx_ip_addresses,
-        example_internal_key: :example_external_key,
+        'allowed_domains_only' => 'whitelist_validation',
+        'allowed_emails' => 'whitelisted_emails',
+        'blocked_emails' => 'blacklisted_emails',
+        'allowed_domains' => 'whitelisted_domains',
+        'blocked_domains' => 'blacklisted_domains',
+        'blocked_mx_ip_addresses' => 'blacklisted_mx_ip_addresses',
+        'example_internal_key' => 'example_external_key',
       )
     end
 
     it 'is used by mapped_key method' do
       # Test a few key mappings to verify the method uses KEY_MAP correctly
-      expect(Onetime::Config.mapped_key(:allowed_domains_only)).to eq(:whitelist_validation)
-      expect(Onetime::Config.mapped_key(:example_internal_key)).to eq(:example_external_key)
-      expect(Onetime::Config.mapped_key(:unmapped_key)).to eq(:unmapped_key)
+      expect(Onetime::Config.mapped_key('allowed_domains_only')).to eq('whitelist_validation')
+      expect(Onetime::Config.mapped_key('example_internal_key')).to eq('example_external_key')
+      expect(Onetime::Config.mapped_key('unmapped_key')).to eq('unmapped_key')
     end
   end
 end
