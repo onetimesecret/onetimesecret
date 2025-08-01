@@ -280,14 +280,28 @@ module Onetime
         rows: rows,
       )
 
-      rendered = table.render(:unicode,
-        padding: [0, 1],
-        multiline: true,
-        column_widths: [15, 79])
+      begin
+        rendered = table.render(:unicode,
+          padding: [0, 1],
+          multiline: true,
+          column_widths: [15, 79])
+      rescue NoMethodError => e
+        if e.message.include?("undefined method 'ioctl'")
+          # Fallback for non-terminal environments like Tryouts
+          rendered = table.render(:unicode,
+            padding: [0, 1],
+            multiline: true,
+            column_widths: [15, 79],
+            width: 95) # Explicit width to avoid terminal detection
+        else
+          raise
+        end
+      end
 
       # Return rendered table with an extra newline
       rendered + "\n"
     end
+
 
   end
 end
