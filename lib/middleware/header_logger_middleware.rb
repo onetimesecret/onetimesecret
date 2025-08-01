@@ -1,5 +1,7 @@
 # lib/middleware/header_logger_middleware.rb
 
+require 'logger'
+
 # Rack::HeaderLoggerMiddleware
 #
 # Logs all HTTP headers for each request to the system log.
@@ -18,9 +20,10 @@
 #     use HeaderLoggerMiddleware
 #
 class Rack::HeaderLoggerMiddleware
-  def initialize(app)
+  def initialize(app, logger: nil)
     @app = app
-    OT.ld("HeaderLoggerMiddleware initialized")
+    @logger = logger || Logger.new($stdout)
+    @logger.debug('HeaderLoggerMiddleware initialized')
   end
 
   def call(env)
@@ -31,13 +34,13 @@ class Rack::HeaderLoggerMiddleware
   private
 
   def log_headers(env)
-    OT.info("Request Headers for #{env['REQUEST_METHOD']} #{env['PATH_INFO']}:")
+    @logger.info("Request Headers for #{env['REQUEST_METHOD']} #{env['PATH_INFO']}:")
     env.each do |key, value|
       if key.start_with?('HTTP_')
         header_name = key.sub(/^HTTP_/, '').split('_').map(&:capitalize).join('-')
-        OT.info(">  #{header_name}: #{value}")
+        @logger.info(">  #{header_name}: #{value}")
       end
     end
-    OT.info("\n")  # Add a blank line for readability between requests
+    @logger.info("\n")  # Add a blank line for readability between requests
   end
 end
