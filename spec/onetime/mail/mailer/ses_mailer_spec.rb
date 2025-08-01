@@ -43,10 +43,10 @@ RSpec.describe Onetime::Mail::Mailer::SESMailer do
     # Mock OT utilities
     allow(OT::Utils).to receive(:obscure_email).with(to_email).and_return('r***@example.com')
     allow(OT).to receive(:conf).and_return({
-      emailer: {
-        region: 'ca-central-1',
-        user: 'AKIAEXAMPLE',
-        pass: 'wJalrXUtnFEMI/K7MDENG+bPxRfiCYEXAMPLEKEY'
+      'emailer' => {
+        'region' => 'ca-central-1',
+        'user' => 'AKIAEXAMPLE',
+        'pass' => 'wJalrXUtnFEMI/K7MDENG+bPxRfiCYEXAMPLEKEY'
       }
     })
 
@@ -173,9 +173,9 @@ RSpec.describe Onetime::Mail::Mailer::SESMailer do
 
     it 'raises an error if region is not configured' do
       allow(OT).to receive(:conf).and_return({
-        emailer: {
-          user: 'AKIAEXAMPLE',
-          pass: 'wJalrXUtnFEMI/K7MDENG+bPxRfiCYEXAMPLEKEY'
+        'emailer' => {
+          'user' => 'AKIAEXAMPLE',
+          'pass' => 'wJalrXUtnFEMI/K7MDENG+bPxRfiCYEXAMPLEKEY'
         }
       })
 

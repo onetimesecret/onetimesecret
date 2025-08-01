@@ -22,8 +22,8 @@ RSpec.describe Onetime::Mail::SecretLink do
       expect(secret_link[:secret]).to eq(mail_secret)
       expect(secret_link[:email_address]).to eq(recipient)
       expect(secret_link[:custid]).to eq(mail_customer.custid)
-      expect(secret_link[:from]).to eq(mail_config[:emailer][:from])
-      expect(secret_link[:from_name]).to eq(mail_config[:emailer][:fromname])
+      expect(secret_link[:from]).to eq(mail_config['emailer']['from'])
+      expect(secret_link[:from_name]).to eq(mail_config['emailer']['fromname'])
       expect(secret_link[:signature_link]).to eq('https://onetimesecret.com/')
     end
 
@@ -55,7 +55,7 @@ RSpec.describe Onetime::Mail::SecretLink do
 
     context 'with custom share domain' do
       let(:mail_secret) do
-        instance_double('V1::Secret',
+        instance_double(V1::Secret,
           identifier: 'secret123',
           key: 'testkey123',
           share_domain: 'custom.example.com',
@@ -70,7 +70,7 @@ RSpec.describe Onetime::Mail::SecretLink do
 
     context 'without SSL' do
       before do
-        mail_config[:site][:ssl] = false
+        mail_config['site']['ssl'] = false
       end
 
       it 'uses http protocol' do
