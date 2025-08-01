@@ -10,11 +10,8 @@ on:
       - 'wip/*'
       - 'rel/*'
       - 'develop'
-    types: [opened, synchronize]
+    types: [opened, synchronize, labeled]
   workflow_dispatch:
-
-permissions:
-  contents: read
 
 jobs:
   claude-review:
@@ -25,6 +22,11 @@ jobs:
     #   github.event.pull_request.author_association == 'FIRST_TIME_CONTRIBUTOR'
     # if: ${{ !startsWith(github.head_ref, 'deps/') }}
     runs-on: ubuntu-latest
+    if: |
+      (github.event.action == 'opened') ||
+      (github.event.action == 'labeled' && github.event.label.name == 'claude-review') ||
+      (github.event.action == 'synchronize' && contains(github.event.pull_request.labels.*.name, 'claude-review'))
+
     permissions:
       contents: read
       pull-requests: read
@@ -58,15 +60,7 @@ jobs:
             Be constructive and helpful in your feedback.
 
           # Optional: Use sticky comments to make Claude reuse the same comment on subsequent pushes to the same PR
-          # use_sticky_comment: true
-
-          # Optional: Customize review based on file types
-          # direct_prompt: |
-          #   Review this PR focusing on:
-          #   - For TypeScript files: Type safety and proper interface usage
-          #   - For API endpoints: Security, input validation, and error handling
-          #   - For React components: Performance, accessibility, and best practices
-          #   - For tests: Coverage, edge cases, and test quality
+          use_sticky_comment: true
 
           # Optional: Different prompts for different authors
           # direct_prompt: |
@@ -81,3 +75,20 @@ jobs:
           # if: |
           #   !contains(github.event.pull_request.title, '[skip-review]') &&
           #   !contains(github.event.pull_request.title, '[WIP]')
+
+      - name: Remove claude-review label
+        # Remove label whether success or failure - prevents getting stuck
+        if: always() && github.event.action != 'opened'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            try {
+              await github.rest.issues.removeLabel({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                name: 'claude-review'
+              });
+            } catch (error) {
+              console.log('Label not found or already removed');
+            }
