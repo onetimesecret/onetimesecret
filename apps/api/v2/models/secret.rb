@@ -5,57 +5,6 @@ require 'openssl'
 module V2
   class Secret < Familia::Horreum
 
-    feature :safe_dump
-    feature :expiration
-
-    ttl 7.days # default only, can be overridden at create time
-    prefix :secret
-
-    identifier :generate_id
-
-    field :custid
-    field :state
-    field :value
-    field :metadata_key
-    field :value_encryption
-    field :lifespan
-    field :share_domain
-    field :verification
-    field :updated
-    field :created
-    field :truncated # boolean
-    field :maxviews # always 1 (here for backwards compat)
-
-    # The key field is added automatically by Familia::Horreum and works
-    # just fine except for rspec mocks that use `instance_double`. Mocking
-    # a secret that includes a value for `key` will trigger an error (since
-    # instance_double considers the real class). See spec_helpers.rb
-    field :key
-
-    counter :view_count, ttl: 14.days # out lives the secret itself
-
-    # NOTE: this field is a nullop. It's only populated if a value was entered
-    # into a hidden field which is something a regular person would not do.
-    field :token
-
-    @safe_dump_fields = [
-      { identifier: ->(obj) { obj.identifier } },
-      :key,
-      :state,
-      { secret_ttl: ->(m) { m.lifespan } },
-      :lifespan,
-      { shortkey: ->(m) { m.key.slice(0, 8) } },
-      { has_passphrase: ->(m) { m.has_passphrase? } },
-      { verification: ->(m) { m.verification? } },
-      { is_truncated: ->(m) { m.truncated? } },
-      :created,
-      :updated,
-    ]
-
-    def init
-      self.state ||= 'new'
-    end
-
     def generate_id
       @key ||= Familia.generate_id.slice(0, 31)
       @key
@@ -319,30 +268,11 @@ module V2
       self.destroy!
     end
 
-    class << self
-
-      def spawn_pair custid, token=nil
-        secret = V2::Secret.create(custid: custid, token: token)
-        metadata = V2::Metadata.create(custid: custid, token: token)
-
-        # TODO: Use Familia transaction
-        metadata.secret_key = secret.key
-        metadata.save
-
-        secret.metadata_key = metadata.key
-        secret.save
-
-        [metadata, secret]
-      end
-
-      def encryption_key *entropy
-        input = entropy.flatten.compact.join ':'
-        Digest::SHA256.hexdigest(input) # TODO: Use Familila.generate_id
-      end
-    end
-
     # See Customer model for explanation about why
     # we include extra fields at the end here.
     include V2::Mixins::Passphrase
   end
 end
+
+require_relative 'definitions/secret_definition'
+require_relative 'management/secret_management'

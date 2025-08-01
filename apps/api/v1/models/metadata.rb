@@ -102,8 +102,6 @@ module V1
     end
     alias :natural_ttl :natural_duration
 
-    alias :secret_expiration_in_seconds :secret_ttl
-
     def secret_expiration
       # Unix timestamp of when the secret will expire. Based on
       # the secret_ttl and the created time of the metadata
@@ -115,7 +113,6 @@ module V1
       # Colloquial representation of the TTL. e.g. "1 day"
       OT::TimeUtils.natural_duration secret_ttl.to_i if secret_ttl
     end
-    alias :secret_natural_ttl :secret_natural_duration
 
     def secret_expired?
       Time.now.utc.to_i >= (secret_expiration || 0)
