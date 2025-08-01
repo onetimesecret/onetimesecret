@@ -95,7 +95,7 @@ RSpec.describe Onetime::Config do
 
       it 'exits with error for invalid YAML' do
         invalid_yaml_path = File.join(temp_dir, 'invalid.yaml')
-        File.write(invalid_yaml_path, "---\n:site: *undefined_alias\n")
+        File.write(invalid_yaml_path, "---\nsite: *undefined_alias\n")
 
         expect(Onetime).to receive(:le).at_least(:once)
         expect { described_class.load(invalid_yaml_path) }.to raise_error(OT::ConfigError)
@@ -103,7 +103,7 @@ RSpec.describe Onetime::Config do
 
       it 'exits with error for invalid ERB' do
         invalid_erb_path = File.join(temp_dir, 'invalid_erb.yaml')
-        File.write(invalid_erb_path, "---\n:site:\n  :host: <%= undefined_method %>\n")
+        File.write(invalid_erb_path, "---\nsite:\n  :host: <%= undefined_method %>\n")
 
         expect(Onetime).to receive(:le).at_least(:once)
         expect { described_class.load(invalid_erb_path) }.to raise_error(OT::ConfigError)

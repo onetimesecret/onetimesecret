@@ -15,13 +15,13 @@ OT.boot! :test, false
 # Basic Configuration Tests
 
 ## Config initialization with domains enabled
-config = { domains: { enabled: true, default: @canonical_domain } }
+config = { 'domains' => { 'enabled' => true, 'default' => @canonical_domain } }
 Onetime::DomainStrategy.initialize_from_config(config)
 Onetime::DomainStrategy.canonical_domain
 #=> 'onetimesecret.com'
 
 ## Config initialization with domains disabled uses fallback host
-config = { domains: { enabled: false }, host: 'fallback.com' }
+config = { 'domains' => { 'enabled' => false }, 'host' => 'fallback.com' }
 Onetime::DomainStrategy.initialize_from_config(config)
 Onetime::DomainStrategy.canonical_domain
 #=> 'fallback.com'
@@ -112,7 +112,7 @@ end
 #=> true
 
 ## Disables domains when canonical domain is invalid
-config = { domains: { enabled: true, default: '..invalid..' } }
+config = { 'domains' => { 'enabled' => true, 'default' => '..invalid..' } }
 Onetime::DomainStrategy.initialize_from_config(config)
 Onetime::DomainStrategy.domains_enabled?
 #=> false
@@ -120,18 +120,18 @@ Onetime::DomainStrategy.domains_enabled?
 
 ## DomainStrategy class method 'normalize_canonical_domain' returns the correct normalized domain
 @config_with_domains = {
-  site: {
-    host: 'onetimesecret.com',
-    domains: {
-      enabled: true,
-      default: 'example.Com'
+  'site' => {
+    'host' => 'onetimesecret.com',
+    'domains' => {
+      'enabled' => true,
+      'default' => 'example.Com'
     }
   }
 }
+pp [:plop, @config_with_domains]
 Onetime::DomainStrategy.reset!
-Onetime::DomainStrategy.get_canonical_domain(@config_with_domains[:site])
+Onetime::DomainStrategy.get_canonical_domain(@config_with_domains['site'])
 #=> 'onetimesecret.com'
-
 
 # Teardown
 Onetime::DomainStrategy.reset!

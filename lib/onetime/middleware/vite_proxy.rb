@@ -64,7 +64,10 @@ module Onetime
           config = Onetime.conf.fetch('development', {})
 
           # Configure Vite proxy based on settings
-          case config
+          #
+          # NOTE: On pattern matching, symbols only are allowed. We standardize
+          # on strings but this quick trick with transform_keys works great.
+          case config.transform_keys(&:to_sym)
           in {enabled: true, frontend_host: String => frontend_host}
             if frontend_host.strip.empty?
               Onetime.ld "[ViteProxy] No frontend host configured to proxy"
