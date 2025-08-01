@@ -1,5 +1,7 @@
 # apps/api/v1/controllers/class_methods.rb
 
+require 'v1/refinements'
+
 module V1
 
   # FlexibleHashAccess is a refinement for the Hash class that enables

@@ -1,5 +1,7 @@
 # apps/api/v1/controllers/index.rb
 
+require 'v1/refinements'
+
 require_relative 'base'
 require_relative 'settings'
 
