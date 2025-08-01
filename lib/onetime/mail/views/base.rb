@@ -134,7 +134,7 @@ module Onetime
           internal_emsg = "Cannot send mail: #{ex.message}\n#{ex.backtrace}"
             OT.le internal_emsg
 
-            V2::EmailReceipt.create self[:cust].identifier, message_identifier, internal_emsg
+
             raise OT::Problem, errmsg
 
           rescue Exception => ex
@@ -142,14 +142,14 @@ module Onetime
             OT.le internal_emsg
             OT.le errmsg
 
-            V2::EmailReceipt.create self[:cust].identifier, message_identifier, internal_emsg.to_json
+
             raise OT::Problem, errmsg
           end
 
           # Nothing left to do here if we didn't send an email
           return unless mailer_response
 
-          V2::EmailReceipt.create self[:cust].identifier, message_identifier, mailer_response.to_json
+
 
           OT.info "[email-sent] to #{email_address_obscured} #{self[:cust].identifier} #{message_identifier}"
           mailer_response
