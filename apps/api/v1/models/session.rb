@@ -1,7 +1,5 @@
 # apps/api/v1/models/session.rb
 
-require_relative 'mixins/session_messages'
-
 module V1
   class Session < Familia::Horreum
 

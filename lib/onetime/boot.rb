@@ -38,7 +38,7 @@ module Onetime
       # Sets a unique SHA hash every time this process starts. In a multi-
       # threaded environment (e.g. with Puma), this could different for
       # each thread.
-      @instance ||= [Process.pid, OT::VERSION.to_s, OT.now.to_i].gibbler.freeze
+      # @instance ||= [Process.pid, OT::VERSION.to_s, OT.now.to_i].gibbler.freeze
 
       # Normalize environment variables prior to loading the YAML config
       OT::Config.before_load
