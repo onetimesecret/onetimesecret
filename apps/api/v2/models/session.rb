@@ -15,10 +15,6 @@ module V2
     end
 
     def external_identifier
-      return @external_identifier if @external_identifier
-      elements               = []
-      (elements << ipaddress) || 'UNKNOWNIP'
-      (elements << custid) || 'anon'
       @external_identifier ||= OT::Utils.generate_id
     end
 
@@ -68,7 +64,7 @@ module V2
       # we only add it if it's not already set ao that we don't accidentally
       # dispose of perfectly good piece of shrimp. Because of this guard, the
       # method is idempotent and can be called multiple times without side effects.
-      shrimp! self.class.generate_id if shrimp.to_s.empty?
+      replace_shrimp! if shrimp.to_s.empty?
       shrimp # fast writer bang methods don't return the value
     end
 

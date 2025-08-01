@@ -60,6 +60,12 @@ module V2
         # initialized either way.
         cust.send("#{field}!", 1) if curval.to_i.zero? # nil and '' cast to 0
       end
+
+      # Generate a unique session ID with 32 bytes of random data
+      # @return [String] base-36 encoded random string
+      def generate_id
+        OT::Utils.generate_id
+      end
     end
 
     # Customer Management

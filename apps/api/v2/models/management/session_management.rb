@@ -28,8 +28,10 @@ module V2
         sess
       end
 
+      # Generate a unique session ID with 32 bytes of random data
+      # @return [String] base-36 encoded random string
       def generate_id
-        OT::Utils.generate_id(bits=32, encoding=36)
+        OT::Utils.generate_id
       end
     end
 
