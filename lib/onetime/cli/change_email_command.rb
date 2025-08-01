@@ -166,14 +166,14 @@ module Onetime
                 puts "Checking domain mappings:"
                 domains.each_with_index do |domain_info, index|
                   domain = domain_info[:domain]
-                  # Check display_domains mapping
-                  new_domain_id = V2::CustomDomain.redis.hget("customdomain:display_domains", domain)
-                  calculated_id = [domain, new_email].gibbler.shorten
+                  stored_domain_id = domain_info[:old_id]
+                  # Check display_domains mapping still exists
+                  current_domain_id = V2::CustomDomain.redis.hget("customdomain:display_domains", domain)
 
-                  if new_domain_id == calculated_id
-                    puts "  ✓ Domain #{index+1}: #{domain} correctly mapped to #{new_domain_id}"
+                  if current_domain_id == stored_domain_id
+                    puts "  ✓ Domain #{index+1}: #{domain} still correctly mapped to #{current_domain_id}"
                   else
-                    puts "  ✗ Domain #{index+1}: #{domain} incorrectly mapped to #{new_domain_id} (expected: #{calculated_id})"
+                    puts "  ✗ Domain #{index+1}: #{domain} mapping issue - stored: #{stored_domain_id}, current: #{current_domain_id}"
                     all_domains_verified = false
                   end
                 end
@@ -203,7 +203,7 @@ module Onetime
       rescue => e
         # Handle validation and execution errors with descriptive messages
         puts "Error during operation: #{e.message}"
-        puts "Check the domain IDs carefully. If there's a mismatch between stored and calculated IDs,"
+        puts "Check the domain mappings carefully. If there are issues with domain associations,"
         puts "this may indicate data corruption or manual changes to Redis keys."
 
         puts e.backtrace.join("\n") if OT.debug?
