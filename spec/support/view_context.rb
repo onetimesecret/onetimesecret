@@ -19,21 +19,21 @@ RSpec.shared_context "view_test_context" do
   end
   let(:config) do
     {
-      locales: ['en'],
-      site: {
-        host: 'test.domain.com',
-        secret_options: {
-          default_ttl: 86_400,
-          ttl_options: [3600, 86_400]
+      'locales' => ['en'],
+      'site' => {
+        'host' => 'test.domain.com',
+        'secret_options' => {
+          'default_ttl' => 86_400,
+          'ttl_options' => [3600, 86_400]
         },
-        authentication: {
-          enabled: true,
-          signup: true
+        'authentication' => {
+          'enabled' => true,
+          'signup' => true
         }
       },
-      development: {
-        enabled: false,
-        frontend_host: ''
+      'development' => {
+        'enabled' => false,
+        'frontend_host' => ''
       }
     }
   end

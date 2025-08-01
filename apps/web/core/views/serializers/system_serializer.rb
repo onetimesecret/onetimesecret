@@ -17,12 +17,12 @@ module Core
       def self.serialize(view_vars, i18n)
         output = self.output_template
 
-        output[:ot_version] = OT::VERSION.to_s
-        output[:ot_version_long] = OT::VERSION.inspect
-        output[:ruby_version] = RUBY_VERSION.to_s
+        output['ot_version'] = OT::VERSION.to_s
+        output['ot_version_long'] = OT::VERSION.inspect
+        output['ruby_version'] = RUBY_VERSION.to_s
 
-        output[:shrimp] = view_vars[:shrimp]
-        output[:nonce] = view_vars[:nonce]
+        output['shrimp'] = view_vars['shrimp']
+        output['nonce'] = view_vars['nonce']
         output
       end
 
@@ -32,11 +32,11 @@ module Core
         # @return [Hash] Template with all possible system output fields
         def output_template
           {
-            ot_version: nil,
-            ot_version_long: nil,
-            ruby_version: nil,
-            shrimp: nil,
-            nonce: nil,
+            'ot_version' => nil,
+            'ot_version_long' => nil,
+            'ruby_version' => nil,
+            'shrimp' => nil,
+            'nonce' => nil,
           }
         end
       end

@@ -10,9 +10,8 @@
 # These tests ensure that email validation is properly configured and
 # that our custom mapping layer works correctly with the TrueMail library.
 
-require 'onetime'
+require_relative 'test_helpers'
 
-# Use the default config file for tests
 OT::Config.path = File.join(Onetime::HOME, 'spec', 'config.test.yaml')
 OT.boot! :test
 
@@ -42,7 +41,7 @@ Onetime::Config.mapped_key('blocked_mx_ip_addresses')
 
 ## mapped_key returns unmapped keys as-is
 Onetime::Config.mapped_key('unmapped_key')
-#=> :unmapped_key
+#=> 'unmapped_key'
 
 ## Config contains expected TrueMail settings from test config
 OT.conf['mail']['truemail']['default_validation_type']
@@ -62,13 +61,13 @@ OT.conf['mail']['truemail']['smtp_fail_fast']
 
 ## apply_defaults preserves original sections and doesn't change defaults
 config = {
-  defaults: { timeout: 5, enabled: true },
-  api: { timeout: 10 },
-  web: {}
+  'defaults' => { 'timeout' => 5, 'enabled' => true },
+  'api' => { 'timeout' => 10 },
+  'web' => {},
 }
-original_defaults = config[:defaults].dup
+original_defaults = config['defaults'].dup
 result = Onetime::Config.apply_defaults_to_peers(config)
-[result[:api][:timeout], result[:web][:timeout], result[:api][:enabled], config[:defaults] == original_defaults]
+[result['api']['timeout'], result['web']['timeout'], result['api']['enabled'], config['defaults'] == original_defaults]
 #=> [10, 5, true, true]
 
 ## apply_defaults handles nil config
@@ -81,10 +80,10 @@ Onetime::Config.apply_defaults_to_peers({})
 
 ## apply_defaults preserves defaults when section value is nil
 config = {
-  defaults: { dsn: 'default-dsn' },
-  backend: { dsn: nil },
-  frontend: { dsn: nil }
+  'defaults' => { 'dsn' => 'default-dsn' },
+  'backend' => { 'dsn' => nil },
+  'frontend' => { 'dsn' => nil },
 }
 result = Onetime::Config.apply_defaults_to_peers(config)
-[result[:backend][:dsn], result[:frontend][:dsn]]
+[result['backend']['dsn'], result['frontend']['dsn']]
 #=> ['default-dsn', 'default-dsn']

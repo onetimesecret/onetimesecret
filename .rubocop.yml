@@ -42,6 +42,10 @@ Style/TrailingCommaInHashLiteral:
 Style/DoubleNegation:
   Enabled: false
 
+RSpec/MultipleExpectations:
+  Enabled: true
+  Max: 5
+
 Layout/MultilineMethodCallIndentation:
   EnforcedStyle: indented
 

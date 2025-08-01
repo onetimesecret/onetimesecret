@@ -2,7 +2,6 @@
 
 require_relative 'test_helpers'
 
-# Use the default config file for tests
 OT.boot! :test, false
 
 ## Default emailer mode is :smtp

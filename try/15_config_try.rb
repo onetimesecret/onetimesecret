@@ -14,7 +14,6 @@
 
 require_relative 'test_helpers'
 
-# Use the default config file for tests
 OT.boot! :test, false
 
 @email_address = OT.conf['emailer']['from']
@@ -33,7 +32,7 @@ OT.boot! :test, false
 [@config['site'].class, @config['redis'].class]
 #=> [Hash, Hash]
 
-OT.boot! :test, false
+## OT.boot! :test, false
 [OT.mode, OT.conf.class]
 #=> [:test, Hash]
 
@@ -46,12 +45,16 @@ Onetime.global_secret
 #=> 'SuP0r_53cRU7'
 
 ## Config.mapped_key takens an internal key and returns the corresponding external key
-Onetime::Config.mapped_key(:example_internal_key)
-#=> :example_external_key
+Onetime::Config.mapped_key('example_internal_key')
+#=> 'example_external_key'
 
-## Config.mapped_key returns the key itself if it is not in the KEY_MAP
+## Config.mapped_key returns the key itself if it is not in the KEY_MAP (symbol)
 Onetime::Config.mapped_key(:every_developer_a_key)
 #=> :every_developer_a_key
+
+## Config.mapped_key returns the key itself if it is not in the KEY_MAP (string)
+Onetime::Config.mapped_key('every_developer_a_string_key')
+#=> 'every_developer_a_string_key'
 
 ## Config.find_configs returns an array of paths, but the test config isn't there
 paths = Onetime::Config.find_configs('config.test.yaml')

@@ -20,7 +20,7 @@ require_relative 'test_helpers'
 
 # Familia.debug = true
 
-# Use the default config file for tests
+
 
 OT.boot! :test, false
 @original_fortunes = Onetime::Utils.instance_variable_get(:@fortunes)

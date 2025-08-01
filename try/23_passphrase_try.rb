@@ -17,7 +17,6 @@ require_relative 'test_models'
 
 #Familia.debug = false
 
-# Use the default config file for tests
 OT.boot! :test, false
 
 ## Can store a passphrase

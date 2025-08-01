@@ -14,7 +14,6 @@
 
 require_relative '../test_logic'
 
-# Use the default config file for tests
 OT.boot! :test, false
 
 @email = "tryouts+#{Time.now.to_i}@onetimesecret.com"
@@ -78,7 +77,7 @@ res.keys
 ## Has some essential settings
 params = {}
 logic = Logic::Secrets::ShowMetadata.new(@sess, @cust, params, 'en')
-[logic.site[:host], logic.authentication[:enabled], logic.domains_enabled]
+[logic.site['host'], logic.authentication['enabled'], logic.domains_enabled]
 #=> ["127.0.0.1:3000", true, false]
 
 ## Raises an exception when there's no metadata (no metadata param)
@@ -131,7 +130,7 @@ params = {
 }
 @this_logic = Logic::Secrets::ShowMetadata.new(@sess, @cust, params, 'en')
 @this_logic.process
-"https://#{@this_logic.site[:host]}"
+"https://#{@this_logic.site['host']}"
 #=> @this_logic.share_domain
 
 ## Share domain is still site.host even when the metadata has it set if domains is not enabled
@@ -142,7 +141,7 @@ params = {
 }
 @this_logic = Logic::Secrets::ShowMetadata.new(@sess, @cust, params, 'en')
 @this_logic.process
-["https://#{@this_logic.site[:host]}", @this_logic.domains_enabled]
+["https://#{@this_logic.site['host']}", @this_logic.domains_enabled]
 #=> [@this_logic.share_domain, false]
 
 ## Share domain is processed correctly when the metadata has it set and domains is enabled

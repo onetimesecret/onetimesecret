@@ -27,16 +27,16 @@ RSpec.xdescribe Core::Views::BaseView, "JSON Output" do
 
       let(:customer) do
         instance_double('V2::Customer',
-          custid: nil,
-          email: nil,
-          anonymous?: true,
-          planid: 'anonymous',
-          created: Time.now.to_i,
-          safe_dump: nil,
-          verified?: false,
-          active?: false,
-          role: 'anonymous',
-          custom_domains_list: [])
+          'custid' => nil,
+          'email' => nil,
+          'anonymous?' => true,
+          'planid' => 'anonymous',
+          'created' => Time.now.to_i,
+          'safe_dump' => nil,
+          'verified?' => false,
+          'active?' => false,
+          'role' => 'anonymous',
+          'custom_domains_list' => [])
       end
 
       let(:rack_request) do
@@ -55,49 +55,49 @@ RSpec.xdescribe Core::Views::BaseView, "JSON Output" do
 
       before do
         # Configure all OT settings to match JSON sample
-        allow(OT).to receive(:conf).and_return({
-          site: {
-            host: authenticated_json["site_host"],
-            interface: { ui: authenticated_json["ui"] },
-            authentication: authenticated_json["authentication"],
-            domains: { enabled: authenticated_json["domains_enabled"] },
+        allow(OT).to receive('conf').and_return({
+          'site' => {
+            'host' => authenticated_json["site_host"],
+            'interface' => { 'ui' => authenticated_json["ui"] },
+            'authentication' => authenticated_json["authentication"],
+            'domains' => { 'enabled' => authenticated_json["domains_enabled"] },
             # Ensure regions has direct enabled property
-            regions: {
-              enabled: authenticated_json["regions_enabled"],
-              current_jurisdiction: authenticated_json["regions"]["current_jurisdiction"],
-              jurisdictions: authenticated_json["regions"]["jurisdictions"],
+            'regions' => {
+              'enabled' => authenticated_json["regions_enabled"],
+              'current_jurisdiction' => authenticated_json["regions"]["current_jurisdiction"],
+              'jurisdictions' => authenticated_json["regions"]["jurisdictions"],
             },
-            secret_options: authenticated_json["secret_options"],
+            'secret_options' => authenticated_json["secret_options"],
           },
-          development: {
-            enabled: true,
-            frontend_host: authenticated_json["frontend_host"],
+          'development' => {
+            'enabled' => true,
+            'frontend_host' => authenticated_json["frontend_host"],
           },
         })
 
         # Set up internationalization
-        allow(OT).to receive(:default_locale).and_return(not_authenticated_json["default_locale"])
-        allow(OT).to receive(:fallback_locale).and_return(not_authenticated_json["fallback_locale"])
-        allow(OT).to receive(:supported_locales).and_return(not_authenticated_json["supported_locales"])
-        allow(OT).to receive(:i18n_enabled).and_return(not_authenticated_json["i18n_enabled"])
-        allow(OT).to receive(:d9s_enabled).and_return(not_authenticated_json["d9s_enabled"])
+        allow(OT).to receive('default_locale').and_return(not_authenticated_json["default_locale"])
+        allow(OT).to receive('fallback_locale').and_return(not_authenticated_json["fallback_locale"])
+        allow(OT).to receive('supported_locales').and_return(not_authenticated_json["supported_locales"])
+        allow(OT).to receive('i18n_enabled').and_return(not_authenticated_json["i18n_enabled"])
+        allow(OT).to receive('d9s_enabled').and_return(not_authenticated_json["d9s_enabled"])
 
         # Create locales mock
-        allow(OT).to receive(:locales).and_return({
+        allow(OT).to receive('locales').and_return({
           'en' => {
-            web: {
-              COMMON: {
-                description: 'Test Description',
-                keywords: 'test,keywords',
+            :web => {
+              :COMMON => {
+                :description => 'Test Description',
+                :keywords => 'test,keywords',
               },
             },
           },
         })
 
         # Mock version info - Use double instead of OpenStruct
-        allow(OT).to receive(:global_banner).and_return(nil)
+        allow(OT).to receive('global_banner').and_return(nil)
 
-        allow(OT).to receive(:VERSION).and_return("0.20.4 ()")
+        allow(OT).to receive('VERSION').and_return("0.20.4 ()")
 
         # For domain strategy
         allow(Onetime::DomainStrategy).to receive(:canonical_domain).and_return(not_authenticated_json["canonical_domain"])
@@ -169,7 +169,7 @@ RSpec.xdescribe Core::Views::BaseView, "JSON Output" do
 
       before do
         # Configure all OT settings to match JSON sample
-        allow(OT).to receive(:conf).and_return({
+        allow(OT).to receive('conf').and_return({
             site: {
               host: not_authenticated_json["site_host"],
               interface: { ui: not_authenticated_json["ui"] },
@@ -190,14 +190,14 @@ RSpec.xdescribe Core::Views::BaseView, "JSON Output" do
           })
 
         # Set up internationalization
-        allow(OT).to receive(:default_locale).and_return(authenticated_json["default_locale"])
-        allow(OT).to receive(:fallback_locale).and_return(authenticated_json["fallback_locale"])
-        allow(OT).to receive(:supported_locales).and_return(authenticated_json["supported_locales"])
-        allow(OT).to receive(:i18n_enabled).and_return(authenticated_json["i18n_enabled"])
-        allow(OT).to receive(:d9s_enabled).and_return(authenticated_json["d9s_enabled"])
+        allow(OT).to receive('default_locale').and_return(authenticated_json["default_locale"])
+        allow(OT).to receive('fallback_locale').and_return(authenticated_json["fallback_locale"])
+        allow(OT).to receive('supported_locales').and_return(authenticated_json["supported_locales"])
+        allow(OT).to receive('i18n_enabled').and_return(authenticated_json["i18n_enabled"])
+        allow(OT).to receive('d9s_enabled').and_return(authenticated_json["d9s_enabled"])
 
         # Create locales mock
-        allow(OT).to receive(:locales).and_return({
+        allow(OT).to receive('locales').and_return({
           'en' => {
             web: {
               COMMON: {
@@ -209,9 +209,9 @@ RSpec.xdescribe Core::Views::BaseView, "JSON Output" do
         })
 
         # Mock version info - Use double instead of OpenStruct
-        allow(OT).to receive(:global_banner).and_return(nil)
+        allow(OT).to receive('global_banner').and_return(nil)
 
-        allow(OT).to receive(:VERSION).and_return("0.20.4 (plop)")
+        allow(OT).to receive('VERSION').and_return("0.20.4 (plop)")
 
         # For domain strategy
         allow(Onetime::DomainStrategy).to receive(:canonical_domain).and_return(authenticated_json["canonical_domain"])

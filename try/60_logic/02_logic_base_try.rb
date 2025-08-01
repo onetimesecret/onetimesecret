@@ -86,11 +86,11 @@ sess = Session.create '255.255.255.255', 'anon'
 cust = Customer.new
 old_conf = OT.instance_variable_get(:@conf)
 new_conf = {
-  site: {
-    authentication: {
-      autoverify: true # force the config to be true
-    }
-  }
+  'site' => {
+    'authentication' => {
+      'autoverify' => true, # force the config to be true
+    },
+  },
 }
 OT.instance_variable_set(:@conf, new_conf)
 logic = V2::Logic::Account::CreateAccount.new sess, cust, @valid_params.call, 'en'
@@ -99,4 +99,4 @@ logic.process
 ret = [logic.autoverify.to_s, logic.cust.verified.to_s, OT.conf.dig('site', 'authentication', 'autoverify').to_s]
 OT.instance_variable_set(:@conf, old_conf)
 ret
-#=> [true, 'true', true]
+#=> ['true', 'true', 'true']

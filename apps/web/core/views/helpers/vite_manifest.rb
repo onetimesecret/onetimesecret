@@ -15,7 +15,7 @@ module Core
       # @param nonce [String, nil] Content Security Policy nonce
       # @return [String] HTML tags for all required assets
       def vite_assets(nonce: nil)
-        nonce ||= self[:nonce] # we allow overriding the nonce for testing
+        nonce ||= self['nonce'] # we allow overriding the nonce for testing
         manifest_path = File.join(PUBLIC_DIR, 'dist', '.vite', 'manifest.json')
 
         unless File.exist?(manifest_path)

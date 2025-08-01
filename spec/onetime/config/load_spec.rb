@@ -10,20 +10,20 @@ RSpec.describe Onetime::Config do
   let(:valid_yaml) do
     <<~YAML
       ---
-      :site:
-        :host: example.com
-        :ssl: true
-        :secret: <%= ENV['SECRET'] || 'test_secret' %>
-        :authentication:
-          :enabled: true
-          :signup: true
-      :redis:
-        :uri: redis://localhost:6379/0
-      :mail:
-        :truemail:
-          :default_validation_type: :regex
-      :development:
-        :enabled: false
+      site:
+        host: example.com
+        ssl: true
+        secret: <%= ENV['SECRET'] || 'test_secret' %>
+        authentication:
+          enabled: true
+          signup: true
+      redis:
+        uri: redis://localhost:6379/0
+      mail:
+        truemail:
+          default_validation_type: :regex
+      development:
+        enabled: false
     YAML
   end
 
@@ -58,9 +58,9 @@ RSpec.describe Onetime::Config do
         config = described_class.load(test_config_path)
 
         expect(config).to be_a(Hash)
-        expect(config[:site][:host]).to eq('example.com')
-        expect(config[:site][:ssl]).to eq(true)
-        expect(config[:site][:authentication][:enabled]).to eq(true)
+        expect(config['site']['host']).to eq('example.com')
+        expect(config['site']['ssl']).to eq(true)
+        expect(config['site']['authentication']['enabled']).to eq(true)
       end
 
       it 'processes ERB templates in the configuration' do
@@ -69,7 +69,7 @@ RSpec.describe Onetime::Config do
 
         config = described_class.load(test_config_path)
 
-        expect(config[:site][:secret]).to eq('env_secret')
+        expect(config['site']['secret']).to eq('env_secret')
       end
 
       it 'falls back to default value in ERB when environment variable is not set' do
@@ -78,7 +78,7 @@ RSpec.describe Onetime::Config do
 
         config = described_class.load(test_config_path)
 
-        expect(config[:site][:secret]).to eq('test_secret')
+        expect(config['site']['secret']).to eq('test_secret')
       end
     end
 

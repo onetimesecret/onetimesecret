@@ -31,8 +31,8 @@ begin
   require 'onetime'
   require 'onetime/alias' # allows using OT::Mail
   require 'onetime/refinements/rack_refinements'
-  require 'onetime/logic'
   require 'onetime/models'
+  require 'onetime/logic'
   require 'onetime/controllers'
   require 'onetime/views'
 

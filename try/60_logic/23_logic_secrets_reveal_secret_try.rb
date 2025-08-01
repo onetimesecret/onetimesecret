@@ -14,7 +14,6 @@
 
 require_relative '../test_logic'
 
-# Use the default config file for tests
 OT.boot! :test, false
 
 @email = "tryouts+#{Time.now.to_i}@onetimesecret.com"
@@ -93,7 +92,7 @@ ret.keys
 ## Has some essential settings
 params = {}
 logic = V2::Logic::Secrets::RevealSecret.new(@sess, @cust, params, 'en')
-[logic.site[:host], logic.authentication[:enabled], logic.domains_enabled]
+[logic.site['host'], logic.authentication['enabled'], logic.domains_enabled]
 #=> ["127.0.0.1:3000", true, false]
 
 ## Raises an exception when there's no metadata (no metadata param)

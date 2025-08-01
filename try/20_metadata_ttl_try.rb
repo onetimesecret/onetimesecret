@@ -18,7 +18,6 @@ require_relative 'test_models'
 
 require 'onetime/controllers'
 
-# Use the default config file for tests
 OT.boot! :test, false
 
 # Setup

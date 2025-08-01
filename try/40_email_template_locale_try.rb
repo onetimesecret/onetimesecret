@@ -17,7 +17,6 @@
 # available for use in testing. See the humphreybogus example below.
 
 require_relative 'test_models'
-# Use the default config file for tests
 OT.boot! :test, false
 
 @email = "tryouts+40+#{Time.now.to_i}@onetimesecret.com"

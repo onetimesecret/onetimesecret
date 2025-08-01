@@ -12,13 +12,12 @@
 # These tests ensure that the VuePoint view correctly handles different scenarios
 # and properly initializes based on the provided arguments.
 
+require_relative 'test_helpers'
 require_relative 'test_models'
-
-require 'onetime/logic'
+require_relative 'test_logic'
 
 require 'core/views'
 
-# Use the default config file for tests
 OT.boot! :test, false
 
 @email = "tryouts+42+#{Time.now.to_i}@onetimesecret.com"
@@ -28,7 +27,6 @@ OT.boot! :test, false
 @metadata.secret_key = @secret.key
 @metadata.save
 
-# Mock request object
 class MockRequest
   attr_reader :env
   def initialize
@@ -36,7 +34,6 @@ class MockRequest
   end
 end
 
-# Mock session object
 class MockSession
   def authenticated?
     true
@@ -68,12 +65,12 @@ view = Core::Views::VuePoint.new(@req, @sess, @cust, 'en', @metadata)
 
 ## Correctly sets basic properties
 view = Core::Views::VuePoint.new(@req, @sess, @cust, 'en', @metadata)
-[view[:page_title], view[:frontend_host], view[:frontend_development], view[:no_cache]]
+[view['page_title'], view['frontend_host'], view['frontend_development'], view['no_cache']]
 #=> ["Onetime Secret", "http://localhost:5173", false, false]
 
 ## Sets authentication status correctly
 view = Core::Views::VuePoint.new(@req, @sess, @cust, 'en', @metadata)
-authenticated_value = view.serialized_data[:authenticated]
+authenticated_value = view.serialized_data['authenticated']
 authenticated_value
 #=> true
 
@@ -81,7 +78,7 @@ authenticated_value
 unauthenticated_sess = MockSession.new
 def unauthenticated_sess.authenticated?; false; end
 view = Core::Views::VuePoint.new(@req, unauthenticated_sess, V1::Customer.anonymous, 'en', @metadata)
-authenticated_value = view.serialized_data[:authenticated]
+authenticated_value = view.serialized_data['authenticated']
 authenticated_value
 #=> false
 

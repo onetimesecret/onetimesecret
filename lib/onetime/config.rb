@@ -42,6 +42,9 @@ module Onetime
             'colonels' => [],
           },
         },
+        'features' => {
+          'incoming' => {},
+        },
         'internationalization' => {
           'enabled' => false,
           'default_locale' => 'en',

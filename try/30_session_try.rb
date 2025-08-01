@@ -17,7 +17,6 @@
 # of these specific features.
 
 require_relative 'test_models'
-# Use the default config file for tests
 OT.boot! :test, false
 
 @ipaddress = '10.0.0.254' # A private IP address

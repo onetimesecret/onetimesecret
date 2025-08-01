@@ -11,10 +11,10 @@ module V2
 
     unless defined?(FIELD_MAPPINGS)
       FIELD_MAPPINGS = {
-        interface: [:site, :interface],
-        secret_options: [:site, :secret_options],
-        mail: [:mail],
-        diagnostics: [:diagnostics],
+        'interface' => ['site', 'interface'],
+        'secret_options' => ['site', 'secret_options'],
+        'mail' => ['mail'],
+        'diagnostics' => ['diagnostics'],
       }
     end
 

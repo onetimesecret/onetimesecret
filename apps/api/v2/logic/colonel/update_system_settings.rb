@@ -6,8 +6,7 @@ module V2
   module Logic
     module Colonel
       class UpdateSystemSettings < V2::Logic::Base
-        @safe_fields = [:interface, :secret_options, :mail,
-                        :diagnostics]
+        @safe_fields = ['interface', 'secret_options', 'mail', 'diagnostics']
 
         attr_reader :config, :interface, :secret_options, :mail,
                     :diagnostics, :greenlighted, :record

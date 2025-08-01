@@ -100,7 +100,7 @@ module Onetime
     def build_dev_section
       dev_rows = []
 
-      [:development, :experimental].each do |key|
+      ['development', 'experimental'].each do |key|
         if config_value = OT.conf.fetch(key, false)
           if is_feature_disabled?(config_value)
             dev_rows << [key.to_s.capitalize, 'disabled']
@@ -118,7 +118,7 @@ module Onetime
       feature_rows = []
 
       # Domains and regions
-      [:domains, :regions].each do |key|
+      ['domains', 'regions'].each do |key|
         next unless site_config.key?(key)
         config = site_config[key]
         if is_feature_disabled?(config)
@@ -141,12 +141,12 @@ module Onetime
         else
           [
             ['Mailer', @emailer],
-            ['Mode', email_config[:mode]],
-            ['From', "'#{email_config[:fromname]} <#{email_config[:from]}>'"],
-            ['Host', "#{email_config[:host]}:#{email_config[:port]}"],
-            ['Region', email_config[:region]],
-            ['TLS', email_config[:tls]],
-            ['Auth', email_config[:auth]],
+            ['Mode', email_config['mode']],
+            ['From', "'#{email_config['fromname']} <#{email_config['from']}>'"],
+            ['Host', "#{email_config['host']}:#{email_config['port']}"],
+            ['Region', email_config['region']],
+            ['TLS', email_config['tls']],
+            ['Auth', email_config['auth']],
           ].reject { |row| row[1].nil? || row[1].to_s.empty? }
         end
       rescue => e
@@ -164,8 +164,8 @@ module Onetime
         auth_rows << ['Colonels', colonels.join(', ')]
       end
 
-      if site_config.key?(:authentication)
-        auth_config = site_config[:authentication]
+      if site_config.key?('authentication')
+        auth_config = site_config['authentication']
         if is_feature_disabled?(auth_config)
           auth_rows << ['Auth Settings', 'disabled']
         else
@@ -185,26 +185,26 @@ module Onetime
       secret_options = OT.conf.dig('site', 'secret_options')
       if secret_options
         # Format default TTL
-        if secret_options[:default_ttl]
-          default_ttl = format_duration(secret_options[:default_ttl].to_i)
+        if secret_options['default_ttl']
+          default_ttl = format_duration(secret_options['default_ttl'].to_i)
           customization_rows << ['Default TTL', default_ttl]
         end
 
         # Format TTL options
-        if secret_options[:ttl_options]
-          ttl_options = secret_options[:ttl_options].map { |seconds| format_duration(seconds) }.join(', ')
+        if secret_options['ttl_options']
+          ttl_options = secret_options['ttl_options'].map { |seconds| format_duration(seconds) }.join(', ')
           customization_rows << ['TTL Options', ttl_options]
         end
       end
 
       # Interface configuration
-      if site_config.key?(:interface)
-        interface_config = site_config[:interface]
+      if site_config.key?('interface')
+        interface_config = site_config['interface']
         if is_feature_disabled?(interface_config)
           customization_rows << ['Interface', 'disabled']
         elsif interface_config.is_a?(Hash)
           # Handle nested ui and api configs under interface
-          [:ui, :api].each do |key|
+          ['ui', 'api'].each do |key|
             next unless interface_config.key?(key)
             sub_config = interface_config[key]
             if is_feature_disabled?(sub_config)
@@ -215,28 +215,28 @@ module Onetime
           end
         end
       else
-        # Fallback: check for standalone ui and api configs
-        [:ui, :api].each do |key|
-          next unless site_config.key?(key)
-          config = site_config[key]
-          if is_feature_disabled?(config)
-            customization_rows << [key.to_s.upcase, 'disabled']
-          elsif !config.empty?
-            customization_rows << [key.to_s.upcase, format_config_value(config)]
-          end
+      # Fallback: check for standalone ui and api configs
+      ['ui', 'api'].each do |key|
+        next unless site_config.key?(key)
+        config = site_config[key]
+        if is_feature_disabled?(config)
+          customization_rows << [key.to_s.upcase, 'disabled']
+        elsif !config.empty?
+          customization_rows << [key.to_s.upcase, format_config_value(config)]
         end
       end
-
-      customization_rows
     end
 
-    # Helper method to check if a feature is disabled
-    def is_feature_disabled?(config)
-      config.is_a?(Hash) && config.key?(:enabled) && !config[:enabled]
-    end
+    customization_rows
+  end
 
-    # Helper method to format config values with special handling for hashes and arrays
-    def format_config_value(config)
+  # Helper method to check if a feature is disabled
+  def is_feature_disabled?(config)
+    config.is_a?(Hash) && config.key?('enabled') && !config['enabled']
+  end
+
+  # Helper method to format config values with special handling for hashes and arrays
+  def format_config_value(config)
       if config.is_a?(Hash)
         config.map do |k, v|
           value_str = (v.is_a?(Hash) || v.is_a?(Array)) ? v.to_json : v.to_s

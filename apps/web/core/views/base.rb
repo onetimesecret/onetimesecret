@@ -71,7 +71,11 @@ module Core
       def update_view_vars
         @view_vars = self.class.initialize_view_vars(req, sess, cust, locale, i18n_instance)
 
-        # Make the view-relevant variables available to the view and HTML template
+        # Make the view-relevant variables available to the view and HTML
+        # template. We're intentionally not calling self[key.to_s] here as
+        # a defensive measure b/c it can obscure situations where the key
+        # is not a string, it's "corrected" here, but may not be in another
+        # part of the code.
         @view_vars.each do |key, value|
           self[key] = value
         end
@@ -83,7 +87,7 @@ module Core
       # @param type [String] Type of message, one of: info, error, success, warning
       # @return [Array<Hash>] Array containing all message objects
       def add_message msg, type='info'
-        messages << {type: type, content: msg}
+        messages << {'type' => type, 'content' => msg}
       end
 
       # Add error message to be displayed in StatusBar component

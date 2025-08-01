@@ -8,5 +8,6 @@ $LOAD_PATH.unshift(File.join(app_root, 'api'))
 $LOAD_PATH.unshift(File.join(app_root, 'web'))
 
 require 'onetime'
+require 'onetime/models'
 
 OT::Config.path = File.join(project_root, 'spec', 'config.test.yaml')

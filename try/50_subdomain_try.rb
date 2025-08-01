@@ -19,7 +19,6 @@
 require_relative 'test_helpers'
 require 'v1/models/subdomain'
 
-# Use the default config file for tests
 OT.boot! :test, false
 
 ## Can create Subdomain instance

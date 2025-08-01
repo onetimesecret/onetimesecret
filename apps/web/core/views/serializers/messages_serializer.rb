@@ -17,8 +17,8 @@ module Core
       def self.serialize(view_vars, i18n)
         output = self.output_template
 
-        output[:messages] = view_vars[:messages]
-        output[:global_banner] = OT.global_banner if OT.global_banner
+        output['messages'] = view_vars['messages']
+        output['global_banner'] = OT.global_banner if OT.global_banner
 
         output
       end
@@ -29,8 +29,8 @@ module Core
         # @return [Hash] Template with all possible message output fields
         def output_template
           {
-            messages: [],
-            global_banner: nil,
+            'messages' => [],
+            'global_banner' => nil,
           }
         end
       end
