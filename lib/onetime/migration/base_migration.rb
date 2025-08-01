@@ -205,20 +205,20 @@ module Onetime
     # Log informational message
     # @param args [Array] arguments passed to OT.li
     # @return [void]
-    def info(*)
-      OT.li(*)
+    def info(*args)
+      OT.li(*args)
     end
 
-    def debug(*)
-      OT.ld(*)
+    def debug(*args)
+      OT.ld(*args)
     end
 
-    def warn(*)
-      OT.lw(*)
+    def warn(*args)
+      OT.lw(*args)
     end
 
-    def error(*)
-      OT.le(*)
+    def error(*args)
+      OT.le(*args)
     end
 
     # Generate separator line for visual formatting
