@@ -11,7 +11,7 @@
 #
 # We support versions of Ruby that are still in normal maintenance.
 #
-ruby '>= 3.1.5'
+ruby '>= 3.4'
 
 source 'https://rubygems.org/'
 
