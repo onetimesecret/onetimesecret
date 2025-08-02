@@ -5,9 +5,8 @@ require 'tempfile'
 
 require_relative '../../spec_helper'
 
-# The Sentry lib is only required when diagnostics are enabled. We don't include
-# it here b/c we stub the class so we can write expectant testcases. We'll want
-# to also test that the library is required correctly in another test file.
+# We require sentry-ruby here to test configuration processing, but stub its
+# methods to prevent actual initialization during tests.
 
 RSpec.describe "Onetime boot configuration process" do
   let(:test_config_path) { File.join(Onetime::HOME, 'spec', 'config.test.yaml') }
@@ -327,9 +326,12 @@ RSpec.describe "Onetime boot configuration process" do
     end
 
     context 'with diagnostics configuration' do
-      # Define a stub for Sentry before all tests in this context
+      # Since we already require 'sentry-ruby' at the top of the file,
+      # we just need to stub the methods we don't want to actually execute
       before(:each) do
-        stub_const("Sentry", Class.new)
+        # Stub the Sentry methods to prevent actual initialization during tests
+        allow(Sentry).to receive(:init)
+        allow(Sentry).to receive(:initialized?).and_return(true)
       end
 
       it 'enables diagnostics from test config file' do
@@ -366,10 +368,6 @@ RSpec.describe "Onetime boot configuration process" do
         allow(Kernel).to receive(:require).with('sentry-ruby')
         allow(Kernel).to receive(:require).with('stackprof')
 
-        # Why are these Sentry methods not available?
-        #allow(Sentry).to receive(:init)
-        #allow(Sentry).to receive(:initialized?).and_return(true)
-
         # Save original value to restore after test
         original_value = OT.d9s_enabled
         OT.d9s_enabled = false
@@ -403,9 +401,6 @@ RSpec.describe "Onetime boot configuration process" do
 
         allow(Kernel).to receive(:require).with('sentry-ruby')
         allow(Kernel).to receive(:require).with('stackprof')
-
-        # allow(Sentry).to receive(:init)
-        # allow(Sentry).to receive(:initialized?).and_return(true)
 
         processed_config = Onetime::Config.after_load(config)
 
