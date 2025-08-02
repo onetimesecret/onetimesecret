@@ -14,10 +14,8 @@
 
 require_relative '../test_logic'
 
-# Load the app with test configuration
 OT.boot! :test, false
 
-# Setup common test variables
 @now = DateTime.now
 @email = "test+#{Time.now.to_i}@onetimesecret.com"
 @sess = V2::Session.new '255.255.255.255', 'anon'
@@ -25,14 +23,10 @@ OT.boot! :test, false
 @cust.save
 @domain_input = 'test.example.com'
 @custom_domain = CustomDomain.create @domain_input, @cust.custid
-@cust.add_custom_domain @custom_domain
 
-# ListDomains Tests
-
-## Add a test domain to the customer
 @cust.add_custom_domain(@custom_domain)
 
-# Test domain listing
+## Test domain listing
 logic = V2::Logic::Domains::ListDomains.new @sess, @cust
 logic.raise_concerns
 logic.define_singleton_method(:create_vhost) {} # prevent calling 3rd party API for this test
@@ -44,7 +38,7 @@ logic.process
 ]
 #=> [Array, false, true]
 
-# GetDomain Tests
+
 
 ## Test domain retrieval
 logic = V2::Logic::Domains::GetDomain.new @sess, @cust, { domain: @domain_input }
@@ -54,7 +48,7 @@ logic = V2::Logic::Domains::GetDomain.new @sess, @cust, { domain: @domain_input 
 ]
 #=> [true, true]
 
-# RemoveDomain Tests
+
 
 ## Test domain removal
 @remove_params = { domain: @domain_input }
