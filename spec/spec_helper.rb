@@ -59,22 +59,32 @@ RSpec.configure do |config|
     mocks.verify_partial_doubles = true
   end
 
-  # Output
+  # General configuration
   config.default_formatter = 'doc' if config.files_to_run.one?
+
+  # Show only when requested
   config.profile_examples = 10 if ENV['PROFILE_TESTS'] || ARGV.include?('--profile')
+
+  # Metadata
+  #
+  # Applies shared context metadata to host groups, enhancing test organization.
+  # Will be default in RSpec 4
+  config.shared_context_metadata_behavior = :apply_to_host_groups
+  #
+  # RSpec will create this file to keep track of example statuses, and
+  # powers the the --only-failures flag.
+  config.example_status_persistence_file_path = 'spec/.rspec_status'
+
+  # Suppresses Ruby warnings during test runs for a cleaner output.
   config.warnings = true
 
   # Execution
   config.order = :defined
   config.filter_run_when_matching :focus
   config.disable_monkey_patching!
-  # Let Rspec handle the randomization
+  # Let Rspec handle the randomization, leave these settings unchanged:
   # config.seed = 12345
   # Kernel.srand config.seed
-
-  # Metadata
-  config.shared_context_metadata_behavior = :apply_to_host_groups
-  config.example_status_persistence_file_path = 'spec/.rspec_status'
 
   # Aggregate failures for better signal-to-noise
   config.define_derived_metadata do |meta|
