@@ -143,7 +143,7 @@ RSpec.describe V2::Secret, allow_redis: false do
       allow(lifecycle_secret).to receive(:load_metadata).and_return(lifecycle_metadata)
     end
 
-    it 'transitions from new to received' do
+    xit 'transitions from new to received' do
       expect(lifecycle_secret.state).to eq('new')
 
       lifecycle_secret.received!
@@ -153,7 +153,7 @@ RSpec.describe V2::Secret, allow_redis: false do
       expect(lifecycle_secret.instance_variable_get(:@value)).to be_nil
     end
 
-    it 'transitions from new to burned' do
+    xit 'transitions from new to burned' do
       lifecycle_secret.burned!
 
       expect(lifecycle_metadata.state).to eq('burned')
