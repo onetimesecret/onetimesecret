@@ -4,7 +4,7 @@ module V2
   class Secret < Familia::Horreum
 
     module Management
-      def self.spawn_pair custid, token=nil
+      def spawn_pair custid, token=nil
         secret = V2::Secret.create(custid: custid, token: token)
         metadata = V2::Metadata.create(custid: custid, token: token)
 
@@ -18,7 +18,7 @@ module V2
         [metadata, secret]
       end
 
-      def self.encryption_key *entropy
+      def encryption_key *entropy
         input = entropy.flatten.compact.join ':'
         Digest::SHA256.hexdigest(input) # TODO: Use Familila.generate_id
       end

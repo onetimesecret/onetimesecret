@@ -8,6 +8,7 @@ module V2
 
     module Management
       attr_reader :values
+
       def add cust
         self.values.add OT.now.to_i, cust.identifier
       end
