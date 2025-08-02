@@ -66,28 +66,37 @@ RSpec.configure do |config|
     expectations.include_chain_clauses_in_custom_matcher_descriptions = true
   end
 
-  # Sets RSpec as the mocking framework.
-  config.mock_with :rspec
+  # Mock configuration
+  config.mock_with :rspec do |mocks|
+    mocks.verify_partial_doubles = true
+  end
+
+  # General configuration
+  config.default_formatter = 'doc' if config.files_to_run.one?
+
+  # Show only when requested
+  config.profile_examples = 10 if ENV['PROFILE_TESTS'] || ARGV.include?('--profile')
+
+  config.filter_run_when_matching :focus
 
   # Applies shared context metadata to host groups, enhancing test organization.
   # Will be default in RSpec 4
   config.shared_context_metadata_behavior = :apply_to_host_groups
 
-  # Disables RSpec's monkey patching to encourage the use of the RSpec DSL.
-  config.disable_monkey_patching!
-
   # RSpec will create this file to keep track of example statuses, and
   # powers the the --only-failures flag.
-  config.example_status_persistence_file_path = ".rspec_status"
+  config.example_status_persistence_file_path = 'spec/.rspec_status'
 
   # Suppresses Ruby warnings during test runs for a cleaner output.
-  config.warnings = false
+  config.warnings = true
 
   # Run specs in random order
-  config.order = :defined # one of: :randomized (ideally), :defined
-
   # Alternately instead of order :defined, start the process with the same seed every time.
-  # config.seed = 12345 # any fixed number
+  config.order = :defined # one of: :randomiz (ideally), :defined
+
+  # Let Rspec handle the randomization
+  # config.seed = 12345
+  # Kernel.srand config.seed
 
   # Disable RSpec exposing methods globally on `Module` and `main`
   config.disable_monkey_patching!
