@@ -67,5 +67,11 @@ module V2
       @sessid ||= nil # rubocop:disable Naming/MemoizedInstanceVariableName
     end
 
+    def save
+      @sessid ||= self.class.generate_id
+      super
+    end
+
+    include V2::Mixins::SessionMessages
   end
 end
