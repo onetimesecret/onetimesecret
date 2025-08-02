@@ -6,69 +6,51 @@ require 'ostruct'
 RSpec.describe "Onetime::Initializers#setup_diagnostics" do
   let(:source_config_path) { File.expand_path(File.join(Onetime::HOME, 'spec', 'config.test.yaml')) }
   let(:loaded_config) { Onetime::Config.load(source_config_path) }
+  let(:mock_config) { OpenStruct.new }
 
   before do
     # Reset global state before each test
     Onetime.instance_variable_set(:@conf, nil)
     Onetime.instance_variable_set(:@d9s_enabled, nil)
 
-    # Stub Kernel.require for Sentry - implement a dummy version that defines the constants
-    allow(Kernel).to receive(:require).and_call_original
-    allow(Kernel).to receive(:require).with('sentry-ruby') do
-      # Create a mock Sentry module if it doesn't exist
-      OT.li "[setup_diagnostics] Possibly defining Sentry"
-      unless defined?(Sentry)
-        OT.li "[setup_diagnostics] Defining Sentry"
-        module Sentry
-          class << self
-            attr_reader :last_config
-          end
-
-          def self.init(&block)
-            # Store the config for testing with all expected properties
-            @last_config = OpenStruct.new(
-              dsn: nil,
-              environment: nil,
-              release: nil,
-              breadcrumbs_logger: nil,
-              traces_sample_rate: nil,
-              profiles_sample_rate: nil,
-              before_send: nil
-            )
-            block.call(@last_config) if block_given?
-            true
-          end
-
-          def self.initialized?
-            true
-          end
-
-          def self.close
-            # Do nothing
-          end
-
-          def self.config
-            @last_config ||= OpenStruct.new
-          end
-
-          # Mock the Breadcrumb module to prevent the error
-          module Breadcrumb
-            class SentryLogger
-              def add_breadcrumb(*args)
-                # Do nothing
-              end
-            end
-          end
-
-          # Mock the get_current_hub method
-          def self.get_current_hub
-            OpenStruct.new
-          end
+    # Define a minimal Sentry constant if it doesn't exist to satisfy verify_partial_doubles
+    unless defined?(Sentry)
+      stub_const('Sentry', Module.new do
+        def self.init(&block)
+          # Default implementation for stubbing
         end
-      end
+
+        def self.initialized?
+          false
+        end
+
+        def self.close
+          nil
+        end
+      end)
+    end
+
+    # Reset the config for each test
+    mock_config.dsn = nil
+    mock_config.environment = nil
+    mock_config.release = nil
+    mock_config.breadcrumbs_logger = nil
+    mock_config.traces_sample_rate = nil
+    mock_config.profiles_sample_rate = nil
+    mock_config.before_send = nil
+
+    # Stub Kernel.require to avoid loading the real gem
+    allow(Kernel).to receive(:require).and_call_original
+    allow(Kernel).to receive(:require).with('sentry-ruby').and_return(true)
+    allow(Kernel).to receive(:require).with('stackprof').and_return(true)
+
+    # Stub the Sentry methods we use
+    allow(Sentry).to receive(:init) do |&block|
+      block.call(mock_config) if block_given?
       true
     end
-    allow(Kernel).to receive(:require).with('stackprof').and_return(true)
+    allow(Sentry).to receive(:initialized?).and_return(true)
+    allow(Sentry).to receive(:close).and_return(nil)
   end
 
   after do
@@ -92,6 +74,7 @@ RSpec.describe "Onetime::Initializers#setup_diagnostics" do
       # Set expectations - we should require sentry-ruby when enabled with DSN
       expect(Kernel).to receive(:require).with('sentry-ruby').ordered
       expect(Kernel).to receive(:require).with('stackprof').ordered
+      expect(Sentry).to receive(:init).and_yield(mock_config)
 
       # Execute
       Onetime.instance_variable_set(:@conf, config)
@@ -116,6 +99,7 @@ RSpec.describe "Onetime::Initializers#setup_diagnostics" do
       # Should NOT require sentry
       expect(Kernel).not_to receive(:require).with('sentry-ruby')
       expect(Kernel).not_to receive(:require).with('stackprof')
+      expect(Sentry).not_to receive(:init)
 
       Onetime.instance_variable_set(:@conf, config)
       Onetime.setup_diagnostics
@@ -138,6 +122,7 @@ RSpec.describe "Onetime::Initializers#setup_diagnostics" do
       # The method should check for DSN before requiring sentry
       expect(Kernel).not_to receive(:require).with('sentry-ruby')
       expect(Kernel).not_to receive(:require).with('stackprof')
+      expect(Sentry).not_to receive(:init)
 
       Onetime.instance_variable_set(:@conf, config)
       Onetime.setup_diagnostics
@@ -160,6 +145,7 @@ RSpec.describe "Onetime::Initializers#setup_diagnostics" do
       # Should still require sentry since we have a DSN
       expect(Kernel).to receive(:require).with('sentry-ruby').ordered
       expect(Kernel).to receive(:require).with('stackprof').ordered
+      expect(Sentry).to receive(:init).and_yield(mock_config)
 
       Onetime.instance_variable_set(:@conf, config)
       Onetime.setup_diagnostics
@@ -180,26 +166,24 @@ RSpec.describe "Onetime::Initializers#setup_diagnostics" do
       }
       config['site'] = { 'host' => "test.example.com" }
 
-      # Set up test expectations
-        # Test the config block passed to Sentry.init
-        expect(Kernel).to receive(:require).with('sentry-ruby').ordered
-        expect(Kernel).to receive(:require).with('stackprof').ordered
+      # Test the config block passed to Sentry.init
+      expect(Kernel).to receive(:require).with('sentry-ruby').ordered
+      expect(Kernel).to receive(:require).with('stackprof').ordered
+      expect(Sentry).to receive(:init).and_yield(mock_config)
 
-        # Execute the method under test
-        Onetime.instance_variable_set(:@conf, config)
-        Onetime.setup_diagnostics
+      # Execute the method under test
+      Onetime.instance_variable_set(:@conf, config)
+      Onetime.setup_diagnostics
 
-        # Verify the config using the Sentry mock's captured config
-        actual_config = Sentry.last_config
-        expect(actual_config).not_to be_nil
-        expect(actual_config.dsn).to eq("https://example-dsn@sentry.io/12345")
-        expect(actual_config.environment).to include("test.example.com")
-        expect(actual_config.environment).to include(OT.env.to_s)
-        expect(actual_config.release).to eq(OT::VERSION.inspect)
-        expect(actual_config.breadcrumbs_logger).to eq([:sentry_logger])
-        expect(actual_config.traces_sample_rate).to eq(0.1)
-        expect(actual_config.profiles_sample_rate).to eq(0.1)
-        expect(actual_config.before_send).to be_a(Proc)
+      # Verify the config using our mock config object
+      expect(mock_config.dsn).to eq("https://example-dsn@sentry.io/12345")
+      expect(mock_config.environment).to include("test.example.com")
+      expect(mock_config.environment).to include(OT.env.to_s)
+      expect(mock_config.release).to eq(OT::VERSION.inspect)
+      expect(mock_config.breadcrumbs_logger).to eq([:sentry_logger])
+      expect(mock_config.traces_sample_rate).to eq(0.1)
+      expect(mock_config.profiles_sample_rate).to eq(0.1)
+      expect(mock_config.before_send).to be_a(Proc)
     end
   end
 
@@ -220,13 +204,14 @@ RSpec.describe "Onetime::Initializers#setup_diagnostics" do
       # Ensure sentry is required first
       expect(Kernel).to receive(:require).with('sentry-ruby').ordered
       expect(Kernel).to receive(:require).with('stackprof').ordered
+      expect(Sentry).to receive(:init).and_yield(mock_config)
 
       # Execute setup_diagnostics and then examine the before_send hook
       Onetime.instance_variable_set(:@conf, config)
       Onetime.setup_diagnostics
 
-      # Get the before_send proc from the Sentry mock
-      before_send_proc = Sentry.last_config.before_send
+      # Get the before_send proc from our mock config
+      before_send_proc = mock_config.before_send
 
       # Ensure the hook was captured
       expect(before_send_proc).not_to be_nil
@@ -281,6 +266,7 @@ RSpec.describe "Onetime::Initializers#setup_diagnostics" do
       # Expect sentry to be required and init to be called
       expect(Kernel).to receive(:require).with('sentry-ruby').ordered
       expect(Kernel).to receive(:require).with('stackprof').ordered
+      expect(Sentry).to receive(:init).and_yield(mock_config)
 
       # Call boot! which should in turn call setup_diagnostics
       Onetime.boot!(:test)
@@ -302,6 +288,7 @@ RSpec.describe "Onetime::Initializers#setup_diagnostics" do
       # Should NOT require sentry
       expect(Kernel).not_to receive(:require).with('sentry-ruby')
       expect(Kernel).not_to receive(:require).with('stackprof')
+      expect(Sentry).not_to receive(:init)
 
       # Call boot! which should in turn skip Sentry init
       Onetime.boot!(:test)
