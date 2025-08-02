@@ -1,7 +1,9 @@
 # spec/onetime/config/after_load_spec.rb
 
-require_relative '../../spec_helper'
+require 'sentry-ruby'
 require 'tempfile'
+
+require_relative '../../spec_helper'
 
 # The Sentry lib is only required when diagnostics are enabled. We don't include
 # it here b/c we stub the class so we can write expectant testcases. We'll want
@@ -50,7 +52,7 @@ RSpec.describe "Onetime boot configuration process" do
 
     # Mock system settings setup methods
     allow(V2::SystemSettings).to receive(:current).and_raise(OT::RecordNotFound.new("No config found"))
-    allow(V2::SystemSettings).to receive(:extract_colonel_config).and_return({})
+    # allow(V2::SystemSettings).to receive(:extract_colonel_config).and_return({})
     allow(V2::SystemSettings).to receive(:create).and_return(double('SystemSettings', rediskey: 'test:config'))
 
     # TODO: Make truemail gets reset too (Truemail.configuration)
@@ -335,8 +337,6 @@ RSpec.describe "Onetime boot configuration process" do
 
         allow(Kernel).to receive(:require).with('sentry-ruby')
         allow(Kernel).to receive(:require).with('stackprof')
-        allow(Sentry).to receive(:init)
-        allow(Sentry).to receive(:initialized?).and_return(true)
 
         # Save original value to restore after test
         original_value = OT.d9s_enabled
@@ -365,8 +365,10 @@ RSpec.describe "Onetime boot configuration process" do
 
         allow(Kernel).to receive(:require).with('sentry-ruby')
         allow(Kernel).to receive(:require).with('stackprof')
-        allow(Sentry).to receive(:init)
-        allow(Sentry).to receive(:initialized?).and_return(true)
+
+        # Why are these Sentry methods not available?
+        #allow(Sentry).to receive(:init)
+        #allow(Sentry).to receive(:initialized?).and_return(true)
 
         # Save original value to restore after test
         original_value = OT.d9s_enabled
@@ -401,8 +403,9 @@ RSpec.describe "Onetime boot configuration process" do
 
         allow(Kernel).to receive(:require).with('sentry-ruby')
         allow(Kernel).to receive(:require).with('stackprof')
-        allow(Sentry).to receive(:init)
-        allow(Sentry).to receive(:initialized?).and_return(true)
+
+        # allow(Sentry).to receive(:init)
+        # allow(Sentry).to receive(:initialized?).and_return(true)
 
         processed_config = Onetime::Config.after_load(config)
 
