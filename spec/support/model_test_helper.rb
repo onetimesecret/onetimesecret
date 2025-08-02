@@ -13,7 +13,7 @@ module ModelTestHelper
       value_encryption: 2,
       passphrase: nil,
       passphrase_encryption: nil,
-      custid: "test-customer-id"
+      custid: "test-customer-id",
     }
 
     # Apply attributes to the secret
@@ -76,7 +76,7 @@ module ModelTestHelper
       key: "test-metadata-key-#{SecureRandom.hex(8)}",
       state: "new",
       secret_key: nil,
-      custid: "test-customer-id"
+      custid: "test-customer-id",
     }
 
     # Apply attributes
@@ -113,15 +113,15 @@ module ModelTestHelper
     metadata = create_stubbed_metadata(
       metadata_attrs.merge(
         key: metadata_key,
-        secret_key: secret_key
-      )
+        secret_key: secret_key,
+      ),
     )
 
     secret = create_stubbed_secret(
       secret_attrs.merge(
         key: secret_key,
-        metadata_key: metadata_key
-      )
+        metadata_key: metadata_key,
+      ),
     )
 
     # Link them
@@ -141,7 +141,7 @@ module ModelTestHelper
       value_encryption: 2,
       passphrase: nil,
       passphrase_encryption: nil,
-      custid: "test-customer-id"
+      custid: "test-customer-id",
     }
 
     # Apply attributes to the secret
@@ -208,7 +208,7 @@ module ModelTestHelper
       key: "test-metadata-key-#{SecureRandom.hex(8)}",
       state: "new",
       secret_key: nil,
-      custid: "test-customer-id"
+      custid: "test-customer-id",
     }
 
     # Apply attributes
@@ -251,15 +251,15 @@ module ModelTestHelper
     metadata = create_stubbed_v2_metadata(
       metadata_attrs.merge(
         key: metadata_key,
-        secret_key: secret_key
-      )
+        secret_key: secret_key,
+      ),
     )
 
     secret = create_stubbed_v2_secret(
       secret_attrs.merge(
         key: secret_key,
-        metadata_key: metadata_key
-      )
+        metadata_key: metadata_key,
+      ),
     )
 
     # Link them

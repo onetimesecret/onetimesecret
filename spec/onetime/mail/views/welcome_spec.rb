@@ -16,7 +16,7 @@ RSpec.describe Onetime::Mail::Welcome do
     {
       secret: mail_secret,
       email_address: mail_customer.email,
-      verify_uri: welcome_email.verify_uri
+      verify_uri: welcome_email.verify_uri,
     }
   end
 
@@ -89,7 +89,6 @@ RSpec.describe Onetime::Mail::Welcome do
         expect {
           welcome_email.deliver_email
         }.to raise_error(OT::Problem, /Your message wasn't sent/)
-
       end
     end
 

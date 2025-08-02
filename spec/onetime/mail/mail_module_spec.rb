@@ -13,7 +13,7 @@ RSpec.describe Onetime::Mail do
       'emailer' => {
         'from' => 'test@example.com',
         'fromname' => 'Test Sender',
-      }
+      },
     })
 
     # Mock the mailer setup methods
@@ -44,8 +44,8 @@ RSpec.describe Onetime::Mail do
           'emailer' => {
             'provider' => 'sendgrid',
             'from' => 'test@example.com',
-            'fromname' => 'Test Sender'
-          }
+            'fromname' => 'Test Sender',
+          },
         })
       end
 
@@ -64,8 +64,8 @@ RSpec.describe Onetime::Mail do
           'emailer' => {
             'provider' => 'ses',
             'from' => 'test@example.com',
-            'fromname' => 'Test Sender'
-          }
+            'fromname' => 'Test Sender',
+          },
         })
       end
 
@@ -84,8 +84,8 @@ RSpec.describe Onetime::Mail do
           'emailer' => {
             'provider' => 'ses',
             'from' => 'test@example.com',
-            'fromname' => 'Test Sender'
-          }
+            'fromname' => 'Test Sender',
+          },
         })
       end
 
@@ -104,8 +104,8 @@ RSpec.describe Onetime::Mail do
           'emailer' => {
             'provider' => 'unknown_provider',
             'from' => 'test@example.com',
-            'fromname' => 'Test Sender'
-          }
+            'fromname' => 'Test Sender',
+          },
         })
       end
 

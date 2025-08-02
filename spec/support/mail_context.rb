@@ -39,41 +39,41 @@ RSpec.shared_context "mail_test_context" do
           welcome: {
             subject: 'Welcome to OnetimeSecret',
             body: 'Welcome email body with {{ verify_uri }}',
-            footer: 'Email footer text'
+            footer: 'Email footer text',
           },
           secretlink: {
             subject: '%s sent you a secret',
             body: 'Secret link email body',
-            footer: 'Secret link footer'
-          }
+            footer: 'Secret link footer',
+          },
         },
         web: {
           COMMON: {
             description: 'Test Description',
-            keywords: 'test,keywords'
-          }
-        }
+            keywords: 'test,keywords',
+          },
+        },
       },
       'fr' => {
         email: {
           welcome: {
             subject: 'Bienvenue à OnetimeSecret',
             body: 'Corps du message avec {{ verify_uri }}',
-            footer: 'Pied de page'
+            footer: 'Pied de page',
           },
           secretlink: {
             subject: '%s vous a envoyé un secret',
             body: 'Corps du message secret',
-            footer: 'Pied de page secret'
-          }
+            footer: 'Pied de page secret',
+          },
         },
         web: {
           COMMON: {
             description: 'Description Test',
-            keywords: 'test,mots-clés'
-          }
-        }
-      }
+            keywords: 'test,mots-clés',
+          },
+        },
+      },
     }
   end
 
@@ -172,7 +172,6 @@ RSpec.shared_examples "mail delivery behavior" do
         expect {
           subject.deliver_email
         }.to raise_error(OT::Problem)
-
       end
 
       it "skips delivery with token present" do
