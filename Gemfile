@@ -70,7 +70,7 @@ if !ENV['LOCAL_DEV'].to_s.empty? && ENV['RACK_ENV'] == 'development' && ENV['CI'
   gem 'otto', path: '../../d/otto'
 else
   gem 'drydock', '~> 1.0.0'
-  gem 'familia', '~> 1.2.1'
+  gem 'familia', '~> 1.2.3'
   gem 'otto', '~> 1.1.0.pre.alpha4'
 end
 

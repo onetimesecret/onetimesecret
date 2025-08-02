@@ -234,7 +234,7 @@ RSpec.describe V2::Secret, allow_redis: false do
         secret.encrypt_value(secret_value)
       end
 
-      xit 'clears sensitive data when secret is received' do
+      it 'clears sensitive data when secret is received' do
         secret.received!
 
         # Check that sensitive data is cleared
@@ -264,7 +264,7 @@ RSpec.describe V2::Secret, allow_redis: false do
         expect(secret).not_to have_received(:destroy!)
       end
 
-      xit 'clears the passphrase when burned' do
+      it 'clears the passphrase when burned' do
         secret.burned!
 
         expect(secret.instance_variable_get(:@passphrase_temp)).to be_nil
