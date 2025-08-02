@@ -50,6 +50,12 @@ RSpec.configure do |config|
 
   # Mocks
   config.mock_with :rspec do |mocks|
+    # When enabled, RSpec will:
+    #
+    # - Verify that stubbed methods actually exist on the real object
+    # - Check method arity (number of arguments) matches
+    # - Ensure you're not stubbing non-existent methods
+    #
     mocks.verify_partial_doubles = true
   end
 
