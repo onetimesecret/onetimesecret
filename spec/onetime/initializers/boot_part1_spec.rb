@@ -255,7 +255,7 @@ RSpec.describe "Onetime::Config during Onetime.boot!" do
       #    REDIS_URL=redis://127.0.0.1:2121/0 pnpm test:rspec
       expect(conf.dig('redis', 'uri')).to eq('redis://127.0.0.1:2121/0')
       expect(conf.dig('development', 'enabled')).to be(false)
-      expect(Onetime.env).to eq('test')
+      expect(Onetime.env).to eq('testing')
     end
 
     it "configures emailer based on @conf" do
