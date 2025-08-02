@@ -62,6 +62,6 @@ view = OT::Mail::SecretLink.new @cust, 'fr_CA', @secret, @recipient
 view.render.include?("https://example.com/secret/#{@secret.key}")
 #=> true
 
-# Teardown
+
 @secret.destroy!
 @cust.destroy!
