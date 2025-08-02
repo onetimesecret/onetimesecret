@@ -97,7 +97,6 @@ gem 'logger'                 # Logger library for logging messages (required by 
 gem 'ostruct', '~> 0.6.2'    # OpenStruct library for creating data objects (required by json)
 gem 'rdoc'                   # IRB
 
-
 # ====================================
 # Third-Party Service Integrations
 # ====================================

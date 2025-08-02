@@ -38,7 +38,7 @@ module V2
 
     def natural_duration
       # Colloquial representation of the TTL. e.g. "1 day"
-      OT::TimeUtils.natural_duration lifespan
+      OT::Utils::TimeUtils.natural_duration lifespan
     end
     alias :natural_ttl :natural_duration
 
