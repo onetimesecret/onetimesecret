@@ -12,19 +12,22 @@ module V2
 
     def sessid
       @sessid ||= self.class.generate_id
-      @sessid
     end
 
-    def to_s
-      "#{sessid}/#{external_identifier}"
+    # Sessions often need IDs before save for cookies, logging, etc so
+    # it's important to maintain the lazy generation of the session ID,
+    # even in a case like this where the sessions convenient short
+    # identifier is use before the full monty sessid.
+    def short_identifier
+      @short_identifier ||= sessid.slice(0, 12)
     end
 
     def external_identifier
       @external_identifier ||= OT::Utils.generate_id
     end
 
-    def short_identifier
-      identifier.slice(0, 12)
+    def to_s
+      "#{sessid}/#{external_identifier}"
     end
 
     def stale?

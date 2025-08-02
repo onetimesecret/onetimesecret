@@ -6,6 +6,39 @@ module V2
     module Management
       attr_reader :values
 
+      # Creates and persists a new session with full tracking.
+      # The session is immediately saved to Redis and added to the class-level
+      # collection for management and cleanup operations.
+      #
+      # @param ipaddress [String] Client IP address
+      # @param custid [String] Customer identifier
+      # @param useragent [String, nil] User agent string
+      # @return [Session] Saved and tracked session instance
+      def create ipaddress, custid, useragent=nil
+        sess = new ipaddress: ipaddress, custid: custid, useragent: useragent
+        sess.save
+        add sess # to the class-level values relation (sorted set)
+        sess
+      end
+      # Creates an ephemeral (non-persistent) anonymous session for temporary use.
+      # Unlike #create, this session is not saved to Redis or tracked in the class
+      # collection, making it suitable for:
+      #
+      # - Anonymous users who may not complete actions requiring persistence
+      # - Temporary request correlation before determining if session should persist
+      # - Reducing Redis writes for sessions that might be immediately discarded
+      #
+      # The session ID is generated immediately to support logging and debugging,
+      # but can be saved later if needed via #save.
+      #
+      # @param useragent [String] User agent string for the session
+      # @return [Session] Unsaved session instance with generated ID
+      def create_ephemeral useragent
+        sess = new(custid: 'anon', useragent: useragent)
+        sess.sessid # Force ID generation for logging/correlation
+        sess
+      end
+
       def add sess
         self.values.add OT.now.to_i, sess.identifier
         self.values.remrangebyscore 0, OT.now.to_i-2.days
@@ -20,16 +53,6 @@ module V2
         self.values.rangebyscoreraw(spoint, epoint).collect { |identifier| load(identifier) }
       end
 
-      def create ipaddress, custid, useragent=nil
-        sess = new ipaddress: ipaddress, custid: custid, useragent: useragent
-
-        sess.save
-        add sess # to the class-level values relation (sorted set)
-        sess
-      end
-
-      # Generate a unique session ID with 32 bytes of random data
-      # @return [String] base-36 encoded random string
       def generate_id
         OT::Utils.generate_id
       end

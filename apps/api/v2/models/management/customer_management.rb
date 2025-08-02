@@ -9,6 +9,21 @@ module V2
     module Management
       attr_reader :values
 
+      def create custid, email=nil
+        raise Onetime::Problem, "custid is required" if custid.to_s.empty?
+        raise Onetime::Problem, "Customer exists" if exists?(custid)
+        cust = new custid: custid, email: email || custid, role: 'customer'
+        cust.planid = 'basic'
+        OT.ld "[create] custid: #{custid}, #{cust.safe_dump}"
+        cust.save
+        add cust
+        cust
+      end
+
+      def anonymous
+        new('anon').freeze
+      end
+
       def add cust
         self.values.add OT.now.to_i, cust.identifier
       end
@@ -20,21 +35,6 @@ module V2
       def recent duration=30.days, epoint=OT.now.to_i
         spoint = OT.now.to_i-duration
         self.values.rangebyscoreraw(spoint, epoint).collect { |identifier| load(identifier) }
-      end
-
-      def anonymous
-        new('anon').freeze
-      end
-
-      def create custid, email=nil
-        raise Onetime::Problem, "custid is required" if custid.to_s.empty?
-        raise Onetime::Problem, "Customer exists" if exists?(custid)
-        cust = new custid: custid, email: email || custid, role: 'customer'
-        cust.planid = 'basic'
-        OT.ld "[create] custid: #{custid}, #{cust.safe_dump}"
-        cust.save
-        add cust
-        cust
       end
 
       def global
