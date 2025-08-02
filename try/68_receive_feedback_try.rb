@@ -25,8 +25,8 @@ OT.boot! :test, true
 @now = DateTime.now
 @model_class = V2::Feedback
 @email_address = "tryouts+#{@now}@onetimesecret.com"
-@sess = V1::Session.new '255.255.255.255', 'anon'
-@cust = V1::Customer.new @email_address
+@sess = V2::Session.new '255.255.255.255', 'anon'
+@cust = V2::Customer.new @email_address
 @params = {
   msg: 'This is a test feedback'
 }
