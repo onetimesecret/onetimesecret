@@ -78,7 +78,7 @@ module Core
         incoming = features['incoming']
 
         # Extract values from session
-        messages = sess.nil? ? [] : sess.get_messages
+        # messages = sess.nil? ? [] : sess.get_messages
         shrimp = sess.nil? ? nil : sess.add_shrimp
         authenticated = sess && sess.authenticated? && !cust.anonymous?
 
@@ -112,7 +112,7 @@ module Core
           'incoming' => incoming,
           'keywords' => keywords,
           'locale' => locale,
-          'messages' => messages,
+          'messages' => nil, #messages,
           'no_cache' => no_cache,
           'nonce' => nonce,
           'page_title' => page_title,
