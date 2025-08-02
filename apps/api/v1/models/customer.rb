@@ -299,6 +299,11 @@ module V1
         new('anon').freeze
       end
 
+      def global
+        @global ||= from_identifier(:GLOBAL) || create(:GLOBAL)
+        @global
+      end
+
       def increment_field(cust, field)
         return if cust.global?
         curval = cust.send(field)
