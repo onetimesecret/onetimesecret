@@ -57,7 +57,7 @@ module Onetime
       def shorten_securely(hash, bits: 256, base: 36)
         # Truncate to desired bit length
         truncated = hash.to_i(16) >> (256 - bits)
-        convert_base_string(truncated.to_s, base: base)
+        truncated.to_s(base).freeze
       end
 
       # Converts a string representation of a number from one base to another.
