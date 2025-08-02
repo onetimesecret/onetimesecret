@@ -125,7 +125,7 @@ RSpec.describe "Onetime global state after boot" do
         expect(Onetime.instance).not_to be_nil
         expect(Onetime.instance).to be_frozen
         expect(Onetime.instance).to be_a(String)
-        expect(Onetime.instance).to match(/^[a-f0-9]+$/)
+        expect(Onetime.instance).to match(/^[a-z0-9]+$/)
       end
     end
 

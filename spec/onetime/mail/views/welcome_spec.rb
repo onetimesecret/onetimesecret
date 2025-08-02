@@ -20,6 +20,8 @@ RSpec.describe Onetime::Mail::Welcome do
     }
   end
 
+  # Tests that the welcome email template correctly renders Mustache variables
+  # and includes the expected secret_link content in both HTML and plain text formats
   it_behaves_like "mustache template behavior", "secret_link"
 
   describe '#initialize' do
