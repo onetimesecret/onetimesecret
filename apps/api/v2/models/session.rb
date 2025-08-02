@@ -1,5 +1,12 @@
 # apps/api/v2/models/session.rb
 
+# NOTE: Due to a limitation in Familia::Horreum (when a field is defined its
+# read accessor is created the same way regardless of whether there was an
+# existing accessor), the model definitions must live at the top. More
+# specifically, the horreum field definitions must be loaded prior to the
+# model instance methods.
+require_relative 'definitions/session_definition'
+
 module V2
   class Session < Familia::Horreum
 
@@ -88,5 +95,4 @@ module V2
   end
 end
 
-require_relative 'definitions/session_definition'
 require_relative 'management/session_management'

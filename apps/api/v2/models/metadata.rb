@@ -1,5 +1,7 @@
 # apps/api/v2/models/metadata.rb
 
+require_relative 'definitions/metadata_definition'
+
 module V2
   class Metadata < Familia::Horreum
 
@@ -180,5 +182,4 @@ module V2
   end
 end
 
-require_relative 'definitions/metadata_definition'
 require_relative 'management/metadata_management'

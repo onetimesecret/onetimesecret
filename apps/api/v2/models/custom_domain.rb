@@ -2,6 +2,8 @@
 
 require 'public_suffix'
 
+require_relative 'definitions/custom_domain_definition'
+
 # Custom Domain
 #
 # Every customer can have one or more custom domains.
@@ -287,5 +289,4 @@ module V2
   end
 end
 
-require_relative 'definitions/custom_domain_definition'
 require_relative 'management/custom_domain_management'

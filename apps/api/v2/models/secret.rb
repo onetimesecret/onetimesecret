@@ -2,6 +2,8 @@
 
 require 'openssl'
 
+require_relative 'definitions/secret_definition'
+
 module V2
   class Secret < Familia::Horreum
 
@@ -274,5 +276,4 @@ module V2
   end
 end
 
-require_relative 'definitions/secret_definition'
 require_relative 'management/secret_management'

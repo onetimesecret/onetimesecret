@@ -2,6 +2,8 @@
 
 require 'rack/utils'
 
+require_relative 'definitions/customer_definition'
+
 module V2
 
   # Customer Model (aka User)
@@ -181,6 +183,7 @@ module V2
     # @return [V2::Session] The loaded or newly created session.
     def load_or_create_session(ip_address)
       raise Onetime::Problem, "Customer is anonymous" if anonymous?
+
       @sess = V2::Session.load(sessid) unless sessid.to_s.empty?
       if @sess.nil?
         @sess = V2::Session.create(ip_address, custid)
@@ -306,5 +309,4 @@ module V2
   end
 end
 
-require_relative 'definitions/customer_definition'
 require_relative 'management/customer_management'
