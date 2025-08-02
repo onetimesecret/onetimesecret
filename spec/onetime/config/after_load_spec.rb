@@ -552,13 +552,5 @@ RSpec.describe "Onetime boot configuration process" do
       expect(config['mail']['truemail']['default_validation_type']).to eq(:mx)
       expect(config['site']['secret_options']['ttl_options']).to be_a(String)
     end
-
-    it 'processes ERB templates in the configuration', skip: "Test is unstable and dumps ENV" do
-      allow(ENV).to receive(:[]).with('DEFAULT_TTL').and_return('7200')
-
-      config = Onetime::Config.load(test_config_path)
-
-      expect(config['site']['secret_options']['default_ttl']).to eq('7200')
-    end
   end
 end
