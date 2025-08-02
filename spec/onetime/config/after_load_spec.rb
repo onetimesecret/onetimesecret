@@ -472,21 +472,69 @@ RSpec.describe "Onetime boot configuration process" do
           }.to raise_error(OT::ConfigError, "Global secret cannot be nil - set SECRET env var or site.secret in config")
         end
 
-        it 'does not raise for nil global secret if explicitly allowed' do
-          config['site']['secret'] = nil
-          config['experimental']['allow_nil_global_secret'] = true # Explicitly allow nil secret
+        # RSpec Warning: Avoiding False Positives with `not_to raise_error`
+        #
+        # PROBLEM:
+        # Using `expect { }.not_to raise_error(SpecificErrorClass, message)` is risky because
+        # it can give false positives. If ANY other error occurs (NoMethodError, NameError,
+        # ArgumentError, etc.), the test will still pass, even though your code might be broken.
+        # This means the code you're trying to test might not even execute.
+        #
+        # AVOID THIS PATTERN:
+        # expect { some_method }.not_to raise_error(OT::ConfigError, "specific message")
+        #
+        # BETTER PATTERNS:
+        #
+        # 1. Test that NO errors occur (most common):
+        #    expect { some_method }.not_to raise_error
+        #
+        # 2. Test for a different specific error if that's what you expect:
+        #    expect { some_method }.to raise_error(DifferentErrorClass)
+        #
+        # 3. Hybrid approach - test both positive and negative cases:
+        #    # Test the success case
+        #    expect { valid_config_method }.not_to raise_error
+        #
+        #    # Test the failure case to ensure your test is meaningful
+        #    expect { invalid_config_method }.to raise_error(OT::ConfigError, /expected message/)
+        #
+        # 4. If you must test for absence of a specific error, be explicit about it:
+        #    begin
+        #      some_method
+        #      # If we get here, no error was raised (good)
+        #    rescue OT::ConfigError => e
+        #      fail "Expected no ConfigError, but got: #{e.message}"
+        #    rescue => e
+        #      # Other errors are also failures, but we can see what they are
+        #      fail "Unexpected error: #{e.class}: #{e.message}"
+        #    end
+        #
+        # WHY THIS MATTERS:
+        # The goal is to write tests that fail when your code is broken, not tests that
+        # accidentally pass when your code doesn't even run due to unrelated errors.
 
-          # Suppress console output from OT.li during this test
+        it 'does not raise ConfigError for nil global secret when explicitly allowed' do
+          config['site']['secret'] = nil
+          config['experimental']['allow_nil_global_secret'] = true
+
           allow(OT).to receive(:li)
 
-          # Expect that this specific error is not raised.
-          # If other parts of the config are invalid, other errors might still occur.
-          # This test focuses on the global secret check.
-          expect { Onetime::Config.after_load(config) }.not_to raise_error(OT::ConfigError, "Global secret cannot be nil - set SECRET env var or site.secret in config")
+          # GOOD: Test that no errors at all are raised
+          expect { Onetime::Config.after_load(config) }.not_to raise_error
 
-          # To ensure no errors are raised at all (assuming the rest of the config is valid):
-          # expect { Onetime::Config.after_load(config) }.not_to raise_error
-          # This depends on the `config` being otherwise fully valid.
+          # GOOD: Test the negative case to ensure our test is meaningful
+          config['experimental']['allow_nil_global_secret'] = false
+          expect { Onetime::Config.after_load(config) }.to raise_error(OT::ConfigError, /Global secret cannot be nil/)
+        end
+
+        it 'does not raise for nil global secret when explicitly allowed' do
+          config['site']['secret'] = nil
+          config['experimental']['allow_nil_global_secret'] = true
+
+          allow(OT).to receive(:li)
+
+          # GOOD: Simple, safe pattern
+          expect { Onetime::Config.after_load(config) }.not_to raise_error
         end
       end
 
