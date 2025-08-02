@@ -156,7 +156,6 @@ module V1
       res.status = 404
       json hsh
     end
-    alias throttle_response error_response # Maintain existing behaviour
 
   end
 end

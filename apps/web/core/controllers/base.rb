@@ -202,12 +202,6 @@ module Core
         res.body = view.render
       end
 
-      def throttle_response message
-        view = Core::Views::Error.new req, sess, cust, locale
-        view.add_error message
-        res.status = 429
-        res.body = view.render
-      end
     end
   end
 end
