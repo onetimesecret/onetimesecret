@@ -51,6 +51,13 @@ module V2
     field :stripe_subscription_id
     field :stripe_checkout_email
 
+    # Lambda to handle counter fields that may be nil/empty - returns '0'
+    # if empty, otherwise the string value
+    counter_field_handler = lambda { |cust, field_name|
+      value = cust.send(field_name).to_s
+      value.empty? ? '0' : value
+    }
+
     # NOTE: The SafeDump mixin caches the safe_dump_field_map so updating this list
     # with hot reloading in dev mode will not work. You will need to restart the
     # server to see the changes.
@@ -85,12 +92,6 @@ module V2
       # We use the hash syntax here since `:active?` is not a valid symbol.
       { :active => ->(cust) { cust.active? } },
     ]
-
-    # Lambda to handle counter fields that may be nil/empty - returns '0' if empty, otherwise the string value
-    counter_field_handler = ->(cust, field_name) {
-      value = cust.send(field_name).to_s
-      value.empty? ? '0' : value
-    }
 
     def init
       self.custid ||= 'anon'
