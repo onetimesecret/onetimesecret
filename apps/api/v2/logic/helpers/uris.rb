@@ -44,13 +44,11 @@ module V2
 
       # TODO: secure ad local are already in Otto
       def secure?
-        # X-Scheme is set by nginx
-        # X-FORWARDED-PROTO is set by elastic load balancer
-        req.env['HTTP_X_FORWARDED_PROTO'] == 'https' || req.env['HTTP_X_SCHEME'] == 'https'
+        req.secure?
       end
 
       def local?
-        LOCAL_HOSTS.member?(req.env['SERVER_NAME']) && (req.client_ipaddress == '127.0.0.1')
+        req.local?
       end
     end
   end

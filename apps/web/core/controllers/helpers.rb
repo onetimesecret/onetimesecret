@@ -302,9 +302,6 @@ module Core
       req.env['HTTP_X_FORWARDED_PROTO'] == 'https' || req.env['HTTP_X_SCHEME'] == 'https'
     end
 
-    def local?
-      LOCAL_HOSTS.member?(req.env['SERVER_NAME']) && (req.client_ipaddress == '127.0.0.1')
-    end
 
     def deny_agents! *_agents
       BADAGENTS.flatten.each do |agent|

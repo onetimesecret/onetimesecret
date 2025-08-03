@@ -3,7 +3,6 @@
 module V2
   unless defined?(V2::BADAGENTS)
     BADAGENTS     = [:facebook, :google, :yahoo, :bing, :stella, :baidu, :bot, :curl, :wget]
-    LOCAL_HOSTS   = ['localhost', '127.0.0.1'].freeze # TODO: Add config
     HEADER_PREFIX = ENV.fetch('HEADER_PREFIX', 'X_SECRET_').upcase
   end
 
@@ -167,8 +166,9 @@ module V2
       # Use Otto's CSP nonce support
       res.send_csp_headers(content_type, nonce, {
         development_mode: OT.conf.dig('development', 'enabled'),
-        debug: OT.debug?
-      })
+        debug: OT.debug?,
+      }
+      )
     end
 
     # Collectes request details in a single string for logging purposes.
@@ -187,21 +187,14 @@ module V2
     #   # => "192.0.2.1; GET /path?query=string; Proxy[HTTP_X_FORWARDED_FOR=203.0.113.195 REMOTE_ADDR=192.0.2.1]"
     #
     def stringify_request_details(req)
-      header_details = collect_proxy_header_details(req.env)
-
-      details = [
-        req.ip,
-        "#{req.request_method} #{req.path_info}?#{req.query_string}",
-        "Proxy[#{header_details}]",
-      ]
-
-      # Convert the details array to a string for logging
-      details.join('; ')
+      # Use Otto's format_request_details method with our custom header prefix
+      req.format_request_details(header_prefix: HEADER_PREFIX.chomp('_'))
     end
 
     # Collects and formats specific HTTP header details from the given
     # environment hash, including Cloudflare-specific headers.
     #
+    # @deprecated Use req.collect_proxy_headers instead
     # @param env [Hash, nil] The environment hash containing HTTP headers.
     #   Defaults to an empty hash if not provided.
     # @param keys [Array<String>, nil] The list of HTTP header keys to collect.
@@ -210,77 +203,36 @@ module V2
     # @return [String] A single string with the requested headers formatted as
     #   "key=value" pairs, separated by spaces.
     #
-    # @example
-    #   env = {
-    #     "HTTP_X_FORWARDED_FOR" => "203.0.113.195",
-    #     "REMOTE_ADDR" => "192.0.2.1",
-    #     "CF-Connecting-IP" => "203.0.113.195",
-    #     "CF-IPCountry" => "NL",
-    #     "CF-Ray" => "1234567890abcdef",
-    #     "CF-Visitor" => "{\"scheme\":\"https\"}"
-    #   }
-    #   collect_proxy_header_details(env)
-    #   # => "HTTP_X_FORWARDED_FOR=203.0.113.195 REMOTE_ADDR=192.0.2.1 CF-Connecting-IP=203.0.113.195 CF-IPCountry=US CF-Ray=1234567890abcdef CF-Visitor={\"scheme\":\"https\"}"
-    #
     def collect_proxy_header_details(env = nil, keys = nil)
-      env  ||= {}
-      keys ||= %w[
-        HTTP_FLY_REQUEST_ID
-        HTTP_VIA
-        HTTP_X_FORWARDED_PROTO
-        HTTP_X_FORWARDED_FOR
-        HTTP_X_FORWARDED_HOST
-        HTTP_X_FORWARDED_PORT
-        HTTP_X_SCHEME
-        HTTP_X_REAL_IP
-        HTTP_CF_IPCOUNTRY
-        HTTP_CF_RAY
-        REMOTE_ADDR
-      ]
+      # For backward compatibility, create a simple request-like object
+      request_like = Struct.new(:env).new(env || req.env)
+      request_like.extend(Otto::RequestHelpers)
 
-      # Add any header that begins with HEADER_PREFIX
-      prefix_keys = env.keys.select { |key| key.upcase.start_with?("HTTP_#{HEADER_PREFIX}") }
-      keys.concat(prefix_keys) # the bang is silent
-
-      keys.sort.map do |key|
-        # Normalize the header name so it looks identical in the logs as it
-        # does in the browser dev console.
-        #
-        # e.g. Content-Type instead of HTTP_CONTENT_TYPE
-        #
-        pretty_name = key.sub(/^HTTP_/, '').split('_').map(&:capitalize).join('-')
-        "#{pretty_name}: #{env[key]}"
-      end.join(' ')
+      additional_keys = keys || []
+      request_like.collect_proxy_headers(
+        header_prefix: HEADER_PREFIX.chomp('_'),
+        additional_keys: additional_keys,
+      )
     end
 
     def secure?
-      # It's crucial to only accept header values set by known, trusted
-      # sources. See Caddy config docs re: trusted_proxies.
-      # X-Scheme is set by e.g. nginx, caddy etc
-      # X-FORWARDED-PROTO is set by load balancer e.g. ELB
-      req.env['HTTP_X_FORWARDED_PROTO'] == 'https' || req.env['HTTP_X_SCHEME'] == 'https'
-    end
-
-    def local?
-      LOCAL_HOSTS.member?(req.env['SERVER_NAME']) && (req.client_ipaddress == '127.0.0.1')
+      # Use Otto's more sophisticated secure? method which handles trusted proxies
+      req.secure?
     end
 
     def deny_agents! *_agents
-      BADAGENTS.flatten.each do |agent|
-        raise OT::Redirect.new('/') if /#{agent}/i.match?(req.user_agent)
-      end
+      # Use Otto's blocked_user_agent? method
+      raise OT::Redirect.new('/') if req.blocked_user_agent?(blocked_agents: BADAGENTS)
     end
 
     def no_cache!
-      res.headers['cache-control'] = 'no-store, no-cache, must-revalidate, max-age=0'
-      res.headers['expires']       = 'Mon, 7 Nov 2011 00:00:00 UTC'
-      res.headers['pragma']        = 'no-cache'
+      # Use Otto's no_cache! method
+      res.no_cache!
     end
 
     def app_path *paths
-      paths = paths.flatten.compact
-      paths.unshift req.script_name
-      paths.join('/').gsub '//', '/'
+      # Use Otto's app_path method
+      res.app_path(*paths)
     end
 
     def check_session!
@@ -473,6 +425,5 @@ module V2
       OT.le "[capture_message] #{ex.class}: #{ex.message}"
       OT.ld ex.backtrace.join("\n")
     end
-
   end
 end
