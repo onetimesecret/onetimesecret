@@ -9,9 +9,7 @@ module V2::Logic
         @with_brand = !params[:with_brand].to_s.empty?
       end
 
-      def raise_concerns
-
-      end
+      def raise_concerns; end
 
       def process
         OT.ld "[ListDomains] Processing #{cust.custom_domains.size} #{cust.custom_domains.rediskey}"

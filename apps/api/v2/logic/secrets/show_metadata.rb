@@ -7,14 +7,14 @@ module V2::Logic
       attr_reader :key, :metadata, :secret
       # Template variables
       attr_reader :metadata_key, :metadata_shortkey, :secret_key, :secret_state,
-            :secret_shortkey, :recipients, :no_cache, :expiration_in_seconds,
-            :natural_expiration, :is_received, :is_burned, :secret_realttl,
-            :is_destroyed, :expiration, :maxviews, :has_maxviews, :view_count,
-            :has_passphrase, :can_decrypt, :secret_value, :is_truncated,
-            :show_secret, :show_secret_link, :show_metadata_link, :metadata_attributes,
-            :show_metadata, :show_recipients, :share_domain, :is_orphaned,
-            :share_path, :burn_path, :metadata_path, :share_url, :is_expired,
-            :metadata_url, :burn_url, :display_lines
+                  :secret_shortkey, :recipients, :no_cache, :expiration_in_seconds,
+                  :natural_expiration, :is_received, :is_burned, :secret_realttl,
+                  :is_destroyed, :expiration, :maxviews, :has_maxviews, :view_count,
+                  :has_passphrase, :can_decrypt, :secret_value, :is_truncated,
+                  :show_secret, :show_secret_link, :show_metadata_link, :metadata_attributes,
+                  :show_metadata, :show_recipients, :share_domain, :is_orphaned,
+                  :share_path, :burn_path, :metadata_path, :share_url, :is_expired,
+                  :metadata_url, :burn_url, :display_lines
 
       def process_params
         @key = params[:key].to_s
@@ -22,7 +22,6 @@ module V2::Logic
       end
 
       def raise_concerns
-
         raise OT::MissingSecret if metadata.nil?
       end
 
@@ -55,7 +54,7 @@ module V2::Logic
           burned_or_received = metadata.state?(:burned) || metadata.state?(:received)
 
           if !burned_or_received && metadata.secret_expired?
-            OT.le("[show_metadata] Metadata has expired secret. {metadata.shortkey}")
+            OT.le('[show_metadata] Metadata has expired secret. {metadata.shortkey}')
             metadata.secret_key = nil
             metadata.expired!
           elsif !burned_or_received
@@ -70,9 +69,7 @@ module V2::Logic
           @is_orphaned = metadata.state?(:orphaned)
           @is_destroyed = @is_burned || @is_received || @is_expired || @is_orphaned
 
-          if is_destroyed && metadata.secret_key
-            metadata.secret_key! nil
-          end
+          metadata.secret_key! nil if is_destroyed && metadata.secret_key
         else
           @secret_state = secret.state
           @secret_realttl = secret.realttl
@@ -147,21 +144,21 @@ module V2::Logic
         @show_recipients = @show_metadata && !@recipients.empty?
 
         domain = if domains_enabled
-                    if metadata.share_domain.to_s.empty?
-                      site_host
-                    else
-                      metadata.share_domain
-                    end
-                  else
-                    site_host
-                  end
+                   if metadata.share_domain.to_s.empty?
+                     site_host
+                   else
+                     metadata.share_domain
+                   end
+                 else
+                   site_host
+                 end
 
         @share_domain = [base_scheme, domain].join
         OT.ld "[process] Set @share_domain: #{@share_domain}"
         process_uris
 
         # Dump the metadata attributes before marking as viewed
-        @metadata_attributes = self._metadata_attributes
+        @metadata_attributes = _metadata_attributes
 
         # We mark the metadata record viewed so that we can support showing the
         # secret link on the metadata page, just the one time.
@@ -170,7 +167,8 @@ module V2::Logic
 
       def one_liner
         return if secret_value.to_s.empty? # return nil when the value is empty
-        secret_value.to_s.scan(/\n/).size.zero?
+
+        secret_value.to_s.scan("\n").size.zero?
       end
 
       def success_data
@@ -239,10 +237,9 @@ module V2::Logic
 
       def calculate_display_lines
         v = secret_value.to_s
-        ret = ((80+v.size)/80) + (v.scan(/\n/).size) + 3
-        ret = ret > 30 ? 30 : ret
+        ret = ((80 + v.size) / 80) + v.scan("\n").size + 3
+        ret > 30 ? 30 : ret
       end
-
     end
   end
 end

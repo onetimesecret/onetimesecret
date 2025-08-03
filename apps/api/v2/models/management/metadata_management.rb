@@ -2,7 +2,6 @@
 
 module V2
   class Metadata < Familia::Horreum
-
     module Management
     end
 

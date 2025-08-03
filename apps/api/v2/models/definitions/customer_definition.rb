@@ -6,7 +6,6 @@ require_relative '../mixins/passphrase'
 
 module V2
   class Customer < Familia::Horreum
-
     @global = nil
 
     feature :safe_dump
@@ -62,7 +61,7 @@ module V2
     # with hot reloading in dev mode will not work. You will need to restart the
     # server to see the changes.
     @safe_dump_fields = [
-      { :identifier => ->(obj) { obj.identifier } },
+      { identifier: ->(obj) { obj.identifier } },
       :custid,
       :email,
 
@@ -84,13 +83,13 @@ module V2
       # actually applies to all fields used as incrementers. We use the
       # `counter_field_handler` lambda to return 0 if the field is nil or empty.
       #
-      {:secrets_created => ->(cust) { counter_field_handler.call(cust, :secrets_created) } },
-      {:secrets_burned => ->(cust) { counter_field_handler.call(cust, :secrets_burned) } },
-      {:secrets_shared => ->(cust) { counter_field_handler.call(cust, :secrets_shared) } },
-      {:emails_sent => ->(cust) { counter_field_handler.call(cust, :emails_sent) } },
+      { secrets_created: ->(cust) { counter_field_handler.call(cust, :secrets_created) } },
+      { secrets_burned: ->(cust) { counter_field_handler.call(cust, :secrets_burned) } },
+      { secrets_shared: ->(cust) { counter_field_handler.call(cust, :secrets_shared) } },
+      { emails_sent: ->(cust) { counter_field_handler.call(cust, :emails_sent) } },
 
       # We use the hash syntax here since `:active?` is not a valid symbol.
-      { :active => ->(cust) { cust.active? } },
+      { active: ->(cust) { cust.active? } },
     ]
 
     def init

@@ -4,7 +4,6 @@ require 'json'
 
 module V2
   module Mixins
-
     # Provides session-based messaging and form state persistence functionality
     #
     # @example Basic usage
@@ -29,8 +28,7 @@ module V2
     #   as `messages` array of objects.
     # - 20 minute TTL on message persistence
     module SessionMessages
-
-      def self.included base
+      def self.included(base)
         # In some UI flows, we temporarily store form values after a form
         # error so that the form UI inputs can be prepopulated, even if
         # there's a redirect in between. Ideally we can move this to local
@@ -49,36 +47,38 @@ module V2
         base.list :messages, ttl: 15.seconds
       end
 
-      def set_form_fields hsh
-        self.form_fields! hsh.to_json unless hsh.nil?
+      def set_form_fields(hsh)
+        form_fields! hsh.to_json unless hsh.nil?
       end
 
       def get_form_fields!
-        fields_json = self.form_fields
+        fields_json = form_fields
         return if fields_json.to_s.empty?
+
         ret = JSON.parse(fields_json)
-        self.remove :form_fields
+        remove :form_fields
         ret
-      rescue JSON::ParserError => ex
-        OT.le "Error parsing JSON fields: #{ex.message}"
+      rescue JSON::ParserError => e
+        OT.le "Error parsing JSON fields: #{e.message}"
         nil
       end
 
-      def set_error_message msg
-        self.messages << _json(msg, :error)
+      def set_error_message(msg)
+        messages << _json(msg, :error)
       end
 
-      def set_info_message msg
-        self.messages << _json(msg, :info)
+      def set_info_message(msg)
+        messages << _json(msg, :info)
       end
 
-      def set_success_message msg
-        self.messages << _json(msg, :success)
+      def set_success_message(msg)
+        messages << _json(msg, :success)
       end
 
       def get_messages
         messages.to_a.filter_map do |message|
           next if message.to_s.empty?
+
           JSON.parse(message, symbolize_names: true)
         rescue JSON::ParserError => e
           OT.le "Error parsing JSON message: #{e.message}"
@@ -104,22 +104,20 @@ module V2
 
           detail = JSON.parse(message, symbolize_names: true)
           detail if detail[:type].eql?('error')
-        rescue JSON::ParserError => ex
-          OT.le "Error parsing JSON error message: #{ex.message}"
+        rescue JSON::ParserError => e
+          OT.le "Error parsing JSON error message: #{e.message}"
           nil
         end
       end
 
       def clear_messages!
-        self.messages.clear
+        messages.clear
       end
 
-      def _json msg, type=:error
-        {type: type, content: msg}.to_json
+      def _json(msg, type = :error)
+        { type: type, content: msg }.to_json
       end
       private :_json
-
     end
   end
-
 end

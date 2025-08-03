@@ -3,14 +3,13 @@
 module V2::Logic
   module Authentication
     class AuthenticateSession < V2::Logic::Base
-      attr_reader :custid, :stay, :greenlighted
-      attr_reader :session_ttl, :potential_custid
+      attr_reader :custid, :stay, :greenlighted, :session_ttl, :potential_custid
 
       # cust is only populated if the passphrase matches
       def process_params
         @potential_custid = params[:u].to_s.downcase.strip
         @passwd = self.class.normalize_password(params[:p])
-        #@stay = params[:stay].to_s == "true"
+        # @stay = params[:stay].to_s == "true"
         @stay = true # Keep sessions alive by default
         @session_ttl = (stay ? 30.days : 20.minutes).to_i
 
@@ -21,11 +20,10 @@ module V2::Logic
       end
 
       def raise_concerns
+        return unless @cust.nil?
 
-        if @cust.nil?
-          @cust ||= V2::Customer.anonymous
-          raise_form_error "Try again"
-        end
+        @cust ||= V2::Customer.anonymous
+        raise_form_error 'Try again'
       end
 
       def process
@@ -33,7 +31,7 @@ module V2::Logic
           if cust.pending?
             OT.info "[login-pending-customer] #{sess.short_identifier} #{cust.custid} #{cust.role} (pending)"
             OT.li "[ResetPasswordRequest] Resending verification email to #{cust.custid}"
-            self.send_verification_email nil
+            send_verification_email nil
 
             msg = "#{i18n.dig(:web, :COMMON, :verification_sent_to)} #{cust.custid}."
             return sess.set_info_message msg
@@ -65,7 +63,7 @@ module V2::Logic
 
         else
           OT.ld "[login-failure] #{sess.short_identifier} #{cust.obscure_email} #{cust.role} (failed)"
-          raise_form_error "Try again"
+          raise_form_error 'Try again'
         end
       end
 
@@ -74,8 +72,9 @@ module V2::Logic
       end
 
       private
+
       def form_fields
-        {:custid => custid}
+        { custid: custid }
       end
     end
   end

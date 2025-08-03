@@ -9,7 +9,6 @@ require_relative 'definitions/session_definition'
 
 module V2
   class Session < Familia::Horreum
-
     def sessid
       @sessid ||= self.class.generate_id
     end
@@ -31,19 +30,19 @@ module V2
     end
 
     def stale?
-      self.stale.to_s == 'true'
+      stale.to_s == 'true'
     end
 
     def replace!
-      @custid ||= self.custid
+      @custid ||= custid
       newid = self.class.generate_id
 
       # Remove the existing session key from Redis
       if exists?
         begin
-          self.delete!
-        rescue => ex
-          OT.le "[Session.replace!] Failed to delete key #{rediskey}: #{ex.message}"
+          delete!
+        rescue StandardError => e
+          OT.le "[Session.replace!] Failed to delete key #{rediskey}: #{e.message}"
         end
       end
 
@@ -53,7 +52,7 @@ module V2
 
       # Familia doesn't automatically keep the key in sync with the
       # identifier field. We need to do it manually. See #860.
-      self.key = self.sessid
+      self.key = sessid
 
       save
 
@@ -64,7 +63,7 @@ module V2
       shrimp = self.shrimp.to_s
       guess  = guess.to_s
       OT.ld '[Sess#shrimp?] Checking with a constant time comparison'
-      (!shrimp.empty?) && Rack::Utils.secure_compare(shrimp, guess)
+      !shrimp.empty? && Rack::Utils.secure_compare(shrimp, guess)
     end
 
     def add_shrimp
@@ -94,7 +93,6 @@ module V2
       cust = V2::Customer.load custid
       cust.nil? ? V2::Customer.anonymous : cust
     end
-
   end
 end
 

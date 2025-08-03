@@ -13,9 +13,7 @@ module V2
           # No parameters needed for stats endpoint
         end
 
-        def raise_concerns
-
-        end
+        def raise_concerns; end
 
         def process
           process_statistics
@@ -48,7 +46,6 @@ module V2
             },
           }
         end
-
       end
     end
   end

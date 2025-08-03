@@ -5,7 +5,6 @@ require 'rack/utils'
 require_relative 'definitions/customer_definition'
 
 module V2
-
   # Customer Model (aka User)
   #
   # IMPORTANT API CHANGES:
@@ -30,24 +29,21 @@ module V2
   # factory methods above to avoid state inconsistencies.
   #
   class Customer < Familia::Horreum
-
     def locale?
       !locale.to_s.empty?
     end
 
-    def apitoken? guess
-      self.apitoken.to_s == guess.to_s
+    def apitoken?(guess)
+      apitoken.to_s == guess.to_s
     end
 
     def regenerate_apitoken
-      self.apitoken! OT::Utils.generate_id
-      self.apitoken # the fast writer bang methods don't return the value
+      apitoken! OT::Utils.generate_id
+      apitoken # the fast writer bang methods don't return the value
     end
 
     def external_identifier
-      if anonymous?
-        raise OT::Problem, 'Anonymous customer has no external identifier'
-      end
+      raise OT::Problem, 'Anonymous customer has no external identifier' if anonymous?
 
       @external_identifier ||= OT::Utils.generate_id # generate but don't save
       @external_identifier
@@ -64,12 +60,12 @@ module V2
       get_stripe_subscription_by_id || get_stripe_subscriptions&.first
     end
 
-    def get_stripe_customer_by_id customer_id=nil
+    def get_stripe_customer_by_id(customer_id = nil)
       customer_id ||= stripe_customer_id
       return if customer_id.to_s.empty?
+
       OT.info "[Customer.get_stripe_customer_by_id] Fetching customer: #{customer_id} #{custid}"
       @stripe_customer = Stripe::Customer.retrieve(customer_id)
-
     rescue Stripe::StripeError => e
       OT.le "[Customer.get_stripe_customer_by_id] Error: #{e.message}"
       nil
@@ -87,15 +83,15 @@ module V2
       end
 
       @stripe_customer
-
     rescue Stripe::StripeError => e
       OT.le "[Customer.get_stripe_customer_by_email] Error: #{e.message}"
       nil
     end
 
-    def get_stripe_subscription_by_id subscription_id=nil
+    def get_stripe_subscription_by_id(subscription_id = nil)
       subscription_id ||= stripe_subscription_id
       return if subscription_id.to_s.empty?
+
       OT.info "[Customer.get_stripe_subscription_by_id] Fetching subscription: #{subscription_id} #{custid}"
       @stripe_subscription = Stripe::Subscription.retrieve(subscription_id)
     rescue Stripe::StripeError => e
@@ -103,14 +99,13 @@ module V2
       nil
     end
 
-    def get_stripe_subscriptions stripe_customer=nil
+    def get_stripe_subscriptions(stripe_customer = nil)
       stripe_customer ||= @stripe_customer
       subscriptions = []
       return subscriptions unless stripe_customer
 
       begin
         subscriptions = Stripe::Subscription.list(customer: stripe_customer.id, limit: 1)
-
       rescue Stripe::StripeError => e
         OT.le "Error: #{e.message}"
       else
@@ -141,7 +136,7 @@ module V2
       end
     end
 
-    def role? guess
+    def role?(guess)
       role.to_s.eql?(guess.to_s)
     end
 
@@ -159,19 +154,20 @@ module V2
       # A customer is considered pending if they are not anonymous, not verified,
       # and have a role of 'customer'. If any one of these conditions is changes
       # then the customer is no longer pending.
-      !anonymous? && !verified? && role?('customer')  # we modify the role when destroying
+      !anonymous? && !verified? && role?('customer') # we modify the role when destroying
     end
 
-    def reset_secret? secret
+    def reset_secret?(secret)
       return false if secret.nil? || !secret.exists? || secret.key.to_s.empty?
-      Rack::Utils.secure_compare(self.reset_secret.to_s, secret.key)
+
+      Rack::Utils.secure_compare(reset_secret.to_s, secret.key)
     end
 
-    def valid_reset_secret! secret
+    def valid_reset_secret!(secret)
       if is_valid = reset_secret?(secret)
         OT.ld "[valid_reset_secret!] Reset secret is valid for #{custid} #{secret.shortkey}"
         secret.delete!
-        self.reset_secret.delete!
+        reset_secret.delete!
       end
       is_valid
     end
@@ -182,44 +178,44 @@ module V2
     # @raise [Onetime::Problem] if the customer is anonymous.
     # @return [V2::Session] The loaded or newly created session.
     def load_or_create_session(ip_address)
-      raise Onetime::Problem, "Customer is anonymous" if anonymous?
+      raise Onetime::Problem, 'Customer is anonymous' if anonymous?
 
       @sess = V2::Session.load(sessid) unless sessid.to_s.empty?
       if @sess.nil?
         @sess = V2::Session.create(ip_address, custid)
         sessid = @sess.identifier
         OT.info "[load_or_create_session] adding sess #{sessid} to #{obscure_email}"
-        self.sessid!(sessid)
+        sessid!(sessid)
       end
       @sess
     end
 
     def metadata_list
       metadata.revmembers.collect do |key|
-        obj = V2::Metadata.load(key)
+        V2::Metadata.load(key)
       rescue Onetime::RecordNotFound => e
-        OT.le "[metadata_list] Error: #{e.message} (#{key} / #{self.custid})"
+        OT.le "[metadata_list] Error: #{e.message} (#{key} / #{custid})"
       end.compact
     end
 
-    def add_metadata obj
+    def add_metadata(obj)
       metadata.add OT.now.to_i, obj.key
     end
 
     def custom_domains_list
       custom_domains.revmembers.collect do |domain|
-        V2::CustomDomain.load domain, self.custid
+        V2::CustomDomain.load domain, custid
       rescue Onetime::RecordNotFound => e
-        OT.le "[custom_domains_list] Error: #{e.message} (#{domain} / #{self.custid})"
+        OT.le "[custom_domains_list] Error: #{e.message} (#{domain} / #{custid})"
       end.compact
     end
 
-    def add_custom_domain obj
+    def add_custom_domain(obj)
       OT.ld "[add_custom_domain] adding #{obj} to #{self}"
       custom_domains.add OT.now.to_i, obj.display_domain # not the object identifier
     end
 
-    def remove_custom_domain obj
+    def remove_custom_domain(obj)
       custom_domains.remove obj.display_domain # not the object identifier
     end
 
@@ -244,7 +240,7 @@ module V2
     #
     # @return [void]
     def destroy_requested!
-      self.destroy_requested
+      destroy_requested
       save
     end
 
@@ -260,7 +256,7 @@ module V2
       # or if we need to send a notification to the customer
       # to confirm the account deletion.
       self.ttl = 365.days
-      self.regenerate_apitoken
+      regenerate_apitoken
       self.passphrase = ''
       self.verified = 'false'
       self.role = 'user_deleted_self'
@@ -276,6 +272,7 @@ module V2
     # anonymous customers from being persisted to the database.
     def save(**)
       raise Onetime::Problem, "Anonymous cannot be saved #{self.class} #{rediskey}" if anonymous?
+
       super
     end
 
@@ -294,7 +291,7 @@ module V2
       identifier.to_s
     end
 
-    def increment_field field
+    def increment_field(field)
       if anonymous?
         whereami = caller(1..4)
         OT.le "[increment_field] Refusing to increment #{field} for anon customer #{whereami}"

@@ -8,12 +8,11 @@ module V2
     include V2::ControllerHelpers
     include V2::Controllers::ClassSettings
 
-    attr_reader :req, :res
-    attr_reader :sess, :cust, :locale
-    attr_reader :ignoreshrimp
+    attr_reader :req, :res, :sess, :cust, :locale, :ignoreshrimp
 
-    def initialize req, res
-      @req, @res = req, res
+    def initialize(req, res)
+      @req = req
+      @res = res
     end
 
     def publically
@@ -24,8 +23,8 @@ module V2
       end
     end
 
-    def authorized allow_anonymous=false
-      carefully(redirect=nil, content_type='application/json', app: :api) do # rubocop:disable Metrics/BlockLength,Metrics/PerceivedComplexity
+    def authorized(allow_anonymous = false)
+      carefully(nil, 'application/json', app: :api) do # rubocop:disable Metrics/BlockLength
         check_locale!
 
         req.env['otto.auth'] ||= Rack::Auth::Basic::Request.new(req.env)
@@ -42,10 +41,10 @@ module V2
 
           OT.ld "[authorized] Attempt for '#{custid}' via #{req.client_ipaddress} (basic auth)"
           possible = V2::Customer.load custid
-          raise OT::Unauthorized, "No such customer" if possible.nil?
+          raise OT::Unauthorized, 'No such customer' if possible.nil?
 
           @cust = possible if possible.apitoken?(apitoken)
-          raise OT::Unauthorized, "Invalid credentials" if cust.nil? # wrong token
+          raise OT::Unauthorized, 'Invalid credentials' if cust.nil? # wrong token
 
           @sess = cust.load_or_create_session req.client_ipaddress
 
@@ -60,16 +59,14 @@ module V2
 
           check_session!
 
-          unless sess.authenticated? || allow_anonymous
-            raise OT::Unauthorized, "Session not authenticated"
-          end
+          raise OT::Unauthorized, 'Session not authenticated' unless sess.authenticated? || allow_anonymous
 
           # Only attempt to load the customer object if the session has
           # already been authenticated. Otherwise this is an anonymous session.
           @cust = sess.load_customer if sess.authenticated?
           @cust ||= V2::Customer.anonymous if allow_anonymous
 
-          raise OT::Unauthorized, "Invalid credentials" if cust.nil? # wrong token
+          raise OT::Unauthorized, 'Invalid credentials' if cust.nil? # wrong token
 
           custid = @cust.custid unless @cust.nil?
           OT.ld "[authorized] '#{custid}' via #{req.client_ipaddress} (cookie)"
@@ -85,9 +82,7 @@ module V2
         # proceed.
         else
 
-          unless allow_anonymous
-            raise OT::Unauthorized, "No session or credentials"
-          end
+          raise OT::Unauthorized, 'No session or credentials' unless allow_anonymous
 
           @cust = V2::Customer.anonymous
           @sess = V2::Session.create_ephemeral req.user_agent
@@ -101,19 +96,18 @@ module V2
 
         end
 
-        if cust.nil? || sess.nil?
-          raise OT::Unauthorized, "[bad-cust] '#{custid}' via #{req.client_ipaddress}"
-        end
+        raise OT::Unauthorized, "[bad-cust] '#{custid}' via #{req.client_ipaddress}" if cust.nil? || sess.nil?
 
         yield
       end
     end
 
     # Ignores the allow_anonymous argument passed in
-    def colonels _
+    def colonels(_)
       allow_anonymous = false
       authorized(allow_anonymous) do
-        raise OT::Unauthorized, "No such customer" unless cust.role?(:colonel)
+        raise OT::Unauthorized, 'No such customer' unless cust.role?(:colonel)
+
         yield
       end
     end
@@ -180,7 +174,7 @@ module V2
     #     json_success(custid: cust.custid, apitoken: logic.apitoken)
     #   end
     #
-    def process_action(logic_class, success_message, error_message, auth_type: :authorized, allow_anonymous: false)
+    def process_action(logic_class, _success_message, error_message, auth_type: :authorized, allow_anonymous: false)
       auth_method = auth_type == :colonels ? method(:colonels) : method(:authorized)
 
       auth_method.call(allow_anonymous) do
@@ -209,12 +203,12 @@ module V2
       end
     end
 
-    def json hsh
-      res.header['Content-Type'] = "application/json; charset=utf-8"
-      res.body = hsh.to_json
+    def json(hsh)
+      res.header['Content-Type'] = 'application/json; charset=utf-8'
+      res.body                   = hsh.to_json
     end
 
-    def json_success hsh
+    def json_success(hsh)
       # A convenience method that returns JSON success and adds a
       # fresh shrimp to the response body. The fresh shrimp is
       # helpful for parts of the Vue UI that get a successful
@@ -226,7 +220,7 @@ module V2
     # request was good. Pass a delicious fresh shrimp to the client
     # so they can try again with a new one (without refreshing the
     # entire page).
-    def handle_form_error ex, hsh={}
+    def handle_form_error(ex, hsh = {})
       hsh[:shrimp] = sess.add_shrimp
       hsh[:message] = ex.message
       hsh[:success] = false
@@ -235,31 +229,30 @@ module V2
     end
 
     def secret_not_found_response
-      not_found_response "Unknown secret", :secret_key => req.params[:key]
+      not_found_response 'Unknown secret', secret_key: req.params[:key]
     end
 
-    def disabled_response path
+    def disabled_response(path)
       not_found_response "#{path} is not available"
     end
 
-    def not_found_response msg, hsh={}
+    def not_found_response(msg, hsh = {})
       hsh[:message] = msg
       res.status = 404
       json hsh
     end
 
-    def not_authorized_error hsh={}
-      hsh[:message] = "Not authorized"
+    def not_authorized_error(hsh = {})
+      hsh[:message] = 'Not authorized'
       res.status = 403
       json hsh
     end
 
-    def error_response msg, hsh={}
+    def error_response(msg, hsh = {})
       hsh[:message] = msg
       hsh[:success] = false
       res.status = 500 # Bad Request
       json hsh
     end
-
   end
 end

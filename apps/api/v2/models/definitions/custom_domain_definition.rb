@@ -8,7 +8,6 @@
 #
 module V2
   class CustomDomain < Familia::Horreum
-
     unless defined?(MAX_SUBDOMAIN_DEPTH)
       MAX_SUBDOMAIN_DEPTH = 10 # e.g., a.b.c.d.e.f.g.h.i.j.example.com
       MAX_TOTAL_LENGTH = 253   # RFC 1034 section 3.1
@@ -51,7 +50,7 @@ module V2
     @txt_validation_prefix = '_onetime-challenge'
 
     @safe_dump_fields = [
-      { :identifier => ->(obj) { obj.identifier } },
+      { identifier: ->(obj) { obj.identifier } },
       :domainid,
       :display_domain,
       :custid,
@@ -60,21 +59,21 @@ module V2
       :trd,
       :tld,
       :sld,
-      { :is_apex => ->(obj) { obj.apex? } },
+      { is_apex: ->(obj) { obj.apex? } },
       :_original_value,
       :txt_validation_host,
       :txt_validation_value,
-      { :brand => ->(obj) { obj.brand.hgetall } },
+      { brand: ->(obj) { obj.brand.hgetall } },
       # NOTE: We don't serialize images here
       :status,
-      { :vhost => ->(obj) { obj.parse_vhost } },
+      { vhost: ->(obj) { obj.parse_vhost } },
       :verified,
       :created,
       :updated,
     ]
 
     def init
-      @domainid = self.identifier
+      @domainid = identifier
 
       # Display domain and cust should already be set and accessible
       # via accessor methods so we should see a valid identifier logged.

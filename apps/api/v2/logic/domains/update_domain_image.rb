@@ -10,12 +10,12 @@ module V2::Logic
       IMAGE_MIME_TYPES = %w[
         image/jpeg image/png image/gif image/svg+xml image/webp image/bmp image/tiff
       ]
-      MAX_IMAGE_BYTES = 1 * 1024 * 1024  # 1 MB
+      MAX_IMAGE_BYTES = 1 * 1024 * 1024 # 1 MB
     end
 
     class UpdateDomainImage < V2::Logic::Base
-      attr_reader :greenlighted, :image, :display_domain, :custom_domain
-      attr_reader :content_type, :filename, :height, :width, :ratio, :bytes
+      attr_reader :greenlighted, :image, :display_domain, :custom_domain, :content_type, :filename, :height, :width,
+                  :ratio, :bytes
 
       @field = nil
 
@@ -55,27 +55,23 @@ module V2::Logic
       # Validate the input parameters
       # Sets error messages if any parameter is invalid
       def raise_concerns
-
-
-        raise_form_error "Domain is required" if @domain_input.empty?
+        raise_form_error 'Domain is required' if @domain_input.empty?
 
         # Check if the domain exists and belongs to the current customer
         @custom_domain = V2::CustomDomain.load(@domain_input, @cust.custid)
-        raise_form_error "Invalid Domain" unless @custom_domain
+        raise_form_error 'Invalid Domain' unless @custom_domain
 
         @display_domain = @domain_input
 
         # Validate the logo file
-        raise_form_error "Image file is required" unless @uploaded_file
+        raise_form_error 'Image file is required' unless @uploaded_file
 
-        @bytes =  @uploaded_file.size
-        raise_form_error "Image file is too large" if bytes > MAX_IMAGE_BYTES
+        @bytes = @uploaded_file.size
+        raise_form_error 'Image file is too large' if bytes > MAX_IMAGE_BYTES
 
         # Raise an error if the file type is not one of the allowed image types
         # Allowed types: JPEG, PNG, GIF, SVG, WEBP, BMP, TIFF
-        unless IMAGE_MIME_TYPES.include?(@content_type)
-          raise_form_error "Invalid file type"
-        end
+        raise_form_error 'Invalid file type' unless IMAGE_MIME_TYPES.include?(@content_type)
 
         @greenlighted = true
       end
@@ -123,7 +119,6 @@ module V2::Logic
         custom_domain.send(self.class.field)
       end
       private :_image_field
-
     end
 
     class UpdateDomainLogo < UpdateDomainImage
@@ -133,6 +128,5 @@ module V2::Logic
     class UpdateDomainIcon < UpdateDomainImage
       @field = :icon
     end
-
   end
 end

@@ -42,7 +42,6 @@ module V2
         [domain, path].flatten.join('/')
       end
 
-
       # TODO: secure ad local are already in Otto
       def secure?
         # X-Scheme is set by nginx
@@ -53,7 +52,6 @@ module V2
       def local?
         LOCAL_HOSTS.member?(req.env['SERVER_NAME']) && (req.client_ipaddress == '127.0.0.1')
       end
-
     end
   end
 end

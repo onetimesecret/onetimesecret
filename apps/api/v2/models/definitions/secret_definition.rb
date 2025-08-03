@@ -2,7 +2,6 @@
 
 module V2
   class Secret < Familia::Horreum
-
     feature :safe_dump
     feature :expiration
 
@@ -53,6 +52,5 @@ module V2
     def init
       self.state ||= 'new'
     end
-
   end
 end

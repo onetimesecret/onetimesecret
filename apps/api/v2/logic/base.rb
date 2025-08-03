@@ -18,8 +18,7 @@ module V2
       include V2::Logic::I18nHelpers
       include V2::Logic::UriHelpers
 
-      attr_reader :sess, :cust, :params, :locale, :processed_params
-      attr_reader :site, :authentication, :domains_enabled, :planid
+      attr_reader :sess, :cust, :params, :locale, :processed_params, :site, :authentication, :domains_enabled, :planid
 
       attr_accessor :domain_strategy, :display_domain
 
@@ -42,7 +41,7 @@ module V2
 
       def process_settings
         @site = OT.conf.fetch('site', {})
-        domains = site.fetch('domains', {})
+        site.fetch('domains', {})
         @authentication = site.fetch('authentication', {})
         domains = site.fetch(:domains, {})
         @domains_enabled = domains[:enabled] || false
@@ -53,7 +52,6 @@ module V2
 
         begin
           validator = Truemail.validate(guess)
-
         rescue StandardError => e
           OT.le "Email validation error: #{e.message}"
           OT.le e.backtrace
@@ -99,8 +97,8 @@ module V2
       end
 
       # Requires the implementing class to have cust and session fields
-      def send_verification_email token=nil
-      _, secret = V2::Secret.spawn_pair cust.custid, token
+      def send_verification_email(token = nil)
+        _, secret = V2::Secret.spawn_pair cust.custid, token
 
         msg = "Thanks for verifying your account. We got you a secret fortune cookie!\n\n\"%s\"" % OT::Utils.random_fortune
 
@@ -115,10 +113,9 @@ module V2
 
         begin
           view.deliver_email token
-
-        rescue StandardError => ex
+        rescue StandardError => e
           errmsg = "Couldn't send the verification email. Let us know below."
-          OT.le "Error sending verification email: #{ex.message}", ex.backtrace
+          OT.le "Error sending verification email: #{e.message}", e.backtrace
           sess.set_info_message errmsg
         end
       end

@@ -2,9 +2,8 @@
 
 module V2
   class Secret < Familia::Horreum
-
     module Management
-      def spawn_pair custid, token=nil
+      def spawn_pair(custid, token = nil)
         secret = V2::Secret.create(custid: custid, token: token)
         metadata = V2::Metadata.create(custid: custid, token: token)
 

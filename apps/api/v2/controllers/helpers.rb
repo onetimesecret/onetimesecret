@@ -1,20 +1,18 @@
 # apps/api/v2/controllers/helpers.rb
 
 module V2
-
   unless defined?(V2::BADAGENTS)
-    BADAGENTS = [:facebook, :google, :yahoo, :bing, :stella, :baidu, :bot, :curl, :wget]
-    LOCAL_HOSTS = ['localhost', '127.0.0.1'].freeze  # TODO: Add config
+    BADAGENTS = %i[facebook google yahoo bing stella baidu bot curl wget]
+    LOCAL_HOSTS = ['localhost', '127.0.0.1'].freeze # TODO: Add config
     HEADER_PREFIX = ENV.fetch('HEADER_PREFIX', 'X_SECRET_').upcase
   end
 
   module ControllerHelpers
-
     # `carefully` is a wrapper around the main web application logic. We
     # handle errors, redirects, and other exceptions here to ensure that
     # we respond consistently to all requests. That's why we integrate
     # Sentry here rather than app specific logic.
-    def carefully(redirect=nil, content_type=nil, app: :web) # rubocop:disable Metrics/MethodLength,Metrics/PerceivedComplexity
+    def carefully(redirect = nil, content_type = nil, app: :web) # rubocop:disable Metrics/MethodLength,Metrics/PerceivedComplexity
       redirect ||= req.request_path unless app == :api
       content_type ||= 'text/html; charset=utf-8'
 
@@ -22,9 +20,7 @@ module V2
 
       # Prevent infinite redirect loops by checking if the request is a GET request.
       # Pages redirecting from a POST request can use the same page once.
-      if req.get? && redirect.to_s == req.request_path
-        redirect = '/500'
-      end
+      redirect = '/500' if req.get? && redirect.to_s == req.request_path
 
       # Generate a unique nonce for this response
       nonce = SecureRandom.base64(16)
@@ -40,94 +36,84 @@ module V2
       log_customer_activity
 
       obscured = if cust.anonymous?
-        'anonymous'
-      else
-        OT::Utils.obscure_email(cust.custid)
-      end
+                   'anonymous'
+                 else
+                   OT::Utils.obscure_email(cust.custid)
+                 end
 
       return_value
-
-    rescue OT::Redirect => ex
-      OT.info "[carefully] Redirecting to #{ex.location} (#{ex.status})"
-      res.redirect ex.location, ex.status
-
-    rescue OT::Unauthorized => ex
-      OT.info ex.message
+    rescue OT::Redirect => e
+      OT.info "[carefully] Redirecting to #{e.location} (#{e.status})"
+      res.redirect e.location, e.status
+    rescue OT::Unauthorized => e
+      OT.info e.message
       not_authorized_error
-
-    rescue Onetime::BadShrimp => ex
+    rescue Onetime::BadShrimp
       # If it's a json response, no need to set an error message on the session
       if res.header['Content-Type'] == 'application/json'
-        error_response 'Please refresh the page and try again', reason: "Bad shrimp 🍤"
+        error_response 'Please refresh the page and try again', reason: 'Bad shrimp 🍤'
       else
-        sess.set_error_message "Please go back, refresh the page, and try again."
+        sess.set_error_message 'Please go back, refresh the page, and try again.'
         res.redirect redirect
       end
-
-    rescue OT::FormError => ex
-      OT.ld "[carefully] FormError: #{ex.message} (#{req.path}) redirect:#{redirect || 'n/a'}"
+    rescue OT::FormError => e
+      OT.ld "[carefully] FormError: #{e.message} (#{req.path}) redirect:#{redirect || 'n/a'}"
 
       # Track form errors in Sentry. They can indicate bugs that would
       # not surface any other way. We track as messages though since
       # they are not exceptions in the diagnostic sense. We pass only
       # the message and not fields to limit the amount of data sent.
-      capture_message ex.message, :error
+      capture_message e.message, :error
 
       if redirect
-        handle_form_error ex, redirect
+        handle_form_error e, redirect
       else
-        handle_form_error ex
+        handle_form_error e
       end
 
     # NOTE: It's important to handle MissingSecret before RecordNotFound since
     #       MissingSecret is a subclass of RecordNotFound. If we don't, we'll
     #       end up with a generic error message instead of the specific one.
-    rescue OT::MissingSecret => ex
+    rescue OT::MissingSecret
       secret_not_found_response
-
-    rescue OT::RecordNotFound => ex
-      OT.ld "[carefully] RecordNotFound: #{ex.message} (#{req.path}) redirect:#{redirect || 'n/a'}"
-      not_found_response ex.message, shrimp: sess.add_shrimp
-
-    rescue Familia::HighRiskFactor => ex
+    rescue OT::RecordNotFound => e
+      OT.ld "[carefully] RecordNotFound: #{e.message} (#{req.path}) redirect:#{redirect || 'n/a'}"
+      not_found_response e.message, shrimp: sess.add_shrimp
+    rescue Familia::HighRiskFactor => e
       OT.le "[attempt-saving-non-string-to-redis] #{obscured} (#{sess.ipaddress}): #{sess.identifier.shorten(10)} (#{req.current_absolute_uri})"
 
       # Track attempts to save non-string data to Redis as a warning error
-      capture_error ex, :warning
+      capture_error e, :warning
 
       # Include fresh shrimp so they can try again 🦐
       error_response "We're sorry, but we can't process your request at this time.", shrimp: sess.add_shrimp
-
-    rescue Familia::NotConnected, Familia::Problem => ex
-      OT.le "#{ex.class}: #{ex.message}"
-      OT.le ex.backtrace
+    rescue Familia::NotConnected, Familia::Problem => e
+      OT.le "#{e.class}: #{e.message}"
+      OT.le e.backtrace
 
       # Track Familia errors as regular exceptions
-      capture_error ex
+      capture_error e
 
       # Include fresh shrimp so they can try again, again 🦐
-      error_response "An error occurred :[", shrimp: sess ? sess.add_shrimp : nil
-
-    rescue Errno::ECONNREFUSED => ex
-      OT.le ex.message
-      OT.le ex.backtrace
+      error_response 'An error occurred :[', shrimp: sess ? sess.add_shrimp : nil
+    rescue Errno::ECONNREFUSED => e
+      OT.le e.message
+      OT.le e.backtrace
 
       # Track DB connection errors as fatal errors
-      capture_error ex, :fatal
+      capture_error e, :fatal
 
       error_response "We'll be back shortly!", shrimp: sess ? sess.add_shrimp : nil
-
-    rescue StandardError => ex
+    rescue StandardError => e
       custid = cust&.custid || '<notset>'
       sessid = sess&.short_identifier || '<notset>'
-      OT.le "#{ex.class}: #{ex.message} -- #{req.current_absolute_uri} -- #{req.client_ipaddress} #{custid} #{sessid} #{locale} #{content_type} #{redirect} "
-      OT.le ex.backtrace.join("\n")
+      OT.le "#{e.class}: #{e.message} -- #{req.current_absolute_uri} -- #{req.client_ipaddress} #{custid} #{sessid} #{locale} #{content_type} #{redirect} "
+      OT.le e.backtrace.join("\n")
 
       # Track the unexected errors
-      capture_error ex
+      capture_error e
 
-      error_response "An unexpected error occurred :[", shrimp: sess ? sess.add_shrimp : nil
-
+      error_response 'An unexpected error occurred :[', shrimp: sess ? sess.add_shrimp : nil
     ensure
       @sess ||= V2::Session.new 'failover', 'anon'
       @cust ||= V2::Customer.anonymous
@@ -180,8 +166,9 @@ module V2
     # requests. Requests via basic auth (/api), may check for a
     # valid shrimp, but they don't regenerate a fresh every time
     # a successful validation occurs.
-    def check_shrimp!(replace=true)
+    def check_shrimp!(_replace = true)
       return if @check_shrimp_ran
+
       @check_shrimp_ran = true
       return unless req.post? || req.put? || req.delete? || req.patch?
 
@@ -198,7 +185,7 @@ module V2
       validate_shrimp(attempted_shrimp)
     end
 
-    def validate_shrimp(attempted_shrimp, replace=true)
+    def validate_shrimp(attempted_shrimp, replace = true)
       shrimp_is_empty = attempted_shrimp.empty?
       log_value = attempted_shrimp.shorten(5)
 
@@ -225,14 +212,15 @@ module V2
 
     def check_session!
       return if @check_session_ran
+
       @check_session_ran = true
 
       # Load from redis or create the session
-      if req.cookie?(:sess) && V2::Session.exists?(req.cookie(:sess))
-        @sess = V2::Session.load req.cookie(:sess)
-      else
-        @sess = V2::Session.create req.client_ipaddress, "anon", req.user_agent
-      end
+      @sess = if req.cookie?(:sess) && V2::Session.exists?(req.cookie(:sess))
+                V2::Session.load req.cookie(:sess)
+              else
+                V2::Session.create req.client_ipaddress, 'anon', req.user_agent
+              end
 
       # Set the session to rack.session
       #
@@ -283,10 +271,10 @@ module V2
       end
 
       # Should always report false and false when disabled.
-      unless cust.anonymous?
-        custref = cust.obscure_email
-        OT.ld "[sess.check_session(v2)] #{sess.short_identifier} #{custref} authenabled=#{authentication_enabled?.to_s}, sess=#{sess.authenticated?.to_s}"
-      end
+      return if cust.anonymous?
+
+      custref = cust.obscure_email
+      OT.ld "[sess.check_session(v2)] #{sess.short_identifier} #{custref} authenabled=#{authentication_enabled?}, sess=#{sess.authenticated?}"
     end
 
     # Checks if authentication is enabled for the site.
@@ -357,7 +345,7 @@ module V2
           "form-action 'self';",
           "frame-ancestors 'none';",
           "manifest-src 'self';",
-          #"require-trusted-types-for 'script';",
+          # "require-trusted-types-for 'script';",
           "worker-src 'self';",
         ]
       end
@@ -369,6 +357,7 @@ module V2
 
     def log_customer_activity
       return if cust.anonymous?
+
       reqstr = stringify_request_details(req)
       custref = cust.obscure_email
       OT.ld "[carefully] #{sess.short_identifier} #{custref} at #{reqstr}"
@@ -411,40 +400,40 @@ module V2
     # Available levels are :fatal, :error, :warning, :log, :info,
     # and :debug. The Sentry default, if not specified, is :error.
     #
-    def capture_error(error, level=:error, &)
+    def capture_error(error, level = :error, &)
       return unless OT.d9s_enabled # diagnostics are disabled by default
 
       # Capture more detailed debugging information when Sentry errors occur
       begin
         # Log request headers before attempting to send to Sentry
         if defined?(req) && req.respond_to?(:env)
-          headers = req.env.select { |k, _v| k.start_with?('HTTP_') rescue false }  # rubocop:disable Style/RescueModifier
+          headers = req.env.select { |k, _v| k.start_with?('HTTP_') rescue false } # rubocop:disable Style/RescueModifier
           OT.ld "[capture_error] Request headers: #{headers.inspect}"
         end
 
         # Try Sentry exception reporting
         Sentry.capture_exception(error, level: level, &)
       rescue NoMethodError => e
-        if e.message.include?('start_with?')
-          OT.le "[capture_error] Sentry error with nil value in start_with? check: #{e.message}"
-          OT.ld e.backtrace.join("\n")
-          # Continue execution - don't let a Sentry error break the app
-        else
-          # Re-raise any other NoMethodError that isn't related to start_with?
-          raise
-        end
-      rescue StandardError => ex
-        OT.le "[capture_error] #{ex.class}: #{ex.message}"
-        OT.ld ex.backtrace.join("\n")
+        raise unless e.message.include?('start_with?')
+
+        OT.le "[capture_error] Sentry error with nil value in start_with? check: #{e.message}"
+        OT.ld e.backtrace.join("\n")
+      # Continue execution - don't let a Sentry error break the app
+
+      # Re-raise any other NoMethodError that isn't related to start_with?
+      rescue StandardError => e
+        OT.le "[capture_error] #{e.class}: #{e.message}"
+        OT.ld e.backtrace.join("\n")
       end
     end
 
-    def capture_message(message, level=:log, &)
+    def capture_message(message, level = :log, &)
       return unless OT.d9s_enabled # diagnostics are disabled by default
+
       Sentry.capture_message(message, level: level, &)
-    rescue StandardError => ex
-      OT.le "[capture_message] #{ex.class}: #{ex.message}"
-      OT.ld ex.backtrace.join("\n")
+    rescue StandardError => e
+      OT.le "[capture_message] #{e.class}: #{e.message}"
+      OT.ld e.backtrace.join("\n")
     end
 
     # Collects and formats specific HTTP header details from the given
@@ -470,7 +459,7 @@ module V2
     #   collect_proxy_header_details(env)
     #   # => "HTTP_X_FORWARDED_FOR=203.0.113.195 REMOTE_ADDR=192.0.2.1 CF-Connecting-IP=203.0.113.195 CF-IPCountry=US CF-Ray=1234567890abcdef CF-Visitor={\"scheme\":\"https\"}"
     #
-    def collect_proxy_header_details(env=nil, keys=nil)
+    def collect_proxy_header_details(env = nil, keys = nil)
       env ||= {}
       keys ||= %w[
         HTTP_FLY_REQUEST_ID
@@ -490,7 +479,7 @@ module V2
       prefix_keys = env.keys.select { |key| key.upcase.start_with?("HTTP_#{HEADER_PREFIX}") }
       keys.concat(prefix_keys) # the bang is silent
 
-      keys.sort.map { |key|
+      keys.sort.map do |key|
         # Normalize the header name so it looks identical in the logs as it
         # does in the browser dev console.
         #
@@ -498,34 +487,31 @@ module V2
         #
         pretty_name = key.sub(/^HTTP_/, '').split('_').map(&:capitalize).join('-')
         "#{pretty_name}: #{env[key]}"
-      }.join(" ")
+      end.join(' ')
     end
-
 
     def secure?
       # It's crucial to only accept header values set by known, trusted
       # sources. See Caddy config docs re: trusted_proxies.
       # X-Scheme is set by e.g. nginx, caddy etc
       # X-FORWARDED-PROTO is set by load balancer e.g. ELB
-      (req.env['HTTP_X_FORWARDED_PROTO'] == 'https' || req.env['HTTP_X_SCHEME'] == "https")
+      req.env['HTTP_X_FORWARDED_PROTO'] == 'https' || req.env['HTTP_X_SCHEME'] == 'https'
     end
 
     def local?
-      (LOCAL_HOSTS.member?(req.env['SERVER_NAME']) && (req.client_ipaddress == '127.0.0.1'))
+      LOCAL_HOSTS.member?(req.env['SERVER_NAME']) && (req.client_ipaddress == '127.0.0.1')
     end
 
-    def deny_agents! *agents
+    def deny_agents! *_agents
       BADAGENTS.flatten.each do |agent|
-        if req.user_agent =~ /#{agent}/i
-          raise OT::Redirect.new('/')
-        end
+        raise OT::Redirect.new('/') if /#{agent}/i.match?(req.user_agent)
       end
     end
 
     def no_cache!
-      res.header['Cache-Control'] = "no-store, no-cache, must-revalidate, max-age=0"
-      res.header['Expires'] = "Mon, 7 Nov 2011 00:00:00 UTC"
-      res.header['Pragma'] = "no-cache"
+      res.header['Cache-Control'] = 'no-store, no-cache, must-revalidate, max-age=0'
+      res.header['Expires'] = 'Mon, 7 Nov 2011 00:00:00 UTC'
+      res.header['Pragma'] = 'no-cache'
     end
 
     def app_path *paths
@@ -533,6 +519,5 @@ module V2
       paths.unshift req.script_name
       paths.join('/').gsub '//', '/'
     end
-
   end
 end
