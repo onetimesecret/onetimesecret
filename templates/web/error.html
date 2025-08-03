@@ -49,11 +49,11 @@
         transition: all 0.2s;
       }
       .btn-primary {
-        background-color: #3b82f6;
+        background-color: #1478a6;
         color: white;
       }
       .btn-primary:hover {
-        background-color: #2563eb;
+        background-color: #23b5dd;
       }
       .btn-secondary {
         background-color: #f3f4f6;
@@ -104,8 +104,8 @@
         <h1 class="error-title">Something went wrong</h1>
 
         <p class="error-message">
-          We're experiencing technical difficulties. Our team has been notified and is working to
-          resolve this issue.
+          We're experiencing technical difficulties. Our team has been notified
+          and is working to resolve this issue.
         </p>
 
         <div class="error-actions">
@@ -115,20 +115,21 @@
             >Go Home</a
           >
           <button
-            onclick="window.location.reload()"
+            type="button"
+            onclick="location.reload()"
             class="btn btn-secondary">
             Try Again
           </button>
-          {{#if authenticated}}
+          {{#authenticated}}
           <a
             href="/dashboard"
             class="btn btn-secondary"
             >Dashboard</a
           >
-          {{/if}}
+          {{/authenticated}}
         </div>
 
-        {{#if app.development}}
+        {{#app.development}}
         <div class="error-details">
           <details>
             <summary style="cursor: pointer; margin-bottom: 1rem">
@@ -145,23 +146,23 @@
               <strong>Error ID:</strong> {{error_id}}<br />
               <strong>Timestamp:</strong> {{timestamp}}<br />
               <strong>Environment:</strong> {{app.environment}}<br />
-              {{#if error_message}}
+              {{#error_message}}
               <strong>Message:</strong> {{error_message}}<br />
-              {{/if}} {{#if error_class}}
+              {{/error_message}} {{#error_class}}
               <strong>Exception:</strong> {{error_class}}<br />
-              {{/if}}
+              {{/error_class}}
             </div>
           </details>
         </div>
-        {{else}}
+        {{/app.development}} {{^app.development}}
         <div class="error-details">
           <p>
             Error ID: <code>{{error_id}}</code><br />
             If this problem persists, please contact
-            <a href="mailto:{{support_email}}?subject=Error%20Report%20{{error_id}}"> support </a>
+            badtimes@onetimesecret.com
           </p>
         </div>
-        {{/if}}
+        {{/app.development}}
       </div>
     </div>
 
