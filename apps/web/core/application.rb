@@ -28,6 +28,9 @@ module Core
       routes_path = File.join(Onetime::HOME, 'apps/web/core/routes')
       router      = Otto.new(routes_path)
 
+      # Enable CSP nonce support for enhanced security
+      router.enable_csp_with_nonce!(debug: OT.debug?)
+
       # Default error responses
       headers             = { 'content-type' => 'text/html' }
       router.not_found    = [404, headers, ['Not Found']]

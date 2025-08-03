@@ -161,55 +161,14 @@ module V2
     end
 
     def add_response_headers(content_type, nonce)
-      # Set the Content-Type header if it's not already set by the application
-      res.headers['content-type'] ||= content_type
-
-      # Skip the Content-Security-Policy header if it's already set
-      return if res.headers['content-security-policy']
-
       # Skip the CSP header unless it's enabled in the experimental settings
-      return if OT.conf.dig('experimental', 'csp', 'enabled') != true
+      return unless OT.conf.dig('experimental', 'csp', 'enabled') == true
 
-      # Skip the Content-Security-Policy header if the front is running in
-      # development mode. We need to allow inline scripts and styles for
-      # hot reloading to work.
-      csp = if OT.conf.dig('development', 'enabled')
-        [
-          "default-src 'none';",                               # Restrict to same origin by default
-          "script-src 'unsafe-inline' 'nonce-#{nonce}';",      # Allow Vite's dynamic module imports and source maps
-          "style-src 'self' 'unsafe-inline';",                 # Enable Vite's dynamic style injection
-          "connect-src 'self' ws: wss: http: https:;",         # Allow WebSocket connections for hot module replacement
-          "img-src 'self' data:;",                             # Allow images from same origin only
-          "font-src 'self';",                                  # Allow fonts from same origin only
-          "object-src 'none';",                                # Block <object>, <embed>, and <applet> elements
-          "base-uri 'self';",                                  # Restrict <base> tag targets to same origin
-          "form-action 'self';",                               # Restrict form submissions to same origin
-          "frame-ancestors 'none';",                           # Prevent site from being embedded in frames
-          "manifest-src 'self';",
-          # "require-trusted-types-for 'script';",
-          "worker-src 'self' data:;",                          # Allow Workers from same origin, data blobs
-        ]
-      else
-        [
-          "default-src 'none';",
-          "script-src 'unsafe-inline' 'nonce-#{nonce}';",      # unsafe-inline is ignored with a nonce
-          "style-src 'self' 'unsafe-inline';",
-          "connect-src 'self' wss: https:;",                   # Only HTTPS and secure WebSockets
-          "img-src 'self' data:;",
-          "font-src 'self';",
-          "object-src 'none';",
-          "base-uri 'self';",
-          "form-action 'self';",
-          "frame-ancestors 'none';",
-          "manifest-src 'self';",
-          # "require-trusted-types-for 'script';",
-          "worker-src 'self' data:;",
-        ]
-            end
-
-      OT.ld "[CSP] #{csp.join(' ')}" if OT.debug?
-
-      res.headers['content-security-policy'] = csp.join(' ')
+      # Use Otto's CSP nonce support
+      res.send_csp_headers(content_type, nonce, {
+        development_mode: OT.conf.dig('development', 'enabled'),
+        debug: OT.debug?
+      })
     end
 
     # Collectes request details in a single string for logging purposes.
