@@ -25,14 +25,14 @@ module V2
       nonce = SecureRandom.base64(16)
 
       # Make the nonce available to the CSP header
-      add_response_headers(content_type, nonce)
+      add_csp_headers(content_type, nonce)
 
       # Make the nonce available to the view
       req.env['ots.nonce'] = nonce
 
       return_value = yield
 
-      log_customer_activity
+      debug_log_request
 
       obscured = if cust.anonymous?
                    'anonymous'
@@ -159,36 +159,18 @@ module V2
       @locale = req.env['ots.locale']
     end
 
-    def add_response_headers(content_type, nonce)
+    def add_csp_headers(content_type, nonce)
       # Skip the CSP header unless it's enabled in the experimental settings
       return unless OT.conf.dig('experimental', 'csp', 'enabled') == true
 
       # Use Otto's CSP nonce support
-      res.send_csp_headers(content_type, nonce, {
-        development_mode: OT.conf.dig('development', 'enabled'),
-        debug: OT.debug?,
-      }
+      res.send_csp_headers(
+        content_type,
+        nonce, {
+          development_mode: OT.conf.dig('development', 'enabled'),
+          debug: OT.debug?,
+        }
       )
-    end
-
-    # Collectes request details in a single string for logging purposes.
-    #
-    # This method collects the IP address, request method, path, query string,
-    # and proxy header details from the given request object and formats them
-    # into a single string. The resulting string is suitable for logging.
-    #
-    # @param req [Rack::Request] The request object containing the details to be
-    #   stringified.
-    # @return [String] A single string containing the formatted request details.
-    #
-    # @example
-    #   req = Rack::Request.new(env)
-    #   stringify_request_details(req)
-    #   # => "192.0.2.1; GET /path?query=string; Proxy[HTTP_X_FORWARDED_FOR=203.0.113.195 REMOTE_ADDR=192.0.2.1]"
-    #
-    def stringify_request_details(req)
-      # Use Otto's format_request_details method with our custom header prefix
-      req.format_request_details(header_prefix: HEADER_PREFIX.chomp('_'))
     end
 
     # Collects and formats specific HTTP header details from the given
@@ -213,26 +195,6 @@ module V2
         header_prefix: HEADER_PREFIX.chomp('_'),
         additional_keys: additional_keys,
       )
-    end
-
-    def secure?
-      # Use Otto's more sophisticated secure? method which handles trusted proxies
-      req.secure?
-    end
-
-    def deny_agents! *_agents
-      # Use Otto's blocked_user_agent? method
-      raise OT::Redirect.new('/') if req.blocked_user_agent?(blocked_agents: BADAGENTS)
-    end
-
-    def no_cache!
-      # Use Otto's no_cache! method
-      res.no_cache!
-    end
-
-    def app_path *paths
-      # Use Otto's app_path method
-      res.app_path(*paths)
     end
 
     def check_session!
@@ -373,11 +335,12 @@ module V2
       authentication_enabled && signin_enabled
     end
 
-    def log_customer_activity
-      return if cust.anonymous?
+    def debug_log_request
 
-      reqstr  = stringify_request_details(req)
+      # Use Otto's format_request_details method with our custom header prefix
+      reqstr  = req.format_request_details(header_prefix: HEADER_PREFIX)
       custref = cust.obscure_email
+
       OT.ld "[carefully] #{sess.short_identifier} #{custref} at #{reqstr}"
     end
 

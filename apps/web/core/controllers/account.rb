@@ -191,7 +191,8 @@ module Core
             return disabled_response(req.path)
           end
 
-          deny_agents!
+          raise OT::Redirect.new('/') if req.blocked_user_agent?(blocked_agents: BADAGENTS)
+
           logic = V2::Logic::Account::CreateAccount.new sess, cust, req.params, locale
           logic.raise_concerns
           logic.process
@@ -208,7 +209,8 @@ module Core
           # If the request is halted, say for example rate limited, we don't want to
           # allow the browser to refresh and re-submit the form with the login
           # credentials.
-          no_cache!
+          res.no_cache!
+
           logic = V2::Logic::Authentication::AuthenticateSession.new sess, cust, req.params, locale
           if sess.authenticated?
             sess.set_info_message 'You are already logged in.'
@@ -237,7 +239,7 @@ module Core
           logic = V2::Logic::Authentication::DestroySession.new sess, cust, req.params, locale
           logic.raise_concerns
           logic.process
-          res.redirect app_path('/')
+          res.redirect res.app_path('/')
         end
       end
 

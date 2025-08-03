@@ -40,7 +40,7 @@ module V1
           logic.raise_concerns
           logic.process
           if req.get?
-            res.redirect app_path(logic.redirect_uri)
+            res.redirect res.app_path(logic.redirect_uri)
           else
             secret = logic.secret
             json self.class.metadata_hsh(logic.metadata,
@@ -56,7 +56,7 @@ module V1
           logic.raise_concerns
           logic.process
           if req.get?
-            res.redirect app_path(logic.redirect_uri)
+            res.redirect res.app_path(logic.redirect_uri)
           else
             secret = logic.secret
             json self.class.metadata_hsh(logic.metadata,
@@ -144,7 +144,7 @@ module V1
           logic.raise_concerns
           logic.process
           if req.get?
-            res.redirect app_path(logic.redirect_uri)
+            res.redirect res.app_path(logic.redirect_uri)
           else
             secret = logic.secret
             json self.class.metadata_hsh(logic.metadata,

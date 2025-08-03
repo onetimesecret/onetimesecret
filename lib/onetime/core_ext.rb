@@ -59,8 +59,9 @@ module Rack
   end
 end
 
-# Fix for Mustache 1.1.1 generator compatibility
-# Only apply the patch for the specific version to avoid issues with future updates
+# Fix for Mustache 1.1.1 generator compatibility. There is
+# no Mustache::VERSION to check the version. The most
+# recent release was in 2015 so I think we'll be okay.
 if defined?(Mustache)
   require 'mustache'
 
