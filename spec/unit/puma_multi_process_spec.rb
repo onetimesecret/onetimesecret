@@ -29,90 +29,127 @@ RSpec.describe 'Puma Multi-Process Integration', type: :integration do
   # deployment. Despite being ~2.5s slower than unit tests, it's included in the normal
   # test suite because it verifies process-level behavior that can't be tested otherwise.
   before(:all) do
-    @port = find_available_port
-    @host = '127.0.0.1'
-    @base_url = "http://#{@host}:#{@port}"
-    @workers = 3
-    @puma_pid_file = Tempfile.new(['puma_test', '.pid'])
-    @puma_config_file = Tempfile.new(['puma_config', '.rb'])
-    @test_app_file = Tempfile.new(['test_app', '.ru'])
+    # Retry port allocation and Puma startup to handle parallel test execution
+    startup_attempts = 0
+    max_startup_attempts = 3
 
-    # Minimal Puma configuration for testing
-    puma_config_content = <<~CONFIG
-      port #{@port}
-      bind "tcp://#{@host}:#{@port}"
-      workers #{@workers}
-      worker_timeout 10 # Must be > worker reporting interval (5)
-      pidfile "#{@puma_pid_file.path}"
+    puts "\n🚀 Starting Puma Multi-Process Integration Test"
 
-      # Each worker initializes separately to ensure unique OT.instance
-      # No preload_app! - this ensures per-worker boot process
+    begin
+      startup_attempts += 1
+      puts "\n📍 Port allocation attempt #{startup_attempts}/#{max_startup_attempts}"
+      @port = find_available_port
+      @host = '127.0.0.1'
+      @base_url = "http://#{@host}:#{@port}"
+      @workers = 3
+      @puma_pid_file = Tempfile.new(['puma_test', '.pid'])
+      @puma_config_file = Tempfile.new(['puma_config', '.rb'])
+      @test_app_file = Tempfile.new(['test_app', '.ru'])
 
-      # Redirect stdout/stderr to /dev/null for cleaner test output
-      # In CI, these might be captured or handled differently.
-      stdout_redirect '/dev/null', '/dev/null', true
-    CONFIG
+      # Minimal Puma configuration for testing
+      puma_config_content = <<~CONFIG
+        port #{@port}
+        bind "tcp://#{@host}:#{@port}"
+        workers #{@workers}
+        worker_timeout 10 # Must be > worker reporting interval (5)
+        pidfile "#{@puma_pid_file.path}"
 
-    # Test Rack application that exposes OT.instance and process info
-    # Using Dir.pwd assumes test is run from project root
-    lib_path = File.join(Dir.pwd, 'lib')
-    apps_root = File.join(Dir.pwd, 'apps')
-    test_app_content_content = <<~RUBY
-      # Minimal test app for OT.instance verification
-      $LOAD_PATH.unshift('#{lib_path}')
+        # Each worker initializes separately to ensure unique OT.instance
+        # No preload_app! - this ensures per-worker boot process
 
-      # Add apps directories to load path for v2 models
-      apps_root = '#{apps_root}'
-      $LOAD_PATH.unshift(File.join(apps_root, 'api'))
-      $LOAD_PATH.unshift(File.join(apps_root, 'web'))
+        # Redirect stdout/stderr to /dev/null for cleaner test output
+        # In CI, these might be captured or handled differently.
+        stdout_redirect '/dev/null', '/dev/null', true
+      CONFIG
 
-      require 'onetime'
+      # Test Rack application that exposes OT.instance and process info
+      # Using Dir.pwd assumes test is run from project root
+      lib_path = File.join(Dir.pwd, 'lib')
+      apps_root = File.join(Dir.pwd, 'apps')
+      test_app_content_content = <<~RUBY
+        # Minimal test app for OT.instance verification
+        $LOAD_PATH.unshift('#{lib_path}')
 
-      # Boot once per worker - generates unique OT.instance per process
-      # Use :cli mode to avoid full app dependencies and continue on config errors
-      Onetime.boot! :cli, false # false means don't connect to DB
+        # Add apps directories to load path for v2 models
+        apps_root = '#{apps_root}'
+        $LOAD_PATH.unshift(File.join(apps_root, 'api'))
+        $LOAD_PATH.unshift(File.join(apps_root, 'web'))
 
-      app = proc do |env|
-        case env['PATH_INFO']
-        when '/instance'
-          [200, {'Content-Type' => 'text/plain'}, [Onetime.instance.to_s]]
-        when '/pid'
-          [200, {'Content-Type' => 'text/plain'}, [Process.pid.to_s]]
-        when '/info'
-          # Ensure OT::VERSION is available, use a fallback if not (e.g. during early boot)
-          version_string = defined?(OT::VERSION) ? OT::VERSION.to_s : 'unknown'
-          info = "PID:\#{Process.pid}|Instance:\#{Onetime.instance}|Version:\#{version_string}"
-          [200, {'Content-Type' => 'text/plain'}, [info]]
-        when '/health'
-          [200, {'Content-Type' => 'text/plain'}, ['OK']]
-        else
-          [404, {'Content-Type' => 'text/plain'}, ['Not Found']]
+        require 'onetime'
+
+        # Boot once per worker - generates unique OT.instance per process
+        # Use :cli mode to avoid full app dependencies and continue on config errors
+        Onetime.boot! :cli, false # false means don't connect to DB
+
+        app = proc do |env|
+          case env['PATH_INFO']
+          when '/instance'
+            [200, {'Content-Type' => 'text/plain'}, [Onetime.instance.to_s]]
+          when '/pid'
+            [200, {'Content-Type' => 'text/plain'}, [Process.pid.to_s]]
+          when '/info'
+            # Ensure OT::VERSION is available, use a fallback if not (e.g. during early boot)
+            version_string = defined?(OT::VERSION) ? OT::VERSION.to_s : 'unknown'
+            info = "PID:\#{Process.pid}|Instance:\#{Onetime.instance}|Version:\#{version_string}"
+            [200, {'Content-Type' => 'text/plain'}, [info]]
+          when '/health'
+            [200, {'Content-Type' => 'text/plain'}, ['OK']]
+          else
+            [404, {'Content-Type' => 'text/plain'}, ['Not Found']]
+          end
         end
+
+        run app
+      RUBY
+
+      File.write(@puma_config_file.path, puma_config_content)
+      File.write(@test_app_file.path, test_app_content_content)
+
+      @puma_stdout = Tempfile.new('puma_stdout')
+      @puma_stderr = Tempfile.new('puma_stderr')
+
+      # Spawn Puma server with SECRET env var for minimal boot
+      @puma_pid = spawn(
+        { 'SECRET' => 'test_secret_for_integration_test' }, # Required for boot
+        'puma',
+        '-C', @puma_config_file.path,
+        @test_app_file.path,
+        out: @puma_stdout.path,
+        err: @puma_stderr.path
+      )
+
+      puts "🌟 Starting Puma server on #{@base_url} with #{@workers} workers..."
+      wait_for_server_start
+      puts "✅ Puma server successfully started on port #{@port}\n"
+
+    rescue => e
+      puts "❌ Puma startup failed on port #{@port}: #{e.message}"
+      # Clean up on failure
+      cleanup_puma_process
+      cleanup_temp_files
+
+      if startup_attempts < max_startup_attempts && e.message.include?('Address already in use')
+        backoff_time = startup_attempts * 0.5
+        puts "⏱  Retrying in #{backoff_time}s... (attempt #{startup_attempts + 1}/#{max_startup_attempts})"
+        sleep(backoff_time) # Progressive backoff
+        retry
+      else
+        puts "💥 Failed to start Puma after #{startup_attempts} attempts"
+        raise e
       end
-
-      run app
-    RUBY
-
-    File.write(@puma_config_file.path, puma_config_content)
-    File.write(@test_app_file.path, test_app_content_content)
-
-    @puma_stdout = Tempfile.new('puma_stdout')
-    @puma_stderr = Tempfile.new('puma_stderr')
-
-    # Spawn Puma server with SECRET env var for minimal boot
-    @puma_pid = spawn(
-      { 'SECRET' => 'test_secret_for_integration_test' }, # Required for boot
-      'puma',
-      '-C', @puma_config_file.path,
-      @test_app_file.path,
-      out: @puma_stdout.path,
-      err: @puma_stderr.path
-    )
-
-    wait_for_server_start
+    end
   end
 
   after(:all) do
+    cleanup_puma_process
+    cleanup_temp_files
+  end
+
+  describe 'OT.instance behavior in multi-process environment' do
+
+  private
+
+  def cleanup_puma_process
     if @puma_pid
       begin
         Process.kill('TERM', @puma_pid)
@@ -121,15 +158,15 @@ RSpec.describe 'Puma Multi-Process Integration', type: :integration do
         Process.kill('KILL', @puma_pid) rescue nil # Force kill if TERM fails
       end
     end
+  end
 
+  def cleanup_temp_files
     # Clean up temp files
     [@puma_pid_file, @puma_config_file, @test_app_file, @puma_stdout, @puma_stderr].compact.each do |file|
       file.close
       file.unlink # Explicitly delete the temp file
     end
   end
-
-  describe 'OT.instance behavior in multi-process environment' do
     it 'generates valid instance identifiers' do
       response = make_request('/instance')
       expect(response.code).to eq('200')
@@ -227,10 +264,48 @@ RSpec.describe 'Puma Multi-Process Integration', type: :integration do
 
   private
 
+  def cleanup_puma_process
+    if @puma_pid
+      begin
+        Process.kill('TERM', @puma_pid)
+        Timeout.timeout(10) { Process.wait(@puma_pid) }
+      rescue Errno::ESRCH, Timeout::Error
+        Process.kill('KILL', @puma_pid) rescue nil # Force kill if TERM fails
+      end
+    end
+  end
+
+  def cleanup_temp_files
+    # Clean up temp files
+    [@puma_pid_file, @puma_config_file, @test_app_file, @puma_stdout, @puma_stderr].compact.each do |file|
+      file.close
+      file.unlink # Explicitly delete the temp file
+    end
+  end
+
   def find_available_port
-    server = TCPServer.new('127.0.0.1', 0) # 0 means OS picks an available port
+    # Use a wider port range and retry logic to avoid race conditions
+    # when running tests in parallel
+    10.times do |attempt|
+      begin
+        # Use random port in high range to reduce collision chance
+        port = rand(20000..60000)
+        server = TCPServer.new('127.0.0.1', port)
+        server.close
+        puts "  ✓ Found available port #{port} (attempt #{attempt + 1})"
+        return port
+      rescue Errno::EADDRINUSE
+        # Port already in use, try another
+        puts "  ⚠ Port #{port} in use, retrying... (attempt #{attempt + 1})"
+        next
+      end
+    end
+
+    # Fallback to OS allocation if all random attempts fail
+    server = TCPServer.new('127.0.0.1', 0)
     port = server.addr[1]
     server.close
+    puts "  ✓ Fallback to OS-allocated port #{port}"
     port
   end
 
@@ -253,7 +328,7 @@ RSpec.describe 'Puma Multi-Process Integration', type: :integration do
   rescue Timeout::Error
     stdout_content = File.read(@puma_stdout.path) rescue "Could not read stdout: #{@puma_stdout.path}"
     stderr_content = File.read(@puma_stderr.path) rescue "Could not read stderr: #{@puma_stderr.path}"
-    raise "Puma server failed to start within 20 seconds.\nSTDOUT:\n#{stdout_content}\nSTDERR:\n#{stderr_content}"
+    raise "Puma server failed to start on port #{@port} within 30 seconds.\nSTDOUT:\n#{stdout_content}\nSTDERR:\n#{stderr_content}"
   end
 
   def make_request(path)
