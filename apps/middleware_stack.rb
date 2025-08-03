@@ -44,8 +44,12 @@ module MiddlewareStack
         builder.use Sentry::Rack::CaptureExceptions
       end
 
-      # Environment-specific
-      configure_environment(builder)
+      # Security Middleware Configuration
+      # Configures security-related middleware components based on application settings
+      require 'onetime/middleware/security'
+
+      Onetime.ld '[config.ru] Setting up Security middleware'
+      builder.use Onetime::Middleware::Security
 
       # Performance Optimization
       # Support running with code frozen in production-like environments
@@ -56,36 +60,5 @@ module MiddlewareStack
       end
     end
 
-    private
-
-    # development/production middleware setup
-    def configure_environment(builder)
-      # Development Environment Configuration
-      # Enable development-specific middleware when in development mode
-      # This handles code validation and frontend development server integration
-      Onetime.development? do
-        require 'onetime/middleware/vite_proxy'
-        builder.use Onetime::Middleware::ViteProxy
-      end
-
-      # Production Environment Configuration
-      # Serve static frontend assets in production mode
-      # While reverse proxies often handle static files in production,
-      # this provides a fallback capability for simpler deployments.
-      #
-      # Note: This explicit configuration replaces the implicit functionality
-      # that existed prior to v0.21.0 release.
-      Onetime.production? do
-        require 'onetime/middleware/static_files'
-        builder.use Onetime::Middleware::StaticFiles
-
-        # Security Middleware Configuration
-        # Configures security-related middleware components based on application settings
-        require 'onetime/middleware/security'
-
-        Onetime.ld '[config.ru] Setting up Security middleware'
-        builder.use Onetime::Middleware::Security
-      end
-    end
   end
 end
