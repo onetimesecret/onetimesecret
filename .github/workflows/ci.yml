@@ -9,8 +9,7 @@ name: CI
 # "rel/", pull requests on main/develop/feature/* branches, and manual dispatch.
 #
 # The workflow has jobs for:
-# - Ruby RSpec testing across multiple Ruby versions
-# - Ruby tryouts testing across multiple Ruby versions
+# - Ruby testing (RSpec and tryouts) across multiple Ruby versions
 # - TypeScript testing (Vitest) and validation (linting, type-checking)
 #
 # This workflow ensures comprehensive testing across the full stack.
@@ -37,7 +36,7 @@ permissions:
   contents: read
 
 jobs:
-  test-ruby-rspec:
+  test-ruby:
     timeout-minutes: 15 # prevent hung jobs
 
     # Can also be set to `self-hosted` if worker is running. Possible
@@ -68,6 +67,10 @@ jobs:
           --health-timeout 3s
           --health-retries 5
         ports:
+          # https://docs.github.com/en/actions/using-containerized-services/creating-redis-service-containers#running-jobs-in-containers
+          # Maps port 6379 on service container to 2121 on the host to
+          # match the port we use in dev which helps us avoid clobbering
+          # our dev redis instances.
           - 2121:6379
 
     steps:
@@ -79,6 +82,7 @@ jobs:
           ruby-version: ${{ matrix.ruby }}
           bundler-cache: true
 
+      # Add Node.js setup to Ruby job
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
@@ -119,66 +123,15 @@ jobs:
       - name: Generate job summary
         if: always()
         run: |
-          echo "## RSpec Results" >> $GITHUB_STEP_SUMMARY
+          echo "## Test Results" >> $GITHUB_STEP_SUMMARY
           echo "$(bundle exec rspec \
             --dry-run \
             --format documentation \
             $(find ./spec -name '*_spec.rb' ! -name 'spec_helper.rb'))" >> $GITHUB_STEP_SUMMARY
           echo "Total tests: $(jq '.summary.example_count' tmp/rspec_results.json)" >> $GITHUB_STEP_SUMMARY
 
-  test-ruby-tryouts:
-    timeout-minutes: 15 # prevent hung jobs
-    runs-on: ubuntu-24.04
-
-    strategy:
-      fail-fast: true
-      matrix:
-        ruby: ['3.4', '3.5']
-        continue-on-error: [false]
-
-    services:
-      redis:
-        image: ghcr.io/valkey-io/valkey:8.1.3-bookworm@sha256:93381a084ce82085bf2fb78f97661301577eee0df04fef64a6d14a743b858328
-        options: >-
-          --health-cmd "redis-cli ping"
-          --health-interval 10s
-          --health-timeout 3s
-          --health-retries 5
-        ports:
-          - 2121:6379
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
-
-      - uses: ruby/setup-ruby@v1
-        with:
-          ruby-version: ${{ matrix.ruby }}
-          bundler-cache: true
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '22'
-
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v4
-        with:
-          version: latest
-
-      - name: Install frontend dependencies
-        run: pnpm install --frozen-lockfile
-
-      - name: Build assets
-        run: pnpm run build
-
-      - name: Install dependencies (bundler ${{ matrix.bundler }})
-        continue-on-error: ${{ matrix.continue-on-error }}
-        run: |
-          bundle config path vendor/bundle
-          bundle install --jobs 4 --retry 3
-
       - name: Run tryouts
+        continue-on-error: ${{ matrix.continue-on-error }}
         env:
           REDIS_URL: 'redis://127.0.0.1:2121/0'
         run: |
