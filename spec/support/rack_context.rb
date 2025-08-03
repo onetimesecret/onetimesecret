@@ -24,14 +24,12 @@ RSpec.shared_context "rack_test_context" do
     instance_double(Rack::Response,
       status: 200,
       headers: {},
-      header: {},
       body: [],
       set_cookie: nil,
       finish: [200, {}, []],
       write: nil).tap do |resp|
       allow(resp).to receive(:[]=) { |k,v| resp.headers[k] = v }
       allow(resp).to receive(:[]) { |k| resp.headers[k] }
-      allow(resp).to receive(:header).and_return(resp.headers)
       allow(resp).to receive(:body=)
     end
   end

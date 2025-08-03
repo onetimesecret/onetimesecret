@@ -50,7 +50,7 @@ module V2
       not_authorized_error
     rescue Onetime::BadShrimp
       # If it's a json response, no need to set an error message on the session
-      if res.header['content-type'] == 'application/json'
+      if res.headers['content-type'] == 'application/json'
         error_response 'Please refresh the page and try again', reason: 'Bad shrimp 🍤'
       else
         sess.set_error_message 'Please go back, refresh the page, and try again.'
@@ -253,20 +253,15 @@ module V2
       # Update the session fields in redis (including updated timestamp)
       sess.save
 
-      # Only set the cookie after session is for sure saved to redis
-      is_secure = Onetime.conf&.dig('site', 'ssl') || true
-
       # Update the session cookie
-      res.send_cookie :sess, sess.sessid, sess.ttl, is_secure
+      res.send_cookie :sess, sess.sessid, sess.ttl
 
       # Re-hydrate the customer object
       @cust = sess.load_customer || V2::Customer.anonymous
 
       # We also force the session to be unauthenticated based on
       # the customer object.
-      if cust.anonymous?
-        sess.authenticated = false
-      elsif cust.verified.to_s != 'true'
+      if cust.anonymous? || cust.verified.to_s != 'true'
         sess.authenticated = false
       end
 
@@ -305,10 +300,10 @@ module V2
 
     def add_response_headers(content_type, nonce)
       # Set the Content-Type header if it's not already set by the application
-      res.header['content-type'] ||= content_type
+      res.headers['content-type'] ||= content_type
 
       # Skip the Content-Security-Policy header if it's already set
-      return if res.header['Content-Security-Policy']
+      return if res.headers['content-security-policy']
 
       # Skip the CSP header unless it's enabled in the experimental settings
       return if OT.conf.dig('experimental', 'csp', 'enabled') != true
@@ -352,15 +347,13 @@ module V2
 
       OT.ld "[CSP] #{csp.join(' ')}" if OT.debug?
 
-      res.header['Content-Security-Policy'] = csp.join(' ')
-    end
-
     def log_customer_activity
       return if cust.anonymous?
 
       reqstr  = stringify_request_details(req)
       custref = cust.obscure_email
       OT.ld "[carefully] #{sess.short_identifier} #{custref} at #{reqstr}"
+      res.headers['content-security-policy'] = csp.join(' ')
     end
 
     # Collectes request details in a single string for logging purposes.
@@ -509,9 +502,9 @@ module V2
     end
 
     def no_cache!
-      res.header['Cache-Control'] = 'no-store, no-cache, must-revalidate, max-age=0'
-      res.header['Expires']       = 'Mon, 7 Nov 2011 00:00:00 UTC'
-      res.header['Pragma']        = 'no-cache'
+      res.headers['cache-control'] = 'no-store, no-cache, must-revalidate, max-age=0'
+      res.headers['expires']       = 'Mon, 7 Nov 2011 00:00:00 UTC'
+      res.headers['pragma']        = 'no-cache'
     end
 
     def app_path *paths

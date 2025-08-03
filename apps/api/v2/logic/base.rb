@@ -2,7 +2,6 @@
 
 require 'timeout'
 
-require 'onetime/refinements/rack_refinements'
 require 'onetime/refinements/stripe_refinements'
 
 require_relative 'helpers'

@@ -57,7 +57,7 @@ module V1
 
     rescue Onetime::BadShrimp => ex
       # If it's a json response, no need to set an error message on the session
-      if res.header['content-type'] == 'application/json'
+      if res.headers['content-type'] == 'application/json'
         error_response 'Please refresh the page and try again', reason: "Bad shrimp 🍤"
       else
         sess.set_error_message "Please go back, refresh the page, and try again."
@@ -265,11 +265,8 @@ module V1
       # Update the session fields in redis (including updated timestamp)
       sess.save
 
-      # Only set the cookie after session is for sure saved to redis
-      is_secure = Onetime.conf['site']['ssl']
-
       # Update the session cookie
-      res.send_cookie :sess, sess.sessid, sess.ttl, is_secure
+      res.send_cookie :sess, sess.sessid, sess.ttl
 
       # Re-hydrate the customer object
       @cust = sess.load_customer || V1::Customer.anonymous
@@ -317,10 +314,10 @@ module V1
 
     def add_response_headers(content_type, nonce)
       # Set the Content-Type header if it's not already set by the application
-      res.header['content-type'] ||= content_type
+      res.headers['content-type'] ||= content_type
 
       # Skip the Content-Security-Policy header if it's already set
-      return if res.header['Content-Security-Policy']
+      return if res.headers['content-security-policy']
 
       # Skip the CSP header unless it's enabled in the experimental settings
       return if OT.conf.dig('experimental', 'csp', 'enabled') != true
@@ -364,7 +361,7 @@ module V1
 
       OT.ld "[CSP] #{csp.join(' ')}" if OT.debug?
 
-      res.header['Content-Security-Policy'] = csp.join(' ')
+      res.headers['content-security-policy'] = csp.join(' ')
     end
 
     def log_customer_activity
@@ -523,9 +520,9 @@ module V1
     end
 
     def no_cache!
-      res.header['Cache-Control'] = "no-store, no-cache, must-revalidate, max-age=0"
-      res.header['Expires'] = "Mon, 7 Nov 2011 00:00:00 UTC"
-      res.header['Pragma'] = "no-cache"
+      res.headers['cache-control'] = "no-store, no-cache, must-revalidate, max-age=0"
+      res.headers['expires'] = "Mon, 7 Nov 2011 00:00:00 UTC"
+      res.headers['pragma'] = "no-cache"
     end
 
     def app_path *paths

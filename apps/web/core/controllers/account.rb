@@ -108,8 +108,7 @@ module Core
 
           @cust = logic.cust
 
-          is_secure = Onetime.conf['site']['ssl']
-          res.send_cookie :sess, sess.sessid, sess.ttl, is_secure
+          res.send_cookie :sess, sess.sessid, sess.ttl
 
           res.redirect '/account'
         end
@@ -220,8 +219,8 @@ module Core
               logic.process
               sess      = logic.sess
               cust      = logic.cust
-              is_secure = Onetime.conf['site']['ssl']
-              res.send_cookie :sess, sess.sessid, sess.ttl, is_secure
+
+              res.send_cookie :sess, sess.sessid, sess.ttl
 
               if cust.role?(:colonel)
                 res.redirect '/colonel/'

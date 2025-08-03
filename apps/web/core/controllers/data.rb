@@ -11,7 +11,7 @@ module Core
         publically do
           OT.ld "[export_window] authenticated? #{sess.authenticated?}"
           view                       = Core::Views::ExportWindow.new req, sess, cust, locale
-          res.header['Content-Type'] = 'application/json; charset=utf-8'
+          res.headers['content-type'] = 'application/json; charset=utf-8'
           res.body                   = view.serialized_data.to_json
         end
       end

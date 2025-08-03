@@ -49,7 +49,7 @@ module Core
       def robots_txt
         publically do
           view                       = Core::Views::RobotsTxt.new req, sess, cust, locale
-          res.header['Content-Type'] = 'text/plain'
+          res.headers['content-type'] = 'text/plain'
           res.body                   = view.render
         end
       end

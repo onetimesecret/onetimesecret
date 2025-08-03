@@ -50,7 +50,7 @@ module Core
       not_authorized_error
     rescue OT::BadShrimp
       # If it's a json response, no need to set an error message on the session
-      if res.header['content-type'] == 'application/json'
+      if res.headers['content-type'] == 'application/json'
         error_response 'Please refresh the page and try again', reason: 'Bad shrimp 🍤'
       else
         sess.set_error_message 'Please go back, refresh the page, and try again.'
@@ -253,20 +253,15 @@ module Core
       # Update the session fields in redis (including updated timestamp)
       sess.save
 
-      # Only set the cookie after session is for sure saved to redis
-      is_secure = OT.conf&.dig('site', 'ssl') || true
-
       # Update the session cookie
-      res.send_cookie :sess, sess.sessid, sess.ttl, is_secure
+      res.send_cookie :sess, sess.sessid, sess.ttl
 
       # Re-hydrate the customer object
       @cust = sess.load_customer || V2::Customer.anonymous
 
       # We also force the session to be unauthenticated based on
       # the customer object.
-      if cust.anonymous?
-        sess.authenticated = false
-      elsif cust.verified.to_s != 'true'
+      if cust.anonymous? || cust.verified.to_s != 'true'
         sess.authenticated = false
       end
 
@@ -305,10 +300,10 @@ module Core
 
     def add_response_headers(content_type, nonce)
       # Set the Content-Type header if it's not already set by the application
-      res.header['content-type'] ||= content_type
+      res.headers['content-type'] ||= content_type
 
       # Skip the Content-Security-Policy header if it's already set
-      return if res.header['Content-Security-Policy']
+      return if res.headers['content-security-policy']
 
       # Skip the CSP header unless it's enabled in the experimental settings
       return if OT.conf.dig('experimental', 'csp', 'enabled') != true
@@ -352,8 +347,6 @@ module Core
 
       OT.ld "[CSP] #{csp.join(' ')}" if OT.debug?
 
-      res.header['Content-Security-Policy'] = csp.join(' ')
-    end
 
     def log_customer_activity
       return if cust.anonymous?
@@ -361,6 +354,7 @@ module Core
       reqstr  = stringify_request_details(req)
       custref = cust.obscure_email
       OT.info "[carefully] #{sess.short_identifier} #{custref} at #{reqstr}"
+      res.headers['content-security-policy'] = csp.join(' ')
     end
 
     # Collectes request details in a single string for logging purposes.
@@ -495,25 +489,23 @@ module Core
       # sources. See Caddy config docs re: trusted_proxies.
       # X-Scheme is set by e.g. nginx, caddy etc
       # X-FORWARDED-PROTO is set by load balancer e.g. ELB
-      (req.env['HTTP_X_FORWARDED_PROTO'] == 'https' || req.env['HTTP_X_SCHEME'] == 'https')
+      req.env['HTTP_X_FORWARDED_PROTO'] == 'https' || req.env['HTTP_X_SCHEME'] == 'https'
     end
 
     def local?
-      (LOCAL_HOSTS.member?(req.env['SERVER_NAME']) && (req.client_ipaddress == '127.0.0.1'))
+      LOCAL_HOSTS.member?(req.env['SERVER_NAME']) && (req.client_ipaddress == '127.0.0.1')
     end
 
     def deny_agents! *_agents
       BADAGENTS.flatten.each do |agent|
-        if req.user_agent =~ /#{agent}/i
-          raise OT::Redirect.new('/')
-        end
+        raise OT::Redirect.new('/') if /#{agent}/i.match?(req.user_agent)
       end
     end
 
     def no_cache!
-      res.header['Cache-Control'] = 'no-store, no-cache, must-revalidate, max-age=0'
-      res.header['Expires']       = 'Mon, 7 Nov 2011 00:00:00 UTC'
-      res.header['Pragma']        = 'no-cache'
+      res.headers['cache-control'] = 'no-store, no-cache, must-revalidate, max-age=0'
+      res.headers['expires']       = 'Mon, 7 Nov 2011 00:00:00 UTC'
+      res.headers['pragma']        = 'no-cache'
     end
 
     def app_path *paths

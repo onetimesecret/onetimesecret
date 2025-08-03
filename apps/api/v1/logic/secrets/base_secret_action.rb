@@ -1,7 +1,5 @@
 # apps/api/v1/logic/secrets/base_secret_action.rb
 
-require 'onetime/refinements/rack_refinements'
-
 module V1::Logic
   module Secrets
 
@@ -9,7 +7,6 @@ module V1::Logic
       attr_reader :passphrase, :secret_value, :kind, :ttl, :recipient, :recipient_safe, :greenlighted
       attr_reader :metadata, :secret, :share_domain, :custom_domain, :payload
       attr_accessor :token
-      using Onetime::RackRefinements
 
       # Process methods populate instance variables with the values. The
       # raise_concerns and process methods deal with the values in the instance
