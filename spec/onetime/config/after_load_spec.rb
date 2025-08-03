@@ -1,11 +1,12 @@
 # spec/onetime/config/after_load_spec.rb
 
-require_relative '../../spec_helper'
+require 'sentry-ruby'
 require 'tempfile'
 
-# The Sentry lib is only required when diagnostics are enabled. We don't include
-# it here b/c we stub the class so we can write expectant testcases. We'll want
-# to also test that the library is required correctly in another test file.
+require_relative '../../spec_helper'
+
+# We require sentry-ruby here to test configuration processing, but stub its
+# methods to prevent actual initialization during tests.
 
 RSpec.describe "Onetime boot configuration process" do
   let(:test_config_path) { File.join(Onetime::HOME, 'spec', 'config.test.yaml') }
@@ -33,7 +34,6 @@ RSpec.describe "Onetime boot configuration process" do
     allow(Onetime).to receive(:li)
     allow(Onetime).to receive(:le)
     allow(Familia).to receive(:redis).and_return(double('Redis').as_null_object)
-    allow(Gibbler).to receive(:secret=)
 
     # Mock redis operations
     redis_double = double('Redis')
@@ -51,7 +51,7 @@ RSpec.describe "Onetime boot configuration process" do
 
     # Mock system settings setup methods
     allow(V2::SystemSettings).to receive(:current).and_raise(OT::RecordNotFound.new("No config found"))
-    allow(V2::SystemSettings).to receive(:extract_colonel_config).and_return({})
+    # allow(V2::SystemSettings).to receive(:extract_colonel_config).and_return({})
     allow(V2::SystemSettings).to receive(:create).and_return(double('SystemSettings', rediskey: 'test:config'))
 
     # TODO: Make truemail gets reset too (Truemail.configuration)
@@ -326,9 +326,12 @@ RSpec.describe "Onetime boot configuration process" do
     end
 
     context 'with diagnostics configuration' do
-      # Define a stub for Sentry before all tests in this context
+      # Since we already require 'sentry-ruby' at the top of the file,
+      # we just need to stub the methods we don't want to actually execute
       before(:each) do
-        stub_const("Sentry", Class.new)
+        # Stub the Sentry methods to prevent actual initialization during tests
+        allow(Sentry).to receive(:init)
+        allow(Sentry).to receive(:initialized?).and_return(true)
       end
 
       it 'enables diagnostics from test config file' do
@@ -336,8 +339,6 @@ RSpec.describe "Onetime boot configuration process" do
 
         allow(Kernel).to receive(:require).with('sentry-ruby')
         allow(Kernel).to receive(:require).with('stackprof')
-        allow(Sentry).to receive(:init)
-        allow(Sentry).to receive(:initialized?).and_return(true)
 
         # Save original value to restore after test
         original_value = OT.d9s_enabled
@@ -366,8 +367,6 @@ RSpec.describe "Onetime boot configuration process" do
 
         allow(Kernel).to receive(:require).with('sentry-ruby')
         allow(Kernel).to receive(:require).with('stackprof')
-        allow(Sentry).to receive(:init)
-        allow(Sentry).to receive(:initialized?).and_return(true)
 
         # Save original value to restore after test
         original_value = OT.d9s_enabled
@@ -402,8 +401,6 @@ RSpec.describe "Onetime boot configuration process" do
 
         allow(Kernel).to receive(:require).with('sentry-ruby')
         allow(Kernel).to receive(:require).with('stackprof')
-        allow(Sentry).to receive(:init)
-        allow(Sentry).to receive(:initialized?).and_return(true)
 
         processed_config = Onetime::Config.after_load(config)
 
@@ -475,21 +472,69 @@ RSpec.describe "Onetime boot configuration process" do
           }.to raise_error(OT::ConfigError, "Global secret cannot be nil - set SECRET env var or site.secret in config")
         end
 
-        it 'does not raise for nil global secret if explicitly allowed' do
-          config['site']['secret'] = nil
-          config['experimental']['allow_nil_global_secret'] = true # Explicitly allow nil secret
+        # RSpec Warning: Avoiding False Positives with `not_to raise_error`
+        #
+        # PROBLEM:
+        # Using `expect { }.not_to raise_error(SpecificErrorClass, message)` is risky because
+        # it can give false positives. If ANY other error occurs (NoMethodError, NameError,
+        # ArgumentError, etc.), the test will still pass, even though your code might be broken.
+        # This means the code you're trying to test might not even execute.
+        #
+        # AVOID THIS PATTERN:
+        # expect { some_method }.not_to raise_error(OT::ConfigError, "specific message")
+        #
+        # BETTER PATTERNS:
+        #
+        # 1. Test that NO errors occur (most common):
+        #    expect { some_method }.not_to raise_error
+        #
+        # 2. Test for a different specific error if that's what you expect:
+        #    expect { some_method }.to raise_error(DifferentErrorClass)
+        #
+        # 3. Hybrid approach - test both positive and negative cases:
+        #    # Test the success case
+        #    expect { valid_config_method }.not_to raise_error
+        #
+        #    # Test the failure case to ensure your test is meaningful
+        #    expect { invalid_config_method }.to raise_error(OT::ConfigError, /expected message/)
+        #
+        # 4. If you must test for absence of a specific error, be explicit about it:
+        #    begin
+        #      some_method
+        #      # If we get here, no error was raised (good)
+        #    rescue OT::ConfigError => e
+        #      fail "Expected no ConfigError, but got: #{e.message}"
+        #    rescue => e
+        #      # Other errors are also failures, but we can see what they are
+        #      fail "Unexpected error: #{e.class}: #{e.message}"
+        #    end
+        #
+        # WHY THIS MATTERS:
+        # The goal is to write tests that fail when your code is broken, not tests that
+        # accidentally pass when your code doesn't even run due to unrelated errors.
 
-          # Suppress console output from OT.li during this test
+        it 'does not raise ConfigError for nil global secret when explicitly allowed' do
+          config['site']['secret'] = nil
+          config['experimental']['allow_nil_global_secret'] = true
+
           allow(OT).to receive(:li)
 
-          # Expect that this specific error is not raised.
-          # If other parts of the config are invalid, other errors might still occur.
-          # This test focuses on the global secret check.
-          expect { Onetime::Config.after_load(config) }.not_to raise_error(OT::ConfigError, "Global secret cannot be nil - set SECRET env var or site.secret in config")
+          # GOOD: Test that no errors at all are raised
+          expect { Onetime::Config.after_load(config) }.not_to raise_error
 
-          # To ensure no errors are raised at all (assuming the rest of the config is valid):
-          # expect { Onetime::Config.after_load(config) }.not_to raise_error
-          # This depends on the `config` being otherwise fully valid.
+          # GOOD: Test the negative case to ensure our test is meaningful
+          config['experimental']['allow_nil_global_secret'] = false
+          expect { Onetime::Config.after_load(config) }.to raise_error(OT::ConfigError, /Global secret cannot be nil/)
+        end
+
+        it 'does not raise for nil global secret when explicitly allowed' do
+          config['site']['secret'] = nil
+          config['experimental']['allow_nil_global_secret'] = true
+
+          allow(OT).to receive(:li)
+
+          # GOOD: Simple, safe pattern
+          expect { Onetime::Config.after_load(config) }.not_to raise_error
         end
       end
 
@@ -554,14 +599,6 @@ RSpec.describe "Onetime boot configuration process" do
       expect(config['internationalization']['locales']).to include('en', 'fr_CA', 'fr_FR')
       expect(config['mail']['truemail']['default_validation_type']).to eq(:mx)
       expect(config['site']['secret_options']['ttl_options']).to be_a(String)
-    end
-
-    it 'processes ERB templates in the configuration', skip: "Test is unstable and dumps ENV" do
-      allow(ENV).to receive(:[]).with('DEFAULT_TTL').and_return('7200')
-
-      config = Onetime::Config.load(test_config_path)
-
-      expect(config['site']['secret_options']['default_ttl']).to eq('7200')
     end
   end
 end

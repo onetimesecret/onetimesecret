@@ -14,10 +14,22 @@
 
 require_relative '../test_logic'
 
-# Load the app with test configuration
 OT.boot! :test, false
 
-# Setup common test variables
+@reminder = lambda do
+  puts "=" * 80
+  puts "🚨 IMPORTANT NOTICE: CUSTOMER<>CUSTOMDOMAIN RELATIONS NEED FIXING! 🚨"
+  puts "=" * 80
+  puts "This test suite is running with temporary workarounds for the"
+  puts "Customer<>CustomDomain relationship domainid change. "
+  puts
+  puts __FILE__
+  puts __LINE__
+  puts
+  puts "=" * 80
+  puts
+end
+
 @now = DateTime.now
 @email = "test+#{Time.now.to_i}@onetimesecret.com"
 @sess = V2::Session.new '255.255.255.255', 'anon'
@@ -25,14 +37,11 @@ OT.boot! :test, false
 @cust.save
 @domain_input = 'test.example.com'
 @custom_domain = CustomDomain.create @domain_input, @cust.custid
-@cust.add_custom_domain @custom_domain
 
-# ListDomains Tests
-
-## Add a test domain to the customer
 @cust.add_custom_domain(@custom_domain)
 
-# Test domain listing
+## Test domain listing
+5.times { @reminder.call }
 logic = V2::Logic::Domains::ListDomains.new @sess, @cust
 logic.raise_concerns
 logic.define_singleton_method(:create_vhost) {} # prevent calling 3rd party API for this test
@@ -44,8 +53,6 @@ logic.process
 ]
 #=> [Array, false, true]
 
-# GetDomain Tests
-
 ## Test domain retrieval
 logic = V2::Logic::Domains::GetDomain.new @sess, @cust, { domain: @domain_input }
 [
@@ -54,9 +61,8 @@ logic = V2::Logic::Domains::GetDomain.new @sess, @cust, { domain: @domain_input 
 ]
 #=> [true, true]
 
-# RemoveDomain Tests
-
 ## Test domain removal
+5.times { @reminder.call }
 @remove_params = { domain: @domain_input }
 logic = V2::Logic::Domains::RemoveDomain.new @sess, @cust, @remove_params
 logic.raise_concerns
@@ -69,6 +75,5 @@ logic.process
 ]
 #=> [true, @domain_input, @domain_input]
 
-# Cleanup test data
 @cust.remove_custom_domain(@custom_domain)
 @cust.delete!

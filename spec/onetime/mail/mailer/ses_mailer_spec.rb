@@ -46,8 +46,8 @@ RSpec.describe Onetime::Mail::Mailer::SESMailer do
       'emailer' => {
         'region' => 'ca-central-1',
         'user' => 'AKIAEXAMPLE',
-        'pass' => 'wJalrXUtnFEMI/K7MDENG+bPxRfiCYEXAMPLEKEY'
-      }
+        'pass' => 'wJalrXUtnFEMI/K7MDENG+bPxRfiCYEXAMPLEKEY',
+      },
     })
 
     # Allow all logging methods
@@ -72,28 +72,28 @@ RSpec.describe Onetime::Mail::Mailer::SESMailer do
     it 'sends an email with the correct parameters' do
       expected_params = {
         destination: {
-          to_addresses: [to_email]
+          to_addresses: [to_email],
         },
         content: {
           simple: {
             subject: {
               data: subject,
-              charset: 'UTF-8'
+              charset: 'UTF-8',
             },
             body: {
               html: {
                 data: html_content,
-                charset: 'UTF-8'
+                charset: 'UTF-8',
               },
               text: {
                 data: text_content,
-                charset: 'UTF-8'
-              }
-            }
-          }
+                charset: 'UTF-8',
+              },
+            },
+          },
         },
         from_email_address: from_email,
-        reply_to_addresses: [from_email]  # Needs to match what's set in the mailer
+        reply_to_addresses: [from_email],  # Needs to match what's set in the mailer
       }
 
       expect(ses_client_double).to receive(:send_email).with(expected_params)
@@ -175,8 +175,8 @@ RSpec.describe Onetime::Mail::Mailer::SESMailer do
       allow(OT).to receive(:conf).and_return({
         'emailer' => {
           'user' => 'AKIAEXAMPLE',
-          'pass' => 'wJalrXUtnFEMI/K7MDENG+bPxRfiCYEXAMPLEKEY'
-        }
+          'pass' => 'wJalrXUtnFEMI/K7MDENG+bPxRfiCYEXAMPLEKEY',
+        },
       })
 
       expect { described_class.setup }.to raise_error(RuntimeError, "Region not configured")

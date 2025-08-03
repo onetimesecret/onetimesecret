@@ -2,61 +2,10 @@
 
 require 'openssl'
 
+require_relative 'definitions/secret_definition'
+
 module V2
   class Secret < Familia::Horreum
-    include Gibbler::Complex
-
-    feature :safe_dump
-    feature :expiration
-
-    ttl 7.days # default only, can be overridden at create time
-    prefix :secret
-
-    identifier :generate_id
-
-    field :custid
-    field :state
-    field :value
-    field :metadata_key
-    field :value_checksum
-    field :value_encryption
-    field :lifespan
-    field :share_domain
-    field :verification
-    field :updated
-    field :created
-    field :truncated # boolean
-    field :maxviews # always 1 (here for backwards compat)
-
-    # The key field is added automatically by Familia::Horreum and works
-    # just fine except for rspec mocks that use `instance_double`. Mocking
-    # a secret that includes a value for `key` will trigger an error (since
-    # instance_double considers the real class). See spec_helpers.rb
-    field :key
-
-    counter :view_count, ttl: 14.days # out lives the secret itself
-
-    # NOTE: this field is a nullop. It's only populated if a value was entered
-    # into a hidden field which is something a regular person would not do.
-    field :token
-
-    @safe_dump_fields = [
-      { identifier: ->(obj) { obj.identifier } },
-      :key,
-      :state,
-      { secret_ttl: ->(m) { m.lifespan } },
-      :lifespan,
-      { shortkey: ->(m) { m.key.slice(0, 8) } },
-      { has_passphrase: ->(m) { m.has_passphrase? } },
-      { verification: ->(m) { m.verification? } },
-      { is_truncated: ->(m) { m.truncated? } },
-      :created,
-      :updated,
-    ]
-
-    def init
-      self.state ||= 'new'
-    end
 
     def generate_id
       @key ||= Familia.generate_id.slice(0, 31)
@@ -118,7 +67,6 @@ module V2
       # strings like the more progressive 3.2+ Rubies.
       if original_value.to_s.empty?
         self.value_encryption = -1
-        self.value_checksum = "".gibbler
         return
       end
 
@@ -139,9 +87,8 @@ module V2
       else
         storable_value = original_value
       end
-      # Secure the value with cryptographic checksum and encryption
-      self.value_checksum = storable_value.gibbler
-      self.value_encryption = 2  # Current encryption version
+      # Secure the value with cryptographic encryption
+      self.value_encryption = 2 # Current encryption version
 
       encryption_options = opts.merge(:key => encryption_key)
       self.value = storable_value.encrypt encryption_options
@@ -323,30 +270,10 @@ module V2
       self.destroy!
     end
 
-    class << self
-
-      def spawn_pair custid, token=nil
-        secret = V2::Secret.create(custid: custid, token: token)
-        metadata = V2::Metadata.create(custid: custid, token: token)
-
-        # TODO: Use Familia transaction
-        metadata.secret_key = secret.key
-        metadata.save
-
-        secret.metadata_key = metadata.key
-        secret.save
-
-        [metadata, secret]
-      end
-
-      def encryption_key *entropy
-        input = entropy.flatten.compact.join ':'
-        Digest::SHA256.hexdigest(input) # TODO: Use Familila.generate_id
-      end
-    end
-
     # See Customer model for explanation about why
     # we include extra fields at the end here.
     include V2::Mixins::Passphrase
   end
 end
+
+require_relative 'management/secret_management'

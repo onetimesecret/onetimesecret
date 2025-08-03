@@ -23,7 +23,7 @@ RSpec.describe Onetime::Mail::Mailer::SendGridMailer do
     # Configure class variable before instantiating mailer
     allow(OT).to receive(:conf).and_return({
       'emailer' => { 'pass' => 'SG.test_key' },
-      'site' => { 'domain' => 'example.com' }
+      'site' => { 'domain' => 'example.com' },
     })
 
     # Setup mocks for SendGrid API

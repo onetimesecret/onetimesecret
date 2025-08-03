@@ -25,7 +25,7 @@ module Core
         if output['authenticated']
           output['custid'] = cust.custid
           output['email'] = cust.email
-          output['customer_since'] = OT::TimeUtils.epochdom(cust.created)
+          output['customer_since'] = OT::Utils::TimeUtils.epochdom(cust.created)
         end
 
         output

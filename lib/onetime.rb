@@ -14,7 +14,6 @@ require 'sendgrid-ruby'
 
 require 'rack'
 require 'otto'
-require 'gibbler/mixins'
 require 'familia'
 
 require_relative 'onetime/core_ext'

@@ -40,9 +40,6 @@ RSpec.describe "Onetime::Config during Onetime.boot!" do
 
     allow(Familia).to receive(:uri=)
 
-    allow(Gibbler).to receive(:secret).and_return(nil)
-    allow(Gibbler).to receive(:secret=)
-
     allow(Onetime).to receive(:load_locales).and_call_original # Changed from simple stub
     allow(Onetime).to receive(:set_global_secret).and_call_original
     allow(Onetime).to receive(:prepare_emailers).and_call_original
@@ -258,18 +255,7 @@ RSpec.describe "Onetime::Config during Onetime.boot!" do
       #    REDIS_URL=redis://127.0.0.1:2121/0 pnpm test:rspec
       expect(conf.dig('redis', 'uri')).to eq('redis://127.0.0.1:2121/0')
       expect(conf.dig('development', 'enabled')).to be(false)
-      expect(Onetime.env).to eq('test')
-    end
-
-    it "sets up Gibbler.secret from config" do
-      # Instead of setting Gibbler.secret directly, we need to mock the condition in set_global_secret
-      # The issue is that when Gibbler.secret is nil, nil.frozen? returns true
-      # We need to ensure the method sees a non-frozen value
-      allow(Gibbler).to receive(:secret).and_return("")  # Return empty string which isn't frozen by default
-
-      Onetime.boot!(:test)
-
-      expect(Gibbler).to have_received(:secret=).with('SuP0r_53cRU7'.freeze)
+      expect(Onetime.env).to eq('testing')
     end
 
     it "configures emailer based on @conf" do
@@ -355,8 +341,8 @@ RSpec.describe "Onetime::Config during Onetime.boot!" do
     it "initializes Onetime.instance and freezes it" do
       Onetime.boot!(:test)
       expect(Onetime.instance).not_to be_nil
-      expect(Onetime.instance).to be_a(String) # Gibbler output is a string
-      expect(Onetime.instance.length).to eq(40) # SHA1 gibbler
+      expect(Onetime.instance).to be_a(String)
+      expect(Onetime.instance.length).to be_between(12, 17).inclusive
       expect(Onetime.instance).to be_frozen
     end
 

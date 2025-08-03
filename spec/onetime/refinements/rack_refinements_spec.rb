@@ -22,14 +22,14 @@ RSpec.describe Onetime::RackRefinements do
       "level1" => {
         "level2" => {
           symbol_key: "nested_value_symbol_key",
-          "string_key" => "nested_value_string_key"
-        }
+          "string_key" => "nested_value_string_key",
+        },
       },
       deep: {
         nested: {
-          value: "found"
-        }
-      }
+          value: "found",
+        },
+      },
     }
   end
 

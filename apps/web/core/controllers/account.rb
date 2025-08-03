@@ -31,7 +31,7 @@ module Core
       # @see https://docs.stripe.com/api/payment-link/object For API reference
       #
       def plan_redirect
-        publically do
+        publically('/') do
           # We take the tier and billing cycle from the URL path and try to
           # get the preconfigured Stripe payment links using those values.
           tierid = req.params[:tier] ||= 'free'
@@ -101,7 +101,7 @@ module Core
       # e.g. https://staging.onetimesecret.com/welcome?checkout={CHECKOUT_SESSION_ID}
       #
       def welcome
-        publically do
+        publically('/') do
           logic = V2::Logic::Welcome::FromStripePaymentLink.new sess, cust, req.params, locale
           logic.raise_concerns
           logic.process
@@ -127,7 +127,7 @@ module Core
         @ignoreshrimp = true
         # We ignore CSRF shrimp since it's a calling coming from outside the house
         # but we do verify the Stripe webhook signature in StripeWebhook#raise_concerns.
-        publically do
+        publically('/') do
           logic = V2::Logic::Welcome::StripeWebhook.new sess, cust, req.params, locale
           logic.stripe_signature = req.env['HTTP_STRIPE_SIGNATURE']
           logic.payload = req.body.read
@@ -160,7 +160,7 @@ module Core
       # @raise [OT::FormError] If there's an error creating the Stripe session or an unexpected error occurs
       #
       def customer_portal_redirect
-        authenticated do
+        authenticated('/account') do
           begin
             # Get the Stripe Customer ID from our customer instance
             customer_id = cust.stripe_customer_id
@@ -190,7 +190,7 @@ module Core
       end
 
       def create_account
-        publically do
+        publically('/signup') do
           unless _auth_settings['enabled'] && _auth_settings['signup']
             return disabled_response(req.path)
           end
@@ -203,7 +203,7 @@ module Core
       end
 
       def authenticate # rubocop:disable Metrics/AbcSize
-        publically do
+        publically('/signin') do
           unless _auth_settings['enabled'] && _auth_settings['signin']
             return disabled_response(req.path)
           end
@@ -223,6 +223,7 @@ module Core
               cust = logic.cust
               is_secure = Onetime.conf['site']['ssl']
               res.send_cookie :sess, sess.sessid, sess.ttl, is_secure
+
               if cust.role?(:colonel)
                 res.redirect '/colonel/'
               else
@@ -234,7 +235,7 @@ module Core
       end
 
       def logout
-        authenticated do
+        authenticated('/') do
           logic = V2::Logic::Authentication::DestroySession.new sess, cust, req.params, locale
           logic.raise_concerns
           logic.process

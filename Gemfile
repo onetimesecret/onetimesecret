@@ -70,8 +70,7 @@ if !ENV['LOCAL_DEV'].to_s.empty? && ENV['RACK_ENV'] == 'development' && ENV['CI'
   gem 'otto', path: '../../d/otto'
 else
   gem 'drydock', '~> 1.0.0'
-  gem 'familia', '~> 1.2.0'
-  gem 'gibbler', '~> 1.0.0'
+  gem 'familia', '~> 1.2.3'
   gem 'otto', '~> 1.1.0.pre.alpha4'
 end
 
@@ -97,7 +96,6 @@ gem 'irb'                    # IRB
 gem 'logger'                 # Logger library for logging messages (required by truemail)
 gem 'ostruct', '~> 0.6.2'    # OpenStruct library for creating data objects (required by json)
 gem 'rdoc'                   # IRB
-
 
 # ====================================
 # Third-Party Service Integrations

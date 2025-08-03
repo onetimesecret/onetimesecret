@@ -310,8 +310,7 @@ RSpec.describe Core::Views::BaseView do
       let(:session) do
         instance_double('V2::Session',
           authenticated?: false,
-          add_shrimp: nil,
-          get_messages: [])
+          add_shrimp: nil,)
       end
     end
   end

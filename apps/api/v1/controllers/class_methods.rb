@@ -1,5 +1,7 @@
 # apps/api/v1/controllers/class_methods.rb
 
+require 'v1/refinements'
+
 module V1
 
   # FlexibleHashAccess is a refinement for the Hash class that enables
@@ -75,35 +77,36 @@ module V1
         # you don't find that confusing, take another look through the code.
         metadata_realttl = md.realttl&.to_i
 
-        recipient = [hsh['recipients']]
+        recipient = [hsh.fetch('recipients', nil)]
           .flatten
           .compact
           .reject(&:empty?)
           .uniq
 
         ret = {
-          :custid => hsh['custid'],
-          :metadata_key => hsh['key'],
-          :secret_key => hsh['secret_key'],
-          :ttl => metadata_ttl, # static value from redis hash field
-          :metadata_ttl => metadata_realttl, # actual number of seconds left to live
-          :secret_ttl => secret_realttl, # ditto, actual number
-          :state => hsh['state'] || 'new',
-          :updated => hsh['updated']&.to_i,
-          :created => hsh['created']&.to_i,
-          :received => hsh['received']&.to_i, # empty fields become 0
-          :recipient => recipient,
-          :share_domain => hsh['share_domain'],
+          'custid' => hsh.fetch('custid', nil),
+          'metadata_key' => hsh.fetch('key', nil),
+          'secret_key' => hsh.fetch('secret_key', nil),
+          'ttl' => metadata_ttl, # static value from redis hash field
+          'metadata_ttl' => metadata_realttl, # actual number of seconds left to live
+          'secret_ttl' => secret_realttl, # ditto, actual number
+          'state' => hsh.fetch('state', nil) || 'new',
+          'updated' => hsh.fetch('updated', nil)&.to_i,
+          'created' => hsh.fetch('created', nil)&.to_i,
+          'received' => hsh.fetch('received', nil)&.to_i, # empty fields become 0
+          'recipient' => recipient,
+          'share_domain' => hsh.fetch('share_domain', nil),
         }
-        if ret[:state] == 'received'
-          ret.delete :secret_ttl
-          ret.delete :secret_key
+
+        if ret['state'] == 'received'
+          ret.delete 'secret_ttl'
+          ret.delete 'secret_key'
         else
-          ret.delete :received
+          ret.delete 'received'
         end
-        ret[:value] = opts[:value] if opts[:value]
+        ret['value'] = opts[:value] if opts[:value]
         if !opts[:passphrase_required].nil?
-          ret[:passphrase_required] = opts[:passphrase_required]
+          ret['passphrase_required'] = opts[:passphrase_required]
         end
         ret
       end

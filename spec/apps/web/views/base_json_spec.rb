@@ -21,8 +21,7 @@ RSpec.xdescribe Core::Views::BaseView, "JSON Output" do
       let(:session) do
         instance_double('V1::Session',
           authenticated?: false,
-          add_shrimp: not_authenticated_json["shrimp"],
-          get_messages: not_authenticated_json["messages"] || [])
+          add_shrimp: not_authenticated_json["shrimp"])
       end
 
       let(:customer) do
@@ -125,8 +124,7 @@ RSpec.xdescribe Core::Views::BaseView, "JSON Output" do
       let(:session) do
         instance_double('V1::Session',
           authenticated?: true,
-          add_shrimp: authenticated_json["shrimp"],
-          get_messages: authenticated_json["messages"] || [])
+          add_shrimp: authenticated_json["shrimp"])
       end
 
       let(:customer) do

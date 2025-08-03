@@ -18,7 +18,6 @@ require 'public_suffix'
 #
 module V1
   class CustomDomain < Familia::Horreum
-    include Gibbler::Complex
 
     prefix :customdomain
 

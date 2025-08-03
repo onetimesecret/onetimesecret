@@ -1,11 +1,13 @@
 # lib/onetime/mail/views/common.rb
 
 require 'mustache'
+require 'v1/refinements'
 
 require_relative 'base'
 
 module Onetime
   module Mail
+    using V1::IndifferentHashAccess
 
     class Welcome < Mail::Views::Base
       def init secret

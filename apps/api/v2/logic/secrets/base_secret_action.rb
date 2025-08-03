@@ -18,6 +18,7 @@ module V2::Logic
         # All parameters are passed in the :secret hash (secret[:ttl], etc)
         @payload = params[:secret] || {}
         raise_form_error "Incorrect payload format" if payload.is_a?(String)
+
         process_ttl
         process_secret
         process_passphrase
@@ -26,9 +27,8 @@ module V2::Logic
       end
 
       def raise_concerns
-
-
         raise_form_error "Unknown type of secret" if kind.nil?
+
         validate_recipient
         validate_share_domain
       end

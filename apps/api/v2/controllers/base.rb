@@ -90,7 +90,7 @@ module V2
           end
 
           @cust = V2::Customer.anonymous
-          @sess = V2::Session.new req.client_ipaddress, cust.custid
+          @sess = V2::Session.create_ephemeral req.user_agent
 
           if OT.debug?
             ip_address = req.client_ipaddress.to_s
@@ -258,13 +258,6 @@ module V2
       hsh[:message] = msg
       hsh[:success] = false
       res.status = 500 # Bad Request
-      json hsh
-    end
-
-    def throttle_response msg, hsh={}
-      hsh[:message] = msg
-      hsh[:success] = false
-      res.status = 429 # Too Many Requests
       json hsh
     end
 

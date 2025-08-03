@@ -44,8 +44,7 @@ RSpec.shared_context "view_test_context" do
   let(:session) do
     instance_double(V1::Session,
       authenticated?: true,
-      add_shrimp: 'test_shrimp',
-      get_messages: [])
+      add_shrimp: 'test_shrimp')
   end
 
   let(:customer) do

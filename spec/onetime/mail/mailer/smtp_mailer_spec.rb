@@ -199,19 +199,16 @@ RSpec.describe Onetime::Mail::Mailer::SMTPMailer do
           user_name: 'testuser',
           password: 'testpass',
           authentication: 'plain',
-          enable_starttls_auto: true
+          enable_starttls_auto: true,
         }
 
         # Expect Mail.defaults to be called with a block
         expect(::Mail).to receive(:defaults) do |&block|
-          # Create a context where delivery_method can be called
-          context = Object.new
-          allow(context).to receive(:delivery_method)
-
-          # Expect delivery_method to be called with the correct parameters
+          # Create a mock context that properly handles the delivery_method call
+          context = double('Mail Configuration Context')
           expect(context).to receive(:delivery_method).with(:smtp, smtp_settings)
 
-          # Execute the block in the context
+          # Execute the block in our mock context
           context.instance_eval(&block)
         end
 

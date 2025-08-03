@@ -1,116 +1,107 @@
 # spec/spec_helper.rb
+# Test harness for Onetime.
 
 require 'rspec'
 require 'yaml'
 require 'tempfile'
 require 'fileutils'
-# require 'fakeredis'
 
+# Path setup - do one thing well
 base_path = File.expand_path('../..', __FILE__)
 apps_root = File.join(base_path, 'apps').freeze
 
-# Add the apps dirs to the load path. This allows us to require
-# 'v2/logic' naturally (without needing the 'apps/api' prefix).
 $LOAD_PATH.unshift(File.join(apps_root, 'api'))
 $LOAD_PATH.unshift(File.join(apps_root, 'web'))
+$LOAD_PATH.unshift(File.join(base_path, 'lib'))
+$LOAD_PATH.unshift(File.expand_path('..', __FILE__))
 
-# Adds the 'lib' directory to the load path to ensure that the Onetime
-# library can be required.
-$LOAD_PATH.unshift File.join(base_path, 'lib')
+# Load test utilities
+Dir[File.join(__dir__, 'support', '*.rb')].each { |f| require f }
 
-# Add spec directory to load path
-spec_path = File.expand_path('..', __FILE__)
-$LOAD_PATH.unshift(spec_path)
-
-require_relative 'support/mail_context'
-require_relative 'support/rack_context'
-require_relative 'support/view_context'
-require_relative 'support/model_test_helper'
-
+# Load application - fail fast, fail clearly
 begin
   require 'onetime'
-  require 'onetime/alias' # allows using OT::Mail
+  require 'onetime/alias'
   require 'onetime/refinements/rack_refinements'
-  require 'onetime/models'
-  require 'onetime/logic'
-  require 'onetime/controllers'
-  require 'onetime/views'
 
   # Due to how Familia::Horreum defines model classes we need to create
   # an instance of each model class to ensure that they are loaded and
   # available for testing. Part of ##1185.
-  #
-  # From Horreum#initialize:
-  #   "Automatically add a 'key' field if it's not already defined."
-  #
-  # V1::Secret.new
-  # V2::Secret.new
+  require 'onetime/models'
 
+  require 'onetime/logic'
+  require 'onetime/controllers'
+  require 'onetime/views'
 rescue LoadError => e
-  puts "Failed to load onetime module: #{e.message}"
-  puts "Current directory: #{Dir.pwd}"
-  puts "Load path: #{$LOAD_PATH.inspect}"
+  warn "Load failed: #{e.message}"
+  warn "PWD: #{Dir.pwd}"
   exit 1
 end
 
-# Setup test environment
+# Test mode
 OT.mode = :test
-
-# Set config path for tests
 OT::Config.path = File.join(Onetime::HOME, 'spec', 'config.test.yaml')
 
-# Configure RSpec
 RSpec.configure do |config|
-  # Configures RSpec to include chain clauses in custom matcher descriptions for better readability.
+  # Expectations
   config.expect_with :rspec do |expectations|
     expectations.include_chain_clauses_in_custom_matcher_descriptions = true
   end
 
-  # Sets RSpec as the mocking framework.
-  config.mock_with :rspec
+  # Mocks
+  config.mock_with :rspec do |mocks|
+    # When enabled, RSpec will:
+    #
+    # - Verify that stubbed methods actually exist on the real object
+    # - Check method arity (number of arguments) matches
+    # - Ensure you're not stubbing non-existent methods
+    #
+    mocks.verify_partial_doubles = true
+  end
 
+  # General configuration
+  config.default_formatter = 'doc' if config.files_to_run.one?
+
+  # Show only when requested
+  config.profile_examples = 10 if ENV['PROFILE_TESTS'] || ARGV.include?('--profile')
+
+  # Metadata
+  #
   # Applies shared context metadata to host groups, enhancing test organization.
   # Will be default in RSpec 4
   config.shared_context_metadata_behavior = :apply_to_host_groups
-
-  # Disables RSpec's monkey patching to encourage the use of the RSpec DSL.
-  config.disable_monkey_patching!
-
+  #
   # RSpec will create this file to keep track of example statuses, and
   # powers the the --only-failures flag.
-  config.example_status_persistence_file_path = ".rspec_status"
+  config.example_status_persistence_file_path = 'spec/.rspec_status'
 
   # Suppresses Ruby warnings during test runs for a cleaner output.
-  config.warnings = false
+  config.warnings = true
 
-  # Run specs in random order
-  config.order = :defined # one of: :randomized (ideally), :defined
-
-  # Alternately instead of order :defined, start the process with the same seed every time.
-  # config.seed = 12345 # any fixed number
-
-  # Disable RSpec exposing methods globally on `Module` and `main`
+  # Execution
+  config.order = :defined
+  config.filter_run_when_matching :focus
   config.disable_monkey_patching!
+  # Let Rspec handle the randomization, leave these settings unchanged:
+  # config.seed = 12345
+  # Kernel.srand config.seed
 
-  # Enable aggregate failures by default for cleaner specs
+  # Aggregate failures for better signal-to-noise
   config.define_derived_metadata do |meta|
     meta[:aggregate_failures] = true unless meta.key?(:aggregate_failures)
   end
 
-  # Global before hooks
+  # Silence noise
   config.before(:each) do
-    # Suppress logging during tests
     allow(OT).to receive(:ld).and_return(nil)
     allow(OT).to receive(:li).and_return(nil)
     allow(OT).to receive(:le).and_return(nil) unless defined?(@preserve_error_logs) && @preserve_error_logs
   end
 
-  # Disable actual Redis connections by default, but allow specific tests to enable them
+  # Prevent accidental external dependencies
   config.before(:each) do |example|
-    # Skip Redis mocking if test is explicitly marked to allow Redis
     unless example.metadata[:allow_redis]
-      # This is a safety net - it will raise an error if any code tries to actually connect to Redis
-      allow(Redis).to receive(:new).and_raise("Real Redis connections are not allowed in tests! Use test helpers instead.")
+      allow(Redis).to receive(:new).and_raise("No external Redis in tests")
     end
   end
 end

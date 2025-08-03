@@ -16,10 +16,12 @@ RSpec.describe Onetime::Mail::Welcome do
     {
       secret: mail_secret,
       email_address: mail_customer.email,
-      verify_uri: welcome_email.verify_uri
+      verify_uri: welcome_email.verify_uri,
     }
   end
 
+  # Tests that the welcome email template correctly renders Mustache variables
+  # and includes the expected secret_link content in both HTML and plain text formats
   it_behaves_like "mustache template behavior", "secret_link"
 
   describe '#initialize' do
@@ -87,7 +89,6 @@ RSpec.describe Onetime::Mail::Welcome do
         expect {
           welcome_email.deliver_email
         }.to raise_error(OT::Problem, /Your message wasn't sent/)
-
       end
     end
 

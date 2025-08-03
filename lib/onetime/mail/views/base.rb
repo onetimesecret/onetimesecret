@@ -2,11 +2,15 @@
 
 require 'chimera'
 
+require 'v1/refinements'
+
 module Onetime
   module Mail
     module Views
 
       class Base < Chimera
+
+        using V1::IndifferentHashAccess
 
         self.template_path = './templates/mail'
         self.view_namespace = Onetime::Mail
@@ -98,7 +102,7 @@ module Onetime
           # Safely get locale data with fallback
           locale_data = OT.locales[locale] || OT.locales['en']
 
-          pagename = self.class.name.split('::').last.downcase.to_sym
+          pagename = self.class.name.split('::').last.downcase.to_s
           {
             locale: locale,
             email: locale_data[:email][pagename],

@@ -1,8 +1,9 @@
 # apps/api/v1/models/secret.rb
 
+require_relative 'mixins/passphrase'
+
 module V1
   class Secret < Familia::Horreum
-    include Gibbler::Complex
 
     feature :safe_dump
     feature :expiration
@@ -17,7 +18,6 @@ module V1
     field :value
     field :metadata_key
     field :original_size
-    field :value_checksum
     field :value_encryption
     field :lifespan
     field :share_domain
@@ -88,7 +88,7 @@ module V1
 
     def natural_duration
       # Colloquial representation of the TTL. e.g. "1 day"
-      OT::Utils::TimeUtils.natural_duration lifespan
+      V1::TimeUtils.natural_duration lifespan
     end
     alias :natural_ttl :natural_duration
 
@@ -117,7 +117,6 @@ module V1
       end
 
       self.original_size = original_value.size
-      self.value_checksum = storable_value.gibbler
       self.value_encryption = 2
       self.value = storable_value.encrypt opts.merge(:key => encryption_key)
     end

@@ -4,9 +4,23 @@
 
 require_relative '../test_models'
 
+@reminder = lambda do
+  puts "=" * 80
+  puts "🚨 IMPORTANT NOTICE: CUSTOMER<>CUSTOMDOMAIN RELATIONS NEED FIXING! 🚨"
+  puts "=" * 80
+  puts "This test suite is running with temporary workarounds for the"
+  puts "Customer<>CustomDomain relationship domainid change. "
+  puts
+  puts __FILE__
+  puts __LINE__
+  puts
+  puts "=" * 80
+  puts
+end
+
+
 OT.boot! :test, true # if this is false, all models will have db 0
 
-# Setup some variables for these tryouts
 @now = Time.now
 @email_address = "tryouts29+#{@now.to_i}@onetimesecret.com"
 @cust = Customer.new @email_address
@@ -18,8 +32,6 @@ OT.boot! :test, true # if this is false, all models will have db 0
   'example.com',
   'subdomain.example.com'
 ]
-
-# TRYOUTS
 
 ## Customer has a custom domain list
 @cust.custom_domains.class
@@ -45,6 +57,7 @@ CustomDomain.create(@valid_domain, @cust.custid)
 #=> false
 
 ## A customer's custom_domain list updates when a new domain is added
+5.times { @reminder.call }
 custom_domain = CustomDomain.load(@valid_domain, @cust.custid)
 [custom_domain.class, custom_domain.display_domain]
 #=> [CustomDomain, @valid_domain]

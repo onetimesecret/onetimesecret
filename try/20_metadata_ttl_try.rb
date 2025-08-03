@@ -18,6 +18,9 @@ require_relative 'test_models'
 
 require 'onetime/controllers'
 
+require 'v1/refinements'
+
+
 OT.boot! :test, false
 
 # Setup
@@ -28,90 +31,90 @@ OT.boot! :test, false
 
 ## Basic metadata transformation (this doubles as a check for FlexibleHashAccess)
 result = V1::Controllers::Index.metadata_hsh(@metadata)
-[result[:custid], result[:metadata_key], result[:secret_key]]
+[result['custid'], result['metadata_key'], result['secret_key']]
 #=> [@metadata.custid, @metadata.key, @metadata.secret_key]
 
 ## TTL handling - metadata_ttl is set to the real TTL value
 result = V1::Controllers::Index.metadata_hsh(@metadata)
-result[:metadata_ttl].is_a?(Integer) && result[:metadata_ttl] > 0
+result['metadata_ttl'].is_a?(Integer) && result['metadata_ttl'] > 0
 #=> true
 
 ## TTL handling - ttl is set to the static value from redis hash field
 @metadata.secret_ttl = 3600
 result = V1::Controllers::Index.metadata_hsh(@metadata)
-result[:ttl]
+result['ttl']
 #=> 3600
 
 ## TTL handling - secret_ttl is nil when not provided
 result = V1::Controllers::Index.metadata_hsh(@metadata)
-result[:secret_ttl]
+result['secret_ttl']
 #=> nil
 
 ## TTL handling - secret_ttl is set when provided
 result = V1::Controllers::Index.metadata_hsh(@metadata, secret_ttl: 1800)
-result[:secret_ttl]
+result['secret_ttl']
 #=> 1800
 
 ## State-dependent field presence - 'new' state
 result = V1::Controllers::Index.metadata_hsh(@metadata)
-[result.key?(:secret_key), result.key?(:secret_ttl), result.key?(:received)]
+[result.key?('secret_key'), result.key?('secret_ttl'), result.key?('received')]
 #=> [true, true, false]
 
 ## State-dependent field presence - 'received' state
 @metadata.state = 'received'
 @metadata.save
 result = V1::Controllers::Index.metadata_hsh(@metadata)
-[result.key?(:secret_key), result.key?(:secret_ttl), result.key?(:received)]
+[result.key?('secret_key'), result.key?('secret_ttl'), result.key?('received')]
 #=> [false, false, true]
 
 ## Optional parameter handling - value
 result = V1::Controllers::Index.metadata_hsh(@metadata, value: 'test_value')
-result[:value]
+result['value']
 #=> 'test_value'
 
 ## Optional parameter handling - passphrase_required (true)
 result = V1::Controllers::Index.metadata_hsh(@metadata, passphrase_required: true)
-result[:passphrase_required]
+result['passphrase_required']
 #=> true
 
 ## Optional parameter handling - passphrase_required (false)
 result = V1::Controllers::Index.metadata_hsh(@metadata, passphrase_required: false)
-result[:passphrase_required]
+result['passphrase_required']
 #=> false
 
 ## Handling nil custid
 @metadata.custid = nil
 @metadata.save
 result = V1::Controllers::Index.metadata_hsh(@metadata)
-result[:custid]
+result['custid']
 #=> ""
 
 ## Handling nil secret_key
 @metadata.secret_key = nil
 @metadata.save
 result = V1::Controllers::Index.metadata_hsh(@metadata)
-result[:secret_key]
+result['secret_key']
 #=> nil
 
 ## Handling nil state
 @metadata.state = nil
 @metadata.save
 result = V1::Controllers::Index.metadata_hsh(@metadata)
-result[:state]
+result['state']
 #=> ''
 
 ## Handling nil updated timestamp, is overridden when saved
 @metadata.updated = nil
 @metadata.save
 result = V1::Controllers::Index.metadata_hsh(@metadata)
-result[:created].positive?
+result['created'].positive?
 #=> true
 
 ## Handling nil created timestamp, is overridden when saved
 @metadata.created = nil
 @metadata.save
 result = V1::Controllers::Index.metadata_hsh(@metadata)
-result[:created].positive?
+result['created'].positive?
 #=> true
 
 ## Handling nil received timestamp
@@ -119,21 +122,21 @@ result[:created].positive?
 @metadata.state = 'received'
 @metadata.save
 result = V1::Controllers::Index.metadata_hsh(@metadata)
-result[:received]
+result['received']
 #=> 0
 
 ## Handling nil recipients
 @metadata.recipients = nil
 @metadata.save
 result = V1::Controllers::Index.metadata_hsh(@metadata)
-result[:recipient]
+result['recipient']
 #=> []
 
 ## Handling nil secret_ttl in metadata
 @metadata.secret_ttl = nil
 @metadata.save
 result = V1::Controllers::Index.metadata_hsh(@metadata)
-result[:ttl]
+result['ttl']
 #=> nil
 
 ## Handling nil realttl
@@ -144,12 +147,12 @@ class V1::Metadata
   def realttl; nil; end
 end
 result = V1::Controllers::Index.metadata_hsh(@metadata)
-result[:metadata_ttl]
+result['metadata_ttl']
 #=> nil
 
 ## Handling nil secret_ttl option
 result = V1::Controllers::Index.metadata_hsh(@metadata, secret_ttl: nil)
-result[:secret_ttl]
+result['secret_ttl']
 #=> nil
 
 ## Handling nil value option

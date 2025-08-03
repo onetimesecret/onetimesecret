@@ -14,7 +14,7 @@ module Core
       # @param value [String, Array, Hash] The value to normalize
       # @return [String, Array, Hash] The normalized value
       def normalize_value(value)
-        Onetime::Utils::Sanitation.normalize_value(value)
+        Onetime::Utils.normalize_value(value)
       end
 
       # Serializes view data to a script tag for frontend consumption.

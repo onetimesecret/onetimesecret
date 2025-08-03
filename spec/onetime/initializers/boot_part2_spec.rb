@@ -50,7 +50,7 @@ RSpec.describe "Onetime global state after boot" do
 
     # Mock system settings setup methods
     allow(V2::SystemSettings).to receive(:current).and_raise(OT::RecordNotFound.new("No config found"))
-    allow(V2::SystemSettings).to receive(:extract_colonel_config).and_return({})
+    # allow(V2::SystemSettings).to receive(:extract_colonel_config).and_return({})
     allow(V2::SystemSettings).to receive(:create).and_return(double('SystemSettings', rediskey: 'test:config'))
 
     # Other common mocks
@@ -125,7 +125,7 @@ RSpec.describe "Onetime global state after boot" do
         expect(Onetime.instance).not_to be_nil
         expect(Onetime.instance).to be_frozen
         expect(Onetime.instance).to be_a(String)
-        expect(Onetime.instance).to match(/^[a-f0-9]+$/)
+        expect(Onetime.instance).to match(/^[a-z0-9]+$/)
       end
     end
 

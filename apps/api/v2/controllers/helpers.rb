@@ -105,7 +105,7 @@ module V2
       # Track Familia errors as regular exceptions
       capture_error ex
 
-      # Include fresh shrimp so they can try again 🦐
+      # Include fresh shrimp so they can try again, again 🦐
       error_response "An error occurred :[", shrimp: sess ? sess.add_shrimp : nil
 
     rescue Errno::ECONNREFUSED => ex
