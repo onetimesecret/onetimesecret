@@ -5,7 +5,6 @@ require 'json'
 
 module Onetime
   module Initializers
-
     # Prints a formatted banner with system and configuration information at startup.
     # The banner is organized into logical sections, each rendered as a table.
     #
@@ -27,17 +26,17 @@ module Onetime
     # - format_config_value(config): Formats complex config values for display
     # - format_duration(seconds): Converts seconds to human-readable format (e.g., "5m", "2h", "7d")
     def print_log_banner
-      site_config = OT.conf.fetch('site') # if site is missing we got real problems
+      site_config  = OT.conf.fetch('site') # if site is missing we got real problems
       email_config = OT.conf.fetch('emailer', {})
-      redis_info = Familia.redis.info
-      colonels = site_config.dig('authentication', 'colonels') || []
+      redis_info   = Familia.redis.info
+      colonels     = site_config.dig('authentication', 'colonels') || []
 
       # Create a buffer to collect all output
       output = []
 
       # Header banner
       output << "---  ONETIME #{OT.mode} v#{OT::VERSION.inspect}  #{'---' * 3}"
-      output << ""
+      output << ''
 
       # Add each section to output
       system_rows = build_system_section(redis_info)
@@ -100,14 +99,14 @@ module Onetime
     def build_dev_section
       dev_rows = []
 
-      ['development', 'experimental'].each do |key|
-        if config_value = OT.conf.fetch(key, false)
-          if is_feature_disabled?(config_value)
-            dev_rows << [key.to_s.capitalize, 'disabled']
-          else
-            dev_rows << [key.to_s.capitalize, format_config_value(config_value)]
-          end
-        end
+      %w[development experimental].each do |key|
+        next unless config_value = OT.conf.fetch(key, false)
+
+        dev_rows << if is_feature_disabled?(config_value)
+          [key.to_s.capitalize, 'disabled']
+        else
+          [key.to_s.capitalize, format_config_value(config_value)]
+                    end
       end
 
       dev_rows
@@ -118,8 +117,9 @@ module Onetime
       feature_rows = []
 
       # Domains and regions
-      ['domains', 'regions'].each do |key|
+      %w[domains regions].each do |key|
         next unless site_config.key?(key)
+
         config = site_config[key]
         if is_feature_disabled?(config)
           feature_rows << [key.to_s.capitalize, 'disabled']
@@ -137,7 +137,7 @@ module Onetime
 
       begin
         if is_feature_disabled?(email_config)
-          [['Status', 'disabled']]
+          [%w[Status disabled]]
         else
           [
             ['Mailer', @emailer],
@@ -149,8 +149,8 @@ module Onetime
             ['Auth', email_config['auth']],
           ].reject { |row| row[1].nil? || row[1].to_s.empty? }
         end
-      rescue => e
-        [['Error', "Error rendering mail config: #{e.message}"]]
+      rescue StandardError => ex
+        [['Error', "Error rendering mail config: #{ex.message}"]]
       end
     end
 
@@ -158,18 +158,18 @@ module Onetime
     def build_auth_section(site_config, colonels)
       auth_rows = []
 
-      if colonels.empty?
-        auth_rows << ['Colonels', 'No colonels configured ⚠️']
+      auth_rows << if colonels.empty?
+        ['Colonels', 'No colonels configured ⚠️']
       else
-        auth_rows << ['Colonels', colonels.join(', ')]
-      end
+        ['Colonels', colonels.join(', ')]
+                   end
 
       if site_config.key?('authentication')
         auth_config = site_config['authentication']
         if is_feature_disabled?(auth_config)
           auth_rows << ['Auth Settings', 'disabled']
         else
-          auth_settings = auth_config.map { |k,v| "#{k}=#{v}" }.join(', ')
+          auth_settings = auth_config.map { |k, v| "#{k}=#{v}" }.join(', ')
           auth_rows << ['Auth Settings', auth_settings]
         end
       end
@@ -201,11 +201,12 @@ module Onetime
       if site_config.key?('interface')
         interface_config = site_config['interface']
         if is_feature_disabled?(interface_config)
-          customization_rows << ['Interface', 'disabled']
+          customization_rows << %w[Interface disabled]
         elsif interface_config.is_a?(Hash)
           # Handle nested ui and api configs under interface
-          ['ui', 'api'].each do |key|
+          %w[ui api].each do |key|
             next unless interface_config.key?(key)
+
             sub_config = interface_config[key]
             if is_feature_disabled?(sub_config)
               customization_rows << ["Interface > #{key.to_s.upcase}", 'disabled']
@@ -216,8 +217,9 @@ module Onetime
         end
       else
       # Fallback: check for standalone ui and api configs
-      ['ui', 'api'].each do |key|
+      %w[ui api].each do |key|
         next unless site_config.key?(key)
+
         config = site_config[key]
         if is_feature_disabled?(config)
           customization_rows << [key.to_s.upcase, 'disabled']
@@ -227,25 +229,25 @@ module Onetime
       end
     end
 
-    customization_rows
+      customization_rows
     end
 
-  # Helper method to check if a feature is disabled
-  def is_feature_disabled?(config)
-    config.is_a?(Hash) && config.key?('enabled') && !config['enabled']
-  end
+    # Helper method to check if a feature is disabled
+    def is_feature_disabled?(config)
+      config.is_a?(Hash) && config.key?('enabled') && !config['enabled']
+    end
 
-  # Helper method to format config values with special handling for hashes and arrays
-  def format_config_value(config)
-      if config.is_a?(Hash)
-        config.map do |k, v|
-          value_str = (v.is_a?(Hash) || v.is_a?(Array)) ? v.to_json : v.to_s
-          "#{k}=#{value_str}"
-        end.join(', ')
-      else
-        config.to_s
-      end
-  end
+    # Helper method to format config values with special handling for hashes and arrays
+    def format_config_value(config)
+        if config.is_a?(Hash)
+          config.map do |k, v|
+            value_str = v.is_a?(Hash) || v.is_a?(Array) ? v.to_json : v.to_s
+            "#{k}=#{value_str}"
+          end.join(', ')
+        else
+          config.to_s
+        end
+    end
 
     # Helper method to convert seconds to human-readable duration format
     def format_duration(seconds)
@@ -256,16 +258,16 @@ module Onetime
         "#{seconds}s"
       when 60...3600
         minutes = seconds / 60
-        minutes == 1 ? "1m" : "#{minutes}m"
+        minutes == 1 ? '1m' : "#{minutes}m"
       when 3600...86_400
         hours = seconds / 3600
-        hours == 1 ? "1h" : "#{hours}h"
+        hours == 1 ? '1h' : "#{hours}h"
       when 86_400...604_800
         days = seconds / 86_400
-        days == 1 ? "1d" : "#{days}d"
+        days == 1 ? '1d' : "#{days}d"
       when 604_800...2_592_000
         weeks = seconds / 604_800
-        weeks == 1 ? "1w" : "#{weeks}w"
+        weeks == 1 ? '1w' : "#{weeks}w"
       else
         # For very large values, use days
         days = seconds / 86_400
@@ -284,24 +286,22 @@ module Onetime
         rendered = table.render(:unicode,
           padding: [0, 1],
           multiline: true,
-          column_widths: [15, 79])
-      rescue NoMethodError => e
-        if e.message.include?("undefined method 'ioctl'")
-          # Fallback for non-terminal environments like Tryouts
-          rendered = table.render(:unicode,
-            padding: [0, 1],
-            multiline: true,
-            column_widths: [15, 79],
-            width: 95) # Explicit width to avoid terminal detection
-        else
-          raise
-        end
+          column_widths: [15, 79],
+        )
+      rescue NoMethodError => ex
+        raise unless ex.message.include?("undefined method 'ioctl'")
+
+        # Fallback for non-terminal environments like Tryouts
+        rendered = table.render(:unicode,
+          padding: [0, 1],
+          multiline: true,
+          column_widths: [15, 79],
+          width: 95,
+        ) # Explicit width to avoid terminal detection
       end
 
       # Return rendered table with an extra newline
       rendered + "\n"
     end
-
-
   end
 end

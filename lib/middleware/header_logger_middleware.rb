@@ -29,7 +29,7 @@ require 'logger'
 #
 class Rack::HeaderLoggerMiddleware
   def initialize(app, logger: nil)
-    @app = app
+    @app    = app
     @logger = logger || Logger.new($stdout)
     @logger.debug('HeaderLoggerMiddleware initialized')
   end

@@ -6,14 +6,13 @@ require_relative 'definitions/secret_definition'
 
 module V2
   class Secret < Familia::Horreum
-
     def generate_id
       @key ||= Familia.generate_id.slice(0, 31)
       @key
     end
 
     def shortkey
-      key.slice(0,6)
+      key.slice(0, 6)
     end
 
     def maxviews
@@ -24,11 +23,11 @@ module V2
     # it would be implmented as separate secrets with the same value. All of them
     # viewable only once.
     def maxviews?
-      self.view_count.to_s.to_i >= self.maxviews
+      view_count.to_s.to_i >= maxviews
     end
 
     def age
-      @age ||= Time.now.utc.to_i-self.updated
+      @age ||= Time.now.utc.to_i - updated
       @age
     end
 
@@ -42,9 +41,9 @@ module V2
       # Colloquial representation of the TTL. e.g. "1 day"
       OT::Utils::TimeUtils.natural_duration lifespan
     end
-    alias :natural_ttl :natural_duration
+    alias natural_ttl natural_duration
 
-    def older_than? seconds
+    def older_than?(seconds)
       age > seconds
     end
 
@@ -53,14 +52,14 @@ module V2
     end
 
     def truncated?
-      self.truncated.to_s == "true"
+      truncated.to_s == 'true'
     end
 
     def verification?
-      verification.to_s == "true"
+      verification.to_s == 'true'
     end
 
-    def encrypt_value original_value, opts={}
+    def encrypt_value(original_value, opts = {})
       # Handles empty values with a special encryption flag. This is important
       # for consistency in how we deal with these values and expressly for Ruby
       # 3.1 which uses an older version of openssl that does not tolerate empty
@@ -76,7 +75,7 @@ module V2
         # varying the actual truncation point by 0-20%, we prevent attackers
         # from inferring the exact content length, which could leak information
         # about the secret's contents.
-        random_factor = 1.0 + (rand * 0.2)  # Random factor between 1.0-1.2
+        random_factor = 1.0 + (rand * 0.2) # Random factor between 1.0-1.2
         adjusted_size = (opts[:size] * random_factor).to_i
 
         # The random factor already ensures fuzziness up to 20% above base
@@ -90,34 +89,34 @@ module V2
       # Secure the value with cryptographic encryption
       self.value_encryption = 2 # Current encryption version
 
-      encryption_options = opts.merge(:key => encryption_key)
-      self.value = storable_value.encrypt encryption_options
+      encryption_options = opts.merge(key: encryption_key)
+      self.value         = storable_value.encrypt encryption_options
     end
 
-    def decrypted_value opts={}
+    def decrypted_value(opts = {})
       encryption_mode = value_encryption.to_i
-      v_encrypted = self.value
-      v_encrypted = "" if encryption_mode.negative? && v_encrypted.nil?
-      v_encrypted.force_encoding("utf-8")
+      v_encrypted     = value
+      v_encrypted     = '' if encryption_mode.negative? && v_encrypted.nil?
+      v_encrypted.force_encoding('utf-8')
 
       # First try with the primary global secret
       begin
         v_decrypted = case encryption_mode
-        when -1
-          ""
-        when 0
-          v_encrypted
-        when 1
-          v_encrypted.decrypt opts.merge(:key => encryption_key_v1)
-        when 2
-          v_encrypted.decrypt opts.merge(:key => encryption_key_v2)
-        else
-          raise RuntimeError, "Unknown encryption mode: #{value_encryption}"
-        end
-        v_decrypted.force_encoding("utf-8") # Hacky fix for https://github.com/onetimesecret/onetimesecret/issues/37
-        return v_decrypted
-      rescue OpenSSL::Cipher::CipherError => original_error
-        OT.le "[decrypted_value] m:#{metadata_key} s:#{key} CipherError #{original_error.message}"
+                      when -1
+                        ''
+                      when 0
+                        v_encrypted
+                      when 1
+                        v_encrypted.decrypt opts.merge(key: encryption_key_v1)
+                      when 2
+                        v_encrypted.decrypt opts.merge(key: encryption_key_v2)
+                      else
+                        raise "Unknown encryption mode: #{value_encryption}"
+                      end
+        v_decrypted.force_encoding('utf-8') # Hacky fix for https://github.com/onetimesecret/onetimesecret/issues/37
+        v_decrypted
+      rescue OpenSSL::Cipher::CipherError => ex
+        OT.le "[decrypted_value] m:#{metadata_key} s:#{key} CipherError #{ex.message}"
         # Try fallback global secrets for mode 2 (current encryption)
         if encryption_mode == 2 && has_fallback_secrets?
           fallback_result = try_fallback_secrets(v_encrypted, opts)
@@ -128,12 +127,12 @@ module V2
         allow_nil = OT.conf['experimental'].fetch('allow_nil_global_secret', false)
         if allow_nil
           OT.li "[decrypted_value] m:#{metadata_key} s:#{key} Trying nil global secret"
-          decryption_options = opts.merge(:key => encryption_key_v2_with_nil)
+          decryption_options = opts.merge(key: encryption_key_v2_with_nil)
           return v_encrypted.decrypt(decryption_options)
         end
 
         # If nothing works, raise the original error
-        raise original_error
+        raise ex
       end
     end
 
@@ -146,53 +145,52 @@ module V2
     # Try to decrypt using each fallback secret
     def try_fallback_secrets(encrypted_value, opts)
       return nil unless has_fallback_secrets?
+
       rotated_secrets = OT.conf['experimental'].fetch('rotated_secrets', [])
       OT.ld "[try_fallback_secrets] m:#{metadata_key} s:#{key} Trying rotated secrets (#{rotated_secrets.length})"
       rotated_secrets.each_with_index do |fallback_secret, index|
-        begin
-          # Generate key using the fallback secret
-          encryption_key = V2::Secret.encryption_key(fallback_secret, self.key, self.passphrase_temp)
-          result = encrypted_value.decrypt(opts.merge(:key => encryption_key))
-          result.force_encoding("utf-8")
-          OT.li "[try_fallback_secrets] m:#{metadata_key} s:#{key} Success (index #{index})"
-          return result
-        rescue OpenSSL::Cipher::CipherError
-          # Continue to next secret if this one fails
-          OT.ld "[try_fallback_secrets] m:#{metadata_key} s:#{key} Failed (index #{index})"
-          next
-        end
+        # Generate key using the fallback secret
+        encryption_key = V2::Secret.encryption_key(fallback_secret, key, passphrase_temp)
+        result         = encrypted_value.decrypt(opts.merge(key: encryption_key))
+        result.force_encoding('utf-8')
+        OT.li "[try_fallback_secrets] m:#{metadata_key} s:#{key} Success (index #{index})"
+        return result
+      rescue OpenSSL::Cipher::CipherError
+        # Continue to next secret if this one fails
+        OT.ld "[try_fallback_secrets] m:#{metadata_key} s:#{key} Failed (index #{index})"
+        next
       end
       nil # Return nil if all fallback secrets fail
     end
 
     def can_decrypt?
-      !value.to_s.empty?  && (passphrase.to_s.empty? || !passphrase_temp.to_s.empty?)
+      !value.to_s.empty? && (passphrase.to_s.empty? || !passphrase_temp.to_s.empty?)
     end
 
-    def encryption_key *args
+    def encryption_key(*)
       case value_encryption.to_i
       when 0
-        self.value
-      when 1  # Last used 2012-01-07
-        encryption_key_v1(*args)
+        value
+      when 1 # Last used 2012-01-07
+        encryption_key_v1(*)
       when 2
-        encryption_key_v2(*args)
+        encryption_key_v2(*)
       else
-        raise RuntimeError, "Unknown encryption mode: #{value_encryption}"
+        raise "Unknown encryption mode: #{value_encryption}"
       end
     end
 
-    def encryption_key_v1 *ignored
-      V2::Secret.encryption_key self.key, self.passphrase_temp
+    def encryption_key_v1 *_ignored
+      V2::Secret.encryption_key key, passphrase_temp
     end
 
-    def encryption_key_v2 *ignored
-      V2::Secret.encryption_key OT.global_secret, self.key, self.passphrase_temp
+    def encryption_key_v2 *_ignored
+      V2::Secret.encryption_key OT.global_secret, key, passphrase_temp
     end
 
     # Used as a failover key when experimental.allow_nil_global_secret is true.
     def encryption_key_v2_with_nil
-      V2::Secret.encryption_key nil, self.key, self.passphrase_temp
+      V2::Secret.encryption_key nil, key, passphrase_temp
     end
 
     def load_customer
@@ -200,7 +198,7 @@ module V2
       cust.nil? ? V2::Customer.anonymous : cust # TODO: Probably should simply return nil (see defensive "fix" in 23c152)
     end
 
-    def state? guess
+    def state?(guess)
       state.to_s.eql?(guess.to_s)
     end
 
@@ -212,7 +210,7 @@ module V2
       custid.to_s == 'anon'
     end
 
-    def owner? cust
+    def owner?(cust)
       !anonymous? && (cust.is_a?(V2::Customer) ? cust.custid : cust).to_s == custid.to_s
     end
 
@@ -227,6 +225,7 @@ module V2
     def viewed!
       # A guard to prevent regressing (e.g. from :burned back to :viewed)
       return unless state?(:new)
+
       # The secret link has been accessed but the secret has not been consumed yet
       @state = 'viewed'
       # NOTE: calling save re-creates all fields so if you're relying on
@@ -238,13 +237,14 @@ module V2
       # A guard to allow only a fresh, new secret to be received. Also ensures that
       # we don't support going from :viewed back to something else.
       return unless state?(:new) || state?(:viewed)
-      md = load_metadata
+
+      md               = load_metadata
       md.received! unless md.nil?
       # It's important for the state to change here, even though we're about to
       # destroy the secret. This is because the state is used to determine if
       # the secret is viewable. If we don't change the state here, the secret
       # will still be viewable b/c (state?(:new) || state?(:viewed) == true).
-      @state = 'received'
+      @state           = 'received'
       # We clear the value and passphrase_temp immediately so that the secret
       # payload is not recoverable from this instance of the secret; however,
       # we shouldn't clear arbitrary fields here b/c there are valid reasons
@@ -255,19 +255,20 @@ module V2
       # which means if we were to clear out say -- state -- it would
       # be null in the API's JSON response. Not a huge deal in that case, but
       # we validate response data in the UI now and this would raise an error.
-      @value = nil
+      @value           = nil
       @passphrase_temp = nil
-      self.destroy!
+      destroy!
     end
 
     def burned!
       # A guard to allow only a fresh, new secret to be burned. Also ensures that
       # we don't support going from :burned back to something else.
       return unless state?(:new) || state?(:viewed)
-      md = load_metadata
+
+      md               = load_metadata
       md.burned! unless md.nil?
       @passphrase_temp = nil
-      self.destroy!
+      destroy!
     end
 
     # See Customer model for explanation about why

@@ -86,28 +86,28 @@ class OT::CLI::Definition
   option :l, :list, 'List domains'
   command domains: OT::DomainsCommand
 
-  usage "ots change-email OLD_EMAIL NEW_EMAIL [REALM]"
-  about "Change customer email address and update all related records"
-  about "Usage: ots change-email OLD_EMAIL NEW_EMAIL [REALM]"
+  usage 'ots change-email OLD_EMAIL NEW_EMAIL [REALM]'
+  about 'Change customer email address and update all related records'
+  about 'Usage: ots change-email OLD_EMAIL NEW_EMAIL [REALM]'
   about "  Change a customer's email address and update related records."
-  about ""
-  about "  Arguments:"
-  about "    OLD_EMAIL    Current email address of the customer"
-  about "    NEW_EMAIL    New email address to change to"
-  about "    REALM        Optional: Geographic region (US/EU/CA/NZ), defaults to US"
-  about ""
-  about "  Example:"
-  about "    ots change-email user@example.com new@example.com"
-  about ""
-  about "  Note: Custom domains associated with this customer will be"
-  about "  automatically detected and updated."
-  about ""
+  about ''
+  about '  Arguments:'
+  about '    OLD_EMAIL    Current email address of the customer'
+  about '    NEW_EMAIL    New email address to change to'
+  about '    REALM        Optional: Geographic region (US/EU/CA/NZ), defaults to US'
+  about ''
+  about '  Example:'
+  about '    ots change-email user@example.com new@example.com'
+  about ''
+  about '  Note: Custom domains associated with this customer will be'
+  about '  automatically detected and updated.'
+  about ''
   command change_email: OT::ChangeEmailCommand
 
-  usage "ots change-email-log [EMAIL] [--verbose] [--limit N]"
-  about "View history of email address changes"
-  option :v, :verbose, "Display full change reports"
-  option :n, :limit, Integer, "Limit number of reports to show (default: 10)"
+  usage 'ots change-email-log [EMAIL] [--verbose] [--limit N]'
+  about 'View history of email address changes'
+  option :v, :verbose, 'Display full change reports'
+  option :n, :limit, Integer, 'Limit number of reports to show (default: 10)'
   command change_email_log: OT::ChangeEmailCommand
 
   usage 'ots revalidate-domains'

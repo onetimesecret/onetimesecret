@@ -28,24 +28,27 @@ import baseConfig from './vite.config';
  * These files should be committed to the repository.
  *
  */
-export default mergeConfig(baseConfig, defineConfig({
-  build: {
-    // Generate sourcemaps for easier debugging
-    sourcemap: true,
-    rollupOptions: {
-      output: {
-        // Generate predictable filenames without hashes
-        entryFileNames: `assets/[name].js`,
-        chunkFileNames: `assets/[name].js`,
-        assetFileNames: `assets/[name].[ext]`,
-        // Ensure exports are named for easier integration
-        format: 'umd',
+export default mergeConfig(
+  baseConfig,
+  defineConfig({
+    build: {
+      // Generate sourcemaps for easier debugging
+      sourcemap: true,
+      rollupOptions: {
+        output: {
+          // Generate predictable filenames without hashes
+          entryFileNames: `assets/[name].js`,
+          chunkFileNames: `assets/[name].js`,
+          assetFileNames: `assets/[name].[ext]`,
+          // Ensure exports are named for easier integration
+          format: 'umd',
+        },
       },
     },
-  },
-  // Defines a build timestamp that can be used in the app
-  // to force reloads when a new version is deployed.
-  define: {
-    __BUILD_TIME__: JSON.stringify(new Date().toISOString())
-  }
-}));
+    // Defines a build timestamp that can be used in the app
+    // to force reloads when a new version is deployed.
+    define: {
+      __BUILD_TIME__: JSON.stringify(new Date().toISOString()),
+    },
+  })
+);

@@ -235,7 +235,7 @@ module Onetime
       @model_class  = nil
       @scan_pattern = nil
       @interactive  = false
-      @dbclient = nil
+      @dbclient     = nil
     end
 
     def validate_model_class!
@@ -243,7 +243,7 @@ module Onetime
       raise 'Model class must be a Familia::Horreum subclass' unless familia_horreum_class?
 
       @total_records  = @model_class.values.size
-      @dbclient ||= @model_class.dbclient
+      @dbclient     ||= @model_class.dbclient
       @scan_pattern ||= "#{@model_class.prefix}:*:object"
       nil
     end
@@ -285,7 +285,6 @@ module Onetime
 
       # Call the subclass implementation
       process_record(obj, key)
-
     rescue StandardError => ex
       handle_record_error(key, ex)
     end

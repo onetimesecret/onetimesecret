@@ -4,7 +4,6 @@ require_relative '../refinements/horreum_refinements'
 
 module Onetime
   module Initializers
-
     using Familia::HorreumRefinements
 
     # Connects each model to its configured Redis database.
@@ -31,17 +30,17 @@ module Onetime
 
       # Validate that models have been loaded before attempting to connect
       if Familia.members.empty?
-        raise Onetime::Problem, "No known Familia members. Models need to load before calling boot!"
+        raise Onetime::Problem, 'No known Familia members. Models need to load before calling boot!'
       end
 
       # Map model classes to their database numbers
       Familia.members.each do |model_class|
         model_config_name = model_class.config_name
-        db_index = dbs[model_config_name] || DATABASE_IDS[model_config_name] || 0 # see models.rb
+        db_index          = dbs[model_config_name] || DATABASE_IDS[model_config_name] || 0 # see models.rb
 
         # Assign a Redis connection to the model class
         model_class.redis = Familia.redis(db_index)
-        ping_result = model_class.redis.ping
+        ping_result       = model_class.redis.ping
 
         OT.ld "Connected #{model_config_name} to DB #{db_index} (#{ping_result})"
       end

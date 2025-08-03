@@ -7,7 +7,7 @@ module Onetime
     unless defined?(SERVICE_PATHS)
       SERVICE_PATHS = %w[/etc/onetime ./etc ./etc/defaults].freeze
       UTILITY_PATHS = %w[~/.onetime /etc/onetime ./etc ./etc/defaults].freeze
-      DEFAULTS = {
+      DEFAULTS      = {
         'site' => {
           'secret' => nil,
           'domains' => { 'enabled' => false },
@@ -90,7 +90,7 @@ module Onetime
     # @param path [String] (optional the path to the YAML configuration file
     # @return [Hash] the parsed YAML data
     #
-    def load(path=nil)
+    def load(path = nil)
       path ||= self.path
 
       raise ArgumentError, "Bad path (#{path})" unless File.readable?(path)
@@ -98,7 +98,7 @@ module Onetime
       parsed_template = ERB.new(File.read(path))
 
       YAML.load(parsed_template.result)
-    rescue StandardError => e
+    rescue StandardError => ex
       OT.le "Error loading config: #{path}"
 
       # Log the contents of the parsed template for debugging purposes.
@@ -112,9 +112,24 @@ module Onetime
         end
       end
 
-      OT.le e.message
-      OT.le e.backtrace.join("\n")
-      raise OT::ConfigError.new(e.message)
+      OT.le ex.message
+      OT.le ex.backtrace.join("\n")
+      raise OT::ConfigError.new(ex.message)
+
+      # NOTE: We revisited handling StandardError here in favour of letting it
+      # bubble up to OT::Boot.boot!. I think it simply doesn't make sense to
+      # spill the beans about an unexpected error here b/c it leads to confusing
+      # log output where the backtrace comes before the actual error message.
+      # That's my hypothesis anyway.
+      #
+      # Leaving this note and the rescue block just in case it causing other,
+      # unintended confusing situations. To re-enable, uncomment the following
+      # rescue block:
+      #
+      #   rescue StandardError => ex
+      #     log_error_with_debug_content(ex)
+      #     raise OT::ConfigError, "Unhandled error: #{ex.message}"
+      #
     end
 
     # After loading the configuration, this method processes and validates the
@@ -125,7 +140,6 @@ module Onetime
     # @param loaded_config [Hash] The loaded, unprocessed configuration hash in raw form
     # @return [Hash] The processed configuration hash with defaults applied and security measures in place
     def after_load(loaded_config)
-
       # SAFETY MEASURE: Deep Copy Protection
       # Create a deep copy of the configuration to prevent unintended mutations
       # This protects against side effects when multiple components access the same config
@@ -155,8 +169,8 @@ module Onetime
       # Combine colonels from root level and authentication section
       # This handles the legacy config where colonels were at the root level
       # while ensuring we don't lose any colonels from either location
-      root_colonels = conf.fetch('colonels', [])
-      auth_colonels = conf.dig('site', 'authentication', 'colonels') || []
+      root_colonels                              = conf.fetch('colonels', [])
+      auth_colonels                              = conf.dig('site', 'authentication', 'colonels') || []
       conf['site']['authentication']['colonels'] = (auth_colonels + root_colonels).compact.uniq
 
       # Clear colonels and set to false if authentication is disabled
@@ -181,7 +195,7 @@ module Onetime
         conf['site']['secret_options']['default_ttl'] = default_ttl.to_i
       end
 
-      if conf.dig('billing', 'enabled').to_s == "true"
+      if conf.dig('billing', 'enabled').to_s == 'true'
         stripe_key = conf.dig('billing', 'stripe_key')
         unless stripe_key
           raise OT::Problem, "No `billing.stripe_key` found in #{path}"
@@ -193,15 +207,15 @@ module Onetime
 
       # Apply the defaults to sentry backend and frontend configs
       # and set our local config with the merged values.
-      diagnostics = loaded_config.fetch('diagnostics', {})
-      conf['diagnostics'] = {
+      diagnostics                                = loaded_config.fetch('diagnostics', {})
+      conf['diagnostics']                        = {
         'enabled' => diagnostics['enabled'] || false,
         'sentry' => apply_defaults_to_peers(diagnostics['sentry']),
       }
       conf['diagnostics']['sentry']['backend'] ||= {}
 
       # Update global diagnostic flag based on config
-      backend_dsn = conf.dig('diagnostics', 'sentry', 'backend', 'dsn')
+      backend_dsn  = conf.dig('diagnostics', 'sentry', 'backend', 'dsn')
       frontend_dsn = conf.dig('diagnostics', 'sentry', 'frontend', 'dsn')
 
       # It's disabled when no DSN is present, regardless of enabled setting
@@ -221,12 +235,11 @@ module Onetime
     end
 
     def raise_concerns(conf)
-
       # SAFETY MEASURE: Critical Secret Validation
       # Handle potential nil global secret
       # The global secret is critical for encrypting/decrypting secrets
       # Running without a global secret is only permitted in exceptional cases
-      allow_nil = conf.dig('experimental', 'allow_nil_global_secret') || false
+      allow_nil     = conf.dig('experimental', 'allow_nil_global_secret') || false
       global_secret = conf.dig('site', 'secret') || nil
       global_secret = nil if global_secret.to_s.strip == 'CHANGEME'
 
@@ -234,25 +247,25 @@ module Onetime
         unless allow_nil
           # Fast fail when global secret is nil and not explicitly allowed
           # This is a critical security check that prevents running without encryption
-          raise OT::ConfigError, "Global secret cannot be nil - set SECRET env var or site.secret in config"
+          raise OT::ConfigError, 'Global secret cannot be nil - set SECRET env var or site.secret in config'
         end
 
         # SAFETY MEASURE: Security Warnings for Dangerous Configurations
         # Security warning when proceeding with nil global secret
         # These warnings are prominently displayed to ensure administrators
         # understand the security implications of their configuration
-        OT.li "!" * 50
-        OT.li "SECURITY WARNING: Running with nil global secret!"
-        OT.li "This configuration presents serious security risks:"
-        OT.li "- Secret encryption will be compromised"
-        OT.li "- Data cannot be properly protected"
-        OT.li "- Only use during recovery or transition periods"
-        OT.li "Set valid SECRET env var or site.secret in config ASAP"
-        OT.li "!" * 50
+        OT.li '!' * 50
+        OT.li 'SECURITY WARNING: Running with nil global secret!'
+        OT.li 'This configuration presents serious security risks:'
+        OT.li '- Secret encryption will be compromised'
+        OT.li '- Data cannot be properly protected'
+        OT.li '- Only use during recovery or transition periods'
+        OT.li 'Set valid SECRET env var or site.secret in config ASAP'
+        OT.li '!' * 50
       end
 
       unless conf['mail'].key?('truemail')
-        raise OT::ConfigError, "No TrueMail config found"
+        raise OT::ConfigError, 'No TrueMail config found'
       end
     end
 
@@ -348,7 +361,7 @@ module Onetime
     #   apply_defaults_to_peers({'a' => {'x' => 1}})                # => {'a' => {'x' => 1}}
     #   apply_defaults_to_peers({'defaults' => {'x' => 1}, 'b' => {}})  # => {'b' => {'x' => 1}}
     #
-    def apply_defaults_to_peers(config={})
+    def apply_defaults_to_peers(config = {})
       return {} if config.nil? || config.empty?
 
       # Extract defaults from the configuration
@@ -383,7 +396,7 @@ module Onetime
     #   # => ["/etc/onetime/database.yaml", "./etc/database.yaml"]
     def find_configs(filename = nil)
       filename ||= 'config.yaml'
-      paths = Onetime.mode?(:cli) ? UTILITY_PATHS : SERVICE_PATHS
+      paths      = Onetime.mode?(:cli) ? UTILITY_PATHS : SERVICE_PATHS
       paths.collect do |path|
         f = File.join File.expand_path(path), filename
         Onetime.ld "Looking for #{f}"
@@ -407,8 +420,8 @@ module Onetime
       return deep_clone(original) if other.nil?
 
       original_clone = deep_clone(original)
-      other_clone = deep_clone(other)
-      merger = proc do |_key, v1, v2|
+      other_clone    = deep_clone(other)
+      merger         = proc do |_key, v1, v2|
         if v1.is_a?(Hash) && v2.is_a?(Hash)
           v1.merge(v2, &merger)
         elsif v2.nil?

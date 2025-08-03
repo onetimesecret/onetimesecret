@@ -26,16 +26,16 @@ module Core
       include Core::Views::ViteManifest
       include Onetime::Utils::TimeUtils
 
-      self.template_path = './templates/web'
+      self.template_path      = './templates/web'
       self.template_extension = 'html'
-      self.view_namespace = Core::Views
-      self.view_path = './app/web/views'
+      self.view_namespace     = Core::Views
+      self.view_path          = './app/web/views'
 
       attr_accessor :req, :sess, :cust, :locale, :form_fields, :pagename
       attr_reader :i18n_instance, :view_vars, :serialized_data, :messages
 
-      def initialize req, sess=nil, cust=nil, locale_override=nil, *args
-        @req = req
+      def initialize(req, sess = nil, cust = nil, locale_override = nil, *)
+        @req  = req
         @sess = sess
         @cust = cust || V2::Customer.anonymous
 
@@ -54,18 +54,18 @@ module Core
                     OT.default_locale
                   end
 
-        @i18n_instance = self.i18n
-        @messages = []
+        @i18n_instance = i18n
+        @messages      = []
 
         update_view_vars
 
-        init(*args) if respond_to?(:init)
+        init(*) if respond_to?(:init)
 
         update_serialized_data
       end
 
       def update_serialized_data
-        @serialized_data = self.run_serializers
+        @serialized_data = run_serializers
       end
 
       def update_view_vars
@@ -86,15 +86,15 @@ module Core
       # @param msg [String] Message content to be displayed
       # @param type [String] Type of message, one of: info, error, success, warning
       # @return [Array<Hash>] Array containing all message objects
-      def add_message msg, type='info'
-        messages << {'type' => type, 'content' => msg}
+      def add_message(msg, type = 'info')
+        messages << { 'type' => type, 'content' => msg }
       end
 
       # Add error message to be displayed in StatusBar component
       #
       # @param msg [String] error message content to be displayed
       # @return [Array<Hash>] array containing all message objects
-      def add_error msg
+      def add_error(msg)
         add_message(msg, 'error')
       end
 
@@ -121,7 +121,7 @@ module Core
           # one thing but the reality of software development is another. Process
           # is more important than clever design. Instead, a safer practice is to
           # set the class instance variable here in the class definition.
-          @pagename ||= self.name.split('::').last.downcase.to_sym
+          @pagename ||= name.split('::').last.downcase.to_sym
         end
 
         # Class-level serializers list
@@ -141,7 +141,6 @@ module Core
           end
         end
       end
-
     end
   end
 end

@@ -35,7 +35,7 @@ module V2
       def receive_feedback
         process_action(
           V2::Logic::ReceiveFeedback,
-          "Feedback received. Send as much as you like.",
+          'Feedback received. Send as much as you like.',
           "Sorry we were not able to receive your feedback (it's us, not you).",
           allow_anonymous: true,
         )
@@ -44,7 +44,7 @@ module V2
       def get_supported_locales
         publically do
           supported_locales = OT.supported_locales.map(&:to_s)
-          default_locale = OT.default_locale
+          default_locale    = OT.default_locale
           json locales: supported_locales, default_locale: default_locale, locale: locale
         end
       end
@@ -59,17 +59,17 @@ module V2
             # important request fails inexplicably for the user.
 
             # Log all headers for debugging Sentry issue
-            OT.ld "[Debug-Sentry] Request headers: #{req.env.select { |k, v| k.start_with?('HTTP_') }.inspect}"
+            OT.ld "[Debug-Sentry] Request headers: #{req.env.select { |k, _v| k.start_with?('HTTP_') }.inspect}"
 
             shrimp = req.env['HTTP_O_SHRIMP'].to_s
             OT.le 'Missing O-Shrimp header' if shrimp.empty?
 
             begin
               # Attempt to validate the shrimp
-              is_valid = validate_shrimp(shrimp, replace=false)
-            rescue OT::BadShrimp => e
+              is_valid = validate_shrimp(shrimp, false)
+            rescue OT::BadShrimp => ex
               # If a BadShrimp exception is raised, log it and set is_valid to false
-              OT.ld "BadShrimp exception: #{e.message}"
+              OT.ld "BadShrimp exception: #{ex.message}"
               is_valid = false
             end
 
@@ -83,7 +83,6 @@ module V2
           end
         end
       end
-
     end
   end
 end

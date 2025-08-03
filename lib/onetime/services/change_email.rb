@@ -37,11 +37,11 @@ module Onetime
       #   - :domain [String] The domain name (e.g., 'example.com')
       #   - :old_id [String] The current domain ID (no longer needs updating)
       def initialize(old_email, new_email, realm, domains = [])
-        @old_email = old_email
-        @new_email = new_email
-        @realm = realm
-        @domains = domains || []
-        @log_entries = []
+        @old_email       = old_email
+        @new_email       = new_email
+        @realm           = realm
+        @domains         = domains || []
+        @log_entries     = []
         @domain_mappings = {}
 
         # Redis instances are defined in the execution methods
@@ -50,20 +50,20 @@ module Onetime
       # Generates a summary of changes that will be made during execution
       # @return [String] A human-readable summary of changes
       def summarize_changes
-        changes = ["CHANGES TO BE MADE:",
-                   "===================",
+        changes = ['CHANGES TO BE MADE:',
+                   '===================',
                    "1. Change customer email from #{old_email} to #{new_email}",
-                   "2. Update the following Redis keys:",
+                   '2. Update the following Redis keys:',
                    "   - customer:#{old_email}:object → customer:#{new_email}:object",
                    "   - customer:#{old_email}:custom_domain → customer:#{new_email}:custom_domain (if exists)",
                    "   - customer:#{old_email}:metadata → customer:#{new_email}:metadata (if exists)",
                    "   - customer:#{old_email}:feature_flags → customer:#{new_email}:feature_flags (if exists)",
                    "   - customer:#{old_email}:reset_secret → customer:#{new_email}:reset_secret (if exists)",
-                   "3. Update customer in values sorted set (onetime:customer)"]
+                   '3. Update customer in values sorted set (onetime:customer)']
 
         # Note domain associations if any (no changes needed since domain IDs are now random)
         if @domains.any?
-          changes << "4. Associated custom domain(s) (no changes required):"
+          changes << '4. Associated custom domain(s) (no changes required):'
           @domains.each do |domain_info|
             domain = domain_info[:domain]
             old_id = domain_info[:old_id]
@@ -88,7 +88,7 @@ module Onetime
       # @return [Boolean] True if all validations pass
       # @raise [RuntimeError] If any validation fails, with a descriptive error message
       def validate!
-        log "VALIDATION: Starting validation checks"
+        log 'VALIDATION: Starting validation checks'
 
         # Check old email exists
         unless V2::Customer.exists?(old_email)
@@ -104,10 +104,10 @@ module Onetime
         if domains.any?
           validate_domains
         else
-          log "No domains to validate"
+          log 'No domains to validate'
         end
 
-        log "VALIDATION: All checks passed"
+        log 'VALIDATION: All checks passed'
         true
       end
 
@@ -130,7 +130,7 @@ module Onetime
           end
 
           # Check domain exists in display_domains
-          display_domains_id = V2::CustomDomain.redis.hget("customdomain:display_domains", domain)
+          display_domains_id = V2::CustomDomain.redis.hget('customdomain:display_domains', domain)
           if display_domains_id.to_s.empty?
             raise "ERROR: Domain '#{domain}' not found in display_domains mapping"
           end
@@ -161,13 +161,13 @@ module Onetime
         begin
           redis.multi do |multi|
             # Update customer object fields
-            log "Updating customer object fields"
-            multi.hset("customer:#{old_email}:object", "custid", new_email)
-            multi.hset("customer:#{old_email}:object", "key", new_email)
-            multi.hset("customer:#{old_email}:object", "email", new_email)
+            log 'Updating customer object fields'
+            multi.hset("customer:#{old_email}:object", 'custid', new_email)
+            multi.hset("customer:#{old_email}:object", 'key', new_email)
+            multi.hset("customer:#{old_email}:object", 'email', new_email)
 
             # Rename customer keys
-            log "Renaming customer keys"
+            log 'Renaming customer keys'
             multi.rename("customer:#{old_email}:object", "customer:#{new_email}:object")
 
             # These keys might not exist for all customers, so check first
@@ -180,36 +180,34 @@ module Onetime
             multi.rename("customer:#{old_email}:feature_flags", "customer:#{new_email}:feature_flags") if redis.exists?("customer:#{old_email}:feature_flags")
             multi.rename("customer:#{old_email}:reset_secret", "customer:#{new_email}:reset_secret") if redis.exists?("customer:#{old_email}:reset_secret")
 
-
             # Update customer values list
             # Get score for the old email in the sorted set
             # Note: ZSCORE cannot be used inside a MULTI block.
             # This operation needs to be handled carefully.
             # For now, we'll assume this is done outside or before the transaction.
             # A possible approach is to fetch the score before the multi block.
-            score = redis.zscore("onetime:customer", old_email)
+            score = redis.zscore('onetime:customer', old_email)
             if score
-              multi.zadd("onetime:customer", score, new_email)
-              multi.zrem("onetime:customer", old_email)
+              multi.zadd('onetime:customer', score, new_email)
+              multi.zrem('onetime:customer', old_email)
             end
           end
 
-          log "EXECUTION: Email change completed successfully"
-          return true
-        rescue Redis::CommandError => e
+          log 'EXECUTION: Email change completed successfully'
+          true
+        rescue Redis::CommandError => ex
           # Specific handling for errors during EXEC
-          log "ERROR during Redis transaction: #{e.message}"
-          log e.backtrace.join("\n")
+          log "ERROR during Redis transaction: #{ex.message}"
+          log ex.backtrace.join("\n")
           # Attempt to unwatch if a watch was used, though not explicitly here
           redis.unwatch if redis.respond_to?(:unwatch)
-          return false
-        rescue => e
-          log "ERROR: #{e.message}"
-          log e.backtrace.join("\n")
-          return false
+          false
+        rescue StandardError => ex
+          log "ERROR: #{ex.message}"
+          log ex.backtrace.join("\n")
+          false
         end
       end
-
 
       # Logs a message to the internal log and stdout with timestamp.
       #
@@ -221,8 +219,8 @@ module Onetime
       # @param message [String] The message to log
       # @param stdout [Boolean] Whether to print the message to stdout
       def log(message, stdout = true)
-        timestamp = Time.now.strftime("%Y-%m-%d %H:%M:%S")
-        entry = "[#{timestamp}] #{message}"
+        timestamp = Time.now.strftime('%Y-%m-%d %H:%M:%S')
+        entry     = "[#{timestamp}] #{message}"
         @log_entries << entry
         OT.info "[cli.change-email] #{message}" if stdout
       end
@@ -238,15 +236,15 @@ module Onetime
       #
       # @return [String] The formatted report as a single string
       def generate_report
-        report = ["EMAIL CHANGE REPORT",
-                  "=====================",
+        report = ['EMAIL CHANGE REPORT',
+                  '=====================',
                   "Old Email: #{old_email}",
                   "New Email: #{new_email}",
                   "Realm: #{realm}",
                   "Domains: #{domains.map { |d| d[:domain] }.join(', ')}",
                   "Timestamp: #{Time.now}",
-                  "=====================",
-                  "LOG ENTRIES:"]
+                  '=====================',
+                  'LOG ENTRIES:']
         report.concat(log_entries)
         report.join("\n")
       end
@@ -255,8 +253,8 @@ module Onetime
       # @return [String] The key where the report was stored
       def save_report_to_redis
         report_text = generate_report
-        timestamp = Time.now.to_i
-        report_key = "change_email:#{old_email}:#{new_email}:#{timestamp}"
+        timestamp   = Time.now.to_i
+        report_key  = "change_email:#{old_email}:#{new_email}:#{timestamp}"
 
         # Save to Redis DB 0 for audit logs
         redis = Familia.redis

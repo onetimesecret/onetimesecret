@@ -1,7 +1,5 @@
-
 module V2::Logic
   module Account
-
     class GenerateAPIToken < V2::Logic::Base
       attr_reader :apitoken, :greenlighted
 
@@ -10,16 +8,14 @@ module V2::Logic
       end
 
       def raise_concerns
+        return unless !sess.authenticated? || cust.anonymous?
 
-
-        if (!sess.authenticated?) || (cust.anonymous?)
-          raise_form_error "Sorry, we don't support that"
-        end
+        raise_form_error "Sorry, we don't support that"
       end
 
       def process
         @greenlighted = true
-        @apitoken = cust.regenerate_apitoken
+        @apitoken     = cust.regenerate_apitoken
       end
 
       # The data returned from this method is passed back to the client.
@@ -27,6 +23,5 @@ module V2::Logic
         { record: { apitoken: apitoken, active: true } }
       end
     end
-
   end
 end

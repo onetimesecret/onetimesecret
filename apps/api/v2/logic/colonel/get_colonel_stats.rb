@@ -7,28 +7,26 @@ module V2
     module Colonel
       class GetColonelStats < V2::Logic::Base
         attr_reader :session_count, :customer_count, :metadata_count,
-                    :secret_count, :secrets_created, :secrets_shared, :emails_sent
+          :secret_count, :secrets_created, :secrets_shared, :emails_sent
 
         def process_params
           # No parameters needed for stats endpoint
         end
 
-        def raise_concerns
-
-        end
+        def raise_concerns; end
 
         def process
           process_statistics
         end
 
         def process_statistics
-          @session_count = V2::Session.recent(15.minutes).size
-          @customer_count = V2::Customer.values.size
-          @metadata_count = V2::Metadata.new.redis.keys('metadata*:object').count
-          @secret_count = V2::Secret.new.redis.keys('secret*:object').count
+          @session_count   = V2::Session.recent(15.minutes).size
+          @customer_count  = V2::Customer.values.size
+          @metadata_count  = V2::Metadata.new.redis.keys('metadata*:object').count
+          @secret_count    = V2::Secret.new.redis.keys('secret*:object').count
           @secrets_created = V2::Customer.global.secrets_created.to_s
-          @secrets_shared = V2::Customer.global.secrets_shared.to_s
-          @emails_sent = V2::Customer.global.emails_sent.to_s
+          @secrets_shared  = V2::Customer.global.secrets_shared.to_s
+          @emails_sent     = V2::Customer.global.emails_sent.to_s
         end
         private :process_statistics
 
@@ -48,7 +46,6 @@ module V2
             },
           }
         end
-
       end
     end
   end

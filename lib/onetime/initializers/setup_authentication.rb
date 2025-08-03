@@ -2,9 +2,6 @@
 
 module Onetime
   module Initializers
-
-    def setup_authentication
-
-    end
+    def setup_authentication; end
   end
 end

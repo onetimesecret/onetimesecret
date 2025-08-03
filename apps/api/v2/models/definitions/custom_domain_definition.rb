@@ -8,10 +8,9 @@
 #
 module V2
   class CustomDomain < Familia::Horreum
-
     unless defined?(MAX_SUBDOMAIN_DEPTH)
       MAX_SUBDOMAIN_DEPTH = 10 # e.g., a.b.c.d.e.f.g.h.i.j.example.com
-      MAX_TOTAL_LENGTH = 253   # RFC 1034 section 3.1
+      MAX_TOTAL_LENGTH    = 253   # RFC 1034 section 3.1
     end
 
     prefix :customdomain
@@ -51,7 +50,7 @@ module V2
     @txt_validation_prefix = '_onetime-challenge'
 
     @safe_dump_fields = [
-      { :identifier => ->(obj) { obj.identifier } },
+      { identifier: ->(obj) { obj.identifier } },
       :domainid,
       :display_domain,
       :custid,
@@ -60,21 +59,21 @@ module V2
       :trd,
       :tld,
       :sld,
-      { :is_apex => ->(obj) { obj.apex? } },
+      { is_apex: ->(obj) { obj.apex? } },
       :_original_value,
       :txt_validation_host,
       :txt_validation_value,
-      { :brand => ->(obj) { obj.brand.hgetall } },
+      { brand: ->(obj) { obj.brand.hgetall } },
       # NOTE: We don't serialize images here
       :status,
-      { :vhost => ->(obj) { obj.parse_vhost } },
+      { vhost: ->(obj) { obj.parse_vhost } },
       :verified,
       :created,
       :updated,
     ]
 
     def init
-      @domainid = self.identifier
+      @domainid = identifier
 
       # Display domain and cust should already be set and accessible
       # via accessor methods so we should see a valid identifier logged.
@@ -85,10 +84,10 @@ module V2
 
       # Store the individual domain parts that PublicSuffix parsed out
       @base_domain = ps_domain.domain.to_s
-      @subdomain = ps_domain.subdomain.to_s
-      @trd = ps_domain.trd.to_s
-      @tld = ps_domain.tld.to_s
-      @sld = ps_domain.sld.to_s
+      @subdomain   = ps_domain.subdomain.to_s
+      @trd         = ps_domain.trd.to_s
+      @tld         = ps_domain.tld.to_s
+      @sld         = ps_domain.sld.to_s
 
       # Don't call generate_txt_validation_record here otherwise we'll
       # create a new validation record every time we instantiate a

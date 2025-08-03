@@ -16,19 +16,17 @@ module V2::Logic
       end
 
       def raise_concerns
-        raise_form_error "Please enter a domain" if @domain_input.empty?
+        raise_form_error 'Please enter a domain' if @domain_input.empty?
 
-        unless V2::CustomDomain.valid?(@domain_input)
-          raise_form_error "Not a valid public domain"
-        end
+        raise_form_error 'Not a valid public domain' unless V2::CustomDomain.valid?(@domain_input)
 
         @custom_domain = V2::CustomDomain.load(@domain_input, @cust.custid)
-        raise_form_error "Domain not found" unless custom_domain
+        raise_form_error 'Domain not found' unless custom_domain
 
         @display_domain = @domain_input # Only after it's known to be a good value
 
-        @image = self._image_field
-        raise_not_found "Image not found" unless image && image['encoded']
+        @image = _image_field
+        raise_not_found 'Image not found' unless image && image['encoded']
       end
 
       def process
@@ -39,9 +37,8 @@ module V2::Logic
 
       def success_data
         {
-          record: image.hgetall,  # encoded filename content_type
-          details: {
-          },
+          record: image.hgetall, # encoded filename content_type
+          details: {},
         }
       end
 
@@ -50,7 +47,6 @@ module V2::Logic
         custom_domain.send(self.class.field)
       end
       private :_image_field
-
     end
 
     class GetDomainLogo < GetDomainImage
@@ -60,6 +56,5 @@ module V2::Logic
     class GetDomainIcon < GetDomainImage
       @field = :icon
     end
-
   end
 end

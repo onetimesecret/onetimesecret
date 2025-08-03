@@ -2,7 +2,6 @@
 
 module V2
   class CustomDomain < Familia::Horreum
-
     module Management
       attr_reader :db, :values, :owners, :txt_validation_prefix
 
@@ -37,24 +36,24 @@ module V2
         redis.watch(obj.rediskey) do
           if obj.exists?
             redis.unwatch
-            raise Onetime::Problem, "Duplicate domain for customer"
+            raise Onetime::Problem, 'Duplicate domain for customer'
           end
 
-          redis.multi do |multi|
+          redis.multi do |_multi|
             obj.generate_txt_validation_record
             obj.save
             # Create minimal customer instance for Redis key
             cust = V2::Customer.new(custid: custid)
             cust.add_custom_domain(obj)
             # Add to global values set
-            self.add(obj)
+            add(obj)
           end
         end
 
-        obj  # Return the created object
-      rescue Redis::BaseError => e
-        OT.le "[CustomDomain.create] Redis error: #{e.message}"
-        raise Onetime::Problem, "Unable to create custom domain"
+        obj # Return the created object
+      rescue Redis::BaseError => ex
+        OT.le "[CustomDomain.create] Redis error: #{ex.message}"
+        raise Onetime::Problem, 'Unable to create custom domain'
       end
 
       # Returns a new V2::CustomDomain object (without saving it).
@@ -70,21 +69,17 @@ module V2
       # @raise [Onetime::Problem] If domain exceeds MAX_SUBDOMAIN_DEPTH or MAX_TOTAL_LENGTH
       #
       def parse(input, custid)
-        raise Onetime::Problem, "Customer ID required" if custid.to_s.empty?
+        raise Onetime::Problem, 'Customer ID required' if custid.to_s.empty?
 
         segments = input.to_s.split('.').reject(&:empty?)
-        raise Onetime::Problem, "Invalid domain format" if segments.empty?
+        raise Onetime::Problem, 'Invalid domain format' if segments.empty?
 
-        if segments.length > MAX_SUBDOMAIN_DEPTH
-          raise Onetime::Problem, "Domain too deep (max: #{MAX_SUBDOMAIN_DEPTH})"
-        end
+        raise Onetime::Problem, "Domain too deep (max: #{MAX_SUBDOMAIN_DEPTH})" if segments.length > MAX_SUBDOMAIN_DEPTH
 
-        if input.length > MAX_TOTAL_LENGTH
-          raise Onetime::Problem, "Domain too long (max: #{MAX_TOTAL_LENGTH})"
-        end
+        raise Onetime::Problem, "Domain too long (max: #{MAX_TOTAL_LENGTH})" if input.length > MAX_TOTAL_LENGTH
 
-        display_domain = self.display_domain(input)
-        obj = new(display_domain, custid)
+        display_domain      = self.display_domain(input)
+        obj                 = new(display_domain, custid)
         obj._original_value = input
         obj
       end
@@ -103,12 +98,12 @@ module V2
       # display domain.
       #
       # Returns either a string or nil if invalid
-      def base_domain input
+      def base_domain(input)
         # We don't need to fuss with empty stripping spaces, prefixes,
         # etc because PublicSuffix does that for us.
         PublicSuffix.domain(input, default_rule: nil)
-      rescue PublicSuffix::DomainInvalid => e
-        OT.le "[CustomDomain.base_domain] #{e.message} for `#{input}`"
+      rescue PublicSuffix::DomainInvalid => ex
+        OT.le "[CustomDomain.base_domain] #{ex.message} for `#{input}`"
         nil
       end
 
@@ -118,33 +113,32 @@ module V2
       # www.froogle.com would return www.froogle.com; and froogle.com
       # would return froogle.com.
       #
-      def display_domain input
+      def display_domain(input)
         ps_domain = PublicSuffix.parse(input, default_rule: nil)
         ps_domain.subdomain || ps_domain.domain
-
-      rescue PublicSuffix::Error => e
-        OT.le "[CustomDomain.parse] #{e.message} for `#{input}`"
-        raise Onetime::Problem, e.message
+      rescue PublicSuffix::Error => ex
+        OT.le "[CustomDomain.parse] #{ex.message} for `#{input}`"
+        raise Onetime::Problem, ex.message
       end
 
       # Returns boolean, whether the domain is a valid public suffix
       # which checks without actually parsing it.
-      def valid? input
+      def valid?(input)
         PublicSuffix.valid?(input, default_rule: nil)
       end
 
-      def default_domain? input
+      def default_domain?(input)
         display_domain = V2::CustomDomain.display_domain(input)
-        site_host = OT.conf.dig('site', 'host')
+        site_host      = OT.conf.dig('site', 'host')
         OT.ld "[CustomDomain.default_domain?] #{display_domain} == #{site_host}"
         display_domain.eql?(site_host)
-      rescue PublicSuffix::Error => e
-        OT.le "[CustomDomain.default_domain?] #{e.message} for `#{input}"
+      rescue PublicSuffix::Error => ex
+        OT.le "[CustomDomain.default_domain?] #{ex.message} for `#{input}"
         false
       end
 
       # Simply instatiates a new CustomDomain object and checks if it exists.
-      def exists? input, custid
+      def exists?(input, custid)
         # The `parse`` method instantiates a new CustomDomain object but does
         # not save it to Redis. We do that here to piggyback on the inital
         # validation and parsing. We use the derived identifier to load
@@ -152,39 +146,38 @@ module V2
         obj = parse(input, custid)
         OT.ld "[CustomDomain.exists?] Got #{obj.identifier} #{obj.display_domain} #{obj.custid}"
         obj.exists?
-
-      rescue Onetime::Problem => e
-        OT.le "[CustomDomain.exists?] #{e.message}"
+      rescue Onetime::Problem => ex
+        OT.le "[CustomDomain.exists?] #{ex.message}"
         false
       end
 
-      def add fobj
-        self.values.add OT.now.to_i, fobj.to_s # created time, identifier
-        self.display_domains.put fobj.display_domain, fobj.identifier
-        self.owners.put fobj.to_s, fobj.custid  # domainid => customer id
+      def add(fobj)
+        values.add OT.now.to_i, fobj.to_s # created time, identifier
+        display_domains.put fobj.display_domain, fobj.identifier
+        owners.put fobj.to_s, fobj.custid # domainid => customer id
       end
 
-      def rem fobj
-        self.values.remove fobj.to_s
-        self.display_domains.remove fobj.display_domain
-        self.owners.remove fobj.to_s
+      def rem(fobj)
+        values.remove fobj.to_s
+        display_domains.remove fobj.display_domain
+        owners.remove fobj.to_s
       end
 
       def all
         # Load all instances from the sorted set. No need
         # to involve the owners HashKey here.
-        self.values.revrangeraw(0, -1).collect { |identifier| from_identifier(identifier) }
+        values.revrangeraw(0, -1).collect { |identifier| from_identifier(identifier) }
       end
 
-      def recent duration=48.hours
-        spoint, epoint = OT.now.to_i-duration, OT.now.to_i
-        self.values.rangebyscoreraw(spoint, epoint).collect { |identifier| load(identifier) }
+      def recent(duration = 48.hours)
+        spoint = OT.now.to_i - duration
+        epoint = OT.now.to_i
+        values.rangebyscoreraw(spoint, epoint).collect { |identifier| load(identifier) }
       end
 
       # Implement a load method for CustomDomain to make sure the
       # correct derived ID is used as the key.
-      def load display_domain, custid
-
+      def load(display_domain, custid)
         custom_domain = parse(display_domain, custid).tap do |obj|
           OT.ld "[CustomDomain.load] Got #{obj.identifier} #{obj.display_domain} #{obj.custid}"
           raise Onetime::RecordNotFound, "Domain not found #{obj.display_domain}" unless obj.exists?
@@ -199,9 +192,9 @@ module V2
       #
       # @param display_domain [String] The display domain to load
       # @return [V2::CustomDomain, nil] The custom domain record or nil if not found
-      def from_display_domain display_domain
+      def from_display_domain(display_domain)
         # Get the domain ID from the display_domains hash
-        domain_id = self.display_domains.get(display_domain)
+        domain_id = display_domains.get(display_domain)
         return nil unless domain_id
 
         # Load the record using the domain ID

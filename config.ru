@@ -13,7 +13,6 @@
 # ```
 #
 
-
 # Establish the environment
 ENV['RACK_ENV']     ||= 'production'.freeze
 ENV['ONETIME_HOME'] ||= File.expand_path(__dir__).freeze

@@ -9,7 +9,7 @@ module V2
         @safe_fields = %w[interface secret_options mail diagnostics]
 
         attr_reader :config, :interface, :secret_options, :mail,
-                    :diagnostics, :greenlighted, :record
+          :diagnostics, :greenlighted, :record
 
         def process_params
           OT.ld "[UpdateSystemSettings#process_params] params: #{params.inspect}"
@@ -17,10 +17,10 @@ module V2
           @config = params[:config]
 
           # Extract configuration sections
-          @interface = config[:interface]
+          @interface      = config[:interface]
           @secret_options = config[:secret_options]
-          @mail = config[:mail]
-          @diagnostics = config[:diagnostics]
+          @mail           = config[:mail]
+          @diagnostics    = config[:diagnostics]
 
           # Log which configuration sections were extracted
           config_sections = {
@@ -30,13 +30,12 @@ module V2
             diagnostics: diagnostics,
           }
 
-          OT.ld "[UpdateSystemSettings#process_params] Extracted config sections: " +
-                config_sections.map { |name, value| "#{name}=#{!!value}" }.join(", ")
+          OT.ld '[UpdateSystemSettings#process_params] Extracted config sections: ' +
+                config_sections.map { |name, value| "#{name}=#{!!value}" }.join(', ')
         end
 
         def raise_concerns
-
-          raise_form_error "`config` was empty" if config.empty?
+          raise_form_error '`config` was empty' if config.empty?
 
           # Normalize keys to symbols for comparison
           config_keys = config.keys.map { |k| k.respond_to?(:to_sym) ? k.to_sym : k }
@@ -45,15 +44,17 @@ module V2
           present_fields = self.class.safe_fields & config_keys
 
           OT.ld "[UpdateSystemSettings#raise_concerns] Present fields: #{present_fields.join(', ')}"
-          raise_form_error "No valid configuration sections found" if present_fields.empty?
+          raise_form_error 'No valid configuration sections found' if present_fields.empty?
 
           # Log unsupported fields but don't error
           unsupported_fields = config_keys - self.class.safe_fields
-          OT.ld "[UpdateSystemSettings#raise_concerns] Ignoring unsupported fields: #{unsupported_fields.join(', ')}" unless unsupported_fields.empty?
+          return if unsupported_fields.empty?
+
+          OT.ld "[UpdateSystemSettings#raise_concerns] Ignoring unsupported fields: #{unsupported_fields.join(', ')}"
         end
 
         def process
-          OT.ld "[UpdateSystemSettings#process] Persisting system settings"
+          OT.ld '[UpdateSystemSettings#process] Persisting system settings'
 
           OT.li "[UpdateSystemSettings#process] Interface: #{interface.inspect}" if interface
           OT.li "[UpdateSystemSettings#process] Secret Options: #{secret_options.inspect}" if secret_options
@@ -68,16 +69,15 @@ module V2
             @record = SystemSettings.create(**update_fields)
 
             @greenlighted = true
-            OT.ld "[UpdateSystemSettings#process] System settings persisted successfully"
-
-          rescue => e
-            OT.le "[UpdateSystemSettings#process] Failed to persist system settings: #{e.message}"
-            raise_form_error "Failed to update configuration: #{e.message}"
+            OT.ld '[UpdateSystemSettings#process] System settings persisted successfully'
+          rescue StandardError => ex
+            OT.le "[UpdateSystemSettings#process] Failed to persist system settings: #{ex.message}"
+            raise_form_error "Failed to update configuration: #{ex.message}"
           end
         end
 
         def success_data
-          OT.ld "[UpdateSystemSettings#success_data] Returning updated system settings"
+          OT.ld '[UpdateSystemSettings#success_data] Returning updated system settings'
 
           # Return the record and the sections that were provided
           {
@@ -89,15 +89,15 @@ module V2
         private
 
         def build_update_fields
-          fields = {}
+          fields                  = {}
           # Only include sections that were provided and are not nil/empty
-          fields[:interface] = interface if interface && !interface.empty?
+          fields[:interface]      = interface if interface && !interface.empty?
           fields[:secret_options] = secret_options if secret_options && !secret_options.empty?
-          fields[:mail] = mail if mail && !mail.empty?
-          fields[:diagnostics] = diagnostics if diagnostics && !diagnostics.empty?
+          fields[:mail]           = mail if mail && !mail.empty?
+          fields[:diagnostics]    = diagnostics if diagnostics && !diagnostics.empty?
 
           # Add metadata
-          fields[:custid] = @cust.custid if @cust
+          fields[:custid]  = @cust.custid if @cust
           fields[:created] = Time.now.to_i
           fields[:updated] = Time.now.to_i
 

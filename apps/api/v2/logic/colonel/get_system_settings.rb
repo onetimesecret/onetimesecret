@@ -12,13 +12,11 @@ module V2
           # No parameters needed for GET operation
         end
 
-        def raise_concerns
-
-        end
+        def raise_concerns; end
 
         def process
           @current_record = fetch_current_system_settings
-          @merged_config = build_merged_configuration
+          @merged_config  = build_merged_configuration
 
           OT.ld "[GetSystemSettings#process] Retrieved system settings with #{@merged_config.keys.size} sections"
         end
@@ -36,7 +34,7 @@ module V2
         def fetch_current_system_settings
           SystemSettings.current
         rescue Onetime::RecordNotFound
-          OT.ld "[GetSystemSettings#fetch_current_system_settings] No system settings found, using base config only"
+          OT.ld '[GetSystemSettings#fetch_current_system_settings] No system settings found, using base config only'
           nil
         end
 

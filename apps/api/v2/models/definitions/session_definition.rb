@@ -4,14 +4,13 @@ require_relative '../mixins/session_messages'
 
 module V2
   class Session < Familia::Horreum
-
     feature :safe_dump
     feature :expiration
 
     ttl 20.minutes
     prefix :session
 
-    class_sorted_set :values, key: "onetime:session"
+    class_sorted_set :values, key: 'onetime:session'
 
     identifier :sessid
 
@@ -32,7 +31,7 @@ module V2
     field :referrer
 
     @safe_dump_fields = [
-      { :identifier => ->(obj) { obj.identifier } },
+      { identifier: ->(obj) { obj.identifier } },
       :sessid,
       :external_identifier,
       :authenticated,

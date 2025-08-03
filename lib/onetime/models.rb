@@ -13,7 +13,6 @@
 require 'v1/models'
 require 'v2/models'
 
-
 module Onetime
   # Points to the current API version's models module.
   # Fixed to V2 for stability, but designed to be configurable in future

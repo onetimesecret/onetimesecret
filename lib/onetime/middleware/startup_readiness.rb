@@ -85,9 +85,9 @@ module Onetime
       }
 
       def initialize(app, response_type: :auto, translations: nil)
-        @app = app
+        @app           = app
         @response_type = response_type
-        @translations = translations || self.class.translations || TRANSLATIONS
+        @translations  = translations || self.class.translations || TRANSLATIONS
       end
 
       def call(env)

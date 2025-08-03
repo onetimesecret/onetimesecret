@@ -15,7 +15,7 @@ module Onetime
     def self.mailer
       @mailer ||= begin
         provider = OT.conf['emailer']['provider'] || 'smtp'
-        from = OT.conf['emailer']['from']
+        from     = OT.conf['emailer']['from']
         fromname = OT.conf['emailer']['fromname']
 
         case provider.to_s.downcase

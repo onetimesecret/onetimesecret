@@ -18,16 +18,15 @@ module V2
       include V2::Logic::I18nHelpers
       include V2::Logic::UriHelpers
 
-      attr_reader :sess, :cust, :params, :locale, :processed_params
-      attr_reader :site, :authentication, :domains_enabled, :planid
+      attr_reader :sess, :cust, :params, :locale, :processed_params, :site, :authentication, :domains_enabled, :planid
 
       attr_accessor :domain_strategy, :display_domain
 
       def initialize(sess, cust, params = nil, locale = nil)
-        @sess = sess
-        @cust = cust
-        @params = params
-        @locale = locale
+        @sess               = sess
+        @cust               = cust
+        @params             = params
+        @locale             = locale
         @processed_params ||= {} # TODO: Remove
         process_settings
 
@@ -41,10 +40,10 @@ module V2
       end
 
       def process_settings
-        @site = OT.conf.fetch('site', {})
-        domains = site.fetch('domains', {})
-        @authentication = site.fetch('authentication', {})
-        domains = site.fetch(:domains, {})
+        @site            = OT.conf.fetch('site', {})
+        site.fetch('domains', {})
+        @authentication  = site.fetch('authentication', {})
+        domains          = site.fetch(:domains, {})
         @domains_enabled = domains[:enabled] || false
       end
 
@@ -53,13 +52,12 @@ module V2
 
         begin
           validator = Truemail.validate(guess)
-
-        rescue StandardError => e
-          OT.le "Email validation error: #{e.message}"
-          OT.le e.backtrace
+        rescue StandardError => ex
+          OT.le "Email validation error: #{ex.message}"
+          OT.le ex.backtrace
           false
         else
-          valid = validator.result.valid?
+          valid          = validator.result.valid?
           validation_str = validator.as_json
           OT.info "[valid_email?] Address is valid (#{valid}): #{validation_str}"
           valid
@@ -82,14 +80,14 @@ module V2
       end
 
       def raise_not_found(msg)
-        ex = Onetime::RecordNotFound.new
+        ex         = Onetime::RecordNotFound.new
         ex.message = msg
         raise ex
       end
 
       def raise_form_error(msg)
-        ex = OT::FormError.new
-        ex.message = msg
+        ex             = OT::FormError.new
+        ex.message     = msg
         ex.form_fields = form_fields if respond_to?(:form_fields)
         raise ex
       end
@@ -99,14 +97,14 @@ module V2
       end
 
       # Requires the implementing class to have cust and session fields
-      def send_verification_email token=nil
-      _, secret = V2::Secret.spawn_pair cust.custid, token
+      def send_verification_email(token = nil)
+        _, secret = V2::Secret.spawn_pair cust.custid, token
 
         msg = "Thanks for verifying your account. We got you a secret fortune cookie!\n\n\"%s\"" % OT::Utils.random_fortune
 
         secret.encrypt_value msg
         secret.verification = true
-        secret.custid = cust.custid
+        secret.custid       = cust.custid
         secret.save
 
         cust.reset_secret = secret.key # as a standalone rediskey, writes immediately
@@ -115,7 +113,6 @@ module V2
 
         begin
           view.deliver_email token
-
         rescue StandardError => ex
           errmsg = "Couldn't send the verification email. Let us know below."
           OT.le "Error sending verification email: #{ex.message}", ex.backtrace

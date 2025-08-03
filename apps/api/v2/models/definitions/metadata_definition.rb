@@ -2,7 +2,6 @@
 
 module V2
   class Metadata < Familia::Horreum
-
     feature :safe_dump
     feature :expiration
 
@@ -38,13 +37,13 @@ module V2
     # NOTE: Safe dump fields are loaded once at start time so they're
     # immune to hot reloads.
     @safe_dump_fields = [
-      { :identifier => ->(obj) { obj.identifier } },
+      { identifier: ->(obj) { obj.identifier } },
       :key,
       :custid,
       :state,
       :secret_shortkey,
       :secret_ttl,
-      { :metadata_ttl => ->(m) { m.lifespan } },
+      { metadata_ttl: ->(m) { m.lifespan } },
       :lifespan,
       :share_domain,
       :created,
@@ -55,25 +54,26 @@ module V2
       :viewed,
       :recipients,
 
-      { :shortkey => ->(m) { m.key.slice(0, 8) } },
-      { :show_recipients => ->(m) { !m.recipients.to_s.empty? } },
+      { shortkey: ->(m) { m.key.slice(0, 8) } },
+      { show_recipients: ->(m) { !m.recipients.to_s.empty? } },
 
-      { :is_viewed => ->(m) { m.state?(:viewed) } },
-      { :is_received => ->(m) { m.state?(:received) } },
-      { :is_burned => ->(m) { m.state?(:burned) } },
-      { :is_expired => ->(m) { m.state?(:expired) } },
-      { :is_orphaned => ->(m) { m.state?(:orphaned) } },
-      { :is_destroyed => ->(m) { m.state?(:received) || m.state?(:burned) || m.state?(:expired) || m.state?(:orphaned) } },
+      { is_viewed: ->(m) { m.state?(:viewed) } },
+      { is_received: ->(m) { m.state?(:received) } },
+      { is_burned: ->(m) { m.state?(:burned) } },
+      { is_expired: ->(m) { m.state?(:expired) } },
+      { is_orphaned: ->(m) { m.state?(:orphaned) } },
+      { is_destroyed: lambda { |m|
+        m.state?(:received) || m.state?(:burned) || m.state?(:expired) || m.state?(:orphaned)
+      } },
 
       # We use the hash syntax here since `:truncated?` is not a valid symbol.
-      { :is_truncated => ->(m) { m.truncated? } },
+      { is_truncated: ->(m) { m.truncated? } },
 
-      { :has_passphrase => ->(m) { m.has_passphrase? } },
+      { has_passphrase: ->(m) { m.has_passphrase? } },
     ]
 
     def init
       self.state ||= 'new'
     end
-
   end
 end

@@ -31,7 +31,6 @@ require_relative 'definitions/custom_domain_definition'
 #
 module V2
   class CustomDomain < Familia::Horreum
-
     # Generate a unique identifier for this customer's custom domain.
     #
     # From a customer's perspective, the display_domain is what they see
@@ -81,9 +80,10 @@ module V2
     #   custom_domain.parse_vhost #=> {"ssl"=>true, "redirect"=>"https"}
     def parse_vhost
       return {} if vhost.to_s.empty?
+
       JSON.parse(vhost)
-    rescue JSON::ParserError => e
-      OT.le "[CustomDomain.parse_vhost] Error parsing JSON: #{vhost.inspect} - #{e}"
+    rescue JSON::ParserError => ex
+      OT.le "[CustomDomain.parse_vhost] Error parsing JSON: #{vhost.inspect} - #{ex}"
       {}
     end
 
@@ -101,9 +101,9 @@ module V2
     end
 
     def check_identifier!
-      if self.identifier.to_s.empty?
-        raise RuntimeError, "Identifier cannot be empty for #{self.class}"
-      end
+      return unless identifier.to_s.empty?
+
+      raise "Identifier cannot be empty for #{self.class}"
     end
 
     # Removes all Redis keys associated with this custom domain.
@@ -134,21 +134,19 @@ module V2
       end
 
       redis.multi do |multi|
-        multi.del(self.rediskey)
+        multi.del(rediskey)
         # Also remove from the class-level values, :display_domains, :owners
         multi.zrem(V2::CustomDomain.values.rediskey, identifier)
         multi.hdel(V2::CustomDomain.display_domains.rediskey, display_domain)
         multi.hdel(V2::CustomDomain.owners.rediskey, display_domain)
-        multi.del(self.brand.rediskey)
-        multi.del(self.logo.rediskey)
-        multi.del(self.icon.rediskey)
-        unless customer.nil?
-          multi.zrem(customer.custom_domains.rediskey, self.display_domain)
-        end
+        multi.del(brand.rediskey)
+        multi.del(logo.rediskey)
+        multi.del(icon.rediskey)
+        multi.zrem(customer.custom_domains.rediskey, display_domain) unless customer.nil?
       end
-    rescue Redis::BaseError => e
-      OT.le "[CustomDomain.destroy!] Redis error: #{e.message}"
-      raise Onetime::Problem, "Unable to delete custom domain"
+    rescue Redis::BaseError => ex
+      OT.le "[CustomDomain.destroy!] Redis error: #{ex.message}"
+      raise Onetime::Problem, 'Unable to delete custom domain'
     end
 
     # Checks if the domain is an apex domain.
@@ -175,11 +173,11 @@ module V2
     end
 
     def allow_public_homepage?
-      self.brand.get('allow_public_homepage').to_s == 'true'
+      brand.get('allow_public_homepage').to_s == 'true'
     end
 
     def allow_public_api?
-      self.brand.get('allow_public_api').to_s == 'true'
+      brand.get('allow_public_api').to_s == 'true'
     end
 
     # Validates the format of TXT record host and value used for domain verification.
@@ -190,12 +188,12 @@ module V2
     # @return [void]
     def validate_txt_record!
       unless txt_validation_host.to_s.match?(/\A[a-zA-Z0-9._-]+\z/)
-        raise Onetime::Problem, "TXT record hostname can only contain letters, numbers, dots, underscores, and hyphens"
+        raise Onetime::Problem, 'TXT record hostname can only contain letters, numbers, dots, underscores, and hyphens'
       end
 
-      unless txt_validation_value.to_s.match?(/\A[a-f0-9]{32}\z/)
-        raise Onetime::Problem, "TXT record value must be a 32-character hexadecimal string"
-      end
+      return if txt_validation_value.to_s.match?(/\A[a-f0-9]{32}\z/)
+
+      raise Onetime::Problem, 'TXT record value must be a 32-character hexadecimal string'
     end
 
     # Generates a TXT record for domain ownership verification.
@@ -218,15 +216,13 @@ module V2
       # Include a short identifier that is unique to this domain. This
       # allows for multiple customers to use the same domain without
       # conflicting with each other.
-      shortid = self.identifier.to_s[0..6]
+      shortid     = identifier.to_s[0..6]
       record_host = "#{self.class.txt_validation_prefix}-#{shortid}"
 
       # Append the TRD if it exists. This allows for multiple subdomains
       # to be used for the same domain.
       # e.g. The `status` in status.example.com.
-      unless self.trd.to_s.empty?
-        record_host = "#{record_host}.#{self.trd}"
-      end
+      record_host = "#{record_host}.#{trd}" unless trd.to_s.empty?
 
       # The value needs to be sufficiently unique and non-guessable to
       # function as a challenge response. IOW, if we check the DNS for
@@ -236,7 +232,7 @@ module V2
 
       OT.info "[CustomDomain] Generated txt record #{record_host} -> #{record_value}"
 
-      @txt_validation_host = record_host
+      @txt_validation_host  = record_host
       @txt_validation_value = record_value
 
       validate_txt_record!
@@ -268,6 +264,7 @@ module V2
     # @return [Symbol] The current verification state
     def verification_state
       return :unverified unless txt_validation_value
+
       if resolving.to_s == 'true'
         verified.to_s == 'true' ? :verified : :resolving
       else
@@ -285,7 +282,6 @@ module V2
     def ready?
       verification_state == :verified
     end
-
   end
 end
 

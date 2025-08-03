@@ -199,26 +199,26 @@ module Onetime
     def header(message)
       info ''
       info separator
-      info( message.upcase)
+      info(message.upcase)
     end
 
     # Log informational message
     # @param args [Array] arguments passed to OT.li
     # @return [void]
-    def info(*args)
-      OT.li(*args)
+    def info(*)
+      OT.li(*)
     end
 
-    def debug(*args)
-      OT.ld(*args)
+    def debug(*)
+      OT.ld(*)
     end
 
-    def warn(*args)
-      OT.lw(*args)
+    def warn(*)
+      OT.lw(*)
     end
 
-    def error(*args)
-      OT.le(*args)
+    def error(*)
+      OT.le(*)
     end
 
     # Generate separator line for visual formatting
@@ -286,6 +286,5 @@ module Onetime
     def dbclient
       @dbclient ||= Familia.dbclient(6)
     end
-
   end
 end

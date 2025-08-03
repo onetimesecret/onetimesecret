@@ -5,7 +5,7 @@ module Onetime
     module Enumerables
       # Maximum recursion depth for safety
       DEFAULT_MAX_DEPTH = 25
-      DEFAULT_MAX_SIZE = 2 * 1024 * 1024 # 2MB
+      DEFAULT_MAX_SIZE  = 2 * 1024 * 1024 # 2MB
 
       # Standard deep_merge implementation with symbol/string key normalization
       # and depth limiting for safety

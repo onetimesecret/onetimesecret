@@ -2,7 +2,6 @@
 
 module V2
   class Session < Familia::Horreum
-
     module Management
       attr_reader :values
 
@@ -14,12 +13,13 @@ module V2
       # @param custid [String] Customer identifier
       # @param useragent [String, nil] User agent string
       # @return [Session] Saved and tracked session instance
-      def create ipaddress, custid, useragent=nil
+      def create(ipaddress, custid, useragent = nil)
         sess = new ipaddress: ipaddress, custid: custid, useragent: useragent
         sess.save
         add sess # to the class-level values relation (sorted set)
         sess
       end
+
       # Creates an ephemeral (non-persistent) anonymous session for temporary use.
       # Unlike #create, this session is not saved to Redis or tracked in the class
       # collection, making it suitable for:
@@ -33,24 +33,25 @@ module V2
       #
       # @param useragent [String] User agent string for the session
       # @return [Session] Unsaved session instance with generated ID
-      def create_ephemeral useragent
+      def create_ephemeral(useragent)
         sess = new(custid: 'anon', useragent: useragent)
         sess.sessid # Force ID generation for logging/correlation
         sess
       end
 
-      def add sess
-        self.values.add OT.now.to_i, sess.identifier
-        self.values.remrangebyscore 0, OT.now.to_i-2.days
+      def add(sess)
+        values.add OT.now.to_i, sess.identifier
+        values.remrangebyscore 0, OT.now.to_i - 2.days
       end
 
       def all
-        self.values.revrangeraw(0, -1).collect { |identifier| load(identifier) }
+        values.revrangeraw(0, -1).collect { |identifier| load(identifier) }
       end
 
-      def recent duration=30.days
-        spoint, epoint = OT.now.to_i-duration, OT.now.to_i
-        self.values.rangebyscoreraw(spoint, epoint).collect { |identifier| load(identifier) }
+      def recent(duration = 30.days)
+        spoint = OT.now.to_i - duration
+        epoint = OT.now.to_i
+        values.rangebyscoreraw(spoint, epoint).collect { |identifier| load(identifier) }
       end
 
       def generate_id
