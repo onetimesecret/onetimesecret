@@ -495,9 +495,9 @@ module V2
       rescue NoMethodError => ex
         raise unless ex.message.include?('start_with?')
 
+        # Continue execution - don't let a Sentry error break the app
         OT.le "[capture_error] Sentry error with nil value in start_with? check: #{ex.message}"
         OT.ld ex.backtrace.join("\n")
-      # Continue execution - don't let a Sentry error break the app
 
       # Re-raise any other NoMethodError that isn't related to start_with?
       rescue StandardError => ex
