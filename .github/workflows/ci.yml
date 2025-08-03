@@ -58,11 +58,9 @@ jobs:
         ruby: ['3.4', '3.5']
         continue-on-error: [false]
 
-    # Make redis available for running the tryouts
     services:
       redis:
-        image: redis:7.4-bookworm@sha256:b52fce7a50c718c6836eef354f19428a9c9a6802379da6eb8a23853152e23f89
-        # Set health checks to wait until redis has started
+        image: ghcr.io/valkey-io/valkey:8.1.3-bookworm@sha256:93381a084ce82085bf2fb78f97661301577eee0df04fef64a6d14a743b858328
         options: >-
           --health-cmd "redis-cli ping"
           --health-interval 10s
