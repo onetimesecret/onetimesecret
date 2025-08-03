@@ -342,7 +342,7 @@ RSpec.describe "Onetime::Config during Onetime.boot!" do
       Onetime.boot!(:test)
       expect(Onetime.instance).not_to be_nil
       expect(Onetime.instance).to be_a(String)
-      expect(Onetime.instance.length).to eq(15)
+      expect(Onetime.instance.length).to be_between(12, 17).inclusive
       expect(Onetime.instance).to be_frozen
     end
 

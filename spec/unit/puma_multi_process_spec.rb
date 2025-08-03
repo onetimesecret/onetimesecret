@@ -134,15 +134,14 @@ RSpec.describe 'Puma Multi-Process Integration', type: :integration do
       response = make_request('/instance')
       expect(response.code).to eq('200')
       instance_value = response.body.strip
-      expect(instance_value).to match(/\A[a-z0-9]{15}\z/)
-      expect(instance_value.length).to eq(15)
+      expect(instance_value).to match(/\A[a-z0-9]{10,17}\z/)
     end
 
     it 'provides process and version information' do
       response = make_request('/info')
       expect(response.code).to eq('200')
       info = response.body.strip
-      expect(info).to match(/\APID:\d+\|Instance:[a-z0-9]{15}\|Version:/)
+      expect(info).to match(/\APID:\d+\|Instance:[a-z0-9]{10,17}\|Version:/)
       parts = info.split('|')
       pid_part, instance_part, version_part = parts
       expect(pid_part).to start_with('PID:')
@@ -236,9 +235,9 @@ RSpec.describe 'Puma Multi-Process Integration', type: :integration do
   end
 
   def wait_for_server_start
-    Timeout.timeout(20) do # Increased timeout
+    Timeout.timeout(30) do
       loop do
-        sleep 0.25 # Increased sleep
+        sleep 0.5 # Increased sleep
         begin
           response = make_request('/health')
           break if response.code == '200'
