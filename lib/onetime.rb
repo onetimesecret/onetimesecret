@@ -18,6 +18,8 @@ require 'familia'
 
 require_relative 'onetime/core_ext'
 
+Warning[:deprecated] = %w[development dev test testing].include?(ENV['RACK_ENV'].downcase.to_s)
+
 # Ensure immediate flushing of stdout to improve real-time logging visibility.
 # This is particularly useful in development and production environments where
 # timely log output is crucial for monitoring and debugging purposes.
