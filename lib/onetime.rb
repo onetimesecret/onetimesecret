@@ -15,6 +15,7 @@ require 'sendgrid-ruby'
 require 'rack'
 require 'otto'
 require 'familia'
+require 'mustache'
 
 require_relative 'onetime/core_ext'
 

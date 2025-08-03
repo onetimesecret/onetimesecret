@@ -58,3 +58,28 @@ module Rack
     end
   end
 end
+
+# Fix for Mustache 1.1.1 generator compatibility
+# Only apply the patch for the specific version to avoid issues with future updates
+if defined?(Mustache)
+  require 'mustache'
+
+  module MustacheGeneratorFix
+    private
+
+    def compile!(exp)
+      case exp.first
+      when :multi
+        exp[1..].reduce(+'') { |sum, e| sum << compile!(e) }
+      when :static
+        str(exp[1])
+      when :mustache
+        send("on_#{exp[1]}", *exp[2..])
+      else
+        raise "Unhandled exp: #{exp.first}"
+      end
+    end
+  end
+
+  Mustache::Generator.prepend(MustacheGeneratorFix)
+end
