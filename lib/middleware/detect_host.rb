@@ -1,5 +1,4 @@
 module Rack
-
   require 'ipaddr'
 
   # Middleware to accurately detect the client's host in a Rack application.
@@ -112,13 +111,13 @@ module Rack
     # @param io [IO] IO object for logging (defaults to stderr)
     # @return [void]
     def initialize(app, io: $stderr)
-      @app = app
+      @app      = app
       log_level = ::Logger::INFO
       # Override with DEBUG level only when conditions are met
       if defined?(OT) && OT.respond_to?(:debug?) && OT.debug?
         log_level = ::Logger::DEBUG
       end
-      @logger = ::Logger.new(io, level: log_level)
+      @logger   = ::Logger.new(io, level: log_level)
     end
 
     # Processes the request and determines the appropriate host.
@@ -134,12 +133,12 @@ module Rack
     # 5. Passes the request to the next middleware
     def call(env)
       result_field_name = self.class.result_field_name
-      detected_host = nil
+      detected_host     = nil
 
       # Try headers in order of precedence
       HEADER_PRECEDENCE.each do |header|
         header_key = "HTTP_#{header.tr('-', '_').upcase}"
-        host = self.class.normalize_host(env[header_key])
+        host       = self.class.normalize_host(env[header_key])
         next if host.nil?
 
         if self.class.valid_domain_name?(host)
@@ -157,7 +156,7 @@ module Rack
 
       # Log indication if no valid host found in debug mode
       unless detected_host
-        logger.debug("[DetectHost] No valid host detected in request")
+        logger.debug('[DetectHost] No valid host detected in request')
       end
 
       # e.g. env['rack.detected_host'] = 'example.com'
@@ -165,8 +164,6 @@ module Rack
 
       @app.call(env)
     end
-
-    private
 
     module ClassMethods
       # Extracts and normalizes the host from a header value.
@@ -181,8 +178,9 @@ module Rack
       # - Returns nil for empty values
       def normalize_host(value_unsafe)
         host_with_port = value_unsafe.to_s.split(',').first.to_s
-        host = host_with_port.split(':').first.to_s.strip.downcase
+        host           = host_with_port.split(':').first.to_s.strip.downcase
         return nil if host.empty?
+
         host
       end
 
@@ -196,6 +194,7 @@ module Rack
       def valid_domain_name?(host)
         return false if INVALID_HOSTS.include?(host)
         return false if valid_ip?(host)
+
         true
       end
 
@@ -221,9 +220,9 @@ module Rack
 
         # Check for private IPv6 ranges
         elsif ip.ipv6?
-          fc00 = IPAddr.new("fc00::/7")
-          fe80 = IPAddr.new("fe80::/10")
-          loopback = IPAddr.new("::1/128")
+          fc00     = IPAddr.new('fc00::/7')
+          fe80     = IPAddr.new('fe80::/10')
+          loopback = IPAddr.new('::1/128')
 
           return fc00.include?(ip) || # Unique Local Addresses
                  fe80.include?(ip) || # Link-local addresses

@@ -28,7 +28,7 @@ Warning[:deprecated] = %w[development dev test testing].include?(ENV['RACK_ENV']
 #
 # NOTE: Use STDOUT the immuntable constant here, not $stdout (global var).
 #
-STDOUT.sync = ENV['STDOUT_SYNC'] && %w[true yes 1].include?(ENV['STDOUT_SYNC'])
+STDOUT.sync = ENV.fetch('STDOUT_SYNC', nil) && %w[true yes 1].include?(ENV.fetch('STDOUT_SYNC', nil))
 
 # Onetime is the core of the Onetime Secret application.
 # It contains the core classes and modules that make up
@@ -47,8 +47,8 @@ end
 
 # Sets the SIGINT handler for a graceful shutdown and prevents Sentry from
 # trying to send events over the network when we're shutting down via ctrl-c.
-trap("SIGINT") do
-  OT.li "Shutting down gracefully..."
+trap('SIGINT') do
+  OT.li 'Shutting down gracefully...'
   if OT.d9s_enabled
     begin
       Sentry.close  # Attempt graceful shutdown with a short timeout
