@@ -9,7 +9,7 @@ module V2
         @safe_fields = %w[interface secret_options mail diagnostics]
 
         attr_reader :config, :interface, :secret_options, :mail,
-                    :diagnostics, :greenlighted, :record
+          :diagnostics, :greenlighted, :record
 
         def process_params
           OT.ld "[UpdateSystemSettings#process_params] params: #{params.inspect}"
@@ -17,10 +17,10 @@ module V2
           @config = params[:config]
 
           # Extract configuration sections
-          @interface = config[:interface]
+          @interface      = config[:interface]
           @secret_options = config[:secret_options]
-          @mail = config[:mail]
-          @diagnostics = config[:diagnostics]
+          @mail           = config[:mail]
+          @diagnostics    = config[:diagnostics]
 
           # Log which configuration sections were extracted
           config_sections = {
@@ -70,9 +70,9 @@ module V2
 
             @greenlighted = true
             OT.ld '[UpdateSystemSettings#process] System settings persisted successfully'
-          rescue StandardError => e
-            OT.le "[UpdateSystemSettings#process] Failed to persist system settings: #{e.message}"
-            raise_form_error "Failed to update configuration: #{e.message}"
+          rescue StandardError => ex
+            OT.le "[UpdateSystemSettings#process] Failed to persist system settings: #{ex.message}"
+            raise_form_error "Failed to update configuration: #{ex.message}"
           end
         end
 
@@ -89,15 +89,15 @@ module V2
         private
 
         def build_update_fields
-          fields = {}
+          fields                  = {}
           # Only include sections that were provided and are not nil/empty
-          fields[:interface] = interface if interface && !interface.empty?
+          fields[:interface]      = interface if interface && !interface.empty?
           fields[:secret_options] = secret_options if secret_options && !secret_options.empty?
-          fields[:mail] = mail if mail && !mail.empty?
-          fields[:diagnostics] = diagnostics if diagnostics && !diagnostics.empty?
+          fields[:mail]           = mail if mail && !mail.empty?
+          fields[:diagnostics]    = diagnostics if diagnostics && !diagnostics.empty?
 
           # Add metadata
-          fields[:custid] = @cust.custid if @cust
+          fields[:custid]  = @cust.custid if @cust
           fields[:created] = Time.now.to_i
           fields[:updated] = Time.now.to_i
 

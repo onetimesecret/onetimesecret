@@ -1,4 +1,3 @@
-
 require_relative 'utils/enumerables'
 require_relative 'utils/sanitation'
 require_relative 'utils/secure_numbers'
@@ -75,7 +74,6 @@ module Onetime
         basepath    = ENV.fetch('ONETIME_HOME', __dir__)
         Pathname.new(filepath).relative_path_from(basepath)
       end
-
     end
   end
 end

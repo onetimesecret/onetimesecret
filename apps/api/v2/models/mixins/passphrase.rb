@@ -31,12 +31,12 @@ module V2
       end
 
       def passphrase?(guess)
-        ret = BCrypt::Password.new(passphrase) == guess
+        ret              = BCrypt::Password.new(passphrase) == guess
         @passphrase_temp = guess if ret # used to decrypt the value
         ret
-      rescue BCrypt::Errors::InvalidHash => e
+      rescue BCrypt::Errors::InvalidHash => ex
         prefix = '[passphrase?]'
-        OT.ld "#{prefix} Invalid passphrase hash: #{e.message}"
+        OT.ld "#{prefix} Invalid passphrase hash: #{ex.message}"
         (!guess.to_s.empty? && passphrase.to_s.downcase.strip == guess.to_s.downcase.strip)
       end
     end

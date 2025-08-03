@@ -4,7 +4,7 @@ require_relative 'initializers'
 
 module Onetime
   module Initializers
-    @conf = nil
+    @conf  = nil
     @ready = nil
 
     attr_reader :conf, :instance
@@ -26,7 +26,7 @@ module Onetime
     #
     def boot!(mode = nil, connect_to_db = true)
       OT.mode = mode unless mode.nil?
-      OT.env = ENV['RACK_ENV'] || 'production'
+      OT.env  = ENV['RACK_ENV'] || 'production'
 
       # Sets a unique, 64-bit hexadecimal ID for this process instance.
       @instance ||= Onetime::Utils.generate_short_id
@@ -76,10 +76,9 @@ module Onetime
       # code in the application has access to the processed configuration
       # is from within this boot! method.
       nil
-
-    rescue OT::Problem => e
-      OT.le "Problem booting: #{e}"
-      OT.ld e.backtrace.join("\n")
+    rescue OT::Problem => ex
+      OT.le "Problem booting: #{ex}"
+      OT.ld ex.backtrace.join("\n")
 
       # NOTE: Prefer `raise` over `exit` here. Previously we used
       # exit and it caused unexpected behaviour in tests, where
@@ -99,16 +98,14 @@ module Onetime
       #
       # allow(Onetime).to receive(:connect_databases).and_call_original
       #
-      raise e unless mode?(:cli) # allows for debugging in the console
-
-    rescue Redis::CannotConnectError => e
-      OT.le "Cannot connect to redis #{Familia.uri} (#{e.class})"
-      raise e unless mode?(:cli)
-
-    rescue StandardError => e
-      OT.le "Unexpected error `#{e}` (#{e.class})"
-      OT.ld e.backtrace.join("\n")
-      raise e unless mode?(:cli)
+      raise ex unless mode?(:cli) # allows for debugging in the console
+    rescue Redis::CannotConnectError => ex
+      OT.le "Cannot connect to redis #{Familia.uri} (#{ex.class})"
+      raise ex unless mode?(:cli)
+    rescue StandardError => ex
+      OT.le "Unexpected error `#{ex}` (#{ex.class})"
+      OT.ld ex.backtrace.join("\n")
+      raise ex unless mode?(:cli)
     end
 
     # Replaces the global configuration instance with the provided data.

@@ -2,13 +2,11 @@
 
 module Core
   module Views
-
     # Serializes application configuration for the frontend
     #
     # Responsible for transforming server-side configuration settings into
     # a consistent format that can be safely exposed to the frontend.
     module ConfigSerializer
-
       # Serializes configuration data from view variables
       #
       # Transforms server configuration including site settings, feature flags,
@@ -17,39 +15,39 @@ module Core
       # @param view_vars [Hash] The view variables containing site configuration
       # @param i18n [Object] The internationalization instance
       # @return [Hash] Serialized configuration data
-      def self.serialize(view_vars, i18n)
-        output = self.output_template
+      def self.serialize(view_vars, _i18n)
+        output = output_template
 
         # NOTE: The keys available in view_vars are defined in initialize_view_vars
-        site = view_vars['site'] || {}
-        incoming = view_vars['incoming']
+        site        = view_vars['site'] || {}
+        incoming    = view_vars['incoming']
         development = view_vars['development']
         diagnostics = view_vars['diagnostics']
 
-        output['ui'] = site.dig('interface', 'ui')
+        output['ui']             = site.dig('interface', 'ui')
         output['authentication'] = site.fetch('authentication', nil)
         output['secret_options'] = site['secret_options']
-        output['site_host'] = site['host']
-        regions = site['regions'] || {}
-        domains = site['domains'] || {}
+        output['site_host']      = site['host']
+        regions                  = site['regions'] || {}
+        domains                  = site['domains'] || {}
 
         # Only send the regions config when the feature is enabled.
         output['regions_enabled'] = regions.fetch('enabled', false)
-        output['regions'] = regions if output['regions_enabled']
+        output['regions']         = regions if output['regions_enabled']
 
         output['domains_enabled'] = domains.fetch('enabled', false)
-        output['domains'] = domains if output['domains_enabled']
+        output['domains']         = domains if output['domains_enabled']
 
         output['incoming_recipient'] = incoming.fetch('email', nil)
 
         # Link to the pricing page can be seen regardless of authentication status
-        billing = OT.conf.fetch('billing', {})
+        billing                   = OT.conf.fetch('billing', {})
         output['billing_enabled'] = billing.fetch('enabled', false)
 
         output['frontend_development'] = development['enabled'] || false
-        output['frontend_host'] = development['frontend_host'] || ''
+        output['frontend_host']        = development['frontend_host'] || ''
 
-        sentry = diagnostics.fetch('sentry', {})
+        sentry                = diagnostics.fetch('sentry', {})
         output['d9s_enabled'] = Onetime.d9s_enabled
         Onetime.with_diagnostics do
           output['diagnostics'] = {

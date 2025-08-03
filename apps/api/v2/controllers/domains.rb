@@ -8,7 +8,7 @@ module V2
     class Domains
       include V2::Controllers::Base
 
-      @check_utf8 = true
+      @check_utf8         = true
       @check_uri_encoding = true
 
       def add_domain
@@ -61,7 +61,7 @@ module V2
       end
 
       # e.g. get_domain_logo -> V2::Logic::Domains::GetDomainLogo
-      %i[logo icon].each do |type|
+      [:logo, :icon].each do |type|
         define_method("get_domain_#{type}") do
           retrieve_records(V2::Logic::Domains.const_get("GetDomain#{type.capitalize}"))
         end

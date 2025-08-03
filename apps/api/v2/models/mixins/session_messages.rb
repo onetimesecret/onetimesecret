@@ -58,8 +58,8 @@ module V2
         ret = JSON.parse(fields_json)
         remove :form_fields
         ret
-      rescue JSON::ParserError => e
-        OT.le "Error parsing JSON fields: #{e.message}"
+      rescue JSON::ParserError => ex
+        OT.le "Error parsing JSON fields: #{ex.message}"
         nil
       end
 
@@ -80,8 +80,8 @@ module V2
           next if message.to_s.empty?
 
           JSON.parse(message, symbolize_names: true)
-        rescue JSON::ParserError => e
-          OT.le "Error parsing JSON message: #{e.message}"
+        rescue JSON::ParserError => ex
+          OT.le "Error parsing JSON message: #{ex.message}"
           nil
         end
       end
@@ -92,8 +92,8 @@ module V2
 
           detail = JSON.parse(message, symbolize_names: true)
           detail if detail[:type].eql?('info')
-        rescue JSON::ParserError => e
-          OT.le "Error parsing JSON message: #{e.message}"
+        rescue JSON::ParserError => ex
+          OT.le "Error parsing JSON message: #{ex.message}"
           nil
         end
       end
@@ -104,8 +104,8 @@ module V2
 
           detail = JSON.parse(message, symbolize_names: true)
           detail if detail[:type].eql?('error')
-        rescue JSON::ParserError => e
-          OT.le "Error parsing JSON error message: #{e.message}"
+        rescue JSON::ParserError => ex
+          OT.le "Error parsing JSON error message: #{ex.message}"
           nil
         end
       end

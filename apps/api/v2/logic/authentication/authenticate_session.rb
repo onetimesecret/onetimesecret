@@ -8,13 +8,13 @@ module V2::Logic
       # cust is only populated if the passphrase matches
       def process_params
         @potential_custid = params[:u].to_s.downcase.strip
-        @passwd = self.class.normalize_password(params[:p])
+        @passwd           = self.class.normalize_password(params[:p])
         # @stay = params[:stay].to_s == "true"
-        @stay = true # Keep sessions alive by default
-        @session_ttl = (stay ? 30.days : 20.minutes).to_i
+        @stay             = true # Keep sessions alive by default
+        @session_ttl      = (stay ? 30.days : 20.minutes).to_i
 
         if (potential = V2::Customer.load(@potential_custid))
-          @cust = potential if potential.passphrase?(@passwd)
+          @cust   = potential if potential.passphrase?(@passwd)
           @custid = @cust.custid if @cust
         end
       end
@@ -48,9 +48,9 @@ module V2::Logic
 
           OT.info "[login-success] #{sess.short_identifier} #{cust.obscure_email} #{cust.role} (new sessid)"
 
-          sess.custid = cust.custid
+          sess.custid        = cust.custid
           sess.authenticated = 'true'
-          sess.ttl = session_ttl if @stay
+          sess.ttl           = session_ttl if @stay
           sess.save
           cust.save
 

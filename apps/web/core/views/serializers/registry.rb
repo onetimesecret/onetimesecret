@@ -25,7 +25,7 @@ module Core
     class SerializerRegistry
       extend TSort
 
-      @serializers = []
+      @serializers  = []
       @dependencies = {}
 
       class << self
@@ -48,7 +48,7 @@ module Core
         # @param i18n [Object] Internationalization instance
         # @return [Hash] Combined output from all serializers
         def run(serializer_list, vars, i18n)
-          ordered = sorted_serializers.select { |s| serializer_list.include?(s) }
+          ordered   = sorted_serializers.select { |s| serializer_list.include?(s) }
           seen_keys = {}
 
           ordered.reduce({}) do |result, serializer|
@@ -99,7 +99,6 @@ module Core
           dependencies.fetch(node, []).each(&)
         end
       end
-
     end
   end
 end

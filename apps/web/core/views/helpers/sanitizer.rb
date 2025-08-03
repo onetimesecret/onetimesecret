@@ -8,7 +8,6 @@
 module Core
   module Views
     module SanitizerHelpers
-
       # Normalizes values to prevent injection attacks and ensure consistent formatting.
       #
       # @param value [String, Array, Hash] The value to normalize
@@ -21,8 +20,8 @@ module Core
       #
       # @return [String] HTML script tag containing serialized data
       def serialized_to_script
-        data = serialized_data
-        nonce = view_vars['nonce']
+        data       = serialized_data
+        nonce      = view_vars['nonce']
         element_id = view_vars['script_element_id']
         to_json_script(data, id: element_id, nonce: nonce)
       end
@@ -35,9 +34,9 @@ module Core
       # @return [String] HTML script tag with sanitized JSON
       def to_json_script(data, id: nil, nonce: nil)
         sanitized_json = to_sanitized_json(data)
-        attributes = ['type="application/json"']
-        attributes << %{id="#{Rack::Utils.escape_html(id)}"} if id
-        attributes << %{nonce="#{nonce}"} if nonce
+        attributes     = ['type="application/json"']
+        attributes << %(id="#{Rack::Utils.escape_html(id)}") if id
+        attributes << %(nonce="#{nonce}") if nonce
 
         "<script #{attributes.join(' ')}>#{sanitized_json}</script>"
       end
@@ -53,6 +52,5 @@ module Core
           .gsub(/[^\x20-\x7E]/) { |c| "\\u#{c.ord.to_s(16).rjust(4, '0')}" }
       end
     end
-
   end
 end

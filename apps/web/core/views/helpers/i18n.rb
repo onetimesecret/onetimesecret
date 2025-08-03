@@ -34,7 +34,7 @@ module Core
       #   - :page [Hash] Page-specific translations
       #   - :COMMON [Hash] Shared translations across pages
       def i18n
-        locale = self.locale
+        locale        = self.locale
         @i18n_cache ||= {}
 
         return @i18n_cache[locale] if @i18n_cache.key?(locale)
@@ -49,9 +49,9 @@ module Core
         end
 
         # Safe access to nested hash structure
-        web_messages = messages.fetch(:web, {})
+        web_messages    = messages.fetch(:web, {})
         common_messages = web_messages.fetch(:COMMON, {})
-        page_messages = web_messages.fetch(pagename, {})
+        page_messages   = web_messages.fetch(pagename, {})
 
         result = {
           locale: locale,
@@ -62,7 +62,6 @@ module Core
 
         @i18n_cache[locale] = result
       end
-
     end
   end
 end

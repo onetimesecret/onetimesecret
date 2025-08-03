@@ -6,7 +6,7 @@ module V2::Logic
   module Secrets
     class BaseSecretAction < V2::Logic::Base
       attr_reader :passphrase, :secret_value, :kind, :ttl, :recipient, :recipient_safe, :greenlighted, :metadata,
-                  :secret, :share_domain, :custom_domain, :payload
+        :secret, :share_domain, :custom_domain, :payload
       attr_accessor :token
 
       using Onetime::RackRefinements
@@ -80,7 +80,8 @@ module V2::Logic
         secret_options = OT.conf&.fetch('secret_options', {
           'default_ttl' => 7.days,
           'ttl_options' => [1.minute, 1.hour, 1.day, 7.days],
-        })
+        }
+        )
         default_ttl    = secret_options['default_ttl']
         ttl_options    = secret_options['ttl_options']
 
@@ -112,13 +113,13 @@ module V2::Logic
 
       def process_recipient
         payload[:recipient] = [payload[:recipient]].flatten.compact.uniq # force a list
-        r = /\b[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}\b/
-        @recipient = payload[:recipient].collect do |email_address|
+        r                   = /\b[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}\b/
+        @recipient          = payload[:recipient].collect do |email_address|
           next if email_address.to_s.empty?
 
           email_address.scan(r).uniq.first
         end.compact.uniq
-        @recipient_safe = recipient.collect { |r| OT::Utils.obscure_email(r) }
+        @recipient_safe     = recipient.collect { |r| OT::Utils.obscure_email(r) }
       end
 
       # Capture the selected domain the link is meant for, as long as it's
@@ -180,17 +181,17 @@ module V2::Logic
 
       def save_secret
         secret.encrypt_value secret_value
-        metadata.ttl = ttl * 2
-        secret.ttl = ttl
-        metadata.lifespan = metadata.ttl.to_i
-        metadata.secret_ttl = secret.ttl.to_i
+        metadata.ttl             = ttl * 2
+        secret.ttl               = ttl
+        metadata.lifespan        = metadata.ttl.to_i
+        metadata.secret_ttl      = secret.ttl.to_i
         metadata.secret_shortkey = secret.shortkey
-        metadata.share_domain = share_domain
-        secret.lifespan = secret.ttl.to_i
-        secret.share_domain = share_domain
+        metadata.share_domain    = share_domain
+        secret.lifespan          = secret.ttl.to_i
+        secret.share_domain      = share_domain
         secret.save
         metadata.save
-        @greenlighted = metadata.valid? && secret.valid?
+        @greenlighted            = metadata.valid? && secret.valid?
       end
 
       def handle_success

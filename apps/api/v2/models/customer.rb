@@ -51,8 +51,8 @@ module V2
 
     def get_stripe_customer
       get_stripe_customer_by_id || get_stripe_customer_by_email
-    rescue Stripe::StripeError => e
-      OT.le "[Customer.get_stripe_customer] Error: #{e.message}: #{e.backtrace}"
+    rescue Stripe::StripeError => ex
+      OT.le "[Customer.get_stripe_customer] Error: #{ex.message}: #{ex.backtrace}"
       nil
     end
 
@@ -66,8 +66,8 @@ module V2
 
       OT.info "[Customer.get_stripe_customer_by_id] Fetching customer: #{customer_id} #{custid}"
       @stripe_customer = Stripe::Customer.retrieve(customer_id)
-    rescue Stripe::StripeError => e
-      OT.le "[Customer.get_stripe_customer_by_id] Error: #{e.message}"
+    rescue Stripe::StripeError => ex
+      OT.le "[Customer.get_stripe_customer_by_id] Error: #{ex.message}"
       nil
     end
 
@@ -83,8 +83,8 @@ module V2
       end
 
       @stripe_customer
-    rescue Stripe::StripeError => e
-      OT.le "[Customer.get_stripe_customer_by_email] Error: #{e.message}"
+    rescue Stripe::StripeError => ex
+      OT.le "[Customer.get_stripe_customer_by_email] Error: #{ex.message}"
       nil
     end
 
@@ -94,20 +94,20 @@ module V2
 
       OT.info "[Customer.get_stripe_subscription_by_id] Fetching subscription: #{subscription_id} #{custid}"
       @stripe_subscription = Stripe::Subscription.retrieve(subscription_id)
-    rescue Stripe::StripeError => e
-      OT.le "[Customer.get_stripe_subscription_by_id] Error: #{e.message}"
+    rescue Stripe::StripeError => ex
+      OT.le "[Customer.get_stripe_subscription_by_id] Error: #{ex.message}"
       nil
     end
 
     def get_stripe_subscriptions(stripe_customer = nil)
       stripe_customer ||= @stripe_customer
-      subscriptions = []
+      subscriptions     = []
       return subscriptions unless stripe_customer
 
       begin
         subscriptions = Stripe::Subscription.list(customer: stripe_customer.id, limit: 1)
-      rescue Stripe::StripeError => e
-        OT.le "Error: #{e.message}"
+      rescue Stripe::StripeError => ex
+        OT.le "Error: #{ex.message}"
       else
         if subscriptions.data.empty?
           OT.info "No subscriptions found for customer: #{stripe_customer.id}"
@@ -182,7 +182,7 @@ module V2
 
       @sess = V2::Session.load(sessid) unless sessid.to_s.empty?
       if @sess.nil?
-        @sess = V2::Session.create(ip_address, custid)
+        @sess  = V2::Session.create(ip_address, custid)
         sessid = @sess.identifier
         OT.info "[load_or_create_session] adding sess #{sessid} to #{obscure_email}"
         sessid!(sessid)
@@ -193,8 +193,8 @@ module V2
     def metadata_list
       metadata.revmembers.collect do |key|
         V2::Metadata.load(key)
-      rescue Onetime::RecordNotFound => e
-        OT.le "[metadata_list] Error: #{e.message} (#{key} / #{custid})"
+      rescue Onetime::RecordNotFound => ex
+        OT.le "[metadata_list] Error: #{ex.message} (#{key} / #{custid})"
       end.compact
     end
 
@@ -205,8 +205,8 @@ module V2
     def custom_domains_list
       custom_domains.revmembers.collect do |domain|
         V2::CustomDomain.load domain, custid
-      rescue Onetime::RecordNotFound => e
-        OT.le "[custom_domains_list] Error: #{e.message} (#{domain} / #{custid})"
+      rescue Onetime::RecordNotFound => ex
+        OT.le "[custom_domains_list] Error: #{ex.message} (#{domain} / #{custid})"
       end.compact
     end
 
@@ -255,11 +255,11 @@ module V2
       # For example if we need to send a pro-rated refund
       # or if we need to send a notification to the customer
       # to confirm the account deletion.
-      self.ttl = 365.days
+      self.ttl        = 365.days
       regenerate_apitoken
       self.passphrase = ''
-      self.verified = 'false'
-      self.role = 'user_deleted_self'
+      self.verified   = 'false'
+      self.role       = 'user_deleted_self'
       save
     end
 

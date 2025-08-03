@@ -19,7 +19,7 @@ module V2
 
       def recent(duration = 30.days, epoint = OT.now.to_i)
         spoint = OT.now.to_i - duration
-        ret = values.rangebyscoreraw(spoint, epoint, withscores: true)
+        ret    = values.rangebyscoreraw(spoint, epoint, withscores: true)
         Hash[ret]
       end
     end

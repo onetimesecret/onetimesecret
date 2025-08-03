@@ -10,13 +10,13 @@ module V2
         attr_accessor :token
 
         def process_params
-          @ttl = 7.days
-          @secret_value = params[:secret]
-          @ticketno = params[:ticketno].strip
-          @passphrase = OT.conf['incoming']['passphrase'].strip
+          @ttl               = 7.days
+          @secret_value      = params[:secret]
+          @ticketno          = params[:ticketno].strip
+          @passphrase        = OT.conf['incoming']['passphrase'].strip
           params[:recipient] = [OT.conf['incoming']['email']]
-          r = /\b[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}\b/
-          @recipient = params[:recipient].collect do |email_address|
+          r                  = /\b[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}\b/
+          @recipient         = params[:recipient].collect do |email_address|
             next if email_address.to_s.empty?
 
             email_address.scan(r).uniq.first
@@ -32,14 +32,14 @@ module V2
         end
 
         def process
-          @metadata, @secret = V2::Secret.spawn_pair cust.custid, token
+          @metadata, @secret       = V2::Secret.spawn_pair cust.custid, token
           unless passphrase.empty?
             secret.update_passphrase passphrase
             metadata.passphrase = secret.passphrase
           end
           secret.encrypt_value secret_value
-          metadata.ttl = ttl
-          secret.ttl = ttl
+          metadata.ttl             = ttl
+          secret.ttl               = ttl
           metadata.secret_shortkey = secret.shortkey
           secret.save
           metadata.save

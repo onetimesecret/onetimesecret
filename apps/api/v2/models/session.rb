@@ -35,14 +35,14 @@ module V2
 
     def replace!
       @custid ||= custid
-      newid = self.class.generate_id
+      newid     = self.class.generate_id
 
       # Remove the existing session key from Redis
       if exists?
         begin
           delete!
-        rescue StandardError => e
-          OT.le "[Session.replace!] Failed to delete key #{rediskey}: #{e.message}"
+        rescue StandardError => ex
+          OT.le "[Session.replace!] Failed to delete key #{rediskey}: #{ex.message}"
         end
       end
 

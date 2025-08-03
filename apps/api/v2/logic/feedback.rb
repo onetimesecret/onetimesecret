@@ -8,8 +8,8 @@ module V2
       attr_reader :msg, :greenlighted, :tz, :version
 
       def process_params
-        @msg = params[:msg].to_s.slice(0, 999)
-        @tz = params[:tz].to_s.slice(0, 64)
+        @msg     = params[:msg].to_s.slice(0, 999)
+        @tz      = params[:tz].to_s.slice(0, 64)
         @version = params[:version].to_s.slice(0, 32)
       end
 
@@ -19,7 +19,7 @@ module V2
 
       def process
         @greenlighted = true
-        @msg = format_feedback_message
+        @msg          = format_feedback_message
         OT.ld [:receive_feedback, msg].inspect
 
         begin
@@ -36,10 +36,10 @@ module V2
             send_feedback first_colonel, msg
             break
           end
-        rescue StandardError => e
+        rescue StandardError => ex
           # We liberally rescue all StandError exceptions here because we don't
           # want to fail the user's feedback submission if we can't send an email.
-          OT.le "Error sending feedback email to first colonel: #{e.message}", e.backtrace
+          OT.le "Error sending feedback email to first colonel: #{ex.message}", ex.backtrace
         end
 
         V2::Feedback.add @msg
@@ -62,17 +62,17 @@ module V2
       end
 
       def send_feedback(cust, message)
-        view = Onetime::Mail::FeedbackEmail.new cust, locale
-        view.display_domain = display_domain
+        view                 = Onetime::Mail::FeedbackEmail.new cust, locale
+        view.display_domain  = display_domain
         view.domain_strategy = domain_strategy
-        view.message = message
+        view.message         = message
 
         OT.ld "[send_feedback] Calling deliver_email (#{message.size} chars)"
 
         begin
           view.deliver_email
-        rescue StandardError => e
-          OT.le "Error sending feedback email: #{e.message}", e.backtrace
+        rescue StandardError => ex
+          OT.le "Error sending feedback email: #{ex.message}", ex.backtrace
           # No need to notify the user of this error. The message is still
           # saved in Redis and available via the colonel interface.
         end

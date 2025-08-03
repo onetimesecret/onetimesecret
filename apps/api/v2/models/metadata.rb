@@ -83,7 +83,7 @@ module V2
       OT.info "[deliver-by-email2] #{cust.obscure_email} #{secret.key} (token/#{token})"
       eaddrs = [eaddrs].flatten.compact[0..9] # Max 10
 
-      eaddrs_safe = eaddrs.collect { |e| OT::Utils.obscure_email(e) }
+      eaddrs_safe     = eaddrs.collect { |e| OT::Utils.obscure_email(e) }
       eaddrs_safe_str = eaddrs_safe.join(', ')
 
       OT.info "[deliver-by-email3] #{cust.obscure_email} #{secret.key} (#{eaddrs_safe.size}) #{eaddrs_safe_str}"
@@ -91,8 +91,8 @@ module V2
 
       OT.lw "SECRET HAS MORE THAN ONE RECIPIENT #{eaddrs.size}" if eaddrs.size > 1
       eaddrs.each do |email_address|
-        view = template.new cust, locale, secret, email_address
-        view.ticketno = ticketno if ticketno
+        view                  = template.new cust, locale, secret, email_address
+        view.ticketno         = ticketno if ticketno
         view.emailer.reply_to = cust.email
         view.deliver_email token # pass the token from spawn_pair through
         break # force just a single recipient
@@ -110,7 +110,7 @@ module V2
       # that we don't support going from viewed back to something else.
       return unless state?(:new)
 
-      self.state = 'viewed'
+      self.state  = 'viewed'
       self.viewed = Time.now.utc.to_i
       # The nuance bewteen being "viewed" vs "received" or "burned" is
       # that the secret link page has been requested (via GET)
@@ -129,8 +129,8 @@ module V2
       # that we don't support going from received back to something else.
       return unless state?(:new) || state?(:viewed)
 
-      self.state = 'received'
-      self.received = Time.now.utc.to_i
+      self.state      = 'received'
+      self.received   = Time.now.utc.to_i
       self.secret_key = ''
       save update_expiration: false
     end
@@ -145,8 +145,8 @@ module V2
       return if secret_key.to_s.empty?
       return unless state?(:new) || state?(:viewed) # only new or viewed secrets can be orphaned
 
-      self.state = 'orphaned'
-      self.updated = Time.now.utc.to_i
+      self.state      = 'orphaned'
+      self.updated    = Time.now.utc.to_i
       self.secret_key = ''
       save update_expiration: false
     end
@@ -155,8 +155,8 @@ module V2
       # See guard comment on `received!`
       return unless state?(:new) || state?(:viewed)
 
-      self.state = 'burned'
-      self.burned = Time.now.utc.to_i
+      self.state      = 'burned'
+      self.burned     = Time.now.utc.to_i
       self.secret_key = ''
       save update_expiration: false
     end
@@ -166,8 +166,8 @@ module V2
       # expire secrets that are actually old enough to be expired.
       return unless secret_expired?
 
-      self.state = 'expired'
-      self.updated = Time.now.utc.to_i
+      self.state      = 'expired'
+      self.updated    = Time.now.utc.to_i
       self.secret_key = ''
       save update_expiration: false
     end

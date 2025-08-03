@@ -6,10 +6,10 @@ module V2::Logic
       attr_reader :key, :passphrase, :continue, :metadata, :secret, :correct_passphrase, :greenlighted
 
       def process_params
-        @key = params[:key].to_s
-        @metadata = V2::Metadata.load key
+        @key        = params[:key].to_s
+        @metadata   = V2::Metadata.load key
         @passphrase = params[:passphrase].to_s
-        @continue = [true, 'true'].include?(params[:continue])
+        @continue   = [true, 'true'].include?(params[:continue])
       end
 
       def raise_concerns
@@ -22,9 +22,9 @@ module V2::Logic
         return unless potential_secret
 
         @correct_passphrase = !potential_secret.has_passphrase? || potential_secret.passphrase?(passphrase)
-        viewable = potential_secret.viewable?
-        continue_result = params[:continue]
-        @greenlighted = viewable && correct_passphrase && continue_result
+        viewable            = potential_secret.viewable?
+        continue_result     = params[:continue]
+        @greenlighted       = viewable && correct_passphrase && continue_result
 
         if greenlighted
           @secret = potential_secret
@@ -57,7 +57,8 @@ module V2::Logic
           share_url: build_url(baseuri, build_path(:secret, metadata.secret_key)),
           metadata_url: build_url(baseuri, build_path(:private, metadata.key)),
           burn_url: build_url(baseuri, build_path(:private, metadata.key, 'burn')),
-        })
+        },
+                         )
 
         {
           success: greenlighted,

@@ -30,7 +30,7 @@ module V2
 
       def baseuri
         scheme = base_scheme
-        host = Onetime.conf['site']['host']
+        host   = Onetime.conf['site']['host']
         [scheme, host].join
       end
 

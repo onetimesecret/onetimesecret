@@ -82,8 +82,8 @@ module V2
       return {} if vhost.to_s.empty?
 
       JSON.parse(vhost)
-    rescue JSON::ParserError => e
-      OT.le "[CustomDomain.parse_vhost] Error parsing JSON: #{vhost.inspect} - #{e}"
+    rescue JSON::ParserError => ex
+      OT.le "[CustomDomain.parse_vhost] Error parsing JSON: #{vhost.inspect} - #{ex}"
       {}
     end
 
@@ -144,8 +144,8 @@ module V2
         multi.del(icon.rediskey)
         multi.zrem(customer.custom_domains.rediskey, display_domain) unless customer.nil?
       end
-    rescue Redis::BaseError => e
-      OT.le "[CustomDomain.destroy!] Redis error: #{e.message}"
+    rescue Redis::BaseError => ex
+      OT.le "[CustomDomain.destroy!] Redis error: #{ex.message}"
       raise Onetime::Problem, 'Unable to delete custom domain'
     end
 
@@ -216,7 +216,7 @@ module V2
       # Include a short identifier that is unique to this domain. This
       # allows for multiple customers to use the same domain without
       # conflicting with each other.
-      shortid = identifier.to_s[0..6]
+      shortid     = identifier.to_s[0..6]
       record_host = "#{self.class.txt_validation_prefix}-#{shortid}"
 
       # Append the TRD if it exists. This allows for multiple subdomains
@@ -232,7 +232,7 @@ module V2
 
       OT.info "[CustomDomain] Generated txt record #{record_host} -> #{record_value}"
 
-      @txt_validation_host = record_host
+      @txt_validation_host  = record_host
       @txt_validation_value = record_value
 
       validate_txt_record!

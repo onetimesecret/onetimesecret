@@ -15,7 +15,7 @@ module V2::Logic
     #
     class GetImage < V2::Logic::Base
       attr_reader :custom_domain_id, :filename, :custom_domain, :image_type, :image_ext, :content_type,
-                  :content_length, :image_data, :encoded_content
+        :content_length, :image_data, :encoded_content
 
       def process_params
         # Sanitize the id to allow only alphanumeric characters
@@ -23,12 +23,12 @@ module V2::Logic
 
         # One of: logo, icon. CustomDomain must have a matching hashkey field.
         tmp_image_type = params[:image_type].to_s.gsub(/[^a-zA-Z0-9]/, '')
-        @image_type = %w[logo icon].include?(tmp_image_type) ? tmp_image_type : nil
+        @image_type    = %w[logo icon].include?(tmp_image_type) ? tmp_image_type : nil
 
         # We capture the file extension for the image but we just log
         # it. The response content type is determined by the stored value.
         tmp_image_ext = params[:image_ext].to_s.gsub(/[^a-zA-Z0-9]/, '')
-        @image_ext = tmp_image_ext
+        @image_ext    = tmp_image_ext
 
         OT.ld "[GetImage] domain_id=#{custom_domain_id} type=#{image_type} ext=#{image_ext}"
       end
@@ -38,7 +38,7 @@ module V2::Logic
 
         tmp_custom_domain = V2::CustomDomain.from_identifier custom_domain_id
         raise_not_found 'Domain not found' unless tmp_custom_domain
-        @custom_domain = tmp_custom_domain # make it available after all concerns
+        @custom_domain    = tmp_custom_domain # make it available after all concerns
 
         # Safely retrieve the logo filename from the custom domain's brand
         _image_field&.[]('filename')
@@ -47,14 +47,14 @@ module V2::Logic
         raise_not_found 'No content type' unless content_type
         @content_type = content_type
 
-        encoded_content = _image_field['encoded']
+        encoded_content  = _image_field['encoded']
         raise_not_found 'No content' unless encoded_content
         @encoded_content = encoded_content
       end
 
       def process
         # Decode the base64 content back to binary
-        @image_data = Base64.strict_decode64(encoded_content)
+        @image_data     = Base64.strict_decode64(encoded_content)
         @content_length = @image_data&.bytesize.to_s || '0'
       end
 

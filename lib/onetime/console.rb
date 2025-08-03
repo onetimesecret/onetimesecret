@@ -1,13 +1,13 @@
 # lib/onetime/console.rb
 
-ENV['RACK_ENV'] ||= 'production'
+ENV['RACK_ENV']   ||= 'production'
 ENV['ONETIME_HOME'] = File.expand_path(File.join(__dir__, '..', '..')).freeze
-app_root = ENV['ONETIME_HOME']
+app_root            = ENV.fetch('ONETIME_HOME', nil)
 
 # Directory Constants
 unless defined?(PUBLIC_DIR)
   PUBLIC_DIR = File.join(app_root, '/public/web').freeze
-  APP_DIR = File.join(app_root, '/apps').freeze
+  APP_DIR    = File.join(app_root, '/apps').freeze
 end
 
 # Load Paths
@@ -28,7 +28,7 @@ require_relative '../onetime/models'
 
 # Customize the prompt
 if defined?(IRB)
-  require "irb/completion"
+  require 'irb/completion'
   IRB.conf[:PROMPT][:ONETIME] = {
     PROMPT_I: 'ONETIME> ',    # The main prompt
     PROMPT_S: '%l ',     # The prompt for continuing strings
@@ -46,13 +46,13 @@ if defined?(IRB)
   end
 
   # Additional IRB settings
-  IRB.conf[:AUTO_INDENT] = true
-  IRB.conf[:ECHO] = true
+  IRB.conf[:AUTO_INDENT]      = true
+  IRB.conf[:ECHO]             = true
   IRB.conf[:BACK_TRACE_LIMIT] = 25
-  IRB.conf[:SAVE_HISTORY] = 0
-  IRB.conf[:HISTORY_FILE] = nil
-  IRB.conf[:IGNORE_EOF] = false
-  IRB.conf[:USE_PAGER] = true
+  IRB.conf[:SAVE_HISTORY]     = 0
+  IRB.conf[:HISTORY_FILE]     = nil
+  IRB.conf[:IGNORE_EOF]       = false
+  IRB.conf[:USE_PAGER]        = true
 
   puts
   puts "Onetime console loaded (additional settings applied: #{IRB.conf[:RC]})."

@@ -31,7 +31,7 @@ module V2
       def filter_system_settings(config)
         config_data = config.is_a?(Hash) ? config : config.to_h
         FIELD_MAPPINGS.keys.each_with_object({}) do |field, result|
-          value = config_data[field]
+          value         = config_data[field]
           # Only include non-empty values
           result[field] = value if value && !value.empty?
         end
@@ -51,10 +51,10 @@ module V2
           next unless value && !value.empty?
 
           # Build nested hash structure based on path
-          current = result
+          current            = result
           path[0..-2].each do |key|
             current[key] ||= {}
-            current = current[key]
+            current        = current[key]
           end
           current[path.last] = value
         end
@@ -177,7 +177,7 @@ module V2
     def filtered
       # Use the deserialized getter methods
       JSON_FIELDS.each_with_object({}) do |field, result|
-        value = send(field) # This now uses the overridden getter
+        value         = send(field) # This now uses the overridden getter
         result[field] = value if value && !value.empty?
       end
     end
@@ -189,7 +189,7 @@ module V2
     # Override to_h to use deserialized values
     def to_h
       JSON_FIELDS.each_with_object({}) do |field, hash|
-        value = send(field) # Use the getter method which handles deserialization
+        value       = send(field) # Use the getter method which handles deserialization
         hash[field] = value if value
       end.merge(
         configid: configid,
@@ -236,8 +236,8 @@ module V2
         end
 
         obj # Return the created object
-      rescue Redis::BaseError => e
-        OT.le "[SystemSettings.create] Redis error: #{e.message}"
+      rescue Redis::BaseError => ex
+        OT.le "[SystemSettings.create] Redis error: #{ex.message}"
         raise Onetime::Problem, 'Unable to create custom domain'
       end
 
@@ -250,9 +250,9 @@ module V2
         obj = load(identifier)
         OT.ld "[SystemSettings.exists?] Got #{obj} for #{identifier}"
         obj.exists?
-      rescue Onetime::Problem => e
-        OT.le "[SystemSettings.exists?] #{e.message}"
-        OT.ld e.backtrace.join("\n")
+      rescue Onetime::Problem => ex
+        OT.le "[SystemSettings.exists?] #{ex.message}"
+        OT.ld ex.backtrace.join("\n")
         false
       end
 

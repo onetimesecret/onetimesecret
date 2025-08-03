@@ -6,18 +6,17 @@ require_relative 'base_mailer'
 module Onetime::Mail
   module Mailer
     class SMTPMailer < BaseMailer
-
       def send_email(to_address, subject, html_content, text_content) # rubocop:disable Metrics/MethodLength
-        mailer_response = nil
+        mailer_response  = nil
         obscured_address = OT::Utils.obscure_email(to_address)
-        sender_email = self.from # just the email address, not with the name
-        to_email = to_address
-        reply_to = self.reply_to
+        sender_email     = from # just the email address, not with the name
+        to_email         = to_address
+        reply_to         = self.reply_to
 
         OT.ld "[email-send-start] sender:#{sender_email}; reply-to:#{reply_to}"
 
         # Return early if there is no system email address to send from
-        if self.from.to_s.empty?
+        if from.to_s.empty?
           OT.le "> [send-exception] No from address [to: #{obscured_address}]"
           return
         end
@@ -54,12 +53,10 @@ module Onetime::Mail
               body         text_content
             end
           end
-
         rescue Net::SMTPFatalError => ex
           OT.le "> [send-exception-smtperror] #{ex.message} [to: #{obscured_address}]"
           OT.ld "#{ex.class} #{ex.message}\n#{ex.backtrace}"
-
-        rescue => ex
+        rescue StandardError => ex
           OT.le "> [send-exception-sending] #{ex.class} #{ex.message} [to: #{obscured_address}]"
           OT.ld ex.backtrace
         end
@@ -90,13 +87,13 @@ module Onetime::Mail
       def self.setup
         ::Mail.defaults do
           delivery_method :smtp, {
-            :address   => OT.conf['emailer']['host'] || 'localhost',
-            :port      => OT.conf['emailer']['port'] || 587,
-            :domain    => OT.conf['site']['domain'],
-            :user_name => OT.conf['emailer']['user'],
-            :password  => OT.conf['emailer']['pass'],
-            :authentication => OT.conf['emailer']['auth'],
-            :enable_starttls_auto => OT.conf['emailer']['tls'].to_s == 'true',
+            address: OT.conf['emailer']['host'] || 'localhost',
+            port: OT.conf['emailer']['port'] || 587,
+            domain: OT.conf['site']['domain'],
+            user_name: OT.conf['emailer']['user'],
+            password: OT.conf['emailer']['pass'],
+            authentication: OT.conf['emailer']['auth'],
+            enable_starttls_auto: OT.conf['emailer']['tls'].to_s == 'true',
           }
         end
       end
@@ -104,8 +101,6 @@ module Onetime::Mail
       def self.clear
         # No instance variables to clear, so this is intentionally a nullop.
       end
-
     end
-
   end
 end

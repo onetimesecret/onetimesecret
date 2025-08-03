@@ -11,7 +11,7 @@ module V2
         raise Onetime::Problem, 'custid is required' if custid.to_s.empty?
         raise Onetime::Problem, 'Customer exists' if exists?(custid)
 
-        cust = new custid: custid, email: email || custid, role: 'customer'
+        cust        = new custid: custid, email: email || custid, role: 'customer'
         cust.planid = 'basic'
         OT.ld "[create] custid: #{custid}, #{cust.safe_dump}"
         cust.save
@@ -48,11 +48,11 @@ module V2
         OT.info "[increment_field] cust.#{field} is #{curval} for #{cust}"
 
         cust.increment field
-      rescue Redis::CommandError => e
+      rescue Redis::CommandError => ex
         # For whatever reason, redis throws an error when trying to
         # increment a non-existent hashkey field (rather than setting
         # it to 1): "ERR hash value is not an integer"
-        OT.le "[increment_field] Redis error (#{curval}): #{e.message}"
+        OT.le "[increment_field] Redis error (#{curval}): #{ex.message}"
 
         # So we'll set it to 1 if it's empty. It's possible we're here
         # due to a different error, but this value needs to be

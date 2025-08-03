@@ -34,12 +34,12 @@ module Core
         publically('/') do
           # We take the tier and billing cycle from the URL path and try to
           # get the preconfigured Stripe payment links using those values.
-          tierid = req.params[:tier] ||= 'free'
+          tierid        = req.params[:tier] ||= 'free'
           billing_cycle = req.params[:billing_cycle] ||= 'month' # year or month
 
-          billing = OT.conf['billing']
+          billing       = OT.conf['billing']
           payment_links = billing.fetch('payment_links', {})
-          payment_link = payment_links.dig(tierid, billing_cycle)
+          payment_link  = payment_links.dig(tierid, billing_cycle)
 
           OT.ld "[plan_redirect] billing: #{billing}"
           OT.ld "[plan_redirect] payment_links: #{payment_links}"
@@ -71,7 +71,7 @@ module Core
           # a two-charactor ISO country code. https://www.iso.org/obp/ui/#search
           #
           unless cust.anonymous?
-            stripe_params[:prefilled_email] = cust.custid
+            stripe_params[:prefilled_email]     = cust.custid
             stripe_params[:client_reference_id] = ''
           end
 
@@ -128,9 +128,9 @@ module Core
         # We ignore CSRF shrimp since it's a calling coming from outside the house
         # but we do verify the Stripe webhook signature in StripeWebhook#raise_concerns.
         publically('/') do
-          logic = V2::Logic::Welcome::StripeWebhook.new sess, cust, req.params, locale
+          logic                  = V2::Logic::Welcome::StripeWebhook.new sess, cust, req.params, locale
           logic.stripe_signature = req.env['HTTP_STRIPE_SIGNATURE']
-          logic.payload = req.body.read
+          logic.payload          = req.body.read
           logic.raise_concerns
           logic.process
 
@@ -161,31 +161,28 @@ module Core
       #
       def customer_portal_redirect
         authenticated('/account') do
-          begin
             # Get the Stripe Customer ID from our customer instance
             customer_id = cust.stripe_customer_id
 
-            site_host = Onetime.conf['site']['host']
-            is_secure = Onetime.conf['site']['ssl']
+            site_host  = Onetime.conf['site']['host']
+            is_secure  = Onetime.conf['site']['ssl']
             return_url = "#{is_secure ? 'https' : 'http'}://#{site_host}/account"
 
             # Create a Stripe Customer Portal session
             session = Stripe::BillingPortal::Session.create({
               customer: customer_id,
               return_url: return_url,
-            })
+            },
+                                                           )
 
             # Continue the redirect
             res.redirect session.url
-
-          rescue Stripe::StripeError => e
-            OT.le "[customer_portal_redirect] Stripe error: #{e.message}"
-            raise_form_error(e.message)
-
-          rescue => e
-            OT.le "[customer_portal_redirect] Unexpected error: #{e.message}"
+        rescue Stripe::StripeError => ex
+            OT.le "[customer_portal_redirect] Stripe error: #{ex.message}"
+            raise_form_error(ex.message)
+        rescue StandardError => ex
+            OT.le "[customer_portal_redirect] Unexpected error: #{ex.message}"
             raise_form_error('An unexpected error occurred')
-          end
         end
       end
 
@@ -194,6 +191,7 @@ module Core
           unless _auth_settings['enabled'] && _auth_settings['signup']
             return disabled_response(req.path)
           end
+
           deny_agents!
           logic = V2::Logic::Account::CreateAccount.new sess, cust, req.params, locale
           logic.raise_concerns
@@ -207,20 +205,21 @@ module Core
           unless _auth_settings['enabled'] && _auth_settings['signin']
             return disabled_response(req.path)
           end
+
           # If the request is halted, say for example rate limited, we don't want to
           # allow the browser to refresh and re-submit the form with the login
           # credentials.
           no_cache!
           logic = V2::Logic::Authentication::AuthenticateSession.new sess, cust, req.params, locale
           if sess.authenticated?
-            sess.set_info_message "You are already logged in."
+            sess.set_info_message 'You are already logged in.'
             res.redirect '/'
           else
             if req.post? # rubocop:disable Style/IfInsideElse
               logic.raise_concerns
               logic.process
-              sess = logic.sess
-              cust = logic.cust
+              sess      = logic.sess
+              cust      = logic.cust
               is_secure = Onetime.conf['site']['ssl']
               res.send_cookie :sess, sess.sessid, sess.ttl, is_secure
 
@@ -264,7 +263,6 @@ module Core
       def _auth_settings
         OT.conf.dig('site', 'authentication')
       end
-
     end
   end
 end

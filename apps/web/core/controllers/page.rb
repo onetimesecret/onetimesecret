@@ -1,4 +1,3 @@
-
 require_relative 'base'
 
 module Core
@@ -26,7 +25,7 @@ module Core
       def index
         publically do
           OT.ld "[index] authenticated? #{sess.authenticated?}"
-          view = Core::Views::VuePoint.new req, sess, cust, locale
+          view     = Core::Views::VuePoint.new req, sess, cust, locale
           res.body = view.render
         end
       end
@@ -34,7 +33,7 @@ module Core
       def customers_only
         authenticated do
           OT.ld "[customers_only] authenticated? #{sess.authenticated?}"
-          view = Core::Views::VuePoint.new req, sess, cust, locale
+          view     = Core::Views::VuePoint.new req, sess, cust, locale
           res.body = view.render
         end
       end
@@ -42,19 +41,18 @@ module Core
       def colonels_only
         colonels do
           OT.ld "[colonels_only] authenticated? #{sess.authenticated?}"
-          view = Core::Views::VuePoint.new req, sess, cust, locale
+          view     = Core::Views::VuePoint.new req, sess, cust, locale
           res.body = view.render
         end
       end
 
       def robots_txt
         publically do
-          view = Core::Views::RobotsTxt.new req, sess, cust, locale
+          view                       = Core::Views::RobotsTxt.new req, sess, cust, locale
           res.header['Content-Type'] = 'text/plain'
-          res.body = view.render
+          res.body                   = view.render
         end
       end
     end
-
   end
 end

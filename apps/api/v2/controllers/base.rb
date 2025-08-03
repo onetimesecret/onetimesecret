@@ -28,7 +28,7 @@ module V2
         check_locale!
 
         req.env['otto.auth'] ||= Rack::Auth::Basic::Request.new(req.env)
-        auth = req.env['otto.auth']
+        auth                   = req.env['otto.auth']
 
         # First line, check for basic auth
         if auth.provided?
@@ -63,7 +63,7 @@ module V2
 
           # Only attempt to load the customer object if the session has
           # already been authenticated. Otherwise this is an anonymous session.
-          @cust = sess.load_customer if sess.authenticated?
+          @cust   = sess.load_customer if sess.authenticated?
           @cust ||= V2::Customer.anonymous if allow_anonymous
 
           raise OT::Unauthorized, 'Invalid credentials' if cust.nil? # wrong token
@@ -90,7 +90,7 @@ module V2
           if OT.debug?
             ip_address = req.client_ipaddress.to_s
             session_id = sess.sessid.to_s
-            message = "[authorized] Anonymous session via #{ip_address} (new session #{session_id})"
+            message    = "[authorized] Anonymous session via #{ip_address} (new session #{session_id})"
             OT.ld message
           end
 
@@ -133,7 +133,7 @@ module V2
         logic = logic_class.new(sess, cust, req.params, locale)
 
         logic.domain_strategy = req.env['onetime.domain_strategy'] # never nil
-        logic.display_domain = req.env['onetime.display_domain'] # can be nil
+        logic.display_domain  = req.env['onetime.display_domain'] # can be nil
 
         OT.ld <<~DEBUG
           [retrieve_records]
@@ -181,7 +181,7 @@ module V2
         logic = logic_class.new(sess, cust, req.params, locale)
 
         logic.domain_strategy = req.env['onetime.domain_strategy'] # never nil
-        logic.display_domain = req.env['onetime.display_domain'] # can be nil
+        logic.display_domain  = req.env['onetime.display_domain'] # can be nil
 
         logic.raise_concerns
         logic.process
@@ -221,10 +221,10 @@ module V2
     # so they can try again with a new one (without refreshing the
     # entire page).
     def handle_form_error(ex, hsh = {})
-      hsh[:shrimp] = sess.add_shrimp
+      hsh[:shrimp]  = sess.add_shrimp
       hsh[:message] = ex.message
       hsh[:success] = false
-      res.status = 422 # Unprocessable Entity
+      res.status    = 422 # Unprocessable Entity
       json hsh
     end
 
@@ -238,20 +238,20 @@ module V2
 
     def not_found_response(msg, hsh = {})
       hsh[:message] = msg
-      res.status = 404
+      res.status    = 404
       json hsh
     end
 
     def not_authorized_error(hsh = {})
       hsh[:message] = 'Not authorized'
-      res.status = 403
+      res.status    = 403
       json hsh
     end
 
     def error_response(msg, hsh = {})
       hsh[:message] = msg
       hsh[:success] = false
-      res.status = 500 # Bad Request
+      res.status    = 500 # Bad Request
       json hsh
     end
   end

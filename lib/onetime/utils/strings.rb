@@ -7,7 +7,7 @@ module Onetime
         # Symbols used in character sets for random string generation.
         # Includes common special characters that are generally safe for use
         # in generated identifiers and passwords.
-        SYMBOLS = %w[* $ ! ? ( ) @ # % ^].freeze
+        SYMBOLS         = %w[* $ ! ? ( ) @ # % ^].freeze
         AMBIGUOUS_CHARS = %w[i l o 1 I O 0].freeze
 
         # Complete character set for random string generation.
@@ -76,8 +76,13 @@ module Onetime
       def obscure_email(text)
         email_pattern = /\b([A-Z0-9]{1,2})([A-Z0-9._%-]*)([A-Z0-9])?@([A-Z0-9])([A-Z0-9.-]+)(\.[A-Z]{2,4}\b)/i
 
-        text.gsub(email_pattern) do |match|
-          local_start, _, local_end, domain_start, _, domain_end = $1, $2, $3, $4, $5, $6
+        text.gsub(email_pattern) do |_match|
+          local_start  = ::Regexp.last_match(1)
+          _            = ::Regexp.last_match(2)
+          local_end    = ::Regexp.last_match(3)
+          domain_start = ::Regexp.last_match(4)
+          _            = ::Regexp.last_match(5)
+          domain_end   = ::Regexp.last_match(6)
           "#{local_start}*****#{local_end}@#{domain_start}*****#{domain_end}"
         end
       end

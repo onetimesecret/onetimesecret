@@ -2,8 +2,8 @@
 
 module V2
   unless defined?(V2::BADAGENTS)
-    BADAGENTS = %i[facebook google yahoo bing stella baidu bot curl wget]
-    LOCAL_HOSTS = ['localhost', '127.0.0.1'].freeze # TODO: Add config
+    BADAGENTS     = [:facebook, :google, :yahoo, :bing, :stella, :baidu, :bot, :curl, :wget]
+    LOCAL_HOSTS   = ['localhost', '127.0.0.1'].freeze # TODO: Add config
     HEADER_PREFIX = ENV.fetch('HEADER_PREFIX', 'X_SECRET_').upcase
   end
 
@@ -13,7 +13,7 @@ module V2
     # we respond consistently to all requests. That's why we integrate
     # Sentry here rather than app specific logic.
     def carefully(redirect = nil, content_type = nil, app: :web) # rubocop:disable Metrics/MethodLength,Metrics/PerceivedComplexity
-      redirect ||= req.request_path unless app == :api
+      redirect     ||= req.request_path unless app == :api
       content_type ||= 'text/html; charset=utf-8'
 
       cust ||= V2::Customer.anonymous
@@ -42,11 +42,11 @@ module V2
                  end
 
       return_value
-    rescue OT::Redirect => e
-      OT.info "[carefully] Redirecting to #{e.location} (#{e.status})"
-      res.redirect e.location, e.status
-    rescue OT::Unauthorized => e
-      OT.info e.message
+    rescue OT::Redirect => ex
+      OT.info "[carefully] Redirecting to #{ex.location} (#{ex.status})"
+      res.redirect ex.location, ex.status
+    rescue OT::Unauthorized => ex
+      OT.info ex.message
       not_authorized_error
     rescue Onetime::BadShrimp
       # If it's a json response, no need to set an error message on the session
@@ -56,19 +56,19 @@ module V2
         sess.set_error_message 'Please go back, refresh the page, and try again.'
         res.redirect redirect
       end
-    rescue OT::FormError => e
-      OT.ld "[carefully] FormError: #{e.message} (#{req.path}) redirect:#{redirect || 'n/a'}"
+    rescue OT::FormError => ex
+      OT.ld "[carefully] FormError: #{ex.message} (#{req.path}) redirect:#{redirect || 'n/a'}"
 
       # Track form errors in Sentry. They can indicate bugs that would
       # not surface any other way. We track as messages though since
       # they are not exceptions in the diagnostic sense. We pass only
       # the message and not fields to limit the amount of data sent.
-      capture_message e.message, :error
+      capture_message ex.message, :error
 
       if redirect
-        handle_form_error e, redirect
+        handle_form_error ex, redirect
       else
-        handle_form_error e
+        handle_form_error ex
       end
 
     # NOTE: It's important to handle MissingSecret before RecordNotFound since
@@ -76,42 +76,42 @@ module V2
     #       end up with a generic error message instead of the specific one.
     rescue OT::MissingSecret
       secret_not_found_response
-    rescue OT::RecordNotFound => e
-      OT.ld "[carefully] RecordNotFound: #{e.message} (#{req.path}) redirect:#{redirect || 'n/a'}"
-      not_found_response e.message, shrimp: sess.add_shrimp
-    rescue Familia::HighRiskFactor => e
+    rescue OT::RecordNotFound => ex
+      OT.ld "[carefully] RecordNotFound: #{ex.message} (#{req.path}) redirect:#{redirect || 'n/a'}"
+      not_found_response ex.message, shrimp: sess.add_shrimp
+    rescue Familia::HighRiskFactor => ex
       OT.le "[attempt-saving-non-string-to-redis] #{obscured} (#{sess.ipaddress}): #{sess.identifier.shorten(10)} (#{req.current_absolute_uri})"
 
       # Track attempts to save non-string data to Redis as a warning error
-      capture_error e, :warning
+      capture_error ex, :warning
 
       # Include fresh shrimp so they can try again 🦐
       error_response "We're sorry, but we can't process your request at this time.", shrimp: sess.add_shrimp
-    rescue Familia::NotConnected, Familia::Problem => e
-      OT.le "#{e.class}: #{e.message}"
-      OT.le e.backtrace
+    rescue Familia::NotConnected, Familia::Problem => ex
+      OT.le "#{ex.class}: #{ex.message}"
+      OT.le ex.backtrace
 
       # Track Familia errors as regular exceptions
-      capture_error e
+      capture_error ex
 
       # Include fresh shrimp so they can try again, again 🦐
       error_response 'An error occurred :[', shrimp: sess ? sess.add_shrimp : nil
-    rescue Errno::ECONNREFUSED => e
-      OT.le e.message
-      OT.le e.backtrace
+    rescue Errno::ECONNREFUSED => ex
+      OT.le ex.message
+      OT.le ex.backtrace
 
       # Track DB connection errors as fatal errors
-      capture_error e, :fatal
+      capture_error ex, :fatal
 
       error_response "We'll be back shortly!", shrimp: sess ? sess.add_shrimp : nil
-    rescue StandardError => e
+    rescue StandardError => ex
       custid = cust&.custid || '<notset>'
       sessid = sess&.short_identifier || '<notset>'
-      OT.le "#{e.class}: #{e.message} -- #{req.current_absolute_uri} -- #{req.client_ipaddress} #{custid} #{sessid} #{locale} #{content_type} #{redirect} "
-      OT.le e.backtrace.join("\n")
+      OT.le "#{ex.class}: #{ex.message} -- #{req.current_absolute_uri} -- #{req.client_ipaddress} #{custid} #{sessid} #{locale} #{content_type} #{redirect} "
+      OT.le ex.backtrace.join("\n")
 
       # Track the unexected errors
-      capture_error e
+      capture_error ex
 
       error_response 'An unexpected error occurred :[', shrimp: sess ? sess.add_shrimp : nil
     ensure
@@ -140,7 +140,7 @@ module V2
       locale ||= (req.env['rack.locale'] || []).first
 
       have_translations = locale && OT.locales.has_key?(locale)
-      lmsg = format(
+      lmsg              = format(
         '[check_locale!] class=%s locale=%s cust=%s req=%s t=%s',
         self.class.name,
         locale,
@@ -187,7 +187,7 @@ module V2
 
     def validate_shrimp(attempted_shrimp, replace = true)
       shrimp_is_empty = attempted_shrimp.empty?
-      log_value = attempted_shrimp.shorten(5)
+      log_value       = attempted_shrimp.shorten(5)
 
       if sess.shrimp?(attempted_shrimp) || ignoreshrimp
         adjective = ignoreshrimp ? 'IGNORED' : 'GOOD'
@@ -202,7 +202,7 @@ module V2
         ### JUST SUBMIT A FORM WITHOUT ANY SHRIMP WHATSOEVER
         ### AND THAT'S NO WAY TO TREAT A GUEST.
         shrimp = (sess.shrimp || '[noshrimp]').clone
-        ex = Onetime::BadShrimp.new(req.path, cust.custid, attempted_shrimp, shrimp)
+        ex     = Onetime::BadShrimp.new(req.path, cust.custid, attempted_shrimp, shrimp)
         OT.ld "BAD SHRIMP for #{cust.custid}@#{req.path}: #{log_value}"
         sess.replace_shrimp! if replace && !shrimp_is_empty
         raise ex
@@ -292,7 +292,7 @@ module V2
       # are not used. This prevents situations where the app is running and
       # anyone accessing it can create an account without proper authentication.
       authentication_enabled = OT.conf['site']['authentication']['enabled'] rescue false # rubocop:disable Style/RescueModifier
-      signin_enabled = OT.conf['site']['authentication']['signin'] rescue false # rubocop:disable Style/RescueModifier
+      signin_enabled         = OT.conf['site']['authentication']['signin'] rescue false # rubocop:disable Style/RescueModifier
 
       # The only condition that allows a request to be authenticated is if
       # the site has authentication enabled, and the user is signed in. If a
@@ -316,8 +316,8 @@ module V2
       # Skip the Content-Security-Policy header if the front is running in
       # development mode. We need to allow inline scripts and styles for
       # hot reloading to work.
-      if OT.conf.dig('development', 'enabled')
-        csp = [
+      csp = if OT.conf.dig('development', 'enabled')
+        [
           "default-src 'none';",                               # Restrict to same origin by default
           "script-src 'unsafe-inline' 'nonce-#{nonce}';",      # Allow Vite's dynamic module imports and source maps
           "style-src 'self' 'unsafe-inline';",                 # Enable Vite's dynamic style injection
@@ -333,7 +333,7 @@ module V2
           "worker-src 'self';",                                # Allow Workers from same origin only
         ]
       else
-        csp = [
+        [
           "default-src 'none';",
           "script-src 'unsafe-inline' 'nonce-#{nonce}';",      # unsafe-inline is ignored with a nonce
           "style-src 'self' 'unsafe-inline';",
@@ -348,7 +348,7 @@ module V2
           # "require-trusted-types-for 'script';",
           "worker-src 'self';",
         ]
-      end
+            end
 
       OT.ld "[CSP] #{csp.join(' ')}" if OT.debug?
 
@@ -358,7 +358,7 @@ module V2
     def log_customer_activity
       return if cust.anonymous?
 
-      reqstr = stringify_request_details(req)
+      reqstr  = stringify_request_details(req)
       custref = cust.obscure_email
       OT.ld "[carefully] #{sess.short_identifier} #{custref} at #{reqstr}"
     end
@@ -413,17 +413,17 @@ module V2
 
         # Try Sentry exception reporting
         Sentry.capture_exception(error, level: level, &)
-      rescue NoMethodError => e
-        raise unless e.message.include?('start_with?')
+      rescue NoMethodError => ex
+        raise unless ex.message.include?('start_with?')
 
-        OT.le "[capture_error] Sentry error with nil value in start_with? check: #{e.message}"
-        OT.ld e.backtrace.join("\n")
+        OT.le "[capture_error] Sentry error with nil value in start_with? check: #{ex.message}"
+        OT.ld ex.backtrace.join("\n")
       # Continue execution - don't let a Sentry error break the app
 
       # Re-raise any other NoMethodError that isn't related to start_with?
-      rescue StandardError => e
-        OT.le "[capture_error] #{e.class}: #{e.message}"
-        OT.ld e.backtrace.join("\n")
+      rescue StandardError => ex
+        OT.le "[capture_error] #{ex.class}: #{ex.message}"
+        OT.ld ex.backtrace.join("\n")
       end
     end
 
@@ -431,9 +431,9 @@ module V2
       return unless OT.d9s_enabled # diagnostics are disabled by default
 
       Sentry.capture_message(message, level: level, &)
-    rescue StandardError => e
-      OT.le "[capture_message] #{e.class}: #{e.message}"
-      OT.ld e.backtrace.join("\n")
+    rescue StandardError => ex
+      OT.le "[capture_message] #{ex.class}: #{ex.message}"
+      OT.ld ex.backtrace.join("\n")
     end
 
     # Collects and formats specific HTTP header details from the given
@@ -460,7 +460,7 @@ module V2
     #   # => "HTTP_X_FORWARDED_FOR=203.0.113.195 REMOTE_ADDR=192.0.2.1 CF-Connecting-IP=203.0.113.195 CF-IPCountry=US CF-Ray=1234567890abcdef CF-Visitor={\"scheme\":\"https\"}"
     #
     def collect_proxy_header_details(env = nil, keys = nil)
-      env ||= {}
+      env  ||= {}
       keys ||= %w[
         HTTP_FLY_REQUEST_ID
         HTTP_VIA
@@ -510,8 +510,8 @@ module V2
 
     def no_cache!
       res.header['Cache-Control'] = 'no-store, no-cache, must-revalidate, max-age=0'
-      res.header['Expires'] = 'Mon, 7 Nov 2011 00:00:00 UTC'
-      res.header['Pragma'] = 'no-cache'
+      res.header['Expires']       = 'Mon, 7 Nov 2011 00:00:00 UTC'
+      res.header['Pragma']        = 'no-cache'
     end
 
     def app_path *paths

@@ -10,7 +10,7 @@ module V2::Logic
 
       def process_params
         OT.ld "[GetAccount#process_params] params: #{params.inspect}"
-        billing = OT.conf.fetch(:billing, {})
+        billing          = OT.conf.fetch(:billing, {})
         @billing_enabled = billing.fetch(:enabled, false)
       end
 
@@ -19,7 +19,7 @@ module V2::Logic
       def process
         return unless billing_enabled
 
-        @stripe_customer = cust.get_stripe_customer
+        @stripe_customer     = cust.get_stripe_customer
         @stripe_subscription = cust.get_stripe_subscription
 
         # Rudimentary normalization to make sure that all Onetime customers
@@ -64,8 +64,8 @@ module V2::Logic
           created: stripe_customer.created,
           metadata: stripe_customer.metadata,
         }
-      rescue RuntimeError => e
-        OT.le("[safe_stripe_customer_dump] Error for #{object_id}: #{e.message}")
+      rescue RuntimeError => ex
+        OT.le("[safe_stripe_customer_dump] Error for #{object_id}: #{ex.message}")
         nil
       end
 
@@ -88,8 +88,8 @@ module V2::Logic
             product: stripe_subscription.plan.product,
           },
         }
-      rescue RuntimeError => e
-        OT.le("[safe_stripe_subscription_dump] Error for #{object_id}: #{e.message}")
+      rescue RuntimeError => ex
+        OT.le("[safe_stripe_subscription_dump] Error for #{object_id}: #{ex.message}")
         nil
       end
 
@@ -106,8 +106,8 @@ module V2::Logic
         }
 
         if show_stripe_section?
-          ret[:record][:stripe_customer] = safe_stripe_customer_dump
-          subscription = safe_stripe_subscription_dump
+          ret[:record][:stripe_customer]      = safe_stripe_customer_dump
+          subscription                        = safe_stripe_subscription_dump
           ret[:record][:stripe_subscriptions] = [subscription] if subscription
         end
 

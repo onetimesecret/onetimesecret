@@ -5,13 +5,11 @@ require 'onetime/middleware/domain_strategy'
 
 module Core
   module Views
-
     # Serializes domain-related information for the frontend
     #
     # Handles custom domains, domain strategies, and domain branding
     # transformations for frontend consumption.
     module DomainSerializer
-
       # Serializes domain data from view variables
       #
       # Transforms domain strategy, custom domains, and domain branding
@@ -20,29 +18,29 @@ module Core
       # @param view_vars [Hash] The view variables containing domain information
       # @param i18n [Object] The internationalization instance
       # @return [Hash] Serialized domain data
-      def self.serialize(view_vars, i18n)
-        output = self.output_template
-        site = view_vars['site'] || {}
+      def self.serialize(view_vars, _i18n)
+        output          = output_template
+        site            = view_vars['site'] || {}
         domains_enabled = site.dig('domains', 'enabled')
 
         is_authenticated = view_vars['authenticated']
-        domains = view_vars['site'].fetch('domains', {})
-        cust = view_vars['cust']
+        view_vars['site'].fetch('domains', {})
+        cust             = view_vars['cust']
 
         output['domain_strategy'] = view_vars['domain_strategy']
 
         output['canonical_domain'] = Onetime::DomainStrategy.canonical_domain
-        output['display_domain'] = view_vars['display_domain']
+        output['display_domain']   = view_vars['display_domain']
 
         # Custom domain handling
         if output['domain_strategy'] == :custom
           # Load the CustomDomain object
-          custom_domain = V2::CustomDomain.from_display_domain(output['display_domain'])
-          output['domain_id'] = custom_domain&.domainid
+          custom_domain             = V2::CustomDomain.from_display_domain(output['display_domain'])
+          output['domain_id']       = custom_domain&.domainid
           output['domain_branding'] = (custom_domain&.brand&.hgetall || {}).to_h
-          output['domain_logo'] = (custom_domain&.logo&.hgetall || {}).to_h
+          output['domain_logo']     = (custom_domain&.logo&.hgetall || {}).to_h
 
-          domain_locale = output['domain_branding'].fetch('locale', nil)
+          domain_locale           = output['domain_branding'].fetch('locale', nil)
           output['domain_locale'] = domain_locale
         end
 

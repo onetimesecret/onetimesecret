@@ -90,13 +90,13 @@ module V2
       self.value_encryption = 2 # Current encryption version
 
       encryption_options = opts.merge(key: encryption_key)
-      self.value = storable_value.encrypt encryption_options
+      self.value         = storable_value.encrypt encryption_options
     end
 
     def decrypted_value(opts = {})
       encryption_mode = value_encryption.to_i
-      v_encrypted = value
-      v_encrypted = '' if encryption_mode.negative? && v_encrypted.nil?
+      v_encrypted     = value
+      v_encrypted     = '' if encryption_mode.negative? && v_encrypted.nil?
       v_encrypted.force_encoding('utf-8')
 
       # First try with the primary global secret
@@ -115,8 +115,8 @@ module V2
                       end
         v_decrypted.force_encoding('utf-8') # Hacky fix for https://github.com/onetimesecret/onetimesecret/issues/37
         v_decrypted
-      rescue OpenSSL::Cipher::CipherError => e
-        OT.le "[decrypted_value] m:#{metadata_key} s:#{key} CipherError #{e.message}"
+      rescue OpenSSL::Cipher::CipherError => ex
+        OT.le "[decrypted_value] m:#{metadata_key} s:#{key} CipherError #{ex.message}"
         # Try fallback global secrets for mode 2 (current encryption)
         if encryption_mode == 2 && has_fallback_secrets?
           fallback_result = try_fallback_secrets(v_encrypted, opts)
@@ -132,7 +132,7 @@ module V2
         end
 
         # If nothing works, raise the original error
-        raise e
+        raise ex
       end
     end
 
@@ -151,7 +151,7 @@ module V2
       rotated_secrets.each_with_index do |fallback_secret, index|
         # Generate key using the fallback secret
         encryption_key = V2::Secret.encryption_key(fallback_secret, key, passphrase_temp)
-        result = encrypted_value.decrypt(opts.merge(key: encryption_key))
+        result         = encrypted_value.decrypt(opts.merge(key: encryption_key))
         result.force_encoding('utf-8')
         OT.li "[try_fallback_secrets] m:#{metadata_key} s:#{key} Success (index #{index})"
         return result
@@ -238,13 +238,13 @@ module V2
       # we don't support going from :viewed back to something else.
       return unless state?(:new) || state?(:viewed)
 
-      md = load_metadata
+      md               = load_metadata
       md.received! unless md.nil?
       # It's important for the state to change here, even though we're about to
       # destroy the secret. This is because the state is used to determine if
       # the secret is viewable. If we don't change the state here, the secret
       # will still be viewable b/c (state?(:new) || state?(:viewed) == true).
-      @state = 'received'
+      @state           = 'received'
       # We clear the value and passphrase_temp immediately so that the secret
       # payload is not recoverable from this instance of the secret; however,
       # we shouldn't clear arbitrary fields here b/c there are valid reasons
@@ -255,7 +255,7 @@ module V2
       # which means if we were to clear out say -- state -- it would
       # be null in the API's JSON response. Not a huge deal in that case, but
       # we validate response data in the UI now and this would raise an error.
-      @value = nil
+      @value           = nil
       @passphrase_temp = nil
       destroy!
     end
@@ -265,7 +265,7 @@ module V2
       # we don't support going from :burned back to something else.
       return unless state?(:new) || state?(:viewed)
 
-      md = load_metadata
+      md               = load_metadata
       md.burned! unless md.nil?
       @passphrase_temp = nil
       destroy!

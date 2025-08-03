@@ -20,7 +20,7 @@ module V2::Logic
 
       def process
         OT.ld "[RemoveDomain] Processing #{domain_input} for #{@custom_domain.identifier}"
-        @greenlighted = true
+        @greenlighted   = true
         @display_domain = @custom_domain.display_domain
 
         # Destroy method operates inside a multi block that deletes the domain
@@ -34,11 +34,11 @@ module V2::Logic
         api_key = Onetime::Cluster::Features.api_key
         return OT.info '[RemoveDomain.delete_vhost] Approximated API key not set' if api_key.to_s.empty?
 
-        res = Onetime::Cluster::Approximated.delete_vhost(api_key, @display_domain)
+        res     = Onetime::Cluster::Approximated.delete_vhost(api_key, @display_domain)
         payload = res.parsed_response
         OT.info '[RemoveDomain.delete_vhost] %s' % payload
-      rescue HTTParty::ResponseError => e
-        OT.le format('[RemoveDomain.delete_vhost error] %s %s %s', @cust.custid, @display_domain, e)
+      rescue HTTParty::ResponseError => ex
+        OT.le format('[RemoveDomain.delete_vhost error] %s %s %s', @cust.custid, @display_domain, ex)
       end
 
       def success_data

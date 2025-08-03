@@ -6,13 +6,13 @@ module V2::Logic
     # as required by the v2 API. The v1 API uses the original ShowSecret.
     class RevealSecret < V2::Logic::Base
       attr_reader :key, :passphrase, :continue, :share_domain, :secret, :show_secret, :secret_value, :is_truncated,
-                  :verification, :correct_passphrase, :display_lines, :one_liner, :is_owner, :has_passphrase, :secret_key
+        :verification, :correct_passphrase, :display_lines, :one_liner, :is_owner, :has_passphrase, :secret_key
 
       def process_params
-        @key = params[:key].to_s
-        @secret = V2::Secret.load key
+        @key        = params[:key].to_s
+        @secret     = V2::Secret.load key
         @passphrase = params[:passphrase].to_s
-        @continue = params[:continue].to_s == 'true'
+        @continue   = params[:continue].to_s == 'true'
       end
 
       def raise_concerns
@@ -21,10 +21,10 @@ module V2::Logic
 
       def process # rubocop:disable Metrics/PerceivedComplexity
         @correct_passphrase = secret.passphrase?(passphrase)
-        @show_secret = secret.viewable? && (correct_passphrase || !secret.has_passphrase?) && continue
-        @verification = secret.verification.to_s == 'true'
-        @secret_key = @secret.key
-        @secret_shortkey = @secret.shortkey
+        @show_secret        = secret.viewable? && (correct_passphrase || !secret.has_passphrase?) && continue
+        @verification       = secret.verification.to_s == 'true'
+        @secret_key         = @secret.key
+        @secret_shortkey    = @secret.shortkey
 
         OT.ld "[reveal_secret] secret=#{secret.shortkey} viewable=#{secret.viewable?} correct_passphrase=#{correct_passphrase} continue=#{continue}"
 
@@ -52,7 +52,8 @@ module V2::Logic
             else
               OT.le '[verification] Invalid verification - user already logged in'
               raise_form_error i18n.dig(:web, :COMMON,
-                                        :verification_already_logged_in) || 'Cannot verify when logged in'
+                :verification_already_logged_in
+              ) || 'Cannot verify when logged in'
             end
           else
             OT.li "[reveal_secret] #{secret.key} viewed successfully"
@@ -91,11 +92,11 @@ module V2::Logic
                    site_host
                  end
 
-        @share_domain = [base_scheme, domain].join
-        @is_owner = @secret.owner?(cust)
+        @share_domain   = [base_scheme, domain].join
+        @is_owner       = @secret.owner?(cust)
         @has_passphrase = @secret.has_passphrase?
-        @display_lines = calculate_display_lines
-        @one_liner = one_liner
+        @display_lines  = calculate_display_lines
+        @one_liner      = one_liner
       end
 
       def success_data
@@ -120,7 +121,7 @@ module V2::Logic
       end
 
       def calculate_display_lines
-        v = secret_value.to_s
+        v   = secret_value.to_s
         ret = ((80 + v.size) / 80) + v.scan("\n").size + 3
         ret > 30 ? 30 : ret
       end
@@ -128,7 +129,7 @@ module V2::Logic
       def one_liner
         return if secret_value.to_s.empty? # return nil when the value is empty
 
-        secret_value.to_s.scan("\n").size.zero?
+        secret_value.to_s.scan("\n").empty?
       end
     end
   end

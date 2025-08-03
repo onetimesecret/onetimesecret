@@ -6,7 +6,7 @@ module V2::Logic
       attr_reader :key, :realttl, :secret, :verification
 
       def process_params
-        @key = params[:key].to_s
+        @key    = params[:key].to_s
         @secret = V2::Secret.load key
       end
 

@@ -9,7 +9,7 @@ module V2::Logic
 
       def process_params
         # Calculate the timestamp for 30 days ago
-        @now = Time.now
+        @now   = Time.now
         @since = (Time.now - (30 * 24 * 60 * 60)).to_i
       end
 
@@ -25,7 +25,7 @@ module V2::Logic
           md&.safe_dump
         end
 
-        @has_items = records.any?
+        @has_items              = records.any?
         records.sort! { |a, b| b[:updated] <=> a[:updated] }
         @received, @notreceived = *records.partition { |m| m[:is_destroyed] }
       end

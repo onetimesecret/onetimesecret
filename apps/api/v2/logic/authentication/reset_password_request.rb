@@ -27,8 +27,8 @@ module V2::Logic
           return sess.set_info_message msg
         end
 
-        secret = V2::Secret.create @custid, [@custid]
-        secret.ttl = 24.hours
+        secret              = V2::Secret.create @custid, [@custid]
+        secret.ttl          = 24.hours
         secret.verification = 'true'
         secret.save
 
@@ -40,9 +40,9 @@ module V2::Logic
 
         begin
           view.deliver_email token
-        rescue StandardError => e
+        rescue StandardError => ex
           errmsg = "Couldn't send the notification email. Let know below."
-          OT.le "Error sending password reset email: #{e.message}"
+          OT.le "Error sending password reset email: #{ex.message}"
           sess.set_error_message errmsg
         else
           OT.info "Password reset email sent to #{@custid} for sess=#{sess.short_identifier}"

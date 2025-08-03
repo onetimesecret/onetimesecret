@@ -2,8 +2,6 @@
 
 module Core
   module Views
-
-
     # InitializeViewVars
     #
     # This module is meant to be extended and not included. That's why
@@ -31,7 +29,6 @@ module Core
       # @param i18n_instance [I18n] Current I18n instance
       # @return [Hash] Collection of initialized variables
       def initialize_view_vars(req, sess, cust, locale, i18n_instance)
-
         # Extract the top-level keys from the YAML configuration.
         #
         # SECURITY: This implementation follows an opt-in approach for configuration filtering.
@@ -44,7 +41,7 @@ module Core
         # - Internal infrastructure details
         #
         site_config = OT.conf.fetch('site', {})
-        features = OT.conf.fetch('features', {})
+        features    = OT.conf.fetch('features', {})
         development = OT.conf.fetch('development', {})
         diagnostics = OT.conf.fetch('diagnostics', {})
 
@@ -67,36 +64,36 @@ module Core
         end
 
         # Additional filtering for nested sensitive data
-        if safe_site['domains']
-          safe_site['domains'].delete('cluster') if safe_site['domains'].is_a?(Hash)
+        if (safe_site['domains']) && safe_site['domains'].is_a?(Hash)
+          safe_site['domains'].delete('cluster')
         end
 
-        if safe_site['authentication']
-          safe_site['authentication'].delete('colonels') if safe_site['authentication'].is_a?(Hash)
+        if (safe_site['authentication']) && safe_site['authentication'].is_a?(Hash)
+          safe_site['authentication'].delete('colonels')
         end
 
         incoming = features['incoming']
 
         # Extract values from session
         # messages = sess.nil? ? [] : sess.get_messages
-        shrimp = sess.nil? ? nil : sess.add_shrimp
+        shrimp        = sess.nil? ? nil : sess.add_shrimp
         authenticated = sess && sess.authenticated? && !cust.anonymous?
 
         # Extract values from rack request object
-        nonce = req.env.fetch('ots.nonce', nil) # TODO: Rename to onetime.nonce
+        nonce           = req.env.fetch('ots.nonce', nil) # TODO: Rename to onetime.nonce
         domain_strategy = req.env.fetch('onetime.domain_strategy', :default)
-        display_domain = req.env.fetch('onetime.display_domain', nil)
+        display_domain  = req.env.fetch('onetime.display_domain', nil)
 
         # HTML Tag vars. These are meant for the view templates themselves
         # and not the onetime state window data passed on to the Vue app (
         # although a serializer could still choose to include any of them).
-        description = i18n_instance[:COMMON][:description]
-        keywords = i18n_instance[:COMMON][:keywords]
-        page_title = "Onetime Secret" # TODO: Implement as config setting
-        no_cache = false
-        frontend_host = development['frontend_host']
+        description          = i18n_instance[:COMMON][:description]
+        keywords             = i18n_instance[:COMMON][:keywords]
+        page_title           = 'Onetime Secret' # TODO: Implement as config setting
+        no_cache             = false
+        frontend_host        = development['frontend_host']
         frontend_development = development['enabled']
-        script_element_id = 'onetime-state'
+        script_element_id    = 'onetime-state'
 
         # Return all view variables as a hash
         {
@@ -112,7 +109,7 @@ module Core
           'incoming' => incoming,
           'keywords' => keywords,
           'locale' => locale,
-          'messages' => nil, #messages,
+          'messages' => nil, # messages,
           'no_cache' => no_cache,
           'nonce' => nonce,
           'page_title' => page_title,
