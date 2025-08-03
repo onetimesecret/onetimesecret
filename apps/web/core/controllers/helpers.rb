@@ -368,7 +368,7 @@ module Core
       sess.save
 
       # Update the session cookie
-      res.send_cookie :sess, sess.sessid, sess.ttl
+      res.send_secure_cookie :sess, sess.sessid, sess.ttl
 
       # Re-hydrate the customer object
       @cust = sess.load_customer || V2::Customer.anonymous

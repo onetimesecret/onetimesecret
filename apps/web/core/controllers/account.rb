@@ -108,7 +108,7 @@ module Core
 
           @cust = logic.cust
 
-          res.send_cookie :sess, sess.sessid, sess.ttl
+          res.send_secure_cookie :sess, sess.sessid, sess.ttl
 
           res.redirect '/account'
         end
@@ -220,7 +220,7 @@ module Core
               sess      = logic.sess
               cust      = logic.cust
 
-              res.send_cookie :sess, sess.sessid, sess.ttl
+              res.send_secure_cookie :sess, sess.sessid, sess.ttl
 
               if cust.role?(:colonel)
                 res.redirect '/colonel/'

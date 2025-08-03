@@ -26,7 +26,7 @@ gem 'rack-contrib', '~> 2.5.0'
 gem 'rack-protection', '~> 4.1'
 gem 'rack-session', '~> 2.1.1'
 gem 'rack-utf8_sanitizer'
-gem 'rackup'
+gem 'rackup' # rubocop:disable Bundler/OrderedGems
 
 # ====================================
 # Data Processing & Utilities
@@ -67,14 +67,14 @@ gem 'encryptor', '= 1.1.3'
 # ====================================
 
 if !ENV['LOCAL_DEV'].to_s.empty? && ENV['RACK_ENV'] == 'development' && ENV['CI'].to_s.empty?
-  gem 'drydock', path: '../../d/drydock'
-  gem 'familia', path: '../../d/familia'
+  # gem 'drydock', path: '../../d/drydock'
+  # gem 'familia', path: '../../d/familia'
   gem 'otto', path: '../../d/otto'
 else
+  gem 'otto', '~> 1.3.0'
+end
   gem 'drydock', '~> 1.0.0'
   gem 'familia', '~> 1.2.3'
-  gem 'otto', '~> 1.2.0'
-end
 
 # ====================================
 # Ruby Standard Library Compatibility
@@ -84,8 +84,6 @@ end
 gem 'psych', '~> 5.2.3'
 gem 'stringio', '~> 3.1.6'
 gem 'tty-table', '~> 0.12'
-
-
 
 # As of Ruby 3.5, these are no longer in the standard library
 gem 'base64'
