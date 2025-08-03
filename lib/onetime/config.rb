@@ -98,6 +98,7 @@ module Onetime
       parsed_template = ERB.new(File.read(path))
 
       YAML.load(parsed_template.result)
+
     rescue StandardError => e
       OT.le "Error loading config: #{path}"
 
@@ -115,6 +116,21 @@ module Onetime
       OT.le e.message
       OT.le e.backtrace.join("\n")
       raise OT::ConfigError.new(e.message)
+
+      # NOTE: We revisited handling StandardError here in favour of letting it
+      # bubble up to OT::Boot.boot!. I think it simply doesn't make sense to
+      # spill the beans about an unexpected error here b/c it leads to confusing
+      # log output where the backtrace comes before the actual error message.
+      # That's my hypothesis anyway.
+      #
+      # Leaving this note and the rescue block just in case it causing other,
+      # unintended confusing situations. To re-enable, uncomment the following
+      # rescue block:
+      #
+      #   rescue StandardError => ex
+      #     log_error_with_debug_content(ex)
+      #     raise OT::ConfigError, "Unhandled error: #{ex.message}"
+      #
     end
 
     # After loading the configuration, this method processes and validates the

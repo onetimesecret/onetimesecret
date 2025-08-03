@@ -24,8 +24,6 @@ module Onetime
     # is useful for testing or when you want to run code without necessary
     # loading all or any of the models.
     #
-    # NOTE: Should be called last in the list of onetime helpers.
-    #
     def boot!(mode = nil, connect_to_db = true)
       OT.mode = mode unless mode.nil?
       OT.env = ENV['RACK_ENV'] || 'production'
