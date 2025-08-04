@@ -152,7 +152,15 @@ RSpec.describe "Internationalization config" do
 
   describe V2::ControllerHelpers do
     describe '#check_locale! (Regression for #1142)' do
-      let(:req) { double('request', params: {}, env: {}) }
+      let(:req) do
+        double('request', params: {}, env: {}).tap do |request|
+          # Otto extension - check_locale! method added at runtime
+          allow(request).to receive(:check_locale!) do |locale, options|
+            request.env['ots.locale'] = options[:default_locale] || 'en'
+            options[:default_locale] || 'en'
+          end
+        end
+      end
       let(:cust) { double('customer', locale: nil) }
       let(:helper) do
         Class.new do

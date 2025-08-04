@@ -2,7 +2,8 @@
 
 RSpec.shared_context "rack_test_context" do
   let(:rack_request) do
-    instance_double(Rack::Request,
+    # Use regular double since Otto adds methods at runtime
+    double('Rack::Request',
       params: {},
       get?: false,
       post?: false,
@@ -17,11 +18,19 @@ RSpec.shared_context "rack_test_context" do
       cookies: {},
       session: {},
       script_name: '',
-      body: StringIO.new)
+      body: StringIO.new).tap do |req|
+      # Otto extensions - methods added at runtime to Rack::Request
+      allow(req).to receive(:check_locale!) do |locale, options|
+        req.env['ots.locale'] = options[:default_locale] || 'en'
+        options[:default_locale] || 'en'
+      end
+      allow(req).to receive(:app_path) { |path| path }
+    end
   end
 
   let(:rack_response) do
-    instance_double(Rack::Response,
+    # Use regular double since Otto adds methods at runtime
+    double('Rack::Response',
       status: 200,
       headers: {},
       body: [],
@@ -31,6 +40,10 @@ RSpec.shared_context "rack_test_context" do
       allow(resp).to receive(:[]=) { |k,v| resp.headers[k] = v }
       allow(resp).to receive(:[]) { |k| resp.headers[k] }
       allow(resp).to receive(:body=)
+
+      # Otto extensions - methods added at runtime to Rack::Response
+      allow(resp).to receive(:app_path) { |path| path }
+      allow(resp).to receive(:redirect)
     end
   end
 end
