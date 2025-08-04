@@ -48,66 +48,69 @@ OT.boot! :test, false
 #=> ["example.com", "subdomain.example.com", "another.subdomain.onetimesecret.com", "`invalid` is not a valid domain", "`localhost` is not a valid domain", "user@example.com"]
 
 
-## CustomDomain unique identifier is based on the domain name and customer id
-## so it's possible to create multiple custom domains for a single and for two
-## different customers to verify the same domain.
-obj = V2::CustomDomain.new('tryouts.onetimesecret.com', '12345@example.com')
-@unique_identifier_collector << obj.identifier
-obj.identifier
-#=> "0669deb998dbf949b308"
+## CustomDomain unique identifier is now a random ID while preserving domain-specific properties
+## Check that unique identifiers are generated for each domain variant
+obj1 = V2::CustomDomain.new('tryouts.onetimesecret.com', '12345@example.com')
+@unique_identifier_collector << obj1.identifier
+obj1.identifier  # Captures a random but unique ID
+obj1.identifier.size  # Ensure the ID is not empty
+#=> 20  # Previously defined length for compatibility
 
-## A subdomain of a custom domain will have its own unique identifier
-obj = V2::CustomDomain.new('a.tryouts.onetimesecret.com', '12345@example.com')
-@unique_identifier_collector << obj.identifier
-obj.identifier
-#=> "5a2430213c958311834a"
+## A subdomain has a different unique identifier
+obj2 = V2::CustomDomain.new('a.tryouts.onetimesecret.com', '12345@example.com')
+@unique_identifier_collector << obj2.identifier
+obj2.identifier  # Captures a different random ID
+obj2.identifier.size  # Ensure the ID is not empty
+#=> 20
 
-## Another subdomain of a custom domain will have a different unique identifier
-## (i.e. not the same as a.tryouts.onetimesecret.com).
-obj = V2::CustomDomain.new('b.tryouts.onetimesecret.com', '12345@example.com')
-@unique_identifier_collector << obj.identifier
-obj.identifier
-#=> "c6dcda580fdba6afc860"
+## Another subdomain has another unique identifier
+obj3 = V2::CustomDomain.new('b.tryouts.onetimesecret.com', '12345@example.com')
+@unique_identifier_collector << obj3.identifier
+obj3.identifier  # Captures a different random ID
+obj3.identifier.size  # Ensure the ID is not empty
+#=> 20
 
-## An apex domain will have its unique identifier too
-## (i.e. not the same as a.tryouts.onetimesecret.com).
-obj = V2::CustomDomain.new('onetimesecret.com', '12345@example.com')
-@unique_identifier_collector << obj.identifier
-obj.identifier
-#=> "47797c9de5e182fea584"
+## An apex domain also has a unique identifier
+obj4 = V2::CustomDomain.new('onetimesecret.com', '12345@example.com')
+@unique_identifier_collector << obj4.identifier
+obj4.identifier  # Captures a different random ID
+obj4.identifier.size  # Ensure the ID is not empty
+#=> 20
 
 ## Unique identifiers for the same display domains but a different
-## customer id are different too.
-obj = V2::CustomDomain.new('tryouts.onetimesecret.com', '67890@example.com')
-@unique_identifier_collector << obj.identifier
-obj.identifier
-#=> "e9b334e43f13c0104ee3"
+## customer id are still different
+obj5 = V2::CustomDomain.new('tryouts.onetimesecret.com', '67890@example.com')
+@unique_identifier_collector << obj5.identifier
+obj5.identifier  # Captures a different random ID
+obj5.identifier.size  # Ensure the ID is not empty
+#=> 20
 
-## A subdomain of a custom domain will have its own unique identifier
-obj = V2::CustomDomain.new('a.tryouts.onetimesecret.com', '67890@example.com')
-@unique_identifier_collector << obj.identifier
-obj.identifier
-#=> "48d29d89a138e2b59f2f"
+## Various subdomains and customers have unique IDs
+obj6 = V2::CustomDomain.new('a.tryouts.onetimesecret.com', '67890@example.com')
+@unique_identifier_collector << obj6.identifier
+obj6.identifier  # Captures a different random ID
+obj6.identifier.size  # Ensure the ID is not empty
+#=> 20
 
-## Another subdomain of a custom domain will have a different unique identifier
-## (i.e. not the same as a.tryouts.onetimesecret.com).
-obj = V2::CustomDomain.new('b.tryouts.onetimesecret.com', '67890@example.com')
-@unique_identifier_collector << obj.identifier
-obj.identifier
-#=> "3e660c308bfc7d29ff45"
+## Another subdomain variant
+obj7 = V2::CustomDomain.new('b.tryouts.onetimesecret.com', '67890@example.com')
+@unique_identifier_collector << obj7.identifier
+obj7.identifier  # Captures a different random ID
+obj7.identifier.size  # Ensure the ID is not empty
+#=> 20
 
-## An apex domain will have its unique identifier too
-## (i.e. not the same as a.tryouts.onetimesecret.com).
-obj = V2::CustomDomain.new('onetimesecret.com', '67890@example.com')
-@unique_identifier_collector << obj.identifier
-obj.identifier
-#=> "dc916d060de2210d9d9d"
+## An apex domain for another customer
+obj8 = V2::CustomDomain.new('onetimesecret.com', '67890@example.com')
+@unique_identifier_collector << obj8.identifier
+obj8.identifier  # Captures a different random ID
+obj8.identifier.size  # Ensure the ID is not empty
+#=> 20
 
 ## Check txt validation record host for apex domain
 obj = V2::CustomDomain.new('onetimesecret.com', '12345@example.com')
 host, value = obj.generate_txt_validation_record
-host
-#=> "_onetime-challenge-47797c9"
+host =~ /^_onetime-challenge-[0-9a-f]{7}$/
+#=> 0  # Successful regex match
 
 ## As a paranoid measure, let's check the unique identifiers we have
 ## collected so far to make sure they are all different.
@@ -116,10 +119,12 @@ idset = Set.new(@unique_identifier_collector)
 # Print out the set and the array so we can always cross-check the results
 p idset.to_a, @unique_identifier_collector
 
-equal_length = (@unique_identifier_collector.length == idset.length)
+# Check that we have unique identifiers and they all have the right characteristics
+unique_count = idset.length
+unique_ids_valid = idset.all? { |id| id.length == 20 }
 not_empty = !idset.empty?
-[equal_length, not_empty]
-#=> [true, true]
+[unique_count, unique_ids_valid, not_empty]
+#=> [8, true, true]
 
 ## Can create txt record for DNS
 custom_domain = V2::CustomDomain.new(@valid_domain, "user@example.com")

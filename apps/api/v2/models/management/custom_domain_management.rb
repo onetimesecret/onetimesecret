@@ -175,16 +175,18 @@ module V2
         values.rangebyscoreraw(spoint, epoint).collect { |identifier| load(identifier) }
       end
 
-      # Implement a load method for CustomDomain to make sure the
-      # correct derived ID is used as the key.
+      # Implement a load method for CustomDomain to use display_domains mapping
       def load(display_domain, custid)
-        custom_domain = parse(display_domain, custid).tap do |obj|
-          OT.ld "[CustomDomain.load] Got #{obj.identifier} #{obj.display_domain} #{obj.custid}"
-          raise Onetime::RecordNotFound, "Domain not found #{obj.display_domain}" unless obj.exists?
-        end
+        # Get the domain ID from display_domains mapping
+        domain_id = display_domains.get(display_domain)
+        raise Onetime::RecordNotFound, "Domain not found #{display_domain}" unless domain_id
 
-        # Continue with the built-in `load` from Familia.
-        super(custom_domain.identifier)
+        # Verify ownership
+        stored_custid = owners.get(domain_id)
+        raise Onetime::RecordNotFound, "Domain not found for customer" unless stored_custid == custid
+
+        # Load using the found identifier
+        super(domain_id)
       end
 
       # Load a custom domain by display domain only. Used during requests
