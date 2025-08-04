@@ -232,7 +232,7 @@ export const useLanguageStore = defineStore('language', () => {
 /**
  * Future considerations:
  *   1. API requests: Include language in request headers
- *     axios.defaults.headers.common['accept-language'] = newLocale;
+ *     axios.defaults.headers.common['Accept-Language'] = newLocale;
  *   2. SEO: Update URL to include language code
  *     router.push(`/${newLocale}${router.currentRoute.value.path}`);
  *   3. SSR: If using SSR, ensure server-side logic is updated

@@ -152,7 +152,7 @@ describe('error classifier', () => {
           status: 422,
           statusText: 'Unprocessable Entity',
           headers: {
-            'content-type': 'application/json',
+            'Content-Type': 'application/json',
           },
         });
 

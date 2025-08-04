@@ -73,7 +73,7 @@ export const useBrandStore = defineStore('brand', () => {
     const formData = new FormData();
     formData.append('image', file);
     const response = await $api.post(`/api/v2/domains/${domainId}/logo`, formData, {
-      headers: { 'content-type': 'multipart/form-data' },
+      headers: { 'Content-Type': 'multipart/form-data' },
     });
     const validated = responseSchemas.imageProps.parse(response.data);
     logos.value[domainId] = validated.record;

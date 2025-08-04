@@ -192,7 +192,7 @@ describe('Metadata Date Handling', () => {
           {
             headers: {
               Accept: 'application/json, text/plain, */*',
-              'content-type': 'application/json',
+              'Content-Type': 'application/json',
             },
           }
         )
