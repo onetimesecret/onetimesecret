@@ -120,43 +120,23 @@ module V2
 
     # Sets the locale for the request based on various sources.
     #
-    # This method determines the locale to be used for the request by checking
-    # the following sources in order of precedence:
-    # 1. The `locale` argument passed to the method.
-    # 2. The `locale` query parameter in the request.
-    # 3. The customer's previously saved preferred locale (if customer exists).
-    # 4. The `rack.locale` environment variable set by Otto.
-    #
-    # If a valid locale is found in any of these sources, it is set in the
-    # `req.env['ots.locale']` environment variable. If no valid locale is found,
-    # the default locale from the configuration is used.
+    # This method uses Otto's generalized check_locale! helper to determine
+    # the locale for the request. It passes the necessary Onetime Secret
+    # configuration and stores the result in the expected instance variable.
     #
     # @param locale [String, nil] The locale to be used, if specified.
     # @return [void]
     def check_locale!(locale = nil)
-      locale ||= req.params[:locale]
-      locale ||= cust.locale if cust&.locale
-      locale ||= (req.env['rack.locale'] || []).first
-
-      have_translations = locale && OT.locales.has_key?(locale)
-      lmsg              = format(
-        '[check_locale!] class=%s locale=%s cust=%s req=%s t=%s',
-        self.class.name,
+      @locale = req.check_locale!(
         locale,
-        cust&.locale,
-        req.params.keys,
-        have_translations,
+        {
+          available_locales: OT.locales,
+          default_locale: OT.default_locale,
+          user_locale: cust&.locale,
+          locale_env_key: 'ots.locale',
+          debug: OT.debug?,
+        },
       )
-      OT.ld lmsg
-
-      # Set the locale in the request environment if it is
-      # valid, otherwise use the default locale.
-      req.env['ots.locale'] = have_translations ? locale : OT.default_locale
-
-      # Important! This sets the locale for the current request which
-      # gets passed through to the logic class along with sess, cust.
-      # Without it, emails will be sent in the default locale.
-      @locale = req.env['ots.locale']
     end
 
     def add_csp_headers(content_type, nonce)
@@ -336,7 +316,6 @@ module V2
     end
 
     def debug_log_request
-
       # Use Otto's format_request_details method with our custom header prefix
       reqstr  = req.format_request_details(header_prefix: HEADER_PREFIX)
       custref = cust.obscure_email
