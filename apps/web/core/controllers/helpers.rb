@@ -305,7 +305,9 @@ module Core
 
     def deny_agents! *_agents
       BADAGENTS.flatten.each do |agent|
-        raise OT::Redirect.new('/') if /#{agent}/i.match?(req.user_agent)
+        user_agent_lower = req.user_agent.to_s.downcase
+        agent_lower = agent.to_s.downcase
+        raise OT::Redirect.new('/') if user_agent_lower.include?(agent_lower)
       end
     end
 
