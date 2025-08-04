@@ -3,6 +3,7 @@
 *.log
 *.rdb
 *.txt
+.*.json
 .byebug*
 .ruby-version
 spoom_*
