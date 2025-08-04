@@ -37,10 +37,12 @@ gem 'json'
 gem 'json_schemer'
 
 # String and data processing
+gem 'drydock', '~> 1.0.0'
 gem 'fastimage', '~> 2.4'
 gem 'mail'
 gem 'mustache'
 gem 'public_suffix'
+gem 'tty-table', '~> 0.12'
 
 # HTTP client
 gem 'httparty'
@@ -49,7 +51,7 @@ gem 'httparty'
 gem 'truemail'
 
 # ====================================
-# Database & Caching
+# Database & DB Tools
 # ====================================
 
 gem 'redis', '~> 5.4.0'
@@ -66,31 +68,25 @@ gem 'encryptor', '= 1.1.3'
 # Internal Dependencies (local dev)
 # ====================================
 
-if !ENV['LOCAL_DEV'].to_s.empty? && ENV['RACK_ENV'] == 'development' && ENV['CI'].to_s.empty?
-  gem 'drydock', path: '../../d/drydock'
-  gem 'familia', path: '../../d/familia'
-  gem 'otto', path: '../../d/otto'
-else
-  gem 'drydock', '~> 1.0.0'
+if ENV['LOCAL_DEV'].to_s.empty?
   gem 'familia', '~> 1.2.3'
   gem 'otto', '~> 1.4.0'
+else
+  gem 'familia', path: '../../d/familia'
+  gem 'otto', path: '../../d/otto'
 end
 
 # ====================================
 # Ruby Standard Library Compatibility
 # ====================================
 
-# YAML and I/O
-gem 'psych', '~> 5.2.3'
-gem 'stringio', '~> 3.1.6'
-gem 'tty-table', '~> 0.12'
-
-# As of Ruby 3.5, these are no longer in the standard library
 gem 'base64'
-gem 'irb'                    # IRB
-gem 'logger'                 # Logger library for logging messages (required by truemail)
-gem 'ostruct', '~> 0.6.2'    # OpenStruct library for creating data objects (required by json)
-gem 'rdoc'                   # IRB
+gem 'irb'
+gem 'logger'                 # Used by Truemail
+gem 'ostruct', '~> 0.6.2'    # Required by json
+gem 'psych', '~> 5.2.3'
+gem 'rdoc'
+gem 'stringio', '~> 3.1.6'
 
 # ====================================
 # Third-Party Service Integrations
