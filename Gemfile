@@ -67,14 +67,14 @@ gem 'encryptor', '= 1.1.3'
 # ====================================
 
 if !ENV['LOCAL_DEV'].to_s.empty? && ENV['RACK_ENV'] == 'development' && ENV['CI'].to_s.empty?
-  # gem 'drydock', path: '../../d/drydock'
-  # gem 'familia', path: '../../d/familia'
+  gem 'drydock', path: '../../d/drydock'
+  gem 'familia', path: '../../d/familia'
   gem 'otto', path: '../../d/otto'
 else
-  gem 'otto', '~> 1.3.0'
-end
   gem 'drydock', '~> 1.0.0'
   gem 'familia', '~> 1.2.3'
+  gem 'otto', '~> 1.4.0'
+end
 
 # ====================================
 # Ruby Standard Library Compatibility
