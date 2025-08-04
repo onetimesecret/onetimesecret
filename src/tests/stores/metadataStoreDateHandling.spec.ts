@@ -182,21 +182,15 @@ describe('Metadata Date Handling', () => {
 
       store.record = mockMetadataRecord;
 
-      // Updated mock setup with headers and exact matching
+      // Behavior-focused mock - test the endpoint and request intent
       axiosMock
-        ?.onPost(
-          `/api/v2/receipt/${testKey}/burn`,
-          // Request body as exact match object
-          { continue: true },
-          // Headers as third argument
-          {
-            headers: {
-              Accept: 'application/json, text/plain, */*',
-              'Content-Type': 'application/json',
-            },
-          }
-        )
-        .reply(200, mockResponse);
+        ?.onPost(`/api/v2/receipt/${testKey}/burn`)
+        .reply((config) => {
+          // Verify the request body contains the expected data (behavior test)
+          const requestData = JSON.parse(config.data);
+          expect(requestData).toMatchObject({ continue: true });
+          return [200, mockResponse];
+        });
 
       await store.burn(testKey);
 

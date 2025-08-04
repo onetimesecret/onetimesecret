@@ -3,7 +3,6 @@
 module V2
   unless defined?(V2::BADAGENTS)
     BADAGENTS     = [:facebook, :google, :yahoo, :bing, :stella, :baidu, :bot, :curl, :wget]
-    LOCAL_HOSTS   = ['localhost', '127.0.0.1'].freeze # TODO: Add config
     HEADER_PREFIX = ENV.fetch('HEADER_PREFIX', 'X_SECRET_').upcase
   end
 
@@ -26,14 +25,14 @@ module V2
       nonce = SecureRandom.base64(16)
 
       # Make the nonce available to the CSP header
-      add_response_headers(content_type, nonce)
+      add_csp_headers(content_type, nonce)
 
       # Make the nonce available to the view
       req.env['ots.nonce'] = nonce
 
       return_value = yield
 
-      log_customer_activity
+      debug_log_request
 
       obscured = if cust.anonymous?
                    'anonymous'
@@ -50,7 +49,7 @@ module V2
       not_authorized_error
     rescue Onetime::BadShrimp
       # If it's a json response, no need to set an error message on the session
-      if res.header['Content-Type'] == 'application/json'
+      if res.headers['content-type'] == 'application/json'
         error_response 'Please refresh the page and try again', reason: 'Bad shrimp 🍤'
       else
         sess.set_error_message 'Please go back, refresh the page, and try again.'
@@ -121,43 +120,123 @@ module V2
 
     # Sets the locale for the request based on various sources.
     #
-    # This method determines the locale to be used for the request by checking
-    # the following sources in order of precedence:
-    # 1. The `locale` argument passed to the method.
-    # 2. The `locale` query parameter in the request.
-    # 3. The customer's previously saved preferred locale (if customer exists).
-    # 4. The `rack.locale` environment variable set by Otto.
-    #
-    # If a valid locale is found in any of these sources, it is set in the
-    # `req.env['ots.locale']` environment variable. If no valid locale is found,
-    # the default locale from the configuration is used.
+    # This method uses Otto's generalized check_locale! helper to determine
+    # the locale for the request. It passes the necessary Onetime Secret
+    # configuration and stores the result in the expected instance variable.
     #
     # @param locale [String, nil] The locale to be used, if specified.
     # @return [void]
     def check_locale!(locale = nil)
-      locale ||= req.params[:locale]
-      locale ||= cust.locale if cust&.locale
-      locale ||= (req.env['rack.locale'] || []).first
-
-      have_translations = locale && OT.locales.has_key?(locale)
-      lmsg              = format(
-        '[check_locale!] class=%s locale=%s cust=%s req=%s t=%s',
-        self.class.name,
+      @locale = req.check_locale!(
         locale,
-        cust&.locale,
-        req.params.keys,
-        have_translations,
+        {
+          available_locales: OT.locales,
+          default_locale: OT.default_locale,
+          user_locale: cust&.locale,
+          locale_env_key: 'ots.locale',
+          debug: OT.debug?,
+        },
       )
-      OT.ld lmsg
+    end
 
-      # Set the locale in the request environment if it is
-      # valid, otherwise use the default locale.
-      req.env['ots.locale'] = have_translations ? locale : OT.default_locale
+    def add_csp_headers(content_type, nonce)
+      # Skip the CSP header unless it's enabled in the experimental settings
+      return unless OT.conf.dig('experimental', 'csp', 'enabled') == true
 
-      # Important! This sets the locale for the current request which
-      # gets passed through to the logic class along with sess, cust.
-      # Without it, emails will be sent in the default locale.
-      @locale = req.env['ots.locale']
+      # Use Otto's CSP nonce support
+      res.send_csp_headers(
+        content_type,
+        nonce, {
+          development_mode: OT.conf.dig('development', 'enabled'),
+          debug: OT.debug?,
+        }
+      )
+    end
+
+    # Collects and formats specific HTTP header details from the given
+    # environment hash, including Cloudflare-specific headers.
+    #
+    # @deprecated Use req.collect_proxy_headers instead
+    # @param env [Hash, nil] The environment hash containing HTTP headers.
+    #   Defaults to an empty hash if not provided.
+    # @param keys [Array<String>, nil] The list of HTTP header keys to collect.
+    #   Defaults to a predefined list of common proxy-related headers if not
+    #   provided.
+    # @return [String] A single string with the requested headers formatted as
+    #   "key=value" pairs, separated by spaces.
+    #
+    def collect_proxy_header_details(env = nil, keys = nil)
+      # For backward compatibility, create a simple request-like object
+      request_like = Struct.new(:env).new(env || req.env)
+      request_like.extend(Otto::RequestHelpers)
+
+      additional_keys = keys || []
+      request_like.collect_proxy_headers(
+        header_prefix: HEADER_PREFIX.chomp('_'),
+        additional_keys: additional_keys,
+      )
+    end
+
+    def check_session!
+      return if @check_session_ran
+
+      @check_session_ran = true
+
+      # Load from redis or create the session
+      @sess = if req.cookie?(:sess) && V2::Session.exists?(req.cookie(:sess))
+        V2::Session.load req.cookie(:sess)
+      else
+        V2::Session.create req.client_ipaddress, 'anon', req.user_agent
+      end
+
+      # Set the session to rack.session
+      #
+      # The `req.env` hash is a central repository for all environment variables
+      # and request-specific data in a Rack application. By setting the session
+      # object in `req.env['rack.session']`, we make the session data accessible
+      # to all middleware and components that process the request and response.
+      # This approach ensures that the session data is consistently available
+      # throughout the entire request-response cycle, allowing middleware to
+      # read from and write to the session as needed. This is particularly
+      # useful for maintaining user state, managing authentication, and storing
+      # other session-specific information.
+      #
+      # Example:
+      #   If a middleware needs to check if a user is authenticated, it can
+      #   access the session data via `env['rack.session']` and perform the
+      #   necessary checks or updates.
+      #
+      req.env['rack.session'] = sess
+
+      # Immediately check the the auth status of the session. If the site
+      # configuration changes to disable authentication, the session will
+      # report as not authenticated regardless of the session data.
+      #
+      # NOTE: The session keys have their own dedicated Redis DB, so they
+      # can be flushed to force everyone to logout without affecting the
+      # rest of the data. This is a security feature.
+      sess.disable_auth = !authentication_enabled?
+
+      # Update the session fields in redis (including updated timestamp)
+      sess.save
+
+      # Update the session cookie
+      res.send_secure_cookie :sess, sess.sessid, sess.ttl
+
+      # Re-hydrate the customer object
+      @cust = sess.load_customer || V2::Customer.anonymous
+
+      # We also force the session to be unauthenticated based on
+      # the customer object.
+      if cust.anonymous? || cust.verified.to_s != 'true'
+        sess.authenticated = false
+      end
+
+      # Should always report false and false when disabled.
+      return if cust.anonymous?
+
+      custref = cust.obscure_email
+      OT.ld "[sess.check_session(v2)] #{sess.short_identifier} #{custref} authenabled=#{authentication_enabled?}, sess=#{sess.authenticated?}"
     end
 
     # Check CSRF value submitted with POST requests (aka shrimp)
@@ -210,73 +289,6 @@ module V2
     end
     protected :validate_shrimp
 
-    def check_session!
-      return if @check_session_ran
-
-      @check_session_ran = true
-
-      # Load from redis or create the session
-      @sess = if req.cookie?(:sess) && V2::Session.exists?(req.cookie(:sess))
-                V2::Session.load req.cookie(:sess)
-              else
-                V2::Session.create req.client_ipaddress, 'anon', req.user_agent
-              end
-
-      # Set the session to rack.session
-      #
-      # The `req.env` hash is a central repository for all environment variables
-      # and request-specific data in a Rack application. By setting the session
-      # object in `req.env['rack.session']`, we make the session data accessible
-      # to all middleware and components that process the request and response.
-      # This approach ensures that the session data is consistently available
-      # throughout the entire request-response cycle, allowing middleware to
-      # read from and write to the session as needed. This is particularly
-      # useful for maintaining user state, managing authentication, and storing
-      # other session-specific information.
-      #
-      # Example:
-      #   If a middleware needs to check if a user is authenticated, it can
-      #   access the session data via `env['rack.session']` and perform the
-      #   necessary checks or updates.
-      #
-      req.env['rack.session'] = sess
-
-      # Immediately check the the auth status of the session. If the site
-      # configuration changes to disable authentication, the session will
-      # report as not authenticated regardless of the session data.
-      #
-      # NOTE: The session keys have their own dedicated Redis DB, so they
-      # can be flushed to force everyone to logout without affecting the
-      # rest of the data. This is a security feature.
-      sess.disable_auth = !authentication_enabled?
-
-      # Update the session fields in redis (including updated timestamp)
-      sess.save
-
-      # Only set the cookie after session is for sure saved to redis
-      is_secure = Onetime.conf&.dig('site', 'ssl') || true
-
-      # Update the session cookie
-      res.send_cookie :sess, sess.sessid, sess.ttl, is_secure
-
-      # Re-hydrate the customer object
-      @cust = sess.load_customer || V2::Customer.anonymous
-
-      # We also force the session to be unauthenticated based on
-      # the customer object.
-      if cust.anonymous?
-        sess.authenticated = false
-      elsif cust.verified.to_s != 'true'
-        sess.authenticated = false
-      end
-
-      # Should always report false and false when disabled.
-      return if cust.anonymous?
-
-      custref = cust.obscure_email
-      OT.ld "[sess.check_session(v2)] #{sess.short_identifier} #{custref} authenabled=#{authentication_enabled?}, sess=#{sess.authenticated?}"
-    end
-
     # Checks if authentication is enabled for the site.
     #
     # This method determines whether authentication is enabled by checking the
@@ -303,92 +315,12 @@ module V2
       authentication_enabled && signin_enabled
     end
 
-    def add_response_headers(content_type, nonce)
-      # Set the Content-Type header if it's not already set by the application
-      res.header['Content-Type'] ||= content_type
-
-      # Skip the Content-Security-Policy header if it's already set
-      return if res.header['Content-Security-Policy']
-
-      # Skip the CSP header unless it's enabled in the experimental settings
-      return if OT.conf.dig('experimental', 'csp', 'enabled') != true
-
-      # Skip the Content-Security-Policy header if the front is running in
-      # development mode. We need to allow inline scripts and styles for
-      # hot reloading to work.
-      csp = if OT.conf.dig('development', 'enabled')
-        [
-          "default-src 'none';",                               # Restrict to same origin by default
-          "script-src 'unsafe-inline' 'nonce-#{nonce}';",      # Allow Vite's dynamic module imports and source maps
-          "style-src 'self' 'unsafe-inline';",                 # Enable Vite's dynamic style injection
-          "connect-src 'self' ws: wss: http: https:;",         # Allow WebSocket connections for hot module replacement
-          "img-src 'self' data:;",                             # Allow images from same origin only
-          "font-src 'self';",                                  # Allow fonts from same origin only
-          "object-src 'none';",                                # Block <object>, <embed>, and <applet> elements
-          "base-uri 'self';",                                  # Restrict <base> tag targets to same origin
-          "form-action 'self';",                               # Restrict form submissions to same origin
-          "frame-ancestors 'none';",                           # Prevent site from being embedded in frames
-          "manifest-src 'self';",
-          # "require-trusted-types-for 'script';",
-          "worker-src 'self';",                                # Allow Workers from same origin only
-        ]
-      else
-        [
-          "default-src 'none';",
-          "script-src 'unsafe-inline' 'nonce-#{nonce}';",      # unsafe-inline is ignored with a nonce
-          "style-src 'self' 'unsafe-inline';",
-          "connect-src 'self' wss: https:;",                   # Only HTTPS and secure WebSockets
-          "img-src 'self' data:;",
-          "font-src 'self';",
-          "object-src 'none';",
-          "base-uri 'self';",
-          "form-action 'self';",
-          "frame-ancestors 'none';",
-          "manifest-src 'self';",
-          # "require-trusted-types-for 'script';",
-          "worker-src 'self';",
-        ]
-            end
-
-      OT.ld "[CSP] #{csp.join(' ')}" if OT.debug?
-
-      res.header['Content-Security-Policy'] = csp.join(' ')
-    end
-
-    def log_customer_activity
-      return if cust.anonymous?
-
-      reqstr  = stringify_request_details(req)
+    def debug_log_request
+      # Use Otto's format_request_details method with our custom header prefix
+      reqstr  = req.format_request_details(header_prefix: HEADER_PREFIX)
       custref = cust.obscure_email
+
       OT.ld "[carefully] #{sess.short_identifier} #{custref} at #{reqstr}"
-    end
-
-    # Collectes request details in a single string for logging purposes.
-    #
-    # This method collects the IP address, request method, path, query string,
-    # and proxy header details from the given request object and formats them
-    # into a single string. The resulting string is suitable for logging.
-    #
-    # @param req [Rack::Request] The request object containing the details to be
-    #   stringified.
-    # @return [String] A single string containing the formatted request details.
-    #
-    # @example
-    #   req = Rack::Request.new(env)
-    #   stringify_request_details(req)
-    #   # => "192.0.2.1; GET /path?query=string; Proxy[HTTP_X_FORWARDED_FOR=203.0.113.195 REMOTE_ADDR=192.0.2.1]"
-    #
-    def stringify_request_details(req)
-      header_details = collect_proxy_header_details(req.env)
-
-      details = [
-        req.ip,
-        "#{req.request_method} #{req.path_info}?#{req.query_string}",
-        "Proxy[#{header_details}]",
-      ]
-
-      # Convert the details array to a string for logging
-      details.join('; ')
     end
 
     # Sentry terminology:
@@ -416,9 +348,9 @@ module V2
       rescue NoMethodError => ex
         raise unless ex.message.include?('start_with?')
 
+        # Continue execution - don't let a Sentry error break the app
         OT.le "[capture_error] Sentry error with nil value in start_with? check: #{ex.message}"
         OT.ld ex.backtrace.join("\n")
-      # Continue execution - don't let a Sentry error break the app
 
       # Re-raise any other NoMethodError that isn't related to start_with?
       rescue StandardError => ex
@@ -434,90 +366,6 @@ module V2
     rescue StandardError => ex
       OT.le "[capture_message] #{ex.class}: #{ex.message}"
       OT.ld ex.backtrace.join("\n")
-    end
-
-    # Collects and formats specific HTTP header details from the given
-    # environment hash, including Cloudflare-specific headers.
-    #
-    # @param env [Hash, nil] The environment hash containing HTTP headers.
-    #   Defaults to an empty hash if not provided.
-    # @param keys [Array<String>, nil] The list of HTTP header keys to collect.
-    #   Defaults to a predefined list of common proxy-related headers if not
-    #   provided.
-    # @return [String] A single string with the requested headers formatted as
-    #   "key=value" pairs, separated by spaces.
-    #
-    # @example
-    #   env = {
-    #     "HTTP_X_FORWARDED_FOR" => "203.0.113.195",
-    #     "REMOTE_ADDR" => "192.0.2.1",
-    #     "CF-Connecting-IP" => "203.0.113.195",
-    #     "CF-IPCountry" => "NL",
-    #     "CF-Ray" => "1234567890abcdef",
-    #     "CF-Visitor" => "{\"scheme\":\"https\"}"
-    #   }
-    #   collect_proxy_header_details(env)
-    #   # => "HTTP_X_FORWARDED_FOR=203.0.113.195 REMOTE_ADDR=192.0.2.1 CF-Connecting-IP=203.0.113.195 CF-IPCountry=US CF-Ray=1234567890abcdef CF-Visitor={\"scheme\":\"https\"}"
-    #
-    def collect_proxy_header_details(env = nil, keys = nil)
-      env  ||= {}
-      keys ||= %w[
-        HTTP_FLY_REQUEST_ID
-        HTTP_VIA
-        HTTP_X_FORWARDED_PROTO
-        HTTP_X_FORWARDED_FOR
-        HTTP_X_FORWARDED_HOST
-        HTTP_X_FORWARDED_PORT
-        HTTP_X_SCHEME
-        HTTP_X_REAL_IP
-        HTTP_CF_IPCOUNTRY
-        HTTP_CF_RAY
-        REMOTE_ADDR
-      ]
-
-      # Add any header that begins with HEADER_PREFIX
-      prefix_keys = env.keys.select { |key| key.upcase.start_with?("HTTP_#{HEADER_PREFIX}") }
-      keys.concat(prefix_keys) # the bang is silent
-
-      keys.sort.map do |key|
-        # Normalize the header name so it looks identical in the logs as it
-        # does in the browser dev console.
-        #
-        # e.g. Content-Type instead of HTTP_CONTENT_TYPE
-        #
-        pretty_name = key.sub(/^HTTP_/, '').split('_').map(&:capitalize).join('-')
-        "#{pretty_name}: #{env[key]}"
-      end.join(' ')
-    end
-
-    def secure?
-      # It's crucial to only accept header values set by known, trusted
-      # sources. See Caddy config docs re: trusted_proxies.
-      # X-Scheme is set by e.g. nginx, caddy etc
-      # X-FORWARDED-PROTO is set by load balancer e.g. ELB
-      req.env['HTTP_X_FORWARDED_PROTO'] == 'https' || req.env['HTTP_X_SCHEME'] == 'https'
-    end
-
-    def local?
-      LOCAL_HOSTS.member?(req.env['SERVER_NAME']) && (req.client_ipaddress == '127.0.0.1')
-    end
-
-    def deny_agents! *_agents
-      BADAGENTS.flatten.each do |agent|
-        raise OT::Redirect.new('/') if /#{agent}/i.match?(req.user_agent)
-      end
-    end
-
-    def no_cache!
-      res.header['Cache-Control'] = 'no-store, no-cache, must-revalidate, max-age=0'
-      res.header['Expires']       = 'Mon, 7 Nov 2011 00:00:00 UTC'
-      res.header['Pragma']        = 'no-cache'
-    end
-
-    def app_path *paths
-      paths = paths.flatten.compact
-      paths.unshift req.script_name
-      paths.join('/').gsub '//', '/'
     end
   end
 end

@@ -2,7 +2,6 @@
 
 require 'timeout'
 
-require 'onetime/refinements/rack_refinements'
 require_relative 'helpers'
 
 module V1

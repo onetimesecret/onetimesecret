@@ -50,7 +50,7 @@ module Core
       not_authorized_error
     rescue OT::BadShrimp
       # If it's a json response, no need to set an error message on the session
-      if res.header['Content-Type'] == 'application/json'
+      if res.headers['content-type'] == 'application/json'
         error_response 'Please refresh the page and try again', reason: 'Bad shrimp 🍤'
       else
         sess.set_error_message 'Please go back, refresh the page, and try again.'
@@ -160,155 +160,12 @@ module Core
       @locale = req.env['ots.locale']
     end
 
-    # Check CSRF value submitted with POST requests (aka shrimp)
-    #
-    # Note: This method is called only for session authenticated
-    # requests. Requests via basic auth (/api), may check for a
-    # valid shrimp, but they don't regenerate a fresh every time
-    # a successful validation occurs.
-    def check_shrimp!(_replace = true)
-      return if @check_shrimp_ran
-
-      @check_shrimp_ran = true
-      return unless req.post? || req.put? || req.delete? || req.patch?
-
-      # Check for shrimp in params and in the O-Shrimp header
-      header_shrimp = (req.env['HTTP_O_SHRIMP'] || req.env['HTTP_ONETIME_SHRIMP']).to_s
-      params_shrimp = req.params[:shrimp].to_s
-
-      # Use the header shrimp if it's present, otherwise use the param shrimp
-      attempted_shrimp = header_shrimp.empty? ? params_shrimp : header_shrimp
-
-      # No news is good news for successful shrimp; by default
-      # it'll simply add a fresh shrimp to the session. But
-      # in the case of failure this will raise an exception.
-      validate_shrimp(attempted_shrimp)
-    end
-
-    def validate_shrimp(attempted_shrimp, replace = true)
-      shrimp_is_empty = attempted_shrimp.empty?
-      log_value       = attempted_shrimp.shorten(5)
-
-      if sess.shrimp?(attempted_shrimp) || ignoreshrimp
-        adjective = ignoreshrimp ? 'IGNORED' : 'GOOD'
-        OT.ld "#{adjective} SHRIMP for #{cust.custid}@#{req.path}: #{log_value}"
-        # Regardless of the outcome, we clear the shrimp from the session
-        # to prevent replay attacks. A new shrimp is generated on the
-        # next page load.
-        sess.replace_shrimp! if replace
-        true
-      else
-        ### NOTE: MUST FAIL WHEN NO SHRIMP OTHERWISE YOU CAN
-        ### JUST SUBMIT A FORM WITHOUT ANY SHRIMP WHATSOEVER
-        ### AND THAT'S NO WAY TO TREAT A GUEST.
-        shrimp = (sess.shrimp || '[noshrimp]').clone
-        ex     = OT::BadShrimp.new(req.path, cust.custid, attempted_shrimp, shrimp)
-        OT.ld "BAD SHRIMP for #{cust.custid}@#{req.path}: #{log_value}"
-        sess.replace_shrimp! if replace && !shrimp_is_empty
-        raise ex
-      end
-    end
-    protected :validate_shrimp
-
-    def check_session!
-      return if @check_session_ran
-
-      @check_session_ran = true
-
-      # Load from redis or create the session
-      @sess = if req.cookie?(:sess) && V2::Session.exists?(req.cookie(:sess))
-        V2::Session.load req.cookie(:sess)
-      else
-        V2::Session.create req.client_ipaddress, 'anon', req.user_agent
-              end
-
-      # Set the session to rack.session
-      #
-      # The `req.env` hash is a central repository for all environment variables
-      # and request-specific data in a Rack application. By setting the session
-      # object in `req.env['rack.session']`, we make the session data accessible
-      # to all middleware and components that process the request and response.
-      # This approach ensures that the session data is consistently available
-      # throughout the entire request-response cycle, allowing middleware to
-      # read from and write to the session as needed. This is particularly
-      # useful for maintaining user state, managing authentication, and storing
-      # other session-specific information.
-      #
-      # Example:
-      #   If a middleware needs to check if a user is authenticated, it can
-      #   access the session data via `env['rack.session']` and perform the
-      #   necessary checks or updates.
-      #
-      req.env['rack.session'] = sess
-
-      # Immediately check the the auth status of the session. If the site
-      # configuration changes to disable authentication, the session will
-      # report as not authenticated regardless of the session data.
-      #
-      # NOTE: The session keys have their own dedicated Redis DB, so they
-      # can be flushed to force everyone to logout without affecting the
-      # rest of the data. This is a security feature.
-      sess.disable_auth = !authentication_enabled?
-
-      # Update the session fields in redis (including updated timestamp)
-      sess.save
-
-      # Only set the cookie after session is for sure saved to redis
-      is_secure = OT.conf&.dig('site', 'ssl') || true
-
-      # Update the session cookie
-      res.send_cookie :sess, sess.sessid, sess.ttl, is_secure
-
-      # Re-hydrate the customer object
-      @cust = sess.load_customer || V2::Customer.anonymous
-
-      # We also force the session to be unauthenticated based on
-      # the customer object.
-      if cust.anonymous?
-        sess.authenticated = false
-      elsif cust.verified.to_s != 'true'
-        sess.authenticated = false
-      end
-
-      # Should always report false and false when disabled.
-      unless cust.anonymous?
-        custref = cust.obscure_email
-        OT.ld "[sess.check_session(web)] #{sess.short_identifier} #{custref} authenabled=#{authentication_enabled?}, sess=#{sess.authenticated?}"
-      end
-    end
-
-    # Checks if authentication is enabled for the site.
-    #
-    # This method determines whether authentication is enabled by checking the
-    # site configuration. It defaults to disabled if the site configuration is
-    # missing. This approach prevents unauthorized access by ensuring that
-    # accounts are not used if authentication is not explicitly enabled.
-    #
-    # @return [Boolean] True if authentication and sign-in are enabled, false otherwise.
-    #
-    def authentication_enabled?
-      # Defaulting to disabled is the Right Thing to Do™. If the site config
-      # is missing, we assume that authentication is disabled and that accounts
-      # are not used. This prevents situations where the app is running and
-      # anyone accessing it can create an account without proper authentication.
-      authentication_enabled = OT.conf['site']['authentication']['enabled'] rescue false # rubocop:disable Style/RescueModifier
-      signin_enabled         = OT.conf['site']['authentication']['signin'] rescue false # rubocop:disable Style/RescueModifier
-
-      # The only condition that allows a request to be authenticated is if
-      # the site has authentication enabled, and the user is signed in. If a
-      # user is signed in and the site configuration changes to disable it,
-      # the user will be signed out temporarily. If the setting is restored
-      # before the session key expires in Redis, that user will be signed in
-      # again. This is a security feature.
-      authentication_enabled && signin_enabled
-    end
-
     def add_response_headers(content_type, nonce)
       # Set the Content-Type header if it's not already set by the application
-      res.header['Content-Type'] ||= content_type
+      res.headers['content-type'] ||= content_type
 
       # Skip the Content-Security-Policy header if it's already set
-      return if res.header['Content-Security-Policy']
+      return if res.headers['content-security-policy']
 
       # Skip the CSP header unless it's enabled in the experimental settings
       return if OT.conf.dig('experimental', 'csp', 'enabled') != true
@@ -352,15 +209,7 @@ module Core
 
       OT.ld "[CSP] #{csp.join(' ')}" if OT.debug?
 
-      res.header['Content-Security-Policy'] = csp.join(' ')
-    end
-
-    def log_customer_activity
-      return if cust.anonymous?
-
-      reqstr  = stringify_request_details(req)
-      custref = cust.obscure_email
-      OT.info "[carefully] #{sess.short_identifier} #{custref} at #{reqstr}"
+      res.headers['content-security-policy'] = csp.join(' ')
     end
 
     # Collectes request details in a single string for logging purposes.
@@ -389,51 +238,6 @@ module Core
 
       # Convert the details array to a string for logging
       details.join('; ')
-    end
-
-    # Sentry terminology:
-    #   - An event is one instance of sending data to Sentry. Generally, this
-    #   data is an error or exception.
-    #   - An issue is a grouping of similar events.
-    #   - Capturing is the act of reporting an event.
-    #
-    # Available levels are :fatal, :error, :warning, :log, :info,
-    # and :debug. The Sentry default, if not specified, is :error.
-    #
-    def capture_error(error, level = :error, &)
-      return unless OT.d9s_enabled # diagnostics are disabled by default
-
-      # Capture more detailed debugging information when Sentry errors occur
-      begin
-        # Log request headers before attempting to send to Sentry
-        if defined?(req) && req.respond_to?(:env)
-          headers = req.env.select { |k, _v| k.start_with?('HTTP_') rescue false } # rubocop:disable Style/RescueModifier
-          OT.ld "[capture_error] Request headers: #{headers.inspect}"
-        end
-
-        # Try Sentry exception reporting
-        Sentry.capture_exception(error, level: level, &)
-      rescue NoMethodError => ex
-        raise unless ex.message.include?('start_with?')
-
-        OT.le "[capture_error] Sentry error with nil value in start_with? check: #{ex.message}"
-        OT.ld ex.backtrace.join("\n")
-      # Continue execution - don't let a Sentry error break the app
-
-      # Re-raise any other NoMethodError that isn't related to start_with?
-      rescue StandardError => ex
-        OT.le "[capture_error] #{ex.class}: #{ex.message}"
-        OT.ld ex.backtrace.join("\n")
-      end
-    end
-
-    def capture_message(message, level = :log, &)
-      return unless OT.d9s_enabled # diagnostics are disabled by default
-
-      Sentry.capture_message(message, level: level, &)
-    rescue StandardError => ex
-      OT.le "[capture_message] #{ex.class}: #{ex.message}"
-      OT.ld ex.backtrace.join("\n")
     end
 
     # Collects and formats specific HTTP header details from the given
@@ -495,25 +299,22 @@ module Core
       # sources. See Caddy config docs re: trusted_proxies.
       # X-Scheme is set by e.g. nginx, caddy etc
       # X-FORWARDED-PROTO is set by load balancer e.g. ELB
-      (req.env['HTTP_X_FORWARDED_PROTO'] == 'https' || req.env['HTTP_X_SCHEME'] == 'https')
+      req.env['HTTP_X_FORWARDED_PROTO'] == 'https' || req.env['HTTP_X_SCHEME'] == 'https'
     end
 
-    def local?
-      (LOCAL_HOSTS.member?(req.env['SERVER_NAME']) && (req.client_ipaddress == '127.0.0.1'))
-    end
 
     def deny_agents! *_agents
       BADAGENTS.flatten.each do |agent|
-        if req.user_agent =~ /#{agent}/i
-          raise OT::Redirect.new('/')
-        end
+        user_agent_lower = req.user_agent.to_s.downcase
+        agent_lower = agent.to_s.downcase
+        raise OT::Redirect.new('/') if user_agent_lower.include?(agent_lower)
       end
     end
 
     def no_cache!
-      res.header['Cache-Control'] = 'no-store, no-cache, must-revalidate, max-age=0'
-      res.header['Expires']       = 'Mon, 7 Nov 2011 00:00:00 UTC'
-      res.header['Pragma']        = 'no-cache'
+      res.headers['cache-control'] = 'no-store, no-cache, must-revalidate, max-age=0'
+      res.headers['expires']       = 'Mon, 7 Nov 2011 00:00:00 UTC'
+      res.headers['pragma']        = 'no-cache'
     end
 
     def app_path *paths
@@ -521,5 +322,197 @@ module Core
       paths.unshift req.script_name
       paths.join('/').gsub '//', '/'
     end
+
+    def check_session!
+      return if @check_session_ran
+
+      @check_session_ran = true
+
+      # Load from redis or create the session
+      @sess = if req.cookie?(:sess) && V2::Session.exists?(req.cookie(:sess))
+        V2::Session.load req.cookie(:sess)
+      else
+        V2::Session.create req.client_ipaddress, 'anon', req.user_agent
+      end
+
+      # Set the session to rack.session
+      #
+      # The `req.env` hash is a central repository for all environment variables
+      # and request-specific data in a Rack application. By setting the session
+      # object in `req.env['rack.session']`, we make the session data accessible
+      # to all middleware and components that process the request and response.
+      # This approach ensures that the session data is consistently available
+      # throughout the entire request-response cycle, allowing middleware to
+      # read from and write to the session as needed. This is particularly
+      # useful for maintaining user state, managing authentication, and storing
+      # other session-specific information.
+      #
+      # Example:
+      #   If a middleware needs to check if a user is authenticated, it can
+      #   access the session data via `env['rack.session']` and perform the
+      #   necessary checks or updates.
+      #
+      req.env['rack.session'] = sess
+
+      # Immediately check the the auth status of the session. If the site
+      # configuration changes to disable authentication, the session will
+      # report as not authenticated regardless of the session data.
+      #
+      # NOTE: The session keys have their own dedicated Redis DB, so they
+      # can be flushed to force everyone to logout without affecting the
+      # rest of the data. This is a security feature.
+      sess.disable_auth = !authentication_enabled?
+
+      # Update the session fields in redis (including updated timestamp)
+      sess.save
+
+      # Update the session cookie
+      res.send_secure_cookie :sess, sess.sessid, sess.ttl
+
+      # Re-hydrate the customer object
+      @cust = sess.load_customer || V2::Customer.anonymous
+
+      # We also force the session to be unauthenticated based on
+      # the customer object.
+      if cust.anonymous? || cust.verified.to_s != 'true'
+        sess.authenticated = false
+      end
+
+      # Should always report false and false when disabled.
+      unless cust.anonymous?
+        custref = cust.obscure_email
+        OT.ld "[sess.check_session(web)] #{sess.short_identifier} #{custref} authenabled=#{authentication_enabled?}, sess=#{sess.authenticated?}"
+      end
+    end
+
+    # Check CSRF value submitted with POST requests (aka shrimp)
+    #
+    # Note: This method is called only for session authenticated
+    # requests. Requests via basic auth (/api), may check for a
+    # valid shrimp, but they don't regenerate a fresh every time
+    # a successful validation occurs.
+    def check_shrimp!(_replace = true)
+      return if @check_shrimp_ran
+
+      @check_shrimp_ran = true
+      return unless req.post? || req.put? || req.delete? || req.patch?
+
+      # Check for shrimp in params and in the O-Shrimp header
+      header_shrimp = (req.env['HTTP_O_SHRIMP'] || req.env['HTTP_ONETIME_SHRIMP']).to_s
+      params_shrimp = req.params[:shrimp].to_s
+
+      # Use the header shrimp if it's present, otherwise use the param shrimp
+      attempted_shrimp = header_shrimp.empty? ? params_shrimp : header_shrimp
+
+      # No news is good news for successful shrimp; by default
+      # it'll simply add a fresh shrimp to the session. But
+      # in the case of failure this will raise an exception.
+      validate_shrimp(attempted_shrimp)
+    end
+
+    def validate_shrimp(attempted_shrimp, replace = true)
+      shrimp_is_empty = attempted_shrimp.empty?
+      log_value       = attempted_shrimp.shorten(5)
+
+      if sess.shrimp?(attempted_shrimp) || ignoreshrimp
+        adjective = ignoreshrimp ? 'IGNORED' : 'GOOD'
+        OT.ld "#{adjective} SHRIMP for #{cust.custid}@#{req.path}: #{log_value}"
+        # Regardless of the outcome, we clear the shrimp from the session
+        # to prevent replay attacks. A new shrimp is generated on the
+        # next page load.
+        sess.replace_shrimp! if replace
+        true
+      else
+        ### NOTE: MUST FAIL WHEN NO SHRIMP OTHERWISE YOU CAN
+        ### JUST SUBMIT A FORM WITHOUT ANY SHRIMP WHATSOEVER
+        ### AND THAT'S NO WAY TO TREAT A GUEST.
+        shrimp = (sess.shrimp || '[noshrimp]').clone
+        ex     = OT::BadShrimp.new(req.path, cust.custid, attempted_shrimp, shrimp)
+        OT.ld "BAD SHRIMP for #{cust.custid}@#{req.path}: #{log_value}"
+        sess.replace_shrimp! if replace && !shrimp_is_empty
+        raise ex
+      end
+    end
+    protected :validate_shrimp
+
+    # Checks if authentication is enabled for the site.
+    #
+    # This method determines whether authentication is enabled by checking the
+    # site configuration. It defaults to disabled if the site configuration is
+    # missing. This approach prevents unauthorized access by ensuring that
+    # accounts are not used if authentication is not explicitly enabled.
+    #
+    # @return [Boolean] True if authentication and sign-in are enabled, false otherwise.
+    #
+    def authentication_enabled?
+      # Defaulting to disabled is the Right Thing to Do™. If the site config
+      # is missing, we assume that authentication is disabled and that accounts
+      # are not used. This prevents situations where the app is running and
+      # anyone accessing it can create an account without proper authentication.
+      authentication_enabled = OT.conf['site']['authentication']['enabled'] rescue false # rubocop:disable Style/RescueModifier
+      signin_enabled         = OT.conf['site']['authentication']['signin'] rescue false # rubocop:disable Style/RescueModifier
+
+      # The only condition that allows a request to be authenticated is if
+      # the site has authentication enabled, and the user is signed in. If a
+      # user is signed in and the site configuration changes to disable it,
+      # the user will be signed out temporarily. If the setting is restored
+      # before the session key expires in Redis, that user will be signed in
+      # again. This is a security feature.
+      authentication_enabled && signin_enabled
+    end
+
+    def log_customer_activity
+      return if cust.anonymous?
+
+      reqstr  = stringify_request_details(req)
+      custref = cust.obscure_email
+      OT.ld "[carefully] #{sess.short_identifier} #{custref} at #{reqstr}"
+    end
+
+    # Sentry terminology:
+    #   - An event is one instance of sending data to Sentry. Generally, this
+    #   data is an error or exception.
+    #   - An issue is a grouping of similar events.
+    #   - Capturing is the act of reporting an event.
+    #
+    # Available levels are :fatal, :error, :warning, :log, :info,
+    # and :debug. The Sentry default, if not specified, is :error.
+    #
+    def capture_error(error, level = :error, &)
+      return unless OT.d9s_enabled # diagnostics are disabled by default
+
+      # Capture more detailed debugging information when Sentry errors occur
+      begin
+        # Log request headers before attempting to send to Sentry
+        if defined?(req) && req.respond_to?(:env)
+          headers = req.env.select { |k, _v| k.start_with?('HTTP_') rescue false } # rubocop:disable Style/RescueModifier
+          OT.ld "[capture_error] Request headers: #{headers.inspect}"
+        end
+
+        # Try Sentry exception reporting
+        Sentry.capture_exception(error, level: level, &)
+      rescue NoMethodError => ex
+        raise unless ex.message.include?('start_with?')
+
+        # Continue execution - don't let a Sentry error break the app
+        OT.le "[capture_error] Sentry error with nil value in start_with? check: #{ex.message}"
+        OT.ld ex.backtrace.join("\n")
+
+      # Re-raise any other NoMethodError that isn't related to start_with?
+      rescue StandardError => ex
+        OT.le "[capture_error] #{ex.class}: #{ex.message}"
+        OT.ld ex.backtrace.join("\n")
+      end
+    end
+
+    def capture_message(message, level = :log, &)
+      return unless OT.d9s_enabled # diagnostics are disabled by default
+
+      Sentry.capture_message(message, level: level, &)
+    rescue StandardError => ex
+      OT.le "[capture_message] #{ex.class}: #{ex.message}"
+      OT.ld ex.backtrace.join("\n")
+    end
+
   end
 end

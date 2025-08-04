@@ -12,7 +12,7 @@ module Core
           logic.raise_concerns
           logic.process
 
-          res['Content-Type'] = logic.content_type
+          res['content-type'] = logic.content_type
 
           # Return the response with appropriate headers
           res['Content-Length'] = logic.content_length
@@ -49,7 +49,7 @@ module Core
       def robots_txt
         publically do
           view                       = Core::Views::RobotsTxt.new req, sess, cust, locale
-          res.header['Content-Type'] = 'text/plain'
+          res.headers['content-type'] = 'text/plain'
           res.body                   = view.render
         end
       end

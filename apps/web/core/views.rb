@@ -45,6 +45,7 @@ module Core
     class Error < Core::Views::BaseView
       def init *_args
         self[:title] = "I'm afraid there's been an error"
+        self[:error_id] = SecureRandom.uuid
       end
     end
 

@@ -13,8 +13,6 @@ RSpec.shared_context "view_test_context" do
     request = instance_double('Rack::Request')
     allow(request).to receive(:env).and_return(env)
     allow(request).to receive(:nil?).and_return(false)
-    # Allow accessing env with hash notation (important for locale extraction)
-    allow(request).to receive(:[]) { |key| env[key] }
     request
   end
   let(:config) do

@@ -21,10 +21,12 @@ source 'https://rubygems.org/'
 
 # Web server and middleware
 gem 'puma', '~> 6.6'
-gem 'rack', '>= 2', '< 3.0'
-gem 'rack-contrib'
-gem 'rack-protection'
+gem 'rack', '>= 3.1.16', '< 4.0'
+gem 'rack-contrib', '~> 2.5.0'
+gem 'rack-protection', '~> 4.1'
+gem 'rack-session', '~> 2.1.1'
 gem 'rack-utf8_sanitizer'
+gem 'rackup' # rubocop:disable Bundler/OrderedGems
 
 # ====================================
 # Data Processing & Utilities
@@ -71,7 +73,7 @@ if !ENV['LOCAL_DEV'].to_s.empty? && ENV['RACK_ENV'] == 'development' && ENV['CI'
 else
   gem 'drydock', '~> 1.0.0'
   gem 'familia', '~> 1.2.3'
-  gem 'otto', '~> 1.1.0.pre.alpha4'
+  gem 'otto', '~> 1.4.0'
 end
 
 # ====================================
@@ -83,15 +85,8 @@ gem 'psych', '~> 5.2.3'
 gem 'stringio', '~> 3.1.6'
 gem 'tty-table', '~> 0.12'
 
-# As of Ruby 3.4, these are no longer in the standard library
-#
-# These gems are included to suppress warnings about certain libraries
-# no longer being part of the default gems starting from Ruby 3.5.0.
-# Including them explicitly ensures they are part of the application's
-# dependencies and silences the warnings.
-gem 'base64'
-
 # As of Ruby 3.5, these are no longer in the standard library
+gem 'base64'
 gem 'irb'                    # IRB
 gem 'logger'                 # Logger library for logging messages (required by truemail)
 gem 'ostruct', '~> 0.6.2'    # OpenStruct library for creating data objects (required by json)

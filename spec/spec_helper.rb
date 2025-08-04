@@ -22,7 +22,6 @@ Dir[File.join(__dir__, 'support', '*.rb')].each { |f| require f }
 begin
   require 'onetime'
   require 'onetime/alias'
-  require 'onetime/refinements/rack_refinements'
 
   # Due to how Familia::Horreum defines model classes we need to create
   # an instance of each model class to ensure that they are loaded and

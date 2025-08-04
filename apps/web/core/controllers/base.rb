@@ -29,7 +29,7 @@ module Core
 
       def authenticated(redirect = nil)
         carefully(redirect) do
-          no_cache!
+          res.no_cache!
           check_session!     # 1. Load or create the session, load customer (or anon)
           check_locale!      # 2. Check the request for the desired locale
 
@@ -46,7 +46,7 @@ module Core
 
       def colonels(redirect = nil)
         carefully(redirect) do
-          no_cache!
+          res.no_cache!
           check_session!     # 1. Load or create the session, load customer (or anon)
           check_locale!      # 2. Check the request for the desired locale
 
@@ -139,7 +139,7 @@ module Core
 
       def server_error(status = 500, _message = nil)
         res.status          = status
-        res['Content-Type'] = 'text/html'
+        res['content-type'] = 'text/html'
         res.body            = <<-HTML
         <!DOCTYPE html>
         <html lang="en">

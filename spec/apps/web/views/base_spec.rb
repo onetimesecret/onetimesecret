@@ -345,8 +345,6 @@ RSpec.describe Core::Views::BaseView do
         request = instance_double('Rack::Request')
         allow(request).to receive(:env).and_return(env)
         allow(request).to receive(:nil?).and_return(false)
-        # Ensure hash-like access to env
-        allow(request).to receive(:[]) { |key| env[key] }
         request
       end
 
