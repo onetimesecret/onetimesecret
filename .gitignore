@@ -55,6 +55,7 @@ public/web/dist/
 .rspec*
 .qodo
 .continuerc.json
+.mcp.json
 bin/bundle
 bin/rspec
 bin/rubocop

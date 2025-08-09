@@ -33,6 +33,7 @@
 .prompts/
 .ruby-version
 .appendonlydir
+.claude
 appendonlydir
 data/
 etc/caddy
@@ -63,3 +64,4 @@ etc/config.yaml
 !tailwind.config.ts
 !eslint.config.ts
 !.commit_hash.txt
+.mcp.json
