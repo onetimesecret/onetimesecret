@@ -100,7 +100,7 @@ module Onetime
       #
       raise ex unless mode?(:cli) # allows for debugging in the console
     rescue Redis::CannotConnectError => ex
-      OT.le "Cannot connect to redis #{Familia.uri} (#{ex.class})"
+      OT.le "Cannot connect to the database #{Familia.uri} (#{ex.class})"
       raise ex unless mode?(:cli)
     rescue StandardError => ex
       OT.le "Unexpected error `#{ex}` (#{ex.class})"

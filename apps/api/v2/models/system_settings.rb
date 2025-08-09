@@ -65,7 +65,7 @@ module V2
 
     feature :safe_dump
 
-    identifier :configid
+    identifier_field :configid
 
     class_sorted_set :values
     class_sorted_set :stack
@@ -215,10 +215,10 @@ module V2
           raise Onetime::Problem, "Invalid field #{key} (#{index})"
         end
 
-        redis.watch(obj.rediskey) do
+        redis.watch(obj.dbkey) do
           if obj.exists?
             redis.unwatch
-            raise Onetime::Problem, "Duplicate record #{obj.rediskey}"
+            raise Onetime::Problem, "Duplicate record #{obj.dbkey}"
           end
 
           redis.multi do |multi|
@@ -226,11 +226,11 @@ module V2
             kwargs.each do |key, _value|
               # Get the serialized value from the object's instance variable
               serialized_value = obj.instance_variable_get("@#{key}")
-              multi.hset(obj.rediskey, key, serialized_value) if serialized_value
+              multi.hset(obj.dbkey, key, serialized_value) if serialized_value
             end
-            multi.hset(obj.rediskey, :configid, obj.identifier)
-            multi.hset(obj.rediskey, :created_at, Time.now.to_i)
-            multi.hset(obj.rediskey, :updated_at, Time.now.to_i)
+            multi.hset(obj.dbkey, :configid, obj.identifier)
+            multi.hset(obj.dbkey, :created_at, Time.now.to_i)
+            multi.hset(obj.dbkey, :updated_at, Time.now.to_i)
             add(obj.identifier, multi) # keep track of instances via class_list :values
           end
         end
@@ -244,9 +244,9 @@ module V2
       # Simply instatiates a new SystemSettings object and checks if it exists.
       def exists?(identifier)
         # The `parse`` method instantiates a new SystemSettings object but does
-        # not save it to Redis. We do that here to piggyback on the inital
+        # not save it to the database. We do that here to piggyback on the inital
         # validation and parsing. We use the derived identifier to load
-        # the object from Redis using
+        # the object from the database using
         obj = load(identifier)
         OT.ld "[SystemSettings.exists?] Got #{obj} for #{identifier}"
         obj.exists?
@@ -261,9 +261,9 @@ module V2
 
         if multi
           # Use the provided multi instance for atomic operations
-          multi.zadd(values.rediskey, now, fobj.to_s)
-          multi.zadd(stack.rediskey, now, fobj.to_s)
-          multi.zadd(audit_log.rediskey, now, fobj.to_s)
+          multi.zadd(values.dbkey, now, fobj.to_s)
+          multi.zadd(stack.dbkey, now, fobj.to_s)
+          multi.zadd(audit_log.dbkey, now, fobj.to_s)
         else
           # Fall back to individual operations for backward compatibility
           values.add now, fobj.to_s
@@ -317,7 +317,7 @@ module V2
         rollback_key = rediskey(:rollback)
         redis.watch(rollback_key) do
           redis.multi do |multi|
-            multi.zpopmax(stack.rediskey, 1).first&.first
+            multi.zpopmax(stack.dbkey, 1).first&.first
             multi.revrangeraw(0, 0).first
           end
 

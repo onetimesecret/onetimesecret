@@ -28,7 +28,7 @@ module Onetime
     def print_log_banner
       site_config  = OT.conf.fetch('site') # if site is missing we got real problems
       email_config = OT.conf.fetch('emailer', {})
-      redis_info   = Familia.redis.info
+      redis_info   = Familia.dbclient.info
       colonels     = site_config.dig('authentication', 'colonels') || []
 
       # Create a buffer to collect all output

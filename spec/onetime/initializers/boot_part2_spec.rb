@@ -150,7 +150,7 @@ RSpec.describe "Onetime global state after boot" do
     end
 
     context "regarding global banner" do
-      it "sets Onetime.global_banner from Redis if present" do
+      it "sets Onetime.global_banner from the database if present" do
         test_banner = "Test system maintenance notice"
         allow(redis_double).to receive(:get).with('global_banner').and_return(test_banner)
 
@@ -216,7 +216,7 @@ RSpec.describe "Onetime global state after boot" do
 
         # Simulate that setting the Familia URI (which happens inside connect_databases)
         # results in a connection error. This ensures the error is raised
-        # before any actual network connection to a Redis server is attempted by Familia.
+        # before any actual network connection to a database server is attempted by Familia.
         redis_error = Redis::CannotConnectError.new("Test Redis error")
         allow(Familia).to receive(:uri=).and_raise(redis_error)
 

@@ -5,12 +5,12 @@ module Onetime
     # Service class for managing customer email address changes.
     #
     # This service handles the complex process of changing a customer's email address,
-    # which involves updating multiple Redis keys and maintaining relationships
+    # which involves updating multiple database keys and maintaining relationships
     # between customers and their custom domains.
     #
     # When changing an email address, all of the following need to be updated:
     # 1. Customer record fields (custid, key, email)
-    # 2. Redis keys associated with the customer (object, custom_domain, metadata)
+    # 2. database keys associated with the customer (object, custom_domain, metadata)
     # 3. References in sorted sets and hashes (onetime:customer)
     # Note: Custom domain IDs are now randomly generated and don't need updating
     #
@@ -53,7 +53,7 @@ module Onetime
         changes = ['CHANGES TO BE MADE:',
                    '===================',
                    "1. Change customer email from #{old_email} to #{new_email}",
-                   '2. Update the following Redis keys:',
+                   '2. Update the following database keys:',
                    "   - customer:#{old_email}:object → customer:#{new_email}:object",
                    "   - customer:#{old_email}:custom_domain → customer:#{new_email}:custom_domain (if exists)",
                    "   - customer:#{old_email}:metadata → customer:#{new_email}:metadata (if exists)",
@@ -130,7 +130,7 @@ module Onetime
           end
 
           # Check domain exists in display_domains
-          display_domains_id = V2::CustomDomain.redis.hget('customdomain:display_domains', domain)
+          display_domains_id = V2::CustomDomain.dbclient.hget('customdomain:display_domains', domain)
           if display_domains_id.to_s.empty?
             raise "ERROR: Domain '#{domain}' not found in display_domains mapping"
           end
@@ -139,11 +139,11 @@ module Onetime
         end
       end
 
-      # Executes the email change process by updating customer-related Redis keys.
+      # Executes the email change process by updating customer-related database keys.
       #
       # This process:
       # 1. Updates customer object fields (custid, key, email)
-      # 2. Renames all Redis keys associated with the customer
+      # 2. Renames all database keys associated with the customer
       # 3. Updates the customer in the customer values sorted set
       # Note: Custom domain records no longer need updating
       #
@@ -153,7 +153,7 @@ module Onetime
       def execute!
         # Get the redis connection via the model to make sure we're
         # connected to the correct DB where customer records live.
-        redis = V2::Customer.redis
+        redis = V2::Customer.dbclient
 
         log "EXECUTION: Starting email change process for #{old_email} -> #{new_email}"
         log "Using Redis database #{redis.connection[:db]}"
@@ -232,7 +232,7 @@ module Onetime
       # 2. A chronological log of all operations performed
       # 3. Timestamp and status information for each action
       #
-      # This report is saved to Redis DB 0 for audit purposes.
+      # This report is saved to the database DB 0 for audit purposes.
       #
       # @return [String] The formatted report as a single string
       def generate_report
@@ -249,19 +249,19 @@ module Onetime
         report.join("\n")
       end
 
-      # Saves the report to Redis DB 0 for auditing purposes
+      # Saves the report to the database DB 0 for auditing purposes
       # @return [String] The key where the report was stored
-      def save_report_to_redis
+      def save_report_serialize_value
         report_text = generate_report
         timestamp   = Time.now.to_i
         report_key  = "change_email:#{old_email}:#{new_email}:#{timestamp}"
 
-        # Save to Redis DB 0 for audit logs
-        redis = Familia.redis
+        # Save to the database DB 0 for audit logs
+        redis = Familia.dbclient
         redis.set(report_key, report_text)
         redis.expire(report_key, 365 * 24 * 60 * 60) # 1 year TTL
 
-        log "Report saved to Redis with key: #{report_key}", true
+        log "Report saved to the database with key: #{report_key}", true
         report_key
       end
 

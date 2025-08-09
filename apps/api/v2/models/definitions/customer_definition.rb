@@ -24,7 +24,7 @@ module V2
     # Used to track the current and most recently created password reset secret.
     string :reset_secret, default_expiration: 24.hours
 
-    identifier :custid
+    identifier_field :custid
 
     field :custid
     field :email

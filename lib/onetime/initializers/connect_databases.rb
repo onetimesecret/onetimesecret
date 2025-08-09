@@ -39,8 +39,8 @@ module Onetime
         db_index          = dbs[model_config_name] || DATABASE_IDS[model_config_name] || 0 # see models.rb
 
         # Assign a Redis connection to the model class
-        model_class.redis = Familia.redis(db_index)
-        ping_result       = model_class.redis.ping
+        model_class.dbclient = Familia.dbclient(db_index)
+        ping_result       = model_class.dbclient.ping
 
         OT.ld "Connected #{model_config_name} to DB #{db_index} (#{ping_result})"
       end

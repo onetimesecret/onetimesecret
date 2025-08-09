@@ -6,7 +6,7 @@ module V2
   class Team < Familia::Horreum
     prefix :team
 
-    identifier :teamid
+    identifier_field :teamid
 
     class_sorted_set :values
 

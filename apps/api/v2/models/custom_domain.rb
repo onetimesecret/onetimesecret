@@ -106,11 +106,11 @@ module V2
       raise "Identifier cannot be empty for #{self.class}"
     end
 
-    # Removes all Redis keys associated with this custom domain.
+    # Removes all database keys associated with this custom domain.
     #
     # This includes:
-    # - The main Redis key for the custom domain (`self.dbkey`)
-    # - Redis keys of all related objects specified in `self.class.data_types`
+    # - The main database key for the custom domain (`self.dbkey`)
+    # - database keys of all related objects specified in `self.class.data_types`
     #
     # @param customer [V2::Customer, nil] The customer to remove the domain from
     # @return [void]
@@ -129,7 +129,7 @@ module V2
           relation.dbkey
         end
 
-        # Append related Redis keys to the deletion list.
+        # Append related database keys to the deletion list.
         keys_to_delete.concat(related_keys)
       end
 

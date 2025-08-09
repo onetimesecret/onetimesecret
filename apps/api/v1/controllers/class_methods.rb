@@ -87,7 +87,7 @@ module V1
           'custid' => hsh.fetch('custid', nil),
           'metadata_key' => hsh.fetch('key', nil),
           'secret_key' => hsh.fetch('secret_key', nil),
-          'ttl' => metadata_ttl, # static value from redis hash field
+          'ttl' => metadata_ttl, # static value from database hash field
           'metadata_ttl' => metadata_realttl, # actual number of seconds left to live
           'secret_ttl' => secret_realttl, # ditto, actual number
           'state' => hsh.fetch('state', nil) || 'new',

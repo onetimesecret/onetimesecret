@@ -42,7 +42,7 @@ module V2
           dbclient.multi do |_multi|
             obj.generate_txt_validation_record
             obj.save
-            # Create minimal customer instance for Redis key
+            # Create minimal customer instance for database key
             cust = V2::Customer.new(custid: custid)
             cust.add_custom_domain(obj)
             # Add to global values set
@@ -140,9 +140,9 @@ module V2
       # Simply instatiates a new CustomDomain object and checks if it exists.
       def exists?(input, custid)
         # The `parse`` method instantiates a new CustomDomain object but does
-        # not save it to Redis. We do that here to piggyback on the inital
+        # not save it to the database. We do that here to piggyback on the inital
         # validation and parsing. We use the derived identifier to load
-        # the object from Redis using
+        # the object from the database using
         obj = parse(input, custid)
         OT.ld "[CustomDomain.exists?] Got #{obj.identifier} #{obj.display_domain} #{obj.custid}"
         obj.exists?

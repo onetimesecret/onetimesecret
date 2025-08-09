@@ -238,7 +238,7 @@ RSpec.describe "Onetime::Config during Onetime.boot!" do
       ENV['SMTP_TLS'] = nil
       ENV['VERIFIER_EMAIL'] = nil
       ENV['VERIFIER_DOMAIN'] = nil
-      ENV['REDIS_URL'] = 'redis://127.0.0.1:2121/0'
+      ENV['VALKEY_URL'] = 'redis://127.0.0.1:2121/0'
       OT::Utils.instance_variable_set(:@fortunes, nil) # Reset fortunes for each test
     end
 
@@ -252,7 +252,7 @@ RSpec.describe "Onetime::Config during Onetime.boot!" do
       expect(conf.dig('site', 'secret_options', 'ttl_options')).to eq(%w[1800 43200 604800].map(&:to_i))
 
       # Run with the env var set:
-      #    REDIS_URL=redis://127.0.0.1:2121/0 pnpm test:rspec
+      #    VALKEY_URL=redis://127.0.0.1:2121/0 pnpm test:rspec
       expect(conf.dig('redis', 'uri')).to eq('redis://127.0.0.1:2121/0')
       expect(conf.dig('development', 'enabled')).to be(false)
       expect(Onetime.env).to eq('testing')
@@ -282,10 +282,10 @@ RSpec.describe "Onetime::Config during Onetime.boot!" do
     end
 
     context "when checking global banner" do
-      it "sets Onetime.global_banner to the banner from Redis if present" do
+      it "sets Onetime.global_banner to the banner from the database if present" do
         test_banner_text = "Attention all planets of the Solar Federation: We have assumed control."
-        # Familia.redis is redis_double from the outer before_each block
-        allow(Familia.redis).to receive(:get).with('global_banner').and_return(test_banner_text)
+        # Familia.dbclient is redis_double from the outer before_each block
+        allow(Familia.dbclient).to receive(:get).with('global_banner').and_return(test_banner_text)
 
         Onetime.boot!(:test)
 
@@ -293,7 +293,7 @@ RSpec.describe "Onetime::Config during Onetime.boot!" do
       end
 
       it "sets Onetime.global_banner to nil if not present in Redis" do
-        allow(Familia.redis).to receive(:get).with('global_banner').and_return(nil) # Explicitly ensure nil
+        allow(Familia.dbclient).to receive(:get).with('global_banner').and_return(nil) # Explicitly ensure nil
 
         Onetime.boot!(:test)
 
@@ -413,7 +413,7 @@ RSpec.describe "Onetime::Config during Onetime.boot!" do
         allow(Onetime).to receive(:print_log_banner).and_call_original
 
         # OT.li is already stubbed by config_spec_helper.rb
-        # Familia.redis.serverid is stubbed in the main before(:each)
+        # Familia.dbclient.serverid is stubbed in the main before(:each)
 
         Onetime.boot!(:app) # Use a non-test mode like :app
         expect(Onetime).to have_received(:print_log_banner).at_least(:once)

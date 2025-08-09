@@ -43,7 +43,7 @@ module Onetime
           debug "Customer ID: #{custid} (#{key})"
           debug "Key type: #{keytype}"
 
-          # Get planid directly from Redis hash
+          # Get planid directly from database hash
           planid = dbclient.hget(key, 'planid')
 
           # Handle empty planid case

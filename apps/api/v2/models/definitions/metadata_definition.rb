@@ -5,10 +5,10 @@ module V2
     feature :safe_dump
     feature :expiration
 
-    ttl 14.days
+    default_expiration 14.days
     prefix :metadata
 
-    identifier :generate_id
+    identifier_field :generate_id
 
     field :custid
     field :state

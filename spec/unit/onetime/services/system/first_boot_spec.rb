@@ -142,7 +142,7 @@ RSpec.describe 'Service Provider System' do
           redis_error = Redis::CannotConnectError.new('Connection refused')
           allow(V2::MutableConfig).to receive(:create).and_raise(redis_error)
 
-          expect(OT).to receive(:lw).with('[BOOT.first_boot] Cannot connect to Redis for mutable config setup: Connection refused')
+          expect(OT).to receive(:lw).with('[BOOT.first_boot] Cannot connect to the database for mutable config setup: Connection refused')
           expect(OT).to receive(:lw).with('[BOOT.first_boot] Falling back to YAML configuration only')
           expect(OT).to receive(:lw).with(kind_of(String)) # First boot warning message
 

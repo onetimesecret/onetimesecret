@@ -37,7 +37,7 @@ module V2
       @custid ||= custid
       newid     = self.class.generate_id
 
-      # Remove the existing session key from Redis
+      # Remove the existing session key from the database
       if exists?
         begin
           delete!

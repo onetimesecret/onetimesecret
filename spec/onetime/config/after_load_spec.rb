@@ -119,7 +119,7 @@ RSpec.describe "Onetime boot configuration process" do
         Onetime.boot!(:test, false)
       end
 
-      it 'sets Familia URI from Redis config when we want DB connection' do
+      it 'sets Familia URI from the database config when we want DB connection' do
         allow(Onetime).to receive(:connect_databases).and_call_original
         allow(Familia).to receive(:uri=)
         Onetime.boot!(:test, true)
@@ -172,7 +172,7 @@ RSpec.describe "Onetime boot configuration process" do
       it 'handles Redis connection errors' do
         allow(Onetime::Config).to receive(:load).and_return(test_config)
         allow(Familia).to receive(:uri=).and_raise(Redis::CannotConnectError.new("Connection refused"))
-        expect(Onetime).to receive(:le).with(/Cannot connect to redis .* \(Redis::CannotConnectError\)/)
+        expect(Onetime).to receive(:le).with(/Cannot connect to the database .* \(Redis::CannotConnectError\)/)
         expect { Onetime.boot!(:test) }.to raise_error(Redis::CannotConnectError)
       end
 

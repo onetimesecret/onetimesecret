@@ -12,7 +12,7 @@ module V2
 
     feature :safe_dump
 
-    identifier :orgid
+    identifier_field :orgid
 
     field :orgid
     field :display_name

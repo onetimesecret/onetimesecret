@@ -35,7 +35,7 @@ begin
   dbclient.ping
   puts "Redis connection verified"
 rescue => ex
-  puts "ERROR: Cannot connect to Redis: #{ex.message}"
+  puts "ERROR: Cannot connect to the database: #{ex.message}"
   exit 1
 end
 
@@ -46,7 +46,7 @@ loop do
   print "." # Progress indicator
 
   keys.each do |key|
-    # How the record is identified/stored in Redis
+    # How the record is identified/stored in the database
     dbkey_identifier = begin
       key.split(':')[1]
     rescue => ex
@@ -101,7 +101,7 @@ puts "#{modified_count} customers modified (dry_run: #{dry_run})"
 if modified_count > 0
   puts "First 10 affected customers: #{problem_customers.first(10).map{ |c| c[:id] }.join(', ')}"
 
-  # Extract just the IDs from problem_customers array and save to Redis.
+  # Extract just the IDs from problem_customers array and save to the database.
   # This intentionally saves to DB 0, rather than the Customer DB, for
   # visibility and to not clutter the Customer DB with additional data.
   unless problem_customers.empty?
@@ -113,7 +113,7 @@ if modified_count > 0
     # Add all customer IDs to the list (RPUSH adds multiple values efficiently)
     Familia.dbclient.rpush(list_key, problem_customers.map { |c| c[:id] })
 
-    puts "Saved #{problem_customers.size} customer IDs to Redis list '#{list_key}'"
+    puts "Saved #{problem_customers.size} customer IDs to the database list '#{list_key}'"
     puts "To retrieve: LRANGE #{list_key} 0 -1"
   end
 end

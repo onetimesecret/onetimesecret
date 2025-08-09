@@ -51,7 +51,7 @@ After building the image, you can run Onetime Secret with a few commands. This m
     ```bash
     docker run -p 3000:3000 -d --name onetimesecret \
         -e SECRET=$SECRET \
-        -e REDIS_URL=redis://host.docker.internal:6379/0 \
+        -e VALKEY_URL=redis://host.docker.internal:6379/0 \
         onetimesecret
     ```
 
@@ -70,7 +70,7 @@ For a more permanent and secure setup, it's best to use a configuration file. Th
     cp --preserve --no-clobber .env.example .env
     ```
 
-2.  **Edit your `.env` file.** Open `.env` and set a unique `SECRET`. You can generate one with `openssl rand -hex 24`. Also, ensure `REDIS_URL` points to your Valkey/Redis instance.
+2.  **Edit your `.env` file.** Open `.env` and set a unique `SECRET`. You can generate one with `openssl rand -hex 24`. Also, ensure `VALKEY_URL` points to your Valkey/Redis instance.
 
 3.  **Run the container** using the `--env-file` flag:
 
@@ -107,14 +107,14 @@ There are two primary ways to configure the application in Docker:
     ```
 
     > [!WARNING]
-    > When you mount a custom config file, you are responsible for maintaining it. Ensure it includes all necessary settings for your deployment, including a strong `SECRET` and correct `REDIS_URL`.
+    > When you mount a custom config file, you are responsible for maintaining it. Ensure it includes all necessary settings for your deployment, including a strong `SECRET` and correct `VALKEY_URL`.
 
 ### Key Environment Variables
 
 Below are the most common environment variables used to configure the application. For a complete list of all available settings, refer to the `etc/defaults/config.defaults.yaml` file.
 
 - `SECRET`: A long, random, and unique string for encryption. **Required.**
-- `REDIS_URL`: URL for your Valkey/Redis instance.
+- `VALKEY_URL`: URL for your Valkey/Redis instance.
 - `HOST`: The hostname where the service will be accessible.
 - `SSL`: Whether to generate links with https:// (`true`/`false`).
 - `COLONEL`: Admin account email for application ownership.
@@ -122,7 +122,7 @@ Below are the most common environment variables used to configure the applicatio
 ## System Requirements
 
 - Any recent Linux distro or *BSD
-- Valkey/Redis server 5+ (or compatible)
+- Valkey/database server 5+ (or compatible)
 - Minimum specs: 2 core CPU, 1GB memory, 4GB disk
 
 ## Production Checklist

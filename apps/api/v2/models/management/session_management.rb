@@ -6,7 +6,7 @@ module V2
       attr_reader :values
 
       # Creates and persists a new session with full tracking.
-      # The session is immediately saved to Redis and added to the class-level
+      # The session is immediately saved to the database and added to the class-level
       # collection for management and cleanup operations.
       #
       # @param ipaddress [String] Client IP address
@@ -21,7 +21,7 @@ module V2
       end
 
       # Creates an ephemeral (non-persistent) anonymous session for temporary use.
-      # Unlike #create, this session is not saved to Redis or tracked in the class
+      # Unlike #create, this session is not saved to the database or tracked in the class
       # collection, making it suitable for:
       #
       # - Anonymous users who may not complete actions requiring persistence
