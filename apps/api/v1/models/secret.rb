@@ -25,7 +25,6 @@ module V1
     field :updated
     field :created
     field :truncated # boolean
-    field :maxviews # always 1 (here for backwards compat)
 
     # See note on V2::Secret
     field :key
@@ -62,17 +61,6 @@ module V1
 
     def shortkey
       key.slice(0,6)
-    end
-
-    def maxviews
-      1
-    end
-
-    # TODO: Remove. If we get around to support some manner of "multiple views"
-    # it would be implmented as separate secrets with the same value. All of them
-    # viewable only once.
-    def maxviews?
-      self.view_count.to_s.to_i >= self.maxviews
     end
 
     def age

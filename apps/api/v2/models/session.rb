@@ -50,10 +50,6 @@ module V2
       # data gets written to the database.
       self.sessid = newid
 
-      # Familia doesn't automatically keep the key in sync with the
-      # identifier field. We need to do it manually. See #860.
-      self.key = sessid
-
       save
 
       sessid

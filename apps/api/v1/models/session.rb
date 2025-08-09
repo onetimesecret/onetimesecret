@@ -17,11 +17,11 @@ module V1
     field :custid
     field :useragent
     field :stale
-    field :sessid
+    field :sessid, as: false
     field :updated
     field :created
     field :authenticated
-    field :external_identifier
+    field :external_identifier, as: false
 
     field :shrimp # as string?
 
@@ -103,9 +103,7 @@ module V1
       # data gets written to the database.
       self.sessid = newid
 
-      # Familia doesn't automatically keep the key in sync with the
-      # identifier field. We need to do it manually. See #860.
-      self.key = self.sessid
+
 
       save
 

@@ -66,7 +66,6 @@ module Onetime
       'secret' => 8,
       'feedback' => 11,
       'exception_info' => 12,
-      'system_settings' => 15,
     }
   end
 end

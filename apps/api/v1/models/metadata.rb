@@ -20,10 +20,10 @@ module V1
     field :lifespan
     field :share_domain
     field :passphrase
-    field :viewed
-    field :received
-    field :shared
-    field :burned
+    field :viewed, fast_method: false
+    field :received, fast_method: false
+    field :shared, fast_method: false
+    field :burned, fast_method: false
     field :created
     field :updated
     # NOTE: There is no `expired` timestamp field since we can calculate

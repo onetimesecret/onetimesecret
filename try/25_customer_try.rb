@@ -94,7 +94,7 @@ end
 #=> false
 
 ## Customers have a default ttl of 0
-ttl = @cust.ttl
+ttl = @cust.default_expiration
 [ttl.class, ttl]
 #=> [Integer, 0]
 

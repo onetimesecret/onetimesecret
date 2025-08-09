@@ -237,7 +237,7 @@ module V1
       # For example if we need to send a pro-rated refund
       # or if we need to send a notification to the customer
       # to confirm the account deletion.
-      self.ttl = 365.days
+      self.default_expiration = 365.days
       self.regenerate_apitoken
       self.passphrase = ''
       self.verified = 'false'

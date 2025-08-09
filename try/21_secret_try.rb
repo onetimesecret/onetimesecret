@@ -109,7 +109,7 @@ secret.received!
 #=> Familia.join(:secret, @secret_with_counter.key, :view_count)
 
 ## Secrets counters have their own ttl setting
-@secret_with_counter.view_count.ttl
+@secret_with_counter.view_count.default_expiration
 #=> 1209600.0
 
 ## Secrets counters have their own realttl value

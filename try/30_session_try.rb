@@ -44,8 +44,7 @@ sessid2 = sess.sessid
 #=> [false, false, String, String, true, true]
 
 ## Sessions always have a ttl value
-ttl = @sess.ttl
-[ttl.class, ttl]
+ttl = @sess.default_expiration[ttl.class, ttl]
 #=> [Float, 20.minutes]
 
 ## Sessions have an identifier

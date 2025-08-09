@@ -15,17 +15,6 @@ module V2
       key.slice(0, 6)
     end
 
-    def maxviews
-      1
-    end
-
-    # TODO: Remove. If we get around to support some manner of "multiple views"
-    # it would be implmented as separate secrets with the same value. All of them
-    # viewable only once.
-    def maxviews?
-      view_count.to_s.to_i >= maxviews
-    end
-
     def age
       @age ||= Time.now.utc.to_i - updated
       @age

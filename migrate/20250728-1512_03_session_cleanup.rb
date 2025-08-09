@@ -59,7 +59,7 @@ module Onetime
 
       if criteria.all?
         track_stat('removal_ttl_and_older_than_7d')
-        debug("Should process sessid=#{obj.sessid} ttl=#{obj.ttl} realttl=#{obj.current_expiration}")
+        debug("Should process sessid=#{obj.sessid} ttl=#{obj.default_expiration} realttl=#{obj.current_expiration}")
         should_process = true
       end
 

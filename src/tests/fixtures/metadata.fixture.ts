@@ -82,8 +82,6 @@ export const mockMetadataDetails: MetadataDetails = {
   display_lines: 1,
   no_cache: false,
   secret_realttl: 86400,
-  maxviews: 1,
-  has_maxviews: true,
   view_count: 0,
   has_passphrase: false,
   can_decrypt: true,

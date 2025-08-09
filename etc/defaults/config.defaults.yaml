@@ -171,7 +171,6 @@ redis:
     metadata: <%= ENV['REDIS_DBS_METADATA'] || 7 %>
     secret: <%= ENV['REDIS_DBS_SECRET'] || 8 %>
     feedback: <%= ENV['REDIS_DBS_FEEDBACK'] || 11 %>
-    system_settings: <%= ENV['REDIS_DBS_SYSTEM_SETTINGS'] || 15 %>
 logging:
   # HTTP request logs (Rack::CommonLogger)
   http_requests: <%= ENV['LOG_HTTP_REQUESTS'] != 'false' %>

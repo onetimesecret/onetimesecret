@@ -9,7 +9,7 @@ module V2::Logic
       attr_reader :metadata_key, :metadata_shortkey, :secret_key, :secret_state,
         :secret_shortkey, :recipients, :no_cache, :expiration_in_seconds,
         :natural_expiration, :is_received, :is_burned, :secret_realttl,
-        :is_destroyed, :expiration, :maxviews, :has_maxviews, :view_count,
+        :is_destroyed, :expiration, :view_count,
         :has_passphrase, :can_decrypt, :secret_value, :is_truncated,
         :show_secret, :show_secret_link, :show_metadata_link, :metadata_attributes,
         :show_metadata, :show_recipients, :share_domain, :is_orphaned,
@@ -73,8 +73,6 @@ module V2::Logic
         else
           @secret_state   = secret.state
           @secret_realttl = secret.current_expiration
-          @maxviews       = secret.maxviews
-          @has_maxviews   = @maxviews > 1
           @view_count     = nil
 
           if secret.viewable?
@@ -211,8 +209,6 @@ module V2::Logic
           display_lines: display_lines,
           no_cache: no_cache,
           secret_realttl: secret_realttl,
-          maxviews: maxviews,
-          has_maxviews: has_maxviews,
           view_count: view_count,
           has_passphrase: has_passphrase,
           can_decrypt: can_decrypt,

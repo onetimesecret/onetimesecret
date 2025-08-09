@@ -97,8 +97,6 @@ export const metadataDetailsSchema = z.object({
   display_lines: transforms.fromString.number,
   no_cache: transforms.fromString.boolean,
   secret_realttl: z.number().nullable().optional(),
-  maxviews: transforms.fromString.number,
-  has_maxviews: transforms.fromString.boolean,
   view_count: transforms.fromString.number.nullable(),
   has_passphrase: transforms.fromString.boolean,
   can_decrypt: transforms.fromString.boolean,

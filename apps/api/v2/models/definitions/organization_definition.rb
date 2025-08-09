@@ -18,7 +18,7 @@ module V2
     field :display_name
     field :description
 
-    hashmap :urls
+    hashkey :urls
 
     def init
       @orgid ||= OT::Utils.generate_short_id

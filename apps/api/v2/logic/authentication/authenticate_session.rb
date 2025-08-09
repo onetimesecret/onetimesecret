@@ -48,9 +48,9 @@ module V2::Logic
 
           OT.info "[login-success] #{sess.short_identifier} #{cust.obscure_email} #{cust.role} (new sessid)"
 
-          sess.custid        = cust.custid
-          sess.authenticated = 'true'
-          sess.ttl           = session_ttl if @stay
+          sess.custid             = cust.custid
+          sess.authenticated      = 'true'
+          sess.default_expiration = session_ttl if @stay
           sess.save
           cust.save
 

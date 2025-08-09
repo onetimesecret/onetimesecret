@@ -54,7 +54,7 @@ module V1::Logic
 
           sess.custid = cust.custid
           sess.authenticated = 'true'
-          sess.ttl = session_ttl if @stay
+          sess.default_expiration = session_ttl if @stay
           sess.save
           cust.save
 

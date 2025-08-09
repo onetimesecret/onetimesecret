@@ -79,7 +79,7 @@ module V2
               OT.info "[FromStripePaymentLink:login-success] #{sess.short_identifier} #{cust.obscure_email} #{cust.role} (new sessid)"
 
               sess.apply_fields custid: cust.custid, authenticated: 'true'
-              sess.ttl = session_ttl if @stay # TODO
+              sess.default_expiration = session_ttl if @stay # TODO
               sess.save
 
             end

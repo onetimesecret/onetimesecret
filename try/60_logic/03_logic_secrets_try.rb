@@ -49,7 +49,7 @@ logic = Logic::Secrets::ConcealSecret.new @sess, @cust, {secret: @secret_params}
 [
   logic.secret_value,
   logic.passphrase,
-  logic.ttl,
+  logic.default_expiration,
   logic.recipient,
   logic.recipient_safe,
 ]

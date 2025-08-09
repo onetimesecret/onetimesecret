@@ -30,7 +30,7 @@ module V2
         # populated and valid before model operations.
         return unless exists?
 
-        self.ttl  = 7.days
+        self.default_expiration  = 7.days
         self.role = 'permanent_removal'
 
         add_note(reason)

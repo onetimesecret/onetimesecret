@@ -177,13 +177,13 @@ module V2::Logic
 
       def save_secret
         secret.encrypt_value secret_value
-        metadata.ttl             = ttl * 2
-        secret.ttl               = ttl
-        metadata.lifespan        = metadata.ttl.to_i
-        metadata.secret_ttl      = secret.ttl.to_i
+        metadata.default_expiration             = ttl * 2
+        secret.default_expiration               = ttl
+        metadata.lifespan        = metadata.default_expiration.to_i
+        metadata.secret_ttl      = secret.default_expiration.to_i
         metadata.secret_shortkey = secret.shortkey
         metadata.share_domain    = share_domain
-        secret.lifespan          = secret.ttl.to_i
+        secret.lifespan          = secret.default_expiration.to_i
         secret.share_domain      = share_domain
         secret.save
         metadata.save
