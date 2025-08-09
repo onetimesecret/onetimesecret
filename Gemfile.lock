@@ -78,11 +78,14 @@ GEM
     erb (5.0.2)
     eventmachine (1.2.7)
     fakeredis (0.1.4)
-    familia (1.2.3)
+    familia (2.0.0.pre5)
+      benchmark
+      connection_pool
+      csv
       logger
       redis (>= 4.8.1, < 6.0)
       stringio (~> 3.1.1)
-      uri-redis (~> 1.3)
+      uri-valkey (~> 1.4)
     fastimage (2.4.0)
     hana (1.3.7)
     httparty (0.23.1)
@@ -267,7 +270,6 @@ GEM
       tty-screen (~> 0.8)
     unicode-display_width (2.6.0)
     unicode_utils (1.4.0)
-    uri-redis (1.3.0)
     uri-valkey (1.4.0)
 
 PLATFORMS
@@ -284,7 +286,7 @@ DEPENDENCIES
   drydock (~> 1.0.0)
   encryptor (= 1.1.3)
   fakeredis
-  familia (~> 1.2.3)
+  familia (~> 2.0.0.pre5)
   fastimage (~> 2.4)
   httparty
   irb
