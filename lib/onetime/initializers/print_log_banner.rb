@@ -81,8 +81,9 @@ module Onetime
       system_rows = [
         ['System', "#{RUBY_ENGINE} #{RUBY_VERSION} in #{OT.env}"],
         ['Config', OT::Config.path],
-        ['Redis', "#{redis_info['redis_version']} (#{Familia.uri.serverid})"],
+        ['Valkey', "#{redis_info['redis_version']} (#{Familia.uri.serverid})"],
         ['Familia', "v#{Familia::VERSION}"],
+        ['Otto', "v#{Otto::VERSION}"],
         ['I18n', OT.i18n_enabled],
         ['Diagnostics', OT.d9s_enabled],
       ]
