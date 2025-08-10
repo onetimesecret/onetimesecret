@@ -133,7 +133,7 @@ group :test do
   gem 'rack-test', require: false
   gem 'rspec', git: 'https://github.com/rspec/rspec'
   gem 'simplecov', require: false
-  gem 'tryouts', '~> 3.2.1', require: false
+  gem 'tryouts', '~> 3.3.0', require: false
 
   # RSpec components
   %w[rspec-core rspec-expectations rspec-mocks rspec-support].each do |lib|
