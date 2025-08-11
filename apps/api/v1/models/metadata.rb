@@ -72,11 +72,7 @@ module V1
 
     def init
       self.state ||= 'new'
-    end
-
-    def generate_id
-      @key ||= Familia.generate_id.slice(0, 31)
-      @key
+      self.key ||= self.class.generate_id # rubocop:disable Naming/MemoizedInstanceVariableName
     end
 
     def age
@@ -242,6 +238,12 @@ module V1
 
     def load_secret
       V1::Secret.load secret_key
+    end
+
+    class << self
+      def generate_id
+        Familia.generate_id
+      end
     end
   end
 end

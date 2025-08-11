@@ -21,6 +21,10 @@ module V2
         input = entropy.flatten.compact.join ':'
         Digest::SHA256.hexdigest(input) # TODO: Use Familila.generate_id
       end
+
+      def generate_id
+        Familia.generate_id
+      end
     end
 
     extend Management

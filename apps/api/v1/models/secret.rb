@@ -52,11 +52,7 @@ module V1
 
     def init
       self.state ||= 'new'
-    end
-
-    def generate_id
-      @key ||= Familia.generate_id.slice(0, 31)
-      @key
+      self.key ||= self.class.generate_id # rubocop:disable Naming/MemoizedInstanceVariableName
     end
 
     def shortkey
@@ -231,6 +227,7 @@ module V1
         secret = V1::Secret.create(custid: custid, token: token)
         metadata = V1::Metadata.create(custid: custid, token: token)
 
+        p [:spawn_pair, secret.exists?, metadata.exists?]
         # TODO: Use Familia transaction
         metadata.secret_key = secret.key
         metadata.save
@@ -245,6 +242,11 @@ module V1
         input = entropy.flatten.compact.join ':'
         Digest::SHA256.hexdigest(input) # TODO: Use Familila.generate_id
       end
+
+      def generate_id
+        Familia.generate_id
+      end
+
     end
 
     # See Customer model for explanation about why

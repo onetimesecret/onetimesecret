@@ -8,7 +8,7 @@ module V2
     default_expiration 14.days
     prefix :metadata
 
-    identifier_field :generate_id
+    identifier_field :key
 
     field :custid
     field :state
@@ -76,6 +76,7 @@ module V2
 
     def init
       self.state ||= 'new'
+      self.key   ||= self.class.generate_id # rubocop:disable Naming/MemoizedInstanceVariableName
     end
   end
 end

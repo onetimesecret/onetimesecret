@@ -8,7 +8,7 @@ module V2
     default_expiration 7.days # default only, can be overridden at create time
     prefix :secret
 
-    identifier_field :generate_id
+    identifier_field :key
 
     field :custid
     field :state
@@ -45,6 +45,7 @@ module V2
 
     def init
       self.state ||= 'new'
+      self.key   ||= self.class.generate_id # rubocop:disable Naming/MemoizedInstanceVariableName
     end
   end
 end

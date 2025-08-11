@@ -281,7 +281,7 @@ module V2
     # This method overrides the default save behavior to prevent
     # anonymous customers from being persisted to the database.
     def save(**)
-      raise Onetime::Problem, "Anonymous cannot be saved #{self.class} #{rediskey}" if anonymous?
+      raise Onetime::Problem, "Anonymous cannot be saved #{self.class} #{dbkey}" if anonymous?
 
       super
     end

@@ -3,6 +3,9 @@
 module V2
   class Metadata < Familia::Horreum
     module Management
+      def generate_id
+        Familia.generate_id
+      end
     end
 
     extend Management

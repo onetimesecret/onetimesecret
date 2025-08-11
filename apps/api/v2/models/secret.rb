@@ -6,10 +6,6 @@ require_relative 'definitions/secret_definition'
 
 module V2
   class Secret < Familia::Horreum
-    def generate_id
-      @key ||= Familia.generate_id.slice(0, 31)
-      @key
-    end
 
     def shortkey
       key.slice(0, 6)
