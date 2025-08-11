@@ -44,7 +44,8 @@ sessid2 = sess.sessid
 #=> [false, false, String, String, true, true]
 
 ## Sessions always have a ttl value
-ttl = @sess.default_expiration[ttl.class, ttl]
+ttl = @sess.default_expiration
+[ttl.class, ttl]
 #=> [Float, 20.minutes]
 
 ## Sessions have an identifier
@@ -72,7 +73,7 @@ s1.instance_variable_get(:@sessid).eql?(s2.instance_variable_get(:@sessid))
 ## Can set form fields
 ret = @sess.set_form_fields custid: 'tryouts', planid: :testing
 ret.class
-#=> Integer
+#=> TrueClass
 
 ## Cannot get form fields with indifferent access via symbol or string
 ret = @sess.get_form_fields!
@@ -161,13 +162,19 @@ sid = V2::Session.generate_id
 ## Can update fields (1 of 2)
 @sess_with_changes = V2::Session.create @ipaddress, @custid, @useragent
 @sess_with_changes.apply_fields(custid: 'tryouts', stale: 'testing')
-multi_result = @sess_with_changes.commit_fields
-multi_result.tuple
-#=> [true, ["OK"]]
+@sess_with_changes.commit_fields
+#=> "OK"
 
 ## Can update fields (2 of 2)
 [@sess_with_changes.custid, @sess_with_changes.stale]
 #=> ["tryouts", "testing"]
+
+## Can update via batch_update
+sess = V2::Session.create @ipaddress, @custid, @useragent
+sess.apply_fields(custid: 'tryouts1', stale: 'testing1')
+multi_result = sess.batch_update
+multi_result.tuple
+#=> [true, []]
 
 ## Can do the same thing but with save (1 of 2)
 @sess_with_changes2 = V2::Session.create @ipaddress, @custid, @useragent
@@ -181,6 +188,11 @@ multi_result.tuple
 #=> ["tryouts2", "testing2"]
 
 ## Can call apply_fields and chain on commit_fields
-multi_result = @sess_with_changes2.apply_fields(custid: 'tryouts3', stale: 'testing3').commit_fields
-multi_result.tuple
-#=> [true, ["OK"]]
+## TODO: This testcase used to expect multi_result.tuple (i.e. [true, ["OK"]])
+## from commit_fields but as far as I can tell only batch_update ever did that.
+## It's possible that due to a Tryouts bug, this testcase was silently failing
+## or not running (due to the file not being parsed properly). If it's not that
+## I'll need to dig further b/c before this, the last change to this testcase
+## was 1y ago 7bcaf8cbd80.
+@sess_with_changes2.apply_fields(custid: 'tryouts3', stale: 'testing3').commit_fields
+#=> "OK"
