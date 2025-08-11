@@ -9,8 +9,9 @@ require_relative '../test_models'
 # Load the app
 OT.boot! :test, false
 
-@customer = V1::Customer.create "Tryouts+27+#{SecureRandom.uuid}@onetimesecret.com"
-@domain = 'example.com'
+@unique_string = "Tryouts+27+#{SecureRandom.uuid}"
+@customer = V1::Customer.create "#{@unique_string}@onetimesecret.com"
+@domain = "#{@unique_string}.example.com"
 
 ## Base update_expiration accepts ttl parameter without error
 obj = V2::CustomDomain.create(@domain, @customer.custid)
