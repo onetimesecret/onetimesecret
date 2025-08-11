@@ -14,8 +14,8 @@ module V1
 
     @global = nil
 
-    class_sorted_set :values, key: 'onetime:customer'
-    class_hashkey :domains, key: 'onetime:customers:domain'
+    class_sorted_set :values, dbkey: 'onetime:customer'
+    class_hashkey :domains, dbkey: 'onetime:customers:domain'
 
     sorted_set :custom_domains, suffix: 'custom_domain'
     sorted_set :metadata

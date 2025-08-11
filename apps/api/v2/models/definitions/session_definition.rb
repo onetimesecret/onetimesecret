@@ -10,7 +10,7 @@ module V2
     default_expiration 20.minutes
     prefix :session
 
-    class_sorted_set :values, key: 'onetime:session'
+    class_sorted_set :values, dbkey: 'onetime:session'
 
     identifier_field :sessid
 
