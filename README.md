@@ -88,6 +88,17 @@ This is the actively developed and maintained version with the most recent featu
 
 ⚠️ **Breaking Changes:** Expect potential breaking changes between "major-minor" releases (e.g., v0.22.x → v0.23.0). We follow semantic versioning principles but treat pre-1.0 minor version bumps as potentially breaking changes.
 
+### Development Branch Notice
+
+> [!WARNING]
+> **Custom Domain Support Temporarily Unavailable:** This development branch has intentionally broken custom domain functionality as part of ongoing architectural improvements. If you need custom domain support, please use one of these stable alternatives:
+>
+> - **Latest stable release:** [v0.22.3](https://github.com/onetimesecret/onetimesecret/releases/tag/v0.22.3)
+> - **Docker images:** `ghcr.io/onetimesecret/onetimesecret:v0.22.3` or `onetimesecret/onetimesecret:v0.22.3`
+> - **Source installation:** `git checkout v0.22.3` after cloning
+>
+> Custom domain functionality will be restored in future releases.
+
 ## Similar Services
 
 This section provides an overview of services similar to our project, highlighting their unique features and how they compare. These alternatives may be useful for users looking for specific functionalities or wanting to explore different options in the same domain. By presenting this information, we aim to give our users a comprehensive view of the available options in the secure information sharing space.
