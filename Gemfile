@@ -122,7 +122,7 @@ group :development do
   gem 'rubocop-thread_safety', require: false
   gem 'ruby-lsp', require: false
   gem 'syntax_tree', require: false
-
+ gem 'solargraph', require: false
   # Enable for Debug Adapter Protocol. Not included with the
   # development group because it lags on byebug version.
   # gem 'byebug-dap', require: false
