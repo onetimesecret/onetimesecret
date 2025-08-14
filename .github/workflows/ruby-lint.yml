@@ -48,7 +48,7 @@ jobs:
     strategy:
       fail-fast: true
       matrix:
-        ruby: ['3.4', '3.5']
+        ruby: ['3.4']
         continue-on-error: [true]
 
     steps:
