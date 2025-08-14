@@ -49,7 +49,9 @@ RSpec.describe "Onetime::Config during Onetime.boot!" do
     allow(Onetime).to receive(:print_log_banner)
 
     redis_double = double("Redis").as_null_object
-    allow(Familia).to receive(:redis).and_return(redis_double)
+    allow(Familia).to receive(:dbclient).and_return(redis_double)
+    allow(Familia).to receive(:uri=)
+    allow(Familia).to receive(:uri).and_return(double('URI', serverid: 'localhost:6379'))
     allow(redis_double).to receive(:ping).and_return("PONG")
     allow(redis_double).to receive(:get).with('global_banner').and_return(nil)
     allow(redis_double).to receive(:info).and_return({'redis_version' => 'test_version'})

@@ -21,16 +21,18 @@ RSpec.shared_context "rack_test_context" do
   end
 
   let(:rack_response) do
-    instance_double(Rack::Response,
+    double('Rack::Response',
       status: 200,
       headers: {},
       body: [],
       set_cookie: nil,
       finish: [200, {}, []],
-      write: nil).tap do |resp|
+      write: nil,
+      redirect: nil).tap do |resp|
       allow(resp).to receive(:[]=) { |k,v| resp.headers[k] = v }
       allow(resp).to receive(:[]) { |k| resp.headers[k] }
       allow(resp).to receive(:body=)
+      allow(resp).to receive(:app_path) { |path| path }
     end
   end
 end

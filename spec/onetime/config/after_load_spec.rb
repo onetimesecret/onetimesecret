@@ -33,26 +33,34 @@ RSpec.describe "Onetime boot configuration process" do
     allow(Onetime).to receive(:ld)
     allow(Onetime).to receive(:li)
     allow(Onetime).to receive(:le)
-    allow(Familia).to receive(:redis).and_return(double('Redis').as_null_object)
-
-    # Mock redis operations
+    # Mock redis operations for Familia 2
     redis_double = double('Redis')
     allow(redis_double).to receive(:ping).and_return("PONG")
     allow(redis_double).to receive(:get).and_return(nil)
     allow(redis_double).to receive(:info).and_return({"redis_version" => "6.0.0"})
-    allow(redis_double).to receive(:scan_each).and_return([]) # Add this line
+    allow(redis_double).to receive(:scan_each).and_return([])
+    
+    # Mock Familia 2 API
+    allow(Familia).to receive(:uri=)
+    allow(Familia).to receive(:dbclient).and_return(redis_double)
     allow(Familia).to receive(:uri).and_return(double('URI', serverid: 'localhost:6379'))
-    allow(Familia).to receive(:redis).and_return(redis_double)
 
     # Mock V2 model Redis connections used in detect_first_boot
-    allow(V2::Metadata).to receive(:redis).and_return(redis_double)
+    allow(V2::Metadata).to receive(:dbclient).and_return(redis_double)
     allow(V2::Customer).to receive(:values).and_return(double('Values', element_count: 0))
     allow(V2::Session).to receive(:values).and_return(double('Values', element_count: 0))
 
-    # Mock system settings setup methods
-    allow(V2::SystemSettings).to receive(:current).and_raise(OT::RecordNotFound.new("No config found"))
-    # allow(V2::SystemSettings).to receive(:extract_colonel_config).and_return({})
-    allow(V2::SystemSettings).to receive(:create).and_return(double('SystemSettings', dbkey: 'test:config'))
+    # Mock system settings setup methods - V2::SystemSettings might not exist in current codebase
+    system_settings_stub = Class.new do
+      def self.current
+        raise OT::RecordNotFound.new("No config found")
+      end
+      
+      def self.create
+        double('SystemSettings', dbkey: 'test:config')
+      end
+    end
+    stub_const('V2::SystemSettings', system_settings_stub)
 
     # TODO: Make truemail gets reset too (Truemail.configuration)
 

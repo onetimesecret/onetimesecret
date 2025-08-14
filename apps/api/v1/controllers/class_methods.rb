@@ -73,7 +73,7 @@ module V1
         # to get the current value of the ttl for the metadata object. This is the
         # actual time left before the metadata object is deleted from the db server.
         #
-        # For the v1 API, this real value is what gets returned a "metadata_ttl". If
+        # For the v1 API, this real value is what gets returned as "metadata_ttl". If
         # you don't find that confusing, take another look through the code.
         metadata_realttl = md.current_expiration&.to_i
 

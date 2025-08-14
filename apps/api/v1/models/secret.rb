@@ -70,6 +70,9 @@ module V1
       lifespan.to_i + created.to_i if lifespan
     end
 
+    # Alias for compatibility with controller expectations
+    alias_method :current_expiration, :expiration
+
     def natural_duration
       # Colloquial representation of the TTL. e.g. "1 day"
       V1::TimeUtils.natural_duration lifespan

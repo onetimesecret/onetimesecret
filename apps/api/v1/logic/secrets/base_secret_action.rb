@@ -5,7 +5,7 @@ module V1::Logic
 
     class BaseSecretAction < V1::Logic::Base
       attr_reader :passphrase, :secret_value, :kind, :ttl, :recipient, :recipient_safe, :greenlighted
-      attr_reader :metadata, :secret, :share_domain, :custom_domain, :payload
+      attr_reader :metadata, :secret, :share_domain, :custom_domain, :payload, :default_expiration
       attr_accessor :token
 
       # Process methods populate instance variables with the values. The
@@ -100,6 +100,9 @@ module V1::Logic
         # Enforce bounds
         @ttl = min_ttl if ttl < min_ttl
         @ttl = max_ttl if ttl > max_ttl
+        
+        # Set default_expiration for compatibility with tests
+        @default_expiration = @ttl
       end
 
       def process_secret

@@ -14,7 +14,7 @@ require 'rack'
 require 'rack/mock'
 
 builder = Rack::Builder.parse_file('config.ru')
-@app = builder.first
+@app = builder
 mapped = AppRegistry.generate_rack_url_map
 @mock_request = Rack::MockRequest.new(mapped)
 
