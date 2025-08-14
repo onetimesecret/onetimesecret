@@ -134,14 +134,15 @@ module V2
       end
 
       dbclient.multi do |multi|
-        multi.del(dbkey)
-        # Also remove from the class-level values, :display_domains, :owners
+        # Delete all keys associated with this domain instance
+        multi.del(*keys_to_delete)
+
+        # Also remove from the class-level collections
         multi.zrem(V2::CustomDomain.values.dbkey, identifier)
         multi.hdel(V2::CustomDomain.display_domains.dbkey, display_domain)
         multi.hdel(V2::CustomDomain.owners.dbkey, display_domain)
-        multi.del(brand.dbkey)
-        multi.del(logo.dbkey)
-        multi.del(icon.dbkey)
+
+        # Remove from customer's custom domains collection if customer provided
         unless customer.nil?
           multi.zrem(customer.custom_domains.dbkey, display_domain)
         end
