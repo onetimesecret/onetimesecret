@@ -54,7 +54,7 @@ RSpec.describe "Onetime global state after boot" do
       def self.current
         raise OT::RecordNotFound.new("No config found")
       end
-      
+
       def self.create
         double('SystemSettings', dbkey: 'test:config')
       end

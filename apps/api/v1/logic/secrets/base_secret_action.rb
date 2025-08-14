@@ -100,7 +100,7 @@ module V1::Logic
         # Enforce bounds
         @ttl = min_ttl if ttl < min_ttl
         @ttl = max_ttl if ttl > max_ttl
-        
+
         # Set default_expiration for compatibility with tests
         @default_expiration = @ttl
       end
