@@ -44,7 +44,7 @@ sessid2 = sess.sessid
 #=> [false, false, String, String, true, true]
 
 ## Sessions always have a ttl value
-ttl = @sess.ttl
+ttl = @sess.default_expiration
 [ttl.class, ttl]
 #=> [Float, 20.minutes]
 
@@ -73,7 +73,7 @@ s1.instance_variable_get(:@sessid).eql?(s2.instance_variable_get(:@sessid))
 ## Can set form fields
 ret = @sess.set_form_fields custid: 'tryouts', planid: :testing
 ret.class
-#=> Integer
+#=> TrueClass
 
 ## Cannot get form fields with indifferent access via symbol or string
 ret = @sess.get_form_fields!
@@ -162,13 +162,19 @@ sid = V2::Session.generate_id
 ## Can update fields (1 of 2)
 @sess_with_changes = V2::Session.create @ipaddress, @custid, @useragent
 @sess_with_changes.apply_fields(custid: 'tryouts', stale: 'testing')
-multi_result = @sess_with_changes.commit_fields
-multi_result.tuple
-#=> [true, ["OK"]]
+@sess_with_changes.commit_fields
+#=> "OK"
 
 ## Can update fields (2 of 2)
 [@sess_with_changes.custid, @sess_with_changes.stale]
 #=> ["tryouts", "testing"]
+
+## Can update via batch_update
+sess = V2::Session.create @ipaddress, @custid, @useragent
+sess.apply_fields(custid: 'tryouts1', stale: 'testing1')
+multi_result = sess.batch_update
+multi_result.tuple
+#=> [true, []]
 
 ## Can do the same thing but with save (1 of 2)
 @sess_with_changes2 = V2::Session.create @ipaddress, @custid, @useragent
@@ -182,6 +188,10 @@ multi_result.tuple
 #=> ["tryouts2", "testing2"]
 
 ## Can call apply_fields and chain on commit_fields
-multi_result = @sess_with_changes2.apply_fields(custid: 'tryouts3', stale: 'testing3').commit_fields
-multi_result.tuple
-#=> [true, ["OK"]]
+## NOTE: Familia 2 Migration - Return Value Clarification
+## This testcase was corrected during Familia 2 migration. Previously expected
+## multi_result.tuple format [true, ["OK"]] which is only returned by batch_update.
+## commit_fields properly returns "OK" (Redis command response).
+## This expectation change reflects actual API behavior, not a regression.
+@sess_with_changes2.apply_fields(custid: 'tryouts3', stale: 'testing3').commit_fields
+#=> "OK"

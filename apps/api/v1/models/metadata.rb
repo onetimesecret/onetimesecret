@@ -6,11 +6,12 @@ module V1
     feature :safe_dump
     feature :expiration
 
-    ttl 14.days
+    default_expiration 14.days
     prefix :metadata
 
-    identifier :generate_id
+    identifier_field :key
 
+    field :key
     field :custid
     field :state
     field :secret_key
@@ -19,10 +20,10 @@ module V1
     field :lifespan
     field :share_domain
     field :passphrase
-    field :viewed
-    field :received
-    field :shared
-    field :burned
+    field :viewed, fast_method: false
+    field :received, fast_method: false
+    field :shared, fast_method: false
+    field :burned, fast_method: false
     field :created
     field :updated
     # NOTE: There is no `expired` timestamp field since we can calculate
@@ -71,11 +72,7 @@ module V1
 
     def init
       self.state ||= 'new'
-    end
-
-    def generate_id
-      @key ||= Familia.generate_id.slice(0, 31)
-      @key
+      self.key ||= self.class.generate_id # rubocop:disable Naming/MemoizedInstanceVariableName
     end
 
     def age
@@ -100,7 +97,6 @@ module V1
       # Colloquial representation of the TTL. e.g. "1 day"
       V1::TimeUtils.natural_duration metadata_ttl
     end
-    alias :natural_ttl :natural_duration
 
     def secret_expiration
       # Unix timestamp of when the secret will expire. Based on
@@ -169,7 +165,7 @@ module V1
     # we pass update_expiration: false to save so that changing this metdata
     # objects state doesn't affect its original expiration time.
     #
-    # TODO: Replace with transaction (i.e. redis multi command)
+    # TODO: Replace with transaction (i.e. MULTI/EXEC command)
     def viewed!
       # A guard to allow only a fresh, new secret to be viewed. Also ensures
       # that we don't support going from viewed back to something else.
@@ -242,6 +238,12 @@ module V1
 
     def load_secret
       V1::Secret.load secret_key
+    end
+
+    class << self
+      def generate_id
+        Familia.generate_id
+      end
     end
   end
 end

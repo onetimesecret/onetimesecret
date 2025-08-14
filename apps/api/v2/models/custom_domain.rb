@@ -106,43 +106,46 @@ module V2
       raise "Identifier cannot be empty for #{self.class}"
     end
 
-    # Removes all Redis keys associated with this custom domain.
+    # Removes all database keys associated with this custom domain.
     #
     # This includes:
-    # - The main Redis key for the custom domain (`self.rediskey`)
-    # - Redis keys of all related objects specified in `self.class.redis_types`
+    # - The main database key for the custom domain (`self.dbkey`)
+    # - database keys of all related objects specified in `self.class.data_types`
     #
     # @param customer [V2::Customer, nil] The customer to remove the domain from
     # @return [void]
     def destroy!(customer = nil)
-      keys_to_delete = [rediskey]
+      keys_to_delete = [dbkey]
 
-      # This produces a list of redis keys for each of the RedisType
+      # This produces a list of dbkeys for each of the DataType
       # relations defined for this model.
       # See Familia::Features::Expiration for references implementation.
       if self.class.has_relations?
-        related_names = self.class.redis_types.keys
+        related_names = self.class.data_types.keys
         OT.ld "[destroy!] #{self.class} has relations: #{related_names}"
 
         related_keys = related_names.filter_map do |name|
           relation = send(name) # e.g. self.brand
-          relation.rediskey
+          relation.dbkey
         end
 
-        # Append related Redis keys to the deletion list.
+        # Append related database keys to the deletion list.
         keys_to_delete.concat(related_keys)
       end
 
-      redis.multi do |multi|
-        multi.del(rediskey)
-        # Also remove from the class-level values, :display_domains, :owners
-        multi.zrem(V2::CustomDomain.values.rediskey, identifier)
-        multi.hdel(V2::CustomDomain.display_domains.rediskey, display_domain)
-        multi.hdel(V2::CustomDomain.owners.rediskey, display_domain)
-        multi.del(brand.rediskey)
-        multi.del(logo.rediskey)
-        multi.del(icon.rediskey)
-        multi.zrem(customer.custom_domains.rediskey, display_domain) unless customer.nil?
+      dbclient.multi do |multi|
+        # Delete all keys associated with this domain instance
+        multi.del(*keys_to_delete)
+
+        # Also remove from the class-level collections
+        multi.zrem(V2::CustomDomain.values.dbkey, identifier)
+        multi.hdel(V2::CustomDomain.display_domains.dbkey, display_domain)
+        multi.hdel(V2::CustomDomain.owners.dbkey, display_domain)
+
+        # Remove from customer's custom domains collection if customer provided
+        unless customer.nil?
+          multi.zrem(customer.custom_domains.dbkey, display_domain)
+        end
       end
     rescue Redis::BaseError => ex
       OT.le "[CustomDomain.destroy!] Redis error: #{ex.message}"
@@ -169,7 +172,7 @@ module V2
     #
     # @return [Boolean] true if the domain exists in Redis
     def exists?
-      redis.exists?(rediskey)
+      dbclient.exists?(dbkey)
     end
 
     def allow_public_homepage?

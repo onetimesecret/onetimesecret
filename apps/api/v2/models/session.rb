@@ -37,22 +37,18 @@ module V2
       @custid ||= custid
       newid     = self.class.generate_id
 
-      # Remove the existing session key from Redis
+      # Remove the existing session key from the database
       if exists?
         begin
           delete!
         rescue StandardError => ex
-          OT.le "[Session.replace!] Failed to delete key #{rediskey}: #{ex.message}"
+          OT.le "[Session.replace!] Failed to delete key #{dbkey}: #{ex.message}"
         end
       end
 
       # This update is important b/c it ensures that the
-      # data gets written to redis.
+      # data gets written to the database.
       self.sessid = newid
-
-      # Familia doesn't automatically keep the key in sync with the
-      # identifier field. We need to do it manually. See #860.
-      self.key = sessid
 
       save
 

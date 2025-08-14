@@ -70,8 +70,8 @@ module Onetime
     # updated via {#execute_update} if processing is needed.
     #
     # @param objects [Array<Array>] Array of tuples: [obj, original_dbkey]
-    #   The original Redis key is preserved because records with missing/empty
-    #   identifier fields cannot reconstitute their Redis key via obj.dbkey.
+    #   The original database key is preserved because records with missing/empty
+    #   identifier fields cannot reconstitute their database key via obj.dbkey.
     #   Only the original key from SCAN guarantees we can operate on the record.
     # @return [void]
     def process_batch(objects)
@@ -192,7 +192,7 @@ module Onetime
     # @param pipe [Redis::Pipeline] Redis pipeline instance
     # @param obj [Familia::Horreum] object being updated
     # @param fields [Hash] field updates from {#build_update_fields}
-    # @param original_key [String] original Redis key from SCAN
+    # @param original_key [String] original database key from SCAN
     # @return [void]
     def execute_update(pipe, obj, fields, original_key = nil)
       klass_name = obj.class.name.split('::').last

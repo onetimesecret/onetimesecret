@@ -5,7 +5,7 @@ module V1::Logic
 
     class BaseSecretAction < V1::Logic::Base
       attr_reader :passphrase, :secret_value, :kind, :ttl, :recipient, :recipient_safe, :greenlighted
-      attr_reader :metadata, :secret, :share_domain, :custom_domain, :payload
+      attr_reader :metadata, :secret, :share_domain, :custom_domain, :payload, :default_expiration
       attr_accessor :token
 
       # Process methods populate instance variables with the values. The
@@ -100,6 +100,9 @@ module V1::Logic
         # Enforce bounds
         @ttl = min_ttl if ttl < min_ttl
         @ttl = max_ttl if ttl > max_ttl
+
+        # Set default_expiration for compatibility with tests
+        @default_expiration = @ttl
       end
 
       def process_secret
@@ -178,12 +181,12 @@ module V1::Logic
 
       def save_secret
         secret.encrypt_value secret_value
-        metadata.ttl, secret.ttl = ttl*2, ttl
-        metadata.lifespan = metadata.ttl.to_i
-        metadata.secret_ttl = secret.ttl.to_i
+        metadata.default_expiration, secret.default_expiration = ttl*2, ttl
+        metadata.lifespan = metadata.default_expiration.to_i
+        metadata.secret_ttl = secret.default_expiration.to_i
         metadata.secret_shortkey = secret.shortkey
         metadata.share_domain = share_domain
-        secret.lifespan = secret.ttl.to_i
+        secret.lifespan = secret.default_expiration.to_i
         secret.share_domain = share_domain
         secret.save
         metadata.save
@@ -226,7 +229,7 @@ module V1::Logic
       def validate_domain_access(domain)
         return if domain.nil?
 
-        # e.g. rediskey -> customdomain:display_domains -> hash -> key: value
+        # e.g. dbkey -> customdomain:display_domains -> hash -> key: value
         # where key is the domain and value is the domainid
         domain_record = V1::CustomDomain.from_display_domain(domain)
         raise_form_error "Unknown domain: #{domain}" if domain_record.nil?

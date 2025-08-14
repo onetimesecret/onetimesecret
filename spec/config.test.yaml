@@ -78,12 +78,8 @@ redis:
     customer: 6
     subdomain: 6
     metadata: 7
-    email_receipt: 8
     secret: 8
     feedback: 11
-    rate_limit: 2
-    exception_info: 12
-    system_settings: 15
 logging:
   http_requests: true
 emailer:

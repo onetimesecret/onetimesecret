@@ -5,14 +5,15 @@ module V2
     feature :safe_dump
     feature :expiration
 
-    ttl 7.days # default only, can be overridden at create time
+    default_expiration 7.days # default only, can be overridden at create time
     prefix :secret
 
-    identifier :generate_id
+    identifier_field :key
 
     field :custid
     field :state
     field :value
+    field :key
     field :metadata_key
     field :value_encryption
     field :lifespan
@@ -21,15 +22,8 @@ module V2
     field :updated
     field :created
     field :truncated # boolean
-    field :maxviews # always 1 (here for backwards compat)
 
-    # The key field is added automatically by Familia::Horreum and works
-    # just fine except for rspec mocks that use `instance_double`. Mocking
-    # a secret that includes a value for `key` will trigger an error (since
-    # instance_double considers the real class). See spec_helpers.rb
-    field :key
-
-    counter :view_count, ttl: 14.days # out lives the secret itself
+    counter :view_count, default_expiration: 14.days # out lives the secret itself
 
     # NOTE: this field is a nullop. It's only populated if a value was entered
     # into a hidden field which is something a regular person would not do.
@@ -51,6 +45,7 @@ module V2
 
     def init
       self.state ||= 'new'
+      self.key   ||= self.class.generate_id # rubocop:disable Naming/MemoizedInstanceVariableName
     end
   end
 end

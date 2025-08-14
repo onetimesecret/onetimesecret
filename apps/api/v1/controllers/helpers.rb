@@ -82,9 +82,9 @@ module V1
       OT.ld "[carefully] RecordNotFound: #{ex.message} (#{req.path}) redirect:#{redirect || 'n/a'}"
       not_found_response ex.message, shrimp: sess.add_shrimp
     rescue Familia::HighRiskFactor => ex
-      OT.le "[attempt-saving-non-string-to-redis] #{obscured} (#{sess.ipaddress}): #{sess.identifier.shorten(10)} (#{req.current_absolute_uri})"
+      OT.le "[attempt-saving-non-string-to-db] #{obscured} (#{sess.ipaddress}): #{sess.identifier.shorten(10)} (#{req.current_absolute_uri})"
 
-      # Track attempts to save non-string data to Redis as a warning error
+      # Track attempts to save non-string data to the database as a warning error
       capture_error ex, :warning
 
       # Include fresh shrimp so they can try again 🦐
@@ -330,7 +330,7 @@ module V1
 
       @check_session_ran = true
 
-      # Load from redis or create the session
+      # Load from the database or create the session
       @sess = if req.cookie?(:sess) && V1::Session.exists?(req.cookie(:sess))
         V1::Session.load req.cookie(:sess)
       else
@@ -365,12 +365,11 @@ module V1
       # rest of the data. This is a security feature.
       sess.disable_auth = !authentication_enabled?
 
-      # Update the session fields in redis (including updated timestamp)
+      # Update the session fields in the database (including updated timestamp)
       sess.save
 
       # Update the session cookie
-      res.send_secure_cookie :sess, sess.sessid, sess.ttl
-
+      res.send_secure_cookie :sess, sess.sessid, sess.default_expiration
       # Re-hydrate the customer object
       @cust = sess.load_customer || V1::Customer.anonymous
 

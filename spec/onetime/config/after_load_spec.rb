@@ -33,26 +33,34 @@ RSpec.describe "Onetime boot configuration process" do
     allow(Onetime).to receive(:ld)
     allow(Onetime).to receive(:li)
     allow(Onetime).to receive(:le)
-    allow(Familia).to receive(:redis).and_return(double('Redis').as_null_object)
-
-    # Mock redis operations
+    # Mock redis operations for Familia 2
     redis_double = double('Redis')
     allow(redis_double).to receive(:ping).and_return("PONG")
     allow(redis_double).to receive(:get).and_return(nil)
     allow(redis_double).to receive(:info).and_return({"redis_version" => "6.0.0"})
-    allow(redis_double).to receive(:scan_each).and_return([]) # Add this line
+    allow(redis_double).to receive(:scan_each).and_return([])
+
+    # Mock Familia 2 API
+    allow(Familia).to receive(:uri=)
+    allow(Familia).to receive(:dbclient).and_return(redis_double)
     allow(Familia).to receive(:uri).and_return(double('URI', serverid: 'localhost:6379'))
-    allow(Familia).to receive(:redis).and_return(redis_double)
 
     # Mock V2 model Redis connections used in detect_first_boot
-    allow(V2::Metadata).to receive(:redis).and_return(redis_double)
+    allow(V2::Metadata).to receive(:dbclient).and_return(redis_double)
     allow(V2::Customer).to receive(:values).and_return(double('Values', element_count: 0))
     allow(V2::Session).to receive(:values).and_return(double('Values', element_count: 0))
 
-    # Mock system settings setup methods
-    allow(V2::SystemSettings).to receive(:current).and_raise(OT::RecordNotFound.new("No config found"))
-    # allow(V2::SystemSettings).to receive(:extract_colonel_config).and_return({})
-    allow(V2::SystemSettings).to receive(:create).and_return(double('SystemSettings', rediskey: 'test:config'))
+    # Mock system settings setup methods - V2::SystemSettings might not exist in current codebase
+    system_settings_stub = Class.new do
+      def self.current
+        raise OT::RecordNotFound.new("No config found")
+      end
+
+      def self.create
+        double('SystemSettings', dbkey: 'test:config')
+      end
+    end
+    stub_const('V2::SystemSettings', system_settings_stub)
 
     # TODO: Make truemail gets reset too (Truemail.configuration)
 
@@ -119,7 +127,7 @@ RSpec.describe "Onetime boot configuration process" do
         Onetime.boot!(:test, false)
       end
 
-      it 'sets Familia URI from Redis config when we want DB connection' do
+      it 'sets Familia URI from the database config when we want DB connection' do
         allow(Onetime).to receive(:connect_databases).and_call_original
         allow(Familia).to receive(:uri=)
         Onetime.boot!(:test, true)
@@ -172,7 +180,7 @@ RSpec.describe "Onetime boot configuration process" do
       it 'handles Redis connection errors' do
         allow(Onetime::Config).to receive(:load).and_return(test_config)
         allow(Familia).to receive(:uri=).and_raise(Redis::CannotConnectError.new("Connection refused"))
-        expect(Onetime).to receive(:le).with(/Cannot connect to redis .* \(Redis::CannotConnectError\)/)
+        expect(Onetime).to receive(:le).with(/Cannot connect to the database .* \(Redis::CannotConnectError\)/)
         expect { Onetime.boot!(:test) }.to raise_error(Redis::CannotConnectError)
       end
 

@@ -6,24 +6,9 @@ require_relative 'definitions/secret_definition'
 
 module V2
   class Secret < Familia::Horreum
-    def generate_id
-      @key ||= Familia.generate_id.slice(0, 31)
-      @key
-    end
 
     def shortkey
       key.slice(0, 6)
-    end
-
-    def maxviews
-      1
-    end
-
-    # TODO: Remove. If we get around to support some manner of "multiple views"
-    # it would be implmented as separate secrets with the same value. All of them
-    # viewable only once.
-    def maxviews?
-      view_count.to_s.to_i >= maxviews
     end
 
     def age
@@ -41,7 +26,6 @@ module V2
       # Colloquial representation of the TTL. e.g. "1 day"
       OT::Utils::TimeUtils.natural_duration lifespan
     end
-    alias natural_ttl natural_duration
 
     def older_than?(seconds)
       age > seconds

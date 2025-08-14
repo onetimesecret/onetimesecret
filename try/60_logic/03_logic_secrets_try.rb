@@ -27,12 +27,12 @@ OT.boot! :test, false
 
 # ConcealSecret Tests
 
-## New secrets have a nil key
+## New secrets now get a key automatically when created
 secret = Secret.new
-secret.key
-#=> nil
+[secret.key.class, secret.key.length > 16]
+#=> [String, true]
 
-## New secrets only get a key when we give them one
+## Calling generate_id on secrets ensures they have a key
 secret = Secret.new
 secret.generate_id
 [secret.key.is_a?(String), secret.key.length > 16]

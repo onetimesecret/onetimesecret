@@ -14,7 +14,7 @@ require 'rack'
 require 'rack/mock'
 
 builder = Rack::Builder.parse_file('config.ru')
-@app = builder.first
+@app = builder
 mapped = AppRegistry.generate_rack_url_map
 @mock_request = Rack::MockRequest.new(mapped)
 
@@ -22,7 +22,7 @@ mapped = AppRegistry.generate_rack_url_map
 # all data. Since we organize data types by database number, we can
 # flush a specific database to clear only that data type. In this
 # case, we're flushing db #2 which is used only for limiter keys.
-Familia.redis(2).flushdb
+Familia.dbclient(2).flushdb
 
 # Web Routes
 

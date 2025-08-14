@@ -4,10 +4,6 @@ require_relative 'definitions/metadata_definition'
 
 module V2
   class Metadata < Familia::Horreum
-    def generate_id
-      @key ||= Familia.generate_id.slice(0, 31)
-      @key
-    end
 
     def age
       @age ||= Time.now.utc.to_i - updated
@@ -31,7 +27,6 @@ module V2
       # Colloquial representation of the TTL. e.g. "1 day"
       OT::Utils::TimeUtils.natural_duration metadata_ttl
     end
-    alias natural_ttl natural_duration
 
     def secret_expiration
       # Unix timestamp of when the secret will expire. Based on
@@ -104,7 +99,7 @@ module V2
     # we pass update_expiration: false to save so that changing this metdata
     # objects state doesn't affect its original expiration time.
     #
-    # TODO: Replace with transaction (i.e. redis multi command)
+    # TODO: Replace with transaction (i.e. MULTI/EXEC command)
     def viewed!
       # A guard to allow only a fresh, new secret to be viewed. Also ensures
       # that we don't support going from viewed back to something else.

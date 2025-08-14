@@ -2,7 +2,7 @@
 
 module V2
   class Feedback < Familia::Horreum
-    class_sorted_set :values, key: 'onetime:feedback' # naming for legacy compatibility
+    class_sorted_set :values, dbkey: 'onetime:feedback' # naming for legacy compatibility
 
     module ClassMethods
       def add(msg)

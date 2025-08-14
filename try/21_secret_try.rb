@@ -24,14 +24,14 @@ OT.boot! :test, true
 
 ## Can create Secret
 s = V2::Secret.new :private
-[s.class, s.redis.connection[:db], s.metadata_key]
+[s.class, s.dbclient.connection[:db], s.metadata_key]
 #=> [V2::Secret, 8, nil]
 
 ## Keys are always unique for Secrets
 unique_values = Set.new
 @iterations.times do
   s = V2::Secret.new state: :shared
-  unique_values.add(s.rediskey)
+  unique_values.add(s.dbkey)
 end
 unique_values.size
 #=> @iterations
@@ -40,7 +40,7 @@ unique_values.size
 unique_values = Set.new
 @iterations.times do
   s = V2::Secret.new state: %i[some fixed values]
-  unique_values.add(s.rediskey)
+  unique_values.add(s.dbkey)
 end
 unique_values.size
 #=> @iterations
@@ -105,13 +105,13 @@ secret.received!
 #=> 2
 
 ## Secrets counters have their own key
-@secret_with_counter.view_count.rediskey
+@secret_with_counter.view_count.dbkey
 #=> Familia.join(:secret, @secret_with_counter.key, :view_count)
 
 ## Secrets counters have their own ttl setting
-@secret_with_counter.view_count.ttl
+@secret_with_counter.view_count.default_expiration
 #=> 1209600.0
 
 ## Secrets counters have their own realttl value
-@secret_with_counter.view_count.realttl
+@secret_with_counter.view_count.current_expiration
 #=> 1209600

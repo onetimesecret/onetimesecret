@@ -25,7 +25,7 @@ module V1
 
     # CustomDomain records can only be created via V2 so we use the existing
     # domainid field as the identifier.
-    identifier :domainid
+    identifier_field :domainid
 
     field :display_domain
     field :custid
@@ -126,7 +126,7 @@ module V1
     #
     # @return [Boolean] true if the domain exists in Redis
     def exists?
-      redis.exists?(rediskey)
+      dbclient.exists?(dbkey)
     end
 
     # Returns the current verification state of the custom domain
@@ -195,9 +195,9 @@ module V1
       # Simply instatiates a new CustomDomain object and checks if it exists.
       def exists? input, custid
         # The `parse`` method instantiates a new CustomDomain object but does
-        # not save it to Redis. We do that here to piggyback on the inital
+        # not save it to the database. We do that here to piggyback on the inital
         # validation and parsing. We use the derived identifier to load
-        # the object from Redis using
+        # the object from the database using
         obj = parse(input, custid)
         OT.ld "[CustomDomain.exists?] Got #{obj.identifier} #{obj.display_domain} #{obj.custid}"
         obj.exists?

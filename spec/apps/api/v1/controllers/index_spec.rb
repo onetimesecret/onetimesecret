@@ -97,6 +97,7 @@ RSpec.describe V1::Controllers::Index, type: :request do
     let(:secret) do
       double('V1::Secret',
         realttl: 3600,
+        current_expiration: 3600,
         has_passphrase?: false,
         key: 'secret_key_123')
     end

@@ -30,7 +30,7 @@ module Onetime
   #
   # Subclasses may override:
   # - {#migration_needed?} - Default returns true (always migrate)
-  # - {#load_from_key} - Custom object loading from Redis keys
+  # - {#load_from_key} - Custom object loading from database keys
   #
   # ## Usage Example
   #
@@ -146,7 +146,7 @@ module Onetime
       true
     end
 
-    # Load Familia::Horreum object instance from Redis key
+    # Load Familia::Horreum object instance from database key
     #
     # Override this method to customize loading behavior. For example,
     # with a custom @scan_pattern, the migration might loop through
@@ -156,7 +156,7 @@ module Onetime
     # won't work if there are dangling "orphan" keys without corresponding
     # objects. Override this method to handle such cases.
     #
-    # @param key [String] Redis key to load from
+    # @param key [String] database key to load from
     # @return [Familia::Horreum, Familia::RedisType] loaded object instance
     def load_from_key(key)
       model_class.find_by_key(key)
@@ -349,7 +349,7 @@ module Onetime
       @dbclient.ping
       debug('Redis connection: verified')
     rescue StandardError => ex
-      error("Cannot connect to Redis: #{ex.message}")
+      error("Cannot connect to the database: #{ex.message}")
       raise ex
     end
   end

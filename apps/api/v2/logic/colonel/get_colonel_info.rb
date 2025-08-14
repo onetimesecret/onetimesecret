@@ -76,8 +76,8 @@ module V2
         private :process_customers
 
         def process_statistics
-          @metadata_count  = V2::Metadata.new.redis.keys('metadata*:object').count
-          @secret_count    = V2::Secret.new.redis.keys('secret*:object').count
+          @metadata_count  = V2::Metadata.new.dbclient.keys('metadata*:object').count
+          @secret_count    = V2::Secret.new.dbclient.keys('secret*:object').count
           @secrets_created = V2::Customer.global.secrets_created.to_s
           @secrets_shared  = V2::Customer.global.secrets_shared.to_s
           @emails_sent     = V2::Customer.global.emails_sent.to_s
@@ -86,7 +86,7 @@ module V2
 
         def redis_info
           # Fetch Redis INFO
-          info = Familia.redis.info
+          info = Familia.dbclient.info
 
           # Extract relevant information
           db_info     = info.select { |key, _| key.start_with?('db') }
@@ -108,7 +108,7 @@ module V2
               today_feedback: today_feedback,
               yesterday_feedback: yesterday_feedback,
               older_feedback: older_feedback,
-              redis_info: redis_info,
+              dbclient_info: redis_info,
               billing_enabled: billing_enabled,
               counts: {
                 session_count: session_count,

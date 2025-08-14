@@ -38,8 +38,8 @@ module V2
             metadata.passphrase = secret.passphrase
           end
           secret.encrypt_value secret_value
-          metadata.ttl             = ttl
-          secret.ttl               = ttl
+          metadata.default_expiration             = ttl
+          secret.default_expiration               = ttl
           metadata.secret_shortkey = secret.shortkey
           secret.save
           metadata.save

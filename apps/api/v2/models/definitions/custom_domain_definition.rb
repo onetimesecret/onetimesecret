@@ -17,17 +17,17 @@ module V2
 
     feature :safe_dump
 
-    identifier :generate_id
-
-    # NOTE: The redis key used by older models for values is simply
+    # NOTE: The dbkey used by older models for values is simply
     # "onetime:customdomain". We'll want to rename those at some point.
     class_sorted_set :values
     class_hashkey :display_domains
     class_hashkey :owners
 
+    identifier_field :domainid
+
+    field :domainid
     field :display_domain
     field :custid
-    field :domainid
     field :base_domain
     field :subdomain
     field :trd

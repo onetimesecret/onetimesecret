@@ -3,6 +3,7 @@
 *.log
 *.rdb
 *.txt
+.*.json
 .byebug*
 .ruby-version
 spoom_*
@@ -25,6 +26,7 @@ pnpm-debug.log*
 .prompts*
 .pytest_cache/
 .ruby-lsp/
+.serena/
 .vscode/
 .idea/
 .cache/
@@ -54,6 +56,7 @@ public/web/dist/
 .rspec*
 .qodo
 .continuerc.json
+.mcp.json
 bin/bundle
 bin/rspec
 bin/rubocop

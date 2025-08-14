@@ -7,22 +7,24 @@ module V2
     feature :safe_dump
     feature :expiration
 
-    ttl 20.minutes
+    default_expiration 20.minutes
     prefix :session
 
-    class_sorted_set :values, key: 'onetime:session'
+    class_sorted_set :values, dbkey: 'onetime:session'
 
-    identifier :sessid
+    identifier_field :sessid
 
     field :ipaddress
     field :custid
     field :useragent
     field :stale
-    field :sessid
+    field :sessid, on_conflict: :skip
     field :updated
     field :created
     field :authenticated
-    field :external_identifier
+    field :external_identifier, on_conflict: :skip
+
+    transient_field :favourite_salad # this will not persist to the database
 
     field :shrimp # as string?
 

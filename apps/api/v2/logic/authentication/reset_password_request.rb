@@ -28,11 +28,11 @@ module V2::Logic
         end
 
         secret              = V2::Secret.create @custid, [@custid]
-        secret.ttl          = 24.hours
+        secret.default_expiration          = 24.hours
         secret.verification = 'true'
         secret.save
 
-        cust.reset_secret = secret.key # as a standalone rediskey, writes immediately
+        cust.reset_secret = secret.key  # as a standalone dbkey, writes immediately
 
         view = OT::Mail::PasswordRequest.new cust, locale, secret
 

@@ -35,7 +35,7 @@ module Core
       # Expensive initialization tasks go here
 
       # Log warmup completion
-      Onetime.li 'Manifold warmup completed'
+      Onetime.li 'Core warmup completed'
     end
 
     protected

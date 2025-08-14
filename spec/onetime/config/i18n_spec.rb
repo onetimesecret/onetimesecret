@@ -152,7 +152,15 @@ RSpec.describe "Internationalization config" do
 
   describe V2::ControllerHelpers do
     describe '#check_locale! (Regression for #1142)' do
-      let(:req) { double('request', params: {}, env: {}) }
+      let(:req) do
+        double('request', params: {}, env: {}).tap do |req_double|
+          allow(req_double).to receive(:check_locale!) do |locale, options|
+            # Simulate setting the locale in the environment
+            req_double.env[options[:locale_env_key]] = options[:default_locale]
+            options[:default_locale]
+          end
+        end
+      end
       let(:cust) { double('customer', locale: nil) }
       let(:helper) do
         Class.new do

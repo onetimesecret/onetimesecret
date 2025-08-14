@@ -28,7 +28,7 @@ module Onetime
     def print_log_banner
       site_config  = OT.conf.fetch('site') # if site is missing we got real problems
       email_config = OT.conf.fetch('emailer', {})
-      redis_info   = Familia.redis.info
+      redis_info   = Familia.dbclient.info
       colonels     = site_config.dig('authentication', 'colonels') || []
 
       # Create a buffer to collect all output
@@ -81,8 +81,9 @@ module Onetime
       system_rows = [
         ['System', "#{RUBY_ENGINE} #{RUBY_VERSION} in #{OT.env}"],
         ['Config', OT::Config.path],
-        ['Redis', "#{redis_info['redis_version']} (#{Familia.uri.serverid})"],
+        ['Valkey', "#{redis_info['redis_version']} (#{Familia.uri.serverid})"],
         ['Familia', "v#{Familia::VERSION}"],
+        ['Otto', "v#{Otto::VERSION}"],
         ['I18n', OT.i18n_enabled],
         ['Diagnostics', OT.d9s_enabled],
       ]

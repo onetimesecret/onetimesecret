@@ -59,7 +59,7 @@ RSpec.describe Onetime::Mail::SecretLink do
           identifier: 'secret123',
           key: 'testkey123',
           share_domain: 'custom.example.com',
-          ttl: 7200,
+          lifespan: 7200,
           state: 'pending')
       end
 
@@ -90,7 +90,7 @@ RSpec.describe Onetime::Mail::SecretLink do
           identifier: 'secret123',
           key: nil,
           share_domain: nil,
-          ttl: 7200,
+          lifespan: 7200,
           state: 'pending')
       end
 

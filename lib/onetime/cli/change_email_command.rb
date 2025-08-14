@@ -11,8 +11,8 @@ module Onetime
       puts "Viewing recent email change reports#{" for #{email_filter}" if email_filter} (limit: #{limit})"
       puts '=' * 50
 
-      # Connect to Redis DB 0 where audit logs are stored
-      redis = Familia.redis
+      # Connect to the database DB 0 where audit logs are stored
+      redis = Familia.dbclient
 
       # Get keys matching the pattern
       pattern = email_filter ? "change_email:#{email_filter}:*" : 'change_email:*'
@@ -169,7 +169,7 @@ module Onetime
                   domain            = domain_info[:domain]
                   stored_domain_id  = domain_info[:old_id]
                   # Check display_domains mapping still exists
-                  current_domain_id = V2::CustomDomain.redis.hget('customdomain:display_domains', domain)
+                  current_domain_id = V2::CustomDomain.dbclient.hget('customdomain:display_domains', domain)
 
                   if current_domain_id == stored_domain_id
                     puts "  ✓ Domain #{index+1}: #{domain} still correctly mapped to #{current_domain_id}"
@@ -189,10 +189,10 @@ module Onetime
                 puts '   This may indicate an issue with the update process.'
               end
 
-              # Save report to Redis for permanent audit trail
-              report_key = service.save_report_to_redis
+              # Save report to the database for permanent audit trail
+              report_key = service.save_report_to_db
 
-              puts "Email change completed and logged to Redis with key: #{report_key}"
+              puts "Email change completed and logged to the database with key: #{report_key}"
             else
               puts "\nEmail change failed. See log for details."
               exit 1
@@ -205,18 +205,18 @@ module Onetime
         # Handle validation and execution errors with descriptive messages
         puts "Error during operation: #{ex.message}"
         puts 'Check the domain mappings carefully. If there are issues with domain associations,'
-        puts 'this may indicate data corruption or manual changes to Redis keys.'
+        puts 'this may indicate data corruption or manual changes to database keys.'
 
         puts ex.backtrace.join("\n") if OT.debug?
         exit 1
       end
     end
 
-    # Helper method to fetch a specific email change report from Redis
-    # @param key [String] The Redis key for the report
+    # Helper method to fetch a specific email change report from the database
+    # @param key [String] The database key for the report
     # @return [String, nil] The report text or nil if not found
     def get_change_email_report(key)
-      redis = Familia.redis
+      redis = Familia.dbclient
       redis.get(key)
     end
   end

@@ -6,22 +6,22 @@ module V1
     feature :safe_dump
     feature :expiration
 
-    ttl 20.minutes
+    default_expiration 20.minutes
     prefix :session
 
     class_sorted_set :values, key: "onetime:session"
 
-    identifier :sessid
+    identifier_field :sessid
 
     field :ipaddress
     field :custid
     field :useragent
     field :stale
-    field :sessid
+    field :sessid, as: false
     field :updated
     field :created
     field :authenticated
-    field :external_identifier
+    field :external_identifier, as: false
 
     field :shrimp # as string?
 
@@ -90,22 +90,20 @@ module V1
       @custid ||= self.custid
       newid = self.class.generate_id
 
-      # Remove the existing session key from Redis
+      # Remove the existing session key from the database
       if exists?
         begin
           self.delete!
         rescue => ex
-          OT.le "[Session.replace!] Failed to delete key #{rediskey}: #{ex.message}"
+          OT.le "[Session.replace!] Failed to delete key #{dbkey}: #{ex.message}"
         end
       end
 
       # This update is important b/c it ensures that the
-      # data gets written to redis.
+      # data gets written to the database.
       self.sessid = newid
 
-      # Familia doesn't automatically keep the key in sync with the
-      # identifier field. We need to do it manually. See #860.
-      self.key = self.sessid
+
 
       save
 

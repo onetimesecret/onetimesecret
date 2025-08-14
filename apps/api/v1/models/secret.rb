@@ -8,10 +8,10 @@ module V1
     feature :safe_dump
     feature :expiration
 
-    ttl 7.days # default only, can be overridden at create time
+    default_expiration 7.days # default only, can be overridden at create time
     prefix :secret
 
-    identifier :generate_id
+    identifier_field :key
 
     field :custid
     field :state
@@ -25,12 +25,11 @@ module V1
     field :updated
     field :created
     field :truncated # boolean
-    field :maxviews # always 1 (here for backwards compat)
 
     # See note on V2::Secret
     field :key
 
-    counter :view_count, ttl: 14.days # out lives the secret itself
+    counter :view_count, default_expiration: 14.days # out lives the secret itself
 
     # NOTE: this field is a nullop. It's only populated if a value was entered
     # into a hidden field which is something a regular person would not do.
@@ -53,26 +52,11 @@ module V1
 
     def init
       self.state ||= 'new'
-    end
-
-    def generate_id
-      @key ||= Familia.generate_id.slice(0, 31)
-      @key
+      self.key ||= self.class.generate_id # rubocop:disable Naming/MemoizedInstanceVariableName
     end
 
     def shortkey
       key.slice(0,6)
-    end
-
-    def maxviews
-      1
-    end
-
-    # TODO: Remove. If we get around to support some manner of "multiple views"
-    # it would be implmented as separate secrets with the same value. All of them
-    # viewable only once.
-    def maxviews?
-      self.view_count.to_s.to_i >= self.maxviews
     end
 
     def age
@@ -86,11 +70,13 @@ module V1
       lifespan.to_i + created.to_i if lifespan
     end
 
+    # Alias for compatibility with controller expectations
+    alias_method :current_expiration, :expiration
+
     def natural_duration
       # Colloquial representation of the TTL. e.g. "1 day"
       V1::TimeUtils.natural_duration lifespan
     end
-    alias :natural_ttl :natural_duration
 
     def older_than? seconds
       age > seconds
@@ -244,6 +230,7 @@ module V1
         secret = V1::Secret.create(custid: custid, token: token)
         metadata = V1::Metadata.create(custid: custid, token: token)
 
+        p [:spawn_pair, secret.exists?, metadata.exists?]
         # TODO: Use Familia transaction
         metadata.secret_key = secret.key
         metadata.save
@@ -258,6 +245,11 @@ module V1
         input = entropy.flatten.compact.join ':'
         Digest::SHA256.hexdigest(input) # TODO: Use Familila.generate_id
       end
+
+      def generate_id
+        Familia.generate_id
+      end
+
     end
 
     # See Customer model for explanation about why

@@ -91,7 +91,7 @@ RSpec.shared_context "mail_test_context" do
       identifier: 'secret123',
       key: 'testkey123',
       share_domain: nil,
-      ttl: 7200,
+      lifespan: 7200,
       state: 'pending')
   end
 

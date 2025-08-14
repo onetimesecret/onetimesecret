@@ -37,21 +37,29 @@ RSpec.describe "Onetime global state after boot" do
     Onetime.instance_variable_set(:@global_banner, nil)
     OT::Utils.instance_variable_set(:@fortunes, nil)
 
-    # Mock Redis connection
+    # Mock Redis connection for Familia 2
     allow(Familia).to receive(:uri=).and_return(true)
-    allow(Familia).to receive(:redis).and_return(redis_double)
+    allow(Familia).to receive(:dbclient).and_return(redis_double)
+    allow(Familia).to receive(:uri).and_return(double('URI', serverid: 'localhost:6379'))
     allow(redis_double).to receive(:get).with('global_banner').and_return(nil)
     allow(redis_double).to receive(:scan_each).and_return([])
 
     # Mock V2 model Redis connections and methods used in detect_first_boot
-    allow(V2::Metadata).to receive(:redis).and_return(redis_double)
+    allow(V2::Metadata).to receive(:dbclient).and_return(redis_double)
     allow(V2::Customer).to receive(:values).and_return(double('Values', element_count: 0))
     allow(V2::Session).to receive(:values).and_return(double('Values', element_count: 0))
 
-    # Mock system settings setup methods
-    allow(V2::SystemSettings).to receive(:current).and_raise(OT::RecordNotFound.new("No config found"))
-    # allow(V2::SystemSettings).to receive(:extract_colonel_config).and_return({})
-    allow(V2::SystemSettings).to receive(:create).and_return(double('SystemSettings', rediskey: 'test:config'))
+    # Mock system settings setup methods - V2::SystemSettings might not exist in current codebase
+    system_settings_stub = Class.new do
+      def self.current
+        raise OT::RecordNotFound.new("No config found")
+      end
+
+      def self.create
+        double('SystemSettings', dbkey: 'test:config')
+      end
+    end
+    stub_const('V2::SystemSettings', system_settings_stub)
 
     # Other common mocks
     allow(Onetime).to receive(:connect_databases).and_return(true)
@@ -150,7 +158,7 @@ RSpec.describe "Onetime global state after boot" do
     end
 
     context "regarding global banner" do
-      it "sets Onetime.global_banner from Redis if present" do
+      it "sets Onetime.global_banner from the database if present" do
         test_banner = "Test system maintenance notice"
         allow(redis_double).to receive(:get).with('global_banner').and_return(test_banner)
 
@@ -216,7 +224,7 @@ RSpec.describe "Onetime global state after boot" do
 
         # Simulate that setting the Familia URI (which happens inside connect_databases)
         # results in a connection error. This ensures the error is raised
-        # before any actual network connection to a Redis server is attempted by Familia.
+        # before any actual network connection to a database server is attempted by Familia.
         redis_error = Redis::CannotConnectError.new("Test Redis error")
         allow(Familia).to receive(:uri=).and_raise(redis_error)
 

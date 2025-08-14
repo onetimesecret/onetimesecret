@@ -177,13 +177,13 @@ module V2::Logic
 
       def save_secret
         secret.encrypt_value secret_value
-        metadata.ttl             = ttl * 2
-        secret.ttl               = ttl
-        metadata.lifespan        = metadata.ttl.to_i
-        metadata.secret_ttl      = secret.ttl.to_i
+        metadata.default_expiration             = ttl * 2
+        secret.default_expiration               = ttl
+        metadata.lifespan        = metadata.default_expiration.to_i
+        metadata.secret_ttl      = secret.default_expiration.to_i
         metadata.secret_shortkey = secret.shortkey
         metadata.share_domain    = share_domain
-        secret.lifespan          = secret.ttl.to_i
+        secret.lifespan          = secret.default_expiration.to_i
         secret.share_domain      = share_domain
         secret.save
         metadata.save
@@ -229,7 +229,7 @@ module V2::Logic
       def validate_domain_access(domain)
         return if domain.nil?
 
-        # e.g. rediskey -> customdomain:display_domains -> hash -> key: value
+        # e.g. dbkey -> customdomain:display_domains -> hash -> key: value
         # where key is the domain and value is the domainid
         domain_record = V2::CustomDomain.from_display_domain(domain)
         raise_form_error "Unknown domain: #{domain}" if domain_record.nil?

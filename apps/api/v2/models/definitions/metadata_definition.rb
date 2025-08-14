@@ -5,25 +5,27 @@ module V2
     feature :safe_dump
     feature :expiration
 
-    ttl 14.days
+    default_expiration 14.days
     prefix :metadata
 
-    identifier :generate_id
+    identifier_field :key
 
     field :custid
     field :state
+    field :key
     field :secret_key
     field :secret_shortkey
     field :secret_ttl
     field :lifespan
     field :share_domain
     field :passphrase
-    field :viewed
-    field :received
-    field :shared
-    field :burned
+    field :viewed, fast_method: false
+    field :received, fast_method: false
+    field :shared, fast_method: false
+    field :burned, fast_method: false
     field :created
     field :updated
+
     # NOTE: There is no `expired` timestamp field since we can calculate
     # that based on the `secret_ttl` and the `created` timestamp. See
     # the secret_expired? and expiration methods.
@@ -74,6 +76,7 @@ module V2
 
     def init
       self.state ||= 'new'
+      self.key   ||= self.class.generate_id # rubocop:disable Naming/MemoizedInstanceVariableName
     end
   end
 end

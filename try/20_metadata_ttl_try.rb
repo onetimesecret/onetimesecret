@@ -39,7 +39,7 @@ result = V1::Controllers::Index.metadata_hsh(@metadata)
 result['metadata_ttl'].is_a?(Integer) && result['metadata_ttl'] > 0
 #=> true
 
-## TTL handling - ttl is set to the static value from redis hash field
+## TTL handling - ttl is set to the static value from db hash field
 @metadata.secret_ttl = 3600
 result = V1::Controllers::Index.metadata_hsh(@metadata)
 result['ttl']
@@ -140,15 +140,22 @@ result['ttl']
 #=> nil
 
 ## Handling nil realttl
-# NOTE: We intentionally use shortcut namespace syntax here. Otherwise creating
-# a V1 namespace for Metadata class confuses (and my preference is to not use
-# the prefix `::V1` workaround unless necessary).
 class V1::Metadata
-  def realttl; nil; end
+  def current_expiration; nil; end
 end
 result = V1::Controllers::Index.metadata_hsh(@metadata)
+p [:metadata_realttl, @metadata]
+class V1::Metadata
+  remove_method :current_expiration
+end
 result['metadata_ttl']
 #=> nil
+
+## Handling realttl
+## This follows the nil handler to demonstrate the overloaded method was removed.
+result = V1::Controllers::Index.metadata_hsh(@metadata)
+result['metadata_ttl']
+#=> 1209600
 
 ## Handling nil secret_ttl option
 result = V1::Controllers::Index.metadata_hsh(@metadata, secret_ttl: nil)
