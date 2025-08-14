@@ -1,6 +1,7 @@
 # lib/onetime/refinements/then_with_diff.rb
 
 require 'hashdiff'
+require 'json'
 require 'familia'
 
 module Onetime

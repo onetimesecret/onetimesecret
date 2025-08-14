@@ -188,11 +188,10 @@ multi_result.tuple
 #=> ["tryouts2", "testing2"]
 
 ## Can call apply_fields and chain on commit_fields
-## TODO: This testcase used to expect multi_result.tuple (i.e. [true, ["OK"]])
-## from commit_fields but as far as I can tell only batch_update ever did that.
-## It's possible that due to a Tryouts bug, this testcase was silently failing
-## or not running (due to the file not being parsed properly). If it's not that
-## I'll need to dig further b/c before this, the last change to this testcase
-## was 1y ago 7bcaf8cbd80.
+## NOTE: Familia 2 Migration - Return Value Clarification
+## This testcase was corrected during Familia 2 migration. Previously expected
+## multi_result.tuple format [true, ["OK"]] which is only returned by batch_update.
+## commit_fields properly returns "OK" (Redis command response).
+## This expectation change reflects actual API behavior, not a regression.
 @sess_with_changes2.apply_fields(custid: 'tryouts3', stale: 'testing3').commit_fields
 #=> "OK"

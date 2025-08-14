@@ -13,7 +13,7 @@ OT.boot! :test, false
 @customer = V1::Customer.create "#{@unique_string}@onetimesecret.com"
 @domain = "#{@unique_string}.example.com"
 
-## Base update_expiration accepts ttl parameter without error
+## Base update_expiration accepts default_expiration parameter (Familia 2: ttl→default_expiration)
 obj = V2::CustomDomain.create(@domain, @customer.custid)
 begin
   obj.update_expiration(default_expiration: 3600)
@@ -28,7 +28,7 @@ obj = V2::CustomDomain.create("a.#{@domain}", @customer.custid)
 obj.update_expiration(default_expiration: 3600)
 #=> nil
 
-## Base update_expiration works without ttl parameter
+## Base update_expiration works without default_expiration parameter
 obj = V2::CustomDomain.create("b.#{@domain}", @customer.custid)
 obj.update_expiration
 #=> nil

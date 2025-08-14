@@ -9,7 +9,7 @@ module V2
         org = new display_name: display_name, contact_email: contact_email
         org.save
 
-        OT.ld "[create] orgid: #{orgid}, #{org..to_s}"
+        OT.ld "[create] orgid: #{org.orgid}, #{org..to_s}"
         add org
         org
       end
