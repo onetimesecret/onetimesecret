@@ -108,7 +108,7 @@ module V2
               today_feedback: today_feedback,
               yesterday_feedback: yesterday_feedback,
               older_feedback: older_feedback,
-              redis_info: redis_info,
+              dbclient_info: redis_info,
               billing_enabled: billing_enabled,
               counts: {
                 session_count: session_count,

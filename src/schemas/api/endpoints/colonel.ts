@@ -185,7 +185,7 @@ export const colonelInfoDetailsSchema = z.object({
   today_feedback: z.array(feedbackSchema).default([]),
   yesterday_feedback: z.array(feedbackSchema).default([]),
   older_feedback: z.array(feedbackSchema).nullable().default(null),
-  redis_info: z.string().optional().default(''),
+  dbclient_info: z.string().optional().default(''),
   billing_enabled: z.boolean().optional().default(false),
   counts: z.object({
     customer_count: transforms.fromString.number,

@@ -2911,7 +2911,7 @@
                   "$ref": "#/components/schemas/Feedback"
                 }
               },
-              "redis_info": {
+              "dbclient_info": {
                 "type": "string"
               },
               "billing_enabled": {
@@ -2978,7 +2978,7 @@
               "today_feedback",
               "yesterday_feedback",
               "older_feedback",
-              "redis_info",
+              "dbclient_info",
               "billing_enabled",
               "counts"
             ]
