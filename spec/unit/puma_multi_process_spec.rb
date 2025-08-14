@@ -48,11 +48,13 @@ RSpec.describe 'Puma Multi-Process Integration', type: :integration do
 
       # Minimal Puma configuration for testing
       puma_config_content = <<~CONFIG
-        port #{@port}
         bind "tcp://#{@host}:#{@port}"
         workers #{@workers}
         worker_timeout 10 # Must be > worker reporting interval (5)
         pidfile "#{@puma_pid_file.path}"
+
+        # Binding options to handle port conflicts
+        bind_to_activated_sockets false
 
         # Each worker initializes separately to ensure unique OT.instance
         # No preload_app! - this ensures per-worker boot process
@@ -128,7 +130,12 @@ RSpec.describe 'Puma Multi-Process Integration', type: :integration do
       cleanup_puma_process
       cleanup_temp_files
 
-      if startup_attempts < max_startup_attempts && e.message.include?('Address already in use')
+      # Check for port binding issues in both exception and stderr
+      is_port_issue = e.message.include?('Address already in use') ||
+                      e.message.include?('bind(2)') ||
+                      (@puma_stderr && @puma_stderr.respond_to?(:read) && @puma_stderr.read.include?('EADDRINUSE'))
+
+      if startup_attempts < max_startup_attempts && is_port_issue
         backoff_time = startup_attempts * 0.5
         puts "⏱  Retrying in #{backoff_time}s... (attempt #{startup_attempts + 1}/#{max_startup_attempts})"
         sleep(backoff_time) # Progressive backoff
@@ -284,28 +291,16 @@ RSpec.describe 'Puma Multi-Process Integration', type: :integration do
   end
 
   def find_available_port
-    # Use a wider port range and retry logic to avoid race conditions
-    # when running tests in parallel
-    10.times do |attempt|
-      begin
-        # Use random port in high range to reduce collision chance
-        port = rand(20000..60000)
-        server = TCPServer.new('127.0.0.1', port)
-        server.close
-        puts "  ✓ Found available port #{port} (attempt #{attempt + 1})"
-        return port
-      rescue Errno::EADDRINUSE
-        # Port already in use, try another
-        puts "  ⚠ Port #{port} in use, retrying... (attempt #{attempt + 1})"
-        next
-      end
-    end
-
-    # Fallback to OS allocation if all random attempts fail
+    # Use OS allocation to avoid race conditions entirely
+    # This is more reliable than test-and-close approach
     server = TCPServer.new('127.0.0.1', 0)
     port = server.addr[1]
     server.close
-    puts "  ✓ Fallback to OS-allocated port #{port}"
+
+    # Add small delay to reduce race window
+    sleep 0.1
+
+    puts "  ✓ Found available port #{port} (OS allocated)"
     port
   end
 
