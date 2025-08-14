@@ -190,7 +190,7 @@ module Onetime
               end
 
               # Save report to the database for permanent audit trail
-              report_key = service.save_report_serialize_value
+              report_key = service.save_report_to_db
 
               puts "Email change completed and logged to the database with key: #{report_key}"
             else

@@ -251,7 +251,7 @@ module Onetime
 
       # Saves the report to the database DB 0 for auditing purposes
       # @return [String] The key where the report was stored
-      def save_report_serialize_value
+      def save_report_to_db
         report_text = generate_report
         timestamp   = Time.now.to_i
         report_key  = "change_email:#{old_email}:#{new_email}:#{timestamp}"
@@ -264,6 +264,10 @@ module Onetime
         log "Report saved to the database with key: #{report_key}", true
         report_key
       end
+
+      # @deprecated Use save_report_to_db instead
+      # @return [String] The key where the report was stored
+      alias_method :save_report_serialize_value, :save_report_to_db
 
       # Displays a preview of the changes to be made
       # @return [void]
