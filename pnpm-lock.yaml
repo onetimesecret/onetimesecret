@@ -78,8 +78,8 @@ importers:
         specifier: 15.0.12
         version: 15.0.12
       marked-highlight:
-        specifier: 2.2.1
-        version: 2.2.1(marked@15.0.12)
+        specifier: 2.2.2
+        version: 2.2.2(marked@15.0.12)
       nanoid:
         specifier: 5.1.5
         version: 5.1.5
@@ -3067,10 +3067,10 @@ packages:
     resolution: {integrity: sha512-a54IwgWPaeBCAAsv13YgmALOF1elABB08FxO9i+r4VFk5Vl4pKokRPeX8u5TCgSsPi6ec1otfLjdOpVcgbpshg==}
     hasBin: true
 
-  marked-highlight@2.2.1:
-    resolution: {integrity: sha512-SiCIeEiQbs9TxGwle9/OwbOejHCZsohQRaNTY2u8euEXYt2rYUFoiImUirThU3Gd/o6Q1gHGtH9qloHlbJpNIA==}
+  marked-highlight@2.2.2:
+    resolution: {integrity: sha512-KlHOP31DatbtPPXPaI8nx1KTrG3EW0Z5zewCwpUj65swbtKOTStteK3sNAjBqV75Pgo3fNEVNHeptg18mDuWgw==}
     peerDependencies:
-      marked: '>=4 <16'
+      marked: '>=4 <17'
 
   marked@15.0.12:
     resolution: {integrity: sha512-8dD6FusOQSrpv9Z1rdNMdlSgQOIP880DHqnohobOmYLElGEqAL/JvxvuxZO16r4HtjTlfPRDC1hbvxC9dPN2nA==}
@@ -7426,7 +7426,7 @@ snapshots:
       punycode.js: 2.3.1
       uc.micro: 2.1.0
 
-  marked-highlight@2.2.1(marked@15.0.12):
+  marked-highlight@2.2.2(marked@15.0.12):
     dependencies:
       marked: 15.0.12
 
@@ -7620,7 +7620,7 @@ snapshots:
       focus-trap-vue: 4.0.3(focus-trap@7.6.5)(vue@3.5.13(typescript@5.8.3))
       highlight.js: 11.11.1
       marked: 15.0.12
-      marked-highlight: 2.2.1(marked@15.0.12)
+      marked-highlight: 2.2.2(marked@15.0.12)
       nanoid: 5.1.5
       pinia: 3.0.3(typescript@5.8.3)(vue@3.5.13(typescript@5.8.3))
       pnpm: 10.10.0
