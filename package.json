@@ -91,7 +91,7 @@
     "axios": "1.9.0",
     "axios-mock-adapter": "2.1.0",
     "client": "link:@vitejs/plugin-vue/client",
-    "codemirror": "6.0.1",
+    "codemirror": "6.0.2",
     "date-fns": "4.1.0",
     "dompurify": "3.2.6",
     "focus-trap": "7.6.4",
