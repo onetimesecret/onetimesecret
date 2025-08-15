@@ -46,7 +46,7 @@ importers:
         version: 21.1.7
       '@vueuse/integrations':
         specifier: 13.1.0
-        version: 13.1.0(axios@1.9.0)(focus-trap@7.6.4)(vue@3.5.13(typescript@5.8.3))
+        version: 13.1.0(axios@1.9.0)(focus-trap@7.6.5)(vue@3.5.13(typescript@5.8.3))
       axios:
         specifier: 1.9.0
         version: 1.9.0
@@ -66,11 +66,11 @@ importers:
         specifier: 3.2.6
         version: 3.2.6
       focus-trap:
-        specifier: 7.6.4
-        version: 7.6.4
+        specifier: 7.6.5
+        version: 7.6.5
       focus-trap-vue:
         specifier: 4.0.3
-        version: 4.0.3(focus-trap@7.6.4)(vue@3.5.13(typescript@5.8.3))
+        version: 4.0.3(focus-trap@7.6.5)(vue@3.5.13(typescript@5.8.3))
       highlight.js:
         specifier: 11.11.1
         version: 11.11.1
@@ -2475,8 +2475,8 @@ packages:
       focus-trap: ^7.0.0
       vue: ^3.0.0
 
-  focus-trap@7.6.4:
-    resolution: {integrity: sha512-xx560wGBk7seZ6y933idtjJQc1l+ck+pI3sKvhKozdBV1dRZoKhkW5xoCaFv9tQiX5RH1xfSxjuNu6g+lmN/gw==}
+  focus-trap@7.6.5:
+    resolution: {integrity: sha512-7Ke1jyybbbPZyZXFxEftUtxFGLMpE2n6A+z//m4CRDlj0hW+o3iYSmh8nFlYMurOiJVDmJRilUQtJr08KfIxlg==}
 
   follow-redirects@1.15.9:
     resolution: {integrity: sha512-gew4GsXizNgdoRyqmyfMHyAmXsZDk6mHkSxZFCzW9gwlbtOW44CDtYavM+y+72qD/Vq2l550kMF52DT8fOLJqQ==}
@@ -5828,14 +5828,14 @@ snapshots:
       '@vueuse/shared': 13.6.0(vue@3.5.13(typescript@5.8.3))
       vue: 3.5.13(typescript@5.8.3)
 
-  '@vueuse/integrations@13.1.0(axios@1.9.0)(focus-trap@7.6.4)(vue@3.5.13(typescript@5.8.3))':
+  '@vueuse/integrations@13.1.0(axios@1.9.0)(focus-trap@7.6.5)(vue@3.5.13(typescript@5.8.3))':
     dependencies:
       '@vueuse/core': 13.1.0(vue@3.5.13(typescript@5.8.3))
       '@vueuse/shared': 13.1.0(vue@3.5.13(typescript@5.8.3))
       vue: 3.5.13(typescript@5.8.3)
     optionalDependencies:
       axios: 1.9.0
-      focus-trap: 7.6.4
+      focus-trap: 7.6.5
 
   '@vueuse/metadata@13.1.0': {}
 
@@ -6805,12 +6805,12 @@ snapshots:
 
   flatted@3.3.3: {}
 
-  focus-trap-vue@4.0.3(focus-trap@7.6.4)(vue@3.5.13(typescript@5.8.3)):
+  focus-trap-vue@4.0.3(focus-trap@7.6.5)(vue@3.5.13(typescript@5.8.3)):
     dependencies:
-      focus-trap: 7.6.4
+      focus-trap: 7.6.5
       vue: 3.5.13(typescript@5.8.3)
 
-  focus-trap@7.6.4:
+  focus-trap@7.6.5:
     dependencies:
       tabbable: 6.2.0
 
@@ -7609,15 +7609,15 @@ snapshots:
       '@sentry/core': 9.17.0
       '@sentry/vue': 9.17.0(pinia@3.0.3(typescript@5.8.3)(vue@3.5.13(typescript@5.8.3)))(vue@3.5.13(typescript@5.8.3))
       '@types/jsdom': 21.1.7
-      '@vueuse/integrations': 13.1.0(axios@1.9.0)(focus-trap@7.6.4)(vue@3.5.13(typescript@5.8.3))
+      '@vueuse/integrations': 13.1.0(axios@1.9.0)(focus-trap@7.6.5)(vue@3.5.13(typescript@5.8.3))
       axios: 1.9.0
       axios-mock-adapter: 2.1.0(axios@1.9.0)
       client: link:@vitejs/plugin-vue/client
       codemirror: 6.0.2
       date-fns: 4.1.0
       dompurify: 3.2.6
-      focus-trap: 7.6.4
-      focus-trap-vue: 4.0.3(focus-trap@7.6.4)(vue@3.5.13(typescript@5.8.3))
+      focus-trap: 7.6.5
+      focus-trap-vue: 4.0.3(focus-trap@7.6.5)(vue@3.5.13(typescript@5.8.3))
       highlight.js: 11.11.1
       marked: 15.0.11
       marked-highlight: 2.2.1(marked@15.0.11)
