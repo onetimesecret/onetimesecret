@@ -75,11 +75,11 @@ importers:
         specifier: 11.11.1
         version: 11.11.1
       marked:
-        specifier: 15.0.11
-        version: 15.0.11
+        specifier: 15.0.12
+        version: 15.0.12
       marked-highlight:
         specifier: 2.2.1
-        version: 2.2.1(marked@15.0.11)
+        version: 2.2.1(marked@15.0.12)
       nanoid:
         specifier: 5.1.5
         version: 5.1.5
@@ -3072,8 +3072,8 @@ packages:
     peerDependencies:
       marked: '>=4 <16'
 
-  marked@15.0.11:
-    resolution: {integrity: sha512-1BEXAU2euRCG3xwgLVT1y0xbJEld1XOrmRJpUwRCcy7rxhSCwMrmEu9LXoPhHSCJG41V7YcQ2mjKRr5BA3ITIA==}
+  marked@15.0.12:
+    resolution: {integrity: sha512-8dD6FusOQSrpv9Z1rdNMdlSgQOIP880DHqnohobOmYLElGEqAL/JvxvuxZO16r4HtjTlfPRDC1hbvxC9dPN2nA==}
     engines: {node: '>= 18'}
     hasBin: true
 
@@ -7426,11 +7426,11 @@ snapshots:
       punycode.js: 2.3.1
       uc.micro: 2.1.0
 
-  marked-highlight@2.2.1(marked@15.0.11):
+  marked-highlight@2.2.1(marked@15.0.12):
     dependencies:
-      marked: 15.0.11
+      marked: 15.0.12
 
-  marked@15.0.11: {}
+  marked@15.0.12: {}
 
   math-intrinsics@1.1.0: {}
 
@@ -7619,8 +7619,8 @@ snapshots:
       focus-trap: 7.6.5
       focus-trap-vue: 4.0.3(focus-trap@7.6.5)(vue@3.5.13(typescript@5.8.3))
       highlight.js: 11.11.1
-      marked: 15.0.11
-      marked-highlight: 2.2.1(marked@15.0.11)
+      marked: 15.0.12
+      marked-highlight: 2.2.1(marked@15.0.12)
       nanoid: 5.1.5
       pinia: 3.0.3(typescript@5.8.3)(vue@3.5.13(typescript@5.8.3))
       pnpm: 10.10.0
