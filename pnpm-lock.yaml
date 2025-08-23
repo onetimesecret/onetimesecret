@@ -96,8 +96,8 @@ importers:
         specifier: 3.5.19
         version: 3.5.19(typescript@5.8.3)
       vue-codemirror6:
-        specifier: 1.3.15
-        version: 1.3.15(@types/node@22.15.35)(prettier@3.5.3)(typescript@5.8.3)(vue@3.5.19(typescript@5.8.3))
+        specifier: 1.3.22
+        version: 1.3.22(@codemirror/autocomplete@6.18.6)(@codemirror/commands@6.8.1)(@codemirror/language@6.11.0)(@codemirror/lint@6.8.5)(@codemirror/search@6.5.11)(@codemirror/state@6.5.2)(@codemirror/view@6.37.2)(codemirror@6.0.2)(style-mod@4.1.2)(vue@3.5.19(typescript@5.8.3))
       vue-i18n:
         specifier: 11.1.10
         version: 11.1.10(vue@3.5.19(typescript@5.8.3))
@@ -3279,9 +3279,6 @@ packages:
   once@1.4.0:
     resolution: {integrity: sha512-lNaJgI+2Q5URQBkccEKHTQOPaXdUxnZZElQTZY0MFUAuaEqe1E+Nyvgdz/aIyNi6Z9MzO5dv1H8n58/GELp3+w==}
 
-  'onetimesecret@file:':
-    resolution: {directory: '', type: directory}
-
   open@10.2.0:
     resolution: {integrity: sha512-YgBpdJHPyQ2UE5x+hlSXcnejzAvD0b22U2OuAP+8OnlJT+PjWPxtgmGqKKc+RgTM63U9gN0YzrYc71R2WT/hTA==}
     engines: {node: '>=18'}
@@ -4206,11 +4203,20 @@ packages:
   vscode-uri@3.1.0:
     resolution: {integrity: sha512-/BpdSx+yCQGnCvecbyXdxHDkuk55/G3xwnC0GqY4gmQ3j+A+g8kzzgB4Nk/SINjqn6+waqw3EgbVF2QKExkRxQ==}
 
-  vue-codemirror6@1.3.15:
-    resolution: {integrity: sha512-KjcC1ru686qpsOXwHMWVE7Pv5+u1R1JX+nGd/ovXaLSju/3R1ywMU7HFydmEiFKnsSz9aksDcEy3GNCJMyMFWQ==}
-    engines: {pnpm: '>=10.3.0'}
+  vue-codemirror6@1.3.22:
+    resolution: {integrity: sha512-XzAJKKSPq8p6xWTlH+4ZqONO5qFiu2U3aRoLDU6lhHBvWfX4/L2QOoi87y8TETV1qZ15fQRP1t9YXapEE1tiRQ==}
+    engines: {node: '>=18', pnpm: '>=10.3.0'}
     peerDependencies:
-      vue: ^2.7.14 || ^3.4
+      '@codemirror/autocomplete': ^6.0.0
+      '@codemirror/commands': ^6.0.0
+      '@codemirror/language': ^6.0.0
+      '@codemirror/lint': ^6.0.0
+      '@codemirror/search': ^6.0.0
+      '@codemirror/state': ^6.0.0
+      '@codemirror/view': ^6.0.0
+      codemirror: ^6.0.0
+      style-mod: ^4.0.0
+      vue: ^2.7.14 || ^3.3.4
 
   vue-component-type-helpers@2.2.8:
     resolution: {integrity: sha512-4bjIsC284coDO9om4HPA62M7wfsTvcmZyzdfR0aUlFXqq4tXxM1APyXpNVxPC8QazKw9OhmZNHBVDA6ODaZsrA==}
@@ -7628,58 +7634,6 @@ snapshots:
     dependencies:
       wrappy: 1.0.2
 
-  onetimesecret@file:(@types/node@22.15.35)(prettier@3.5.3)(typescript@5.8.3):
-    dependencies:
-      '@babel/helpers': 7.27.6
-      '@codemirror/lang-json': 6.0.2
-      '@codemirror/lang-yaml': 6.1.2
-      '@codemirror/theme-one-dark': 6.1.3
-      '@codemirror/view': 6.37.2
-      '@headlessui/vue': 1.7.23(vue@3.5.19(typescript@5.8.3))
-      '@intlify/core': 11.1.11
-      '@prettier/plugin-ruby': 4.0.4(prettier@3.5.3)
-      '@sentry/browser': 9.17.0
-      '@sentry/core': 9.17.0
-      '@sentry/vue': 9.17.0(pinia@3.0.3(typescript@5.8.3)(vue@3.5.19(typescript@5.8.3)))(vue@3.5.19(typescript@5.8.3))
-      '@types/jsdom': 21.1.7
-      '@vueuse/integrations': 13.1.0(axios@1.9.0)(focus-trap@7.6.5)(vue@3.5.19(typescript@5.8.3))
-      axios: 1.9.0
-      axios-mock-adapter: 2.1.0(axios@1.9.0)
-      client: link:@vitejs/plugin-vue/client
-      codemirror: 6.0.2
-      date-fns: 4.1.0
-      dompurify: 3.2.6
-      focus-trap: 7.6.5
-      focus-trap-vue: 4.0.3(focus-trap@7.6.5)(vue@3.5.19(typescript@5.8.3))
-      highlight.js: 11.11.1
-      marked: 15.0.12
-      marked-highlight: 2.2.2(marked@15.0.12)
-      nanoid: 5.1.5
-      pinia: 3.0.3(typescript@5.8.3)(vue@3.5.19(typescript@5.8.3))
-      pnpm: 10.10.0
-      stripe: 18.3.0(@types/node@22.15.35)
-      vue: 3.5.19(typescript@5.8.3)
-      vue-codemirror6: 1.3.15(@types/node@22.15.35)(prettier@3.5.3)(typescript@5.8.3)(vue@3.5.19(typescript@5.8.3))
-      vue-i18n: 11.1.10(vue@3.5.19(typescript@5.8.3))
-      zod: 4.0.11
-      zod-validation-error: 4.0.1(zod@4.0.11)
-    transitivePeerDependencies:
-      - '@types/node'
-      - '@vue/composition-api'
-      - async-validator
-      - change-case
-      - debug
-      - drauu
-      - fuse.js
-      - idb-keyval
-      - jwt-decode
-      - nprogress
-      - prettier
-      - qrcode
-      - sortablejs
-      - typescript
-      - universal-cookie
-
   open@10.2.0:
     dependencies:
       default-browser: 5.2.1
@@ -8654,34 +8608,21 @@ snapshots:
 
   vscode-uri@3.1.0: {}
 
-  vue-codemirror6@1.3.15(@types/node@22.15.35)(prettier@3.5.3)(typescript@5.8.3)(vue@3.5.19(typescript@5.8.3)):
+  vue-codemirror6@1.3.22(@codemirror/autocomplete@6.18.6)(@codemirror/commands@6.8.1)(@codemirror/language@6.11.0)(@codemirror/lint@6.8.5)(@codemirror/search@6.5.11)(@codemirror/state@6.5.2)(@codemirror/view@6.37.2)(codemirror@6.0.2)(style-mod@4.1.2)(vue@3.5.19(typescript@5.8.3)):
     dependencies:
+      '@codemirror/autocomplete': 6.18.6
       '@codemirror/commands': 6.8.1
       '@codemirror/language': 6.11.0
       '@codemirror/lint': 6.8.5
+      '@codemirror/search': 6.5.11
       '@codemirror/state': 6.5.2
       '@codemirror/view': 6.37.2
       codemirror: 6.0.2
       style-mod: 4.1.2
       vue: 3.5.19(typescript@5.8.3)
-      vue-codemirror6: onetimesecret@file:(@types/node@22.15.35)(prettier@3.5.3)(typescript@5.8.3)
       vue-demi: 0.14.10(vue@3.5.19(typescript@5.8.3))
     transitivePeerDependencies:
-      - '@types/node'
       - '@vue/composition-api'
-      - async-validator
-      - change-case
-      - debug
-      - drauu
-      - fuse.js
-      - idb-keyval
-      - jwt-decode
-      - nprogress
-      - prettier
-      - qrcode
-      - sortablejs
-      - typescript
-      - universal-cookie
 
   vue-component-type-helpers@2.2.8: {}
 
