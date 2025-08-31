@@ -79,7 +79,7 @@ GEM
     erb (5.0.2)
     eventmachine (1.2.7)
     fakeredis (0.1.4)
-    familia (2.0.0.pre5)
+    familia (2.0.0.pre6)
       benchmark
       connection_pool
       csv
@@ -201,7 +201,7 @@ GEM
       psych (>= 4.0.0)
     redis (5.4.1)
       redis-client (>= 0.22.0)
-    redis-client (0.25.1)
+    redis-client (0.25.2)
       connection_pool
     regexp_parser (2.10.0)
     reline (0.6.2)
@@ -209,7 +209,7 @@ GEM
     reverse_markdown (3.0.0)
       nokogiri
     rexml (3.4.1)
-    rubocop (1.79.1)
+    rubocop (1.79.2)
       json (~> 2.3)
       language_server-protocol (~> 3.17.0.2)
       lint_roller (~> 1.1.0)
