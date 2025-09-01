@@ -292,7 +292,7 @@ GEM
     timeout (0.4.3)
     truemail (3.3.1)
       simpleidn (~> 0.2.1)
-    tryouts (3.3.2)
+    tryouts (3.5.1)
       concurrent-ruby (~> 1.0)
       irb
       minitest (~> 5.0)
@@ -375,7 +375,7 @@ DEPENDENCIES
   syntax_tree
   thin
   truemail
-  tryouts (~> 3.3.2)
+  tryouts (~> 3.5.1)
   tty-table (~> 0.12)
   uri-valkey (~> 1.4.0)
 

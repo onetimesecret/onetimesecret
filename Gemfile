@@ -121,8 +121,8 @@ group :development do
   gem 'rubocop-rspec', require: false
   gem 'rubocop-thread_safety', require: false
   gem 'ruby-lsp', require: false
+  gem 'solargraph', require: false
   gem 'syntax_tree', require: false
- gem 'solargraph', require: false
   # Enable for Debug Adapter Protocol. Not included with the
   # development group because it lags on byebug version.
   # gem 'byebug-dap', require: false
@@ -133,7 +133,7 @@ group :test do
   gem 'rack-test', require: false
   gem 'rspec', git: 'https://github.com/rspec/rspec'
   gem 'simplecov', require: false
-  gem 'tryouts', '~> 3.3.2', require: false
+  gem 'tryouts', '~> 3.5.1', require: false
 
   # RSpec components
   %w[rspec-core rspec-expectations rspec-mocks rspec-support].each do |lib|
