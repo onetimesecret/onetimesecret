@@ -45,8 +45,8 @@ importers:
         specifier: 21.1.7
         version: 21.1.7
       '@vueuse/integrations':
-        specifier: 13.1.0
-        version: 13.1.0(axios@1.9.0)(focus-trap@7.6.5)(vue@3.5.20(typescript@5.8.3))
+        specifier: 13.3.0
+        version: 13.3.0(axios@1.9.0)(focus-trap@7.6.5)(vue@3.5.20(typescript@5.8.3))
       axios:
         specifier: 1.9.0
         version: 1.9.0
@@ -1634,8 +1634,8 @@ packages:
   '@vue/test-utils@2.4.6':
     resolution: {integrity: sha512-FMxEjOpYNYiFe0GkaHsnJPXFHxQ6m4t8vI/ElPGpMWxZKpmRvQ33OIrvRXemy6yha03RxhOlQuy+gZMC3CQSow==}
 
-  '@vueuse/core@13.1.0':
-    resolution: {integrity: sha512-PAauvdRXZvTWXtGLg8cPUFjiZEddTqmogdwYpnn60t08AA5a8Q4hZokBnpTOnVNqySlFlTcRYIC8OqreV4hv3Q==}
+  '@vueuse/core@13.3.0':
+    resolution: {integrity: sha512-uYRz5oEfebHCoRhK4moXFM3NSCd5vu2XMLOq/Riz5FdqZMy2RvBtazdtL3gEcmDyqkztDe9ZP/zymObMIbiYSg==}
     peerDependencies:
       vue: ^3.5.0
 
@@ -1644,8 +1644,8 @@ packages:
     peerDependencies:
       vue: ^3.5.0
 
-  '@vueuse/integrations@13.1.0':
-    resolution: {integrity: sha512-wJ6aANdUs4SOpVabChQK+uLIwxRTUAEmn1DJnflGG7Wq6yaipiRmp6as/Md201FjJnquQt8MecIPbFv8HSBeDA==}
+  '@vueuse/integrations@13.3.0':
+    resolution: {integrity: sha512-h5mGRYPbiTZTFP/AKELLPGnUDBly7z7Qd1pgEQlT3ItQ0NlZM0vB+8SOQycpSBOBlgg72Zgw+mi2r+4O/G8RuQ==}
     peerDependencies:
       async-validator: ^4
       axios: ^1
@@ -1686,14 +1686,14 @@ packages:
       universal-cookie:
         optional: true
 
-  '@vueuse/metadata@13.1.0':
-    resolution: {integrity: sha512-+TDd7/a78jale5YbHX9KHW3cEDav1lz1JptwDvep2zSG8XjCsVE+9mHIzjTOaPbHUAk5XiE4jXLz51/tS+aKQw==}
+  '@vueuse/metadata@13.3.0':
+    resolution: {integrity: sha512-42IzJIOYCKIb0Yjv1JfaKpx8JlCiTmtCWrPxt7Ja6Wzoq0h79+YVXmBV03N966KEmDEESTbp5R/qO3AB5BDnGw==}
 
   '@vueuse/metadata@13.6.0':
     resolution: {integrity: sha512-rnIH7JvU7NjrpexTsl2Iwv0V0yAx9cw7+clymjKuLSXG0QMcLD0LDgdNmXic+qL0SGvgSVPEpM9IDO/wqo1vkQ==}
 
-  '@vueuse/shared@13.1.0':
-    resolution: {integrity: sha512-IVS/qRRjhPTZ6C2/AM3jieqXACGwFZwWTdw5sNTSKk2m/ZpkuuN+ri+WCVUP8TqaKwJYt/KuMwmXspMAw8E6ew==}
+  '@vueuse/shared@13.3.0':
+    resolution: {integrity: sha512-L1QKsF0Eg9tiZSFXTgodYnu0Rsa2P0En2LuLrIs/jgrkyiDuJSsPZK+tx+wU0mMsYHUYEjNsuE41uqqkuR8VhA==}
     peerDependencies:
       vue: ^3.5.0
 
@@ -5877,11 +5877,11 @@ snapshots:
       js-beautify: 1.15.4
       vue-component-type-helpers: 2.2.8
 
-  '@vueuse/core@13.1.0(vue@3.5.20(typescript@5.8.3))':
+  '@vueuse/core@13.3.0(vue@3.5.20(typescript@5.8.3))':
     dependencies:
       '@types/web-bluetooth': 0.0.21
-      '@vueuse/metadata': 13.1.0
-      '@vueuse/shared': 13.1.0(vue@3.5.20(typescript@5.8.3))
+      '@vueuse/metadata': 13.3.0
+      '@vueuse/shared': 13.3.0(vue@3.5.20(typescript@5.8.3))
       vue: 3.5.20(typescript@5.8.3)
 
   '@vueuse/core@13.6.0(vue@3.5.20(typescript@5.8.3))':
@@ -5891,20 +5891,20 @@ snapshots:
       '@vueuse/shared': 13.6.0(vue@3.5.20(typescript@5.8.3))
       vue: 3.5.20(typescript@5.8.3)
 
-  '@vueuse/integrations@13.1.0(axios@1.9.0)(focus-trap@7.6.5)(vue@3.5.20(typescript@5.8.3))':
+  '@vueuse/integrations@13.3.0(axios@1.9.0)(focus-trap@7.6.5)(vue@3.5.20(typescript@5.8.3))':
     dependencies:
-      '@vueuse/core': 13.1.0(vue@3.5.20(typescript@5.8.3))
-      '@vueuse/shared': 13.1.0(vue@3.5.20(typescript@5.8.3))
+      '@vueuse/core': 13.3.0(vue@3.5.20(typescript@5.8.3))
+      '@vueuse/shared': 13.3.0(vue@3.5.20(typescript@5.8.3))
       vue: 3.5.20(typescript@5.8.3)
     optionalDependencies:
       axios: 1.9.0
       focus-trap: 7.6.5
 
-  '@vueuse/metadata@13.1.0': {}
+  '@vueuse/metadata@13.3.0': {}
 
   '@vueuse/metadata@13.6.0': {}
 
-  '@vueuse/shared@13.1.0(vue@3.5.20(typescript@5.8.3))':
+  '@vueuse/shared@13.3.0(vue@3.5.20(typescript@5.8.3))':
     dependencies:
       vue: 3.5.20(typescript@5.8.3)
 
