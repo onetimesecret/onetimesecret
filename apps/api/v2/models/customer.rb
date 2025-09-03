@@ -29,7 +29,6 @@ module V2
   # factory methods above to avoid state inconsistencies.
   #
   class Customer < Familia::Horreum
-
     feature :relationships
     feature :object_identifiers
     feature :required_fields
@@ -42,8 +41,6 @@ module V2
     feature :customer_deprecated_fields
     feature :legacy_encrypted_fields
     feature :legacy_secrets_fields
-
-
 
     def anonymous?
       custid.to_s.eql?('anon')
@@ -61,7 +58,6 @@ module V2
       role.to_s.eql?(guess.to_s)
     end
 
-
     # Saves the customer object to the database.
     #
     # @raise [Onetime::Problem] If attempting to save an anonymous customer.
@@ -75,5 +71,48 @@ module V2
       super
     end
 
+    class << self
+      attr_reader :values
+
+      def create(custid, email = nil)
+        raise Onetime::Problem, 'custid is required' if custid.to_s.empty?
+        raise Onetime::Problem, 'Customer exists' if exists?(custid)
+
+        cust        = new custid: custid, email: email || custid, role: 'customer'
+        cust.planid = 'basic'
+        OT.ld "[create] custid: #{custid}, #{cust.safe_dump}"
+        cust.save
+        add cust
+        cust
+      end
+
+      def anonymous
+        new('anon').freeze
+      end
+
+      def add(cust)
+        values.add OT.now.to_i, cust.identifier
+      end
+
+      def all
+        values.revrangeraw(0, -1).collect { |identifier| load(identifier) }
+      end
+
+      def recent(duration = 30.days, epoint = OT.now.to_i)
+        spoint = OT.now.to_i - duration
+        values.rangebyscoreraw(spoint, epoint).collect { |identifier| load(identifier) }
+      end
+
+      def global
+        @global ||= from_identifier(:GLOBAL) || create(:GLOBAL)
+        @global
+      end
+
+      # Generate a unique session ID with 32 bytes of random data
+      # @return [String] base-36 encoded random string
+      def generate_id
+        OT::Utils.generate_id
+      end
+    end
   end
 end
