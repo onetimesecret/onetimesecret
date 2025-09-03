@@ -32,24 +32,18 @@ module V2
   class Customer < Familia::Horreum
     @global = nil
 
-    feature :safe_dump
-    feature :expiration
-
     prefix :customer
 
     class_sorted_set :values, dbkey: 'onetime:customer'
-    class_hashkey :domains, dbkey: 'onetime:customers:domain'
-
-    sorted_set :custom_domains, suffix: 'custom_domain'
     sorted_set :metadata
-
     hashkey :feature_flags # To turn on allow_public_homepage column in domains table
-
     # Used to track the current and most recently created password reset secret.
     string :reset_secret, default_expiration: 24.hours
 
     identifier_field :custid
 
+    feature :safe_dump
+    feature :expiration
     feature :relationships
     feature :object_identifiers
     feature :required_fields
@@ -65,27 +59,11 @@ module V2
 
     field :custid
     field :email
-    field :role
-    field :sessid
-    field :apitoken # TODO: use sorted set?
-    field :verified
 
     field :locale
-
-    field :secrets_created # regular hashkey string field
-    field :secrets_burned
-    field :secrets_shared
-    field :emails_sent
-
     field :planid
-    field :created
-    field :updated
-    field :last_login
-    field :contributor
 
-    field :stripe_customer_id
-    field :stripe_subscription_id
-    field :stripe_checkout_email
+    field :last_login
 
     # Lambda to handle counter fields that may be nil/empty - returns '0'
     # if empty, otherwise the string value
@@ -241,7 +219,7 @@ module V2
     # module at the top, instead of populating the custid field (as the
     # first field defined in this file), this email address would get
     # written to the (automatically inserted) passphrase field.
-
+    #
     include V2::Mixins::Passphrase
   end
 end

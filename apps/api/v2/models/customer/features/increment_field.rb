@@ -8,6 +8,11 @@ module V2
           OT.ld "[#{name}] Included in #{base}"
           base.extend ClassMethods
           base.include InstanceMethods
+
+          base.field :secrets_created # regular hashkey string field
+          base.field :secrets_burned
+          base.field :secrets_shared
+          base.field :emails_sent
         end
 
         module ClassMethods

@@ -12,6 +12,9 @@ module V2
           OT.ld "[#{name}] Included in #{base}"
           base.extend ClassMethods
           base.include InstanceMethods
+
+          base.class_hashkey :domains, dbkey: 'onetime:customers:domain'
+          base.sorted_set :custom_domains, suffix: 'custom_domain'
         end
 
         module ClassMethods

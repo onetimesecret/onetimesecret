@@ -8,7 +8,10 @@ module V2
           OT.ld "[#{name}] Included in #{base}"
           base.extend ClassMethods
           base.include InstanceMethods
-          super
+
+          base.field :sessid
+          base.field :apitoken # TODO: use sorted set?
+          base.field :contributor
         end
 
         module ClassMethods

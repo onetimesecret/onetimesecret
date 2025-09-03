@@ -3,22 +3,20 @@
 module V2
   module Models
     module Features
-      #
-      #
       module CustomerStatus
-
-
         def self.included(base)
           OT.ld "[#{name}] Included in #{base}"
           base.extend ClassMethods
           base.include InstanceMethods
+
+          base.field :role
+          base.field :verified
         end
 
         module ClassMethods
         end
 
         module InstanceMethods
-
           def verified?
             !anonymous? && verified.to_s.eql?('true')
           end
