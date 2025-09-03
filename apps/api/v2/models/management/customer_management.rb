@@ -44,7 +44,7 @@ module V2
       # Generate a unique session ID with 32 bytes of random data
       # @return [String] base-36 encoded random string
       def generate_id
-        OT::Utils.generate_id
+        Familia.generate_id
       end
     end
 

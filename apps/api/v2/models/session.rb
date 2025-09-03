@@ -22,7 +22,7 @@ module V2
     end
 
     def external_identifier
-      @external_identifier ||= OT::Utils.generate_id
+      @external_identifier ||= Familia.generate_id
     end
 
     def to_s

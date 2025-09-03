@@ -75,7 +75,7 @@ module V1
     end
 
     def external_identifier
-      @external_identifier ||= OT::Utils.generate_id
+      @external_identifier ||= Familia.generate_id
     end
 
     def short_identifier

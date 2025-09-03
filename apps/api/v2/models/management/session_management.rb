@@ -55,7 +55,7 @@ module V2
       end
 
       def generate_id
-        OT::Utils.generate_id
+        Familia.generate_id
       end
     end
 

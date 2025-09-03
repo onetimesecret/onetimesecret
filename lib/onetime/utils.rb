@@ -1,6 +1,5 @@
 require_relative 'utils/enumerables'
 require_relative 'utils/sanitation'
-require_relative 'utils/secure_numbers'
 require_relative 'utils/strings'
 require_relative 'utils/time_utils'
 
@@ -8,12 +7,43 @@ module Onetime
   module Utils
     extend Enumerables
     extend Sanitation
-    extend SecureNumbers
     extend Strings
     extend TimeUtils
 
     class << self
       attr_accessor :fortunes
+
+      # NOTE: Temporary until Familia 2-pre11
+      # @see #shorten_securely for truncation details
+      def generate_short_id
+        hexstr = SecureRandom.hex(32) # generate with all 256 bits
+        shorten_securely(hexstr, bits: 64) # and then shorten
+      end
+
+      # Truncates a hexadecimal string to specified bit length and encodes in desired base.
+      # Takes the most significant bits from the hex string to maintain randomness
+      # distribution while reducing the identifier length for practical use.
+      #
+      # @param hash [String] A hexadecimal string (64 characters for 256 bits)
+      # @param bits [Integer] Number of bits to retain (default: 256, max: 256)
+      # @param base [Integer] Base encoding for output string (2-36, default: 36)
+      # @return [String] Truncated value encoded in the specified base
+      #
+      # @example Truncate to 128 bits in base-16
+      #   hash = "a1b2c3d4..." # 64-char hexadecimal string
+      #   Utils.shorten_securely(hash, bits: 128, base: 16) # => "a1b2c3d4e5f6e7c8"
+      #
+      # @example Default 256-bit truncation in base-36
+      #   Utils.shorten_securely(hash) # => "k8x2m9n4p7q1r5s3t6u0v2w8x1y4z7"
+      #
+      # @note Higher bit counts provide more security but longer identifiers
+      # @note Base-36 encoding uses 0-9 and a-z for compact, URL-safe strings
+      # @security Bit truncation preserves cryptographic properties of original value
+      def shorten_securely(hash, bits: 256, base: 36)
+        # Truncate to desired bit length
+        truncated = hash.to_i(16) >> (256 - bits)
+        truncated.to_s(base).freeze
+      end
 
       # Returns a random fortune from the configured fortunes array.
       # Provides graceful degradation with fallback messages when fortunes

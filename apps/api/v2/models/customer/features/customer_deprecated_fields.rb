@@ -24,14 +24,14 @@ module V2
           end
 
           def regenerate_apitoken
-            apitoken! OT::Utils.generate_id
+            apitoken! Familia.generate_id
             apitoken # the fast writer bang methods don't return the value
           end
 
           def external_identifier
             raise OT::Problem, 'Anonymous customer has no external identifier' if anonymous?
 
-            @external_identifier ||= OT::Utils.generate_id # generate but don't save
+            @external_identifier ||= Familia.generate_id # generate but don't save
             @external_identifier
           end
 
