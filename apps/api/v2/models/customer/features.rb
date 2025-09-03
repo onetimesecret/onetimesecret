@@ -1,11 +1,12 @@
 # apps/api/v2/models/customer/features.rb
 
-
 module V2
-  class Customer < Familia::Horreum
-
-    # Should the calls to `feature` live here?
-
+  module Models
+    module Customer
+      module Features
+        # include Familia::Feature::AutoLoaders
+      end
+    end
   end
 end
 
