@@ -1,5 +1,14 @@
 # apps/api/v2/models/customer/features.rb
 
+
+module V2
+  class Customer < Familia::Horreum
+
+    # Should the calls to `feature` live here?
+
+  end
+end
+
 # Load all of our model features before the models so that
 # they're accessible
 features_dir = File.join(__dir__, 'features')
