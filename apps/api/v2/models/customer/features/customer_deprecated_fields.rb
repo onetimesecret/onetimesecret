@@ -15,6 +15,38 @@ module V2
         end
 
         module ClassMethods
+
+          # Use Familia 2's generated class methods
+          def add(cust)
+            values.add OT.now.to_i, cust.identifier
+          end
+
+          def all
+            values.revrangeraw(0, -1).collect { |identifier| load(identifier) }
+          end
+
+          def recent(duration = 30.days, epoint = OT.now.to_i)
+            spoint = OT.now.to_i - duration
+            values.rangebyscoreraw(spoint, epoint).collect { |identifier| load(identifier) }
+          end
+
+          # This is where the global word that got really confusing in familia
+          # for a while, trying to differentiate between places that used the
+          # word global to mean class-level. It only exists here for historical
+          # reasons. There's a key customer:GLOBAL:object that has the increment
+          # fields in it (that's how we count the all time number of secrets
+          # created, burned etc)
+          def global
+            @global ||= from_identifier(:GLOBAL) || create(:GLOBAL)
+            @global
+          end
+
+          # Generate a unique session ID with 32 bytes of random data
+          # @return [String] base-36 encoded random string
+          def generate_id
+            OT::Utils.generate_id
+          end
+
         end
 
         module InstanceMethods

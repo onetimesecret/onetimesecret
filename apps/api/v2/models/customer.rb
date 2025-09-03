@@ -152,6 +152,9 @@ module V2
     #
     # This method overrides the default save behavior to prevent
     # anonymous customers from being persisted to the database.
+    #
+    # TODO: If familia gave us validators we could remove this guard logic
+    # and the custom save method altogether.
     def save(**)
       raise Onetime::Problem, "Anonymous cannot be saved #{self.class} #{dbkey}" if anonymous?
 
@@ -177,29 +180,6 @@ module V2
         new('anon').freeze
       end
 
-      def add(cust)
-        values.add OT.now.to_i, cust.identifier
-      end
-
-      def all
-        values.revrangeraw(0, -1).collect { |identifier| load(identifier) }
-      end
-
-      def recent(duration = 30.days, epoint = OT.now.to_i)
-        spoint = OT.now.to_i - duration
-        values.rangebyscoreraw(spoint, epoint).collect { |identifier| load(identifier) }
-      end
-
-      def global
-        @global ||= from_identifier(:GLOBAL) || create(:GLOBAL)
-        @global
-      end
-
-      # Generate a unique session ID with 32 bytes of random data
-      # @return [String] base-36 encoded random string
-      def generate_id
-        OT::Utils.generate_id
-      end
     end
 
     # Mixin Placement for Field Order Control
