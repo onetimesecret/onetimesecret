@@ -41,25 +41,6 @@ module V2
         @global
       end
 
-      def increment_field(cust, field)
-        return if cust.global?
-
-        curval = cust.send(field)
-        OT.info "[increment_field] cust.#{field} is #{curval} for #{cust}"
-
-        cust.increment field
-      rescue Redis::CommandError => ex
-        # For whatever reason, the database throws an error when trying to
-        # increment a non-existent hashkey field (rather than setting
-        # it to 1): "ERR hash value is not an integer"
-        OT.le "[increment_field] Redis error (#{curval}): #{ex.message}"
-
-        # So we'll set it to 1 if it's empty. It's possible we're here
-        # due to a different error, but this value needs to be
-        # initialized either way.
-        cust.send("#{field}!", 1) if curval.to_i.zero? # nil and '' cast to 0
-      end
-
       # Generate a unique session ID with 32 bytes of random data
       # @return [String] base-36 encoded random string
       def generate_id
