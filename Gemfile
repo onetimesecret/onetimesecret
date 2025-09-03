@@ -69,7 +69,7 @@ gem 'encryptor', '= 1.1.3'
 # ====================================
 
 if ENV['LOCAL_DEV'].to_s.empty?
-  gem 'familia', '~> 2.0.0.pre7'
+  gem 'familia', '~> 2.0.0.pre10'
   gem 'otto', '~> 1.4.0'
 else
   gem 'familia', path: '../../d/familia'
