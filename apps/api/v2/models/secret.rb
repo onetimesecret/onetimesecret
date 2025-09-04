@@ -1,12 +1,15 @@
 # apps/api/v2/models/secret.rb
 
-require_relative 'definitions/secret_definition'
 require_relative 'secret/features'
 
 module V2
   class Secret < Familia::Horreum
+    include Familia::Features::Autoloader
+
     feature :safe_dump
     feature :expiration
+    feature :relationships
+    feature :object_identifier
     feature :required_fields
     feature :secret_encryption
     feature :secret_state_management

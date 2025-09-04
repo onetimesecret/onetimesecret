@@ -15,7 +15,7 @@ module V2
     feature :safe_dump
 
     feature :relationships
-    feature :object_identifiers
+    feature :object_identifier
     feature :required_fields
 
     identifier_field :orgid

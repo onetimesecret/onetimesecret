@@ -25,7 +25,7 @@ module V2
           # extending class's context.
         end
 
-        Familia::Base.add_feature self, :required_fields, depends_on: [:relationships, :object_identifiers]
+        Familia::Base.add_feature self, :required_fields, depends_on: [:relationships, :object_identifier]
       end
     end
   end

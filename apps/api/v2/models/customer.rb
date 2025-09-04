@@ -30,6 +30,8 @@ module V2
   # factory methods above to avoid state inconsistencies.
   #
   class Customer < Familia::Horreum
+    include Familia::Features::Autoloader
+
     @global = nil
 
     prefix :customer
@@ -45,7 +47,7 @@ module V2
     feature :safe_dump
     feature :expiration
     feature :relationships
-    feature :object_identifiers
+    feature :object_identifier
     feature :required_fields
     feature :increment_field
     feature :right_to_be_forgotten
