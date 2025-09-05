@@ -1,11 +1,12 @@
 # migrate/20250728-1512_00_customer_objid.rb
 #
-# Customer Object ID and User Type Migration - Pipeline
+# Customer Object ID (and External ID) Migration - Pipeline
 #
-# Purpose: Populates objid and user_type fields for all existing Customer records.
+# Purpose: Populates objid field for all existing Customer records. The extid
+#   field will be lazy populated on first access.
 # - objid: Set to a UUIDv7 based on the customer's created timestamp
-# - extid: Set to a shortened hash of the objid
-# - user_type: Set to 'authenticated' (default user type)
+# - extid: Set to a base36 encoded random string, using the same approach as
+#   familia v2.0.0-pre12.
 #
 # Usage:
 #   bin/ots migrate 20250728-1512_00_customer_objid.rb # Preview changes
@@ -28,7 +29,6 @@ module Onetime
     end
 
     def should_process?(obj)
-      obj.user_type = 'authenticated'
       return track_stat(:skipped_empty_custid) if obj.custid.to_s.empty?
       return track_stat(:skipped_empty_email) if obj.email.to_s.empty?
       return track_stat(:skipped_user_deleted_self) if obj.user_deleted_self?
@@ -44,13 +44,36 @@ module Onetime
         # methods or attributes that could be changed in ways we don't
         # expect (e.g. like when they're removed entirely).
         objid: obj.objid || SecureRandom.uuid_v7_from(obj.created),
-        extid: obj.extid || SecureRandom.hex(32)
-        # Force them all to be user_type=authenticated. If not set, it can be saved
-        # as anonymous which then triggers the guard above as well as an error when
-        # trying to call obj.save.
-        user_type: 'authenticated',
+        extid: obj.extid || Tools.derive_extid_from_uuid(obj.uuid),
       }
     end
+  end
+end
+
+module Tools
+  require 'digest'
+  require 'securerandom'
+
+  # A standalone implementation of the logic that Familia v2.0.0-pre12 uses
+  # to derive an external ID from a UUIDv7. We use this separate implementation
+  # to allow this migration to transcend time and space.
+  def self.derive_extid_from_uuid(uuid_string, prefix: 'ext')
+    # Normalize UUID to hex (remove hyphens)
+    normalized_hex = uuid_string.delete('-')
+
+    # Create seed from the hex string
+    seed = Digest::SHA256.digest(normalized_hex)
+
+    # Initialize PRNG with the seed
+    prng = Random.new(seed.unpack1('Q>'))
+
+    # Generate 16 bytes of deterministic output
+    random_bytes = prng.bytes(16)
+
+    # Encode as base36 string
+    external_part = random_bytes.unpack1('H*').to_i(16).to_s(36).rjust(25, '0')
+
+    "#{prefix}_#{external_part}"
   end
 end
 
