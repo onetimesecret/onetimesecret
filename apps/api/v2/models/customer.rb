@@ -6,7 +6,7 @@ require_relative 'customer/features'
 require_relative 'mixins/passphrase'
 
 module V2
-  # Customer Model (aka User)
+  # Customer
   #
   # IMPORTANT API CHANGES:
   # Previously, anonymous users were identified by custid='anon'.
@@ -39,6 +39,7 @@ module V2
     class_sorted_set :values, dbkey: 'onetime:customer'
     sorted_set :metadata
     hashkey :feature_flags # To turn on allow_public_homepage column in domains table
+
     # Used to track the current and most recently created password reset secret.
     string :reset_secret, default_expiration: 24.hours
 
@@ -77,37 +78,31 @@ module V2
     # NOTE: The SafeDump mixin caches the safe_dump_field_map so updating this list
     # with hot reloading in dev mode will not work. You will need to restart the
     # server to see the changes.
-    @safe_dump_fields = [
-      { identifier: ->(obj) { obj.identifier } },
-      :custid,
-      :email,
+    safe_dump_field :identifier, ->(obj) { obj.identifier }
+    safe_dump_field :custid
+    safe_dump_field :email
+    safe_dump_field :role
+    safe_dump_field :verified
+    safe_dump_field :last_login
+    safe_dump_field :locale
+    safe_dump_field :updated
+    safe_dump_field :created
+    safe_dump_field :stripe_customer_id
+    safe_dump_field :stripe_subscription_id
+    safe_dump_field :stripe_checkout_email
+    safe_dump_field :planid
 
-      :role,
-      :verified,
-      :last_login,
-      :locale,
-      :updated,
-      :created,
+    # NOTE: The secrets_created incrementer is null until the first secret
+    # is created. See ConcealSecret for where the incrementer is called. This
+    # actually applies to all fields used as incrementers. We use the
+    # `counter_field_handler` lambda to return 0 if the field is nil or empty.
+    safe_dump_field :secrets_created, ->(cust) { counter_field_handler.call(cust, :secrets_created) }
+    safe_dump_field :secrets_burned, ->(cust) { counter_field_handler.call(cust, :secrets_burned) }
+    safe_dump_field :secrets_shared, ->(cust) { counter_field_handler.call(cust, :secrets_shared) }
+    safe_dump_field :emails_sent, ->(cust) { counter_field_handler.call(cust, :emails_sent) }
 
-      :stripe_customer_id,
-      :stripe_subscription_id,
-      :stripe_checkout_email,
-
-      :planid,
-
-      # NOTE: The secrets_created incrementer is null until the first secret
-      # is created. See ConcealSecret for where the incrementer is called. This
-      # actually applies to all fields used as incrementers. We use the
-      # `counter_field_handler` lambda to return 0 if the field is nil or empty.
-      #
-      { secrets_created: ->(cust) { counter_field_handler.call(cust, :secrets_created) } },
-      { secrets_burned: ->(cust) { counter_field_handler.call(cust, :secrets_burned) } },
-      { secrets_shared: ->(cust) { counter_field_handler.call(cust, :secrets_shared) } },
-      { emails_sent: ->(cust) { counter_field_handler.call(cust, :emails_sent) } },
-
-      # We use the hash syntax here since `:active?` is not a valid symbol.
-      { active: ->(cust) { cust.active? } },
-    ]
+    # We use the hash syntax here since `:active?` is not a valid symbol.
+    safe_dump_field :active, ->(cust) { cust.active? }
 
     def init
       self.custid ||= 'anon'

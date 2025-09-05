@@ -19,17 +19,17 @@ require 'public_suffix'
 module V1
   class CustomDomain < Familia::Horreum
 
-    prefix :customdomain
-
     feature :safe_dump
 
-    # CustomDomain records can only be created via V2 so we use the existing
-    # domainid field as the identifier.
+    prefix :customdomain
+
+    class_sorted_set :values, dbkey: 'onetime:customdomain'
+
     identifier_field :domainid
 
+    field :domainid
     field :display_domain
     field :custid
-    field :domainid
     field :base_domain
     field :subdomain
     field :trd
@@ -49,43 +49,44 @@ module V1
     hashkey :logo # image fields need a corresponding v2 route and logic class
     hashkey :icon
 
-    @safe_dump_fields = [
-      { :identifier => ->(obj) { obj.domainid } },
-      :domainid,
-      :display_domain,
-      :custid,
-      :base_domain,
-      :subdomain,
-      :trd,
-      :tld,
-      :sld,
-      { :is_apex => ->(obj) { obj.apex? } },
-      :_original_value,
-      :txt_validation_host,
-      :txt_validation_value,
-      { :brand => ->(obj) { obj.brand.hgetall } },
-      # NOTE: We don't serialize images here
-      :status,
-      { :vhost => ->(obj) { obj.parse_vhost } },
-      :verified,
-      :created,
-      :updated,
-    ]
+    @txt_validation_prefix = '_onetime-challenge'
+
+    safe_dump_field :identifier, ->(obj) { obj.domainid }
+    safe_dump_field :domainid
+    safe_dump_field :display_domain
+    safe_dump_field :custid
+    safe_dump_field :base_domain
+    safe_dump_field :subdomain
+    safe_dump_field :trd
+    safe_dump_field :tld
+    safe_dump_field :sld
+    safe_dump_field :is_apex, ->(obj) { obj.apex? }
+    safe_dump_field :_original_value
+    safe_dump_field :txt_validation_host
+    safe_dump_field :txt_validation_value
+    safe_dump_field :brand, ->(obj) { obj.brand.hgetall }
+    # NOTE: We don't serialize images here
+    safe_dump_field :status
+    safe_dump_field :vhost, ->(obj) { obj.parse_vhost }
+    safe_dump_field :verified
+    safe_dump_field :created
+    safe_dump_field :updated
 
     def init
+      @domainid = identifier
       # Display domain and cust should already be set and accessible
       # via accessor methods so we should see a valid identifier logged.
-      OT.ld "[CustomDomain.init] #{display_domain} id:#{domainid}"
+      OT.ld "[V1::CustomDomain.init] #{display_domain} id:#{domainid}"
 
       # Will raise PublicSuffix::DomainInvalid if invalid domain
       ps_domain = PublicSuffix.parse(display_domain, default_rule: nil)
 
       # Store the individual domain parts that PublicSuffix parsed out
       @base_domain = ps_domain.domain.to_s
-      @subdomain = ps_domain.subdomain.to_s
-      @trd = ps_domain.trd.to_s
-      @tld = ps_domain.tld.to_s
-      @sld = ps_domain.sld.to_s
+      @subdomain   = ps_domain.subdomain.to_s
+      @trd         = ps_domain.trd.to_s
+      @tld         = ps_domain.tld.to_s
+      @sld         = ps_domain.sld.to_s
 
       # Don't call generate_txt_validation_record here otherwise we'll
       # create a new validation record every time we instantiate a

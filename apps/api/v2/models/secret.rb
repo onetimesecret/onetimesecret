@@ -34,19 +34,17 @@ module V2
 
     counter :view_count, default_expiration: 14.days # out lives the secret itself
 
-    @safe_dump_fields = [
-      { identifier: ->(obj) { obj.identifier } },
-      :key,
-      :state,
-      { secret_ttl: ->(m) { m.lifespan } },
-      :lifespan,
-      { shortkey: ->(m) { m.key.slice(0, 8) } },
-      { has_passphrase: ->(m) { m.has_passphrase? } },
-      { verification: ->(m) { m.verification? } },
-      { is_truncated: ->(m) { m.truncated? } },
-      :created,
-      :updated,
-    ]
+    safe_dump_field :identifier, ->(obj) { obj.identifier }
+    safe_dump_field :key
+    safe_dump_field :state
+    safe_dump_field :secret_ttl, ->(m) { m.lifespan }
+    safe_dump_field :lifespan
+    safe_dump_field :shortkey, ->(m) { m.key.slice(0, 8) }
+    safe_dump_field :has_passphrase, ->(m) { m.has_passphrase? }
+    safe_dump_field :verification, ->(m) { m.verification? }
+    safe_dump_field :is_truncated, ->(m) { m.truncated? }
+    safe_dump_field :created
+    safe_dump_field :updated
 
     def init
       self.state ||= 'new'

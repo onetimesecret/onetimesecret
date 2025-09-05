@@ -31,15 +31,13 @@ module V2
     # receiving a redirect back from Stripe subscription payment workflow.
     field :referrer
 
-    @safe_dump_fields = [
-      { identifier: ->(obj) { obj.identifier } },
-      :sessid,
-      :external_identifier,
-      :authenticated,
-      :stale,
-      :created,
-      :updated,
-    ]
+    safe_dump_field :identifier, ->(obj) { obj.identifier }
+    safe_dump_field :sessid
+    safe_dump_field :external_identifier
+    safe_dump_field :authenticated
+    safe_dump_field :stale
+    safe_dump_field :created
+    safe_dump_field :updated
 
     # When set to true, the session reports itself as not authenticated
     # regardless of the value of the authenticated field. This allows

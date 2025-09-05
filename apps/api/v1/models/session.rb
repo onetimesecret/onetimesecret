@@ -9,7 +9,7 @@ module V1
     default_expiration 20.minutes
     prefix :session
 
-    class_sorted_set :values, key: "onetime:session"
+    class_sorted_set :values, dbkey: 'onetime:session'
 
     identifier_field :sessid
 
@@ -25,19 +25,15 @@ module V1
 
     field :shrimp # as string?
 
-    # We check this field in check_referrer! but we rely on this field when
-    # receiving a redirect back from Stripe subscription payment workflow.
     field :referrer
 
-    @safe_dump_fields = [
-      { :identifier => ->(obj) { obj.identifier } },
-      :sessid,
-      :external_identifier,
-      :authenticated,
-      :stale,
-      :created,
-      :updated,
-    ]
+    safe_dump_field :identifier, ->(obj) { obj.identifier }
+    safe_dump_field :sessid
+    safe_dump_field :external_identifier
+    safe_dump_field :authenticated
+    safe_dump_field :stale
+    safe_dump_field :created
+    safe_dump_field :updated
 
     # When set to true, the session reports itself as not authenticated
     # regardless of the value of the authenticated field. This allows
@@ -99,11 +95,7 @@ module V1
         end
       end
 
-      # This update is important b/c it ensures that the
-      # data gets written to the database.
       self.sessid = newid
-
-
 
       save
 

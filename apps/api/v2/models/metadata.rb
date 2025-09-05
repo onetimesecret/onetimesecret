@@ -38,41 +38,35 @@ module V2
 
     # NOTE: Safe dump fields are loaded once at start time so they're
     # immune to hot reloads.
-    @safe_dump_fields = [
-      { identifier: ->(obj) { obj.identifier } },
-      :key,
-      :custid,
-      :state,
-      :secret_shortkey,
-      :secret_ttl,
-      { metadata_ttl: ->(m) { m.lifespan } },
-      :lifespan,
-      :share_domain,
-      :created,
-      :updated,
-      :shared,
-      :received,
-      :burned,
-      :viewed,
-      :recipients,
-
-      { shortkey: ->(m) { m.key.slice(0, 8) } },
-      { show_recipients: ->(m) { !m.recipients.to_s.empty? } },
-
-      { is_viewed: ->(m) { m.state?(:viewed) } },
-      { is_received: ->(m) { m.state?(:received) } },
-      { is_burned: ->(m) { m.state?(:burned) } },
-      { is_expired: ->(m) { m.state?(:expired) } },
-      { is_orphaned: ->(m) { m.state?(:orphaned) } },
-      { is_destroyed: lambda { |m|
-        m.state?(:received) || m.state?(:burned) || m.state?(:expired) || m.state?(:orphaned)
-      } },
-
-      # We use the hash syntax here since `:truncated?` is not a valid symbol.
-      { is_truncated: ->(m) { m.truncated? } },
-
-      { has_passphrase: ->(m) { m.has_passphrase? } },
-    ]
+    safe_dump_field :identifier, ->(obj) { obj.identifier }
+    safe_dump_field :key
+    safe_dump_field :custid
+    safe_dump_field :state
+    safe_dump_field :secret_shortkey
+    safe_dump_field :secret_ttl
+    safe_dump_field :metadata_ttl, ->(m) { m.lifespan }
+    safe_dump_field :lifespan
+    safe_dump_field :share_domain
+    safe_dump_field :created
+    safe_dump_field :updated
+    safe_dump_field :shared
+    safe_dump_field :received
+    safe_dump_field :burned
+    safe_dump_field :viewed
+    safe_dump_field :recipients
+    safe_dump_field :shortkey, ->(m) { m.key.slice(0, 8) }
+    safe_dump_field :show_recipients, ->(m) { !m.recipients.to_s.empty? }
+    safe_dump_field :is_viewed, ->(m) { m.state?(:viewed) }
+    safe_dump_field :is_received, ->(m) { m.state?(:received) }
+    safe_dump_field :is_burned, ->(m) { m.state?(:burned) }
+    safe_dump_field :is_expired, ->(m) { m.state?(:expired) }
+    safe_dump_field :is_orphaned, ->(m) { m.state?(:orphaned) }
+    safe_dump_field :is_destroyed, lambda { |m|
+      m.state?(:received) || m.state?(:burned) || m.state?(:expired) || m.state?(:orphaned)
+    }
+    # We use the hash syntax here since `:truncated?` is not a valid symbol.
+    safe_dump_field :is_truncated, ->(m) { m.truncated? }
+    safe_dump_field :has_passphrase, ->(m) { m.has_passphrase? }
 
     def init
       self.state ||= 'new'
