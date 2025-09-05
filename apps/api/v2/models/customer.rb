@@ -49,6 +49,7 @@ module V2
     feature :expiration
     feature :relationships
     feature :object_identifier
+    feature :external_identifier
     feature :required_fields
     feature :increment_field
     feature :right_to_be_forgotten
