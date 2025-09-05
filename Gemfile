@@ -107,9 +107,7 @@ end
 
 group :development do
   # Debugging tools
-  gem 'byebug', require: false
-  gem 'pry', require: false
-  gem 'pry-byebug', require: false
+  gem 'debug', require: false
 
   # Development utilities
   gem 'rack-proxy', require: false
