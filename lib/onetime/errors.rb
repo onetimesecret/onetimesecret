@@ -23,6 +23,9 @@ module Onetime
   class ConfigError < Problem
   end
 
+  class MigrationError < Problem
+  end
+
   class RecordNotFound < Problem
   end
 

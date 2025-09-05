@@ -239,8 +239,13 @@ module Onetime
     end
 
     def validate_model_class!
-      raise 'Model class not set. Define @model_class in your #prepare method' unless @model_class
-      raise 'Model class must be a Familia::Horreum subclass' unless familia_horreum_class?
+      unless @model_class
+        raise MigrationError, 'Model class not set. Define @model_class in your #prepare method'
+      end
+
+      unless familia_horreum_class?
+        raise MigrationError, "Model class must be a Familia::Horreum subclass #{@model_class}"
+      end
 
       @total_records  = @model_class.values.size
       @dbclient     ||= @model_class.dbclient
