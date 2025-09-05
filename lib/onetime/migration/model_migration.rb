@@ -254,7 +254,7 @@ module Onetime
     end
 
     def familia_horreum_class?
-      @model_class.respond_to?(:redis) && @model_class.respond_to?(:prefix)
+      @model_class < Familia::Base
     end
 
     def scan_and_process_records
