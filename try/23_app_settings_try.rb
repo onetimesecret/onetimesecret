@@ -50,7 +50,6 @@ TestApp.check_uri_encoding = false
 TestApp.check_uri_encoding
 #=> false
 
-
 ## Check UTF8 (before)
 AnotherTestApp.check_utf8
 #=> nil
@@ -59,11 +58,12 @@ AnotherTestApp.check_utf8
 AnotherTestApp.check_uri_encoding
 #=> nil
 
-## Can set different values for different classes
+## Check UTF8 set different values for different classes
 AnotherTestApp.check_utf8 = false
 AnotherTestApp.check_utf8
 #=> false
 
+## Check URI set different values for different classes
 AnotherTestApp.check_uri_encoding = true
 AnotherTestApp.check_uri_encoding
 #=> true
