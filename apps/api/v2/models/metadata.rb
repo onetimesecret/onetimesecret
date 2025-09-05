@@ -1,9 +1,83 @@
 # apps/api/v2/models/metadata.rb
 
-require_relative 'definitions/metadata_definition'
-
 module V2
   class Metadata < Familia::Horreum
+    feature :safe_dump
+    feature :expiration
+
+    default_expiration 14.days
+    prefix :metadata
+
+    identifier_field :key
+
+    field :custid
+    field :state
+    field :key
+    field :secret_key
+    field :secret_shortkey
+    field :secret_ttl
+    field :lifespan
+    field :share_domain
+    field :passphrase
+    field :viewed, fast_method: false
+    field :received, fast_method: false
+    field :shared, fast_method: false
+    field :burned, fast_method: false
+    field :created
+    field :updated
+
+    # NOTE: There is no `expired` timestamp field since we can calculate
+    # that based on the `secret_ttl` and the `created` timestamp. See
+    # the secret_expired? and expiration methods.
+    field :recipients
+    field :truncate # boolean
+
+    # NOTE: this field is a nullop. It's only populated if a value was entered
+    # into a hidden field which is something a regular person would not do.
+    field :token
+
+    # NOTE: Safe dump fields are loaded once at start time so they're
+    # immune to hot reloads.
+    @safe_dump_fields = [
+      { identifier: ->(obj) { obj.identifier } },
+      :key,
+      :custid,
+      :state,
+      :secret_shortkey,
+      :secret_ttl,
+      { metadata_ttl: ->(m) { m.lifespan } },
+      :lifespan,
+      :share_domain,
+      :created,
+      :updated,
+      :shared,
+      :received,
+      :burned,
+      :viewed,
+      :recipients,
+
+      { shortkey: ->(m) { m.key.slice(0, 8) } },
+      { show_recipients: ->(m) { !m.recipients.to_s.empty? } },
+
+      { is_viewed: ->(m) { m.state?(:viewed) } },
+      { is_received: ->(m) { m.state?(:received) } },
+      { is_burned: ->(m) { m.state?(:burned) } },
+      { is_expired: ->(m) { m.state?(:expired) } },
+      { is_orphaned: ->(m) { m.state?(:orphaned) } },
+      { is_destroyed: lambda { |m|
+        m.state?(:received) || m.state?(:burned) || m.state?(:expired) || m.state?(:orphaned)
+      } },
+
+      # We use the hash syntax here since `:truncated?` is not a valid symbol.
+      { is_truncated: ->(m) { m.truncated? } },
+
+      { has_passphrase: ->(m) { m.has_passphrase? } },
+    ]
+
+    def init
+      self.state ||= 'new'
+      self.key   ||= self.class.generate_id # rubocop:disable Naming/MemoizedInstanceVariableName
+    end
 
     def age
       @age ||= Time.now.utc.to_i - updated
@@ -178,7 +252,11 @@ module V2
     def load_secret
       V2::Secret.load secret_key
     end
+
+    class << self
+      def generate_id
+        Familia.generate_id
+      end
+    end
   end
 end
-
-require_relative 'management/metadata_management'
