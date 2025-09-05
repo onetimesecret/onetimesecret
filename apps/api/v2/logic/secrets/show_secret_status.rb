@@ -20,7 +20,7 @@ module V2::Logic
         if secret.nil?
           { record: { state: 'unknown' } }
         else
-          { record: secret.safe_dump, details: { current_expiration: current_expiration } }
+          { record: secret.safe_dump, details: { current_expiration: @current_expiration } }
         end
       end
     end

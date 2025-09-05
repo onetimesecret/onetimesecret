@@ -39,12 +39,15 @@ module Onetime
     end
 
     def build_update_fields(obj)
+      # Generate or use existing objid
+      new_objid = obj.objid || SecureRandom.uuid_v7_from(obj.created)
+
       {
         # We take a page from Django's book here by not relying on model
         # methods or attributes that could be changed in ways we don't
         # expect (e.g. like when they're removed entirely).
-        objid: obj.objid || SecureRandom.uuid_v7_from(obj.created),
-        extid: obj.extid || Tools.derive_extid_from_uuid(obj.uuid),
+        objid: new_objid,
+        extid: obj.extid || Tools.derive_extid_from_uuid(new_objid),
       }
     end
   end
