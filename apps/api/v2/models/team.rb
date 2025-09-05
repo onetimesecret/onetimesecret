@@ -34,7 +34,7 @@ module V2
         team = new display_name: display_name, contact_email: contact_email
         team.save
 
-        OT.ld "[create] teamid: #{team.teamid}, #{team..to_s}"
+        OT.ld "[create] teamid: #{team.teamid}, #{team.to_s}"
         add team
         team
       end

@@ -3,7 +3,7 @@
 module V2::Logic
   module Secrets
     class ShowSecretStatus < V2::Logic::Base
-      attr_reader :key, :realttl, :secret, :verification
+      attr_reader :key, :current_expiration, :secret, :verification
 
       def process_params
         @key    = params[:key].to_s
@@ -13,7 +13,7 @@ module V2::Logic
       def raise_concerns; end
 
       def process
-        @realttl = secret.current_expiration unless secret.nil?
+        @current_expiration = secret.current_expiration unless secret.nil?
       end
 
       def success_data
