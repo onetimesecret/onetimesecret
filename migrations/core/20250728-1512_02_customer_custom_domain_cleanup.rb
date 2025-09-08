@@ -87,7 +87,7 @@ module Onetime
     end
 
     def test_domain_pattern?(dbkey)
-      dbkey.to_s.match?(/\Atryouts.*onetimesecret\.com\z/i)
+      dbkey.to_s.match?(/\Atryouts[a-z0-9.-]*onetimesecret\.com\z/i)
     end
   end
 end
