@@ -93,7 +93,8 @@ module V2
     safe_dump_field :txt_validation_host
     safe_dump_field :txt_validation_value
     safe_dump_field :brand, ->(obj) { obj.brand.hgetall }
-    # NOTE: We don't serialize images here
+    # NOTE: We don't include brand images here b/c they create huge payloads
+    # that we want to avoid unless we are actually going to use it.
     safe_dump_field :status
     safe_dump_field :vhost, ->(obj) { obj.parse_vhost }
     safe_dump_field :verified
