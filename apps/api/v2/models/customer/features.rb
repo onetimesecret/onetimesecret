@@ -7,6 +7,6 @@
 
 class V2::Customer < Familia::Horreum
   module Features
-    include Familia::Features::Autoloader
+    include Familia::Autoloader
   end
 end

@@ -2,6 +2,6 @@
 
 class V2::Secret < Familia::Horreum
   module Features
-    include Familia::Features::Autoloader
+    include Familia::Autoloader
   end
 end
