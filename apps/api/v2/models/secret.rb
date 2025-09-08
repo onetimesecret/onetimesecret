@@ -15,7 +15,7 @@ module V2
     feature :secret_encryption
     feature :secret_state_management
     feature :secret_customer_relations
-    feature :secret_deprecated_fields
+    feature :deprecated_fields
 
     default_expiration 7.days # default only, can be overridden at create time
     prefix :secret

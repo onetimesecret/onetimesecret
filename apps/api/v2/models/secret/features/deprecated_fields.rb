@@ -1,7 +1,7 @@
-# apps/api/v2/models/secret/features/secret_deprecated_fields.rb
+# apps/api/v2/models/secret/features/deprecated_fields.rb
 
 module V2::Secret::Features
-  module SecretDeprecatedFields
+  module DeprecatedFields
     def self.included(base)
       OT.ld "[#{name}] Included in #{base}"
       base.extend ClassMethods
@@ -18,6 +18,6 @@ module V2::Secret::Features
     module InstanceMethods
     end
 
-    Familia::Base.add_feature self, :secret_deprecated_fields
+    Familia::Base.add_feature self, :deprecated_fields
   end
 end

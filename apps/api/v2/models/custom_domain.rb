@@ -436,8 +436,13 @@ module V2
         raise Onetime::Problem, "Domain too long (max: #{MAX_TOTAL_LENGTH})" if input.length > MAX_TOTAL_LENGTH
 
         display_domain      = self.display_domain(input)
+        OT.ld "[CustomDomain.parse] Creating with display_domain=#{display_domain.inspect}, custid=#{custid.inspect}"
         obj                 = new(display_domain, custid)
         obj._original_value = input
+
+        # Debug the created object
+        OT.ld "[CustomDomain.parse] Created object: display_domain=#{obj.display_domain.inspect}, custid=#{obj.custid.inspect}, identifier=#{obj.identifier.inspect}"
+
         obj
       end
 
@@ -472,7 +477,15 @@ module V2
       #
       def display_domain(input)
         ps_domain = PublicSuffix.parse(input, default_rule: nil)
-        ps_domain.subdomain || ps_domain.domain
+        result = ps_domain.subdomain || ps_domain.domain
+
+        # Safety check to prevent nil display_domain which causes serialization issues
+        if result.nil?
+          OT.le "[CustomDomain.display_domain] Parsed domain resulted in nil: subdomain=#{ps_domain.subdomain.inspect}, domain=#{ps_domain.domain.inspect} for input `#{input}`"
+          raise Onetime::Problem, "Invalid domain format - unable to determine display domain"
+        end
+
+        result
       rescue PublicSuffix::Error => ex
         OT.le "[CustomDomain.parse] #{ex.message} for `#{input}`"
         raise Onetime::Problem, ex.message
@@ -509,6 +522,28 @@ module V2
       end
 
       def add(fobj)
+        # Safety checks to prevent serialization errors
+        if fobj.display_domain.nil?
+          OT.le "[CustomDomain.add] display_domain is nil for #{fobj.class}:#{fobj.identifier}"
+          raise Onetime::Problem, "Cannot add custom domain with nil display_domain"
+        end
+
+        if fobj.identifier.nil?
+          OT.le "[CustomDomain.add] identifier is nil for #{fobj.class}:#{fobj.display_domain}"
+          raise Onetime::Problem, "Cannot add custom domain with nil identifier"
+        end
+
+        if fobj.custid.nil?
+          OT.le "[CustomDomain.add] custid is nil for #{fobj.class}:#{fobj.display_domain}:#{fobj.identifier}"
+          debug_info = begin
+            { to_h: fobj.to_h, methods: fobj.methods.grep(/cust/) }
+          rescue => e
+            { error: e.message }
+          end
+          OT.le "[CustomDomain.add] fobj debug: #{debug_info.inspect}"
+          raise Onetime::Problem, "Cannot add custom domain with nil custid. display_domain=#{fobj.display_domain.inspect}, identifier=#{fobj.identifier.inspect}"
+        end
+
         values.add OT.now.to_i, fobj.to_s # created time, identifier
         display_domains.put fobj.display_domain, fobj.identifier
         owners.put fobj.to_s, fobj.custid # domainid => customer id
