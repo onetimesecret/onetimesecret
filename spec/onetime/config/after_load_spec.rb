@@ -9,6 +9,8 @@ require_relative '../../spec_helper'
 # methods to prevent actual initialization during tests.
 
 RSpec.describe "Onetime boot configuration process" do
+  using Familia::Refinements::TimeLiterals
+
   let(:test_config_path) { File.join(Onetime::HOME, 'spec', 'config.test.yaml') }
   let(:test_config_string) { File.read(test_config_path) }
 

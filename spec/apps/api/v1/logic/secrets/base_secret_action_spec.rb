@@ -5,6 +5,8 @@ require 'v1/logic'
 
 
 RSpec.describe V1::Logic::Secrets::BaseSecretAction do
+  using Familia::Refinements::TimeLiterals
+
   # Create test implementation class
   class TestSecretAction < V1::Logic::Secrets::BaseSecretAction
     def process_secret
