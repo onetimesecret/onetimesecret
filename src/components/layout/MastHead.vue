@@ -152,8 +152,7 @@ import { shallowRef } from 'vue';
               :alt="logoConfig.alt" />
             <span
               v-if="logoConfig.showSiteName"
-              class="text-lg font-bold text-gray-800 d
-              ark:text-gray-100">
+              class="text-lg font-bold text-gray-800 dark:text-gray-100">
               {{ logoConfig.siteName }}
             </span>
           </a>
