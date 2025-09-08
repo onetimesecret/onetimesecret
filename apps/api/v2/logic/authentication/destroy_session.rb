@@ -2,6 +2,8 @@
 
 module V2::Logic
   module Authentication
+    using Familia::Refinements::TimeLiterals
+
     class DestroySession < V2::Logic::Base
       def process_params; end
 

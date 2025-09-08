@@ -3,6 +3,8 @@
 module V1::Logic
   module Secrets
 
+    using Familia::Refinements::TimeLiterals
+
     class ShowSecret < V1::Logic::Base
       attr_reader :key, :passphrase, :continue
       attr_reader :secret, :show_secret, :secret_value, :is_truncated,

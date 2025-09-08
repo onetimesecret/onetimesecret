@@ -4,6 +4,8 @@ module Onetime
   module Config
     extend self
 
+    using Familia::Refinements::TimeLiterals
+
     unless defined?(SERVICE_PATHS)
       SERVICE_PATHS = %w[/etc/onetime ./etc ./etc/defaults].freeze
       UTILITY_PATHS = %w[~/.onetime /etc/onetime ./etc ./etc/defaults].freeze

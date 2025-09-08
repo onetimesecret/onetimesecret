@@ -41,6 +41,8 @@ module V2
       MAX_TOTAL_LENGTH    = 253   # RFC 1034 section 3.1
     end
 
+    using Familia::Refinements::TimeLiterals
+
     prefix :customdomain
 
     feature :safe_dump

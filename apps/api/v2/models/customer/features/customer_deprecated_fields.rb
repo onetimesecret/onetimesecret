@@ -1,6 +1,7 @@
 # apps/api/v2/models/customer/features/customer_deprecated_fields.rb
 
 module V2::Customer::Features
+  # TODO: Add DeprecatedFields as a built-in feature that Autoloadable
   module CustomerDeprecatedFields
     def self.included(base)
       OT.ld "[#{name}] Included in #{base}"

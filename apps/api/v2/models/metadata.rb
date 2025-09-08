@@ -2,6 +2,9 @@
 
 module V2
   class Metadata < Familia::Horreum
+
+    using Familia::Refinements::TimeLiterals
+
     feature :safe_dump
     feature :expiration
 

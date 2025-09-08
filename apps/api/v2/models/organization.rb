@@ -6,7 +6,8 @@ module V2
   # Organization Model
   #
   class Organization < Familia::Horreum
-    @global = nil
+
+    using Familia::Refinements::TimeLiterals
 
     prefix :org
 

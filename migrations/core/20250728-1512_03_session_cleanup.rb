@@ -18,7 +18,7 @@ require 'familia/refinements/time_utils'
 
 module Onetime
   class Migration < PipelineMigration
-    using Familia::Refinements::TimeUtils
+    using Familia::Refinements::TimeLiterals
 
     def prepare
       @model_class = V2::Session

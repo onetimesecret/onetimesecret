@@ -19,6 +19,8 @@ require 'public_suffix'
 module V1
   class CustomDomain < Familia::Horreum
 
+    using Familia::Refinements::TimeLiterals
+
     feature :safe_dump
 
     prefix :customdomain

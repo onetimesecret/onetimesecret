@@ -8,6 +8,9 @@ require_relative 'helpers'
 
 module V2
   module Logic
+
+    using Familia::Refinements::TimeLiterals
+
     class Base
       # We may want to have a @@customer_model set so that we can set it to
       # V2::Customer. Currently even if we're using the V2 of this logic,

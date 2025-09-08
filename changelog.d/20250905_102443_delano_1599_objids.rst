@@ -17,7 +17,7 @@ Changed
 -------
 
 - Customer migration now uses deterministic external ID generation based on UUID hash instead of random values.
-- Session cleanup migration updated to use Familia::Refinements::TimeUtils instead of custom time extensions.
+- Session cleanup migration updated to use Familia::Refinements::TimeLiterals instead of custom time extensions.
 
 .. Deprecated
 .. ----------

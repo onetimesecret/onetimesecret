@@ -4,6 +4,9 @@ require 'json'
 
 module V2
   module Mixins
+
+    using Familia::Refinements::TimeLiterals
+
     # Provides session-based messaging and form state persistence functionality
     #
     # @example Basic usage

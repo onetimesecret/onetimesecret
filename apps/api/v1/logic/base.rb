@@ -7,6 +7,8 @@ require_relative 'helpers'
 module V1
   module Logic
     class Base
+      using Familia::Refinements::TimeLiterals
+
       include V1::Logic::I18nHelpers
       include V1::Logic::UriHelpers
 

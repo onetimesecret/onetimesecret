@@ -2,6 +2,9 @@
 
 module V2
   class Feedback < Familia::Horreum
+
+    using Familia::Refinements::TimeLiterals
+
     class_sorted_set :values, dbkey: 'onetime:feedback' # naming for legacy compatibility
 
     module ClassMethods

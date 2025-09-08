@@ -3,6 +3,8 @@
 module V1::Logic
   module Secrets
 
+    using Familia::Refinements::TimeLiterals
+
     class ShowMetadata < V1::Logic::Base
       # Working variables
       attr_reader :key, :metadata, :secret

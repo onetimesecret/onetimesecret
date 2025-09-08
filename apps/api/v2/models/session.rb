@@ -3,6 +3,8 @@
 module V2
   class Session < Familia::Horreum
 
+    using Familia::Refinements::TimeLiterals
+
     feature :safe_dump
     feature :expiration
 

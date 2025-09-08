@@ -5,6 +5,8 @@ require_relative 'mixins/passphrase'
 module V1
   class Secret < Familia::Horreum
 
+    using Familia::Refinements::TimeLiterals
+
     feature :safe_dump
     feature :expiration
 

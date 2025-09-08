@@ -4,6 +4,9 @@ require_relative '../base'
 
 module V2::Logic
   module Authentication
+
+    using Familia::Refinements::TimeLiterals
+
     class ResetPasswordRequest < V2::Logic::Base
       attr_reader :custid
       attr_accessor :token

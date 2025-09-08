@@ -4,7 +4,8 @@ require_relative 'secret/features'
 
 module V2
   class Secret < Familia::Horreum
-    include Familia::Features::Autoloader
+
+    using Familia::Refinements::TimeLiterals
 
     feature :safe_dump
     feature :expiration

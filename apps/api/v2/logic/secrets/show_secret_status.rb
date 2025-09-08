@@ -2,6 +2,8 @@
 
 module V2::Logic
   module Secrets
+    using Familia::Refinements::TimeLiterals
+
     class ShowSecretStatus < V2::Logic::Base
       attr_reader :key, :current_expiration, :secret, :verification
 

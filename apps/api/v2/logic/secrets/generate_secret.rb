@@ -4,6 +4,9 @@ require_relative 'base_secret_action'
 
 module V2::Logic
   module Secrets
+
+    using Familia::Refinements::TimeLiterals
+
     class GenerateSecret < BaseSecretAction
       def process_secret
         @kind         = :generate

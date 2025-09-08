@@ -30,7 +30,8 @@ module V2
   # factory methods above to avoid state inconsistencies.
   #
   class Customer < Familia::Horreum
-    include Familia::Features::Autoloader
+
+    using Familia::Refinements::TimeLiterals
 
     @global = nil
 

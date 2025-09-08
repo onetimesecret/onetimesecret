@@ -6,6 +6,9 @@ module V2
   # Team Model (aka Group)
   #
   class Team < Familia::Horreum
+
+    using Familia::Refinements::TimeLiterals
+
     feature :safe_dump
 
     feature :relationships

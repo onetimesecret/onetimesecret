@@ -5,6 +5,8 @@ require 'json'
 
 module Onetime
   module Initializers
+    using Familia::Refinements::TimeLiterals
+
     # Prints a formatted banner with system and configuration information at startup.
     # The banner is organized into logical sections, each rendered as a table.
     #

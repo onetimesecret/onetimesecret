@@ -3,6 +3,8 @@
 module V1::Logic
   module Secrets
 
+    using Familia::Refinements::TimeLiterals
+
     class BurnSecret < V1::Logic::Base
       attr_reader :key, :passphrase, :continue
       attr_reader :metadata, :secret, :correct_passphrase, :greenlighted
