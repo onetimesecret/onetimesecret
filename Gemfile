@@ -68,7 +68,7 @@ gem 'encryptor', '= 1.1.3'
 # Internal Dependencies (local dev)
 # ====================================
 
-gem 'familia', '~> 2.0.0.pre12'
+gem 'familia', '~> 2.0.0.pre13'
 gem 'otto', '~> 1.4.0'
 
 # ====================================
