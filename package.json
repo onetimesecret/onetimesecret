@@ -112,7 +112,7 @@
   "devDependencies": {
     "@eslint/js": "9.26.0",
     "@intlify/devtools-types": "11.1.11",
-    "@intlify/eslint-plugin-vue-i18n": "4.0.1",
+    "@intlify/eslint-plugin-vue-i18n": "4.1.0",
     "@pinia/testing": "1.0.2",
     "@playwright/test": "1.52.0",
     "@sentry/vite-plugin": "3.4.0",
