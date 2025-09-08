@@ -1,14 +1,5 @@
 # lib/onetime/core_ext.rb
 
-module Familia
-  class HashKey < DataType
-    def del(key)
-      OT.lw "[core_ext] Called #{self.class.name}#del which doesn't exist (via #{caller(1..4)})"
-      self.dbclient.del(key)
-    end
-  end
-end
-
 module QuantizeTime
   def quantize(quantum)
     stamp = is_a?(Integer) ? self : to_i
