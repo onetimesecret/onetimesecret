@@ -1,3 +1,5 @@
+# lib/onetime/core_ext.rb
+
 module QuantizeTime
   def quantize(quantum)
     stamp = is_a?(Integer) ? self : to_i

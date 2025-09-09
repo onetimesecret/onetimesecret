@@ -82,7 +82,7 @@ PublicSuffix.valid?("example.tldnotlisted")
 PublicSuffix.valid?("example.tldnotlisted", default_rule: nil)
 #=> false
 
-# Private domains are not valid with the * rule
+## Private domains are not valid with the * rule
 PublicSuffix.valid?("blogspot.com")
 #=> false
 

@@ -1,0 +1,84 @@
+# apps/api/v2/models/secret/features/secret_state_management.rb
+
+module V2::Secret::Features
+  module SecretStateManagement
+
+    Familia::Base.add_feature self, :secret_state_management
+
+    def self.included(base)
+      OT.ld "[#{name}] Included in #{base}"
+      base.extend ClassMethods
+      base.include InstanceMethods
+    end
+
+    module ClassMethods
+      def generate_id
+        Familia.generate_id
+      end
+    end
+
+    module InstanceMethods
+      def state?(guess)
+        state.to_s.eql?(guess.to_s)
+      end
+
+      def viewable?
+        has_key?(:value) && (state?(:new) || state?(:viewed))
+      end
+
+      def receivable?
+        has_key?(:value) && (state?(:new) || state?(:viewed))
+      end
+
+      def viewed!
+        # A guard to prevent regressing (e.g. from :burned back to :viewed)
+        return unless state?(:new)
+
+        # The secret link has been accessed but the secret has not been consumed yet
+        @state = 'viewed'
+        # NOTE: calling save re-creates all fields so if you're relying on
+        # has_field? to be false, it will start returning true after a save.
+        save update_expiration: false
+      end
+
+      def received!
+        # A guard to allow only a fresh, new secret to be received. Also ensures that
+        # we don't support going from :viewed back to something else.
+        return unless state?(:new) || state?(:viewed)
+
+        md               = load_metadata
+        md.received! unless md.nil?
+        # It's important for the state to change here, even though we're about to
+        # destroy the secret. This is because the state is used to determine if
+        # the secret is viewable. If we don't change the state here, the secret
+        # will still be viewable b/c (state?(:new) || state?(:viewed) == true).
+        @state           = 'received'
+        # We clear the value and passphrase_temp immediately so that the secret
+        # payload is not recoverable from this instance of the secret; however,
+        # we shouldn't clear arbitrary fields here b/c there are valid reasons
+        # to be able to call secret.safe_dump for example. This is exactly what
+        # happens in Logic::RevealSecret.process which prepares the secret value
+        # to be included in the response and then calls this method att the end.
+        # It's at that point that `Logic::RevealSecret.success_data` is called
+        # which means if we were to clear out say -- state -- it would
+        # be null in the API's JSON response. Not a huge deal in that case, but
+        # we validate response data in the UI now and this would raise an error.
+        @value           = nil
+        @passphrase_temp = nil
+        destroy!
+      end
+
+      def burned!
+        # A guard to allow only a fresh, new secret to be burned. Also ensures that
+        # we don't support going from :burned back to something else.
+        return unless state?(:new) || state?(:viewed)
+
+        md               = load_metadata
+        md.burned! unless md.nil?
+        @passphrase_temp = nil
+        destroy!
+      end
+    end
+
+  end
+end

@@ -2,6 +2,9 @@
 
 module V2::Logic
   module Secrets
+
+    using Familia::Refinements::TimeLiterals
+
     class ShowMetadata < V2::Logic::Base
       # Working variables
       attr_reader :key, :metadata, :secret

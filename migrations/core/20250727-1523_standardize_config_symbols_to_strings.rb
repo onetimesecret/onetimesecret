@@ -306,7 +306,7 @@ module Onetime
     def format_default_for_yq(value)
       case value
       when String
-        "\"#{value.gsub('"', '\\"')}\""
+        "\"#{value.gsub('\\', '\\\\').gsub('"', '\\"')}\""
       when TrueClass, FalseClass
         value.to_s
       when Numeric

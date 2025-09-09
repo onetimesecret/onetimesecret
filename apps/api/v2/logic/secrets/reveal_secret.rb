@@ -2,6 +2,8 @@
 
 module V2::Logic
   module Secrets
+    using Familia::Refinements::TimeLiterals
+
     # Very similar logic to ShowSecret, but with a few key differences
     # as required by the v2 API. The v1 API uses the original ShowSecret.
     class RevealSecret < V2::Logic::Base

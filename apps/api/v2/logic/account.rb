@@ -5,6 +5,8 @@ require_relative 'base'
 module V2
   module Logic
     module Account
+      using Familia::Refinements::TimeLiterals
+
     end
   end
 end

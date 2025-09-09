@@ -46,7 +46,7 @@ sessid2 = sess.sessid
 ## Sessions always have a ttl value
 ttl = @sess.default_expiration
 [ttl.class, ttl]
-#=> [Float, 20.minutes]
+#=> [Float, 1200]
 
 ## Sessions have an identifier
 identifier = @sess.identifier

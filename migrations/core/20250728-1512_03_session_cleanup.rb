@@ -14,11 +14,11 @@
 #
 
 require 'onetime/migration'
-require 'onetime/refinements/time_extensions'
+require 'familia/refinements/time_utils'
 
 module Onetime
   class Migration < PipelineMigration
-    using Onetime::TimeExtensions
+    using Familia::Refinements::TimeLiterals
 
     def prepare
       @model_class = V2::Session

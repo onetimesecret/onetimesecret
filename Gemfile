@@ -68,13 +68,8 @@ gem 'encryptor', '= 1.1.3'
 # Internal Dependencies (local dev)
 # ====================================
 
-if ENV['LOCAL_DEV'].to_s.empty?
-  gem 'familia', '~> 2.0.0.pre5'
-  gem 'otto', '~> 1.4.0'
-else
-  gem 'familia', path: '../../d/familia'
-  gem 'otto', path: '../../d/otto'
-end
+gem 'familia', '~> 2.0.0.pre15'
+gem 'otto', '~> 1.4.0'
 
 # ====================================
 # Ruby Standard Library Compatibility
@@ -107,9 +102,7 @@ end
 
 group :development do
   # Debugging tools
-  gem 'byebug', require: false
-  gem 'pry', require: false
-  gem 'pry-byebug', require: false
+  gem 'debug', require: false
 
   # Development utilities
   gem 'rack-proxy', require: false
@@ -121,8 +114,8 @@ group :development do
   gem 'rubocop-rspec', require: false
   gem 'rubocop-thread_safety', require: false
   gem 'ruby-lsp', require: false
+  gem 'solargraph', require: false
   gem 'syntax_tree', require: false
- gem 'solargraph', require: false
   # Enable for Debug Adapter Protocol. Not included with the
   # development group because it lags on byebug version.
   # gem 'byebug-dap', require: false
@@ -133,7 +126,7 @@ group :test do
   gem 'rack-test', require: false
   gem 'rspec', git: 'https://github.com/rspec/rspec'
   gem 'simplecov', require: false
-  gem 'tryouts', '~> 3.3.2', require: false
+  gem 'tryouts', '~> 3.6.0', require: false
 
   # RSpec components
   %w[rspec-core rspec-expectations rspec-mocks rspec-support].each do |lib|

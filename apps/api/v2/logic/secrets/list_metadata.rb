@@ -4,6 +4,9 @@ require 'time'
 
 module V2::Logic
   module Secrets
+
+    using Familia::Refinements::TimeLiterals
+
     class ListMetadata < V2::Logic::Base
       attr_reader :records, :since, :now, :query_results, :received, :notreceived, :has_items
 

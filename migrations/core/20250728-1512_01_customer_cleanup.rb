@@ -70,12 +70,12 @@ module Onetime
     def invalid_custid?(custid)
       custid.to_s.empty? ||
         custid.to_s.downcase == 'anon' ||
-        custid.to_s.match?(/tryouts.*onetimesecret\.com/i)
+        custid.to_s.match?(/\Atryouts[a-z0-9.-]*onetimesecret\.com\z/i)
     end
 
     def invalid_email?(email)
       email.to_s.empty? ||
-        email.to_s.match?(/tryouts.*onetimesecret\.com/i)
+        email.to_s.match?(/\Atryouts[a-z0-9.-]*onetimesecret\.com\z/i)
     end
 
     def invalid_created_date?(created)

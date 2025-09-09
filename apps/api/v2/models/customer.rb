@@ -2,10 +2,10 @@
 
 require 'rack/utils'
 
-require_relative 'definitions/customer_definition'
+require_relative 'mixins/passphrase'
 
 module V2
-  # Customer Model (aka User)
+  # Customer
   #
   # IMPORTANT API CHANGES:
   # Previously, anonymous users were identified by custid='anon'.
@@ -29,103 +29,73 @@ module V2
   # factory methods above to avoid state inconsistencies.
   #
   class Customer < Familia::Horreum
-    def locale?
-      !locale.to_s.empty?
-    end
+    require_relative 'customer/features'
+    # include Familia::Features::Autoloader
 
-    def apitoken?(guess)
-      apitoken.to_s == guess.to_s
-    end
+    using Familia::Refinements::TimeLiterals
 
-    def regenerate_apitoken
-      apitoken! OT::Utils.generate_id
-      apitoken # the fast writer bang methods don't return the value
-    end
+    @global = nil
 
-    def external_identifier
-      raise OT::Problem, 'Anonymous customer has no external identifier' if anonymous?
+    prefix :customer
 
-      @external_identifier ||= OT::Utils.generate_id # generate but don't save
-      @external_identifier
-    end
+    class_sorted_set :values, dbkey: 'onetime:customer'
+    sorted_set :metadata
+    hashkey :feature_flags # To turn on allow_public_homepage column in domains table
 
-    def get_stripe_customer
-      get_stripe_customer_by_id || get_stripe_customer_by_email
-    rescue Stripe::StripeError => ex
-      OT.le "[Customer.get_stripe_customer] Error: #{ex.message}: #{ex.backtrace}"
-      nil
-    end
+    # Used to track the current and most recently created password reset secret.
+    string :reset_secret, default_expiration: 24.hours
 
-    def get_stripe_subscription
-      get_stripe_subscription_by_id || get_stripe_subscriptions&.first
-    end
+    identifier_field :custid
 
-    def get_stripe_customer_by_id(customer_id = nil)
-      customer_id ||= stripe_customer_id
-      return if customer_id.to_s.empty?
+    feature :expiration
+    feature :relationships
+    feature :object_identifier
+    feature :external_identifier
+    feature :required_fields
+    feature :increment_field
+    feature :right_to_be_forgotten
+    feature :safe_dump_fields
+    feature :with_stripe_account
+    feature :with_custom_domains
+    feature :status
 
-      OT.info "[Customer.get_stripe_customer_by_id] Fetching customer: #{customer_id} #{custid}"
-      @stripe_customer = Stripe::Customer.retrieve(customer_id)
-    rescue Stripe::StripeError => ex
-      OT.le "[Customer.get_stripe_customer_by_id] Error: #{ex.message}"
-      nil
-    end
+    feature :deprecated_fields
+    feature :legacy_encrypted_fields
+    feature :legacy_secrets_fields
 
-    def get_stripe_customer_by_email
-      customers = Stripe::Customer.list(email: email, limit: 1)
+    field :custid
+    field :email
 
-      if customers.data.empty?
-        OT.info "[Customer.get_stripe_customer_by_email] No customer found with email: #{email}"
+    field :locale
+    field :planid
 
-      else
-        @stripe_customer = customers.data.first
-        OT.info "[Customer.get_stripe_customer_by_email] Customer found: #{@stripe_customer.id}"
-      end
+    field :last_login
 
-      @stripe_customer
-    rescue Stripe::StripeError => ex
-      OT.le "[Customer.get_stripe_customer_by_email] Error: #{ex.message}"
-      nil
-    end
 
-    def get_stripe_subscription_by_id(subscription_id = nil)
-      subscription_id ||= stripe_subscription_id
-      return if subscription_id.to_s.empty?
+    def init
+      self.custid ||= 'anon'
+      self.role   ||= 'customer'
+      self.email  ||= self.custid unless anonymous?
 
-      OT.info "[Customer.get_stripe_subscription_by_id] Fetching subscription: #{subscription_id} #{custid}"
-      @stripe_subscription = Stripe::Subscription.retrieve(subscription_id)
-    rescue Stripe::StripeError => ex
-      OT.le "[Customer.get_stripe_subscription_by_id] Error: #{ex.message}"
-      nil
-    end
+      # When an instance is first created, any field that doesn't have a
+      # value set will be nil. We need to ensure that these fields are
+      # set to an empty string to match the default values when loading
+      # from the db (i.e. all values in core data types are strings).
+      self.locale ||= ''
 
-    def get_stripe_subscriptions(stripe_customer = nil)
-      stripe_customer ||= @stripe_customer
-      subscriptions     = []
-      return subscriptions unless stripe_customer
-
-      begin
-        subscriptions = Stripe::Subscription.list(customer: stripe_customer.id, limit: 1)
-      rescue Stripe::StripeError => ex
-        OT.le "Error: #{ex.message}"
-      else
-        if subscriptions.data.empty?
-          OT.info "No subscriptions found for customer: #{stripe_customer.id}"
-        else
-          OT.info "Found #{subscriptions.data.length} subscriptions"
-          subscriptions = subscriptions.data
-        end
-      end
-
-      subscriptions
+      # Initialze auto-increment fields. We do this since Redis
+      # gets grumpy about trying to increment a hashkey field
+      # that doesn't have any value at all yet. This is in
+      # contrast to the regular INCR command where a
+      # non-existant key will simply be set to 1.
+      self.secrets_created ||= 0
+      self.secrets_burned  ||= 0
+      self.secrets_shared  ||= 0
+      self.emails_sent     ||= 0
     end
 
     def anonymous?
       custid.to_s.eql?('anon')
-    end
-
-    def global?
-      custid.to_s.eql?('GLOBAL')
     end
 
     def obscure_email
@@ -140,139 +110,6 @@ module V2
       role.to_s.eql?(guess.to_s)
     end
 
-    def verified?
-      !anonymous? && verified.to_s.eql?('true')
-    end
-
-    def active?
-      # We modify the role when destroying so if a customer is verified
-      # and has a role of 'customer' then they are active.
-      verified? && role?('customer')
-    end
-
-    def pending?
-      # A customer is considered pending if they are not anonymous, not verified,
-      # and have a role of 'customer'. If any one of these conditions is changes
-      # then the customer is no longer pending.
-      !anonymous? && !verified? && role?('customer') # we modify the role when destroying
-    end
-
-    def reset_secret?(secret)
-      return false if secret.nil? || !secret.exists? || secret.key.to_s.empty?
-
-      Rack::Utils.secure_compare(reset_secret.to_s, secret.key)
-    end
-
-    def valid_reset_secret!(secret)
-      if is_valid = reset_secret?(secret)
-        OT.ld "[valid_reset_secret!] Reset secret is valid for #{custid} #{secret.shortkey}"
-        secret.delete!
-        reset_secret.delete!
-      end
-      is_valid
-    end
-
-    # Loads an existing session or creates a new one if it doesn't exist.
-    #
-    # @param [String] ip_address The IP address of the customer.
-    # @raise [Onetime::Problem] if the customer is anonymous.
-    # @return [V2::Session] The loaded or newly created session.
-    def load_or_create_session(ip_address)
-      raise Onetime::Problem, 'Customer is anonymous' if anonymous?
-
-      @sess = V2::Session.load(sessid) unless sessid.to_s.empty?
-      if @sess.nil?
-        @sess  = V2::Session.create(ip_address, custid)
-        sessid = @sess.identifier
-        OT.info "[load_or_create_session] adding sess #{sessid} to #{obscure_email}"
-        sessid!(sessid)
-      end
-      @sess
-    end
-
-    def metadata_list
-      metadata.revmembers.collect do |key|
-        V2::Metadata.load(key)
-      rescue Onetime::RecordNotFound => ex
-        OT.le "[metadata_list] Error: #{ex.message} (#{key} / #{custid})"
-      end.compact
-    end
-
-    def add_metadata(obj)
-      metadata.add OT.now.to_i, obj.key
-    end
-
-    def custom_domains_list
-      custom_domains.revmembers.collect do |domain|
-        V2::CustomDomain.load domain, custid
-      rescue Onetime::RecordNotFound => ex
-        OT.le "[custom_domains_list] Error: #{ex.message} (#{domain} / #{custid})"
-      end.compact
-    end
-
-    def add_custom_domain(obj)
-      OT.ld "[add_custom_domain] adding #{obj} to #{self}"
-      custom_domains.add OT.now.to_i, obj.display_domain # not the object identifier
-    end
-
-    def remove_custom_domain(obj)
-      custom_domains.remove obj.display_domain # not the object identifier
-    end
-
-    def encryption_key
-      V2::Secret.encryption_key OT.global_secret, custid
-    end
-
-    # Marks the customer account as requested for destruction.
-    #
-    # This method doesn't actually destroy the customer record but prepares it
-    # for eventual deletion after a grace period. It performs the following actions:
-    #
-    # 1. Sets a Time To Live (TTL) of 365 days on the customer record.
-    # 2. Regenerates the API token.
-    # 3. Clears the passphrase.
-    # 4. Sets the verified status to 'false'.
-    # 5. Changes the role to 'user_deleted_self'.
-    #
-    # The customer record is kept for a grace period to handle any remaining
-    # account-related tasks, such as pro-rated refunds or sending confirmation
-    # notifications.
-    #
-    # @return [void]
-    def destroy_requested!
-      destroy_requested
-      save
-    end
-
-    def user_deleted_self?
-      role?('user_deleted_self')
-    end
-
-    # Updates the customer record in memory for account deletion but
-    # does not save the changes to the database. This separates the
-    # modification process from the actual deletion which is a
-    # helpful pattern for testing and debugging.
-    #
-    # Use #destroy_requested! for permanent deletion.
-    def destroy_requested
-      # NOTE: we don't use cust.destroy! here since we want to keep the
-      # customer record around for a grace period to take care of any
-      # remaining business to do with the account.
-      #
-      # We do however auto-expire the customer record after
-      # the grace period.
-      #
-      # For example if we need to send a pro-rated refund
-      # or if we need to send a notification to the customer
-      # to confirm the account deletion.
-      self.default_expiration = 365.days
-      regenerate_apitoken
-      self.passphrase = ''
-      self.verified   = 'false'
-      self.role       = 'user_deleted_self'
-      save
-    end
-
     # Saves the customer object to the database.
     #
     # @raise [Onetime::Problem] If attempting to save an anonymous customer.
@@ -280,25 +117,54 @@ module V2
     #
     # This method overrides the default save behavior to prevent
     # anonymous customers from being persisted to the database.
+    #
+    # TODO: If familia gave us validators we could remove this guard logic
+    # and the custom save method altogether.
     def save(**)
       raise Onetime::Problem, "Anonymous cannot be saved #{self.class} #{dbkey}" if anonymous?
 
       super
     end
 
-    def increment_field(field)
-      if anonymous?
-        whereami = caller(1..4)
-        OT.le "[increment_field] Refusing to increment #{field} for anon customer #{whereami}"
-        return
+    class << self
+      attr_reader :values
+
+      def create(custid, email = nil)
+        raise Onetime::Problem, 'custid is required' if custid.to_s.empty?
+        raise Onetime::Problem, 'Customer exists' if exists?(custid)
+
+        cust        = new custid: custid, email: email || custid, role: 'customer'
+        cust.planid = 'basic'
+        OT.ld "[create] custid: #{custid}, #{cust.safe_dump}"
+        cust.save
+        add cust
+        cust
       end
 
-      # Taking the module Approach simply to keep it out of this busy Customer
-      # class. There's a small benefit to being able grep for "cust.method_name"
-      # which this approach affords as well. Although it's a small benefit.
-      self.class.increment_field(self, field)
+      def anonymous
+        new('anon').freeze
+      end
+
     end
+
+    # Mixin Placement for Field Order Control
+    #
+    # We include the SessionMessages mixin at the end of this class definition
+    # for a specific reason related to how Familia::Horreum handles fields.
+    #
+    # In Familia::Horreum subclasses (like this Customer class), fields are processed
+    # in the order they are defined. When creating a new instance with Session.new,
+    # any provided positional arguments correspond to these fields in the same order.
+    #
+    # By including SessionMessages last, we ensure that:
+    # 1. Its additional fields appear at the end of the field list.
+    # 2. These fields don't unexpectedly consume positional arguments in Session.new.
+    #
+    # e.g. `Customer.new('my@example.com')`. If we included thePassphrase
+    # module at the top, instead of populating the custid field (as the
+    # first field defined in this file), this email address would get
+    # written to the (automatically inserted) passphrase field.
+    #
+    include V2::Mixins::Passphrase
   end
 end
-
-require_relative 'management/customer_management'

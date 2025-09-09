@@ -1,14 +1,77 @@
 # apps/api/v2/models/session.rb
 
-# NOTE: Due to a limitation in Familia::Horreum (when a field is defined its
-# read accessor is created the same way regardless of whether there was an
-# existing accessor), the model definitions must live at the top. More
-# specifically, the horreum field definitions must be loaded prior to the
-# model instance methods.
-require_relative 'definitions/session_definition'
-
 module V2
   class Session < Familia::Horreum
+
+    using Familia::Refinements::TimeLiterals
+
+    feature :safe_dump
+    feature :expiration
+
+    default_expiration 20.minutes
+    prefix :session
+
+    class_sorted_set :values, dbkey: 'onetime:session'
+
+    identifier_field :sessid
+
+    field :ipaddress
+    field :custid
+    field :useragent
+    field :stale
+    field :sessid, on_conflict: :skip
+    field :updated
+    field :created
+    field :authenticated
+    field :external_identifier, on_conflict: :skip
+
+    transient_field :favourite_salad # this will not persist to the database
+
+    field :shrimp # as string?
+
+    # We check this field in check_referrer! but we rely on this field when
+    # receiving a redirect back from Stripe subscription payment workflow.
+    field :referrer
+
+    safe_dump_field :identifier, ->(obj) { obj.identifier }
+    safe_dump_field :sessid
+    safe_dump_field :external_identifier
+    safe_dump_field :authenticated
+    safe_dump_field :stale
+    safe_dump_field :created
+    safe_dump_field :updated
+
+    # When set to true, the session reports itself as not authenticated
+    # regardless of the value of the authenticated field. This allows
+    # the site to disable authentication without affecting the session
+    # data. For example, if we want to disable authenticated features
+    # temporarily (in case of abuse, etc.) we can set this to true so
+    # the user will remain signed in after we enable authentication again.
+    #
+    # During the time that authentication is disabled, the session will
+    # be anonymous and the customer will be anonymous.
+    #
+    # This value is set on every request and should not be persisted.
+    #
+    attr_accessor :disable_auth
+
+    def init
+      # This regular attribute that gets set on each request (if necessary). When
+      # true this instance will report authenticated? -> false regardless of what
+      # the authenticated field is set to.
+      @disable_auth = false
+
+      # Don't call the sessid accessor in here. We intentionally allow
+      # instantiating a session without a sessid. It's a distinction
+      # from create which generates an sessid _and_ saves.
+      @sessid ||= nil # rubocop:disable Naming/MemoizedInstanceVariableName
+    end
+
+    def save
+      @sessid ||= self.class.generate_id
+      super
+    end
+
     def sessid
       @sessid ||= self.class.generate_id
     end
@@ -22,7 +85,7 @@ module V2
     end
 
     def external_identifier
-      @external_identifier ||= OT::Utils.generate_id
+      @external_identifier ||= Familia.generate_id
     end
 
     def to_s
@@ -89,7 +152,65 @@ module V2
       cust = V2::Customer.load custid
       cust.nil? ? V2::Customer.anonymous : cust
     end
+
+    module ClassMethods
+      attr_reader :values
+
+      # Creates and persists a new session with full tracking.
+      # The session is immediately saved to the database and added to the class-level
+      # collection for management and cleanup operations.
+      #
+      # @param ipaddress [String] Client IP address
+      # @param custid [String] Customer identifier
+      # @param useragent [String, nil] User agent string
+      # @return [Session] Saved and tracked session instance
+      def create(ipaddress, custid, useragent = nil)
+        sess = new ipaddress: ipaddress, custid: custid, useragent: useragent
+        sess.save
+        add sess # to the class-level values relation (sorted set)
+        sess
+      end
+
+      # Creates an ephemeral (non-persistent) anonymous session for temporary use.
+      # Unlike #create, this session is not saved to the database or tracked in the class
+      # collection, making it suitable for:
+      #
+      # - Anonymous users who may not complete actions requiring persistence
+      # - Temporary request correlation before determining if session should persist
+      # - Reducing Redis writes for sessions that might be immediately discarded
+      #
+      # The session ID is generated immediately to support logging and debugging,
+      # but can be saved later if needed via #save.
+      #
+      # @param useragent [String] User agent string for the session
+      # @return [Session] Unsaved session instance with generated ID
+      def create_ephemeral(useragent)
+        sess = new(custid: 'anon', useragent: useragent)
+        sess.sessid # Force ID generation for logging/correlation
+        sess
+      end
+
+      def add(sess)
+        values.add OT.now.to_i, sess.identifier
+        values.remrangebyscore 0, OT.now.to_i - 2.days
+      end
+
+      def all
+        values.revrangeraw(0, -1).collect { |identifier| load(identifier) }
+      end
+
+      def recent(duration = 30.days)
+        spoint = OT.now.to_i - duration
+        epoint = OT.now.to_i
+        values.rangebyscoreraw(spoint, epoint).collect { |identifier| load(identifier) }
+      end
+
+      def generate_id
+        Familia.generate_id
+      end
+    end
+
+    include V2::Mixins::SessionMessages
+    extend ClassMethods
   end
 end
-
-require_relative 'management/session_management'

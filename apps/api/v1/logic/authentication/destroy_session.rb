@@ -4,6 +4,8 @@ require_relative '../base'
 
 module V1::Logic
   module Authentication
+    using Familia::Refinements::TimeLiterals
+
     class DestroySession < V1::Logic::Base
       def process_params
       end

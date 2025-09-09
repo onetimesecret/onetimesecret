@@ -1,5 +1,8 @@
 module V2::Logic
   module Authentication
+
+    using Familia::Refinements::TimeLiterals
+
     class ResetPassword < V2::Logic::Base
       attr_reader :secret, :is_confirmed
 

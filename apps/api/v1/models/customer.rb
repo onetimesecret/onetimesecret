@@ -7,6 +7,8 @@ require_relative 'mixins/passphrase'
 module V1
   class Customer < Familia::Horreum
 
+    using Familia::Refinements::TimeLiterals
+
     feature :safe_dump
     feature :expiration
 
@@ -54,34 +56,28 @@ module V1
     # NOTE: The SafeDump mixin caches the safe_dump_field_map so updating this list
     # with hot reloading in dev mode will not work. You will need to restart the
     # server to see the changes.
-    @safe_dump_fields = [
-      { :identifier => ->(obj) { obj.identifier } },
-      :custid,
+    safe_dump_field :identifier, ->(obj) { obj.identifier }
+    safe_dump_field :custid
+    safe_dump_field :role
+    safe_dump_field :verified
+    safe_dump_field :last_login
+    safe_dump_field :locale
+    safe_dump_field :updated
+    safe_dump_field :created
+    safe_dump_field :stripe_customer_id
+    safe_dump_field :stripe_subscription_id
+    safe_dump_field :stripe_checkout_email
+    safe_dump_field :planid
 
-      :role,
-      :verified,
-      :last_login,
-      :locale,
-      :updated,
-      :created,
+    # NOTE: The secrets_created incrementer is null until the first secret
+    # is created. See ConcealSecret for where the incrementer is called.
+    safe_dump_field :secrets_created, ->(cust) { cust.secrets_created.to_s || 0 }
+    safe_dump_field :secrets_burned, ->(cust) { cust.secrets_burned.to_s || 0 }
+    safe_dump_field :secrets_shared, ->(cust) { cust.secrets_shared.to_s || 0 }
+    safe_dump_field :emails_sent, ->(cust) { cust.emails_sent.to_s || 0 }
 
-      :stripe_customer_id,
-      :stripe_subscription_id,
-      :stripe_checkout_email,
-
-      :planid,
-
-      # NOTE: The secrets_created incrementer is null until the first secret
-      # is created. See ConcealSecret for where the incrementer is called.
-      #
-      {:secrets_created => ->(cust) { cust.secrets_created.to_s || 0 } },
-      {:secrets_burned => ->(cust) { cust.secrets_burned.to_s || 0 } },
-      {:secrets_shared => ->(cust) { cust.secrets_shared.to_s || 0 } },
-      {:emails_sent => ->(cust) { cust.emails_sent.to_s || 0 } },
-
-      # We use the hash syntax here since `:active?` is not a valid symbol.
-      { :active => ->(cust) { cust.active? } },
-    ]
+    # We use the hash syntax here since `:active?` is not a valid symbol.
+    safe_dump_field :active, ->(cust) { cust.active? }
 
     def init
       self.custid ||= 'anon'

@@ -9,21 +9,34 @@ module Onetime
   #
   class MigrateCommand < Onetime::CLI
     def migrate
+      migration_dirs = [
+        File.join(Onetime::HOME, 'migrations'),
+        File.join(Onetime::HOME, 'migrations', 'core'),
+      ]
       migration_file = argv.first
 
       unless migration_file
-        puts 'Usage: ots migrate MIGRATION_SCRIPT [--run]'
-        puts '  --run    Actually apply changes (default is dry run mode)'
-        puts "\nAvailable migrations:"
-        Dir[File.join(Onetime::HOME, 'migrate', '*.rb')].each do |file|
-          puts "  - #{File.basename(file)}"
+        usage_text = <<~USAGE
+          Usage: ots migrate MIGRATION_SCRIPT [--run]
+            --run    Actually apply changes (default is dry run mode)
+
+          Available migrations:
+        USAGE
+        print usage_text
+
+        migration_dirs.each do |dir|
+          Dir[File.join(dir, '*.rb')].each do |file|
+            OT.li "  - #{File.basename(file)}"
+          end
         end
         return
       end
 
-      migration_path = File.join(Onetime::HOME, 'migrate', migration_file)
-      unless File.exist?(migration_path)
-        puts "Migration script not found: #{migration_file}"
+      migration_paths = migration_dirs.map { |dir| File.join(dir, migration_file) }
+      migration_path  = migration_paths.find { |path| File.exist?(path) }
+
+      unless migration_path
+        OT.li "Migration script not found: #{migration_file}"
         return
       end
 
@@ -34,17 +47,17 @@ module Onetime
         # Run the migration with options
         success = Onetime::Migration.run(run: option.run)
         if option.run
-          puts success ? "\nMigration completed successfully" : "\nMigration did not run"
+          OT.li success ? 'Migration completed successfully' : 'Migration did not run'
         else
-          puts success ? "\nDry run completed successfully" : "\nDry run failed"
+          OT.li success ? 'Dry run completed successfully' : 'Dry run failed'
         end
         exit(success ? 0 : 1)
       rescue LoadError => ex
-        puts "Error loading migration: #{ex.message}"
+        OT.le "Error loading migration: #{ex.message}"
         exit 1
       rescue StandardError => ex
-        puts "Migration error: #{ex.message}"
-        puts ex.backtrace if OT.debug?
+        OT.le "Migration error: #{ex.message}"
+        OT.le ex.backtrace if OT.debug?
         exit 1
       end
     end

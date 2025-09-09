@@ -2,6 +2,8 @@
 
 module V2::Logic
   module Secrets
+    using Familia::Refinements::TimeLiterals
+
     class ListSecretStatus < V2::Logic::Base
       attr_reader :keys
 

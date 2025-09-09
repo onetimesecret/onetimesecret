@@ -2,6 +2,9 @@
 
 module V2::Logic
   module Authentication
+
+    using Familia::Refinements::TimeLiterals
+
     class AuthenticateSession < V2::Logic::Base
       attr_reader :custid, :stay, :greenlighted, :session_ttl, :potential_custid
 

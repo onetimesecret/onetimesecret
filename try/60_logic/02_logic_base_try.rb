@@ -68,7 +68,6 @@ end
 ## @ it's a valid email string but not an actual, real mailbox.
 ##
 ## This is b/c currently we only perform regex validation.
-##
 @obj.valid_email?(@from_address)
 #=> true
 

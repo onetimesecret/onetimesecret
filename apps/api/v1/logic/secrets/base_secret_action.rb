@@ -3,6 +3,8 @@
 module V1::Logic
   module Secrets
 
+    using Familia::Refinements::TimeLiterals
+
     class BaseSecretAction < V1::Logic::Base
       attr_reader :passphrase, :secret_value, :kind, :ttl, :recipient, :recipient_safe, :greenlighted
       attr_reader :metadata, :secret, :share_domain, :custom_domain, :payload, :default_expiration

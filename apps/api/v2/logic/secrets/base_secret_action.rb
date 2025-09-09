@@ -2,6 +2,9 @@
 
 module V2::Logic
   module Secrets
+
+    using Familia::Refinements::TimeLiterals
+
     class BaseSecretAction < V2::Logic::Base
       attr_reader :passphrase, :secret_value, :kind, :ttl, :recipient, :recipient_safe, :greenlighted, :metadata,
         :secret, :share_domain, :custom_domain, :payload
