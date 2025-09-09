@@ -6,6 +6,8 @@ module V2
       module RightToBeForgotten
         Familia::Base.add_feature self, :right_to_be_forgotten
 
+        using Familia::Refinements::TimeLiterals
+
         def self.included(base)
           OT.ld "[#{name}] Included in #{base}"
           base.extend ClassMethods

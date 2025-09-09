@@ -167,7 +167,7 @@ logic.locale
 #=> nil
 
 ## Correctly sets expiration stamp
-@metadata.secret_ttl = 2.days
+@metadata.secret_ttl = 3600 * 24 * 2
 @metadata.save
 params = {
   key: @metadata.key

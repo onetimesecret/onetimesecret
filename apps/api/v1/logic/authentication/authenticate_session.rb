@@ -4,6 +4,7 @@ require_relative '../base'
 
 module V1::Logic
   module Authentication
+
     using Familia::Refinements::TimeLiterals
 
     class AuthenticateSession < V1::Logic::Base
