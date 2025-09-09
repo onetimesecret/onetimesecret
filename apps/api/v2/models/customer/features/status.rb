@@ -1,7 +1,7 @@
-# apps/api/v2/models/customer/customer_status.rb
+# apps/api/v2/models/customer/status.rb
 
 module V2::Customer::Features
-  module CustomerStatus
+  module Status
     def self.included(base)
       OT.ld "[#{name}] Included in #{base}"
       base.extend ClassMethods
@@ -33,6 +33,6 @@ module V2::Customer::Features
       end
     end
 
-    Familia::Base.add_feature self, :customer_status
+    Familia::Base.add_feature self, :status
   end
 end

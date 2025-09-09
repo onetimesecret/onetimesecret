@@ -56,7 +56,7 @@ module V2
     feature :right_to_be_forgotten
     feature :with_stripe_account
     feature :with_custom_domains
-    feature :customer_status
+    feature :status
 
     feature :deprecated_fields
     feature :legacy_encrypted_fields
