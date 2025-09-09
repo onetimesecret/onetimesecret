@@ -15,9 +15,7 @@ require 'sendgrid-ruby'
 require 'rack'
 require 'otto'
 require 'familia'
-require 'mustache'
-
-require_relative 'onetime/core_ext'
+require 'chimera'
 
 Warning[:deprecated] = %w[development dev test testing].include?(ENV['RACK_ENV'].to_s.downcase)
 

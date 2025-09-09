@@ -45,4 +45,26 @@ class Chimera < Mustache
   @partial_cache           = {}
 
   attr_reader :options
+end
+
+# Fix for Mustache 1.1.1 generator compatibility. There is
+# no Mustache::VERSION to check the version. The most
+# recent release was in 2015 so I think we'll be okay.
+module MustacheGeneratorFix
+  private
+
+  def compile!(exp)
+    case exp.first
+    when :multi
+      exp[1..].reduce(+'') { |sum, e| sum << compile!(e) }
+    when :static
+      str(exp[1])
+    when :mustache
+      send("on_#{exp[1]}", *exp[2..])
+    else
+      raise "Unhandled exp: #{exp.first}"
+    end
   end
+end
+
+Mustache::Generator.prepend(MustacheGeneratorFix)
