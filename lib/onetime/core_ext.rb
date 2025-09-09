@@ -1,17 +1,7 @@
 # lib/onetime/core_ext.rb
 
 
-class String
-  def plural(int = 1)
-    int > 1 || int.zero? ? "#{self}s" : self
-  end
 
-  def shorten(len = 50)
-    return self if size <= len
-
-    self[0..len] + '...'
-  end
-end
 
 # Fix for Mustache 1.1.1 generator compatibility. There is
 # no Mustache::VERSION to check the version. The most

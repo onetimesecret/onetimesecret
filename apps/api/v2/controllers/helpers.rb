@@ -79,7 +79,7 @@ module V2
       OT.ld "[carefully] RecordNotFound: #{ex.message} (#{req.path}) redirect:#{redirect || 'n/a'}"
       not_found_response ex.message, shrimp: sess.add_shrimp
     rescue Familia::HighRiskFactor => ex
-      OT.le "[attempt-saving-non-string-to-db] #{obscured} (#{sess.ipaddress}): #{sess.identifier.shorten(10)} (#{req.current_absolute_uri})"
+      OT.le "[attempt-saving-non-string-to-db] #{obscured} (#{sess.ipaddress}): #{sess.identifier.size <= 10 ? sess.identifier : sess.identifier[0, 10] + '...'} (#{req.current_absolute_uri})"
 
       # Track attempts to save non-string data to the database as a warning error
       capture_error ex, :warning
@@ -265,7 +265,7 @@ module V2
 
     def validate_shrimp(attempted_shrimp, replace = true)
       shrimp_is_empty = attempted_shrimp.empty?
-      log_value       = attempted_shrimp.shorten(5)
+      log_value       = attempted_shrimp.size <= 5 ? attempted_shrimp : attempted_shrimp[0, 5] + '...'
 
       if sess.shrimp?(attempted_shrimp) || ignoreshrimp
         adjective = ignoreshrimp ? 'IGNORED' : 'GOOD'

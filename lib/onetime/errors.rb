@@ -47,7 +47,9 @@ module Onetime
     end
 
     def report
-      "BAD SHRIMP FOR #{@path}: #{@user}: #{got.shorten(16)}/#{wanted.shorten(16)}"
+      got_display = got.size <= 16 ? got : got[0, 16] + '...'
+      wanted_display = wanted.size <= 16 ? wanted : wanted[0, 16] + '...'
+      "BAD SHRIMP FOR #{@path}: #{@user}: #{got_display}/#{wanted_display}"
     end
 
     def message
