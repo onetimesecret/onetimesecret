@@ -25,59 +25,9 @@ module Onetime
         "#{hex[0, 8]}-#{hex[8, 4]}"
       end
 
-      def epochdate(time_in_s)
-        time_parsed = Time.at time_in_s.to_i
-        dformat time_parsed.utc
-      end
-
-      def epochtime(time_in_s)
-        time_parsed = Time.at time_in_s.to_i
-        tformat time_parsed.utc
-      end
-
-      def epochformat(time_in_s)
-        time_parsed = Time.at time_in_s.to_i
-        dtformat time_parsed.utc
-      end
-
-      def epochformat2(time_in_s)
-        time_parsed = Time.at time_in_s.to_i
-        dtformat2 time_parsed.utc
-      end
-
       def epochdom(time_in_s)
         time_parsed = Time.at time_in_s.to_i
         time_parsed.utc.strftime('%b %d, %Y')
-      end
-
-      def epochtod(time_in_s)
-        time_parsed = Time.at time_in_s.to_i
-        time_parsed.utc.strftime('%I:%M%p').gsub(/^0/, '').downcase
-      end
-
-      def epochcsvformat(time_in_s)
-        time_parsed = Time.at time_in_s.to_i
-        time_parsed.utc.strftime('%Y/%m/%d %H:%M:%S')
-      end
-
-      def dtformat(time_in_s)
-        time_in_s = DateTime.parse time_in_s unless time_in_s.is_a?(Time)
-        time_in_s.strftime('%Y-%m-%d@%H:%M:%S UTC')
-      end
-
-      def dtformat2(time_in_s)
-        time_in_s = DateTime.parse time_in_s unless time_in_s.is_a?(Time)
-        time_in_s.strftime('%Y-%m-%d@%H:%M UTC')
-      end
-
-      def dformat(time_in_s)
-        time_in_s = DateTime.parse time_in_s unless time_in_s.is_a?(Time)
-        time_in_s.strftime('%Y-%m-%d')
-      end
-
-      def tformat(time_in_s)
-        time_in_s = DateTime.parse time_in_s unless time_in_s.is_a?(Time)
-        time_in_s.strftime('%H:%M:%S')
       end
 
       def natural_duration(duration_in_s)
@@ -120,7 +70,7 @@ module Onetime
         else
           weeks  = (val / 3600.0 / 24.0 / 7).to_i
           result = Time.at(time_in_s.to_i)
-            .strftime("#{weeks} #{'week'.plural(weeks)} ago")
+            .strftime("#{weeks} #{weeks == 1 ? 'week' : 'weeks'} ago")
             .downcase
         end
         result
