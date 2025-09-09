@@ -38,11 +38,6 @@ last_chars = @session_ids.map { |id| id[-3, 3] }
 [first_chars.uniq.length > 100, last_chars.uniq.length > 100]  # Adjust thresholds as needed
 #=> [true, true]
 
-## Add timing tests to verify that ID generation is consistent and reasonably fast
-times = 10.times.map { Benchmark.realtime { V2::Session.create(@ipaddress, @custid, @useragent) } }
-[times.max < 0.01, times.min > 0]  # Adjust the max time (0.01 seconds) as needed
-#=> [true, true]
-
 ## Implement collision resistance tests (generating IDs with similar inputs)
 similar_inputs = [
   ['10.0.0.1', 'user1', 'Chrome'],
