@@ -2,6 +2,8 @@
 
 module V2::Secret::Features
   module SecretCustomerRelations
+    Familia::Base.add_feature self, :secret_customer_relations
+
     def self.included(base)
       OT.ld "[#{name}] Included in #{base}"
       base.extend ClassMethods
@@ -26,6 +28,5 @@ module V2::Secret::Features
       end
     end
 
-    Familia::Base.add_feature self, :secret_customer_relations
   end
 end

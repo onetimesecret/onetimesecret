@@ -2,6 +2,9 @@
 
 module V2::Customer::Features
   module SafeDump
+
+    V2::Customer.add_feature self, :safe_dump_fields
+
     def self.included(base)
       # Lambda to handle counter fields that may be nil/empty - returns '0'
       # if empty, otherwise the string value
@@ -9,6 +12,8 @@ module V2::Customer::Features
         value = cust.send(field_name).to_s
         value.empty? ? '0' : value
       }
+
+      base.feature :safe_dump
 
       # NOTE: The SafeDump mixin caches the safe_dump_field_map so updating this list
       # with hot reloading in dev mode will not work. You will need to restart the
@@ -39,5 +44,6 @@ module V2::Customer::Features
       # We use the hash syntax here since `:active?` is not a valid symbol.
       base.safe_dump_field :active, ->(cust) { cust.active? }
     end
+
   end
 end

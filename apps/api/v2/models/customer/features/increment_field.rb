@@ -2,6 +2,9 @@
 
 module V2::Customer::Features
   module IncrementField
+
+    Familia::Base.add_feature self, :increment_field
+
     def self.included(base)
       OT.ld "[#{name}] Included in #{base}"
       base.extend ClassMethods
@@ -51,6 +54,5 @@ module V2::Customer::Features
       end
     end
 
-    Familia::Base.add_feature self, :increment_field
   end
 end

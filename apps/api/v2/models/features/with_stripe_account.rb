@@ -6,6 +6,9 @@ module V2
       #
       #
       module WithStripeAccount
+
+        Familia::Base.add_feature self, :with_stripe_account
+
         def self.included(base)
           OT.ld "[#{name}] Included in #{base}"
 
@@ -91,7 +94,6 @@ module V2
 
         end
 
-        Familia::Base.add_feature self, :with_stripe_account
       end
 
     end

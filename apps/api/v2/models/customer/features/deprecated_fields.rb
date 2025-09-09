@@ -2,6 +2,8 @@
 
 module V2::Customer::Features
   module DeprecatedFields
+    Familia::Base.add_feature self, :deprecated_fields
+
     def self.included(base)
       OT.ld "[#{name}] Included in #{base}"
       base.extend ClassMethods
@@ -106,6 +108,5 @@ module V2::Customer::Features
       end
     end
 
-    Familia::Base.add_feature self, :deprecated_fields
   end
 end

@@ -2,6 +2,9 @@
 
 module V2::Customer::Features
   module LegacySecretsFields
+
+    V2::Customer.add_feature self, :legacy_secrets_fields
+
     def self.included(base)
       OT.ld "[#{name}] Included in #{base}"
       base.extend ClassMethods
@@ -25,6 +28,5 @@ module V2::Customer::Features
       end
     end
 
-    Familia::Base.add_feature self, :legacy_secrets_fields
   end
 end

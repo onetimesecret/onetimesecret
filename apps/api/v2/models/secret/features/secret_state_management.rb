@@ -2,6 +2,9 @@
 
 module V2::Secret::Features
   module SecretStateManagement
+
+    Familia::Base.add_feature self, :secret_state_management
+
     def self.included(base)
       OT.ld "[#{name}] Included in #{base}"
       base.extend ClassMethods
@@ -77,6 +80,5 @@ module V2::Secret::Features
       end
     end
 
-    Familia::Base.add_feature self, :secret_state_management
   end
 end

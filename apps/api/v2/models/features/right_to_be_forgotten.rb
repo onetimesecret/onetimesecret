@@ -4,6 +4,8 @@ module V2
   module Models
     module Features
       module RightToBeForgotten
+        Familia::Base.add_feature self, :right_to_be_forgotten
+
         def self.included(base)
           OT.ld "[#{name}] Included in #{base}"
           base.extend ClassMethods
@@ -65,7 +67,6 @@ module V2
           end
         end
 
-        Familia::Base.add_feature self, :right_to_be_forgotten
       end
     end
   end

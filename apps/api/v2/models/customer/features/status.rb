@@ -7,7 +7,7 @@ module V2::Customer::Features
       base.extend ClassMethods
       base.include InstanceMethods
 
-      base.field :role
+      base.field :role2
       base.field :verified
     end
 

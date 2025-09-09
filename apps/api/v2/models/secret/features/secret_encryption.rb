@@ -4,7 +4,6 @@ require 'openssl'
 
 module V2::Secret::Features
   module SecretEncryption
-    include Familia::Features::Autoloadable
 
     def self.included(base)
       OT.ld "[#{name}] Included in #{base}"

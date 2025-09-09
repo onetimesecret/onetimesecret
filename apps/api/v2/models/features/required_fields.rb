@@ -4,6 +4,9 @@ module V2
   module Models
     module Features
       module RequiredFields
+
+        Familia::Base.add_feature self, :required_fields, depends_on: [:relationships, :object_identifier]
+
         def self.included(base)
           OT.ld "[RequiredFields] Relationships included in #{base}"
           base.extend ClassMethods
@@ -25,7 +28,7 @@ module V2
           # extending class's context.
         end
 
-        Familia::Base.add_feature self, :required_fields, depends_on: [:relationships, :object_identifier]
+
       end
     end
   end

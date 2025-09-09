@@ -36,6 +36,8 @@ module V2
   # format looks like [hostname].[domain].[tld]. for ex. [www].[mozilla].[org].
   #
   class CustomDomain < Familia::Horreum
+    include Familia::Features::Autoloader
+
     unless defined?(MAX_SUBDOMAIN_DEPTH)
       MAX_SUBDOMAIN_DEPTH = 10 # e.g., a.b.c.d.e.f.g.h.i.j.example.com
       MAX_TOTAL_LENGTH    = 253   # RFC 1034 section 3.1
@@ -45,7 +47,7 @@ module V2
 
     prefix :customdomain
 
-    feature :safe_dump
+    feature :safe_dump_fields
 
     # NOTE: The dbkey used by older models for values is simply
     # "onetime:customdomain". We'll want to rename those at some point.

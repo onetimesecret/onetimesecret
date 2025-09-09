@@ -30,6 +30,7 @@ module V2
   #
   class Customer < Familia::Horreum
     require_relative 'customer/features'
+    # include Familia::Features::Autoloader
 
     using Familia::Refinements::TimeLiterals
 
@@ -46,7 +47,6 @@ module V2
 
     identifier_field :custid
 
-    feature :safe_dump
     feature :expiration
     feature :relationships
     feature :object_identifier
@@ -54,6 +54,7 @@ module V2
     feature :required_fields
     feature :increment_field
     feature :right_to_be_forgotten
+    feature :safe_dump_fields
     feature :with_stripe_account
     feature :with_custom_domains
     feature :status

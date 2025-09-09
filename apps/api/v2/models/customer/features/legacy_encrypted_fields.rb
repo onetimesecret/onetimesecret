@@ -5,6 +5,7 @@ module V2::Customer::Features
   #
   module LegacyEncryptedFields
 
+    Familia::Base.add_feature self, :legacy_encrypted_fields
 
     def self.included(base)
       OT.ld "[#{name}] Included in #{base}"
@@ -25,6 +26,6 @@ module V2::Customer::Features
 
     end
 
-    Familia::Base.add_feature self, :legacy_encrypted_fields
+
   end
 end

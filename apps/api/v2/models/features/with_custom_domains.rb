@@ -7,6 +7,7 @@ module V2
       #
       module WithCustomDomains
 
+        Familia::Base.add_feature self, :with_custom_domains
 
         def self.included(base)
           OT.ld "[#{name}] Included in #{base}"
@@ -43,8 +44,6 @@ module V2
 
         end
 
-
-        Familia::Base.add_feature self, :with_custom_domains
       end
     end
   end
