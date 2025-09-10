@@ -95,7 +95,7 @@ module Onetime
     def load(path = nil)
       path ||= self.path
 
-      raise ArgumentError, "Bad path (#{path})" unless File.readable?(path)
+      raise ArgumentError, "Bad path (#{path})" unless path && File.readable?(path)
 
       parsed_template = ERB.new(File.read(path))
 

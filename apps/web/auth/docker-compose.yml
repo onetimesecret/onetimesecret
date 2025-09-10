@@ -1,0 +1,97 @@
+# Docker Compose configuration for OneTimeSecret with Authentication Migration
+version: '3.8'
+
+services:
+  # Main OneTimeSecret application
+  onetime:
+    build: .
+    ports:
+      - "4567:4567"
+    environment:
+      - RACK_ENV=development
+      - REDIS_URL=redis://redis:6379/0
+      - AUTH_SERVICE_URL=http://auth-service:9393
+      - DATABASE_URL=postgresql://onetime:password@postgres:5432/onetime
+    depends_on:
+      - redis
+      - postgres
+      - auth-service
+    volumes:
+      - .:/app
+      - ./log:/app/log
+
+  # External Authentication Service
+  auth-service:
+    build: ./external_auth
+    ports:
+      - "9393:9393"
+    environment:
+      - RACK_ENV=development
+      - DATABASE_URL=postgresql://auth_user:auth_password@postgres:5432/onetime_auth
+      - REDIS_URL=redis://redis:6379/1
+      - EMAIL_SERVICE=development
+    depends_on:
+      - postgres
+      - redis
+    volumes:
+      - ./external_auth:/app
+      - ./external_auth/log:/app/log
+      - ./external_auth/data:/app/data
+
+  # Redis for sessions and caching
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    command: redis-server --appendonly yes
+
+  # PostgreSQL for both main app and auth service
+  postgres:
+    image: postgres:15-alpine
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=postgres
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./scripts/init-databases.sql:/docker-entrypoint-initdb.d/init-databases.sql
+
+  # Optional: pgAdmin for database management
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    ports:
+      - "8080:80"
+    environment:
+      - PGADMIN_DEFAULT_EMAIL=admin@onetime.local
+      - PGADMIN_DEFAULT_PASSWORD=admin
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin
+    depends_on:
+      - postgres
+    profiles:
+      - tools
+
+  # Optional: Redis Commander for Redis management
+  redis-commander:
+    image: rediscommander/redis-commander:latest
+    ports:
+      - "8081:8081"
+    environment:
+      - REDIS_HOSTS=local:redis:6379
+    depends_on:
+      - redis
+    profiles:
+      - tools
+
+volumes:
+  postgres_data:
+  redis_data:
+  pgadmin_data:
+
+networks:
+  default:
+    name: onetime_network

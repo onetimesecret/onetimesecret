@@ -1,0 +1,47 @@
+source 'https://rubygems.org'
+
+ruby '>= 3.2.0'
+
+# Core dependencies
+gem 'bcrypt'
+gem 'jwt', '~> 2.7'
+gem 'mail', '~> 2.8'
+gem 'roda', '~> 3.0'
+gem 'rodauth', '~> 2.40.0'
+gem 'sequel', '~> 5.0'
+
+# Database drivers
+gem 'pg'
+gem 'sqlite3'
+
+# Web server
+gem 'puma', '~> 6.0'
+
+# Optional advanced features
+gem 'rotp', '~> 6.2'         # TOTP (Google Authenticator)
+gem 'rqrcode', '~> 2.2'      # QR codes for TOTP setup
+gem 'webauthn', '~> 3.0'     # Hardware keys and biometrics
+
+# HTTP client for external integrations
+gem 'http', '~> 5.1'
+
+# JSON handling
+gem 'oj', '~> 3.16'
+
+# Development and testing
+group :development, :test do
+  gem 'database_cleaner-sequel', '~> 2.0'
+  gem 'factory_bot', '~> 6.4'
+  gem 'faker', '~> 3.2'
+  gem 'rack-test', '~> 2.1'
+  gem 'rspec', '~> 3.12'
+end
+
+group :development do
+  gem 'rerun', '~> 0.14'  # Auto-restart on file changes
+end
+
+# Production dependencies
+group :production do
+  gem 'newrelic_rpm', '~> 9.0'  # Application monitoring
+end
