@@ -34,6 +34,9 @@ class AuthService < Roda
   plugin :rodauth, json: :only do
     db DB
 
+    # HMAC secret for token security
+    hmac_secret ENV['HMAC_SECRET'] || ENV['AUTH_SECRET'] || 'dev-hmac-secret-change-in-production'
+
     prefix '/'
 
     # JSON feature must be enabled first
@@ -43,16 +46,20 @@ class AuthService < Roda
     json_response_success_key :success
     json_response_error_key :error
 
+
+    # Core authentication features
+    enable :login, :logout, :create_account, :close_account, :login_password_requirements_base
+    enable :change_password, :reset_password
+    # enable :verify_account  # Disabled until email is properly configured
+    enable :remember  # "Remember me" functionality
+
+
     # Use email as the account identifier
     account_id_column :id
     login_column :email
     login_label 'Email'
-
-    # Core authentication features
-    enable :login, :logout, :create_account, :close_account
-    enable :change_password, :reset_password
-    # enable :verify_account  # Disabled until email is properly configured
-    enable :remember  # "Remember me" functionality
+    require_login_confirmation? false
+    require_password_confirmation? false
 
     # Security features
     enable :lockout   # Brute force protection
