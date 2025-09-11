@@ -13,7 +13,7 @@ module Core
     use Rack::DetectHost
 
     # Auth integration middleware
-    require_relative '../../lib/auth_integration'
+    require_relative '../../../lib/auth_integration'
     use AuthIntegration::Middleware
 
     # Applications middleware stack

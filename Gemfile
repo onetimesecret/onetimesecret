@@ -42,7 +42,7 @@ gem 'rodauth', '~> 2.0'
 
 # ORM and database drivers
 gem 'familia', '~> 2.0.0.pre15'
-gem 'pg', '~> 1.4'
+gem 'pg', '~> 1.4', require: false
 gem 'sequel', '~> 5.0'
 gem 'sqlite3', '~> 1.6'
 
