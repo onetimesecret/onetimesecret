@@ -58,6 +58,7 @@ export default {
     './src/*.html',
     './src/**/*.{vue,js,ts,jsx,tsx,mjs}',
     './templates/web/**/*.html',
+    './apps/web/auth/views/**/*.erb',  // Include auth service templates
   ],
   safelist: [
     'rounded-l-sm',

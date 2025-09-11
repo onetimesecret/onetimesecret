@@ -7,6 +7,8 @@ require 'sequel'
 require 'logger'
 require 'json'
 
+require_relative 'helpers/vite_assets'
+
 # Database connection
 database_url = ENV['DATABASE_URL'] || 'sqlite://data/auth.db'
 DB = Sequel.connect(database_url)
@@ -17,10 +19,11 @@ if ENV['RACK_ENV'] == 'development'
 end
 
 class AuthService < Roda
+  include AuthHelpers::ViteAssets
+
   # Roda plugins
-  plugin :sessions, secret: ENV['AUTH_SECRET'] || 'must-be-at-least-64-chars-long-change-in-prod'
   plugin :sessions,
-    secret: ENV['AUTH_SECRET'] || 'dev-secret-change-in-production',
+    secret: ENV['AUTH_SECRET'] || 'must-be-at-least-64-chars-long-change-in-prod',
     key: 'onetime.session',           # Cookie name (default: 'rack.session')
     domain: ENV['SESSION_DOMAIN'],     # Cookie domain
     path: '/',                         # Cookie path
