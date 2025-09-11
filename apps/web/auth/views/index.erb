@@ -10,7 +10,7 @@
       <div>
         <h3 class="text-lg font-semibold text-gray-900 mb-4">Account Management</h3>
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <a href="/account" class="block p-4 bg-brand-50 border border-brand-200 rounded-lg hover:bg-brand-100 transition-colors duration-200">
+          <a href="<%= request.script_name %>/account" class="block p-4 bg-brand-50 border border-brand-200 rounded-lg hover:bg-brand-100 transition-colors duration-200">
             <div class="font-medium text-brand-900">Account Info</div>
             <div class="text-sm text-brand-700">View your account details</div>
           </a>
@@ -55,7 +55,7 @@
             <div class="text-sm text-red-700">Delete your account</div>
           </a>
 
-          <a href="/admin/stats" class="block p-4 bg-gray-50 border border-gray-200 rounded-lg hover:bg-gray-100 transition-colors duration-200">
+          <a href="<%= request.script_name %>/admin/stats" class="block p-4 bg-gray-50 border border-gray-200 rounded-lg hover:bg-gray-100 transition-colors duration-200">
             <div class="font-medium text-gray-900">Admin Stats</div>
             <div class="text-sm text-gray-700">View system statistics</div>
           </a>
@@ -106,25 +106,25 @@
 
         <div class="grid grid-cols-3 gap-4 text-gray-600">
           <span class="font-mono text-green-600">GET</span>
-          <span class="font-mono">/health</span>
+          <span class="font-mono"><%= request.script_name %>/health</span>
           <span>Health check & database status</span>
         </div>
 
         <div class="grid grid-cols-3 gap-4 text-gray-600">
           <span class="font-mono text-blue-600">POST</span>
-          <span class="font-mono">/validate</span>
+          <span class="font-mono"><%= request.script_name %>/validate</span>
           <span>Token validation for main app</span>
         </div>
 
         <div class="grid grid-cols-3 gap-4 text-gray-600">
           <span class="font-mono text-green-600">GET</span>
-          <span class="font-mono">/account</span>
+          <span class="font-mono"><%= request.script_name %>/account</span>
           <span>Account info (JSON/HTML)</span>
         </div>
 
         <div class="grid grid-cols-3 gap-4 text-gray-600">
           <span class="font-mono text-green-600">GET</span>
-          <span class="font-mono">/admin/stats</span>
+          <span class="font-mono"><%= request.script_name %>/admin/stats</span>
           <span>System statistics</span>
         </div>
       </div>
@@ -135,14 +135,14 @@
   <div class="mt-8 pt-8 border-t border-gray-200">
     <h3 class="text-lg font-semibold text-gray-900 mb-4">Quick Tests</h3>
     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-      <a href="/health"
+      <a href="<%= request.script_name %>/health"
          target="_blank"
          class="block p-4 bg-emerald-50 border border-emerald-200 rounded-lg hover:bg-emerald-100 transition-colors duration-200">
         <div class="font-medium text-emerald-900">Test Health Check</div>
         <div class="text-sm text-emerald-700">Verify service is running</div>
       </a>
 
-      <a href="/account.json"
+      <a href="<%= request.script_name %>/account.json"
          target="_blank"
          class="block p-4 bg-sky-50 border border-sky-200 rounded-lg hover:bg-sky-100 transition-colors duration-200">
         <div class="font-medium text-sky-900">Test JSON API</div>

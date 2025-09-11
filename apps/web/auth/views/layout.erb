@@ -53,10 +53,10 @@
                 Logout
               </a>
             <% else %>
-              <a href="/auth/login" class="text-sm text-brand-600 hover:text-brand-700 hover:bg-brand-50 px-3 py-1 rounded-md transition-colors duration-200">
+              <a href="<%= rodauth.login_path %>" class="text-sm text-brand-600 hover:text-brand-700 hover:bg-brand-50 px-3 py-1 rounded-md transition-colors duration-200">
                 Login
               </a>
-              <a href="/auth/create-account" class="text-sm text-green-600 hover:text-green-700 hover:bg-green-50 px-3 py-1 rounded-md transition-colors duration-200">
+              <a href="<%= rodauth.create_account_path %>" class="text-sm text-green-600 hover:text-green-700 hover:bg-green-50 px-3 py-1 rounded-md transition-colors duration-200">
                 Sign Up
               </a>
             <% end %>
