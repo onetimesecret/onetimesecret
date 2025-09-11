@@ -204,7 +204,7 @@ permissions and backup strategies.
 - **Automatic cleanup** triggers for expired tokens
 - **Best for**: Current auth app and development
 
-### PostgreSQL Essential Schema (`schemas/postgresql/essential_schema.sql`)
+### PostgreSQL Essential Schema (`schemas/postgres/essential_schema.sql`)
 - **Complete essential schema** with MFA and all enabled features
 - **citext extension** for case-insensitive email handling
 - **Database functions** for enhanced security (password hash isolation)
@@ -228,10 +228,10 @@ permissions and backup strategies.
 The new migration system automatically loads the appropriate schema based on database type:
 
 ```ruby
-# migrations/001_load_essential_schema.rb
+# migrations/001_initial.rb
 # Automatically detects database type and loads:
-# - schemas/sqlite/essential_schema.sql (for SQLite)
-# - schemas/postgresql/essential_schema.sql (for PostgreSQL)
+# - schemas/sqlite/001_initial.sql (for SQLite)
+# - schemas/postgres/001_initial.sql (for PostgreSQL)
 ```
 
 **Usage:**
