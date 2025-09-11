@@ -20,7 +20,7 @@ This document provides quick setup instructions for the authentication migration
 
 1. **Start the authentication service:**
    ```bash
-   cd external_auth
+   cd apps/web/auth
    bundle install
    ruby migrate.rb
    bundle exec puma -p 9393
@@ -125,7 +125,7 @@ curl -X POST http://localhost:9393/login \
 ## Key Files
 
 - **`lib/middleware/identity_resolution.rb`** - Core middleware
-- **`external_auth/app.rb`** - Rodauth authentication service
+- **`apps/web/auth/auth.rb`** - Rodauth authentication service
 - **`docs/auth-setup-guide.md`** - Complete configuration guide
 - **`docs/auth-migration-strategy.md`** - Migration strategy
 - **`docs/auth-implementation-plan.md`** - Detailed implementation plan

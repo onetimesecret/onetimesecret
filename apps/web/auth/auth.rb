@@ -58,6 +58,7 @@ class AuthService < Roda
     json_response_error_key :error
 
     # Template configuration (after enabling features)
+    # Uncomment and customize these when adding view templates:
     # login_view { 'login' }
     # create_account_view 'create-account'
     # reset_password_request_view { 'reset-password-request' }
@@ -85,18 +86,18 @@ class AuthService < Roda
 
     # Account verification (email confirmation) - disabled
     # require_email_confirmation_for_new_accounts true
-    # verify_account_email_subject 'MyProjectName (Community) - Confirm Your Account'
+    # verify_account_email_subject 'OneTimeSecret - Confirm Your Account'
 
     # Password requirements
     password_minimum_length 8
-    # password_complexity_requirements_enforcHed true
+    # password_complexity_requirements_enforced true  # Feature not available in current Rodauth version
 
     # Lockout settings (brute force protection)
     max_invalid_logins 5
     # lockout_expiration_default 3600  # 1 hour
 
     # MFA Configuration
-    otp_issuer 'MyProjectName (Community)'
+    otp_issuer 'OneTimeSecret'
     otp_setup_param 'otp_setup'
     otp_auth_param 'otp_code'
 
@@ -149,18 +150,25 @@ class AuthService < Roda
 
   route do |r|
     # Debug logging
-    puts "[#{Time.now}] #{r.request_method} #{r.path_info}" if ENV['RACK_ENV'] == 'development'
+    if ENV['RACK_ENV'] == 'development'
+      puts "[#{Time.now}] #{r.request_method} #{r.path_info}"
+      puts "  PATH_INFO: '#{r.env['PATH_INFO']}'"
+      puts "  REQUEST_URI: '#{r.env['REQUEST_URI']}'"
+      puts "  SCRIPT_NAME: '#{r.env['SCRIPT_NAME']}'"
+    end
 
     # Serve assets
     r.assets
 
-    # Home page - redirect to login if not logged in, account if logged in
+    # Handle empty path (when accessed as /auth without trailing slash)
+    if r.path_info == ""
+      r.redirect "#{rodauth.prefix}/"
+    end
+
+    # Home page - show navigation and available endpoints for testing
     r.root do
-      if rodauth.logged_in?
-        r.redirect '/account'
-      else
-        r.redirect '/login'
-      end
+      @page_title = 'OneTimeSecret Authentication Service'
+      view 'index'
     end
 
     # Health check endpoint

@@ -40,8 +40,11 @@
               OneTimeSecret
             </a>
           </h1>
-          <% if rodauth.logged_in? %>
-            <nav class="flex items-center space-x-4">
+          <nav class="flex items-center space-x-4">
+            <% if rodauth.logged_in? %>
+              <a href="/account" class="text-sm text-brand-600 hover:text-brand-700 hover:bg-brand-50 px-3 py-1 rounded-md transition-colors duration-200">
+                Account
+              </a>
               <span class="text-sm text-gray-600 hidden sm:block">
                 <%= rodauth.account[:email] %>
               </span>
@@ -49,8 +52,15 @@
                  class="text-sm text-red-600 hover:text-red-700 hover:bg-red-50 px-3 py-1 rounded-md transition-colors duration-200">
                 Logout
               </a>
-            </nav>
-          <% end %>
+            <% else %>
+              <a href="/auth/login" class="text-sm text-brand-600 hover:text-brand-700 hover:bg-brand-50 px-3 py-1 rounded-md transition-colors duration-200">
+                Login
+              </a>
+              <a href="/auth/create-account" class="text-sm text-green-600 hover:text-green-700 hover:bg-green-50 px-3 py-1 rounded-md transition-colors duration-200">
+                Sign Up
+              </a>
+            <% end %>
+          </nav>
         </div>
       </div>
     </header>
