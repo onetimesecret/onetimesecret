@@ -1,4 +1,6 @@
-# app/services/auth/basic_auth_adapter.rb
+# lib/onetime/services/auth/basic_auth_adapter.rb
+
+require 'bcrypt'
 
 module Auth
   class BasicAuthAdapter
@@ -68,11 +70,15 @@ module Auth
     end
 
     def verify_password(customer, password)
-      # Customer model uses passphrase? method for verification
-      return false unless customer.has_passphrase?
+      # Always use the same code path to prevent timing attacks
+      target_customer = if customer.has_passphrase?
+        customer
+      else
+        V2::Customer.dummy
+      end
 
-      # Use the Customer's built-in passphrase verification
-      customer.passphrase?(password)
+      # Always perform passphrase verification, but only return true for valid customers
+      target_customer.passphrase?(password) && customer.has_passphrase?
     rescue => e
       OT.le "[BasicAuthAdapter] Password verification error: #{e.message}"
       false

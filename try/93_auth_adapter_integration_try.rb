@@ -1,9 +1,9 @@
 # try/93_auth_adapter_integration_try.rb
 
 require_relative 'test_helpers'
-require_relative '../app/services/auth/basic_auth_adapter'
-require_relative '../app/services/auth/rodauth_adapter'
-require_relative '../app/services/auth/adapter_factory'
+require_relative '../lib/onetime/services/auth/basic_auth_adapter'
+require_relative '../lib/onetime/services/auth/rodauth_adapter'
+require_relative '../lib/onetime/services/auth/adapter_factory'
 require 'rack/test'
 require 'bcrypt'
 

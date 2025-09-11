@@ -12,23 +12,25 @@ on:
         required: false
         default: false
 
+  # Skip auto deployments for the time being during major movements
+  #
   # Automatic trigger on pull requests to develop branch
-  # This ensures code reviews before deployment, enhancing security
-  pull_request:
-    branches:
-      - 'feature/*'
-      - 'wip/*'
-    types:
-      - closed
-      - opened
-      - ready_for_review
-      - review_requested
-
-  # Automatic trigger on pushes to feature and work-in-progress branches
-  # Allows for continuous integration and testing of new features
-  push:
-    branches:
-      - develop
+  # # This ensures code reviews before deployment, enhancing security
+  # pull_request:
+  #   branches:
+  #     - 'feature/*'
+  #     - 'wip/*'
+  #   types:
+  #     - closed
+  #     - opened
+  #     - ready_for_review
+  #     - review_requested
+  #
+  # # Automatic trigger on pushes to feature and work-in-progress branches
+  # # Allows for continuous integration and testing of new features
+  # push:
+  #   branches:
+  #     - develop
 
 permissions:
   contents: read

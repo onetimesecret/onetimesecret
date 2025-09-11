@@ -30,7 +30,8 @@ module V2
   #
   class Customer < Familia::Horreum
     require_relative 'customer/features'
-    # include Familia::Features::Autoloader
+
+    @default_cost = 12.freeze
 
     using Familia::Refinements::TimeLiterals
 
@@ -127,7 +128,7 @@ module V2
     end
 
     class << self
-      attr_reader :values
+      attr_reader :values, :dummy
 
       def create(custid, email = nil)
         raise Onetime::Problem, 'custid is required' if custid.to_s.empty?
@@ -142,9 +143,14 @@ module V2
       end
 
       def anonymous
-        new('anon').freeze
+        new(custid: 'anon', role: 'anon').freeze
       end
 
+      # Create a dummy customer with realistic passphrase for timing consistency
+      def dummy
+        passphrase = V2::Mixins::Passphrase.create_passphrase(SecureRandom.hex(16))
+        @dummy ||= new(role: 'anon', passphrase: passphrase).freeze
+      end
     end
 
     # Mixin Placement for Field Order Control

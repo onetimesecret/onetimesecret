@@ -1,4 +1,4 @@
-# app/services/auth/adapter_factory.rb
+# lib/onetime/services/auth/adapter_factory.rb
 
 module Auth
   class AdapterFactory

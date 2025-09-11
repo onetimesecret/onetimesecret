@@ -1,4 +1,4 @@
-# app/services/auth/rodauth_adapter.rb
+# lib/onetime/services/auth/rodauth_adapter.rb
 
 module Auth
   class RodauthAdapter
