@@ -19,41 +19,34 @@ source 'https://rubygems.org/'
 # Core Application Framework
 # ====================================
 
+# Web framework and routing
+gem 'otto', '~> 1.4.0'
+gem 'roda', '~> 3.0'
+
+
 # Web server and middleware
 gem 'puma', '~> 6.6'
 gem 'rack', '>= 3.1.16', '< 4.0'
 gem 'rack-contrib', '~> 2.5.0'
 gem 'rack-protection', '~> 4.1'
 gem 'rack-session', '~> 2.1.1'
+gem 'rackup'
 gem 'rack-utf8_sanitizer'
-gem 'rackup' # rubocop:disable Bundler/OrderedGems
 
-# ====================================
-# Data Processing & Utilities
-# ====================================
-
-# JSON and data validation
-gem 'json'
-gem 'json_schemer'
-
-# String and data processing
-gem 'drydock', '~> 1.0.0'
-gem 'fastimage', '~> 2.4'
-gem 'mail'
-gem 'mustache'
-gem 'public_suffix'
-gem 'tty-table', '~> 0.12'
-
-# HTTP client
-gem 'httparty'
-
-# Email validation
-gem 'truemail'
+# Authentication framework
+gem 'rodauth', '~> 2.0'
 
 # ====================================
 # Database & DB Tools
 # ====================================
 
+# ORM and database drivers
+gem 'familia', '~> 2.0.0.pre15'
+gem 'pg', '~> 1.4'
+gem 'sequel', '~> 5.0'
+gem 'sqlite3', '~> 1.6'
+
+# Redis/Valkey
 gem 'redis', '~> 5.4.0'
 gem 'uri-valkey', '~> 1.4.0'
 
@@ -61,15 +54,38 @@ gem 'uri-valkey', '~> 1.4.0'
 # Security & Encryption
 # ====================================
 
-gem 'bcrypt'
+gem 'bcrypt', '~> 3.1'
 gem 'encryptor', '= 1.1.3'
+gem 'jwt', '~> 2.7'
+
+# Advanced authentication
+gem 'rotp', '~> 6.2'
+gem 'rqrcode', '~> 2.2'
+gem 'webauthn', '~> 3.0'
 
 # ====================================
-# Internal Dependencies (local dev)
+# Data Processing & Utilities
 # ====================================
 
-gem 'familia', '~> 2.0.0.pre15'
-gem 'otto', '~> 1.4.0'
+# JSON processing
+gem 'json'
+gem 'json_schemer'
+gem 'oj', '~> 3.16'
+
+# String and data processing
+gem 'drydock', '~> 1.0.0'
+gem 'fastimage', '~> 2.4'
+gem 'mail', '~> 2.8'
+gem 'mustache'
+gem 'public_suffix'
+gem 'tty-table', '~> 0.12'
+
+# HTTP clients
+gem 'http', '~> 5.1'
+gem 'httparty'
+
+# Email validation
+gem 'truemail'
 
 # ====================================
 # Ruby Standard Library Compatibility
@@ -98,11 +114,15 @@ gem 'stripe', require: false
 
 group :development, :test do
   gem 'benchmark'
+  gem 'database_cleaner-sequel', '~> 2.0'
+  gem 'factory_bot', '~> 6.4'
+  gem 'faker', '~> 3.2'
 end
 
 group :development do
   # Debugging tools
   gem 'debug', require: false
+  gem 'rerun', '~> 0.14'
 
   # Development utilities
   gem 'rack-proxy', require: false
@@ -116,9 +136,6 @@ group :development do
   gem 'ruby-lsp', require: false
   gem 'solargraph', require: false
   gem 'syntax_tree', require: false
-  # Enable for Debug Adapter Protocol. Not included with the
-  # development group because it lags on byebug version.
-  # gem 'byebug-dap', require: false
 end
 
 group :test do

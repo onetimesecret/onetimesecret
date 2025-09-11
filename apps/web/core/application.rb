@@ -12,6 +12,10 @@ module Core
     use Rack::ClearSessionMessages
     use Rack::DetectHost
 
+    # Auth integration middleware
+    require_relative '../../lib/auth_integration'
+    use AuthIntegration::Middleware
+
     # Applications middleware stack
     use Onetime::DomainStrategy
 

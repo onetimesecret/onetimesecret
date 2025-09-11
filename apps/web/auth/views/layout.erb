@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= @page_title || 'OneTimeSecret Authentication' %></title>
+  <link rel="stylesheet" href="<%= vite_css_path %>">
+</head>
+<body class="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 antialiased">
+  <div class="min-h-screen flex flex-col">
+    <!-- Header -->
+    <header class="bg-white border-b border-gray-200 shadow-sm">
+      <div class="max-w-md mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex justify-between items-center h-16">
+          <h1 class="text-2xl font-bold">
+            <a href="<%= rodauth.prefix %>" class="text-brand-600 hover:text-brand-700 transition-colors duration-200">
+              OneTimeSecret
+            </a>
+          </h1>
+          <nav class="flex items-center space-x-4">
+            <% if rodauth.logged_in? %>
+              <a href="/account" class="text-sm text-brand-600 hover:text-brand-700 hover:bg-brand-50 px-3 py-1 rounded-md transition-colors duration-200">
+                Account
+              </a>
+              <span class="text-sm text-gray-600 hidden sm:block">
+                <%= rodauth.account[:email] %>
+              </span>
+              <a href="<%= rodauth.logout_path %>"
+                 class="text-sm text-red-600 hover:text-red-700 hover:bg-red-50 px-3 py-1 rounded-md transition-colors duration-200">
+                Logout
+              </a>
+            <% else %>
+              <a href="<%= rodauth.login_path %>" class="text-sm text-brand-600 hover:text-brand-700 hover:bg-brand-50 px-3 py-1 rounded-md transition-colors duration-200">
+                Login
+              </a>
+              <a href="<%= rodauth.create_account_path %>" class="text-sm text-green-600 hover:text-green-700 hover:bg-green-50 px-3 py-1 rounded-md transition-colors duration-200">
+                Sign Up
+              </a>
+            <% end %>
+          </nav>
+        </div>
+      </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="flex-1 flex items-center justify-center px-4 sm:px-6 lg:px-8 py-12">
+      <div class="max-w-md w-full space-y-6">
+        <!-- Flash Messages -->
+        <% if flash[:notice] %>
+          <div class="bg-green-50 border border-green-200 text-green-800 px-4 py-3 rounded-lg shadow-sm">
+            <div class="flex">
+              <div class="flex-shrink-0">
+                <svg class="h-5 w-5 text-green-400" viewBox="0 0 20 20" fill="currentColor">
+                  <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+                </svg>
+              </div>
+              <div class="ml-3">
+                <p class="text-sm font-medium"><%= flash[:notice] %></p>
+              </div>
+            </div>
+          </div>
+        <% end %>
+
+        <% if flash[:error] %>
+          <div class="bg-red-50 border border-red-200 text-red-800 px-4 py-3 rounded-lg shadow-sm">
+            <div class="flex">
+              <div class="flex-shrink-0">
+                <svg class="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
+                  <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
+                </svg>
+              </div>
+              <div class="ml-3">
+                <p class="text-sm font-medium"><%= flash[:error] %></p>
+              </div>
+            </div>
+          </div>
+        <% end %>
+
+        <!-- Page Content -->
+        <%= yield %>
+      </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-white border-t border-gray-200">
+      <div class="max-w-md mx-auto px-4 sm:px-6 lg:px-8 py-4">
+        <p class="text-center text-sm text-gray-500">
+          &copy; <%= Date.today.year %> OneTimeSecret. Secure authentication service.
+        </p>
+      </div>
+    </footer>
+  </div>
+
+  <script src="/assets/app.js"></script>
+</body>
+</html>
