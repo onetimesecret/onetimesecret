@@ -23,7 +23,7 @@ class AuthService < Roda
 
   # Roda plugins
   plugin :sessions,
-    secret: ENV['AUTH_SECRET'] || 'dev-secret-must-be-at-least-64-chars-long-change-in-production-env',
+    secret: ENV['AUTH_SECRET'] || raise('AUTH_SECRET environment variable required (min 64 chars)'),
     key: 'onetime.session',           # Cookie name (default: 'rack.session')
     domain: ENV['SESSION_DOMAIN'],     # Cookie domain
     path: '/',                         # Cookie path
