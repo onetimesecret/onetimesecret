@@ -1,5 +1,5 @@
 -- ================================================================
--- Rodauth PostgreSQL Database Schema
+-- Rodauth PostgreSQL Database Schema (Updated)
 -- Authentication and Account Management System
 -- ================================================================
 
@@ -106,12 +106,12 @@ CREATE TABLE account_remember_keys (
     FOREIGN KEY (account_id) REFERENCES accounts(id) ON DELETE CASCADE
 );
 
--- Active session tracking
+-- Active session tracking (FIXED: changed from TIME to TIMESTAMPTZ)
 CREATE TABLE account_active_session_keys (
     account_id BIGINT NOT NULL,
     session_id VARCHAR NOT NULL,
-    created_at TIMESTAMPTZ NOT NULL,
-    last_use TIMESTAMPTZ NOT NULL,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    last_use TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     PRIMARY KEY (account_id, session_id),
     FOREIGN KEY (account_id) REFERENCES accounts(id) ON DELETE CASCADE
 );
@@ -134,7 +134,7 @@ CREATE TABLE account_otp_keys (
     account_id BIGINT PRIMARY KEY,
     key VARCHAR NOT NULL,
     num_failures INTEGER NOT NULL DEFAULT 0,
-    last_use TIME,
+    last_use TIMESTAMPTZ,
     FOREIGN KEY (account_id) REFERENCES accounts(id) ON DELETE CASCADE
 );
 
@@ -173,7 +173,7 @@ CREATE TABLE account_webauthn_keys (
     webauthn_id VARCHAR NOT NULL,
     public_key VARCHAR NOT NULL,
     sign_count INTEGER NOT NULL DEFAULT 0,
-    last_use TIME,
+    last_use TIMESTAMPTZ,
     PRIMARY KEY (account_id, webauthn_id),
     FOREIGN KEY (account_id) REFERENCES accounts(id) ON DELETE CASCADE
 );
@@ -230,6 +230,10 @@ CREATE INDEX idx_jwt_refresh_keys_account_id ON account_jwt_refresh_keys(account
 CREATE INDEX idx_jwt_refresh_keys_deadline ON account_jwt_refresh_keys(deadline);
 CREATE INDEX idx_previous_password_hashes_account_id ON account_previous_password_hashes(account_id);
 
+-- Additional indexes for session management
+CREATE INDEX idx_active_session_keys_last_use ON account_active_session_keys(last_use);
+CREATE INDEX idx_activity_times_last_activity ON account_activity_times(last_activity_at);
+
 -- ================================================================
 -- INITIAL DATA
 -- ================================================================
@@ -239,6 +243,157 @@ INSERT INTO account_statuses (id, name) VALUES
     (1, 'Unverified'),
     (2, 'Verified'),
     (3, 'Closed');
+
+-- ================================================================
+-- UTILITY VIEWS (Adapted from SQLite3 version)
+-- ================================================================
+
+-- View to get accounts with readable status names
+CREATE VIEW accounts_with_status AS
+SELECT
+    a.id,
+    a.email,
+    s.name as status_name,
+    a.status_id
+FROM accounts a
+JOIN account_statuses s ON a.status_id = s.id;
+
+-- View for recent authentication events (last 30 days)
+CREATE VIEW recent_auth_events AS
+SELECT
+    l.id,
+    l.account_id,
+    a.email,
+    l.at,
+    l.message,
+    l.metadata
+FROM account_authentication_audit_logs l
+JOIN accounts a ON l.account_id = a.id
+WHERE l.at >= NOW() - INTERVAL '30 days'
+ORDER BY l.at DESC;
+
+-- View for active sessions with account details
+CREATE VIEW active_sessions_with_accounts AS
+SELECT
+    s.account_id,
+    a.email,
+    s.session_id,
+    s.created_at,
+    s.last_use,
+    EXTRACT(EPOCH FROM (NOW() - s.last_use)) / 60 AS minutes_since_last_use
+FROM account_active_session_keys s
+JOIN accounts a ON s.account_id = a.id
+ORDER BY s.last_use DESC;
+
+-- ================================================================
+-- POSTGRESQL FUNCTIONS AND TRIGGERS (Adapted from SQLite3 version)
+-- ================================================================
+
+-- Function to automatically update activity time on successful logins
+CREATE OR REPLACE FUNCTION update_last_login_time()
+RETURNS TRIGGER AS $$
+BEGIN
+    IF NEW.message ILIKE '%login%successful%' THEN
+        INSERT INTO account_activity_times (account_id, last_login_at, last_activity_at)
+        VALUES (NEW.account_id, NEW.at, NEW.at)
+        ON CONFLICT (account_id)
+        DO UPDATE SET
+            last_login_at = NEW.at,
+            last_activity_at = NEW.at;
+    END IF;
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Trigger to automatically update activity time on successful logins
+CREATE TRIGGER trigger_update_last_login_time
+    AFTER INSERT ON account_authentication_audit_logs
+    FOR EACH ROW
+    EXECUTE FUNCTION update_last_login_time();
+
+-- Function to clean up expired tokens
+CREATE OR REPLACE FUNCTION cleanup_expired_tokens()
+RETURNS TRIGGER AS $$
+BEGIN
+    -- Clean up expired JWT refresh tokens
+    DELETE FROM account_jwt_refresh_keys WHERE deadline < NOW();
+
+    -- Clean up expired password reset keys
+    DELETE FROM account_password_reset_keys WHERE deadline < NOW();
+
+    -- Clean up expired email auth keys
+    DELETE FROM account_email_auth_keys WHERE deadline < NOW();
+
+    -- Clean up expired remember keys
+    DELETE FROM account_remember_keys WHERE deadline < NOW();
+
+    -- Clean up expired lockouts
+    DELETE FROM account_lockouts WHERE deadline < NOW();
+
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Trigger to clean up expired tokens (runs on JWT refresh key insert)
+CREATE TRIGGER trigger_cleanup_expired_tokens
+    AFTER INSERT ON account_jwt_refresh_keys
+    FOR EACH ROW
+    EXECUTE FUNCTION cleanup_expired_tokens();
+
+-- Function to update session last_use timestamp
+CREATE OR REPLACE FUNCTION update_session_last_use(
+    p_account_id BIGINT,
+    p_session_id VARCHAR
+)
+RETURNS VOID AS $$
+BEGIN
+    UPDATE account_active_session_keys
+    SET last_use = NOW()
+    WHERE account_id = p_account_id AND session_id = p_session_id;
+END;
+$$ LANGUAGE plpgsql;
+
+-- ================================================================
+-- MAINTENANCE FUNCTIONS
+-- ================================================================
+
+-- Function to clean up old audit logs (keep last 90 days)
+CREATE OR REPLACE FUNCTION cleanup_old_audit_logs()
+RETURNS INTEGER AS $$
+DECLARE
+    deleted_count INTEGER;
+BEGIN
+    DELETE FROM account_authentication_audit_logs
+    WHERE at < NOW() - INTERVAL '90 days';
+
+    GET DIAGNOSTICS deleted_count = ROW_COUNT;
+    RETURN deleted_count;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Function to get account security summary
+CREATE OR REPLACE FUNCTION get_account_security_summary(p_account_id BIGINT)
+RETURNS TABLE(
+    has_password BOOLEAN,
+    has_otp BOOLEAN,
+    has_sms BOOLEAN,
+    has_webauthn BOOLEAN,
+    active_sessions INTEGER,
+    last_login TIMESTAMPTZ,
+    failed_attempts INTEGER
+) AS $$
+BEGIN
+    RETURN QUERY
+    SELECT
+        EXISTS(SELECT 1 FROM account_password_hashes WHERE account_id = p_account_id),
+        EXISTS(SELECT 1 FROM account_otp_keys WHERE account_id = p_account_id),
+        EXISTS(SELECT 1 FROM account_sms_codes WHERE account_id = p_account_id),
+        EXISTS(SELECT 1 FROM account_webauthn_keys WHERE account_id = p_account_id),
+        (SELECT COUNT(*)::INTEGER FROM account_active_session_keys WHERE account_id = p_account_id),
+        (SELECT last_login_at FROM account_activity_times WHERE account_id = p_account_id),
+        COALESCE((SELECT number FROM account_login_failures WHERE account_id = p_account_id), 0);
+END;
+$$ LANGUAGE plpgsql;
 
 -- ================================================================
 -- COMMENTS AND DOCUMENTATION
@@ -255,7 +410,7 @@ COMMENT ON TABLE account_email_auth_keys IS 'Email-based authentication tokens';
 COMMENT ON TABLE account_login_change_keys IS 'Tokens for verifying email/login changes';
 COMMENT ON TABLE account_session_keys IS 'Basic session management keys';
 COMMENT ON TABLE account_remember_keys IS 'Remember me functionality tokens';
-COMMENT ON TABLE account_active_session_keys IS 'Active session tracking with timestamps';
+COMMENT ON TABLE account_active_session_keys IS 'Active session tracking with full timestamps (FIXED)';
 COMMENT ON TABLE account_jwt_refresh_keys IS 'JWT refresh tokens with expiration';
 COMMENT ON TABLE account_otp_keys IS 'TOTP/OTP keys and failure tracking';
 COMMENT ON TABLE account_sms_codes IS 'SMS-based two-factor authentication codes';
@@ -266,3 +421,56 @@ COMMENT ON TABLE account_login_failures IS 'Failed login attempt tracking';
 COMMENT ON TABLE account_lockouts IS 'Account lockout management';
 COMMENT ON TABLE account_activity_times IS 'Activity tracking and session expiration';
 COMMENT ON TABLE account_authentication_audit_logs IS 'Comprehensive authentication event logging';
+
+-- View comments
+COMMENT ON VIEW accounts_with_status IS 'Accounts joined with readable status names';
+COMMENT ON VIEW recent_auth_events IS 'Authentication events from the last 30 days';
+COMMENT ON VIEW active_sessions_with_accounts IS 'Active sessions with account details and activity metrics';
+
+-- Function comments
+COMMENT ON FUNCTION update_last_login_time() IS 'Automatically updates activity times on successful login';
+COMMENT ON FUNCTION cleanup_expired_tokens() IS 'Removes expired tokens across all token tables';
+COMMENT ON FUNCTION update_session_last_use(BIGINT, VARCHAR) IS 'Updates the last_use timestamp for an active session';
+COMMENT ON FUNCTION cleanup_old_audit_logs() IS 'Removes audit logs older than 90 days';
+COMMENT ON FUNCTION get_account_security_summary(BIGINT) IS 'Returns security status summary for an account';
+
+-- ================================================================
+-- USAGE EXAMPLES
+-- ================================================================
+
+/*
+-- Example: Create a new account
+INSERT INTO accounts (email, status_id) VALUES ('user@example.com', 1);
+
+-- Example: Set password hash
+INSERT INTO account_password_hashes (account_id, password_hash)
+VALUES (currval('accounts_id_seq'), '$2b$12$...');
+
+-- Example: Query accounts with status
+SELECT * FROM accounts_with_status WHERE status_name = 'Verified';
+
+-- Example: Check if email exists
+SELECT COUNT(*) FROM accounts WHERE email = 'user@example.com';
+
+-- Example: Get recent login attempts for account
+SELECT * FROM recent_auth_events
+WHERE account_id = 1 AND message ILIKE '%login%'
+ORDER BY at DESC LIMIT 10;
+
+-- Example: Get account security summary
+SELECT * FROM get_account_security_summary(1);
+
+-- Example: Update session activity (call from application)
+SELECT update_session_last_use(1, 'session_abc123');
+
+-- Example: View active sessions
+SELECT * FROM active_sessions_with_accounts WHERE minutes_since_last_use < 30;
+
+-- Example: Clean up old audit logs (maintenance)
+SELECT cleanup_old_audit_logs(); -- Returns number of deleted records
+
+-- Example: Manual cleanup of expired tokens
+DELETE FROM account_remember_keys WHERE deadline < NOW();
+DELETE FROM account_password_reset_keys WHERE deadline < NOW();
+DELETE FROM account_email_auth_keys WHERE deadline < NOW();
+*/

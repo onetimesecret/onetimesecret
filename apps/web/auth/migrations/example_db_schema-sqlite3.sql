@@ -1,5 +1,5 @@
 -- ================================================================
--- Rodauth SQLite3 Database Schema
+-- Rodauth SQLite3 Database Schema (Enhanced)
 -- Authentication and Account Management System
 -- ================================================================
 
@@ -113,8 +113,8 @@ CREATE TABLE account_remember_keys (
 CREATE TABLE account_active_session_keys (
     account_id INTEGER NOT NULL,
     session_id TEXT NOT NULL,
-    created_at TEXT NOT NULL,
-    last_use TEXT NOT NULL,
+    created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    last_use TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY (account_id, session_id),
     FOREIGN KEY (account_id) REFERENCES accounts(id) ON DELETE CASCADE
 );
@@ -233,6 +233,17 @@ CREATE INDEX idx_jwt_refresh_keys_account_id ON account_jwt_refresh_keys(account
 CREATE INDEX idx_jwt_refresh_keys_deadline ON account_jwt_refresh_keys(deadline);
 CREATE INDEX idx_previous_password_hashes_account_id ON account_previous_password_hashes(account_id);
 
+-- Enhanced indexes for session management and activity tracking
+CREATE INDEX idx_active_session_keys_last_use ON account_active_session_keys(last_use);
+CREATE INDEX idx_activity_times_last_activity ON account_activity_times(last_activity_at);
+CREATE INDEX idx_activity_times_last_login ON account_activity_times(last_login_at);
+
+-- Indexes for token cleanup efficiency
+CREATE INDEX idx_password_reset_keys_deadline ON account_password_reset_keys(deadline);
+CREATE INDEX idx_email_auth_keys_deadline ON account_email_auth_keys(deadline);
+CREATE INDEX idx_remember_keys_deadline ON account_remember_keys(deadline);
+CREATE INDEX idx_lockouts_deadline ON account_lockouts(deadline);
+
 -- ================================================================
 -- INITIAL DATA
 -- ================================================================
@@ -244,7 +255,7 @@ INSERT INTO account_statuses (id, name) VALUES
     (3, 'Closed');
 
 -- ================================================================
--- UTILITY VIEWS (SQLite3 specific helpers)
+-- UTILITY VIEWS
 -- ================================================================
 
 -- View to get accounts with readable status names
@@ -271,11 +282,56 @@ JOIN accounts a ON l.account_id = a.id
 WHERE date(l.at) >= date('now', '-30 days')
 ORDER BY l.at DESC;
 
+-- Enhanced view for active sessions with account details and activity metrics
+CREATE VIEW active_sessions_with_accounts AS
+SELECT
+    s.account_id,
+    a.email,
+    s.session_id,
+    s.created_at,
+    s.last_use,
+    ROUND((julianday('now') - julianday(s.last_use)) * 1440, 2) AS minutes_since_last_use,
+    CASE
+        WHEN (julianday('now') - julianday(s.last_use)) * 1440 > 30 THEN 'Inactive'
+        WHEN (julianday('now') - julianday(s.last_use)) * 1440 > 5 THEN 'Idle'
+        ELSE 'Active'
+    END AS session_status
+FROM account_active_session_keys s
+JOIN accounts a ON s.account_id = a.id
+ORDER BY s.last_use DESC;
+
+-- View for account security overview
+CREATE VIEW account_security_overview AS
+SELECT
+    a.id,
+    a.email,
+    s.name as status_name,
+    CASE WHEN ph.account_id IS NOT NULL THEN 1 ELSE 0 END as has_password,
+    CASE WHEN ok.account_id IS NOT NULL THEN 1 ELSE 0 END as has_otp,
+    CASE WHEN sc.account_id IS NOT NULL THEN 1 ELSE 0 END as has_sms,
+    CASE WHEN wk.account_id IS NOT NULL THEN 1 ELSE 0 END as has_webauthn,
+    COALESCE(session_count.count, 0) as active_sessions,
+    at.last_login_at,
+    COALESCE(lf.number, 0) as failed_attempts
+FROM accounts a
+JOIN account_statuses s ON a.status_id = s.id
+LEFT JOIN account_password_hashes ph ON a.id = ph.account_id
+LEFT JOIN account_otp_keys ok ON a.id = ok.account_id
+LEFT JOIN account_sms_codes sc ON a.id = sc.account_id
+LEFT JOIN account_webauthn_keys wk ON a.id = wk.account_id
+LEFT JOIN account_activity_times at ON a.id = at.account_id
+LEFT JOIN account_login_failures lf ON a.id = lf.account_id
+LEFT JOIN (
+    SELECT account_id, COUNT(*) as count
+    FROM account_active_session_keys
+    GROUP BY account_id
+) session_count ON a.id = session_count.account_id;
+
 -- ================================================================
 -- SQLITE3 SPECIFIC FUNCTIONS AND TRIGGERS
 -- ================================================================
 
--- Trigger to automatically update activity time on successful logins
+-- Enhanced trigger to automatically update activity time on successful logins
 CREATE TRIGGER update_last_login_time
 AFTER INSERT ON account_authentication_audit_logs
 WHEN NEW.message LIKE '%login%successful%'
@@ -284,19 +340,111 @@ BEGIN
     VALUES (NEW.account_id, NEW.at, NEW.at);
 END;
 
--- Trigger to clean up expired tokens (runs on JWT refresh key insert)
+-- Enhanced trigger to clean up expired tokens (runs on JWT refresh key insert)
 CREATE TRIGGER cleanup_expired_jwt_tokens
 AFTER INSERT ON account_jwt_refresh_keys
 BEGIN
-    DELETE FROM account_jwt_refresh_keys
-    WHERE deadline < datetime('now');
+    DELETE FROM account_jwt_refresh_keys WHERE deadline < datetime('now');
+    DELETE FROM account_password_reset_keys WHERE deadline < datetime('now');
+    DELETE FROM account_email_auth_keys WHERE deadline < datetime('now');
+    DELETE FROM account_remember_keys WHERE deadline < datetime('now');
+    DELETE FROM account_lockouts WHERE deadline < datetime('now');
+END;
+
+-- Trigger to update session activity when session is accessed
+CREATE TRIGGER update_session_activity
+AFTER UPDATE ON account_active_session_keys
+WHEN NEW.last_use != OLD.last_use
+BEGIN
+    UPDATE account_activity_times
+    SET last_activity_at = NEW.last_use
+    WHERE account_id = NEW.account_id;
+END;
+
+-- Trigger to cleanup old audit logs (keep last 1000 per account)
+CREATE TRIGGER cleanup_old_audit_logs
+AFTER INSERT ON account_authentication_audit_logs
+BEGIN
+    DELETE FROM account_authentication_audit_logs
+    WHERE account_id = NEW.account_id
+    AND id NOT IN (
+        SELECT id FROM account_authentication_audit_logs
+        WHERE account_id = NEW.account_id
+        ORDER BY at DESC
+        LIMIT 1000
+    );
 END;
 
 -- ================================================================
--- SQLITE3 USAGE EXAMPLES
+-- SQLITE3 MAINTENANCE QUERIES (Examples for manual execution)
 -- ================================================================
 
 /*
+-- ================================================================
+-- MAINTENANCE FUNCTIONS (Execute manually as needed)
+-- ================================================================
+
+-- Clean up old audit logs (keep last 90 days)
+DELETE FROM account_authentication_audit_logs
+WHERE date(at) < date('now', '-90 days');
+
+-- Clean up expired tokens
+DELETE FROM account_jwt_refresh_keys WHERE deadline < datetime('now');
+DELETE FROM account_password_reset_keys WHERE deadline < datetime('now');
+DELETE FROM account_email_auth_keys WHERE deadline < datetime('now');
+DELETE FROM account_remember_keys WHERE deadline < datetime('now');
+DELETE FROM account_lockouts WHERE deadline < datetime('now');
+
+-- Clean up inactive sessions (older than 30 days)
+DELETE FROM account_active_session_keys
+WHERE date(last_use) < date('now', '-30 days');
+
+-- Update session last_use timestamp (call from application)
+UPDATE account_active_session_keys
+SET last_use = CURRENT_TIMESTAMP
+WHERE account_id = ? AND session_id = ?;
+
+-- Get account security summary
+SELECT * FROM account_security_overview WHERE id = ?;
+
+-- Find accounts with weak security (no MFA)
+SELECT email, status_name, has_password, has_otp, has_sms, has_webauthn
+FROM account_security_overview
+WHERE has_otp = 0 AND has_sms = 0 AND has_webauthn = 0
+AND status_name = 'Verified';
+
+-- Find inactive sessions
+SELECT * FROM active_sessions_with_accounts
+WHERE session_status = 'Inactive';
+
+-- Database statistics
+SELECT
+    'Total Accounts' as metric,
+    COUNT(*) as value
+FROM accounts
+UNION ALL
+SELECT
+    'Verified Accounts',
+    COUNT(*)
+FROM accounts_with_status
+WHERE status_name = 'Verified'
+UNION ALL
+SELECT
+    'Active Sessions',
+    COUNT(*)
+FROM account_active_session_keys
+UNION ALL
+SELECT
+    'Recent Logins (7 days)',
+    COUNT(*)
+FROM recent_auth_events
+WHERE message LIKE '%login%successful%'
+AND date(at) >= date('now', '-7 days');
+
+-- ================================================================
+-- USAGE EXAMPLES
+-- ================================================================
+
 -- Example: Create a new account
 INSERT INTO accounts (email, status_id) VALUES ('user@example.com', 1);
 
@@ -315,8 +463,60 @@ SELECT * FROM recent_auth_events
 WHERE account_id = 1 AND message LIKE '%login%'
 ORDER BY at DESC LIMIT 10;
 
--- Example: Clean up expired sessions
-DELETE FROM account_remember_keys WHERE deadline < datetime('now');
-DELETE FROM account_password_reset_keys WHERE deadline < datetime('now');
-DELETE FROM account_email_auth_keys WHERE deadline < datetime('now');
+-- Example: Get account security overview
+SELECT * FROM account_security_overview WHERE email = 'user@example.com';
+
+-- Example: View active sessions with activity status
+SELECT * FROM active_sessions_with_accounts
+WHERE account_id = 1
+ORDER BY last_use DESC;
+
+-- Example: Find sessions that need cleanup (inactive > 24 hours)
+SELECT * FROM active_sessions_with_accounts
+WHERE minutes_since_last_use > 1440;
+
+-- Example: Create a new session
+INSERT INTO account_active_session_keys (account_id, session_id)
+VALUES (1, 'session_' || hex(randomblob(16)));
+
+-- Example: Update session activity (call from application)
+UPDATE account_active_session_keys
+SET last_use = CURRENT_TIMESTAMP
+WHERE account_id = 1 AND session_id = 'session_abc123';
+
+-- Example: Remove inactive sessions
+DELETE FROM account_active_session_keys
+WHERE date(last_use) < date('now', '-7 days');
+
+-- Example: Get accounts needing security improvements
+SELECT email, 'No MFA configured' as recommendation
+FROM account_security_overview
+WHERE has_otp = 0 AND has_sms = 0 AND has_webauthn = 0
+AND status_name = 'Verified'
+UNION ALL
+SELECT email, 'Multiple failed login attempts'
+FROM account_security_overview
+WHERE failed_attempts > 5;
+
+-- Example: Audit recent activity for an account
+SELECT
+    'Login Events' as event_type,
+    COUNT(*) as count,
+    MAX(at) as last_occurrence
+FROM recent_auth_events
+WHERE account_id = 1 AND message LIKE '%login%'
+UNION ALL
+SELECT
+    'Password Changes',
+    COUNT(*),
+    MAX(changed_at)
+FROM account_password_change_times
+WHERE account_id = 1
+UNION ALL
+SELECT
+    'Active Sessions',
+    COUNT(*),
+    MAX(last_use)
+FROM account_active_session_keys
+WHERE account_id = 1;
 */
