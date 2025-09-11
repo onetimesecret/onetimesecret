@@ -5,9 +5,9 @@ Sequel.migration do
     # Determine database type and load appropriate schema
     schema_file = case database_type
     when :sqlite
-      File.join(__dir__, 'schemas/sqlite/essential_schema.sql')
+      File.join(__dir__, 'schemas/sqlite/001_essential_schema.sql')
     when :postgres
-      File.join(__dir__, 'schemas/postgresql/essential_schema.sql')
+      File.join(__dir__, 'schemas/postgresql/001_essential_schema.sql')
     else
       raise "Unsupported database type: #{database_type}. Supported: sqlite, postgres"
     end
@@ -29,39 +29,27 @@ Sequel.migration do
   end
 
   down do
-    # Drop tables in reverse dependency order to avoid foreign key conflicts
-    tables_to_drop = %w[
-      account_authentication_audit_logs
-      account_recovery_codes
-      account_otp_keys
-      account_active_session_keys
-      account_remember_keys
-      account_lockouts
-      account_login_failures
-      account_password_reset_keys
-      account_verification_keys
-      account_password_hashes
-      accounts
-      account_statuses
-    ]
-
-    puts 'Dropping all authentication tables...'
-
-    tables_to_drop.each do |table_name|
-      if table_exists?(table_name.to_sym)
-        drop_table(table_name.to_sym)
-        puts "Dropped table: #{table_name}"
-      end
+    # Determine database type and load appropriate down migration schema
+    schema_down_file = case database_type
+    when :sqlite
+      File.join(__dir__, 'schemas/sqlite/001_essential_schema_down.sql')
+    when :postgres
+      File.join(__dir__, 'schemas/postgresql/001_essential_schema_down.sql')
+    else
+      raise "Unsupported database type: #{database_type}. Supported: sqlite, postgres"
     end
 
-    # Drop database functions if PostgreSQL
-    if database_type == :postgres
-      run 'DROP FUNCTION IF EXISTS rodauth_get_salt(BIGINT)'
-      run 'DROP FUNCTION IF EXISTS rodauth_valid_password_hash(BIGINT, TEXT)'
-      run 'DROP FUNCTION IF EXISTS cleanup_expired_tokens()'
-      run 'DROP FUNCTION IF EXISTS update_accounts_updated_at()'
-      puts 'Dropped PostgreSQL functions'
+    unless File.exist?(schema_down_file)
+      raise "Schema down file not found: #{schema_down_file}"
     end
+
+    puts "Rolling back essential schema for #{database_type} using #{File.basename(schema_down_file)}"
+
+    # Read and execute the SQL down migration file
+    sql_content = File.read(schema_down_file)
+
+    # Execute the entire SQL content at once
+    run sql_content
 
     puts 'Schema rollback completed'
   end
