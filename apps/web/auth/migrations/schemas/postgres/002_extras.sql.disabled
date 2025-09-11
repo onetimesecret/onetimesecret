@@ -72,9 +72,9 @@ CREATE TABLE account_jwt_refresh_keys (
 -- SMS-based two-factor authentication
 CREATE TABLE account_sms_codes (
     account_id BIGINT PRIMARY KEY,
-    phone_number VARCHAR NOT NULL,
+    phone_number VARCHAR(20) NOT NULL,
     num_failures INTEGER NOT NULL DEFAULT 0,
-    code VARCHAR NOT NULL,
+    code VARCHAR(10) NOT NULL,
     code_issued_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     FOREIGN KEY (account_id) REFERENCES accounts(id) ON DELETE CASCADE
 );
@@ -122,6 +122,8 @@ CREATE INDEX idx_jwt_refresh_keys_account_id ON account_jwt_refresh_keys(account
 CREATE INDEX idx_jwt_refresh_keys_deadline ON account_jwt_refresh_keys(deadline);
 CREATE INDEX idx_previous_password_hashes_account_id ON account_previous_password_hashes(account_id);
 CREATE INDEX idx_activity_times_last_activity ON account_activity_times(last_activity_at);
+CREATE INDEX idx_email_auth_keys_deadline ON account_email_auth_keys(deadline);
+CREATE INDEX idx_activity_times_last_login ON account_activity_times(last_login_at);
 
 -- ================================================================
 -- ADDITIONAL VIEWS
@@ -140,6 +142,33 @@ FROM account_authentication_audit_logs l
 JOIN accounts a ON l.account_id = a.id
 WHERE l.at >= NOW() - INTERVAL '30 days'
 ORDER BY l.at DESC;
+
+-- Enhanced account security overview with additional MFA options
+CREATE VIEW account_security_overview_enhanced AS
+SELECT
+    a.id,
+    a.email,
+    s.name as status_name,
+    CASE WHEN ph.account_id IS NOT NULL THEN 1 ELSE 0 END as has_password,
+    CASE WHEN otpk.account_id IS NOT NULL THEN 1 ELSE 0 END as has_otp,
+    CASE WHEN sc.account_id IS NOT NULL THEN 1 ELSE 0 END as has_sms,
+    CASE WHEN wk.account_id IS NOT NULL THEN 1 ELSE 0 END as has_webauthn,
+    COALESCE(session_count.count, 0) as active_sessions,
+    at.last_login_at,
+    COALESCE(lf.number, 0) as failed_attempts
+FROM accounts a
+JOIN account_statuses s ON a.status_id = s.id
+LEFT JOIN account_password_hashes ph ON a.id = ph.account_id
+LEFT JOIN account_otp_keys otpk ON a.id = otpk.account_id
+LEFT JOIN account_sms_codes sc ON a.id = sc.account_id
+LEFT JOIN account_webauthn_keys wk ON a.id = wk.account_id
+LEFT JOIN account_activity_times at ON a.id = at.account_id
+LEFT JOIN account_login_failures lf ON a.id = lf.account_id
+LEFT JOIN (
+    SELECT account_id, COUNT(*) as count
+    FROM account_active_session_keys
+    GROUP BY account_id
+) session_count ON a.id = session_count.account_id;
 
 -- ================================================================
 -- ADDITIONAL FUNCTIONS AND TRIGGERS
@@ -258,6 +287,7 @@ COMMENT ON TABLE account_webauthn_keys IS 'WebAuthn public keys and usage tracki
 COMMENT ON TABLE account_activity_times IS 'Activity tracking and session expiration';
 
 COMMENT ON VIEW recent_auth_events IS 'Authentication events from the last 30 days';
+COMMENT ON VIEW account_security_overview_enhanced IS 'Enhanced security overview with MFA status and session counts';
 
 COMMENT ON FUNCTION update_last_login_time() IS 'Automatically updates activity times on successful login';
 COMMENT ON FUNCTION cleanup_expired_tokens_extended() IS 'Removes expired tokens for new token types';
@@ -283,6 +313,18 @@ SELECT * FROM recent_auth_events WHERE account_id = 1 LIMIT 10;
 
 -- Example: Get account security summary
 SELECT * FROM get_account_security_summary(1);
+
+-- Example: Find accounts with enhanced security features
+SELECT * FROM account_security_overview_enhanced
+WHERE has_sms = 1 OR has_webauthn = 1;
+
+-- Example: Get password change history for account
+SELECT changed_at FROM account_password_change_times
+WHERE account_id = 1 ORDER BY changed_at DESC;
+
+-- Example: Check for recent password reuse
+SELECT COUNT(*) FROM account_previous_password_hashes
+WHERE account_id = 1 AND password_hash = '$2b$12$...';
 
 -- Example: Update session activity
 SELECT update_session_last_use(1, 'session_abc123');
