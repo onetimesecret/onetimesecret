@@ -25,7 +25,7 @@ module V2
 
         def process
           @title         = 'Home'
-          @session_count = V2::Session.recent(15.minutes).size
+          @session_count = 0 # Session tracking now handled by Rack::Session middleware
 
           process_feedback
           process_customers

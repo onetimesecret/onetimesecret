@@ -25,7 +25,6 @@ module V1
     # Common middleware stack
     use Rack::HandleInvalidUTF8
     use Rack::HandleInvalidPercentEncoding
-    use Rack::ClearSessionMessages
     use Rack::DetectHost
 
     # Applications middleware stack

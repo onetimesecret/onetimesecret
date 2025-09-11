@@ -308,9 +308,11 @@ RSpec.describe Core::Views::BaseView do
       end
 
       let(:session) do
-        instance_double('V2::Session',
-          authenticated?: false,
-          add_shrimp: nil,)
+        # V2::Session removed - now using Rack::Session hash
+        {
+          'authenticated' => false,
+          'shrimp' => 'test_token'
+        }
       end
     end
   end

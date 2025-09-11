@@ -22,7 +22,6 @@ module V2
     }
 
     # Common middleware stack
-    use Rack::ClearSessionMessages
     use Rack::DetectHost
 
     # Applications middleware stack

@@ -20,7 +20,7 @@ module V2
         end
 
         def process_statistics
-          @session_count   = V2::Session.recent(15.minutes).size
+          @session_count   = 0 # Session tracking now handled by Rack::Session middleware
           @customer_count  = V2::Customer.values.size
           @metadata_count  = V2::Metadata.new.dbclient.keys('metadata*:object').count
           @secret_count    = V2::Secret.new.dbclient.keys('secret*:object').count

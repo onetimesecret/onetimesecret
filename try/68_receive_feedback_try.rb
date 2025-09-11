@@ -25,7 +25,7 @@ OT.boot! :test, true
 @now = DateTime.now
 @model_class = V2::Feedback
 @email_address = "tryouts+#{@now}@onetimesecret.com"
-@sess = V2::Session.new '255.255.255.255', 'anon'
+@sess = nil # Session now handled by Rack::Session middleware
 @cust = V2::Customer.new @email_address
 @params = {
   msg: 'This is a test feedback'
@@ -86,7 +86,7 @@ count_after - count_before
 ## Sending populates the Feedback model's sorted set key in the database
 count_before = @model_class.recent.count
 email_address = "tryouts2+#{@now}@onetimesecret.com"
-sess = V2::Session.new '255.255.255.255', 'anon'
+sess = nil # Session now handled by Rack::Session middleware
 cust = V1::Customer.new email_address
 obj = V2::Logic::ReceiveFeedback.new sess, cust, { msg: 'Some feedback' }
 obj.process
@@ -96,7 +96,7 @@ count_after - count_before
 
 ## Sending feedback as an anonymous user raises no concerns
 cust = V1::Customer.anonymous
-sess = V2::Session.new 'id123', cust, "tryouts"
+sess = nil # Session now handled by Rack::Session middleware
 params = { msg: 'This is a test feedback' }
 obj = V2::Logic::ReceiveFeedback.new sess, cust, params
 obj.raise_concerns

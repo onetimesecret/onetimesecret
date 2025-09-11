@@ -12,6 +12,16 @@ Changed
 - Controllers now use env['rack.session'] instead of custom V2::Session model
 - Identity resolution middleware updated to read from standard Rack sessions
 - Session persistence moved from custom Familia model to Rack::Session standard
+- Colonel stats tracking simplified with session counting removed (handled by middleware)
+
+Removed
+-------
+
+- V2::Session model and all associated custom session management code
+- SessionMessages mixin (functionality moved to standard session handling)
+- ClearSessionMessages middleware (no longer needed with Rack::Session)
+- Custom session-based tryout tests replaced with Rack::Session approach
+- Deprecated customer session management methods
 
 AI Assistance
 -------------

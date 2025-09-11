@@ -111,8 +111,8 @@ module Core
       error_response "We'll be back shortly!", shrimp: sess ? sess.add_shrimp : nil
     rescue StandardError => ex
       custid = cust&.custid || '<notset>'
-      sessid = sess&.short_identifier || '<notset>'
-      OT.le "#{ex.class}: #{ex.message} -- #{req.current_absolute_uri} -- #{req.client_ipaddress} #{custid} #{sessid} #{locale} #{content_type} #{redirect} "
+      session = req.env['rack.session']
+      OT.le "#{ex.class}: #{ex.message} -- #{req.current_absolute_uri} -- #{req.client_ipaddress} #{custid} #{session} #{locale} #{content_type} #{redirect} "
       OT.le ex.backtrace.join("\n")
 
       # Track the unexected errors
@@ -120,7 +120,7 @@ module Core
 
       error_response 'An unexpected error occurred :[', shrimp: sess ? sess.add_shrimp : nil
     ensure
-      @sess ||= V2::Session.new 'failover', 'anon'
+      # Fallback session no longer needed with Rack::Session
       @cust ||= V2::Customer.anonymous
     end
 

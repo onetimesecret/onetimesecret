@@ -25,7 +25,7 @@ OT.boot! :test, false
 
 # Assign the unique email address
 @email = @unique_email.call
-@sess = V2::Session.new '255.255.255.254', 'anon'
+@sess = nil # Session now handled by Rack::Session middleware
 
 
 # Create a customer for update tests

@@ -20,7 +20,6 @@ module Core
     }
 
     # Common middleware stack
-    use Rack::ClearSessionMessages
     use Rack::DetectHost
 
     # Auth integration middleware

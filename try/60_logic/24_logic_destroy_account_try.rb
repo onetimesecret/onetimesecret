@@ -22,7 +22,7 @@ OT.boot! :test, false
 # Setup some variables for these tryouts
 @email_address = 'changeme@example.com'
 @now = DateTime.now
-@sess = V2::Session.new '255.255.255.255', 'anon'
+@sess = nil # Session now handled by Rack::Session middleware
 @cust = V2::Customer.new @email_address
 @params = {
   confirmation: 'pa55w0rd'

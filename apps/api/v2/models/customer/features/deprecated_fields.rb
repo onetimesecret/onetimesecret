@@ -89,23 +89,8 @@ module V2::Customer::Features
         is_valid
       end
 
-      # Loads an existing session or creates a new one if it doesn't exist.
-      #
-      # @param [String] ip_address The IP address of the customer.
-      # @raise [Onetime::Problem] if the customer is anonymous.
-      # @return [V2::Session] The loaded or newly created session.
-      def load_or_create_session(ip_address)
-        raise Onetime::Problem, 'Customer is anonymous' if anonymous?
-
-        @sess = V2::Session.load(sessid) unless sessid.to_s.empty?
-        if @sess.nil?
-          @sess  = V2::Session.create(ip_address, custid)
-          sessid = @sess.identifier
-          OT.info "[load_or_create_session] adding sess #{sessid} to #{obscure_email}"
-          sessid!(sessid)
-        end
-        @sess
-      end
+      # Session management is now handled by Rack::Session middleware
+      # This deprecated method has been removed as part of the migration
     end
 
   end

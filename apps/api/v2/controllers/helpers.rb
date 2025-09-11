@@ -120,7 +120,7 @@ module V2
 
       error_response 'An unexpected error occurred :[', shrimp: sess ? sess.add_shrimp : nil
     ensure
-      @sess ||= V2::Session.new 'failover', 'anon'
+      # Fallback session no longer needed with Rack::Session
       @cust ||= V2::Customer.anonymous
     end
 
