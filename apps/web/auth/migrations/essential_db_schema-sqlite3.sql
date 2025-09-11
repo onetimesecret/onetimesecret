@@ -1,8 +1,8 @@
 -- ================================================================
 -- Rodauth SQLite3 Database Schema (Essential Tables Only)
 -- Authentication and Account Management System
--- Focused on enabled features: base, json, login, logout, create_account, 
--- close_account, login_password_requirements_base, change_password, 
+-- Focused on enabled features: base, json, login, logout, create_account,
+-- close_account, login_password_requirements_base, change_password,
 -- reset_password, remember, verify_account, lockout, active_sessions
 -- ================================================================
 
@@ -35,18 +35,18 @@ CREATE TABLE accounts (
 
 -- Current password hashes for accounts (separated for security)
 CREATE TABLE account_password_hashes (
-    id INTEGER PRIMARY KEY, -- Maps to accounts.id (Rodauth uses 'id' not 'account_id')
+    account_id INTEGER PRIMARY KEY,
     password_hash TEXT NOT NULL,
-    FOREIGN KEY (id) REFERENCES accounts(id) ON DELETE CASCADE
+    FOREIGN KEY (account_id) REFERENCES accounts(id) ON DELETE CASCADE
 );
 
 -- Password reset tokens (reset_password feature)
 CREATE TABLE account_password_reset_keys (
-    id INTEGER PRIMARY KEY, -- Maps to accounts.id
+    account_id INTEGER PRIMARY KEY,
     key TEXT NOT NULL,
     deadline TEXT NOT NULL, -- ISO 8601 datetime string
     email_last_sent TEXT DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (id) REFERENCES accounts(id) ON DELETE CASCADE
+    FOREIGN KEY (account_id) REFERENCES accounts(id) ON DELETE CASCADE
 );
 
 -- ================================================================
@@ -55,11 +55,11 @@ CREATE TABLE account_password_reset_keys (
 
 -- Email verification tokens for new accounts
 CREATE TABLE account_verification_keys (
-    id INTEGER PRIMARY KEY, -- Maps to accounts.id
+    account_id INTEGER PRIMARY KEY,
     key TEXT NOT NULL,
     requested_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
     email_last_sent TEXT DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (id) REFERENCES accounts(id) ON DELETE CASCADE
+    FOREIGN KEY (account_id) REFERENCES accounts(id) ON DELETE CASCADE
 );
 
 -- ================================================================
@@ -68,10 +68,10 @@ CREATE TABLE account_verification_keys (
 
 -- Remember me functionality (remember feature)
 CREATE TABLE account_remember_keys (
-    id INTEGER PRIMARY KEY, -- Maps to accounts.id
+    account_id INTEGER PRIMARY KEY,
     key TEXT NOT NULL,
     deadline TEXT NOT NULL, -- ISO 8601 datetime string
-    FOREIGN KEY (id) REFERENCES accounts(id) ON DELETE CASCADE
+    FOREIGN KEY (account_id) REFERENCES accounts(id) ON DELETE CASCADE
 );
 
 -- Active session tracking (active_sessions feature)
@@ -91,18 +91,18 @@ CREATE TABLE account_active_session_keys (
 
 -- Failed login attempt tracking (lockout feature)
 CREATE TABLE account_login_failures (
-    id INTEGER PRIMARY KEY, -- Maps to accounts.id
+    account_id INTEGER PRIMARY KEY,
     number INTEGER NOT NULL DEFAULT 1,
-    FOREIGN KEY (id) REFERENCES accounts(id) ON DELETE CASCADE
+    FOREIGN KEY (account_id) REFERENCES accounts(id) ON DELETE CASCADE
 );
 
 -- Account lockout management (lockout feature)
 CREATE TABLE account_lockouts (
-    id INTEGER PRIMARY KEY, -- Maps to accounts.id
+    account_id INTEGER PRIMARY KEY,
     key TEXT NOT NULL,
     deadline TEXT NOT NULL, -- ISO 8601 datetime string
     email_last_sent TEXT,
-    FOREIGN KEY (id) REFERENCES accounts(id) ON DELETE CASCADE
+    FOREIGN KEY (account_id) REFERENCES accounts(id) ON DELETE CASCADE
 );
 
 -- ================================================================
@@ -180,8 +180,8 @@ CREATE TRIGGER update_session_last_use
 AFTER UPDATE OF last_use ON account_active_session_keys
 BEGIN
     -- This trigger ensures consistency in session tracking
-    UPDATE account_active_session_keys 
-    SET last_use = CURRENT_TIMESTAMP 
+    UPDATE account_active_session_keys
+    SET last_use = CURRENT_TIMESTAMP
     WHERE account_id = NEW.account_id AND session_id = NEW.session_id;
 END;
 
@@ -205,20 +205,20 @@ SET last_use = CURRENT_TIMESTAMP
 WHERE account_id = ? AND session_id = ?;
 
 -- Check account status and security
-SELECT 
+SELECT
     a.id,
     a.email,
     s.name as status,
-    CASE WHEN ph.id IS NOT NULL THEN 'Yes' ELSE 'No' END as has_password,
+    CASE WHEN ph.account_id IS NOT NULL THEN 'Yes' ELSE 'No' END as has_password,
     COALESCE(lf.number, 0) as failed_attempts,
     COUNT(ask.session_id) as active_sessions
 FROM accounts a
 JOIN account_statuses s ON a.status_id = s.id
-LEFT JOIN account_password_hashes ph ON a.id = ph.id
-LEFT JOIN account_login_failures lf ON a.id = lf.id
+LEFT JOIN account_password_hashes ph ON a.id = ph.account_id
+LEFT JOIN account_login_failures lf ON a.id = lf.account_id
 LEFT JOIN account_active_session_keys ask ON a.id = ask.account_id
 WHERE a.id = ?
-GROUP BY a.id, a.email, s.name, ph.id, lf.number;
+GROUP BY a.id, a.email, s.name, ph.account_id, lf.number;
 
 -- Database statistics
 SELECT
@@ -247,12 +247,12 @@ FROM account_active_session_keys;
 INSERT INTO accounts (email, status_id) VALUES ('user@example.com', 1);
 
 -- Example: Set password hash (use bcrypt in application)
-INSERT INTO account_password_hashes (id, password_hash)
+INSERT INTO account_password_hashes (account_id, password_hash)
 VALUES (last_insert_rowid(), '$2b$12$...');
 
 -- Example: Verify account
 UPDATE accounts SET status_id = 2 WHERE id = 1;
-DELETE FROM account_verification_keys WHERE id = 1;
+DELETE FROM account_verification_keys WHERE account_id = 1;
 
 -- Example: Create active session
 INSERT INTO account_active_session_keys (account_id, session_id)
@@ -265,6 +265,6 @@ SELECT COUNT(*) FROM accounts WHERE email = 'user@example.com';
 SELECT * FROM accounts_with_status WHERE email = 'user@example.com';
 
 -- Example: View active sessions for account
-SELECT * FROM active_sessions_with_accounts 
+SELECT * FROM active_sessions_with_accounts
 WHERE account_id = 1 AND session_status = 'Active';
 */
