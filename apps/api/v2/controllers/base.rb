@@ -85,7 +85,7 @@ module V2
           raise OT::Unauthorized, 'No session or credentials' unless allow_anonymous
 
           @cust = V2::Customer.anonymous
-          @sess = V2::Session.create_ephemeral req.user_agent
+          @sess = /.create_ephemeral req.user_agent
 
           if OT.debug?
             ip_address = req.client_ipaddress.to_s

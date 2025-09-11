@@ -144,6 +144,7 @@ content = JSON.parse(response.body)
 
 ## Can access the API status
 response = @mock_request.get('/api/v2/status')
+puts response.body
 [response.status, response.body]
 #=> [200, '{"status":"nominal","locale":"en"}']
 

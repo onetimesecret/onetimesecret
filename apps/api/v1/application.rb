@@ -11,6 +11,17 @@ module V1
   class Application < ::BaseApplication
     @uri_prefix = '/api/v1'
 
+    # Session middleware
+    require_relative '../../../lib/rack/session/redis_familia'
+    use Rack::Session::RedisFamilia, {
+      expire_after: 86400, # 24 hours
+      key: 'ots.session',
+      secure: OT.conf&.dig('site', 'ssl') || false,
+      httponly: true,
+      same_site: :lax,
+      redis_prefix: 'session'
+    }
+
     # Common middleware stack
     use Rack::HandleInvalidUTF8
     use Rack::HandleInvalidPercentEncoding
