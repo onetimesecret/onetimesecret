@@ -4,7 +4,7 @@ require_relative 'helpers'
 require 'v2/controllers/class_settings'
 
 # Auth integration for external auth service
-require_relative '../../../lib/auth_integration'
+require_relative '../../../../lib/auth_integration'
 
 module Core
   module Controllers

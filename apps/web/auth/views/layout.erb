@@ -4,7 +4,57 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title><%= @page_title || 'OneTimeSecret Authentication' %></title>
-  <link rel="stylesheet" href="<%= vite_css_path %>">
+
+  <!-- Critical CSS to prevent style flash -->
+  <style>
+    /* Critical styles for immediate render */
+    html, body { margin: 0; padding: 0; }
+    body {
+      min-height: 100vh;
+      background: linear-gradient(to bottom right, #f9fafb, #f3f4f6);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+    .min-h-screen { min-height: 100vh; }
+    .flex { display: flex; }
+    .flex-col { flex-direction: column; }
+    .bg-white { background-color: #ffffff; }
+    .border-b { border-bottom-width: 1px; }
+    .border-gray-200 { border-color: #e5e7eb; }
+    .shadow-sm { box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05); }
+    .text-2xl { font-size: 1.5rem; line-height: 2rem; }
+    .font-bold { font-weight: 700; }
+    .text-brand-600 { color: #dc4a22; }
+    .max-w-md { max-width: 28rem; }
+    .mx-auto { margin-left: auto; margin-right: auto; }
+    .px-4 { padding-left: 1rem; padding-right: 1rem; }
+    .h-16 { height: 4rem; }
+    .justify-between { justify-content: space-between; }
+    .items-center { align-items: center; }
+    .flex-1 { flex: 1 1 0%; }
+    .border-t { border-top-width: 1px; }
+    .py-4 { padding-top: 1rem; padding-bottom: 1rem; }
+    .text-center { text-align: center; }
+    .text-sm { font-size: 0.875rem; line-height: 1.25rem; }
+    .text-gray-500 { color: #6b7280; }
+  </style>
+
+  <!-- Initialize state for Vue app to prevent errors -->
+  <script>
+    window.__ONETIME_STATE__ = {
+      auth: true,
+      frontend_development: <%= frontend_development? %>
+    };
+  </script>
+
+  <% if frontend_development? %>
+    <!-- Development mode: Scripts loaded via Vite dev server -->
+    <%= vite_assets %>
+  <% else %>
+    <!-- Production mode: All assets from compiled manifest -->
+    <%= vite_assets %>
+  <% end %>
 </head>
 <body class="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 antialiased">
   <div class="min-h-screen flex flex-col">
@@ -91,6 +141,5 @@
     </footer>
   </div>
 
-  <script src="/assets/app.js"></script>
 </body>
 </html>

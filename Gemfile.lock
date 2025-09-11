@@ -219,10 +219,6 @@ GEM
       racc
     pastel (0.8.0)
       tty-color (~> 0.5)
-    pg (1.6.2-aarch64-linux)
-    pg (1.6.2-arm64-darwin)
-    pg (1.6.2-x86_64-darwin)
-    pg (1.6.2-x86_64-linux)
     pp (0.6.2)
       prettyprint
     prettier_print (1.2.1)
@@ -446,7 +442,6 @@ DEPENDENCIES
   oj (~> 3.16)
   ostruct (~> 0.6.2)
   otto (~> 1.4.0)
-  pg (~> 1.4)
   psych (~> 5.2.3)
   public_suffix
   puma (~> 6.6)

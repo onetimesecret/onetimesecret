@@ -61,7 +61,7 @@ export function useAuth() {
 
   // Redirect to login
   function login(): void {
-    const authUrl = import.meta.env.VITE_AUTH_URL || '/auth'
+    const authUrl = (import.meta as any).env.VITE_AUTH_URL || '/auth'
     const returnTo = encodeURIComponent(window.location.href)
     window.location.href = `${authUrl}/login?return_to=${returnTo}`
   }
@@ -69,7 +69,7 @@ export function useAuth() {
   // Logout
   async function logout(): Promise<void> {
     try {
-      const authUrl = import.meta.env.VITE_AUTH_URL || '/auth'
+      const authUrl = (import.meta as any).env.VITE_AUTH_URL || '/auth'
       await fetch(`${authUrl}/logout`, {
         method: 'POST',
         credentials: 'include'
