@@ -8,7 +8,7 @@ module V2
     include V2::ControllerHelpers
     include V2::Controllers::ClassSettings
 
-    attr_reader :req, :res, :sess, :cust, :locale, :ignoreshrimp
+    attr_reader :req, :res, :cust, :locale, :ignoreshrimp
 
     def initialize(req, res)
       @req = req
@@ -17,7 +17,7 @@ module V2
 
     def publically
       carefully do
-        check_session!
+        setup_request_context
         check_locale!
         yield
       end
@@ -46,35 +46,28 @@ module V2
           @cust = possible if possible.apitoken?(apitoken)
           raise OT::Unauthorized, 'Invalid credentials' if cust.nil? # wrong token
 
-          @sess = cust.load_or_create_session req.client_ipaddress
+          # For basic auth, we authenticate the session directly
+          authenticate!(@cust)
 
-          # Set the session as authenticated for this request
-          sess.authenticated = true
-
-          OT.ld "[authorized] '#{custid}' via #{req.client_ipaddress} (#{sess.authenticated?})"
+          OT.ld "[authorized] '#{custid}' via #{req.client_ipaddress} (basic auth authenticated)"
 
         # Second line, check for session cookie. We allow this in certain cases
         # like API requests coming from hybrid Vue components.
-        elsif req.cookie?(:sess)
+        elsif req.cookie?(:sess) || session['identity_id']
 
-          check_session!
+          setup_request_context
 
-          raise OT::Unauthorized, 'Session not authenticated' unless sess.authenticated? || allow_anonymous
+          raise OT::Unauthorized, 'Session not authenticated' unless authenticated? || allow_anonymous
 
-          # Only attempt to load the customer object if the session has
-          # already been authenticated. Otherwise this is an anonymous session.
-          @cust   = sess.load_customer if sess.authenticated?
+          # Customer is loaded by setup_request_context via current_customer helper
           @cust ||= V2::Customer.anonymous if allow_anonymous
 
-          raise OT::Unauthorized, 'Invalid credentials' if cust.nil? # wrong token
+          raise OT::Unauthorized, 'Invalid credentials' if cust.nil?
 
           custid = @cust.custid unless @cust.nil?
-          OT.ld "[authorized] '#{custid}' via #{req.client_ipaddress} (cookie)"
+          OT.ld "[authorized] '#{custid}' via #{req.client_ipaddress} (session)"
 
-          # Anytime we allow session cookies, we must also check shrimp. This will
-          # run only for POST etc requests (i.e. not GET) and it's important to
-          # check the shrimp after checking auth. Otherwise we'll chrun through
-          # shrimp even though weren't going to complete the request anyway.
+          # Check CSRF for state-changing requests
           check_shrimp!
 
         # Otherwise, we have no credentials, so we must be anonymous. Only
@@ -85,18 +78,19 @@ module V2
           raise OT::Unauthorized, 'No session or credentials' unless allow_anonymous
 
           @cust = V2::Customer.anonymous
-          @sess = /.create_ephemeral req.user_agent
+          # Session is already created by middleware, just set up context
+          setup_request_context
 
           if OT.debug?
             ip_address = req.client_ipaddress.to_s
-            session_id = sess.sessid.to_s
-            message    = "[authorized] Anonymous session via #{ip_address} (new session #{session_id})"
+            session_id = session.id&.private_id || 'unknown'
+            message    = "[authorized] Anonymous session via #{ip_address} (session #{session_id})"
             OT.ld message
           end
 
         end
 
-        raise OT::Unauthorized, "[bad-cust] '#{custid}' via #{req.client_ipaddress}" if cust.nil? || sess.nil?
+        raise OT::Unauthorized, "[bad-cust] '#{custid}' via #{req.client_ipaddress}" if cust.nil?
 
         yield
       end
@@ -130,7 +124,7 @@ module V2
 
       auth_method.call(allow_anonymous) do
         OT.ld "[retrieve] #{logic_class}"
-        logic = logic_class.new(sess, cust, req.params, locale)
+        logic = logic_class.new(session, cust, req.params, locale)
 
         logic.domain_strategy = req.env['onetime.domain_strategy'] # never nil
         logic.display_domain  = req.env['onetime.display_domain'] # can be nil
@@ -178,7 +172,7 @@ module V2
       auth_method = auth_type == :colonels ? method(:colonels) : method(:authorized)
 
       auth_method.call(allow_anonymous) do
-        logic = logic_class.new(sess, cust, req.params, locale)
+        logic = logic_class.new(session, cust, req.params, locale)
 
         logic.domain_strategy = req.env['onetime.domain_strategy'] # never nil
         logic.display_domain  = req.env['onetime.display_domain'] # can be nil
@@ -198,7 +192,8 @@ module V2
           json_success(custid: cust.custid, **logic.success_data)
         else
           # Add a fresh shrimp to allow continuing without refreshing the page
-          error_response(error_message, shrimp: sess.add_shrimp)
+          regenerate_shrimp!
+          error_response(error_message, shrimp: shrimp_token)
         end
       end
     end
@@ -213,7 +208,8 @@ module V2
       # fresh shrimp to the response body. The fresh shrimp is
       # helpful for parts of the Vue UI that get a successful
       # response and don't need to refresh the entire page.
-      json success: true, shrimp: sess.add_shrimp, **hsh
+      regenerate_shrimp!
+      json success: true, shrimp: shrimp_token, **hsh
     end
 
     # We don't get here from a form error unless the shrimp for this
@@ -221,7 +217,8 @@ module V2
     # so they can try again with a new one (without refreshing the
     # entire page).
     def handle_form_error(ex, hsh = {})
-      hsh[:shrimp]  = sess.add_shrimp
+      regenerate_shrimp!
+      hsh[:shrimp]  = shrimp_token
       hsh[:message] = ex.message
       hsh[:success] = false
       res.status    = 422 # Unprocessable Entity

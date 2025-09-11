@@ -7,19 +7,19 @@ module Auth
         adapter_class = determine_adapter_class
         adapter_class.new(env)
       end
-      
+
       def auth_mode
         # Check configuration for auth mode
         # Default to 'basic' if not configured
         config = OT.conf['site']['authentication'] || {}
-        
+
         if config['external'] && config['external']['enabled']
           'rodauth'
         else
           'basic'
         end
       end
-      
+
       def available_features
         # Return capabilities available in current auth mode
         # This can be queried by the frontend to enable/disable features
@@ -52,9 +52,9 @@ module Auth
           }
         end
       end
-      
+
       private
-      
+
       def determine_adapter_class
         case auth_mode
         when 'rodauth'
@@ -65,7 +65,7 @@ module Auth
           BasicAuthAdapter
         end
       end
-      
+
       def fallback_to_redis?
         config = OT.conf['site']['authentication'] || {}
         external = config['external'] || {}

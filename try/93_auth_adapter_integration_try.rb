@@ -17,11 +17,10 @@ OT.boot! :test, false
 # Create test customer with hashed password
 @test_email = "test_#{Time.now.to_i}@example.com"
 @test_password = "secure_password_123"
-@test_custid = "cust_#{Time.now.to_i}"
+@test_custid = @test_email # In OTS, custid IS the email address
 
 # Create customer with passphrase
 @test_customer = V2::Customer.new(@test_custid)
-@test_customer.email = @test_email
 @test_customer.update_passphrase(@test_password)
 @test_customer.save
 

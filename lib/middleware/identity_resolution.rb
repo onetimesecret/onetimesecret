@@ -129,23 +129,23 @@ module Rack
     end
 
     def resolve_redis_identity(request, env)
-      # Use existing session loading logic
-      session_id = extract_session_id(request)
-      return no_identity unless session_id
+      # Use Rack::Session from middleware
+      session = env['rack.session']
+      return no_identity unless session && session['identity_id']
 
       begin
-        # Load session from Redis (using existing OneTimeSecret logic)
-        session = load_redis_session(session_id)
-        return no_identity unless session
+        # Load customer using identity_id from session
+        customer = load_customer_from_session(session)
+        return no_identity unless customer
 
         {
-          user: build_redis_user(session),
+          user: build_redis_user(customer, session),
           source: 'redis',
-          authenticated: session.authenticated?,
+          authenticated: session['authenticated'] == true,
           metadata: {
-            session_id: session_id,
-            expires_at: session.expires_at,
-            ip_address: request.ip
+            session_id: session.id&.private_id,
+            expires_at: session['authenticated_at'] ? session['authenticated_at'] + 86400 : nil,
+            ip_address: session['ip_address'] || request.ip
           }
         }
 
@@ -178,8 +178,16 @@ module Rack
       request.cookies['ots_auth_token'] || request.cookies['sess']
     end
 
-    def extract_session_id(request)
-      request.cookies['sess']
+    def load_customer_from_session(session)
+      # Use existing Customer model to load by identity_id
+      return nil unless session['identity_id']
+
+      begin
+        V2::Customer.load(session['identity_id'])
+      rescue StandardError => e
+        logger.debug "[IdentityResolution] Could not load customer: #{e.message}"
+        nil
+      end
     end
 
     def validate_with_external_service(token)
@@ -197,28 +205,15 @@ module Rack
       nil # Placeholder
     end
 
-    def load_redis_session(session_id)
-      # Use existing OneTimeSecret session loading logic
-      # This would integrate with the current Session class
-
-      return nil unless defined?(Session)
-
-      begin
-        Session.load(session_id)
-      rescue StandardError => e
-        logger.debug "[IdentityResolution] Could not load Redis session: #{e.message}"
-        nil
-      end
-    end
 
     def build_external_user(user_data)
       # Build user object from external auth service data
       ExternalUser.new(user_data)
     end
 
-    def build_redis_user(session)
-      # Build user object from Redis session data
-      RedisUser.new(session)
+    def build_redis_user(customer, session)
+      # Build user object from customer and session data
+      RedisUser.new(customer, session)
     end
 
     def build_anonymous_user(request)
@@ -292,22 +287,23 @@ module Rack
     end
 
     class RedisUser
-      attr_reader :session
+      attr_reader :customer, :session
 
-      def initialize(session)
+      def initialize(customer, session)
+        @customer = customer
         @session = session
       end
 
       def id
-        session.custid
+        customer.custid
       end
 
       def email
-        session.custid
+        customer.custid
       end
 
       def authenticated?
-        session.authenticated?
+        session['authenticated'] == true && !customer.anonymous?
       end
 
       def anonymous?
@@ -315,11 +311,7 @@ module Rack
       end
 
       def role?(role_name)
-        # Delegate to existing Customer logic if available
-        return false unless session.respond_to?(:customer)
-        return false unless session.customer
-
-        session.customer.role?(role_name)
+        customer.role?(role_name)
       end
 
       def feature_enabled?(feature_name)
@@ -329,10 +321,7 @@ module Rack
 
       def roles
         return [] unless authenticated?
-        return [] unless session.respond_to?(:customer)
-        return [] unless session.customer
-
-        session.customer.roles || []
+        customer.roles || []
       end
 
       def features
@@ -342,8 +331,9 @@ module Rack
 
       def metadata
         {
-          session_created: session.created,
-          last_access: session.accessed
+          session_created: session['authenticated_at'],
+          last_access: session['last_seen'],
+          ip_address: session['ip_address']
         }
       end
     end

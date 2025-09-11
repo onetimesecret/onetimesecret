@@ -3,19 +3,19 @@
 module Auth
   class BasicAuthAdapter
     attr_reader :env
-    
+
     def initialize(env)
       @env = env
     end
-    
+
     def authenticate(email, password, tenant_id = nil)
       # Find the customer in Redis
       customer = find_customer(email, tenant_id)
       return authentication_failure unless customer
-      
+
       # Verify password using bcrypt
       return authentication_failure unless verify_password(customer, password)
-      
+
       # Create session via Rack::Session
       session = env['rack.session']
       session['identity_id'] = customer.custid
@@ -23,7 +23,7 @@ module Auth
       session['email'] = customer.email
       session['authenticated'] = true
       session['authenticated_at'] = Time.now.to_i
-      
+
       # Return success with customer data
       {
         success: true,
@@ -35,17 +35,17 @@ module Auth
       OT.le "[BasicAuthAdapter] Authentication error: #{e.message}"
       authentication_failure
     end
-    
+
     def logout
       session = env['rack.session']
       session.clear
       { success: true }
     end
-    
+
     def current_identity
       session = env['rack.session']
       return nil unless session['authenticated']
-      
+
       {
         identity_id: session['identity_id'],
         tenant_id: session['tenant_id'],
@@ -53,31 +53,31 @@ module Auth
         authenticated_at: session['authenticated_at']
       }
     end
-    
+
     def authenticated?
       session = env['rack.session']
       session['authenticated'] == true
     end
-    
+
     private
-    
+
     def find_customer(email, tenant_id = nil)
       # Use the existing Customer model to load by email
       # In OTS, the custid IS the email address
       V2::Customer.load(email)
     end
-    
+
     def verify_password(customer, password)
       # Customer model uses passphrase? method for verification
       return false unless customer.has_passphrase?
-      
+
       # Use the Customer's built-in passphrase verification
       customer.passphrase?(password)
     rescue => e
       OT.le "[BasicAuthAdapter] Password verification error: #{e.message}"
       false
     end
-    
+
     def authentication_failure
       {
         success: false,

@@ -8,9 +8,9 @@ require 'cgi'
 
 OT.boot! :test, false
 
-@test_app = lambda { |env| 
+@test_app = lambda { |env|
   session = env['rack.session']
-  
+
   case env['PATH_INFO']
   when '/set'
     session['test_key'] = 'test_value'
