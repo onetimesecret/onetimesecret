@@ -5,7 +5,7 @@ require 'sequel'
 require 'logger'
 
 # Database connection
-database_url = ENV['DATABASE_URL'] || 'sqlite://auth.db'
+database_url = ENV['DATABASE_URL'] || 'sqlite://data/auth.db'
 puts "Connecting to database: #{database_url}"
 
 DB = Sequel.connect(database_url)

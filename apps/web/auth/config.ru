@@ -1,7 +1,7 @@
-#!/usr/bin/env ruby
+# apps/web/auth/config.ru
 
 require 'bundler/setup'
-require_relative 'app'
+require_relative 'auth'
 
 # Configure the application
 if ENV['RACK_ENV'] == 'production'

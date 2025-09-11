@@ -8,7 +8,7 @@ require 'logger'
 require 'json'
 
 # Database connection
-database_url = ENV['DATABASE_URL'] || 'sqlite://auth.db'
+database_url = ENV['DATABASE_URL'] || 'sqlite://data/auth.db'
 DB = Sequel.connect(database_url)
 
 # Enable SQL logging in development
@@ -75,21 +75,34 @@ class AuthService < Roda
     enable :lockout   # Brute force protection
     enable :active_sessions  # Track active sessions
 
+    # Multi-Factor Authentication
+    enable :otp  # Time-based One-Time Password (TOTP)
+    enable :recovery_codes  # Backup codes for MFA
+
     # Session configuration
-    session_key '_auth_session'
-    remember_cookie_key '_auth_remember'
+    session_key '_auth_shrimp'
+    remember_cookie_key '_auth_rememe'
 
     # Account verification (email confirmation) - disabled
     # require_email_confirmation_for_new_accounts true
-    # verify_account_email_subject 'OneTimeSecret - Confirm Your Account'
+    # verify_account_email_subject 'MyProjectName (Community) - Confirm Your Account'
 
     # Password requirements
     password_minimum_length 8
-    # password_complexity_requirements_enforced true
+    # password_complexity_requirements_enforcHed true
 
     # Lockout settings (brute force protection)
     max_invalid_logins 5
     # lockout_expiration_default 3600  # 1 hour
+
+    # MFA Configuration
+    otp_issuer 'MyProjectName (Community)'
+    otp_setup_param 'otp_setup'
+    otp_auth_param 'otp_code'
+
+    # Recovery codes configuration
+    recovery_codes_column :code
+    auto_add_recovery_codes? true  # Automatically generate recovery codes
 
     # Email configuration
     send_email do |email|
@@ -244,7 +257,9 @@ class AuthService < Roda
             email: account[:email],
             created_at: account[:created_at],
             status: account[:status_id],
-            email_verified: account[:status_id] == 2  # Assuming 2 is verified
+            email_verified: account[:status_id] == 2,  # Assuming 2 is verified
+            mfa_enabled: rodauth.otp_exists?,
+            recovery_codes_count: rodauth.recovery_codes_available
           }
         else
           view 'account'
@@ -272,7 +287,9 @@ class AuthService < Roda
           {
             total_accounts: DB[:accounts].count,
             verified_accounts: DB[:accounts].where(status_id: 2).count,
-            active_sessions: DB[:account_active_session_keys].count
+            active_sessions: DB[:account_active_session_keys].count,
+            mfa_enabled_accounts: DB[:account_otp_keys].count,
+            unused_recovery_codes: DB[:account_recovery_codes].where(used_at: nil).count
           }
         rescue => e
           puts "Error: #{e.class} - #{e.message}"
@@ -317,11 +334,15 @@ class AuthService < Roda
     session_expiry = session_data[:last_use] + (30 * 24 * 60 * 60)  # 30 days
     return nil if Time.now > session_expiry
 
+    # Check if MFA is enabled for this account
+    mfa_enabled = DB[:account_otp_keys].where(id: session_data[:account_id]).count > 0
+
     {
       account_id: session_data[:account_id],
       email: session_data[:email],
       created_at: session_data[:created_at],
       expires_at: session_expiry,
+      mfa_enabled: mfa_enabled,
       roles: [],  # Could fetch from separate roles table
       features: ['secrets', 'create_secret', 'view_secret']
     }
