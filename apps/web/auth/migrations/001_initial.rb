@@ -1,13 +1,13 @@
-# apps/web/auth/migrations/001_load_essential_schema.rb
+# apps/web/auth/migrations/001_initial.rb
 
 Sequel.migration do
   up do
     # Determine database type and load appropriate schema
     schema_file = case database_type
     when :sqlite
-      File.join(__dir__, 'schemas/sqlite/001_essential_schema.sql')
+      File.join(__dir__, 'schemas/sqlite/001_initial.sql')
     when :postgres
-      File.join(__dir__, 'schemas/postgresql/001_essential_schema.sql')
+      File.join(__dir__, 'schemas/postgresql/001_initial.sql')
     else
       raise "Unsupported database type: #{database_type}. Supported: sqlite, postgres"
     end
@@ -30,23 +30,23 @@ Sequel.migration do
 
   down do
     # Determine database type and load appropriate down migration schema
-    schema_down_file = case database_type
+    schema_file = case database_type
     when :sqlite
-      File.join(__dir__, 'schemas/sqlite/001_essential_schema_down.sql')
+      File.join(__dir__, 'schemas/sqlite/001_initial_down.sql')
     when :postgres
-      File.join(__dir__, 'schemas/postgresql/001_essential_schema_down.sql')
+      File.join(__dir__, 'schemas/postgresql/001_initial_down.sql')
     else
       raise "Unsupported database type: #{database_type}. Supported: sqlite, postgres"
     end
 
-    unless File.exist?(schema_down_file)
-      raise "Schema down file not found: #{schema_down_file}"
+    unless File.exist?(schema_file)
+      raise "Schema down file not found: #{schema_file}"
     end
 
-    puts "Rolling back essential schema for #{database_type} using #{File.basename(schema_down_file)}"
+    puts "Rolling back essential schema for #{database_type} using #{File.basename(schema_file)}"
 
     # Read and execute the SQL down migration file
-    sql_content = File.read(schema_down_file)
+    sql_content = File.read(schema_file)
 
     # Execute the entire SQL content at once
     run sql_content

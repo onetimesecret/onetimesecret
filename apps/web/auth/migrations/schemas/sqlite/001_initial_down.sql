@@ -1,19 +1,33 @@
 -- ================================================================
--- Rodauth SQLite3 Essential Schema - Rollback/Down Migration
--- Drops all authentication tables in proper dependency order
+-- Rodauth SQLite3 Schema - Complete Rollback
+-- Removes all authentication tables, views, triggers, and data
 -- ================================================================
 
--- Drop views first (depend on tables)
+-- Drop all views (depend on tables)
 DROP VIEW IF EXISTS active_sessions_with_accounts;
 DROP VIEW IF EXISTS accounts_with_status;
+DROP VIEW IF EXISTS user_sessions_summary;
+DROP VIEW IF EXISTS account_security_summary;
 
--- Drop triggers
+-- Drop all triggers
 DROP TRIGGER IF EXISTS cleanup_expired_lockouts;
 DROP TRIGGER IF EXISTS cleanup_expired_remember_keys;
 DROP TRIGGER IF EXISTS cleanup_expired_reset_keys;
 DROP TRIGGER IF EXISTS update_accounts_updated_at;
+DROP TRIGGER IF EXISTS log_password_changes;
+DROP TRIGGER IF EXISTS cleanup_old_audit_logs;
 
--- Drop tables in reverse dependency order to avoid foreign key conflicts
+-- Drop all tables in reverse dependency order
+-- Example/additional tables first
+DROP TABLE IF EXISTS account_email_auth_keys;
+DROP TABLE IF EXISTS account_sms_codes;
+DROP TABLE IF EXISTS account_webauthn_keys;
+DROP TABLE IF EXISTS account_jwt_refresh_keys;
+DROP TABLE IF EXISTS account_login_change_keys;
+DROP TABLE IF EXISTS account_password_change_times;
+DROP TABLE IF EXISTS account_previous_password_hashes;
+
+-- Core authentication tables
 DROP TABLE IF EXISTS account_authentication_audit_logs;
 DROP TABLE IF EXISTS account_recovery_codes;
 DROP TABLE IF EXISTS account_otp_keys;
