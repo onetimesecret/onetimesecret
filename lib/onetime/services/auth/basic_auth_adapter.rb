@@ -77,8 +77,8 @@ module Auth
         V2::Customer.dummy
       end
 
-      # Always perform passphrase verification, but only return true for valid customers
-      target_customer.passphrase?(password) && customer.has_passphrase?
+      # Always perform passphrase verification and always return its result to mitigate timing attacks
+      target_customer.passphrase?(password)
     rescue => e
       OT.le "[BasicAuthAdapter] Password verification error: #{e.message}"
       false

@@ -60,7 +60,7 @@ module Rack
               session_data.to_json
             )
             # Return a SessionId object for PersistedSecure
-            ::Rack::Session::SessionId.new(sid, session)
+            ::Rack::Session::SessionId.new(sid)
           rescue => e
             OT.le "[RedisFamilia] Failed to write session: #{e.message}"
             false

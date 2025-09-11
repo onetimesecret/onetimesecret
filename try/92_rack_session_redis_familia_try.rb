@@ -108,17 +108,15 @@ exists = Familia.dbclient.exists?(redis_key) if redis_key
 !exists
 #=> true
 
-## New session ID is generated after destroy (unless drop option)
+## No new session ID is generated after destroy with drop option
 browser = Rack::Test::Session.new(@session_app)
 browser.get '/set'
 first_cookie = browser.last_response.headers['Set-Cookie']
 browser.get '/destroy'
 second_cookie = browser.last_response.headers['Set-Cookie']
-first_sid = first_cookie&.match(/ots\.session=([^;]+)/)&.captures&.first
+# After destroy with drop: true, no new session cookie should be set
 second_sid = second_cookie&.match(/ots\.session=([^;]+)/)&.captures&.first
-first_sid = CGI.unescape(first_sid) if first_sid
-second_sid = CGI.unescape(second_sid) if second_sid
-first_sid && second_sid && first_sid != second_sid
+second_sid.nil?
 #=> true
 
 ## Session handles missing or invalid session gracefully

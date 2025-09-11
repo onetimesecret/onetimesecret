@@ -148,8 +148,10 @@ module V2
 
       # Create a dummy customer with realistic passphrase for timing consistency
       def dummy
-        passphrase = V2::Mixins::Passphrase.create_passphrase(SecureRandom.hex(16))
-        @dummy ||= new(role: 'anon', passphrase: passphrase).freeze
+        @dummy ||= begin
+          passphrase = V2::Mixins::Passphrase.create_passphrase(SecureRandom.hex(16))
+          new(role: 'anon', passphrase: passphrase).freeze
+        end
       end
     end
 
