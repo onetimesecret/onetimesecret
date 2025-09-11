@@ -60,7 +60,7 @@ module V1
       if res.headers['content-type'] == 'application/json'
         error_response 'Please refresh the page and try again', reason: 'Bad shrimp 🍤'
       else
-        sess.set_error_message 'Please go back, refresh the page, and try again.'
+        session['error_message'] = 'Please go back, refresh the page, and try again.'
         res.redirect redirect
       end
     rescue OT::FormError => ex
@@ -85,15 +85,19 @@ module V1
       secret_not_found_response
     rescue OT::RecordNotFound => ex
       OT.ld "[carefully] RecordNotFound: #{ex.message} (#{req.path}) redirect:#{redirect || 'n/a'}"
-      not_found_response ex.message, shrimp: sess.add_shrimp
+      regenerate_shrimp! if respond_to?(:regenerate_shrimp!)
+      not_found_response ex.message, shrimp: (respond_to?(:shrimp_token) ? shrimp_token : nil)
     rescue Familia::HighRiskFactor => ex
-      OT.le "[attempt-saving-non-string-to-db] #{obscured} (#{sess.ipaddress}): #{sess.identifier.size <= 10 ? sess.identifier : sess.identifier[0, 10] + '...'} (#{req.current_absolute_uri})"
+      session_id = session.id&.to_s || req.cookies['ots.session'] || 'unknown'
+      short_session_id = session_id.length <= 10 ? session_id : session_id[0, 10] + '...'
+      OT.le "[attempt-saving-non-string-to-db] #{obscured} (#{req.client_ipaddress}): #{short_session_id} (#{req.current_absolute_uri})"
 
       # Track attempts to save non-string data to the database as a warning error
       capture_error ex, :warning
 
       # Include fresh shrimp so they can try again 🦐
-      error_response "We're sorry, but we can't process your request at this time.", shrimp: sess.add_shrimp
+      regenerate_shrimp! if respond_to?(:regenerate_shrimp!)
+      error_response "We're sorry, but we can't process your request at this time.", shrimp: (respond_to?(:shrimp_token) ? shrimp_token : nil)
     rescue Familia::NotConnected, Familia::Problem => ex
       OT.le "#{ex.class}: #{ex.message}"
       OT.le ex.backtrace
@@ -102,7 +106,8 @@ module V1
       capture_error ex
 
       # Include fresh shrimp so they can try again 🦐
-      error_response 'An error occurred :[', shrimp: sess ? sess.add_shrimp : nil
+      regenerate_shrimp! if respond_to?(:regenerate_shrimp!)
+      error_response 'An error occurred :[', shrimp: (respond_to?(:shrimp_token) ? shrimp_token : nil)
     rescue Errno::ECONNREFUSED => ex
       OT.le ex.message
       OT.le ex.backtrace
@@ -110,17 +115,20 @@ module V1
       # Track DB connection errors as fatal errors
       capture_error ex, :fatal
 
-      error_response "We'll be back shortly!", shrimp: sess ? sess.add_shrimp : nil
+      regenerate_shrimp! if respond_to?(:regenerate_shrimp!)
+      error_response "We'll be back shortly!", shrimp: (respond_to?(:shrimp_token) ? shrimp_token : nil)
     rescue StandardError => ex
       custid = cust&.custid || '<notset>'
-      sessid = sess&.short_identifier || '<notset>'
-      OT.le "#{ex.class}: #{ex.message} -- #{req.current_absolute_uri} -- #{req.client_ipaddress} #{custid} #{sessid} #{locale} #{content_type} #{redirect} "
+      session_id = session.id&.to_s || req.cookies['ots.session'] || 'unknown'
+      short_session_id = session_id.length <= 10 ? session_id : session_id[0, 10] + '...'
+      OT.le "#{ex.class}: #{ex.message} -- #{req.current_absolute_uri} -- #{req.client_ipaddress} #{custid} #{short_session_id} #{locale} #{content_type} #{redirect} "
       OT.le ex.backtrace.join("\n")
 
       # Track the unexected errors
       capture_error ex
 
-      error_response 'An unexpected error occurred :[', shrimp: sess ? sess.add_shrimp : nil
+      regenerate_shrimp! if respond_to?(:regenerate_shrimp!)
+      error_response 'An unexpected error occurred :[', shrimp: (respond_to?(:shrimp_token) ? shrimp_token : nil)
     ensure
       @sess ||= V1::Session.new 'failover', 'anon'
       @cust ||= V1::Customer.anonymous
@@ -392,7 +400,9 @@ module V1
 
       reqstr  = stringify_request_details(req)
       custref = cust.obscure_email
-      OT.info "[carefully] #{sess.short_identifier} #{custref} at #{reqstr}"
+      session_id = session.id&.to_s || req.cookies['ots.session'] || 'unknown'
+      short_session_id = session_id.length <= 10 ? session_id : session_id[0, 10] + '...'
+      OT.info "[carefully] #{short_session_id} #{custref} at #{reqstr}"
     end
 
     # Sentry terminology:

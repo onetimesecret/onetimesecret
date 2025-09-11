@@ -58,7 +58,7 @@ module Core
       if res.headers['content-type'] == 'application/json'
         error_response 'Please refresh the page and try again', reason: 'Bad shrimp 🍤'
       else
-        sess.set_error_message 'Please go back, refresh the page, and try again.'
+        session['error_message'] = 'Please go back, refresh the page, and try again.'
         res.redirect redirect
       end
     rescue OT::FormError => ex
@@ -83,15 +83,19 @@ module Core
       secret_not_found_response
     rescue OT::RecordNotFound => ex
       OT.ld "[carefully] RecordNotFound: #{ex.message} (#{req.path}) redirect:#{redirect || 'n/a'}"
-      not_found_response ex.message, shrimp: sess.add_shrimp
+      regenerate_shrimp! if respond_to?(:regenerate_shrimp!)
+      not_found_response ex.message, shrimp: (respond_to?(:shrimp_token) ? shrimp_token : nil)
     rescue Familia::HighRiskFactor => ex
-      OT.le "[attempt-saving-non-string-to-db] #{obscured} (#{sess.ipaddress}): #{sess.identifier.size <= 10 ? sess.identifier : sess.identifier[0, 10] + '...'} (#{req.current_absolute_uri})"
+      session_id = session.id&.to_s || req.cookies['ots.session'] || 'unknown'
+      short_session_id = session_id.length <= 10 ? session_id : session_id[0, 10] + '...'
+      OT.le "[attempt-saving-non-string-to-db] #{obscured} (#{req.client_ipaddress}): #{short_session_id} (#{req.current_absolute_uri})"
 
       # Track attempts to save non-string data to the database as a warning error
       capture_error ex, :warning
 
       # Include fresh shrimp so they can try again 🦐
-      error_response "We're sorry, but we can't process your request at this time.", shrimp: sess.add_shrimp
+      regenerate_shrimp! if respond_to?(:regenerate_shrimp!)
+      error_response "We're sorry, but we can't process your request at this time.", shrimp: (respond_to?(:shrimp_token) ? shrimp_token : nil)
     rescue Familia::NotConnected, Familia::Problem => ex
       OT.le "#{ex.class}: #{ex.message}"
       OT.le ex.backtrace
@@ -100,7 +104,8 @@ module Core
       capture_error ex
 
       # Include fresh shrimp so they can try again 🦐
-      error_response 'An error occurred :[', shrimp: sess ? sess.add_shrimp : nil
+      regenerate_shrimp! if respond_to?(:regenerate_shrimp!)
+      error_response 'An error occurred :[', shrimp: (respond_to?(:shrimp_token) ? shrimp_token : nil)
     rescue Errno::ECONNREFUSED => ex
       OT.le ex.message
       OT.le ex.backtrace
@@ -108,7 +113,8 @@ module Core
       # Track DB connection errors as fatal errors
       capture_error ex, :fatal
 
-      error_response "We'll be back shortly!", shrimp: sess ? sess.add_shrimp : nil
+      regenerate_shrimp! if respond_to?(:regenerate_shrimp!)
+      error_response "We'll be back shortly!", shrimp: (respond_to?(:shrimp_token) ? shrimp_token : nil)
     rescue StandardError => ex
       custid = cust&.custid || '<notset>'
       session = req.env['rack.session']
@@ -118,7 +124,8 @@ module Core
       # Track the unexected errors
       capture_error ex
 
-      error_response 'An unexpected error occurred :[', shrimp: sess ? sess.add_shrimp : nil
+      regenerate_shrimp! if respond_to?(:regenerate_shrimp!)
+      error_response 'An unexpected error occurred :[', shrimp: (respond_to?(:shrimp_token) ? shrimp_token : nil)
     ensure
       # Fallback session no longer needed with Rack::Session
       @cust ||= V2::Customer.anonymous
@@ -373,23 +380,44 @@ module Core
       shrimp_is_empty = attempted_shrimp.empty?
       log_value       = attempted_shrimp.size <= 5 ? attempted_shrimp : attempted_shrimp[0, 5] + '...'
 
-      if sess.shrimp?(attempted_shrimp) || ignoreshrimp
-        adjective = ignoreshrimp ? 'IGNORED' : 'GOOD'
+      if ignoreshrimp
+        adjective = 'IGNORED'
         OT.ld "#{adjective} SHRIMP for #{cust.custid}@#{req.path}: #{log_value}"
-        # Regardless of the outcome, we clear the shrimp from the session
-        # to prevent replay attacks. A new shrimp is generated on the
-        # next page load.
-        sess.replace_shrimp! if replace
         true
       else
-        ### NOTE: MUST FAIL WHEN NO SHRIMP OTHERWISE YOU CAN
-        ### JUST SUBMIT A FORM WITHOUT ANY SHRIMP WHATSOEVER
-        ### AND THAT'S NO WAY TO TREAT A GUEST.
-        shrimp = (sess.shrimp || '[noshrimp]').clone
-        ex     = OT::BadShrimp.new(req.path, cust.custid, attempted_shrimp, shrimp)
-        OT.ld "BAD SHRIMP for #{cust.custid}@#{req.path}: #{log_value}"
-        sess.replace_shrimp! if replace && !shrimp_is_empty
-        raise ex
+        begin
+          stored_token = respond_to?(:shrimp_token) ? shrimp_token : nil
+          return false if stored_token.to_s.empty? || attempted_shrimp.to_s.empty?
+
+          # Use constant-time comparison to prevent timing attacks
+          valid = Rack::Utils.secure_compare(stored_token.to_s, attempted_shrimp.to_s)
+
+          if valid
+            adjective = 'GOOD'
+            OT.ld "#{adjective} SHRIMP for #{cust.custid}@#{req.path}: #{log_value}"
+            # Regardless of the outcome, we clear the shrimp from the session
+            # to prevent replay attacks. A new shrimp is generated on the
+            # next page load.
+            regenerate_shrimp! if replace && respond_to?(:regenerate_shrimp!)
+            true
+          else
+            ### NOTE: MUST FAIL WHEN NO SHRIMP OTHERWISE YOU CAN
+            ### JUST SUBMIT A FORM WITHOUT ANY SHRIMP WHATSOEVER
+            ### AND THAT'S NO WAY TO TREAT A GUEST.
+            current_shrimp = stored_token || '[noshrimp]'
+            ex = OT::BadShrimp.new(req.path, cust.custid, attempted_shrimp, current_shrimp)
+            OT.ld "BAD SHRIMP for #{cust.custid}@#{req.path}: #{log_value}"
+            regenerate_shrimp! if replace && !shrimp_is_empty && respond_to?(:regenerate_shrimp!)
+            raise ex
+          end
+        rescue => e
+          # Handle any errors in shrimp validation
+          current_shrimp = '[error]'
+          ex = OT::BadShrimp.new(req.path, cust.custid, attempted_shrimp, current_shrimp)
+          OT.ld "BAD SHRIMP for #{cust.custid}@#{req.path}: #{log_value} (#{e.message})"
+          regenerate_shrimp! if replace && !shrimp_is_empty && respond_to?(:regenerate_shrimp!)
+          raise ex
+        end
       end
     end
     protected :validate_shrimp
@@ -425,7 +453,9 @@ module Core
 
       reqstr  = stringify_request_details(req)
       custref = cust.obscure_email
-      OT.ld "[carefully] #{sess.short_identifier} #{custref} at #{reqstr}"
+      session_id = session.id&.to_s || req.cookies['ots.session'] || 'unknown'
+      short_session_id = session_id.length <= 10 ? session_id : session_id[0, 10] + '...'
+      OT.ld "[carefully] #{short_session_id} #{custref} at #{reqstr}"
     end
 
     # Sentry terminology:
