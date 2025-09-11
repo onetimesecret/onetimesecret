@@ -7,6 +7,11 @@ module AuthHelpers
       OT.conf.dig('development', 'enabled') || false
     end
 
+    # Get the frontend host for development mode
+    def frontend_host
+      OT.conf.dig('development', 'frontend_host')
+    end
+
     # Generate HTML tags for all required Vite assets
     def vite_assets(nonce: nil)
       if frontend_development?
@@ -18,14 +23,15 @@ module AuthHelpers
 
     # Get CSS file path from Vite manifest (legacy method for backward compatibility)
     def vite_css_path
-      return '/dist/assets/style.css' if frontend_development?
+      # In development mode, CSS is injected by Vite dev server
+      return nil if frontend_development?
 
       manifest_path = File.join(Dir.pwd, 'public', 'web', 'dist', '.vite', 'manifest.json')
 
       return '/dist/assets/style.css' unless File.exist?(manifest_path)
 
       begin
-        manifest = JSON.parse(File.read(manifest_path))
+        manifest    = JSON.parse(File.read(manifest_path))
         style_entry = manifest['style.css']
 
         if style_entry && style_entry['file']
@@ -39,7 +45,7 @@ module AuthHelpers
             '/dist/assets/style.css' # fallback
           end
         end
-      rescue JSON::ParserError, StandardError
+      rescue JSON::ParserError
         '/dist/assets/style.css' # fallback
       end
     end
@@ -48,9 +54,11 @@ module AuthHelpers
 
     # Development mode assets - load from Vite dev server
     def development_assets(nonce)
-      assets = []
-      assets << build_script_tag('main.ts', nonce)
-      assets << build_script_tag('@vite/client', nonce)
+      # dev_server = frontend_host || 'http://localhost:5173'
+      dev_server = nil
+      assets     = []
+      assets << build_dev_script_tag('main.ts', nonce, dev_server)
+      assets << build_dev_script_tag('@vite/client', nonce, dev_server)
       assets.join("\n")
     end
 
@@ -64,8 +72,8 @@ module AuthHelpers
       end
 
       begin
-        manifest = JSON.parse(File.read(manifest_path))
-        main_entry = manifest['main.ts']
+        manifest    = JSON.parse(File.read(manifest_path))
+        main_entry  = manifest['main.ts']
         style_entry = manifest['style.css']
 
         return error_script(nonce, 'Main entry not found in Vite manifest') unless main_entry
@@ -87,8 +95,8 @@ module AuthHelpers
 
         assets.concat(build_font_preloads(manifest, nonce))
         assets.join("\n")
-      rescue JSON::ParserError, StandardError => e
-        error_script(nonce, "Error parsing manifest: #{e.message}")
+      rescue JSON::ParserError => ex
+        error_script(nonce, "Error parsing manifest: #{ex.message}")
       end
     end
 
@@ -98,12 +106,18 @@ module AuthHelpers
       %(<script type="module"#{nonce_attr} src="/dist/#{file}"></script>)
     end
 
+    # Build a script tag for development mode with dev server URL
+    def build_dev_script_tag(file, nonce, dev_server = nil)
+      nonce_attr = nonce ? %( nonce="#{nonce}") : ''
+      %(<script type="module"#{nonce_attr} src="#{dev_server}/dist/#{file}" data-site="#{dev_server}"></script>)
+    end
+
     # Build a link tag for CSS assets
-    def build_css_tag(file, nonce)
+    def build_css_tag(file, nonce, dev_server = nil)
       return unless file
 
       nonce_attr = nonce ? %( nonce="#{nonce}") : ''
-      %(<link rel="stylesheet"#{nonce_attr} href="/dist/#{file}">)
+      %(<link rel="stylesheet"#{nonce_attr} href="#{dev_server}/dist/#{file}">)
     end
 
     # Build preload link tags for font assets
@@ -111,7 +125,7 @@ module AuthHelpers
       manifest.values
         .select { |entry| entry['file'] =~ /\.(woff2?|ttf|otf|eot)$/ }
         .map do |font|
-          ext = File.extname(font['file']).delete('.')
+          ext        = File.extname(font['file']).delete('.')
           nonce_attr = nonce ? %( nonce="#{nonce}") : ''
           %(<link rel="preload"#{nonce_attr} href="/dist/#{font['file']}" as="font" type="font/#{ext}" crossorigin>)
         end

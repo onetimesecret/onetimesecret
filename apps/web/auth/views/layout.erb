@@ -40,21 +40,21 @@
     .text-gray-500 { color: #6b7280; }
   </style>
 
-  <% if frontend_development? %>
-    <!-- Development mode: CSS and scripts loaded via Vite dev server -->
-    <script type="module" src="/dist/main.ts"></script>
-    <script type="module" src="/dist/@vite/client"></script>
-  <% else %>
-    <!-- Production mode: CSS from compiled manifest -->
-    <link rel="stylesheet" href="<%= vite_css_path %>">
-  <% end %>
-  <!-- Initialize minimal state for Vue app to prevent errors -->
+  <!-- Initialize state for Vue app to prevent errors -->
   <script>
     window.__ONETIME_STATE__ = {
       auth: true,
-      frontend_development: true
+      frontend_development: <%= frontend_development? %>
     };
   </script>
+
+  <% if frontend_development? %>
+    <!-- Development mode: Scripts loaded via Vite dev server -->
+    <%= vite_assets %>
+  <% else %>
+    <!-- Production mode: All assets from compiled manifest -->
+    <%= vite_assets %>
+  <% end %>
 </head>
 <body class="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 antialiased">
   <div class="min-h-screen flex flex-col">
@@ -141,16 +141,5 @@
     </footer>
   </div>
 
-  <% unless frontend_development? %>
-    <!-- Production mode: JS and additional assets -->
-    <!-- Initialize minimal state for Vue app to prevent errors -->
-    <script>
-      window.__ONETIME_STATE__ = {
-        auth: true,
-        frontend_development: false
-      };
-    </script>
-    <%= vite_assets %>
-  <% end %>
 </body>
 </html>
