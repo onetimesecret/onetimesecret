@@ -135,6 +135,7 @@ GEM
       bigdecimal
     sqlite3 (1.7.3)
       mini_portile2 (~> 2.8.0)
+    tilt (2.6.1)
     timeout (0.4.3)
     tpm-key_attestation (0.14.1)
       bindata (~> 2.4)
@@ -157,7 +158,7 @@ PLATFORMS
   ruby
 
 DEPENDENCIES
-  bcrypt (~> 3.1)
+  bcrypt
   database_cleaner-sequel (~> 2.0)
   factory_bot (~> 6.4)
   faker (~> 3.2)
@@ -166,17 +167,18 @@ DEPENDENCIES
   mail (~> 2.8)
   newrelic_rpm (~> 9.0)
   oj (~> 3.16)
-  pg (~> 1.4)
+  pg
   puma (~> 6.0)
   rack-test (~> 2.1)
   rerun (~> 0.14)
   roda (~> 3.0)
-  rodauth (~> 2.0)
+  rodauth (~> 2.40.0)
   rotp (~> 6.2)
   rqrcode (~> 2.2)
   rspec (~> 3.12)
   sequel (~> 5.0)
-  sqlite3 (~> 1.6)
+  sqlite3
+  tilt (~> 2.0)
   webauthn (~> 3.0)
 
 RUBY VERSION

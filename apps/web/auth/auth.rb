@@ -18,12 +18,14 @@ end
 
 class AuthService < Roda
   # Roda plugins
-  plugin :sessions, secret: ENV['AUTH_SECRET'] || 'dev-secret-change-in-production'
+  plugin :sessions, secret: ENV['AUTH_SECRET'] || 'dev-secret-change-in-production-this-must-be-at-least-64-chars-long'
   plugin :flash
   plugin :json
   plugin :halt
   plugin :error_handler
   plugin :status_handler
+  plugin :render, views: File.expand_path('views', __dir__), layout: 'layout'
+  plugin :assets, css: 'app.css', js: 'app.js', path: File.expand_path('assets', __dir__)
 
   # Status handlers
   status_handler(404) do
@@ -31,27 +33,35 @@ class AuthService < Roda
   end
 
   # Rodauth plugin configuration
-  plugin :rodauth, json: :only do
+  plugin :rodauth do
     db DB
 
     # HMAC secret for token security
     hmac_secret ENV['HMAC_SECRET'] || ENV['AUTH_SECRET'] || 'dev-hmac-secret-change-in-production'
 
-    prefix '/'
+    prefix '/auth'
 
-    # JSON feature must be enabled first
+    # Enable base feature for HTML rendering
+    enable :base
+
+    # JSON feature
     enable :json
+
+    # Core authentication features
+    enable :login, :logout, :create_account, :close_account, :login_password_requirements_base
+    enable :change_password, :reset_password
+    enable :remember  # "Remember me" functionality
+    enable :verify_account  # Disabled until email is properly configured
 
     # JSON response configuration
     json_response_success_key :success
     json_response_error_key :error
 
-
-    # Core authentication features
-    enable :login, :logout, :create_account, :close_account, :login_password_requirements_base
-    enable :change_password, :reset_password
-    # enable :verify_account  # Disabled until email is properly configured
-    enable :remember  # "Remember me" functionality
+    # Template configuration (after enabling features)
+    # login_view { 'login' }
+    # create_account_view 'create-account'
+    # reset_password_request_view { 'reset-password-request' }
+    # reset_password_view { 'reset-password' }
 
 
     # Use email as the account identifier
@@ -127,6 +137,18 @@ class AuthService < Roda
   route do |r|
     # Debug logging
     puts "[#{Time.now}] #{r.request_method} #{r.path_info}" if ENV['RACK_ENV'] == 'development'
+
+    # Serve assets
+    r.assets
+
+    # Home page - redirect to login if not logged in, account if logged in
+    r.root do
+      if rodauth.logged_in?
+        r.redirect '/account'
+      else
+        r.redirect '/login'
+      end
+    end
 
     # Health check endpoint
     r.get 'health' do
@@ -205,24 +227,39 @@ class AuthService < Roda
     r.get 'account' do
       begin
         unless rodauth.logged_in?
-          response.status = 401
-          next { error: 'Authentication required' }
+          if r.accept_json?
+            response.status = 401
+            next { error: 'Authentication required' }
+          else
+            flash[:error] = 'Please sign in to view your account.'
+            r.redirect '/login'
+          end
         end
 
         account = rodauth.account
-        {
-          id: account[:id],
-          email: account[:email],
-          created_at: account[:created_at],
-          status: account[:status_id],
-          email_verified: account[:status_id] == 2  # Assuming 2 is verified
-        }
+
+        if r.accept_json?
+          {
+            id: account[:id],
+            email: account[:email],
+            created_at: account[:created_at],
+            status: account[:status_id],
+            email_verified: account[:status_id] == 2  # Assuming 2 is verified
+          }
+        else
+          view 'account'
+        end
       rescue => e
         puts "Error: #{e.class} - #{e.message}"
         puts e.backtrace.join("\n") if ENV['RACK_ENV'] == 'development'
 
-        response.status = 500
-        { error: 'Internal server error' }
+        if r.accept_json?
+          response.status = 500
+          { error: 'Internal server error' }
+        else
+          flash[:error] = 'An error occurred while loading your account.'
+          r.redirect '/'
+        end
       end
     end
 

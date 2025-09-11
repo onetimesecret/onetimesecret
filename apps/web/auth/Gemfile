@@ -9,6 +9,7 @@ gem 'mail', '~> 2.8'
 gem 'roda', '~> 3.0'
 gem 'rodauth', '~> 2.40.0'
 gem 'sequel', '~> 5.0'
+gem 'tilt', '~> 2.0'  # Template engine for views
 
 # Database drivers
 gem 'pg'
