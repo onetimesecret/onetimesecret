@@ -18,7 +18,16 @@ end
 
 class AuthService < Roda
   # Roda plugins
-  plugin :sessions, secret: ENV['AUTH_SECRET'] || 'dev-secret-change-in-production-this-must-be-at-least-64-chars-long'
+  plugin :sessions, secret: ENV['AUTH_SECRET'] || 'must-be-at-least-64-chars-long-change-in-prod'
+  plugin :sessions,
+    secret: ENV['AUTH_SECRET'] || 'dev-secret-change-in-production',
+    key: 'onetime.session',           # Cookie name (default: 'rack.session')
+    domain: ENV['SESSION_DOMAIN'],     # Cookie domain
+    path: '/',                         # Cookie path
+    expire_after: 86400,              # Session timeout in seconds (24 hours)
+    secure: true,
+    httponly: true,                   # Prevent JavaScript access
+    same_site: :strict                   # SameSite attribute
   plugin :flash
   plugin :json
   plugin :halt
@@ -37,7 +46,7 @@ class AuthService < Roda
     db DB
 
     # HMAC secret for token security
-    hmac_secret ENV['HMAC_SECRET'] || ENV['AUTH_SECRET'] || 'dev-hmac-secret-change-in-production'
+    hmac_secret ENV['HMAC_SECRET'] || ENV['AUTH_SECRET'] || 'dev-hmac-secret-change-in-prod'
 
     prefix '/auth'
 
@@ -244,11 +253,38 @@ class AuthService < Roda
       end
     end
 
+    # Account info endpoint (JSON extension support)
+    r.get 'account.json' do
+      begin
+        unless rodauth.logged_in?
+          response.status = 401
+          next { error: 'Authentication required' }
+        end
+
+        account = rodauth.account
+        {
+          id: account[:id],
+          email: account[:email],
+          created_at: account[:created_at],
+          status: account[:status_id],
+          email_verified: account[:status_id] == 2,  # Assuming 2 is verified
+          mfa_enabled: rodauth.otp_exists?,
+          recovery_codes_count: rodauth.recovery_codes_available
+        }
+      rescue => e
+        puts "Error: #{e.class} - #{e.message}"
+        puts e.backtrace.join("\n") if ENV['RACK_ENV'] == 'development'
+
+        response.status = 500
+        { error: 'Internal server error' }
+      end
+    end
+
     # Account info endpoint
     r.get 'account' do
       begin
         unless rodauth.logged_in?
-          if r.accept_json?
+          if request.accept?('application/json')
             response.status = 401
             next { error: 'Authentication required' }
           else
@@ -259,7 +295,7 @@ class AuthService < Roda
 
         account = rodauth.account
 
-        if r.accept_json?
+        if request.accept?('application/json')
           {
             id: account[:id],
             email: account[:email],
@@ -276,7 +312,7 @@ class AuthService < Roda
         puts "Error: #{e.class} - #{e.message}"
         puts e.backtrace.join("\n") if ENV['RACK_ENV'] == 'development'
 
-        if r.accept_json?
+        if request.accept?('application/json')
           response.status = 500
           { error: 'Internal server error' }
         else
