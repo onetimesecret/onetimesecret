@@ -1,109 +1,182 @@
-Core Schema Requirements
+# Rodauth Database Schema Documentation
 
-Essential Tables
+## Core Schema Requirements
 
-1. Account Statuses Table (if using status-based verification):
-create_table(:account_statuses) do
-  Integer :id, primary_key: true
-  String :name, null: false, unique: true
-end
-# Data: [1, 'Unverified'], [2, 'Verified'], [3, 'Closed']
+### Essential Tables
 
-2. Accounts Table (main user table):
-create_table(:accounts) do
-  primary_key :id, type: :Bignum
-  foreign_key :status_id, :account_statuses, null: false, default: 1
+**1. Account Statuses Table:**
+```sql
+-- Status lookup for account verification states
+CREATE TABLE account_statuses (
+    id INTEGER PRIMARY KEY,
+    name VARCHAR(255) NOT NULL UNIQUE
+);
 
-  # PostgreSQL with citext extension for case-insensitive emails
-  if database_type == :postgres
-    citext :email, null: false
-    constraint :valid_email, email: /^[^,;@ \r\n]+@[^,@; \r\n]+\.[^,@; \r\n]+$/
-  else
-    String :email, null: false
-  end
+-- Standard status values
+INSERT INTO account_statuses (id, name) VALUES
+    (1, 'Unverified'),
+    (2, 'Verified'),
+    (3, 'Closed');
+```
 
-  # Unique index with status filtering for PostgreSQL
-  if supports_partial_indexes?
-    index :email, unique: true, where: {status_id: [1, 2]}
-  else
-    index :email, unique: true
-  end
-end
+**2. Accounts Table (main user table):**
+```sql
+-- PostgreSQL version
+CREATE TABLE accounts (
+    id BIGSERIAL PRIMARY KEY,
+    email CITEXT NOT NULL,
+    status_id INTEGER NOT NULL DEFAULT 1 REFERENCES account_statuses(id),
+    created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    last_login_ip INET,
+    last_login_at TIMESTAMPTZ,
+    CONSTRAINT valid_email CHECK (email ~ '^[^,;@ \r\n]+@[^,@; \r\n]+\.[^,@; \r\n]+$')
+);
 
-3. Password Hashes Table (separate for security):
-create_table(:account_password_hashes) do
-  foreign_key :id, :accounts, primary_key: true, type: :Bignum
-  String :password_hash, null: false
-end
+-- SQLite version
+CREATE TABLE accounts (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    email VARCHAR(255) NOT NULL COLLATE NOCASE,
+    status_id INTEGER NOT NULL DEFAULT 1 REFERENCES account_statuses(id),
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    last_login_ip VARCHAR(45),
+    last_login_at DATETIME
+);
 
-Feature-Specific Tables (Based on Your Enabled Features)
+-- Unique email constraint for active accounts only
+CREATE UNIQUE INDEX accounts_email_unique ON accounts(email)
+WHERE status_id IN (1, 2);
+```
 
-For reset_password feature:
-create_table(:account_password_reset_keys) do
-  foreign_key :id, :accounts, primary_key: true, type: :Bignum
-  String :key, null: false
-  DateTime :deadline, deadline_opts[1]
-  DateTime :email_last_sent, null: false, default: Sequel::CURRENT_TIMESTAMP
-end
+**3. Password Hashes Table (separate for security):**
+```sql
+CREATE TABLE account_password_hashes (
+    id BIGINT PRIMARY KEY REFERENCES accounts(id) ON DELETE CASCADE,
+    password_hash VARCHAR(255) NOT NULL
+);
+```
 
-For remember feature:
-create_table(:account_remember_keys) do
-  foreign_key :id, :accounts, primary_key: true, type: :Bignum
-  String :key, null: false
-  DateTime :deadline, deadline_opts[14]
-end
+### Feature-Specific Tables
 
-For verify_account feature:
-create_table(:account_verification_keys) do
-  foreign_key :id, :accounts, primary_key: true, type: :Bignum
-  String :key, null: false
-  DateTime :requested_at, null: false, default: Sequel::CURRENT_TIMESTAMP
-  DateTime :email_last_sent, null: false, default: Sequel::CURRENT_TIMESTAMP
-end
+**Password Reset:**
+```sql
+CREATE TABLE account_password_reset_keys (
+    id BIGINT PRIMARY KEY REFERENCES accounts(id) ON DELETE CASCADE,
+    key VARCHAR(255) NOT NULL UNIQUE,
+    deadline TIMESTAMPTZ NOT NULL,
+    email_last_sent TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+```
 
-For lockout feature:
-create_table(:account_login_failures) do
-  foreign_key :id, :accounts, primary_key: true, type: :Bignum
-  Integer :number, null: false, default: 1
-end
+**Remember Me:**
+```sql
+CREATE TABLE account_remember_keys (
+    id BIGINT PRIMARY KEY REFERENCES accounts(id) ON DELETE CASCADE,
+    key VARCHAR(255) NOT NULL UNIQUE,
+    deadline TIMESTAMPTZ NOT NULL
+);
+```
 
-create_table(:account_lockouts) do
-  foreign_key :id, :accounts, primary_key: true, type: :Bignum
-  String :key, null: false
-  DateTime :deadline, deadline_opts[1]
-  DateTime :email_last_sent
-end
+**Account Verification:**
+```sql
+CREATE TABLE account_verification_keys (
+    id BIGINT PRIMARY KEY REFERENCES accounts(id) ON DELETE CASCADE,
+    key VARCHAR(255) NOT NULL UNIQUE,
+    requested_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    email_last_sent TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+```
 
-For active_sessions feature:
-create_table(:account_active_session_keys) do
-  foreign_key :account_id, :accounts, type: :Bignum
-  String :session_id
-  Time :created_at, null: false, default: Sequel::CURRENT_TIMESTAMP
-  Time :last_use, null: false, default: Sequel::CURRENT_TIMESTAMP
-  primary_key [:account_id, :session_id]
-end
+**Brute Force Protection:**
+```sql
+CREATE TABLE account_login_failures (
+    id BIGINT PRIMARY KEY REFERENCES accounts(id) ON DELETE CASCADE,
+    number INTEGER NOT NULL DEFAULT 1
+);
 
-Database-Specific Setup
+CREATE TABLE account_lockouts (
+    id BIGINT PRIMARY KEY REFERENCES accounts(id) ON DELETE CASCADE,
+    key VARCHAR(255) NOT NULL UNIQUE,
+    deadline TIMESTAMPTZ NOT NULL,
+    email_last_sent TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
+);
+```
 
-PostgreSQL Setup
+**Active Sessions:**
+```sql
+CREATE TABLE account_active_session_keys (
+    account_id BIGINT NOT NULL REFERENCES accounts(id) ON DELETE CASCADE,
+    session_id VARCHAR(255) NOT NULL,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    last_use TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (account_id, session_id)
+);
+```
 
-# Create users
-createuser -U postgres ${DATABASE_NAME}
-createuser -U postgres ${DATABASE_NAME}_password
+**Multi-Factor Authentication (MFA):**
+```sql
+-- OTP (TOTP) secret keys for Google Authenticator, etc.
+CREATE TABLE account_otp_keys (
+    id BIGINT PRIMARY KEY REFERENCES accounts(id) ON DELETE CASCADE,
+    key VARCHAR(255) NOT NULL,
+    num_failures INTEGER NOT NULL DEFAULT 0,
+    last_use TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Recovery codes for MFA bypass
+CREATE TABLE account_recovery_codes (
+    id BIGSERIAL PRIMARY KEY,
+    account_id BIGINT NOT NULL REFERENCES accounts(id) ON DELETE CASCADE,
+    code VARCHAR(255) NOT NULL UNIQUE,
+    used_at TIMESTAMPTZ
+);
+```
+
+**Audit Logging:**
+```sql
+CREATE TABLE account_authentication_audit_logs (
+    id BIGSERIAL PRIMARY KEY,
+    account_id BIGINT NOT NULL REFERENCES accounts(id) ON DELETE CASCADE,
+    at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    message TEXT NOT NULL,
+    metadata JSONB  -- PostgreSQL: JSONB, SQLite: TEXT
+);
+```
+
+## Database-Specific Setup
+
+### PostgreSQL Setup
+```bash
+# Create database users (for enhanced security)
+createuser -U postgres myapp
+createuser -U postgres myapp_password
 
 # Create database
-createdb -U postgres -O ${DATABASE_NAME} ${DATABASE_NAME}
+createdb -U postgres -O myapp myapp
 
-# Load citext extension for case-insensitive emails
-psql -U postgres -c "CREATE EXTENSION citext" ${DATABASE_NAME}
+# Load required extensions
+psql -U postgres -c "CREATE EXTENSION citext" myapp
 
-# Optional: For PostgreSQL 15+, grant schema permissions
-psql -U postgres -c "GRANT CREATE ON SCHEMA public TO ${DATABASE_NAME}_password" ${DATABASE_NAME}
+# For PostgreSQL 15+, grant schema permissions
+psql -U postgres -c "GRANT CREATE ON SCHEMA public TO myapp_password" myapp
+```
 
-SQLite Setup
+### SQLite Setup
+```bash
+# Ensure data directory exists
+mkdir -p data
 
-SQLite requires no special setup - just ensure the database file exists and is writable. The schema works identically, though without the
-citext extension for case-insensitive emails.
+# Database file will be created automatically at: data/auth.db
+# Ensure proper file permissions (600) for security
+chmod 600 data/auth.db  # After first creation
+```
+
+**Key Differences:**
+- **SQLite**: Uses `COLLATE NOCASE` for case-insensitive emails
+- **PostgreSQL**: Uses `citext` extension for case-insensitive emails
+- **SQLite**: Database stored as single file in `data/auth.db`
+- **PostgreSQL**: Network database with separate user accounts for security
 
 Security Considerations
 
@@ -124,31 +197,109 @@ permissions and backup strategies.
 - **Advanced features**: audit logging, WebAuthn, MFA, database functions
 - **Best for**: Production PostgreSQL deployments
 
-### SQLite Essential Schema (`essential_db_schema-sqlite3.sql`)
-- **Minimal schema** focused on your 13 enabled features only
+### SQLite Essential Schema (`schemas/sqlite/essential_schema.sql`)
+- **Complete essential schema** with MFA and all enabled features
 - **COLLATE NOCASE** for case-insensitive emails in SQLite
-- **Optimized indexes** for performance
-- **Maintenance triggers** for automatic cleanup
+- **Optimized indexes** and triggers for performance
+- **Automatic cleanup** triggers for expired tokens
 - **Best for**: Current auth app and development
+
+### PostgreSQL Essential Schema (`schemas/postgresql/essential_schema.sql`)
+- **Complete essential schema** with MFA and all enabled features
+- **citext extension** for case-insensitive email handling
+- **Database functions** for enhanced security (password hash isolation)
+- **JSONB metadata** with GIN indexes for performance
+- **Best for**: Production PostgreSQL deployments
 
 ## Key Differences
 
 | Feature | PostgreSQL | SQLite |
 |---------|------------|--------|
 | Case-insensitive emails | `citext` extension | `COLLATE NOCASE` |
-| Foreign key column naming | `id` (Rodauth standard) | `id` for most, `account_id` for sessions |
-| Partial indexes | Supported | Not supported |
-| JSON data type | `JSONB` | `TEXT` |
-| Database functions | PL/pgSQL functions | Triggers only |
+| Account ID column | `id BIGSERIAL` | `id INTEGER AUTOINCREMENT` |
+| Session table naming | `account_id` (standard) | `account_id` (standard) |
+| Partial indexes | Supported | Not supported (uses triggers) |
+| JSON metadata | `JSONB` with GIN indexes | `TEXT` |
+| Database functions | PL/pgSQL security functions | Triggers only |
+| Timestamps | `TIMESTAMPTZ` | `DATETIME` |
 
-## Migration Path
+## Schema Loading
 
-1. **Current**: Use essential SQLite schema for auth app
-2. **Future**: Migrate to PostgreSQL schema when scaling
-3. **Data migration**: Use Sequel migrations for smooth transition
+The new migration system automatically loads the appropriate schema based on database type:
+
+```ruby
+# migrations/001_load_essential_schema.rb
+# Automatically detects database type and loads:
+# - schemas/sqlite/essential_schema.sql (for SQLite)
+# - schemas/postgresql/essential_schema.sql (for PostgreSQL)
+```
+
+**Usage:**
+```bash
+# SQLite (default)
+ruby migrate.rb
+
+# PostgreSQL
+DATABASE_URL="postgres://user:pass@localhost/myapp" ruby migrate.rb
+```
 
 ## Security Notes
 
-- **PostgreSQL**: Supports separate database users for password hash isolation
-- **SQLite**: Single database file - ensure proper file permissions (600)
+- **PostgreSQL**: Supports separate database users for password hash isolation via PL/pgSQL functions
+- **SQLite**: Single database file - ensure proper file permissions (`chmod 600 data/auth.db`)
 - **Both**: Password hashes stored in separate table following Rodauth security model
+- **MFA**: OTP secrets and recovery codes are included in essential schema
+- **Audit Logging**: All authentication events are logged for security monitoring
+
+## Enabled Features
+
+The essential schema supports these Rodauth features:
+- `base`, `json` - Core functionality and JSON API
+- `login`, `logout`, `create_account`, `close_account` - Basic auth flows
+- `login_password_requirements_base` - Password validation
+- `change_password`, `reset_password` - Password management
+- `remember` - "Remember me" functionality
+- `verify_account` - Email verification
+- `lockout` - Brute force protection
+- `active_sessions` - Session tracking
+- `otp` - Time-based One-Time Passwords (TOTP/Google Authenticator)
+- `recovery_codes` - MFA backup codes
+
+
+## About Sequel
+
+### Sequel Migrations
+
+- Imperative, not declarative - You write create_table, add_column, etc. commands
+- No automatic schema introspection - Sequel doesn't build a model of your "intended" schema from migrations
+- No automatic diff detection - It can't compare your models to the database and generate migrations
+- Simple version tracking - Just tracks which migration files have been run via a schema_migrations table
+- Manual migration writing - You must write each migration by hand
+
+### Django ORM (for comparison)
+
+- Declarative models - Your models define the intended schema
+- Automatic migration generation - makemigrations compares models to current schema and generates migration files
+- Schema introspection - Builds internal representation of intended vs actual schema
+- Automatic diff detection - Can detect model changes and suggest migrations
+
+### What Sequel Does Track
+
+Sequel only tracks:
+-- This table is created automatically
+CREATE TABLE schema_migrations (
+  filename VARCHAR(255) PRIMARY KEY
+);
+
+When you run Sequel::Migrator.run(DB, 'migrations'), it:
+1. Checks which files in migrations/ haven't been run
+2. Runs them in filename order
+3. Records the filename in schema_migrations
+
+
+### Schema Maintenance
+
+For schema drift detection, you'd need external tools like:
+  - sqldiff for SQLite
+  - migra for PostgreSQL
+  - Custom scripts comparing your SQL files to actual schema
