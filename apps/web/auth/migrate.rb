@@ -22,22 +22,21 @@ Sequel.extension :migration
 migrations_dir = File.join(__dir__, 'migrations')
 
 begin
-  puts "Running database migrations..."
+  puts 'Running database migrations...'
 
   # Run migrations
   Sequel::Migrator.run(DB, migrations_dir, use_transactions: true)
 
-  puts "Database migrations completed successfully!"
+  puts 'Database migrations completed successfully!'
 
   # Show current schema version
   if DB.table_exists?(:schema_migrations)
     current_version = DB[:schema_migrations].max(:filename)
     puts "Current schema version: #{current_version}"
   end
-
-rescue => e
-  puts "Migration failed: #{e.message}"
-  puts e.backtrace.join("\n") if ENV['RACK_ENV'] == 'development'
+rescue StandardError => ex
+  puts "Migration failed: #{ex.message}"
+  puts ex.backtrace.join("\n") if ENV['RACK_ENV'] == 'development'
   exit 1
 end
 
