@@ -40,11 +40,17 @@ gem 'rodauth', '~> 2.0'
 # Database & DB Tools
 # ====================================
 
-# ORM and database drivers
+# ORMs and database drivers
 gem 'familia', '~> 2.0.0.pre15'
-gem 'pg', '~> 1.4', require: false
 gem 'sequel', '~> 5.0'
-gem 'sqlite3', '~> 1.6'
+
+database_adapter = ENV.fetch('DATABASE_ADAPTER', 'sqlite3').downcase
+case database_adapter
+when 'postgresql', 'pg', 'postgres'
+  gem 'pg', '~> 1.4'
+else
+  gem 'sqlite3', '~> 1.6'
+end
 
 # Redis/Valkey
 gem 'redis', '~> 5.4.0'
