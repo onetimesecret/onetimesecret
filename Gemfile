@@ -20,7 +20,7 @@ source 'https://rubygems.org/'
 # ====================================
 
 # Web framework and routing
-gem 'otto', '~> 1.4.0'
+gem 'otto', path: '../../d/otto'
 gem 'roda', '~> 3.0'
 
 

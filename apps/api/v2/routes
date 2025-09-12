@@ -38,8 +38,8 @@ POST   /secret/conceal                            V2::Controllers::Secrets#conce
 GET    /supported-locales                         V2::Controllers::Meta#get_supported_locales
 
 GET    /status                                    V2::Controllers::Meta#status
-GET    /authcheck                                 V2::Controllers::Meta#authcheck
 GET    /version                                   V2::Controllers::Meta#version
+GET    /authcheck                                 V2::Controllers::Meta#authcheck
 POST   /validate-shrimp                           V2::Controllers::Meta#get_validate_shrimp
 
 POST   /feedback                                  V2::Controllers::Meta#receive_feedback
@@ -48,3 +48,95 @@ GET    /colonel/config                            V2::Controllers::Colonel#get_c
 POST   /colonel/config                            V2::Controllers::Colonel#update_config
 GET    /colonel/info                              V2::Controllers::Colonel#get_info
 GET    /colonel/stats                             V2::Controllers::Colonel#get_stats
+
+# OTTO ADVANCED ROUTES SYNTAX - QUICK REFERENCE
+# ==============================================
+#
+# Added in v1.5.0+. Basic syntax:
+#
+# VERB /path Target param1=value1 param2=value2
+#
+# RESPONSE TYPES
+# --------------
+# response=json     - JSON API response
+# response=view     - HTML view response
+# response=redirect - HTTP redirect
+# response=auto     - Content negotiation
+#
+# Examples:
+# GET  /api/users    App#list_users response=json
+# GET  /dashboard    App#dashboard response=view
+# GET  /login        App#redirect response=redirect
+# GET  /data         App#data response=auto
+#
+# CSRF PROTECTION
+# ---------------
+# csrf=exempt       - Skip CSRF protection (useful for APIs)
+#
+# Examples:
+# POST /api/webhook  App#webhook csrf=exempt
+# POST /settings     App#settings  # CSRF protected by default
+#
+# LOGIC CLASSES (NEW!)
+# --------------------
+# Route directly to a class (no . or # in target).
+# Class gets: initialize(session, user, params, locale)
+#
+# Examples:
+# GET  /logic/simple      SimpleLogic
+# GET  /admin/panel       Admin::Panel
+# POST /data/processor    DataProcessor response=json csrf=exempt
+#
+# MULTIPLE PARAMETERS
+# -------------------
+# Combine any parameters with spaces:
+#
+# GET  /api/admin    App#admin auth=role:admin response=json
+# POST /api/secure   App#secure auth=authenticated response=json csrf=exempt
+#
+# NAMESPACED CLASSES
+# ------------------
+# Class methods:  Namespace::Class.method
+# Instance methods: Namespace::Class#method
+#
+# Examples:
+# GET  /v2/admin     V2::Admin.show response=view
+# POST /modules/auth Modules::Auth#process response=json
+#
+# CUSTOM PARAMETERS
+# -----------------
+# Add your own key=value parameters:
+#
+# GET /config  App#config env=production debug=true
+# GET /api/v1  App#api version=1.0 response=json
+#
+# PARAMETER RULES
+# ---------------
+# - Space-separated after the target
+# - key=value format
+# - Values can contain = signs: config=host=localhost
+# - Bad params (no =) are ignored
+# - Order doesn't matter
+#
+# COMMON PATTERNS
+# ---------------
+# # JSON API with CSRF exemption
+# POST /api/data  App#data response=json csrf=exempt
+#
+# # Admin view with authentication
+# GET /admin  App#admin auth=role:admin response=view
+#
+# # Logic class with JSON response
+# POST /processor  DataProcessor response=json
+#
+# # Complex route with all features
+# PUT /api/admin  App#update auth=role:admin response=json csrf=exempt
+#
+# ROUTE TARGETS
+# -------------
+# App.method       - Class method
+# App#method       - Instance method
+# LogicClass       - Logic class (new!)
+# Namespace::Class - Namespaced targets
+#
+# That's it! Advanced routing in Otto is just adding parameters after your target.
