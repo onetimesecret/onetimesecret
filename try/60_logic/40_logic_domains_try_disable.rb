@@ -32,7 +32,7 @@ end
 
 @now = DateTime.now
 @email = "test+#{Time.now.to_i}@onetimesecret.com"
-@sess = V2::Session.new '255.255.255.255', 'anon'
+@sess = nil # Session now handled by Rack::Session middleware
 @cust = V2::Customer.new @email
 @cust.save
 @domain_input = "test#{Time.now.to_i}.example.com"

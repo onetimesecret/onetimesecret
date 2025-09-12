@@ -3,6 +3,8 @@
 module V2
   module Mixins
     module Passphrase
+      @default_cost = 12.freeze
+
       def self.included(base)
         base.field :passphrase
         base.field :passphrase_encryption
@@ -17,7 +19,7 @@ module V2
         # collected) in case we need to repeat the save attempt on
         # error. TODO: Move to calling code in specific cases.
         @passphrase_temp = val
-        passphrase! BCrypt::Password.create(val, cost: 12).to_s
+        passphrase! V2::Mixins::Passphrase.create_passphrase(val)
       end
 
       # Allow for chaining API e.g. cust.update_passphrase('plop').custid
@@ -38,6 +40,14 @@ module V2
         prefix = '[passphrase?]'
         OT.ld "#{prefix} Invalid passphrase hash: #{ex.message}"
         (!guess.to_s.empty? && passphrase.to_s.downcase.strip == guess.to_s.downcase.strip)
+      end
+
+      class << self
+        attr_reader :default_cost
+
+        def create_passphrase(val)
+          BCrypt::Password.create(val, cost: default_cost).to_s
+        end
       end
     end
   end

@@ -1,5 +1,8 @@
 # apps/api/v2/controllers/helpers.rb
 
+require_relative '../../../../lib/onetime/helpers/session_helpers'
+require_relative '../../../../lib/onetime/helpers/shrimp_helpers'
+
 module V2
   unless defined?(V2::BADAGENTS)
     BADAGENTS     = [:facebook, :google, :yahoo, :bing, :stella, :baidu, :bot, :curl, :wget]
@@ -7,6 +10,9 @@ module V2
   end
 
   module ControllerHelpers
+    include Onetime::Helpers::SessionHelpers
+    include Onetime::Helpers::ShrimpHelpers
+
     # `carefully` is a wrapper around the main web application logic. We
     # handle errors, redirects, and other exceptions here to ensure that
     # we respond consistently to all requests. That's why we integrate
@@ -52,7 +58,7 @@ module V2
       if res.headers['content-type'] == 'application/json'
         error_response 'Please refresh the page and try again', reason: 'Bad shrimp 🍤'
       else
-        sess.set_error_message 'Please go back, refresh the page, and try again.'
+        session['error_message'] = 'Please go back, refresh the page, and try again.'
         res.redirect redirect
       end
     rescue OT::FormError => ex
@@ -77,15 +83,19 @@ module V2
       secret_not_found_response
     rescue OT::RecordNotFound => ex
       OT.ld "[carefully] RecordNotFound: #{ex.message} (#{req.path}) redirect:#{redirect || 'n/a'}"
-      not_found_response ex.message, shrimp: sess.add_shrimp
+      regenerate_shrimp! if respond_to?(:regenerate_shrimp!)
+      not_found_response ex.message, shrimp: (respond_to?(:shrimp_token) ? shrimp_token : nil)
     rescue Familia::HighRiskFactor => ex
-      OT.le "[attempt-saving-non-string-to-db] #{obscured} (#{sess.ipaddress}): #{sess.identifier.size <= 10 ? sess.identifier : sess.identifier[0, 10] + '...'} (#{req.current_absolute_uri})"
+      session_id = session.id&.to_s || req.cookies['ots.session'] || 'unknown'
+      short_session_id = session_id.length <= 10 ? session_id : session_id[0, 10] + '...'
+      OT.le "[attempt-saving-non-string-to-db] #{obscured} (#{req.client_ipaddress}): #{short_session_id} (#{req.current_absolute_uri})"
 
       # Track attempts to save non-string data to the database as a warning error
       capture_error ex, :warning
 
       # Include fresh shrimp so they can try again 🦐
-      error_response "We're sorry, but we can't process your request at this time.", shrimp: sess.add_shrimp
+      regenerate_shrimp! if respond_to?(:regenerate_shrimp!)
+      error_response "We're sorry, but we can't process your request at this time.", shrimp: (respond_to?(:shrimp_token) ? shrimp_token : nil)
     rescue Familia::NotConnected, Familia::Problem => ex
       OT.le "#{ex.class}: #{ex.message}"
       OT.le ex.backtrace
@@ -94,7 +104,8 @@ module V2
       capture_error ex
 
       # Include fresh shrimp so they can try again, again 🦐
-      error_response 'An error occurred :[', shrimp: sess ? sess.add_shrimp : nil
+      regenerate_shrimp! if respond_to?(:regenerate_shrimp!)
+      error_response 'An error occurred :[', shrimp: (respond_to?(:shrimp_token) ? shrimp_token : nil)
     rescue Errno::ECONNREFUSED => ex
       OT.le ex.message
       OT.le ex.backtrace
@@ -102,19 +113,22 @@ module V2
       # Track DB connection errors as fatal errors
       capture_error ex, :fatal
 
-      error_response "We'll be back shortly!", shrimp: sess ? sess.add_shrimp : nil
+      regenerate_shrimp! if respond_to?(:regenerate_shrimp!)
+      error_response "We'll be back shortly!", shrimp: (respond_to?(:shrimp_token) ? shrimp_token : nil)
     rescue StandardError => ex
       custid = cust&.custid || '<notset>'
-      sessid = sess&.short_identifier || '<notset>'
-      OT.le "#{ex.class}: #{ex.message} -- #{req.current_absolute_uri} -- #{req.client_ipaddress} #{custid} #{sessid} #{locale} #{content_type} #{redirect} "
+      session_id = session.id&.to_s || req.cookies['ots.session'] || 'unknown'
+      short_session_id = session_id.length <= 10 ? session_id : session_id[0, 10] + '...'
+      OT.le "#{ex.class}: #{ex.message} -- #{req.current_absolute_uri} -- #{req.client_ipaddress} #{custid} #{short_session_id} #{locale} #{content_type} #{redirect} "
       OT.le ex.backtrace.join("\n")
 
       # Track the unexected errors
       capture_error ex
 
-      error_response 'An unexpected error occurred :[', shrimp: sess ? sess.add_shrimp : nil
+      regenerate_shrimp! if respond_to?(:regenerate_shrimp!)
+      error_response 'An unexpected error occurred :[', shrimp: (respond_to?(:shrimp_token) ? shrimp_token : nil)
     ensure
-      @sess ||= V2::Session.new 'failover', 'anon'
+      # Fallback session no longer needed with Rack::Session
       @cust ||= V2::Customer.anonymous
     end
 
@@ -177,116 +191,38 @@ module V2
       )
     end
 
-    def check_session!
-      return if @check_session_ran
+    def setup_request_context
+      return if @request_context_setup
 
-      @check_session_ran = true
+      @request_context_setup = true
 
-      # Load from the database or create the session
-      @sess = if req.cookie?(:sess) && V2::Session.exists?(req.cookie(:sess))
-        V2::Session.load req.cookie(:sess)
-      else
-        V2::Session.create req.client_ipaddress, 'anon', req.user_agent
+      # Session is already loaded by Rack::Session::RedisFamilia middleware
+      # No need to manually load or create sessions
+
+      # Load customer based on session state
+      @cust = current_customer
+
+      # Track request for security monitoring
+      if authenticated?
+        custref = @cust.obscure_email
+        OT.ld "[session.request] #{custref} #{request.request_method} #{request.path}"
       end
-
-      # Set the session to rack.session
-      #
-      # The `req.env` hash is a central repository for all environment variables
-      # and request-specific data in a Rack application. By setting the session
-      # object in `req.env['rack.session']`, we make the session data accessible
-      # to all middleware and components that process the request and response.
-      # This approach ensures that the session data is consistently available
-      # throughout the entire request-response cycle, allowing middleware to
-      # read from and write to the session as needed. This is particularly
-      # useful for maintaining user state, managing authentication, and storing
-      # other session-specific information.
-      #
-      # Example:
-      #   If a middleware needs to check if a user is authenticated, it can
-      #   access the session data via `env['rack.session']` and perform the
-      #   necessary checks or updates.
-      #
-      req.env['rack.session'] = sess
-
-      # Immediately check the the auth status of the session. If the site
-      # configuration changes to disable authentication, the session will
-      # report as not authenticated regardless of the session data.
-      #
-      # NOTE: The session keys have their own dedicated Redis DB, so they
-      # can be flushed to force everyone to logout without affecting the
-      # rest of the data. This is a security feature.
-      sess.disable_auth = !authentication_enabled?
-
-      # Update the session fields in redis (including updated timestamp)
-      sess.save
-
-      # Update the session cookie
-      res.send_secure_cookie :sess, sess.sessid, sess.default_expiration
-      # Re-hydrate the customer object
-      @cust = sess.load_customer || V2::Customer.anonymous
-
-      # We also force the session to be unauthenticated based on
-      # the customer object.
-      if cust.anonymous? || cust.verified.to_s != 'true'
-        sess.authenticated = false
-      end
-
-      # Should always report false and false when disabled.
-      return if cust.anonymous?
-
-      custref = cust.obscure_email
-      OT.ld "[sess.check_session(v2)] #{sess.short_identifier} #{custref} authenabled=#{authentication_enabled?}, sess=#{sess.authenticated?}"
     end
 
     # Check CSRF value submitted with POST requests (aka shrimp)
-    #
-    # Note: This method is called only for session authenticated
-    # requests. Requests via basic auth (/api), may check for a
-    # valid shrimp, but they don't regenerate a fresh every time
-    # a successful validation occurs.
-    def check_shrimp!(_replace = true)
+    def check_shrimp!
       return if @check_shrimp_ran
 
       @check_shrimp_ran = true
-      return unless req.post? || req.put? || req.delete? || req.patch?
+      return unless state_changing_request?
 
-      # Check for shrimp in params and in the O-Shrimp header
-      header_shrimp = (req.env['HTTP_O_SHRIMP'] || req.env['HTTP_ONETIME_SHRIMP']).to_s
-      params_shrimp = req.params[:shrimp].to_s
+      # Extract token from request
+      token = extract_shrimp_token
 
-      # Use the header shrimp if it's present, otherwise use the param shrimp
-      attempted_shrimp = header_shrimp.empty? ? params_shrimp : header_shrimp
-
-      # No news is good news for successful shrimp; by default
-      # it'll simply add a fresh shrimp to the session. But
-      # in the case of failure this will raise an exception.
-      validate_shrimp(attempted_shrimp)
+      # Verify using the modern shrimp helpers
+      verify_shrimp!(token) if token
     end
 
-    def validate_shrimp(attempted_shrimp, replace = true)
-      shrimp_is_empty = attempted_shrimp.empty?
-      log_value       = attempted_shrimp.size <= 5 ? attempted_shrimp : attempted_shrimp[0, 5] + '...'
-
-      if sess.shrimp?(attempted_shrimp) || ignoreshrimp
-        adjective = ignoreshrimp ? 'IGNORED' : 'GOOD'
-        OT.ld "#{adjective} SHRIMP for #{cust.custid}@#{req.path}: #{log_value}"
-        # Regardless of the outcome, we clear the shrimp from the session
-        # to prevent replay attacks. A new shrimp is generated on the
-        # next page load.
-        sess.replace_shrimp! if replace
-        true
-      else
-        ### NOTE: MUST FAIL WHEN NO SHRIMP OTHERWISE YOU CAN
-        ### JUST SUBMIT A FORM WITHOUT ANY SHRIMP WHATSOEVER
-        ### AND THAT'S NO WAY TO TREAT A GUEST.
-        shrimp = (sess.shrimp || '[noshrimp]').clone
-        ex     = Onetime::BadShrimp.new(req.path, cust.custid, attempted_shrimp, shrimp)
-        OT.ld "BAD SHRIMP for #{cust.custid}@#{req.path}: #{log_value}"
-        sess.replace_shrimp! if replace && !shrimp_is_empty
-        raise ex
-      end
-    end
-    protected :validate_shrimp
 
     # Checks if authentication is enabled for the site.
     #
@@ -319,7 +255,9 @@ module V2
       reqstr  = req.format_request_details(header_prefix: HEADER_PREFIX)
       custref = cust.obscure_email
 
-      OT.ld "[carefully] #{sess.short_identifier} #{custref} at #{reqstr}"
+      session_id = session.id&.to_s || req.cookies['ots.session'] || 'unknown'
+      short_session_id = session_id.length <= 10 ? session_id : session_id[0, 10] + '...'
+      OT.ld "[carefully] #{short_session_id} #{custref} at #{reqstr}"
     end
 
     # Sentry terminology:
