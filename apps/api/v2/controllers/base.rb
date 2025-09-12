@@ -125,13 +125,8 @@ module V2
       auth_method.call(allow_anonymous) do
         OT.ld "[retrieve] #{logic_class}"
 
-        # Create RequestContext from current session and user
-        context = Otto::RequestContext.new(
-          session: session,
-          user: cust,
-          auth_method: determine_auth_method,
-          metadata: { ip: req.client_ipaddress }
-        )
+        # Use Otto's RequestContext from authentication middleware
+        context = req.env['otto.request_context'] || Otto::RequestContext.anonymous
 
         logic = logic_class.new(context, req.params, locale)
 
@@ -181,13 +176,8 @@ module V2
       auth_method = auth_type == :colonels ? method(:colonels) : method(:authorized)
 
       auth_method.call(allow_anonymous) do
-        # Create RequestContext from current session and user
-        context = Otto::RequestContext.new(
-          session: session,
-          user: cust,
-          auth_method: determine_auth_method,
-          metadata: { ip: req.client_ipaddress }
-        )
+        # Use Otto's RequestContext from authentication middleware
+        context = req.env['otto.request_context'] || Otto::RequestContext.anonymous
 
         logic = logic_class.new(context, req.params, locale)
 
@@ -270,19 +260,5 @@ module V2
     end
 
     private
-
-    # Determine how the current request was authenticated
-    def determine_auth_method
-      return 'anonymous' if cust&.anonymous?
-
-      auth = req.env['otto.auth'] || Rack::Auth::Basic::Request.new(req.env)
-      if auth.provided? && auth.basic?
-        'basic'
-      elsif req.cookie?(:sess) || session['identity_id']
-        'session'
-      else
-        'unknown'
-      end
-    end
   end
 end
