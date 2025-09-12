@@ -9,7 +9,7 @@ module V1
 
     attr_reader :req, :res
     attr_reader :cust, :locale
-    attr_reader :ignoreshrimp
+    attr_reader :ignoreshrimp, :sess
 
     def initialize req, res
       @req, @res = req, res
