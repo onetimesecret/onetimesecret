@@ -20,12 +20,22 @@ module Core
         @res = res
       end
 
+      # Alias for compatibility with helpers that expect 'request'
+      def request
+        req
+      end
+
+      def session
+        req.env['onetime.session']
+      end
+      alias sess session
+
       def publically(redirect = nil)
         carefully(redirect) do
           setup_request_context  # 1. Load customer based on session state
           check_locale!          # 2. Check the request for the desired locale
           check_shrimp!          # 3. Check the shrimp for POST,PUT,DELETE (after session)
-          check_referrer!        # 4. Check referrers for public requests
+          check_referrer!        # 4. Check referrers for public requests (TODO: Remove)
           # Generate the response
           yield
         end

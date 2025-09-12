@@ -81,11 +81,11 @@ module AuthIntegration
   # Helper methods for controllers
   module ControllerHelpers
     def authenticated?
-      env['auth.authenticated'] == true
+      req.env['auth.authenticated'] == true
     end
 
     def current_user
-      env['auth.user']
+      req.env['auth.user']
     end
 
     def require_authentication!
