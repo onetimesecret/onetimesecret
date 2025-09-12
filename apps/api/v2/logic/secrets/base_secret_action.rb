@@ -128,7 +128,7 @@ module V2::Logic
       # most basic of checks, then whatever this is never had a whisker's
       # chance in a lion's den of being a custom domain anyway.
       def process_share_domain
-        potential_domain = payload['share_domain'].to_s
+        potential_domain = payload[:share_domain].to_s
         return if potential_domain.empty?
 
         unless V2::CustomDomain.valid?(potential_domain)
@@ -169,7 +169,6 @@ module V2::Logic
       private
 
       def create_secret_pair
-        p [101010101, cust]
         customer_identifier = cust&.custid
         @metadata, @secret = V2::Secret.spawn_pair customer_identifier, token
       end

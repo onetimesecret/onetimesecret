@@ -24,23 +24,26 @@ module V2
 
       attr_accessor :domain_strategy, :display_domain
 
-      def initialize(context, params, locale = nil)
-        @context = context
+      def initialize(strategy_result, params, locale = nil)
+        @strategy_result = strategy_result
         @params = params
 
-
-        # Extract session and user from RequestContext
-        @sess = context.session
-        @cust = context.user
+        # Extract session and user from StrategyResult
+        @sess = strategy_result.session
+        @cust = strategy_result.user
         @locale = locale || @params[:locale] || @sess[:locale] || 'en'
 
         @processed_params ||= {} # TODO: Remove
         process_settings
 
-        if @cust.is_a?(String)
+        # Handle user model instances properly
+        if @cust.nil?
+          @cust = V2::Customer.anonymous
+        elsif @cust.is_a?(String)
           OT.li "[#{self.class}] Friendly reminder to pass in a Customer instance instead of a custid"
           @cust = V2::Customer.load(@cust)
         end
+        # If @cust is already a V2::Customer instance, use it as-is
 
         # Won't run if params aren't passed in
         process_params if respond_to?(:process_params) && @params

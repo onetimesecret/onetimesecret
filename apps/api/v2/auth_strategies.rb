@@ -41,11 +41,11 @@ module V2
 
           if cust.apitoken?(apitoken)
             OT.ld "[v2_basic] Authenticated '#{custid}'"
-            return success({
+            return success(
               session: env['onetime.session'] || {},
               user: cust,
               auth_method: 'basic'
-            })
+            )
           end
         end
 
@@ -63,11 +63,11 @@ module V2
 
           if cust
             OT.ld "[v2_session] Authenticated '#{cust.custid}' via session"
-            return success({
+            return success(
               session: session,
               user: cust,
               auth_method: 'session'
-            })
+            )
           end
         end
 
@@ -81,13 +81,13 @@ module V2
         # Try basic auth first
         basic_strategy = V2BasicStrategy.new
         if result = basic_strategy.authenticate(env, requirement)
-          return result if result.success?
+          return result if result  # Return if not nil
         end
 
         # Fall back to session auth
         session_strategy = V2SessionStrategy.new
         if result = session_strategy.authenticate(env, requirement)
-          return result if result.success?
+          return result if result  # Return if not nil
         end
 
         failure('No valid authentication found')
@@ -100,7 +100,7 @@ module V2
         # Try authenticated methods first
         combined_strategy = V2CombinedStrategy.new
         if result = combined_strategy.authenticate(env, requirement)
-          return result if result.success?
+          return result if result  # Return if not nil
         end
 
         # Allow anonymous access
@@ -109,11 +109,11 @@ module V2
 
         OT.ld "[v2_optional] Anonymous access via #{env['REMOTE_ADDR']}"
 
-        success({
+        success(
           session: session || {},
           user: cust,
           auth_method: 'anonymous'
-        })
+        )
       end
     end
 
@@ -129,11 +129,11 @@ module V2
           # Check if customer has colonel privileges
           if cust && cust.colonel?
             OT.ld "[v2_colonel] Colonel authenticated '#{cust.custid}'"
-            return success({
+            return success(
               session: session,
               user: cust,
               auth_method: 'colonel'
-            })
+            )
           end
         end
 
