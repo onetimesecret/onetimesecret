@@ -26,3 +26,4 @@ CustomDomain = TestVersion::CustomDomain
 Metadata = TestVersion::Metadata
 Secret = TestVersion::Secret
 Feedback = TestVersion::Feedback
+Session = V1::Session  # Session is still V1 for now

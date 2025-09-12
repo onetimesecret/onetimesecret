@@ -11,111 +11,117 @@ module V2
       otto.enable_authentication!
 
       # Basic authentication with API token
-      otto.add_auth_strategy('v2_basic', basic_auth_strategy)
+      otto.add_auth_strategy('v2_basic', V2BasicStrategy.new)
 
       # Session-based authentication
-      otto.add_auth_strategy('v2_session', session_auth_strategy)
+      otto.add_auth_strategy('v2_session', V2SessionStrategy.new)
 
       # Combined basic + session authentication (most V2 endpoints)
-      otto.add_auth_strategy('v2_api', combined_auth_strategy)
+      otto.add_auth_strategy('v2_api', V2CombinedStrategy.new)
 
       # Optional authentication (allows anonymous)
-      otto.add_auth_strategy('v2_optional', optional_auth_strategy)
+      otto.add_auth_strategy('v2_optional', V2OptionalStrategy.new)
 
       # Colonel/admin authentication
-      otto.add_auth_strategy('v2_colonel', colonel_auth_strategy)
+      otto.add_auth_strategy('v2_colonel', V2ColonelStrategy.new)
     end
 
-    private
-
-    def basic_auth_strategy
-      lambda do |req|
-        auth = Rack::Auth::Basic::Request.new(req.env)
+    # Basic authentication with API token
+    class V2BasicStrategy < Otto::Security::AuthStrategy
+      def authenticate(env, _requirement)
+        auth = Rack::Auth::Basic::Request.new(env)
 
         if auth.provided? && auth.basic?
           custid, apitoken = auth.credentials
-          return nil if custid.to_s.empty? || apitoken.to_s.empty?
+          return failure('Invalid credentials format') if custid.to_s.empty? || apitoken.to_s.empty?
 
-          OT.ld "[v2_basic] Attempt for '#{custid}' via #{req.env['REMOTE_ADDR']}"
+          OT.ld "[v2_basic] Attempt for '#{custid}' via #{env['REMOTE_ADDR']}"
           cust = V2::Customer.load(custid)
-          return nil if cust.nil?
+          return failure('Customer not found') if cust.nil?
 
           if cust.apitoken?(apitoken)
             OT.ld "[v2_basic] Authenticated '#{custid}'"
-            return OpenStruct.new(
-              session: req.env['onetime.session'],
+            return success({
+              session: env['onetime.session'] || {},
               user: cust,
               auth_method: 'basic'
-            )
+            })
           end
         end
 
-        nil
+        failure('Invalid API credentials')
       end
     end
 
-    def session_auth_strategy
-      lambda do |req|
-        session = req.env['onetime.session']
+    # Session-based authentication
+    class V2SessionStrategy < Otto::Security::AuthStrategy
+      def authenticate(env, _requirement)
+        session = env['onetime.session']
 
         if session && session['identity_id']
           cust = V2::Customer.load(session['identity_id'])
 
           if cust
             OT.ld "[v2_session] Authenticated '#{cust.custid}' via session"
-            return OpenStruct.new(
+            return success({
               session: session,
               user: cust,
               auth_method: 'session'
-            )
+            })
           end
         end
 
-        nil
+        failure('Invalid session')
       end
     end
 
-    def combined_auth_strategy
-      lambda do |req|
+    # Combined basic + session authentication
+    class V2CombinedStrategy < Otto::Security::AuthStrategy
+      def authenticate(env, requirement)
         # Try basic auth first
-        if result = basic_auth_strategy.call(req)
-          return result
+        basic_strategy = V2BasicStrategy.new
+        if result = basic_strategy.authenticate(env, requirement)
+          return result if result.success?
         end
 
         # Fall back to session auth
-        if result = session_auth_strategy.call(req)
-          return result
+        session_strategy = V2SessionStrategy.new
+        if result = session_strategy.authenticate(env, requirement)
+          return result if result.success?
         end
 
-        nil
+        failure('No valid authentication found')
       end
     end
 
-    def optional_auth_strategy
-      lambda do |req|
+    # Optional authentication (allows anonymous)
+    class V2OptionalStrategy < Otto::Security::AuthStrategy
+      def authenticate(env, requirement)
         # Try authenticated methods first
-        if result = combined_auth_strategy.call(req)
-          return result
+        combined_strategy = V2CombinedStrategy.new
+        if result = combined_strategy.authenticate(env, requirement)
+          return result if result.success?
         end
 
         # Allow anonymous access
-        session = req.env['onetime.session']
+        session = env['onetime.session']
         cust = V2::Customer.anonymous
 
-        OT.ld "[v2_optional] Anonymous access via #{req.env['REMOTE_ADDR']}"
+        OT.ld "[v2_optional] Anonymous access via #{env['REMOTE_ADDR']}"
 
-        OpenStruct.new(
+        success({
           session: session || {},
           user: cust,
           auth_method: 'anonymous'
-        )
+        })
       end
     end
 
-    def colonel_auth_strategy
-      lambda do |req|
+    # Colonel/admin authentication
+    class V2ColonelStrategy < Otto::Security::AuthStrategy
+      def authenticate(env, _requirement)
         # Require session authentication for colonel access
-        session = req.env['onetime.session']
+        session = env['onetime.session']
 
         if session && session['identity_id']
           cust = V2::Customer.load(session['identity_id'])
@@ -123,16 +129,16 @@ module V2
           # Check if customer has colonel privileges
           if cust && cust.colonel?
             OT.ld "[v2_colonel] Colonel authenticated '#{cust.custid}'"
-            return OpenStruct.new(
+            return success({
               session: session,
               user: cust,
               auth_method: 'colonel'
-            )
+            })
           end
         end
 
         OT.ld "[v2_colonel] Access denied - colonel privileges required"
-        nil
+        failure('Colonel privileges required')
       end
     end
   end

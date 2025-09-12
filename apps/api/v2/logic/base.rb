@@ -20,21 +20,25 @@ module V2
       include V2::Logic::I18nHelpers
       include V2::Logic::UriHelpers
 
-      attr_reader :sess, :cust, :params, :locale, :processed_params, :site, :authentication, :domains_enabled, :planid
+      attr_reader :context, :sess, :cust, :params, :locale, :processed_params, :site, :authentication, :domains_enabled, :planid
 
       attr_accessor :domain_strategy, :display_domain
 
-      def initialize(sess, cust, params = nil, locale = nil)
-        @sess               = sess
-        @cust               = cust
-        @params             = params
-        @locale             = locale
+      def initialize(context, params, locale = nil)
+        @context = context
+        @params = params
+
+        # Extract session and user from RequestContext
+        @sess = context.session
+        @cust = context.user
+        @locale = locale || @params[:locale] || @sess[:locale] || 'en'
+
         @processed_params ||= {} # TODO: Remove
         process_settings
 
-        if cust.is_a?(String)
+        if @cust.is_a?(String)
           OT.li "[#{self.class}] Friendly reminder to pass in a Customer instance instead of a custid"
-          @cust = V2::Customer.load(cust)
+          @cust = V2::Customer.load(@cust)
         end
 
         # Won't run if params aren't passed in

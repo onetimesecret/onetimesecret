@@ -124,7 +124,16 @@ module V2
 
       auth_method.call(allow_anonymous) do
         OT.ld "[retrieve] #{logic_class}"
-        logic = logic_class.new(session, cust, req.params, locale)
+
+        # Create RequestContext from current session and user
+        context = Otto::RequestContext.new(
+          session: session,
+          user: cust,
+          auth_method: determine_auth_method,
+          metadata: { ip: req.client_ipaddress }
+        )
+
+        logic = logic_class.new(context, req.params, locale)
 
         logic.domain_strategy = req.env['onetime.domain_strategy'] # never nil
         logic.display_domain  = req.env['onetime.display_domain'] # can be nil
@@ -172,7 +181,15 @@ module V2
       auth_method = auth_type == :colonels ? method(:colonels) : method(:authorized)
 
       auth_method.call(allow_anonymous) do
-        logic = logic_class.new(session, cust, req.params, locale)
+        # Create RequestContext from current session and user
+        context = Otto::RequestContext.new(
+          session: session,
+          user: cust,
+          auth_method: determine_auth_method,
+          metadata: { ip: req.client_ipaddress }
+        )
+
+        logic = logic_class.new(context, req.params, locale)
 
         logic.domain_strategy = req.env['onetime.domain_strategy'] # never nil
         logic.display_domain  = req.env['onetime.display_domain'] # can be nil
@@ -250,6 +267,22 @@ module V2
       hsh[:success] = false
       res.status    = 500 # Bad Request
       json hsh
+    end
+
+    private
+
+    # Determine how the current request was authenticated
+    def determine_auth_method
+      return 'anonymous' if cust&.anonymous?
+
+      auth = req.env['otto.auth'] || Rack::Auth::Basic::Request.new(req.env)
+      if auth.provided? && auth.basic?
+        'basic'
+      elsif req.cookie?(:sess) || session['identity_id']
+        'session'
+      else
+        'unknown'
+      end
     end
   end
 end
