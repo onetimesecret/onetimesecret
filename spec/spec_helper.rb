@@ -41,6 +41,43 @@ end
 OT.mode = :test
 OT::Config.path = File.join(Onetime::HOME, 'spec', 'config.test.yaml')
 
+# Initialize configuration - required for tests that access OT.conf
+begin
+  Onetime.boot!
+rescue => e
+  # If boot fails, at least ensure OT.conf is not nil with minimal defaults
+  minimal_config_data = {
+    'site' => {
+      'secret' => 'test-secret-key-for-specs',
+      'host' => 'localhost',
+      'ssl' => false,
+      'authentication' => {
+        'enabled' => false,
+        'colonels' => []
+      },
+      'domains' => {
+        'enabled' => false
+      }
+    },
+    'emailer' => {
+      'mode' => 'smtp',
+      'from' => 'test@example.com',
+      'fromname' => 'Test Suite'
+    },
+    'experimental' => {},
+    'redis' => {
+      'uri' => 'redis://localhost:6379/15'
+    }
+  }
+  minimal_config = OT::Config.new(minimal_config_data)
+  if OT.conf.nil?
+    OT.conf = minimal_config
+    # Also ensure Onetime.conf works (they should be aliases but let's be explicit)
+    Onetime.instance_variable_set(:@conf, minimal_config)
+  end
+  warn "Boot failed, using minimal config: #{e.message}"
+end
+
 
 RSpec.configure do |config|
   # Expectations

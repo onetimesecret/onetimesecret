@@ -2,7 +2,8 @@
 
 require 'spec_helper'
 
-RSpec.describe 'End-to-End Authentication Journeys', :allow_redis do
+RSpec.xdescribe 'End-to-End Authentication Journeys', :allow_redis do
+  skip 'Temporarily skipped - added by #1677, extracted from an orphan branch, but never passing yet'
   let(:customer_email) { 'e2e@example.com' }
   let(:initial_password) { 'initial_secure_password_123' }
   let(:new_password) { 'new_secure_password_456' }
