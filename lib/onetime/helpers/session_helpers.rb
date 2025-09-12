@@ -21,8 +21,8 @@ module Onetime
         # Clear any existing session data
         session.clear
 
-        # Regenerate session ID to prevent fixation
-        session.regenerate if session.respond_to?(:regenerate)
+        # Regenerate session ID to prevent fixation (Rack::Session pattern)
+        request.session_options[:renew] = true if request.respond_to?(:session_options)
 
         # Set authentication data
         session['identity_id'] = customer.custid

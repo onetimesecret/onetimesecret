@@ -15,8 +15,11 @@ module Auth
       # 1. Call external Rodauth service API
       # 2. Validate response
       # 3. Create session using same Rack::Session mechanism
+      #
+      # SECURITY: When implementing external service calls, ensure timing attack
+      # mitigation is maintained - both valid/invalid credentials must take equivalent time
 
-      # Placeholder implementation - delegates to BasicAuth
+      # Placeholder implementation - delegates to BasicAuth (inherits timing attack protection)
       basic_adapter = BasicAuthAdapter.new(env)
       result = basic_adapter.authenticate(email, password, tenant_id)
 

@@ -70,7 +70,9 @@ module Auth
     end
 
     def verify_password(customer, password)
-      # Always use the same code path to prevent timing attacks
+      # SECURITY: Timing attack mitigation - both code paths must execute identical operations
+      # to prevent attackers from distinguishing valid vs invalid emails through timing analysis.
+      # This ensures constant-time behavior regardless of customer existence.
       target_customer = if customer.has_passphrase?
         customer
       else

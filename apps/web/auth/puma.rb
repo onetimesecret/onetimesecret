@@ -1,18 +1,5 @@
 # Puma configuration for external auth service
 
-# nakayoshi_fork - Memory optimization for forked worker processes
-#
-# Enables additional garbage collection and heap compaction before forking
-# new worker processes. This improves Copy-on-Write efficiency by reducing
-# memory fragmentation, resulting in lower overall memory usage across workers.
-#
-# Built into Puma 5+, replaces the standalone nakayoshi_fork gem from 2018.
-# Note: If you have the old nakayoshi_fork gem as a dependency, consider
-# removing it to avoid running GC multiple times unnecessarily.
-#
-nakayoshi_fork true
-
-
 # Number of workers and threads
 workers ENV.fetch('WEB_CONCURRENCY', 2)
 threads_count = ENV.fetch('RAILS_MAX_THREADS', 5)

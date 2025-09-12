@@ -61,6 +61,8 @@ module Auth
           require_relative 'rodauth_adapter'
           RodauthAdapter
         else
+          # NOTE: BasicAuthAdapter implements timing attack mitigation in verify_password
+          # Ensure rodauth_adapter maintains equivalent security measures
           require_relative 'basic_auth_adapter'
           BasicAuthAdapter
         end

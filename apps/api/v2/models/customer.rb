@@ -31,8 +31,6 @@ module V2
   class Customer < Familia::Horreum
     require_relative 'customer/features'
 
-    @default_cost = 12.freeze
-
     using Familia::Refinements::TimeLiterals
 
     @global = nil

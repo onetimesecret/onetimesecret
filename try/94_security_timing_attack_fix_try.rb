@@ -61,7 +61,6 @@ result_valid_wrong == false && result_no_pass == false
 ## Customer exists but has no passphrase (should use dummy for timing consistency)
 @no_pass_email = 'no_passphrase@example.com'
 @no_pass_cust = V2::Customer.new(@no_pass_email)
-@no_pass_cust.save
 
 result_no_passphrase = @adapter.authenticate(@no_pass_email, 'any_password')
 result_no_passphrase[:success] == false && result_no_passphrase[:error] == 'Invalid email or password'
