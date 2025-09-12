@@ -1,6 +1,6 @@
 # spec/apps/api/authentication_security_spec.rb
 
-require 'spec_helper'
+require_relative '../../spec_helper'
 
 RSpec.describe 'Authentication Security Attack Vectors' do
   let(:session) { double('Session', short_identifier: 'sec123', set_info_message: nil, set_error_message: nil, replace!: nil, save: nil, :"custid=" => nil, :"authenticated=" => nil, :"default_expiration=" => nil) }

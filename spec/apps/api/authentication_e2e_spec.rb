@@ -117,7 +117,7 @@ RSpec.describe 'End-to-End Authentication Journeys', :allow_redis do
       )
 
       # Mock email delivery
-      allow_any_instance_of(V2::Logic::Authentication::ResetPasswordRequest).to receive(:send_verification_email)
+      allow(reset_request_logic).to receive(:send_verification_email)
       mail_view = double('PasswordRequest')
       allow(OT::Mail::PasswordRequest).to receive(:new).and_return(mail_view)
       allow(mail_view).to receive(:deliver_email)
@@ -322,15 +322,16 @@ RSpec.describe 'End-to-End Authentication Journeys', :allow_redis do
     end
 
     it 'handles pending customer authentication' do
-      # Mock verification email sending
-      allow_any_instance_of(V1::Logic::Authentication::AuthenticateSession).to receive(:send_verification_email)
-      allow_any_instance_of(V1::Logic::Authentication::AuthenticateSession).to receive(:i18n).and_return({
-        web: { COMMON: { verification_sent_to: 'Verification sent to' } }
-      })
-
+      # Create the authentication logic instance
       auth_logic = V1::Logic::Authentication::AuthenticateSession.new(
         session, pending_customer, { u: customer_email, p: initial_password }
       )
+
+      # Mock verification email sending and i18n for this instance only
+      allow(auth_logic).to receive(:send_verification_email)
+      allow(auth_logic).to receive(:i18n).and_return({
+        web: { COMMON: { verification_sent_to: 'Verification sent to' } }
+      })
 
       auth_logic.process_params
       auth_logic.process
