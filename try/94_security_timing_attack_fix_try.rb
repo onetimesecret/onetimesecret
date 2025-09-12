@@ -17,7 +17,7 @@ OT.boot! :test, false
 # Both valid and invalid users should take similar time to process
 
 @mock_env = {
-  'rack.session' => {}
+  'onetime.session' => {}
 }
 
 @test_email = 'test_timing@example.com'

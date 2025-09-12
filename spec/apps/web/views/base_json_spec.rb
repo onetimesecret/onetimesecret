@@ -44,7 +44,7 @@ RSpec.xdescribe Core::Views::BaseView, "JSON Output" do
           env: {
             'REMOTE_ADDR' => '127.0.0.1',
             'HTTP_HOST' => not_authenticated_json["site_host"],
-            'rack.session' => {},
+            'onetime.session' => {},
             'HTTP_ACCEPT' => 'application/json',
             'onetime.domain_strategy' => not_authenticated_json["domain_strategy"],
             'onetime.display_domain' => not_authenticated_json["display_domain"],
@@ -157,7 +157,7 @@ RSpec.xdescribe Core::Views::BaseView, "JSON Output" do
           env: {
             'REMOTE_ADDR' => '127.0.0.1',
             'HTTP_HOST' => authenticated_json["site_host"],
-            'rack.session' => {},
+            'onetime.session' => {},
             'HTTP_ACCEPT' => 'application/json',
             'onetime.domain_strategy' => authenticated_json["domain_strategy"],
             'onetime.display_domain' => authenticated_json["display_domain"],

@@ -19,7 +19,7 @@ module Auth
       return authentication_failure unless verify_password(customer, password)
 
       # Create session via Rack::Session
-      session = env['rack.session']
+      session = env['onetime.session']
       session['identity_id'] = customer.custid
       session['tenant_id'] = tenant_id || customer.custid
       session['email'] = customer.email
@@ -39,13 +39,13 @@ module Auth
     end
 
     def logout
-      session = env['rack.session']
+      session = env['onetime.session']
       session.clear
       { success: true }
     end
 
     def current_identity
-      session = env['rack.session']
+      session = env['onetime.session']
       return nil unless session['authenticated']
 
       {
@@ -57,7 +57,7 @@ module Auth
     end
 
     def authenticated?
-      session = env['rack.session']
+      session = env['onetime.session']
       session['authenticated'] == true
     end
 

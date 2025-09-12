@@ -5,7 +5,7 @@ RSpec.shared_context "view_test_context" do
     env = {
       'REMOTE_ADDR' => '127.0.0.1',
       'HTTP_HOST' => 'example.com',
-      'rack.session' => {},
+      'onetime.session' => {},
       'ots.locale' => 'en',
     }
 

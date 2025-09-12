@@ -117,7 +117,7 @@ module Core
       error_response "We'll be back shortly!", shrimp: (respond_to?(:shrimp_token) ? shrimp_token : nil)
     rescue StandardError => ex
       custid = cust&.custid || '<notset>'
-      session = req.env['rack.session']
+      session = req.env['onetime.session']
       OT.le "#{ex.class}: #{ex.message} -- #{req.current_absolute_uri} -- #{req.client_ipaddress} #{custid} #{session} #{locale} #{content_type} #{redirect} "
       OT.le ex.backtrace.join("\n")
 

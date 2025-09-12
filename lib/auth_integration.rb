@@ -67,7 +67,7 @@ module AuthIntegration
 
     def extract_session_token(request)
       # Try multiple cookie names that might contain the session
-      cookie_names = ['onetime.session', '_auth_shrimp', 'rack.session']
+      cookie_names = ['onetime.session', '_auth_shrimp', 'onetime.session'] # TODO: resolve complexity
 
       cookie_names.each do |name|
         value = request.cookies[name]
