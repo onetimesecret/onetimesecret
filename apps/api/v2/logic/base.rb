@@ -28,6 +28,7 @@ module V2
         @context = context
         @params = params
 
+
         # Extract session and user from RequestContext
         @sess = context.session
         @cust = context.user
@@ -49,8 +50,8 @@ module V2
         @site            = OT.conf.fetch('site', {})
         site.fetch('domains', {})
         @authentication  = site.fetch('authentication', {})
-        domains          = site.fetch(:domains, {})
-        @domains_enabled = domains[:enabled] || false
+        domains          = site.fetch('domains', {})
+        @domains_enabled = domains['enabled'] || false
       end
 
       def valid_email?(guess)

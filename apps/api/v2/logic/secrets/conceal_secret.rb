@@ -9,8 +9,8 @@ module V2::Logic
 
     class ConcealSecret < BaseSecretAction
       def process_secret
-        @kind         = :conceal
-        @secret_value = payload[:secret]
+        @kind         = 'conceal'
+        @secret_value = payload['secret']
       end
 
       def raise_concerns
