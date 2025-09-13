@@ -15,7 +15,7 @@ module V1
     require_relative '../../../lib/rack/session/redis_familia'
     use Rack::Session::RedisFamilia, {
       expire_after: 86400, # 24 hours
-      key: 'ots.session',
+      key: 'onetime.session',
       secure: OT.conf&.dig('site', 'ssl') || false,
       httponly: true,
       same_site: :lax,

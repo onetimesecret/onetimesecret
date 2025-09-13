@@ -101,7 +101,7 @@ module Rack
     def resolve_rodauth_identity(request, env)
       begin
         # Get session from Redis session middleware
-        session = env['rack.session']
+        session = env['onetime.session']
         return no_identity unless session
 
         # Check for Rodauth authentication markers
@@ -175,7 +175,7 @@ module Rack
 
     def resolve_redis_identity(request, env)
       # Use Rack::Session from middleware
-      session = env['rack.session']
+      session = env['onetime.session']
       return no_identity unless session && session['identity_id']
 
       begin

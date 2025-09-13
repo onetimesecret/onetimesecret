@@ -117,7 +117,7 @@ module Onetime
           'session' => {
             'redis_url' => 'redis://localhost:6379/0',
             'expire_after' => 86_400,
-            'key' => 'ots.session',
+            'key' => 'onetime.session',
             'secure' => ssl_enabled?,
             'httponly' => true,
             'same_site' => 'lax',

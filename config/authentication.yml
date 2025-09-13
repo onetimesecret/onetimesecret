@@ -48,7 +48,7 @@ authentication:
   session:
     redis_url: "redis://localhost:6379/0"
     expire_after: 86400  # 24 hours
-    key: 'ots.session'   # Unified cookie name
+    key: 'onetime.session'   # Unified cookie name
     secure: true         # Set based on SSL configuration
     httponly: true
     same_site: lax

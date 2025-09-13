@@ -25,7 +25,7 @@ class AuthService < Roda
   require_relative '../../../lib/rack/session/redis_familia'
   use Rack::Session::RedisFamilia, {
     expire_after: 86400, # 24 hours
-    key: 'ots.session',  # Unified cookie name
+    key: 'onetime.session',  # Unified cookie name
     secure: ENV['RACK_ENV'] == 'production',
     httponly: true,
     same_site: :lax,
@@ -108,8 +108,8 @@ class AuthService < Roda
     enable :recovery_codes  # Backup codes for MFA
 
     # Session configuration (unified with other apps)
-    session_key 'ots.session'
-    remember_cookie_key 'ots.remember'
+    session_key 'onetime.session'
+    remember_cookie_key 'onetime.remembers'
 
     # Account verification (email confirmation) - disabled
     # require_email_confirmation_for_new_accounts true

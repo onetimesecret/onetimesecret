@@ -10,7 +10,7 @@ module Rack
 
       DEFAULT_OPTIONS = Abstract::ID::DEFAULT_OPTIONS.merge(
         expire_after: 86400,  # 24 hours
-        key: 'ots.session',
+        key: 'onetime.session',
         secure: true,
         httponly: true,
         same_site: :lax,
