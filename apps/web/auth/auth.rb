@@ -21,16 +21,16 @@ end
 class AuthService < Roda
   include AuthHelpers::ViteAssets
 
-  # Roda plugins
-  plugin :sessions,
-    secret: ENV['AUTH_SECRET'] || raise('AUTH_SECRET environment variable required (min 64 chars)'),
-    key: 'onetime.session',           # Cookie name (default: 'rack.session')
-    domain: ENV['SESSION_DOMAIN'],     # Cookie domain
-    path: '/',                         # Cookie path
-    expire_after: 86400,              # Session timeout in seconds (24 hours)
-    secure: true,
-    httponly: true,                   # Prevent JavaScript access
-    same_site: :strict                   # SameSite attribute
+  # Redis session middleware (unified with other apps)
+  require_relative '../../../lib/rack/session/redis_familia'
+  use Rack::Session::RedisFamilia, {
+    expire_after: 86400, # 24 hours
+    key: 'ots.session',  # Unified cookie name
+    secure: ENV['RACK_ENV'] == 'production',
+    httponly: true,
+    same_site: :lax,
+    redis_prefix: 'session'
+  }
   plugin :flash
   plugin :json
   plugin :halt
@@ -52,6 +52,20 @@ class AuthService < Roda
     hmac_secret ENV['HMAC_SECRET'] || ENV['AUTH_SECRET'] || 'dev-hmac-secret-change-in-prod'
 
     prefix '/auth'
+
+    # Redis session compatibility overrides
+    def authenticated?
+      super && redis_session_valid?
+    end
+
+    def redis_session_valid?
+      return false unless session['authenticated_at']
+      return false unless session['rodauth_external_id'] || session['rodauth_account_id']
+
+      # Check session age
+      age = Time.now.to_i - session['authenticated_at']
+      age < expire_after
+    end
 
     # Enable base feature for HTML rendering
     enable :base
@@ -92,9 +106,9 @@ class AuthService < Roda
     enable :otp  # Time-based One-Time Password (TOTP)
     enable :recovery_codes  # Backup codes for MFA
 
-    # Session configuration
-    session_key '_auth_shrimp'
-    remember_cookie_key '_auth_rememe'
+    # Session configuration (unified with other apps)
+    session_key 'ots.session'
+    remember_cookie_key 'ots.remember'
 
     # Account verification (email confirmation) - disabled
     # require_email_confirmation_for_new_accounts true
@@ -133,17 +147,33 @@ class AuthService < Roda
       end
     end
 
-    # Custom account creation logic
+    # Custom account creation logic with Otto integration
     after_create_account do
       puts "New account created: #{account[:email]} (ID: #{account_id})"
 
-      # Add any custom logic here, such as:
-      # - Creating default user preferences
-      # - Sending welcome emails
-      # - Setting up default roles
+      # Create Otto customer with derived identity
+      begin
+        # Load Otto's V2::Customer class
+        require_relative '../../../lib/onetime'
+        require_relative '../../../apps/api/v2/models/customer'
+
+        # Create customer with email as custid
+        customer = V2::Customer.create(custid: account[:email])
+        puts "Created Otto customer: #{customer.custid} with extid: #{customer.extid}"
+
+        # Store Otto's derived extid in Rodauth (NOT the objid!)
+        DB[:accounts].where(id: account_id).update(external_id: customer.extid)
+        puts "Linked Rodauth account #{account_id} to Otto extid: #{customer.extid}"
+
+      rescue => e
+        puts "Error creating Otto customer: #{e.message}"
+        puts e.backtrace.join("
+") if ENV['RACK_ENV'] == 'development'
+        # Don't fail account creation, but log the issue
+      end
     end
 
-    # Custom login logic
+    # Custom login logic with Otto integration
     after_login do
       puts "User logged in: #{account[:email]} from #{request.ip}"
 
@@ -152,6 +182,11 @@ class AuthService < Roda
         last_login_at: Sequel::CURRENT_TIMESTAMP,
         last_login_ip: request.ip
       )
+
+      # Store identity information in session for Otto integration
+      session['rodauth_account_id'] = account_id
+      session['rodauth_external_id'] = account[:external_id]
+      session['authenticated_at'] = Time.now.to_i
     end
 
     # Handle login failures
