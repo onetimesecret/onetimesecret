@@ -280,16 +280,19 @@ module Rack
       return false unless session['authenticated_at']
       return false unless session['rodauth_external_id'] || session['rodauth_account_id']
 
-      # Check session age
-      age = Time.now.to_i - session['authenticated_at']
-      age < 86400  # 24 hours
+      # Check session age against configured or default expiry (24h)
+      max_age = (ENV['SESSION_EXPIRE_AFTER'] || 86400).to_i
+      age = Time.now.to_i - session['authenticated_at'].to_i
+      age < max_age
     end
 
     def detect_auth_mode
-      # Use auth configuration system if available
-      if defined?(Onetime::AuthConfig)
+      # Always try to use the centralized auth configuration first
+      begin
         require_relative '../onetime/auth_config' unless defined?(Onetime::AuthConfig)
-        return Onetime.auth_config.mode
+        return Onetime.auth_config.mode if defined?(Onetime::AuthConfig)
+      rescue LoadError, StandardError => e
+        # Fall through to other detection methods if config loading fails
       end
 
       # Fallback to environment variable

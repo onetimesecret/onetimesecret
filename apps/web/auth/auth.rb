@@ -62,9 +62,10 @@ class AuthService < Roda
       return false unless session['authenticated_at']
       return false unless session['rodauth_external_id'] || session['rodauth_account_id']
 
-      # Check session age
-      age = Time.now.to_i - session['authenticated_at']
-      age < expire_after
+      # Check session age against configured expiry (default 24h)
+      max_age = (ENV['SESSION_EXPIRE_AFTER'] || 86400).to_i
+      age = Time.now.to_i - session['authenticated_at'].to_i
+      age < max_age
     end
 
     # Enable base feature for HTML rendering
@@ -157,8 +158,12 @@ class AuthService < Roda
         require_relative '../../../lib/onetime'
         require_relative '../../../apps/api/v2/models/customer'
 
-        # Create customer with email as custid
-        customer = V2::Customer.create(custid: account[:email])
+        # Create or load customer using email as custid
+        customer = if V2::Customer.exists?(account[:email])
+          V2::Customer.load(account[:email])
+        else
+          V2::Customer.create(account[:email])
+        end
         puts "Created Otto customer: #{customer.custid} with extid: #{customer.extid}"
 
         # Store Otto's derived extid in Rodauth (NOT the objid!)
@@ -167,8 +172,7 @@ class AuthService < Roda
 
       rescue => e
         puts "Error creating Otto customer: #{e.message}"
-        puts e.backtrace.join("
-") if ENV['RACK_ENV'] == 'development'
+        puts e.backtrace.join("\n") if ENV['RACK_ENV'] == 'development'
         # Don't fail account creation, but log the issue
       end
     end
@@ -215,8 +219,7 @@ class AuthService < Roda
         end
       rescue => e
         puts "Error cleaning up Otto customer: #{e.message}"
-        puts e.backtrace.join("
-") if ENV['RACK_ENV'] == 'development'
+        puts e.backtrace.join("\n") if ENV['RACK_ENV'] == 'development'
         # Don't fail account closure, but log the issue
       end
     end
