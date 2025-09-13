@@ -67,7 +67,7 @@ module AuthIntegration
 
     def extract_session_token(request)
       # Try multiple cookie names that might contain the session
-      cookie_names = ['onetime.session', '_auth_shrimp', 'rack.session']
+      cookie_names = ['onetime.session', '_auth_shrimp', 'onetime.session'] # TODO: resolve complexity
 
       cookie_names.each do |name|
         value = request.cookies[name]
@@ -81,11 +81,11 @@ module AuthIntegration
   # Helper methods for controllers
   module ControllerHelpers
     def authenticated?
-      env['auth.authenticated'] == true
+      req.env['auth.authenticated'] == true
     end
 
     def current_user
-      env['auth.user']
+      req.env['auth.user']
     end
 
     def require_authentication!

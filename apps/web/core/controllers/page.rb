@@ -24,7 +24,6 @@ module Core
 
       def index
         publically do
-          OT.ld "[index] authenticated? #{sess.authenticated?}"
           view     = Core::Views::VuePoint.new req, sess, cust, locale
           res.body = view.render
         end
@@ -32,7 +31,6 @@ module Core
 
       def customers_only
         authenticated do
-          OT.ld "[customers_only] authenticated? #{sess.authenticated?}"
           view     = Core::Views::VuePoint.new req, sess, cust, locale
           res.body = view.render
         end
@@ -40,7 +38,6 @@ module Core
 
       def colonels_only
         colonels do
-          OT.ld "[colonels_only] authenticated? #{sess.authenticated?}"
           view     = Core::Views::VuePoint.new req, sess, cust, locale
           res.body = view.render
         end

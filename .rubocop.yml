@@ -19,7 +19,7 @@ AllCops:
   MaxFilesInCache: 1000
   TargetRubyVersion: 3.4
   Exclude:
-    - 'migrate/**/*'
+    - 'migrations/**/*'
     # The V1 API is in maintenance mode. No changes allowed 🚭
     - 'apps/api/v1/**/*'
     - 'bin/bundle'

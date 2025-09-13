@@ -61,6 +61,7 @@ module V2::Logic
                           else
                             send_verification_email
 
+                            # NOTE: Intentionally left as symbols for i18n keys
                             "#{i18n.dig(:web, :COMMON, :verification_sent_to)} #{cust.custid}."
                           end
 

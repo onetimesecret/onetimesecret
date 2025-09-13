@@ -15,7 +15,7 @@ module V2::Logic
       # variables only (no more params access).
       def process_params
         # All parameters are passed in the :secret hash (secret[:ttl], etc)
-        @payload = params[:secret] || {}
+        @payload = params['secret'] || {}
         raise_form_error 'Incorrect payload format' if payload.is_a?(String)
 
         process_ttl
@@ -33,6 +33,7 @@ module V2::Logic
       end
 
       def process
+
         create_secret_pair
         handle_passphrase
         save_secret
@@ -72,7 +73,7 @@ module V2::Logic
       protected
 
       def process_ttl
-        @ttl = payload.fetch(:ttl, nil)
+        @ttl = payload.fetch('ttl', nil)
 
         # Get configuration options. We can rely on these values existing
         # because that are guaranteed by OT::Config.after_load.
@@ -107,13 +108,13 @@ module V2::Logic
       end
 
       def process_passphrase
-        @passphrase = payload[:passphrase].to_s
+        @passphrase = payload['passphrase'].to_s
       end
 
       def process_recipient
-        payload[:recipient] = [payload[:recipient]].flatten.compact.uniq # force a list
+        payload['recipient'] = [payload['recipient']].flatten.compact.uniq # force a list
         r                   = /\b[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}\b/
-        @recipient          = payload[:recipient].collect do |email_address|
+        @recipient          = payload['recipient'].collect do |email_address|
           next if email_address.to_s.empty?
 
           email_address.scan(r).uniq.first
@@ -168,7 +169,8 @@ module V2::Logic
       private
 
       def create_secret_pair
-        @metadata, @secret = V2::Secret.spawn_pair cust.custid, token
+        customer_identifier = cust&.custid
+        @metadata, @secret = V2::Secret.spawn_pair customer_identifier, token
       end
 
       def handle_passphrase

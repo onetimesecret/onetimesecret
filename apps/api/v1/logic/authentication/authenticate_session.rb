@@ -40,6 +40,7 @@ module V1::Logic
             OT.li "[ResetPasswordRequest] Resending verification email to #{cust.custid}"
             self.send_verification_email nil
 
+            # NOTE: i18n keys as symbols
             msg = "#{i18n.dig(:web, :COMMON, :verification_sent_to)} #{cust.custid}."
             return sess.set_info_message msg
           end

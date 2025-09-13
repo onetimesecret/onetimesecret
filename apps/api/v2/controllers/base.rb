@@ -124,7 +124,11 @@ module V2
 
       auth_method.call(allow_anonymous) do
         OT.ld "[retrieve] #{logic_class}"
-        logic = logic_class.new(session, cust, req.params, locale)
+
+        # Use Otto's RequestContext from authentication middleware
+        context = req.env['otto.request_context'] || Otto::RequestContext.anonymous
+
+        logic = logic_class.new(context, req.params, locale)
 
         logic.domain_strategy = req.env['onetime.domain_strategy'] # never nil
         logic.display_domain  = req.env['onetime.display_domain'] # can be nil
@@ -172,7 +176,10 @@ module V2
       auth_method = auth_type == :colonels ? method(:colonels) : method(:authorized)
 
       auth_method.call(allow_anonymous) do
-        logic = logic_class.new(session, cust, req.params, locale)
+        # Use Otto's RequestContext from authentication middleware
+        context = req.env['otto.request_context'] || Otto::RequestContext.anonymous
+
+        logic = logic_class.new(context, req.params, locale)
 
         logic.domain_strategy = req.env['onetime.domain_strategy'] # never nil
         logic.display_domain  = req.env['onetime.display_domain'] # can be nil
@@ -251,5 +258,7 @@ module V2
       res.status    = 500 # Bad Request
       json hsh
     end
+
+    private
   end
 end

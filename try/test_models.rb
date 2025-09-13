@@ -23,7 +23,7 @@ TestVersion = Onetime::CURRENT_API_VERSION
 # Map commonly used models to top-level constants for cleaner test code
 Customer = TestVersion::Customer # e.g. V2::Customer
 CustomDomain = TestVersion::CustomDomain
-Session = TestVersion::Session
 Metadata = TestVersion::Metadata
 Secret = TestVersion::Secret
 Feedback = TestVersion::Feedback
+Session = V1::Session  # Session is still V1 for now

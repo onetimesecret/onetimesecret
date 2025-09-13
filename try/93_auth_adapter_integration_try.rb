@@ -11,7 +11,7 @@ OT.boot! :test, false
 
 # Create a mock environment with Rack session
 @mock_env = {
-  'rack.session' => {}
+  'onetime.session' => {}
 }
 
 # Create test customer with hashed password
@@ -44,10 +44,10 @@ result[:success] == true && result[:identity_id] == @test_custid
 #=> true
 
 ## BasicAuthAdapter sets session on successful authentication
-@mock_env['rack.session'].clear
+@mock_env['onetime.session'].clear
 adapter = Auth::BasicAuthAdapter.new(@mock_env)
 adapter.authenticate(@test_email, @test_password)
-session = @mock_env['rack.session']
+session = @mock_env['onetime.session']
 session['authenticated'] == true && session['identity_id'] == @test_custid
 #=> true
 
@@ -64,7 +64,7 @@ result[:success] == false && result[:error] == 'Invalid email or password'
 #=> true
 
 ## BasicAuthAdapter current_identity returns session data when authenticated
-@mock_env['rack.session'].clear
+@mock_env['onetime.session'].clear
 adapter = Auth::BasicAuthAdapter.new(@mock_env)
 adapter.authenticate(@test_email, @test_password)
 identity = adapter.current_identity
@@ -72,14 +72,14 @@ identity[:identity_id] == @test_custid && identity[:email] == @test_email
 #=> true
 
 ## BasicAuthAdapter current_identity returns nil when not authenticated
-@mock_env['rack.session'].clear
+@mock_env['onetime.session'].clear
 adapter = Auth::BasicAuthAdapter.new(@mock_env)
 identity = adapter.current_identity
 identity.nil?
 #=> true
 
 ## BasicAuthAdapter authenticated? returns correct status
-@mock_env['rack.session'].clear
+@mock_env['onetime.session'].clear
 adapter = Auth::BasicAuthAdapter.new(@mock_env)
 authenticated_before = adapter.authenticated?
 adapter.authenticate(@test_email, @test_password)
@@ -88,30 +88,30 @@ authenticated_after = adapter.authenticated?
 #=> true
 
 ## BasicAuthAdapter logout clears session
-@mock_env['rack.session'].clear
+@mock_env['onetime.session'].clear
 adapter = Auth::BasicAuthAdapter.new(@mock_env)
 adapter.authenticate(@test_email, @test_password)
 adapter.logout
-@mock_env['rack.session'].empty?
+@mock_env['onetime.session'].empty?
 #=> true
 
 ## RodauthAdapter falls back to BasicAuth behavior (placeholder)
-@mock_env['rack.session'].clear
+@mock_env['onetime.session'].clear
 adapter = Auth::RodauthAdapter.new(@mock_env)
 result = adapter.authenticate(@test_email, @test_password)
-session = @mock_env['rack.session']
+session = @mock_env['onetime.session']
 result[:success] == true && session['auth_method'] == 'rodauth'
 #=> true
 
 ## RodauthAdapter sets external_service flag in session
-@mock_env['rack.session'].clear
+@mock_env['onetime.session'].clear
 adapter = Auth::RodauthAdapter.new(@mock_env)
 adapter.authenticate(@test_email, @test_password)
-@mock_env['rack.session']['external_service'] == true
+@mock_env['onetime.session']['external_service'] == true
 #=> true
 
 ## RodauthAdapter current_identity includes auth_method
-@mock_env['rack.session'].clear
+@mock_env['onetime.session'].clear
 adapter = Auth::RodauthAdapter.new(@mock_env)
 adapter.authenticate(@test_email, @test_password)
 identity = adapter.current_identity

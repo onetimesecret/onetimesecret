@@ -42,6 +42,10 @@ module V2
       routes_path = File.join(ENV.fetch('ONETIME_HOME'), 'apps/api/v2/routes')
       router      = Otto.new(routes_path)
 
+      # Register V2 authentication strategies
+      require_relative 'auth_strategies'
+      V2::AuthStrategies.register_all(router)
+
       # Default error responses
       headers             = { 'content-type' => 'application/json' }
       router.not_found    = [404, headers, [{ error: 'Not Found' }.to_json]]

@@ -30,7 +30,16 @@ OT.boot! :test, false
 @cust = Customer.new @email_address
 @params = {}
 @locale = 'en'
-@obj = V2::Logic::Account::CreateAccount.new @sess, @cust
+
+# Create a RequestContext for the new initialization pattern
+@context = Otto::RequestContext.new(
+  session: @sess,
+  user: @cust,
+  auth_method: 'test',
+  metadata: { ip: '255.255.255.255' }
+)
+
+@obj = V2::Logic::Account::CreateAccount.new @context, @params, @locale
 
 # A generator for valid params for creating an account
 @valid_params = lambda do
@@ -74,7 +83,13 @@ end
 ## Can create account and it's not verified by default.
 sess = Session.create '255.255.255.255', 'anon'
 cust = Customer.new
-logic = V2::Logic::Account::CreateAccount.new sess, cust, @valid_params.call, 'en'
+context = Otto::RequestContext.new(
+  session: sess,
+  user: cust,
+  auth_method: 'test',
+  metadata: { ip: '255.255.255.255' }
+)
+logic = V2::Logic::Account::CreateAccount.new context, @valid_params.call, 'en'
 logic.raise_concerns
 logic.process
 [logic.autoverify, logic.cust.verified, OT.conf.dig('site', 'authentication', 'autoverify')]
@@ -92,7 +107,13 @@ new_conf = {
   },
 }
 OT.instance_variable_set(:@conf, new_conf)
-logic = V2::Logic::Account::CreateAccount.new sess, cust, @valid_params.call, 'en'
+context = Otto::RequestContext.new(
+  session: sess,
+  user: cust,
+  auth_method: 'test',
+  metadata: { ip: '255.255.255.255' }
+)
+logic = V2::Logic::Account::CreateAccount.new context, @valid_params.call, 'en'
 logic.raise_concerns
 logic.process
 ret = [logic.autoverify.to_s, logic.cust.verified.to_s, OT.conf.dig('site', 'authentication', 'autoverify').to_s]
