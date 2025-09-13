@@ -22,6 +22,10 @@ module Core
     # Common middleware stack
     use Rack::DetectHost
 
+    # Identity resolution middleware
+    require_relative '../../../lib/middleware/identity_resolution'
+    use Rack::IdentityResolution
+
     # Auth integration middleware
     require_relative '../../../lib/auth_integration'
     use AuthIntegration::Middleware
