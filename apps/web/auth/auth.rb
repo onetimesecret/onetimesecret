@@ -193,6 +193,33 @@ class AuthService < Roda
     after_login_failure do
       puts "Login failure for: #{param('email')} from #{request.ip}"
     end
+
+    # Account closure with Otto customer cleanup
+    after_close_account do
+      puts "Account closed: #{account[:email]} (ID: #{account_id})"
+
+      # Clean up Otto customer using extid
+      begin
+        if account[:external_id]
+          # Load Otto's V2::Customer class
+          require_relative '../../../lib/onetime'
+          require_relative '../../../apps/api/v2/models/customer'
+
+          customer = V2::Customer.find_by_extid(account[:external_id])
+          if customer
+            customer.destroy!
+            puts "Deleted Otto customer: #{customer.custid} (extid: #{customer.extid})"
+          else
+            puts "Otto customer not found for extid: #{account[:external_id]}"
+          end
+        end
+      rescue => e
+        puts "Error cleaning up Otto customer: #{e.message}"
+        puts e.backtrace.join("
+") if ENV['RACK_ENV'] == 'development'
+        # Don't fail account closure, but log the issue
+      end
+    end
   end
 
   route do |r|
