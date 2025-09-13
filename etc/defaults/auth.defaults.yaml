@@ -1,6 +1,6 @@
 # Authentication Configuration for OneTimeSecret
 # Controls the authentication mode and related settings for Otto's Derived Identity Architecture
-
+---
 authentication:
   # Authentication mode: 'basic' (Redis-only) or 'rodauth' (RDBMS+Redis)
   mode: basic  # Default to basic mode for backward compatibility
