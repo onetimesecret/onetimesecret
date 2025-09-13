@@ -174,7 +174,7 @@ module Rack
 
     def resolve_redis_identity(request, env)
       # Use Rack::Session from middleware
-      session = env['onetime.session']
+      session = env['rack.session']
       return no_identity unless session && session['identity_id']
 
       begin

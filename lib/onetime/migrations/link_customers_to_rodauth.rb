@@ -8,7 +8,7 @@ require 'bundler/setup'
 require 'sequel'
 require 'bcrypt'
 require_relative '../auth_config'
-require_relative '../../apps/api/v2/models/customer'
+require_relative '../../../apps/api/v2/models/customer'
 
 module Onetime
   module Migrations

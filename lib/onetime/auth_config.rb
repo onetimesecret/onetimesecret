@@ -3,6 +3,7 @@
 
 require 'yaml'
 require 'erb'
+require 'singleton'
 
 module Onetime
   class AuthConfig
