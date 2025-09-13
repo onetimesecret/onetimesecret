@@ -2,6 +2,7 @@
 
 require 'logger'
 require 'rack/request'
+require_relative '../onetime/auth_config'
 
 module Rack
   # Identity Resolution Middleware for OneTimeSecret
@@ -280,33 +281,14 @@ module Rack
       return false unless session['authenticated_at']
       return false unless session['rodauth_external_id'] || session['rodauth_account_id']
 
-      # Check session age against configured or default expiry (24h)
-      max_age = (ENV['SESSION_EXPIRE_AFTER'] || 86400).to_i
+      # Check session age against configured expiry
+      max_age = Onetime.auth_config.session['expire_after'] || 86400
       age = Time.now.to_i - session['authenticated_at'].to_i
       age < max_age
     end
 
     def detect_auth_mode
-      # Always try to use the centralized auth configuration first
-      begin
-        require_relative '../onetime/auth_config' unless defined?(Onetime::AuthConfig)
-        return Onetime.auth_config.mode if defined?(Onetime::AuthConfig)
-      rescue LoadError, StandardError => e
-        # Fall through to other detection methods if config loading fails
-      end
-
-      # Fallback to environment variable
-      mode = ENV['AUTHENTICATION_MODE']
-      return mode if mode && %w[basic rodauth].include?(mode)
-
-      # Final fallback: detect by database existence
-      if File.exist?('data/auth.db')
-        'rodauth'
-      else
-        'basic'
-      end
-    rescue
-      'basic'  # Default to basic mode on any error
+      Onetime.auth_config.mode
     end
 
     def external_auth_enabled?

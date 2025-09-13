@@ -62,8 +62,8 @@ class AuthService < Roda
       return false unless session['authenticated_at']
       return false unless session['rodauth_external_id'] || session['rodauth_account_id']
 
-      # Check session age against configured expiry (default 24h)
-      max_age = (ENV['SESSION_EXPIRE_AFTER'] || 86400).to_i
+      # Check session age against configured expiry
+      max_age = Onetime.auth_config.session['expire_after'] || 86400
       age = Time.now.to_i - session['authenticated_at'].to_i
       age < max_age
     end
