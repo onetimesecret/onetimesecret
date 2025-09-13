@@ -6357,6 +6357,10 @@ snapshots:
     dependencies:
       possible-typed-array-names: 1.1.0
 
+  aws-sign2@0.7.0: {}
+
+  aws4@1.13.2: {}
+
   axios-mock-adapter@2.1.0(axios@1.12.0):
     dependencies:
       axios: 1.12.0
@@ -9055,6 +9059,12 @@ snapshots:
   v8-compile-cache-lib@3.0.1: {}
 
   vary@1.1.2: {}
+
+  verror@1.10.0:
+    dependencies:
+      assert-plus: 1.0.0
+      core-util-is: 1.0.2
+      extsprintf: 1.3.0
 
   vite-hot-client@2.1.0(vite@5.4.20(@types/node@22.18.1)(terser@5.39.0)):
     dependencies:
