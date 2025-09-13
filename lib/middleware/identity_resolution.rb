@@ -286,11 +286,17 @@ module Rack
     end
 
     def detect_auth_mode
-      # Check configuration or environment variable for auth mode
+      # Use auth configuration system if available
+      if defined?(Onetime::AuthConfig)
+        require_relative '../onetime/auth_config' unless defined?(Onetime::AuthConfig)
+        return Onetime.auth_config.mode
+      end
+
+      # Fallback to environment variable
       mode = ENV['AUTHENTICATION_MODE']
       return mode if mode && %w[basic rodauth].include?(mode)
 
-      # Check if Rodauth database exists as fallback detection
+      # Final fallback: detect by database existence
       if File.exist?('data/auth.db')
         'rodauth'
       else
