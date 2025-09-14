@@ -86,9 +86,9 @@ RSpec.describe V1::Secret do
     describe 'encryption keys' do
       it 'generates different keys for different encryption versions' do
         v1_key = secret.encryption_key_v1
-        v2_key = secret.encryption_key_v2
+        onetime_key = secret.encryption_key_v2
 
-        expect(v1_key).not_to eq(v2_key)
+        expect(v1_key).not_to eq(onetime_key)
       end
 
       it 'incorporates global secret in v2 keys' do

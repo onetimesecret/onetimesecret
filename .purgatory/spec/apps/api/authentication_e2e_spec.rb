@@ -344,24 +344,24 @@ RSpec.xdescribe 'End-to-End Authentication Journeys', :allow_redis do
 
   describe 'cross-api version compatibility' do
     let(:v1_customer) { V1::Customer.new }
-    let(:v2_customer) { V2::Customer.new }
+    let(:onetime_customer) { V2::Customer.new }
     let(:v1_session) { V1::Session.new }
-    let(:v2_session) { V2::Session.new }
+    let(:onetime_session) { V2::Session.new }
 
     before do
       # Set up identical customers in both API versions
-      [v1_customer, v2_customer].each do |customer|
+      [v1_customer, onetime_customer].each do |customer|
         customer.custid = customer_email
         customer.update_passphrase(initial_password)
         customer.verified = 'true'
         customer.save
       end
 
-      [v1_session, v2_session].each { |session| session.save }
+      [v1_session, onetime_session].each { |session| session.save }
     end
 
     after do
-      [v1_customer, v2_customer, v1_session, v2_session].each do |obj|
+      [v1_customer, onetime_customer, v1_session, onetime_session].each do |obj|
         obj.destroy! if obj&.exists?
       end
     end
@@ -375,14 +375,14 @@ RSpec.xdescribe 'End-to-End Authentication Journeys', :allow_redis do
       v1_success = v1_auth.success?
 
       # Test V2 authentication
-      v2_auth = V2::Logic::Authentication::AuthenticateSession.new(
-        v2_session, v2_customer, { u: customer_email, p: initial_password }
+      onetime_auth = V2::Logic::Authentication::AuthenticateSession.new(
+        onetime_session, onetime_customer, { u: customer_email, p: initial_password }
       )
-      v2_auth.process_params
-      v2_success = v2_auth.success?
+      onetime_auth.process_params
+      onetime_success = onetime_auth.success?
 
       # Both should behave consistently
-      expect(v1_success).to eq(v2_success)
+      expect(v1_success).to eq(onetime_success)
       expect(v1_success).to be true
     end
   end

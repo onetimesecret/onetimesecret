@@ -3,7 +3,7 @@
 require_relative '../../../../spec_helper'
 
 RSpec.describe V2::Secret, 'security hardening' do
-  let(:secret) { create_stubbed_v2_secret(key: "test-secret-key-12345") }
+  let(:secret) { create_stubbed_onetime_secret(key: "test-secret-key-12345") }
   let(:passphrase) { "secure-test-passphrase" }
   let(:secret_value) { "Sensitive information 123" }
 

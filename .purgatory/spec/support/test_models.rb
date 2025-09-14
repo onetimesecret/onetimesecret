@@ -30,8 +30,8 @@ class TestSecret
     # Check if we should allow nil global secret
     if global_secret.nil? && OT.conf[:experimental][:allow_nil_global_secret]
       # Try fallback mechanism if mocked
-      if respond_to?(:encryption_key_v2_with_nil)
-        encryption_key = encryption_key_v2_with_nil
+      if respond_to?(:encryption_key_onetime_with_nil)
+        encryption_key = encryption_key_onetime_with_nil
       else
         encryption_key = self.class.encryption_key(nil, @key, @passphrase_temp)
       end

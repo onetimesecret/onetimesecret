@@ -4,42 +4,42 @@
 # Using direct Logic class routing with authentication strategies
 
 # Account Management
-POST   /account/destroy                           V2::Logic::Account::DestroyAccount response=json auth=v2_api
-POST   /account/change-password                   V2::Logic::Account::UpdatePassword response=json auth=v2_api
-POST   /account/update-locale                     V2::Logic::Account::UpdateLocale response=json auth=v2_api
-POST   /account/apitoken                          V2::Logic::Account::GenerateAPIToken response=json auth=v2_api csrf=exempt
-GET    /account                                   V2::Logic::Account::GetAccount response=json auth=v2_api
+POST   /account/destroy                           V2::Logic::Account::DestroyAccount response=json auth=onetime_api
+POST   /account/change-password                   V2::Logic::Account::UpdatePassword response=json auth=onetime_api
+POST   /account/update-locale                     V2::Logic::Account::UpdateLocale response=json auth=onetime_api
+POST   /account/apitoken                          V2::Logic::Account::GenerateAPIToken response=json auth=onetime_api csrf=exempt
+GET    /account                                   V2::Logic::Account::GetAccount response=json auth=onetime_api
 
 # Domain Management
-POST   /domains/add                               V2::Logic::Domains::AddDomain response=json auth=v2_api
-POST   /domains/:domain/remove                    V2::Logic::Domains::RemoveDomain response=json auth=v2_api
-GET    /domains/:domain                           V2::Logic::Domains::GetDomain response=json auth=v2_api
-POST   /domains/:domain/verify                    V2::Logic::Domains::VerifyDomain response=json auth=v2_api
-PUT    /domains/:domain/brand                     V2::Logic::Domains::UpdateDomainBrand response=json auth=v2_api
-GET    /domains/:domain/brand                     V2::Logic::Domains::GetDomainBrand response=json auth=v2_api
-DELETE /domains/:domain/logo                      V2::Logic::Domains::RemoveDomainImage response=json auth=v2_api
-POST   /domains/:domain/logo                      V2::Logic::Domains::UpdateDomainImage response=json auth=v2_api
-GET    /domains/:domain/logo                      V2::Logic::Domains::GetDomainImage response=json auth=v2_api
-DELETE /domains/:domain/icon                      V2::Logic::Domains::RemoveDomainImage response=json auth=v2_api
-POST   /domains/:domain/icon                      V2::Logic::Domains::UpdateDomainImage response=json auth=v2_api
-GET    /domains/:domain/icon                      V2::Logic::Domains::GetDomainImage response=json auth=v2_api
-GET    /domains                                   V2::Logic::Domains::ListDomains response=json auth=v2_api
+POST   /domains/add                               V2::Logic::Domains::AddDomain response=json auth=onetime_api
+POST   /domains/:domain/remove                    V2::Logic::Domains::RemoveDomain response=json auth=onetime_api
+GET    /domains/:domain                           V2::Logic::Domains::GetDomain response=json auth=onetime_api
+POST   /domains/:domain/verify                    V2::Logic::Domains::VerifyDomain response=json auth=onetime_api
+PUT    /domains/:domain/brand                     V2::Logic::Domains::UpdateDomainBrand response=json auth=onetime_api
+GET    /domains/:domain/brand                     V2::Logic::Domains::GetDomainBrand response=json auth=onetime_api
+DELETE /domains/:domain/logo                      V2::Logic::Domains::RemoveDomainImage response=json auth=onetime_api
+POST   /domains/:domain/logo                      V2::Logic::Domains::UpdateDomainImage response=json auth=onetime_api
+GET    /domains/:domain/logo                      V2::Logic::Domains::GetDomainImage response=json auth=onetime_api
+DELETE /domains/:domain/icon                      V2::Logic::Domains::RemoveDomainImage response=json auth=onetime_api
+POST   /domains/:domain/icon                      V2::Logic::Domains::UpdateDomainImage response=json auth=onetime_api
+GET    /domains/:domain/icon                      V2::Logic::Domains::GetDomainImage response=json auth=onetime_api
+GET    /domains                                   V2::Logic::Domains::ListDomains response=json auth=onetime_api
 
 # Secrets - Private (Authenticated)
-GET    /receipt/recent                            V2::Logic::Secrets::ListMetadata response=json auth=v2_api
-POST   /receipt/:key/burn                         V2::Logic::Secrets::BurnSecret response=json auth=v2_api
-GET    /receipt/:key                              V2::Logic::Secrets::ShowMetadata response=json auth=v2_api
-GET    /private/recent                            V2::Logic::Secrets::ListMetadata response=json auth=v2_api
-POST   /private/:key/burn                         V2::Logic::Secrets::BurnSecret response=json auth=v2_api
-GET    /private/:key                              V2::Logic::Secrets::ShowMetadata response=json auth=v2_api
+GET    /receipt/recent                            V2::Logic::Secrets::ListMetadata response=json auth=onetime_api
+POST   /receipt/:key/burn                         V2::Logic::Secrets::BurnSecret response=json auth=onetime_api
+GET    /receipt/:key                              V2::Logic::Secrets::ShowMetadata response=json auth=onetime_api
+GET    /private/recent                            V2::Logic::Secrets::ListMetadata response=json auth=onetime_api
+POST   /private/:key/burn                         V2::Logic::Secrets::BurnSecret response=json auth=onetime_api
+GET    /private/:key                              V2::Logic::Secrets::ShowMetadata response=json auth=onetime_api
 
 # Secrets - Public (Anonymous allowed)
-GET    /secret/:key                               V2::Logic::Secrets::ShowSecret response=json auth=v2_optional
-GET    /secret/:key/status                        V2::Logic::Secrets::ShowSecretStatus response=json auth=v2_optional
-POST   /secret/status                             V2::Logic::Secrets::ListSecretStatus response=json auth=v2_optional
-POST   /secret/:key/reveal                        V2::Logic::Secrets::RevealSecret response=json auth=v2_optional csrf=exempt
-POST   /secret/generate                           V2::Logic::Secrets::GenerateSecret response=json auth=v2_optional csrf=exempt
-POST   /secret/conceal                            V2::Logic::Secrets::ConcealSecret response=json auth=v2_optional csrf=exempt
+GET    /secret/:key                               V2::Logic::Secrets::ShowSecret response=json auth=onetime_optional
+GET    /secret/:key/status                        V2::Logic::Secrets::ShowSecretStatus response=json auth=onetime_optional
+POST   /secret/status                             V2::Logic::Secrets::ListSecretStatus response=json auth=onetime_optional
+POST   /secret/:key/reveal                        V2::Logic::Secrets::RevealSecret response=json auth=onetime_optional csrf=exempt
+POST   /secret/generate                           V2::Logic::Secrets::GenerateSecret response=json auth=onetime_optional csrf=exempt
+POST   /secret/conceal                            V2::Logic::Secrets::ConcealSecret response=json auth=onetime_optional csrf=exempt
 
 # OPTIONS preflight for CORS (public)
 OPTIONS /secret/generate                          V2::Logic::Secrets::GenerateSecret response=json
@@ -49,15 +49,15 @@ OPTIONS /secret/conceal                           V2::Logic::Secrets::ConcealSec
 GET    /supported-locales                         V2::Logic::Meta.get_supported_locales response=json
 GET    /status                                    V2::Logic::Meta.system_status response=json
 GET    /version                                   V2::Logic::Meta.system_version response=json
-GET    /authcheck                                 V2::Logic::Meta::Authcheck response=json auth=v2_api
+GET    /authcheck                                 V2::Logic::Meta::Authcheck response=json auth=onetime_api
 POST   /validate-shrimp                           V2::Logic::Meta::GetValidateShrimp response=json
-POST   /feedback                                  V2::Logic::Meta::ReceiveFeedback response=json auth=v2_optional
+POST   /feedback                                  V2::Logic::Meta::ReceiveFeedback response=json auth=onetime_optional
 
 # Colonel/Admin endpoints
-GET    /colonel/config                            V2::Logic::Colonel::GetSystemSettings response=json auth=v2_colonel
-POST   /colonel/config                            V2::Logic::Colonel::UpdateSystemSettings response=json auth=v2_colonel
-GET    /colonel/info                              V2::Logic::Colonel::GetColonelInfo response=json auth=v2_colonel
-GET    /colonel/stats                             V2::Logic::Colonel::GetColonelStats response=json auth=v2_colonel
+GET    /colonel/config                            V2::Logic::Colonel::GetSystemSettings response=json auth=onetime_colonel
+POST   /colonel/config                            V2::Logic::Colonel::UpdateSystemSettings response=json auth=onetime_colonel
+GET    /colonel/info                              V2::Logic::Colonel::GetColonelInfo response=json auth=onetime_colonel
+GET    /colonel/stats                             V2::Logic::Colonel::GetColonelStats response=json auth=onetime_colonel
 
 # OTTO ADVANCED ROUTES SYNTAX - QUICK REFERENCE
 # ==============================================

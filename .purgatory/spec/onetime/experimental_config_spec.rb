@@ -148,8 +148,8 @@ RSpec.describe "Experimental config settings" do
         @context_config['experimental']['allow_nil_global_secret'] = true
 
         # We need to know exactly what encryption key was used during encryption
-        # So we can return it during the mock of encryption_key_v2_with_nil
-        allow(secret).to receive(:encryption_key_v2_with_nil).and_return(encryption_key)
+        # So we can return it during the mock of encryption_key_onetime_with_nil
+        allow(secret).to receive(:encryption_key_onetime_with_nil).and_return(encryption_key)
 
         # The decryption should work via the fallback mechanism
         secret.passphrase_temp = passphrase
@@ -204,7 +204,7 @@ RSpec.describe "Experimental config settings" do
 
         # Enable fallback mechanism but mock it to fail
         @context_config['experimental']['allow_nil_global_secret'] = true
-        allow(secret).to receive(:encryption_key_v2_with_nil).and_raise(OpenSSL::Cipher::CipherError)
+        allow(secret).to receive(:encryption_key_onetime_with_nil).and_raise(OpenSSL::Cipher::CipherError)
 
         # Decryption should fail with CipherError
         secret.passphrase_temp = passphrase

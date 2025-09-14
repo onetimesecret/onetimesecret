@@ -11,16 +11,16 @@ module V2
       otto.enable_authentication!
 
       # Basic authentication with API token
-      otto.add_auth_strategy('v2_basic', V2BasicStrategy.new)
+      otto.add_auth_strategy('onetime_basic', V2BasicStrategy.new)
 
       # Session-based authentication
-      otto.add_auth_strategy('v2_session', V2SessionStrategy.new)
+      otto.add_auth_strategy('onetime_session', V2SessionStrategy.new)
 
       # Combined basic + session authentication (most V2 endpoints)
-      otto.add_auth_strategy('v2_api', V2CombinedStrategy.new)
+      otto.add_auth_strategy('onetime_api', V2CombinedStrategy.new)
 
       # Optional authentication (allows anonymous)
-      otto.add_auth_strategy('v2_optional', V2OptionalStrategy.new)
+      otto.add_auth_strategy('onetime_optional', V2OptionalStrategy.new)
 
     end
 
@@ -33,12 +33,12 @@ module V2
           custid, apitoken = auth.credentials
           return failure('Invalid credentials format') if custid.to_s.empty? || apitoken.to_s.empty?
 
-          OT.ld "[v2_basic] Attempt for '#{custid}' via #{env['REMOTE_ADDR']}"
+          OT.ld "[onetime_basic] Attempt for '#{custid}' via #{env['REMOTE_ADDR']}"
           cust = V2::Customer.load(custid)
           return failure('Customer not found') if cust.nil?
 
           if cust.apitoken?(apitoken)
-            OT.ld "[v2_basic] Authenticated '#{custid}'"
+            OT.ld "[onetime_basic] Authenticated '#{custid}'"
             return success(
               session: env['onetime.session'] || {},
               user: cust,
@@ -61,7 +61,7 @@ module V2
           source = env['identity.source']
 
           if %w[advanced basic].include?(source)
-            OT.ld "[v2_session] Authenticated '#{identity.id}' via #{source}"
+            OT.ld "[onetime_session] Authenticated '#{identity.id}' via #{source}"
             return success(
               session: env['onetime.session'] || {},
               user: identity.customer || identity, # RodauthUser has .customer, BasicUser is the customer
@@ -85,7 +85,7 @@ module V2
           source = env['identity.source']
 
           if %w[advanced basic].include?(source)
-            OT.ld "[v2_combined] Authenticated '#{identity.id}' via #{source}"
+            OT.ld "[onetime_combined] Authenticated '#{identity.id}' via #{source}"
             return success(
               session: env['onetime.session'] || {},
               user: identity.customer || identity,
@@ -115,7 +115,7 @@ module V2
           if env['identity.authenticated'] && %w[advanced basic].include?(env['identity.source'])
             # Authenticated user
             source = env['identity.source']
-            OT.ld "[v2_optional] Authenticated '#{identity.id}' via #{source}"
+            OT.ld "[onetime_optional] Authenticated '#{identity.id}' via #{source}"
             return success(
               session: env['onetime.session'] || {},
               user: identity.customer || identity,
@@ -124,7 +124,7 @@ module V2
             )
           elsif env['identity.source'] == 'anonymous'
             # Anonymous user from identity resolution
-            OT.ld "[v2_optional] Anonymous access via #{env['REMOTE_ADDR']}"
+            OT.ld "[onetime_optional] Anonymous access via #{env['REMOTE_ADDR']}"
             return success(
               session: env['onetime.session'] || {},
               user: V2::Customer.anonymous,
@@ -140,7 +140,7 @@ module V2
         end
 
         # Default to anonymous
-        OT.ld '[v2_optional] Fallback anonymous access'
+        OT.ld '[onetime_optional] Fallback anonymous access'
         success(
           session: env['onetime.session'] || {},
           user: V2::Customer.anonymous,

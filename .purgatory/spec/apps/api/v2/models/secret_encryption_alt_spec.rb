@@ -17,7 +17,7 @@ RSpec.describe V2::Secret, allow_redis: false do
     })
   end
 
-  let(:secret_pair) { create_stubbed_v2_secret_pair(custid: customer_id, token: token) }
+  let(:secret_pair) { create_stubbed_onetime_secret_pair(custid: customer_id, token: token) }
   let(:metadata) { secret_pair[0] }
   let(:secret) { secret_pair[1] }
 
@@ -32,7 +32,7 @@ RSpec.describe V2::Secret, allow_redis: false do
     end
 
     it 'generates unique identifiers for each pair' do
-      metadata2, secret2 = create_stubbed_v2_secret_pair(custid: customer_id)
+      metadata2, secret2 = create_stubbed_onetime_secret_pair(custid: customer_id)
 
       expect(secret.key).not_to eq(secret2.key)
       expect(metadata.key).not_to eq(metadata2.key)

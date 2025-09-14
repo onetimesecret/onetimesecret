@@ -130,7 +130,7 @@ module ModelTestHelper
     [metadata, secret]
   end
   # Factory method to create a fully stubbed V2::Secret instance
-  def create_stubbed_v2_secret(attributes = {})
+  def create_stubbed_onetime_secret(attributes = {})
     secret = V2::Secret.new
 
     # Apply default test attributes
@@ -200,7 +200,7 @@ module ModelTestHelper
   end
 
   # Factory method for V2::Metadata
-  def create_stubbed_v2_metadata(attributes = {})
+  def create_stubbed_onetime_metadata(attributes = {})
     metadata = V2::Metadata.new
 
     # Default attributes
@@ -236,7 +236,7 @@ module ModelTestHelper
   end
 
   # Creates a linked pair of V2::Secret and V2::Metadata
-  def create_stubbed_v2_secret_pair(attributes = {})
+  def create_stubbed_onetime_secret_pair(attributes = {})
     secret_key = "test-secret-key-#{SecureRandom.hex(8)}"
     metadata_key = "test-metadata-key-#{SecureRandom.hex(8)}"
 
@@ -248,14 +248,14 @@ module ModelTestHelper
       secret_attrs[key] = value
     end
 
-    metadata = create_stubbed_v2_metadata(
+    metadata = create_stubbed_onetime_metadata(
       metadata_attrs.merge(
         key: metadata_key,
         secret_key: secret_key,
       ),
     )
 
-    secret = create_stubbed_v2_secret(
+    secret = create_stubbed_onetime_secret(
       secret_attrs.merge(
         key: secret_key,
         metadata_key: metadata_key,

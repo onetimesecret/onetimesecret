@@ -5,7 +5,7 @@ require_relative '../../../../spec_helper'
 RSpec.describe V2::Secret, allow_redis: false do
   describe 'encryption functionality' do
     let(:secret_value) { "This is a secret message" }
-    let(:secret) { create_stubbed_v2_secret(key: "test-secret-key-12345") }
+    let(:secret) { create_stubbed_onetime_secret(key: "test-secret-key-12345") }
     let(:passphrase) { "test-passphrase-123" }
 
     before do
@@ -91,9 +91,9 @@ RSpec.describe V2::Secret, allow_redis: false do
     describe 'encryption keys' do
       it 'generates different keys for different encryption versions' do
         v1_key = secret.encryption_key_v1
-        v2_key = secret.encryption_key_v2
+        onetime_key = secret.encryption_key_v2
 
-        expect(v1_key).not_to eq(v2_key)
+        expect(v1_key).not_to eq(onetime_key)
       end
 
       it 'incorporates global secret in v2 keys' do
@@ -121,7 +121,7 @@ RSpec.describe V2::Secret, allow_redis: false do
   end
 
   describe 'passphrase functionality' do
-    let(:secret) { create_stubbed_v2_secret }
+    let(:secret) { create_stubbed_onetime_secret }
     let(:passphrase) { "secure-test-passphrase" }
 
     describe '#update_passphrase!' do
@@ -205,7 +205,7 @@ RSpec.describe V2::Secret, allow_redis: false do
 
     describe '.spawn_pair' do
       it 'creates linked secret and metadata objects' do
-        metadata, secret = create_stubbed_v2_secret_pair(custid: custid)
+        metadata, secret = create_stubbed_onetime_secret_pair(custid: custid)
 
         expect(metadata).to be_a(V2::Metadata)
         expect(secret).to be_a(V2::Secret)
@@ -217,8 +217,8 @@ RSpec.describe V2::Secret, allow_redis: false do
     end
 
     describe 'state transitions' do
-      let(:metadata) { create_stubbed_v2_metadata(state: "new") }
-      let(:secret) { create_stubbed_v2_secret(
+      let(:metadata) { create_stubbed_onetime_metadata(state: "new") }
+      let(:secret) { create_stubbed_onetime_secret(
         metadata_key: metadata.key,
         state: "new"
       )}
@@ -276,7 +276,7 @@ RSpec.describe V2::Secret, allow_redis: false do
   end
 
   describe 'security and edge cases' do
-    let(:secret) { create_stubbed_v2_secret }
+    let(:secret) { create_stubbed_onetime_secret }
 
     it 'handles empty content' do
       secret.encrypt_value("")
