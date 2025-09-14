@@ -1,5 +1,5 @@
-require_relative '../../../../lib/onetime/helpers/session_helpers'
-require_relative '../../../../lib/onetime/helpers/shrimp_helpers'
+require 'onetime/helpers/session_helpers'
+require 'onetime/helpers/shrimp_helpers'
 
 module Core
   unless defined?(Core::BADAGENTS)

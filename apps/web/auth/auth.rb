@@ -18,7 +18,7 @@ end
 
 class AuthService < Roda
   # Redis session middleware (unified with other apps)
-  require_relative '../../../lib/onetime/session'
+  require 'onetime/session'
   use Onetime::Session, {
     expire_after: 86400, # 24 hours
     key: 'onetime.session',  # Unified cookie name

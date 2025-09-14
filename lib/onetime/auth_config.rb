@@ -13,7 +13,7 @@ module Onetime
 
     def initialize
       @environment = ENV['RACK_ENV'] || 'development'
-      @config_file = File.join(File.dirname(__FILE__), '../../etc/auth.yml')
+      @config_file = File.join(Onetime::HOME, 'etc/auth.yml')
       load_config
     end
 

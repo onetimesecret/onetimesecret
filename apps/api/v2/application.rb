@@ -1,8 +1,8 @@
 # apps/api/v2/application.rb
 
-require_relative '../../base_application'
+require 'base_application'
+require 'onetime/middleware'
 
-require_relative 'controllers'
 require_relative 'logic'
 
 module V2
@@ -24,11 +24,10 @@ module V2
     use Rack::DetectHost
 
     # Identity resolution middleware
-    require 'middleware/identity_resolution'
-    use Rack::IdentityResolution
+    use Onetime::Middleware::IdentityResolution
 
     # Applications middleware stack
-    use Onetime::DomainStrategy # after DetectHost
+    use Onetime::Middleware::DomainStrategy # after DetectHost
     use Rack::JSONBodyParser
 
     warmup do

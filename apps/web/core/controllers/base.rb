@@ -1,17 +1,13 @@
 # apps/web/core/controllers/base.rb
 
 require_relative 'helpers'
-require 'v2/controllers/class_settings'
-
-# Auth integration for external auth service
-require_relative '../../../../lib/auth_integration'
+require_relative 'class_settings'
 
 module Core
   module Controllers
     module Base
       include Core::ControllerHelpers
-      include V2::Controllers::ClassSettings
-      include AuthIntegration::ControllerHelpers
+      include Core::Controllers::ClassSettings
 
       attr_reader :req, :res, :cust, :locale, :ignoreshrimp
 

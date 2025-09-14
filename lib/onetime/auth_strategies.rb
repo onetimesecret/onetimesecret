@@ -3,7 +3,7 @@
 # Otto authentication strategies for V2 API endpoints.
 # These strategies handle the various authentication methods used by V2 controllers.
 
-module V2
+module Onetime
   module AuthStrategies
     extend self
 

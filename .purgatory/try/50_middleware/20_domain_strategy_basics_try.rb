@@ -9,21 +9,21 @@ require 'onetime/middleware/domain_strategy'
 OT.boot! :test, false
 
 @canonical_domain = 'onetimesecret.com'
-@parser = Onetime::DomainStrategy::Parser
-@chooser = Onetime::DomainStrategy::Chooserator
+@parser = Onetime::Middleware::DomainStrategy::Parser
+@chooser = Onetime::Middleware::DomainStrategy::Chooserator
 
 # Basic Configuration Tests
 
 ## Config initialization with domains enabled
 config = { 'domains' => { 'enabled' => true, 'default' => @canonical_domain } }
-Onetime::DomainStrategy.initialize_from_config(config)
-Onetime::DomainStrategy.canonical_domain
+Onetime::Middleware::DomainStrategy.initialize_from_config(config)
+Onetime::Middleware::DomainStrategy.canonical_domain
 #=> 'onetimesecret.com'
 
 ## Config initialization with domains disabled uses fallback host
 config = { 'domains' => { 'enabled' => false }, 'host' => 'fallback.com' }
-Onetime::DomainStrategy.initialize_from_config(config)
-Onetime::DomainStrategy.canonical_domain
+Onetime::Middleware::DomainStrategy.initialize_from_config(config)
+Onetime::Middleware::DomainStrategy.canonical_domain
 #=> 'fallback.com'
 
 # Domain Validation Tests
@@ -105,7 +105,7 @@ long_subdomain = 'a' * 63 + '.onetimesecret.com'
 # Configuration Error Tests
 ## Raises on nil config
 begin
-  Onetime::DomainStrategy.initialize_from_config(nil)
+  Onetime::Middleware::DomainStrategy.initialize_from_config(nil)
 rescue ArgumentError
   true
 end
@@ -113,8 +113,8 @@ end
 
 ## Disables domains when canonical domain is invalid
 config = { 'domains' => { 'enabled' => true, 'default' => '..invalid..' } }
-Onetime::DomainStrategy.initialize_from_config(config)
-Onetime::DomainStrategy.domains_enabled?
+Onetime::Middleware::DomainStrategy.initialize_from_config(config)
+Onetime::Middleware::DomainStrategy.domains_enabled?
 #=> false
 
 
@@ -129,9 +129,9 @@ Onetime::DomainStrategy.domains_enabled?
   }
 }
 pp [:plop, @config_with_domains]
-Onetime::DomainStrategy.reset!
-Onetime::DomainStrategy.get_canonical_domain(@config_with_domains['site'])
+Onetime::Middleware::DomainStrategy.reset!
+Onetime::Middleware::DomainStrategy.get_canonical_domain(@config_with_domains['site'])
 #=> 'onetimesecret.com'
 
 # Teardown
-Onetime::DomainStrategy.reset!
+Onetime::Middleware::DomainStrategy.reset!

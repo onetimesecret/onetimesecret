@@ -99,7 +99,7 @@ RSpec.xdescribe Core::Views::BaseView, "JSON Output" do
         allow(OT).to receive('VERSION').and_return("0.20.4 ()")
 
         # For domain strategy
-        allow(Onetime::DomainStrategy).to receive(:canonical_domain).and_return(not_authenticated_json["canonical_domain"])
+        allow(Onetime::Middleware::DomainStrategy).to receive(:canonical_domain).and_return(not_authenticated_json["canonical_domain"])
       end
 
       it "generates expected JSON structure for anonymous user" do
@@ -212,7 +212,7 @@ RSpec.xdescribe Core::Views::BaseView, "JSON Output" do
         allow(OT).to receive('VERSION').and_return("0.20.4 (plop)")
 
         # For domain strategy
-        allow(Onetime::DomainStrategy).to receive(:canonical_domain).and_return(authenticated_json["canonical_domain"])
+        allow(Onetime::Middleware::DomainStrategy).to receive(:canonical_domain).and_return(authenticated_json["canonical_domain"])
 
         # For epochdom method
         allow_any_instance_of(Core::Views::BaseView).to receive(:epochdom)

@@ -1,6 +1,6 @@
 # apps/api/v1/application.rb
 
-require_relative '../../base_application'
+require 'base_application'
 
 require_relative 'models'
 require_relative 'logic'
@@ -12,7 +12,7 @@ module V1
     @uri_prefix = '/api/v1'
 
     # Session middleware
-    require_relative '../../../lib/onetime/session'
+    require 'onetime/session'
     use Onetime::Session, {
       expire_after: 86400, # 24 hours
       key: 'onetime.session',
@@ -29,10 +29,10 @@ module V1
 
     # Identity resolution middleware
     require_relative '../../../lib/middleware/identity_resolution'
-    use Rack::IdentityResolution
+    use Onetime::Middleware::IdentityResolution
 
     # Applications middleware stack
-    use Onetime::DomainStrategy
+    use Onetime::Middleware::DomainStrategy
 
     warmup do
       require_relative 'logic'

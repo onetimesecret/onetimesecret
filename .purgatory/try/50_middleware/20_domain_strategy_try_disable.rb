@@ -22,7 +22,7 @@ OT.instance_variable_set(:@conf, new_conf)
 
 @canonical_domain = 'onetimesecret.com'
 @customer_id = 'cus_test1234' + rand(36**5).to_s(36)
-@chooser = Onetime::DomainStrategy::Chooserator
+@chooser = Onetime::Middleware::DomainStrategy::Chooserator
 @delete_domains = []
 
 # Tryouts

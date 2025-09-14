@@ -130,4 +130,6 @@ module Onetime
       @conf = value
     end
   end
+
+  extend Initializers
 end

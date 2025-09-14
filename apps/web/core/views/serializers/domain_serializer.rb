@@ -28,7 +28,7 @@ module Core
 
         output['domain_strategy'] = view_vars['domain_strategy']
 
-        output['canonical_domain'] = Onetime::DomainStrategy.canonical_domain
+        output['canonical_domain'] = Onetime::Middleware::DomainStrategy.canonical_domain
         output['display_domain']   = view_vars['display_domain']
 
         # Custom domain handling

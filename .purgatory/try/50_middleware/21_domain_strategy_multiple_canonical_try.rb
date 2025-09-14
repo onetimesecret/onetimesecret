@@ -9,8 +9,8 @@ require 'onetime/middleware/domain_strategy'
 OT.boot! :test, false
 
 @canonical_domain = 'eu.example.com'
-@parser = Onetime::DomainStrategy::Parser
-@chooser = Onetime::DomainStrategy::Chooserator
+@parser = Onetime::Middleware::DomainStrategy::Parser
+@chooser = Onetime::Middleware::DomainStrategy::Chooserator
 
 # Domain Validation Tests
 ## Valid canonical domain passes validation

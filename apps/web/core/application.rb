@@ -1,6 +1,7 @@
 # apps/web/core/application.rb
 
-require_relative '../../base_application'
+require 'base_application'
+require 'onetime/middleware'
 
 require_relative 'controllers'
 
@@ -9,7 +10,7 @@ module Core
     @uri_prefix = '/'.freeze
 
     # Session middleware
-    require_relative '../../../lib/onetime/session'
+    require 'onetime/session'
     use Onetime::Session, {
       expire_after: 86400, # 24 hours
       key: 'onetime.session',
@@ -23,15 +24,10 @@ module Core
     use Rack::DetectHost
 
     # Identity resolution middleware
-    require_relative '../../../lib/middleware/identity_resolution'
-    use Rack::IdentityResolution
-
-    # Auth integration middleware
-    require_relative '../../../lib/auth_integration'
-    use AuthIntegration::Middleware
+    use Onetime::Middleware::IdentityResolution
 
     # Applications middleware stack
-    use Onetime::DomainStrategy
+    use Onetime::Middleware::DomainStrategy
 
     # Development Environment Configuration
     # Enable development-specific middleware when in development mode

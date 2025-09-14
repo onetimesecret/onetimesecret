@@ -1,7 +1,7 @@
 # apps/web/auth/application.rb
 
 require 'bundler/setup'
-require_relative '../../base_application'
+require 'base_application'
 require_relative 'auth'
 
 module Auth
@@ -13,7 +13,7 @@ module Auth
     use Rack::DetectHost
 
     # Applications middleware stack
-    use Onetime::DomainStrategy
+    use Onetime::Middleware::DomainStrategy
 
     # Development Environment Configuration
     # Enable development-specific middleware when in development mode

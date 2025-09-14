@@ -6,20 +6,19 @@ unless defined?(APPS_ROOT)
 
   # Add each directory containing the rack applications to Ruby's load path.
   APPS_ROOT = File.join(project_root, 'apps').freeze
-  %w[api web].each { |name| $LOAD_PATH.unshift(File.join(APPS_ROOT, name)) }
+  $LOAD_PATH.unshift(APPS_ROOT)
 
   # Add the lib directory for the core project.
   LIB_ROOT = File.join(project_root, 'lib').freeze
   $LOAD_PATH.unshift(LIB_ROOT)
 
   # Define the directory for static web assets like images, CSS, and JS files.
-  PUBLIC_DIR = File.join(project_root, '/public/web').freeze
+  PUBLIC_DIR = File.join(project_root, '/public').freeze
 end
 
 # Require 'onetime' before requiring any gems so that bundler/setup
 # and friends can do their thang.
 require 'onetime'
-require 'onetime/middleware'
 
 module AppRegistry
   # These class instance vars are populated at start-time and then readonly.
