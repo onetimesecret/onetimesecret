@@ -9,8 +9,8 @@ module Core
     @uri_prefix = '/'.freeze
 
     # Session middleware
-    require_relative '../../../lib/rack/session/redis_familia'
-    use Rack::Session::RedisFamilia, {
+    require_relative '../../../lib/onetime/session'
+    use Onetime::Session, {
       expire_after: 86400, # 24 hours
       key: 'ots.session',
       secure: OT.conf&.dig('site', 'ssl') || false,

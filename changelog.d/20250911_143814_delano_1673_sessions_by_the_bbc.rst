@@ -1,7 +1,7 @@
 Added
 -----
 
-- New unified session architecture using standard Rack::Session::RedisFamilia store
+- New unified session architecture using standard Onetime::Session store
 - Authentication adapter pattern supporting both Redis-backed auth and future Rodauth integration
 - Session helpers extracted to dedicated modules for cleaner controller code
 - CSRF protection via shrimp tokens now integrated with Rack sessions

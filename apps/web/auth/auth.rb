@@ -22,8 +22,8 @@ class AuthService < Roda
   include AuthHelpers::ViteAssets
 
   # Redis session middleware (unified with other apps)
-  require_relative '../../../lib/rack/session/redis_familia'
-  use Rack::Session::RedisFamilia, {
+  require_relative '../../../lib/onetime/session'
+  use Onetime::Session, {
     expire_after: 86400, # 24 hours
     key: 'ots.session',  # Unified cookie name
     secure: ENV['RACK_ENV'] == 'production',

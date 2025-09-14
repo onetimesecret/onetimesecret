@@ -106,7 +106,7 @@ module Onetime
           session_data = @redis.get(session_key)
           return handle_invalid_session("no data") unless session_data
 
-          # Parse session data (assuming Marshal format like RedisFamilia)
+          # Parse session data (assuming Marshal format like OT:Session)
           session = begin
             Marshal.load(session_data)
           rescue
