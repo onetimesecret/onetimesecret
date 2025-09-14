@@ -25,7 +25,7 @@ RSpec.xdescribe Core::Views::BaseView, "JSON Output" do
       end
 
       let(:customer) do
-        instance_double('V2::Customer',
+        instance_double('Onetime::Customer',
           'custid' => nil,
           'email' => nil,
           'anonymous?' => true,
@@ -130,7 +130,7 @@ RSpec.xdescribe Core::Views::BaseView, "JSON Output" do
       let(:customer) do
         # Create mock for custom domains
         custom_domains = authenticated_json["custom_domains"].map do |domain|
-          instance_double('V2::CustomDomain',
+          instance_double('Onetime::CustomDomain',
             display_domain: domain,
             ready?: true,
             verified: true,
@@ -138,7 +138,7 @@ RSpec.xdescribe Core::Views::BaseView, "JSON Output" do
         end
 
         # Create customer mock
-        instance_double('V2::Customer',
+        instance_double('Onetime::Customer',
           custid: authenticated_json["custid"],
           email: authenticated_json["email"],
           anonymous?: false,

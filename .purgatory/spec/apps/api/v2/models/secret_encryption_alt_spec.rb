@@ -2,7 +2,7 @@
 
 require_relative '../../../../spec_helper'
 
-RSpec.describe V2::Secret, allow_redis: false do
+RSpec.describe Onetime::Secret, allow_redis: false do
   let(:customer_id) { 'test-customer-123' }
   let(:token) { nil }
   let(:secret_value) { "This is a test secret" }
@@ -23,7 +23,7 @@ RSpec.describe V2::Secret, allow_redis: false do
 
   describe '.spawn_pair' do
     it 'creates a valid secret and metadata pair' do
-      expect(metadata).to be_a(V2::Metadata)
+      expect(metadata).to be_a(Onetime::Metadata)
       expect(secret).to be_a(described_class)
       expect(metadata.custid).to eq(customer_id)
       expect(secret.custid).to eq(customer_id)

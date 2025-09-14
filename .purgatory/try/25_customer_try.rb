@@ -9,10 +9,10 @@
 # 4. Timestamp handling (created, updated, last_login)
 # 5. Customer destruction process
 #
-# These tests aim to verify the correct behavior of the V2::Customer class,
+# These tests aim to verify the correct behavior of the Onetime::Customer class,
 # which is essential for managing user accounts in the application.
 #
-# The tryouts simulate different customer scenarios and test the V2::Customer class's
+# The tryouts simulate different customer scenarios and test the Onetime::Customer class's
 # behavior without needing to run the full application, allowing for targeted testing
 # of these specific scenarios.
 
@@ -26,7 +26,7 @@ OT.boot! :test, false
 # Setup some variables for these tryouts
 @now = Time.now.strftime("%Y%m%d%H%M%S")
 @email_address = "tryouts+#{@now}@onetimesecret.com"
-@cust = V2::Customer.new @email_address
+@cust = Onetime::Customer.new @email_address
 
 # TRYOUTS
 
@@ -45,13 +45,13 @@ p [:email, @email_address]
 #=> "customer:#{@email_address}:object"
 
 ## Can "create" an anonymous user (more like simulate)
-@anonymous = V2::Customer.anonymous
+@anonymous = Onetime::Customer.anonymous
 @anonymous.custid
 #=> 'anon'
 
 ## Anonymous is a Customer class
 @anonymous.class
-#=> V2::Customer
+#=> Onetime::Customer
 
 ## Anonymous knows it's anonymous
 @anonymous.anonymous?
@@ -72,7 +72,7 @@ begin
 rescue OT::Problem => e
   [e.class, e.message]
 end
-#=> [Onetime::Problem, "Anonymous cannot be saved V2::Customer customer:anon:object"]
+#=> [Onetime::Problem, "Anonymous cannot be saved Onetime::Customer customer:anon:object"]
 
 ## Object name and dbkey are no longer equivalent.
 ## This is a reference back to Familia v0.10.2 era which
@@ -143,17 +143,17 @@ ttl = @cust.default_expiration
 #=> false
 
 ## Customer.values has the correct dbkey
-V2::Customer.values.dbkey
+Onetime::Customer.values.dbkey
 #=> "onetime:customer"
 
 ## Customer.domains has the correct dbkey
-V2::Customer.domains.dbkey
+Onetime::Customer.domains.dbkey
 #=> "onetime:customers:domain"
 
 ## Customer.values is a Familia::SortedSet
-V2::Customer.values.class
+Onetime::Customer.values.class
 #=> Familia::SortedSet
 
 ## Customer.domains is a Familia::HashKey
-V2::Customer.domains.class
+Onetime::Customer.domains.class
 #=> Familia::HashKey

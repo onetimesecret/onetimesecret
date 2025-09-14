@@ -14,9 +14,9 @@ RSpec.xdescribe V2::Logic::Authentication::ResetPasswordRequest do
   subject { described_class.new(session, customer, params, locale) }
 
   before do
-    allow(V2::Customer).to receive(:exists?).and_return(true)
-    allow(V2::Customer).to receive(:load).and_return(customer)
-    allow(V2::Secret).to receive(:create).and_return(secret)
+    allow(Onetime::Customer).to receive(:exists?).and_return(true)
+    allow(Onetime::Customer).to receive(:load).and_return(customer)
+    allow(Onetime::Secret).to receive(:create).and_return(secret)
     allow(OT::Mail::PasswordRequest).to receive(:new).and_return(mail_view)
     allow(OT).to receive(:info)
     allow(OT).to receive(:li)
@@ -58,7 +58,7 @@ RSpec.xdescribe V2::Logic::Authentication::ResetPasswordRequest do
 
     context 'when customer does not exist' do
       before do
-        allow(V2::Customer).to receive(:exists?).with('test@example.com').and_return(false)
+        allow(Onetime::Customer).to receive(:exists?).with('test@example.com').and_return(false)
       end
 
       it 'raises form error for non-existent account' do
@@ -105,7 +105,7 @@ RSpec.xdescribe V2::Logic::Authentication::ResetPasswordRequest do
       end
 
       it 'creates a password reset secret' do
-        expect(V2::Secret).to receive(:create).with('test@example.com', ['test@example.com'])
+        expect(Onetime::Secret).to receive(:create).with('test@example.com', ['test@example.com'])
         subject.process
       end
 
@@ -182,7 +182,7 @@ RSpec.xdescribe V2::Logic::Authentication::ResetPasswordRequest do
     end
 
     it 'verifies customer existence before processing' do
-      expect(V2::Customer).to receive(:exists?).with('test@example.com')
+      expect(Onetime::Customer).to receive(:exists?).with('test@example.com')
       subject.raise_concerns
     end
 
@@ -213,7 +213,7 @@ RSpec.xdescribe V2::Logic::Authentication::ResetPasswordRequest do
     end
 
     it 'uses secure customer loading' do
-      expect(V2::Customer).to receive(:load).with('test@example.com')
+      expect(Onetime::Customer).to receive(:load).with('test@example.com')
       subject.process
     end
   end

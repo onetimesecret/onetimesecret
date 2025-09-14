@@ -48,8 +48,8 @@ RSpec.describe "Onetime boot configuration process" do
     allow(Familia).to receive(:uri).and_return(double('URI', serverid: 'localhost:6379'))
 
     # Mock V2 model Redis connections used in detect_first_boot
-    allow(V2::Metadata).to receive(:dbclient).and_return(redis_double)
-    allow(V2::Customer).to receive(:values).and_return(double('Values', element_count: 0))
+    allow(Onetime::Metadata).to receive(:dbclient).and_return(redis_double)
+    allow(Onetime::Customer).to receive(:values).and_return(double('Values', element_count: 0))
     # V2::Session removed - now using Rack::Session middleware
 
     # Mock system settings setup methods - V2::SystemSettings might not exist in current codebase

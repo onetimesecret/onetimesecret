@@ -45,8 +45,8 @@ RSpec.describe "Onetime global state after boot" do
     allow(redis_double).to receive(:scan_each).and_return([])
 
     # Mock V2 model Redis connections and methods used in detect_first_boot
-    allow(V2::Metadata).to receive(:dbclient).and_return(redis_double)
-    allow(V2::Customer).to receive(:values).and_return(double('Values', element_count: 0))
+    allow(Onetime::Metadata).to receive(:dbclient).and_return(redis_double)
+    allow(Onetime::Customer).to receive(:values).and_return(double('Values', element_count: 0))
     # V2::Session removed - now using Rack::Session middleware
 
     # Mock system settings setup methods - V2::SystemSettings might not exist in current codebase

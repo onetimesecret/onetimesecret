@@ -14,8 +14,8 @@
 
 
 report_field = 'email'
-dbclient = V2::Customer.dbclient
-scan_pattern = "#{V2::Customer.prefix}:*:object"
+dbclient = Onetime::Customer.dbclient
+scan_pattern = "#{Onetime::Customer.prefix}:*:object"
 cursor = "0"
 batch_size = 5000
 progress_size = batch_size/2

@@ -2,7 +2,7 @@
 
 require_relative '../../../../spec_helper'
 
-RSpec.describe V2::Secret, allow_redis: false do
+RSpec.describe Onetime::Secret, allow_redis: false do
   describe 'encryption functionality' do
     let(:secret_value) { "This is a secret message" }
     let(:secret) { create_stubbed_onetime_secret(key: "test-secret-key-12345") }
@@ -207,8 +207,8 @@ RSpec.describe V2::Secret, allow_redis: false do
       it 'creates linked secret and metadata objects' do
         metadata, secret = create_stubbed_onetime_secret_pair(custid: custid)
 
-        expect(metadata).to be_a(V2::Metadata)
-        expect(secret).to be_a(V2::Secret)
+        expect(metadata).to be_a(Onetime::Metadata)
+        expect(secret).to be_a(Onetime::Secret)
         expect(metadata.secret_key).to eq(secret.key)
         expect(secret.metadata_key).to eq(metadata.key)
         expect(metadata.custid).to eq(custid)

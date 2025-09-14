@@ -13,7 +13,7 @@ RSpec.xdescribe V2::Logic::Authentication::ResetPassword do
   subject { described_class.new(session, customer, params, locale) }
 
   before do
-    allow(V2::Secret).to receive(:load).and_return(secret)
+    allow(Onetime::Secret).to receive(:load).and_return(secret)
     allow(OT).to receive(:info)
     allow(OT).to receive(:le)
     allow(Rack::Utils).to receive(:secure_compare).and_return(true)
@@ -21,7 +21,7 @@ RSpec.xdescribe V2::Logic::Authentication::ResetPassword do
 
   describe '#process_params' do
     it 'loads the secret from the key parameter' do
-      expect(V2::Secret).to receive(:load).with('secret_key_123')
+      expect(Onetime::Secret).to receive(:load).with('secret_key_123')
       subject.process_params
       expect(subject.secret).to eq(secret)
     end

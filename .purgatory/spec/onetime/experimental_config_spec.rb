@@ -34,7 +34,7 @@ RSpec.describe "Experimental config settings" do
 
       it "successfully encrypts and decrypts with a non-nil global secret" do
         # Create a new secret instance for this test
-        secret = V2::Secret.new
+        secret = Onetime::Secret.new
         secret.key = "regular_key_test"
 
         # Set a non-nil global secret
@@ -42,7 +42,7 @@ RSpec.describe "Experimental config settings" do
 
         # Manually construct this secret to simulate it was encrypted with a regular global secret
         secret.passphrase_temp = passphrase
-        encryption_key = V2::Secret.encryption_key(regular_secret, secret.key, passphrase)
+        encryption_key = Onetime::Secret.encryption_key(regular_secret, secret.key, passphrase)
         secret.value = test_value.encrypt(key: encryption_key)
         secret.value_encryption = 2
 
@@ -53,7 +53,7 @@ RSpec.describe "Experimental config settings" do
 
       it "raises CipherError when decrypting with nil global secret" do
         # Create a new secret instance for this test
-        secret = V2::Secret.new
+        secret = Onetime::Secret.new
         secret.key = "error_key_test"
 
         # First encrypt with a non-nil global secret
@@ -61,7 +61,7 @@ RSpec.describe "Experimental config settings" do
 
         # Manually construct this secret to simulate it was encrypted with a regular global secret
         secret.passphrase_temp = passphrase
-        encryption_key = V2::Secret.encryption_key(regular_secret, secret.key, passphrase)
+        encryption_key = Onetime::Secret.encryption_key(regular_secret, secret.key, passphrase)
         secret.value = test_value.encrypt(key: encryption_key)
         secret.value_encryption = 2
 
@@ -83,7 +83,7 @@ RSpec.describe "Experimental config settings" do
 
       it "successfully encrypts and decrypts with a non-nil global secret" do
         # Create a completely new secret instance for this test
-        secret = V2::Secret.new
+        secret = Onetime::Secret.new
         secret.key = "special_test_key"
 
         # Set a non-nil global secret
@@ -105,7 +105,7 @@ RSpec.describe "Experimental config settings" do
 
       it "successfully encrypts with nil global secret and decrypts with nil global secret" do
         # Create a new secret instance for this test
-        secret = V2::Secret.new
+        secret = Onetime::Secret.new
         secret.key = "nil_encryption_key"
 
         # Set nil global secret
@@ -115,7 +115,7 @@ RSpec.describe "Experimental config settings" do
         secret.passphrase_temp = passphrase
 
         # Manually construct this secret to simulate it was encrypted with a nil global secret
-        encryption_key = V2::Secret.encryption_key(nil, secret.key, passphrase)
+        encryption_key = Onetime::Secret.encryption_key(nil, secret.key, passphrase)
         secret.value = test_value.encrypt(key: encryption_key)
         secret.value_encryption = 2
 
@@ -129,7 +129,7 @@ RSpec.describe "Experimental config settings" do
 
       it "successfully decrypts a regular-secret-encrypted value with nil global secret" do
         # Create a new secret instance for this test
-        secret = V2::Secret.new
+        secret = Onetime::Secret.new
         secret.key = "special_fallback_key"
 
         # First encrypt with a non-nil global secret
@@ -137,7 +137,7 @@ RSpec.describe "Experimental config settings" do
 
         # Manually construct this secret to simulate it was encrypted with a regular global secret
         secret.passphrase_temp = passphrase
-        encryption_key = V2::Secret.encryption_key(regular_secret, secret.key, passphrase)
+        encryption_key = Onetime::Secret.encryption_key(regular_secret, secret.key, passphrase)
         secret.value = test_value.encrypt(key: encryption_key)
         secret.value_encryption = 2
 
@@ -158,7 +158,7 @@ RSpec.describe "Experimental config settings" do
 
       it "still raises CipherError when decrypting with wrong passphrase" do
         # Create a new secret instance for this test
-        secret = V2::Secret.new
+        secret = Onetime::Secret.new
         secret.key = "passphrase_test_key"
 
         # Set a non-nil global secret
@@ -166,7 +166,7 @@ RSpec.describe "Experimental config settings" do
 
         # Manually construct this secret to simulate it was encrypted with a specific passphrase
         secret.passphrase_temp = passphrase
-        encryption_key = V2::Secret.encryption_key(regular_secret, secret.key, passphrase)
+        encryption_key = Onetime::Secret.encryption_key(regular_secret, secret.key, passphrase)
         secret.value = test_value.encrypt(key: encryption_key)
         secret.value_encryption = 2
 
@@ -187,7 +187,7 @@ RSpec.describe "Experimental config settings" do
 
       it "fails to decrypt values encrypted with non-nil secret using nil secret without special handling" do
         # Create a new secret instance for this test
-        secret = V2::Secret.new
+        secret = Onetime::Secret.new
         secret.key = "no_fallback_key"
 
         # First encrypt with a non-nil global secret
@@ -195,7 +195,7 @@ RSpec.describe "Experimental config settings" do
 
         # Manually construct this secret to simulate it was encrypted with a regular global secret
         secret.passphrase_temp = passphrase
-        encryption_key = V2::Secret.encryption_key(regular_secret, secret.key, passphrase)
+        encryption_key = Onetime::Secret.encryption_key(regular_secret, secret.key, passphrase)
         secret.value = test_value.encrypt(key: encryption_key)
         secret.value_encryption = 2
 
@@ -213,7 +213,7 @@ RSpec.describe "Experimental config settings" do
 
       it "fails to decrypt values encrypted with nil secret using non-nil secret" do
         # Create a new secret instance for this test
-        secret = V2::Secret.new
+        secret = Onetime::Secret.new
         secret.key = "nil_secret_key"
 
         # First encrypt with a nil global secret
@@ -223,7 +223,7 @@ RSpec.describe "Experimental config settings" do
         secret.passphrase_temp = passphrase
 
         # Manually construct this secret to simulate it was encrypted with a nil global secret
-        encryption_key = V2::Secret.encryption_key(nil, secret.key, passphrase)
+        encryption_key = Onetime::Secret.encryption_key(nil, secret.key, passphrase)
         secret.value = test_value.encrypt(key: encryption_key)
         secret.value_encryption = 2
 

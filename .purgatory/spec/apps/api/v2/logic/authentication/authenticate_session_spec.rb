@@ -13,8 +13,8 @@ RSpec.xdescribe V2::Logic::Authentication::AuthenticateSession do
   subject { described_class.new(session, customer, params, locale) }
 
   before do
-    allow(V2::Customer).to receive(:load).and_return(customer)
-    allow(V2::Customer).to receive(:anonymous).and_return(anonymous_customer)
+    allow(Onetime::Customer).to receive(:load).and_return(customer)
+    allow(Onetime::Customer).to receive(:anonymous).and_return(anonymous_customer)
     allow(OT).to receive(:info)
     allow(OT).to receive(:li)
     allow(OT).to receive(:ld)
@@ -56,7 +56,7 @@ RSpec.xdescribe V2::Logic::Authentication::AuthenticateSession do
     end
 
     it 'does not set customer if customer does not exist' do
-      allow(V2::Customer).to receive(:load).and_return(nil)
+      allow(Onetime::Customer).to receive(:load).and_return(nil)
       subject.process_params
       expect(subject.custid).to be_nil
     end
@@ -219,7 +219,7 @@ RSpec.xdescribe V2::Logic::Authentication::AuthenticateSession do
     end
 
     it 'maintains consistent behavior with V1 but uses V2 models' do
-      expect(V2::Customer).to receive(:load).with('test@example.com')
+      expect(Onetime::Customer).to receive(:load).with('test@example.com')
       subject.process_params
     end
   end

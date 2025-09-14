@@ -9,7 +9,7 @@ RSpec.xdescribe 'Authentication Database Flows', :allow_redis do
   let(:new_password) { 'new_secure_password_789' }
 
   describe 'customer creation and authentication flow' do
-    let(:customer) { V2::Customer.new }
+    let(:customer) { Onetime::Customer.new }
     let(:session) { V2::Session.new }
 
     before do
@@ -30,7 +30,7 @@ RSpec.xdescribe 'Authentication Database Flows', :allow_redis do
 
     it 'persists customer authentication data correctly' do
       # Verify customer data persistence
-      reloaded_customer = V2::Customer.load(valid_custid)
+      reloaded_customer = Onetime::Customer.load(valid_custid)
       expect(reloaded_customer.custid).to eq(valid_custid)
       expect(reloaded_customer.has_passphrase?).to be true
       expect(reloaded_customer.verified).to eq('true')
@@ -50,9 +50,9 @@ RSpec.xdescribe 'Authentication Database Flows', :allow_redis do
   end
 
   describe 'password reset database flow' do
-    let(:customer) { V2::Customer.new }
+    let(:customer) { Onetime::Customer.new }
     let(:session) { V2::Session.new }
-    let(:reset_secret) { V2::Secret.new }
+    let(:reset_secret) { Onetime::Secret.new }
 
     before do
       customer.custid = valid_custid
@@ -82,7 +82,7 @@ RSpec.xdescribe 'Authentication Database Flows', :allow_redis do
       expect(reset_secret.custid).to eq(valid_custid)
 
       # Verify customer has reset secret reference
-      reloaded_customer = V2::Customer.load(valid_custid)
+      reloaded_customer = Onetime::Customer.load(valid_custid)
       expect(reloaded_customer.reset_secret).to eq(reset_secret.key)
     end
 
@@ -102,7 +102,7 @@ RSpec.xdescribe 'Authentication Database Flows', :allow_redis do
       reset_logic.process
 
       # Verify password was updated in database
-      reloaded_customer = V2::Customer.load(valid_custid)
+      reloaded_customer = Onetime::Customer.load(valid_custid)
       expect(reloaded_customer.passphrase?(new_password)).to be true
       expect(reloaded_customer.passphrase?(valid_password)).to be false
     end
@@ -123,7 +123,7 @@ RSpec.xdescribe 'Authentication Database Flows', :allow_redis do
       reset_logic.process
 
       # Verify secret was destroyed
-      expect { V2::Secret.load(reset_secret.key) }.to raise_error
+      expect { Onetime::Secret.load(reset_secret.key) }.to raise_error
     end
   end
 
@@ -166,8 +166,8 @@ RSpec.xdescribe 'Authentication Database Flows', :allow_redis do
   end
 
   describe 'concurrent authentication scenarios' do
-    let(:customer1) { V2::Customer.new }
-    let(:customer2) { V2::Customer.new }
+    let(:customer1) { Onetime::Customer.new }
+    let(:customer2) { Onetime::Customer.new }
     let(:session1) { V2::Session.new }
     let(:session2) { V2::Session.new }
 
@@ -221,18 +221,18 @@ RSpec.xdescribe 'Authentication Database Flows', :allow_redis do
       customer2.save
 
       # Verify both passwords were updated correctly
-      expect(V2::Customer.load(customer1.custid).passphrase?('new_password1')).to be true
-      expect(V2::Customer.load(customer2.custid).passphrase?('new_password2')).to be true
+      expect(Onetime::Customer.load(customer1.custid).passphrase?('new_password1')).to be true
+      expect(Onetime::Customer.load(customer2.custid).passphrase?('new_password2')).to be true
     end
   end
 
   describe 'database constraint validation' do
     it 'enforces unique customer IDs' do
-      customer1 = V2::Customer.new
+      customer1 = Onetime::Customer.new
       customer1.custid = 'unique@example.com'
       customer1.save
 
-      customer2 = V2::Customer.new
+      customer2 = Onetime::Customer.new
       customer2.custid = 'unique@example.com'
 
       # This should either fail or overwrite (depending on implementation)
@@ -245,7 +245,7 @@ RSpec.xdescribe 'Authentication Database Flows', :allow_redis do
     end
 
     it 'handles missing required fields appropriately' do
-      customer = V2::Customer.new
+      customer = Onetime::Customer.new
       # Don't set custid - this should be handled gracefully
 
       expect { customer.save }.not_to raise_error
@@ -255,7 +255,7 @@ RSpec.xdescribe 'Authentication Database Flows', :allow_redis do
   end
 
   describe 'data encryption and security in database' do
-    let(:customer) { V2::Customer.new }
+    let(:customer) { Onetime::Customer.new }
 
     before do
       customer.custid = 'encryption@example.com'
@@ -280,7 +280,7 @@ RSpec.xdescribe 'Authentication Database Flows', :allow_redis do
       customer.update_passphrase('new_encrypted_password')
       customer.save
 
-      new_hash = V2::Customer.load(customer.custid).passphrase
+      new_hash = Onetime::Customer.load(customer.custid).passphrase
       expect(new_hash).not_to eq(old_hash)
       expect(new_hash).to match(/^\$2a\$12\$/)
     end

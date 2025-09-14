@@ -1,6 +1,6 @@
 # spec/support/test_models.rb
 
-# Test double for V2::Secret that doesn't require Redis
+# Test double for Onetime::Secret that doesn't require Redis
 class TestSecret
   attr_accessor :key, :passphrase_temp, :value, :value_encryption
 

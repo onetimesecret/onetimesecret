@@ -101,7 +101,7 @@ RSpec.xdescribe 'Authentication Security Attack Vectors' do
     let(:secret) { double('Secret', custid: 'security@example.com', load_customer: customer, destroy!: nil, received!: nil) }
 
     before do
-      allow(V2::Secret).to receive(:load).and_return(secret)
+      allow(Onetime::Secret).to receive(:load).and_return(secret)
       allow(customer).to receive(:valid_reset_secret!).and_return(true)
       allow(customer).to receive(:update_passphrase)
       allow(session).to receive(:set_success_message)
@@ -109,7 +109,7 @@ RSpec.xdescribe 'Authentication Security Attack Vectors' do
 
     it 'prevents password reset without valid secret' do
       params = { key: 'invalid_secret', newp: 'newpass', newp2: 'newpass' }
-      allow(V2::Secret).to receive(:load).and_return(nil)
+      allow(Onetime::Secret).to receive(:load).and_return(nil)
 
       expect { reset_logic.raise_concerns }.to raise_error(OT::MissingSecret)
     end
@@ -243,7 +243,7 @@ RSpec.xdescribe 'Authentication Security Attack Vectors' do
   describe 'timing attack protection' do
     it 'uses secure comparison for password verification' do
       # This is handled by BCrypt internally, but we verify the pattern
-      allow(V2::Customer).to receive(:load).and_return(customer)
+      allow(Onetime::Customer).to receive(:load).and_return(customer)
 
       params = { key: 'secret', newp: 'password1', newp2: 'password2' }
       logic = V2::Logic::Authentication::ResetPassword.new(session, customer, params)
@@ -290,7 +290,7 @@ RSpec.xdescribe 'Authentication Security Attack Vectors' do
       it 'protects against email enumeration through error messages' do
         params = { u: 'nonexistent@example.com' }
         allow(reset_request_logic).to receive(:valid_email?).and_return(true)
-        allow(V2::Customer).to receive(:exists?).and_return(false)
+        allow(Onetime::Customer).to receive(:exists?).and_return(false)
 
         expect(reset_request_logic).to receive(:raise_form_error).with('No account found')
         reset_request_logic.raise_concerns

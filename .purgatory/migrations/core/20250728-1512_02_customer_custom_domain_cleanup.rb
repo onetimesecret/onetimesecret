@@ -16,7 +16,7 @@ require 'onetime/migration'
 module Onetime
   class Migration < ModelMigration
     def prepare
-      @model_class  = V2::Customer
+      @model_class  = Onetime::Customer
       @batch_size   = 1000
       @scan_pattern = "#{@model_class.prefix}:*:custom_domain"
 
@@ -28,7 +28,7 @@ module Onetime
     # records which are orphans, meaning they don't have customer object records
     # associated to them. They are defined as:
     #     `Customer.sorted_set :custom_domains, suffix: 'custom_domain'
-    # Their only model association is  via V2::Customer which is why this is
+    # Their only model association is  via Onetime::Customer which is why this is
     # a customer data migration, customized for these orphan records.
     #
     def load_from_key(key)

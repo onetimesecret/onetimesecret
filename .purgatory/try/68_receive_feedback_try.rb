@@ -23,10 +23,10 @@ OT.boot! :test, true
 
 # Setup some variables for these tryouts
 @now = DateTime.now
-@model_class = V2::Feedback
+@model_class = Onetime::Feedback
 @email_address = "tryouts+#{@now}@onetimesecret.com"
 @sess = nil # Session now handled by Rack::Session middleware
-@cust = V2::Customer.new @email_address
+@cust = Onetime::Customer.new @email_address
 @params = {
   msg: 'This is a test feedback'
 }

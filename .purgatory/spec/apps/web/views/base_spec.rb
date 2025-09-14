@@ -89,7 +89,7 @@ RSpec.describe Core::Views::BaseView do
 
     context 'with anonymous user' do
       let(:customer) do
-        instance_double(V2::Customer,
+        instance_double(Onetime::Customer,
           anonymous?: true,
           planid: 'anonymous',
           custid: nil,
@@ -278,7 +278,7 @@ RSpec.describe Core::Views::BaseView do
 
     context 'with anonymous user' do
       let(:customer) do
-        instance_double('V2::Customer',
+        instance_double('Onetime::Customer',
           custid: 'anon',
           email: nil,
           anonymous?: true,

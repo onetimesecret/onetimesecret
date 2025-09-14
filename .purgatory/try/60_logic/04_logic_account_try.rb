@@ -29,7 +29,7 @@ OT.boot! :test, false
 
 
 # Create a customer for update tests
-@cust = V2::Customer.new @email
+@cust = Onetime::Customer.new @email
 @cust.save
 
 
@@ -52,7 +52,7 @@ logic.process
   logic.autoverify,
   logic.customer_role
 ]
-#=> [V2::Customer, 'anonymous', false, 'customer']
+#=> [Onetime::Customer, 'anonymous', false, 'customer']
 
 # UpdatePassword Tests
 

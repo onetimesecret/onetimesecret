@@ -22,8 +22,8 @@ OT.boot! :test, false
 
 @email = "tryouts+42+#{Time.now.to_i}@onetimesecret.com"
 @cust = V1::Customer.create @email
-@metadata = V2::Metadata.create
-@secret = V2::Secret.create value: "This is a secret message"
+@metadata = Onetime::Metadata.create
+@secret = Onetime::Secret.create value: "This is a secret message"
 @metadata.secret_key = @secret.key
 @metadata.save
 

@@ -20,7 +20,7 @@ OT.boot! :test, false
 @test_custid = @test_email # In OTS, custid IS the email address
 
 # Create customer with passphrase
-@test_customer = V2::Customer.new(@test_custid)
+@test_customer = Onetime::Customer.new(@test_custid)
 @test_customer.update_passphrase(@test_password)
 @test_customer.save
 

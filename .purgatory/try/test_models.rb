@@ -2,7 +2,7 @@
 #
 # This file provides convenient access to model classes for testing purposes.
 # It creates top-level constants (e.g., Customer) to versioned namespaces
-# (e.g., V2::Customer), allowing tests to use cleaner, more readable code
+# (e.g., Onetime::Customer), allowing tests to use cleaner, more readable code
 # without version-specific references.
 #
 # Future improvement: Version selection will be controlled via environment
@@ -21,9 +21,9 @@ require 'onetime/models'
 TestVersion = Onetime::CURRENT_API_VERSION
 
 # Map commonly used models to top-level constants for cleaner test code
-Customer = TestVersion::Customer # e.g. V2::Customer
-CustomDomain = TestVersion::CustomDomain
-Metadata = TestVersion::Metadata
-Secret = TestVersion::Secret
-Feedback = TestVersion::Feedback
-Session = V1::Session  # Session is still V1 for now
+Customer = Onetime::Customer # e.g. Onetime::Customer
+CustomDomain = Onetime::CustomDomain
+Metadata = Onetime::Metadata
+Secret = Onetime::Secret
+Feedback = Onetime::Feedback
+Session = Onetime::Session  # NOTE: Not a familia model

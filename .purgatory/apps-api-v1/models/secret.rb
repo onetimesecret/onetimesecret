@@ -28,7 +28,7 @@ module V1
     field :created
     field :truncated # boolean
 
-    # See note on V2::Secret
+    # See note on Onetime::Secret
     field :key
 
     counter :view_count, default_expiration: 14.days # out lives the secret itself

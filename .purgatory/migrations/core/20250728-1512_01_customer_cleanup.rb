@@ -17,7 +17,7 @@ require 'onetime/migration'
 module Onetime
   class Migration < PipelineMigration
     def prepare
-      @model_class = V2::Customer
+      @model_class = Onetime::Customer
       @batch_size  = 1000
     end
 

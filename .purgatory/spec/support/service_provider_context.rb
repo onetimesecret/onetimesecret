@@ -20,8 +20,8 @@ end
 RSpec.shared_context "first_boot_stubs" do
   before(:each) do
     # Mock Redis/database queries for first boot detection
-    allow(V2::Metadata).to receive(:redis).and_return(double(scan_each: double(first: nil)))
-    allow(V2::Customer).to receive(:values).and_return(double(element_count: 0))
+    allow(Onetime::Metadata).to receive(:redis).and_return(double(scan_each: double(first: nil)))
+    allow(Onetime::Customer).to receive(:values).and_return(double(element_count: 0))
     # V2::Session removed - now using Rack::Session middleware
   end
 end

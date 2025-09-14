@@ -9,13 +9,13 @@ RSpec.xdescribe 'End-to-End Authentication Journeys', :allow_redis do
   let(:new_password) { 'new_secure_password_456' }
 
   describe 'complete user registration and authentication journey' do
-    let(:customer) { V2::Customer.new }
+    let(:customer) { Onetime::Customer.new }
     let(:session) { V2::Session.new }
 
     before do
       # Clean up any existing data
       begin
-        existing_customer = V2::Customer.load(customer_email)
+        existing_customer = Onetime::Customer.load(customer_email)
         existing_customer.destroy! if existing_customer
       rescue
         # Customer doesn't exist, which is fine
@@ -90,9 +90,9 @@ RSpec.xdescribe 'End-to-End Authentication Journeys', :allow_redis do
   end
 
   describe 'complete password reset journey' do
-    let(:customer) { V2::Customer.new }
+    let(:customer) { Onetime::Customer.new }
     let(:session) { V2::Session.new }
-    let(:reset_secret) { V2::Secret.new }
+    let(:reset_secret) { Onetime::Secret.new }
 
     before do
       # Set up customer with initial password
@@ -153,7 +153,7 @@ RSpec.xdescribe 'End-to-End Authentication Journeys', :allow_redis do
       reset_logic.process
 
       # Step 4: Verify password was changed
-      reloaded_customer = V2::Customer.load(customer_email)
+      reloaded_customer = Onetime::Customer.load(customer_email)
       expect(reloaded_customer.passphrase?(new_password)).to be true
       expect(reloaded_customer.passphrase?(initial_password)).to be false
 
@@ -198,7 +198,7 @@ RSpec.xdescribe 'End-to-End Authentication Journeys', :allow_redis do
       reset_logic.process
 
       # Verify password was not changed
-      reloaded_customer = V2::Customer.load(customer_email)
+      reloaded_customer = Onetime::Customer.load(customer_email)
       expect(reloaded_customer.passphrase?(initial_password)).to be true
       expect(reloaded_customer.passphrase?(new_password)).to be false
     end
@@ -268,7 +268,7 @@ RSpec.xdescribe 'End-to-End Authentication Journeys', :allow_redis do
 
   describe 'colonel privilege escalation journey' do
     let(:colonel_email) { 'colonel@example.com' }
-    let(:customer) { V2::Customer.new }
+    let(:customer) { Onetime::Customer.new }
     let(:session) { V2::Session.new }
 
     before do
@@ -344,7 +344,7 @@ RSpec.xdescribe 'End-to-End Authentication Journeys', :allow_redis do
 
   describe 'cross-api version compatibility' do
     let(:v1_customer) { V1::Customer.new }
-    let(:onetime_customer) { V2::Customer.new }
+    let(:onetime_customer) { Onetime::Customer.new }
     let(:v1_session) { V1::Session.new }
     let(:onetime_session) { V2::Session.new }
 
