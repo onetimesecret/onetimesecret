@@ -20,7 +20,7 @@ class AuthService < Roda
   # Redis session middleware (unified with other apps)
   require 'onetime/session'
   use Onetime::Session, {
-    expire_after: 86400, # 24 hours
+    expire_after: 86_400, # 24 hours
     key: 'onetime.session',  # Unified cookie name
     secure: ENV['RACK_ENV'] == 'production',
     httponly: true,
@@ -57,7 +57,7 @@ class AuthService < Roda
 
       # Check session age against configured expiry
       max_age = Onetime.auth_config.session['expire_after'] || 86400
-      age = Time.now.to_i - session['authenticated_at'].to_i
+      age = Familia.now - session['authenticated_at'].to_i
       age < max_age
     end
 
@@ -174,7 +174,7 @@ class AuthService < Roda
       # Store identity information in session for Otto integration
       session['advanced_account_id'] = account_id
       session['account_external_id'] = account[:external_id]
-      session['authenticated_at'] = Time.now.to_i
+      session['authenticated_at'] = Familia.now
     end
 
     # Handle login failures
@@ -234,16 +234,16 @@ class AuthService < Roda
 
         {
           status: 'ok',
-          timestamp: Time.now.utc.iso8601,
+          timestamp: Familia.now # UTC in seconds (float)
           database: db_status,
-          version: '1.0.0'
+          version: Onetime::VERSION,
         }
       rescue => e
         response.status = 503
         {
           status: 'error',
           error: e.message,
-          timestamp: Time.now.utc.iso8601
+          timestamp: Familia.now # UTC in seconds (float)
         }
       end
     end
