@@ -86,7 +86,7 @@ module V2
       regenerate_shrimp! if respond_to?(:regenerate_shrimp!)
       not_found_response ex.message, shrimp: (respond_to?(:shrimp_token) ? shrimp_token : nil)
     rescue Familia::HighRiskFactor => ex
-      session_id = session.id&.to_s || req.cookies['ots.session'] || 'unknown'
+      session_id = session.id&.to_s || req.cookies['onetime.session'] || 'unknown'
       short_session_id = session_id.length <= 10 ? session_id : session_id[0, 10] + '...'
       OT.le "[attempt-saving-non-string-to-db] #{obscured} (#{req.client_ipaddress}): #{short_session_id} (#{req.current_absolute_uri})"
 
@@ -117,7 +117,7 @@ module V2
       error_response "We'll be back shortly!", shrimp: (respond_to?(:shrimp_token) ? shrimp_token : nil)
     rescue StandardError => ex
       custid = cust&.custid || '<notset>'
-      session_id = session.id&.to_s || req.cookies['ots.session'] || 'unknown'
+      session_id = session.id&.to_s || req.cookies['onetime.session'] || 'unknown'
       short_session_id = session_id.length <= 10 ? session_id : session_id[0, 10] + '...'
       OT.le "#{ex.class}: #{ex.message} -- #{req.current_absolute_uri} -- #{req.client_ipaddress} #{custid} #{short_session_id} #{locale} #{content_type} #{redirect} "
       OT.le ex.backtrace.join("\n")
@@ -255,7 +255,7 @@ module V2
       reqstr  = req.format_request_details(header_prefix: HEADER_PREFIX)
       custref = cust.obscure_email
 
-      session_id = session.id&.to_s || req.cookies['ots.session'] || 'unknown'
+      session_id = session.id&.to_s || req.cookies['onetime.session'] || 'unknown'
       short_session_id = session_id.length <= 10 ? session_id : session_id[0, 10] + '...'
       OT.ld "[carefully] #{short_session_id} #{custref} at #{reqstr}"
     end

@@ -60,8 +60,6 @@ public/web/dist/
 bin/bundle
 bin/rspec
 bin/rubocop
-etc/config*
-etc/*.yaml
 !fly.toml
 support/schemas/
 tsconfig.tsbuildinfo

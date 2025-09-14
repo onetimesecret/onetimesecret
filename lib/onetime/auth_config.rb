@@ -13,7 +13,7 @@ module Onetime
 
     def initialize
       @environment = ENV['RACK_ENV'] || 'development'
-      @config_file = File.join(File.dirname(__FILE__), '../../config/authentication.yml')
+      @config_file = File.join(File.dirname(__FILE__), '../../etc/auth.yml')
       load_config
     end
 
@@ -117,7 +117,7 @@ module Onetime
           'session' => {
             'redis_url' => 'redis://localhost:6379/0',
             'expire_after' => 86_400,
-            'key' => 'ots.session',
+            'key' => 'onetime.session',
             'secure' => ssl_enabled?,
             'httponly' => true,
             'same_site' => 'lax',
