@@ -17,18 +17,18 @@ module Onetime
       load_config
     end
 
-    # Main authentication mode: 'basic' or 'rodauth'
+    # Main authentication mode: 'basic' or 'advanced'
     def mode
       # Environment variable takes precedence
-      return ENV['AUTHENTICATION_MODE'] if ENV['AUTHENTICATION_MODE'] && %w[basic rodauth].include?(ENV['AUTHENTICATION_MODE'])
+      return ENV['AUTHENTICATION_MODE'] if ENV['AUTHENTICATION_MODE'] && %w[basic advanced].include?(ENV['AUTHENTICATION_MODE'])
 
       # Check configuration file
       auth_config['mode'] || 'basic'
     end
 
-    # Rodauth configuration
-    def rodauth
-      auth_config['rodauth'] || {}
+    # Advanced configuration
+    def advanced
+      auth_config['advanced'] || {}
     end
 
     # Basic mode configuration
@@ -46,14 +46,14 @@ module Onetime
       session_config
     end
 
-    # Rodauth database URL
+    # Advanced database URL
     def database_url
-      ENV['DATABASE_URL'] || rodauth['database_url'] || 'sqlite://data/auth.db'
+      ENV['DATABASE_URL'] || advanced['database_url'] || 'sqlite://data/auth.db'
     end
 
-    # Whether Rodauth mode is enabled
-    def rodauth_enabled?
-      mode == 'rodauth'
+    # Whether Advanced mode is enabled
+    def advanced_enabled?
+      mode == 'advanced'
     end
 
     # Whether basic mode is enabled
@@ -70,71 +70,54 @@ module Onetime
     private
 
     def load_config
-      if File.exist?(@config_file)
-        erb_template = ERB.new(File.read(@config_file))
-        yaml_content = erb_template.result(binding)
-        @config      = YAML.safe_load(yaml_content, symbolize_names: false)
-      else
-        @config = default_config
-        warn "[AuthConfig] Configuration file not found: #{@config_file}, using defaults"
-      end
+      validate_config_file_exists!
+
+      erb_template = ERB.new(File.read(@config_file))
+      yaml_content = erb_template.result(binding)
+      @config      = YAML.safe_load(yaml_content, symbolize_names: false)
     rescue StandardError => ex
+      handle_config_error(ex)
+    end
+
+    def validate_config_file_exists!
+      return if File.exist?(@config_file)
+
+      raise ConfigError, config_error_message(
+        'Configuration file not found',
+        "File does not exist: #{@config_file}",
+      )
+    end
+
+    def handle_config_error(exception)
       @config = default_config
-      warn "[AuthConfig] Error loading configuration: #{ex.message}, using defaults"
+      raise ConfigError, config_error_message(
+        "Failed to load authentication configuration: #{exception.message}",
+        exception.backtrace&.first,
+      )
+    end
+
+    def config_error_message(primary_error, detail = nil)
+      message = <<~ERROR
+        #{primary_error}
+        #{detail if detail}
+
+        To fix this issue:
+        1. Ensure the configuration file exists at: #{@config_file}
+        2. Copy etc/defaults/auth.defaults.yaml if needed
+        3. Verify YAML syntax is valid
+        4. Check file permissions
+      ERROR
+
+      message.strip
     end
 
     def auth_config
-      # Merge base config with environment-specific overrides
-      base_config = @config['authentication'] || {}
-      env_config  = @config[@environment]&.dig('authentication') || {}
-
-      deep_merge(base_config, env_config)
+      @config
     end
 
     def ssl_enabled?
       # Check if SSL is enabled in OT configuration
       OT.conf&.dig('site', 'ssl') || @environment == 'production'
-    end
-
-    def default_config
-      {
-        'authentication' => {
-          'mode' => 'basic',
-          'rodauth' => {
-            'deployment' => 'local',
-            'database_url' => 'sqlite://data/auth.db',
-            'features' => %w[login logout create_account close_account change_password reset_password],
-            'security' => {
-              'password_minimum_length' => 8,
-              'max_invalid_logins' => 5,
-              'session_expire_after' => 86_400,
-            },
-          },
-          'basic' => {
-            'password_hash_cost' => 12,
-            'session_timeout' => 86_400,
-          },
-          'session' => {
-            'redis_url' => 'redis://localhost:6379/0',
-            'expire_after' => 86_400,
-            'key' => 'onetime.session',
-            'secure' => ssl_enabled?,
-            'httponly' => true,
-            'same_site' => 'lax',
-            'redis_prefix' => 'session',
-          },
-        },
-      }
-    end
-
-    def deep_merge(base_hash, override_hash)
-      base_hash.merge(override_hash) do |_key, base_value, override_value|
-        if base_value.is_a?(Hash) && override_value.is_a?(Hash)
-          deep_merge(base_value, override_value)
-        else
-          override_value
-        end
-      end
     end
   end
 

@@ -1,81 +1,53 @@
 # Authentication Configuration for OneTimeSecret
-# Controls the authentication mode and related settings for Otto's Derived Identity Architecture
+# Controls the authentication mode and related settings
 ---
-authentication:
-  # Authentication mode: 'basic' (Redis-only) or 'rodauth' (RDBMS+Redis)
-  mode: basic  # Default to basic mode for backward compatibility
 
-  # Mode-specific configurations
-  rodauth:
-    # Deployment type: 'local' (embedded) or 'service' (standalone)
-    deployment: local
+# Authentication mode: off, 'basic' (Redis-only) or 'advanced' (RDBMS+Redis)
+mode: basic
 
-    # Database connection for Rodauth
-    database_url: "sqlite://data/auth.db"
+# Shared session configuration (both modes)
+session:
+  redis_url: "redis://localhost:6379/0"
+  expire_after: 86400  # 24 hours
+  key: 'onetime.session'   # Unified cookie name
+  secure: true         # Set based on SSL configuration
+  httponly: true
+  same_site: lax
+  redis_prefix: 'session'
 
-    # Service URL (only used when deployment: service)
-    service_url: "http://localhost:9393/auth"
+# Mode-specific configurations
+basic:
+  # Basic mode settings (Redis-only authentication)
+  password_hash_cost: 12
+  session_timeout: 86400  # 24 hours
 
-    # Rodauth features to enable
-    features:
-      - login
-      - logout
-      - create_account
-      - close_account
-      - change_password
-      - reset_password
-      - remember          # "Remember me" functionality
-      - verify_account     # Email verification (optional)
-      - lockout           # Brute force protection
-      - active_sessions   # Session tracking
-      - otp               # TOTP MFA (optional)
-      - recovery_codes    # MFA backup codes (optional)
+advanced:
+  # Database connection for Advanced
+  # database_url: "postgres://user:password@host:port/database"
+  database_url: "sqlite://data/auth.db"
 
-    # Security settings
-    security:
-      password_minimum_length: 8
-      max_invalid_logins: 5
-      lockout_expiration: 3600  # 1 hour
-      session_expire_after: 86400  # 24 hours
-      require_email_confirmation: false  # Set to true when email is configured
+  # Service URL (only used when deployment: service)
+  service_url: "http://localhost:9393/auth"
 
-  basic:
-    # Basic mode settings (Redis-only authentication)
-    password_hash_cost: 12
-    session_timeout: 86400  # 24 hours
+  # Advanced features to enable
+  features:
+    - login
+    - logout
+    - create_account
+    - close_account
+    - change_password
+    - reset_password
+    - remember          # "Remember me" functionality
+    - verify_account     # Email verification (optional)
+    - lockout           # Brute force protection
+    - active_sessions   # Session tracking
+    - otp               # TOTP MFA (optional)
+    - recovery_codes    # MFA backup codes (optional)
 
-  # Shared session configuration (both modes)
-  session:
-    redis_url: "redis://localhost:6379/0"
-    expire_after: 86400  # 24 hours
-    key: 'onetime.session'   # Unified cookie name
-    secure: true         # Set based on SSL configuration
-    httponly: true
-    same_site: lax
-    redis_prefix: 'session'
-
-# Environment-specific overrides
-development:
-  authentication:
-    rodauth:
-      security:
-        require_email_confirmation: false
-        max_invalid_logins: 10  # More lenient for development
-    session:
-      secure: false  # Allow non-HTTPS in development
-
-test:
-  authentication:
-    mode: basic  # Always use basic mode in tests for simplicity
-    session:
-      secure: false
-      redis_url: "redis://localhost:6379/1"  # Separate test database
-
-production:
-  authentication:
-    session:
-      secure: true  # Enforce HTTPS in production
-    rodauth:
-      security:
-        require_email_confirmation: true
-        lockout_expiration: 7200  # 2 hours in production
+  # Security settings
+  security:
+    password_minimum_length: 8
+    max_invalid_logins: 5
+    lockout_expiration: 3600  # 1 hour
+    session_expire_after: 86400  # 24 hours
+    require_email_confirmation: false  # Set to true when email is configured
