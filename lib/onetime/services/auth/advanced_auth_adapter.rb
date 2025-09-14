@@ -1,4 +1,4 @@
-# lib/onetime/services/auth/advanced_authadapter.rb
+# lib/onetime/services/auth/advanced_auth_adapter.rb
 
 module Auth
   class AdvancedAuthAdapter

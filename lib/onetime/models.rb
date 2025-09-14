@@ -1,24 +1,21 @@
 # lib/onetime/models.rb
 
-# This file serves as a central loading point for all model classes across
-# different API versions. It provides a convenient way for external code to
-# access model classes without needing to understand the underlying version
-# structure.
-#
-# The CURRENT_API_VERSION constant allows test suites and application code to
-# reference the current API models without hardcoding specific version
-# dependencies throughout the codebase. This facilitates running the same
-# test suite against multiple API versions and simplifies version transitions.
+# # Load all of our model features before the models so that
+# # they're accessible
+# features_dir = File.join(__dir__, 'models', 'features')
+# OT.ld "[DEBUG] Loading features from #{features_dir}"
+# if Dir.exist?(features_dir)
+#   Dir.glob(File.join(features_dir, '*.rb')).each do |feature_file|
+#     OT.ld "[DEBUG] Loading feature #{feature_file}"
+#     require_relative feature_file
+#   end
+# end
 
-require 'v1/models'
-require 'v2/models'
-
-module Onetime
-  # Points to the current API version's models module.
-  # Fixed to V2 for stability, but designed to be configurable in future
-  # iterations when dynamic version selection becomes necessary.
-  #
-  # A fully qualified name example which does not win points for brevity
-  # but is easy to read: Onetime::CURRENT_API_VERSION::Customer.
-  CURRENT_API_VERSION = V2
-end
+require_relative 'models/mixins'
+require_relative 'models/metadata'
+require_relative 'models/secret'
+require_relative 'models/customer'
+require_relative 'models/custom_domain'
+require_relative 'models/team'
+require_relative 'models/organization'
+require_relative 'models/feedback'

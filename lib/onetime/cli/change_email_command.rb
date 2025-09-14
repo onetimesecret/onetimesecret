@@ -1,4 +1,4 @@
-# lib/onetime/cli/change_email.rb
+# lib/onetime/cli/change_email_command.rb
 
 module Onetime
   class ChangeEmailCommand < Drydock::Command
