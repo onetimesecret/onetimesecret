@@ -6,14 +6,16 @@ require 'json'
 
 module Onetime
   class Session < Rack::Session::Abstract::PersistedSecure
-    DEFAULT_OPTIONS = Rack::Session::Abstract::ID::DEFAULT_OPTIONS.merge(
-      expire_after: 86_400,  # 24 hours
-      key: 'ots.session',
-      secure: true,
-      httponly: true,
-      same_site: :lax,
-      redis_prefix: 'session',
-    )
+    unless defined?(DEFAULT_OPTIONS)
+      DEFAULT_OPTIONS = Rack::Session::Abstract::ID::DEFAULT_OPTIONS.merge(
+        expire_after: 86_400,  # 24 hours
+        key: 'ots.session',
+        secure: true,
+        httponly: true,
+        same_site: :lax,
+        redis_prefix: 'session',
+      )
+    end
 
     def initialize(app, options = {})
       super(app, DEFAULT_OPTIONS.merge(options))
