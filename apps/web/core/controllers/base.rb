@@ -1,6 +1,5 @@
 # apps/web/core/controllers/base.rb
 
-require_relative 'helpers'
 require_relative 'class_settings'
 
 module Core
@@ -15,16 +14,6 @@ module Core
         @req = req
         @res = res
       end
-
-      # Alias for compatibility with helpers that expect 'request'
-      def request
-        req
-      end
-
-      def session
-        req.env['onetime.session']
-      end
-      alias sess session
 
       def publically(redirect = nil)
         carefully(redirect) do
