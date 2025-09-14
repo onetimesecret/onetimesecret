@@ -13,7 +13,7 @@ module V2
 
     class Base
       # We may want to have a @@customer_model set so that we can set it to
-      # V2::Customer. Currently even if we're using the V2 of this logic,
+      # Onetime::Customer. Currently even if we're using the V2 of this logic,
       # it may still be running with V1::Customer in corner areas of the
       # code. If we decide to go that route (no pun intended) a class
       # variable is the way to go so that all logic subclasses can see the thing.
@@ -38,12 +38,12 @@ module V2
 
         # Handle user model instances properly
         if @cust.nil?
-          @cust = V2::Customer.anonymous
+          @cust = Onetime::Customer.anonymous
         elsif @cust.is_a?(String)
           OT.li "[#{self.class}] Friendly reminder to pass in a Customer instance instead of a custid"
-          @cust = V2::Customer.load(@cust)
+          @cust = Onetime::Customer.load(@cust)
         end
-        # If @cust is already a V2::Customer instance, use it as-is
+        # If @cust is already a Onetime::Customer instance, use it as-is
 
         # Won't run if params aren't passed in
         process_params if respond_to?(:process_params) && @params
@@ -108,7 +108,7 @@ module V2
 
       # Requires the implementing class to have cust and session fields
       def send_verification_email(token = nil)
-        _, secret = V2::Secret.spawn_pair cust.custid, token
+        _, secret = Onetime::Secret.spawn_pair cust.custid, token
 
         msg = "Thanks for verifying your account. We got you a secret fortune cookie!\n\n\"%s\"" % OT::Utils.random_fortune
 

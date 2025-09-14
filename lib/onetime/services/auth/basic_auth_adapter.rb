@@ -66,7 +66,7 @@ module Auth
     def find_customer(email, _tenant_id = nil)
       # Use the existing Customer model to load by email
       # In OTS, the custid IS the email address
-      V2::Customer.load(email)
+      Onetime::Customer.load(email)
     end
 
     def verify_password(customer, password)
@@ -76,7 +76,7 @@ module Auth
       target_customer = if customer.has_passphrase?
         customer
       else
-        V2::Customer.dummy
+        Onetime::Customer.dummy
       end
 
       # Always perform passphrase verification and always return its result to mitigate timing attacks

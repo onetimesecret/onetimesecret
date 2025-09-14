@@ -184,8 +184,7 @@ module Onetime
         def known_custom_domain?(potential_custom_domain)
           # This will load the model if it hasn't been loaded yet
           # and avoid circular references between lib and v2.
-          require 'v2/models/custom_domain'
-          !V2::CustomDomain.from_display_domain(potential_custom_domain).nil?
+          !Onetime::CustomDomain.from_display_domain(potential_custom_domain).nil?
         end
       end
     end

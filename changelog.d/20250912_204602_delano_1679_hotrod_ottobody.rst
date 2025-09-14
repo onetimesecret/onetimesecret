@@ -5,7 +5,7 @@ Added
 
 - Identity resolution middleware integrated across all applications (API v1, v2, Web Core)
 - Dual authentication mode support (basic Redis vs Rodauth) with automatic detection
-- External ID lookup functionality in V2::Customer for Otto-Rodauth identity bridging
+- External ID lookup functionality in Onetime::Customer for Otto-Rodauth identity bridging
 - RodauthUser class for unified user representation with full feature access
 
 Changed

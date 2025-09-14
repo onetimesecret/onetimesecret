@@ -131,13 +131,13 @@ module V2::Logic
         potential_domain = payload[:share_domain].to_s
         return if potential_domain.empty?
 
-        unless V2::CustomDomain.valid?(potential_domain)
+        unless Onetime::CustomDomain.valid?(potential_domain)
           return OT.info "[BaseSecretAction] Invalid share domain #{potential_domain}"
         end
 
         # If the given domain is the same as the site's host domain, then
         # we simply skip the share domain stuff altogether.
-        if V2::CustomDomain.default_domain?(potential_domain)
+        if Onetime::CustomDomain.default_domain?(potential_domain)
           return OT.info "[BaseSecretAction] Ignoring default share domain: #{potential_domain}"
         end
 
@@ -170,7 +170,7 @@ module V2::Logic
 
       def create_secret_pair
         customer_identifier = cust&.custid
-        @metadata, @secret = V2::Secret.spawn_pair customer_identifier, token
+        @metadata, @secret = Onetime::Secret.spawn_pair customer_identifier, token
       end
 
       def handle_passphrase
@@ -207,7 +207,7 @@ module V2::Logic
           cust.add_metadata metadata
           cust.increment_field :secrets_created
         end
-        V2::Customer.global.increment_field :secrets_created
+        Onetime::Customer.global.increment_field :secrets_created
       end
 
       def send_email_to_recipient
@@ -236,7 +236,7 @@ module V2::Logic
 
         # e.g. dbkey -> customdomain:display_domains -> hash -> key: value
         # where key is the domain and value is the domainid
-        domain_record = V2::CustomDomain.from_display_domain(domain)
+        domain_record = Onetime::CustomDomain.from_display_domain(domain)
         raise_form_error "Unknown domain: #{domain}" if domain_record.nil?
 
         OT.ld <<~DEBUG

@@ -49,7 +49,7 @@ module V2
             # If the user is not authenticated, check if the email address is already
             # associated with an account. If not, we can create a new account for them
             # using the email address from the checkout session.
-            cust = V2::Customer.load(checkout_email)
+            cust = Onetime::Customer.load(checkout_email)
 
             if cust
               # If the email address is already associated with an account, we can
@@ -64,7 +64,7 @@ module V2
             else
               OT.info "[FromStripePaymentLink] Associating checkout #{checkout_session_id} with new user #{checkout_email}"
 
-              cust          = V2::Customer.create(checkout_email)
+              cust          = Onetime::Customer.create(checkout_email)
               cust.planid   = 'identity'
               cust.verified = 'true'
               cust.role     = 'customer'

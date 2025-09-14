@@ -17,11 +17,11 @@ module V2::Logic
 
       def raise_concerns
         raise_form_error 'Not a valid email address' unless valid_email?(@custid)
-        raise_form_error 'No account found' unless V2::Customer.exists?(@custid)
+        raise_form_error 'No account found' unless Onetime::Customer.exists?(@custid)
       end
 
       def process
-        cust = V2::Customer.load @custid
+        cust = Onetime::Customer.load @custid
 
         if cust.pending?
           OT.li "[ResetPasswordRequest] Resending verification email to #{cust.custid}"
@@ -30,7 +30,7 @@ module V2::Logic
           return sess.set_info_message msg
         end
 
-        secret              = V2::Secret.create @custid, [@custid]
+        secret              = Onetime::Secret.create @custid, [@custid]
         secret.default_expiration          = 24.hours
         secret.verification = 'true'
         secret.save

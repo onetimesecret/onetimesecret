@@ -32,7 +32,7 @@ module V2
         end
 
         def process
-          @metadata, @secret       = V2::Secret.spawn_pair cust.custid, token
+          @metadata, @secret       = Onetime::Secret.spawn_pair cust.custid, token
           unless passphrase.empty?
             secret.update_passphrase passphrase
             metadata.passphrase = secret.passphrase
@@ -48,7 +48,7 @@ module V2
               cust.add_metadata metadata
               cust.increment :secrets_created
             end
-            V2::Customer.global.increment :secrets_created
+            Onetime::Customer.global.increment :secrets_created
             unless recipient.nil? || recipient.empty?
               metadata.deliver_by_email cust, locale, secret, recipient.first, Onetime::Mail::IncomingSupport, ticketno
             end

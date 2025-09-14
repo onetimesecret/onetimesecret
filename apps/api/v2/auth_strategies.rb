@@ -34,7 +34,7 @@ module V2
           return failure('Invalid credentials format') if custid.to_s.empty? || apitoken.to_s.empty?
 
           OT.ld "[onetime_basic] Attempt for '#{custid}' via #{env['REMOTE_ADDR']}"
-          cust = V2::Customer.load(custid)
+          cust = Onetime::Customer.load(custid)
           return failure('Customer not found') if cust.nil?
 
           if cust.apitoken?(apitoken)
@@ -127,7 +127,7 @@ module V2
             OT.ld "[onetime_optional] Anonymous access via #{env['REMOTE_ADDR']}"
             return success(
               session: env['onetime.session'] || {},
-              user: V2::Customer.anonymous,
+              user: Onetime::Customer.anonymous,
               auth_method: 'anonymous',
             )
           end
@@ -143,7 +143,7 @@ module V2
         OT.ld '[onetime_optional] Fallback anonymous access'
         success(
           session: env['onetime.session'] || {},
-          user: V2::Customer.anonymous,
+          user: Onetime::Customer.anonymous,
           auth_method: 'anonymous',
         )
       end

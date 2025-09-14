@@ -23,7 +23,7 @@ module V2::Logic
       def raise_concerns
         raise OT::FormError, "You're already signed up" if sess.authenticated?
 
-        raise_form_error 'Please try another email address' if V2::Customer.exists?(custid)
+        raise_form_error 'Please try another email address' if Onetime::Customer.exists?(custid)
         raise_form_error 'Is that a valid email address?' unless valid_email?(custid)
         raise_form_error 'Password is too short' unless password.size >= 6
 
@@ -36,7 +36,7 @@ module V2::Logic
       end
 
       def process
-        @cust = V2::Customer.create custid
+        @cust = Onetime::Customer.create custid
 
         cust.update_passphrase password
         sess.custid = cust.custid

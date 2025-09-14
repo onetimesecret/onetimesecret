@@ -40,7 +40,7 @@ module V2
           return disabled_response(req.path) unless authentication_enabled?
 
           OT.ld "[authorized] Attempt for '#{custid}' via #{req.client_ipaddress} (basic auth)"
-          possible = V2::Customer.load custid
+          possible = Onetime::Customer.load custid
           raise OT::Unauthorized, 'No such customer' if possible.nil?
 
           @cust = possible if possible.apitoken?(apitoken)
@@ -60,7 +60,7 @@ module V2
           raise OT::Unauthorized, 'Session not authenticated' unless authenticated? || allow_anonymous
 
           # Customer is loaded by setup_request_context via current_customer helper
-          @cust ||= V2::Customer.anonymous if allow_anonymous
+          @cust ||= Onetime::Customer.anonymous if allow_anonymous
 
           raise OT::Unauthorized, 'Invalid credentials' if cust.nil?
 
@@ -77,7 +77,7 @@ module V2
 
           raise OT::Unauthorized, 'No session or credentials' unless allow_anonymous
 
-          @cust = V2::Customer.anonymous
+          @cust = Onetime::Customer.anonymous
           # Session is already created by middleware, just set up context
           setup_request_context
 

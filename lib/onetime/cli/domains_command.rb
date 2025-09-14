@@ -3,12 +3,12 @@
 module Onetime
   class DomainsCommand < Drydock::Command
     def domains
-      puts format('%d custom domains', V2::CustomDomain.values.size)
+      puts format('%d custom domains', Onetime::CustomDomain.values.size)
       return unless option.list
 
-      literally_all_domain_ids = V2::CustomDomain.values.all
+      literally_all_domain_ids = Onetime::CustomDomain.values.all
       all_domains              = literally_all_domain_ids.map do |did|
-        V2::CustomDomain.from_identifier(did)
+        Onetime::CustomDomain.from_identifier(did)
       end
 
       # Group domains by display_domain
@@ -52,12 +52,12 @@ module Onetime
       elsif option.domain
         get_domains_by_name
       else
-        V2::CustomDomain.all
+        Onetime::CustomDomain.all
       end
     end
 
     def get_specific_domain
-        domain = V2::CustomDomain.load(option.domain, option.custid)
+        domain = Onetime::CustomDomain.load(option.domain, option.custid)
         [domain]
     rescue Onetime::RecordNotFound
         puts "Domain #{option.domain} not found for customer #{option.custid}"
@@ -65,7 +65,7 @@ module Onetime
     end
 
     def get_customer_domains
-      customer = V2::Customer.load(option.custid)
+      customer = Onetime::Customer.load(option.custid)
       unless customer
         puts "Customer #{option.custid} not found"
         return nil
@@ -73,7 +73,7 @@ module Onetime
 
       begin
         customer.custom_domains.members.map do |domain_name|
-          V2::CustomDomain.load(domain_name, option.custid)
+          Onetime::CustomDomain.load(domain_name, option.custid)
         end
       rescue Onetime::RecordNotFound
         puts "Customer #{option.custid} not found"
@@ -82,7 +82,7 @@ module Onetime
     end
 
     def get_domains_by_name
-      matching_domains = V2::CustomDomain.all.select do |domain|
+      matching_domains = Onetime::CustomDomain.all.select do |domain|
         domain.display_domain == option.domain
       end
 

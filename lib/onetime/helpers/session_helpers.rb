@@ -45,10 +45,10 @@ module Onetime
       private
 
       def load_current_customer
-        return V2::Customer.anonymous unless authenticated?
+        return Onetime::Customer.anonymous unless authenticated?
 
-        customer = V2::Customer.load(session['identity_id'])
-        return V2::Customer.anonymous unless customer
+        customer = Onetime::Customer.load(session['identity_id'])
+        return Onetime::Customer.anonymous unless customer
 
         # Update last seen timestamp
         session['last_seen'] = Time.now.to_i

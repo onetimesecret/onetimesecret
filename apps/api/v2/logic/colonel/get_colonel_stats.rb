@@ -21,12 +21,12 @@ module V2
 
         def process_statistics
           @session_count   = 0 # Session tracking now handled by Rack::Session middleware
-          @customer_count  = V2::Customer.values.size
-          @metadata_count  = V2::Metadata.new.dbclient.keys('metadata*:object').count
-          @secret_count    = V2::Secret.new.dbclient.keys('secret*:object').count
-          @secrets_created = V2::Customer.global.secrets_created.to_s
-          @secrets_shared  = V2::Customer.global.secrets_shared.to_s
-          @emails_sent     = V2::Customer.global.emails_sent.to_s
+          @customer_count  = Onetime::Customer.values.size
+          @metadata_count  = Onetime::Metadata.new.dbclient.keys('metadata*:object').count
+          @secret_count    = Onetime::Secret.new.dbclient.keys('secret*:object').count
+          @secrets_created = Onetime::Customer.global.secrets_created.to_s
+          @secrets_shared  = Onetime::Customer.global.secrets_shared.to_s
+          @emails_sent     = Onetime::Customer.global.emails_sent.to_s
         end
         private :process_statistics
 

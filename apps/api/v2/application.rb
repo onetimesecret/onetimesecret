@@ -2,16 +2,15 @@
 
 require_relative '../../base_application'
 
-require_relative 'models'
-require_relative 'logic'
 require_relative 'controllers'
+require_relative 'logic'
 
 module V2
   class Application < ::BaseApplication
     @uri_prefix = '/api/v2'.freeze
 
     # Session middleware
-    require_relative '../../../lib/onetime/session'
+    require 'onetime/session'
     use Onetime::Session, {
       expire_after: 86400, # 24 hours
       key: 'onetime.session',
@@ -25,7 +24,7 @@ module V2
     use Rack::DetectHost
 
     # Identity resolution middleware
-    require_relative '../../../lib/middleware/identity_resolution'
+    require 'middleware/identity_resolution'
     use Rack::IdentityResolution
 
     # Applications middleware stack
@@ -34,7 +33,7 @@ module V2
 
     warmup do
       require_relative 'logic'
-      require_relative 'models'
+      require 'onetime/models'
 
       # Log warmup completion
       Onetime.li 'V2 warmup completed'

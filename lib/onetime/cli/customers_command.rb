@@ -3,10 +3,10 @@
 module Onetime
   class CustomersCommand < Drydock::Command
     def customers
-      puts format('%d customers', V2::Customer.values.size)
+      puts format('%d customers', Onetime::Customer.values.size)
       if option.list
-        all_customers = V2::Customer.values.all.map do |custid|
-          V2::Customer.load(custid)
+        all_customers = Onetime::Customer.values.all.map do |custid|
+          Onetime::Customer.load(custid)
         end
 
         # Choose the field to group by
@@ -27,8 +27,8 @@ module Onetime
         end
 
       elsif option.check
-        all_customers = V2::Customer.values.all.map do |custid|
-          V2::Customer.load(custid)
+        all_customers = Onetime::Customer.values.all.map do |custid|
+          Onetime::Customer.load(custid)
         end
 
         mismatched_customers = all_customers.select do |cust|

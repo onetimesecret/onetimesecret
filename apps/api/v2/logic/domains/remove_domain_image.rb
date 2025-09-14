@@ -21,7 +21,7 @@ module V2::Logic
 
         raise_form_error 'Domain is required' if @domain_input.empty?
 
-        @custom_domain = V2::CustomDomain.load(@domain_input, @cust.custid)
+        @custom_domain = Onetime::CustomDomain.load(@domain_input, @cust.custid)
         raise_form_error 'Invalid Domain' unless @custom_domain
 
         @display_domain = @domain_input

@@ -29,7 +29,7 @@ module Auth
     private
 
     def dummy_customer(*)
-      V2::Customer.dummy
+      Onetime::Customer.dummy
     end
 
     def authentication_failure

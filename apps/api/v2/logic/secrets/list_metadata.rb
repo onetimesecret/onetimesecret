@@ -24,7 +24,7 @@ module V2::Logic
 
         # Get the safe fields for each record
         @records = query_results.filter_map do |identifier|
-          md = V2::Metadata.from_identifier(identifier)
+          md = Onetime::Metadata.from_identifier(identifier)
           md&.safe_dump
         end
 

@@ -1,6 +1,5 @@
 # apps/web/core/views/serializers/domain_serializer.rb
 
-require 'v2/models/custom_domain'
 require 'onetime/middleware/domain_strategy'
 
 module Core
@@ -35,7 +34,7 @@ module Core
         # Custom domain handling
         if output['domain_strategy'] == :custom
           # Load the CustomDomain object
-          custom_domain             = V2::CustomDomain.from_display_domain(output['display_domain'])
+          custom_domain             = Onetime::CustomDomain.from_display_domain(output['display_domain'])
           output['domain_id']       = custom_domain&.domainid
           output['domain_branding'] = (custom_domain&.brand&.hgetall || {}).to_h
           output['domain_logo']     = (custom_domain&.logo&.hgetall || {}).to_h

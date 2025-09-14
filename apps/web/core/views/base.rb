@@ -4,7 +4,7 @@ require 'chimera'
 
 require 'onetime/middleware'
 
-require 'v2/models/customer'
+require 'onetime/models'
 
 require_relative 'helpers'
 require_relative 'serializers'
@@ -37,7 +37,7 @@ module Core
       def initialize(req, sess = nil, cust = nil, locale_override = nil, *)
         @req  = req
         @sess = sess
-        @cust = cust || V2::Customer.anonymous
+        @cust = cust || Onetime::Customer.anonymous
 
         # We determine locale here because it's used for i18n. Otherwise we couldn't
         # determine the i18n messages until inside or after initialize_view_vars.

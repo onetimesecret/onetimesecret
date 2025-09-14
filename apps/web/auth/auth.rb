@@ -138,15 +138,15 @@ class AuthService < Roda
 
       # Create Otto customer with derived identity
       begin
-        # Load Otto's V2::Customer class
-        require_relative '../../../lib/onetime'
-        require_relative '../../../apps/api/v2/models/customer'
+        # # Load Otto's Onetime::Customer class
+        # require 'onetime'
+        # require 'onetime/models'
 
         # Create or load customer using email as custid
-        customer = if V2::Customer.exists?(account[:email])
-          V2::Customer.load(account[:email])
+        customer = if Onetime::Customer.exists?(account[:email])
+          Onetime::Customer.load(account[:email])
         else
-          V2::Customer.create(account[:email])
+          Onetime::Customer.create(account[:email])
         end
         puts "Created Otto customer: #{customer.custid} with extid: #{customer.extid}"
 
@@ -189,11 +189,8 @@ class AuthService < Roda
       # Clean up Otto customer using extid
       begin
         if account[:external_id]
-          # Load Otto's V2::Customer class
-          require_relative '../../../lib/onetime'
-          require_relative '../../../apps/api/v2/models/customer'
 
-          customer = V2::Customer.find_by_extid(account[:external_id])
+          customer = Onetime::Customer.find_by_extid(account[:external_id])
           if customer
             customer.destroy!
             puts "Deleted Otto customer: #{customer.custid} (extid: #{customer.extid})"

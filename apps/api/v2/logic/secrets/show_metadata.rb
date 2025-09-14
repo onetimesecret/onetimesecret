@@ -21,7 +21,7 @@ module V2::Logic
 
       def process_params
         @key      = params[:key].to_s
-        @metadata = V2::Metadata.load key
+        @metadata = Onetime::Metadata.load key
       end
 
       def raise_concerns

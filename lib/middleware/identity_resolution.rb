@@ -78,7 +78,7 @@ module Rack
         return no_identity unless advanced_authenticated?(session)
 
         # Lookup customer by derived extid
-        customer = V2::Customer.find_by_extid(session['account_external_id'])
+        customer = Onetime::Customer.find_by_extid(session['account_external_id'])
         return no_identity unless customer
 
         {
@@ -182,10 +182,10 @@ module Rack
       return nil unless session['identity_id']
 
       begin
-        # Load V2::Customer if not already loaded
-        require_relative '../../apps/api/v2/models/customer' unless defined?(V2::Customer)
+        # Load Onetime::Customer if not already loaded
+        require_relative '../../onetime/models' unless defined?(Onetime::Customer)
 
-        V2::Customer.load(session['identity_id'])
+        Onetime::Customer.load(session['identity_id'])
       rescue StandardError => ex
         logger.debug "[IdentityResolution] Could not load customer: #{ex.message}"
         nil

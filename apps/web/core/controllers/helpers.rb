@@ -19,7 +19,7 @@ module Core
       redirect     ||= req.request_path unless app == :api
       content_type ||= 'text/html; charset=utf-8'
 
-      cust ||= V2::Customer.anonymous
+      cust ||= Onetime::Customer.anonymous
 
       # Prevent infinite redirect loops by checking if the request is a GET request.
       # Pages redirecting from a POST request can use the same page once.
@@ -128,7 +128,7 @@ module Core
       error_response 'An unexpected error occurred :[', shrimp: (respond_to?(:shrimp_token) ? shrimp_token : nil)
     ensure
       # Fallback session no longer needed with Rack::Session
-      @cust ||= V2::Customer.anonymous
+      @cust ||= Onetime::Customer.anonymous
     end
 
     # Sets the locale for the request based on various sources.

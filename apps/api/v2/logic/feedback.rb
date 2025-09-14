@@ -29,7 +29,7 @@ module V2
           first_colonel = nil
           configured_colonels.each do |colonel_email|
             OT.ld "Colonel: #{colonel_email}"
-            first_colonel = V2::Customer.find colonel_email
+            first_colonel = Onetime::Customer.find colonel_email
             next unless first_colonel
 
             OT.ld "[receive_feedback] Sending feedback to colonel: #{colonel_email} #{first_colonel}"
@@ -42,7 +42,7 @@ module V2
           OT.le "Error sending feedback email to first colonel: #{ex.message}", ex.backtrace
         end
 
-        V2::Feedback.add @msg
+        Onetime::Feedback.add @msg
       end
 
       def format_feedback_message
