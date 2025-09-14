@@ -2,20 +2,18 @@
 
 require 'rack/session/abstract/id'
 require 'securerandom'
-require 'json'
+require 'oj'
 
 module Onetime
   class Session < Rack::Session::Abstract::PersistedSecure
-    unless defined?(DEFAULT_OPTIONS)
-      DEFAULT_OPTIONS = Rack::Session::Abstract::ID::DEFAULT_OPTIONS.merge(
-        expire_after: 86_400,  # 24 hours
-        key: 'ots.session',
-        secure: true,
-        httponly: true,
-        same_site: :lax,
-        redis_prefix: 'session',
-      )
-    end
+    DEFAULT_OPTIONS = Rack::Session::Abstract::ID::DEFAULT_OPTIONS.merge(
+      expire_after: 86_400,
+      key: 'ots.session',
+      secure: true,
+      httponly: true,
+      same_site: :lax,
+      redis_prefix: 'session',
+    )
 
     def initialize(app, options = {})
       super(app, DEFAULT_OPTIONS.merge(options))
@@ -54,12 +52,7 @@ module Onetime
         redis_key = "#{@redis_prefix}:#{sid}"
 
         begin
-          Familia.dbclient.setex(
-            redis_key,
-            ttl.to_i,
-            session_data.to_json,
-          )
-          # Return a SessionId object for PersistedSecure
+          Familia.dbclient.setex(redis_key, ttl.to_i, Oj.dump(session_data))
           ::Rack::Session::SessionId.new(sid)
         rescue StandardError => ex
           OT.le "[OT:Session] Failed to write session: #{ex.message}"
@@ -89,9 +82,8 @@ module Onetime
       return nil unless data
 
       begin
-        parsed = JSON.parse(data)
-        parsed['data'] || {}
-      rescue JSON::ParserError => ex
+        Oj.load(data)['data'] || {}
+      rescue Oj::ParseError => ex
         OT.le "[OT:Session] Failed to parse session data: #{ex.message}"
         nil
       end
