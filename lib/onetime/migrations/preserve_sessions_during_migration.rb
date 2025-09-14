@@ -121,7 +121,7 @@ module Onetime
           return handle_invalid_session("no identity_id") unless identity_id
 
           # Skip if already has Rodauth markers
-          if session['rodauth_account_id'] && session['rodauth_external_id']
+          if session['advanced_account_id'] && session['account_external_id']
             puts "SKIP (already Rodauth)"
             return
           end
@@ -159,8 +159,8 @@ module Onetime
       def update_session(session_key, session, account, customer)
         # Add Rodauth session markers
         updated_session = session.merge(
-          'rodauth_account_id' => account[:id],
-          'rodauth_external_id' => account[:external_id],
+          'advanced_account_id' => account[:id],
+          'account_external_id' => account[:external_id],
           'authenticated_at' => session['authenticated_at'] || Time.now.to_i
         )
 

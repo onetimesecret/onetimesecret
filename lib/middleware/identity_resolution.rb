@@ -8,37 +8,9 @@ module Rack
   # Identity Resolution Middleware for OneTimeSecret
   #
   # This middleware provides a flexible identity resolution layer that
-  # bridges between the current Redis-based session system and future
-  # authentication services (e.g., Rodauth with PostgreSQL/SQLite).
+  # bridges between the basic (e.g. Redis) and advanced authentication
+  # services (e.g., Advanced with PostgreSQL/SQLite).
   #
-  # The middleware resolves user identity from multiple sources in order
-  # of precedence, allowing for gradual migration and mixed authentication
-  # modes while maintaining backwards compatibility.
-  #
-  # ### Design Goals
-  #
-  # 1. **Backwards Compatibility**: Existing Redis sessions continue to work
-  # 2. **Flexibility**: Support multiple identity sources simultaneously
-  # 3. **Migration Path**: Enable gradual transition to new auth service
-  # 4. **Zero Configuration**: Default to existing behavior for existing users
-  # 5. **Enterprise Ready**: Support advanced authentication when configured
-  #
-  # ### Identity Resolution Order
-  #
-  # 1. **External Auth Service** - Check Rodauth-based service if configured
-  # 2. **Redis Session** - Check existing session in Redis (current default)
-  # 3. **Anonymous** - Fall back to anonymous user for public access
-  #
-  # ### Configuration
-  #
-  # ```ruby
-  # # Enable external authentication service
-  # OT.conf['site']['authentication']['external'] = {
-  #   'enabled' => true,
-  #   'service_url' => 'http://localhost:9393',
-  #   'fallback_to_redis' => true
-  # }
-  # ```
   #
   # ### Usage
   #
@@ -48,15 +20,14 @@ module Rack
   #
   # The middleware sets the following env variables:
   # - `env['identity.resolved']` - The resolved identity object
-  # - `env['identity.source']` - Source of identity ('external', 'redis', 'anonymous')
+  # - `env['identity.source']` - Source of identity ('advanced', 'basic', 'anonymous')
   # - `env['identity.authenticated']` - Boolean authentication status
   #
   class IdentityResolution
-
     attr_reader :logger
 
     def initialize(app, logger: nil)
-      @app = app
+      @app    = app
       @logger = logger || default_logger
     end
 
@@ -67,10 +38,10 @@ module Rack
       identity = resolve_identity(request, env)
 
       # Store resolved identity in environment
-      env['identity.resolved'] = identity[:user]
-      env['identity.source'] = identity[:source]
+      env['identity.resolved']      = identity[:user]
+      env['identity.source']        = identity[:source]
       env['identity.authenticated'] = identity[:authenticated]
-      env['identity.metadata'] = identity[:metadata]
+      env['identity.metadata']      = identity[:metadata]
 
       logger.debug "[IdentityResolution] Resolved identity from #{identity[:source]}"
 
@@ -80,63 +51,56 @@ module Rack
     private
 
     def resolve_identity(request, env)
-      # Check authentication mode (basic vs rodauth)
+      # Check authentication mode (basic vs advanced)
       auth_mode = detect_auth_mode
 
       case auth_mode
-      when 'rodauth'
-        # Try Rodauth session first
-        rodauth_identity = resolve_rodauth_identity(request, env)
-        return rodauth_identity if rodauth_identity[:user]
+      when 'advanced'
+        # Try Advanced session first
+        advanced_identity = resolve_advanced_identity(request, env)
+        return advanced_identity if advanced_identity[:user]
       when 'basic'
-        # Use Redis-only authentication
-        redis_identity = resolve_redis_identity(request, env)
-        return redis_identity if redis_identity[:user]
+        # Use basic (Redis-only) authentication
+        basic_identity = resolve_basic_identity(request, env)
+        return basic_identity if basic_identity[:user]
       end
 
       # Default to anonymous user
       resolve_anonymous_identity(request, env)
     end
 
-    def resolve_rodauth_identity(request, env)
-      begin
+    def resolve_advanced_identity(_request, env)
         # Get session from Redis session middleware
         session = env['onetime.session']
         return no_identity unless session
 
-        # Check for Rodauth authentication markers
-        return no_identity unless rodauth_authenticated?(session)
-
-        # Load V2::Customer if not already loaded
-        require_relative '../../apps/api/v2/models/customer' unless defined?(V2::Customer)
+        # Check for Advanced authentication markers
+        return no_identity unless advanced_authenticated?(session)
 
         # Lookup customer by derived extid
-        customer = V2::Customer.find_by_extid(session['rodauth_external_id'])
+        customer = V2::Customer.find_by_extid(session['account_external_id'])
         return no_identity unless customer
 
         {
-          user: build_rodauth_user(customer, session),
-          source: 'rodauth',
+          user: build_advanced_user(customer, session),
+          source: 'advanced',
           authenticated: true,
           metadata: {
             customer_id: customer.objid,
             external_id: customer.extid,
-            account_id: session['rodauth_account_id'],
+            account_id: session['advanced_account_id'],
             tenant_id: customer.primary_org_id,
-            auth_method: 'rodauth',
+            auth_method: 'advanced',
             authenticated_at: session['authenticated_at'],
-            expires_at: session['authenticated_at'] ? session['authenticated_at'] + 86400 : nil
-          }
+            expires_at: session['authenticated_at'] ? session['authenticated_at'] + 86_400 : nil,
+          },
         }
-
-      rescue StandardError => e
-        logger.error "[IdentityResolution] Rodauth identity error: #{e.message}"
+    rescue StandardError => ex
+        logger.error "[IdentityResolution] Advanced identity error: #{ex.message}"
         no_identity
-      end
     end
 
-    def resolve_external_identity(request, env)
-      begin
+    def resolve_external_identity(request, _env)
         # Extract session token from cookie or header
         token = extract_auth_token(request)
         return no_identity unless token
@@ -152,28 +116,19 @@ module Rack
             metadata: {
               token: token,
               expires_at: auth_response[:expires_at],
-              features: auth_response[:features] || []
-            }
+              features: auth_response[:features] || [],
+            },
           }
         else
-          logger.debug "[IdentityResolution] External auth validation failed"
+          logger.debug '[IdentityResolution] External auth validation failed'
           no_identity
         end
-
-      rescue StandardError => e
-        logger.error "[IdentityResolution] External auth error: #{e.message}"
-
-        # Fallback to Redis if configured
-        if external_auth_config['fallback_to_redis']
-          logger.info "[IdentityResolution] Falling back to Redis session"
-          no_identity # Let Redis resolver handle it
-        else
-          no_identity
-        end
-      end
+    rescue StandardError => ex
+        logger.error "[IdentityResolution] External auth error: #{ex.message}"
+        no_identity
     end
 
-    def resolve_redis_identity(request, env)
+    def resolve_basic_identity(request, env)
       # Use Rack::Session from middleware
       session = env['onetime.session']
       return no_identity unless session && session['identity_id']
@@ -184,31 +139,30 @@ module Rack
         return no_identity unless customer
 
         {
-          user: build_redis_user(customer, session),
-          source: 'redis',
+          user: build_basic_user(customer, session),
+          source: 'basic',
           authenticated: session['authenticated'] == true,
           metadata: {
             session_id: session.id&.private_id,
-            expires_at: session['authenticated_at'] ? session['authenticated_at'] + 86400 : nil,
-            ip_address: session['ip_address'] || request.ip
-          }
+            expires_at: session['authenticated_at'] ? session['authenticated_at'] + 86_400 : nil,
+            ip_address: session['ip_address'] || request.ip,
+          },
         }
-
-      rescue StandardError => e
-        logger.error "[IdentityResolution] Redis session error: #{e.message}"
+      rescue StandardError => ex
+        logger.error "[IdentityResolution] Redis session error: #{ex.message}"
         no_identity
       end
     end
 
-    def resolve_anonymous_identity(request, env)
+    def resolve_anonymous_identity(request, _env)
       {
         user: build_anonymous_user(request),
         source: 'anonymous',
         authenticated: false,
         metadata: {
           ip_address: request.ip,
-          user_agent: request.user_agent
-        }
+          user_agent: request.user_agent,
+        },
       }
     end
 
@@ -232,14 +186,14 @@ module Rack
         require_relative '../../apps/api/v2/models/customer' unless defined?(V2::Customer)
 
         V2::Customer.load(session['identity_id'])
-      rescue StandardError => e
-        logger.debug "[IdentityResolution] Could not load customer: #{e.message}"
+      rescue StandardError => ex
+        logger.debug "[IdentityResolution] Could not load customer: #{ex.message}"
         nil
       end
     end
 
-    def validate_with_external_service(token)
-      # This would make an HTTP request to the Rodauth service
+    def validate_with_external_service(_token)
+      # This would make an HTTP request to the Advanced service
       # For now, return a placeholder structure
 
       service_url = external_auth_config['service_url']
@@ -253,37 +207,31 @@ module Rack
       nil # Placeholder
     end
 
-
-    def build_external_user(user_data)
-      # Build user object from external auth service data
-      ExternalUser.new(user_data)
+    def build_advanced_user(customer, session)
+      # Build user object from Advanced-authenticated customer
+      AdvancedUser.new(customer, session)
     end
 
-    def build_rodauth_user(customer, session)
-      # Build user object from Rodauth-authenticated customer
-      RodauthUser.new(customer, session)
-    end
-
-    def build_redis_user(customer, session)
+    def build_basic_user(customer, session)
       # Build user object from customer and session data
-      RedisUser.new(customer, session)
+      BasicUser.new(customer, session)
     end
 
     def build_anonymous_user(request)
       # Build anonymous user object
       AnonymousUser.new(
         ip_address: request.ip,
-        user_agent: request.user_agent
+        user_agent: request.user_agent,
       )
     end
 
-    def rodauth_authenticated?(session)
+    def advanced_authenticated?(session)
       return false unless session['authenticated_at']
-      return false unless session['rodauth_external_id'] || session['rodauth_account_id']
+      return false unless session['account_external_id'] || session['advanced_account_id']
 
       # Check session age against configured expiry
-      max_age = Onetime.auth_config.session['expire_after'] || 86400
-      age = Time.now.to_i - session['authenticated_at'].to_i
+      max_age = Onetime.auth_config.session['expire_after'] || 86_400
+      age     = Time.now.to_i - session['authenticated_at'].to_i
       age < max_age
     end
 
@@ -311,7 +259,7 @@ module Rack
         user: nil,
         source: nil,
         authenticated: false,
-        metadata: {}
+        metadata: {},
       }
     end
 
@@ -320,190 +268,6 @@ module Rack
         OT.logger
       else
         Logger.new($stderr, level: Logger::INFO)
-      end
-    end
-
-    # User object implementations for different identity sources
-
-    class ExternalUser
-      attr_reader :id, :email, :roles, :features, :metadata
-
-      def initialize(data)
-        @id = data[:id] || data['id']
-        @email = data[:email] || data['email']
-        @roles = data[:roles] || data['roles'] || []
-        @features = data[:features] || data['features'] || []
-        @metadata = data[:metadata] || data['metadata'] || {}
-      end
-
-      def authenticated?
-        true
-      end
-
-      def anonymous?
-        false
-      end
-
-      def role?(role_name)
-        roles.include?(role_name.to_s)
-      end
-
-      def feature_enabled?(feature_name)
-        features.include?(feature_name.to_s)
-      end
-    end
-
-    class RodauthUser
-      attr_reader :customer, :session
-
-      def initialize(customer, session)
-        @customer = customer
-        @session = session
-      end
-
-      def id
-        customer.objid
-      end
-
-      def email
-        customer.custid
-      end
-
-      def authenticated?
-        true  # Always authenticated if we reach this point
-      end
-
-      def anonymous?
-        false
-      end
-
-      def role?(role_name)
-        customer.role?(role_name) if customer.respond_to?(:role?)
-      end
-
-      def feature_enabled?(feature_name)
-        # Rodauth users have full feature set
-        %w[secrets create_secret view_secret admin].include?(feature_name.to_s)
-      end
-
-      def roles
-        customer.roles || []
-      end
-
-      def features
-        %w[secrets create_secret view_secret admin]
-      end
-
-      def metadata
-        {
-          customer_id: customer.objid,
-          external_id: customer.extid,
-          account_id: session['rodauth_account_id'],
-          auth_method: 'rodauth',
-          authenticated_at: session['authenticated_at'],
-          expires_at: session['authenticated_at'] ? session['authenticated_at'] + 86400 : nil
-        }
-      end
-    end
-
-    class RedisUser
-      attr_reader :customer, :session
-
-      def initialize(customer, session)
-        @customer = customer
-        @session = session
-      end
-
-      def id
-        customer.custid
-      end
-
-      def email
-        customer.custid
-      end
-
-      def authenticated?
-        session['authenticated'] == true && !customer.anonymous?
-      end
-
-      def anonymous?
-        !authenticated?
-      end
-
-      def role?(role_name)
-        customer.role?(role_name)
-      end
-
-      def feature_enabled?(feature_name)
-        # Default Redis users have basic features
-        %w[secrets create_secret view_secret].include?(feature_name.to_s)
-      end
-
-      def roles
-        return [] unless authenticated?
-        customer.roles || []
-      end
-
-      def features
-        return [] unless authenticated?
-        %w[secrets create_secret view_secret]
-      end
-
-      def metadata
-        {
-          session_created: session['authenticated_at'],
-          last_access: session['last_seen'],
-          ip_address: session['ip_address']
-        }
-      end
-    end
-
-    class AnonymousUser
-      attr_reader :ip_address, :user_agent
-
-      def initialize(ip_address: nil, user_agent: nil)
-        @ip_address = ip_address
-        @user_agent = user_agent
-      end
-
-      def id
-        nil
-      end
-
-      def email
-        nil
-      end
-
-      def authenticated?
-        false
-      end
-
-      def anonymous?
-        true
-      end
-
-      def role?(role_name)
-        false
-      end
-
-      def feature_enabled?(feature_name)
-        # Anonymous users can view and create secrets by default
-        %w[create_secret view_secret].include?(feature_name.to_s)
-      end
-
-      def roles
-        []
-      end
-
-      def features
-        %w[create_secret view_secret]
-      end
-
-      def metadata
-        {
-          ip_address: ip_address,
-          user_agent: user_agent
-        }
       end
     end
   end

@@ -7,8 +7,6 @@ require 'sequel'
 require 'logger'
 require 'json'
 
-require_relative 'helpers/vite_assets'
-
 # Database connection
 database_url = ENV['DATABASE_URL'] || 'sqlite://data/auth.db'
 DB = Sequel.connect(database_url)
@@ -19,8 +17,6 @@ if ENV['RACK_ENV'] == 'development'
 end
 
 class AuthService < Roda
-  include AuthHelpers::ViteAssets
-
   # Redis session middleware (unified with other apps)
   require_relative '../../../lib/onetime/session'
   use Onetime::Session, {
@@ -31,13 +27,10 @@ class AuthService < Roda
     same_site: :lax,
     redis_prefix: 'session'
   }
-  plugin :flash
   plugin :json
   plugin :halt
   plugin :error_handler
   plugin :status_handler
-  plugin :render, views: File.expand_path('views', __dir__), layout: 'layout'
-  plugin :assets, css: 'app.css', js: 'app.js', path: File.expand_path('assets', __dir__)
 
   # Status handlers
   status_handler(404) do
@@ -60,7 +53,7 @@ class AuthService < Roda
 
     def redis_session_valid?
       return false unless session['authenticated_at']
-      return false unless session['rodauth_external_id'] || session['rodauth_account_id']
+      return false unless session['account_external_id'] || session['advanced_account_id']
 
       # Check session age against configured expiry
       max_age = Onetime.auth_config.session['expire_after'] || 86400
@@ -68,11 +61,10 @@ class AuthService < Roda
       age < max_age
     end
 
-    # Enable base feature for HTML rendering
-    enable :base
-
-    # JSON feature
+    # JSON-only mode
     enable :json
+    json_response_success_key :success
+    json_response_error_key :error
 
     # Core authentication features
     enable :login, :logout, :create_account, :close_account, :login_password_requirements_base
@@ -80,16 +72,8 @@ class AuthService < Roda
     enable :remember  # "Remember me" functionality
     enable :verify_account  # Disabled until email is properly configured
 
-    # JSON response configuration
-    json_response_success_key :success
-    json_response_error_key :error
 
-    # Template configuration (after enabling features)
-    # Uncomment and customize these when adding view templates:
-    # login_view { 'login' }
-    # create_account_view 'create-account'
-    # reset_password_request_view { 'reset-password-request' }
-    # reset_password_view { 'reset-password' }
+    # JSON-only mode - no HTML templates
 
 
     # Use email as the account identifier
@@ -188,8 +172,8 @@ class AuthService < Roda
       )
 
       # Store identity information in session for Otto integration
-      session['rodauth_account_id'] = account_id
-      session['rodauth_external_id'] = account[:external_id]
+      session['advanced_account_id'] = account_id
+      session['account_external_id'] = account[:external_id]
       session['authenticated_at'] = Time.now.to_i
     end
 
@@ -234,18 +218,15 @@ class AuthService < Roda
       puts "  SCRIPT_NAME: '#{r.env['SCRIPT_NAME']}'"
     end
 
-    # Serve assets
-    r.assets
 
     # Handle empty path (when accessed as /auth without trailing slash)
     if r.path_info == ""
-      r.redirect "#{rodauth.prefix}/"
+      { message: 'OneTimeSecret Authentication Service API', endpoints: %w[/health /validate /account] }
     end
 
-    # Home page - show navigation and available endpoints for testing
+    # Home page - JSON API info
     r.root do
-      @page_title = 'OneTimeSecret Authentication Service'
-      view 'index'
+      { message: 'OneTimeSecret Authentication Service API', endpoints: %w[/health /validate /account] }
     end
 
     # Health check endpoint
@@ -352,41 +333,27 @@ class AuthService < Roda
     r.get 'account' do
       begin
         unless rodauth.logged_in?
-          if request.accept?('application/json')
-            response.status = 401
-            next { error: 'Authentication required' }
-          else
-            flash[:error] = 'Please sign in to view your account.'
-            r.redirect '/login'
-          end
+          response.status = 401
+          next { error: 'Authentication required' }
         end
 
         account = rodauth.account
 
-        if request.accept?('application/json')
-          {
-            id: account[:id],
-            email: account[:email],
-            created_at: account[:created_at],
-            status: account[:status_id],
-            email_verified: account[:status_id] == 2,  # Assuming 2 is verified
-            mfa_enabled: rodauth.otp_exists?,
-            recovery_codes_count: rodauth.recovery_codes_available
-          }
-        else
-          view 'account'
-        end
+        {
+          id: account[:id],
+          email: account[:email],
+          created_at: account[:created_at],
+          status: account[:status_id],
+          email_verified: account[:status_id] == 2,  # Assuming 2 is verified
+          mfa_enabled: rodauth.otp_exists?,
+          recovery_codes_count: rodauth.recovery_codes_available
+        }
       rescue => e
         puts "Error: #{e.class} - #{e.message}"
         puts e.backtrace.join("\n") if ENV['RACK_ENV'] == 'development'
 
-        if request.accept?('application/json')
-          response.status = 500
-          { error: 'Internal server error' }
-        else
-          flash[:error] = 'An error occurred while loading your account.'
-          r.redirect '/'
-        end
+        response.status = 500
+        { error: 'Internal server error' }
       end
     end
 

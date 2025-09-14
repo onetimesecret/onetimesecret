@@ -1,7 +1,7 @@
-# lib/onetime/services/auth/rodauth_adapter.rb
+# lib/onetime/services/auth/advanced_authadapter.rb
 
 module Auth
-  class RodauthAdapter
+  class AdvancedAuthAdapter
     attr_reader :env
 
     def initialize(env)
@@ -21,19 +21,19 @@ module Auth
 
       # Placeholder implementation - delegates to BasicAuth (inherits timing attack protection)
       basic_adapter = BasicAuthAdapter.new(env)
-      result = basic_adapter.authenticate(email, password, tenant_id)
+      result        = basic_adapter.authenticate(email, password, tenant_id)
 
       if result[:success]
         # When Rodauth is implemented, we'll get identity from external service
         # For now, use the same session structure
-        session = env['onetime.session']
-        session['auth_method'] = 'rodauth'
+        session                     = env['onetime.session']
+        session['auth_method']      = 'advanced'
         session['external_service'] = true
       end
 
       result
-    rescue => e
-      OT.le "[RodauthAdapter] Authentication error: #{e.message}"
+    rescue StandardError => ex
+      OT.le "[AdvancedAuthAdapter] Authentication error: #{ex.message}"
       authentication_failure
     end
 
@@ -56,8 +56,8 @@ module Auth
         tenant_id: session['tenant_id'],
         email: session['email'],
         authenticated_at: session['authenticated_at'],
-        auth_method: session['auth_method'] || 'rodauth',
-        external_service: session['external_service'] || true
+        auth_method: session['auth_method'] || 'advanced',
+        external_service: session['external_service'] || true,
       }
     end
 
@@ -77,7 +77,7 @@ module Auth
       # )
       # JSON.parse(response.body)
 
-      raise NotImplementedError, "External Rodauth service not yet configured"
+      raise NotImplementedError, 'External Rodauth service not yet configured'
     end
 
     def rodauth_service_url
@@ -87,7 +87,7 @@ module Auth
     def authentication_failure
       {
         success: false,
-        error: 'Authentication failed'
+        error: 'Authentication failed',
       }
     end
   end

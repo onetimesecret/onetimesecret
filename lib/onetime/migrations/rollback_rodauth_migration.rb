@@ -16,12 +16,12 @@ module Onetime
 
       def initialize(dry_run: true)
         @dry_run = dry_run
-        @config = Onetime.auth_config
-        @stats = {
+        @config  = Onetime.auth_config
+        @stats   = {
           sessions_found: 0,
           sessions_cleaned: 0,
           sessions_preserved: 0,
-          errors: 0
+          errors: 0,
         }
 
         setup_connections
@@ -29,23 +29,23 @@ module Onetime
       end
 
       def rollback!
-        puts "=" * 60
-        puts "OneTimeSecret: Rodauth Migration Rollback"
-        puts "=" * 60
+        puts '=' * 60
+        puts 'OneTimeSecret: Rodauth Migration Rollback'
+        puts '=' * 60
         puts "Mode: #{@dry_run ? 'DRY RUN' : 'LIVE ROLLBACK'}"
         puts "Time: #{Time.now}"
         puts
 
-        puts "⚠️  WARNING: This will revert authentication back to basic (Redis-only) mode."
-        puts "⚠️  Rodauth accounts will remain in the database but will not be used."
-        puts "⚠️  Users may need to re-authenticate if sessions are cleared."
+        puts '⚠️  WARNING: This will revert authentication back to basic (Redis-only) mode.'
+        puts '⚠️  Rodauth accounts will remain in the database but will not be used.'
+        puts '⚠️  Users may need to re-authenticate if sessions are cleared.'
         puts
 
         unless @dry_run
           print "Are you sure you want to proceed? (type 'rollback' to confirm): "
           response = $stdin.gets.chomp
           unless response == 'rollback'
-            puts "Rollback cancelled."
+            puts 'Rollback cancelled.'
             exit 0
           end
         end
@@ -61,37 +61,37 @@ module Onetime
       def setup_connections
         # Setup Redis connection (Familia)
         Familia.uri = @config.session['redis_url'] || 'redis://localhost:6379/0'
-        @redis = Familia.dbclient
+        @redis      = Familia.dbclient
 
         # Setup database connection if available
         begin
           @db = Sequel.connect(@config.database_url)
-        rescue
+        rescue StandardError
           @db = nil
-          puts "Database connection not available (OK for rollback)"
+          puts 'Database connection not available (OK for rollback)'
         end
       end
 
       def setup_logging
-        @logger = Logger.new($stdout)
+        @logger       = Logger.new($stdout)
         @logger.level = @dry_run ? Logger::INFO : Logger::WARN
       end
 
       def validate_preconditions!
         # Check Redis connection
         @redis.ping
-        puts "✓ Redis connection established"
+        puts '✓ Redis connection established'
 
-        puts "✓ Pre-conditions validated"
+        puts '✓ Pre-conditions validated'
         puts
       end
 
       def clean_rodauth_session_markers
-        puts "Cleaning Rodauth markers from Redis sessions..."
+        puts 'Cleaning Rodauth markers from Redis sessions...'
 
         # Find all session keys
         session_pattern = "#{@config.session['redis_prefix'] || 'session'}:*"
-        session_keys = @redis.keys(session_pattern)
+        session_keys    = @redis.keys(session_pattern)
 
         @stats[:sessions_found] = session_keys.size
         puts "Found #{session_keys.size} sessions to examine"
@@ -113,10 +113,10 @@ module Onetime
           # Parse session data
           session = begin
             Marshal.load(session_data)
-          rescue
+          rescue StandardError
             begin
               JSON.parse(session_data)
-            rescue
+            rescue StandardError
               return handle_parse_error
             end
           end
@@ -124,22 +124,21 @@ module Onetime
           return handle_invalid_session unless session.is_a?(Hash)
 
           # Check if session has Rodauth markers
-          has_rodauth_markers = session.key?('rodauth_account_id') ||
-                               session.key?('rodauth_external_id') ||
-                               session.key?('authenticated_at')
+          has_rodauth_markers = session.key?('advanced_account_id') ||
+                                session.key?('account_external_id') ||
+                                session.key?('authenticated_at')
 
           unless has_rodauth_markers
-            puts "SKIP (no Rodauth markers)"
+            puts 'SKIP (no Rodauth markers)'
             @stats[:sessions_preserved] += 1
             return
           end
 
           # Clean session by removing Rodauth-specific keys
           clean_session(session_key, session)
-
-        rescue => e
-          puts "ERROR: #{e.message}"
-          @logger.error "Failed to process session #{session_key}: #{e.message}"
+        rescue StandardError => ex
+          puts "ERROR: #{ex.message}"
+          @logger.error "Failed to process session #{session_key}: #{ex.message}"
           @stats[:errors] += 1
         end
       end
@@ -149,8 +148,8 @@ module Onetime
         cleaned_session = session.dup
 
         # Remove Rodauth markers
-        cleaned_session.delete('rodauth_account_id')
-        cleaned_session.delete('rodauth_external_id')
+        cleaned_session.delete('advanced_account_id')
+        cleaned_session.delete('account_external_id')
 
         # Keep authenticated_at if it existed before (might be used by basic auth)
         # Remove it only if it was likely added by Rodauth
@@ -159,7 +158,7 @@ module Onetime
         # Keep other session data
 
         if @dry_run
-          puts "WOULD CLEAN (removing Rodauth markers)"
+          puts 'WOULD CLEAN (removing Rodauth markers)'
         else
           # Write cleaned session back to Redis
           serialized = Marshal.dump(cleaned_session)
@@ -172,52 +171,52 @@ module Onetime
             @redis.set(session_key, serialized)
           end
 
-          puts "CLEANED (Rodauth markers removed)"
+          puts 'CLEANED (Rodauth markers removed)'
         end
 
         @stats[:sessions_cleaned] += 1
       end
 
       def handle_no_data
-        puts "SKIP (no data)"
+        puts 'SKIP (no data)'
         @stats[:sessions_preserved] += 1
       end
 
       def handle_parse_error
-        puts "SKIP (parse error)"
+        puts 'SKIP (parse error)'
         @stats[:sessions_preserved] += 1
       end
 
       def handle_invalid_session
-        puts "SKIP (invalid format)"
+        puts 'SKIP (invalid format)'
         @stats[:sessions_preserved] += 1
       end
 
       def print_rollback_instructions
         puts
-        puts "=" * 60
-        puts "Manual Rollback Steps Required"
-        puts "=" * 60
+        puts '=' * 60
+        puts 'Manual Rollback Steps Required'
+        puts '=' * 60
         puts
-        puts "1. Update configuration:"
-        puts "   Edit config/authentication.yml:"
-        puts "   authentication:"
-        puts "     mode: basic  # Change from 'rodauth' to 'basic'"
+        puts '1. Update configuration:'
+        puts '   Edit config/authentication.yml:'
+        puts '   authentication:'
+        puts "     mode: basic  # Change from 'advanced' to 'basic'"
         puts
-        puts "2. Restart the application to pick up new configuration"
+        puts '2. Restart the application to pick up new configuration'
         puts
-        puts "3. Optional: Remove Rodauth database (if no longer needed):"
-        puts "   rm data/auth.db"
-        puts "   # Or keep it for future migration attempts"
+        puts '3. Optional: Remove Rodauth database (if no longer needed):'
+        puts '   rm data/auth.db'
+        puts '   # Or keep it for future migration attempts'
         puts
-        puts "4. Verify authentication works in basic mode"
+        puts '4. Verify authentication works in basic mode'
         puts
       end
 
       def print_summary
-        puts "=" * 60
-        puts "Rollback Summary"
-        puts "=" * 60
+        puts '=' * 60
+        puts 'Rollback Summary'
+        puts '=' * 60
         puts "Sessions found:     #{@stats[:sessions_found]}"
         puts "Sessions cleaned:   #{@stats[:sessions_cleaned]}"
         puts "Sessions preserved: #{@stats[:sessions_preserved]}"
@@ -225,13 +224,13 @@ module Onetime
         puts
 
         if @dry_run
-          puts "This was a DRY RUN. No sessions were modified."
-          puts "To perform the actual rollback, run with --live flag."
+          puts 'This was a DRY RUN. No sessions were modified.'
+          puts 'To perform the actual rollback, run with --live flag.'
         else
-          puts "Session cleanup completed!"
+          puts 'Session cleanup completed!'
           puts
-          puts "⚠️  IMPORTANT: You must still manually update the configuration"
-          puts "   and restart the application to complete the rollback."
+          puts '⚠️  IMPORTANT: You must still manually update the configuration'
+          puts '   and restart the application to complete the rollback.'
         end
 
         puts
@@ -245,21 +244,21 @@ if __FILE__ == $0
   require 'optparse'
 
   options = {
-    dry_run: true
+    dry_run: true,
   }
 
   OptionParser.new do |opts|
     opts.banner = "Usage: #{$0} [options]"
 
-    opts.on("--live", "Perform actual rollback (default: dry run)") do
+    opts.on('--live', 'Perform actual rollback (default: dry run)') do
       options[:dry_run] = false
     end
 
-    opts.on("--dry-run", "Perform dry run only (default)") do
+    opts.on('--dry-run', 'Perform dry run only (default)') do
       options[:dry_run] = true
     end
 
-    opts.on("-h", "--help", "Show this help") do
+    opts.on('-h', '--help', 'Show this help') do
       puts opts
       exit
     end
@@ -273,7 +272,7 @@ if __FILE__ == $0
 
   # Run the rollback
   rollback = Onetime::Migrations::RollbackRodauthMigration.new(
-    dry_run: options[:dry_run]
+    dry_run: options[:dry_run],
   )
 
   rollback.rollback!

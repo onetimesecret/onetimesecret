@@ -34,7 +34,6 @@ This document provides quick setup instructions for the authentication migration
        external:
          enabled: true
          service_url: "http://localhost:9393"
-         fallback_to_redis: true
    ```
 
 3. **Add middleware to your Rack app:**
@@ -56,7 +55,6 @@ site:
   authentication:
     external:
       enabled: true
-      fallback_to_redis: true  # Key setting
 ```
 
 ### External Only (Post-Migration)
@@ -65,7 +63,6 @@ site:
   authentication:
     external:
       enabled: true
-      fallback_to_redis: false
       features:
         magic_links: true
         two_factor: true
