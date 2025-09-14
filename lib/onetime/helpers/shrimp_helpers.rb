@@ -31,6 +31,10 @@ module Onetime
         true
       end
 
+      def add_shrimp
+        regenerate_shrimp!
+      end
+
       # Generate a new CSRF token
       def regenerate_shrimp!
         session['shrimp'] = generate_shrimp
