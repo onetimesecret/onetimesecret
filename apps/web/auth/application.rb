@@ -27,27 +27,10 @@ module Auth
     # # While reverse proxies often handle static files in production,
     # # this provides a fallback capability for simpler deployments.
     Onetime.production? do
-
       # # Production configuration
-      # use Rack::Deflater  # Gzip compression
+      use Rack::Deflater  # Gzip compression
 
       # # Security headers
-      # use Rack::Protection::AuthenticityToken
-      # use Rack::Protection::ContentSecurityPolicy
-      # use Rack::Protection::FrameOptions
-      # use Rack::Protection::HttpOrigin
-      # use Rack::Protection::IPSpoofing
-      # use Rack::Protection::JsonCsrf
-      # use Rack::Protection::PathTraversal
-      # use Rack::Protection::SessionHijacking
-
-
-    end
-
-    warmup do
-      # Expensive initialization tasks go here
-
-      # Security headers
       use Rack::Protection::AuthenticityToken
       use Rack::Protection::ContentSecurityPolicy
       use Rack::Protection::FrameOptions
@@ -56,7 +39,10 @@ module Auth
       use Rack::Protection::JsonCsrf
       use Rack::Protection::PathTraversal
       use Rack::Protection::SessionHijacking
+    end
 
+    warmup do
+      # Expensive initialization tasks go here
 
       # Log warmup completion
       Onetime.li 'Auth warmup completed'
