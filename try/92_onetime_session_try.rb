@@ -1,7 +1,7 @@
-# try/92_rack_session_redis_familia_try.rb
+# try/92_onetime_session_try.rb
 
 require_relative 'test_helpers'
-require_relative '../lib/rack/session/redis_familia'
+require_relative '../lib/onetime/session'
 require 'rack/test'
 require 'rack/mock'
 require 'cgi'
@@ -28,20 +28,20 @@ OT.boot! :test, false
   end
 }
 
-@session_app = Rack::Session::RedisFamilia.new(@test_app, {
+@session_app = Onetime::Session.new(@test_app, {
   expire_after: 60,
   redis_prefix: 'test:session'
 })
 
-## RedisFamilia session store generates unique session IDs
-session_store = Rack::Session::RedisFamilia.new(@test_app)
+## OT:Session session store generates unique session IDs
+session_store = Onetime::Session.new(@test_app)
 sid1 = session_store.generate_sid
 sid2 = session_store.generate_sid
 sid1 != sid2
 #=> true
 
 ## Session ID has proper length and format
-session_store = Rack::Session::RedisFamilia.new(@test_app)
+session_store = Onetime::Session.new(@test_app)
 sid = session_store.generate_sid
 sid.length >= 32 && sid.match?(/^[A-Za-z0-9_-]+$/)
 #=> true

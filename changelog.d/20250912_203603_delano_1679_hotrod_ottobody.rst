@@ -4,7 +4,7 @@ Changed
 -------
 
 - Integrated Otto customer creation with Rodauth account registration, automatically linking new accounts with derived Otto external IDs
-- Unified session management by replacing Roda sessions with Redis-backed Rack::Session::RedisFamilia for consistency across applications
+- Unified session management by replacing Roda sessions with Redis-backed Onetime::Session for consistency across applications
 - Enhanced session validation with Otto integration checks and configurable session expiration
 - Updated session cookie configuration for unified naming convention (onetime.session, onetime.remembers)
 

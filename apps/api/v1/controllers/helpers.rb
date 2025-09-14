@@ -343,7 +343,7 @@ module V1
 
       @request_context_setup = true
 
-      # Session is already loaded by Rack::Session::RedisFamilia middleware
+      # Session is already loaded by Onetime::Session middleware
       # Load customer based on session state
       @cust = current_customer
 

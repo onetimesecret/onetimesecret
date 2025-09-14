@@ -196,7 +196,7 @@ module V2
 
       @request_context_setup = true
 
-      # Session is already loaded by Rack::Session::RedisFamilia middleware
+      # Session is already loaded by Onetime::Session middleware
       # No need to manually load or create sessions
 
       # Load customer based on session state

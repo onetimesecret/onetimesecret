@@ -11,8 +11,8 @@ module V2
     @uri_prefix = '/api/v2'.freeze
 
     # Session middleware
-    require_relative '../../../lib/rack/session/redis_familia'
-    use Rack::Session::RedisFamilia, {
+    require_relative '../../../lib/onetime/session'
+    use Onetime::Session, {
       expire_after: 86400, # 24 hours
       key: 'onetime.session',
       secure: OT.conf&.dig('site', 'ssl') || false,
