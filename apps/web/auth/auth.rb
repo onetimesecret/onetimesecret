@@ -1,4 +1,5 @@
 #!/usr/bin/env ruby
+# frozen_string_literal: true
 
 require 'bundler/setup'
 require 'roda'
@@ -7,26 +8,29 @@ require 'sequel'
 require 'logger'
 require 'json'
 
-# Database connection
-database_url = ENV['DATABASE_URL'] || 'sqlite://data/auth.db'
-DB = Sequel.connect(database_url)
-
-# Enable SQL logging in development
-if ENV['RACK_ENV'] == 'development'
-  DB.loggers << Logger.new($stdout)
-end
+# Load modular configuration
+require_relative 'config/database'
+require_relative 'config/rodauth_main'
+require_relative 'helpers/session_validation'
+require_relative 'routes/health'
+require_relative 'routes/validation'
+require_relative 'routes/account'
+require_relative 'routes/admin'
 
 class AuthService < Roda
+  # Include session validation helpers
+  include Auth::Helpers::SessionValidation
+
+  # Include route modules
+  include Auth::Routes::Health
+  include Auth::Routes::Validation
+  include Auth::Routes::Account
+  include Auth::Routes::Admin
+
   # Redis session middleware (unified with other apps)
   require 'onetime/session'
-  use Onetime::Session, {
-    expire_after: 86_400, # 24 hours
-    key: 'onetime.session',  # Unified cookie name
-    secure: ENV['RACK_ENV'] == 'production',
-    httponly: true,
-    same_site: :lax,
-    redis_prefix: 'session'
-  }
+  use Onetime::Session, Auth::Config::Database.session_config
+
   plugin :json
   plugin :halt
   plugin :error_handler
@@ -38,173 +42,7 @@ class AuthService < Roda
   end
 
   # Rodauth plugin configuration
-  plugin :rodauth do
-    db DB
-
-    # HMAC secret for token security
-    hmac_secret ENV['HMAC_SECRET'] || ENV['AUTH_SECRET'] || 'dev-hmac-secret-change-in-prod'
-
-    prefix '/auth'
-
-    # Redis session compatibility overrides
-    def authenticated?
-      super && redis_session_valid?
-    end
-
-    def redis_session_valid?
-      return false unless session['authenticated_at']
-      return false unless session['account_external_id'] || session['advanced_account_id']
-
-      # Check session age against configured expiry
-      max_age = Onetime.auth_config.session['expire_after'] || 86400
-      age = Familia.now - session['authenticated_at'].to_i
-      age < max_age
-    end
-
-    # JSON-only mode
-    enable :json
-    json_response_success_key :success
-    json_response_error_key :error
-
-    # Core authentication features
-    enable :login, :logout, :create_account, :close_account, :login_password_requirements_base
-    enable :change_password, :reset_password
-    enable :remember  # "Remember me" functionality
-    enable :verify_account  # Disabled until email is properly configured
-
-
-    # JSON-only mode - no HTML templates
-
-
-    # Use email as the account identifier
-    account_id_column :id
-    login_column :email
-    login_label 'Email'
-    require_login_confirmation? false
-    require_password_confirmation? false
-
-    # Security features
-    enable :lockout   # Brute force protection
-    enable :active_sessions  # Track active sessions
-
-    # Multi-Factor Authentication
-    enable :otp  # Time-based One-Time Password (TOTP)
-    enable :recovery_codes  # Backup codes for MFA
-
-    # Session configuration (unified with other apps)
-    session_key 'onetime.session'
-    remember_cookie_key 'onetime.remembers'
-
-    # Account verification (email confirmation) - disabled
-    # require_email_confirmation_for_new_accounts true
-    # verify_account_email_subject 'OneTimeSecret - Confirm Your Account'
-
-    # Password requirements
-    password_minimum_length 8
-    # password_complexity_requirements_enforced true  # Feature not available in current Rodauth version
-
-    # Lockout settings (brute force protection)
-    max_invalid_logins 5
-    # lockout_expiration_default 3600  # 1 hour
-
-    # MFA Configuration
-    otp_issuer 'OneTimeSecret'
-    otp_setup_param 'otp_setup'
-    otp_auth_param 'otp_code'
-
-    # Recovery codes configuration
-    recovery_codes_column :code
-    auto_add_recovery_codes? true  # Automatically generate recovery codes
-
-    # Email configuration
-    send_email do |email|
-      if ENV['RACK_ENV'] == 'production'
-        # Use your email delivery service here
-        # Example: SendGrid, SES, etc.
-        deliver_email_via_service(email)
-      else
-        # Development: just log emails
-        puts "\n=== EMAIL DEBUG ==="
-        puts "To: #{email[:to]}"
-        puts "Subject: #{email[:subject]}"
-        puts "Body:\n#{email[:body]}"
-        puts "=== END EMAIL ===\n"
-      end
-    end
-
-    # Custom account creation logic with Otto integration
-    after_create_account do
-      puts "New account created: #{account[:email]} (ID: #{account_id})"
-
-      # Create Otto customer with derived identity
-      begin
-        # # Load Otto's Onetime::Customer class
-        # require 'onetime'
-        # require 'onetime/models'
-
-        # Create or load customer using email as custid
-        customer = if Onetime::Customer.exists?(account[:email])
-          Onetime::Customer.load(account[:email])
-        else
-          Onetime::Customer.create(account[:email])
-        end
-        puts "Created Otto customer: #{customer.custid} with extid: #{customer.extid}"
-
-        # Store Otto's derived extid in Rodauth (NOT the objid!)
-        DB[:accounts].where(id: account_id).update(external_id: customer.extid)
-        puts "Linked Rodauth account #{account_id} to Otto extid: #{customer.extid}"
-
-      rescue => e
-        puts "Error creating Otto customer: #{e.message}"
-        puts e.backtrace.join("\n") if ENV['RACK_ENV'] == 'development'
-        # Don't fail account creation, but log the issue
-      end
-    end
-
-    # Custom login logic with Otto integration
-    after_login do
-      puts "User logged in: #{account[:email]} from #{request.ip}"
-
-      # Track login analytics or update last login time
-      DB[:accounts].where(id: account_id).update(
-        last_login_at: Sequel::CURRENT_TIMESTAMP,
-        last_login_ip: request.ip
-      )
-
-      # Store identity information in session for Otto integration
-      session['advanced_account_id'] = account_id
-      session['account_external_id'] = account[:external_id]
-      session['authenticated_at'] = Familia.now
-    end
-
-    # Handle login failures
-    after_login_failure do
-      puts "Login failure for: #{param('email')} from #{request.ip}"
-    end
-
-    # Account closure with Otto customer cleanup
-    after_close_account do
-      puts "Account closed: #{account[:email]} (ID: #{account_id})"
-
-      # Clean up Otto customer using extid
-      begin
-        if account[:external_id]
-
-          customer = Onetime::Customer.find_by_extid(account[:external_id])
-          if customer
-            customer.destroy!
-            puts "Deleted Otto customer: #{customer.custid} (extid: #{customer.extid})"
-          else
-            puts "Otto customer not found for extid: #{account[:external_id]}"
-          end
-        end
-      rescue => e
-        puts "Error cleaning up Otto customer: #{e.message}"
-        puts e.backtrace.join("\n") if ENV['RACK_ENV'] == 'development'
-        # Don't fail account closure, but log the issue
-      end
-    end
-  end
+  plugin :rodauth, &Auth::Config::RodauthMain.configure
 
   route do |r|
     # Debug logging
@@ -214,7 +52,6 @@ class AuthService < Roda
       puts "  REQUEST_URI: '#{r.env['REQUEST_URI']}'"
       puts "  SCRIPT_NAME: '#{r.env['SCRIPT_NAME']}'"
     end
-
 
     # Handle empty path (when accessed as /auth without trailing slash)
     if r.path_info == ""
@@ -226,156 +63,11 @@ class AuthService < Roda
       { message: 'OneTimeSecret Authentication Service API', endpoints: %w[/health /validate /account] }
     end
 
-    # Health check endpoint
-    r.get 'health' do
-      begin
-        # Test database connection
-        db_status = DB.test_connection ? 'ok' : 'error'
-
-        {
-          status: 'ok',
-          timestamp: Familia.now # UTC in seconds (float)
-          database: db_status,
-          version: Onetime::VERSION,
-        }
-      rescue => e
-        response.status = 503
-        {
-          status: 'error',
-          error: e.message,
-          timestamp: Familia.now # UTC in seconds (float)
-        }
-      end
-    end
-
-    # Token validation endpoint for main OneTimeSecret app
-    r.post 'validate' do
-      begin
-        token = r.params['token'] || r.params['session_id']
-
-        unless token
-          response.status = 400
-          next { error: 'Token required' }
-        end
-
-        # Check if token corresponds to valid session
-        session_info = validate_session_token(token)
-
-        if session_info
-          {
-            valid: true,
-            user_data: {
-              id: session_info[:account_id],
-              email: session_info[:email],
-              created_at: session_info[:created_at],
-              roles: session_info[:roles] || [],
-              features: session_info[:features] || []
-            },
-            expires_at: session_info[:expires_at]
-          }
-        else
-          response.status = 401
-          {
-            valid: false,
-            error: 'Invalid or expired token'
-          }
-        end
-      rescue Sequel::ValidationFailed => e
-        response.status = 400
-        { error: 'Validation failed', details: e.errors }
-      rescue Sequel::UniqueConstraintViolation => e
-        response.status = 409
-        { error: 'Account already exists' }
-      rescue => e
-        puts "Error: #{e.class} - #{e.message}"
-        puts e.backtrace.join("\n") if ENV['RACK_ENV'] == 'development'
-
-        response.status = 500
-        {
-          valid: false,
-          error: 'Token validation failed',
-          details: ENV['RACK_ENV'] == 'development' ? e.message : nil
-        }
-      end
-    end
-
-    # Account info endpoint (JSON extension support)
-    r.get 'account.json' do
-      begin
-        unless rodauth.logged_in?
-          response.status = 401
-          next { error: 'Authentication required' }
-        end
-
-        account = rodauth.account
-        {
-          id: account[:id],
-          email: account[:email],
-          created_at: account[:created_at],
-          status: account[:status_id],
-          email_verified: account[:status_id] == 2,  # Assuming 2 is verified
-          mfa_enabled: rodauth.otp_exists?,
-          recovery_codes_count: rodauth.recovery_codes_available
-        }
-      rescue => e
-        puts "Error: #{e.class} - #{e.message}"
-        puts e.backtrace.join("\n") if ENV['RACK_ENV'] == 'development'
-
-        response.status = 500
-        { error: 'Internal server error' }
-      end
-    end
-
-    # Account info endpoint
-    r.get 'account' do
-      begin
-        unless rodauth.logged_in?
-          response.status = 401
-          next { error: 'Authentication required' }
-        end
-
-        account = rodauth.account
-
-        {
-          id: account[:id],
-          email: account[:email],
-          created_at: account[:created_at],
-          status: account[:status_id],
-          email_verified: account[:status_id] == 2,  # Assuming 2 is verified
-          mfa_enabled: rodauth.otp_exists?,
-          recovery_codes_count: rodauth.recovery_codes_available
-        }
-      rescue => e
-        puts "Error: #{e.class} - #{e.message}"
-        puts e.backtrace.join("\n") if ENV['RACK_ENV'] == 'development'
-
-        response.status = 500
-        { error: 'Internal server error' }
-      end
-    end
-
-    # Administrative endpoints (if needed)
-    r.on 'admin' do
-      # Add admin authentication here
-
-      r.get 'stats' do
-        begin
-          {
-            total_accounts: DB[:accounts].count,
-            verified_accounts: DB[:accounts].where(status_id: 2).count,
-            active_sessions: DB[:account_active_session_keys].count,
-            mfa_enabled_accounts: DB[:account_otp_keys].count,
-            unused_recovery_codes: DB[:account_recovery_codes].where(used_at: nil).count
-          }
-        rescue => e
-          puts "Error: #{e.class} - #{e.message}"
-          puts e.backtrace.join("\n") if ENV['RACK_ENV'] == 'development'
-
-          response.status = 500
-          { error: 'Internal server error' }
-        end
-      end
-    end
+    # Use modular route handlers
+    handle_health_routes(r)
+    handle_validation_routes(r)
+    handle_account_routes(r)
+    handle_admin_routes(r)
 
     # All Rodauth routes (login, logout, create-account, etc.)
     r.rodauth
@@ -383,63 +75,5 @@ class AuthService < Roda
     # Catch-all for undefined routes
     response.status = 404
     { error: 'Endpoint not found' }
-  end
-
-  private
-
-  def validate_session_token(token)
-    # This method would validate the session token
-    # Implementation depends on how sessions are stored
-
-    # Example for database-stored sessions:
-    session_data = DB[:account_active_session_keys]
-      .join(:accounts, id: :account_id)
-      .where(session_id: token)
-      .select(
-        :account_id,
-        :accounts__email,
-        :accounts__created_at,
-        :created_at___session_created_at,
-        :last_use
-      )
-      .first
-
-    return nil unless session_data
-
-    # Check if session is still valid (not expired)
-    session_expiry = session_data[:last_use] + (30 * 24 * 60 * 60)  # 30 days
-    return nil if Time.now > session_expiry
-
-    # Check if MFA is enabled for this account
-    mfa_enabled = DB[:account_otp_keys].where(id: session_data[:account_id]).count > 0
-
-    {
-      account_id: session_data[:account_id],
-      email: session_data[:email],
-      created_at: session_data[:created_at],
-      expires_at: session_expiry,
-      mfa_enabled: mfa_enabled,
-      roles: [],  # Could fetch from separate roles table
-      features: ['secrets', 'create_secret', 'view_secret']
-    }
-  end
-
-  def deliver_email_via_service(email)
-    # Example implementation for production email delivery
-    # You would replace this with your preferred email service
-
-    case ENV['EMAIL_SERVICE']
-    when 'sendgrid'
-      deliver_via_sendgrid(email)
-    when 'ses'
-      deliver_via_ses(email)
-    when 'smtp'
-      deliver_via_smtp(email)
-    else
-      # Default: log to file in production
-      File.open('log/emails.log', 'a') do |f|
-        f.puts "#{Time.now.utc.iso8601}: #{email.inspect}"
-      end
-    end
   end
 end

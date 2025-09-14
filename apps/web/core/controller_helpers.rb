@@ -1,4 +1,4 @@
-# apps/web/core/controllers/helpers.rb
+# apps/web/core/controller_helpers.rb
 
 require 'onetime/helpers/session_helpers'
 require 'onetime/helpers/shrimp_helpers'
