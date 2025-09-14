@@ -3,9 +3,6 @@
 module Onetime
   module Helpers
     module SessionHelpers
-      def session
-        @session ||= request.session
-      end
 
       def authenticated?
         session['authenticated'] == true &&

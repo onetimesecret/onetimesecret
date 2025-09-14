@@ -25,6 +25,7 @@ module Core
       include Core::Views::I18nHelpers
       include Core::Views::ViteManifest
       include Onetime::Utils::TimeUtils
+      include Onetime::Helpers::ShrimpHelpers
 
       self.template_path      = './templates/web'
       self.template_extension = 'html'
@@ -35,6 +36,7 @@ module Core
       attr_reader :i18n_instance, :view_vars, :serialized_data, :messages
 
       def initialize(req, sess = nil, cust = nil, locale_override = nil, *)
+        # require 'debug'; debugger
         @req  = req
         @sess = sess
         @cust = cust || Onetime::Customer.anonymous

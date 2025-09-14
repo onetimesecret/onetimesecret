@@ -221,11 +221,8 @@ module Onetime
       end
 
       def build_anonymous_user(request)
-        # Build anonymous user object
-        AnonymousUser.new(
-          ip_address: request.ip,
-          user_agent: request.user_agent,
-        )
+        # Return static, frozen anonymous customer
+        Onetime::Customer.anonymous
       end
 
       def advanced_authenticated?(session)

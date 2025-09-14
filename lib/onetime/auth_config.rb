@@ -13,7 +13,7 @@ module Onetime
 
     def initialize
       @environment = ENV['RACK_ENV'] || 'development'
-      @config_file = File.join(Onetime::HOME, 'etc/auth.yml')
+      @config_file = File.join(Onetime::HOME, 'etc/auth.yaml')
       load_config
     end
 
@@ -89,7 +89,7 @@ module Onetime
     end
 
     def handle_config_error(exception)
-      @config = default_config
+      # @config = default_config
       raise ConfigError, config_error_message(
         "Failed to load authentication configuration: #{exception.message}",
         exception.backtrace&.first,
