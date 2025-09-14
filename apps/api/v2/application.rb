@@ -12,12 +12,12 @@ module V2
     # Session middleware
     require 'onetime/session'
     use Onetime::Session, {
-      expire_after: 86400, # 24 hours
+      expire_after: 86_400, # 24 hours
       key: 'onetime.session',
       secure: OT.conf&.dig('site', 'ssl') || false,
       httponly: true,
       same_site: :lax,
-      redis_prefix: 'session'
+      redis_prefix: 'session',
     }
 
     # Common middleware stack
@@ -45,9 +45,9 @@ module V2
       routes_path = File.join(ENV.fetch('ONETIME_HOME'), 'apps/api/v2/routes')
       router      = Otto.new(routes_path)
 
-      # Register V2 authentication strategies
-      require_relative 'auth_strategies'
-      V2::AuthStrategies.register_all(router)
+      # Register authentication strategies
+      require 'onetime/auth_strategies'
+      Onetime::AuthStrategies.register_all(router)
 
       # Default error responses
       headers             = { 'content-type' => 'application/json' }
