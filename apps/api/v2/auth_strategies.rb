@@ -65,7 +65,7 @@ module V2
           if %w[rodauth redis].include?(source)
             OT.ld "[v2_session] Authenticated '#{identity.id}' via #{source}"
             return success(
-              session: env['rack.session'] || {},
+              session: env['onetime.session'] || {},
               user: identity.customer || identity, # RodauthUser has .customer, RedisUser is the customer
               auth_method: source,
               metadata: env['identity.metadata']
@@ -89,7 +89,7 @@ module V2
           if %w[rodauth redis].include?(source)
             OT.ld "[v2_combined] Authenticated '#{identity.id}' via #{source}"
             return success(
-              session: env['rack.session'] || {},
+              session: env['onetime.session'] || {},
               user: identity.customer || identity,
               auth_method: source,
               metadata: env['identity.metadata']
@@ -119,7 +119,7 @@ module V2
             source = env['identity.source']
             OT.ld "[v2_optional] Authenticated '#{identity.id}' via #{source}"
             return success(
-              session: env['rack.session'] || {},
+              session: env['onetime.session'] || {},
               user: identity.customer || identity,
               auth_method: source,
               metadata: env['identity.metadata']
@@ -128,7 +128,7 @@ module V2
             # Anonymous user from identity resolution
             OT.ld "[v2_optional] Anonymous access via #{env['REMOTE_ADDR']}"
             return success(
-              session: env['rack.session'] || {},
+              session: env['onetime.session'] || {},
               user: V2::Customer.anonymous,
               auth_method: 'anonymous'
             )
@@ -144,7 +144,7 @@ module V2
         # Default to anonymous
         OT.ld "[v2_optional] Fallback anonymous access"
         success(
-          session: env['rack.session'] || {},
+          session: env['onetime.session'] || {},
           user: V2::Customer.anonymous,
           auth_method: 'anonymous'
         )
@@ -165,7 +165,7 @@ module V2
           if customer.respond_to?(:colonel?) && customer.colonel?
             OT.ld "[v2_colonel] Colonel authenticated '#{customer.custid}' via #{source}"
             return success(
-              session: env['rack.session'] || {},
+              session: env['onetime.session'] || {},
               user: customer,
               auth_method: 'colonel',
               metadata: env['identity.metadata']

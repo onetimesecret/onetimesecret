@@ -12,7 +12,7 @@ module Core
     require_relative '../../../lib/onetime/session'
     use Onetime::Session, {
       expire_after: 86400, # 24 hours
-      key: 'ots.session',
+      key: 'onetime.session',
       secure: OT.conf&.dig('site', 'ssl') || false,
       httponly: true,
       same_site: :lax,

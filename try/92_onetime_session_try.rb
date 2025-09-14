@@ -9,7 +9,7 @@ require 'cgi'
 OT.boot! :test, false
 
 @test_app = lambda { |env|
-  session = env['rack.session']
+  session = env['onetime.session']
 
   case env['PATH_INFO']
   when '/set'
@@ -21,7 +21,7 @@ OT.boot! :test, false
     value = session['test_key']
     [200, {'Content-Type' => 'text/plain'}, [value.to_s]]
   when '/destroy'
-    env['rack.session.options'][:drop] = true
+    env['onetime.session.options'][:drop] = true
     [200, {'Content-Type' => 'text/plain'}, ['Session destroyed']]
   else
     [200, {'Content-Type' => 'text/plain'}, ['OK']]
@@ -121,7 +121,7 @@ second_sid.nil?
 
 ## Session handles missing or invalid session gracefully
 invalid_sid = 'invalid_session_id_12345'
-env = Rack::MockRequest.env_for('/', 'HTTP_COOKIE' => "ots.session=#{invalid_sid}")
+env = Rack::MockRequest.env_for('/', 'HTTP_COOKIE' => "onetime.session=#{invalid_sid}")
 status, headers, body = @session_app.call(env)
 status == 200
 #=> true
