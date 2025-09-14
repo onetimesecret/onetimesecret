@@ -58,7 +58,6 @@ module Onetime
       setup_diagnostics
       configure_domains
       configure_truemail
-      prepare_emailers
       load_fortunes
 
       if connect_to_db
