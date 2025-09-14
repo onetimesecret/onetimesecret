@@ -2,7 +2,7 @@
 
 require 'rack/utils'
 
-module V2
+module Onetime
   # Organization Model
   #
   class Organization < Familia::Horreum

@@ -1,6 +1,6 @@
 # lib/onetime/models/features/with_stripe_account.rb
 
-module V2
+module Onetime
   module Models
     module Features
       #

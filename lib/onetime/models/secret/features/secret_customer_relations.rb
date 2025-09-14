@@ -1,6 +1,6 @@
 # lib/onetime/models/secret/features/secret_customer_relations.rb
 
-module V2::Secret::Features
+module Onetime::Secret::Features
   module SecretCustomerRelations
     Familia::Base.add_feature self, :secret_customer_relations
 
@@ -15,8 +15,8 @@ module V2::Secret::Features
 
     module InstanceMethods
       def load_customer
-        cust = V2::Customer.load custid
-        cust.nil? ? V2::Customer.anonymous : cust # TODO: Probably should simply return nil (see defensive "fix" in 23c152)
+        cust = Onetime::Customer.load custid
+        cust.nil? ? Onetime::Customer.anonymous : cust # TODO: Probably should simply return nil (see defensive "fix" in 23c152)
       end
 
       def anonymous?
@@ -24,7 +24,7 @@ module V2::Secret::Features
       end
 
       def owner?(cust)
-        !anonymous? && (cust.is_a?(V2::Customer) ? cust.custid : cust).to_s == custid.to_s
+        !anonymous? && (cust.is_a?(Onetime::Customer) ? cust.custid : cust).to_s == custid.to_s
       end
     end
 

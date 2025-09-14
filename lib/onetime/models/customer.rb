@@ -4,7 +4,7 @@ require 'rack/utils'
 
 require_relative 'mixins/passphrase'
 
-module V2
+module Onetime
   # Customer
   #
   # IMPORTANT API CHANGES:
@@ -160,7 +160,7 @@ module V2
       # Create a dummy customer with realistic passphrase for timing consistency
       def dummy
         @dummy ||= begin
-          passphrase = V2::Mixins::Passphrase.create_passphrase(SecureRandom.hex(16))
+          passphrase = Onetime::Mixins::Passphrase.create_passphrase(SecureRandom.hex(16))
           new(role: 'anon', passphrase: passphrase).freeze
         end
       end
@@ -184,6 +184,6 @@ module V2
     # first field defined in this file), this email address would get
     # written to the (automatically inserted) passphrase field.
     #
-    include V2::Mixins::Passphrase
+    include Onetime::Mixins::Passphrase
   end
 end

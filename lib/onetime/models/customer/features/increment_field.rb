@@ -1,6 +1,6 @@
 # lib/onetime/models/customer/features/increment_field.rb
 
-module V2::Customer::Features
+module Onetime::Customer::Features
   module IncrementField
 
     Familia::Base.add_feature self, :increment_field

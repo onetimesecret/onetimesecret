@@ -2,7 +2,7 @@
 
 require 'rack/utils'
 
-module V2
+module Onetime
   # Team Model (aka Group)
   #
   class Team < Familia::Horreum

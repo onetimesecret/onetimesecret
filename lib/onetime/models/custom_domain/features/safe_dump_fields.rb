@@ -1,11 +1,11 @@
 # lib/onetime/models/custom_domain/features/safe_dump_fields.rb
 
-# Autoloaded extension file for V2::CustomDomain SafeDump configuration
+# Autoloaded extension file for Onetime::CustomDomain SafeDump configuration
 # This file is automatically loaded when the SafeDump feature is enabled
-module V2::CustomDomain::Features
+module Onetime::CustomDomain::Features
   module SafeDump
 
-    V2::CustomDomain.add_feature self, :safe_dump_fields
+    Onetime::CustomDomain.add_feature self, :safe_dump_fields
 
     def self.included(base)
 

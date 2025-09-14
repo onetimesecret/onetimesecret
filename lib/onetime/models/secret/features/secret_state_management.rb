@@ -1,6 +1,6 @@
 # lib/onetime/models/secret/features/secret_state_management.rb
 
-module V2::Secret::Features
+module Onetime::Secret::Features
   module SecretStateManagement
 
     Familia::Base.add_feature self, :secret_state_management

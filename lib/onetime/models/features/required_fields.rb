@@ -1,6 +1,6 @@
 # lib/onetime/models/features/required_fields.rb
 
-module V2
+module Onetime
   module Models
     module Features
       module RequiredFields

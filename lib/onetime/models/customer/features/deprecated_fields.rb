@@ -1,6 +1,6 @@
 # lib/onetime/models/customer/features/deprecated_fields.rb
 
-module V2::Customer::Features
+module Onetime::Customer::Features
   module DeprecatedFields
     Familia::Base.add_feature self, :deprecated_fields
 

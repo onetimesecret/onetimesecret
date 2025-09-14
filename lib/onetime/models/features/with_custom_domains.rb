@@ -1,6 +1,6 @@
 # lib/onetime/models/features/with_custom_domains.rb
 
-module V2
+module Onetime
   module Models
     module Features
       #
@@ -26,7 +26,7 @@ module V2
 
           def custom_domains_list
             custom_domains.revmembers.collect do |domain|
-              V2::CustomDomain.load domain, custid
+              Onetime::CustomDomain.load domain, custid
             rescue Onetime::RecordNotFound => ex
               OT.le "[custom_domains_list] Error: #{ex.message} (#{domain} / #{custid})"
             end.compact

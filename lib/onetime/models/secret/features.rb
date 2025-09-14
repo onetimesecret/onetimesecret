@@ -2,7 +2,7 @@
 
 # An example of a features.rb with the autoloader
 
-class V2::Secret < Familia::Horreum
+class Onetime::Secret < Familia::Horreum
   module Features
     include Familia::Features::Autoloader
   end

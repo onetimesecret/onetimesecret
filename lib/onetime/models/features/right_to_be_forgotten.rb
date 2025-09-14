@@ -1,6 +1,6 @@
 # lib/onetime/models/features/right_to_be_forgotten.rb
 
-module V2
+module Onetime
   module Models
     module Features
       module RightToBeForgotten

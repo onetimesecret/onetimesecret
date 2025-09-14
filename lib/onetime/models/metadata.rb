@@ -1,6 +1,6 @@
 # lib/onetime/models/metadata.rb
 
-module V2
+module Onetime
   class Metadata < Familia::Horreum
 
     using Familia::Refinements::TimeLiterals
@@ -128,7 +128,7 @@ module V2
     end
 
     def owner?(cust)
-      !anonymous? && (cust.is_a?(V2::Customer) ? cust.custid : cust).to_s == custid.to_s
+      !anonymous? && (cust.is_a?(Onetime::Customer) ? cust.custid : cust).to_s == custid.to_s
     end
 
     def valid?
@@ -140,7 +140,7 @@ module V2
     end
 
     def deliver_by_email(cust, locale, secret, eaddrs, template = nil, ticketno = nil)
-      template ||= V2::Email::SecretLink
+      template ||= Onetime::Email::SecretLink
 
       if eaddrs.nil? || eaddrs.empty?
         OT.info "[deliver-by-email] #{cust.obscure_email} #{secret.key} No addresses specified"
@@ -247,7 +247,7 @@ module V2
     end
 
     def load_secret
-      V2::Secret.load secret_key
+      Onetime::Secret.load secret_key
     end
 
     class << self

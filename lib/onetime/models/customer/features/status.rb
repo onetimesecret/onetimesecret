@@ -1,6 +1,6 @@
 # lib/onetime/models/customer/features/status.rb
 
-module V2::Customer::Features
+module Onetime::Customer::Features
   module Status
     def self.included(base)
       OT.ld "[#{name}] Included in #{base}"

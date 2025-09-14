@@ -1,6 +1,6 @@
 # lib/onetime/models/customer/features/legacy_encrypted_fields.rb
 
-module V2::Customer::Features
+module Onetime::Customer::Features
   #
   #
   module LegacyEncryptedFields
@@ -20,7 +20,7 @@ module V2::Customer::Features
 
 
       def encryption_key
-        V2::Secret.encryption_key OT.global_secret, custid
+        Onetime::Secret.encryption_key OT.global_secret, custid
       end
 
 

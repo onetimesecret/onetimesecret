@@ -1,6 +1,6 @@
 # lib/onetime/models/feedback.rb
 
-module V2
+module Onetime
   class Feedback < Familia::Horreum
 
     using Familia::Refinements::TimeLiterals

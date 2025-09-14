@@ -2,7 +2,7 @@
 
 require 'openssl'
 
-module V2::Secret::Features
+module Onetime::Secret::Features
   module SecretEncryption
 
     def self.included(base)
@@ -13,8 +13,8 @@ module V2::Secret::Features
 
     module ClassMethods
       def spawn_pair(custid, token = nil)
-        secret   = V2::Secret.create(custid: custid, token: token)
-        metadata = V2::Metadata.create(custid: custid, token: token)
+        secret   = Onetime::Secret.create(custid: custid, token: token)
+        metadata = Onetime::Metadata.create(custid: custid, token: token)
 
         # TODO: Use Familia transaction
         metadata.secret_key = secret.key
@@ -125,7 +125,7 @@ module V2::Secret::Features
         OT.ld "[try_fallback_secrets] m:#{metadata_key} s:#{key} Trying rotated secrets (#{rotated_secrets.length})"
         rotated_secrets.each_with_index do |fallback_secret, index|
           # Generate key using the fallback secret
-          encryption_key = V2::Secret.encryption_key(fallback_secret, key, passphrase_temp)
+          encryption_key = Onetime::Secret.encryption_key(fallback_secret, key, passphrase_temp)
           result         = encrypted_value.decrypt(opts.merge(key: encryption_key))
           result.force_encoding('utf-8')
           OT.li "[try_fallback_secrets] m:#{metadata_key} s:#{key} Success (index #{index})"
@@ -156,16 +156,16 @@ module V2::Secret::Features
       end
 
       def encryption_key_v1 *_ignored
-        V2::Secret.encryption_key key, passphrase_temp
+        Onetime::Secret.encryption_key key, passphrase_temp
       end
 
       def encryption_key_v2 *_ignored
-        V2::Secret.encryption_key OT.global_secret, key, passphrase_temp
+        Onetime::Secret.encryption_key OT.global_secret, key, passphrase_temp
       end
 
       # Used as a failover key when experimental.allow_nil_global_secret is true.
       def encryption_key_v2_with_nil
-        V2::Secret.encryption_key nil, key, passphrase_temp
+        Onetime::Secret.encryption_key nil, key, passphrase_temp
       end
 
     end

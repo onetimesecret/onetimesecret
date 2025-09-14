@@ -2,7 +2,7 @@
 
 require 'public_suffix'
 
-module V2
+module Onetime
 
   # Tryouts:
   # - tests/unit/ruby/try/20_models/27_domains_try.rb
@@ -125,10 +125,10 @@ module V2
 
     # Check if the given customer is the owner of this domain
     #
-    # @param cust [V2::Customer, String] The customer object or customer ID to check
+    # @param cust [Onetime::Customer, String] The customer object or customer ID to check
     # @return [Boolean] true if the customer is the owner, false otherwise
     def owner?(cust)
-      matching_class = cust.is_a?(V2::Customer)
+      matching_class = cust.is_a?(Onetime::Customer)
       (matching_class ? cust.email : cust).eql?(custid)
     end
 
@@ -140,7 +140,7 @@ module V2
     # @param args [Array] Additional arguments to pass to the superclass destroy method
     # @return [Object] The result of the superclass destroy method
     def delete!(*args)
-      V2::CustomDomain.rem self
+      Onetime::CustomDomain.rem self
       super # we may prefer to call self.clear here instead
     end
 
@@ -187,7 +187,7 @@ module V2
     # - The main database key for the custom domain (`self.dbkey`)
     # - database keys of all related objects specified in `self.class.data_types`
     #
-    # @param customer [V2::Customer, nil] The customer to remove the domain from
+    # @param customer [Onetime::Customer, nil] The customer to remove the domain from
     # @return [void]
     def destroy!(customer = nil)
       keys_to_delete = [dbkey]
@@ -213,9 +213,9 @@ module V2
         multi.del(*keys_to_delete)
 
         # Also remove from the class-level collections
-        multi.zrem(V2::CustomDomain.values.dbkey, identifier)
-        multi.hdel(V2::CustomDomain.display_domains.dbkey, display_domain)
-        multi.hdel(V2::CustomDomain.owners.dbkey, display_domain)
+        multi.zrem(Onetime::CustomDomain.values.dbkey, identifier)
+        multi.hdel(Onetime::CustomDomain.display_domains.dbkey, display_domain)
+        multi.hdel(Onetime::CustomDomain.owners.dbkey, display_domain)
 
         # Remove from customer's custom domains collection if customer provided
         unless customer.nil?
@@ -373,7 +373,7 @@ module V2
       #
       # @param input [String] The domain name to create
       # @param custid [String] The customer ID to associate with
-      # @return [V2::CustomDomain] The created custom domain
+      # @return [Onetime::CustomDomain] The created custom domain
       # @raise [Onetime::Problem] If domain is invalid or already exists
       #
       # More Info:
@@ -402,7 +402,7 @@ module V2
             obj.generate_txt_validation_record
             obj.save
             # Create minimal customer instance for database key
-            cust = V2::Customer.new(custid: custid)
+            cust = Onetime::Customer.new(custid: custid)
             cust.add_custom_domain(obj)
             # Add to global values set
             add(obj)
@@ -415,12 +415,12 @@ module V2
         raise Onetime::Problem, 'Unable to create custom domain'
       end
 
-      # Returns a new V2::CustomDomain object (without saving it).
+      # Returns a new Onetime::CustomDomain object (without saving it).
       #
       # @param input [String] The domain name to parse
       # @param custid [String] Customer ID associated with the domain
       #
-      # @return [V2::CustomDomain]
+      # @return [Onetime::CustomDomain]
       #
       # @raise [PublicSuffix::DomainInvalid] If domain is invalid
       # @raise [PublicSuffix::DomainNotAllowed] If domain is not allowed
@@ -500,7 +500,7 @@ module V2
       end
 
       def default_domain?(input)
-        display_domain = V2::CustomDomain.display_domain(input)
+        display_domain = Onetime::CustomDomain.display_domain(input)
         site_host      = OT.conf.dig('site', 'host')
         OT.ld "[CustomDomain.default_domain?] #{display_domain} == #{site_host}"
         display_domain.eql?(site_host)
@@ -585,7 +585,7 @@ module V2
       # after determining the domain strategy is :custom.
       #
       # @param display_domain [String] The display domain to load
-      # @return [V2::CustomDomain, nil] The custom domain record or nil if not found
+      # @return [Onetime::CustomDomain, nil] The custom domain record or nil if not found
       def from_display_domain(display_domain)
         # Get the domain ID from the display_domains hash
         domain_id = display_domains.get(display_domain)

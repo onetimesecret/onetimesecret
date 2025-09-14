@@ -1,6 +1,6 @@
 # lib/onetime/models/secret/features/deprecated_fields.rb
 
-module V2::Secret::Features
+module Onetime::Secret::Features
   module DeprecatedFields
 
     Familia::Base.add_feature self, :deprecated_fields

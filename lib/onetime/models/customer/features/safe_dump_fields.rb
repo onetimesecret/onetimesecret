@@ -1,9 +1,9 @@
 # lib/onetime/models/customer/features/safe_dump_fields.rb
 
-module V2::Customer::Features
+module Onetime::Customer::Features
   module SafeDump
 
-    V2::Customer.add_feature self, :safe_dump_fields
+    Onetime::Customer.add_feature self, :safe_dump_fields
 
     def self.included(base)
       # Lambda to handle counter fields that may be nil/empty - returns '0'

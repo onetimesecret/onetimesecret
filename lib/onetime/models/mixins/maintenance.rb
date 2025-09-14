@@ -1,6 +1,6 @@
 # lib/onetime/models/mixins/maintenance.rb
 
-module V2
+module Onetime
   module Mixins
 
      # Model Maintenance

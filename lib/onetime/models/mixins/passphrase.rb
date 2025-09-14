@@ -1,6 +1,6 @@
 # lib/onetime/models/mixins/passphrase.rb
 
-module V2
+module Onetime
   module Mixins
     module Passphrase
       @default_cost = 12.freeze
@@ -19,7 +19,7 @@ module V2
         # collected) in case we need to repeat the save attempt on
         # error. TODO: Move to calling code in specific cases.
         @passphrase_temp = val
-        passphrase! V2::Mixins::Passphrase.create_passphrase(val)
+        passphrase! Onetime::Mixins::Passphrase.create_passphrase(val)
       end
 
       # Allow for chaining API e.g. cust.update_passphrase('plop').custid

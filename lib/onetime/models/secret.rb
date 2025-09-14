@@ -2,7 +2,7 @@
 
 require_relative 'secret/features'
 
-module V2
+module Onetime
   class Secret < Familia::Horreum
 
     using Familia::Refinements::TimeLiterals
@@ -89,11 +89,11 @@ module V2
     end
 
     def load_metadata
-      V2::Metadata.load metadata_key
+      Onetime::Metadata.load metadata_key
     end
 
     # See Customer model for explanation about why
     # we include extra fields at the end here.
-    include V2::Mixins::Passphrase
+    include Onetime::Mixins::Passphrase
   end
 end
