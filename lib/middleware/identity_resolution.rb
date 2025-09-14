@@ -1,5 +1,9 @@
 # lib/middleware/identity_resolution.rb
 
+require 'logger'
+require 'rack/request'
+require_relative '../onetime/auth_config'
+
 module Rack
   # Identity Resolution Middleware for OneTimeSecret
   #
@@ -76,18 +80,59 @@ module Rack
     private
 
     def resolve_identity(request, env)
-      # Try external authentication service first if enabled
-      if external_auth_enabled?
-        external_identity = resolve_external_identity(request, env)
-        return external_identity if external_identity[:user]
-      end
+      # Check authentication mode (basic vs rodauth)
+      auth_mode = detect_auth_mode
 
-      # Fall back to Redis session (current system)
-      redis_identity = resolve_redis_identity(request, env)
-      return redis_identity if redis_identity[:user]
+      case auth_mode
+      when 'rodauth'
+        # Try Rodauth session first
+        rodauth_identity = resolve_rodauth_identity(request, env)
+        return rodauth_identity if rodauth_identity[:user]
+      when 'basic'
+        # Use Redis-only authentication
+        redis_identity = resolve_redis_identity(request, env)
+        return redis_identity if redis_identity[:user]
+      end
 
       # Default to anonymous user
       resolve_anonymous_identity(request, env)
+    end
+
+    def resolve_rodauth_identity(request, env)
+      begin
+        # Get session from Redis session middleware
+        session = env['rack.session']
+        return no_identity unless session
+
+        # Check for Rodauth authentication markers
+        return no_identity unless rodauth_authenticated?(session)
+
+        # Load V2::Customer if not already loaded
+        require_relative '../../apps/api/v2/models/customer' unless defined?(V2::Customer)
+
+        # Lookup customer by derived extid
+        customer = V2::Customer.find_by_extid(session['rodauth_external_id'])
+        return no_identity unless customer
+
+        {
+          user: build_rodauth_user(customer, session),
+          source: 'rodauth',
+          authenticated: true,
+          metadata: {
+            customer_id: customer.objid,
+            external_id: customer.extid,
+            account_id: session['rodauth_account_id'],
+            tenant_id: customer.primary_org_id,
+            auth_method: 'rodauth',
+            authenticated_at: session['authenticated_at'],
+            expires_at: session['authenticated_at'] ? session['authenticated_at'] + 86400 : nil
+          }
+        }
+
+      rescue StandardError => e
+        logger.error "[IdentityResolution] Rodauth identity error: #{e.message}"
+        no_identity
+      end
     end
 
     def resolve_external_identity(request, env)
@@ -130,7 +175,7 @@ module Rack
 
     def resolve_redis_identity(request, env)
       # Use Rack::Session from middleware
-      session = env['onetime.session']
+      session = env['rack.session']
       return no_identity unless session && session['identity_id']
 
       begin
@@ -183,6 +228,9 @@ module Rack
       return nil unless session['identity_id']
 
       begin
+        # Load V2::Customer if not already loaded
+        require_relative '../../apps/api/v2/models/customer' unless defined?(V2::Customer)
+
         V2::Customer.load(session['identity_id'])
       rescue StandardError => e
         logger.debug "[IdentityResolution] Could not load customer: #{e.message}"
@@ -211,6 +259,11 @@ module Rack
       ExternalUser.new(user_data)
     end
 
+    def build_rodauth_user(customer, session)
+      # Build user object from Rodauth-authenticated customer
+      RodauthUser.new(customer, session)
+    end
+
     def build_redis_user(customer, session)
       # Build user object from customer and session data
       RedisUser.new(customer, session)
@@ -222,6 +275,20 @@ module Rack
         ip_address: request.ip,
         user_agent: request.user_agent
       )
+    end
+
+    def rodauth_authenticated?(session)
+      return false unless session['authenticated_at']
+      return false unless session['rodauth_external_id'] || session['rodauth_account_id']
+
+      # Check session age against configured expiry
+      max_age = Onetime.auth_config.session['expire_after'] || 86400
+      age = Time.now.to_i - session['authenticated_at'].to_i
+      age < max_age
+    end
+
+    def detect_auth_mode
+      Onetime.auth_config.mode
     end
 
     def external_auth_enabled?
@@ -283,6 +350,59 @@ module Rack
 
       def feature_enabled?(feature_name)
         features.include?(feature_name.to_s)
+      end
+    end
+
+    class RodauthUser
+      attr_reader :customer, :session
+
+      def initialize(customer, session)
+        @customer = customer
+        @session = session
+      end
+
+      def id
+        customer.objid
+      end
+
+      def email
+        customer.custid
+      end
+
+      def authenticated?
+        true  # Always authenticated if we reach this point
+      end
+
+      def anonymous?
+        false
+      end
+
+      def role?(role_name)
+        customer.role?(role_name) if customer.respond_to?(:role?)
+      end
+
+      def feature_enabled?(feature_name)
+        # Rodauth users have full feature set
+        %w[secrets create_secret view_secret admin].include?(feature_name.to_s)
+      end
+
+      def roles
+        customer.roles || []
+      end
+
+      def features
+        %w[secrets create_secret view_secret admin]
+      end
+
+      def metadata
+        {
+          customer_id: customer.objid,
+          external_id: customer.extid,
+          account_id: session['rodauth_account_id'],
+          auth_method: 'rodauth',
+          authenticated_at: session['authenticated_at'],
+          expires_at: session['authenticated_at'] ? session['authenticated_at'] + 86400 : nil
+        }
       end
     end
 

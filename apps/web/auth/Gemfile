@@ -41,8 +41,3 @@ end
 group :development do
   gem 'rerun', '~> 0.14'  # Auto-restart on file changes
 end
-
-# Production dependencies
-group :production do
-  gem 'newrelic_rpm', '~> 9.0'  # Application monitoring
-end

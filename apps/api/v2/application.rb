@@ -24,6 +24,10 @@ module V2
     # Common middleware stack
     use Rack::DetectHost
 
+    # Identity resolution middleware
+    require_relative '../../../lib/middleware/identity_resolution'
+    use Rack::IdentityResolution
+
     # Applications middleware stack
     use Onetime::DomainStrategy # after DetectHost
     use Rack::JSONBodyParser

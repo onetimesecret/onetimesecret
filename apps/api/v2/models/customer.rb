@@ -128,6 +128,19 @@ module V2
     class << self
       attr_reader :values, :dummy
 
+      def find_by_extid(external_id)
+        return nil unless external_id
+
+        # Use extid_lookup hashkey provided by external_identifier feature
+        objid = extid_lookup[external_id]
+        return nil unless objid
+
+        load(objid)
+      rescue => e
+        OT.le "[Customer.find_by_extid] Error: #{e.message}"
+        nil
+      end
+
       def create(custid, email = nil)
         raise Onetime::Problem, 'custid is required' if custid.to_s.empty?
         raise Onetime::Problem, 'Customer exists' if exists?(custid)

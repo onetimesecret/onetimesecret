@@ -27,6 +27,10 @@ module V1
     use Rack::HandleInvalidPercentEncoding
     use Rack::DetectHost
 
+    # Identity resolution middleware
+    require_relative '../../../lib/middleware/identity_resolution'
+    use Rack::IdentityResolution
+
     # Applications middleware stack
     use Onetime::DomainStrategy
 
