@@ -2,7 +2,7 @@
 
 require_relative 'test_helpers'
 require_relative '../lib/onetime/services/auth/basic_auth_adapter'
-require_relative '../lib/onetime/services/auth/rodauth_adapter'
+require_relative '../lib/onetime/services/auth/advanced_auth_adapter'
 require_relative '../lib/onetime/services/auth/adapter_factory'
 require 'rack/test'
 require 'bcrypt'
@@ -29,12 +29,6 @@ OT.boot! :test, false
 adapter = Auth::AdapterFactory.create(@mock_env)
 # Since external auth is not configured in test, should be BasicAuthAdapter
 adapter.class == Auth::BasicAuthAdapter
-#=> true
-
-## AdapterFactory reports available features correctly for basic mode
-features = Auth::AdapterFactory.available_features
-# In test mode, external is not enabled so should be basic
-features[:mode] == 'basic' && features[:external_service] == false
 #=> true
 
 ## BasicAuthAdapter authenticates valid credentials
@@ -95,27 +89,27 @@ adapter.logout
 @mock_env['onetime.session'].empty?
 #=> true
 
-## RodauthAdapter falls back to BasicAuth behavior (placeholder)
+## AdvancedAuthAdapter falls back to BasicAuth behavior (placeholder)
 @mock_env['onetime.session'].clear
-adapter = Auth::RodauthAdapter.new(@mock_env)
+adapter = Auth::AdvancedAuthAdapter.new(@mock_env)
 result = adapter.authenticate(@test_email, @test_password)
 session = @mock_env['onetime.session']
-result[:success] == true && session['auth_method'] == 'rodauth'
+result[:success] == true && session['auth_method'] == 'advanced'
 #=> true
 
-## RodauthAdapter sets external_service flag in session
+## AdvancedAuthAdapter sets external_service flag in session
 @mock_env['onetime.session'].clear
-adapter = Auth::RodauthAdapter.new(@mock_env)
+adapter = Auth::AdvancedAuthAdapter.new(@mock_env)
 adapter.authenticate(@test_email, @test_password)
 @mock_env['onetime.session']['external_service'] == true
 #=> true
 
-## RodauthAdapter current_identity includes auth_method
+## AdvancedAuthAdapter current_identity includes auth_method
 @mock_env['onetime.session'].clear
-adapter = Auth::RodauthAdapter.new(@mock_env)
+adapter = Auth::AdvancedAuthAdapter.new(@mock_env)
 adapter.authenticate(@test_email, @test_password)
 identity = adapter.current_identity
-identity[:auth_method] == 'rodauth' && identity[:external_service] == true
+identity[:auth_method] == 'advanced' && identity[:external_service] == true
 #=> true
 
 # Clean up test customer

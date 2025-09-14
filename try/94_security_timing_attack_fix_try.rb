@@ -7,7 +7,7 @@ require 'bcrypt'
 require_relative 'test_helpers'
 
 require_relative '../lib/onetime/services/auth/basic_auth_adapter'
-require_relative '../lib/onetime/services/auth/rodauth_adapter'
+require_relative '../lib/onetime/services/auth/advanced_auth_adapter'
 require_relative '../lib/onetime/services/auth/adapter_factory'
 
 

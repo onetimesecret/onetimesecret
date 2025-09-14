@@ -22,8 +22,6 @@ module V2
       # Optional authentication (allows anonymous)
       otto.add_auth_strategy('v2_optional', V2OptionalStrategy.new)
 
-      # Colonel/admin authentication
-      otto.add_auth_strategy('v2_colonel', V2ColonelStrategy.new)
     end
 
     # Basic authentication with API token
@@ -44,7 +42,7 @@ module V2
             return success(
               session: env['onetime.session'] || {},
               user: cust,
-              auth_method: 'basic'
+              auth_method: 'basic',
             )
           end
         end
@@ -62,13 +60,13 @@ module V2
         if identity && env['identity.authenticated']
           source = env['identity.source']
 
-          if %w[rodauth redis].include?(source)
+          if %w[advanced basic].include?(source)
             OT.ld "[v2_session] Authenticated '#{identity.id}' via #{source}"
             return success(
               session: env['onetime.session'] || {},
-              user: identity.customer || identity, # RodauthUser has .customer, RedisUser is the customer
+              user: identity.customer || identity, # RodauthUser has .customer, BasicUser is the customer
               auth_method: source,
-              metadata: env['identity.metadata']
+              metadata: env['identity.metadata'],
             )
           end
         end
@@ -86,20 +84,20 @@ module V2
         if identity && env['identity.authenticated']
           source = env['identity.source']
 
-          if %w[rodauth redis].include?(source)
+          if %w[advanced basic].include?(source)
             OT.ld "[v2_combined] Authenticated '#{identity.id}' via #{source}"
             return success(
               session: env['onetime.session'] || {},
               user: identity.customer || identity,
               auth_method: source,
-              metadata: env['identity.metadata']
+              metadata: env['identity.metadata'],
             )
           end
         end
 
         # Fall back to basic auth for API access
         basic_strategy = V2BasicStrategy.new
-        if result = basic_strategy.authenticate(env, requirement)
+        if result      = basic_strategy.authenticate(env, requirement)
           return result if result
         end
 
@@ -114,7 +112,7 @@ module V2
         identity = env['identity.resolved']
 
         if identity
-          if env['identity.authenticated'] && %w[rodauth redis].include?(env['identity.source'])
+          if env['identity.authenticated'] && %w[advanced basic].include?(env['identity.source'])
             # Authenticated user
             source = env['identity.source']
             OT.ld "[v2_optional] Authenticated '#{identity.id}' via #{source}"
@@ -122,7 +120,7 @@ module V2
               session: env['onetime.session'] || {},
               user: identity.customer || identity,
               auth_method: source,
-              metadata: env['identity.metadata']
+              metadata: env['identity.metadata'],
             )
           elsif env['identity.source'] == 'anonymous'
             # Anonymous user from identity resolution
@@ -130,51 +128,24 @@ module V2
             return success(
               session: env['onetime.session'] || {},
               user: V2::Customer.anonymous,
-              auth_method: 'anonymous'
+              auth_method: 'anonymous',
             )
           end
         end
 
         # Fall back to basic auth
         basic_strategy = V2BasicStrategy.new
-        if result = basic_strategy.authenticate(env, requirement)
+        if result      = basic_strategy.authenticate(env, requirement)
           return result if result
         end
 
         # Default to anonymous
-        OT.ld "[v2_optional] Fallback anonymous access"
+        OT.ld '[v2_optional] Fallback anonymous access'
         success(
           session: env['onetime.session'] || {},
           user: V2::Customer.anonymous,
-          auth_method: 'anonymous'
+          auth_method: 'anonymous',
         )
-      end
-    end
-
-    # Colonel/admin authentication (identity-aware)
-    class V2ColonelStrategy < Otto::Security::AuthStrategy
-      def authenticate(env, _requirement)
-        # Use pre-resolved identity from IdentityResolution middleware
-        identity = env['identity.resolved']
-
-        if identity && env['identity.authenticated']
-          customer = identity.customer || identity
-          source = env['identity.source']
-
-          # Check if customer has colonel privileges
-          if customer.respond_to?(:colonel?) && customer.colonel?
-            OT.ld "[v2_colonel] Colonel authenticated '#{customer.custid}' via #{source}"
-            return success(
-              session: env['onetime.session'] || {},
-              user: customer,
-              auth_method: 'colonel',
-              metadata: env['identity.metadata']
-            )
-          end
-        end
-
-        OT.ld "[v2_colonel] Access denied - colonel privileges required"
-        failure('Colonel privileges required')
       end
     end
   end

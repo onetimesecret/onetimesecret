@@ -53,7 +53,7 @@ class AuthService < Roda
 
     def redis_session_valid?
       return false unless session['authenticated_at']
-      return false unless session['rodauth_external_id'] || session['rodauth_account_id']
+      return false unless session['account_external_id'] || session['advanced_account_id']
 
       # Check session age against configured expiry
       max_age = Onetime.auth_config.session['expire_after'] || 86400
@@ -172,8 +172,8 @@ class AuthService < Roda
       )
 
       # Store identity information in session for Otto integration
-      session['rodauth_account_id'] = account_id
-      session['rodauth_external_id'] = account[:external_id]
+      session['advanced_account_id'] = account_id
+      session['account_external_id'] = account[:external_id]
       session['authenticated_at'] = Time.now.to_i
     end
 

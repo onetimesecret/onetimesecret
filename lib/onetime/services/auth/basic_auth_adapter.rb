@@ -19,11 +19,11 @@ module Auth
       return authentication_failure unless verify_password(customer, password)
 
       # Create session via Rack::Session
-      session = env['onetime.session']
-      session['identity_id'] = customer.custid
-      session['tenant_id'] = tenant_id || customer.custid
-      session['email'] = customer.email
-      session['authenticated'] = true
+      session                     = env['onetime.session']
+      session['identity_id']      = customer.custid
+      session['tenant_id']        = tenant_id || customer.custid
+      session['email']            = customer.email
+      session['authenticated']    = true
       session['authenticated_at'] = Time.now.to_i
 
       # Return success with customer data
@@ -31,10 +31,10 @@ module Auth
         success: true,
         identity_id: customer.custid,
         tenant_id: tenant_id || customer.custid,
-        customer: customer
+        customer: customer,
       }
-    rescue => e
-      OT.le "[BasicAuthAdapter] Authentication error: #{e.message}"
+    rescue StandardError => ex
+      OT.le "[BasicAuthAdapter] Authentication error: #{ex.message}"
       authentication_failure
     end
 
@@ -52,7 +52,7 @@ module Auth
         identity_id: session['identity_id'],
         tenant_id: session['tenant_id'],
         email: session['email'],
-        authenticated_at: session['authenticated_at']
+        authenticated_at: session['authenticated_at'],
       }
     end
 
@@ -63,7 +63,7 @@ module Auth
 
     private
 
-    def find_customer(email, tenant_id = nil)
+    def find_customer(email, _tenant_id = nil)
       # Use the existing Customer model to load by email
       # In OTS, the custid IS the email address
       V2::Customer.load(email)
@@ -81,15 +81,15 @@ module Auth
 
       # Always perform passphrase verification and always return its result to mitigate timing attacks
       target_customer.passphrase?(password)
-    rescue => e
-      OT.le "[BasicAuthAdapter] Password verification error: #{e.message}"
+    rescue StandardError => ex
+      OT.le "[BasicAuthAdapter] Password verification error: #{ex.message}"
       false
     end
 
     def authentication_failure
       {
         success: false,
-        error: 'Invalid email or password'
+        error: 'Invalid email or password',
       }
     end
   end
