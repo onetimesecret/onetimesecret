@@ -20,7 +20,13 @@ export async function setupRouterGuards(router: Router): Promise<void> {
     // Check if UI is enabled - redirect to Homepage with limited functionality
     const ui = WindowService.get('ui');
     if (!ui?.enabled && to.name === 'Home') {
-      return { name: 'DisabledHome' };
+      return { name: 'DisabledUI' };
+    }
+
+    // Check if authentication is required - redirect to DisabledHomepage when required but not authenticated
+    const authentication = WindowService.get('authentication');
+    if (authentication?.required && !authStore.isAuthenticated && to.name === 'Home') {
+      return { name: 'DisabledHomepage' };
     }
 
     // Handle root path redirect

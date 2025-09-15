@@ -35,8 +35,8 @@
       - Messaging must work for all audiences simultaneously since authentication state is unknown
       -->
       <DisabledHomepageTaglines
-        :tagline1="$t('web.homepage.authonly.tagline1')"
-        :tagline2="$t('web.homepage.authonly.tagline2')"
+        :tagline1="$t('web.homepage.disabled.tagline1')"
+        :tagline2="$t('web.homepage.disabled.tagline2')"
         v-unless="windowProps.ui?.enabled"
         class="mb-6" />
 

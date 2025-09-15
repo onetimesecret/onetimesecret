@@ -69,6 +69,11 @@ export const authenticationSchema = z.object({
    * Flag to enable or disable automatic verification
    */
   autoverify: transforms.fromString.boolean,
+
+  /**
+   * Flag to enable or disable homepage secret form when not logged in.
+   */
+  required: transforms.fromString.boolean,
 });
 
 /**
