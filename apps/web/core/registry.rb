@@ -3,7 +3,7 @@
 require 'base_application'
 require 'onetime/middleware'
 
-require_relative 'controllers'
+require_relative 'app'
 
 module Core
   class Application < ::BaseApplication
@@ -55,18 +55,8 @@ module Core
     protected
 
     def build_router
-      routes_path = File.join(Onetime::HOME, 'apps/web/core/routes')
-      router      = Otto.new(routes_path)
-
-      # Enable CSP nonce support for enhanced security
-      router.enable_csp_with_nonce!(debug: OT.debug?)
-
-      # Default error responses
-      headers             = { 'content-type' => 'text/html' }
-      router.not_found    = [404, headers, ['Not Found']]
-      router.server_error = [500, headers, ['Internal Server Error']]
-
-      router
+      # Return the Core app instance
+      Core::App.new
     end
   end
 end

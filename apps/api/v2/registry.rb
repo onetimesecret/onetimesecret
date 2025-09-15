@@ -3,7 +3,7 @@
 require 'base_application'
 require 'onetime/middleware'
 
-require_relative 'logic'
+require_relative 'app'
 
 module V2
   class Application < ::BaseApplication
@@ -41,19 +41,8 @@ module V2
     protected
 
     def build_router
-      routes_path = File.join(ENV.fetch('ONETIME_HOME'), 'apps/api/v2/routes')
-      router      = Otto.new(routes_path)
-
-      # Register authentication strategies
-      require 'onetime/auth_strategies'
-      Onetime::AuthStrategies.register_all(router)
-
-      # Default error responses
-      headers             = { 'content-type' => 'application/json' }
-      router.not_found    = [404, headers, [{ error: 'Not Found' }.to_json]]
-      router.server_error = [500, headers, [{ error: 'Internal Server Error' }.to_json]]
-
-      router
+      # Return the V2 app instance
+      V2::App.new
     end
   end
 end
