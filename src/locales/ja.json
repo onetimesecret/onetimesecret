@@ -244,7 +244,15 @@
       "visit-onetime-secret-home": "Onetime Secret ホームページにアクセス",
       "password_generation_title": "パスワード生成ツール",
       "password_generation_description": "「パスワードを生成」をクリックして、共有できる安全なランダムパスワードを作成します。",
-      "protip1": "メッセージは表示後に自動的に破棄されます。リンクは一度しかアクセスできません。"
+      "protip1": "メッセージは表示後に自動的に破棄されます。リンクは一度しかアクセスできません。",
+      "authonly": {
+        "tagline2": "このサービスは内部利用専用です。",
+        "tagline1": "アカウントをお持ちの方は、ログインして続行してください。"
+      },
+      "disabled": {
+        "tagline2": "このサービスは内部利用専用に設定されています。",
+        "tagline1": "ユーザーインターフェースとログイン機能は利用できません。"
+      }
     },
     "private": {
       "pretext": "このリンクを共有:",

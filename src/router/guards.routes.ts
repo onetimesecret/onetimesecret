@@ -1,4 +1,4 @@
-// src/router/guards.ts
+// src/router/guards.routes.ts
 
 import { WindowService } from '@/services/window.service';
 import { useAuthStore } from '@/stores/authStore';
@@ -15,6 +15,12 @@ export async function setupRouterGuards(router: Router): Promise<void> {
 
     if (to.name === 'NotFound') {
       return true;
+    }
+
+    // Check if UI is enabled - redirect to Homepage with limited functionality
+    const ui = WindowService.get('ui');
+    if (!ui?.enabled && to.name === 'Home') {
+      return { name: 'DisabledHome' };
     }
 
     // Handle root path redirect
