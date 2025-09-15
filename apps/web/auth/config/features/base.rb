@@ -17,6 +17,7 @@ module Auth
             enable :json
             json_response_success_key :success
             json_response_error_key :error
+            only_json? true
 
             # Use email as the account identifier
             account_id_column :id
