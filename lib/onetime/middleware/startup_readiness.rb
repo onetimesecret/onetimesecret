@@ -2,6 +2,15 @@
 
 module Onetime
   module Middleware
+    # Onetime::Middleware::StartupReadiness
+    #
+    # Shows a friendly error message if a request is received before the
+    # application is ready. This can happen when there was a problem
+    # loading the configuration for example. The ruby application
+    # will be running but return a 503 status.
+    #
+    # Returns JSON based on the response type, otherwise HTML.
+    #
     # rubocop:disable Metrics/MethodLength
     # rubocop:disable Layout/LineLength
     class StartupReadiness
