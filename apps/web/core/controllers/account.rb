@@ -102,13 +102,25 @@ module Core
       #
       def welcome
         publically('/') do
-          logic = V2::Logic::Welcome::FromStripePaymentLink.new sess, cust, req.params, locale
+          strategy_result = Otto::Security::Authentication::StrategyResult.new(
+            session: session,
+            user: cust,
+            auth_method: 'session',
+            metadata: {
+              ip: req.client_ipaddress,
+              user_agent: req.user_agent
+            }
+          )
+
+          logic = V2::Logic::Welcome::FromStripePaymentLink.new strategy_result, req.params, locale
           logic.raise_concerns
           logic.process
 
           @cust = logic.cust
 
-          res.send_secure_cookie :sess, sess.sessid, sess.default_expiration
+          # TODO: Do we need to replace this now that cookie is via middleware?
+          # res.send_secure_cookie :sess, sess.sessid, sess.default_expiration
+
           res.redirect '/account'
         end
       end
@@ -126,7 +138,17 @@ module Core
         # We ignore CSRF shrimp since it's a calling coming from outside the house
         # but we do verify the Stripe webhook signature in StripeWebhook#raise_concerns.
         publically('/') do
-          logic                  = V2::Logic::Welcome::StripeWebhook.new sess, cust, req.params, locale
+          strategy_result = Otto::Security::Authentication::StrategyResult.new(
+            session: session,
+            user: cust,
+            auth_method: 'session',
+            metadata: {
+              ip: req.client_ipaddress,
+              user_agent: req.user_agent
+            }
+          )
+
+          logic                  = V2::Logic::Welcome::StripeWebhook.new strategy_result, req.params, locale
           logic.stripe_signature = req.env['HTTP_STRIPE_SIGNATURE']
           logic.payload          = req.body.read
           logic.raise_concerns
@@ -220,9 +242,19 @@ module Core
           # credentials.
           res.no_cache!
 
-          logic = V2::Logic::Authentication::AuthenticateSession.new sess, cust, req.params, locale
-          if sess.authenticated?
-            sess.set_info_message 'You are already logged in.'
+          strategy_result = Otto::Security::Authentication::StrategyResult.new(
+            session: session,
+            user: cust,
+            auth_method: 'session',
+            metadata: {
+              ip: req.client_ipaddress,
+              user_agent: req.user_agent
+            }
+          )
+
+          logic = V2::Logic::Authentication::AuthenticateSession.new strategy_result, req.params, locale
+          if session.authenticated?
+            session.set_info_message 'You are already logged in.'
             res.redirect '/'
           else
             if req.post? # rubocop:disable Style/IfInsideElse
@@ -231,7 +263,7 @@ module Core
               sess      = logic.sess
               cust      = logic.cust
 
-              res.send_secure_cookie :sess, sess.sessid, sess.default_expiration
+              res.send_secure_cookie :sess, session.sessid, session.default_expiration
               if cust.role?(:colonel)
                 res.redirect '/colonel/'
               else
@@ -244,7 +276,17 @@ module Core
 
       def logout
         authenticated('/') do
-          logic = V2::Logic::Authentication::DestroySession.new sess, cust, req.params, locale
+          strategy_result = Otto::Security::Authentication::StrategyResult.new(
+            session: session,
+            user: cust,
+            auth_method: 'session',
+            metadata: {
+              ip: req.client_ipaddress,
+              user_agent: req.user_agent
+            }
+          )
+
+          logic = V2::Logic::Authentication::DestroySession.new strategy_result, req.params, locale
           logic.raise_concerns
           logic.process
           res.redirect res.app_path('/')
@@ -253,13 +295,23 @@ module Core
 
       def request_reset
         publically do
+          strategy_result = Otto::Security::Authentication::StrategyResult.new(
+            session: session,
+            user: cust,
+            auth_method: 'session',
+            metadata: {
+              ip: req.client_ipaddress,
+              user_agent: req.user_agent
+            }
+          )
+
           if req.params[:key]
-            logic = V2::Logic::Authentication::ResetPassword.new sess, cust, req.params, locale
+            logic = V2::Logic::Authentication::ResetPassword.new strategy_result, req.params, locale
             logic.raise_concerns
             logic.process
             res.redirect '/signin'
           else
-            logic = V2::Logic::Authentication::ResetPasswordRequest.new sess, cust, req.params, locale
+            logic = V2::Logic::Authentication::ResetPasswordRequest.new strategy_result, req.params, locale
             logic.raise_concerns
             logic.process
             res.redirect '/'

@@ -54,6 +54,11 @@ class AuthService < Roda
     # Determine auth mode at request time
     auth_mode = Onetime.auth_config.mode
 
+    # Debug logging
+    if ENV['RACK_ENV'] == 'development'
+      puts "  [Auth] Mode: #{auth_mode}"
+    end
+
     # Handle empty path (when accessed as /auth without trailing slash)
     if r.path_info == ""
       { message: 'OneTimeSecret Authentication Service API', endpoints: %w[/health /validate /account] }
@@ -73,8 +78,8 @@ class AuthService < Roda
     # Handle auth mode routing
     case auth_mode
     when 'advanced'
-      # Use full Rodauth functionality
-      r.rodauth
+      # Handle standard auth endpoints for advanced mode
+      handle_advanced_auth_routes(r)
     when 'basic'
       # Handle basic auth mode with core controller forwarding
       handle_basic_auth_routes(r)
@@ -90,24 +95,25 @@ class AuthService < Roda
 
   private
 
+  def handle_advanced_auth_routes(r)
+    # Let Rodauth handle all auth routes
+    # This includes /login, /logout, /create-account, etc.
+    r.rodauth
+  end
+
   def handle_basic_auth_routes(r)
-    # Handle login endpoint
+    # Handle standard auth endpoints by forwarding to core
     r.on('login') do
       forward_to_core_auth('/signin', r)
     end
 
-    # Handle logout endpoint
     r.on('logout') do
       forward_to_core_auth('/logout', r)
     end
 
-    # Handle account creation
     r.on('create-account') do
       forward_to_core_auth('/signup', r)
     end
-
-    # Handle account info (already handled by handle_account_routes above)
-    # The validate endpoint is already handled by handle_validation_routes
 
     # For any other routes, we don't handle them in basic mode
     nil
