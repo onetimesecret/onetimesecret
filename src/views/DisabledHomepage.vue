@@ -1,4 +1,4 @@
-<!-- src/views/Homepage.vue -->
+<!-- src/views/DisabledHomepage.vue -->
 
 <script setup lang="ts">
   import DisabledHomepageTaglines from '@/components/DisabledHomepageTaglines.vue';
