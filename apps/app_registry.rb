@@ -53,7 +53,7 @@ module AppRegistry
     private
 
     def find_application_files
-      filepaths = Dir.glob(File.join(APPS_ROOT, '**/application.rb'))
+      filepaths = Dir.glob(File.join(APPS_ROOT, '**/registry.rb'))
       OT.ld "[AppRegistry] Scan found #{filepaths.size} application(s)"
       filepaths.each { |f| require f }
     end

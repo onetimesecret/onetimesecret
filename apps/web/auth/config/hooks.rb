@@ -1,8 +1,8 @@
 # frozen_string_literal: true
 
-require_relative 'authentication'
-require_relative 'account_lifecycle'
-require_relative 'otto_integration'
+require_relative 'hooks/authentication'
+require_relative 'hooks/account_lifecycle'
+require_relative 'hooks/otto_integration'
 
 module Auth
   module Config

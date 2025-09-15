@@ -2,7 +2,8 @@
 
 require 'bundler/setup'
 require 'base_application'
-require_relative 'auth'
+
+require_relative 'app'
 
 module Auth
   class Application < ::BaseApplication
@@ -19,8 +20,7 @@ module Auth
     # Enable development-specific middleware when in development mode
     # This handles code validation and frontend development server integration
     Onetime.development? do
-      require 'onetime/middleware/vite_proxy'
-      use Onetime::Middleware::ViteProxy
+
     end
 
     # # Serve static frontend assets in production mode
