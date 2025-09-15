@@ -195,8 +195,11 @@ module Core
           strategy_result = Otto::Security::Authentication::StrategyResult.new(
             session: session,
             user: cust,
-            auth_method: nil,
-            metadata: {}
+            auth_method: 'session',
+            metadata: {
+              ip: req.client_ipaddress,
+              user_agent: req.user_agent
+            }
           )
 
           logic = V2::Logic::Account::CreateAccount.new strategy_result, req.params, locale
