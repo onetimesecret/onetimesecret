@@ -27,10 +27,10 @@ module Core
       include Onetime::Utils::TimeUtils
       include Onetime::Helpers::ShrimpHelpers
 
-      self.template_path      = './templates/web'
-      self.template_extension = 'html'
+      self.template_path      = File.join(__dir__, '..', 'templates')
+      self.template_extension = 'html.erb'
       self.view_namespace     = Core::Views
-      self.view_path          = './app/web/views'
+      self.view_path          = File.join(__dir__)
 
       attr_accessor :req, :sess, :cust, :locale, :form_fields, :pagename
       attr_reader :i18n_instance, :view_vars, :serialized_data, :messages

@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="en" class="light">
   <head>
-    <script nonce="{{ nonce }}" language="javascript" type="text/javascript">
+    <script nonce="<%= nonce %>" language="javascript" type="text/javascript">
       (() => {
         var { matches: isRestMode } = window.matchMedia('(prefers-color-scheme: dark)');
         var hasHumanOverride = (typeof localStorage !== 'undefined' && localStorage.getItem('restMode') !== null);
@@ -48,7 +48,7 @@
         });
       })();
     </script>
-    {{>partial/head}}
+    <%= render_partial 'head' %>
   </head>
   <body class="font-serif bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100">
     <div id="app"><router-view></router-view></div>

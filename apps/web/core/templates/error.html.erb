@@ -1,11 +1,11 @@
 <!doctype html>
 <html
-  lang="{{locale}}"
-  class="{{theme_class}}">
+  lang="<%= locale %>"
+  class="<%= theme_class %>">
   <head>
-    {{> head}}
-    <title>Server Error - {{site_host}}</title>
-    <style nonce="{{app.nonce}}">
+    <%= render_partial 'head' %>
+    <title>Server Error - <%= site_host %></title>
+    <style nonce="<%= nonce %>">
       .error-container {
         min-height: 100vh;
         display: flex;
@@ -120,16 +120,16 @@
             class="btn btn-secondary">
             Try Again
           </button>
-          {{#authenticated}}
+          <% if authenticated %>
           <a
             href="/dashboard"
             class="btn btn-secondary"
             >Dashboard</a
           >
-          {{/authenticated}}
+          <% end %>
         </div>
 
-        {{#app.development}}
+        <% if development['enabled'] %>
         <div class="error-details">
           <details>
             <summary style="cursor: pointer; margin-bottom: 1rem">
@@ -143,26 +143,27 @@
                 border-radius: 0.25rem;
                 margin-top: 0.5rem;
               ">
-              <strong>Error ID:</strong> {{error_id}}<br />
-              <strong>Timestamp:</strong> {{timestamp}}<br />
-              <strong>Environment:</strong> {{app.environment}}<br />
-              {{#error_message}}
-              <strong>Message:</strong> {{error_message}}<br />
-              {{/error_message}} {{#error_class}}
-              <strong>Exception:</strong> {{error_class}}<br />
-              {{/error_class}}
+              <strong>Error ID:</strong> <%= error_id %><br />
+              <strong>Timestamp:</strong> <%= timestamp %><br />
+              <strong>Environment:</strong> <%= environment %><br />
+              <% if error_message %>
+              <strong>Message:</strong> <%= error_message %><br />
+              <% end %>
+              <% if error_class %>
+              <strong>Exception:</strong> <%= error_class %><br />
+              <% end %>
             </div>
           </details>
         </div>
-        {{/app.development}} {{^app.development}}
+        <% else %>
         <div class="error-details">
           <p>
-            Error ID: <code>{{error_id}}</code><br />
+            Error ID: <code><%= error_id %></code><br />
             If this problem persists, please contact
             badtimes@onetimesecret.com
           </p>
         </div>
-        {{/app.development}}
+        <% end %>
       </div>
     </div>
 
