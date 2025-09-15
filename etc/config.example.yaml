@@ -10,11 +10,6 @@
   :secret: <%= ENV['SECRET'] || nil %>
   # API and UI Configuration
   :interface:
-    # Controls whether the web user interface is available. When disabled, the
-    # homepage becomes a basic, readonly page with the logo and a brief
-    # explanation of the site and how it works. This is helpful for link
-    # recipients who may do some light investigation to see if the site is
-    # legit as opposed a blank page or 404.
     :ui:
       # Controls whether the web interface is enabled
       # When false, only a basic explanation page is shown
@@ -112,7 +107,13 @@
     # and abuse of the system. If you're running a private instance or
     # an instance for your team or company, you can disable this feature
     # to make it easier for users to sign in.
-    :autoverify: <%= ENV['AUTH_AUTOVERIFY'] == 'true' || false %>
+    :autoverify: <%= ENV['AUTH_AUTOVERIFY'] == 'true' %>
+    # When enabled, the homepage secret form is not available unless
+    # the user is logged in. Similar to a disabled homepage, but still
+    # shows the header with logo and navigation links. This allows for
+    # a more restrictive mode where only authenticated users can create
+    # secrets while maintaining site navigation and branding.
+    :required: <%= ENV['AUTH_REQUIRED'] == 'true' %>
     # Email addresses listed below will be granted automatic
     # administrative privileges upon account creation. These
     # accounts have access to a page that show basic system stats.
