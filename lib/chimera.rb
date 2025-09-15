@@ -8,8 +8,11 @@ class Chimera
     attr_reader :partial_caching_enabled, :partial_cache
 
     def inherited(subclass)
-      # Set default values for subclasses
-      subclass.template_extension = 'html.erb'
+      # Copy parent's template configuration to subclass
+      subclass.template_path = template_path if template_path
+      subclass.template_extension = template_extension || 'html.erb'
+      subclass.view_namespace = view_namespace if view_namespace
+      subclass.view_path = view_path if view_path
       super
     end
 
