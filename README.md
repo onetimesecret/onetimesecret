@@ -153,9 +153,21 @@ For complete setup with dependencies:
 - **Documentation**: Check `docs/` directory for detailed guides
 - **Security**: Review `SECURITY.md` for security considerations
 
-### Production Deployment
+### Production Deployments
 
 See [Dockerfile](./Dockerfile)
+
+## AI Development Assistance
+
+This version of Familia was developed with assistance from AI tools. The following tools provided significant help with architecture design, code generation, and documentation:
+
+- **Claude (Desktop, Code Max plan, Sonnet 4, Opus 4.1)** - Interactive development sessions, debugging, architecture design, code generation, and documentation
+- **Google Gemini** - Refactoring suggestions, code generation, and documentation.
+- **GitHub Copilot** - Code completion and refactoring assistance
+- **Qodo Merge Pro** - Code review and QA improvements
+
+I remain responsible for all design decisions and the final code. I believe in being transparent about development tools, especially as AI becomes more integrated into our workflows as developers.
+
 
 ## Similar Services
 
