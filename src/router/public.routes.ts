@@ -52,7 +52,7 @@ const routes: Array<RouteRecordRaw> = [
     },
   },
   {
-    path: '/',
+    path: '/disabled-auth',
     name: 'DisabledHomepage',
     components: {
       default: DisabledHomepage,
@@ -74,7 +74,7 @@ const routes: Array<RouteRecordRaw> = [
     },
   },
   {
-    path: '/',
+    path: '/disabled-ui',
     name: 'DisabledUI',
     components: {
       default: DisabledUI,
