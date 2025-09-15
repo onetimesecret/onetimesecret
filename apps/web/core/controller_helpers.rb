@@ -64,14 +64,8 @@ module Core
     rescue OT::Unauthorized => ex
       OT.info ex.message
       not_authorized_error
-    rescue OT::BadShrimp
-      # If it's a json response, no need to set an error message on the session
-      if res.headers['content-type'] == 'application/json'
-        error_response 'Please refresh the page and try again', reason: 'Bad shrimp 🍤'
-      else
-        session['error_message'] = 'Please go back, refresh the page, and try again.'
-        res.redirect redirect
-      end
+    # CSRF protection is now handled by Rack::Protection::AuthenticityToken middleware
+    # which returns 403 Forbidden for invalid tokens rather than raising exceptions
     rescue OT::FormError => ex
       OT.ld "[carefully] FormError: #{ex.message} (#{req.path}) redirect:#{redirect || 'n/a'}"
 
@@ -362,76 +356,7 @@ module Core
       end
     end
 
-    # Check CSRF value submitted with POST requests (aka shrimp)
-    #
-    # Note: This method is called only for session authenticated
-    # requests. Requests via basic auth (/api), may check for a
-    # valid shrimp, but they don't regenerate a fresh every time
-    # a successful validation occurs.
-    def check_shrimp!(_replace = true)
-      return if @check_shrimp_ran
-
-      @check_shrimp_ran = true
-      return unless req.post? || req.put? || req.delete? || req.patch?
-
-      # Check for shrimp in params and in the O-Shrimp header
-      header_shrimp = (req.env['HTTP_O_SHRIMP'] || req.env['HTTP_ONETIME_SHRIMP']).to_s
-      params_shrimp = req.params[:shrimp].to_s
-
-      # Use the header shrimp if it's present, otherwise use the param shrimp
-      attempted_shrimp = header_shrimp.empty? ? params_shrimp : header_shrimp
-
-      # No news is good news for successful shrimp; by default
-      # it'll simply add a fresh shrimp to the session. But
-      # in the case of failure this will raise an exception.
-      validate_shrimp(attempted_shrimp)
-    end
-
-    def validate_shrimp(attempted_shrimp, replace = true)
-      shrimp_is_empty = attempted_shrimp.empty?
-      log_value       = attempted_shrimp.size <= 5 ? attempted_shrimp : attempted_shrimp[0, 5] + '...'
-
-      if ignoreshrimp
-        adjective = 'IGNORED'
-        OT.ld "#{adjective} SHRIMP for #{cust.custid}@#{req.path}: #{log_value}"
-        true
-      else
-        begin
-          stored_token = respond_to?(:shrimp_token) ? shrimp_token : nil
-          return false if stored_token.to_s.empty? || attempted_shrimp.to_s.empty?
-
-          # Use constant-time comparison to prevent timing attacks
-          valid = Rack::Utils.secure_compare(stored_token.to_s, attempted_shrimp.to_s)
-
-          if valid
-            adjective = 'GOOD'
-            OT.ld "#{adjective} SHRIMP for #{cust.custid}@#{req.path}: #{log_value}"
-            # Regardless of the outcome, we clear the shrimp from the session
-            # to prevent replay attacks. A new shrimp is generated on the
-            # next page load.
-            regenerate_shrimp! if replace && respond_to?(:regenerate_shrimp!)
-            true
-          else
-            ### NOTE: MUST FAIL WHEN NO SHRIMP OTHERWISE YOU CAN
-            ### JUST SUBMIT A FORM WITHOUT ANY SHRIMP WHATSOEVER
-            ### AND THAT'S NO WAY TO TREAT A GUEST.
-            current_shrimp = stored_token || '[noshrimp]'
-            ex = OT::BadShrimp.new(req.path, cust.custid, attempted_shrimp, current_shrimp)
-            OT.ld "BAD SHRIMP for #{cust.custid}@#{req.path}: #{log_value}"
-            regenerate_shrimp! if replace && !shrimp_is_empty && respond_to?(:regenerate_shrimp!)
-            raise ex
-          end
-        rescue => e
-          # Handle any errors in shrimp validation
-          current_shrimp = '[error]'
-          ex = OT::BadShrimp.new(req.path, cust.custid, attempted_shrimp, current_shrimp)
-          OT.ld "BAD SHRIMP for #{cust.custid}@#{req.path}: #{log_value} (#{e.message})"
-          regenerate_shrimp! if replace && !shrimp_is_empty && respond_to?(:regenerate_shrimp!)
-          raise ex
-        end
-      end
-    end
-    protected :validate_shrimp
+    # CSRF protection is now handled by Rack::Protection::AuthenticityToken middleware
 
     # Checks if authentication is enabled for the site.
     #

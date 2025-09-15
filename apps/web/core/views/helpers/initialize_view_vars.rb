@@ -76,8 +76,8 @@ module Core
 
         # Extract values from session
         # messages = sess.nil? ? [] : sess.get_messages
-        shrimp        = sess.nil? ? nil : sess.add_shrimp
-        authenticated = sess && sess.authenticated? && !cust.anonymous?
+        shrimp        = sess.nil? ? nil : sess['_csrf_token']
+        authenticated = sess && sess['authenticated'] == true && sess['identity_id'].to_s.length > 0 && !cust.anonymous?
 
         # Extract values from rack request object
         nonce           = req.env.fetch('ots.nonce', nil) # TODO: Rename to onetime.nonce

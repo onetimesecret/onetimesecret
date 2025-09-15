@@ -450,6 +450,9 @@ experimental:
     utf8_sanitizer: true
     # Protects against Cross-Site Request Forgery (CSRF) attacks
     # Validates that requests originate from the same site
+    authenticity_token: true
+    # Protects against Cross-Site Request Forgery (CSRF) attacks
+    # Validates that requests originate from the same site
     http_origin: false
     # Escapes HTML entities in request parameters
     # Helps prevent XSS attacks via request parameters
