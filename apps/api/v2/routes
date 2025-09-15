@@ -49,8 +49,6 @@ OPTIONS /secret/conceal                           V2::Logic::Secrets::ConcealSec
 GET    /supported-locales                         V2::Logic::Meta.get_supported_locales response=json
 GET    /status                                    V2::Logic::Meta.system_status response=json
 GET    /version                                   V2::Logic::Meta.system_version response=json
-GET    /authcheck                                 V2::Logic::Meta::Authcheck response=json auth=onetime_api
-POST   /validate-shrimp                           V2::Logic::Meta::GetValidateShrimp response=json
 POST   /feedback                                  V2::Logic::Meta::ReceiveFeedback response=json auth=onetime_optional
 
 # Colonel/Admin endpoints
