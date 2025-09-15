@@ -21,7 +21,7 @@ module V2::Logic
       end
 
       def raise_concerns
-        raise OT::FormError, "You're already signed up" if sess.authenticated?
+        # raise OT::FormError, "You're already signed up" if sess.authenticated?
 
         raise_form_error 'Please try another email address' if Onetime::Customer.exists?(custid)
         raise_form_error 'Is that a valid email address?' unless valid_email?(custid)
@@ -39,8 +39,8 @@ module V2::Logic
         @cust = Onetime::Customer.create custid
 
         cust.update_passphrase password
-        sess.custid = cust.custid
-        sess.save
+        # sess.custid = cust.custid
+        # sess.save
 
         colonels       = OT.conf.dig('site', 'authentication', 'colonels')
         @customer_role = if colonels&.member?(cust.custid)
@@ -54,7 +54,7 @@ module V2::Logic
         cust.role      = @customer_role.to_s
         cust.save
 
-        OT.info "[new-customer] #{cust.custid} #{cust.role} #{sess.ipaddress} #{planid} #{sess.short_identifier}"
+        OT.info "[new-customer] #{cust.custid} #{cust.role} #{sess.inspect}"
 
         success_message = if autoverify
                             'Account created.'
@@ -65,7 +65,7 @@ module V2::Logic
                             "#{i18n.dig(:web, :COMMON, :verification_sent_to)} #{cust.custid}."
                           end
 
-        sess.set_success_message success_message
+        # sess.set_success_message success_message
       end
 
       private

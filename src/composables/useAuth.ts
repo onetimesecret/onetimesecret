@@ -34,7 +34,7 @@ export function useAuth() {
     state.value.loading = true
 
     try {
-      const response = await fetch('/auth/account.json', {
+      const response = await fetch('/auth/validate', {
         method: 'GET',
         credentials: 'include',
         headers: {
@@ -43,9 +43,23 @@ export function useAuth() {
       })
 
       if (response.ok) {
-        const userData = await response.json()
-        state.value.user = userData
-        state.value.authenticated = true
+        const data = await response.json()
+        if (data.success && data.details?.authenticated && data.record) {
+          // Map the record data to the expected User interface
+          state.value.user = {
+            id: data.record.objid || data.record.id,
+            email: data.record.custid || data.record.email,
+            created_at: data.record.created || data.record.created_at,
+            status: data.record.status || 1,
+            email_verified: data.record.email_verified || true,
+            mfa_enabled: data.record.mfa_enabled || false,
+            recovery_codes_count: data.record.recovery_codes_count || 0
+          }
+          state.value.authenticated = true
+        } else {
+          state.value.user = null
+          state.value.authenticated = false
+        }
       } else {
         state.value.user = null
         state.value.authenticated = false

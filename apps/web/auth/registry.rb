@@ -55,3 +55,6 @@ module Auth
     end
   end
 end
+
+# Register the Auth application with the application registry
+AppRegistry.register_application_class(Auth::Application)

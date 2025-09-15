@@ -25,7 +25,7 @@ export const AUTH_CHECK_CONFIG = {
   INTERVAL: 15 * 60 * 1000,
   JITTER: 90 * 1000,
   MAX_FAILURES: 3,
-  ENDPOINT: '/api/v2/authcheck',
+  ENDPOINT: '/auth/validate',
 } as const;
 
 interface StoreOptions extends PiniaPluginOptions {}

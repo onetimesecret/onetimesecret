@@ -167,14 +167,14 @@ module Core
             return_url = "#{is_secure ? 'https' : 'http'}://#{site_host}/account"
 
             # Create a Stripe Customer Portal session
-            session = Stripe::BillingPortal::Session.create({
+            stripe_session = Stripe::BillingPortal::Session.create({
               customer: customer_id,
               return_url: return_url,
             },
                                                            )
 
             # Continue the redirect
-            res.redirect session.url
+            res.redirect stripe_session.url
         rescue Stripe::StripeError => ex
             OT.le "[customer_portal_redirect] Stripe error: #{ex.message}"
             raise_form_error(ex.message)
@@ -192,7 +192,14 @@ module Core
 
           raise OT::Redirect.new('/') if req.blocked_user_agent?(blocked_agents: BADAGENTS)
 
-          logic = V2::Logic::Account::CreateAccount.new sess, cust, req.params, locale
+          strategy_result = Otto::Security::Authentication::StrategyResult.new(
+            session: session,
+            user: cust,
+            auth_method: nil,
+            metadata: {}
+          )
+
+          logic = V2::Logic::Account::CreateAccount.new strategy_result, req.params, locale
           logic.raise_concerns
           logic.process
           res.redirect '/'
