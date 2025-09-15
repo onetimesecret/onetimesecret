@@ -17,11 +17,17 @@ When you send sensitive info like passwords via email or chat, copies persist in
 docker run -p 6379:6379 -d redis:bookworm
 ```
 
-**2. Run Onetime Secret:**
+**2. Generate and store a persistent secret key:**
 ```bash
+# First, generate a persistent secret key and store it
+openssl rand -hex 32 > .ots_secret
+chmod 600 .ots_secret
+echo "Secret key saved to .ots_secret (keep this file secure!)"
+
+# Now run the container using the key
 docker run -p 3000:3000 -d \
   -e REDIS_URL=redis://host.docker.internal:6379/0 \
-  -e SECRET=$(openssl rand -hex 32) \
+  -e SECRET="$(cat .ots_secret)" \
   -e HOST=localhost:3000 \
   -e SSL=false \
   onetimesecret/onetimesecret:latest
