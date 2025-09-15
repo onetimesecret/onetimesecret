@@ -9,11 +9,7 @@ module Auth
   class Application < ::BaseApplication
     @uri_prefix = '/auth'.freeze
 
-    # Common middleware stack
-    use Rack::DetectHost
-
-    # Applications middleware stack
-    use Onetime::Middleware::DomainStrategy
+    # Auth app specific middleware (common middleware is in MiddlewareStack)
 
     # Development Environment Configuration
     # Enable development-specific middleware when in development mode
@@ -22,14 +18,14 @@ module Auth
 
     end
 
-    # # Serve static frontend assets in production mode
-    # # While reverse proxies often handle static files in production,
-    # # this provides a fallback capability for simpler deployments.
+    # Serve static frontend assets in production mode
+    # While reverse proxies often handle static files in production,
+    # this provides a fallback capability for simpler deployments.
     Onetime.production? do
-      # # Production configuration
+      # Production configuration
       use Rack::Deflater  # Gzip compression
 
-      # # Security headers
+      # Security headers
       use Rack::Protection::AuthenticityToken
       use Rack::Protection::ContentSecurityPolicy
       use Rack::Protection::FrameOptions

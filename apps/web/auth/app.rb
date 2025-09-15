@@ -27,9 +27,7 @@ class AuthService < Roda
   include Auth::Routes::Account
   include Auth::Routes::Admin
 
-  # Redis session middleware (unified with other apps)
-  require 'onetime/session'
-  use Onetime::Session, Auth::Config::Database.session_config
+  # Session middleware is now configured globally in MiddlewareStack
 
   plugin :json
   plugin :halt

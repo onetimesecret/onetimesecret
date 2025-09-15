@@ -37,7 +37,7 @@ class BaseApplication
     Rack::Builder.new do |builder|
       MiddlewareStack.configure(builder)
 
-      base_klass.middleware.each do |middleware, args, block|
+      (base_klass.middleware || []).each do |middleware, args, block|
         builder.use(middleware, *args, &block)
       end
 

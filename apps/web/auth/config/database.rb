@@ -10,16 +10,18 @@ module Auth
         @connection ||= create_connection
       end
 
-      def self.session_config
-        {
-          expire_after: 86_400, # 24 hours
-          key: 'onetime.session',  # Unified cookie name
-          secure: ENV['RACK_ENV'] == 'production',
-          httponly: true,
-          same_site: :lax,
-          redis_prefix: 'session'
-        }
-      end
+      # Session configuration is now centralized in apps/middleware_stack.rb
+      #
+      # def self.session_config
+      #   {
+      #     expire_after: 86_400, # 24 hours
+      #     key: 'onetime.session',  # Unified cookie name
+      #     secure: ENV['RACK_ENV'] == 'production',
+      #     httponly: true,
+      #     same_site: :lax,
+      #     redis_prefix: 'session'
+      #   }
+      # end
 
       private_class_method def self.create_connection
         database_url = ENV['DATABASE_URL'] || 'sqlite://data/auth.db'

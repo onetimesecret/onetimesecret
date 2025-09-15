@@ -9,14 +9,7 @@ module Core
   class Application < ::BaseApplication
     @uri_prefix = '/'.freeze
 
-    # Common middleware stack
-    use Rack::DetectHost
-
-    # Identity resolution middleware
-    use Onetime::Middleware::IdentityResolution
-
-    # Applications middleware stack
-    use Onetime::Middleware::DomainStrategy
+    # App-specific middleware (common middleware is in MiddlewareStack)
 
     # Development Environment Configuration
     # Enable development-specific middleware when in development mode

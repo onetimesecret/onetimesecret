@@ -9,14 +9,7 @@ module V2
   class Application < ::BaseApplication
     @uri_prefix = '/api/v2'.freeze
 
-    # Common middleware stack
-    use Rack::DetectHost
-
-    # Identity resolution middleware
-    use Onetime::Middleware::IdentityResolution
-
-    # Applications middleware stack
-    use Onetime::Middleware::DomainStrategy # after DetectHost
+    # API v2 specific middleware (common middleware is in MiddlewareStack)
     use Rack::JSONBodyParser
 
     warmup do
