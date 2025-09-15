@@ -244,7 +244,15 @@
       "visit-onetime-secret-home": "Onetime Secret ana sayfasını ziyaret edin",
       "password_generation_title": "Parola Oluşturucu",
       "password_generation_description": " Paylaşabileceğiniz güvenli bir rastgele parola oluşturmak için \"Parola Oluştur\" düğmesine tıklayın.",
-      "protip1": "Mesajınız görüntülendikten sonra kendiliğinden imha olacaktır. Bağlantı sadece bir kez erişilebilir."
+      "protip1": "Mesajınız görüntülendikten sonra kendiliğinden imha olacaktır. Bağlantı sadece bir kez erişilebilir.",
+      "authonly": {
+        "tagline2": "Güvenli mesajlaşma hizmeti yalnızca dahili kullanım içindir.",
+        "tagline1": "Hesabınız varsa devam etmek için lütfen giriş yapın."
+      },
+      "disabled": {
+        "tagline2": "Bu hizmet yalnızca dahili kullanım için ayarlanmıştır.",
+        "tagline1": "Kullanıcı arayüzü ve giriş özellikleri kullanılamıyor."
+      }
     },
     "private": {
       "pretext": "Bu linki paylaş:",
