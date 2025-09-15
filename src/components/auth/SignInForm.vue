@@ -28,7 +28,7 @@ const togglePasswordVisibility = () => {
 
 <template>
   <form
-    action="/signin"
+    action="/auth/login"
     method="POST"
     class="mt-8 space-y-6">
     <input
