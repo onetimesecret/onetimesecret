@@ -14,6 +14,31 @@ module Core
     include Onetime::Helpers::SessionHelpers
     include Onetime::Helpers::ShrimpHelpers
 
+    # Combined ClassSettings functionality for UTF-8 and URI encoding middleware checks
+    def self.included(base)
+      base.instance_variable_set(:@check_utf8, nil)
+      base.instance_variable_set(:@check_uri_encoding, nil)
+      base.extend(ClassMethods)
+    end
+
+    module ClassMethods
+      def check_utf8
+        @check_utf8
+      end
+
+      def check_utf8=(value)
+        @check_utf8 = value
+      end
+
+      def check_uri_encoding
+        @check_uri_encoding
+      end
+
+      def check_uri_encoding=(value)
+        @check_uri_encoding = value
+      end
+    end
+
     def request
       req
     end

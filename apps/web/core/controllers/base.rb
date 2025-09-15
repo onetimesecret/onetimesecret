@@ -1,12 +1,11 @@
 # apps/web/core/controllers/base.rb
 
-require_relative 'class_settings'
+require_relative '../views'
 
 module Core
   module Controllers
     module Base
       include Core::ControllerHelpers
-      include Core::Controllers::ClassSettings
 
       attr_reader :req, :res, :cust, :locale, :ignoreshrimp
 
@@ -196,6 +195,29 @@ module Core
         view.add_error message
         res.status = 400
         res.body   = view.render
+      end
+
+      # Common page rendering methods moved from Page controller
+
+      def index
+        publically do
+          view     = Core::Views::VuePoint.new request, session, cust, locale
+          res.body = view.render
+        end
+      end
+
+      def customers_only
+        authenticated do
+          view     = Core::Views::VuePoint.new request, session, cust, locale
+          res.body = view.render
+        end
+      end
+
+      def colonels_only
+        colonels do
+          view     = Core::Views::VuePoint.new request, session, cust, locale
+          res.body = view.render
+        end
       end
     end
   end

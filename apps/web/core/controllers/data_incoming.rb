@@ -1,25 +1,26 @@
-# apps/web/core/controllers/data.rb
+# apps/web/core/controllers/data_incoming.rb
 
 require_relative 'base'
 
 module Core
   module Controllers
-    class Data
+    class DataIncoming
       include Controllers::Base
-
-      def export_window
-        publically do
-          OT.ld "[export_window] authenticated? #{session.authenticated?}"
-          view                       = Core::Views::ExportWindow.new req, session, cust, locale
-          res.headers['content-type'] = 'application/json; charset=utf-8'
-          res.body                   = view.serialized_data.to_json
-        end
-      end
 
       def create_incoming
         publically(req.request_path) do
           if OT.conf['incoming'] && OT.conf['incoming']['enabled']
-            logic    = V2::Logic::Incoming::CreateIncoming.new session, cust, req.params, locale
+            strategy_result = Otto::Security::Authentication::StrategyResult.new(
+              session: session,
+              user: cust,
+              auth_method: 'session',
+              metadata: {
+                ip: req.client_ipaddress,
+                user_agent: req.user_agent
+              }
+            )
+
+            logic = V2::Logic::Incoming::CreateIncoming.new strategy_result, req.params, locale
             logic.raise_concerns
             logic.process
             req.params.clear
