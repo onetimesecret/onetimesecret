@@ -54,8 +54,6 @@ POST   /validate-shrimp                           V2::Logic::Meta::GetValidateSh
 POST   /feedback                                  V2::Logic::Meta::ReceiveFeedback response=json auth=onetime_optional
 
 # Colonel/Admin endpoints
-GET    /colonel/config                            V2::Logic::Colonel::GetSystemSettings response=json auth=onetime_colonel
-POST   /colonel/config                            V2::Logic::Colonel::UpdateSystemSettings response=json auth=onetime_colonel
 GET    /colonel/info                              V2::Logic::Colonel::GetColonelInfo response=json auth=onetime_colonel
 GET    /colonel/stats                             V2::Logic::Colonel::GetColonelStats response=json auth=onetime_colonel
 
