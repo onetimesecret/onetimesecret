@@ -9,7 +9,9 @@
   const windowProps = WindowService.getMultiple([
     'authenticated',
     'authentication',
-    'billing_enabled',
+	'billing_enabled',
+    'plans_enabled',
+    'ui',
   ]);
 
 </script>
@@ -21,6 +23,7 @@
       class="mb-6" />
 
     <SecretForm
+      v-if="windowProps.ui?.enabled !== false"
       class="mb-12"
       :with-recipient="false"
       :with-asterisk="true"
