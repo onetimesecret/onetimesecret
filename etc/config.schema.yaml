@@ -44,6 +44,7 @@
     :signup: any()
     :signin: any()
     :autoverify: any()
+    :required: any()
     :colonels: list(str(), required=True)  # Remove this line
   :authenticity:
     :type: any(str(), int())

@@ -107,7 +107,7 @@
     # and abuse of the system. If you're running a private instance or
     # an instance for your team or company, you can disable this feature
     # to make it easier for users to sign in.
-    :autoverify: <%= ENV['AUTH_AUTOVERIFY'] == 'true' %>
+    :autoverify: <%= ENV['AUTH_AUTOVERIFY'] == 'true' || false %>
     # When enabled, the homepage secret form is not available unless
     # the user is logged in. Similar to a disabled homepage, but still
     # shows the header with logo and navigation links. This allows for
