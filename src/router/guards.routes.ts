@@ -17,6 +17,12 @@ export async function setupRouterGuards(router: Router): Promise<void> {
       return true;
     }
 
+    // Check if UI is enabled
+    const ui = WindowService.get('ui');
+    if (!ui?.enabled) {
+      return { name: 'NotFound' };
+    }
+
     // Handle root path redirect
     if (to.path === '/') {
       return authStore.isAuthenticated ? { name: 'Dashboard' } : true;
