@@ -374,6 +374,7 @@ Key areas to configure in `config.yaml`:
 * Redis connection details
 * Rate limits
 * Enabled locales
+* UI and authentication settings
 
 #### 2. Using Environment Variables (Optional)
 
@@ -433,6 +434,54 @@ The .env file is versatile and can be used in various deployment scenarios, offe
 
 > [!IMPORTANT]
 > Use a secure value for the `SECRET` key as an environment variable or as `site.secret` in `etc/config.yaml`. Once set, do not change this value. Create and store a backup in a secure offsite location. Changing the secret may prevent decryption of existing secrets.
+
+#### UI and Authentication Configuration
+
+OnetimeSecret provides flexible UI and authentication controls that allow you to customize the user experience:
+
+##### UI Controls
+
+**Disabling the Web Interface (`UI_ENABLED=false`)**
+
+When the web interface is disabled, OnetimeSecret shows only a minimal explanation page instead of the full application interface:
+
+```bash
+# Environment variable
+export UI_ENABLED=false
+
+# Or in config.yaml
+:site:
+  :interface:
+    :ui:
+      :enabled: false
+```
+
+This mode is useful for:
+- Maintenance periods
+- API-only deployments
+- Controlled access scenarios
+
+##### Authentication Controls
+
+**Requiring Authentication (`AUTH_REQUIRED=true`)**
+
+When authentication is required, the homepage secret creation form is only available to logged-in users:
+
+```bash
+# Environment variable
+export AUTH_REQUIRED=true
+
+# Or in config.yaml
+:site:
+  :authentication:
+    :required: true
+```
+
+In this mode:
+- Unauthenticated users see a dedicated login-required homepage
+- Site header with logo and navigation links remain visible
+- Only authenticated users can create secrets
+- More restrictive than disabled UI while maintaining site navigation and branding
 
 For a full list of available configuration options, refer to the comments in the `config.example.yaml` file.
 
