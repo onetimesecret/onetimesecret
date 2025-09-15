@@ -244,7 +244,15 @@
       "visit-onetime-secret-home": "Onetime Secret Startseite besuchen",
       "password_generation_title": "Passwortgenerator",
       "password_generation_description": " Klicke auf \"Passwort generieren\", um ein sicheres zufälliges Passwort zu erstellen, das du teilen kannst.",
-      "protip1": "Deine Nachricht zerstört sich nach dem Ansehen selbst. Der Link kann nur einmal aufgerufen werden."
+      "protip1": "Deine Nachricht zerstört sich nach dem Ansehen selbst. Der Link kann nur einmal aufgerufen werden.",
+      "authonly": {
+        "tagline2": "Der sichere Nachrichtendienst ist nur für den internen Gebrauch bestimmt.",
+        "tagline1": "Falls Sie ein Konto haben, loggen Sie sich bitte ein, um fortzufahren."
+      },
+      "disabled": {
+        "tagline2": "Dieser Dienst ist nur für den internen Gebrauch eingerichtet.",
+        "tagline1": "Benutzeroberfläche und Login-Funktionen sind nicht verfügbar."
+      }
     },
     "private": {
       "pretext": "Teile diesen Link:",

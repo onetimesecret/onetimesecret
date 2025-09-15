@@ -156,20 +156,32 @@
       "expiresIn": "Expires in {duration}"
     },
     "homepage": {
-      "tagline1": "Paste a password, secret message or private link below.",
-      "tagline2": "Keep sensitive info out of your email and chat logs.",
-      "secret_hint": "* A secret link only works once and then disappears forever.",
-      "secret_form_more_text1": "Sign up for a",
-      "secret_form_more_text2": "free account",
-      "secret_form_more_text3": "and be able to send the secret by email.",
-      "cta_title": "Increase trust & share with confidence",
-      "cta_subtitle": "Elevate your brand and share with confidence",
-      "cta_feature1": "Unlimited custom domains",
-      "cta_feature2": "Unlimited secret sharing",
-      "cta_feature3": "Increase customer trust and engagement",
-      "explore_premium_plans": "With Custom Domains",
-      "need_free_account": "Just getting started? Send emails with a free account.",
-      "sign_up_free": "Free Sign-up"
+      "tagline1": "Indsæt en adgangskode, hemmelig besked eller privat link nedenfor.",
+      "tagline2": "Hold følsomme oplysninger ude af din e-mail og chatlogs.",
+      "secret_hint": "* Et hemmeligt link fungerer kun én gang og forsvinder derefter for evigt.",
+      "secret_form_more_text1": "Tilmeld dig en",
+      "secret_form_more_text2": "gratis konto",
+      "secret_form_more_text3": "og send den hemmelige besked via e-mail.",
+      "cta_title": "Øg tilliden & del med selvtillid",
+      "cta_subtitle": "Forøg dit brand og del med selvtillid",
+      "cta_feature1": "Ubgrænsede brugerdefinerede domæner",
+      "cta_feature2": "Ubgrænset deling af hemmeligheder",
+      "cta_feature3": "Øg kundernes tillid og engagement",
+      "explore_premium_plans": "Med brugerdefinerede domæner",
+      "need_free_account": "Kommer du lige i gang? Send e-mails med en gratis konto.",
+      "sign_up_free": "Gratis tilmelding",
+      "visit-onetime-secret-home": "Besøg Onetime Secret hjemmesiden",
+      "password_generation_title": "Adgangskodegenerator",
+      "password_generation_description": "Klik på \"Generer adgangskode\" for at oprette en sikker, tilfældig adgangskode, du kan dele.",
+      "protip1": "Din besked vil selvdestruere efter visning. Linket kan kun åbnes én gang.",
+      "authonly": {
+        "tagline2": "Den sikre beskedtjeneste er kun til intern brug.",
+        "tagline1": "Hvis du har en konto, skal du logge ind for at fortsætte."
+      },
+      "disabled": {
+        "tagline2": "Denne tjeneste er kun sat op til intern brug.",
+        "tagline1": "Brugergrænseflade og login-funktioner er ikke tilgængelige."
+      }
     },
     "private": {
       "pretext": "Share this link:",

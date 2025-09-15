@@ -270,7 +270,15 @@
       "visit-onetime-secret-home": "",
       "password_generation_title": "",
       "password_generation_description": "",
-      "protip1": ""
+      "protip1": "",
+      "authonly": {
+        "tagline2": "Le service de messagerie sécurisée est réservé à un usage interne.",
+        "tagline1": "Si vous avez un compte, veuillez vous connecter pour continuer."
+      },
+      "disabled": {
+        "tagline2": "Ce service est configuré pour un usage interne uniquement.",
+        "tagline1": "L'interface utilisateur et les fonctionnalités de connexion ne sont pas disponibles."
+      }
     },
     "private": {
       "pretext": "Partager ce lien :",
