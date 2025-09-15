@@ -9,17 +9,6 @@ module Core
   class Application < ::BaseApplication
     @uri_prefix = '/'.freeze
 
-    # Session middleware
-    require 'onetime/session'
-    use Onetime::Session, {
-      expire_after: 86400, # 24 hours
-      key: 'onetime.session',
-      secure: OT.conf&.dig('site', 'ssl') || false,
-      httponly: true,
-      same_site: :lax,
-      redis_prefix: 'session'
-    }
-
     # Common middleware stack
     use Rack::DetectHost
 

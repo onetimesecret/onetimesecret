@@ -14,23 +14,13 @@ module Core
     include Onetime::Helpers::SessionHelpers
     include Onetime::Helpers::ShrimpHelpers
 
-    # def request
-    #   req
-    # end
+    def request
+      req
+    end
 
-    # def session
-    #   @session ||= begin
-    #     # Why is request.session={} here? Not nil or an instance of Onetime::Session.
-    #     #
-    #     # "apps/web/core/controllers/page.rb:11:in 'block in Core::Controllers::Page#index'",
-    #     # "apps/web/core/controllers/base.rb:25:in 'block in Core::Controllers::Base#publically'",
-    #     # "apps/web/core/controller_helpers.rb:52:in 'Core::ControllerHelpers#carefully'",
-    #     # "apps/web/core/controllers/base.rb:19:in 'Core::Controllers::Base#publically'",
-    #     # "apps/web/core/controllers/page.rb:9:in 'Core::Controllers::Page#index'",
-    #     # "/Users/d/.rbenv/versions/3.4.5/lib/ruby/gems/3.4.0/gems/otto-2.0.0.pre1/lib/otto/route_handlers/instance_method.rb:23:in 'Otto::RouteHandlers::InstanceMethodHandler#call'",
-    #     request.session || raise("Session not found")
-    #   end
-    # end
+    def session
+      req.env['rack.session']
+    end
 
     # `carefully` is a wrapper around the main web application logic. We
     # handle errors, redirects, and other exceptions here to ensure that

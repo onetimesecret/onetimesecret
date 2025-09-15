@@ -71,7 +71,7 @@ module Onetime
 
       def resolve_advanced_identity(_request, env)
           # Get session from Redis session middleware
-          session = env['onetime.session']
+          session = env['rack.session']
           return no_identity unless session
 
           # Check for Advanced authentication markers
@@ -130,7 +130,7 @@ module Onetime
 
       def resolve_basic_identity(request, env)
         # Use Rack::Session from middleware
-        session = env['onetime.session']
+        session = env['rack.session']
         return no_identity unless session && session['identity_id']
 
         begin

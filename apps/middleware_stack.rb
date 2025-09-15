@@ -23,6 +23,17 @@ module MiddlewareStack
       builder.use Rack::ContentLength
       builder.use Onetime::Middleware::StartupReadiness
 
+      # Add session middleware early in the stack (before other middleware)
+      require 'onetime/session'
+      builder.use Onetime::Session, {
+        expire_after: 86_400, # 24 hours
+        key: 'onetime.session',
+        secure: Onetime.conf&.dig('site', 'ssl') || false,
+        httponly: true,
+        same_site: :lax,
+        redis_prefix: 'session'
+      }
+
       # Apply minimal middleware if config not available
       unless Onetime.conf
         Onetime.ld '[middleware] Configuration not available, using minimal stack'
