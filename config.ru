@@ -22,9 +22,6 @@
 #     │   ├── v2/
 #     │   │   ├── config.ru   # V2 API registration
 #     │   │   └── application.rb
-#     │   └── v3/
-#     │       ├── config.ru   # Roda app registration
-#     │       └── roda_app.rb
 #     └── web/
 #         ├── config.ru       # Web app registration
 #         └── application.rb
