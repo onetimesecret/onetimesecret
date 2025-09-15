@@ -18,18 +18,18 @@ GET   /private/*                                 Core::Controllers::Page#index
 GET   /receipt/*                                 Core::Controllers::Page#index
 GET   /secret/*                                  Core::Controllers::Page#index
 
-POST  /signin                                    Core::Controllers::Account#authenticate
-POST  /signup                                    Core::Controllers::Account#create_account
+POST  /signin                                    Core::Controllers::Authentication#authenticate
+POST  /signup                                    Core::Controllers::Registration#create_account
 
 GET   /signin                                    Core::Controllers::Page#index
 GET   /signup                                    Core::Controllers::Page#index
 GET   /signup/*                                  Core::Controllers::Page#index
-GET   /logout                                    Core::Controllers::Account#logout
+GET   /logout                                    Core::Controllers::Session#logout
 
 GET   /forgot                                    Core::Controllers::Page#index
 GET   /forgot/:key                               Core::Controllers::Page#index
-POST  /forgot                                    Core::Controllers::Account#request_reset
-POST  /forgot/:key                               Core::Controllers::Account#request_reset
+POST  /forgot                                    Core::Controllers::PasswordReset#request_reset
+POST  /forgot/:key                               Core::Controllers::PasswordReset#request_reset
 
 GET   /dashboard                                 Core::Controllers::Page#customers_only
 GET   /recent                                    Core::Controllers::Page#customers_only
