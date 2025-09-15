@@ -1,6 +1,32 @@
 #!/usr/bin/env ruby
 # frozen_string_literal: true
 
+# OneTimeSecret Authentication Service
+#
+# This service provides dual-mode authentication for the OneTimeSecret application:
+#
+# 1. BASIC MODE (mode: 'basic')
+#    - Forwards auth requests to Core Web App controllers
+#    - Uses Redis sessions + Onetime::Customer objects
+#    - Preserves existing authentication flow
+#    - Routes: /auth/login → Core:/signin, /auth/logout → Core:/logout
+#
+# 2. ADVANCED MODE (mode: 'advanced')
+#    - Handles authentication directly via Rodauth framework
+#    - Uses database-backed accounts + Rodauth sessions
+#    - Modern authentication with MFA, account management
+#    - Routes: /auth/login → Rodauth, /auth/logout → Rodauth
+#
+# Mode Selection:
+#   - Environment variable: AUTHENTICATION_MODE=basic|advanced (highest priority)
+#   - Configuration file: etc/auth.yaml with mode: basic|advanced
+#   - Default: basic (backwards compatibility)
+#
+# Common Routes (both modes):
+#   - /auth/health - Service health check
+#   - /auth/validate - Session validation
+#   - /auth/account - Account information
+#
 require 'bundler/setup'
 require 'roda'
 require 'rodauth'
@@ -42,8 +68,9 @@ class AuthService < Roda
   # Rodauth plugin configuration
   plugin :rodauth, &Auth::Config::RodauthMain.configure
 
+  # Main routing logic - handles requests based on authentication mode
   route do |r|
-    # Debug logging
+    # Debug logging for development
     if ENV['RACK_ENV'] == 'development'
       puts "[#{Time.now}] #{r.request_method} #{r.path_info}"
       puts "  PATH_INFO: '#{r.env['PATH_INFO']}'"
@@ -51,10 +78,10 @@ class AuthService < Roda
       puts "  SCRIPT_NAME: '#{r.env['SCRIPT_NAME']}'"
     end
 
-    # Determine auth mode at request time
+    # Determine authentication mode at request time
+    # This allows runtime switching between basic/advanced modes
     auth_mode = Onetime.auth_config.mode
 
-    # Debug logging
     if ENV['RACK_ENV'] == 'development'
       puts "  [Auth] Mode: #{auth_mode}"
     end
@@ -69,21 +96,40 @@ class AuthService < Roda
       { message: 'OneTimeSecret Authentication Service API', endpoints: %w[/health /validate /account] }
     end
 
-    # Use modular route handlers (always available)
+    # ==============================================================================
+    # COMMON ROUTES (available in both basic and advanced modes)
+    # ==============================================================================
+    # These routes provide core functionality regardless of authentication mode:
+    # - Health checks for monitoring
+    # - Session validation for frontend auth checks
+    # - Account information retrieval
+    # - Admin functions for management
     handle_health_routes(r)
     handle_validation_routes(r)
     handle_account_routes(r)
     handle_admin_routes(r)
 
-    # Handle auth mode routing
+    # ==============================================================================
+    # MODE-SPECIFIC AUTHENTICATION ROUTING
+    # ==============================================================================
+    # Route authentication requests differently based on the configured mode
     case auth_mode
     when 'advanced'
-      # Handle standard auth endpoints for advanced mode
+      # ADVANCED MODE: Modern database-backed authentication
+      # - Uses Rodauth framework for full auth lifecycle
+      # - Supports MFA, account recovery, session management
+      # - Stores accounts in database with Sequel ORM
+      # - Integrates with Otto via external_id linking
       handle_advanced_auth_routes(r)
     when 'basic'
-      # Handle basic auth mode with core controller forwarding
+      # BASIC MODE: Legacy Redis-based authentication
+      # - Forwards auth requests to Core Web App controllers
+      # - Preserves existing V2::Logic authentication classes
+      # - Uses Redis sessions with Onetime::Customer objects
+      # - Maintains backwards compatibility
       handle_basic_auth_routes(r)
     else
+      # Unknown mode - configuration error
       response.status = 503
       { error: "Unknown authentication mode: #{auth_mode}" }
     end
@@ -95,14 +141,39 @@ class AuthService < Roda
 
   private
 
+  # Handles authentication routes in advanced mode using Rodauth framework
+  #
+  # Advanced mode provides full authentication lifecycle management:
+  # - User registration and account creation
+  # - Login/logout with session management
+  # - Password reset and change functionality
+  # - Multi-factor authentication (MFA) support
+  # - Account lockout and security features
+  # - Email verification and account management
+  #
+  # All routes are handled natively by Rodauth without forwarding
+  # @param r [Roda::RodaRequest] The current request object
   def handle_advanced_auth_routes(r)
-    # Let Rodauth handle all auth routes
-    # This includes /login, /logout, /create-account, etc.
+    # Delegate all authentication routes to Rodauth framework
+    # This includes: /login, /logout, /create-account, /reset-password, etc.
+    # Rodauth automatically handles routing, validation, and responses
     r.rodauth
   end
 
+  # Handles authentication routes in basic mode by forwarding to Core Web App
+  #
+  # Basic mode preserves backwards compatibility by forwarding auth requests
+  # to the existing Core Web App controllers that use V2::Logic classes.
+  # This maintains the Redis session + Onetime::Customer architecture.
+  #
+  # Route Mappings:
+  # - /auth/login → Core:/signin (Core::Controllers::Account#authenticate)
+  # - /auth/logout → Core:/logout (Core::Controllers::Account#logout)
+  # - /auth/create-account → Core:/signup (Core::Controllers::Account#create_account)
+  #
+  # @param r [Roda::RodaRequest] The current request object
   def handle_basic_auth_routes(r)
-    # Handle standard auth endpoints by forwarding to core
+    # Map auth service endpoints to core controller paths
     r.on('login') do
       forward_to_core_auth('/signin', r)
     end
@@ -115,30 +186,47 @@ class AuthService < Roda
       forward_to_core_auth('/signup', r)
     end
 
-    # For any other routes, we don't handle them in basic mode
+    # Other auth routes are not handled in basic mode
+    # This ensures clean separation between modes
     nil
   end
 
+  # Forwards authentication requests to the Core Web App controllers
+  #
+  # This method creates a proxy between the Auth Service and Core Web App,
+  # allowing basic mode to reuse existing authentication logic while
+  # maintaining the new auth service API endpoints.
+  #
+  # Process:
+  # 1. Modify request environment to target the core controller path
+  # 2. Retrieve Core Web App instance from AppRegistry
+  # 3. Forward the modified request to core app
+  # 4. Handle response based on content type (JSON, redirects, HTML)
+  # 5. Convert responses to JSON format for API consistency
+  #
+  # @param path [String] The target path in the core app (e.g., '/signin')
+  # @param r [Roda::RodaRequest] The current request object
+  # @return [Hash, String, nil] JSON response, HTML content, or nil for redirects
   def forward_to_core_auth(path, r)
-    # Create a new env with the mapped path for forwarding to core controllers
+    # Step 1: Modify request environment to target core controller path
     new_env = r.env.dup
     new_env['PATH_INFO'] = path
     new_env['REQUEST_URI'] = new_env['REQUEST_URI'].sub(r.path_info, path)
 
-    # Try to get the core web application
+    # Step 2: Retrieve Core Web App instance
     core_app = get_core_web_app
 
     if core_app
-      # Forward the request to the core app
+      # Step 3: Forward the modified request to core app
       status, headers, body = core_app.call(new_env)
 
-      # Set response
+      # Step 4: Set response status and headers
       response.status = status
       headers.each { |k, v| response.headers[k] = v unless k.downcase == 'content-length' }
 
-      # Handle the response based on content type
+      # Step 5: Handle response based on content type for API consistency
       if headers['Content-Type']&.include?('application/json')
-        # Parse JSON response
+        # Already JSON - parse and return
         body_str = body.is_a?(Array) ? body.join : body.to_s
         begin
           JSON.parse(body_str)
@@ -146,30 +234,41 @@ class AuthService < Roda
           { error: 'Invalid JSON response from core auth' }
         end
       elsif status >= 300 && status < 400 && headers['Location']
-        # Handle redirects - convert to JSON for API consistency
+        # Convert redirects to JSON for API consistency
         if r.env['HTTP_ACCEPT']&.include?('application/json')
           { success: true, redirect: headers['Location'] }
         else
+          # Honor redirect for browser requests
           response.redirect(headers['Location'])
           nil
         end
       else
-        # For other content types, return as-is
+        # Return HTML or other content as-is
         body.is_a?(Array) ? body.join : body.to_s
       end
     else
+      # Core app unavailable - service degraded
       response.status = 503
       { error: 'Core authentication service unavailable' }
     end
   end
 
+  # Retrieves the Core Web App instance from the application registry
+  #
+  # The Core Web App is responsible for handling authentication in basic mode.
+  # This method safely attempts to access the core app through the AppRegistry
+  # system, which manages the mapping between URL paths and application classes.
+  #
+  # @return [Object, nil] The Core Web App instance, or nil if unavailable
   def get_core_web_app
-    # Get the Core web application from the app registry
+    # Access the Core Web App through the application registry
+    # AppRegistry maps URL paths to application classes (e.g., '/' → CoreWebApp)
     if defined?(AppRegistry) && AppRegistry.respond_to?(:mount_mappings)
       core_app_class = AppRegistry.mount_mappings['/']
       core_app_class&.new
     end
   rescue StandardError => e
+    # Log error in development but don't expose details in production
     puts "Error getting core app: #{e.message}" if ENV['RACK_ENV'] == 'development'
     nil
   end
