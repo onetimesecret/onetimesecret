@@ -50,6 +50,28 @@ const routes: Array<RouteRecordRaw> = [
     },
   },
   {
+    path: '/',
+    name: 'DisabledHome',
+    components: {
+      default: HomepageContainer,
+      header: DefaultHeader,
+      footer: DefaultFooter,
+    },
+    meta: {
+      requiresAuth: false,
+      layout: DefaultLayout,
+      layoutProps: {
+        displayMasthead: true,
+        displayNavigation: true,
+        displayFooterLinks: true,
+        displayFeedback: false,
+        displayPoweredBy: false,
+        displayVersion: false,
+        displayToggles: true,
+      },
+    },
+  },
+  {
     path: '/incoming',
     name: 'Inbound Secrets',
     component: IncomingSupportSecret,
