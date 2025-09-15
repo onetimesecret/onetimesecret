@@ -10,7 +10,6 @@ module Auth
     @uri_prefix = '/auth'.freeze
 
     # Common middleware stack
-    use Rack::CommonLogger  # Request logging for all environments
     use Rack::DetectHost
 
     # Applications middleware stack
