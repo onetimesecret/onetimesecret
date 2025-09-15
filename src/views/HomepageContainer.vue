@@ -2,26 +2,46 @@
 <script setup lang="ts">
   import { useProductIdentity } from '@/stores/identityStore';
   import { computed } from 'vue';
+  import { useRoute } from 'vue-router';
 
   import BrandedHomepage from './BrandedHomepage.vue';
   import Homepage from './Homepage.vue';
+  import DisabledHomepage from './DisabledHomepage.vue';
+  import DisabledUI from './DisabledUI.vue';
 
   interface Props {}
   defineProps<Props>();
 
   const { isCustom, displayDomain, siteHost } = useProductIdentity();
+  const route = useRoute();
 
-  // Simple approach: use direct component with transition
-  const currentComponent = computed(() => {
-    return isCustom ? BrandedHomepage : Homepage;
+  // Get component state from route meta (set by beforeEnter hook)
+  const componentState = computed(() => {
+    return route.meta.componentState || 'normal';
   });
+
+  // Determine which component to show based on state
+  const currentComponent = computed(() => {
+    switch (componentState.value) {
+      case 'disabled-ui':
+        return DisabledUI;
+      case 'disabled-homepage':
+        return DisabledHomepage;
+      case 'normal':
+      default:
+        return isCustom ? BrandedHomepage : Homepage;
+    }
+  });
+
+  // Note: Layout props are now set in the route's beforeEnter hook
+  // to ensure they're configured before the layout renders
 </script>
 
 <template>
   <div class="homepage-container">
     <Transition name="homepage-fade" mode="out-in">
       <Component
-        :key="isCustom ? 'branded' : 'standard'"
+        :key="componentState + (isCustom ? '-branded' : '-standard')"
         :is="currentComponent"
         :display-domain="displayDomain"
         :site-host="siteHost" />
