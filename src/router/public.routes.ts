@@ -4,6 +4,7 @@ import DefaultFooter from '@/components/layout/DefaultFooter.vue';
 import DefaultHeader from '@/components/layout/DefaultHeader.vue';
 import DefaultLayout from '@/layouts/DefaultLayout.vue';
 import { WindowService } from '@/services/window.service';
+import DisabledHomepage from '@/views/DisabledHomepage.vue';
 import HomepageContainer from '@/views/HomepageContainer.vue';
 import IncomingSupportSecret from '@/views/secrets/IncomingSupportSecret.vue';
 import { RouteRecordRaw } from 'vue-router';
@@ -53,7 +54,7 @@ const routes: Array<RouteRecordRaw> = [
     path: '/',
     name: 'DisabledHome',
     components: {
-      default: HomepageContainer,
+      default: DisabledHomepage,
       header: DefaultHeader,
       footer: DefaultFooter,
     },
@@ -61,8 +62,8 @@ const routes: Array<RouteRecordRaw> = [
       requiresAuth: false,
       layout: DefaultLayout,
       layoutProps: {
-        displayMasthead: true,
-        displayNavigation: true,
+        displayMasthead: false,
+        displayNavigation: false,
         displayFooterLinks: true,
         displayFeedback: false,
         displayPoweredBy: false,
