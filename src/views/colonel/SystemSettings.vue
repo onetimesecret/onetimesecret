@@ -69,12 +69,9 @@
   ]);
 
   // Computed property for the current section's content (read-only)
-  const currentSectionContent = computed({
-    get: () => (activeSection.value ? sectionEditors.value[activeSection.value] || '' : ''),
-    set: () => {
-      // No-op for read-only mode
-    },
-  });
+  const currentSectionContent = computed(() =>
+    activeSection.value ? sectionEditors.value[activeSection.value] || '' : ''
+  );
 
   onMounted(async () => {
     try {
@@ -118,9 +115,11 @@
 
         <!-- Read-only notice -->
         <div
-          class="mt-4 rounded-md border border-blue-400 bg-blue-50 p-3 text-blue-700 dark:bg-blue-900 dark:text-blue-200">
+          class="mt-4 rounded-md border border-blue-400 bg-blue-50 p-3 text-blue-700 dark:bg-blue-900 dark:text-blue-200"
+          role="alert"
+          aria-label="Read-only mode notification">
           <div class="flex items-center">
-            <span class="mr-2">🔒</span>
+            <span class="mr-2" aria-hidden="true">🔒</span>
             <span class="text-sm font-medium">Read-Only Mode</span>
           </div>
           <p class="mt-1 text-sm">
@@ -170,6 +169,7 @@
       <div class="mb-6">
         <div
           class="max-h-[900px] min-h-[400px] overflow-auto rounded-md border bg-gray-50 dark:bg-gray-800"
+          aria-readonly="true"
           :class="[
             currentSectionHasError
               ? 'border-red-500'
