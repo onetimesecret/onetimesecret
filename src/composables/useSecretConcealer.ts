@@ -53,14 +53,37 @@ export function useSecretConcealer(options?: SecretConcealerOptions) {
    */
   const createPayload = (
     type: SubmitType
-  ): ConcealPayload | GeneratePayload => ({
-    kind: type,
-    secret: form.secret,
-    ttl: form.ttl,
-    passphrase: form.passphrase,
-    recipient: form.recipient,
-    share_domain: form.share_domain,
-  });
+  ): ConcealPayload | GeneratePayload => {
+    const basePayload = {
+      kind: type,
+      secret: form.secret,
+      ttl: form.ttl,
+      passphrase: form.passphrase,
+      recipient: form.recipient,
+      share_domain: form.share_domain,
+    };
+
+    // Add password generation options for generate type
+    if (type === 'generate') {
+      const secretOptions = typeof window !== 'undefined' && window.__ONETIME_STATE__ ?
+        window.__ONETIME_STATE__.secret_options : null;
+      const passwordConfig = secretOptions?.password_generation;
+
+      return {
+        ...basePayload,
+        length: passwordConfig?.default_length || 12,
+        character_sets: passwordConfig?.character_sets || {
+          uppercase: true,
+          lowercase: true,
+          numbers: true,
+          symbols: false,
+          exclude_ambiguous: true,
+        },
+      } as GeneratePayload;
+    }
+
+    return basePayload as ConcealPayload;
+  };
 
   /**
    * Handles form submission for both conceal and generate operations

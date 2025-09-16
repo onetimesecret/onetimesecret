@@ -122,7 +122,11 @@
     },
     "secrets": {
       "privacyOptions": "隐私选项",
-      "expiresIn": "在{duration}中到期"
+      "selectDuration": "选择持续时间",
+      "expiresIn": "在{duration}中到期",
+      "enterPassphrase": "输入密码短语",
+      "passphraseMinimumLength": "最少{length}个字符",
+      "passphraseComplexityRequired": "必须包含大写字母、小写字母、数字和符号"
     },
     "signup": {
       "create-your-account": "创建您的帐户"

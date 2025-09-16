@@ -18,6 +18,20 @@
   :secret_options:
     :default_ttl: <%= ENV['DEFAULT_TTL'] || '43200' %> # 12 hours in seconds
     :ttl_options: <%= (ENV['TTL_OPTIONS'] || '1800 43200 604800') %> # 30m, 12h, 7d
+    :passphrase:
+      :required: false
+      :minimum_length: 8
+      :maximum_length: 128
+      :enforce_complexity: false
+    :password_generation:
+      :default_length: 12
+      :length_options: [8, 12, 16, 20, 24, 32]
+      :character_sets:
+        :uppercase: true
+        :lowercase: true
+        :numbers: true
+        :symbols: false
+        :exclude_ambiguous: true
   # Registration and Authentication settings
   :authentication:
     # Can be disabled altogether, including API authentication.
