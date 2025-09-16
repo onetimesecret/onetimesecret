@@ -1,4 +1,4 @@
-# .github/workflows/.docker-build-publish-reusable.yml
+# .github/workflows/.build-and-publish-oci-images-reusable.yml
 
 name: Docker Build and Publish (Reusable)
 
@@ -17,14 +17,6 @@ on:
         required: false
         type: string
         default: ''
-      debug_enabled:
-        required: false
-        type: boolean
-        default: false
-      platforms:
-        required: false
-        type: string
-        default: 'linux/amd64,linux/arm64'
 
 env:
   REGISTRY: ghcr.io
@@ -42,7 +34,7 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
+        uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 # v4
 
       # Generate .commit_hash.txt in the build context. This guarantees the file
       # is created before the build context is submitted.
@@ -52,6 +44,10 @@ jobs:
           echo Commit hash recorded
           head -4 .commit_hash.txt package.json
 
+      - name: Update package.json version from tag
+        if: startsWith(github.ref, 'refs/tags/v')
+        run: ./bin/update-version.sh
+
       - name: Set up QEMU
         uses: docker/setup-qemu-action@29109295f81e9208d7d86ff1c6c12d2833863392 # v3.6.0
         with:
@@ -60,7 +56,7 @@ jobs:
       - name: Setup Docker buildx
         uses: docker/setup-buildx-action@b5ca514318bd6ebac0fb2aedd5d36ec1b5c232a2 # v3.10.0
         with:
-          platforms: ${{ inputs.platforms }}
+          platforms: linux/amd64,linux/arm64
 
       - name: Login to Docker Hub
         uses: docker/login-action@74a5d142397b4f367a81961eba4e8cd7edddf772 # v3.4.0
@@ -112,7 +108,7 @@ jobs:
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           annotations: ${{ steps.meta.outputs.annotations }}
-          platforms: ${{ inputs.platforms }}
+          platforms: linux/amd64,linux/arm64
           build-args: |
             VERSION=${{ steps.package_version.outputs.version }}
             GITHUB_SHA=${{ github.sha }}

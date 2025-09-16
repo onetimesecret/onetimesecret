@@ -62,6 +62,7 @@
     "@babel/helpers": "7.27.1",
     "@codemirror/lang-json": "6.0.1",
     "@codemirror/lang-yaml": "6.1.2",
+    "@codemirror/state": "^6.5.2",
     "@codemirror/theme-one-dark": "6.1.2",
     "@codemirror/view": "6.37.1",
     "@headlessui/vue": "1.7.23",
