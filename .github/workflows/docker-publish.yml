@@ -24,6 +24,21 @@ on:
       - '**'
 
   workflow_dispatch:
+    inputs:
+      debug_enabled:
+        type: boolean
+        description: 'Enable debug mode for build troubleshooting'
+        required: false
+        default: false
+      platforms:
+        type: choice
+        description: 'Target platforms'
+        required: false
+        default: 'linux/amd64,linux/arm64'
+        options:
+          - 'linux/amd64,linux/arm64'
+          - 'linux/amd64'
+          - 'linux/arm64'
 
 permissions:
   contents: read
@@ -39,6 +54,8 @@ jobs:
         type=ref,event=branch
         type=ref,event=tag
         type=raw,value=next,enable=${{ contains(github.ref, '-rc') || contains(github.ref, 'develop') }}
+      debug_enabled: ${{ inputs.debug_enabled || false }}
+      platforms: ${{ inputs.platforms || 'linux/amd64,linux/arm64' }}
     secrets: inherit
 
   build-and-publish-lite:
@@ -51,4 +68,6 @@ jobs:
         type=ref,event=branch
         type=ref,event=tag
         type=raw,value=next,enable=${{ contains(github.ref, '-rc') || contains(github.ref, 'develop') }}
+      debug_enabled: ${{ inputs.debug_enabled || false }}
+      platforms: ${{ inputs.platforms || 'linux/amd64,linux/arm64' }}
     secrets: inherit

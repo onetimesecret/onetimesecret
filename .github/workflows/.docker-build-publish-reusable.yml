@@ -17,6 +17,14 @@ on:
         required: false
         type: string
         default: ''
+      debug_enabled:
+        required: false
+        type: boolean
+        default: false
+      platforms:
+        required: false
+        type: string
+        default: 'linux/amd64,linux/arm64'
 
 env:
   REGISTRY: ghcr.io
@@ -52,7 +60,7 @@ jobs:
       - name: Setup Docker buildx
         uses: docker/setup-buildx-action@b5ca514318bd6ebac0fb2aedd5d36ec1b5c232a2 # v3.10.0
         with:
-          platforms: linux/amd64,linux/arm64
+          platforms: ${{ inputs.platforms }}
 
       - name: Login to Docker Hub
         uses: docker/login-action@74a5d142397b4f367a81961eba4e8cd7edddf772 # v3.4.0
@@ -104,7 +112,7 @@ jobs:
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           annotations: ${{ steps.meta.outputs.annotations }}
-          platforms: linux/amd64,linux/arm64
+          platforms: ${{ inputs.platforms }}
           build-args: |
             VERSION=${{ steps.package_version.outputs.version }}
             GITHUB_SHA=${{ github.sha }}
