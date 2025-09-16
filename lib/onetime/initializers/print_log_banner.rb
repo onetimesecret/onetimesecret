@@ -209,6 +209,26 @@ module Onetime
           ttl_options = secret_options[:ttl_options].map { |seconds| format_duration(seconds) }.join(', ')
           customization_rows << ['TTL Options', ttl_options]
         end
+
+        # Format passphrase options
+        if secret_options[:passphrase]
+          passphrase_config = secret_options[:passphrase]
+          if is_feature_disabled?(passphrase_config)
+            customization_rows << ['Passphrase', 'disabled']
+          elsif passphrase_config.is_a?(Hash) && !passphrase_config.empty?
+            customization_rows << ['Passphrase', format_config_value(passphrase_config)]
+          end
+        end
+
+        # Format password_generation options
+        if secret_options[:password_generation]
+          password_generation_config = secret_options[:password_generation]
+          if is_feature_disabled?(password_generation_config)
+            customization_rows << ['Password Generation', 'disabled']
+          elsif password_generation_config.is_a?(Hash) && !password_generation_config.empty?
+            customization_rows << ['Password Generation', format_config_value(password_generation_config)]
+          end
+        end
       end
 
       # Interface configuration

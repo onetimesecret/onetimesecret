@@ -224,7 +224,9 @@
       "privacyOptions": "Privatlivsmuligheder",
       "selectDuration": "Vælg varighed",
       "expiresIn": "Udløber om {duration}",
-      "enterPassphrase": "Indtast adgangssætning"
+      "enterPassphrase": "Indtast adgangssætning",
+      "passphraseMinimumLength": "Minimum {length} tegn",
+      "passphraseComplexityRequired": "Skal indeholde store bogstaver, små bogstaver, tal og symbol"
     },
     "homepage": {
       "tagline1": "Indsæt en adgangskode, besked eller privat link nedenfor.",
