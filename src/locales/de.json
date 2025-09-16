@@ -224,6 +224,9 @@
       "privacyOptions": "Datenschutzoptionen",
       "selectDuration": "Dauer auswählen",
       "expiresIn": "Läuft ab in {duration}",
+      "enterPassphrase": "Passwort eingeben",
+      "passphraseMinimumLength": "Mindestens {length} Zeichen",
+      "passphraseComplexityRequired": "Muss Groß-, Kleinbuchstaben, Zahl und Symbol enthalten",
       "enterPassphrase": "Passphrase eingeben"
     },
     "homepage": {

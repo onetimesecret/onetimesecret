@@ -39,6 +39,19 @@
   :secret_options:
     :default_ttl: any(str(), int())
     :ttl_options: str()
+    :passphrase:
+      :required: any(bool(), str())
+      :minimum_length: any(str(), int())
+      :maximum_length: any(str(), int())
+      :enforce_complexity: any(bool(), str())
+    :password_generation:
+      :default_length: any(str(), int())
+      :character_sets:
+        :uppercase: any(bool(), str())
+        :lowercase: any(bool(), str())
+        :numbers: any(bool(), str())
+        :symbols: any(bool(), str())
+        :exclude_ambiguous: any(bool(), str())
   :authentication:
     :enabled: any()
     :signup: any()

@@ -224,6 +224,9 @@
       "privacyOptions": "Opções de Privacidade",
       "selectDuration": "Selecionar duração",
       "expiresIn": "Expira em {duration}",
+      "enterPassphrase": "Digite a senha",
+      "passphraseMinimumLength": "Mínimo {length} caracteres",
+      "passphraseComplexityRequired": "Deve incluir maiúscula, minúscula, número e símbolo",
       "enterPassphrase": "Digite a Senha Mestre"
     },
     "homepage": {

@@ -224,7 +224,9 @@
       "privacyOptions": "Options de confidentialité",
       "selectDuration": "Sélectionner la durée",
       "expiresIn": "Expire dans {duration}",
-      "enterPassphrase": "Saisir la phrase secrète"
+      "enterPassphrase": "Saisir la phrase secrète",
+      "passphraseMinimumLength": "Minimum {length} caractères",
+      "passphraseComplexityRequired": "Doit inclure majuscules, minuscules, chiffre et symbole"
     },
     "homepage": {
       "tagline1": "Collez votre mot de passe, message secret ou lien privé ci-dessous",

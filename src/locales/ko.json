@@ -224,7 +224,9 @@
       "privacyOptions": "개인 정보 보호 옵션",
       "selectDuration": "기간 선택",
       "expiresIn": "{duration} 후 만료",
-      "enterPassphrase": "접근 문구 입력"
+      "enterPassphrase": "접근 문구 입력",
+      "passphraseMinimumLength": "최소 {length}자",
+      "passphraseComplexityRequired": "대문자, 소문자, 숫자 및 기호를 포함해야 합니다"
     },
     "homepage": {
       "tagline1": "비밀번호, 비밀 메시지 또는 개인 링크를 아래에 붙여넣으세요.",
