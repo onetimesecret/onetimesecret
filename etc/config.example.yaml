@@ -103,9 +103,6 @@
     :password_generation:
       # Default length for generated passwords
       :default_length: <%= ENV['PASSWORD_GEN_LENGTH'] || 12 %>
-      # Available length options for password generation
-      # Format: String of integers separated by spaces
-      :length_options: <%= ENV['PASSWORD_GEN_LENGTHS'] || '8 12 16 20 24 32' %>
       # Character sets to include in generated passwords
       :character_sets:
         # Include uppercase letters (A-Z)
