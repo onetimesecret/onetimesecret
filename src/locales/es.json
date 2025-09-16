@@ -224,6 +224,9 @@
       "privacyOptions": "Opciones de privacidad",
       "selectDuration": "Seleccionar duración",
       "expiresIn": "Expira en {duration}",
+      "enterPassphrase": "Ingrese la contraseña",
+      "passphraseMinimumLength": "Mínimo {length} caracteres",
+      "passphraseComplexityRequired": "Debe incluir mayúscula, minúscula, número y símbolo",
       "enterPassphrase": "Introduce la Frase de Contraseña"
     },
     "homepage": {

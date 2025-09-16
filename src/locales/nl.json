@@ -224,7 +224,9 @@
       "privacyOptions": "Privacy opties",
       "selectDuration": "Selecteer duur",
       "expiresIn": "Verloopt in {duration}",
-      "enterPassphrase": "Wachtwoordzin invoeren"
+      "enterPassphrase": "Wachtwoordzin invoeren",
+      "passphraseMinimumLength": "Minimaal {length} tekens",
+      "passphraseComplexityRequired": "Moet hoofdletters, kleine letters, cijfer en symbool bevatten"
     },
     "homepage": {
       "tagline1": "Plak het wachtwoord, geheime bericht of privé link hieronder",

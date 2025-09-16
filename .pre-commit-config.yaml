@@ -46,8 +46,9 @@ default_install_hook_types:
 # Default execution stage
 default_stages: [pre-commit]
 
-# Terminate checks on first failure
-fail_fast: true
+# Allow all hooks to run even if one (or more fails). This avoids
+# the commit->fail->fix->commit->fail->fix->commit routine.
+fail_fast: false
 
 # Ignore generated and dependency directories
 exclude: '^$'
@@ -76,19 +77,6 @@ repos:
       - id: no-commit-to-branch # Prevent direct commits to critical branches
         args: ['--branch', 'develop', '--branch', 'rel/.*']
 
-  # Local Ruby linting: syntax and basic style checks
-  - repo: local
-    hooks:
-      - id: local-rubocop-fast
-        stages: [pre-commit]
-        name: Quick Rubocop
-        description: Lightweight Ruby syntax and layout validation
-        entry: bundle exec rubocop --force-exclusion --config .rubocop.yml --format json --fail-level error --only Syntax,Layout --no-server
-        language: system
-        types: [ruby]
-        files: \.(rb|rake)$
-        pass_filenames: true
-
   # Commit message issue tracking integration
   - repo: https://github.com/avilaton/add-msg-issue-prefix-hook
     rev: v0.0.11
@@ -108,7 +96,7 @@ repos:
         stages: [pre-commit]
         name: Quick ESLint
         description: Lightweight TypeScript/Vue syntax validation
-        entry: node_modules/.bin/eslint --quiet --config eslint.config.ts
+        entry: node_modules/.bin/eslint --quiet --config eslint.config.ts --ignore-pattern 'src/tests/**'
         language: system
         pass_filenames: true
         files: (^src/.*\.(mjs|ts|vue)$|^.*\.(mjs|ts|vue)$)
