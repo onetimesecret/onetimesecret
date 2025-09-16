@@ -13,6 +13,10 @@ module Onetime
     class << self
       attr_accessor :fortunes
 
+    end
+
+    # Character set constants for flexible password generation
+    # Move these outside class << self so they're accessible to class methods
     unless defined?(VALID_CHARS)
       # Symbols used in character sets for random string generation.
       # Includes common special characters that are generally safe for use
@@ -42,6 +46,9 @@ module Onetime
       # generated strings.
       VALID_CHARS_SAFE = VALID_CHARS.reject { |char| AMBIGUOUS_CHARS.include?(char) }.freeze
     end
+
+    class << self
+      attr_accessor :fortunes
 
     # Generates a random string of specified length using configurable character sets.
     # Supports both simple usage and complex password generation with guaranteed complexity.
