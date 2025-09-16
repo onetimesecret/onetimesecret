@@ -1,3 +1,5 @@
+# lib/onetime/utils.rb
+
 require_relative 'utils/enumerables'
 require_relative 'utils/sanitation'
 require_relative 'utils/strings'
@@ -27,7 +29,11 @@ module Onetime
       NUMBERS   = ('0'..'9').to_a.freeze
 
       # Extended symbol set for password generation
-      SYMBOLS = ['!', '@', '#', '$', '%', '^', '&', '*', '(', ')', '_', '-', '+', '=', '[', ']', '{', '}', '|', ':', ';', '"', "'", '<', '>', ',', '.', '?', '/', '~', '`'].freeze
+      SYMBOLS = [
+        '!', '@', '#', '$', '%', '^', '&', '*', '(', ')', '_', '-', '+', '=',
+        '[', ']', '{', '}', '|', ':', ';', '"', "'", '<', '>', ',', '.', '?',
+        '/', '~', '`'
+      ].freeze
 
       # Basic symbols for general use (backward compatibility)
       BASIC_SYMBOLS = %w[* $ ! ? ( ) @ # % ^].freeze
@@ -140,7 +146,9 @@ module Onetime
       # Fill remaining length with random characters from the full set
       remaining_length = len - password_chars.length
       if remaining_length > 0
-        remaining_chars = Array.new(remaining_length) { chars[SecureRandom.random_number(chars.length)] }
+        remaining_chars = Array.new(remaining_length) do
+          chars[SecureRandom.random_number(chars.length)]
+        end
         password_chars.concat(remaining_chars)
       end
 
@@ -244,7 +252,12 @@ module Onetime
 
       # Check if multiple character sets are requested (requiring complexity guarantee)
       def multiple_char_sets_requested?(opts)
-        enabled_sets = [opts[:uppercase], opts[:lowercase], opts[:numbers], opts[:symbols]].count(true)
+        enabled_sets = [
+          opts[:uppercase],
+          opts[:lowercase],
+          opts[:numbers],
+          opts[:symbols]
+        ].count(true)
         enabled_sets > 1
       end
     end
