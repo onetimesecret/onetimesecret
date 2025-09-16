@@ -172,10 +172,10 @@ module V1::Logic
 
       def validate_passphrase
         # Get passphrase configuration
-        passphrase_config = OT.conf.dig(:site, :secret_options, :passphrase) || {}
+        passphrase_config = OT.conf.dig('site', 'secret_options', 'passphrase') || {}
 
         # Check if passphrase is required
-        if passphrase_config[:required] && passphrase.to_s.empty?
+        if passphrase_config['required'] && passphrase.to_s.empty?
           raise_form_error "A passphrase is required for all secrets"
         end
 
@@ -183,19 +183,19 @@ module V1::Logic
         return if passphrase.to_s.empty?
 
         # Validate minimum length
-        min_length = passphrase_config[:minimum_length]
+        min_length = passphrase_config['minimum_length']
         if min_length && passphrase.length < min_length
           raise_form_error "Passphrase must be at least #{min_length} characters long"
         end
 
         # Validate maximum length
-        max_length = passphrase_config[:maximum_length]
+        max_length = passphrase_config['maximum_length']
         if max_length && passphrase.length > max_length
           raise_form_error "Passphrase must be no more than #{max_length} characters long"
         end
 
         # Validate complexity if required
-        if passphrase_config[:enforce_complexity]
+        if passphrase_config['enforce_complexity']
           validate_passphrase_complexity
         end
       end

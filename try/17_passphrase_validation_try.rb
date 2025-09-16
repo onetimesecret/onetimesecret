@@ -29,16 +29,16 @@ class TestSecretAction < V2::Logic::Secrets::BaseSecretAction
 
   # Override config for testing
   def self.test_with_config(passphrase_config)
-    original_config = OT.conf.dig(:site, :secret_options, :passphrase)
-    OT.conf[:site][:secret_options][:passphrase] = passphrase_config
+    original_config = OT.conf.dig('site', 'secret_options', 'passphrase')
+    OT.conf['site']['secret_options']['passphrase'] = passphrase_config
     yield
   ensure
-    OT.conf[:site][:secret_options][:passphrase] = original_config
+    OT.conf['site']['secret_options']['passphrase'] = original_config
   end
 end
 
 ## Test validation with no passphrase required and none provided
-TestSecretAction.test_with_config({ required: false }) do
+TestSecretAction.test_with_config({ 'required' => false }) do
   action = TestSecretAction.new(secret: { passphrase: '' })
   begin
     action.send(:validate_passphrase)
@@ -50,7 +50,7 @@ end
 #=> true
 
 ## Test validation with passphrase required but none provided
-TestSecretAction.test_with_config({ required: true }) do
+TestSecretAction.test_with_config({ 'required' => true }) do
   action = TestSecretAction.new(secret: { passphrase: '' })
   begin
     action.send(:validate_passphrase)
@@ -62,7 +62,7 @@ end
 #=> true
 
 ## Test validation with minimum length requirement
-TestSecretAction.test_with_config({ required: false, minimum_length: 10 }) do
+TestSecretAction.test_with_config({ 'required' => false, 'minimum_length' => 10 }) do
   action = TestSecretAction.new(secret: { passphrase: 'short' })
   begin
     action.send(:validate_passphrase)
@@ -74,7 +74,7 @@ end
 #=> true
 
 ## Test validation with valid passphrase meeting minimum length
-TestSecretAction.test_with_config({ required: false, minimum_length: 8 }) do
+TestSecretAction.test_with_config({ 'required' => false, 'minimum_length' => 8 }) do
   action = TestSecretAction.new(secret: { passphrase: 'longenough' })
   begin
     action.send(:validate_passphrase)
@@ -86,7 +86,7 @@ end
 #=> true
 
 ## Test validation with complexity enforcement
-TestSecretAction.test_with_config({ required: false, enforce_complexity: true }) do
+TestSecretAction.test_with_config({ 'required' => false, 'enforce_complexity' => true }) do
   action = TestSecretAction.new(secret: { passphrase: 'simplepassword' })
   begin
     action.send(:validate_passphrase)
@@ -98,7 +98,7 @@ end
 #=> true
 
 ## Test validation with complex passphrase meeting all requirements
-TestSecretAction.test_with_config({ required: false, enforce_complexity: true }) do
+TestSecretAction.test_with_config({ 'required' => false, 'enforce_complexity' => true }) do
   action = TestSecretAction.new(secret: { passphrase: 'Complex123!' })
   begin
     action.send(:validate_passphrase)

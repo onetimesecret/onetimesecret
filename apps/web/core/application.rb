@@ -41,7 +41,7 @@ module Core
     protected
 
     def build_router
-      is_enabled = OT.conf.dig(:site, :interface, :ui, :enabled) || false
+      is_enabled = OT.conf.dig('site', 'interface', 'ui', 'enabled') || false
 
       enabled_routes_path = File.join(ENV['ONETIME_HOME'], 'apps/web/core/routes')
       disabled_routes_path = File.join(ENV['ONETIME_HOME'], 'apps/web/core/routes.disabled')
