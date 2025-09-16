@@ -29,8 +29,9 @@ docker run -p 3000:3000 -d \
   -e REDIS_URL=redis://host.docker.internal:6379/0 \
   -e SECRET="$(cat .ots_secret)" \
   -e HOST=localhost:3000 \
+  -e AUTH_REQUIRED=false \
   -e SSL=false \ # ⚠️ WARNING: Set SSL=true for production deployments
-  onetimesecret/onetimesecret:latest
+  onetimesecret/onetimesecret:v0.22.6
 ```
 
 **3. Access:** http://localhost:3000
@@ -47,17 +48,17 @@ docker run -p 3000:3000 -d \
 - Homepage secret creation requires login
 - Maintains site navigation while restricting access
 
+
 ### Essential Settings
 
 Create `./etc/config.yaml` from the example:
 ```bash
-cp ./etc/config.example.yaml ./etc/config.yaml
+cp -p ./etc/defaults/config.defaults.yaml ./etc/config.yaml
 ```
 
 Key configuration areas:
-- **Email**: SMTP or SendGrid setup
 - **Authentication**: Enable/disable login requirements
-- **Rate limits**: Control usage patterns
+- **Email**: SMTP or SendGrid setup
 - **UI settings**: Customize user experience
 
 ### Environment Variables
@@ -69,6 +70,8 @@ SSL=true
 SECRET=your-secure-random-key
 REDIS_URL=redis://host:6379/0
 AUTH_REQUIRED=true
+PASSPHRASE_REQUIRED=true
+PASSWORD_GEN_LENGTH=8
 TTL_OPTIONS='1800 43200 86400 259200'  # 30m, 12h, 24h, 3d
 ```
 
@@ -177,12 +180,11 @@ This section provides an overview of services similar to our project, highlighti
 
 | URL                                | Service            | Description                                                                                                                                                     | Distinctive Feature                                               |
 | ---------------------------------- | ------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------- |
-| <https://protonurl.ch/>             | protonURL          | A simple and secure tool to share secret, confidential, or non-confidential content via a self-destructing link.                                                | Temporary, self-destructing links for sensitive content with strong encryption and available in 15 languages |
+| <https://protonurl.ch/>            | protonURL          | A simple and secure tool to share secret, confidential, or non-confidential content via a self-destructing link.                                                | Temporary, self-destructing links for sensitive content with strong encryption and available in 15 languages |
 | <https://pwpush.com/>              | Password Pusher    | A tool that uses browser cookies to help you share passwords and other sensitive information.                                                                   | Temporary, self-destructing links for password sharing            |
 | <https://scrt.link/en>             | Share a Secret     | A service that allows you to share sensitive information anonymously. Crucial for journalists, lawyers, politicians, whistleblowers, and oppressed individuals. | Anonymous, self-destructing message sharing                       |
 | <https://cryptgeon.com/>           | Cryptgeon          | A service for sharing secrets and passwords securely.                                                                                                           | Offers a secret generator, password generator, and secret vault   |
-| <https://www.vanish.so/>           | Vanish             | A service for sharing secrets and passwords securely.
-                                                                                                           | Self-destructing messages with strong encryption                  |
+| <https://www.vanish.so/>           | Vanish             | A service for sharing secrets and passwords securely.                                                                                                           | Self-destructing messages with strong encryption                  |
 | <https://password.link/en>         | Password.link      | A service for securely sending and receiving sensitive information.                                                                                             | Secure link creation for sensitive information sharing            |
 | <https://www.sharesecret.co/>      | ShareSecret        | A service for securely sharing passwords in Slack and email.                                                                                                    | Secure password sharing with Slack and email integration          |
 | <https://teampassword.com/>        | TeamPassword       | A password manager for teams.                                                                                                                                   | Fast, easy-to-use, and secure team password management            |
@@ -197,18 +199,18 @@ This section provides an overview of services similar to our project, highlighti
 *Summarized, fetched, and collated by [Cohere Command R+](https://cohere.com/blog/command-r-plus-microsoft-azure), formatted by [Claude 3.5 Sonnet](https://www.anthropic.com/news/claude-3-5-sonnet), and proofread by [GitHub Copilot](https://github.com/features/copilot).*
 
 
-## Badges
-[![Latest Release](https://img.shields.io/github/v/release/onetimesecret/onetimesecret)](https://github.com/onetimesecret/onetimesecret/releases/latest)
-[![Docker Pulls](https://img.shields.io/docker/pulls/onetimesecret/onetimesecret)](https://hub.docker.com/r/onetimesecret/onetimesecret)
-[![Build Status](https://img.shields.io/github/actions/workflow/status/onetimesecret/onetimesecret/ci.yml)](https://github.com/onetimesecret/onetimesecret/actions)
-[![License](https://img.shields.io/github/license/onetimesecret/onetimesecret)](LICENSE)
-
 ## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE.txt) file for details.
 
 ## Community & Support
 
-- 🐛 [Report Issues](https://github.com/onetimesecret/onetimesecret/issues)
-- 📧 [Security Issues](mailto:security@onetimesecret.com) (email)
-- 🌐 [Try it Live](https://ca.onetimesecret.com/)
+[![Latest Release](https://img.shields.io/github/v/release/onetimesecret/onetimesecret)](https://github.com/onetimesecret/onetimesecret/releases/latest)
+[![Docker Pulls](https://img.shields.io/docker/pulls/onetimesecret/onetimesecret)](https://hub.docker.com/r/onetimesecret/onetimesecret)
+[![Build Status](https://img.shields.io/github/actions/workflow/status/onetimesecret/onetimesecret/ci.yml)](https://github.com/onetimesecret/onetimesecret/actions)
+[![License](https://img.shields.io/github/license/onetimesecret/onetimesecret)](LICENSE)
+
+
+- [Report Issues](https://github.com/onetimesecret/onetimesecret/issues)
+- [Security Issues](mailto:security@onetimesecret.com) (email)
+- [Try it Live](https://ca.onetimesecret.com/)
