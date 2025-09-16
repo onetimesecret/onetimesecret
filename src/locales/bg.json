@@ -224,7 +224,9 @@
       "privacyOptions": "Опции за поверителност",
       "selectDuration": "Изберете продължителност",
       "expiresIn": "Изтича след {duration}",
-      "enterPassphrase": "Въведете парола"
+      "enterPassphrase": "Въведете парола",
+      "passphraseMinimumLength": "Минимум {length} символа",
+      "passphraseComplexityRequired": "Трябва да включва главни букви, малки букви, цифра и символ"
     },
     "homepage": {
       "tagline1": "Поставете парола, тайно съобщение или лична връзка долу.",

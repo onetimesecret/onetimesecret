@@ -228,6 +228,9 @@
       "privacyOptions": "Options de confidentialité",
       "selectDuration": "Sélectionner la durée",
       "expiresIn": "Expire dans {duration}",
+      "enterPassphrase": "Saisir le mot de passe",
+      "passphraseMinimumLength": "Minimum {length} caractères",
+      "passphraseComplexityRequired": "Doit inclure majuscule, minuscule, chiffre et symbole",
       "enterPassphrase": "Saisissez la phrase secrète"
     },
     "footer": {
