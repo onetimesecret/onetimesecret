@@ -14,13 +14,13 @@ module Onetime
       UPPERCASE = ('A'..'Z').to_a.freeze
       LOWERCASE = ('a'..'z').to_a.freeze
       NUMBERS = ('0'..'9').to_a.freeze
-      
+
       # Extended symbol set for password generation
-      SYMBOLS = %w[! @ # $ % ^ & * ( ) _ - + = [ ] { } | \ : ; " ' < > , . ? / ~ `].freeze
-      
+      SYMBOLS = ['!', '@', '#', '$', '%', '^', '&', '*', '(', ')', '_', '-', '+', '=', '[', ']', '{', '}', '|', ' :', ';', '"', "'", '<', '>', ',', '.', '?', '/', '~', '`'].freeze
+
       # Basic symbols for general use (backward compatibility)
       BASIC_SYMBOLS = %w[* $ ! ? ( ) @ # % ^].freeze
-      
+
       # Characters that can be visually confusing
       AMBIGUOUS_CHARS = %w[i l o 1 I O 0].freeze
 
@@ -67,28 +67,25 @@ module Onetime
       raise ArgumentError, 'Length must be positive' unless len.positive?
 
       # Handle backward compatibility: if options is boolean, treat as unambiguous
-      if [true, false].include?(options)
-        unambiguous = options
-        opts = {
-          uppercase: true,
-          lowercase: true,
-          numbers: true,
-          symbols: false,
-          exclude_ambiguous: unambiguous
-        }
-      else
-        # Handle hash options with defaults
-        opts = {
-          uppercase: true,
-          lowercase: true,
-          numbers: true,
-          symbols: false,
-          exclude_ambiguous: true
-        }.merge(options || {})
-        
-        # Handle legacy :unambiguous option
-        opts[:exclude_ambiguous] = opts[:unambiguous] if opts.key?(:unambiguous)
-      end
+      opts = case options
+             in true | false
+               { exclude_ambiguous: options }
+             in Hash
+               options
+             else
+               {}
+             end
+
+      defaults = {
+        uppercase:   true,
+        lowercase:   true,
+        numbers:     true,
+        symbols:     false,
+        exclude_ambiguous: true,
+      }
+
+      opts = defaults.merge(opts)
+      opts[:exclude_ambiguous] ||= opts.delete(:unambiguous) if opts.key?(:unambiguous)
 
       # Build character set based on options
       chars = []
@@ -147,7 +144,7 @@ module Onetime
 
     public
 
-    
+
 
     def indifferent_params(params)
       if params.is_a?(Hash)
