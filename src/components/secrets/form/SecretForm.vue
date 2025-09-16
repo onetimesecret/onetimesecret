@@ -7,12 +7,13 @@
   import { useDomainDropdown } from '@/composables/useDomainDropdown';
   import { usePrivacyOptions } from '@/composables/usePrivacyOptions';
   import { useSecretConcealer } from '@/composables/useSecretConcealer';
+  import { WindowService } from '@/services/window.service';
   import { useConcealedMetadataStore } from '@/stores/concealedMetadataStore';
   import {
-    useProductIdentity,
+    DEFAULT_BUTTON_TEXT_LIGHT,
     DEFAULT_CORNER_CLASS,
     DEFAULT_PRIMARY_COLOR,
-    DEFAULT_BUTTON_TEXT_LIGHT,
+    useProductIdentity,
   } from '@/stores/identityStore';
   import { type ConcealedMessage } from '@/types/ui/concealed-message';
   import { nanoid } from 'nanoid';
@@ -48,6 +49,14 @@
   const productIdentity = useProductIdentity();
   const concealedMetadataStore = useConcealedMetadataStore();
   const showProTip = ref(props.withAsterisk);
+
+  // Get passphrase configuration for UI hints
+  const secretOptions = computed(() => {
+    return WindowService.get('secret_options');
+  });
+
+  const passphraseConfig = computed(() => secretOptions.value?.passphrase);
+  const isPassphraseRequired = computed(() => passphraseConfig.value?.required || false);
 
   // Helper function to get validation errors
   const getError = (field: keyof typeof form) => validation.errors.get(field);
@@ -212,7 +221,7 @@
           </div>
 
           <!-- Form Controls Section -->
-          <div class="mt-6 grid gap-6 md:grid-cols-2">
+          <div class="mt-6 grid gap-6 md:grid-cols-2 md:items-start">
             <!-- Passphrase Field -->
             <div class="relative">
               <h3>
@@ -220,8 +229,30 @@
                   :for="passphraseId"
                   class="mb-1 block font-brand text-sm text-gray-600 dark:text-gray-300">
                   {{ $t('web.COMMON.secret_passphrase') }}
+                  <span
+                    v-if="isPassphraseRequired"
+                    class="ml-1 text-red-500"
+                    aria-label="Required"
+                    >*</span
+                  >
                 </label>
               </h3>
+              <!-- Fixed height container for hints to prevent layout shifts -->
+              <div class="mb-2 min-h-[1rem]">
+                <div
+                  v-if="passphraseConfig"
+                  class="text-xs text-gray-500 dark:text-gray-400">
+                  <span v-if="passphraseConfig.minimum_length">
+                    {{ $t('web.secrets.passphraseMinimumLength', { length: passphraseConfig.minimum_length }) }}
+                  </span>
+                  <span v-if="passphraseConfig.minimum_length && passphraseConfig.enforce_complexity">
+                    •
+                  </span>
+                  <span v-if="passphraseConfig.enforce_complexity">
+                    {{ $t('web.secrets.passphraseComplexityRequired') }}
+                  </span>
+                </div>
+              </div>
               <div class="relative">
                 <!-- prettier-ignore-attribute class -->
                 <input
@@ -232,7 +263,7 @@
                   autocomplete="off"
                   :aria-invalid="!!getError('passphrase')"
                   :aria-errormessage="getError('passphrase') ? passphraseErrorId : undefined"
-                  :class="[cornerClass]"
+                  :class="[cornerClass, getError('passphrase') ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : '']"
                   class="w-full border border-gray-200 bg-white py-2.5 pl-5 pr-10
                     text-sm text-gray-900 transition-shadow duration-200 placeholder:text-gray-400
                     focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500
@@ -255,14 +286,6 @@
                 </button>
               </div>
             </div>
-            <div
-              v-if="getError('passphrase')"
-              :id="passphraseErrorId"
-              role="alert"
-              aria-live="assertive"
-              class="mt-1 text-sm font-medium text-red-600 dark:text-red-400">
-              {{ getError('passphrase') }}
-            </div>
 
             <!-- Expiry Selection -->
             <div
@@ -275,6 +298,8 @@
                   {{ $t('web.LABELS.expiration_time') || 'Secret Expiration' }}
                 </label>
               </h3>
+              <!-- Empty spacer to match passphrase field hint area -->
+              <div class="mb-2 min-h-[1rem]"></div>
               <div class="relative">
                 <!-- prettier-ignore-attribute class -->
                 <select
@@ -283,7 +308,7 @@
                   name="ttl"
                   :aria-invalid="!!getError('ttl')"
                   :aria-describedby="getError('ttl') ? lifetimeErrorId : undefined"
-                  :class="[cornerClass]"
+                  :class="[cornerClass, getError('ttl') ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : '']"
                   class="w-full appearance-none border border-gray-200
                     bg-white py-2.5 pl-5 pr-10 text-sm text-gray-600 transition-shadow duration-200
                     focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500
@@ -311,20 +336,12 @@
                 </select>
               </div>
             </div>
-            <div
-              v-if="getError('ttl')"
-              :id="lifetimeErrorId"
-              role="alert"
-              aria-live="assertive"
-              class="mt-1 text-sm font-medium text-red-600 dark:text-red-400">
-              {{ getError('ttl') }}
-            </div>
           </div>
 
           <!-- Recipient Field -->
           <div
             v-if="props.withRecipient"
-            class="mt-4">
+            class="mt-6">
             <h3>
               <label
                 :for="recipientId"
@@ -349,20 +366,12 @@
                 :placeholder="$t('web.COMMON.email_placeholder')"
                 :aria-invalid="!!getError('recipient')"
                 :aria-errormessage="getError('recipient') ? recipientErrorId : undefined"
-                :class="[cornerClass]"
+                :class="[cornerClass, getError('recipient') ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : '']"
                 class="w-full border border-gray-200
                   bg-white px-10 py-2.5 text-sm text-gray-900 placeholder:text-gray-400
                   focus:border-blue-500 focus:ring-2 focus:ring-blue-500
                   dark:border-gray-700 dark:bg-slate-800 dark:text-white dark:placeholder:text-gray-500"
                 @input="(e) => updateRecipient((e.target as HTMLInputElement).value)" />
-            </div>
-            <div
-              v-if="getError('recipient')"
-              :id="recipientErrorId"
-              role="alert"
-              aria-live="assertive"
-              class="mt-1 text-sm font-medium text-red-600 dark:text-red-400">
-              {{ getError('recipient') }}
             </div>
           </div>
         </div>

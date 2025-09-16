@@ -224,7 +224,9 @@
       "privacyOptions": "Opcje prywatności",
       "selectDuration": "Wybierz czas trwania",
       "expiresIn": "Wygasa za {duration}",
-      "enterPassphrase": "Wprowadź frazę dostępową"
+      "enterPassphrase": "Wprowadź frazę dostępową",
+      "passphraseMinimumLength": "Minimum {length} znaków",
+      "passphraseComplexityRequired": "Musi zawierać wielkie litery, małe litery, cyfrę i symbol"
     },
     "homepage": {
       "tagline1": "Umieść hasło, tajną wiadomość lub prywatny link poniżej.",

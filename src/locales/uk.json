@@ -224,7 +224,9 @@
       "privacyOptions": "Налаштування конфіденційності",
       "selectDuration": "Виберіть тривалість",
       "expiresIn": "Термін дії закінчується через {duration}",
-      "enterPassphrase": "Введіть парольну фразу"
+      "enterPassphrase": "Введіть парольну фразу",
+      "passphraseMinimumLength": "Мінімум {length} символів",
+      "passphraseComplexityRequired": "Повинен містити великі літери, малі літери, цифру та символ"
     },
     "homepage": {
       "tagline1": "Вставте пароль, секретне повідомлення або приватне посилання нижче.",
