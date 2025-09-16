@@ -178,14 +178,14 @@ module V2::Logic
         return if passphrase.to_s.empty?
 
         # Validate minimum length
-        min_length = passphrase_config[:minimum_length] || 8
-        if passphrase.length < min_length
+        min_length = passphrase_config[:minimum_length] || nil
+        if min_length && passphrase.length < min_length
           raise_form_error "Passphrase must be at least #{min_length} characters long"
         end
 
         # Validate maximum length
-        max_length = passphrase_config[:maximum_length] || 128
-        if passphrase.length > max_length
+        max_length = passphrase_config[:maximum_length] || nil
+        if max_length && passphrase.length > max_length
           raise_form_error "Passphrase must be no more than #{max_length} characters long"
         end
 

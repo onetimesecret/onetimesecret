@@ -7,12 +7,13 @@
   import { useDomainDropdown } from '@/composables/useDomainDropdown';
   import { usePrivacyOptions } from '@/composables/usePrivacyOptions';
   import { useSecretConcealer } from '@/composables/useSecretConcealer';
+  import { WindowService } from '@/services/window.service';
   import { useConcealedMetadataStore } from '@/stores/concealedMetadataStore';
   import {
-    useProductIdentity,
+    DEFAULT_BUTTON_TEXT_LIGHT,
     DEFAULT_CORNER_CLASS,
     DEFAULT_PRIMARY_COLOR,
-    DEFAULT_BUTTON_TEXT_LIGHT,
+    useProductIdentity,
   } from '@/stores/identityStore';
   import { type ConcealedMessage } from '@/types/ui/concealed-message';
   import { nanoid } from 'nanoid';
@@ -51,10 +52,7 @@
 
   // Get passphrase configuration for UI hints
   const secretOptions = computed(() => {
-    if (typeof window !== 'undefined' && window.__ONETIME_STATE__) {
-      return window.__ONETIME_STATE__.secret_options;
-    }
-    return null;
+    return WindowService.get('secret_options');
   });
 
   const passphraseConfig = computed(() => secretOptions.value?.passphrase);
@@ -231,14 +229,23 @@
                   :for="passphraseId"
                   class="mb-1 block font-brand text-sm text-gray-600 dark:text-gray-300">
                   {{ $t('web.COMMON.secret_passphrase') }}
-                  <span v-if="isPassphraseRequired" class="ml-1 text-red-500" aria-label="Required">*</span>
+                  <span
+                    v-if="isPassphraseRequired"
+                    class="ml-1 text-red-500"
+                    aria-label="Required"
+                    >*</span
+                  >
                 </label>
               </h3>
-              <div v-if="passphraseConfig" class="mb-2 text-xs text-gray-500 dark:text-gray-400">
+              <div
+                v-if="passphraseConfig"
+                class="mb-2 text-xs text-gray-500 dark:text-gray-400">
                 <span v-if="passphraseConfig.minimum_length">
                   Minimum {{ passphraseConfig.minimum_length }} characters
                 </span>
-                <span v-if="passphraseConfig.minimum_length && passphraseConfig.enforce_complexity"> • </span>
+                <span v-if="passphraseConfig.minimum_length && passphraseConfig.enforce_complexity">
+                  •
+                </span>
                 <span v-if="passphraseConfig.enforce_complexity">
                   Must include uppercase, lowercase, number, and symbol
                 </span>

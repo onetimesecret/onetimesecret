@@ -79,6 +79,7 @@ export function useSecretForm() {
     form,
     validation: {
       errors,
+      // eslint-disable-next-line complexity
       validate: () => {
         const result = formSchema.safeParse(form);
         errors.clear();
@@ -100,14 +101,28 @@ export function useSecretForm() {
             errors.set('passphrase', 'A passphrase is required for all secrets');
           }
 
-          // Check minimum length if passphrase is provided
-          if (form.passphrase && form.passphrase.length < (passphraseConfig.minimum_length || 8)) {
-            errors.set('passphrase', `Passphrase must be at least ${passphraseConfig.minimum_length || 8} characters long`);
+          // Check minimum length if passphrase is provided and minimum_length is configured
+          if (
+            form.passphrase &&
+            passphraseConfig.minimum_length &&
+            form.passphrase.length < passphraseConfig.minimum_length
+          ) {
+            errors.set(
+              'passphrase',
+              `Passphrase must be at least ${passphraseConfig.minimum_length} characters long`
+            );
           }
 
-          // Check maximum length if passphrase is provided
-          if (form.passphrase && form.passphrase.length > (passphraseConfig.maximum_length || 128)) {
-            errors.set('passphrase', `Passphrase must be no more than ${passphraseConfig.maximum_length || 128} characters long`);
+          // Check maximum length if passphrase is provided and maximum_length is configured
+          if (
+            form.passphrase &&
+            passphraseConfig.maximum_length &&
+            form.passphrase.length > passphraseConfig.maximum_length
+          ) {
+            errors.set(
+              'passphrase',
+              `Passphrase must be no more than ${passphraseConfig.maximum_length} characters long`
+            );
           }
 
           // Check complexity if required and passphrase is provided
@@ -116,10 +131,14 @@ export function useSecretForm() {
             if (!/[A-Z]/.test(form.passphrase)) complexityErrors.push('uppercase letter');
             if (!/[a-z]/.test(form.passphrase)) complexityErrors.push('lowercase letter');
             if (!/\d/.test(form.passphrase)) complexityErrors.push('number');
-            if (!/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?~`]/.test(form.passphrase)) complexityErrors.push('symbol');
+            if (!/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?~`]/.test(form.passphrase))
+              complexityErrors.push('symbol');
 
             if (complexityErrors.length > 0) {
-              errors.set('passphrase', `Passphrase must contain at least one ${complexityErrors.join(', ')}`);
+              errors.set(
+                'passphrase',
+                `Passphrase must contain at least one ${complexityErrors.join(', ')}`
+              );
             }
           }
         }
