@@ -7,6 +7,7 @@
   import { type SystemSettingsDetails } from '@/schemas/api/endpoints/colonel';
   import { useSystemSettingsStore } from '@/stores/systemSettingsStore';
   import { json } from '@codemirror/lang-json';
+  import { EditorState } from '@codemirror/state';
   import { oneDark } from '@codemirror/theme-one-dark';
   import { EditorView } from '@codemirror/view';
   import { basicSetup } from 'codemirror';
@@ -57,15 +58,18 @@
   const extensions = computed(() => [
     basicSetup,
     isDarkMode.value ? oneDark : lightTheme,
+    // Apply read-only extensions with high precedence
+    EditorState.readOnly.of(true),
+    EditorView.editable.of(false),
     EditorView.theme({
       '&.cm-editor.cm-focused': {
         outline: 'none',
       },
       '.cm-content': {
         caretColor: 'transparent',
+        pointerEvents: 'none',
       },
     }),
-    EditorView.editable.of(false),
   ]);
 
   // Computed property for the current section's content (read-only)
@@ -178,11 +182,12 @@
                 : 'border-gray-300 dark:border-gray-600',
           ]">
           <CodeMirror
-            v-model="currentSectionContent"
+            :model-value="currentSectionContent"
             :key="`codemirror-${activeSection}-${isDarkMode}`"
             :lang="lang"
             :extensions="extensions"
-            basic
+            :disabled="true"
+            :readonly="true"
             :placeholder="`Enter configuration for ${activeSection}`"
             class="max-h-[900px] min-h-[400px]" />
         </div>
