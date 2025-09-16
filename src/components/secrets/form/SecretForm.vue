@@ -49,6 +49,17 @@
   const concealedMetadataStore = useConcealedMetadataStore();
   const showProTip = ref(props.withAsterisk);
 
+  // Get passphrase configuration for UI hints
+  const secretOptions = computed(() => {
+    if (typeof window !== 'undefined' && window.__ONETIME_STATE__) {
+      return window.__ONETIME_STATE__.secret_options;
+    }
+    return null;
+  });
+
+  const passphraseConfig = computed(() => secretOptions.value?.passphrase);
+  const isPassphraseRequired = computed(() => passphraseConfig.value?.required || false);
+
   // Helper function to get validation errors
   const getError = (field: keyof typeof form) => validation.errors.get(field);
 
@@ -220,8 +231,18 @@
                   :for="passphraseId"
                   class="mb-1 block font-brand text-sm text-gray-600 dark:text-gray-300">
                   {{ $t('web.COMMON.secret_passphrase') }}
+                  <span v-if="isPassphraseRequired" class="ml-1 text-red-500" aria-label="Required">*</span>
                 </label>
               </h3>
+              <div v-if="passphraseConfig" class="mb-2 text-xs text-gray-500 dark:text-gray-400">
+                <span v-if="passphraseConfig.minimum_length">
+                  Minimum {{ passphraseConfig.minimum_length }} characters
+                </span>
+                <span v-if="passphraseConfig.minimum_length && passphraseConfig.enforce_complexity"> • </span>
+                <span v-if="passphraseConfig.enforce_complexity">
+                  Must include uppercase, lowercase, number, and symbol
+                </span>
+              </div>
               <div class="relative">
                 <!-- prettier-ignore-attribute class -->
                 <input

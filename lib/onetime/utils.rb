@@ -20,30 +20,45 @@ module Onetime
         shorten_securely(hexstr, bits: 64) # and then shorten
       end
 
-      # Truncates a hexadecimal string to specified bit length and encodes in desired base.
-      # Takes the most significant bits from the hex string to maintain randomness
-      # distribution while reducing the identifier length for practical use.
-      #
-      # @param hash [String] A hexadecimal string (64 characters for 256 bits)
-      # @param bits [Integer] Number of bits to retain (default: 256, max: 256)
-      # @param base [Integer] Base encoding for output string (2-36, default: 36)
-      # @return [String] Truncated value encoded in the specified base
-      #
-      # @example Truncate to 128 bits in base-16
-      #   hash = "a1b2c3d4..." # 64-char hexadecimal string
-      #   Utils.shorten_securely(hash, bits: 128, base: 16) # => "a1b2c3d4e5f6e7c8"
-      #
-      # @example Default 256-bit truncation in base-36
-      #   Utils.shorten_securely(hash) # => "k8x2m9n4p7q1r5s3t6u0v2w8x1y4z7"
-      #
-      # @note Higher bit counts provide more security but longer identifiers
-      # @note Base-36 encoding uses 0-9 and a-z for compact, URL-safe strings
-      # @security Bit truncation preserves cryptographic properties of original value
-      def shorten_securely(hash, bits: 256, base: 36)
-        # Truncate to desired bit length
-        truncated = hash.to_i(16) >> (256 - bits)
-        truncated.to_s(base).freeze
+    # Generate a configurable password based on character set options
+    def generate_password(length = 12, options = {})
+      # Default options from configuration or fallback values
+      opts = {
+        uppercase: true,
+        lowercase: true,
+        numbers: true,
+        symbols: false,
+        exclude_ambiguous: true,
+      }.merge(options)
+
+      # Build character set based on options
+      chars = []
+      chars.concat(('A'..'Z').to_a) if opts[:uppercase]
+      chars.concat(('a'..'z').to_a) if opts[:lowercase]
+      chars.concat(('0'..'9').to_a) if opts[:numbers]
+      if opts[:symbols]
+        chars.concat(%w[! @ # $ % ^ & * ( ) _ - + = [ ] { } | \\ : ; " ' < > , . ? / ~ `])
       end
+
+      # Remove ambiguous characters if requested
+      if opts[:exclude_ambiguous]
+        chars.delete_if { |char| %w[0 O o l 1 I i].include?(char) }
+      end
+
+      # Ensure we have at least some characters to work with
+      if chars.empty?
+        chars = VALID_CHARS_SAFE # Fallback to safe default
+      end
+
+      # Generate password
+      (1..length).map { chars[rand(chars.length)] }.join
+    end
+
+    def indifferent_params(params)
+      if params.is_a?(Hash)
+        params = indifferent_hash.merge(params)
+        params.each do |key, value|
+          next unless value.is_a?(Hash) || value.is_a?(Array)
 
       # Returns a random fortune from the configured fortunes array.
       # Provides graceful degradation with fallback messages when fortunes

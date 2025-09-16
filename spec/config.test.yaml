@@ -13,11 +13,20 @@ site:
       enabled: true
     # Controls whether the API endpoints are available. When disabled, the API
     # is compltely disabled. Requests to /api/* will return 404.
-    api:
-      enabled: true
-  secret_options:
-    default_ttl: <%= ENV['DEFAULT_TTL'] || '43200' %> # 12 hours in seconds
-    ttl_options: <%= (ENV['TTL_OPTIONS'] || '1800 43200 604800') %> # 30m, 12h, 7d
+    :api:
+      :enabled: true
+  :secret_options:
+    :default_ttl: <%= ENV['DEFAULT_TTL'] || '43200' %> # 12 hours in seconds
+    :ttl_options: <%= (ENV['TTL_OPTIONS'] || '1800 43200 604800') %> # 30m, 12h, 7d
+    :password_generation:
+      :default_length: 12
+      :length_options: [8, 12, 16, 20, 24, 32]
+      :character_sets:
+        :uppercase: true
+        :lowercase: true
+        :numbers: true
+        :symbols: false
+        :exclude_ambiguous: true
   # Registration and Authentication settings
   authentication:
     # Can be disabled altogether, including API authentication.
