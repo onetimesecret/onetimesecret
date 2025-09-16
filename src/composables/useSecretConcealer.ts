@@ -10,6 +10,7 @@ import {
   useAsyncHandler,
 } from '@/composables/useAsyncHandler';
 import { ConcealPayload, GeneratePayload } from '@/schemas/api/payloads';
+import { WindowService } from '@/services/window.service';
 import { ConcealDataResponse } from '@/schemas/api';
 
 interface SecretConcealerOptions {
@@ -65,20 +66,13 @@ export function useSecretConcealer(options?: SecretConcealerOptions) {
 
     // Add password generation options for generate type
     if (type === 'generate') {
-      const secretOptions = typeof window !== 'undefined' && window.__ONETIME_STATE__ ?
-        window.__ONETIME_STATE__.secret_options : null;
+      const secretOptions = WindowService.get('secret_options');
       const passwordConfig = secretOptions?.password_generation;
 
       return {
         ...basePayload,
-        length: passwordConfig?.default_length || 12,
-        character_sets: passwordConfig?.character_sets || {
-          uppercase: true,
-          lowercase: true,
-          numbers: true,
-          symbols: false,
-          exclude_ambiguous: true,
-        },
+        length: passwordConfig?.default_length,
+        character_sets: passwordConfig?.character_sets,
       } as GeneratePayload;
     }
 
