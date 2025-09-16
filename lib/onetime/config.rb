@@ -31,7 +31,7 @@ module Onetime
             ],
             passphrase: {
               required: false,
-              minimum_length: 8,
+              minimum_length: nil,
               maximum_length: 128,
               enforce_complexity: false,
             },
