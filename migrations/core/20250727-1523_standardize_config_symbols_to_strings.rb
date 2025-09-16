@@ -15,8 +15,8 @@
 #
 #   bin/ots migrate 20250731-1523_standardize_config_symbols_to_strings.rb
 
-base_path = File.expand_path File.join(File.dirname(__FILE__), '..')
-$:.unshift File.join(base_path, 'lib')
+BASE_PATH = File.expand_path File.join(File.dirname(__FILE__), '..', '..')
+$:.unshift File.join(BASE_PATH, 'lib')
 
 require 'onetime'
 require 'onetime/migration'
@@ -25,7 +25,6 @@ require 'fileutils'
 
 module Onetime
   class Migration < BaseMigration
-
     # Configuration mapping for splitting monolithic config
     CONFIG_MAPPINGS = {
       'static' => [
@@ -45,11 +44,11 @@ module Onetime
 
     def prepare
       info("Preparing migration")
-      @base_path = File.expand_path File.join(File.dirname(__FILE__), '..')
       @source_config = File.join(@base_path, 'etc', 'config.yaml')
       @backup_suffix = Time.now.strftime('%Y%m%d%H%M%S')
       @converted_config = File.join(@base_path, 'etc', 'config.converted.yaml')
       @static_config = File.join(@base_path, 'etc', 'config.static.yaml')
+      @base_path         = BASE_PATH
       @final_static_path = File.join(@base_path, 'etc', 'config.yaml')
 
       debug ''
