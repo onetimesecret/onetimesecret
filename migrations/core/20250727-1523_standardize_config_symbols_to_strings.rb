@@ -39,20 +39,20 @@ module Onetime
         { 'from' => 'diagnostics', 'to' => 'diagnostics' },
         { 'from' => 'development', 'to' => 'development' },
         { 'from' => 'experimental', 'to' => 'experimental' },
-      ]
+      ],
     }.freeze
 
     def prepare
-      info("Preparing migration")
-      @source_config = File.join(@base_path, 'etc', 'config.yaml')
-      @backup_suffix = Time.now.strftime('%Y%m%d%H%M%S')
-      @converted_config = File.join(@base_path, 'etc', 'config.converted.yaml')
-      @static_config = File.join(@base_path, 'etc', 'config.static.yaml')
+      info('Preparing migration')
       @base_path         = BASE_PATH
+      @source_config     = File.join(@base_path, 'etc', 'config.yaml')
+      @backup_suffix     = Time.now.strftime('%Y%m%d%H%M%S')
+      @converted_config  = File.join(@base_path, 'etc', 'config.converted.yaml')
+      @static_config     = File.join(@base_path, 'etc', 'config.static.yaml')
       @final_static_path = File.join(@base_path, 'etc', 'config.yaml')
 
       debug ''
-      debug "Paths:"
+      debug 'Paths:'
       debug "Base path: #{@base_path}"
       debug "Source file: #{@source_config}"
       debug ''
@@ -71,19 +71,18 @@ module Onetime
       if config.nil? || config.empty?
         raise 'Source config file is empty'
       end
+
       # Check if all static mapping source paths exist with non-nil values
-      ret = CONFIG_MAPPINGS['static'].all? do |mapping|
-        from_path = mapping['from']
+      CONFIG_MAPPINGS['static'].all? do |mapping|
+        from_path     = mapping['from']
         default_value = mapping.fetch('default', nil)
-        value = get_nested_value(config, from_path.split('.'))
+        value         = get_nested_value(config, from_path.split('.'))
         info("Checking setting (is nil: #{value.nil?}): #{from_path} #{value.class}")
         # If there is a value or a default value, all is good
         !value.nil? || !default_value.nil?
       end
-
-      ret
-    rescue => e
-      error "Error: #{e.message}"
+    rescue StandardError => ex
+      error "Error: #{ex.message}"
       false
     end
 
@@ -132,11 +131,11 @@ module Onetime
         return false
       end
 
-      info "Starting configuration separation migration"
+      info 'Starting configuration separation migration'
       info "Source: #{@source_config}"
-      debug "Source config top-level keys:"
+      debug 'Source config top-level keys:'
       system("yq eval 'keys' '#{@source_config}'")
-      debug ""
+      debug ''
 
       # Step 1: Create backup if it doesn't exist
       backup_config
@@ -152,7 +151,7 @@ module Onetime
 
       print_summary do
         info ''
-        info "Configuration standardization completed successfully"
+        info 'Configuration standardization completed successfully'
         info "Static config: #{@final_static_path}"
         info ''
       end
@@ -194,7 +193,7 @@ module Onetime
         success = system(cmd)
 
         unless success
-          error "Failed to convert symbol keys to strings"
+          error 'Failed to convert symbol keys to strings'
           return false
         end
 
@@ -203,7 +202,7 @@ module Onetime
 
         # Validate the conversion worked
         unless validate_conversion
-          error "Symbol to string conversion failed validation"
+          error 'Symbol to string conversion failed validation'
           return false
         end
       end
@@ -212,31 +211,30 @@ module Onetime
     def validate_conversion
       return true unless File.exist?(@converted_config)
 
-      info "Validating symbol to string conversion..."
+      info 'Validating symbol to string conversion...'
 
       # Check for remaining symbol keys in the file (both top-level and array items)
-      remaining_symbols = `grep -n "^[[:space:]]*:[a-zA-Z_][a-zA-Z0-9_]*:" '#{@converted_config}'`
+      remaining_symbols  = `grep -n "^[[:space:]]*:[a-zA-Z_][a-zA-Z0-9_]*:" '#{@converted_config}'`
       remaining_symbols += `grep -n "^[[:space:]]*-[[:space:]]*:[a-zA-Z_][a-zA-Z0-9_]*:" '#{@converted_config}'`
 
       if remaining_symbols.strip.empty?
-        info "✓ No symbol keys found - conversion successful"
-        return true
+        info '✓ No symbol keys found - conversion successful'
+        true
       else
-        error "✗ Found remaining symbol keys:"
+        error '✗ Found remaining symbol keys:'
         puts remaining_symbols
 
         # Try to load and show structure
         begin
           config = YAML.safe_load_file(@converted_config)
           info "Converted config top-level keys: #{config.keys.join(', ')}"
-        rescue => e
-          error "Failed to parse converted config: #{e.message}"
+        rescue StandardError => ex
+          error "Failed to parse converted config: #{ex.message}"
         end
 
-        return false
+        false
       end
     end
-
 
     def separate_configuration
       return if File.exist?(@static_config)
@@ -248,7 +246,7 @@ module Onetime
     end
 
     def generate_static_config_with_yq
-      info "Creating static configuration with yq (preserving comments)..."
+      info 'Creating static configuration with yq (preserving comments)...'
 
       # Initialize empty config
       system("yq eval 'del(.[])' <<< '{}' > '#{@static_config}'")
@@ -258,12 +256,12 @@ module Onetime
       end
 
       info "Generated static config: #{@static_config}"
-      show_config_structure(@static_config, "Static")
+      show_config_structure(@static_config, 'Static')
     end
 
     def generate_yq_command(output_file, mapping)
-      from_path = mapping['from']
-      to_path = mapping['to']
+      from_path     = mapping['from']
+      to_path       = mapping['to']
       default_value = mapping['default']
 
       # Handle wildcard mappings (ending with .)
@@ -273,7 +271,7 @@ module Onetime
 
       # Convert dot notation to yq path notation
       from_yq = convert_to_yq_path(from_path)
-      to_yq = convert_to_yq_path(to_path)
+      to_yq   = convert_to_yq_path(to_path)
 
       # Generate yq command with optional default value
       if default_value.nil?
@@ -282,10 +280,10 @@ module Onetime
       else
         # Use default value as fallback
         formatted_default = format_default_for_yq(default_value)
-        cmd = "yq eval '.#{to_yq} = (load(\"#{@converted_config}\").#{from_yq} // #{formatted_default})' -i '#{output_file}'"
+        cmd               = "yq eval '.#{to_yq} = (load(\"#{@converted_config}\").#{from_yq} // #{formatted_default})' -i '#{output_file}'"
       end
 
-      info "  Mapping: #{from_path} -> #{to_path}" + (default_value.nil? ? "" : " (default: #{default_value})")
+      info "  Mapping: #{from_path} -> #{to_path}" + (default_value.nil? ? '' : " (default: #{default_value})")
 
       # Execute the command
       success = system(cmd)
@@ -311,7 +309,7 @@ module Onetime
       when Numeric
         value.to_s
       when NilClass
-        "null"
+        'null'
       when Array, Hash
         value.to_json
       else
