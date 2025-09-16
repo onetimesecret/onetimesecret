@@ -230,8 +230,7 @@
       "expiresIn": "Läuft ab in {duration}",
       "enterPassphrase": "Kennwort eingeben",
       "passphraseMinimumLength": "Mindestens {length} Zeichen erforderlich",
-      "passphraseComplexityRequired": "Muss Großbuchstaben, Kleinbuchstaben, Ziffern und Sonderzeichen enthalten",
-      "enterPassphrase": "Passphrase eingeben"
+      "passphraseComplexityRequired": "Muss Großbuchstaben, Kleinbuchstaben, Ziffern und Sonderzeichen enthalten"
     },
     "footer": {
       "security": "Sicherheit",

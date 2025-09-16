@@ -226,8 +226,7 @@
       "expiresIn": "Läuft ab in {duration}",
       "enterPassphrase": "Passwort eingeben",
       "passphraseMinimumLength": "Mindestens {length} Zeichen",
-      "passphraseComplexityRequired": "Muss Groß-, Kleinbuchstaben, Zahl und Symbol enthalten",
-      "enterPassphrase": "Passphrase eingeben"
+      "passphraseComplexityRequired": "Muss Groß-, Kleinbuchstaben, Zahl und Symbol enthalten"
     },
     "homepage": {
       "tagline1": "Füge unten ein Passwort, eine geheime Nachricht oder einen privaten Link ein.",

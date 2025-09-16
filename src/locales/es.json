@@ -226,8 +226,7 @@
       "expiresIn": "Expira en {duration}",
       "enterPassphrase": "Ingrese la contraseña",
       "passphraseMinimumLength": "Mínimo {length} caracteres",
-      "passphraseComplexityRequired": "Debe incluir mayúscula, minúscula, número y símbolo",
-      "enterPassphrase": "Introduce la Frase de Contraseña"
+      "passphraseComplexityRequired": "Debe incluir mayúscula, minúscula, número y símbolo"
     },
     "homepage": {
       "tagline1": "Pega una contraseña, secreto, o enlace privado abajo.",

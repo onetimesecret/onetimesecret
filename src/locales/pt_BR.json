@@ -226,8 +226,7 @@
       "expiresIn": "Expira em {duration}",
       "enterPassphrase": "Digite a senha",
       "passphraseMinimumLength": "Mínimo {length} caracteres",
-      "passphraseComplexityRequired": "Deve incluir maiúscula, minúscula, número e símbolo",
-      "enterPassphrase": "Digite a Senha Mestre"
+      "passphraseComplexityRequired": "Deve incluir maiúscula, minúscula, número e símbolo"
     },
     "homepage": {
       "tagline1": "Cole uma senha, mensagem secreta ou link privado abaixo.",

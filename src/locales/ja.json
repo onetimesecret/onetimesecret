@@ -226,8 +226,7 @@
       "expiresIn": "{duration}で期限切れ",
       "enterPassphrase": "パスフレーズを入力",
       "passphraseMinimumLength": "最低{length}文字",
-      "passphraseComplexityRequired": "大文字、小文字、数字、記号を含む必要があります",
-      "enterPassphrase": "パスフレーズを入力"
+      "passphraseComplexityRequired": "大文字、小文字、数字、記号を含む必要があります"
     },
     "homepage": {
       "tagline1": "パスワード、秘密のメッセージ、またはプライベートリンクを以下に貼り付けてください。",
