@@ -226,7 +226,9 @@
       "privacyOptions": "Privacy opties",
       "selectDuration": "Selecteer duur",
       "expiresIn": "Verloopt in {duration}",
-      "enterPassphrase": "Wachtwoordzin invoeren"
+      "enterPassphrase": "Wachtwoordzin invoeren",
+      "passphraseMinimumLength": "Minimaal {length} tekens",
+      "passphraseComplexityRequired": "Moet hoofdletters, kleine letters, cijfer en symbool bevatten"
     },
     "homepage": {
       "tagline1": "Plak het wachtwoord, geheime bericht of privé link hieronder",
@@ -246,7 +248,15 @@
       "visit-onetime-secret-home": "Bezoek Onetime Secret homepage",
       "password_generation_title": "",
       "password_generation_description": "",
-      "protip1": ""
+      "protip1": "",
+      "authonly": {
+        "tagline2": "De beveiligde berichtenservice is alleen voor intern gebruik.",
+        "tagline1": "Als u een account heeft, log dan in om verder te gaan."
+      },
+      "disabled": {
+        "tagline2": "Deze service is ingesteld voor alleen intern gebruik.",
+        "tagline1": "Gebruikersinterface en login-mogelijkheden zijn niet beschikbaar."
+      }
     },
     "private": {
       "pretext": "Deel een link:",

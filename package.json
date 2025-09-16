@@ -55,7 +55,7 @@
     "test:rspec": "bundle exec rspec --format documentation",
     "test:rspec:failures": "bundle exec rspec --format failures",
     "test:tryouts": "VALKEY_URL='valkey://127.0.0.1:2121/0' bundle exec try -f",
-    "test:tryouts:all": "pnpm test:tryouts {apps,lib,examples}/**/*_try.rb",
+    "test:tryouts:all": "pnpm test:tryouts --agent try",
     "test:tryouts:clean": "pnpm valkey:clean && pnpm test:tryouts ",
     "test:tryouts:clean:all": "pnpm valkey:clean && pnpm test:tryouts:all",
     "test:unit": "pnpm test",

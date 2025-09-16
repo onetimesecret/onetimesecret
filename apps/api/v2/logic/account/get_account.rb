@@ -10,8 +10,8 @@ module V2::Logic
 
       def process_params
         OT.ld "[GetAccount#process_params] params: #{params.inspect}"
-        billing          = OT.conf.fetch(:billing, {})
-        @billing_enabled = billing.fetch(:enabled, false)
+        billing          = OT.conf.fetch('billing', {})
+        @billing_enabled = billing.fetch('enabled', false)
       end
 
       def raise_concerns; end

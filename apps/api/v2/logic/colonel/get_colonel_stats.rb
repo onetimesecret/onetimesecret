@@ -6,6 +6,9 @@ module V2
   module Logic
     module Colonel
       class GetColonelStats < V2::Logic::Base
+
+        using Familia::Refinements::TimeLiterals
+
         attr_reader :session_count, :customer_count, :metadata_count,
           :secret_count, :secrets_created, :secrets_shared, :emails_sent
 

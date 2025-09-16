@@ -10,11 +10,6 @@ site:
   secret: <%= ENV['SECRET'] || nil %>
   # API and UI Configuration
   interface:
-    # Controls whether the web user interface is available. When disabled, the
-    # homepage becomes a basic, readonly page with the logo and a brief
-    # explanation of the site and how it works. This is helpful for link
-    # recipients who may do some light investigation to see if the site is
-    # legit as opposed a blank page or 404.
     ui:
       # Controls whether the web interface is enabled
       # When false, only a basic explanation page is shown
@@ -94,6 +89,32 @@ site:
     # These options will be presented to users when they create a new secret
     # Format: String of integers representing seconds
     ttl_options: <%= (ENV['TTL_OPTIONS'] || nil) %>
+    # Settings for the passphrase field that protects access to secrets
+    passphrase:
+      # Require users to enter a passphrase when creating secrets
+      required: <%= ENV['PASSPHRASE_REQUIRED'] == 'true' || false %>
+      # Minimum number of characters required for passphrases
+      minimum_length: <%= ENV['PASSPHRASE_MIN_LENGTH'] || 8 %>
+      # Maximum number of characters allowed for passphrases
+      maximum_length: <%= ENV['PASSPHRASE_MAX_LENGTH'] || 128 %>
+      # Enforce complexity requirements (uppercase, lowercase, numbers, symbols)
+      enforce_complexity: <%= ENV['PASSPHRASE_ENFORCE_COMPLEXITY'] == 'true' || false %>
+    # Settings for password generation (when users click "Generate Password")
+    password_generation:
+      # Default length for generated passwords
+      default_length: <%= ENV['PASSWORD_GEN_LENGTH'] || 12 %>
+      # Character sets to include in generated passwords
+      character_sets:
+        # Include uppercase letters (A-Z)
+        uppercase: <%= ENV['PASSWORD_GEN_UPPERCASE'] != 'false' %>
+        # Include lowercase letters (a-z)
+        lowercase: <%= ENV['PASSWORD_GEN_LOWERCASE'] != 'false' %>
+        # Include numbers (0-9)
+        numbers: <%= ENV['PASSWORD_GEN_NUMBERS'] != 'false' %>
+        # Include symbols (!@#$%^&*()_+-=[]{}|;:,.<>?)
+        symbols: <%= ENV['PASSWORD_GEN_SYMBOLS'] == 'true' || false %>
+        # Exclude ambiguous characters (0, O, l, 1, I) to prevent confusion
+        exclude_ambiguous: <%= ENV['PASSWORD_GEN_EXCLUDE_AMBIGUOUS'] != 'false' %>
   # Registration and Authentication settings
   authentication:
     # Can be disabled altogether, including API authentication.
@@ -113,6 +134,12 @@ site:
     # an instance for your team or company, you can disable this feature
     # to make it easier for users to sign in.
     autoverify: <%= ENV['AUTH_AUTOVERIFY'] == 'true' || false %>
+    # When enabled, the homepage secret form is not available unless
+    # the user is logged in. Similar to a disabled homepage, but still
+    # shows the header with logo and navigation links. This allows for
+    # a more restrictive mode where only authenticated users can create
+    # secrets while maintaining site navigation and branding.
+    required: <%= ENV['AUTH_REQUIRED'] == 'true' %>
     # Email addresses listed below will be granted automatic
     # administrative privileges upon account creation. These
     # accounts have access to a page that show basic system stats.
@@ -150,6 +177,7 @@ features:
     enabled: false
     email: CHANGEME@example.com
     passphrase: abacus
+# Main Database Configuration
 redis:
   # Main Redis connection URI - Specify full connection string including auth
   # Format: redis://[:password@]host[:port]/[db-number]
@@ -174,6 +202,8 @@ redis:
 logging:
   # HTTP request logs (Rack::CommonLogger)
   http_requests: <%= ENV['LOG_HTTP_REQUESTS'] != 'false' %>
+
+# Sending Emails
 emailer:
   # Local Development with Mailpit
   # -----------------------------

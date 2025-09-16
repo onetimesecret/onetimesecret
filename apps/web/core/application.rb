@@ -41,7 +41,12 @@ module Core
     protected
 
     def build_router
-      routes_path = File.join(Onetime::HOME, 'apps/web/core/routes')
+      is_enabled = OT.conf.dig('site', 'interface', 'ui', 'enabled') || false
+
+      enabled_routes_path = File.join(ENV['ONETIME_HOME'], 'apps/web/core/routes')
+      disabled_routes_path = File.join(ENV['ONETIME_HOME'], 'apps/web/core/routes.disabled')
+
+      routes_path = is_enabled ? enabled_routes_path : disabled_routes_path
       router      = Otto.new(routes_path)
 
       # Enable CSP nonce support for enhanced security
