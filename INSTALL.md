@@ -11,7 +11,7 @@ This guide covers detailed installation methods for Onetime Secret, including ma
 - **OS**: Recent Linux distro (Debian recommended), BSD, or macOS
 
 ### Required Dependencies
-- **Ruby**: 3.1+ (3.0 may work but unsupported)
+- **Ruby**: 3.4+ (3.0 may work but unsupported)
 - **Redis**: 5.0+
 - **Node.js**: 22+ (for frontend development)
 - **pnpm**: 9.0.0+
