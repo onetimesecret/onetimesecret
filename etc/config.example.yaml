@@ -89,6 +89,16 @@
     # These options will be presented to users when they create a new secret
     # Format: String of integers representing seconds
     :ttl_options: <%= (ENV['TTL_OPTIONS'] || nil) %>
+    # Settings for the passphrase field that protects access to secrets
+    :passphrase:
+      # Require users to enter a passphrase when creating secrets
+      :required: <%= ENV['PASSPHRASE_REQUIRED'] == 'true' || false %>
+      # Minimum number of characters required for passphrases
+      :minimum_length: <%= ENV['PASSPHRASE_MIN_LENGTH'] || 8 %>
+      # Maximum number of characters allowed for passphrases
+      :maximum_length: <%= ENV['PASSPHRASE_MAX_LENGTH'] || 128 %>
+      # Enforce complexity requirements (uppercase, lowercase, numbers, symbols)
+      :enforce_complexity: <%= ENV['PASSPHRASE_ENFORCE_COMPLEXITY'] == 'true' || false %>
     # Settings for password generation (when users click "Generate Password")
     :password_generation:
       # Default length for generated passwords
