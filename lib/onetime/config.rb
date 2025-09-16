@@ -213,7 +213,7 @@ module Onetime
       if default_ttl.is_a?(String)
         conf['site']['secret_options']['default_ttl'] = default_ttl.to_i
       end
-	  
+
       if conf.dig('billing', 'enabled').to_s == 'true'
         stripe_key = conf.dig('billing', 'stripe_key')
 
