@@ -17,6 +17,14 @@ on:
         required: false
         type: string
         default: ''
+      debug_enabled:
+        required: false
+        type: boolean
+        default: false
+      platforms:
+        required: false
+        type: string
+        default: 'linux/amd64,linux/arm64'
 
 env:
   REGISTRY: ghcr.io
