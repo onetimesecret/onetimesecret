@@ -28,6 +28,13 @@ module Onetime
               1.week,         # 604800
               2.weeks,        # 1209600
               30.days,        # 2592000
+            ],
+            passphrase: {
+              required: false,
+              minimum_length: 8,
+              maximum_length: 128,
+              enforce_complexity: false,
+            },
             password_generation: {
               default_length: 12,
               length_options: [8, 12, 16, 20, 24, 32],
@@ -209,6 +216,17 @@ module Onetime
 	  
       if conf.dig('billing', 'enabled').to_s == 'true'
         stripe_key = conf.dig('billing', 'stripe_key')
+
+      # Process passphrase configuration
+      passphrase_config = conf.dig(:site, :secret_options, :passphrase) || {}
+
+      if passphrase_config[:minimum_length].is_a?(String)
+        conf[:site][:secret_options][:passphrase][:minimum_length] = passphrase_config[:minimum_length].to_i
+      end
+
+      if passphrase_config[:maximum_length].is_a?(String)
+        conf[:site][:secret_options][:passphrase][:maximum_length] = passphrase_config[:maximum_length].to_i
+      end
 
       # Process password generation configuration
       password_gen_config = conf.dig(:site, :secret_options, :password_generation) || {}

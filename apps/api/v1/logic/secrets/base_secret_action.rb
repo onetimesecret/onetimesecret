@@ -30,6 +30,7 @@ module V1::Logic
         raise_form_error "Unknown type of secret" if kind.nil?
         validate_recipient
         validate_share_domain
+        validate_passphrase
       end
 
       def process
@@ -167,6 +168,56 @@ module V1::Logic
         # domain.
         @share_domain = determine_share_domain
         validate_domain_access(@share_domain)
+      end
+
+      def validate_passphrase
+        # Get passphrase configuration
+        passphrase_config = OT.conf.dig(:site, :secret_options, :passphrase) || {}
+
+        # Check if passphrase is required
+        if passphrase_config[:required] && passphrase.to_s.empty?
+          raise_form_error "A passphrase is required for all secrets"
+        end
+
+        # Skip further validation if no passphrase provided
+        return if passphrase.to_s.empty?
+
+        # Validate minimum length
+        min_length = passphrase_config[:minimum_length] || 8
+        if passphrase.length < min_length
+          raise_form_error "Passphrase must be at least #{min_length} characters long"
+        end
+
+        # Validate maximum length
+        max_length = passphrase_config[:maximum_length] || 128
+        if passphrase.length > max_length
+          raise_form_error "Passphrase must be no more than #{max_length} characters long"
+        end
+
+        # Validate complexity if required
+        if passphrase_config[:enforce_complexity]
+          validate_passphrase_complexity
+        end
+      end
+
+      def validate_passphrase_complexity
+        errors = []
+
+        # Check for at least one uppercase letter
+        errors << "uppercase letter" unless passphrase.match?(/[A-Z]/)
+
+        # Check for at least one lowercase letter
+        errors << "lowercase letter" unless passphrase.match?(/[a-z]/)
+
+        # Check for at least one number
+        errors << "number" unless passphrase.match?(/\d/)
+
+        # Check for at least one symbol
+        errors << "symbol" unless passphrase.match?(/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?~`]/)
+
+        unless errors.empty?
+          raise_form_error "Passphrase must contain at least one #{errors.join(', ')}"
+        end
       end
 
       private
