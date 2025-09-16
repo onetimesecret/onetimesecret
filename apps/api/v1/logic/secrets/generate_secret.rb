@@ -19,7 +19,7 @@ module V1::Logic
         char_sets = payload[:character_sets] || password_config[:character_sets] || {}
 
         # Use the configurable password generation method
-        @secret_value = Onetime::Utils.generate_password(length, char_sets)
+        @secret_value = Onetime::Utils.strand(length, char_sets)
       end
 
     end
