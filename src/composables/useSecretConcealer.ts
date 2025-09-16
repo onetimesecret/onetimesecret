@@ -10,6 +10,7 @@ import {
   useAsyncHandler,
 } from '@/composables/useAsyncHandler';
 import { ConcealPayload, GeneratePayload } from '@/schemas/api/payloads';
+import { WindowService } from '@/services/window.service';
 import { ConcealDataResponse } from '@/schemas/api';
 
 interface SecretConcealerOptions {
@@ -53,14 +54,30 @@ export function useSecretConcealer(options?: SecretConcealerOptions) {
    */
   const createPayload = (
     type: SubmitType
-  ): ConcealPayload | GeneratePayload => ({
-    kind: type,
-    secret: form.secret,
-    ttl: form.ttl,
-    passphrase: form.passphrase,
-    recipient: form.recipient,
-    share_domain: form.share_domain,
-  });
+  ): ConcealPayload | GeneratePayload => {
+    const basePayload = {
+      kind: type,
+      secret: form.secret,
+      ttl: form.ttl,
+      passphrase: form.passphrase,
+      recipient: form.recipient,
+      share_domain: form.share_domain,
+    };
+
+    // Add password generation options for generate type
+    if (type === 'generate') {
+      const secretOptions = WindowService.get('secret_options');
+      const passwordConfig = secretOptions?.password_generation;
+
+      return {
+        ...basePayload,
+        length: passwordConfig?.default_length,
+        character_sets: passwordConfig?.character_sets,
+      } as GeneratePayload;
+    }
+
+    return basePayload as ConcealPayload;
+  };
 
   /**
    * Handles form submission for both conceal and generate operations

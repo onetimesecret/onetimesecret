@@ -224,7 +224,9 @@
       "privacyOptions": "プライバシーオプション",
       "selectDuration": "期間を選択",
       "expiresIn": "{duration}で期限切れ",
-      "enterPassphrase": "パスフレーズを入力"
+      "enterPassphrase": "パスフレーズを入力",
+      "passphraseMinimumLength": "最低{length}文字",
+      "passphraseComplexityRequired": "大文字、小文字、数字、記号を含む必要があります"
     },
     "homepage": {
       "tagline1": "パスワード、秘密のメッセージ、またはプライベートリンクを以下に貼り付けてください。",
@@ -244,7 +246,15 @@
       "visit-onetime-secret-home": "Onetime Secret ホームページにアクセス",
       "password_generation_title": "パスワード生成ツール",
       "password_generation_description": "「パスワードを生成」をクリックして、共有できる安全なランダムパスワードを作成します。",
-      "protip1": "メッセージは表示後に自動的に破棄されます。リンクは一度しかアクセスできません。"
+      "protip1": "メッセージは表示後に自動的に破棄されます。リンクは一度しかアクセスできません。",
+      "authonly": {
+        "tagline2": "このサービスは内部利用専用です。",
+        "tagline1": "アカウントをお持ちの方は、ログインして続行してください。"
+      },
+      "disabled": {
+        "tagline2": "このサービスは内部利用専用に設定されています。",
+        "tagline1": "ユーザーインターフェースとログイン機能は利用できません。"
+      }
     },
     "private": {
       "pretext": "このリンクを共有:",

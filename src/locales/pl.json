@@ -224,7 +224,9 @@
       "privacyOptions": "Opcje prywatności",
       "selectDuration": "Wybierz czas trwania",
       "expiresIn": "Wygasa za {duration}",
-      "enterPassphrase": "Wprowadź frazę dostępową"
+      "enterPassphrase": "Wprowadź frazę dostępową",
+      "passphraseMinimumLength": "Minimum {length} znaków",
+      "passphraseComplexityRequired": "Musi zawierać wielkie litery, małe litery, cyfrę i symbol"
     },
     "homepage": {
       "tagline1": "Umieść hasło, tajną wiadomość lub prywatny link poniżej.",
@@ -244,7 +246,15 @@
       "visit-onetime-secret-home": "Odwiedź stronę główną Onetime Secret",
       "password_generation_title": "Generator haseł",
       "password_generation_description": " Kliknij \"Generuj hasło\", aby utworzyć bezpieczne losowe hasło, które możesz udostępnić.",
-      "protip1": "Twoja wiadomość ulegnie samozniszczeniu po wyświetleniu. Link można otworzyć tylko raz."
+      "protip1": "Twoja wiadomość ulegnie samozniszczeniu po wyświetleniu. Link można otworzyć tylko raz.",
+      "authonly": {
+        "tagline2": "Usługa bezpiecznego przesyłania wiadomości jest przeznaczona wyłącznie do użytku wewnętrznego.",
+        "tagline1": "Jeśli masz konto, zaloguj się, aby kontynuować."
+      },
+      "disabled": {
+        "tagline2": "Ta usługa jest skonfigurowana wyłącznie do użytku wewnętrznego.",
+        "tagline1": "Interfejs użytkownika i możliwość logowania nie są dostępne."
+      }
     },
     "private": {
       "pretext": "Udostępnij ten jednorazowy link:",

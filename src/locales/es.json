@@ -224,7 +224,9 @@
       "privacyOptions": "Opciones de privacidad",
       "selectDuration": "Seleccionar duración",
       "expiresIn": "Expira en {duration}",
-      "enterPassphrase": "Introduce la Frase de Contraseña"
+      "enterPassphrase": "Ingrese la contraseña",
+      "passphraseMinimumLength": "Mínimo {length} caracteres",
+      "passphraseComplexityRequired": "Debe incluir mayúscula, minúscula, número y símbolo"
     },
     "homepage": {
       "tagline1": "Pega una contraseña, secreto, o enlace privado abajo.",
@@ -244,7 +246,15 @@
       "visit-onetime-secret-home": "Visita la página de inicio de Onetime Secret",
       "password_generation_title": "Generador de Contraseñas",
       "password_generation_description": " Haz clic en \"Generar Contraseña\" para crear una contraseña aleatoria segura que puedas compartir.",
-      "protip1": "Tu mensaje se autodestruirá después de ser visto. El enlace solo se puede acceder una vez."
+      "protip1": "Tu mensaje se autodestruirá después de ser visto. El enlace solo se puede acceder una vez.",
+      "authonly": {
+        "tagline2": "El servicio de mensajería segura es solo para uso interno.",
+        "tagline1": "Si tiene una cuenta, inicie sesión para continuar."
+      },
+      "disabled": {
+        "tagline2": "Este servicio está configurado solo para uso interno.",
+        "tagline1": "La interfaz de usuario y las capacidades de inicio de sesión no están disponibles."
+      }
     },
     "private": {
       "pretext": "Comparte este enlace:",

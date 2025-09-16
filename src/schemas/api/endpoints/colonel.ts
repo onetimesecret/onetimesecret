@@ -129,10 +129,10 @@ const diagnosticsSchema = z.object({
  * Using .optional() to handle partial settings data during initialization.
  */
 export const systemSettingsSchema = z.object({
-  interface: interfaceSchema.optional(),
-  secret_options: secretOptionsSchema.optional(),
-  mail: mailSchema.optional(),
-  diagnostics: diagnosticsSchema.optional(),
+  interface: interfaceSchema.nullable().optional(),
+  secret_options: secretOptionsSchema.nullable().optional(),
+  mail: mailSchema.nullable().optional(),
+  diagnostics: diagnosticsSchema.nullable().optional(),
   // development: developmentSchema.optional(),
   // experimental: z.record(z.any()).optional(),
   // features: z.record(z.any()).optional(),

@@ -39,12 +39,26 @@ site:
   secret_options:
     default_ttl: any(str(), int())
     ttl_options: str()
+    passphrase:
+      required: any(bool(), str())
+      minimum_length: any(str(), int())
+      maximum_length: any(str(), int())
+      enforce_complexity: any(bool(), str())
+    password_generation:
+      default_length: any(str(), int())
+      character_sets:
+        uppercase: any(bool(), str())
+        lowercase: any(bool(), str())
+        numbers: any(bool(), str())
+        symbols: any(bool(), str())
+        exclude_ambiguous: any(bool(), str())
   authentication:
     enabled: any()
     signup: any()
     signin: any()
     autoverify: any()
-    colonels: list(str(), required=True)  # Remove this line
+    required: any()
+    colonels: list(str(), required=True)
   authenticity:
     type: any(str(), int())
     secret_key: any(str(), int())
