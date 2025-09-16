@@ -33,17 +33,17 @@ OT.conf.dig(:site, :secret_options, :password_generation, :default_length)
 
 ## Test password generation utility with default options
 require 'onetime/utils'
-password = Onetime::Utils.generate_password(12)
+password = Onetime::Utils.strand(12)
 password.length
 #=> 12
 
 ## Test password generation with symbols enabled
-password_with_symbols = Onetime::Utils.generate_password(16, { symbols: true })
+password_with_symbols = Onetime::Utils.strand(16, { symbols: true })
 password_with_symbols.length
 #=> 16
 
 ## Test password generation with only lowercase letters
-@password_lowercase = Onetime::Utils.generate_password(8, {
+@password_lowercase = Onetime::Utils.strand(8, {
   uppercase: false,
   lowercase: true,
   numbers: false,
