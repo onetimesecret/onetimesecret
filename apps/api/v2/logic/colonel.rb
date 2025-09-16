@@ -11,3 +11,4 @@ end
 
 require_relative 'colonel/get_colonel_info'
 require_relative 'colonel/get_colonel_stats'
+require_relative 'colonel/get_system_settings'

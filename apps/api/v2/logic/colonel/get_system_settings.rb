@@ -6,6 +6,9 @@ module V2
   module Logic
     module Colonel
       class GetSystemSettings < V2::Logic::Base
+
+        using Familia::Refinements::TimeLiterals
+
         attr_reader :yaml_config
 
         def process_params
