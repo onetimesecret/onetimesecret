@@ -89,6 +89,25 @@
     # These options will be presented to users when they create a new secret
     # Format: String of integers representing seconds
     :ttl_options: <%= (ENV['TTL_OPTIONS'] || nil) %>
+    # Settings for password generation (when users click "Generate Password")
+    :password_generation:
+      # Default length for generated passwords
+      :default_length: <%= ENV['PASSWORD_GEN_LENGTH'] || 12 %>
+      # Available length options for password generation
+      # Format: String of integers separated by spaces
+      :length_options: <%= ENV['PASSWORD_GEN_LENGTHS'] || '8 12 16 20 24 32' %>
+      # Character sets to include in generated passwords
+      :character_sets:
+        # Include uppercase letters (A-Z)
+        :uppercase: <%= ENV['PASSWORD_GEN_UPPERCASE'] != 'false' %>
+        # Include lowercase letters (a-z)
+        :lowercase: <%= ENV['PASSWORD_GEN_LOWERCASE'] != 'false' %>
+        # Include numbers (0-9)
+        :numbers: <%= ENV['PASSWORD_GEN_NUMBERS'] != 'false' %>
+        # Include symbols (!@#$%^&*()_+-=[]{}|;:,.<>?)
+        :symbols: <%= ENV['PASSWORD_GEN_SYMBOLS'] == 'true' || false %>
+        # Exclude ambiguous characters (0, O, l, 1, I) to prevent confusion
+        :exclude_ambiguous: <%= ENV['PASSWORD_GEN_EXCLUDE_AMBIGUOUS'] != 'false' %>
   # Registration and Authentication settings
   :authentication:
     # Can be disabled altogether, including API authentication.

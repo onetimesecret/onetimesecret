@@ -33,6 +33,40 @@ module Onetime
       (1..len).collect { chars[rand(chars.size - 1)] }.join
     end
 
+    # Generate a configurable password based on character set options
+    def generate_password(length = 12, options = {})
+      # Default options from configuration or fallback values
+      opts = {
+        uppercase: true,
+        lowercase: true,
+        numbers: true,
+        symbols: false,
+        exclude_ambiguous: true,
+      }.merge(options)
+
+      # Build character set based on options
+      chars = []
+      chars.concat(('A'..'Z').to_a) if opts[:uppercase]
+      chars.concat(('a'..'z').to_a) if opts[:lowercase]
+      chars.concat(('0'..'9').to_a) if opts[:numbers]
+      if opts[:symbols]
+        chars.concat(%w[! @ # $ % ^ & * ( ) _ - + = [ ] { } | \\ : ; " ' < > , . ? / ~ `])
+      end
+
+      # Remove ambiguous characters if requested
+      if opts[:exclude_ambiguous]
+        chars.delete_if { |char| %w[0 O o l 1 I i].include?(char) }
+      end
+
+      # Ensure we have at least some characters to work with
+      if chars.empty?
+        chars = VALID_CHARS_SAFE # Fallback to safe default
+      end
+
+      # Generate password
+      (1..length).map { chars[rand(chars.length)] }.join
+    end
+
     def indifferent_params(params)
       if params.is_a?(Hash)
         params = indifferent_hash.merge(params)
