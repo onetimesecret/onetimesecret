@@ -11,27 +11,23 @@ site:
     # recipients who may do some light investigation to see if the site is legit.
     ui:
       enabled: true
-    # Controls whether the API endpoints are available. When disabled, the API
-    # is compltely disabled. Requests to /api/* will return 404.
-    :api:
-      :enabled: true
-  :secret_options:
-    :default_ttl: <%= ENV['DEFAULT_TTL'] || '43200' %> # 12 hours in seconds
-    :ttl_options: <%= (ENV['TTL_OPTIONS'] || '1800 43200 604800') %> # 30m, 12h, 7d
-    :passphrase:
-      :required: false
-      :minimum_length: 8
-      :maximum_length: 128
-      :enforce_complexity: false
-    :password_generation:
-      :default_length: 12
-      :length_options: [8, 12, 16, 20, 24, 32]
-      :character_sets:
-        :uppercase: true
-        :lowercase: true
-        :numbers: true
-        :symbols: false
-        :exclude_ambiguous: true
+  secret_options:
+    default_ttl: <%= ENV['DEFAULT_TTL'] || '43200' %> # 12 hours in seconds
+    ttl_options: <%= (ENV['TTL_OPTIONS'] || '1800 43200 604800') %> # 30m, 12h, 7d
+    passphrase:
+      required: false
+      minimum_length: 8
+      maximum_length: 128
+      enforce_complexity: false
+    password_generation:
+      default_length: 12
+      length_options: [8, 12, 16, 20, 24, 32]
+      character_sets:
+        uppercase: true
+        lowercase: true
+        numbers: true
+        symbols: false
+        exclude_ambiguous: true
   # Registration and Authentication settings
   authentication:
     # Can be disabled altogether, including API authentication.
@@ -51,6 +47,8 @@ site:
     # an instance for your team or company, you can disable this feature
     # to make it easier for users to sign in.
     autoverify: false
+    # Disable the homepage secret form for users that are not logged in.
+    required: false
     colonels:
       - 'CHANGEME@EXAMPLE.com'
   regions:
