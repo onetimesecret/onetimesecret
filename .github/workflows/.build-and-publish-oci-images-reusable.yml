@@ -1,0 +1,114 @@
+# .github/workflows/.build-and-publish-oci-images-reusable.yml
+
+name: Docker Build and Publish (Reusable)
+
+on:
+  workflow_call:
+    inputs:
+      image-suffix:
+        required: false
+        type: string
+        default: ''
+      dockerfile:
+        required: false
+        type: string
+        default: 'Dockerfile'
+      image_tags:
+        required: false
+        type: string
+        default: ''
+
+env:
+  REGISTRY: ghcr.io
+  RACK_ENV: production
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+
+    if: github.repository == 'onetimesecret/onetimesecret'
+
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 # v4
+
+      # Generate .commit_hash.txt in the build context. This guarantees the file
+      # is created before the build context is submitted.
+      - name: Generate commit hash
+        run: |
+          echo "${GITHUB_SHA:0:7}" > .commit_hash.txt
+          echo Commit hash recorded
+          head -4 .commit_hash.txt package.json
+
+      - name: Update package.json version from tag
+        if: startsWith(github.ref, 'refs/tags/v')
+        run: ./bin/update-version.sh
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@29109295f81e9208d7d86ff1c6c12d2833863392 # v3.6.0
+        with:
+          platforms: arm64
+
+      - name: Setup Docker buildx
+        uses: docker/setup-buildx-action@b5ca514318bd6ebac0fb2aedd5d36ec1b5c232a2 # v3.10.0
+        with:
+          platforms: linux/amd64,linux/arm64
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@74a5d142397b4f367a81961eba4e8cd7edddf772 # v3.4.0
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Log into registry ${{ env.REGISTRY }}
+        if: github.event_name != 'pull_request'
+        uses: docker/login-action@74a5d142397b4f367a81961eba4e8cd7edddf772 # v3.4.0
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Get Version
+        id: package_version
+        run: echo "version=$(node -p "require('./package.json').version")" >> $GITHUB_OUTPUT
+
+      - name: Extract Docker metadata
+        id: meta
+        uses: docker/metadata-action@902fa8ec7d6ecbf8d84d538b9b233a880e428804 # v5.7.0
+        env:
+          DOCKER_METADATA_ANNOTATIONS_LEVELS: manifest,index
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          tags: |
+            ${{ inputs.image_tags != '' && inputs.image_tags || format('type=ref,event=branch') }}
+          images: |
+            ${{ env.REGISTRY }}/${{ github.repository }}${{ inputs.image-suffix }}
+            ${{ github.repository }}${{ inputs.image-suffix }}
+          flavor: |
+            latest=${{ !contains(github.ref, '-rc') }}
+          labels: |
+            org.opencontainers.image.title=Onetime Secret
+            org.opencontainers.image.description=Onetime Secret is a web application to share sensitive information securely and temporarily.
+            org.opencontainers.image.source=https://github.com/${{ github.repository }}
+            org.opencontainers.image.licenses=MIT
+            org.opencontainers.image.revision=${{ github.sha }}
+            org.opencontainers.image.version=${{ steps.package_version.outputs.version }}
+
+      - name: Build and push Docker image
+        id: build-and-push
+        uses: docker/build-push-action@14487ce63c7a62a4a324b0bfb37086795e31c6c1 # v6.16.0
+        with:
+          context: .
+          file: ${{ inputs.dockerfile }}
+          push: ${{ github.event_name != 'pull_request' }}
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          annotations: ${{ steps.meta.outputs.annotations }}
+          platforms: linux/amd64,linux/arm64
+          build-args: |
+            VERSION=${{ steps.package_version.outputs.version }}
+            GITHUB_SHA=${{ github.sha }}
