@@ -103,7 +103,7 @@ docker build -t onetimesecret .
 ### Manual Installation
 
 **System Requirements:**
-- Ruby 3.1+
+- Ruby 3.4+
 - Redis 5+
 - Node.js 22+ (for development)
 - 1GB RAM, 2 CPU cores minimum
