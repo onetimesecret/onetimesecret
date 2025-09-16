@@ -50,8 +50,32 @@ module Onetime
         chars = VALID_CHARS_SAFE # Fallback to safe default
       end
 
-      # Generate password
-      (1..length).map { chars[rand(chars.length)] }.join
+      # Generate password with guaranteed complexity
+      password_chars = []
+      
+      # Ensure at least one character from each selected set
+      password_chars << ('A'..'Z').to_a.sample if opts[:uppercase]
+      password_chars << ('a'..'z').to_a.sample if opts[:lowercase]
+      password_chars << ('0'..'9').to_a.sample if opts[:numbers]
+      if opts[:symbols]
+        symbols = %w[! @ # $ % ^ & * ( ) _ - + = [ ] { } | \ : ; " ' < > , . ? / ~ `]
+        password_chars << symbols.sample
+      end
+      
+      # Remove ambiguous characters from guaranteed chars if needed
+      if opts[:exclude_ambiguous]
+        password_chars.delete_if { |char| %w[0 O o l 1 I i].include?(char) }
+      end
+      
+      # Fill remaining length with random characters from the full set
+      remaining_length = length - password_chars.length
+      if remaining_length > 0
+        remaining_chars = (1..remaining_length).map { chars[SecureRandom.random_number(chars.length)] }
+        password_chars.concat(remaining_chars)
+      end
+      
+      # Shuffle and join to create final password
+      password_chars.shuffle.join
     end
 
     def indifferent_params(params)
