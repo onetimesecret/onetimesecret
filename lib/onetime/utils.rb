@@ -17,7 +17,7 @@ module Onetime
       NUMBERS = ('0'..'9').to_a.freeze
 
       # Extended symbol set for password generation
-      SYMBOLS = ['!', '@', '#', '$', '%', '^', '&', '*', '(', ')', '_', '-', '+', '=', '[', ']', '{', '}', '|', ' :', ';', '"', "'", '<', '>', ',', '.', '?', '/', '~', '`'].freeze
+      SYMBOLS = ['!', '@', '#', '$', '%', '^', '&', '*', '(', ')', '_', '-', '+', '=', '[', ']', '{', '}', '|', ':', ';', '"', "'", '<', '>', ',', '.', '?', '/', '~', '`'].freeze
 
       # Basic symbols for general use (backward compatibility)
       BASIC_SYMBOLS = %w[* $ ! ? ( ) @ # % ^].freeze
