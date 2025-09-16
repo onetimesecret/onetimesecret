@@ -12,6 +12,7 @@ if Dir.exist?(features_dir)
 end
 
 require_relative 'models/mixins'
+require_relative 'models/system_settings'
 require_relative 'models/metadata'
 require_relative 'models/secret'
 require_relative 'models/session'

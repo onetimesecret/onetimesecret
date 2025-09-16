@@ -8,96 +8,166 @@ A onetime secret is a link that can be viewed only once. A single-use URL.
 
 Try it out on [OnetimeSecret.com](https://onetimesecret.com/)
 
-When you send people sensitive info like passwords and private links via email or chat, there are copies of that information stored in many places. If you use a Onetime link instead, the information persists for a single viewing which means it can't be read by someone else later. This allows you to send sensitive information in a safe way knowing it's seen by one person only. Think of it like a self-destructing message.
+When you send sensitive info like passwords via email or chat, copies persist in many places. Onetime links self-destruct after viewing, ensuring only the intended recipient sees the information.
 
-## Quick Start
+## Quick Start with Docker
 
-Get up and running in 30 seconds:
-
+**1. Start Redis:**
 ```bash
-# 1. Start Redis
-docker run -d --name valkey -p 6379:6379 valkey/valkey
+docker run -p 6379:6379 -d redis:bookworm
+```
 
-# 2. Generate and save a secure secret
-openssl rand -hex 32
+**2. Generate and store a persistent secret key:**
+```bash
+# First, generate a persistent secret key and store it
+openssl rand -hex 32 > .ots_secret
+chmod 600 .ots_secret
+echo "Secret key saved to .ots_secret (keep this file secure!)"
 
-# 3. Set the secret securely (paste the secret from step 2)
-echo -n "Enter secret: "; read -s SECRET
-
-# 4. Start Onetime Secret
-docker run -p 3000:3000 \
-  -e SECRET=$SECRET \
+# Now run the container using the key
+docker run -p 3000:3000 -d \
   -e REDIS_URL=redis://host.docker.internal:6379/0 \
-  ghcr.io/onetimesecret/onetimesecret:latest
+  -e SECRET="$(cat .ots_secret)" \
+  -e HOST=localhost:3000 \
+  -e SSL=false \ # ⚠️ WARNING: Set SSL=true for production deployments
+  onetimesecret/onetimesecret:latest
 ```
 
-Open `http://localhost:3000` in your browser.
-
----
-
-## Installation
-
-### Docker Installation (Recommended)
-
-```bash
-# Using pre-built image
-docker pull ghcr.io/onetimesecret/onetimesecret:latest
-
-# Or build from source
-docker build -t onetimesecret .
-```
-
-For detailed setup instructions, see our [Docker Guide](docs/DOCKER.md).
-
-For our self-contained, ephemeral "lite" image, see [Docker Lite Guide](docs/DOCKER-lite.md).
-
-### Manual Installation
-
-While we recommend Docker for most users, a manual installation is possible. For detailed steps, see our [Manual Installation Guide](docs/MANUAL_INSTALL.md).
-
-### System Requirements
-
-* Any recent Linux distro (we use Debian) or *BSD or macOS
-* Ruby 3.4+ (3.1-3.3 may work but not officially supported)
-* Valkey/Redis server 5+
-* Node.js 22+ (for frontend development)
-* Minimum specs: 2 core CPU, 1GB memory, 4GB disk
+**3. Access:** http://localhost:3000
 
 ## Configuration
 
-Onetime Secret requires a `config.yaml` file for all installations. The configuration file uses ERB templating to incorporate environment variables, allowing for flexible deployment scenarios.
+### UI Controls
 
-For detailed configuration instructions, including how to use environment variables, `.env` files, and advanced settings, see our [Configuration Guide](docs/CONFIGURATION.md).
+**Disable Web Interface** (`UI_ENABLED=false`):
+- Shows minimal explanation page instead of full interface
+- Useful for maintenance or API-only deployments
 
-> [!IMPORTANT]
-> Generate a secure `SECRET` key using `openssl rand -hex 32` and store it safely. Never change this value once set, as it prevents decryption of existing secrets.
+**Require Authentication** (`AUTH_REQUIRED=true`):
+- Homepage secret creation requires login
+- Maintains site navigation while restricting access
+
+### Essential Settings
+
+Create `./etc/config.yaml` from the example:
+```bash
+cp ./etc/config.example.yaml ./etc/config.yaml
+```
+
+Key configuration areas:
+- **Email**: SMTP or SendGrid setup
+- **Authentication**: Enable/disable login requirements
+- **Rate limits**: Control usage patterns
+- **UI settings**: Customize user experience
+
+### Environment Variables
+
+Common overrides:
+```bash
+HOST=your-domain.com
+SSL=true
+SECRET=your-secure-random-key
+REDIS_URL=redis://host:6379/0
+AUTH_REQUIRED=true
+TTL_OPTIONS='1800 43200 86400 259200'  # 30m, 12h, 24h, 3d
+```
+
+> **Important**: Generate a secure SECRET key and back it up safely:
+> ```bash
+> openssl rand -hex 32
+> ```
+
+## Installation Options
+
+### Docker Images
+
+**Pre-built images:**
+```bash
+# GitHub Container Registry
+docker pull ghcr.io/onetimesecret/onetimesecret:latest
+
+# Docker Hub
+docker pull onetimesecret/onetimesecret:latest
+
+# Lite version (smaller, optimized)
+docker pull ghcr.io/onetimesecret/onetimesecret-lite:latest
+```
+
+**Build locally:**
+```bash
+git clone https://github.com/onetimesecret/onetimesecret.git
+cd onetimesecret
+docker build -t onetimesecret .
+```
+
+### Manual Installation
+
+**System Requirements:**
+- Ruby 3.4+
+- Redis 5+
+- Node.js 22+ (for development)
+- 1GB RAM, 2 CPU cores minimum
+
+**Quick setup:**
+```bash
+git clone https://github.com/onetimesecret/onetimesecret.git
+cd onetimesecret
+bundle install
+cp ./etc/config.example.yaml ./etc/config.yaml
+# Edit config.yaml as needed
+RACK_ENV=production bundle exec thin -R config.ru -p 3000 start
+```
+
+> **For detailed installation instructions**, including system setup, troubleshooting, and advanced configuration, see [INSTALL.md](./INSTALL.md).
 
 ## Development
 
-For tips on debugging, frontend development, setting up pre-commit hooks, and other development-related topics, see our [Development Guide](docs/DEVELOPMENT.md).
+### Frontend Development Mode
 
-## Releases
+For active development with live reloading:
 
-### **Get the [Latest Release](https://github.com/onetimesecret/onetimesecret/releases/latest)** (Recommended)
+1. Enable development mode in `etc/config.yaml`:
+```yaml
+:development:
+  :enabled: true
+  :frontend_host: 'http://localhost:5173'
+```
 
-This is the actively developed and maintained version with the most recent features and security updates.
+2. Start servers:
+```bash
+# Terminal 1: Main server
+RACK_ENV=development bundle exec thin -R config.ru -p 3000 start
 
-### Version Notes
+# Terminal 2: Vite dev server
+pnpm run dev
+```
 
-**Pre-1.0 Status:** Onetime Secret is currently in active development with pre-1.0 version numbers (e.g., v0.23.0). While we recommend using the `latest` tag for the newest features, **production deployments should pin to a specific version tag** (e.g., `v0.23.0`) for stability.
+### Docker Compose
 
-⚠️ **Breaking Changes:** Expect potential breaking changes between "major-minor" releases (e.g., v0.22.x → v0.23.0). We follow semantic versioning principles but treat pre-1.0 minor version bumps as potentially breaking changes.
+For complete setup with dependencies:
+[Docker Compose repo](https://github.com/onetimesecret/docker-compose/)
 
-### Development Branch Notice
+## Support
 
-> [!WARNING]
-> **Custom Domain Support Temporarily Unavailable:** This development branch has intentionally broken custom domain functionality as part of ongoing architectural improvements. If you need custom domain support, please use one of these stable alternatives:
->
-> - **Latest stable release:** [v0.22.3](https://github.com/onetimesecret/onetimesecret/releases/tag/v0.22.3)
-> - **Docker images:** `ghcr.io/onetimesecret/onetimesecret:v0.22.3` or `onetimesecret/onetimesecret:v0.22.3`
-> - **Source installation:** `git checkout v0.22.3` after cloning
->
-> Custom domain functionality will be restored in future releases.
+- **Issues**: [GitHub Issues](https://github.com/onetimesecret/onetimesecret/issues)
+- **Documentation**: Check `docs/` directory for detailed guides
+- **Security**: Review `SECURITY.md` for security considerations
+
+### Production Deployments
+
+See [Dockerfile](./Dockerfile)
+
+## AI Development Assistance
+
+This version of Familia was developed with assistance from AI tools. The following tools provided significant help with architecture design, code generation, and documentation:
+
+- **Claude (Desktop, Code Max plan, Sonnet 4, Opus 4.1)** - Interactive development sessions, debugging, architecture design, code generation, and documentation
+- **Google Gemini** - Refactoring suggestions, code generation, and documentation.
+- **GitHub Copilot** - Code completion and refactoring assistance
+- **Qodo Merge Pro** - Code review and QA improvements
+
+I remain responsible for all design decisions and the final code. I believe in being transparent about development tools, especially as AI becomes more integrated into our workflows as developers.
+
 
 ## Similar Services
 
@@ -107,11 +177,12 @@ This section provides an overview of services similar to our project, highlighti
 
 | URL                                | Service            | Description                                                                                                                                                     | Distinctive Feature                                               |
 | ---------------------------------- | ------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------- |
-| <https://protonurl.ch/>             | protonURL          | A simple and secure tool to share secret, confidential, or non-confidential content via a self-destructing link.                                                | Temporary, self-destructing links for sensitive content with strong encryption and available in 15 languages.            |
+| <https://protonurl.ch/>             | protonURL          | A simple and secure tool to share secret, confidential, or non-confidential content via a self-destructing link.                                                | Temporary, self-destructing links for sensitive content with strong encryption and available in 15 languages |
 | <https://pwpush.com/>              | Password Pusher    | A tool that uses browser cookies to help you share passwords and other sensitive information.                                                                   | Temporary, self-destructing links for password sharing            |
 | <https://scrt.link/en>             | Share a Secret     | A service that allows you to share sensitive information anonymously. Crucial for journalists, lawyers, politicians, whistleblowers, and oppressed individuals. | Anonymous, self-destructing message sharing                       |
 | <https://cryptgeon.com/>           | Cryptgeon          | A service for sharing secrets and passwords securely.                                                                                                           | Offers a secret generator, password generator, and secret vault   |
-| <https://www.vanish.so/>           | Vanish             | A service for sharing secrets and passwords securely.                                                                                                           | Self-destructing messages with strong encryption                  |
+| <https://www.vanish.so/>           | Vanish             | A service for sharing secrets and passwords securely.
+                                                                                                           | Self-destructing messages with strong encryption                  |
 | <https://password.link/en>         | Password.link      | A service for securely sending and receiving sensitive information.                                                                                             | Secure link creation for sensitive information sharing            |
 | <https://www.sharesecret.co/>      | ShareSecret        | A service for securely sharing passwords in Slack and email.                                                                                                    | Secure password sharing with Slack and email integration          |
 | <https://teampassword.com/>        | TeamPassword       | A password manager for teams.                                                                                                                                   | Fast, easy-to-use, and secure team password management            |

@@ -1,0 +1,5 @@
+# apps/web/core/routes.disabled
+
+GET   /                                          Core::Controllers::Page#not_found
+GET   /robots.txt                                Core::Controllers::Page#robots_txt
+GET   /*

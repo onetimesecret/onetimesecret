@@ -26,9 +26,7 @@ export const transforms = {
     dateNullable: z.preprocess(parseDateValue, z.date().nullable()),
     date: z.preprocess(
       parseDateValue,
-      z.date().refine((val) => val !== null, {
-        error: 'Valid date is required',
-      })
+      z.date().refine((val): val is Date => val !== null, 'Valid date is required')
     ),
     number: z.preprocess(parseNumber, z.number().nullable()),
     boolean: z.preprocess(parseBoolean, z.boolean()),
@@ -43,7 +41,7 @@ export const transforms = {
      * Input: "test@example.com" -> "test@example.com"
      * Input: "invalid" -> ZodError
      */
-    optionalEmail: z.preprocess((val) => (val === '' ? undefined : val), z.email().optional()),
+    optionalEmail: z.preprocess((val) => (val === '' ? undefined : val), z.string().email().optional()),
   },
 
   fromNumber: {

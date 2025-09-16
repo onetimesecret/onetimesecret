@@ -69,7 +69,19 @@
       "cta_feature3": "高级隐私控制",
       "explore_premium_plans": "探索高级计划",
       "need_free_account": "刚刚开始？",
-      "sign_up_free": "创建免费账户"
+      "sign_up_free": "创建免费账户",
+      "visit-onetime-secret-home": "访问Onetime Secret首页",
+      "password_generation_title": "密码生成器",
+      "password_generation_description": "点击“生成密码”按钮，创建可共享的安全随机密码。",
+      "protip1": "消息查看后将自动销毁。链接仅能访问一次。",
+      "authonly": {
+        "tagline2": "安全消息服务仅限内部使用。",
+        "tagline1": "如果您有账户，请登录以继续。"
+      },
+      "disabled": {
+        "tagline2": "此服务仅限内部使用。",
+        "tagline1": "用户界面和登录功能不可用。"
+      }
     },
     "private": {
       "pretext": "分享该链接:",
@@ -110,7 +122,11 @@
     },
     "secrets": {
       "privacyOptions": "隐私选项",
-      "expiresIn": "在{duration}中到期"
+      "selectDuration": "选择持续时间",
+      "expiresIn": "在{duration}中到期",
+      "enterPassphrase": "输入密码短语",
+      "passphraseMinimumLength": "最少{length}个字符",
+      "passphraseComplexityRequired": "必须包含大写字母、小写字母、数字和符号"
     },
     "signup": {
       "create-your-account": "创建您的帐户"

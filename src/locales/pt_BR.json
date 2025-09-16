@@ -224,7 +224,9 @@
       "privacyOptions": "Opções de Privacidade",
       "selectDuration": "Selecionar duração",
       "expiresIn": "Expira em {duration}",
-      "enterPassphrase": "Digite a Senha Mestre"
+      "enterPassphrase": "Digite a senha",
+      "passphraseMinimumLength": "Mínimo {length} caracteres",
+      "passphraseComplexityRequired": "Deve incluir maiúscula, minúscula, número e símbolo"
     },
     "homepage": {
       "tagline1": "Cole uma senha, mensagem secreta ou link privado abaixo.",
@@ -244,7 +246,15 @@
       "visit-onetime-secret-home": "Visitar a página inicial do Onetime Secret",
       "password_generation_title": "Gerador de Senha",
       "password_generation_description": " Clique em \"Gerar Senha\" para criar uma senha aleatória segura que você pode compartilhar.",
-      "protip1": "Sua mensagem se autodestruirá após ser visualizada. O link só pode ser acessado uma vez."
+      "protip1": "Sua mensagem se autodestruirá após ser visualizada. O link só pode ser acessado uma vez.",
+      "authonly": {
+        "tagline2": "O serviço de mensagens seguras é apenas para uso interno.",
+        "tagline1": "Se você tem uma conta, faça login para continuar."
+      },
+      "disabled": {
+        "tagline2": "Este serviço está configurado apenas para uso interno.",
+        "tagline1": "A interface do usuário e os recursos de login não estão disponíveis."
+      }
     },
     "private": {
       "pretext": "Compartilhar este link:",
