@@ -51,9 +51,7 @@
   const showProTip = ref(props.withAsterisk);
 
   // Get passphrase configuration for UI hints
-  const secretOptions = computed(() => {
-    return WindowService.get('secret_options');
-  });
+  const secretOptions = computed(() => WindowService.get('secret_options'));
 
   const passphraseConfig = computed(() => secretOptions.value?.passphrase);
   const isPassphraseRequired = computed(() => passphraseConfig.value?.required || false);
@@ -80,7 +78,7 @@
         response,
         clientInfo: {
           hasPassphrase: !!form.passphrase,
-          ttl: form.ttl,
+          ttl: form.ttl as number,
           createdAt: new Date(),
         },
       };
@@ -107,7 +105,7 @@
     useDomainDropdown();
 
   // Compute whether the form has content or not
-  const hasContent = computed(() => !!form.secret && form.secret.trim().length > 0);
+  const hasContent = computed(() => !!form.secret && (form.secret as string).trim().length > 0);
 
   // Form submission handlers
   const handleSubmit = () => {

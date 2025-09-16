@@ -9,8 +9,7 @@
   const windowProps = WindowService.getMultiple([
     'authenticated',
     'authentication',
-	'billing_enabled',
-    'plans_enabled',
+    'billing_enabled',
     'ui',
   ]);
 

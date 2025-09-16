@@ -97,7 +97,7 @@ export function useSecretForm() {
 
         if (passphraseConfig) {
           // Check if passphrase is required
-          if (passphraseConfig.required && !form.passphrase.trim()) {
+          if (passphraseConfig.required && !(form.passphrase as string).trim()) {
             errors.set('passphrase', 'A passphrase is required for all secrets');
           }
 
@@ -105,7 +105,7 @@ export function useSecretForm() {
           if (
             form.passphrase &&
             passphraseConfig.minimum_length &&
-            form.passphrase.length < passphraseConfig.minimum_length
+            (form.passphrase as string).length < passphraseConfig.minimum_length
           ) {
             errors.set(
               'passphrase',
@@ -117,7 +117,7 @@ export function useSecretForm() {
           if (
             form.passphrase &&
             passphraseConfig.maximum_length &&
-            form.passphrase.length > passphraseConfig.maximum_length
+            (form.passphrase as string).length > passphraseConfig.maximum_length
           ) {
             errors.set(
               'passphrase',
@@ -128,10 +128,11 @@ export function useSecretForm() {
           // Check complexity if required and passphrase is provided
           if (form.passphrase && passphraseConfig.enforce_complexity) {
             const complexityErrors = [];
-            if (!/[A-Z]/.test(form.passphrase)) complexityErrors.push('uppercase letter');
-            if (!/[a-z]/.test(form.passphrase)) complexityErrors.push('lowercase letter');
-            if (!/\d/.test(form.passphrase)) complexityErrors.push('number');
-            if (!/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?~`]/.test(form.passphrase))
+            const passphrase = form.passphrase as string;
+            if (!/[A-Z]/.test(passphrase)) complexityErrors.push('uppercase letter');
+            if (!/[a-z]/.test(passphrase)) complexityErrors.push('lowercase letter');
+            if (!/\d/.test(passphrase)) complexityErrors.push('number');
+            if (!/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?~`]/.test(passphrase))
               complexityErrors.push('symbol');
 
             if (complexityErrors.length > 0) {
