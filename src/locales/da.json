@@ -153,7 +153,10 @@
     "secrets": {
       "privacyOptions": "Privacy Options",
       "selectDuration": "Select duration",
-      "expiresIn": "Expires in {duration}"
+      "expiresIn": "Expires in {duration}",
+      "enterPassphrase": "Indtast adgangskode",
+      "passphraseMinimumLength": "Minimum {length} tegn",
+      "passphraseComplexityRequired": "Skal indeholde store bogstaver, små bogstaver, tal og symbol"
     },
     "homepage": {
       "tagline1": "Indsæt en adgangskode, hemmelig besked eller privat link nedenfor.",
