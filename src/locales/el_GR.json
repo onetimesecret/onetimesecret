@@ -224,7 +224,9 @@
       "privacyOptions": "Επιλογές Ιδιωτικότητας",
       "selectDuration": "Επιλέξτε διάρκεια",
       "expiresIn": "Λήγει σε {duration}",
-      "enterPassphrase": "Εισαγάγετε Φράση Πρόσβασης"
+      "enterPassphrase": "Εισαγάγετε Φράση Πρόσβασης",
+      "passphraseMinimumLength": "Ελάχιστο {length} χαρακτήρες",
+      "passphraseComplexityRequired": "Πρέπει να περιλαμβάνει κεφαλαία, πεζά, αριθμό και σύμβολο"
     },
     "homepage": {
       "tagline1": "Επικολλήστε ένα κωδικό πρόσβασης, μυστικό μήνυμα ή ιδιωτικό σύνδεσμο παρακάτω.",

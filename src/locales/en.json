@@ -228,7 +228,9 @@
       "privacyOptions": "Privacy Options",
       "selectDuration": "Select duration",
       "expiresIn": "Expires in {duration}",
-      "enterPassphrase": "Enter Passphrase"
+      "enterPassphrase": "Enter Passphrase",
+      "passphraseMinimumLength": "Minimum {length} characters",
+      "passphraseComplexityRequired": "Must include uppercase, lowercase, number, and symbol"
     },
     "footer": {
       "security": "Security",
