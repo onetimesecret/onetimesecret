@@ -25,8 +25,8 @@ export default defineConfig({
 
   /* Reporter to use. */
   reporter: [
-    // ['html', { outputFolder: 'playwright-report' }],
-    // ['github'], // GitHub Actions annotations
+    ['html', { outputFolder: 'playwright-report' }],
+    ['github'], // GitHub Actions annotations
     ['line'], // Terminal output
   ],
 
