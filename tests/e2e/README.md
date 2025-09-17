@@ -16,7 +16,7 @@ tests/e2e/
 
 ```bash
 # One-time setup
-pnpx playwright install
+pnpm install
 
 # Run all E2E tests against dev server
 
@@ -26,7 +26,7 @@ PLAYWRIGHT_BASE_URL=https://dev.onetime.dev
 
 pnpm run dev  # In terminal 1
 
-PLAYWRIGHT_BASE_URL=$HOST pnpx playwright test tests/e2e/  # In terminal 2
+PLAYWRIGHT_BASE_URL=$HOST pnpm test:playwright tests/e2e/  # In terminal 2
 ```
 
 ## Test Environments
@@ -37,7 +37,7 @@ PLAYWRIGHT_BASE_URL=$HOST pnpx playwright test tests/e2e/  # In terminal 2
 pnpm run dev
 
 # Run tests
-PLAYWRIGHT_BASE_URL=http://localhost:5173 pnpx playwright test tests/e2e/
+PLAYWRIGHT_BASE_URL=http://localhost:5173 pnpm test:playwright tests/e2e/
 ```
 **Use for:** Rapid iteration, UI development, selector debugging
 
@@ -51,7 +51,7 @@ RACK_ENV=production SECRET=test123 REDIS_URL=redis://localhost:6379/0 \
   bundle exec thin -R config.ru -p 3000 start
 
 # Run tests
-PLAYWRIGHT_BASE_URL=http://localhost:3000 pnpx playwright test tests/e2e/
+PLAYWRIGHT_BASE_URL=http://localhost:3000 pnpm test:playwright tests/e2e/
 ```
 **Use for:** Asset bundling validation, performance testing, pre-deployment verification
 
@@ -65,7 +65,7 @@ docker run -d --name ots-test -p 3000:3000 \
   onetimesecret-test
 
 # Run tests
-PLAYWRIGHT_BASE_URL=http://localhost:3000 pnpx playwright test tests/e2e/
+PLAYWRIGHT_BASE_URL=http://localhost:3000 pnpm test:playwright tests/e2e/
 
 # Cleanup
 docker stop ots-test && docker rm ots-test
@@ -77,31 +77,31 @@ docker stop ots-test && docker rm ots-test
 ### Visual Debugging
 ```bash
 # Interactive UI mode
-npx playwright test tests/e2e/ --ui
+pnpm test:playwright tests/e2e/ --ui
 
 # Watch mode (headed browser)
-npx playwright test tests/e2e/ --headed --project=chromium
+pnpm test:playwright tests/e2e/ --headed --project=chromium
 ```
 
 ### Trace Generation
 ```bash
 # Generate detailed traces
-npx playwright test tests/e2e/ --trace=on --reporter=html
+pnpm test:playwright tests/e2e/ --trace=on --reporter=html
 
 # View traces
-npx playwright show-trace test-results/*/trace.zip
+pnpm playwright show-trace test-results/*/trace.zip
 ```
 
 ### Targeted Testing
 ```bash
 # Run specific test
-npx playwright test tests/e2e/integration.spec.ts -g "homepage loads"
+pnpm test:playwright tests/e2e/integration.spec.ts -g "homepage loads"
 
 # Run against specific browser
-npx playwright test tests/e2e/ --project=firefox
+pnpm test:playwright tests/e2e/ --project=firefox
 
 # Debug specific test
-npx playwright test tests/e2e/integration.spec.ts --debug
+pnpm test:playwright tests/e2e/integration.spec.ts --debug
 ```
 
 ## Working with Claude Code/Desktop
@@ -119,7 +119,7 @@ npx playwright test tests/e2e/integration.spec.ts --debug
    My E2E test is failing. Here's the context:
 
    **Environment:** [dev server / production build / container]
-   **Test Command:** PLAYWRIGHT_BASE_URL=... pnpx playwright test ...
+   **Test Command:** PLAYWRIGHT_BASE_URL=... pnpm playwright ...
    **Error Output:**
    [paste complete error]
 
@@ -143,7 +143,7 @@ npx playwright test tests/e2e/integration.spec.ts --debug
 #### Asset Loading Issues
 ```bash
 # Check network requests
-npx playwright test tests/e2e/ --headed
+pnpm test:playwright tests/e2e/ --headed
 # Open browser DevTools → Network tab
 
 # Test specific asset loading
@@ -153,7 +153,7 @@ curl -I http://localhost:3000/assets/application.css
 #### Element Selector Issues
 ```bash
 # Generate selectors interactively
-npx playwright codegen http://localhost:3000
+pnpm playwright codegen http://localhost:3000
 
 # Test selectors in browser console
 document.querySelector('your-selector')
@@ -195,59 +195,5 @@ await page.pause(); // Pauses execution for manual inspection
 | `PLAYWRIGHT_BASE_URL` | Target application URL | `http://localhost:3000` |
 | `PLAYWRIGHT_HEADLESS` | Run in headless mode | `false` (for debugging) |
 | `PLAYWRIGHT_BROWSER` | Specific browser to use | `chromium` |
+| `FRONTEND_BASE_URL` | Target vue frontend URL | `http://localhost:5173` |
 | `CI` | CI environment flag | Auto-set in GitHub Actions |
-
-## Troubleshooting
-
-### Common Issues
-
-**"Cannot find module '@playwright/test'"**
-```bash
-npm install @playwright/test
-npx playwright install
-```
-
-**"Target page closed / Target crashed"**
-- Application likely crashed
-- Check server logs: `docker logs container-name`
-- Verify correct environment variables
-
-**"Timeout: waiting for element"**
-- Element selector may be incorrect
-- Application may be loading slowly
-- Use `page.waitForSelector()` with longer timeout
-
-**"net::ERR_CONNECTION_REFUSED"**
-- Server not running on expected port
-- Check `PLAYWRIGHT_BASE_URL` matches your server
-- Verify firewall/network settings
-
-### Getting Help
-
-1. Check the Playwright documentation: https://playwright.dev
-2. Review test artifacts in `test-results/` directory
-3. Share context with Claude Code/Desktop using the patterns above
-4. Check GitHub Actions logs for CI-specific issues
-
-## Adding New Tests
-
-1. Create test files with `.spec.ts` extension
-2. Follow the existing patterns in `integration.spec.ts`
-3. Focus on user workflows and critical paths
-4. Test error conditions and edge cases
-5. Validate both happy path and error scenarios
-
-Example test structure:
-```typescript
-import { test, expect } from '@playwright/test';
-
-test.describe('Feature Name', () => {
-  test.beforeEach(async ({ page }) => {
-    // Setup for each test
-  });
-
-  test('should do something specific', async ({ page }) => {
-    // Test implementation
-  });
-});
-```

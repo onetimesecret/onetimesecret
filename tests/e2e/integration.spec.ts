@@ -11,12 +11,11 @@ import { test, expect } from '@playwright/test';
  *
  * 1. Install Playwright browsers (one-time setup):
  *    ```bash
- *    pnpx playwright install
+ *    pnpm install
  *
  *    # Set environment variables
  *    FRONTEND_BASE_URL=http://localhost:5173
- *    BASE_URL=http://localhost:3000
- *
+ *    PLAYWRIGHT_BASE_URL=http://localhost:3000
  *    ```
  *
  * 2. Choose your testing approach:
@@ -28,7 +27,7 @@ import { test, expect } from '@playwright/test';
  *    pnpm run dev
  *
  *    # Terminal 2: Run tests
- *    PLAYWRIGHT_BASE_URL=$FRONTEND_BASE_URL pnpx playwright test tests/e2e/
+ *    PLAYWRIGHT_BASE_URL=$FRONTEND_BASE_URL pnpm test:playwright tests/e2e/
  *    ```
  *
  *    **Option B: Test against production build (recommended)**
@@ -39,7 +38,7 @@ import { test, expect } from '@playwright/test';
  *      bundle exec thin -R config.ru -p 3000 start
  *
  *    # Run tests in another terminal
- *    pnpx playwright test tests/e2e/
+ *    pnpm run playwright tests/e2e/
  *    ```
  *
  *    **Option C: Test against containerized app (most accurate)**
@@ -50,7 +49,7 @@ import { test, expect } from '@playwright/test';
  *      -e SECRET=test123 -e REDIS_URL=redis://host.docker.internal:6379/0 ots-test
  *
  *    # Run tests
- *    pnpx playwright test tests/e2e/
+ *    pnpm test:playwright tests/e2e/
  *
  *    # Cleanup
  *    docker stop ots-test && docker rm ots-test
@@ -62,18 +61,18 @@ import { test, expect } from '@playwright/test';
  *
  * 1. **Run with UI mode for visual debugging:**
  *    ```bash
- *    pnpx playwright test tests/e2e/ --ui
+ *    pnpm test:playwright tests/e2e/ --ui
  *    ```
  *
  * 2. **Run single test with headed browser:**
  *    ```bash
- *    pnpx playwright test tests/e2e/integration.spec.ts \
+ *    pnpm test:playwright tests/e2e/integration.spec.ts \
  *      --headed --project=chromium -g "homepage loads"
  *    ```
  *
  * 3. **Generate Playwright trace for Claude analysis:**
  *    ```bash
- *    pnpx playwright test tests/e2e/ \
+ *    pnpm test:playwright tests/e2e/ \
  *      --trace=on --reporter=html
  *    ```
  *    This creates `playwright-report/` with detailed traces.
