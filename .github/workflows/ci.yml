@@ -221,7 +221,7 @@ jobs:
           docker run -d \
             --name onetime-test-container \
             -p 3000:3000 \
-            -e REDIS_URL=redis://172.17.0.1:2121/0 \
+            -e REDIS_URL=redis://host.docker.internal:2121/0 \
             -e SECRET=$(openssl rand -hex 32) \
             --add-host=host.docker.internal:host-gateway \
             onetime-test

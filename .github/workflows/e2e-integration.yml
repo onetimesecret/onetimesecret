@@ -165,7 +165,7 @@ jobs:
           export CI=true
 
           # Run tests - use existing playwright config with base URL override
-          pnpm exec playwright test \
+          pnpm test:playwright \
             --reporter=github \
             --max-failures=5
         env:
