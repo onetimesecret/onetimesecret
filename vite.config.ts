@@ -225,7 +225,6 @@ export default defineConfig({
       input: {
         main: 'src/main.ts',
       },
-      external: ['altcha'],
       output: {
         // Enforce single chunk output
         inlineDynamicImports: true,
