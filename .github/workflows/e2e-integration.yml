@@ -30,6 +30,9 @@ on:
   push:
     branches: [develop]
 
+permissions:
+  contents: read
+
 jobs:
   docker-e2e-tests:
     continue-on-error: true
