@@ -59,6 +59,14 @@ import globals from 'globals';
 import path from 'path';
 import vueEslintParser from 'vue-eslint-parser';
 
+// Validate that required plugin configs are available
+if (!pluginVue.configs?.['flat/strongly-recommended']) {
+  throw new Error('Vue ESLint plugin flat/strongly-recommended config not found');
+}
+if (!pluginTailwindCSS.configs?.['flat/recommended']) {
+  throw new Error('Tailwind ESLint plugin flat/recommended config not found');
+}
+
 export default [
   /**
    * Base Ignore Patterns
