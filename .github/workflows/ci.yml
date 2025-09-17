@@ -177,7 +177,7 @@ jobs:
           echo "## TypeScript Test Results" >> $GITHUB_STEP_SUMMARY
           echo "Type checking, linting, and unit tests completed." >> $GITHUB_STEP_SUMMARY
 
-  test-docker-integration:
+  test-oci-image-integration:
     timeout-minutes: 10
     runs-on: ubuntu-24.04
     needs: [test-ruby, test-typescript]
@@ -221,7 +221,7 @@ jobs:
           docker run -d \
             --name onetime-test-container \
             -p 3000:3000 \
-            -e REDIS_URL=redis://172.17.0.1:2121/0 \
+            -e REDIS_URL=redis://172.17.0.1:6379/0 \
             -e SECRET=$(openssl rand -hex 32) \
             --add-host=host.docker.internal:172.17.0.1 \
             onetime-test
