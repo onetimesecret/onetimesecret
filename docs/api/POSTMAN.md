@@ -104,7 +104,7 @@ jobs:
   sync:
   runs-on: ubuntu-24.04
   steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 # v4
     - name: Sync Collection
     run: node automation/sync-collection.js
     env:
