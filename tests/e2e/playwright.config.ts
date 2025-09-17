@@ -1,18 +1,18 @@
 import { defineConfig, devices } from '@playwright/test';
 
 /**
- * Modern Playwright configuration for Onetime Secret
- * Supports both local development and CI environments
+ * Playwright configuration for E2E integration testing
+ * This config runs tests against production builds and containers
  */
 export default defineConfig({
-  // Test directory - update if you want to move tests elsewhere
-  testDir: './tests',
+  // Test directory relative to this config file
+  testDir: './',
 
-  // Look for test files in these patterns
-  testMatch: ['**/e2e/**/*.{test,spec}.{js,ts}', '**/integration/**/*.{test,spec}.{js,ts}'],
+  // Look for test files in current directory and subdirectories
+  testMatch: ['**/*.spec.ts'],
 
   /* Run tests in files in parallel */
-  fullyParallel: true,
+  fullyParallel: false, // Disabled for integration testing to avoid resource conflicts
 
   /* Fail the build on CI if you accidentally left test.only in the source code. */
   forbidOnly: !!process.env.CI,
@@ -23,16 +23,24 @@ export default defineConfig({
   /* Opt out of parallel tests on CI. */
   workers: process.env.CI ? 1 : undefined,
 
-  /* Reporter to use. See https://playwright.dev/docs/test-reporters */
+  /* Reporter to use. */
   reporter: [
-    ['html', { outputFolder: 'playwright-report' }],
-    process.env.CI ? ['github'] : ['list'],
+    // ['html', { outputFolder: 'playwright-report' }],
+    // ['github'], // GitHub Actions annotations
+    ['line'], // Terminal output
   ],
 
-  /* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
+  /* Shared settings for all the projects below. */
   use: {
-    /* Base URL to use in actions like `await page.goto('/')`. */
-    baseURL: process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:3000',
+    /* Base URL - will be set by environment variable */
+    baseURL:
+      process.env.PLAYWRIGHT_BASE_URL ||
+      process.env.FRONTEND_HOST ||
+      (() => {
+        throw new Error(
+          'No base URL configured. Set PLAYWRIGHT_BASE_URL or FRONTEND_HOST environment variable.'
+        );
+      })(),
 
     /* Collect trace when retrying the failed test. See https://playwright.dev/docs/trace-viewer */
     trace: 'on-first-retry',
@@ -44,7 +52,7 @@ export default defineConfig({
     video: 'retain-on-failure',
 
     /* Ignore HTTPS errors */
-    ignoreHTTPSErrors: true,
+    ignoreHTTPSErrors: false,
 
     /* Global timeout for each action (e.g., click, fill) */
     actionTimeout: 10000,
@@ -57,44 +65,29 @@ export default defineConfig({
   projects: [
     {
       name: 'chromium',
-      use: { ...devices['Desktop Chrome'] },
+      use: {
+        ...devices['Desktop Chrome'],
+        // Extra time for container responses
+        timeout: 30000,
+      },
     },
 
-    {
-      name: 'firefox',
-      use: { ...devices['Desktop Firefox'] },
-    },
-
-    {
-      name: 'webkit',
-      use: { ...devices['Desktop Safari'] },
-    },
-
-    /* Test against mobile viewports. */
-    {
-      name: 'Mobile Chrome',
-      use: { ...devices['Pixel 5'] },
-    },
-    {
-      name: 'Mobile Safari',
-      use: { ...devices['iPhone 12'] },
-    },
-
-    /* Test against branded browsers. */
+    // Optionally add more browsers for comprehensive testing
+    // Uncomment if needed for broader browser coverage
     // {
-    //   name: 'Microsoft Edge',
-    //   use: { ...devices['Desktop Edge'], channel: 'msedge' },
+    //   name: 'firefox',
+    //   use: { ...devices['Desktop Firefox'] },
     // },
     // {
-    //   name: 'Google Chrome',
-    //   use: { ...devices['Desktop Chrome'], channel: 'chrome' },
+    //   name: 'webkit',
+    //   use: { ...devices['Desktop Safari'] },
     // },
   ],
 
-  /* Timeout for individual tests */
-  timeout: 30000,
+  /* Timeout for entire test suite */
+  timeout: 60000,
 
-  /* Global timeout for the entire test suite */
+  /* Global timeout for entire test run */
   globalTimeout: 15 * 60 * 1000, // 15 minutes
 
   /* Expect timeout for assertions */
@@ -105,13 +98,6 @@ export default defineConfig({
   /* Output directory for test artifacts */
   outputDir: 'test-results/',
 
-  /* Run your local dev server before starting the tests */
-  webServer: process.env.PLAYWRIGHT_BASE_URL
-    ? undefined
-    : {
-        command: 'pnpm run dev',
-        url: 'http://localhost:5173',
-        reuseExistingServer: !process.env.CI,
-        timeout: 120 * 1000,
-      },
+  /* Don't configure webServer - we're testing against already running applications */
+  webServer: undefined,
 });

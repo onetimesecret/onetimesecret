@@ -23,7 +23,7 @@
     "optimize": "vite optimize",
     "optimize:local": "vite optimize --config vite.config.local.ts",
     "oursync": "rsync -av --ignore-existing public/web/ /var/www/public/",
-    "playwright": "playwright test",
+    "playwright": "playwright test --config=tests/e2e/playwright.config.ts",
     "playwright:update": "pnpm install --save-dev @playwright/test@latest && pnpm exec playwright install --with-deps",
     "podman:build": "podman build --build-arg=VERSION=$npm_package_version -t onetimesecret .",
     "podman:image:metadata:latest": "podman inspect $(podman images -q | head -n 1) | jq '.[0].Config.Labels'",
