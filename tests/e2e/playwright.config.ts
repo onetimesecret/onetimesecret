@@ -55,10 +55,10 @@ export default defineConfig({
     ignoreHTTPSErrors: false,
 
     /* Global timeout for each action (e.g., click, fill) */
-    actionTimeout: 10000,
+    actionTimeout: 5000,
 
     /* Global timeout for navigation actions */
-    navigationTimeout: 30000,
+    navigationTimeout: 15000,
   },
 
   /* Configure projects for major browsers */
@@ -68,7 +68,7 @@ export default defineConfig({
       use: {
         ...devices['Desktop Chrome'],
         // Extra time for container responses
-        timeout: 30000,
+        actionTimeout: 30000,
       },
     },
 
@@ -88,11 +88,11 @@ export default defineConfig({
   timeout: 60000,
 
   /* Global timeout for entire test run */
-  globalTimeout: 15 * 60 * 1000, // 15 minutes
+  globalTimeout: 10 * 60 * 1000, // 15 minutes
 
   /* Expect timeout for assertions */
   expect: {
-    timeout: 10000,
+    timeout: 5000,
   },
 
   /* Output directory for test artifacts */
