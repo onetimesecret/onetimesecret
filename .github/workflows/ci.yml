@@ -221,9 +221,9 @@ jobs:
           docker run -d \
             --name onetime-test-container \
             -p 3000:3000 \
-            -e REDIS_URL=redis://172.17.0.1:6379/0 \
+            -e REDIS_URL=redis://172.17.0.1:2121/0 \
             -e SECRET=$(openssl rand -hex 32) \
-            --add-host=host.docker.internal:172.17.0.1 \
+            --add-host=host.docker.internal:host-gateway \
             onetime-test
 
       - name: Wait for service to be ready
@@ -238,7 +238,7 @@ jobs:
             docker logs onetime-test-container
             exit 1
           fi
-          echo "✅ Homepage loaded successfully (HTTP $response)"
+          # Homepage loaded successfully
 
       - name: Cleanup
         if: always()
