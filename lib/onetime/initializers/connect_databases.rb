@@ -34,15 +34,28 @@ module Onetime
       end
 
       # Map model classes to their database numbers
+      #
+      # NOTE: This can appear in the boot log like ther models are duplicated
+      # but it's just the V1 + V2 models which share the same model_config_name.
+      # We are technically duplicating effort since both versions share the same
+      # database but it's not hurting anyone and it won't be forever.
       Familia.members.each do |model_class|
         model_config_name = model_class.config_name
         db_index          = dbs[model_config_name] || 0
 
         # Assign a Redis connection to the model class
         model_class.dbclient = Familia.dbclient(db_index)
-        ping_result       = model_class.dbclient.ping
+        ping_result          = model_class.dbclient.ping
 
         OT.ld "Connected #{model_config_name} to DB #{db_index} (#{ping_result})"
+
+        # Save a flag in each model DB to signal a data migration will be
+        # needed for existing data. If the database is already 0, no need.
+        next unless db_index.positive?
+
+        dbkey = Familia.join(['ots', 'migration_needed', model_config_name, "db_#{db_index}"])
+        first_time = model_class.dbclient.setnx(dbkey, '1')
+        OT.li "[connect_databases] Setting #{dbkey} to '1' (#{first_time})"
       end
     end
   end
