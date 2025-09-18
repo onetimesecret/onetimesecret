@@ -200,8 +200,8 @@ module Onetime
         end
 
         # Format passphrase options
-        if secret_options[:passphrase]
-          passphrase_config = secret_options[:passphrase]
+        if secret_options['passphrase']
+          passphrase_config = secret_options['passphrase']
           if is_feature_disabled?(passphrase_config)
             customization_rows << ['Passphrase', 'disabled']
           elsif passphrase_config.is_a?(Hash) && !passphrase_config.empty?
@@ -210,8 +210,8 @@ module Onetime
         end
 
         # Format password_generation options
-        if secret_options[:password_generation]
-          password_generation_config = secret_options[:password_generation]
+        if secret_options['password_generation']
+          password_generation_config = secret_options['password_generation']
           if is_feature_disabled?(password_generation_config)
             customization_rows << ['Password Generation', 'disabled']
           elsif password_generation_config.is_a?(Hash) && !password_generation_config.empty?

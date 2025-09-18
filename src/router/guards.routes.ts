@@ -129,8 +129,9 @@ async function fetchCustomerPreferences(): Promise<{ locale?: string }> {
   return { locale };
 }
 
+export type { AuthValidator };
+
 export {
-  AuthValidator,
   fetchCustomerPreferences,
   isAuthRoute,
   redirectToSignIn,

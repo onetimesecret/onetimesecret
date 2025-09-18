@@ -61,6 +61,7 @@ RUN set -eux && \
     apt-get update && \
     apt-get install -y --no-install-recommends \
         build-essential \
+        libssl-dev \
         libffi-dev \
         libyaml-dev \
         git \
@@ -200,7 +201,7 @@ COPY bin ./bin
 COPY apps ./apps
 COPY etc/ ./etc/
 COPY lib ./lib
-COPY migrate ./migrate
+COPY migrations ./migrations
 COPY scripts/entrypoint.sh ./bin/
 COPY scripts/update-version.sh ./bin/
 COPY package.json config.ru Gemfile Gemfile.lock ./
@@ -220,7 +221,6 @@ ENV RACK_ENV=production \
 RUN set -eux && \
     cp --preserve --no-clobber etc/defaults/config.defaults.yaml etc/config.yaml && \
     chmod +x bin/entrypoint.sh bin/update-version.sh
-
 
 EXPOSE 3000
 
