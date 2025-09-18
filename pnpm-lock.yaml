@@ -30,8 +30,8 @@ importers:
         specifier: 1.7.23
         version: 1.7.23(vue@3.5.20(typescript@5.8.3))
       '@intlify/core':
-        specifier: 11.1.11
-        version: 11.1.11
+        specifier: 11.1.12
+        version: 11.1.12
       '@prettier/plugin-ruby':
         specifier: 4.0.4
         version: 4.0.4(prettier@3.5.3)
@@ -900,8 +900,12 @@ packages:
     resolution: {integrity: sha512-1Z0N8jTfkcD2Luq9HNZt+GmjpFe4/4PpZF3AOzoO1u5PTtSuXZcfhwBatywbfE2ieB/B5QHIoOFmCXY2jqVKEQ==}
     engines: {node: '>= 16'}
 
-  '@intlify/core@11.1.11':
-    resolution: {integrity: sha512-cq3NnOQN9KSNJYcKV5YNj9IPEYi4GJbOUBy4gVbGKcxC83msSOcTvkpPq0pdMYZDqx6tPDIcr7xKT9qHjcJASQ==}
+  '@intlify/core-base@11.1.12':
+    resolution: {integrity: sha512-whh0trqRsSqVLNEUCwU59pyJZYpU8AmSWl8M3Jz2Mv5ESPP6kFh4juas2NpZ1iCvy7GlNRffUD1xr84gceimjg==}
+    engines: {node: '>= 16'}
+
+  '@intlify/core@11.1.12':
+    resolution: {integrity: sha512-Uccp4VtalUSk/b4F9nBBs7VGgIh9VnXTSHHQ+Kc0AetsHJLxdi04LfhfSi4dujtsTAWnHMHWZw07UbMm6Umq1g==}
     engines: {node: '>= 16'}
 
   '@intlify/devtools-types@11.1.11':
@@ -921,8 +925,16 @@ packages:
     resolution: {integrity: sha512-7PC6neomoc/z7a8JRjPBbu0T2TzR2MQuY5kn2e049MP7+o32Ve7O8husylkA7K9fQRe4iNXZWTPnDJ6vZdtS1Q==}
     engines: {node: '>= 16'}
 
+  '@intlify/message-compiler@11.1.12':
+    resolution: {integrity: sha512-Fv9iQSJoJaXl4ZGkOCN1LDM3trzze0AS2zRz2EHLiwenwL6t0Ki9KySYlyr27yVOj5aVz0e55JePO+kELIvfdQ==}
+    engines: {node: '>= 16'}
+
   '@intlify/shared@11.1.11':
     resolution: {integrity: sha512-RIBFTIqxZSsxUqlcyoR7iiC632bq7kkOwYvZlvcVObHfrF4NhuKc4FKvu8iPCrEO+e3XsY7/UVpfgzg+M7ETzA==}
+    engines: {node: '>= 16'}
+
+  '@intlify/shared@11.1.12':
+    resolution: {integrity: sha512-Om86EjuQtA69hdNj3GQec9ZC0L0vPSAnXzB3gP/gyJ7+mA7t06d9aOAiqMZ+xEOsumGP4eEBlfl8zF2LOTzf2A==}
     engines: {node: '>= 16'}
 
   '@isaacs/cliui@8.0.2':
@@ -5010,10 +5022,15 @@ snapshots:
       '@intlify/message-compiler': 11.1.11
       '@intlify/shared': 11.1.11
 
-  '@intlify/core@11.1.11':
+  '@intlify/core-base@11.1.12':
     dependencies:
-      '@intlify/core-base': 11.1.11
-      '@intlify/shared': 11.1.11
+      '@intlify/message-compiler': 11.1.12
+      '@intlify/shared': 11.1.12
+
+  '@intlify/core@11.1.12':
+    dependencies:
+      '@intlify/core-base': 11.1.12
+      '@intlify/shared': 11.1.12
 
   '@intlify/devtools-types@11.1.11':
     dependencies:
@@ -5050,7 +5067,14 @@ snapshots:
       '@intlify/shared': 11.1.11
       source-map-js: 1.2.1
 
+  '@intlify/message-compiler@11.1.12':
+    dependencies:
+      '@intlify/shared': 11.1.12
+      source-map-js: 1.2.1
+
   '@intlify/shared@11.1.11': {}
+
+  '@intlify/shared@11.1.12': {}
 
   '@isaacs/cliui@8.0.2':
     dependencies:
