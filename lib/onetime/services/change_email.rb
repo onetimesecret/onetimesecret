@@ -65,8 +65,8 @@ module Onetime
         if @domains.any?
           changes << '4. Associated custom domain(s) (no changes required):'
           @domains.each do |domain_info|
-            domain = domain_info[:domain]
-            old_id = domain_info[:old_id]
+            domain = domain_info['domain']
+            old_id = domain_info['old_id']
             changes << "   - Domain: #{domain} (ID: #{old_id})"
           end
           changes << "   Note: Domain IDs are randomly generated and don't need updating"
@@ -121,8 +121,8 @@ module Onetime
       # @private
       def validate_domains
         domains.each do |domain_info|
-          domain = domain_info[:domain]
-          old_id = domain_info[:old_id]
+          domain = domain_info['domain']
+          old_id = domain_info['old_id']
 
           # Verify domain format
           unless domain && !domain.empty?
