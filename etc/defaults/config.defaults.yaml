@@ -195,7 +195,6 @@ redis:
     session: <%= ENV['VALKEY_DBS_SESSION'] || ENV['REDIS_DBS_SESSION'] || 1 %>
     custom_domain: <%= ENV['VALKEY_DBS_CUSTOM_DOMAIN'] || ENV['REDIS_DBS_CUSTOM_DOMAIN'] || 6 %>
     customer: <%= ENV['VALKEY_DBS_CUSTOMER'] || ENV['REDIS_DBS_CUSTOMER'] || 6 %>
-    subdomain: <%= ENV['VALKEY_DBS_SUBDOMAIN'] || ENV['REDIS_DBS_SUBDOMAIN'] || 6 %>
     metadata: <%= ENV['VALKEY_DBS_METADATA'] || ENV['REDIS_DBS_METADATA'] || 7 %>
     secret: <%= ENV['VALKEY_DBS_SECRET'] || ENV['REDIS_DBS_SECRET'] || 8 %>
     feedback: <%= ENV['VALKEY_DBS_FEEDBACK'] || ENV['REDIS_DBS_FEEDBACK'] || 11 %>
