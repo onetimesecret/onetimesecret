@@ -57,9 +57,9 @@ module Onetime
         Rack::Builder.new do
           # Configure static file middleware to serve files from public/web directory
           # Only serve specific paths that contain static assets
-          if middleware_settings[:static_files]
+          if middleware_settings['static_files']
             Onetime.ld '[StaticFiles] Enabling StaticFiles middleware'
-            require 'rack-static'
+            require 'rack/static'
             use Rack::Static,
               urls: ['/dist', '/img', '/v3', '/site.webmanifest', '/favicon.ico'],
               root: 'public/web'
