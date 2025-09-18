@@ -171,7 +171,7 @@ GEM
     puma (6.6.1)
       nio4r (~> 2.0)
     racc (1.8.1)
-    rack (3.2.0)
+    rack (3.2.1)
     rack-contrib (2.5.0)
       rack (< 4)
     rack-parser (0.7.0)
