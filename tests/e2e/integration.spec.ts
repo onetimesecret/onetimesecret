@@ -283,13 +283,13 @@ test.describe('E2E Integration - Environment Validation', () => {
 
     await page.goto('/');
 
-    // Indirect check: production features should be enabled
-    // Adjust based on your application's production vs development behavior
+    // Direct check: verify actual frontend_development config value
     const isDevelopment = await page.evaluate(() => {
-      return (
-        window.location.hostname === 'localhost' &&
-        document.documentElement.outerHTML.includes('development')
-      );
+      // Ensure the config is loaded
+      if (!window.__ONETIME_STATE__) {
+        throw new Error('Application state not loaded');
+      }
+      return window.__ONETIME_STATE__.frontend_development === true;
     });
 
     // In integration testing, we're testing production build
