@@ -226,32 +226,19 @@ jobs:
             --add-host=host.docker.internal:host-gateway \
             onetime-test
 
-      - name: Install wget
-        run: sudo apt-get update && sudo apt-get install -y wget
-
       - name: Wait for service to be ready
         run: |
           timeout 60 bash -c 'until curl -f http://localhost:3000/ > /dev/null 2>&1; do sleep 2; done'
 
       - name: Test homepage loads
         run: |
-          response=$(wget \
-            --page-requisites \
-            --convert-links \
-            --span-hosts \
-            --no-check-certificate \
-            --https-only \
-            --no-directories \
-            --quiet \
-            -O /dev/null \
-            --server-response \
-            http://localhost:3000/ 2>&1 | grep "HTTP/" | tail -1 | awk '{print $2}')
+          response=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:3000/)
           if [ "$response" != "200" ]; then
             echo "Homepage failed to load. HTTP status: $response"
             docker logs onetime-test-container
             exit 1
           fi
-          # Homepage loaded successfully
+          echo "✅ Homepage loaded successfully with HTTP status: $response"
 
       - name: Cleanup
         if: always()
