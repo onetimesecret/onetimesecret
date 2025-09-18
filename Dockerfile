@@ -61,6 +61,7 @@ RUN set -eux && \
     apt-get update && \
     apt-get install -y --no-install-recommends \
         build-essential \
+        libssl-dev \
         libffi-dev \
         libyaml-dev \
         git \
