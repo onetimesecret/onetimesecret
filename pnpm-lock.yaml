@@ -118,8 +118,8 @@ importers:
         specifier: ^0.3.5
         version: 0.3.5
       '@intlify/devtools-types':
-        specifier: 11.1.11
-        version: 11.1.11
+        specifier: 11.1.12
+        version: 11.1.12
       '@intlify/eslint-plugin-vue-i18n':
         specifier: 4.1.0
         version: 4.1.0(eslint@9.26.0(jiti@2.4.2))(jsonc-eslint-parser@2.4.0)(vue-eslint-parser@10.2.0(eslint@9.26.0(jiti@2.4.2)))(yaml-eslint-parser@1.3.0)
@@ -908,8 +908,8 @@ packages:
     resolution: {integrity: sha512-Uccp4VtalUSk/b4F9nBBs7VGgIh9VnXTSHHQ+Kc0AetsHJLxdi04LfhfSi4dujtsTAWnHMHWZw07UbMm6Umq1g==}
     engines: {node: '>= 16'}
 
-  '@intlify/devtools-types@11.1.11':
-    resolution: {integrity: sha512-pjDNEELKggW/sBf+iQId2YPB9gydUIy2AwkGICjpAF3eu+LkOJHk4NMOfnGHPoZv7EHo8MaE3ldIoVKYhjO/cQ==}
+  '@intlify/devtools-types@11.1.12':
+    resolution: {integrity: sha512-WYgdadYwOxZOAuhiCirQy2yjs7ZLBLEpllkbTbBEjFA7RsvzztJuYaEhHM+NIssyBcWWiWyC+IjgL2wnfK4uUQ==}
     engines: {node: '>= 16'}
 
   '@intlify/eslint-plugin-vue-i18n@4.1.0':
@@ -5032,10 +5032,10 @@ snapshots:
       '@intlify/core-base': 11.1.12
       '@intlify/shared': 11.1.12
 
-  '@intlify/devtools-types@11.1.11':
+  '@intlify/devtools-types@11.1.12':
     dependencies:
-      '@intlify/core-base': 11.1.11
-      '@intlify/shared': 11.1.11
+      '@intlify/core-base': 11.1.12
+      '@intlify/shared': 11.1.12
 
   '@intlify/eslint-plugin-vue-i18n@4.1.0(eslint@9.26.0(jiti@2.4.2))(jsonc-eslint-parser@2.4.0)(vue-eslint-parser@10.2.0(eslint@9.26.0(jiti@2.4.2)))(yaml-eslint-parser@1.3.0)':
     dependencies:
