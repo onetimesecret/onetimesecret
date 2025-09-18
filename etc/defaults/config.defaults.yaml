@@ -177,6 +177,7 @@ features:
     enabled: false
     email: CHANGEME@example.com
     passphrase: abacus
+
 # Main Database Configuration
 redis:
   # Main Redis connection URI - Specify full connection string including auth
@@ -199,12 +200,12 @@ redis:
   # Note: If using a Redis provider with single-database limitation
   # (e.g., Upstash) set all values to 0.
   dbs:
-    session: <%= ENV['VALKEY_DBS_SESSION'] || ENV['REDIS_DBS_SESSION'] || 1 %>
-    custom_domain: <%= ENV['VALKEY_DBS_CUSTOM_DOMAIN'] || ENV['REDIS_DBS_CUSTOM_DOMAIN'] || 6 %>
-    customer: <%= ENV['VALKEY_DBS_CUSTOMER'] || ENV['REDIS_DBS_CUSTOMER'] || 6 %>
-    metadata: <%= ENV['VALKEY_DBS_METADATA'] || ENV['REDIS_DBS_METADATA'] || 7 %>
-    secret: <%= ENV['VALKEY_DBS_SECRET'] || ENV['REDIS_DBS_SECRET'] || 8 %>
-    feedback: <%= ENV['VALKEY_DBS_FEEDBACK'] || ENV['REDIS_DBS_FEEDBACK'] || 11 %>
+    session: <%= ENV['VALKEY_DBS_SESSION'] || ENV['REDIS_DBS_SESSION'] || 0 %>
+    custom_domain: <%= ENV['VALKEY_DBS_CUSTOM_DOMAIN'] || ENV['REDIS_DBS_CUSTOM_DOMAIN'] || 0 %>
+    customer: <%= ENV['VALKEY_DBS_CUSTOMER'] || ENV['REDIS_DBS_CUSTOMER'] || 0 %>
+    metadata: <%= ENV['VALKEY_DBS_METADATA'] || ENV['REDIS_DBS_METADATA'] || 0 %>
+    secret: <%= ENV['VALKEY_DBS_SECRET'] || ENV['REDIS_DBS_SECRET'] || 0 %>
+    feedback: <%= ENV['VALKEY_DBS_FEEDBACK'] || ENV['REDIS_DBS_FEEDBACK'] || 0 %>
 logging:
   # HTTP request logs (Rack::CommonLogger)
   http_requests: <%= ENV['LOG_HTTP_REQUESTS'] != 'false' %>

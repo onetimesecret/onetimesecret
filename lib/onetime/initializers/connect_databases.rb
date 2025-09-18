@@ -36,7 +36,7 @@ module Onetime
       # Map model classes to their database numbers
       Familia.members.each do |model_class|
         model_config_name = model_class.config_name
-        db_index          = dbs[model_config_name] || DATABASE_IDS[model_config_name] || 0 # see models.rb
+        db_index          = dbs[model_config_name] || 0
 
         # Assign a Redis connection to the model class
         model_class.dbclient = Familia.dbclient(db_index)
@@ -45,27 +45,5 @@ module Onetime
         OT.ld "Connected #{model_config_name} to DB #{db_index} (#{ping_result})"
       end
     end
-
-    # For backwards compatibility with v0.18.3 and earlier, these redis database
-    # IDs had been hardcoded in their respective model classes which we maintain
-    # here for existing installs. If they haven't had a chance to update their
-    # etc/config.yaml files OR
-    #
-    # For installs running via docker image + environment vars, this change should
-    # be a non-issue as long as the default config (etc/defaults/config.defaults.yaml) is
-    # used (which it is in the official images).
-    #
-    DATABASE_IDS = {
-      'session' => 1,
-      'splittest' => 1,
-      'custom_domain' => 6,
-      'customer' => 6,
-      'subdomain' => 6,
-      'metadata' => 7,
-      'email_receipt' => 8,
-      'secret' => 8,
-      'feedback' => 11,
-      'exception_info' => 12,
-    }
   end
 end
