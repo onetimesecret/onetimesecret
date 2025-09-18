@@ -1,4 +1,6 @@
-name: E2E Integration Tests
+# .github/workflows/e2e-integration.yml
+---
+name: Container E2E Tests
 
 on:
   workflow_dispatch:
@@ -34,7 +36,7 @@ permissions:
   contents: read
 
 jobs:
-  docker-e2e-tests:
+  container-e2e-tests:
     continue-on-error: true
     timeout-minutes: 20
     runs-on: ubuntu-24.04
