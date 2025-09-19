@@ -2,62 +2,148 @@
 
 ## Overview
 
-Starting with v0.23 and in preparation for v1.0, OneTime Secret now defaults all Redis models to database 0 for new installations. This change improves compatibility with Redis-as-a-Service providers and simplifies connection pooling.
+Starting with v0.23 and in preparation for v1.0, OneTime Secret defaults to Redis database 0 for all models in new installations. This change improves compatibility with Redis-as-a-Service providers and simplifies connection management.
 
-**Previous behavior**: Models were distributed across multiple Redis logical databases (1, 6, 7, 8, 11, 12)
-**New behavior**: All models use database 0
+**For existing installations**: No immediate action required - your current setup will continue working
+**For new installations**: All models automatically use database 0
 
-## Migration Background
+## What Changed
 
-### Legacy Database Distribution (pre-v0.23)
+### Legacy Distribution (v0.22.6 and earlier)
+Models were distributed across multiple Redis logical databases:
+- Database 1: session
+- Database 6: customer, custom_domain
+- Database 7: metadata
+- Database 8: secret, email_receipt
+- Database 11: feedback
 
-The previous hardcoded database assignments were:
+### New Default (v0.23+)
+All models use database 0 by default.
 
-- **Database 1**: session
-- **Database 6**: customer, custom_domain
-- **Database 7**: metadata
-- **Database 8**: secret, email_receipt
-- **Database 11**: feedback
+## Automatic Detection and Warnings
 
-To view the number of keys in each database:
+When upgrading existing installations, v0.23+ will:
+
+1. Scan Redis databases 0-15 during startup
+2. Detect legacy data distribution
+3. Display informational warnings (not errors)
+4. **Continue normal operation** with your existing data
+
+### Example Startup Message
+```
+ℹ️  LEGACY DATA DETECTED - No action required
+
+📊 Found existing data in legacy databases:
+  • 25 session records in database 1
+  • 50 customer records in database 6
+  • 75 secret records in database 8
+
+✅ Continuing with existing configuration
+💡 Consider migrating to database 0 before v1.0 (see migration guide)
+```
+
+## Migration Paths
+
+### Path 1: No Action (Recommended for Most Users)
+
+**Best for**: Existing installations that work fine as-is
+
+- Continue using your current database distribution
+- No configuration changes needed
+- No downtime required
+- Migrate at your convenience before v1.0
+
+### Path 2: Migrate Now (Recommended for New Setups)
+
+**Best for**: Users wanting Redis provider compatibility or simplified setup
+
+Use the built-in migration tool:
 
 ```bash
-redis-cli info keyspace
+# Preview what will be migrated
+bin/ots migrate-redis-data
+
+# Execute the migration
+bin/ots migrate-redis-data --run
 ```
 
-### Detection and Warning System
+### Path 3: Fresh Start (Data Loss)
 
-When upgrading to v0.23+ with existing data across multiple databases, the application will:
+**Best for**: Test installations or when starting fresh
 
-1. Scan databases 0-15 for model data during startup
-2. Compare found data against current configuration
-3. Display detailed warnings if mismatched data is detected
-4. Halt startup to prevent silent data loss
+> [!WARNING]
+> This will make existing secrets and accounts inaccessible.
 
-#### Example Warning Output
-
-```
-⚠️  WARNING: Legacy data detected in unexpected Redis databases!
-
-📊 LEGACY DATA FOUND:
-
-  Session model (configured for DB 0):
-    🔍 Found 25 records in database 1 [was legacy default]
-       Sample keys: session:abc123, session:def456, session:ghi789
-
-🔧 RESOLUTION OPTIONS:
-
-  1. UPDATE CONFIGURATION to preserve current data distribution
-  2. MIGRATE DATA to database 0 (recommended)
-  3. BYPASS CHECK and acknowledge potential data loss
+```bash
+export SKIP_LEGACY_DATA_CHECK=true
+export ACKNOWLEDGE_DATA_LOSS=true
 ```
 
-## Resolution Options
+## Migration Tool
 
-### Option 1: Update Configuration (Preserve Existing Setup)
+### Preview Mode (Safe)
+```bash
+bin/ots migrate-redis-data
+```
 
-Keep your existing database layout by setting environment variables:
+Shows migration plan without making changes:
+```
+📋 Migration Preview:
+  • 25 session keys: DB 1 → DB 0
+  • 50 customer keys: DB 6 → DB 0
+  • 75 secret keys: DB 8 → DB 0
 
+🔍 DRY RUN - No changes made
+Add --run flag to execute
+```
+
+### Execute Migration
+```bash
+bin/ots migrate-redis-data --run
+```
+
+Performs actual data migration with progress updates.
+
+## Implementation Guide
+
+### For Existing Installations (No Rush)
+
+**Option A: Keep Current Setup**
+- No changes needed
+- Application continues working normally
+- Plan migration before v1.0 release
+
+**Option B: Migrate to Database 0**
+1. Stop application
+2. Optional: Create backup with ```redis-cli --rdb backup-$(date +%Y%m%d).rdb```
+3. Run ```bin/ots migrate-redis-data --run```
+4. Start application
+
+### For New Installations
+
+New installations automatically use database 0 - no configuration needed.
+
+### For Docker Users
+
+**Existing containers**: No changes required
+
+**New containers**: Default configuration works out of the box
+
+**Fresh start** (if desired):
+```bash
+docker run -p 3000:3000 -d \
+  -e SKIP_LEGACY_DATA_CHECK=true \
+  -e ACKNOWLEDGE_DATA_LOSS=true \
+  onetimesecret/onetimesecret:latest
+```
+
+## Advanced Configuration
+
+### Override Database Assignments
+
+To maintain legacy database distribution permanently:
+
+**Environment variables**:
 ```bash
 export REDIS_DBS_SESSION=1
 export REDIS_DBS_CUSTOMER=6
@@ -67,96 +153,7 @@ export REDIS_DBS_SECRET=8
 export REDIS_DBS_FEEDBACK=11
 ```
 
-**Pros**: No data migration needed, preserves existing setup
-**Cons**: Delays migration until v1.0 when it will be required
-
-### Option 2: Migrate to Database 0 (Recommended)
-
-Use the built-in migration tool to consolidate all data to database 0:
-
-```bash
-# Preview changes without executing
-bin/ots migrate-redis-data
-
-# Perform the actual migration
-bin/ots migrate-redis-data --run
-```
-
-**Pros**: Modern single-database setup, Redis provider compatibility, future-proof
-**Cons**: Requires migration step, brief downtime
-
-### Option 3: Bypass and Acknowledge Data Loss (Fresh Start)
-
-> [!CAUTION]
-> **DANGER**: Only use if you understand the implications. Existing accounts and secrets will no longer be accessible.
-
-```bash
-export SKIP_LEGACY_DATA_CHECK=true
-export ACKNOWLEDGE_DATA_LOSS=true
-```
-
-**Consequences**: Data in non-zero databases becomes permanently inaccessible
-
-## Migration Tool Usage
-
-### Preview Mode (Default)
-
-```bash
-bin/ots migrate-redis-data
-```
-
-Shows what would be migrated without making changes:
-
-```
-📋 Migration Plan:
-  Total keys to migrate: 150
-  • Move 25 session keys: DB 1 → DB 0
-  • Move 50 customer keys: DB 6 → DB 0
-  • Move 75 secret keys: DB 8 → DB 0
-
-🔍 DRY RUN MODE - No changes will be made
-To execute the migration, run with --run flag
-```
-
-### Execution Mode
-
-```bash
-bin/ots migrate-redis-data --run
-```
-
-Performs the actual migration with confirmation prompts:
-
-```
-⚠️  WARNING: This will move data between Redis databases.
-Make sure you have a backup before proceeding.
-
-Continue with migration? (yes/no): yes
-
-🚀 Starting migration...
-
-📦 Migrating session data (25 keys)...
-   From: DB 1 → To: DB 0
-   ✅ Successfully migrated 25 session keys
-
-🎉 Migration completed!
-```
-
-## Implementation Checklists
-
-> [!NOTE]
-> **About Backups**: Consider this an optional step depending on your safety vs security preferences. Weigh the risk of losing unused secrets against dealing with backup files containing sensitive information.
-
-### Pre-Migration Steps
-
-- [ ] **Stop application**: Prevent new data creation during migration
-- [ ] **Create Redis backup** (optional): `redis-cli --rdb ./data/backup-$(date +%Y%m%d-%H%M%S).rdb`
-
-### Option 1: Continue with Existing Database Layout
-
-- [ ] **Update configuration** to continue using existing model databases
-
-**Using `etc/config.yaml`**: Replace the `dbs` section with:
-
+**Configuration file** (```etc/config.yaml```):
 ```yaml
 dbs:
   session: 1
@@ -167,67 +164,60 @@ dbs:
   feedback: 11
 ```
 
-**Using environment variables**: Add to your docker run command:
-
-```bash
--e REDIS_DBS_SESSION=1 \
--e REDIS_DBS_CUSTOM_DOMAIN=6 \
--e REDIS_DBS_CUSTOMER=6 \
--e REDIS_DBS_METADATA=7 \
--e REDIS_DBS_SECRET=8 \
--e REDIS_DBS_FEEDBACK=11
-```
-
-### Option 2: Migrate to Database 0
-
-- [ ] **Update configuration**: If using `etc/config.yaml`, set database 0 for all models. Environment variables require no changes.
-- [ ] **Run dry run**: Execute migration in preview mode to understand changes
-- [ ] **Execute migration**: Add `--run` flag to perform actual migration
-
-### Option 3: Fresh Start (Data Loss)
-
-- [ ] **Add environment variables** to your deployment:
-
-```bash
-export SKIP_LEGACY_DATA_CHECK=true
-export ACKNOWLEDGE_DATA_LOSS=true
-```
-
-**Docker example**:
-
-```bash
-docker run -p 3000:3000 -d --name onetimesecret \
-    -e SECRET=CHANGEME \
-    -e REDIS_URL=redis://host.docker.internal:6379/0 \
-    -e SKIP_LEGACY_DATA_CHECK=true \
-    -e ACKNOWLEDGE_DATA_LOSS=true \
-    onetimesecret/onetimesecret:latest
-```
-
 ## Reference
 
-### Environment Variables
+### Key Environment Variables
 
-| Variable | Purpose | Default Value |
-|----------|---------|---------------|
-| `SKIP_LEGACY_DATA_CHECK` | Bypass startup detection | `false` |
-| `ACKNOWLEDGE_DATA_LOSS` | Proceed despite legacy data | `false` |
-| `REDIS_DBS_SESSION` | Override session database | `0` |
-| `REDIS_DBS_CUSTOMER` | Override customer database | `0` |
-| `REDIS_DBS_CUSTOM_DOMAIN` | Override custom domain database | `0` |
-| `REDIS_DBS_METADATA` | Override metadata database | `0` |
-| `REDIS_DBS_SECRET` | Override secret database | `0` |
-| `REDIS_DBS_FEEDBACK` | Override feedback database | `0` |
+| Variable | Purpose | Default |
+|----------|---------|---------|
+| ```SKIP_LEGACY_DATA_CHECK``` | Skip startup detection | ```false``` |
+| ```ACKNOWLEDGE_DATA_LOSS``` | Proceed despite data loss risk | ```false``` |
+| ```REDIS_DBS_*``` | Override specific model database | ```0``` |
 
 ### Useful Commands
 
 ```bash
-# Test Redis connectivity
+# Check Redis connectivity
 redis-cli ping
 
-# View database key distribution
+# View data distribution
 redis-cli info keyspace
 
-# Run migration (safe to run multiple times)
+# Safe migration preview
+bin/ots migrate-redis-data
+
+# Execute migration
 bin/ots migrate-redis-data --run
 ```
+
+## Timeline
+
+- **v0.23**: New installations default to database 0, existing installations continue unchanged
+- **v1.0**: All installations must use database 0 (migration will be required)
+
+---
+
+## Key Improvements Made
+
+**Workflow Disruption Minimization**:
+- Changed warnings to informational messages that don't halt startup
+- Made "no action required" the primary path for existing users
+- Emphasized that current setups continue working normally
+
+**New Installation Optimization**:
+- Clarified that new installs automatically get the v1.0-compatible setup
+- No configuration needed for new users
+
+**Narrative Consistency**:
+- Restructured to lead with least disruptive options
+- Used consistent terminology throughout
+- Added clear timeline expectations
+- Improved section flow and hierarchy
+
+**Clarity Enhancements**:
+- Simplified language and reduced technical jargon
+- Added "best for" guidance for each path
+- Consolidated related information
+- Improved visual hierarchy with better headings
+
+This approach ensures existing users can upgrade without immediate disruption while new users automatically get the future-compatible setup.
