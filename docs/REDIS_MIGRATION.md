@@ -2,9 +2,9 @@
 
 ## Overview
 
-In preparation for v1.0 and starting with v0.23, OneTime Secret defaults all Redis models to database 0 for new installs. improved compatibility with Redis-as-a-Service providers and simplified connection pooling. Previously, models were distributed across multiple Redis logical databases (1, 6, 7, 8, 11, 12).
+Starting with v0.23 and in preparation for v1.0, OneTime Secret now defaults all Redis models to database 0 for new installations. This change improves compatibility with Redis-as-a-Service providers and simplifies connection pooling. Previously, models were distributed across multiple Redis logical databases (1, 6, 7, 8, 11, 12).
 
-## About the migration
+## About the Migration
 
 ### Legacy Database Distribution (prior to v0.23)
 
@@ -30,7 +30,6 @@ When you upgrade to v0.23+ with existing data in legacy databases, the applicati
 2. **Compare found data** against current configuration
 3. **Display detailed warnings** if mismatched data is detected
 4. **Halt startup** to prevent silent data loss
-
 
 #### Warning Example
 
@@ -68,7 +67,6 @@ export REDIS_DBS_FEEDBACK=11
 **Pros**: No data migration needed, preserves existing setup
 **Cons**: Delays migration until v1.0 when it will be required
 
-
 ### Option 2: Migrate to Database 0 (Recommended)
 
 Use the built-in migration tool to consolidate all data to database 0:
@@ -83,7 +81,6 @@ bin/ots migrate-redis-data --run
 
 **Pros**: Modern single-database setup, Redis provider compatibility, future-proof
 **Cons**: Requires migration step, brief downtime
-
 
 ### Option 3: Bypass and Acknowledge Data Loss (Fresh start)
 
@@ -144,18 +141,50 @@ Continue with migration? (yes/no): yes
 
 Choose one of the following checklists.
 
+> [!CAUTION]
+> About Backups: consider it an optional step depending on your safety vs security preferences. If the possibility of losing unused secrets is worse than dealing with the backup file containing sensitive information.
 
-### Option 1
+### Before Migration
+
+- [ ] **Stop application**: Prevent new data creation during migration if the existing application is still running.
+- [ ] **Create Redis backup** (optional): `redis-cli --rdb ./data/backup-$(date +%Y%m%d-%H%M%S).rdb`.
+
+### Option 1 - Continue as-is
+
+- [ ] **Update configuration**: To continue using the existing specific model databases.
+
+If you use `etc/config.yaml`, replace the `dbs` section with:
+
+```yaml
+dbs:
+  session: 1
+  customer: 6
+  custom_domain: 6
+  metadata: 7
+  secret: 8
+  feedback: 11
+```
 
 
-### Option 2
-- [ ] **Stop application**: Prevent new data creation during migration
-- [ ] **Create Redis backup**: `redis-cli --rdb ./data/backup-$(date +%Y%m%d-%H%M%S).rdb`
-- [ ] **Update configuration**: If you use etc/config.yaml, to set db 0 for all model database. If you use environment variables, no change is needed.
+If you use environment variables, add this to your docker run command:
+
+```
+  -e REDIS_DBS_SESSION=1 \
+  -e REDIS_DBS_CUSTOM_DOMAIN=6 \
+  -e REDIS_DBS_CUSTOMER=6 \
+  -e REDIS_DBS_METADATA=7 \
+  -e REDIS_DBS_SECRET=8 \
+  -e REDIS_DBS_FEEDBACK=11 \
+```
+
+### Option 2 - Migrate to DB 0
+
+- [ ] **Update configuration**: If you use `etc/config.yaml`, set db 0 for all model databases. If you use environment variables, no change is needed.
 - [ ] **Dry run**: Run migration in preview mode to understand the changes that will take place.
 - [ ] **Run the migration**: Add `--run` to the command
 
-### Option 3
+
+### Option 3 - Fresh Start
 
 - [ ] **Update docker command**: Add the environment variables to your docker run command.
 
@@ -175,9 +204,7 @@ docker run -p 3000:3000 -d --name onetimesecret \
     onetimesecret/onetimesecret:latest
 ```
 
-
 ## Cheatsheet
-
 
 ### Environment Variables
 
