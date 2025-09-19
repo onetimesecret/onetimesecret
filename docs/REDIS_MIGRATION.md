@@ -129,8 +129,8 @@ New installations automatically use database 0 - no configuration needed.
 
 **New containers**: Default configuration works out of the box
 
-**Fresh start** (if desired):
 ```bash
+# Fresh start example (ignores any existing data in legacy databases)
 docker run -p 3000:3000 -d \
   -e SKIP_LEGACY_DATA_CHECK=true \
   -e ACKNOWLEDGE_DATA_LOSS=true \
@@ -194,4 +194,4 @@ bin/ots migrate-redis-data --run
 
 - **v0.23**: New installations default to database 0, existing installations continue unchanged.
 - **v0.24+**: Behaviour of v0.23 is maintained, no further changes until major release.
-- **v1.0**: All installations use database 0 (migration will be required).
+- **v1.0**: All installations use database 0 (migration will be required for legacy setups).

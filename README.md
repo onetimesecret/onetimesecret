@@ -2,7 +2,7 @@
 
 *Keep passwords and other sensitive information out of your inboxes and chat logs.*
 
-## What is a Onetime Secret?
+## What is a One-Time Secret?
 
 A onetime secret is a link that can be viewed only once. A single-use URL.
 
@@ -11,6 +11,9 @@ Try it out on [OnetimeSecret.com](https://onetimesecret.com/)
 When you send sensitive info like passwords via email or chat, copies persist in many places. Onetime links self-destruct after viewing, ensuring only the intended recipient sees the information.
 
 ## Quick Start with Docker
+
+> [!IMPORTANT]
+> **Upgrading from v0.22.x?** See [Redis Migration Guide](./docs/redis-migration.md) for database consolidation options (optional until v1.0).
 
 **1. Start Redis:**
 ```bash
@@ -31,10 +34,21 @@ docker run -p 3000:3000 -d \
   -e HOST=localhost:3000 \
   -e AUTH_REQUIRED=false \
   -e SSL=false \ # ⚠️ WARNING: Set SSL=true for production deployments
-  onetimesecret/onetimesecret:v0.22.6
+  onetimesecret/onetimesecret:v0.23.0
 ```
 
 **3. Access:** http://localhost:3000
+
+### Upgrading to v0.23+
+
+> **For existing installations**: Your current setup will continue working without changes. Redis data migration is optional until v1.0.
+
+Starting with v0.23, OneTime Secret uses Redis database 0 for all models by default (previously distributed across multiple databases). This improves compatibility with Redis-as-a-Service providers and support for connection pooling.
+
+**New installations**: No action needed - automatically uses the optimized setup.
+
+**Existing installations**: See the [Redis Data Migration Guide](./docs/redis-migration.md) for migration options and timeline.
+
 
 ## Configuration
 
