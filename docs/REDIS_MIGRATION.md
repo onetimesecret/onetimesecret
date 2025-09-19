@@ -192,32 +192,6 @@ bin/ots migrate-redis-data --run
 
 ## Timeline
 
-- **v0.23**: New installations default to database 0, existing installations continue unchanged
-- **v1.0**: All installations must use database 0 (migration will be required)
-
----
-
-## Key Improvements Made
-
-**Workflow Disruption Minimization**:
-- Changed warnings to informational messages that don't halt startup
-- Made "no action required" the primary path for existing users
-- Emphasized that current setups continue working normally
-
-**New Installation Optimization**:
-- Clarified that new installs automatically get the v1.0-compatible setup
-- No configuration needed for new users
-
-**Narrative Consistency**:
-- Restructured to lead with least disruptive options
-- Used consistent terminology throughout
-- Added clear timeline expectations
-- Improved section flow and hierarchy
-
-**Clarity Enhancements**:
-- Simplified language and reduced technical jargon
-- Added "best for" guidance for each path
-- Consolidated related information
-- Improved visual hierarchy with better headings
-
-This approach ensures existing users can upgrade without immediate disruption while new users automatically get the future-compatible setup.
+- **v0.23**: New installations default to database 0, existing installations continue unchanged.
+- **v0.24+**: Behaviour of v0.23 is maintained, no further changes until major release.
+- **v1.0**: All installations use database 0 (migration will be required).
