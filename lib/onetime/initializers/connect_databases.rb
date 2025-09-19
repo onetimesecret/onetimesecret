@@ -55,7 +55,7 @@ module Onetime
 
         dbkey = Familia.join(['ots', 'migration_needed', model_config_name, "db_#{db_index}"])
         first_time = model_class.dbclient.setnx(dbkey, '1')
-        OT.li "[connect_databases] Setting #{dbkey} to '1' (#{first_time})"
+        OT.ld "[connect_databases] Setting #{dbkey} to '1' (already set? #{!first_time})"
       end
     end
   end
