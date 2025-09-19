@@ -1,13 +1,9 @@
-*
+[A-Z]*.rb
+[A-Z]*.md
+*.txt
 !.gitignore
 !api/
+!/api/*
 !architecture/
 !architecture/OVERVIEW.md
-!architecture/error-handling.md
-!architecture/config-vs-settings.md
-!architecture/type-safety.md
-!architecture/frontend-architecture.md
-!/api/*
-!DEVELOPMENT*.md
-!DOCKER*.md
 !README*.md
