@@ -18,7 +18,8 @@ class OT::CLI::Definition
   extend Drydock
 
   before do
-    puts '' # separate our content from the bootstrapping banner
+    # Separate our content from the bootstrapping banner (only in interactive terminals)
+    puts '' if $stdout.tty?
   end
 
   global :v, :verbose, 'Increase output' do
