@@ -278,7 +278,13 @@ module Onetime
 
     # Check if legacy data detection should be skipped
     def skip_legacy_data_check?
-      ENV['SKIP_LEGACY_DATA_CHECK'] == 'true'
+      # Skip if explicitly disabled via environment variable
+      return true if ENV['SKIP_LEGACY_DATA_CHECK'] == 'true'
+
+      # Skip during test mode to avoid Redis mock conflicts
+      return true if defined?(OT) && OT.mode?(:test)
+
+      false
     end
 
     # Check if user has acknowledged potential data loss
