@@ -8,7 +8,7 @@ module Onetime
     def detect_legacy_data
       return { legacy_locations: {}, needs_auto_config: false } if skip_legacy_data_check?
 
-      OT.ld "[detect_legacy_data] Scanning for legacy data across Redis databases..."
+      OT.ld "[detect_legacy_data] Scanning for existing data distribution..."
 
       legacy_locations = {}
 
@@ -26,27 +26,56 @@ module Onetime
       current_dbs = OT.conf.dig('redis', 'dbs') || {}
 
       # Scan databases 1-15 for legacy data (skip 0 as that's the target)
-      (1..15).each do |db_num|
+      legacy_counts = (1..15).map do |db_num|
         next if scan_database_for_legacy_data(db_num, legacy_mappings, current_dbs, legacy_locations).zero?
-
-        # If we found data, continue scanning to get complete picture
+        found_count = scan_database_for_legacy_data(db_num, legacy_mappings, current_dbs, legacy_locations)
+        # Continue regardless of result to get complete picture
       end
 
       # Determine if auto-configuration is needed
       needs_auto_config = legacy_locations.any? && using_default_database_config?(current_dbs, legacy_locations)
 
-      OT.ld "[detect_legacy_data] Scan complete. Found #{legacy_locations.size} model types with legacy data."
-      OT.ld "[detect_legacy_data] Auto-configuration needed: #{needs_auto_config}"
+      total_model_types = legacy_counts.sum
+      OT.ld <<~SCAN_COMPLETE_MESSAGE
+        [detect_legacy_data] Scan complete.
+        Found #{legacy_locations.size} model types with existing data across #{legacy_counts.size} databases.
+        [detect_legacy_data] Total model instances found: #{total_model_types}
+        [detect_legacy_data] Application will continue with current configuration.
+      SCAN_COMPLETE_MESSAGE
 
       { legacy_locations: legacy_locations, needs_auto_config: needs_auto_config }
-    rescue => ex
+
+    rescue RuntimeError => ex
       OT.le "[detect_legacy_data] Error during legacy data detection: #{ex.message}"
       OT.ld ex.backtrace.join("\n")
 
-      # Return empty hash on error to allow startup to continue
-      # but log the issue for troubleshooting
-      { legacy_locations: {}, needs_auto_config: false }
-    end
+      # Even though we want the update to v0.23 to be easy and not require
+      # manual intervention, we still need to handle an error here gracefully.
+      # The only responsible action here is to stop and suggest a remediation.
+      OT.le <<~REMEDIATION_MESSAGE
+
+        [detect_legacy_data] Cannot determine if existing data is present in legacy databases.
+        To protect against potential data loss, startup is halted.
+
+        RESOLUTION OPTIONS:
+        1. Review the error details above and address the underlying issue
+        2. Set explicit database configuration (see migration guide)
+        3. Use SKIP_LEGACY_DATA_CHECK=true if you're certain no data exists
+
+        See the Redis Data Migration Guide for detailed instructions.
+        Contact support@onetimesecret.com if you need assistance.
+
+      REMEDIATION_MESSAGE
+
+      # NOTE: We must halt startup here to prevent potential data loss. When an
+      # exception prevents us from detecting existing data in legacy databases,
+      # we cannot safely determine if auto-configuration is appropriate. For existing
+      # installations, auto-configuring to legacy databases preserves data access.
+      # However, for new installations, this would perpetuate the old multi-database
+      # configuration we're trying to migrate away from. Since we cannot distinguish
+      # between these scenarios, the safest approach is to require manual
+      # intervention via explicit configuration or environment flags.
+      raise ex
 
     # Determines if the current database configuration is using all defaults (database 0)
     # which means auto-configuration is needed to preserve access to legacy data
