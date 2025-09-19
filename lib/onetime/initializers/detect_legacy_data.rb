@@ -117,54 +117,33 @@ module Onetime
     def warn_about_legacy_data(legacy_locations)
       return if legacy_locations.empty?
 
-      puts "\n" + "=" * 80
-      puts "⚠️  WARNING: Legacy data detected in unexpected Redis databases!"
-      puts "=" * 80
+      puts "\nℹ️  LEGACY DATA DETECTED - No action required"
+      puts "=" * 50
 
-      puts "\nThis installation appears to have data distributed across multiple"
-      puts "Redis logical databases, but your current configuration defaults"
-      puts "everything to database 0. This can cause SILENT DATA LOSS where"
-      puts "existing data becomes inaccessible after upgrade."
-
-      puts "\n📊 LEGACY DATA FOUND:"
+      puts "\n📊 Found existing data in legacy databases:"
 
       legacy_locations.each do |model, locations|
-        current_db = locations.first[:expected_database]
-        puts "\n  #{model.capitalize} model (configured for DB #{current_db}):"
-
         locations.each do |location|
           legacy_note = location[:was_legacy_default] ? " [was legacy default]" : ""
-          puts "    🔍 Found #{location[:key_count]} records in database #{location[:database]}#{legacy_note}"
-          puts "       Sample keys: #{location[:sample_keys].join(', ')}" if location[:sample_keys].any?
+          puts "  • #{location[:key_count]} #{model} records in database #{location[:database]}#{legacy_note}"
         end
       end
 
-      puts "\n🔧 RESOLUTION OPTIONS:"
-      puts "\n  1. UPDATE CONFIGURATION to preserve current data distribution:"
-      puts "     Add these environment variables to match your existing data:"
+      puts "\n✅ Continuing with existing configuration"
+      puts "💡 Consider migrating to database 0 before v1.0 (see migration guide)"
 
-      legacy_locations.each do |model, locations|
-        locations.each do |location|
-          env_var = "REDIS_DBS_#{model.upcase}"
-          puts "       export #{env_var}=#{location[:database]}"
-        end
+      puts "\n📖 Migration options available:"
+      puts "  1. No action needed - current setup continues working"
+      puts "  2. Migrate when convenient: bin/ots migrate-redis-data --run"
+      puts "  3. See docs/REDIS_MIGRATION.md for detailed guidance"
+
+      puts "\n" + "=" * 50 + "\n"
+
+      # Only exit for fresh start scenarios where user wants to acknowledge data loss
+      if ENV['ACKNOWLEDGE_DATA_LOSS'] == 'true' && ENV['SKIP_LEGACY_DATA_CHECK'] == 'true'
+        puts "⚠️  Fresh start mode enabled - legacy data will be inaccessible"
+        puts "Continuing with database 0 configuration..."
       end
-
-      puts "\n  2. MIGRATE DATA to database 0 (recommended):"
-      puts "     Run: bin/ots migrate-redis-data              # Preview changes (dry-run mode)"
-      puts "     Then: bin/ots migrate-redis-data --run       # Perform migration"
-
-      puts "\n  3. BYPASS CHECK and acknowledge potential data loss:"
-      puts "     export SKIP_LEGACY_DATA_CHECK=true"
-      puts "     export ACKNOWLEDGE_DATA_LOSS=true"
-      puts "     ⚠️  WARNING: Data in non-zero databases will be INACCESSIBLE"
-
-      puts "\n" + "=" * 80
-      puts "Startup halted to prevent silent data loss."
-      puts "Choose one of the options above and restart the application."
-      puts "=" * 80 + "\n"
-
-      exit 1 unless acknowledge_data_loss?
     end
 
     private

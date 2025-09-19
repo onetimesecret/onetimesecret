@@ -56,11 +56,12 @@ module Onetime
         end
       end
 
-      puts "\n📋 Migration Plan:"
-      puts "  Total keys to migrate: #{total_keys}"
+      puts "\n📋 Migration Preview:"
       migration_plan.each do |plan|
-        puts "  • Move #{plan[:key_count]} #{plan[:model]} keys: DB #{plan[:from_db]} → DB #{plan[:to_db]}"
+        puts "  • #{plan[:key_count]} #{plan[:model]} keys: DB #{plan[:from_db]} → DB #{plan[:to_db]}"
       end
+      puts "
+  Total keys to migrate: #{total_keys}"
 
       if argv.include?('--dry-run') || !global.run
         puts "\n🔍 DRY RUN MODE - No changes will be made"
