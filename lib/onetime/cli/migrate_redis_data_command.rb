@@ -71,23 +71,33 @@ module Onetime
       MESSAGE
 
       if argv.include?('--dry-run') || !global.run
-        puts "\n🔍 DRY RUN MODE - No changes will be made"
+        puts "
+DRY RUN MODE - No changes will be made"
         puts 'To execute the migration, run with --run flag'
         return
       end
 
-      # Confirm before proceeding
-      puts <<~WARNING
+      # Check for non-interactive mode
+      auto_confirm = argv.include?('--yes') || !$stdin.tty?
 
-        ⚠️  WARNING: This will move data between Redis databases.
-        Make sure you have a backup before proceeding.
+      unless auto_confirm
+        # Confirm before proceeding
+        puts <<~WARNING
 
-      WARNING
+          ⚠️  WARNING: This will move data between Redis databases.
+          Make sure you have a backup before proceeding.
 
-      print 'Continue with migration? (yes/no): '
-      response = STDIN.gets.chomp.downcase
+        WARNING
 
-      return puts('Migration cancelled.') unless %w[yes y].include?(response)
+        print 'Continue with migration? (yes/no): '
+        response = STDIN.gets.chomp.downcase
+
+        return puts('Migration cancelled.') unless %w[yes y].include?(response)
+      else
+      puts <<~MESSAGE
+        ⚠️  Auto-confirmed: Migration will proceed (non-TTY or --yes flag detected)
+      MESSAGE
+      end
 
       # Execute migration
       puts "\nStarting migration..."

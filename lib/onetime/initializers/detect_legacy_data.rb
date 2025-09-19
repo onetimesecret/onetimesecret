@@ -26,16 +26,24 @@ module Onetime
       current_dbs = OT.conf.dig('redis', 'dbs') || {}
 
       # Scan databases 1-15 for legacy data (skip 0 as that's the target)
+      # Short-circuit when all models with legacy mappings are found
+      target_models = legacy_mappings.keys
+      models_found_count = 0
+
       legacy_counts = (1..15).map do |db_num|
-        next if scan_database_for_legacy_data(db_num, legacy_mappings, current_dbs, legacy_locations).zero?
+        # Short-circuit if we've found all possible models
+        break if legacy_locations.keys.size == target_models.size
+
         found_count = scan_database_for_legacy_data(db_num, legacy_mappings, current_dbs, legacy_locations)
-        # Continue regardless of result to get complete picture
-      end
+        models_found_count += found_count
+        next if found_count.zero?
+        found_count
+      end.compact
 
       # Determine if auto-configuration is needed
       needs_auto_config = legacy_locations.any? && using_default_database_config?(current_dbs, legacy_locations)
 
-      total_model_types = legacy_counts.sum
+      total_model_types = models_found_count
       OT.ld <<~SCAN_COMPLETE_MESSAGE
         [detect_legacy_data] Scan complete.
         Found #{legacy_locations.size} model types with existing data across #{legacy_counts.size} databases.
@@ -81,11 +89,14 @@ module Onetime
     # Determines if the current database configuration is using all defaults (database 0)
     # which means auto-configuration is needed to preserve access to legacy data
     def using_default_database_config?(current_dbs, legacy_locations)
-      # If any models with legacy data have explicit non-zero database configuration,
-      # then user has already configured for legacy data - no auto-config needed
+      # If there's no explicit configuration at all, auto-configure everything
+      return true if current_dbs.nil? || current_dbs.empty?
+
+      # Check each model with legacy data to see if any need auto-configuration
+      # A model needs auto-config if it has legacy data but is configured to use DB 0 (default)
       legacy_locations.keys.any? do |model|
         configured_db = current_dbs[model] || 0
-        configured_db == 0  # Using default database 0 for a model that has legacy data
+        configured_db == 0  # Model with legacy data is using default DB 0
       end
     end
 
@@ -101,6 +112,9 @@ module Onetime
         client.ping
 
         legacy_mappings.each do |model_name, expected_dbs|
+          # Skip if this model already has legacy data detected in another database
+          next if legacy_locations.key?(model_name)
+
           # Skip if this model is configured to be in this database
           current_db = current_dbs[model_name] || 0
           next if db_num == current_db
@@ -139,17 +153,23 @@ module Onetime
     def scan_for_model_keys(client, pattern)
       keys = []
       cursor = "0"
+      max_iterations = 10  # Limit scan iterations to prevent excessive startup time
+      iterations = 0
 
       loop do
         result = client.scan(cursor, match: pattern, count: 100)
         cursor = result[0]
         keys.concat(result[1])
+        iterations += 1
 
         # Stop after finding some keys (we just need to know data exists)
-        break if !keys.empty? || cursor == "0"
+        break if !keys.empty?
+
+        # Stop if we've completed the scan
+        break if cursor == "0"
 
         # Safety valve: don't scan forever
-        break if keys.length > 1000
+        break if iterations >= max_iterations
       end
 
       keys
