@@ -6,7 +6,7 @@ module Onetime
     # Detects legacy data distribution across multiple Redis databases
     # and warns about potential data loss when upgrading to db 0 defaults
     def detect_legacy_data
-      return {} if skip_legacy_data_check?
+      return { legacy_locations: {}, needs_auto_config: false } if skip_legacy_data_check?
 
       OT.ld "[detect_legacy_data] Scanning for legacy data across Redis databases..."
 
@@ -15,15 +15,11 @@ module Onetime
       # Known legacy database mappings (from removed DATABASE_IDS constant)
       legacy_mappings = {
         'session' => [1],
-        'splittest' => [1],
         'custom_domain' => [6],
         'customer' => [6],
-        'subdomain' => [6],
         'metadata' => [7],
-        'email_receipt' => [8],
         'secret' => [8],
         'feedback' => [11],
-        'exception_info' => [12]
       }
 
       # Get current database configuration
@@ -36,15 +32,31 @@ module Onetime
         # If we found data, continue scanning to get complete picture
       end
 
+      # Determine if auto-configuration is needed
+      needs_auto_config = legacy_locations.any? && using_default_database_config?(current_dbs, legacy_locations)
+
       OT.ld "[detect_legacy_data] Scan complete. Found #{legacy_locations.size} model types with legacy data."
-      legacy_locations
+      OT.ld "[detect_legacy_data] Auto-configuration needed: #{needs_auto_config}"
+
+      { legacy_locations: legacy_locations, needs_auto_config: needs_auto_config }
     rescue => ex
       OT.le "[detect_legacy_data] Error during legacy data detection: #{ex.message}"
       OT.ld ex.backtrace.join("\n")
 
       # Return empty hash on error to allow startup to continue
       # but log the issue for troubleshooting
-      {}
+      { legacy_locations: {}, needs_auto_config: false }
+    end
+
+    # Determines if the current database configuration is using all defaults (database 0)
+    # which means auto-configuration is needed to preserve access to legacy data
+    def using_default_database_config?(current_dbs, legacy_locations)
+      # If any models with legacy data have explicit non-zero database configuration,
+      # then user has already configured for legacy data - no auto-config needed
+      legacy_locations.keys.any? do |model|
+        configured_db = current_dbs[model] || 0
+        configured_db == 0  # Using default database 0 for a model that has legacy data
+      end
     end
 
     # Scans a specific database for legacy data patterns
@@ -114,36 +126,102 @@ module Onetime
     end
 
     # Displays warning about legacy data and provides actionable options
-    def warn_about_legacy_data(legacy_locations)
+    def warn_about_legacy_data(detection_result)
+      legacy_locations = detection_result[:legacy_locations] || detection_result  # Support old and new format
+      needs_auto_config = detection_result[:needs_auto_config] || false
+
       return if legacy_locations.empty?
 
-      puts "\nℹ️  LEGACY DATA DETECTED - No action required"
-      puts "=" * 50
+      if needs_auto_config
+        # Auto-configure for compatibility
+        puts "\nLEGACY DATA DETECTED - Auto-configuring for compatibility"
+        puts "=" * 60
 
-      puts "\n📊 Found existing data in legacy databases:"
-
-      legacy_locations.each do |model, locations|
-        locations.each do |location|
-          legacy_note = location[:was_legacy_default] ? " [was legacy default]" : ""
-          puts "  • #{location[:key_count]} #{model} records in database #{location[:database]}#{legacy_note}"
+        puts "\nFound existing data in legacy databases:"
+        legacy_locations.each do |model, locations|
+          locations.each do |location|
+            puts "  • #{location[:key_count]} #{model} records in database #{location[:database]}"
+          end
         end
+
+        # Apply auto-configuration
+        apply_auto_configuration(legacy_locations)
+        puts <<~AUTO_CONFIG_MESSAGE
+
+        Auto-configured database mappings to preserve data access
+           Your data remains accessible using legacy database locations
+
+        To migrate to database 0 (recommended before v1.0):
+           Run: bin/ots migrate-redis-data --run
+
+        For permanent configuration options:
+           See: docs/REDIS_MIGRATION.md
+        AUTO_CONFIG_MESSAGE
+
+        puts "\n" + "=" * 60 + "\n"
+      else
+        # Standard informational message for explicitly configured systems
+        puts <<~LEGACY_DATA_MESSAGE
+
+        LEGACY DATA DETECTED - No action required
+        #{'=' * 50}
+
+        Found existing data in legacy databases:
+        LEGACY_DATA_MESSAGE
+
+        legacy_locations.each do |model, locations|
+          locations.each do |location|
+            legacy_note = location[:was_legacy_default] ? " [was legacy default]" : ""
+            puts "  • #{location[:key_count]} #{model} records in database #{location[:database]}#{legacy_note}"
+          end
+        end
+
+        puts <<~EXISTING_CONFIG_MESSAGE
+
+        ✅ Continuing with existing configuration
+        Consider migrating to database 0 before v1.0 (see migration guide)
+
+        Migration options available:
+          1. No action needed - current setup continues working
+          2. Migrate when convenient: bin/ots migrate-redis-data --run
+          3. See docs/REDIS_MIGRATION.md for detailed guidance
+
+        EXISTING_CONFIG_MESSAGE
+
+        puts "=" * 50 + "\n"
       end
-
-      puts "\n✅ Continuing with existing configuration"
-      puts "💡 Consider migrating to database 0 before v1.0 (see migration guide)"
-
-      puts "\n📖 Migration options available:"
-      puts "  1. No action needed - current setup continues working"
-      puts "  2. Migrate when convenient: bin/ots migrate-redis-data --run"
-      puts "  3. See docs/REDIS_MIGRATION.md for detailed guidance"
-
-      puts "\n" + "=" * 50 + "\n"
 
       # Only exit for fresh start scenarios where user wants to acknowledge data loss
       if ENV['ACKNOWLEDGE_DATA_LOSS'] == 'true' && ENV['SKIP_LEGACY_DATA_CHECK'] == 'true'
         puts "⚠️  Fresh start mode enabled - legacy data will be inaccessible"
         puts "Continuing with database 0 configuration..."
       end
+    end
+
+    # Applies auto-configuration by updating OT.conf to match legacy data locations
+    def apply_auto_configuration(legacy_locations)
+      # Get the current configuration (make sure it's mutable)
+      current_conf = OT.conf
+
+      # Ensure redis.dbs section exists
+      current_conf['redis'] ||= {}
+      current_conf['redis']['dbs'] ||= {}
+
+      OT.ld "[apply_auto_configuration] Applying auto-configuration for legacy data compatibility"
+
+      # Configure each model to use its detected legacy database
+      legacy_locations.each do |model, locations|
+        # Use the first (and typically only) location for each model
+        primary_location = locations.first
+        legacy_db = primary_location[:database]
+
+        # Update configuration to use the legacy database
+        current_conf['redis']['dbs'][model] = legacy_db
+
+        OT.ld "[apply_auto_configuration] Configured #{model} to use database #{legacy_db}"
+      end
+
+      OT.ld "[apply_auto_configuration] Auto-configuration complete"
     end
 
     private

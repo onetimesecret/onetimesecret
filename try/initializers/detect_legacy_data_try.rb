@@ -107,7 +107,8 @@ end
   }
 }
 @detector = LegacyDataDetector.new
-@detector.test_detect_legacy_data(@mock_redis)
+@result = @detector.test_detect_legacy_data(@mock_redis)
+@result[:legacy_locations]
 #=> {}
 
 ## Detection finds legacy session data in DB 1
@@ -122,19 +123,19 @@ end
 }
 @detector = LegacyDataDetector.new
 @result = @detector.test_detect_legacy_data(@mock_redis)
-@result.keys
+@result[:legacy_locations].keys
 #=> ['session']
 
 ## Legacy session data shows correct details
-@result['session'].first[:database]
+@result[:legacy_locations]['session'].first[:database]
 #=> 1
 
 ## Legacy session data shows correct key count
-@result['session'].first[:key_count]
+@result[:legacy_locations]['session'].first[:key_count]
 #=> 2
 
 ## Legacy session data identifies as legacy default
-@result['session'].first[:was_legacy_default]
+@result[:legacy_locations]['session'].first[:was_legacy_default]
 #=> true
 
 ## Detection finds customer data in legacy DB 6
@@ -147,7 +148,7 @@ end
 }
 @detector = LegacyDataDetector.new
 result = @detector.test_detect_legacy_data(@mock_redis)
-result.keys.sort
+result[:legacy_locations].keys.sort
 #=> ['custom_domain', 'customer']
 
 ## Detection respects current configuration
@@ -158,7 +159,8 @@ result.keys.sort
 }
 @config_dbs = { 'session' => 1 }  # Session is configured for DB 1
 @detector = LegacyDataDetector.new
-@detector.test_detect_legacy_data(@mock_redis, @config_dbs)
+@result = @detector.test_detect_legacy_data(@mock_redis, @config_dbs)
+@result[:legacy_locations]
 #=> {}
 
 ## Detection finds metadata in legacy DB 7
@@ -170,20 +172,20 @@ result.keys.sort
 }
 @detector = LegacyDataDetector.new
 result = @detector.test_detect_legacy_data(@mock_redis)
-result['metadata'].first[:database]
+result[:legacy_locations]['metadata'].first[:database]
 #=> 7
 
 ## Detection finds secret data in legacy DB 8
 @mock_redis = {
   8 => {
     'secret:abc123' => 'encrypted_secret',
-    'email_receipt:receipt456' => 'receipt_data'
+    'secret:abc456' => 'more_encrypted_secret',
   }
 }
 @detector = LegacyDataDetector.new
 result = @detector.test_detect_legacy_data(@mock_redis)
-result.keys.sort
-#=> ['email_receipt', 'secret']
+result[:legacy_locations].keys.sort
+#=> ['secret']
 
 ## Detection finds feedback in legacy DB 11
 @mock_redis = {
@@ -193,7 +195,7 @@ result.keys.sort
 }
 @detector = LegacyDataDetector.new
 result = @detector.test_detect_legacy_data(@mock_redis)
-result['feedback'].first[:database]
+result[:legacy_locations]['feedback'].first[:database]
 #=> 11
 
 ## Multiple databases with mixed data
@@ -211,7 +213,7 @@ result['feedback'].first[:database]
 }
 @detector = LegacyDataDetector.new
 result = @detector.test_detect_legacy_data(@mock_redis)
-result.keys.sort
+result[:legacy_locations].keys.sort
 #=> ['customer', 'secret', 'session']
 
 ## Sample keys are properly limited to 3
@@ -226,5 +228,33 @@ result.keys.sort
 }
 @detector = LegacyDataDetector.new
 result = @detector.test_detect_legacy_data(@mock_redis)
-result['secret'].first[:sample_keys].length
+result[:legacy_locations]['secret'].first[:sample_keys].length
 #=> 3
+
+## Auto-configuration flag is set when using defaults with legacy data
+@mock_redis = {
+  1 => {
+    'session:legacy123' => 'data'
+  },
+  8 => {
+    'secret:legacy456' => 'data'
+  }
+}
+@detector = LegacyDataDetector.new
+@result = @detector.test_detect_legacy_data(@mock_redis)  # No explicit config = using defaults
+@result[:needs_auto_config]
+#=> true
+
+## Auto-configuration flag is false when explicit config exists
+@config_dbs = { 'session' => 1, 'secret' => 8 }  # Explicit configuration
+@detector = LegacyDataDetector.new
+@result = @detector.test_detect_legacy_data(@mock_redis, @config_dbs)
+@result[:needs_auto_config]
+#=> false
+
+## Auto-configuration works with empty legacy locations
+@mock_redis = { 0 => { 'session:new123' => 'data' } }
+@detector = LegacyDataDetector.new
+@result = @detector.test_detect_legacy_data(@mock_redis)
+@result[:needs_auto_config]
+#=> false
