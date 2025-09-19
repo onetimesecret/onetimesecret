@@ -1,10 +1,12 @@
-# Redis Legacy Data Migration Guide
+# Redis Data Migration Guide
 
 ## Overview
 
 In preparation for v1.0 and starting with v0.23, OneTime Secret defaults all Redis models to database 0 for new installs. improved compatibility with Redis-as-a-Service providers and simplified connection pooling. Previously, models were distributed across multiple Redis logical databases (1, 6, 7, 8, 11, 12).
 
-## Legacy Database Distribution (prior to v0.23)
+## About the migration
+
+### Legacy Database Distribution (prior to v0.23)
 
 The previous hardcoded database assignments were:
 
@@ -14,7 +16,13 @@ The previous hardcoded database assignments were:
 - **Database 8**: secret, email_receipt
 - **Database 11**: feedback
 
-## Detection and Warning System
+View the number of keys in each database:
+
+```bash
+redis-cli info keyspace
+```
+
+### Detection and Warning System
 
 When you upgrade to v0.23+ with existing data in legacy databases, the application will:
 
@@ -24,7 +32,7 @@ When you upgrade to v0.23+ with existing data in legacy databases, the applicati
 4. **Halt startup** to prevent silent data loss
 
 
-### Warning Example
+#### Warning Example
 
 ```
 ⚠️  WARNING: Legacy data detected in unexpected Redis databases!
@@ -132,72 +140,62 @@ Continue with migration? (yes/no): yes
 🎉 Migration completed!
 ```
 
-## Checklist
+## Checklists
 
+Choose one of the following checklists.
+
+
+### Option 1
+
+
+### Option 2
 - [ ] **Stop application**: Prevent new data creation during migration
 - [ ] **Create Redis backup**: `redis-cli --rdb ./data/backup-$(date +%Y%m%d-%H%M%S).rdb`
+- [ ] **Update configuration**: If you use etc/config.yaml, to set db 0 for all model database. If you use environment variables, no change is needed.
+- [ ] **Dry run**: Run migration in preview mode to understand the changes that will take place.
+- [ ] **Run the migration**: Add `--run` to the command
 
+### Option 3
 
-### Before Migration
+- [ ] **Update docker command**: Add the environment variables to your docker run command.
 
-1. **Create Redis backup**: `redis-cli --rdb backup.rdb`
-2.
-3. **Review migration plan**: Run in preview mode first
-
-### During Migration
-
-1. **Monitor progress**: Use `--verbose` for detailed output
-2. **Verify completion**: Check that all expected keys were migrated
-3. **Test application**: Ensure functionality after migration
-
-### After Migration
-
-1. **Remove environment variables**: Delete any `REDIS_DBS_*` overrides
-2. **Restart application**: Verify normal operation
-3. **Clean old databases**: Optional - clear data from legacy databases
-
-## Troubleshooting
-
-### Migration Fails
-
-Check Redis connectivity and permissions:
 ```bash
-redis-cli ping
-redis-cli info keyspace
+export SKIP_LEGACY_DATA_CHECK=true
+export ACKNOWLEDGE_DATA_LOSS=true
 ```
 
-### Partial Migration
+e.g. Like this:
 
-Re-run migration tool - it's safe to run multiple times:
 ```bash
-bin/ots migrate-redis-data --run
+docker run -p 3000:3000 -d --name onetimesecret \
+    -e SECRET=CHANGEME \
+    -e REDIS_URL=redis://host.docker.internal:6379/0 \
+    -e SKIP_LEGACY_DATA_CHECK=true \
+    -e ACKNOWLEDGE_DATA_LOSS=true \
+    onetimesecret/onetimesecret:latest
 ```
 
-### Data Verification
 
-Confirm data location after migration:
-```bash
-redis-cli select 0
-redis-cli keys "session:*" | wc -l  # Count session keys in DB 0
-```
+## Cheatsheet
 
-## Environment Variables
+
+### Environment Variables
 
 | Variable | Purpose | Values |
 |----------|---------|---------|
 | `SKIP_LEGACY_DATA_CHECK` | Bypass startup detection | `true` |
 | `ACKNOWLEDGE_DATA_LOSS` | Proceed despite legacy data | `true` |
-| `REDIS_DBS_SESSION` | Override session database | `0-15` |
-| `REDIS_DBS_CUSTOMER` | Override customer database | `0-15` |
-| `REDIS_DBS_METADATA` | Override metadata database | `0-15` |
-| `REDIS_DBS_SECRET` | Override secret database | `0-15` |
-| `REDIS_DBS_FEEDBACK` | Override feedback database | `0-15` |
+| `REDIS_DBS_SESSION` | Override session database | `1` |
+| `REDIS_DBS_CUSTOMER` | Override customer database | `6` |
+| `REDIS_DBS_CUSTOM_DOMAIN` | Override custom domain database | `6` |
+| `REDIS_DBS_METADATA` | Override metadata database | `7` |
+| `REDIS_DBS_SECRET` | Override secret database | `8` |
+| `REDIS_DBS_FEEDBACK` | Override feedback database | `11` |
 
-## Support
+### Commands
 
-For migration assistance or questions:
-
-1. Check application logs for detailed error messages
-2. Review this guide and ensure all steps were followed
-3. Test migration in a development environment first
-4. Create backup before attempting production migration
+```bash
+$ redis-cli ping
+$ redis-cli info keyspace
+$ bin/ots migrate-redis-data --run # safe to run multiple times
+```
