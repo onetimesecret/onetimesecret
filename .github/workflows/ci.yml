@@ -114,6 +114,7 @@ jobs:
       - name: Run test specs
         env:
           REDIS_URL: 'redis://127.0.0.1:2121/0'
+          RACK_ENV: 'test'
         run: |
           mkdir tmp && bundle exec rspec \
             --format progress \

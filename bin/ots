@@ -18,7 +18,8 @@ class OT::CLI::Definition
   extend Drydock
 
   before do
-    puts '' # separate our content from the bootstrapping banner
+    # Separate our content from the bootstrapping banner (only in interactive terminals)
+    puts '' if $stdout.tty?
   end
 
   global :v, :verbose, 'Increase output' do
@@ -76,6 +77,12 @@ class OT::CLI::Definition
 
   usage 'ots move-keys SOURCEDB TARGETDB [filter]'
   command move_keys: OT::MoveKeysCommand
+
+  usage 'ots migrate-redis-data [--run]'
+  about 'Migrate legacy Redis data from multiple databases to database 0'
+  about 'By default, runs in dry-run mode to preview changes'
+  about 'Use --run to perform the actual migration'
+  command migrate_redis_data: OT::MigrateRedisDataCommand
 
   usage 'ots customers'
   option :l, :list, 'List customer domains (by count)'
