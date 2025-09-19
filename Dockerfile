@@ -5,7 +5,7 @@
 # ONETIME SECRET - DOCKER IMAGE
 #
 # Multi-stage build optimized for production deployment.
-# See docs/DOCKER.md for detailed usage instructions.
+# See docs/docker.md for detailed usage instructions.
 #
 # For general project information, see README.md.
 #
@@ -34,7 +34,7 @@
 #         -e REDIS_URL=redis://host.docker.internal:6379/0 \
 #         onetimesecret
 #
-# The app will be at http://localhost:3000. For more, see docs/DOCKER.md.
+# The app will be at http://localhost:3000. For more, see docs/docker.md.
 #
 
 ARG APP_DIR=/app

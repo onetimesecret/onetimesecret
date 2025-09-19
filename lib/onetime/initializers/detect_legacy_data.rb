@@ -155,7 +155,7 @@ module Onetime
            Run: bin/ots migrate-redis-data --run
 
         For permanent configuration options:
-           See: docs/REDIS_MIGRATION.md
+           See: docs/redis-migration.md
         AUTO_CONFIG_MESSAGE
 
         puts "\n" + "=" * 60 + "\n"
@@ -184,7 +184,7 @@ module Onetime
         Migration options available:
           1. No action needed - current setup continues working
           2. Migrate when convenient: bin/ots migrate-redis-data --run
-          3. See docs/REDIS_MIGRATION.md for detailed guidance
+          3. See docs/redis-migration.md for detailed guidance
 
         EXISTING_CONFIG_MESSAGE
 
