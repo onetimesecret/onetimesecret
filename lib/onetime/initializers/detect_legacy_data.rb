@@ -284,6 +284,9 @@ module Onetime
       # Skip during test mode to avoid Redis mock conflicts
       return true if defined?(OT) && OT.mode?(:test)
 
+      # Skip during testing environment (covers CI scenarios)
+      return true if defined?(OT) && OT.env == 'testing'
+
       false
     end
 
