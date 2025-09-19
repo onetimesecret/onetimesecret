@@ -66,7 +66,7 @@ module Onetime
         check_global_banner
       end
 
-      print_log_banner unless mode?(:test)
+      print_log_banner unless mode?(:test) || mode?(:cli)
 
       @ready = true
 
