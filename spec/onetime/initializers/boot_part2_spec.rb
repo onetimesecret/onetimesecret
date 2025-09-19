@@ -188,6 +188,9 @@ RSpec.describe "Onetime global state after boot" do
       it "calls print_log_banner when mode is not :test" do
         expect(Onetime).to receive(:print_log_banner)
 
+        # Mock $stdout.tty? to return true for this test
+        allow($stdout).to receive(:tty?).and_return(true)
+
         Onetime.boot!(:development)
       end
     end

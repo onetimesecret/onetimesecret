@@ -414,6 +414,9 @@ RSpec.describe "Onetime::Config during Onetime.boot!" do
         # Allow print_log_banner to be called for this test specifically
         allow(Onetime).to receive(:print_log_banner).and_call_original
 
+        # Mock $stdout.tty? to return true for this test
+        allow($stdout).to receive(:tty?).and_return(true)
+
         # OT.li is already stubbed by config_spec_helper.rb
         # Familia.dbclient.serverid is stubbed in the main before(:each)
 
