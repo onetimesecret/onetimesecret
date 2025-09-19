@@ -76,6 +76,7 @@ module Onetime
       # between these scenarios, the safest approach is to require manual
       # intervention via explicit configuration or environment flags.
       raise ex
+    end
 
     # Determines if the current database configuration is using all defaults (database 0)
     # which means auto-configuration is needed to preserve access to legacy data
