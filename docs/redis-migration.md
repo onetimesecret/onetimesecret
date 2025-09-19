@@ -31,15 +31,14 @@ When upgrading existing installations, v0.23+ will:
 
 ### Example Startup Message
 ```
-ℹ️  LEGACY DATA DETECTED - No action required
+LEGACY DATA DETECTED - No action required
 
-📊 Found existing data in legacy databases:
+Found existing data in legacy databases:
   • 25 session records in database 1
   • 50 customer records in database 6
   • 75 secret records in database 8
 
 ✅ Continuing with existing configuration
-💡 Consider migrating to database 0 before v1.0 (see migration guide)
 ```
 
 ## Migration Paths
@@ -51,7 +50,10 @@ When upgrading existing installations, v0.23+ will:
 - Continue using your current database distribution
 - No configuration changes needed
 - No downtime required
-- Migrate at your convenience before v1.0
+- Migrate at your convenience before v1.0 OR set explicit configuration to maintain current setup permanently
+
+> [!TIP]
+> **Want to be more explicit about your choice?** See [Set Explicit Database Assignments](#set-explicit-database-assignments) to actively configure your current setup. This documents your intent to maintain the legacy distribution and removes startup detection messages.
 
 ### Path 2: Migrate Now (Recommended for New Setups)
 
@@ -72,7 +74,7 @@ bin/ots migrate-redis-data --run
 **Best for**: Test installations or when starting fresh
 
 > [!WARNING]
-> This will make existing secrets and accounts inaccessible.
+> This will make existing secrets and accounts inaccessible. No data will deleted but records with a TTL will eventually expire.
 
 ```bash
 export SKIP_LEGACY_DATA_CHECK=true
@@ -88,12 +90,12 @@ bin/ots migrate-redis-data
 
 Shows migration plan without making changes:
 ```
-📋 Migration Preview:
+Migration Preview:
   • 25 session keys: DB 1 → DB 0
   • 50 customer keys: DB 6 → DB 0
   • 75 secret keys: DB 8 → DB 0
 
-🔍 DRY RUN - No changes made
+DRY RUN - No changes made
 Add --run flag to execute
 ```
 
@@ -139,7 +141,7 @@ docker run -p 3000:3000 -d \
 
 ## Advanced Configuration
 
-### Override Database Assignments
+### Set Explicit Database Assignments
 
 To maintain legacy database distribution permanently:
 
