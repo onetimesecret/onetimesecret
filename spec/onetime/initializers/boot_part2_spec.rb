@@ -43,6 +43,8 @@ RSpec.describe "Onetime global state after boot" do
     allow(Familia).to receive(:uri).and_return(double('URI', serverid: 'localhost:6379'))
     allow(redis_double).to receive(:get).with('global_banner').and_return(nil)
     allow(redis_double).to receive(:scan_each).and_return([])
+    allow(redis_double).to receive(:scan).and_return(["0", []])  # For legacy data detection
+    allow(redis_double).to receive(:ping).and_return("PONG")  # For connectivity check
 
     # Mock V2 model Redis connections and methods used in detect_first_boot
     allow(V2::Metadata).to receive(:dbclient).and_return(redis_double)
