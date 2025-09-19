@@ -177,28 +177,45 @@ features:
     enabled: false
     email: CHANGEME@example.com
     passphrase: abacus
+
 # Main Database Configuration
 redis:
-  # Main Redis connection URI - Specify full connection string including auth
+  # Redis/Valkey connection URI - Compatible with Redis, Valkey, and other
+  # Redis-compatible servers.
+  #
+  # Environment Variable Precedence (highest to lowest):
+  #   1. VALKEY_URL or REDIS_URL - Explicit connection string
+  #   2. IN_DOCKER=1 - Force Docker configuration (redis://host.docker.internal:6379)
+  #   3. AUTO_DETECT_DOCKER=1 - Enable automatic Docker detection via /.dockerenv file
+  #   4. Default - Local development (redis://CHANGEME@127.0.0.1:6379)
+  #
   # Format: redis://[:password@]host[:port]/[db-number]
   # Examples:
-  #   - redis://mypassword@localhost:6379/0        # Simple password auth
-  #   - redis://user:pass@localhost:6379/0         # Username/password auth
-  #   - redis://redis.example.com:6379/0          # No auth (development only)
-  uri: <%= ENV['VALKEY_URL'] || ENV['REDIS_URL'] || 'redis://CHANGEME@127.0.0.1:6379/0' %>
+  #   - redis://mypassword@localhost:6379       # Simple password auth
+  #   - redis://user:pass@localhost:6379        # Username/password auth
+  #   - redis://host.docker.internal:6379       # Docker environment
+  #   - redis://127.0.0.1:6379                  # Local development
+  uri: >-
+      <%=
+        ENV['VALKEY_URL'] ||
+        ENV['REDIS_URL'] ||
+        (ENV['IN_DOCKER'] == '1' || (ENV['AUTO_DETECT_DOCKER'] == '1' && File.exist?('/.dockerenv')) ?
+          'redis://host.docker.internal:6379' :
+          'redis://CHANGEME@127.0.0.1:6379')
+      %>
   # Database Mapping Configuration
-  # These mappings allow separating data across different Redis logical
-  # databases (0-15). These can be arranged any way you like.
-  # Note: If using a Redis provider with single-database limitation
-  # (e.g., Upstash) set all values to 0.
+  # By default, all data types use database 0 for simplified connection pooling
+  # and compatibility with Redis-as-a-Service providers. For advanced setups,
+  # you can separate data across different Redis logical databases (0-15)
+  # by setting environment variables or modifying the values below.
   dbs:
-    session: <%= ENV['VALKEY_DBS_SESSION'] || ENV['REDIS_DBS_SESSION'] || 1 %>
-    custom_domain: <%= ENV['VALKEY_DBS_CUSTOM_DOMAIN'] || ENV['REDIS_DBS_CUSTOM_DOMAIN'] || 6 %>
-    customer: <%= ENV['VALKEY_DBS_CUSTOMER'] || ENV['REDIS_DBS_CUSTOMER'] || 6 %>
-    subdomain: <%= ENV['VALKEY_DBS_SUBDOMAIN'] || ENV['REDIS_DBS_SUBDOMAIN'] || 6 %>
-    metadata: <%= ENV['VALKEY_DBS_METADATA'] || ENV['REDIS_DBS_METADATA'] || 7 %>
-    secret: <%= ENV['VALKEY_DBS_SECRET'] || ENV['REDIS_DBS_SECRET'] || 8 %>
-    feedback: <%= ENV['VALKEY_DBS_FEEDBACK'] || ENV['REDIS_DBS_FEEDBACK'] || 11 %>
+    session: <%= ENV['VALKEY_DBS_SESSION'] || ENV['REDIS_DBS_SESSION'] || 0 %>
+    custom_domain: <%= ENV['VALKEY_DBS_CUSTOM_DOMAIN'] || ENV['REDIS_DBS_CUSTOM_DOMAIN'] || 0 %>
+    customer: <%= ENV['VALKEY_DBS_CUSTOMER'] || ENV['REDIS_DBS_CUSTOMER'] || 0 %>
+    metadata: <%= ENV['VALKEY_DBS_METADATA'] || ENV['REDIS_DBS_METADATA'] || 0 %>
+    secret: <%= ENV['VALKEY_DBS_SECRET'] || ENV['REDIS_DBS_SECRET'] || 0 %>
+    feedback: <%= ENV['VALKEY_DBS_FEEDBACK'] || ENV['REDIS_DBS_FEEDBACK'] || 0 %>
+
 logging:
   # HTTP request logs (Rack::CommonLogger)
   http_requests: <%= ENV['LOG_HTTP_REQUESTS'] != 'false' %>

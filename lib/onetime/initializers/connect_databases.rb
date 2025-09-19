@@ -34,38 +34,29 @@ module Onetime
       end
 
       # Map model classes to their database numbers
+      #
+      # NOTE: This can appear in the boot log like ther models are duplicated
+      # but it's just the V1 + V2 models which share the same model_config_name.
+      # We are technically duplicating effort since both versions share the same
+      # database but it's not hurting anyone and it won't be forever.
       Familia.members.each do |model_class|
         model_config_name = model_class.config_name
-        db_index          = dbs[model_config_name] || DATABASE_IDS[model_config_name] || 0 # see models.rb
+        db_index          = dbs[model_config_name] || 0
 
         # Assign a Redis connection to the model class
         model_class.dbclient = Familia.dbclient(db_index)
-        ping_result       = model_class.dbclient.ping
+        ping_result          = model_class.dbclient.ping
 
         OT.ld "Connected #{model_config_name} to DB #{db_index} (#{ping_result})"
+
+        # Save a flag in each model DB to signal a data migration will be
+        # needed for existing data. If the database is already 0, no need.
+        next unless db_index.positive?
+
+        dbkey = Familia.join(['ots', 'migration_needed', model_config_name, "db_#{db_index}"])
+        first_time = model_class.dbclient.setnx(dbkey, '1')
+        OT.ld "[connect_databases] Setting #{dbkey} to '1' (already set? #{!first_time})"
       end
     end
-
-    # For backwards compatibility with v0.18.3 and earlier, these redis database
-    # IDs had been hardcoded in their respective model classes which we maintain
-    # here for existing installs. If they haven't had a chance to update their
-    # etc/config.yaml files OR
-    #
-    # For installs running via docker image + environment vars, this change should
-    # be a non-issue as long as the default config (etc/defaults/config.defaults.yaml) is
-    # used (which it is in the official images).
-    #
-    DATABASE_IDS = {
-      'session' => 1,
-      'splittest' => 1,
-      'custom_domain' => 6,
-      'customer' => 6,
-      'subdomain' => 6,
-      'metadata' => 7,
-      'email_receipt' => 8,
-      'secret' => 8,
-      'feedback' => 11,
-      'exception_info' => 12,
-    }
   end
 end

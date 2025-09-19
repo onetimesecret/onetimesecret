@@ -41,6 +41,7 @@ RSpec.describe "Onetime boot configuration process" do
     allow(redis_double).to receive(:get).and_return(nil)
     allow(redis_double).to receive(:info).and_return({"redis_version" => "6.0.0"})
     allow(redis_double).to receive(:scan_each).and_return([])
+    allow(redis_double).to receive(:setnx).and_return(true)
 
     # Mock Familia 2 API
     allow(Familia).to receive(:uri=)
