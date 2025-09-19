@@ -180,20 +180,26 @@ features:
 
 # Main Database Configuration
 redis:
-  # Redis/Valkey connection URI - Automatically detects Docker environment
-  # and uses appropriate defaults. Compatible with Redis, Valkey, and other
+  # Redis/Valkey connection URI - Compatible with Redis, Valkey, and other
   # Redis-compatible servers.
+  #
+  # Environment Variable Precedence (highest to lowest):
+  #   1. VALKEY_URL or REDIS_URL - Explicit connection string
+  #   2. IN_DOCKER=1 - Force Docker configuration (redis://host.docker.internal:6379)
+  #   3. AUTO_DETECT_DOCKER=1 - Enable automatic Docker detection via /.dockerenv file
+  #   4. Default - Local development (redis://CHANGEME@127.0.0.1:6379)
+  #
   # Format: redis://[:password@]host[:port]/[db-number]
   # Examples:
-  #   - redis://mypassword@localhost:6379        # Simple password auth
-  #   - redis://user:pass@localhost:6379         # Username/password auth
-  #   - redis://host.docker.internal:6379        # Docker environment (auto-detected)
-  #   - redis://127.0.0.1:6379                   # Local development
+  #   - redis://mypassword@localhost:6379       # Simple password auth
+  #   - redis://user:pass@localhost:6379        # Username/password auth
+  #   - redis://host.docker.internal:6379       # Docker environment
+  #   - redis://127.0.0.1:6379                  # Local development
   uri: >-
       <%=
         ENV['VALKEY_URL'] ||
         ENV['REDIS_URL'] ||
-        (File.exist?('/.dockerenv') ?
+        (ENV['IN_DOCKER'] == '1' || (ENV['AUTO_DETECT_DOCKER'] == '1' && File.exist?('/.dockerenv')) ?
           'redis://host.docker.internal:6379' :
           'redis://CHANGEME@127.0.0.1:6379')
       %>
