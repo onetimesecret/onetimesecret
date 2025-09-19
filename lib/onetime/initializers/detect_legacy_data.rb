@@ -243,7 +243,7 @@ module Onetime
 
       # Only exit for fresh start scenarios where user wants to acknowledge data loss
       if ENV['ACKNOWLEDGE_DATA_LOSS'] == 'true' && ENV['SKIP_LEGACY_DATA_CHECK'] == 'true'
-        puts "⚠️  Fresh start mode enabled - legacy data will be inaccessible"
+        puts "⚠️ Fresh start mode enabled - legacy data will be inaccessible"
         puts "Continuing with database 0 configuration..."
       end
     end

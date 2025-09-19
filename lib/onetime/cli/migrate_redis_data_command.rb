@@ -11,7 +11,7 @@ module Onetime
     end
 
     def migrate_redis_data
-      puts "\n🔄 Redis Legacy Data Migration Tool"
+      puts "\nRedis Legacy Data Migration Tool"
       puts '=' * 50
 
       # Reset env var to allow detection to run again
@@ -40,7 +40,7 @@ module Onetime
         return
       end
 
-      puts "\n📊 Legacy Data Found:"
+      puts "\nLegacy Data Found:"
       total_keys     = 0
       migration_plan = []
 
@@ -61,7 +61,7 @@ module Onetime
         end
       end
 
-      puts "\n📋 Migration Preview:"
+      puts "\nMigration Preview:"
       migration_plan.each do |plan|
         puts "  • #{plan[:key_count]} #{plan[:model]} keys: DB #{plan[:from_db]} → DB #{plan[:to_db]}"
       end
@@ -71,9 +71,12 @@ module Onetime
       MESSAGE
 
       if argv.include?('--dry-run') || !global.run
-        puts "
-DRY RUN MODE - No changes will be made"
-        puts 'To execute the migration, run with --run flag'
+        puts <<~MESSAGE
+
+          DRY RUN MODE - No changes will be made
+          To execute the migration, run with --run flag
+
+        MESSAGE
         return
       end
 
