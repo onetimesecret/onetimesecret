@@ -62,6 +62,7 @@ module Onetime
       load_fortunes
 
       if connect_to_db
+        detect_legacy_data_and_warn # must run before connect_databases
         connect_databases
         check_global_banner
       end

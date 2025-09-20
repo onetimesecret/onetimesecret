@@ -1,7 +1,6 @@
 # lib/onetime/initializers/connect_databases.rb
 
 require_relative '../refinements/horreum_refinements'
-require_relative 'detect_legacy_data'
 
 module Onetime
   module Initializers
@@ -21,10 +20,6 @@ module Onetime
     # @return [void]
     #
     def connect_databases
-      # Check for legacy data distribution before connecting to databases
-      legacy_data = detect_legacy_data
-      warn_about_legacy_data(legacy_data)
-
       Familia.uri = OT.conf['redis']['uri']
 
       # Connect each model to its configured Redis database
