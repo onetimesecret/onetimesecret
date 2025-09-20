@@ -3,13 +3,16 @@
 require_relative '../../spec_helper'
 # Removed ostruct dependency - using Struct instead
 
+# Create top-level Struct definitions to prevent "already initialized constant" warnings
+MockConfig = Struct.new(:dsn, :environment, :release, :breadcrumbs_logger,
+                       :traces_sample_rate, :profiles_sample_rate, :before_send,
+                       keyword_init: true)
+EventStruct = Struct.new(:request, keyword_init: true)
+RequestStruct = Struct.new(:headers, keyword_init: true)
+
 RSpec.describe "Onetime::Initializers#setup_diagnostics" do
   let(:source_config_path) { File.expand_path(File.join(Onetime::HOME, 'spec', 'config.test.yaml')) }
   let(:loaded_config) { Onetime::Config.load(source_config_path) }
-  # Create a simple mock config object using Struct
-  MockConfig = Struct.new(:dsn, :environment, :release, :breadcrumbs_logger,
-                         :traces_sample_rate, :profiles_sample_rate, :before_send,
-                         keyword_init: true)
   let(:mock_config) { MockConfig.new }
 
   before do
@@ -224,9 +227,6 @@ RSpec.describe "Onetime::Initializers#setup_diagnostics" do
       expect(before_send_proc.call(nil, {})).to be_nil
 
       # Test event with nil request
-      EventStruct = Struct.new(:request, keyword_init: true)
-      RequestStruct = Struct.new(:headers, keyword_init: true)
-
       invalid_event = EventStruct.new(request: nil)
       expect(before_send_proc.call(invalid_event, {})).to be_nil
 
