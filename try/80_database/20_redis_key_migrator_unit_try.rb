@@ -1,8 +1,17 @@
 # try/80_database/20_redis_key_migrator_unit_try.rb
 
+require_relative '../test_helpers'
+
 ## Test basic Redis migration with mock data (without OT dependencies)
 require 'redis'
 require 'uri'
+
+OT.boot! :test, true
+
+# Setup section - get Redis config from OT.conf
+redis_uri = URI.parse(OT.conf['redis']['uri'])
+@redis_host = redis_uri.host
+@redis_port = redis_uri.port
 
 class SimpleRedisKeyMigrator
   attr_reader :source_uri, :target_uri, :options, :statistics
@@ -30,6 +39,8 @@ class SimpleRedisKeyMigrator
     return @statistics if keys.empty?
 
     case strategy
+    when :copy
+      migrate_using_copy_command(keys, &progress_block)
     when :migrate
       migrate_using_migrate_command(keys, &progress_block)
     when :dump_restore
@@ -71,8 +82,8 @@ class SimpleRedisKeyMigrator
 
   def determine_migration_strategy
     if same_redis_instance?
-      @statistics[:strategy_used] = :migrate
-      :migrate
+      @statistics[:strategy_used] = :copy
+      :copy
     else
       @statistics[:strategy_used] = :dump_restore
       :dump_restore
@@ -96,6 +107,12 @@ class SimpleRedisKeyMigrator
     source_client&.disconnect!
   end
 
+  def migrate_using_copy_command(keys, &progress_block)
+    # Mock implementation for testing - simulate COPY command
+    @statistics[:migrated_keys] = keys.size
+    @statistics[:end_time] = Time.now
+  end
+
   def migrate_using_migrate_command(keys, &progress_block)
     # Mock implementation for testing
     @statistics[:migrated_keys] = keys.size
@@ -117,7 +134,7 @@ class SimpleRedisKeyMigrator
 
     Redis.new(
       host: uri.host,
-      port: uri.port || 2121,
+      port: uri.port || @redis_port,
       db: db_number,
       password: uri.password,
       username: uri.user,
@@ -128,25 +145,25 @@ class SimpleRedisKeyMigrator
 end
 
 ## Test basic initialization
-source_uri = "redis://localhost:2121/14"
-target_uri = "redis://localhost:2121/15"
+source_uri = "redis://#{@redis_host}:#{@redis_port}/14"
+target_uri = "redis://#{@redis_host}:#{@redis_port}/15"
 
 migrator = SimpleRedisKeyMigrator.new(source_uri, target_uri)
 migrator.class.name.split('::').last
 #=> "SimpleRedisKeyMigrator"
 
 ## Test strategy detection for same instance
-source_uri = "redis://localhost:2121/14"
-target_uri = "redis://localhost:2121/15"
+source_uri = "redis://#{@redis_host}:#{@redis_port}/14"
+target_uri = "redis://#{@redis_host}:#{@redis_port}/15"
 
 migrator = SimpleRedisKeyMigrator.new(source_uri, target_uri)
 strategy = migrator.send(:determine_migration_strategy)
 strategy
-#=> :migrate
+#=> :copy
 
 ## Test strategy detection for different instances
-source_uri = "redis://localhost:2121/14"
-target_uri = "redis://otherhost:2121/15"
+source_uri = "redis://#{@redis_host}:#{@redis_port}/14"
+target_uri = "redis://otherhost:#{@redis_port}/15"
 
 migrator = SimpleRedisKeyMigrator.new(source_uri, target_uri)
 strategy = migrator.send(:determine_migration_strategy)
@@ -155,7 +172,7 @@ strategy
 
 ## Test error handling for nil source
 begin
-  migrator = SimpleRedisKeyMigrator.new(nil, "redis://localhost:2121/15")
+  migrator = SimpleRedisKeyMigrator.new(nil, "redis://#{@redis_host}:#{@redis_port}/15")
   migrator.migrate_keys('*')
   false
 rescue ArgumentError => e
@@ -165,7 +182,7 @@ end
 
 ## Test error handling for identical URIs
 begin
-  same_uri = "redis://localhost:2121/14"
+  same_uri = "redis://#{@redis_host}:#{@redis_port}/14"
   migrator = SimpleRedisKeyMigrator.new(same_uri, same_uri)
   migrator.migrate_keys('*')
   false
@@ -175,18 +192,16 @@ end
 #=> true
 
 ## Test basic migration with test data
-redis_host = 'localhost'
-redis_port = 2121
 test_db_source = 14
 
 # Setup test data
-source_client = Redis.new(host: redis_host, port: redis_port, db: test_db_source)
+source_client = Redis.new(host: @redis_host, port: @redis_port, db: test_db_source)
 source_client.flushdb
 source_client.set('test:key1', 'value1')
 source_client.set('test:key2', 'value2')
 
-source_uri = "redis://#{redis_host}:#{redis_port}/#{test_db_source}"
-target_uri = "redis://#{redis_host}:#{redis_port}/15"
+source_uri = "redis://#{@redis_host}:#{@redis_port}/#{test_db_source}"
+target_uri = "redis://#{@redis_host}:#{@redis_port}/15"
 
 migrator = SimpleRedisKeyMigrator.new(source_uri, target_uri)
 stats = migrator.migrate_keys('test:*')
@@ -194,10 +209,10 @@ stats = migrator.migrate_keys('test:*')
 source_client.disconnect!
 
 [stats[:total_keys], stats[:migrated_keys], stats[:strategy_used]]
-#=> [2, 2, :migrate]
+#=> [2, 2, :copy]
 
 ## Cleanup
-source_client = Redis.new(host: 'localhost', port: 2121, db: 14)
+source_client = Redis.new(host: @redis_host, port: @redis_port, db: 14)
 source_client.flushdb
 source_client.disconnect!
 

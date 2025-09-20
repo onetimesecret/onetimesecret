@@ -1,10 +1,14 @@
 # try/80_database/30_redis_key_migrator_integration_try.rb
 
-require_relative '../lib/onetime/redis_key_migrator'
+require_relative '../test_helpers'
+require_relative '../../lib/onetime/redis_key_migrator'
 
-# Setup section - instance variables persist across test cases
-@redis_host = '127.0.0.1'
-@redis_port = 2121
+OT.boot! :test, true
+
+# Setup section - get Redis config from OT.conf
+redis_uri = URI.parse(OT.conf['redis']['uri'])
+@redis_host = redis_uri.host
+@redis_port = redis_uri.port
 @test_db_source = 14
 @test_db_target = 15
 

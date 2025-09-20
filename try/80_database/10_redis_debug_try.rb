@@ -1,10 +1,14 @@
 # try/80_database/10_redis_debug_try.rb
 
-require_relative '../lib/onetime/redis_key_migrator'
+require_relative '../test_helpers'
+require_relative '../../lib/onetime/redis_key_migrator'
 
-# Setup section
-@redis_host = 'localhost'
-@redis_port = 2121
+OT.boot! :test, true
+
+# Setup section - get Redis config from OT.conf
+redis_uri = URI.parse(OT.conf['redis']['uri'])
+@redis_host = redis_uri.host
+@redis_port = redis_uri.port
 @test_db_source = 14
 
 def test_uri(db)
@@ -22,7 +26,7 @@ target_uri = test_uri(15)
 ## Test strategy determination
 strategy = @migrator.send(:determine_migration_strategy)
 strategy
-#=> :migrate
+#=> :copy
 
 ## Test key discovery (simple)
 discovered_keys = @migrator.send(:discover_keys, 'nonexistent:*')
