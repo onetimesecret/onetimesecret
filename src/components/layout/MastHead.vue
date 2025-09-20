@@ -179,7 +179,7 @@ import { shallowRef } from 'vue';
               class="size-5"
               collection="material-symbols"
               name="settings-outline"
-              :aria-label="t('web.COMMON.header_settings')" />
+              aria-hidden="true" />
           </button>
 
           <SettingsModal
@@ -203,7 +203,7 @@ import { shallowRef } from 'vue';
               class="size-5"
               collection="heroicons"
               name="arrow-right-on-rectangle-solid"
-              :aria-label="t('web.COMMON.header_logout')" />
+              aria-hidden="true" />
           </router-link>
         </template>
 
