@@ -63,11 +63,6 @@ module Onetime
         output << render_section('Authentication', 'Details', auth_rows)
       end
 
-      redis_rows = build_models_section
-      unless redis_rows.empty?
-        output << render_section('Model DBs', 'Database Index', redis_rows)
-      end
-
       customization_rows = build_customization_section(site_config)
       unless customization_rows.empty?
         output << render_section('Customization', 'Configuration', customization_rows)
@@ -84,6 +79,8 @@ module Onetime
 
     # Builds system information section rows
     def build_system_section(redis_info)
+
+      redis_dbs = OT.conf.dig('redis', 'dbs') || {}
       system_rows = [
         ['System', "#{RUBY_ENGINE} #{RUBY_VERSION} in #{OT.env}"],
         ['Config', OT::Config.path],
@@ -92,6 +89,7 @@ module Onetime
         ['Otto', "v#{Otto::VERSION}"],
         ['I18n', OT.i18n_enabled],
         ['Diagnostics', OT.d9s_enabled],
+        ['Models', redis_dbs.inspect]
       ]
 
       # Add locales if i18n is enabled
@@ -169,7 +167,7 @@ module Onetime
         ['Colonels', 'No colonels configured ⚠️']
       else
         ['Colonels', colonels.join(', ')]
-                   end
+      end
 
       if site_config.key?('authentication')
         auth_config = site_config['authentication']
@@ -182,23 +180,6 @@ module Onetime
       end
 
       auth_rows
-    end
-
-    # Builds Redis database configuration section rows
-    def build_models_section
-      redis_rows = []
-
-      redis_dbs = OT.conf.dig('redis', 'dbs')
-      if redis_dbs && !redis_dbs.empty?
-        redis_dbs.each do |model, db_number|
-          redis_rows << [model, "db #{db_number}"]
-        end
-
-        # Sort by model name for consistent display
-        redis_rows.sort_by! { |row| row[0] }
-      end
-
-      redis_rows
     end
 
     # Builds customization section rows
