@@ -67,7 +67,7 @@ module Onetime
         check_global_banner
       end
 
-      print_log_banner if $stdout.tty? && !mode?(:test) && !mode?(:cli) && ENV['RACK_ENV'] != 'test'
+      print_log_banner if $stdout.tty? && !mode?(:test) && !mode?(:cli)
 
       @ready = true
 

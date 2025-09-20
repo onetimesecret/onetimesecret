@@ -193,12 +193,14 @@ RSpec.describe "Onetime global state after boot" do
 
         # Set RACK_ENV to non-test value to allow banner display
         original_rack_env = ENV['RACK_ENV']
-        ENV['RACK_ENV'] = 'development'
+        begin
+          ENV['RACK_ENV'] = 'development'
 
-        Onetime.boot!(:development)
-
-        # Restore original RACK_ENV
-        ENV['RACK_ENV'] = original_rack_env
+          Onetime.boot!(:development)
+        ensure
+          # Restore original RACK_ENV
+          ENV['RACK_ENV'] = original_rack_env
+        end
       end
     end
 
