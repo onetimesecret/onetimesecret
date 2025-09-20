@@ -64,8 +64,9 @@ jobs:
         options: >-
           --health-cmd "redis-cli ping"
           --health-interval 10s
-          --health-timeout 3s
+          --health-timeout 10s
           --health-retries 5
+          --memory=4g
         ports:
           # https://docs.github.com/en/actions/using-containerized-services/creating-redis-service-containers#running-jobs-in-containers
           # Maps port 6379 on service container to 2121 on the host to
@@ -76,6 +77,10 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 # v4
+
+      - name: Enable memory overcommit for Redis
+        run: |
+          sudo sysctl -w vm.overcommit_memory=1
 
       - uses: ruby/setup-ruby@3fee6763234110473bd57dd4595c5199fce2c510
         with:
@@ -189,8 +194,9 @@ jobs:
         options: >-
           --health-cmd "redis-cli ping"
           --health-interval 10s
-          --health-timeout 3s
+          --health-timeout 10s
           --health-retries 5
+          --memory=4g
         ports:
           - 2121:6379
 

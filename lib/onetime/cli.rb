@@ -27,10 +27,10 @@ end
 # Load CLI commands
 require_relative 'cli/migrate_command'
 require_relative 'cli/change_email_command'
-require_relative 'cli/move_keys_command'
-require_relative 'cli/migrate_redis_data_command'
+require_relative 'cli/consolidate_redis_models_command'
 require_relative 'cli/customers_command'
 require_relative 'cli/domains_command'
+
 require_relative 'cli/initializers_command'
 require_relative 'cli/validate_command'
 require_relative 'cli/config_command'

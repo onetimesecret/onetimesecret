@@ -75,14 +75,16 @@ class OT::CLI::Definition
   option :r, :run, 'Actually apply changes (default is dry run mode)'
   command migrate: OT::MigrateCommand
 
-  usage 'ots move-keys SOURCEDB TARGETDB [filter]'
-  command move_keys: OT::MoveKeysCommand
-
-  usage 'ots migrate-redis-data [--run]'
-  about 'Migrate legacy Redis data from multiple databases to database 0'
+  usage 'ots consolidate-redis-models [--run]'
+  about 'Consolidate Redis data from multiple databases to database 0'
   about 'By default, runs in dry-run mode to preview changes'
-  about 'Use --run to perform the actual migration'
-  command migrate_redis_data: OT::MigrateRedisDataCommand
+  about 'Use --run to perform the actual consolidation'
+  option :r, :run, 'Execute the consolidation (required for actual operation)'
+  option :s, :show_commands, 'Generate redis-cli commands for manual execution'
+  option :y, :yes, 'Auto-confirm consolidation (non-interactive mode)'
+  option :b, :batch_size, Integer, 'Set batch size for consolidation (default: 100, max: 10000)'
+  option :h, :help, 'Show detailed help message'
+  command consolidate_redis_models: OT::ConsolidateRedisModelsCommand
 
   usage 'ots customers'
   option :l, :list, 'List customer domains (by count)'
