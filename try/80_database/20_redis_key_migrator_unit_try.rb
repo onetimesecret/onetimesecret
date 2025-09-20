@@ -1,4 +1,4 @@
-# try/redis_migrator_unit_try.rb
+# try/80_database/20_redis_key_migrator_unit_try.rb
 
 ## Test basic Redis migration with mock data (without OT dependencies)
 require 'redis'

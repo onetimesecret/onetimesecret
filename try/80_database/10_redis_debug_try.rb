@@ -1,4 +1,4 @@
-# try/redis_debug_try.rb
+# try/80_database/10_redis_debug_try.rb
 
 require_relative '../lib/onetime/redis_key_migrator'
 
