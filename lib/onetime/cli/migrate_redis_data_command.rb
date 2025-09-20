@@ -22,6 +22,9 @@ module Onetime
       # Reset env var to allow detection to run again
       ENV.delete('SKIP_LEGACY_DATA_CHECK')
 
+      # Enable migration mode to find ALL data not in DB 0
+      ENV['MIGRATION_MODE'] = 'true'
+
       # First, detect legacy data
       puts 'Scanning for legacy data distribution...'
       require_relative '../initializers/detect_legacy_data'
@@ -255,6 +258,9 @@ module Onetime
             OT.ld "Could not remove migration flag for #{model}: #{ex.message}"
         end
       end
+
+      # Clean up environment
+      ENV.delete('MIGRATION_MODE')
 
       puts "\nAll done! Your Redis data has been migrated to database 0."
     end

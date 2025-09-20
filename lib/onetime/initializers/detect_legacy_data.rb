@@ -15,8 +15,8 @@ module Onetime
       # Known legacy database mappings (from removed DATABASE_IDS constant)
       legacy_mappings = {
         'session' => [1],
-        'custom_domain' => [6],
         'customer' => [6],
+        'customdomain' => [6],
         'metadata' => [7],
         'secret' => [8],
         'feedback' => [11],
@@ -36,7 +36,8 @@ module Onetime
 
         found_count = scan_database_for_legacy_data(db_num, legacy_mappings, current_dbs, legacy_locations)
         models_found_count += found_count
-        next if found_count.zero?
+
+        OT.ld "[detect_legacy_data] Database #{db_num}: #{found_count} legacy records found"
         found_count
       end.compact
 
@@ -113,17 +114,32 @@ module Onetime
 
         legacy_mappings.each do |model_name, expected_dbs|
           # Skip if this model already has legacy data detected in another database
-          next if legacy_locations.key?(model_name)
+          if legacy_locations.key?(model_name)
+            OT.ld "[scan_database_for_legacy_data] Skipping #{model_name} (already detected in another database)"
+            next
+          end
 
           # Skip if this model is configured to be in this database
-          current_db = current_dbs[model_name] || 0
-          next if db_num == current_db
+          # BUT for migration purposes, we want to find ALL data not in DB 0
+          if migration_mode?
+            # In migration mode, target database is always 0
+            current_db = 0
+          else
+            current_db = current_dbs[model_name] || 0
+            if db_num == current_db
+              OT.ld "[scan_database_for_legacy_data] Skipping #{model_name} (already configured in this database)"
+              next
+            end
+          end
 
           # Check for model-specific key patterns
           key_pattern = "#{model_name}:*"
           keys = scan_for_model_keys(client, key_pattern)
 
-          next if keys.empty?
+          if keys.empty?
+            OT.ld "[scan_database_for_legacy_data] 0 #{model_name} keys found in DB #{db_num}"
+            next
+          end
 
           models_found += 1
 
@@ -156,6 +172,8 @@ module Onetime
       max_iterations = 10  # Limit scan iterations to prevent excessive startup time
       iterations = 0
 
+      OT.ld "[scan_for_model_keys] Scanning for '#{pattern}' with #{client.inspect}"
+
       loop do
         result = client.scan(cursor, match: pattern, count: 100)
         cursor = result[0]
@@ -163,15 +181,25 @@ module Onetime
         iterations += 1
 
         # Stop after finding some keys (we just need to know data exists)
-        break if !keys.empty?
+        if !keys.empty?
+          OT.ld "[scan_for_model_keys] Found keys: #{keys}"
+          break
+        end
 
         # Stop if we've completed the scan
-        break if cursor == "0"
+        if cursor == "0"
+          OT.ld "[scan_for_model_keys] Completed scan #{result}"
+          break
+        end
 
         # Safety valve: don't scan forever
-        break if iterations >= max_iterations
+        if iterations >= max_iterations
+          OT.ld "[scan_for_model_keys] Reached maximum iterations"
+          break
+        end
       end
 
+      OT.ld "[scan_for_model_keys] Found keys: #{keys} with #{iterations} iterations"
       keys
     end
 
@@ -293,6 +321,11 @@ module Onetime
     # Check if user has acknowledged potential data loss
     def acknowledge_data_loss?
       ENV['ACKNOWLEDGE_DATA_LOSS'] == 'true'
+    end
+
+    # Check if we're in migration mode - find ALL data not in DB 0
+    def migration_mode?
+      ENV['MIGRATION_MODE'] == 'true'
     end
 
   end
