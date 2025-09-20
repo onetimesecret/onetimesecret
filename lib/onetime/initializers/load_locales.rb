@@ -49,6 +49,7 @@ module Onetime
           OT.le "Missing locale file: #{path}"
           next
         end
+        # We symbolize for locales files only (not configruation)
         conf = Familia::JsonSerializer.parse(contents, symbolize_names: true)
         [loc, conf]
       end
