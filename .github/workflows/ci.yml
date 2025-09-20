@@ -67,7 +67,6 @@ jobs:
           --health-timeout 3s
           --health-retries 5
           --memory=1g
-          --sysctl vm.overcommit_memory=1
         ports:
           # https://docs.github.com/en/actions/using-containerized-services/creating-redis-service-containers#running-jobs-in-containers
           # Maps port 6379 on service container to 2121 on the host to
@@ -198,7 +197,6 @@ jobs:
           --health-timeout 3s
           --health-retries 5
           --memory=1g
-          --sysctl vm.overcommit_memory=1
         ports:
           - 2121:6379
 
