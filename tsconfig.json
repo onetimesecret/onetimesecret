@@ -50,7 +50,7 @@
     "noImplicitThis": true,
     "allowJs": false,
     "allowImportingTsExtensions": false,
-    "resolvePackageJsonExports": false,
+    "resolvePackageJsonExports": true,
     "sourceMap": true,
     "noEmit": true,
     "baseUrl": ".",
