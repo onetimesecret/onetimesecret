@@ -81,16 +81,16 @@ module Onetime
 
       # Check for --show-commands option first (before dry run check)
       if option.show_commands
-        puts "\n" + "=" * 60
-        puts "REDIS CLI COMMANDS (for manual execution)"
-        puts "=" * 60
+        puts "\n" + ('=' * 60)
+        puts 'REDIS CLI COMMANDS (for manual execution)'
+        puts '=' * 60
 
         migration_plan.each do |plan|
           puts "\n## #{plan[:model].capitalize} migration (#{plan[:key_count]} keys)"
           puts "## From: DB #{plan[:from_db]} → DB #{plan[:to_db]}"
 
-          source_uri = URI.parse(Familia.uri.to_s)
-          target_uri = URI.parse(Familia.uri.to_s)
+          source_uri    = URI.parse(Familia.uri.to_s)
+          target_uri    = URI.parse(Familia.uri.to_s)
           source_uri.db = plan[:from_db]
           target_uri.db = plan[:to_db]
 
@@ -110,7 +110,7 @@ module Onetime
           puts "\n### Cleanup Commands (Optional - Use with caution!)"
           commands[:cleanup].each { |cmd| puts cmd }
 
-          puts "\n" + "-" * 60
+          puts "\n" + ('-' * 60)
         end
 
         puts <<~MESSAGE
@@ -136,7 +136,11 @@ module Onetime
       # Check for non-interactive mode
       auto_confirm = option.yes || !$stdin.tty?
 
-      unless auto_confirm
+      if auto_confirm
+      puts <<~MESSAGE
+        ⚠️  Auto-confirmed: Consolidation will proceed (non-TTY or --yes flag detected)
+      MESSAGE
+      else
         # Confirm before proceeding
         puts <<~WARNING
 
@@ -149,10 +153,6 @@ module Onetime
         response = STDIN.gets.chomp.downcase
 
         return puts('Consolidation cancelled.') unless %w[yes y].include?(response)
-      else
-      puts <<~MESSAGE
-        ⚠️  Auto-confirmed: Consolidation will proceed (non-TTY or --yes flag detected)
-      MESSAGE
       end
 
       # Execute consolidation
@@ -173,7 +173,7 @@ module Onetime
             batch_size: parse_batch_size,
             copy_mode: true,  # Keep keys in source for safety
             timeout: 5000,
-            progress_interval: 50
+            progress_interval: 50,
           }
 
           migrator = Onetime::RedisKeyMigrator.new(source_uri, target_uri, migration_options)
@@ -182,14 +182,14 @@ module Onetime
           if global.verbose > 0
             puts "   Strategy: #{migrator.send(:determine_migration_strategy).to_s.upcase}"
             commands = migrator.generate_cli_commands(plan[:pattern])
-            puts "   Manual CLI commands:"
+            puts '   Manual CLI commands:'
             puts "     Discovery: #{commands[:discovery][1]}" if commands[:discovery][1]
             puts "     Migration: #{commands[:migration][1]}" if commands[:migration][1]
-            puts ""
+            puts ''
           end
 
           # Track progress and statistics
-          moved_count = 0
+          moved_count      = 0
           last_report_time = Time.now
 
           statistics = migrator.migrate_keys(plan[:pattern]) do |phase, idx, type, key, ttl|
@@ -199,7 +199,7 @@ module Onetime
                 print "\r   Discovering keys: #{idx}"
               end
             when :migrate
-              moved_count = idx + 1
+              moved_count  = idx + 1
               current_time = Time.now
 
               if global.verbose > 0
@@ -226,10 +226,9 @@ module Onetime
           end
 
           if global.verbose > 0 && statistics[:errors].any?
-            puts "      Errors encountered:"
+            puts '      Errors encountered:'
             statistics[:errors].each { |error| puts "        • #{error[:context]}: #{error[:error]}" }
           end
-
         rescue StandardError => ex
           puts "\n   ❌ Error migrating #{plan[:model]} data: #{ex.message}"
           OT.le "Migration error for #{plan[:model]}: #{ex.message}"
@@ -272,7 +271,7 @@ module Onetime
     def parse_batch_size
       if option.batch_size
         size = option.batch_size.to_i
-        return size if size > 0 && size <= 10000
+        return size if size > 0 && size <= 10_000
       end
       100  # Default batch size
     end
