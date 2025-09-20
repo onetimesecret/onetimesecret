@@ -1,9 +1,9 @@
-# lib/onetime/cli/migrate_redis_data_command.rb
+# lib/onetime/cli/consolidate_redis_models_command.rb
 
 require_relative '../redis_key_migrator'
 
 module Onetime
-  class MigrateRedisDataCommand < Onetime::CLI
+  class ConsolidateRedisModelsCommand < Onetime::CLI
     def init
       # Set environment variable to bypass startup warnings for this command
       ENV['SKIP_LEGACY_DATA_CHECK'] = 'true'
@@ -12,11 +12,11 @@ module Onetime
       super
     end
 
-    def migrate_redis_data
+    def consolidate_redis_models
       # Show help if requested
       return if show_usage_help
 
-      puts "\nRedis Legacy Data Migration Tool"
+      puts "\nRedis Data Consolidation Tool"
       puts '=' * 50
 
       # Reset env var to allow detection to run again
@@ -71,11 +71,12 @@ module Onetime
 
       puts "\nMigration Preview:"
       migration_plan.each do |plan|
-        puts "  • #{plan[:key_count]} #{plan[:model]} keys: DB #{plan[:from_db]} → DB #{plan[:to_db]}"
+        puts "  • #{plan[:model]} keys: DB #{plan[:from_db]} → DB #{plan[:to_db]} (#{plan[:key_count]}+ detected)"
       end
       puts <<~MESSAGE
 
-        Total keys to migrate: #{total_keys}
+        Note: Detection counts are samples. Actual migration processes all matching keys per database.
+        Use 'redis-cli info keyspace' for complete database statistics.
       MESSAGE
 
       # Check for --show-commands option first (before dry run check)
@@ -126,7 +127,7 @@ module Onetime
         puts <<~MESSAGE
 
           DRY RUN MODE - No changes will be made
-          To execute the migration, run with --run flag
+          To execute the consolidation, run with --run flag
 
         MESSAGE
         return
@@ -144,21 +145,21 @@ module Onetime
 
         WARNING
 
-        print 'Continue with migration? (yes/no): '
+        print 'Continue with consolidation? (yes/no): '
         response = STDIN.gets.chomp.downcase
 
-        return puts('Migration cancelled.') unless %w[yes y].include?(response)
+        return puts('Consolidation cancelled.') unless %w[yes y].include?(response)
       else
       puts <<~MESSAGE
-        ⚠️  Auto-confirmed: Migration will proceed (non-TTY or --yes flag detected)
+        ⚠️  Auto-confirmed: Consolidation will proceed (non-TTY or --yes flag detected)
       MESSAGE
       end
 
-      # Execute migration
-      puts "\nStarting migration..."
+      # Execute consolidation
+      puts "\nStarting consolidation..."
 
       migration_plan.each do |plan|
-        puts "\nMigrating #{plan[:model]} data (#{plan[:key_count]} keys)..."
+        puts "\nConsolidating #{plan[:model]} data (#{plan[:key_count]} keys)..."
         puts "   From: DB #{plan[:from_db]} → To: DB #{plan[:to_db]}"
 
         source_uri    = URI.parse(Familia.uri.to_s)
@@ -280,32 +281,32 @@ module Onetime
       if option.help
         puts <<~USAGE
 
-          Redis Data Migration Tool
+          Redis Data Consolidation Tool
 
           Usage:
-            bin/ots migrate_redis_data [options]
+            bin/ots consolidate-redis-models [options]
 
           Options:
-            --run                 Execute the migration (required for actual migration)
-            --dry-run             Show what would be migrated without executing
+            --run                 Execute the consolidation (required for actual operation)
+            --dry-run             Show what would be consolidated without executing
             --show-commands       Generate redis-cli commands for manual execution
-            --yes                 Auto-confirm migration (non-interactive mode)
-            --batch-size=N        Set batch size for migration (default: 100, max: 10000)
+            --yes                 Auto-confirm consolidation (non-interactive mode)
+            --batch-size=N        Set batch size for consolidation (default: 100, max: 10000)
             --verbose             Show detailed progress and CLI commands
             --help, -h            Show this help message
 
           Examples:
-            # Preview migration
-            bin/ots migrate_redis_data
+            # Preview consolidation
+            bin/ots consolidate-redis-models
 
-            # Execute migration with confirmation
-            bin/ots migrate_redis_data --run
+            # Execute consolidation with confirmation
+            bin/ots consolidate-redis-models --run
 
             # Generate manual CLI commands
-            bin/ots migrate_redis_data --show-commands
+            bin/ots consolidate-redis-models --show-commands
 
             # Execute with custom batch size and verbose output
-            bin/ots migrate_redis_data --run --batch-size=50 --verbose
+            bin/ots consolidate-redis-models --run --batch-size=50 --verbose
 
         USAGE
         return true
