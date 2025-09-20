@@ -240,7 +240,7 @@ module Onetime
           end
 
         rescue => e
-          handle_batch_error(batch, e, &progress_block)
+          handle_batch_error(batch, e, source_client, nil, &progress_block)
         end
       end
 
@@ -288,7 +288,7 @@ module Onetime
           end
 
         rescue => e
-          handle_batch_error(batch, e, &progress_block)
+          handle_batch_error(batch, e, source_client, target_client, &progress_block)
         end
       end
 
@@ -298,14 +298,15 @@ module Onetime
       @statistics[:end_time] = Time.now
     end
 
-    def handle_batch_error(batch, error, &progress_block)
+    def handle_batch_error(batch, error, source_client = nil, target_client = nil, &progress_block)
       @logger.error "Batch migration failed: #{error.message}"
       @statistics[:errors] << { batch: batch, error: error.message }
 
       # Try individual key migration for failed batch
+      # Reuse existing client connections for better performance
       batch.each do |key|
         begin
-          migrate_single_key(key, &progress_block)
+          migrate_single_key(key, source_client, target_client, &progress_block)
         rescue => e
           handle_error("Failed to migrate key #{key}", e)
           @statistics[:failed_keys] += 1
@@ -313,9 +314,13 @@ module Onetime
       end
     end
 
-    def migrate_single_key(key, &progress_block)
-      source_client = create_redis_client(@source_uri)
-      target_client = create_redis_client(@target_uri)
+    def migrate_single_key(key, source_client = nil, target_client = nil, &progress_block)
+      # Create clients if not provided (for backward compatibility)
+      created_source_client = source_client.nil?
+      created_target_client = target_client.nil?
+
+      source_client ||= create_redis_client(@source_uri)
+      target_client ||= create_redis_client(@target_uri) unless same_redis_instance?
 
       if same_redis_instance?
         # Extract target database number
@@ -345,8 +350,9 @@ module Onetime
       progress_block&.call(:migrate, @statistics[:migrated_keys], 'single', key, -1)
 
     ensure
-      source_client&.disconnect!
-      target_client&.disconnect!
+      # Only disconnect clients we created
+      source_client&.disconnect! if created_source_client
+      target_client&.disconnect! if created_target_client
     end
 
     def handle_error(context, error)
