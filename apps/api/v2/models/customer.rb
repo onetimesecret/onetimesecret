@@ -53,6 +53,7 @@ module V2
     feature :external_identifier
     feature :required_fields
     feature :increment_field
+    feature :counter_fields
     feature :right_to_be_forgotten
     feature :safe_dump_fields
     feature :with_stripe_account
@@ -83,15 +84,7 @@ module V2
       # from the db (i.e. all values in core data types are strings).
       self.locale ||= ''
 
-      # Initialze auto-increment fields. We do this since Redis
-      # gets grumpy about trying to increment a hashkey field
-      # that doesn't have any value at all yet. This is in
-      # contrast to the regular INCR command where a
-      # non-existant key will simply be set to 1.
-      self.secrets_created ||= 0
-      self.secrets_burned  ||= 0
-      self.secrets_shared  ||= 0
-      self.emails_sent     ||= 0
+      self.init_counter_fields
     end
 
     def anonymous?
