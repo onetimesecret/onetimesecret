@@ -30,4 +30,4 @@ target_uri = "redis://localhost:2121/15"
 migrator = Onetime::RedisKeyMigrator.new(source_uri, target_uri)
 strategy = migrator.send(:determine_migration_strategy)
 strategy
-#=> :dump_restore
+#=> :migrate

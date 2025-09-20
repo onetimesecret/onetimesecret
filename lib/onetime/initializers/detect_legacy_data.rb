@@ -120,7 +120,9 @@ module Onetime
           # Skip if this model is configured to be in this database
           # BUT for migration purposes, we want to find ALL data not in DB 0
           if migration_mode?
-            # In migration mode, target database is always 0
+            # In migration mode, we're consolidating everything to database 0.
+            # Set expected_database to 0 so any data found in non-zero databases
+            # will be flagged for migration, regardless of current configuration.
             current_db = 0
           else
             current_db = current_dbs[model_name] || 0
@@ -321,6 +323,10 @@ module Onetime
     end
 
     # Check if we're in migration mode - find ALL data not in DB 0
+    # Migration mode is used by the consolidate-redis-models command to discover
+    # all data that needs to be moved to database 0, regardless of current configuration.
+    # When enabled, expected_database is always set to 0, so any data found in
+    # non-zero databases will be flagged for migration.
     def migration_mode?
       ENV['MIGRATION_MODE'] == 'true'
     end

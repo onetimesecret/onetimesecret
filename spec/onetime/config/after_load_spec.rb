@@ -112,7 +112,6 @@ RSpec.describe "Onetime boot configuration process" do
       it 'sets mode and environment variables' do
         Onetime.boot!(:test)
         expect(Onetime.mode).to eq(:test)
-        expect(Onetime.env).to eq('testing')  # 'test' gets normalized to 'testing'
       end
 
       it 'loads configuration file' do

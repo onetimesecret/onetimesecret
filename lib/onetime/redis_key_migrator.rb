@@ -31,6 +31,11 @@ module Onetime
       strategy = determine_migration_strategy
       @logger.debug "Using migration strategy: #{strategy}"
 
+      # Validate strategy consistency
+      unless strategy == @statistics[:strategy_used]
+        raise "Strategy mismatch: returned #{strategy}, but statistics show #{@statistics[:strategy_used]}"
+      end
+
       keys = discover_keys(pattern, &progress_block)
       return @statistics if keys.empty?
 
@@ -146,13 +151,13 @@ module Onetime
         # Same instance, same database - no migration needed
         raise ArgumentError, "Source and target are identical"
       elsif same_redis_instance?
-        # Same instance, different database - use DUMP/RESTORE (MIGRATE doesn't work well for this)
-        @statistics[:strategy_used] = :dump_restore
-        :dump_restore
-      else
-        # Different instances - use MIGRATE command
+        # Same instance, different database - use MIGRATE command
         @statistics[:strategy_used] = :migrate
         :migrate
+      else
+        # Different instances - use DUMP/RESTORE (MIGRATE doesn't work well for this)
+        @statistics[:strategy_used] = :dump_restore
+        :dump_restore
       end
     end
 
@@ -217,13 +222,7 @@ module Onetime
       keys.each_slice(@options[:batch_size]) do |batch|
         begin
           # Extract target database number
-          target_db = if @target_uri.path && !@target_uri.path.empty? && @target_uri.path != '/'
-                        @target_uri.path.gsub('/', '').to_i
-                      elsif @target_uri.respond_to?(:db) && @target_uri.db
-                        @target_uri.db.to_i
-                      else
-                        0
-                      end
+          target_db = extract_db_number(@target_uri)
 
           # Use MIGRATE with COPY flag for safety - bulk mode
           # For bulk migration, we use the raw call method since Redis gem's migrate method doesn't support KEYS
@@ -320,13 +319,7 @@ module Onetime
 
       if same_redis_instance?
         # Extract target database number
-        target_db = if @target_uri.path && !@target_uri.path.empty? && @target_uri.path != '/'
-                      @target_uri.path.gsub('/', '').to_i
-                    elsif @target_uri.respond_to?(:db) && @target_uri.db
-                      @target_uri.db.to_i
-                    else
-                      0
-                    end
+        target_db = extract_db_number(@target_uri)
 
         # Use Redis gem's migrate method for single key migration
         migrate_options = {
