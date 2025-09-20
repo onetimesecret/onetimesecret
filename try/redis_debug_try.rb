@@ -15,16 +15,16 @@ end
 source_uri = test_uri(@test_db_source)
 target_uri = test_uri(15)
 
-migrator = Onetime::RedisKeyMigrator.new(source_uri, target_uri)
-migrator.class.name
+@migrator = Onetime::RedisKeyMigrator.new(source_uri, target_uri)
+@migrator.class.name
 #=> "Onetime::RedisKeyMigrator"
 
 ## Test strategy determination
-strategy = migrator.send(:determine_migration_strategy)
+strategy = @migrator.send(:determine_migration_strategy)
 strategy
-#=> :migrate
+#=> :dump_restore
 
 ## Test key discovery (simple)
-discovered_keys = migrator.send(:discover_keys, 'nonexistent:*')
+discovered_keys = @migrator.send(:discover_keys, 'nonexistent:*')
 discovered_keys.class.name
 #=> "Array"

@@ -143,13 +143,13 @@ end
   0 => {},
   6 => {
     'customer:legacy123' => 'customer_data',
-    'custom_domain:example.com' => 'domain_data'
+    'customdomain:example.com' => 'domain_data'
   }
 }
 @detector = LegacyDataDetector.new
 result = @detector.test_detect_legacy_data(@mock_redis)
 result[:legacy_locations].keys.sort
-#=> ['custom_domain', 'customer']
+#=> ['customdomain', 'customer']
 
 ## Detection respects current configuration
 @mock_redis = {

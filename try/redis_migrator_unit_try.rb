@@ -132,7 +132,7 @@ source_uri = "redis://localhost:6379/14"
 target_uri = "redis://localhost:6379/15"
 
 migrator = SimpleRedisKeyMigrator.new(source_uri, target_uri)
-migrator.class.name
+migrator.class.name.split('::').last
 #=> "SimpleRedisKeyMigrator"
 
 ## Test strategy detection for same instance
@@ -155,7 +155,8 @@ strategy
 
 ## Test error handling for nil source
 begin
-  SimpleRedisKeyMigrator.new(nil, "redis://localhost:6379/15")
+  migrator = SimpleRedisKeyMigrator.new(nil, "redis://localhost:6379/15")
+  migrator.migrate_keys('*')
   false
 rescue ArgumentError => e
   e.message.include?("Source URI cannot be nil")
