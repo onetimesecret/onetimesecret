@@ -17,10 +17,14 @@ redis-server /path/to/redis.conf
 ```
 
 ## Method 2: Runtime Configuration
-Enable it temporarily without restart:
+WARNING: Do not enable DEBUG in production. Prefer `local` scope and revert immediately after use.
 
 ```bash
-redis-cli CONFIG SET enable-debug-command yes
+# Temporarily enable (development/local testing only)
+redis-cli CONFIG SET enable-debug-command local
+# ... run your tests ...
+# Revert to the secure default
+redis-cli CONFIG SET enable-debug-command no
 ```
 
 ## Method 3: Local Connection Only
