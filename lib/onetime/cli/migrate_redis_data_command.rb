@@ -1,5 +1,7 @@
 # lib/onetime/cli/migrate_redis_data_command.rb
 
+require_relative '../redis_key_migrator'
+
 module Onetime
   class MigrateRedisDataCommand < Onetime::CLI
     def init
@@ -11,6 +13,9 @@ module Onetime
     end
 
     def migrate_redis_data
+      # Show help if requested
+      return if show_usage_help
+
       puts "\nRedis Legacy Data Migration Tool"
       puts '=' * 50
 
@@ -80,6 +85,49 @@ module Onetime
         return
       end
 
+      # Check for --show-commands option
+      if argv.include?('--show-commands')
+        puts "\n" + "=" * 60
+        puts "REDIS CLI COMMANDS (for manual execution)"
+        puts "=" * 60
+
+        migration_plan.each do |plan|
+          puts "\n## #{plan[:model].capitalize} migration (#{plan[:key_count]} keys)"
+          puts "## From: DB #{plan[:from_db]} → DB #{plan[:to_db]}"
+
+          source_uri = URI.parse(Familia.uri.to_s)
+          target_uri = URI.parse(Familia.uri.to_s)
+          source_uri.db = plan[:from_db]
+          target_uri.db = plan[:to_db]
+
+          migrator = Onetime::RedisKeyMigrator.new(source_uri, target_uri)
+          commands = migrator.generate_cli_commands(plan[:pattern])
+
+          puts "\nStrategy: #{commands[:strategy].to_s.upcase}"
+          puts "\n### Key Discovery"
+          commands[:discovery].each { |cmd| puts cmd }
+
+          puts "\n### Migration Commands"
+          commands[:migration].each { |cmd| puts cmd }
+
+          puts "\n### Verification Commands"
+          commands[:verification].each { |cmd| puts cmd }
+
+          puts "\n### Cleanup Commands (Optional - Use with caution!)"
+          commands[:cleanup].each { |cmd| puts cmd }
+
+          puts "\n" + "-" * 60
+        end
+
+        puts <<~MESSAGE
+
+          ℹ️  Commands generated above. Copy and paste to execute manually.
+          ⚠️  Always verify migration success before running cleanup commands!
+
+        MESSAGE
+        return
+      end
+
       # Check for non-interactive mode
       auto_confirm = argv.include?('--yes') || !$stdin.tty?
 
@@ -114,18 +162,69 @@ module Onetime
         source_uri.db = plan[:from_db]
         target_uri.db = plan[:to_db]
 
-        moved_count = 0
         begin
-          Familia::Tools.move_keys(plan[:pattern], source_uri, target_uri) do |idx, type, key, ttl|
-            moved_count = idx + 1
-            if global.verbose > 0
-              puts "   #{moved_count.to_s.rjust(4)} (#{type.to_s.rjust(6)}, #{ttl.to_s.rjust(4)}): #{key}"
-            else
-              print "\r   Moved #{moved_count} keys"
+          # Configure migration options
+          migration_options = {
+            batch_size: parse_batch_size,
+            copy_mode: true,  # Keep keys in source for safety
+            timeout: 5000,
+            progress_interval: 50
+          }
+
+          migrator = Onetime::RedisKeyMigrator.new(source_uri, target_uri, migration_options)
+
+          # Show CLI commands in verbose mode
+          if global.verbose > 0
+            puts "   Strategy: #{migrator.send(:determine_migration_strategy).to_s.upcase}"
+            commands = migrator.generate_cli_commands(plan[:pattern])
+            puts "   Manual CLI commands:"
+            puts "     Discovery: #{commands[:discovery][1]}" if commands[:discovery][1]
+            puts "     Migration: #{commands[:migration][1]}" if commands[:migration][1]
+            puts ""
+          end
+
+          # Track progress and statistics
+          moved_count = 0
+          last_report_time = Time.now
+
+          statistics = migrator.migrate_keys(plan[:pattern]) do |phase, idx, type, key, ttl|
+            case phase
+            when :discovery
+              if global.verbose > 0
+                print "\r   Discovering keys: #{idx}"
+              end
+            when :migrate
+              moved_count = idx + 1
+              current_time = Time.now
+
+              if global.verbose > 0
+                puts "   #{moved_count.to_s.rjust(4)} (#{type.to_s.rjust(10)}, #{ttl.to_s.rjust(4)}): #{key}"
+              elsif current_time - last_report_time > 0.5  # Report every 500ms
+                print "\r   Migrated #{moved_count} keys"
+                last_report_time = current_time
+              end
             end
           end
 
-          puts "\n   ✅ Successfully migrated #{moved_count} #{plan[:model]} keys"
+          # Final progress update
+          print "\r   Migrated #{statistics[:migrated_keys]} keys"
+
+          # Report migration statistics
+          duration = statistics[:end_time] - statistics[:start_time]
+          strategy = statistics[:strategy_used]
+
+          puts "\n   ✅ Successfully migrated #{statistics[:migrated_keys]} #{plan[:model]} keys"
+          puts "      Strategy: #{strategy.to_s.upcase}, Duration: #{'%.2f' % duration}s"
+
+          if statistics[:failed_keys] > 0
+            puts "      ⚠️  #{statistics[:failed_keys]} keys failed to migrate"
+          end
+
+          if global.verbose > 0 && statistics[:errors].any?
+            puts "      Errors encountered:"
+            statistics[:errors].each { |error| puts "        • #{error[:context]}: #{error[:error]}" }
+          end
+
         rescue StandardError => ex
           puts "\n   ❌ Error migrating #{plan[:model]} data: #{ex.message}"
           OT.le "Migration error for #{plan[:model]}: #{ex.message}"
@@ -158,6 +257,54 @@ module Onetime
       end
 
       puts "\nAll done! Your Redis data has been migrated to database 0."
+    end
+
+    private
+
+    def parse_batch_size
+      batch_size_arg = argv.find { |arg| arg.start_with?('--batch-size=') }
+      if batch_size_arg
+        size = batch_size_arg.split('=', 2)[1].to_i
+        return size if size > 0 && size <= 10000
+      end
+      100  # Default batch size
+    end
+
+    def show_usage_help
+      if argv.include?('--help') || argv.include?('-h')
+        puts <<~USAGE
+
+          Redis Data Migration Tool
+
+          Usage:
+            bin/ots migrate_redis_data [options]
+
+          Options:
+            --run                 Execute the migration (required for actual migration)
+            --dry-run             Show what would be migrated without executing
+            --show-commands       Generate redis-cli commands for manual execution
+            --yes                 Auto-confirm migration (non-interactive mode)
+            --batch-size=N        Set batch size for migration (default: 100, max: 10000)
+            --verbose             Show detailed progress and CLI commands
+            --help, -h            Show this help message
+
+          Examples:
+            # Preview migration
+            bin/ots migrate_redis_data
+
+            # Execute migration with confirmation
+            bin/ots migrate_redis_data --run
+
+            # Generate manual CLI commands
+            bin/ots migrate_redis_data --show-commands
+
+            # Execute with custom batch size and verbose output
+            bin/ots migrate_redis_data --run --batch-size=50 --verbose
+
+        USAGE
+        return true
+      end
+      false
     end
   end
 end
