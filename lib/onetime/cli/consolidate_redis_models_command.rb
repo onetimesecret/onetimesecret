@@ -271,7 +271,11 @@ module Onetime
     def parse_batch_size
       if option.batch_size
         size = option.batch_size.to_i
-        return size if size > 0 && size <= 10_000
+        if size > 0 && size <= 10_000
+          return size
+        else
+          raise "Invalid batch size: #{option.batch_size}. Must be between 1 and 10,000."
+        end
       end
       100  # Default batch size
     end
