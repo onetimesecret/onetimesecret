@@ -8,6 +8,7 @@
 
 require_relative 'test_helpers'
 
+ENV['RACK_ENV'] = 'test'  # Set before boot to ensure consistency
 OT.boot! :test, false
 
 require 'rack'

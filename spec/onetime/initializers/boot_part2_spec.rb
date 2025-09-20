@@ -191,7 +191,14 @@ RSpec.describe "Onetime global state after boot" do
         # Mock $stdout.tty? to return true for this test
         allow($stdout).to receive(:tty?).and_return(true)
 
+        # Set RACK_ENV to non-test value to allow banner display
+        original_rack_env = ENV['RACK_ENV']
+        ENV['RACK_ENV'] = 'development'
+
         Onetime.boot!(:development)
+
+        # Restore original RACK_ENV
+        ENV['RACK_ENV'] = original_rack_env
       end
     end
 

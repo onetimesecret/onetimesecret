@@ -9,7 +9,7 @@
 module Onetime
   module ClassMethods
     @env   = nil
-    @mode  = :app
+    @mode  ||= :app
     @debug = nil
 
     attr_accessor :mode, :env
