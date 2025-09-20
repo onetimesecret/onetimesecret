@@ -4,7 +4,7 @@ require_relative '../lib/onetime/redis_key_migrator'
 
 # Setup section - instance variables persist across test cases
 @redis_host = 'localhost'
-@redis_port = 6379
+@redis_port = 2121
 @test_db_source = 14
 @test_db_target = 15
 

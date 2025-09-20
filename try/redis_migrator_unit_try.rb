@@ -117,7 +117,7 @@ class SimpleRedisKeyMigrator
 
     Redis.new(
       host: uri.host,
-      port: uri.port || 6379,
+      port: uri.port || 2121,
       db: db_number,
       password: uri.password,
       username: uri.user,
@@ -128,16 +128,16 @@ class SimpleRedisKeyMigrator
 end
 
 ## Test basic initialization
-source_uri = "redis://localhost:6379/14"
-target_uri = "redis://localhost:6379/15"
+source_uri = "redis://localhost:2121/14"
+target_uri = "redis://localhost:2121/15"
 
 migrator = SimpleRedisKeyMigrator.new(source_uri, target_uri)
 migrator.class.name.split('::').last
 #=> "SimpleRedisKeyMigrator"
 
 ## Test strategy detection for same instance
-source_uri = "redis://localhost:6379/14"
-target_uri = "redis://localhost:6379/15"
+source_uri = "redis://localhost:2121/14"
+target_uri = "redis://localhost:2121/15"
 
 migrator = SimpleRedisKeyMigrator.new(source_uri, target_uri)
 strategy = migrator.send(:determine_migration_strategy)
@@ -145,8 +145,8 @@ strategy
 #=> :migrate
 
 ## Test strategy detection for different instances
-source_uri = "redis://localhost:6379/14"
-target_uri = "redis://otherhost:6379/15"
+source_uri = "redis://localhost:2121/14"
+target_uri = "redis://otherhost:2121/15"
 
 migrator = SimpleRedisKeyMigrator.new(source_uri, target_uri)
 strategy = migrator.send(:determine_migration_strategy)
@@ -155,7 +155,7 @@ strategy
 
 ## Test error handling for nil source
 begin
-  migrator = SimpleRedisKeyMigrator.new(nil, "redis://localhost:6379/15")
+  migrator = SimpleRedisKeyMigrator.new(nil, "redis://localhost:2121/15")
   migrator.migrate_keys('*')
   false
 rescue ArgumentError => e
@@ -165,7 +165,7 @@ end
 
 ## Test error handling for identical URIs
 begin
-  same_uri = "redis://localhost:6379/14"
+  same_uri = "redis://localhost:2121/14"
   migrator = SimpleRedisKeyMigrator.new(same_uri, same_uri)
   migrator.migrate_keys('*')
   false
@@ -176,7 +176,7 @@ end
 
 ## Test basic migration with test data
 redis_host = 'localhost'
-redis_port = 6379
+redis_port = 2121
 test_db_source = 14
 
 # Setup test data
@@ -197,7 +197,7 @@ source_client.disconnect!
 #=> [2, 2, :migrate]
 
 ## Cleanup
-source_client = Redis.new(host: 'localhost', port: 6379, db: 14)
+source_client = Redis.new(host: 'localhost', port: 2121, db: 14)
 source_client.flushdb
 source_client.disconnect!
 

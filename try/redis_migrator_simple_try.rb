@@ -3,30 +3,30 @@
 require_relative '../lib/onetime/redis_key_migrator'
 
 ## Test basic initialization
-source_uri = "redis://localhost:6379/14"
-target_uri = "redis://localhost:6379/15"
+source_uri = "redis://localhost:2121/14"
+target_uri = "redis://localhost:2121/15"
 
 migrator = Onetime::RedisKeyMigrator.new(source_uri, target_uri)
 migrator.class.name
 #=> "Onetime::RedisKeyMigrator"
 
 ## Test URI parsing
-source_uri = "redis://localhost:6379/14"
-target_uri = "redis://localhost:6379/15"
+source_uri = "redis://localhost:2121/14"
+target_uri = "redis://localhost:2121/15"
 migrator = Onetime::RedisKeyMigrator.new(source_uri, target_uri)
 migrator.source_uri.host
 #=> "localhost"
 
 ## Test URI parsing database
-source_uri = "redis://localhost:6379/14"
-target_uri = "redis://localhost:6379/15"
+source_uri = "redis://localhost:2121/14"
+target_uri = "redis://localhost:2121/15"
 migrator = Onetime::RedisKeyMigrator.new(source_uri, target_uri)
 migrator.source_uri.path
 #=> "/14"
 
 ## Test strategy detection
-source_uri = "redis://localhost:6379/14"
-target_uri = "redis://localhost:6379/15"
+source_uri = "redis://localhost:2121/14"
+target_uri = "redis://localhost:2121/15"
 migrator = Onetime::RedisKeyMigrator.new(source_uri, target_uri)
 strategy = migrator.send(:determine_migration_strategy)
 strategy
