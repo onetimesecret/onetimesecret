@@ -1,7 +1,14 @@
-# lib/onetime/initializers/detect_legacy_data.rb
+# lib/onetime/initializers/detect_legacy_data_and_warn
 
 module Onetime
   module Initializers
+
+    # Check for legacy data distribution before connecting to databases
+    def detect_legacy_data_and_warn
+      legacy_data = detect_legacy_data
+      warn_about_legacy_data(legacy_data)
+    end
+
     # Detects legacy data distribution across multiple Redis databases
     # and warns about potential data loss when upgrading to db 0 defaults
     def detect_legacy_data
@@ -15,6 +22,11 @@ module Onetime
       legacy_mappings = {
         'session' => [1],
         'customer' => [6],
+        # There was a bug in previous default config file where custom domain
+        # key included an underscore. So we need to provide a value for that as
+        # well as the correct singleword, all lowercase which is what familia's
+        # config_name class method returns.
+        'custom_domain' => [6],
         'customdomain' => [6],
         'metadata' => [7],
         'secret' => [8],
@@ -277,8 +289,8 @@ module Onetime
 
     # Applies auto-configuration by updating OT.conf to match legacy data locations
     def apply_auto_configuration(legacy_locations)
-      # Get the current configuration (make sure it's mutable)
-      current_conf = OT.conf
+      # Create a mutable clone of the current configuration
+      current_conf = OT::Config.deep_clone(OT.conf)
 
       # Ensure redis.dbs section exists
       current_conf['redis']        ||= {}
@@ -297,6 +309,9 @@ module Onetime
 
         OT.ld "[apply_auto_configuration] Configured #{model} to use database #{legacy_db}"
       end
+
+      # Replace the global configuration with our updated clone
+      OT.replace_config!(current_conf)
 
       OT.ld '[apply_auto_configuration] Auto-configuration complete'
     end
