@@ -64,9 +64,9 @@ jobs:
         options: >-
           --health-cmd "redis-cli ping"
           --health-interval 10s
-          --health-timeout 3s
+          --health-timeout 10s
           --health-retries 5
-          --memory=1g
+          --memory=4g
         ports:
           # https://docs.github.com/en/actions/using-containerized-services/creating-redis-service-containers#running-jobs-in-containers
           # Maps port 6379 on service container to 2121 on the host to
@@ -194,9 +194,9 @@ jobs:
         options: >-
           --health-cmd "redis-cli ping"
           --health-interval 10s
-          --health-timeout 3s
+          --health-timeout 10s
           --health-retries 5
-          --memory=1g
+          --memory=4g
         ports:
           - 2121:6379
 

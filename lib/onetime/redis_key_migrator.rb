@@ -57,6 +57,8 @@ module Onetime
         return @statistics if keys.empty?
 
         case strategy
+        when :copy
+          migrate_using_copy_command(keys, &progress_block)
         when :migrate
           migrate_using_migrate_command(keys, &progress_block)
         when :dump_restore
@@ -86,8 +88,21 @@ module Onetime
       commands[:discovery] << "redis-cli -h #{@source_uri.host} -p #{@source_uri.port || 6379} -n #{extract_db_number(@source_uri)} --scan --pattern \"#{pattern}\""
 
       case strategy
+      when :copy
+        commands[:migration] << "# Same-instance migration using COPY command (Redis 6.2.0+):"
+        commands[:migration] << "# COPY preserves source data and is atomic for same-instance migrations"
+        commands[:migration] << ""
+        commands[:migration] << "# First, get the key list:"
+        commands[:migration] << "KEYS=$(redis-cli -h #{@source_uri.host} -p #{@source_uri.port || 6379} -n #{extract_db_number(@source_uri)} --scan --pattern \"#{pattern}\")"
+        commands[:migration] << ""
+        commands[:migration] << "# Copy each key to target database:"
+        commands[:migration] << "for key in $KEYS; do"
+        commands[:migration] << "  redis-cli -h #{@source_uri.host} -p #{@source_uri.port || 6379} -n #{extract_db_number(@source_uri)} COPY \"$key\" \"$key\" DB #{extract_db_number(@target_uri)} REPLACE"
+        commands[:migration] << "done"
+
       when :migrate
         commands[:migration] << "# Bulk migration (Redis 3.0.6+, same instance):"
+        commands[:migration] << "# WARNING: MIGRATE may have TCP loopback issues on same instance"
 
         # For MIGRATE command, we need to show how to batch keys
         commands[:migration] << "# First, get the key list:"
@@ -100,7 +115,7 @@ module Onetime
 
       when :dump_restore
         commands[:migration] << "# Cross-server migration using DUMP/RESTORE:"
-        commands[:migration] << "# Note: This requires scripting for efficient batch processing"
+        commands[:migration] << "# DUMP/RESTORE preserves source data and works across Redis versions"
         commands[:migration] << ""
         commands[:migration] << "# Example for single key migration:"
         commands[:migration] << "KEY=\"#{pattern.gsub('*', 'example')}\""
@@ -121,15 +136,20 @@ module Onetime
       commands[:verification] << "redis-cli -h #{@target_uri.host} -p #{@target_uri.port || 6379} -n #{extract_db_number(@target_uri)} --scan --pattern \"#{pattern}\" | head -5"
 
       # Cleanup commands (user must run manually)
-      commands[:cleanup] << "# ⚠️  DANGER: Delete keys from source (RUN AT YOUR OWN RISK)"
-      commands[:cleanup] << "# Only run these commands if you're sure the migration was successful!"
-      commands[:cleanup] << ""
-      commands[:cleanup] << "# List keys that would be deleted:"
-      commands[:cleanup] << "redis-cli -h #{@source_uri.host} -p #{@source_uri.port || 6379} -n #{extract_db_number(@source_uri)} --scan --pattern \"#{pattern}\""
-      commands[:cleanup] << ""
-      commands[:cleanup] << "# Delete keys (IRREVERSIBLE):"
-      commands[:cleanup] << "redis-cli -h #{@source_uri.host} -p #{@source_uri.port || 6379} -n #{extract_db_number(@source_uri)} --scan --pattern \"#{pattern}\" | \\"
-      commands[:cleanup] << "  xargs redis-cli -h #{@source_uri.host} -p #{@source_uri.port || 6379} -n #{extract_db_number(@source_uri)} DEL"
+      if strategy == :copy
+        commands[:cleanup] << "# ℹ️  COPY strategy preserves source data - no cleanup needed"
+        commands[:cleanup] << "# Source keys remain untouched for rollback capability"
+      else
+        commands[:cleanup] << "# ⚠️  DANGER: Delete keys from source (RUN AT YOUR OWN RISK)"
+        commands[:cleanup] << "# Only run these commands if you're sure the migration was successful!"
+        commands[:cleanup] << ""
+        commands[:cleanup] << "# List keys that would be deleted:"
+        commands[:cleanup] << "redis-cli -h #{@source_uri.host} -p #{@source_uri.port || 6379} -n #{extract_db_number(@source_uri)} --scan --pattern \"#{pattern}\""
+        commands[:cleanup] << ""
+        commands[:cleanup] << "# Delete keys (IRREVERSIBLE):"
+        commands[:cleanup] << "redis-cli -h #{@source_uri.host} -p #{@source_uri.port || 6379} -n #{extract_db_number(@source_uri)} --scan --pattern \"#{pattern}\" | \\"
+        commands[:cleanup] << "  xargs redis-cli -h #{@source_uri.host} -p #{@source_uri.port || 6379} -n #{extract_db_number(@source_uri)} DEL"
+      end
 
       commands
     end
@@ -170,11 +190,13 @@ module Onetime
         # Same instance, same database - no migration needed
         raise ArgumentError, "Source and target are identical"
       elsif same_redis_instance?
-        # Same instance, different database - use MIGRATE command
-        @statistics[:strategy_used] = :migrate
-        :migrate
+        # Same instance, different database - use COPY command
+        # COPY preserves source data for rollback and avoids TCP loopback issues
+        @statistics[:strategy_used] = :copy
+        :copy
       else
-        # Different instances - use DUMP/RESTORE (MIGRATE doesn't work well for this)
+        # Different instances - use DUMP/RESTORE
+        # DUMP/RESTORE preserves source data and works across Redis versions
         @statistics[:strategy_used] = :dump_restore
         :dump_restore
       end
@@ -232,6 +254,27 @@ module Onetime
       source_client&.disconnect!
     end
 
+    # MIGRATE Command Limitations and Issues:
+    #
+    # 1. TCP Loopback Problems:
+    #    - MIGRATE requires establishing a TCP connection to the target Redis instance
+    #    - When source and target are the same instance (same host:port), Redis attempts
+    #      to connect to itself via TCP, which can fail with "IOERR error or timeout"
+    #    - This is particularly problematic in containerized environments (Docker, CI)
+    #
+    # 2. Destructive Operation:
+    #    - MIGRATE deletes keys from the source instance upon successful migration
+    #    - Not suitable when preserving source data is required (e.g., rollback scenarios)
+    #    - Uses DUMP+DEL internally on source, RESTORE on target
+    #
+    # 3. Version Dependencies:
+    #    - Bulk migration with KEYS option requires Redis 3.0.6+
+    #    - May have compatibility issues across different Redis versions
+    #
+    # For same-instance migrations, use COPY command instead (Redis 6.2.0+)
+    # For cross-instance migrations, use DUMP/RESTORE to preserve source data
+    #
+
     def migrate_using_migrate_command(keys, &progress_block)
       @logger.debug "Using MIGRATE command for same-instance migration"
 
@@ -257,6 +300,39 @@ module Onetime
               progress_block.call(:migrate, migrated_count - batch.size + idx, 'migrate', key, -1)
             end
           end
+
+        rescue => e
+          handle_batch_error(batch, e, source_client, nil, &progress_block)
+        end
+      end
+
+    ensure
+      source_client&.disconnect!
+      @statistics[:end_time] = Time.now
+    end
+
+    def migrate_using_copy_command(keys, &progress_block)
+      @logger.debug "Using COPY command for same-instance migration"
+
+      source_client = create_redis_client(@source_uri)
+      target_db = extract_db_number(@target_uri)
+      migrated_count = 0
+
+      keys.each_slice(@options[:batch_size]) do |batch|
+        begin
+          # Use COPY command for each key in the batch
+          batch.each do |key|
+            # COPY source_key destination_key DB destination_db REPLACE
+            # Redis COPY command preserves source data and is atomic
+            source_client.copy(key, key, db: target_db, replace: true)
+            migrated_count += 1
+
+            if progress_block
+              progress_block.call(:migrate, migrated_count, 'copy', key, -1)
+            end
+          end
+
+          @statistics[:migrated_keys] = migrated_count
 
         rescue => e
           handle_batch_error(batch, e, source_client, nil, &progress_block)

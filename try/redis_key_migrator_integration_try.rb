@@ -3,7 +3,7 @@
 require_relative '../lib/onetime/redis_key_migrator'
 
 # Setup section - instance variables persist across test cases
-@redis_host = 'localhost'
+@redis_host = '127.0.0.1'
 @redis_port = 2121
 @test_db_source = 14
 @test_db_target = 15
@@ -58,7 +58,7 @@ target_uri = test_uri(@test_db_target)
 migrator = Onetime::RedisKeyMigrator.new(source_uri, target_uri)
 strategy = migrator.send(:determine_migration_strategy)
 strategy
-#=> :migrate
+#=> :copy
 
 ## Test cross-server migration strategy detection
 source_uri = "redis://#{@redis_host}:#{@redis_port}/#{@test_db_source}"
@@ -107,7 +107,7 @@ migrator = Onetime::RedisKeyMigrator.new(source_uri, target_uri)
 
 commands = migrator.generate_cli_commands('customer:*')
 [commands[:strategy], commands.keys.sort]
-#=> [:migrate, [:cleanup, :discovery, :migration, :strategy, :verification]]
+#=> [:copy, [:cleanup, :discovery, :migration, :strategy, :verification]]
 
 ## Test CLI command generation for cross-server
 source_uri = "redis://#{@redis_host}:#{@redis_port}/#{@test_db_source}"
@@ -181,7 +181,7 @@ target_client.disconnect!
 
 # Results: [initial_source_count, initial_target_count, final_source_count, final_target_count, strategy]
 [source_keys.size, target_keys.size, post_source_keys.size, post_target_keys.size, stats[:strategy_used]]
-#=> [6, 0, 6, 6, :migrate]
+#=> [6, 0, 6, 6, :copy]
 
 ## Test database number extraction
 source_uri = test_uri(@test_db_source)
