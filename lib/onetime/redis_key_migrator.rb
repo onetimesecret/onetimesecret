@@ -12,9 +12,12 @@ module Onetime
       batch_size: 100,
       scan_count: 1000,
       timeout: 5000,
+      redis_timeout: 30,  # Redis client connection timeout in seconds
       copy_mode: true,
       retry_attempts: 3,
-      progress_interval: 100
+      progress_interval: 100,
+      max_keys_in_memory: 100_000,  # Switch to streaming mode above this threshold
+      streaming_mode: false  # Force streaming mode regardless of key count
     }.freeze
 
     def initialize(source_uri, target_uri, options = {})
@@ -23,6 +26,15 @@ module Onetime
       @options = DEFAULT_OPTIONS.merge(options)
       @statistics = initialize_statistics
       @logger = options[:logger] || Logger.new($stdout, level: Logger::WARN)
+
+      # Auto-adjust Redis timeout based on batch size if not explicitly set
+      unless options.key?(:redis_timeout)
+        @options[:redis_timeout] = calculate_redis_timeout(@options[:batch_size])
+      end
+
+      # Initialize adaptive progress tracking
+      @last_progress_time = Time.now
+      @adaptive_progress_interval = @options[:progress_interval]
     end
 
     def migrate_keys(pattern = '*', &progress_block)
@@ -36,16 +48,22 @@ module Onetime
         raise "Strategy mismatch: returned #{strategy}, but statistics show #{@statistics[:strategy_used]}"
       end
 
-      keys = discover_keys(pattern, &progress_block)
-      return @statistics if keys.empty?
-
-      case strategy
-      when :migrate
-        migrate_using_migrate_command(keys, &progress_block)
-      when :dump_restore
-        migrate_using_dump_restore(keys, &progress_block)
+      # Check if we should use streaming mode based on initial scan
+      if should_use_streaming_mode?(pattern)
+        @logger.debug "Using streaming mode for large dataset migration"
+        migrate_keys_streaming(pattern, strategy, &progress_block)
       else
-        raise "Unknown migration strategy: #{strategy}"
+        keys = discover_keys(pattern, &progress_block)
+        return @statistics if keys.empty?
+
+        case strategy
+        when :migrate
+          migrate_using_migrate_command(keys, &progress_block)
+        when :dump_restore
+          migrate_using_dump_restore(keys, &progress_block)
+        else
+          raise "Unknown migration strategy: #{strategy}"
+        end
       end
 
       @statistics
@@ -143,7 +161,8 @@ module Onetime
     end
 
     def normalize_uri(uri)
-      "#{uri.host}:#{uri.port}/#{uri.path&.gsub('/', '') || uri.db || 0}"
+      port = uri.port || 6379
+      "#{uri.host}:#{port}/#{uri.path&.gsub('/', '') || uri.db || 0}"
     end
 
     def determine_migration_strategy
@@ -194,7 +213,7 @@ module Onetime
           keys.concat(batch_keys)
           discovered_count += batch_keys.size
 
-          if block_given? && discovered_count % @options[:progress_interval] == 0
+          if block_given? && should_report_progress?(discovered_count)
             progress_block.call(:discovery, discovered_count, nil, nil, nil)
           end
 
@@ -299,11 +318,65 @@ module Onetime
     end
 
     def handle_batch_error(batch, error, source_client = nil, target_client = nil, &progress_block)
-      @logger.error "Batch migration failed: #{error.message}"
+      @logger.error "Batch migration failed (#{batch.size} keys): #{error.message}"
       @statistics[:errors] << { batch: batch, error: error.message }
 
-      # Try individual key migration for failed batch
-      # Reuse existing client connections for better performance
+      # Try partial batch retry first for better performance
+      if batch.size > 1 && @options[:retry_attempts] > 0
+        @logger.debug "Attempting partial batch retry"
+        retry_partial_batch(batch, source_client, target_client, &progress_block)
+      else
+        # Fall back to individual key migration
+        @logger.debug "Falling back to individual key migration"
+        retry_individual_keys(batch, source_client, target_client, &progress_block)
+      end
+    end
+
+    # Try partial batch retry by splitting the failed batch into smaller chunks
+    def retry_partial_batch(batch, source_client = nil, target_client = nil, &progress_block)
+      # Split batch in half and retry each part
+      mid_point = batch.size / 2
+      first_half = batch[0...mid_point]
+      second_half = batch[mid_point..-1]
+
+      [first_half, second_half].each do |sub_batch|
+        next if sub_batch.empty?
+
+        begin
+          @logger.debug "Retrying partial batch (#{sub_batch.size} keys)"
+
+          if target_client.nil?
+            # Same instance migration
+            target_db = extract_db_number(@target_uri)
+            migrate_args = [@target_uri.host, @target_uri.port, '', target_db, @options[:timeout], 'COPY', 'REPLACE', 'KEYS'] + sub_batch
+            source_client.call('MIGRATE', *migrate_args)
+          else
+            # Cross-server migration
+            dumps = source_client.pipelined { |pipe| sub_batch.each { |key| pipe.dump(key) } }
+            ttls = source_client.pipelined { |pipe| sub_batch.each { |key| pipe.pttl(key) } }
+
+            target_client.pipelined do |pipe|
+              sub_batch.each_with_index do |key, idx|
+                next if dumps[idx].nil?
+                ttl = ttls[idx] == -1 ? 0 : ttls[idx]
+                pipe.restore(key, ttl, dumps[idx], replace: true)
+              end
+            end
+          end
+
+          @statistics[:migrated_keys] += sub_batch.size
+          @logger.debug "Partial batch retry successful (#{sub_batch.size} keys)"
+
+        rescue => e
+          @logger.debug "Partial batch retry failed (#{sub_batch.size} keys): #{e.message}"
+          # If partial retry fails, fall back to individual key migration
+          retry_individual_keys(sub_batch, source_client, target_client, &progress_block)
+        end
+      end
+    end
+
+    # Retry individual keys when batch operations fail
+    def retry_individual_keys(batch, source_client = nil, target_client = nil, &progress_block)
       batch.each do |key|
         begin
           migrate_single_key(key, source_client, target_client, &progress_block)
@@ -381,9 +454,144 @@ module Onetime
         db: db_number,
         password: uri.password,
         username: uri.user,
-        timeout: 30,
+        timeout: @options[:redis_timeout],
         reconnect_attempts: 3
       )
+    end
+
+    # Calculate appropriate Redis timeout based on expected operation complexity
+    def calculate_redis_timeout(batch_size)
+      # Base timeout: 30 seconds
+      # Add 2 seconds per 100 keys in batch (for large batch operations)
+      # Minimum: 30 seconds, Maximum: 300 seconds (5 minutes)
+      base_timeout = 30
+      additional_timeout = (batch_size / 100.0) * 2
+
+      [base_timeout + additional_timeout, 300].min.to_i
+    end
+
+    # Adaptive progress reporting to avoid overwhelming output for large migrations
+    def should_report_progress?(current_count)
+      return true if current_count % @adaptive_progress_interval == 0
+
+      # Dynamically adjust interval based on volume
+      # For large datasets (>10k keys), reduce frequency to avoid spam
+      if current_count > 10_000 && @adaptive_progress_interval < 1000
+        @adaptive_progress_interval = [current_count / 100, 1000].min
+      elsif current_count > 1_000 && @adaptive_progress_interval < 100
+        @adaptive_progress_interval = [current_count / 50, 100].min
+      end
+
+      current_count % @adaptive_progress_interval == 0
+    end
+
+    # Determine if streaming mode should be used for large datasets
+    def should_use_streaming_mode?(pattern)
+      return true if @options[:streaming_mode]
+
+      # Quick sample scan to estimate total key count
+      source_client = create_redis_client(@source_uri)
+      sample_cursor, sample_keys = source_client.scan(0, match: pattern, count: 1000)
+      source_client.disconnect!
+
+      # If we get a full batch (1000 keys) in one scan, dataset is likely large
+      sample_keys.size >= 1000
+    rescue
+      # If estimation fails, default to regular mode
+      false
+    end
+
+    # Memory-efficient streaming migration for large datasets
+    def migrate_keys_streaming(pattern, strategy, &progress_block)
+      @logger.debug "Starting streaming migration for pattern: #{pattern}"
+
+      source_client = create_redis_client(@source_uri)
+      target_client = create_redis_client(@target_uri) unless strategy == :migrate
+
+      @statistics[:start_time] = Time.now
+      cursor = 0
+      migrated_count = 0
+      batch_buffer = []
+
+      loop do
+        begin
+          # Scan for next batch of keys
+          cursor, keys = source_client.scan(
+            cursor,
+            match: pattern,
+            count: @options[:scan_count]
+          )
+
+          batch_buffer.concat(keys)
+          @statistics[:total_keys] += keys.size
+
+          # Process full batches immediately to keep memory usage low
+          while batch_buffer.size >= @options[:batch_size]
+            batch = batch_buffer.shift(@options[:batch_size])
+
+            case strategy
+            when :migrate
+              migrate_batch_streaming(batch, source_client, nil, &progress_block)
+            when :dump_restore
+              migrate_batch_streaming(batch, source_client, target_client, &progress_block)
+            end
+
+            migrated_count += batch.size
+            @statistics[:migrated_keys] = migrated_count
+
+            if should_report_progress?(migrated_count)
+              progress_block&.call(:migrate, migrated_count, "streaming_#{strategy}", nil, -1)
+            end
+          end
+
+          break if cursor == "0"
+        rescue => e
+          handle_error("Streaming migration failed", e)
+          break
+        end
+      end
+
+      # Process remaining keys in buffer
+      unless batch_buffer.empty?
+        case strategy
+        when :migrate
+          migrate_batch_streaming(batch_buffer, source_client, nil, &progress_block)
+        when :dump_restore
+          migrate_batch_streaming(batch_buffer, source_client, target_client, &progress_block)
+        end
+
+        @statistics[:migrated_keys] += batch_buffer.size
+      end
+
+    ensure
+      source_client&.disconnect!
+      target_client&.disconnect!
+      @statistics[:end_time] = Time.now
+    end
+
+    # Process a batch of keys in streaming mode
+    def migrate_batch_streaming(batch, source_client, target_client, &progress_block)
+      if target_client.nil?
+        # Same instance migration using MIGRATE command
+        target_db = extract_db_number(@target_uri)
+        migrate_args = [@target_uri.host, @target_uri.port, '', target_db, @options[:timeout], 'COPY', 'REPLACE', 'KEYS'] + batch
+        source_client.call('MIGRATE', *migrate_args)
+      else
+        # Cross-server migration using DUMP/RESTORE
+        dumps = source_client.pipelined { |pipe| batch.each { |key| pipe.dump(key) } }
+        ttls = source_client.pipelined { |pipe| batch.each { |key| pipe.pttl(key) } }
+
+        target_client.pipelined do |pipe|
+          batch.each_with_index do |key, idx|
+            next if dumps[idx].nil?
+            ttl = ttls[idx] == -1 ? 0 : ttls[idx]
+            pipe.restore(key, ttl, dumps[idx], replace: true)
+          end
+        end
+      end
+    rescue => e
+      # Fall back to individual key migration for failed batch
+      handle_batch_error(batch, e, source_client, target_client, &progress_block)
     end
   end
 end
