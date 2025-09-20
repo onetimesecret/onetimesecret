@@ -77,7 +77,6 @@ gem 'otto', '~> 1.4.0'
 gem 'base64'
 gem 'irb'
 gem 'logger'                 # Used by Truemail
-gem 'ostruct', '~> 0.6.2'
 gem 'psych', '~> 5.2.3'
 gem 'rdoc'
 gem 'stringio', '~> 3.1.6'
