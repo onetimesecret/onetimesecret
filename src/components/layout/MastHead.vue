@@ -173,11 +173,13 @@ import { shallowRef } from 'vue';
             @click="openSettingsModal"
             class="text-xl text-gray-600 transition-colors duration-200
               hover:text-gray-800 dark:text-gray-300 dark:hover:text-white"
-            :aria-label="t('web.COMMON.header_settings')">
+            :aria-label="t('web.COMMON.header_settings')"
+            :title="t('web.COMMON.header_settings')">
             <OIcon
               class="size-5"
               collection="material-symbols"
-              name="settings-outline" />
+              name="settings-outline"
+              aria-hidden="true" />
           </button>
 
           <SettingsModal
@@ -200,7 +202,8 @@ import { shallowRef } from 'vue';
             <OIcon
               class="size-5"
               collection="heroicons"
-              name="arrow-right-on-rectangle-solid" />
+              name="arrow-right-on-rectangle-solid"
+              aria-hidden="true" />
           </router-link>
         </template>
 
