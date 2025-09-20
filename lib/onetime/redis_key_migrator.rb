@@ -5,6 +5,104 @@ require 'uri'
 require 'logger'
 
 module Onetime
+# Redis Key Migration Utility
+#
+# This class provides functionality to migrate Redis keys between databases or instances
+# while preserving source data for rollback scenarios. It supports three migration strategies
+# based on the source and target configuration.
+#
+# == Migration Strategies
+#
+# === COPY Strategy (Same Instance, Different Database)
+#
+# **When Used**: Source and target are the same Redis instance but different databases
+# **Command**: Redis COPY command (Redis 6.2.0+)
+# **Behavior**:
+# - Atomic operation within the same Redis process
+# - Preserves source keys (non-destructive)
+# - No network overhead (no TCP connections)
+# - Ideal for rollback scenarios and data preservation
+#
+# **Example**:
+#   COPY source_key target_key DB target_db REPLACE
+#
+# === DUMP/RESTORE Strategy (Cross-Instance Migration)
+#
+# **When Used**: Source and target are different Redis instances
+# **Commands**: DUMP + RESTORE with pipelining
+# **Behavior**:
+# - Memory-efficient for large datasets
+# - Preserves source keys (non-destructive)
+# - Works across different Redis versions
+# - Handles TTL preservation automatically
+# - Uses pipelining for performance optimization
+#
+# **Example**:
+#   DUMP source_key -> serialized_data
+#   PTTL source_key -> ttl_value
+#   RESTORE target_key ttl_value serialized_data REPLACE
+#
+# === MIGRATE Strategy (Legacy - Not Recommended)
+#
+# **When Used**: Legacy fallback (discouraged)
+# **Command**: Redis MIGRATE command
+# **Critical Limitations**:
+#
+# 1. **TCP Loopback Issues**:
+#    - MIGRATE requires TCP connection to target Redis instance
+#    - When source == target instance, Redis attempts self-connection
+#    - Results in "IOERR error or timeout" in many environments
+#    - Particularly problematic in containers, CI/CD, and some network configs
+#
+# 2. **Destructive Operation**:
+#    - MIGRATE deletes keys from source upon successful migration
+#    - Uses DUMP+DEL internally on source, RESTORE on target
+#    - Not suitable when source data preservation is required
+#    - Makes rollback scenarios impossible without backup
+#
+# 3. **Network and Performance Issues**:
+#    - Always requires network round-trip even for same-instance migrations
+#    - Higher latency compared to COPY for same-instance scenarios
+#    - Potential for partial migration states on network failures
+#
+# 4. **Version Dependencies**:
+#    - Bulk migration with KEYS option requires Redis 3.0.6+
+#    - May have compatibility issues across Redis version differences
+#
+# **Why MIGRATE is Discouraged**:
+# - COPY is superior for same-instance migrations (faster, atomic, preserves data)
+# - DUMP/RESTORE is superior for cross-instance migrations (reliable, preserves data)
+# - MIGRATE's destructive nature conflicts with rollback requirements
+# - TCP loopback issues make it unreliable in modern deployment environments
+#
+# == Usage Examples
+#
+#   # Same instance migration (uses COPY strategy)
+#   migrator = RedisKeyMigrator.new('redis://localhost:6379/0', 'redis://localhost:6379/1')
+#   stats = migrator.migrate_keys('user:*')
+#   # => { strategy_used: :copy, migrated_keys: 150, total_keys: 150 }
+#
+#   # Cross-instance migration (uses DUMP/RESTORE strategy)
+#   migrator = RedisKeyMigrator.new('redis://server1:6379/0', 'redis://server2:6379/0')
+#   stats = migrator.migrate_keys('session:*')
+#   # => { strategy_used: :dump_restore, migrated_keys: 1000, total_keys: 1000 }
+#
+# == Error Handling and Fallbacks
+#
+# The migrator includes comprehensive error handling:
+# - Batch operations fall back to individual key migration on failure
+# - Partial batch retry for performance optimization
+# - Detailed error logging and statistics collection
+# - Graceful handling of network timeouts and Redis errors
+#
+# == Performance Considerations
+#
+# - Uses pipelining for DUMP/RESTORE operations to minimize network round-trips
+# - Configurable batch sizes for memory management
+# - Streaming mode for large datasets to prevent memory exhaustion
+# - Adaptive progress reporting to avoid overwhelming output
+#
+
   class RedisKeyMigrator
     attr_reader :source_uri, :target_uri, :options, :statistics, :logger
 
