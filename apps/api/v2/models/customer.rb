@@ -39,13 +39,6 @@ module V2
     prefix :customer
 
     class_sorted_set :values, dbkey: 'onetime:customer'
-    sorted_set :metadata
-    hashkey :feature_flags # To turn on allow_public_homepage column in domains table
-
-    # Used to track the current and most recently created password reset secret.
-    string :reset_secret, default_expiration: 24.hours
-
-    identifier_field :custid
 
     feature :expiration
     feature :relationships
@@ -64,6 +57,16 @@ module V2
     feature :legacy_encrypted_fields
     feature :legacy_secrets_fields
 
+    sorted_set :metadata
+    hashkey :feature_flags # To turn on allow_public_homepage column in domains table
+
+    # Used to track the current and most recently created password reset secret.
+    string :reset_secret, default_expiration: 24.hours
+
+    class_indexed_by :email, :email_lookup
+
+    identifier_field :custid
+
     field :custid
     field :email
 
@@ -72,11 +75,9 @@ module V2
 
     field :last_login
 
-
     def init
-      self.custid ||= 'anon'
+      self.custid ||= self.objid
       self.role   ||= 'customer'
-      self.email  ||= self.custid unless anonymous?
 
       # When an instance is first created, any field that doesn't have a
       # value set will be nil. We need to ensure that these fields are
@@ -88,15 +89,13 @@ module V2
     end
 
     def anonymous?
-      custid.to_s.eql?('anon')
+      role.to_s.eql?('anonymous')
     end
 
     def obscure_email
-      if anonymous?
-        'anon'
-      else
-        OT::Utils.obscure_email(custid)
-      end
+      raise Onetime::Problem, "Anonymous has no email" if anonymous?
+
+      OT::Utils.obscure_email(email)
     end
 
     def role?(guess)
@@ -122,22 +121,25 @@ module V2
     class << self
       attr_reader :values
 
-      def create(custid, email = nil)
-        raise Onetime::Problem, 'custid is required' if custid.to_s.empty?
-        raise Onetime::Problem, 'Customer exists' if exists?(custid)
+      def create(email, **)
+        raise Familia::Problem, 'email is required' if email.to_s.empty?
+        raise Familia::RecordExistsError, 'Customer exists' if email_exists?(email)
 
-        cust        = new custid: custid, email: email || custid, role: 'customer'
-        cust.planid = 'basic'
-        OT.ld "[create] custid: #{custid}, #{cust.safe_dump}"
+        cust = new(email: email, **)
+
+        OT.ld "[create] custid: #{cust.identifier}, #{cust.safe_dump}"
         cust.save
         add cust
         cust
       end
 
       def anonymous
-        new('anon').freeze
+        @anonymous ||= new(role: 'anonymous').freeze
       end
 
+      def email_exists?(email)
+        !find_by_email(email).nil?
+      end
     end
 
     # Mixin Placement for Field Order Control

@@ -85,13 +85,12 @@ features:
 redis:
   uri: 'redis://127.0.0.1:2121/0'
   dbs:
-    session: 1
-    custom_domain: 6
-    customer: 6
-    subdomain: 6
-    metadata: 7
-    secret: 8
-    feedback: 11
+    session: 0
+    custom_domain: 0
+    customer: 0
+    metadata: 0
+    secret: 0
+    feedback: 0
 logging:
   http_requests: true
 emailer:

@@ -26,7 +26,8 @@ OT.boot! :test, false
 # Setup some variables for these tryouts
 @now = Time.now.strftime("%Y%m%d%H%M%S")
 @email_address = "tryouts+#{@now}@onetimesecret.com"
-@cust = V2::Customer.new @email_address
+@cust = V2::Customer.new email: @email_address
+@objid = @cust.objid
 
 # TRYOUTS
 
@@ -35,19 +36,25 @@ OT.boot! :test, false
 #=> nil
 
 ## New instance of customer has a custid
-p @cust.to_h
 @cust.custid
-#=> @email_address
+#=~> /[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/
+
+## New instance of customer has an objid
+@cust.objid
+#=~> /[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/
+
+## New instance of customer has an extid
+@cust.extid
+#=~> /ext_[0-9a-z]{16}/
 
 ## New instance of customer has a dbkey
-p [:email, @email_address]
 @cust.dbkey
-#=> "customer:#{@email_address}:object"
+#=> "customer:#{@objid}:object"
 
 ## Can "create" an anonymous user (more like simulate)
 @anonymous = V2::Customer.anonymous
-@anonymous.custid
-#=> 'anon'
+@anonymous.role
+#=> 'anonymous'
 
 ## Anonymous is a Customer class
 @anonymous.class
@@ -67,12 +74,9 @@ p [:email, @email_address]
 #=> false
 
 ## Trying to save anonymous raises hell on earth
-begin
-  @anonymous.save
-rescue OT::Problem => e
-  [e.class, e.message]
-end
-#=> [Onetime::Problem, "Anonymous cannot be saved V2::Customer customer:anon:object"]
+@anonymous.save
+#=!> Onetime::Problem
+#=!> "Anonymous cannot be saved V2::Customer customer:#{@objid}:object"
 
 ## Object name and dbkey are no longer equivalent.
 ## This is a reference back to Familia v0.10.2 era which
@@ -142,6 +146,7 @@ ttl = @cust.default_expiration
 @cust.verified?
 #=> false
 
+
 ## Customer.values has the correct dbkey
 V2::Customer.values.dbkey
 #=> "onetime:customer"
@@ -157,3 +162,18 @@ V2::Customer.values.class
 ## Customer.domains is a Familia::HashKey
 V2::Customer.domains.class
 #=> Familia::HashKey
+
+## Customer find by email, nil by default
+email = "test1+#{rand(10000000)}@example.com"
+V2::Customer.find_by_email(email)
+#=> nil
+
+## Customer find by email, when the record exists
+@email = "test2+#{rand(10000000)}@example.com"
+cust = V2::Customer.create(@email)
+V2::Customer.find_by_email(@email)
+#=:> V2::Customer
+
+
+test_cust = V2::Customer.find_by_email(@email)
+test_cust.delete!
