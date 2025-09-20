@@ -78,18 +78,8 @@ module Onetime
         Total keys to migrate: #{total_keys}
       MESSAGE
 
-      if argv.include?('--dry-run') || !global.run
-        puts <<~MESSAGE
-
-          DRY RUN MODE - No changes will be made
-          To execute the migration, run with --run flag
-
-        MESSAGE
-        return
-      end
-
-      # Check for --show-commands option
-      if argv.include?('--show-commands')
+      # Check for --show-commands option first (before dry run check)
+      if option.show_commands
         puts "\n" + "=" * 60
         puts "REDIS CLI COMMANDS (for manual execution)"
         puts "=" * 60
@@ -131,8 +121,19 @@ module Onetime
         return
       end
 
+      # Dry run check (only if not showing commands)
+      unless option.run
+        puts <<~MESSAGE
+
+          DRY RUN MODE - No changes will be made
+          To execute the migration, run with --run flag
+
+        MESSAGE
+        return
+      end
+
       # Check for non-interactive mode
-      auto_confirm = argv.include?('--yes') || !$stdin.tty?
+      auto_confirm = option.yes || !$stdin.tty?
 
       unless auto_confirm
         # Confirm before proceeding
@@ -268,16 +269,15 @@ module Onetime
     private
 
     def parse_batch_size
-      batch_size_arg = argv.find { |arg| arg.start_with?('--batch-size=') }
-      if batch_size_arg
-        size = batch_size_arg.split('=', 2)[1].to_i
+      if option.batch_size
+        size = option.batch_size.to_i
         return size if size > 0 && size <= 10000
       end
       100  # Default batch size
     end
 
     def show_usage_help
-      if argv.include?('--help') || argv.include?('-h')
+      if option.help
         puts <<~USAGE
 
           Redis Data Migration Tool
