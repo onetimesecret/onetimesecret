@@ -56,9 +56,6 @@ importers:
       axios-mock-adapter:
         specifier: 2.1.0
         version: 2.1.0(axios@1.12.2)
-      client:
-        specifier: link:@vitejs/plugin-vue/client
-        version: link:@vitejs/plugin-vue/client
       codemirror:
         specifier: 6.0.2
         version: 6.0.2
