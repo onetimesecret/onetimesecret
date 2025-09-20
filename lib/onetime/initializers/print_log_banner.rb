@@ -1,7 +1,6 @@
 # lib/onetime/initializers/print_log_banner.rb
 
 require 'tty-table'
-require 'json'
 
 module Onetime
   module Initializers

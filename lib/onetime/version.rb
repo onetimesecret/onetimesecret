@@ -1,4 +1,4 @@
-require 'json'
+require 'familia/json_serializer'
 
 module Onetime
   module VERSION
@@ -24,7 +24,7 @@ module Onetime
 
       # Load version from package.json
       package_json_path = File.join(Onetime::HOME, 'package.json')
-      package_json      = JSON.parse(File.read(package_json_path))
+      package_json      = Familia::JsonSerializer.parse(File.read(package_json_path))
 
       # Split the version string into main version and pre-release parts
       version_parts      = package_json['version'].split('-')

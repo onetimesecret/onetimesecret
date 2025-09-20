@@ -331,12 +331,10 @@ DEPENDENCIES
   fastimage (~> 2.4)
   httparty
   irb
-  json
   json_schemer
   logger
   mail
   mustache
-  ostruct (~> 0.6.2)
   otto (~> 1.4.0)
   psych (~> 5.2.3)
   public_suffix
