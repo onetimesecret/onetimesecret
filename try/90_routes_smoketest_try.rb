@@ -67,33 +67,33 @@ response = @mock_request.get('/api/v2/authcheck')
 
 ## Can access the API share endpoint
 response = @mock_request.post('/api/v1/create')
-content = JSON.parse(response.body) rescue {}
+content = Familia::JsonSerializer.parse(response.body) rescue {}
 has_msg = content.slice('message').eql?({'message' => 'You did not provide anything to share'})
 [response.status, has_msg, content.keys.sort]
 #=> [404, true, ['message', 'shrimp']]
 
 ## Can access the API generate endpoint
 response = @mock_request.post('/api/v1/generate')
-content = JSON.parse(response.body)
+content = Familia::JsonSerializer.parse(response.body)
 [response.status, content["custid"]]
 #=> [200, 'anon']
 
 ## Can access the V2 API conceal endpoint
 response = @mock_request.post('/api/v2/secret/conceal')
-content = JSON.parse(response.body) rescue {}
+content = Familia::JsonSerializer.parse(response.body) rescue {}
 has_msg = content.slice('message').eql?({'message' => 'You did not provide anything to share'})
 [response.status, has_msg, content.keys.sort]
 #=> [422, true, ['message', 'shrimp', 'success']]
 
 ## Can access the V2 API generate endpoint
 response = @mock_request.post('/api/v2/secret/generate')
-content = JSON.parse(response.body)
+content = Familia::JsonSerializer.parse(response.body)
 [response.status, content["custid"]]
 #=> [200, 'anon']
 
 ## Behaviour when requesting a known non-existent endpoint
 response = @mock_request.post('/api/v2/humphrey/bogus')
-content = JSON.parse(response.body)
+content = Familia::JsonSerializer.parse(response.body)
 has_msg = content.slice('error').eql?({'error' => 'Not Found'})
 [response.status, has_msg, content.keys.sort]
 #=> [404, true, ['error']]

@@ -1,6 +1,6 @@
 # apps/api/v2/controllers/meta.rb
 
-require 'json'
+require 'familia/json_serializer'
 require 'base64'
 
 require_relative 'base'

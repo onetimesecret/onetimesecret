@@ -60,9 +60,9 @@ module Onetime
 
       # Show parsed config in verbose mode
       if option.show
-        OT.li "\nStructure:", JSON.pretty_generate(config.parsed_yaml)
+        OT.li "\nStructure:", Familia::JsonSerializer.pretty_generate(config.parsed_yaml)
       elsif verbose_mode?
-        OT.li "\nStructure:", JSON.pretty_generate(OT::Utils.type_structure(config.configuration))
+        OT.li "\nStructure:", Familia::JsonSerializer.pretty_generate(OT::Utils.type_structure(config.configuration))
       end
 
       OT.li '' if verbose_mode?

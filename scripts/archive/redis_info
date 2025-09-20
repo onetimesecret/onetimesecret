@@ -10,5 +10,5 @@ ENV['ONETIME_HOME'] = ::File.expand_path(::File.join(::File.dirname(__FILE__), '
 $:.unshift(::File.join(ENV['ONETIME_HOME'], 'lib'))
 
 require 'onetime'
-require 'json'
+
 y V1::Secret.dbclient.info

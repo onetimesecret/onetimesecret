@@ -331,7 +331,6 @@ DEPENDENCIES
   fastimage (~> 2.4)
   httparty
   irb
-  json
   json_schemer
   logger
   mail

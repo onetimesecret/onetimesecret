@@ -33,7 +33,6 @@ gem 'rackup' # rubocop:disable Bundler/OrderedGems
 # ====================================
 
 # JSON and data validation
-gem 'json'
 gem 'json_schemer'
 
 # String and data processing
@@ -78,7 +77,7 @@ gem 'otto', '~> 1.4.0'
 gem 'base64'
 gem 'irb'
 gem 'logger'                 # Used by Truemail
-gem 'ostruct', '~> 0.6.2'    # Required by json
+gem 'ostruct', '~> 0.6.2'
 gem 'psych', '~> 5.2.3'
 gem 'rdoc'
 gem 'stringio', '~> 3.1.6'

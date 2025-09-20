@@ -123,20 +123,20 @@ response = @mock_request.get('/api/v1/status')
 
 ## Can access the API share endpoint
 response = @mock_request.post('/api/v1/create')
-content = JSON.parse(response.body)
+content = Familia::JsonSerializer.parse(response.body)
 message = content.delete('message')
 [response.status, message]
 #=> [404, "You did not provide anything to share"]
 
 ## Can access the API generate endpoint
 response = @mock_request.post('/api/v1/generate')
-content = JSON.parse(response.body)
+content = Familia::JsonSerializer.parse(response.body)
 [response.status, content["custid"]]
 #=> [200, 'anon']
 
 ## Can post to a bogus endpoint and get a 404
 response = @mock_request.post('/api/v1/generate2')
-content = JSON.parse(response.body)
+content = Familia::JsonSerializer.parse(response.body)
 [response.status, content["error"]]
 #=> [404, 'Not Found']
 
@@ -149,19 +149,19 @@ response = @mock_request.get('/api/v2/status')
 
 ## Can access the API share endpoint
 response = @mock_request.post('/api/v2/secret/conceal', {secret:{secret: 'hello', value: 'world'}})
-content = JSON.parse(response.body)
+content = Familia::JsonSerializer.parse(response.body)
 message = content.delete('message')
 [response.status, message]
 #=> [422, "You did not provide anything to share"]
 
 ## Can post to a bogus endpoint and get a 404
 response = @mock_request.post('/api/v2/generate2')
-content = JSON.parse(response.body)
+content = Familia::JsonSerializer.parse(response.body)
 [response.status, content["success"], content["error"]]
 #=> [404, nil, 'Not Found']
 
 ## Can post to a bogus endpoint and get a 404
 response = @mock_request.post('/api/v2/colonel/info')
-content = JSON.parse(response.body)
+content = Familia::JsonSerializer.parse(response.body)
 [response.status, content["success"], content["custid"]]
 #=> [404, nil, nil]

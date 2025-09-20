@@ -5,6 +5,7 @@ import { resolve } from 'path';
 import process from 'process';
 import Markdown from 'unplugin-vue-markdown/vite';
 import { defineConfig } from 'vite';
+import { visualizer } from 'rollup-plugin-visualizer';
 
 import { addTrailingNewline } from './src/build/plugins/addTrailingNewline';
 import { DEBUG } from './src/utils/debug';
@@ -93,6 +94,14 @@ export default defineConfig({
          */
         compilerOptions: {},
       },
+    }),
+
+    visualizer({
+      filename: '../public/web/dist/stats.html',
+      open: true,
+      gzipSize: true,
+      brotliSize: true,
+      template: 'treemap',
     }),
 
     // Enable Vue Devtools

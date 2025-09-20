@@ -1,6 +1,6 @@
 # apps/api/v2/models/mixins/session_messages.rb
 
-require 'json'
+require 'familia/json_serializer'
 
 module V2
   module Mixins

@@ -1,19 +1,19 @@
 # spec/apps/web/views/base_json_spec.rb
 
 require_relative '../../../spec_helper'
-require 'json'
+require 'familia/json_serializer'
 
 RSpec.xdescribe Core::Views::BaseView, "JSON Output" do
   include_context "rack_test_context"
 
   let(:authenticated_json) do
     json_path = File.expand_path('spec/support/window-authenticated-develop.json')
-    JSON.parse(File.read(json_path))
+    Familia::JsonSerializer.parse(File.read(json_path))
   end
 
   let(:not_authenticated_json) do
     json_path = File.expand_path('spec/support/window-notauthenticated-develop.json')
-    JSON.parse(File.read(json_path))
+    Familia::JsonSerializer.parse(File.read(json_path))
   end
 
   describe "JSON structure validation" do
