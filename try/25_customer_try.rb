@@ -26,6 +26,7 @@ OT.boot! :test, false
 # Setup some variables for these tryouts
 @now = Time.now.strftime("%Y%m%d%H%M%S")
 @email_address = "tryouts+#{@now}@onetimesecret.com"
+@find_by_email_address = "test2+#{rand(10000000)}@example.com"
 @cust = V2::Customer.new email: @email_address
 @objid = @cust.objid
 
@@ -146,7 +147,6 @@ ttl = @cust.default_expiration
 @cust.verified?
 #=> false
 
-
 ## Customer.values has the correct dbkey
 V2::Customer.values.dbkey
 #=> "onetime:customer"
@@ -169,11 +169,10 @@ V2::Customer.find_by_email(email)
 #=> nil
 
 ## Customer find by email, when the record exists
-@email = "test2+#{rand(10000000)}@example.com"
-cust = V2::Customer.create(@email)
-V2::Customer.find_by_email(@email)
+cust = V2::Customer.create(@find_by_email_address)
+V2::Customer.find_by_email(@find_by_email_address)
 #=:> V2::Customer
 
 
-test_cust = V2::Customer.find_by_email(@email)
+test_cust = V2::Customer.find_by_email(@find_by_email_address)
 test_cust.delete!
