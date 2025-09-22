@@ -67,6 +67,17 @@ module V2
 
     identifier_field :custid
 
+    # Track with permission encoding in score
+    participates_in Organization, :members, score: :joined_at
+    participates_in Team, :members
+
+    # Fast lookups by email within org/team scope
+    indexed_by :email, :email_index, target: Organization
+    indexed_by :email, :email_index, target: Team
+
+    # Global index for system-wide lookups
+    indexed_by :email, :global_email_index, target: :global
+
     field :custid
     field :email
 
