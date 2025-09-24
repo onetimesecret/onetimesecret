@@ -119,7 +119,7 @@
     "@playwright/test": "1.52.0",
     "@sentry/vite-plugin": "3.6.1",
     "@tailwindcss/forms": "0.5.10",
-    "@tailwindcss/typography": "0.5.16",
+    "@tailwindcss/typography": "0.5.19",
     "@tsconfig/node22": "22.0.2",
     "@types/node": "22.18.1",
     "@typescript-eslint/eslint-plugin": "8.32.1",
