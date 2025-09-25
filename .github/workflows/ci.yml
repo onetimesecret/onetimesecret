@@ -94,7 +94,7 @@ jobs:
           node-version: '22'
 
       - name: Setup pnpm
-        uses: pnpm/action-setup@a7487c7e89a18df4991f7f222e4898a00d66ddda
+        uses: pnpm/action-setup@f2b2b233b538f500472c7274c7012f57857d8ce0
         with:
           version: latest
 
@@ -157,7 +157,7 @@ jobs:
           node-version: '22'
 
       - name: Setup pnpm
-        uses: pnpm/action-setup@a7487c7e89a18df4991f7f222e4898a00d66ddda
+        uses: pnpm/action-setup@f2b2b233b538f500472c7274c7012f57857d8ce0
         with:
           version: latest
 
@@ -210,7 +210,7 @@ jobs:
           node-version: '22'
 
       - name: Setup pnpm
-        uses: pnpm/action-setup@a7487c7e89a18df4991f7f222e4898a00d66ddda
+        uses: pnpm/action-setup@f2b2b233b538f500472c7274c7012f57857d8ce0
         with:
           version: latest
 
