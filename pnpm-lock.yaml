@@ -105,8 +105,8 @@ importers:
         specifier: 4.1.11
         version: 4.1.11
       zod-validation-error:
-        specifier: 4.0.1
-        version: 4.0.1(zod@4.1.11)
+        specifier: 4.0.2
+        version: 4.0.2(zod@4.1.11)
     devDependencies:
       '@eslint/js':
         specifier: 9.26.0
@@ -4280,8 +4280,8 @@ packages:
     peerDependencies:
       zod: ^3.24.1
 
-  zod-validation-error@4.0.1:
-    resolution: {integrity: sha512-F3rdaCOHs5ViJ5YTz5zzRtfkQdMdIeKudJAoxy7yB/2ZMEHw73lmCAcQw11r7++20MyGl4WV59EVh7A9rNAyog==}
+  zod-validation-error@4.0.2:
+    resolution: {integrity: sha512-Q6/nZLe6jxuU80qb/4uJ4t5v2VEZ44lzQjPDhYJNztRQ4wyWc6VF3D3Kb/fAuPetZQnhS3hnajCf9CsWesghLQ==}
     engines: {node: '>=18.0.0'}
     peerDependencies:
       zod: ^3.25.0 || ^4.0.0
@@ -8553,7 +8553,7 @@ snapshots:
     dependencies:
       zod: 3.25.76
 
-  zod-validation-error@4.0.1(zod@4.1.11):
+  zod-validation-error@4.0.2(zod@4.1.11):
     dependencies:
       zod: 4.1.11
 
