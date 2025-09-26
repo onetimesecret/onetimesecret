@@ -100,7 +100,7 @@
     "highlight.js": "11.11.1",
     "marked": "15.0.12",
     "marked-highlight": "2.2.2",
-    "nanoid": "5.1.5",
+    "nanoid": "5.1.6",
     "pinia": "3.0.3",
     "pnpm": "10.10.0",
     "stripe": "18.3.0",
