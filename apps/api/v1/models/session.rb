@@ -145,14 +145,14 @@ module V1
       # @param sess [Session] session to add
       # @return [void]
       def add sess
-        self.values.add sess.identifier, OT.now.to_i
-        self.values.remrangebyscore 0, OT.now.to_i-2.days
+        self.instances.add sess.identifier, OT.now.to_i
+        self.instances.remrangebyscore 0, OT.now.to_i-2.days
       end
 
       # Get all tracked sessions
       # @return [Array<Session>] all sessions in reverse chronological order
       def all
-        self.values.revrangeraw(0, -1).collect { |identifier| load(identifier) }
+        self.instances.revrangeraw(0, -1).collect { |identifier| load(identifier) }
       end
 
       # Get sessions within specified time duration
@@ -160,7 +160,7 @@ module V1
       # @return [Array<Session>] sessions within the duration
       def recent duration=30.days
         spoint, epoint = OT.now.to_i-duration, OT.now.to_i
-        self.values.rangebyscoreraw(spoint, epoint).collect { |identifier| load(identifier) }
+        self.instances.rangebyscoreraw(spoint, epoint).collect { |identifier| load(identifier) }
       end
 
       # Create and save a new session

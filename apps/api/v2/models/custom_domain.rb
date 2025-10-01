@@ -213,7 +213,7 @@ module V2
         multi.del(*keys_to_delete)
 
         # Also remove from the class-level collections
-        multi.zrem(V2::CustomDomain.values.dbkey, identifier)
+        multi.zrem(V2::CustomDomain.instances.dbkey, identifier)
         multi.hdel(V2::CustomDomain.display_domains.dbkey, display_domain)
         multi.hdel(V2::CustomDomain.owners.dbkey, display_domain)
 

@@ -115,7 +115,7 @@ CustomDomain.prefix
 #=> :customdomain
 
 ## CustomDomain.values is a Familia::SortedSet
-CustomDomain.values.class
+CustomDomain.instances.class
 #=> Familia::SortedSet
 
 ## CustomDomain.owners is a Familia::HashKey
@@ -123,7 +123,7 @@ CustomDomain.owners.class
 #=> Familia::HashKey
 
 ## CustomDomain.values Redis key is correctly prefixed
-CustomDomain.values.dbkey
+CustomDomain.instances.dbkey
 #=> "customdomain:values"
 
 ## CustomDomain.owners Redis key is correctly prefixed

@@ -20,7 +20,7 @@ OT.boot! :test, false
 char_counts = @session_ids.each_with_object(Hash.new(0)) do |session_id, counts|
   counts[session_id] += 1
 end
-std_dev = Math.sqrt(char_counts.values.sum { |count| (count - char_counts.values.sum.to_f / char_counts.length) ** 2 } / char_counts.length)
+std_dev = Math.sqrt(char_counts.instances.sum { |count| (count - char_counts.instances.sum.to_f / char_counts.length) ** 2 } / char_counts.length)
 [std_dev < 50, char_counts.length > 30]  # Adjust these thresholds as needed
 #=> [true, true]
 

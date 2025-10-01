@@ -14,7 +14,7 @@ module V2
           base.extend ClassMethods
           base.include InstanceMethods
 
-          base.class_hashkey :domains, dbkey: 'onetime:customers:domain'
+          base.class_hashkey :domains
           base.sorted_set :custom_domains, suffix: 'custom_domain'
         end
 

@@ -31,17 +31,6 @@ module V2::Customer::Features
         values.rangebyscoreraw(spoint, epoint).collect { |identifier| load(identifier) }
       end
 
-      # This is where the global word that got really confusing in familia
-      # for a while, trying to differentiate between places that used the
-      # word global to mean class-level. It only exists here for historical
-      # reasons. There's a key customer:GLOBAL:object that has the increment
-      # fields in it (that's how we count the all time number of secrets
-      # created, burned etc)
-      def global
-        @global ||= from_identifier(:GLOBAL) || create(:GLOBAL)
-        @global
-      end
-
       # Generate a unique session ID with 32 bytes of random data
       # @return [String] base-36 encoded random string
       def generate_id

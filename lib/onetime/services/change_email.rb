@@ -11,7 +11,7 @@ module Onetime
     # When changing an email address, all of the following need to be updated:
     # 1. Customer record fields (custid, key, email)
     # 2. database keys associated with the customer (object, custom_domain, metadata)
-    # 3. References in sorted sets and hashes (onetime:customer)
+    # 3. References in sorted sets and hashes (customer:instances)
     # Note: Custom domain IDs are now randomly generated and don't need updating
     #
     # @example Basic usage
@@ -59,7 +59,7 @@ module Onetime
                    "   - customer:#{old_email}:metadata → customer:#{new_email}:metadata (if exists)",
                    "   - customer:#{old_email}:feature_flags → customer:#{new_email}:feature_flags (if exists)",
                    "   - customer:#{old_email}:reset_secret → customer:#{new_email}:reset_secret (if exists)",
-                   '3. Update customer in values sorted set (onetime:customer)']
+                   '3. Update customer in values sorted set (customer:instances)']
 
         # Note domain associations if any (no changes needed since domain IDs are now random)
         if @domains.any?
@@ -186,10 +186,10 @@ module Onetime
             # This operation needs to be handled carefully.
             # For now, we'll assume this is done outside or before the transaction.
             # A possible approach is to fetch the score before the multi block.
-            score = dbclient.zscore('onetime:customer', old_email)
+            score = dbclient.zscore('customer:instances', old_email)
             if score
-              multi.zadd('onetime:customer', score, new_email)
-              multi.zrem('onetime:customer', old_email)
+              multi.zadd('customer:instances', score, new_email)
+              multi.zrem('customer:instances', old_email)
             end
           end
 

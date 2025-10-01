@@ -61,6 +61,11 @@ module V2
 
     identifier_field :objid
 
+    class_counter :secrets_created
+    class_counter :secrets_shared
+    class_counter :secrets_burned
+    class_counter :emails_sent
+
     # Participation - bidirectional membership tracking with reverse indexes
     # These give you O(1) access to all members: org.members, team.members
     participates_in V2::Organization, :members, score: :joined

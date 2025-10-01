@@ -283,12 +283,12 @@ module V1
     module ClassMethods
 
       def all
-        self.values.revrangeraw(0, -1).collect { |identifier| load(identifier) }
+        self.instances.revrangeraw(0, -1).collect { |identifier| load(identifier) }
       end
 
       def recent duration=30.days, epoint=OT.now.to_i
         spoint = OT.now.to_i-duration
-        self.values.rangebyscoreraw(spoint, epoint).collect { |identifier| load(identifier) }
+        self.instances.rangebyscoreraw(spoint, epoint).collect { |identifier| load(identifier) }
       end
 
       def anonymous
@@ -296,8 +296,8 @@ module V1
       end
 
       def global
-        @global ||= from_identifier(:GLOBAL) || create(:GLOBAL)
-        @global
+        # @global ||= from_identifier(:GLOBAL) || create(:GLOBAL)
+        # @global
       end
 
       def increment_field(cust, field)

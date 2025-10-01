@@ -40,7 +40,7 @@ module V2
           @yesterday_feedback = process_feedback_for_period(48.hours, now - 24.hours)
           @older_feedback     = process_feedback_for_period(14.days, now - 48.hours)
 
-          @feedback_count           = V2::Feedback.values.size
+          @feedback_count           = V2::Feedback.instances.size
           @today_feedback_count     = @today_feedback.size
           @yesterday_feedback_count = @yesterday_feedback.size
           @older_feedback_count     = @older_feedback.size
@@ -70,7 +70,7 @@ module V2
             }
           end.compact.reverse
 
-          @customer_count        = V2::Customer.values.size
+          @customer_count        = V2::Customer.instances.size
           @recent_customer_count = @recent_customers.size
         end
         private :process_customers
@@ -80,6 +80,7 @@ module V2
           @secret_count    = V2::Secret.new.dbclient.keys('secret*:object').count
           @secrets_created = V2::Customer.global.secrets_created.to_s
           @secrets_shared  = V2::Customer.global.secrets_shared.to_s
+          @secrets_burned  = V2::Customer.global.secrets_burned.to_s
           @emails_sent     = V2::Customer.global.emails_sent.to_s
         end
         private :process_statistics
