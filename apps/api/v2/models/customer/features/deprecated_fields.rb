@@ -9,13 +9,14 @@ module V2::Customer::Features
       base.extend ClassMethods
       base.include InstanceMethods
 
+      # base.field_group do
       base.field :sessid
       base.field :apitoken # TODO: use sorted set?
       base.field :contributor
+      # end
     end
 
     module ClassMethods
-
       # Use Familia 2's generated class methods
       # def add(cust)
       #   values.add cust.identifier, OT.now.to_i
@@ -46,7 +47,6 @@ module V2::Customer::Features
       def generate_id
         OT::Utils.generate_id
       end
-
     end
 
     module InstanceMethods
@@ -107,6 +107,5 @@ module V2::Customer::Features
         @sess
       end
     end
-
   end
 end

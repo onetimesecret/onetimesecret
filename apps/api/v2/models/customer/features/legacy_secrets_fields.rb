@@ -2,7 +2,6 @@
 
 module V2::Customer::Features
   module LegacySecretsFields
-
     V2::Customer.add_feature self, :legacy_secrets_fields
 
     def self.included(base)
@@ -27,6 +26,5 @@ module V2::Customer::Features
         metadata.add obj.key
       end
     end
-
   end
 end

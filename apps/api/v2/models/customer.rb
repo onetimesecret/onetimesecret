@@ -63,148 +63,18 @@ module V2
 
     identifier_field :objid
 
-    # Participation: Track membership with permission encoding in score
-    # → Customer: in_organization_members?(org), add_to_organization_members(org, score),
-    #             remove_from_organization_members(org), score_in_organization_members(org)
-    # → V2::Organization: members, add_member(customer, score), remove_member(customer),
-    #                     add_members(customers), members_with_permission(min_permission)
-    participates_in V2::Organization, :members, score: :joined_at
-
-    # Participation: Score based on when added
-    # → Customer: in_team_members?(team), add_to_team_members(team, score),
-    #             remove_from_team_members(team), score_in_team_members(team)
-    # → V2::Team: members, add_member(customer, score), remove_member(customer),
-    #             add_members(customers), members_with_permission(min_permission)
+    # Participation - bidirectional membership tracking with reverse indexes
+    # These give you O(1) access to all members: org.members, team.members
+    participates_in V2::Organization, :members, score: :joined
     participates_in V2::Team, :members
 
-    # Unique Index: Fast lookups scoped by organization
-    # → Customer: add_to_organization_email_index(org), remove_from_organization_email_index(org),
-    #             update_in_organization_email_index(org, old_email)
-    # → V2::Organization: find_by_email(email), find_all_by_email([emails]), email_index
+    # Organization-scoped indexes
     unique_index :email, :email_index, within: V2::Organization
-
-    # → Customer: add_to_organization_objid_index(org), remove_from_organization_objid_index(org),
-    #             update_in_organization_objid_index(org, old_objid)
-    # → V2::Organization: find_by_objid(objid), find_all_by_objid([objids]), objid_index
     unique_index :objid, :objid_index, within: V2::Organization
-
-    # → Customer: add_to_organization_extid_index(org), remove_from_organization_extid_index(org),
-    #             update_in_organization_extid_index(org, old_extid)
-    # → V2::Organization: find_by_extid(extid), find_all_by_extid([extids]), extid_index
     unique_index :extid, :extid_index, within: V2::Organization
 
-    # Unique Index: Fast lookups scoped by team
-    # → Customer: add_to_team_email_index(team), remove_from_team_email_index(team),
-    #             update_in_team_email_index(team, old_email)
-    # → V2::Team: find_by_email(email), find_all_by_email([emails]), email_index
-    unique_index :email, :email_index, within: V2::Team
-
-    # → Customer: add_to_team_objid_index(team), remove_from_team_objid_index(team),
-    #             update_in_team_objid_index(team, old_objid)
-    # → V2::Team: find_by_objid(objid), find_all_by_objid([objids]), objid_index
-    unique_index :objid, :objid_index, within: V2::Team
-
-    # Unique Index: Global system-wide lookups (class-level)
-    # → Customer class: Customer.find_by_email(email), Customer.find_all_by_email([emails]),
-    #                   Customer.customer_email_index
-    # → Customer instance: add_to_class_customer_email_index,
-    #                      remove_from_class_customer_email_index,
-    #                      update_in_class_customer_email_index(old_email)
-    unique_index :email, :customer_email_index
-
-    # → Customer class: Customer.find_by_objid(objid), Customer.find_all_by_objid([objids]),
-    #                   Customer.customer_objid_index
-    # → Customer instance: add_to_class_customer_objid_index,
-    #                      remove_from_class_customer_objid_index,
-    #                      update_in_class_customer_objid_index(old_objid)
-    unique_index :objid, :customer_objid_index
-
-    # → Customer class: Customer.find_by_extid(extid), Customer.find_all_by_extid([extids]),
-    #                   Customer.customer_extid_index
-    # → Customer instance: add_to_class_customer_extid_index,
-    #                      remove_from_class_customer_extid_index,
-    #                      update_in_class_customer_extid_index(old_extid)
-    unique_index :extid, :customer_extid_index
-
-    # # Track with permission encoding in score
-    # # → Customer: in_organization_members?(org), add_to_organization_members(org, score), remove_from_organization_members(org), score_in_organization_members(org)
-    # # → V2::Organization: members, add_member(customer, score), remove_member(customer), add_members(customers), members_with_permission(min_permission)
-    # participates_in V2::Organization, :members, score: :joined_at
-
-    # # score is based on when added
-    # # → Customer: in_team_members?(team), add_to_team_members(team, score), remove_from_team_members(team), score_in_team_members(team)
-    # # → V2::Team: members, add_member(customer, score), remove_member(customer), add_members(customers), members_with_permission(min_permission)
-    # participates_in V2::Team, :members
-
-    # # Fast lookups - scoped by organization/team
-    # # → Customer: add_to_organization_email_index(org), remove_from_organization_email_index(org), update_in_organization_email_index(org, old_email)
-    # # → V2::Organization: find_by_email(email), find_all_by_email([emails]), email_index_for(email_value)
-    # indexed_by :email, :email_index, target: V2::Organization
-
-    # # → Customer: add_to_organization_objid_index(org), remove_from_organization_objid_index(org), update_in_organization_objid_index(org, old_objid)
-    # # → V2::Organization: find_by_objid(objid), find_all_by_objid([objids]), objid_index_for(objid_value)
-    # indexed_by :objid, :objid_index, target: V2::Organization
-
-    # # → Customer: add_to_organization_extid_index(org), remove_from_organization_extid_index(org), update_in_organization_extid_index(org, old_extid)
-    # # → V2::Organization: find_by_extid(extid), find_all_by_extid([extids]), extid_index_for(extid_value)
-    # indexed_by :extid, :extid_index, target: V2::Organization
-
-    # # → Customer: add_to_team_email_index(team), remove_from_team_email_index(team), update_in_team_email_index(team, old_email)
-    # # → V2::Team: find_by_email(email), find_all_by_email([emails]), email_index_for(email_value)
-    # indexed_by :email, :email_index, target: V2::Team
-
-    # # → Customer: add_to_team_objid_index(team), remove_from_team_objid_index(team), update_in_team_objid_index(team, old_objid)
-    # # → V2::Team: find_by_objid(objid), find_all_by_objid([objids]), objid_index_for(objid_value)
-    # indexed_by :objid, :objid_index, target: V2::Team
-
-    # # Global system-wide lookups
-    # # → Customer class: Customer.find_by_email(email), Customer.find_all_by_email([emails]), Customer.customer_email_index
-    # # → Customer instance: add_to_class_customer_email_index, remove_from_class_customer_email_index, update_in_class_customer_email_index(old_email)
-    # class_indexed_by :email, :customer_email_index
-
-    # # → Customer class: Customer.find_by_objid(objid), Customer.find_all_by_objid([objids]), Customer.customer_objid_index
-    # # → Customer instance: add_to_class_customer_objid_index, remove_from_class_customer_objid_index, update_in_class_customer_objid_index(old_objid)
-    # class_indexed_by :objid, :customer_objid_index
-
-    # # → Customer class: Customer.find_by_extid(extid), Customer.find_all_by_extid([extids]), Customer.customer_extid_index
-    # # → Customer instance: add_to_class_customer_extid_index, remove_from_class_customer_extid_index, update_in_class_customer_extid_index(old_extid)
-    # class_indexed_by :extid, :customer_extid_index
-
-    # attempt1 - 17:51
-    #
-    # # Track with permission encoding in score
-    # participates_in V2::Organization, :members, score: :joined_at  # → add_organization_membership, remove_organization_membership, organization_memberships, clear_organization_memberships
-    # participates_in V2::Team, :members # score is based on when added  # → add_team_membership, remove_team_membership, team_memberships, clear_team_memberships
-
-    # # Fast lookups - scoped by organization/team
-    # indexed_by :email, :email_index, target: V2::Organization      # → email_index (scoped method), find_by_email_in_organization
-    # indexed_by :objid, :objid_index, target: V2::Organization      # → objid_index (scoped method), find_by_objid_in_organization
-    # indexed_by :extid, :extid_index, target: V2::Organization      # → extid_index (scoped method), find_by_extid_in_organization
-
-    # indexed_by :email, :email_index, target: V2::Team             # → email_index (scoped method), find_by_email_in_team
-    # indexed_by :objid, :objid_index, target: V2::Team             # → objid_index (scoped method), find_by_objid_in_team
-
-    # # Global system-wide lookups
-    # class_indexed_by :email, :customer_email_index                # → Customer.customer_email_index (class method), Customer.find_by_customer_email_index
-    # class_indexed_by :objid, :customer_objid_index                # → Customer.customer_objid_index (class method), Customer.find_by_customer_objid_index
-    # class_indexed_by :extid, :customer_extid_index                # → Customer.customer_extid_index (class method), Customer.find_by_customer_extid_index
-
-    # # The generated methods follow these patterns:
-    # #
-    # # Participation methods:
-    # # - add_{target_class}_{relation_name}(target_object)
-    # # - remove_{target_class}_{relation_name}(target_object)
-    # # - {target_class}_{relation_name} (returns collection)
-    # # - clear_{target_class}_{relation_name}
-    # #
-    # # Scoped indexes:
-    # # - {field_name}_index (returns scoped index for queries)
-    # # - find_by_{field_name}_in_{target_class}(value, scope_object)
-    # #
-    # # Class-level indexes:
-    # # - ClassName.{index_name} (class method returning index)
-    # # - ClassName.find_by_{index_name}(value)
-
+    # Global email index. e.g. Customer.find_by_email(email)
+    unique_index :email, :email_index
 
     field :custid
     field :email

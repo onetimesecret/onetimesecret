@@ -2,7 +2,6 @@
 
 module V2::Customer::Features
   module SafeDump
-
     V2::Customer.add_feature self, :safe_dump_fields
 
     def self.included(base)
@@ -19,6 +18,8 @@ module V2::Customer::Features
       # with hot reloading in dev mode will not work. You will need to restart the
       # server to see the changes.
       base.safe_dump_field :identifier, ->(obj) { obj.identifier }
+      base.safe_dump_field :objid
+      base.safe_dump_field :extid
       base.safe_dump_field :custid
       base.safe_dump_field :email
       base.safe_dump_field :role
@@ -44,6 +45,5 @@ module V2::Customer::Features
       # We use the hash syntax here since `:active?` is not a valid symbol.
       base.safe_dump_field :active, ->(cust) { cust.active? }
     end
-
   end
 end
