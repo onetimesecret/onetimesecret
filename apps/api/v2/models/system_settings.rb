@@ -271,9 +271,9 @@ module V2
           multi.zadd(self.audit_log.rediskey, now, fobj.to_s)
         else
           # Fall back to individual operations for backward compatibility
-          self.values.add now, fobj.to_s
-          self.stack.add now, fobj.to_s
-          self.audit_log.add now, fobj.to_s
+          self.values.add fobj.to_s, now
+          self.stack.add fobj.to_s, now
+          self.audit_log.add fobj.to_s, now
         end
       end
 

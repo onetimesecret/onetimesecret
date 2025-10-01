@@ -17,9 +17,9 @@ module V2::Customer::Features
     module ClassMethods
 
       # Use Familia 2's generated class methods
-      def add(cust)
-        values.add OT.now.to_i, cust.identifier
-      end
+      # def add(cust)
+      #   values.add cust.identifier, OT.now.to_i
+      # end
 
       def all
         values.revrangeraw(0, -1).collect { |identifier| load(identifier) }

@@ -24,7 +24,7 @@ module V2::Customer::Features
       end
 
       def add_metadata(obj)
-        metadata.add OT.now.to_i, obj.key
+        metadata.add obj.key
       end
     end
 

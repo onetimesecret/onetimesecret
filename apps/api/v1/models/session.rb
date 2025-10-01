@@ -145,7 +145,7 @@ module V1
       # @param sess [Session] session to add
       # @return [void]
       def add sess
-        self.values.add OT.now.to_i, sess.identifier
+        self.values.add sess.identifier, OT.now.to_i
         self.values.remrangebyscore 0, OT.now.to_i-2.days
       end
 

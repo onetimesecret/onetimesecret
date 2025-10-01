@@ -34,7 +34,7 @@ module V2
 
           def add_custom_domain(obj)
             OT.ld "[add_custom_domain] adding #{obj} to #{self}"
-            custom_domains.add OT.now.to_i, obj.display_domain # not the object identifier
+            custom_domains.add obj.display_domain # not the object identifier
           end
 
           def remove_custom_domain(obj)

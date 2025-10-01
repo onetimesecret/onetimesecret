@@ -9,7 +9,7 @@ module V2
 
     module ClassMethods
       def add(msg)
-        values.add OT.now.to_i, msg
+        values.add msg
         # Auto-trim the set to keep only the most recent 30 days of feedback
         values.remrangebyscore 0, OT.now.to_i - 30.days
       end

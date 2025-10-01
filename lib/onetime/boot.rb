@@ -29,7 +29,7 @@ module Onetime
       OT.env  = ENV['RACK_ENV'] || 'production'
 
       # Sets a unique, 64-bit hexadecimal ID for this process instance.
-      @instance ||= Onetime::Utils.generate_short_id
+      @instance ||= Familia.generate_trace_id
 
       # Default to diagnostics disabled. FYI: in test mode, the test config
       # YAML has diagnostics enabled. But the DSN values are nil so it

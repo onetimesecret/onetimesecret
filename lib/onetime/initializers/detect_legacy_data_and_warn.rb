@@ -116,9 +116,8 @@ module Onetime
     def scan_database_for_legacy_data(db_num, legacy_mappings, current_dbs, legacy_locations)
       models_found = 0
 
-      begin
-        client = Familia.dbclient(db_num)
-
+      # Use isolated connection to avoid affecting application's database connections
+      Familia.with_isolated_dbclient(db_num) do |client|
         # Quick connectivity check
         client.ping
 
@@ -167,12 +166,9 @@ module Onetime
 
           OT.ld "[detect_legacy_data] Found #{keys.length} #{model_name} keys in DB #{db_num} (expected DB #{current_db})"
         end
-      rescue Redis::CannotConnectError, Redis::TimeoutError => ex
-        OT.ld "[detect_legacy_data] Cannot connect to DB #{db_num}: #{ex.message}"
-      rescue StandardError => ex
-        OT.le "[detect_legacy_data] Error scanning DB #{db_num}: #{ex.message}"
       end
 
+      # NOTE: We intentionally allow raised errors to propagate to the calling code.
       models_found
     end
 

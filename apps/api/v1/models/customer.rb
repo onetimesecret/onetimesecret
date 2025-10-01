@@ -186,7 +186,7 @@ module V1
     end
 
     def add_metadata obj
-      metadata.add OT.now.to_i, obj.key
+      metadata.add obj.key, OT.now.to_i
     end
 
     def custom_domains_list
