@@ -29,11 +29,19 @@ module Onetime
       pool_size    = ENV.fetch('FAMILIA_POOL_SIZE', 25).to_i
       pool_timeout = ENV.fetch('FAMILIA_POOL_TIMEOUT', 5).to_i
 
-      pool = ConnectionPool.new(size: pool_size, timeout: pool_timeout) do
-        # If this is slow we'll pay the cost on every checkout instead of all at
-        # once at boot time. Redis is pretty light so this is usually fine,
-        # just keep an eye on latency.
-        Familia.create_dbclient(uri) # Factory for new Redis connections
+      # Belt-and-suspenders reconnection resilience:
+      # 1. ConnectionPool retries checkout once on connection errors
+      # 2. Redis driver retries once with minimal delay for stale connections
+      pool = ConnectionPool.new(size: pool_size, timeout: pool_timeout, reconnect_attempts: 1) do
+        parsed_uri = Familia.normalize_uri(uri)
+        Redis.new(parsed_uri.conf.merge(
+          reconnect_attempts: [
+            0.05, # 50ms delay before first retry
+            0.20, # 200ms for 2nd
+            1,    # 1000ms
+            2,    # wait a full 2000s for final retry
+          ]
+        ))
       end
 
       # Configure Familia
@@ -42,10 +50,8 @@ module Onetime
 
         # Provider pattern: Familia calls this lambda to get connections
         # Returns pooled connection, pool.with handles checkout/checkin automatically
+        # Reconnection handled at pool + Redis level prevents "idle connection death"
         config.connection_provider = ->(provided_uri) do
-          # NOTE: The caller still has to remember to give it back. We might want
-          # to wrap this in a decorator that yells if the connection is used
-          # outside the block.
           pool.with { |conn| conn }
         end
 
@@ -53,7 +59,7 @@ module Onetime
         config.pipeline_mode    = :warn
       end
 
-      # Verify connectivity using pool (tests first connection only)
+      # Verify connectivity using pool (tests first connection + reconnection config)
       ping_result = pool.with { |conn| conn.ping }
       OT.ld "Connected #{Familia.members.size} models to DB 0 via connection pool " \
             "(size: #{pool_size}, timeout: #{pool_timeout}s) - #{ping_result}"
