@@ -3,6 +3,7 @@
 require_relative 'initializers/set_global_secret'   # TODO: Combine into
 require_relative 'initializers/set_rotated_secrets' # set_secrets
 require_relative 'initializers/load_locales'
+require_relative 'initializers/setup_database_logging'
 require_relative 'initializers/connect_databases'
 require_relative 'initializers/prepare_emailers'
 require_relative 'initializers/load_fortunes'
