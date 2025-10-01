@@ -1,18 +1,13 @@
 # lib/onetime/initializers/connect_databases.rb
 
-require_relative '../refinements/horreum_refinements'
+require 'connection_pool'
 
 module Onetime
   module Initializers
-    using Familia::HorreumRefinements
-
-    # Connects each model to its configured Redis database.
+    # Configures Familia with connection pooling for all models.
     #
-    # This method retrieves the Redis database configurations from the application
-    # settings and establishes connections for each model class within the Familia
-    # module. It assigns the appropriate Redis connection to each model and verifies
-    # the connection by sending a ping command. Detailed logging is performed at each
-    # step to facilitate debugging and monitoring.
+    # Sets up a ConnectionPool that Familia uses for all database
+    # operations across models in DB 0.
     #
     # @example
     #   connect_databases
@@ -20,43 +15,53 @@ module Onetime
     # @return [void]
     #
     def connect_databases
-      Familia.uri = OT.conf['redis']['uri']
+      uri = OT.conf.dig('redis', 'uri')
 
-      # Connect each model to its configured Redis database
-      dbs = OT.conf.dig('redis', 'dbs')
-
-      OT.ld "[connect_databases] dbs: #{dbs}"
+      OT.ld "[connect_databases] uri: #{uri}"
       OT.ld "[connect_databases] models: #{Familia.members.map(&:to_s)}"
 
-      # Validate that models have been loaded before attempting to connect
+      # Validate that models have been loaded
       if Familia.members.empty?
         raise Onetime::Problem, 'No known Familia members. Models need to load before calling boot!'
       end
 
-      # Map model classes to their database numbers
-      #
-      # NOTE: This can appear in the boot log like ther models are duplicated
-      # but it's just the V1 + V2 models which share the same model_config_name.
-      # We are technically duplicating effort since both versions share the same
-      # database but it's not hurting anyone and it won't be forever.
-      Familia.members.each do |model_class|
-        model_config_name = model_class.config_name
-        db_index          = dbs[model_config_name] || 0
+      # Create connection pool - manages Redis connections for thread safety
+      pool_size    = ENV.fetch('FAMILIA_POOL_SIZE', 25).to_i
+      pool_timeout = ENV.fetch('FAMILIA_POOL_TIMEOUT', 5).to_i
 
-        # Assign a Redis connection to the model class
-        model_class.dbclient = Familia.dbclient(db_index)
-        ping_result          = model_class.dbclient.ping
-
-        OT.ld "Connected #{model_config_name} to DB #{db_index} (#{ping_result})"
-
-        # Save a flag in each model DB to signal a data migration will be
-        # needed for existing data. If the database is already 0, no need.
-        next unless db_index.positive?
-
-        dbkey = Familia.join(['ots', 'migration_needed', model_config_name, "db_#{db_index}"])
-        first_time = model_class.dbclient.setnx(dbkey, '1')
-        OT.ld "[connect_databases] Setting #{dbkey} to '1' (already set? #{!first_time})"
+      pool = ConnectionPool.new(size: pool_size, timeout: pool_timeout) do
+        # If this is slow we'll pay the cost on every checkout instead of all at
+        # once at boot time. Redis is pretty light so this is usually fine,
+        # just keep an eye on latency.
+        Familia.create_dbclient(uri) # Factory for new Redis connections
       end
+
+      # Configure Familia
+      Familia.configure do |config|
+        config.uri = uri
+
+        # Provider pattern: Familia calls this lambda to get connections
+        # Returns pooled connection, pool.with handles checkout/checkin automatically
+        config.connection_provider = ->(provided_uri) do
+          # NOTE: The caller still has to remember to give it back. We might want
+          # to wrap this in a decorator that yells if the connection is used
+          # outside the block.
+          pool.with { |conn| conn }
+        end
+
+        config.transaction_mode = :warn
+        config.pipeline_mode    = :warn
+      end
+
+      # Verify connectivity using pool (tests first connection only)
+      ping_result = pool.with { |conn| conn.ping }
+      OT.ld "Connected #{Familia.members.size} models to DB 0 via connection pool " \
+            "(size: #{pool_size}, timeout: #{pool_timeout}s) - #{ping_result}"
+
+      # Optional: Single migration flag for entire DB 0
+      dbkey      = Familia.join(%w[ots migration_needed db_0])
+      first_time = pool.with { |conn| conn.setnx(dbkey, '1') } # Direct pool usage for setup
+      OT.ld "[connect_databases] Setting #{dbkey} to '1' (already set? #{!first_time})"
     end
   end
 end
