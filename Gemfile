@@ -67,8 +67,8 @@ gem 'encryptor', '= 1.1.3'
 # Internal Dependencies (local dev)
 # ====================================
 
-gem 'familia', '~> 2.0.0.pre15'
-gem 'otto', '~> 1.4.0'
+gem 'familia', '~> 2.0.0.pre16'
+gem 'otto', '~> 1.4.0' #'~> 2.0.0.pre1'
 
 # ====================================
 # Ruby Standard Library Compatibility
@@ -76,7 +76,7 @@ gem 'otto', '~> 1.4.0'
 
 gem 'base64'
 gem 'irb'
-gem 'logger'                 # Used by Truemail
+gem 'logger'
 gem 'psych', '~> 5.2.3'
 gem 'rdoc'
 gem 'stringio', '~> 3.1.6'
@@ -111,12 +111,8 @@ group :development do
   gem 'rubocop-performance', require: false
   gem 'rubocop-rspec', require: false
   gem 'rubocop-thread_safety', require: false
-  gem 'ruby-lsp', require: false
   gem 'solargraph', require: false
   gem 'syntax_tree', require: false
-  # Enable for Debug Adapter Protocol. Not included with the
-  # development group because it lags on byebug version.
-  # gem 'byebug-dap', require: false
 end
 
 group :test do
