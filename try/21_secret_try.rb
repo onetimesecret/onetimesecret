@@ -25,7 +25,7 @@ OT.boot! :test, true
 ## Can create Secret
 s = V2::Secret.new :private
 [s.class, s.dbclient.connection[:db], s.metadata_key]
-#=> [V2::Secret, 8, nil]
+#=> [V2::Secret, 0, nil]
 
 ## Keys are always unique for Secrets
 unique_values = Set.new
@@ -64,16 +64,16 @@ p [@secret.key, @metadata.secret_key]
 [@metadata.class, @secret.class]
 #=> [V2::Metadata, V2::Secret]
 
-## Can save a secret
-@metadata.save
-#=> true
+## Can save a secret and check existence
+metadata, secret = V2::Secret.spawn_pair 'anon', :tryouts
+[metadata.save, metadata.exists?]
+#=> [true, true]
 
-## A saved secret exists
-@metadata.exists?
-#=> true
-
-## A secret can be destroyed
-@metadata.destroy!
+## A secret can be destroyed using Familia's destroy! method
+metadata, secret = V2::Secret.spawn_pair 'anon', :tryouts
+metadata.save
+metadata.destroy!
+!metadata.exists?
 #=> true
 
 ## Can set private secret to viewed state

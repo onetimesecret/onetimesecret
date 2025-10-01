@@ -17,7 +17,7 @@
 # of these specific scenarios.
 
 #ENV['FAMILIA_TRACE'] = '1'
-require_relative 'test_models'
+require_relative 'test_helpers'
 #Familia.debug = true
 
 # Load the app
@@ -25,8 +25,8 @@ OT.boot! :test, false
 
 # Setup some variables for these tryouts
 @now = Time.now.strftime("%Y%m%d%H%M%S")
-@email_address = "tryouts+#{@now}@onetimesecret.com"
-@find_by_email_address = "test2+#{rand(10000000)}@example.com"
+@email_address = generate_random_email
+@find_by_email_address = generate_random_email
 @cust = V2::Customer.new email: @email_address
 @objid = @cust.objid
 
@@ -55,7 +55,7 @@ OT.boot! :test, false
 ## Can "create" an anonymous user (more like simulate)
 @anonymous = V2::Customer.anonymous
 @anonymous.role
-#=> 'anonymous'
+#=> 'customer'
 
 ## Anonymous is a Customer class
 @anonymous.class
@@ -147,16 +147,16 @@ ttl = @cust.default_expiration
 @cust.verified?
 #=> false
 
-## Customer.values has the correct dbkey
-V2::Customer.values.dbkey
-#=> "onetime:customer"
+## Customer.instances has the correct dbkey
+V2::Customer.instances.dbkey
+#=> "customer:instances"
 
 ## Customer.domains has the correct dbkey
 V2::Customer.domains.dbkey
-#=> "onetime:customers:domain"
+#=> "customer:domains"
 
-## Customer.values is a Familia::SortedSet
-V2::Customer.values.class
+## Customer.instances is a Familia::SortedSet
+V2::Customer.instances.class
 #=> Familia::SortedSet
 
 ## Customer.domains is a Familia::HashKey
