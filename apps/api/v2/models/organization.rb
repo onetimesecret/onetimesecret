@@ -28,7 +28,7 @@ module V2
     hashkey :urls
 
     def init
-      @orgid ||= Familia.generate_short_id
+      @orgid ||= Familia.generate_id
       nil
     end
 
@@ -40,7 +40,10 @@ module V2
         org.save
 
         OT.ld "[create] orgid: #{org.orgid}, #{org.to_s}"
-        add org
+
+        # TODO: Add to Model-level relations
+        # add org
+
         org
       end
     end

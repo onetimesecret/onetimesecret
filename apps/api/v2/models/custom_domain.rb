@@ -603,7 +603,7 @@ module V2
       # 256-bit random value truncated to 64 bits for shorter length.
       # @return [String] A secure short identifier in base-36 encoding
       def generate_id
-        OT::Utils.generate_short_id
+        Familia.generate_id
       end
     end
 

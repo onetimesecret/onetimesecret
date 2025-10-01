@@ -26,7 +26,7 @@ module V2
     field :description
 
     def init
-      @teamid ||= Familia.generate_short_id
+      @teamid ||= Familia.generate_id
       nil
     end
 
