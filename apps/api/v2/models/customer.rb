@@ -36,8 +36,6 @@ module V2
 
     prefix :customer
 
-    class_sorted_set :values, dbkey: 'onetime:customer'
-
     feature :expiration
     feature :relationships
     feature :object_identifier
@@ -98,11 +96,11 @@ module V2
     end
 
     def anonymous?
-      role.to_s.eql?('anonymous')
+      role.to_s.eql?('anonymous') || custid.to_s.eql?('anon')
     end
 
     def obscure_email
-      return 'anon' if anonymous?
+      return 'anonymous@example.com' if anonymous?
 
       OT::Utils.obscure_email(email)
     end
@@ -142,7 +140,10 @@ module V2
       end
 
       def anonymous
-        @anonymous ||= new(role: 'anonymous').freeze
+        @anonymous ||= begin
+          anon = new(role: 'customer', custid: 'anon', objid: 'anon', extid: 'anon')
+          anon.freeze
+        end
       end
 
       def email_exists?(email)
