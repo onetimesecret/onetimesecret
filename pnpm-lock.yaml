@@ -4,9 +4,6 @@ settings:
   autoInstallPeers: true
   excludeLinksFromLockfile: false
 
-overrides:
-  pg-query-native: npm:pg-query-emscripten@5.1.0
-
 importers:
 
   .:
@@ -213,9 +210,6 @@ importers:
       prettier:
         specifier: 3.5.3
         version: 3.5.3
-      prettier-plugin-pg:
-        specifier: ^0.0.0
-        version: 0.0.0
       prettier-plugin-tailwindcss:
         specifier: 0.6.14
         version: 0.6.14(prettier@3.5.3)
@@ -3215,9 +3209,6 @@ packages:
   perfect-debounce@2.0.0:
     resolution: {integrity: sha512-fkEH/OBiKrqqI/yIgjR92lMfs2K8105zt/VT6+7eTjNwisrsh47CeIED9z58zI7DfKdH3uHAn25ziRZn3kgAow==}
 
-  pg-query-emscripten@5.1.0:
-    resolution: {integrity: sha512-H1ZWOzLRddmHuE4GZqFjjo55hA9zMiePz/WDDGANA/EnvILCJps9pcRucyGd+MFvapeYOy6TWSYz6DbtBOaxRQ==}
-
   picocolors@1.1.1:
     resolution: {integrity: sha512-xceH2snhtb5M9liqDsmEw56le376mTZkEX/jEb/RxNFyegNul7eNslCXP9FDj/Lcu0X8KEyMceP2ntpaHrDEVA==}
 
@@ -3317,9 +3308,6 @@ packages:
   prelude-ls@1.2.1:
     resolution: {integrity: sha512-vkcDPrRZo1QZLbn5RLGPpg/WmIQ65qoWWhcGKf/b5eplkkarX0m9z8ppCat4mlOqUsWpyNuYgO3VRyrYHSzX5g==}
     engines: {node: '>= 0.8.0'}
-
-  prettier-plugin-pg@0.0.0:
-    resolution: {integrity: sha512-kZDOr0jyLXpXsWFJjfZwFw/xZw3H9jIQiRyfWPn0RJQPtWlfivqDod6UBO4LeJR6CIKnyE1DsJH3jbcNJxL3og==}
 
   prettier-plugin-tailwindcss@0.6.14:
     resolution: {integrity: sha512-pi2e/+ZygeIqntN+vC573BcW5Cve8zUB0SSAGxqpB4f96boZF4M3phPVoOFCeypwkpRYdi7+jQ5YJJUwrkGUAg==}
@@ -7490,8 +7478,6 @@ snapshots:
 
   perfect-debounce@2.0.0: {}
 
-  pg-query-emscripten@5.1.0: {}
-
   picocolors@1.1.1: {}
 
   picomatch@2.3.1: {}
@@ -7567,10 +7553,6 @@ snapshots:
       source-map-js: 1.2.1
 
   prelude-ls@1.2.1: {}
-
-  prettier-plugin-pg@0.0.0:
-    dependencies:
-      pg-query-native: pg-query-emscripten@5.1.0
 
   prettier-plugin-tailwindcss@0.6.14(prettier@3.5.3):
     dependencies:
