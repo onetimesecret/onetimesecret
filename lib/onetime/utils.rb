@@ -134,14 +134,17 @@ module Onetime
       password_chars = []
 
       # Ensure at least one character from each selected set
-      password_chars << UPPERCASE.sample if opts['uppercase']
-      password_chars << LOWERCASE.sample if opts['lowercase']
-      password_chars << NUMBERS.sample if opts['numbers']
-      password_chars << SYMBOLS.sample if opts['symbols']
-
-      # Remove ambiguous characters from guaranteed chars if needed
+      # When excluding ambiguous chars, sample from filtered sets to maintain guarantee
       if opts['exclude_ambiguous']
-        password_chars.delete_if { |char| AMBIGUOUS_CHARS.include?(char) }
+        password_chars << (UPPERCASE - AMBIGUOUS_CHARS).sample if opts['uppercase']
+        password_chars << (LOWERCASE - AMBIGUOUS_CHARS).sample if opts['lowercase']
+        password_chars << (NUMBERS - AMBIGUOUS_CHARS).sample if opts['numbers']
+        password_chars << (SYMBOLS - AMBIGUOUS_CHARS).sample if opts['symbols']
+      else
+        password_chars << UPPERCASE.sample if opts['uppercase']
+        password_chars << LOWERCASE.sample if opts['lowercase']
+        password_chars << NUMBERS.sample if opts['numbers']
+        password_chars << SYMBOLS.sample if opts['symbols']
       end
 
       # Fill remaining length with random characters from the full set
