@@ -100,7 +100,7 @@ sess = V2::Session.new 'id123', cust, "tryouts"
 params = { msg: 'This is a test feedback' }
 obj = V2::Logic::ReceiveFeedback.new sess, cust, params
 obj.raise_concerns
-#=> nil
+##=> nil
 
 ## Feedback model exposes a recent method
 recent_feedback = @model_class.recent
