@@ -91,7 +91,7 @@ RSpec.describe "Onetime boot configuration process" do
     # No need to clean up as we're using an existing file
   end
 
-  describe '.boot!' do
+  describe '.boot!', :allow_redis do
     context 'with valid configuration' do
       before do
         # Explicitly reset the d9s_enabled to nil before each test
