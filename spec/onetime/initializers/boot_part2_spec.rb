@@ -64,6 +64,7 @@ RSpec.describe "Onetime global state after boot", :allow_redis do
     stub_const('V2::SystemSettings', system_settings_stub)
 
     # Other common mocks
+    allow(Onetime).to receive(:detect_legacy_data_and_warn) # Skip legacy data detection in boot tests
     allow(Onetime).to receive(:connect_databases).and_return(true)
     allow(Onetime).to receive(:print_log_banner).and_return(nil)
 
