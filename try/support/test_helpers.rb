@@ -1,6 +1,6 @@
 # try/test_helpers.rb
 
-ENV['ONETIME_HOME'] ||= File.expand_path(File.join(__dir__, '..')).freeze
+ENV['ONETIME_HOME'] ||= File.expand_path(File.join(__dir__, '..', '..')).freeze
 project_root = ENV['ONETIME_HOME']
 app_root = File.join(project_root, '/apps').freeze
 

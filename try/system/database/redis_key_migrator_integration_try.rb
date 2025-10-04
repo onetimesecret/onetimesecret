@@ -1,7 +1,7 @@
 # try/80_database/30_redis_key_migrator_integration_try.rb
 
 require_relative '../../support/test_helpers'
-require_relative '../../lib/onetime/redis_key_migrator'
+require_relative '../../../lib/onetime/redis_key_migrator'
 
 OT.boot! :test, true
 
