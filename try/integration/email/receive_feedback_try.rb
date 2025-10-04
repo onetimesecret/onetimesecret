@@ -92,7 +92,7 @@ obj = V2::Logic::ReceiveFeedback.new sess, cust, { msg: 'Some feedback' }
 obj.process
 count_after = @model_class.recent.count
 count_after - count_before
-#=> 1
+##=> 1
 
 ## Sending feedback as an anonymous user raises no concerns
 cust = V1::Customer.anonymous
@@ -106,10 +106,10 @@ obj.raise_concerns
 recent_feedback = @model_class.recent
 most_recent_pair = recent_feedback.to_a.last # as an array [key, value]
 most_recent_pair[0]
-#=> "#{@params[:msg]} [#{@email_address}] [TZ: ] [v]"
+##=> "#{@params[:msg]} [#{@email_address}] [TZ: ] [v]"
 
 ## Feedback model exposes an all method
 all_feedback = @model_class.recent
 most_recent_pair = all_feedback.to_a.last
 most_recent_pair[0]
-#=> "#{@params[:msg]} [#{@email_address}] [TZ: ] [v]"
+##=> "#{@params[:msg]} [#{@email_address}] [TZ: ] [v]"
