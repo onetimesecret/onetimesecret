@@ -141,6 +141,7 @@ jobs:
         continue-on-error: ${{ matrix.continue-on-error }}
         env:
           REDIS_URL: 'redis://127.0.0.1:2121/0'
+          RACK_ENV: 'test'
         run: |
           bundle exec tryouts -vf try
 

@@ -323,7 +323,7 @@ module Onetime
       return true if defined?(OT) && OT.mode?(:test)
 
       # Skip during testing environment (covers CI scenarios)
-      return true if defined?(OT) && OT.env == 'testing'
+      return true if defined?(OT) && (OT.env == 'testing' || OT.env == 'test')
 
       false
     end
