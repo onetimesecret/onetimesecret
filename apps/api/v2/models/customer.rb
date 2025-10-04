@@ -61,10 +61,6 @@ module V2
 
     identifier_field :objid
 
-    class_counter :secrets_created
-    class_counter :secrets_shared
-    class_counter :secrets_burned
-    class_counter :emails_sent
 
     # Global email index
     #

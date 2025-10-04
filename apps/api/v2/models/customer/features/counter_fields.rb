@@ -12,6 +12,11 @@ module V2::Customer::Features
       base.field :secrets_burned
       base.field :secrets_shared
       base.field :emails_sent
+
+      base.class_counter :secrets_created
+      base.class_counter :secrets_shared
+      base.class_counter :secrets_burned
+      base.class_counter :emails_sent
     end
 
     module InstanceMethods
