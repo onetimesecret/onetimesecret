@@ -2,7 +2,7 @@
 
 module Onetime::Customer::Features
   module SafeDump
-
+	# Register our custom SafeDump feature with a unique
     Onetime::Customer.add_feature self, :safe_dump_fields
 
     def self.included(base)
@@ -13,12 +13,15 @@ module Onetime::Customer::Features
         value.empty? ? '0' : value
       }
 
+      # Enable the Familia SafeDump feature
       base.feature :safe_dump
 
       # NOTE: The SafeDump mixin caches the safe_dump_field_map so updating this list
       # with hot reloading in dev mode will not work. You will need to restart the
       # server to see the changes.
       base.safe_dump_field :identifier, ->(obj) { obj.identifier }
+      base.safe_dump_field :objid
+      base.safe_dump_field :extid
       base.safe_dump_field :custid
       base.safe_dump_field :email
       base.safe_dump_field :role
@@ -44,6 +47,5 @@ module Onetime::Customer::Features
       # We use the hash syntax here since `:active?` is not a valid symbol.
       base.safe_dump_field :active, ->(cust) { cust.active? }
     end
-
   end
 end

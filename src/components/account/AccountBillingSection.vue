@@ -29,7 +29,7 @@
       amount: subscription.items.data[0]?.price?.unit_amount ?? 0,
       quantity: subscription.items.data[0]?.quantity ?? 1,
       interval: subscription.items.data[0]?.price?.recurring?.interval ?? 'month',
-      currentPeriodEnd: subscription.items.data[0]?.current_period_end,
+      currentPeriodEnd: (subscription as any).current_period_end,
     }))
   );
 </script>

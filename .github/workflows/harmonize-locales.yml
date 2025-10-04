@@ -270,7 +270,7 @@ jobs:
 
       - name: Upload translation templates and reports
         if: always() && steps.harmonize.outputs.changes_made == 'true'
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: translation-templates-and-reports
           path: ./reports/
@@ -279,7 +279,7 @@ jobs:
 
       - name: Upload fallback reports (minimal)
         if: always() && steps.harmonize.outputs.changes_made == 'true' && failure()
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: fallback-harmonization-report
           path: |

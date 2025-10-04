@@ -1,3 +1,5 @@
+// src/router/index.ts
+
 import { setupRouterGuards } from '@/router/guards.routes';
 import NotFound from '@/views/NotFound.vue';
 import type { Router, RouteRecordRaw } from 'vue-router';

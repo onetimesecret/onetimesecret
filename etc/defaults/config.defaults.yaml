@@ -10,11 +10,6 @@ site:
   secret: <%= ENV['SECRET'] || nil %>
   # API and UI Configuration
   interface:
-    # Controls whether the web user interface is available. When disabled, the
-    # homepage becomes a basic, readonly page with the logo and a brief
-    # explanation of the site and how it works. This is helpful for link
-    # recipients who may do some light investigation to see if the site is
-    # legit as opposed a blank page or 404.
     ui:
       # Controls whether the web interface is enabled
       # When false, only a basic explanation page is shown
@@ -94,6 +89,32 @@ site:
     # These options will be presented to users when they create a new secret
     # Format: String of integers representing seconds
     ttl_options: <%= (ENV['TTL_OPTIONS'] || nil) %>
+    # Settings for the passphrase field that protects access to secrets
+    passphrase:
+      # Require users to enter a passphrase when creating secrets
+      required: <%= ENV['PASSPHRASE_REQUIRED'] == 'true' || false %>
+      # Minimum number of characters required for passphrases
+      minimum_length: <%= ENV['PASSPHRASE_MIN_LENGTH'] || 8 %>
+      # Maximum number of characters allowed for passphrases
+      maximum_length: <%= ENV['PASSPHRASE_MAX_LENGTH'] || 128 %>
+      # Enforce complexity requirements (uppercase, lowercase, numbers, symbols)
+      enforce_complexity: <%= ENV['PASSPHRASE_ENFORCE_COMPLEXITY'] == 'true' || false %>
+    # Settings for password generation (when users click "Generate Password")
+    password_generation:
+      # Default length for generated passwords
+      default_length: <%= ENV['PASSWORD_GEN_LENGTH'] || 12 %>
+      # Character sets to include in generated passwords
+      character_sets:
+        # Include uppercase letters (A-Z)
+        uppercase: <%= ENV['PASSWORD_GEN_UPPERCASE'] != 'false' %>
+        # Include lowercase letters (a-z)
+        lowercase: <%= ENV['PASSWORD_GEN_LOWERCASE'] != 'false' %>
+        # Include numbers (0-9)
+        numbers: <%= ENV['PASSWORD_GEN_NUMBERS'] != 'false' %>
+        # Include symbols (!@#$%^&*()_+-=[]{}|;:,.<>?)
+        symbols: <%= ENV['PASSWORD_GEN_SYMBOLS'] == 'true' || false %>
+        # Exclude ambiguous characters (0, O, l, 1, I) to prevent confusion
+        exclude_ambiguous: <%= ENV['PASSWORD_GEN_EXCLUDE_AMBIGUOUS'] != 'false' %>
   # Registration and Authentication settings
   authentication:
     # Can be disabled altogether, including API authentication.
@@ -113,6 +134,12 @@ site:
     # an instance for your team or company, you can disable this feature
     # to make it easier for users to sign in.
     autoverify: <%= ENV['AUTH_AUTOVERIFY'] == 'true' || false %>
+    # When enabled, the homepage secret form is not available unless
+    # the user is logged in. Similar to a disabled homepage, but still
+    # shows the header with logo and navigation links. This allows for
+    # a more restrictive mode where only authenticated users can create
+    # secrets while maintaining site navigation and branding.
+    required: <%= ENV['AUTH_REQUIRED'] == 'true' %>
     # Email addresses listed below will be granted automatic
     # administrative privileges upon account creation. These
     # accounts have access to a page that show basic system stats.
@@ -150,30 +177,51 @@ features:
     enabled: false
     email: CHANGEME@example.com
     passphrase: abacus
+
+# Main Database Configuration
 redis:
-  # Main Redis connection URI - Specify full connection string including auth
+  # Redis/Valkey connection URI - Compatible with Redis, Valkey, and other
+  # Redis-compatible servers.
+  #
+  # Environment Variable Precedence (highest to lowest):
+  #   1. VALKEY_URL or REDIS_URL - Explicit connection string
+  #   2. IN_DOCKER=1 - Force Docker configuration (redis://host.docker.internal:6379)
+  #   3. AUTO_DETECT_DOCKER=1 - Enable automatic Docker detection via /.dockerenv file
+  #   4. Default - Local development (redis://CHANGEME@127.0.0.1:6379)
+  #
   # Format: redis://[:password@]host[:port]/[db-number]
   # Examples:
-  #   - redis://mypassword@localhost:6379/0        # Simple password auth
-  #   - redis://user:pass@localhost:6379/0         # Username/password auth
-  #   - redis://redis.example.com:6379/0          # No auth (development only)
-  uri: <%= ENV['VALKEY_URL'] || 'redis://CHANGEME@127.0.0.1:6379/0' %>
+  #   - redis://mypassword@localhost:6379       # Simple password auth
+  #   - redis://user:pass@localhost:6379        # Username/password auth
+  #   - redis://host.docker.internal:6379       # Docker environment
+  #   - redis://127.0.0.1:6379                  # Local development
+  uri: >-
+      <%=
+        ENV['VALKEY_URL'] ||
+        ENV['REDIS_URL'] ||
+        (ENV['IN_DOCKER'] == '1' || (ENV['AUTO_DETECT_DOCKER'] == '1' && File.exist?('/.dockerenv')) ?
+          'redis://host.docker.internal:6379' :
+          'redis://CHANGEME@127.0.0.1:6379')
+      %>
   # Database Mapping Configuration
-  # These mappings allow separating data across different Redis logical
-  # databases (0-15). These can be arranged any way you like.
-  # Note: If using a Redis provider with single-database limitation
-  # (e.g., Upstash) set all values to 0.
+  # By default, all data types use database 0 for simplified connection pooling
+  # and compatibility with Redis-as-a-Service providers. For advanced setups,
+  # you can separate data across different Redis logical databases (0-15)
+  # by setting environment variables or modifying the values below.
   dbs:
-    session: <%= ENV['REDIS_DBS_SESSION'] || 1 %>
-    custom_domain: <%= ENV['REDIS_DBS_CUSTOM_DOMAIN'] || 6 %>
-    customer: <%= ENV['REDIS_DBS_CUSTOMER'] || 6 %>
-    subdomain: <%= ENV['REDIS_DBS_SUBDOMAIN'] || 6 %>
-    metadata: <%= ENV['REDIS_DBS_METADATA'] || 7 %>
-    secret: <%= ENV['REDIS_DBS_SECRET'] || 8 %>
-    feedback: <%= ENV['REDIS_DBS_FEEDBACK'] || 11 %>
+    session: <%= ENV['VALKEY_DBS_SESSION'] || ENV['REDIS_DBS_SESSION'] || 0 %>
+    custom_domain: <%= ENV['VALKEY_DBS_CUSTOM_DOMAIN'] || ENV['REDIS_DBS_CUSTOM_DOMAIN'] || 0 %>
+    customdomain: <%= ENV['VALKEY_DBS_CUSTOM_DOMAIN'] || ENV['REDIS_DBS_CUSTOM_DOMAIN'] || 0 %>
+    customer: <%= ENV['VALKEY_DBS_CUSTOMER'] || ENV['REDIS_DBS_CUSTOMER'] || 0 %>
+    metadata: <%= ENV['VALKEY_DBS_METADATA'] || ENV['REDIS_DBS_METADATA'] || 0 %>
+    secret: <%= ENV['VALKEY_DBS_SECRET'] || ENV['REDIS_DBS_SECRET'] || 0 %>
+    feedback: <%= ENV['VALKEY_DBS_FEEDBACK'] || ENV['REDIS_DBS_FEEDBACK'] || 0 %>
+
 logging:
   # HTTP request logs (Rack::CommonLogger)
   http_requests: <%= ENV['LOG_HTTP_REQUESTS'] != 'false' %>
+
+# Sending Emails
 emailer:
   # Local Development with Mailpit
   # -----------------------------

@@ -33,21 +33,21 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 # v4
 
       - name: Set up Ruby
-        uses: ruby/setup-ruby@829114fc20da43a41d27359103ec7a63020954d4
+        uses: ruby/setup-ruby@0481980f17b760ef6bca5e8c55809102a0af1e5a
         with:
           ruby-version: '3.4'
           bundler-cache: true
 
       - name: Set up Node.js
-        uses: actions/setup-node@4
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
         with:
           node-version: '22'
 
       - name: Install pnpm
-        uses: pnpm/action-setup@v4
+        uses: pnpm/action-setup@f2b2b233b538f500472c7274c7012f57857d8ce0
         with:
           version: 10.10.0
 

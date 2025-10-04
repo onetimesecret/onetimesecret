@@ -11,7 +11,7 @@ module Onetime
     # When changing an email address, all of the following need to be updated:
     # 1. Customer record fields (custid, key, email)
     # 2. database keys associated with the customer (object, custom_domain, metadata)
-    # 3. References in sorted sets and hashes (onetime:customer)
+    # 3. References in sorted sets and hashes (customer:instances)
     # Note: Custom domain IDs are now randomly generated and don't need updating
     #
     # @example Basic usage
@@ -59,14 +59,14 @@ module Onetime
                    "   - customer:#{old_email}:metadata → customer:#{new_email}:metadata (if exists)",
                    "   - customer:#{old_email}:feature_flags → customer:#{new_email}:feature_flags (if exists)",
                    "   - customer:#{old_email}:reset_secret → customer:#{new_email}:reset_secret (if exists)",
-                   '3. Update customer in values sorted set (onetime:customer)']
+                   '3. Update customer in values sorted set (customer:instances)']
 
         # Note domain associations if any (no changes needed since domain IDs are now random)
         if @domains.any?
           changes << '4. Associated custom domain(s) (no changes required):'
           @domains.each do |domain_info|
-            domain = domain_info[:domain]
-            old_id = domain_info[:old_id]
+            domain = domain_info['domain']
+            old_id = domain_info['old_id']
             changes << "   - Domain: #{domain} (ID: #{old_id})"
           end
           changes << "   Note: Domain IDs are randomly generated and don't need updating"
@@ -121,8 +121,8 @@ module Onetime
       # @private
       def validate_domains
         domains.each do |domain_info|
-          domain = domain_info[:domain]
-          old_id = domain_info[:old_id]
+          domain = domain_info['domain']
+          old_id = domain_info['old_id']
 
           # Verify domain format
           unless domain && !domain.empty?
@@ -151,15 +151,15 @@ module Onetime
       #
       # @return [Boolean] True if all operations succeeded, false if any errors occurred
       def execute!
-        # Get the redis connection via the model to make sure we're
+        # Get the db connection via the model to make sure we're
         # connected to the correct DB where customer records live.
         redis = Onetime::Customer.dbclient
 
         log "EXECUTION: Starting email change process for #{old_email} -> #{new_email}"
-        log "Using Redis database #{redis.connection[:db]}"
+        log "Using Redis database #{dbclient.connection[:db]}"
 
         begin
-          redis.multi do |multi|
+          dbclient.multi do |multi|
             # Update customer object fields
             log 'Updating customer object fields'
             multi.hset("customer:#{old_email}:object", 'custid', new_email)
@@ -175,10 +175,10 @@ module Onetime
             # We'll attempt the RENAME and it will fail if the key doesn't exist,
             # which is acceptable for this use case. If a more graceful handling
             # is needed, these checks would need to be done before the MULTI block.
-            multi.rename("customer:#{old_email}:custom_domain", "customer:#{new_email}:custom_domain") if redis.exists?("customer:#{old_email}:custom_domain")
-            multi.rename("customer:#{old_email}:metadata", "customer:#{new_email}:metadata") if redis.exists?("customer:#{old_email}:metadata")
-            multi.rename("customer:#{old_email}:feature_flags", "customer:#{new_email}:feature_flags") if redis.exists?("customer:#{old_email}:feature_flags")
-            multi.rename("customer:#{old_email}:reset_secret", "customer:#{new_email}:reset_secret") if redis.exists?("customer:#{old_email}:reset_secret")
+            multi.rename("customer:#{old_email}:custom_domain", "customer:#{new_email}:custom_domain") if dbclient.exists?("customer:#{old_email}:custom_domain")
+            multi.rename("customer:#{old_email}:metadata", "customer:#{new_email}:metadata") if dbclient.exists?("customer:#{old_email}:metadata")
+            multi.rename("customer:#{old_email}:feature_flags", "customer:#{new_email}:feature_flags") if dbclient.exists?("customer:#{old_email}:feature_flags")
+            multi.rename("customer:#{old_email}:reset_secret", "customer:#{new_email}:reset_secret") if dbclient.exists?("customer:#{old_email}:reset_secret")
 
             # Update customer values list
             # Get score for the old email in the sorted set
@@ -186,10 +186,10 @@ module Onetime
             # This operation needs to be handled carefully.
             # For now, we'll assume this is done outside or before the transaction.
             # A possible approach is to fetch the score before the multi block.
-            score = redis.zscore('onetime:customer', old_email)
+            score = dbclient.zscore('customer:instances', old_email)
             if score
-              multi.zadd('onetime:customer', score, new_email)
-              multi.zrem('onetime:customer', old_email)
+              multi.zadd('customer:instances', score, new_email)
+              multi.zrem('customer:instances', old_email)
             end
           end
 
@@ -200,7 +200,7 @@ module Onetime
           log "ERROR during Redis transaction: #{ex.message}"
           log ex.backtrace.join("\n")
           # Attempt to unwatch if a watch was used, though not explicitly here
-          redis.unwatch if redis.respond_to?(:unwatch)
+          dbclient.unwatch if dbclient.respond_to?(:unwatch)
           false
         rescue StandardError => ex
           log "ERROR: #{ex.message}"
@@ -257,9 +257,9 @@ module Onetime
         report_key  = "change_email:#{old_email}:#{new_email}:#{timestamp}"
 
         # Save to the database DB 0 for audit logs
-        redis = Familia.dbclient
-        redis.set(report_key, report_text)
-        redis.expire(report_key, 365 * 24 * 60 * 60) # 1 year TTL
+        dbclient = Familia.dbclient
+        dbclient.set(report_key, report_text)
+        dbclient.expire(report_key, 365 * 24 * 60 * 60) # 1 year TTL
 
         log "Report saved to the database with key: #{report_key}", true
         report_key

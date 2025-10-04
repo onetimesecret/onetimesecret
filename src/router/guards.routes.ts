@@ -17,6 +17,7 @@ export async function setupRouterGuards(router: Router): Promise<void> {
       return true;
     }
 
+
     // Handle root path redirect
     if (to.path === '/') {
       return authStore.isAuthenticated ? { name: 'Dashboard' } : true;
@@ -128,8 +129,9 @@ async function fetchCustomerPreferences(): Promise<{ locale?: string }> {
   return { locale };
 }
 
+export type { AuthValidator };
+
 export {
-  AuthValidator,
   fetchCustomerPreferences,
   isAuthRoute,
   redirectToSignIn,

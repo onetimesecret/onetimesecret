@@ -1,7 +1,7 @@
 # lib/onetime/refinements/then_with_diff.rb
 
 require 'hashdiff'
-require 'json'
+require 'familia/json_serializer'
 require 'familia'
 
 module Onetime
@@ -80,7 +80,7 @@ module Onetime
 
         # Get previous state from last record
         last_record_json = Onetime::ThenWithDiff.history.last
-        last_record      = last_record_json ? JSON.parse(last_record_json) : {}
+        last_record      = last_record_json ? Familia::JsonSerializer.parse(last_record_json) : {}
         previous_state   = last_record['content'] || {}
 
         diff = Hashdiff.diff(previous_state, result, Onetime::ThenWithDiff.options)

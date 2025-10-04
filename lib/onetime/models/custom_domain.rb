@@ -546,7 +546,7 @@ module Onetime
           raise Onetime::Problem, "Cannot add custom domain with nil custid. display_domain=#{fobj.display_domain.inspect}, identifier=#{fobj.identifier.inspect}"
         end
 
-        values.add OT.now.to_i, fobj.to_s # created time, identifier
+        values.add fobj.to_s # created time, identifier
         display_domains.put fobj.display_domain, fobj.identifier
         owners.put fobj.to_s, fobj.custid # domainid => customer id
       end
@@ -603,7 +603,7 @@ module Onetime
       # 256-bit random value truncated to 64 bits for shorter length.
       # @return [String] A secure short identifier in base-36 encoding
       def generate_id
-        OT::Utils.generate_short_id
+        Familia.generate_id
       end
     end
 

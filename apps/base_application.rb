@@ -2,7 +2,7 @@
 
 require 'rack'
 require 'otto'
-require 'json'
+require 'familia/json_serializer'
 
 require_relative 'app_registry'
 require_relative 'middleware_stack'

@@ -80,7 +80,7 @@ export const useCustomerStore = defineStore('customer', () => {
       signal: abortController.value.signal,
     });
     const validated = responseSchemas.customer.parse(response.data);
-    currentCustomer.value = validated.record;
+    currentCustomer.value = validated.record as Customer;
   }
 
   /**
@@ -99,7 +99,7 @@ export const useCustomerStore = defineStore('customer', () => {
       updates
     );
     const validated = responseSchemas.customer.parse(response.data);
-    currentCustomer.value = validated.record;
+    currentCustomer.value = validated.record as Customer;
   }
 
   /**

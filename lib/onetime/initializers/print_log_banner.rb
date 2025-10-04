@@ -1,7 +1,6 @@
 # lib/onetime/initializers/print_log_banner.rb
 
 require 'tty-table'
-require 'json'
 
 module Onetime
   module Initializers
@@ -80,6 +79,8 @@ module Onetime
 
     # Builds system information section rows
     def build_system_section(redis_info)
+
+      redis_dbs = OT.conf.dig('redis', 'dbs') || {}
       system_rows = [
         ['System', "#{RUBY_ENGINE} #{RUBY_VERSION} in #{OT.env}"],
         ['Config', OT::Config.path],
@@ -88,6 +89,7 @@ module Onetime
         ['Otto', "v#{Otto::VERSION}"],
         ['I18n', OT.i18n_enabled],
         ['Diagnostics', OT.d9s_enabled],
+        ['Models', redis_dbs.inspect]
       ]
 
       # Add locales if i18n is enabled
@@ -165,7 +167,7 @@ module Onetime
         ['Colonels', 'No colonels configured ⚠️']
       else
         ['Colonels', colonels.join(', ')]
-                   end
+      end
 
       if site_config.key?('authentication')
         auth_config = site_config['authentication']
@@ -197,6 +199,26 @@ module Onetime
         if secret_options['ttl_options']
           ttl_options = secret_options['ttl_options'].map { |seconds| format_duration(seconds) }.join(', ')
           customization_rows << ['TTL Options', ttl_options]
+        end
+
+        # Format passphrase options
+        if secret_options['passphrase']
+          passphrase_config = secret_options['passphrase']
+          if is_feature_disabled?(passphrase_config)
+            customization_rows << ['Passphrase', 'disabled']
+          elsif passphrase_config.is_a?(Hash) && !passphrase_config.empty?
+            customization_rows << ['Passphrase', format_config_value(passphrase_config)]
+          end
+        end
+
+        # Format password_generation options
+        if secret_options['password_generation']
+          password_generation_config = secret_options['password_generation']
+          if is_feature_disabled?(password_generation_config)
+            customization_rows << ['Password Generation', 'disabled']
+          elsif password_generation_config.is_a?(Hash) && !password_generation_config.empty?
+            customization_rows << ['Password Generation', format_config_value(password_generation_config)]
+          end
         end
       end
 

@@ -20,6 +20,8 @@ source 'https://rubygems.org/'
 # ====================================
 
 # Web framework and routing
+# Authentication framework
+gem 'rodauth', '~> 2.0'
 gem 'otto', '~> 2.0.0.pre1'
 gem 'roda', '~> 3.0'
 
@@ -33,8 +35,26 @@ gem 'rack-session', '~> 2.1.1'
 gem 'rackup'
 gem 'rack-utf8_sanitizer'
 
-# Authentication framework
-gem 'rodauth', '~> 2.0'
+# ====================================
+# Data Processing & Utilities
+# ====================================
+
+# JSON and data validation
+gem 'json_schemer'
+
+# String and data processing
+gem 'drydock', '~> 1.0.0'
+gem 'fastimage', '~> 2.4'
+gem 'mail'
+gem 'mustache'
+gem 'public_suffix'
+gem 'tty-table', '~> 0.12'
+
+# HTTP client
+gem 'httparty'
+
+# Email validation
+gem 'truemail'
 
 # ====================================
 # Database & DB Tools
@@ -73,25 +93,8 @@ gem 'webauthn', '~> 3.0'
 # Data Processing & Utilities
 # ====================================
 
-# JSON processing
-gem 'json'
-gem 'json_schemer'
-gem 'oj', '~> 3.16'
-
-# String and data processing
-gem 'drydock', '~> 1.0.0'
-gem 'fastimage', '~> 2.4'
-gem 'mail', '~> 2.8'
-gem 'mustache'
-gem 'public_suffix'
-gem 'tty-table', '~> 0.12'
-
-# HTTP clients
-gem 'http', '~> 5.1'
-gem 'httparty'
-
-# Email validation
-gem 'truemail'
+gem 'familia', '~> 2.0.0.pre17'
+gem 'otto', '~> 1.4.0' #'~> 2.0.0.pre1'
 
 # ====================================
 # Ruby Standard Library Compatibility
@@ -99,8 +102,7 @@ gem 'truemail'
 
 gem 'base64'
 gem 'irb'
-gem 'logger'                 # Used by Truemail
-gem 'ostruct', '~> 0.6.2'    # Required by json
+gem 'logger'
 gem 'psych', '~> 5.2.3'
 gem 'rdoc'
 gem 'stringio', '~> 3.1.6'
@@ -139,7 +141,6 @@ group :development do
   gem 'rubocop-performance', require: false
   gem 'rubocop-rspec', require: false
   gem 'rubocop-thread_safety', require: false
-  gem 'ruby-lsp', require: false
   gem 'solargraph', require: false
   gem 'syntax_tree', require: false
 end

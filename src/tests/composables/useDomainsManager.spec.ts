@@ -34,6 +34,9 @@ const mockDependencies: MockDependencies = {
     recordCount: vi.fn(() => mockDomains.length),
     isLoading: ref(false),
     error: ref(null),
+    fetchList: vi.fn(),
+    getDomain: vi.fn(),
+    verifyDomain: vi.fn(),
   },
   notificationsStore: {
     show: vi.fn(),
@@ -48,6 +51,17 @@ vi.mock('vue-router', () => ({
 vi.mock('@/stores/domainsStore', () => ({
   useDomainsStore: () => mockDependencies.domainsStore,
 }));
+
+vi.mock('pinia', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('pinia')>();
+  return {
+    ...actual,
+    storeToRefs: (store: any) => ({
+      records: store.records,
+      details: store.details,
+    }),
+  };
+});
 
 vi.mock('@/stores/notificationsStore', () => ({
   useNotificationsStore: () => mockDependencies.notificationsStore,
@@ -268,9 +282,10 @@ describe('useDomainsManager', () => {
           return await fn();
         } catch (err) {
           // Properly classify the error and call onError callback
+          const error = err as any;
           const classifiedError = {
-            message: err.message,
-            type: err.status === 404 ? 'human' : 'technical',
+            message: error.message,
+            type: error.status === 404 ? 'human' : 'technical',
             severity: 'error',
           };
           mockDependencies.errorHandler.handleError(classifiedError);
@@ -289,7 +304,7 @@ describe('useDomainsManager', () => {
       try {
         await handleAddDomain('test-domain.com');
       } catch (err) {
-        expect(err).toMatchObject({
+        expect(err as any).toMatchObject({
           message: 'API Error',
           type: 'human',
           severity: 'error',

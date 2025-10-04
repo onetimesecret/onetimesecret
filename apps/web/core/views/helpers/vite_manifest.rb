@@ -23,7 +23,7 @@ module Core
           return error_script(nonce, msg % 'manifest.json')
         end
 
-        @manifest_cache ||= JSON.parse(File.read(manifest_path))
+        @manifest_cache ||= Familia::JsonSerializer.parse(File.read(manifest_path))
         main_entry        = @manifest_cache['main.ts']
         style_entry       = @manifest_cache['style.css'] # may not exist
 

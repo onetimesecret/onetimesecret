@@ -5,7 +5,7 @@
 # ONETIME SECRET - DOCKER IMAGE
 #
 # Multi-stage build optimized for production deployment.
-# See docs/DOCKER.md for detailed usage instructions.
+# See docs/docker.md for detailed usage instructions.
 #
 # For general project information, see README.md.
 #
@@ -34,13 +34,13 @@
 #         -e REDIS_URL=redis://host.docker.internal:6379/0 \
 #         onetimesecret
 #
-# The app will be at http://localhost:3000. For more, see docs/DOCKER.md.
+# The app will be at http://localhost:3000. For more, see docs/docker.md.
 #
 
 ARG APP_DIR=/app
 ARG VERSION
-ARG RUBY_IMAGE_TAG=3.4-slim-bookworm@sha256:aa97c41012d81fa89ab5cf61409c3314665d024fd06c3af1ecea27865ffbd9c4
-ARG NODE_IMAGE_TAG=22@sha256:6fe286835c595e53cdafc4889e9eff903dd3008a3050c1675809148d8e0df805
+ARG RUBY_IMAGE_TAG=3.4-slim-bookworm@sha256:dd8c06af4886548264f4463ee2400fd6be641b0562c8f681e490d759632078f5
+ARG NODE_IMAGE_TAG=22@sha256:d367fd3fce932a9d3bc3816c23f85313d9b44e58e1fed49ef90a10c4b99409e8
 
 ##
 # NODE: Node.js source for copying binaries
@@ -61,6 +61,7 @@ RUN set -eux && \
     apt-get update && \
     apt-get install -y --no-install-recommends \
         build-essential \
+        libssl-dev \
         libffi-dev \
         libyaml-dev \
         git \
@@ -200,7 +201,7 @@ COPY bin ./bin
 COPY apps ./apps
 COPY etc/ ./etc/
 COPY lib ./lib
-COPY migrate ./migrate
+COPY migrations ./migrations
 COPY scripts/entrypoint.sh ./bin/
 COPY scripts/update-version.sh ./bin/
 COPY package.json config.ru Gemfile Gemfile.lock ./
@@ -220,7 +221,6 @@ ENV RACK_ENV=production \
 RUN set -eux && \
     cp --preserve --no-clobber etc/defaults/config.defaults.yaml etc/config.yaml && \
     chmod +x bin/entrypoint.sh bin/update-version.sh
-
 
 EXPOSE 3000
 

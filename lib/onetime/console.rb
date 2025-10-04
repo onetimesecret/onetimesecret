@@ -37,8 +37,13 @@ if defined?(IRB)
     RETURN: "⮑  %s\n",  # The format for return values
   }
 
+  # Make the literal time methods for strings and numbers available.
+  IRB.conf[:IRB_RC]           = proc do |context|
+    context.workspace.binding.eval('using Familia::Refinements::TimeLiterals')
+  end
+
   # Set the global prompt mode to :ONETIME
-  IRB.conf[:PROMPT_MODE] = :ONETIME
+  IRB.conf[:PROMPT_MODE]      = :ONETIME
 
   # Try to set it for the current context, if it exists
   if defined?(IRB.CurrentContext) && IRB.CurrentContext
@@ -47,12 +52,19 @@ if defined?(IRB)
 
   # Additional IRB settings
   IRB.conf[:AUTO_INDENT]      = true
-  IRB.conf[:ECHO]             = true
   IRB.conf[:BACK_TRACE_LIMIT] = 25
-  IRB.conf[:SAVE_HISTORY]     = 0
-  IRB.conf[:HISTORY_FILE]     = nil
+  IRB.conf[:ECHO]             = true
+  IRB.conf[:HISTORY_FILE]     = nil if IRB.conf[:HISTORY_FILE].nil?
   IRB.conf[:IGNORE_EOF]       = false
-  IRB.conf[:USE_PAGER]        = true
+  IRB.conf[:USE_PAGER]        = true if IRB.conf[:USE_PAGER].nil?
+
+  # History must be enabled explicitly
+  #
+  # Either no RC file, or SAVE_HISTORY unchanged from default, so we err
+  # on the side of caution and disable history saving altogether.
+  if IRB.conf[:SAVE_HISTORY].nil? || IRB.conf[:SAVE_HISTORY].eql?(1000)
+    IRB.conf[:SAVE_HISTORY] = 0
+  end
 
   puts
   puts "Onetime console loaded (additional settings applied: #{IRB.conf[:RC]})."
@@ -74,7 +86,7 @@ lines         = [
 ]
 
 banner = []
-banner << <<~BANNER
+banner << <<~HEADER
   ╔═══════════════════════════════════════════════════════════════╗
   ║                                                               ║
   ║    ██████  ███    ██ ███████ ████████ ██ ███    ███ ███████   ║
@@ -85,7 +97,7 @@ banner << <<~BANNER
   ║                                                               ║
   ╚═══════════════════════════════════════════════════════════════╝
 
-BANNER
+HEADER
 
 banner << "┌#{'─' * (content_width + 2)}┐"
 lines.each do |label, value|
@@ -103,11 +115,10 @@ unless ENV['DELAY_BOOT'].to_s.match?(/^(true|1)$/i)
 
     System Status: #{OT.ready? ? 'READY         ' : 'NOT BOOTED     '}
   BANNER
-
 end
 
-puts <<~BANNER
+puts <<~FOOTER
 
   Use ctrl-d to exit
 
-BANNER
+FOOTER

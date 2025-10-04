@@ -64,8 +64,9 @@ jobs:
         options: >-
           --health-cmd "redis-cli ping"
           --health-interval 10s
-          --health-timeout 3s
+          --health-timeout 10s
           --health-retries 5
+          --memory=4g
         ports:
           # https://docs.github.com/en/actions/using-containerized-services/creating-redis-service-containers#running-jobs-in-containers
           # Maps port 6379 on service container to 2121 on the host to
@@ -77,19 +78,23 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 # v4
 
-      - uses: ruby/setup-ruby@829114fc20da43a41d27359103ec7a63020954d4
+      - name: Enable memory overcommit for Redis
+        run: |
+          sudo sysctl -w vm.overcommit_memory=1
+
+      - uses: ruby/setup-ruby@0481980f17b760ef6bca5e8c55809102a0af1e5a
         with:
           ruby-version: ${{ matrix.ruby }}
           bundler-cache: true
 
       # Add Node.js setup to Ruby job
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
         with:
           node-version: '22'
 
       - name: Setup pnpm
-        uses: pnpm/action-setup@v4
+        uses: pnpm/action-setup@f2b2b233b538f500472c7274c7012f57857d8ce0
         with:
           version: latest
 
@@ -114,6 +119,7 @@ jobs:
       - name: Run test specs
         env:
           REDIS_URL: 'redis://127.0.0.1:2121/0'
+          RACK_ENV: 'test'
         run: |
           mkdir tmp && bundle exec rspec \
             --format progress \
@@ -146,12 +152,12 @@ jobs:
         uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 # v4
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
         with:
           node-version: '22'
 
       - name: Setup pnpm
-        uses: pnpm/action-setup@v4
+        uses: pnpm/action-setup@f2b2b233b538f500472c7274c7012f57857d8ce0
         with:
           version: latest
 
@@ -176,3 +182,73 @@ jobs:
         run: |
           echo "## TypeScript Test Results" >> $GITHUB_STEP_SUMMARY
           echo "Type checking, linting, and unit tests completed." >> $GITHUB_STEP_SUMMARY
+
+  check-oci-image:
+    timeout-minutes: 10
+    runs-on: ubuntu-24.04
+    needs: [test-ruby, test-typescript]
+
+    services:
+      redis:
+        image: ghcr.io/valkey-io/valkey:8.1.3-bookworm@sha256:fea8b3e67b15729d4bb70589eb03367bab9ad1ee89c876f54327fc7c6e618571
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 10s
+          --health-retries 5
+          --memory=4g
+        ports:
+          - 2121:6379
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 # v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: '22'
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@f2b2b233b538f500472c7274c7012f57857d8ce0
+        with:
+          version: latest
+
+      - name: Install frontend dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build assets
+        run: pnpm run build
+
+      - name: Build Docker image
+        run: docker build -t onetime-test .
+
+      - name: Start container
+        run: |
+          docker run -d \
+            --name onetime-test-container \
+            -p 3000:3000 \
+            -e REDIS_URL=redis://host.docker.internal:2121/0 \
+            -e SECRET=$(openssl rand -hex 32) \
+            --add-host=host.docker.internal:host-gateway \
+            onetime-test
+
+      - name: Wait for service to be ready
+        run: |
+          timeout 60 bash -c 'until curl -f http://localhost:3000/ > /dev/null 2>&1; do sleep 2; done'
+
+      - name: Test homepage loads
+        run: |
+          response=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:3000/)
+          if [ "$response" != "200" ]; then
+            echo "Homepage failed to load. HTTP status: $response"
+            docker logs onetime-test-container
+            exit 1
+          fi
+          echo "✅ Homepage loaded successfully with HTTP status: $response"
+
+      - name: Cleanup
+        if: always()
+        run: |
+          docker stop onetime-test-container || true
+          docker rm onetime-test-container || true

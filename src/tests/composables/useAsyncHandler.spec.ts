@@ -187,8 +187,8 @@ describe('useAsyncHandler', () => {
         await wrap(mockOperation);
       } catch (error) {
         expect(error).toBeInstanceOf(Error);
-        expect(error.stack).toBeDefined();
-        expect(error.stack).toContain('original error');
+        expect((error as Error).stack).toBeDefined();
+        expect((error as Error).stack).toContain('original error');
       }
     });
 

@@ -15,7 +15,6 @@
 # invalid UTF-8 input, logs appropriate messages, and returns
 # proper responses.
 
-require 'json'
 require 'rack'
 require 'stringio'
 
@@ -72,14 +71,14 @@ status, headers, body = @middleware.call(env)
 ## Middleware handles invalid UTF-8 in header
 env = @env_invalid_utf8_header.call
 status, headers, body = @middleware.call(env)
-response = JSON.parse(body.first)
+response = Familia::JsonSerializer.parse(body.first)
 "Status: #{status}, Error: #{response['error']}, Message: #{response['message'].include?('Invalid UTF-8')}"
 #=> "Status: 400, Error: Bad Request, Message: true"
 
 ## Middleware handles invalid UTF-8 in body
 env = @env_invalid_utf8_body.call
 status, headers, body = @middleware.call(env)
-response = JSON.parse(body.first)
+response = Familia::JsonSerializer.parse(body.first)
 "Status: #{status}, Error: #{response['error']}, Message: #{response['message'].include?('Invalid UTF-8')}"
 #=> "Status: 400, Error: Bad Request, Message: true"
 

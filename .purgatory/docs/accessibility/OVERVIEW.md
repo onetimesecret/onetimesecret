@@ -17,9 +17,11 @@ For those who want to create and share secrets, the interface is designed to be 
 
 ## Accessibility Features
 
-Onetime Secret focuses on two primary workflows: receiving secrets and creating/sharing secrets. Our accessibility work ensures these core functions are usable by everyone, regardless of how they interact with the platform.
+Onetime Secret focuses on two primary workflows: creating/sharing secrets and receiving secrets. Our accessibility work ensures these core functions are usable by everyone, regardless of how they interact with the platform.
 
 ### Recipient Experience
+
+We'll start with the recipient experience. All users benefit from a positive experience when receiving and viewing secrets.
 
 The secret viewing interface incorporates accessibility features to ensure that receiving and viewing secrets is straightforward for all users. Here's how we've enhanced the experience:
 
@@ -70,7 +72,8 @@ To report accessibility issues or suggest improvements, you can:
 2. Use the feedback form in the application footer
 3. Contact our support team through the website
 
-## Conclusion
+## Final Thoughts
+
 Secure communication should be accessible to everyone. Onetime Secret implements accessibility features following established standards and best practices, focusing on core functionality that lets all users share and receive secrets effectively. We welcome feedback from users to help identify areas where we can improve the platform's accessibility.
 
 Best regards,

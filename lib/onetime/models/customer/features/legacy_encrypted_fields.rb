@@ -4,7 +4,6 @@ module Onetime::Customer::Features
   #
   #
   module LegacyEncryptedFields
-
     Familia::Base.add_feature self, :legacy_encrypted_fields
 
     def self.included(base)
@@ -17,15 +16,9 @@ module Onetime::Customer::Features
     end
 
     module InstanceMethods
-
-
       def encryption_key
         Onetime::Secret.encryption_key OT.global_secret, custid
       end
-
-
     end
-
-
   end
 end

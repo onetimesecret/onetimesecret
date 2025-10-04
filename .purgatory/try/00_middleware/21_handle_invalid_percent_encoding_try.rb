@@ -20,7 +20,6 @@
 # behavior without needing to run an actual server, allowing for targeted testing
 # of these specific scenarios.
 
-require 'json'
 require 'rack'
 
 require 'middleware/handle_invalid_percent_encoding'
@@ -103,7 +102,7 @@ end
 env = @env_json.call
 req = Rack::Request.new(env)
 begin
-  body = JSON.parse(req.body.read)
+  body = Familia::JsonSerializer.parse(req.body.read)
   body.to_json
 rescue JSON::ParserError => e
   nil # an exception isn't raised

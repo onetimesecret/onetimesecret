@@ -1,6 +1,6 @@
 # lib/onetime/initializers/load_locales.rb
 
-require 'json'
+require 'familia/json_serializer'
 
 module Onetime
   module Initializers
@@ -49,7 +49,8 @@ module Onetime
           OT.le "Missing locale file: #{path}"
           next
         end
-        conf = JSON.parse(contents, symbolize_names: true)
+        # We symbolize for locales files only (not configruation)
+        conf = Familia::JsonSerializer.parse(contents, symbolize_names: true)
         [loc, conf]
       end
 

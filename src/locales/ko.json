@@ -224,7 +224,9 @@
       "privacyOptions": "개인 정보 보호 옵션",
       "selectDuration": "기간 선택",
       "expiresIn": "{duration} 후 만료",
-      "enterPassphrase": "접근 문구 입력"
+      "enterPassphrase": "접근 문구 입력",
+      "passphraseMinimumLength": "최소 {length}자",
+      "passphraseComplexityRequired": "대문자, 소문자, 숫자 및 기호를 포함해야 합니다"
     },
     "homepage": {
       "tagline1": "비밀번호, 비밀 메시지 또는 개인 링크를 아래에 붙여넣으세요.",
@@ -244,7 +246,15 @@
       "visit-onetime-secret-home": "Onetime Secret 홈페이지 방문",
       "password_generation_title": "비밀번호 생성기",
       "password_generation_description": "\"비밀번호 생성\" 버튼을 클릭하여 공유할 수 있는 안전한 무작위 비밀번호를 생성하세요.",
-      "protip1": "메시지는 열람 후 자동으로 파기됩니다. 링크는 단 한 번만 접근할 수 있습니다."
+      "protip1": "메시지는 열람 후 자동으로 파기됩니다. 링크는 단 한 번만 접근할 수 있습니다.",
+      "authonly": {
+        "tagline2": "보안 메시징 서비스는 내부 전용입니다.",
+        "tagline1": "계정이 있는 경우 로그인하여 계속하세요."
+      },
+      "disabled": {
+        "tagline2": "이 서비스는 내부 사용만을 위해 설정되었습니다.",
+        "tagline1": "사용자 인터페이스 및 로그인 기능을 사용할 수 없습니다."
+      }
     },
     "private": {
       "pretext": "이 링크를 공유하세요:",

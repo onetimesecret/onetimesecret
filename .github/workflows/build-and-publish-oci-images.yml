@@ -24,6 +24,21 @@ on:
       - '**'
 
   workflow_dispatch:
+    inputs:
+      debug_enabled:
+        type: boolean
+        description: 'Enable debug mode for build troubleshooting'
+        required: false
+        default: false
+      platforms:
+        type: choice
+        description: 'Target platforms'
+        required: false
+        default: 'linux/amd64,linux/arm64'
+        options:
+          - 'linux/amd64,linux/arm64'
+          - 'linux/amd64'
+          - 'linux/arm64'
 
 permissions:
   contents: read

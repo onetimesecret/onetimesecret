@@ -60,7 +60,7 @@ module V2::Logic
           else
             OT.li "[reveal_secret] #{secret.key} viewed successfully"
             owner.increment_field :secrets_shared unless owner.anonymous?
-            Onetime::Customer.global.increment_field :secrets_shared
+            Onetime::Customer.secrets_shared.increment
 
             # Immediately mark the secret as viewed, so that it
             # can't be shown again. If there's a network failure

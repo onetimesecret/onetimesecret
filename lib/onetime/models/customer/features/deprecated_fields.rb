@@ -9,17 +9,18 @@ module Onetime::Customer::Features
       base.extend ClassMethods
       base.include InstanceMethods
 
-      base.field :sessid
-      base.field :apitoken # TODO: use sorted set?
-      base.field :contributor
+      base.field_group :deprecated_fields do
+        base.field :sessid
+        base.field :apitoken # TODO: use sorted set?
+        base.field :contributor
+      end
     end
 
     module ClassMethods
-
       # Use Familia 2's generated class methods
-      def add(cust)
-        values.add OT.now.to_i, cust.identifier
-      end
+      # def add(cust)
+      #   values.add cust.identifier, OT.now.to_i
+      # end
 
       def all
         values.revrangeraw(0, -1).collect { |identifier| load(identifier) }
@@ -30,23 +31,11 @@ module Onetime::Customer::Features
         values.rangebyscoreraw(spoint, epoint).collect { |identifier| load(identifier) }
       end
 
-      # This is where the global word that got really confusing in familia
-      # for a while, trying to differentiate between places that used the
-      # word global to mean class-level. It only exists here for historical
-      # reasons. There's a key customer:GLOBAL:object that has the increment
-      # fields in it (that's how we count the all time number of secrets
-      # created, burned etc)
-      def global
-        @global ||= from_identifier(:GLOBAL) || create(:GLOBAL)
-        @global
-      end
-
       # Generate a unique session ID with 32 bytes of random data
       # @return [String] base-36 encoded random string
       def generate_id
         OT::Utils.generate_id
       end
-
     end
 
     module InstanceMethods
@@ -92,6 +81,5 @@ module Onetime::Customer::Features
       # Session management is now handled by Rack::Session middleware
       # This deprecated method has been removed as part of the migration
     end
-
   end
 end

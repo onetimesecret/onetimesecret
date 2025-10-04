@@ -414,11 +414,23 @@ RSpec.describe "Onetime::Config during Onetime.boot!" do
         # Allow print_log_banner to be called for this test specifically
         allow(Onetime).to receive(:print_log_banner).and_call_original
 
-        # OT.li is already stubbed by config_spec_helper.rb
-        # Familia.dbclient.serverid is stubbed in the main before(:each)
+        # Mock $stdout.tty? to return true for this test
+        allow($stdout).to receive(:tty?).and_return(true)
 
-        Onetime.boot!(:app) # Use a non-test mode like :app
-        expect(Onetime).to have_received(:print_log_banner).at_least(:once)
+        # Set RACK_ENV to non-test value to allow banner display
+        original_rack_env = ENV['RACK_ENV']
+        begin
+          ENV['RACK_ENV'] = 'development'
+
+          # OT.li is already stubbed by config_spec_helper.rb
+          # Familia.dbclient.serverid is stubbed in the main before(:each)
+
+          Onetime.boot!(:app) # Use a non-test mode like :app
+          expect(Onetime).to have_received(:print_log_banner).at_least(:once)
+        ensure
+          # Restore original RACK_ENV
+          ENV['RACK_ENV'] = original_rack_env
+        end
       end
     end
   end

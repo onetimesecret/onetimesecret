@@ -1,12 +1,19 @@
 # spec/onetime/initializers/setup_diagnostics_spec.rb
 
 require_relative '../../spec_helper'
-require 'ostruct'
+# Removed ostruct dependency - using Struct instead
+
+# Create top-level Struct definitions to prevent "already initialized constant" warnings
+MockConfig = Struct.new(:dsn, :environment, :release, :breadcrumbs_logger,
+                       :traces_sample_rate, :profiles_sample_rate, :before_send,
+                       keyword_init: true)
+EventStruct = Struct.new(:request, keyword_init: true)
+RequestStruct = Struct.new(:headers, keyword_init: true)
 
 RSpec.describe "Onetime::Initializers#setup_diagnostics" do
   let(:source_config_path) { File.expand_path(File.join(Onetime::HOME, 'spec', 'config.test.yaml')) }
   let(:loaded_config) { Onetime::Config.load(source_config_path) }
-  let(:mock_config) { OpenStruct.new }
+  let(:mock_config) { MockConfig.new }
 
   before do
     # Reset global state before each test
@@ -220,16 +227,16 @@ RSpec.describe "Onetime::Initializers#setup_diagnostics" do
       expect(before_send_proc.call(nil, {})).to be_nil
 
       # Test event with nil request
-      invalid_event = OpenStruct.new(request: nil)
+      invalid_event = EventStruct.new(request: nil)
       expect(before_send_proc.call(invalid_event, {})).to be_nil
 
       # Test event with request but nil headers
-      invalid_event2 = OpenStruct.new(request: OpenStruct.new(headers: nil))
+      invalid_event2 = EventStruct.new(request: RequestStruct.new(headers: nil))
       expect(before_send_proc.call(invalid_event2, {})).to be_nil
 
       # Test valid event
-      valid_event = OpenStruct.new(
-        request: OpenStruct.new(
+      valid_event = EventStruct.new(
+        request: RequestStruct.new(
           headers: { "User-Agent" => "test" }
         )
       )

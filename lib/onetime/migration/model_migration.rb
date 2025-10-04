@@ -69,7 +69,7 @@ module Onetime
     attr_reader :batch_size
 
     # Total number of indexed records in the model
-    # @return [Integer] count from model_class.values
+    # @return [Integer] count from model_class.instances
     attr_reader :total_records
 
     # Number of keys found by Redis SCAN
@@ -247,7 +247,7 @@ module Onetime
         raise MigrationError, "Model class must be a Familia::Horreum subclass #{@model_class}"
       end
 
-      @total_records  = @model_class.values.size
+      @total_records  = @model_class.instances.size
       @dbclient     ||= @model_class.dbclient
       @scan_pattern ||= "#{@model_class.prefix}:*:object"
       nil
@@ -344,7 +344,7 @@ module Onetime
         info("Model class: #{@model_class.name}")
         info("Redis connection: #{@dbclient.connection[:id]}")
         info("Scan pattern: #{@scan_pattern}")
-        info("Indexed records: #{@total_records} (#{@model_class.name}.values)")
+        info("Indexed records: #{@total_records} (#{@model_class.name}.instances)")
         info("Batch size: #{@batch_size}")
         verify_database_connection
       end

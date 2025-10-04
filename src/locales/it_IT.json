@@ -224,7 +224,9 @@
       "privacyOptions": "Privacy Options",
       "selectDuration": "Seleziona durata",
       "expiresIn": "Scade tra {duration}",
-      "enterPassphrase": "Inserisci Passphrase"
+      "enterPassphrase": "Inserisci la passphrase",
+      "passphraseMinimumLength": "Minimo {length} caratteri",
+      "passphraseComplexityRequired": "Deve includere maiuscola, minuscola, numero e simbolo"
     },
     "homepage": {
       "tagline1": "Incolla una password, un messaggio segreto o un link privato qui sotto",

@@ -1,0 +1,227 @@
+# .github/workflows/e2e-integration.yml
+---
+name: Container E2E Tests
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Test environment'
+        required: false
+        default: 'integration'
+        type: choice
+        options:
+          - integration
+          - staging-like
+      debug:
+        description: 'Enable debug logging'
+        required: false
+        default: false
+        type: boolean
+  pull_request:
+    branches: [develop, main]
+    paths:
+      - 'Dockerfile'
+      - 'src/**'
+      - 'public/**'
+      - 'templates/**'
+      - 'package.json'
+      - 'pnpm-lock.yaml'
+      - 'vite.config.ts'
+      - '.github/workflows/**'
+  push:
+    branches: [develop]
+
+permissions:
+  contents: read
+
+jobs:
+  container-e2e-tests:
+    continue-on-error: true
+    timeout-minutes: 20
+    runs-on: ubuntu-24.04
+
+    env:
+      OCI_IMAGE_NAME: onetimesecret-e2e-test
+      CONTAINER_NAME: onetimesecret-e2e
+      REDIS_CONTAINER_NAME: redis-e2e
+      TEST_BASE_URL: http://localhost:3000
+      DEBUG_ENABLED: ${{ github.event.inputs.debug == 'true' }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 # v4
+
+      - name: Setup Node.js for Playwright
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: '22'
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@f2b2b233b538f500472c7274c7012f57857d8ce0
+        with:
+          version: latest
+          run_install: false
+
+      - name: Install dependencies (for Playwright)
+        run: |
+          pnpm install --frozen-lockfile
+          pnpm exec playwright install --with-deps
+
+      - name: Build OCI image
+        run: |
+          echo "🔨 Building production OCI image..."
+          docker build \
+            --tag ${{ env.OCI_IMAGE_NAME }} \
+            --build-arg VERSION=ci-test \
+            .
+
+          if [ "${{ env.DEBUG_ENABLED }}" == "true" ]; then
+            echo "📊 OCI image info:"
+            docker images ${{ env.OCI_IMAGE_NAME }}
+            docker history ${{ env.OCI_IMAGE_NAME }} --no-trunc
+          fi
+
+      - name: Start Redis service
+        run: |
+          echo "🚀 Starting Redis service..."
+          docker run -d \
+            --name ${{ env.REDIS_CONTAINER_NAME }} \
+            --health-cmd "redis-cli ping || exit 1" \
+            --health-interval 5s \
+            --health-timeout 3s \
+            --health-retries 10 \
+            -p 6379:6379 \
+            ghcr.io/valkey-io/valkey:8.1.3-bookworm@sha256:fea8b3e67b15729d4bb70589eb03367bab9ad1ee89c876f54327fc7c6e618571
+
+          # Wait for Redis to be healthy
+          echo "⏳ Waiting for Redis to be ready..."
+          timeout 60 bash -c 'until docker exec ${{ env.REDIS_CONTAINER_NAME }} redis-cli ping; do sleep 2; done'
+
+      - name: Start OneTime Secret application
+        run: |
+          echo "🚀 Starting OneTime Secret application..."
+
+          # Generate a secure secret for testing
+          TEST_SECRET=$(openssl rand -hex 32)
+
+          docker run -d \
+            --name ${{ env.CONTAINER_NAME }} \
+            --link ${{ env.REDIS_CONTAINER_NAME }}:redis \
+            -p 3000:3000 \
+            -e REDIS_URL=redis://redis:6379/0 \
+            -e SECRET="$TEST_SECRET" \
+            -e HOST=localhost:3000 \
+            -e SSL=false \
+            -e RACK_ENV=production \
+            ${{ env.OCI_IMAGE_NAME }}
+
+          if [ "${{ env.DEBUG_ENABLED }}" == "true" ]; then
+            echo "🔍 Container details:"
+            docker ps
+            echo "🔍 Container environment:"
+            docker exec ${{ env.CONTAINER_NAME }} env | sort
+          fi
+
+      - name: Wait for application to be ready
+        run: |
+          echo "⏳ Waiting for application to be ready..."
+
+          # Wait up to 2 minutes for the app to start
+          timeout 120 bash -c '
+            until curl -f -s ${{ env.TEST_BASE_URL }}/health > /dev/null 2>&1 || \
+                  curl -f -s ${{ env.TEST_BASE_URL }}/ > /dev/null 2>&1; do
+              echo "Waiting for app to respond..."
+              sleep 5
+            done
+          '
+
+          echo "✅ Application is responding"
+
+      - name: Validate application health
+        run: |
+          echo "🔍 Running application health checks..."
+
+          # Test homepage
+          response_code=$(curl -s -o /dev/null -w "%{http_code}" ${{ env.TEST_BASE_URL }}/)
+          if [ "$response_code" != "200" ]; then
+            echo "❌ Homepage failed (HTTP $response_code)"
+            exit 1
+          fi
+
+          # Test that page contains expected content
+          homepage_content=$(curl -s ${{ env.TEST_BASE_URL }}/)
+          if ! echo "$homepage_content" | grep -qi "onetime"; then
+            echo "❌ Homepage doesn't contain expected content"
+            echo "Content preview: $(echo "$homepage_content" | head -c 200)..."
+            exit 1
+          fi
+
+          echo "✅ Basic health checks passed"
+
+      - name: Run Playwright E2E tests
+        run: |
+          echo "🎭 Running Playwright E2E tests against containerized application..."
+
+          # Set environment variables for Playwright
+          export PLAYWRIGHT_BASE_URL=${{ env.TEST_BASE_URL }}
+          export CI=true
+
+          # Run tests - use existing playwright config with base URL override
+          pnpm test:playwright \
+            --reporter=github \
+            --max-failures=5
+        env:
+          PLAYWRIGHT_BASE_URL: ${{ env.TEST_BASE_URL }}
+
+      - name: Upload Playwright Report
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        if: always()
+        with:
+          name: playwright-report-e2e-integration
+          path: playwright-report/
+          retention-days: 7
+
+      - name: Debug on failure
+        if: failure() && env.DEBUG_ENABLED == 'true'
+        run: |
+          echo "🐛 Debug information:"
+
+          echo "=== Container status ==="
+          docker ps -a
+
+          echo "=== Application logs ==="
+          docker logs ${{ env.CONTAINER_NAME }} --tail 100
+
+          echo "=== Redis logs ==="
+          docker logs ${{ env.REDIS_CONTAINER_NAME }} --tail 50
+
+          echo "=== Network connectivity ==="
+          curl -v ${{ env.TEST_BASE_URL }}/ || true
+
+          echo "=== Docker network info ==="
+          docker network ls
+          docker inspect bridge
+
+      - name: Cleanup containers
+        if: always()
+        run: |
+          echo "🧹 Cleaning up containers..."
+          docker stop ${{ env.CONTAINER_NAME }} ${{ env.REDIS_CONTAINER_NAME }} || true
+          docker rm ${{ env.CONTAINER_NAME }} ${{ env.REDIS_CONTAINER_NAME }} || true
+          docker rmi ${{ env.OCI_IMAGE_NAME }} || true
+
+  notify-results:
+    runs-on: ubuntu-24.04
+    needs: docker-e2e-tests
+    if: always()
+    steps:
+      - name: Notify Results
+        run: |
+          if [ "${{ needs.docker-e2e-tests.result }}" == "success" ]; then
+            echo "✅ E2E integration tests passed!"
+            echo "The production OCI image successfully serves the application and passes E2E tests."
+          else
+            echo "❌ E2E integration tests failed!"
+            echo "There may be issues with the production build, OCI image, or application runtime."
+          fi

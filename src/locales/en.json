@@ -228,7 +228,9 @@
       "privacyOptions": "Privacy Options",
       "selectDuration": "Select duration",
       "expiresIn": "Expires in {duration}",
-      "enterPassphrase": "Enter Passphrase"
+      "enterPassphrase": "Enter Passphrase",
+      "passphraseMinimumLength": "Minimum {length} characters",
+      "passphraseComplexityRequired": "Must include uppercase, lowercase, number, and symbol"
     },
     "footer": {
       "security": "Security",
@@ -270,7 +272,15 @@
       "visit-onetime-secret-home": "Visit Onetime Secret homepage",
       "password_generation_title": "Password Generator",
       "password_generation_description": " Click \"Generate Password\" to create a secure random password that you can share.",
-      "protip1": "Your message will self-destruct after being viewed. The link can only be accessed once."
+      "protip1": "Your message will self-destruct after being viewed. The link can only be accessed once.",
+      "authonly": {
+        "tagline2": "Secure messaging service is for internal use only.",
+        "tagline1": "If you have an account, please log in to continue."
+      },
+      "disabled": {
+        "tagline2": "This service is setup for internal use only.",
+        "tagline1": "User interface and login capabilities are not available."
+      }
     },
     "private": {
       "pretext": "Share this link:",

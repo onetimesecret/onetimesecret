@@ -166,8 +166,8 @@ module Onetime
                 all_domains_verified = true # Assume true initially for domain checks
                 puts 'Checking domain mappings:'
                 domains.each_with_index do |domain_info, index|
-                  domain            = domain_info[:domain]
-                  stored_domain_id  = domain_info[:old_id]
+                  domain            = domain_info['domain']
+                  stored_domain_id  = domain_info['old_id']
                   # Check display_domains mapping still exists
                   current_domain_id = Onetime::CustomDomain.dbclient.hget('customdomain:display_domains', domain)
 

@@ -224,7 +224,9 @@
       "privacyOptions": "Privatlivsmuligheder",
       "selectDuration": "Vælg varighed",
       "expiresIn": "Udløber om {duration}",
-      "enterPassphrase": "Indtast adgangssætning"
+      "enterPassphrase": "Indtast adgangssætning",
+      "passphraseMinimumLength": "Minimum {length} tegn",
+      "passphraseComplexityRequired": "Skal indeholde store bogstaver, små bogstaver, tal og symbol"
     },
     "homepage": {
       "tagline1": "Indsæt en adgangskode, besked eller privat link nedenfor.",
@@ -244,7 +246,15 @@
       "visit-onetime-secret-home": "Besøg Onetimes hemmelige hjemmeside",
       "password_generation_title": "Adgangskodegenerator",
       "password_generation_description": "Klik på \"Generate Password\" for at oprette en sikker, tilfældig adgangskode, som du kan dele.",
-      "protip1": "Din besked vil ødelægge sig selv, når den er blevet set. Linket kan kun tilgås én gang."
+      "protip1": "Din besked vil ødelægge sig selv, når den er blevet set. Linket kan kun tilgås én gang.",
+      "authonly": {
+        "tagline2": "Den sikre beskedtjeneste er kun til intern brug.",
+        "tagline1": "Hvis du har en konto, skal du logge ind for at fortsætte."
+      },
+      "disabled": {
+        "tagline2": "Denne tjeneste er kun sat op til intern brug.",
+        "tagline1": "Brugergrænseflade og login-funktioner er ikke tilgængelige."
+      }
     },
     "private": {
       "pretext": "Del dette link:",

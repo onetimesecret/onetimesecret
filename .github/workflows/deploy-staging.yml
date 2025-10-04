@@ -73,7 +73,7 @@ jobs:
           head -4 package.json .commit_hash.txt
 
       - name: Create Sentry release (backend)
-        uses: getsentry/action-release@526942b68292201ac6bbb99b9a0747d4abee354c # v3
+        uses: getsentry/action-release@4f502acc1df792390abe36f2dcb03612ef144818 # v3
         env:
           SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
           SENTRY_ORG: ${{ secrets.SENTRY_ORG }}

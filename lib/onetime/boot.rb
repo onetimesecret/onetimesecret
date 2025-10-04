@@ -29,7 +29,7 @@ module Onetime
       OT.env  = ENV['RACK_ENV'] || 'production'
 
       # Sets a unique, 64-bit hexadecimal ID for this process instance.
-      @instance ||= Onetime::Utils.generate_short_id
+      @instance ||= Familia.generate_trace_id
 
       # Default to diagnostics disabled. FYI: in test mode, the test config
       # YAML has diagnostics enabled. But the DSN values are nil so it
@@ -61,11 +61,13 @@ module Onetime
       load_fortunes
 
       if connect_to_db
+        setup_database_logging      # must run before connect_databases
+        detect_legacy_data_and_warn # must run before connect_databases
         connect_databases
         check_global_banner
       end
 
-      print_log_banner unless mode?(:test)
+      print_log_banner if $stdout.tty? && !mode?(:test) && !mode?(:cli)
 
       @ready = true
 

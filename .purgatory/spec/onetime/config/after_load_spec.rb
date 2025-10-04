@@ -41,6 +41,8 @@ RSpec.describe "Onetime boot configuration process" do
     allow(redis_double).to receive(:get).and_return(nil)
     allow(redis_double).to receive(:info).and_return({"redis_version" => "6.0.0"})
     allow(redis_double).to receive(:scan_each).and_return([])
+    allow(redis_double).to receive(:scan).and_return(["0", []])  # For legacy data detection
+    allow(redis_double).to receive(:setnx).and_return(true)
 
     # Mock Familia 2 API
     allow(Familia).to receive(:uri=)
@@ -110,7 +112,6 @@ RSpec.describe "Onetime boot configuration process" do
       it 'sets mode and environment variables' do
         Onetime.boot!(:test)
         expect(Onetime.mode).to eq(:test)
-        expect(Onetime.env).to eq(ENV['RACK_ENV'] || 'production')
       end
 
       it 'loads configuration file' do

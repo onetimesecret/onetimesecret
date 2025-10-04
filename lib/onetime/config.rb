@@ -29,6 +29,23 @@ module Onetime
               2.weeks,        # 1209600
               30.days,        # 2592000
             ],
+            'passphrase' => {
+              'required' => false,
+              'minimum_length' => nil,
+              'maximum_length' => 128,
+              'enforce_complexity' => false,
+            },
+            'password_generation' => {
+              'default_length' => 12,
+              'length_options' => [8, 12, 16, 20, 24, 32],
+              'character_sets' => {
+                'uppercase' => true,
+                'lowercase' => true,
+                'numbers' => true,
+                'symbols' => false,
+                'exclude_ambiguous' => true,
+              }
+            }
           },
           'interface' => {
             'ui' => { 'enabled' => true },
@@ -206,6 +223,33 @@ module Onetime
         require 'stripe'
         Stripe.api_key = stripe_key
       end
+
+      # Process passphrase configuration
+      passphrase_config = conf.dig('site', 'secret_options', 'passphrase') || {}
+
+      if passphrase_config['minimum_length'].is_a?(String)
+        conf['site']['secret_options']['passphrase']['minimum_length'] = passphrase_config['minimum_length'].to_i
+      end
+
+      if passphrase_config['maximum_length'].is_a?(String)
+        conf['site']['secret_options']['passphrase']['maximum_length'] = passphrase_config['maximum_length'].to_i
+      end
+
+      # Process password generation configuration
+      password_gen_config = conf.dig('site', 'secret_options', 'password_generation') || {}
+
+      if password_gen_config['default_length'].is_a?(String)
+        conf['site']['secret_options']['password_generation']['default_length'] = password_gen_config['default_length'].to_i
+      end
+
+      # Handle length_options as string or array
+      length_options = password_gen_config['length_options']
+      if length_options.is_a?(String)
+        conf['site']['secret_options']['password_generation']['length_options'] = length_options.split(/\s+/).map(&:to_i)
+      elsif length_options.is_a?(Array)
+        conf['site']['secret_options']['password_generation']['length_options'] = length_options.map(&:to_i)
+      end
+
 
       # Apply the defaults to sentry backend and frontend configs
       # and set our local config with the merged values.

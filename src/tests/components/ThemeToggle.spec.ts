@@ -24,7 +24,7 @@ describe('ThemeToggle', () => {
     const wrapper = mount(ThemeToggle);
     await wrapper.find('button').trigger('click');
     expect(wrapper.emitted('theme-changed')).toBeTruthy();
-    expect(wrapper.emitted('theme-changed')[0]).toEqual([false]);
+    expect(wrapper.emitted('theme-changed')?.[0]).toEqual([false]);
   });
 
   it('initializes theme on mount', () => {
@@ -55,7 +55,7 @@ describe('ThemeToggle', () => {
 
     await wrapper.find('button').trigger('click');
     // After click, check the first emitted value (initial state)
-    const emit1 = wrapper.emitted('theme-changed')[0];
+    const emit1 = wrapper.emitted('theme-changed')?.[0];
     expect(emit1).toStrictEqual([false]);
 
     // Now, after toggle, check new state
@@ -63,7 +63,7 @@ describe('ThemeToggle', () => {
 
     // Toggling again should emit true and switch back
     await wrapper.find('button').trigger('click');
-    const emit2 = wrapper.emitted('theme-changed')[1];
+    const emit2 = wrapper.emitted('theme-changed')?.[1];
     expect(emit2).toStrictEqual([true]);
   });
 
