@@ -38,6 +38,13 @@ module Onetime
     HOME = File.expand_path(File.join(File.dirname(__FILE__), '..'))
   end
 
+  # Add apps directories to load path for requires like 'v1/refinements'
+  unless defined?(Onetime::APPS_ROOT)
+    APPS_ROOT = File.join(HOME, 'apps').freeze
+    $LOAD_PATH.unshift(File.join(APPS_ROOT, 'api'))
+    $LOAD_PATH.unshift(File.join(APPS_ROOT, 'web'))
+  end
+
   require_relative 'onetime/class_methods'
   extend ClassMethods
 end
