@@ -46,9 +46,7 @@ module Onetime
   end
 
   require_relative 'onetime/class_methods'
-  require_relative 'onetime/boot'
   extend ClassMethods
-  extend Initializers
 end
 
 # Sets the SIGINT handler for a graceful shutdown and prevents Sentry from
@@ -69,10 +67,13 @@ trap('SIGINT') do
   exit
 end
 
+require_relative 'onetime/alias'
 require_relative 'onetime/errors'
 require_relative 'onetime/utils'
 require_relative 'onetime/version'
-require_relative 'onetime/cluster'
 require_relative 'onetime/config'
-require_relative 'onetime/mail'
-require_relative 'onetime/alias'
+require_relative 'onetime/auth_config'
+require_relative 'onetime/auth_strategies'
+require_relative 'onetime/models'
+require_relative 'onetime/cluster'
+require_relative 'onetime/boot'

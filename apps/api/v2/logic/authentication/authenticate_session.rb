@@ -16,7 +16,7 @@ module V2::Logic
         @stay             = true # Keep sessions alive by default
         @session_ttl      = (stay ? 30.days : 20.minutes).to_i
 
-        if (potential = V2::Customer.load(@potential_custid))
+        if (potential = Onetime::Customer.load(@potential_custid))
           @cust   = potential if potential.passphrase?(@passwd)
           @custid = @cust.custid if @cust
         end
@@ -25,7 +25,7 @@ module V2::Logic
       def raise_concerns
         return unless @cust.nil?
 
-        @cust ||= V2::Customer.anonymous
+        @cust ||= Onetime::Customer.anonymous
         raise_form_error 'Try again'
       end
 

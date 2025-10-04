@@ -21,9 +21,9 @@ module V2::Logic
       end
 
       def raise_concerns
-        raise OT::FormError, "You're already signed up" if sess.authenticated?
+        raise OT::FormError, "You're already signed up" if @strategy_result.authenticated?
 
-        raise_form_error 'Please try another email address' if V2::Customer.exists?(custid)
+        raise_form_error 'Please try another email address' if Onetime::Customer.exists?(custid)
         raise_form_error 'Is that a valid email address?' unless valid_email?(custid)
         raise_form_error 'Password is too short' unless password.size >= 6
 
@@ -36,11 +36,15 @@ module V2::Logic
       end
 
       def process
-        @cust = V2::Customer.create custid
+        @cust = Onetime::Customer.create custid
 
         cust.update_passphrase password
-        sess.custid = cust.custid
-        sess.save
+
+        # Set up authentication in Rack session
+        @sess['identity_id'] = cust.custid
+        @sess['email'] = cust.custid
+        @sess['authenticated'] = true
+        @sess['authenticated_at'] = Time.now.to_i
 
         colonels       = OT.conf.dig('site', 'authentication', 'colonels')
         @customer_role = if colonels&.member?(cust.custid)
@@ -54,17 +58,20 @@ module V2::Logic
         cust.role      = @customer_role.to_s
         cust.save
 
-        OT.info "[new-customer] #{cust.custid} #{cust.role} #{sess.ipaddress} #{planid} #{sess.short_identifier}"
+        session_id = @sess.respond_to?(:id) ? @sess.id.to_s[0..10] : 'unknown'
+        ip_address = @strategy_result.metadata[:ip] || @sess['ip_address'] || 'unknown'
+        OT.info "[new-customer] #{cust.custid} #{cust.role} #{ip_address} #{planid} #{session_id}"
 
         success_message = if autoverify
                             'Account created.'
                           else
                             send_verification_email
 
+                            # NOTE: Intentionally left as symbols for i18n keys
                             "#{i18n.dig(:web, :COMMON, :verification_sent_to)} #{cust.custid}."
                           end
 
-        sess.set_success_message success_message
+        @sess['success_message'] = success_message
       end
 
       private

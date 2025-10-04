@@ -4,7 +4,7 @@ require 'chimera'
 
 require 'onetime/middleware'
 
-require 'v2/models/customer'
+require 'onetime/models'
 
 require_relative 'helpers'
 require_relative 'serializers'
@@ -25,19 +25,21 @@ module Core
       include Core::Views::I18nHelpers
       include Core::Views::ViteManifest
       include Onetime::Utils::TimeUtils
+      include Onetime::Helpers::ShrimpHelpers
 
-      self.template_path      = './templates/web'
-      self.template_extension = 'html'
+      self.template_path      = File.join(__dir__, '..', 'templates')
+      self.template_extension = 'html.erb'
       self.view_namespace     = Core::Views
-      self.view_path          = './app/web/views'
+      self.view_path          = File.join(__dir__)
 
       attr_accessor :req, :sess, :cust, :locale, :form_fields, :pagename
       attr_reader :i18n_instance, :view_vars, :serialized_data, :messages
 
       def initialize(req, sess = nil, cust = nil, locale_override = nil, *)
+        # require 'debug'; debugger
         @req  = req
         @sess = sess
-        @cust = cust || V2::Customer.anonymous
+        @cust = cust || Onetime::Customer.anonymous
 
         # We determine locale here because it's used for i18n. Otherwise we couldn't
         # determine the i18n messages until inside or after initialize_view_vars.

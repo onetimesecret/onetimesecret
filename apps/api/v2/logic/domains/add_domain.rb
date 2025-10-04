@@ -20,10 +20,10 @@ module V2::Logic
         OT.ld "[AddDomain] Raising any concerns about #{@domain_input}"
         # TODO: Consider returning all applicable errors (plural) at once
         raise_form_error 'Please enter a domain' if @domain_input.empty?
-        raise_form_error 'Not a valid public domain' unless V2::CustomDomain.valid?(@domain_input)
+        raise_form_error 'Not a valid public domain' unless Onetime::CustomDomain.valid?(@domain_input)
 
         # Only store a valid, parsed input value to @domain
-        @parsed_domain  = V2::CustomDomain.parse(@domain_input, @cust.custid)
+        @parsed_domain  = Onetime::CustomDomain.parse(@domain_input, @cust.custid)
         @display_domain = @parsed_domain.display_domain
 
         OT.ld "[AddDomain] Display: #{@display_domain}, Identifier: #{@parsed_domain.identifier}, Exists?: #{@parsed_domain.exists?}"
@@ -33,7 +33,7 @@ module V2::Logic
       def process
         @greenlighted  = true
         OT.ld "[AddDomain] Processing #{@display_domain}"
-        @custom_domain = V2::CustomDomain.create(@display_domain, @cust.custid)
+        @custom_domain = Onetime::CustomDomain.create(@display_domain, @cust.custid)
 
         begin
           # Create the approximated vhost for this domain. Approximated provides a

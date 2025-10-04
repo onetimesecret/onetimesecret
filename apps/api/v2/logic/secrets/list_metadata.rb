@@ -24,7 +24,7 @@ module V2::Logic
 
         # Get the safe fields for each record
         @records = query_results.filter_map do |identifier|
-          md = V2::Metadata.from_identifier(identifier)
+          md = Onetime::Metadata.from_identifier(identifier)
           md&.safe_dump
         end
 
@@ -35,16 +35,16 @@ module V2::Logic
 
       def success_data
         {
-          custid: cust.custid,
-          count: records.count,
-          records: records,
-          details: {
-            type: 'list', # Add the type discriminator
-            since: since,
-            now: now,
-            has_items: has_items,
-            received: received,
-            notreceived: notreceived,
+          "custid" => cust.custid,
+          "count" => records.count,
+          "records" => records,
+          "details" => {
+            "type" => 'list', # Add the type discriminator
+            "since" => since,
+            "now" => now,
+            "has_items" => has_items,
+            "received" => received,
+            "notreceived" => notreceived,
           },
         }
       end

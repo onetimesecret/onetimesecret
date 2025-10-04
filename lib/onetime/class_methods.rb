@@ -1,4 +1,4 @@
-# lib/onetime/classmethods.rb
+# lib/onetime/class_methods.rb
 
 # Usage:
 # module Onetime

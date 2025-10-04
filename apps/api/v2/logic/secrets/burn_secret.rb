@@ -10,7 +10,7 @@ module V2::Logic
 
       def process_params
         @key        = params[:key].to_s
-        @metadata   = V2::Metadata.load key
+        @metadata   = Onetime::Metadata.load key
         @passphrase = params[:passphrase].to_s
         @continue   = [true, 'true'].include?(params[:continue])
       end
@@ -34,7 +34,7 @@ module V2::Logic
           owner   = secret.load_customer
           secret.burned!
           owner.increment_field :secrets_burned unless owner.anonymous?
-          V2::Customer.secrets_burned.increment
+          Onetime::Customer.secrets_burned.increment
 
         elsif !correct_passphrase
 

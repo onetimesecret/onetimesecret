@@ -277,7 +277,7 @@ describe('authStore', () => {
     it.skip('tracks failure count accurately', async () => {
       store.$patch({ isAuthenticated: true });
 
-      axiosMock.onGet('/api/v2/authcheck').reply(500);
+      axiosMock.onGet('/auth/validate').reply(500);
 
       await store.checkAuthStatus();
       expect(store.failureCount).toBe(1);
@@ -287,7 +287,7 @@ describe('authStore', () => {
       store.$patch({ isAuthenticated: true });
       store.failureCount = 2;
 
-      axiosMock.onGet('/api/v2/authcheck').reply(200, {
+      axiosMock.onGet('/auth/validate').reply(200, {
         details: { authenticated: true },
       });
 
@@ -300,7 +300,7 @@ describe('authStore', () => {
       const logoutSpy = vi.spyOn(store, 'logout');
 
       // Configure mock to fail, with a specific error response
-      axiosMock.onGet('/api/v2/authcheck').reply(() => [500, { error: 'Auth check failed' }]);
+      axiosMock.onGet('/auth/validate').reply(() => [500, { error: 'Auth check failed' }]);
 
       // Simulate MAX_FAILURES consecutive failures
       for (let i = 0; i < AUTH_CHECK_CONFIG.MAX_FAILURES; i++) {
@@ -622,7 +622,7 @@ describe('authStore', () => {
       store.$patch({ isAuthenticated: true });
 
       // Simulate network error
-      axiosMock.onGet('/api/v2/authcheck').networkError();
+      axiosMock.onGet('/auth/validate').networkError();
 
       // Test the behavior we care about
       const result = await store.checkAuthStatus();
@@ -636,7 +636,7 @@ describe('authStore', () => {
     it('handles network timeouts appropriately', async () => {
       store.$patch({ isAuthenticated: true });
 
-      axiosMock.onGet('/api/v2/authcheck').timeoutOnce();
+      axiosMock.onGet('/auth/validate').timeoutOnce();
 
       await store.checkAuthStatus();
       expect(store.failureCount).toBe(1);

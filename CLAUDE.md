@@ -2,118 +2,137 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-## Essential Commands
+BE CONCISE. Focus on what's important NOW.
 
-### Development Environment Setup
+## Critical Workflow
+1. **Research First**: Read files, understand patterns, plan before coding
+2. **TDD**: Write tests → fail → implement → pass → commit
+3. **Validate**: Test suite → type-check → lint → accessibility
 
-```bash
-# Install dependencies
-bundle install
-pnpm install
+## Code Style (Non-Negotiable)
+- **Vue**: Composition API `<script setup lang="ts">`, Pinia stores, i18n `$t()`
+- **TypeScript**: Strict mode, explicit types, max 100 chars
+- **Testing**: Vitest (max 300 lines), mock Pinia stores
+- **Styling**: Tailwind classes, WCAG compliance
+- **Minimal Changes**: Preserve patterns, use existing utilities
 
-# Start Redis for development (uses port 2121)
-pnpm run redis:start
-
-# Start development server with live reloading
-RACK_ENV=development bundle exec thin -R config.ru -p 3000 start
-
-# In separate terminal for frontend dev mode
-pnpm run dev
-```
-
-### Testing Commands
-
-```bash
-# Tryouts framework (Ruby testing) - preferred for Ruby tests
-FAMILIA_DEBUG=0 bundle exec try --agent                          # Run all tryouts with agent output
-bundle exec try --verbose --fails try/specific_file_try.rb       # Debug specific test file
-bundle exec try --agent try/features/relationships_edge_cases_try.rb:101  # Run specific test case
-
-# RSpec (Ruby testing)
-bundle exec rspec tests/unit/ruby/rspec/**/*_spec.rb
-COVERAGE=1 bundle exec rspec tests/unit/ruby/rspec/**/*_spec.rb   # With coverage
-
-# Frontend testing
-pnpm test                    # Vitest unit tests
-pnpm test:coverage          # With coverage
-pnpm playwright             # End-to-end tests
-
-# Linting and type checking
-pnpm lint                   # ESLint
-pnpm type-check            # TypeScript checking
-bundle exec rubocop        # Ruby linting
-```
-
-### Build and Development
-
-```bash
-# Build frontend assets
-pnpm run build:local        # For local development
-pnpm run build              # For production
-
-# Redis utilities
-pnpm redis:clean            # Clear Redis data
-pnpm redis:status           # Check Redis connection
-
-# CLI tool usage
-bin/ots console             # Ruby console with Onetime preloaded
-bin/ots version             # Show version
-bin/ots migrate SCRIPT --run   # Run migration scripts
-```
+## Tech Stack
+**Backend**: Ruby 3.4, Rack 3, Redis 7
+**Frontend**: Vue 3.5, Pinia 3, Vue Router 4.4, TypeScript 5.6
+**Build**: Vite 5.4., Vitest 2.1.8, Tailwind 3.4
+**Validation**: Zod 4, i18n 11
 
 ## Architecture Overview
 
-### Application Structure
+### Backend Structure
+- **`apps/`**: Modular Rack applications (API v1/v2, Web Core)
+  - `apps/api/v1/`: Legacy API with logic modules, controllers, models
+  - `apps/api/v2/`: New API architecture with Otto auth strategies
+  - `apps/web/core/`: Web application with views and serializers
+  - `apps/base_application.rb`: Shared application foundation
+- **`lib/`**: Core business logic and utilities
+  - `lib/onetime/`: Main application classes (models, config, CLI)
+  - `lib/middleware/`: Rack middleware for request processing
+  - `lib/onetime/initializers/`: Boot-time setup modules
+- **`bin/ots`**: CLI tool for administration and operations
 
-Onetime Secret is a Ruby web application with a modern Vue.js frontend, organized in a modular architecture:
+### Frontend Structure
+- **`src/`**: Vue 3 + TypeScript application
+  - `src/locales/`: i18n JSON files (hierarchical keys)
+  - `src/stores/`: Pinia state management
+  - `src/types/`: TypeScript type definitions
+  - `src/views/`: Vue components and templates
 
-- **`apps/`** - Main application modules:
-  - `apps/web/core/` - Web interface controllers, views, and helpers
-  - `apps/api/v1/` - Legacy API (models, controllers, logic)
-  - `apps/api/v2/` - Current API (models, controllers, logic with domain separation)
+## Development Commands
 
-- **`lib/onetime/`** - Core business logic and utilities
-- **`src/`** - Vue.js frontend application
-- **`tests/`** - Comprehensive test suite (tryouts, RSpec, Vitest, Playwright)
+### Frontend Development
+```bash
+# Development with HMR
+pnpm run dev
 
-### Key Architectural Patterns
+# Build for production
+pnpm run build
 
-**Domain-Driven Design**: V2 API uses domain separation (`/logic/domains/`, `/logic/authentication/`, `/logic/secrets/`) where business logic is organized by functional domains rather than technical layers.
+# Type checking
+pnpm run type-check
+pnpm run type-check:watch
 
-**Logic Layer Pattern**: Business operations are encapsulated in dedicated logic classes (e.g., `GenerateSecret`, `AuthenticateSession`) that handle validation, business rules, and coordination between models.
+# Linting
+pnpm run lint
+pnpm run lint:fix
+```
 
-**Familia ORM**: Uses Redis as primary datastore via the Familia ORM, providing ActiveRecord-like interface for Redis operations.
+### Backend Development
+```bash
+# Console access
+bin/ots console
 
-**Frontend-Backend Separation**: Vue.js SPA communicates with Ruby backend via REST API, with Vite handling modern frontend build pipeline.
+# Start test database
+pnpm run test:database:start
+pnpm run test:database:stop
+pnpm run test:database:status
 
-### Configuration System
+# Administration
+bin/ots migrate SCRIPT --run
+bin/ots customers --list
+bin/ots domains --list
+```
 
-- **`etc/config.yaml`** - Main configuration (copy from `config.example.yaml`)
-- **Environment variables** override config values
-- **Development mode** can proxy frontend to Vite dev server
-- **Redis configuration** via `REDIS_URL` environment variable
+### Testing
 
-### Testing Philosophy
+#### Ruby Tests
+```bash
+# RSpec tests
+pnpm run test:rspec
+bundle exec rspec
 
-- **Tryouts** (`.try.rb` files) - Primary Ruby testing framework, plain Ruby with realistic scenarios
-- **RSpec** - Traditional Ruby testing for specific components
-- **Vitest** - Vue/TypeScript unit testing
-- **Playwright** - End-to-end integration testing
+# Tryouts framework (preferred for integration)
+pnpm run test:tryouts --agent
+VALKEY_URL='valkey://127.0.0.1:2121/0' bundle exec try --agent
 
-Use `--agent` mode with tryouts for token-efficient LLM analysis, `--verbose --fails` for debugging specific issues.
+# Individual tryout files
+bundle exec try --verbose --fails --stack try/path/file_try.rb:L100-L200
+```
 
-### Key Dependencies
+#### Frontend Tests
+```bash
+# Vitest unit tests
+pnpm test
+pnpm run test:coverage
+pnpm run test:watch
 
-- **Ruby 3.1+** with Rack-based web server (Thin/Puma)
-- **Redis 5+** as primary datastore
-- **Vue 3.5+** with Composition API and TypeScript
-- **Vite** for frontend build tooling
-- **pnpm** for package management
+# Playwright E2E
+pnpm run playwright
+```
 
-### Development Modes
+### Quality Assurance
+```bash
+# Ruby linting
+pnpm run rubocop
+pnpm run rubocop:autocorrect
 
-**Production Mode**: Built frontend assets, single server process
-**Development Mode**: Enables Vite proxy for live reloading
-**Frontend Dev Mode**: Separate Vite dev server on port 5173
+# Config validation
+pnpm run config:validate
 
-See `development.enabled` and `development.frontend_host` in config.yaml for frontend development setup.
+# Full test suite
+pnpm run test:all:clean
+```
+
+## i18n Requirements
+- All text via `$t('key.path')` from `src/locales/en.json`
+- Hierarchical keys (e.g., `web.secrets.enterPassphrase`)
+- NO hardcoded text
+
+## Project Structure
+- Components: `src/components/`, `src/views/`
+- State: `src/stores/` (Pinia)
+- Types: `src/types/`
+- Utils: `src/utils/`
+- Tests: `src/components/__tests__/`, `tests/`
+
+# important-instruction-reminders
+Do what has been asked; nothing more, nothing less.
+NEVER create files unless they're absolutely necessary for achieving your goal.
+ALWAYS prefer editing an existing file to creating a new one.
+NEVER proactively create documentation files (*.md) or README files. Only create documentation files if explicitly requested by the User.
+Please don't run web server processes. Ask the user to do it.

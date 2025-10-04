@@ -19,14 +19,21 @@ source 'https://rubygems.org/'
 # Core Application Framework
 # ====================================
 
+# Web framework and routing
+# Authentication framework
+gem 'rodauth', '~> 2.0'
+gem 'otto', '~> 2.0.0.pre1'
+gem 'roda', '~> 3.0'
+
+
 # Web server and middleware
 gem 'puma', '~> 6.6'
 gem 'rack', '>= 3.1.16', '< 4.0'
 gem 'rack-contrib', '~> 2.5.0'
 gem 'rack-protection', '~> 4.1'
 gem 'rack-session', '~> 2.1.1'
+gem 'rackup'
 gem 'rack-utf8_sanitizer'
-gem 'rackup' # rubocop:disable Bundler/OrderedGems
 
 # ====================================
 # Data Processing & Utilities
@@ -53,6 +60,19 @@ gem 'truemail'
 # Database & DB Tools
 # ====================================
 
+# ORMs and database drivers
+gem 'familia', '~> 2.0.0.pre17'
+gem 'sequel', '~> 5.0'
+
+database_adapter = ENV.fetch('DATABASE_ADAPTER', 'sqlite3').downcase
+case database_adapter
+when 'postgresql', 'pg', 'postgres'
+  gem 'pg', '~> 1.4'
+else
+  gem 'sqlite3', '~> 1.6'
+end
+
+# Redis/Valkey
 gem 'redis', '~> 5.4.0'
 gem 'uri-valkey', '~> 1.4.0'
 
@@ -60,15 +80,14 @@ gem 'uri-valkey', '~> 1.4.0'
 # Security & Encryption
 # ====================================
 
-gem 'bcrypt'
+gem 'bcrypt', '~> 3.1'
 gem 'encryptor', '= 1.1.3'
+gem 'jwt', '~> 2.7'
 
-# ====================================
-# Internal Dependencies (local dev)
-# ====================================
-
-gem 'familia', '~> 2.0.0.pre17'
-gem 'otto', '~> 1.4.0' #'~> 2.0.0.pre1'
+# Advanced authentication
+gem 'rotp', '~> 6.2'
+gem 'rqrcode', '~> 2.2'
+gem 'webauthn', '~> 3.0'
 
 # ====================================
 # Ruby Standard Library Compatibility
@@ -96,11 +115,14 @@ gem 'stripe', require: false
 
 group :development, :test do
   gem 'benchmark'
+  gem 'database_cleaner-sequel', '~> 2.0'
+  gem 'faker', '~> 3.2'
 end
 
 group :development do
   # Debugging tools
   gem 'debug', require: false
+  gem 'rerun', '~> 0.14'
 
   # Development utilities
   gem 'rack-proxy', require: false

@@ -1,15 +1,13 @@
 # apps/web/core/controllers/base.rb
 
-require_relative 'helpers'
-require 'v2/controllers/class_settings'
+require_relative '../views'
 
 module Core
   module Controllers
     module Base
       include Core::ControllerHelpers
-      include V2::Controllers::ClassSettings
 
-      attr_reader :req, :res, :sess, :cust, :locale, :ignoreshrimp
+      attr_reader :req, :res, :cust, :locale, :ignoreshrimp
 
       def initialize(req, res)
         @req = req
@@ -18,10 +16,9 @@ module Core
 
       def publically(redirect = nil)
         carefully(redirect) do
-          check_session!     # 1. Load or create the session, load customer (or anon)
-          check_locale!      # 2. Check the request for the desired locale
-          check_shrimp!      # 3. Check the shrimp for POST,PUT,DELETE (after session)
-          check_referrer!    # 4. Check referrers for public requests
+          setup_request_context  # 1. Load customer based on session state
+          check_locale!          # 2. Check the request for the desired locale
+          check_referrer!        # 4. Check referrers for public requests (TODO: Remove)
           # Generate the response
           yield
         end
@@ -30,8 +27,8 @@ module Core
       def authenticated(redirect = nil)
         carefully(redirect) do
           res.no_cache!
-          check_session!     # 1. Load or create the session, load customer (or anon)
-          check_locale!      # 2. Check the request for the desired locale
+          setup_request_context  # 1. Load customer based on session state
+          check_locale!          # 2. Check the request for the desired locale
 
           # We need the session so that cust is set to anonymous (and not
           # nil); we want locale too so that we know what language to use.
@@ -39,16 +36,15 @@ module Core
           # since it wouldn't change our response either way.
           return disabled_response(req.path) unless authentication_enabled?
 
-          sess.authenticated? ? yield : res.redirect('/')
-          check_shrimp!      # 3. Check the shrimp for POST,PUT,DELETE (after session and auth check)
+          authenticated? ? yield : res.redirect('/')
         end
       end
 
       def colonels(redirect = nil)
         carefully(redirect) do
           res.no_cache!
-          check_session!     # 1. Load or create the session, load customer (or anon)
-          check_locale!      # 2. Check the request for the desired locale
+          setup_request_context  # 1. Load customer based on session state
+          check_locale!          # 2. Check the request for the desired locale
 
           # We need the session so that cust is set to anonymous (and not
           # nil); we want locale too so that we know what language to use.
@@ -56,9 +52,8 @@ module Core
           # since it wouldn't change our response either way.
           return disabled_response(req.path) unless authentication_enabled?
 
-          check_shrimp!      # 3. Check the shrimp for POST,PUT,DELETE (after session)
 
-          is_allowed = sess.authenticated? && cust.role?(:colonel)
+          is_allowed = authenticated? && cust.role?(:colonel)
           is_allowed ? yield : res.redirect('/')
         end
       end
@@ -72,7 +67,7 @@ module Core
         end
         return if req.referrer.nil? || req.referrer.match(Onetime.conf['site']['host'])
 
-        sess.referrer     ||= req.referrer
+        session['referrer'] ||= req.referrer
 
         # Don't allow a pesky error here from preventing the
         # request. Typically we don't want to be so hush hush
@@ -120,13 +115,13 @@ module Core
       def handle_form_error(ex, redirect)
         # We store the form fields temporarily in the session so
         # that the form can be pre-populated after the redirect.
-        sess.set_form_fields ex.form_fields
-        sess.set_error_message ex.message
+        session['form_fields'] = ex.form_fields
+        session['error_message'] = ex.message
         res.redirect redirect
       end
 
       def secret_not_found_response
-        view       = Core::Views::UnknownSecret.new req, sess, cust, locale
+        view       = Core::Views::UnknownSecret.new req, session, cust, locale
         res.status = 404
         res.body   = view.render
       end
@@ -177,14 +172,14 @@ module Core
       # - Simplifies server configuration and maintenance.
       # - Allows for proper handling of 404s within the Vue.js application.
       def not_found_response(message, **)
-        view       = Core::Views::VuePoint.new(req, sess, cust, locale)
+        view       = Core::Views::VuePoint.new(req, session, cust, locale)
         view.add_error(message) unless message&.empty?
         res.status = 404
         res.body   = view.render  # Render the entrypoint HTML
       end
 
       def not_authorized_error(_hsh = {})
-        view       = Core::Views::Error.new req, sess, cust, locale
+        view       = Core::Views::Error.new req, session, cust, locale
         view.add_error 'Not authorized'
         res.status = 401
         res.body   = view.render
@@ -196,10 +191,33 @@ module Core
         # cases a server-side error occurs that isn't the fault of the
         # client, and in those cases we want to provide a fresh shrimp
         # so that the client can try again (without a full page refresh).
-        view       = Core::Views::Error.new req, sess, cust, locale
+        view       = Core::Views::Error.new req, session, cust, locale
         view.add_error message
         res.status = 400
         res.body   = view.render
+      end
+
+      # Common page rendering methods moved from Page controller
+
+      def index
+        publically do
+          view     = Core::Views::VuePoint.new request, session, cust, locale
+          res.body = view.render
+        end
+      end
+
+      def customers_only
+        authenticated do
+          view     = Core::Views::VuePoint.new request, session, cust, locale
+          res.body = view.render
+        end
+      end
+
+      def colonels_only
+        colonels do
+          view     = Core::Views::VuePoint.new request, session, cust, locale
+          res.body = view.render
+        end
       end
     end
   end

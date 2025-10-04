@@ -95,7 +95,7 @@ module V2::Logic
           raise_form_error 'Please provide a domain ID'
         end
 
-        @custom_domain = V2::CustomDomain.load(@domain_id, @cust.custid)
+        @custom_domain = Onetime::CustomDomain.load(@domain_id, @cust.custid)
         return if custom_domain&.exists?
 
         OT.ld "[UpdateDomainBrand] Error: Domain #{@domain_id} not found for customer #{@cust.custid}"

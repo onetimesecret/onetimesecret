@@ -1,1 +1,12 @@
-_*
+*
+!defaults/
+!defaults/*defaults.yml
+!defaults/*defaults.yaml
+!examples/
+!examples/*.conf
+!examples/*.yml
+!examples/*.yaml
+!init.d/
+!fortunes*
+!redis.conf
+!valkey.conf

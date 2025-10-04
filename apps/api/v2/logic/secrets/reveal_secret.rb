@@ -12,7 +12,7 @@ module V2::Logic
 
       def process_params
         @key        = params[:key].to_s
-        @secret     = V2::Secret.load key
+        @secret     = Onetime::Secret.load key
         @passphrase = params[:passphrase].to_s
         @continue   = params[:continue].to_s == 'true'
       end
@@ -60,7 +60,7 @@ module V2::Logic
           else
             OT.li "[reveal_secret] #{secret.key} viewed successfully"
             owner.increment_field :secrets_shared unless owner.anonymous?
-            V2::Customer.secrets_shared.increment
+            Onetime::Customer.secrets_shared.increment
 
             # Immediately mark the secret as viewed, so that it
             # can't be shown again. If there's a network failure

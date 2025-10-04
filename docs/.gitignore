@@ -1,9 +1,0 @@
-[A-Z]*.rb
-[A-Z]*.md
-*.txt
-!.gitignore
-!api/
-!/api/*
-!architecture/
-!architecture/OVERVIEW.md
-!README*.md

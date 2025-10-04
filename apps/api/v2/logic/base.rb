@@ -13,29 +13,37 @@ module V2
 
     class Base
       # We may want to have a @@customer_model set so that we can set it to
-      # V2::Customer. Currently even if we're using the V2 of this logic,
+      # Onetime::Customer. Currently even if we're using the V2 of this logic,
       # it may still be running with V1::Customer in corner areas of the
       # code. If we decide to go that route (no pun intended) a class
       # variable is the way to go so that all logic subclasses can see the thing.
       include V2::Logic::I18nHelpers
       include V2::Logic::UriHelpers
 
-      attr_reader :sess, :cust, :params, :locale, :processed_params, :site, :authentication, :domains_enabled, :planid
+      attr_reader :context, :sess, :cust, :params, :locale, :processed_params, :site, :authentication, :domains_enabled, :planid
 
       attr_accessor :domain_strategy, :display_domain
 
-      def initialize(sess, cust, params = nil, locale = nil)
-        @sess               = sess
-        @cust               = cust
-        @params             = params
-        @locale             = locale
+      def initialize(strategy_result, params, locale = nil)
+        @strategy_result = strategy_result
+        @params = params
+
+        # Extract session and user from StrategyResult
+        @sess = strategy_result.session
+        @cust = strategy_result.user
+        @locale = locale || @params[:locale] || @sess[:locale] || 'en'
+
         @processed_params ||= {} # TODO: Remove
         process_settings
 
-        if cust.is_a?(String)
+        # Handle user model instances properly
+        if @cust.nil?
+          @cust = Onetime::Customer.anonymous
+        elsif @cust.is_a?(String)
           OT.li "[#{self.class}] Friendly reminder to pass in a Customer instance instead of a custid"
-          @cust = V2::Customer.load(cust)
+          @cust = Onetime::Customer.load(@cust)
         end
+        # If @cust is already a Onetime::Customer instance, use it as-is
 
         # Won't run if params aren't passed in
         process_params if respond_to?(:process_params) && @params
@@ -45,8 +53,8 @@ module V2
         @site            = OT.conf.fetch('site', {})
         site.fetch('domains', {})
         @authentication  = site.fetch('authentication', {})
-        domains          = site.fetch(:domains, {})
-        @domains_enabled = domains[:enabled] || false
+        domains          = site.fetch('domains', {})
+        @domains_enabled = domains['enabled'] || false
       end
 
       def valid_email?(guess)
@@ -100,7 +108,7 @@ module V2
 
       # Requires the implementing class to have cust and session fields
       def send_verification_email(token = nil)
-        _, secret = V2::Secret.spawn_pair cust.custid, token
+        _, secret = Onetime::Secret.spawn_pair cust.custid, token
 
         msg = "Thanks for verifying your account. We got you a secret fortune cookie!\n\n\"%s\"" % OT::Utils.random_fortune
 

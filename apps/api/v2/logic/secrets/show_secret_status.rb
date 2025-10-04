@@ -9,7 +9,7 @@ module V2::Logic
 
       def process_params
         @key    = params[:key].to_s
-        @secret = V2::Secret.load key
+        @secret = Onetime::Secret.load key
       end
 
       def raise_concerns; end

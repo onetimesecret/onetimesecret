@@ -112,7 +112,7 @@ module Onetime
     def load(path = nil)
       path ||= self.path
 
-      raise ArgumentError, "Bad path (#{path})" unless File.readable?(path)
+      raise ArgumentError, "Bad path (#{path})" unless path && File.readable?(path)
 
       parsed_template = ERB.new(File.read(path))
 
@@ -483,15 +483,17 @@ module Onetime
   # A simple map of our config options using our naming conventions
   # to the names that are used by other libraries. This makes it easier
   # for us to have our own consistent naming conventions.
-  KEY_MAP = {
-    'allowed_domains_only' => 'whitelist_validation',
-    'allowed_emails' => 'whitelisted_emails',
-    'blocked_emails' => 'blacklisted_emails',
-    'allowed_domains' => 'whitelisted_domains',
-    'blocked_domains' => 'blacklisted_domains',
-    'blocked_mx_ip_addresses' => 'blacklisted_mx_ip_addresses',
+  unless defined?(KEY_MAP)
+    KEY_MAP = {
+      'allowed_domains_only' => 'whitelist_validation',
+      'allowed_emails' => 'whitelisted_emails',
+      'blocked_emails' => 'blacklisted_emails',
+      'allowed_domains' => 'whitelisted_domains',
+      'blocked_domains' => 'blacklisted_domains',
+      'blocked_mx_ip_addresses' => 'blacklisted_mx_ip_addresses',
 
-    # An example mapping for testing.
-    'example_internal_key' => 'example_external_key',
-  }
+      # An example mapping for testing.
+      'example_internal_key' => 'example_external_key',
+    }
+  end
 end

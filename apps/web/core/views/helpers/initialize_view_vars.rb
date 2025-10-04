@@ -76,8 +76,8 @@ module Core
 
         # Extract values from session
         # messages = sess.nil? ? [] : sess.get_messages
-        shrimp        = sess.nil? ? nil : sess.add_shrimp
-        authenticated = sess && sess.authenticated? && !cust.anonymous?
+        shrimp        = sess.nil? ? nil : sess['_csrf_token']
+        authenticated = sess && sess['authenticated'] == true && sess['identity_id'].to_s.length > 0 && !cust.anonymous?
 
         # Extract values from rack request object
         nonce           = req.env.fetch('ots.nonce', nil) # TODO: Rename to onetime.nonce
@@ -95,9 +95,15 @@ module Core
         frontend_development = development['enabled']
         script_element_id    = 'onetime-state'
 
+        # URI helpers for templates
+        site_host            = safe_site['host']
+        base_scheme          = safe_site['ssl'] ? 'https://' : 'http://'
+        baseuri              = base_scheme + site_host
+
         # Return all view variables as a hash
         {
           'authenticated' => authenticated,
+          'baseuri' => baseuri,
           'cust' => cust,
           'description' => description,
           'development' => development,
@@ -116,6 +122,7 @@ module Core
           'script_element_id' => script_element_id,
           'shrimp' => shrimp,
           'site' => safe_site,
+          'site_host' => site_host,
         }
       end
     end

@@ -7,7 +7,7 @@ module V2::Logic
       attr_reader :secret, :is_confirmed
 
       def process_params
-        @secret       = V2::Secret.load params[:key].to_s
+        @secret       = Onetime::Secret.load params[:key].to_s
         @newp         = self.class.normalize_password(params[:newp])
         @newp2        = self.class.normalize_password(params[:newp2])
         @is_confirmed = Rack::Utils.secure_compare(@newp, @newp2)

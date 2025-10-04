@@ -2,9 +2,9 @@
 
 require 'drydock'
 require 'onetime'
+require 'onetime/models'
 require 'onetime/migration'
 
-require 'v2/models'
 require 'v2/logic'
 
 module Onetime

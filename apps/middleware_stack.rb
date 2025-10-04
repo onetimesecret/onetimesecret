@@ -23,6 +23,28 @@ module MiddlewareStack
       builder.use Rack::ContentLength
       builder.use Onetime::Middleware::StartupReadiness
 
+      # Add session middleware early in the stack (before other middleware)
+      require 'onetime/session'
+      # Host detection and identity resolution (common to all apps)
+      builder.use Rack::DetectHost
+
+      builder.use Onetime::Session, {
+        expire_after: 86_400, # 24 hours
+        key: 'onetime.session',
+        secure: Onetime.conf&.dig('site', 'ssl'),
+        httponly: true,
+        same_site: :strict,
+        redis_prefix: 'session'
+      }
+
+      # Identity resolution middleware (after session)
+      require 'onetime/middleware/identity_resolution'
+      builder.use Onetime::Middleware::IdentityResolution
+
+      # Domain strategy middleware (after identity)
+      require 'onetime/middleware/domain_strategy'
+      builder.use Onetime::Middleware::DomainStrategy
+
       # Apply minimal middleware if config not available
       unless Onetime.conf
         Onetime.ld '[middleware] Configuration not available, using minimal stack'

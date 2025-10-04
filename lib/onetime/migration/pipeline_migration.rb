@@ -37,7 +37,7 @@ module Onetime
   #
   #   class CustomerObjidMigration < PipelineMigration
   #     def prepare
-  #       @model_class = V2::Customer
+  #       @model_class = Onetime::Customer
   #       @batch_size = 100  # Smaller batches for pipelines
   #     end
   #
