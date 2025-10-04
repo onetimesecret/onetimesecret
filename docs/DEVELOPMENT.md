@@ -119,3 +119,43 @@ docker history onetimesecret --format "table {{.CreatedBy}}\t{{.Size}}"
 For managing multi-container setups (e.g., the application and a separate database), we recommend using Docker Compose. We maintain a separate repository with ready-to-use configurations.
 
 Visit our [Docker Compose repository](https://github.com/onetimesecret/docker-compose) for more information.
+
+## Code Review Automation
+
+We use Qodo Merge (formerly PR-Agent) for automated code reviews and compliance checks. The configuration is managed through two files:
+
+### Configuration Files
+
+- **`pr_agent.toml`**: Main Qodo Merge configuration with RAG context enrichment, ignore patterns, and custom labels
+- **`pr_compliance_checklist.yaml`**: Custom compliance rules specific to our project
+
+### Compliance Checks
+
+Our custom compliance rules ensure:
+
+1. **ErrorHandling**: Proper error handling for external API calls
+2. **TestCoverage**: Tests required for new features (tryouts, RSpec, Vitest, or Playwright)
+3. **RedisOperations**: Redis operations use Familia ORM patterns
+4. **TypeSafety**: TypeScript code maintains type safety
+5. **I18nSupport**: User-facing strings are internationalized
+6. **SecurityPractices**: Security best practices are followed
+
+### Interactive Commands
+
+Team members can trigger on-demand analysis in PR comments:
+
+- `/analyze --review` - Run code review
+- `/analyze --test` - Generate test suggestions
+- `/describe` - Update PR description
+- `/improve` - Get code improvement suggestions
+
+### Configuration Updates
+
+When modifying Qodo Merge configuration:
+
+1. Edit `pr_agent.toml` for general settings
+2. Edit `pr_compliance_checklist.yaml` for compliance rules
+3. Validate YAML syntax: `yamllint pr_compliance_checklist.yaml`
+4. Test changes in a draft PR before merging
+
+For more information, see the [Qodo Merge documentation](https://qodo-merge-docs.qodo.ai/).
