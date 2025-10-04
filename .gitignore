@@ -31,7 +31,6 @@ pnpm-debug.log*
 .vscode/
 .idea/
 .cache/
-.purg*/
 .temp/
 .zed/
 .appendonlydir/
