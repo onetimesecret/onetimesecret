@@ -80,7 +80,7 @@ GEM
     erb (5.0.2)
     eventmachine (1.2.7)
     fakeredis (0.1.4)
-    familia (2.0.0.pre15)
+    familia (2.0.0.pre17)
       benchmark (~> 0.4)
       connection_pool (~> 2.5)
       csv (~> 3.3)
@@ -232,10 +232,6 @@ GEM
       lint_roller (~> 1.1)
       rubocop (~> 1.72, >= 1.72.1)
       rubocop-ast (>= 1.44.0, < 2.0)
-    ruby-lsp (0.26.1)
-      language_server-protocol (~> 3.17.0)
-      prism (>= 1.2, < 2.0)
-      rbs (>= 3, < 5)
     ruby-progressbar (1.13.0)
     ruby_http_client (3.5.5)
     sendgrid-ruby (6.7.0)
@@ -327,7 +323,7 @@ DEPENDENCIES
   drydock (~> 1.0.0)
   encryptor (= 1.1.3)
   fakeredis
-  familia (~> 2.0.0.pre15)
+  familia (~> 2.0.0.pre17)
   fastimage (~> 2.4)
   httparty
   irb
@@ -358,7 +354,6 @@ DEPENDENCIES
   rubocop-performance
   rubocop-rspec
   rubocop-thread_safety
-  ruby-lsp
   sendgrid-ruby
   sentry-ruby
   simplecov

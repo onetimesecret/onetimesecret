@@ -7,6 +7,7 @@ module V2
 
     feature :safe_dump
     feature :expiration
+    feature :transient_fields
 
     default_expiration 20.minutes
     prefix :session
@@ -191,7 +192,7 @@ module V2
       end
 
       def add(sess)
-        values.add OT.now.to_i, sess.identifier
+        values.add sess.identifier
         values.remrangebyscore 0, OT.now.to_i - 2.days
       end
 

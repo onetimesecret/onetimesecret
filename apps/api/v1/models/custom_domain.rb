@@ -212,7 +212,7 @@ module V1
 
       def recent duration=48.hours
         spoint, epoint = OT.now.to_i-duration, OT.now.to_i
-        self.values.rangebyscoreraw(spoint, epoint).collect { |identifier| load(identifier) }
+        self.instances.rangebyscoreraw(spoint, epoint).collect { |identifier| load(identifier) }
       end
 
       # Implement a load method for CustomDomain to make sure the

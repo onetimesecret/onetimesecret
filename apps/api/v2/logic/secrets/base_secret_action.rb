@@ -256,7 +256,7 @@ module V2::Logic
           cust.add_metadata metadata
           cust.increment_field :secrets_created
         end
-        V2::Customer.global.increment_field :secrets_created
+        V2::Customer.secrets_created.increment
       end
 
       def send_email_to_recipient

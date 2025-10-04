@@ -34,18 +34,7 @@ module V2
 
     using Familia::Refinements::TimeLiterals
 
-    @global = nil
-
     prefix :customer
-
-    class_sorted_set :values, dbkey: 'onetime:customer'
-    sorted_set :metadata
-    hashkey :feature_flags # To turn on allow_public_homepage column in domains table
-
-    # Used to track the current and most recently created password reset secret.
-    string :reset_secret, default_expiration: 24.hours
-
-    identifier_field :custid
 
     feature :expiration
     feature :relationships
@@ -53,6 +42,7 @@ module V2
     feature :external_identifier
     feature :required_fields
     feature :increment_field
+    feature :counter_fields
     feature :right_to_be_forgotten
     feature :safe_dump_fields
     feature :with_stripe_account
@@ -63,19 +53,53 @@ module V2
     feature :legacy_encrypted_fields
     feature :legacy_secrets_fields
 
-    field :custid
-    field :email
+    sorted_set :metadata
+    hashkey :feature_flags # To turn on allow_public_homepage column in domains table
+
+    # Used to track the current and most recently created password reset secret.
+    string :reset_secret, default_expiration: 24.hours
+
+    identifier_field :objid
+
+
+    # Global email index
+    #
+    # Unique indexes are autopopulated are the finder methods are
+    # available immediatley:
+    #
+    # e.g. Customer.find_by_email(email)
+    unique_index :email, :email_index
+
+    # Organization-scoped indexes
+    unique_index :email, :email_index, within: V2::Organization
+    unique_index :objid, :objid_index, within: V2::Organization
+    unique_index :extid, :extid_index, within: V2::Organization
+
+    # Participation - bidirectional membership tracking with reverse indexes
+    # These give you O(1) access to all members: org.members, team.members
+    participates_in V2::Organization, :members, score: :joined
+    participates_in V2::Team, :members
+
+    field_group :core_fields do
+      field :custid
+      field :email
+    end
 
     field :locale
     field :planid
 
     field :last_login
 
-
     def init
-      self.custid ||= 'anon'
+      super
+
+      # IMPORTANT: Use self.objid (getter) not @objid (instance variable).
+      # The ObjectIdentifier feature tracks which generator was used (uuid_v7,
+      # uuid_v4, hex, etc.) in @objid_generator_used for provenance tracking.
+      # Accessing @objid directly bypasses the lazy generation mechanism and
+      # skips provenance tracking, causing ExternalIdentifier derivation to fail.
+      self.custid ||= self.objid
       self.role   ||= 'customer'
-      self.email  ||= self.custid unless anonymous?
 
       # When an instance is first created, any field that doesn't have a
       # value set will be nil. We need to ensure that these fields are
@@ -83,27 +107,17 @@ module V2
       # from the db (i.e. all values in core data types are strings).
       self.locale ||= ''
 
-      # Initialze auto-increment fields. We do this since Redis
-      # gets grumpy about trying to increment a hashkey field
-      # that doesn't have any value at all yet. This is in
-      # contrast to the regular INCR command where a
-      # non-existant key will simply be set to 1.
-      self.secrets_created ||= 0
-      self.secrets_burned  ||= 0
-      self.secrets_shared  ||= 0
-      self.emails_sent     ||= 0
+      init_counter_fields
     end
 
     def anonymous?
-      custid.to_s.eql?('anon')
+      role.to_s.eql?('anonymous') || custid.to_s.eql?('anon')
     end
 
     def obscure_email
-      if anonymous?
-        'anon'
-      else
-        OT::Utils.obscure_email(custid)
-      end
+      return 'anonymous@example.com' if anonymous?
+
+      OT::Utils.obscure_email(email)
     end
 
     def role?(guess)
@@ -129,22 +143,30 @@ module V2
     class << self
       attr_reader :values
 
-      def create(custid, email = nil)
-        raise Onetime::Problem, 'custid is required' if custid.to_s.empty?
-        raise Onetime::Problem, 'Customer exists' if exists?(custid)
+      def create(email = nil, **kwargs)
+        # Handle both positional email argument (legacy) and keyword argument
+        email ||= kwargs[:email] || kwargs['email']
 
-        cust        = new custid: custid, email: email || custid, role: 'customer'
-        cust.planid = 'basic'
-        OT.ld "[create] custid: #{custid}, #{cust.safe_dump}"
-        cust.save
-        add cust
-        cust
+        OT.li "[Customer.create] email=#{email&.class} kwargs=#{kwargs.keys}"
+        loggable_email = OT::Utils.obscure_email(email)
+        raise Familia::Problem, 'email is required' if email.to_s.empty?
+        raise Familia::RecordExistsError, "Customer exists #{loggable_email}" if email_exists?(email)
+
+        # Ensure email is in kwargs for super
+        kwargs[:email] = email
+        super(**kwargs)
       end
 
       def anonymous
-        new('anon').freeze
+        @anonymous ||= begin
+          anon = new(role: 'customer', custid: 'anon', objid: 'anon', extid: 'anon')
+          anon.freeze
+        end
       end
 
+      def email_exists?(email)
+        !find_by_email(email).nil?
+      end
     end
 
     # Mixin Placement for Field Order Control

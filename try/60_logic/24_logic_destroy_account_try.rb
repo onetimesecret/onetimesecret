@@ -28,16 +28,6 @@ OT.boot! :test, false
   confirmation: 'pa55w0rd'
 }
 
-
-def generate_random_email
-  # Generate a random username
-  username = (0...8).map { ('a'..'z').to_a[rand(26)] }.join
-  # Define a domain
-  domain = "onetimesecret.com"
-  # Combine to form an email address
-  "#{username}@#{domain}"
-end
-
 # TRYOUTS
 
 ## Can create DestroyAccount instance
@@ -85,7 +75,7 @@ end
 
 
 ## Raises an error if the password is incorrect
-cust = V2::Customer.new generate_random_email
+cust = V2::Customer.new email: generate_random_email
 obj = V2::Logic::Account::DestroyAccount.new @sess, cust, @params
 cust.update_passphrase 'wrong password'
 begin
@@ -97,7 +87,7 @@ end
 
 
 ## No errors are raised as long as the password is correct
-cust = V2::Customer.new generate_random_email
+cust = V2::Customer.new email: generate_random_email
 password_guess = @params[:confirmation]
 obj = V2::Logic::Account::DestroyAccount.new @sess, cust, @params
 cust.update_passphrase password_guess # update the password to be correct
@@ -116,7 +106,7 @@ end
 #=> [Onetime::FormError, "We have concerns about that request."]
 
 ## Process the request and destroy the account
-cust = V2::Customer.new generate_random_email
+cust = V2::Customer.new email: generate_random_email
 obj = V2::Logic::Account::DestroyAccount.new @sess, cust, @params
 cust.update_passphrase @params[:confirmation] # set the passphrase
 obj.raise_concerns
@@ -136,7 +126,7 @@ puts [cust.role, cust.verified, post_destroy_passphrase]
 #=> ['user_deleted_self', 'false', '']
 
 ## Destroyed account gets a new api key
-cust = V2::Customer.new generate_random_email
+cust = V2::Customer.new email: generate_random_email
 first_token = cust.regenerate_apitoken  # first we need to set an api key
 obj = V2::Logic::Account::DestroyAccount.new @sess, cust, @params
 cust.update_passphrase @params[:confirmation]

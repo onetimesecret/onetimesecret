@@ -9,6 +9,7 @@
 spoom_*
 .commit_hash.txt
 *.sublime-*
+.yardoc
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
@@ -30,7 +31,6 @@ pnpm-debug.log*
 .vscode/
 .idea/
 .cache/
-.purg*/
 .temp/
 .zed/
 .appendonlydir/
@@ -39,6 +39,7 @@ pnpm-debug.log*
 .rspec_status
 appendonlydir/
 data/
+doc/
 node_modules/
 vendor/
 log/
@@ -46,6 +47,7 @@ tmp/
 coverage/
 dist/
 public/web/dist/
+public/doc
 !tests/data
 
 # Files

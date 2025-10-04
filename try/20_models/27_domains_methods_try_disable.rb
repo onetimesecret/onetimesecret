@@ -110,7 +110,7 @@ email = "Tryouts+27+#{SecureRandom.uuid}@onetimesecret.com"
 obj = CustomDomain.create('delete-test.example.com', email)
 identifier = obj.identifier
 obj.delete!
-CustomDomain.values.member?(identifier)
+CustomDomain.instances.member?(identifier)
 #=> false
 
 ## Can destroy domain and remove from customer's domains

@@ -27,7 +27,7 @@ module Onetime
           # user know that the email was not sent yet (and then having a way
           # to retry sending the email).
           if OT.locales.key?(locale)
-            OT.li "Initializing #{self.class} with locale: #{locale}"
+            OT.ld "Initializing #{self.class} with locale: #{locale}"
           else
             default_value = OT.default_locale
             @locale       = default_value

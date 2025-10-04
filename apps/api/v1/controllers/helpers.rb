@@ -81,7 +81,7 @@ module V1
     rescue OT::RecordNotFound => ex
       OT.ld "[carefully] RecordNotFound: #{ex.message} (#{req.path}) redirect:#{redirect || 'n/a'}"
       not_found_response ex.message, shrimp: sess.add_shrimp
-    rescue Familia::HighRiskFactor => ex
+    rescue Familia::NotDistinguishableError => ex
       OT.le "[attempt-saving-non-string-to-db] #{obscured} (#{sess.ipaddress}): #{sess.identifier.size <= 10 ? sess.identifier : sess.identifier[0, 10] + '...'} (#{req.current_absolute_uri})"
 
       # Track attempts to save non-string data to the database as a warning error

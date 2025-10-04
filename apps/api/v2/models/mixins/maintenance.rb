@@ -37,7 +37,7 @@ module V2
       end
 
       def add_note(note)
-        maintenance_notes.add(OT.now.to_i, note)
+        maintenance_notes.add(note, OT.now)
       end
 
       def notes

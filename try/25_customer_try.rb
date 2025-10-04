@@ -17,7 +17,7 @@
 # of these specific scenarios.
 
 #ENV['FAMILIA_TRACE'] = '1'
-require_relative 'test_models'
+require_relative 'test_helpers'
 #Familia.debug = true
 
 # Load the app
@@ -25,8 +25,10 @@ OT.boot! :test, false
 
 # Setup some variables for these tryouts
 @now = Time.now.strftime("%Y%m%d%H%M%S")
-@email_address = "tryouts+#{@now}@onetimesecret.com"
-@cust = V2::Customer.new @email_address
+@email_address = generate_random_email
+@find_by_email_address = generate_random_email
+@cust = V2::Customer.new email: @email_address
+@objid = @cust.objid
 
 # TRYOUTS
 
@@ -35,19 +37,25 @@ OT.boot! :test, false
 #=> nil
 
 ## New instance of customer has a custid
-p @cust.to_h
 @cust.custid
-#=> @email_address
+#=~> /[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/
+
+## New instance of customer has an objid
+@cust.objid
+#=~> /[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/
+
+## New instance of customer has an extid
+@cust.extid
+#=~> /ext_[0-9a-z]{16}/
 
 ## New instance of customer has a dbkey
-p [:email, @email_address]
 @cust.dbkey
-#=> "customer:#{@email_address}:object"
+#=> "customer:#{@objid}:object"
 
 ## Can "create" an anonymous user (more like simulate)
 @anonymous = V2::Customer.anonymous
-@anonymous.custid
-#=> 'anon'
+@anonymous.role
+#=> 'customer'
 
 ## Anonymous is a Customer class
 @anonymous.class
@@ -67,12 +75,9 @@ p [:email, @email_address]
 #=> false
 
 ## Trying to save anonymous raises hell on earth
-begin
-  @anonymous.save
-rescue OT::Problem => e
-  [e.class, e.message]
-end
-#=> [Onetime::Problem, "Anonymous cannot be saved V2::Customer customer:anon:object"]
+@anonymous.save
+#=!> Onetime::Problem
+#=!> "Anonymous cannot be saved V2::Customer customer:#{@objid}:object"
 
 ## Object name and dbkey are no longer equivalent.
 ## This is a reference back to Familia v0.10.2 era which
@@ -142,18 +147,32 @@ ttl = @cust.default_expiration
 @cust.verified?
 #=> false
 
-## Customer.values has the correct dbkey
-V2::Customer.values.dbkey
-#=> "onetime:customer"
+## Customer.instances has the correct dbkey
+V2::Customer.instances.dbkey
+#=> "customer:instances"
 
 ## Customer.domains has the correct dbkey
 V2::Customer.domains.dbkey
-#=> "onetime:customers:domain"
+#=> "customer:domains"
 
-## Customer.values is a Familia::SortedSet
-V2::Customer.values.class
+## Customer.instances is a Familia::SortedSet
+V2::Customer.instances.class
 #=> Familia::SortedSet
 
 ## Customer.domains is a Familia::HashKey
 V2::Customer.domains.class
 #=> Familia::HashKey
+
+## Customer find by email, nil by default
+email = "test1+#{rand(10000000)}@example.com"
+V2::Customer.find_by_email(email)
+#=> nil
+
+## Customer find by email, when the record exists
+cust = V2::Customer.create(@find_by_email_address)
+V2::Customer.find_by_email(@find_by_email_address)
+#=:> V2::Customer
+
+
+test_cust = V2::Customer.find_by_email(@find_by_email_address)
+test_cust.delete!

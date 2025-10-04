@@ -8,6 +8,7 @@ module V2::Customer::Features
       base.include InstanceMethods
 
       base.field :role
+      base.field :joined
       base.field :verified
     end
 

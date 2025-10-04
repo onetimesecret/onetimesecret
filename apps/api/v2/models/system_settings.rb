@@ -266,37 +266,37 @@ module V2
 
         if multi
           # Use the provided multi instance for atomic operations
-          multi.zadd(self.values.rediskey, now, fobj.to_s)
+          multi.zadd(self.instances.rediskey, now, fobj.to_s)
           multi.zadd(self.stack.rediskey, now, fobj.to_s)
           multi.zadd(self.audit_log.rediskey, now, fobj.to_s)
         else
           # Fall back to individual operations for backward compatibility
-          self.values.add now, fobj.to_s
-          self.stack.add now, fobj.to_s
-          self.audit_log.add now, fobj.to_s
+          self.instances.add fobj.to_s, now
+          self.stack.add fobj.to_s, now
+          self.audit_log.add fobj.to_s, now
         end
       end
 
       def rem fobj
-        self.values.remove fobj.to_s
+        self.instances.remove fobj.to_s
         # don't arbitrarily remove from stack, only for rollbacks/reversions.
         # never remove from audit_log
       end
 
       def remove_bad_config fobj
-        self.values.remove fobj.to_s
+        self.instances.remove fobj.to_s
         self.stack.remove fobj.to_s
       end
 
       def all
         # Load all instances from the sorted set. No need
         # to involve the owners HashKey here.
-        self.values.revrangeraw(0, -1).collect { |identifier| from_identifier(identifier) }
+        self.instances.revrangeraw(0, -1).collect { |identifier| from_identifier(identifier) }
       end
 
       def recent duration=7.days
         spoint, epoint = self.now-duration, self.now
-        self.values.rangebyscoreraw(spoint, epoint).collect { |identifier| load(identifier) }
+        self.instances.rangebyscoreraw(spoint, epoint).collect { |identifier| load(identifier) }
       end
 
       def current

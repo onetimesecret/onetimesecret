@@ -14,7 +14,7 @@ module V2
           base.extend ClassMethods
           base.include InstanceMethods
 
-          base.class_hashkey :domains, dbkey: 'onetime:customers:domain'
+          base.class_hashkey :domains
           base.sorted_set :custom_domains, suffix: 'custom_domain'
         end
 
@@ -34,7 +34,7 @@ module V2
 
           def add_custom_domain(obj)
             OT.ld "[add_custom_domain] adding #{obj} to #{self}"
-            custom_domains.add OT.now.to_i, obj.display_domain # not the object identifier
+            custom_domains.add obj.display_domain # not the object identifier
           end
 
           def remove_custom_domain(obj)

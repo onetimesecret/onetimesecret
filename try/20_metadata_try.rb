@@ -27,13 +27,13 @@ OT.boot! :test, true
 ## Can create a Metadata
 m = V2::Metadata.new :private
 [m.class, m.dbclient.connection[:db], m.secret_key]
-#=> [V2::Metadata, 7, nil]
+#=> [V2::Metadata, 0, nil]
 
 ## Can explicitly set the secret key
 m = V2::Metadata.new :private
 m.secret_key = 'hihi'
 [m.class, m.dbclient.connection[:db], m.secret_key]
-#=> [V2::Metadata, 7, 'hihi']
+#=> [V2::Metadata, 0, 'hihi']
 
 ## Keys are always unique for Metadata
 ## NOTE: Prior to Familia v1.0.0.pre.rc1 upgrade the metadata key

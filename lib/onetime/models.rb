@@ -10,8 +10,8 @@
 # dependencies throughout the codebase. This facilitates running the same
 # test suite against multiple API versions and simplifies version transitions.
 
-require 'v1/models'
-require 'v2/models'
+require 'v1/models' # v1 needs to load before v2 otherwise Familia.members
+require 'v2/models' # does not get populated correctly :?
 
 module Onetime
   # Points to the current API version's models module.
