@@ -37,7 +37,8 @@ module V1::Logic
             owner = secret.load_customer
             secret.burned!
             owner.increment_field :secrets_burned unless owner.anonymous?
-            V1::Customer.global.increment_field :secrets_burned
+            # TODO:
+            # V1::Customer.global.increment_field :secrets_burned
 
           elsif !correct_passphrase
 
