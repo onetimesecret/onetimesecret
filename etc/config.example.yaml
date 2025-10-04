@@ -112,7 +112,7 @@
         # Include numbers (0-9)
         :numbers: <%= ENV['PASSWORD_GEN_NUMBERS'] != 'false' %>
         # Include symbols (!@#$%^&*()_+-=[]{}|;:,.<>?)
-        :symbols: <%= ENV['PASSWORD_GEN_SYMBOLS'] == 'true' || false %>
+        :symbols: <%= ENV['PASSWORD_GEN_SYMBOLS'] != 'false' %>
         # Exclude ambiguous characters (0, O, l, 1, I) to prevent confusion
         :exclude_ambiguous: <%= ENV['PASSWORD_GEN_EXCLUDE_AMBIGUOUS'] != 'false' %>
   # Registration and Authentication settings

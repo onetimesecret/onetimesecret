@@ -46,14 +46,14 @@ module Onetime
     #   - :uppercase [Boolean] Include uppercase letters (default: true)
     #   - :lowercase [Boolean] Include lowercase letters (default: true)
     #   - :numbers [Boolean] Include numbers (default: true)
-    #   - :symbols [Boolean] Include symbols (default: false)
+    #   - :symbols [Boolean] Include symbols (default: true)
     #   - :exclude_ambiguous [Boolean] Exclude visually similar characters (default: true)
     #   - :unambiguous [Boolean] Legacy option, same as exclude_ambiguous
     # @return [String] A randomly generated string of the specified length
     #
     # @example Generate a simple unambiguous 12-character string
-    #   Utils.strand         # => "kF8mN2qR9xPw"
-    #   Utils.strand(8)      # => "kF8mN2qR"
+    #   Utils.strand         # => "k*8mN2qR9xPw"
+    #   Utils.strand(8)      # => "k*8mN2qR"
     #
     # @example Generate using full character set (legacy)
     #   Utils.strand(8, false) # => "kF8mN2qR"
@@ -70,33 +70,34 @@ module Onetime
       # Handle backward compatibility: if options is boolean, treat as unambiguous
       opts = case options
              in true | false
-               { exclude_ambiguous: options }
+               { 'exclude_ambiguous' => options }
              in Hash
-               options
+               # Convert all keys to strings for consistent access
+               options.transform_keys(&:to_s)
              else
                {}
              end
 
       defaults = {
-        uppercase:   true,
-        lowercase:   true,
-        numbers:     true,
-        symbols:     false,
-        exclude_ambiguous: true,
+        'uppercase'   => true,
+        'lowercase'   => true,
+        'numbers'     => true,
+        'symbols'     => true,
+        'exclude_ambiguous' => true,
       }
 
       opts = defaults.merge(opts)
-      opts[:exclude_ambiguous] ||= opts.delete(:unambiguous) if opts.key?(:unambiguous)
+      opts['exclude_ambiguous'] ||= opts.delete('unambiguous') if opts.key?('unambiguous')
 
       # Build character set based on options
       chars = []
-      chars.concat(UPPERCASE) if opts[:uppercase]
-      chars.concat(LOWERCASE) if opts[:lowercase]
-      chars.concat(NUMBERS) if opts[:numbers]
-      chars.concat(SYMBOLS) if opts[:symbols]
+      chars.concat(UPPERCASE) if opts['uppercase']
+      chars.concat(LOWERCASE) if opts['lowercase']
+      chars.concat(NUMBERS) if opts['numbers']
+      chars.concat(SYMBOLS) if opts['symbols']
 
       # Remove ambiguous characters if requested
-      if opts[:exclude_ambiguous]
+      if opts['exclude_ambiguous']
         chars.delete_if { |char| AMBIGUOUS_CHARS.include?(char) }
       end
 
@@ -114,13 +115,13 @@ module Onetime
       password_chars = []
 
       # Ensure at least one character from each selected set
-      password_chars << UPPERCASE.sample if opts[:uppercase]
-      password_chars << LOWERCASE.sample if opts[:lowercase]
-      password_chars << NUMBERS.sample if opts[:numbers]
-      password_chars << SYMBOLS.sample if opts[:symbols]
+      password_chars << UPPERCASE.sample if opts['uppercase']
+      password_chars << LOWERCASE.sample if opts['lowercase']
+      password_chars << NUMBERS.sample if opts['numbers']
+      password_chars << SYMBOLS.sample if opts['symbols']
 
       # Remove ambiguous characters from guaranteed chars if needed
-      if opts[:exclude_ambiguous]
+      if opts['exclude_ambiguous']
         password_chars.delete_if { |char| AMBIGUOUS_CHARS.include?(char) }
       end
 
@@ -237,7 +238,7 @@ module Onetime
 
     # Check if multiple character sets are requested (requiring complexity guarantee)
     def multiple_char_sets_requested?(opts)
-      enabled_sets = [opts[:uppercase], opts[:lowercase], opts[:numbers], opts[:symbols]].count(true)
+      enabled_sets = [opts['uppercase'], opts['lowercase'], opts['numbers'], opts['symbols']].count(true)
       enabled_sets > 1
     end
 
