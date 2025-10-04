@@ -33,7 +33,7 @@ Familia.enable_database_logging = true unless Familia.enable_database_logging
 ## DatabaseLogger captures Redis commands in a block
 commands = DatabaseLogger.capture_commands do
   # Create a test customer which will execute Redis commands
-  cust = V2::Customer.new
+  cust = Onetime::Customer.new
   cust.custid = 'test-database-logger'
   cust.email = 'dblogger@example.com'
   cust.save
@@ -44,7 +44,7 @@ end
 
 ## Captured commands include command hashes with keys
 commands = DatabaseLogger.capture_commands do
-  cust = V2::Customer.new
+  cust = Onetime::Customer.new
   cust.custid = 'test-command-format'
   cust.email = 'format@example.com'
   cust.save
@@ -56,7 +56,7 @@ first_command = commands.first
 
 ## Command arrays contain Redis command names
 commands = DatabaseLogger.capture_commands do
-  cust = V2::Customer.new
+  cust = Onetime::Customer.new
   cust.custid = 'test-command-names'
   cust.email = 'names@example.com'
   cust.save
@@ -70,7 +70,7 @@ has_redis_commands
 
 ## Duration is measured in microseconds
 commands = DatabaseLogger.capture_commands do
-  cust = V2::Customer.new
+  cust = Onetime::Customer.new
   cust.custid = 'test-duration'
   cust.email = 'duration@example.com'
   cust.save
@@ -83,7 +83,7 @@ durations_valid
 
 ## Timestamps are Time objects
 commands = DatabaseLogger.capture_commands do
-  cust = V2::Customer.new
+  cust = Onetime::Customer.new
   cust.custid = 'test-timestamps'
   cust.email = 'timestamps@example.com'
   cust.save
@@ -120,7 +120,7 @@ original_logger = DatabaseLogger.logger
 begin
   DatabaseLogger.logger = nil
   commands = DatabaseLogger.capture_commands do
-    cust = V2::Customer.new
+    cust = Onetime::Customer.new
     cust.custid = 'test-no-logger'
     cust.email = 'nologger@example.com'
     cust.save
@@ -134,13 +134,13 @@ end
 
 ## Captured commands include various Redis operations
 commands = DatabaseLogger.capture_commands do
-  cust = V2::Customer.new
+  cust = Onetime::Customer.new
   cust.custid = 'test-operations'
   cust.email = 'ops@example.com'
   cust.save
 
   # Trigger various Redis operations
-  loaded = V2::Customer.from_identifier(cust.identifier)
+  loaded = Onetime::Customer.from_identifier(cust.identifier)
   loaded.delete!
 end
 
@@ -152,7 +152,7 @@ has_multiple_types
 
 ## Commands array can be cleared
 DatabaseLogger.capture_commands do
-  cust = V2::Customer.new
+  cust = Onetime::Customer.new
   cust.custid = 'test-clear'
   cust.email = 'clear@example.com'
   cust.save

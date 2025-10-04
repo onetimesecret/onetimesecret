@@ -14,7 +14,7 @@ Familia.enable_database_logging = true unless Familia.enable_database_logging
 
 ## Example: Capture commands programmatically for testing
 @commands = DatabaseLogger.capture_commands do
-  cust = V2::Customer.new
+  cust = Onetime::Customer.new
   cust.custid = 'demo-customer'
   cust.email = 'demo@example.com'
   cust.save
@@ -50,7 +50,7 @@ true
 ## DatabaseLogger integrates with Familia models
 ## All Redis commands executed through Familia models are captured
 commands = DatabaseLogger.capture_commands do
-  V2::Customer.instances.size # This queries Redis
+  Onetime::Customer.instances.size # This queries Redis
 end
 commands.size
 #=> 1

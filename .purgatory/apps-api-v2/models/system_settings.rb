@@ -158,10 +158,10 @@ module V2
 
     # Check if the given customer is the owner of this domain
     #
-    # @param cust [V2::Customer, String] The customer object or customer ID to check
+    # @param cust [Onetime::Customer, String] The customer object or customer ID to check
     # @return [Boolean] true if the customer is the owner, false otherwise
     def owner?(cust)
-      matching_class = cust.is_a?(V2::Customer)
+      matching_class = cust.is_a?(Onetime::Customer)
       (matching_class ? cust.custid : cust).to_s.eql?(owner)
     end
 

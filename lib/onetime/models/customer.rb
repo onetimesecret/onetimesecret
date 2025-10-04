@@ -70,14 +70,14 @@ module Onetime
     unique_index :email, :email_index
 
     # Organization-scoped indexes
-    unique_index :email, :email_index, within: V2::Organization
-    unique_index :objid, :objid_index, within: V2::Organization
-    unique_index :extid, :extid_index, within: V2::Organization
+    unique_index :email, :email_index, within: Onetime::Organization
+    unique_index :objid, :objid_index, within: Onetime::Organization
+    unique_index :extid, :extid_index, within: Onetime::Organization
 
     # Participation - bidirectional membership tracking with reverse indexes
     # These give you O(1) access to all members: org.members, team.members
-    participates_in V2::Organization, :members, score: :joined
-    participates_in V2::Team, :members
+    participates_in Onetime::Organization, :members, score: :joined
+    participates_in Onetime::Team, :members
 
     field_group :core_fields do
       field :custid

@@ -1,6 +1,6 @@
 # apps/api/v2/models/customer/features/counter_fields.rb
 
-module V2::Customer::Features
+module Onetime::Customer::Features
   module CounterFields
     Familia::Base.add_feature self, :counter_fields
 
