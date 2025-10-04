@@ -255,9 +255,9 @@ module V1::Logic
       def update_stats
         unless cust.anonymous?
           cust.add_metadata metadata
-          cust.increment_field :secrets_created
+          cust.increment_field :secrets_created # cust.secrets_created.increment
         end
-        V1::Customer.global.increment_field :secrets_created
+        V1::Customer.global.increment_field :secrets_created # Customer.secrets_created.increment
       end
 
       def send_email_to_recipient
