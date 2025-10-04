@@ -5,7 +5,7 @@ require 'fileutils' # For managing temp config files
 require 'yaml'      # For parsing YAML strings
 require 'erb'       # For processing ERB in YAML strings
 
-RSpec.describe "Onetime::Config during Onetime.boot!" do
+RSpec.describe "Onetime::Config during Onetime.boot!", :allow_redis do
   let(:source_config_path) { File.expand_path(File.join(Onetime::HOME, 'spec', 'config.test.yaml')) }
 
   before(:all) do
