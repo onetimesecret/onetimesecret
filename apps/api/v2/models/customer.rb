@@ -154,15 +154,7 @@ module V2
 
         # Ensure email is in kwargs for super
         kwargs[:email] = email
-        cust = super(**kwargs)
-
-        # Adds to customer:email_index hashkey created above by:
-        #
-        #   unique_index :email, :email_index
-        #
-        # and used by find_by_email.
-        cust.add_to_class_email_index
-        cust
+        super(**kwargs)
       end
 
       def anonymous
