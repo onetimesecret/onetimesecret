@@ -61,7 +61,7 @@ gem 'truemail'
 # ====================================
 
 # ORMs and database drivers
-gem 'familia', '~> 2.0.0.pre15'
+gem 'familia', '~> 2.0.0.pre17'
 gem 'sequel', '~> 5.0'
 
 database_adapter = ENV.fetch('DATABASE_ADAPTER', 'sqlite3').downcase
@@ -90,13 +90,6 @@ gem 'rqrcode', '~> 2.2'
 gem 'webauthn', '~> 3.0'
 
 # ====================================
-# Data Processing & Utilities
-# ====================================
-
-gem 'familia', '~> 2.0.0.pre17'
-gem 'otto', '~> 1.4.0' #'~> 2.0.0.pre1'
-
-# ====================================
 # Ruby Standard Library Compatibility
 # ====================================
 
@@ -123,7 +116,6 @@ gem 'stripe', require: false
 group :development, :test do
   gem 'benchmark'
   gem 'database_cleaner-sequel', '~> 2.0'
-  gem 'factory_bot', '~> 6.4'
   gem 'faker', '~> 3.2'
 end
 
