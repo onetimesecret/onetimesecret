@@ -1,0 +1,57 @@
+---
+# Custom Compliance Checklist for Onetime Secret
+#
+# This file defines custom compliance rules for Qodo Merge PR reviews.
+# Each rule is evaluated during PR analysis to ensure code quality and
+# best practices.
+
+pr_compliances:
+  - title: "ErrorHandling"
+    compliance_label: true
+    objective: "All external API calls must have proper error handling"
+    success_criteria: >
+      Try-catch blocks around external calls with appropriate logging
+    failure_criteria: >
+      External API calls without error handling or logging
+
+  - title: "TestCoverage"
+    compliance_label: true
+    objective: "New features must include corresponding tests"
+    success_criteria: >
+      Test files present for new functionality (tryouts, RSpec, Vitest,
+      or Playwright tests)
+    failure_criteria: "New code without test coverage"
+
+  - title: "RedisOperations"
+    compliance_label: true
+    objective: "Redis operations should use Familia ORM patterns"
+    success_criteria: >
+      Redis operations use Familia methods and follow established patterns
+    failure_criteria: >
+      Direct Redis calls or bypassing Familia ORM without justification
+
+  - title: "TypeSafety"
+    compliance_label: true
+    objective: "TypeScript code should maintain type safety"
+    success_criteria: >
+      Proper type definitions, minimal use of 'any',
+      proper schema validation
+    failure_criteria: >
+      Excessive use of 'any' type or missing type definitions
+
+  - title: "I18nSupport"
+    compliance_label: true
+    objective: "User-facing strings should be internationalized"
+    success_criteria: >
+      User-facing strings use i18n keys ($t() in Vue, proper locale keys)
+    failure_criteria: "Hardcoded user-facing strings without i18n support"
+
+  - title: "SecurityPractices"
+    compliance_label: true
+    objective: "Security best practices must be followed"
+    success_criteria: >
+      No secrets in code, proper input validation,
+      secure handling of sensitive data
+    failure_criteria: >
+      Hardcoded credentials, missing input validation,
+      insecure data handling

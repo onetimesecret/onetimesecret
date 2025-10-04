@@ -25,6 +25,25 @@ secret_provider="google_cloud_storage"
 cli_mode=false
 ai_disclaimer_title=""  # Pro feature, title for a collapsible disclaimer to AI outputs
 ai_disclaimer=""  # Pro feature, full text for the AI disclaimer
+response_language = "en"  # Ensure consistent review language
+
+[rag_arguments]
+# Enable RAG context enrichment for Codebase Duplication Compliance
+enable_rag = true
+rag_repo_list = ['onetimesecret/onetimesecret']
+
+[ignore]
+# Reduce noise by excluding generated files and build artifacts
+glob = ["*.lock", "pnpm-lock.yaml", "Gemfile.lock", "dist/**", "*.min.js", "*.min.css", "public/web/dist/**", "node_modules/**", "coverage/**", "playwright-report/**", "test-results/**"]
+
+[compliance]
+# Enable custom compliance checks
+custom_compliance_path = "pr_compliance_checklist.yaml"
+
+[custom_labels]
+# Enable project-specific labels
+enable = true
+labels = ["needs-tests", "security-review", "breaking-change", "i18n-required", "redis-changes"]
 
 [pr_reviewer] # /review #
 # enable/disable features
