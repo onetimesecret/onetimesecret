@@ -43,7 +43,8 @@ custom_compliance_path = "pr_compliance_checklist.yaml"
 [custom_labels]
 # Enable project-specific labels
 enable = true
-labels = ["needs-tests", "security-review", "breaking-change", "i18n-required", "redis-changes"]
+# Commented out until these labels are created in the repository
+# labels = ["needs-tests", "security-review", "breaking-change", "i18n-required", "database-changes"]
 
 [pr_reviewer] # /review #
 # enable/disable features

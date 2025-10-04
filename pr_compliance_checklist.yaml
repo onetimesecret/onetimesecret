@@ -22,13 +22,13 @@ pr_compliances:
       or Playwright tests)
     failure_criteria: "New code without test coverage"
 
-  - title: "RedisOperations"
+  - title: "DatabaseOperations"
     compliance_label: true
-    objective: "Redis operations should use Familia ORM patterns"
+    objective: "Database operations should use Familia ORM patterns"
     success_criteria: >
-      Redis operations use Familia methods and follow established patterns
+      Database operations use Familia methods and follow established patterns
     failure_criteria: >
-      Direct Redis calls or bypassing Familia ORM without justification
+      Direct database calls or bypassing Familia ORM without justification
 
   - title: "TypeSafety"
     compliance_label: true

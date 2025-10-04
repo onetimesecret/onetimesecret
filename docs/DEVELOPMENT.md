@@ -135,7 +135,7 @@ Our custom compliance rules ensure:
 
 1. **ErrorHandling**: Proper error handling for external API calls
 2. **TestCoverage**: Tests required for new features (tryouts, RSpec, Vitest, or Playwright)
-3. **RedisOperations**: Redis operations use Familia ORM patterns
+3. **DatabaseOperations**: Database operations use Familia ORM patterns
 4. **TypeSafety**: TypeScript code maintains type safety
 5. **I18nSupport**: User-facing strings are internationalized
 6. **SecurityPractices**: Security best practices are followed
