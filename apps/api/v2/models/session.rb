@@ -7,6 +7,7 @@ module V2
 
     feature :safe_dump
     feature :expiration
+    feature :transient_fields
 
     default_expiration 20.minutes
     prefix :session
