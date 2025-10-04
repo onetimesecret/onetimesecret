@@ -16,8 +16,8 @@ module V2::Logic
 
         # Convert config keys to strings and merge with payload
         #
-        # This is compatable with both v0.22 (mostly symbols) and v1.0
-        # configuration (all strings.
+        # This is compatible with both v0.22 (mostly symbols) and v1.0
+        # configuration (all strings).
         config_with_string_keys = password_config.transform_keys(&:to_s)
         payload_with_string_keys = payload.transform_keys(&:to_s)
         merged_options = config_with_string_keys.merge(payload_with_string_keys)
@@ -28,7 +28,7 @@ module V2::Logic
         # Build character set options from merged configuration
         char_sets = merged_options['character_sets'] || {}
 
-        OT.li "[GenerateSecret] Using the character sets: #{char_sets.inspect}"
+        OT.ld "[GenerateSecret] Using the character sets: #{char_sets.inspect}"
         # Use the configurable password generation method
         @secret_value = Onetime::Utils.strand(length, char_sets)
       end
