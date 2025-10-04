@@ -7,8 +7,7 @@
   import { useI18n } from 'vue-i18n';
   const { t } = useI18n();
 
-  const feedbackSections = computed(() => {
-    return [
+  const feedbackSections = computed(() => [
       {
         title: t('today'),
         count: details?.value?.counts.today_feedback_count,
@@ -24,8 +23,7 @@
         count: details?.value?.counts.older_feedback_count,
         feedback: details?.value?.older_feedback,
       },
-    ];
-  });
+    ]);
 
   const store = useColonelInfoStore();
   const { details, isLoading } = storeToRefs(store);
@@ -216,7 +214,7 @@
         </h3>
         <div class="rounded-lg bg-white shadow dark:bg-gray-800">
           <div class="max-h-64 overflow-y-auto p-4">
-            <pre class="text-xs text-gray-800 dark:text-gray-200">{{ details?.redis_info }}</pre>
+            <pre class="text-xs text-gray-800 dark:text-gray-200">{{ details?.dbclient_info }}</pre>
           </div>
         </div>
       </div>

@@ -1,12 +1,15 @@
-
 module V2::Logic
   module Authentication
+
+    using Familia::Refinements::TimeLiterals
+
     class ResetPassword < V2::Logic::Base
       attr_reader :secret, :is_confirmed
+
       def process_params
-        @secret = V2::Secret.load params[:key].to_s
-        @newp = self.class.normalize_password(params[:newp])
-        @newp2 = self.class.normalize_password(params[:newp2])
+        @secret       = V2::Secret.load params[:key].to_s
+        @newp         = self.class.normalize_password(params[:newp])
+        @newp2        = self.class.normalize_password(params[:newp2])
         @is_confirmed = Rack::Utils.secure_compare(@newp, @newp2)
       end
 
@@ -14,10 +17,8 @@ module V2::Logic
         raise OT::MissingSecret if secret.nil?
         raise OT::MissingSecret if secret.custid.to_s == 'anon'
 
-        limit_action :forgot_password_reset # limit reset attempts
-
-        raise_form_error "New passwords do not match" unless is_confirmed
-        raise_form_error "New password is too short" unless @newp.size >= 6
+        raise_form_error 'New passwords do not match' unless is_confirmed
+        raise_form_error 'New password is too short' unless @newp.size >= 6
       end
 
       def process
@@ -30,7 +31,7 @@ module V2::Logic
             # the password. Otherwise, we should not be able to change
             # the password.
             secret.received!
-            raise_form_error "Invalid reset secret"
+            raise_form_error 'Invalid reset secret'
           end
 
           if cust.pending?
@@ -38,18 +39,18 @@ module V2::Logic
             # before we can change the password. We should not be able to
             # change the password of an account that has not been verified.
             # This is to prevent unauthorized password changes.
-            raise_form_error "Account not verified"
+            raise_form_error 'Account not verified'
           end
 
           # Update the customer's passphrase
           cust.update_passphrase @newp
 
           # Set a success message in the session
-          sess.set_success_message "Password changed"
+          sess.set_success_message 'Password changed'
 
           # Destroy the secret on successful attempt only. Otherwise
           # the user will need to make a new request if the passwords
-          # don't match. We use rate limiting to discourage abuse.
+          # don't match.
           secret.destroy!
 
           # Log the success message
@@ -57,9 +58,8 @@ module V2::Logic
 
         else
           # Log the failure message
-          OT.info "Password change failed: password confirmation not received"
+          OT.info 'Password change failed: password confirmation not received'
         end
-
       end
 
       def success_data

@@ -4,18 +4,19 @@ module Onetime
   module Config
     extend self
 
+    using Familia::Refinements::TimeLiterals
+
     unless defined?(SERVICE_PATHS)
-      SERVICE_PATHS = %w[/etc/onetime ./etc].freeze
-      UTILITY_PATHS = %w[~/.onetime /etc/onetime ./etc].freeze
-      DEFAULTS = {
-        site: {
-          secret: nil,
-          domains: { enabled: false },
-          regions: { enabled: false },
-          plans: { enabled: false },
-          secret_options: {
-            default_ttl: 7.days,
-            ttl_options: [
+      SERVICE_PATHS = %w[/etc/onetime ./etc ./etc/defaults].freeze
+      UTILITY_PATHS = %w[~/.onetime /etc/onetime ./etc ./etc/defaults].freeze
+      DEFAULTS      = {
+        'site' => {
+          'secret' => nil,
+          'domains' => { 'enabled' => false },
+          'regions' => { 'enabled' => false },
+          'secret_options' => {
+            'default_ttl' => 7.days,
+            'ttl_options' => [
               60.seconds,     # 60 seconds (was missing from v0.20.5)
               5.minutes,      # 300 seconds
               30.minutes,     # 1800
@@ -27,40 +28,63 @@ module Onetime
               1.week,         # 604800
               2.weeks,        # 1209600
               30.days,        # 2592000
-            ]
+            ],
+            'passphrase' => {
+              'required' => false,
+              'minimum_length' => nil,
+              'maximum_length' => 128,
+              'enforce_complexity' => false,
+            },
+            'password_generation' => {
+              'default_length' => 12,
+              'length_options' => [8, 12, 16, 20, 24, 32],
+              'character_sets' => {
+                'uppercase' => true,
+                'lowercase' => true,
+                'numbers' => true,
+                'symbols' => false,
+                'exclude_ambiguous' => true,
+              }
+            }
           },
-          interface: {
-            ui: { enabled: true },
-            api: { enabled: true },
+          'interface' => {
+            'ui' => { 'enabled' => true },
+            'api' => { 'enabled' => true },
           },
           # All keys that we want to explicitly be set to false when enabled
           # is false, should be represented in this hash.
-          authentication: {
-            enabled: false,
-            signin: false,
-            signup: false,
-            autoverify: false,
-            colonels: [],
+          'authentication' => {
+            'enabled' => false,
+            'signin' => false,
+            'signup' => false,
+            'autoverify' => false,
+            'colonels' => [],
           },
         },
-        internationalization: {
-          enabled: false,
-          default_locale: 'en',
+        'features' => {
+          'incoming' => {},
         },
-        mail: {},
-        logging: {
-          http_requests: true,
+        'internationalization' => {
+          'enabled' => false,
+          'default_locale' => 'en',
         },
-        diagnostics: {
-          enabled: false,
+        'billing' => {
+          'enabled' => false,
         },
-        development: {
-          enabled: false,
-          frontend_host: '',
+        'mail' => {},
+        'logging' => {
+          'http_requests' => true,
         },
-        experimental: {
-          allow_nil_global_secret: false, # defaults to a secure setting
-          rotated_secrets: [],
+        'diagnostics' => {
+          'enabled' => false,
+        },
+        'development' => {
+          'enabled' => false,
+          'frontend_host' => '',
+        },
+        'experimental' => {
+          'allow_nil_global_secret' => false, # defaults to a secure setting
+          'rotated_secrets' => [],
         },
       }
 
@@ -85,7 +109,7 @@ module Onetime
     # @param path [String] (optional the path to the YAML configuration file
     # @return [Hash] the parsed YAML data
     #
-    def load(path=nil)
+    def load(path = nil)
       path ||= self.path
 
       raise ArgumentError, "Bad path (#{path})" unless File.readable?(path)
@@ -93,7 +117,7 @@ module Onetime
       parsed_template = ERB.new(File.read(path))
 
       YAML.load(parsed_template.result)
-    rescue StandardError => e
+    rescue StandardError => ex
       OT.le "Error loading config: #{path}"
 
       # Log the contents of the parsed template for debugging purposes.
@@ -107,9 +131,24 @@ module Onetime
         end
       end
 
-      OT.le e.message
-      OT.le e.backtrace.join("\n")
-      raise OT::ConfigError.new(e.message)
+      OT.le ex.message
+      OT.le ex.backtrace.join("\n")
+      raise OT::ConfigError.new(ex.message)
+
+      # NOTE: We revisited handling StandardError here in favour of letting it
+      # bubble up to OT::Boot.boot!. I think it simply doesn't make sense to
+      # spill the beans about an unexpected error here b/c it leads to confusing
+      # log output where the backtrace comes before the actual error message.
+      # That's my hypothesis anyway.
+      #
+      # Leaving this note and the rescue block just in case it causing other,
+      # unintended confusing situations. To re-enable, uncomment the following
+      # rescue block:
+      #
+      #   rescue StandardError => ex
+      #     log_error_with_debug_content(ex)
+      #     raise OT::ConfigError, "Unhandled error: #{ex.message}"
+      #
     end
 
     # After loading the configuration, this method processes and validates the
@@ -117,18 +156,17 @@ module Onetime
     # It also performs deep copy protection to prevent mutations from propagating
     # to shared configuration instances.
     #
-    # @param incoming_config [Hash] The loaded, unprocessed configuration hash in raw form
+    # @param loaded_config [Hash] The loaded, unprocessed configuration hash in raw form
     # @return [Hash] The processed configuration hash with defaults applied and security measures in place
-    def after_load(incoming_config)
-
+    def after_load(loaded_config)
       # SAFETY MEASURE: Deep Copy Protection
       # Create a deep copy of the configuration to prevent unintended mutations
       # This protects against side effects when multiple components access the same config
       # Without this, modifications to the config in one component could affect others.
-      conf = if incoming_config.nil?
+      conf = if loaded_config.nil?
         {}
       else
-        deep_clone(incoming_config)
+        deep_clone(loaded_config)
       end
 
       # SAFETY MEASURE: Validation and Default Security Settings
@@ -141,67 +179,93 @@ module Onetime
       # consistency, security, and to prevent unexpected behavior. Ensures clean
       # config state.
       # NOTE: Needs to run after other site.authentication logic
-      if conf.dig(:site, :authentication, :enabled) != true
-        conf[:site][:authentication].each_key do |key|
-          conf[:site][:authentication][key] = false
+      if conf.dig('site', 'authentication', 'enabled') != true
+        conf['site']['authentication'].each_key do |key|
+          conf['site']['authentication'][key] = false
         end
       end
 
       # Combine colonels from root level and authentication section
       # This handles the legacy config where colonels were at the root level
       # while ensuring we don't lose any colonels from either location
-      root_colonels = conf.fetch(:colonels, [])
-      auth_colonels = conf.dig(:site, :authentication, :colonels) || []
-      conf[:site][:authentication][:colonels] = (auth_colonels + root_colonels).compact.uniq
+      root_colonels                              = conf.fetch('colonels', [])
+      auth_colonels                              = conf.dig('site', 'authentication', 'colonels') || []
+      conf['site']['authentication']['colonels'] = (auth_colonels + root_colonels).compact.uniq
 
       # Clear colonels and set to false if authentication is disabled
-      unless conf.dig(:site, :authentication, :enabled)
-        conf[:site][:authentication][:colonels] = false
+      unless conf.dig('site', 'authentication', 'enabled')
+        conf['site']['authentication']['colonels'] = false
       end
 
-      ttl_options = conf.dig(:site, :secret_options, :ttl_options)
-      default_ttl = conf.dig(:site, :secret_options, :default_ttl)
+      ttl_options = conf.dig('site', 'secret_options', 'ttl_options')
+      default_ttl = conf.dig('site', 'secret_options', 'default_ttl')
 
       # if the ttl_options setting is a string, we want to split it into an
       # array of integers.
       if ttl_options.is_a?(String)
-        conf[:site][:secret_options][:ttl_options] = ttl_options.split(/\s+/)
+        conf['site']['secret_options']['ttl_options'] = ttl_options.split(/\s+/)
       end
-      ttl_options = conf.dig(:site, :secret_options, :ttl_options)
+      ttl_options = conf.dig('site', 'secret_options', 'ttl_options')
       if ttl_options.is_a?(Array)
-        conf[:site][:secret_options][:ttl_options] = ttl_options.map(&:to_i)
+        conf['site']['secret_options']['ttl_options'] = ttl_options.map(&:to_i)
       end
 
       if default_ttl.is_a?(String)
-        conf[:site][:secret_options][:default_ttl] = default_ttl.to_i
+        conf['site']['secret_options']['default_ttl'] = default_ttl.to_i
       end
 
-      # TODO: Move to an initializer
-      if conf.dig(:site, :plans, :enabled).to_s == "true"
-        stripe_key = conf.dig(:site, :plans, :stripe_key)
+      if conf.dig('billing', 'enabled').to_s == 'true'
+        stripe_key = conf.dig('billing', 'stripe_key')
         unless stripe_key
-          raise OT::Problem, "No `site.plans.stripe_key` found in #{path}"
+          raise OT::Problem, "No `billing.stripe_key` found in #{path}"
         end
 
         require 'stripe'
         Stripe.api_key = stripe_key
       end
 
+      # Process passphrase configuration
+      passphrase_config = conf.dig('site', 'secret_options', 'passphrase') || {}
+
+      if passphrase_config['minimum_length'].is_a?(String)
+        conf['site']['secret_options']['passphrase']['minimum_length'] = passphrase_config['minimum_length'].to_i
+      end
+
+      if passphrase_config['maximum_length'].is_a?(String)
+        conf['site']['secret_options']['passphrase']['maximum_length'] = passphrase_config['maximum_length'].to_i
+      end
+
+      # Process password generation configuration
+      password_gen_config = conf.dig('site', 'secret_options', 'password_generation') || {}
+
+      if password_gen_config['default_length'].is_a?(String)
+        conf['site']['secret_options']['password_generation']['default_length'] = password_gen_config['default_length'].to_i
+      end
+
+      # Handle length_options as string or array
+      length_options = password_gen_config['length_options']
+      if length_options.is_a?(String)
+        conf['site']['secret_options']['password_generation']['length_options'] = length_options.split(/\s+/).map(&:to_i)
+      elsif length_options.is_a?(Array)
+        conf['site']['secret_options']['password_generation']['length_options'] = length_options.map(&:to_i)
+      end
+
+
       # Apply the defaults to sentry backend and frontend configs
       # and set our local config with the merged values.
-      diagnostics = incoming_config.fetch(:diagnostics, {})
-      conf[:diagnostics] = {
-        enabled: diagnostics[:enabled] || false,
-        sentry: apply_defaults_to_peers(diagnostics[:sentry]),
+      diagnostics                                = loaded_config.fetch('diagnostics', {})
+      conf['diagnostics']                        = {
+        'enabled' => diagnostics['enabled'] || false,
+        'sentry' => apply_defaults_to_peers(diagnostics['sentry']),
       }
-      conf[:diagnostics][:sentry][:backend] ||= {}
+      conf['diagnostics']['sentry']['backend'] ||= {}
 
       # Update global diagnostic flag based on config
-      backend_dsn = conf.dig(:diagnostics, :sentry, :backend, :dsn)
-      frontend_dsn = conf.dig(:diagnostics, :sentry, :frontend, :dsn)
+      backend_dsn  = conf.dig('diagnostics', 'sentry', 'backend', 'dsn')
+      frontend_dsn = conf.dig('diagnostics', 'sentry', 'frontend', 'dsn')
 
       # It's disabled when no DSN is present, regardless of enabled setting
-      Onetime.d9s_enabled = !!(conf.dig(:diagnostics, :enabled) && (backend_dsn || frontend_dsn))
+      Onetime.d9s_enabled = !!(conf.dig('diagnostics', 'enabled') && (backend_dsn || frontend_dsn))
 
       # SECURITY MEASURE #4: Configuration Immutability
       # Freeze the entire configuration recursively to prevent modifications
@@ -217,40 +281,37 @@ module Onetime
     end
 
     def raise_concerns(conf)
-
       # SAFETY MEASURE: Critical Secret Validation
       # Handle potential nil global secret
       # The global secret is critical for encrypting/decrypting secrets
       # Running without a global secret is only permitted in exceptional cases
-      allow_nil = conf.dig(:experimental, :allow_nil_global_secret) || false
-      global_secret = conf[:site].fetch(:secret, nil)
+      allow_nil     = conf.dig('experimental', 'allow_nil_global_secret') || false
+      global_secret = conf.dig('site', 'secret') || nil
       global_secret = nil if global_secret.to_s.strip == 'CHANGEME'
-
-      # Onetime.global_secret is set in the initializer set_global_secret
 
       if global_secret.nil?
         unless allow_nil
           # Fast fail when global secret is nil and not explicitly allowed
           # This is a critical security check that prevents running without encryption
-          raise OT::ConfigError, "Global secret cannot be nil - set SECRET env var or site.secret in config"
+          raise OT::ConfigError, 'Global secret cannot be nil - set SECRET env var or site.secret in config'
         end
 
         # SAFETY MEASURE: Security Warnings for Dangerous Configurations
         # Security warning when proceeding with nil global secret
         # These warnings are prominently displayed to ensure administrators
         # understand the security implications of their configuration
-        OT.li "!" * 50
-        OT.li "SECURITY WARNING: Running with nil global secret!"
-        OT.li "This configuration presents serious security risks:"
-        OT.li "- Secret encryption will be compromised"
-        OT.li "- Data cannot be properly protected"
-        OT.li "- Only use during recovery or transition periods"
-        OT.li "Set valid SECRET env var or site.secret in config ASAP"
-        OT.li "!" * 50
+        OT.li '!' * 50
+        OT.li 'SECURITY WARNING: Running with nil global secret!'
+        OT.li 'This configuration presents serious security risks:'
+        OT.li '- Secret encryption will be compromised'
+        OT.li '- Data cannot be properly protected'
+        OT.li '- Only use during recovery or transition periods'
+        OT.li 'Set valid SECRET env var or site.secret in config ASAP'
+        OT.li '!' * 50
       end
 
-      unless conf[:mail].key?(:truemail)
-        raise OT::ConfigError, "No TrueMail config found"
+      unless conf['mail'].key?('truemail')
+        raise OT::ConfigError, 'No TrueMail config found'
       end
     end
 
@@ -263,7 +324,7 @@ module Onetime
     end
 
     def mapped_key(key)
-      # `key` is a symbol. Returns a symbol.
+      # `key` is a string. Returns a string.
       # If the key is not in the KEY_MAP, return the key itself.
       KEY_MAP[key] || key
     end
@@ -324,40 +385,40 @@ module Onetime
 
     # Applies default values to its config level peers
     #
-    # @param config [Hash] Configuration with top-level section keys, including a :defaults key
-    # @return [Hash] Configuration with defaults applied to each section, with :defaults removed
+    # @param config [Hash] Configuration with top-level section keys, including a 'defaults' key
+    # @return [Hash] Configuration with defaults applied to each section, with 'defaults' removed
     #
-    # This method extracts defaults from the :defaults key and applies them to each section:
+    # This method extracts defaults from the 'defaults' key and applies them to each section:
     # - Section values override defaults (except nil values, which use defaults)
-    # - The :defaults section is removed from the result
+    # - The 'defaults' section is removed from the result
     # - Only Hash-type sections receive defaults
     #
     # @example Basic usage
     #   config = {
-    #     defaults: { timeout: 5, enabled: true },
-    #     api: { timeout: 10 },
-    #     web: { theme: 'dark' }
+    #     'defaults' => { 'timeout' => 5, 'enabled' => true },
+    #     'api' => { 'timeout' => 10 },
+    #     'web' => { 'theme' => 'dark' }
     #   }
     #   apply_defaults_to_peers(config)
-    #   # => { api: { timeout: 10, enabled: true },
-    #   #      web: { theme: 'dark', timeout: 5, enabled: true } }
+    #   # => { 'api' => { 'timeout' => 10, 'enabled' => true },
+    #   #      'web' => { 'theme' => 'dark', 'timeout' => 5, 'enabled' => true } }
     #
     # @example Edge cases
-    #   apply_defaults_to_peers({a: {x: 1}})                # => {a: {x: 1}}
-    #   apply_defaults_to_peers({defaults: {x: 1}, b: {}})  # => {b: {x: 1}}
+    #   apply_defaults_to_peers({'a' => {'x' => 1}})                # => {'a' => {'x' => 1}}
+    #   apply_defaults_to_peers({'defaults' => {'x' => 1}, 'b' => {}})  # => {'b' => {'x' => 1}}
     #
-    def apply_defaults_to_peers(config={})
+    def apply_defaults_to_peers(config = {})
       return {} if config.nil? || config.empty?
 
       # Extract defaults from the configuration
-      defaults = config[:defaults]
+      defaults = config['defaults']
 
-      # If no valid defaults exist, return config without the :defaults key
-      return config.except(:defaults) unless defaults.is_a?(Hash)
+      # If no valid defaults exist, return config without the 'defaults' key
+      return config.except('defaults') unless defaults.is_a?(Hash)
 
       # Process each section, applying defaults
       config.each_with_object({}) do |(section, values), result|
-        next if section == :defaults   # Skip the :defaults key
+        next if section == 'defaults'   # Skip the 'defaults' key
         next unless values.is_a?(Hash) # Process only sections that are hashes
 
         # Apply defaults to each section
@@ -381,7 +442,7 @@ module Onetime
     #   # => ["/etc/onetime/database.yaml", "./etc/database.yaml"]
     def find_configs(filename = nil)
       filename ||= 'config.yaml'
-      paths = Onetime.mode?(:cli) ? UTILITY_PATHS : SERVICE_PATHS
+      paths      = Onetime.mode?(:cli) ? UTILITY_PATHS : SERVICE_PATHS
       paths.collect do |path|
         f = File.join File.expand_path(path), filename
         Onetime.ld "Looking for #{f}"
@@ -405,8 +466,8 @@ module Onetime
       return deep_clone(original) if other.nil?
 
       original_clone = deep_clone(original)
-      other_clone = deep_clone(other)
-      merger = proc do |_key, v1, v2|
+      other_clone    = deep_clone(other)
+      merger         = proc do |_key, v1, v2|
         if v1.is_a?(Hash) && v2.is_a?(Hash)
           v1.merge(v2, &merger)
         elsif v2.nil?
@@ -423,16 +484,14 @@ module Onetime
   # to the names that are used by other libraries. This makes it easier
   # for us to have our own consistent naming conventions.
   KEY_MAP = {
-    allowed_domains_only: :whitelist_validation,
-    allowed_emails: :whitelisted_emails,
-    blocked_emails: :blacklisted_emails,
-    allowed_domains: :whitelisted_domains,
-    blocked_domains: :blacklisted_domains,
-    blocked_mx_ip_addresses: :blacklisted_mx_ip_addresses,
+    'allowed_domains_only' => 'whitelist_validation',
+    'allowed_emails' => 'whitelisted_emails',
+    'blocked_emails' => 'blacklisted_emails',
+    'allowed_domains' => 'whitelisted_domains',
+    'blocked_domains' => 'blacklisted_domains',
+    'blocked_mx_ip_addresses' => 'blacklisted_mx_ip_addresses',
 
     # An example mapping for testing.
-    example_internal_key: :example_external_key,
+    'example_internal_key' => 'example_external_key',
   }
-
-
 end

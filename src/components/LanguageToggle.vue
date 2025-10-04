@@ -33,10 +33,10 @@
   const dropdownMode = computed(() => (props.compact ? 'icon' : 'dropdown'));
   const dropdownId = `lang-dropdown-${Math.random().toString(36).slice(2, 11)}`;
 
-  const currentLocaleName = computed(() => {
+  const currentLocaleName = computed(() =>
     // Safely access the locale name, fallback to the locale code
-    return supportedLocalesWithNames?.[currentLocale.value] || currentLocale.value;
-  });
+     supportedLocalesWithNames?.[currentLocale.value] || currentLocale.value
+  );
 
   const toggleMenu = () => {
     isMenuOpen.value = !isMenuOpen.value;

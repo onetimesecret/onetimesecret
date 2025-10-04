@@ -2,16 +2,18 @@
 
 module V1
   class Metadata < Familia::Horreum
-    include Gibbler::Complex
+
+    using Familia::Refinements::TimeLiterals
 
     feature :safe_dump
     feature :expiration
 
-    ttl 14.days
+    default_expiration 14.days
     prefix :metadata
 
-    identifier :generate_id
+    identifier_field :key
 
+    field :key
     field :custid
     field :state
     field :secret_key
@@ -20,10 +22,10 @@ module V1
     field :lifespan
     field :share_domain
     field :passphrase
-    field :viewed
-    field :received
-    field :shared
-    field :burned
+    field :viewed, fast_method: false
+    field :received, fast_method: false
+    field :shared, fast_method: false
+    field :burned, fast_method: false
     field :created
     field :updated
     # NOTE: There is no `expired` timestamp field since we can calculate
@@ -38,45 +40,42 @@ module V1
 
     # NOTE: Safe dump fields are loaded once at start time so they're
     # immune to hot reloads.
-    @safe_dump_fields = [
-      { :identifier => ->(obj) { obj.identifier } },
-      :key,
-      :custid,
-      :state,
-      :secret_shortkey,
-      :secret_ttl,
-      { :metadata_ttl => ->(m) { m.lifespan } },
-      :lifespan,
-      :share_domain,
-      :created,
-      :updated,
-      :shared,
-      :received,
-      :burned,
-      :viewed,
-      :recipients,
+    safe_dump_field :identifier, ->(obj) { obj.identifier }
+    safe_dump_field :key
+    safe_dump_field :custid
+    safe_dump_field :state
+    safe_dump_field :secret_shortkey
+    safe_dump_field :secret_ttl
+    safe_dump_field :metadata_ttl, ->(m) { m.lifespan }
+    safe_dump_field :lifespan
+    safe_dump_field :share_domain
+    safe_dump_field :created
+    safe_dump_field :updated
+    safe_dump_field :shared
+    safe_dump_field :received
+    safe_dump_field :burned
+    safe_dump_field :viewed
+    safe_dump_field :recipients
 
-      { :shortkey => ->(m) { m.key.slice(0, 8) } },
-      { :show_recipients => ->(m) { !m.recipients.to_s.empty? } },
+    safe_dump_field :shortkey, ->(m) { m.key.slice(0, 8) }
+    safe_dump_field :show_recipients, ->(m) { !m.recipients.to_s.empty? }
 
-      { :is_viewed => ->(m) { m.state?(:viewed) } },
-      { :is_received => ->(m) { m.state?(:received) } },
-      { :is_burned => ->(m) { m.state?(:burned) } },
-      { :is_expired => ->(m) { m.state?(:expired) } },
-      { :is_orphaned => ->(m) { m.state?(:orphaned) } },
-      { :is_destroyed => ->(m) { m.state?(:received) || m.state?(:burned) || m.state?(:expired) || m.state?(:orphaned) } },
+    safe_dump_field :is_viewed, ->(m) { m.state?(:viewed) }
+    safe_dump_field :is_received, ->(m) { m.state?(:received) }
+    safe_dump_field :is_burned, ->(m) { m.state?(:burned) }
+    safe_dump_field :is_expired, ->(m) { m.state?(:expired) }
+    safe_dump_field :is_orphaned, ->(m) { m.state?(:orphaned) }
+    safe_dump_field :is_destroyed, lambda { |m|
+      m.state?(:received) || m.state?(:burned) || m.state?(:expired) || m.state?(:orphaned)
+    }
 
-      # We use the hash syntax here since `:truncated?` is not a valid symbol.
-      { :is_truncated => ->(m) { m.truncated? } },
-    ]
+    safe_dump_field :is_truncated, ->(m) { m.truncated? }
+
+    safe_dump_field :has_passphrase, ->(m) { m.has_passphrase? }
 
     def init
       self.state ||= 'new'
-    end
-
-    def generate_id
-      @key ||= Familia.generate_id.slice(0, 31)
-      @key
+      self.key   ||= self.class.generate_id # rubocop:disable Naming/MemoizedInstanceVariableName
     end
 
     def age
@@ -99,11 +98,8 @@ module V1
 
     def natural_duration
       # Colloquial representation of the TTL. e.g. "1 day"
-      OT::TimeUtils.natural_duration metadata_ttl
+      V1::TimeUtils.natural_duration metadata_ttl
     end
-    alias :natural_ttl :natural_duration
-
-    alias :secret_expiration_in_seconds :secret_ttl
 
     def secret_expiration
       # Unix timestamp of when the secret will expire. Based on
@@ -114,9 +110,8 @@ module V1
 
     def secret_natural_duration
       # Colloquial representation of the TTL. e.g. "1 day"
-      OT::TimeUtils.natural_duration secret_ttl.to_i if secret_ttl
+      V1::TimeUtils.natural_duration secret_ttl.to_i if secret_ttl
     end
-    alias :secret_natural_ttl :secret_natural_duration
 
     def secret_expired?
       Time.now.utc.to_i >= (secret_expiration || 0)
@@ -173,7 +168,7 @@ module V1
     # we pass update_expiration: false to save so that changing this metdata
     # objects state doesn't affect its original expiration time.
     #
-    # TODO: Replace with transaction (i.e. redis multi command)
+    # TODO: Replace with transaction (i.e. MULTI/EXEC command)
     def viewed!
       # A guard to allow only a fresh, new secret to be viewed. Also ensures
       # that we don't support going from viewed back to something else.
@@ -246,6 +241,12 @@ module V1
 
     def load_secret
       V1::Secret.load secret_key
+    end
+
+    class << self
+      def generate_id
+        Familia.generate_id
+      end
     end
   end
 end

@@ -1,18 +1,18 @@
 # apps/api/v1/logic/base.rb
 
-require 'stathat'
 require 'timeout'
 
-require 'onetime/refinements/rack_refinements'
 require_relative 'helpers'
 
 module V1
   module Logic
     class Base
+      using Familia::Refinements::TimeLiterals
+
       include V1::Logic::I18nHelpers
       include V1::Logic::UriHelpers
 
-      attr_reader :sess, :cust, :params, :locale, :processed_params, :plan
+      attr_reader :sess, :cust, :params, :locale, :processed_params
       attr_reader :site, :authentication, :domains_enabled
 
       attr_accessor :domain_strategy, :display_domain
@@ -35,11 +35,11 @@ module V1
       end
 
       def process_settings
-        @site = OT.conf.fetch(:site, {})
-        domains = site.fetch(:domains, {})
-        @authentication = site.fetch(:authentication, {})
-        domains = site.fetch(:domains, {})
-        @domains_enabled = domains[:enabled] || false
+        @site = OT.conf.fetch('site', {})
+        domains = site.fetch('domains', {})
+        @authentication = site.fetch('authentication', {})
+        domains = site.fetch('domains', {})
+        @domains_enabled = domains['enabled'] || false
       end
 
       def valid_email?(guess)
@@ -88,21 +88,6 @@ module V1
         raise ex
       end
 
-      def plan
-        @plan = Onetime::Plan.plan(cust.planid) unless cust.nil?
-        @plan ||= Onetime::Plan.plan('anonymous')
-        @plan
-      end
-
-      def limit_action(event)
-        disable_for_paid = plan && plan.paid?
-        # This method is called a lot so we don't even attempt to log unless we're debugging
-        OT.ld "[limit_action] #{event} (disable:#{disable_for_paid};sess:#{sess.class})" if OT.debug?
-        return if disable_for_paid
-        raise OT::Problem, "No session to limit" unless sess
-        sess.event_incr! event
-      end
-
       def custom_domain?
         domain_strategy.to_s == 'custom'
       end
@@ -118,7 +103,7 @@ module V1
         secret.custid = cust.custid
         secret.save
 
-        cust.reset_secret = secret.key # as a standalone rediskey, writes immediately
+        cust.reset_secret = secret.key # as a standalone dbkey, writes immediately
 
         view = Onetime::Mail::Welcome.new cust, locale, secret
 
@@ -140,50 +125,5 @@ module V1
 
       extend ClassMethods
     end
-
-    module ClassMethods
-      attr_writer :stathat_apikey, :stathat_enabled
-
-      def stathat_apikey
-        @stathat_apikey ||= Onetime.conf[:stathat][:apikey]
-      end
-
-      def stathat_enabled
-        return unless Onetime.conf.has_key?(:stathat)
-
-        @stathat_enabled = Onetime.conf[:stathat][:enabled] if @stathat_enabled.nil?
-        @stathat_enabled
-      end
-
-      def stathat_count(name, count, wait = 0.500)
-        return false unless stathat_enabled
-
-        begin
-          Timeout.timeout(wait) do
-            StatHat::API.ez_post_count(name, stathat_apikey, count)
-          end
-        rescue SocketError => e
-          OT.info "Cannot connect to StatHat: #{e.message}"
-        rescue Timeout::Error
-          OT.info 'timeout calling stathat'
-        end
-      end
-
-      def stathat_value(name, value, wait = 0.500)
-        return false unless stathat_enabled
-
-        begin
-          Timeout.timeout(wait) do
-            StatHat::API.ez_post_value(name, stathat_apikey, value)
-          end
-        rescue SocketError => e
-          OT.info "Cannot connect to StatHat: #{e.message}"
-        rescue Timeout::Error
-          OT.info 'timeout calling stathat'
-        end
-      end
-    end
-
-    extend ClassMethods
   end
 end

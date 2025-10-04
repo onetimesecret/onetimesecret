@@ -10,7 +10,7 @@ module Onetime
     # settings and establishes connections for each model class within the Familia
     #
     def prepare_emailers
-      mail_mode = OT.conf[:emailer][:mode].to_s.to_sym
+      mail_mode = OT.conf['emailer']['mode'].to_s.to_sym
 
       mailer_class = case mail_mode
       when :sendgrid

@@ -1,0 +1,254 @@
+# .github/workflows/ci.yml
+
+name: CI
+
+# Main CI workflow that runs Ruby tests using RSpec and tryouts, plus TypeScript
+# tests using Vitest and validation steps (linting, type-checking).
+#
+# The workflow is triggered by push events on branches starting with "fix/" or
+# "rel/", pull requests on main/develop/feature/* branches, and manual dispatch.
+#
+# The workflow has jobs for:
+# - Ruby testing (RSpec and tryouts) across multiple Ruby versions
+# - TypeScript testing (Vitest) and validation (linting, type-checking)
+#
+# This workflow ensures comprehensive testing across the full stack.
+
+on:
+  push:
+    branches:
+      - fix/*
+      - rel/*
+  pull_request:
+    branches:
+      - main
+      - develop
+      - feature/*
+  workflow_dispatch:
+    inputs:
+      debug_enabled:
+        type: boolean
+        description: 'Run the build with tmate debugging enabled (https://github.com/marketplace/actions/debugging-with-tmate)'
+        required: false
+        default: false
+
+permissions:
+  contents: read
+
+jobs:
+  test-ruby:
+    timeout-minutes: 15 # prevent hung jobs
+
+    # Can also be set to `self-hosted` if worker is running. Possible
+    # issue when switching (or trying to run a mix of github-hosted
+    # and self-hosted). All workflows in the repo stopped being queued
+    # up after having a self-hosted worker registered and available
+    # and then manually shutdown and removed. To the extent that open
+    # PRs showed 0 checks at all (as though there were no workflow
+    # yaml files at all). Adding a new workflow in a test branch
+    # seemed to wake up the dragon and all was well in the world.
+    #
+    # https://github.com/rubygems/rubygems/blob/master/CHANGELOG.md#breaking-changes
+    #
+    runs-on: ubuntu-24.04
+
+    strategy:
+      fail-fast: true
+      matrix:
+        ruby: ['3.4']
+        continue-on-error: [false]
+
+    services:
+      redis:
+        image: ghcr.io/valkey-io/valkey:8.1.3-bookworm@sha256:fea8b3e67b15729d4bb70589eb03367bab9ad1ee89c876f54327fc7c6e618571
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 10s
+          --health-retries 5
+          --memory=4g
+        ports:
+          # https://docs.github.com/en/actions/using-containerized-services/creating-redis-service-containers#running-jobs-in-containers
+          # Maps port 6379 on service container to 2121 on the host to
+          # match the port we use in dev which helps us avoid clobbering
+          # our dev redis instances.
+          - 2121:6379
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 # v4
+
+      - name: Enable memory overcommit for Redis
+        run: |
+          sudo sysctl -w vm.overcommit_memory=1
+
+      - uses: ruby/setup-ruby@0481980f17b760ef6bca5e8c55809102a0af1e5a
+        with:
+          ruby-version: ${{ matrix.ruby }}
+          bundler-cache: true
+
+      # Add Node.js setup to Ruby job
+      - name: Setup Node.js
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: '22'
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@f2b2b233b538f500472c7274c7012f57857d8ce0
+        with:
+          version: latest
+
+      - name: Setup tmate session
+        uses: mxschmitt/action-tmate@7b6a61a73bbb9793cb80ad69b8dd8ac19261834c # v3
+        if: ${{ github.event_name == 'workflow_dispatch' && inputs.debug_enabled }}
+        with:
+          detached: true
+
+      - name: Install frontend dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build assets
+        run: pnpm run build
+
+      - name: Install dependencies (bundler ${{ matrix.bundler }})
+        continue-on-error: ${{ matrix.continue-on-error }}
+        run: |
+          bundle config path vendor/bundle
+          bundle install --jobs 4 --retry 3
+
+      - name: Run test specs
+        env:
+          REDIS_URL: 'redis://127.0.0.1:2121/0'
+          RACK_ENV: 'test'
+        run: |
+          mkdir tmp && bundle exec rspec \
+            --format progress \
+            --format json \
+            --out tmp/rspec_results.json
+
+      - name: Generate job summary
+        if: always()
+        run: |
+          echo "## Test Results" >> $GITHUB_STEP_SUMMARY
+          echo "$(bundle exec rspec \
+            --dry-run \
+            --format documentation \
+            $(find ./spec -name '*_spec.rb' ! -name 'spec_helper.rb'))" >> $GITHUB_STEP_SUMMARY
+          echo "Total tests: $(jq '.summary.example_count' tmp/rspec_results.json)" >> $GITHUB_STEP_SUMMARY
+
+      - name: Run tryouts
+        continue-on-error: ${{ matrix.continue-on-error }}
+        env:
+          REDIS_URL: 'redis://127.0.0.1:2121/0'
+        run: |
+          bundle exec tryouts -vf try
+
+  test-typescript:
+    timeout-minutes: 15
+    runs-on: ubuntu-24.04
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 # v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: '22'
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@f2b2b233b538f500472c7274c7012f57857d8ce0
+        with:
+          version: latest
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Run type checking
+        run: pnpm type-check
+
+      - name: Run linting
+        run: pnpm lint
+
+      - name: Run TypeScript tests
+        run: pnpm test
+
+      - name: Run type checking tests
+        continue-on-error: true
+        run: pnpm type-check:tests
+
+      - name: Generate TypeScript test summary
+        if: always()
+        run: |
+          echo "## TypeScript Test Results" >> $GITHUB_STEP_SUMMARY
+          echo "Type checking, linting, and unit tests completed." >> $GITHUB_STEP_SUMMARY
+
+  check-oci-image:
+    timeout-minutes: 10
+    runs-on: ubuntu-24.04
+    needs: [test-ruby, test-typescript]
+
+    services:
+      redis:
+        image: ghcr.io/valkey-io/valkey:8.1.3-bookworm@sha256:fea8b3e67b15729d4bb70589eb03367bab9ad1ee89c876f54327fc7c6e618571
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 10s
+          --health-retries 5
+          --memory=4g
+        ports:
+          - 2121:6379
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 # v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: '22'
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@f2b2b233b538f500472c7274c7012f57857d8ce0
+        with:
+          version: latest
+
+      - name: Install frontend dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build assets
+        run: pnpm run build
+
+      - name: Build Docker image
+        run: docker build -t onetime-test .
+
+      - name: Start container
+        run: |
+          docker run -d \
+            --name onetime-test-container \
+            -p 3000:3000 \
+            -e REDIS_URL=redis://host.docker.internal:2121/0 \
+            -e SECRET=$(openssl rand -hex 32) \
+            --add-host=host.docker.internal:host-gateway \
+            onetime-test
+
+      - name: Wait for service to be ready
+        run: |
+          timeout 60 bash -c 'until curl -f http://localhost:3000/ > /dev/null 2>&1; do sleep 2; done'
+
+      - name: Test homepage loads
+        run: |
+          response=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:3000/)
+          if [ "$response" != "200" ]; then
+            echo "Homepage failed to load. HTTP status: $response"
+            docker logs onetime-test-container
+            exit 1
+          fi
+          echo "✅ Homepage loaded successfully with HTTP status: $response"
+
+      - name: Cleanup
+        if: always()
+        run: |
+          docker stop onetime-test-container || true
+          docker rm onetime-test-container || true

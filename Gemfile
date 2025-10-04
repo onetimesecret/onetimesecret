@@ -11,109 +11,128 @@
 #
 # We support versions of Ruby that are still in normal maintenance.
 #
-ruby '>= 3.1.5'
+ruby '>= 3.4'
 
 source 'https://rubygems.org/'
 
-gem 'truemail'
+# ====================================
+# Core Application Framework
+# ====================================
 
-gem 'addressable'
-gem 'altcha', '~> 0.2.1'
+# Web server and middleware
+gem 'puma', '~> 6.6'
+gem 'rack', '>= 3.1.16', '< 4.0'
+gem 'rack-contrib', '~> 2.5.0'
+gem 'rack-protection', '~> 4.1'
+gem 'rack-session', '~> 2.1.1'
+gem 'rack-utf8_sanitizer'
+gem 'rackup' # rubocop:disable Bundler/OrderedGems
 
-gem 'rack', '>= 2.2.12', '< 3.0'
-gem 'rack-contrib', '~> 2.5'
-gem 'rack-protection', '~> 3.2'
-gem 'rack-utf8_sanitizer', '~> 1.10.1'
+# ====================================
+# Data Processing & Utilities
+# ====================================
 
-gem 'dotenv'
-gem 'multi_json'
+# JSON and data validation
+gem 'json_schemer'
+
+# String and data processing
+gem 'drydock', '~> 1.0.0'
+gem 'fastimage', '~> 2.4'
+gem 'mail'
 gem 'mustache'
 gem 'public_suffix'
-gem 'thin'
+gem 'tty-table', '~> 0.12'
 
-gem 'drydock'
-#gem 'familia', path: '/Users/d/Projects/opensource/d/familia'
-gem 'familia', '~> 1.2.0'
-gem 'gibbler'
-gem 'otto', '~> 1.1.0.pre.alpha4'
-gem 'storable'
-gem 'sysinfo'
-gem 'tty-table', '~> 0.12.0'
-gem 'uri-redis', '~> 1.3.0'
+# HTTP client
+gem 'httparty'
+
+# Email validation
+gem 'truemail'
+
+# ====================================
+# Database & DB Tools
+# ====================================
 
 gem 'redis', '~> 5.4.0'
+gem 'uri-valkey', '~> 1.4.0'
+
+# ====================================
+# Security & Encryption
+# ====================================
 
 gem 'bcrypt'
 gem 'encryptor', '= 1.1.3'
 
-gem 'httparty'
+# ====================================
+# Internal Dependencies (local dev)
+# ====================================
 
-gem "fastimage", "~> 2.4"
-gem 'mail'
-gem 'net-imap', '~> 0.5.7'
+gem 'familia', '~> 2.0.0.pre17'
+gem 'otto', '~> 1.4.0' #'~> 2.0.0.pre1'
 
+# ====================================
+# Ruby Standard Library Compatibility
+# ====================================
+
+gem 'base64'
+gem 'irb'
+gem 'logger'
 gem 'psych', '~> 5.2.3'
+gem 'rdoc'
 gem 'stringio', '~> 3.1.6'
 
-# As of Ruby 3.4, these are no longer in the standard library
-#
-# These gems are included to suppress warnings about certain libraries
-# no longer being part of the default gems starting from Ruby 3.5.0.
-# Including them explicitly ensures they are part of the application's
-# dependencies and silences the warnings.
-gem 'base64'
-gem 'syslog', '~> 0.3.0'
+# ====================================
+# Third-Party Service Integrations
+# ====================================
 
-# As of Ruby 3.5, these are no longer in the standard library
-gem 'benchmark' # Used in tests
-gem 'fiddle'    # Fiddle library for handling dynamic libraries (required by reline)
-gem 'irb'       # IRB
-gem 'logger'    # Logger library for logging messages (required by truemail)
-gem 'ostruct'   # OpenStruct library for creating data objects (required by json)
-gem 'rdoc'      # IRB
-gem 'reline'
-
-# Third-party services
 gem 'aws-sdk-sesv2', '~> 1.74'
 gem 'sendgrid-ruby'
-gem "sentry-ruby", require: false
+gem 'sentry-ruby', require: false
 gem 'stripe', require: false
 
-gem 'rubocop', require: false
-gem 'stackprof', require: false
+# ====================================
+# Development & Testing Dependencies
+# ====================================
+
+group :development, :test do
+  gem 'benchmark'
+end
 
 group :development do
-  gem 'byebug', require: false
-  gem 'byebug-dap', require: false
-  gem 'pry', require: false
-  gem 'pry-byebug', require: false
+  # Debugging tools
+  gem 'debug', require: false
+
+  # Development utilities
   gem 'rack-proxy', require: false
+  gem 'stackprof', require: false
+
+  # Code quality and language server
+  gem 'rubocop', '~> 1.79', require: false
   gem 'rubocop-performance', require: false
   gem 'rubocop-rspec', require: false
   gem 'rubocop-thread_safety', require: false
-  gem 'tryouts', require: false
+  gem 'solargraph', require: false
+  gem 'syntax_tree', require: false
 end
 
 group :test do
-  gem "fakeredis", :require => "fakeredis/rspec"
+  gem 'fakeredis', require: 'fakeredis/rspec'
   gem 'rack-test', require: false
-  gem 'rspec', git: "https://github.com/rspec/rspec"
+  gem 'rspec', git: 'https://github.com/rspec/rspec'
   gem 'simplecov', require: false
+  gem 'tryouts', '~> 3.6.0', require: false
+
+  # RSpec components
   %w[rspec-core rspec-expectations rspec-mocks rspec-support].each do |lib|
-    gem lib, git: "https://github.com/rspec/rspec", glob: "#{lib}/#{lib}.gemspec"
+    gem lib, git: 'https://github.com/rspec/rspec', glob: "#{lib}/#{lib}.gemspec"
   end
 end
 
+# ====================================
+# Optional Dependencies
+# ====================================
+
 # Optional alternate server - install with: bundle install --with optional
-#
-# Start with:
-#   $ RUBY_YJIT_ENABLE=1 bundle exec puma -p 7143 -t 4:16 -w 2
-#
-# Arguments explained:
-#   RUBY_YJIT_ENABLE=1  - Enable Ruby's JIT compiler for better performance
-#   -p 7143             - Run on port 7143
-#   -t 4:16             - Use min 4, max 16 threads per worker
-#   -w 2                - Run 2 worker processes (clustered mode)
 group :optional do
-  gem 'puma', '~> 6.6'
+  gem 'thin'
 end

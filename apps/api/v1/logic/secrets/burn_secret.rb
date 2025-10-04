@@ -3,6 +3,8 @@
 module V1::Logic
   module Secrets
 
+    using Familia::Refinements::TimeLiterals
+
     class BurnSecret < V1::Logic::Base
       attr_reader :key, :passphrase, :continue
       attr_reader :metadata, :secret, :correct_passphrase, :greenlighted
@@ -15,7 +17,7 @@ module V1::Logic
       end
 
       def raise_concerns
-        limit_action :burn_secret
+
         raise OT::MissingSecret if metadata.nil?
       end
 
@@ -23,8 +25,7 @@ module V1::Logic
         potential_secret = @metadata.load_secret
 
         if potential_secret
-          # Rate limit all secret access attempts
-          limit_action :attempt_secret_access
+
 
           @correct_passphrase = !potential_secret.has_passphrase? || potential_secret.passphrase?(passphrase)
           viewable = potential_secret.viewable?
@@ -37,10 +38,9 @@ module V1::Logic
             secret.burned!
             owner.increment_field :secrets_burned unless owner.anonymous?
             V1::Customer.global.increment_field :secrets_burned
-            V1::Logic.stathat_count('Burned Secrets', 1)
 
           elsif !correct_passphrase
-            limit_action :failed_passphrase if potential_secret.has_passphrase?
+
             message = OT.locales.dig(locale, :web, :COMMON, :error_passphrase) || 'Incorrect passphrase'
             raise_form_error message
 
@@ -55,9 +55,9 @@ module V1::Logic
         # Add required URL fields
         attributes.merge!({
           # secret_state: 'burned',
-          natural_expiration: natural_duration(metadata.ttl.to_i),
-          expiration: (metadata.ttl.to_i + metadata.created.to_i),
-          expiration_in_seconds: (metadata.ttl.to_i),
+          natural_expiration: natural_duration(metadata.default_expiration.to_i),
+          expiration: (metadata.default_expiration.to_i + metadata.created.to_i),
+          expiration_in_seconds: (metadata.default_expiration.to_i),
           share_path: build_path(:secret, metadata.secret_key),
           burn_path: build_path(:private, metadata.key, 'burn'),
           metadata_path: build_path(:private, metadata.key),
@@ -75,8 +75,6 @@ module V1::Logic
             display_lines: 0,
             display_feedback: false,
             no_cache: true,
-            maxviews: 0,
-            has_maxviews: false,
             view_count: 0,
             has_passphrase: false,
             can_decrypt: false,

@@ -1,15 +1,14 @@
 # apps/api/v1/logic/secrets/base_secret_action.rb
 
-require 'onetime/refinements/rack_refinements'
-
 module V1::Logic
   module Secrets
 
+    using Familia::Refinements::TimeLiterals
+
     class BaseSecretAction < V1::Logic::Base
       attr_reader :passphrase, :secret_value, :kind, :ttl, :recipient, :recipient_safe, :greenlighted
-      attr_reader :metadata, :secret, :share_domain, :custom_domain, :payload
+      attr_reader :metadata, :secret, :share_domain, :custom_domain, :payload, :default_expiration
       attr_accessor :token
-      using Onetime::RackRefinements
 
       # Process methods populate instance variables with the values. The
       # raise_concerns and process methods deal with the values in the instance
@@ -26,11 +25,12 @@ module V1::Logic
       end
 
       def raise_concerns
-        limit_action :create_secret
-        limit_action :email_recipient unless recipient.empty?
+
+
         raise_form_error "Unknown type of secret" if kind.nil?
         validate_recipient
         validate_share_domain
+        validate_passphrase
       end
 
       def process
@@ -77,29 +77,35 @@ module V1::Logic
 
         # Get configuration options. We can rely on these values existing
         # because that are guaranteed by OT::Config.after_load.
-        secret_options = OT.conf[:site].fetch(:secret_options, {
-          default_ttl: 7.days,
-          ttl_options: [1.minute, 1.hour, 1.day, 7.days]
+        #
+        # NOTE: These values differ from v2 slightly. Here the minimum is 30
+        # minutes for historical reasons.
+        secret_options = OT.conf&.fetch('secret_options', {
+          'default_ttl' => 7.days,
+          'ttl_options' => [30.minutes, 2.hours, 1.day, 7.days],
         })
-        default_ttl = secret_options[:default_ttl]
-        ttl_options = secret_options[:ttl_options]
+        default_ttl = secret_options['default_ttl']
+        ttl_options = secret_options['ttl_options']
 
         # Get min/max values safely
-        min_ttl = ttl_options.min || 1.minute      # Fallback to 1 minute
-        max_ttl = plan.options[:ttl] || ttl_options.max || 7.days  # Fallback to 7 days
+        min_ttl = ttl_options.min || 30.minutes
+        max_ttl = ttl_options.max || 30.days
 
         # Apply default if nil
         @ttl = default_ttl || 7.days if ttl.nil?
 
-        # Convert to integer
+        # Convert to integer, now that we know it has a value
         @ttl = ttl.to_i
 
-        # Apply plan constraints
-        @ttl = plan.options[:ttl] if ttl && ttl >= plan.options[:ttl]
+        # Apply a global maximum
+        @ttl = 30.days if ttl && ttl >= 30.days
 
         # Enforce bounds
         @ttl = min_ttl if ttl < min_ttl
         @ttl = max_ttl if ttl > max_ttl
+
+        # Set default_expiration for compatibility with tests
+        @default_expiration = @ttl
       end
 
       def process_secret
@@ -164,6 +170,56 @@ module V1::Logic
         validate_domain_access(@share_domain)
       end
 
+      def validate_passphrase
+        # Get passphrase configuration
+        passphrase_config = OT.conf.dig('site', 'secret_options', 'passphrase') || {}
+
+        # Check if passphrase is required
+        if passphrase_config['required'] && passphrase.to_s.empty?
+          raise_form_error "A passphrase is required for all secrets"
+        end
+
+        # Skip further validation if no passphrase provided
+        return if passphrase.to_s.empty?
+
+        # Validate minimum length
+        min_length = passphrase_config['minimum_length']
+        if min_length && passphrase.length < min_length
+          raise_form_error "Passphrase must be at least #{min_length} characters long"
+        end
+
+        # Validate maximum length
+        max_length = passphrase_config['maximum_length']
+        if max_length && passphrase.length > max_length
+          raise_form_error "Passphrase must be no more than #{max_length} characters long"
+        end
+
+        # Validate complexity if required
+        if passphrase_config['enforce_complexity']
+          validate_passphrase_complexity
+        end
+      end
+
+      def validate_passphrase_complexity
+        errors = []
+
+        # Check for at least one uppercase letter
+        errors << "uppercase letter" unless passphrase.match?(/[A-Z]/)
+
+        # Check for at least one lowercase letter
+        errors << "lowercase letter" unless passphrase.match?(/[a-z]/)
+
+        # Check for at least one number
+        errors << "number" unless passphrase.match?(/\d/)
+
+        # Check for at least one symbol
+        errors << "symbol" unless passphrase.match?(/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?~`]/)
+
+        unless errors.empty?
+          raise_form_error "Passphrase must contain at least one #{errors.join(', ')}"
+        end
+      end
+
       private
 
       def create_secret_pair
@@ -177,13 +233,13 @@ module V1::Logic
       end
 
       def save_secret
-        secret.encrypt_value secret_value, :size => plan.options[:size]
-        metadata.ttl, secret.ttl = ttl*2, ttl
-        metadata.lifespan = metadata.ttl.to_i
-        metadata.secret_ttl = secret.ttl.to_i
+        secret.encrypt_value secret_value
+        metadata.default_expiration, secret.default_expiration = ttl*2, ttl
+        metadata.lifespan = metadata.default_expiration.to_i
+        metadata.secret_ttl = secret.default_expiration.to_i
         metadata.secret_shortkey = secret.shortkey
         metadata.share_domain = share_domain
-        secret.lifespan = secret.ttl.to_i
+        secret.lifespan = secret.default_expiration.to_i
         secret.share_domain = share_domain
         secret.save
         metadata.save
@@ -202,7 +258,6 @@ module V1::Logic
           cust.increment_field :secrets_created
         end
         V1::Customer.global.increment_field :secrets_created
-        V1::Logic.stathat_count("Secrets", 1)
       end
 
       def send_email_to_recipient
@@ -227,7 +282,7 @@ module V1::Logic
       def validate_domain_access(domain)
         return if domain.nil?
 
-        # e.g. rediskey -> customdomain:display_domains -> hash -> key: value
+        # e.g. dbkey -> customdomain:display_domains -> hash -> key: value
         # where key is the domain and value is the domainid
         domain_record = V1::CustomDomain.from_display_domain(domain)
         raise_form_error "Unknown domain: #{domain}" if domain_record.nil?

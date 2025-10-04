@@ -50,13 +50,13 @@
     "noImplicitThis": true,
     "allowJs": false,
     "allowImportingTsExtensions": false,
-    "resolvePackageJsonExports": false,
+    "resolvePackageJsonExports": true,
     "sourceMap": true,
     "noEmit": true,
     "baseUrl": ".",
     "paths": {
       "@/*": ["./src/*"],
-      "@tests/*": ["./tests/*"]
+      "@tests/*": ["./src/tests/*"]
     },
     "typeRoots": ["./node_modules/@types", "./src/types"],
     "types": ["jsdom", "node"]
@@ -69,5 +69,5 @@
     "src/types/**/*.ts",
     "src/types/declarations/*.d.ts"
   ],
-  "exclude": ["node_modules", "dist", "build"]
+  "exclude": ["node_modules", "dist", "build", "src/tests/**", "public/web/dist"]
 }

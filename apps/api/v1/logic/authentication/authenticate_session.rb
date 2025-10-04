@@ -4,6 +4,9 @@ require_relative '../base'
 
 module V1::Logic
   module Authentication
+
+    using Familia::Refinements::TimeLiterals
+
     class AuthenticateSession < V1::Logic::Base
       attr_reader :custid, :stay, :greenlighted
       attr_reader :session_ttl, :potential_custid
@@ -23,7 +26,7 @@ module V1::Logic
       end
 
       def raise_concerns
-        limit_action :authenticate_session
+
         if @cust.nil?
           @cust ||= V1::Customer.anonymous
           raise_form_error "Try again"
@@ -54,11 +57,11 @@ module V1::Logic
 
           sess.custid = cust.custid
           sess.authenticated = 'true'
-          sess.ttl = session_ttl if @stay
+          sess.default_expiration = session_ttl if @stay
           sess.save
           cust.save
 
-          colonels = OT.conf.dig(:site, :authentication, :colonels) || []
+          colonels = OT.conf.dig("site", "authentication", "colonels") || []
           if colonels.member?(cust.custid)
             cust.role = :colonel
           else

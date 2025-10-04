@@ -4,11 +4,11 @@ require 'stripe' # ensures Stripe namespace is loaded
 
 module Onetime::StripeRefinements
   refine Stripe::Subscription do
-    extend Familia::Features::SafeDump::ClassMethods
+    extend Familia::Features::SafeDump::ModelClassMethods
 
     # Safe fields for Stripe Subscription object
     set_safe_dump_fields [
-      { :identifier => ->(obj) { obj.id } },
+      { identifier: ->(obj) { obj.id } },
       :id,
       :status,
       :current_period_start,
@@ -21,7 +21,7 @@ module Onetime::StripeRefinements
       :trial_end,
       :livemode,
 
-      { :items => lambda { |sub|
+      { items: lambda { |sub|
         sub.items.data.map do |item|
           {
             price_id: item.price.id,
@@ -29,32 +29,34 @@ module Onetime::StripeRefinements
             quantity: item.quantity,
           }
         end
-      }},
+      } },
 
-      { :current_period_remaining => lambda { |sub|
+      { current_period_remaining: lambda { |sub|
         (Time.at(sub.current_period_end) - Time.now).to_i
-      }},
+      } },
 
-      { :on_trial => lambda { |sub|
+      { on_trial: lambda { |sub|
         sub.trial_end && Time.now < Time.at(sub.trial_end)
-      }},
+      } },
 
-      { :plan => lambda { |sub|
-        sub.plan ? {
-          id: sub.plan.id,
-          nickname: sub.plan.nickname,
-          amount: sub.plan.amount,
-          interval: sub.plan.interval,
-          interval_count: sub.plan.interval_count,
-        } : nil
-      }},
+      { plan: lambda { |sub|
+        if sub.plan
+  {
+    id: sub.plan.id,
+    nickname: sub.plan.nickname,
+    amount: sub.plan.amount,
+    interval: sub.plan.interval,
+    interval_count: sub.plan.interval_count,
+  }
+end
+      } },
     ]
   end
 
   refine Stripe::Customer do
-    @safe_dump_fields = []
+    @safe_dump_fields    = []
     @safe_dump_field_map = {}
-    extend Familia::Features::SafeDump::ClassMethods
+    extend Familia::Features::SafeDump::ModelClassMethods
 
     def safe_dump
       self.class.safe_dump_field_map.transform_values do |callable|
@@ -72,7 +74,7 @@ module Onetime::StripeRefinements
 
     # Safe fields for Stripe Customer object
     @safe_dump_fields = [
-      { :identifier => ->(obj) { obj.id } },
+      { identifier: ->(obj) { obj.id } },
       :id,
       :email,
       :name,
@@ -83,26 +85,28 @@ module Onetime::StripeRefinements
       :preferred_locales,
       :currency,
 
-      { :address => lambda { |cust|
-        cust.address ? {
-          city: cust.address.city,
-          country: cust.address.country,
-          line1: cust.address.line1,
-          line2: cust.address.line2,
-          postal_code: cust.address.postal_code,
-          state: cust.address.state,
-        } : nil
-      }},
+      { address: lambda { |cust|
+        if cust.address
+  {
+    city: cust.address.city,
+    country: cust.address.country,
+    line1: cust.address.line1,
+    line2: cust.address.line2,
+    postal_code: cust.address.postal_code,
+    state: cust.address.state,
+  }
+end
+      } },
 
-      { :has_payment_method => lambda { |cust|
+      { has_payment_method: lambda { |cust|
         !cust.default_source.nil?
-      }},
+      } },
 
-      { :metadata => lambda { |cust|
+      { metadata: lambda { |cust|
         # Only include safe metadata fields
         safe_metadata_keys = [:public_note, :preferred_language]
         cust.metadata_list.select { |k, _| safe_metadata_keys.include?(k.to_sym) }
-      }},
+      } },
     ]
   end
 end

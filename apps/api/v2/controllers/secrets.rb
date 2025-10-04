@@ -8,14 +8,14 @@ module V2
     class Secrets
       include V2::Controllers::Base
 
-      @check_utf8 = true
+      @check_utf8         = true
       @check_uri_encoding = true
 
       def conceal_secret
         process_action(
           V2::Logic::Secrets::ConcealSecret,
-          "Secret concealed successfully.",
-          "Secret could not be concealed.",
+          'Secret concealed successfully.',
+          'Secret could not be concealed.',
           allow_anonymous: true,
         )
       end
@@ -23,8 +23,8 @@ module V2
       def generate_secret
         process_action(
           V2::Logic::Secrets::GenerateSecret,
-          "Secret generate successfully.",
-          "Secret could not be generated.",
+          'Secret generate successfully.',
+          'Secret could not be generated.',
           allow_anonymous: true,
         )
       end
@@ -32,12 +32,12 @@ module V2
       def generate_secret_options
         # Return a response for an HTTP OPTIONS request
         headers = {
-          "Content-Type" => "application/json",
-          "Allow" => "GET, POST, OPTIONS",
-          "Access-Control-Allow-Origin" => "*",
-          "Access-Control-Allow-Methods" => "GET, POST, OPTIONS",
-          "Access-Control-Allow-Headers" => "Content-Type, Authorization",
-          "Access-Control-Max-Age" => "86400",
+          'content-type' => 'application/json',
+          'Allow' => 'GET, POST, OPTIONS',
+          'Access-Control-Allow-Origin' => '*',
+          'Access-Control-Allow-Methods' => 'GET, POST, OPTIONS',
+          'Access-Control-Allow-Headers' => 'Content-Type, Authorization',
+          'Access-Control-Max-Age' => '86400',
 
         }
         [200, headers, {}]
@@ -46,8 +46,8 @@ module V2
       def burn_secret
         process_action(
           V2::Logic::Secrets::BurnSecret,
-          "Secret burned successfully.",
-          "Secret could not be burned.",
+          'Secret burned successfully.',
+          'Secret could not be burned.',
           allow_anonymous: true,
         )
       end
@@ -64,7 +64,6 @@ module V2
         retrieve_records(V2::Logic::Secrets::ShowSecretStatus, allow_anonymous: true)
       end
 
-
       def list_secret_status
         retrieve_records(V2::Logic::Secrets::ListSecretStatus, allow_anonymous: true)
       end
@@ -76,7 +75,6 @@ module V2
       def list_metadata
         retrieve_records(V2::Logic::Secrets::ListMetadata)
       end
-
     end
   end
 end

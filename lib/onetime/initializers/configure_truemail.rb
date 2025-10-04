@@ -2,9 +2,8 @@
 
 module Onetime
   module Initializers
-
     def configure_truemail
-      truemail_config = Onetime.conf[:mail][:truemail]
+      truemail_config = Onetime.conf['mail']['truemail']
 
       # Iterate over the keys in the mail/truemail config
       # and set the corresponding key in the Truemail config.
@@ -19,7 +18,6 @@ module Onetime
           config.send("#{actual_key}=", value)
         end
       end
-
     end
   end
 end

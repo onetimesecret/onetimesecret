@@ -1,4 +1,4 @@
-// stores/metadataListStore.ts
+// src/stores/metadataListStore.ts
 import { PiniaPluginOptions } from '@/plugins/pinia';
 import type { MetadataRecords, MetadataRecordsDetails } from '@/schemas/api/endpoints';
 import { responseSchemas } from '@/schemas/api/responses';
@@ -61,7 +61,7 @@ export const useMetadataListStore = defineStore('metadataList', () => {
     const validated = responseSchemas.metadataList.parse(response.data);
 
     records.value = validated.records ?? [];
-    details.value = validated.details ?? {};
+    details.value = (validated.details ?? {}) as any;
     count.value = validated.count ?? 0;
 
     return validated;

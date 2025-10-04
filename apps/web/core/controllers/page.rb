@@ -1,4 +1,3 @@
-
 require_relative 'base'
 
 module Core
@@ -13,7 +12,7 @@ module Core
           logic.raise_concerns
           logic.process
 
-          res['Content-Type'] = logic.content_type
+          res['content-type'] = logic.content_type
 
           # Return the response with appropriate headers
           res['Content-Length'] = logic.content_length
@@ -26,8 +25,7 @@ module Core
       def index
         publically do
           OT.ld "[index] authenticated? #{sess.authenticated?}"
-          view = Core::Views::VuePoint.new req, sess, cust, locale
-          sess.event_incr! :get_page
+          view     = Core::Views::VuePoint.new req, sess, cust, locale
           res.body = view.render
         end
       end
@@ -35,8 +33,7 @@ module Core
       def customers_only
         authenticated do
           OT.ld "[customers_only] authenticated? #{sess.authenticated?}"
-          view = Core::Views::VuePoint.new req, sess, cust, locale
-          sess.event_incr! :get_page
+          view     = Core::Views::VuePoint.new req, sess, cust, locale
           res.body = view.render
         end
       end
@@ -44,21 +41,18 @@ module Core
       def colonels_only
         colonels do
           OT.ld "[colonels_only] authenticated? #{sess.authenticated?}"
-          view = Core::Views::VuePoint.new req, sess, cust, locale
-          sess.event_incr! :get_page
+          view     = Core::Views::VuePoint.new req, sess, cust, locale
           res.body = view.render
         end
       end
 
       def robots_txt
         publically do
-          view = Core::Views::RobotsTxt.new req, sess, cust, locale
-          sess.event_incr! :robots_txt
-          res.header['Content-Type'] = 'text/plain'
-          res.body = view.render
+          view                       = Core::Views::RobotsTxt.new req, sess, cust, locale
+          res.headers['content-type'] = 'text/plain'
+          res.body                   = view.render
         end
       end
     end
-
   end
 end

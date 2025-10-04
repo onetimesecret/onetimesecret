@@ -79,17 +79,72 @@ export function useSecretForm() {
     form,
     validation: {
       errors,
+      // eslint-disable-next-line complexity
       validate: () => {
         const result = formSchema.safeParse(form);
         errors.clear();
         if (!result.success) {
-          result.error.errors.forEach((err) => {
+          result.error.issues.forEach((err: any) => {
             if (err.path[0]) {
               errors.set(err.path[0] as keyof SecretFormData, err.message);
             }
           });
         }
-        return result.success;
+
+        // Additional passphrase validation based on configuration
+        const secretOptions = WindowService.get('secret_options');
+        const passphraseConfig = secretOptions?.passphrase;
+
+        if (passphraseConfig) {
+          // Check if passphrase is required
+          if (passphraseConfig.required && !(form.passphrase as string).trim()) {
+            errors.set('passphrase', 'A passphrase is required for all secrets');
+          }
+
+          // Check minimum length if passphrase is provided and minimum_length is configured
+          if (
+            form.passphrase &&
+            passphraseConfig.minimum_length &&
+            (form.passphrase as string).length < passphraseConfig.minimum_length
+          ) {
+            errors.set(
+              'passphrase',
+              `Passphrase must be at least ${passphraseConfig.minimum_length} characters long`
+            );
+          }
+
+          // Check maximum length if passphrase is provided and maximum_length is configured
+          if (
+            form.passphrase &&
+            passphraseConfig.maximum_length &&
+            (form.passphrase as string).length > passphraseConfig.maximum_length
+          ) {
+            errors.set(
+              'passphrase',
+              `Passphrase must be no more than ${passphraseConfig.maximum_length} characters long`
+            );
+          }
+
+          // Check complexity if required and passphrase is provided
+          if (form.passphrase && passphraseConfig.enforce_complexity) {
+            const complexityErrors = [];
+            const passphrase = form.passphrase as string;
+            if (!/[A-Z]/.test(passphrase)) complexityErrors.push('uppercase letter');
+            if (!/[a-z]/.test(passphrase)) complexityErrors.push('lowercase letter');
+            if (!/\d/.test(passphrase)) complexityErrors.push('number');
+            if (!/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?~`]/.test(passphrase))
+              complexityErrors.push('symbol');
+
+            if (complexityErrors.length > 0) {
+              errors.set(
+                'passphrase',
+                `Passphrase must contain at least one ${complexityErrors.join(', ')}`
+              );
+            }
+          }
+        }
+
+        return errors.size === 0;
       },
     },
     operations,

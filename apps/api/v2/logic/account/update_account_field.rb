@@ -8,7 +8,7 @@ module V2::Logic
 
       def initialize(*args)
         super
-        @modified = []
+        @modified     = []
         @greenlighted = false
       end
 
@@ -17,18 +17,17 @@ module V2::Logic
       end
 
       def raise_concerns
-        limit_action :update_account
         field_specific_concerns
       end
 
       def process
-        if valid_update?
-          @greenlighted = true
-          log_update
-          # TODO: Run in redis transaction
-          perform_update
-          @modified << field_name
-        end
+        return unless valid_update?
+
+        @greenlighted = true
+        log_update
+        # TODO: Run in the database transaction
+        perform_update
+        @modified << field_name
       end
 
       def modified?(field_name)

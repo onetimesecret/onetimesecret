@@ -14,9 +14,9 @@ module Onetime
     # Returns the configured mailer instance
     def self.mailer
       @mailer ||= begin
-        provider = OT.conf[:emailer][:provider] || 'smtp'
-        from = OT.conf[:emailer][:from]
-        fromname = OT.conf[:emailer][:fromname]
+        provider = OT.conf['emailer']['provider'] || 'smtp'
+        from     = OT.conf['emailer']['from']
+        fromname = OT.conf['emailer']['fromname']
 
         case provider.to_s.downcase
         when 'sendgrid'

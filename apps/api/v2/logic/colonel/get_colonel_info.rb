@@ -8,25 +8,23 @@ module V2
   module Logic
     module Colonel
       class GetColonelInfo < V2::Logic::Base
-        attr_reader :plans_enabled, :title, :stathat_chart, :session_count,
-                    :today_feedback, :yesterday_feedback, :older_feedback, :feedback_count,
-                    :today_feedback_count, :yesterday_feedback_count, :older_feedback_count,
-                    :recent_customers, :customer_count, :recent_customer_count, :metadata_count,
-                    :secret_count, :secrets_created, :secrets_shared, :emails_sent, :split_tests,
-                    :has_split_tests, :redis_info
+        attr_reader :billing_enabled, :title, :session_count,
+          :today_feedback, :yesterday_feedback, :older_feedback, :feedback_count,
+          :today_feedback_count, :yesterday_feedback_count, :older_feedback_count,
+          :recent_customers, :customer_count, :recent_customer_count, :metadata_count,
+          :secret_count, :secrets_created, :secrets_shared, :emails_sent, :split_tests,
+          :has_split_tests, :redis_info
 
         def process_params
-          site = OT.conf.fetch(:site, {})
-          @plans_enabled = site.dig(:plans, :enabled) || false
+          billing          = OT.conf.fetch('billing', {})
+          OT.conf.fetch('site', {})
+          @billing_enabled = billing.fetch('enabled', false)
         end
 
-        def raise_concerns
-          limit_action :view_colonel
-        end
+        def raise_concerns; end
 
         def process
-          @title = "Home"
-          @stathat_chart = OT.conf[:stathat][:default_chart] if OT.conf[:stathat]
+          @title         = 'Home'
           @session_count = V2::Session.recent(15.minutes).size
 
           process_feedback
@@ -37,15 +35,15 @@ module V2
         end
 
         def process_feedback
-          now = OT.now.to_i
-          @today_feedback = process_feedback_for_period(24.hours, now)
+          now                 = OT.now.to_i
+          @today_feedback     = process_feedback_for_period(24.hours, now)
           @yesterday_feedback = process_feedback_for_period(48.hours, now - 24.hours)
-          @older_feedback = process_feedback_for_period(14.days, now - 48.hours)
+          @older_feedback     = process_feedback_for_period(14.days, now - 48.hours)
 
-          @feedback_count = V2::Feedback.values.size
-          @today_feedback_count = @today_feedback.size
+          @feedback_count           = V2::Feedback.instances.size
+          @today_feedback_count     = @today_feedback.size
           @yesterday_feedback_count = @yesterday_feedback.size
-          @older_feedback_count = @older_feedback.size
+          @older_feedback_count     = @older_feedback.size
         end
         private :process_feedback
 
@@ -59,6 +57,7 @@ module V2
         def process_customers
           @recent_customers = V2::Customer.recent.collect do |this_cust|
             next if this_cust.nil?
+
             {
               custid: this_cust.custid,
               planid: this_cust.planid,
@@ -71,26 +70,27 @@ module V2
             }
           end.compact.reverse
 
-          @customer_count = V2::Customer.values.size
+          @customer_count        = V2::Customer.instances.size
           @recent_customer_count = @recent_customers.size
         end
         private :process_customers
 
         def process_statistics
-          @metadata_count = V2::Metadata.new.redis.keys('metadata*:object').count
-          @secret_count = V2::Secret.new.redis.keys('secret*:object').count
+          @metadata_count  = V2::Metadata.new.dbclient.keys('metadata*:object').count
+          @secret_count    = V2::Secret.new.dbclient.keys('secret*:object').count
           @secrets_created = V2::Customer.global.secrets_created.to_s
-          @secrets_shared = V2::Customer.global.secrets_shared.to_s
-          @emails_sent = V2::Customer.global.emails_sent.to_s
+          @secrets_shared  = V2::Customer.global.secrets_shared.to_s
+          @secrets_burned  = V2::Customer.global.secrets_burned.to_s
+          @emails_sent     = V2::Customer.global.emails_sent.to_s
         end
         private :process_statistics
 
         def redis_info
           # Fetch Redis INFO
-          info = Familia.redis.info
+          info = Familia.dbclient.info
 
           # Extract relevant information
-          db_info = info.select { |key, _| key.start_with?('db') }
+          db_info     = info.select { |key, _| key.start_with?('db') }
           memory_info = info.slice('used_memory', 'used_memory_human', 'used_memory_peak', 'used_memory_peak_human')
 
           # Combine the extracted information
@@ -109,8 +109,8 @@ module V2
               today_feedback: today_feedback,
               yesterday_feedback: yesterday_feedback,
               older_feedback: older_feedback,
-              redis_info: redis_info,
-              plans_enabled: plans_enabled,
+              dbclient_info: redis_info,
+              billing_enabled: billing_enabled,
               counts: {
                 session_count: session_count,
                 customer_count: customer_count,
@@ -128,7 +128,6 @@ module V2
             },
           }
         end
-
       end
     end
   end

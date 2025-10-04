@@ -6,7 +6,7 @@
   import { useProductIdentity } from '@/stores/identityStore';
   import type { LayoutProps } from '@/types/ui/layouts';
   import { isColorValue } from '@/utils/color-utils';
-  import { computed, defineProps } from 'vue';
+  import { computed } from 'vue';
 
   defineProps<LayoutProps>();
 
@@ -20,9 +20,7 @@
   // If there's a global banner set (in redis), this will be true. The actual
   // content may not show if the feature is by displayGlobalBroadcast=false.
   // For example, custom branded pages have the feature disabled altogether.
-  const hasGlobalBanner = computed(() => {
-    return !!globalBanner;
-  });
+  const hasGlobalBanner = computed(() => !!globalBanner);
 
   // Compute primary color styles based on brand color or prop
   const primaryColorClass = computed(() => {

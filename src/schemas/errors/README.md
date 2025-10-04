@@ -75,9 +75,9 @@ export function useAsyncHandler() {
 ```
 
 ## Learn More
-- [Error Handling Architecture](./docs/architecture/ERRORS.md)
-- [Schema Validation](./docs/schemas/README.md)
-- [Type Safety](./docs/typescript/README.md)
+- [Error Handling Architecture](../../docs/architecture/errors.md)
+- [Schema Validation](../../docs/schemas/README.md)
+- [Type Safety](../../docs/typescript/README.md)
 
 ## Contributing
 We welcome discussion and contributions around this pattern. Open an issue to share your thoughts or experience implementing similar approaches.

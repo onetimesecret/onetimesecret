@@ -1,0 +1,14 @@
+
+# Show redis db info
+# Usage:
+#
+#     $ ruby support/redis_info
+#
+#
+
+ENV['ONETIME_HOME'] = ::File.expand_path(::File.join(::File.dirname(__FILE__), '..'))
+$:.unshift(::File.join(ENV['ONETIME_HOME'], 'lib'))
+
+require 'onetime'
+
+y V1::Secret.dbclient.info

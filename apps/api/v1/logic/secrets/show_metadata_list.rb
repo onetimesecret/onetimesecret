@@ -5,6 +5,8 @@ require 'time'
 module V1::Logic
   module Secrets
 
+    using Familia::Refinements::TimeLiterals
+
     class ShowMetadataList < V1::Logic::Base
       attr_reader :records, :since, :now, :query_results
       attr_reader :received, :notreceived, :has_items
@@ -17,7 +19,7 @@ module V1::Logic
       end
 
       def raise_concerns
-        limit_action :show_metadata
+
       end
 
       def process

@@ -1,5 +1,7 @@
 # apps/api/v1/controllers/index.rb
 
+require 'v1/refinements'
+
 require_relative 'base'
 require_relative 'settings'
 
@@ -22,14 +24,12 @@ module V1
 
       def status
         authorized(true) do
-          sess.event_incr! :check_status
           json :status => :nominal, :locale => locale
         end
       end
 
       def authcheck
         authorized(false) do
-          sess.event_incr! :check_status
           json :status => :nominal, :locale => locale
         end
       end
@@ -40,11 +40,11 @@ module V1
           logic.raise_concerns
           logic.process
           if req.get?
-            res.redirect app_path(logic.redirect_uri)
+            res.redirect res.app_path(logic.redirect_uri)
           else
             secret = logic.secret
             json self.class.metadata_hsh(logic.metadata,
-                                :secret_ttl => secret.realttl,
+                                :secret_ttl => secret.current_expiration,
                                 :passphrase_required => secret && secret.has_passphrase?)
           end
         end
@@ -56,12 +56,12 @@ module V1
           logic.raise_concerns
           logic.process
           if req.get?
-            res.redirect app_path(logic.redirect_uri)
+            res.redirect res.app_path(logic.redirect_uri)
           else
             secret = logic.secret
             json self.class.metadata_hsh(logic.metadata,
                                 :value => logic.secret_value,
-                                :secret_ttl => secret.realttl,
+                                :secret_ttl => secret.current_expiration,
                                 :passphrase_required => secret && secret.has_passphrase?)
             logic.metadata.viewed!
           end
@@ -78,11 +78,11 @@ module V1
             secret_value = secret.can_decrypt? ? secret.decrypted_value : nil
             json self.class.metadata_hsh(logic.metadata,
                                 :value => secret_value,
-                                :secret_ttl => secret.realttl,
+                                :secret_ttl => secret.current_expiration,
                                 :passphrase_required => secret && secret.has_passphrase?)
           else
             json self.class.metadata_hsh(logic.metadata,
-                                :secret_ttl => secret ? secret.realttl : nil,
+                                :secret_ttl => secret ? secret.current_expiration : nil,
                                 :passphrase_required => secret && secret.has_passphrase?)
           end
           logic.metadata.viewed!
@@ -97,7 +97,7 @@ module V1
           recent_metadata = logic.metadata.collect { |md|
             next if md.nil?
             hash = self.class.metadata_hsh(md)
-            hash.delete :secret_key   # Don't call md.delete, that will delete from redis
+            hash.delete :secret_key   # Don't call md.delete, that will delete from the db
             hash
           }.compact
           json recent_metadata
@@ -144,11 +144,11 @@ module V1
           logic.raise_concerns
           logic.process
           if req.get?
-            res.redirect app_path(logic.redirect_uri)
+            res.redirect res.app_path(logic.redirect_uri)
           else
             secret = logic.secret
             json self.class.metadata_hsh(logic.metadata,
-                                :secret_ttl => secret.realttl,
+                                :secret_ttl => secret.current_expiration,
                                 :passphrase_required => secret && secret.has_passphrase?)
           end
         end

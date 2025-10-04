@@ -17,9 +17,7 @@ const emit = defineEmits<{
   (e: 'update:modelValue', value: string): void;
 }>();
 
-const displayValue = computed(() => {
-  return props.displayMap[props.modelValue] || props.modelValue;
-});
+const displayValue = computed(() => props.displayMap[props.modelValue] || props.modelValue);
 
 const cycleValue = () => {
   const currentIndex = props.options.indexOf(props.modelValue);

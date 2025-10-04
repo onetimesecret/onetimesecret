@@ -33,6 +33,7 @@
 .prompts/
 .ruby-version
 .appendonlydir
+.claude
 appendonlydir
 data/
 etc/caddy
@@ -50,7 +51,7 @@ Caddyfile
 fly.toml
 etc/config
 etc/config.yaml
-!etc/config.example.yaml
+!etc/defaults
 !etc/config.test.yaml
 !.env.empty
 !.env.example
@@ -63,3 +64,4 @@ etc/config.yaml
 !tailwind.config.ts
 !eslint.config.ts
 !.commit_hash.txt
+.mcp.json

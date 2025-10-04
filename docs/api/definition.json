@@ -591,60 +591,6 @@
         "tags": ["v2", "auth", "internal"]
       }
     },
-    "/v2/altcha/challenge": {
-      "get": {
-        "summary": "Get Altcha Challenge",
-        "responses": {
-          "200": {
-            "description": "Successful response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/BaseApiResponse"
-                }
-              }
-            }
-          }
-        },
-        "tags": ["v2", "challenges"]
-      }
-    },
-    "/v2/altcha/verify": {
-      "post": {
-        "summary": "Verify Altcha",
-        "responses": {
-          "200": {
-            "description": "Successful response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/BaseApiResponse"
-                }
-              }
-            }
-          }
-        },
-        "tags": ["v2", "challenges"]
-      }
-    },
-    "/v2/altcha/verify-spam": {
-      "post": {
-        "summary": "Verify Altcha Spam",
-        "responses": {
-          "200": {
-            "description": "Successful response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/BaseApiResponse"
-                }
-              }
-            }
-          }
-        },
-        "tags": ["v2", "challenges"]
-      }
-    },
     "/v2/colonel": {
       "get": {
         "summary": "Get Colonel Index",
@@ -2965,10 +2911,10 @@
                   "$ref": "#/components/schemas/Feedback"
                 }
               },
-              "redis_info": {
+              "dbclient_info": {
                 "type": "string"
               },
-              "plans_enabled": {
+              "billing_enabled": {
                 "type": "boolean"
               },
               "counts": {
@@ -3032,8 +2978,8 @@
               "today_feedback",
               "yesterday_feedback",
               "older_feedback",
-              "redis_info",
-              "plans_enabled",
+              "dbclient_info",
+              "billing_enabled",
               "counts"
             ]
           }

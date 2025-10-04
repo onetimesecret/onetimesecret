@@ -5,7 +5,7 @@ require 'onetime/utils'
 module V2
   module Logic
     module UriHelpers
-      include Onetime::TimeUtils
+      include Onetime::Utils::TimeUtils
 
       def receipt_uri(obj)
         format('/receipt/%s', obj.key)
@@ -17,7 +17,7 @@ module V2
       end
 
       def base_scheme
-        Onetime.conf[:site][:ssl] ? 'https://' : 'http://'
+        Onetime.conf['site']['ssl'] ? 'https://' : 'http://'
       end
 
       def server_port
@@ -25,12 +25,12 @@ module V2
       end
 
       def site_host
-        Onetime.conf[:site][:host]
+        Onetime.conf['site']['host']
       end
 
       def baseuri
         scheme = base_scheme
-        host = Onetime.conf[:site][:host]
+        host   = Onetime.conf['site']['host']
         [scheme, host].join
       end
 
@@ -42,21 +42,14 @@ module V2
         [domain, path].flatten.join('/')
       end
 
-      def secure_request?
-        !local? || secure?
-      end
-
       # TODO: secure ad local are already in Otto
       def secure?
-        # X-Scheme is set by nginx
-        # X-FORWARDED-PROTO is set by elastic load balancer
-        req.env['HTTP_X_FORWARDED_PROTO'] == 'https' || req.env['HTTP_X_SCHEME'] == 'https'
+        req.secure?
       end
 
       def local?
-        LOCAL_HOSTS.member?(req.env['SERVER_NAME']) && (req.client_ipaddress == '127.0.0.1')
+        req.local?
       end
-
     end
   end
 end

@@ -15,51 +15,64 @@
 
   onMounted(fetchStats);
 
+  // Helper function to create stat item
+  const createStatItem = (nameKey: string, value: string, iconName: string) => ({
+    name: t(nameKey),
+    value,
+    change: null,
+    changeType: 'neutral' as const,
+    icon: { collection: 'heroicons', name: iconName },
+  });
+
+  // Helper functions for individual stats
+  const getSecretsCreatedStat = () => createStatItem(
+    'web.colonel.stats.secretsCreated',
+    stats.value?.counts?.secrets_created?.toLocaleString() || '0',
+    'plus-circle'
+  );
+
+  const getSecretsSharedStat = () => createStatItem(
+    'web.colonel.stats.secretsShared',
+    stats.value?.counts?.secrets_shared?.toLocaleString() || '0',
+    'share'
+  );
+
+  const getActiveUsersStat = () => createStatItem(
+    'web.colonel.stats.activeUsers',
+    stats.value?.counts?.session_count?.toString() || '0',
+    'users'
+  );
+
+  const getEmailsSentStat = () => createStatItem(
+    'web.colonel.stats.emailsSent',
+    stats.value?.counts?.emails_sent?.toLocaleString() || '0',
+    'envelope'
+  );
+
+  const getTotalSecretsStat = () => createStatItem(
+    'web.colonel.stats.totalSecrets',
+    stats.value?.counts?.secret_count?.toLocaleString() || '0',
+    'lock-closed'
+  );
+
+  const getTotalCustomersStat = () => createStatItem(
+    'web.colonel.stats.totalCustomers',
+    stats.value?.counts?.customer_count?.toLocaleString() || '0',
+    'user-group'
+  );
+
+  // Helper function to get stats data
+  const getStatsData = () => [
+    getSecretsCreatedStat(),
+    getSecretsSharedStat(),
+    getActiveUsersStat(),
+    getEmailsSentStat(),
+    getTotalSecretsStat(),
+    getTotalCustomersStat(),
+  ];
+
   // Quick stats using real data from the store
-  const statsData = computed(() => [
-    {
-      name: t('web.colonel.stats.secretsCreated'),
-      value: stats.value?.counts?.secrets_created?.toLocaleString() || '0',
-      change: null,
-      changeType: 'neutral' as const,
-      icon: { collection: 'heroicons', name: 'plus-circle' },
-    },
-    {
-      name: t('web.colonel.stats.secretsShared'),
-      value: stats.value?.counts?.secrets_shared?.toLocaleString() || '0',
-      change: null,
-      changeType: 'neutral' as const,
-      icon: { collection: 'heroicons', name: 'share' },
-    },
-    {
-      name: t('web.colonel.stats.activeUsers'),
-      value: stats.value?.counts?.session_count?.toString() || '0',
-      change: null,
-      changeType: 'neutral' as const,
-      icon: { collection: 'heroicons', name: 'users' },
-    },
-    {
-      name: t('web.colonel.stats.emailsSent'),
-      value: stats.value?.counts?.emails_sent?.toLocaleString() || '0',
-      change: null,
-      changeType: 'neutral' as const,
-      icon: { collection: 'heroicons', name: 'envelope' },
-    },
-    {
-      name: t('web.colonel.stats.totalSecrets'),
-      value: stats.value?.counts?.secret_count?.toLocaleString() || '0',
-      change: null,
-      changeType: 'neutral' as const,
-      icon: { collection: 'heroicons', name: 'lock-closed' },
-    },
-    {
-      name: t('web.colonel.stats.totalCustomers'),
-      value: stats.value?.counts?.customer_count?.toLocaleString() || '0',
-      change: null,
-      changeType: 'neutral' as const,
-      icon: { collection: 'heroicons', name: 'user-group' },
-    },
-  ]);
+  const statsData = computed(getStatsData);
 
   // Quick actions
   const quickActions = computed(() => [

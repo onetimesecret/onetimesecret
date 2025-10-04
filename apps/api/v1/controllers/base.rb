@@ -109,7 +109,7 @@ module V1
     end
 
     def json hsh
-      res.header['Content-Type'] = "application/json; charset=utf-8"
+      res.headers['content-type'] = "application/json; charset=utf-8"
       res.body = hsh.to_json
     end
 
@@ -156,7 +156,6 @@ module V1
       res.status = 404
       json hsh
     end
-    alias throttle_response error_response # Maintain existing behaviour
 
   end
 end

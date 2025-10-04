@@ -9,12 +9,10 @@ module V2::Logic
         @with_brand = !params[:with_brand].to_s.empty?
       end
 
-      def raise_concerns
-        limit_action :list_domains
-      end
+      def raise_concerns; end
 
       def process
-        OT.ld "[ListDomains] Processing #{cust.custom_domains.size} #{cust.custom_domains.rediskey}"
+        OT.ld "[ListDomains] Processing #{cust.custom_domains.size} #{cust.custom_domains.dbkey}"
 
         @custom_domains = cust.custom_domains_list.map do |domain|
           domain.safe_dump

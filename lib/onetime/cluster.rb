@@ -13,9 +13,9 @@ module Onetime
     # only after it's been modified but some hot reloading logic is extra spicy).
     #
     module Features
-      @type = nil
-      @api_key = nil
-      @cluster_ip = nil
+      @type         = nil
+      @api_key      = nil
+      @cluster_ip   = nil
       @cluster_name = nil
       @cluster_host = nil
       @vhost_target = nil
@@ -44,8 +44,9 @@ module Onetime
     #
     module Approximated
       include HTTParty
+
       base_uri 'https://cloud.approximated.app/api'
-      headers 'Content-Type' => 'application/json'
+      headers 'content-type' => 'application/json'
 
       # Checks the existence of specified DNS records.
       #
@@ -86,7 +87,8 @@ module Onetime
       def self.check_records_exist(api_key, records)
         post('/dns/check-records-exist',
           headers: { 'api-key' => api_key },
-          body: { records: records }.to_json)
+          body: { records: records }.to_json,
+        )
       end
 
       # Checks the existence of the DNS records and whether the values match exactly.
@@ -100,7 +102,8 @@ module Onetime
       def self.check_records_match_exactly(api_key, records)
         post('/dns/check-records-match-exactly',
           headers: { 'api-key' => api_key },
-          body: { records: records }.to_json)
+          body: { records: records }.to_json,
+        )
       end
 
       # Creates a virtual host using the Approximated API.
@@ -145,7 +148,7 @@ module Onetime
           exact_match: false,
           keep_host: nil,
         }
-        post_options = default_options.merge(options)
+        post_options    = default_options.merge(options)
 
         response = post('/vhosts',
           headers: { 'api-key' => api_key },
@@ -157,13 +160,14 @@ module Onetime
             exact_match: post_options[:exact_match],
             redirect_www: post_options[:redirect_www],
             keep_host: post_options[:keep_host],
-          }.to_json)
+          }.to_json,
+        )
 
         case response.code
         when 422
           raise HTTParty::ResponseError, response.parsed_response['errors']
         when 401
-          raise HTTParty::ResponseError, "Invalid API key"
+          raise HTTParty::ResponseError, 'Invalid API key'
         end
 
         response
@@ -210,10 +214,10 @@ module Onetime
       #    "target_ports" => "443",
       #    "user_message" => "..."
       #  }
-      #}
+      # }
       #
       def self.get_vhost_by_incoming_address(api_key, incoming_address, force = false)
-        url_path = "/vhosts/by/incoming/#{incoming_address}"
+        url_path  = "/vhosts/by/incoming/#{incoming_address}"
         url_path += '/force-check' if force
 
         response = get(url_path, headers: { 'api-key' => api_key })
@@ -222,7 +226,7 @@ module Onetime
         when 404
           raise HTTParty::ResponseError, "Could not find Virtual Host: #{incoming_address}"
         when 401
-          raise HTTParty::ResponseError, "Invalid API key"
+          raise HTTParty::ResponseError, 'Invalid API key'
         end
 
         response
@@ -268,7 +272,7 @@ module Onetime
           exact_match: false,
           keep_host: nil,
         }
-        post_options = default_options.merge(options)
+        post_options    = default_options.merge(options)
 
         response = post('/vhosts/update/by/incoming',
           headers: { 'api-key' => api_key },
@@ -281,13 +285,14 @@ module Onetime
             exact_match: post_options[:exact_match],
             redirect_www: post_options[:redirect_www],
             keep_host: post_options[:keep_host],
-          }.to_json)
+          }.to_json,
+        )
 
         case response.code
         when 404
           raise HTTParty::ResponseError, "Could not find an existing Virtual Host: #{current_incoming_address}"
         when 401
-          raise HTTParty::ResponseError, "Invalid API key"
+          raise HTTParty::ResponseError, 'Invalid API key'
         end
 
         response
@@ -309,7 +314,8 @@ module Onetime
       #
       def self.delete_vhost(api_key, incoming_address)
         response = delete("/vhosts/by/incoming/#{incoming_address}",
-          headers: { 'api-key' => api_key })
+          headers: { 'api-key' => api_key },
+        )
 
         case response.code
         when 200
@@ -317,12 +323,11 @@ module Onetime
         when 404
           raise HTTParty::ResponseError, "Could not find Virtual Host: #{incoming_address}"
         when 401
-          raise HTTParty::ResponseError, "Invalid API key"
+          raise HTTParty::ResponseError, 'Invalid API key'
         end
 
         response
       end
     end
-
   end
 end

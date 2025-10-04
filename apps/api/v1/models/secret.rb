@@ -1,23 +1,25 @@
 # apps/api/v1/models/secret.rb
 
+require_relative 'mixins/passphrase'
+
 module V1
   class Secret < Familia::Horreum
-    include Gibbler::Complex
+
+    using Familia::Refinements::TimeLiterals
 
     feature :safe_dump
     feature :expiration
 
-    ttl 7.days # default only, can be overridden at create time
+    default_expiration 7.days # default only, can be overridden at create time
     prefix :secret
 
-    identifier :generate_id
+    identifier_field :key
 
     field :custid
     field :state
     field :value
     field :metadata_key
     field :original_size
-    field :value_checksum
     field :value_encryption
     field :lifespan
     field :share_domain
@@ -25,54 +27,36 @@ module V1
     field :updated
     field :created
     field :truncated # boolean
-    field :maxviews # always 1 (here for backwards compat)
 
     # See note on V2::Secret
     field :key
 
-    counter :view_count, ttl: 14.days # out lives the secret itself
+    counter :view_count, default_expiration: 14.days # out lives the secret itself
 
     # NOTE: this field is a nullop. It's only populated if a value was entered
     # into a hidden field which is something a regular person would not do.
     field :token
 
-    @safe_dump_fields = [
-      { identifier: ->(obj) { obj.identifier } },
-      :key,
-      :state,
-      { secret_ttl: ->(m) { m.lifespan } },
-      :lifespan,
-      :original_size,
-      { shortkey: ->(m) { m.key.slice(0, 8) } },
-      { has_passphrase: ->(m) { m.has_passphrase? } },
-      { verification: ->(m) { m.verification? } },
-      { is_truncated: ->(m) { m.truncated? } },
-      :created,
-      :updated,
-    ]
+    safe_dump_field :identifier, ->(obj) { obj.identifier }
+    safe_dump_field :key
+    safe_dump_field :state
+    safe_dump_field :secret_ttl, ->(m) { m.lifespan }
+    safe_dump_field :lifespan
+    safe_dump_field :original_size
+    safe_dump_field :shortkey, ->(m) { m.key.slice(0, 8) }
+    safe_dump_field :has_passphrase, ->(m) { m.has_passphrase? }
+    safe_dump_field :verification, ->(m) { m.verification? }
+    safe_dump_field :is_truncated, ->(m) { m.truncated? }
+    safe_dump_field :created
+    safe_dump_field :updated
 
     def init
       self.state ||= 'new'
-    end
-
-    def generate_id
-      @key ||= Familia.generate_id.slice(0, 31)
-      @key
+      self.key ||= self.class.generate_id # rubocop:disable Naming/MemoizedInstanceVariableName
     end
 
     def shortkey
       key.slice(0,6)
-    end
-
-    def maxviews
-      1
-    end
-
-    # TODO: Remove. If we get around to support some manner of "multiple views"
-    # it would be implmented as separate secrets with the same value. All of them
-    # viewable only once.
-    def maxviews?
-      self.view_count.to_s.to_i >= self.maxviews
     end
 
     def age
@@ -86,11 +70,13 @@ module V1
       lifespan.to_i + created.to_i if lifespan
     end
 
+    # Alias for compatibility with controller expectations
+    alias_method :current_expiration, :expiration
+
     def natural_duration
       # Colloquial representation of the TTL. e.g. "1 day"
-      OT::Utils::TimeUtils.natural_duration lifespan
+      V1::TimeUtils.natural_duration lifespan
     end
-    alias :natural_ttl :natural_duration
 
     def older_than? seconds
       age > seconds
@@ -117,7 +103,6 @@ module V1
       end
 
       self.original_size = original_value.size
-      self.value_checksum = storable_value.gibbler
       self.value_encryption = 2
       self.value = storable_value.encrypt opts.merge(:key => encryption_key)
     end
@@ -245,6 +230,7 @@ module V1
         secret = V1::Secret.create(custid: custid, token: token)
         metadata = V1::Metadata.create(custid: custid, token: token)
 
+        p [:spawn_pair, secret.exists?, metadata.exists?]
         # TODO: Use Familia transaction
         metadata.secret_key = secret.key
         metadata.save
@@ -259,6 +245,11 @@ module V1
         input = entropy.flatten.compact.join ':'
         Digest::SHA256.hexdigest(input) # TODO: Use Familila.generate_id
       end
+
+      def generate_id
+        Familia.generate_id
+      end
+
     end
 
     # See Customer model for explanation about why

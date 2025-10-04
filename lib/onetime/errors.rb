@@ -1,7 +1,4 @@
-
-
 module Onetime
-
   # The Problem class inherits from RuntimeError, which is a subclass of StandardError.
   # Both RuntimeError and StandardError are standard exception classes in Ruby, but
   # RuntimeError is used for errors that are typically caused by the program's logic
@@ -13,7 +10,7 @@ module Onetime
     attr_accessor :message
 
     def initialize(message = nil)
-      super(message)
+      super
       @message = message
     end
   end
@@ -24,6 +21,9 @@ module Onetime
   # correctly and needs to be reviewed and corrected before normal operation
   # can proceed.
   class ConfigError < Problem
+  end
+
+  class MigrationError < Problem
   end
 
   class RecordNotFound < Problem
@@ -40,33 +40,20 @@ module Onetime
     attr_reader :path, :user, :got, :wanted
 
     def initialize(path, user, got, wanted)
-      @path = path
-      @user = user
-      @got = got.to_s
+      @path   = path
+      @user   = user
+      @got    = got.to_s
       @wanted = wanted.to_s
     end
 
     def report
-      "BAD SHRIMP FOR #{@path}: #{@user}: #{got.shorten(16)}/#{wanted.shorten(16)}"
+      got_display = got.size <= 16 ? got : got[0, 16] + '...'
+      wanted_display = wanted.size <= 16 ? wanted : wanted[0, 16] + '...'
+      "BAD SHRIMP FOR #{@path}: #{@user}: #{got_display}/#{wanted_display}"
     end
 
     def message
       'Sorry, bad shrimp'
-    end
-  end
-
-  class LimitExceeded < RuntimeError
-    attr_accessor :event, :message, :cust
-    attr_reader :identifier, :event, :count
-
-    def initialize(identifier, event, count)
-      @identifier = identifier
-      @event = event
-      @count = count
-    end
-
-    def message
-      "[limit-exceeded] #{identifier} for #{event} (#{count})"
     end
   end
 
@@ -75,9 +62,10 @@ module Onetime
 
   class Redirect < RuntimeError
     attr_reader :location, :status
-    def initialize l, s=302
-      @location, @status = l, s
+
+    def initialize(l, s = 302)
+      @location = l
+      @status   = s
     end
   end
-
 end

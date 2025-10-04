@@ -2,9 +2,12 @@
 
 require 'rack/utils'
 
+require_relative 'mixins/passphrase'
+
 module V1
   class Customer < Familia::Horreum
-    include Gibbler::Complex
+
+    using Familia::Refinements::TimeLiterals
 
     feature :safe_dump
     feature :expiration
@@ -13,8 +16,8 @@ module V1
 
     @global = nil
 
-    class_sorted_set :values, key: 'onetime:customer'
-    class_hashkey :domains, key: 'onetime:customers:domain'
+    class_sorted_set :values, dbkey: 'onetime:customer'
+    class_hashkey :domains, dbkey: 'onetime:customers:domain'
 
     sorted_set :custom_domains, suffix: 'custom_domain'
     sorted_set :metadata
@@ -22,9 +25,9 @@ module V1
     hashkey :feature_flags # To turn on allow_public_homepage column in domains table
 
     # Used to track the current and most recently created password reset secret.
-    string :reset_secret, ttl: 24.hours
+    string :reset_secret, default_expiration: 24.hours
 
-    identifier :custid
+    identifier_field :custid
 
     field :custid
     field :email
@@ -53,34 +56,28 @@ module V1
     # NOTE: The SafeDump mixin caches the safe_dump_field_map so updating this list
     # with hot reloading in dev mode will not work. You will need to restart the
     # server to see the changes.
-    @safe_dump_fields = [
-      { :identifier => ->(obj) { obj.identifier } },
-      :custid,
+    safe_dump_field :identifier, ->(obj) { obj.identifier }
+    safe_dump_field :custid
+    safe_dump_field :role
+    safe_dump_field :verified
+    safe_dump_field :last_login
+    safe_dump_field :locale
+    safe_dump_field :updated
+    safe_dump_field :created
+    safe_dump_field :stripe_customer_id
+    safe_dump_field :stripe_subscription_id
+    safe_dump_field :stripe_checkout_email
+    safe_dump_field :planid
 
-      :role,
-      :verified,
-      :last_login,
-      :locale,
-      :updated,
-      :created,
+    # NOTE: The secrets_created incrementer is null until the first secret
+    # is created. See ConcealSecret for where the incrementer is called.
+    safe_dump_field :secrets_created, ->(cust) { cust.secrets_created.to_s || 0 }
+    safe_dump_field :secrets_burned, ->(cust) { cust.secrets_burned.to_s || 0 }
+    safe_dump_field :secrets_shared, ->(cust) { cust.secrets_shared.to_s || 0 }
+    safe_dump_field :emails_sent, ->(cust) { cust.emails_sent.to_s || 0 }
 
-      :stripe_customer_id,
-      :stripe_subscription_id,
-      :stripe_checkout_email,
-
-      {:plan => ->(cust) { cust.load_plan } }, # safe_dump will be called automatically
-
-      # NOTE: The secrets_created incrementer is null until the first secret
-      # is created. See ConcealSecret for where the incrementer is called.
-      #
-      {:secrets_created => ->(cust) { cust.secrets_created.to_s || 0 } },
-      {:secrets_burned => ->(cust) { cust.secrets_burned.to_s || 0 } },
-      {:secrets_shared => ->(cust) { cust.secrets_shared.to_s || 0 } },
-      {:emails_sent => ->(cust) { cust.emails_sent.to_s || 0 } },
-
-      # We use the hash syntax here since `:active?` is not a valid symbol.
-      { :active => ->(cust) { cust.active? } },
-    ]
+    # We use the hash syntax here since `:active?` is not a valid symbol.
+    safe_dump_field :active, ->(cust) { cust.active? }
 
     def init
       self.custid ||= 'anon'
@@ -90,7 +87,7 @@ module V1
       # When an instance is first created, any field that doesn't have a
       # value set will be nil. We need to ensure that these fields are
       # set to an empty string to match the default values when loading
-      # from redis (i.e. all values in core redis data types are strings).
+      # from the db (i.e. all values in core data types are strings).
       self.locale ||= ''
 
       # Initialze auto-increment fields. We do this since Redis
@@ -104,119 +101,12 @@ module V1
       self.emails_sent ||= 0
     end
 
-    def contributor?
-      self.contributor.to_s == "true"
-    end
-
     def locale?
       !locale.to_s.empty?
     end
 
     def apitoken? guess
       self.apitoken.to_s == guess.to_s
-    end
-
-    def regenerate_apitoken
-      self.apitoken! [OT.instance, OT.now.to_f, :apitoken, custid].gibbler
-      self.apitoken # the fast writer bang methods don't return the value
-    end
-
-    def load_plan
-      Onetime::Plan.plan(planid) || {:planid => planid, :source => 'parts_unknown'}
-    end
-
-    def get_stripe_customer
-      get_stripe_customer_by_id || get_stripe_customer_by_email
-    rescue Stripe::StripeError => e
-      OT.le "[Customer.get_stripe_customer] Error: #{e.message}: #{e.backtrace}"
-      nil
-    end
-
-    def get_stripe_subscription
-      get_stripe_subscription_by_id || get_stripe_subscriptions&.first
-    end
-
-    def get_stripe_customer_by_id customer_id=nil
-      customer_id ||= stripe_customer_id
-      return unless customer_id
-      OT.info "[Customer.get_stripe_customer_by_id] Fetching customer: #{customer_id} #{custid}"
-      @stripe_customer = Stripe::Customer.retrieve(customer_id)
-
-    rescue Stripe::StripeError => e
-      OT.le "[Customer.get_stripe_customer_by_id] Error: #{e.message}"
-      nil
-    end
-
-    def get_stripe_customer_by_email
-      customers = Stripe::Customer.list(email: email, limit: 1)
-
-      if customers.data.empty?
-        OT.info "[Customer.get_stripe_customer_by_email] No customer found with email: #{email}"
-
-      else
-        @stripe_customer = customers.data.first
-        OT.info "[Customer.get_stripe_customer_by_email] Customer found: #{@stripe_customer.id}"
-      end
-
-      @stripe_customer
-
-    rescue Stripe::StripeError => e
-      OT.le "[Customer.get_stripe_customer_by_email] Error: #{e.message}"
-      nil
-    end
-
-    def get_stripe_subscription_by_id subscription_id=nil
-      subscription_id ||= stripe_subscription_id
-      return unless subscription_id
-      OT.info "[Customer.get_stripe_subscription_by_id] Fetching subscription: #{subscription_id} #{custid}"
-      @stripe_subscription = Stripe::Subscription.retrieve(subscription_id)
-    rescue Stripe::StripeError => e
-      OT.le "[Customer.get_stripe_subscription_by_id] Error: #{e.message}"
-      nil
-    end
-
-    def get_stripe_subscriptions stripe_customer=nil
-      stripe_customer ||= @stripe_customer
-      subscriptions = []
-      return subscriptions unless stripe_customer
-
-      begin
-        subscriptions = Stripe::Subscription.list(customer: stripe_customer.id, limit: 1)
-
-      rescue Stripe::StripeError => e
-        OT.le "Error: #{e.message}"
-      else
-        if subscriptions.data.empty?
-          OT.info "No subscriptions found for customer: #{stripe_customer.id}"
-        else
-          OT.info "Found #{subscriptions.data.length} subscriptions"
-          subscriptions = subscriptions.data
-        end
-      end
-
-      subscriptions
-    end
-
-    def get_persistent_value sess, n
-      (anonymous? ? sess : self)[n]
-    end
-
-    def set_persistent_value sess, n, v
-      (anonymous? ? sess : self)[n] = v
-    end
-
-    def external_identifier
-      if anonymous?
-        raise OT::Problem, "Anonymous customer has no external identifier"
-      end
-      # Changing the type, order or value of the elements in this array will
-      # change the external identifier. This is used to identify customers
-      # primarily in logs and other external systems where the actual customer
-      # ID is not needed or otherwise not appropriate to use. Keeping the
-      # value consistent is generally preferred.
-      elements = ['cust', role, custid]
-      @external_identifier ||= elements.gibbler
-      @external_identifier
     end
 
     def anonymous?
@@ -296,7 +186,7 @@ module V1
     end
 
     def add_metadata obj
-      metadata.add OT.now.to_i, obj.key
+      metadata.add obj.key, OT.now.to_i
     end
 
     def custom_domains_list
@@ -305,15 +195,6 @@ module V1
       rescue OT::RecordNotFound => e
         OT.le "[custom_domains_list(v1)] Error: #{e.message} (#{domain} / #{self.custid})"
       end.compact
-    end
-
-    def add_custom_domain obj
-      OT.ld "[add_custom_domain] adding #{obj} to #{self}"
-      custom_domains.add OT.now.to_i, obj.display_domain # not the object identifier
-    end
-
-    def remove_custom_domain obj
-      custom_domains.remove obj.display_domain # not the object identifier
     end
 
     def encryption_key
@@ -352,7 +233,7 @@ module V1
       # For example if we need to send a pro-rated refund
       # or if we need to send a notification to the customer
       # to confirm the account deletion.
-      self.ttl = 365.days
+      self.default_expiration = 365.days
       self.regenerate_apitoken
       self.passphrase = ''
       self.verified = 'false'
@@ -367,7 +248,7 @@ module V1
     # This method overrides the default save behavior to prevent
     # anonymous customers from being persisted to the database.
     def save **kwargs
-      raise OT::Problem, "Anonymous cannot be saved #{self.class} #{rediskey}" if anonymous?
+      raise OT::Problem, "Anonymous cannot be saved #{self.class} #{dbkey}" if anonymous?
       super(**kwargs)
     end
 
@@ -400,36 +281,23 @@ module V1
     end
 
     module ClassMethods
-      attr_reader :values
-      def add cust
-        self.values.add OT.now.to_i, cust.identifier
-      end
 
       def all
-        self.values.revrangeraw(0, -1).collect { |identifier| load(identifier) }
+        self.instances.revrangeraw(0, -1).collect { |identifier| load(identifier) }
       end
 
       def recent duration=30.days, epoint=OT.now.to_i
         spoint = OT.now.to_i-duration
-        self.values.rangebyscoreraw(spoint, epoint).collect { |identifier| load(identifier) }
+        self.instances.rangebyscoreraw(spoint, epoint).collect { |identifier| load(identifier) }
       end
 
       def anonymous
         new('anon').freeze
       end
 
-      def create custid, email=nil
-        raise OT::Problem, "custid is required" if custid.to_s.empty?
-        raise OT::Problem, "Customer exists" if exists?(custid)
-        cust = new custid: custid, email: email || custid, role: 'customer'
-        cust.save
-        add cust
-        cust
-      end
-
       def global
-        @global ||= from_identifier(:GLOBAL) || create(:GLOBAL)
-        @global
+        # @global ||= from_identifier(:GLOBAL) || create(:GLOBAL)
+        # @global
       end
 
       def increment_field(cust, field)
@@ -441,7 +309,7 @@ module V1
 
       rescue Redis::CommandError => e
 
-        # For whatever reason, redis throws an error when trying to
+        # For whatever reason, the database throws an error when trying to
         # increment a non-existent hashkey field (rather than setting
         # it to 1): "ERR hash value is not an integer"
         OT.le "[increment_field] Redis error (#{curval}): #{e.message}"

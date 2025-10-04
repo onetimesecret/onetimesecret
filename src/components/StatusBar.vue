@@ -22,14 +22,12 @@ const props = withDefaults(defineProps<Props>(), {
 const notifications = useNotificationsStore();
 
 // Add a computed property for the effective position
-const effectivePosition = computed(() => {
+const effectivePosition = computed(() =>
   // Store position takes precedence if it exists
-  return notifications.position || props.position;
-});
+   notifications.position || props.position
+);
 
-const translatedMessage = computed(() => {
-  return t(notifications.message);
-});
+const translatedMessage = computed(() => t(notifications.message));
 
 const getStatusConfig = (type: string | null) => ({
   success: {

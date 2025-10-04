@@ -7,20 +7,21 @@
 # saved in Redis then supercedes the equivalent YAML configuration.
 module V2
   class SystemSettings < Familia::Horreum
-    include Gibbler::Complex
+
+    using Familia::Refinements::TimeLiterals
 
     unless defined?(FIELD_MAPPINGS)
       FIELD_MAPPINGS = {
-        interface: [:site, :interface],
-        secret_options: [:site, :secret_options],
-        mail: [:mail],
-        limits: [:limits],
-        diagnostics: [:diagnostics],
+        'interface' => ['site', 'interface'],
+        'secret_options' => ['site', 'secret_options'],
+        'mail' => ['mail'],
+        'limits' => ['limits'],
+        'diagnostics' => ['diagnostics'],
       }
     end
 
     # Fields that need JSON serialization/deserialization
-    JSON_FIELDS = FIELD_MAPPINGS.keys.freeze
+    JSON_FIELDS = FIELD_MAPPINGS.keys.map(&:to_sym).freeze
 
     class << self
       # Extracts the sections that system settings manages from the full config
@@ -36,7 +37,7 @@ module V2
         FIELD_MAPPINGS.keys.each_with_object({}) do |field, result|
           value = config_data[field]
           # Only include non-empty values
-          result[field] = value if value && !value.empty?
+          result[field.to_sym] = value if value && !value.empty?
         end
       end
 
@@ -49,7 +50,7 @@ module V2
         result = {}
 
         FIELD_MAPPINGS.each do |field, path|
-          value = system_settings_hash[field]
+          value = system_settings_hash[field.to_sym]
           # Skip empty/nil values to allow fallback to base config
           next unless value && !value.empty?
 
@@ -68,18 +69,18 @@ module V2
 
     feature :safe_dump
 
-    identifier :configid
+    identifier_field :configid
 
     class_sorted_set :values
     class_sorted_set :stack
     class_sorted_set :audit_log
 
     field :configid
-    field :interface
-    field :secret_options
-    field :mail
-    field :limits
-    field :diagnostics
+    # field :interface
+    # field :secret_options
+    # field :mail
+    # field :limits
+    # field :diagnostics
     field :custid
     field :comment
     field :created
@@ -88,18 +89,16 @@ module V2
 
     @txt_validation_prefix = '_onetime-challenge'
 
-    @safe_dump_fields = [
-      { :identifier => ->(obj) { obj.identifier } },
-      :interface,
-      :secret_options,
-      :mail,
-      :limits,
-      :diagnostics,
-      :custid,
-      :comment,
-      :created,
-      :updated,
-    ]
+    safe_dump_field :identifier, ->(obj) { obj.identifier }
+    safe_dump_field :interface
+    safe_dump_field :secret_options
+    safe_dump_field :mail
+    safe_dump_field :limits
+    safe_dump_field :diagnostics
+    safe_dump_field :custid
+    safe_dump_field :comment
+    safe_dump_field :created
+    safe_dump_field :updated
 
     def init
       @configid ||= self.generate_id
@@ -267,37 +266,37 @@ module V2
 
         if multi
           # Use the provided multi instance for atomic operations
-          multi.zadd(self.values.rediskey, now, fobj.to_s)
+          multi.zadd(self.instances.rediskey, now, fobj.to_s)
           multi.zadd(self.stack.rediskey, now, fobj.to_s)
           multi.zadd(self.audit_log.rediskey, now, fobj.to_s)
         else
           # Fall back to individual operations for backward compatibility
-          self.values.add now, fobj.to_s
-          self.stack.add now, fobj.to_s
-          self.audit_log.add now, fobj.to_s
+          self.instances.add fobj.to_s, now
+          self.stack.add fobj.to_s, now
+          self.audit_log.add fobj.to_s, now
         end
       end
 
       def rem fobj
-        self.values.remove fobj.to_s
+        self.instances.remove fobj.to_s
         # don't arbitrarily remove from stack, only for rollbacks/reversions.
         # never remove from audit_log
       end
 
       def remove_bad_config fobj
-        self.values.remove fobj.to_s
+        self.instances.remove fobj.to_s
         self.stack.remove fobj.to_s
       end
 
       def all
         # Load all instances from the sorted set. No need
         # to involve the owners HashKey here.
-        self.values.revrangeraw(0, -1).collect { |identifier| from_identifier(identifier) }
+        self.instances.revrangeraw(0, -1).collect { |identifier| from_identifier(identifier) }
       end
 
       def recent duration=7.days
         spoint, epoint = self.now-duration, self.now
-        self.values.rangebyscoreraw(spoint, epoint).collect { |identifier| load(identifier) }
+        self.instances.rangebyscoreraw(spoint, epoint).collect { |identifier| load(identifier) }
       end
 
       def current

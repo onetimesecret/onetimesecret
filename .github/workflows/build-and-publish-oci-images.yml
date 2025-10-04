@@ -1,0 +1,69 @@
+# .github/workflows/build-and-publish-oci-images.yml
+
+name: Build and Publish OCI Images
+
+#
+# OCI image tagging strategy:
+#
+# Release tags (v1.0.0):        {version}, latest
+# Release candidates (v1.0.0-rc1): {version}, next
+# Branches (feature/x):         {branch-name}
+#
+# This ensures stable releases are tagged as 'latest' while release candidates
+# are tagged as 'next' for early testing. Branch builds get descriptive tags.
+#
+
+on:
+  push:
+    tags: ['v*']
+  pull_request:
+    types: [closed]
+    branches: ['develop', 'feature/*', 'rel/*']
+    # Don't deploy on PRs from forks
+    paths-ignore:
+      - '**'
+
+  workflow_dispatch:
+    inputs:
+      debug_enabled:
+        type: boolean
+        description: 'Enable debug mode for build troubleshooting'
+        required: false
+        default: false
+      platforms:
+        type: choice
+        description: 'Target platforms'
+        required: false
+        default: 'linux/amd64,linux/arm64'
+        options:
+          - 'linux/amd64,linux/arm64'
+          - 'linux/amd64'
+          - 'linux/arm64'
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  build-and-publish-main:
+    uses: ./.github/workflows/.build-and-publish-oci-images-reusable.yml
+    with:
+      image-suffix: ''
+      dockerfile: 'Dockerfile'
+      image_tags: |
+        type=ref,event=branch
+        type=ref,event=tag
+        type=raw,value=next,enable=${{ contains(github.ref, '-rc') || contains(github.ref, 'develop') }}
+    secrets: inherit
+
+  build-and-publish-lite:
+    needs: [build-and-publish-main]
+    uses: ./.github/workflows/.docker-build-publish-reusable.yml
+    with:
+      image-suffix: '-lite'
+      dockerfile: 'Dockerfile-lite'
+      image_tags: |
+        type=ref,event=branch
+        type=ref,event=tag
+        type=raw,value=next,enable=${{ contains(github.ref, '-rc') || contains(github.ref, 'develop') }}
+    secrets: inherit

@@ -33,14 +33,14 @@ module V2::Logic
 
         validate_domain
         validate_brand_settings
-        limit_action :update_domain_brand
+
         validate_brand_values
       end
 
       def process
         @greenlighted = true
 
-        return error("Custom domain not found") unless @custom_domain
+        return error('Custom domain not found') unless @custom_domain
 
         update_brand_settings
       end
@@ -70,8 +70,9 @@ module V2::Logic
         # Step 2: Update remaining values
         brand_settings.each do |key, value| # rubocop:disable Style/CombinableLoops
           next if value.nil?
+
           OT.ld "[UpdateDomainBrand] Updating brand setting: #{key} => #{value} (#{value.class})"
-          custom_domain.brand[key.to_s] = value.to_s # everything in redis is a string
+          custom_domain.brand[key.to_s] = value.to_s # everything in the database is a string
         end
 
         custom_domain.updated = Time.now.to_i
@@ -90,22 +91,22 @@ module V2::Logic
 
       def validate_domain
         if @domain_id.nil? || @domain_id.empty?
-          OT.ld "[UpdateDomainBrand] Error: Missing domain ID"
-          raise_form_error "Please provide a domain ID"
+          OT.ld '[UpdateDomainBrand] Error: Missing domain ID'
+          raise_form_error 'Please provide a domain ID'
         end
 
         @custom_domain = V2::CustomDomain.load(@domain_id, @cust.custid)
-        unless custom_domain&.exists?
-          OT.ld "[UpdateDomainBrand] Error: Domain #{@domain_id} not found for customer #{@cust.custid}"
-          raise_form_error "Domain not found"
-        end
+        return if custom_domain&.exists?
+
+        OT.ld "[UpdateDomainBrand] Error: Domain #{@domain_id} not found for customer #{@cust.custid}"
+        raise_form_error 'Domain not found'
       end
 
       def validate_brand_settings
-        unless @brand_settings.is_a?(Hash)
-          OT.ld "[UpdateDomainBrand] Error: Invalid brand settings format - got #{@brand_settings.class}"
-          raise_form_error "Please provide valid brand settings"
-        end
+        return if @brand_settings.is_a?(Hash)
+
+        OT.ld "[UpdateDomainBrand] Error: Invalid brand settings format - got #{@brand_settings.class}"
+        raise_form_error 'Please provide valid brand settings'
       end
 
       def validate_brand_values
@@ -118,32 +119,31 @@ module V2::Logic
         color = @brand_settings[:primary_color]
         return if color.nil?
 
-        unless valid_color?(color)
-          OT.ld "[UpdateDomainBrand] Error: Invalid color format '#{color}'"
-          raise_form_error "Invalid primary color format - must be hex code (e.g. #FF0000)"
-        end
+        return if valid_color?(color)
+
+        OT.ld "[UpdateDomainBrand] Error: Invalid color format '#{color}'"
+        raise_form_error 'Invalid primary color format - must be hex code (e.g. #FF0000)'
       end
 
       def validate_font
         font = @brand_settings[:font_family]
         return if font.nil?
 
-        unless valid_font_family?(font)
-          OT.ld "[UpdateDomainBrand] Error: Invalid font family '#{font}'"
-          raise_form_error "Invalid font family - must be one of: sans, serif, mono"
-        end
+        return if valid_font_family?(font)
+
+        OT.ld "[UpdateDomainBrand] Error: Invalid font family '#{font}'"
+        raise_form_error 'Invalid font family - must be one of: sans, serif, mono'
       end
 
       def validate_corner_style
         style = @brand_settings[:corner_style]
         return if style.nil?
 
-        unless valid_corner_style?(style)
-          OT.ld "[UpdateDomainBrand] Error: Invalid corner style '#{style}'"
-          raise_form_error "Invalid corner style - must be one of: rounded, square, pill"
-        end
-      end
+        return if valid_corner_style?(style)
 
+        OT.ld "[UpdateDomainBrand] Error: Invalid corner style '#{style}'"
+        raise_form_error 'Invalid corner style - must be one of: rounded, square, pill'
+      end
 
       # Validate color format (hex code)
       def valid_color?(color)

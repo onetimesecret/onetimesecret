@@ -10,21 +10,15 @@
     },
   });
 
-  const getLibraryInfo = (prefix: string) => {
-    return Object.values(iconLibraries).find((lib) => prefix.startsWith(lib.usagePrefix));
-  };
+  const getLibraryInfo = (prefix: string) => Object.values(iconLibraries).find((lib) => prefix.startsWith(lib.usagePrefix));
 
-  const formatIconName = (iconId: string): string => {
-    return iconId.split('-').slice(-1)[0].replace(/-/g, ' ');
-  };
+  const formatIconName = (iconId: string): string => iconId.split('-').slice(-1)[0].replace(/-/g, ' ');
 
-  const groupedIcons = computed(() => {
-    return props.icons.reduce((groups, icon) => {
+  const groupedIcons = computed(() => props.icons.reduce((groups, icon) => {
       const group = groups[icon.name] || [];
       groups[icon.name] = [...group, icon];
       return groups;
-    }, {} as Record<string, IconSet[]>);
-  });
+    }, {} as Record<string, IconSet[]>));
 </script>
 
 <template>

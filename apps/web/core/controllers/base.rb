@@ -4,21 +4,19 @@ require_relative 'helpers'
 require 'v2/controllers/class_settings'
 
 module Core
-
   module Controllers
     module Base
       include Core::ControllerHelpers
       include V2::Controllers::ClassSettings
 
-      attr_reader :req, :res
-      attr_reader :sess, :cust, :locale
-      attr_reader :ignoreshrimp
+      attr_reader :req, :res, :sess, :cust, :locale, :ignoreshrimp
 
-      def initialize req, res
-        @req, @res = req, res
+      def initialize(req, res)
+        @req = req
+        @res = res
       end
 
-      def publically redirect=nil
+      def publically(redirect = nil)
         carefully(redirect) do
           check_session!     # 1. Load or create the session, load customer (or anon)
           check_locale!      # 2. Check the request for the desired locale
@@ -29,9 +27,9 @@ module Core
         end
       end
 
-      def authenticated redirect=nil
+      def authenticated(redirect = nil)
         carefully(redirect) do
-          no_cache!
+          res.no_cache!
           check_session!     # 1. Load or create the session, load customer (or anon)
           check_locale!      # 2. Check the request for the desired locale
 
@@ -46,9 +44,9 @@ module Core
         end
       end
 
-      def colonels redirect=nil
+      def colonels(redirect = nil)
         carefully(redirect) do
-          no_cache!
+          res.no_cache!
           check_session!     # 1. Load or create the session, load customer (or anon)
           check_locale!      # 2. Check the request for the desired locale
 
@@ -67,12 +65,14 @@ module Core
 
       def check_referrer!
         return if @check_referrer_ran
+
         @check_referrer_ran = true
         unless req.referrer.nil?
           OT.ld("[check-referrer] #{req.referrer} (#{req.referrer.class}) - #{req.path}")
         end
-        return if req.referrer.nil? || req.referrer.match(Onetime.conf[:site][:host])
-        sess.referrer ||= req.referrer
+        return if req.referrer.nil? || req.referrer.match(Onetime.conf['site']['host'])
+
+        sess.referrer     ||= req.referrer
 
         # Don't allow a pesky error here from preventing the
         # request. Typically we don't want to be so hush hush
@@ -102,13 +102,13 @@ module Core
           OT.le "[validate_url] Invalid URI: #{uri}"
         else
           # Set a default host if the host is missing
-          uri.host ||= OT.conf[:site][:host]
+          uri.host ||= OT.conf['site']['host']
           # Ensure the scheme is HTTPS if SSL is enabled in the configuration
-          if OT.conf[:site][:ssl]
-            uri.scheme = 'https' if uri.scheme.nil? || uri.scheme != 'https'
+          if (OT.conf['site']['ssl']) && (uri.scheme.nil? || uri.scheme != 'https')
+            uri.scheme = 'https'
           end
           # Set uri to nil if it is not an HTTP or HTTPS URI
-          uri = nil unless uri.is_a?(URI::HTTP)
+          uri        = nil unless uri.is_a?(URI::HTTP)
           # Log an info message with the validated URI
           OT.info "[validate_url] Validated URI: #{uri}"
         end
@@ -117,7 +117,7 @@ module Core
         uri
       end
 
-      def handle_form_error ex, redirect
+      def handle_form_error(ex, redirect)
         # We store the form fields temporarily in the session so
         # that the form can be pre-populated after the redirect.
         sess.set_form_fields ex.form_fields
@@ -126,21 +126,21 @@ module Core
       end
 
       def secret_not_found_response
-        view = Core::Views::UnknownSecret.new req, sess, cust, locale
+        view       = Core::Views::UnknownSecret.new req, sess, cust, locale
         res.status = 404
-        res.body = view.render
+        res.body   = view.render
       end
 
       def not_found
         publically do
-          not_found_response ""
+          not_found_response ''
         end
       end
 
-      def server_error status=500, message=nil
-        res.status = status
-        res['Content-Type'] = 'text/html'
-        res.body = <<-HTML
+      def server_error(status = 500, _message = nil)
+        res.status          = status
+        res['content-type'] = 'text/html'
+        res.body            = <<-HTML
         <!DOCTYPE html>
         <html lang="en">
         <head>
@@ -155,7 +155,7 @@ module Core
         HTML
       end
 
-      def disabled_response path
+      def disabled_response(path)
         error_response "#{path} is not available"
       end
 
@@ -177,17 +177,17 @@ module Core
       # - Simplifies server configuration and maintenance.
       # - Allows for proper handling of 404s within the Vue.js application.
       def not_found_response(message, **)
-        view = Core::Views::VuePoint.new(req, sess, cust, locale)
+        view       = Core::Views::VuePoint.new(req, sess, cust, locale)
         view.add_error(message) unless message&.empty?
         res.status = 404
-        res.body = view.render  # Render the entrypoint HTML
+        res.body   = view.render  # Render the entrypoint HTML
       end
 
-      def not_authorized_error hsh={}
-        view = Core::Views::Error.new req, sess, cust, locale
-        view.add_error "Not authorized"
+      def not_authorized_error(_hsh = {})
+        view       = Core::Views::Error.new req, sess, cust, locale
+        view.add_error 'Not authorized'
         res.status = 401
-        res.body = view.render
+        res.body   = view.render
       end
 
       def error_response(message, **)
@@ -196,17 +196,10 @@ module Core
         # cases a server-side error occurs that isn't the fault of the
         # client, and in those cases we want to provide a fresh shrimp
         # so that the client can try again (without a full page refresh).
-        view = Core::Views::Error.new req, sess, cust, locale
+        view       = Core::Views::Error.new req, sess, cust, locale
         view.add_error message
         res.status = 400
-        res.body = view.render
-      end
-
-      def throttle_response message
-        view = Core::Views::Error.new req, sess, cust, locale
-        view.add_error message
-        res.status = 429
-        res.body = view.render
+        res.body   = view.render
       end
     end
   end

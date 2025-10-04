@@ -16,9 +16,7 @@
   const route = useRoute();
 
   // Get component state from route meta (set by beforeEnter hook)
-  const componentState = computed(() => {
-    return route.meta.componentState || 'normal';
-  });
+  const componentState = computed(() => route.meta.componentState || 'normal');
 
   // Determine which component to show based on state
   const currentComponent = computed(() => {

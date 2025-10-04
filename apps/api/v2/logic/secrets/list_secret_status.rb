@@ -2,27 +2,28 @@
 
 module V2::Logic
   module Secrets
+    using Familia::Refinements::TimeLiterals
 
     class ListSecretStatus < V2::Logic::Base
       attr_reader :keys
 
       def process_params
-        @keys = params[:keys].to_s.strip.downcase.gsub(/[^a-z0-9,]/, '').split(',').compact
-        @secrets = keys.map { |key|
+        @keys    = params[:keys].to_s.strip.downcase.gsub(/[^a-z0-9,]/, '').split(',').compact
+        @secrets = keys.map do |key|
           next unless key
+
           record = V2::Secret.load(key)
           next unless record
+
           record.safe_dump
-        }.compact
+        end.compact
       end
 
-      def raise_concerns
-        limit_action :show_secret
-      end
+      def raise_concerns; end
 
       def process
         # We don't get the actual TTL value for batches of secrets
-        # since that would double the calls to redis.
+        # since that would double the calls to the database.
       end
 
       def success_data
@@ -32,8 +33,6 @@ module V2::Logic
           { records: secrets, count: secrets.length }
         end
       end
-
     end
-
   end
 end

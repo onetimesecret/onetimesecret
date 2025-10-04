@@ -4,7 +4,6 @@ require_relative 'views/base'
 
 module Core
   module Views
-
     ##
     # The VuePoint class serves as a bridge between the Ruby Rack application
     # and the Vue.js frontend. It is responsible for initializing and passing
@@ -22,12 +21,10 @@ module Core
         DomainSerializer,
         I18nSerializer,
         MessagesSerializer,
-        PlanSerializer,
         SystemSerializer,
       )
 
-      def init *args
-      end
+      def init *args; end
     end
 
     class ExportWindow < Core::Views::BaseView
@@ -39,23 +36,22 @@ module Core
         DomainSerializer,
         I18nSerializer,
         MessagesSerializer,
-        PlanSerializer,
         SystemSerializer,
       )
 
-      def init *args
-      end
+      def init *args; end
     end
 
     class Error < Core::Views::BaseView
-      def init *args
+      def init *_args
         self[:title] = "I'm afraid there's been an error"
+        self[:error_id] = SecureRandom.uuid
       end
     end
 
     # The robots.txt file
     class RobotsTxt < Core::Views::BaseView
-      self.template_name = 'robots'
+      self.template_name      = 'robots'
       self.template_extension = 'txt'
     end
 

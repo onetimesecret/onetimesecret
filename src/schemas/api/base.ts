@@ -2,7 +2,7 @@ import { transforms } from '@/schemas/transforms';
 import { z } from 'zod';
 
 const resolveDetailsSchema = <T extends z.ZodTypeAny | undefined>(schema?: T) =>
-  schema ?? z.record(z.string(), z.unknown());
+  schema ?? z.record(z.string(), z.any());
 
 /**
  * Base schema patterns for API responses.

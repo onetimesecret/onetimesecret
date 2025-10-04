@@ -12,7 +12,7 @@ import type {
 import { loggingService } from '@/services/logging.service';
 import { AxiosError, AxiosInstance } from 'axios';
 import { defineStore, PiniaCustomProperties } from 'pinia';
-import { inject, ref, Ref } from 'vue';
+import { computed, inject, ref, Ref } from 'vue';
 
 /**
  * Store for managing custom domains and their brand settings
@@ -69,6 +69,7 @@ export const useDomainsStore = defineStore('domains', () => {
   // Getters
   const initialized = _initialized.value;
   const recordCount = () => count.value ?? 0;
+  const domains = computed(() => records.value ?? []);
 
   interface StoreOptions extends PiniaPluginOptions {}
 
@@ -237,6 +238,7 @@ export const useDomainsStore = defineStore('domains', () => {
     // Getters
     recordCount,
     initialized,
+    domains,
 
     // Actions
     addDomain,

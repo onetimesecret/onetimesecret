@@ -2,35 +2,29 @@
 
 module V2::Logic
   module Secrets
+    using Familia::Refinements::TimeLiterals
 
     class ShowSecretStatus < V2::Logic::Base
-      attr_reader :key, :realttl
-      attr_reader :secret, :verification
+      attr_reader :key, :current_expiration, :secret, :verification
 
       def process_params
-        @key = params[:key].to_s
+        @key    = params[:key].to_s
         @secret = V2::Secret.load key
       end
 
-      def raise_concerns
-        limit_action :show_secret
-      end
+      def raise_concerns; end
 
       def process
-        @realttl = secret.realttl unless secret.nil?
+        @current_expiration = secret.current_expiration unless secret.nil?
       end
 
       def success_data
-        ret = if secret.nil?
+        if secret.nil?
           { record: { state: 'unknown' } }
         else
-          { record: secret.safe_dump, details: { realttl: realttl } }
+          { record: secret.safe_dump, details: { current_expiration: @current_expiration } }
         end
-
-        ret
       end
-
     end
-
   end
 end

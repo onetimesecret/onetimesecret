@@ -3,6 +3,8 @@
 module V1::Logic
   module Secrets
 
+    using Familia::Refinements::TimeLiterals
+
     class ShowSecret < V1::Logic::Base
       attr_reader :key, :passphrase, :continue
       attr_reader :secret, :show_secret, :secret_value, :is_truncated,
@@ -18,7 +20,7 @@ module V1::Logic
       end
 
       def raise_concerns
-        limit_action :show_secret
+
         raise OT::MissingSecret if secret.nil? || !secret.viewable?
       end
 
@@ -63,11 +65,10 @@ module V1::Logic
             # pluck out of the secret object before this is called.
             secret.received!
 
-            V1::Logic.stathat_count("Viewed Secrets", 1)
           end
 
         elsif continue && secret.has_passphrase? && !correct_passphrase
-          limit_action :failed_passphrase
+
         end
 
         domain = if domains_enabled && !secret.share_domain.to_s.empty?

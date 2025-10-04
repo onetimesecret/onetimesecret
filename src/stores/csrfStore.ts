@@ -88,8 +88,7 @@ export const useCsrfStore = defineStore('csrf', () => {
   }
 
   async function checkShrimpValidity() {
-    const response = await $api.post('/api/v2/validate-shrimp', {
-      method: 'POST',
+    const response = await $api.post('/api/v2/validate-shrimp', {}, {
       headers: {
         'Content-Type': 'application/json',
         'O-Shrimp': shrimp.value,

@@ -1,0 +1,73 @@
+# .github/workflows/validate-config.yml
+
+name: Validate YAML config
+permissions:
+  contents: read
+  pull-requests: write
+
+on:
+  # push:
+  #   branches:
+  #     - 'main'
+  #     - 'fix/*'
+  #     - 'feature/*'
+  #     - 'rel/*'
+
+  # pull_request:
+  #   branches:
+  #     - main
+  #     - develop
+  #     - feature/*
+
+  # Manual trigger option for debugging
+  workflow_dispatch:
+    inputs:
+      debug_enabled:
+        type: boolean
+        description: 'Enable tmate debugging for secure troubleshooting'
+        required: false
+        default: false
+
+jobs:
+  config-validation:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 # v4
+
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@0481980f17b760ef6bca5e8c55809102a0af1e5a
+        with:
+          ruby-version: '3.4'
+          bundler-cache: true
+
+      - name: Set up Node.js
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: '22'
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@f2b2b233b538f500472c7274c7012f57857d8ce0
+        with:
+          version: 10.10.0
+
+      - name: Install Node dependencies
+        run: pnpm install
+
+      - name: Generate JSON schemas
+        run: pnpm run schema:generate
+
+      - name: Validate example config
+        run: pnpm run config:validate
+
+      - name: Show config
+        run: pnpm run config
+
+      - name: Show config types
+        run: pnpm run config --types
+
+      - name: Validate test config
+        continue-on-error: true
+        run: |
+          echo "Validating test configuration (may have intentional errors)..."
+          bin/ots validate tests/unit/ruby/config.test.yaml || true

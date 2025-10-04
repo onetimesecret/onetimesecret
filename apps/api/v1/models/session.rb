@@ -1,46 +1,41 @@
 # apps/api/v1/models/session.rb
 
-require_relative 'mixins/session_messages'
-
 module V1
   class Session < Familia::Horreum
-    include V1::Mixins::RateLimited
+
+    using Familia::Refinements::TimeLiterals
 
     feature :safe_dump
     feature :expiration
 
-    ttl 20.minutes
+    default_expiration 20.minutes
     prefix :session
 
-    class_sorted_set :values, key: "onetime:session"
+    class_sorted_set :values, dbkey: 'onetime:session'
 
-    identifier :sessid
+    identifier_field :sessid
 
     field :ipaddress
     field :custid
     field :useragent
     field :stale
-    field :sessid
+    field :sessid, as: false
     field :updated
     field :created
     field :authenticated
-    field :external_identifier
+    field :external_identifier, as: false
 
     field :shrimp # as string?
 
-    # We check this field in check_referrer! but we rely on this field when
-    # receiving a redirect back from Stripe subscription payment workflow.
     field :referrer
 
-    @safe_dump_fields = [
-      { :identifier => ->(obj) { obj.identifier } },
-      :sessid,
-      :external_identifier,
-      :authenticated,
-      :stale,
-      :created,
-      :updated,
-    ]
+    safe_dump_field :identifier, ->(obj) { obj.identifier }
+    safe_dump_field :sessid
+    safe_dump_field :external_identifier
+    safe_dump_field :authenticated
+    safe_dump_field :stale
+    safe_dump_field :created
+    safe_dump_field :updated
 
     # When set to true, the session reports itself as not authenticated
     # regardless of the value of the authenticated field. This allows
@@ -77,35 +72,8 @@ module V1
       "#{sessid}/#{external_identifier}"
     end
 
-    # The external identifier is used by the rate limiter to estimate a unique
-    # client. We can't use the session ID b/c the request agent can choose to
-    # not send cookies, or the user can clear their cookies (in both cases the
-    # session ID would change which would circumvent the rate limiter). The
-    # external identifier is a hash of the IP address and the customer ID
-    # which means that anonymous users from the same IP address are treated
-    # as the same client (as far as the limiter is concerned). Not ideal.
-    #
-    # To put it another way, the risk of colliding external identifiers is
-    # acceptable for the rate limiter, but not for the session data. Acceptable
-    # b/c the rate limiter is a temporary measure to prevent abuse, and the
-    # worse case scenario is that a user is rate limited when they shouldn't be.
-    # The session data is permanent and must be kept separate to avoid leaking
-    # data between users.
     def external_identifier
-      return @external_identifier if @external_identifier
-      elements = []
-      elements << ipaddress || 'UNKNOWNIP'
-      elements << custid || 'anon'
-      @external_identifier ||= elements.gibbler.base(36)
-
-      # This is a very busy method so we can avoid generating and logging this
-      # string only for it to be dropped when not in debug mode by simply only
-      # generating and logging it when we're in debug mode.
-      # if Onetime.debug
-      #   OT.ld "[Session.external_identifier] sess identifier input: #{elements.inspect} (result: #{@external_identifier})"
-      # end
-
-      @external_identifier
+      @external_identifier ||= Familia.generate_id
     end
 
     def short_identifier
@@ -120,22 +88,16 @@ module V1
       @custid ||= self.custid
       newid = self.class.generate_id
 
-      # Remove the existing session key from Redis
+      # Remove the existing session key from the database
       if exists?
         begin
           self.delete!
         rescue => ex
-          OT.le "[Session.replace!] Failed to delete key #{rediskey}: #{ex.message}"
+          OT.le "[Session.replace!] Failed to delete key #{dbkey}: #{ex.message}"
         end
       end
 
-      # This update is important b/c it ensures that the
-      # data gets written to redis.
       self.sessid = newid
-
-      # Familia doesn't automatically keep the key in sync with the
-      # identifier field. We need to do it manually. See #860.
-      self.key = self.sessid
 
       save
 
@@ -179,20 +141,33 @@ module V1
     module ClassMethods
       attr_reader :values
 
+      # Add session to tracking set and clean up old entries
+      # @param sess [Session] session to add
+      # @return [void]
       def add sess
-        self.values.add OT.now.to_i, sess.identifier
-        self.values.remrangebyscore 0, OT.now.to_i-2.days
+        self.instances.add sess.identifier, OT.now.to_i
+        self.instances.remrangebyscore 0, OT.now.to_i-2.days
       end
 
+      # Get all tracked sessions
+      # @return [Array<Session>] all sessions in reverse chronological order
       def all
-        self.values.revrangeraw(0, -1).collect { |identifier| load(identifier) }
+        self.instances.revrangeraw(0, -1).collect { |identifier| load(identifier) }
       end
 
+      # Get sessions within specified time duration
+      # @param duration [ActiveSupport::Duration] time period to look back (default: 30 days)
+      # @return [Array<Session>] sessions within the duration
       def recent duration=30.days
         spoint, epoint = OT.now.to_i-duration, OT.now.to_i
-        self.values.rangebyscoreraw(spoint, epoint).collect { |identifier| load(identifier) }
+        self.instances.rangebyscoreraw(spoint, epoint).collect { |identifier| load(identifier) }
       end
 
+      # Create and save a new session
+      # @param ipaddress [String] client IP address
+      # @param custid [String] customer ID
+      # @param useragent [String, nil] client user agent string
+      # @return [Session] the created session
       def create ipaddress, custid, useragent=nil
         sess = new ipaddress: ipaddress, custid: custid, useragent: useragent
 
@@ -201,27 +176,13 @@ module V1
         sess
       end
 
+      # Generate a unique session ID with 32 bytes of random data
+      # @return [String] base-36 encoded SHA256 hash
       def generate_id
         input = SecureRandom.hex(32)  # 16=128 bits, 32=256 bits
-        # Not using gibbler to make sure it's always SHA256
         Digest::SHA256.hexdigest(input).to_i(16).to_s(36) # base-36 encoding
       end
     end
-
-    # Mixin Placement for Field Order Control
-    #
-    # We include the SessionMessages mixin at the end of this class definition
-    # for a specific reason related to how Familia::Horreum handles fields.
-    #
-    # In Familia::Horreum subclasses (like this Session class), fields are processed
-    # in the order they are defined. When creating a new instance with Session.new,
-    # any provided positional arguments correspond to these fields in the same order.
-    #
-    # By including SessionMessages last, we ensure that:
-    # 1. Its additional fields appear at the end of the field list.
-    # 2. These fields don't unexpectedly consume positional arguments in Session.new.
-    #
-    include V1::Mixins::SessionMessages
 
     extend ClassMethods
   end

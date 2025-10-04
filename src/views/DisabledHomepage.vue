@@ -37,7 +37,7 @@
       <DisabledHomepageTaglines
         :tagline1="$t('web.homepage.authonly.tagline1')"
         :tagline2="$t('web.homepage.authonly.tagline2')"
-        v-unless="windowProps.ui?.enabled"
+        v-if="!windowProps.ui?.enabled"
         class="mb-6" />
 
       <!-- Space divider -->
