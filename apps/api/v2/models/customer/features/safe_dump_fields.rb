@@ -2,6 +2,7 @@
 
 module V2::Customer::Features
   module SafeDump
+    # Register our custom SafeDump feature with a unique
     V2::Customer.add_feature self, :safe_dump_fields
 
     def self.included(base)
@@ -12,6 +13,7 @@ module V2::Customer::Features
         value.empty? ? '0' : value
       }
 
+      # Enable the Familia SafeDump feature
       base.feature :safe_dump
 
       # NOTE: The SafeDump mixin caches the safe_dump_field_map so updating this list

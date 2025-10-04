@@ -9,11 +9,11 @@ module V2::Customer::Features
       base.extend ClassMethods
       base.include InstanceMethods
 
-      # base.field_group do
-      base.field :sessid
-      base.field :apitoken # TODO: use sorted set?
-      base.field :contributor
-      # end
+      base.field_group :deprecated_fields do
+        base.field :sessid
+        base.field :apitoken # TODO: use sorted set?
+        base.field :contributor
+      end
     end
 
     module ClassMethods

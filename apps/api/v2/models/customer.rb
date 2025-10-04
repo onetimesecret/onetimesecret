@@ -66,21 +66,28 @@ module V2
     class_counter :secrets_burned
     class_counter :emails_sent
 
-    # Participation - bidirectional membership tracking with reverse indexes
-    # These give you O(1) access to all members: org.members, team.members
-    participates_in V2::Organization, :members, score: :joined
-    participates_in V2::Team, :members
+    # Global email index
+    #
+    # Unique indexes are autopopulated are the finder methods are
+    # available immediatley:
+    #
+    # e.g. Customer.find_by_email(email)
+    unique_index :email, :email_index
 
     # Organization-scoped indexes
     unique_index :email, :email_index, within: V2::Organization
     unique_index :objid, :objid_index, within: V2::Organization
     unique_index :extid, :extid_index, within: V2::Organization
 
-    # Global email index. e.g. Customer.find_by_email(email)
-    unique_index :email, :email_index
+    # Participation - bidirectional membership tracking with reverse indexes
+    # These give you O(1) access to all members: org.members, team.members
+    participates_in V2::Organization, :members, score: :joined
+    participates_in V2::Team, :members
 
-    field :custid
-    field :email
+    field_group :core_fields do
+      field :custid
+      field :email
+    end
 
     field :locale
     field :planid
@@ -88,7 +95,14 @@ module V2
     field :last_login
 
     def init
-      self.custid ||= objid
+      super
+
+      # IMPORTANT: Use self.objid (getter) not @objid (instance variable).
+      # The ObjectIdentifier feature tracks which generator was used (uuid_v7,
+      # uuid_v4, hex, etc.) in @objid_generator_used for provenance tracking.
+      # Accessing @objid directly bypasses the lazy generation mechanism and
+      # skips provenance tracking, causing ExternalIdentifier derivation to fail.
+      self.custid ||= self.objid
       self.role   ||= 'customer'
 
       # When an instance is first created, any field that doesn't have a
@@ -133,14 +147,25 @@ module V2
     class << self
       attr_reader :values
 
-      def create(email, **)
+      def create(email = nil, **kwargs)
+        # Handle both positional email argument (legacy) and keyword argument
+        email ||= kwargs[:email] || kwargs['email']
+
+        OT.li "[Customer.create] email=#{email&.class} kwargs=#{kwargs.keys}"
+        loggable_email = OT::Utils.obscure_email(email)
         raise Familia::Problem, 'email is required' if email.to_s.empty?
-        raise Familia::RecordExistsError, 'Customer exists' if email_exists?(email)
+        raise Familia::RecordExistsError, "Customer exists #{loggable_email}" if email_exists?(email)
 
-        cust = new(email: email, **)
+        # Ensure email is in kwargs for super
+        kwargs[:email] = email
+        cust = super(**kwargs)
 
-        OT.ld "[create] custid: #{cust.identifier}, #{cust.safe_dump}"
-        cust.save
+        # Adds to customer:email_index hashkey created above by:
+        #
+        #   unique_index :email, :email_index
+        #
+        # and used by find_by_email.
+        cust.add_to_class_email_index
         cust
       end
 
