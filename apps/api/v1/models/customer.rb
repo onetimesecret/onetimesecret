@@ -296,7 +296,7 @@ module V1
       end
 
       def global
-        @global ||= from_identifier(:GLOBAL) || create(:GLOBAL)
+        @global ||= find_by_identifier(:GLOBAL) || create(:GLOBAL)
         @global
       end
 

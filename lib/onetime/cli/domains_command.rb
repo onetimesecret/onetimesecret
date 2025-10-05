@@ -8,7 +8,7 @@ module Onetime
 
       literally_all_domain_ids = V2::CustomDomain.instances.all
       all_domains              = literally_all_domain_ids.map do |did|
-        V2::CustomDomain.from_identifier(did)
+        V2::CustomDomain.find_by_identifier(did)
       end
 
       # Group domains by display_domain

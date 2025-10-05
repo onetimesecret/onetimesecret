@@ -240,7 +240,7 @@ module V1
 
         # Load the record using the domain ID
         begin
-          from_identifier(domain_id)
+          find_by_identifier(domain_id)
         rescue OT::RecordNotFound
           nil
         end

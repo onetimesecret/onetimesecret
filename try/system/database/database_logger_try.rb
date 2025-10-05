@@ -148,7 +148,7 @@ commands = DatabaseLogger.capture_commands do
   cust.save
 
   # Trigger various Redis operations
-  loaded = V2::Customer.from_identifier(cust.identifier)
+  loaded = V2::Customer.find_by_identifier(cust.identifier)
   loaded.delete!
 end
 
