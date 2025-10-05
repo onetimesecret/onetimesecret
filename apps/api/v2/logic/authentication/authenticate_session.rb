@@ -2,24 +2,25 @@
 
 module V2::Logic
   module Authentication
-
     using Familia::Refinements::TimeLiterals
 
     class AuthenticateSession < V2::Logic::Base
-      attr_reader :custid, :stay, :greenlighted, :session_ttl, :potential_custid
+      attr_reader :objid, :stay, :greenlighted, :session_ttl, :potential_email_address
 
       # cust is only populated if the passphrase matches
       def process_params
-        @potential_custid = params[:u].to_s.downcase.strip
-        @passwd           = self.class.normalize_password(params[:p])
-        # @stay = params[:stay].to_s == "true"
-        @stay             = true # Keep sessions alive by default
-        @session_ttl      = (stay ? 30.days : 20.minutes).to_i
+        @potential_email_address = params[:u].to_s.downcase.strip
+        @passwd                  = self.class.normalize_password(params[:p])
+        @stay                    = true # Keep sessions alive by default
+        @session_ttl             = (stay ? 30.days : 20.minutes).to_i
 
-        if (potential = V2::Customer.load(@potential_custid))
-          @cust   = potential if potential.passphrase?(@passwd)
-          @custid = @cust.custid if @cust
-        end
+        potential = V2::Customer.find_by_email(potential_email_address)
+
+        return unless potential
+
+        passwd_matches = potential.passphrase?(@passwd)
+        @cust          = potential if passwd_matches
+        @objid         = @cust.objid if @cust
       end
 
       def raise_concerns
@@ -32,11 +33,11 @@ module V2::Logic
       def process
         if success?
           if cust.pending?
-            OT.info "[login-pending-customer] #{sess.short_identifier} #{cust.custid} #{cust.role} (pending)"
-            OT.li "[ResetPasswordRequest] Resending verification email to #{cust.custid}"
+            OT.info "[login-pending-customer] #{sess.short_identifier} #{cust.objid} #{cust.role} (pending)"
+            OT.li "[ResetPasswordRequest] Resending verification email to #{cust.objid}"
             send_verification_email nil
 
-            msg = "#{i18n.dig(:web, :COMMON, :verification_sent_to)} #{cust.custid}."
+            msg = "#{i18n.dig(:web, :COMMON, :verification_sent_to)} #{cust.objid}."
             return sess.set_info_message msg
           end
 
@@ -51,14 +52,14 @@ module V2::Logic
 
           OT.info "[login-success] #{sess.short_identifier} #{cust.obscure_email} #{cust.role} (new sessid)"
 
-          sess.custid             = cust.custid
+          sess.objid              = cust.objid
           sess.authenticated      = 'true'
           sess.default_expiration = session_ttl if @stay
           sess.save
           cust.save
 
           colonels = OT.conf.dig('site', 'authentication', 'colonels') || []
-          if colonels.member?(cust.custid)
+          if colonels.member?(cust.objid)
             cust.role = :colonel
           else
             cust.role = :customer unless cust.role?(:customer)
@@ -77,7 +78,7 @@ module V2::Logic
       private
 
       def form_fields
-        { custid: custid }
+        { objid: objid }
       end
     end
   end
