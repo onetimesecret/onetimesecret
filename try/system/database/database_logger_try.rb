@@ -58,8 +58,8 @@ commands = DatabaseLogger.capture_commands do
   cust.delete!
 end
 first_command = commands.first
-raise RuntimeError, "Command details missing" unless first_command&.key?(:command)
-[first_command.key?(:command), first_command.key?(:duration), first_command.key?(:timestamp)]
+raise RuntimeError, "Command details missing" unless first_command&.command
+[first_command.command.is_a?(Array), first_command.μs.is_a?(Numeric), first_command.timeline.is_a?(Numeric)]
 #=> [true, true, true]
 
 ## Command arrays contain Redis command names
@@ -71,7 +71,7 @@ commands = DatabaseLogger.capture_commands do
   cust.delete!
 end
 # Should see various Redis commands (HSET, DEL, etc.)
-command_names = commands.map { |cmd| cmd[:command].first }.uniq
+command_names = commands.map { |cmd| cmd.command.first }.uniq
 has_redis_commands = !command_names.empty? && command_names.all? { |name| name.is_a?(String) }
 has_redis_commands
 #=> true
@@ -85,21 +85,20 @@ commands = DatabaseLogger.capture_commands do
   cust.delete!
 end
 # All durations should be positive numbers
-durations_valid = commands.all? { |cmd| cmd[:duration].is_a?(Numeric) && cmd[:duration] > 0 }
+durations_valid = commands.all? { |cmd| cmd.μs.is_a?(Numeric) && cmd.μs > 0 }
 durations_valid
 #=> true
 
-## Timestamps are Time objects
+## Timeliens are Floats, ever increasing relative to the time the process started
 commands = DatabaseLogger.capture_commands do
   cust = V2::Customer.new
-  cust.custid = 'test-timestamps'
-  cust.email = 'timestamps@example.com'
+  cust.custid = 'test-timelines'
+  cust.email = 'timelines@example.com'
   cust.save
   cust.delete!
 end
-# All timestamps should be Time objects
-timestamps_valid = commands.all? { |cmd| cmd[:timestamp].is_a?(Time) }
-timestamps_valid
+# All timelines should be Time objects
+commands.all? { |cmd| cmd.timeline.is_a?(Float) }
 #=> true
 
 ## Logger can be set and retrieved
@@ -153,7 +152,7 @@ commands = DatabaseLogger.capture_commands do
 end
 
 # Should see various Redis commands
-command_types = commands.map { |cmd| cmd[:command].first }.uniq
+command_types = commands.map { |cmd| cmd.command.first }.uniq
 has_multiple_types = command_types.size > 1
 has_multiple_types
 #=> true
