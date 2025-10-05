@@ -7,9 +7,16 @@
 
 require_relative '../../support/test_helpers'
 
+ENV['DEBUG_DATABASE'] = 'true'
+
 # Enable database logging for these tests
 # This ensures the middleware is registered and capturing commands
 Familia.enable_database_logging = true unless Familia.enable_database_logging
+
+OT.boot! :test, true
+
+# Clear any commands captured by previous test files to ensure clean state
+DatabaseLogger.clear_commands
 
 # DatabaseLogger should be available after boot (it's a module from Familia)
 @middleware_module = DatabaseLogger
@@ -51,6 +58,7 @@ commands = DatabaseLogger.capture_commands do
   cust.delete!
 end
 first_command = commands.first
+raise RuntimeError, "Command details missing" unless first_command&.key?(:command)
 [first_command.key?(:command), first_command.key?(:duration), first_command.key?(:timestamp)]
 #=> [true, true, true]
 
@@ -161,3 +169,5 @@ end
 DatabaseLogger.clear_commands
 DatabaseLogger.commands.empty?
 #=> true
+
+ENV['DEBUG_DATABASE'] = 'false'
