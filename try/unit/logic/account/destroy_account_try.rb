@@ -23,7 +23,7 @@ OT.boot! :test, false
 @email_address = 'changeme@example.com'
 @now = DateTime.now
 @sess = V2::Session.new '255.255.255.255', 'anon'
-@cust = V2::Customer.new @email_address
+@cust = V2::Customer.new email: @email_address
 @params = {
   confirmation: 'pa55w0rd'
 }

@@ -18,7 +18,7 @@ OT.boot! :test, false
 @now = DateTime.now
 @email = 'test@onetimesecret.com'
 @sess = Session.new '255.255.255.255', 'anon'
-@cust = Customer.new @email
+@cust = Customer.new email: @email
 @cust.save
 @secret = Secret.new
 @secret.generate_id

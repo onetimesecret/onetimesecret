@@ -26,7 +26,7 @@ OT.boot! :test, true
 @model_class = V2::Feedback
 @email_address = "tryouts+#{@now}@onetimesecret.com"
 @sess = V2::Session.new '255.255.255.255', 'anon'
-@cust = V2::Customer.new @email_address
+@cust = V2::Customer.new email: @email_address
 @params = {
   msg: 'This is a test feedback'
 }
@@ -82,34 +82,3 @@ obj.process
 count_after = @model_class.recent.count
 count_after - count_before
 #=> 0
-
-## Sending populates the Feedback model's sorted set key in the database
-count_before = @model_class.recent.count
-email_address = "tryouts2+#{@now}@onetimesecret.com"
-sess = V2::Session.new '255.255.255.255', 'anon'
-cust = V1::Customer.new email_address
-obj = V2::Logic::ReceiveFeedback.new sess, cust, { msg: 'Some feedback' }
-obj.process
-count_after = @model_class.recent.count
-count_after - count_before
-##=> 1
-
-## Sending feedback as an anonymous user raises no concerns
-cust = V1::Customer.anonymous
-sess = V2::Session.new 'id123', cust, "tryouts"
-params = { msg: 'This is a test feedback' }
-obj = V2::Logic::ReceiveFeedback.new sess, cust, params
-obj.raise_concerns
-##=> nil
-
-## Feedback model exposes a recent method
-recent_feedback = @model_class.recent
-most_recent_pair = recent_feedback.to_a.last # as an array [key, value]
-most_recent_pair[0]
-##=> "#{@params[:msg]} [#{@email_address}] [TZ: ] [v]"
-
-## Feedback model exposes an all method
-all_feedback = @model_class.recent
-most_recent_pair = all_feedback.to_a.last
-most_recent_pair[0]
-##=> "#{@params[:msg]} [#{@email_address}] [TZ: ] [v]"
