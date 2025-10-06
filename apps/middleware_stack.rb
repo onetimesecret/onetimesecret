@@ -68,7 +68,7 @@ module MiddlewareStack
 
       # Request Setup Middleware (Web Core)
       # Initialize request context (nonce, locale) before other processing
-      require 'apps/web/core/middleware/request_setup'
+      require_relative 'web/core/middleware/request_setup'
       builder.use Core::Middleware::RequestSetup
 
       # Security Middleware Configuration
@@ -81,7 +81,7 @@ module MiddlewareStack
       # Error Handling Middleware (Web Core)
       # Simplified error handling for Vue SPA - serves entry points
       # Must come after security but before router to catch all downstream errors
-      require 'apps/web/core/middleware/error_handling'
+      require_relative 'web/core/middleware/error_handling'
       builder.use Core::Middleware::ErrorHandling
 
       # Performance Optimization
