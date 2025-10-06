@@ -8,7 +8,7 @@ module Onetime
 
       literally_all_domain_ids = Onetime::CustomDomain.values.all
       all_domains              = literally_all_domain_ids.map do |did|
-        Onetime::CustomDomain.from_identifier(did)
+        Onetime::CustomDomain.find_by_identifier(did)
       end
 
       # Group domains by display_domain

@@ -1,0 +1,69 @@
+---
+# Custom Compliance Checklist for Onetime Secret
+#
+# This file defines custom compliance rules for Qodo Merge PR reviews.
+# Each rule is evaluated during PR analysis to ensure code quality and
+# best practices.
+
+pr_compliances:
+  - title: "ErrorHandling"
+    compliance_label: true
+    objective: "All external API calls must have proper error handling"
+    success_criteria: >
+      Try-catch blocks around external calls with appropriate logging
+    failure_criteria: >
+      External API calls without error handling or logging
+
+  - title: "TestCoverage"
+    compliance_label: true
+    objective: "All new features and bug fixes must include corresponding tests"
+    success_criteria: >
+      New or modified tests (tryouts, RSpec, Vitest, or Playwright)
+      are present that exercise the logic changes in the PR.
+    failure_criteria: >
+      New code is added or existing code is modified without corresponding
+      tests to validate the changes.
+
+  - title: "DatabaseOperations"
+    compliance_label: true
+    objective: "Database operations should use Familia ORM patterns"
+    success_criteria: >
+      Database operations use Familia methods and follow established patterns
+    failure_criteria: >
+      Direct database calls or bypassing Familia ORM without justification
+
+  - title: "TypeSafety"
+    compliance_label: true
+    objective: "TypeScript code should maintain type safety"
+    success_criteria: >
+      Proper type definitions, minimal use of 'any',
+      proper schema validation
+    failure_criteria: >
+      Excessive use of 'any' type or missing type definitions
+
+  - title: "I18nSupport"
+    compliance_label: true
+    objective: "User-facing strings should be internationalized"
+    success_criteria: >
+      User-facing strings use i18n keys ($t() in Vue, proper locale keys)
+    failure_criteria: "Hardcoded user-facing strings without i18n support"
+
+  - title: "SecretsDetection"
+    compliance_label: true
+    objective: "Code must not contain hardcoded secrets"
+    success_criteria: >
+      The PR does not introduce any hardcoded secrets like API keys,
+      passwords, or private certificates. All secrets are loaded from
+      a secure configuration source.
+    failure_criteria: >
+      Hardcoded credentials, tokens, or other secrets are found in the code.
+
+  - title: "WebSecurity"
+    compliance_label: true
+    objective: "Prevent common web application vulnerabilities"
+    success_criteria: >
+      User-controlled input is properly sanitized before being rendered in HTML
+      to prevent XSS. Database queries are parameterized to prevent SQL injection.
+    failure_criteria: >
+      Raw user input is used in a way that could lead to XSS, SQL injection,
+      or other common web vulnerabilities.

@@ -30,7 +30,11 @@ Onetime::Utils.instance_variable_set(:@fortunes, @original_fortunes)
 result
 #=> 'Unexpected outcomes bring valuable lessons.'
 
-## random_fortune handles unexpected errors gracefull
+## random_fortune handles unexpected errors gracefully
+# This test intentionally injects an exception to verify error handling.
+# Expected behavior: catch the exception, log it, and return a fallback fortune.
+# The exception logged during this test is part of the test itself, not a failure.
+
 # Store original fortunes
 @original_fortunes = Onetime::Utils.instance_variable_get(:@fortunes)
 
@@ -38,7 +42,8 @@ result
 test_array = ['test fortune']
 test_array.define_singleton_method(:sample) { raise StandardError, "Test error" }
 
-# Set our test array and execute the method
+# Set our test array and execute the method. This will trigger the exception,
+# which should be caught and logged by random_fortune.
 Onetime::Utils.instance_variable_set(:@fortunes, test_array)
 result = Onetime::Utils.random_fortune
 

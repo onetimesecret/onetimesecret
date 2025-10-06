@@ -23,7 +23,7 @@ OT.boot! :test, true # if this is false, all models will have db 0
 
 @now = Time.now
 @email_address = "tryouts29+#{@now.to_i}@onetimesecret.com"
-@cust = Customer.new @email_address
+@cust = Customer.new email: @email_address
 
 @valid_domain = 'another.subdomain.onetimesecret.com'
 @valid_domain2 = 'another2.subdomain.onetimesecret.com'

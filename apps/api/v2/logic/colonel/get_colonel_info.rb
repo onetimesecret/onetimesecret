@@ -78,9 +78,11 @@ module V2
         def process_statistics
           @metadata_count  = Onetime::Metadata.new.dbclient.keys('metadata*:object').count
           @secret_count    = Onetime::Secret.new.dbclient.keys('secret*:object').count
-          @secrets_created = Onetime::Customer.global.secrets_created.to_s
-          @secrets_shared  = Onetime::Customer.global.secrets_shared.to_s
-          @emails_sent     = Onetime::Customer.global.emails_sent.to_s
+          # TODO:
+          # @secrets_created = V2::Customer.global.secrets_created.to_s
+          # @secrets_shared  = V2::Customer.global.secrets_shared.to_s
+          # @secrets_burned  = V2::Customer.global.secrets_burned.to_s
+          # @emails_sent     = V2::Customer.global.emails_sent.to_s
         end
         private :process_statistics
 

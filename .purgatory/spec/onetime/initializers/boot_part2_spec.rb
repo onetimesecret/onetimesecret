@@ -5,7 +5,7 @@ require 'fileutils'
 require 'yaml'
 require 'erb'
 
-RSpec.describe "Onetime global state after boot" do
+RSpec.describe "Onetime global state after boot", :allow_redis do
   let(:source_config_path) { File.expand_path(File.join(Onetime::HOME, 'spec', 'config.test.yaml')) }
   let(:loaded_config) { YAML.load(ERB.new(File.read(source_config_path)).result) }
 
@@ -64,6 +64,7 @@ RSpec.describe "Onetime global state after boot" do
     stub_const('V2::SystemSettings', system_settings_stub)
 
     # Other common mocks
+    allow(Onetime).to receive(:detect_legacy_data_and_warn) # Skip legacy data detection in boot tests
     allow(Onetime).to receive(:connect_databases).and_return(true)
     allow(Onetime).to receive(:print_log_banner).and_return(nil)
 
