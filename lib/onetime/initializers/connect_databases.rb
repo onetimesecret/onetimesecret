@@ -32,7 +32,7 @@ module Onetime
       # Belt-and-suspenders reconnection resilience:
       # 1. ConnectionPool retries checkout once on connection errors
       # 2. Redis driver retries once with minimal delay for stale connections
-      pool = ConnectionPool.new(size: pool_size, timeout: pool_timeout, reconnect_attempts: 1) do
+      OT.redis_pool = ConnectionPool.new(size: pool_size, timeout: pool_timeout, reconnect_attempts: 1) do
         parsed_uri = Familia.normalize_uri(uri)
         Redis.new(parsed_uri.conf.merge(
           reconnect_attempts: [
@@ -52,7 +52,7 @@ module Onetime
         # Returns pooled connection, pool.with handles checkout/checkin automatically
         # Reconnection handled at pool + Redis level prevents "idle connection death"
         config.connection_provider = ->(provided_uri) do
-          pool.with { |conn| conn }
+          OT.redis_pool.with { |conn| conn }
         end
 
         config.transaction_mode = :warn
@@ -60,13 +60,13 @@ module Onetime
       end
 
       # Verify connectivity using pool (tests first connection + reconnection config)
-      ping_result = pool.with { |conn| conn.ping }
+      ping_result = OT.redis_pool.with { |conn| conn.ping }
       OT.ld "Connected #{Familia.members.size} models to DB 0 via connection pool " \
             "(size: #{pool_size}, timeout: #{pool_timeout}s) - #{ping_result}"
 
       # Optional: Single migration flag for entire DB 0
       dbkey      = Familia.join(%w[ots migration_needed db_0])
-      first_time = pool.with { |conn| conn.setnx(dbkey, '1') } # Direct pool usage for setup
+      first_time = OT.redis_pool.with { |conn| conn.setnx(dbkey, '1') } # Direct pool usage for setup
       OT.ld "[connect_databases] Setting #{dbkey} to '1' (already set? #{!first_time})"
     end
   end
