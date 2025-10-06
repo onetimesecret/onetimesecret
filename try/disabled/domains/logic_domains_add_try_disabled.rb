@@ -22,11 +22,11 @@ OT.boot! :test, false
 @now = DateTime.now
 @email = "test#{SecureRandom.uuid}@onetimesecret.com"
 @sess = V2::Session.new '255.255.255.255', 'anon'
-@cust = V2::Customer.new email: @email
+@cust = Onetime::Customer.new email: @email
 @cust.save
 @domain_input = 'test.example.com'
 @domain_input2 = 'test2.example.com'
-@custom_domain = V2::CustomDomain.create @domain_input, @cust.custid
+@custom_domain = Onetime::CustomDomain.create @domain_input, @cust.custid
 @cust.add_custom_domain @custom_domain
 
 # AddDomain Tests
@@ -111,7 +111,7 @@ end
 
 ## Test domain normalization
 email = "test#{SecureRandom.uuid}@onetimesecret.com"
-cust = V2::Customer.new email
+cust = Onetime::Customer.new email
 @add_params = { domain: '  TEST.EXAMPLE.COM  ' }
 logic = V2::Logic::Domains::AddDomain.new @sess, cust, @add_params
 logic.raise_concerns

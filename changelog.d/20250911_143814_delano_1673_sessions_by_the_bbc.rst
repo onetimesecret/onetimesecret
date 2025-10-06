@@ -9,7 +9,7 @@ Added
 Changed
 -------
 
-- Controllers now use env['onetime.session'] instead of custom V2::Session model
+- Controllers now use env['onetime.session'] instead of custom Onetime::Session model
 - Identity resolution middleware updated to read from standard Rack sessions
 - Session persistence moved from custom Familia model to Rack::Session standard
 - Colonel stats tracking simplified with session counting removed (handled by middleware)

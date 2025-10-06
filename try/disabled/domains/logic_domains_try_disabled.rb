@@ -33,7 +33,7 @@ end
 @now = DateTime.now
 @email = "test+#{Time.now.to_i}@onetimesecret.com"
 @sess = V2::Session.new '255.255.255.255', 'anon'
-@cust = V2::Customer.new email: @email
+@cust = Onetime::Customer.new email: @email
 @cust.save
 @domain_input = "test#{Time.now.to_i}.example.com"
 @custom_domain = CustomDomain.create @domain_input, @cust.custid

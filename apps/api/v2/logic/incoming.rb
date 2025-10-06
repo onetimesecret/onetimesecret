@@ -49,7 +49,7 @@ module V2
               cust.increment :secrets_created
             end
             # TODO:
-            # V2::Customer.global.increment :secrets_created
+            # Onetime::Customer.global.increment :secrets_created
             unless recipient.nil? || recipient.empty?
               metadata.deliver_by_email cust, locale, secret, recipient.first, Onetime::Mail::IncomingSupport, ticketno
             end

@@ -21,9 +21,9 @@ require 'core/views'
 OT.boot! :test, false
 
 @email = "tryouts+42+#{Time.now.to_i}@onetimesecret.com"
-@cust = V1::Customer.create @email
-@metadata = V2::Metadata.create
-@secret = V2::Secret.create value: "This is a secret message"
+@cust = Onetime::Customer.create @email
+@metadata = Onetime::Metadata.create
+@secret = Onetime::Secret.create value: "This is a secret message"
 @metadata.secret_key = @secret.key
 @metadata.save
 
@@ -74,7 +74,7 @@ authenticated_value
 ## Handles unauthenticated user correctly
 unauthenticated_sess = MockSession.new
 def unauthenticated_sess.authenticated?; false; end
-view = Core::Views::VuePoint.new(@req, unauthenticated_sess, V1::Customer.anonymous, 'en', @metadata)
+view = Core::Views::VuePoint.new(@req, unauthenticated_sess, Onetime::Customer.anonymous, 'en', @metadata)
 authenticated_value = view.serialized_data['authenticated']
 authenticated_value
 #=> false

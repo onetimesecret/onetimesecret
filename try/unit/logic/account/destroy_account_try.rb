@@ -23,7 +23,7 @@ OT.boot! :test, false
 @email_address = 'changeme@example.com'
 @now = DateTime.now
 @sess = V2::Session.new '255.255.255.255', 'anon'
-@cust = V2::Customer.new email: @email_address
+@cust = Onetime::Customer.new email: @email_address
 @params = {
   confirmation: 'pa55w0rd'
 }
@@ -74,7 +74,7 @@ end
 
 
 ## Raises an error if the password is incorrect
-cust = V2::Customer.new email: generate_random_email
+cust = Onetime::Customer.new email: generate_random_email
 obj = V2::Logic::Account::DestroyAccount.new @sess, cust, @params
 cust.update_passphrase 'wrong password'
 begin
@@ -86,7 +86,7 @@ end
 
 
 ## No errors are raised as long as the password is correct
-cust = V2::Customer.new email: generate_random_email
+cust = Onetime::Customer.new email: generate_random_email
 password_guess = @params[:confirmation]
 obj = V2::Logic::Account::DestroyAccount.new @sess, cust, @params
 cust.update_passphrase password_guess # update the password to be correct
@@ -105,14 +105,14 @@ end
 #=> [Onetime::FormError, "We have concerns about that request."]
 
 ## Process the request and destroy the account
-cust = V2::Customer.new email: generate_random_email
+cust = Onetime::Customer.new email: generate_random_email
 obj = V2::Logic::Account::DestroyAccount.new @sess, cust, @params
 cust.update_passphrase @params[:confirmation] # set the passphrase
 obj.raise_concerns
 obj.process
 
 # NOTE: When running in debug mode, we intentionally don't call
-# V2::Customer#destroy_requested! so the passphrase doesn't get
+# Onetime::Customer#destroy_requested! so the passphrase doesn't get
 # cleared out, causing this test to fail.
 # See DestroyAccount for more details.
 post_destroy_passphrase = if Onetime.debug
@@ -124,7 +124,7 @@ end
 #=> ['user_deleted_self', 'false', '']
 
 ## Destroyed account gets a new api key
-cust = V2::Customer.new email: generate_random_email
+cust = Onetime::Customer.new email: generate_random_email
 first_token = cust.regenerate_apitoken  # first we need to set an api key
 obj = V2::Logic::Account::DestroyAccount.new @sess, cust, @params
 cust.update_passphrase @params[:confirmation]

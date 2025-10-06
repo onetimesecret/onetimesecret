@@ -1,7 +1,7 @@
 # try/22_value_encryption_try.rb
 
 # These tryouts test the encryption and decryption functionality
-# of the V2::Secret class.
+# of the Onetime::Secret class.
 #
 # We're testing various aspects of secret handling, including:
 # 1. Storing a value
@@ -22,32 +22,32 @@ require_relative '../../support/test_models'
 OT.boot! :test, false
 
 ## Can store a value
-s = V2::Secret.new :shared
+s = Onetime::Secret.new :shared
 s.value = 'plop'
 s.value
 #=> 'plop'
 
 ## Can encrypt a value
-s = V2::Secret.new :shared
+s = Onetime::Secret.new :shared
 s.encrypt_value 'plop', key: 'tryouts'
 puts "The value checksum is the gibbled value after being truncated (if needed)"
 s.value.nil?
 #=> false
 
 ## Can decrypt a value
-s = V2::Secret.new :shared
+s = Onetime::Secret.new :shared
 s.encrypt_value 'plop', key: 'tryouts'
 s.decrypted_value
 #=> 'plop'
 
 ## Decrypt does nothing if encrypt_value wasn't called
-s = V2::Secret.new :shared2
+s = Onetime::Secret.new :shared2
 s.value = 'plop'
 s.decrypted_value
 #=> 'plop'
 
 ## Cannot decrypt after changing global secret
-s = V2::Secret.new :shared
+s = Onetime::Secret.new :shared
 s.encrypt_value 'plop', key: 'tryouts'
 Onetime.instance_variable_set(:@global_secret, 'NEWVALUE')
 begin
@@ -57,4 +57,4 @@ rescue StandardError => e
 end
 #=> OpenSSL::Cipher::CipherError
 
-V2::Secret.new(:shared).destroy!
+Onetime::Secret.new(:shared).destroy!

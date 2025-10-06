@@ -17,12 +17,12 @@ require_relative '../../../support/test_logic'
 OT.boot! :test, false
 
 @email = "tryouts+#{Time.now.to_i}@onetimesecret.com"
-@cust = V2::Customer.create email: @email
+@cust = Onetime::Customer.create email: @email
 
 # Define a lambda to create and return a new metadata instance
 @create_metadata = lambda {
-  metadata = V2::Metadata.create
-  secret = V2::Secret.create(value: "This is a secret message")
+  metadata = Onetime::Metadata.create
+  secret = Onetime::Secret.create(value: "This is a secret message")
   metadata.secret_key = secret.key
   metadata.save
   metadata
@@ -236,8 +236,8 @@ logic.process
 
 ## Correctly determines if secret is NOT a one-liner (see note above
 ## about why logic.secret.viewable? reports false after running process).
-metadata = V2::Metadata.create
-secret = V2::Secret.create value: "Line 1\nLine 2\nLine 3\nLine4\nLine5\nLine6"
+metadata = Onetime::Metadata.create
+secret = Onetime::Secret.create value: "Line 1\nLine 2\nLine 3\nLine4\nLine5\nLine6"
 metadata.secret_key = secret.key
 metadata.save
 params = {
@@ -250,8 +250,8 @@ logic.process
 #=> [false, false]
 
 ## Correctly determines display lines for multi-line secrets
-metadata = V2::Metadata.create
-secret = V2::Secret.create value: "Line 1\nLine 2\nLine 3\nLine4\nLine5\nLine6"
+metadata = Onetime::Metadata.create
+secret = Onetime::Secret.create value: "Line 1\nLine 2\nLine 3\nLine4\nLine5\nLine6"
 metadata.secret_key = secret.key
 metadata.save
 params = {

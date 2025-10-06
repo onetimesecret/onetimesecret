@@ -2,7 +2,7 @@
 #
 # This file provides convenient access to model classes for testing purposes.
 # It creates top-level constants (e.g., Customer) to versioned namespaces
-# (e.g., V2::Customer), allowing tests to use cleaner, more readable code
+# (e.g., Onetime::Customer), allowing tests to use cleaner, more readable code
 # without version-specific references.
 #
 # Future improvement: Version selection will be controlled via environment
@@ -21,7 +21,7 @@ require 'onetime/models'
 TestVersion = Onetime::CURRENT_API_VERSION
 
 # Map commonly used models to top-level constants for cleaner test code
-Customer = TestVersion::Customer # e.g. V2::Customer
+Customer = TestVersion::Customer # e.g. Onetime::Customer
 CustomDomain = TestVersion::CustomDomain
 Session = TestVersion::Session
 Metadata = TestVersion::Metadata
