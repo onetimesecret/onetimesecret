@@ -20,6 +20,7 @@ module Core
             }
           )
 
+        # TODO: Remove from web/core completely
         logic = V2::Logic::Incoming::CreateIncoming.new strategy_result, req.params, locale
         logic.raise_concerns
         logic.process

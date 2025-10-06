@@ -115,8 +115,7 @@ module Core
 
           @cust = logic.cust
 
-          # TODO: Do we need to replace this now that cookie is via middleware?
-          # res.send_secure_cookie :sess, sess.sessid, sess.default_expiration
+          # Session cookie handled by Rack::Session middleware
 
           res.redirect '/account'
       end

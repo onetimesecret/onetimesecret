@@ -5,7 +5,7 @@ GET   /                                          Core::Controllers::Page#index a
 GET   /feedback                                  Core::Controllers::Page#index auth=publicly
 GET   /404                                       Core::Controllers::Page#not_found auth=publicly
 GET   /500                                       Core::Controllers::Page#server_error auth=publicly
-GET   /robots.txt                                Core::Controllers::Robots#robots_txt auth=publicly
+GET   /robots.txt                                Core::Controllers::Page#robots_txt auth=publicly
 
 # Signup/Signin routes - public access
 GET   /signin                                    Core::Controllers::Page#index auth=publicly
@@ -17,8 +17,8 @@ POST  /signup                                    Core::Controllers::Registration
 # Password reset - public access
 GET   /forgot                                    Core::Controllers::Page#index auth=publicly
 GET   /forgot/:key                               Core::Controllers::Page#index auth=publicly
-POST  /forgot                                    Core::Controllers::PasswordReset#request_reset auth=publicly
-POST  /forgot/:key                               Core::Controllers::PasswordReset#request_reset auth=publicly
+POST  /forgot                                    Core::Controllers::Registration#request_reset auth=publicly
+POST  /forgot/:key                               Core::Controllers::Registration#request_reset auth=publicly
 
 # Stripe/Payment routes - public access
 GET   /plans/:tier                               Core::Controllers::Welcome#plan_redirect auth=publicly
@@ -28,7 +28,7 @@ POST  /welcome/stripe/webhook                    Core::Controllers::Welcome#welc
 
 # Data export/import - public for now (may need auth review)
 POST  /incoming                                  Core::Controllers::DataIncoming#create_incoming auth=publicly
-GET   /window                                    Core::Controllers::DataExport#export_window auth=publicly
+GET   /window                                    Core::Controllers::Page#export_window auth=publicly
 
 # Vue SPA catch-all routes - public (Vue handles auth client-side)
 GET   /private/*                                 Core::Controllers::Page#index auth=publicly
@@ -36,18 +36,18 @@ GET   /receipt/*                                 Core::Controllers::Page#index a
 GET   /secret/*                                  Core::Controllers::Page#index auth=publicly
 
 # Authenticated routes - require valid session
-GET   /logout                                    Core::Controllers::Session#logout auth=authenticated
-GET   /dashboard                                 Core::Controllers::Page#customers_only auth=authenticated
-GET   /recent                                    Core::Controllers::Page#customers_only auth=authenticated
-GET   /domains/*                                 Core::Controllers::Page#customers_only auth=authenticated
-GET   /domains                                   Core::Controllers::Page#customers_only auth=authenticated
-GET   /account/*                                 Core::Controllers::Page#customers_only auth=authenticated
-GET   /account                                   Core::Controllers::Page#customers_only auth=authenticated
+GET   /logout                                    Core::Controllers::Authentication#logout auth=authenticated
+GET   /dashboard                                 Core::Controllers::Page#index auth=authenticated
+GET   /recent                                    Core::Controllers::Page#index auth=authenticated
+GET   /domains/*                                 Core::Controllers::Page#index auth=authenticated
+GET   /domains                                   Core::Controllers::Page#index auth=authenticated
+GET   /account/*                                 Core::Controllers::Page#index auth=authenticated
+GET   /account                                   Core::Controllers::Page#index auth=authenticated
 GET   /account/billing_portal                    Core::Controllers::Welcome#customer_portal_redirect auth=authenticated
 
 # Colonel routes - require colonel role
-GET   /colonel                                   Core::Controllers::Page#colonels_only auth=colonel
-GET   /colonel/*                                 Core::Controllers::Page#colonels_only auth=colonel
+GET   /colonel                                   Core::Controllers::Page#index auth=colonel
+GET   /colonel/*                                 Core::Controllers::Page#index auth=colonel
 
 # Image generation - authenticated
-GET   /imagine/:custom_domain_id/:image_type.:image_ext  Core::Controllers::Image#imagine auth=authenticated
+GET   /imagine/:custom_domain_id/:image_type.:image_ext  Core::Controllers::Page#imagine auth=authenticated
