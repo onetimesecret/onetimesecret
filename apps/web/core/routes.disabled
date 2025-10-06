@@ -1,5 +1,7 @@
 # apps/web/core/routes.disabled
 
+# An alternate Otto routes configuration used when
+# the web UI is disabled.
+
 GET   /                                          Core::Controllers::Page#not_found
 GET   /robots.txt                                Core::Controllers::Page#robots_txt
-GET   /*

@@ -66,12 +66,23 @@ module MiddlewareStack
         builder.use Sentry::Rack::CaptureExceptions
       end
 
+      # Request Setup Middleware
+      # Initialize request context (nonce, locale) before other processing
+      require 'middleware/request_setup'
+      builder.use Middleware::RequestSetup
+
       # Security Middleware Configuration
       # Configures security-related middleware components based on application settings
       require 'onetime/middleware/security'
 
       Onetime.ld '[config.ru] Setting up Security middleware'
       builder.use Onetime::Middleware::Security
+
+      # Error Handling Middleware
+      # Centralized exception handling for all Onetime errors
+      # Must come after security but before router to catch all downstream errors
+      require 'middleware/error_handling'
+      builder.use Middleware::ErrorHandling
 
       # Performance Optimization
       # Support running with code frozen in production-like environments

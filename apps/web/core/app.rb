@@ -26,6 +26,10 @@ module Core
       # Enable CSP nonce support for enhanced security
       router.enable_csp_with_nonce!(debug: OT.debug?)
 
+      # Register Web Core authentication strategies
+      require 'onetime/web_auth_strategies'
+      Onetime::WebAuthStrategies.register_all(router)
+
       # Default error responses
       headers             = { 'content-type' => 'text/html' }
       router.not_found    = [404, headers, ['Not Found']]
