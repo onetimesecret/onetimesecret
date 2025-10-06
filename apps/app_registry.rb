@@ -8,7 +8,7 @@ unless defined?(APPS_ROOT)
   APPS_ROOT = File.join(project_root, 'apps').freeze
   $LOAD_PATH.unshift(APPS_ROOT)
 
-  # Add the lib directory for the core project.
+  # Add the main lib directory for the project.
   LIB_ROOT = File.join(project_root, 'lib').freeze
   $LOAD_PATH.unshift(LIB_ROOT)
 

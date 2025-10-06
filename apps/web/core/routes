@@ -1,6 +1,8 @@
 # apps/web/core/routes
 
-GET   /                                          Core::Controllers::Page#index
+GET   /                                          Core::Controllers::Page#index auth=publically
+GET   /1                                          Core::Controllers::Page#index auth=authenticated
+GET   /2                                          Core::Controllers::Page#index auth=authenticated response=json
 GET   /feedback                                  Core::Controllers::Page#index
 GET   /404                                       Core::Controllers::Page#not_found
 GET   /500                                       Core::Controllers::Page#server_error

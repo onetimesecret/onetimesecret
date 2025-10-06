@@ -200,10 +200,8 @@ module Core
       # Common page rendering methods moved from Page controller
 
       def index
-        publically do
-          view     = Core::Views::VuePoint.new request, session, cust, locale
-          res.body = view.render
-        end
+        view     = Core::Views::VuePoint.new request, session, cust, locale
+        res.body = view.render
       end
 
       def customers_only
