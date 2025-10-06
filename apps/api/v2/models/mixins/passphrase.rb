@@ -36,7 +36,7 @@ module V2
         ret
       rescue BCrypt::Errors::InvalidHash => ex
         prefix = '[passphrase?]'
-        OT.ld "#{prefix} Invalid passphrase hash: #{ex.message}"
+        OT.li "#{prefix} Invalid passphrase hash: #{ex.message}"
         (!guess.to_s.empty? && passphrase.to_s.downcase.strip == guess.to_s.downcase.strip)
       end
     end

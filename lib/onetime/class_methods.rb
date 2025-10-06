@@ -247,36 +247,36 @@ module Onetime
 
     # Convenience methods for environment checking
     def production?(&)
-      env_matches?(%w[prod production], &)
+      in_environment?(%w[prod production], &)
     end
 
     def development?(&)
-      env_matches?(%w[dev development], &)
+      in_environment?(%w[dev development], &)
     end
 
     def testing?(&)
-      env_matches?(%w[test testing], &)
+      in_environment?(%w[test testing], &)
     end
 
     def staging?(&)
-      env_matches?(%w[stage staging], &)
+      in_environment?(%w[stage staging], &)
+    end
+
+    def env?(guess)
+      env.eql?(guess.to_s.downcase)
     end
 
     # Returns the normalized application environment
     # Defaults to 'production' when uncertain for maximum security
     # @return [String] environment name
     def env
-      env = ENV['RACK_ENV'] || 'production'
-
-      # Normalize abbreviated environment names
-      case env
-      when 'dev'  then 'development'
-      when 'prod' then 'production'
-      when 'stage', 'staging' then 'staging'
+      case ENV.fetch('RACK_ENV', 'production').downcase
+      when 'dev', 'development' then 'development'
+      when 'stage', 'staging'   then 'staging'
       when 'test', 'testing' then 'testing'
+      when 'prod', 'production' then 'production'
       else
-        # Valid environment names pass through, unknown values become 'production'
-        %w[development production testing staging].include?(env) ? env : 'production'
+        raise "Unknown environment: #{ENV.fetch('RACK_ENV', nil)}"
       end
     end
 
@@ -292,18 +292,18 @@ module Onetime
     # @note Requires Ruby 2.7+ for _1 numbered parameter syntax
     #
     # @example Basic matching
-    #   env_matches?(['development', 'dev'])  #=> true/false
+    #   in_environment?(['development', 'dev'])  #=> true/false
     #
     # @example With block execution
-    #   env_matches?(['production']) { setup_monitoring }
+    #   in_environment?(['production']) { setup_monitoring }
     #
     # @example Block with conditional execution
-    #   env_matches?(['development', 'staging']) do
+    #   in_environment?(['development', 'staging']) do
     #     puts "Running in non-production environment"
     #     enable_debug_logging
     #   end
     #
-    def env_matches?(patterns, &block)
+    def in_environment?(patterns, &block)
       result = patterns.any? { env == it }
       block&.call if result
       result

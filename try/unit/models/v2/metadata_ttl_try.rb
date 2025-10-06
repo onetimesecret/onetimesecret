@@ -86,8 +86,11 @@ result['passphrase_required']
 @metadata.custid = nil
 @metadata.save
 result = V1::Controllers::Index.metadata_hsh(@metadata)
+# As of familia-2.0.0-pre18, nils are are JSON serialized to "null" which
+# means they now deserialize back to nils. In previous versions, the
+# expectation here was an empty string.
 result['custid']
-#=> ""
+#=> nil
 
 ## Handling nil secret_key
 @metadata.secret_key = nil
@@ -100,8 +103,11 @@ result['secret_key']
 @metadata.state = nil
 @metadata.save
 result = V1::Controllers::Index.metadata_hsh(@metadata)
+# As of familia-2.0.0-pre18, nils are are JSON serialized to "null" which
+# means they now deserialize back to nils. In previous versions, the
+# expectation here was an empty string.
 result['state']
-#=> ''
+#=> nil
 
 ## Handling nil updated timestamp, is overridden when saved
 @metadata.updated = nil

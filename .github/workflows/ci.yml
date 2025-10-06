@@ -5,21 +5,22 @@ name: CI
 # Main CI workflow that runs Ruby tests using RSpec and tryouts, plus TypeScript
 # tests using Vitest and validation steps (linting, type-checking).
 #
-# The workflow is triggered by push events on branches starting with "fix/" or
-# "rel/", pull requests on main/develop/feature/* branches, and manual dispatch.
+# Triggers:
+# - Push to main/develop branches
+# - Pull requests targeting main/develop/feature/* (opened, updated, reopened)
+# - Manual workflow dispatch
 #
-# The workflow has jobs for:
+# Jobs:
 # - Ruby testing (RSpec and tryouts) across multiple Ruby versions
 # - TypeScript testing (Vitest) and validation (linting, type-checking)
-#
-# This workflow ensures comprehensive testing across the full stack.
 
 on:
   push:
     branches:
-      - fix/*
-      - rel/*
+      - main
+      - develop
   pull_request:
+    types: [opened, synchronize, reopened]
     branches:
       - main
       - develop
@@ -140,6 +141,7 @@ jobs:
         continue-on-error: ${{ matrix.continue-on-error }}
         env:
           REDIS_URL: 'redis://127.0.0.1:2121/0'
+          RACK_ENV: 'test'
         run: |
           bundle exec tryouts -vf try
 

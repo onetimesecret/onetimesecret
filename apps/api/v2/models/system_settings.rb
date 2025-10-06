@@ -291,7 +291,7 @@ module V2
       def all
         # Load all instances from the sorted set. No need
         # to involve the owners HashKey here.
-        self.instances.revrangeraw(0, -1).collect { |identifier| from_identifier(identifier) }
+        self.instances.revrangeraw(0, -1).collect { |identifier| find_by_identifier(identifier) }
       end
 
       def recent duration=7.days
