@@ -49,7 +49,7 @@ OPTIONS /secret/conceal                           V2::Logic::Secrets::ConcealSec
 GET    /supported-locales                         V2::Logic::Meta.get_supported_locales response=json
 GET    /status                                    V2::Logic::Meta.system_status response=json
 GET    /version                                   V2::Logic::Meta.system_version response=json
-POST   /feedback                                  V2::Logic::Meta::ReceiveFeedback response=json auth=onetime_optional
+POST   /feedback                                  V2::Logic::ReceiveFeedback response=json auth=onetime_optional
 
 # Colonel/Admin endpoints
 GET    /colonel/info                              V2::Logic::Colonel::GetColonelInfo response=json auth=onetime_colonel
