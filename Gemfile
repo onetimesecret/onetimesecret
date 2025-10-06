@@ -61,7 +61,7 @@ gem 'truemail'
 # ====================================
 
 # ORMs and database drivers
-gem 'familia', '~> 2.0.0.pre17'
+gem 'familia', '~> 2.0.0.pre18'
 gem 'sequel', '~> 5.0'
 
 database_adapter = ENV.fetch('DATABASE_ADAPTER', 'sqlite3').downcase
@@ -82,18 +82,8 @@ gem 'uri-valkey', '~> 1.4.0'
 
 gem 'bcrypt', '~> 3.1'
 gem 'encryptor', '= 1.1.3'
-gem 'jwt', '~> 2.7'
-# Advanced authentication
 gem 'rotp', '~> 6.2'
-gem 'rqrcode', '~> 2.2'
 gem 'webauthn', '~> 3.0'
-
-# ====================================
-# Internal Dependencies (local dev)
-# ====================================
-
-gem 'familia', '~> 2.0.0.pre18'
-gem 'otto', '~> 1.4.0' #'~> 2.0.0.pre1'
 
 # ====================================
 # Ruby Standard Library Compatibility
