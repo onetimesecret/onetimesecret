@@ -82,6 +82,7 @@ gem 'uri-valkey', '~> 1.4.0'
 
 gem 'bcrypt', '~> 3.1'
 gem 'encryptor', '= 1.1.3'
+gem 'rqrcode', '~> 3.1'
 gem 'rotp', '~> 6.2'
 gem 'webauthn', '~> 3.0'
 
