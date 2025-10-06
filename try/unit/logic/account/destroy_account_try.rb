@@ -48,7 +48,6 @@ obj = V2::Logic::Account::DestroyAccount.new @sess, @cust
 begin
   obj.raise_concerns
 rescue => e
-  puts e.backtrace
   [e.class, e.message]
 end
 #=> [Onetime::FormError, 'Please check the password.']
@@ -121,7 +120,6 @@ post_destroy_passphrase = if Onetime.debug
 else
   cust.passphrase
 end
-puts [cust.role, cust.verified, post_destroy_passphrase]
 [cust.role, cust.verified, post_destroy_passphrase]
 #=> ['user_deleted_self', 'false', '']
 
