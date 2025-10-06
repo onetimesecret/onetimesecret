@@ -25,6 +25,34 @@ secret_provider="google_cloud_storage"
 cli_mode=false
 ai_disclaimer_title=""  # Pro feature, title for a collapsible disclaimer to AI outputs
 ai_disclaimer=""  # Pro feature, full text for the AI disclaimer
+response_language = "en"  # Ensure consistent review language
+
+[rag]
+# Enable RAG context enrichment for codebase duplication detection
+enable = true
+repositories = ['onetimesecret/onetimesecret']
+
+[ignore]
+# Reduce noise by excluding generated files, build artifacts, and binaries
+glob = [
+  "*.lock", "pnpm-lock.yaml", "Gemfile.lock",
+  "dist/**", "*.min.js", "*.min.css", "public/web/dist/**",
+  "node_modules/**", "coverage/**", "playwright-report/**", "test-results/**",
+  # common binaries and large assets
+  "**/*.png", "**/*.jpg", "**/*.jpeg", "**/*.gif", "**/*.webp", "**/*.svg",
+  "**/*.ico", "**/*.pdf", "**/*.zip", "**/*.tar", "**/*.gz", "**/*.tgz",
+  "**/*.mp4", "**/*.mov", "**/*.mp3", "**/*.wav", "**/*.wasm", "**/*.woff*", "**/*.ttf"
+]
+
+[compliance]
+# Enable custom compliance checks
+custom_compliance_path = "pr_compliance_checklist.yaml"
+
+[custom_labels]
+# Enable project-specific labels
+enable = true
+# Commented out until these labels are created in the repository
+# labels = ["needs-tests", "security-review", "breaking-change", "i18n-required", "database-changes"]
 
 [pr_reviewer] # /review #
 # enable/disable features
