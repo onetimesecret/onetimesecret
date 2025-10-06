@@ -30,12 +30,13 @@ module Onetime::Customer::Features
         # collected) in case we need to repeat the save attempt on
         # error. TODO: Move to calling code in specific cases.
         @passphrase_temp = val
-        passphrase! BCrypt::Password.create(val, cost: 12).to_s
+        update_passphrase(val)
+        passphrase! @passphrase
       end
 
       # Allow for chaining API e.g. cust.update_passphrase('plop').custid
       def update_passphrase(val)
-        update_passphrase! val
+        @passphrase = BCrypt::Password.create(val, cost: 12).to_s
       end
 
       def has_passphrase?
