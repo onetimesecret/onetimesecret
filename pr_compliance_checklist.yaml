@@ -46,12 +46,22 @@ pr_compliances:
       User-facing strings use i18n keys ($t() in Vue, proper locale keys)
     failure_criteria: "Hardcoded user-facing strings without i18n support"
 
-  - title: "SecurityPractices"
+  - title: "SecretsDetection"
     compliance_label: true
-    objective: "Security best practices must be followed"
+    objective: "Code must not contain hardcoded secrets"
     success_criteria: >
-      No secrets in code, proper input validation,
-      secure handling of sensitive data
+      The PR does not introduce any hardcoded secrets like API keys,
+      passwords, or private certificates. All secrets are loaded from
+      a secure configuration source.
     failure_criteria: >
-      Hardcoded credentials, missing input validation,
-      insecure data handling
+      Hardcoded credentials, tokens, or other secrets are found in the code.
+
+  - title: "WebSecurity"
+    compliance_label: true
+    objective: "Prevent common web application vulnerabilities"
+    success_criteria: >
+      User-controlled input is properly sanitized before being rendered in HTML
+      to prevent XSS. Database queries are parameterized to prevent SQL injection.
+    failure_criteria: >
+      Raw user input is used in a way that could lead to XSS, SQL injection,
+      or other common web vulnerabilities.
