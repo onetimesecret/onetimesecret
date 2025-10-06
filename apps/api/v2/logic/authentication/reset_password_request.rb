@@ -4,35 +4,34 @@ require_relative '../base'
 
 module V2::Logic
   module Authentication
-
     using Familia::Refinements::TimeLiterals
 
     class ResetPasswordRequest < V2::Logic::Base
-      attr_reader :custid
+      attr_reader :objid
       attr_accessor :token
 
       def process_params
-        @custid = params[:u].to_s.downcase
+        @objid = params[:u].to_s.downcase
       end
 
       def raise_concerns
-        raise_form_error 'Not a valid email address' unless valid_email?(@custid)
-        raise_form_error 'No account found' unless V2::Customer.exists?(@custid)
+        raise_form_error 'Not a valid email address' unless valid_email?(@objid)
+        raise_form_error 'No account found' unless V2::Customer.exists?(@objid)
       end
 
       def process
-        cust = V2::Customer.load @custid
+        cust = V2::Customer.load @objid
 
         if cust.pending?
-          OT.li "[ResetPasswordRequest] Resending verification email to #{cust.custid}"
+          OT.li "[ResetPasswordRequest] Resending verification email to #{cust.objid}"
           send_verification_email
-          msg = "#{i18n.dig(:web, :COMMON, :verification_sent_to)} #{cust.custid}."
+          msg = "#{i18n.dig(:web, :COMMON, :verification_sent_to)} #{cust.objid}."
           return sess.set_info_message msg
         end
 
-        secret              = V2::Secret.create @custid, [@custid]
-        secret.default_expiration          = 24.hours
-        secret.verification = 'true'
+        secret                    = V2::Secret.create @objid, [@objid]
+        secret.default_expiration = 24.hours
+        secret.verification       = 'true'
         secret.save
 
         cust.reset_secret = secret.key  # as a standalone dbkey, writes immediately
@@ -48,13 +47,13 @@ module V2::Logic
           OT.le "Error sending password reset email: #{ex.message}"
           sess.set_error_message errmsg
         else
-          OT.info "Password reset email sent to #{@custid} for sess=#{sess.short_identifier}"
-          sess.set_success_message "We sent instructions to #{cust.custid}"
+          OT.info "Password reset email sent to #{@objid} for sess=#{sess.short_identifier}"
+          sess.set_success_message "We sent instructions to #{cust.objid}"
         end
       end
 
       def success_data
-        { custid: @cust.custid }
+        { objid: @cust.objid }
       end
     end
   end

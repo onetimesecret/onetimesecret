@@ -29,9 +29,8 @@ OT.boot! :test, false
 
 
 # Create a customer for update tests
-@cust = V2::Customer.new @email
+@cust = V2::Customer.new email: @email
 @cust.save
-
 
 # CreateAccount Tests
 

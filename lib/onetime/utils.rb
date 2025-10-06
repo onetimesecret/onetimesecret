@@ -14,7 +14,6 @@ module Onetime
 
     class << self
       attr_accessor :fortunes
-
     end
 
     # Character set constants for flexible password generation
@@ -56,109 +55,109 @@ module Onetime
     class << self
       attr_accessor :fortunes
 
-    # Generates a random string of specified length using configurable character sets.
-    # Supports both simple usage and complex password generation with guaranteed complexity.
-    #
-    # @param len [Integer] Length of the generated string (default: 12)
-    # @param options [Boolean, Hash] If boolean, treats as 'unambiguous' for backward compatibility.
-    #   If hash, supports the following options:
-    #   - :uppercase [Boolean] Include uppercase letters (default: true)
-    #   - :lowercase [Boolean] Include lowercase letters (default: true)
-    #   - :numbers [Boolean] Include numbers (default: true)
-    #   - :symbols [Boolean] Include symbols (default: true)
-    #   - :exclude_ambiguous [Boolean] Exclude visually similar characters (default: true)
-    #   - :unambiguous [Boolean] Legacy option, same as exclude_ambiguous
-    # @return [String] A randomly generated string of the specified length
-    #
-    # @example Generate a simple unambiguous 12-character string
-    #   Utils.strand         # => "k*8mN2qR9xPw"
-    #   Utils.strand(8)      # => "k*8mN2qR"
-    #
-    # @example Generate using full character set (legacy)
-    #   Utils.strand(8, false) # => "kF8mN2qR"
-    #
-    # @example Generate with custom options
-    #   Utils.strand(12, { symbols: true, uppercase: false })
-    #
-    # @security Cryptographically secure - uses SecureRandom.random_number which
-    #   provides cryptographically secure random number generation. Suitable for
-    #   generating secure tokens, passwords, and other security-critical identifiers.
-    def strand(len = 12, options = true)
-      raise ArgumentError, 'Length must be positive' unless len.positive?
+      # Generates a random string of specified length using configurable character sets.
+      # Supports both simple usage and complex password generation with guaranteed complexity.
+      #
+      # @param len [Integer] Length of the generated string (default: 12)
+      # @param options [Boolean, Hash] If boolean, treats as 'unambiguous' for backward compatibility.
+      #   If hash, supports the following options:
+      #   - :uppercase [Boolean] Include uppercase letters (default: true)
+      #   - :lowercase [Boolean] Include lowercase letters (default: true)
+      #   - :numbers [Boolean] Include numbers (default: true)
+      #   - :symbols [Boolean] Include symbols (default: true)
+      #   - :exclude_ambiguous [Boolean] Exclude visually similar characters (default: true)
+      #   - :unambiguous [Boolean] Legacy option, same as exclude_ambiguous
+      # @return [String] A randomly generated string of the specified length
+      #
+      # @example Generate a simple unambiguous 12-character string
+      #   Utils.strand         # => "k*8mN2qR9xPw"
+      #   Utils.strand(8)      # => "k*8mN2qR"
+      #
+      # @example Generate using full character set (legacy)
+      #   Utils.strand(8, false) # => "kF8mN2qR"
+      #
+      # @example Generate with custom options
+      #   Utils.strand(12, { symbols: true, uppercase: false })
+      #
+      # @security Cryptographically secure - uses SecureRandom.random_number which
+      #   provides cryptographically secure random number generation. Suitable for
+      #   generating secure tokens, passwords, and other security-critical identifiers.
+      def strand(len = 12, options = true)
+        raise ArgumentError, 'Length must be positive' unless len.positive?
 
-      # Handle backward compatibility: if options is boolean, treat as unambiguous
-      opts = case options
-             in true | false
-               { 'exclude_ambiguous' => options }
-             in Hash
-               # Convert all keys to strings for consistent access
-               options.transform_keys(&:to_s)
-             else
-               {}
-             end
+        # Handle backward compatibility: if options is boolean, treat as unambiguous
+        opts = case options
+               in true | false
+                 { 'exclude_ambiguous' => options }
+               in Hash
+                 # Convert all keys to strings for consistent access
+                 options.transform_keys(&:to_s)
+               else
+                 {}
+               end
 
-      defaults = {
-        'uppercase'   => true,
-        'lowercase'   => true,
-        'numbers'     => true,
-        'symbols'     => true,
-        'exclude_ambiguous' => true,
-      }
+        defaults = {
+          'uppercase' => true,
+          'lowercase' => true,
+          'numbers' => true,
+          'symbols' => true,
+          'exclude_ambiguous' => true,
+        }
 
-      opts = defaults.merge(opts)
-      opts['exclude_ambiguous'] ||= opts.delete('unambiguous') if opts.key?('unambiguous')
+        opts                        = defaults.merge(opts)
+        opts['exclude_ambiguous'] ||= opts.delete('unambiguous') if opts.key?('unambiguous')
 
-      # Build character set based on options
-      chars = []
-      chars.concat(UPPERCASE) if opts['uppercase']
-      chars.concat(LOWERCASE) if opts['lowercase']
-      chars.concat(NUMBERS) if opts['numbers']
-      chars.concat(SYMBOLS) if opts['symbols']
+        # Build character set based on options
+        chars = []
+        chars.concat(UPPERCASE) if opts['uppercase']
+        chars.concat(LOWERCASE) if opts['lowercase']
+        chars.concat(NUMBERS) if opts['numbers']
+        chars.concat(SYMBOLS) if opts['symbols']
 
-      # Remove ambiguous characters if requested
-      if opts['exclude_ambiguous']
-        chars.delete_if { |char| AMBIGUOUS_CHARS.include?(char) }
-      end
-
-      # Ensure we have at least some characters to work with
-      if chars.empty?
-        chars = VALID_CHARS_SAFE # Fallback to safe default
-      end
-
-      # For simple generation (no complexity requirements), use efficient method
-      unless multiple_char_sets_requested?(opts)
-        return Array.new(len) { chars[SecureRandom.random_number(chars.length)] }.join
-      end
-
-      # Generate password with guaranteed complexity when multiple character sets are enabled
-      password_chars = []
-
-      # Ensure at least one character from each selected set
-      # When excluding ambiguous chars, sample from filtered sets to maintain guarantee
-      if opts['exclude_ambiguous']
-        password_chars << (UPPERCASE - AMBIGUOUS_CHARS).sample if opts['uppercase']
-        password_chars << (LOWERCASE - AMBIGUOUS_CHARS).sample if opts['lowercase']
-        password_chars << (NUMBERS - AMBIGUOUS_CHARS).sample if opts['numbers']
-        password_chars << (SYMBOLS - AMBIGUOUS_CHARS).sample if opts['symbols']
-      else
-        password_chars << UPPERCASE.sample if opts['uppercase']
-        password_chars << LOWERCASE.sample if opts['lowercase']
-        password_chars << NUMBERS.sample if opts['numbers']
-        password_chars << SYMBOLS.sample if opts['symbols']
-      end
-
-      # Fill remaining length with random characters from the full set
-      remaining_length = len - password_chars.length
-      if remaining_length > 0
-        remaining_chars = Array.new(remaining_length) do
-          chars[SecureRandom.random_number(chars.length)]
+        # Remove ambiguous characters if requested
+        if opts['exclude_ambiguous']
+          chars.delete_if { |char| AMBIGUOUS_CHARS.include?(char) }
         end
-        password_chars.concat(remaining_chars)
-      end
 
-      # Shuffle and join to create final password
-      password_chars.shuffle.join
-    end
+        # Ensure we have at least some characters to work with
+        if chars.empty?
+          chars = VALID_CHARS_SAFE # Fallback to safe default
+        end
+
+        # For simple generation (no complexity requirements), use efficient method
+        unless multiple_char_sets_requested?(opts)
+          return Array.new(len) { chars[SecureRandom.random_number(chars.length)] }.join
+        end
+
+        # Generate password with guaranteed complexity when multiple character sets are enabled
+        password_chars = []
+
+        # Ensure at least one character from each selected set
+        # When excluding ambiguous chars, sample from filtered sets to maintain guarantee
+        if opts['exclude_ambiguous']
+          password_chars << (UPPERCASE - AMBIGUOUS_CHARS).sample if opts['uppercase']
+          password_chars << (LOWERCASE - AMBIGUOUS_CHARS).sample if opts['lowercase']
+          password_chars << (NUMBERS - AMBIGUOUS_CHARS).sample if opts['numbers']
+          password_chars << (SYMBOLS - AMBIGUOUS_CHARS).sample if opts['symbols']
+        else
+          password_chars << UPPERCASE.sample if opts['uppercase']
+          password_chars << LOWERCASE.sample if opts['lowercase']
+          password_chars << NUMBERS.sample if opts['numbers']
+          password_chars << SYMBOLS.sample if opts['symbols']
+        end
+
+        # Fill remaining length with random characters from the full set
+        remaining_length = len - password_chars.length
+        if remaining_length > 0
+          remaining_chars = Array.new(remaining_length) do
+            chars[SecureRandom.random_number(chars.length)]
+          end
+          password_chars.concat(remaining_chars)
+        end
+
+        # Shuffle and join to create final password
+        password_chars.shuffle.join
+      end
 
       # NOTE: Temporary until Familia 2-pre11
       # @see #shorten_securely for truncation details
@@ -248,8 +247,25 @@ module Onetime
       def pretty_path(filepath)
         return nil if filepath.nil?
 
-        basepath    = ENV.fetch('ONETIME_HOME', __dir__)
-        Pathname.new(filepath).relative_path_from(basepath)
+        basepath      = ENV.fetch('ONETIME_HOME', __dir__)
+        relative_path = Pathname.new(filepath).relative_path_from(basepath)
+        if relative_path.to_s.start_with?('..')
+          File.basename(filepath)
+        else
+          relative_path
+        end
+      end
+
+      # Formats a stack trace with pretty file paths for improved readability
+      #
+      # @param limit [Integer] Maximum number of stack frames to include (default: 3)
+      # @return [String] Formatted stack trace with relative paths joined by newlines
+      #
+      # @example
+      #   Utils.pretty_stack(limit: 10)
+      #   # => "lib/models/user.rb:25:in `save'\n lib/controllers/app.rb:45:in `create'"
+      def pretty_stack(skip: 1, limit: 5)
+        caller(skip..(skip + limit + 1)).first(limit).map { |frame| pretty_path(frame) }.join("\n")
       end
 
       private

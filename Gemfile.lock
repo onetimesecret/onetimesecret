@@ -80,7 +80,7 @@ GEM
     erb (5.0.2)
     eventmachine (1.2.7)
     fakeredis (0.1.4)
-    familia (2.0.0.pre17)
+    familia (2.0.0.pre18)
       benchmark (~> 0.4)
       connection_pool (~> 2.5)
       csv (~> 3.3)
@@ -323,7 +323,7 @@ DEPENDENCIES
   drydock (~> 1.0.0)
   encryptor (= 1.1.3)
   fakeredis
-  familia (~> 2.0.0.pre17)
+  familia (~> 2.0.0.pre18)
   fastimage (~> 2.4)
   httparty
   irb

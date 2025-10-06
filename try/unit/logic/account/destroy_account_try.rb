@@ -23,7 +23,7 @@ OT.boot! :test, false
 @email_address = 'changeme@example.com'
 @now = DateTime.now
 @sess = V2::Session.new '255.255.255.255', 'anon'
-@cust = V2::Customer.new @email_address
+@cust = V2::Customer.new email: @email_address
 @params = {
   confirmation: 'pa55w0rd'
 }
@@ -48,7 +48,6 @@ obj = V2::Logic::Account::DestroyAccount.new @sess, @cust
 begin
   obj.raise_concerns
 rescue => e
-  puts e.backtrace
   [e.class, e.message]
 end
 #=> [Onetime::FormError, 'Please check the password.']
@@ -121,7 +120,6 @@ post_destroy_passphrase = if Onetime.debug
 else
   cust.passphrase
 end
-puts [cust.role, cust.verified, post_destroy_passphrase]
 [cust.role, cust.verified, post_destroy_passphrase]
 #=> ['user_deleted_self', 'false', '']
 

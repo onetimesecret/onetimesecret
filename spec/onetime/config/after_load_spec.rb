@@ -35,6 +35,7 @@ RSpec.describe "Onetime boot configuration process" do
     allow(Onetime).to receive(:ld)
     allow(Onetime).to receive(:li)
     allow(Onetime).to receive(:le)
+    allow(Onetime).to receive(:detect_legacy_data_and_warn) # Skip legacy data detection in boot tests
     # Mock redis operations for Familia 2
     redis_double = double('Redis')
     allow(redis_double).to receive(:ping).and_return("PONG")
@@ -91,7 +92,7 @@ RSpec.describe "Onetime boot configuration process" do
     # No need to clean up as we're using an existing file
   end
 
-  describe '.boot!' do
+  describe '.boot!', :allow_redis do
     context 'with valid configuration' do
       before do
         # Explicitly reset the d9s_enabled to nil before each test

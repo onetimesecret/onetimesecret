@@ -36,7 +36,7 @@ s = V2::Secret.new :shared
 s.update_passphrase! 'plop'
 
 secret_key = s.identifier
-s2 = V2::Secret.from_identifier secret_key
+s2 = V2::Secret.find_by_identifier secret_key
 
 [s2.passphrase_encryption, s2.passphrase?('plop')]
 #=> ["1", true]
@@ -46,7 +46,7 @@ s = V2::Secret.new :shared
 s.update_passphrase 'plop'
 
 secret_key = s.identifier
-s2 = V2::Secret.from_identifier secret_key
+s2 = V2::Secret.find_by_identifier secret_key
 
 [s2.passphrase_encryption, s2.passphrase?('plop')]
 #=> ["1", true]

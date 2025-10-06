@@ -12,14 +12,14 @@
 require_relative '../../../support/test_logic'
 
 # Load the app with test configuration
-OT.boot! :test, false
+OT.boot! :test, true
 
 # Setup common test variables
 @now = DateTime.now
 @email = 'test@onetimesecret.com'
 @testpass = 'testpass123'
 @sess = Session.new '255.255.255.255', 'anon'
-@cust = Customer.new @email
+@cust = Customer.new email: @email
 @cust.update_passphrase @testpass
 @cust.save
 @auth_params = {
@@ -32,14 +32,13 @@ OT.boot! :test, false
 
 ## Test authentication with nil customer
 @auth = Logic::Authentication::AuthenticateSession.new @sess, nil, {}
-[@auth.potential_custid, @auth.custid, @auth.stay]
+[@auth.potential_email_address, @auth.objid, @auth.stay]
 #=> ['', nil, true]
 
 ## Test authentication with valid credentials
-
 @auth = Logic::Authentication::AuthenticateSession.new @sess, nil, @auth_params
-[@auth.potential_custid, @auth.custid, @auth.stay]
-#=> [@email, @email, true]
+[@auth.potential_email_address, @auth.objid, @auth.stay]
+#=> [@cust.email, @cust.objid, true]
 
 ## Test authentication with invalid credentials
 @auth_params = {
@@ -47,7 +46,7 @@ OT.boot! :test, false
   p: 'bogus',
 }
 @auth = Logic::Authentication::AuthenticateSession.new @sess, nil, @auth_params
-[@auth.potential_custid, @auth.custid, @auth.stay]
+[@auth.potential_email_address, @auth.objid, @auth.stay]
 #=> [@email, nil, true]
 
 ## Test authentication with remember me option
@@ -60,20 +59,20 @@ OT.boot! :test, false
 ## Test password reset request
 @reset_params = { u: @email }
 @reset = Logic::Authentication::ResetPasswordRequest.new @sess, nil, @reset_params
-@reset.custid
+@reset.objid
 #=> @email
 
 ## Test invalid email handling
 @reset_params = { u: 'invalid@email' }
 @reset = Logic::Authentication::ResetPasswordRequest.new @sess, nil, @reset_params
-@reset.valid_email?(@reset.custid)
+@reset.valid_email?(@reset.objid)
 #=> false
 
 # ResetPassword Tests
 
 ## Test password reset confirmation
 @secret = Secret.new
-@secret.custid = @email
+@secret.objid = @email
 @secret.save
 @reset_params = {
   key: @secret.key,
@@ -100,5 +99,5 @@ OT.boot! :test, false
 #=> {}
 
 # Cleanup test data
-@cust.delete!
+# @cust.delete!
 @secret.delete! if @secret

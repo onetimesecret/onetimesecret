@@ -25,6 +25,7 @@ module Onetime
         # improve readability and reduce user errors when manually entering
         # generated strings.
         VALID_CHARS_SAFE = VALID_CHARS.reject { |char| AMBIGUOUS_CHARS.include?(char) }.freeze
+        TRUTHY_VALUES    = %w[1 true yes on y t].freeze
       end
 
       # Generates a random string of specified length using predefined
@@ -89,9 +90,9 @@ module Onetime
 
       # Checks if a value represents a truthy boolean value
       # @param value [Object] Value to check
-      # @return [Boolean] true if value is "true", "yes", or "1" (case-insensitive)
+      # @return [Boolean] true if value one of the TRUTHY_VALUES (case-insensitive)
       def yes?(value)
-        !value.to_s.empty? && %w[true yes 1].include?(value.to_s.downcase)
+        !value.to_s.empty? && TRUTHY_VALUES.include?(value.to_s.downcase)
       end
     end
   end

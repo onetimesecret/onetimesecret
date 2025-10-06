@@ -110,11 +110,12 @@ pp @sess_disabled_auth.to_h
 @sess_disabled_auth.authenticated?
 #=> false
 
-## Load a new instance of the session and check authenticated status
+## Load a new instance of the session from Redis. disable_auth is not persisted,
+## so it returns nil on fresh instances (it's a transient runtime flag only).
 sess = V2::Session.load @sess_disabled_auth.sessid
 pp sess.to_h
 [sess.authenticated?, sess.disable_auth]
-#=> [true, false]
+#=> [true, nil]
 
 ## Reload the same instance of the session and check authenticated status.
 ## Calling authenticated? will return false again b/c the instance var

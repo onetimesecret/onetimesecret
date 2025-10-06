@@ -27,7 +27,7 @@ OT.boot! :test, false
 @from_address = OT.conf.dig('emailer', 'from')
 @email_address = 'tryouts@onetimesecret.com'
 @sess = Session.new '255.255.255.255', 'anon'
-@cust = Customer.new @email_address
+@cust = Customer.new email: @email_address
 @params = {}
 @locale = 'en'
 @obj = V2::Logic::Account::CreateAccount.new @sess, @cust

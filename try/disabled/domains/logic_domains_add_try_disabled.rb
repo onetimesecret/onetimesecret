@@ -22,7 +22,7 @@ OT.boot! :test, false
 @now = DateTime.now
 @email = "test#{SecureRandom.uuid}@onetimesecret.com"
 @sess = V2::Session.new '255.255.255.255', 'anon'
-@cust = V2::Customer.new @email
+@cust = V2::Customer.new email: @email
 @cust.save
 @domain_input = 'test.example.com'
 @domain_input2 = 'test2.example.com'
