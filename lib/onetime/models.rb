@@ -1,7 +1,6 @@
 # lib/onetime/models.rb
 
 require_relative 'models/features'
-require_relative 'models/mixins' # TODO: Replace with Features
 require_relative 'models/metadata'
 require_relative 'models/secret'
 require_relative 'models/team'

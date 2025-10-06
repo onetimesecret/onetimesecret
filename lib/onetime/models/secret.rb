@@ -15,6 +15,7 @@ module Onetime
     feature :secret_encryption
     feature :secret_state_management
     feature :secret_customer_relations
+    feature :legacy_encrypted_fields
     feature :deprecated_fields
 
     default_expiration 7.days # default only, can be overridden at create time
@@ -91,9 +92,5 @@ module Onetime
     def load_metadata
       Onetime::Metadata.load metadata_key
     end
-
-    # See Customer model for explanation about why
-    # we include extra fields at the end here.
-    include Onetime::Mixins::Passphrase
   end
 end

@@ -1,6 +1,6 @@
 # apps/api/v2/models/features/increment_field.rb
 
-module V2
+module Onetime
   module Models
     module Features
       module IncrementField
