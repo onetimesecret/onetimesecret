@@ -2,7 +2,7 @@
 
 module Onetime
   module Initializers
-    attr_accessor :redis_pool
+    attr_accessor :database_pool
 
     # Configures Familia's DatabaseLogger middleware for Redis command logging
     #

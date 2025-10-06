@@ -21,7 +21,7 @@ OT.boot! :test, true
 
 # Reload the connection pool to discard old connections without middleware
 # The block closes each old connection before creating new ones
-# OT.redis_pool.reload { |conn| conn.quit rescue nil }
+# OT.database_pool.reload { |conn| conn.quit rescue nil }
 
 
 # Clear any commands captured by previous test files to ensure clean state
