@@ -8,11 +8,9 @@ module Core
       include Controllers::Base
 
       def robots_txt
-        publically do
-          view                       = Core::Views::RobotsTxt.new request, session, cust, locale
-          res.headers['content-type'] = 'text/plain'
-          res.body                   = view.render
-        end
+        view                       = Core::Views::RobotsTxt.new request, session, cust, locale
+        res.headers['content-type'] = 'text/plain'
+        res.body                   = view.render
       end
     end
   end

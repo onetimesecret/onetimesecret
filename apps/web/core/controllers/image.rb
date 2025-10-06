@@ -9,19 +9,17 @@ module Core
 
       # /imagine/b79b17281be7264f778c/logo.png
       def imagine
-        publically(false) do
-          logic = V2::Logic::Domains::GetImage.new request, session, cust, req.params
-          logic.raise_concerns
-          logic.process
+        logic = V2::Logic::Domains::GetImage.new request, session, cust, req.params
+        logic.raise_concerns
+        logic.process
 
-          res['content-type'] = logic.content_type
+        res['content-type'] = logic.content_type
 
-          # Return the response with appropriate headers
-          res['Content-Length'] = logic.content_length
-          res.write(logic.image_data)
+        # Return the response with appropriate headers
+        res['Content-Length'] = logic.content_length
+        res.write(logic.image_data)
 
-          res.finish
-        end
+        res.finish
       end
     end
   end

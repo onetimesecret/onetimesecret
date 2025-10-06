@@ -25,7 +25,7 @@ module Core
       include Core::Views::I18nHelpers
       include Core::Views::ViteManifest
       include Onetime::Utils::TimeUtils
-      include Onetime::Helpers::ShrimpHelpers
+      # include Onetime::Helpers::ShrimpHelpers
 
       self.template_path      = File.join(__dir__, '..', 'templates')
       self.template_extension = 'html.erb'

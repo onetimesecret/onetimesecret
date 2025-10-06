@@ -1,11 +1,14 @@
 # frozen_string_literal: true
 
 require_relative '../views'
+require 'onetime/helpers/session_helpers'
+require 'onetime/helpers/shrimp_helpers'
 
 module Core
   module Controllers
     module Base
-      include Core::ControllerHelpers
+      include Onetime::Helpers::SessionHelpers
+      include Onetime::Helpers::ShrimpHelpers
 
       attr_reader :req, :res, :locale
 
@@ -137,6 +140,50 @@ module Core
       rescue StandardError => ex
         OT.le "[base_controller] Failed to load customer: #{ex.message}"
         Onetime::Customer.anonymous
+      end
+
+      # Checks if authentication is enabled for the site.
+      #
+      # @return [Boolean] True if authentication and sign-in are enabled, false otherwise.
+      def authentication_enabled?
+        authentication_enabled = OT.conf['site']['authentication']['enabled'] rescue false # rubocop:disable Style/RescueModifier
+        signin_enabled         = OT.conf['site']['authentication']['signin'] rescue false # rubocop:disable Style/RescueModifier
+        authentication_enabled && signin_enabled
+      end
+
+      # Sentry error tracking
+      #
+      # Available levels are :fatal, :error, :warning, :log, :info, and :debug.
+      # The Sentry default, if not specified, is :error.
+      def capture_error(error, level = :error, &)
+        return unless OT.d9s_enabled
+
+        begin
+          if defined?(req) && req.respond_to?(:env)
+            headers = req.env.select { |k, _v| k.start_with?('HTTP_') rescue false } # rubocop:disable Style/RescueModifier
+            OT.ld "[capture_error] Request headers: #{headers.inspect}"
+          end
+
+          Sentry.capture_exception(error, level: level, &)
+        rescue NoMethodError => ex
+          raise unless ex.message.include?('start_with?')
+
+          OT.le "[capture_error] Sentry error: #{ex.message}"
+          OT.ld ex.backtrace.join("\n")
+        rescue StandardError => ex
+          OT.le "[capture_error] #{ex.class}: #{ex.message}"
+          OT.ld ex.backtrace.join("\n")
+        end
+      end
+
+      def capture_message(message, level = :log, &)
+        return unless OT.d9s_enabled
+
+        Sentry.capture_message(message, level: level, &)
+      rescue StandardError => ex
+        OT.le "[capture_message] #{ex.class}: #{ex.message}"
+        OT.ld ex.backtrace.join("
+")
       end
     end
   end
