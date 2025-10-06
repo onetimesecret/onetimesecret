@@ -248,8 +248,25 @@ module Onetime
       def pretty_path(filepath)
         return nil if filepath.nil?
 
-        basepath    = ENV.fetch('ONETIME_HOME', __dir__)
-        Pathname.new(filepath).relative_path_from(basepath)
+        basepath      = ENV.fetch('ONETIME_HOME', __dir__)
+        relative_path = Pathname.new(filepath).relative_path_from(basepath)
+        if relative_path.to_s.start_with?('..')
+          File.basename(filepath)
+        else
+          relative_path
+        end
+      end
+
+      # Formats a stack trace with pretty file paths for improved readability
+      #
+      # @param limit [Integer] Maximum number of stack frames to include (default: 3)
+      # @return [String] Formatted stack trace with relative paths joined by newlines
+      #
+      # @example
+      #   Utils.pretty_stack(limit: 10)
+      #   # => "lib/models/user.rb:25:in `save'\n lib/controllers/app.rb:45:in `create'"
+      def pretty_stack(skip: 1, limit: 5)
+        caller(skip..(skip + limit + 1)).first(limit).map { |frame| pretty_path(frame) }.join("\n")
       end
 
       private
