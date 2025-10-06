@@ -4,6 +4,9 @@ settings:
   autoInstallPeers: true
   excludeLinksFromLockfile: false
 
+overrides:
+  pg-query-native: npm:pg-query-emscripten@5.1.0
+
 importers:
 
   .:
