@@ -1,4 +1,4 @@
-# apps/web/core/controllers/base.rb
+# frozen_string_literal: true
 
 require_relative '../views'
 
@@ -7,76 +7,22 @@ module Core
     module Base
       include Core::ControllerHelpers
 
-      attr_reader :req, :res, :cust, :locale, :ignoreshrimp
+      attr_reader :req, :res, :locale
 
       def initialize(req, res)
         @req = req
         @res = res
+        @locale = req.env['ots.locale'] || 'en'
       end
 
-      def publically(redirect = nil)
-        carefully(redirect) do
-          setup_request_context  # 1. Load customer based on session state
-          check_locale!          # 2. Check the request for the desired locale
-          check_referrer!        # 4. Check referrers for public requests (TODO: Remove)
-          # Generate the response
-          yield
-        end
+      # Access the current customer from Otto auth middleware or session
+      def cust
+        @cust ||= load_current_customer
       end
 
-      def authenticated(redirect = nil)
-        carefully(redirect) do
-          res.no_cache!
-          setup_request_context  # 1. Load customer based on session state
-          check_locale!          # 2. Check the request for the desired locale
-
-          # We need the session so that cust is set to anonymous (and not
-          # nil); we want locale too so that we know what language to use.
-          # If this is a POST request, we don't need to check the shrimp
-          # since it wouldn't change our response either way.
-          return disabled_response(req.path) unless authentication_enabled?
-
-          authenticated? ? yield : res.redirect('/')
-        end
-      end
-
-      def colonels(redirect = nil)
-        carefully(redirect) do
-          res.no_cache!
-          setup_request_context  # 1. Load customer based on session state
-          check_locale!          # 2. Check the request for the desired locale
-
-          # We need the session so that cust is set to anonymous (and not
-          # nil); we want locale too so that we know what language to use.
-          # If this is a POST request, we don't need to check the shrimp
-          # since it wouldn't change our response either way.
-          return disabled_response(req.path) unless authentication_enabled?
-
-
-          is_allowed = authenticated? && cust.role?(:colonel)
-          is_allowed ? yield : res.redirect('/')
-        end
-      end
-
-      def check_referrer!
-        return if @check_referrer_ran
-
-        @check_referrer_ran = true
-        unless req.referrer.nil?
-          OT.ld("[check-referrer] #{req.referrer} (#{req.referrer.class}) - #{req.path}")
-        end
-        return if req.referrer.nil? || req.referrer.match(Onetime.conf['site']['host'])
-
-        session['referrer'] ||= req.referrer
-
-        # Don't allow a pesky error here from preventing the
-        # request. Typically we don't want to be so hush hush
-        # but this method is partiaularly important for receuving
-        # redirects back from 3rd-party workflows like a new Stripe
-        # subscription.
-      rescue StandardError => ex
-        backtrace = ex.backtrace.join("\n")
-        OT.le "[check_referrer!] Caught error but continuing #{ex}: #{backtrace}"
+      # Access the current session
+      def session
+        req.env['rack.session']
       end
 
       # Validates a given URL and ensures it can be safely redirected to.
@@ -112,24 +58,8 @@ module Core
         uri
       end
 
-      def handle_form_error(ex, redirect)
-        # We store the form fields temporarily in the session so
-        # that the form can be pre-populated after the redirect.
-        session['form_fields'] = ex.form_fields
-        session['error_message'] = ex.message
-        res.redirect redirect
-      end
-
-      def secret_not_found_response
-        view       = Core::Views::UnknownSecret.new req, session, cust, locale
-        res.status = 404
-        res.body   = view.render
-      end
-
       def not_found
-        publically do
-          not_found_response ''
-        end
+        not_found_response ''
       end
 
       def server_error(status = 500, _message = nil)
@@ -148,10 +78,6 @@ module Core
         </body>
         </html>
         HTML
-      end
-
-      def disabled_response(path)
-        error_response "#{path} is not available"
       end
 
       # Handles requests for routes that don't match any defined server-side
@@ -178,44 +104,39 @@ module Core
         res.body   = view.render  # Render the entrypoint HTML
       end
 
-      def not_authorized_error(_hsh = {})
-        view       = Core::Views::Error.new req, session, cust, locale
-        view.add_error 'Not authorized'
-        res.status = 401
-        res.body   = view.render
-      end
-
-      def error_response(message, **)
-        # By default we ignore any additional arguments, but the v1 and v2
-        # implementations of this method use them. For example, in certain
-        # cases a server-side error occurs that isn't the fault of the
-        # client, and in those cases we want to provide a fresh shrimp
-        # so that the client can try again (without a full page refresh).
-        view       = Core::Views::Error.new req, session, cust, locale
-        view.add_error message
-        res.status = 400
-        res.body   = view.render
-      end
-
-      # Common page rendering methods moved from Page controller
+      # Common page rendering methods
 
       def index
-        view     = Core::Views::VuePoint.new request, session, cust, locale
+        view     = Core::Views::VuePoint.new(req, session, cust, locale)
         res.body = view.render
       end
 
       def customers_only
-        authenticated do
-          view     = Core::Views::VuePoint.new request, session, cust, locale
-          res.body = view.render
-        end
+        res.no_cache!
+        view     = Core::Views::VuePoint.new(req, session, cust, locale)
+        res.body = view.render
       end
 
       def colonels_only
-        colonels do
-          view     = Core::Views::VuePoint.new request, session, cust, locale
-          res.body = view.render
+        res.no_cache!
+        view     = Core::Views::VuePoint.new(req, session, cust, locale)
+        res.body = view.render
+      end
+
+      private
+
+      def load_current_customer
+        # Try Otto auth result first (set by auth middleware)
+        if req.env['otto.user']
+          user = req.env['otto.user']
+          return user if user.is_a?(Onetime::Customer)
         end
+
+        # Fallback to anonymous
+        Onetime::Customer.anonymous
+      rescue StandardError => ex
+        OT.le "[base_controller] Failed to load customer: #{ex.message}"
+        Onetime::Customer.anonymous
       end
     end
   end
