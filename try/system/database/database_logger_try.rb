@@ -5,15 +5,24 @@
 # These tests verify that Familia's DatabaseLogger middleware correctly
 # captures and logs Redis commands executed through Familia models.
 
+# Enable database logging and force reconnection to apply middleware
+# to existing connection pools (handles test suite execution order issues)
+ENV['DEBUG_DATABASE'] = 'true' # must be set before OT.boot! / test_helpers
+
 require_relative '../../support/test_helpers'
 
-ENV['DEBUG_DATABASE'] = 'true'
-
-# Enable database logging for these tests
-# This ensures the middleware is registered and capturing commands
-Familia.enable_database_logging = true unless Familia.enable_database_logging
-
 OT.boot! :test, true
+
+# Familia.reconnect!
+
+# Set a logger for DatabaseLogger (optional for capture, required for logging)
+# When middleware is registered, it copies Familia.logger to DatabaseLogger.logger
+# DatabaseLogger.logger = Logger.new(STDOUT, level: Logger::DEBUG) if ENV['DEBUG_DATABASE'] == 'true'
+
+# Reload the connection pool to discard old connections without middleware
+# The block closes each old connection before creating new ones
+# OT.redis_pool.reload { |conn| conn.quit rescue nil }
+
 
 # Clear any commands captured by previous test files to ensure clean state
 DatabaseLogger.clear_commands
@@ -169,4 +178,8 @@ DatabaseLogger.clear_commands
 DatabaseLogger.commands.empty?
 #=> true
 
+# Teardown: Clean up global state to prevent interference with other test files
+DatabaseLogger.logger = nil
+DatabaseLogger.clear_commands
+Familia.enable_database_logging = false
 ENV['DEBUG_DATABASE'] = 'false'
