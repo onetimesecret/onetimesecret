@@ -2,8 +2,6 @@
 
 require 'rack/utils'
 
-require_relative 'mixins/passphrase'
-
 module V2
   # Customer
   #
@@ -60,7 +58,6 @@ module V2
     string :reset_secret, default_expiration: 24.hours
 
     identifier_field :objid
-
 
     # Global email index
     #
@@ -168,25 +165,5 @@ module V2
         !find_by_email(email).nil?
       end
     end
-
-    # Mixin Placement for Field Order Control
-    #
-    # We include the SessionMessages mixin at the end of this class definition
-    # for a specific reason related to how Familia::Horreum handles fields.
-    #
-    # In Familia::Horreum subclasses (like this Customer class), fields are processed
-    # in the order they are defined. When creating a new instance with Session.new,
-    # any provided positional arguments correspond to these fields in the same order.
-    #
-    # By including SessionMessages last, we ensure that:
-    # 1. Its additional fields appear at the end of the field list.
-    # 2. These fields don't unexpectedly consume positional arguments in Session.new.
-    #
-    # e.g. `Customer.new('my@example.com')`. If we included thePassphrase
-    # module at the top, instead of populating the custid field (as the
-    # first field defined in this file), this email address would get
-    # written to the (automatically inserted) passphrase field.
-    #
-    include V2::Mixins::Passphrase
   end
 end

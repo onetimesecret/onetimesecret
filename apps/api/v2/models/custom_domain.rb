@@ -560,7 +560,7 @@ module V2
       def all
         # Load all instances from the sorted set. No need
         # to involve the owners HashKey here.
-        values.revrangeraw(0, -1).collect { |identifier| from_identifier(identifier) }
+        values.revrangeraw(0, -1).collect { |identifier| find_by_identifier(identifier) }
       end
 
       def recent(duration = 48.hours)
@@ -593,7 +593,7 @@ module V2
 
         # Load the record using the domain ID
         begin
-          from_identifier(domain_id)
+          find_by_identifier(domain_id)
         rescue Onetime::RecordNotFound
           nil
         end

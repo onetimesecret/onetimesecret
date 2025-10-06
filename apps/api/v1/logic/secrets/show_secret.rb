@@ -50,7 +50,8 @@ module V1::Logic
           else
 
             owner.increment_field :secrets_shared unless owner.anonymous?
-            V1::Customer.global.increment_field :secrets_shared
+            # TODO:
+            # V1::Customer.global.increment_field :secrets_shared
 
             # Immediately mark the secret as viewed, so that it
             # can't be shown again. If there's a network failure

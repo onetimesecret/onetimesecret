@@ -48,7 +48,8 @@ module V2
               cust.add_metadata metadata
               cust.increment :secrets_created
             end
-            V2::Customer.global.increment :secrets_created
+            # TODO:
+            # V2::Customer.global.increment :secrets_created
             unless recipient.nil? || recipient.empty?
               metadata.deliver_by_email cust, locale, secret, recipient.first, Onetime::Mail::IncomingSupport, ticketno
             end

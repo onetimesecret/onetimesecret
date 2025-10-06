@@ -5,11 +5,27 @@
 # These tests verify that Familia's DatabaseLogger middleware correctly
 # captures and logs Redis commands executed through Familia models.
 
+# Enable database logging and force reconnection to apply middleware
+# to existing connection pools (handles test suite execution order issues)
+ENV['DEBUG_DATABASE'] = 'true' # must be set before OT.boot! / test_helpers
+
 require_relative '../../support/test_helpers'
 
-# Enable database logging for these tests
-# This ensures the middleware is registered and capturing commands
-Familia.enable_database_logging = true unless Familia.enable_database_logging
+OT.boot! :test, true
+
+# Familia.reconnect!
+
+# Set a logger for DatabaseLogger (optional for capture, required for logging)
+# When middleware is registered, it copies Familia.logger to DatabaseLogger.logger
+# DatabaseLogger.logger = Logger.new(STDOUT, level: Logger::DEBUG) if ENV['DEBUG_DATABASE'] == 'true'
+
+# Reload the connection pool to discard old connections without middleware
+# The block closes each old connection before creating new ones
+# OT.database_pool.reload { |conn| conn.quit rescue nil }
+
+
+# Clear any commands captured by previous test files to ensure clean state
+DatabaseLogger.clear_commands
 
 # DatabaseLogger should be available after boot (it's a module from Familia)
 @middleware_module = DatabaseLogger
@@ -51,7 +67,8 @@ commands = DatabaseLogger.capture_commands do
   cust.delete!
 end
 first_command = commands.first
-[first_command.key?(:command), first_command.key?(:duration), first_command.key?(:timestamp)]
+raise RuntimeError, "Command details missing" unless first_command&.command
+[first_command.command.is_a?(Array), first_command.μs.is_a?(Numeric), first_command.timeline.is_a?(Numeric)]
 #=> [true, true, true]
 
 ## Command arrays contain Redis command names
@@ -63,7 +80,7 @@ commands = DatabaseLogger.capture_commands do
   cust.delete!
 end
 # Should see various Redis commands (HSET, DEL, etc.)
-command_names = commands.map { |cmd| cmd[:command].first }.uniq
+command_names = commands.map { |cmd| cmd.command.first }.uniq
 has_redis_commands = !command_names.empty? && command_names.all? { |name| name.is_a?(String) }
 has_redis_commands
 #=> true
@@ -77,21 +94,20 @@ commands = DatabaseLogger.capture_commands do
   cust.delete!
 end
 # All durations should be positive numbers
-durations_valid = commands.all? { |cmd| cmd[:duration].is_a?(Numeric) && cmd[:duration] > 0 }
+durations_valid = commands.all? { |cmd| cmd.μs.is_a?(Numeric) && cmd.μs > 0 }
 durations_valid
 #=> true
 
-## Timestamps are Time objects
+## Timeliens are Floats, ever increasing relative to the time the process started
 commands = DatabaseLogger.capture_commands do
   cust = V2::Customer.new
-  cust.custid = 'test-timestamps'
-  cust.email = 'timestamps@example.com'
+  cust.custid = 'test-timelines'
+  cust.email = 'timelines@example.com'
   cust.save
   cust.delete!
 end
-# All timestamps should be Time objects
-timestamps_valid = commands.all? { |cmd| cmd[:timestamp].is_a?(Time) }
-timestamps_valid
+# All timelines should be Time objects
+commands.all? { |cmd| cmd.timeline.is_a?(Float) }
 #=> true
 
 ## Logger can be set and retrieved
@@ -140,12 +156,12 @@ commands = DatabaseLogger.capture_commands do
   cust.save
 
   # Trigger various Redis operations
-  loaded = V2::Customer.from_identifier(cust.identifier)
+  loaded = V2::Customer.find_by_identifier(cust.identifier)
   loaded.delete!
 end
 
 # Should see various Redis commands
-command_types = commands.map { |cmd| cmd[:command].first }.uniq
+command_types = commands.map { |cmd| cmd.command.first }.uniq
 has_multiple_types = command_types.size > 1
 has_multiple_types
 #=> true
@@ -161,3 +177,9 @@ end
 DatabaseLogger.clear_commands
 DatabaseLogger.commands.empty?
 #=> true
+
+# Teardown: Clean up global state to prevent interference with other test files
+DatabaseLogger.logger = nil
+DatabaseLogger.clear_commands
+Familia.enable_database_logging = false
+ENV['DEBUG_DATABASE'] = 'false'

@@ -35,6 +35,7 @@ RSpec.describe "Onetime boot configuration process" do
     allow(Onetime).to receive(:ld)
     allow(Onetime).to receive(:li)
     allow(Onetime).to receive(:le)
+    allow(Onetime).to receive(:detect_legacy_data_and_warn) # Skip legacy data detection in boot tests
     # Mock redis operations for Familia 2
     redis_double = double('Redis')
     allow(redis_double).to receive(:ping).and_return("PONG")

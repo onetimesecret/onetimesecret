@@ -29,7 +29,7 @@ module Onetime
       OT.env  = ENV['RACK_ENV'] || 'production'
 
       # Sets a unique, 64-bit hexadecimal ID for this process instance.
-      @instance ||= Familia.generate_trace_id
+      @instance ||= Familia.generate_trace_id.freeze
 
       # Default to diagnostics disabled. FYI: in test mode, the test config
       # YAML has diagnostics enabled. But the DSN values are nil so it
@@ -60,9 +60,9 @@ module Onetime
       configure_truemail
       prepare_emailers
       load_fortunes
+      setup_database_logging # meant to run regardless of db connection
 
       if connect_to_db
-        setup_database_logging      # must run before connect_databases
         detect_legacy_data_and_warn # must run before connect_databases
         connect_databases
         check_global_banner
