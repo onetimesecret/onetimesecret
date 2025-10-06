@@ -24,12 +24,35 @@ const state = ref<AuthState>({
   loading: false
 })
 
+// Helper to map API record to User interface
+function mapRecordToUser(record: any): User {
+  return {
+    id: record.objid || record.id,
+    email: record.custid || record.email,
+    created_at: record.created || record.created_at,
+    status: record.status || 1,
+    email_verified: record.email_verified || true,
+    mfa_enabled: record.mfa_enabled || false,
+    recovery_codes_count: record.recovery_codes_count || 0
+  }
+}
+
+// Helper to check if auth response is valid
+function isValidAuthResponse(data: any): boolean {
+  return data.success && data.details?.authenticated && data.record
+}
+
+// Helper to clear authentication state
+function clearAuthState(): void {
+  state.value.user = null
+  state.value.authenticated = false
+}
+
 export function useAuth() {
   const isAuthenticated = computed(() => state.value.authenticated)
   const user = computed(() => state.value.user)
   const loading = computed(() => state.value.loading)
 
-  // Check authentication status from server
   async function checkAuth(): Promise<void> {
     state.value.loading = true
 
@@ -37,69 +60,45 @@ export function useAuth() {
       const response = await fetch('/auth/validate', {
         method: 'GET',
         credentials: 'include',
-        headers: {
-          'Accept': 'application/json'
-        }
+        headers: { 'Accept': 'application/json' }
       })
 
       if (response.ok) {
         const data = await response.json()
-        if (data.success && data.details?.authenticated && data.record) {
-          // Map the record data to the expected User interface
-          state.value.user = {
-            id: data.record.objid || data.record.id,
-            email: data.record.custid || data.record.email,
-            created_at: data.record.created || data.record.created_at,
-            status: data.record.status || 1,
-            email_verified: data.record.email_verified || true,
-            mfa_enabled: data.record.mfa_enabled || false,
-            recovery_codes_count: data.record.recovery_codes_count || 0
-          }
+        if (isValidAuthResponse(data)) {
+          state.value.user = mapRecordToUser(data.record)
           state.value.authenticated = true
         } else {
-          state.value.user = null
-          state.value.authenticated = false
+          clearAuthState()
         }
       } else {
-        state.value.user = null
-        state.value.authenticated = false
+        clearAuthState()
       }
     } catch (error) {
       console.error('Auth check failed:', error)
-      state.value.user = null
-      state.value.authenticated = false
+      clearAuthState()
     } finally {
       state.value.loading = false
     }
   }
 
-  // Redirect to login
   function login(): void {
     const authUrl = (import.meta as any).env.VITE_AUTH_URL || '/auth'
     const returnTo = encodeURIComponent(window.location.href)
     window.location.href = `${authUrl}/login?return_to=${returnTo}`
   }
 
-  // Logout
   async function logout(): Promise<void> {
     try {
       const authUrl = (import.meta as any).env.VITE_AUTH_URL || '/auth'
-      await fetch(`${authUrl}/logout`, {
-        method: 'POST',
-        credentials: 'include'
-      })
-
-      state.value.user = null
-      state.value.authenticated = false
-
-      // Redirect to home or login page
+      await fetch(`${authUrl}/logout`, { method: 'POST', credentials: 'include' })
+      clearAuthState()
       window.location.href = '/'
     } catch (error) {
       console.error('Logout failed:', error)
     }
   }
 
-  // Initialize auth state on app start
   function initialize(): Promise<void> {
     return checkAuth()
   }
