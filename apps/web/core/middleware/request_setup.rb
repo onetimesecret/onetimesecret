@@ -1,7 +1,6 @@
 # frozen_string_literal: true
 
 # RequestSetup middleware handles request-level initialization for Web Core.
-# It replaces request setup logic previously embedded in the `carefully` wrapper.
 #
 # Responsibilities:
 # - Generate CSP nonce and make available to views via req.env['ots.nonce']
@@ -10,12 +9,14 @@
 #
 # This middleware should run after session middleware but before authentication
 # and error handling middleware.
-module Middleware
-  class RequestSetup
-    def initialize(app, default_content_type: 'text/html; charset=utf-8')
-      @app = app
-      @default_content_type = default_content_type
-    end
+
+module Core
+  module Middleware
+    class RequestSetup
+      def initialize(app, default_content_type: 'text/html; charset=utf-8')
+        @app = app
+        @default_content_type = default_content_type
+      end
 
     def call(env)
       setup_request(env)
@@ -80,6 +81,7 @@ module Middleware
     def valid_locale?(locale)
       # Add more locales as they become available
       %w[en es fr de it ja ko pt ru zh].include?(locale.to_s.downcase)
+    end
     end
   end
 end

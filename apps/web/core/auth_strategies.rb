@@ -5,33 +5,33 @@
 # with declarative route-based authentication.
 #
 # Usage in apps/web/core/app.rb:
-#   Onetime::WebAuthStrategies.register_all(router)
+#   Core::AuthStrategies.register_all(router)
 #
 # Usage in routes file:
 #   GET /public   Controller#action auth=publicly
 #   GET /private  Controller#action auth=authenticated
 #   GET /admin    Controller#action auth=colonel
 
-module Onetime
-  module WebAuthStrategies
+module Core
+  module AuthStrategies
     extend self
 
     def register_all(otto)
       otto.enable_authentication!
 
       # Public routes - allows everyone (anonymous or authenticated)
-      otto.add_auth_strategy('publicly', OnetimeWebPublicStrategy.new)
+      otto.add_auth_strategy('publicly', PublicStrategy.new)
 
       # Authenticated routes - requires valid session
-      otto.add_auth_strategy('authenticated', OnetimeWebAuthenticatedStrategy.new)
+      otto.add_auth_strategy('authenticated', AuthenticatedStrategy.new)
 
       # Colonel routes - requires colonel role
-      otto.add_auth_strategy('colonel', OnetimeWebColonelStrategy.new)
+      otto.add_auth_strategy('colonel', ColonelStrategy.new)
     end
 
     # Public strategy - allows all requests, loads customer from session if available.
     # Replaces the `publically` wrapper method.
-    class OnetimeWebPublicStrategy < Otto::Security::Authentication::AuthStrategy
+    class PublicStrategy < Otto::Security::Authentication::AuthStrategy
       def authenticate(env, _requirement)
         session = env['rack.session']
 
@@ -75,7 +75,7 @@ module Onetime
 
     # Authenticated strategy - requires valid session with authenticated customer.
     # Replaces the `authenticated` wrapper method.
-    class OnetimeWebAuthenticatedStrategy < Otto::Security::Authentication::AuthStrategy
+    class AuthenticatedStrategy < Otto::Security::Authentication::AuthStrategy
       def authenticate(env, _requirement)
         session = env['rack.session']
         return failure('No session available') unless session
@@ -124,7 +124,7 @@ module Onetime
 
     # Colonel strategy - requires authenticated user with colonel role.
     # Replaces the `colonels` wrapper method.
-    class OnetimeWebColonelStrategy < Otto::Security::Authentication::AuthStrategy
+    class ColonelStrategy < Otto::Security::Authentication::AuthStrategy
       def authenticate(env, _requirement)
         session = env['rack.session']
         return failure('No session available') unless session

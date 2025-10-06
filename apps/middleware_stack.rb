@@ -66,10 +66,10 @@ module MiddlewareStack
         builder.use Sentry::Rack::CaptureExceptions
       end
 
-      # Request Setup Middleware
+      # Request Setup Middleware (Web Core)
       # Initialize request context (nonce, locale) before other processing
-      require 'middleware/request_setup'
-      builder.use Middleware::RequestSetup
+      require 'apps/web/core/middleware/request_setup'
+      builder.use Core::Middleware::RequestSetup
 
       # Security Middleware Configuration
       # Configures security-related middleware components based on application settings
@@ -78,11 +78,11 @@ module MiddlewareStack
       Onetime.ld '[config.ru] Setting up Security middleware'
       builder.use Onetime::Middleware::Security
 
-      # Error Handling Middleware
-      # Centralized exception handling for all Onetime errors
+      # Error Handling Middleware (Web Core)
+      # Simplified error handling for Vue SPA - serves entry points
       # Must come after security but before router to catch all downstream errors
-      require 'middleware/error_handling'
-      builder.use Middleware::ErrorHandling
+      require 'apps/web/core/middleware/error_handling'
+      builder.use Core::Middleware::ErrorHandling
 
       # Performance Optimization
       # Support running with code frozen in production-like environments

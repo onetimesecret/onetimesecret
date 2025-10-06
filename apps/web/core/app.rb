@@ -27,8 +27,8 @@ module Core
       router.enable_csp_with_nonce!(debug: OT.debug?)
 
       # Register Web Core authentication strategies
-      require 'onetime/web_auth_strategies'
-      Onetime::WebAuthStrategies.register_all(router)
+      require_relative 'auth_strategies'
+      Core::AuthStrategies.register_all(router)
 
       # Default error responses
       headers             = { 'content-type' => 'text/html' }
