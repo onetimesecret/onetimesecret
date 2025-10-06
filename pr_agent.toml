@@ -27,10 +27,10 @@ ai_disclaimer_title=""  # Pro feature, title for a collapsible disclaimer to AI 
 ai_disclaimer=""  # Pro feature, full text for the AI disclaimer
 response_language = "en"  # Ensure consistent review language
 
-[rag_arguments]
-# Enable RAG context enrichment for Codebase Duplication Compliance
-enable_rag = true
-rag_repo_list = ['onetimesecret/onetimesecret']
+[rag]
+# Enable RAG context enrichment for codebase duplication detection
+enable = true
+repositories = ['onetimesecret/onetimesecret']
 
 [ignore]
 # Reduce noise by excluding generated files and build artifacts
