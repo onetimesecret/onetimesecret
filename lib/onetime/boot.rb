@@ -60,9 +60,9 @@ module Onetime
       configure_truemail
       prepare_emailers
       load_fortunes
+      setup_database_logging # meant to run regardless of db connection
 
       if connect_to_db
-        setup_database_logging      # must run before connect_databases
         detect_legacy_data_and_warn # must run before connect_databases
         connect_databases
         check_global_banner
