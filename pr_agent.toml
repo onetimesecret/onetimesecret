@@ -33,8 +33,16 @@ enable = true
 repositories = ['onetimesecret/onetimesecret']
 
 [ignore]
-# Reduce noise by excluding generated files and build artifacts
-glob = ["*.lock", "pnpm-lock.yaml", "Gemfile.lock", "dist/**", "*.min.js", "*.min.css", "public/web/dist/**", "node_modules/**", "coverage/**", "playwright-report/**", "test-results/**"]
+# Reduce noise by excluding generated files, build artifacts, and binaries
+glob = [
+  "*.lock", "pnpm-lock.yaml", "Gemfile.lock",
+  "dist/**", "*.min.js", "*.min.css", "public/web/dist/**",
+  "node_modules/**", "coverage/**", "playwright-report/**", "test-results/**",
+  # common binaries and large assets
+  "**/*.png", "**/*.jpg", "**/*.jpeg", "**/*.gif", "**/*.webp", "**/*.svg",
+  "**/*.ico", "**/*.pdf", "**/*.zip", "**/*.tar", "**/*.gz", "**/*.tgz",
+  "**/*.mp4", "**/*.mov", "**/*.mp3", "**/*.wav", "**/*.wasm", "**/*.woff*", "**/*.ttf"
+]
 
 [compliance]
 # Enable custom compliance checks
