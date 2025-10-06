@@ -13,17 +13,14 @@
 # possible for the tryouts to need only one require statement.
 require_relative 'test_helpers'
 
-require 'v1/models'
-require 'v2/models'
 require 'onetime/models'
 
 # Reference current API version for consistent model access across tests
-TestVersion = Onetime::CURRENT_API_VERSION
+TestVersion = Onetime
 
 # Map commonly used models to top-level constants for cleaner test code
 Customer = TestVersion::Customer # e.g. Onetime::Customer
 CustomDomain = TestVersion::CustomDomain
-Session = TestVersion::Session
 Metadata = TestVersion::Metadata
 Secret = TestVersion::Secret
 Feedback = TestVersion::Feedback
