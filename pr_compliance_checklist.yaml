@@ -16,11 +16,13 @@ pr_compliances:
 
   - title: "TestCoverage"
     compliance_label: true
-    objective: "New features must include corresponding tests"
+    objective: "All new features and bug fixes must include corresponding tests"
     success_criteria: >
-      Test files present for new functionality (tryouts, RSpec, Vitest,
-      or Playwright tests)
-    failure_criteria: "New code without test coverage"
+      New or modified tests (tryouts, RSpec, Vitest, or Playwright)
+      are present that exercise the logic changes in the PR.
+    failure_criteria: >
+      New code is added or existing code is modified without corresponding
+      tests to validate the changes.
 
   - title: "DatabaseOperations"
     compliance_label: true
