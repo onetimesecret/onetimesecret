@@ -6,7 +6,7 @@ module Auth
       module Authentication
         def self.configure(rodauth_config)
           rodauth_config.instance_eval do
-            # Core authentication features
+            # Features
             enable :login, :logout
 
             # Redis session compatibility overrides

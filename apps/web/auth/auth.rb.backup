@@ -66,7 +66,7 @@ class AuthService < Roda
     json_response_success_key :success
     json_response_error_key :error
 
-    # Core authentication features
+    # Authentication features
     enable :login, :logout, :create_account, :close_account, :login_password_requirements_base
     enable :change_password, :reset_password
     enable :remember  # "Remember me" functionality

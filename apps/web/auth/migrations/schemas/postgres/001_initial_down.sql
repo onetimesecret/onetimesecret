@@ -19,7 +19,7 @@ DROP TABLE IF EXISTS account_login_change_keys;
 DROP TABLE IF EXISTS account_password_change_times;
 DROP TABLE IF EXISTS account_previous_password_hashes;
 
--- Core authentication tables
+-- Authentication tables
 DROP TABLE IF EXISTS account_authentication_audit_logs;
 DROP TABLE IF EXISTS account_recovery_codes;
 DROP TABLE IF EXISTS account_otp_keys;

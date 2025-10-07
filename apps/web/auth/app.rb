@@ -249,7 +249,7 @@ class AuthService < Roda
     else
       # Core app unavailable - service degraded
       response.status = 503
-      { error: 'Core authentication service unavailable' }
+      { error: 'Authentication service unavailable' }
     end
   end
 

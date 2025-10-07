@@ -17,10 +17,13 @@
 ENV['RACK_ENV']     ||= 'production'.freeze
 ENV['ONETIME_HOME'] ||= File.expand_path(__dir__).freeze
 
-require_relative 'apps/app_registry'
+# Add lib to load path first
+$LOAD_PATH.unshift(File.join(__dir__, 'lib')) unless $LOAD_PATH.include?(File.join(__dir__, 'lib'))
+
+require 'onetime'
 
 # Application models need to be loaded before booting
-AppRegistry.prepare_application_registry
+Onetime::Application::Registry.prepare_application_registry
 
 # Bootstrap the Application
 # Applications must be loaded before boot to ensure all Familia models
@@ -29,4 +32,4 @@ AppRegistry.prepare_application_registry
 Onetime.boot! :app
 
 # Mount and run Rack applications
-run AppRegistry.generate_rack_url_map
+run Onetime::Application::Registry.generate_rack_url_map

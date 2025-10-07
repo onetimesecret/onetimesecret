@@ -1,12 +1,12 @@
 # apps/web/auth/application.rb
 
 require 'bundler/setup'
-require 'base_application'
+require 'onetime/application'
 
 require_relative 'app'
 
 module Auth
-  class Application < ::BaseApplication
+  class Application < Onetime::Application::Base
     @uri_prefix = '/auth'.freeze
 
     # Auth app specific middleware (common middleware is in MiddlewareStack)
@@ -51,6 +51,3 @@ module Auth
     end
   end
 end
-
-# Register the Auth application with the application registry
-AppRegistry.register_application_class(Auth::Application)

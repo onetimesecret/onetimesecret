@@ -47,6 +47,9 @@ module Onetime
 
   require_relative 'onetime/class_methods'
   extend ClassMethods
+
+  # Load application framework components
+  require_relative 'onetime/application'
 end
 
 # Sets the SIGINT handler for a graceful shutdown and prevents Sentry from

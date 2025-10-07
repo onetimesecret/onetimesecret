@@ -1,12 +1,12 @@
 # apps/api/v2/application.rb
 
-require 'base_application'
+require 'onetime/application'
 require 'onetime/middleware'
 
 require_relative 'app'
 
 module V2
-  class Application < ::BaseApplication
+  class Application < Onetime::Application::Base
     @uri_prefix = '/api/v2'.freeze
 
     # API v2 specific middleware (common middleware is in MiddlewareStack)

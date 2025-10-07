@@ -26,7 +26,7 @@ module Core
       # Enable CSP nonce support for enhanced security
       router.enable_csp_with_nonce!(debug: OT.debug?)
 
-      # Register Web Core authentication strategies
+      # Register authentication strategies for Web Core
       require_relative 'auth_strategies'
       Core::AuthStrategies.register_all(router)
 

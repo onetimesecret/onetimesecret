@@ -1,12 +1,12 @@
 # apps/web/core/application.rb
 
-require 'base_application'
+require 'onetime/application'
 require 'onetime/middleware'
 
 require_relative 'app'
 
 module Core
-  class Application < ::BaseApplication
+  class Application < Onetime::Application::Base
     @uri_prefix = '/'.freeze
 
     # App-specific middleware (common middleware is in MiddlewareStack)
