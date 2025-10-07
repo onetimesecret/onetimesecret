@@ -143,17 +143,11 @@ module Auth
     #
     # @param r [Roda::RodaRequest] The current request object
     def handle_basic_auth_routes(r)
-      OT.li "[Auth] Handling basic auth routes, path: #{r.remaining_path}"
-
       # Strip the /auth prefix if present (in case URLMap didn't strip it)
       r.on('auth') do
-        OT.li "[Auth] Stripping /auth prefix"
-
         # Map auth service endpoints to core controller paths
         r.on('login') do
-          OT.li "[Auth] Matched 'login' path segment"
           r.is do
-            OT.li "[Auth] Forwarding login to /signin"
             forward_to_core_auth('/signin', r)
           end
         end
