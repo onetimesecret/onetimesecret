@@ -13,7 +13,7 @@ require 'bcrypt'
 begin
   require 'sendgrid-ruby'
 rescue LoadError
-  OT.ld "SendGrid is not installed. Mailer not available."
+  warn "SendGrid is not installed. Mailer not available."
 end
 
 require 'rack'

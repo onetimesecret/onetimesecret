@@ -182,8 +182,7 @@ module Core
         Sentry.capture_message(message, level: level, &)
       rescue StandardError => ex
         OT.le "[capture_message] #{ex.class}: #{ex.message}"
-        OT.ld ex.backtrace.join("
-")
+        OT.ld ex.backtrace.join("\n")
       end
     end
   end

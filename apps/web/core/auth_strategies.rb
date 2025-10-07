@@ -31,7 +31,7 @@ module Core
 
     # Public strategy - allows all requests, loads customer from session if available.
     # Replaces the `publically` wrapper method.
-    class PublicStrategy < Otto::Security::Authentication::AuthStrategy
+    class PublicStrategy < Otto::Security::AuthStrategy
       def authenticate(env, _requirement)
         session = env['rack.session']
 
@@ -75,7 +75,7 @@ module Core
 
     # Authenticated strategy - requires valid session with authenticated customer.
     # Replaces the `authenticated` wrapper method.
-    class AuthenticatedStrategy < Otto::Security::Authentication::AuthStrategy
+    class AuthenticatedStrategy < Otto::Security::AuthStrategy
       def authenticate(env, _requirement)
         session = env['rack.session']
         return failure('No session available') unless session
@@ -124,7 +124,7 @@ module Core
 
     # Colonel strategy - requires authenticated user with colonel role.
     # Replaces the `colonels` wrapper method.
-    class ColonelStrategy < Otto::Security::Authentication::AuthStrategy
+    class ColonelStrategy < Otto::Security::AuthStrategy
       def authenticate(env, _requirement)
         session = env['rack.session']
         return failure('No session available') unless session
