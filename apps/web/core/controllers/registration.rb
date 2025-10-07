@@ -12,8 +12,6 @@ module Core
           raise OT::Redirect.new('/')
         end
 
-        raise OT::Redirect.new('/') if req.blocked_user_agent?(blocked_agents: BADAGENTS)
-
         strategy_result = Otto::Security::Authentication::StrategyResult.new(
           session: session,
           user: cust,

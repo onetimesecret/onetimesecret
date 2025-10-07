@@ -34,7 +34,6 @@ module V2::Logic
       end
 
       def process
-
         create_secret_pair
         handle_passphrase
         save_secret
@@ -251,6 +250,8 @@ module V2::Logic
 
         update_stats
         send_email_to_recipient
+
+        success_data
       end
 
       def update_stats
@@ -258,7 +259,7 @@ module V2::Logic
           cust.add_metadata metadata
           cust.increment_field :secrets_created
         end
-        Onetime::Customer.global.increment_field :secrets_created
+        Onetime::Customer.secrets_created.increment
       end
 
       def send_email_to_recipient
