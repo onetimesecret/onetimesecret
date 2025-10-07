@@ -35,7 +35,7 @@ module Onetime
 
         # Create application context for middleware before the builder block
         app_context = {
-          name: base_klass.name.split('::').last.downcase,
+          name: base_klass.name,
           prefix: base_klass.uri_prefix,
           type: determine_app_type(base_klass)
         }

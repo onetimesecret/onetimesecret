@@ -39,7 +39,7 @@ module Onetime
 
         def find_application_files
           apps_root = File.join(ENV['ONETIME_HOME'] || File.expand_path('../../..', __dir__), 'apps')
-          filepaths = Dir.glob(File.join(apps_root, '**/registry.rb'))
+          filepaths = Dir.glob(File.join(apps_root, '**/application.rb'))
           OT.ld "[Application::Registry] Scan found #{filepaths.size} application(s)"
           filepaths.each { |f| require f }
         end

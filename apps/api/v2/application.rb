@@ -1,23 +1,26 @@
-#!/usr/bin/env ruby
-# frozen_string_literal: true
+# apps/api/v2/application.rb
 
-require 'otto'
+require 'onetime/application'
+require 'onetime/middleware'
 
 require_relative 'logic'
 
 module V2
-  class App
-    attr_reader :router
+  class Application < Onetime::Application::Base
+    @uri_prefix = '/api/v2'.freeze
 
-    def initialize
-      @router = build_router
+    # API v2 specific middleware (common middleware is in MiddlewareStack)
+    use Rack::JSONBodyParser
+
+    warmup do
+      require_relative 'logic'
+      require 'onetime/models'
+
+      # Log warmup completion
+      Onetime.li 'V2 warmup completed'
     end
 
-    def call(env)
-      router.call(env)
-    end
-
-    private
+    protected
 
     def build_router
       routes_path = File.join(ENV.fetch('ONETIME_HOME'), 'apps/api/v2/routes')
