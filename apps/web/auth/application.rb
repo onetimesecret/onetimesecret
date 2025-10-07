@@ -40,7 +40,21 @@ module Auth
     end
 
     warmup do
-      # Dependencies already loaded, just warmup tasks here
+      # Auto-run migrations in advanced mode
+      # This ensures the database schema is ready when Rodauth is enabled
+      if Onetime.auth_config.advanced_enabled?
+        begin
+          require_relative 'migrator'
+          Auth::Migrator.run_if_needed
+          OT.info "Auth database migrations completed (advanced mode)"
+        rescue StandardError => e
+          OT.le "Failed to run auth database migrations: #{e.message}"
+          # Don't fail startup in production, log the error
+          raise e if Onetime.development?
+        end
+      else
+        OT.info "Auth running in basic mode (no database required)"
+      end
     end
 
     protected

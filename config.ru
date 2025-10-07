@@ -4,12 +4,14 @@
 #
 #   $ thin -e dev -R config.ru -p 3000 start
 #
+#   $ puma -e development -p 3000 config.ru
+#
 # Application Structure:
 # ```
 # /
-# ├── config.ru               # Main Rack configuration
-# ├── apps/                   # API (v1, v2, v3) and web applications
-# └── lib/                    # Core libraries and app registry
+# ├── config.ru         # Main Rack configuration
+# ├── apps/             # API (v1, v2, v3) and web applications
+# └── lib/              # Core libraries, models, and app registry
 # ```
 #
 

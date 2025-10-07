@@ -10,13 +10,15 @@ module Auth
   # This is the Roda application, which handles all routing for the auth service.
   class Router < Roda
     # Include session validation helpers
-    include Auth::Helpers::SessionValidation
+    # TODO: Implement these modules
+    # include Auth::Helpers::SessionValidation
 
     # Include route modules
-    include Auth::Routes::Health
-    include Auth::Routes::Validation
-    include Auth::Routes::Account
-    include Auth::Routes::Admin
+    # TODO: Implement these route modules
+    # include Auth::Routes::Health
+    # include Auth::Routes::Validation
+    # include Auth::Routes::Account
+    # include Auth::Routes::Admin
 
     # Session middleware is now configured globally in MiddlewareStack
 
@@ -30,8 +32,11 @@ module Auth
       { error: 'Not found' }
     end
 
-    # Rodauth plugin configuration
-    plugin :rodauth, &Auth::Config::RodauthMain.configure
+    # Rodauth plugin configuration - only load in advanced mode
+    # This ensures basic mode can operate without database dependencies
+    if Onetime.auth_config.advanced_enabled?
+      plugin :rodauth, &Auth::Config::RodauthMain.configure
+    end
 
     # Main routing logic - handles requests based on authentication mode
     route do |r|
@@ -49,7 +54,7 @@ module Auth
       end
 
       # Handle empty path (when accessed as /auth without trailing slash)
-      if r.path_info == ""
+      if r.path_info == ''
         { message: 'OneTimeSecret Authentication Service API', endpoints: %w[/health /validate /account] }
       end
 
@@ -66,10 +71,11 @@ module Auth
       # - Session validation for frontend auth checks
       # - Account information retrieval
       # - Admin functions for management
-      handle_health_routes(r)
-      handle_validation_routes(r)
-      handle_account_routes(r)
-      handle_admin_routes(r)
+      # TODO: Implement these route handlers
+      # handle_health_routes(r)
+      # handle_validation_routes(r)
+      # handle_account_routes(r)
+      # handle_admin_routes(r)
 
       # ==============================================================================
       # MODE-SPECIFIC AUTHENTICATION ROUTING
@@ -93,10 +99,10 @@ module Auth
       else
         # Unknown mode - configuration error
         response.status = 503
-        { error: "Unknown authentication mode: #{auth_mode}" }
+        return { error: "Unknown authentication mode: #{auth_mode}" }
       end
 
-      # Catch-all for undefined routes
+      # Catch-all for undefined routes - only reached if no routes matched above
       response.status = 404
       { error: 'Endpoint not found' }
     end
@@ -132,20 +138,53 @@ module Auth
     # - /auth/login → Core:/signin (Core::Controllers::Account#authenticate)
     # - /auth/logout → Core:/logout (Core::Controllers::Account#logout)
     # - /auth/create-account → Core:/signup (Core::Controllers::Account#create_account)
+    # - /auth/reset-password → Core:/forgot (password reset request)
+    # - /auth/reset-password/:key → Core:/forgot/:key (password reset with token)
     #
     # @param r [Roda::RodaRequest] The current request object
     def handle_basic_auth_routes(r)
-      # Map auth service endpoints to core controller paths
-      r.on('login') do
-        forward_to_core_auth('/signin', r)
-      end
+      OT.li "[Auth] Handling basic auth routes, path: #{r.remaining_path}"
 
-      r.on('logout') do
-        forward_to_core_auth('/logout', r)
-      end
+      # Strip the /auth prefix if present (in case URLMap didn't strip it)
+      r.on('auth') do
+        OT.li "[Auth] Stripping /auth prefix"
 
-      r.on('create-account') do
-        forward_to_core_auth('/signup', r)
+        # Map auth service endpoints to core controller paths
+        r.on('login') do
+          OT.li "[Auth] Matched 'login' path segment"
+          r.is do
+            OT.li "[Auth] Forwarding login to /signin"
+            forward_to_core_auth('/signin', r)
+          end
+        end
+
+        r.on('logout') do
+          r.is do
+            forward_to_core_auth('/logout', r)
+          end
+        end
+
+        r.on('create-account') do
+          r.is do
+            forward_to_core_auth('/signup', r)
+          end
+        end
+
+        # Password reset routes
+        r.on('reset-password') do
+          # Handle both forms:
+          # - /auth/reset-password (request reset email)
+          # - /auth/reset-password/:key (reset with token)
+          r.is String do |key|
+            # Reset with token key
+            forward_to_core_auth("/forgot/#{key}", r)
+          end
+
+          r.is do
+            # Request reset email
+            forward_to_core_auth('/forgot', r)
+          end
+        end
       end
 
       # Other auth routes are not handled in basic mode
@@ -171,9 +210,18 @@ module Auth
     # @return [Hash, String, nil] JSON response, HTML content, or nil for redirects
     def forward_to_core_auth(path, r)
       # Step 1: Modify request environment to target core controller path
-      new_env = r.env.dup
-      new_env['PATH_INFO'] = path
-      new_env['REQUEST_URI'] = new_env['REQUEST_URI'].sub(r.path_info, path)
+      new_env                = r.env.dup
+      new_env['PATH_INFO']   = path
+      # REQUEST_URI might not be set (depends on web server)
+      if new_env['REQUEST_URI']
+        new_env['REQUEST_URI'] = new_env['REQUEST_URI'].sub(r.path_info, path)
+      else
+        new_env['REQUEST_URI'] = path
+      end
+
+      # Ensure parameters are properly passed through
+      # The Vue frontend sends: u (email), p (password), shrimp (CSRF token)
+      # The Core app expects the same parameter names, so no mapping needed
 
       # Step 2: Retrieve Core Web App instance
       core_app = get_core_web_app
@@ -183,7 +231,7 @@ module Auth
         status, headers, body = core_app.call(new_env)
 
         # Step 4: Set response status and headers
-        response.status = status
+        response.status                           = status
         headers.each { |k, v| response.headers[k] = v unless k.downcase == 'content-length' }
 
         # Step 5: Handle response based on content type for API consistency
@@ -196,21 +244,55 @@ module Auth
             { error: 'Invalid JSON response from core auth' }
           end
         elsif status >= 300 && status < 400 && headers['Location']
-          # Convert redirects to JSON for API consistency
-          if r.env['HTTP_ACCEPT']&.include?('application/json')
-            { success: true, redirect: headers['Location'] }
+          # Convert redirects to JSON for Vue frontend
+          # Core auth redirects on success - convert to JSON response
+          location = headers['Location']
+
+          # Successful authentication redirects to '/' or '/colonel/'
+          if ['/signin', '/login'].include?(path) && (['/', '/colonel/'].include?(location))
+            response.status                  = 200
+            response.headers['Content-Type'] = 'application/json'
+            { success: true, redirect: location, authenticated: true }
+          # Successful registration/signup redirects
+          elsif path == '/signup' && location == '/'
+            response.status                  = 200
+            response.headers['Content-Type'] = 'application/json'
+            { success: true, redirect: location, message: 'Account created successfully' }
+          # Successful logout
+          elsif path == '/logout' && location
+            response.status                  = 200
+            response.headers['Content-Type'] = 'application/json'
+            { success: true, redirect: location, authenticated: false }
           else
-            # Honor redirect for browser requests
-            response.redirect(headers['Location'])
-            nil
+            # Generic redirect handling
+            response.status                  = 200
+            response.headers['Content-Type'] = 'application/json'
+            { success: true, redirect: location }
           end
+        elsif status >= 400
+          # Error responses - convert to JSON
+          body_str = body.is_a?(Array) ? body.join : body.to_s
+
+          # Try to extract error message from HTML response
+          error_msg = if body_str.include?('Try again')
+                        'Invalid email or password'
+                      elsif body_str.include?('already exists')
+                        'An account with that email already exists'
+                      else
+                        'Authentication failed'
+                      end
+
+          response.status                  = status
+          response.headers['Content-Type'] = 'application/json'
+          { success: false, error: error_msg }
         else
-          # Return HTML or other content as-is
+          # Return HTML or other content as-is (shouldn't happen for auth endpoints)
           body.is_a?(Array) ? body.join : body.to_s
         end
       else
         # Core app unavailable - service degraded
-        response.status = 503
+        response.status                  = 503
+        response.headers['Content-Type'] = 'application/json'
         { error: 'Authentication service unavailable' }
       end
     end
@@ -224,13 +306,19 @@ module Auth
     # @return [Object, nil] The Core Web App instance, or nil if unavailable
     def get_core_web_app
       # Access the Core Web App through the application registry
-      if defined?(Onetime::Application::Registry) && Onetime::Application::Registry.respond_to?(:mount_mappings)
+      if defined?(Onetime::Application::Registry)
+        # Ensure the registry is prepared (this is idempotent)
+        if Onetime::Application::Registry.mount_mappings.empty?
+          Onetime::Application::Registry.prepare_application_registry
+        end
+
         core_app_class = Onetime::Application::Registry.mount_mappings['/']
         core_app_class&.new
       end
-    rescue StandardError => e
+    rescue StandardError => ex
       # Log error in development but don't expose details in production
-      puts "Error getting core app: #{e.message}" if ENV['RACK_ENV'] == 'development'
+      OT.le "Error getting core app: #{ex.message}"
+      OT.ld ex.backtrace.join("\n")
       nil
     end
   end
