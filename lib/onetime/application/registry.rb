@@ -1,86 +1,73 @@
-# apps/app_registry.rb
+# lib/onetime/application/registry.rb
 
-unless defined?(APPS_ROOT)
-  # Know where we are; use the project home directory if set or relative to us.
-  project_root = ENV['ONETIME_HOME'] || File.expand_path('..', __dir__).freeze
+module Onetime
+  module Application
+    # Application Registry
+    #
+    # Discovers and manages Rack applications for URL mapping
+    module Registry
+      # These class instance vars are populated at start-time and then readonly.
+      # rubocop:disable ThreadSafety/MutableClassInstanceVariable
+      @application_classes = []
+      @mount_mappings      = {}
 
-  # Add each directory containing the rack applications to Ruby's load path.
-  APPS_ROOT = File.join(project_root, 'apps').freeze
-  $LOAD_PATH.unshift(APPS_ROOT)
+      class << self
+        attr_reader :application_classes, :mount_mappings
 
-  # Add the main lib directory for the project.
-  LIB_ROOT = File.join(project_root, 'lib').freeze
-  $LOAD_PATH.unshift(LIB_ROOT)
+        def register_application_class(app_class)
+          @application_classes << app_class unless @application_classes.include?(app_class)
+          OT.ld "[Application::Registry] Registered application: #{app_class}"
+        end
 
-  # Define the directory for static web assets like images, CSS, and JS files.
-  PUBLIC_DIR = File.join(project_root, '/public').freeze
-end
+        # Discover and map application classes to their respective routes
+        def prepare_application_registry
+          find_application_files
+          create_mount_mappings
+        rescue StandardError => ex
+          OT.le "[Application::Registry] ERROR: #{ex.class}: #{ex.message}"
+          OT.ld ex.backtrace.join("\n")
 
-# Require 'onetime' before requiring any gems so that bundler/setup
-# and friends can do their thang.
-require 'onetime'
+          Onetime.not_ready!
+        end
 
-module AppRegistry
-  # These class instance vars are populated at start-time and then readonly.
-  # rubocop:disable ThreadSafety/MutableClassInstanceVariable
-  @application_classes = []
-  @mount_mappings      = {}
+        def generate_rack_url_map
+          mappings = mount_mappings.transform_values { |app_class| app_class.new }
+          Rack::URLMap.new(mappings)
+        end
 
-  class << self
-    attr_reader :application_classes, :mount_mappings
+        private
 
-    def register_application_class(app_class)
-      @application_classes << app_class unless @application_classes.include?(app_class)
-      OT.ld "[AppRegistry] Registered application: #{app_class}"
-    end
+        def find_application_files
+          apps_root = File.join(ENV['ONETIME_HOME'] || File.expand_path('../../..', __dir__), 'apps')
+          filepaths = Dir.glob(File.join(apps_root, '**/registry.rb'))
+          OT.ld "[Application::Registry] Scan found #{filepaths.size} application(s)"
+          filepaths.each { |f| require f }
+        end
 
-    # Discover and map application classes to their respective routes
-    def prepare_application_registry
-      find_application_files
-      create_mount_mappings
-    rescue StandardError => ex
-      OT.le "[AppRegistry] ERROR: #{ex.class}: #{ex.message}"
-      OT.ld ex.backtrace.join("\n")
+        # Maps all discovered application classes to their URL routes
+        # @return [Array<Class>] Registered application classes
+        def create_mount_mappings
+          OT.li "Mapping #{application_classes.size} application(s) to routes"
 
-      Onetime.not_ready!
-    end
+          application_classes.each do |app_class|
+            mount = app_class.uri_prefix
 
-    def generate_rack_url_map
-      mappings = mount_mappings.transform_values { |app_class| app_class.new }
-      Rack::URLMap.new(mappings)
-    end
-  end
+            unless mount.is_a?(String)
+              raise ArgumentError, "Mount point must be a string (#{app_class} gave #{mount.class})"
+            end
 
-  private
+            OT.li "  #{app_class} for #{mount}"
+            register(mount, app_class)
+          end
 
-  def self.find_application_files
-    filepaths = Dir.glob(File.join(APPS_ROOT, '**/registry.rb'))
-    OT.ld "[AppRegistry] Scan found #{filepaths.size} application(s)"
-    filepaths.each { |f| require f }
-  end
+          application_classes
+        end
 
-  # Maps all discovered application classes to their URL routes
-  # @return [Array<Class>] Registered application classes
-  def self.create_mount_mappings
-    OT.li "Mapping #{application_classes.size} application(s) to routes"
-
-    application_classes.each do |app_class|
-      mount = app_class.uri_prefix
-
-      unless mount.is_a?(String)
-        raise ArgumentError, "Mount point must be a string (#{app_class} gave #{mount.class})"
+        # Register an application with its mount path
+        def register(path, app_class)
+          @mount_mappings[path] = app_class
+        end
       end
-
-      OT.li "  #{app_class} for #{mount}"
-      register(mount, app_class)
     end
-
-    application_classes
   end
-
-  # Register an application with its mount path
-  def self.register(path, app_class)
-    @mount_mappings[path] = app_class
-  end
-
 end

@@ -1,97 +1,91 @@
-# apps/middleware_stack.rb
+# lib/onetime/application/middleware_stack.rb
 
 require 'rack/content_length'
 require 'rack/contrib'
 require 'rack/protection'
 require 'rack/utf8_sanitizer'
 
-# Character Encoding Configuration
-# Set UTF-8 as the default external encoding to ensure consistent text handling:
-# - Standardizes file and network I/O operations
-# - Normalizes STDIN/STDOUT/STDERR encoding
-# - Provides default encoding for strings from external sources
-# This prevents encoding-related bugs, especially on fresh OS installations
-# where locale settings may not be properly configured.
-Encoding.default_external = Encoding::UTF_8
+module Onetime
+  module Application
+    # MiddlewareStack
+    #
+    # Standard middleware configuration for all Rack applications
+    module MiddlewareStack
+      class << self
+        def configure(builder, application_context: nil)
+          builder.use Rack::ContentLength
+          builder.use Onetime::Middleware::StartupReadiness
 
-# MiddlewareStack
-#
-# Standard middleware for all applications
-module MiddlewareStack
-  class << self
-    def configure(builder, application_context: nil)
-      builder.use Rack::ContentLength
-      builder.use Onetime::Middleware::StartupReadiness
+          # Add session middleware early in the stack (before other middleware)
+          require 'onetime/session'
+          # Host detection and identity resolution (common to all apps)
+          builder.use Rack::DetectHost
 
-      # Add session middleware early in the stack (before other middleware)
-      require 'onetime/session'
-      # Host detection and identity resolution (common to all apps)
-      builder.use Rack::DetectHost
+          builder.use Onetime::Session, {
+            expire_after: 86_400, # 24 hours
+            key: 'onetime.session',
+            secure: Onetime.conf&.dig('site', 'ssl'),
+            httponly: true,
+            same_site: :strict,
+            redis_prefix: 'session'
+          }
 
-      builder.use Onetime::Session, {
-        expire_after: 86_400, # 24 hours
-        key: 'onetime.session',
-        secure: Onetime.conf&.dig('site', 'ssl'),
-        httponly: true,
-        same_site: :strict,
-        redis_prefix: 'session'
-      }
+          # Identity resolution middleware (after session)
+          require 'onetime/middleware/identity_resolution'
+          builder.use Onetime::Middleware::IdentityResolution
 
-      # Identity resolution middleware (after session)
-      require 'onetime/middleware/identity_resolution'
-      builder.use Onetime::Middleware::IdentityResolution
+          # Domain strategy middleware (after identity)
+          require 'onetime/middleware/domain_strategy'
+          builder.use Onetime::Middleware::DomainStrategy, application_context: application_context
 
-      # Domain strategy middleware (after identity)
-      require 'onetime/middleware/domain_strategy'
-      builder.use Onetime::Middleware::DomainStrategy, application_context: application_context
+          # Apply minimal middleware if config not available
+          unless Onetime.conf
+            Onetime.ld '[middleware] Configuration not available, using minimal stack'
+            return
+          end
 
-      # Apply minimal middleware if config not available
-      unless Onetime.conf
-        Onetime.ld '[middleware] Configuration not available, using minimal stack'
-        return
-      end
+          # Load the logger early so it's ready to log request errors
+          unless Onetime.conf&.dig(:logging, :http_requests).eql?(false)
+            builder.use Rack::CommonLogger
+          end
 
-      # Load the logger early so it's ready to log request errors
-      unless Onetime.conf&.dig(:logging, :http_requests).eql?(false)
-        builder.use Rack::CommonLogger
-      end
+          # Error Monitoring Integration
+          # Add Sentry exception tracking when available
+          # This block only executes if Sentry was successfully initialized
+          Onetime.with_diagnostics do |diagnostics_conf|
+            Onetime.ld "[config.ru] Sentry enabled #{diagnostics_conf}"
+            # Position Sentry middleware early to capture exceptions throughout the stack
 
-      # Error Monitoring Integration
-      # Add Sentry exception tracking when available
-      # This block only executes if Sentry was successfully initialized
-      Onetime.with_diagnostics do |diagnostics_conf|
-        Onetime.ld "[config.ru] Sentry enabled #{diagnostics_conf}"
-        # Position Sentry middleware early to capture exceptions throughout the stack
+            builder.use Sentry::Rack::CaptureExceptions
+          end
 
-        builder.use Sentry::Rack::CaptureExceptions
-      end
+          # Request Setup Middleware (Web Core)
+          # Initialize request context (nonce, locale) before other processing
+          require_relative '../../../apps/web/core/middleware/request_setup'
+          builder.use Core::Middleware::RequestSetup
 
-      # Request Setup Middleware (Web Core)
-      # Initialize request context (nonce, locale) before other processing
-      require_relative 'web/core/middleware/request_setup'
-      builder.use Core::Middleware::RequestSetup
+          # Security Middleware Configuration
+          # Configures security-related middleware components based on application settings
+          require 'onetime/middleware/security'
 
-      # Security Middleware Configuration
-      # Configures security-related middleware components based on application settings
-      require 'onetime/middleware/security'
+          Onetime.ld '[config.ru] Setting up Security middleware'
+          builder.use Onetime::Middleware::Security
 
-      Onetime.ld '[config.ru] Setting up Security middleware'
-      builder.use Onetime::Middleware::Security
+          # Error Handling Middleware (Web Core)
+          # Simplified error handling for Vue SPA - serves entry points
+          # Must come after security but before router to catch all downstream errors
+          require_relative '../../../apps/web/core/middleware/error_handling'
+          builder.use Core::Middleware::ErrorHandling
 
-      # Error Handling Middleware (Web Core)
-      # Simplified error handling for Vue SPA - serves entry points
-      # Must come after security but before router to catch all downstream errors
-      require_relative 'web/core/middleware/error_handling'
-      builder.use Core::Middleware::ErrorHandling
-
-      # Performance Optimization
-      # Support running with code frozen in production-like environments
-      # This reduces memory usage and prevents runtime modifications
-      if Onetime.conf&.dig(:experimental, :freeze_app).eql?(true)
-        Onetime.li "[experimental] Freezing app by request (env: #{Onetime.env})"
-        builder.freeze_app
+          # Performance Optimization
+          # Support running with code frozen in production-like environments
+          # This reduces memory usage and prevents runtime modifications
+          if Onetime.conf&.dig(:experimental, :freeze_app).eql?(true)
+            Onetime.li "[experimental] Freezing app by request (env: #{Onetime.env})"
+            builder.freeze_app
+          end
+        end
       end
     end
-
   end
 end
