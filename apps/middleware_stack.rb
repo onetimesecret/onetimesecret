@@ -19,7 +19,7 @@ Encoding.default_external = Encoding::UTF_8
 # Standard middleware for all applications
 module MiddlewareStack
   class << self
-    def configure(builder)
+    def configure(builder, application_context: nil)
       builder.use Rack::ContentLength
       builder.use Onetime::Middleware::StartupReadiness
 
@@ -43,7 +43,7 @@ module MiddlewareStack
 
       # Domain strategy middleware (after identity)
       require 'onetime/middleware/domain_strategy'
-      builder.use Onetime::Middleware::DomainStrategy
+      builder.use Onetime::Middleware::DomainStrategy, application_context: application_context
 
       # Apply minimal middleware if config not available
       unless Onetime.conf

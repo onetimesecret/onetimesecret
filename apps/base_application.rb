@@ -34,8 +34,14 @@ class BaseApplication
     @middleware   ||= []
     base_klass      = self.class
 
+    # Create application context for middleware before the builder block
+    app_context = {
+      name: base_klass.name,
+      prefix: base_klass.uri_prefix,
+    }
+
     Rack::Builder.new do |builder|
-      MiddlewareStack.configure(builder)
+      MiddlewareStack.configure(builder, application_context: app_context)
 
       (base_klass.middleware || []).each do |middleware, args, block|
         builder.use(middleware, *args, &block)

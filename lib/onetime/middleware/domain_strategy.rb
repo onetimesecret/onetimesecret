@@ -64,11 +64,13 @@ module Onetime
       # Initializes the DomainStrategy middleware.
       #
       # @param app [Object] The Rack application.
-      def initialize(app)
-        @app        = app
+      # @param application_context [Hash] Optional context about the application
+      def initialize(app, application_context: nil)
+        @app = app
+        @application_context = application_context
         site_config = OT.conf&.dig('site') || {}
         self.class.initialize_from_config(site_config)
-        OT.info "[DomainStrategy]: canonical_domain=#{canonical_domain} enabled=#{domains_enabled?}"
+        OT.info "[DomainStrategy]: app_context=#{@application_context} canonical_domain=#{canonical_domain}"
       end
 
       # Processes the incoming request and updates the Rack environment with the domain strategy.
