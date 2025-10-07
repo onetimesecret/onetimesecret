@@ -2,6 +2,7 @@
 
 require 'onetime/application'
 require 'onetime/middleware'
+require 'onetime/models'
 
 require_relative 'logic'
 
@@ -13,9 +14,6 @@ module V2
     use Rack::JSONBodyParser
 
     warmup do
-      require_relative 'logic'
-      require 'onetime/models'
-
       # Log warmup completion
       Onetime.li 'V2 warmup completed'
     end
@@ -23,12 +21,11 @@ module V2
     protected
 
     def build_router
-      routes_path = File.join(ENV.fetch('ONETIME_HOME'), 'apps/api/v2/routes')
+      routes_path = File.join(__dir__, 'routes')
       router      = Otto.new(routes_path)
 
       # Register authentication strategies
-      require 'onetime/auth_strategies'
-      Onetime::AuthStrategies.register_all(router)
+      Onetime::Application::AuthStrategies.register_all(router)
 
       # Default error responses
       headers             = { 'content-type' => 'application/json' }

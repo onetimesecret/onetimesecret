@@ -1,11 +1,11 @@
-# lib/onetime/middleware/vite_proxy.rb
+# apps/web/core/middleware/vite_proxy.rb
 #
 # Development proxy middleware for Onetime Secret application.
 # Provides development-specific utilities including Vite integration.
 
 require 'rack'
 
-module Onetime
+module Core
   module Middleware
     # Development environment middleware for Onetime Secret
     #

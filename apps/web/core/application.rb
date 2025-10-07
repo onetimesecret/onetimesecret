@@ -3,27 +3,34 @@
 require 'onetime/application'
 require 'onetime/middleware'
 
+require_relative 'middleware/request_setup'
+require_relative 'middleware/error_handling'
+require_relative 'middleware/vite_proxy'
+
 require_relative 'controllers'
+require_relative 'auth_strategies'
 
 module Core
   class Application < Onetime::Application::Base
     @uri_prefix = '/'.freeze
 
-    # App-specific middleware (common middleware is in MiddlewareStack)
+    # Initialize request context (nonce, locale) before other processing
+    use Core::Middleware::RequestSetup
 
-    # Development Environment Configuration
-    # Enable development-specific middleware when in development mode
-    # This handles code validation and frontend development server integration
+    # Simplified error handling for Vue SPA - serves entry points
+    # Must come after security but before router to catch all downstream errors
+    use Core::Middleware::ErrorHandling
+
     Onetime.development? do
-      require 'onetime/middleware/vite_proxy'
-      use Onetime::Middleware::ViteProxy
+      # Enable development-specific middleware when in development mode
+      # This handles code validation and frontend development server integration
+      use Core::Middleware::ViteProxy
     end
 
-    # # Serve static frontend assets in production mode
-    # # While reverse proxies often handle static files in production,
-    # # this provides a fallback capability for simpler deployments.
     Onetime.production? do
-      require 'onetime/middleware/static_files'
+      # Serve static frontend assets in production mode
+      # While reverse proxies often handle static files in production,
+      # this provides a fallback capability for simpler deployments.
       use Onetime::Middleware::StaticFiles
     end
 
@@ -37,14 +44,14 @@ module Core
     protected
 
     def build_router
-      routes_path = File.join(Onetime::HOME, 'apps/web/core/routes')
+      OT.ld "[#{self.class}] Initializing router"
+      routes_path = File.join(__dir__, 'routes')
       router      = Otto.new(routes_path)
 
       # Enable CSP nonce support for enhanced security
       router.enable_csp_with_nonce!(debug: OT.debug?)
 
       # Register authentication strategies for Web Core
-      require_relative 'auth_strategies'
       Core::AuthStrategies.register_all(router)
 
       # Default error responses

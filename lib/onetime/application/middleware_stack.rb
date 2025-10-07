@@ -5,6 +5,8 @@ require 'rack/contrib'
 require 'rack/protection'
 require 'rack/utf8_sanitizer'
 
+require 'onetime/session'
+
 module Onetime
   module Application
     # MiddlewareStack
@@ -16,11 +18,10 @@ module Onetime
           builder.use Rack::ContentLength
           builder.use Onetime::Middleware::StartupReadiness
 
-          # Add session middleware early in the stack (before other middleware)
-          require 'onetime/session'
           # Host detection and identity resolution (common to all apps)
           builder.use Rack::DetectHost
 
+          # Add session middleware early in the stack (before other middleware)
           builder.use Onetime::Session, {
             expire_after: 86_400, # 24 hours
             key: 'onetime.session',
@@ -31,18 +32,10 @@ module Onetime
           }
 
           # Identity resolution middleware (after session)
-          require 'onetime/middleware/identity_resolution'
           builder.use Onetime::Middleware::IdentityResolution
 
           # Domain strategy middleware (after identity)
-          require 'onetime/middleware/domain_strategy'
           builder.use Onetime::Middleware::DomainStrategy, application_context: application_context
-
-          # Apply minimal middleware if config not available
-          unless Onetime.conf
-            Onetime.ld '[middleware] Configuration not available, using minimal stack'
-            return
-          end
 
           # Load the logger early so it's ready to log request errors
           unless Onetime.conf&.dig(:logging, :http_requests).eql?(false)
@@ -55,27 +48,14 @@ module Onetime
           Onetime.with_diagnostics do |diagnostics_conf|
             Onetime.ld "[config.ru] Sentry enabled #{diagnostics_conf}"
             # Position Sentry middleware early to capture exceptions throughout the stack
-
             builder.use Sentry::Rack::CaptureExceptions
           end
 
-          # Request Setup Middleware (Web Core)
-          # Initialize request context (nonce, locale) before other processing
-          require_relative '../../../apps/web/core/middleware/request_setup'
-          builder.use Core::Middleware::RequestSetup
-
           # Security Middleware Configuration
           # Configures security-related middleware components based on application settings
-          require 'onetime/middleware/security'
-
           Onetime.ld '[config.ru] Setting up Security middleware'
           builder.use Onetime::Middleware::Security
 
-          # Error Handling Middleware (Web Core)
-          # Simplified error handling for Vue SPA - serves entry points
-          # Must come after security but before router to catch all downstream errors
-          require_relative '../../../apps/web/core/middleware/error_handling'
-          builder.use Core::Middleware::ErrorHandling
 
           # Performance Optimization
           # Support running with code frozen in production-like environments

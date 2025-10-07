@@ -1,7 +1,6 @@
 # lib/onetime/application/base.rb
 
 require 'rack'
-require 'otto'
 require 'familia/json_serializer'
 
 module Onetime
@@ -13,6 +12,7 @@ module Onetime
         @options  = options
         @router   = build_router
         @rack_app = build_rack_app
+        OT.ld "[#{self.class}] Initialized with options: #{@options}"
       end
 
       def call(env)

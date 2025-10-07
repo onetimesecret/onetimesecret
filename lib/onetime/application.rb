@@ -11,6 +11,7 @@ Encoding.default_external = Encoding::UTF_8
 
 require_relative 'application/base'
 require_relative 'application/registry'
+require_relative 'application/auth_strategies'
 require_relative 'application/middleware_stack'
 
 module Onetime

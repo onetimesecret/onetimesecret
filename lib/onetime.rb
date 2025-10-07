@@ -10,7 +10,11 @@ require 'erb'
 require 'encryptor'
 require 'bcrypt'
 
-require 'sendgrid-ruby'
+begin
+  require 'sendgrid-ruby'
+rescue LoadError
+  OT.ld "SendGrid is not installed. Mailer not available."
+end
 
 require 'rack'
 require 'otto'
@@ -76,7 +80,6 @@ require_relative 'onetime/utils'
 require_relative 'onetime/version'
 require_relative 'onetime/config'
 require_relative 'onetime/auth_config'
-require_relative 'onetime/auth_strategies'
 require_relative 'onetime/models'
 require_relative 'onetime/cluster'
 require_relative 'onetime/boot'
