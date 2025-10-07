@@ -13,9 +13,10 @@ module V2::Logic
 
       def raise_concerns
         # TODO: if new_locale == old_locale, no update needed
-        return unless !sess.authenticated? || cust.anonymous?
+        authenticated = @sess['authenticated'] == true
+        return unless !authenticated || cust.anonymous?
 
-        OT.le "[UpdateLocale#raise-concerns] sess.authenticated?=#{sess.authenticated?} cust.anonymous?=#{cust.anonymous?}"
+        OT.le "[UpdateLocale#raise-concerns] sess.authenticated?=#{authenticated} cust.anonymous?=#{cust.anonymous?}"
         raise_form_error "Sorry, we don't support that"
       end
 
@@ -49,7 +50,7 @@ module V2::Logic
       end
 
       def log_update
-        OT.info "[update-account] Locale updated cid/#{cust.custid} r/#{cust.role} ipa/#{sess.ipaddress} old/#{old_locale} new/#{new_locale}"
+        OT.info "[update-account] Locale updated cid/#{cust.custid} r/#{cust.role} ipa/#{session_ipaddress} old/#{old_locale} new/#{new_locale}"
       end
     end
   end

@@ -16,7 +16,7 @@ module V2::Logic
         if @confirmation&.empty?
           raise_form_error 'Password confirmation is required.'
         else
-          OT.info "[destroy-account] Passphrase check attempt cid/#{cust.custid} r/#{cust.role} ipa/#{sess.ipaddress}"
+          OT.info "[destroy-account] Passphrase check attempt cid/#{cust.custid} r/#{cust.role} ipa/#{session_ipaddress}"
 
           raise_form_error 'Please check the password.' unless cust.passphrase?(@confirmation)
         end
@@ -36,7 +36,7 @@ module V2::Logic
         # TODO: Limit to dev as well
         if Onetime.debug?
           cust.destroy_requested # not saved
-          OT.ld "[destroy-account] Simulated account destruction #{cust.custid} #{cust.role} #{sess.ipaddress}"
+          OT.ld "[destroy-account] Simulated account destruction #{cust.custid} #{cust.role} #{session_ipaddress}"
 
           # Since we intentionally don't call Customer#destroy_requested!
           # when running in debug mode (to simulate the destruction but
@@ -48,21 +48,21 @@ module V2::Logic
           # that we made it to this point in the logic. Otherwise, they
           # might not know if the action was successful or not since we
           # don't actually destroy the account in debug mode.
-          sess.set_info_message 'Account deleted'
+          set_info_message('Account deleted')
 
         else
           cust.destroy_requested!
 
           # Log the event immediately after saving the change to
           # to minimize the chance of the event not being logged.
-          OT.info "[destroy-account] Account destroyed. #{cust.custid} #{cust.role} #{sess.ipaddress}"
+          OT.info "[destroy-account] Account destroyed. #{cust.custid} #{cust.role} #{session_ipaddress}"
         end
 
         # We replace the session and session ID and then add a message
         # for the user so that when the page they're directed to loads
         # (i.e. the homepage), they'll see it and remember what they did.
-        sess.replace!
-        sess.set_info_message 'Account deleted'
+        sess.clear
+        set_info_message('Account deleted')
       end
 
       def modified?(guess)
