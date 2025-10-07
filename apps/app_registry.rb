@@ -49,37 +49,38 @@ module AppRegistry
       mappings = mount_mappings.transform_values { |app_class| app_class.new }
       Rack::URLMap.new(mappings)
     end
+  end
 
-    private
+  private
 
-    def find_application_files
-      filepaths = Dir.glob(File.join(APPS_ROOT, '**/registry.rb'))
-      OT.ld "[AppRegistry] Scan found #{filepaths.size} application(s)"
-      filepaths.each { |f| require f }
-    end
+  def self.find_application_files
+    filepaths = Dir.glob(File.join(APPS_ROOT, '**/registry.rb'))
+    OT.ld "[AppRegistry] Scan found #{filepaths.size} application(s)"
+    filepaths.each { |f| require f }
+  end
 
-    # Maps all discovered application classes to their URL routes
-    # @return [Array<Class>] Registered application classes
-    def create_mount_mappings
-      OT.li "Mapping #{application_classes.size} application(s) to routes"
+  # Maps all discovered application classes to their URL routes
+  # @return [Array<Class>] Registered application classes
+  def self.create_mount_mappings
+    OT.li "Mapping #{application_classes.size} application(s) to routes"
 
-      application_classes.each do |app_class|
-        mount = app_class.uri_prefix
+    application_classes.each do |app_class|
+      mount = app_class.uri_prefix
 
-        unless mount.is_a?(String)
-          raise ArgumentError, "Mount point must be a string (#{app_class} gave #{mount.class})"
-        end
-
-        OT.li "  #{app_class} for #{mount}"
-        register(mount, app_class)
+      unless mount.is_a?(String)
+        raise ArgumentError, "Mount point must be a string (#{app_class} gave #{mount.class})"
       end
 
-      application_classes
+      OT.li "  #{app_class} for #{mount}"
+      register(mount, app_class)
     end
 
-    # Register an application with its mount path
-    def register(path, app_class)
-      @mount_mappings[path] = app_class
-    end
+    application_classes
   end
+
+  # Register an application with its mount path
+  def self.register(path, app_class)
+    @mount_mappings[path] = app_class
+  end
+
 end
