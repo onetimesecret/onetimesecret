@@ -5,8 +5,39 @@ module Onetime
 
     # Check for legacy data distribution before connecting to databases
     def detect_legacy_data_and_warn
-      legacy_data = detect_legacy_data
-      warn_about_legacy_data(legacy_data)
+      # This check runs once and then sets a marker to prevent the expensive
+      # scan on every startup.
+      completion_key = 'onetime:system:legacy_check_complete'
+      check_complete = false
+      begin
+        Familia.with_isolated_dbclient(0) do |client|
+          check_complete = client.get(completion_key) == 'true'
+        end
+      rescue Redis::BaseError => ex
+        OT.ld "[init] Detect legacy data: Could not check for completion flag: #{ex.message}"
+      end
+
+      if check_complete
+        OT.ld "[init] Detect legacy data: Check previously ran. Skipping. (delete '#{completion_key}' to re-run)"
+        return
+      end
+
+      # Run the actual detection
+      detection_result = detect_legacy_data
+      return if detection_result[:legacy_locations].empty?
+
+      # If we found data, warn the user...
+      warn_about_legacy_data(detection_result)
+
+      # ...and then set the marker so we don't do this again.
+      begin
+        Familia.with_isolated_dbclient(0) do |client|
+          client.set(completion_key, 'true')
+          OT.ld "[init] Detect legacy data: Set completion marker to prevent future checks."
+        end
+      rescue Redis::BaseError => ex
+        OT.ld "[init] Detect legacy data: Could not set completion marker: #{ex.message}"
+      end
     end
 
     # Detects legacy data distribution across multiple Redis databases
@@ -239,6 +270,9 @@ module Onetime
           To migrate to database 0 (recommended before v1.0):
              Run: bin/ots migrate-redis-data --run
 
+          NOTE: This check has now completed and will not run again on startup.
+                To re-run this check, delete the 'onetime:system:legacy_check_complete' key from Redis DB 0.
+
           For permanent configuration options:
              See: docs/redis-migration.md
         AUTO_CONFIG_MESSAGE
@@ -270,6 +304,9 @@ module Onetime
             1. No action needed - current setup continues working
             2. Migrate when convenient: bin/ots migrate-redis-data --run
             3. See docs/redis-migration.md for detailed guidance
+
+          NOTE: This check has now completed and will not run again on startup.
+                To re-run this check, delete the 'onetime:system:legacy_check_complete' key from Redis DB 0.
 
         EXISTING_CONFIG_MESSAGE
 
