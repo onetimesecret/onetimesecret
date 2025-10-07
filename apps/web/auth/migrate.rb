@@ -5,7 +5,6 @@
 #   RODAUTH_SCHEMA_TYPE - 'essential' (default) or 'example'
 #   DATABASE_URL - Database connection (default: sqlite://data/auth.db)
 
-require 'bundler/setup'
 require 'sequel'
 require 'logger'
 

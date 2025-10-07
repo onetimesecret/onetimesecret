@@ -54,7 +54,6 @@ module Onetime
       load_locales
       set_global_secret
       set_rotated_secrets
-      setup_authentication
       setup_diagnostics
       configure_domains
       configure_truemail

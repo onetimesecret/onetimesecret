@@ -27,7 +27,7 @@ module V2
         end
 
         def process
-          if sess.authenticated?
+          if @sess['authenticated'] == true
             # If the user is already authenticated, we can associate the checkout
             # session with their account.
 
@@ -74,13 +74,12 @@ module V2
               # Create a completely new session, new id, new everything (incl
               # cookie which the controllor will implicitly do above when it
               # resends the cookie with the new session id).
-              sess.replace!
+              OT.info "[FromStripePaymentLink:login-success] #{short_session_id} #{cust.obscure_email} #{cust.role}"
 
-              OT.info "[FromStripePaymentLink:login-success] #{sess.short_identifier} #{cust.obscure_email} #{cust.role} (new sessid)"
-
-              sess.apply_fields custid: cust.custid, authenticated: 'true'
-              sess.default_expiration = session_ttl if @stay # TODO
-              sess.save
+              # Set session authentication data
+              sess['identity_id'] = cust.custid
+              sess['authenticated'] = true
+              sess['authenticated_at'] = Time.now.to_i
 
             end
 

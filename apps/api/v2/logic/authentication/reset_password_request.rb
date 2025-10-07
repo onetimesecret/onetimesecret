@@ -26,7 +26,7 @@ module V2::Logic
           OT.li "[ResetPasswordRequest] Resending verification email to #{cust.objid}"
           send_verification_email
           msg = "#{i18n.dig(:web, :COMMON, :verification_sent_to)} #{cust.objid}."
-          return sess.set_info_message msg
+          return set_info_message(msg)
         end
 
         secret                    = Onetime::Secret.create @objid, [@objid]
@@ -45,10 +45,10 @@ module V2::Logic
         rescue StandardError => ex
           errmsg = "Couldn't send the notification email. Let know below."
           OT.le "Error sending password reset email: #{ex.message}"
-          sess.set_error_message errmsg
+          set_error_message(errmsg)
         else
-          OT.info "Password reset email sent to #{@objid} for sess=#{sess.short_identifier}"
-          sess.set_success_message "We sent instructions to #{cust.objid}"
+          OT.info "Password reset email sent to #{@objid} for sess=#{short_session_id}"
+          set_info_message "We sent instructions to #{cust.objid}"
         end
       end
 

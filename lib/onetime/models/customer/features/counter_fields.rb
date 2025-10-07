@@ -5,7 +5,8 @@ module Onetime::Customer::Features
     Familia::Base.add_feature self, :counter_fields
 
     def self.included(base)
-      OT.ld "[#{name}] Included in #{base}"
+      OT.ld "[features] #{base}: #{name}"
+
       base.include InstanceMethods
 
       base.field :secrets_created # regular hashkey string field

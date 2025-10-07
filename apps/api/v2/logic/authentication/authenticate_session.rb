@@ -33,29 +33,22 @@ module V2::Logic
       def process
         if success?
           if cust.pending?
-            OT.info "[login-pending-customer] #{sess.short_identifier} #{cust.objid} #{cust.role} (pending)"
+            OT.info "[login-pending-customer] #{short_session_id} #{cust.objid} #{cust.role} (pending)"
             OT.li "[ResetPasswordRequest] Resending verification email to #{cust.objid}"
             send_verification_email nil
 
             msg = "#{i18n.dig(:web, :COMMON, :verification_sent_to)} #{cust.objid}."
-            return sess.set_info_message msg
+            return set_info_message(msg)
           end
 
           @greenlighted = true
 
-          OT.info "[login-success] #{sess.short_identifier} #{cust.obscure_email} #{cust.role} (replacing sessid)"
+          OT.info "[login-success] #{short_session_id} #{cust.obscure_email} #{cust.role}"
 
-          # Create a completely new session, new id, new everything (incl
-          # cookie which the controllor will implicitly do above when it
-          # resends the cookie with the new session id).
-          sess.replace!
-
-          OT.info "[login-success] #{sess.short_identifier} #{cust.obscure_email} #{cust.role} (new sessid)"
-
-          sess.objid              = cust.objid
-          sess.authenticated      = 'true'
-          sess.default_expiration = session_ttl if @stay
-          sess.save
+          # Set session authentication data
+          sess['identity_id'] = cust.objid
+          sess['authenticated'] = true
+          sess['authenticated_at'] = Time.now.to_i
           cust.save
 
           colonels = OT.conf.dig('site', 'authentication', 'colonels') || []
@@ -66,7 +59,7 @@ module V2::Logic
           end
 
         else
-          OT.ld "[login-failure] #{sess.short_identifier} #{cust.obscure_email} #{cust.role} (failed)"
+          OT.ld "[login-failure] #{short_session_id} #{cust.obscure_email} #{cust.role} (failed)"
           raise_form_error 'Try again'
         end
       end

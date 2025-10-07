@@ -3,7 +3,9 @@
 module Onetime
   module Initializers
     def load_fortunes
-      OT::Utils.fortunes ||= File.readlines(File.join(Onetime::HOME, 'etc', 'fortunes'))
+      filepath = File.join(Onetime::HOME, 'etc', 'fortunes')
+      OT.ld "[init] Loading fortunes from #{filepath}"
+      OT::Utils.fortunes ||= File.readlines(filepath)
     end
   end
 end

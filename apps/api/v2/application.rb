@@ -1,31 +1,29 @@
-#!/usr/bin/env ruby
-# frozen_string_literal: true
+# apps/api/v2/application.rb
 
-require 'otto'
+require 'onetime/application'
+require 'onetime/middleware'
+require 'onetime/models'
 
 require_relative 'logic'
 
 module V2
-  class App
-    attr_reader :router
+  class Application < Onetime::Application::Base
+    @uri_prefix = '/api/v2'.freeze
 
-    def initialize
-      @router = build_router
+    # API v2 specific middleware (common middleware is in MiddlewareStack)
+    use Rack::JSONBodyParser
+
+    warmup do
     end
 
-    def call(env)
-      router.call(env)
-    end
-
-    private
+    protected
 
     def build_router
-      routes_path = File.join(ENV.fetch('ONETIME_HOME'), 'apps/api/v2/routes')
+      routes_path = File.join(__dir__, 'routes')
       router      = Otto.new(routes_path)
 
       # Register authentication strategies
-      require 'onetime/auth_strategies'
-      Onetime::AuthStrategies.register_all(router)
+      Onetime::Application::AuthStrategies.register_all(router)
 
       # Default error responses
       headers             = { 'content-type' => 'application/json' }

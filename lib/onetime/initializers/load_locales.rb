@@ -15,7 +15,7 @@ module Onetime
       i18n          = OT.conf.fetch('internationalization', {})
       @i18n_enabled = i18n['enabled'] || false
 
-      OT.ld 'Parsing through i18n locales...'
+      OT.ld '[init] Parsing through i18n locales...'
 
       # Load the locales from the config in both the current and
       # legacy locations. If the locales are not set in the config,
@@ -30,7 +30,7 @@ module Onetime
         @fallback_locale   = i18n.fetch('fallback_locale', nil)
 
         unless locales_list.include?(OT.default_locale)
-          OT.le "Default locale #{OT.default_locale} not in locales_list #{locales_list}"
+          OT.le "[init] Default locale #{OT.default_locale} not in locales_list #{locales_list}"
           @i18n_enabled = false
         end
       else
@@ -42,11 +42,11 @@ module Onetime
       # Iterate over the list of supported locales, to load their JSON
       confs = OT.supported_locales.collect do |loc|
         path = File.join(Onetime::HOME, 'src', 'locales', "#{loc}.json")
-        OT.ld "Loading #{loc}: #{File.exist?(path)}"
+        OT.ld "[init] Loading #{loc}: #{File.exist?(path)}"
         begin
           contents = File.read(path)
         rescue Errno::ENOENT
-          OT.le "Missing locale file: #{path}"
+          OT.le "[init] Missing locale file: #{path}"
           next
         end
         # We symbolize for locales files only (not configruation)

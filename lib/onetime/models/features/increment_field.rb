@@ -8,7 +8,7 @@ module Onetime
         Familia::Base.add_feature self, :increment_field
 
         def self.included(base)
-          OT.ld "[#{name}] Included in #{base}"
+          OT.ld "[features] #{base}: #{name}"
           base.extend ClassMethods
           base.include InstanceMethods
         end
@@ -20,14 +20,14 @@ module Onetime
             return if fobj.global?
 
             current_value = fobj.send(field)
-            OT.info "[increment_field] fobj.#{field} is #{current_value} for #{fobj}"
+            OT.info "[features] increment_field fobj.#{field} is #{current_value} for #{fobj}"
 
             fobj.increment field
           rescue Redis::CommandError => ex
             # For whatever reason, the database throws an error when trying to
             # increment a non-existent hashkey field (rather than setting
             # it to 1): "ERR hash value is not an integer"
-            OT.le "[increment_field] Redis error (#{current_value}): #{ex.message}"
+            OT.le "[features] increment_field Redis error (#{current_value}): #{ex.message}"
 
             # So we'll set it to 1 if it's empty. It's possible we're here
             # due to a different error, but this value needs to be
@@ -40,7 +40,7 @@ module Onetime
           def increment_field(field)
             if anonymous?
               whereami = caller(1..4)
-              OT.le "[increment_field] Refusing to increment #{field} for anon customer #{whereami}"
+              OT.le "[features] increment_field Refusing to increment #{field} for anon customer #{whereami}"
               return
             end
 

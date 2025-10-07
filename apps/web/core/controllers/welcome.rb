@@ -31,7 +31,6 @@ module Core
       # @see https://docs.stripe.com/api/payment-link/object For API reference
       #
       def plan_redirect
-        publically('/') do
           # We take the tier and billing cycle from the URL path and try to
           # get the preconfigured Stripe payment links using those values.
           tierid        = req.params[:tier] ||= 'free'
@@ -79,7 +78,6 @@ module Core
           validated_url.query = URI.encode_www_form(stripe_params)
           OT.info "[plan_redirect] Updated query parameters: #{validated_url.query}"
           res.redirect validated_url.to_s # convert URI::Generic to a string
-        end
       end
 
       # Handles the redirect from Stripe Payment Links after a successful payment
@@ -101,7 +99,6 @@ module Core
       # e.g. https://staging.onetimesecret.com/welcome?checkout={CHECKOUT_SESSION_ID}
       #
       def welcome
-        publically('/') do
           strategy_result = Otto::Security::Authentication::StrategyResult.new(
             session: session,
             user: cust,
@@ -118,11 +115,9 @@ module Core
 
           @cust = logic.cust
 
-          # TODO: Do we need to replace this now that cookie is via middleware?
-          # res.send_secure_cookie :sess, sess.sessid, sess.default_expiration
+          # Session cookie handled by Rack::Session middleware
 
           res.redirect '/account'
-        end
       end
 
       # Receives users from the Stripe Webhook after a successful payment for a new
@@ -134,10 +129,7 @@ module Core
       # @see https://docs.stripe.com/payment-links/post-payment#change-confirmation-behavior
       #
       def welcome_webhook
-        @ignoreshrimp = true
-        # We ignore CSRF shrimp since it's a calling coming from outside the house
-        # but we do verify the Stripe webhook signature in StripeWebhook#raise_concerns.
-        publically('/') do
+        # CSRF exemption handled by route parameter csrf=exempt
           strategy_result = Otto::Security::Authentication::StrategyResult.new(
             session: session,
             user: cust,
@@ -155,7 +147,6 @@ module Core
           logic.process
 
           res.status = 200
-        end
       end
 
       # Redirects authenticated users to the Stripe Customer Portal
@@ -180,7 +171,7 @@ module Core
       # @raise [OT::FormError] If there's an error creating the Stripe session or an unexpected error occurs
       #
       def customer_portal_redirect
-        authenticated('/account') do
+        res.no_cache!
             # Get the Stripe Customer ID from our customer instance
             customer_id = cust.stripe_customer_id
 
@@ -203,7 +194,6 @@ module Core
         rescue StandardError => ex
             OT.le "[customer_portal_redirect] Unexpected error: #{ex.message}"
             raise_form_error('An unexpected error occurred')
-        end
       end
 
 

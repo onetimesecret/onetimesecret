@@ -35,9 +35,6 @@ module V1
     use Onetime::Middleware::DomainStrategy
 
     warmup do
-      require_relative 'logic'
-      require_relative 'models'
-
       # Log warmup completion
       Onetime.li "V1 warmup completed"
     end

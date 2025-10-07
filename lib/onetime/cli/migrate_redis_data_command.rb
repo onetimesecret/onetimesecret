@@ -1,9 +1,9 @@
-# lib/onetime/cli/consolidate_redis_models_command.rb
+# lib/onetime/cli/migrate_redis_data_command.rb
 
 require_relative '../redis_key_migrator'
 
 module Onetime
-  class ConsolidateRedisModelsCommand < Onetime::CLI
+  class MigrateRedisDataCommand < Onetime::CLI
     def init
       # Set environment variable to bypass startup warnings for this command
       ENV['SKIP_LEGACY_DATA_CHECK'] = 'true'
@@ -12,7 +12,7 @@ module Onetime
       super
     end
 
-    def consolidate_redis_models
+    def migrate_redis_data
       # Show help if requested
       return if show_usage_help
 

@@ -445,7 +445,7 @@ module Onetime
       paths      = Onetime.mode?(:cli) ? UTILITY_PATHS : SERVICE_PATHS
       paths.collect do |path|
         f = File.join File.expand_path(path), filename
-        Onetime.ld "Looking for #{f}"
+        Onetime.ld "[init] Looking for #{f}"
         f if File.exist?(f)
       end.compact
     end

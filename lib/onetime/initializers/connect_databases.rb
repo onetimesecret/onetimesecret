@@ -17,8 +17,8 @@ module Onetime
     def connect_databases
       uri = OT.conf.dig('redis', 'uri')
 
-      OT.ld "[connect_databases] uri: #{uri}"
-      OT.ld "[connect_databases] models: #{Familia.members.map(&:to_s)}"
+      OT.ld "[init] Connect database: uri: #{uri}"
+      OT.ld "[init] Connect database: models: #{Familia.members.map(&:to_s)}"
 
       # Validate that models have been loaded
       if Familia.members.empty?
@@ -61,13 +61,13 @@ module Onetime
 
       # Verify connectivity using pool (tests first connection + reconnection config)
       ping_result = OT.database_pool.with { |conn| conn.ping }
-      OT.ld "Connected #{Familia.members.size} models to DB 0 via connection pool " \
+      OT.ld "[init] Connected #{Familia.members.size} models to DB 0 via connection pool " \
             "(size: #{pool_size}, timeout: #{pool_timeout}s) - #{ping_result}"
 
       # Optional: Single migration flag for entire DB 0
       dbkey      = Familia.join(%w[ots migration_needed db_0])
       first_time = OT.database_pool.with { |conn| conn.setnx(dbkey, '1') } # Direct pool usage for setup
-      OT.ld "[connect_databases] Setting #{dbkey} to '1' (already set? #{!first_time})"
+      OT.ld "[init] Connect database: Setting #{dbkey} to '1' (already set? #{!first_time})"
     end
   end
 end

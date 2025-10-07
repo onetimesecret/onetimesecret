@@ -8,7 +8,7 @@ module Onetime
         Familia::Base.add_feature self, :required_fields, depends_on: [:relationships, :object_identifier]
 
         def self.included(base)
-          OT.ld "[RequiredFields] Relationships included in #{base}"
+          OT.ld "[features] RequiredFields: Relationships included in #{base}"
           base.extend ClassMethods
 
           base.field :created

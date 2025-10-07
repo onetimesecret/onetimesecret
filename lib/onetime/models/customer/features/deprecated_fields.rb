@@ -5,7 +5,8 @@ module Onetime::Customer::Features
     Familia::Base.add_feature self, :deprecated_fields
 
     def self.included(base)
-      OT.ld "[#{name}] Included in #{base}"
+      OT.ld "[features] #{base}: #{name}"
+
       base.extend ClassMethods
       base.include InstanceMethods
 
