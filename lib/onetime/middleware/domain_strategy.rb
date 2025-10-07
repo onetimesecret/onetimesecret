@@ -4,53 +4,22 @@ require 'public_suffix'
 
 module Onetime
   module Middleware
-    # Domain Strategy Middleware
+    # DomainStrategy Middleware
     #
-    # Normalizes incoming request domains and classifies them into strategies:
-    #   :canonical  - Exact match with configured domain (example.com)
-    #   :subdomain  - Valid subdomain of canonical domain (*.example.com)
-    #   :custom     - Partner/custom domain from database
-    #   :invalid    - Malformed or unrecognized domain
+    # Classifies incoming request domains and determines the appropriate routing strategy.
     #
-    # = Domain Resolution Overview
+    # @example Domain Classification
+    #   example.com        #=> :canonical (configured primary domain)
+    #   www.example.com    #=> :canonical (www variant of primary)
+    #   api.example.com    #=> :subdomain (subdomain of primary)
+    #   partner.com        #=> :custom (partner domain from database)
+    #   invalid.tld        #=> :invalid (malformed or unrecognized)
     #
-    # Uses heuristic pattern matching to identify domains as either:
-    # - MAIN branded domains (example.com and variants)
-    # - PARTNER branded domains (custom domains from database)
+    # @note This middleware adds the following to the Rack environment:
+    #   - env['onetime.display_domain']  : Normalized domain for display
+    #   - env['onetime.domain_strategy'] : Classification symbol
     #
-    # == Implementation
-    #
-    # 1. Parses domains using PublicSuffix for reliable TLD handling
-    # 2. Checks domain against canonical configuration
-    # 3. Validates subdomains and variant patterns
-    # 4. Performs database lookup for custom/partner domains
-    #
-    # == Design Philosophy
-    #
-    # Follows "convention over configuration" by recognizing standard domain patterns:
-    #
-    #   example.com        # Canonical domain
-    #   www.example.com    # Standard WWW variant
-    #   fr.example.com     # Language/region subdomain
-    #
-    # Benefits:
-    # - Zero configuration for common domain patterns
-    # - Automatic handling of www/language variants
-    # - Flexible subdomain support
-    # - Simple partner domain onboarding
-    #
-    # Tradeoffs:
-    # - More complex than explicit domain lists
-    # - Requires comprehensive test coverage
-    # - Pattern updates may need maintenance
-    #
-    # The middleware updates the Rack environment with:
-    # - domain_strategy: The determined strategy
-    # - domain_id: Database ID for custom domains
-    # - display_domain: Normalized domain for display
-    #
-    # Note: This middleware logs errors but does not halt request processing
-    #
+    # @note Errors are logged but do not halt request processing.
     class DomainStrategy
       @canonical_domain        = nil
       @domains_enabled         = nil
@@ -73,10 +42,10 @@ module Onetime
         OT.info "[DomainStrategy]: app_context=#{@application_context} canonical_domain=#{canonical_domain}"
       end
 
-      # Processes the incoming request and updates the Rack environment with the domain strategy.
+      # Processes the incoming request and classifies the domain.
       #
-      # @param env [Hash] The Rack environment.
-      # @return [Array] The Rack response.
+      # @param env [Hash] The Rack environment hash
+      # @return [Array] Standard Rack response array [status, headers, body]
       def call(env)
         display_domain  = canonical_domain
         domain_strategy = :canonical
@@ -109,8 +78,11 @@ module Onetime
 
       module Chooserator
         class << self
-          # @param request_domain [String] The domain associated to the current request
-          # @param canonical_domain [PublicSuffix::Domain, String] The canonical domain.
+          # Determines the domain strategy for a request domain.
+          #
+          # @param request_domain [String] The domain from the current request
+          # @param canonical_domain [PublicSuffix::Domain, String] The configured primary domain
+          # @return [Symbol, nil] Domain strategy (:canonical, :subdomain, :custom) or nil if invalid
           def choose_strategy(request_domain, canonical_domain)
             canonical_domain = Parser.parse(canonical_domain) unless canonical_domain.is_a?(PublicSuffix::Domain)
             request_domain   = Parser.parse(request_domain)
@@ -130,7 +102,11 @@ module Onetime
             nil
           end
 
-          # Any one of the following
+          # Checks if domain matches canonical domain or its standard variants.
+          #
+          # @param d [PublicSuffix::Domain] Domain to check
+          # @param canonical_domain [PublicSuffix::Domain] Canonical domain
+          # @return [Boolean] true if domain is canonical or a canonical variant
           def canonical?(d, canonical_domain)
             (
               equal_to?(d, canonical_domain) ||
@@ -183,7 +159,10 @@ module Onetime
           # subdomain_of?('deep.sub.example.com', 'example.com') # => true
           # subdomain_of?('example.com', 'example.com') # => false
 
-          # Checks data in the database
+          # Checks if domain is registered as a custom domain in the database.
+          #
+          # @param potential_custom_domain [String] Domain to check
+          # @return [Boolean] true if domain exists in CustomDomain table
           def known_custom_domain?(potential_custom_domain)
             # This will load the model if it hasn't been loaded yet
             # and avoid circular references between lib and v2.
@@ -192,10 +171,14 @@ module Onetime
         end
       end
 
+      # Domain parsing utilities with validation.
       module Parser
         class << self
-          # @raises [PublicSuffix::DomainInvalid]
-          # @return [PublicSuffix::Domain]
+          # Parses and validates a host string into a domain object.
+          #
+          # @param host [String] The host to parse (port will be stripped)
+          # @return [PublicSuffix::Domain] Parsed domain object
+          # @raise [PublicSuffix::DomainInvalid] When domain is invalid or malformed
           def parse(host)
             host = host.to_s.split(':').first # remove port (e.g. localhost:3000)
             raise PublicSuffix::DomainInvalid.new('Cannot parse host') unless basically_valid?(host)
@@ -203,6 +186,10 @@ module Onetime
             PublicSuffix.parse(host, default_rule: nil, ignore_private: false) # calls normalize
           end
 
+          # Performs basic validation checks before parsing.
+          #
+          # @param input [String] The input string to validate
+          # @return [Boolean] true if input passes basic validation
           def basically_valid?(input)
             return false if input.to_s.empty?
             return false if input.length > MAX_TOTAL_LENGTH
