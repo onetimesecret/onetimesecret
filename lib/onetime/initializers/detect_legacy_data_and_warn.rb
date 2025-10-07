@@ -14,7 +14,7 @@ module Onetime
     def detect_legacy_data
       return { legacy_locations: {}, needs_auto_config: false } if skip_legacy_data_check?
 
-      OT.ld '[detect_legacy_data] Scanning for existing data distribution...'
+      OT.ld '[init] Detect legacy data: Scanning for existing data distribution...'
 
       legacy_locations = {}
 
@@ -48,7 +48,7 @@ module Onetime
         found_count         = scan_database_for_legacy_data(db_num, legacy_mappings, current_dbs, legacy_locations)
         models_found_count += found_count
 
-        OT.ld "[detect_legacy_data] Database #{db_num}: #{found_count} legacy records found"
+        OT.ld "[init] Detect legacy data: Database #{db_num}: #{found_count} legacy records found"
         found_count
       end.compact
 
@@ -57,15 +57,15 @@ module Onetime
 
       total_model_types = models_found_count
       OT.ld <<~SCAN_COMPLETE_MESSAGE
-        [detect_legacy_data] Scan complete.
+        [init] Detect legacy data: Scan complete.
         Found #{legacy_locations.size} model types with existing data across #{legacy_counts.size} databases.
-        [detect_legacy_data] Total model instances found: #{total_model_types}
-        [detect_legacy_data] Application will continue with current configuration.
+        [init] Detect legacy data: Total model instances found: #{total_model_types}
+        [init] Detect legacy data: Application will continue with current configuration.
       SCAN_COMPLETE_MESSAGE
 
       { legacy_locations: legacy_locations, needs_auto_config: needs_auto_config }
     rescue RuntimeError => ex
-      OT.le "[detect_legacy_data] Error during legacy data detection: #{ex.message}"
+      OT.le "[init] Detect legacy data: Error during legacy data detection: #{ex.message}"
       OT.ld ex.backtrace.join("\n")
 
       # Even though we want the update to v0.23 to be easy and not require
@@ -73,7 +73,7 @@ module Onetime
       # The only responsible action here is to stop and suggest a remediation.
       OT.le <<~REMEDIATION_MESSAGE
 
-        [detect_legacy_data] Cannot determine if existing data is present in legacy databases.
+        [init] Detect legacy data: Cannot determine if existing data is present in legacy databases.
         To protect against potential data loss, startup is halted.
 
         RESOLUTION OPTIONS:
@@ -164,7 +164,7 @@ module Onetime
             was_legacy_default: expected_dbs.include?(db_num),
           }
 
-          OT.ld "[detect_legacy_data] Found #{keys.length} #{model_name} keys in DB #{db_num} (expected DB #{current_db})"
+          OT.ld "[init] Detect legacy data: Found #{keys.length} #{model_name} keys in DB #{db_num} (expected DB #{current_db})"
         end
       end
 

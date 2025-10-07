@@ -16,7 +16,7 @@ module Onetime
 
         def register_application_class(app_class)
           @application_classes << app_class unless @application_classes.include?(app_class)
-          OT.ld "[Application::Registry] Registered application: #{app_class}"
+          OT.ld "[registry] Registered application: #{app_class}"
         end
 
         # Discover and map application classes to their respective routes
@@ -40,14 +40,14 @@ module Onetime
         def find_application_files
           apps_root = File.join(ENV['ONETIME_HOME'] || File.expand_path('../../..', __dir__), 'apps')
           filepaths = Dir.glob(File.join(apps_root, '**/application.rb'))
-          OT.ld "[Application::Registry] Scan found #{filepaths.size} application(s)"
+          OT.ld "[registry] Scan found #{filepaths.size} application(s)"
           filepaths.each { |f| require f }
         end
 
         # Maps all discovered application classes to their URL routes
         # @return [Array<Class>] Registered application classes
         def create_mount_mappings
-          OT.li "Mapping #{application_classes.size} application(s) to routes"
+          OT.li "[registry] Mapping #{application_classes.size} application(s) to routes"
 
           application_classes.each do |app_class|
             mount = app_class.uri_prefix

@@ -37,14 +37,11 @@ module Core
     warmup do
       # Expensive initialization tasks go here
 
-      # Log warmup completion
-      Onetime.li 'Core warmup completed'
     end
 
     protected
 
     def build_router
-      OT.ld "[#{self.class}] Initializing router"
       routes_path = File.join(__dir__, 'routes')
       router      = Otto.new(routes_path)
 

@@ -36,16 +36,16 @@ module Core
 
         # Prevent infinite redirect loops
         if req.get? && ex.location.to_s == req.path
-          OT.le "[web_error] Redirect loop detected: #{req.path} -> #{ex.location}"
+          OT.le "[middleware] ErrorHandling: Redirect loop detected: #{req.path} -> #{ex.location}"
           ex.instance_variable_set(:@location, '/500')
         end
 
-        OT.info "[web_error] Redirecting to #{ex.location} (#{ex.status})"
+        OT.info "[middleware] ErrorHandling: Redirecting to #{ex.location} (#{ex.status})"
         [ex.status, { 'Location' => ex.location }, []]
       end
 
       def handle_unauthorized(env, ex)
-        OT.info "[web_error] Unauthorized: #{ex.message}"
+        OT.info "[middleware] ErrorHandling: Unauthorized: #{ex.message}"
 
         # Serve Vue entry point - let Vue show login prompt
         serve_vue_entry_point(env, status: 401)
@@ -55,7 +55,7 @@ module Core
         req = Rack::Request.new(env)
 
         # Log the error
-        OT.le "[web_error] #{ex.class}: #{ex.message} -- #{req.url} -- #{req.ip}"
+        OT.le "[middleware] ErrorHandling: #{ex.class}: #{ex.message} -- #{req.url} -- #{req.ip}"
         OT.le ex.backtrace.join("\n") if OT.debug?
 
         # Track in Sentry if diagnostics enabled
@@ -82,7 +82,7 @@ module Core
         # Fallback to anonymous
         Onetime::Customer.anonymous
       rescue StandardError => ex
-        OT.le "[web_error] Failed to load customer: #{ex.message}"
+        OT.le "[middleware] ErrorHandling: Failed to load customer: #{ex.message}"
         Onetime::Customer.anonymous
       end
 
@@ -111,7 +111,7 @@ module Core
           Sentry.capture_exception(error)
         end
       rescue StandardError => ex
-        OT.le "[web_error] Sentry error: #{ex.class}: #{ex.message}"
+        OT.le "[middleware] ErrorHandling: Sentry error: #{ex.class}: #{ex.message}"
       end
     end
   end

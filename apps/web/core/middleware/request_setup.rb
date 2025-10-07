@@ -34,7 +34,7 @@ module Core
       # Set locale from request (used by views and controllers)
       env['ots.locale'] = extract_locale(env)
 
-      OT.ld "[request_setup] nonce=#{nonce[0, 8]}... locale=#{env['ots.locale']}" if OT.debug?
+      OT.ld "[middleware] RequestSetup: nonce=#{nonce[0, 8]}... locale=#{env['ots.locale']}" if OT.debug?
     end
 
     def finalize_response(status, headers, body, env)
@@ -74,7 +74,7 @@ module Core
       # Extract language code (e.g., "en-US" -> "en")
       lang.split('-').first.downcase
     rescue StandardError => ex
-      OT.le "[request_setup] Failed to parse Accept-Language: #{ex.message}"
+      OT.le "[middleware] RequestSetup: Failed to parse Accept-Language: #{ex.message}"
       nil
     end
 

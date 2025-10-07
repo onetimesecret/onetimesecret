@@ -15,6 +15,8 @@ module Onetime
     module MiddlewareStack
       class << self
         def configure(builder, application_context: nil)
+          Onetime.ld "[middleware] MiddlewareStack: Configuring common middleware"
+
           builder.use Rack::ContentLength
           builder.use Onetime::Middleware::StartupReadiness
 
@@ -39,6 +41,7 @@ module Onetime
 
           # Load the logger early so it's ready to log request errors
           unless Onetime.conf&.dig(:logging, :http_requests).eql?(false)
+            Onetime.ld "[middleware] MiddlewareStack: Setting up CommonLogger"
             builder.use Rack::CommonLogger
           end
 
@@ -46,22 +49,21 @@ module Onetime
           # Add Sentry exception tracking when available
           # This block only executes if Sentry was successfully initialized
           Onetime.with_diagnostics do |diagnostics_conf|
-            Onetime.ld "[config.ru] Sentry enabled #{diagnostics_conf}"
+            Onetime.ld "[middleware] MiddlewareStack: Sentry enabled #{diagnostics_conf}"
             # Position Sentry middleware early to capture exceptions throughout the stack
             builder.use Sentry::Rack::CaptureExceptions
           end
 
           # Security Middleware Configuration
           # Configures security-related middleware components based on application settings
-          Onetime.ld '[config.ru] Setting up Security middleware'
+          Onetime.ld '[middleware] MiddlewareStack: Setting up Security middleware'
           builder.use Onetime::Middleware::Security
-
 
           # Performance Optimization
           # Support running with code frozen in production-like environments
           # This reduces memory usage and prevents runtime modifications
           if Onetime.conf&.dig(:experimental, :freeze_app).eql?(true)
-            Onetime.li "[experimental] Freezing app by request (env: #{Onetime.env})"
+            Onetime.li "[middleware] MiddlewareStack: Freezing app by request (env: #{Onetime.env})"
             builder.freeze_app
           end
         end

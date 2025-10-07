@@ -5,7 +5,8 @@ module Onetime::Secret::Features
     Familia::Base.add_feature self, :secret_customer_relations
 
     def self.included(base)
-      OT.ld "[#{name}] Included in #{base}"
+      OT.ld "[features] #{base}: #{name}"
+
       base.extend ClassMethods
       base.include InstanceMethods
     end

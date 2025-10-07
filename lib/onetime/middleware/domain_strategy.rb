@@ -39,7 +39,7 @@ module Onetime
         @application_context = application_context
         site_config = OT.conf&.dig('site') || {}
         self.class.initialize_from_config(site_config)
-        OT.info "[DomainStrategy]: app_context=#{@application_context} canonical_domain=#{canonical_domain}"
+        OT.info "[middleware]: app_context=#{@application_context} canonical_domain=#{canonical_domain}"
       end
 
       # Processes the incoming request and classifies the domain.
@@ -52,14 +52,14 @@ module Onetime
 
         if domains_enabled?
           display_domain  = env[Rack::DetectHost.result_field_name]
-          # OT.ld "[DomainStrategy]: detected_host=#{display_domain.inspect} result_field_name=#{Rack::DetectHost.result_field_name}"
+          # OT.ld "[middleware] DomainStrategy: detected_host=#{display_domain.inspect} result_field_name=#{Rack::DetectHost.result_field_name}"
           domain_strategy = Chooserator.choose_strategy(display_domain, canonical_domain_parsed)
         end
 
         env['onetime.display_domain']  = display_domain
         env['onetime.domain_strategy'] = domain_strategy || :invalid # make sure never nil
 
-        OT.ld "[DomainStrategy]: host=#{display_domain.inspect} strategy=#{domain_strategy}"
+        OT.ld "[middleware] DomainStrategy: host=#{display_domain.inspect} strategy=#{domain_strategy}"
 
         @app.call(env)
       end
@@ -93,10 +93,10 @@ module Onetime
             when ->(d) { known_custom_domain?(d.name) }       then :custom
             end
           rescue PublicSuffix::DomainInvalid => ex
-            OT.ld "[DomainStrategy]: Invalid domain #{request_domain} #{ex.message}"
+            OT.ld "[middleware] DomainStrategy: Invalid domain #{request_domain} #{ex.message}"
             nil
           rescue StandardError => ex
-            OT.le "[DomainStrategy]: Unhandled error: #{ex.message} (backtrace: " \
+            OT.le "[middleware] DomainStrategy: Unhandled error: #{ex.message} (backtrace: " \
                   "#{ex.backtrace[0..2].join("\n")}) (args: #{request_domain.inspect}, " \
                   "#{canonical_domain.inspect})"
             nil
@@ -214,17 +214,17 @@ module Onetime
         def initialize_from_config(config)
           raise ArgumentError, 'Configuration cannot be nil' if config.nil?
 
-          OT.ld "[DomainStrategy]: Initializing from config (before): #{@domains_enabled} "
+          OT.ld "[middleware] DomainStrategy: Initializing from config (before): #{@domains_enabled} "
           @domains_enabled  = config.dig('domains', 'enabled') || false
           @canonical_domain = get_canonical_domain(config)
-          OT.ld "[DomainStrategy]: Initializing from config: #{@domains_enabled} "
+          OT.ld "[middleware] DomainStrategy: Initializing from config: #{@domains_enabled} "
 
           # We don't need to get into any domain parsing if domains are disabled
           return unless domains_enabled?
 
           @canonical_domain_parsed = Parser.parse(canonical_domain)
         rescue PublicSuffix::DomainInvalid => ex
-          OT.le "[DomainStrategy]: Invalid canonical domain: #{@canonical_domain.inspect} error=#{ex.message}"
+          OT.le "[middleware] DomainStrategy: Invalid canonical domain: #{@canonical_domain.inspect} error=#{ex.message}"
           @domains_enabled = false
         end
 

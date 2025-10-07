@@ -14,7 +14,7 @@ module Onetime
             OT.le "config.#{actual_key} does not exist"
             # next
           end
-          OT.ld "Setting Truemail config key #{key} to #{value}"
+          OT.ld "[init] Truemail #{key} to #{value}"
           config.send("#{actual_key}=", value)
         end
       end

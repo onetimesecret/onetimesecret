@@ -9,7 +9,7 @@ module Onetime
         using Familia::Refinements::TimeLiterals
 
         def self.included(base)
-          OT.ld "[#{name}] Included in #{base}"
+          OT.ld "[features] #{base}: #{name}"
           base.extend ClassMethods
           base.include InstanceMethods
         end

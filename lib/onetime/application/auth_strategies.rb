@@ -31,12 +31,12 @@ module Onetime
             custid, apitoken = auth.credentials
             return failure('Invalid credentials format') if custid.to_s.empty? || apitoken.to_s.empty?
 
-            OT.ld "[onetime_basic] Attempt for '#{custid}' via #{env['REMOTE_ADDR']}"
+            OT.ld "[app] Basic attempt for '#{custid}' via #{env['REMOTE_ADDR']}"
             cust = Onetime::Customer.load(custid)
             return failure('Customer not found') if cust.nil?
 
             if cust.apitoken?(apitoken)
-              OT.ld "[onetime_basic] Authenticated '#{custid}'"
+              OT.ld "[app] Basic authenticated '#{custid}'"
               return success(
                 session: env['onetime.session'] || {},
                 user: cust,
@@ -61,7 +61,7 @@ module Onetime
             source = env['identity.source']
 
             if %w[advanced basic].include?(source)
-              OT.ld "[onetime_combined] Authenticated '#{identity.id}' via #{source}"
+              OT.ld "[app] Advanced authenticated '#{identity.id}' via #{source}"
               return success(
                 session: env['onetime.session'] || {},
                 user: identity.customer || identity,
@@ -81,7 +81,7 @@ module Onetime
       class OnetimeDisabledStrategy < Otto::Security::AuthStrategy
         def authenticate(env, _requirement)
           # Everyone is a pseudo-anonymous user
-          OT.ld '[onetime_optional] Fallback anonymous access'
+          OT.ld '[app] Disabled fallback anonymous access'
           success(
             session: env['onetime.session'] || {},
             user: Onetime::Customer.anonymous,

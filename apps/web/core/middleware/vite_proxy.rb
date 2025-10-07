@@ -70,9 +70,9 @@ module Core
           case config.transform_keys(&:to_sym)
           in { enabled: true, frontend_host: String => frontend_host }
             if frontend_host.strip.empty?
-              Onetime.ld '[ViteProxy] No frontend host configured to proxy'
+              Onetime.ld '[middleware] ViteProxy: No frontend host configured to proxy'
             else
-              Onetime.li "[ViteProxy] Using frontend proxy for /dist to #{frontend_host}"
+              Onetime.li "[middleware] ViteProxy: Using frontend proxy for /dist to #{frontend_host}"
               require 'rack/proxy'
 
               # Define anonymous proxy class for Vite dev server
@@ -90,7 +90,7 @@ module Core
               use proxy_klass, backend: frontend_host
             end
           else
-            Onetime.ld '[ViteProxy] Frontend proxy disabled'
+            Onetime.ld '[middleware] ViteProxy: Frontend proxy disabled'
           end
 
           # Enable automatic code reloading with 1 second check interval

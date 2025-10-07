@@ -10,7 +10,7 @@ module Onetime
         Familia::Base.add_feature self, :with_stripe_account
 
         def self.included(base)
-          OT.ld "[#{name}] Included in #{base}"
+          OT.ld "[features] #{base}: #{name}"
 
           base.include InstanceMethods
 

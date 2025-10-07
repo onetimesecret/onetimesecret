@@ -14,8 +14,6 @@ module V2
     use Rack::JSONBodyParser
 
     warmup do
-      # Log warmup completion
-      Onetime.li 'V2 warmup completed'
     end
 
     protected

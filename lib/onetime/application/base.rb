@@ -9,10 +9,15 @@ module Onetime
       attr_reader :options, :router, :rack_app
 
       def initialize(options = {})
+        OT.ld "[app] #{self.class}: Initializing with options: #{options.inspect}"
         @options  = options
+
+        OT.ld "[app] #{self.class}: Building router"
         @router   = build_router
+
+        OT.ld "[app] #{self.class}: Building rack app"
         @rack_app = build_rack_app
-        OT.ld "[#{self.class}] Initialized with options: #{@options}"
+
       end
 
       def call(env)
@@ -37,7 +42,6 @@ module Onetime
         app_context = {
           name: base_klass.name,
           prefix: base_klass.uri_prefix,
-          type: determine_app_type(base_klass)
         }
 
         Rack::Builder.new do |builder|
@@ -48,19 +52,11 @@ module Onetime
           end
 
           # Invoke the warmup block if it is defined
-          builder.warmup(&base_klass.warmup) # TODO: Or builder.warmup&.call?
+          builder.warmup(&base_klass.warmup)
+          OT.ld "[app] #{app_context[:name]}: Warmup completed"
 
           builder.run router_instance
         end.to_app
-      end
-
-      def determine_app_type(app_class)
-        case app_class.name
-        when /Core::Application/ then :web
-        when /V2::Application/   then :api
-        when /Auth::/            then :auth
-        else :unknown
-        end
       end
 
       class << self
@@ -75,7 +71,7 @@ module Onetime
         def inherited(subclass)
           # Keep track subclasses without immediate registration
           Registry.register_application_class(subclass)
-          OT.ld "[Application::Base.inherited] #{subclass} registered"
+          OT.ld "[app] #{subclass} registered"
         end
 
         def use(klass, *args, &block)

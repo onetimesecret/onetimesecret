@@ -10,7 +10,7 @@ module Onetime
         Familia::Base.add_feature self, :with_custom_domains
 
         def self.included(base)
-          OT.ld "[#{name}] Included in #{base}"
+          OT.ld "[features] #{base}: #{name}"
           base.extend ClassMethods
           base.include InstanceMethods
 
