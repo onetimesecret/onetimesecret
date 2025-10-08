@@ -6,6 +6,11 @@ require 'sequel'
 require 'logger'
 require 'json'
 
+require_relative 'account'
+require_relative 'admin'
+require_relative 'health'
+require_relative 'routes/validation'
+
 module Auth
   # This is the Roda application, which handles all routing for the auth service.
   class Router < Roda
@@ -14,11 +19,10 @@ module Auth
     # include Auth::Helpers::SessionValidation
 
     # Include route modules
-    # TODO: Implement these route modules
-    # include Auth::Routes::Health
-    # include Auth::Routes::Validation
-    # include Auth::Routes::Account
-    # include Auth::Routes::Admin
+    include Auth::Routes::Health
+    include Auth::Routes::Validation
+    include Auth::Routes::Account
+    include Auth::Routes::Admin
 
     # Session middleware is now configured globally in MiddlewareStack
 
