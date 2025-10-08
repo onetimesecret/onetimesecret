@@ -28,20 +28,44 @@ module Core
         logic = V2::Logic::Authentication::AuthenticateSession.new(strategy_result, req.params, locale)
 
         if authenticated?
-          session['info_message'] = 'You are already logged in.'
-          res.redirect '/'
-        elsif req.post?
-          logic.raise_concerns
-          logic.process
-          sess = logic.sess
-          cust_after = logic.cust
-
-          # Session cookie handled by Rack::Session middleware
-
-          if cust_after.role?(:colonel)
-            res.redirect '/colonel/'
+          if json_requested?
+            res.headers['Content-Type'] = 'application/json'
+            res.body = { success: 'You are already logged in' }.to_json
           else
+            session['info_message'] = 'You are already logged in.'
             res.redirect '/'
+          end
+        elsif req.post?
+          begin
+            logic.raise_concerns
+            logic.process
+            sess = logic.sess
+            cust_after = logic.cust
+
+            # Set authenticated_at for session validation consistency
+            session['authenticated_at'] = Time.now.to_i
+
+            # Session cookie handled by Rack::Session middleware
+
+            if json_requested?
+              res.headers['Content-Type'] = 'application/json'
+              res.body = { success: 'You have been logged in' }.to_json
+            elsif cust_after.role?(:colonel)
+              res.redirect '/colonel/'
+            else
+              res.redirect '/'
+            end
+          rescue OT::FormError => e
+            if json_requested?
+              res.status = 401
+              res.headers['Content-Type'] = 'application/json'
+              res.body = {
+                error: 'Invalid email or password',
+                'field-error': ['email', 'invalid']
+              }.to_json
+            else
+              raise
+            end
           end
         end
       end
@@ -63,7 +87,12 @@ module Core
         logic.raise_concerns
         logic.process
 
-        res.redirect res.app_path('/')
+        if json_requested?
+          res.headers['Content-Type'] = 'application/json'
+          res.body = { success: 'You have been logged out' }.to_json
+        else
+          res.redirect res.app_path('/')
+        end
       end
 
       private

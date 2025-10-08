@@ -19,10 +19,10 @@ POST  /logout                                    Core::Controllers::Authenticati
 # Authentication routes - handled here in basic mode, by Auth app in advanced
 # mode. The Vue frontend uses the same /auth/* endpoints regardless of which
 # mode is enabled. The Auth app provides many more routes in addition to these.
-POST  /auth/login                                Core::Controllers::Authentication#authenticate auth=publicly
-POST  /auth/create-account                       Core::Controllers::Registration#create_account auth=publicly
-POST  /auth/reset-password                       Core::Controllers::Registration#request_reset auth=publicly
-POST  /auth/reset-password/:key                  Core::Controllers::Registration#request_reset auth=publicly
+POST  /auth/login                                Core::Controllers::Authentication#authenticate auth=publicly response=json
+POST  /auth/create-account                       Core::Controllers::Registration#create_account auth=publicly response=json
+POST  /auth/reset-password                       Core::Controllers::Registration#request_reset auth=publicly response=json
+POST  /auth/reset-password/:key                  Core::Controllers::Registration#request_reset auth=publicly response=json
 
 # Data export/import - public for now (may need auth review)
 GET   /window                                    Core::Controllers::Page#export_window auth=publicly

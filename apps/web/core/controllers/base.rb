@@ -151,6 +151,13 @@ module Core
         authentication_enabled && signin_enabled
       end
 
+      # Checks if the request accepts JSON responses
+      #
+      # @return [Boolean] True if the Accept header includes application/json
+      def json_requested?
+        req.env['HTTP_ACCEPT']&.include?('application/json')
+      end
+
       # Sentry error tracking
       #
       # Available levels are :fatal, :error, :warning, :log, :info, and :debug.
