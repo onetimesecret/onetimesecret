@@ -19,7 +19,6 @@ end
 require 'rack'
 require 'otto'
 require 'familia'
-require 'chimera'
 
 Warning[:deprecated] = %w[development dev test testing].include?(ENV['RACK_ENV'].to_s.downcase)
 

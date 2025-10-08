@@ -8,11 +8,16 @@ module V2::Logic
       def process_params; end
 
       def raise_concerns
-        OT.info "[destroy-session] #{@custid} #{@sess.ipaddress}"
+        # Note: @sess here is the Rack session hash, not a Session model
+        ip = @strategy_result&.metadata&.dig(:ip) || 'unknown'
+        OT.info "[destroy-session] #{@cust&.objid} #{ip}"
       end
 
       def process
-        sess.destroy!
+        # Clear the Rack session
+        sess.clear
+        sess['authenticated'] = false
+        sess.delete('identity_id')
       end
     end
   end
