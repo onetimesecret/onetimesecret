@@ -12,9 +12,8 @@ module Onetime
           actual_key = OT::Config.mapped_key(key)
           unless config.respond_to?("#{actual_key}=")
             OT.le "config.#{actual_key} does not exist"
-            # next
           end
-          OT.ld "[init] Truemail #{key} to #{value}"
+          # OT.ld "[init] Truemail #{key} to #{value}"
           config.send("#{actual_key}=", value)
         end
       end
