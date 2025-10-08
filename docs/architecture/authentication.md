@@ -135,22 +135,25 @@ Onetime Secret supports two authentication modes, configured via `AUTHENTICATION
 
 ## Otto Strategies
 
-### Web Core Strategies
+### Centralized Strategies
 
-**Location:** `apps/web/core/auth_strategies.rb`
-**Registration:** `Core::AuthStrategies.register_all(otto)`
+**Location:** `lib/onetime/application/auth_strategies.rb`
+**Registration:** All applications call `Onetime::Application::AuthStrategies.register_all(otto)`
+
+All Onetime applications (Web Core, V2 API) use the same centralized strategy implementations:
 
 #### PublicStrategy (`auth=publicly`)
 
 ```ruby
-# Usage in routes file
+# Usage in routes files (all apps)
 GET / Core::Controllers::Page#index auth=publicly
+GET /api/v2/secret/:key V2::Logic::Secrets::ShowSecret response=json auth=publicly
 
-# Strategy implementation
-class PublicStrategy < Otto::Security::AuthStrategy
+# Strategy implementation (lib/onetime/application/auth_strategies.rb)
+class Onetime::Application::AuthStrategies::PublicStrategy < Otto::Security::AuthStrategy
   def authenticate(env, _requirement)
     session = env['rack.session']
-    cust = load_customer_from_session(session)
+    cust = load_customer_from_session(session) || Onetime::Customer.anonymous
 
     success(
       session: session,
@@ -169,11 +172,12 @@ end
 #### AuthenticatedStrategy (`auth=authenticated`)
 
 ```ruby
-# Usage in routes file
+# Usage in routes files (all apps)
 GET /account Core::Controllers::Account#show auth=authenticated
+GET /api/v2/account V2::Logic::Account::GetAccount response=json auth=authenticated
 
-# Strategy implementation
-class AuthenticatedStrategy < Otto::Security::AuthStrategy
+# Strategy implementation (lib/onetime/application/auth_strategies.rb)
+class Onetime::Application::AuthStrategies::AuthenticatedStrategy < Otto::Security::AuthStrategy
   def authenticate(env, _requirement)
     session = env['rack.session']
     return failure('Not authenticated') unless session['authenticated']
@@ -198,11 +202,12 @@ end
 #### ColonelStrategy (`auth=colonel`)
 
 ```ruby
-# Usage in routes file
+# Usage in routes files (all apps)
 GET /colonel Core::Controllers::Colonel#dashboard auth=colonel
+GET /api/v2/colonel/stats V2::Logic::Colonel::GetColonelStats response=json auth=colonel
 
-# Strategy implementation
-class ColonelStrategy < Otto::Security::AuthStrategy
+# Strategy implementation (lib/onetime/application/auth_strategies.rb)
+class Onetime::Application::AuthStrategies::ColonelStrategy < Otto::Security::AuthStrategy
   def authenticate(env, _requirement)
     session = env['rack.session']
     return failure('Not authenticated') unless session['authenticated']
@@ -224,137 +229,30 @@ end
 **User:** Authenticated Customer with `:colonel` role
 **Session Required:** Yes + role check
 
-### V2 API Strategies
+### Application Delegation
 
-**Location:** `apps/api/v2/auth_strategies.rb`
-**Registration:** `V2::AuthStrategies.register_all(otto)`
+**Web Core:** `apps/web/core/auth_strategies.rb`
+**V2 API:** `apps/api/v2/auth_strategies.rb`
 
-V2 API uses the same authentication strategies as Web Core:
-
-#### PublicStrategy (`auth=publicly`)
+Both applications delegate to the centralized implementation:
 
 ```ruby
-# Usage in routes file
-GET /api/v2/secret/:key V2::Logic::Secrets::ShowSecret response=json auth=publicly
+# apps/web/core/auth_strategies.rb
+module Core::AuthStrategies
+  def self.register_all(otto)
+    Onetime::Application::AuthStrategies.register_all(otto)
+  end
+end
 
-# Strategy implementation
-class PublicStrategy < Otto::Security::AuthStrategy
-  include Onetime::Application::AuthStrategies::Helpers
-
-  def authenticate(env, _requirement)
-    session = env['rack.session']
-    cust = load_customer_from_session(session) || Onetime::Customer.anonymous
-
-    success(
-      session: session,
-      user: cust,
-      auth_method: 'public',
-      metadata: build_metadata(env)
-    )
+# apps/api/v2/auth_strategies.rb
+module V2::AuthStrategies
+  def self.register_all(otto)
+    Onetime::Application::AuthStrategies.register_all(otto)
   end
 end
 ```
 
-**Access:** Everyone (anonymous or authenticated)
-**User:** Customer from session or `Customer.anonymous`
-**Session Required:** No
-
-#### AuthenticatedStrategy (`auth=authenticated`)
-
-```ruby
-# Usage in routes file
-GET /api/v2/account V2::Logic::Account::GetAccount response=json auth=authenticated
-
-# Strategy implementation
-class AuthenticatedStrategy < Otto::Security::AuthStrategy
-  include Onetime::Application::AuthStrategies::Helpers
-
-  def authenticate(env, _requirement)
-    session = env['rack.session']
-    return failure('No session available') unless session
-
-    cust = load_customer_from_session(session)
-    return failure('Not authenticated') unless cust
-
-    success(
-      session: session,
-      user: cust,
-      auth_method: 'session',
-      metadata: build_metadata(env)
-    )
-  end
-end
-```
-
-**Access:** Authenticated users only
-**User:** Authenticated Customer from session
-**Session Required:** Yes (`session['authenticated'] == true`)
-
-#### ColonelStrategy (`auth=colonel`)
-
-```ruby
-# Usage in routes file
-GET /api/v2/colonel/stats V2::Logic::Colonel::GetColonelStats response=json auth=colonel
-
-# Strategy implementation
-class ColonelStrategy < Otto::Security::AuthStrategy
-  include Onetime::Application::AuthStrategies::Helpers
-
-  def authenticate(env, _requirement)
-    session = env['rack.session']
-    return failure('No session available') unless session
-
-    cust = load_customer_from_session(session)
-    return failure('Not authenticated') unless cust
-    return failure('Colonel role required') unless cust.role?(:colonel)
-
-    success(
-      session: session,
-      user: cust,
-      auth_method: 'colonel',
-      metadata: build_metadata(env, role: 'colonel')
-    )
-  end
-end
-```
-
-**Access:** Users with colonel role only
-**User:** Authenticated Customer with `:colonel` role
-**Session Required:** Yes + role check
-
-### Shared Authentication Helpers
-
-**Location:** `lib/onetime/application/auth_strategies.rb`
-
-All applications use shared helper methods for common authentication tasks:
-
-```ruby
-module Onetime::Application::AuthStrategies::Helpers
-  # Loads customer from session if authenticated
-  def load_customer_from_session(session)
-    return nil unless session
-    return nil unless session['authenticated'] == true
-
-    identity_id = session['identity_id']
-    return nil unless identity_id.to_s.length > 0
-
-    Onetime::Customer.load(identity_id)
-  rescue StandardError => ex
-    OT.le "[auth_strategy] Failed to load customer: #{ex.message}"
-    nil
-  end
-
-  # Builds standard metadata hash from env
-  def build_metadata(env, additional = {})
-    {
-      ip: env['REMOTE_ADDR'],
-      user_agent: env['HTTP_USER_AGENT']
-    }.merge(additional)
-  end
-end
-```
-
-Both Web Core and V2 API strategies include this module to share common logic.
+This ensures all applications use identical authentication logic while maintaining clean separation.
 
 ## Controllers
 
@@ -650,21 +548,46 @@ end
 ### Current Architecture (As of v2.0)
 
 **Strategy Organization:**
-- `lib/onetime/application/auth_strategies.rb` - Shared `Helpers` module only
-- `apps/web/core/auth_strategies.rb` - Web Core strategy registration and implementations
-- `apps/api/v2/auth_strategies.rb` - V2 API strategy registration and implementations
+- `lib/onetime/application/auth_strategies.rb` - Centralized strategy implementations and registration
+- `apps/web/core/auth_strategies.rb` - Thin delegation wrapper for Web Core
+- `apps/api/v2/auth_strategies.rb` - Thin delegation wrapper for V2 API
 
 **Pattern:**
-1. Each application has its own `auth_strategies.rb` file
-2. Each application registers its own strategies in `build_router`
-3. All applications include `Onetime::Application::AuthStrategies::Helpers` for shared logic
-4. Strategies use the same names across applications: `publicly`, `authenticated`, `colonel`
+1. All strategy implementations live in `Onetime::Application::AuthStrategies`
+2. Application-specific modules (`Core::AuthStrategies`, `V2::AuthStrategies`) delegate to centralized module
+3. Each application calls `Onetime::Application::AuthStrategies.register_all(otto)` in `build_router`
+4. Strategies use consistent names: `publicly`, `authenticated`, `colonel`
+
+**Implementation:**
+```ruby
+# Centralized (lib/onetime/application/auth_strategies.rb)
+module Onetime::Application::AuthStrategies
+  def self.register_all(otto)
+    otto.enable_authentication!
+    otto.add_auth_strategy('publicly', PublicStrategy.new)
+    otto.add_auth_strategy('authenticated', AuthenticatedStrategy.new)
+    otto.add_auth_strategy('colonel', ColonelStrategy.new)
+  end
+
+  class PublicStrategy < Otto::Security::AuthStrategy
+    # Implementation...
+  end
+end
+
+# Application wrappers (apps/*/auth_strategies.rb)
+module Core::AuthStrategies
+  def self.register_all(otto)
+    Onetime::Application::AuthStrategies.register_all(otto)
+  end
+end
+```
 
 **Benefits:**
-- **Separation:** Each app owns its strategies
-- **DRY:** Shared helpers eliminate duplication
-- **Consistency:** Same strategy names across all apps
-- **Clarity:** `lib/onetime/application` is for shared code only
+- **Single Source of Truth:** One implementation for all applications
+- **DRY:** Zero duplication of strategy logic
+- **Consistency:** Guaranteed identical behavior across apps
+- **Maintainability:** Changes in one place affect all apps
+- **Extensibility:** Apps can subclass strategies if needed
 
 ## Configuration
 
