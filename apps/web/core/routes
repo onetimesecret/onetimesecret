@@ -45,11 +45,11 @@ GET   /account/*                                 Core::Controllers::Page#index a
 GET   /account                                   Core::Controllers::Page#index auth=authenticated
 
 # Billing
-GET   /plans/:tier                               Billing::Controllers::Welcome#plan_redirect auth=publicly
-GET   /plans/:tier/:billing_cycle                Billing::Controllers::Welcome#plan_redirect auth=publicly
-GET   /welcome                                   Billing::Controllers::Welcome#welcome auth=publicly
-POST  /welcome/stripe/webhook                    Billing::Controllers::Welcome#welcome_webhook auth=publicly csrf=exempt
-GET   /account/billing_portal                    Billing::Controllers::Welcome#customer_portal_redirect auth=authenticated
+GET   /plans/:tier                               Core::Controllers::Welcome#plan_redirect auth=publicly
+GET   /plans/:tier/:billing_cycle                Core::Controllers::Welcome#plan_redirect auth=publicly
+GET   /welcome                                   Core::Controllers::Welcome#welcome auth=publicly
+POST  /welcome/stripe/webhook                    Core::Controllers::Welcome#welcome_webhook auth=publicly csrf=exempt
+GET   /account/billing_portal                    Core::Controllers::Welcome#customer_portal_redirect auth=authenticated
 
 # Colonel routes - require colonel role
 GET   /colonel                                   Core::Controllers::Page#index auth=colonel

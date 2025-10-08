@@ -159,11 +159,16 @@ module Onetime
         OT.li "[Customer.create] email=#{email&.class} kwargs=#{kwargs.keys}"
         loggable_email = OT::Utils.obscure_email(email)
         raise Familia::Problem, 'email is required' if email.to_s.empty?
+
         raise Familia::RecordExistsError, "Customer exists #{loggable_email}" if email_exists?(email)
 
         # Ensure email is in kwargs for super
         kwargs[:email] = email
         super(**kwargs)
+      end
+
+      def email_exists?(email)
+        Customer.email_index.key?(email)
       end
 
       def anonymous

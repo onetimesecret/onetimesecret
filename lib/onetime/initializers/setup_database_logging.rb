@@ -18,7 +18,7 @@ module Onetime
       end
 
       # Check multiple environment variables for database debugging specifically
-      debug_enabled = %w[DEBUG_DATABASE DEBUG_VALKEY DEBUG_REDIS].any? do |val|
+      debug_enabled = %w[DATABASE_DEBUG DEBUG_DATABASE DEBUG_VALKEY DEBUG_REDIS].any? do |val|
         Onetime::Utils.yes?(ENV.fetch(val, nil))
       end
 
