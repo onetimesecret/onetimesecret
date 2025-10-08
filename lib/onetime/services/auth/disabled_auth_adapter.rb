@@ -13,7 +13,7 @@ module Auth
     end
 
     def logout
-      session = env['onetime.session']
+      session = env['rack.session']
       session.clear
       { success: true }
     end

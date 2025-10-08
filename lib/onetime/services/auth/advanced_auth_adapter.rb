@@ -26,7 +26,7 @@ module Auth
       if result[:success]
         # When Rodauth is implemented, we'll get identity from external service
         # For now, use the same session structure
-        session                     = env['onetime.session']
+        session                     = env['rack.session']
         session['auth_method']      = 'advanced'
         session['external_service'] = true
       end
@@ -38,7 +38,7 @@ module Auth
     end
 
     def logout
-      session = env['onetime.session']
+      session = env['rack.session']
 
       # Future: notify external Rodauth service of logout
       # For now, just clear local session
@@ -48,7 +48,7 @@ module Auth
     end
 
     def current_identity
-      session = env['onetime.session']
+      session = env['rack.session']
       return nil unless session['authenticated']
 
       {
@@ -62,7 +62,7 @@ module Auth
     end
 
     def authenticated?
-      session = env['onetime.session']
+      session = env['rack.session']
       session['authenticated'] == true
     end
 

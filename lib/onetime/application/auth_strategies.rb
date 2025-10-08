@@ -38,7 +38,7 @@ module Onetime
             if cust.apitoken?(apitoken)
               OT.ld "[app] Basic authenticated '#{custid}'"
               return success(
-                session: env['onetime.session'] || {},
+                session: env['rack.session'] || {},
                 user: cust,
                 auth_method: 'basic',
               )
@@ -63,7 +63,7 @@ module Onetime
             if %w[advanced basic].include?(source)
               OT.ld "[app] Advanced authenticated '#{identity.id}' via #{source}"
               return success(
-                session: env['onetime.session'] || {},
+                session: env['rack.session'] || {},
                 user: identity.customer || identity,
                 auth_method: source,
                 metadata: env['identity.metadata'],
@@ -83,7 +83,7 @@ module Onetime
           # Everyone is a pseudo-anonymous user
           OT.ld '[app] Disabled fallback anonymous access'
           success(
-            session: env['onetime.session'] || {},
+            session: env['rack.session'] || {},
             user: Onetime::Customer.anonymous,
             auth_method: 'anonymous',
           )
