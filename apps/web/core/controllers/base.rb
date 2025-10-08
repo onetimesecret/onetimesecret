@@ -190,6 +190,46 @@ module Core
         req.env['HTTP_ACCEPT']&.include?('application/json')
       end
 
+      # Executes logic with standardized error handling for both JSON and HTML responses
+      #
+      # @param logic [Object] Logic object to execute
+      # @param success_message [String] Success message for JSON responses
+      # @param success_redirect [String] Path to redirect on success (HTML)
+      # @param error_redirect [String, nil] Path to redirect on error (HTML), nil to re-raise
+      # @yield Optional block for additional processing after logic.process
+      # @return [void]
+      def execute_with_error_handling(logic, success_message:, success_redirect: '/', error_redirect: nil)
+        logic.raise_concerns
+        logic.process
+        yield if block_given?
+
+        if json_requested?
+          json_success(success_message)
+        else
+          res.redirect success_redirect
+        end
+      rescue OT::FormError => ex
+        handle_form_error(ex, error_redirect)
+      end
+
+      # Handles form errors with appropriate JSON or HTML response
+      #
+      # @param ex [OT::FormError] The form error exception
+      # @param redirect_path [String, nil] Path to redirect for HTML, nil to re-raise
+      # @param field [String, nil] Field name for error, nil to infer from message
+      # @return [void]
+      def handle_form_error(ex, redirect_path = nil, field: nil)
+        if json_requested?
+          field ||= ex.message.downcase.include?('password') ? 'password' : 'email'
+          json_error(ex.message, field_error: [field, ex.message.downcase], status: 400)
+        elsif redirect_path
+          session['error_message'] = ex.message
+          res.redirect redirect_path
+        else
+          raise
+        end
+      end
+
       # Sentry error tracking
       #
       # Available levels are :fatal, :error, :warning, :log, :info, and :debug.
