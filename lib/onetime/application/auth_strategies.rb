@@ -43,26 +43,100 @@ module Onetime
       def register_all(otto)
         otto.enable_authentication!
 
+        # Register Web Core strategies (same auth as Web app)
+        # Public routes - allows everyone (anonymous or authenticated)
+        otto.add_auth_strategy('publicly', PublicStrategy.new)
+
+        # Authenticated routes - requires valid session
+        otto.add_auth_strategy('authenticated', AuthenticatedStrategy.new)
+
+        # Colonel routes - requires colonel role
+        otto.add_auth_strategy('colonel', ColonelStrategy.new)
+
+        # Legacy/Advanced strategies
         # HTTP Basic Auth with API token (for programmatic API access)
         otto.add_auth_strategy('basic', OnetimeBasicStrategy.new)
 
         # Identity-aware strategy (uses IdentityResolution middleware)
         otto.add_auth_strategy('advanced', OnetimeAdvancedStrategy.new)
 
-        # V2 API authenticated routes - requires valid session OR basic auth
-        # Used by: /api/v2/account, /api/v2/domains, /api/v2/receipt, /api/v2/private
-        otto.add_auth_strategy('onetime_api', OnetimeApiStrategy.new)
-
-        # V2 API optional auth - allows anonymous OR authenticated
-        # Used by: /api/v2/secret (public secret operations)
-        otto.add_auth_strategy('onetime_optional', OnetimeOptionalStrategy.new)
-
-        # V2 API colonel routes - requires colonel role
-        # Used by: /api/v2/colonel
-        otto.add_auth_strategy('onetime_colonel', OnetimeColonelStrategy.new)
-
         # Fallback when authentication is disabled
         otto.add_auth_strategy('off', OnetimeDisabledStrategy.new)
+      end
+
+      # Public strategy - allows all requests, loads customer from session if available
+      # Same as Web Core PublicStrategy
+      class PublicStrategy < Otto::Security::AuthStrategy
+        include Helpers
+
+        def authenticate(env, _requirement)
+          session = env['rack.session']
+
+          # Load customer from session or use anonymous
+          cust = load_customer_from_session(session) || Onetime::Customer.anonymous
+
+          OT.ld "[app_public] Access granted (#{cust.anonymous? ? 'anonymous' : cust.custid})"
+
+          success(
+            session: session,
+            user: cust,
+            auth_method: 'public',
+            metadata: build_metadata(env)
+          )
+        end
+      end
+
+      # Authenticated strategy - requires valid session with authenticated customer
+      # Same as Web Core AuthenticatedStrategy
+      class AuthenticatedStrategy < Otto::Security::AuthStrategy
+        include Helpers
+
+        def authenticate(env, _requirement)
+          session = env['rack.session']
+          return failure('No session available') unless session
+
+          # Load authenticated customer
+          cust = load_customer_from_session(session)
+          return failure('Not authenticated') unless cust
+
+          OT.ld "[app_authenticated] Authenticated '#{cust.custid}'"
+
+          success(
+            session: session,
+            user: cust,
+            auth_method: 'session',
+            metadata: build_metadata(env)
+          )
+        end
+      end
+
+      # Colonel strategy - requires authenticated user with colonel role
+      # Same as Web Core ColonelStrategy
+      class ColonelStrategy < Otto::Security::AuthStrategy
+        include Helpers
+
+        def authenticate(env, _requirement)
+          session = env['rack.session']
+          return failure('No session available') unless session
+
+          # Load authenticated customer
+          cust = load_customer_from_session(session)
+          return failure('Not authenticated') unless cust
+
+          # Check colonel role
+          unless cust.role?(:colonel)
+            return failure('Colonel role required')
+          end
+
+          OT.ld "[app_colonel] Colonel access granted '#{cust.custid}'"
+
+          success(
+            session: session,
+            user: cust,
+            auth_method: 'colonel',
+            metadata: build_metadata(env, role: 'colonel')
+          )
+        end
       end
 
       # Basic authentication with API token
@@ -117,107 +191,6 @@ module Onetime
           # No Fallback.
 
           failure('No valid authentication found')
-        end
-      end
-
-      # V2 API authenticated strategy - requires session OR basic auth
-      # Combines session-based and API token authentication
-      class OnetimeApiStrategy < Otto::Security::AuthStrategy
-        include Helpers
-
-        def authenticate(env, _requirement)
-          session = env['rack.session']
-
-          # Try session authentication first
-          cust = load_customer_from_session(session)
-          if cust
-            OT.ld "[app] API session authenticated '#{cust.custid}'"
-            return success(
-              session: session,
-              user: cust,
-              auth_method: 'session',
-              metadata: build_metadata(env)
-            )
-          end
-
-          # Try HTTP Basic Auth with API token
-          auth = Rack::Auth::Basic::Request.new(env)
-          if auth.provided? && auth.basic?
-            custid, apitoken = auth.credentials
-            if custid.to_s.length > 0 && apitoken.to_s.length > 0
-              cust = Onetime::Customer.load(custid)
-              if cust && cust.apitoken?(apitoken)
-                OT.ld "[app] API token authenticated '#{custid}'"
-                return success(
-                  session: session || {},
-                  user: cust,
-                  auth_method: 'basic',
-                  metadata: build_metadata(env)
-                )
-              end
-            end
-          end
-
-          failure('Authentication required')
-        end
-      end
-
-      # V2 API optional strategy - allows anonymous OR authenticated
-      # Same as PublicStrategy but for API routes
-      class OnetimeOptionalStrategy < Otto::Security::AuthStrategy
-        include Helpers
-
-        def authenticate(env, _requirement)
-          session = env['rack.session']
-
-          # Try to load authenticated customer from session
-          cust = load_customer_from_session(session)
-          if cust
-            OT.ld "[app] Optional authenticated '#{cust.custid}'"
-            return success(
-              session: session,
-              user: cust,
-              auth_method: 'session',
-              metadata: build_metadata(env)
-            )
-          end
-
-          # Fall back to anonymous
-          OT.ld '[app] Optional anonymous access'
-          success(
-            session: session || {},
-            user: Onetime::Customer.anonymous,
-            auth_method: 'public',
-            metadata: build_metadata(env)
-          )
-        end
-      end
-
-      # V2 API colonel strategy - requires colonel role
-      class OnetimeColonelStrategy < Otto::Security::AuthStrategy
-        include Helpers
-
-        def authenticate(env, _requirement)
-          session = env['rack.session']
-          return failure('No session available') unless session
-
-          # Load authenticated customer
-          cust = load_customer_from_session(session)
-          return failure('Not authenticated') unless cust
-
-          # Check colonel role
-          unless cust.role?(:colonel)
-            return failure('Colonel role required')
-          end
-
-          OT.ld "[app] Colonel access granted '#{cust.custid}'"
-
-          success(
-            session: session,
-            user: cust,
-            auth_method: 'colonel',
-            metadata: build_metadata(env, role: 'colonel')
-          )
         end
       end
 
