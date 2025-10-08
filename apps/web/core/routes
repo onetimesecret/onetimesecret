@@ -7,43 +7,49 @@ GET   /404                                       Core::Controllers::Page#not_fou
 GET   /500                                       Core::Controllers::Page#server_error auth=publicly
 GET   /robots.txt                                Core::Controllers::Page#robots_txt auth=publicly
 
-# Signup/Signin routes - public access
+# Authentication System UI - Supports both Basic and Advanced modes
 GET   /signin                                    Core::Controllers::Page#index auth=publicly
 GET   /signup                                    Core::Controllers::Page#index auth=publicly
 GET   /signup/*                                  Core::Controllers::Page#index auth=publicly
-POST  /signin                                    Core::Controllers::Authentication#authenticate auth=publicly
-POST  /signup                                    Core::Controllers::Registration#create_account auth=publicly
-
-# Password reset - public access
 GET   /forgot                                    Core::Controllers::Page#index auth=publicly
 GET   /forgot/:key                               Core::Controllers::Page#index auth=publicly
-POST  /forgot                                    Core::Controllers::Registration#request_reset auth=publicly
-POST  /forgot/:key                               Core::Controllers::Registration#request_reset auth=publicly
+GET   /logout                                    Core::Controllers::Authentication#logout auth=authenticated
+POST  /logout                                    Core::Controllers::Authentication#logout auth=authenticated
 
-# Stripe/Payment routes - public access
-GET   /plans/:tier                               Core::Controllers::Welcome#plan_redirect auth=publicly
-GET   /plans/:tier/:billing_cycle                Core::Controllers::Welcome#plan_redirect auth=publicly
-GET   /welcome                                   Core::Controllers::Welcome#welcome auth=publicly
-POST  /welcome/stripe/webhook                    Core::Controllers::Welcome#welcome_webhook auth=publicly csrf=exempt
+# Authentication routes - handled here in basic mode, by Auth app in advanced
+# mode. The Vue frontend uses the same /auth/* endpoints regardless of which
+# mode is enabled. The Auth app provides many more routes in addition to these.
+POST  /auth/login                                Core::Controllers::Authentication#authenticate auth=publicly
+POST  /auth/create-account                       Core::Controllers::Registration#create_account auth=publicly
+POST  /auth/reset-password                       Core::Controllers::Registration#request_reset auth=publicly
+POST  /auth/reset-password/:key                  Core::Controllers::Registration#request_reset auth=publicly
 
 # Data export/import - public for now (may need auth review)
-POST  /incoming                                  Core::Controllers::DataIncoming#create_incoming auth=publicly
 GET   /window                                    Core::Controllers::Page#export_window auth=publicly
 
 # Vue SPA catch-all routes - public (Vue handles auth client-side)
 GET   /private/*                                 Core::Controllers::Page#index auth=publicly
 GET   /receipt/*                                 Core::Controllers::Page#index auth=publicly
 GET   /secret/*                                  Core::Controllers::Page#index auth=publicly
+GET   /incoming                                  Core::Controllers::Page#index auth=publicly
+GET   /l/*                                       Core::Controllers::Page#index auth=publicly
+GET   /l                                         Core::Controllers::Page#index auth=publicly
+POST  /incoming                                  Core::Controllers::DataIncoming#create_incoming auth=publicly
 
 # Authenticated routes - require valid session
-GET   /logout                                    Core::Controllers::Authentication#logout auth=authenticated
 GET   /dashboard                                 Core::Controllers::Page#index auth=authenticated
 GET   /recent                                    Core::Controllers::Page#index auth=authenticated
 GET   /domains/*                                 Core::Controllers::Page#index auth=authenticated
 GET   /domains                                   Core::Controllers::Page#index auth=authenticated
 GET   /account/*                                 Core::Controllers::Page#index auth=authenticated
 GET   /account                                   Core::Controllers::Page#index auth=authenticated
-GET   /account/billing_portal                    Core::Controllers::Welcome#customer_portal_redirect auth=authenticated
+
+# Billing
+GET   /plans/:tier                               Billing::Controllers::Welcome#plan_redirect auth=publicly
+GET   /plans/:tier/:billing_cycle                Billing::Controllers::Welcome#plan_redirect auth=publicly
+GET   /welcome                                   Billing::Controllers::Welcome#welcome auth=publicly
+POST  /welcome/stripe/webhook                    Billing::Controllers::Welcome#welcome_webhook auth=publicly csrf=exempt
+GET   /account/billing_portal                    Billing::Controllers::Welcome#customer_portal_redirect auth=authenticated
 
 # Colonel routes - require colonel role
 GET   /colonel                                   Core::Controllers::Page#index auth=colonel
