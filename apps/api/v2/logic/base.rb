@@ -49,48 +49,6 @@ module V2
         process_params if respond_to?(:process_params) && @params
       end
 
-      # Helper to get session identifier for logging
-      def session_id
-        @session_id ||= begin
-          # Try to get from Rack session
-          if @sess.respond_to?(:id)
-            @sess.id.to_s
-          elsif @sess.is_a?(Hash) && @sess['rack.session.record']
-            @sess['rack.session.record'].to_s
-          else
-            'unknown'
-          end
-        end
-      end
-
-      # Helper to get short session identifier for logging (first 8 chars)
-      def short_session_id
-        session_id.to_s[0..7]
-      end
-
-      # Helper to set info message in session
-      def set_info_message(message)
-        @sess['info_message'] = message if @sess.is_a?(Hash)
-      end
-
-      # Helper to set error message in session
-      def set_error_message(message)
-        @sess['error_message'] = message if @sess.is_a?(Hash)
-      end
-
-      # Helper to get IP address from session or strategy result
-      def session_ipaddress
-        @session_ipaddress ||= begin
-          if @strategy_result&.metadata&.dig(:ip)
-            @strategy_result.metadata[:ip]
-          elsif @sess.is_a?(Hash) && @sess['ip_address']
-            @sess['ip_address']
-          else
-            'unknown'
-          end
-        end
-      end
-
       def process_settings
         @site            = OT.conf.fetch('site', {})
         site.fetch('domains', {})
