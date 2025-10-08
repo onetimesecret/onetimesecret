@@ -2,6 +2,8 @@
 
 require 'rack/utils'
 
+require_relative 'features'
+
 module Onetime
   # Customer
   #

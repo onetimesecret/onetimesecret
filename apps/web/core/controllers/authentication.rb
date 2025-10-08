@@ -64,7 +64,9 @@ module Core
                 'field-error': ['email', 'invalid']
               }.to_json
             else
-              raise
+              # HTML fallback: set error message and redirect back to login
+              session['error_message'] = 'Invalid email or password'
+              res.redirect '/signin'
             end
           end
         end

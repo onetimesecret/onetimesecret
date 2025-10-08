@@ -99,7 +99,20 @@ module Core
               'field-error': ['email', e.message.downcase]
             }.to_json
           else
-            raise
+            session['error_message'] = e.message
+            res.redirect '/forgot'
+          end
+        rescue Onetime::MissingSecret => e
+          if json_requested?
+            res.status = 404
+            res.headers['Content-Type'] = 'application/json'
+            res.body = {
+              error: 'Invalid or expired reset token',
+              'field-error': ['key', 'invalid']
+            }.to_json
+          else
+            session['error_message'] = 'Invalid or expired reset token'
+            res.redirect '/forgot'
           end
         end
       end

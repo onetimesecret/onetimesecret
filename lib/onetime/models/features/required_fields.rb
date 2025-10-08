@@ -4,7 +4,6 @@ module Onetime
   module Models
     module Features
       module RequiredFields
-
         Familia::Base.add_feature self, :required_fields, depends_on: [:relationships, :object_identifier]
 
         def self.included(base)
@@ -27,8 +26,6 @@ module Onetime
           # also executes any top-level code in the module within the
           # extending class's context.
         end
-
-
       end
     end
   end
