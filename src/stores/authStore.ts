@@ -20,6 +20,11 @@ import { computed, inject, ref } from 'vue';
  * 1. Immediate logout after 3 failures provides clearer UX
  * 2. The 15-minute base interval already provides adequate spacing
  * 3. Backoff could mask serious issues by waiting longer between retries
+ *
+ * @note We created a new src/composables/useAuth.ts for auth operations (login,
+ * signup, logout, password reset) and are keeping this authStore.ts focused
+ * on session state management. We should rename this store to reflect that
+ * once the dust settles.
  */
 export const AUTH_CHECK_CONFIG = {
   INTERVAL: 15 * 60 * 1000,
@@ -252,6 +257,27 @@ export const useAuthStore = defineStore('auth', () => {
     _initialized.value = false;
   }
 
+  /**
+   * Sets the authenticated state and updates window state
+   *
+   * @param value - The authentication state to set
+   */
+  function setAuthenticated(value: boolean) {
+    isAuthenticated.value = value;
+
+    if (value) {
+      lastCheckTime.value = Date.now();
+      $scheduleNextCheck();
+    } else {
+      $stopAuthCheck();
+    }
+
+    // Sync window state
+    if (window.__ONETIME_STATE__) {
+      window.__ONETIME_STATE__.authenticated = value;
+    }
+  }
+
   return {
     // State
     isAuthenticated,
@@ -269,6 +295,7 @@ export const useAuthStore = defineStore('auth', () => {
     checkAuthStatus,
     refreshAuthState,
     logout,
+    setAuthenticated,
 
     $scheduleNextCheck,
     $stopAuthCheck,
