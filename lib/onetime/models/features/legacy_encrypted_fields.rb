@@ -44,14 +44,17 @@ module Onetime
           end
 
           def passphrase?(guess)
-            ret              = BCrypt::Password.new(passphrase) == guess
+            # Constant-time comparison prevents timing attacks that could leak
+            # the hash prefix by measuring how long the comparison takes to fail
+            ret = Rack::Utils.secure_compare(BCrypt::Password.new(passphrase), guess)
             @passphrase_temp = guess if ret # used to decrypt the value
             ret
           rescue BCrypt::Errors::InvalidHash => ex
             prefix = '[passphrase?]'
             OT.li "#{prefix} Invalid passphrase hash: #{ex.message}"
-            (!guess.to_s.empty? && passphrase.to_s.downcase.strip == guess.to_s.downcase.strip)
+            false
           end
+
         end
       end
     end
