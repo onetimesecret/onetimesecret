@@ -1,3 +1,6 @@
+---
+labels: authstrategies
+---
 # Authentication Architecture
 
 **Last Updated:** 2025-10-08

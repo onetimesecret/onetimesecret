@@ -1,5 +1,5 @@
 # apps/web/core/auth_strategies.rb
-
+#
 # Otto authentication strategies for Web Core (apps/web/core).
 #
 # This module delegates to the centralized Onetime::Application::AuthStrategies
@@ -12,6 +12,9 @@
 #   GET /public   Controller#action auth=publicly
 #   GET /private  Controller#action auth=authenticated
 #   GET /admin    Controller#action auth=colonel
+#
+# Keep this code in sync with:
+# @see docs/architecture/authentication.md#authstrategies
 
 module Core
   module AuthStrategies

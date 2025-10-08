@@ -2,6 +2,11 @@
 #
 # Centralized authentication strategies for Onetime applications.
 # All applications (Web Core, V2 API, etc.) use these shared strategy classes.
+#
+# Keep this code in sync with:
+# @see docs/architecture/authentication.md#authstrategies
+#
+# All dependent modules and references: `rg -t ruby -t markdown authstrategies`
 
 module Onetime
   module Application
@@ -19,7 +24,7 @@ module Onetime
           return nil unless session['authenticated'] == true
 
           identity_id = session['identity_id']
-          return nil unless identity_id.to_s.length > 0
+          return nil if identity_id.to_s.empty?
 
           Onetime::Customer.load(identity_id)
         rescue StandardError => ex
@@ -35,7 +40,7 @@ module Onetime
         def build_metadata(env, additional = {})
           {
             ip: env['REMOTE_ADDR'],
-            user_agent: env['HTTP_USER_AGENT']
+            user_agent: env['HTTP_USER_AGENT'],
           }.merge(additional)
         end
       end
@@ -54,6 +59,9 @@ module Onetime
 
         # Colonel routes - requires colonel role
         otto.add_auth_strategy('colonel', ColonelStrategy.new)
+
+        # Basic auth routes - HTTP Basic Authentication
+        otto.add_auth_strategy('basicauth', BasicAuthStrategy.new)
       end
 
       # Public strategy - allows all requests, loads customer from session if available
@@ -74,13 +82,98 @@ module Onetime
             session: session,
             user: cust,
             auth_method: 'public',
-            metadata: build_metadata(env)
+            metadata: build_metadata(env),
           )
+        end
+
+        include Helpers
+      end
+
+      # Base strategy for authenticated routes
+      #
+      # Provides common authentication logic for session-based auth.
+      # Subclasses can override `additional_checks` for role/permission validation.
+      class BaseAuthenticatedStrategy < Otto::Security::AuthStrategy
+        include Helpers
+
+        def authenticate(env, _requirement)
+          session = env['rack.session']
+          return failure('No session available') unless session
+
+          # Check if authentication is enabled
+          unless authentication_enabled?
+            return failure('Authentication is disabled')
+          end
+
+          # Check if session is authenticated
+          unless session['authenticated'] == true
+            return failure('Not authenticated')
+          end
+
+          identity_id = session['identity_id']
+          if identity_id.to_s.empty?
+            return failure('No identity in session')
+          end
+
+          # Load customer
+          cust = Onetime::Customer.load(identity_id)
+          return failure('Customer not found') unless cust
+
+          # Perform additional checks (role, permissions, etc.)
+          check_result = additional_checks(cust, env)
+          return check_result if check_result.is_a?(Otto::Security::Authentication::FailureResult)
+
+          log_success(cust)
+
+          success(
+            session: session,
+            user: cust,
+            auth_method: auth_method_name,
+            metadata: build_metadata(env, additional_metadata(cust)),
+          )
+        end
+
+        protected
+
+        # Override in subclasses to add role/permission checks
+        #
+        # @param cust [Onetime::Customer] Authenticated customer
+        # @param env [Hash] Rack environment
+        # @return [Otto::Security::Authentication::FailureResult, nil] Failure if check fails, nil if passes
+        def additional_checks(_cust, _env)
+          nil
+        end
+
+        # Override in subclasses to customize auth method name
+        #
+        # @return [String] Auth method name for StrategyResult
+        def auth_method_name
+          'session'
+        end
+
+        # Override in subclasses to add metadata
+        #
+        # @param cust [Onetime::Customer] Authenticated customer
+        # @return [Hash] Additional metadata for StrategyResult
+        def additional_metadata(_cust)
+          {}
+        end
+
+        # Override in subclasses to customize success logging
+        #
+        # @param cust [Onetime::Customer] Authenticated customer
+        def log_success(cust)
+          OT.ld "[onetime_authenticated] Authenticated '#{cust.custid}'"
         end
 
         private
 
-        include Helpers
+        def authentication_enabled?
+          settings = OT.conf.dig('site', 'authentication')
+          return false unless settings
+
+          settings['enabled'] == true
+        end
       end
 
       # Authenticated strategy - requires valid session with authenticated customer
@@ -88,50 +181,8 @@ module Onetime
       # Routes: auth=authenticated
       # Access: Authenticated users only
       # User: Authenticated Customer
-      class AuthenticatedStrategy < Otto::Security::AuthStrategy
-        def authenticate(env, _requirement)
-          session = env['rack.session']
-          return failure('No session available') unless session
-
-          # Check if authentication is enabled
-          unless authentication_enabled?
-            return failure('Authentication is disabled')
-          end
-
-          # Check if session is authenticated
-          unless session['authenticated'] == true
-            return failure('Not authenticated')
-          end
-
-          identity_id = session['identity_id']
-          unless identity_id.to_s.length > 0
-            return failure('No identity in session')
-          end
-
-          # Load customer
-          cust = Onetime::Customer.load(identity_id)
-          return failure('Customer not found') unless cust
-
-          OT.ld "[onetime_authenticated] Authenticated '#{cust.custid}'"
-
-          success(
-            session: session,
-            user: cust,
-            auth_method: 'session',
-            metadata: build_metadata(env)
-          )
-        end
-
-        private
-
-        include Helpers
-
-        def authentication_enabled?
-          settings = OT.conf.dig('site', 'authentication')
-          return false unless settings
-
-          settings['enabled'] == true
-        end
+      class AuthenticatedStrategy < BaseAuthenticatedStrategy
+        # Uses all base class defaults
       end
 
       # Colonel strategy - requires authenticated user with colonel role
@@ -139,54 +190,70 @@ module Onetime
       # Routes: auth=colonel
       # Access: Users with colonel role only
       # User: Authenticated Customer with :colonel role
-      class ColonelStrategy < Otto::Security::AuthStrategy
-        def authenticate(env, _requirement)
-          session = env['rack.session']
-          return failure('No session available') unless session
+      class ColonelStrategy < BaseAuthenticatedStrategy
+        protected
 
-          # Check if authentication is enabled
-          unless authentication_enabled?
-            return failure('Authentication is disabled')
-          end
+        def additional_checks(cust, _env)
+          return failure('Colonel role required') unless cust.role?(:colonel)
 
-          # Check if session is authenticated
-          unless session['authenticated'] == true
-            return failure('Not authenticated')
-          end
-
-          identity_id = session['identity_id']
-          unless identity_id.to_s.length > 0
-            return failure('No identity in session')
-          end
-
-          # Load customer
-          cust = Onetime::Customer.load(identity_id)
-          return failure('Customer not found') unless cust
-
-          # Check colonel role
-          unless cust.role?(:colonel)
-            return failure('Colonel role required')
-          end
-
-          OT.ld "[onetime_colonel] Colonel access granted '#{cust.custid}'"
-
-          success(
-            session: session,
-            user: cust,
-            auth_method: 'colonel',
-            metadata: build_metadata(env, role: 'colonel')
-          )
+          nil
         end
 
-        private
+        def auth_method_name
+          'colonel'
+        end
 
+        def additional_metadata(_cust)
+          { role: 'colonel' }
+        end
+
+        def log_success(cust)
+          OT.ld "[onetime_colonel] Colonel access granted '#{cust.custid}'"
+        end
+      end
+
+      # Basic auth strategy - HTTP Basic Authentication
+      #
+      # Routes: auth=basic
+      # Access: Valid API credentials via Authorization header
+      # User: Customer associated with API credentials
+      class BasicAuthStrategy < Otto::Security::AuthStrategy
         include Helpers
 
-        def authentication_enabled?
-          settings = OT.conf.dig('site', 'authentication')
-          return false unless settings
+        def authenticate(env, _requirement)
+          # Extract credentials from Authorization header
+          auth_header = env['HTTP_AUTHORIZATION']
+          return failure('No authorization header') unless auth_header
 
-          settings['enabled'] == true
+          # Parse Basic auth
+          unless auth_header.start_with?('Basic ')
+            return failure('Invalid authorization type')
+          end
+
+          # Decode credentials
+          encoded          = auth_header.sub('Basic ', '')
+          decoded          = Base64.decode64(encoded)
+          username, apikey = decoded.split(':', 2)
+
+          return failure('Invalid credentials format') unless username && apikey
+
+          # Load customer by custid
+          cust = Onetime::Customer.load(username)
+          return failure('Invalid credentials') unless cust
+
+          # Validate API key (constant-time comparison)
+          unless cust.valid_apikey?(apikey)
+            return failure('Invalid credentials')
+          end
+
+          OT.ld "[onetime_basic_auth] Authenticated '#{cust.custid}' via API key"
+
+          success(
+            session: {},  # No session for Basic auth
+            user: cust,
+            auth_method: 'basic_auth',
+            metadata: build_metadata(env, { auth_type: 'basic' }),
+          )
         end
       end
     end

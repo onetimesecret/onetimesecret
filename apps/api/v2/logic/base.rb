@@ -58,12 +58,13 @@ module V2
       end
 
       def valid_email?(guess)
-        OT.ld "[valid_email?] Guess: #{guess}"
+        loggable_guess = OT::Utils.obscure_email(guess)
+        OT.ld "[valid_email?] Guess: #{loggable_guess}"
 
         begin
           validator = Truemail.validate(guess)
         rescue StandardError => ex
-          OT.le "Email validation error: #{ex.message}"
+          OT.le "Email validation error (#{loggable_guess}): #{ex.message}"
           OT.le ex.backtrace
           false
         end
