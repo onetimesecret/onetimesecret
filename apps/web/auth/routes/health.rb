@@ -1,11 +1,10 @@
-# frozen_string_literal: true
+# apps/web/auth/routes/health.rb
 
 module Auth
   module Routes
     module Health
       def handle_health_routes(r)
         r.get 'health' do
-          begin
             # Test database connection
             db_status = Auth::Config::Database.connection.test_connection ? 'ok' : 'error'
 
@@ -15,14 +14,13 @@ module Auth
               database: db_status,
               version: Onetime::VERSION,
             }
-          rescue => e
+          rescue StandardError => ex
             response.status = 503
             {
               status: 'error',
-              error: e.message,
-              timestamp: Familia.now # UTC in seconds (float)
+              error: ex.message,
+              timestamp: Familia.now, # UTC in seconds (float)
             }
-          end
         end
       end
     end

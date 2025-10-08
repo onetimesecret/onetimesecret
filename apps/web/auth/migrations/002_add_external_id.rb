@@ -1,5 +1,5 @@
-# frozen_string_literal: true
 # apps/web/auth/migrations/002_add_external_id.rb
+
 # Add external_id column for Otto's derived identity integration
 
 Sequel.migration do
