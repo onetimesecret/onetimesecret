@@ -1,10 +1,7 @@
+<!-- src/views/auth/PasswordReset.vue -->
 <script setup lang="ts">
-import { useSecret } from '@/composables/useSecret';
-import { useCsrfStore } from '@/stores/csrfStore';
-import { onMounted } from 'vue';
-import { AsyncHandlerOptions } from '@/composables/useAsyncHandler';
-
-const csrfStore = useCsrfStore();
+import { useAuth } from '@/composables/useAuth';
+import { ref } from 'vue';
 
 export interface Props {
   enabled?: boolean;
@@ -15,12 +12,16 @@ const props = withDefaults(defineProps<Props>(), {
   enabled: true,
 })
 
-const defaultAsyncHandlerOptions: AsyncHandlerOptions = {}
+const { resetPassword, isLoading, error, clearErrors } = useAuth();
 
+const newPassword = ref('');
+const confirmPassword = ref('');
 
-const { state, load } = useSecret(props.resetKey, defaultAsyncHandlerOptions);
-
-onMounted(load);
+const handleSubmit = async () => {
+  clearErrors();
+  await resetPassword(props.resetKey, newPassword.value, confirmPassword.value);
+  // Navigation to /signin handled by useAuth composable on success
+};
 </script>
 
 <template>
@@ -32,15 +33,20 @@ onMounted(load);
     <p class="mb-4 text-gray-700 dark:text-gray-300">
       {{ $t('please-enter-your-new-password-below-make-sure-i') }}
     </p>
-    <form
-      method="post"
-      id="passwordResetForm">
-      <input
-        type="hidden"
-        name="shrimp"
-        :value="csrfStore.shrimp"
-      />
 
+    <!-- Error message -->
+    <div
+      v-if="error"
+      class="mb-4 rounded-md bg-red-50 p-4 dark:bg-red-900/20"
+      role="alert">
+      <p class="text-sm text-red-800 dark:text-red-200">
+        {{ error }}
+      </p>
+    </div>
+
+    <form
+      @submit.prevent="handleSubmit"
+      id="passwordResetForm">
       <!-- Username field for accessibility -->
       <div class="mb-4 hidden">
         <label
@@ -66,13 +72,15 @@ onMounted(load);
         </label>
         <input
           type="password"
-          name="newp"
+          name="newPassword"
           id="passField"
           required
           minlength="6"
+          :disabled="isLoading"
           autocomplete="new-password"
-          class="focus:shadow-outline w-full appearance-none rounded border px-3 py-2 leading-tight text-gray-700 shadow focus:outline-none dark:bg-gray-700 dark:text-gray-300"
+          class="focus:shadow-outline w-full appearance-none rounded border px-3 py-2 leading-tight text-gray-700 shadow focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed dark:bg-gray-700 dark:text-gray-300"
           placeholder=""
+          v-model="newPassword"
         />
       </div>
       <div class="mb-6">
@@ -83,22 +91,24 @@ onMounted(load);
         </label>
         <input
           type="password"
-          name="newp2"
+          name="confirmPassword"
           id="pass2Field"
           required
           minlength="6"
+          :disabled="isLoading"
           autocomplete="new-password"
-          class="focus:shadow-outline w-full appearance-none rounded border px-3 py-2 leading-tight text-gray-700 shadow focus:outline-none dark:bg-gray-700 dark:text-gray-300"
+          class="focus:shadow-outline w-full appearance-none rounded border px-3 py-2 leading-tight text-gray-700 shadow focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed dark:bg-gray-700 dark:text-gray-300"
           placeholder=""
+          v-model="confirmPassword"
         />
       </div>
-      <div id="app"></div>
       <div class="flex items-center justify-between">
         <button
           type="submit"
-          :disabled="state.isLoading"
-          class="focus:shadow-outline rounded bg-brand-500 px-4 py-2 font-bold text-white transition duration-300 hover:bg-brand-700 focus:outline-none dark:bg-brand-600 dark:hover:bg-brand-800">
-          {{ $t('web.account.changePassword.updatePassword') }}
+          :disabled="isLoading"
+          class="focus:shadow-outline rounded bg-brand-500 px-4 py-2 font-bold text-white transition duration-300 hover:bg-brand-700 focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed dark:bg-brand-600 dark:hover:bg-brand-800">
+          <span v-if="isLoading">{{ $t('web.COMMON.processing') || 'Processing...' }}</span>
+          <span v-else>{{ $t('web.account.changePassword.updatePassword') }}</span>
         </button>
       </div>
     </form>
