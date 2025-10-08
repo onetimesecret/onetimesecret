@@ -22,7 +22,7 @@ source 'https://rubygems.org/'
 # Web framework and routing
 # Authentication framework
 gem 'rodauth', '~> 2.0'
-gem 'otto', '~> 2.0.0.pre1'
+gem 'otto', path: '../../d/otto' # '~> 2.0.0.pre2'
 gem 'roda', '~> 3.0'
 
 

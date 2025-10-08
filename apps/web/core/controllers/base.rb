@@ -148,14 +148,35 @@ module Core
         OT.conf.dig('site', 'authentication')
       end
 
+      # Returns the StrategyResult created by Otto's AuthenticationMiddleware
+      #
+      # This provides authenticated state and metadata from the auth strategy
+      # that executed for the current route (public, authenticated, colonel, etc.)
+      #
+      # For routes with auth requirements (auth=publicly, auth=authenticated, etc.),
+      # Otto's AuthenticationMiddleware sets req.env['otto.strategy_result'].
+      # If this is nil (shouldn't happen in normal operation), we create a fallback.
+      #
+      # @return [Otto::Security::Authentication::StrategyResult]
       def _strategy_result
+        req.env['otto.strategy_result'] || fallback_strategy_result
+      end
+
+      # Creates a fallback StrategyResult for edge cases where middleware doesn't set one
+      # This maintains backward compatibility but logs a warning since it shouldn't happen
+      #
+      # @return [Otto::Security::Authentication::StrategyResult]
+      def fallback_strategy_result
+        OT.le "[base_controller] WARNING: otto.strategy_result not set, creating fallback"
+
         Otto::Security::Authentication::StrategyResult.new(
           session: session,
           user: cust,
-          auth_method: 'session',
+          auth_method: 'anonymous',
           metadata: {
             ip: req.client_ipaddress,
             user_agent: req.user_agent,
+            fallback: true,
           },
         )
       end
