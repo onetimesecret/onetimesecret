@@ -26,6 +26,7 @@ withDefaults(defineProps<Props>(), {
         {{ $t('enter-your-email-address-below-and-well-send-you') }}
       </p>
       <form
+        action="/auth/reset-password"
         method="post"
         id="resetRequestForm">
         <input
