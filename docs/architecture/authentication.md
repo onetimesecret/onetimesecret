@@ -12,19 +12,19 @@ Onetime Secret uses Otto's authentication framework following standard Rack conv
 
 ```
 1. Request arrives
-   “
+
 2. Session Middleware (Rack::Session::Abstract::Persisted)
    Location: lib/onetime/application/middleware_stack.rb
    Class: Onetime::Session (wraps Rack::Session::Redis)
    Sets: env['rack.session']
    Cookie: 'onetime.session'
-   “
+
 3. Identity Resolution Middleware (Optional - Advanced Mode Only)
    Location: lib/onetime/middleware/identity_resolution.rb
    Class: Onetime::Middleware::IdentityResolution
    Reads: env['rack.session']
    Sets: env['identity.resolved'], env['identity.authenticated'], env['identity.source']
-   “
+
 4. Otto's AuthenticationMiddleware
    Location: otto gem (lib/otto/security/authentication/authentication_middleware.rb)
    Class: Otto::Security::Authentication::AuthenticationMiddleware
@@ -33,18 +33,18 @@ Onetime Secret uses Otto's authentication framework following standard Rack conv
    - Strategy.authenticate(env, requirement) reads env['rack.session']
    - Creates StrategyResult
    - Sets env['otto.strategy_result'], env['otto.user'], env['otto.user_context']
-   “
+
 5. Application Controllers
    Location: apps/web/core/controllers/*, apps/api/v2/controllers/*
    Pattern: req.env['otto.user'], req.env['otto.strategy_result']
    - Read from env, never from session directly
-   “
+
 6. Logic Classes (on auth state changes)
    Location: apps/api/v2/logic/authentication/*, apps/api/v2/logic/account/*
    Pattern: @strategy_result.session['key'] = value
    - Write to session via StrategyResult.session attribute
    - Only on login/logout/registration
-   “
+
 7. Session Middleware persists to Redis
    Same middleware as step 2
 ```
@@ -127,7 +127,7 @@ Onetime Secret supports two authentication modes, configured via `AUTHENTICATION
 **Use Case:** Multi-tenant, external authentication, compliance requirements
 
 **Flow:**
-1. User submits credentials to Auth app (`/auth/login` ’ Rodauth)
+1. User submits credentials to Auth app (`/auth/login`Rodauth)
 2. Rodauth validates credentials, writes to PostgreSQL + session
 3. Redis persists session
 4. IdentityResolution middleware loads Customer from session
@@ -337,9 +337,9 @@ end
 ```
 
 **Rules:**
--  Read from `req.env['otto.user']` or `req.env['otto.strategy_result']`
-- L Never read from `session` directly
-- L Never create `StrategyResult` manually (Otto middleware provides it)
+- Read from `req.env['otto.user']` or `req.env['otto.strategy_result']`
+- Never read from `session` directly
+- Never create `StrategyResult` manually (Otto middleware provides it)
 
 ### Example Controller
 
@@ -668,10 +668,10 @@ authentication:
 
 ### Separation of Concerns
 
-- **Middleware:** Read session ’ populate env
-- **Controllers:** Read env ’ pass to Logic
+- **Middleware:** Read session -> populate env
+- **Controllers:** Read envpass to Logic
 - **Logic:** Business rules + write session
-- **Middleware:** Persist session ’ Redis
+- **Middleware:** Persist sessionRedis
 
 ### Testability
 
