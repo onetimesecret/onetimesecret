@@ -156,9 +156,9 @@ module Core
         # Get the Stripe Customer ID from our customer instance
         customer_id = cust.stripe_customer_id
 
-        site_host      = Onetime.conf['site']['host']
-        is_secure      = Onetime.conf['site']['ssl']
-        return_url     = "#{is_secure ? 'https' : 'http'}://#{site_host}/account"
+        site_host   = Onetime.conf['site']['host']
+        is_secure   = Onetime.conf['site']['ssl']
+        return_url  = "#{is_secure ? 'https' : 'http'}://#{site_host}/account"
 
         # Create a Stripe Customer Portal session
         stripe_session = Stripe::BillingPortal::Session.create({

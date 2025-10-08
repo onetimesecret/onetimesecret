@@ -1,13 +1,13 @@
 module V2::Logic
   module Account
     class CreateAccount < V2::Logic::Base
-      attr_reader :cust, :autoverify, :customer_role, :planid, :custid, :password, :skill
+      attr_reader :cust, :autoverify, :customer_role, :planid, :email, :password, :skill
       attr_accessor :token
 
       def process_params
         OT.ld "[CreateAccount#process_params] params: #{params.inspect}"
         @planid = params[:planid].to_s
-        @custid = params[:u].to_s.downcase.strip
+        @email = params[:u].to_s.downcase.strip
 
         @password = self.class.normalize_password(params[:p])
 
@@ -23,8 +23,8 @@ module V2::Logic
       def raise_concerns
         raise OT::FormError, "You're already signed up" if @strategy_result.authenticated?
 
-        raise_form_error 'Please try another email address' if Onetime::Customer.exists?(custid)
-        raise_form_error 'Is that a valid email address?' unless valid_email?(custid)
+        raise_form_error 'Please try another email address' if Onetime::Customer.exists?(email)
+        raise_form_error 'Is that a valid email address?' unless valid_email?(email)
         raise_form_error 'Password is too short' unless password.size >= 6
 
         @planid ||= 'basic'
@@ -36,13 +36,13 @@ module V2::Logic
       end
 
       def process
-        @cust = Onetime::Customer.create custid
+        @cust = Onetime::Customer.create email: email
 
         cust.update_passphrase password
 
         # Set up authentication in Rack session
-        @sess['identity_id'] = cust.custid
-        @sess['email'] = cust.custid
+        @sess['identity_id'] = cust.objid
+        # @sess['email'] = cust.email
         @sess['authenticated'] = true
         @sess['authenticated_at'] = Time.now.to_i
 
@@ -60,7 +60,7 @@ module V2::Logic
 
         session_id = @sess.respond_to?(:id) ? @sess.id.to_s[0..10] : 'unknown'
         ip_address = @strategy_result.metadata[:ip] || @sess['ip_address'] || 'unknown'
-        OT.info "[new-customer] #{cust.custid} #{cust.role} #{ip_address} #{planid} #{session_id}"
+        OT.info "[new-customer] #{cust.objid} #{cust.role} #{ip_address} #{planid} #{session_id}"
 
         success_message = if autoverify
                             'Account created.'
