@@ -31,6 +31,20 @@ module Auth
     plugin :error_handler
     plugin :status_handler
 
+    # Error handler for FormError and other exceptions
+    error_handler do |e|
+      case e
+      when Onetime::FormError
+        response.status = 422
+        { success: false, error: e.message, form_fields: e.form_fields }
+      else
+        OT.le "[auth] Unhandled error: #{e.class} - #{e.message}"
+        OT.le e.backtrace.join("\n") if Onetime.development?
+        response.status = 500
+        { success: false, error: 'Internal server error' }
+      end
+    end
+
     # Status handlers
     status_handler(404) do
       { error: 'Not found' }
