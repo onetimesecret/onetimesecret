@@ -2,6 +2,7 @@
 
 require 'rack/content_length'
 require 'rack/contrib'
+require 'rack/parser'
 require 'rack/protection'
 require 'rack/utf8_sanitizer'
 
@@ -13,6 +14,11 @@ module Onetime
     #
     # Standard middleware configuration for all Rack applications
     module MiddlewareStack
+      @parsers = {
+        'application/json' => proc { |body| Familia::JsonSerializer.parse(body) },
+        'application/x-www-form-urlencoded' => proc { |body| Rack::Utils.parse_nested_query(body) }
+        }.freeze
+
       class << self
         def configure(builder, application_context: nil)
           Onetime.ld "[middleware] MiddlewareStack: Configuring common middleware"
@@ -22,6 +28,8 @@ module Onetime
 
           # Host detection and identity resolution (common to all apps)
           builder.use Rack::DetectHost
+
+          builder.use Rack::Parser, parsers: @parsers
 
           # Add session middleware early in the stack (before other middleware)
           builder.use Onetime::Session, {
