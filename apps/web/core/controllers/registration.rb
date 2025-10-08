@@ -8,21 +8,11 @@ module Core
       include Controllers::Base
 
       def create_account
-        unless _auth_settings['enabled'] && _auth_settings['signup']
+        unless signup_enabled?
           raise OT::Redirect.new('/')
         end
 
-        strategy_result = Otto::Security::Authentication::StrategyResult.new(
-          session: session,
-          user: cust,
-          auth_method: 'session',
-          metadata: {
-            ip: req.client_ipaddress,
-            user_agent: req.user_agent,
-          },
-        )
-
-        logic = V2::Logic::Account::CreateAccount.new(strategy_result, req.params, locale)
+        logic = V2::Logic::Account::CreateAccount.new(_strategy_result, req.params, locale)
 
         begin
           logic.raise_concerns
@@ -32,93 +22,59 @@ module Core
           session['authenticated_at'] = Time.now.to_i
 
           if json_requested?
-            res.headers['Content-Type'] = 'application/json'
-            res.body                    = { success: 'Your account has been created' }.to_json
+            json_success('Your account has been created')
           else
             res.redirect '/'
           end
         rescue OT::FormError => ex
           raise unless json_requested?
 
-          res.status                  = 400
-          res.headers['Content-Type'] = 'application/json'
           # Extract field from error message if possible, default to 'email'
-          field                       = ex.message.downcase.include?('password') ? 'password' : 'email'
-          res.body                    = {
-            error: ex.message,
-            'field-error': [field, ex.message.downcase],
-          }.to_json
+          field = ex.message.downcase.include?('password') ? 'password' : 'email'
+          json_error(ex.message, field_error: [field, ex.message.downcase], status: 400)
         end
       end
 
       def request_reset
-        strategy_result = Otto::Security::Authentication::StrategyResult.new(
-          session: session,
-          user: cust,
-          auth_method: 'session',
-          metadata: {
-            ip: req.client_ipaddress,
-            user_agent: req.user_agent,
-          },
-        )
-
         begin
           if req.params[:key]
             # Password reset with token
-            logic = V2::Logic::Authentication::ResetPassword.new(strategy_result, req.params, locale)
+            logic = V2::Logic::Authentication::ResetPassword.new(_strategy_result, req.params, locale)
             logic.raise_concerns
             logic.process
 
             if json_requested?
-              res.headers['Content-Type'] = 'application/json'
-              res.body                    = { success: 'Your password has been reset' }.to_json
+              json_success('Your password has been reset')
             else
               res.redirect '/signin'
             end
           else
             # Request password reset email
-            logic = V2::Logic::Authentication::ResetPasswordRequest.new(strategy_result, req.params, locale)
+            logic = V2::Logic::Authentication::ResetPasswordRequest.new(_strategy_result, req.params, locale)
             logic.raise_concerns
             logic.process
 
             if json_requested?
-              res.headers['Content-Type'] = 'application/json'
-              res.body                    = { success: 'An email has been sent to you with a link to reset the password for your account' }.to_json
+              json_success('An email has been sent to you with a link to reset the password for your account')
             else
               res.redirect '/'
             end
           end
         rescue OT::FormError => ex
           if json_requested?
-            res.status                  = 400
-            res.headers['Content-Type'] = 'application/json'
-            res.body                    = {
-              error: ex.message,
-              'field-error': ['email', ex.message.downcase],
-            }.to_json
+            json_error(ex.message, field_error: ['email', ex.message.downcase], status: 400)
           else
             session['error_message'] = ex.message
             res.redirect '/forgot'
           end
         rescue Onetime::MissingSecret => ex
           if json_requested?
-            res.status                  = 404
-            res.headers['Content-Type'] = 'application/json'
-            res.body                    = {
-              error: 'Invalid or expired reset token',
-              'field-error': %w[key invalid],
-            }.to_json
+            json_error('Invalid or expired reset token', field_error: %w[key invalid], status: 404)
           else
             session['error_message'] = 'Invalid or expired reset token'
             res.redirect '/forgot'
           end
         end
-      end
-
-      private
-
-      def _auth_settings
-        OT.conf.dig('site', 'authentication')
       end
     end
   end

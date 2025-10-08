@@ -107,6 +107,24 @@ module Core
         res.body   = view.render  # Render the entrypoint HTML
       end
 
+      # JSON response helpers
+
+      def json_response(data, status: 200)
+        res.status = status
+        res.headers['Content-Type'] = 'application/json'
+        res.body = data.to_json
+      end
+
+      def json_success(message, status: 200)
+        json_response({ success: message }, status: status)
+      end
+
+      def json_error(message, field_error: nil, status: 400)
+        body = { error: message }
+        body['field-error'] = field_error if field_error
+        json_response(body, status: status)
+      end
+
       # Common page rendering methods
 
       def index
@@ -114,7 +132,33 @@ module Core
         res.body = view.render
       end
 
+      protected
+
+      def signin_enabled?
+        _auth_settings['enabled'] && _auth_settings['signin']
+      end
+
+      def signup_enabled?
+        _auth_settings['enabled'] && _auth_settings['signup']
+      end
+
       private
+
+      def _auth_settings
+        OT.conf.dig('site', 'authentication')
+      end
+
+      def _strategy_result
+        Otto::Security::Authentication::StrategyResult.new(
+          session: session,
+          user: cust,
+          auth_method: 'session',
+          metadata: {
+            ip: req.client_ipaddress,
+            user_agent: req.user_agent,
+          },
+        )
+      end
 
       def load_current_customer
         # Try Otto auth result first (set by auth middleware)
