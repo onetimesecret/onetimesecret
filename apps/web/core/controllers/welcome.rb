@@ -171,7 +171,8 @@ module Core
       # @raise [OT::FormError] If there's an error creating the Stripe session or an unexpected error occurs
       #
       def customer_portal_redirect
-        res.no_cache!
+        res.do_not_cache!
+
         # Get the Stripe Customer ID from our customer instance
         customer_id = cust.stripe_customer_id
 

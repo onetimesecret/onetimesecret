@@ -13,7 +13,7 @@ module Core
         end
 
         # Prevent browser refresh re-submission
-        res.no_cache!
+        res.do_not_cache!
 
         strategy_result = Otto::Security::Authentication::StrategyResult.new(
           session: session,
@@ -73,7 +73,7 @@ module Core
       end
 
       def logout
-        res.no_cache!
+        res.do_not_cache!
 
         strategy_result = Otto::Security::Authentication::StrategyResult.new(
           session: session,
