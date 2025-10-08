@@ -114,18 +114,6 @@ module Core
         res.body = view.render
       end
 
-      def customers_only
-        res.no_cache!
-        view     = Core::Views::VuePoint.new(req, session, cust, locale)
-        res.body = view.render
-      end
-
-      def colonels_only
-        res.no_cache!
-        view     = Core::Views::VuePoint.new(req, session, cust, locale)
-        res.body = view.render
-      end
-
       private
 
       def load_current_customer
