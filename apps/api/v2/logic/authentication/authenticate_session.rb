@@ -31,36 +31,35 @@ module V2::Logic
       end
 
       def process
-        if success?
-          if cust.pending?
-            OT.info "[login-pending-customer] #{short_session_id} #{cust.objid} #{cust.role} (pending)"
-            OT.li "[ResetPasswordRequest] Resending verification email to #{cust.objid}"
-            send_verification_email nil
-
-            msg = "#{i18n.dig(:web, :COMMON, :verification_sent_to)} #{cust.objid}."
-            return set_info_message(msg)
-          end
-
-          @greenlighted = true
-
-          OT.info "[login-success] #{short_session_id} #{cust.obscure_email} #{cust.role}"
-
-          # Set session authentication data
-          sess['identity_id'] = cust.objid
-          sess['authenticated'] = true
-          sess['authenticated_at'] = Time.now.to_i
-          cust.save
-
-          colonels = OT.conf.dig('site', 'authentication', 'colonels') || []
-          if colonels.member?(cust.objid)
-            cust.role = :colonel
-          else
-            cust.role = :customer unless cust.role?(:customer)
-          end
-
-        else
+        unless success?
           OT.ld "[login-failure] #{short_session_id} #{cust.obscure_email} #{cust.role} (failed)"
           raise_form_error 'Try again'
+        end
+
+        if cust.pending?
+          OT.info "[login-pending-customer] #{short_session_id} #{cust.objid} #{cust.role} (pending)"
+          OT.li "[ResetPasswordRequest] Resending verification email to #{cust.objid}"
+          send_verification_email nil
+
+          msg = "#{i18n.dig(:web, :COMMON, :verification_sent_to)} #{cust.objid}."
+          return set_info_message(msg)
+        end
+
+        @greenlighted = true
+
+        OT.info "[login-success] #{short_session_id} #{cust.obscure_email} #{cust.role}"
+
+        # Set session authentication data
+        sess['identity_id'] = cust.objid
+        sess['authenticated'] = true
+        sess['authenticated_at'] = Time.now.to_i
+        cust.save
+
+        colonels = OT.conf.dig('site', 'authentication', 'colonels') || []
+        cust.role = if colonels.member?(cust.email)
+          :colonel
+        else
+          :customer
         end
       end
 
