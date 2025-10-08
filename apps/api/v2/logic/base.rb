@@ -108,11 +108,6 @@ module V2
           OT.le "Email validation error: #{ex.message}"
           OT.le ex.backtrace
           false
-        else
-          valid          = validator.result.valid?
-          validation_str = validator.as_json
-          OT.info "[valid_email?] Address is valid (#{valid}): #{validation_str}"
-          valid
         end
       end
 
