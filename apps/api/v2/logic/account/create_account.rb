@@ -5,13 +5,13 @@ module V2::Logic
       attr_accessor :token
 
       def process_params
-        OT.ld "[CreateAccount#process_params] params: #{params.inspect}"
+        OT.ld "[CreateAccount#process_params] param keys: #{params.keys.sort}"
         @planid = params[:planid].to_s
         @email = params[:u].to_s.downcase.strip
 
         @password = self.class.normalize_password(params[:p])
 
-        autoverify_setting = OT.conf&.dig('site', 'authentication', 'autoverify')
+        autoverify_setting = site.dig('authentication', 'autoverify')
         @autoverify        = autoverify_setting.to_s.eql?('true') || false
 
         # This is a hidden field, so it should be empty. If it has a value, it's
@@ -65,7 +65,8 @@ module V2::Logic
         success_message = if autoverify
                             'Account created.'
                           else
-                            send_verification_email
+                            # TODO: Disable mail verification temporarily on feature/1787-dual-auth-modes branch
+                            # send_verification_email
 
                             # NOTE: Intentionally left as symbols for i18n keys
                             "#{i18n.dig(:web, :COMMON, :verification_sent_to)} #{cust.custid}."
@@ -77,7 +78,7 @@ module V2::Logic
       private
 
       def form_fields
-        { planid: planid, custid: custid }
+        { planid: planid, email: email }
       end
     end
   end
