@@ -24,18 +24,16 @@ module Core
 
       def export_window
         OT.ld "[export_window] authenticated? #{authenticated?}"
-        view                       = Core::Views::ExportWindow.new req, session, cust, locale
+        view                        = Core::Views::ExportWindow.new req, session, cust, locale
         res.headers['content-type'] = 'application/json; charset=utf-8'
-        res.body                   = view.serialized_data.to_json
+        res.body                    = view.serialized_data.to_json
       end
 
       def robots_txt
-        view                       = Core::Views::RobotsTxt.new request, session, cust, locale
+        view                        = Core::Views::RobotsTxt.new request, session, cust, locale
         res.headers['content-type'] = 'text/plain'
-        res.body                   = view.render
+        res.body                    = view.render
       end
-
-
     end
   end
 end

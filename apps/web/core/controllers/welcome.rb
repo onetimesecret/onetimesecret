@@ -105,8 +105,8 @@ module Core
             auth_method: 'session',
             metadata: {
               ip: req.client_ipaddress,
-              user_agent: req.user_agent
-            }
+              user_agent: req.user_agent,
+            },
           )
 
           logic = V2::Logic::Welcome::FromStripePaymentLink.new strategy_result, req.params, locale
@@ -129,15 +129,15 @@ module Core
       # @see https://docs.stripe.com/payment-links/post-payment#change-confirmation-behavior
       #
       def welcome_webhook
-        # CSRF exemption handled by route parameter csrf=exempt
+          # CSRF exemption handled by route parameter csrf=exempt
           strategy_result = Otto::Security::Authentication::StrategyResult.new(
             session: session,
             user: cust,
             auth_method: 'session',
             metadata: {
               ip: req.client_ipaddress,
-              user_agent: req.user_agent
-            }
+              user_agent: req.user_agent,
+            },
           )
 
           logic                  = V2::Logic::Welcome::StripeWebhook.new strategy_result, req.params, locale
@@ -172,31 +172,29 @@ module Core
       #
       def customer_portal_redirect
         res.no_cache!
-            # Get the Stripe Customer ID from our customer instance
-            customer_id = cust.stripe_customer_id
+        # Get the Stripe Customer ID from our customer instance
+        customer_id = cust.stripe_customer_id
 
-            site_host  = Onetime.conf['site']['host']
-            is_secure  = Onetime.conf['site']['ssl']
-            return_url = "#{is_secure ? 'https' : 'http'}://#{site_host}/account"
+        site_host      = Onetime.conf['site']['host']
+        is_secure      = Onetime.conf['site']['ssl']
+        return_url     = "#{is_secure ? 'https' : 'http'}://#{site_host}/account"
 
-            # Create a Stripe Customer Portal session
-            stripe_session = Stripe::BillingPortal::Session.create({
-              customer: customer_id,
-              return_url: return_url,
-            },
-                                                           )
+        # Create a Stripe Customer Portal session
+        stripe_session = Stripe::BillingPortal::Session.create({
+          customer: customer_id,
+          return_url: return_url,
+        },
+                                                              )
 
-            # Continue the redirect
-            res.redirect stripe_session.url
-        rescue Stripe::StripeError => ex
+        # Continue the redirect
+        res.redirect stripe_session.url
+      rescue Stripe::StripeError => ex
             OT.le "[customer_portal_redirect] Stripe error: #{ex.message}"
             raise_form_error(ex.message)
-        rescue StandardError => ex
+      rescue StandardError => ex
             OT.le "[customer_portal_redirect] Unexpected error: #{ex.message}"
             raise_form_error('An unexpected error occurred')
       end
-
-
     end
   end
 end

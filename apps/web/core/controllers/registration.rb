@@ -18,8 +18,8 @@ module Core
           auth_method: 'session',
           metadata: {
             ip: req.client_ipaddress,
-            user_agent: req.user_agent
-          }
+            user_agent: req.user_agent,
+          },
         )
 
         logic = V2::Logic::Account::CreateAccount.new(strategy_result, req.params, locale)
@@ -33,23 +33,21 @@ module Core
 
           if json_requested?
             res.headers['Content-Type'] = 'application/json'
-            res.body = { success: 'Your account has been created' }.to_json
+            res.body                    = { success: 'Your account has been created' }.to_json
           else
             res.redirect '/'
           end
-        rescue OT::FormError => e
-          if json_requested?
-            res.status = 400
-            res.headers['Content-Type'] = 'application/json'
-            # Extract field from error message if possible, default to 'email'
-            field = e.message.downcase.include?('password') ? 'password' : 'email'
-            res.body = {
-              error: e.message,
-              'field-error': [field, e.message.downcase]
-            }.to_json
-          else
-            raise
-          end
+        rescue OT::FormError => ex
+          raise unless json_requested?
+
+          res.status                  = 400
+          res.headers['Content-Type'] = 'application/json'
+          # Extract field from error message if possible, default to 'email'
+          field                       = ex.message.downcase.include?('password') ? 'password' : 'email'
+          res.body                    = {
+            error: ex.message,
+            'field-error': [field, ex.message.downcase],
+          }.to_json
         end
       end
 
@@ -60,8 +58,8 @@ module Core
           auth_method: 'session',
           metadata: {
             ip: req.client_ipaddress,
-            user_agent: req.user_agent
-          }
+            user_agent: req.user_agent,
+          },
         )
 
         begin
@@ -73,7 +71,7 @@ module Core
 
             if json_requested?
               res.headers['Content-Type'] = 'application/json'
-              res.body = { success: 'Your password has been reset' }.to_json
+              res.body                    = { success: 'Your password has been reset' }.to_json
             else
               res.redirect '/signin'
             end
@@ -85,30 +83,30 @@ module Core
 
             if json_requested?
               res.headers['Content-Type'] = 'application/json'
-              res.body = { success: 'An email has been sent to you with a link to reset the password for your account' }.to_json
+              res.body                    = { success: 'An email has been sent to you with a link to reset the password for your account' }.to_json
             else
               res.redirect '/'
             end
           end
-        rescue OT::FormError => e
+        rescue OT::FormError => ex
           if json_requested?
-            res.status = 400
+            res.status                  = 400
             res.headers['Content-Type'] = 'application/json'
-            res.body = {
-              error: e.message,
-              'field-error': ['email', e.message.downcase]
+            res.body                    = {
+              error: ex.message,
+              'field-error': ['email', ex.message.downcase],
             }.to_json
           else
-            session['error_message'] = e.message
+            session['error_message'] = ex.message
             res.redirect '/forgot'
           end
-        rescue Onetime::MissingSecret => e
+        rescue Onetime::MissingSecret => ex
           if json_requested?
-            res.status = 404
+            res.status                  = 404
             res.headers['Content-Type'] = 'application/json'
-            res.body = {
+            res.body                    = {
               error: 'Invalid or expired reset token',
-              'field-error': ['key', 'invalid']
+              'field-error': %w[key invalid],
             }.to_json
           else
             session['error_message'] = 'Invalid or expired reset token'

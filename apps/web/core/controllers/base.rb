@@ -13,8 +13,8 @@ module Core
       attr_reader :req, :res, :locale
 
       def initialize(req, res)
-        @req = req
-        @res = res
+        @req    = req
+        @res    = res
         @locale = req.env['ots.locale'] || 'en'
       end
 
