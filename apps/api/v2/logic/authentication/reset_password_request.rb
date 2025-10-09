@@ -47,7 +47,7 @@ module V2::Logic
           OT.le "Error sending password reset email: #{ex.message}"
           set_error_message(errmsg)
         else
-          OT.info "Password reset email sent to #{@objid} for sess=#{short_session_id}"
+          OT.info "Password reset email sent to #{@objid} for sess=#{sess}"
           set_info_message "We sent instructions to #{cust.objid}"
         end
       end

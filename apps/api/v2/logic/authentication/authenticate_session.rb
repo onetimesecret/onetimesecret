@@ -32,12 +32,12 @@ module V2::Logic
 
       def process
         unless success?
-          OT.ld "[login-failure] #{short_session_id} #{cust.obscure_email} #{cust.role} (failed)"
+          OT.ld "[login-failure] #{sess} #{cust.obscure_email} #{cust.role} (failed)"
           raise_form_error 'Try again'
         end
 
         if cust.pending?
-          OT.info "[login-pending-customer] #{short_session_id} #{cust.objid} #{cust.role} (pending)"
+          OT.info "[login-pending-customer] #{sess} #{cust.objid} #{cust.role} (pending)"
           OT.li "[ResetPasswordRequest] Resending verification email to #{cust.objid}"
           send_verification_email nil
 
@@ -47,7 +47,7 @@ module V2::Logic
 
         @greenlighted = true
 
-        OT.info "[login-success] #{short_session_id} #{cust.obscure_email} #{cust.role}"
+        OT.info "[login-success] #{sess} #{cust.obscure_email} #{cust.role}"
 
         # Set session authentication data
         sess['identity_id'] = cust.objid

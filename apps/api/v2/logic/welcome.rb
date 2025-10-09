@@ -74,7 +74,7 @@ module V2
               # Create a completely new session, new id, new everything (incl
               # cookie which the controllor will implicitly do above when it
               # resends the cookie with the new session id).
-              OT.info "[FromStripePaymentLink:login-success] #{short_session_id} #{cust.obscure_email} #{cust.role}"
+              OT.info "[FromStripePaymentLink:login-success] #{sess} #{cust.obscure_email} #{cust.role}"
 
               # Set session authentication data
               sess['identity_id'] = cust.custid
